@@ -1,0 +1,113 @@
+$btn-padding: 8px 12px;
+$xs-padding: 2px 3px;
+$sm-padding: 5px 10px;
+$lg-padding: 18px 30px;
+
+// -----------------------------------------------------------------------------
+// This file contains all styles related to the button component.
+// -----------------------------------------------------------------------------
+.btn,
+button,
+[class^='btn-'] {
+  display: inline-block;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  border: 0 solid transparent;
+  padding: $btn-padding;
+  border-radius: 1.5px;
+
+  &:hover {
+      text-decoration: none;
+  }
+
+  &.bg-transparent {
+    color: var(--body-text);
+  }
+}
+
+//icon button
+.icon-btn {
+  padding: 0;
+  &.btn-sm {
+    padding: 0;
+  }
+
+  span {
+    padding: 0 10px 0 5px;
+    vertical-align: middle;
+  }
+}
+
+//btn sizes
+.btn-xs,
+.btn-group-xs > .btn,
+.btn-xs .btn-label {
+    padding: $xs-padding;
+    font-size: .65em;
+    line-height: 1.5em;
+}
+
+.btn-group-xs > .btn {
+  padding: #{$xs-padding - 1};
+}
+
+.btn-sm,
+.btn-group-sm > .btn,
+.btn-sm .btn-label {
+    padding: $sm-padding;
+    border-radius: 0;
+    font-size: 0.87em;
+
+}
+
+.btn-group-sm > .btn {
+  padding: 4px 9px;
+  margin-left: -3px;
+}
+
+.btn-lg,
+.btn-group-lg > .btn,
+.btn-lg .btn-label {
+    padding: $lg-padding;
+    font-size: 1.2em;
+}
+
+.icon-group i {
+  font-size: 1.5em;
+}
+
+//disabled
+.btn-disabled,
+.btn.disabled,
+.btn[disabled],
+fieldset[disabled] .btn {
+  @extend .bg-disabled;
+  cursor: not-allowed;
+}
+
+//button group
+[class^='btn-group'] {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  text-align: center;
+  padding: 0;
+  overflow: hidden;
+  background: var(--input-bg);
+  border-radius: 2px;
+
+  .btn, .btn-xs, .btn-sm, .btn-lg {
+    position: relative;
+    display: inline-block;
+
+    &.active {
+      @extend .bg-primary;
+    }
+  }
+}

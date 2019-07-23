@@ -1,0 +1,24 @@
+$max-width: 1440px !default;
+$min-width: 75% !default;
+
+$outline-width: 4px;
+
+$z-indexes: (
+  default: 1,
+
+  tableGroup: 10,
+  fixedTableHeader: 11,
+
+  modalOverlay: 20,
+  modalContent: 21,
+
+  dropdownOverlay: 30,
+  dropdownContent: 31,
+
+  loadingOverlay: 40,
+  loadingContent: 41
+);
+
+$text-light: 300;
+
+$border-radius: 3px;

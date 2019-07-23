@@ -1,0 +1,71 @@
+.theme-dark {
+  // Local variables for reused colors
+  $secondary: #9c9fa4;
+  $disabled:  #7c8084;
+  $link:      #6cb4b9;
+
+  //Contrast colors
+  $contrasted-dark: $lightest !default;
+  $contrasted-light: $darkest !default;
+
+  // Colors that will have text- and bg- helper classes created
+  // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
+  @include color-variables((
+    default:    $primary,
+    muted:      $disabled,
+    link:       (
+      default-text: $link,
+      hover-text:   lighten($link, 10%),
+      active-text:  lighten($link, 25%),
+      default:      transparent,
+      hover-bg:     transparent,
+      active-bg:    transparent,
+    ),
+    primary:    $primary,
+    secondary:  $secondary,
+  ));
+
+  --default-text: #{$light};
+
+  --login-bg:  #{$darkest};
+  --body-bg:   #{$darker};
+  --body-text:  white;
+  --header-bg: #{$dark};
+  --nav-bg:    #{$darkest};
+  --box-bg:    #{$darker};
+  --border:    #{$darker};
+  --nav-select:    #{$darker};
+
+  --dropdown-bg:            #{$medium};
+  --dropdown-border:        #{$dark};
+  --dropdown-divider:       #{$darker};
+  --dropdown-text:          #{$link};
+  --dropdown-hover-text:    #{$lightest};
+  --dropdown-hover-bg:      #{$selected};
+  --dropdown-active-text:   var(--active-text);
+  --dropdown-active-bg:     var(--active-bg);
+  --dropdown-disabled-text: var(--muted);
+  --dropdown-disabled-bg:   transparent;
+
+  --input-text:         #{$lightest};
+  --input-label:        #{$lighter};
+  --input-placeholder:  #{$medium};
+  --input-border:       #{$medium};
+  --input-bg:           #{$darkest};
+  --input-hover-bg:     #{$darkest};
+  --input-focus-bg:     #{$darkest};
+
+  --modal-overlay-bg:           rgba(#000, 0.75);
+
+  --progress-bg: #{$medium};
+  --progress-divider: #{$lightest};
+
+  --sortable-table-header-bg: #{$darker};
+  --sortable-table-accent-bg: #{$darkest};
+  --sortable-table-accent-alt: #{$darker};
+  --sortable-table-divider-bg: #{$dark};
+  --sortable-table-selected-bg: #{$selected};
+
+  --tooltip-bg: #{$lightest};
+  --tooltip-text: #{$dark};
+}

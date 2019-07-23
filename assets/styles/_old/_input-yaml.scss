@@ -1,0 +1,25 @@
+.input-yaml {
+  section {
+    @include clearfix;
+  }
+
+  h1 {
+    float: left;
+    margin: 0;
+  }
+
+  .right-buttons {
+    float: right;
+    text-align: right;
+  }
+
+  &:not(.read-only) {
+    .codemirror-container {
+      border: 1px solid var(--input-border);
+    }
+  }
+
+  .CodeMirror {
+    height: 100%;
+  }
+}

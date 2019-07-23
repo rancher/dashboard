@@ -1,0 +1,101 @@
+BODY {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.middle {
+  display: flex;
+  flex: 1;
+}
+
+$header-height: 70px;
+$nav-width: 200px;
+
+HEADER {
+  height: $header-height;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--header-bg);
+  padding: 10px;
+
+  .nav-user {
+    margin: 0;
+    display: flex;
+
+    LI {
+      list-style-type: none;
+    }
+
+    .btn {
+      padding: 0;
+    }
+  }
+
+  .header-right {
+    display: flex;
+    background-color: var(--header-bg);
+
+    .nav-account {
+      font-size: 3rem;
+    }
+
+    .nav-create {
+      font-size: 3rem;
+    }
+  }
+}
+
+NAV {
+  position: relative;
+  background-color: var(--nav-bg);
+  flex: 0 0 $nav-width;
+  padding: 40px 20px;
+
+  .project-dropdown {
+    width: 100%;
+    margin-bottom: 10px;
+    background: var(--nav-select);
+    height: 35px;
+  }
+
+  LI.active {
+    background-color: var(--border);
+  }
+
+  .logo {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: solid thin var(--border);
+    padding: 20px;
+  }
+
+  ul {
+    li {
+      a {
+        display: block;
+        font-size: 12px;
+        color: $lighter;
+        border-bottom: solid thin var(--border);
+        padding: 10px;
+      }
+    }
+  }
+}
+
+MAIN {
+  flex: 1;
+  padding: 40px;
+}
+
+FOOTER {
+  background-color: var(--footer-bg);
+}
+

@@ -1,0 +1,36 @@
+///Computes the "brightness" of a color
+@function brightness($color) {
+  @if type-of($color) == color {
+    @return (red($color) * 0.299 + green($color) * 0.587 + blue($color) * 0.114) / 255 * 100%;
+  }
+  @else {
+    @return unquote("brightness(#{$color})");
+  }
+}
+
+
+///Select the more readable foreground color for a given background color.
+@function contrast-color($color, $dark: $contrasted-dark, $light: $contrasted-light) {
+  @if $color == null {
+    @return null;
+  }
+  @else {
+    $color-brightness: brightness($color);
+    $dark-text-brightness: brightness($dark);
+    $light-text-brightness: brightness($light);
+    @return if(abs($color-brightness - $light-text-brightness) > abs($color-brightness - $dark-text-brightness), $light, $dark);
+  }
+}
+
+@function add-z-index($key, $value) {
+  @return map-merge($z-indexes, ($key: $value));
+}
+
+@function z-index($key) {
+  @if map-has-key($z-indexes, $key) {
+    @return map-get($z-indexes, $key);
+  }
+
+  @warn "Unknown key `#{$key}` in $z-indexes";
+  @return null;
+}

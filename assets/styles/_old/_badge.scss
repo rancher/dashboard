@@ -1,0 +1,24 @@
+.badge-state {
+  padding: 5px;
+  border: 1px solid transparent;
+  border-radius: 100px;
+  text-transform: capitalize;
+
+  // Successful states are de-emphasized by using [text-]color instead of background-color
+  &.bg-success {
+    background-color: transparent;
+    border: 1px solid var(--success);
+    color: var(--success);
+  }
+}
+
+.grid TD .badge-state {
+  @include clip;
+  display: inline-block;
+  max-width: 100%;
+  position: relative;
+  padding: 1px 10px;
+  font-size: 1em;
+  max-width: 110px;
+  font-size: .85em;
+}

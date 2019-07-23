@@ -1,0 +1,14 @@
+.ember-attacher-tooltip {
+  background-color: var(--tooltip-bg) !important;
+  border-radius: var(--tooltip-border-radius) !important;
+  color: var(--tooltip-text) !important;
+
+  > div[x-arrow] {
+    background-color: var(--tooltip-bg) !important;
+    border-color: transparent transparent var(--tooltip-bg) var(--tooltip-bg) !important;
+  }
+
+  > div[x-circle] {
+    background-color: var(--tooltip-bg) !important;
+  }
+}

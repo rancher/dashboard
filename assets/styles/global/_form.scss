@@ -1,0 +1,132 @@
+$spacing: 10px;
+
+INPUT[type='text'],
+INPUT[type='password'],
+INPUT[type='number'],
+INPUT[type='date'],
+INPUT[type='email'],
+INPUT[type='search'],
+INPUT[type='tel'],
+INPUT[type='url'],
+SELECT,
+TEXTAREA {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 12px 8px;
+
+  color: var(--input-text);
+  background: var(--input-bg);
+
+  // border-color: var(--input-border);
+  border-width: $outline-width;
+  border-radius: $border-radius;
+  border-style: solid;
+  border-color: transparent;
+  font-size: 15px;
+
+  &::placeholder {
+    color: var(--input-placeholder);
+  }
+
+  &:hover {
+    background: var(--input-hover-bg, var(--input-bg));
+  }
+
+  &.disabled, &[disabled], &[disabled]:hover  {
+    color: var(--input-disabled-text);
+    background-color: var(--input-disabled-bg, var(--input-bg));
+    outline-width: 0;
+    border-color: var(--input-disabled-border, var(--input-border));
+    cursor: not-allowed;
+    &::placeholder {
+        color: var(--input-disabled-placeholder, var(--input-placeholder));
+    }
+  }
+
+}
+
+FORM {
+  LABEL {
+    color: var(--input-label);
+    display: inline-block;
+    margin: #{$spacing * 2} 0 $spacing 0;
+
+    &.radio, &.checkbox {
+      cursor: pointer;
+      margin: 0;
+
+      &.standalone {
+        margin: 10px 0;
+      }
+    }
+  }
+
+  .radio-group, .checkbox-group {
+    margin: #{$spacing * 2} 0 $spacing 0;
+  }
+
+  .actions {
+    padding-top: $spacing;
+  }
+
+  .detail {
+    margin-top: 2px;
+    @extend .text-small;
+    color: var(--muted);
+  }
+
+  .group {
+    border: 1px solid var(--input-border);
+    padding: 20px;
+  }
+}
+
+.field-required {
+  color: red;
+  font-weight: bold;
+}
+
+INPUT.inline-input {
+  display: inline-block;
+  width: 75px;
+  margin: 0 10px;
+}
+
+SELECT {
+  height: 35px;
+}
+
+/*
+.validated-input {
+  INPUT {
+    outline-width: 2px;
+    outline-offset: -2px;
+  }
+
+  &.has-warning INPUT {
+    border-color: var(--warning);
+  }
+
+  &.has-error INPUT {
+    border-color: var(--error);
+  }
+
+  &.has-success INPUT {
+    border-color: var(--success);
+    padding-right: 32px;
+    background-image: url(../images/field-valid.svg);
+    background-size: 30px;
+    background-position: right;
+    background-repeat: no-repeat;
+  }
+
+  .input-warning-message {
+    color: var(--warning-text);
+  }
+
+  .input-error-message {
+    color: var(--error);
+  }
+}
+*/
