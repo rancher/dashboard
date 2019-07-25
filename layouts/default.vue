@@ -1,3 +1,4 @@
+
 <template>
   <div class="root">
     <header>
@@ -12,12 +13,14 @@
 
     <div class="middle">
       <nav>
-        <ul class="list-unstyled">
-          <li>Package 1</li>
-          <li>Package 2</li>
-          <li>Package 3</li>
-          <n-link tag="li" to="explorer">
-            <a>Explorer</a>
+        <ul class="list-unstyled packages">
+          <n-link v-for="pkg in packages" :key="pkg.name" :to="pkg.name" tag="li" class="package">
+            <a>{{ pkg.label }}</a>
+            <ul class="list-unstyled children">
+              <li><a>Child 1</a></li>
+              <li><a>Child 2</a></li>
+              <li><a>Child 3</a></li>
+            </ul>
           </n-link>
         </ul>
 
@@ -39,10 +42,34 @@
 
 <script>
 export default {
+
   head() {
-    return { bodyAttrs: { class: 'theme-dark' } }
+    const theme = this.$store.state.prefs.theme;
+
+    return { bodyAttrs: { class: `theme-${ theme }` } };
+  },
+
+  middleware: 'k8s',
+
+  computed: {
+    packages() {
+      console.log('return packages');
+
+      const data = [
+        {
+          name:  'cluster',
+          label: 'Cluster Info'
+        },
+        {
+          name:  'explorer',
+          label: 'Explorer'
+        }
+      ];
+
+      return data;
+    }
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>
@@ -99,18 +126,7 @@ export default {
     position: relative;
     background-color: var(--nav-bg);
     flex: 0 0 $nav-width;
-    padding: 40px 20px;
-
-    .project-dropdown {
-      width: 100%;
-      margin-bottom: 10px;
-      background: var(--nav-select);
-      height: 35px;
-    }
-
-    LI.active {
-      background-color: var(--border);
-    }
+    padding: 0;
 
     .logo {
       position: absolute;
@@ -125,13 +141,37 @@ export default {
       padding: 20px;
     }
 
-    ul {
-      li {
-        a {
-          display: block;
-          font-size: 12px;
+    > UL {
+      > LI {
+          background-color: var(--nav-pkg);
           border-bottom: solid thin var(--border);
+
+        > A {
+          display: block;
+          font-size: 14px;
           padding: 10px;
+        }
+
+        > UL {
+          background-color: var(--nav-sub);
+
+          > LI > A {
+            display: block;
+            font-size: 12px;
+            padding: 10px 0 10px 20px;
+          }
+        }
+
+        &.nuxt-link-active > UL {
+          background-color: var(--nav-cur-sub);
+
+          > LI.nuxt-link-active {
+            background-color: var(--nav-active);
+          }
+        }
+
+        &.nuxt-link-exact-active > A {
+          background-color: var(--nav-active);
         }
       }
     }

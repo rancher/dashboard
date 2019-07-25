@@ -31,10 +31,15 @@
   --body-bg:   #{$darker};
   --body-text:  white;
   --header-bg: #{$dark};
-  --nav-bg:    #{$darkest};
   --box-bg:    #{$darker};
   --border:    #{$darker};
   --nav-select:    #{$darker};
+
+  --nav-bg:      #{$darkest};
+  --nav-pkg:     #{lighten($darkest, 10%)};
+  --nav-sub:     #{lighten($darkest, 15%)};
+  --nav-cur-sub: #{lighten($darkest, 25%)};
+  --nav-active:  var(--outline);
 
   --dropdown-bg:            #{$medium};
   --dropdown-border:        #{$dark};

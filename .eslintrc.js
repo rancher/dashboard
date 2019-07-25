@@ -40,6 +40,9 @@ module.exports = {
     'no-useless-escape':                          'off',
     'strict':                                     'off',
     'wrap-iife':                                  'off',
+    
+    'semi': ['warn', 'always'],
+    'comma-dangle': ['warn', 'only-multiline'],
 
     // stylistic
     'array-bracket-spacing':    'error',
