@@ -11,7 +11,8 @@
             "program": "${workspaceFolder}/node_modules/.bin/nuxt",
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
-            ]
+            ],
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

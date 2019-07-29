@@ -23,6 +23,8 @@ export const FAVORITES = create('fav', [
 
 export const THEME = create('theme', 'dark', false);
 
+export const ROWS_PER_PAGE = create('per_page', 100, false);
+
 // --------------------
 
 const prefix = 'rd_';
@@ -35,6 +37,26 @@ const options = {
 
 export const state = function() {
   return {};
+};
+
+export const getters = {
+  getPref: state => (key) => {
+    const entry = all[key];
+
+    if (!entry) {
+      throw new Error(`Unknown preference: ${ key }`);
+    }
+
+    const user = state[key];
+
+    if (user) {
+      return user;
+    }
+
+    const def = JSON.parse(JSON.stringify(entry.def));
+
+    return def;
+  }
 };
 
 export const mutations = {
@@ -52,20 +74,17 @@ export const actions = {
   loadCookies({ commit }) {
     for (const key in all) {
       const entry = all[key];
-      let val = JSON.parse(JSON.stringify(entry.def));
       const opt = {};
 
       if (!entry.isJson) {
         opt.parseJSON = false;
       }
 
-      const user = this.$cookies.get(`${ prefix }${ key }`, opt);
+      const val = this.$cookies.get(`${ prefix }${ key }`, opt);
 
-      if (user !== undefined) {
-        val = user;
+      if (val !== undefined) {
+        commit('load', { key, val });
       }
-
-      commit('load', { key, val });
     }
   }
 };

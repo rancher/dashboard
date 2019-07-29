@@ -41,10 +41,12 @@
 </template>
 
 <script>
+import { THEME } from '~/store/prefs';
+
 export default {
 
   head() {
-    const theme = this.$store.state.prefs.theme;
+    const theme = this.$store.getters['prefs/getPref'](THEME);
 
     return { bodyAttrs: { class: `theme-${ theme }` } };
   },

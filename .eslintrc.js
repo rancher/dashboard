@@ -18,42 +18,42 @@ module.exports = {
     'vue/html-self-closing': 'off',
 
     // Overrides
-    'curly':                                      'error',
+    'curly':                                      'warn',
     'dot-notation':                               'off',
-    'eqeqeq':                                     'error',
+    'eqeqeq':                                     'warn',
     'generator-star-spacing':                     'off',
     'guard-for-in':                               'off',
     'linebreak-style':                            'off',
     'new-cap':                                    'off',
-    'no-caller':                                  'error',
-    'no-cond-assign':                             ['error', 'except-parens'],
+    'no-caller':                                  'warn',
+    'no-cond-assign':                             ['warn', 'except-parens'],
     'no-console':                                 'off',
     'no-debugger':                                'warn',
     'no-empty':                                   'off',
-    'no-eq-null':                                 'error',
-    'no-eval':                                    'error',
+    'no-eq-null':                                 'warn',
+    'no-eval':                                    'warn',
     'no-extra-boolean-cast':                      'off',
     'no-new':                                     'off',
     'no-plusplus':                                'off',
-    'no-undef':                                   'error',
+    'no-undef':                                   'warn',
     'no-unused-vars':                             'warn',
     'no-useless-escape':                          'off',
     'strict':                                     'off',
     'wrap-iife':                                  'off',
-    
+
     'semi': ['warn', 'always'],
     'comma-dangle': ['warn', 'only-multiline'],
 
     // stylistic
-    'array-bracket-spacing':    'error',
-    'padded-blocks':            ['error', 'never'],
-    'block-spacing':            ['error', 'always'],
-    'brace-style':              ['error', '1tbs'],
-    'comma-spacing':            'error',
-    'func-call-spacing':        ['error', 'never'],
-    'implicit-arrow-linebreak': 'error',
-    'indent':                   ['error', 2],
-    'key-spacing':              ['error', {
+    'array-bracket-spacing':    'warn',
+    'padded-blocks':            ['warn', 'never'],
+    'block-spacing':            ['warn', 'always'],
+    'brace-style':              ['warn', '1tbs'],
+    'comma-spacing':            'warn',
+    'func-call-spacing':        ['warn', 'never'],
+    'implicit-arrow-linebreak': 'warn',
+    'indent':                   ['warn', 2],
+    'key-spacing':              ['warn', {
       'align': {
         'beforeColon': false,
         'afterColon':  true,
@@ -66,11 +66,11 @@ module.exports = {
       },
     }],
 
-    'keyword-spacing':               'error',
-    'lines-between-class-members':   'error',
-    'newline-per-chained-call':      ['error', { 'ignoreChainWithDepth': 4 }],
-    'no-whitespace-before-property': 'error',
-    'object-curly-newline':          ['error', {
+    'keyword-spacing':               'warn',
+    'lines-between-class-members':   'warn',
+    'newline-per-chained-call':      ['warn', { 'ignoreChainWithDepth': 4 }],
+    'no-whitespace-before-property': 'warn',
+    'object-curly-newline':          ['warn', {
       'ObjectExpression':  {
         'multiline':     true,
         'minProperties': 3
@@ -88,10 +88,10 @@ module.exports = {
         'minProperties': 3
       }
     }],
-    'object-curly-spacing':            ['error', 'always'],
-    'object-property-newline':         'error',
+    'object-curly-spacing':            ['warn', 'always'],
+    'object-property-newline':         'warn',
     'padding-line-between-statements': [
-      'error',
+      'warn',
       {
         'blankLine': 'always',
         'prev':      '*',
@@ -110,37 +110,40 @@ module.exports = {
       }
     ],
     quotes: [
-      'error',
+      'warn',
       'single',
       {
         'avoidEscape':           true,
         'allowTemplateLiterals': true
       },
     ],
-    'space-before-function-paren': ['error', 'never'],
-    'space-infix-ops':             'error',
+    'space-before-function-paren': ['warn', 'never'],
+    'space-infix-ops':             'warn',
     'space-unary-ops':             [
-      'error',
+      'warn',
       {
         'words':    true,
         'nonwords': false,
       }
     ],
-    'spaced-comment':       'error',
-    'switch-colon-spacing': 'error',
+    'space-in-parens':      'off',
+    'spaced-comment':       'warn',
+    'switch-colon-spacing': 'warn',
+
+    'semi-spacing': 'off',
 
     // ECMAScript 6
-    'arrow-parens':           'error',
-    'arrow-spacing':          ['error', {
+    'arrow-parens':           'warn',
+    'arrow-spacing':          ['warn', {
       'before': true,
       'after':  true
     }],
-    'no-trailing-spaces':     'error',
-    'object-shorthand':       'error',
-    'prefer-arrow-callback':  'error',
-    'prefer-template':        'error',
-    'rest-spread-spacing':    'error',
-    'template-curly-spacing': ['error', 'always'],
-    'yield-star-spacing':     ['error', 'both'],
+    'no-trailing-spaces':     'warn',
+    'object-shorthand':       'warn',
+    'prefer-arrow-callback':  'warn',
+    'prefer-template':        'warn',
+    'rest-spread-spacing':    'warn',
+    'template-curly-spacing': ['warn', 'always'],
+    'yield-star-spacing':     ['warn', 'both'],
   }
 }

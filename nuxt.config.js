@@ -58,7 +58,6 @@ module.exports = {
 
   // Plugins to load before mounting the App
   plugins: [
-    '~/plugins/axios.js'
   ],
 
   // Nuxt modules
@@ -70,8 +69,7 @@ module.exports = {
 
   router: {
     middleware: [
-      'cookies',
-      'k8s',
+      'preload'
     ],
   },
 

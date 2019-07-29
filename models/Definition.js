@@ -15,10 +15,6 @@ export default class Definition {
     return 'base';
   }
 
-  getKey() {
-    return this._key;
-  }
-
   setKey(key) {
     Object.defineProperty(this, '_key', {
       configurable: true,

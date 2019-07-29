@@ -1,6 +1,6 @@
 import { compare } from '@/utils/parse-k8s-version';
 import { eachLimit } from '@/utils/promise-limit';
-import Definition from '@/models/Definition';
+// import Definition from '@/models/Definition';
 
 export const state = function() {
   return {
@@ -132,9 +132,9 @@ export const actions = {
     }
 
     Object.keys(schemas.definitions).forEach((key) => {
-      const obj = new Definition(schemas.definitions[key]);
+      const obj = schemas.definitions[key];
 
-      obj.setKey(key);
+      obj.id = key;
       definitions[key] = obj;
     });
 

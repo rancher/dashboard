@@ -1,17 +1,22 @@
-const express = require('express');
-const consola = require('consola');
+require('dotenv').config();
 const path = require('path');
 const http = require('http');
 const https = require('https');
+const consola = require('consola');
+const express = require('express');
 const HttpProxy = require('http-proxy');
-const { ProxyError } = require('./error');
 const { Nuxt, Builder } = require('nuxt');
 const app = express();
 
 // Import and Set Nuxt.js options
 const config = require('../nuxt.config.js');
+const { ProxyError } = require('./error');
 
 config.dev = !(process.env.NODE_ENV === 'production');
+
+if (config.dev) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
 
 start();
 
@@ -32,7 +37,7 @@ async function start() {
 
   let httpServer;
 
-  if ( config.server.https ) {
+  if (config.server.https) {
     httpServer = https.createServer({
       cert: config.server.https.cert,
       key:  config.server.https.key
@@ -40,9 +45,6 @@ async function start() {
   } else {
     httpServer = http.createServer(app);
   }
-
-  httpServer.on('upgrade', handleUpgrade);
-  httpServer.listen(config.server.port, config.server.host);
 
   const proxyTo = normalizeHost(config.server.api);
   const serverProxy = HttpProxy.createProxyServer({
@@ -52,15 +54,18 @@ async function start() {
     secure: false,
   });
 
+  httpServer.on('upgrade', handleUpgrade.bind(this, serverProxy));
+  httpServer.listen(config.server.port, config.server.host);
+
   serverProxy.on('error', onProxyError);
   consola.info('Proxying API to', proxyTo);
 
   Object.keys(config.server.proxy).forEach((label) => {
-    let base = config.server.proxy[label];
+    const base = config.server.proxy[label];
 
     consola.log(`Registering ${ base }`);
-    app.use(base, (req, res /* , next */ ) => {
-      if ( req.url === '/' ) {
+    app.use(base, (req, res /* , next */) => {
+      if (req.url === '/') {
         req.url = '';
       }
 
@@ -73,7 +78,7 @@ async function start() {
       delete req.headers['host'];
 
       if (config.server.apiToken) {
-        req.headers['Authorization'] = 'Basic ' + Buffer.from(config.server.apiToken).toString('base64');
+        req.headers['Authorization'] = `Basic ${ Buffer.from(config.server.apiToken).toString('base64') }`;
       }
 
       proxyLog(label, req);
@@ -90,19 +95,17 @@ async function start() {
   });
 }
 
-function handleUpgrade(eq, socket, head) {
-  if ( req.url.startsWith('/_lr/') ) {
+function handleUpgrade(proxy, req, socket, head) {
+  if (req.url.startsWith('/_lr/')) {
     return;
   }
 
-  req._source = 'Upgrade';
-
   // don't include the original host header
-  let targetHost = config.server.api.replace(/^https?:\/\//, '');
+  const targetHost = config.server.api.replace(/^https?:\/\//, '');
   let host = req.headers['host'];
   let port;
 
-  if ( socket.ssl ) {
+  if (socket.ssl) {
     req.headers['x-forwarded-proto'] = 'https';
     port = 443;
   } else {
@@ -110,10 +113,11 @@ function handleUpgrade(eq, socket, head) {
     port = 80;
   }
 
-  if ( host ) {
-    idx = host.lastIndexOf(':');
-    if ( ( host.startsWith('[') && host.includes(']:') || !host.startsWith('[') ) && idx > 0 ){
-      port = host.substr(idx+1);
+  if (host) {
+    const idx = host.lastIndexOf(':');
+
+    if (((host.startsWith('[') && host.includes(']:')) || !host.startsWith('[')) && idx > 0) {
+      port = host.substr(idx + 1);
       host = host.substr(0, host.lastIndexOf(':'));
     }
   }
@@ -126,7 +130,7 @@ function handleUpgrade(eq, socket, head) {
 
   proxyLog('WS', req);
   try {
-    serverProxy.ws(req, socket, head);
+    proxy.ws(req, socket, head);
   } catch (err) {
     proxyError('WS', req, err);
   }
@@ -135,7 +139,7 @@ function handleUpgrade(eq, socket, head) {
 function onProxyError(err, req, res) {
   consola.error(`Proxy Error on ${ req.method } to ${ req.url }`, err);
 
-  if ( req.upgrade ) {
+  if (req.upgrade) {
     res.end();
 
     return;
@@ -147,24 +151,24 @@ function onProxyError(err, req, res) {
 }
 
 function proxyLog(label, req) {
-  consola.log(`[${ label }][${ req._source }]`, req.method, req.url);
+  consola.log(`[${ label }][${ req.isServer }]`, req.method, req.url);
 }
 
 function proxyError(label, req, err) {
-  consola.error(`[${ label }][${ req._source }]`, req.method, req.url, err);
+  consola.error(`[${ label }][${ req.isServer }]`, req.method, req.url, err);
 }
 
 // host can be an ip "1.2.3.4" -> https://1.2.3.4:30443
 // or a URL+port
 function normalizeHost(host, defaultPort) {
-  if ( host.indexOf('http') === 0 ) {
+  if (host.indexOf('http') === 0) {
     return host;
   }
 
-  if ( host.indexOf(':') >= 0 || defaultPort === 443 ) {
-    host = `https://${  host }`;
+  if (host.indexOf(':') >= 0 || defaultPort === 443) {
+    host = `https://${ host }`;
   } else {
-    host = `https://${  host  }${ defaultPort ? `:${ defaultPort }` : '' }`;
+    host = `https://${ host }${ defaultPort ? `:${ defaultPort }` : '' }`;
   }
 
   return host;
