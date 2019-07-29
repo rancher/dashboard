@@ -1,12 +1,12 @@
-export default class Resource {
-  static entity = 'resources';
+import { Model } from '@vuex-orm/core';
 
-  static primaryKey = 'name';
-
+export default class BaseResource extends Model {
   static fields() {
     return {
-      name:     this.string(),
-      basePath: this.string()
+      id:       this.string(),
+      type:     this.string(),
+      actions:  this.attr(),
+      links:    this.attr(),
     };
   }
 }

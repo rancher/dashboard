@@ -77,7 +77,7 @@ module.exports = {
       },
       'ObjectPattern':     {
         'multiline':     true,
-        'minProperties': 3
+        'minProperties': 4
       },
       'ImportDeclaration': {
         'multiline':     true,

@@ -1,4 +1,6 @@
-export default class Package {
+import { Model } from '@vuex-orm/core';
+
+export default class Package extends Model {
   static entity = 'packages'
 
   static fields() {

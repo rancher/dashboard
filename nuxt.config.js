@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = {
-  mode: 'spa',
+  mode: 'universal',
 
   server: {
     https: {
@@ -14,9 +14,10 @@ module.exports = {
     api:       process.env.API,
     apiToken:  process.env.API_TOKEN,
     apiPrefix: process.env.API_PREFIX,
-    proxy: {
+    proxy:     {
       'API UI': '/api-ui',
       API:      '/k8s',
+      Rancher:  '/v3',
     }
   },
 
@@ -50,8 +51,6 @@ module.exports = {
     }]
   },
 
-  loading: { color: '#fff' },
-
   // Global CSS
   css: [
     '@/assets/styles/app.scss'
@@ -59,14 +58,24 @@ module.exports = {
 
   // Plugins to load before mounting the App
   plugins: [
-    '~/plugins/k8s.js',
+    '~/plugins/axios.js'
   ],
 
   // Nuxt modules
   modules: [
     '@nuxtjs/axios',
-    '@nuxtjs/eslint-module'
+    '@nuxtjs/eslint-module',
+    'cookie-universal-nuxt'
   ],
+
+  router: {
+    middleware: [
+      'cookies',
+      'k8s',
+    ],
+  },
+
+  loading: '~/components/loading.vue',
 
   // Axios: https://axios.nuxtjs.org/options
   axios: {

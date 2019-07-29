@@ -49,8 +49,6 @@ export default {
     return { bodyAttrs: { class: `theme-${ theme }` } };
   },
 
-  middleware: 'k8s',
-
   computed: {
     packages() {
       console.log('return packages');

@@ -1,6 +1,11 @@
+
 <template>
   <div>
     Explorer Index
+
+    <p>Before</p>
+    <SortableTable />
+    <p>After</p>
 
     <table width="100%">
       <thead>
@@ -18,15 +23,17 @@
         </tr>
       </tbody>
     </table>
-
-    <pre>{{ data }}</pre>
   </div>
 </template>
 
 <script>
+import SortableTable from '@/components/SortableTable.vue';
+
 export default {
+  components: { SortableTable },
+
   asyncData(ctx) {
-    const podDef = ctx.$k8s.resources.find(x => x.name === 'pods');
+    const podDef = ctx.store.getters['k8s/getResource']('pods');
 
     return ctx.$axios.get(podDef.basePath, { headers: { accept: 'application/json;as=Table;g=meta.k8s.io;v=v1beta1' } });
   }
