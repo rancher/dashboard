@@ -3,19 +3,29 @@
   <div>
     Explorer Index
 
-    <SortableTable :columns="this.columns" :rows="rows" groupBy="name" />
+    <SortableTable
+      :columns="columns"
+      :rows="rows"
+      key-field="metadata.uid"
+      group-by="name"
+      table-actions
+    />
   </div>
 </template>
 
 <script>
-import SortableTable from '@/components/SortableTable.vue';
+import SortableTable from '@/components/sortable-table';
 
 export default {
   components: { SortableTable },
 
   computed: {
     columns() {
-      return this.columnDefinitions;
+      return this.columnDefinitions.map(x => ({
+        name:  x.name.toLowerCase(),
+        label: x.name,
+        sort:  [x.name, 'metadata.uid'],
+      }));
     }
   },
 
