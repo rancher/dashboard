@@ -1,8 +1,8 @@
-$icomoon-font-path: '/fonts';
+$icomoon-font-path: '/fonts/icons/fonts';
 $icomoon-font-family: 'icons';
 
-@import "../fonts/icons/variables.scss";
-@import "../fonts/icons/style.scss";
+@import "~/static/fonts/icons/variables.scss";
+@import "~/static/fonts/icons/style.scss";
 
 // Animated Icons
 // --------------------------

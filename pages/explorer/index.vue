@@ -5,9 +5,8 @@
 
     <SortableTable
       :columns="columns"
-      :rows="rows"
-      key-field="metadata.uid"
-      group-by="name"
+      :rows="rowObjects"
+      key-field="name"
       table-actions
     />
   </div>
@@ -21,11 +20,37 @@ export default {
 
   computed: {
     columns() {
-      return this.columnDefinitions.map(x => ({
-        name:  x.name.toLowerCase(),
-        label: x.name,
-        sort:  [x.name, 'metadata.uid'],
-      }));
+      return this.columnDefinitions.map((x) => {
+        const lower = x.name.toLowerCase();
+
+        return {
+          name:  lower || '?',
+          label: x.name,
+          sort:  [lower, 'metadata.uid'],
+        };
+      });
+    },
+
+    rowObjects() {
+      const out = [];
+      const columns = this.columns;
+
+      for ( let i = 0 ; i < this.rows.length ; i++ ) {
+        const row = this.rows[i];
+        const entry = JSON.parse(JSON.stringify(row.object));
+
+        for ( let j = 0 ; j < row.cells.length ; j++ ) {
+          entry[columns[j].name] = row.cells[j];
+        }
+
+        out.push(entry);
+      }
+
+      if ( process.client ) {
+        window.rows = this.rows;
+      }
+
+      return out;
     }
   },
 

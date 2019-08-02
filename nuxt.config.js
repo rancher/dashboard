@@ -29,8 +29,7 @@ module.exports = {
       if (isClient) {
         config.devtool = '#source-map';
       }
-    }
-
+    },
     //    extractCSS: true,
     //    cssSourceMap: true
   },
@@ -64,7 +63,8 @@ module.exports = {
   modules: [
     '@nuxtjs/axios',
     '@nuxtjs/eslint-module',
-    'cookie-universal-nuxt'
+    'cookie-universal-nuxt',
+    'portal-vue/nuxt'
   ],
 
   router: {

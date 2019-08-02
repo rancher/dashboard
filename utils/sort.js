@@ -1,5 +1,3 @@
-import { parse } from './parse-k8s-version';
-
 // Based on https://github.com/emberjs/ember.js/blob/master/packages/@ember/-internals/runtime/lib/type-of.js
 // and      https://github.com/emberjs/ember.js/blob/master/packages/@ember/-internals/runtime/lib/mixins/array.js
 /*

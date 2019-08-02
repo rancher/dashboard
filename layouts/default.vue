@@ -53,8 +53,6 @@ export default {
 
   computed: {
     packages() {
-      console.log('return packages');
-
       const data = [
         {
           name:  'cluster',

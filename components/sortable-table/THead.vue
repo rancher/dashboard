@@ -1,7 +1,6 @@
 <script>
-export const ALL = 'all';
-export const SOME = 'some';
-export const NONE = 'none';
+import { SOME, NONE } from './selection';
+import { qpFor } from './query';
 
 export default {
   props: {
@@ -25,13 +24,13 @@ export default {
       type:     Boolean,
       required: true,
     },
-    selection: {
+    howMuchSelected: {
       type:     String,
       required: true,
     },
     checkWidth: {
       type:     Number,
-      required: true
+      default:  40,
     },
     rowActionsWidth: {
       type:     Number,
@@ -40,12 +39,18 @@ export default {
   },
 
   computed: {
-    isAll() {
-      return this.selection !== NONE;
+    isAll: {
+      get() {
+        return this.howMuchSelected !== NONE;
+      },
+
+      set(value) {
+        this.$emit('on-toggle-all', value);
+      }
     },
 
     isIndeterminate() {
-      return this.selection === SOME;
+      return this.howMuchSelected === SOME;
     }
   },
 
@@ -63,6 +68,20 @@ export default {
 
       this.$emit('on-sort-change', col.name, desc);
     },
+
+    isCurrent(col) {
+      return col.name === this.sortBy;
+    },
+
+    queryFor(col) {
+      const query = qpFor(this.$route.query, {
+        _defaultSortBy: this._defaultSortBy,
+        sort:           col.name,
+        desc:           this.isCurrent(col) && !this.descending,
+      });
+
+      return query;
+    }
   }
 };
 </script>
@@ -72,6 +91,7 @@ export default {
     <tr>
       <th v-if="tableActions" :width="checkWidth">
         <input
+          class="check"
           type="checkbox"
           :checked="isAll"
           :indeterminate.prop="isIndeterminate"
@@ -81,17 +101,20 @@ export default {
         v-for="col in columns"
         :key="col.name"
         align="left"
+        :class="{ sortable: col.sort }"
         @click.prevent="changeSort($event, col)"
       >
-        {{ col.label }}
+        <nuxt-link :to="{query: queryFor(col)}">
+          {{ col.label }}
+          <span v-if="col.sort" class="icon-stack">
+            <i class="icon icon-sort icon-stack-1x faded" />
+            <i v-if="isCurrent(col) && !descending" class="icon icon-sort-down icon-stack-1x" />
+            <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
+          </span>
+        </nuxt-link>
       </th>
       <th v-if="rowActions" :width="rowActionsWidth">
       </th>
-    </tr>
-    <tr>
-      <td colspan="11">
-        {{ sortBy }} -- {{ descending }}
-      </td>
     </tr>
   </thead>
 </template>

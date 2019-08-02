@@ -1,18 +1,24 @@
 <script>
+import { Boolean } from '@vuex-orm/core';
+import THead from './THead';
 
-import THead, { NONE, SOME, ALL } from './THead';
-import sortBy from '~/utils/sort';
+import query from './query';
+import filtering from './filtering';
+import selection from './selection';
+import sorting from './sorting';
+import paging from './paging';
 
 // Selection
 // Bulk actions
 // Paging
-// Sorting
+// * Sorting
 // Filtering
 // Fixed scrolling
-export default {
-  name: 'SortableTable',
 
+export default {
+  name:       'SortableTable',
   components: { THead },
+  mixins:     [query, filtering, sorting, paging, selection],
 
   props: {
     columns: {
@@ -28,47 +34,48 @@ export default {
       required: true
     },
     rows: {
+      // The array of objects to show
       type:     Array,
       required: true
     },
     keyField: {
+      // Field that is unique for each row.
+      // NOTE: cannot be nested.. `id` ok, `metadata.name` bad
       type:     String,
       required: true,
     },
 
     groupBy: {
+      // Field to group rows by
       type:    String,
       default: null
     },
-    groupBySort: {
+    groupSort: {
+      // Field to order groups by
+      type:    Array,
+      default: null
+    },
+
+    defaultSortBy: {
+      // Default field to sort by if none is specified
       type:    String,
       default: null
     },
 
-    initialSortBy: {
-      type:    String,
-      default: null
-    },
-    initialDescending: {
+    subRows: {
+      // If there are sub-rows, your main row must have <tr class="main-row"> to identify it
       type:    Boolean,
       default: false,
     },
 
     tableActions: {
+      // Show bulk table actions
       type:    Boolean,
       default: true
     },
-    checkWidth: {
-      type:     Number,
-      default:  40,
-    },
-
-    multiPageSelectAll: {
-      type:    Boolean,
-      default: true,
-    },
 
     rowActions: {
+      // Show action dropdown on the end of each row
       type:    Boolean,
       default: true
     },
@@ -81,19 +88,7 @@ export default {
       type:    Boolean,
       default: true
     },
-    initialSearchQuery: {
-      type:    String,
-      default: ''
-    }
   },
-
-  data: () => ({
-    currentPage:   1,
-    selectedNodes: [],
-    sortBy:        null,
-    descending:    null,
-    searchQuery:   null,
-  }),
 
   computed: {
     fullColspan() {
@@ -124,105 +119,65 @@ export default {
       return !this.noResults && this.rows.length === 0;
     },
 
-    sortFields() {
-      let fromGroup = this.groupBySort || [];
-      let fromColumn = [];
-      const column = this.columns.find(x => x.name.toLowerCase() === this.sortBy.toLowerCase());
-
-      if ( this.sortBy && column && column.sort ) {
-        fromColumn = column.sort;
-      }
-
-      if ( !Array.isArray(fromGroup) ) {
-        fromGroup = [fromGroup];
-      }
-
-      if ( !Array.isArray(fromColumn) ) {
-        fromColumn = [fromColumn];
-      }
-
-      return [...fromGroup, ...fromColumn];
+    showHeaderRow() {
+      return this.search || this.tableActions;
     },
 
+    // rows prop
+    //   -> filteredRows (filtering.js)
+    //   -> arrangedRows (sorting.js)
+    //   -> pagedRows    (paging.js)
+    //   -> groupedRows  (grouping.js)
     displayRows() {
-      // rows -> filtered -> arranged -> paged
-      const out = this.rows.slice();
-
-      return sortBy(out, this.sortFields, this.descending);
+      return this.pagedRows;
     },
 
     displayGroups() {
+      if ( !this.groupBy ) {
+        return [{
+          key:  'default',
+          name: 'default',
+          rows: this.displayRows,
+        }];
+      }
+
       const out = [];
 
       for ( let i = 0 ; i < this.displayRows.length ; i++ ) {
         out.push({
           key:  i,
           name: `Group ${ i }`,
-          rows: [this.rows[i]],
+          rows: [this.displayRows[i]],
         });
       }
 
       return out;
     },
-
-    selection() {
-      const total = this.displayRows.length;
-      const selected = this.selectedNodes.length;
-
-      if ( selected >= total ) {
-        return ALL;
-      } else if ( selected > 0 ) {
-        return SOME;
-      }
-
-      return NONE;
-    },
-
-    keyFieldInRow() {
-      return `row.${ this.keyField }`;
-    }
   },
-
-  created() {
-    if ( !this.sortBy ) {
-      this.sortBy = this.initialSortBy || this.columns[0].name;
-    }
-
-    if ( this.initialDescending === undefined ) {
-      this.descending = false;
-    } else {
-      this.descending = this.initialDescending;
-    }
-  },
-
-  methods: {
-    changeSort(field, desc) {
-      console.log(`sortChanged(${ field }, ${ desc })`);
-      this.sortBy = field;
-      this.descending = desc;
-      this.currentPage = 1;
-    },
-
-    selectAll() {
-    }
-  }
 };
 </script>
 
 <template>
   <div>
+    <div class="sortable-table-header">
+      <div v-if="showHeaderRow" class="fixed-header-actions row clearfix">
+        Actions...
+      </div>
+
+      <PortalTarget name="right-basic"></PortalTarget>
+    </div>
     <table class="sortable-table" width="100%">
       <thead
         is="THead"
         :columns="columns"
         :table-actions="tableActions"
-        :check-width="checkWidth"
         :row-actions="rowActions"
         :row-actions-width="rowActionsWidth"
-        :selection="selection"
+        :how-much-selected="howMuchSelected"
         :sort-by="sortBy"
+        :default-sort-by="_defaultSortBy"
         :descending="descending"
-        @on-select-all="selectAll"
+        @on-toggle-all="onToggleAll"
         @on-sort-change="changeSort"
       />
 
@@ -245,47 +200,44 @@ export default {
         </slot>
       </tbody>
 
-      <template v-if="groupBy">
-        <tbody v-for="group in displayGroups" :key="group.key">
-          <tr slot="group-header">
+      <tbody v-for="group in displayGroups" :key="group.key">
+        <slot v-if="groupBy" name="group-header" :group="group">
+          <tr>
             <td :colspan="fullColspan">
               {{ group.name }}
             </td>
           </tr>
-          <tr v-for="row in group.rows" :key="row[keyField]">
-            <td v-if="tableActions">
-              Checkbox
-            </td>
-            <td v-for="(cell, idx) in row.cells" :key="idx">
-              {{ cell }}
-            </td>
-            <td v-if="rowActions">
-              Act
-            </td>
-          </tr>
-        </tbody>
-      </template>
-
-      <template v-else>
-        <tbody>
-          <tr v-for="row in rows" :key="row.object.metadata.uid">
-            <td v-if="tableActions">
-              Checkbox
-            </td>
-            <td v-for="(cell, idx) in row.cells" :key="idx">
-              {{ cell }}
-            </td>
-            <td v-if="rowActions">
-              Act
-            </td>
-          </tr>
-        </tbody>
-      </template>
+        </slot>
+        <template v-for="row in group.rows">
+          <slot name="main-row" :row="row">
+            <tr :key="row[keyField]" class="main-row">
+              <td v-if="tableActions">
+                <input type="checkbox" :data-node-id="row[keyField]" />
+              </td>
+              <template v-for="col in columns">
+                <slot name="cell" :row="row" :col="col">
+                  <td :key="col.name">
+                    {{ row[col.name] }}
+                  </td>
+                </slot>
+              </template>
+              <td v-if="rowActions">
+                <slot name="row-actions" :row="row">
+                  ...
+                </slot>
+              </td>
+            </tr>
+          </slot>
+          <slot name="sub-row" :row="row" />
+        </template>
+      </tbody>
     </table>
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
+@import "@/assets/styles/base/_variables.scss";
+@import "@/assets/styles/base/_functions.scss";
 @import "@/assets/styles/base/_mixins.scss";
 //
 // Important: Almost all selectors in here need to be ">"-ed together so they
@@ -302,10 +254,6 @@ $divider-height: 2px;
   border-spacing: 0;
   width: 100%;
 
-  TH {
-    text-align: left;
-  }
-
   > THEAD > TR > TH,
   > TBODY > TR > TD {
     padding: 0;
@@ -317,99 +265,52 @@ $divider-height: 2px;
     }
   }
 
-  > TBODY > TR > TD {
-    height: $group-row-height;
-
-    &.clip {
-      padding-right: 25px;
-    }
-  }
-
-  > TBODY > TR.auto-height > TD,
-  > TBODY > TR.auto-height > TH {
-    height: auto;
-  }
-
-  .fixed-header {
+  > THEAD {
     background: var(--sortable-table-header-bg);
 
-    > TH {
-      text-align: left;
+    > TR {
+      width: 100%;
+      box-sizing: border-box;
+      outline: none;
+      transition: none;
 
-      &.check {
-        position: relative;
-        padding-left: 11px;
-        cursor: pointer;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-      }
+      > TH {
+        border-width: 0 0 $divider-height 0;
+        border-style: solid;
+        border-color: var(--sortable-table-divider);
+        border-radius: 0;
+        outline: none;
+        transition: none;
+        text-align: left;
+        color: var(--link-text);
+        font-weight: normal;
 
-      &.sortable.text-right A {
-        position: relative;
-        left: -15px;
-      }
+        &.sortable {
+          cursor: pointer;
 
-      a {
-        padding: 0;
+          .text-right A {
+            position: relative;
+            left: -15px;
+          }
+        }
 
-        I.faded {
-          opacity: .3;
+        &.check {
+          position: relative;
+          padding-left: 11px;
+          cursor: pointer;
+          user-select: none;
         }
 
         I.icon-sort {
           width: 15px;
+
+          &.faded {
+            opacity: .3;
+          }
         }
       }
     }
   }
-
-  .fixed-header-widthinator {
-    visibility: hidden;
-    height: 0 !important;
-
-    TH {
-      border: 0 !important;
-      padding: 0 !important;
-      height: 0 !important;
-    }
-  }
-
-  .check, .actions, .toggle {
-    text-align: center;
-    cursor: pointer;
-  }
-
-  // &.has-sub-rows {
-  //   tr.row-selected TABLE > TBODY > TR > TD {
-  //     background: var(--sortable-table-bg);
-  //   }
-
-  //   tr.row-selected .btn-group.bg-default {
-  //     background: darken($bg-default, 7);
-  //   }
-
-  //   tr.row-selected .scale-arrow:before {
-  //     border-bottom-color: darken($bg-default, 7);
-  //   }
-
-  //   TABLE {
-  //     > TBODY {
-  //       @include striped;
-  //     }
-  //   }
-  //   TABLE > THEAD > .fixed-header-actions {
-  //     z-index: 3;
-  //     background-color: transparent;
-  //   }
-  //   TABLE > THEAD > .fixed-header {
-  //     z-index: 4;
-  //   }
-  //   TABLE .bulk-actions {
-  //     margin: 0 18px;
-  //   }
-  // }
 
   > TBODY {
     border: none;
@@ -458,10 +359,19 @@ $divider-height: 2px;
         transform: skewX(40deg);
         z-index: -1;
       }
+    }
 
-      // .main-row TD {
-      //   border-bottom: solid thin var(--border);
-      // }
+    > TR > TD {
+      height: $group-row-height;
+
+      &.clip {
+        padding-right: 25px;
+      }
+    }
+
+    > TR.auto-height > TD,
+    > TR.auto-height > TH {
+      height: auto;
     }
 
     > TR.row-selected {
@@ -482,33 +392,14 @@ $divider-height: 2px;
     }
   }
 
-  > THEAD > TR {
-    width: 100%;
-    box-sizing: border-box;
-    outline: none;
-    transition: none;
+  .fixed-header-widthinator {
+    visibility: hidden;
+    height: 0 !important;
 
-    &.fixed-header {
-      background: var(--sortable-table-header-bg);
-
-      TH {
-        color: var(--link-text);
-
-        .btn {
-          color: var(--link-text);
-        }
-      }
-    }
-
-    > TH {
-      border-width: 0 0 $divider-height 0;
-      border-style: solid;
-      border-color: var(--sortable-table-divider);
-      border-radius: 0;
-      outline: none;
-      transition: none;
-      text-align: left;
-      font-weight: normal;
+    TH {
+      border: 0 !important;
+      padding: 0 !important;
+      height: 0 !important;
     }
   }
 
@@ -529,10 +420,9 @@ $divider-height: 2px;
   }
 }
 
-.header {
+.sortable-table-header {
   position: relative;
   z-index: z-index('fixedTableHeader');
-
 }
 
 .fixed-header-actions {
@@ -555,12 +445,6 @@ $divider-height: 2px;
   .right {
     grid-area: right;
     white-space: nowrap;
-  }
-}
-
-.yes-clip {
-  .maybe-clip {
-    @extend .clip;
   }
 }
 </style>
