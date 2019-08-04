@@ -151,11 +151,11 @@ function onProxyError(err, req, res) {
 }
 
 function proxyLog(label, req) {
-  consola.log(`[${ label }][${ req.isServer }]`, req.method, req.url);
+  consola.log(`[${ label }]`, req.method, req.url);
 }
 
 function proxyError(label, req, err) {
-  consola.error(`[${ label }][${ req.isServer }]`, req.method, req.url, err);
+  consola.error(`[${ label }]`, req.method, req.url, err);
 }
 
 // host can be an ip "1.2.3.4" -> https://1.2.3.4:30443

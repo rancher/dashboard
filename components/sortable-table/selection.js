@@ -1,5 +1,7 @@
 import $ from 'jquery';
 import { isMore, isRange } from '@/utils/platform';
+import { addObjects, removeObjects } from '@/utils/array';
+import { get } from '@/utils/object';
 
 export const ALL = 'all';
 export const SOME = 'some';
@@ -25,7 +27,7 @@ export default {
 
   computed: {
     howMuchSelected() {
-      const total = this.displayRows.length;
+      const total = this.pagedRows.length;
       const selected = this.selectedNodes.length;
 
       if ( selected >= total ) {
@@ -96,7 +98,7 @@ export default {
         return;
       }
 
-      const node = content.find( x => x[this.keyField] === nodeId );
+      const node = content.find( x => get(x, this.keyField) === nodeId );
 
       if ( !node ) {
         return;
@@ -202,28 +204,26 @@ export default {
       const selectedNodes = this.selectedNodes;
 
       if (nodesToRemove.length) {
-        // removeObjects doesn't use ArrayProxy-safe looping
-        if ( typeof nodesToRemove.toArray === 'function' ) {
-          nodesToRemove = nodesToRemove.toArray();
-        }
-        selectedNodes.removeObjects(nodesToRemove);
-        toggle(nodesToRemove, false);
+        removeObjects(selectedNodes, nodesToRemove);
+        this.$nextTick(() => {
+          for ( let i = 0 ; i < nodesToRemove.length ; i++ ) {
+            this.toggleInput(nodesToRemove[i], false, this.keyField);
+          }
+        });
       }
 
       if (nodesToAdd.length) {
-        selectedNodes.addObjects(nodesToAdd);
-        toggle(nodesToAdd, true);
-      }
-
-      function toggle(nodes, on) {
-        nodes.forEach((node) => {
-          this.toggleInput(node, on, this.keyField);
+        addObjects(selectedNodes, nodesToAdd);
+        this.$nextTick(() => {
+          for ( let i = 0 ; i < nodesToAdd.length ; i++ ) {
+            this.toggleInput(nodesToAdd[i], true, this.keyField);
+          }
         });
       }
     },
 
     toggleInput(node, on, idField) {
-      const id = node[idField];
+      const id = get(node, idField);
 
       if ( id ) {
         const input = $(`input[data-node-id="${ id }"]`);
@@ -236,12 +236,31 @@ export default {
           let first = true;
 
           while ( tr && (first || tr.hasClass('sub-row') ) ) {
-            toString.js.toggleClass('row-selected', on);
+            tr.toggleClass('row-selected', on);
             tr = tr.next();
             first = false;
           }
         }
       }
+    },
+  },
+
+  watch: {
+    pagedRows: {
+      handler(nowNodes, beforeNodes) {
+        const toRemove = [];
+        const selectedNodes = this.selectedNodes;
+
+        for ( let i = 0 ; i < selectedNodes.length ; i++ ) {
+          const cur = selectedNodes[i];
+
+          if ( !nowNodes.includes(cur) ) {
+            toRemove.push(cur);
+          }
+        }
+
+        this.toggleMulti([], toRemove);
+      },
     }
   }
 };

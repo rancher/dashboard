@@ -6,7 +6,7 @@
     <SortableTable
       :columns="columns"
       :rows="rowObjects"
-      key-field="name"
+      key-field="metadata.uid"
       table-actions
     />
   </div>
@@ -44,10 +44,6 @@ export default {
         }
 
         out.push(entry);
-      }
-
-      if ( process.client ) {
-        window.rows = this.rows;
       }
 
       return out;

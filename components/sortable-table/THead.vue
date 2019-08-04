@@ -12,6 +12,10 @@ export default {
       type:     String,
       required: true
     },
+    defaultSortBy: {
+      type:    String,
+      default: ''
+    },
     descending: {
       type:     Boolean,
       required: true
@@ -75,7 +79,7 @@ export default {
 
     queryFor(col) {
       const query = qpFor(this.$route.query, {
-        _defaultSortBy: this._defaultSortBy,
+        _defaultSortBy: this.defaultSortBy,
         sort:           col.name,
         desc:           this.isCurrent(col) && !this.descending,
       });

@@ -1,3 +1,5 @@
+import { get } from './object';
+
 // Based on https://github.com/emberjs/ember.js/blob/master/packages/@ember/-internals/runtime/lib/type-of.js
 // and      https://github.com/emberjs/ember.js/blob/master/packages/@ember/-internals/runtime/lib/mixins/array.js
 /*
@@ -184,8 +186,8 @@ export default function sortBy(ary, keys, desc) {
   return ary.slice().sort((objA, objB) => {
     for ( let i = 0 ; i < keys.length ; i++ ) {
       const parsed = parseField(keys[i]);
-      const a = objA[parsed.field];
-      const b = objB[parsed.field];
+      const a = get(objA, parsed.field);
+      const b = get(objB, parsed.field);
       let res = compare(a, b);
 
       if ( res ) {

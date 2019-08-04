@@ -1,5 +1,6 @@
 <script>
 import { Boolean } from '@vuex-orm/core';
+
 import THead from './THead';
 
 import query from './query';
@@ -7,12 +8,13 @@ import filtering from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
+import { get } from '@/utils/object';
 
-// Selection
+// * Selection
 // Bulk actions
 // Paging
 // * Sorting
-// Filtering
+// * Filtering
 // Fixed scrolling
 
 export default {
@@ -40,7 +42,6 @@ export default {
     },
     keyField: {
       // Field that is unique for each row.
-      // NOTE: cannot be nested.. `id` ok, `metadata.name` bad
       type:     String,
       required: true,
     },
@@ -88,6 +89,10 @@ export default {
       type:    Boolean,
       default: true
     },
+    extraSearchFields: {
+      type:    Array,
+      default: null
+    }
   },
 
   computed: {
@@ -112,7 +117,7 @@ export default {
     },
 
     noResults() {
-      return !!this.searchQuery && this.displayRows.length === 0;
+      return !!this.searchQuery && this.pagedRows.length === 0;
     },
 
     noRows() {
@@ -123,37 +128,49 @@ export default {
       return this.search || this.tableActions;
     },
 
-    // rows prop
-    //   -> filteredRows (filtering.js)
-    //   -> arrangedRows (sorting.js)
-    //   -> pagedRows    (paging.js)
-    //   -> groupedRows  (grouping.js)
-    displayRows() {
-      return this.pagedRows;
+    // For data-title properties on <td>s
+    dt() {
+      const out = {
+        check:   `Select: `,
+        actions: `Actions: `,
+      };
+
+      this.columns.forEach((col) => {
+        out[col.name] = `${ (col.label || col.name) }:`;
+      });
+
+      return out;
     },
 
+    // rows prop
+    //   -> filteredRows  (filtering.js)
+    //   -> arrangedRows  (sorting.js)
+    //   -> pagedRows     (paging.js)
+    //   -> displayGroups (grouping.js)
     displayGroups() {
       if ( !this.groupBy ) {
         return [{
           key:  'default',
           name: 'default',
-          rows: this.displayRows,
+          rows: this.pagedRows,
         }];
       }
 
       const out = [];
 
-      for ( let i = 0 ; i < this.displayRows.length ; i++ ) {
+      for ( let i = 0 ; i < this.pagedRows.length ; i++ ) {
         out.push({
           key:  i,
           name: `Group ${ i }`,
-          rows: [this.displayRows[i]],
+          rows: [this.pagedRows[i]],
         });
       }
 
       return out;
     },
   },
+
+  methods: { get }
 };
 </script>
 
@@ -161,7 +178,13 @@ export default {
   <div>
     <div class="sortable-table-header">
       <div v-if="showHeaderRow" class="fixed-header-actions row clearfix">
-        Actions...
+        <div v-if="tableActions" class="bulk">
+          Actions...
+        </div>
+
+        <div v-if="search" class="search">
+          <input v-model="searchQuery" type="search" class="input-sm" placeholder="Search...">
+        </div>
       </div>
 
       <PortalTarget name="right-basic"></PortalTarget>
@@ -210,13 +233,13 @@ export default {
         </slot>
         <template v-for="row in group.rows">
           <slot name="main-row" :row="row">
-            <tr :key="row[keyField]" class="main-row">
+            <tr :key="get(row,keyField)" class="main-row">
               <td v-if="tableActions">
-                <input type="checkbox" :data-node-id="row[keyField]" />
+                <input type="checkbox" :data-node-id="get(row,keyField)" />
               </td>
               <template v-for="col in columns">
                 <slot name="cell" :row="row" :col="col">
-                  <td :key="col.name">
+                  <td :key="col.name" :data-title="dt[col.name]">
                     {{ row[col.name] }}
                   </td>
                 </slot>
