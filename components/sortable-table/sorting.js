@@ -4,10 +4,10 @@ import sortBy from '~/utils/sort';
 export default {
   computed: {
     sortFields() {
-      let fromGroup = this.groupSort || [];
+      let fromGroup = ( this.groupBy ? this.groupSort || this.groupBy : null) || [];
       let fromColumn = [];
 
-      const column = this.columns.find(x => x && x.name && x.name.toLowerCase() === this.sortBy.toLowerCase());
+      const column = (this.columns || this.headers).find(x => x && x.name && x.name.toLowerCase() === this.sortBy.toLowerCase());
 
       if ( this.sortBy && column && column.sort ) {
         fromColumn = column.sort;
@@ -33,27 +33,21 @@ export default {
     let sortBy = null;
     let descending = false;
 
-    const hasName = !!this.columns.find( x => x.name === 'name' );
+    const hasName = !!this.headers.find( x => x.name === 'name' );
 
-    console.log(1, hasName);
     this._defaultSortBy = this.defaultSortBy;
-    console.log(2, this._defaultSortBy);
     if ( !this._defaultSortBy ) {
-      console.log(3, this._defaultSortBy);
       if ( hasName ) {
         this._defaultSortBy = 'name';
-        console.log(4, this._defaultSortBy);
       } else {
-        this._defaultSortBy = this.columns.filter( x => x.name !== 'state' )[0].name;
-        console.log(5, this._defaultSortBy);
+        this._defaultSortBy = this.headers.filter( x => x.name !== 'state' )[0].name;
       }
     }
 
-    console.log(6, this._defaultSortBy);
     sortBy = this.$route.query.sort;
 
     // If the sort column doesn't exist or isn't specified, use default
-    if ( !sortBy || !this.columns.find(x => x.name === sortBy ) ) {
+    if ( !sortBy || !this.headers.find(x => x.name === sortBy ) ) {
       sortBy = this._defaultSortBy;
     }
 

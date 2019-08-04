@@ -4,7 +4,7 @@
     Explorer Index
 
     <SortableTable
-      :columns="columns"
+      :headers="headers"
       :rows="rowObjects"
       key-field="metadata.uid"
       table-actions
@@ -19,7 +19,7 @@ export default {
   components: { SortableTable },
 
   computed: {
-    columns() {
+    headers() {
       return this.columnDefinitions.map((x) => {
         const lower = x.name.toLowerCase();
 
@@ -33,14 +33,14 @@ export default {
 
     rowObjects() {
       const out = [];
-      const columns = this.columns;
+      const headers = this.headers;
 
       for ( let i = 0 ; i < this.rows.length ; i++ ) {
         const row = this.rows[i];
         const entry = JSON.parse(JSON.stringify(row.object));
 
         for ( let j = 0 ; j < row.cells.length ; j++ ) {
-          entry[columns[j].name] = row.cells[j];
+          entry[headers[j].name] = row.cells[j];
         }
 
         out.push(entry);

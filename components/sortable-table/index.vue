@@ -1,6 +1,7 @@
 <script>
 import { Boolean } from '@vuex-orm/core';
 
+import { removeObject } from '../../utils/array';
 import THead from './THead';
 
 import query from './query';
@@ -8,6 +9,7 @@ import filtering from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
+import grouping from './grouping';
 import { get } from '@/utils/object';
 
 // * Selection
@@ -15,15 +17,23 @@ import { get } from '@/utils/object';
 // Paging
 // * Sorting
 // * Filtering
+// * Grouping
 // Fixed scrolling
+
+// Data Flow:
+// rows prop
+// -> filteredRows (filtering.js)
+// -> arrangedRows (sorting.js)
+// -> pagedRows    (paging.js)
+// -> groupedRows  (grouping.js)
 
 export default {
   name:       'SortableTable',
   components: { THead },
-  mixins:     [query, filtering, sorting, paging, selection],
+  mixins:     [query, filtering, sorting, paging, grouping, selection],
 
   props: {
-    columns: {
+    headers: {
       // {
       //    name:   Name for the column (goes in query param)
       //    label:  Displayed column header
@@ -47,12 +57,17 @@ export default {
     },
 
     groupBy: {
-      // Field to group rows by
+      // Field to group rows by, row[groupBy] must be something that can be a map key
       type:    String,
       default: null
     },
+    groupRef: {
+      // Object to provide as the reference for rendering the grouping row
+      type:    String,
+      default: null,
+    },
     groupSort: {
-      // Field to order groups by
+      // Field to order groups by, defaults to groupBy
       type:    Array,
       default: null
     },
@@ -128,6 +143,20 @@ export default {
       return this.search || this.tableActions;
     },
 
+    columns() {
+      const out = this.headers.slice();
+
+      if ( this.groupBy ) {
+        const entry = out.find(x => x.name === this.groupBy);
+
+        if ( entry ) {
+          removeObject(out, entry);
+        }
+      }
+
+      return out;
+    },
+
     // For data-title properties on <td>s
     dt() {
       const out = {
@@ -138,33 +167,6 @@ export default {
       this.columns.forEach((col) => {
         out[col.name] = `${ (col.label || col.name) }:`;
       });
-
-      return out;
-    },
-
-    // rows prop
-    //   -> filteredRows  (filtering.js)
-    //   -> arrangedRows  (sorting.js)
-    //   -> pagedRows     (paging.js)
-    //   -> displayGroups (grouping.js)
-    displayGroups() {
-      if ( !this.groupBy ) {
-        return [{
-          key:  'default',
-          name: 'default',
-          rows: this.pagedRows,
-        }];
-      }
-
-      const out = [];
-
-      for ( let i = 0 ; i < this.pagedRows.length ; i++ ) {
-        out.push({
-          key:  i,
-          name: `Group ${ i }`,
-          rows: [this.pagedRows[i]],
-        });
-      }
 
       return out;
     },
@@ -223,11 +225,11 @@ export default {
         </slot>
       </tbody>
 
-      <tbody v-for="group in displayGroups" :key="group.key">
+      <tbody v-for="group in groupedRows" :key="group.key">
         <slot v-if="groupBy" name="group-header" :group="group">
           <tr>
             <td :colspan="fullColspan">
-              {{ group.name }}
+              {{ group.ref }}
             </td>
           </tr>
         </slot>
