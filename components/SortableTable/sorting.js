@@ -1,4 +1,4 @@
-import { SORT_BY, DESCENDING, PAGE } from './query.js';
+import { SORT_BY, DESCENDING, PAGE } from './query.js.js';
 import sortBy from '~/utils/sort';
 
 export default {

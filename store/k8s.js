@@ -1,6 +1,5 @@
 import { compare } from '@/utils/parse-k8s-version';
 import { eachLimit } from '@/utils/promise-limit';
-// import Definition from '@/models/Definition';
 
 export const state = function() {
   return {

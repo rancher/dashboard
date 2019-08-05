@@ -1,6 +1,8 @@
 
 <template>
   <div>
+    <Test />
+
     Explorer Index
 
     <SortableTable
@@ -13,10 +15,11 @@
 </template>
 
 <script>
-import SortableTable from '@/components/sortable-table';
+import SortableTable from '@/components/SortableTable';
+import Test from '@/components/Test';
 
 export default {
-  components: { SortableTable },
+  components: { SortableTable, Test },
 
   computed: {
     headers() {
