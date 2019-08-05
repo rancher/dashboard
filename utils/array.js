@@ -47,3 +47,7 @@ export function removeAt(ary, idx, len = 1) {
 
   return ary;
 }
+
+export function clear(ary) {
+  ary.length = 0;
+}

@@ -1,4 +1,4 @@
-import { SORT_BY, DESCENDING, PAGE } from './query.js.js';
+import { SORT_BY, DESCENDING, PAGE } from './query';
 import sortBy from '~/utils/sort';
 
 export default {
@@ -40,7 +40,13 @@ export default {
       if ( hasName ) {
         this._defaultSortBy = 'name';
       } else {
-        this._defaultSortBy = this.headers.filter( x => x.name !== 'state' )[0].name;
+        const first = this.headers.filter( x => x.name !== 'state' )[0];
+
+        if ( first ) {
+          this._defaultSortBy = first.name;
+        } else {
+          this._defaultSortBy = 'id';
+        }
       }
     }
 

@@ -1,10 +1,13 @@
 import Vue from 'vue';
 import Serializable from './_serializable';
 import { isArray } from '@/utils/array';
+import Models from '@/models';
 
 // @TODO Validation
 
-class Base {
+class base {
+  type = null
+
   constructor(data) {
     let values = data;
 
@@ -16,7 +19,7 @@ class Base {
   }
 }
 
-export default class Resource extends Serializable(Base) {
+export default class resource extends Serializable(base) {
   toString() {
     if ( this.id ) {
       return `resource:${ this.type }:${ this.id }`;
@@ -59,7 +62,7 @@ export default class Resource extends Serializable(Base) {
         });
 
         return val;
-      } else if ( Resource.detectInstance(val) ) {
+      } else if ( resource.detectInstance(val) ) {
         // Don't include a resource we've already seen in the chain
         if ( seenObjs.indexOf(val) > 0 ) {
           return null;
@@ -83,3 +86,7 @@ export default class Resource extends Serializable(Base) {
     }
   }
 }
+
+resource.register = function() {
+  Models.register(resource);
+};

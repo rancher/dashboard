@@ -13,11 +13,10 @@ module.exports = {
     host:      '0.0.0.0',
     api:       process.env.API,
     apiToken:  process.env.API_TOKEN,
-    apiPrefix: process.env.API_PREFIX,
     proxy:     {
       'API UI': '/api-ui',
       API:      '/k8s',
-      Rancher:  '/v3',
+      Naok:     '/v1',
     }
   },
 
@@ -77,7 +76,8 @@ module.exports = {
 
   // Axios: https://axios.nuxtjs.org/options
   axios: {
-    https: true,
-    retry: { retries: 0 },
+    https:  true,
+    retry:  { retries: 0 },
+    prefix: '/v1',
   }
 };

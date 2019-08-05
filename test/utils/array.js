@@ -1,6 +1,6 @@
 import test from 'ava';
 import {
-  addObject, addObjects, removeObject, removeObjects, isArray, removeAt
+  addObject, addObjects, removeObject, removeObjects, isArray, removeAt, clear
 } from '@/utils/array';
 
 const obj1 = { foo: 'bar' };
@@ -101,4 +101,13 @@ test('removeAt', (t) => {
     removeAt(ary, 0);
   }
   t.throws(empty, null, 'Throws on empty');
+});
+
+test('clear', (t) => {
+  const ary = [obj1, obj2, obj3, obj4];
+  const copy = ary;
+
+  clear(ary);
+  t.is(ary.length, 0, "It's empty now");
+  t.is(ary, copy, "It's still the same aray");
 });

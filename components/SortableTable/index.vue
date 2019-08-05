@@ -1,6 +1,4 @@
 <script>
-import { Boolean } from '@vuex-orm/core';
-
 import { removeObject } from '../../utils/array';
 import THead from './THead';
 

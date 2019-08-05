@@ -15,6 +15,7 @@
 </template>
 
 <script>
+import { removeObject } from '../../utils/array';
 import SortableTable from '@/components/SortableTable';
 import Test from '@/components/Test';
 
@@ -53,12 +54,18 @@ export default {
     }
   },
 
-  async asyncData(ctx) {
+  asyncData(ctx) {
+    /*
     const podDef = ctx.store.getters['k8s/getResource']('pods');
-
     const res = await ctx.$axios.get(podDef.basePath, { headers: { accept: 'application/json;as=Table;g=meta.k8s.io;v=v1beta1' } });
 
     return res.data;
+    */
+
+    return {
+      columnDefinitions: [],
+      rows:              [],
+    };
   }
 };
 </script>

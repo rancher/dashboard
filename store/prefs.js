@@ -72,6 +72,7 @@ export const mutations = {
 
 export const actions = {
   loadCookies({ commit }) {
+    console.log('prefs/loadCookies');
     for (const key in all) {
       const entry = all[key];
       const opt = {};

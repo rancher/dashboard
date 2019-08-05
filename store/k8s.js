@@ -43,6 +43,7 @@ export const mutations = {
 
 export const actions = {
   async loadAll({ state, dispatch, commit }) {
+    console.log('k8s/loadAll');
     if (!state.loaded) {
       await Promise.all([
         (async function() {

@@ -1,19 +1,7 @@
-import Resource from './Resource';
+import resource from './resource';
 
-export default class Schema extends Resource {
-  static entity = 'schemas'
-
-  static fields() {
-    return {
-      ...super.fields(),
-
-      resourceMethods:   this.attr(),
-      resourcFields:     this.attr(),
-      resourceActions:   this.attr(),
-
-      collectionMethods: this.attr(),
-      collectionActions: this.attr(),
-      collectionFilters: this.attr(),
-    };
-  }
+export default class schema extends resource {
+  type = 'schema'
 }
+
+schema.register();
