@@ -1,5 +1,9 @@
+require('dotenv').config();
+
 const fs = require('fs');
 const path = require('path');
+
+console.log(`Proxying to ${ process.env.API }`);
 
 module.exports = {
   mode: 'universal',
@@ -11,6 +15,7 @@ module.exports = {
     },
     port:      8005,
     host:      '0.0.0.0',
+    /*
     api:       process.env.API,
     apiToken:  process.env.API_TOKEN,
     proxy:     {
@@ -18,6 +23,7 @@ module.exports = {
       API:      '/k8s',
       Naok:     '/v1',
     }
+    */
   },
 
   build: {
@@ -56,28 +62,38 @@ module.exports = {
 
   // Plugins to load before mounting the App
   plugins: [
+    // Third-party
+    '~/plugins/axios',
+    '~/plugins/v-tooltip',
+
+    // First-party
+    '~/plugins/global-formatters',
+    { src: '~/plugins/nuxt-client-init', ssr: false }
   ],
 
   // Nuxt modules
   modules: [
+    '@nuxtjs/proxy',
     '@nuxtjs/axios',
     '@nuxtjs/eslint-module',
     'cookie-universal-nuxt',
     'portal-vue/nuxt'
   ],
 
-  router: {
-    middleware: [
-      'preload'
-    ],
-  },
-
   loading: '~/components/loading.vue',
 
   // Axios: https://axios.nuxtjs.org/options
   axios: {
-    https:  true,
-    retry:  { retries: 0 },
-    prefix: '/v1',
+    https:   true,
+    proxy:   true,
+    retry:   { retries: 0 },
+    // debug:   true
+  },
+
+  // Proxy: https://github.com/nuxt-community/proxy-module#options
+  proxy: {
+    '/v1':     { target: process.env.API, xfwd: true },
+    '/api':    { target: process.env.API, xfwd: true },
+    '/api-ui': { target: process.env.API, xfwd: true }
   }
 };

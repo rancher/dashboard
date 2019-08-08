@@ -13,3 +13,8 @@ export function register(obj) {
 
   all[type] = obj;
 }
+
+export default {
+  get,
+  register
+};

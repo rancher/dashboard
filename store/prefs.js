@@ -2,7 +2,7 @@ import Vue from 'vue';
 
 const all = {};
 
-export const create = function(name, def, json = true) {
+export const create = function(name, def, json = false) {
   all[name] = {
     def,
     isJson: json
@@ -21,9 +21,11 @@ export const FAVORITES = create('fav', [
   'apps/statefulsets',
 ], true);
 
-export const THEME = create('theme', 'dark', false);
-
-export const ROWS_PER_PAGE = create('per_page', 100, false);
+export const THEME = create('theme', 'dark');
+export const ROWS_PER_PAGE = create('per_page', 100);
+export const DATE_FORMAT = create('date_format', 'ddd, MMM D, Y');
+export const TIME_FORMAT = create('time_format', 'h:mm:ss a');
+export const TIME_ZONE = create('time_zone', 'local');
 
 // --------------------
 
@@ -40,7 +42,7 @@ export const state = function() {
 };
 
 export const getters = {
-  getPref: state => (key) => {
+  get: state => (key) => {
     const entry = all[key];
 
     if (!entry) {
@@ -72,7 +74,6 @@ export const mutations = {
 
 export const actions = {
   loadCookies({ commit }) {
-    console.log('prefs/loadCookies');
     for (const key in all) {
       const entry = all[key];
       const opt = {};

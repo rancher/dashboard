@@ -1,4 +1,5 @@
 import { get } from './object';
+import { strPad } from './string';
 
 // Based on https://github.com/emberjs/ember.js/blob/master/packages/@ember/-internals/runtime/lib/type-of.js
 // and      https://github.com/emberjs/ember.js/blob/master/packages/@ember/-internals/runtime/lib/mixins/array.js
@@ -205,4 +206,16 @@ export default function sortBy(ary, keys, desc) {
 
     return 0;
   });
+}
+
+// Turn thing1 into thing00000001 so that the numbers sort numerically
+export function sortableNumericSuffix(str) {
+  str = str || '';
+  const match = str.match(/^(.*[^0-9])([0-9]+)$/);
+
+  if ( match ) {
+    return `${ match[1] }${ strPad(match[2], 8, '0') }`;
+  }
+
+  return str;
 }

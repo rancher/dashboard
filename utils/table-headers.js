@@ -15,15 +15,17 @@ export const STATE = {
 
 export const NAME = {
   name:   'name',
+  value:  'displayName',
   label:  'Name',
   sort:   ['sortName', 'id'],
-  search: 'displayName',
 };
 
 export const CREATED = {
-  name:   'created',
-  label:  'Created',
-  sort:   ['createdTs', 'id'],
-  search: 'created',
-  width:  120,
+  name:      'created',
+  value:     'metadata.creationTimestamp',
+  label:     'Created',
+  sort:      ['createdTs', 'id'],
+  search:    false,
+  width:     120,
+  formatter: 'LiveDate',
 };

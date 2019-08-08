@@ -1,3 +1,4 @@
+import { SEARCH_QUERY } from './query';
 import { get } from '@/utils/object';
 import { addObject, addObjects, isArray, removeAt } from '@/utils/array';
 
@@ -102,7 +103,13 @@ export default {
 
       return out;
     },
-  }
+  },
+
+  watch: {
+    searchQuery(q) {
+      this.updateQueryString({ [SEARCH_QUERY]: q || null });
+    }
+  },
 };
 
 function columnsToSearchField(columns) {
@@ -120,7 +127,8 @@ function columnsToSearchField(columns) {
     } else if ( field === false ) {
       // Don't add the name
     } else {
-      addObject(out, column.name);
+      // Use value/name as the default
+      addObject(out, column.value || column.name);
     }
   });
 

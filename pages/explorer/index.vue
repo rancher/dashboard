@@ -1,13 +1,11 @@
 
 <template>
   <div>
-    <Test />
-
     Explorer Index
 
     <SortableTable
       :headers="headers"
-      :rows="rowObjects"
+      :rows="rows"
       key-field="metadata.uid"
       table-actions
     />
@@ -15,57 +13,29 @@
 </template>
 
 <script>
-import { removeObject } from '../../utils/array';
 import SortableTable from '@/components/SortableTable';
-import Test from '@/components/Test';
+import { NAME, CREATED } from '@/utils/table-headers';
 
 export default {
-  components: { SortableTable, Test },
+  components: { SortableTable },
 
-  computed: {
-    headers() {
-      return this.columnDefinitions.map((x) => {
-        const lower = x.name.toLowerCase();
+  computed: {},
 
-        return {
-          name:  lower || '?',
-          label: x.name,
-          sort:  [lower, 'metadata.uid'],
-        };
-      });
-    },
-
-    rowObjects() {
-      const out = [];
-      const headers = this.headers;
-
-      for ( let i = 0 ; i < this.rows.length ; i++ ) {
-        const row = this.rows[i];
-        const entry = JSON.parse(JSON.stringify(row.object));
-
-        for ( let j = 0 ; j < row.cells.length ; j++ ) {
-          entry[headers[j].name] = row.cells[j];
-        }
-
-        out.push(entry);
-      }
-
-      return out;
-    }
-  },
-
-  asyncData(ctx) {
-    /*
-    const podDef = ctx.store.getters['k8s/getResource']('pods');
-    const res = await ctx.$axios.get(podDef.basePath, { headers: { accept: 'application/json;as=Table;g=meta.k8s.io;v=v1beta1' } });
-
-    return res.data;
-    */
+  async asyncData(ctx) {
+    console.log('asyncData');
+    const rows = await ctx.store.dispatch('v1/findAll', { type: 'io.k8s.api.core.v1.Pod' });
 
     return {
-      columnDefinitions: [],
-      rows:              [],
+      headers: [
+        NAME,
+        CREATED
+      ],
+      rows,
     };
+  },
+
+  fetch(ctx) {
+    console.log('fetch');
   }
 };
 </script>

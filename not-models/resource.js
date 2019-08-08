@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Serializable from './_serializable';
 import { isArray } from '@/utils/array';
-import Models from '@/models';
+import Models from '~/not-models';
 
 // @TODO Validation
 

@@ -12,7 +12,8 @@
             "outFiles": [
                 "${workspaceFolder}/**/*.js"
             ],
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+            "outputCapture": "std"
         }
     ]
 }

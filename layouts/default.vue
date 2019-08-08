@@ -46,7 +46,7 @@ import { THEME } from '~/store/prefs';
 export default {
 
   head() {
-    const theme = this.$store.getters['prefs/getPref'](THEME);
+    const theme = this.$store.getters['prefs/get'](THEME);
 
     return { bodyAttrs: { class: `theme-${ theme }` } };
   },

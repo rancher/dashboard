@@ -1,3 +1,5 @@
+import { deepcopy } from 'lodash';
+
 export function get(obj, path) {
   const parts = path.split('.');
 
@@ -16,4 +18,8 @@ export function getter(path) {
   return function(obj) {
     return get(obj, path);
   };
+}
+
+export function clone(obj) {
+  return deepcopy(obj);
 }

@@ -239,9 +239,14 @@ export default {
               </td>
               <template v-for="col in columns">
                 <slot name="cell" :row="row" :col="col">
-                  <td :key="col.name" :data-title="dt[col.name]">
-                    {{ row[col.name] }}
-                  </td>
+                  <slot :name="col.name">
+                    <td v-if="col.formatter" :key="col.name" :data-title="dt[col.name]">
+                      <component :is="col.formatter" :value="get(row, col.value||col.name)" :row="row" :col="col" />
+                    </td>
+                    <td v-else :key="col.name" :data-title="dt[col.name]">
+                      {{ get(row, col.value||col.name) }}
+                    </td>
+                  </slot>
                 </slot>
               </template>
               <td v-if="rowActions">
