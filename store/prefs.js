@@ -13,12 +13,8 @@ export const create = function(name, def, json = false) {
 
 // --------------------
 
-export const FAVORITES = create('fav', [
-  'api/nodes',
-  'api/services',
-  'apps/daemonsets',
-  'apps/deployments',
-  'apps/statefulsets',
+export const NAMESPACES = create('ns', [
+  '_all',
 ], true);
 
 export const THEME = create('theme', 'dark');

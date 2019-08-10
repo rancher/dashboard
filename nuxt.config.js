@@ -1,7 +1,7 @@
-require('dotenv').config();
+import fs from 'fs';
+import path from 'path';
 
-const fs = require('fs');
-const path = require('path');
+require('dotenv').config();
 
 console.log(`Proxying to ${ process.env.API }`);
 
@@ -68,7 +68,9 @@ module.exports = {
 
     // First-party
     '~/plugins/global-formatters',
-    { src: '~/plugins/nuxt-client-init', ssr: false }
+    { src: '~/plugins/lookup', ssr: false },
+    { src: '~/plugins/nuxt-client-init', ssr: false },
+    { src: '~/plugins/websocket', ssr: false }
   ],
 
   // Nuxt modules
@@ -92,7 +94,22 @@ module.exports = {
 
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
-    '/v1':     { target: process.env.API, xfwd: true },
+    '/v1':     {
+      target:       process.env.API,
+      xfwd:         true,
+      ws:           true,
+      logLevel:     'debug',
+      changeOrigin: true,
+      onProxyReqWs(proxyReq, req, socket, options, head) {
+        req.headers.origin = options.target.href;
+        proxyReq.setHeader('origin', options.target.href);
+      },
+      onError(err, req, res) {
+        res.statusCode = 500;
+        console.log('Proxy Error:', err);
+        res.write(err);
+      }
+    },
     '/api':    { target: process.env.API, xfwd: true },
     '/api-ui': { target: process.env.API, xfwd: true }
   }

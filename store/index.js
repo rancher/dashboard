@@ -11,7 +11,7 @@ export const state = () => {
 export const mutations = {
   preloaded(state) {
     state.preloaded = true;
-  }
+  },
 };
 
 export const actions = {
@@ -25,6 +25,8 @@ export const actions = {
       dispatch('prefs/loadCookies'),
       // ctx.store.dispatch('k8s/loadAll'),
       dispatch('v1/loadSchemas'),
+      dispatch('v1/findAll', { type: 'io.k8s.api.core.v1.Pod', opt: { url: 'pods' } }),
+      dispatch('v1/findAll', { type: 'io.k8s.api.core.v1.namespace', opt: { url: 'namespaces' } })
     ]);
     console.log('Done Preloading.');
 

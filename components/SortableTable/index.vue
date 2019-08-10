@@ -239,7 +239,7 @@ export default {
               </td>
               <template v-for="col in columns">
                 <slot name="cell" :row="row" :col="col">
-                  <slot :name="col.name">
+                  <slot :name="'col:' + col.name">
                     <td v-if="col.formatter" :key="col.name" :data-title="dt[col.name]">
                       <component :is="col.formatter" :value="get(row, col.value||col.name)" :row="row" :col="col" />
                     </td>

@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import urlOptions from './urloptions';
-import { clear, addObject, addObjects } from '@/utils/array';
+import { clear, addObject, addObjects, removeObject } from '@/utils/array';
 import { sortableNumericSuffix } from '@/utils/sort';
 
 const KEY_FIELD_FOR = {
@@ -13,8 +13,12 @@ export const Norman = {
 
   state() {
     return {
-      types:   {},
       config: { baseUrl: '/v1' },
+      types:   {},
+      socket:    {
+        status: 'disconnected',
+        count:  0,
+      }
     };
   },
 
@@ -38,7 +42,18 @@ export const Norman = {
       }
     },
 
-    schemaFor: (state, getters) => (type) => {
+    schemaName: (state, getters) => (type) => {
+      const schemas = state.types['schema'];
+      const keyField = KEY_FIELD_FOR['schema'] || KEY_FIELD_FOR['default'];
+      const entry = schemas.list.find(x => x[keyField].toLowerCase().endsWith(`.${ type }`));
+
+      if ( entry ) {
+        return entry[keyField];
+      }
+    },
+
+    // Fuzzy is only for plugins/lookup, do not use in real code
+    schemaFor: (state, getters) => (type, fuzzy = false) => {
       const schemas = state.types['schema'];
 
       type = normalizeType(type);
@@ -47,7 +62,17 @@ export const Norman = {
         throw new Error("Schemas aren't loaded yet");
       }
 
-      return schemas.map.get(type);
+      const out = schemas.map.get(type);
+
+      if ( !out && fuzzy ) {
+        const close = getters.schemaName(type);
+
+        if ( close ) {
+          return getters.schemaFor(close);
+        }
+      }
+
+      return out;
     },
 
     hasType: (state, getters) => (type) => {
@@ -90,6 +115,12 @@ export const Norman = {
         }
       }
 
+      if ( !url.startsWith('/') ) {
+        const baseUrl = state.config.baseUrl.replace(/\/$/, '');
+
+        url = `${ baseUrl }/${ url }`;
+      }
+
       url = urlOptions(url, opt);
 
       return url;
@@ -97,8 +128,12 @@ export const Norman = {
   },
 
   mutations: {
+    updateSocket(state, obj) {
+      state.socket.status = obj.status;
+      state.socket.count = obj.count || 0;
+    },
+
     rehydrateProxies(state) {
-      console.log('Rehydrating Proxies:', process.client);
       if ( !process.client ) {
         return;
       }
@@ -175,6 +210,22 @@ export const Norman = {
         addObject(cache.list, proxy);
         cache.map.set(id, proxy);
       }
+    },
+
+    remove(state, { type, id }) {
+      type = normalizeType(type);
+      const entry = state.types[type];
+
+      if ( !entry ) {
+        return;
+      }
+
+      const obj = entry.map.get(id);
+
+      if ( obj ) {
+        removeObject(entry.list, obj);
+        entry.map.delete(id);
+      }
     }
   },
 
@@ -189,6 +240,13 @@ export const Norman = {
 
         if ( res.status === 204 ) {
           return;
+        }
+
+        if ( !out ) {
+          console.log('-------------------');
+          console.log('OPT', opt);
+          console.log('RES', res);
+          console.log('-------------------');
         }
 
         if ( opt.depaginate ) {
@@ -219,10 +277,7 @@ export const Norman = {
     async loadSchemas({
       getters, dispatch, commit, state
     }) {
-      console.log('loadSchemas');
       const res = await dispatch('findAll', { type: 'schema', opt: { url: '/v1/schemas', load: false } });
-
-      console.log('loadSchemas 2');
 
       res.forEach((schema) => {
         schema._id = normalizeType(schema.id);
@@ -243,7 +298,7 @@ export const Norman = {
     },
 
     async findAll({ getters, commit, dispatch }, { type, opt }) {
-      console.log('Find All', type, opt);
+      console.log('Find All', type);
       type = getters.normalizeType(type);
 
       if ( getters['haveAll'](type) ) {
@@ -251,9 +306,7 @@ export const Norman = {
       }
 
       opt = opt || {};
-      console.log('Before', opt);
       opt.url = getters.urlFor(type, null, opt);
-      console.log('After', opt);
 
       const res = await dispatch('request', opt);
 
@@ -300,6 +353,54 @@ export const Norman = {
       const neu = commit('load', res.data );
 
       return neu;
+    },
+
+    'ws.resource.change'({ getters, commit }, { data }) {
+      const type = getters.normalizeType(data.type);
+
+      if ( !getters.hasType(type) ) {
+        commit('registerType', type);
+      }
+
+      // console.log('Load', data.type, data.id);
+      // commit('load', data);
+    },
+
+    'ws.resource.remove'({ getters, commit }, { data }) {
+      const type = getters.normalizeType(data.type);
+
+      if ( getters.hasType(type) ) {
+        commit('remove', { type, id: data.id });
+      }
+    },
+
+    'ws.ping'() {
+      console.log('WebSocket Ping');
+    },
+
+    'ws.open'({ commit }, event) {
+      commit('updateSocket', { status: 'connected', count: 0 });
+      console.log('WebSocket Opened');
+    },
+
+    'ws.close'({ commit }, event) {
+      commit('updateSocket', { status: 'disconnected', count: 0 });
+      console.log('WebSocket Closed');
+    },
+
+    'ws.error'({ commit }, event) {
+      commit('updateSocket', { status: 'error' });
+      console.log('WebSocket Error');
+    },
+
+    'ws.reconnect'({ commit }, count) {
+      commit('updateSocket', { status: 'disconnected', count });
+      console.log(`WebSocket Reconnect Attempt #${ count }`);
+    },
+
+    'ws.reconnect-error'({ commit }) {
+      commit('updateSocket', { status: 'failed' });
+      console.error('WebSocket Reconnect Failed');
     }
   },
 };
@@ -337,7 +438,7 @@ function proxyFor(obj) {
     },
 
     apply(target, thisArg, argumentsList) {
-      debugger;
+
     }
   });
 }

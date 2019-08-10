@@ -22,7 +22,6 @@ export default {
   computed: {},
 
   async asyncData(ctx) {
-    console.log('asyncData');
     const rows = await ctx.store.dispatch('v1/findAll', { type: 'io.k8s.api.core.v1.Pod' });
 
     return {
@@ -33,9 +32,5 @@ export default {
       rows,
     };
   },
-
-  fetch(ctx) {
-    console.log('fetch');
-  }
 };
 </script>

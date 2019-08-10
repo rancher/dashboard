@@ -40,6 +40,7 @@
     "sinon": "^7.3.2",
     "ts-node": "^8.3.0",
     "v-tooltip": "^2.0.2",
+    "vue-native-websocket": "^2.0.13",
     "vuex-persistedstate": "^2.5.4",
     "yaml-js": "^0.2.3"
   },
