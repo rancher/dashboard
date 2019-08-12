@@ -6,7 +6,8 @@ require('dotenv').config();
 console.log(`Proxying to ${ process.env.API }`);
 
 module.exports = {
-  mode: 'universal',
+
+  // mode: 'universal',
 
   server: {
     https: {
@@ -30,9 +31,10 @@ module.exports = {
     /*
      ** You can extend webpack config here
      */
-    extend(config, { isClient }) {
-      if (isClient) {
-        config.devtool = '#source-map';
+    extend(config, { isDev, isClient }) {
+      console.log(`Build, isDev: ${ isDev }, isClient: ${ isClient }`);
+      if (isDev) {
+        config.devtool = isClient ? '#source-map' : 'inline-source-map';
       }
     },
     //    extractCSS: true,
@@ -80,6 +82,11 @@ module.exports = {
     '@nuxtjs/eslint-module',
     'cookie-universal-nuxt',
     'portal-vue/nuxt'
+  ],
+
+  // Server middleware
+  serverMiddleware: [
+    '~/server/no-ssr'
   ],
 
   loading: '~/components/loading.vue',

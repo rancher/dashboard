@@ -1,4 +1,5 @@
 import Norman from '@/plugins/norman';
+import { POD, NAMESPACE } from '@/utils/types';
 
 export const plugins = [
   Norman({ namespace: 'v1' })
@@ -25,8 +26,8 @@ export const actions = {
       dispatch('prefs/loadCookies'),
       // ctx.store.dispatch('k8s/loadAll'),
       dispatch('v1/loadSchemas'),
-      dispatch('v1/findAll', { type: 'io.k8s.api.core.v1.Pod', opt: { url: 'pods' } }),
-      dispatch('v1/findAll', { type: 'io.k8s.api.core.v1.namespace', opt: { url: 'namespaces' } })
+      dispatch('v1/findAll', { type: POD, opt: { url: 'pods' } }),
+      dispatch('v1/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })
     ]);
     console.log('Done Preloading.');
 

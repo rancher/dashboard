@@ -13,6 +13,7 @@
 
     <div class="middle">
       <nav>
+        <NamespacePicker />
         <ul class="list-unstyled packages">
           <n-link v-for="pkg in packages" :key="pkg.name" :to="pkg.name" tag="li" class="package">
             <a>{{ pkg.label }}</a>
@@ -42,8 +43,10 @@
 
 <script>
 import { THEME } from '~/store/prefs';
+import NamespacePicker from '~/components/NamespacePicker';
 
 export default {
+  components: { NamespacePicker },
 
   head() {
     const theme = this.$store.getters['prefs/get'](THEME);
