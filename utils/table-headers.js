@@ -20,6 +20,13 @@ export const NAME = {
   sort:   ['sortName', 'id'],
 };
 
+export const NAMESPACE = {
+  name:   'namespace',
+  value:  'metadata.namespace',
+  label:  'Namespace',
+  sort:   ['metadata.namespace', 'id'],
+};
+
 export const CREATED = {
   name:      'created',
   value:     'metadata.creationTimestamp',

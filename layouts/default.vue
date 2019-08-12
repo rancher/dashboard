@@ -3,7 +3,7 @@
   <div class="root">
     <header>
       <n-link to="/">
-        Left
+        Left -- {{ $store.state.namespaces }}
       </n-link>
 
       <div class="header-right">

@@ -1,22 +1,42 @@
 import Norman from '@/plugins/norman';
 import { POD, NAMESPACE } from '@/utils/types';
+import { NAMESPACES } from '@/store/prefs';
 
 export const plugins = [
   Norman({ namespace: 'v1' })
 ];
 
 export const state = () => {
-  return { preloaded: false };
+  return {
+    preloaded:  false,
+    namespaces: [],
+  };
+};
+
+export const getters = {
+  allNamespaces(state) {
+    return (state.namespaces || []).includes('_all');
+  },
+
+  namespaces(state) {
+    return state.namespaces;
+  }
 };
 
 export const mutations = {
   preloaded(state) {
     state.preloaded = true;
   },
+
+  updateNamespaces(state, neu) {
+    state.namespaces = neu;
+  }
 };
 
 export const actions = {
-  async preload({ state, dispatch, commit }) {
+  async preload({
+    state, getters, commit, dispatch
+  }) {
     if ( state.preloaded ) {
       return;
     }
@@ -29,13 +49,24 @@ export const actions = {
       dispatch('v1/findAll', { type: POD, opt: { url: 'pods' } }),
       dispatch('v1/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })
     ]);
+
+    commit('updateNamespaces', getters['prefs/get'](NAMESPACES));
     console.log('Done Preloading.');
 
     commit('preloaded');
   },
 
-  nuxtClientInit({ commit }) {
-    commit('v1/rehydrateProxies');
+  switchNamespaces({ commit }, val) {
+    commit('prefs/set', { key: NAMESPACES, val });
+    commit('updateNamespaces', val);
+  },
+
+  async nuxtClientInit({ state, dispatch, commit }) {
+    if ( state.preloaded ) {
+      commit('v1/rehydrateProxies');
+    } else {
+      await dispatch('preload');
+    }
   },
 
   async nuxtServerInit({ dispatch }) {

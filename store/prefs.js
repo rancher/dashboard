@@ -2,10 +2,10 @@ import Vue from 'vue';
 
 const all = {};
 
-export const create = function(name, def, json = false) {
+export const create = function(name, def, parseJSON = false) {
   all[name] = {
     def,
-    isJson: json
+    parseJSON
   };
 
   return name;
@@ -72,11 +72,7 @@ export const actions = {
   loadCookies({ commit }) {
     for (const key in all) {
       const entry = all[key];
-      const opt = {};
-
-      if (!entry.isJson) {
-        opt.parseJSON = false;
-      }
+      const opt = { parseJSON: entry.parseJSON !== false };
 
       const val = this.$cookies.get(`${ prefix }${ key }`, opt);
 
