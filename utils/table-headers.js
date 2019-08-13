@@ -14,10 +14,11 @@ export const STATE = {
 };
 
 export const NAME = {
-  name:   'name',
-  value:  'displayName',
-  label:  'Name',
-  sort:   ['sortName', 'id'],
+  name:      'name',
+  value:     'displayName',
+  label:     'Name',
+  sort:      ['sortName', 'id'],
+  formatter: 'LinkDetail',
 };
 
 export const NAMESPACE = {

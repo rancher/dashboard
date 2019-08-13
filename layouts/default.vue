@@ -15,12 +15,12 @@
       <nav>
         <NamespacePicker />
         <ul class="list-unstyled packages">
-          <n-link v-for="pkg in packages" :key="pkg.name" :to="pkg.name" tag="li" class="package">
+          <n-link v-for="pkg in packages" :key="pkg.name" :to="'/'+pkg.name" tag="li" class="package">
             <a>{{ pkg.label }}</a>
-            <ul class="list-unstyled children">
-              <li><a>Child 1</a></li>
-              <li><a>Child 2</a></li>
-              <li><a>Child 3</a></li>
+            <ul v-if="pkg.children" class="list-unstyled children">
+              <n-link v-for="child in pkg.children" :key="child.route" :to="child.route" tag="li">
+                <a>{{ child.label }}</a></li>
+              </n-link>
             </ul>
           </n-link>
         </ul>
@@ -43,6 +43,7 @@
 
 <script>
 import { THEME } from '~/store/prefs';
+import { COUNT } from '~/utils/types';
 import NamespacePicker from '~/components/NamespacePicker';
 
 export default {
@@ -56,14 +57,21 @@ export default {
 
   computed: {
     packages() {
+      const counts = this.$store.getters['counts'];
+      const children = counts.map(res => ({
+        ...res,
+        route: `/explorer/${ res.id }/`
+      }));
+
       const data = [
         {
           name:  'cluster',
           label: 'Cluster Info'
         },
         {
-          name:  'explorer',
-          label: 'Explorer'
+          name:     'explorer',
+          label:    'Explorer',
+          children,
         }
       ];
 

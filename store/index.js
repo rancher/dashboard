@@ -1,5 +1,5 @@
 import Norman from '@/plugins/norman';
-import { POD, NAMESPACE } from '@/utils/types';
+import { COUNT, POD, NAMESPACE } from '@/utils/types';
 import { NAMESPACES } from '@/store/prefs';
 
 export const plugins = [
@@ -20,6 +20,35 @@ export const getters = {
 
   namespaces(state) {
     return state.namespaces;
+  },
+
+  counts(state, getters) {
+    const obj = getters['v1/all'](COUNT)[0].counts;
+    const out = Object.keys(obj).map((id) => {
+      const schema = getters['v1/schemaFor'](id);
+
+      if ( !schema ) {
+        console.log('Unknown schema, id');
+
+        return null;
+      }
+
+      const attrs = schema.attributes || {};
+      const entry = obj[id];
+
+      return {
+        id,
+        label:      attrs.kind,
+        group:      attrs.group,
+        version:    attrs.version,
+        namespaced: attrs.namespaced,
+        verbs:      attrs.verbs,
+        count:      entry.count,
+        revision:   entry.revision
+      };
+    });
+
+    return out.filter(x => !!x);
   }
 };
 
@@ -46,8 +75,9 @@ export const actions = {
       dispatch('prefs/loadCookies'),
       // ctx.store.dispatch('k8s/loadAll'),
       dispatch('v1/loadSchemas'),
-      dispatch('v1/findAll', { type: POD, opt: { url: 'pods' } }),
+      dispatch('v1/findAll', { type: COUNT, opt: { url: 'counts' } }),
       dispatch('v1/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })
+      //      dispatch('v1/findAll', { type: POD, opt: { url: 'pods' } }),
     ]);
 
     commit('updateNamespaces', getters['prefs/get'](NAMESPACES));

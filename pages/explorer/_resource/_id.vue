@@ -1,6 +1,5 @@
-
 <template>
   <div>
-    &lt;-- Select a resource over here
+    ID: {{ $route.params.id }}
   </div>
 </template>

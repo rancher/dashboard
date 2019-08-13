@@ -32,9 +32,8 @@ module.exports = {
      ** You can extend webpack config here
      */
     extend(config, { isDev, isClient }) {
-      console.log(`Build, isDev: ${ isDev }, isClient: ${ isClient }`);
       if (isDev) {
-        config.devtool = isClient ? '#source-map' : 'inline-source-map';
+        config.devtool = isClient ? 'eval-source-map' : 'inline-source-map';
       }
     },
     //    extractCSS: true,

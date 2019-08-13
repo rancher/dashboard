@@ -43,9 +43,14 @@ export const Norman = {
     },
 
     schemaName: (state, getters) => (type) => {
+      type = getters.normalizeType(type);
       const schemas = state.types['schema'];
       const keyField = KEY_FIELD_FOR['schema'] || KEY_FIELD_FOR['default'];
-      const entry = schemas.list.find(x => x[keyField].toLowerCase().endsWith(`.${ type }`));
+      const entry = schemas.list.find((x) => {
+        const thisOne = getters.normalizeType(x[keyField]);
+
+        return thisOne === type || thisOne.endsWith(`.${ type }`);
+      });
 
       if ( entry ) {
         return entry[keyField];
@@ -115,7 +120,7 @@ export const Norman = {
         }
       }
 
-      if ( !url.startsWith('/') ) {
+      if ( !url.startsWith('/') && !url.startsWith('http') ) {
         const baseUrl = state.config.baseUrl.replace(/\/$/, '');
 
         url = `${ baseUrl }/${ url }`;
@@ -344,6 +349,7 @@ export const Norman = {
       opt = opt || {};
       opt.url = getters.urlFor(type, id, opt);
 
+      console.log('Request', opt);
       const res = await dispatch('request', opt);
 
       if ( !getters.hasType(type) ) {
