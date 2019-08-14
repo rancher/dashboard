@@ -12,25 +12,17 @@
 
 <script>
 import SortableTable from '@/components/SortableTable';
-import { NAME, NAMESPACE, CREATED } from '@/utils/table-headers';
-import { removeObject } from '@/utils/array';
+import { headersFor } from '@/utils/table-headers';
 
 export default {
   components: { SortableTable },
 
   computed: {
     headers() {
-      const out = [
-        NAME,
-        NAMESPACE,
-        CREATED
-      ];
+      const schema = this.$store.getters['v1/schemaFor'](this.$route.params.resource);
+      const multipleNamespaces = this.$store.getters['multipleNamespaces'];
 
-      if ( !this.$store.getters['allNamespaces'] ) {
-        removeObject(out, NAMESPACE);
-      }
-
-      return out;
+      return headersFor(schema, multipleNamespaces);
     },
 
     filteredRows() {

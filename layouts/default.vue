@@ -57,11 +57,12 @@ export default {
   computed: {
     packages() {
       const namespaces = this.$store.getters['namespaces'] || [];
-      const counts = this.$store.getters['v1/counts'];
-      const children = counts.map(res => ({
+
+      const children = this.$store.getters['v1/counts'].map(res => ({
         label: res.label,
         count: matchingCounts(res, namespaces),
         route: `/explorer/${ res.id }/`
+
       })).filter(x => x.count > 0);
 
       const data = [

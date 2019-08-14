@@ -33,7 +33,7 @@ module.exports = {
      */
     extend(config, { isDev, isClient }) {
       if (isDev) {
-        config.devtool = isClient ? 'eval-source-map' : 'inline-source-map';
+        config.devtool = isClient ? '#source-map' : 'inline-source-map';
       }
     },
     //    extractCSS: true,
@@ -109,11 +109,15 @@ module.exports = {
       onProxyReqWs(proxyReq, req, socket, options, head) {
         req.headers.origin = options.target.href;
         proxyReq.setHeader('origin', options.target.href);
+
+        socket.on('error', (err) => {
+          console.error('Proxy WS Error:', err);
+        });
       },
       onError(err, req, res) {
         res.statusCode = 500;
-        console.log('Proxy Error:', err);
-        res.write(err);
+        console.error('Proxy Error:', err);
+        res.write(JSON.stringify(err));
       }
     },
     '/api':    { target: process.env.API, xfwd: true },

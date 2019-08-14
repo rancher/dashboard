@@ -37,3 +37,29 @@ export const CREATED = {
   width:     120,
   formatter: 'LiveDate',
 };
+
+export function headersFor(schema, multipleNamespaces = true) {
+  const out = [];
+  const namespaced = schema.attributes.namespaced;
+  const columns = schema.attributes.columns;
+
+  for ( const col of columns ) {
+    if ( col.format === 'name' && col.field === 'metadata.name' ) {
+      out.push(NAME);
+      if ( namespaced && multipleNamespaces ) {
+        out.push(NAMESPACE);
+      }
+    } else if ( col.format === 'date' && col.field === 'metadata.creationTimestamp' ) {
+      out.push(CREATED);
+    } else {
+      out.push({
+        name:  col.name.toLowerCase(),
+        label: col.name,
+        value: col.field,
+        sort:  [col.field, 'id']
+      });
+    }
+  }
+
+  return out;
+}

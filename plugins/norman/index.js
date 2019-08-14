@@ -9,6 +9,8 @@ const KEY_FIELD_FOR = {
   default:  'id',
 };
 
+const NO_WATCHING = ['schema'];
+
 export const Norman = {
   namespaced: true,
 
@@ -161,6 +163,27 @@ export const Norman = {
 
       return out.filter(x => !!x);
     },
+
+    nextResourceVersion: (state, getters) => (type) => {
+      type = normalizeType(type);
+
+      const cache = state.types[type];
+      let revision = 0;
+
+      for ( const obj of cache.list ) {
+        if ( obj && obj.metadata ) {
+          const neu = parseInt(obj.metadata.resourceVersion, 10);
+
+          revision = Math.max(revision, neu);
+        }
+      }
+
+      if ( revision ) {
+        return revision + 1;
+      }
+
+      return null;
+    }
   },
 
   mutations: {
@@ -278,13 +301,6 @@ export const Norman = {
           return;
         }
 
-        if ( !out ) {
-          console.log('-------------------');
-          console.log('OPT', opt);
-          console.log('RES', res);
-          console.log('-------------------');
-        }
-
         if ( opt.depaginate ) {
           // @TODO
           /*
@@ -381,7 +397,6 @@ export const Norman = {
       opt = opt || {};
       opt.url = getters.urlFor(type, id, opt);
 
-      console.log('Request', opt);
       const res = await dispatch('request', opt);
 
       if ( !getters.hasType(type) ) {
@@ -393,25 +408,33 @@ export const Norman = {
       return neu;
     },
 
-    watchType({ dispatch }, { type }) {
-      return dispatch('ws.send', { resourceType: type });
+    watchType({ dispatch, getters }, { type, revision }) {
+      if ( !process.client ) {
+        return;
+      }
+
+      type = normalizeType(type);
+
+      if ( NO_WATCHING.includes(type) ) {
+        return;
+      }
+
+      if ( typeof revision === 'undefined' ) {
+        revision = getters.nextResourceVersion(type);
+      }
+
+      return dispatch('ws.send', { resourceType: type, revision });
     },
 
     watchHaveAllTypes({ state, dispatch }) {
       const promises = [];
       const cache = state.types;
-      const keys = Object.keys(state.types);
-      const ignore = ['schema'];
 
-      keys.forEach((type) => {
-        if ( ignore.includes(type) ) {
-          return;
-        }
-
+      for ( const type in cache ) {
         if ( cache[type].haveAll ) {
-          promises.push(dispatch('ws.send', { resourceType: type }));
+          promises.push(dispatch('watchType', { type }));
         }
-      });
+      }
 
       return Promise.all(promises);
     },
@@ -527,7 +550,7 @@ function proxyFor(obj) {
         return sortableNumericSuffix(target.metadata.name || target.id).toLowerCase();
       } else if ( name === 'toString' ) {
         return function() {
-          return `${ obj.type }:${ obj.id }`;
+          return `[${ obj.type }:${ obj.id }]`;
         };
       }
 

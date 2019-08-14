@@ -1,5 +1,5 @@
 import Norman from '@/plugins/norman';
-import { COUNT, POD, NAMESPACE } from '@/utils/types';
+import { COUNT, NAMESPACE } from '@/utils/types';
 import { NAMESPACES } from '@/store/prefs';
 
 export const plugins = [
@@ -16,6 +16,10 @@ export const state = () => {
 export const getters = {
   allNamespaces(state) {
     return (state.namespaces || []).includes('_all');
+  },
+
+  multipleNamespaces(state, getters) {
+    return getters.allNamespaces || state.namespaces.length > 1;
   },
 
   namespaces(state) {

@@ -95,9 +95,9 @@ export default {
     <tr>
       <th v-if="tableActions" :width="checkWidth">
         <input
+          v-model="isAll"
           class="check"
           type="checkbox"
-          :checked="isAll"
           :indeterminate.prop="isIndeterminate"
         />
       </th>
@@ -105,6 +105,7 @@ export default {
         v-for="col in columns"
         :key="col.name"
         align="left"
+        :width="col.width"
         :class="{ sortable: col.sort }"
         @click.prevent="changeSort($event, col)"
       >
