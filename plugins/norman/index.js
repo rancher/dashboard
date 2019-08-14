@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import urlOptions from './urloptions';
+import ResourceProxy from './resource-proxy';
 import { clear, addObject, addObjects, removeObject } from '@/utils/array';
-import { sortableNumericSuffix } from '@/utils/sort';
 import { COUNT, SCHEMA } from '@/utils/types';
 
 const KEY_FIELD_FOR = {
@@ -544,21 +544,13 @@ function normalizeType(type) {
 function proxyFor(obj) {
   return new Proxy(obj, {
     get(target, name) {
-      if (name === 'displayName') {
-        return target.metadata.name || target.id;
-      } else if ( name === 'sortName' ) {
-        return sortableNumericSuffix(target.metadata.name || target.id).toLowerCase();
-      } else if ( name === 'toString' ) {
-        return function() {
-          return `[${ obj.type }:${ obj.id }]`;
-        };
+      const fn = ResourceProxy[name];
+
+      if ( fn ) {
+        return fn.apply(target);
       }
 
       return target[name];
     },
-
-    apply(target, thisArg, argumentsList) {
-
-    }
   });
 }

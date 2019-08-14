@@ -65,7 +65,8 @@ module.exports = {
   plugins: [
     // Third-party
     '~/plugins/axios',
-    '~/plugins/v-tooltip',
+    '~/plugins/tooltip',
+    '~/plugins/codemirror',
 
     // First-party
     '~/plugins/global-formatters',

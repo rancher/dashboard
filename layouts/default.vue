@@ -195,4 +195,8 @@ export default {
   FOOTER {
     background-color: var(--footer-bg);
   }
+
+  .packages {
+    margin-bottom: 65px;
+  }
 </style>
