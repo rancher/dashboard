@@ -21,35 +21,6 @@ export const getters = {
   namespaces(state) {
     return state.namespaces;
   },
-
-  counts(state, getters) {
-    const obj = getters['v1/all'](COUNT)[0].counts;
-    const out = Object.keys(obj).map((id) => {
-      const schema = getters['v1/schemaFor'](id);
-
-      if ( !schema ) {
-        console.log('Unknown schema, id');
-
-        return null;
-      }
-
-      const attrs = schema.attributes || {};
-      const entry = obj[id];
-
-      return {
-        id,
-        label:      attrs.kind,
-        group:      attrs.group,
-        version:    attrs.version,
-        namespaced: attrs.namespaced,
-        verbs:      attrs.verbs,
-        count:      entry.count,
-        revision:   entry.revision
-      };
-    });
-
-    return out.filter(x => !!x);
-  }
 };
 
 export const mutations = {
@@ -93,7 +64,7 @@ export const actions = {
 
   async nuxtClientInit({ state, dispatch, commit }) {
     if ( state.preloaded ) {
-      commit('v1/rehydrateProxies');
+      await commit('v1/rehydrateProxies');
     } else {
       await dispatch('preload');
     }

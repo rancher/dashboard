@@ -92,9 +92,10 @@ export default {
         return;
       }
 
-      const nodeId = tgtRow.find('input[type="checkbox"]').data('node-id');
+      const check = tgtRow.find('input[type="checkbox"]');
+      const nodeId = check.data('node-id');
 
-      if ( !nodeId ) {
+      if ( !nodeId || !check || !check.length || check[0].disabled ) {
         return;
       }
 
@@ -228,7 +229,7 @@ export default {
       if ( id ) {
         const input = $(`input[data-node-id="${ id }"]`);
 
-        if ( input && input.length ) {
+        if ( input && input.length && !input[0].disabled ) {
           // can't reuse the input ref here because the table has rerenderd and the ref is no longer good
           $(`input[data-node-id="${ id }"]`).prop('checked', on);
 

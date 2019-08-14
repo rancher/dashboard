@@ -19,7 +19,7 @@
             <a>{{ pkg.label }}</a>
             <ul v-if="pkg.children" class="list-unstyled children">
               <n-link v-for="child in pkg.children" :key="child.route" :to="child.route" tag="li">
-                <a>{{ child.label }}</a></li>
+                <a>{{ child.label }} ({{ child.count }})</a></li>
               </n-link>
             </ul>
           </n-link>
@@ -43,7 +43,6 @@
 
 <script>
 import { THEME } from '~/store/prefs';
-import { COUNT } from '~/utils/types';
 import NamespacePicker from '~/components/NamespacePicker';
 
 export default {
@@ -57,11 +56,13 @@ export default {
 
   computed: {
     packages() {
-      const counts = this.$store.getters['counts'];
+      const namespaces = this.$store.getters['namespaces'] || [];
+      const counts = this.$store.getters['v1/counts'];
       const children = counts.map(res => ({
-        ...res,
+        label: res.label,
+        count: matchingCounts(res, namespaces),
         route: `/explorer/${ res.id }/`
-      }));
+      })).filter(x => x.count > 0);
 
       const data = [
         {
@@ -76,6 +77,24 @@ export default {
       ];
 
       return data;
+
+      function matchingCounts(obj, namespaces) {
+        if ( namespaces.includes('_all') ) {
+          return obj.count;
+        }
+
+        if ( !obj.byNamespace ) {
+          return 0;
+        }
+
+        let out = 0;
+
+        for ( let i = 0 ; i < namespaces.length ; i++ ) {
+          out += obj.byNamespace[namespaces[i]] || 0;
+        }
+
+        return out;
+      }
     }
   }
 };

@@ -1,3 +1,4 @@
+export const SCHEMA = 'schema';
 export const COUNT = 'count';
-export const POD = 'io.k8s.api.core.v1.Pod';
-export const NAMESPACE = 'io.k8s.api.core.v1.namespace';
+export const POD = 'core.v1.pod';
+export const NAMESPACE = 'core.v1.namespaces';

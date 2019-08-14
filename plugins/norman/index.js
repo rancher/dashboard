@@ -2,10 +2,11 @@ import Vue from 'vue';
 import urlOptions from './urloptions';
 import { clear, addObject, addObjects, removeObject } from '@/utils/array';
 import { sortableNumericSuffix } from '@/utils/sort';
+import { COUNT, SCHEMA } from '@/utils/types';
 
 const KEY_FIELD_FOR = {
-  schema:  '_id',
-  default: 'id',
+  [SCHEMA]:  '_id',
+  default:  'id',
 };
 
 export const Norman = {
@@ -44,8 +45,8 @@ export const Norman = {
 
     schemaName: (state, getters) => (type) => {
       type = getters.normalizeType(type);
-      const schemas = state.types['schema'];
-      const keyField = KEY_FIELD_FOR['schema'] || KEY_FIELD_FOR['default'];
+      const schemas = state.types[SCHEMA];
+      const keyField = KEY_FIELD_FOR[SCHEMA] || KEY_FIELD_FOR['default'];
       const entry = schemas.list.find((x) => {
         const thisOne = getters.normalizeType(x[keyField]);
 
@@ -59,7 +60,7 @@ export const Norman = {
 
     // Fuzzy is only for plugins/lookup, do not use in real code
     schemaFor: (state, getters) => (type, fuzzy = false) => {
-      const schemas = state.types['schema'];
+      const schemas = state.types[SCHEMA];
 
       type = normalizeType(type);
 
@@ -129,6 +130,36 @@ export const Norman = {
       url = urlOptions(url, opt);
 
       return url;
+    },
+
+    counts(state, getters) {
+      const obj = getters['all'](COUNT)[0].counts;
+      const out = Object.keys(obj).map((id) => {
+        const schema = getters['schemaFor'](id);
+
+        if ( !schema ) {
+          console.log('Unknown schema, id');
+
+          return null;
+        }
+
+        const attrs = schema.attributes || {};
+        const entry = obj[id];
+
+        return {
+          id,
+          label:       attrs.kind,
+          group:       attrs.group,
+          version:     attrs.version,
+          namespaced:  attrs.namespaced,
+          verbs:       attrs.verbs,
+          count:       entry.count,
+          byNamespace: entry.namespaces,
+          revision:    entry.revision
+        };
+      });
+
+      return out.filter(x => !!x);
     },
   },
 
@@ -282,7 +313,7 @@ export const Norman = {
     async loadSchemas({
       getters, dispatch, commit, state
     }) {
-      const res = await dispatch('findAll', { type: 'schema', opt: { url: '/v1/schemas', load: false } });
+      const res = await dispatch('findAll', { type: SCHEMA, opt: { url: '/v1/schemas', load: false } });
 
       res.forEach((schema) => {
         schema._id = normalizeType(schema.id);
@@ -294,10 +325,10 @@ export const Norman = {
         // }
       });
 
-      commit('registerType', 'schema');
-      commit('loadAll', { type: 'schema', data: res });
+      commit('registerType', SCHEMA);
+      commit('loadAll', { type: SCHEMA, data: res });
 
-      const all = getters.all('schema');
+      const all = getters.all(SCHEMA);
 
       return all;
     },
@@ -324,6 +355,7 @@ export const Norman = {
       }
 
       commit('loadAll', { type, data: res.data });
+      dispatch('watchType', { type });
 
       const all = getters.all(type);
 
@@ -361,32 +393,37 @@ export const Norman = {
       return neu;
     },
 
-    'ws.resource.change'({ getters, commit }, { data }) {
-      const type = getters.normalizeType(data.type);
-
-      if ( !getters.hasType(type) ) {
-        commit('registerType', type);
-      }
-
-      // console.log('Load', data.type, data.id);
-      // commit('load', data);
+    watchType({ dispatch }, { type }) {
+      return dispatch('ws.send', { resourceType: type });
     },
 
-    'ws.resource.remove'({ getters, commit }, { data }) {
-      const type = getters.normalizeType(data.type);
+    watchHaveAllTypes({ state, dispatch }) {
+      const promises = [];
+      const cache = state.types;
+      const keys = Object.keys(state.types);
+      const ignore = ['schema'];
 
-      if ( getters.hasType(type) ) {
-        commit('remove', { type, id: data.id });
-      }
+      keys.forEach((type) => {
+        if ( ignore.includes(type) ) {
+          return;
+        }
+
+        if ( cache[type].haveAll ) {
+          promises.push(dispatch('ws.send', { resourceType: type }));
+        }
+      });
+
+      return Promise.all(promises);
     },
 
-    'ws.ping'() {
-      console.log('WebSocket Ping');
-    },
-
-    'ws.open'({ commit }, event) {
+    async 'ws.open'({ commit, dispatch }, event) {
       commit('updateSocket', { status: 'connected', count: 0 });
       console.log('WebSocket Opened');
+      const socket = event.currentTarget;
+
+      this.$socket = socket;
+
+      await dispatch('watchHaveAllTypes');
     },
 
     'ws.close'({ commit }, event) {
@@ -407,7 +444,61 @@ export const Norman = {
     'ws.reconnect-error'({ commit }) {
       commit('updateSocket', { status: 'failed' });
       console.error('WebSocket Reconnect Failed');
-    }
+    },
+
+    async 'ws.send'(ctx, obj) {
+      if ( this.$socket ) {
+        await this.$socket.send(JSON.stringify(obj));
+      } else {
+        console.log('Socket is not up yet');
+      }
+    },
+
+    'ws.ping'() {
+      console.log('WebSocket Ping');
+    },
+
+    'ws.resource.start'(_, msg) {
+      console.log('Resource start:', msg.resourceType);
+    },
+
+    'ws.resource.error'(_, msg) {
+      console.log('Resource error for', msg.resourceType, ':', msg.data.error);
+    },
+
+    'ws.resource.stop'(_, msg) {
+      console.log('Resource stop:', msg.resourceType);
+    },
+
+    'ws.resource.create'({ getters, commit }, { data }) {
+      const type = getters.normalizeType(data.type);
+
+      if ( !getters.hasType(type) ) {
+        commit('registerType', type);
+      }
+
+      console.log('Load', data.type, data.id);
+      commit('load', data);
+    },
+
+    'ws.resource.change'({ getters, commit }, { data }) {
+      const type = getters.normalizeType(data.type);
+
+      if ( !getters.hasType(type) ) {
+        commit('registerType', type);
+      }
+
+      console.log('Load', data.type, data.id);
+      commit('load', data);
+    },
+
+    'ws.resource.remove'({ getters, commit }, { data }) {
+      const type = getters.normalizeType(data.type);
+
+      if ( getters.hasType(type) ) {
+        commit('remove', { type, id: data.id });
+      }
+    },
   },
 };
 
