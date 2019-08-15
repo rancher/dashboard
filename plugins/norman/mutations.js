@@ -9,18 +9,14 @@ export default {
     state.socket.count = obj.count || 0;
   },
 
-  rehydrateProxies(state) {
-    if ( !process.client ) {
-      return;
-    }
-
+  rehydrateProxies(state, { dispatch }) {
     Object.keys(state.types).forEach((type) => {
       const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
       const cache = state.types[type];
       const map = new Map();
 
       for ( let i = 0 ; i < cache.list.length ; i++ ) {
-        const proxy = proxyFor(cache.list[i]);
+        const proxy = proxyFor.call(this, cache.list[i], dispatch);
 
         cache.list[i] = proxy;
         map.set(proxy[keyField], proxy);
@@ -53,14 +49,14 @@ export default {
     }
   },
 
-  loadAll(state, { type, data }) {
+  loadAll(state, { type, data, dispatch }) {
     const cache = state.types[type];
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
 
     clear(cache.list);
     cache.map.clear();
 
-    const proxies = data.map(x => proxyFor(x));
+    const proxies = data.map(x => proxyFor.call(this, x, dispatch));
 
     addObjects(cache.list, proxies);
 
@@ -71,7 +67,7 @@ export default {
     cache.haveAll = true;
   },
 
-  load(state, resource) {
+  load(state, { resource, dispatch }) {
     const type = normalizeType(resource.type);
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
     const id = resource[keyField];
@@ -80,11 +76,15 @@ export default {
 
     if ( entry ) {
       Object.assign(entry, resource);
+
+      return entry;
     } else {
-      const proxy = proxyFor(resource);
+      const proxy = proxyFor.call(this, resource, dispatch);
 
       addObject(cache.list, proxy);
       cache.map.set(id, proxy);
+
+      return proxy;
     }
   },
 
@@ -105,13 +105,18 @@ export default {
   }
 };
 
-function proxyFor(obj) {
+function proxyFor(obj, dispatch) {
+  const $store = this;
+
+  Object.defineProperty(obj, '$store', { value: $store });
+  Object.defineProperty(obj, '$dispatch', { value: dispatch });
+
   return new Proxy(obj, {
     get(target, name) {
       const fn = ResourceProxy[name];
 
       if ( fn ) {
-        return fn.apply(target);
+        return fn.call(target);
       }
 
       return target[name];

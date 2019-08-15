@@ -13,5 +13,21 @@ export default {
     return () => {
       return `[${ this.type }: ${ this.id }]`;
     };
+  },
+
+  followLink() {
+    return (linkName, opt) => {
+      opt = opt || {};
+
+      if ( !opt.url ) {
+        opt.url = (this.links || {})[linkName];
+      }
+
+      if ( !opt.url ) {
+        throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
+      }
+
+      return this.$dispatch('request', opt);
+    };
   }
 };

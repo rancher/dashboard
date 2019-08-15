@@ -117,13 +117,16 @@ export default {
       const schema = getters['schemaFor'](id);
 
       if ( !schema ) {
-        console.log('Unknown schema, id');
-
         return null;
       }
 
       const attrs = schema.attributes || {};
       const entry = obj[id];
+
+      if ( !attrs.kind ) {
+        // Skip apiGroups resource
+        return;
+      }
 
       return {
         id,

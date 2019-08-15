@@ -88,7 +88,7 @@ export default {
     console.log('Resource stop:', msg.resourceType);
   },
 
-  'ws.resource.create'({ getters, commit }, { data }) {
+  'ws.resource.create'({ getters, commit, dispatch }, { data }) {
     const type = getters.normalizeType(data.type);
 
     if ( !getters.hasType(type) ) {
@@ -96,10 +96,12 @@ export default {
     }
 
     console.log('Load', data.type, data.id);
-    commit('load', data);
+    commit('load', {
+      type, resource: data, dispatch
+    });
   },
 
-  'ws.resource.change'({ getters, commit }, { data }) {
+  'ws.resource.change'({ getters, commit, dispatch }, { data }) {
     const type = getters.normalizeType(data.type);
 
     if ( !getters.hasType(type) ) {
@@ -107,7 +109,9 @@ export default {
     }
 
     console.log('Load', data.type, data.id);
-    commit('load', data);
+    commit('load', {
+      type, resource: data, dispatch
+    });
   },
 
   'ws.resource.remove'({ getters, commit }, { data }) {

@@ -3,37 +3,40 @@ import getters from './getters';
 import mutations from './mutations';
 import events from './events';
 
-export const Norman = {
-  namespaced: true,
+function NormanFactory(namespace) {
+  return {
+    namespaced: true,
 
-  state() {
-    return {
-      config: { baseUrl: '' },
-      types:   {},
-      socket:    {
-        status: 'disconnected',
-        count:  0,
-      }
-    };
-  },
+    state() {
+      return {
+        config: {
+          baseUrl: `/${ namespace }`,
+          namespace
+        },
+        types:   {},
+        socket:    {
+          status: 'disconnected',
+          count:  0,
+        }
+      };
+    },
 
-  getters,
-  mutations,
-  actions: {
-    ...actions,
-    ...events
-  },
-};
+    getters,
+    mutations,
+    actions: {
+      ...actions,
+      ...events
+    },
+  };
+}
 
 export default (config = {}) => {
   const namespace = config.namespace || '';
 
   config.baseUrl = config.baseUrl || `/${ namespace }`;
 
-  // const preserveState = config.preserveState !== false;
-
   return function(store) {
-    store.registerModule(namespace, Norman);
+    store.registerModule(namespace, NormanFactory(namespace));
     store.commit(`${ namespace }/applyConfig`, config);
   };
 };

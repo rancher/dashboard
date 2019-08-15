@@ -14,6 +14,10 @@ export default {
         return;
       }
 
+      if ( typeof out !== 'object' ) {
+        return out;
+      }
+
       if ( opt.depaginate ) {
         // @TODO
         /*
@@ -39,6 +43,14 @@ export default {
     });
   },
 
+  rehydrateProxies({ state, commit, dispatch }) {
+    if ( !process.client ) {
+      return;
+    }
+
+    return commit('rehydrateProxies', { dispatch });
+  },
+
   async loadSchemas({
     getters, dispatch, commit, state
   }) {
@@ -55,7 +67,9 @@ export default {
     });
 
     commit('registerType', SCHEMA);
-    commit('loadAll', { type: SCHEMA, data: res });
+    commit('loadAll', {
+      type: SCHEMA, data: res, dispatch
+    });
 
     const all = getters.all(SCHEMA);
 
@@ -83,7 +97,9 @@ export default {
       commit('registerType', type);
     }
 
-    commit('loadAll', { type, data: res.data });
+    commit('loadAll', {
+      type, data: res.data, dispatch
+    });
     dispatch('watchType', { type });
 
     const all = getters.all(type);
@@ -99,9 +115,11 @@ export default {
   //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstraping schemas on startup.
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find({ getters, commit, dispatch }, { type, id, opt }) {
-    const existing = getters.byId(type, id);
-
     type = normalizeType(type);
+
+    console.log('Find', type, id);
+
+    const existing = getters.byId(type, id);
 
     if ( existing ) {
       return existing;
@@ -116,7 +134,11 @@ export default {
       commit('registerType', type);
     }
 
-    const neu = commit('load', res.data );
+    commit('load', {
+      type, resource: res, dispatch
+    });
+
+    const neu = getters.byId(type, id);
 
     return neu;
   },
