@@ -1,6 +1,9 @@
+<script>
+export { default } from '../_id.vue';
+</script>
+
 <template>
   <div>
-    <p>Namespace: {{ $route.params.namespace }}</p>
-    <p>ID: {{ $route.params.id }}</p>
+    <ResourceYaml :obj="obj" :yaml="yaml" />
   </div>
 </template>

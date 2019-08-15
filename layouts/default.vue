@@ -2,42 +2,38 @@
 <template>
   <div class="root">
     <header>
-      <n-link to="/">
-        Left -- {{ $store.state.namespaces }}
-      </n-link>
+      <div class="header-left">
+        <n-link to="/">
+          <img src="~/assets/images/logo.svg" alt="logo" width="100%" />
+        </n-link>
+      </div>
+
+      <div class="header-middle">
+        {{ $store.state.namespaces }}
+      </div>
 
       <div class="header-right">
         Right
       </div>
     </header>
 
-    <div class="middle">
-      <nav>
-        <NamespacePicker />
-        <ul class="list-unstyled packages">
-          <n-link v-for="pkg in packages" :key="pkg.name" :to="pkg.route" tag="li" class="package">
-            <a>{{ pkg.label }}</a>
-            <ul v-if="pkg.children" class="list-unstyled children">
-              <n-link v-for="child in pkg.children" :key="child.route" :to="child.route" tag="li">
-                <a>{{ child.label }}<span class="count">{{ child.count }}</span></a></li>
-              </n-link>
-            </ul>
-          </n-link>
-        </ul>
+    <nav>
+      <NamespacePicker />
+      <ul class="list-unstyled packages">
+        <n-link v-for="pkg in packages" :key="pkg.name" :to="pkg.route" tag="li" class="package">
+          <a>{{ pkg.label }}</a>
+          <ul v-if="pkg.children" class="list-unstyled children">
+            <n-link v-for="child in pkg.children" :key="child.route" :to="child.route" tag="li">
+              <a>{{ child.label }}<span class="count">{{ child.count }}</span></a></li>
+            </n-link>
+          </ul>
+        </n-link>
+      </ul>
+    </nav>
 
-        <div class="logo">
-          <img src="~/assets/images/logo.svg" alt="logo" width="100%" />
-        </div>
-      </nav>
-
-      <main>
-        <nuxt />
-      </main>
-    </div>
-
-    <footer>
-      Footer stuff
-    </footer>
+    <main>
+      <nuxt />
+    </main>
   </div>
 </template>
 
@@ -65,7 +61,7 @@ export default {
         {
           name:  'cluster',
           label: 'Cluster Info',
-          route: 'cluster'
+          route: '/cluster'
         },
 
         ...sortBy(Object.values(groups), ['priority', 'label']),
@@ -78,73 +74,50 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-  .root {
-    display: flex;
-    min-height: 100vh;
-    flex-direction: column;
-  }
-
-  .middle {
-    display: flex;
-    flex: 1;
-  }
-
-  $header-height: 70px;
+  $header-height: 50px;
   $nav-width: 200px;
+  $right-width: 100px;
+  $logo-height: 40px;
+
+  .root {
+    display: grid;
+    height: 100vh;
+    grid-template-areas:
+      "header header"
+      "nav main";
+    grid-template-columns: $nav-width auto;
+    grid-template-rows: $header-height auto;
+  }
 
   HEADER {
-    height: $header-height;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     background-color: var(--header-bg);
+    grid-area: header;
+    display: grid;
+    grid-template-areas: "header-left header-middle header-right";
+    grid-template-columns: $nav-width auto $right-width;
+  }
+
+  .header-left {
     padding: 10px;
+    grid-area: header-left;
+  }
 
-    .nav-user {
-      margin: 0;
-      display: flex;
+  .header-middle {
+    padding: 10px 0;
+    grid-area: header-middle;
+  }
 
-      LI {
-        list-style-type: none;
-      }
-
-      .btn {
-        padding: 0;
-      }
-    }
-
-    .header-right {
-      display: flex;
-      background-color: var(--header-bg);
-
-      .nav-account {
-        font-size: 3rem;
-      }
-
-      .nav-create {
-        font-size: 3rem;
-      }
-    }
+  .header-right {
+    padding: 10px;
+    grid-area: header-right;
   }
 
   NAV {
+    grid-area: nav;
     position: relative;
     background-color: var(--nav-bg);
-    flex: 0 0 $nav-width;
     padding: 0;
-
-    .logo {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      text-align: center;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-top: solid thin var(--border);
-      padding: 20px;
-    }
+    overflow-y: auto;
 
     > UL {
       > LI {
@@ -187,13 +160,16 @@ export default {
     }
   }
 
-  MAIN {
-    flex: 1;
-    padding: 40px;
+  .logo {
+    grid-area: logo;
+    text-align: center;
+    border-top: solid thin var(--border);
+    padding: 20px;
   }
 
-  FOOTER {
-    background-color: var(--footer-bg);
+  MAIN {
+    grid-area: main;
+    padding: 40px;
   }
 
   .packages {

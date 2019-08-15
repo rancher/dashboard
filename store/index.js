@@ -68,7 +68,7 @@ export const actions = {
 
   async nuxtClientInit({ state, dispatch, commit }) {
     if ( state.preloaded ) {
-      await commit('v1/rehydrateProxies');
+      await dispatch('v1/rehydrateProxies');
     } else {
       await dispatch('preload');
     }

@@ -66,7 +66,8 @@ module.exports = {
     // Third-party
     '~/plugins/axios',
     '~/plugins/tooltip',
-    '~/plugins/codemirror',
+    { src: '~/plugins/codemirror', ssr: false },
+    { src: '~/plugins/resize', ssr: false },
 
     // First-party
     '~/plugins/global-formatters',

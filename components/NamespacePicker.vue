@@ -69,8 +69,4 @@ export default {
 </script>
 
 <style type="scss" scoped>
-  .picker {
-    max-height: 200px;
-    overflow-y: auto;
-  }
 </style>
