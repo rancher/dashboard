@@ -47,6 +47,7 @@
     "vue-multiselect": "^2.1.6",
     "vue-native-websocket": "^2.0.13",
     "vue-resize": "^0.4.5",
+    "vue-select": "^3.1.0",
     "vuex-persistedstate": "^2.5.4",
     "yaml-js": "^0.2.3"
   },

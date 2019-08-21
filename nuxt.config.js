@@ -64,6 +64,7 @@ module.exports = {
     // Third-party
     '~/plugins/axios',
     '~/plugins/tooltip',
+    '~/plugins/v-select',
     { src: '~/plugins/js-yaml', ssr: false },
     { src: '~/plugins/codemirror', ssr: false },
     { src: '~/plugins/resize', ssr: false },

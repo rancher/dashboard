@@ -11013,6 +11013,11 @@ vue-router@^3.0.6:
   resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-3.0.7.tgz#b36ca107b4acb8ff5bc4ff824584059c23fcb87b"
   integrity sha512-utJ+QR3YlIC/6x6xq17UMXeAfxEvXA0VKD3PiSio7hBOZNusA1jXcbxZxVEfJunLp48oonjTepY8ORoIlRx/EQ==
 
+vue-select@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/vue-select/-/vue-select-3.1.0.tgz#ccebbc17e48f1e3be5f082224a0c45ceb07b8551"
+  integrity sha512-DDC4W3s/wLlJ/oeR7tqwaN+Fw9CXQc4zNnOD8Lr8J2cyWgQOWnHuYAUvpGrWIt7PRea4jSu6quixEv5yTInpuQ==
+
 vue-server-renderer@^2.6.10:
   version "2.6.10"
   resolved "https://registry.yarnpkg.com/vue-server-renderer/-/vue-server-renderer-2.6.10.tgz#cb2558842ead360ae2ec1f3719b75564a805b375"

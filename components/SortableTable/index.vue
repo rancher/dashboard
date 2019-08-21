@@ -251,6 +251,9 @@ export default {
               <td v-if="rowActions" align="middle">
                 <slot name="row-actions" :row="row">
                   ...
+                  <div v-for="act in row.availableActions" :key="act.action">
+{{ act.label }}
+</div>
                 </slot>
               </td>
             </tr>

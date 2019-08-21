@@ -9,16 +9,14 @@
       </div>
 
       <div class="header-middle">
-        {{ $store.state.namespaces }}
+        <NamespacePicker />
       </div>
 
       <div class="header-right">
-        Right
       </div>
     </header>
 
     <nav>
-      <NamespacePicker />
       <ul class="list-unstyled packages">
         <n-link v-for="pkg in packages" :key="pkg.name" :to="pkg.route" tag="li" class="package">
           <a>{{ pkg.label }}</a>
@@ -75,7 +73,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-  $header-height: 50px;
+  $header-height: 60px;
   $nav-width: 200px;
   $right-width: 100px;
   $logo-height: 40px;
@@ -99,7 +97,7 @@ export default {
   }
 
   .header-left {
-    padding: 10px;
+    padding: 20px 10px 0;
     grid-area: header-left;
   }
 

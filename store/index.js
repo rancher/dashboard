@@ -15,7 +15,7 @@ export const state = () => {
 
 export const getters = {
   allNamespaces(state) {
-    return (state.namespaces || []).includes('_all');
+    return (state.namespaces || []).length === 0;
   },
 
   multipleNamespaces(state, getters) {
