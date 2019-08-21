@@ -179,7 +179,7 @@ export function parseField(str) {
   }
 }
 
-export default function sortBy(ary, keys, desc) {
+export function sortBy(ary, keys, desc) {
   if ( !Array.isArray(keys) ) {
     keys = [keys];
   }

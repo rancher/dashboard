@@ -66,10 +66,8 @@ export const actions = {
     commit('updateNamespaces', val);
   },
 
-  async nuxtClientInit({ state, dispatch, commit }) {
-    if ( state.preloaded ) {
-      await dispatch('v1/rehydrateProxies');
-    } else {
+  async nuxtClientInit({ state, dispatch }) {
+    if ( !state.preloaded ) {
       await dispatch('preload');
     }
   },

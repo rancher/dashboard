@@ -16,7 +16,7 @@ export default {
 
 <template>
   <span>
-    <nuxt-link :to="row.id">
+    <nuxt-link :to="row.id" append>
       {{ row.displayName }}
     </nuxt-link>
   </span>

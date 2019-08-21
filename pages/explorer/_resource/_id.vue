@@ -9,18 +9,18 @@ export default {
     const fqid = (namespace ? `${ namespace }/` : '') + id;
 
     const obj = await ctx.store.dispatch('v1/find', { type: resource, id: fqid });
-    const yaml = await obj.followLink('view', { headers: { accept: 'application/yaml' } });
+    const value = await obj.followLink('view', { headers: { accept: 'application/yaml' } });
 
     return {
       obj,
-      yaml
+      value
     };
-  }
-
+  },
 };
 </script>
+
 <template>
   <div>
-    <ResourceYaml :obj="obj" :yaml="yaml" />
+    <ResourceYaml :obj="obj" :value="value" />
   </div>
 </template>

@@ -66,14 +66,16 @@ module.exports = {
     // Third-party
     '~/plugins/axios',
     '~/plugins/tooltip',
+    { src: '~/plugins/js-yaml', ssr: false },
     { src: '~/plugins/codemirror', ssr: false },
     { src: '~/plugins/resize', ssr: false },
 
     // First-party
     '~/plugins/global-formatters',
+    { src: '~/plugins/apply-query' },
     { src: '~/plugins/lookup', ssr: false },
     { src: '~/plugins/nuxt-client-init', ssr: false },
-    { src: '~/plugins/websocket', ssr: false }
+    { src: '~/plugins/websocket', ssr: false },
   ],
 
   // Nuxt modules
@@ -95,9 +97,9 @@ module.exports = {
 
   // Axios: https://axios.nuxtjs.org/options
   axios: {
-    https:   true,
-    proxy:   true,
-    retry:   { retries: 0 },
+    https:          true,
+    proxy:          true,
+    retry:          { retries: 0 },
     // debug:   true
   },
 

@@ -13,20 +13,24 @@
 <script>
 import SortableTable from '@/components/SortableTable';
 import { headersFor } from '@/utils/table-headers';
+import { isArray } from '@/utils/array';
 
 export default {
   components: { SortableTable },
 
   computed: {
+    schema() {
+      return this.$store.getters['v1/schemaFor'](this.$route.params.resource);
+    },
+
     headers() {
-      const schema = this.$store.getters['v1/schemaFor'](this.$route.params.resource);
       const multipleNamespaces = this.$store.getters['multipleNamespaces'];
 
-      return headersFor(schema, multipleNamespaces);
+      return headersFor(this.schema, multipleNamespaces);
     },
 
     filteredRows() {
-      if ( this.$store.getters['allNamespaces'] ) {
+      if ( this.$store.getters['allNamespaces'] || !this.schema.attributes.namespaced ) {
         return this.rows;
       }
 

@@ -24,7 +24,7 @@
           <a>{{ pkg.label }}</a>
           <ul v-if="pkg.children" class="list-unstyled children">
             <n-link v-for="child in pkg.children" :key="child.route" :to="child.route" tag="li">
-              <a>{{ child.label }}<span class="count">{{ child.count }}</span></a></li>
+              <a>{{ child.label }}<span class="count">{{ child.count }}</span></a>
             </n-link>
           </ul>
         </n-link>
@@ -39,9 +39,9 @@
 
 <script>
 import { THEME } from '~/store/prefs';
-import sortBy from '~/utils/sort';
+import { sortBy } from '~/utils/sort';
 import NamespacePicker from '~/components/NamespacePicker';
-import groupsForCounts from '~/utils/groups';
+import { groupsForCounts } from '~/utils/groups';
 
 export default {
   components: { NamespacePicker },
@@ -58,12 +58,13 @@ export default {
       const groups = groupsForCounts(this.$store.getters['v1/counts'], namespaces);
 
       const data = [
+        /*
         {
           name:  'cluster',
           label: 'Cluster Info',
           route: '/cluster'
         },
-
+        */
         ...sortBy(Object.values(groups), ['priority', 'label']),
       ];
 
@@ -169,10 +170,6 @@ export default {
 
   MAIN {
     grid-area: main;
-    padding: 40px;
-  }
-
-  .packages {
-    margin-bottom: 65px;
+    padding: 20px;
   }
 </style>

@@ -36,6 +36,12 @@ export default {
 
   methods: {
     update() {
+      if ( !this.value ) {
+        this.label = 'n/a';
+
+        return this.label;
+      }
+
       const value = moment(this.value);
       const now = moment();
       const diff = Math.abs(value.diff(now, 'seconds'));

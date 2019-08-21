@@ -1,16 +1,18 @@
 import { ucFirst } from './string';
+import { sortBy } from './sort';
 
-export default function groupsForCounts(counts, namespaces) {
+export function groupsForCounts(counts, namespaces) {
   const groups = {};
 
   counts.forEach((res) => {
-    const count = matchingCounts(res, namespaces);
+    const namespaced = res.namespaced;
+    const count = namespaced ? matchingCounts(res, namespaces) : res.count;
 
     if ( count === 0 ) {
       return;
     }
 
-    const name = mapGroup(res.group);
+    const name = mapGroup(res);
     let group = groups[name];
 
     if ( !groups[name] ) {
@@ -30,6 +32,12 @@ export default function groupsForCounts(counts, namespaces) {
       count,
     });
   });
+
+  for ( const group of Object.keys(groups) ) {
+    if ( groups[group] && groups[group].children ) {
+      groups[group].children = sortBy(groups[group].children, 'label');
+    }
+  }
 
   return groups;
 }
@@ -52,13 +60,15 @@ function matchingCounts(obj, namespaces) {
   return out;
 }
 
-function mapGroup(group) {
-  if ( !group ) {
-    group = 'core';
+function mapGroup(obj) {
+  const group = obj.group;
+
+  if ( !obj.namespaced && !group ) {
+    return 'cluster';
   }
 
-  if ( group === 'core' || group === 'apps' ) {
-    group = 'core';
+  if ( !group || group === 'core' || group === 'apps' ) {
+    return 'core';
   }
 
   return group;
@@ -77,6 +87,10 @@ function groupLabel(group) {
 }
 
 function groupPriority(group) {
+  if ( group === 'cluster' ) {
+    return 0;
+  }
+
   if ( group === 'core' ) {
     return 1;
   }

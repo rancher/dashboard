@@ -29,13 +29,14 @@ export const NAMESPACE = {
 };
 
 export const CREATED = {
-  name:      'created',
-  value:     'metadata.creationTimestamp',
-  label:     'Created',
-  sort:      ['createdTs', 'id'],
-  search:    false,
-  width:     120,
-  formatter: 'LiveDate',
+  name:       'created',
+  value:      'metadata.creationTimestamp',
+  label:      'Created',
+  sort:       ['createdTs', 'id'],
+  search:     false,
+  width:      120,
+  formatter:  'LiveDate',
+  align:     'right'
 };
 
 export function headersFor(schema, multipleNamespaces = true) {

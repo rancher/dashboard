@@ -4,6 +4,6 @@ export { default } from '../_id.vue';
 
 <template>
   <div>
-    <ResourceYaml :obj="obj" :yaml="yaml" />
+    <ResourceYaml :obj="obj" :value="value" />
   </div>
 </template>

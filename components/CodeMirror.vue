@@ -1,25 +1,9 @@
-<template>
-  <no-ssr v-if="autoResize" placeholder=" Loading...">
-    <div>
-      <resize-observer @notify="fit" />
-      <codemirror
-        ref="cm"
-        v-model="source"
-        :options="fullOptions"
-        @ready="onCmReady"
-        @focus="onCmFocus"
-        @input="onCmCodeChange"
-      />
-    </div>
-  </no-ssr>
-</template>
-
 <script>
 import $ from 'jquery';
 
 export default {
   props: {
-    source: {
+    value: {
       type:     String,
       required: true,
     },
@@ -41,49 +25,49 @@ export default {
     }
   },
 
-  data() {
-    return {
-      fullOptions: {
-        // codemirror options
-        tabSize:     2,
-        mode:        'text/yaml',
-        theme:       'base16-dark',
-        lineNumbers: true,
-        line:        true,
-
-        ...this.options
-      }
-    };
-  },
   computed: {
     codemirror() {
       return this.$refs.cm.codemirror;
-    }
-  },
+    },
 
-  mounted() {
-    console.log('mounted');
-    this.fit();
-    // console.log('this is current codemirror object', this.codemirror);
-    // you can use this.codemirror to do something...
+    combinedOptions() {
+      const out = {
+        // codemirror options
+        tabSize:                 2,
+        mode:                    'text/yaml',
+        theme:                   'base16-dark',
+        lineNumbers:             true,
+        line:                    true,
+        viewportMargin:          Infinity,
+        styleActiveLine:         true,
+        lineWrapping:            true,
+        foldGutter:              true,
+        styleSelectedText:       true,
+        showCursorWhenSelecting: true,
+
+        ...this.options
+      };
+
+      console.log(out);
+
+      return out;
+    },
   },
 
   methods: {
     onCmReady(cm) {
-      this.fit();
       console.log('the editor is readied!', cm);
+      this.fit();
     },
-    onCmFocus(cm) {
-      console.log('the editor is focus!', cm);
-    },
+
     onCmCodeChange(newCode) {
-      console.log('this is new code', newCode);
-      this.code = newCode;
+      this.$emit('onCodeChange', newCode);
     },
 
     fit() {
+      console.log('fit');
       if ( this.autoResize ) {
-        const container = $(this.$el);
+        const container = $(this.$refs.cm.$el);
 
         if ( !container || !container.length ) {
           return;
@@ -95,12 +79,32 @@ export default {
           return;
         }
 
-        const desired = $(window).height() - offset.top - this.footerSpace;
+        const desired = $(window).height() - offset.top - this.footerSpace - 20;
 
-        container.css('height', Math.max(this.minHeight, desired));
-        $('.CodeMirror', this.$el).css('height', '100%');
+        container.css('height', `${ Math.max(this.minHeight, desired) }px`);
       }
     },
   }
 };
 </script>
+
+<template>
+  <no-ssr v-if="autoResize" placeholder=" Loading...">
+    <div>
+      <resize-observer @notify="fit" />
+      <codemirror
+        ref="cm"
+        :value="value"
+        :options="combinedOptions"
+        @ready="onCmReady"
+        @input="onCmCodeChange"
+      />
+    </div>
+  </no-ssr>
+</template>
+
+<style lang="scss">
+  .CodeMirror {
+    height: 100%;
+  }
+</style>
