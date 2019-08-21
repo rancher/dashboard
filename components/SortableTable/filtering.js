@@ -1,4 +1,4 @@
-import { SEARCH_QUERY } from './query';
+import { SEARCH_QUERY } from '~/utils/query-params';
 import { get } from '@/utils/object';
 import { addObject, addObjects, isArray, removeAt } from '@/utils/array';
 
@@ -107,7 +107,7 @@ export default {
 
   watch: {
     searchQuery(q) {
-      this.updateQueryString({ [SEARCH_QUERY]: q || null });
+      this.$router.applyQuery({ [SEARCH_QUERY]: q || undefined });
     }
   },
 };

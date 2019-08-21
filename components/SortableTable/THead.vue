@@ -1,6 +1,7 @@
 <script>
 import { SOME, NONE } from './selection';
-import { qpFor } from './query';
+import { queryParamsFor } from '~/plugins/apply-query';
+import { SORT_BY, DESCENDING } from '~/utils/query-params';
 
 export default {
   props: {
@@ -78,10 +79,12 @@ export default {
     },
 
     queryFor(col) {
-      const query = qpFor(this.$route.query, {
-        _defaultSortBy: this.defaultSortBy,
-        sort:           col.name,
-        desc:           this.isCurrent(col) && !this.descending,
+      const query = queryParamsFor(this.$route.query, {
+        [SORT_BY]:    col.name,
+        [DESCENDING]: this.isCurrent(col) && !this.descending,
+      }, {
+        [SORT_BY]:    this.defaultSortBy,
+        [DESCENDING]: false,
       });
 
       return query;
@@ -104,7 +107,7 @@ export default {
       <th
         v-for="col in columns"
         :key="col.name"
-        align="left"
+        :align="col.align || 'left'"
         :width="col.width"
         :class="{ sortable: col.sort }"
         @click.prevent="changeSort($event, col)"

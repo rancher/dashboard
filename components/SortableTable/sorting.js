@@ -1,5 +1,5 @@
-import { SORT_BY, DESCENDING, PAGE } from './query';
-import sortBy from '~/utils/sort';
+import { SORT_BY, DESCENDING, PAGE } from '~/utils/query-params';
+import { sortBy } from '~/utils/sort';
 
 export default {
   computed: {
@@ -71,11 +71,14 @@ export default {
       this.descending = desc;
       this.currentPage = 1;
 
-      this.updateQueryString({
+      this.$router.applyQuery({
         [SORT_BY]:    this.sortBy,
         [DESCENDING]: this.descending,
         [PAGE]:       this.currentPage,
-        _defaultSort: this._defaultSort
+      }, {
+        [SORT_BY]:    this._defaultSortBy,
+        [DESCENDING]: false,
+        [PAGE]:       1,
       });
     },
   },

@@ -2,7 +2,6 @@
 import { removeObject } from '../../utils/array';
 import THead from './THead';
 
-import query from './query';
 import filtering from './filtering';
 import selection from './selection';
 import sorting from './sorting';
@@ -28,7 +27,7 @@ import { get } from '@/utils/object';
 export default {
   name:       'SortableTable',
   components: { THead },
-  mixins:     [query, filtering, sorting, paging, grouping, selection],
+  mixins:     [filtering, sorting, paging, grouping, selection],
 
   props: {
     headers: {
@@ -234,22 +233,22 @@ export default {
         <template v-for="row in group.rows">
           <slot name="main-row" :row="row">
             <tr :key="get(row,keyField)" class="main-row">
-              <td v-if="tableActions">
+              <td v-if="tableActions" align="middle">
                 <input type="checkbox" :data-node-id="get(row,keyField)" />
               </td>
               <template v-for="col in columns">
                 <slot name="cell" :row="row" :col="col">
                   <slot :name="'col:' + col.name">
-                    <td v-if="col.formatter" :key="col.name" :data-title="dt[col.name]">
+                    <td v-if="col.formatter" :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'">
                       <component :is="col.formatter" :value="get(row, col.value||col.name)" :row="row" :col="col" />
                     </td>
-                    <td v-else :key="col.name" :data-title="dt[col.name]">
+                    <td v-else :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'">
                       {{ get(row, col.value||col.name) }}
                     </td>
                   </slot>
                 </slot>
               </template>
-              <td v-if="rowActions">
+              <td v-if="rowActions" align="middle">
                 <slot name="row-actions" :row="row">
                   ...
                 </slot>
@@ -309,7 +308,6 @@ $divider-height: 2px;
         border-radius: 0;
         outline: none;
         transition: none;
-        text-align: left;
         color: var(--link-text);
         font-weight: normal;
 
@@ -446,6 +444,10 @@ $divider-height: 2px;
       border-bottom: solid thin var(--border);
     }
   }
+
+  TH[align=left], TD[align=left] { text-align: left; }
+  TH[align=center], TD[align=center] { text-align: center; }
+  TH[align=right], TD[align=right] { text-align: right; }
 }
 
 .sortable-table-header {
