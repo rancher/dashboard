@@ -14,12 +14,8 @@ export const state = () => {
 };
 
 export const getters = {
-  allNamespaces(state) {
-    return (state.namespaces || []).length === 0;
-  },
-
   multipleNamespaces(state, getters) {
-    return getters.allNamespaces || state.namespaces.length > 1;
+    return state.namespaces.length !== 1;
   },
 
   namespaces(state) {

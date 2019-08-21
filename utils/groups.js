@@ -43,7 +43,7 @@ export function groupsForCounts(counts, namespaces) {
 }
 
 function matchingCounts(obj, namespaces) {
-  if ( namespaces.includes('_all') ) {
+  if ( namespaces.length === 0 ) {
     return obj.count;
   }
 

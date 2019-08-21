@@ -181,12 +181,14 @@ export default {
           Actions...
         </div>
 
+        <div class="middle">
+          <slot name="header-middle" />
+        </div>
+
         <div v-if="search" class="search">
-          <input v-model="searchQuery" type="search" class="input-sm" placeholder="Search...">
+          <input v-model="searchQuery" type="search" class="input-sm" placeholder="Filter">
         </div>
       </div>
-
-      <PortalTarget name="right-basic"></PortalTarget>
     </div>
     <table class="sortable-table" width="100%">
       <thead
@@ -222,11 +224,13 @@ export default {
         </slot>
       </tbody>
 
-      <tbody v-for="group in groupedRows" :key="group.key">
+      <tbody v-for="group in groupedRows" :key="group.key" :class="{ group: groupBy }">
         <slot v-if="groupBy" name="group-header" :group="group">
-          <tr>
+          <tr class="group-row">
             <td :colspan="fullColspan">
-              {{ group.ref }}
+              <div class="group-tab">
+                {{ group.ref }}
+              </div>
             </td>
           </tr>
         </slot>
@@ -251,9 +255,6 @@ export default {
               <td v-if="rowActions" align="middle">
                 <slot name="row-actions" :row="row">
                   ...
-                  <div v-for="act in row.availableActions" :key="act.action">
-{{ act.label }}
-</div>
                 </slot>
               </td>
             </tr>
@@ -464,20 +465,20 @@ $divider-height: 2px;
   z-index: z-index('fixedTableHeader');
   background: var(--sortable-table-header-bg);
   display: grid;
-  grid-template-columns: [bulk] auto [search] minmax(min-content, 200px) [right] min-content;
-  grid-column-gap: 20px;
+  grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px);
+  grid-column-gap: 10px;
 
   .bulk {
     grid-area: bulk;
   }
 
-  .search {
-    grid-area: search;
+  .middle {
+    grid-area: middle;
+    white-space: nowrap;
   }
 
-  .right {
-    grid-area: right;
-    white-space: nowrap;
+  .search {
+    grid-area: search;
   }
 }
 </style>

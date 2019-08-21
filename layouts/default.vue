@@ -1,40 +1,4 @@
 
-<template>
-  <div class="root">
-    <header>
-      <div class="header-left">
-        <n-link to="/">
-          <img src="~/assets/images/logo.svg" alt="logo" width="100%" />
-        </n-link>
-      </div>
-
-      <div class="header-middle">
-        <NamespacePicker />
-      </div>
-
-      <div class="header-right">
-      </div>
-    </header>
-
-    <nav>
-      <ul class="list-unstyled packages">
-        <n-link v-for="pkg in packages" :key="pkg.name" :to="pkg.route" tag="li" class="package">
-          <a>{{ pkg.label }}</a>
-          <ul v-if="pkg.children" class="list-unstyled children">
-            <n-link v-for="child in pkg.children" :key="child.route" :to="child.route" tag="li">
-              <a>{{ child.label }}<span class="count">{{ child.count }}</span></a>
-            </n-link>
-          </ul>
-        </n-link>
-      </ul>
-    </nav>
-
-    <main>
-      <nuxt />
-    </main>
-  </div>
-</template>
-
 <script>
 import { THEME } from '~/store/prefs';
 import { sortBy } from '~/utils/sort';
@@ -68,9 +32,51 @@ export default {
 
       return data;
     }
+  },
+
+  methods: {
+    toggle(pkg) {
+      // @TODO
+    }
   }
 };
 </script>
+
+<template>
+  <div class="root">
+    <header>
+      <div class="header-left">
+        <n-link to="/">
+          <img src="~/assets/images/logo.svg" alt="logo" width="100%" />
+        </n-link>
+      </div>
+
+      <div class="header-middle">
+        <NamespacePicker />
+      </div>
+
+      <div class="header-right">
+      </div>
+    </header>
+
+    <nav>
+      <ul class="list-unstyled packages">
+        <n-link v-for="pkg in packages" :key="pkg.name" :to="pkg.route" tag="li" class="package">
+          <a @click="toglge(pkg)">{{ pkg.label }}</a>
+          <ul v-if="pkg.children" class="list-unstyled children">
+            <n-link v-for="child in pkg.children" :key="child.route" :to="child.route" tag="li">
+              <a>{{ child.label }}<span class="count">{{ child.count }}</span></a>
+            </n-link>
+          </ul>
+        </n-link>
+      </ul>
+    </nav>
+
+    <main>
+      <nuxt />
+    </main>
+  </div>
+</template>
 
 <style lang="scss" scoped>
   $header-height: 60px;

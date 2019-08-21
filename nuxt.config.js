@@ -65,12 +65,14 @@ module.exports = {
     '~/plugins/axios',
     '~/plugins/tooltip',
     '~/plugins/v-select',
+    '~/plugins/transitions',
     { src: '~/plugins/js-yaml', ssr: false },
     { src: '~/plugins/codemirror', ssr: false },
     { src: '~/plugins/resize', ssr: false },
 
     // First-party
     '~/plugins/global-formatters',
+    '~/plugins/trim-whitespace',
     { src: '~/plugins/apply-query' },
     { src: '~/plugins/lookup', ssr: false },
     { src: '~/plugins/nuxt-client-init', ssr: false },

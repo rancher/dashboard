@@ -48,15 +48,12 @@ export default {
         ...this.options
       };
 
-      console.log(out);
-
       return out;
     },
   },
 
   methods: {
     onCmReady(cm) {
-      console.log('the editor is readied!', cm);
       this.fit();
     },
 
@@ -65,7 +62,6 @@ export default {
     },
 
     fit() {
-      console.log('fit');
       if ( this.autoResize ) {
         const container = $(this.$refs.cm.$el);
 
