@@ -43,14 +43,6 @@ export default {
     });
   },
 
-  rehydrateProxies({ state, commit, dispatch }) {
-    if ( !process.client ) {
-      return;
-    }
-
-    return commit('rehydrateProxies', { dispatch });
-  },
-
   async loadSchemas({
     getters, dispatch, commit, state
   }) {

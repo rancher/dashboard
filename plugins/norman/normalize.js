@@ -5,6 +5,10 @@ export const KEY_FIELD_FOR = {
   default:  'id',
 };
 
+export function keyFieldFor(type) {
+  return KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
+}
+
 export function normalizeType(type) {
   type = (type || '').toLowerCase();
 

@@ -1,30 +1,11 @@
-import Vue from 'vue';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
-import ResourceProxy from './resource-proxy';
+import { proxyFor } from './resource-proxy';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 
 export default {
   updateSocket(state, obj) {
     state.socket.status = obj.status;
     state.socket.count = obj.count || 0;
-  },
-
-  rehydrateProxies(state, { dispatch }) {
-    Object.keys(state.types).forEach((type) => {
-      const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
-      const cache = state.types[type];
-      const map = new Map();
-
-      for ( let i = 0 ; i < cache.list.length ; i++ ) {
-        const proxy = proxyFor.call(this, cache.list[i], dispatch);
-
-        cache.list[i] = proxy;
-        map.set(proxy[keyField], proxy);
-      }
-
-      Vue.set(cache, 'map', map);
-      Vue.set(state.types, type, state.types[type]);
-    });
   },
 
   applyConfig(state, config) {
@@ -37,15 +18,19 @@ export default {
 
   registerType(state, type) {
     if ( !state.types[type] ) {
-      const obj = {
+      const cache = {
         list:    [],
-        haveAll:   false,
+        haveAll: false,
       };
 
       // Not enumerable so they don't get sent back to the client for SSR
-      Object.defineProperty(obj, 'map', { value: new Map() });
+      Object.defineProperty(cache, 'map', { value: new Map() });
 
-      state.types[type] = obj;
+      if ( process.server ) {
+        Object.defineProperty(cache.list, '__rehydrateAll', { value: type, enumerable: true });
+      }
+
+      state.types[type] = cache;
     }
   },
 
@@ -56,7 +41,11 @@ export default {
     clear(cache.list);
     cache.map.clear();
 
-    const proxies = data.map(x => proxyFor.call(this, x, dispatch));
+    if ( process.server ) {
+      Object.defineProperty(cache.list, '__rehydrateAll', { value: type, enumerable: true });
+    }
+
+    const proxies = data.map(x => proxyFor(x, dispatch));
 
     addObjects(cache.list, proxies);
 
@@ -79,7 +68,7 @@ export default {
 
       return entry;
     } else {
-      const proxy = proxyFor.call(this, resource, dispatch);
+      const proxy = proxyFor(resource, dispatch);
 
       addObject(cache.list, proxy);
       cache.map.set(id, proxy);
@@ -104,22 +93,3 @@ export default {
     }
   }
 };
-
-function proxyFor(obj, dispatch) {
-  const $store = this;
-
-  Object.defineProperty(obj, '$store', { value: $store });
-  Object.defineProperty(obj, '$dispatch', { value: dispatch });
-
-  return new Proxy(obj, {
-    get(target, name) {
-      const fn = ResourceProxy[name];
-
-      if ( fn ) {
-        return fn.call(target);
-      }
-
-      return target[name];
-    },
-  });
-}

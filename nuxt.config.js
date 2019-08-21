@@ -82,7 +82,8 @@ module.exports = {
     '@nuxtjs/axios',
     '@nuxtjs/eslint-module',
     'cookie-universal-nuxt',
-    'portal-vue/nuxt'
+    'portal-vue/nuxt',
+    '~/modules/norman-rehydrate',
   ],
 
   // Server middleware
