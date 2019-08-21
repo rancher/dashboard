@@ -8,29 +8,17 @@ console.log(`Proxying to ${ process.env.API }`);
 module.exports = {
 
   // mode: 'universal',
+  loading: '~/components/loading.vue',
 
-  server: {
-    https: {
-      key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
-      cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
-    },
-    port:      8005,
-    host:      '0.0.0.0',
-    /*
-    api:       process.env.API,
-    apiToken:  process.env.API_TOKEN,
-    proxy:     {
-      'API UI': '/api-ui',
-      API:      '/k8s',
-      Naok:     '/v1',
-    }
-    */
+  // Axios: https://axios.nuxtjs.org/options
+  axios: {
+    https:          true,
+    proxy:          true,
+    retry:          { retries: 0 },
+    // debug:   true
   },
 
   build: {
-    /*
-     ** You can extend webpack config here
-     */
     extend(config, { isDev, isClient }) {
       if (isDev) {
         config.devtool = isClient ? '#source-map' : 'inline-source-map';
@@ -39,6 +27,11 @@ module.exports = {
     //    extractCSS: true,
     //    cssSourceMap: true
   },
+
+  // Global CSS
+  css: [
+    '@/assets/styles/app.scss'
+  ],
 
   head: {
     title: process.env.npm_package_name || '',
@@ -56,12 +49,17 @@ module.exports = {
     }]
   },
 
-  // Global CSS
-  css: [
-    '@/assets/styles/app.scss'
+  // Nuxt modules
+  modules: [
+    '@nuxtjs/proxy',
+    '@nuxtjs/axios',
+    '@nuxtjs/eslint-module',
+    'cookie-universal-nuxt',
+    'portal-vue/nuxt',
+    '~/modules/norman-rehydrate',
   ],
 
-  // Plugins to load before mounting the App
+  // Vue plugins
   plugins: [
     // Third-party
     '~/plugins/axios',
@@ -77,31 +75,6 @@ module.exports = {
     { src: '~/plugins/nuxt-client-init', ssr: false },
     { src: '~/plugins/websocket', ssr: false },
   ],
-
-  // Nuxt modules
-  modules: [
-    '@nuxtjs/proxy',
-    '@nuxtjs/axios',
-    '@nuxtjs/eslint-module',
-    'cookie-universal-nuxt',
-    'portal-vue/nuxt',
-    '~/modules/norman-rehydrate',
-  ],
-
-  // Server middleware
-  serverMiddleware: [
-    '~/server/no-ssr'
-  ],
-
-  loading: '~/components/loading.vue',
-
-  // Axios: https://axios.nuxtjs.org/options
-  axios: {
-    https:          true,
-    proxy:          true,
-    retry:          { retries: 0 },
-    // debug:   true
-  },
 
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
@@ -127,5 +100,26 @@ module.exports = {
     },
     '/api':    { target: process.env.API, xfwd: true },
     '/api-ui': { target: process.env.API, xfwd: true }
-  }
+  },
+
+  // Vue router
+  router: {
+    // Generate routes with slashes
+    routeNameSplitter: '/',
+  },
+
+  // Nuxt server
+  server: {
+    https: {
+      key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
+      cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
+    },
+    port:      8005,
+    host:      '0.0.0.0',
+  },
+
+  // Server middleware
+  serverMiddleware: [
+    '~/server/no-ssr'
+  ],
 };

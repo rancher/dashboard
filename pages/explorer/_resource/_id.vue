@@ -4,6 +4,14 @@ import ResourceYaml from '@/components/ResourceYaml';
 export default {
   components: { ResourceYaml },
 
+  computed: {
+    doneRoute() {
+      const name = this.$route.name.replace(/(\/namespace)?\/id$/, '');
+
+      return name;
+    }
+  },
+
   async asyncData(ctx) {
     const { resource, namespace, id } = ctx.params;
     const fqid = (namespace ? `${ namespace }/` : '') + id;
@@ -15,12 +23,12 @@ export default {
       obj,
       value
     };
-  },
+  }
 };
 </script>
 
 <template>
   <div>
-    <ResourceYaml :obj="obj" :value="value" />
+    <ResourceYaml :obj="obj" :value="value" :done-route="doneRoute" />
   </div>
 </template>

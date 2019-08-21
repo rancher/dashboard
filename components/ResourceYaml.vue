@@ -2,10 +2,14 @@
 
 import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
+import AsyncButton from './AsyncButton';
+
 import { MODE, _VIEW, _EDIT, _PREVIEW } from '~/utils/query-params';
 
 export default {
-  components: { CodeMirror, FileDiff },
+  components: {
+    CodeMirror, FileDiff, AsyncButton
+  },
 
   props: {
     obj: {
@@ -16,6 +20,11 @@ export default {
     value: {
       type:     String,
       required: true,
+    },
+
+    doneRoute: {
+      type:    String,
+      default: null,
     }
   },
 
@@ -90,8 +99,8 @@ export default {
       this.currentValue = this.value;
     },
 
-    async save() {
-      const value = await this.obj.followLink('update', {
+    async save(buttonDone) {
+      await this.obj.followLink('update', {
         method:  'PUT',
         headers: {
           'content-type': 'application/yaml',
@@ -100,12 +109,24 @@ export default {
         data: this.currentValue,
       });
 
-      this.mode = _VIEW;
+      buttonDone(true);
+      this.done();
     },
 
-    async remove() {
+    async remove(buttonDone) {
       await this.obj.remove();
+      buttonDone(true);
+      this.done();
     },
+
+    done() {
+      debugger;
+      if ( !this.doneRoute ) {
+        return;
+      }
+
+      this.$router.replace({ name: this.doneRoute });
+    }
   }
 };
 </script>
@@ -116,7 +137,7 @@ export default {
       <h2>
         <nuxt-link :to="'/explorer/'+ obj.type+'/'">
           {{ schema.attributes.kind }}
-        </nuxt-link>: {{ obj.id }} {{ mode }}
+        </nuxt-link>: {{ obj.id }}
       </h2>
       <div class="actions">
         <button v-if="!isView" class="btn bg-transparent" @click="cancel">
@@ -125,15 +146,18 @@ export default {
         <button v-if="isEdit" class="btn bg-transparent" @click="preview">
           Preview
         </button>
-        <button v-if="isView" class="btn bg-error" @click="remove">
-          Delete
-        </button>
+        <AsyncButton
+          v-if="isView"
+          key="delete"
+          mode="delete"
+          action-color="bg-error"
+          waiting-color="bg-error"
+          @click="remove"
+        />
         <button v-if="!isEdit" class="btn bg-primary" @click="edit">
           Edit
         </button>
-        <button v-if="!isView" class="btn bg-primary" @click="save">
-          Apply
-        </button>
+        <AsyncButton v-if="!isView" key="apply" mode="apply" @click="save" />
       </div>
     </header>
     <CodeMirror

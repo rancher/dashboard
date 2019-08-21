@@ -7,6 +7,10 @@ export default function() {
         parent[`__rehydrateAll__${ key }`] = obj.__rehydrateAll;
       } else if ( obj && typeof obj === 'object' ) {
         for ( const k of Object.keys(obj) ) {
+          if ( k === '__rehydrate' ) {
+            continue;
+          }
+
           obj[k] = recurse(obj[k], obj, k);
         }
       }

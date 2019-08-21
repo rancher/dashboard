@@ -13,7 +13,6 @@
 <script>
 import SortableTable from '@/components/SortableTable';
 import { headersFor } from '@/utils/table-headers';
-import { isArray } from '@/utils/array';
 
 export default {
   components: { SortableTable },
