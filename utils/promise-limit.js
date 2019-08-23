@@ -9,9 +9,10 @@ export function eachLimit(items, limit, iterator, debug = false) {
     const queue = new Queue();
     let pending = 0;
     let failed = false;
+    const out = [];
 
     for (let i = 0; i < items.length; i++) {
-      queue.enqueue(items[i]);
+      queue.enqueue({ item: items[i], idx: i });
     }
 
     process();
@@ -26,11 +27,11 @@ export function eachLimit(items, limit, iterator, debug = false) {
       }
 
       if (queue.isEmpty() && pending === 0) {
-        return resolve();
+        return resolve(out);
       }
 
       while (!queue.isEmpty() && pending < limit && !failed) {
-        const item = queue.dequeue();
+        const { item, idx } = queue.dequeue();
 
         if (debug) {
           console.log('Running', item);
@@ -38,10 +39,12 @@ export function eachLimit(items, limit, iterator, debug = false) {
 
         pending++;
 
-        iterator(item).then(() => {
+        iterator(item, idx).then((res) => {
           if (debug) {
             console.log('Done', item);
           }
+
+          out[idx] = res;
 
           pending--;
           process();

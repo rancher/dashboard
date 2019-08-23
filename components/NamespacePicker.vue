@@ -4,7 +4,6 @@
       v-model="value"
       multiple
       placeholder="Filter by Namespace"
-      :close-on-select="false"
       :options="namespaces"
       label="label"
       :reduce="obj => obj.id"

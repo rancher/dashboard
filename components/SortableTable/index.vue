@@ -7,6 +7,7 @@ import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
+import actions from './actions';
 import { get } from '@/utils/object';
 
 // * Selection
@@ -27,7 +28,7 @@ import { get } from '@/utils/object';
 export default {
   name:       'SortableTable',
   components: { THead },
-  mixins:     [filtering, sorting, paging, grouping, selection],
+  mixins:     [filtering, sorting, paging, grouping, selection, actions],
 
   props: {
     headers: {
@@ -178,7 +179,16 @@ export default {
     <div class="sortable-table-header">
       <div v-if="showHeaderRow" class="fixed-header-actions row clearfix">
         <div v-if="tableActions" class="bulk">
-          Actions...
+          <button
+            v-for="act in availableActions"
+            :key="act.action"
+            class="btn bg-primary"
+            :disabled="!act.enabled"
+            @click="applyTableAction(act)"
+          >
+            <i v-if="act.icon" :class="act.icon" />
+            {{ act.label }}
+          </button>
         </div>
 
         <div class="middle">
@@ -460,7 +470,7 @@ $divider-height: 2px;
 }
 
 .fixed-header-actions {
-  padding: 5px 11px;
+  padding: 0 0 5px 0;
   width: 100%;
   z-index: z-index('fixedTableHeader');
   background: var(--sortable-table-header-bg);
@@ -470,6 +480,10 @@ $divider-height: 2px;
 
   .bulk {
     grid-area: bulk;
+
+    BUTTON:not(:last-child) {
+      margin-right: 10px;
+    }
   }
 
   .middle {

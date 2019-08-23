@@ -2,7 +2,8 @@ import { ucFirst } from './string';
 import { sortBy } from './sort';
 
 export function groupsForCounts(counts, namespaces) {
-  const groups = {};
+  const clusterLevel = {};
+  const namespaceLevel = {};
 
   counts.forEach((res) => {
     const namespaced = res.namespaced;
@@ -13,18 +14,8 @@ export function groupsForCounts(counts, namespaces) {
     }
 
     const name = mapGroup(res);
-    let group = groups[name];
-
-    if ( !groups[name] ) {
-      group = {
-        name,
-        route:    '/explorer',
-        label:    groupLabel(name),
-        children: [],
-        priority: groupPriority(name),
-      };
-      groups[name] = group;
-    }
+    const level = (namespaced ? namespaceLevel : clusterLevel);
+    const group = ensureGroup(level, name);
 
     group.children.push({
       label: res.label,
@@ -33,13 +24,35 @@ export function groupsForCounts(counts, namespaces) {
     });
   });
 
-  for ( const group of Object.keys(groups) ) {
-    if ( groups[group] && groups[group].children ) {
-      groups[group].children = sortBy(groups[group].children, 'label');
+  for ( const level of [clusterLevel, namespaceLevel]) {
+    for ( const group of Object.keys(level) ) {
+      if ( level[group] && level[group].children ) {
+        level[group].children = sortBy(level[group].children, 'label');
+      }
     }
   }
 
-  return groups;
+  return {
+    clusterLevel:   sortBy(Object.values(clusterLevel), ['priority', 'label']),
+    namespaceLevel: sortBy(Object.values(namespaceLevel), ['priority', 'label']),
+  };
+}
+
+function ensureGroup(level, name) {
+  let group = level[name];
+
+  if ( !level[name] ) {
+    group = {
+      name,
+      route:    '/explorer',
+      label:    groupLabel(name),
+      children: [],
+      priority: groupPriority(name),
+    };
+    level[name] = group;
+  }
+
+  return group;
 }
 
 function matchingCounts(obj, namespaces) {
@@ -69,6 +82,10 @@ function mapGroup(obj) {
 
   if ( !group || group === 'core' || group === 'apps' ) {
     return 'core';
+  }
+
+  if ( group.endsWith('.cattle.io') ) {
+    return 'rancher';
   }
 
   return group;
@@ -107,5 +124,9 @@ function groupPriority(group) {
     return 4;
   }
 
-  return 5;
+  if ( group.endsWith('.k8s.io') ) {
+    return 5;
+  }
+
+  return 6;
 }

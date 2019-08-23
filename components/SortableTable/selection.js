@@ -153,7 +153,7 @@ export default {
         }
 
         for ( let i = from.group ; i <= to.group ; i++ ) {
-          const items = grouped[i].items;
+          const items = grouped[i].rows;
           let j = (from.group === i ? from.item : 0);
 
           while ( items[j] && ( i < to.group || j <= to.item )) {
@@ -178,10 +178,10 @@ export default {
       const grouped = this.groupedRows;
 
       for ( let i = 0 ; i < grouped.length ; i++ ) {
-        const items = grouped[i].items;
+        const rows = grouped[i].rows;
 
-        for ( let j = 0 ; j < items.length ; j++ ) {
-          if ( items[j] === node ) {
+        for ( let j = 0 ; j < rows.length ; j++ ) {
+          if ( rows[j] === node ) {
             return {
               group: i,
               item:  j

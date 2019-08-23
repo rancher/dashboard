@@ -5,6 +5,7 @@ import FileDiff from './FileDiff';
 import AsyncButton from './AsyncButton';
 
 import { MODE, _VIEW, _EDIT, _PREVIEW } from '~/utils/query-params';
+import { mapPref, DIFF } from '~/store/prefs';
 
 export default {
   components: {
@@ -75,7 +76,9 @@ export default {
 
     isPreview() {
       return this.mode === _PREVIEW;
-    }
+    },
+
+    diffMode: mapPref(DIFF),
   },
 
   methods: {
@@ -120,7 +123,6 @@ export default {
     },
 
     done() {
-      debugger;
       if ( !this.doneRoute ) {
         return;
       }
@@ -138,6 +140,14 @@ export default {
         <nuxt-link :to="'/explorer/'+ obj.type+'/'">
           {{ schema.attributes.kind }}
         </nuxt-link>: {{ obj.id }}
+        <div v-if="isPreview" v-trim-whitespace class="btn-group btn-xs mode">
+          <button type="button" :class="{'btn': true, 'btn-sm': true, 'bg-default': true, 'active': diffMode !== 'split'}" @click="diffMode='unified'">
+            <i class="icon icon-dot-open" />
+          </button>
+          <button type="button" :class="{'btn': true, 'btn-sm': true, 'bg-default': true, 'active': diffMode === 'split'}" @click="diffMode='split'">
+            <i class="icon icon-dot-half" />
+          </button>
+        </div>
       </h2>
       <div class="actions">
         <button v-if="!isView" class="btn bg-transparent" @click="cancel">
@@ -169,7 +179,7 @@ export default {
     <FileDiff
       v-if="isPreview"
       :filename="obj.id + '.yaml'"
-      :side-by-side="false"
+      :side-by-side="diffMode === 'split'"
       :orig="value"
       :neu="currentValue"
     />
@@ -186,11 +196,17 @@ export default {
     H2 {
       grid-area: type;
       margin: 0;
+      padding-top: 4px;
     }
 
     .actions {
       grid-area: actions;
       text-align: right;
     }
+  }
+
+  .mode {
+    position: relative;
+    top: -4px;
   }
 </style>

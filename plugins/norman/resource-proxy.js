@@ -7,7 +7,7 @@ export function proxyFor(obj, dispatch) {
     Object.defineProperty(obj, '__rehydrate', { value: true, enumerable: true });
   }
 
-  return new Proxy(obj, {
+  const proxy = new Proxy(obj, {
     get(target, name) {
       if ( name === Symbol.toStringTag ) {
         name = 'toString';
@@ -16,10 +16,12 @@ export function proxyFor(obj, dispatch) {
       const fn = ResourceInstance[name];
 
       if ( fn ) {
-        return fn.call(target);
+        return fn.call(proxy);
       }
 
       return target[name];
     },
   });
+
+  return proxy;
 }

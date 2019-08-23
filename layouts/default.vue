@@ -1,12 +1,12 @@
 
 <script>
-import { THEME } from '~/store/prefs';
-import { sortBy } from '~/utils/sort';
+import Accordion from '~/components/Accordion';
 import NamespacePicker from '~/components/NamespacePicker';
+import { mapPref, THEME } from '~/store/prefs';
 import { groupsForCounts } from '~/utils/groups';
 
 export default {
-  components: { NamespacePicker },
+  components: { Accordion, NamespacePicker },
 
   head() {
     const theme = this.$store.getters['prefs/get'](THEME);
@@ -15,27 +15,33 @@ export default {
   },
 
   computed: {
+    theme: mapPref(THEME),
+
     packages() {
       const namespaces = this.$store.getters['namespaces'] || [];
-      const groups = groupsForCounts(this.$store.getters['v1/counts'], namespaces);
+      const { clusterLevel, namespaceLevel } = groupsForCounts(this.$store.getters['v1/counts'], namespaces);
 
-      const data = [
-        /*
+      const out = [
         {
-          name:  'cluster',
-          label: 'Cluster Info',
-          route: '/cluster'
+          name:   'namespaced',
+          label:  'Namespaced Resources',
+          route:  '/ns',
+          groups: namespaceLevel
         },
-        */
-        ...sortBy(Object.values(groups), ['priority', 'label']),
+        {
+          name:   'cluster',
+          label:  'Cluster-Level',
+          route:  '/cluster',
+          groups: clusterLevel
+        },
       ];
 
-      return data;
+      return out;
     }
   },
 
   methods: {
-    toggle(pkg) {
+    toggleGroup(pkg) {
       // @TODO
     }
   }
@@ -55,21 +61,37 @@ export default {
         <NamespacePicker />
       </div>
 
-      <div class="header-right">
+      <div class="header-right text-right">
+        <div v-trim-whitespace class="btn-group theme-picker">
+          <button type="button" :class="{'light': true, 'btn': true, 'btn-sm': true, 'bg-default': true, 'active': theme === 'light'}" @click="theme='light'">
+            <i class="icon icon-dot" />
+          </button>
+          <button type="button" :class="{'dark': true, 'btn': true, 'btn-sm': true, 'bg-default': true, 'active': theme === 'dark'}" @click="theme='dark'">
+            <i class="icon icon-dot" />
+          </button>
+        </div>
+        <!--
+        <nuxt-link :to="{name: 'prefs'}">
+          <i class="icon icon-2x icon-gear" />
+        </nuxt-link>
+        -->
       </div>
     </header>
 
     <nav>
-      <ul class="list-unstyled packages">
-        <n-link v-for="pkg in packages" :key="pkg.name" :to="pkg.route" tag="li" class="package">
-          <a @click="toglge(pkg)">{{ pkg.label }}</a>
-          <ul v-if="pkg.children" class="list-unstyled children">
-            <n-link v-for="child in pkg.children" :key="child.route" :to="child.route" tag="li">
-              <a>{{ child.label }}<span class="count">{{ child.count }}</span></a>
-            </n-link>
-          </ul>
-        </n-link>
-      </ul>
+      <div v-for="pkg in packages" :key="pkg.name" class="package">
+        <h4>{{ pkg.label }}</h4>
+        <hr />
+        <Accordion v-for="group in pkg.groups" :id="group.name" :key="group.name" class="groups" :label="group.label">
+          <template>
+            <ul v-if="group.children" class="list-unstyled children">
+              <n-link v-for="child in group.children" :key="child.route" :to="child.route" tag="li">
+                <a>{{ child.label }}<span class="count">{{ child.count }}</span></a>
+              </n-link>
+            </ul>
+          </template>
+        </Accordion>
+      </div>
     </nav>
 
     <main>
@@ -92,6 +114,19 @@ export default {
       "nav main";
     grid-template-columns: $nav-width auto;
     grid-template-rows: $header-height auto;
+  }
+
+  .theme-picker {
+    position: relative;
+    top: 2px;
+
+    .light {
+      color: white !important;
+    }
+
+    .dark {
+      color: black !important;
+    }
   }
 
   HEADER {
@@ -124,7 +159,20 @@ export default {
     padding: 0;
     overflow-y: auto;
 
-    > UL {
+    .header {
+      background-color: var(--nav-pkg);
+      border-bottom: solid thin var(--border);
+      font-size: 14px;
+      padding: 10px;
+
+      > A {
+        display: block;
+      }
+    }
+
+    .children {
+      background-color: var(--nav-sub);
+
       > LI {
           background-color: var(--nav-pkg);
           border-bottom: solid thin var(--border);
@@ -132,29 +180,20 @@ export default {
         > A {
           display: block;
           font-size: 14px;
-          padding: 10px;
-        }
 
-        > UL {
-          background-color: var(--nav-sub);
+          padding: 10px 0 10px 20px;
 
-          > LI > A {
-            display: block;
-            font-size: 12px;
-            padding: 10px 0 10px 20px;
-
-            .count {
-              float: right;
-              padding-right: 10px;
-            }
+          .count {
+            float: right;
+            padding-right: 10px;
           }
-        }
 
-        &.nuxt-link-active > UL {
-          background-color: var(--nav-cur-sub);
+          &.nuxt-link-active > UL {
+            background-color: var(--nav-cur-sub);
 
-          > LI.nuxt-link-active {
-            background-color: var(--nav-active);
+            > LI.nuxt-link-active {
+              background-color: var(--nav-active);
+            }
           }
         }
 

@@ -63,6 +63,13 @@ export default {
 <style lang="scss" scoped>
 .root {
   max-width: 100%;
+  position: relative;
+}
+
+.mode {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 </style>
 
@@ -70,8 +77,8 @@ export default {
 @import 'node_modules/diff2html/dist/diff2html.min.css';
 
 .d2h-file-header {
-  border-bottom-color: #d8d8d8;
-  background-color: #ab4949;
+  display: none;
+
 }
 
 .d2h-lines-added {
@@ -157,45 +164,5 @@ export default {
 
 .d2h-file-list>li {
   border-bottom-color: #ddd;
-}
-
-.d2h-deleted {
-  display: none;
-  color: #c33;
-}
-
-.d2h-added {
-  display: none;
-  color: #399839;
-}
-
-.d2h-changed {
-  color: #d0b44c;
-}
-
-.d2h-moved {
-  display: none;
-  color: #3572b0;
-}
-
-.d2h-tag {
-  background-color: #fff;
-  display: none;
-}
-
-.d2h-deleted-tag {
-  border-color: #c33;
-}
-
-.d2h-added-tag {
-  border-color: #399839;
-}
-
-.d2h-changed-tag {
-  border-color: #d0b44c;
-}
-
-.d2h-moved-tag {
-  border-color: #3572b0;
 }
 </style>

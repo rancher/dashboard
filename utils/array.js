@@ -51,3 +51,25 @@ export function removeAt(ary, idx, len = 1) {
 export function clear(ary) {
   ary.length = 0;
 }
+
+export function filterBy(ary, keyOrObj, val) {
+  ary = ary || [];
+
+  if ( typeof keyOrObj === 'object' ) {
+    return ary.filter((item) => {
+      for ( const k in keyOrObj ) {
+        if ( typeof keyOrObj[k] === 'undefined' && !!item[k]) {
+          return false;
+        } else if ( item[k] !== keyOrObj[k] ) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  } else if ( val === undefined ) {
+    return ary.filter(item => !!item[keyOrObj]);
+  } else {
+    return ary.filter(item => item[keyOrObj] === val);
+  }
+}

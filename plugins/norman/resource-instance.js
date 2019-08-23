@@ -1,4 +1,6 @@
 import { sortableNumericSuffix } from '@/utils/sort';
+import { generateZip, downloadFile } from '@/utils/download';
+import { eachLimit } from '@/utils/promise-limit';
 
 export default {
   displayName() {
@@ -6,7 +8,7 @@ export default {
   },
 
   sortName() {
-    return sortableNumericSuffix(this.metadata.name || this.id).toLowerCase();
+    return sortableNumericSuffix(this.displayName).toLowerCase();
   },
 
   toString() {
@@ -78,11 +80,45 @@ export default {
   },
 
   download() {
-    debugger;
+    return async() => {
+      const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
+
+      downloadFile(`${ this.displayName }.yaml`, value, 'application/yaml');
+    };
+  },
+
+  downloadBulk() {
+    return async(items) => {
+      const files = {};
+      const names = [];
+
+      for ( const item of items ) {
+        let name = `${ item.displayName }.yaml`;
+        const i = 2;
+
+        while ( names.includes(name) ) {
+          name = `${ item.displayName }_${ i }.yaml`;
+        }
+
+        names.push(name);
+      }
+
+      await eachLimit(items, 10, (item, idx) => {
+        return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data) => {
+          files[`resources/${ names[idx] }`] = data;
+        });
+      });
+
+      const zip = generateZip(files);
+
+      downloadFile('resources.zip', zip, 'application/zip');
+    };
   },
 
   viewInApi() {
-    window.open(this.links.self, '_blank');
+    return () => {
+      window.open(this.links.self, '_blank');
+    };
   },
 
   promptRemove() {
@@ -109,11 +145,12 @@ export default {
     });
 
     all.push({
-      label:    'Download',
-      icon:     'icon icon-download',
-      action:   'download',
-      enabled:  !!links.view,
-      bulkable: true,
+      label:      'Download',
+      icon:       'icon icon-download',
+      action:     'download',
+      enabled:    !!links.view,
+      bulkable:   true,
+      bulkAction: 'downloadBulk',
     });
 
     all.push({ divider: true });

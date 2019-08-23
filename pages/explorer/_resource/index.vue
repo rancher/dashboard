@@ -23,7 +23,7 @@
 </template>
 
 <script>
-import { GROUP_RESOURCES } from '@/store/prefs';
+import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import SortableTable from '@/components/SortableTable';
 import { headersFor } from '@/utils/table-headers';
 
@@ -52,17 +52,7 @@ export default {
       return this.rows.filter(x => namespaces.includes(x.metadata.namespace));
     },
 
-    group: {
-      get() {
-        const value = this.$store.getters['prefs/get'](GROUP_RESOURCES);
-
-        return value || 'none';
-      },
-
-      set(val) {
-        this.$store.commit('prefs/set', { key: GROUP_RESOURCES, val });
-      }
-    },
+    group: mapPref(GROUP_RESOURCES),
 
     multipleNamespaces() {
       return this.$store.getters['multipleNamespaces'];
