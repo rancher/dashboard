@@ -7,19 +7,28 @@ export function groupsForCounts(counts, namespaces) {
 
   counts.forEach((res) => {
     const namespaced = res.namespaced;
-    const count = namespaced ? matchingCounts(res, namespaces) : res.count;
+    let count, level, route;
+
+    if ( namespaced ) {
+      count = matchingCounts(res, namespaces);
+      level = namespaceLevel;
+      route = '/ns';
+    } else {
+      count = res.count;
+      level = clusterLevel;
+      route = '/c';
+    }
 
     if ( count === 0 ) {
       return;
     }
 
     const name = mapGroup(res);
-    const level = (namespaced ? namespaceLevel : clusterLevel);
-    const group = ensureGroup(level, name);
+    const group = ensureGroup(level, name, route);
 
     group.children.push({
       label: res.label,
-      route: `/explorer/${ res.id }/`,
+      route: `${ route }/${ res.id }/`,
       count,
     });
   });
@@ -38,13 +47,13 @@ export function groupsForCounts(counts, namespaces) {
   };
 }
 
-function ensureGroup(level, name) {
+function ensureGroup(level, name, route) {
   let group = level[name];
 
   if ( !level[name] ) {
     group = {
       name,
-      route:    '/explorer',
+      route,
       label:    groupLabel(name),
       children: [],
       priority: groupPriority(name),
@@ -76,10 +85,6 @@ function matchingCounts(obj, namespaces) {
 function mapGroup(obj) {
   const group = obj.group;
 
-  if ( !obj.namespaced && !group ) {
-    return 'cluster';
-  }
-
   if ( !group || group === 'core' || group === 'apps' ) {
     return 'core';
   }
@@ -104,10 +109,6 @@ function groupLabel(group) {
 }
 
 function groupPriority(group) {
-  if ( group === 'cluster' ) {
-    return 0;
-  }
-
   if ( group === 'core' ) {
     return 1;
   }

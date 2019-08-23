@@ -18,7 +18,7 @@ export default {
   },
 
   data() {
-    return { isExpanded: this.expanded };
+    return { isExpanded: this.expanded !== false };
   },
 
   methods: {
@@ -36,16 +36,32 @@ export default {
       <slot name="header">
         {{ label }}
       </slot>
-      <i :class="{'icon': true, 'icon-chevron-up': !isExpanded, 'icon-chevron-down': isExpanded}" />
 
-      <transition name="slide" mode="out-in">
-        <div v-if="isExpanded" class="body">
-          <slot />
-        </div>
-      </transition>
+      <i :class="{'icon': true, 'icon-chevron-up': !isExpanded, 'icon-chevron-down': isExpanded}" />
     </div>
+    <transition name="slide" mode="out-in">
+      <div v-if="isExpanded" class="body">
+        <slot />
+      </div>
+    </transition>
   </div>
 </template>
 
 <style lang="scss" scoped>
+  .header {
+    background-color: var(--nav-pkg);
+    border-bottom: solid thin var(--border);
+    font-size: 14px;
+    padding: 10px;
+    position: relative;
+
+    > I {
+      position: absolute;
+      right: 10px;
+    }
+
+    > A {
+      display: block;
+    }
+  }
 </style>

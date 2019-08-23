@@ -95,7 +95,7 @@ export default {
       commit('registerType', type);
     }
 
-    console.log('Load', data.type, data.id);
+    // console.log('Load', data.type, data.id);
     commit('load', {
       type, resource: data, dispatch
     });
@@ -108,7 +108,7 @@ export default {
       commit('registerType', type);
     }
 
-    console.log('Load', data.type, data.id);
+    // console.log('Load', data.type, data.id);
     commit('load', {
       type, resource: data, dispatch
     });

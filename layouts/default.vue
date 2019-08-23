@@ -41,8 +41,11 @@ export default {
   },
 
   methods: {
-    toggleGroup(pkg) {
+    toggleGroup(id, expanded) {
       // @TODO
+    },
+
+    isExpanded(name) {
     }
   }
 };
@@ -82,11 +85,20 @@ export default {
       <div v-for="pkg in packages" :key="pkg.name" class="package">
         <h4>{{ pkg.label }}</h4>
         <hr />
-        <Accordion v-for="group in pkg.groups" :id="group.name" :key="group.name" class="groups" :label="group.label">
+        <Accordion
+          v-for="group in pkg.groups"
+          :id="group.name"
+          :key="group.name"
+          :label="group.label"
+          :expanded="isExpanded(group.name)"
+          class="groups"
+          @on-toggle="toggleGroup"
+        >
           <template>
             <ul v-if="group.children" class="list-unstyled children">
-              <n-link v-for="child in group.children" :key="child.route" :to="child.route" tag="li">
-                <a>{{ child.label }}<span class="count">{{ child.count }}</span></a>
+              <n-link v-for="child in group.children" :key="child.route" :to="child.route" tag="li" class="child">
+                <a>{{ child.label }}</a>
+                <span class="count">{{ child.count }}</span>
               </n-link>
             </ul>
           </template>
@@ -159,47 +171,36 @@ export default {
     padding: 0;
     overflow-y: auto;
 
-    .header {
-      background-color: var(--nav-pkg);
-      border-bottom: solid thin var(--border);
-      font-size: 14px;
-      padding: 10px;
-
-      > A {
-        display: block;
-      }
-    }
-
-    .children {
+    .child {
       background-color: var(--nav-sub);
+      border-bottom: solid thin var(--border);
+      display: grid;
+      grid-template-areas: "label count";
+      grid-template-columns: auto 40px;
+      width: 100%;
 
-      > LI {
-          background-color: var(--nav-pkg);
-          border-bottom: solid thin var(--border);
+      $top: 10px;
+      $bottom: $top - 2px;
 
-        > A {
-          display: block;
-          font-size: 14px;
+      A {
+        font-size: 14px;
+        padding: 10px 0 8px 20px;
+        grid-area: label;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
-          padding: 10px 0 10px 20px;
+      .count {
+        grid-area: count;
+        font-size: 12px;
+        text-align: right;
+        padding: 11px 10px 0 0;
+        justify-items: center;
+      }
 
-          .count {
-            float: right;
-            padding-right: 10px;
-          }
-
-          &.nuxt-link-active > UL {
-            background-color: var(--nav-cur-sub);
-
-            > LI.nuxt-link-active {
-              background-color: var(--nav-active);
-            }
-          }
-        }
-
-        &.nuxt-link-exact-active > A {
-          background-color: var(--nav-active);
-        }
+      &.nuxt-link-exact-active {
+        background-color: var(--nav-active);
       }
     }
   }
