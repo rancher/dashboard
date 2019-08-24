@@ -1,8 +1,9 @@
 
 <script>
+import { addObject, removeObject } from '../utils/array';
 import Accordion from '~/components/Accordion';
 import NamespacePicker from '~/components/NamespacePicker';
-import { mapPref, THEME } from '~/store/prefs';
+import { mapPref, THEME, EXPANDED_GROUPS } from '~/store/prefs';
 import { groupsForCounts } from '~/utils/groups';
 
 export default {
@@ -37,15 +38,28 @@ export default {
       ];
 
       return out;
+    },
+
+    expandedGroups() {
+      return this.$store.getters['prefs/get'](EXPANDED_GROUPS);
     }
   },
 
   methods: {
     toggleGroup(id, expanded) {
-      // @TODO
+      const groups = this.expandedGroups.slice();
+
+      if ( expanded ) {
+        addObject(groups, id);
+      } else {
+        removeObject(groups, id);
+      }
+
+      this.$store.commit('prefs/set', { key: EXPANDED_GROUPS, val: groups });
     },
 
     isExpanded(name) {
+      return this.expandedGroups.includes(name);
     }
   }
 };
@@ -87,18 +101,20 @@ export default {
         <hr />
         <Accordion
           v-for="group in pkg.groups"
-          :id="group.name"
+          :id="group.id"
           :key="group.name"
           :label="group.label"
-          :expanded="isExpanded(group.name)"
+          :expanded="isExpanded(group.id)"
           class="groups"
           @on-toggle="toggleGroup"
         >
           <template>
             <ul v-if="group.children" class="list-unstyled children">
               <n-link v-for="child in group.children" :key="child.route" :to="child.route" tag="li" class="child">
-                <a>{{ child.label }}</a>
-                <span class="count">{{ child.count }}</span>
+                <a>
+                  <span class="label">{{ child.label }}</span>
+                  <span class="count">{{ child.count }}</span>
+                </a>
               </n-link>
             </ul>
           </template>
@@ -174,29 +190,33 @@ export default {
     .child {
       background-color: var(--nav-sub);
       border-bottom: solid thin var(--border);
-      display: grid;
-      grid-template-areas: "label count";
-      grid-template-columns: auto 40px;
-      width: 100%;
-
-      $top: 10px;
-      $bottom: $top - 2px;
 
       A {
-        font-size: 14px;
-        padding: 10px 0 8px 20px;
-        grid-area: label;
-        display: block;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
+        display: grid;
+        grid-template-areas: "label count";
+        grid-template-columns: auto 40px;
+        width: calc(100% - 5px);
+        position: relative;
+        left: 2px;
 
-      .count {
-        grid-area: count;
-        font-size: 12px;
-        text-align: right;
-        padding: 11px 10px 0 0;
-        justify-items: center;
+        $top: 10px;
+        $bottom: $top - 2px;
+
+        .label {
+          grid-area: label;
+          font-size: 14px;
+          padding: 10px 0 8px 15px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .count {
+          grid-area: count;
+          font-size: 12px;
+          text-align: right;
+          padding: 11px 10px 0 0;
+          justify-items: center;
+        }
       }
 
       &.nuxt-link-exact-active {

@@ -24,6 +24,7 @@ export default {
   methods: {
     toggle() {
       this.isExpanded = !this.isExpanded;
+      console.log('toggle', this.id, this.isExpanded);
       this.$emit('on-toggle', this.id, this.isExpanded);
     }
   }

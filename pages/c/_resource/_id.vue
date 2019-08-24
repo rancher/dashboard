@@ -1,30 +1,5 @@
 <script>
-import ResourceYaml from '@/components/ResourceYaml';
-
-export default {
-  components: { ResourceYaml },
-
-  computed: {
-    doneRoute() {
-      const name = this.$route.name.replace(/(\/namespace)?\/id$/, '');
-
-      return name;
-    }
-  },
-
-  async asyncData(ctx) {
-    const { resource, namespace, id } = ctx.params;
-    const fqid = (namespace ? `${ namespace }/` : '') + id;
-
-    const obj = await ctx.store.dispatch('v1/find', { type: resource, id: fqid });
-    const value = await obj.followLink('view', { headers: { accept: 'application/yaml' } });
-
-    return {
-      obj,
-      value
-    };
-  }
-};
+export { default } from '@/pages/ns/_resource/_id.vue';
 </script>
 
 <template>

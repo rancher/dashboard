@@ -54,6 +54,7 @@ function ensureGroup(level, name, route) {
     group = {
       name,
       route,
+      id:       `${ route }/${ name }`,
       label:    groupLabel(name),
       children: [],
       priority: groupPriority(name),
@@ -89,8 +90,16 @@ function mapGroup(obj) {
     return 'core';
   }
 
+  if ( group === 'rio.cattle.io' || group.endsWith('.rio.cattle.io') ) {
+    return 'rio';
+  }
+
   if ( group.endsWith('.cattle.io') ) {
     return 'rancher';
+  }
+
+  if ( group.endsWith('.istio.io') ) {
+    return 'istio';
   }
 
   return group;
@@ -109,25 +118,16 @@ function groupLabel(group) {
 }
 
 function groupPriority(group) {
-  if ( group === 'core' ) {
+  if ( group === 'rio' ) {
     return 1;
   }
 
   if ( group === 'apps' ) {
     return 2;
   }
-
-  if ( !group.includes('.') ) {
+  if ( group === 'core' ) {
     return 3;
   }
 
-  if ( group.endsWith('.k8s.io') ) {
-    return 4;
-  }
-
-  if ( group.endsWith('.k8s.io') ) {
-    return 5;
-  }
-
-  return 6;
+  return 99;
 }
