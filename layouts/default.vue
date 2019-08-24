@@ -83,7 +83,7 @@ export default {
 
     <nav>
       <div v-for="pkg in packages" :key="pkg.name" class="package">
-        <h4>{{ pkg.label }}</h4>
+        <h6>{{ pkg.label }}</h6>
         <hr />
         <Accordion
           v-for="group in pkg.groups"

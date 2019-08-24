@@ -4,24 +4,24 @@ $lighter: #BABFC5;
 $light: #9B9FA5;
 $medium: #7B8085;
 $dark: #5B6064;
-$darker: #3C4044;
-$darkest: #2D3033;
+$darker: #1F1D25;
+$darkest: #131217;
 
 
 $contrasted-dark: $darkest !default;
 $contrasted-light: $lightest !default;
 
-$primary:   #12BE72;
+$primary:   #3D98D3;
 $secondary: $darkest;
-$link:      #6cb4b9;
+$link:      $primary;
 $disabled:  $medium;
-$success:   #9ebb85;
-$info:      #d7c25a;
-$warning:   #d7c25a;
-$error:     #de5347;
+$success:   #96BD7F;
+$info:      #16A085;
+$warning:   #DAC342;
+$error:     #EF5A53;
 
 $selected: rgba($primary, .5);
-$border-radius: 4px;
+$border-radius: 3px;
 
 :root {
   // Colors that will have text- and bg- helper classes created
@@ -48,8 +48,8 @@ $border-radius: 4px;
   --body-bg:                    white;
   --body-text:                  black;
   --disabled-bg:                #{$disabled};
-  --header-bg:                  #f1f2f3;
-  --nav-bg:                     #f1f2f3;
+  --header-bg:                  $primary;
+  --nav-bg:                     $primary;
   --nav-bg2:                    #e1e2e3;
   --nav-bg3:                    #d1d2d3;
   --footer-bg:                  #f1f2f3;

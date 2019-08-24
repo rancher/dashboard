@@ -1,0 +1,150 @@
+// -----------------------------------------------------------------------------
+// This file contains typography styles.
+// -----------------------------------------------------------------------------
+
+//
+HTML {
+  box-sizing: border-box;
+  height: 100%;
+}
+
+html, body {
+  font-size: 12px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--body-text);
+  font-family: 'Fira Sans';
+  font-weight: 300;
+}
+
+h1 {
+margin-bottom: 3rem;
+font-family: Fira Sans;
+font-size: 3.2382850718749987em;
+line-height: 6rem;
+font-weight: 300;
+font-style: normal;
+letter-spacing: 0em;
+}
+
+h2 {
+margin-bottom: 3rem;
+font-family: Fira Sans;
+font-size: 2.815900062499999em;
+line-height: 3rem;
+font-weight: 300;
+font-style: normal;
+letter-spacing: 0em;
+}
+
+h3 {
+margin-bottom: 3rem;
+font-family: Fira Sans;
+font-size: 2.448608749999999em;
+line-height: 3rem;
+font-weight: 300;
+font-style: normal;
+letter-spacing: 0em;
+}
+
+h4 {
+margin-bottom: 3rem;
+font-family: Fira Sans;
+font-size: 2.1292249999999995em;
+line-height: 3rem;
+font-weight: 300;
+font-style: normal;
+letter-spacing: 0em;
+}
+
+h5 {
+margin-bottom: 3rem;
+font-family: Fira Sans;
+font-size: 1.8514999999999995em;
+line-height: 3rem;
+font-weight: 300;
+font-style: normal;
+letter-spacing: 0em;
+}
+
+h6 {
+margin-bottom: 3rem;
+font-family: Fira Sans;
+font-size: 1.25em;
+line-height: 3rem;
+font-weight: 300;
+font-style: normal;
+letter-spacing: .25em;
+text-transform: uppercase;
+}
+
+p {
+margin-bottom: 3rem;
+font-family: Fira Sans;
+font-size: 1.4em;
+line-height: 3rem;
+font-weight: 400;
+font-style: normal;
+letter-spacing: 0em;
+}
+
+@media screen and (max-width: 720px) {
+  h1 {
+  margin-bottom: 3rem;
+  font-size: 6.103515625em;
+  line-height: 9rem;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0em;
+  }
+  h2 {
+  margin-bottom: 3rem;
+  font-size: 4.8828125em;
+  line-height: 6rem;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0em;
+  }
+  h3 {
+  margin-bottom: 3rem;
+  font-size: 3.90625em;
+  line-height: 6rem;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0em;
+  }
+  h4 {
+  margin-bottom: 3rem;
+  font-size: 3.125em;
+  line-height: 6rem;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0em;
+  }
+  h5 {
+  margin-bottom: 3rem;
+  font-size: 2.5em;
+  line-height: 3rem;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0em;
+  }
+  h6 {
+  margin-bottom: 3rem;
+  font-size: 2em;
+  line-height: 3rem;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0em;
+  }
+  p {
+  margin-bottom: 3rem;
+  font-family: Lora;
+  font-size: 1.6em;
+  line-height: 3rem;
+  font-weight: 400;
+  font-style: normal;
+  letter-spacing: 0em;
+  }
+}
