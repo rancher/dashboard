@@ -1,8 +1,8 @@
 .theme-dark {
   // Local variables for reused colors
-  $secondary: #9c9fa4;
-  $disabled:  #7c8084;
-  $link:      #6cb4b9;
+  // $secondary: #9c9fa4;
+  // $disabled:  #7c8084;
+  // $link:      #6cb4b9;
 
   //Contrast colors
   $contrasted-dark: $lightest !default;
@@ -30,7 +30,7 @@
   --login-bg:  #{$darkest};
   --body-bg:   #{$darker};
   --body-text:  white;
-  --header-bg: #{$dark};
+  --header-bg: #{$primary};
   --box-bg:    #{$darker};
   --border:    #{$darker};
   --nav-select:    #{$darker};

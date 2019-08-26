@@ -13,7 +13,7 @@ TEXTAREA {
   display: block;
   box-sizing: border-box;
   width: 100%;
-  padding: 9px 12px 8px;
+  padding: 8.5px;
 
   color: var(--input-text);
   background: var(--input-bg);
@@ -23,7 +23,7 @@ TEXTAREA {
   border-radius: $border-radius;
   border-style: solid;
   border-color: transparent;
-  font-size: 15px;
+  // font-size: 15px;
 
   &::placeholder {
     color: var(--input-placeholder);
