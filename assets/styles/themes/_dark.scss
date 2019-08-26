@@ -1,12 +1,33 @@
 .theme-dark {
   // Local variables for reused colors
-  // $secondary: #9c9fa4;
-  // $disabled:  #7c8084;
-  // $link:      #6cb4b9;
+
+  //dark sidebar
+  $darkest          : #141419;
+
+  //dark body 
+  $darker           : #1B1C21;
+
+  //dark inputs
+  $dark             : #212127;
+
+  //dark borders and button
+  $medium           : #27292E;
+
+  // dark disabled,
+  $light            : #6C6C76;
+
+  //dark secondary
+  $ligher           : #B6B6C2;
+
+  // dark main text
+  $lightest         : #FFFFFF;
+
+  $secondary        : $lighter;
+  $disabled         : $light;
 
   //Contrast colors
-  $contrasted-dark: $lightest !default;
-  $contrasted-light: $darkest !default;
+  $contrasted-dark  : $lightest !default;
+  $contrasted-light : $darkest !default;
 
   // Colors that will have text- and bg- helper classes created
   // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
@@ -25,52 +46,52 @@
     secondary:  $secondary,
   ));
 
-  --default-text: #{$light};
+  --default-text               : #{$light};
 
-  --login-bg:  #{$darkest};
-  --body-bg:   #{$darker};
-  --body-text:  white;
-  --header-bg: #{$primary};
-  --box-bg:    #{$darker};
-  --border:    #{$darker};
-  --nav-select:    #{$darker};
+  --login-bg                   : #{$darkest};
+  --body-bg                    : #{$darker};
+  --body-text                  : #{$lightest};
+  --header-bg                  : #{$primary};
+  --box-bg                     : #{$darker};
+  --border                     : #{$darker};
+  --nav-select                 : #{$darker};
 
-  --nav-bg:      #{$darkest};
-  --nav-pkg:     #{lighten($darkest, 10%)};
-  --nav-sub:     #{lighten($darkest, 15%)};
-  --nav-cur-sub: #{lighten($darkest, 25%)};
-  --nav-active:  var(--outline);
+  --nav-bg                     : #{$darkest};
+  --nav-pkg                    : #{lighten($darkest, 10%)};
+  --nav-sub                    : #{lighten($darkest, 15%)};
+  --nav-cur-sub                : #{lighten($darkest, 25%)};
+  --nav-active                 : var(--outline);
 
-  --dropdown-bg:            #{$medium};
-  --dropdown-border:        #{$dark};
-  --dropdown-divider:       #{$darker};
-  --dropdown-text:          #{$link};
-  --dropdown-hover-text:    #{$lightest};
-  --dropdown-hover-bg:      #{$selected};
-  --dropdown-active-text:   var(--active-text);
-  --dropdown-active-bg:     var(--active-bg);
-  --dropdown-disabled-text: var(--muted);
-  --dropdown-disabled-bg:   transparent;
+  --dropdown-bg                : #{$medium};
+  --dropdown-border            : #{$dark};
+  --dropdown-divider           : #{$darker};
+  --dropdown-text              : #{$link};
+  --dropdown-hover-text        : #{$lightest};
+  --dropdown-hover-bg          : #{$selected};
+  --dropdown-active-text       : var(--active-text);
+  --dropdown-active-bg         : var(--active-bg);
+  --dropdown-disabled-text     : var(--muted);
+  --dropdown-disabled-bg       : transparent;
 
-  --input-text:         #{$lightest};
-  --input-label:        #{$lighter};
-  --input-placeholder:  #{$medium};
-  --input-border:       #{$medium};
-  --input-bg:           #{$darkest};
-  --input-hover-bg:     #{$darkest};
-  --input-focus-bg:     #{$darkest};
+  --input-text                 : #{$lightest};
+  --input-label                : #{$lighter};
+  --input-placeholder          : #{$medium};
+  --input-border               : #{$medium};
+  --input-bg                   : #{$dark};
+  --input-hover-bg             : #{$darkest};
+  --input-focus-bg             : #{$darkest};
 
-  --modal-overlay-bg:           rgba(#000, 0.75);
+  --modal-overlay-bg           : rgba(#000, 0.75);
 
-  --progress-bg: #{$medium};
-  --progress-divider: #{$lightest};
+  --progress-bg                : #{$medium};
+  --progress-divider           : #{$lightest};
 
-  --sortable-table-header-bg: #{$darker};
-  --sortable-table-accent-bg: #{$darkest};
-  --sortable-table-accent-alt: #{$darker};
-  --sortable-table-divider-bg: #{$dark};
-  --sortable-table-selected-bg: #{$selected};
+  --sortable-table-header-bg   : #{$darker};
+  --sortable-table-accent-bg   : #{$darkest};
+  --sortable-table-accent-alt  : #{$darker};
+  --sortable-table-divider-bg  : #{$dark};
+  --sortable-table-selected-bg : #{$selected};
 
-  --tooltip-bg: #{$lightest};
-  --tooltip-text: #{$dark};
+  --tooltip-bg                 : #{$lightest};
+  --tooltip-text               : #{$dark};
 }
