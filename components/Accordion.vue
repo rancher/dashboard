@@ -24,7 +24,6 @@ export default {
   methods: {
     toggle() {
       this.isExpanded = !this.isExpanded;
-      console.log('toggle', this.id, this.isExpanded);
       this.$emit('on-toggle', this.id, this.isExpanded);
     }
   }
@@ -55,6 +54,7 @@ export default {
     font-size: 14px;
     padding: 10px;
     position: relative;
+    cursor: pointer;
 
     > I {
       position: absolute;

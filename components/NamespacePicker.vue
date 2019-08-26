@@ -3,7 +3,7 @@
     <v-select
       v-model="value"
       multiple
-      placeholder="Filter by Namespace"
+      placeholder="All Namespaces"
       :options="namespaces"
       label="label"
       :reduce="obj => obj.id"

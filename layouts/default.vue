@@ -25,13 +25,13 @@ export default {
       const out = [
         {
           name:   'namespaced',
-          label:  'Namespaced Resources',
+          label:  'Namespaced',
           route:  '/ns',
           groups: namespaceLevel
         },
         {
           name:   'cluster',
-          label:  'Cluster-Level',
+          label:  'Global',
           route:  '/cluster',
           groups: clusterLevel
         },
@@ -75,7 +75,6 @@ export default {
       </div>
 
       <div class="header-middle">
-        <NamespacePicker />
       </div>
 
       <div class="header-right text-right">
@@ -97,7 +96,10 @@ export default {
 
     <nav>
       <div v-for="pkg in packages" :key="pkg.name" class="package">
-        <h6>{{ pkg.label }}</h6>
+        <h6>
+          {{ pkg.label }}
+          <NamespacePicker v-if="pkg.name === 'namespaced'" />
+        </h6>
         <hr />
         <Accordion
           v-for="group in pkg.groups"
@@ -187,6 +189,19 @@ export default {
     padding: 0;
     overflow-y: auto;
 
+    H6 {
+      letter-spacing: 0.025em;
+      margin: 20px 10px 0 10px;
+
+      > * {
+        text-transform: none;
+      }
+    }
+
+    .package:first-child H6 {
+      margin-top: 0;
+    }
+
     .child {
       background-color: var(--nav-sub);
       border-bottom: solid thin var(--border);
@@ -219,7 +234,7 @@ export default {
         }
       }
 
-      &.nuxt-link-exact-active {
+      &.nuxt-link-active {
         background-color: var(--nav-active);
       }
     }

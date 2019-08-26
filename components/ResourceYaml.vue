@@ -79,6 +79,14 @@ export default {
     },
 
     diffMode: mapPref(DIFF),
+
+    parentRoute() {
+      if ( this.schema.attributes.namespaced ) {
+        return `/ns/${ this.obj.type }`;
+      } else {
+        return `/c/${ this.obj.type }`;
+      }
+    },
   },
 
   methods: {
@@ -137,7 +145,7 @@ export default {
   <div>
     <header>
       <h2>
-        <nuxt-link :to="'/explorer/'+ obj.type+'/'">
+        <nuxt-link :to="parentRoute">
           {{ schema.attributes.kind }}
         </nuxt-link>: {{ obj.id }}
         <div v-if="isPreview" v-trim-whitespace class="btn-group btn-xs mode">

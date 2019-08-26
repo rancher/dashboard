@@ -63,6 +63,7 @@ module.exports = {
   plugins: [
     // Third-party
     '~/plugins/axios',
+    '~/plugins/dropdown-menu',
     '~/plugins/tooltip',
     '~/plugins/v-select',
     '~/plugins/transitions',

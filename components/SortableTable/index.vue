@@ -1,13 +1,13 @@
 <script>
-import { removeObject } from '../../utils/array';
 import THead from './THead';
-
 import filtering from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
 import actions from './actions';
+
+import { removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 
 // * Selection
@@ -264,7 +264,9 @@ export default {
               </template>
               <td v-if="rowActions" align="middle">
                 <slot name="row-actions" :row="row">
-                  ...
+                  <button class="btn btn-sm bg-primary actions">
+                    <i class="icon icon-actions" />
+                  </button>
                 </slot>
               </td>
             </tr>
@@ -406,6 +408,10 @@ $divider-height: 2px;
 
       &.clip {
         padding-right: 25px;
+      }
+
+      .actions {
+        padding: 5px;
       }
     }
 

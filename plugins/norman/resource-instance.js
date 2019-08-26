@@ -131,23 +131,23 @@ export default {
     const links = this.links || {};
 
     all.push({
+      action:  'goToEdit',
       label:   'Edit',
       icon:    'icon icon-edit',
-      action:  'goToEdit',
       enabled:  !!links.update,
     });
 
     all.push({
+      action:  'goToView',
       label:   'View',
       icon:    'icon icon-file',
-      action:  'goToView',
       enabled:  !!links.view,
     });
 
     all.push({
+      action:     'download',
       label:      'Download',
       icon:       'icon icon-download',
-      action:     'download',
       enabled:    !!links.view,
       bulkable:   true,
       bulkAction: 'downloadBulk',
@@ -156,19 +156,19 @@ export default {
     all.push({ divider: true });
 
     all.push({
+      action:  'viewInApi',
       label:   'View in API',
       icon:    'icon icon-external-link',
-      action:  'viewInApi',
       enabled:  !!links.self,
     });
 
     all.push({ divider: true });
 
     all.push({
-      label:     'Delete',
-      icon:      'icon icon-trash',
       action:    'promptRemove',
       altAction: 'remove',
+      label:     'Delete',
+      icon:      'icon icon-trash',
       bulkable:  true,
       enabled:   !!links.view,
     });
