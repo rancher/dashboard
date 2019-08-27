@@ -21,7 +21,7 @@ $lighter   : #F4F5FA;
 $lightest  : #FFFFFF;
 
 $primary   : #3D98D3;
-$secondary : #6C6C76;
+$secondary : $darker;
 $link      : $primary;
 $disabled  : $dark;
 $success   : #96BD7F;
@@ -62,8 +62,6 @@ $border-radius: 3px;
   --disabled-bg                : #{$disabled};
   --header-bg                  : #{$primary};
   --nav-bg                     : #{$lighter};
-  --nav-bg2                    : #e1e2e3;
-  --nav-bg3                    : #d1d2d3;
   --footer-bg                  : #f1f2f3;
   --box-bg                     : #{$light};
   --border                     : #{$medium};
@@ -83,10 +81,10 @@ $border-radius: 3px;
 
   --overlay-bg                 : #{rgba($medium, 0.5)};
 
-  --input-label                : #{$dark};
+  --input-label                : #{$secondary};
   --input-text                 : #{$darkest};
-  --input-placeholder          : #{$medium};
-  --input-border               : #{$medium};
+  --input-placeholder          : #{$secondary};
+  --input-border               : var(--$border);
   --input-bg                   : #{$light};
   --input-hover-bg             : lighten($light, 10%);
   --input-focus-bg             : white;

@@ -53,7 +53,7 @@
   --body-text                  : #{$lightest};
   --header-bg                  : #{$primary};
   --box-bg                     : #{$darker};
-  --border                     : #{$darker};
+  --border                     : #{$medium};
   --nav-select                 : #{$darker};
 
   --nav-bg                     : #{$darkest};
@@ -63,7 +63,7 @@
   --nav-active                 : var(--outline);
 
   --dropdown-bg                : #{$medium};
-  --dropdown-border            : #{$dark};
+  --dropdown-border            : var(--border);
   --dropdown-divider           : #{$darker};
   --dropdown-text              : #{$link};
   --dropdown-hover-text        : #{$lightest};
@@ -74,11 +74,11 @@
   --dropdown-disabled-bg       : transparent;
 
   --input-text                 : #{$lightest};
-  --input-label                : #{$lighter};
-  --input-placeholder          : #{$medium};
-  --input-border               : #{$medium};
+  --input-label                : #{$secondary};
+  --input-placeholder          : #{$disabled};
+  --input-border               : var(--border);
   --input-bg                   : #{$dark};
-  --input-hover-bg             : #{$darkest};
+  --input-hover-bg             : #{$medium};
   --input-focus-bg             : #{$darkest};
 
   --modal-overlay-bg           : rgba(#000, 0.75);
