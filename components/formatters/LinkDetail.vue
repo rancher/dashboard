@@ -9,7 +9,11 @@ export default {
     row: {
       type:     Object,
       required: true
-    }
+    },
+    col: {
+      type:     Object,
+      required: true
+    },
   },
 };
 </script>

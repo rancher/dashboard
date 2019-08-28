@@ -2,12 +2,15 @@
 <script>
 import { addObject, removeObject } from '../utils/array';
 import Accordion from '~/components/Accordion';
+import ActionMenu from '~/components/ActionMenu';
 import NamespacePicker from '~/components/NamespacePicker';
 import { mapPref, THEME, EXPANDED_GROUPS } from '~/store/prefs';
 import { groupsForCounts } from '~/utils/groups';
 
 export default {
-  components: { Accordion, NamespacePicker },
+  components: {
+    Accordion, ActionMenu, NamespacePicker
+  },
 
   head() {
     const theme = this.$store.getters['prefs/get'](THEME);
@@ -42,7 +45,7 @@ export default {
 
     expandedGroups() {
       return this.$store.getters['prefs/get'](EXPANDED_GROUPS);
-    }
+    },
   },
 
   methods: {
@@ -66,7 +69,7 @@ export default {
 </script>
 
 <template>
-  <div class="root">
+  <div class="dashboard">
     <header>
       <div class="header-left">
         <n-link to="/">
@@ -127,6 +130,8 @@ export default {
     <main>
       <nuxt />
     </main>
+
+    <ActionMenu />
   </div>
 </template>
 
@@ -136,7 +141,7 @@ export default {
   $right-width: 100px;
   $logo-height: 40px;
 
-  .root {
+  .dashboard {
     display: grid;
     height: 100vh;
     grid-template-areas:

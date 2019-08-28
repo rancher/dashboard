@@ -37,7 +37,7 @@ export default {
         {{ label }}
       </slot>
 
-      <i :class="{'icon': true, 'icon-chevron-up': !isExpanded, 'icon-chevron-down': isExpanded}" />
+      <i :class="{'icon': true, 'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}" />
     </div>
     <transition name="slide" mode="out-in">
       <div v-if="isExpanded" class="body">

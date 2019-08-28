@@ -5,7 +5,6 @@ import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
-import actions from './actions';
 
 import { removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
@@ -28,7 +27,7 @@ import { get } from '@/utils/object';
 export default {
   name:       'SortableTable',
   components: { THead },
-  mixins:     [filtering, sorting, paging, grouping, selection, actions],
+  mixins:     [filtering, sorting, paging, grouping, selection],
 
   props: {
     headers: {
@@ -168,6 +167,10 @@ export default {
 
       return out;
     },
+
+    availableActions() {
+      return this.$store.getters['selection/forTable'];
+    }
   },
 
   methods: { get }

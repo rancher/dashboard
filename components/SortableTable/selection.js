@@ -1,6 +1,5 @@
 import $ from 'jquery';
 import { isMore, isRange } from '@/utils/platform';
-import { addObjects, removeObjects } from '@/utils/array';
 import { get } from '@/utils/object';
 
 export const ALL = 'all';
@@ -13,9 +12,16 @@ export default {
 
     this._onRowClickBound = this.onRowClick.bind(this);
     this._onRowMousedownBound = this.onRowMousedown.bind(this);
+    this._onRowContextBound = this.onRowContext.bind(this);
 
     $table.on('click', '> TBODY > TR', this._onRowClickBound);
     $table.on('mousedown', '> TBODY > TR', this._onRowMousedownBound);
+    $table.on('contextmenu', '> TBODY > TR', this._onRowContextBound);
+
+    this.$store.commit('selection/setTable', {
+      table:          this.pagedRows,
+      clearSelection: true,
+    });
   },
 
   beforeDestroy() {
@@ -23,9 +29,14 @@ export default {
 
     $table.off('click', '> TBODY > TR', this._onRowClickBound);
     $table.off('mousedown', '> TBODY > TR', this._onRowMousedownBound);
+    $table.off('contextmenu', '> TBODY > TR', this._onRowContextBound);
   },
 
   computed: {
+    selectedNodes() {
+      return this.$store.getters['selection/tableSelected'];
+    },
+
     howMuchSelected() {
       const total = this.pagedRows.length;
       const selected = this.selectedNodes.length;
@@ -40,10 +51,7 @@ export default {
     },
   },
 
-  data: () => ({
-    selectedNodes: [],
-    prevNode:      null,
-  }),
+  data: () => ({ prevNode: null }),
 
   methods: {
     onToggleAll(value) {
@@ -64,20 +72,22 @@ export default {
       }
     },
 
-    onRowClick(e) {
+    nodeForEvent(e) {
       const tagName = e.target.tagName;
       const tgt = $(e.target);
+      const actionElement = tgt.closest('.actions')[0];
+      const content = this.pagedRows;
 
-      if ( tagName === 'A' ||
-           tagName === 'BUTTON' ||
-           tgt.parents('.btn').length
-      ) {
-        return;
+      if ( !actionElement ) {
+        if (
+          tagName === 'A' ||
+          tagName === 'BUTTON' ||
+          tgt.parents('.btn').length
+        ) {
+          return;
+        }
       }
 
-      const content = this.pagedRows;
-      const selection = this.selectedNodes;
-      const isCheckbox = tagName === 'INPUT' || tgt.hasClass('row-check');
       let tgtRow = $(e.currentTarget);
 
       if ( tgtRow.hasClass('separator-row') || tgt.hasClass('select-all-check')) {
@@ -101,7 +111,29 @@ export default {
 
       const node = content.find( x => get(x, this.keyField) === nodeId );
 
+      return node;
+    },
+
+    onRowClick(e) {
+      const node = this.nodeForEvent(e);
+      const tgt = $(e.target);
+      const tagName = e.target.tagName;
+      const selection = this.selectedNodes;
+      const isCheckbox = tagName === 'INPUT' || tgt.hasClass('row-check');
+      const content = this.pagedRows;
+
       if ( !node ) {
+        return;
+      }
+
+      const actionElement = $(e.target).closest('.actions')[0];
+
+      if ( actionElement ) {
+        this.$store.commit('selection/show', {
+          resources: node,
+          elem:      actionElement
+        });
+
         return;
       }
 
@@ -130,6 +162,28 @@ export default {
       }
 
       this.prevNode = node;
+    },
+
+    onRowContext(e) {
+      const node = this.nodeForEvent(e);
+
+      if ( !node ) {
+        return;
+      }
+
+      e.preventDefault();
+
+      this.prevNode = node;
+      const isSelected = this.selectedNodes.includes(node);
+
+      if ( !isSelected ) {
+        this.toggleMulti([node], this.selectedNodes.slice());
+      }
+
+      this.$store.commit('selection/show', {
+        resources: this.selectedNodes,
+        event:     e.originalEvent,
+      });
     },
 
     nodesBetween(a, b) {
@@ -194,30 +248,24 @@ export default {
     },
 
     toggleSingle(node) {
-      if ( this.selectedNodes.includes(node) ) {
-        this.toggleMulti([], [node]);
-      } else {
-        this.toggleMulti([node], []);
-      }
+      this.$store.commit('selection/toggleSingle', node);
     },
 
-    toggleMulti(nodesToAdd, nodesToRemove) {
-      const selectedNodes = this.selectedNodes;
+    toggleMulti(toAdd, toRemove) {
+      this.$store.commit('selection/toggleMulti', { toAdd, toRemove });
 
-      if (nodesToRemove.length) {
-        removeObjects(selectedNodes, nodesToRemove);
+      if (toRemove.length) {
         this.$nextTick(() => {
-          for ( let i = 0 ; i < nodesToRemove.length ; i++ ) {
-            this.toggleInput(nodesToRemove[i], false, this.keyField);
+          for ( let i = 0 ; i < toRemove.length ; i++ ) {
+            this.toggleInput(toRemove[i], false, this.keyField);
           }
         });
       }
 
-      if (nodesToAdd.length) {
-        addObjects(selectedNodes, nodesToAdd);
+      if (toAdd.length) {
         this.$nextTick(() => {
-          for ( let i = 0 ; i < nodesToAdd.length ; i++ ) {
-            this.toggleInput(nodesToAdd[i], true, this.keyField);
+          for ( let i = 0 ; i < toAdd.length ; i++ ) {
+            this.toggleInput(toAdd[i], true, this.keyField);
           }
         });
       }
@@ -244,23 +292,16 @@ export default {
         }
       }
     },
+
+    applyTableAction(action, args) {
+      this.$store.dispatch('selection/executeTable', { action, args });
+    }
   },
 
   watch: {
     pagedRows: {
       handler(nowNodes, beforeNodes) {
-        const toRemove = [];
-        const selectedNodes = this.selectedNodes;
-
-        for ( let i = 0 ; i < selectedNodes.length ; i++ ) {
-          const cur = selectedNodes[i];
-
-          if ( !nowNodes.includes(cur) ) {
-            toRemove.push(cur);
-          }
-        }
-
-        this.toggleMulti([], toRemove);
+        this.$store.commit('selection/setTable', { table: this.pagedRows });
       },
     }
   }
