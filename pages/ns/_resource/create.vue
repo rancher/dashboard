@@ -8,7 +8,7 @@ export default {
 
   computed: {
     doneRoute() {
-      const name = this.$route.name.replace(/(\/namespace)?\/id$/, '');
+      const name = this.$route.name.replace(/(\/namespace)?\/create$/, '');
 
       return name;
     }

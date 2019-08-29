@@ -1,5 +1,4 @@
 <script>
-
 import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
 import AsyncButton from './AsyncButton';
@@ -53,6 +52,7 @@ export default {
     return {
       mode,
       currentValue: this.value,
+      errors:       null,
     };
   },
 
@@ -186,28 +186,44 @@ export default {
     },
 
     async save(buttonDone) {
-      if ( this.isCreate ) {
-        await this.schema.followLink('collection', {
-          method:  'POST',
-          headers: {
-            'content-type': 'application/yaml',
-            accept:         'application/yaml',
-          },
-          data: this.currentValue,
-        });
-      } else {
-        await this.obj.followLink('update', {
-          method:  'PUT',
-          headers: {
-            'content-type': 'application/yaml',
-            accept:         'application/yaml',
-          },
-          data: this.currentValue,
-        });
-      }
+      try {
+        if ( this.isCreate ) {
+          await this.schema.followLink('collection', {
+            method:  'POST',
+            headers: {
+              'content-type': 'application/yaml',
+              accept:         'application/json',
+            },
+            data: this.currentValue,
+          });
+        } else {
+          await this.obj.followLink('update', {
+            method:  'PUT',
+            headers: {
+              'content-type': 'application/yaml',
+              accept:         'application/json',
+            },
+            data: this.currentValue,
+          });
+        }
 
-      buttonDone(true);
-      this.done();
+        buttonDone(true);
+        this.done();
+      } catch (err) {
+        if ( err && err.response && err.response.data ) {
+          const body = err.response.data;
+
+          if ( body && body.message ) {
+            this.errors = [body.message];
+          } else {
+            this.errors = [err];
+          }
+        } else {
+          this.errors = [err];
+        }
+
+        buttonDone(false);
+      }
     },
 
     async remove(buttonDone) {
@@ -268,6 +284,9 @@ export default {
         </button>
         <AsyncButton v-if="isEdit || isPreview" key="apply" mode="apply" @click="save" />
         <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
+      </div>
+      <div v-for="(err, idx) in errors" :key="idx" class="text-error">
+        {{ err }}
       </div>
     </header>
     <CodeMirror

@@ -20,26 +20,27 @@ export default {
       };
     });
   },
-
-  methods: {
-    add() {
-    },
-  },
 }; </script>
 
 <template>
   <div>
-    <h2>
-      {{ schema.attributes.kind }}
-      <button type="button" class="btn btn-sm bg-primary right-action" @click="add">
+    <div class="header">
+      <h2>
+        {{ schema.attributes.kind }}
+      </h2>
+      <nuxt-link to="create" append tag="button" type="button" class="btn bg-primary right-action">
         Add
-      </button>
-    </h2>
+      </nuxt-link>
+    </div>
     <ResourceTable :resource="$route.params.resource" :rows="rows" />
   </div>
 </template>
 
 <style lang="scss" scoped>
+  .header {
+    position: relative;
+  }
+
   H2 {
     position: relative;
     margin: 0 0 20px 0;
