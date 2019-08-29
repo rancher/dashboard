@@ -6,6 +6,7 @@ export const PAGE = 'page';
 
 // ResourceYaml
 export const MODE = 'mode';
+export const _CREATE = 'create';
 export const _VIEW = 'view';
 export const _EDIT = 'edit';
 export const _PREVIEW = 'preview';

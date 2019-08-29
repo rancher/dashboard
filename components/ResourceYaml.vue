@@ -4,7 +4,10 @@ import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
 import AsyncButton from './AsyncButton';
 
-import { MODE, _VIEW, _EDIT, _PREVIEW } from '~/utils/query-params';
+import {
+  MODE, _CREATE, _VIEW, _EDIT, _PREVIEW
+} from '~/utils/query-params';
+
 import { mapPref, DIFF } from '~/store/prefs';
 
 export default {
@@ -13,6 +16,11 @@ export default {
   },
 
   props: {
+    forCreate: {
+      type:    Boolean,
+      default: false,
+    },
+
     obj: {
       type:     Object,
       required: true,
@@ -30,7 +38,13 @@ export default {
   },
 
   data() {
-    let mode = this.$route.query.mode || _VIEW;
+    let mode;
+
+    if ( this.forCreate ) {
+      mode = _CREATE;
+    } else {
+      mode = this.$route.query.mode || _VIEW;
+    }
 
     if ( mode === _PREVIEW ) {
       mode = _EDIT;
@@ -58,7 +72,7 @@ export default {
       return {
         readOnly,
         gutters,
-        mode:            'text/yaml',
+        mode:            'yaml',
         lint:            true,
         lineNumbers:     !readOnly,
         extraKeys:       { 'Ctrl-Space': 'autocomplete' },
@@ -66,14 +80,15 @@ export default {
       };
     },
 
+    isCreate() {
+      return this.mode === _CREATE;
+    },
     isView() {
       return this.mode === _VIEW;
     },
-
     isEdit() {
       return this.mode === _EDIT;
     },
-
     isPreview() {
       return this.mode === _PREVIEW;
     },
@@ -90,8 +105,68 @@ export default {
   },
 
   methods: {
-    onCodeChange(value) {
+    onInput(value) {
       this.currentValue = value;
+    },
+
+    onReady(cm) {
+      cm.getMode().fold = 'yaml';
+
+      if ( this.isCreate ) {
+        cm.execCommand('foldAll');
+      }
+    },
+
+    onChanges(cm, changes) {
+      if ( changes.length !== 1 ) {
+        return;
+      }
+
+      const change = changes[0];
+
+      if ( change.from.line !== change.to.line ) {
+        return;
+      }
+
+      let line = change.from.line;
+      let str = cm.getLine(line);
+      let maxIndent = indentChars(str);
+
+      if ( maxIndent === null ) {
+        return;
+      }
+
+      cm.replaceRange('', { line, ch: 0 }, { line, ch: 1 }, '+input');
+
+      while ( line > 0 ) {
+        line--;
+        str = cm.getLine(line);
+        const indent = indentChars(str);
+
+        if ( indent === null ) {
+          break;
+        }
+
+        if ( indent < maxIndent ) {
+          cm.replaceRange('', { line, ch: 0 }, { line, ch: 1 }, '+input');
+
+          if ( indent === 0 ) {
+            break;
+          }
+
+          maxIndent = indent;
+        }
+      }
+
+      function indentChars(str) {
+        const match = str.match(/^#(\s+)/);
+
+        if ( match ) {
+          return match[1].length;
+        }
+
+        return null;
+      }
     },
 
     edit() {
@@ -111,14 +186,25 @@ export default {
     },
 
     async save(buttonDone) {
-      await this.obj.followLink('update', {
-        method:  'PUT',
-        headers: {
-          'content-type': 'application/yaml',
-          accept:         'application/yaml',
-        },
-        data: this.currentValue,
-      });
+      if ( this.isCreate ) {
+        await this.schema.followLink('collection', {
+          method:  'POST',
+          headers: {
+            'content-type': 'application/yaml',
+            accept:         'application/yaml',
+          },
+          data: this.currentValue,
+        });
+      } else {
+        await this.obj.followLink('update', {
+          method:  'PUT',
+          headers: {
+            'content-type': 'application/yaml',
+            accept:         'application/yaml',
+          },
+          data: this.currentValue,
+        });
+      }
 
       buttonDone(true);
       this.done();
@@ -145,9 +231,14 @@ export default {
   <div>
     <header>
       <h2>
-        <nuxt-link :to="parentRoute">
-          {{ schema.attributes.kind }}
-        </nuxt-link>: {{ obj.id }}
+        <div v-if="isCreate">
+          Create {{ schema.attributes.kind }}
+        </div>
+        <div v-else>
+          <nuxt-link :to="parentRoute">
+            {{ schema.attributes.kind }}
+          </nuxt-link>: {{ obj.id }}
+        </div>
         <div v-if="isPreview" v-trim-whitespace class="btn-group btn-xs mode">
           <button type="button" :class="{'btn': true, 'btn-sm': true, 'bg-default': true, 'active': diffMode !== 'split'}" @click="diffMode='unified'">
             <i class="icon icon-dot-open" />
@@ -172,17 +263,20 @@ export default {
           waiting-color="bg-error"
           @click="remove"
         />
-        <button v-if="!isEdit" class="btn bg-primary" @click="edit">
+        <button v-if="isView || isPreview" class="btn bg-primary" @click="edit">
           Edit
         </button>
-        <AsyncButton v-if="!isView" key="apply" mode="apply" @click="save" />
+        <AsyncButton v-if="isEdit || isPreview" key="apply" mode="apply" @click="save" />
+        <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
       </div>
     </header>
     <CodeMirror
-      v-if="isView || isEdit"
+      v-if="!isPreview"
       :value="currentValue"
       :options="cmOptions"
-      @onCodeChange="onCodeChange"
+      @onInput="onInput"
+      @onReady="onReady"
+      @onChanges="onChanges"
     />
     <FileDiff
       v-if="isPreview"

@@ -34,7 +34,7 @@ export default {
       const out = {
         // codemirror options
         tabSize:                 2,
-        mode:                    'text/yaml',
+        mode:                    'yaml',
         theme:                   'base16-dark',
         lineNumbers:             true,
         line:                    true,
@@ -53,12 +53,17 @@ export default {
   },
 
   methods: {
-    onCmReady(cm) {
+    onReady(cm) {
       this.fit();
+      this.$emit('onReady', cm);
     },
 
-    onCmCodeChange(newCode) {
-      this.$emit('onCodeChange', newCode);
+    onInput(newCode) {
+      this.$emit('onInput', newCode);
+    },
+
+    onChanges(cm, changes) {
+      this.$emit('onChanges', cm, changes);
     },
 
     fit() {
@@ -92,8 +97,9 @@ export default {
         ref="cm"
         :value="value"
         :options="combinedOptions"
-        @ready="onCmReady"
-        @input="onCmCodeChange"
+        @ready="onReady"
+        @input="onInput"
+        @changes="onChanges"
       />
     </div>
   </no-ssr>

@@ -1,4 +1,5 @@
 import { normalizeType } from './normalize';
+import { proxyFor } from './resource-proxy';
 import { SCHEMA } from '@/utils/types';
 
 export default {
@@ -133,5 +134,9 @@ export default {
     const neu = getters.byId(type, id);
 
     return neu;
+  },
+
+  create({ dispatch }, data) {
+    return proxyFor(data, dispatch);
   },
 };

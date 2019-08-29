@@ -145,7 +145,7 @@ export function indent(lines, count = 2, token = ' ', afterRegex = null) {
 
   const padStr = (new Array(count + 1)).join(token);
 
-  return lines.map((line) => {
+  const out = lines.map((line) => {
     let prefix = '';
     let suffix = line;
 
@@ -159,7 +159,11 @@ export function indent(lines, count = 2, token = ' ', afterRegex = null) {
     }
 
     return `${ prefix }${ padStr }${ suffix }`;
-  }).join('\n');
+  });
+
+  const str = out.join('\n');
+
+  return str;
 }
 
 const decamelizeRegex = /([a-z\d])([A-Z])/g;
