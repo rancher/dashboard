@@ -72,11 +72,12 @@ export default {
   },
 
   goToEdit() {
-    debugger;
-  },
+    return async() => {
+      const schema = await this.$dispatch('schemaFor', this.type);
+      const url = `/${ schema.attributes.namespaced ? 'ns' : 'c' }/${ this.type }/${ this.id }?mode=edit`;
 
-  goToView() {
-    debugger;
+      window.$nuxt.$router.push({ path: url });
+    };
   },
 
   download() {
@@ -122,8 +123,10 @@ export default {
   },
 
   promptRemove() {
-    // @TODO
-    this.remove();
+    return () => {
+      // @TODO
+      this.remove();
+    };
   },
 
   availableActions() {
@@ -137,12 +140,7 @@ export default {
       enabled:  !!links.update,
     });
 
-    all.push({
-      action:  'goToView',
-      label:   'View',
-      icon:    'icon icon-file',
-      enabled:  !!links.view,
-    });
+    all.push({ divider: true });
 
     all.push({
       action:     'download',
@@ -152,8 +150,6 @@ export default {
       bulkable:   true,
       bulkAction: 'downloadBulk',
     });
-
-    all.push({ divider: true });
 
     all.push({
       action:  'viewInApi',

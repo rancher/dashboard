@@ -75,6 +75,7 @@ export default {
 
     execute(action, args) {
       this.$store.dispatch('selection/execute', { action, args });
+      this.hide();
     }
   },
 };

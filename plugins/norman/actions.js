@@ -139,4 +139,8 @@ export default {
   create({ dispatch }, data) {
     return proxyFor(data, dispatch);
   },
+
+  schemaFor({ getters }, type) {
+    return getters['schemaFor'](type);
+  }
 };

@@ -43,13 +43,17 @@ export const getters = {
 
     for ( const node of all ) {
       for ( const act of node.availableActions ) {
-        _add(map, act, false);
+        if ( act.bulkable ) {
+          _add(map, act, false);
+        }
       }
     }
 
     for ( const node of selected ) {
       for ( const act of node.availableActions ) {
-        _add(map, act);
+        if ( act.bulkable ) {
+          _add(map, act);
+        }
       }
     }
 
@@ -156,10 +160,6 @@ export const actions = {
 // -----------------------------
 
 function _add(map, act, incrementCounts = true) {
-  if ( !act.bulkable ) {
-    return;
-  }
-
   let obj = map[act.action];
 
   if ( !obj ) {
