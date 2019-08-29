@@ -19,8 +19,6 @@ export default {
   },
 
   computed: {
-    theme: mapPref(THEME),
-
     packages() {
       const namespaces = this.$store.getters['namespaces'] || [];
       const { clusterLevel, namespaceLevel } = groupsForCounts(this.$store.getters['v1/counts'], namespaces);
@@ -81,19 +79,9 @@ export default {
       </div>
 
       <div class="header-right text-right">
-        <div v-trim-whitespace class="btn-group theme-picker">
-          <button type="button" :class="{'light': true, 'btn': true, 'btn-sm': true, 'bg-default': true, 'active': theme === 'light'}" @click="theme='light'">
-            <i class="icon icon-dot" />
-          </button>
-          <button type="button" :class="{'dark': true, 'btn': true, 'btn-sm': true, 'bg-default': true, 'active': theme === 'dark'}" @click="theme='dark'">
-            <i class="icon icon-dot" />
-          </button>
-        </div>
-        <!--
         <nuxt-link :to="{name: 'prefs'}">
-          <i class="icon icon-2x icon-gear" />
+          <i class="icon icon-3x icon-gear" />
         </nuxt-link>
-        -->
       </div>
     </header>
 

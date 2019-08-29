@@ -1,10 +1,38 @@
 <script>
-import { mapPref, THEME } from '~/store/prefs';
+import ButtonGroup from '~/components/ButtonGroup';
+import { mapPref, THEME, KEYMAP } from '~/store/prefs';
+import { ucFirst } from '~/utils/string';
+
+const KEYMAP_LABELS = {
+  sublime: 'Normal human',
+  emacs:   'Emacs',
+  vim:     'Vim',
+};
 
 export default {
-  computed: {
-    theme: mapPref(THEME),
-    // multi-line
+  components: { ButtonGroup },
+
+  computed:   {
+    theme:  mapPref(THEME),
+    keymap: mapPref(KEYMAP),
+
+    themeOptions() {
+      return this.$store.getters['prefs/options'](THEME).map((value) => {
+        return {
+          label: ucFirst(value),
+          value
+        };
+      });
+    },
+
+    keymapOptions() {
+      return this.$store.getters['prefs/options'](KEYMAP).map((value) => {
+        return {
+          label: KEYMAP_LABELS[value] || ucFirst(value),
+          value
+        };
+      });
+    }
   },
 };
 </script>
@@ -13,13 +41,24 @@ export default {
   <div>
     <h1>Preferences</h1>
 
-    <div v-trim-whitespace class="btn-group">
-      <button type="button" :class="{'btn': true, 'bg-default': true, 'active': theme === 'light'}" @click="theme='light'">
-        Light
-      </button>
-      <button type="button" :class="{'btn': true, 'bg-default': true, 'active': theme === 'dark'}" @click="theme='dark'">
-        Dark
-      </button>
-    </div>
+    <h6>Theme</h6>
+    <ButtonGroup v-model="theme" :options="themeOptions" />
+
+    <h6>YAML Editor Mode</h6>
+    <ButtonGroup v-model="keymap" :options="keymapOptions" />
   </div>
 </template>
+
+<style lang="scss" scoped>
+  h1 {
+    margin: 0;
+  }
+
+  h6 {
+    margin: 20px 0 0 0;
+
+    &:first-of-type {
+      margin-top: 0;
+    }
+  }
+</style>

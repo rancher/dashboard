@@ -237,7 +237,10 @@ export default {
         return;
       }
 
-      this.$router.replace({ name: this.doneRoute });
+      this.$router.replace({
+        name:   this.doneRoute,
+        params: { resource: this.obj.type }
+      });
     }
   }
 };

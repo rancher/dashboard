@@ -97,27 +97,26 @@ fieldset[disabled] .btn {
   vertical-align: middle;
   text-align: center;
   padding: 0;
-  overflow: hidden;
   background: var(--input-bg);
   border-radius: $border-radius;
-  border: 4px solid transparent;
 
-  .btn, .btn-xs, .btn-sm, .btn-lg {
+  .btn {
     position: relative;
     display: inline-block;
+    border-radius: 0;
 
     &.active {
       @extend .bg-primary;
     }
 
     &:first-child {
-      border-top-right-radius: 0;
-      border-bottom-right-radius: 0;
+      border-top-left-radius: $border-radius;
+      border-bottom-left-radius: $border-radius;
     }
 
     &:last-child {
-      border-top-left-radius: 0;
-      border-bottom-left-radius: 0;
+      border-top-right-radius: $border-radius;
+      border-bottom-right-radius: $border-radius;
     }
   }
 }

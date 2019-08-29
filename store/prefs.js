@@ -2,9 +2,13 @@ import Vue from 'vue';
 
 const all = {};
 
-export const create = function(name, def, parseJSON = false) {
+export const create = function(name, def, opt = {}) {
+  const parseJSON = opt.parseJSON === true;
+  const options = opt.options;
+
   all[name] = {
     def,
+    options,
     parseJSON
   };
 
@@ -24,12 +28,14 @@ export const mapPref = function(name) {
 };
 
 // --------------------
+const parseJSON = true; // Shortcut for setting it below
 
-export const NAMESPACES = create('ns', [], true);
-export const EXPANDED_GROUPS = create('open_groups', [], true);
+export const NAMESPACES = create('ns', [], { parseJSON });
+export const EXPANDED_GROUPS = create('open_groups', [], { parseJSON });
 export const GROUP_RESOURCES = create('group_by', 'namespace');
-export const DIFF = create('diff', 'unified');
-export const THEME = create('theme', 'dark');
+export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
+export const THEME = create('theme', 'dark', { options: ['light', 'dark'] });
+export const KEYMAP = create('keymap', 'sublime', { options: ['sublime', 'emacs', 'vim'] });
 export const ROWS_PER_PAGE = create('per_page', 100);
 export const DATE_FORMAT = create('date_format', 'ddd, MMM D, Y');
 export const TIME_FORMAT = create('time_format', 'h:mm:ss a');
@@ -66,6 +72,20 @@ export const getters = {
     const def = JSON.parse(JSON.stringify(entry.def));
 
     return def;
+  },
+
+  options: state => (key) => {
+    const entry = all[key];
+
+    if (!entry) {
+      throw new Error(`Unknown preference: ${ key }`);
+    }
+
+    if (!entry.options) {
+      throw new Error(`Preference does not have options: ${ key }`);
+    }
+
+    return entry.options.slice();
   }
 };
 
@@ -84,7 +104,8 @@ export const actions = {
   loadCookies({ commit }) {
     for (const key in all) {
       const entry = all[key];
-      const opt = { parseJSON: entry.parseJSON !== false };
+
+      const opt = { parseJSON: entry.parseJSON === true };
 
       const val = this.$cookies.get(`${ prefix }${ key }`, opt);
 

@@ -1,5 +1,6 @@
 <script>
 import $ from 'jquery';
+import { THEME, KEYMAP } from '~/store/prefs';
 
 export default {
   props: {
@@ -31,11 +32,15 @@ export default {
     },
 
     combinedOptions() {
+      const theme = this.$store.getters['prefs/get'](THEME);
+      const keymap = this.$store.getters['prefs/get'](KEYMAP);
+
       const out = {
         // codemirror options
         tabSize:                 2,
         mode:                    'yaml',
-        theme:                   'base16-dark',
+        keyMap:                  keymap,
+        theme:                   `base16-${ theme }`,
         lineNumbers:             true,
         line:                    true,
         viewportMargin:          Infinity,

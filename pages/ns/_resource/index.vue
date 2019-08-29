@@ -29,7 +29,7 @@ export default {
         {{ schema.attributes.kind }}
       </h2>
       <nuxt-link to="create" append tag="button" type="button" class="btn bg-primary right-action">
-        Add
+        Create
       </nuxt-link>
     </div>
     <ResourceTable :resource="$route.params.resource" :rows="rows" />

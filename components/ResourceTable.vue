@@ -9,14 +9,7 @@
       table-actions
     >
       <template v-if="groupable" #header-middle>
-        <div v-trim-whitespace class="btn-group">
-          <button type="button" :class="{'btn': true, 'bg-default': true, 'active': group == 'none'}" @click="setGroup('none')">
-            <i class="icon icon-list-flat" />
-          </button>
-          <button type="button" :class="{'btn': true, 'bg-default': true, 'active': group == 'namespace'}" @click="setGroup('namespace')">
-            <i class="icon icon-list-grouped" />
-          </button>
-        </div>
+        <ButtonGroup v-model="group" :options="groupOptions" />
       </template>
     </SortableTable>
   </div>
@@ -24,11 +17,12 @@
 
 <script>
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
-import SortableTable from '@/components/SortableTable';
-import { headersFor } from '@/utils/table-headers';
+import ButtonGroup from '~/components/ButtonGroup';
+import SortableTable from '~/components/SortableTable';
+import { headersFor } from '~/utils/table-headers';
 
 export default {
-  components: { SortableTable },
+  components: { ButtonGroup, SortableTable },
 
   props: {
     resource: {
@@ -75,7 +69,14 @@ export default {
       }
 
       return null;
-    }
+    },
+
+    groupOptions() {
+      return [
+        { value: 'none', icon: 'icon-list-flat' },
+        { value: 'namespace', icon: 'icon-list-grouped' }
+      ];
+    },
   },
 
   methods: {

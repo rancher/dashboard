@@ -91,7 +91,12 @@ export default (config = {}) => {
       } else if ( obj && typeof obj === 'object' ) {
         if ( obj.__rehydrate ) {
           const type = obj.type;
-          const map = state.types[type].map;
+          const cache = state.types[type];
+
+          if ( !cache ) {
+            return obj;
+          }
+          const map = cache.map;
           const keyField = keyFieldFor(type);
           const entry = map.get(obj[keyField]);
 

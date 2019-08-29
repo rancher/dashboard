@@ -157,7 +157,7 @@ export default {
 
     timerDone() {
       if ( this.phase === SUCCESS || this.phase === ERROR ) {
-        this.state = ACTION;
+        this.phase = ACTION;
       }
     }
   }
