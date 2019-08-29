@@ -124,7 +124,7 @@ export default {
 
 <style lang="scss" scoped>
   $header-height: 60px;
-  $nav-width: 200px;
+  $nav-width: 250px;
   $right-width: 100px;
   $logo-height: 40px;
 
@@ -178,41 +178,28 @@ export default {
     grid-area: nav;
     position: relative;
     background-color: var(--nav-bg);
-    padding: 0;
+    padding: 0 10px;
     overflow-y: auto;
 
-    H6 {
-      letter-spacing: 0.025em;
-      margin: 20px 10px 0 10px;
+    ul {
+      border-left: solid thin var(--border);
+      margin-left: 10px;
 
-      > * {
-        text-transform: none;
-      }
-    }
-
-    .package:first-child H6 {
-      margin-top: 0;
-    }
-
-    .child {
-      background-color: var(--nav-sub);
-      border-bottom: solid thin var(--border);
-
-      A {
+      .child {
         display: grid;
         grid-template-areas: "label count";
         grid-template-columns: auto 40px;
-        width: calc(100% - 5px);
-        position: relative;
-        left: 2px;
+        width: 100%;
 
         $top: 10px;
         $bottom: $top - 2px;
 
-        .label {
-          grid-area: label;
+        A {
           font-size: 14px;
-          padding: 10px 0 8px 15px;
+          margin: 0 10px;
+          padding: 10px;
+          grid-area: label;
+          display: block;
           overflow: hidden;
           text-overflow: ellipsis;
         }
@@ -224,10 +211,10 @@ export default {
           padding: 11px 10px 0 0;
           justify-items: center;
         }
-      }
 
-      &.nuxt-link-active {
-        background-color: var(--nav-active);
+        &.nuxt-link-exact-active {
+          background-color: var(--nav-active);
+        }
       }
     }
   }

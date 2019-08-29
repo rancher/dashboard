@@ -49,8 +49,7 @@ export default {
 
 <style lang="scss" scoped>
   .header {
-    //background-color: var(--nav-pkg);
-    border-bottom: solid thin var(--border);
+    border-top: solid thin var(--border);
     font-size: 14px;
     padding: 10px;
     position: relative;
