@@ -186,30 +186,31 @@ export default {
       margin-left: 10px;
 
       .child {
-        display: grid;
-        grid-template-areas: "label count";
-        grid-template-columns: auto 40px;
-        width: 100%;
-
-        $top: 10px;
-        $bottom: $top - 2px;
+        width: calc(100% - 5px);
+        position: relative;
+        left: 2px;
 
         A {
+          display: grid;
+          grid-template-areas: "label count";
+          grid-template-columns: auto 40px;
+
           font-size: 14px;
-          margin: 0 10px;
-          padding: 10px;
-          grid-area: label;
-          display: block;
+          padding: 10px 0 10px 10px;
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+
+        .label {
+          grid-area: label;
         }
 
         .count {
           grid-area: count;
           font-size: 12px;
           text-align: right;
-          padding: 11px 10px 0 0;
           justify-items: center;
+          padding-right: 10px;
         }
 
         &.nuxt-link-exact-active {
