@@ -1,6 +1,7 @@
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
 import { eachLimit } from '@/utils/promise-limit';
+import { MODE, _EDIT } from '@/utils/query-params';
 
 export default {
   displayName() {
@@ -74,7 +75,11 @@ export default {
   goToEdit() {
     return async() => {
       const schema = await this.$dispatch('schemaFor', this.type);
-      const url = `/${ schema.attributes.namespaced ? 'ns' : 'c' }/${ this.type }/${ this.id }?mode=edit`;
+      const url = this.$router.resolve({
+        name:   (schema.attributes.namespaced ? 'ns-resource-id' : 'c-resource-id'),
+        params: { type: this.type, id: this.id },
+        query:  { [MODE]: _EDIT }
+      }).href;
 
       window.$nuxt.$router.push({ path: url });
     };

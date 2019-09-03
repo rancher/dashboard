@@ -1,35 +1,42 @@
 import { ucFirst } from './string';
 import { sortBy } from './sort';
 
-export function groupsForCounts(counts, namespaces) {
+export function groupsForCounts($router, counts, namespaces) {
   const clusterLevel = {};
   const namespaceLevel = {};
 
   counts.forEach((res) => {
     const namespaced = res.namespaced;
-    let count, level, route;
+    let count, level, baseRoute, route;
+
+    const name = mapGroup(res);
+    const routerParams = {
+      resource: name,
+      id:       res.id
+    };
 
     if ( namespaced ) {
       count = matchingCounts(res, namespaces);
       level = namespaceLevel;
-      route = '/ns';
+      baseRoute = 'ns-resource';
+      route = $router.resolve({ name: baseRoute, params: routerParams }).href;
     } else {
       count = res.count;
       level = clusterLevel;
-      route = '/c';
+      baseRoute = 'c-resource';
+      route = $router.resolve({ name: baseRoute, params: routerParams }).href;
     }
 
     if ( count === 0 ) {
       return;
     }
 
-    const name = mapGroup(res);
     const group = ensureGroup(level, name, route);
 
     group.children.push({
-      label: res.label,
-      route: `${ route }/${ res.id }/`,
       count,
+      label: ucFirst(res.label),
+      route: $router.resolve({ name: baseRoute, params: { resource: res.id } }).href,
     });
   });
 
@@ -54,7 +61,6 @@ function ensureGroup(level, name, route) {
     group = {
       name,
       route,
-      id:       `${ route }/${ name }`,
       label:    groupLabel(name),
       children: [],
       priority: groupPriority(name),
@@ -100,6 +106,10 @@ function mapGroup(obj) {
 
   if ( group.endsWith('.istio.io') ) {
     return 'istio';
+  }
+
+  if ( group.endsWith('.knative.dev') ) {
+    return 'knative';
   }
 
   return group;

@@ -56,7 +56,7 @@ export function headersFor(schema, multipleNamespaces = true) {
       out.push({
         name:  col.name.toLowerCase(),
         label: col.name,
-        value: col.field,
+        value: col.field.replace(/^\./, ''),
         sort:  [col.field, 'id']
       });
     }

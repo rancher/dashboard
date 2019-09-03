@@ -96,12 +96,10 @@ export default {
     diffMode: mapPref(DIFF),
 
     parentRoute() {
-      if ( this.schema.attributes.namespaced ) {
-        return `/ns/${ this.obj.type }`;
-      } else {
-        return `/c/${ this.obj.type }`;
-      }
-    },
+      const name = ( this.schema.attributes.namespaced ? 'ns-resource' : 'c-resource' );
+
+      return this.$router.resolve({ name, params: { resource: this.obj.type } }).href;
+    }
   },
 
   methods: {

@@ -110,12 +110,6 @@ module.exports = {
     '/api-ui': { target, xfwd: true }
   },
 
-  // Vue router
-  router: {
-    // Generate routes with slashes
-    routeNameSplitter: '/',
-  },
-
   // Nuxt server
   server: {
     https: (dev ? {

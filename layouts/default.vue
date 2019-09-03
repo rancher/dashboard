@@ -21,19 +21,17 @@ export default {
   computed: {
     packages() {
       const namespaces = this.$store.getters['namespaces'] || [];
-      const { clusterLevel, namespaceLevel } = groupsForCounts(this.$store.getters['v1/counts'], namespaces);
+      const { clusterLevel, namespaceLevel } = groupsForCounts(this.$router, this.$store.getters['v1/counts'], namespaces);
 
       const out = [
         {
           name:   'namespaced',
           label:  'Namespaced',
-          route:  '/ns',
           groups: namespaceLevel
         },
         {
           name:   'cluster',
           label:  'Global',
-          route:  '/cluster',
           groups: clusterLevel
         },
       ];
@@ -45,13 +43,13 @@ export default {
   },
 
   methods: {
-    toggleGroup(id, expanded) {
+    toggleGroup(route, expanded) {
       const groups = this.expandedGroups.slice();
 
       if ( expanded ) {
-        addObject(groups, id);
+        addObject(groups, route);
       } else {
-        removeObject(groups, id);
+        removeObject(groups, route);
       }
 
       this.$store.commit('prefs/set', { key: EXPANDED_GROUPS, val: groups });
@@ -92,10 +90,10 @@ export default {
         <hr />
         <Accordion
           v-for="group in pkg.groups"
-          :id="group.id"
+          :id="group.route"
           :key="group.name"
           :label="group.label"
-          :expanded="isExpanded(group.id)"
+          :expanded="isExpanded(group.route)"
           class="groups"
           @on-toggle="toggleGroup"
         >
@@ -202,6 +200,9 @@ export default {
 
         .label {
           grid-area: label;
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .count {
