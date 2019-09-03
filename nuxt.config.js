@@ -3,12 +3,17 @@ import path from 'path';
 
 require('dotenv').config();
 
-console.log(`Proxying to ${ process.env.API }`);
+const dev = (process.env.NODE_ENV !== 'production');
+const target = process.env.API || 'http://localhost:8989';
+
+console.log((dev ? 'Development mode' : 'Production mode'));
+console.log(`Proxying to ${ target }`);
 
 module.exports = {
+  dev,
 
   // mode: 'universal',
-  loading: '~/components/loading.vue',
+  loading: '~/components/Loading.vue',
 
   // Axios: https://axios.nuxtjs.org/options
   axios: {
@@ -63,7 +68,6 @@ module.exports = {
   plugins: [
     // Third-party
     '~/plugins/axios',
-    '~/plugins/dropdown-menu',
     '~/plugins/tooltip',
     '~/plugins/v-select',
     '~/plugins/transitions',
@@ -83,7 +87,7 @@ module.exports = {
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
     '/v1':     {
-      target:       process.env.API,
+      target,
       xfwd:         true,
       ws:           true,
       logLevel:     'debug',
@@ -102,8 +106,8 @@ module.exports = {
         res.write(JSON.stringify(err));
       }
     },
-    '/api':    { target: process.env.API, xfwd: true },
-    '/api-ui': { target: process.env.API, xfwd: true }
+    '/api':    { target, xfwd: true },
+    '/api-ui': { target, xfwd: true }
   },
 
   // Vue router
@@ -114,11 +118,11 @@ module.exports = {
 
   // Nuxt server
   server: {
-    https: {
+    https: (dev ? {
       key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
       cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
-    },
-    port:      8005,
+    } : null),
+    port:      (dev ? 8005 : 80),
     host:      '0.0.0.0',
   },
 

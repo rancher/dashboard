@@ -1,7 +1,6 @@
 
 <script>
 import { addObject, removeObject } from '../utils/array';
-import { EXPAND } from '../utils/table-headers';
 import Accordion from '~/components/Accordion';
 import ActionMenu from '~/components/ActionMenu';
 import NamespacePicker from '~/components/NamespacePicker';

@@ -37,7 +37,7 @@ export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] })
 export const THEME = create('theme', 'dark', { options: ['light', 'dark'] });
 export const KEYMAP = create('keymap', 'sublime', { options: ['sublime', 'emacs', 'vim'] });
 export const ROWS_PER_PAGE = create('per_page', 100);
-export const DATE_FORMAT = create('date_format', 'ddd, MMM D, Y');
+export const DATE_FORMAT = create('date_format', 'ddd, MMM D YYYY');
 export const TIME_FORMAT = create('time_format', 'h:mm:ss a');
 export const TIME_ZONE = create('time_zone', 'local');
 

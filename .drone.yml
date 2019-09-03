@@ -1,0 +1,55 @@
+---
+kind: pipeline
+name: default
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build
+  pull: default
+  image: rancher/dapper:v0.4.1
+  commands:
+  - dapper ci
+  privileged: true
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    event:
+    - push
+    - pull_request
+    - tag
+
+- name: publish-latest
+  image: plugins/docker
+  settings:
+    dockerfile: Dockerfile
+    tag: latest
+    repo: rancherlabs/dashboard
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+  when:
+    ref:
+      include:
+      - "refs/heads/master"
+    event:
+    - push
+
+- name: publish-tag
+  image: plugins/docker
+  settings:
+    dockerfile: Dockerfile
+    repo: rancherlabs/dashboard
+    tag: ${DRONE_TAG}
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+  when:
+    event:
+    - tag
+

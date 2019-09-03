@@ -1,7 +1,11 @@
 <script>
-import moment from 'moment';
+import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { escapeHtml } from '@/utils/string';
+
+const FACTORS = [60, 60, 24];
+const LABELS = ['sec', 'min', 'hour', 'day'];
+const PLURALIZE = [false, false, true, true];
 
 export default {
   props: {
@@ -20,7 +24,7 @@ export default {
       const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
       const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
 
-      return moment(this.value).format(`${ dateFormat } ${ timeFormat }`);
+      return day(this.value).format(`${ dateFormat } ${ timeFormat }`);
     },
   },
 
@@ -42,29 +46,40 @@ export default {
         return this.label;
       }
 
-      const value = moment(this.value);
-      const now = moment();
-      const diff = Math.abs(value.diff(now, 'seconds'));
+      const value = day(this.value);
+      const now = day();
+      let diff = value.diff(now, 'seconds');
+      const suffix = (diff < 0 ? 'ago' : 'from now');
+
+      diff = Math.abs(diff);
+
       let next = 1;
+      let label = '?';
 
       clearTimeout(this.timer);
 
-      if ( diff < 60 ) {
-        if ( diff === 0 ) {
-          this.label = 'Just now';
-        } else if ( diff === 1 ) {
-          this.label = '1 second ago';
-        } else {
-          this.label = `${ diff } seconds ago`;
-        }
+      if ( diff === 0 ) {
+        label = 'Just now';
       } else {
-        this.label = value.fromNow();
+        let i = 0;
 
-        if ( diff < 600 ) {
-          next = 5;
-        } else {
-          next = 60;
+        while ( diff > FACTORS[i] && i < FACTORS.length ) {
+          diff /= FACTORS[i];
+          next *= Math.floor(FACTORS[i] / 10);
+          i++;
         }
+
+        if ( diff < 10 ) {
+          label = Math.floor(diff * 10) / 10;
+        } else {
+          label = Math.floor(diff);
+        }
+
+        label += ` ${ LABELS[i] }${ label === 1 || !PLURALIZE[i] ? '' : 's' } ${ suffix }`;
+      }
+
+      if ( this.label !== label ) {
+        this.label = label;
       }
 
       this.timer = setTimeout(() => {

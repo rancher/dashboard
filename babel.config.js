@@ -5,7 +5,7 @@ module.exports = {
         [
           'module-resolver',
           {
-            root: ['.'],
+            root:  ['.'],
             alias: {
               '@': '.',
               '~': '.',
@@ -17,9 +17,7 @@ module.exports = {
         [
           '@babel/env',
           {
-            targets: {
-              node: 'current',
-            },
+            targets: { node: 'current' },
           },
         ],
       ],

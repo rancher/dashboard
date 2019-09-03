@@ -1,0 +1,25 @@
+#!/bin/bash
+set -e
+
+BUILD_DEBUG="${BUILD_DEBUG:-}"
+if [[ -n "${BUILD_DEBUG}" ]]; then
+    set -x
+    env
+fi
+
+cd $(dirname $0)
+
+echo "Cleaning up..."
+rm -rf node_modules .nuxt
+
+echo "Bootstrapping..."
+yarn --pure-lockfile install
+
+echo "Linting..."
+yarn run lint
+
+echo "Building..."
+yarn run build
+
+echo "Testing..."
+yarn run test
