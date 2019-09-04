@@ -7,6 +7,13 @@ export const SOME = 'some';
 export const NONE = 'none';
 
 export default {
+  created() {
+    this.$store.commit('selection/setTable', {
+      table:          this.pagedRows,
+      clearSelection: true,
+    });
+  },
+
   mounted() {
     const $table = $('> TABLE', this.$el);
 
@@ -17,11 +24,6 @@ export default {
     $table.on('click', '> TBODY > TR', this._onRowClickBound);
     $table.on('mousedown', '> TBODY > TR', this._onRowMousedownBound);
     $table.on('contextmenu', '> TBODY > TR', this._onRowContextBound);
-
-    this.$store.commit('selection/setTable', {
-      table:          this.pagedRows,
-      clearSelection: true,
-    });
   },
 
   beforeDestroy() {

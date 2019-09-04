@@ -1,42 +1,43 @@
 import { ucFirst } from './string';
 import { sortBy } from './sort';
 
-export function groupsForCounts($router, counts, namespaces) {
+export function explorerPackage($router, counts, namespaces) {
   const clusterLevel = {};
   const namespaceLevel = {};
 
   counts.forEach((res) => {
     const namespaced = res.namespaced;
-    let count, level, baseRoute, route;
+    let count, level, prefix;
 
     const name = mapGroup(res);
-    const routerParams = {
-      resource: name,
-      id:       res.id
-    };
 
     if ( namespaced ) {
       count = matchingCounts(res, namespaces);
       level = namespaceLevel;
-      baseRoute = 'ns-resource';
-      route = $router.resolve({ name: baseRoute, params: routerParams }).href;
+      prefix = 'ns';
     } else {
       count = res.count;
       level = clusterLevel;
-      baseRoute = 'c-resource';
-      route = $router.resolve({ name: baseRoute, params: routerParams }).href;
+      prefix = 'c';
     }
 
     if ( count === 0 ) {
       return;
     }
 
-    const group = ensureGroup(level, name, route);
+    const group = ensureGroup(level, name, prefix);
 
     group.children.push({
       count,
+      name:  `${ prefix }_${ name }`,
       label: ucFirst(res.label),
-      route: $router.resolve({ name: baseRoute, params: { resource: res.id } }).href,
+      route: $router.resolve({
+        name:   'explorer-group-resource',
+        params: {
+          group:    name,
+          resource: res.id
+        }
+      }).href,
     });
   });
 
@@ -49,8 +50,27 @@ export function groupsForCounts($router, counts, namespaces) {
   }
 
   return {
-    clusterLevel:   sortBy(Object.values(clusterLevel), ['priority', 'label']),
-    namespaceLevel: sortBy(Object.values(namespaceLevel), ['priority', 'label']),
+    name:        'explorer',
+    label:       'Resource Explorer',
+    collections: [
+      {
+        name:     'ns',
+        label:    'Namespaced Resources',
+        groups: sortBy(Object.values(namespaceLevel), ['priority', 'label'])
+      },
+      {
+        name:     'c',
+        label:    'Cluster Resources',
+        groups: sortBy(Object.values(clusterLevel), ['priority', 'label'])
+      },
+    ]
+  };
+}
+
+export function rioPackage($router, counts, namespaces) {
+  return {
+    name:  'rio',
+    label: 'Rio',
   };
 }
 
@@ -89,11 +109,15 @@ function matchingCounts(obj, namespaces) {
   return out;
 }
 
-function mapGroup(obj) {
+export function mapGroup(obj) {
   const group = obj.group;
 
   if ( !group || group === 'core' || group === 'apps' ) {
     return 'core';
+  }
+
+  if ( group.match(/^api.*.k8s.io/) ) {
+    return 'api';
   }
 
   if ( group === 'rio.cattle.io' || group.endsWith('.rio.cattle.io') ) {
@@ -116,27 +140,28 @@ function mapGroup(obj) {
 }
 
 function groupLabel(group) {
+  switch (group ) {
+  case 'api':
+    return 'API';
+  case 'rbac.authorization.k8s.io':
+    return 'RBAC';
+  case 'certmanager.k8s.io':
+    return 'CertManager';
+  }
+
   if ( group.endsWith('.k8s.io') ) {
-    return group.replace(/\.k8s\.io$/, '').split(/\./).map(x => ucFirst(x)).join('.');
+    group = group.replace(/\.k8s\.io$/, '');
   }
 
-  if ( !group.includes('.') ) {
-    return ucFirst(group);
-  }
-
-  return group;
+  return group.split(/\./).map(x => ucFirst(x)).join('.');
 }
 
 function groupPriority(group) {
-  if ( group === 'rio' ) {
+  if ( group === 'apps' ) {
     return 1;
   }
-
-  if ( group === 'apps' ) {
-    return 2;
-  }
   if ( group === 'core' ) {
-    return 3;
+    return 2;
   }
 
   return 99;

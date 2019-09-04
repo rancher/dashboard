@@ -5,9 +5,9 @@ import AsyncButton from './AsyncButton';
 
 import {
   MODE, _CREATE, _VIEW, _EDIT, _PREVIEW
-} from '~/utils/query-params';
+} from '@/utils/query-params';
 
-import { mapPref, DIFF } from '~/store/prefs';
+import { mapPref, DIFF } from '@/store/prefs';
 
 export default {
   components: {
@@ -96,10 +96,8 @@ export default {
     diffMode: mapPref(DIFF),
 
     parentRoute() {
-      const name = ( this.schema.attributes.namespaced ? 'ns-resource' : 'c-resource' );
-
-      return this.$router.resolve({ name, params: { resource: this.obj.type } }).href;
-    }
+      return this.$router.resolve({ name: 'explorer-resource', params: { resource: this.obj.type } }).href;
+    },
   },
 
   methods: {
@@ -248,22 +246,22 @@ export default {
   <div>
     <header>
       <h2>
-        <div v-if="isCreate">
+        <span v-if="isCreate">
           Create {{ schema.attributes.kind }}
-        </div>
-        <div v-else>
+        </span>
+        <span v-else>
           <nuxt-link :to="parentRoute">
             {{ schema.attributes.kind }}
           </nuxt-link>: {{ obj.id }}
-        </div>
-        <div v-if="isPreview" v-trim-whitespace class="btn-group btn-xs mode">
+        </span>
+        <span v-if="isPreview" v-trim-whitespace class="btn-group btn-xs mode">
           <button type="button" :class="{'btn': true, 'btn-sm': true, 'bg-default': true, 'active': diffMode !== 'split'}" @click="diffMode='unified'">
             <i class="icon icon-dot-open" />
           </button>
           <button type="button" :class="{'btn': true, 'btn-sm': true, 'bg-default': true, 'active': diffMode === 'split'}" @click="diffMode='split'">
             <i class="icon icon-dot-half" />
           </button>
-        </div>
+        </span>
       </h2>
       <div class="actions">
         <button v-if="!isView" class="btn bg-transparent" @click="cancel">

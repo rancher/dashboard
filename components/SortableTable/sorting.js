@@ -1,5 +1,5 @@
-import { SORT_BY, DESCENDING, PAGE } from '~/utils/query-params';
-import { sortBy } from '~/utils/sort';
+import { SORT_BY, DESCENDING, PAGE } from '@/utils/query-params';
+import { sortBy } from '@/utils/sort';
 
 export default {
   computed: {

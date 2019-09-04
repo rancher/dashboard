@@ -17,9 +17,9 @@
 
 <script>
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
-import ButtonGroup from '~/components/ButtonGroup';
-import SortableTable from '~/components/SortableTable';
-import { headersFor } from '~/utils/table-headers';
+import ButtonGroup from '@/components/ButtonGroup';
+import SortableTable from '@/components/SortableTable';
+import { headersFor } from '@/utils/table-headers';
 
 export default {
   components: { ButtonGroup, SortableTable },

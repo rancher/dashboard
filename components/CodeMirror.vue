@@ -1,7 +1,7 @@
 <script>
 
 import $ from 'jquery';
-import { THEME, KEYMAP } from '~/store/prefs';
+import { THEME, KEYMAP } from '@/store/prefs';
 
 export default {
   props: {

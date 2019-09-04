@@ -130,6 +130,7 @@ export default {
 
       return {
         id,
+        schema,
         label:       attrs.kind,
         group:       attrs.group,
         version:     attrs.version,
@@ -137,7 +138,7 @@ export default {
         verbs:       attrs.verbs,
         count:       entry.count,
         byNamespace: entry.namespaces,
-        revision:    entry.revision
+        revision:    entry.revision,
       };
     });
 

@@ -1,11 +1,11 @@
 
 <script>
 import { addObject, removeObject } from '../utils/array';
-import Accordion from '~/components/Accordion';
-import ActionMenu from '~/components/ActionMenu';
-import NamespacePicker from '~/components/NamespacePicker';
-import { mapPref, THEME, EXPANDED_GROUPS } from '~/store/prefs';
-import { groupsForCounts } from '~/utils/groups';
+import Accordion from '@/components/Accordion';
+import ActionMenu from '@/components/ActionMenu';
+import NamespacePicker from '@/components/NamespacePicker';
+import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
+import { explorerPackage, rioPackage } from '@/utils/packages';
 
 export default {
   components: {
@@ -21,19 +21,14 @@ export default {
   computed: {
     packages() {
       const namespaces = this.$store.getters['namespaces'] || [];
-      const { clusterLevel, namespaceLevel } = groupsForCounts(this.$router, this.$store.getters['v1/counts'], namespaces);
+      const counts = this.$store.getters['v1/counts'];
+
+      const explorer = explorerPackage(this.$router, counts, namespaces);
+      const rio = rioPackage(this.$router, counts, namespaces);
 
       const out = [
-        {
-          name:   'namespaced',
-          label:  'Namespaced',
-          groups: namespaceLevel
-        },
-        {
-          name:   'cluster',
-          label:  'Global',
-          groups: clusterLevel
-        },
+        rio,
+        explorer,
       ];
 
       return out;
@@ -87,25 +82,36 @@ export default {
           {{ pkg.label }}
           <NamespacePicker v-if="pkg.name === 'namespaced'" />
         </h6>
-        <hr />
         <Accordion
-          v-for="group in pkg.groups"
-          :id="group.route"
-          :key="group.name"
-          :label="group.label"
-          :expanded="isExpanded(group.route)"
-          class="groups"
+          v-for="collection in pkg.collections"
+          :id="pkg.name + '_' + collection.name"
+          :key="collection.name"
+          :label="collection.label"
+          :expanded="isExpanded"
+          class="collection"
           @on-toggle="toggleGroup"
         >
           <template>
-            <ul v-if="group.children" class="list-unstyled children">
-              <n-link v-for="child in group.children" :key="child.route" :to="child.route" tag="li" class="child">
-                <a>
-                  <span class="label">{{ child.label }}</span>
-                  <span class="count">{{ child.count }}</span>
-                </a>
-              </n-link>
-            </ul>
+            <Accordion
+              v-for="group in collection.groups"
+              :id="pkg.name + '_' + collection.name + '_' + group.name"
+              :key="group.name"
+              :label="group.label"
+              :expanded="isExpanded"
+              class="group"
+              @on-toggle="toggleGroup"
+            >
+              <template>
+                <ul v-if="group.children" class="list-unstyled child">
+                  <n-link v-for="child in group.children" :key="child.route" :to="child.route" tag="li" class="child">
+                    <a>
+                      <span class="label">{{ child.label }}</span>
+                      <span class="count">{{ child.count }}</span>
+                    </a>
+                  </n-link>
+                </ul>
+              </template>
+            </Accordion>
           </template>
         </Accordion>
       </div>
@@ -171,12 +177,27 @@ export default {
     grid-area: header-right;
   }
 
+  .collection  {
+    &::v-deep > .body {
+      margin-left: 10px;
+      border-left: solid thin var(--border);
+    }
+  }
+
   NAV {
     grid-area: nav;
     position: relative;
     background-color: var(--nav-bg);
     padding: 0 10px;
     overflow-y: auto;
+
+    .package:not(:first-child) {
+      margin-top: 20px;
+    }
+
+    h6 {
+      margin: 0;
+    }
 
     ul {
       border-left: solid thin var(--border);
@@ -213,7 +234,7 @@ export default {
           padding-right: 10px;
         }
 
-        &.nuxt-link-exact-active {
+        &.nuxt-link-active {
           background-color: var(--nav-active);
         }
       }

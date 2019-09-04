@@ -1,7 +1,7 @@
 <script>
-import ButtonGroup from '~/components/ButtonGroup';
-import { mapPref, THEME, KEYMAP } from '~/store/prefs';
-import { ucFirst } from '~/utils/string';
+import ButtonGroup from '@/components/ButtonGroup';
+import { mapPref, THEME, KEYMAP } from '@/store/prefs';
+import { ucFirst } from '@/utils/string';
 
 const KEYMAP_LABELS = {
   sublime: 'Normal human',

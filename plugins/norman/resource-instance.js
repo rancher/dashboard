@@ -74,14 +74,16 @@ export default {
 
   goToEdit() {
     return async() => {
+      const router = window.$nuxt.$router;
+
       const schema = await this.$dispatch('schemaFor', this.type);
-      const url = this.$router.resolve({
-        name:   (schema.attributes.namespaced ? 'ns-resource-id' : 'c-resource-id'),
+      const url = router.resolve({
+        name:   `explorer-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`,
         params: { type: this.type, id: this.id },
         query:  { [MODE]: _EDIT }
       }).href;
 
-      window.$nuxt.$router.push({ path: url });
+      router.push({ path: url });
     };
   },
 
@@ -141,7 +143,7 @@ export default {
     all.push({
       action:  'goToEdit',
       label:   'Edit',
-      icon:    'icon icon-edit',
+      icon:    'icon icon-fw icon-edit',
       enabled:  !!links.update,
     });
 
@@ -150,7 +152,7 @@ export default {
     all.push({
       action:     'download',
       label:      'Download',
-      icon:       'icon icon-download',
+      icon:       'icon icon-fw icon-download',
       enabled:    !!links.view,
       bulkable:   true,
       bulkAction: 'downloadBulk',
@@ -159,7 +161,7 @@ export default {
     all.push({
       action:  'viewInApi',
       label:   'View in API',
-      icon:    'icon icon-external-link',
+      icon:    'icon icon-fw icon-external-link',
       enabled:  !!links.self,
     });
 
@@ -169,7 +171,7 @@ export default {
       action:    'promptRemove',
       altAction: 'remove',
       label:     'Delete',
-      icon:      'icon icon-trash',
+      icon:      'icon icon-fw icon-trash',
       bulkable:  true,
       enabled:   !!links.view,
     });

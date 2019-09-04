@@ -12,13 +12,21 @@ export default {
     },
 
     expanded: {
-      type:    Boolean,
+      type:    [Boolean, Function],
       default: true,
     }
   },
 
   data() {
-    return { isExpanded: this.expanded !== false };
+    let expanded = false;
+
+    if ( typeof this.expanded === 'function' ) {
+      expanded = this.expanded(this.id);
+    } else {
+      expanded = this.expanded === true;
+    }
+
+    return { isExpanded: expanded };
   },
 
   methods: {

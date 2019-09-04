@@ -1,5 +1,20 @@
 import ResourceInstance from './resource-instance';
 
+const models = [];
+
+export function load() {
+  const list = require.context('@/models', false, /.*\.js$/);
+
+  list.keys().forEach((fileName) => {
+    const impl = list(fileName);
+    const name = fileName.split('/').pop().split('.')[0];
+
+    models[name] = impl.default;
+  });
+}
+
+load();
+
 export function proxyFor(obj, dispatch) {
   Object.defineProperty(obj, '$dispatch', { value: dispatch });
 
@@ -13,7 +28,15 @@ export function proxyFor(obj, dispatch) {
         name = 'toString';
       }
 
-      const fn = ResourceInstance[name];
+      let fn;
+
+      if ( models[target.type] && Object.prototype.hasOwnProperty.call(models[target.type], name) ) {
+        fn = models[target.type][name];
+      }
+
+      if ( !fn ) {
+        fn = ResourceInstance[name];
+      }
 
       if ( fn ) {
         return fn.call(proxy);

@@ -6,7 +6,7 @@ import mutations from './mutations';
 import events from './events';
 import { proxyFor } from './resource-proxy';
 import { keyFieldFor } from './normalize';
-import { isArray } from '~/utils/array';
+import { isArray } from '@/utils/array';
 
 function NormanFactory(namespace) {
   return {

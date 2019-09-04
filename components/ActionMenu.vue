@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
-import { AUTO, CENTER, fitOnScreen } from '~/utils/position';
+import { AUTO, CENTER, fitOnScreen } from '@/utils/position';
 
 const HIDDEN = 'hide';
 const CALC = 'calculate';
