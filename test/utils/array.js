@@ -1,12 +1,15 @@
 import test from 'ava';
 import {
-  addObject, addObjects, removeObject, removeObjects, isArray, removeAt, clear
+  addObject, addObjects,
+  removeObject, removeObjects, removeAt, clear,
+  isArray,
+  filterBy
 } from '@/utils/array';
 
 const obj1 = { foo: 'bar' };
-const obj2 = { foo: 'baz' };
-const obj3 = { foo: 'bat' };
-const obj4 = { foo: 'qux' };
+const obj2 = { foo: 'baz', bar: false };
+const obj3 = { foo: 'bat', baz: 'bat' };
+const obj4 = { foo: 'qux', bar: true };
 
 test('addObject', (t) => {
   const ary = [];
@@ -110,4 +113,35 @@ test('clear', (t) => {
   clear(ary);
   t.is(ary.length, 0, "It's empty now");
   t.is(ary, copy, "It's still the same aray");
+});
+
+test('filterBy', (t) => {
+  const ary = [obj1, obj2, obj3, obj4];
+  let out;
+
+  out = filterBy(null, { foo: 'bar' });
+  t.deepEqual(out, [], 'Accepts empty input');
+
+  out = filterBy(ary, 'bar');
+  t.not(out, ary, 'Returns a different object');
+  t.deepEqual(out, [obj4], 'Finds items with value truthiness');
+
+  out = filterBy(ary, 'baz');
+  t.deepEqual(out, [obj3], 'Finds items with string truthiness');
+
+  out = filterBy(ary, 'bar', false);
+  t.deepEqual(out, [obj2], 'Finds items with falsey values');
+
+  out = filterBy(ary, 'foo', 'bar');
+  t.deepEqual(out, [obj1], 'Finds items with string values');
+
+  out = filterBy(ary, { foo: 'qux', bar: true });
+  t.deepEqual(out, [obj4], 'Finds items with multiple conditions');
+
+  out = filterBy(ary, { bar: undefined });
+  t.deepEqual(out, [obj4], 'Finds items with object truthiness');
+
+  out = filterBy(ary, { foo: 'qux', bar: false });
+  t.not(out, ary, 'Returns a different object');
+  t.deepEqual(out, [], 'Finds no matches');
 });

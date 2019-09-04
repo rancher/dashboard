@@ -58,8 +58,10 @@ export function filterBy(ary, keyOrObj, val) {
   if ( typeof keyOrObj === 'object' ) {
     return ary.filter((item) => {
       for ( const k in keyOrObj ) {
-        if ( typeof keyOrObj[k] === 'undefined' && !!item[k]) {
-          return false;
+        if ( typeof keyOrObj[k] === 'undefined' ) {
+          if ( !item[k] ) {
+            return false;
+          }
         } else if ( item[k] !== keyOrObj[k] ) {
           return false;
         }

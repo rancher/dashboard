@@ -1,9 +1,9 @@
-import url from 'url';
+import { URL } from 'url';
 
 export default function(req, res, next) {
-  const parsed = url.parse(req.url, true);
+  const parsed = new URL(req.url, 'https://localhost');
 
-  if ( typeof parsed.query['spa'] !== 'undefined' ) {
+  if ( parsed.searchParams.has('spa') ) {
     res.spa = true;
     console.log('SPA mode enabled');
   }
