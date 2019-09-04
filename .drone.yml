@@ -7,12 +7,15 @@ platform:
   arch: amd64
 
 steps:
-- name: build
-  image: plugins/docker
-  settings:
-    dockerfile: Dockerfile
+- name: test
+  pull: default
+  image: rancher/dapper:v0.4.1
   commands:
-    - scripts/ci
+  - dapper ci
+  privileged: true
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
   when:
     event:
     - push

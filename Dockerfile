@@ -7,7 +7,7 @@ RUN apk update && apk upgrade
 
 COPY package.json /src/
 COPY yarn.lock /src/
-RUN yarn install
+RUN yarn --pure-lockfile install
 
 COPY . /src
 RUN yarn build
