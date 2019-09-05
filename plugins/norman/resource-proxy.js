@@ -5,9 +5,10 @@ const models = [];
 export function load() {
   const list = require.context('@/models', false, /.*\.js$/);
 
-  list.keys().forEach((fileName) => {
-    const impl = list(fileName);
-    const name = fileName.split('/').pop().split('.')[0];
+  list.keys().forEach((path) => {
+    const impl = list(path);
+    const filename = path.split('/').pop();
+    const name = filename.split('.').slice(0, -1).join('.');
 
     models[name] = impl.default;
   });

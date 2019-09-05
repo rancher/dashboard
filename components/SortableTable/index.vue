@@ -9,12 +9,8 @@ import grouping from './grouping';
 import { removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 
-// * Selection
-// Bulk actions
+// @TODO
 // Paging
-// * Sorting
-// * Filtering
-// * Grouping
 // Fixed scrolling
 
 // Data Flow:
@@ -93,15 +89,18 @@ export default {
       default: true
     },
     rowActionsWidth: {
+      // How wide the action dropdown column should be
       type:    Number,
       default: 40
     },
 
     search: {
+      // Show search input to filter rows
       type:    Boolean,
       default: true
     },
     extraSearchFields: {
+      // Additional fields that aren't defined in the headers to search in on each row
       type:    Array,
       default: null
     }

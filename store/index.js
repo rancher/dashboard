@@ -21,6 +21,10 @@ export const getters = {
   namespaces(state) {
     return state.namespaces;
   },
+
+  preloaded(state) {
+    return state.preloaded === true;
+  }
 };
 
 export const mutations = {
@@ -52,9 +56,9 @@ export const actions = {
     ]);
 
     commit('updateNamespaces', getters['prefs/get'](NAMESPACES));
-    console.log('Done Preloading.');
-
     commit('preloaded');
+
+    console.log('Done Preloading.');
   },
 
   switchNamespaces({ commit }, val) {

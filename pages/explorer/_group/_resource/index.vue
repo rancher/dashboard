@@ -32,7 +32,7 @@ export default {
         Create
       </nuxt-link>
     </div>
-    <ResourceTable :resource="$route.params.resource" :rows="rows" />
+    <ResourceTable :schema="schema" :rows="rows" />
   </div>
 </template>
 

@@ -1,5 +1,7 @@
 import { ucFirst } from './string';
 import { sortBy } from './sort';
+import { findBy } from './array';
+import { RIO } from './types';
 
 export function explorerPackage($router, counts, namespaces) {
   const clusterLevel = {};
@@ -49,7 +51,7 @@ export function explorerPackage($router, counts, namespaces) {
     }
   }
 
-  return {
+  const out = {
     name:        'explorer',
     label:       'Resource Explorer',
     collections: [
@@ -65,13 +67,27 @@ export function explorerPackage($router, counts, namespaces) {
       },
     ]
   };
+
+  return out;
 }
 
 export function rioPackage($router, counts, namespaces) {
-  return {
-    name:  'rio',
-    label: 'Rio',
+  const services = findBy(counts, 'id', RIO.SERVICE);
+
+  const out = {
+    name:     'rio',
+    label:    'Rio',
+    children: [
+      {
+        name:  'rio-services',
+        count: services.count,
+        label: 'Services',
+        route: $router.resolve({ name: 'rio-services' }).href,
+      },
+    ],
   };
+
+  return out;
 }
 
 function ensureGroup(level, name, route) {

@@ -86,7 +86,7 @@ module.exports = {
 
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
-    '/v1':     {
+    '/v1': {
       target,
       xfwd:         true,
       ws:           true,

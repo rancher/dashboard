@@ -3,7 +3,7 @@ import {
   addObject, addObjects,
   removeObject, removeObjects, removeAt, clear,
   isArray,
-  filterBy
+  filterBy, findBy
 } from '@/utils/array';
 
 const obj1 = { foo: 'bar' };
@@ -144,4 +144,33 @@ test('filterBy', (t) => {
   out = filterBy(ary, { foo: 'qux', bar: false });
   t.not(out, ary, 'Returns a different object');
   t.deepEqual(out, [], 'Finds no matches');
+});
+
+test('findBy', (t) => {
+  const ary = [obj1, obj2, obj3, obj4];
+  let out;
+
+  out = findBy(null, { foo: 'bar' });
+  t.is(out, undefined, 'Accepts empty input');
+
+  out = findBy(ary, 'bar');
+  t.is(out, obj4, 'Finds items with value truthiness');
+
+  out = findBy(ary, 'baz');
+  t.is(out, obj3, 'Finds items with string truthiness');
+
+  out = findBy(ary, 'bar', false);
+  t.is(out, obj2, 'Finds items with falsey values');
+
+  out = findBy(ary, 'foo', 'bar');
+  t.is(out, obj1, 'Finds items with string values');
+
+  out = findBy(ary, { foo: 'qux', bar: true });
+  t.is(out, obj4, 'Finds items with multiple conditions');
+
+  out = findBy(ary, { bar: undefined });
+  t.is(out, obj4, 'Finds items with object truthiness');
+
+  out = findBy(ary, { foo: 'qux', bar: false });
+  t.is(out, undefined, 'Finds no matches');
 });

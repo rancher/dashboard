@@ -61,7 +61,9 @@ export default {
 
     commit('registerType', SCHEMA);
     commit('loadAll', {
-      type: SCHEMA, data: res, dispatch
+      dispatch,
+      type: SCHEMA,
+      data: res
     });
 
     const all = getters.all(SCHEMA);
@@ -72,6 +74,10 @@ export default {
   async findAll({ getters, commit, dispatch }, { type, opt }) {
     console.log('Find All', type);
     type = getters.normalizeType(type);
+
+    if ( !getters.hasType(type) ) {
+      commit('registerType', type);
+    }
 
     if ( getters['haveAll'](type) ) {
       return getters['all'](type);
@@ -84,10 +90,6 @@ export default {
 
     if ( opt.load === false ) {
       return res.data;
-    }
-
-    if ( !getters.hasType(type) ) {
-      commit('registerType', type);
     }
 
     commit('loadAll', {

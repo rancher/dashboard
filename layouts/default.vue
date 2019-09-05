@@ -1,5 +1,6 @@
 
 <script>
+import { mapGetters } from 'vuex';
 import { addObject, removeObject } from '../utils/array';
 import Accordion from '@/components/Accordion';
 import ActionMenu from '@/components/ActionMenu';
@@ -19,6 +20,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['preloaded']),
+
     packages() {
       const namespaces = this.$store.getters['namespaces'] || [];
       const counts = this.$store.getters['v1/counts'];
@@ -76,11 +79,12 @@ export default {
       </div>
     </header>
 
-    <nav>
+    <nav v-if="preloaded">
+      <NamespacePicker class="mt-20 mb-0" />
+
       <div v-for="pkg in packages" :key="pkg.name" class="package">
         <h6>
           {{ pkg.label }}
-          <NamespacePicker v-if="pkg.name === 'namespaced'" />
         </h6>
         <Accordion
           v-for="collection in pkg.collections"
@@ -114,6 +118,14 @@ export default {
             </Accordion>
           </template>
         </Accordion>
+        <ul v-if="pkg.children" class="list-unstyled child">
+          <n-link v-for="child in pkg.children" :key="child.route" :to="child.route" tag="li" class="child">
+            <a>
+              <span class="label">{{ child.label }}</span>
+              <span v-if="child.count" class="count">{{ child.count }}</span>
+            </a>
+          </n-link>
+        </ul>
       </div>
     </nav>
 

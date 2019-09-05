@@ -52,11 +52,11 @@ export function clear(ary) {
   ary.length = 0;
 }
 
-export function filterBy(ary, keyOrObj, val) {
+function findOrFilterBy(method, ary, keyOrObj, val) {
   ary = ary || [];
 
   if ( typeof keyOrObj === 'object' ) {
-    return ary.filter((item) => {
+    return ary[method]((item) => {
       for ( const k in keyOrObj ) {
         if ( typeof keyOrObj[k] === 'undefined' ) {
           if ( !item[k] ) {
@@ -70,8 +70,16 @@ export function filterBy(ary, keyOrObj, val) {
       return true;
     });
   } else if ( val === undefined ) {
-    return ary.filter(item => !!item[keyOrObj]);
+    return ary[method](item => !!item[keyOrObj]);
   } else {
-    return ary.filter(item => item[keyOrObj] === val);
+    return ary[method](item => item[keyOrObj] === val);
   }
+}
+
+export function filterBy(ary, keyOrObj, val) {
+  return findOrFilterBy('filter', ary, keyOrObj, val);
+}
+
+export function findBy(ary, keyOrObj, val) {
+  return findOrFilterBy('find', ary, keyOrObj, val);
 }

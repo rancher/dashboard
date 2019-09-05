@@ -2,7 +2,7 @@
 <template>
   <div>
     <SortableTable
-      :headers="headers"
+      :headers="_headers"
       :rows="filteredRows"
       :group-by="groupBy"
       key-field="metadata.uid"
@@ -19,32 +19,50 @@
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
 import SortableTable from '@/components/SortableTable';
-import { headersFor } from '@/utils/table-headers';
+import { headersFor, NAMESPACE } from '@/utils/table-headers';
+import { removeObject } from '@/utils/array';
 
 export default {
   components: { ButtonGroup, SortableTable },
 
   props: {
-    resource: {
-      type:     String,
+    schema: {
+      type:     Object,
       required: true,
     },
+
     rows: {
       type:     Array,
       required: true
+    },
+
+    headers: {
+      type:    Array,
+      default: null,
     }
   },
 
   computed: {
-    schema() {
-      return this.$store.getters['v1/schemaFor'](this.resource);
-    },
+    _headers() {
+      let headers;
 
-    headers() {
+      const namespaced = this.schema.attributes.namespaced;
       const groupable = this.$store.getters['multipleNamespaces'];
       const groupNamespaces = this.group === 'namespace';
+      const showNamespace = namespaced && groupable && !groupNamespaces;
 
-      return headersFor(this.schema, groupable && !groupNamespaces);
+      if ( this.headers ) {
+        headers = this.headers.slice();
+      } else {
+        headers = headersFor(this.schema, showNamespace);
+      }
+
+      // This removes the namespace column from custom headers passed in (headersFor won't add it in the first place)
+      if ( !showNamespace ) {
+        removeObject(headers, NAMESPACE);
+      }
+
+      return headers;
     },
 
     filteredRows() {
