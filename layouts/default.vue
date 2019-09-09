@@ -34,7 +34,7 @@ export default {
         explorer,
       ];
 
-      return out;
+      return out.filter(x => !!x);
     },
 
     expandedGroups: mapPref(EXPANDED_GROUPS),

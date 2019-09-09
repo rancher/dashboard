@@ -74,6 +74,10 @@ export function explorerPackage($router, counts, namespaces) {
 export function rioPackage($router, counts, namespaces) {
   const services = findBy(counts, 'id', RIO.SERVICE);
 
+  if ( !services ) {
+    return null;
+  }
+
   const out = {
     name:     'rio',
     label:    'Rio',
