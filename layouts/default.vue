@@ -263,5 +263,6 @@ export default {
   MAIN {
     grid-area: main;
     padding: 20px;
+    overflow: auto;
   }
 </style>

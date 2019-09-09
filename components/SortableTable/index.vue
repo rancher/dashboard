@@ -8,6 +8,7 @@ import grouping from './grouping';
 
 import { removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
+import { dasherize } from '@/utils/string';
 
 // @TODO
 // Paging
@@ -172,7 +173,7 @@ export default {
     }
   },
 
-  methods: { get }
+  methods: { get, dasherize }
 };
 </script>
 
@@ -249,13 +250,13 @@ export default {
         <template v-for="row in group.rows">
           <slot name="main-row" :row="row">
             <tr :key="get(row,keyField)" class="main-row">
-              <td v-if="tableActions" align="middle">
+              <td v-if="tableActions" class="row-check" align="middle">
                 <input type="checkbox" :data-node-id="get(row,keyField)" />
               </td>
               <template v-for="col in columns">
                 <slot name="cell" :row="row" :col="col">
                   <slot :name="'col:' + col.name">
-                    <td v-if="col.formatter" :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'">
+                    <td v-if="col.formatter" :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'" :class="'col-'+dasherize(col.formatter)">
                       <component :is="col.formatter" :value="get(row, col.value||col.name)" :row="row" :col="col" />
                     </td>
                     <td v-else :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'">

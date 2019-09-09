@@ -11,7 +11,7 @@ export default {
   props: {
     value: {
       type:     String,
-      required: true
+      default: ''
     }
   },
 
@@ -21,6 +21,10 @@ export default {
 
   computed: {
     title() {
+      if ( !this.value ) {
+        return '';
+      }
+
       const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
       const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
 

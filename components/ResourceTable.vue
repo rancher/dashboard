@@ -5,7 +5,7 @@
       :headers="_headers"
       :rows="filteredRows"
       :group-by="groupBy"
-      key-field="metadata.uid"
+      key-field="_key"
       table-actions
     >
       <template v-if="groupable" #header-middle>

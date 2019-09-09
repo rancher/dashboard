@@ -59,6 +59,8 @@ $border-radius: 3px;
 
   --body-bg                    : white;
   --body-text                  : black;
+  --scrollbar-thumb            : #{$dark};
+  --scrollbar-track            : transparent;
   --disabled-bg                : #{$disabled};
   --header-bg                  : #{$primary};
   --nav-bg                     : #{$lighter};

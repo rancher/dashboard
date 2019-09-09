@@ -26,6 +26,10 @@ export function isRange(event) {
   return !!event[rangeKey];
 }
 
+export function suppressContextMenu(event) {
+  return event.ctrlKey && event.button === 2;
+}
+
 // Only intended to work for Mobile Safari at the moment...
 export function version() {
   const match = userAgent.match(/\s+Version\/([0-9.]+)/);

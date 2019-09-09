@@ -17,14 +17,31 @@ export function load() {
 load();
 
 export function proxyFor(obj, dispatch) {
-  Object.defineProperty(obj, '$dispatch', { value: dispatch });
+  // Attributes associated to the proxy, but not stored on the actual object
+  let local;
+
+  delete obj.__rehydrate;
 
   if ( process.server ) {
-    Object.defineProperty(obj, '__rehydrate', { value: true, enumerable: true });
+    Object.defineProperty(obj, '__rehydrate', {
+      value:        true,
+      enumerable:   true,
+      configurable: true
+    });
   }
 
   const proxy = new Proxy(obj, {
     get(target, name) {
+      if ( name === '$dispatch' ) {
+        return dispatch;
+      } else if ( name === '_local' ) {
+        if ( !local ) {
+          local = {};
+        }
+
+        return local;
+      }
+
       if ( name === Symbol.toStringTag ) {
         name = 'toString';
       }

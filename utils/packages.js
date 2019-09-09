@@ -140,6 +140,10 @@ export function mapGroup(obj) {
     return 'rio';
   }
 
+  if ( group === 'longhorn.rancher.io' || group.endsWith('.longhorn.rancher.io') ) {
+    return 'longhorn';
+  }
+
   if ( group.endsWith('.cattle.io') ) {
     return 'rancher';
   }

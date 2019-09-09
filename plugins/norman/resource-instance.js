@@ -4,6 +4,16 @@ import { eachLimit } from '@/utils/promise-limit';
 import { MODE, _EDIT } from '@/utils/query-params';
 
 export default {
+  _key() {
+    const m = this.metadata;
+
+    if ( m ) {
+      return m.uid || `${ m.namespace ? `${ m.namespace }:` : '' }${ m.name }`;
+    }
+
+    return this.id || Math.random();
+  },
+
   displayName() {
     return this.metadata.name || this.id;
   },
@@ -36,6 +46,24 @@ export default {
       if ( !opt.url ) {
         throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
       }
+
+      return this.$dispatch('request', opt);
+    };
+  },
+
+  patch() {
+    return (data, opt = {}) => {
+      if ( !opt.url ) {
+        opt.url = (this.links || {})['self'];
+      }
+
+      // @TODO backend sends wss links in change events
+      opt.url = opt.url.replace(/^ws/, 'http');
+
+      opt.method = 'patch';
+      opt.headers = opt.headers || {};
+      opt.headers['content-type'] = 'application/json-patch+json';
+      opt.data = data;
 
       return this.$dispatch('request', opt);
     };
@@ -78,8 +106,12 @@ export default {
 
       const schema = await this.$dispatch('schemaFor', this.type);
       const url = router.resolve({
-        name:   `explorer-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`,
-        params: { type: this.type, id: this.id },
+        name:   `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`,
+        params: {
+          grooup: schema.groupName,
+          type:   this.type,
+          id:     this.id
+        },
         query:  { [MODE]: _EDIT }
       }).href;
 

@@ -79,7 +79,7 @@ export default (config = {}) => {
       if ( isArray(obj) ) {
         const rehydrateKey = `__rehydrateAll__${ key }`;
 
-        if ( parent && parent[rehydrateKey] ) {
+        if ( parent && key && parent[rehydrateKey] ) {
           const type = parent[rehydrateKey];
 
           delete parent[rehydrateKey];
@@ -96,6 +96,7 @@ export default (config = {}) => {
           if ( !cache ) {
             return obj;
           }
+
           const map = cache.map;
           const keyField = keyFieldFor(type);
           const entry = map.get(obj[keyField]);
@@ -104,8 +105,6 @@ export default (config = {}) => {
           if ( entry ) {
             return entry;
           }
-
-          delete obj.__rehydrate;
 
           // Or just return a proxied object
           return proxyFor(obj, module.context.dispatch);

@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import { isMore, isRange } from '@/utils/platform';
+import { isMore, isRange, suppressContextMenu } from '@/utils/platform';
 import { get } from '@/utils/object';
 
 export const ALL = 'all';
@@ -58,11 +58,11 @@ export default {
   methods: {
     onToggleAll(value) {
       if ( value ) {
-        this.toggleMulti(this.pagedRows, []);
+        this.update(this.pagedRows, []);
 
         return true;
       } else {
-        this.toggleMulti([], this.pagedRows);
+        this.update([], this.pagedRows);
 
         return false;
       }
@@ -148,19 +148,19 @@ export default {
       }
 
       if ( isMore(e) ) {
-        this.toggleSingle(node);
+        this.toggle(node);
       } else if ( isRange(e) ) {
         const toToggle = this.nodesBetween(prevNode, node);
 
         if ( isSelected ) {
-          this.toggleMulti([], toToggle);
+          this.update([], toToggle);
         } else {
-          this.toggleMulti(toToggle, []);
+          this.update(toToggle, []);
         }
       } else if ( isCheckbox ) {
-        this.toggleSingle(node);
+        this.toggle(node);
       } else {
-        this.toggleMulti([node], content);
+        this.update([node], content);
       }
 
       this.prevNode = node;
@@ -169,17 +169,22 @@ export default {
     onRowContext(e) {
       const node = this.nodeForEvent(e);
 
+      if ( suppressContextMenu(e) ) {
+        return;
+      }
+
       if ( !node ) {
         return;
       }
 
       e.preventDefault();
+      e.stopPropagation();
 
       this.prevNode = node;
       const isSelected = this.selectedNodes.includes(node);
 
       if ( !isSelected ) {
-        this.toggleMulti([node], this.selectedNodes.slice());
+        this.update([node], this.selectedNodes.slice());
       }
 
       this.$store.commit('selection/show', {
@@ -249,17 +254,26 @@ export default {
       return null;
     },
 
-    toggleSingle(node) {
-      this.$store.commit('selection/toggleSingle', node);
+    toggle(node) {
+      const add = [];
+      const remove = [];
+
+      if ( this.$store.getters['selection/isSelected'](node) ) {
+        remove.push(node);
+      } else {
+        add.push(node);
+      }
+
+      this.update(add, remove);
     },
 
-    toggleMulti(toAdd, toRemove) {
-      this.$store.commit('selection/toggleMulti', { toAdd, toRemove });
+    update(toAdd, toRemove) {
+      this.$store.commit('selection/update', { toAdd, toRemove });
 
       if (toRemove.length) {
         this.$nextTick(() => {
           for ( let i = 0 ; i < toRemove.length ; i++ ) {
-            this.toggleInput(toRemove[i], false, this.keyField);
+            this.updateInput(toRemove[i], false, this.keyField);
           }
         });
       }
@@ -267,13 +281,13 @@ export default {
       if (toAdd.length) {
         this.$nextTick(() => {
           for ( let i = 0 ; i < toAdd.length ; i++ ) {
-            this.toggleInput(toAdd[i], true, this.keyField);
+            this.updateInput(toAdd[i], true, this.keyField);
           }
         });
       }
     },
 
-    toggleInput(node, on, idField) {
+    updateInput(node, on, idField) {
       const id = get(node, idField);
 
       if ( id ) {

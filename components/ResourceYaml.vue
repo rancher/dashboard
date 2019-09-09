@@ -93,10 +93,24 @@ export default {
       return this.mode === _PREVIEW;
     },
 
+    canEdit() {
+      return this.obj.hasLink('update');
+    },
+
+    canDelete() {
+      return this.obj.hasLink('remove');
+    },
+
     diffMode: mapPref(DIFF),
 
     parentRoute() {
-      return this.$router.resolve({ name: 'explorer-resource', params: { resource: this.obj.type } }).href;
+      return this.$router.resolve({
+        name:   'explorer-group-resource',
+        params: {
+          group:    this.schema.groupName,
+          resource: this.obj.type
+        }
+      }).href;
     },
   },
 
@@ -271,14 +285,14 @@ export default {
           Preview
         </button>
         <AsyncButton
-          v-if="isView"
+          v-if="canDelete && isView"
           key="delete"
           mode="delete"
           action-color="bg-error"
           waiting-color="bg-error"
           @click="remove"
         />
-        <button v-if="isView || isPreview" class="btn bg-primary" @click="edit">
+        <button v-if="canEdit && (isView || isPreview)" class="btn bg-primary" @click="edit">
           Edit
         </button>
         <AsyncButton v-if="isEdit || isPreview" key="apply" mode="apply" @click="save" />

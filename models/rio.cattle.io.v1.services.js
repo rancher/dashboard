@@ -1,6 +1,5 @@
 
 export default {
-
   displayImage() {
     return (this.spec.image || '')
       .replace(/^index.docker.io\//i, '')
@@ -21,9 +20,9 @@ export default {
 
     return {
       hasStatus,
-      pending:     this.pendingScale || null,
+      pending:     this._local.pendingScale || null,
       current:     this.spec.scale || 0,
-      desired:     this.pendingScale >= 0 ? this.pendingScale : this.spec.scale,
+      desired:     this._local.pendingScale >= 0 ? this._local.pendingScale : this.spec.scale,
       available:   status.available || 0,
       unavailable: status.unavailable || 0,
       ready:       status.ready || 0,
@@ -83,7 +82,61 @@ export default {
     ];
 
     return out;
-  }
+  },
+
+  scaleUp() {
+    return () => {
+      let scale;
+
+      if ( this._local.scaleTimer ) {
+        scale = this._local.pendingScale;
+      } else {
+        scale = this.spec.scale;
+      }
+
+      this._local.pendingScale = scale + 1;
+      this.saveScale();
+    };
+  },
+
+  scaleDown() {
+    return () => {
+      let scale;
+
+      if ( this.this._local.scaleTimer ) {
+        scale = this._local.pendingScale;
+      } else {
+        scale = this.spec.scale;
+      }
+
+      this._local.pendingScale = Math.max(scale - 1, 0);
+      this.saveScale();
+    };
+  },
+
+  saveScale() {
+    return () => {
+      if ( this._local.scaleTimer ) {
+        clearTimeout(this._local.scaleTimer);
+      }
+
+      this._local.scaleTimer = setTimeout(async() => {
+        try {
+          await this.patch({
+            op:    'replace',
+            path:  '/spec/scale',
+            value: this._local.pendingScale
+          });
+        } catch (err) {
+          debugger;
+          this.$dispatch('growl/fromError', { title: 'Error updating scale', err }, { root: true });
+        }
+
+        this._local.scaleTimer = null;
+        this._local.pendingScale = null;
+      }, 500);
+    };
+  },
 
   // @TODO fake
   /*

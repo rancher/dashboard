@@ -1,6 +1,4 @@
-import {
-  isArray, filterBy, removeObject, removeObjects, addObject, addObjects
-} from '@/utils/array';
+import {isArray, filterBy, removeObjects, addObjects} from '@/utils/array';
 
 export const state = function() {
   return {
@@ -84,6 +82,10 @@ export const getters = {
     const out = _filter(map);
 
     return out;
+  },
+
+  isSelected: state => (resource) => {
+    return state.tableSelected.includes(resource);
   }
 };
 
@@ -109,15 +111,7 @@ export const mutations = {
     }
   },
 
-  toggleSingle(state, resource) {
-    if ( state.tableSelected.includes(resource) ) {
-      addObject(state.tableSelected, resource);
-    } else {
-      removeObject(state.tableSelected, resource);
-    }
-  },
-
-  toggleMulti(state, { toAdd, toRemove }) {
+  update(state, { toAdd, toRemove }) {
     const selected = state.tableSelected;
 
     if (toRemove && toRemove.length) {
