@@ -53,6 +53,8 @@ export default (config = {}) => {
     const module = store._modules.root._children[namespace];
     const fromServer = window.__NUXT__;
 
+    module.context.rootGetters = store.getters;
+
     // Turn all the objects in the store from the server into proxies
     const state = fromServer.state[namespace];
 
@@ -62,7 +64,7 @@ export default (config = {}) => {
       const map = new Map();
 
       for ( let i = 0 ; i < cache.list.length ; i++ ) {
-        const proxy = proxyFor(cache.list[i], module.context.dispatch);
+        const proxy = proxyFor(module.context, cache.list[i]);
 
         cache.list[i] = proxy;
         map.set(proxy[keyField], proxy);
@@ -107,7 +109,7 @@ export default (config = {}) => {
           }
 
           // Or just return a proxied object
-          return proxyFor(obj, module.context.dispatch);
+          return proxyFor(module.context, obj);
         } else {
           for ( const k of Object.keys(obj) ) {
             obj[k] = recurse(obj[k], obj, k);

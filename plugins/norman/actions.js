@@ -44,9 +44,8 @@ export default {
     });
   },
 
-  async loadSchemas({
-    getters, dispatch, commit, state
-  }) {
+  async loadSchemas(ctx) {
+    const { getters, dispatch, commit } = ctx;
     const res = await dispatch('findAll', { type: SCHEMA, opt: { url: '/v1/schemas', load: false } });
 
     res.forEach((schema) => {
@@ -61,7 +60,7 @@ export default {
 
     commit('registerType', SCHEMA);
     commit('loadAll', {
-      dispatch,
+      ctx,
       type: SCHEMA,
       data: res
     });
@@ -71,7 +70,9 @@ export default {
     return all;
   },
 
-  async findAll({ getters, commit, dispatch }, { type, opt }) {
+  async findAll(ctx, { type, opt }) {
+    const { getters, commit, dispatch } = ctx;
+
     console.log('Find All', type);
     type = getters.normalizeType(type);
 
@@ -80,7 +81,7 @@ export default {
     }
 
     if ( getters['haveAll'](type) ) {
-      return getters['all'](type);
+      return getters.all(type);
     }
 
     opt = opt || {};
@@ -93,8 +94,11 @@ export default {
     }
 
     commit('loadAll', {
-      type, data: res.data, dispatch
+      ctx,
+      type,
+      data: res.data
     });
+
     dispatch('watchType', { type });
 
     const all = getters.all(type);
@@ -109,7 +113,9 @@ export default {
   //  sortOrder: asc or desc
   //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstraping schemas on startup.
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
-  async find({ getters, commit, dispatch }, { type, id, opt }) {
+  async find(ctx, { type, id, opt }) {
+    const { getters, commit, dispatch } = ctx;
+
     type = normalizeType(type);
 
     console.log('Find', type, id);
@@ -130,7 +136,9 @@ export default {
     }
 
     commit('load', {
-      type, resource: res, dispatch
+      ctx,
+      type,
+      resource: res,
     });
 
     const neu = getters.byId(type, id);
@@ -138,8 +146,8 @@ export default {
     return neu;
   },
 
-  create({ dispatch }, data) {
-    return proxyFor(data, dispatch);
+  create(ctx, data) {
+    return proxyFor(ctx, data);
   },
 
   schemaFor({ getters }, type) {

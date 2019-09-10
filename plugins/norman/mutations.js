@@ -34,7 +34,7 @@ export default {
     }
   },
 
-  loadAll(state, { type, data, dispatch }) {
+  loadAll(state, { type, data, ctx }) {
     const cache = state.types[type];
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
 
@@ -45,7 +45,7 @@ export default {
       Object.defineProperty(cache.list, '__rehydrateAll', { value: type, enumerable: true });
     }
 
-    const proxies = data.map(x => proxyFor(x, dispatch));
+    const proxies = data.map(x => proxyFor(ctx, x));
 
     addObjects(cache.list, proxies);
 
@@ -56,7 +56,7 @@ export default {
     cache.haveAll = true;
   },
 
-  load(state, { resource, dispatch }) {
+  load(state, { resource, ctx }) {
     const type = normalizeType(resource.type);
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
     const id = resource[keyField];
@@ -68,7 +68,7 @@ export default {
 
       return entry;
     } else {
-      const proxy = proxyFor(resource, dispatch);
+      const proxy = proxyFor(ctx, resource);
 
       addObject(cache.list, proxy);
       cache.map.set(id, proxy);

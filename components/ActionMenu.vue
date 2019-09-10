@@ -85,7 +85,7 @@ export default {
   <div v-if="showing">
     <div class="background" @click="hide" @contextmenu.prevent></div>
     <ul class="list-unstyled menu" :style="style">
-      <li v-for="opt in options" :key="opt.action" @click="execute(opt)">
+      <li v-for="opt in options" :key="opt.action" :class="{divider: opt.divider}" @click="execute(opt)">
         <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />
         {{ opt.label }}
       </li>
@@ -109,14 +109,21 @@ export default {
     left: 0;
     z-index: z-index('dropdownContent');
 
-    background-color: #333;
-    border: 1px solid #222;
+    color: var(--dropdown-text);
+    background-color: var(--dropdown-bg);
+    border: 1px solid var(--dropdown-border);
 
     LI {
       padding: 10px;
 
-      &:hover {
-        background-color: var(--nav-active);
+      &.divider {
+        padding: 0;
+        border-bottom: 1px solid var(--dropdown-divider);
+      }
+
+      &:not(.divider):hover {
+        background-color: var(--dropdown-hover-bg);
+        color: var(--dropdown-hover-text);
         cursor: pointer;
       }
     }

@@ -51,7 +51,7 @@ export const actions = {
       // ctx.store.dispatch('k8s/loadAll'),
       dispatch('v1/loadSchemas'),
       dispatch('v1/findAll', { type: COUNT, opt: { url: 'counts' } }),
-      dispatch('v1/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })
+      dispatch('v1/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })
       //      dispatch('v1/findAll', { type: POD, opt: { url: 'pods' } }),
     ]);
 

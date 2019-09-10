@@ -128,7 +128,6 @@ export default {
             value: this._local.pendingScale
           });
         } catch (err) {
-          debugger;
           this.$dispatch('growl/fromError', { title: 'Error updating scale', err }, { root: true });
         }
 

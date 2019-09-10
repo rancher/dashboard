@@ -16,7 +16,7 @@ export function load() {
 
 load();
 
-export function proxyFor(obj, dispatch) {
+export function proxyFor(ctx, obj) {
   // Attributes associated to the proxy, but not stored on the actual object
   let local;
 
@@ -30,11 +30,27 @@ export function proxyFor(obj, dispatch) {
     });
   }
 
+  const model = models[obj.type] || ResourceInstance;
+
   const proxy = new Proxy(obj, {
     get(target, name) {
-      if ( name === '$dispatch' ) {
-        return dispatch;
-      } else if ( name === '_local' ) {
+      if ( name === Symbol.toStringTag ) {
+        name = 'toString';
+      } else if ( typeof name !== 'string' ) {
+        return target[name];
+      }
+
+      if ( name === '$constructor' ) {
+        return model;
+      } else if ( name === '$super' && model ) {
+        return ResourceInstance;
+      }
+
+      if ( name.startsWith('$') ) {
+        return ctx[name.substr(1)];
+      }
+
+      if ( name === '_local' ) {
         if ( !local ) {
           local = {};
         }
@@ -42,14 +58,10 @@ export function proxyFor(obj, dispatch) {
         return local;
       }
 
-      if ( name === Symbol.toStringTag ) {
-        name = 'toString';
-      }
-
       let fn;
 
-      if ( models[target.type] && Object.prototype.hasOwnProperty.call(models[target.type], name) ) {
-        fn = models[target.type][name];
+      if ( model && Object.prototype.hasOwnProperty.call(model, name) ) {
+        fn = model[name];
       }
 
       if ( !fn ) {
