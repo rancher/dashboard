@@ -1,5 +1,8 @@
 <script>
 import ResourceYaml from '@/components/ResourceYaml';
+import { CONFIG_MAP } from '@/utils/types';
+
+const RESOURCE = CONFIG_MAP;
 
 export default {
   components: { ResourceYaml },
@@ -13,10 +16,10 @@ export default {
   },
 
   async asyncData(ctx) {
-    const { resource, namespace, id } = ctx.params;
-    const fqid = (namespace ? `${ namespace }/` : '') + id;
+    const { namespace, id } = ctx.params;
+    const fqid = `${ namespace }/${ id }`;
 
-    const obj = await ctx.store.dispatch('v1/find', { type: resource, id: fqid });
+    const obj = await ctx.store.dispatch('v1/find', { type: RESOURCE, id: fqid });
     const value = await obj.followLink('view', { headers: { accept: 'application/yaml' } });
 
     return {

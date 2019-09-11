@@ -45,9 +45,9 @@ export default {
 
 <template>
   <div>
-    <div class="header">
-      <h2>Rio Apps</h2>
-    </div>
+    <header>
+      <h1>Rio Apps</h1>
+    </header>
 
     <ResourceTable :schema="schema" :headers="headers" :rows="rows" />
   </div>

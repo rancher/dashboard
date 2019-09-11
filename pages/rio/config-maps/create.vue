@@ -1,31 +1,27 @@
 <script>
 import ResourceYaml from '@/components/ResourceYaml';
 import { createYaml } from '@/utils/create-yaml';
-import { SCHEMA } from '@/utils/types';
+import { SCHEMA, CONFIG_MAP } from '@/utils/types';
+
+const RESOURCE = CONFIG_MAP;
 
 export default {
   components: { ResourceYaml },
 
   computed: {
     doneRoute() {
-      const name = this.$route.name.replace(/(-namespace)?-create$/, '');
+      const name = this.$route.name.replace(/-create$/, '');
 
       return name;
     }
   },
 
   async asyncData(ctx) {
-    const { resource, namespace } = ctx.params;
     const schemas = ctx.store.getters['v1/all'](SCHEMA);
-    const schema = ctx.store.getters['v1/schemaFor'](resource);
-    const data = { type: resource };
-
-    if ( schema.attributes.namespaced ) {
-      data.metadata = { namespace };
-    }
+    const data = { type: RESOURCE };
 
     const obj = await ctx.store.dispatch('v1/create', data);
-    const value = createYaml(schemas, resource, data);
+    const value = createYaml(schemas, RESOURCE, data);
 
     return { obj, value };
   }

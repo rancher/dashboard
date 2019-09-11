@@ -1,21 +1,22 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
+import { CONFIG_MAP } from '@/utils/types';
+
+const RESOURCE = CONFIG_MAP;
 
 export default {
   components: { ResourceTable },
 
   computed: {
     schema() {
-      return this.$store.getters['v1/schemaFor'](this.resource);
+      return this.$store.getters['v1/schemaFor'](RESOURCE);
     },
   },
 
   asyncData(ctx) {
-    const resource = ctx.params.resource;
-
-    return ctx.store.dispatch('v1/findAll', { type: resource }).then((rows) => {
+    return ctx.store.dispatch('v1/findAll', { type: RESOURCE }).then((rows) => {
       return {
-        resource,
+        resource: RESOURCE,
         rows
       };
     });
@@ -26,7 +27,7 @@ export default {
   <div>
     <header>
       <h1>
-        {{ schema.attributes.kind }}
+        Config Maps
       </h1>
       <div class="actions">
         <nuxt-link to="create" append tag="button" type="button" class="btn bg-primary">
@@ -37,20 +38,3 @@ export default {
     <ResourceTable :schema="schema" :rows="rows" />
   </div>
 </template>
-
-<style lang="scss" scoped>
-  .header {
-    position: relative;
-  }
-
-  H2 {
-    position: relative;
-    margin: 0 0 20px 0;
-  }
-
-  .right-action {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-  }
-</style>

@@ -1,7 +1,7 @@
 import { ucFirst } from './string';
 import { sortBy } from './sort';
 import { findBy } from './array';
-import { RIO } from './types';
+import { CONFIG_MAP, RIO, SECRET } from './types';
 
 export function explorerPackage($router, counts, namespaces) {
   const clusterLevel = {};
@@ -72,10 +72,18 @@ export function explorerPackage($router, counts, namespaces) {
 }
 
 export function rioPackage($router, counts, namespaces) {
-  const apps = findBy(counts, 'id', RIO.APP);
+  function countFor(type) {
+    const entry = findBy(counts, 'id', type);
 
-  if ( !apps ) {
-    return null;
+    if ( !entry ) {
+      return 0;
+    }
+
+    return matchingCounts(entry, namespaces);
+  }
+
+  function linkFor(name) {
+    return $router.resolve({ name }).href;
   }
 
   const out = {
@@ -83,10 +91,48 @@ export function rioPackage($router, counts, namespaces) {
     label:    'Rio',
     children: [
       {
-        name:  'rio-apps',
-        count: apps.count,
-        label: 'Apps',
-        route: $router.resolve({ name: 'rio-apps' }).href,
+        name:    'rio-apps',
+        count:   countFor(RIO.APP),
+        label:   'Apps & Versions',
+        route:   linkFor('rio-apps'),
+      },
+      {
+        name:  'rio-riofiles',
+        count: countFor(RIO.RIOFILE),
+        label: 'Riofiles',
+        route: linkFor('rio-riofiles'),
+      },
+      { divider: true },
+      {
+        name:  'rio-external-services',
+        count: countFor(RIO.EXTERNAL_SERVICE),
+        label: 'External Services',
+        route: linkFor('rio-external-services'),
+      },
+      {
+        name:  'rio-public-domains',
+        count: countFor(RIO.PUBLIC_DOMAIN),
+        label: 'Public Domains',
+        route: linkFor('rio-public-domains'),
+      },
+      {
+        name:    'rio-routers',
+        count:   countFor(RIO.ROUTER),
+        label:   'Routers',
+        route:   linkFor('rio-routers'),
+      },
+      { divider: true },
+      {
+        name:  'rio-config-maps',
+        count: countFor(CONFIG_MAP),
+        label: 'Config Maps',
+        route: linkFor('rio-config-maps'),
+      },
+      {
+        name:  'rio-secrets',
+        count: countFor(SECRET),
+        label: 'Secrets',
+        route: linkFor('rio-secrets'),
       },
     ],
   };

@@ -50,12 +50,6 @@ export default {
 
     res.forEach((schema) => {
       schema._id = normalizeType(schema.id);
-
-      // @TODO
-      // const links = schema.links;
-      // for ( const k in links ) {
-      //  links[k] = links[k].replace('http://localhost:8989', 'https://localhost:8005');
-      // }
     });
 
     commit('registerType', SCHEMA);

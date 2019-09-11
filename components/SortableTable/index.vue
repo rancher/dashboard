@@ -10,9 +10,9 @@ import { removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 import { dasherize } from '@/utils/string';
 
-// @TODO
+// @TODO:
 // Paging
-// Fixed scrolling
+// Fixed header/scrolling
 
 // Data Flow:
 // rows prop
@@ -72,12 +72,6 @@ export default {
       default: null
     },
 
-    subRows: {
-      // If there are sub-rows, your main row must have <tr class="main-row"> to identify it
-      type:    Boolean,
-      default: false,
-    },
-
     tableActions: {
       // Show bulk table actions
       type:    Boolean,
@@ -104,7 +98,26 @@ export default {
       // Additional fields that aren't defined in the headers to search in on each row
       type:    Array,
       default: null
+    },
+
+    subRows: {
+      // If there are sub-rows, your main row must have <tr class="main-row"> to identify it
+      type:    Boolean,
+      default: false,
+    },
+
+    subSearch: {
+      // A field containing an array of sub-items to also search in for each row
+      type:    String,
+      default: null,
+    },
+
+    subFields: {
+      // Search this list of fields within the items in "subSearch" of each row
+      type:    Array,
+      default: null,
     }
+
   },
 
   computed: {
@@ -274,7 +287,7 @@ export default {
               </td>
             </tr>
           </slot>
-          <slot name="sub-row" :row="row" />
+          <slot v-if="subRows" name="sub-row" :row="row" :sub-matches="subMatches" />
         </template>
       </tbody>
     </table>

@@ -40,9 +40,6 @@ export default {
         opt.url = (this.links || {})[linkName];
       }
 
-      // @TODO backend sends wss links in change events
-      opt.url = opt.url.replace(/^ws/, 'http');
-
       if ( !opt.url ) {
         throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
       }
@@ -56,9 +53,6 @@ export default {
       if ( !opt.url ) {
         opt.url = (this.links || {})['self'];
       }
-
-      // @TODO backend sends wss links in change events
-      opt.url = opt.url.replace(/^ws/, 'http');
 
       opt.method = 'patch';
       opt.headers = opt.headers || {};
@@ -75,9 +69,6 @@ export default {
         opt.url = (this.links || {})['self'];
       }
 
-      // @TODO backend sends wss links in change events
-      opt.url = opt.url.replace(/^ws/, 'http');
-
       opt.method = 'post';
       opt.data = this;
 
@@ -90,9 +81,6 @@ export default {
       if ( !opt.url ) {
         opt.url = (this.links || {})['self'];
       }
-
-      // @TODO backend sends wss links in change events
-      opt.url = opt.url.replace(/^ws/, 'http');
 
       opt.method = 'delete';
 
@@ -163,7 +151,7 @@ export default {
 
   promptRemove() {
     return () => {
-      // @TODO
+      // @TODO actually prompt...
       this.remove();
     };
   },

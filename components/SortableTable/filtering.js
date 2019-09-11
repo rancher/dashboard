@@ -33,19 +33,20 @@ export default {
       const searchText = (this.searchQuery || '').trim().toLowerCase();
 
       if ( !searchText.length ) {
-        // this.subMatches = null;
+        this.subMatches = null;
+
         return out;
       }
 
       const searchFields = this.searchFields;
       const searchTokens = searchText.split(/\s*[, ]\s*/);
-      // const subSearchField = this.subSearchField;
-      // const subFields = get(this, 'subFields');
-      // const subMatches = {};
+      const subSearch = this.subSearch;
+      const subFields = this.subFields;
+      const subMatches = {};
 
       for ( let i = out.length - 1 ; i >= 0 ; i-- ) {
         const row = out[i];
-        const hits = 0;
+        let hits = 0;
         let mainFound = true;
 
         for ( let j = 0 ; j < searchTokens.length ; j++ ) {
@@ -63,9 +64,8 @@ export default {
           }
         }
 
-        /*
-        if ( subFields && subSearchField) {
-          let subRows = (get(row, subSearchField) || []);
+        if ( subFields && subSearch) {
+          const subRows = row[subSearch] || [];
 
           for ( let k = subRows.length - 1 ; k >= 0 ; k-- ) {
             let subFound = true;
@@ -92,14 +92,13 @@ export default {
 
           subMatches[get(row, this.keyField)] = hits;
         }
-        */
 
         if ( !mainFound && hits === 0 ) {
           removeAt(out, i);
         }
       }
 
-      // this.subMatches = subMatches;
+      this.subMatches = subMatches;
 
       return out;
     },

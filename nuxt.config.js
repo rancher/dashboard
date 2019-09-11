@@ -95,6 +95,7 @@ module.exports = {
       onProxyReqWs(proxyReq, req, socket, options, head) {
         req.headers.origin = options.target.href;
         proxyReq.setHeader('origin', options.target.href);
+        proxyReq.setHeader('x-forwarded-host', req.headers['host']);
 
         socket.on('error', (err) => {
           console.error('Proxy WS Error:', err);

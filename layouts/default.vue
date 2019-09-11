@@ -119,12 +119,17 @@ export default {
           </template>
         </Accordion>
         <ul v-if="pkg.children" class="list-unstyled child">
-          <n-link v-for="child in pkg.children" :key="child.route" :to="child.route" tag="li" class="child">
-            <a>
-              <span class="label">{{ child.label }}</span>
-              <span v-if="child.count" class="count">{{ child.count }}</span>
-            </a>
-          </n-link>
+          <template v-for="(child, idx) in pkg.children">
+            <li v-if="child.divider" :key="idx">
+              <hr />
+            </li>
+            <n-link v-else :key="child.route" :to="child.route" tag="li" class="child">
+              <a>
+                <span class="label">{{ child.label }}</span>
+                <span v-if="typeof child.count !== 'undefined'" class="count">{{ child.count }}</span>
+              </a>
+            </n-link>
+          </template>
         </ul>
       </div>
     </nav>
@@ -264,5 +269,25 @@ export default {
     grid-area: main;
     padding: 20px;
     overflow: auto;
+  }
+</style>
+
+<style lang="scss">
+  MAIN HEADER {
+    display: grid;
+    grid-template-areas: "title actions";
+    grid-template-columns: "auto min-content";
+    margin-bottom: 20px;
+
+    H1 {
+      grid-area: title;
+      margin: 0;
+      padding-top: 4px;
+    }
+
+    .actions {
+      grid-area: actions;
+      text-align: right;
+    }
   }
 </style>

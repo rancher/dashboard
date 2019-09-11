@@ -4,7 +4,6 @@ export default function urlOptions(url, opt) {
   opt = opt || {};
 
   // Filter
-  // @TODO friendly support for modifiers
   if ( opt.filter ) {
     const keys = Object.keys(opt.filter);
 

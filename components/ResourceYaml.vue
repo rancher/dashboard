@@ -259,7 +259,7 @@ export default {
 <template>
   <div>
     <header>
-      <h2>
+      <h1>
         <span v-if="isCreate">
           Create {{ schema.attributes.kind }}
         </span>
@@ -276,7 +276,7 @@ export default {
             <i class="icon icon-dot-half" />
           </button>
         </span>
-      </h2>
+      </h1>
       <div class="actions">
         <button v-if="!isView" class="btn bg-transparent" @click="cancel">
           Cancel
@@ -321,24 +321,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  HEADER {
-    display: grid;
-    grid-template-areas: "type actions";
-    grid-template-columns: "auto min-content";
-    margin-bottom: 10px;
-
-    H2 {
-      grid-area: type;
-      margin: 0;
-      padding-top: 4px;
-    }
-
-    .actions {
-      grid-area: actions;
-      text-align: right;
-    }
-  }
-
   .mode {
     position: relative;
     top: -4px;
