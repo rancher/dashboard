@@ -72,9 +72,9 @@ export function explorerPackage($router, counts, namespaces) {
 }
 
 export function rioPackage($router, counts, namespaces) {
-  const services = findBy(counts, 'id', RIO.SERVICE);
+  const apps = findBy(counts, 'id', RIO.APP);
 
-  if ( !services ) {
+  if ( !apps ) {
     return null;
   }
 
@@ -83,10 +83,10 @@ export function rioPackage($router, counts, namespaces) {
     label:    'Rio',
     children: [
       {
-        name:  'rio-services',
-        count: services.count,
-        label: 'Services',
-        route: $router.resolve({ name: 'rio-services' }).href,
+        name:  'rio-apps',
+        count: apps.count,
+        label: 'Apps',
+        route: $router.resolve({ name: 'rio-apps' }).href,
       },
     ],
   };

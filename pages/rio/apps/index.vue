@@ -2,11 +2,10 @@
 import ResourceTable from '@/components/ResourceTable';
 import { RIO } from '@/utils/types';
 import {
-  EXPAND, NAME, NAMESPACE, RIO_IMAGE, CREATED, SCALE
+  EXPAND, NAME, NAMESPACE, RIO_IMAGE, CREATED, // SCALE
 } from '@/utils/table-headers';
-import { removeObject } from '@/utils/array';
 
-const RESOURCE = RIO.SERVICE;
+const RESOURCE = RIO.APP;
 
 export default {
   components: { ResourceTable },
@@ -22,7 +21,7 @@ export default {
         NAME,
         NAMESPACE,
         RIO_IMAGE,
-        SCALE,
+        // SCALE,
         CREATED,
       ];
 
@@ -31,10 +30,13 @@ export default {
   },
 
   asyncData(ctx) {
-    return ctx.store.dispatch('v1/findAll', { type: RESOURCE }).then((rows) => {
+    return Promise.all([
+      ctx.store.dispatch('v1/findAll', { type: RESOURCE }),
+      ctx.store.dispatch('v1/findAll', { type: RIO.VERSION }),
+    ]).then(([apps, versions]) => {
       return {
         resource: RESOURCE,
-        rows
+        rows:     apps
       };
     });
   },
@@ -44,7 +46,7 @@ export default {
 <template>
   <div>
     <div class="header">
-      <h2>Rio Services</h2>
+      <h2>Rio Apps</h2>
     </div>
 
     <ResourceTable :schema="schema" :headers="headers" :rows="rows" />

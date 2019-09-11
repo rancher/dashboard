@@ -52,7 +52,7 @@ export const actions = {
       dispatch('v1/loadSchemas'),
       dispatch('v1/findAll', { type: COUNT, opt: { url: 'counts' } }),
       dispatch('v1/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })
-      //      dispatch('v1/findAll', { type: POD, opt: { url: 'pods' } }),
+      //      dispatch('v1/findAll', { type: POD, opt: { url: 'core.v1.pods' } }),
     ]);
 
     commit('updateNamespaces', getters['prefs/get'](NAMESPACES));

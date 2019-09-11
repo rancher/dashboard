@@ -1,4 +1,4 @@
-import {isArray, filterBy, removeObjects, addObjects} from '@/utils/array';
+import { isArray, filterBy, removeObjects, addObjects } from '@/utils/array';
 
 export const state = function() {
   return {
