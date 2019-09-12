@@ -1,6 +1,7 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import { CONFIG_MAP } from '@/utils/types';
+import { STATE, NAME, NAMESPACE, UPDATED } from '@/utils/table-headers';
 
 const RESOURCE = CONFIG_MAP;
 
@@ -10,6 +11,9 @@ export default {
   computed: {
     schema() {
       return this.$store.getters['v1/schemaFor'](RESOURCE);
+    },
+
+    headers() {
     },
   },
 
@@ -35,6 +39,6 @@ export default {
         </nuxt-link>
       </div>
     </header>
-    <ResourceTable :schema="schema" :rows="rows" />
+    <ResourceTable :schema="schema" :rows="rows" :headers="headers" />
   </div>
 </template>

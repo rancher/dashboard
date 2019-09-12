@@ -272,17 +272,21 @@ export default {
   // ------------------------------------------------------------------
 
   goToEdit() {
-    return async() => {
+    return () => {
+      debugger;
       const router = window.$nuxt.$router;
+      const schema = this.$getters['schemaFor'](this.type);
+      const route = `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+      const params = {
+        group:     schema.groupName,
+        resource:  this.type,
+        namespace: this.metadata && this.metadata.namespace,
+        id:        this.metadata.name
+      };
 
-      const schema = await this.$dispatch('schemaFor', this.type);
       const url = router.resolve({
-        name:   `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`,
-        params: {
-          grooup: schema.groupName,
-          type:   this.type,
-          id:     this.id
-        },
+        name:   route,
+        params,
         query:  { [MODE]: _EDIT }
       }).href;
 

@@ -57,7 +57,8 @@ export default {
         headers = headersFor(this.schema, showNamespace);
       }
 
-      // This removes the namespace column from custom headers passed in (headersFor won't add it in the first place)
+      // This removes the namespace column from custom headers passed in
+      // (and headersFor won't add it in the first place)
       if ( !showNamespace ) {
         removeObject(headers, NAMESPACE);
       }
