@@ -20,8 +20,6 @@ export function proxyFor(ctx, obj) {
   // Attributes associated to the proxy, but not stored on the actual object
   let local;
 
-  delete obj.__rehydrate;
-
   if ( process.server ) {
     Object.defineProperty(obj, '__rehydrate', {
       value:        true,
