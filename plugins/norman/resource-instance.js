@@ -1,7 +1,28 @@
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
+import { ucFirst } from '@/utils/string';
 import { eachLimit } from '@/utils/promise-limit';
 import { MODE, _EDIT } from '@/utils/query-params';
+
+const REMAP_STATE = { disabled: 'inactive' };
+
+const DEFAULT_COLOR = 'warning';
+const DEFAULT_ICON = 'x';
+
+const STATES = {
+  active:   { color: 'success', icon: 'dot-open' },
+  inactive: { color: 'info', icon: 'dot' },
+  error:    { color: 'error', icon: 'error' },
+  unknown:  { color: 'warning', icon: 'x' },
+};
+
+const SORT_ORDER = {
+  error:   1,
+  warning: 2,
+  info:    3,
+  success: 4,
+  other:   5,
+};
 
 export default {
   _key() {
@@ -14,146 +35,100 @@ export default {
     return this.id || Math.random();
   },
 
-  displayName() {
-    return this.metadata.name || this.id;
-  },
-
-  sortName() {
-    return sortableNumericSuffix(this.displayName).toLowerCase();
-  },
-
   toString() {
     return () => {
       return `[${ this.type }: ${ this.id }]`;
     };
   },
 
-  hasLink() {
-    return (linkName) => {
-      return !!(this.links || {})[linkName];
-    };
+  nameDisplay() {
+    return this.metadata.name || this.id;
   },
 
-  followLink() {
-    return (linkName, opt = {}) => {
-      if ( !opt.url ) {
-        opt.url = (this.links || {})[linkName];
-      }
-
-      if ( !opt.url ) {
-        throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
-      }
-
-      return this.$dispatch('request', opt);
-    };
+  nameSort() {
+    return sortableNumericSuffix(this.nameDisplay).toLowerCase();
   },
 
-  patch() {
-    return (data, opt = {}) => {
-      if ( !opt.url ) {
-        opt.url = (this.links || {})['self'];
-      }
-
-      opt.method = 'patch';
-      opt.headers = opt.headers || {};
-      opt.headers['content-type'] = 'application/json-patch+json';
-      opt.data = data;
-
-      return this.$dispatch('request', opt);
-    };
+  displayState() {
+    return this._displayState;
   },
 
-  save() {
-    return (opt = {}) => {
-      if ( !opt.url ) {
-        opt.url = (this.links || {})['self'];
-      }
+  _displayState() {
+    const state = this.stateRelevant || 'unknown';
 
-      opt.method = 'post';
-      opt.data = this;
+    if ( REMAP_STATE[state] ) {
+      return REMAP_STATE[state];
+    }
 
-      return this.$dispatch('request', opt);
-    };
+    return state.split(/-/).map(ucFirst).join('-');
   },
 
-  remove() {
-    return (opt = {}) => {
-      if ( !opt.url ) {
-        opt.url = (this.links || {})['self'];
-      }
+  stateColor() {
+    if ( this.computed && this.computed.state && this.computed.state.error ) {
+      return 'text-error';
+    }
 
-      opt.method = 'delete';
+    const key = (this.stateRelevant || '').toLowerCase();
+    let color;
 
-      return this.$dispatch('request', opt);
-    };
+    if ( STATES[key] && STATES[key].color ) {
+      color = this.maybeFn(STATES[key].color);
+    }
+
+    if ( !color ) {
+      color = DEFAULT_COLOR;
+    }
+
+    return `text-${ color }`;
   },
 
-  goToEdit() {
-    return async() => {
-      const router = window.$nuxt.$router;
-
-      const schema = await this.$dispatch('schemaFor', this.type);
-      const url = router.resolve({
-        name:   `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`,
-        params: {
-          grooup: schema.groupName,
-          type:   this.type,
-          id:     this.id
-        },
-        query:  { [MODE]: _EDIT }
-      }).href;
-
-      router.push({ path: url });
-    };
+  stateBackground() {
+    return this.stateColor.replace('text-', 'bg-');
   },
 
-  download() {
-    return async() => {
-      const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
+  stateIcon() {
+    const trans = ( this.computed && this.computed.state && this.computed.state.transitioning ) || 'no';
 
-      downloadFile(`${ this.displayName }.yaml`, value, 'application/yaml');
-    };
+    if ( trans === 'yes' ) {
+      return 'icon icon-spinner icon-spin';
+    }
+
+    if ( trans === 'error' ) {
+      return 'icon icon-error';
+    }
+
+    const key = (this.stateRelevant || '').toLowerCase();
+    let icon;
+
+    if ( STATES[key] && STATES[key].icon ) {
+      icon = this.maybeFn(STATES[key].icon);
+    }
+
+    if ( !icon ) {
+      icon = DEFAULT_ICON;
+    }
+
+    return `icon icon-${ icon }`;
   },
 
-  downloadBulk() {
-    return async(items) => {
-      const files = {};
-      const names = [];
+  stateSort() {
+    const color = this.stateColor.replace('text-', '');
 
-      for ( const item of items ) {
-        let name = `${ item.displayName }.yaml`;
-        const i = 2;
-
-        while ( names.includes(name) ) {
-          name = `${ item.displayName }_${ i }.yaml`;
-        }
-
-        names.push(name);
-      }
-
-      await eachLimit(items, 10, (item, idx) => {
-        return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data) => {
-          files[`resources/${ names[idx] }`] = data;
-        });
-      });
-
-      const zip = generateZip(files);
-
-      downloadFile('resources.zip', zip, 'application/zip');
-    };
+    return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ this.stateRelevant }`;
   },
 
-  viewInApi() {
-    return () => {
-      window.open(this.links.self, '_blank');
-    };
+  // You can override the state by providing your own stateRelevant (and possibly reading _stateRelevant)
+  stateRelevant() {
+    return this._stateRelevant;
   },
 
-  promptRemove() {
-    return () => {
-      // @TODO actually prompt...
-      this.remove();
-    };
+  _stateRelevant() {
+    if ( this.computed && this.computed.state && this.computed.state.name ) {
+      return this.computed.state.name;
+    }
+
+    // @TODO unknown
+    return 'active';
   },
 
   availableActions() {
@@ -222,5 +197,145 @@ export default {
     }
 
     return out;
-  }
+  },
+
+  maybeFn(val) {
+    if ( typeof val === 'function' ) {
+      return val(this);
+    }
+
+    return val;
+  },
+
+  // ------------------------------------------------------------------
+
+  hasLink() {
+    return (linkName) => {
+      return !!(this.links || {})[linkName];
+    };
+  },
+
+  followLink() {
+    return (linkName, opt = {}) => {
+      if ( !opt.url ) {
+        opt.url = (this.links || {})[linkName];
+      }
+
+      if ( !opt.url ) {
+        throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
+      }
+
+      return this.$dispatch('request', opt);
+    };
+  },
+
+  patch() {
+    return (data, opt = {}) => {
+      if ( !opt.url ) {
+        opt.url = (this.links || {})['self'];
+      }
+
+      opt.method = 'patch';
+      opt.headers = opt.headers || {};
+      opt.headers['content-type'] = 'application/json-patch+json';
+      opt.data = data;
+
+      return this.$dispatch('request', opt);
+    };
+  },
+
+  save() {
+    return (opt = {}) => {
+      if ( !opt.url ) {
+        opt.url = (this.links || {})['self'];
+      }
+
+      opt.method = 'post';
+      opt.data = this;
+
+      return this.$dispatch('request', opt);
+    };
+  },
+
+  remove() {
+    return (opt = {}) => {
+      if ( !opt.url ) {
+        opt.url = (this.links || {})['self'];
+      }
+
+      opt.method = 'delete';
+
+      return this.$dispatch('request', opt);
+    };
+  },
+
+  // ------------------------------------------------------------------
+
+  goToEdit() {
+    return async() => {
+      const router = window.$nuxt.$router;
+
+      const schema = await this.$dispatch('schemaFor', this.type);
+      const url = router.resolve({
+        name:   `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`,
+        params: {
+          grooup: schema.groupName,
+          type:   this.type,
+          id:     this.id
+        },
+        query:  { [MODE]: _EDIT }
+      }).href;
+
+      router.push({ path: url });
+    };
+  },
+
+  download() {
+    return async() => {
+      const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
+
+      downloadFile(`${ this.nameDisplay }.yaml`, value, 'application/yaml');
+    };
+  },
+
+  downloadBulk() {
+    return async(items) => {
+      const files = {};
+      const names = [];
+
+      for ( const item of items ) {
+        let name = `${ item.nameDisplay }.yaml`;
+        const i = 2;
+
+        while ( names.includes(name) ) {
+          name = `${ item.nameDisplay }_${ i }.yaml`;
+        }
+
+        names.push(name);
+      }
+
+      await eachLimit(items, 10, (item, idx) => {
+        return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data) => {
+          files[`resources/${ names[idx] }`] = data;
+        });
+      });
+
+      const zip = generateZip(files);
+
+      downloadFile('resources.zip', zip, 'application/zip');
+    };
+  },
+
+  viewInApi() {
+    return () => {
+      window.open(this.links.self, '_blank');
+    };
+  },
+
+  promptRemove() {
+    return () => {
+      // @TODO actually prompt...
+      this.remove();
+    };
+  },
 };

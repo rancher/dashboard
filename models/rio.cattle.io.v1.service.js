@@ -1,6 +1,6 @@
 
 export default {
-  displayImage() {
+  imageDisplay() {
     return (this.spec.image || '')
       .replace(/^index.docker.io\//i, '')
       .replace(/@sha256:[0-9a-f]+$/i, '')
@@ -160,7 +160,7 @@ export default {
 
       out.push(store.createRecord({
         type:           'pod',
-        name:           `${ this.displayName }-${ idx }`,
+        name:           `${ this.nameDisplay }-${ idx }`,
         state,
         transitioning,
 
@@ -180,7 +180,7 @@ export default {
     for ( let i = 0 ; i < status.available ; i++ ) {
       out.push(store.createRecord({
         type:           'pod',
-        name:           `${ get(this, 'displayName') }-${ idx }`,
+        name:           `${ get(this, 'nameDisplay') }-${ idx }`,
         state:          'not-ready',
         transitioning:  'no',
 
@@ -200,7 +200,7 @@ export default {
     for ( let i = 0 ; i < status.unavailable ; i++ ) {
       out.push(store.createRecord({
         type:          'pod',
-        name:          `${ get(this, 'displayName') }-${ idx }`,
+        name:          `${ get(this, 'nameDisplay') }-${ idx }`,
         state:         'creating',
         transitioning: 'yes',
 

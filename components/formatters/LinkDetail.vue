@@ -21,7 +21,7 @@ export default {
 <template>
   <span>
     <nuxt-link :to="row.id" append>
-      {{ row.displayName }}
+      {{ row.nameDisplay }}
     </nuxt-link>
   </span>
 </template>

@@ -35,7 +35,7 @@ export default {
       return choices.map((obj) => {
         return {
           id:    obj.id,
-          label: obj.displayName,
+          label: obj.nameDisplay,
         };
       });
     }

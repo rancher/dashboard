@@ -8,7 +8,7 @@ export const EXPAND = {
 export const STATE = {
   name:    'state',
   label:   'State',
-  sort:    ['sortState', 'sortName', 'id'],
+  sort:    ['stateSort', 'nameSort', 'id'],
   search:  'displayState',
   width:   120,
   default: 'unknown',
@@ -17,8 +17,8 @@ export const STATE = {
 export const NAME = {
   name:      'name',
   label:     'Name',
-  value:     'displayName',
-  sort:      ['sortName', 'id'],
+  value:     'nameDisplay',
+  sort:      ['nameSort', 'id'],
   formatter: 'LinkDetail',
 };
 
@@ -26,14 +26,14 @@ export const NAMESPACE = {
   name:   'namespace',
   label:  'Namespace',
   value:  'metadata.namespace',
-  sort:   ['metadata.namespace', 'sortName', 'id'],
+  sort:   ['metadata.namespace', 'nameSort', 'id'],
 };
 
 export const CREATED = {
   name:       'created',
   label:      'Created',
   value:      'metadata.creationTimestamp',
-  sort:       ['createdTs', 'sortName', 'id'],
+  sort:       ['createdTs', 'nameSort', 'id'],
   search:     false,
   width:      120,
   formatter:  'LiveDate',
@@ -43,15 +43,15 @@ export const CREATED = {
 export const RIO_IMAGE = {
   name:  'image',
   label: 'Image',
-  value: 'displayImage',
-  sort:  ['displayImage', 'sortName', 'id'],
+  value: 'imageDisplay',
+  sort:  ['imageDisplay', 'nameSort', 'id'],
 };
 
 export const SCALE = {
   name:      'scale',
   label:     'Scale',
   value:     'scales.desired',
-  sort:      ['scales.desired', 'sortName', 'id'],
+  sort:      ['scales.desired', 'nameSort', 'id'],
   width:     100,
   formatter: 'Scale',
   align:     'center',
