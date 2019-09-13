@@ -41,7 +41,7 @@ export default {
       </p>
     </span>
 
-    <template slot="popover">
+    <template #popover>
       <button class="btn btn-sm bg-primary scale-btn" @click="scaleDown">
         <i class="icon icon-minus" />
       </button>

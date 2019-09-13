@@ -1,16 +1,16 @@
 
 <script>
 import { mapGetters } from 'vuex';
-import { addObject, removeObject } from '../utils/array';
-import Accordion from '@/components/Accordion';
+import { addObject, removeObject } from '@/utils/array';
+import { explorerPackage, rioPackage } from '@/utils/packages';
+import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/NamespaceFilter';
-import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
-import { explorerPackage, rioPackage } from '@/utils/packages';
+import Group from '@/components/nav/Group';
 
 export default {
   components: {
-    Accordion, ActionMenu, NamespaceFilter
+    ActionMenu, NamespaceFilter, Group
   },
 
   head() {
@@ -83,54 +83,19 @@ export default {
       <NamespaceFilter class="mt-20 mb-0" />
 
       <div v-for="pkg in packages" :key="pkg.name" class="package">
-        <h6>
-          {{ pkg.label }}
-        </h6>
-        <Accordion
-          v-for="collection in pkg.collections"
-          :id="pkg.name + '_' + collection.name"
-          :key="collection.name"
-          :label="collection.label"
-          :expanded="isExpanded"
-          class="collection"
-          @on-toggle="toggleGroup"
+        <Group
+          :key="pkg.name"
+          :id-prefix="pkg.name"
+          :is-expanded="isExpanded"
+          :group="pkg"
+          :toggle-group="toggleGroup"
+          :custom-header="true"
+          :can-collapse="pkg.name !== 'rio'"
         >
-          <template>
-            <Accordion
-              v-for="group in collection.groups"
-              :id="pkg.name + '_' + collection.name + '_' + group.name"
-              :key="group.name"
-              :label="group.label"
-              :expanded="isExpanded"
-              class="group"
-              @on-toggle="toggleGroup"
-            >
-              <template>
-                <ul v-if="group.children" class="list-unstyled child">
-                  <n-link v-for="child in group.children" :key="child.route" :to="child.route" tag="li" class="child">
-                    <a>
-                      <span class="label">{{ child.label }}</span>
-                      <span class="count">{{ child.count }}</span>
-                    </a>
-                  </n-link>
-                </ul>
-              </template>
-            </Accordion>
+          <template slot="accordion">
+            <h6>{{ pkg.label }}</h6>
           </template>
-        </Accordion>
-        <ul v-if="pkg.children" class="list-unstyled child">
-          <template v-for="(child, idx) in pkg.children">
-            <li v-if="child.divider" :key="idx">
-              <hr />
-            </li>
-            <n-link v-else :key="child.route" :to="child.route" tag="li" class="child">
-              <a>
-                <span class="label">{{ child.label }}</span>
-                <span v-if="typeof child.count !== 'undefined'" class="count">{{ child.count }}</span>
-              </a>
-            </n-link>
-          </template>
-        </ul>
+        </Group>
       </div>
     </nav>
 
@@ -212,49 +177,10 @@ export default {
       margin-top: 20px;
     }
 
-    h6 {
+    H6 {
       margin: 0;
-    }
-
-    ul {
-      border-left: solid thin var(--border);
-      margin-left: 10px;
-
-      .child {
-        width: calc(100% - 5px);
-        position: relative;
-        left: 2px;
-
-        A {
-          display: grid;
-          grid-template-areas: "label count";
-          grid-template-columns: auto 40px;
-
-          font-size: 14px;
-          padding: 10px 0 10px 10px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .label {
-          grid-area: label;
-          display: block;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .count {
-          grid-area: count;
-          font-size: 12px;
-          text-align: right;
-          justify-items: center;
-          padding-right: 10px;
-        }
-
-        &.nuxt-link-active {
-          background-color: var(--nav-active);
-        }
-      }
+      letter-spacing: 0.1em;
+      line-height: initial;
     }
   }
 
