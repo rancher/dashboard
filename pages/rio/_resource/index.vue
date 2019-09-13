@@ -3,6 +3,13 @@ import ResourceTable from '@/components/ResourceTable';
 import { CONFIG_MAP, SECRET, RIO } from '@/utils/types';
 import { STATE, NAME, NAMESPACE, CREATED } from '@/utils/table-headers';
 
+const KEYS = {
+  name:      'keys',
+  label:     'Keys',
+  sort:      false,
+  value:     'keysDisplay',
+};
+
 export const FRIENDLY = {
   'config-maps': {
     singular: 'Config Map',
@@ -12,12 +19,7 @@ export const FRIENDLY = {
       STATE,
       NAME,
       NAMESPACE,
-      {
-        name:      'keys',
-        label:     'Keys',
-        sort:      false,
-        value:     'keysDisplay',
-      },
+      KEYS,
       CREATED
     ],
   },
@@ -44,7 +46,19 @@ export const FRIENDLY = {
   secrets: {
     singular: 'Secret',
     plural:   'Secrets',
-    type:     SECRET
+    type:     SECRET,
+    headers:  [
+      STATE,
+      NAME,
+      NAMESPACE,
+      {
+        name:  'type',
+        label: 'Type',
+        value: 'typeDisplay',
+      },
+      KEYS,
+      CREATED
+    ],
   },
 };
 

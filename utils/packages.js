@@ -94,6 +94,22 @@ export function rioPackage($router, counts, namespaces) {
     label:    'Rio',
     children: [
       {
+        name:    'rio-dashboard',
+        label:   'Dashboard',
+        route:   linkFor('dashboard'),
+      },
+      {
+        name:    'rio-graph',
+        label:   'App Mesh',
+        route:   linkFor('mesh'),
+      },
+      {
+        name:    'rio-tap',
+        label:   'Live Traffic Tap',
+        route:   linkFor('tap'),
+      },
+      { divider: true },
+      {
         name:    'rio-apps',
         count:   countFor(RIO.APP),
         label:   'Apps & Versions',
@@ -104,19 +120,6 @@ export function rioPackage($router, counts, namespaces) {
         count: countFor(RIO.RIOFILE),
         label: 'Riofiles',
         route: linkFor('riofiles'),
-      },
-      { divider: true },
-      {
-        name:  'rio-external-services',
-        count: countFor(RIO.EXTERNAL_SERVICE),
-        label: 'External Services',
-        route: linkFor('external-services'),
-      },
-      {
-        name:  'rio-public-domains',
-        count: countFor(RIO.PUBLIC_DOMAIN),
-        label: 'Public Domains',
-        route: linkFor('public-domains'),
       },
       {
         name:    'rio-routers',
@@ -130,6 +133,18 @@ export function rioPackage($router, counts, namespaces) {
         count: countFor(CONFIG_MAP),
         label: 'Config Maps',
         route: linkFor('config-maps'),
+      },
+      {
+        name:  'rio-external-services',
+        count: countFor(RIO.EXTERNAL_SERVICE),
+        label: 'External Services',
+        route: linkFor('external-services'),
+      },
+      {
+        name:  'rio-public-domains',
+        count: countFor(RIO.PUBLIC_DOMAIN),
+        label: 'Public Domains',
+        route: linkFor('public-domains'),
       },
       {
         name:  'rio-secrets',

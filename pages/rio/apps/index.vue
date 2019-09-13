@@ -46,7 +46,12 @@ export default {
 <template>
   <div>
     <header>
-      <h1>Rio Apps</h1>
+      <h1>Apps &amp; Versions</h1>
+      <div class="actions">
+        <nuxt-link to="create" append tag="button" type="button" class="btn bg-primary">
+          Deploy
+        </nuxt-link>
+      </div>
     </header>
 
     <ResourceTable :schema="schema" :headers="headers" :rows="rows" />
