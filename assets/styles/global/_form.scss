@@ -9,7 +9,8 @@ INPUT[type='search'],
 INPUT[type='tel'],
 INPUT[type='url'],
 SELECT,
-TEXTAREA {
+TEXTAREA,
+.labeled-input {
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -18,12 +19,11 @@ TEXTAREA {
   color: var(--input-text);
   background: var(--input-bg);
 
-  // border-color: var(--input-border);
+  border-color: var(--input-border);
   border-width: $outline-width;
   border-radius: $border-radius;
   border-style: solid;
   border-color: transparent;
-  // font-size: 15px;
 
   &::placeholder {
     color: var(--input-placeholder);

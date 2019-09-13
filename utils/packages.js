@@ -82,8 +82,11 @@ export function rioPackage($router, counts, namespaces) {
     return matchingCounts(entry, namespaces);
   }
 
-  function linkFor(name) {
-    return $router.resolve({ name }).href;
+  function linkFor(resource) {
+    return $router.resolve({
+      name:   'rio-resource',
+      params: { resource }
+    }).href;
   }
 
   const out = {
@@ -94,45 +97,45 @@ export function rioPackage($router, counts, namespaces) {
         name:    'rio-apps',
         count:   countFor(RIO.APP),
         label:   'Apps & Versions',
-        route:   linkFor('rio-apps'),
+        route:   linkFor('apps'),
       },
       {
         name:  'rio-riofiles',
         count: countFor(RIO.RIOFILE),
         label: 'Riofiles',
-        route: linkFor('rio-riofiles'),
+        route: linkFor('riofiles'),
       },
       { divider: true },
       {
         name:  'rio-external-services',
         count: countFor(RIO.EXTERNAL_SERVICE),
         label: 'External Services',
-        route: linkFor('rio-external-services'),
+        route: linkFor('external-services'),
       },
       {
         name:  'rio-public-domains',
         count: countFor(RIO.PUBLIC_DOMAIN),
         label: 'Public Domains',
-        route: linkFor('rio-public-domains'),
+        route: linkFor('public-domains'),
       },
       {
         name:    'rio-routers',
         count:   countFor(RIO.ROUTER),
         label:   'Routers',
-        route:   linkFor('rio-routers'),
+        route:   linkFor('routers'),
       },
       { divider: true },
       {
         name:  'rio-config-maps',
         count: countFor(CONFIG_MAP),
         label: 'Config Maps',
-        route: linkFor('rio-config-maps'),
+        route: linkFor('config-maps'),
       },
       {
         name:  'rio-secrets',
         count: countFor(SECRET),
         label: 'Secrets',
-        route: linkFor('rio-secrets'),
+        route: linkFor('secrets'),
       },
     ],
   };

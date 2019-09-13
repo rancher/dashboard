@@ -52,7 +52,7 @@ BODY {
   box-sizing: inherit;
 }
 
-:focus {
+:focus, .focused {
   outline-color: var(--outline);
   outline-style: solid;
   outline-width: var(--outline-width);
@@ -61,8 +61,9 @@ BODY {
 INPUT,
 SELECT,
 TEXTAREA,
-BUTTON {
-  &:focus {
+BUTTON,
+.labeled-input {
+  &:focus, &.focused {
     outline: none;
     box-shadow: 0 0 0 var(--outline-width) var(--outline);
   }

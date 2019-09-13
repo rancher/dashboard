@@ -57,11 +57,16 @@ test('removeObjects', (t) => {
   removeObjects(ary, [obj2]);
   t.deepEqual(ary, [obj1, obj3], 'Removes');
 
-  removeObject(ary, [obj4]);
+  removeObjects(ary, [obj4]);
   t.deepEqual(ary, [obj1, obj3], "Doesn't remove something that's not there");
 
   removeObjects(ary, [obj1, obj3]);
   t.is(ary.length, 0, 'Goes to empty');
+
+  const range = [1, 2, 3, 4, 5, 9, 8, 7, 6];
+
+  removeObjects(range, [6, 1, 2, 4, 5, 9, 6]);
+  t.deepEqual(range, [3, 8, 7], 'Removes ranges');
 });
 
 test('isArray', (t) => {

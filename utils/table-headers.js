@@ -6,12 +6,13 @@ export const EXPAND = {
 };
 
 export const STATE = {
-  name:    'state',
-  label:   'State',
-  sort:    ['stateSort', 'nameSort', 'id'],
-  search:  'displayState',
-  width:   120,
-  default: 'unknown',
+  name:      'state',
+  label:     'State',
+  sort:      ['stateSort', 'nameSort', 'id'],
+  value:     'stateDisplay',
+  width:     90,
+  default:   'unknown',
+  formatter: 'BadgeState',
 };
 
 export const NAME = {

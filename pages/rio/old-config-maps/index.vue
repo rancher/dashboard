@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import { CONFIG_MAP } from '@/utils/types';
-import { STATE, NAME, NAMESPACE, UPDATED } from '@/utils/table-headers';
+import { STATE, NAME, NAMESPACE, CREATED } from '@/utils/table-headers';
 
 const RESOURCE = CONFIG_MAP;
 
@@ -14,6 +14,18 @@ export default {
     },
 
     headers() {
+      return [
+        STATE,
+        NAME,
+        NAMESPACE,
+        {
+          name:      'keys',
+          label:     'Keys',
+          sort:      false,
+          value:     'keysDisplay',
+        },
+        CREATED
+      ];
     },
   },
 

@@ -1,5 +1,20 @@
 import Queue from './queue';
 
+export function allHash(hash) {
+  const keys = Object.keys(hash);
+  const promises = Object.values(hash);
+
+  return Promise.all(promises).then((res) => {
+    const out = {};
+
+    for ( let i = 0 ; i < keys.length ; i++ ) {
+      out[keys[i]] = res[i];
+    }
+
+    return out;
+  });
+}
+
 export function eachLimit(items, limit, iterator, debug = false) {
   if (debug) {
     console.log('eachLimit of', items.length, ' items', limit, 'at a time');

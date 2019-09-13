@@ -9,6 +9,55 @@ export function removeObject(ary, obj) {
 }
 
 export function removeObjects(ary, objs) {
+  let i;
+  let indexes = [];
+
+  for ( i = 0 ; i < objs.length ; i++ ) {
+    const idx = ary.indexOf(objs[i]);
+
+    if ( idx !== -1 ) {
+      indexes.push(idx);
+    }
+  }
+
+  if ( !indexes.length ) {
+    return ary;
+  }
+
+  // Indexes from highest to lowest
+  indexes = indexes.sort((a, b) => b - a);
+
+  const ranges = [];
+  let first = indexes.shift();
+  let last = first;
+  let cur;
+
+  while ( indexes.length ) {
+    cur = indexes.shift();
+
+    if ( last + 1 === cur ) {
+      // Part of the same contiguous chunk
+      last = cur;
+
+      if ( indexes.length ) {
+        // Keep looking for more if there's more items
+        continue;
+      }
+    }
+
+    // Not part of the same chunk
+    ranges.push({ start: first, end: last });
+    first = cur;
+    last = null;
+  }
+
+  for ( i = 0 ; i < ranges.length ; i++ ) {
+    const { start, end } = ranges[i];
+
+    console.log('Splice', start, end - start + 1);
+    ary.splice(start, end - start + 1);
+  }
+
   for ( let i = objs.length - 1 ; i >= 0 ; i-- ) {
     removeObject(ary, objs[i]);
   }
@@ -25,9 +74,15 @@ export function addObject(ary, obj) {
 }
 
 export function addObjects(ary, objs) {
+  const unique = [];
+
   for ( let i = 0 ; i < objs.length ; i++ ) {
-    addObject(ary, objs[i]);
+    if ( ary.indexOf(objs[i]) === -1 ) {
+      unique.push(objs[i]);
+    }
   }
+
+  ary.push(...unique);
 }
 
 export function isArray(thing) {

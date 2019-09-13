@@ -1,7 +1,7 @@
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
-import { eachLimit } from '@/utils/promise-limit';
+import { eachLimit } from '~/utils/promise';
 import { MODE, _EDIT } from '@/utils/query-params';
 
 const REMAP_STATE = { disabled: 'inactive' };
@@ -49,11 +49,11 @@ export default {
     return sortableNumericSuffix(this.nameDisplay).toLowerCase();
   },
 
-  displayState() {
-    return this._displayState;
+  stateDisplay() {
+    return this._stateDisplay;
   },
 
-  _displayState() {
+  _stateDisplay() {
     const state = this.stateRelevant || 'unknown';
 
     if ( REMAP_STATE[state] ) {
@@ -199,12 +199,14 @@ export default {
     return out;
   },
 
-  maybeFn(val) {
-    if ( typeof val === 'function' ) {
-      return val(this);
-    }
+  maybeFn() {
+    return (val) => {
+      if ( typeof val === 'function' ) {
+        return val(this);
+      }
 
-    return val;
+      return val;
+    };
   },
 
   // ------------------------------------------------------------------
@@ -273,7 +275,6 @@ export default {
 
   goToEdit() {
     return () => {
-      debugger;
       const router = window.$nuxt.$router;
       const schema = this.$getters['schemaFor'](this.type);
       const route = `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;

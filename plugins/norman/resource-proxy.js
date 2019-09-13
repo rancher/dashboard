@@ -1,20 +1,5 @@
 import ResourceInstance from './resource-instance';
-
-const models = [];
-
-export function load() {
-  const list = require.context('@/models', false, /.*\.js$/);
-
-  list.keys().forEach((path) => {
-    const impl = list(path);
-    const filename = path.split('/').pop();
-    const name = filename.split('.').slice(0, -1).join('.');
-
-    models[name] = impl.default;
-  });
-}
-
-load();
+import { lookup } from '@/utils/model';
 
 export function proxyFor(ctx, obj) {
   // Attributes associated to the proxy, but not stored on the actual object
@@ -28,7 +13,7 @@ export function proxyFor(ctx, obj) {
     });
   }
 
-  const model = models[obj.type] || ResourceInstance;
+  const model = lookup(obj.type) || ResourceInstance;
 
   const proxy = new Proxy(obj, {
     get(target, name) {

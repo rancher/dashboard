@@ -4,13 +4,13 @@ import { mapGetters } from 'vuex';
 import { addObject, removeObject } from '../utils/array';
 import Accordion from '@/components/Accordion';
 import ActionMenu from '@/components/ActionMenu';
-import NamespacePicker from '@/components/NamespacePicker';
+import NamespaceFilter from '@/components/NamespaceFilter';
 import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import { explorerPackage, rioPackage } from '@/utils/packages';
 
 export default {
   components: {
-    Accordion, ActionMenu, NamespacePicker
+    Accordion, ActionMenu, NamespaceFilter
   },
 
   head() {
@@ -80,7 +80,7 @@ export default {
     </header>
 
     <nav v-if="preloaded">
-      <NamespacePicker class="mt-20 mb-0" />
+      <NamespaceFilter class="mt-20 mb-0" />
 
       <div v-for="pkg in packages" :key="pkg.name" class="package">
         <h6>
