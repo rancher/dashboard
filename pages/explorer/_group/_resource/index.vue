@@ -6,14 +6,14 @@ export default {
 
   computed: {
     schema() {
-      return this.$store.getters['v1/schemaFor'](this.resource);
+      return this.$store.getters['cluster/schemaFor'](this.resource);
     },
   },
 
   asyncData(ctx) {
     const resource = ctx.params.resource;
 
-    return ctx.store.dispatch('v1/findAll', { type: resource }).then((rows) => {
+    return ctx.store.dispatch('cluster/findAll', { type: resource }).then((rows) => {
       return {
         resource,
         rows

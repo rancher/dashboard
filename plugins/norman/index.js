@@ -8,14 +8,14 @@ import { proxyFor } from './resource-proxy';
 import { keyFieldFor } from './normalize';
 import { isArray } from '@/utils/array';
 
-function NormanFactory(namespace) {
+function NormanFactory(namespace, baseUrl) {
   return {
     namespaced: true,
 
     state() {
       return {
         config: {
-          baseUrl: `/${ namespace }`,
+          baseUrl,
           namespace
         },
         types:   {},
@@ -41,7 +41,7 @@ export default (config = {}) => {
   config.baseUrl = config.baseUrl || `/${ namespace }`;
 
   return function(store) {
-    const inst = NormanFactory(namespace);
+    const inst = NormanFactory(namespace, config.baseUrl);
 
     store.registerModule(namespace, inst);
     store.commit(`${ namespace }/applyConfig`, config);

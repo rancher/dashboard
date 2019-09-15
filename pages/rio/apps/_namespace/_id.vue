@@ -17,7 +17,7 @@ export default {
     const { namespace, id } = ctx.params;
     const fqid = `${ namespace }/${ id }`;
 
-    const obj = await ctx.store.dispatch('v1/find', { type: RIO.APP, id: fqid });
+    const obj = await ctx.store.dispatch('cluster/find', { type: RIO.APP, id: fqid });
     const value = await obj.followLink('view', { headers: { accept: 'application/yaml' } });
 
     return {

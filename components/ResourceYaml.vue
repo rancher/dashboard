@@ -58,7 +58,7 @@ export default {
 
   computed: {
     schema() {
-      return this.$store.getters['v1/schemaFor'](this.obj.type);
+      return this.$store.getters['cluster/schemaFor'](this.obj.type);
     },
 
     cmOptions() {

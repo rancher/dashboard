@@ -30,7 +30,7 @@ export default {
     },
 
     namespaces() {
-      const choices = this.$store.getters['v1/all'](NAMESPACE);
+      const choices = this.$store.getters['cluster/all'](NAMESPACE);
 
       return choices.map((obj) => {
         return {

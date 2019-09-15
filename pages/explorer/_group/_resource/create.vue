@@ -16,15 +16,15 @@ export default {
 
   async asyncData(ctx) {
     const { resource, namespace } = ctx.params;
-    const schemas = ctx.store.getters['v1/all'](SCHEMA);
-    const schema = ctx.store.getters['v1/schemaFor'](resource);
+    const schemas = ctx.store.getters['cluster/all'](SCHEMA);
+    const schema = ctx.store.getters['cluster/schemaFor'](resource);
     const data = { type: resource };
 
     if ( schema.attributes.namespaced ) {
       data.metadata = { namespace };
     }
 
-    const obj = await ctx.store.dispatch('v1/create', data);
+    const obj = await ctx.store.dispatch('cluster/create', data);
     const value = createYaml(schemas, resource, data);
 
     return { obj, value };

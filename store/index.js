@@ -3,7 +3,8 @@ import { COUNT, NAMESPACE } from '@/utils/types';
 import { NAMESPACES } from '@/store/prefs';
 
 export const plugins = [
-  Norman({ namespace: 'v1' })
+  Norman({ namespace: 'cluster', baseUrl: '/v1' }),
+  Norman({ namespace: 'rancher', baseUrl: '/v3' })
 ];
 
 export const state = () => {
@@ -49,10 +50,10 @@ export const actions = {
     await Promise.all([
       dispatch('prefs/loadCookies'),
       // ctx.store.dispatch('k8s/loadAll'),
-      dispatch('v1/loadSchemas'),
-      dispatch('v1/findAll', { type: COUNT, opt: { url: 'counts' } }),
-      dispatch('v1/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })
-      //      dispatch('v1/findAll', { type: POD, opt: { url: 'core.v1.pods' } }),
+      dispatch('cluster/loadSchemas'),
+      dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
+      dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })
+      //      dispatch('cluster/findAll', { type: POD, opt: { url: 'core.v1.pods' } }),
     ]);
 
     commit('updateNamespaces', getters['prefs/get'](NAMESPACES));

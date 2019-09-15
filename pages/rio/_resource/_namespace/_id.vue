@@ -22,7 +22,7 @@ export default {
     const fqid = `${ namespace }/${ id }`;
     const type = FRIENDLY[resource].type;
 
-    const obj = await ctx.store.dispatch('v1/find', { type, id: fqid });
+    const obj = await ctx.store.dispatch('cluster/find', { type, id: fqid });
     const value = await obj.followLink('view', { headers: { accept: 'application/yaml' } });
 
     return {

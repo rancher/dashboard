@@ -1,24 +1,24 @@
 export default (context) => {
   window.s = context.store;
-  window.schemaName = type => context.store.getters['v1/schemaName'](type);
-  window.schemaFor = type => context.store.getters['v1/schemaFor'](type, true);
+  window.schemaName = type => context.store.getters['cluster/schemaName'](type);
+  window.schemaFor = type => context.store.getters['cluster/schemaFor'](type, true);
 
   window.all = (type) => {
     const realType = window.schemaName(type);
 
-    return context.store.getters['v1/all'](realType);
+    return context.store.getters['cluster/all'](realType);
   };
 
   window.byId = (type, id) => {
     const realType = window.schemaName(type);
 
-    return context.store.getters['v1/byId'](realType, id);
+    return context.store.getters['cluster/byId'](realType, id);
   };
 
   window.find = (type, id) => {
     const realType = window.schemaName(type);
 
-    return context.store.dispatch('v1/find', {
+    return context.store.dispatch('cluster/find', {
       type: realType,
       id
     });
@@ -27,7 +27,7 @@ export default (context) => {
   window.findAll = (type) => {
     const realType = window.schemaName(type);
 
-    return context.store.dispatch('v1/findAll', { type: realType });
+    return context.store.dispatch('cluster/findAll', { type: realType });
   };
 
   console.log('# Welcome to warp zone');

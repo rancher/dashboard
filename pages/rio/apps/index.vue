@@ -14,7 +14,7 @@ export default {
 
   computed: {
     schema() {
-      return this.$store.getters['v1/schemaFor'](RESOURCE);
+      return this.$store.getters['cluster/schemaFor'](RESOURCE);
     },
 
     headers() {
@@ -36,8 +36,8 @@ export default {
 
   asyncData(ctx) {
     return Promise.all([
-      ctx.store.dispatch('v1/findAll', { type: RESOURCE }),
-      ctx.store.dispatch('v1/findAll', { type: RIO.VERSION }),
+      ctx.store.dispatch('cluster/findAll', { type: RESOURCE }),
+      ctx.store.dispatch('cluster/findAll', { type: RIO.VERSION }),
     ]).then(([apps, versions]) => {
       return {
         resource: RESOURCE,

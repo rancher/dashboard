@@ -1,6 +1,6 @@
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import urlOptions from './urloptions';
-import { COUNT, SCHEMA } from '@/utils/types';
+import { SCHEMA } from '@/utils/types';
 
 export default {
   all: (state, getters) => (type) => {
@@ -109,40 +109,6 @@ export default {
     url = urlOptions(url, opt);
 
     return url;
-  },
-
-  counts(state, getters) {
-    const obj = getters['all'](COUNT)[0].counts;
-    const out = Object.keys(obj).map((id) => {
-      const schema = getters['schemaFor'](id);
-
-      if ( !schema ) {
-        return null;
-      }
-
-      const attrs = schema.attributes || {};
-      const entry = obj[id];
-
-      if ( !attrs.kind ) {
-        // Skip apiGroups resource
-        return;
-      }
-
-      return {
-        id,
-        schema,
-        label:       attrs.kind,
-        group:       attrs.group,
-        version:     attrs.version,
-        namespaced:  attrs.namespaced,
-        verbs:       attrs.verbs,
-        count:       entry.count,
-        byNamespace: entry.namespaces,
-        revision:    entry.revision,
-      };
-    });
-
-    return out.filter(x => !!x);
   },
 
   nextResourceVersion: (state, getters) => (type) => {

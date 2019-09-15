@@ -7,6 +7,7 @@ import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/NamespaceFilter';
 import Group from '@/components/nav/Group';
+import { COUNT } from '@/utils/types';
 
 export default {
   components: {
@@ -22,9 +23,43 @@ export default {
   computed: {
     ...mapGetters(['preloaded']),
 
+    counts() {
+      const obj = this.$store.getters['cluster/all'](COUNT)[0].counts;
+      const out = Object.keys(obj).map((id) => {
+        const schema = this.$store.getters['cluster/schemaFor'](id);
+
+        if ( !schema ) {
+          return null;
+        }
+
+        const attrs = schema.attributes || {};
+        const entry = obj[id];
+
+        if ( !attrs.kind ) {
+          // Skip apiGroups resource
+          return;
+        }
+
+        return {
+          id,
+          schema,
+          label:       attrs.kind,
+          group:       attrs.group,
+          version:     attrs.version,
+          namespaced:  attrs.namespaced,
+          verbs:       attrs.verbs,
+          count:       entry.count,
+          byNamespace: entry.namespaces,
+          revision:    entry.revision,
+        };
+      });
+
+      return out.filter(x => !!x);
+    },
+
     packages() {
       const namespaces = this.$store.getters['namespaces'] || [];
-      const counts = this.$store.getters['v1/counts'];
+      const counts = this.counts;
 
       const explorer = explorerPackage(this.$router, counts, namespaces);
       const rio = rioPackage(this.$router, counts, namespaces);

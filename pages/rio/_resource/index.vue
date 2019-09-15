@@ -75,7 +75,7 @@ export default {
     },
 
     schema() {
-      return this.$store.getters['v1/schemaFor'](this.type);
+      return this.$store.getters['cluster/schemaFor'](this.type);
     },
 
     headers() {
@@ -87,7 +87,7 @@ export default {
     const resource = ctx.params.resource;
     const type = FRIENDLY[resource].type;
 
-    return ctx.store.dispatch('v1/findAll', { type }).then((rows) => {
+    return ctx.store.dispatch('cluster/findAll', { type }).then((rows) => {
       return {
         resource,
         type,

@@ -29,7 +29,7 @@ export default {
 
     const data = { type };
 
-    const model = await ctx.store.dispatch('v1/create', data);
+    const model = await ctx.store.dispatch('cluster/create', data);
 
     return {
       resource,
