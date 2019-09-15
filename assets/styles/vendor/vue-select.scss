@@ -1,0 +1,233 @@
+.v-select {
+  position: relative;
+  font-family: inherit;
+}
+
+.v-select,
+.v-select * {
+  box-sizing: border-box;
+}
+
+.vs--disabled {
+  .vs__dropdown-toggle,
+  .vs__clear,
+  .vs__search,
+  .vs__selected,
+  .vs__open-indicator {
+    cursor: not-allowed;
+    color: var(--dropdown-disabled-text);
+    background-color: var(--dropdown-disabled-bg);
+  }
+}
+
+.vs__dropdown-menu {
+  display: block;
+  position: absolute;
+  top: calc(100% - 1px);
+  left: 0;
+  z-index: 1000;
+  padding: 5px 0;
+  margin: 0;
+  width: 100%;
+  max-height: 350px;
+  min-width: 160px;
+  overflow-y: auto;
+  border: 1px solid var(--dropdown-border);
+  border-top-style: none;
+  border-radius: 0 0 4px 4px;
+  text-align: left;
+  list-style: none;
+  background: var(--dropdown-bg);
+}
+
+.vs__dropdown-option {
+  line-height: 1.42857143; /* Normalize line height */
+  display: block;
+  padding: 3px 20px;
+  clear: both;
+  color: var(--dropdown-text);
+  white-space: nowrap;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.vs__dropdown-option--highlight {
+  color: var(--dropdown-hover-text);
+  background: var(--dropdown-hover-bg);
+}
+
+.vs__dropdown-toggle {
+  appearance: none;
+  display: flex;
+  padding: 0 0 4px 0;
+  background: none;
+  border: 1px solid var(--dropdown-border);
+  white-space: normal;
+}
+
+.vs__selected-options {
+  display: flex;
+  flex-basis: 100%;
+  flex-grow: 1;
+  flex-wrap: wrap;
+  padding: 0 2px;
+  position: relative;
+}
+
+.vs__actions {
+  display: flex;
+  align-items: center;
+  padding: 4px 6px 0 3px;
+}
+
+.vs--searchable .vs__dropdown-toggle {
+  cursor: text;
+}
+
+.vs--unsearchable .vs__dropdown-toggle {
+  cursor: pointer;
+}
+
+.vs--open .vs__dropdown-toggle {
+  border-bottom-color: transparent;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+$transition-timing-function: cubic-bezier(1.000, -0.115, 0.975, 0.855);
+$transition-duration: 150ms;
+
+.vs__open-indicator {
+  fill: var(--dropdown-text);
+  transform: scale(1);
+  transition: transform $transition-duration $transition-timing-function;
+  transition-timing-function: $transition-timing-function;
+}
+
+.vs--open .vs__open-indicator {
+  transform: rotate(180deg) scale(1);
+}
+
+.vs--loading .vs__open-indicator {
+  opacity: 0;
+}
+
+.vs__search::-webkit-search-decoration,
+.vs__search::-webkit-search-cancel-button,
+.vs__search::-webkit-search-results-button,
+.vs__search::-webkit-search-results-decoration,
+.vs__search::-ms-clear {
+  display: none;
+}
+
+.vs__search,
+.vs__search:focus {
+  appearance: none;
+  border-left: none;
+  outline: none;
+  margin: 4px 0 0 0;
+  background: none;
+  box-shadow: none;
+  width: 0;
+  max-width: 100%;
+  flex-grow: 1;
+}
+
+.vs__search::placeholder {
+  color: var(--input-placeholder);
+}
+
+.vs--unsearchable {
+  .vs__search {
+    opacity: 1;
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+}
+.vs--single.vs--searching:not(.vs--open):not(.vs--loading) {
+    .vs__search {
+      opacity: .2;
+    }
+}
+
+.vs__selected {
+  display: flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  border: 1px solid var(--dropdown-border);
+  border-radius: 4px;
+  color: #333;
+  margin: 4px 2px 0px 2px;
+  padding: 0 0.25em;
+}
+
+.vs__deselect {
+  display: inline-flex;
+  appearance: none;
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background: none;
+  fill: rgba(60,60,60,0.5);
+  text-shadow: 0 1px 0 #fff;
+}
+
+/* States */
+
+.vs--single {
+  .vs__selected {
+    background-color: transparent;
+    border-color: transparent;
+  }
+  &.vs--open .vs__selected {
+    position: absolute;
+    opacity: .4;
+  }
+  &.vs--searching .vs__selected {
+    display: none;
+  }
+}
+
+.vs__selected {
+  display: flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  border: 1px solid var(--dropdown-border);
+  border-radius: 4px;
+  color: #333;
+  margin: 4px 2px 0px 2px;
+  padding: 0 0.25em;
+}
+
+.vs__deselect {
+  display: inline-flex;
+  appearance: none;
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background: none;
+  fill: rgba(60,60,60,0.26);
+  text-shadow: 0 1px 0 #fff
+}
+
+/* States */
+
+.vs--single {
+  .vs__selected {
+    background-color: transparent;
+    border-color: transparent;
+  }
+  &.vs--open .vs__selected {
+    position: absolute;
+    opacity: .4;
+  }
+  &.vs--searching .vs__selected {
+    display: none;
+  }
+}

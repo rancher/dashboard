@@ -1,20 +1,3 @@
-
-<template>
-  <div>
-    <SortableTable
-      :headers="_headers"
-      :rows="filteredRows"
-      :group-by="groupBy"
-      key-field="_key"
-      table-actions
-    >
-      <template v-if="groupable" #header-middle>
-        <ButtonGroup v-model="group" :options="groupOptions" />
-      </template>
-    </SortableTable>
-  </div>
-</template>
-
 <script>
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
@@ -39,17 +22,22 @@ export default {
     headers: {
       type:    Array,
       default: null,
-    }
+    },
   },
 
   computed: {
-    _headers() {
-      let headers;
-
+    showNamespaceColumn() {
       const namespaced = this.schema.attributes.namespaced;
       const groupable = this.$store.getters['multipleNamespaces'];
       const groupNamespaces = this.group === 'namespace';
       const showNamespace = namespaced && groupable && !groupNamespaces;
+
+      return showNamespace;
+    },
+
+    _headers() {
+      let headers;
+      const showNamespace = this.showNamespaceColumn;
 
       if ( this.headers ) {
         headers = this.headers.slice();
@@ -105,3 +93,27 @@ export default {
   },
 };
 </script>
+
+<template>
+  <div>
+    <SortableTable
+      v-bind="$attrs"
+      :headers="_headers"
+      :rows="filteredRows"
+      :group-by="groupBy"
+      key-field="_key"
+      table-actions
+      v-on="$listeners"
+    >
+      <template v-if="groupable" #header-middle>
+        <slot name="header-middle" />
+        <ButtonGroup v-model="group" :options="groupOptions" />
+      </template>
+
+      <!-- Pass down templates provided by the caller -->
+      <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+        <slot :name="slot" v-bind="scope" />
+      </template>
+    </SortableTable>
+  </div>
+</template>

@@ -106,6 +106,11 @@ export default {
       default: false,
     },
 
+    subExpandable: {
+      type:    Boolean,
+      default: false,
+    },
+
     subSearch: {
       // A field containing an array of sub-items to also search in for each row
       type:    String,
@@ -120,6 +125,10 @@ export default {
 
   },
 
+  data() {
+    return { expanded: {} };
+  },
+
   computed: {
     fullColspan() {
       let span = 0;
@@ -131,6 +140,10 @@ export default {
       }
 
       if ( this.tableActions ) {
+        span++;
+      }
+
+      if ( this.subExpandable ) {
         span++;
       }
 
@@ -186,7 +199,26 @@ export default {
     }
   },
 
-  methods: { get, dasherize }
+  methods: {
+    get,
+    dasherize,
+
+    isExpanded(row) {
+      const key = row[this.keyField];
+
+      return !!this.expanded[key];
+    },
+
+    toggleExpand(row) {
+      const key = row[this.keyField];
+      const val = !this.expanded[key];
+
+      this.expanded[key] = val;
+      this.expanded = { ...this.expanded };
+
+      return val;
+    }
+  }
 };
 </script>
 
@@ -222,6 +254,7 @@ export default {
         :columns="columns"
         :table-actions="tableActions"
         :row-actions="rowActions"
+        :sub-expandable="subExpandable"
         :row-actions-width="rowActionsWidth"
         :how-much-selected="howMuchSelected"
         :sort-by="sortBy"
@@ -266,16 +299,19 @@ export default {
               <td v-if="tableActions" class="row-check" align="middle">
                 <input type="checkbox" :data-node-id="get(row,keyField)" />
               </td>
+              <td v-if="subExpandable" class="row-expand" align="middle">
+                <i data-title="Toggle Expand" :class="{'row-expand': true, icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[get(row, keyField)]}" />
+              </td>
               <template v-for="col in columns">
-                <slot name="cell" :row="row" :col="col">
-                  <slot :name="'col:' + col.name">
-                    <td v-if="col.formatter" :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'" :class="'col-'+dasherize(col.formatter)">
-                      <component :is="col.formatter" :value="get(row, col.value||col.name)" :row="row" :col="col" />
-                    </td>
-                    <td v-else :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'">
-                      {{ get(row, col.value||col.name) }}
-                    </td>
-                  </slot>
+                <slot :name="'col:' + col.name" :row="row" :col="col">
+                  <td :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'" :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}">
+                    <slot :name="'cell:' + col.name" :row="row" :col="col">
+                      <component :is="col.formatter" v-if="col.formatter" :value="get(row, col.value||col.name)" :row="row" :col="col" />
+                      <template v-else>
+                        {{ get(row, col.value||col.name) }}
+                      </template>
+                    </slot>
+                  </td>
                 </slot>
               </template>
               <td v-if="rowActions" align="middle">
@@ -287,7 +323,13 @@ export default {
               </td>
             </tr>
           </slot>
-          <slot v-if="subRows" name="sub-row" :row="row" :sub-matches="subMatches" />
+          <slot
+            v-if="subRows && (!subExpandable || expanded[get(row,keyField)])"
+            name="sub-row"
+            :full-colspan="fullColspan"
+            :row="row"
+            :sub-matches="subMatches"
+          />
         </template>
       </tbody>
     </table>

@@ -1,5 +1,5 @@
 <template>
-  <div class="picker">
+  <div class="filter">
     <v-select
       v-model="value"
       multiple
@@ -45,8 +45,8 @@ export default {
 </script>
 
 <style type="scss" scoped>
-  .picker >>> INPUT {
+  .filter >>> INPUT {
     width: auto;
-    padding: 0;
+    background-color: transparent;
   }
 </style>

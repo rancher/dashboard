@@ -21,7 +21,7 @@ TEXTAREA,
 
   border-color: var(--input-border);
   border-width: $outline-width;
-  border-radius: $border-radius;
+  border-radius: var(--border-radius);
   border-style: solid;
   border-color: transparent;
 

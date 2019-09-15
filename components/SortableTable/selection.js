@@ -122,9 +122,16 @@ export default {
       const tagName = e.target.tagName;
       const selection = this.selectedNodes;
       const isCheckbox = tagName === 'INPUT' || tgt.hasClass('row-check');
+      const isExpand = tgt.hasClass('row-expand');
       const content = this.pagedRows;
 
       if ( !node ) {
+        return;
+      }
+
+      if ( isExpand ) {
+        this.toggleExpand(node);
+
         return;
       }
 
@@ -287,8 +294,8 @@ export default {
       }
     },
 
-    updateInput(node, on, idField) {
-      const id = get(node, idField);
+    updateInput(node, on, keyField) {
+      const id = get(node, keyField);
 
       if ( id ) {
         const input = $(`input[data-node-id="${ id }"]`);

@@ -1,10 +1,3 @@
-export const EXPAND = {
-  name:   'expand',
-  sort:   false,
-  search: null,
-  width:  30
-};
-
 export const STATE = {
   name:      'state',
   label:     'State',
@@ -56,6 +49,37 @@ export const SCALE = {
   width:     100,
   formatter: 'Scale',
   align:     'center',
+};
+export const WEIGHT = {
+  name:      'weight',
+  label:     'Weight',
+  sort:      false,
+  width:     60,
+  align:     'center',
+};
+
+export const SUCCESS = {
+  name:  'success',
+  label: 'Success',
+  value: 'success',
+  width: 60,
+  align: 'right',
+};
+
+export const REQ_RATE = {
+  name:  'req-rate',
+  label: 'Req Rate',
+  value: 'rps',
+  width: 60,
+  align: 'right',
+};
+
+export const P95 = {
+  name:  'p95',
+  label: '95%tile',
+  value: 'p95',
+  width: 60,
+  align: 'right',
 };
 
 export function headersFor(schema, addNamespace = true) {

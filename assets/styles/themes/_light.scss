@@ -33,7 +33,6 @@ $contrasted-dark: $darkest !default;
 $contrasted-light: $lightest !default;
 
 $selected: rgba($primary, .5);
-$border-radius: 3px;
 
 :root {
   // Colors that will have text- and bg- helper classes created
@@ -67,6 +66,7 @@ $border-radius: 3px;
   --footer-bg                  : #f1f2f3;
   --box-bg                     : #{$light};
   --border                     : #{$medium};
+  --border-radius              : 3px;
   --outline                    : rgba(42,148,255,0.75);
   --outline-width              : 2px;
 

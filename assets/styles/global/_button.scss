@@ -20,7 +20,7 @@ button,
   user-select: none;
   border: 0 solid transparent;
   padding: $btn-padding;
-  border-radius: $border-radius;
+  border-radius: var(--border-radius);
 
   &:hover {
       text-decoration: none;
@@ -90,7 +90,6 @@ fieldset[disabled] .btn {
   cursor: not-allowed;
 }
 
-//button group
 .btn-group {
   position: relative;
   display: inline-block;
@@ -98,25 +97,30 @@ fieldset[disabled] .btn {
   text-align: center;
   padding: 0;
   background: var(--input-bg);
-  border-radius: $border-radius;
+  border-radius: var(--border-radius);
 
   .btn {
     position: relative;
     display: inline-block;
     border-radius: 0;
 
+    &:focus {
+      // Move the focused one to the top so that the focus ring is all visible
+      z-index: 1;
+    }
+
     &.active {
       @extend .bg-primary;
     }
 
     &:first-child {
-      border-top-left-radius: $border-radius;
-      border-bottom-left-radius: $border-radius;
+      border-top-left-radius: var(--border-radius);
+      border-bottom-left-radius: var(--border-radius);
     }
 
     &:last-child {
-      border-top-right-radius: $border-radius;
-      border-bottom-right-radius: $border-radius;
+      border-top-right-radius: var(--border-radius);
+      border-bottom-right-radius: var(--border-radius);
     }
   }
 }

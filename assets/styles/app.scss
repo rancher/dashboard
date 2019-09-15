@@ -20,4 +20,5 @@
 @import "./global/form";
 @import "./global/tooltip";
 
-@import 'vue-select/src/scss/vue-select.scss';
+/* @import 'vue-select/src/scss/vue-select.scss'; */
+@import "./vendor/vue-select";

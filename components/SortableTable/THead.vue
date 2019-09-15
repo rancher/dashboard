@@ -35,11 +35,19 @@ export default {
     },
     checkWidth: {
       type:     Number,
-      default:  40,
+      default:  30,
     },
     rowActionsWidth: {
       type:     Number,
       required: true
+    },
+    subExpandable: {
+      type:    Boolean,
+      default: false,
+    },
+    expandWidth: {
+      type:    Number,
+      default: 30,
     }
   },
 
@@ -104,6 +112,7 @@ export default {
           :indeterminate.prop="isIndeterminate"
         />
       </th>
+      <th v-if="subExpandable" :width="expandWidth"></th>
       <th
         v-for="col in columns"
         :key="col.name"
