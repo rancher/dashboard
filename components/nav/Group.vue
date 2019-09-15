@@ -64,23 +64,26 @@ export default {
     </template>
 
     <ul class="list-unstyled">
-      <li v-for="(child, idx) in group[childrenKey]" :key="child.name">
-        <hr v-if="child.divider" :key="idx" />
-        <Group
-          v-else-if="child[childrenKey]"
-          :key="child.name"
-          :is-expanded="isExpanded"
-          :toggle-group="toggleGroup"
-          :children-key="childrenKey"
-          :id-prefix="id+'_'"
-          :group="child"
-        />
+      <template v-for="(child, idx) in group[childrenKey]">
+        <li v-if="child.divider" :key="idx">
+          <hr />
+        </li>
+        <li v-else-if="child[childrenKey]" :key="child.name">
+          <Group
+            :key="child.name"
+            :is-expanded="isExpanded"
+            :toggle-group="toggleGroup"
+            :children-key="childrenKey"
+            :id-prefix="id+'_'"
+            :group="child"
+          />
+        </li>
         <Type
           v-else
           :key="child.name"
           :type="child"
         />
-      </li>
+      </template>
     </ul>
   </Accordion>
 </template>
