@@ -16,12 +16,22 @@ export const NAME = {
   formatter: 'LinkDetail',
 };
 
+export const NAMESPACE_NAME = {
+  name:      'namespace-name',
+  label:     'Name',
+  value:     'namespaceNameDisplay',
+  sort:      ['namespaceNameSort', 'id'],
+  formatter: 'LinkDetail',
+};
+
+/*
 export const NAMESPACE = {
   name:   'namespace',
   label:  'Namespace',
   value:  'metadata.namespace',
   sort:   ['metadata.namespace', 'nameSort', 'id'],
 };
+*/
 
 export const CREATED = {
   name:       'created',
@@ -29,7 +39,7 @@ export const CREATED = {
   value:      'metadata.creationTimestamp',
   sort:       ['createdTs', 'nameSort', 'id'],
   search:     false,
-  width:      120,
+  width:      100,
   formatter:  'LiveDate',
   align:     'right'
 };
@@ -82,16 +92,13 @@ export const P95 = {
   align: 'right',
 };
 
-export function headersFor(schema, addNamespace = true) {
+export function headersFor(schema) {
   const out = [];
   const columns = schema.attributes.columns;
 
   for ( const col of columns ) {
     if ( col.format === 'name' && col.field === 'metadata.name' ) {
-      out.push(NAME);
-      if ( addNamespace ) {
-        out.push(NAMESPACE);
-      }
+      out.push(NAMESPACE_NAME);
     } else if ( col.format === 'date' && col.field === 'metadata.creationTimestamp' ) {
       out.push(CREATED);
     } else {

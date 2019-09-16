@@ -3,10 +3,12 @@ import VueNativeSock from 'vue-native-websocket';
 
 export default ({ store }) => {
   const url = window.location.origin.replace(/^http(s)?:/, 'ws$1:');
+  const baseUrl = '/v1';
   const namespace = 'cluster';
 
-  Vue.use(VueNativeSock, `${ url }/${ namespace }/subscribe`, {
+  Vue.use(VueNativeSock, `${ url }${ baseUrl }/subscribe`, {
     store,
+    connectManually:   !store.getters['auth/loggedIn'],
     reconnection:      true,
     reconnectionDelay: 3000,
     mutations:         {

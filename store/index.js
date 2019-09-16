@@ -42,11 +42,14 @@ export const actions = {
   async preload({
     state, getters, commit, dispatch
   }) {
+    console.log('Preload...');
+
     if ( state.preloaded ) {
       return;
     }
 
     console.log('Preloading...');
+
     await Promise.all([
       dispatch('prefs/loadCookies'),
       // ctx.store.dispatch('k8s/loadAll'),
@@ -67,13 +70,16 @@ export const actions = {
     commit('updateNamespaces', val);
   },
 
-  async nuxtClientInit({ state, dispatch }) {
-    if ( !state.preloaded ) {
-      await dispatch('preload');
-    }
-  },
+  nuxtClientInit(ctx) {
+    /*
+    const state = ctx.state;
 
-  async nuxtServerInit({ dispatch }) {
-    await dispatch('preload');
-  }
+    if ( state && state.auth && state.auth.loggedIn ) {
+      const url = `${ window.location.origin.replace(/^http(s)?:/, 'ws$1:') }/v1/subscribe`;
+
+      debugger;
+      window.$nuxt.$connect(url);
+    }
+    */
+  },
 };

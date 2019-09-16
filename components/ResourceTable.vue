@@ -2,8 +2,7 @@
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
 import SortableTable from '@/components/SortableTable';
-import { headersFor, NAMESPACE } from '@/utils/table-headers';
-import { removeObject } from '@/utils/array';
+import { headersFor, NAME, NAMESPACE_NAME } from '@/utils/table-headers';
 
 export default {
   components: { ButtonGroup, SortableTable },
@@ -48,7 +47,11 @@ export default {
       // This removes the namespace column from custom headers passed in
       // (and headersFor won't add it in the first place)
       if ( !showNamespace ) {
-        removeObject(headers, NAMESPACE);
+        const idx = headers.indexOf(NAMESPACE_NAME);
+
+        if ( idx >= 0 ) {
+          headers.splice(idx, 1, NAME);
+        }
       }
 
       return headers;

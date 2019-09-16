@@ -1,4 +1,4 @@
-// import { RIO } from '@/utils/types';
+import { RIO } from '@/utils/types';
 // import { filterBy } from '@/utils/array';
 
 export default {
@@ -10,7 +10,32 @@ export default {
     }
 
     return out;
+  },
+
+  versions() {
+    return this.spec.revisions.map((rev) => {
+      return this.$getters['byId'](RIO.VERSION, `${ this.metadata.namespace }/${ rev.serviceName }`);
+    }).filter(x => !!x);
+  },
+
+  weights() {
+    const out = {};
+    const revisions = this.spec.revisions.map(rev => rev.Version);
+    const weights = this.status.revisionWeight;
+
+    for ( const rev of revisions ) {
+      const status = weights[rev];
+
+      if ( status && status.weight ) {
+        out[rev] = status.weight;
+      } else {
+        out[rev] = 0;
+      }
+    }
+
+    return out;
   }
+
 };
 
 /*

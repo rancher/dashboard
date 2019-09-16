@@ -1,6 +1,5 @@
 
 <script>
-import { mapGetters } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
 import { explorerPackage, rioPackage } from '@/utils/packages';
 import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
@@ -14,6 +13,8 @@ export default {
     ActionMenu, NamespaceFilter, Group
   },
 
+  middleware: ['authenticated'],
+
   head() {
     const theme = this.$store.getters['prefs/get'](THEME);
 
@@ -21,8 +22,6 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['preloaded']),
-
     counts() {
       const obj = this.$store.getters['cluster/all'](COUNT)[0].counts;
       const out = Object.keys(obj).map((id) => {
@@ -75,6 +74,14 @@ export default {
     expandedGroups: mapPref(EXPANDED_GROUPS),
   },
 
+  mounted() {
+    if ( this.$store.state.auth.loggedIn ) {
+      const url = `${ window.location.origin.replace(/^http(s)?:/, 'ws$1:') }/v1/subscribe`;
+
+      this.$connect(url);
+    }
+  },
+
   methods: {
     toggleGroup(route, expanded) {
       const groups = this.expandedGroups.slice();
@@ -114,18 +121,18 @@ export default {
       </div>
     </header>
 
-    <nav v-if="preloaded">
+    <nav>
       <NamespaceFilter class="mt-20 mb-0" />
 
       <div v-for="pkg in packages" :key="pkg.name" class="package">
         <Group
           :key="pkg.name"
-          :id-prefix="pkg.name"
+          id-prefix=""
           :is-expanded="isExpanded"
           :group="pkg"
           :toggle-group="toggleGroup"
           :custom-header="true"
-          :can-collapse="pkg.name !== 'rio'"
+          :can-collapse="true"
         >
           <template slot="accordion">
             <h6>{{ pkg.label }}</h6>

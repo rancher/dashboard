@@ -96,7 +96,7 @@ export default {
       commit('registerType', type);
     }
 
-    // console.log('Load', data.type, data.id);
+    console.log('Create', data.type, data.id);
     commit('load', {
       ctx,
       type,
@@ -112,7 +112,7 @@ export default {
       commit('registerType', type);
     }
 
-    // console.log('Load', data.type, data.id);
+    // console.log('Change', data.type, data.id);
     commit('load', {
       ctx,
       type,
@@ -124,6 +124,7 @@ export default {
     const type = getters.normalizeType(data.type);
 
     if ( getters.hasType(type) ) {
+      console.log('Remove', data.type, data.id);
       commit('remove', { type, id: data.id });
     }
   },

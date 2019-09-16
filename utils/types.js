@@ -18,3 +18,9 @@ export const RIO = {
   ROUTER:           'rio.cattle.io.v1.router',
   VERSION:          'rio.cattle.io.v1.service',
 };
+
+export const RANCHER = {
+  CLUSTER:   'cluster',
+  PRINCIPAL: 'principal',
+  USER:      'user',
+};

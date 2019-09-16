@@ -4,10 +4,12 @@ import path from 'path';
 require('dotenv').config();
 
 const dev = (process.env.NODE_ENV !== 'production');
-const target = process.env.API || 'http://localhost:8989';
+const steve = process.env.API || 'http://localhost:8989';
+const rancher = process.env.RANCHER || 'https://localhost:30443';
 
 console.log((dev ? 'Development mode' : 'Production mode'));
-console.log(`Proxying to ${ target }`);
+console.log(`Proxying Steve to ${ steve }`);
+console.log(`Proxying Rancher to ${ rancher }`);
 
 module.exports = {
   dev,
@@ -87,28 +89,31 @@ module.exports = {
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
     '/v1': {
-      target,
+      target:       steve,
       xfwd:         true,
       ws:           true,
-      logLevel:     'debug',
       changeOrigin: true,
-      onProxyReqWs(proxyReq, req, socket, options, head) {
-        req.headers.origin = options.target.href;
-        proxyReq.setHeader('origin', options.target.href);
-        proxyReq.setHeader('x-forwarded-host', req.headers['host']);
-
-        socket.on('error', (err) => {
-          console.error('Proxy WS Error:', err);
-        });
-      },
-      onError(err, req, res) {
-        res.statusCode = 500;
-        console.error('Proxy Error:', err);
-        res.write(JSON.stringify(err));
-      }
+      onProxyReqWs,
+      onError,
     },
-    '/api':    { target, xfwd: true },
-    '/api-ui': { target, xfwd: true }
+    '/v3': {
+      target:       rancher,
+      xfwd:         true,
+      ws:           true,
+      changeOrigin: true,
+      onProxyReqWs,
+      onError,
+    },
+    '/v3-public': {
+      target:       rancher,
+      xfwd:         true,
+      ws:           true,
+      changeOrigin: true,
+      onProxyReqWs,
+      onError,
+    },
+    '/api':    { target: rancher, xfwd: true },
+    '/api-ui': { target: rancher, xfwd: true }
   },
 
   // Nuxt server
@@ -126,3 +131,19 @@ module.exports = {
     '~/server/no-ssr'
   ],
 };
+
+function onProxyReqWs(proxyReq, req, socket, options, head) {
+  req.headers.origin = options.target.href;
+  proxyReq.setHeader('origin', options.target.href);
+  proxyReq.setHeader('x-forwarded-host', req.headers['host']);
+
+  socket.on('error', (err) => {
+    console.error('Proxy WS Error:', err);
+  });
+}
+
+function onError(err, req, res) {
+  res.statusCode = 500;
+  console.error('Proxy Error:', err);
+  res.write(JSON.stringify(err));
+}

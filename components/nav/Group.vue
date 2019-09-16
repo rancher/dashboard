@@ -41,7 +41,7 @@ export default {
 
   computed: {
     id() {
-      return this.idPrefix + this.group.name;
+      return (this.idPrefix || '') + this.group.name;
     }
   }
 };

@@ -1,16 +1,21 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import BadgeState from '@/components/formatters/BadgeState';
+import Random from '@/components/Random';
+import { allHash } from '@/utils/promise';
+import { get } from '@/utils/object';
 
 import { RIO } from '@/utils/types';
 import {
-  STATE, NAME, NAMESPACE, WEIGHT, SCALE, CREATED, SUCCESS, REQ_RATE, P95
+  STATE, NAMESPACE_NAME, SCALE, CREATED, SUCCESS, REQ_RATE, P95
 } from '@/utils/table-headers';
 
 const RESOURCE = RIO.APP;
 
 export default {
-  components: { ResourceTable, BadgeState },
+  components: {
+    ResourceTable, BadgeState, Random
+  },
 
   computed: {
     schema() {
@@ -20,9 +25,7 @@ export default {
     headers() {
       const out = [
         STATE,
-        NAME,
-        NAMESPACE,
-        WEIGHT,
+        NAMESPACE_NAME,
         SCALE,
         SUCCESS,
         REQ_RATE,
@@ -34,17 +37,19 @@ export default {
     }
   },
 
-  asyncData(ctx) {
-    return Promise.all([
-      ctx.store.dispatch('cluster/findAll', { type: RESOURCE }),
-      ctx.store.dispatch('cluster/findAll', { type: RIO.VERSION }),
-    ]).then(([apps, versions]) => {
-      return {
-        resource: RESOURCE,
-        rows:     apps
-      };
+  async asyncData(ctx) {
+    const hash = await allHash({
+      rows:     ctx.store.dispatch('cluster/findAll', { type: RESOURCE }),
+      versions: ctx.store.dispatch('cluster/findAll', { type: RIO.VERSION }),
     });
+
+    return {
+      resource: RESOURCE,
+      rows:     hash.rows
+    };
   },
+
+  methods: { get },
 };
 </script>
 
@@ -69,31 +74,37 @@ export default {
       <template #cell:scale="scope">
         {{ scope.row.totalScale || '?' }}
       </template>
+      <template #cell:success>
+        <Random :min="10" :max="100" suffix="%" />
+      </template>
+      <template #cell:req-rate>
+        <Random :min="1" :max="20" :decimals="1" suffix="/s" />
+      </template>
+      <template #cell:p95>
+        <Random :min="50" :max="500" suffix="ms" />
+      </template>
       <template #sub-row="scope">
         <tr v-for="version in scope.row.spec.revisions" :key="version.serviceName">
           <td colspan="2"></td>
-          <td><BadgeState :row="scope.row" /></td>
+          <td><BadgeState val="" :col="scope.col" :row="scope.row" /></td>
           <td>{{ version.serviceName }}</td>
           <td align="center">
-            {{ scope.row.status.revisionWeight[version.Version].weight }}%
+            {{ get(scope.row.weights, version.Version) || 0 }}%
             <div
-              v-if="version.adjustedWeight != scope.row.status.revisionWeight[version.Version].weight"
+              v-if="version.adjustedWeight !== undefined && version.adjustedWeight !== get(scope.row.weights, version.Version)"
               class="text-small text-muted"
             >
               to {{ version.adjustedWeight }}%
             </div>
           </td>
-          <td align="center">
-            {{ version.scale }}
+          <td align="right">
+            <Random :min="10" :max="100" suffix="%" />
           </td>
           <td align="right">
-            100%
+            <Random :min="1" :max="20" :decimals="1" suffix="/s" />
           </td>
           <td align="right">
-            5rps
-          </td>
-          <td align="right">
-            200ms
+            <Random :min="50" :max="500" suffix="ms" />
           </td>
           <td align="right">
             ?

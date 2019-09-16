@@ -31,7 +31,7 @@ export const mapPref = function(name) {
 const parseJSON = true; // Shortcut for setting it below
 
 export const NAMESPACES = create('ns', [], { parseJSON });
-export const EXPANDED_GROUPS = create('open_groups', [], { parseJSON });
+export const EXPANDED_GROUPS = create('open_groups', ['rio'], { parseJSON });
 export const GROUP_RESOURCES = create('group_by', 'namespace');
 export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
 export const THEME = create('theme', 'dark', { options: ['light', 'dark'] });

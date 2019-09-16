@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import { CONFIG_MAP, SECRET, RIO } from '@/utils/types';
-import { STATE, NAME, NAMESPACE, CREATED } from '@/utils/table-headers';
+import { STATE, NAMESPACE_NAME, CREATED } from '@/utils/table-headers';
 
 const KEYS = {
   name:      'keys',
@@ -17,8 +17,7 @@ export const FRIENDLY = {
     type:     CONFIG_MAP,
     headers:  [
       STATE,
-      NAME,
-      NAMESPACE,
+      NAMESPACE_NAME,
       KEYS,
       CREATED
     ],
@@ -49,8 +48,7 @@ export const FRIENDLY = {
     type:     SECRET,
     headers:  [
       STATE,
-      NAME,
-      NAMESPACE,
+      NAMESPACE_NAME,
       {
         name:  'type',
         label: 'Type',

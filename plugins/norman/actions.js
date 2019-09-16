@@ -44,6 +44,16 @@ export default {
     });
   },
 
+  async test({ dispatch }) {
+    try {
+      await dispatch('request', { url: '/' });
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+
   async loadSchemas(ctx) {
     const { getters, dispatch, commit } = ctx;
     const res = await dispatch('findAll', { type: SCHEMA, opt: { url: '/v1/schemas', load: false } });

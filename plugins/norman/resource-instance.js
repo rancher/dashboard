@@ -49,6 +49,21 @@ export default {
     return sortableNumericSuffix(this.nameDisplay).toLowerCase();
   },
 
+  namespaceNameDisplay() {
+    const namespace = this.metadata.namespace;
+    const name = this.metadata.name || this.id;
+
+    if ( namespace ) {
+      return `${ namespace }/${ name }`;
+    }
+
+    return name;
+  },
+
+  namespaceNameSort() {
+    return sortableNumericSuffix(this.namespaceNameDisplay).toLowerCase();
+  },
+
   stateDisplay() {
     return this._stateDisplay;
   },
@@ -213,7 +228,13 @@ export default {
 
   hasLink() {
     return (linkName) => {
-      return !!(this.links || {})[linkName];
+      return !!this.linkFor(linkName);
+    };
+  },
+
+  linkFor() {
+    return (linkName) => {
+      return (this.links || {})[linkName];
     };
   },
 
