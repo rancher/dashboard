@@ -94,6 +94,22 @@ module.exports = {
       onProxyReqWs,
       onError,
     },
+    '/api/v1': {
+      target:       steve,
+      xfwd:         true,
+      ws:           true,
+      changeOrigin: true,
+      onProxyReqWs,
+      onError,
+    },
+    '/apis': {
+      target:       steve,
+      xfwd:         true,
+      ws:           true,
+      changeOrigin: true,
+      onProxyReqWs,
+      onError,
+    },
     '/v3': {
       target:       rancher,
       xfwd:         true,
