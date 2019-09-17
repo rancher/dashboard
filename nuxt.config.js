@@ -26,13 +26,11 @@ module.exports = {
   },
 
   build: {
-    extend(config, { isDev, isClient }) {
-      if (isDev) {
-        config.devtool = isClient ? '#source-map' : 'inline-source-map';
-      }
+    extend(config, { isClient }) {
+      config.devtool = isClient ? '#source-map' : 'inline-source-map';
     },
     //    extractCSS: true,
-    //    cssSourceMap: true
+    cssSourceMap: true
   },
 
   // Global CSS

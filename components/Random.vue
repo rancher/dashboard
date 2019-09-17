@@ -2,6 +2,11 @@
 
 export default {
   props: {
+    tagName: {
+      type:    String,
+      default: 'span',
+    },
+
     min: {
       type:    Number,
       default: 1
@@ -65,7 +70,7 @@ export default {
 </script>
 
 <template>
-  <span>
+  <component :is="tagName" v-bind="$attrs">
     {{ label }}
-  </span>
+  </component>
 </template>
