@@ -72,7 +72,7 @@ export const SUCCESS = {
   name:  'success',
   label: 'Success',
   value: 'success',
-  width: 60,
+  width: 120,
   align: 'right',
 };
 
@@ -80,7 +80,7 @@ export const REQ_RATE = {
   name:  'req-rate',
   label: 'Req Rate',
   value: 'rps',
-  width: 60,
+  width: 120,
   align: 'right',
 };
 
@@ -88,7 +88,7 @@ export const P95 = {
   name:  'p95',
   label: '95%tile',
   value: 'p95',
-  width: 60,
+  width: 120,
   align: 'right',
 };
 

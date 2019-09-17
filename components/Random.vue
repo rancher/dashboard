@@ -4,7 +4,7 @@ export default {
   props: {
     tagName: {
       type:    String,
-      default: 'span',
+      default: 'div',
     },
 
     min: {
@@ -40,7 +40,7 @@ export default {
   },
 
   data() {
-    return { label: this.update() };
+    return { label: this.update(), value: 0 };
   },
 
   beforeDestroy() {
@@ -57,6 +57,7 @@ export default {
 
       if ( this.label !== label ) {
         this.label = label;
+        this.value = value;
       }
 
       this.timer = setTimeout(() => {
@@ -70,7 +71,21 @@ export default {
 </script>
 
 <template>
-  <component :is="tagName" v-bind="$attrs">
+  <component :is="tagName" v-bind="$attrs" class="container">
     {{ label }}
+    <slot :data="value" :min="min" :max="max" :interval="interval">
+    </slot>
   </component>
 </template>
+
+<style lang="scss" scoped>
+.container{
+  display: flex;
+  padding: 5px;
+  height: 80%;
+  align-items: center
+}
+  span {
+    display:block;
+  }
+</style>
