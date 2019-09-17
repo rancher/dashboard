@@ -102,16 +102,9 @@ module.exports = {
       onProxyReqWs,
       onError,
     },
-    '/v3-public': {
-      target:       rancher,
-      xfwd:         true,
-      ws:           true,
-      changeOrigin: true,
-      onProxyReqWs,
-      onError,
-    },
-    '/api':    { target: rancher, xfwd: true },
-    '/api-ui': { target: rancher, xfwd: true }
+    '/v3-public': { target: rancher, xfwd: true },
+    '/api':       { target: rancher, xfwd: true },
+    '/api-ui':    { target: rancher, xfwd: true }
   },
 
   // Nuxt server

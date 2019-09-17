@@ -1,5 +1,6 @@
 
 <script>
+import { mapGetters } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
 import { explorerPackage, rioPackage } from '@/utils/packages';
 import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
@@ -22,6 +23,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ principal: 'auth/principal' }),
+
     counts() {
       const obj = this.$store.getters['cluster/all'](COUNT)[0].counts;
       const out = Object.keys(obj).map((id) => {
@@ -114,11 +117,28 @@ export default {
       <div class="header-middle">
       </div>
 
-      <div class="header-right text-right">
-        <nuxt-link :to="{name: 'prefs'}">
-          <i class="icon icon-3x icon-gear" />
-        </nuxt-link>
-      </div>
+      <v-popover
+        placement="bottom"
+        offset="-10"
+        trigger="hover"
+        :delay="{show: 0, hide: 200}"
+        :popper-options="{modifiers: { flip: { enabled: false } } }"
+      >
+        <div class="header-right text-right">
+          <img :src="principal.profilePicture" width="40" height="40" />
+        </div>
+
+        <template slot="popover">
+          <ul class="list-unstyled text-right dropdown" style="margin: -14px;">
+            <nuxt-link tag="li" :to="{name: 'prefs'}" class="p-10">
+              <a>Preferences <i class="icon icon-fw icon-gear" /></a>
+            </nuxt-link>
+            <nuxt-link tag="li" :to="{name: 'auth-logout'}" class="p-10">
+              <a>Logout <i class="icon icon-fw icon-close" /></a>
+            </nuxt-link>
+          </ul>
+        </template>
+      </v-popover>
     </header>
 
     <nav>
@@ -152,7 +172,7 @@ export default {
 <style lang="scss" scoped>
   $header-height: 60px;
   $nav-width: 250px;
-  $right-width: 100px;
+  $right-width: 60px;
   $logo-height: 40px;
 
   .dashboard {
@@ -197,8 +217,9 @@ export default {
   }
 
   .header-right {
-    padding: 10px;
     grid-area: header-right;
+    padding: 10px;
+    cursor: pointer;
   }
 
   .collection  {

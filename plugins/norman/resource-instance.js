@@ -252,10 +252,39 @@ export default {
     };
   },
 
+  // ------------------------------------------------------------------
+
+  hasAction() {
+    return (actionName) => {
+      return !!this.actionLinkFor(actionName);
+    };
+  },
+
+  actionLinkFor() {
+    return (actionName) => {
+      return (this.actions || {})[actionName];
+    };
+  },
+
+  doAction() {
+    return (actionName, body, opt = {}) => {
+      if ( !opt.url ) {
+        opt.url = this.actionLinkFor(actionName);
+      }
+
+      opt.method = 'post';
+      opt.data = body;
+
+      return this.$dispatch('request', opt);
+    };
+  },
+
+  // ------------------------------------------------------------------
+
   patch() {
     return (data, opt = {}) => {
       if ( !opt.url ) {
-        opt.url = (this.links || {})['self'];
+        opt.url = this.linkFor('self');
       }
 
       opt.method = 'patch';
@@ -270,7 +299,7 @@ export default {
   save() {
     return (opt = {}) => {
       if ( !opt.url ) {
-        opt.url = (this.links || {})['self'];
+        opt.url = this.linkFor('self');
       }
 
       opt.method = 'post';
