@@ -91,6 +91,7 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      onProxyReq,
       onProxyReqWs,
       onError,
     },
@@ -99,6 +100,7 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      onProxyReq,
       onProxyReqWs,
       onError,
     },
@@ -107,6 +109,7 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      onProxyReq,
       onProxyReqWs,
       onError,
     },
@@ -115,12 +118,24 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      onProxyReq,
       onProxyReqWs,
       onError,
     },
-    '/v3-public': { target: rancher, xfwd: true },
-    '/api':       { target: rancher, xfwd: true },
-    '/api-ui':    { target: rancher, xfwd: true }
+    '/v3-public': {
+      target: rancher,
+      xfwd:   true,
+      onProxyReq,
+      onProxyReqWs,
+      onError
+    },
+    '/api-ui':    {
+      target: rancher,
+      xfwd:   true,
+      onProxyReq,
+      onProxyReqWs,
+      onError
+    }
   },
 
   // Nuxt server
@@ -139,10 +154,16 @@ module.exports = {
   ],
 };
 
+function onProxyReq(proxyReq, req) {
+  proxyReq.setHeader('x-api-host', req.headers['host']);
+  console.log(proxyReq.getHeaders());
+}
+
 function onProxyReqWs(proxyReq, req, socket, options, head) {
   req.headers.origin = options.target.href;
   proxyReq.setHeader('origin', options.target.href);
   proxyReq.setHeader('x-forwarded-host', req.headers['host']);
+  proxyReq.setHeader('x-api-host', req.headers['host']);
 
   socket.on('error', (err) => {
     console.error('Proxy WS Error:', err);
