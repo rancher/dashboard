@@ -2,6 +2,8 @@
 import ResourceTable from '@/components/ResourceTable';
 import BadgeState from '@/components/formatters/BadgeState';
 import Random from '@/components/Random';
+import DiscreteProgressBar from '@/components/DiscreteProgressBar';
+import TableSparkLine from '@/components/TableSparkLine';
 import { allHash } from '@/utils/promise';
 import { get } from '@/utils/object';
 
@@ -14,7 +16,7 @@ const RESOURCE = RIO.APP;
 
 export default {
   components: {
-    ResourceTable, BadgeState, Random
+    ResourceTable, BadgeState, Random, DiscreteProgressBar, TableSparkLine
   },
 
   computed: {
@@ -75,13 +77,25 @@ export default {
         {{ scope.row.totalScale || '?' }}
       </template>
       <template #cell:success>
-        <Random :min="10" :max="100" suffix="%" />
+        <Random :min="10" :max="100" :suffix="`%`">
+          <template v-slot:default="graph">
+            <DiscreteProgressBar :progress="graph.data" :interval="graph.interval" />
+          </template>
+        </Random>
       </template>
       <template #cell:req-rate>
-        <Random :min="1" :max="20" :decimals="1" suffix="/s" />
+        <Random :min="1" :max="20" :decimals="1" :suffix="`/s`">
+          <template v-slot:default="graph">
+            <TableSparkLine :input-datum="graph.data" :max="graph.max" />
+          </template>
+        </Random>
       </template>
       <template #cell:p95>
-        <Random :min="50" :max="500" suffix="ms" />
+        <Random :min="50" :max="500" :suffix="`ms`">
+          <template v-slot="graph">
+            <TableSparkLine :input-datum="graph.data" />
+          </template>
+        </Random>
       </template>
       <template #sub-row="scope">
         <tr v-for="version in scope.row.spec.revisions" :key="version.serviceName">
@@ -98,13 +112,25 @@ export default {
             </div>
           </td>
           <td align="right">
-            <Random :min="10" :max="100" suffix="%" />
+            <Random :min="10" :max="100" :interval="3000" :suffix="`%`">
+              <template v-slot:default="graph">
+                <DiscreteProgressBar :progress="graph.data" :interval="graph.interval" />
+              </template>
+            </Random>
           </td>
           <td align="right">
-            <Random :min="1" :max="20" :decimals="1" suffix="/s" />
+            <Random :min="1" :max="20" :decimals="1" :suffix="`/s`">
+              <template v-slot:default="graph">
+                <TableSparkLine :input-datum="graph.data" :max="graph.max" />
+              </template>
+            </random>
           </td>
           <td align="right">
-            <Random :min="50" :max="500" suffix="ms" />
+            <Random :min="50" :max="500" :interval="1000" :suffix="`ms`">
+              <template v-slot="graph">
+                <TableSparkLine :input-datum="graph.data" />
+              </template>
+            </Random>
           </td>
           <td align="right">
             ?
