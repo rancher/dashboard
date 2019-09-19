@@ -1,9 +1,15 @@
 import https from 'https';
+import pkg from '../package.json';
 
 export default function({ $axios, isDev }) {
   $axios.defaults.headers.common['Accept'] = 'application/json';
   $axios.defaults.xsrfCookieName = 'CSRF';
   $axios.defaults.xsrfHeaderName = 'X-Api-Csrf';
+  $axios.defaults.withCredentials = true;
+
+  if ( process.server ) {
+    $axios.defaults.headers.common['user-agent'] = `Dashboard v${ pkg.version }`;
+  }
 
   if ( isDev ) {
     // https://github.com/nuxt-community/axios-module/blob/dev/lib/module.js#L78

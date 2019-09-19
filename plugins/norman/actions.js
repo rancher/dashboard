@@ -9,14 +9,14 @@ export default {
     opt.depaginate = opt.depaginate !== false;
 
     return this.$axios(opt).then((res) => {
-      const out = res.data;
+      let out = res.data;
 
       if ( res.status === 204 ) {
         return;
       }
 
       if ( typeof out !== 'object' ) {
-        return out;
+        out = { data: out };
       }
 
       if ( opt.depaginate ) {

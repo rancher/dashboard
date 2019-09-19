@@ -1,3 +1,4 @@
+import { parse as setCookieParser } from 'set-cookie-parser';
 import { randomStr } from '@/utils/string';
 import { addParams } from '@/utils/query-params';
 
@@ -10,7 +11,7 @@ const ERR_SERVER = 'server';
 
 export const state = function() {
   return {
-    loggedIn:    false,
+    loggedIn:  false,
     principal: null,
   };
 };
@@ -27,25 +28,20 @@ export const getters = {
 
 export const mutations = {
   loggedInAs(state, principal) {
-    console.log('loggedInAs', principal);
     state.loggedIn = true;
     state.principal = principal;
 
-    if ( typeof window !== 'undefined' && window.sessionStorage ) {
-      window.sessionStorage.removeItem(KEY);
-    }
+    this.$cookies.remove(KEY);
   },
 
   loggedOut(state) {
-    window.$nuxt.$disconnect();
+    if ( typeof window !== 'undefined' ) {
+      window.$nuxt.$disconnect();
+    }
+
     state.loggedIn = false;
     state.principal = null;
   },
-
-  setNonce(state) {
-    state.nonce = randomStr(16);
-    window.sessionStorage.setItem(KEY, state.nonce);
-  }
 };
 
 export const actions = {
@@ -62,15 +58,19 @@ export const actions = {
   async redirectToGithub({ state, commit, dispatch }, opt) {
     const authConfig = await dispatch('getAuthProvider');
 
-    commit('setNonce');
+    const nonce = randomStr(16);
+
+    this.$cookies.set(KEY, nonce, {
+      path:     '/',
+      sameSite: true,
+      secure:   true,
+    });
 
     const scopes = BASE_SCOPES.slice();
 
     if ( opt && opt.scopes ) {
       scopes.push(...opt.scopes);
     }
-
-    const nonce = window.sessionStorage.getItem(KEY);
 
     const url = addParams(authConfig.redirectUrl, {
       scope:        [...BASE_SCOPES, ...scopes].join(','),
@@ -82,7 +82,7 @@ export const actions = {
   },
 
   async verify({ state, commit, dispatch }, { nonce, code }) {
-    const expect = window.sessionStorage.getItem(KEY);
+    const expect = this.$cookies.get(KEY, { parseJSON: false });
 
     if ( !expect || expect !== nonce ) {
       return ERR_NONCE;
@@ -91,15 +91,32 @@ export const actions = {
     const authConfig = await dispatch('getAuthProvider');
 
     try {
-      await authConfig.doAction('login', {
+      const res = await authConfig.doAction('login', {
         code,
         description:  'Dashboard UI session',
         responseType: 'cookie',
         ttl:          16 * 60 * 60 * 1000,
       });
 
+      if ( process.server ) {
+        const parsed = setCookieParser(res._headers['set-cookie'] || []);
+
+        for ( const opt of parsed ) {
+          const key = opt.name;
+          const value = opt.value;
+
+          delete opt.name;
+          delete opt.value;
+
+          opt.encode = x => x;
+
+          this.$cookies.set(key, value, opt);
+        }
+      }
+
       return true;
     } catch (err) {
+      console.error(err.response.config.headers, err.response.data);
       if ( err.response.status >= 400 && err.response.status <= 499 ) {
         return ERR_CLIENT;
       }

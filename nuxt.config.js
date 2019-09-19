@@ -156,7 +156,6 @@ module.exports = {
 
 function onProxyReq(proxyReq, req) {
   proxyReq.setHeader('x-api-host', req.headers['host']);
-  console.log(proxyReq.getHeaders());
 }
 
 function onProxyReqWs(proxyReq, req, socket, options, head) {

@@ -2,16 +2,16 @@
 export default {
   layout: 'unauthenticated',
 
-  async created() {
-    const res = await this.$store.dispatch('auth/verify', {
-      code:  this.$route.query.code,
-      nonce: this.$route.query.state,
+  async fetch({ store, route, redirect }) {
+    const res = await store.dispatch('auth/verify', {
+      code:  route.query.code,
+      nonce: route.query.state,
     });
 
     if ( res === true ) {
-      this.$router.replace({ path: '/' });
+      redirect('/');
     } else {
-      this.$router.replace({ path: `/auth/login?err=${ escape(res) }` });
+      redirect(`/auth/login?err=${ escape(res) }`);
     }
   }
 };

@@ -49,7 +49,7 @@ const options = {
   maxAge:   365 * 86400,
   path:     '/',
   sameSite: true,
-  secure:   true, // window.location.protocol === 'https:',
+  secure:   true,
 };
 
 export const state = function() {

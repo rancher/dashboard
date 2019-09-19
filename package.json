@@ -43,6 +43,7 @@
     "require-extension-hooks-babel": "^1.0.0-beta.1",
     "require-extension-hooks-vue": "^3.0.0",
     "sass-loader": "^7.1.0",
+    "set-cookie-parser": "^2.4.0",
     "sinon": "^7.3.2",
     "ts-node": "^8.3.0",
     "v-tooltip": "^2.0.2",
