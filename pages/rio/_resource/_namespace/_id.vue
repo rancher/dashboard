@@ -27,7 +27,7 @@ export default {
 
     return {
       obj,
-      value
+      value: value.data
     };
   }
 };

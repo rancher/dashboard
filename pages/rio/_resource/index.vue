@@ -32,10 +32,10 @@ export const FRIENDLY = {
     plural:   'Public Domains',
     type:     RIO.PUBLIC_DOMAIN
   },
-  riofiles: {
-    singular: 'Riofile',
-    plural:   'Riofiles',
-    type:     RIO.RIOFILE
+  cd: {
+    singular: 'Continuous Deployment',
+    plural:   'Continuous Deployments',
+    type:     RIO.CONTINUOUS_DEPLOYMENT
   },
   routers: {
     singular: 'Router',

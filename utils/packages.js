@@ -42,16 +42,16 @@ export function rioPackage($router, counts, namespaces) {
       },
       { divider: true },
       {
-        name:    'rio-apps',
-        count:   countFor(RIO.APP),
-        label:   'Apps & Versions',
-        route:   linkFor('apps'),
+        name:  'rio-cd',
+        count: countFor(RIO.CONTINUOUS_DEPLOYMENT),
+        label: 'Continuous Deployments',
+        route: linkFor('cd'),
       },
       {
-        name:  'rio-riofiles',
-        count: countFor(RIO.RIOFILE),
-        label: 'Riofiles',
-        route: linkFor('riofiles'),
+        name:    'rio-workloads',
+        count:   countFor(RIO.APP),
+        label:   'Workloads',
+        route:   linkFor('workloads'),
       },
       {
         name:    'rio-routers',
@@ -153,7 +153,6 @@ function ensureGroup(level, name, route) {
       route,
       label:    groupLabel(name),
       children: [],
-      priority: groupPriority(name),
     };
     level[name] = group;
   }
@@ -188,6 +187,10 @@ export function mapGroup(obj) {
 
   if ( group.match(/^api.*.k8s.io/) ) {
     return 'api';
+  }
+
+  if ( group === 'cloud.rio.rancher.io' ) {
+    return 'cloud';
   }
 
   if ( group === 'rio.cattle.io' || group.endsWith('.rio.cattle.io') ) {
@@ -230,15 +233,4 @@ function groupLabel(group) {
   }
 
   return group.split(/\./).map(x => ucFirst(x)).join('.');
-}
-
-function groupPriority(group) {
-  if ( group === 'apps' ) {
-    return 1;
-  }
-  if ( group === 'core' ) {
-    return 2;
-  }
-
-  return 99;
 }

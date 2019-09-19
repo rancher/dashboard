@@ -58,7 +58,7 @@ export default {
 <template>
   <div>
     <header>
-      <h1>Apps &amp; Versions</h1>
+      <h1>Workloads</h1>
       <div class="actions">
         <nuxt-link to="create" append tag="button" type="button" class="btn bg-primary">
           Deploy
@@ -100,7 +100,7 @@ export default {
       <template #sub-row="scope">
         <tr v-for="version in scope.row.spec.revisions" :key="version.serviceName">
           <td colspan="2"></td>
-          <td><BadgeState val="" :col="scope.col" :row="scope.row" /></td>
+          <td><BadgeState val="ignored" :col="scope.col" :row="scope.row" /></td>
           <td>{{ version.serviceName }}</td>
           <td align="center">
             {{ get(scope.row.weights, version.Version) || 0 }}%
