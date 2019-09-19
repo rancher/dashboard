@@ -11,12 +11,12 @@ export const RIO = {
   FEATURE:          'admin.rio.cattle.io.v1.feature',
   INFO:             'admin.rio.cattle.io.v1.rioinfo',
 
-  APP:              'rio.cattle.io.v1.app',
-  EXTERNAL_SERVICE: 'rio.cattle.io.v1.externalservice',
-  PUBLIC_DOMAIN:    'rio.cattle.io.v1.publicdomain',
-  RIOFILE:          'rio.cattle.io.v1.stack',
-  ROUTER:           'rio.cattle.io.v1.router',
-  VERSION:          'rio.cattle.io.v1.service',
+  APP:                   'rio.cattle.io.v1.app',
+  EXTERNAL_SERVICE:      'rio.cattle.io.v1.externalservice',
+  PUBLIC_DOMAIN:         'rio.cattle.io.v1.publicdomain',
+  CONTINUOUS_DEPLOYMENT: 'rio.cattle.io.v1.stack',
+  ROUTER:                'rio.cattle.io.v1.router',
+  VERSION:               'rio.cattle.io.v1.service',
 };
 
 export const RANCHER = {

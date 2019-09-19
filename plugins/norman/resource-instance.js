@@ -347,7 +347,7 @@ export default {
 
   download() {
     return async() => {
-      const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
+      const value = await this.followLink('view', { headers: { accept: 'application/yaml' } }).data;
 
       downloadFile(`${ this.nameDisplay }.yaml`, value, 'application/yaml');
     };
