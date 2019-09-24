@@ -2,8 +2,8 @@
   <div class="mt-50 text-center">
     <img src="~/assets/images/sunglasses.svg" alt="logo" width="50%" />
 
-    <h1 class="mb-50">
-      Welcome to Rancher Dashboard
+    <h1 class="mb-50 mt-10">
+      Welcome to Rio
     </h1>
     <h4>
       All resources from all namespaces are shown by default.

@@ -41,6 +41,10 @@ export default {
       });
 
       return out;
+    }).catch((err) => {
+      if ( err && err.response && err.response.status === 401 ) {
+        dispatch('auth/logout', { root: true });
+      }
     });
   },
 

@@ -1,11 +1,9 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
-import LabeledInput from '@/components/LabeledInput';
 import { FRIENDLY } from '~/pages/rio/_resource';
 
 export default {
-  components: { LabeledInput },
-  mixins:     { CreateEditView },
+  mixins: { CreateEditView },
 
   computed: {
     doneRoute() {
@@ -27,7 +25,19 @@ export default {
     const { resource } = ctx.params;
     const type = FRIENDLY[resource].type;
 
-    const data = { type };
+    const schema = ctx.store.getters['cluster/schemaFor'](type);
+
+    const metadata = {};
+
+    if ( schema.attributes.namespaced ) {
+      metadata.namespace = '';
+    }
+
+    const data = {
+      type,
+      metadata,
+      data: { foo: 'bar' }
+    };
 
     const model = await ctx.store.dispatch('cluster/create', data);
 

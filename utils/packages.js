@@ -48,10 +48,10 @@ export function rioPackage($router, counts, namespaces) {
         route: linkFor('cd'),
       },
       {
-        name:    'rio-workloads',
+        name:    'rio-services',
         count:   countFor(RIO.APP),
-        label:   'Workloads',
-        route:   linkFor('workloads'),
+        label:   'Services',
+        route:   linkFor('services'),
       },
       {
         name:    'rio-routers',
@@ -116,7 +116,7 @@ export function explorerPackage($router, counts, namespaces) {
     group.children.push({
       count,
       namespaced,
-      name:  `${ prefix }_${ name }`,
+      name:  `${ prefix }_${ name }_${ res.id }`,
       icon:  (namespaced ? 'icon-folder' : 'icon-copy'),
       label: ucFirst(res.label),
       route: $router.resolve({

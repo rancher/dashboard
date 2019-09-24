@@ -87,13 +87,13 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
     const key = parts[parts.length - 1];
     const prefix = parts.slice(0, -1).join('.');
 
-    if ( prefix === path && schema.resourceFields[key] ) {
+    if ( prefix === path && schema.resourceFields && schema.resourceFields[key] ) {
       addObject(regularFields, key);
     }
   }
 
   // Mark any fields that are passed in as data as regular so they're not commented out
-  const commentFields = Object.keys(schema.resourceFields);
+  const commentFields = Object.keys(schema.resourceFields || {});
 
   commentFields.forEach((key) => {
     if ( typeof data[key] !== 'undefined' ) {
@@ -106,7 +106,7 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
     const key = parts[parts.length - 1];
     const prefix = parts.slice(0, -1).join('.');
 
-    if ( prefix === path && schema.resourceFields[key] ) {
+    if ( prefix === path && schema.resourceFields && schema.resourceFields[key] ) {
       removeObject(commentFields, key);
     }
   });

@@ -5,7 +5,7 @@ import { addObject, removeObject } from '@/utils/array';
 import { explorerPackage, rioPackage } from '@/utils/packages';
 import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
-import NamespaceFilter from '@/components/NamespaceFilter';
+import NamespaceFilter from '@/components/nav/NamespaceFilter';
 import Group from '@/components/nav/Group';
 import { COUNT } from '@/utils/types';
 
@@ -134,7 +134,7 @@ export default {
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
             <nuxt-link tag="li" :to="{name: 'auth-logout'}" class="p-10">
-              <a>Logout <i class="icon icon-fw icon-close" /></a>
+              <a>Log Out <i class="icon icon-fw icon-close" /></a>
             </nuxt-link>
           </ul>
         </template>
