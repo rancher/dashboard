@@ -3,11 +3,12 @@
 @font-face {
   font-family: '#{$icomoon-font-family}';
   src:
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?kpnfba') format('truetype'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?kpnfba') format('woff'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?kpnfba##{$icomoon-font-family}') format('svg');
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?et2mic') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?et2mic') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?et2mic##{$icomoon-font-family}') format('svg');
   font-weight: normal;
   font-style: normal;
+  font-display: block;
 }
 
 .icon {
@@ -70,24 +71,9 @@
     content: $icon-x; 
   }
 }
-.icon-info .path1 {
+.icon-info {
   &:before {
-    content: $icon-info-path1;  
-    color: rgb(35, 31, 32);
-  }
-}
-.icon-info .path2 {
-  &:before {
-    content: $icon-info-path2;  
-    margin-left: -1em;  
-    color: rgb(255, 255, 255);
-  }
-}
-.icon-info .path3 {
-  &:before {
-    content: $icon-info-path3;  
-    margin-left: -1em;  
-    color: rgb(255, 255, 255);
+    content: $icon-info; 
   }
 }
 .icon-chevron-right {

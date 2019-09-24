@@ -6,12 +6,16 @@ import { explorerPackage, rioPackage } from '@/utils/packages';
 import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
+import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
 import Group from '@/components/nav/Group';
 import { COUNT } from '@/utils/types';
 
 export default {
   components: {
-    ActionMenu, NamespaceFilter, Group
+    ClusterSwitcher,
+    NamespaceFilter,
+    ActionMenu,
+    Group
   },
 
   middleware: ['authenticated'],
@@ -106,12 +110,10 @@ export default {
 </script>
 
 <template>
-  <div class="dashboard">
-    <header>
+  <div class="dashboard-root">
+    <div class="top">
       <div class="header-left">
-        <n-link to="/">
-          <img src="~/assets/images/logo.svg" alt="logo" width="100%" />
-        </n-link>
+        <ClusterSwitcher />
       </div>
 
       <div class="header-middle">
@@ -139,7 +141,7 @@ export default {
           </ul>
         </template>
       </v-popover>
-    </header>
+    </div>
 
     <nav>
       <NamespaceFilter class="mt-20 mb-0" />
@@ -161,6 +163,12 @@ export default {
       </div>
     </nav>
 
+    <div class="logo">
+      <n-link to="/">
+        <img src="~/assets/images/logo.svg" alt="logo" width="100%" />
+      </n-link>
+    </div>
+
     <main>
       <nuxt />
     </main>
@@ -169,115 +177,96 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
   $header-height: 60px;
   $nav-width: 250px;
   $right-width: 60px;
-  $logo-height: 40px;
+  $logo-height: 50px;
 
-  .dashboard {
+  .dashboard-root {
     display: grid;
     height: 100vh;
     grid-template-areas:
       "header header"
-      "nav main";
+      "nav main"
+      "logo main";
     grid-template-columns: $nav-width auto;
-    grid-template-rows: $header-height auto;
-  }
+    grid-template-rows: $header-height auto $logo-height;
 
-  .theme-picker {
-    position: relative;
-    top: 2px;
+    .top {
+      background-color: var(--header-bg);
+      grid-area: header;
+      display: grid;
+      grid-template-areas: "header-left header-middle header-right";
+      grid-template-columns: $nav-width auto $right-width;
 
-    .light {
-      color: white !important;
+      .header-left {
+        grid-area: header-left;
+        position: relative;
+      }
+
+      .header-middle {
+        padding: 10px 0;
+        grid-area: header-middle;
+      }
+
+      .header-right {
+        grid-area: header-right;
+        padding: 10px;
+        cursor: pointer;
+      }
     }
 
-    .dark {
-      color: black !important;
-    }
-  }
+    NAV {
+      grid-area: nav;
+      position: relative;
+      background-color: var(--nav-bg);
+      padding: 0 10px;
+      overflow-y: auto;
 
-  HEADER {
-    background-color: var(--header-bg);
-    grid-area: header;
-    display: grid;
-    grid-template-areas: "header-left header-middle header-right";
-    grid-template-columns: $nav-width auto $right-width;
-  }
+      .package:not(:first-child) {
+        margin-top: 20px;
+      }
 
-  .header-left {
-    padding: 20px 10px 0;
-    grid-area: header-left;
-  }
-
-  .header-middle {
-    padding: 10px 0;
-    grid-area: header-middle;
-  }
-
-  .header-right {
-    grid-area: header-right;
-    padding: 10px;
-    cursor: pointer;
-  }
-
-  .collection  {
-    &::v-deep > .body {
-      margin-left: 10px;
-      border-left: solid thin var(--border);
-    }
-  }
-
-  NAV {
-    grid-area: nav;
-    position: relative;
-    background-color: var(--nav-bg);
-    padding: 0 10px;
-    overflow-y: auto;
-
-    .package:not(:first-child) {
-      margin-top: 20px;
+      H6 {
+        margin: 0;
+        letter-spacing: 0.1em;
+        line-height: initial;
+      }
     }
 
-    H6 {
-      margin: 0;
-      letter-spacing: 0.1em;
-      line-height: initial;
+    .logo {
+      grid-area: logo;
+      text-align: center;
+      border-top: solid thin var(--border);
+      background-color: var(--nav-bg);
+      padding: 0 13px;
+      line-height: $logo-height;
     }
-  }
-
-  .logo {
-    grid-area: logo;
-    text-align: center;
-    border-top: solid thin var(--border);
-    padding: 20px;
   }
 
   MAIN {
     grid-area: main;
     padding: 20px;
     overflow: auto;
-  }
-</style>
 
-<style lang="scss">
-  MAIN HEADER {
-    display: grid;
-    grid-template-areas: "title actions";
-    grid-template-columns: "auto min-content";
-    margin-bottom: 20px;
+    HEADER {
+      display: grid;
+      grid-template-areas: "title actions";
+      grid-template-columns: "auto min-content";
+      margin-bottom: 20px;
 
-    H1 {
-      grid-area: title;
-      margin: 0;
-      padding-top: 4px;
-    }
+      H1 {
+        grid-area: title;
+        margin: 0;
+        padding-top: 4px;
+      }
 
-    .actions {
-      grid-area: actions;
-      text-align: right;
-      padding-top: 10px;
+      .actions {
+        grid-area: actions;
+        text-align: right;
+        padding-top: 10px;
+      }
     }
   }
 </style>

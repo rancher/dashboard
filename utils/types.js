@@ -6,6 +6,11 @@ export const NAMESPACE = 'core.v1.namespace';
 export const CONFIG_MAP = 'core.v1.configmap';
 export const SECRET = 'core.v1.secret';
 
+export const CLOUD = {
+  CLUSTER:            'cloud.rio.rancher.io.v1.cluster',
+  REGISTRATION_TOKEN: 'cloud.rio.rancher.io.v1.registrationtoken',
+};
+
 export const RIO = {
   CLUSTER_DOMAIN:   'admin.rio.cattle.io.v1.clusterdomain',
   FEATURE:          'admin.rio.cattle.io.v1.feature',
@@ -20,7 +25,6 @@ export const RIO = {
 };
 
 export const RANCHER = {
-  CLUSTER:   'cluster',
   PRINCIPAL: 'principal',
   USER:      'user',
 };

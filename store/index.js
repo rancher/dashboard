@@ -1,9 +1,10 @@
 import Norman from '@/plugins/norman';
 import { COUNT, NAMESPACE } from '@/utils/types';
-import { NAMESPACES } from '@/store/prefs';
+import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
 
 export const plugins = [
-  Norman({ namespace: 'cluster', baseUrl: '/v1' }),
+  // Norman({ namespace: 'cloud', baseUrl: '/v1' }),
+  Norman({ namespace: 'cluster', baseUrl: '/v1' }), // @TODO cluster-specific URL
   Norman({ namespace: 'rancher', baseUrl: '/v3' })
 ];
 
@@ -35,6 +36,10 @@ export const mutations = {
 
   updateNamespaces(state, neu) {
     state.namespaces = neu;
+  },
+
+  updateCluster(state, neu) {
+    state.cluster = neu;
   }
 };
 
@@ -68,6 +73,11 @@ export const actions = {
   switchNamespaces({ commit }, val) {
     commit('prefs/set', { key: NAMESPACES, val });
     commit('updateNamespaces', val);
+  },
+
+  switchClusters({ commit }, val) {
+    commit('prefs/set', { key: CLUSTER_PREF, val });
+    commit('updateCluster', val);
   },
 
   nuxtClientInit(ctx) {

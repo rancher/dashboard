@@ -42,6 +42,11 @@ export default {
       default: 'ProTip: Paste lines of <code>key=value</code> or <code>key: value</code> into any key field for easy bulk entry',
     },
 
+    padLeft: {
+      type:    Boolean,
+      default: true,
+    },
+
     keyLabel: {
       type:    String,
       default: 'Key',
@@ -153,6 +158,14 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+
+    showAdd() {
+      return this.isEditing && this.addAllowed;
+    },
+
+    showRemove() {
+      return this.isEditing && this.removeAllowed;
+    },
   },
 
   created() {
@@ -163,6 +176,12 @@ export default {
     add() {
       this.rows.push({ key: '', value: '' });
       this.queueUpdate();
+
+      this.$nextTick(() => {
+        const inputs = this.$refs.key;
+
+        inputs[inputs.length - 1].focus();
+      });
     },
 
     remove(idx) {
@@ -208,12 +227,13 @@ export default {
         <i v-if="readIcon" :class="{'icon': true, [readIcon]: true}" />
         {{ readLabel }}
       </button>
-      <h2>{{ title }}</h2>
+      <h2>{{ title }} <i v-tooltip="protip" class="icon icon-info text-small" /></h2>
     </div>
 
-    <table class="fixed">
+    <table v-if="rows.length" class="fixed">
       <thead>
         <tr>
+          <th v-if="padLeft" class="left"></th>
           <th class="key">
             {{ keyLabel }}
           </th>
@@ -221,7 +241,7 @@ export default {
           <th class="value">
             {{ valueLabel }}
           </th>
-          <th class="remove"></th>
+          <th v-if="showRemove" class="remove"></th>
         </tr>
       </thead>
       <tbody>
@@ -229,9 +249,10 @@ export default {
           v-for="(row, idx) in rows"
           :key="idx"
         >
+          <td v-if="padLeft" class="left"></td>
           <td class="key">
             <span v-if="isView">{{ row.key }}</span>
-            <input v-else v-model="row.key" @input="queueUpdate" />
+            <input v-else ref="key" v-model="row.key" @input="queueUpdate" />
           </td>
           <td class="separator">
             {{ separatorLabel }}
@@ -240,8 +261,8 @@ export default {
             <span v-if="isView">{{ row.value }}</span>
             <input v-else v-model="row.value" @input="queueUpdate" />
           </td>
-          <td class="remove">
-            <button v-if="isEditing && removeAllowed" type="button" class="btn bg-primary" @click="remove(idx)">
+          <td v-if="showRemove" class="remove">
+            <button type="button" class="btn bg-primary" @click="remove(idx)">
               <i v-if="removeIcon" :class="{'icon': true, [removeIcon]: true}" />
               {{ removeLabel }}
             </button>
@@ -249,13 +270,11 @@ export default {
         </tr>
       </tbody>
     </table>
-
-    <div class="footer clearfix">
-      <button v-if="addAllowed" type="button" class="btn bg-primary add" @click="add">
+    <div v-if="showAdd" class="footer">
+      <button type="button" class="btn bg-primary add" @click="add">
         <i v-if="addIcon" :class="{'icon': true, [addIcon]: true}" />
         {{ addLabel }}
       </button>
-      <span v-if="protip" class="protip" v-html="protip" />
     </div>
   </div>
 </template>
@@ -282,7 +301,11 @@ export default {
 
   .separator {
     width: #{$separator}px;
-    text-align: left;
+    text-align: center;
+  }
+
+  .left {
+    width: #{$remove}px;
   }
 
   .remove {

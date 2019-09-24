@@ -30,6 +30,7 @@ export const mapPref = function(name) {
 // --------------------
 const parseJSON = true; // Shortcut for setting it below
 
+export const CLUSTER = create('cluster', 'local'); // @TODO remember last cluster, handle if missing, combine with namespacess
 export const NAMESPACES = create('ns', [], { parseJSON });
 export const EXPANDED_GROUPS = create('open_groups', ['rio'], { parseJSON });
 export const GROUP_RESOURCES = create('group_by', 'namespace');
