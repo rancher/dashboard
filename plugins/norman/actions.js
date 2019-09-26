@@ -1,5 +1,6 @@
+import { cloneDeep } from 'lodash';
 import { normalizeType } from './normalize';
-import { proxyFor } from './resource-proxy';
+import { proxyFor, SELF } from './resource-proxy';
 import { SCHEMA } from '@/utils/types';
 
 export default {
@@ -148,7 +149,9 @@ export default {
     return proxyFor(ctx, data);
   },
 
-  schemaFor({ getters }, type) {
-    return getters['schemaFor'](type);
-  }
+  clone(ctx, resource) {
+    const copy = cloneDeep(resource[SELF]);
+
+    return proxyFor(ctx, copy);
+  },
 };

@@ -1,6 +1,8 @@
 import ResourceInstance from './resource-instance';
 import { lookup } from '@/utils/model';
 
+export const SELF = '__[[SELF]]__';
+
 export function proxyFor(ctx, obj) {
   // Attributes associated to the proxy, but not stored on the actual object
   let local;
@@ -17,17 +19,21 @@ export function proxyFor(ctx, obj) {
 
   const proxy = new Proxy(obj, {
     get(target, name) {
-      if ( name === Symbol.toStringTag ) {
+      if ( name === SELF ) {
+        return obj;
+      } else if ( name === Symbol.toStringTag ) {
         name = 'toString';
       } else if ( typeof name !== 'string' ) {
         return target[name];
       }
 
+      /*
       if ( name === '$constructor' ) {
         return model;
       } else if ( name === '$super' && model ) {
         return ResourceInstance;
       }
+      */
 
       if ( name.startsWith('$') ) {
         return ctx[name.substr(1)];

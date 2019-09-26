@@ -240,8 +240,7 @@ export default {
       text-align: center;
       border-top: solid thin var(--border);
       background-color: var(--nav-bg);
-      padding: 0 13px;
-      line-height: $logo-height;
+      padding: 10px;
     }
   }
 

@@ -12,6 +12,10 @@ export default {
       return name;
     },
 
+    doneParams() {
+      return this.$route.params;
+    },
+
     cruComponent() {
       return () => import(`@/components/cru/${ this.type }`);
     },
@@ -36,7 +40,7 @@ export default {
     const data = {
       type,
       metadata,
-      data: { foo: 'bar' }
+      data: { foo: 'bar' },
     };
 
     const model = await ctx.store.dispatch('cluster/create', data);
@@ -44,7 +48,7 @@ export default {
     return {
       resource,
       type,
-      model
+      model,
     };
   }
 };
@@ -59,6 +63,8 @@ export default {
       :is="cruComponent"
       v-model="model"
       :done-route="doneRoute"
+      :done-params="doneParams"
+      :namespace-suffix-on-create="true"
       :type-label="typeDisplay"
       mode="create"
     />

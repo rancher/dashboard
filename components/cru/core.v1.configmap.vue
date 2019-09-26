@@ -2,12 +2,16 @@
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import AsyncButton from '@/components/AsyncButton';
 import KeyValue from '@/components/form/KeyValue';
 import { NAMESPACE } from '@/utils/types';
 
 export default {
   components: {
-    LabeledInput, LabeledSelect, KeyValue
+    LabeledInput,
+    LabeledSelect,
+    KeyValue,
+    AsyncButton,
   },
   mixins:     [CreateEditView],
 
@@ -21,7 +25,7 @@ export default {
           value: obj.id,
         };
       });
-    }
+    },
   },
 };
 </script>
@@ -31,7 +35,8 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="value.name"
+          v-model="value.metadata.name"
+          mode="view"
           label="Config Map Name"
           placeholder="Placeholder"
           :required="true"
@@ -40,6 +45,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model="value.metadata.namespace"
+          mode="view"
           :options="namespaces"
           label="Namespace"
           placeholder="Select a namespace"
@@ -64,8 +70,27 @@ export default {
 
     <div class="row">
       <div class="col span-12">
-        ...Binary Data...
+        <KeyValue
+          v-model="value.binaryData"
+          title="Binary Data"
+          :protip="false"
+          :add-allowed="false"
+          :read-accept="'*'"
+          :read-multiple="true"
+          :value-binary="true"
+          :value-base64="true"
+          :value-can-be-empty="true"
+          :inital-empty-row="false"
+        />
       </div>
     </div>
+
+    <hr />
+
+    <AsyncButton v-if="isEdit" key="edit" mode="edit" @click="save" />
+    <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
+    <button v-if="!isView" class="btn bg-transparent" @click="done">
+      Cancel
+    </button>
   </form>
 </template>

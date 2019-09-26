@@ -1,20 +1,33 @@
 <script>
-import ResourceYaml from '@/components/ResourceYaml';
+import CreateEditView from '@/mixins/create-edit-view';
 import { FRIENDLY } from '~/pages/rio/_resource/index';
 
 export default {
-  components: { ResourceYaml },
+  mixins:   { CreateEditView },
 
   computed: {
     type() {
-      return FRIENDLY[this.params.resource].type;
+      return FRIENDLY[this.resource].type;
     },
 
     doneRoute() {
       const name = this.$route.name.replace(/(-namespace)?-id$/, '');
 
       return name;
-    }
+    },
+
+    doneParams() {
+      return this.$route.params;
+    },
+
+    cruComponent() {
+      return () => import(`@/components/cru/${ this.type }`);
+    },
+
+    typeDisplay() {
+      return FRIENDLY[this.resource].singular;
+    },
+
   },
 
   async asyncData(ctx) {
@@ -23,11 +36,13 @@ export default {
     const type = FRIENDLY[resource].type;
 
     const obj = await ctx.store.dispatch('cluster/find', { type, id: fqid });
-    const value = await obj.followLink('view', { headers: { accept: 'application/yaml' } });
+
+    const model = await ctx.store.dispatch('cluster/clone', obj);
 
     return {
-      obj,
-      value: value.data
+      resource,
+      model,
+      originalModel: obj,
     };
   }
 };
@@ -35,6 +50,18 @@ export default {
 
 <template>
   <div>
-    <ResourceYaml :obj="obj" :value="value" :done-route="doneRoute" />
+    <header>
+      <h1>Create {{ typeDisplay }}</h1>
+    </header>
+    <component
+      :is="cruComponent"
+      v-model="model"
+      :original-value="originalModel"
+      :done-route="doneRoute"
+      :done-params="doneParams"
+      :namespace-suffix-on-create="true"
+      :type-label="typeDisplay"
+      mode="create"
+    />
   </div>
 </template>

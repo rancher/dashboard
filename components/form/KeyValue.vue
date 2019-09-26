@@ -2,10 +2,11 @@
 import { debounce } from 'lodash';
 import { _EDIT, _VIEW } from '@/utils/query-params';
 import { removeAt } from '@/utils/array';
+import { base64Encode, base64Decode } from '@/utils/crypto';
+import { downloadFile } from '@/utils/download';
 
 /*
   @TODO
-  - Focus on add
   - View Mode
   - Paste
   - Read from file
@@ -38,7 +39,7 @@ export default {
       default: ''
     },
     protip: {
-      type:    String,
+      type:    [String, Boolean],
       default: 'ProTip: Paste lines of <code>key=value</code> or <code>key: value</code> into any key field for easy bulk entry',
     },
 
@@ -70,6 +71,10 @@ export default {
       default: 'e.g. bar'
     },
     valueCanBeEmpty: {
+      type:    Boolean,
+      default: false,
+    },
+    valueBinary: {
       type:    Boolean,
       default: false,
     },
@@ -110,6 +115,14 @@ export default {
     readAllowed: {
       type:    Boolean,
       default: true,
+    },
+    readAccept: {
+      type:    String,
+      default: '*',
+    },
+    readMultiple: {
+      type:    Boolean,
+      default: false,
     },
 
     removeLabel: {
@@ -163,6 +176,10 @@ export default {
       return this.isEditing && this.addAllowed;
     },
 
+    showRead() {
+      return this.isEditing && this.readAllowed;
+    },
+
     showRemove() {
       return this.isEditing && this.removeAllowed;
     },
@@ -173,8 +190,12 @@ export default {
   },
 
   methods: {
-    add() {
-      this.rows.push({ key: '', value: '' });
+    add(key = '', value = '') {
+      if ( this.valueBase64 ) {
+        value = base64Encode(value);
+      }
+
+      this.rows.push({ key, value });
       this.queueUpdate();
 
       this.$nextTick(() => {
@@ -190,6 +211,44 @@ export default {
     },
 
     readFromFile() {
+      this.$refs.uploader.click();
+    },
+
+    fileChange(event) {
+      const input = event.target;
+      const handles = input.files;
+      const names = [];
+
+      if ( handles ) {
+        for ( let i = 0 ; i < handles.length ; i++ ) {
+          const reader = new FileReader();
+
+          reader.onload = (loaded) => {
+            this.add(names[i], loaded.target.result);
+          };
+
+          reader.onerror = (err) => {
+            this.$dispatch('growl/fromError', { title: 'Error reading file', err }, { root: true });
+          };
+
+          names[i] = handles[i].name;
+          reader.readAsText(handles[i]);
+        }
+
+        input.value = '';
+      }
+    },
+
+    download(idx) {
+      const row = this.rows[idx];
+      const name = row.key;
+      let value = row.value;
+
+      if ( this.valueBase64 ) {
+        value = base64Decode(value);
+      }
+
+      downloadFile(name, value, 'application/octet-stream');
     },
 
     update() {
@@ -216,18 +275,14 @@ export default {
 
       this.$emit('input', out);
     }
-  }
+  },
 };
 </script>
 
 <template>
   <div>
     <div class="title clearfix">
-      <button v-if="isEditing && readAllowed" type="button" class="btn bg-primary read-from-file" @click="readFromFile">
-        <i v-if="readIcon" :class="{'icon': true, [readIcon]: true}" />
-        {{ readLabel }}
-      </button>
-      <h2>{{ title }} <i v-tooltip="protip" class="icon icon-info text-small" /></h2>
+      <h2>{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 16px" /></h2>
     </div>
 
     <table v-if="rows.length" class="fixed">
@@ -251,15 +306,25 @@ export default {
         >
           <td v-if="padLeft" class="left"></td>
           <td class="key">
-            <span v-if="isView">{{ row.key }}</span>
-            <input v-else ref="key" v-model="row.key" @input="queueUpdate" />
+            <slot name="key" :row="row" :mode="mode">
+              <span v-if="isView">{{ row.key }}</span>
+              <input v-else ref="key" v-model="row.key" @input="queueUpdate" />
+            </slot>
           </td>
           <td class="separator">
             {{ separatorLabel }}
           </td>
           <td class="value">
-            <span v-if="isView">{{ row.value }}</span>
-            <input v-else v-model="row.value" @input="queueUpdate" />
+            <slot name="value" :row="row" :mode="mode">
+              <span v-if="valueBinary">
+                {{ row.value.length }} byte<span v-if="row.value.length !== 1">s</span>
+                <button type="button" class="bg-link" @click="download(idx)">
+                  <i class="icon icon-download text-small" />
+                </button>
+              </span>
+              <span v-else-if="isView">{{ row.value }}</span>
+              <input v-else v-model="row.value" @input="queueUpdate" />
+            </slot>
           </td>
           <td v-if="showRemove" class="remove">
             <button type="button" class="btn bg-primary" @click="remove(idx)">
@@ -270,12 +335,25 @@ export default {
         </tr>
       </tbody>
     </table>
-    <div v-if="showAdd" class="footer">
-      <button type="button" class="btn bg-primary add" @click="add">
+    <div v-if="showAdd || showRead" class="footer">
+      <button v-if="showAdd" type="button" class="btn bg-primary add" @click="add()">
         <i v-if="addIcon" :class="{'icon': true, [addIcon]: true}" />
         {{ addLabel }}
       </button>
+      <button v-if="showRead" type="button" class="btn bg-primary read-from-file" @click="readFromFile">
+        <i v-if="readIcon" :class="{'icon': true, [readIcon]: true}" />
+        {{ readLabel }}
+      </button>
     </div>
+
+    <input
+      ref="uploader"
+      type="file"
+      :accept="readAccept"
+      :multiple="readMultiple"
+      class="hide"
+      @change="fileChange"
+    />
   </div>
 </template>
 

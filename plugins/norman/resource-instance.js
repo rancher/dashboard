@@ -3,6 +3,7 @@ import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
 import { eachLimit } from '~/utils/promise';
 import { MODE, _EDIT } from '@/utils/query-params';
+import { TO_FRIENDLY } from '@/pages/rio/_resource';
 
 const REMAP_STATE = { disabled: 'inactive' };
 
@@ -244,6 +245,10 @@ export default {
         opt.url = (this.links || {})[linkName];
       }
 
+      if ( opt.urlSuffix ) {
+        opt.url += opt.urlSuffix;
+      }
+
       if ( !opt.url ) {
         throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
       }
@@ -325,15 +330,33 @@ export default {
 
   goToEdit() {
     return () => {
+      const currentRoute = window.$nuxt.$route.name;
       const router = window.$nuxt.$router;
       const schema = this.$getters['schemaFor'](this.type);
-      const route = `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
-      const params = {
-        group:     schema.groupName,
-        resource:  this.type,
-        namespace: this.metadata && this.metadata.namespace,
-        id:        this.metadata.name
-      };
+      let route, params;
+
+      if ( currentRoute.startsWith('rio-') ) {
+        const friendly = TO_FRIENDLY[this.type];
+
+        if ( friendly ) {
+          route = `rio-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+          params = {
+            resource:  friendly.resource,
+            namespace: this.metadata && this.metadata.namespace,
+            id:        this.metadata.name
+          };
+        }
+      }
+
+      if ( !route ) {
+        route = `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+        params = {
+          group:     schema.groupName,
+          resource:  this.type,
+          namespace: this.metadata && this.metadata.namespace,
+          id:        this.metadata.name
+        };
+      }
 
       const url = router.resolve({
         name:   route,

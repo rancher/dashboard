@@ -60,6 +60,15 @@ export const FRIENDLY = {
   },
 };
 
+export const TO_FRIENDLY = {};
+Object.keys(FRIENDLY).forEach((key) => {
+  const entry = FRIENDLY[key];
+
+  entry.resource = key;
+
+  TO_FRIENDLY[entry.type] = entry;
+});
+
 export default {
   components: { ResourceTable },
 
