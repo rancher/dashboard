@@ -75,13 +75,6 @@ export default {
   mounted() {
     this.isMounted = true;
   },
-  methods: {
-    drawLine() {
-      d3.select('#something')
-        .datum(this.dataSet)
-        .attr('d', this.line);
-    }
-  },
 
 };
 </script>
