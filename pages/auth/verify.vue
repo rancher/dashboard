@@ -1,7 +1,6 @@
 <script>
 export default {
-  layout: 'unauthenticated',
-
+  layout:   'unauthenticated',
   async fetch({ store, route, redirect }) {
     const res = await store.dispatch('auth/verify', {
       code:  route.query.code,

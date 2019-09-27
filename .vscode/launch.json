@@ -13,7 +13,9 @@
                 "${workspaceFolder}/**/*.js"
             ],
             "envFile": "${workspaceFolder}/.env",
-            "outputCapture": "std"
-        }
+            "outputCapture": "std",
+            "sourceMaps": true,
+        },
     ]
+
 }

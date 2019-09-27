@@ -3,6 +3,7 @@
   font-family: inherit;
 }
 
+
 .v-select,
 .v-select * {
   box-sizing: border-box;
@@ -38,6 +39,11 @@
   text-align: left;
   list-style: none;
   background: var(--dropdown-bg);
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb-dropdown) !important;
+    border-radius: 4px;
+  }
+
 }
 
 .vs__dropdown-option {
@@ -80,6 +86,7 @@
   display: flex;
   align-items: center;
   padding: 4px 6px 0 3px;
+  pointer-events: none;
 }
 
 .vs--searchable .vs__dropdown-toggle {
@@ -154,28 +161,6 @@ $transition-duration: 150ms;
     }
 }
 
-.vs__selected {
-  display: flex;
-  align-items: center;
-  background-color: #f0f0f0;
-  border: 1px solid var(--dropdown-border);
-  border-radius: 4px;
-  color: #333;
-  margin: 4px 2px 0px 2px;
-  padding: 0 0.25em;
-}
-
-.vs__deselect {
-  display: inline-flex;
-  appearance: none;
-  margin-left: 4px;
-  padding: 0;
-  border: 0;
-  cursor: pointer;
-  background: none;
-  fill: rgba(60,60,60,0.5);
-  text-shadow: 0 1px 0 #fff;
-}
 
 /* States */
 
@@ -199,7 +184,7 @@ $transition-duration: 150ms;
   background-color: #f0f0f0;
   border: 1px solid var(--dropdown-border);
   border-radius: 4px;
-  color: #333;
+  color: var(--body-text);
   margin: 4px 2px 0px 2px;
   padding: 0 0.25em;
 }
@@ -216,18 +201,3 @@ $transition-duration: 150ms;
   text-shadow: 0 1px 0 #fff
 }
 
-/* States */
-
-.vs--single {
-  .vs__selected {
-    background-color: transparent;
-    border-color: transparent;
-  }
-  &.vs--open .vs__selected {
-    position: absolute;
-    opacity: .4;
-  }
-  &.vs--searching .vs__selected {
-    display: none;
-  }
-}
