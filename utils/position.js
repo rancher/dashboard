@@ -1,3 +1,4 @@
+// @TODO replace this with popper.js...
 import $ from 'jquery';
 
 export const LEFT = 'left';

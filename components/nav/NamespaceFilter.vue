@@ -13,7 +13,7 @@
 
 <script>
 import { NAMESPACES } from '@/store/prefs';
-import { NAMESPACE } from '@/utils/types';
+import { NAMESPACE } from '@/config/types';
 
 export default {
   computed: {

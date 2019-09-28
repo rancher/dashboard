@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import { CONFIG_MAP, SECRET, RIO } from '@/utils/types';
-import { STATE, NAMESPACE_NAME, CREATED } from '@/utils/table-headers';
+import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
+import { STATE, NAMESPACE_NAME, CREATED } from '~/config/table-headers';
 
 const KEYS = {
   name:      'keys',

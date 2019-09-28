@@ -7,10 +7,10 @@ import TableSparkLine from '@/components/TableSparkLine';
 import { allHash } from '@/utils/promise';
 import { get } from '@/utils/object';
 
-import { RIO } from '@/utils/types';
+import { RIO } from '@/config/types';
 import {
   STATE, NAMESPACE_NAME, SCALE, CREATED, SUCCESS, REQ_RATE, P95
-} from '@/utils/table-headers';
+} from '~/config/table-headers';
 
 const RESOURCE = RIO.APP;
 

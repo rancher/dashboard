@@ -1,6 +1,6 @@
 import { parse as setCookieParser } from 'set-cookie-parser';
 import { randomStr } from '@/utils/string';
-import { addParams } from '@/utils/query-params';
+import { addParams } from '@/utils/url';
 
 const KEY = 'rc_nonce';
 const BASE_SCOPES = ['read:user', 'read:org', 'user:email'];

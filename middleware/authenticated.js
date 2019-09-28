@@ -1,4 +1,4 @@
-import { RANCHER } from '@/utils/types';
+import { RANCHER } from '~/config/types';
 import { findBy } from '@/utils/array';
 
 export default async function({ route, store, redirect }) {
@@ -9,7 +9,7 @@ export default async function({ route, store, redirect }) {
   try {
     const principals = await store.dispatch('rancher/findAll', {
       type: RANCHER.PRINCIPAL,
-      opt:  { url: '/v3/principals?me=true' }
+      opt:  { url: '/v3/principals' }
     });
 
     const me = findBy(principals, 'me', true);

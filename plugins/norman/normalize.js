@@ -1,4 +1,4 @@
-import { SCHEMA } from '@/utils/types';
+import { SCHEMA } from '~/config/types';
 
 export const KEY_FIELD_FOR = {
   [SCHEMA]:  '_id',

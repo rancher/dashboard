@@ -17,7 +17,7 @@ const LABEL = {
     success: 'Applied',
     error:   'Error',
   },
-  save: {
+  edit: {
     action:  'Save',
     waiting: 'Saving&hellip;',
     success: 'Saved',
@@ -92,6 +92,11 @@ export default {
       type:    String,
       default: null,
     },
+
+    icon: {
+      type:    String,
+      default: null,
+    }
   },
 
   data() {
@@ -174,6 +179,7 @@ export default {
     @click="clicked"
   >
     <i v-if="isSpinning" class="icon icon-spinner icon-spin mr-5" />
+    <i v-else-if="icon" :class="{icon: true, [icon]: true, 'mr-5': true}" />
     <span v-html="label" />
   </button>
 </template>

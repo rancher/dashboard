@@ -1,5 +1,5 @@
 import Norman from '@/plugins/norman';
-import { COUNT, NAMESPACE } from '@/utils/types';
+import { COUNT, NAMESPACE } from '~/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
 
 export const plugins = [

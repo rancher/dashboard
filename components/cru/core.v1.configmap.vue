@@ -4,7 +4,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import AsyncButton from '@/components/AsyncButton';
 import KeyValue from '@/components/form/KeyValue';
-import { NAMESPACE } from '@/utils/types';
+import { NAMESPACE } from '~/config/types';
 
 export default {
   components: {

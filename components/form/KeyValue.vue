@@ -1,6 +1,6 @@
 <script>
 import { debounce } from 'lodash';
-import { _EDIT, _VIEW } from '@/utils/query-params';
+import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';

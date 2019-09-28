@@ -1,6 +1,6 @@
 <script>
 import { CLUSTER } from '@/store/prefs';
-// import { CLOUD } from '@/utils/types';
+// import { CLOUD } from '@/config/types';
 
 export default {
   computed: {

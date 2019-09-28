@@ -2,7 +2,7 @@ import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
 import { eachLimit } from '~/utils/promise';
-import { MODE, _EDIT } from '@/utils/query-params';
+import { MODE, _EDIT } from '@/config/query-params';
 import { TO_FRIENDLY } from '@/pages/rio/_resource';
 
 const REMAP_STATE = { disabled: 'inactive' };

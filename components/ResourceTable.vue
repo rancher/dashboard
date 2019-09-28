@@ -2,7 +2,7 @@
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
 import SortableTable from '@/components/SortableTable';
-import { headersFor, NAME, NAMESPACE_NAME } from '@/utils/table-headers';
+import { headersFor, NAME, NAMESPACE_NAME } from '~/config/table-headers';
 
 export default {
   components: { ButtonGroup, SortableTable },

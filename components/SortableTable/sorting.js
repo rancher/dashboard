@@ -1,4 +1,4 @@
-import { SORT_BY, DESCENDING, PAGE } from '@/utils/query-params';
+import { SORT_BY, DESCENDING, PAGE } from '@/config/query-params';
 import { sortBy } from '@/utils/sort';
 
 export default {

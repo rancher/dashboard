@@ -1,4 +1,4 @@
-import { SEARCH_QUERY } from '@/utils/query-params';
+import { SEARCH_QUERY } from '@/config/query-params';
 import { get } from '@/utils/object';
 import { addObject, addObjects, isArray, removeAt } from '@/utils/array';
 

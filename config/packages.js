@@ -1,7 +1,7 @@
-import { ucFirst } from './string';
-import { sortBy } from './sort';
-import { findBy } from './array';
-import { CONFIG_MAP, RIO, SECRET } from './types';
+import { ucFirst } from '@/utils/string';
+import { sortBy } from '@/utils/sort';
+import { findBy } from '@/utils/array';
+import { CONFIG_MAP, RIO, SECRET } from '~/config/types';
 
 export function rioPackage($router, counts, namespaces) {
   function countFor(type) {

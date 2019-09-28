@@ -95,17 +95,15 @@ export default (config = {}) => {
           const type = obj.type;
           const cache = state.types[type];
 
-          if ( !cache ) {
-            return obj;
-          }
+          if ( cache ) {
+            const map = cache.map;
+            const keyField = keyFieldFor(type);
+            const entry = map.get(obj[keyField]);
 
-          const map = cache.map;
-          const keyField = keyFieldFor(type);
-          const entry = map.get(obj[keyField]);
-
-          // Map the object to the same instance in the store if possible
-          if ( entry ) {
-            return entry;
+            // Map the object to the same instance in the store if possible
+            if ( entry ) {
+              return entry;
+            }
           }
 
           // Or just return a proxied object

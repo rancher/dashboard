@@ -1,6 +1,6 @@
 <script>
 import ResourceYaml from '@/components/ResourceYaml';
-import { RIO } from '@/utils/types';
+import { RIO } from '@/config/types';
 
 export default {
   components: { ResourceYaml },

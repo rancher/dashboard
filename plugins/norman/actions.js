@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash';
 import { normalizeType } from './normalize';
 import { proxyFor, SELF } from './resource-proxy';
-import { SCHEMA } from '@/utils/types';
+import { SCHEMA } from '~/config/types';
 
 export default {
   request({ dispatch }, opt) {

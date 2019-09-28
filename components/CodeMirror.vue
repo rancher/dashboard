@@ -73,23 +73,25 @@ export default {
     },
 
     fit() {
-      if ( this.autoResize ) {
-        const container = $(this.$refs.cm.$el);
-
-        if ( !container || !container.length ) {
-          return;
-        }
-
-        const offset = container.offset();
-
-        if ( !offset ) {
-          return;
-        }
-
-        const desired = $(window).height() - offset.top - this.footerSpace - 20;
-
-        container.css('height', `${ Math.max(this.minHeight, desired) }px`);
+      if ( !this.autoResize ) {
+        return;
       }
+
+      const container = $(this.$refs.cm.$el);
+
+      if ( !container || !container.length ) {
+        return;
+      }
+
+      const offset = container.offset();
+
+      if ( !offset ) {
+        return;
+      }
+
+      const desired = $(window).height() - offset.top - this.footerSpace - 20;
+
+      container.css('height', `${ Math.max(this.minHeight, desired) }px`);
     },
   }
 };

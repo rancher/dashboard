@@ -2,13 +2,13 @@
 <script>
 import { mapGetters } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
-import { explorerPackage, rioPackage } from '@/utils/packages';
+import { explorerPackage, rioPackage } from '@/config/packages';
 import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
 import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
 import Group from '@/components/nav/Group';
-import { COUNT } from '@/utils/types';
+import { COUNT } from '@/config/types';
 
 export default {
   components: {

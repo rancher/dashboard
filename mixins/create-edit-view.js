@@ -1,5 +1,5 @@
 import ChildHook from './child-hook';
-import { _CREATE, _EDIT, _VIEW } from '@/utils/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   mixins: [ChildHook],

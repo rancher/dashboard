@@ -5,7 +5,7 @@ import AsyncButton from './AsyncButton';
 
 import {
   MODE, _CREATE, _VIEW, _EDIT, _PREVIEW
-} from '@/utils/query-params';
+} from '@/config/query-params';
 
 import { mapPref, DIFF } from '@/store/prefs';
 

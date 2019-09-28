@@ -69,6 +69,7 @@ module.exports = {
     // Third-party
     '~/plugins/axios',
     '~/plugins/tooltip',
+    '~/plugins/vue-clipboard2',
     '~/plugins/v-select',
     '~/plugins/transitions',
     { src: '~/plugins/js-yaml', ssr: false },
