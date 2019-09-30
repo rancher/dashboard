@@ -95,7 +95,7 @@ export default (config = {}) => {
           const type = obj.type;
           const cache = state.types[type];
 
-          if ( cache ) {
+          if ( cache && !obj.__clone ) {
             const map = cache.map;
             const keyField = keyFieldFor(type);
             const entry = map.get(obj[keyField]);

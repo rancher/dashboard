@@ -5,8 +5,11 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import AsyncButton from '@/components/AsyncButton';
 import KeyValue from '@/components/form/KeyValue';
 import { NAMESPACE } from '~/config/types';
+import { _CREATE, _VIEW } from '~/config/query-params';
 
 export default {
+  name: 'CruConfigMap',
+
   components: {
     LabeledInput,
     LabeledSelect,
@@ -26,6 +29,14 @@ export default {
         };
       });
     },
+
+    onlyForCreate() {
+      if ( this.mode === _CREATE ) {
+        return _CREATE;
+      }
+
+      return _VIEW;
+    }
   },
 };
 </script>
@@ -36,7 +47,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model="value.metadata.name"
-          mode="view"
+          :mode="onlyForCreate"
           label="Config Map Name"
           placeholder="Placeholder"
           :required="true"
@@ -45,7 +56,7 @@ export default {
       <div class="col span-6">
         <LabeledSelect
           v-model="value.metadata.namespace"
-          mode="view"
+          :mode="onlyForCreate"
           :options="namespaces"
           label="Namespace"
           placeholder="Select a namespace"
@@ -60,7 +71,8 @@ export default {
       <div class="col span-12">
         <KeyValue
           v-model="value.data"
-          title="Text Data"
+          :mode="mode"
+          title="Data"
           :inital-empty-row="true"
         />
       </div>

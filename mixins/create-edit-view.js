@@ -78,7 +78,6 @@ export default {
 
     async save(buttonDone) {
       try {
-        debugger;
         if ( this.isCreate ) {
           await this.schema.followLink('collection', {
             urlSuffix: ( this.namespaceSuffixOnCreate ? `/${ this.value.metadata.namespace }` : null),

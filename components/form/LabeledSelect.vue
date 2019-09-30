@@ -1,5 +1,6 @@
 <script>
 import LabeledFormElement from '@/mixins/labeled-form-element';
+import { findBy } from '@/utils/array';
 
 export default {
   mixins: [LabeledFormElement],
@@ -8,6 +9,18 @@ export default {
     options: {
       type:    Array,
       default: null,
+    },
+  },
+
+  computed: {
+    currentLabel() {
+      const entry = findBy(this.options || [], 'value', this.value);
+
+      if ( entry ) {
+        return entry.label;
+      }
+
+      return this.value;
     },
   },
 
@@ -26,12 +39,16 @@ export default {
 </script>
 
 <template>
-  <div :class="{'labeled-input': true, raised, focused, empty}">
+  <div :class="{'labeled-input': true, raised, focused, empty, [mode]: true}">
     <label>
       {{ label }}
       <span v-if="required && !value" class="required">*</span>
     </label>
+    <div v-if="isView">
+      {{ currentLabel }}
+    </div>
     <select
+      v-else
       ref="input"
       v-bind="$attrs"
       :value="value"

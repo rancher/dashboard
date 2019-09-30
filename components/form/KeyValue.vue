@@ -4,6 +4,7 @@ import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
+import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 
 /*
   @TODO
@@ -16,6 +17,8 @@ import { downloadFile } from '@/utils/download';
 */
 
 export default {
+  components: { TextAreaAutoGrow },
+
   props: {
     value: {
       type:     [Array, Object],
@@ -59,7 +62,7 @@ export default {
 
     separatorLabel: {
       type:    String,
-      default: ':',
+      default: '',
     },
 
     valueLabel: {
@@ -164,24 +167,20 @@ export default {
   },
 
   computed: {
-    isEditing() {
-      return this.mode !== _VIEW;
-    },
-
     isView() {
       return this.mode === _VIEW;
     },
 
     showAdd() {
-      return this.isEditing && this.addAllowed;
+      return !this.isView && this.addAllowed;
     },
 
     showRead() {
-      return this.isEditing && this.readAllowed;
+      return !this.isView && this.readAllowed;
     },
 
     showRemove() {
-      return this.isEditing && this.removeAllowed;
+      return !this.isView && this.removeAllowed;
     },
   },
 
@@ -292,7 +291,7 @@ export default {
           <th class="key">
             {{ keyLabel }}
           </th>
-          <th class="separator"></th>
+          <th v-if="separatorLabel" class="separator"></th>
           <th class="value">
             {{ valueLabel }}
           </th>
@@ -308,10 +307,10 @@ export default {
           <td class="key">
             <slot name="key" :row="row" :mode="mode">
               <span v-if="isView">{{ row.key }}</span>
-              <input v-else ref="key" v-model="row.key" @input="queueUpdate" />
+              <input v-else ref="key" v-model="row.label" type="text" @input="queueUpdate" />
             </slot>
           </td>
-          <td class="separator">
+          <td v-if="separatorLabel" class="separator">
             {{ separatorLabel }}
           </td>
           <td class="value">
@@ -323,7 +322,7 @@ export default {
                 </button>
               </span>
               <span v-else-if="isView">{{ row.value }}</span>
-              <input v-else v-model="row.value" @input="queueUpdate" />
+              <TextAreaAutoGrow v-else v-model="row.value" @input="queueUpdate" />
             </slot>
           </td>
           <td v-if="showRemove" class="remove">
@@ -375,18 +374,31 @@ export default {
 
   TH {
     text-align: left;
-  }
-
-  .separator {
-    width: #{$separator}px;
-    text-align: center;
+    font-size: 16px;
+    font-weight: normal;
+    color: var(--input-label);
   }
 
   .left {
     width: #{$remove}px;
   }
 
+  .key {
+    vertical-align: top;
+  }
+
+  .separator {
+    width: #{$separator}px;
+    vertical-align: top;
+    text-align: center;
+  }
+
+  .value {
+    vertical-align: top;
+  }
+
   .remove {
+    vertical-align: top;
     text-align: right;
     width: #{$remove}px;
   }

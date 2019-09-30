@@ -302,6 +302,8 @@ export default {
   },
 
   save() {
+    delete this.__rehydrate;
+
     return (opt = {}) => {
       if ( !opt.url ) {
         opt.url = this.linkFor('self');

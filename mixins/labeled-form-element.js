@@ -1,10 +1,12 @@
+import { _VIEW } from '@/config/query-params';
+
 export default {
   inheritAttrs: false,
 
   props: {
-    type: {
+    mode: {
       type:    String,
-      default: 'text',
+      default: 'edit',
     },
 
     label: {
@@ -30,7 +32,7 @@ export default {
 
   data() {
     return {
-      raised:  this.value,
+      raised:  !!this.value,
       focused: false
     };
   },
@@ -38,7 +40,15 @@ export default {
   computed: {
     empty() {
       return !!this.value;
-    }
+    },
+
+    isView() {
+      return this.mode === _VIEW;
+    },
+
+    notView() {
+      return this.mode !== _VIEW;
+    },
   },
 
   methods: {

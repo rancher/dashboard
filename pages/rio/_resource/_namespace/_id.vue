@@ -1,11 +1,26 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
-import { FRIENDLY } from '~/pages/rio/_resource/index';
+import { FRIENDLY } from '@/pages/rio/_resource/index';
+import { MODE, _VIEW, _EDIT } from '@/config/query-params';
 
 export default {
-  mixins:   { CreateEditView },
+  mixins:     { CreateEditView },
+  watchQuery: [MODE],
+
+  data() {
+    const mode = this.$route.query.mode || _VIEW;
+
+    return { mode };
+  },
 
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+    isEdit() {
+      return this.mode === _EDIT;
+    },
+
     type() {
       return FRIENDLY[this.resource].type;
     },
@@ -27,7 +42,6 @@ export default {
     typeDisplay() {
       return FRIENDLY[this.resource].singular;
     },
-
   },
 
   async asyncData(ctx) {
@@ -44,6 +58,15 @@ export default {
       model,
       originalModel: obj,
     };
+  },
+
+  methods: {
+    showActions() {
+      this.$store.commit('selection/show', {
+        resources: this.originalModel,
+        elem:      this.$refs.actions,
+      });
+    },
   }
 };
 </script>
@@ -51,7 +74,12 @@ export default {
 <template>
   <div>
     <header>
-      <h1>Create {{ typeDisplay }}</h1>
+      <h1><span v-if="isEdit">Edit</span> {{ originalModel.nameDisplay }}</h1>
+      <div v-if="isView" class="actions">
+        <button ref="actions" class="btn btn-sm bg-primary actions" @click="showActions">
+          <i class="icon icon-actions" />
+        </button>
+      </div>
     </header>
     <component
       :is="cruComponent"
@@ -61,7 +89,7 @@ export default {
       :done-params="doneParams"
       :namespace-suffix-on-create="true"
       :type-label="typeDisplay"
-      mode="create"
+      :mode="mode"
     />
   </div>
 </template>

@@ -9,34 +9,37 @@ export default {
       type:    String,
       default: 'text',
     },
-
-    placeholder: {
-      type:    String,
-      default: ''
-    },
   },
 
   methods: {
     onFocus() {
       this.onFocusLabeled();
-      this.$refs.input.placeholder = this.placeholder;
+      if ( this.$refs.input ) {
+        this.$refs.input.placeholder = this.placeholder;
+      }
     },
 
     onBlur() {
       this.onBlurLabeled();
-      this.$refs.input.placeholder = '';
+      if ( this.$refs.input ) {
+        this.$refs.input.placeholder = '';
+      }
     }
   }
 };
 </script>
 
 <template>
-  <div :class="{'labeled-input': true, raised, focused}">
+  <div :class="{'labeled-input': true, raised, focused, [mode]: true}">
     <label>
       {{ label }}
       <span v-if="required && !value" class="required">*</span>
     </label>
+    <div v-if="isView">
+      {{ value }}
+    </div>
     <input
+      v-else
       ref="input"
       v-bind="$attrs"
       :type="type"
@@ -45,6 +48,5 @@ export default {
       @focus="onFocus"
       @blur="onBlur"
     >
-    </label>
   </div>
 </template>

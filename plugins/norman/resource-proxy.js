@@ -3,9 +3,13 @@ import { lookup } from '@/utils/model';
 
 export const SELF = '__[[SELF]]__';
 
-export function proxyFor(ctx, obj) {
+export function proxyFor(ctx, obj, isClone = false) {
   // Attributes associated to the proxy, but not stored on the actual object
   let local;
+
+  if ( obj.__isProxy ) {
+    return obj;
+  }
 
   if ( process.server ) {
     Object.defineProperty(obj, '__rehydrate', {
@@ -13,13 +17,24 @@ export function proxyFor(ctx, obj) {
       enumerable:   true,
       configurable: true
     });
+
+    if ( isClone ) {
+      Object.defineProperty(obj, '__clone', {
+        value:        true,
+        enumerable:   true,
+        configurable: true,
+        writable:     true
+      });
+    }
   }
 
   const model = lookup(obj.type) || ResourceInstance;
 
   const proxy = new Proxy(obj, {
     get(target, name) {
-      if ( name === SELF ) {
+      if ( name === '__isProxy' ) {
+        return true;
+      } else if ( name === SELF ) {
         return obj;
       } else if ( name === Symbol.toStringTag ) {
         name = 'toString';

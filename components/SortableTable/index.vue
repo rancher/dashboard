@@ -225,7 +225,7 @@ export default {
 <template>
   <div>
     <div class="sortable-table-header">
-      <div v-if="showHeaderRow" class="fixed-header-actions row clearfix">
+      <div v-if="showHeaderRow" class="fixed-header-actions">
         <div v-if="tableActions" class="bulk">
           <button
             v-for="act in availableActions"

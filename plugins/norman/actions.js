@@ -152,6 +152,6 @@ export default {
   clone(ctx, resource) {
     const copy = cloneDeep(resource[SELF]);
 
-    return proxyFor(ctx, copy);
+    return proxyFor(ctx, copy, true);
   },
 };

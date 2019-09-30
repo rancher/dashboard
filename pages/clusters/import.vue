@@ -43,8 +43,10 @@ export default {
     const hash = await allHash({
       tokens:  store.dispatch('cluster/findAll', { type: CLOUD.REGISTRATION_TOKEN }),
       cluster: store.dispatch('cluster/create', {
-        type:     CLOUD.CLUSTER,
-        metadata: {
+        kind:       'Cluster',
+        apiVersion: 'cloud.rio.rancher.io/v1',
+        type:       CLOUD.CLUSTER,
+        metadata:   {
           name:      '',
           namespace: me.id,
         }

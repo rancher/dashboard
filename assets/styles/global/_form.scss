@@ -16,9 +16,17 @@ TEXTAREA,
   box-sizing: border-box;
   width: 100%;
   padding: 8.5px;
+  font-size: 16px;
 
   color: var(--input-text);
-  background: var(--input-bg);
+
+  &:not(.view) {
+    background-color: var(--input-bg);
+
+    &:hover {
+      background: var(--input-hover-bg, var(--input-bg));
+    }
+  }
 
   border-color: var(--input-border);
   border-width: $outline-width;
@@ -30,10 +38,7 @@ TEXTAREA,
     color: var(--input-placeholder);
   }
 
-  &:hover {
-    background: var(--input-hover-bg, var(--input-bg));
-  }
-
+  
   &.disabled, &[disabled], &[disabled]:hover  {
     color: var(--input-disabled-text);
     background-color: var(--input-disabled-bg, var(--input-bg));

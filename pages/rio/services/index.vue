@@ -58,7 +58,7 @@ export default {
 <template>
   <div>
     <header>
-      <h1>Workloads</h1>
+      <h1>Services</h1>
       <div class="actions">
         <nuxt-link to="create" append tag="button" type="button" class="btn bg-primary">
           Deploy
