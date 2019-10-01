@@ -14,7 +14,7 @@ export default {
 
   versions() {
     return this.spec.revisions.map((rev) => {
-      return this.$getters['byId'](RIO.VERSION, `${ this.metadata.namespace }/${ rev.serviceName }`);
+      return this.$getters['byId'](RIO.SERVICE, `${ this.metadata.namespace }/${ rev.serviceName }`);
     }).filter(x => !!x);
   },
 
@@ -40,7 +40,7 @@ export default {
 
 /*
 versions() {
-  const all = this.$getters['all'](RIO.VERSION);
+  const all = this.$getters['all'](RIO.SERVICE);
 
   return filterBy(all, {
     'metadata.namespace': this.metadata.namespace,

@@ -54,7 +54,6 @@ export function removeObjects(ary, objs) {
   for ( i = 0 ; i < ranges.length ; i++ ) {
     const { start, end } = ranges[i];
 
-    console.log('Splice', start, end - start + 1);
     ary.splice(start, end - start + 1);
   }
 

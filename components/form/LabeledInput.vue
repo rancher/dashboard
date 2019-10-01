@@ -13,19 +13,19 @@ export default {
     },
   },
 
+  data() {
+    return { actualPlaceholder: '' };
+  },
+
   methods: {
     onFocus() {
       this.onFocusLabeled();
-      if ( this.$refs.input ) {
-        this.$refs.input.placeholder = this.placeholder;
-      }
+      this.actualPlaceholder = `${ this.placeholder }`;
     },
 
     onBlur() {
       this.onBlurLabeled();
-      if ( this.$refs.input ) {
-        this.$refs.input.placeholder = '';
-      }
+      this.actualPlaceholder = null;
     }
   }
 };
@@ -42,18 +42,18 @@ export default {
     </div>
     <TextAreaAutoGrow
       v-else-if="type === 'multiline'"
-      ref="input"
       :value="value"
+      :placeholder="actualPlaceholder"
       @input="$emit('input', $event)"
       @focus="onFocus"
       @blur="onBlur"
     />
     <input
       v-else
-      ref="input"
       v-bind="$attrs"
       :type="type"
       :value="value"
+      :placeholder="actualPlaceholder"
       @input="$emit('input', $event.target.value)"
       @focus="onFocus"
       @blur="onBlur"

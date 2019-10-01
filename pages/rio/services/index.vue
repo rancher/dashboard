@@ -42,7 +42,7 @@ export default {
   async asyncData(ctx) {
     const hash = await allHash({
       rows:     ctx.store.dispatch('cluster/findAll', { type: RESOURCE }),
-      versions: ctx.store.dispatch('cluster/findAll', { type: RIO.VERSION }),
+      services: ctx.store.dispatch('cluster/findAll', { type: RIO.SERVICE }),
     });
 
     return {
