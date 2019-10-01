@@ -5,7 +5,7 @@
   "author": "Vincent Fiduccia",
   "private": true,
   "scripts": {
-    "lint": "./node_modules/.bin/eslint --ext .js,.vue --ignore-path .gitignore .",
+    "lint": "./node_modules/.bin/eslint --ext .js,.vue .",
     "test": "./node_modules/.bin/nyc ava --serial --verbose",
     "dev": "./node_modules/.bin/nuxt dev",
     "build": "./node_modules/.bin/nuxt build",

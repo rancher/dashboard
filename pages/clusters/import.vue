@@ -53,8 +53,6 @@ export default {
       })
     });
 
-    debugger;
-
     const token = hash.tokens[0];
 
     return {

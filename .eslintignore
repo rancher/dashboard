@@ -1,0 +1,12 @@
+static/fonts
+coverage
+.nyc_output
+node_modules/
+.npm
+.eslintcache
+.env
+.cache
+.next
+.nuxt
+dist
+.DS_Store
