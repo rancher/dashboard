@@ -72,6 +72,7 @@ module.exports = {
     '~/plugins/vue-clipboard2',
     '~/plugins/v-select',
     '~/plugins/transitions',
+    { src: '~plugins/vue-js-modal' },
     { src: '~/plugins/js-yaml', ssr: false },
     { src: '~/plugins/codemirror', ssr: false },
     { src: '~/plugins/resize', ssr: false },
@@ -164,7 +165,6 @@ function onProxyReqWs(proxyReq, req, socket, options, head) {
   proxyReq.setHeader('origin', options.target.href);
   proxyReq.setHeader('x-forwarded-host', req.headers['host']);
   proxyReq.setHeader('x-api-host', req.headers['host']);
-
   socket.on('error', (err) => {
     console.error('Proxy WS Error:', err);
   });

@@ -79,9 +79,26 @@ export const getters = {
       }
     }
 
+    const openShell = {
+      action:     'openShell',
+      enabled:    true,
+      icon:       'icon icon-fw icon-chevron-right',
+      label:      'Execute Shell',
+      total:      1,
+    };
+    const openLogs = {
+      action:     'openLogs',
+      enabled:    true,
+      icon:       'icon icon-fw icon-chevron-right',
+      label:      'View Logs',
+      total:      1,
+    };
+
     const out = _filter(map);
 
-    return out;
+    return selected[0].kind === 'Pod' ? {
+      ...out, openShell, openLogs
+    } : { ...out };
   },
 
   isSelected: state => (resource) => {
@@ -146,8 +163,12 @@ export const actions = {
     return _execute(state.tableSelected, action, args);
   },
 
-  execute({ state }, { action, args }) {
-    return _execute(state.resources, action, args);
+  execute({ state, dispatch }, { action, args }) {
+    if (action.action === 'openShell' || action.action === 'openLogs') {
+      dispatch('shell/defineSocket', { resource: state.resources[0], action: action.action }, { root: true });
+    } else {
+      return _execute(state.resources, action, args);
+    }
   },
 };
 
@@ -192,7 +213,6 @@ function _filter(map, disableAll = false) {
 
 function _execute(resources, action, args) {
   args = args || [];
-
   if ( resources.length > 1 && action.bulkAction ) {
     const fn = resources[0][action.bulkAction];
 
