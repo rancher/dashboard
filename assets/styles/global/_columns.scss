@@ -15,7 +15,7 @@ $GUTTER: 1.5%;
 .col {
   display: block;
   float:left;
-  margin: 1% $GUTTER 1% 0;
+  margin: 0 $GUTTER 1% 0;
 
   &:last-child {
     margin-right: 0;

@@ -38,7 +38,6 @@ TEXTAREA,
     color: var(--input-placeholder);
   }
 
-  
   &.disabled, &[disabled], &[disabled]:hover  {
     color: var(--input-disabled-text);
     background-color: var(--input-disabled-bg, var(--input-bg));

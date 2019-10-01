@@ -177,3 +177,13 @@ const dasherizeRegex = /[ _]/g;
 export function dasherize(str) {
   return decamelize(str).replace(dasherizeRegex, '-');
 }
+
+export function asciiLike(str) {
+  str = str || '';
+  console.log('String: ', str);
+  if ( str.match(/[^\x20-\x7f]/) ) {
+    return false;
+  }
+
+  return true;
+}

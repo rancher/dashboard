@@ -8,6 +8,7 @@ export default {
     // @TODO queue/defer duplicate requests
 
     opt.depaginate = opt.depaginate !== false;
+    opt.url = opt.url.replace(/\/*$/g, '');
 
     return this.$axios(opt).then((res) => {
       let out = res.data;
@@ -44,8 +45,10 @@ export default {
       return out;
     }).catch((err) => {
       if ( err && err.response && err.response.status === 401 ) {
-        dispatch('auth/logout', { root: true });
+        return dispatch('auth/logout', { root: true });
       }
+
+      return Promise.reject(err);
     });
   },
 

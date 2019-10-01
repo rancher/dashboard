@@ -1,8 +1,10 @@
 <script>
 import LabeledFormElement from '@/mixins/labeled-form-element';
+import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 
 export default {
-  mixins: [LabeledFormElement],
+  components: { TextAreaAutoGrow },
+  mixins:     [LabeledFormElement],
 
   props: {
     type: {
@@ -38,6 +40,14 @@ export default {
     <div v-if="isView">
       {{ value }}
     </div>
+    <TextAreaAutoGrow
+      v-else-if="type === 'multiline'"
+      ref="input"
+      :value="value"
+      @input="$emit('input', $event)"
+      @focus="onFocus"
+      @blur="onBlur"
+    />
     <input
       v-else
       ref="input"

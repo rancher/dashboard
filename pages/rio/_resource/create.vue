@@ -31,7 +31,7 @@ export default {
 
     const schema = ctx.store.getters['cluster/schemaFor'](type);
 
-    const metadata = {};
+    const metadata = { anotations: {} };
 
     if ( schema.attributes.namespaced ) {
       metadata.namespace = '';
@@ -40,7 +40,7 @@ export default {
     const data = {
       type,
       metadata,
-      data: { foo: 'bar' },
+      data: {},
     };
 
     const model = await ctx.store.dispatch('cluster/create', data);

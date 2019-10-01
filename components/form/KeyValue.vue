@@ -2,13 +2,13 @@
 import { debounce } from 'lodash';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
+import { asciiLike } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 
 /*
   @TODO
-  - View Mode
   - Paste
   - Read from file
   - Multiline
@@ -156,7 +156,19 @@ export default {
     const rows = [];
 
     Object.keys(input).forEach((key) => {
-      rows.push({ key, value: input[key] });
+      let value = input[key];
+
+      if ( this.valueBase64 ) {
+        value = base64Decode(value);
+      }
+
+      const binary = !asciiLike(value);
+
+      rows.push({
+        key,
+        value,
+        binary
+      });
     });
 
     if ( !rows.length && this.initialEmptyRow ) {
@@ -265,7 +277,13 @@ export default {
 
       for ( const row of this.rows ) {
         const key = (row.key || '').trim();
-        const value = (row.value || '').trim();
+        let value = (row.value || '').trim();
+
+        row.binary = !asciiLike(value);
+
+        if ( value && this.valueBase64 ) {
+          value = base64Encode(value);
+        }
 
         if ( key && (value || this.valueCanBeEmpty) ) {
           out[key] = value;
@@ -307,7 +325,14 @@ export default {
           <td class="key">
             <slot name="key" :row="row" :mode="mode">
               <span v-if="isView">{{ row.key }}</span>
-              <input v-else ref="key" v-model="row.label" type="text" @input="queueUpdate" />
+              <input
+                v-else
+                ref="key"
+                v-model="row.key"
+                :placeholder="keyPlaceholder"
+                type="text"
+                @input="queueUpdate"
+              />
             </slot>
           </td>
           <td v-if="separatorLabel" class="separator">
@@ -315,14 +340,19 @@ export default {
           </td>
           <td class="value">
             <slot name="value" :row="row" :mode="mode">
-              <span v-if="valueBinary">
+              <span v-if="valueBinary || row.binary">
                 {{ row.value.length }} byte<span v-if="row.value.length !== 1">s</span>
                 <button type="button" class="bg-link" @click="download(idx)">
                   <i class="icon icon-download text-small" />
                 </button>
               </span>
               <span v-else-if="isView">{{ row.value }}</span>
-              <TextAreaAutoGrow v-else v-model="row.value" @input="queueUpdate" />
+              <TextAreaAutoGrow
+                v-else
+                v-model="row.value"
+                :placeholder="valuePlaceholder"
+                @input="queueUpdate"
+              />
             </slot>
           </td>
           <td v-if="showRemove" class="remove">

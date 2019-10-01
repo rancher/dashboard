@@ -21,7 +21,7 @@ export function base64Encode(string) {
   return buf.toString('base64');
 }
 
-export function base64Decode(string) {
+export function base64DecodeToBuffer(string) {
   if (string === null || typeof string === 'undefined') {
     return string;
   }
@@ -31,6 +31,10 @@ export function base64Decode(string) {
   } else {
     return new Buffer(string, 'base64');
   }
+}
+
+export function base64Decode(string) {
+  return base64DecodeToBuffer(string).toString();
 }
 
 export function md5(data, digest, callback) {

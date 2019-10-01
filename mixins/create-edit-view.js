@@ -41,7 +41,7 @@ export default {
   },
 
   data() {
-    return {};
+    return { errors: null };
   },
 
   computed: {
@@ -77,6 +77,8 @@ export default {
     },
 
     async save(buttonDone) {
+      this.errors = null;
+
       try {
         if ( this.isCreate ) {
           await this.schema.followLink('collection', {

@@ -14,6 +14,10 @@ export default {
       type:    Number,
       default: 200,
     },
+    placeholder: {
+      type:    String,
+      default: '',
+    }
   },
 
   data() {
@@ -48,6 +52,11 @@ export default {
 
     autoSize() {
       const el = this.$refs.ta;
+
+      if ( !el ) {
+        return;
+      }
+
       const $el = $(el);
 
       $el.css('height', '1px');
@@ -68,8 +77,11 @@ export default {
   <textarea
     ref="ta"
     :style="style"
+    :placeholder="placeholder"
     class="no-resize no-ease"
     v-bind="$attrs"
     @input="onInput($event.target.value)"
+    @focus="$emit('focus', $event)"
+    @blur="$emit('blur', $event)"
   />
 </template>

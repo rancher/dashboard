@@ -6,6 +6,11 @@
     transition: all 0.1s ease-in-out;
     z-index: 1;
     color: var(--input-placeholder);
+    background-color: var(--input-bg);
+  }
+
+  &:hover LABEL {
+    background-color: var(--input-hover-bg);
   }
 
   &.raised LABEL {
@@ -35,6 +40,7 @@
   }
 
   INPUT:not(.view), INPUT:not(.view):hover, INPUT:focus,
+  TEXTAREA:not(.view), TEXTAREA:not(.view):hover, TEXTAREA:focus,
   SELECT:not(.view), SELECT:not(.view):hover, SELECT:focus {
     border: none;
     background-color: transparent;

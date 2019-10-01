@@ -1,5 +1,4 @@
 <script>
-import * as d3 from 'd3';
 import AspectPreserver from '@/components/charts/AspectPreserver';
 import LinePlot from '@/components/charts/LinePlot';
 import ProgressArc from '@/components/charts/ProgressArc';
