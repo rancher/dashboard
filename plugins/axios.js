@@ -1,7 +1,9 @@
 import https from 'https';
 import pkg from '../package.json';
 
-export default function({ $axios, isDev, redirect }) {
+export default function({
+  $axios, isDev, route, redirect
+}) {
   $axios.defaults.headers.common['Accept'] = 'application/json';
   $axios.defaults.xsrfCookieName = 'CSRF';
   $axios.defaults.xsrfHeaderName = 'X-Api-Csrf';
@@ -28,7 +30,11 @@ export default function({ $axios, isDev, redirect }) {
       const code = parseInt(error.response && error.response.status, 10);
 
       if (code === 401) {
-        redirect('/auth/login?timed-out');
+        if ( route.name === 'index' ) {
+          redirect('/auth/login');
+        } else {
+          redirect('/auth/login?timed-out');
+        }
       }
     });
   }

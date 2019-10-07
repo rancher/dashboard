@@ -41,7 +41,7 @@ export default {
       type:     Number,
       required: true
     },
-    subExpandable: {
+    subExpandColumn: {
       type:    Boolean,
       default: false,
     },
@@ -112,7 +112,7 @@ export default {
           :indeterminate.prop="isIndeterminate"
         />
       </th>
-      <th v-if="subExpandable" :width="expandWidth"></th>
+      <th v-if="subExpandColumn" :width="expandWidth"></th>
       <th
         v-for="col in columns"
         :key="col.name"

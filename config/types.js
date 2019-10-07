@@ -19,7 +19,7 @@ export const RIO = {
   APP:                   'rio.cattle.io.v1.app',
   EXTERNAL_SERVICE:      'rio.cattle.io.v1.externalservice',
   PUBLIC_DOMAIN:         'admin.rio.cattle.io.v1.publicdomain',
-  CONTINUOUS_DEPLOYMENT: 'rio.cattle.io.v1.stack',
+  STACK:                 'rio.cattle.io.v1.stack',
   ROUTER:                'rio.cattle.io.v1.router',
   SERVICE:               'rio.cattle.io.v1.service',
 };

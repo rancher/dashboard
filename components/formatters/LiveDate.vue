@@ -53,7 +53,8 @@ export default {
       const value = day(this.value);
       const now = day();
       let diff = value.diff(now, 'seconds');
-      const suffix = (diff < 0 ? 'ago' : 'from now');
+      const prefix = (diff < 0 ? '' : '-');
+      const suffix = '';
 
       diff = Math.abs(diff);
 
@@ -79,7 +80,8 @@ export default {
           label = Math.floor(diff);
         }
 
-        label += ` ${ LABELS[i] }${ label === 1 || !PLURALIZE[i] ? '' : 's' } ${ suffix }`;
+        label += ` ${ prefix } ${ LABELS[i] }${ label === 1 || !PLURALIZE[i] ? '' : 's' } ${ suffix }`;
+        label = label.trim();
       }
 
       if ( this.label !== label ) {

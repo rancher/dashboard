@@ -29,33 +29,36 @@ export default {
 </script>
 
 <template>
-  <v-popover trigger="hover" offset="1">
+  <v-popover placement="top" :trigger="(row.scales && row.scales.global ? 'manual' : 'hover')" offset="1">
     <span>
       <ProgressBarMulti v-if="row.complexScale" :values="row.scaleParts" />
+      <p v-if="row.scales && row.scales.global" class="scale">Global</p>
       <p v-else class="scale">
-        <span v-if="!row.scales.current">?</span>
-        <span v-else-if="row.showReadyScale">
-          {{ row.status.scaleStatus.ready }} <i class="icon icon-chevron-right" />
+        {{ row.scales.current }}
+        <span v-if="row.showDesiredScale">
+          <i class="icon icon-chevron-right" />
+          {{ row.scales.desired }}
         </span>
-        {{ row.scales.desired }}
       </p>
     </span>
 
     <template #popover>
-      <button class="btn btn-sm bg-primary scale-btn" @click="scaleDown">
-        <i class="icon icon-minus" />
-      </button>
-      <button class="btn btn-sm bg-primary scale-btn" @click="scaleUp">
-        <i class="icon icon-plus" />
-      </button>
+      <div class="text-center pb-5">
+        <button class="btn btn-sm bg-primary scale-btn" @click="scaleDown">
+          <i class="icon icon-minus" />
+        </button>
+        <button class="btn btn-sm bg-primary scale-btn" @click="scaleUp">
+          <i class="icon icon-plus" />
+        </button>
+      </div>
       <table v-if="row.complexScale" class="fixed">
         <tbody>
           <tr v-for="obj in row.scaleParts" :key="obj.label">
             <td :class="{'text-left': true, [obj.textColor]: true}">
-              {{ obj.label }}>
+              {{ obj.label }}
             </td>
             <td class="text-right">
-              {{ obj.value }}>
+              {{ obj.value }}
             </td>
           </tr>
         </tbody>
@@ -77,6 +80,7 @@ export default {
   .scale {
     margin: 0;
     padding: 0;
+    line-height: initial;
   }
 
 </style>

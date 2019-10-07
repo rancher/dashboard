@@ -2,7 +2,9 @@
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
 import SortableTable from '@/components/SortableTable';
-import { headersFor, NAME, NAMESPACE_NAME } from '~/config/table-headers';
+import {
+  headersFor, NAME, NAME_UNLINKED, NAMESPACE_NAME, NAMESPACE_NAME_UNLINKED
+} from '~/config/table-headers';
 
 export default {
   components: { ButtonGroup, SortableTable },
@@ -41,16 +43,22 @@ export default {
       if ( this.headers ) {
         headers = this.headers.slice();
       } else {
-        headers = headersFor(this.schema, showNamespace);
+        headers = headersFor(this.schema, false);
       }
 
-      // This removes the namespace column from custom headers passed in
-      // (and headersFor won't add it in the first place)
+      // If only one namespace is selected, replace the namespace_name
+      // column with the just name one.
       if ( !showNamespace ) {
-        const idx = headers.indexOf(NAMESPACE_NAME);
+        let idx = headers.indexOf(NAMESPACE_NAME);
 
         if ( idx >= 0 ) {
           headers.splice(idx, 1, NAME);
+        }
+
+        idx = headers.indexOf(NAMESPACE_NAME_UNLINKED);
+
+        if ( idx >= 0 ) {
+          headers.splice(idx, 1, NAME_UNLINKED);
         }
       }
 
@@ -109,7 +117,7 @@ export default {
       v-on="$listeners"
     >
       <template v-if="groupable" #header-middle>
-        <slot name="header-middle" />
+        <slot name="more-header-middle" />
         <ButtonGroup v-model="group" :options="groupOptions" />
       </template>
 

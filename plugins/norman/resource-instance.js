@@ -203,12 +203,12 @@ export default {
     });
 
     // Remove dividers at the beginning
-    while ( out[0].divider ) {
+    while ( out.length && out[0].divider ) {
       out.shift();
     }
 
     // Remove dividers at the end
-    while ( out[out.length - 1].divider ) {
+    while ( out.length && out[out.length - 1].divider ) {
       out.pop();
     }
 

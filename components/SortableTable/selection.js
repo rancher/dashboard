@@ -118,11 +118,11 @@ export default {
 
     onRowClick(e) {
       const node = this.nodeForEvent(e);
-      const tgt = $(e.target);
+      const td = $(e.target).closest('TD');
       const tagName = e.target.tagName;
       const selection = this.selectedNodes;
-      const isCheckbox = tagName === 'INPUT' || tgt.hasClass('row-check');
-      const isExpand = tgt.hasClass('row-expand');
+      const isCheckbox = tagName === 'INPUT' || td.hasClass('row-check');
+      const isExpand = td.hasClass('row-expand');
       const content = this.pagedRows;
 
       if ( !node ) {

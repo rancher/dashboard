@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
-import { STATE, NAMESPACE_NAME, CREATED } from '~/config/table-headers';
+import { STATE, NAMESPACE_NAME, AGE } from '~/config/table-headers';
 
 const KEYS = {
   name:      'keys',
@@ -19,7 +19,7 @@ export const FRIENDLY = {
       STATE,
       NAMESPACE_NAME,
       KEYS,
-      CREATED
+      AGE
     ],
   },
   'external-services': {
@@ -32,10 +32,10 @@ export const FRIENDLY = {
     plural:   'Public Domains',
     type:     RIO.PUBLIC_DOMAIN
   },
-  cd: {
-    singular: 'Continuous Deployment',
-    plural:   'Continuous Deployments',
-    type:     RIO.CONTINUOUS_DEPLOYMENT
+  stack: {
+    singular: 'Stack',
+    plural:   'Stacks',
+    type:     RIO.STACK
   },
   routers: {
     singular: 'Router',
@@ -55,7 +55,7 @@ export const FRIENDLY = {
         value: 'typeDisplay',
       },
       KEYS,
-      CREATED
+      AGE
     ],
   },
 };

@@ -42,10 +42,10 @@ export function rioPackage($router, counts, namespaces) {
       },
       { divider: true },
       {
-        name:  'rio-cd',
-        count: countFor(RIO.CONTINUOUS_DEPLOYMENT),
-        label: 'Continuous Deployments',
-        route: linkFor('cd'),
+        name:  'rio-stack',
+        count: countFor(RIO.STACK),
+        label: 'Stacks',
+        route: linkFor('stack'),
       },
       {
         name:    'rio-services',

@@ -72,9 +72,9 @@ export default {
 
 <template>
   <component :is="tagName" v-bind="$attrs" class="container">
-    {{ label }}
     <slot :data="value" :min="min" :max="max" :interval="interval">
     </slot>
+    {{ label }}
   </component>
 </template>
 
@@ -82,6 +82,7 @@ export default {
 .container{
   display: flex;
   padding: 5px;
+  padding-right: 0;
   height: 80%;
   align-items: center
 }

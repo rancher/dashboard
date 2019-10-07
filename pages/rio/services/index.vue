@@ -1,54 +1,89 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import BadgeState from '@/components/formatters/BadgeState';
-import Random from '@/components/Random';
-import DiscreteProgressBar from '@/components/DiscreteProgressBar';
-import TableSparkLine from '@/components/TableSparkLine';
-import { allHash } from '@/utils/promise';
+// import { allHash } from '@/utils/promise';
 import { get } from '@/utils/object';
 
 import { RIO } from '@/config/types';
 import {
-  STATE, NAMESPACE_NAME, SCALE, CREATED, SUCCESS, REQ_RATE, P95
+  STATE, NAMESPACE_NAME_UNLINKED, RIO_IMAGE, SCALE, AGE,
 } from '~/config/table-headers';
 
-const RESOURCE = RIO.APP;
-
 export default {
-  components: {
-    ResourceTable, BadgeState, Random, DiscreteProgressBar, TableSparkLine
+  components: { ResourceTable },
+
+  data() {
+    return { showAll: false };
   },
 
   computed: {
     schema() {
-      return this.$store.getters['cluster/schemaFor'](RESOURCE);
+      return this.$store.getters['cluster/schemaFor'](RIO.SERVICE);
     },
 
     headers() {
       const out = [
         STATE,
-        NAMESPACE_NAME,
+        NAMESPACE_NAME_UNLINKED,
+        RIO_IMAGE,
         SCALE,
-        SUCCESS,
-        REQ_RATE,
-        P95,
-        CREATED,
+        AGE,
       ];
 
       return out;
-    }
+    },
+
+    rows() {
+      return this.services;
+
+      /*
+      const ctx = { getters: this.$store.getters, dispatch: this.$store.dispatch };
+      const services = this.services;
+      const map = {};
+
+      for ( const service of services ) {
+        const key = service.appKey;
+        let entry = map[key];
+
+        if ( !entry ) {
+          entry = proxyFor(ctx, {
+            type:      'app',
+            metadata: {
+              namespace:         service.metadata.namespace,
+              name:              service.appName,
+              creationTimestamp: service.metadata.creationTimestamp,
+            },
+            services:  [],
+          });
+
+          map[key] = entry;
+        }
+
+        if ( service.metadata.creationTimestamp < entry.metadata.creationTimestamp ) {
+          entry.metadata.creationTimestamp = service.metadata.creationTimestamp;
+        }
+
+        entry.services.push(service);
+      }
+
+      const out = [];
+
+      for ( const app of Object.values(map) ) {
+        if ( app.services.length > 1 ) {
+          out.push(app);
+        } else if ( app.services.length === 1 ) {
+          out.push(app.services[0]);
+        }
+      }
+
+      return out;
+*/
+    },
   },
 
   async asyncData(ctx) {
-    const hash = await allHash({
-      rows:     ctx.store.dispatch('cluster/findAll', { type: RESOURCE }),
-      services: ctx.store.dispatch('cluster/findAll', { type: RIO.SERVICE }),
-    });
+    const services = await ctx.store.dispatch('cluster/findAll', { type: RIO.SERVICE });
 
-    return {
-      resource: RESOURCE,
-      rows:     hash.rows
-    };
+    return { services };
   },
 
   methods: { get },
@@ -70,73 +105,11 @@ export default {
       :schema="schema"
       :headers="headers"
       :rows="rows"
-      :sub-rows="true"
-      :sub-expandable="true"
     >
-      <template #cell:scale="scope">
-        {{ scope.row.totalScale || '?' }}
-      </template>
-      <template #cell:success>
-        <Random :min="10" :max="100" :suffix="`%`">
-          <template v-slot:default="graph">
-            <DiscreteProgressBar :progress="graph.data" :interval="graph.interval" />
-          </template>
-        </Random>
-      </template>
-      <template #cell:req-rate>
-        <Random :min="1" :max="20" :decimals="1" :suffix="`/s`">
-          <template v-slot:default="graph">
-            <TableSparkLine :input-datum="graph.data" :max="graph.max" />
-          </template>
-        </Random>
-      </template>
-      <template #cell:p95>
-        <Random :min="50" :max="500" :suffix="`ms`">
-          <template v-slot="graph">
-            <TableSparkLine :input-datum="graph.data" />
-          </template>
-        </Random>
-      </template>
-      <template #sub-row="scope">
-        <tr v-for="version in scope.row.spec.revisions" :key="version.serviceName">
-          <td colspan="2"></td>
-          <td><BadgeState val="ignored" :col="scope.col" :row="scope.row" /></td>
-          <td>{{ version.serviceName }}</td>
-          <td align="center">
-            {{ get(scope.row.weights, version.Version) || 0 }}%
-            <div
-              v-if="version.adjustedWeight !== undefined && version.adjustedWeight !== get(scope.row.weights, version.Version)"
-              class="text-small text-muted"
-            >
-              to {{ version.adjustedWeight }}%
-            </div>
-          </td>
-          <td align="right">
-            <Random :min="10" :max="100" :interval="3000" :suffix="`%`">
-              <template v-slot:default="graph">
-                <DiscreteProgressBar :progress="graph.data" :interval="graph.interval" />
-              </template>
-            </Random>
-          </td>
-          <td align="right">
-            <Random :min="1" :max="20" :decimals="1" :suffix="`/s`">
-              <template v-slot:default="graph">
-                <TableSparkLine :input-datum="graph.data" :max="graph.max" />
-              </template>
-            </random>
-          </td>
-          <td align="right">
-            <Random :min="50" :max="500" :interval="1000" :suffix="`ms`">
-              <template v-slot="graph">
-                <TableSparkLine :input-datum="graph.data" />
-              </template>
-            </Random>
-          </td>
-          <td align="right">
-            ?
-          </td>
-          <td></td>
-        </tr>
+      <template #more-header-middle>
+        <label>
+          <input type="checkbox" :checked="showAll"> All
+        </label>
       </template>
     </ResourceTable>
   </div>

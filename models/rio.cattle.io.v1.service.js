@@ -1,10 +1,27 @@
 
 export default {
+  appKey() {
+    return `${ this.spec.namespace }/${ this.appName }`;
+  },
+
+  appName() {
+    return this.spec.app || this.metadata.name;
+  },
+
+  versionName() {
+    return this.spec.version || 'v0';
+  },
+
+  nameDisplay() {
+    return `${ this.appName }:${ this.versionName }`;
+  },
+
   imageDisplay() {
     return (this.spec.image || '')
       .replace(/^index.docker.io\//i, '')
       .replace(/@sha256:[0-9a-f]+$/i, '')
-      .replace(/:latest$/i, '');
+      .replace(/:latest$/i, '')
+      .replace(/localhost:5442\/(.*)/i, '$1 (local)');
   },
 
   scales() {
@@ -18,68 +35,83 @@ export default {
       status = {};
     }
 
+    const spec = (typeof this.spec.scale === 'undefined' ? 1 : this.spec.scale || 0);
+
+    // @TODO use only new fields after API changes
+    const global = (this.spec.global || (this.systemSpec && this.systemSpec.global)) === true;
+    const current = this.status.computedScale || (this.status.scaleStatus && this.status.scaleStatus.ready) || 0;
+    const available = (status.available || status.ready || 0);
+    const unavailable = status.unavailable || 0;
+
+    let desired = this._local.pendingScale >= 0 ? this._local.pendingScale : spec;
+
+    if ( global ) {
+      desired = current;
+    }
+
+    const missing = desired - available - unavailable;
+
     return {
       hasStatus,
-      pending:     this._local.pendingScale || null,
-      current:     this.spec.scale || 0,
-      desired:     this._local.pendingScale >= 0 ? this._local.pendingScale : this.spec.scale,
-      available:   status.available || 0,
-      unavailable: status.unavailable || 0,
-      ready:       status.ready || 0,
+      global,
+      current,
+      desired,
+      available,
+      unavailable,
+      starting:    missing > 0 ? missing : 0,
+      stopping:    missing < 0 ? -1 * missing : 0,
     };
   },
 
-  showReadyScale() {
-    return this.scales.ready !== this.scales.desired;
+  showDesiredScale() {
+    const scales = this.scales;
+
+    return !scales.global && scales.current !== scales.desired;
   },
 
   complexScale() {
-    const {
-      available, unavailable, ready, current
-    } = this.scales;
+    const { stopping, starting, unavailable } = this.scales;
 
-    if ( available === 0 && unavailable === 0 && ready >= current ) {
-      return false;
-    }
-
-    return true;
+    return stopping !== 0 || starting !== 0 || unavailable !== 0;
   },
 
   scaleParts() {
     const {
-      ready, available, unavailable, current
+      available, unavailable, starting, stopping
     } = this.scales;
-    const pending = Math.max(0, current - ready - available - unavailable);
-
     const out = [
       {
-        label:     'Ready',
+        label:     'Available',
         color:     'bg-success',
         textColor: 'text-success',
-        value:      ready
-      },
-
-      {
-        label:     'Available',
-        color:     'bg-info',
-        textColor: 'text-info',
         value:      available
       },
 
       {
         label:     'Unavailable',
-        color:     'bg-warning',
-        textColor: 'text-warning',
-        value:     unavailable
-      },
-
-      {
-        label:     'Pending',
         color:     'bg-error',
         textColor: 'text-error',
-        value:     pending
+        value:     unavailable
       },
     ];
+
+    if ( starting ) {
+      out.push({
+        label:     'Starting',
+        color:     'bg-info',
+        textColor: 'text-info',
+        value:     starting
+      });
+    }
+
+    if ( stopping ) {
+      out.push({
+        label:     'Stopping',
+        color:     'bg-warning',
+        textColor: 'text-warning',
+        value:     stopping
+      });
+    }
 
     return out;
   },
@@ -87,6 +119,10 @@ export default {
   scaleUp() {
     return () => {
       let scale;
+
+      if ( this.scales.global ) {
+        return;
+      }
 
       if ( this._local.scaleTimer ) {
         scale = this._local.pendingScale;
@@ -102,6 +138,10 @@ export default {
   scaleDown() {
     return () => {
       let scale;
+
+      if ( this.scales.global ) {
+        return;
+      }
 
       if ( this.this._local.scaleTimer ) {
         scale = this._local.pendingScale;

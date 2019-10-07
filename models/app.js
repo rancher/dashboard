@@ -1,11 +1,12 @@
-import { RIO } from '~/config/types';
+// import { RIO } from '~/config/types';
 // import { filterBy } from '@/utils/array';
 
-export default {
+export default {};
+/*
   totalScale() {
     let out = 0;
 
-    for ( const version of this.spec.revisions ) {
+    for ( const service of this.services ) {
       out += version.scale;
     }
 
@@ -36,15 +37,4 @@ export default {
     return out;
   }
 
-};
-
-/*
-versions() {
-  const all = this.$getters['all'](RIO.SERVICE);
-
-  return filterBy(all, {
-    'metadata.namespace': this.metadata.namespace,
-    'metadata.name':      this.spec.app,
-  });
-}
 */

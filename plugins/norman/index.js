@@ -106,6 +106,8 @@ export default (config = {}) => {
             }
           }
 
+          delete obj.__rehydrate;
+
           // Or just return a proxied object
           return proxyFor(module.context, obj);
         } else {

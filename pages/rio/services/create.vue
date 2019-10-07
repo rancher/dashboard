@@ -37,9 +37,10 @@ export default {
     }
 
     const data = {
-      type: RESOURCE,
+      kind:       'Service',
+      apiVersion: 'rio.cattle.io/v1',
+      type:       RESOURCE,
       metadata,
-      data: {},
     };
 
     const model = await ctx.store.dispatch('cluster/create', data);

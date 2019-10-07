@@ -111,6 +111,11 @@ export default {
       default: false,
     },
 
+    subExpandColumn: {
+      type:    Boolean,
+      default: false,
+    },
+
     subSearch: {
       // A field containing an array of sub-items to also search in for each row
       type:    String,
@@ -143,7 +148,7 @@ export default {
         span++;
       }
 
-      if ( this.subExpandable ) {
+      if ( this.subExpandColumn ) {
         span++;
       }
 
@@ -254,7 +259,7 @@ export default {
         :columns="columns"
         :table-actions="tableActions"
         :row-actions="rowActions"
-        :sub-expandable="subExpandable"
+        :sub-expand-column="subExpandColumn"
         :row-actions-width="rowActionsWidth"
         :how-much-selected="howMuchSelected"
         :sort-by="sortBy"
@@ -299,11 +304,18 @@ export default {
               <td v-if="tableActions" class="row-check" align="middle">
                 <input type="checkbox" :data-node-id="get(row,keyField)" />
               </td>
-              <td v-if="subExpandable" class="row-expand" align="middle">
-                <i data-title="Toggle Expand" :class="{'row-expand': true, icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[get(row, keyField)]}" />
+              <td v-if="subExpandColumn" class="row-expand" align="middle">
+                <i data-title="Toggle Expand" :class="{icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[get(row, keyField)]}" />
               </td>
               <template v-for="col in columns">
-                <slot :name="'col:' + col.name" :row="row" :col="col">
+                <slot
+                  :name="'col:' + col.name"
+                  :row="row"
+                  :col="col"
+                  :dt="dt"
+                  :expanded="expanded"
+                  :rowKey="get(row,keyField)"
+                >
                   <td :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'" :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}">
                     <slot :name="'cell:' + col.name" :row="row" :col="col">
                       <component :is="col.formatter" v-if="col.formatter" :value="get(row, col.value||col.name)" :row="row" :col="col" />
@@ -466,6 +478,10 @@ $divider-height: 2px;
 
       &.clip {
         padding-right: 25px;
+      }
+
+      &.row-expand, &.row-check {
+        cursor: pointer;
       }
 
       .actions {

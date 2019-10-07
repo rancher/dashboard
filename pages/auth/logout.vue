@@ -3,7 +3,7 @@ export default {
   layout: 'unauthenticated',
 
   async created() {
-    await this.$store.dispatch('auth/logout');
+    await this.$store.dispatch('auth/logout', null, { root: true });
     await this.$router.replace({ path: '/auth/login?logged-out' });
   }
 };
