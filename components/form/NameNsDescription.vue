@@ -1,5 +1,5 @@
 <script>
-import { NAMESPACE } from '~/config/types';
+import { NAMESPACE, ANNOTATION } from '~/config/types';
 import { _CREATE, _VIEW } from '~/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -30,20 +30,6 @@ export default {
     },
   },
 
-  data() {
-    const value = this.value;
-
-    if ( !value.metadata) {
-      value.metadata = {};
-    }
-
-    if ( !value.metadata.annotations ) {
-      value.metadata.annotations = {};
-    }
-
-    return {};
-  },
-
   computed: {
     namespaces() {
       const choices = this.$store.getters['cluster/all'](NAMESPACE);
@@ -56,12 +42,42 @@ export default {
       });
     },
 
+    description: {
+      get() {
+        if ( this.value && this.value.metadata && this.value.metadata.annotations ) {
+          return this.value.metadata.annotations[ANNOTATION.DESCRIPTION];
+        }
+
+        return '';
+      },
+
+      set(neu) {
+        if ( !this.value ) {
+          return;
+        }
+
+        if ( !this.value.metadata ) {
+          this.value.metadata = {};
+        }
+
+        if ( !this.value.metadata.annotations ) {
+          this.value.metadata.annotations = {};
+        }
+
+        this.value.metadata.annotations[ANNOTATION.DESCRIPTION] = neu;
+      }
+    },
+
     onlyForCreate() {
       if ( this.mode === _CREATE ) {
         return _CREATE;
       }
 
       return _VIEW;
+    },
+
+    notView() {
+      return this.mode !== _VIEW;
     }
   },
 };
@@ -90,10 +106,10 @@ export default {
         />
       </div>
     </div>
-    <div class="row">
+    <div v-if="notView || description" class="row">
       <div class="col span-12">
         <LabeledInput
-          v-model="value.metadata.annotations['rio.io/description']"
+          v-model="description"
           type="multiline"
           label="Description"
           :mode="mode"

@@ -5,7 +5,7 @@ import { get } from '@/utils/object';
 
 import { RIO } from '@/config/types';
 import {
-  STATE, NAMESPACE_NAME_UNLINKED, RIO_IMAGE, SCALE, AGE,
+  STATE, NAMESPACE_NAME, RIO_IMAGE, SCALE, AGE,
 } from '~/config/table-headers';
 
 export default {
@@ -23,7 +23,7 @@ export default {
     headers() {
       const out = [
         STATE,
-        NAMESPACE_NAME_UNLINKED,
+        NAMESPACE_NAME,
         RIO_IMAGE,
         SCALE,
         AGE,

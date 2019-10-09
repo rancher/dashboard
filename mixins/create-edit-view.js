@@ -20,11 +20,6 @@ export default {
       default: null,
     },
 
-    typeLabel: {
-      type:     String,
-      required: true,
-    },
-
     doneRoute: {
       type:    String,
       default: null

@@ -2,7 +2,7 @@ import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
 import { eachLimit } from '~/utils/promise';
-import { MODE, _EDIT } from '@/config/query-params';
+import { MODE, _EDIT, EDIT_YAML, _FLAGGED } from '@/config/query-params';
 import { TO_FRIENDLY } from '@/pages/rio/_resource';
 
 const REMAP_STATE = { disabled: 'inactive' };
@@ -147,9 +147,15 @@ export default {
     return 'active';
   },
 
+  // You can add custom actions by overriding your own availableActions (and probably reading _availableActions)
   availableActions() {
+    return this._availableActions;
+  },
+
+  _availableActions() {
     const all = [];
     const links = this.links || {};
+    const friendly = TO_FRIENDLY[this.type.replace(/^rio-/i, '')];
 
     all.push({
       action:  'goToEdit',
@@ -157,6 +163,15 @@ export default {
       icon:    'icon icon-fw icon-edit',
       enabled:  !!links.update,
     });
+
+    if ( friendly ) {
+      all.push({
+        action:  'viewEditYaml',
+        label:   (links.update ? 'View/Edit YAML' : 'View YAML'),
+        icon:    'icon icon-file',
+        enabled:  !!links.view,
+      });
+    }
 
     all.push({ divider: true });
 
@@ -331,14 +346,14 @@ export default {
   // ------------------------------------------------------------------
 
   goToEdit() {
-    return () => {
+    return (moreQuery = {}) => {
       const currentRoute = window.$nuxt.$route.name;
       const router = window.$nuxt.$router;
       const schema = this.$getters['schemaFor'](this.type);
       let route, params;
 
       if ( currentRoute.startsWith('rio-') ) {
-        const friendly = TO_FRIENDLY[this.type];
+        const friendly = TO_FRIENDLY[this.type.replace(/^rio-/i, '')];
 
         if ( friendly ) {
           route = `rio-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
@@ -363,10 +378,16 @@ export default {
       const url = router.resolve({
         name:   route,
         params,
-        query:  { [MODE]: _EDIT }
+        query:  { [MODE]: _EDIT, ...moreQuery }
       }).href;
 
       router.push({ path: url });
+    };
+  },
+
+  viewEditYaml() {
+    return () => {
+      return this.goToEdit({ [EDIT_YAML]: _FLAGGED });
     };
   },
 

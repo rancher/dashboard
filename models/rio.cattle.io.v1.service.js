@@ -1,3 +1,5 @@
+import { insertAt } from '@/utils/array';
+import { ADD_SIDECAR, _FLAGGED } from '@/config/query-params';
 
 export default {
   appKey() {
@@ -174,6 +176,26 @@ export default {
         this._local.scaleTimer = null;
         this._local.pendingScale = null;
       }, 500);
+    };
+  },
+
+  availableActions() {
+    const links = this.links || {};
+    const out = this._availableActions;
+
+    insertAt(out, 1, {
+      action:  'addSidecar',
+      label:   'Add a Sidecar',
+      icon:    'icon icon-circle-plus',
+      enabled:  !!links.update,
+    });
+
+    return out;
+  },
+
+  addSidecar() {
+    return () => {
+      return this.goToEdit({ [ADD_SIDECAR]: _FLAGGED });
     };
   },
 

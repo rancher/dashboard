@@ -1,7 +1,9 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
-import { STATE, NAMESPACE_NAME, AGE } from '~/config/table-headers';
+import {
+  STATE, NAMESPACE_NAME, RIO_IMAGE, SCALE, AGE
+} from '~/config/table-headers';
 
 const KEYS = {
   name:      'keys',
@@ -31,6 +33,18 @@ export const FRIENDLY = {
     singular: 'Public Domain',
     plural:   'Public Domains',
     type:     RIO.PUBLIC_DOMAIN
+  },
+  services: {
+    singular: 'Service',
+    plural:   'Services',
+    type:     RIO.SERVICE,
+    headers:  [
+      STATE,
+      NAMESPACE_NAME,
+      RIO_IMAGE,
+      SCALE,
+      AGE,
+    ]
   },
   stack: {
     singular: 'Stack',

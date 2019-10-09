@@ -28,3 +28,8 @@ export const RANCHER = {
   PRINCIPAL: 'principal',
   USER:      'user',
 };
+
+export const ANNOTATION = {
+  DESCRIPTION: 'cattle.io/description',
+  TIMESTAMP:   'cattle.io/timestamp'
+};

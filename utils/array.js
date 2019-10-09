@@ -84,6 +84,10 @@ export function addObjects(ary, objs) {
   ary.push(...unique);
 }
 
+export function insertAt(ary, idx, ...objs) {
+  ary.splice(idx, 0, ...objs);
+}
+
 export function isArray(thing) {
   return Array.isArray(thing);
 }

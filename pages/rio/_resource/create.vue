@@ -23,11 +23,20 @@ export default {
     typeDisplay() {
       return FRIENDLY[this.resource].singular;
     },
+
+    parentLink() {
+      const name = this.doneRoute;
+      const params = this.doneParams;
+      const out = this.$router.resolve({ name, params }).href;
+
+      return out;
+    },
   },
 
   async asyncData(ctx) {
     const { resource } = ctx.params;
-    const type = FRIENDLY[resource].type;
+    const mapping = FRIENDLY[resource];
+    const type = mapping.type;
 
     const schema = ctx.store.getters['cluster/schemaFor'](type);
 
@@ -43,7 +52,13 @@ export default {
       data: {},
     };
 
-    const model = await ctx.store.dispatch('cluster/create', data);
+    let model;
+
+    if ( mapping.newModel ) {
+      model = mapping.newModel(ctx, data);
+    } else {
+      model = await ctx.store.dispatch('cluster/create', data);
+    }
 
     return {
       resource,
@@ -57,7 +72,11 @@ export default {
 <template>
   <div>
     <header>
-      <h1>Create {{ typeDisplay }}</h1>
+      <h1>
+        Create <nuxt-link :to="parentLink">
+          {{ typeDisplay }}
+        </nuxt-link>
+      </h1>
     </header>
     <component
       :is="cruComponent"

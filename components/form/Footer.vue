@@ -42,7 +42,7 @@ export default {
 </script>
 <template>
   <div>
-    <hr />
+    <hr class="mb-10" />
 
     <div v-for="(err,idx) in errors" :key="idx">
       <div class="text-error">

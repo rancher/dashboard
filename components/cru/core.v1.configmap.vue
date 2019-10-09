@@ -35,11 +35,10 @@ export default {
           :initial-empty-row="true"
         />
       </div>
-
-      <hr />
     </div>
 
     <div v-if="!isView || Object.keys(value.binaryData||{}).length" class="row">
+      <hr />
       <div class="col span-12">
         <KeyValue
           key="binaryData"

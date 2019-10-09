@@ -33,7 +33,16 @@ export default {
     doneRoute: {
       type:    String,
       default: null,
-    }
+    },
+
+    parentRoute: {
+      type:    String,
+      default: null,
+    },
+    parentParams: {
+      type:    Object,
+      default: null,
+    },
   },
 
   data() {
@@ -103,14 +112,16 @@ export default {
 
     diffMode: mapPref(DIFF),
 
-    parentRoute() {
-      return this.$router.resolve({
-        name:   'explorer-group-resource',
-        params: {
-          group:    this.schema.groupName,
-          resource: this.obj.type
-        }
-      }).href;
+    parentLink() {
+      const name = this.parentRoute || 'explorer-group-resource';
+      const params = this.parentParams || {
+        group:    this.schema.groupName,
+        resource: this.obj.type
+      };
+
+      const out = this.$router.resolve({ name, params }).href;
+
+      return out;
     },
   },
 
@@ -264,7 +275,7 @@ export default {
           Create {{ schema.attributes.kind }}
         </span>
         <span v-else>
-          <nuxt-link :to="parentRoute">
+          <nuxt-link :to="parentLink">
             {{ schema.attributes.kind }}
           </nuxt-link>: {{ obj.id }}
         </span>

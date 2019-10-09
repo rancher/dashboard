@@ -1,6 +1,6 @@
 import test from 'ava';
 import {
-  addObject, addObjects,
+  addObject, addObjects, insertAt,
   removeObject, removeObjects, removeAt, clear,
   isArray,
   filterBy, findBy
@@ -65,8 +65,8 @@ test('removeObjects', (t) => {
 
   const range = [1, 2, 3, 4, 5, 9, 8, 7, 6];
 
-  removeObjects(range, [6, 1, 2, 4, 5, 9, 6]);
-  t.deepEqual(range, [3, 8, 7], 'Removes ranges');
+  removeObjects(range, [6, 1, 2, 3, 4, 5, 9, 6]);
+  t.deepEqual(range, [8, 7], 'Removes ranges, preserves order, tastes great, less filling');
 });
 
 test('isArray', (t) => {
@@ -178,4 +178,12 @@ test('findBy', (t) => {
 
   out = findBy(ary, { foo: 'qux', bar: false });
   t.is(out, undefined, 'Finds no matches');
+});
+
+test('insertAt', (t) => {
+  const ary = [obj1, obj2];
+  let out;
+
+  insertAt(ary, 1, obj3);
+  t.deepEqual(ary, [obj1, obj3, obj2], 'Inserts');
 });

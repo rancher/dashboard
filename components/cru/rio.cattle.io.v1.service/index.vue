@@ -1,4 +1,5 @@
 <script>
+import { _EDIT } from '../../../config/query-params';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Footer from '@/components/form/Footer';
@@ -10,6 +11,7 @@ export default {
     NameNsDescription,
     Footer,
   },
+
   mixins:     [CreateEditView],
 };
 </script>
