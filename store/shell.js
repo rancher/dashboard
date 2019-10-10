@@ -23,7 +23,7 @@ export const actions = {
       resolve();
     });
   },
-  defineSocket({ dispatch, state }, payload) {
+  defineSocket({ dispatch, state, rootGetters }, payload) {
     const resource = payload.resource ? payload.resource : state.resource;
     const action = payload.action ? payload.action : state.mode;
     const containers = resource.spec.containers.filter((container) => {
@@ -37,15 +37,15 @@ export const actions = {
     switch (action) {
     case 'openShell':
       protocol = 'base64.channel.k8s.io';
-      url = `${ window.location.origin.replace('https', 'wss') }/api/v1/namespaces/${ resource.metadata.namespace }/pods/${ resource.metadata.name }/exec?container=${ currentContainer.name }&stdout=1&stdin=1&stderr=1&tty=1&command=sh`;
+      url = `${ resource.links.view.replace('https', 'wss') }/exec?container=${ currentContainer.name }&stdout=1&stdin=1&stderr=1&tty=1&command=sh`;
       break;
     case 'openLogs':
       protocol = 'base64.binary.k8s.io';
-      url = `${ window.location.origin.replace('https', 'wss') }/api/v1/namespaces/${ resource.metadata.namespace }/pods/${ resource.metadata.name }/log?container=${ currentContainer.name }&tailLines=500&follow=true&timestamps=true&previous=${ showLast }`;
+      url = `${ resource.links.view.replace('https', 'wss') }/log?container=${ currentContainer.name }&tailLines=500&follow=true&timestamps=true&previous=${ showLast }`;
       break;
     default:
       protocol = 'base64.channel.k8s.io';
-      url = `${ window.location.origin.replace('https', 'wss') }/api/v1/namespaces/${ resource.metadata.namespace }/pods/${ resource.metadata.name }/exec?container=${ currentContainer.name }`;
+      url = `${ resource.links.view.replace('https', 'wss') }/pods/${ resource.metadata.name }/exec?container=${ currentContainer.name }`;
     }
     console.log('socket url: ', url);
     dispatch('openSocket', {

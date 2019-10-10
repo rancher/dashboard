@@ -84,7 +84,6 @@ export default {
   urlFor: (state, getters) => (type, id, opt) => {
     opt = opt || {};
     type = getters.normalizeType(type);
-
     let url = opt.url;
 
     if ( !url ) {

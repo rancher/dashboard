@@ -1,8 +1,11 @@
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
+import { POD, NAMESPACE } from '@/config/types';
+
 export default {
   computed:   {
     ...mapState('auth', ['principal']),
+    ...mapGetters('cluster', ['urlFor', 'schemaFor', 'kubeUrlFor']),
     podConfig() {
       const config = {
         apiVersion: 'v1',
@@ -11,7 +14,7 @@ export default {
         spec:       {
           containers: [
             {
-              name:            'ubuntu xenial',
+              name:            'ubuntu-xenial',
               image:           'ubuntu:xenial',
               imagePullPolicy: 'Always',
               stdin:           true
@@ -28,44 +31,39 @@ export default {
       const cluster = 'local';
 
       return `manage-${ cluster }-${ userName }`;
-    }
+    },
   },
   methods:    {
-    findPod() {
-      return fetch(`${ window.location.origin }/api/v1/namespaces/default/pods/${ this.expectedPodName }`)
-        .then((res) => {
-          if (res.ok) {
-            return res.json();
-          } else {
-            throw (res);
-          }
-        })
-        .then((json) => {
-          return json;
-        })
-        .catch((err) => {
-          console.log('error getting pod: ', err);
+    async findPod() {
+      let pod;
 
-          return this.makePod();
-        });
+      try {
+        pod = await this.$store.dispatch('cluster/find', { type: POD, id: `default/${ this.expectedPodName }` });
+      } catch (err) {
+        pod = await this.makePod();
+      }
+
+      return pod;
     },
-    makePod() {
-      return fetch(`${ window.location.origin }/api/v1/namespaces/default/pods`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(this.podConfig )
-      }).then(res => res.json())
-        .then((json) => {
-          return json;
-        });
-    },
-    deletePod() {
-      fetch(`${ window.location.origin }/api/v1/namespaces/default/pods/${ this.expectedPodName }`, { method: 'DELETE' }).then(res => res.json()).then(json => console.log(json));
+    async makePod() {
+      let pod;
+      const ns = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: 'default' });
+
+      const url = `${ ns.links.view }/pods`;
+
+      try {
+        pod = await this.$store.dispatch('cluster/create', this.podConfig);
+        pod.save({ url });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        // eslint-disable-next-line no-unsafe-finally
+        return this.findPod();
+      }
     },
     async openModal() {
       const resource = await this.findPod();
 
-      console.log('opening term for: ', resource);
       this.$store.dispatch('shell/defineSocket', { resource, action: 'openShell' });
     }
   }
@@ -78,7 +76,3 @@ export default {
     ≥ kubectl
   </button>
 </template>
-
-<style lang='scss' scoped>
-
-</style>
