@@ -27,7 +27,7 @@ export const actions = {
     const resource = payload.resource ? payload.resource : state.resource;
     const action = payload.action ? payload.action : state.mode;
     const containers = resource.spec.containers.filter((container) => {
-      return container.name !== 'istio';
+      return container.name !== 'istio-proxy';
     });
     const currentContainer = payload.container ? payload.container : containers[0];
     const showLast = payload.showLast ? payload.showLast : false;
