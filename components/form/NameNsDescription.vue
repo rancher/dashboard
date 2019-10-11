@@ -16,6 +16,10 @@ export default {
       type:     String,
       required: true,
     },
+    threeColumn: {
+      type:    Boolean,
+      default: false,
+    },
     nameLabel: {
       type:    String,
       default: 'Name'
@@ -28,6 +32,10 @@ export default {
       type:    String,
       default: 'Any text you want that better describes this resource'
     },
+  },
+
+  data() {
+    return { wantDescription: !!this.description };
   },
 
   computed: {
@@ -86,27 +94,39 @@ export default {
 <template>
   <div>
     <div class="row">
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.metadata.name"
-          :mode="onlyForCreate"
-          :label="nameLabel"
-          :placeholder="namePlaceholder"
-          :required="true"
-        />
+      <div :class="{col: true, 'span-6': !threeColumn, 'span-4': threeColumn}">
+        <slot name="name">
+          <LabeledInput
+            v-model="value.metadata.name"
+            :mode="onlyForCreate"
+            :label="nameLabel"
+            :placeholder="namePlaceholder"
+            :required="true"
+          >
+            <template v-if="notView && !wantDescription" #corner>
+              <a href="#" @click.prevent="wantDescription=true">Add a description</a>
+            </template>
+          </LabeledInput>
+        </slot>
       </div>
-      <div class="col span-6">
-        <LabeledSelect
-          v-model="value.metadata.namespace"
-          :mode="onlyForCreate"
-          :options="namespaces"
-          :required="true"
-          label="Namespace"
-          placeholder="Select a namespace"
-        />
+      <div :class="{col: true, 'span-6': !threeColumn, 'span-4': threeColumn}">
+        <slot name="namespace">
+          <LabeledSelect
+            v-model="value.metadata.namespace"
+            :mode="onlyForCreate"
+            :options="namespaces"
+            :required="true"
+            label="Namespace"
+            placeholder="Select a namespace"
+          />
+        </slot>
+      </div>
+      <div v-if="threeColumn" class="col span-4">
+        <slot name="right">
+        </slot>
       </div>
     </div>
-    <div v-if="notView || description" class="row">
+    <div v-if="wantDescription || description" class="row">
       <div class="col span-12">
         <LabeledInput
           v-model="description"

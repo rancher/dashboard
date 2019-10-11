@@ -39,6 +39,8 @@ export const getters = {
 
     const map = {};
 
+    // Find and add all the actions for all the nodes so that we know
+    // what all the possible actions are
     for ( const node of all ) {
       for ( const act of node.availableActions ) {
         if ( act.bulkable ) {
@@ -47,6 +49,8 @@ export const getters = {
       }
     }
 
+    // Go through all the selected items and add the actions (which were already identified above)
+    // as availalable for some (or all) of the selected nodes
     for ( const node of selected ) {
       for ( const act of node.availableActions ) {
         if ( act.bulkable ) {
@@ -55,6 +59,8 @@ export const getters = {
       }
     }
 
+    // If there's no items actually selected, we want to see all the actions
+    // so you know what exists, but have them all be disabled since there's nothing to do them on.
     const out = _filter(map, disableAll);
 
     return out;

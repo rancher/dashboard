@@ -1,0 +1,11 @@
+<template>
+  <div>
+    <h2>Networking</h2>
+    <p>--net</p>
+    <p>--dns</p>
+    <p>--dnsoption</p>
+    <p>--dnssearch</p>
+    <p>--hostname</p>
+    <p>--add-host</p>
+  </div>
+</template>

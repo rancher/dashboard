@@ -37,6 +37,9 @@ export default {
       {{ label }}
       <span v-if="required && !value" class="required">*</span>
     </label>
+    <label class="corner">
+      <slot name="corner" />
+    </label>
     <div v-if="isView">
       {{ value }}
     </div>

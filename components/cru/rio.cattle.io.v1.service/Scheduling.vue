@@ -1,0 +1,10 @@
+<template>
+  <div>
+    <h2>Scheduling</h2>
+    <p>--node-require-any</p>
+    <p>--node-require</p>
+    <p>--node-preferred</p>
+    <p>--labels</p>
+    <p>--annotations</p>
+  </div>
+</template>

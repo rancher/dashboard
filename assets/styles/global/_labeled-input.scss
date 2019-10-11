@@ -1,9 +1,13 @@
 .labeled-input {
+  position: relative;
+
   LABEL {
     position: absolute;
-    transform: translate(0, -5px) scale(1);
+    transform: translate(0, -12px) scale(1);
     transform-origin: top left;
-    transition: all 0.1s ease-in-out;
+    transition-property: transform, font-size;
+    transition-duration: 0.1s;
+    transition-timing-function: ease-in-out;
     z-index: 1;
     color: var(--input-placeholder);
     background-color: var(--input-bg);
@@ -13,9 +17,19 @@
     background-color: var(--input-hover-bg);
   }
 
-  &.raised LABEL {
-    transform: translate(0, -20px) scale(0.75);
+  &.raised LABEL, .corner {
+    transform: translate(0, -20px);
+    font-size: 0.75em;
     color: var(--input-label);
+  }
+
+  .corner {
+    right: 10px;
+    margin: 0;
+    padding: 0;
+    text-align: right;
+    z-index: 3;
+    transform: none !important;
   }
 
   .required {

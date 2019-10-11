@@ -1,0 +1,9 @@
+<template>
+  <div>
+    <h2>Upgrading</h2>
+    <p>--rollout-interval</p>
+    <p>--rollout-increment</p>
+    <p>--stage</p>
+    <p>--weight</p>
+  </div>
+</template>

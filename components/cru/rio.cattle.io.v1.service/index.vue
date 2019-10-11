@@ -1,17 +1,33 @@
 <script>
+import Top from './Top';
+import Command from './Command';
+import HealthCheck from './HealthCheck';
+import Networking from './Networking';
+import Scheduling from './Scheduling';
+import Security from './Security';
+import Upgrading from './Upgrading';
+import Volumes from './Volumes';
+import Tab from '@/components/Tabbed/Tab';
+import Tabbed from '@/components/Tabbed';
 import CreateEditView from '@/mixins/create-edit-view';
-import { findBy, removeObject } from '@/utils/array';
-import NameNsDescription from '@/components/form/NameNsDescription';
-import LabeledInput from '@/components/form/LabeledInput';
-import Footer from '@/components/form/Footer';
 import { _EDIT, EDIT_CONTAINER } from '@/config/query-params';
+import Footer from '@/components/form/Footer';
+import { findBy, removeObject } from '@/utils/array';
 
 export default {
   name:       'CruService',
 
   components: {
-    LabeledInput,
-    NameNsDescription,
+    Tabbed,
+    Tab,
+    Top,
+    Command,
+    HealthCheck,
+    Networking,
+    Scheduling,
+    Security,
+    Upgrading,
+    Volumes,
     Footer,
   },
   mixins:     [CreateEditView],
@@ -21,25 +37,31 @@ export default {
       this.value.spec = {};
     }
 
-    const spec = this.value.spec;
     const containerName = this.$route.query[EDIT_CONTAINER];
-    const multipleContainers = ( !!(spec.containers && spec.containers.length) );
+    const rootSpec = this.value.spec;
+    const multipleContainers = ( !!(rootSpec.containers && rootSpec.containers.length) );
+    let spec = rootSpec;
+    let isSidecar = false;
+    let nameResource = this.value.metadata;
 
-    let container, isSidecar;
+    if ( !nameResource ) {
+      nameResource = { name: '' };
+      this.value.metadata = nameResource;
+    }
 
     if ( containerName ) {
-      container = spec.containers[name];
+      nameResource = spec.containers[name];
+      spec = nameResource.spec;
       isSidecar = true;
-    } else {
-      container = spec;
-      isSidecar = false;
     }
 
     return {
       multipleContainers,
+      nameResource,
       containerName,
       isSidecar,
-      container
+      rootSpec,
+      spec,
     };
   },
 
@@ -89,20 +111,31 @@ export default {
       </div>
     </div>
     <div v-else>
-      <LabeledInput
-        v-if="containerName"
-        v-model="container.name"
-        :mode="onlyForCreate"
-        :label="nameLabel"
-        :placeholder="namePlaceholder"
-        :required="true"
-      />
-      <NameNsDescription
-        v-else
-        :value="value"
-        :mode="mode"
-        name-label="Service Name"
-      />
+      <Top :value="value" :name-resource="nameResource" :is-sidecar="isSidecar" :mode="mode" />
+
+      <Tabbed default-tab="command">
+        <Tab name="command" label="Command">
+          <Command :spec="spec" />
+        </Tab>
+        <Tab name="network" label="Network">
+          <Networking :spec="spec" />
+        </Tab>
+        <Tab name="healthcheck" label="Health Check">
+          <HealthCheck :spec="spec" />
+        </Tab>
+        <Tab name="scheduling" label="Scheduling">
+          <Scheduling :spec="spec" />
+        </Tab>
+        <Tab name="security" label="Security">
+          <Security :spec="spec" />
+        </Tab>
+        <Tab name="upgrading" label="Upgrading">
+          <Upgrading :spec="spec" />
+        </Tab>
+        <Tab name="volumes" label="Volumes">
+          <Volumes :spec="spec" />
+        </Tab>
+      </Tabbed>
 
       <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
     </div>

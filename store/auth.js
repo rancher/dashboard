@@ -74,7 +74,7 @@ export const actions = {
 
     const url = addParams(authConfig.redirectUrl, {
       scope:        [...BASE_SCOPES, ...scopes].join(','),
-      redirect_uri: `${ window.location.origin }/auth/verify`,
+      redirect_uri: `${ window.location.origin }/auth/verify${ (window.location.search || '').includes('spa') ? '?spa' : '' }`,
       state:        nonce
     });
 

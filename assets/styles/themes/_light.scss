@@ -111,4 +111,7 @@ $selected: rgba($primary, .5);
   --tooltip-bg                 : #{$lighter};
   --tooltip-text               : #{$lightest};
   --tooltip-border-radius      : 4px;
+
+  --tabbed-border              : #{$medium};
+  --tabbed-container-bg        : #{$light};
 }

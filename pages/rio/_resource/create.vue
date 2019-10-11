@@ -3,6 +3,8 @@ import CreateEditView from '@/mixins/create-edit-view';
 import { FRIENDLY } from '~/pages/rio/_resource';
 
 export default {
+  name: 'RioResourceCreate',
+
   mixins: { CreateEditView },
 
   computed: {
