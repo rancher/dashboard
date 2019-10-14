@@ -45,7 +45,7 @@ export const mutations = {
 };
 
 export const actions = {
-  async getAuthProvider({ dispatch, state }) {
+  async getAuthProvider({ dispatch }) {
     const authConfig = await dispatch('rancher/find', {
       type: 'githubProvider',
       id:   'github',

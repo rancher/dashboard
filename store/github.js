@@ -62,8 +62,5 @@ export const mutations = {
   },
   addFiles(state, payload) {
     state.files = payload.files;
-  },
-  updateScopes(state, payload) {
-    state.scopes = payload.scopes;
   }
 };
