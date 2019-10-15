@@ -42,7 +42,7 @@ export default {
 
     const schema = ctx.store.getters['cluster/schemaFor'](type);
 
-    const metadata = { anotations: {} };
+    const metadata = { annotations: {} };
 
     if ( schema.attributes.namespaced ) {
       metadata.namespace = '';
@@ -50,8 +50,10 @@ export default {
 
     const data = {
       type,
+      kind:       schema.attributes.kind,
+      apiVersion: `${ schema.attributes.group }/${ schema.attributes.version }`,
       metadata,
-      data: {},
+      data:       {},
     };
 
     let model;

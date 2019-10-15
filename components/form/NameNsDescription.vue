@@ -35,7 +35,23 @@ export default {
   },
 
   data() {
-    return { wantDescription: !!this.description };
+    let metadata = this.value.metadata;
+
+    if ( !metadata ) {
+      metadata = {};
+      this.value.metadata = metadata;
+    }
+
+    if ( !metadata.annotations ) {
+      metadata.annotations = {};
+    }
+
+    const description = metadata.annotations[ANNOTATION.DESCRIPTION];
+
+    return {
+      wantDescription:        !!description,
+      ANNOTATION_DESCRIPTION: ANNOTATION.DESCRIPTION,
+    };
   },
 
   computed: {
@@ -48,32 +64,6 @@ export default {
           value: obj.id,
         };
       });
-    },
-
-    description: {
-      get() {
-        if ( this.value && this.value.metadata && this.value.metadata.annotations ) {
-          return this.value.metadata.annotations[ANNOTATION.DESCRIPTION];
-        }
-
-        return '';
-      },
-
-      set(neu) {
-        if ( !this.value ) {
-          return;
-        }
-
-        if ( !this.value.metadata ) {
-          this.value.metadata = {};
-        }
-
-        if ( !this.value.metadata.annotations ) {
-          this.value.metadata.annotations = {};
-        }
-
-        this.value.metadata.annotations[ANNOTATION.DESCRIPTION] = neu;
-      }
     },
 
     onlyForCreate() {
@@ -97,6 +87,7 @@ export default {
       <div :class="{col: true, 'span-6': !threeColumn, 'span-4': threeColumn}">
         <slot name="name">
           <LabeledInput
+            key="name"
             v-model="value.metadata.name"
             :mode="onlyForCreate"
             :label="nameLabel"
@@ -112,6 +103,7 @@ export default {
       <div :class="{col: true, 'span-6': !threeColumn, 'span-4': threeColumn}">
         <slot name="namespace">
           <LabeledSelect
+            key="namespace"
             v-model="value.metadata.namespace"
             :mode="onlyForCreate"
             :options="namespaces"
@@ -126,10 +118,11 @@ export default {
         </slot>
       </div>
     </div>
-    <div v-if="wantDescription || description" class="row">
+    <div v-if="wantDescription || value.metadata.annotations[ANNOTATION_DESCRIPTION]" class="row">
       <div class="col span-12">
         <LabeledInput
-          v-model="description"
+          key="description"
+          v-model="value.metadata.annotations[ANNOTATION_DESCRIPTION]"
           type="multiline"
           label="Description"
           :mode="mode"

@@ -81,6 +81,7 @@
   --input-bg                   : #{$dark};
   --input-hover-bg             : #{$medium};
   --input-focus-bg             : #{$darkest};
+  --input-addon-bg             : #{$darker};
 
   --modal-overlay-bg           : rgba(#000, 0.75);
 
@@ -97,5 +98,5 @@
   --tooltip-text               : #{$dark};
 
   --tabbed-border              : #{$medium};
-  --tabbed-container-bg        : #{$dark};
+  --tabbed-container-bg        : #{$darkest};
 }

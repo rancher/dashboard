@@ -1,9 +1,18 @@
 <script>
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
+
+const imagePullPolicyChoices = [
+  { value: 'Always', label: 'Always' },
+  { value: 'IfNotPresent', label: 'If not present on the node' },
+  { value: 'Never', label: 'Never' },
+];
 
 export default {
-  components: { NameNsDescription, LabeledInput },
+  components: {
+    NameNsDescription, LabeledInput, LabeledSelect
+  },
 
   props: {
     isSidecar: {
@@ -11,6 +20,10 @@ export default {
       default: false
     },
     nameResource: {
+      type:     Object,
+      required: true,
+    },
+    spec: {
       type:     Object,
       required: true,
     },
@@ -24,6 +37,27 @@ export default {
     }
   },
 
+  data() {
+    const spec = this.spec;
+    const buildImage = !!(spec && spec.build && spec.build.repo);
+
+    return {
+      buildImage,
+      imagePullPolicyChoices
+    };
+  },
+
+  watch: {
+    buildImage(neu) {
+      if ( neu ) {
+        delete this.spec.image;
+        this.spec.build = this.spec.build || {};
+      } else {
+        delete this.spec.build;
+        this.spec.image = '';
+      }
+    }
+  }
 };
 </script>
 <template>
@@ -36,6 +70,7 @@ export default {
     >
       <template v-if="isSidecar" #name>
         <LabeledInput
+          key="sidecarName"
           v-model="nameResource.name"
           :mode="mode"
           label="Container Name"
@@ -44,7 +79,8 @@ export default {
       </template>
       <template v-if="!isSidecar" #right>
         <LabeledInput
-          v-model="value.spec.scale"
+          key="scale"
+          v-model="spec.scale"
           type="number"
           min="0"
           label="Scale"
@@ -52,7 +88,8 @@ export default {
       </template>
       <template v-if="mode === 'edit'" #namespace>
         <LabeledInput
-          v-model="value.spec.version"
+          key="version"
+          v-model="spec.version"
           :mode="mode"
           label="Version"
           :required="true"
@@ -60,10 +97,53 @@ export default {
       </template>
     </NameNsDescription>
 
-    <p>
-      --scale (global),
-      --image, --image-pull-policy,
-      --memory, --cpus
-    </p>
+    <div class="row">
+      <div class="col span-12">
+        <div>
+          <label class="radio">
+            <input v-model="buildImage" type="radio" :value="false" />
+            Use an existing Docker image
+          </label>
+        </div>
+        <div>
+          <label class="radio">
+            <input v-model="buildImage" type="radio" :value="true" />
+            Build from Dockerfile in a repositiory
+          </label>
+        </div>
+      </div>
+    </div>
+    <div v-if="buildImage">
+      <div class="row">
+        <div class="col span-4">
+          <LabeledInput v-model="spec.build.repo" :mode="mode" label="Repo URL" :required="true" />
+        </div>
+        <div class="col span-4">
+          <LabeledInput v-model="spec.build.branch" :mode="mode" label="Branch" />
+        </div>
+        <div class="col span-4">
+          <LabeledInput v-model="spec.build.dockerFile" :mode="mode" label="Dockerfile" />
+        </div>
+      </div>
+      <div class="row">
+        <label type="checkbox"><input v-model="spec.build.stageOnly" type="checkbox"> Stage only</label>
+        <label type="checkbox"><input v-model="spec.build.enablePr" type="checkbox"> Create a new service for each Pull Request</label>
+      </div>
+    </div>
+    <div v-else>
+      <div class="row">
+        <div class="col span-6">
+          <LabeledInput v-model="spec.image" :mode="mode" label="Image" :required="true" />
+        </div>
+        <div class="col span-6">
+          <LabeledSelect
+            v-model="spec.imagePullPolicy"
+            :mode="mode"
+            :options="imagePullPolicyChoices"
+            label="Image Pull Policy"
+          />
+        </div>
+      </div>
+    </div>
   </div>
 </template>

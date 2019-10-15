@@ -30,7 +30,7 @@ export default {
   async asyncData(ctx) {
     const schema = ctx.store.getters['cluster/schemaFor'](RESOURCE);
 
-    const metadata = { anotations: {} };
+    const metadata = { annotations: {} };
 
     if ( schema.attributes.namespaced ) {
       metadata.namespace = '';
