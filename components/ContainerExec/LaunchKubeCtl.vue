@@ -26,7 +26,8 @@ export default {
       return config;
     },
     expectedPodName() {
-      const userName = this.principal.name.toLowerCase();
+      const regex = new RegExp(/[^a-zA-Z0-9\.-]/g);
+      const userName = this.principal.name.toLowerCase().replace(regex, '-' );
       // TODO make pod different clusters
       const cluster = 'local';
 
