@@ -11,7 +11,8 @@
     "build": "./node_modules/.bin/nuxt build",
     "analyze": "./node_modules/.bin/nuxt build --analyze",
     "start": "./node_modules/.bin/nuxt start",
-    "generate": "./node_modules/.bin/nuxt generate"
+    "generate": "./node_modules/.bin/nuxt generate",
+    "dev-debug": "node --inspect ./node_modules/.bin/nuxt"
   },
   "dependencies": {
     "@innologica/vue-dropdown-menu": "^0.1.3",

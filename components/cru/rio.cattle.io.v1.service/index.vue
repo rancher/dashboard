@@ -28,7 +28,7 @@ export default {
     Security,
     Upgrading,
     Volumes,
-    Footer,
+    Footer
   },
   mixins:     [CreateEditView],
 

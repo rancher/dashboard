@@ -17,7 +17,7 @@
   $light            : #6C6C76;
 
   //dark secondary
-  $ligher           : #B6B6C2;
+  $lighter           : #B6B6C2;
 
   // dark main text
   $lightest         : #FFFFFF;
@@ -50,8 +50,9 @@
 
   --login-bg                   : #{$darkest};
   --body-bg                    : #{$darker};
-  --body-text                  : #{$lightest};
-  --scrollbar-thumb            : #{$lighter};
+  --body-text                  : #{$lighter};
+  --scrollbar-thumb            : #{$medium};
+  --scrollbar-thumb-dropdown   : #{$darker};
   --header-bg                  : #{$primary};
   --box-bg                     : #{$darker};
   --border                     : #{$medium};
@@ -100,3 +101,4 @@
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$darkest};
 }
+

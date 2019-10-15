@@ -55,7 +55,7 @@ export const actions = {
     return authConfig;
   },
 
-  async redirectToGithub({ state, commit, dispatch }, opt) {
+  async redirectToGithub({ state, commit, dispatch }, opt = {}) {
     const authConfig = await dispatch('getAuthProvider');
 
     const nonce = randomStr(16);
@@ -71,10 +71,12 @@ export const actions = {
     if ( opt && opt.scopes ) {
       scopes.push(...opt.scopes);
     }
-
+    if (!opt.route) {
+      opt.route = '/auth/verify';
+    }
     const url = addParams(authConfig.redirectUrl, {
       scope:        [...BASE_SCOPES, ...scopes].join(','),
-      redirect_uri: `${ window.location.origin }/auth/verify${ (window.location.search || '').includes('spa') ? '?spa' : '' }`,
+      redirect_uri: `${ window.location.origin }${ opt.route }${ (window.location.search || '').includes('spa') ? '?spa' : '' }`,
       state:        nonce
     });
 
