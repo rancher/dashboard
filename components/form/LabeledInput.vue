@@ -40,26 +40,30 @@ export default {
     <label class="corner">
       <slot name="corner" />
     </label>
-    <div v-if="isView">
-      {{ value }}
-    </div>
-    <TextAreaAutoGrow
-      v-else-if="type === 'multiline'"
-      :value="value"
-      :placeholder="actualPlaceholder"
-      @input="$emit('input', $event)"
-      @focus="onFocus"
-      @blur="onBlur"
-    />
-    <input
-      v-else
-      v-bind="$attrs"
-      :type="type"
-      :value="value"
-      :placeholder="actualPlaceholder"
-      @input="$emit('input', $event.target.value)"
-      @focus="onFocus"
-      @blur="onBlur"
-    >
+    <slot name="prefix" />
+    <slot name="field">
+      <div v-if="isView">
+        {{ value }}
+      </div>
+      <TextAreaAutoGrow
+        v-else-if="type === 'multiline'"
+        :value="value"
+        :placeholder="actualPlaceholder"
+        @input="$emit('input', $event)"
+        @focus="onFocus"
+        @blur="onBlur"
+      />
+      <input
+        v-else
+        v-bind="$attrs"
+        :type="type"
+        :value="value"
+        :placeholder="actualPlaceholder"
+        @input="$emit('input', $event.target.value)"
+        @focus="onFocus"
+        @blur="onBlur"
+      >
+    </slot>
+    <slot name="suffix" />
   </div>
 </template>

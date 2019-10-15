@@ -55,6 +55,10 @@ export default {
       isSidecar = true;
     }
 
+    if ( typeof spec.imagePullPolicy === 'undefined' ) {
+      spec.imagePullPolicy = 'Always';
+    }
+
     return {
       multipleContainers,
       nameResource,
@@ -111,7 +115,7 @@ export default {
       </div>
     </div>
     <div v-else>
-      <Top :value="value" :name-resource="nameResource" :is-sidecar="isSidecar" :mode="mode" />
+      <Top :value="value" :spec="spec" :name-resource="nameResource" :is-sidecar="isSidecar" :mode="mode" />
 
       <Tabbed default-tab="command">
         <Tab name="command" label="Command">

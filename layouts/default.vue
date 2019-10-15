@@ -7,6 +7,8 @@ import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
 import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
+import ShellSocket from '@/components/ContainerExec/ShellSocket';
+import LaunchKubectl from '@/components/ContainerExec/LaunchKubectl';
 import Group from '@/components/nav/Group';
 import { COUNT } from '@/config/types';
 
@@ -15,7 +17,9 @@ export default {
     ClusterSwitcher,
     NamespaceFilter,
     ActionMenu,
-    Group
+    Group,
+    ShellSocket,
+    LaunchKubectl
   },
 
   middleware: ['authenticated'],
@@ -117,6 +121,7 @@ export default {
       </div>
 
       <div class="header-middle">
+        <LaunchKubectl />
       </div>
 
       <v-popover
@@ -172,7 +177,7 @@ export default {
     <main>
       <nuxt />
     </main>
-
+    <ShellSocket />
     <ActionMenu />
   </div>
 </template>

@@ -27,23 +27,22 @@ export default {
   },
 
   scales() {
-    let status = this.status.scaleStatus;
-    let hasStatus;
+    const status = this.status || {};
+    let scaleStatus = status.scaleStatus;
+    let hasStatus = true;
 
-    if ( status ) {
-      hasStatus = true;
-    } else {
+    if ( !scaleStatus ) {
       hasStatus = false;
-      status = {};
+      scaleStatus = {};
     }
 
     const spec = (typeof this.spec.scale === 'undefined' ? 1 : this.spec.scale || 0);
 
     // @TODO use only new fields after API changes
     const global = (this.spec.global || (this.systemSpec && this.systemSpec.global)) === true;
-    const current = this.status.computedScale || (this.status.scaleStatus && this.status.scaleStatus.ready) || 0;
-    const available = (status.available || status.ready || 0);
-    const unavailable = status.unavailable || 0;
+    const current = status.computedScale || scaleStatus.ready || 0;
+    const available = (scaleStatus.available || scaleStatus.ready || 0);
+    const unavailable = scaleStatus.unavailable || 0;
 
     let desired = this._local.pendingScale >= 0 ? this._local.pendingScale : spec;
 

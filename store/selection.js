@@ -87,7 +87,7 @@ export const getters = {
 
     const out = _filter(map);
 
-    return out;
+    return { ...out };
   },
 
   isSelected: state => (resource) => {
@@ -198,7 +198,6 @@ function _filter(map, disableAll = false) {
 
 function _execute(resources, action, args) {
   args = args || [];
-
   if ( resources.length > 1 && action.bulkAction ) {
     const fn = resources[0][action.bulkAction];
 

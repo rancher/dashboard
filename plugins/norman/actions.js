@@ -6,7 +6,6 @@ import { SCHEMA } from '~/config/types';
 export default {
   request({ dispatch }, opt) {
     // @TODO queue/defer duplicate requests
-
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
 

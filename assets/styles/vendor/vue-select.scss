@@ -170,7 +170,7 @@ $transition-duration: 150ms;
     border-color: transparent;
   }
   &.vs--open .vs__selected {
-    position: absolute;
+    // position: absolute;
     opacity: .4;
   }
   &.vs--searching .vs__selected {
@@ -200,4 +200,3 @@ $transition-duration: 150ms;
   fill: rgba(60,60,60,0.26);
   text-shadow: 0 1px 0 #fff
 }
-
