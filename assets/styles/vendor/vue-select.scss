@@ -185,46 +185,7 @@ $transition-duration: 150ms;
     border-color: transparent;
   }
   &.vs--open .vs__selected {
-    position: absolute;
-    opacity: .4;
-  }
-  &.vs--searching .vs__selected {
-    display: none;
-  }
-}
-
-.vs__selected {
-  display: flex;
-  align-items: center;
-  background-color: #f0f0f0;
-  border: 1px solid var(--dropdown-border);
-  border-radius: 4px;
-  color: #333;
-  margin: 4px 2px 0px 2px;
-  padding: 0 0.25em;
-}
-
-.vs__deselect {
-  display: inline-flex;
-  appearance: none;
-  margin-left: 4px;
-  padding: 0;
-  border: 0;
-  cursor: pointer;
-  background: none;
-  fill: rgba(60,60,60,0.26);
-  text-shadow: 0 1px 0 #fff
-}
-
-/* States */
-
-.vs--single {
-  .vs__selected {
-    background-color: transparent;
-    border-color: transparent;
-  }
-  &.vs--open .vs__selected {
-    position: absolute;
+    // position: absolute;
     opacity: .4;
   }
   &.vs--searching .vs__selected {
