@@ -47,8 +47,6 @@ export const actions = {
   async preload({
     state, getters, commit, dispatch
   }) {
-    console.log('Preload...');
-
     if ( state.preloaded ) {
       return;
     }

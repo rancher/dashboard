@@ -38,14 +38,11 @@ export default function({
       }
     });
   } else if ( process.server ) {
+    // For requests from the server, set the base URL to the URL that the request came in on
     $axios.onRequest((config) => {
-      console.log('Before', config);
-
       if ( process.server && config.url.startsWith('/') ) {
         config.baseURL = `${ req.protocol }://${ req.headers.host }`;
       }
-
-      console.log('After', config);
     });
   }
 }

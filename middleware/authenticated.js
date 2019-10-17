@@ -18,7 +18,6 @@ export default async function({ route, store, redirect }) {
 
     await store.dispatch('preload');
   } catch (e) {
-    console.log('Not logged in', e);
     redirect(302, '/auth/login');
   }
 }

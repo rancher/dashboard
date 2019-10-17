@@ -84,10 +84,7 @@ export const actions = {
   },
 
   async verify({ state, commit, dispatch }, { nonce, code }) {
-    console.log(`1: nonce ${ nonce }, code: ${ code }`);
     const expect = this.$cookies.get(KEY, { parseJSON: false });
-
-    console.log(`2: Expeect ${ expect }`);
 
     if ( !expect || expect !== nonce ) {
       return ERR_NONCE;
@@ -96,7 +93,6 @@ export const actions = {
     const authConfig = await dispatch('getAuthProvider');
 
     try {
-      console.log('3');
       const res = await authConfig.doAction('login', {
         code,
         description:  'Dashboard UI session',
@@ -104,13 +100,8 @@ export const actions = {
         ttl:          16 * 60 * 60 * 1000,
       });
 
-      console.log('4');
-
       if ( process.server ) {
-        console.log('5');
         const parsed = setCookieParser(res._headers['set-cookie'] || []);
-
-        console.log(`6, parsed: ${ parsed }`);
 
         for ( const opt of parsed ) {
           const key = opt.name;
@@ -121,23 +112,15 @@ export const actions = {
 
           opt.encode = x => x;
 
-          console.log(`7, set(${ key }, ${ value }, ${ opt })`);
           this.$cookies.set(key, value, opt);
         }
-        console.log('8');
       }
-
-      console.log('9');
 
       return true;
     } catch (err) {
-      console.log('10', err);
-      console.log('11', err.resposne);
       if ( err.response.status >= 400 && err.response.status <= 499 ) {
         return ERR_CLIENT;
       }
-
-      console.log('12');
 
       return ERR_SERVER;
     }
