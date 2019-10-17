@@ -41,12 +41,8 @@ export default function({
     $axios.onRequest((config) => {
       console.log('Before', config);
 
-      if ( process.server && config.url.startsWith('https://localhost/') ) {
-        config.url = config.url.replace(/^https/, 'http');
-      }
-
-      if ( process.server && !config.url.startsWith('http') ) {
-        config.headers.common['Host'] = req.headers.host;
+      if ( process.server && config.url.startsWith('/') ) {
+        config.baseURL = `${ req.protocol }://${ req.headers.host }`;
       }
 
       console.log('After', config);
