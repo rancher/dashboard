@@ -118,7 +118,6 @@ export const actions = {
 
       return true;
     } catch (err) {
-      console.error(err.response.config.headers, err.response.data);
       if ( err.response.status >= 400 && err.response.status <= 499 ) {
         return ERR_CLIENT;
       }
