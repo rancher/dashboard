@@ -73,8 +73,7 @@ module.exports = {
     '~/plugins/v-select',
     '~/plugins/transitions',
     { src: '~plugins/vue-js-modal' },
-    { src: '~/plugins/js-yaml', ssr: false },
-    { src: '~/plugins/codemirror', ssr: false },
+    // { src: '~/plugins/js-yaml', ssr: false },
     { src: '~/plugins/resize', ssr: false },
 
     // First-party

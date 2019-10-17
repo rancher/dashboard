@@ -1,3 +1,7 @@
+/*
+ * NOTE: This plugin is dynamically loaded in CodeMirror.vue, not as a real plugin
+ */
+
 import Vue from 'vue';
 import VueCodemirror from 'vue-codemirror';
 import CodeMirror from 'codemirror';

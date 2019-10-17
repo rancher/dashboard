@@ -28,6 +28,7 @@ export default {
       default: () => []
     }
   },
+
   data() {
     return {
       terminal: null,
@@ -35,7 +36,8 @@ export default {
       xterm:    null
     };
   },
-  watch:    {
+
+  watch: {
     lines(newLines) {
       if (this.terminal && newLines.length) {
         newLines.forEach(line => this.terminal.write(line));
@@ -43,26 +45,19 @@ export default {
       }
     }
   },
+
   beforeDestroy() {
     this.terminal.dispose();
   },
-  mounted() {
-    // dynamically import xterm in mounted() to avoid problems with ssr
-   import('xterm')
-     .then((xterm) => {
-       console.log('xterm imported');
-       this.xterm = xterm;
-     })
-     .then(() => {
-       return import('xterm-addon-fit');
-     })
-     .then((fitAddon) => {
-       this.fitAddon = new fitAddon.FitAddon();
-     })
-     .then(() => {
-       this.drawTerminal();
-     });
+
+  async mounted() {
+    this.xterm = await import('xterm');
+    const fitAddon = await import('xterm-addon-fit');
+
+    this.fitAddon = new fitAddon.FitAddon();
+    this.drawTerminal();
   },
+
   methods: {
     drawTerminal() {
       const vm = this;
@@ -82,6 +77,7 @@ export default {
         this.$emit('input', input);
       });
     },
+
     fitTerminal(arg) {
       if (this.fitAddon) {
         this.fitAddon.fit();

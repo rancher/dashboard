@@ -58,6 +58,10 @@ export default {
     },
   },
 
+  mounted() {
+    return import('@/plugins/CodeMirror');
+  },
+
   methods: {
     onReady(cm) {
       this.fit();
