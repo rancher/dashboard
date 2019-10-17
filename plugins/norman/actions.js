@@ -44,7 +44,9 @@ export default {
       return out;
     }).catch((err) => {
       if ( err && err.response && err.response.status === 401 ) {
-        return dispatch('auth/logout', { root: true });
+        console.log(err.response);
+
+        return dispatch('auth/logout', null, { root: true });
       }
 
       return Promise.reject(err);
