@@ -23,17 +23,7 @@ export default function({
     const insecureAgent = new https.Agent({ rejectUnauthorized: false });
 
     $axios.onRequest((config) => {
-      console.log('Before', config);
-      if ( process.server && isDev && config.url.startsWith('https://localhost/') ) {
-        config.url = config.url.replace(/^https/, 'http');
-      }
-
-      if ( process.server && !config.url.startsWith('http') ) {
-        config.headers.common['Host'] = req.headers.host;
-      }
-
       config.httpsAgent = insecureAgent;
-      console.log('After', config);
     });
 
     $axios.onError((error) => {
@@ -46,6 +36,20 @@ export default function({
           redirect('/auth/login?timed-out');
         }
       }
+    });
+  } else if ( process.server ) {
+    $axios.onRequest((config) => {
+      console.log('Before', config);
+
+      if ( process.server && config.url.startsWith('https://localhost/') ) {
+        config.url = config.url.replace(/^https/, 'http');
+      }
+
+      if ( process.server && !config.url.startsWith('http') ) {
+        config.headers.common['Host'] = req.headers.host;
+      }
+
+      console.log('After', config);
     });
   }
 }
