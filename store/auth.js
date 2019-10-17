@@ -128,7 +128,12 @@ export const actions = {
 
   async logout({ dispatch, commit }) {
     try {
-      await dispatch('rancher/request', { url: '/v3/tokens?action=logout', method: 'post' }, { root: true });
+      await dispatch('rancher/request', {
+        url:     '/v3/tokens?action=logout',
+        method:  'post',
+        data:    {},
+        headers: { 'Content-Type': 'application/json' }
+      }, { root: true });
     } catch (e) {
     }
 
