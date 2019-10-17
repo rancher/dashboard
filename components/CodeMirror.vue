@@ -59,7 +59,7 @@ export default {
   },
 
   mounted() {
-    return import('@/plugins/CodeMirror');
+    return import('@/plugins/codemirror');
   },
 
   methods: {
