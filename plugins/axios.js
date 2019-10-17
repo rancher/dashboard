@@ -2,7 +2,7 @@ import https from 'https';
 import pkg from '../package.json';
 
 export default function({
-  $axios, isDev, route, redirect
+  $axios, isDev, route, redirect, req
 }) {
   $axios.defaults.headers.common['Accept'] = 'application/json';
   $axios.defaults.xsrfCookieName = 'CSRF';
@@ -23,6 +23,9 @@ export default function({
     const insecureAgent = new https.Agent({ rejectUnauthorized: false });
 
     $axios.onRequest((config) => {
+      if ( process.server && !config.url.startsWith('http') ) {
+        config.headers.common['Host'] = req.headers.host;
+      }
       config.httpsAgent = insecureAgent;
     });
 
