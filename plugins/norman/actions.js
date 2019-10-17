@@ -9,6 +9,8 @@ export default {
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
 
+    console.log('Axios request for', opt);
+
     return this.$axios(opt).then((res) => {
       let out = res.data;
 
