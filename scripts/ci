@@ -15,11 +15,5 @@ rm -rf node_modules .nuxt
 echo "Bootstrapping..."
 yarn --pure-lockfile install
 
-echo "Linting..."
-yarn run lint
-
 echo "Building..."
 yarn run build
-
-echo "Testing..."
-yarn run test

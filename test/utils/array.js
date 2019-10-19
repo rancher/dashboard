@@ -182,7 +182,6 @@ test('findBy', (t) => {
 
 test('insertAt', (t) => {
   const ary = [obj1, obj2];
-  let out;
 
   insertAt(ary, 1, obj3);
   t.deepEqual(ary, [obj1, obj3, obj2], 'Inserts');
