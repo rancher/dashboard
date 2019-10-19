@@ -1,6 +1,6 @@
 ---
 kind: pipeline
-name: default
+name: docker
 
 platform:
   os: linux
@@ -22,11 +22,11 @@ steps:
     - pull_request
     - tag
 
-- name: publish-latest
+- name: docker-image
   image: plugins/docker
   settings:
     dockerfile: Dockerfile
-    tag: latest
+    tag: ${DRONE_BRANCH##release\/}
     repo: rancherlabs/dashboard
     username:
       from_secret: docker_username
@@ -36,21 +36,100 @@ steps:
     ref:
       include:
       - "refs/heads/master"
+      - "refs/heads/release/v*"
     event:
     - push
 
-- name: publish-tag
-  image: plugins/docker
+volumes:
+- name: docker
+  host:
+    path: /var/run/docker.sock
+
+---
+kind: pipeline
+name: hosted
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build
+  pull: default
+  image: rancher/dapper:v0.4.1
+  commands:
+  - dapper build-hosted
+  privileged: true
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    ref:
+      include:
+      - "refs/heads/master"
+      - "refs/heads/release/v*"
+    event:
+    - push
+
+- name: upload
+  pull: default
+  image: plugins/gcs
   settings:
-    dockerfile: Dockerfile
-    repo: rancherlabs/dashboard
-    tag: ${DRONE_TAG}
-    username:
-      from_secret: docker_username
-    password:
-      from_secret: docker_password
+    acl:
+    - allUsers:READER
+    cache_control: "no-cache,must-revalidate"
+    source: dist
+    target: releases.rancher.com/dashboard/${DRONE_BRANCH##release\/}
+    token:
+      from_secret: google_auth_key
   when:
     event:
+    - push
+    - tag
+
+volumes:
+- name: docker
+  host:
+    path: /var/run/docker.sock
+
+---
+kind: pipeline
+name: embedded
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build
+  pull: default
+  image: rancher/dapper:v0.4.1
+  commands:
+  - dapper build-embedded
+  privileged: true
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+  when:
+    ref:
+      include:
+      - "refs/heads/master"
+      - "refs/heads/release/v*"
+    event:
+    - push
+
+- name: upload
+  pull: default
+  image: plugins/gcs
+  settings:
+    acl:
+    - allUsers:READER
+    cache_control: "no-cache,must-revalidate"
+    source: ${DRONE_BRANCH##release\/}.tar.gz
+    target: releases.rancher.com/dashboard/
+    token:
+      from_secret: google_auth_key
+  when:
+    event:
+    - push
     - tag
 
 volumes:

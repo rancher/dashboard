@@ -3,16 +3,36 @@ import path from 'path';
 
 require('dotenv').config();
 
+const version = process.env.DRONE_TAG || process.env.DRONE_VERSION || require('./package.json').version;
+
 const dev = (process.env.NODE_ENV !== 'production');
 const steve = process.env.API || 'http://localhost:8989';
 const rancher = process.env.RANCHER || 'https://localhost:30443';
 
-console.log((dev ? 'Development mode' : 'Production mode'));
-console.log(`Proxying Steve to ${ steve }`);
-console.log(`Proxying Rancher to ${ rancher }`);
+let routerBasePath = '/';
+let resourceBase = '';
+
+if ( typeof process.env.ROUTER_BASE !== 'undefined' ) {
+  routerBasePath = process.env.ROUTER_BASE;
+}
+
+if ( typeof process.env.RESOURCE_BASE !== 'undefined' ) {
+  resourceBase = process.env.RESOURCE_BASE;
+}
+
+console.log(`Mode: ${ dev ? 'Development' : 'Production' }`);
+console.log(`Router Base Path: ${ routerBasePath || '(none)' }`);
+console.log(`Resource Base URL: ${ resourceBase || '(none)' }`);
+console.log(`Steve: ${ steve }`);
+console.log(`Rancher: ${ rancher }`);
+
+if ( dev ) {
+  process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
+}
 
 module.exports = {
   dev,
+  version,
 
   // mode: 'universal',
   loading: '~/components/Loading.vue',
@@ -25,7 +45,10 @@ module.exports = {
     // debug:   true
   },
 
+  router: { base: routerBasePath },
+
   build: {
+    publicPath: resourceBase,
     extend(config, { isClient }) {
       config.devtool = isClient ? '#source-map' : 'inline-source-map';
     },

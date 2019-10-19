@@ -145,5 +145,7 @@ export default {
         </div>
       </div>
     </div>
+    <hr />
+    <Ports :spec="spec" :name-resource="nameResource" :is-sidecar="isSidecar" :mode="mode" />
   </div>
 </template>
