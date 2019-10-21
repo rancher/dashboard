@@ -76,7 +76,7 @@ export function addObjects(ary, objs) {
   const unique = [];
 
   for ( let i = 0 ; i < objs.length ; i++ ) {
-    if ( ary.indexOf(objs[i]) === -1 ) {
+    if ( !ary.includes(objs[i]) ) {
       unique.push(objs[i]);
     }
   }

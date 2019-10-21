@@ -15,12 +15,16 @@ export default {
   },
   computed: {
     graphWidth() {
-      if (!this.isMounted) return 0;
+      if (!this.isMounted) {
+        return 0;
+      }
 
       return d3.select(this.$refs.outer).node().getBoundingClientRect().width;
     },
     graphHeight() {
-      if (!this.isMounted) return 0;
+      if (!this.isMounted) {
+        return 0;
+      }
 
       return d3.select(this.$refs.inner).node().getBoundingClientRect().height;
     },

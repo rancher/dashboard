@@ -15,7 +15,7 @@ export default function urlOptions(url, opt) {
       }
 
       vals.forEach((val) => {
-        url += `${ (url.indexOf('?') >= 0 ? '&' : '?') + encodeURIComponent(key) }=${ encodeURIComponent(val) }`;
+        url += `${ (url.includes('?') ? '&' : '?') + encodeURIComponent(key) }=${ encodeURIComponent(val) }`;
       });
     });
   }
@@ -25,7 +25,7 @@ export default function urlOptions(url, opt) {
   const limit = opt.limit;
 
   if ( limit ) {
-    url += `${ url.indexOf('?') >= 0 ? '&' : '?' }limit=${ limit }`;
+    url += `${ url.includes('?') ? '&' : '?' }limit=${ limit }`;
   }
   // End: Limit
 
@@ -33,13 +33,13 @@ export default function urlOptions(url, opt) {
   const sortBy = opt.sortBy;
 
   if ( sortBy ) {
-    url += `${ url.indexOf('?') >= 0 ? '&' : '?' }sort=${ encodeURIComponent(sortBy) }`;
+    url += `${ url.includes('?') ? '&' : '?' }sort=${ encodeURIComponent(sortBy) }`;
   }
 
   const orderBy = opt.sortOrder;
 
   if ( orderBy ) {
-    url += `${ url.indexOf('?') >= 0 ? '&' : '?' }order=${ encodeURIComponent(orderBy) }`;
+    url += `${ url.includes('?') ? '&' : '?' }order=${ encodeURIComponent(orderBy) }`;
   }
   // End: Sort
 

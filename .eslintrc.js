@@ -17,6 +17,7 @@ module.exports = {
     'nuxt/no-cjs-in-config': 'off',
     'vue/html-self-closing': 'off',
     'vue/no-v-html': 'off',
+    'unicorn/no-new-buffer': 'off',
 
     // Overrides
     'curly':                                      'warn',
