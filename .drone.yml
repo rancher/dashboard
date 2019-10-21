@@ -1,6 +1,6 @@
 ---
 kind: pipeline
-name: docker
+name: test
 
 platform:
   os: linux
@@ -23,6 +23,20 @@ steps:
     - pull_request
     - tag
 
+volumes:
+- name: docker
+  host:
+    path: /var/run/docker.sock
+
+---
+kind: pipeline
+name: docker
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
 - name: docker-image
   image: plugins/docker
   settings:

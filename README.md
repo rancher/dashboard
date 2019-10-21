@@ -1,4 +1,5 @@
 # dashboard
+[![Build Status](http://drone-publish.rancher.io/api/badges/rancherlabs/dashboard/status.svg)](http://drone-publish.rancher.io/rancherlabs/dashboard)
 
 > Rancher Dashboard
 

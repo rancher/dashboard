@@ -1,7 +1,9 @@
 {
   "name": "dashboard",
-  "version": "1.0.0",
+  "version": "master",
   "description": "Rancher Dashboard",
+  "repository": "https://github.com/rancherlabs/dashboard",
+  "license": "Apache-2.0",
   "author": "Rancher Labs, Inc.",
   "private": true,
   "scripts": {
