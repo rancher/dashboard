@@ -86,13 +86,13 @@ export function parseSi(inValue, { increment = null, allowFractional = true } = 
   if ( divide && allowFractional ) {
     const exp = FRACTIONAL.indexOf(unit);
 
-    return val / Math.pow(increment, exp);
+    return val / (increment ** exp);
   }
 
   if ( multiply ) {
     const exp = UNITS.indexOf(unit.toUpperCase());
 
-    return val * Math.pow(increment, exp);
+    return val * (increment ** exp);
   }
 
   // Unrecognized unit character

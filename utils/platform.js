@@ -1,9 +1,9 @@
 export const platform = (typeof window !== 'undefined' && window.navigator && window.navigator.platform ? window.navigator.platform.toLowerCase() : 'server');
 export const userAgent = (typeof window !== 'undefined' && window.navigator && window.navigator.userAgent ? window.navigator.userAgent : 'server');
 
-export const isLinuxy = platform.indexOf('linux') >= 0 || platform.indexOf('unix') >= 0;
-export const isMac = platform.indexOf('mac') >= 0;
-export const isWin = platform.indexOf('win') >= 0;
+export const isLinuxy = platform.includes('linux') || platform.includes('unix');
+export const isMac = platform.includes('mac');
+export const isWin = platform.includes('win');
 
 export const alternateKey = (isMac ? 'metaKey' : 'ctrlKey');
 export const alternateLabel = (isMac ? 'Command' : 'Control');
@@ -41,10 +41,10 @@ export function version() {
   return null;
 }
 
-export const isGecko = userAgent.indexOf('Gecko/') >= 0;
-export const isBlink = userAgent.indexOf('Chrome/') >= 0;
-export const isWebKit = !isBlink && userAgent.indexOf('AppleWebKit/') >= 0;
-export const isSafari = !isBlink && userAgent.indexOf('Safari/') >= 0;
+export const isGecko = userAgent.includes('Gecko/');
+export const isBlink = userAgent.includes('Chrome/');
+export const isWebKit = !isBlink && userAgent.includes('AppleWebKit/');
+export const isSafari = !isBlink && userAgent.includes('Safari/');
 export const isMobile = /Android|webOS|iPhone|iPad|iPod|IEMobile/i.test(userAgent);
 
 export const KEY = {

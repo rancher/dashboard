@@ -184,7 +184,7 @@ function matches(fields, token, item) {
         break;
 
       default:
-        if ( val.indexOf(token) >= 0) {
+        if ( val.includes(token) ) {
           return true;
         }
       }

@@ -1,5 +1,5 @@
 export function addParam(url, key, val) {
-  let out = url + (url.indexOf('?') >= 0 ? '&' : '?');
+  let out = url + (url.includes('?') ? '&' : '?');
 
   // val can be a string or an array of strings
   if ( !Array.isArray(val) ) {

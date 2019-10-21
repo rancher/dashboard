@@ -16,7 +16,7 @@ export function isEmptyData(data) {
  */
 export function convertToBuffer(data) {
   if (typeof data === 'string') {
-    // eslint-disable-next-line node/no-deprecated-api
+    // eslint-disable-next-line node/no-deprecated-api, unicorn/no-new-buffer
     data = new Buffer(data, 'utf8');
   }
 

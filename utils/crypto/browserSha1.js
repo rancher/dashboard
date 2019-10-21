@@ -49,7 +49,7 @@ Sha1.prototype.update = function(data) {
 };
 
 Sha1.prototype.write = function write(byte) {
-  this.block[this.offset] |= (byte & 0xff) << this.shift;
+  this.block[this.offset] |= (byte & 0xFF) << this.shift;
   if (this.shift) {
     this.shift -= 8;
   } else {
@@ -74,14 +74,14 @@ Sha1.prototype.digest = function(encoding) {
   // 64-bit length big-endian
   this.write(0x00); // numbers this big aren't accurate in javascript anyway
   this.write(0x00); // ..So just hard-code to zero.
-  this.write(this.totalLength > 0xffffffffff ? this.totalLength / 0x10000000000 : 0x00);
-  this.write(this.totalLength > 0xffffffff ? this.totalLength / 0x100000000 : 0x00);
+  this.write(this.totalLength > 0xFFFFFFFFFF ? this.totalLength / 0x10000000000 : 0x00);
+  this.write(this.totalLength > 0xFFFFFFFF ? this.totalLength / 0x100000000 : 0x00);
   for (let s = 24; s >= 0; s -= 8) {
     this.write(this.totalLength >> s);
   }
   // The value in state is little-endian rather than big-endian, so flip
   // each word into a new Uint8Array
-  // eslint-disable-next-line node/no-deprecated-api
+  // eslint-disable-next-line node/no-deprecated-api, unicorn/no-new-buffer
   const out = new Buffer(DIGEST_LENGTH);
   const outView = new DataView(out.buffer);
 
