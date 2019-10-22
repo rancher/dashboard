@@ -14,6 +14,7 @@ const rancher = process.env.RANCHER || 'https://localhost:30443';
 
 let routerBasePath = '/';
 let resourceBase = '';
+let outputDir = 'dist';
 
 if ( typeof process.env.ROUTER_BASE !== 'undefined' ) {
   routerBasePath = process.env.ROUTER_BASE;
@@ -21,6 +22,10 @@ if ( typeof process.env.ROUTER_BASE !== 'undefined' ) {
 
 if ( typeof process.env.RESOURCE_BASE !== 'undefined' ) {
   resourceBase = process.env.RESOURCE_BASE;
+}
+
+if ( typeof process.env.OUTPUT_DIR !== 'undefined' ) {
+  outputDir = process.env.OUTPUT_DIR;
 }
 
 if ( resourceBase && !resourceBase.endsWith('/') ) {
@@ -40,6 +45,8 @@ if ( dev ) {
 module.exports = {
   dev,
   version,
+
+  buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
   // mode: 'universal',
   loading: '~/components/Loading.vue',
@@ -66,6 +73,8 @@ module.exports = {
     //    extractCSS: true,
     cssSourceMap: true
   },
+
+  generate: { dir: outputDir },
 
   // Global CSS
   css: [
