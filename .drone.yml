@@ -92,7 +92,7 @@ steps:
     acl:
     - allUsers:READER
     cache_control: "no-cache,must-revalidate"
-    source: dist
+    source: dist/${DRONE_BRANCH##release\/}
     target: releases.rancher.com/dashboard/${DRONE_BRANCH##release\/}
     token:
       from_secret: google_auth_key
@@ -138,7 +138,7 @@ steps:
     acl:
     - allUsers:READER
     cache_control: "no-cache,must-revalidate"
-    source: ${DRONE_BRANCH##release\/}.tar.gz
+    source: dist/${DRONE_BRANCH##release\/}.tar.gz
     target: releases.rancher.com/dashboard/
     token:
       from_secret: google_auth_key
