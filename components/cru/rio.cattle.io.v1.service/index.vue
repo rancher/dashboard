@@ -1,4 +1,5 @@
 <script>
+import { CONFIG_MAP, SECRET } from '../../../config/types';
 import Top from './Top';
 import Command from './Command';
 import HealthCheck from './HealthCheck';
@@ -7,17 +8,20 @@ import Scheduling from './Scheduling';
 import Security from './Security';
 import Upgrading from './Upgrading';
 import Volumes from './Volumes';
+import Loading from '@/components/Loading';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import CreateEditView from '@/mixins/create-edit-view';
 import { _EDIT, EDIT_CONTAINER } from '@/config/query-params';
 import Footer from '@/components/form/Footer';
-import { findBy, removeObject } from '@/utils/array';
+import { findBy, filterBy, removeObject } from '@/utils/array';
+import { allHash } from '@/utils/promise';
 
 export default {
   name:       'CruService',
 
   components: {
+    Loading,
     Tabbed,
     Tab,
     Top,
@@ -59,20 +63,81 @@ export default {
       spec.imagePullPolicy = 'Always';
     }
 
+    console.log('Data');
+
     return {
+      loading:       true,
       multipleContainers,
       nameResource,
       containerName,
       isSidecar,
       rootSpec,
       spec,
+      allConfigMaps: null,
+      allSecrets:    null,
     };
   },
 
   computed: {
     promptForContainer() {
       return this.mode === _EDIT && this.multipleContainers && this.containerName === undefined;
-    }
+    },
+
+    configMaps() {
+      const namespace = this.value.metadata.namespace;
+
+      if ( !namespace ) {
+        return [];
+      }
+
+      const matching = filterBy((this.allConfigMaps || []), 'metadata.namespace', namespace);
+      const out = [];
+
+      for ( const item of matching ) {
+        const name = item.metadata.name;
+        const keys = [];
+
+        for ( const k of Object.keys(item.data || {}) ) {
+          keys.push({ label: k, value: `${ name }/${ k }` });
+        }
+
+        for ( const k of Object.keys(item.binaryData || {}) ) {
+          keys.push({ label: k, value: `${ name }/${ k }` });
+        }
+
+        if ( keys.length ) {
+          out.push({
+            group: item.metadata.name,
+            items: keys
+          });
+        }
+      }
+
+      return out;
+    },
+
+    secrets() {
+      const namespace = this.value.metadata.namespace;
+
+      if ( !namespace ) {
+        return [];
+      }
+
+      const out = filterBy((this.allSecrets || []), 'metadata.namespace', namespace);
+
+      return out;
+    },
+  },
+
+  async created() {
+    const hash = await allHash({
+      configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
+      secrets:    this.$store.dispatch('cluster/findAll', { type: SECRET }),
+    });
+
+    this.allSecrets = hash.secrets;
+    this.allConfigMaps = hash.configMaps;
+    this.loading = false;
   },
 
   methods: {
@@ -94,7 +159,10 @@ export default {
 
 <template>
   <form>
-    <div v-if="promptForContainer" class="clearfix">
+    <div v-if="loading">
+      <Loading />
+    </div>
+    <div v-else-if="promptForContainer" class="clearfix">
       <p>This service consists of multiple containers, which one do you want to edit?</p>
       <div class="box">
         <p>The primary container</p>
@@ -119,25 +187,25 @@ export default {
 
       <Tabbed default-tab="command">
         <Tab name="command" label="Command">
-          <Command :spec="spec" />
+          <Command :spec="spec" :mode="mode" :config-maps="configMaps" :secrets="secrets" />
         </Tab>
         <Tab name="network" label="Network">
-          <Networking :spec="spec" />
+          <Networking :spec="spec" :mode="mode" />
         </Tab>
         <Tab name="healthcheck" label="Health Check">
-          <HealthCheck :spec="spec" />
+          <HealthCheck :spec="spec" :mode="mode" />
         </Tab>
         <Tab name="scheduling" label="Scheduling">
-          <Scheduling :spec="spec" />
+          <Scheduling :spec="spec" :mode="mode" />
         </Tab>
         <Tab name="security" label="Security">
-          <Security :spec="spec" />
+          <Security :spec="spec" :mode="mode" />
         </Tab>
         <Tab name="upgrading" label="Upgrading">
-          <Upgrading :spec="spec" />
+          <Upgrading :spec="spec" :mode="mode" />
         </Tab>
         <Tab name="volumes" label="Volumes">
-          <Volumes :spec="spec" />
+          <Volumes :spec="spec" :mode="mode" />
         </Tab>
       </Tabbed>
 

@@ -1,7 +1,9 @@
 #!/bin/sh
 set -e
 
-source $(dirname $0)/version
+if [ -z "$VERSION" ]; then
+  source $(dirname $0)/version
+fi
 
 BUILD_DEBUG="${BUILD_DEBUG:-}"
 if [[ -n "${BUILD_DEBUG}" ]]; then
@@ -18,4 +20,4 @@ echo "Bootstrapping..."
 yarn --pure-lockfile install
 
 echo "Building..."
-ROUTER_BASE="/dashboard" RESOURCE_BASE="https://releases.rancher.com/dashboard/${VERSION}" run build --devtools --spa
+ROUTER_BASE="/dashboard/" RESOURCE_BASE="https://releases.rancher.com/dashboard/${VERSION}" yarn run build --spa

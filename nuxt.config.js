@@ -3,7 +3,10 @@ import path from 'path';
 
 require('dotenv').config();
 
-const version = process.env.DRONE_TAG || process.env.DRONE_VERSION || require('./package.json').version;
+const version = process.env.VERSION ||
+  process.env.DRONE_TAG ||
+  process.env.DRONE_VERSION ||
+  require('./package.json').version;
 
 const dev = (process.env.NODE_ENV !== 'production');
 const steve = process.env.API || 'http://localhost:8989';
@@ -18,6 +21,10 @@ if ( typeof process.env.ROUTER_BASE !== 'undefined' ) {
 
 if ( typeof process.env.RESOURCE_BASE !== 'undefined' ) {
   resourceBase = process.env.RESOURCE_BASE;
+}
+
+if ( resourceBase && !resourceBase.endsWith('/') ) {
+  resourceBase += '/';
 }
 
 console.log(`Mode: ${ dev ? 'Development' : 'Production' }`);
@@ -51,6 +58,10 @@ module.exports = {
     publicPath: resourceBase,
     extend(config, { isClient }) {
       config.devtool = isClient ? '#source-map' : 'inline-source-map';
+
+      if ( resourceBase ) {
+        config.output.publicPath = resourceBase;
+      }
     },
     //    extractCSS: true,
     cssSourceMap: true

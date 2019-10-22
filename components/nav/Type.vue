@@ -10,7 +10,7 @@ export default {
 </script>
 
 <template>
-  <n-link :key="type.route" :to="type.route" tag="li" class="child">
+  <n-link :key="type.name" :to="type.route" tag="li" class="child">
     <a>
       <span v-trim-whitespace class="label">
         <i v-if="type.icon" :class="{icon: true, [type.icon]: true}" />
