@@ -27,12 +27,16 @@ export default {
   methods: {
     onFocus() {
       this.onFocusLabeled();
-      this.$refs.input.placeholder = this.placeholder;
+      if ( this.$refs.input ) {
+        this.$refs.input.placeholder = this.placeholder;
+      }
     },
 
     onBlur() {
       this.onBlurLabeled();
-      this.$refs.input.placeholder = '';
+      if ( this.$refs.input ) {
+        this.$refs.input.placeholder = '';
+      }
     }
   }
 };
@@ -60,9 +64,13 @@ export default {
       <option v-if="focused" disabled value="">
         {{ placeholder }}
       </option>
-      <option v-for="opt in options" :key="opt.value" :value="opt.value">
-        {{ opt.label }}
-      </option>
+      <slot name="options" :options="options">
+        <option v-for="opt in options" :key="opt.value" :value="opt.value">
+          <slot name="label" :opt="opt">
+            {{ opt.label }}
+          </slot>
+        </option>
+      </slot>
     </select>
   </div>
 </template>

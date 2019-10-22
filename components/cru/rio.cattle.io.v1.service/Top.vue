@@ -2,6 +2,7 @@
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import Ports from '@/components/cru/rio.cattle.io.v1.service/Ports';
 
 const imagePullPolicyChoices = [
   { value: 'Always', label: 'Always' },
@@ -11,7 +12,7 @@ const imagePullPolicyChoices = [
 
 export default {
   components: {
-    NameNsDescription, LabeledInput, LabeledSelect
+    NameNsDescription, LabeledInput, LabeledSelect, Ports,
   },
 
   props: {

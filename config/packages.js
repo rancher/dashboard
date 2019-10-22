@@ -2,6 +2,29 @@ import { ucFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { findBy } from '@/utils/array';
 import { CONFIG_MAP, RIO, SECRET } from '~/config/types';
+// import config from '@/nuxt.config';
+
+let routerBase = null;
+
+if ( typeof process.env.ROUTER_BASE !== 'undefined' ) {
+  routerBase = process.env.ROUTER_BASE;
+
+  if ( routerBase.endsWith('/') ) {
+    routerBase = routerBase.replace(/\/$/, '');
+  }
+}
+
+/*
+function resolve($router, name, params) {
+  let out = $router.resolve({ name, params }).href;
+
+  if ( routerBase && out.startsWith(routerBase) ) {
+    out = out.substr(routerBase.length);
+  }
+
+  return out;
+}
+*/
 
 export function rioPackage($router, counts, namespaces) {
   function countFor(type) {
@@ -15,32 +38,34 @@ export function rioPackage($router, counts, namespaces) {
   }
 
   function linkFor(resource) {
-    return $router.resolve({
+    return {
       name:   'rio-resource',
       params: { resource }
-    }).href;
+    };
   }
 
   const out = {
     name:     'rio',
     label:    'Rio',
     children: [
+      /*
       {
         name:    'rio-dashboard',
         label:   'Dashboard',
-        route:   linkFor('dashboard'),
+        route:   rnioLink('dashboard'),
       },
       {
         name:    'rio-graph',
         label:   'App Mesh',
-        route:   linkFor('mesh'),
+        route:   rioLink('mesh'),
       },
       {
         name:    'rio-tap',
         label:   'Live Traffic Tap',
-        route:   linkFor('tap'),
+        route:   rioLink('tap'),
       },
       { divider: true },
+      */
       {
         name:  'rio-stack',
         count: countFor(RIO.STACK),
@@ -93,6 +118,20 @@ export function rioPackage($router, counts, namespaces) {
 export function explorerPackage($router, counts, namespaces) {
   const level = {};
 
+  function linkFor(group, resource) {
+    return {
+      name:   'explorer-group-resource',
+      params: { group, resource }
+    };
+
+    /*
+    return resolve($router, 'explorer-group-resource', {
+      group,
+      resource,
+    });
+    */
+  }
+
   counts.forEach((res) => {
     const namespaced = res.namespaced;
     let count, prefix;
@@ -119,13 +158,7 @@ export function explorerPackage($router, counts, namespaces) {
       name:  `${ prefix }_${ name }_${ res.id }`,
       icon:  (namespaced ? 'icon-folder' : 'icon-copy'),
       label: ucFirst(res.label),
-      route: $router.resolve({
-        name:   'explorer-group-resource',
-        params: {
-          group:    name,
-          resource: res.id
-        }
-      }).href,
+      route: linkFor(name, res.id),
     });
   });
 

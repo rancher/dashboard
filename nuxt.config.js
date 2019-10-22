@@ -3,7 +3,10 @@ import path from 'path';
 
 require('dotenv').config();
 
-const version = process.env.DRONE_TAG || process.env.DRONE_VERSION || require('./package.json').version;
+const version = process.env.VERSION ||
+  process.env.DRONE_TAG ||
+  process.env.DRONE_VERSION ||
+  require('./package.json').version;
 
 const dev = (process.env.NODE_ENV !== 'production');
 const steve = process.env.API || 'http://localhost:8989';
@@ -11,6 +14,7 @@ const rancher = process.env.RANCHER || 'https://localhost:30443';
 
 let routerBasePath = '/';
 let resourceBase = '';
+let outputDir = 'dist';
 
 if ( typeof process.env.ROUTER_BASE !== 'undefined' ) {
   routerBasePath = process.env.ROUTER_BASE;
@@ -18,6 +22,14 @@ if ( typeof process.env.ROUTER_BASE !== 'undefined' ) {
 
 if ( typeof process.env.RESOURCE_BASE !== 'undefined' ) {
   resourceBase = process.env.RESOURCE_BASE;
+}
+
+if ( typeof process.env.OUTPUT_DIR !== 'undefined' ) {
+  outputDir = process.env.OUTPUT_DIR;
+}
+
+if ( resourceBase && !resourceBase.endsWith('/') ) {
+  resourceBase += '/';
 }
 
 console.log(`Mode: ${ dev ? 'Development' : 'Production' }`);
@@ -33,6 +45,8 @@ if ( dev ) {
 module.exports = {
   dev,
   version,
+
+  buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
   // mode: 'universal',
   loading: '~/components/Loading.vue',
@@ -51,10 +65,16 @@ module.exports = {
     publicPath: resourceBase,
     extend(config, { isClient }) {
       config.devtool = isClient ? '#source-map' : 'inline-source-map';
+
+      if ( resourceBase ) {
+        config.output.publicPath = resourceBase;
+      }
     },
     //    extractCSS: true,
     cssSourceMap: true
   },
+
+  generate: { dir: outputDir },
 
   // Global CSS
   css: [

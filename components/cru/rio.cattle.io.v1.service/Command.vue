@@ -1,21 +1,66 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import ShellInput from '@/components/form/ShellInput';
 import UnitInput from '@/components/form/UnitInput';
+import KeyValue from '@/components/form/KeyValue';
 
 export default {
   components: {
-    LabeledInput, ShellInput, UnitInput
+    LabeledSelect, LabeledInput, ShellInput, UnitInput, KeyValue
   },
+
   props:      {
     spec: {
       type:     Object,
       required: true,
+    },
+    mode: {
+      type:     String,
+      required: true,
+    },
+    configMaps: {
+      type:     Array,
+      required: true,
+    },
+    secrets: {
+      type:     Array,
+      required: true,
+    },
+  },
+
+  computed: {},
+
+  created() {
+    if ( !this.spec.env ) {
+      this.spec.env = [];
     }
   },
 
-  computed() {
+  methods: {
+    addConfigMap(rows) {
+      rows.push({
+        name:          '',
+        configMapName: null,
+        key:           null
+      });
+    },
 
+    addSecret(rows) {
+      rows.push({
+        name:       '',
+        secretName: null,
+        key:        null
+      });
+    },
+
+    changedSecret(row) {
+      debugger;
+    },
+
+    changedConfigMap(row) {
+      debugger;
+    },
   },
 };
 </script>
@@ -89,6 +134,60 @@ export default {
 
     <hr />
 
-    <p>--env (var, from config map, from secret)</p>
+    <KeyValue
+      key="env"
+      v-model="spec.env"
+      key-name="name"
+      :mode="mode"
+      :pad-left="false"
+      :as-map="false"
+      :read-allowed="false"
+      title="Environment Variables"
+    >
+      <template #value="{row, isView}">
+        <span v-if="typeof row.secretName !== 'undefined'">
+          <LabeledSelect
+            v-model="row.secretRef"
+            :mode="mode"
+            :options="secrets"
+            label="Secret"
+            @input="changedSecret(row)"
+          >
+            <template #options="{options}">
+              <optgroup v-for="grp in options" :key="grp.group" :label="grp.group">
+                <option v-for="opt in grp.items" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </option>
+              </optgroup>
+            </template>
+          </LabeledSelect>
+        </span>
+        <span v-else-if="typeof row.configMapName !== 'undefined'">
+          <LabeledSelect
+            v-model="row.configMapRef"
+            :mode="mode"
+            :options="configMaps"
+            label="Config Map"
+            @input="changedConfigMap(row)"
+          >
+            <template #options="{options}">
+              <optgroup v-for="grp in options" :key="grp.group" :label="grp.group">
+                <option v-for="opt in grp.items" :key="opt.value" :value="opt.value">
+                  {{ opt.label }}
+                </option>
+              </optgroup>
+            </template>
+          </LabeledSelect>
+        </span>
+      </template>
+      <template #moreAdd="{rows}">
+        <button type="button" class="btn bg-primary add" @click="addSecret(rows)">
+          <i class="icon icon-plus" /> From Secret
+        </button>
+        <button type="button" class="btn bg-primary add" @click="addConfigMap(rows)">
+          <i class="icon icon-plus" /> From ConfigMap
+        </button>
+      </template>
+    </KeyValue>
   </div>
 </template>

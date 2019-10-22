@@ -6,15 +6,18 @@ import { explorerPackage, rioPackage } from '@/config/packages';
 import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
-import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
+// import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
 import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import LaunchKubectl from '@/components/ContainerExec/LaunchKubectl';
 import Group from '@/components/nav/Group';
 import { COUNT } from '@/config/types';
 
+const VERSION = process.env.VERSION || 'dev';
+
 export default {
+
   components: {
-    ClusterSwitcher,
+    // ClusterSwitcher,
     NamespaceFilter,
     ActionMenu,
     Group,
@@ -32,6 +35,10 @@ export default {
 
   computed: {
     ...mapGetters({ principal: 'auth/principal' }),
+
+    version() {
+      return VERSION;
+    },
 
     counts() {
       const obj = this.$store.getters['cluster/all'](COUNT)[0].counts;
@@ -117,7 +124,7 @@ export default {
   <div class="dashboard-root">
     <div class="top">
       <div class="header-left">
-        <ClusterSwitcher />
+        {{ version }}
       </div>
 
       <div class="header-middle">

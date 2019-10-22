@@ -50,6 +50,11 @@ export default {
       default: true,
     },
 
+    // For asMap=false, the name of the field that goes into the row objects
+    keyName: {
+      type:    String,
+      default: 'key',
+    },
     keyLabel: {
       type:    String,
       default: 'Key',
@@ -64,6 +69,11 @@ export default {
       default: '',
     },
 
+    // For asMap=false, the name of the field that goes into the row objects
+    valueName: {
+      type:    String,
+      default: 'value',
+    },
     valueLabel: {
       type:    String,
       default: 'Value',
@@ -171,7 +181,7 @@ export default {
     });
 
     if ( !rows.length && this.initialEmptyRow ) {
-      rows.push({ key: '', value: '' });
+      rows.push({ [this.keyName]: '', [this.valueName]: '' });
     }
 
     return { rows };
@@ -205,7 +215,7 @@ export default {
         value = base64Encode(value);
       }
 
-      this.rows.push({ key, value });
+      this.rows.push({ [this.keyName]: key, [this.valueName]: value });
       this.queueUpdate();
 
       this.$nextTick(() => {
@@ -251,8 +261,8 @@ export default {
 
     download(idx) {
       const row = this.rows[idx];
-      const name = row.key;
-      let value = row.value;
+      const name = row[this.keyName];
+      let value = row[this.valueName];
 
       if ( this.valueBase64 ) {
         value = base64Decode(value);
@@ -267,16 +277,18 @@ export default {
       }
 
       if ( !this.asMap ) {
-        this.$emit('input', this.data.slice());
+        this.$emit('input', this.rows.slice());
 
         return;
       }
 
       const out = {};
+      const keyName = this.keyName;
+      const valueName = this.valueName;
 
       for ( const row of this.rows ) {
-        const key = (row.key || '').trim();
-        let value = (row.value || '').trim();
+        const key = (row[keyName] || '').trim();
+        let value = (row[valueName] || '').trim();
 
         row.binary = !asciiLike(value);
 
@@ -312,6 +324,7 @@ export default {
           <th class="value">
             {{ valueLabel }}
           </th>
+          <slot name="moreColumnHeaders" />
           <th v-if="showRemove" class="remove"></th>
         </tr>
       </thead>
@@ -322,12 +335,19 @@ export default {
         >
           <td v-if="padLeft" class="left"></td>
           <td class="key">
-            <slot name="key" :row="row" :mode="mode">
-              <span v-if="isView">{{ row.key }}</span>
+            <slot
+              name="key"
+              :row="row"
+              :mode="mode"
+              :keyName="keyName"
+              :valueName="valueName"
+              :isView="isView"
+            >
+              <span v-if="isView">{{ row[keyName] }}</span>
               <input
                 v-else
                 ref="key"
-                v-model="row.key"
+                v-model="row[keyName]"
                 :placeholder="keyPlaceholder"
                 type="text"
                 @input="queueUpdate"
@@ -338,22 +358,30 @@ export default {
             {{ separatorLabel }}
           </td>
           <td class="value">
-            <slot name="value" :row="row" :mode="mode">
+            <slot
+              name="value"
+              :row="row"
+              :mode="mode"
+              :keyName="keyName"
+              :valueName="valueName"
+              :isView="isView"
+            >
               <span v-if="valueBinary || row.binary">
-                {{ row.value.length }} byte<span v-if="row.value.length !== 1">s</span>
+                {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
                 <button type="button" class="bg-link" @click="download(idx)">
                   <i class="icon icon-download text-small" />
                 </button>
               </span>
-              <span v-else-if="isView">{{ row.value }}</span>
+              <span v-else-if="isView">{{ row[valueName] }}</span>
               <TextAreaAutoGrow
                 v-else
-                v-model="row.value"
+                v-model="row[valueName]"
                 :placeholder="valuePlaceholder"
                 @input="queueUpdate"
               />
             </slot>
           </td>
+          <slot name="moreColumnHeaders" />
           <td v-if="showRemove" class="remove">
             <button type="button" class="btn bg-primary" @click="remove(idx)">
               <i v-if="removeIcon" :class="{'icon': true, [removeIcon]: true}" />
@@ -364,10 +392,13 @@ export default {
       </tbody>
     </table>
     <div v-if="showAdd || showRead" class="footer">
-      <button v-if="showAdd" type="button" class="btn bg-primary add" @click="add()">
-        <i v-if="addIcon" :class="{'icon': true, [addIcon]: true}" />
-        {{ addLabel }}
-      </button>
+      <slot v-if="showAdd" name="add">
+        <button type="button" class="btn bg-primary add" @click="add()">
+          <i v-if="addIcon" :class="{'icon': true, [addIcon]: true}" />
+          {{ addLabel }}
+        </button>
+        <slot name="moreAdd" :rows="rows" />
+      </slot>
       <button v-if="showRead" type="button" class="btn bg-primary read-from-file" @click="readFromFile">
         <i v-if="readIcon" :class="{'icon': true, [readIcon]: true}" />
         {{ readLabel }}

@@ -1,3 +1,5 @@
+import { get } from '@/utils/object';
+
 export function removeObject(ary, obj) {
   const idx = ary.indexOf(obj);
 
@@ -115,12 +117,15 @@ function findOrFilterBy(method, ary, keyOrObj, val) {
 
   if ( typeof keyOrObj === 'object' ) {
     return ary[method]((item) => {
-      for ( const k in keyOrObj ) {
-        if ( typeof keyOrObj[k] === 'undefined' ) {
-          if ( !item[k] ) {
+      for ( const path in keyOrObj ) {
+        const want = get(keyOrObj, path);
+        const have = get(item, path);
+
+        if ( typeof want === 'undefined' ) {
+          if ( !have ) {
             return false;
           }
-        } else if ( item[k] !== keyOrObj[k] ) {
+        } else if ( have !== want ) {
           return false;
         }
       }
@@ -128,9 +133,9 @@ function findOrFilterBy(method, ary, keyOrObj, val) {
       return true;
     });
   } else if ( val === undefined ) {
-    return ary[method](item => !!item[keyOrObj]);
+    return ary[method](item => !!get(item, keyOrObj));
   } else {
-    return ary[method](item => item[keyOrObj] === val);
+    return ary[method](item => get(item, keyOrObj) === val);
   }
 }
 
