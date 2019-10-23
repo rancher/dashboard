@@ -56,13 +56,11 @@ export default {
     select(name, event) {
       const selected = this.find(name);
 
-      if ( !selected ) {
+      if ( !selected || selected.disabled) {
         return;
       }
 
-      if ( event && selected.disabled ) {
-        event.preventDefault();
-      }
+      window.location.hash = `#${ name }`;
 
       for ( const tab of this.tabs ) {
         tab.active = (tab.name === selected.name);
@@ -88,7 +86,7 @@ export default {
           :aria-controls="'#' + tab.name"
           :aria-selected="tab.active"
           role="tab"
-          @click="select(tab.name, $event)"
+          @click.prevent="select(tab.name, $event)"
         >
           {{ tab.label }}
         </a>

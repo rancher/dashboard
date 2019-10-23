@@ -1,13 +1,12 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
-import LabeledSelect from '@/components/form/LabeledSelect';
 import ShellInput from '@/components/form/ShellInput';
 import UnitInput from '@/components/form/UnitInput';
 import KeyValue from '@/components/form/KeyValue';
 
 export default {
   components: {
-    LabeledSelect, LabeledInput, ShellInput, UnitInput, KeyValue
+    LabeledInput, ShellInput, UnitInput, KeyValue
   },
 
   props:      {
@@ -16,6 +15,10 @@ export default {
       required: true,
     },
     mode: {
+      type:     String,
+      required: true,
+    },
+    namespace: {
       type:     String,
       required: true,
     },
@@ -54,12 +57,26 @@ export default {
       });
     },
 
-    changedSecret(row) {
-      debugger;
-    },
+    changedRef(row, val, which) {
+      delete row.configMapRef;
+      delete row.secretRef;
+      delete row.configMapName;
+      delete row.secretName;
 
-    changedConfigMap(row) {
-      debugger;
+      row[`${ which }Ref`] = val;
+
+      let name = null;
+      let key = null;
+
+      if ( val && val.includes('/') ) {
+        const parts = val.split('/', 2);
+
+        name = parts[0];
+        key = parts[1];
+      }
+
+      row[`${ which }Name`] = name;
+      row.key = key;
     },
   },
 };
@@ -71,6 +88,7 @@ export default {
         <UnitInput
           v-model="spec.memory"
           :increment="1024"
+          :input-exponent="2"
           label="Memory Reservation"
           placeholder="Default: None"
         />
@@ -146,38 +164,24 @@ export default {
     >
       <template #value="{row, isView}">
         <span v-if="typeof row.secretName !== 'undefined'">
-          <LabeledSelect
-            v-model="row.secretRef"
-            :mode="mode"
-            :options="secrets"
-            label="Secret"
-            @input="changedSecret(row)"
-          >
-            <template #options="{options}">
-              <optgroup v-for="grp in options" :key="grp.group" :label="grp.group">
-                <option v-for="opt in grp.items" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </option>
-              </optgroup>
-            </template>
-          </LabeledSelect>
+          <select v-model="row.secretRef" @input="changedRef(row, $event.target.value, 'secret')">
+            <option disabled value="">Select a Secret Key...</option>
+            <optgroup v-for="grp in secrets" :key="grp.group" :label="grp.group">
+              <option v-for="opt in grp.items" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
+            </optgroup>
+          </select>
         </span>
         <span v-else-if="typeof row.configMapName !== 'undefined'">
-          <LabeledSelect
-            v-model="row.configMapRef"
-            :mode="mode"
-            :options="configMaps"
-            label="Config Map"
-            @input="changedConfigMap(row)"
-          >
-            <template #options="{options}">
-              <optgroup v-for="grp in options" :key="grp.group" :label="grp.group">
-                <option v-for="opt in grp.items" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </option>
-              </optgroup>
-            </template>
-          </LabeledSelect>
+          <select v-model="row.configMapRef" @input="changedRef(row, $event.target.value, 'configMap')">
+            <option disabled value="">Select a Config Map Key...</option>
+            <optgroup v-for="grp in configMaps" :key="grp.group" :label="grp.group">
+              <option v-for="opt in grp.items" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
+            </optgroup>
+          </select>
         </span>
       </template>
       <template #moreAdd="{rows}">

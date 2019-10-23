@@ -46,6 +46,11 @@ export default {
       metadata.annotations = {};
     }
 
+    // @TODO pick a smarter default based on the previous used or what NS is selected for view
+    if ( !metadata.namespace ) {
+      metadata.namespace = 'default';
+    }
+
     const description = metadata.annotations[ANNOTATION.DESCRIPTION];
 
     return {
