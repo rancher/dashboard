@@ -9,11 +9,11 @@ fi
 
 cd $(dirname $0)
 
-echo "Cleaning up..."
-rm -rf node_modules .nuxt
-
-echo "Bootstrapping..."
-yarn --pure-lockfile install
-
 echo "Building..."
 yarn run build
+
+echo "Linting..."
+yarn run lint
+
+echo "Testing..."
+yarn run test

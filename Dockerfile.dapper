@@ -7,8 +7,9 @@ RUN apk update && apk upgrade
 
 COPY package.json /src/
 COPY yarn.lock /src/
-RUN yarn install
+RUN yarn --pure-lockfile install
 
 COPY . /src
 
-ENTRYPOINT ["/src/scripts/ci"]
+ENTRYPOINT ["./scripts/entry"]
+CMD ["ci"]
