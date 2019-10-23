@@ -17,6 +17,37 @@ import Footer from '@/components/form/Footer';
 import { findBy, filterBy, removeObject } from '@/utils/array';
 import { allHash } from '@/utils/promise';
 
+function matchingNamespaceGroupedByKey(ary, namespace) {
+  if ( !namespace ) {
+    return [];
+  }
+
+  const matching = filterBy((ary || []), 'metadata.namespace', namespace);
+  const out = [];
+
+  for ( const item of matching ) {
+    const name = item.metadata.name;
+    const keys = [];
+
+    for ( const k of Object.keys(item.data || {}) ) {
+      keys.push({ label: k, value: `${ name }/${ k }` });
+    }
+
+    for ( const k of Object.keys(item.binaryData || {}) ) {
+      keys.push({ label: k, value: `${ name }/${ k }` });
+    }
+
+    if ( keys.length ) {
+      out.push({
+        group: item.metadata.name,
+        items: keys
+      });
+    }
+  }
+
+  return out;
+}
+
 export default {
   name:       'CruService',
 
@@ -63,7 +94,9 @@ export default {
       spec.imagePullPolicy = 'Always';
     }
 
-    console.log('Data');
+    if ( typeof window !== 'undefined' ) {
+      window.v = this.value;
+    }
 
     return {
       loading:       true,
@@ -83,49 +116,16 @@ export default {
       return this.mode === _EDIT && this.multipleContainers && this.containerName === undefined;
     },
 
+    namespace() {
+      return this.value.metadata.namespace;
+    },
+
     configMaps() {
-      const namespace = this.value.metadata.namespace;
-
-      if ( !namespace ) {
-        return [];
-      }
-
-      const matching = filterBy((this.allConfigMaps || []), 'metadata.namespace', namespace);
-      const out = [];
-
-      for ( const item of matching ) {
-        const name = item.metadata.name;
-        const keys = [];
-
-        for ( const k of Object.keys(item.data || {}) ) {
-          keys.push({ label: k, value: `${ name }/${ k }` });
-        }
-
-        for ( const k of Object.keys(item.binaryData || {}) ) {
-          keys.push({ label: k, value: `${ name }/${ k }` });
-        }
-
-        if ( keys.length ) {
-          out.push({
-            group: item.metadata.name,
-            items: keys
-          });
-        }
-      }
-
-      return out;
+      return matchingNamespaceGroupedByKey(this.allConfigMaps, this.namespace);
     },
 
     secrets() {
-      const namespace = this.value.metadata.namespace;
-
-      if ( !namespace ) {
-        return [];
-      }
-
-      const out = filterBy((this.allSecrets || []), 'metadata.namespace', namespace);
-
-      return out;
+      return matchingNamespaceGroupedByKey(this.allSecrets, this.namespace);
     },
   },
 
@@ -187,7 +187,7 @@ export default {
 
       <Tabbed default-tab="command">
         <Tab name="command" label="Command">
-          <Command :spec="spec" :mode="mode" :config-maps="configMaps" :secrets="secrets" />
+          <Command :spec="spec" :mode="mode" :config-maps="configMaps" :secrets="secrets" :namespace="namespace" />
         </Tab>
         <Tab name="network" label="Network">
           <Networking :spec="spec" :mode="mode" />

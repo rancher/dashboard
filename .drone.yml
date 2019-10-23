@@ -73,6 +73,7 @@ steps:
   image: rancher/dapper:v0.4.1
   commands:
   - dapper build-hosted
+  - ls -alR
   privileged: true
   volumes:
   - name: docker
@@ -119,6 +120,7 @@ steps:
   image: rancher/dapper:v0.4.1
   commands:
   - dapper build-embedded
+  - ls -alR
   privileged: true
   volumes:
   - name: docker

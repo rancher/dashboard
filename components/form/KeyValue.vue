@@ -157,8 +157,9 @@ export default {
   },
 
   data() {
+    // @TODO base64 and binary support for asMap
     if ( !this.asMap ) {
-      return { rows: this.value.slice() };
+      return { rows: (this.value || []).slice() };
     }
 
     const input = this.value || {};
@@ -310,7 +311,7 @@ export default {
 <template>
   <div>
     <div class="title clearfix">
-      <h2>{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 16px" /></h2>
+      <h4>{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 16px" /></h4>
     </div>
 
     <table v-if="rows.length" class="fixed">
@@ -374,6 +375,12 @@ export default {
               </span>
               <span v-else-if="isView">{{ row[valueName] }}</span>
               <TextAreaAutoGrow
+                v-else-if="valueMultiline"
+                v-model="row[valueName]"
+                :placeholder="valuePlaceholder"
+                @input="queueUpdate"
+              />
+              <input
                 v-else
                 v-model="row[valueName]"
                 :placeholder="valuePlaceholder"

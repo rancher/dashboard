@@ -50,6 +50,10 @@ export default {
       this.queueResize();
     },
 
+    focus() {
+      this.$refs.ta.focus();
+    },
+
     autoSize() {
       const el = this.$refs.ta;
 

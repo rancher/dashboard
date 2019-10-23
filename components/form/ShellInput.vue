@@ -4,7 +4,12 @@ import LabeledInput from '@/components/form/LabeledInput';
 export default {
   components: { LabeledInput },
 
-  props: {},
+  props: {
+    value: {
+      type:    Array,
+      default: null,
+    }
+  },
 
   data() {
     let userValue = '';

@@ -32,14 +32,14 @@ export default {
 
   data() {
     return {
-      raised:  !!this.value,
+      raised:  !!`${ this.value }`,
       focused: false
     };
   },
 
   computed: {
     empty() {
-      return !!this.value;
+      return !!`${ this.value }`;
     },
 
     isView() {
