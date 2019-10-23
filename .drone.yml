@@ -121,6 +121,7 @@ steps:
   commands:
   - dapper build-embedded
   - ls -alR
+  - find / -name "*.tar.gz"
   privileged: true
   volumes:
   - name: docker
