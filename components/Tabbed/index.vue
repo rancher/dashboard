@@ -82,7 +82,6 @@ export default {
         role="presentation"
       >
         <a
-          :href="'#' + tab.name"
           :aria-controls="'#' + tab.name"
           :aria-selected="tab.active"
           role="tab"

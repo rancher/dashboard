@@ -1,4 +1,4 @@
-.v-select {
+.v-select, .multiselect {
   position: relative;
   font-family: inherit;
 }
@@ -21,7 +21,7 @@
   }
 }
 
-.vs__dropdown-menu {
+.vs__dropdown-menu, .multiselect__content-wrapper {
   display: block;
   position: absolute;
   top: calc(100% - 1px);
@@ -46,7 +46,7 @@
 
 }
 
-.vs__dropdown-option {
+.vs__dropdown-option, .multiselect__element {
   line-height: 1.42857143; /* Normalize line height */
   display: block;
   padding: 3px 20px;
@@ -59,7 +59,7 @@
   }
 }
 
-.vs__dropdown-option--highlight {
+.vs__dropdown-option--highlight, .multiselect__option--highlight {
   color: var(--dropdown-hover-text);
   background: var(--dropdown-hover-bg);
 }

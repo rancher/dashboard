@@ -7,11 +7,11 @@ import ShellInput from '@/components/form/ShellInput';
 import KeyValue from '@/components/form/KeyValue';
 
 const KIND_LABELS = {
-  'none':  'None',
-  'http':  'HTTP request returns a successful status (200-399)',
-  'https': 'HTTPS request returns a successful status',
-  'tcp':   'TCP connection opens successfully',
-  'exec':  'Command run inside the container exits with status 0',
+  none:  'None',
+  http:  'HTTP request returns a successful status (200-399)',
+  https: 'HTTPS request returns a successful status',
+  tcp:   'TCP connection opens successfully',
+  exec:  'Command run inside the container exits with status 0',
 };
 
 export default {

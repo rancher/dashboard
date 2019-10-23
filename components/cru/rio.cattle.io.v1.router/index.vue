@@ -95,7 +95,3 @@ export default {
     <Route v-for="(route, i) in routes" :key="i" />
   </div>
 </template>
-
-<style scoped lang='scss'>
-
-</style>

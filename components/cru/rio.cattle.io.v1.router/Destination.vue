@@ -13,6 +13,10 @@ import LabeledInput from '@/components/form/LabeledInput';
 export default {
   components: { LabeledInput },
   props:      {
+    spec: {
+      type:     Object,
+      required: true
+    },
     isWeighted: {
       type:    Boolean,
       default: false
@@ -21,19 +25,20 @@ export default {
   data() {
     return {
       services:    [],
-      destination: '',
       namespaces:  [],
-      namespace:   '',
-      port:        '',
-      weight:      ''
+      namespace:   this.spec.namespace || '',
+      port:        this.spec.port,
+      service:     this.spec.service || {},
+      weight:     0,
     };
   },
   computed: {
     formatted() {
       return {
-        service:   this.destination,
-        namespace: this.namespace,
-        port:      this.port
+        service:   this.service.metadata ? this.service.metadata.name : '',
+        namespace: this.namespace.id,
+        port:      this.port,
+        weight:    this.weight
       };
     }
   },
@@ -45,7 +50,10 @@ export default {
       const services = await this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE });
       const vm = this;
 
-      this.services = JSON.parse(JSON.stringify(services.filter(row => row.metadata.namespace === vm.namespace.id )));
+      const servicesinNS = JSON.parse(JSON.stringify(services.filter(row => row.metadata.namespace === vm.namespace.id )));
+
+      this.services = servicesinNS;
+      this.service = '';
     },
     async getNamespaces() {
       const namespaces = await this.$store.dispatch('cluster/findAll', { type: NAMESPACE });
@@ -53,11 +61,13 @@ export default {
       this.namespaces = JSON.parse(JSON.stringify(namespaces));
     },
     setService(service) {
-      this.destination = service;
+      this.service = service;
+      this.updateDestination();
     },
     setNamespace(namespace) {
       this.namespace = namespace;
       this.getServices();
+      this.updateDestination();
     },
     updateDestination() {
       this.$emit('input', this.formatted );
@@ -68,6 +78,7 @@ export default {
 
 <template>
   <div class="destination" @input="updateDestination">
+    <span> destination</span>
     <div class="service inputs">
       <div>
         <v-select
@@ -79,22 +90,23 @@ export default {
           @input="setNamespace"
         ></v-select>
       </div>
+      <div v-if="!services.length && namespace">
+        no services found in this namespace
+      </div>
       <div v-if="services.length>1">
         <v-select
           :searchable="false"
           :clearable="false"
-          :value="destination"
+          :value="service"
           label="id"
           :options="services"
           @input="setService"
         ></v-select>
       </div>
-      <div v-if="destination">
+      <div v-if="service.metadata">
         <LabeledInput v-model="port" type="text" label="port" />
+        <LabeledInput v-if="isWeighted" v-model="weight" type="text" label="weight" />
       </div>
-    </div>
-    <div v-if="isWeighted" class="weight input">
-      <LabeledInput v-model="weight" type="text" label="weight" />
     </div>
   </div>
 </template>
@@ -102,6 +114,7 @@ export default {
 <style scoped lang='scss'>
     .destination {
         display: flex;
+        flex-direction: column;
         .service {
             flex-basis: 100%;
         }
