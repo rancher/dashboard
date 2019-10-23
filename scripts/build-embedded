@@ -7,7 +7,9 @@ if [[ -n "${BUILD_DEBUG}" ]]; then
     env
 fi
 
+echo "CWD Before: ${CWD}"
 cd $(dirname $0)/..
+echo "CWD After: ${CWD}"
 
 source scripts/version
 echo "BRANCH: ${COMMIT_BRANCH:-<none>}"
