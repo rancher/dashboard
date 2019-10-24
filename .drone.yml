@@ -59,6 +59,11 @@ steps:
   commands:
   - ./scripts/build-hosted
   when:
+    ref:
+      include:
+      - "refs/heads/master"
+      - "refs/heads/release/v*"
+      - "refs/tags/*"
     event:
     - push
     - tag
@@ -79,6 +84,7 @@ steps:
       include:
       - "refs/heads/master"
       - "refs/heads/release/v*"
+      - "refs/tags/*"
     event:
     - push
     - tag
@@ -101,6 +107,7 @@ steps:
       include:
       - "refs/heads/master"
       - "refs/heads/release/v*"
+      - "refs/tags/*"
     event:
     - push
     - tag
@@ -113,7 +120,7 @@ steps:
     - allUsers:READER
     cache_control: "no-cache,must-revalidate"
     source: dist/${DRONE_BRANCH##release\/}.tar.gz
-    target: releases.rancher.com/dashboard/
+    target: releases.rancher.com/dashboard/${DRONE_BRANCH##release\/}.tar.gz
     token:
       from_secret: google_auth_key
   when:
@@ -121,6 +128,7 @@ steps:
       include:
       - "refs/heads/master"
       - "refs/heads/release/v*"
+      - "refs/tags/*"
     event:
     - push
     - tag
