@@ -2,6 +2,12 @@
 kind: pipeline
 name: test
 
+trigger:
+  event:
+  - push
+  - pull_request
+  - tag
+
 platform:
   os: linux
   arch: amd64
@@ -12,15 +18,20 @@ steps:
   image: node:10
   commands:
   - scripts/ci
-  when:
-    event:
-    - push
-    - pull_request
-    - tag
 
 ---
 kind: pipeline
-name: docker
+name: docker-branch
+
+depends_on:
+- test
+
+trigger:
+  ref:
+  - "refs/heads/master"
+  - "refs/heads/*-dev"
+  event:
+  - push
 
 platform:
   os: linux
@@ -31,25 +42,54 @@ steps:
   image: plugins/docker
   settings:
     dockerfile: Dockerfile
-    tag: ${DRONE_TAG=$DRONE_BRANCH}
+    tag: ${DRONE_BRANCH}
     repo: rancherlabs/dashboard
     username:
       from_secret: docker_username
     password:
       from_secret: docker_password
-  when:
-    ref:
-      include:
-      - "refs/heads/master"
-      - "refs/heads/*-dev"
-      - "refs/tags/v*"
-    event:
-    - push
-    - tag
 
 ---
 kind: pipeline
-name: hosted
+name: docker-tag
+
+depends_on:
+- test
+
+trigger:
+  event:
+  - tag
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: docker-image
+  image: plugins/docker
+  settings:
+    dockerfile: Dockerfile
+    tag: ${DRONE_TAG}
+    repo: rancherlabs/dashboard
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+
+---
+kind: pipeline
+name: hosted-branch
+
+depends_on:
+- test
+
+trigger:
+  ref:
+  - "refs/heads/master"
+  - "refs/heads/*-dev"
+  event:
+  - push
+
 platform:
   os: linux
   arch: amd64
@@ -60,15 +100,6 @@ steps:
   image: node:10
   commands:
   - ./scripts/build-hosted
-  when:
-    ref:
-      include:
-      - "refs/heads/master"
-      - "refs/heads/*-dev"
-      - "refs/tags/*"
-    event:
-    - push
-    - tag
 
 - name: upload
   pull: default
@@ -77,23 +108,59 @@ steps:
     acl:
     - allUsers:READER
     cache_control: "no-cache,must-revalidate"
-    source: dist/${DRONE_TAG=$DRONE_BRANCH}
-    target: releases.rancher.com/dashboard/${DRONE_TAG=$DRONE_BRANCH}
+    source: dist/${DRONE_BRANCH}
+    target: releases.rancher.com/dashboard/${DRONE_BRANCH}
     token:
       from_secret: google_auth_key
-  when:
-    ref:
-      include:
-      - "refs/heads/master"
-      - "refs/heads/*-dev"
-      - "refs/tags/*"
-    event:
-    - push
-    - tag
 
 ---
 kind: pipeline
-name: embedded
+name: hosted-tag
+
+depends_on:
+- test
+
+trigger:
+  event:
+  - tag
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build
+  pull: default
+  image: node:10
+  commands:
+  - ./scripts/build-hosted
+
+- name: upload
+  pull: default
+  image: plugins/gcs
+  settings:
+    acl:
+    - allUsers:READER
+    cache_control: "no-cache,must-revalidate"
+    source: dist/${DRONE_TAG}
+    target: releases.rancher.com/dashboard/${DRONE_TAG}
+    token:
+      from_secret: google_auth_key
+
+---
+kind: pipeline
+name: embedded-branch
+
+depends_on:
+- test
+
+trigger:
+  ref:
+  - "refs/heads/master"
+  - "refs/heads/*-dev"
+  event:
+  - push
+
 platform:
   os: linux
   arch: amd64
@@ -104,15 +171,6 @@ steps:
   image: node:10
   commands:
   - ./scripts/build-embedded
-  when:
-    ref:
-      include:
-      - "refs/heads/master"
-      - "refs/heads/*-dev"
-      - "refs/tags/*"
-    event:
-    - push
-    - tag
 
 - name: upload
   pull: default
@@ -121,16 +179,41 @@ steps:
     acl:
     - allUsers:READER
     cache_control: "no-cache,must-revalidate"
-    source: dist/${DRONE_TAG=$DRONE_BRANCH}.tar.gz
-    target: releases.rancher.com/dashboard/${DRONE_TAG=$DRONE_BRANCH}.tar.gz
+    source: dist/${DRONE_BRANCH}.tar.gz
+    target: releases.rancher.com/dashboard/${DRONE_BRANCH}.tar.gz
     token:
       from_secret: google_auth_key
-  when:
-    ref:
-      include:
-      - "refs/heads/master"
-      - "refs/heads/*-dev"
-      - "refs/tags/*"
-    event:
-    - push
-    - tag
+
+---
+kind: pipeline
+name: embedded-tag
+
+depends_on:
+- test
+
+trigger:
+  event:
+  - tag
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build
+  pull: default
+  image: node:10
+  commands:
+  - ./scripts/build-embedded
+
+- name: upload
+  pull: default
+  image: plugins/gcs
+  settings:
+    acl:
+    - allUsers:READER
+    cache_control: "no-cache,must-revalidate"
+    source: dist/${DRONE_TAG}.tar.gz
+    target: releases.rancher.com/dashboard/${DRONE_TAG}.tar.gz
+    token:
+      from_secret: google_auth_key
