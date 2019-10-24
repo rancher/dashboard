@@ -31,7 +31,7 @@ steps:
   image: plugins/docker
   settings:
     dockerfile: Dockerfile
-    tag: ${DRONE_TAG=DRONE_BRANCH##release\/}
+    tag: ${DRONE_TAG=DRONE_BRANCH}
     repo: rancherlabs/dashboard
     username:
       from_secret: docker_username
@@ -41,7 +41,7 @@ steps:
     ref:
       include:
       - "refs/heads/master"
-      - "refs/heads/release/v*"
+      - "refs/heads/*-dev"
       - "refs/tags/v*"
     event:
     - push
@@ -64,7 +64,7 @@ steps:
     ref:
       include:
       - "refs/heads/master"
-      - "refs/heads/release/v*"
+      - "refs/heads/*-dev"
       - "refs/tags/*"
     event:
     - push
@@ -77,15 +77,15 @@ steps:
     acl:
     - allUsers:READER
     cache_control: "no-cache,must-revalidate"
-    source: dist/${DRONE_TAG=DRONE_BRANCH##release\/}
-    target: releases.rancher.com/dashboard/${DRONE_TAG=DRONE_BRANCH##release\/}
+    source: dist/${DRONE_TAG=DRONE_BRANCH}
+    target: releases.rancher.com/dashboard/${DRONE_TAG=DRONE_BRANCH}
     token:
       from_secret: google_auth_key
   when:
     ref:
       include:
       - "refs/heads/master"
-      - "refs/heads/release/v*"
+      - "refs/heads/*-dev"
       - "refs/tags/*"
     event:
     - push
@@ -108,7 +108,7 @@ steps:
     ref:
       include:
       - "refs/heads/master"
-      - "refs/heads/release/v*"
+      - "refs/heads/*-dev"
       - "refs/tags/*"
     event:
     - push
@@ -121,15 +121,15 @@ steps:
     acl:
     - allUsers:READER
     cache_control: "no-cache,must-revalidate"
-    source: dist/${DRONE_TAG=DRONE_BRANCH##release\/}.tar.gz
-    target: releases.rancher.com/dashboard/${DRONE_TAG=DRONE_BRANCH##release\/}.tar.gz
+    source: dist/${DRONE_TAG=DRONE_BRANCH}.tar.gz
+    target: releases.rancher.com/dashboard/${DRONE_TAG=DRONE_BRANCH}.tar.gz
     token:
       from_secret: google_auth_key
   when:
     ref:
       include:
       - "refs/heads/master"
-      - "refs/heads/release/v*"
+      - "refs/heads/*-dev"
       - "refs/tags/*"
     event:
     - push
