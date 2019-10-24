@@ -27,3 +27,5 @@ tar -czf dist/${TARBALL} dist/${DIR}-embedded/
 
 echo "Cleaning up..."
 rm -r dist/${DIR}-embedded
+
+ls -alR
