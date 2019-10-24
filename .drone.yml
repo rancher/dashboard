@@ -20,7 +20,7 @@ steps:
 
 ---
 kind: pipeline
-name: docker
+name: docker-branch
 
 platform:
   os: linux
@@ -31,7 +31,7 @@ steps:
   image: plugins/docker
   settings:
     dockerfile: Dockerfile
-    tag: ${DRONE_TAG=$DRONE_BRANCH}
+    tag: ${DRONE_BRANCH}
     repo: rancherlabs/dashboard
     username:
       from_secret: docker_username
@@ -42,14 +42,38 @@ steps:
       include:
       - "refs/heads/master"
       - "refs/heads/*-dev"
-      - "refs/tags/v*"
     event:
     - push
+
+---
+kind: pipeline
+name: docker-tag
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: docker-image
+  image: plugins/docker
+  settings:
+    dockerfile: Dockerfile
+    tag: ${DRONE_TAG}
+    repo: rancherlabs/dashboard
+    username:
+      from_secret: docker_username
+    password:
+      from_secret: docker_password
+  when:
+    ref:
+      include:
+      - "refs/tags/v*"
+    event:
     - tag
 
 ---
 kind: pipeline
-name: hosted
+name: hosted-branch
 platform:
   os: linux
   arch: amd64
@@ -65,9 +89,46 @@ steps:
       include:
       - "refs/heads/master"
       - "refs/heads/*-dev"
-      - "refs/tags/*"
     event:
     - push
+
+- name: upload
+  pull: default
+  image: plugins/gcs
+  settings:
+    acl:
+    - allUsers:READER
+    cache_control: "no-cache,must-revalidate"
+    source: dist/${DRONE_BRANCH}
+    target: releases.rancher.com/dashboard/${DRONE_BRANCH}
+    token:
+      from_secret: google_auth_key
+  when:
+    ref:
+      include:
+      - "refs/heads/master"
+      - "refs/heads/*-dev"
+    event:
+    - push
+
+---
+kind: pipeline
+name: hosted-tag
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build
+  pull: default
+  image: node:10
+  commands:
+  - ./scripts/build-hosted
+  when:
+    ref:
+      include:
+      - "refs/tags/*"
+    event:
     - tag
 
 - name: upload
@@ -77,23 +138,20 @@ steps:
     acl:
     - allUsers:READER
     cache_control: "no-cache,must-revalidate"
-    source: dist/${DRONE_TAG=$DRONE_BRANCH}
-    target: releases.rancher.com/dashboard/${DRONE_TAG=$DRONE_BRANCH}
+    source: dist/${DRONE_TAG}
+    target: releases.rancher.com/dashboard/${DRONE_TAG}
     token:
       from_secret: google_auth_key
   when:
     ref:
       include:
-      - "refs/heads/master"
-      - "refs/heads/*-dev"
       - "refs/tags/*"
     event:
-    - push
     - tag
 
 ---
 kind: pipeline
-name: embedded
+name: embedded-branch
 platform:
   os: linux
   arch: amd64
@@ -109,9 +167,46 @@ steps:
       include:
       - "refs/heads/master"
       - "refs/heads/*-dev"
-      - "refs/tags/*"
     event:
     - push
+
+- name: upload
+  pull: default
+  image: plugins/gcs
+  settings:
+    acl:
+    - allUsers:READER
+    cache_control: "no-cache,must-revalidate"
+    source: dist/${DRONE_BRANCH}.tar.gz
+    target: releases.rancher.com/dashboard/${DRONE_BRANCH}.tar.gz
+    token:
+      from_secret: google_auth_key
+  when:
+    ref:
+      include:
+      - "refs/heads/master"
+      - "refs/heads/*-dev"
+    event:
+    - push
+
+---
+kind: pipeline
+name: embedded-tag
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build
+  pull: default
+  image: node:10
+  commands:
+  - ./scripts/build-embedded
+  when:
+    ref:
+      include:
+      - "refs/tags/*"
+    event:
     - tag
 
 - name: upload
@@ -121,16 +216,13 @@ steps:
     acl:
     - allUsers:READER
     cache_control: "no-cache,must-revalidate"
-    source: dist/${DRONE_TAG=$DRONE_BRANCH}.tar.gz
-    target: releases.rancher.com/dashboard/${DRONE_TAG=$DRONE_BRANCH}.tar.gz
+    source: dist/${DRONE_TAG}.tar.gz
+    target: releases.rancher.com/dashboard/${DRONE_TAG}.tar.gz
     token:
       from_secret: google_auth_key
   when:
     ref:
       include:
-      - "refs/heads/master"
-      - "refs/heads/*-dev"
       - "refs/tags/*"
     event:
-    - push
     - tag
