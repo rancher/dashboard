@@ -9,7 +9,7 @@ platform:
 steps:
 - name: test
   pull: default
-  image: node:10-alpine
+  image: node:10
   commands:
   - scripts/ci
   when:
@@ -65,7 +65,7 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:10-alpine
+  image: node:10
   commands:
   - ./scripts/build-hosted
   when:
@@ -107,7 +107,7 @@ platform:
 steps:
 - name: build
   pull: default
-  image: node:10-alpine
+  image: node:10
   commands:
   - ./scripts/build-embedded
   when:
