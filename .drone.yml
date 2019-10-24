@@ -9,14 +9,9 @@ platform:
 steps:
 - name: test
   pull: default
-  image: rancher/dapper:v0.4.1
+  image: node:10-alpine
   commands:
-  - dapper ci
-  - dapper test
-  privileged: true
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
+  - scripts/ci
   when:
     event:
     - push
@@ -70,14 +65,9 @@ platform:
 steps:
 - name: build
   pull: default
-  image: rancher/dapper:v0.4.1
+  image: node:10-alpine
   commands:
-  - dapper build-hosted
-  - ls -alR
-  privileged: true
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
+  - ./scripts/build-hosted
   when:
     ref:
       include:
@@ -117,15 +107,9 @@ platform:
 steps:
 - name: build
   pull: default
-  image: rancher/dapper:v0.4.1
+  image: node:10-alpine
   commands:
-  - dapper build-embedded
-  - ls -alR
-  - find / -name "*.tar.gz"
-  privileged: true
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
+  - ./scripts/build-embedded
   when:
     ref:
       include:

@@ -7,13 +7,16 @@ if [[ -n "${BUILD_DEBUG}" ]]; then
     env
 fi
 
-cd $(dirname $0)
-
-echo "Cleaning up..."
-rm -rf node_modules .nuxt
+cd $(dirname $0)/..
 
 echo "Bootstrapping..."
 yarn --pure-lockfile install
+
+echo "Linting..."
+yarn run lint
+
+echo "Testing..."
+yarn run test
 
 echo "Building..."
 yarn run build

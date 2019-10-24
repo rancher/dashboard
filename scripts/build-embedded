@@ -8,17 +8,15 @@ if [[ -n "${BUILD_DEBUG}" ]]; then
     env
 fi
 
-echo "CWD Before: ${CWD}"
 cd $(dirname $0)/..
-echo "CWD After: ${CWD}"
+
+echo "Bootstrapping..."
+yarn --pure-lockfile install
 
 source scripts/version
 echo "BRANCH: ${COMMIT_BRANCH:-<none>}"
 echo "TAG: ${GIT_TAG:-<none>}"
 DIR=${GIT_TAG:-$COMMIT_BRANCH}
-
-echo "Bootstrapping..."
-yarn --pure-lockfile install
 
 echo "Building..."
 OUTPUT_DIR=dist/${DIR}-embedded ROUTER_BASE='/dashboard' yarn run build --spa
