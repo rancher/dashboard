@@ -31,7 +31,7 @@ steps:
   image: plugins/docker
   settings:
     dockerfile: Dockerfile
-    tag: ${DRONE_TAG=DRONE_BRANCH}
+    tag: ${DRONE_TAG=$DRONE_BRANCH}
     repo: rancherlabs/dashboard
     username:
       from_secret: docker_username
@@ -77,8 +77,8 @@ steps:
     acl:
     - allUsers:READER
     cache_control: "no-cache,must-revalidate"
-    source: dist/${DRONE_TAG=DRONE_BRANCH}
-    target: releases.rancher.com/dashboard/${DRONE_TAG=DRONE_BRANCH}
+    source: dist/${DRONE_TAG=$DRONE_BRANCH}
+    target: releases.rancher.com/dashboard/${DRONE_TAG=$DRONE_BRANCH}
     token:
       from_secret: google_auth_key
   when:
@@ -121,8 +121,8 @@ steps:
     acl:
     - allUsers:READER
     cache_control: "no-cache,must-revalidate"
-    source: dist/${DRONE_TAG=DRONE_BRANCH}.tar.gz
-    target: releases.rancher.com/dashboard/${DRONE_TAG=DRONE_BRANCH}.tar.gz
+    source: dist/${DRONE_TAG=$DRONE_BRANCH}.tar.gz
+    target: releases.rancher.com/dashboard/${DRONE_TAG=$DRONE_BRANCH}.tar.gz
     token:
       from_secret: google_auth_key
   when:
