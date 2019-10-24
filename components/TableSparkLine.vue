@@ -31,14 +31,18 @@ export default {
 
   computed: {
     graphWidth() {
-      if (!this.isMounted) return 0;
+      if (!this.isMounted) {
+        return 0;
+      }
 
       const divWidth = d3.select('.graphContainer').node().getBoundingClientRect().width;
 
       return Math.max(this.width, divWidth);
     },
     graphHeight() {
-      if (!this.isMounted) return 0;
+      if (!this.isMounted) {
+        return 0;
+      }
 
       const divHeight = d3.select('.graphContainer').node().getBoundingClientRect().height;
 
