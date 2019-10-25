@@ -1,5 +1,6 @@
 /*
- * NOTE: This plugin is dynamically loaded in CodeMirror.vue, not as a real plugin
+ * NOTE: This isn't actually a real plugin anymore, it's is dynamically loaded in components/CodeMirror.vue
+ * so that it doesn't all get loaded put into vendor.js
  */
 
 import Vue from 'vue';

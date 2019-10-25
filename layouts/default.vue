@@ -94,7 +94,7 @@ export default {
 
   mounted() {
     if ( this.$store.state.auth.loggedIn ) {
-      const url = `${ window.location.origin.replace(/^http(s)?:/, 'ws$1:') }/v1/subscribe`;
+      const url = `${ window.location.origin.replace(/^http(s)?:/, 'ws$1:') }/k8s/clusters/local/v1/subscribe`;
 
       this.$connect(url);
     }

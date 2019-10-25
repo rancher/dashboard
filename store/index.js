@@ -3,8 +3,7 @@ import { COUNT, NAMESPACE } from '~/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
 
 export const plugins = [
-  // Norman({ namespace: 'cloud', baseUrl: '/v1' }),
-  Norman({ namespace: 'cluster', baseUrl: '/v1' }), // @TODO cluster-specific URL
+  Norman({ namespace: 'cluster', baseUrl: '/k8s/clusters/local/v1' }), // @TODO cluster-specific URL
   Norman({ namespace: 'rancher', baseUrl: '/v3' })
 ];
 
@@ -78,16 +77,6 @@ export const actions = {
     commit('updateCluster', val);
   },
 
-  nuxtClientInit(ctx) {
-    /*
-    const state = ctx.state;
-
-    if ( state && state.auth && state.auth.loggedIn ) {
-      const url = `${ window.location.origin.replace(/^http(s)?:/, 'ws$1:') }/v1/subscribe`;
-
-      debugger;
-      window.$nuxt.$connect(url);
-    }
-    */
-  },
+  nuxtClientInit() {
+  }
 };

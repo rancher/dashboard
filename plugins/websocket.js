@@ -3,7 +3,7 @@ import VueNativeSock from 'vue-native-websocket';
 
 export default ({ store }) => {
   const url = window.location.origin.replace(/^http(s)?:/, 'ws$1:');
-  const baseUrl = '/v1';
+  const baseUrl = '/k8s/clusters/local/v1';
   const namespace = 'cluster';
 
   Vue.use(VueNativeSock, `${ url }${ baseUrl }/subscribe`, {
