@@ -1,11 +1,8 @@
 <script>
-import CreateEditView from '@/mixins/create-edit-view';
 import { FRIENDLY } from '~/pages/rio/_resource';
 
 export default {
   name: 'RioResourceCreate',
-
-  mixins: { CreateEditView },
 
   computed: {
     doneRoute() {
@@ -56,20 +53,14 @@ export default {
       data:       {},
     };
 
-    let model;
-
-    if ( mapping.newModel ) {
-      model = mapping.newModel(ctx, data);
-    } else {
-      model = await ctx.store.dispatch('cluster/create', data);
-    }
+    const model = await ctx.store.dispatch('cluster/create', data);
 
     return {
       resource,
       type,
       model,
     };
-  }
+  },
 };
 </script>
 

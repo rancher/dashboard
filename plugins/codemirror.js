@@ -32,6 +32,7 @@ import 'codemirror/addon/hint/show-hint.js';
 import 'codemirror/addon/hint/anyword-hint.js';
 
 Vue.use(VueCodemirror);
+export default VueCodemirror;
 
 function isLineComment(cm, lineNo) {
   return /\bcomment\b/.test(cm.getTokenTypeAt(CodeMirror.Pos(lineNo, 0)));
