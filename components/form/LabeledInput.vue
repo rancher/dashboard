@@ -42,8 +42,11 @@ export default {
     </label>
     <slot name="prefix" />
     <slot name="field">
-      <div v-if="isView">
+      <div v-if="isView && value">
         {{ value }}
+      </div>
+      <div v-else-if="isView" class="text-muted">
+        &mdash;
       </div>
       <TextAreaAutoGrow
         v-else-if="type === 'multiline'"

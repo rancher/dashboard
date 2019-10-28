@@ -63,7 +63,7 @@ export default {
 
   methods: {
     async goToStepTwo(buttonCb) {
-      await this.cluster.save({ url: `/v1/cloud.rio.rancher.io.v1.clusters/${ this.cluster.metadata.namespace }` });
+      await this.cluster.save({ url: `/k8s/clusters/local/v1/cloud.rio.rancher.io.v1.clusters/${ this.cluster.metadata.namespace }` });
       this.step = 2;
       buttonCb(true);
     }

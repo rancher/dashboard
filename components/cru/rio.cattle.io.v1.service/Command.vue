@@ -9,7 +9,7 @@ export default {
     LabeledInput, ShellInput, UnitInput, KeyValue
   },
 
-  props:      {
+  props: {
     spec: {
       type:     Object,
       required: true,
@@ -87,6 +87,7 @@ export default {
       <div class="col span-6">
         <UnitInput
           v-model="spec.memory"
+          :mode="mode"
           :increment="1024"
           :input-exponent="2"
           label="Memory Reservation"
@@ -96,6 +97,7 @@ export default {
       <div class="col span-6">
         <UnitInput
           v-model="spec.cpu"
+          :mode="mode"
           label="CPU Reservation"
           :increment="1000"
           :input-exponent="-1"
@@ -109,6 +111,7 @@ export default {
       <div class="col span-9">
         <ShellInput
           v-model="spec.entrypoint"
+          :mode="mode"
           label="Entrypoint"
         />
       </div>
@@ -124,6 +127,7 @@ export default {
       <div class="col span-12">
         <ShellInput
           v-model="spec.command"
+          :mode="mode"
           label="Command"
         />
       </div>
@@ -133,18 +137,21 @@ export default {
       <div class="col span-4">
         <LabeledInput
           v-model="spec.workingDir"
+          :mode="mode"
           label="Working Directory"
         />
       </div>
       <div class="col span-4">
         <LabeledInput
           v-model="spec.runAsUser"
+          :mode="mode"
           label="Run as User number"
         />
       </div>
       <div class="col span-4">
         <LabeledInput
           v-model="spec.runAsGroup"
+          :mode="mode"
           label="Run as Group number"
         />
       </div>

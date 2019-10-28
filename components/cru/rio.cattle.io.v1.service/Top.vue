@@ -82,6 +82,7 @@ export default {
         <LabeledInput
           key="scale"
           v-model="spec.scale"
+          :mode="mode"
           type="number"
           min="0"
           label="Scale"
@@ -149,39 +150,6 @@ export default {
         </div>
       </div>
     </div>
-
-    <!-- <div v-if="buildImage">
-      <div class="row">
-        <div class="col span-4">
-          <LabeledInput v-model="spec.build.repo" :mode="mode" label="Repo URL" :required="true" />
-        </div>
-        <div class="col span-4">
-          <LabeledInput v-model="spec.build.branch" :mode="mode" label="Branch" />
-        </div>
-        <div class="col span-4">
-          <LabeledInput v-model="spec.build.dockerFile" :mode="mode" label="Dockerfile" />
-        </div>
-      </div>
-      <div class="row">
-        <label type="checkbox"><input v-model="spec.build.stageOnly" type="checkbox"> Stage only</label>
-        <label type="checkbox"><input v-model="spec.build.enablePr" type="checkbox"> Create a new service for each Pull Request</label>
-      </div>
-    </div>
-    <div v-else>
-      <div class="row">
-        <div class="col span-6">
-          <LabeledInput v-model="spec.image" :mode="mode" label="Image" :required="true" />
-        </div>
-        <div class="col span-6">
-          <LabeledSelect
-            v-model="spec.imagePullPolicy"
-            :mode="mode"
-            :options="imagePullPolicyChoices"
-            label="Image Pull Policy"
-          />
-        </div>
-      </div>
-    </div> -->
 
     <Ports
       :spec="spec"

@@ -218,12 +218,20 @@ export function mapGroup(obj) {
     return 'core';
   }
 
-  if ( group.match(/^api.*.k8s.io/) ) {
+  if ( group.match(/^api.*\.k8s\.io/) ) {
     return 'api';
   }
 
   if ( group === 'cloud.rio.rancher.io' ) {
     return 'cloud';
+  }
+
+  if ( group.match(/^(.+\.)?cert-manager.io/) || group === 'certmanager.k8s.io' ) {
+    return 'cert-manager';
+  }
+
+  if ( group.match(/gateway.solo.io(.v\d+)?$/) || group === 'gloo.solo.io' ) {
+    return 'gloo';
   }
 
   if ( group === 'rio.cattle.io' || group.endsWith('.rio.cattle.io') ) {
@@ -255,8 +263,10 @@ function groupLabel(group) {
     return 'API';
   case 'rbac.authorization.k8s.io':
     return 'RBAC';
-  case 'certmanager.k8s.io':
+  case 'cert-manager':
     return 'Cert Manager';
+  case 'gloo':
+    return 'Gloo';
   case 'admissionregistration.k8s.io':
     return 'Admission Registration';
   }

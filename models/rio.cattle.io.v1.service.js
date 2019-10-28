@@ -178,6 +178,26 @@ export default {
     };
   },
 
+  async pauseOrResume(pause = true) {
+    try {
+      await this.patch({
+        op:    'replace',
+        path:  '/spec/rollout/pause',
+        value: pause
+      });
+    } catch (err) {
+      this.$dispatch('growl/fromError', { title: 'Error updating pause', err }, { root: true });
+    }
+  },
+
+  pause() {
+    return this.pauseOrResume(true);
+  },
+
+  resume() {
+    return this.pauseOrResume(false);
+  },
+
   availableActions() {
     const links = this.links || {};
     const out = this._availableActions;
@@ -187,6 +207,26 @@ export default {
       label:   'Add a Sidecar',
       icon:    'icon icon-circle-plus',
       enabled:  !!links.update,
+    });
+
+    let isPaused = false;
+
+    if ( this.spec.rollout && this.spec.rollout.pause ) {
+      isPaused = true;
+    }
+
+    insertAt(out, 1, {
+      action:  'pause',
+      label:   'Pause Rollout',
+      icon:    'icon icon-pause',
+      enabled:  !!links.update && !isPaused,
+    });
+
+    insertAt(out, 1, {
+      action:  'resume',
+      label:   'Resume Rollout',
+      icon:    'icon icon-circle-play',
+      enabled:  !!links.update && isPaused,
     });
 
     return out;

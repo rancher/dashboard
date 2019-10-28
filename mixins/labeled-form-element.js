@@ -32,7 +32,7 @@ export default {
 
   data() {
     return {
-      raised:  !!`${ this.value }`,
+      raised:  this.mode === _VIEW || !!`${ this.value }`,
       focused: false
     };
   },

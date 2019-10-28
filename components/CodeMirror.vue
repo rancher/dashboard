@@ -27,6 +27,10 @@ export default {
     }
   },
 
+  data() {
+    return { loaded: false };
+  },
+
   computed: {
     codemirror() {
       return this.$refs.cm.codemirror;
@@ -59,7 +63,9 @@ export default {
   },
 
   mounted() {
-    return import('@/plugins/codemirror');
+    import('@/plugins/codemirror').then(() => {
+      this.loaded = true;
+    });
   },
 
   methods: {
@@ -93,7 +99,7 @@ export default {
         return;
       }
 
-      const desired = $(window).height() - offset.top - this.footerSpace - 20;
+      const desired = $(window).innerHeight() - offset.top - this.footerSpace - 20;
 
       container.css('height', `${ Math.max(this.minHeight, desired) }px`);
     },
@@ -102,8 +108,8 @@ export default {
 </script>
 
 <template>
-  <no-ssr v-if="autoResize" placeholder=" Loading...">
-    <div>
+  <client-only v-if="autoResize" placeholder=" Loading...">
+    <div v-if="loaded">
       <resize-observer @notify="fit" />
       <codemirror
         ref="cm"
@@ -114,11 +120,14 @@ export default {
         @changes="onChanges"
       />
     </div>
-  </no-ssr>
+    <div v-else>
+      Loading...
+    </div>
+  </client-only>
 </template>
 
 <style lang="scss">
   .CodeMirror {
-    height: 100%;
+    height: 100% !important;
   }
 </style>
