@@ -6,12 +6,24 @@ import LabeledInput from '@/components/form/LabeledInput';
 import ShellInput from '@/components/form/ShellInput';
 import KeyValue from '@/components/form/KeyValue';
 
+const KIND_LABELS = {
+  'none':  'None',
+  'http':  'HTTP request returns a successful status (200-399)',
+  'https': 'HTTPS request returns a successful status',
+  'tcp':   'TCP connection opens successfully',
+  'exec':  'Command run inside the container exits with status 0',
+};
+
 export default {
   components: {
     LabeledInput, UnitInput, ShellInput, KeyValue,
   },
 
   props: {
+    value: {
+      type:    [Object, null],
+      default: null,
+    },
     mode: {
       type:    String,
       default: _EDIT,
@@ -83,6 +95,16 @@ export default {
 
     isNone() {
       return this.kind === 'none';
+    },
+
+    kindLabels() {
+      return KIND_LABELS;
+    },
+
+    kindChoices() {
+      return Object.keys(KIND_LABELS).map((k) => {
+        return { label: KIND_LABELS[k], value: k };
+      });
     }
   },
 
@@ -137,35 +159,16 @@ export default {
       </h4>
     </div>
 
-    <div>
-      <label class="radio">
-        <input v-model="kind" type="radio" value="none" />
-        None
-      </label>
+    <div v-if="mode === 'view'">
+      {{ kindLabels[kind] }}
     </div>
-    <div>
-      <label class="radio">
-        <input v-model="kind" type="radio" value="http" />
-        HTTP request returns a successful status (200-399)
-      </label>
-    </div>
-    <div>
-      <label class="radio">
-        <input v-model="kind" type="radio" value="https" />
-        HTTPS request returns a successful status
-      </label>
-    </div>
-    <div>
-      <label class="radio">
-        <input v-model="kind" type="radio" value="tcp" />
-        TCP connection opens successfully
-      </label>
-    </div>
-    <div>
-      <label class="radio">
-        <input v-model="kind" type="radio" value="exec" />
-        Command run inside the container exits with status 0
-      </label>
+    <div v-else>
+      <div v-for="opt in kindChoices" :key="opt.value">
+        <label class="radio">
+          <input v-model="kind" type="radio" :value="value" />
+          {{ label }}
+        </label>
+      </div>
     </div>
 
     <hr />

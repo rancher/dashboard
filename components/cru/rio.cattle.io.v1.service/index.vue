@@ -3,7 +3,7 @@ import Top from './Top';
 import Command from './Command';
 import HealthCheck from './HealthCheck';
 import Networking from './Networking';
-import Scheduling from './Scheduling';
+import Labels from './Labels';
 import Security from './Security';
 import Upgrading from './Upgrading';
 import Volumes from './Volumes';
@@ -29,7 +29,7 @@ export default {
     Command,
     HealthCheck,
     Networking,
-    Scheduling,
+    Labels,
     Security,
     Upgrading,
     Volumes,
@@ -196,16 +196,16 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
         <Tab name="healthcheck" label="Health Check">
           <HealthCheck :spec="spec" :mode="mode" />
         </Tab>
-        <Tab name="scheduling" label="Scheduling">
-          <Scheduling :spec="spec" :mode="mode" />
+        <Tab v-if="!isSidecar" name="labels" label="Labels">
+          <Labels :spec="rootSpec" :mode="mode" />
         </Tab>
         <Tab name="security" label="Security">
           <Security :spec="spec" :mode="mode" />
         </Tab>
         <Tab name="upgrading" label="Upgrading">
-          <Upgrading :spec="spec" :mode="mode" />
+          <Upgrading :spec="rootSpec" :mode="mode" />
         </Tab>
-        <Tab name="volumes" label="Volumes">
+        <Tab v-if="false" name="volumes" label="Volumes">
           <Volumes :spec="spec" :mode="mode" />
         </Tab>
       </Tabbed>
