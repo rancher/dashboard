@@ -109,7 +109,7 @@ export default {
       top: 1px;
       float: left;
       border: 1px solid var(--tabbed-border);
-      margin-right: 1px;
+      margin-right: 8px;
 
       A {
         display: block;
@@ -128,7 +128,7 @@ export default {
   }
 
   .container {
-    padding: 10px;
+    padding: 40px;
     border: 1px solid var(--tabbed-border);
     background-color: var(--tabbed-container-bg);
   }

@@ -133,7 +133,7 @@ export default {
     <div class="title clearfix">
       <h4>
         {{ label }}
-        <i v-if="description" v-tooltip="description" class="icon icon-info" style="font-size: 16px" />
+        <i v-if="description" v-tooltip="description" class="icon icon-info" style="font-size: 12px" />
       </h4>
     </div>
 

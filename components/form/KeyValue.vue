@@ -311,7 +311,7 @@ export default {
 <template>
   <div>
     <div class="title clearfix">
-      <h4>{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 16px" /></h4>
+      <h4>{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" /></h4>
     </div>
 
     <table v-if="rows.length" class="fixed">
@@ -441,7 +441,7 @@ export default {
 
   TH {
     text-align: left;
-    font-size: 16px;
+    font-size: 10px;
     font-weight: normal;
     color: var(--input-label);
   }

@@ -15,8 +15,8 @@ TEXTAREA,
   display: block;
   box-sizing: border-box;
   width: 100%;
-  padding: 8.5px;
-  font-size: 16px;
+  padding: 8px;
+  font-size: 12px;
 
   color: var(--input-text);
 
@@ -59,7 +59,7 @@ FORM {
 
     &.radio, &.checkbox {
       cursor: pointer;
-      margin: 0;
+      margin: 5px 0;
 
       &.standalone {
         margin: 10px 0;

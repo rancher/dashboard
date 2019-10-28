@@ -41,7 +41,7 @@
 
   INPUT, SELECT {
     position: relative;
-    font-size: 16px;
+    font-size: 12px;
     display: block;
     width: 100%;
     z-index: 2;
@@ -63,12 +63,12 @@
     background-color: transparent;
     outline: 0;
     box-shadow: none;
-    padding: 16px 0 0 0;
+    padding: 12px 0 0 0;
   }
 
   &.view > DIV {
-    font-size: 16px;
-    padding: 16px 0 0 0;
+    font-size: 12px;
+    padding: 12px 0 0 0;
   }
 
   .addon,
@@ -78,15 +78,16 @@
     width: 1%;
     white-space: nowrap;
     vertical-align: middle;
+    color: #{$secondary};
   }
 
   .addon {
     padding: 6px 12px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: normal;
     line-height: 1;
     text-align: center;
-    background-color: var(--input-addon-bg);
+    border-left: solid thin #{$secondary};
   }
 
   /*!
