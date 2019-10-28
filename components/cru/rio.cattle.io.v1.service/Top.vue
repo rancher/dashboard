@@ -82,6 +82,7 @@ export default {
         <LabeledInput
           key="scale"
           v-model="spec.scale"
+          :mode="mode"
           type="number"
           min="0"
           label="Scale"
@@ -98,7 +99,7 @@ export default {
       </template>
     </NameNsDescription>
 
-    <div class="row">
+    <div v-if="mode !== 'view'" class="row">
       <div class="col span-12">
         <div>
           <label class="radio">

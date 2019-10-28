@@ -1,3 +1,4 @@
+import { xor } from 'lodash';
 import { get } from '@/utils/object';
 
 export function removeObject(ary, obj) {
@@ -15,52 +16,42 @@ export function removeObjects(ary, objs) {
   let indexes = [];
 
   for ( i = 0 ; i < objs.length ; i++ ) {
-    const idx = ary.indexOf(objs[i]);
+    let idx = ary.indexOf(objs[i]);
 
-    if ( idx !== -1 ) {
+    // Find multiple copies of the same value
+    while ( idx !== -1 ) {
       indexes.push(idx);
+      idx = ary.indexOf(objs[i], idx + 1);
     }
   }
 
   if ( !indexes.length ) {
+    // That was easy...
     return ary;
   }
 
-  // Indexes from highest to lowest
-  indexes = indexes.sort((a, b) => b - a);
+  indexes = indexes.sort((a, b) => a - b);
 
   const ranges = [];
-  let first = indexes.shift();
-  let last = first;
-  let cur;
+  let first, last;
 
+  // Group all the indexes into contiguous ranges
   while ( indexes.length ) {
-    cur = indexes.shift();
+    first = indexes.shift();
+    last = first;
 
-    if ( last + 1 === cur ) {
-      // Part of the same contiguous chunk
-      last = cur;
-
-      if ( indexes.length ) {
-        // Keep looking for more if there's more items
-        continue;
-      }
+    while ( indexes.length && indexes[0] === last + 1 ) {
+      last = indexes.shift();
     }
 
-    // Not part of the same chunk
     ranges.push({ start: first, end: last });
-    first = cur;
-    last = null;
   }
 
-  for ( i = 0 ; i < ranges.length ; i++ ) {
+  // Remove the items by range
+  for ( i = ranges.length - 1 ; i >= 0 ; i--) {
     const { start, end } = ranges[i];
 
     ary.splice(start, end - start + 1);
-  }
-
-  for ( let i = objs.length - 1 ; i >= 0 ; i-- ) {
-    removeObject(ary, objs[i]);
   }
 
   return ary;
@@ -145,4 +136,8 @@ export function filterBy(ary, keyOrObj, val) {
 
 export function findBy(ary, keyOrObj, val) {
   return findOrFilterBy('find', ary, keyOrObj, val);
+}
+
+export function sameContents(aryA, aryB) {
+  return xor(aryA, aryB).length === 0;
 }

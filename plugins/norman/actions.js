@@ -53,7 +53,7 @@ export default {
 
   async loadSchemas(ctx) {
     const { getters, dispatch, commit } = ctx;
-    const res = await dispatch('findAll', { type: SCHEMA, opt: { url: '/v1/schemas', load: false } });
+    const res = await dispatch('findAll', { type: SCHEMA, opt: { url: '/k8s/clusters/local/v1/schemas', load: false } });
 
     res.forEach((schema) => {
       schema._id = normalizeType(schema.id);

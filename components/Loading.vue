@@ -1,3 +1,19 @@
+<script>
+export default {
+  data: () => ({ loading: false }),
+
+  methods: {
+    start() {
+      this.loading = true;
+    },
+
+    finish() {
+      this.loading = false;
+    }
+  }
+};
+</script>
+
 <template>
   <div v-if="loading">
     <div class="overlay"></div>
@@ -31,19 +47,3 @@
     z-index: z-index('loadingContent');
   }
 </style>
-
-<script>
-export default {
-  data: () => ({ loading: false }),
-
-  methods: {
-    start() {
-      this.loading = true;
-    },
-
-    finish() {
-      this.loading = false;
-    }
-  }
-};
-</script>
