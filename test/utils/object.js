@@ -6,8 +6,8 @@ const obj = { foo: 'bar', baz: { bat: 42 } };
 test('get', (t) => {
   t.deepEqual( get(obj, 'foo'), obj.foo, 'Gets single keys');
   t.deepEqual( get(obj, 'baz.bat'), obj.baz.bat, 'Gets nested keys');
-  t.deepEqual( get(obj, 'baz.nonsense'), null, 'Returns null for a leaf ');
-  t.deepEqual( get(obj, 'non.sense'), null, 'Returns null for a parent ');
+  t.deepEqual( get(obj, 'baz.nonsense'), undefined, 'Returns undefined for nonexistent leaf ');
+  t.deepEqual( get(obj, 'non.sense'), undefined, 'Returns undefined for nonexistent parent ');
 });
 
 test('getter', (t) => {
