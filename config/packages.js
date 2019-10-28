@@ -74,7 +74,7 @@ export function rioPackage($router, counts, namespaces) {
       },
       {
         name:    'rio-services',
-        count:   countFor(RIO.APP),
+        count:   countFor(RIO.SERVICE),
         label:   'Services',
         route:   linkFor('services'),
       },
