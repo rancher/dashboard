@@ -81,7 +81,7 @@ export default {
       <template v-if="!isSidecar" #right>
         <LabeledInput
           key="scale"
-          v-model="spec.scale"
+          v-model.number="spec.replicas"
           :mode="mode"
           type="number"
           min="0"
