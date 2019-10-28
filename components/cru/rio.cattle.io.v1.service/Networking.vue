@@ -142,8 +142,6 @@ export default {
       </div>
     </div>
 
-    <hr />
-
     <div class="row">
       <div class="col span-6">
         <ArrayList
@@ -172,8 +170,6 @@ export default {
         />
       </div>
     </div>
-
-    <hr />
 
     <div class="row">
       <div class="col span-12">

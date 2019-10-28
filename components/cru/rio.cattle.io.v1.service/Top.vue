@@ -97,9 +97,10 @@ export default {
         />
       </template>
     </NameNsDescription>
-
+    
+    <h4>Image</h4>
     <div class="row">
-      <div class="col span-12">
+      <div class="col span-3">
         <div>
           <label class="radio">
             <input v-model="buildImage" type="radio" :value="false" />
@@ -113,8 +114,43 @@ export default {
           </label>
         </div>
       </div>
+
+      <div v-if="buildImage" class="col span-9">
+        <div class="row">
+          <div class="col span-4">
+            <LabeledInput v-model="spec.build.repo" :mode="mode" label="Repo URL" :required="true" />
+          </div>
+          <div class="col span-4">
+            <LabeledInput v-model="spec.build.branch" :mode="mode" label="Branch" />
+          </div>
+          <div class="col span-4">
+            <LabeledInput v-model="spec.build.dockerFile" :mode="mode" label="Dockerfile" />
+          </div>
+
+          <div class="row">
+            <label type="checkbox"><input v-model="spec.build.stageOnly" type="checkbox"> Stage only</label>
+            <label type="checkbox"><input v-model="spec.build.enablePr" type="checkbox"> Create a new service for each Pull Request</label>
+          </div>
+        </div>
+      </div>
+      <div v-else class="col span-9">
+        <div class="row">
+          <div class="col span-6">
+            <LabeledInput v-model="spec.image" :mode="mode" label="Image" :required="true" />
+          </div>
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="spec.imagePullPolicy"
+              :mode="mode"
+              :options="imagePullPolicyChoices"
+              label="Image Pull Policy"
+            />
+          </div>
+        </div>
+      </div>
     </div>
-    <div v-if="buildImage">
+
+    <!-- <div v-if="buildImage">
       <div class="row">
         <div class="col span-4">
           <LabeledInput v-model="spec.build.repo" :mode="mode" label="Repo URL" :required="true" />
@@ -145,8 +181,8 @@ export default {
           />
         </div>
       </div>
-    </div>
-    <hr />
+    </div> -->
+
     <Ports
       :spec="spec"
       :name-resource="nameResource"
@@ -154,6 +190,6 @@ export default {
       :mode="mode"
       :pad-left="false"
     />
-    <hr />
+
   </div>
 </template>

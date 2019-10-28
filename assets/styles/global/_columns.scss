@@ -13,9 +13,8 @@ $GUTTER: 1.75%;
 
 /* COLUMN SETUP */
 .col {
-  display: block;
-  float:left;
-  margin: 0 $GUTTER 1.25% 0;
+  flex: 0 0 auto;
+  margin: 0 $GUTTER 0 0;
 
   &:last-child {
     margin-right: 0;
@@ -23,6 +22,11 @@ $GUTTER: 1.75%;
 }
 
 /* ROWS */
+.row {
+  display: flex;
+  margin-bottom: 40px;
+}
+
 .row:before,
 .row:after {
   content:"";

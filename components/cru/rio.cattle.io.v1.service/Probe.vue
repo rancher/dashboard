@@ -168,8 +168,6 @@ export default {
       </label>
     </div>
 
-    <hr />
-
     <div v-if="kind === 'http' || kind === 'https'">
       <div class="row">
         <div class="col span-12">
@@ -231,7 +229,6 @@ export default {
     </div>
 
     <div v-if="!isNone">
-      <hr />
       <div class="row">
         <div class="col span-6">
           <UnitInput

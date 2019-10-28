@@ -150,8 +150,6 @@ export default {
       </div>
     </div>
 
-    <hr />
-
     <KeyValue
       key="env"
       v-model="spec.env"
