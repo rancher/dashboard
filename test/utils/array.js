@@ -3,7 +3,8 @@ import {
   addObject, addObjects, insertAt,
   removeObject, removeObjects, removeAt, clear,
   isArray,
-  filterBy, findBy
+  filterBy, findBy,
+  sameContents
 } from '@/utils/array';
 
 const obj1 = { foo: 'bar' };
@@ -52,7 +53,7 @@ test('removeObject', (t) => {
 });
 
 test('removeObjects', (t) => {
-  const ary = [obj1, obj2, obj3];
+  let ary = [obj1, obj2, obj3];
 
   removeObjects(ary, [obj2]);
   t.deepEqual(ary, [obj1, obj3], 'Removes');
@@ -63,10 +64,14 @@ test('removeObjects', (t) => {
   removeObjects(ary, [obj1, obj3]);
   t.is(ary.length, 0, 'Goes to empty');
 
-  const range = [1, 2, 3, 4, 5, 9, 8, 7, 6];
+  ary = [1, 1, 1, 2, 3];
+  removeObjects(ary, [1, 3]);
+  t.deepEqual(ary, [2], 'Removes multiples');
 
-  removeObjects(range, [6, 1, 2, 3, 4, 5, 9, 6]);
-  t.deepEqual(range, [8, 7], 'Removes ranges, preserves order, tastes great, less filling');
+  ary = [1, 1, 2, 3, 4, 5, 9, 888, 777, 6, 6, 6, 777];
+
+  removeObjects(ary, [1, 2, 3, 4, 5, 9, 6]);
+  t.deepEqual(ary, [888, 777, 777], 'Removes ranges, preserves order, tastes great, less filling');
 });
 
 test('isArray', (t) => {
@@ -185,4 +190,21 @@ test('insertAt', (t) => {
 
   insertAt(ary, 1, obj3);
   t.deepEqual(ary, [obj1, obj3, obj2], 'Inserts');
+});
+
+test('sameContents', (t) => {
+  let a = [obj1, obj2];
+  let b = [obj2, obj1];
+
+  t.true(sameContents(a, b), 'Says equivalent things are the same');
+
+  a = [obj1, obj2];
+  b = [obj2, obj3];
+
+  t.false(sameContents(a, b), 'Says different things are not the same');
+
+  a = [obj1, obj2];
+  b = [obj1, obj2, obj3];
+
+  t.false(sameContents(a, b), 'Says different lengths are not the same');
 });
