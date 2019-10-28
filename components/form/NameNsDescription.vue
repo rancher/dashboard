@@ -135,7 +135,5 @@ export default {
         />
       </div>
     </div>
-
-    <hr />
   </div>
 </template>

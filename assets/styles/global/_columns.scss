@@ -2,7 +2,7 @@
 
 $COLUMNS: 6 12 24;
 $DEFAULT_COLUMNS: 12;
-$GUTTER: 1.5%;
+$GUTTER: 1.75%;
 
 /* SECTIONS */
 .section {
@@ -13,9 +13,8 @@ $GUTTER: 1.5%;
 
 /* COLUMN SETUP */
 .col {
-  display: block;
-  float:left;
-  margin: 0 $GUTTER 1% 0;
+  flex: 0 0 auto;
+  margin: 0 $GUTTER 0 0;
 
   &:last-child {
     margin-right: 0;
@@ -23,6 +22,11 @@ $GUTTER: 1.5%;
 }
 
 /* ROWS */
+.row {
+  display: flex;
+  margin-bottom: 40px;
+}
+
 .row:before,
 .row:after {
   content:"";

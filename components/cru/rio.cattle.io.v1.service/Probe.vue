@@ -155,7 +155,7 @@ export default {
     <div class="title clearfix">
       <h4>
         {{ label }}
-        <i v-if="description" v-tooltip="description" class="icon icon-info" style="font-size: 16px" />
+        <i v-if="description" v-tooltip="description" class="icon icon-info" style="font-size: 12px" />
       </h4>
     </div>
 
@@ -170,8 +170,6 @@ export default {
         </label>
       </div>
     </div>
-
-    <hr />
 
     <div v-if="kind === 'http' || kind === 'https'">
       <div class="row">
@@ -234,7 +232,6 @@ export default {
     </div>
 
     <div v-if="!isNone">
-      <hr />
       <div class="row">
         <div class="col span-6">
           <UnitInput

@@ -86,7 +86,7 @@ export default {
     &:after {
       content: '\e908';
       right: 10px;
-      font-size: 16px;
+      font-size: 12px;
       position: absolute;
       font-family: 'icons';
     }

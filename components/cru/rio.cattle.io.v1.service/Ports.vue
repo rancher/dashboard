@@ -222,8 +222,8 @@ export default {
             />
           </td>
           <td v-if="showRemove" class="remove">
-            <button type="button" class="btn bg-primary" @click="remove(idx)">
-              <i class="icon icon-minus" />
+            <button type="button" class="btn bg-transparent" @click="remove(idx)">
+              Remove
             </button>
           </td>
         </tr>
@@ -256,7 +256,7 @@ export default {
 
   TH {
     text-align: left;
-    font-size: 16px;
+    font-size: 12px;
     font-weight: normal;
     color: var(--input-label);
   }
