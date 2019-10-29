@@ -165,8 +165,8 @@ export default {
     <div v-else>
       <div v-for="opt in kindChoices" :key="opt.value">
         <label class="radio">
-          <input v-model="kind" type="radio" :value="value" />
-          {{ label }}
+          <input v-model="kind" type="radio" :value="opt.value" />
+          {{ opt.label }}
         </label>
       </div>
     </div>

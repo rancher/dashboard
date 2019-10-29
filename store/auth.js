@@ -62,7 +62,7 @@ export const actions = {
 
     this.$cookies.set(KEY, nonce, {
       path:     '/',
-      sameSite: true,
+      sameSite: false,
       secure:   true,
     });
 
@@ -111,6 +111,7 @@ export const actions = {
           delete opt.value;
 
           opt.encode = x => x;
+          opt.sameSite = false;
 
           this.$cookies.set(key, value, opt);
         }

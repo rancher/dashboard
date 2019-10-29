@@ -18,7 +18,7 @@ export default {
 
 <template>
   <div class="row">
-    <div class="col span-6">
+    <div class="col span-11-of-23">
       <Probe
         v-model="spec.readinessProbe"
         :mode="mode"
@@ -27,7 +27,10 @@ export default {
         description="Containers will be removed from service endpoints when this check is failing.  Recommended."
       />
     </div>
-    <div class="col span-6">
+    <div class="col span-1-of-23" style="position: relative; overflow: hidden">
+      <hr class="vertical" />
+    </div>
+    <div class="col span-11-of-23">
       <Probe
         v-model="spec.livenessProbe"
         :mode="mode"

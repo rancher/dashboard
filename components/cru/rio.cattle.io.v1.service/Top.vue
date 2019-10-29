@@ -98,39 +98,45 @@ export default {
         />
       </template>
     </NameNsDescription>
-    
+
     <h4>Image</h4>
     <div class="row">
-      <div class="col span-3">
+      <div class="col span-4">
         <div>
           <label class="radio">
             <input v-model="buildImage" type="radio" :value="false" />
-            Use an existing Docker image
+            Use an existing Docker image<span v-if="!buildImage">:</span>
           </label>
         </div>
         <div>
           <label class="radio">
             <input v-model="buildImage" type="radio" :value="true" />
-            Build from Dockerfile in a repositiory
+            Build from Dockerfile in a repository<span v-if="buildImage">:</span>
           </label>
         </div>
       </div>
 
-      <div v-if="buildImage" class="col span-9">
+      <div v-if="buildImage" class="col span-8">
         <div class="row">
-          <div class="col span-4">
+          <div class="col span-12">
             <LabeledInput v-model="spec.build.repo" :mode="mode" label="Repo URL" :required="true" />
           </div>
+        </div>
+        <div class="row">
           <div class="col span-4">
             <LabeledInput v-model="spec.build.branch" :mode="mode" label="Branch" />
           </div>
           <div class="col span-4">
             <LabeledInput v-model="spec.build.dockerFile" :mode="mode" label="Dockerfile" />
           </div>
-
-          <div class="row">
-            <label type="checkbox"><input v-model="spec.build.stageOnly" type="checkbox"> Stage only</label>
-            <label type="checkbox"><input v-model="spec.build.enablePr" type="checkbox"> Create a new service for each Pull Request</label>
+          <div class="col span-4">
+            <div>
+              <label class="checkbox"><input v-model="spec.build.stageOnly" type="checkbox"> Stage only</label>
+            </div>
+            <div>
+              <label class="checkbox"><input v-model="spec.build.enablePr" type="checkbox"> Pull Request workflow
+              </label>
+            </div>
           </div>
         </div>
       </div>
@@ -151,13 +157,15 @@ export default {
       </div>
     </div>
 
-    <Ports
-      :spec="spec"
-      :name-resource="nameResource"
-      :is-sidecar="isSidecar"
-      :mode="mode"
-      :pad-left="false"
-    />
-
+    <div class="row">
+      <Ports
+        class="col span-12"
+        :spec="spec"
+        :name-resource="nameResource"
+        :is-sidecar="isSidecar"
+        :mode="mode"
+        :pad-left="false"
+      />
+    </div>
   </div>
 </template>

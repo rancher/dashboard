@@ -10,14 +10,14 @@ import NamespaceFilter from '@/components/nav/NamespaceFilter';
 import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import LaunchKubectl from '@/components/ContainerExec/LaunchKubectl';
 import Group from '@/components/nav/Group';
+import Footer from '@/components/nav/Footer';
 import { COUNT } from '@/config/types';
-
-const VERSION = process.env.VERSION || 'dev';
 
 export default {
 
   components: {
     // ClusterSwitcher,
+    Footer,
     NamespaceFilter,
     ActionMenu,
     Group,
@@ -35,10 +35,6 @@ export default {
 
   computed: {
     ...mapGetters({ principal: 'auth/principal' }),
-
-    version() {
-      return VERSION;
-    },
 
     counts() {
       const obj = this.$store.getters['cluster/all'](COUNT)[0].counts;
@@ -122,15 +118,15 @@ export default {
 
 <template>
   <div class="dashboard-root">
-    <div class="top">
-      <div class="header-left">
-        {{ version }}
-      </div>
+    <div class="logo">
+      <n-link to="/">
+        <img src="~/assets/images/logo.svg" alt="logo" height="30" class="m-15" />
+      </n-link>
 
-      <div class="header-middle">
-        <LaunchKubectl />
-      </div>
+      <LaunchKubectl style="position: absolute; top: 20px;" />
+    </div>
 
+    <div class="user">
       <v-popover
         placement="bottom"
         offset="-10"
@@ -143,7 +139,7 @@ export default {
         </div>
 
         <template slot="popover">
-          <ul class="list-unstyled text-right dropdown" style="margin: -14px;">
+          <ul class="list-unstyled text-right dropdown" style="margin: -1px;">
             <nuxt-link tag="li" :to="{name: 'prefs'}" class="p-10">
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
@@ -175,14 +171,9 @@ export default {
       </div>
     </nav>
 
-    <div class="logo">
-      <n-link to="/">
-        <img src="~/assets/images/logo.svg" alt="logo" width="100%" />
-      </n-link>
-    </div>
-
     <main>
-      <nuxt />
+      <nuxt class="outlet" />
+      <Footer />
     </main>
     <ShellSocket />
     <ActionMenu />
@@ -191,42 +182,25 @@ export default {
 
 <style lang="scss">
   $header-height: 60px;
-  $nav-width: 250px;
-  $right-width: 60px;
-  $logo-height: 50px;
 
   .dashboard-root {
     display: grid;
     height: 100vh;
     grid-template-areas:
-      "header header"
-      "nav main"
-      "logo main";
-    grid-template-columns: $nav-width auto;
-    grid-template-rows: $header-height auto $logo-height;
+      "logo user main"
+      "nav  nav  main";
+    grid-template-columns: 190px 60px auto;
+    grid-template-rows: $header-height auto;
 
-    .top {
+    .logo {
+      grid-area: logo;
       background-color: var(--header-bg);
-      grid-area: header;
-      display: grid;
-      grid-template-areas: "header-left header-middle header-right";
-      grid-template-columns: $nav-width auto $right-width;
+    }
 
-      .header-left {
-        grid-area: header-left;
-        position: relative;
-      }
-
-      .header-middle {
-        padding: 10px 0;
-        grid-area: header-middle;
-      }
-
-      .header-right {
-        grid-area: header-right;
-        padding: 10px;
-        cursor: pointer;
-      }
+    .user {
+      grid-area: user;
+      padding: 10px;
+      background-color: var(--header-bg);
     }
 
     NAV {
@@ -246,20 +220,22 @@ export default {
         line-height: initial;
       }
     }
-
-    .logo {
-      grid-area: logo;
-      text-align: center;
-      border-top: solid thin var(--border);
-      background-color: var(--nav-bg);
-      padding: 10px;
-    }
   }
 
   MAIN {
     grid-area: main;
-    padding: 20px;
     overflow: auto;
+
+    .outlet {
+      padding: 20px 20px 70px 20px;
+      min-height: 100%;
+      margin-bottom: -50px;
+    }
+
+    FOOTER {
+      background-color: var(--nav-bg);
+      height: 50px;
+    }
 
     HEADER {
       display: grid;
@@ -279,5 +255,6 @@ export default {
         padding-top: 10px;
       }
     }
+
   }
 </style>

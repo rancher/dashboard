@@ -16,9 +16,6 @@ BODY {
   position: relative;
   margin: 0;
   overflow: hidden;
-}
-
-::root {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
@@ -89,3 +86,14 @@ HR {
     border-color: var(--nav-bg);
   }
 }
+
+HR.vertical {
+  border-top: 0;
+  border-left: 1px solid var(--border);
+  height: 100%;
+  position: absolute;
+  left: 50%;
+  margin-left: -1px;
+  top: 0;
+}
+
