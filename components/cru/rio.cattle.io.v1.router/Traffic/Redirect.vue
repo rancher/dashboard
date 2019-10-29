@@ -37,9 +37,6 @@ export default {
     <LabeledInput v-model="host" label="host" />
     <LabeledInput v-model="path" label="path" />
     <LabeledInput v-model="prefix" label="prefix" />
-    <div class="check-container">
-      <Checkbox v-model="toHTTPS" />
-      <span>to HTTPS</span>
-    </div>
+    <Checkbox v-model="toHTTPS" label="to HTTPS" />
   </div>
 </template>

@@ -36,12 +36,9 @@ export default {
 </script>
 
 <template>
-  <div>
-    <div id="router" class="route row">
+  <div class="route">
+    <div id="router" class="row">
       <div class="column matches">
-        <button class="btn btn-sm bg-primary " @click="addMatch">
-          add match condition
-        </button>
         <template v-for="(match, i) in matches">
           <Match
             :key="i"
@@ -53,6 +50,9 @@ export default {
             OR
           </div>
         </template>
+        <button class="btn btn-sm bg-primary " @click="addMatch">
+          add match condition
+        </button>
       </div>
       <div class="destination column">
         <button class="btn btn-sm bg-primary " @click="addDestination">
@@ -61,18 +61,17 @@ export default {
         <Destination v-for="(destination, i) in to" :key="i" :is-weighted="true" :spec="to[i]" @input="change('to', i, $event)" />
       </div>
     </div>
-    <RouteTraffic class="row" @input="trafficChange" />
+    <RouteTraffic class="row" :spec="traffic" @input="trafficChange" />
   </div>
 </template>
 
 <style lang='scss'>
-    .row {
-        display: flex;
-    }
-
-    .column {
-         width: 50%;
-        padding: 3%;
-        border: 1px dashed red;
-    }
+.route{
+  border: 1px dashed blue;
+}
+  .column {
+    width: 50%;
+    padding: 3%;
+    border: 1px solid var(--border);
+   }
 </style>

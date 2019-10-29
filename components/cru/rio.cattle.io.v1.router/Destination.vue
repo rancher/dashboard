@@ -52,6 +52,7 @@ export default {
 
       const servicesinNS = JSON.parse(JSON.stringify(services.filter(row => row.metadata.namespace === vm.namespace.id )));
 
+      debugger;
       this.services = servicesinNS;
       this.service = '';
     },
@@ -93,7 +94,7 @@ export default {
       <div v-if="!services.length && namespace">
         no services found in this namespace
       </div>
-      <div v-if="services.length>1">
+      <div v-if="services.length>=1">
         <v-select
           :searchable="false"
           :clearable="false"

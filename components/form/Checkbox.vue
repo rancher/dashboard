@@ -41,6 +41,9 @@ export default {
   display: flex;
   align-items: center;
 }
+.checkbox-label {
+  color: var(--input-label);
+}
 .checkbox-box {
     display: block;
     position: relative;
@@ -68,7 +71,7 @@ export default {
     background-color: transparent;
     border-radius: 5px;
     transition: all 0.3s ease-out;
-    border: 1px solid var(--body-text);;
+    border: 1px solid var( --input-label );
 }
 
 .checkbox-box input:checked ~ .checkbox-custom {

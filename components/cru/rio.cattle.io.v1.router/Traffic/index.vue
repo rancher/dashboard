@@ -12,19 +12,25 @@ export default {
   components: {
     Destination, ToggleSwitch, Checkbox, Tab, Tabbed, Redirect, Rewrite, Fault, Headers
   },
+  props: {
+    spec: {
+      type:    Object,
+      default: () => {}
+    }
+  },
   data() {
     return {
       shouldMirror:   false,
       shouldFault:    false,
       shouldRewrite:  false,
       shouldRedirect: false,
-      mirror:         {},
-      fault:          {},
-      timeout:        '',
-      retry:          {},
-      redirect:       {},
-      rewrite:        {},
-      headers:        {}
+      mirror:         this.spec.mirror || {},
+      fault:          this.spec.fault || {},
+      timeout:        this.spec.timeout || '',
+      retry:          this.spec.retry || {},
+      redirect:       this.spec.redirect || {},
+      rewrite:        this.spec.rewrite || {},
+      headers:        this.spec.headers || {}
     };
   },
   computed: {

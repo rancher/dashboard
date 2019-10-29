@@ -3,8 +3,6 @@
 /*
 TODO
   -specify revision in destination
-  -option to define 'from service' as match string
-  -header manipulation rules?
 
 Spec
     - RouterSpec
@@ -59,20 +57,23 @@ Status
 */
 import { RIO, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
+import NameNsDescription from '@/components/form/NameNsDescription';
 import Route from '@/components/cru/rio.cattle.io.v1.router/Route';
 export default {
-  components: { Route },
+  name:       'CruRouter',
+  components: { Route, NameNsDescription },
   mixins:     [CreateEditView],
-  layout:     'unauthenticated',
   data() {
     return {
       routes:     [],
-      namespaces: []
+      namespaces: [],
+      spec:       this.value.spec || {}
     };
   },
-  computed: {},
-  mounted() {
-    // this.getNamespaces();
+  computed: {
+    namespace() {
+      return this.value.metadata.namespace;
+    }
   },
   methods:  {
     addRouteSpec() {
@@ -83,15 +84,27 @@ export default {
 
       this.namespaces = JSON.parse(JSON.stringify(namespaces));
     },
+    done() {
+      console.log('done?');
+    },
+    saveRouter() {
+      this.value.spec = { routes: this.routes };
+      debugger;
+      this.save(this.done);
+    }
   }
 };
 </script>
 
 <template>
   <div>
+    <NameNsDescription :value="value" :mode="mode" />
     <button class="btn bg-primary" @click="addRouteSpec">
       add rule
     </button>
     <Route v-for="(route, i) in routes" :key="i" />
+    <button @click="saveRouter">
+      save
+    </button>
   </div>
 </template>

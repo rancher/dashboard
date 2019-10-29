@@ -71,7 +71,7 @@ export default {
     >
     </v-select>
     <StringMatch :init="path" :label="'path match string'" @input="e=>change('path', e)" />
-    <button @click="addHeaderRule">
+    <button class="btn bg-transparent" @click="addHeaderRule">
       add header rule
     </button>
     <NameValue v-for="(header, i) in headers" :key="header.name + headers.length+i" :spec="header" @input="e=>change('headers', e, i)" />

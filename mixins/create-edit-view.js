@@ -72,8 +72,8 @@ export default {
     },
 
     async save(buttonDone) {
+      debugger;
       this.errors = null;
-
       try {
         if ( this.isCreate ) {
           await this.schema.followLink('collection', {

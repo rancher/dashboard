@@ -64,7 +64,7 @@ export default {
     background-color: transparent;
     border-radius: 50%;
     transition: all 0.3s ease-out;
-    border: 2px solid var(--body-text);
+    border: 2px solid var( --input-label );
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -102,8 +102,8 @@ export default {
   & > * {
     margin: 3px;
   }
-  // & .radio-button {
-  //   flex-basis: 0;
-  // }
+}
+.radio-label {
+  color:  var( --input-label );
 }
 </style>
