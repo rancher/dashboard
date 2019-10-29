@@ -128,9 +128,6 @@ export default {
           <th class="hostPort">
             Host Port
           </th>
-          <th class="name">
-            Name
-          </th>
           <th v-if="showRemove" class="remove"></th>
         </tr>
       </thead>
@@ -211,15 +208,6 @@ export default {
                 @input="queueUpdate"
               />
             </label>
-          </td>
-          <td class="name">
-            <span v-if="isView">{{ row.name }}</span>
-            <input
-              v-else
-              v-model="row.name"
-              placeholder="e.g. web"
-              @input="queueUpdate"
-            />
           </td>
           <td v-if="showRemove" class="remove">
             <button type="button" class="btn bg-transparent" @click="remove(idx)">
