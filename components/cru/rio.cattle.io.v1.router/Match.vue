@@ -8,27 +8,25 @@ export default {
     spec: {
       type:     Object,
       default: () => {
-        return {
-          headers: [],
-          methods: [],
-          path:    ''
-        };
+        return {};
       }
     }
   },
   data() {
+    const { headers = [], methods = [], path = '' } = this.spec;
+
     return {
       httpMethods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'],
-      headers:          this.spec.headers || [],
-      methods:          this.spec.methods || [],
-      path:             this.spec.path || {}
+      headers,
+      methods,
+      path
     };
   },
   computed: {
     formatted() {
-      const formatted = {};
-
-      return formatted;
+      return {
+        headers: this.headers, methods: this.methods, path:    this.path
+      };
     },
     listeners() {
       return this.$listeners;

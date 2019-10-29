@@ -5,13 +5,11 @@ export default {
   props:      {
     spec: {
       type:    Object,
-      default: () => {
-        return { name: '', value: '' };
-      }
+      default: () => {}
     }
   },
   data() {
-    const { name, value } = this.spec;
+    const { name = '', value = '' } = this.spec;
 
     return { name, value };
   },

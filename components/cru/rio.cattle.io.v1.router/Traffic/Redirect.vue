@@ -6,12 +6,14 @@ export default {
   props:      {
     spec: {
       type:    Object,
-      default: () => {}
+      default: () => {
+        return {};
+      }
     }
   },
   data() {
     const {
-      host, path, prefix, toHTTPS
+      host = '', path = '', prefix = '', toHTTPS = false
     } = this.spec;
 
     return {

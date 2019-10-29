@@ -15,22 +15,28 @@ export default {
   props: {
     spec: {
       type:    Object,
-      default: () => {}
+      default: () => {
+        return {};
+      }
     }
   },
   data() {
+    const {
+      mirror, fault, timeout, retry, redirect, rewrite, headers
+    } = this.spec;
+
     return {
-      shouldMirror:   false,
-      shouldFault:    false,
-      shouldRewrite:  false,
-      shouldRedirect: false,
-      mirror:         this.spec.mirror || {},
-      fault:          this.spec.fault || {},
-      timeout:        this.spec.timeout || '',
-      retry:          this.spec.retry || {},
-      redirect:       this.spec.redirect || {},
-      rewrite:        this.spec.rewrite || {},
-      headers:        this.spec.headers || {}
+      shouldMirror:   !!this.spec.mirror,
+      shouldFault:    !!this.spec.fault,
+      shouldRewrite:  !!this.spec.rewrite,
+      shouldRedirect: !!this.spec.redirect,
+      mirror,
+      fault,
+      timeout,
+      retry,
+      redirect,
+      rewrite,
+      headers
     };
   },
   computed: {
@@ -66,7 +72,7 @@ export default {
 
 <template>
   <div id="route-traffic" @input="trafficChange" @change="trafficChange">
-    <ToggleSwitch v-model="shouldRedirect" class="redirect-toggle" :labels="['Forward', 'Redirect']" />
+    <ToggleSwitch v-model="shouldRedirect" :on="shouldRedirect" class="redirect-toggle" :labels="['Forward', 'Redirect']" />
     <Redirect v-if="shouldRedirect" class="redirect" :spec="{...redirect}" @input="e=>change('redirect', e)" />
     <Tabbed default-tab="mirror">
       <Tab v-if="!shouldRedirect" name="rewrite" label="Rewrite">

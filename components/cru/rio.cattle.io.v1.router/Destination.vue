@@ -15,7 +15,9 @@ export default {
   props:      {
     spec: {
       type:     Object,
-      required: true
+      default: () => {
+        return {};
+      }
     },
     isWeighted: {
       type:    Boolean,
@@ -23,12 +25,14 @@ export default {
     }
   },
   data() {
+    const { namespace = '', port = '', service = {} } = this.spec;
+
     return {
       services:    [],
       namespaces:  [],
-      namespace:   this.spec.namespace || '',
-      port:        this.spec.port,
-      service:     this.spec.service || {},
+      namespace,
+      port,
+      service,
       weight:     0,
     };
   },
@@ -52,7 +56,6 @@ export default {
 
       const servicesinNS = JSON.parse(JSON.stringify(services.filter(row => row.metadata.namespace === vm.namespace.id )));
 
-      debugger;
       this.services = servicesinNS;
       this.service = '';
     },

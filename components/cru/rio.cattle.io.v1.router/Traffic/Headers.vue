@@ -16,7 +16,9 @@ export default {
   props:      {
     spec: {
       type:    Object,
-      default: () => {}
+      default: () => {
+        return {};
+      }
     }
   },
   data() {

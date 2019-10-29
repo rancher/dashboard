@@ -6,11 +6,13 @@ export default {
   props:      {
     spec: {
       type:    Object,
-      default: () => {}
+      default: () => {
+        return {};
+      }
     }
   },
   data() {
-    const { percentage, delayMillis, abortHTTPStatus } = this.spec;
+    const { percentage = 0, delayMillis = 0, abortHTTPStatus = '' } = this.spec;
 
     return {
       percentage, delayMillis, abortHTTPStatus

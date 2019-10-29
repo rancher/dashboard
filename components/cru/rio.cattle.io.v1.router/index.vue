@@ -64,8 +64,14 @@ export default {
   components: { Route, NameNsDescription },
   mixins:     [CreateEditView],
   data() {
+    let routes = [];
+
+    if (this.value.spec) {
+      routes = this.value.spec.routes || [];
+    }
+
     return {
-      routes:     [],
+      routes,
       namespaces: [],
       spec:       this.value.spec || {}
     };
@@ -88,9 +94,13 @@ export default {
       console.log('done?');
     },
     saveRouter() {
+      console.log(this.routes);
       this.value.spec = { routes: this.routes };
       debugger;
       this.save(this.done);
+    },
+    change(type, value, index) {
+      this[type][index] = value;
     }
   }
 };
@@ -102,7 +112,7 @@ export default {
     <button class="btn bg-primary" @click="addRouteSpec">
       add rule
     </button>
-    <Route v-for="(route, i) in routes" :key="i" />
+    <Route v-for="(route, i) in routes" :key="i" :spec="route" @input="e=>change('routes', e, i)" />
     <button @click="saveRouter">
       save
     </button>

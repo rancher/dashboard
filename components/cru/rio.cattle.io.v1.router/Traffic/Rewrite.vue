@@ -5,11 +5,13 @@ export default {
   props:      {
     spec: {
       type:    Object,
-      default: () => {}
+      default: () => {
+        return {};
+      }
     }
   },
   data() {
-    const { host, path } = this.spec;
+    const { host = '', path = '' } = this.spec;
 
     return { host, path };
   },

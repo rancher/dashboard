@@ -7,11 +7,22 @@ export default {
   components: {
     Match, Destination, RouteTraffic
   },
+  props: {
+    spec: {
+      type:    Object,
+      default: () => {
+        return {}
+        ;
+      }
+    }
+  },
   data() {
+    const { matches = [], to = [], traffic } = this.spec;
+
     return {
-      matches:        [{}],
-      to:            [{}],
-      traffic: {}
+      matches,
+      to,
+      traffic,
     };
   },
   computed: {},
@@ -30,13 +41,20 @@ export default {
     },
     checked(e) {
       console.log(e);
+    },
+    changeRoute() {
+      const { matches, to, traffic } = this;
+
+      this.$emit('input', {
+        matches, to, traffic
+      });
     }
   }
 };
 </script>
 
 <template>
-  <div class="route">
+  <div class="route" @input="changeRoute">
     <div id="router" class="row">
       <div class="column matches">
         <template v-for="(match, i) in matches">
@@ -55,10 +73,10 @@ export default {
         </button>
       </div>
       <div class="destination column">
+        <Destination v-for="(destination, i) in to" :key="i" :is-weighted="true" :spec="destination" @input="change('to', i, $event)" />
         <button class="btn btn-sm bg-primary " @click="addDestination">
           add weighted destination
         </button>
-        <Destination v-for="(destination, i) in to" :key="i" :is-weighted="true" :spec="to[i]" @input="change('to', i, $event)" />
       </div>
     </div>
     <RouteTraffic class="row" :spec="traffic" @input="trafficChange" />
