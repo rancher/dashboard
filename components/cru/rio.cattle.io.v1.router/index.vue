@@ -59,9 +59,11 @@ import { RIO, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Route from '@/components/cru/rio.cattle.io.v1.router/Route';
+import InputWithSelect from '@/components/form/InputWithSelect';
 export default {
   name:       'CruRouter',
   // components: { Route, NameNsDescription },
+  components: { InputWithSelect },
   mixins:     [CreateEditView],
   data() {
     let routes = [];
@@ -101,6 +103,9 @@ export default {
     },
     change(type, value, index) {
       this[type][index] = value;
+    },
+    checkInput(input) {
+      console.log(input);
     }
   }
 };
@@ -116,5 +121,7 @@ export default {
     <button @click="saveRouter">
       save
     </button> -->
+
+    <InputWithSelect :options="['Apples', 'Oranges']" :label="'a label'" @input="checkInput" />
   </div>
 </template>
