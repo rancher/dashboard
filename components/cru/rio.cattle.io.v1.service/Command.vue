@@ -117,9 +117,27 @@ export default {
       </div>
 
       <div class="col span-3 pt-5">
-        <div><label class="checkbox"><input v-model="spec.stdin" type="checkbox" /> Interactive</label></div>
-        <div><label class="checkbox"><input v-model="spec.tty" type="checkbox" /> TTY</label></div>
-        <div><label class="checkbox"><input v-model="spec.readOnlyRootFilesystem" type="checkbox" /> Read-Only Root FS</label></div>
+        <div>
+          <label class="checkbox">
+            <input v-model="spec.stdin" type="checkbox" /> 
+            <span class="input-title">Interactive</span>
+            <span class="checkbox-custom rectangular"></span>
+          </label>
+        </div>
+        <div>
+          <label class="checkbox">
+            <input v-model="spec.tty" type="checkbox" /> 
+            <span class="input-title">TTY</span>
+            <span class="checkbox-custom rectangular"></span>
+          </label>
+        </div>
+        <div>
+          <label class="checkbox">
+            <input v-model="spec.readOnlyRootFilesystem" type="checkbox" /> 
+            <span class="input-title">Read-Only Root FS</span>
+            <span class="checkbox-custom rectangular"></span>
+          </label>
+        </div>
       </div>
     </div>
 

@@ -30,14 +30,12 @@ export default {
   .badge-state {
     padding: 5px;
     border: 1px solid transparent;
-    border-radius: 100px;
-    text-transform: capitalize;
+    border-radius: 2px;
 
     // Successful states are de-emphasized by using [text-]color instead of background-color
     &.bg-success {
-      background-color: transparent;
-      border: 1px solid var(--success);
       color: var(--success);
+      background: transparent;
     }
   }
 
