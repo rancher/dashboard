@@ -24,6 +24,7 @@ export default {
   },
   methods: {
     change() {
+      console.log('inputwithselect change');
       this.$emit('input', { option: this.selected, string: this.string });
     }
   }
@@ -31,7 +32,7 @@ export default {
 </script>
 
 <template>
-  <span class="input-container" @input="change">
+  <div class="input-container" @input="change" @change="change">
     <v-select
       v-model="selected"
       class="in-input"
@@ -40,8 +41,8 @@ export default {
       :searchable="false"
       @input="change"
     />
-    <LabeledInput v-model="string" :label="label" :value="string" />
-  </span>
+    <LabeledInput v-model="string" class="input-string" :label="label" :value="string" />
+  </div>
 </template>
 
 <style lang='scss'>
@@ -59,19 +60,25 @@ export default {
         min-width: 0px;
     }
     .vs__dropdown-toggle {
-         background-color: var(--input-label);
+        background-color: var(--default-text);
         border:none;
         height: 100%;
         padding: none;
+        display: flex;
+        align-items: center;
     }
     .vs__selected-options {
         display: -webkit-box;
+    }
+    .vs__actions {
+      padding: 0 4px 0 0;
     }
     .vs__search {
         display: none;
     }
     .vs__open-indicator{
         fill: var(--input-text);
+        transform: scale(0.75)
     }
 }
 </style>

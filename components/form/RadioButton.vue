@@ -64,7 +64,7 @@ export default {
     background-color: transparent;
     border-radius: 50%;
     transition: all 0.3s ease-out;
-    border: 2px solid var( --input-label );
+    border: 1px solid var( --input-label );
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -78,7 +78,7 @@ export default {
     -ms-transform: rotate(0deg) scale(1);
     transform: rotate(0deg) scale(1); */
     opacity:1;
-    border: 2px solid var(--dropdown-text);
+    border: 1px solid var(--dropdown-text);
 }
 
 .radio-button .radio-custom > span {
@@ -89,9 +89,8 @@ export default {
 }
 
 .radio-button input:checked ~ .radio-custom > span {
-
-  width: 5px;
-  height: 5px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: var(--dropdown-text);
 }

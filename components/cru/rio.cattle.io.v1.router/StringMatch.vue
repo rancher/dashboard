@@ -1,21 +1,29 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
+import InputWithSelect from '@/components/form/InputWithSelect';
 import RadioGroup from '@/components/form/RadioGroup';
 export default {
-  components: { LabeledInput, RadioGroup },
+  components: { InputWithSelect },
   props:      {
-    init: {
+    spec: {
       type:    Object,
-      default: () => {}
+      default: () => {
+        return {}
+        ;
+      }
     },
     label: {
       type:    String,
       default: ''
+    },
+    options: {
+      type:    Array,
+      default: () => {}
     }
   },
   data() {
     return {
-      types: ['exact', 'prefix', 'regexp'], value: Object.values(this.init)[0], type:  Object.keys(this.init)[0] || 'exact'
+      types: this.options || ['exact', 'prefix', 'regexp'], value: Object.values(this.spec)[0] || '', type:  Object.keys(this.spec)[0] || 'exact'
     };
   },
   methods: {
@@ -28,23 +36,18 @@ export default {
 
       out[type] = value;
       this.$emit('input', out );
+    },
+    update(input) {
+      this.value = input.string;
+      this.type = input.option;
+      this.change();
     }
   }
 };
 </script>
 
 <template>
-  <div class="match-input" @input="change">
-    <LabeledInput v-model="value" :label="label" />
-    <RadioGroup :options="['exact', 'prefix', 'regexp']" :selected="types.indexOf(type)" class="match-type" @input="selectType" />
+  <div class="match-input">
+    <InputWithSelect :options="types" :string-input="value" :label="label" @input="update" />
   </div>
 </template>
-
-<style lang='scss'>
-.match-input {
-  display: flex;
-  & .match-type{
-    display: flex;
-  }
-}
-</style>

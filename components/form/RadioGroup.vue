@@ -14,6 +14,13 @@ export default {
     selected: {
       type:    Number,
       default: -1
+    },
+    labels: {
+      type:    Array,
+      default: () => {
+        return this.options
+        ;
+      }
     }
   },
   data() {
@@ -44,6 +51,12 @@ export default {
 
 <template>
   <div>
-    <RadioButton v-for="option in options" :key="option" :label="option" :value="statuses[option]" @input="select(option)" />
+    <RadioButton
+      v-for="(option, i) in options"
+      :key="option"
+      :value="statuses[option]"
+      :label="labels[i]"
+      @input="select(option)"
+    />
   </div>
 </template>

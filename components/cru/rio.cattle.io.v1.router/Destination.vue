@@ -23,21 +23,24 @@ export default {
     isWeighted: {
       type:    Boolean,
       default: false
+    },
+    pickVersion: {
+      type:    Boolean,
+      default: true
     }
   },
   data() {
-    const { namespace = '', port = '', service = {} } = this.spec;
+    const { namespace = 'default', port = '', service = {} } = this.spec;
 
     return {
       services:    [],
-      namespaces:  [],
       namespace,
       port,
       service,
-      weight:     0,
+      weight:     null,
+      mode:       null
     };
   },
-  // filterBy(ary, keyOrObj, val) {
   computed: {
     formatted() {
       return {
@@ -48,35 +51,37 @@ export default {
       };
     },
     versions() {
-      const app = this.service.status.computedApp;
+      if (this.computedApp) {
+        const app = this.service.status.computedApp;
 
-      return filterBy(this.services, 'status.computedApp', app, );
-    }
+        return filterBy(this.services, 'status.computedApp', app, );
+      } else {
+        return [];
+      }
+    },
+    computedApp() {
+      if (this.service.status) {
+        return this.service.status.computedApp;
+      } else {
+        return null;
+      }
+    },
   },
   mounted() {
-    this.getNamespaces();
+    this.getServices();
   },
   methods: {
     async getServices() {
       const services = await this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE });
       const vm = this;
 
-      const servicesinNS = JSON.parse(JSON.stringify(services.filter(row => row.metadata.namespace === vm.namespace.id )));
+      const servicesinNS = JSON.parse(JSON.stringify(services));
 
       this.services = servicesinNS;
       this.service = '';
     },
-    async getNamespaces() {
-      const namespaces = await this.$store.dispatch('cluster/findAll', { type: NAMESPACE });
-
-      this.namespaces = JSON.parse(JSON.stringify(namespaces));
-    },
     setService(service) {
       this.service = service;
-    },
-    setNamespace(namespace) {
-      this.namespace = namespace;
-      this.getServices();
     },
     updateDestination() {
       this.$emit('input', this.formatted );
@@ -87,36 +92,20 @@ export default {
 
 <template>
   <div class="destination" @input="updateDestination">
-    <span> destination</span>
-    <div class="service inputs">
-      <div>
-        <v-select
-          :searchable="false"
-          :clearable="false"
-          :value="namespace"
-          label="id"
-          :options="namespaces"
-          @input="setNamespace"
-        ></v-select>
-      </div>
-      <div v-if="!services.length && namespace">
-        no services found in this namespace
-      </div>
-      <div v-if="services.length>=1">
-        <v-select
-          :searchable="false"
-          :clearable="false"
-          :value="service"
-          label="id"
-          :options="services"
-          @input="setService"
-        ></v-select>
-      </div>
-      <div v-if="service.metadata">
-        <v-select :options="versions" :get-option-label="option=>option.status.computedVersion" />
-        <LabeledInput v-model="port" type="text" label="port" />
-        <LabeledInput v-if="isWeighted" v-model="weight" type="text" label="weight" />
-      </div>
+    <div class="row inputs">
+      <v-select
+        class="inline"
+        placeholder="service"
+        :searchable="false"
+        :clearable="false"
+        :value="service"
+        label="id"
+        :options="services"
+        @input="setService"
+      ></v-select>
+      <v-select v-if="pickVersion" placeholder="version" class="inline" :options="versions" :get-option-label="option=>option.status.computedVersion" />
+      <LabeledInput v-model="port" type="text" label="port" />
+      <LabeledInput v-model="weight" :class="{hidden: !isWeighted}" label="Weight" />
     </div>
   </div>
 </template>
@@ -125,8 +114,9 @@ export default {
     .destination {
         display: flex;
         flex-direction: column;
-        .service {
-            flex-basis: 100%;
+        margin-bottom: 10px;
+        .hidden {
+          visibility: hidden;
         }
     }
 </style>

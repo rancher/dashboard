@@ -35,10 +35,10 @@ export default {
 </script>
 
 <template>
-  <div @input="change">
+  <div id="redirect" class="row inputs" @input="change">
     <LabeledInput v-model="host" label="host" />
     <LabeledInput v-model="path" label="path" />
     <LabeledInput v-model="prefix" label="prefix" />
-    <Checkbox v-model="toHTTPS" label="to HTTPS" />
+    <Checkbox v-model="toHTTPS" label="Change protocol to HTTPS" />
   </div>
 </template>

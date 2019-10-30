@@ -232,7 +232,7 @@ $transition-duration: 150ms;
   }
   .vs__search {
     background-color: var(--input-bg);
-    border: 1px dashed blue;
+    // border: 1px dashed blue;
     width: 100%;
   }
   .vs__open-indicator{
@@ -242,14 +242,14 @@ $transition-duration: 150ms;
     display:none;
   }
 
-  &.vs--open {
-    & .vs__selected {
-      top: 0;
-      align-self: end;
-      transform: scaleX(0);
-      // font-size: .9em;
-       transition: all 2s;
+  // &.vs--open {
+  //   & .vs__selected {
+  //     top: 0;
+  //     align-self: end;
+
+  //     // font-size: .9em;
+  //      transition: all 2s;
       
-    }
-  }
+  //   }
+  // }
 }

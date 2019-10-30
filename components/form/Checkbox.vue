@@ -40,6 +40,7 @@ export default {
 .checkbox-container {
   display: flex;
   align-items: center;
+  margin-right: 10px;
 }
 .checkbox-label {
   color: var(--input-label);
@@ -69,14 +70,14 @@ export default {
     height: 18px;
     width: 18px;
     background-color: transparent;
-    border-radius: 5px;
+    border-radius: 3px;
     transition: all 0.3s ease-out;
     border: 1px solid var( --input-label );
 }
 
 .checkbox-box input:checked ~ .checkbox-custom {
     background-color:var(--dropdown-text);
-    border-radius: 5px;
+    border-radius: 3px;
     -webkit-transform: rotate(0deg) scale(1);
     -ms-transform: rotate(0deg) scale(1);
     transform: rotate(0deg) scale(1);
@@ -91,7 +92,7 @@ export default {
     top: 0px;
     height: 0px;
     width: 0px;
-    border-radius: 5px;
+    border-radius: 3px;
     border: solid;
     border-color: var(--input-text);
     border-width: 0 3px 3px 0;

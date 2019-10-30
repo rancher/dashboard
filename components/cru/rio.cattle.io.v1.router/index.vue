@@ -1,99 +1,32 @@
 
 <script>
-/*
-TODO
-  -specify revision in destination
-
-Spec
-    - RouterSpec
-        -Routes
-            -RouteSpec
-                Matches
-                    - Match
-                        Path - StringMatch
-                                    exact
-                                    prefix
-                                    regex
-                        Scheme - StringMatch
-                        Method - StringMatch
-                        Headers - StringMatch
-                        Cookies - StringMatch
-                        Port - int
-                        From
-                            -ServiceSource
-                                Service - string
-                                Stack - string
-                                Revision - string
-                Weighted Destination
-                    Weight - int
-                    Desination
-                        service - string
-                        namespace - string
-                        revision - string
-                        port - uint32
-                Redirect
-                    Host - string
-                    Path - string
-                Rewrite
-                    Host - string
-                    Path - string
-                Headers - v1alpha3.HeaderOperations
-                RouteTraffic
-                    Fault
-                        Percentage - int
-                        DelayMillis - int
-                        Abort
-                            - HTTPStatus - int
-                    Mirror
-                    TimeoutMillis
-                    Retry
-
-Status
-    - RouterStatus
-        PublicDomains - []string
-        Endpoints - []string
-        Conditions []genericcondition.GenericCondition
-
-*/
-import { RIO, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import Route from '@/components/cru/rio.cattle.io.v1.router/Route';
-import InputWithSelect from '@/components/form/InputWithSelect';
+import Rule from '@/components/cru/rio.cattle.io.v1.router/Rule';
 export default {
   name:       'CruRouter',
-  // components: { Route, NameNsDescription },
-  components: { InputWithSelect },
+  components: { Rule, NameNsDescription },
   mixins:     [CreateEditView],
   data() {
-    let routes = [];
+    let routes = [{}];
 
     if (this.value.spec) {
-      routes = this.value.spec.routes || [];
+      routes = this.value.spec.routes || [{}];
     }
 
     return {
       routes,
-      namespaces: [],
       spec:       this.value.spec || {}
     };
   },
   computed: {
     namespace() {
       return this.value.metadata.namespace;
-    }
+    },
   },
   methods:  {
     addRouteSpec() {
       this.routes.push({});
-    },
-    async getNamespaces() {
-      const namespaces = await this.$store.dispatch('cluster/findAll', { type: NAMESPACE });
-
-      this.namespaces = JSON.parse(JSON.stringify(namespaces));
-    },
-    done() {
-      console.log('done?');
     },
     saveRouter() {
       this.value.spec = { routes: this.routes };
@@ -103,25 +36,41 @@ export default {
     change(type, value, index) {
       this[type][index] = value;
     },
-    checkInput(input) {
-      console.log(input);
-    }
+    reposition(direction, index) {}
   }
 };
 </script>
 
 <template>
   <div>
-    <!-- <NameNsDescription :value="value" :mode="mode" />
+    <div class="row">
+      <NameNsDescription class="col span-12" :value="value" :mode="mode" />
+    </div>
+    <h2>Rules</h2>
+    <div class="row">
+      <div class="col span-12">
+        <Rule
+          v-for="(route, i) in routes"
+          :key="i"
+          :position="i"
+          class="col span-12"
+          :spec="route"
+          @up="reposition('up', i)"
+          @down="reposition('down',i)"
+          @input="e=>change('routes', e, i)"
+        />
+      </div>
+    </div>
     <button class="btn bg-primary" @click="addRouteSpec">
-      add rule
+      + add rule
     </button>
-    <Route v-for="(route, i) in routes" :key="i" :spec="route" @input="e=>change('routes', e, i)" />
-    <button @click="saveRouter">
-      save
-    </button> -->
-
-    <InputWithSelect :options="['Apples', 'Oranges']" :label="'a label'" @input="checkInput" />
-    <v-select :options="['Apples', 'Oranges']" class="inline" placeholder="'placeholder'" />
+    <div class=" row footer-controls">
+      <button class="btn btn-lg bg-transparent border">
+        Cancel
+      </button>
+      <button class="btn btn-lg bg-primary" @click="saveRouter">
+        Deploy
+      </button>
+    </div>
   </div>
 </template>

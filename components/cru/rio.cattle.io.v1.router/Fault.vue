@@ -31,10 +31,10 @@ export default {
 </script>
 
 <template>
-  <div @input="change">
+  <div class="row inputs" @input="change">
     <UnitInput
       v-model="percentage"
-      label="Percentage"
+      label="Fault Percentage"
       :increment="1"
       :input-exponent="0"
       suffix="%"
@@ -42,11 +42,11 @@ export default {
     />
     <UnitInput
       v-model="delayMillis"
-      label="Delay"
+      label="Fault Delay"
       :increment="1"
       :input-exponent="0"
       suffix="ms"
     />
-    <LabeledInput v-model="abortHTTPStatus" label="HTTP abort code" />
+    <LabeledInput v-model="abortHTTPStatus" label="fault HTTP abort code" />
   </div>
 </template>
