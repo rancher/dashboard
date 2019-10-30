@@ -1,6 +1,5 @@
 
 <script>
-import { mapGetters } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
 import { explorerPackage, rioPackage } from '@/config/packages';
 import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
@@ -11,7 +10,7 @@ import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import LaunchKubectl from '@/components/ContainerExec/LaunchKubectl';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
-import { COUNT } from '@/config/types';
+import { COUNT, RANCHER } from '@/config/types';
 
 export default {
 
@@ -34,7 +33,9 @@ export default {
   },
 
   computed: {
-    ...mapGetters({ principal: 'auth/principal' }),
+    principal() {
+      return this.$store.getters['rancher/byId'](RANCHER.PRINCIPAL, this.$store.getters['auth/principalId']);
+    },
 
     counts() {
       const obj = this.$store.getters['cluster/all'](COUNT)[0].counts;
@@ -135,11 +136,15 @@ export default {
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >
         <div class="header-right text-right">
-          <img :src="principal.profilePicture" width="40" height="40" />
+          <img :src="principal.avatarSrc" width="40" height="40" />
         </div>
 
         <template slot="popover">
           <ul class="list-unstyled text-right dropdown" style="margin: -1px;">
+            <li>
+              <div><b>{{ principal.loginName }}</b></div>
+              <div><span>{{ principal.name }}</span></div>
+            </li>
             <nuxt-link tag="li" :to="{name: 'prefs'}" class="p-10">
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>

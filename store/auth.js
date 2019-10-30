@@ -1,6 +1,7 @@
 import { parse as setCookieParser } from 'set-cookie-parser';
 import { randomStr } from '@/utils/string';
 import { addParams } from '@/utils/url';
+import { findBy } from '@/utils/array';
 
 const KEY = 'rc_nonce';
 const BASE_SCOPES = ['read:user', 'read:org', 'user:email'];
@@ -21,15 +22,15 @@ export const getters = {
     return state.loggedIn;
   },
 
-  principal(state) {
-    return state.principal;
+  principalId(state) {
+    return state.principalId;
   }
 };
 
 export const mutations = {
-  loggedInAs(state, principal) {
+  loggedInAs(state, principalId) {
     state.loggedIn = true;
-    state.principal = principal;
+    state.principalId = principalId;
 
     this.$cookies.remove(KEY);
   },
@@ -45,18 +46,21 @@ export const mutations = {
 };
 
 export const actions = {
-  async getAuthProvider({ dispatch }) {
-    const authConfig = await dispatch('rancher/find', {
-      type: 'githubProvider',
-      id:   'github',
-      opt:  { url: '/v3-public/authProviders/github' }
+  getAuthProviders({ dispatch }) {
+    return dispatch('rancher/findAll', {
+      type: 'authProvider',
+      opt:  { url: `/v3-public/authProviders` }
     }, { root: true });
+  },
 
-    return authConfig;
+  async getAuthProvider({ dispatch }, id) {
+    const authConfigs = await dispatch('getAuthProviders');
+
+    return findBy(authConfigs, 'id', id);
   },
 
   async redirectToGithub({ state, commit, dispatch }, opt = {}) {
-    const authConfig = await dispatch('getAuthProvider');
+    const authConfig = await dispatch('getAuthProvider', 'github');
 
     const nonce = randomStr(16);
 
@@ -71,9 +75,11 @@ export const actions = {
     if ( opt && opt.scopes ) {
       scopes.push(...opt.scopes);
     }
+
     if (!opt.route) {
       opt.route = '/auth/verify';
     }
+
     const url = addParams(authConfig.redirectUrl, {
       scope:        [...BASE_SCOPES, ...scopes].join(','),
       redirect_uri: `${ window.location.origin }${ opt.route }${ (window.location.search || '').includes('spa') ? '?spa' : '' }`,
@@ -83,21 +89,28 @@ export const actions = {
     window.location.href = url;
   },
 
-  async verify({ state, commit, dispatch }, { nonce, code }) {
+  verifyGithub({ dispatch }, { nonce, code }) {
     const expect = this.$cookies.get(KEY, { parseJSON: false });
 
     if ( !expect || expect !== nonce ) {
       return ERR_NONCE;
     }
 
-    const authConfig = await dispatch('getAuthProvider');
+    return dispatch('login', {
+      provider: 'github',
+      body:     { code }
+    });
+  },
+
+  async login({ dispatch }, { provider, body }) {
+    const authConfig = await dispatch('getAuthProvider', provider);
 
     try {
       const res = await authConfig.doAction('login', {
-        code,
         description:  'Dashboard UI session',
         responseType: 'cookie',
         ttl:          16 * 60 * 60 * 1000,
+        ...body
       });
 
       if ( process.server ) {
@@ -127,15 +140,18 @@ export const actions = {
     }
   },
 
-  async logout({ dispatch, commit }) {
-    try {
-      await dispatch('rancher/request', {
-        url:     '/v3/tokens?action=logout',
-        method:  'post',
-        data:    {},
-        headers: { 'Content-Type': 'application/json' }
-      }, { root: true });
-    } catch (e) {
+  async logout({ dispatch, commit }, clearToken = true) {
+    if ( clearToken !== false ) {
+      try {
+        await dispatch('rancher/request', {
+          url:           '/v3/tokens?action=logout',
+          method:        'post',
+          data:          {},
+          headers:       { 'Content-Type': 'application/json' },
+          logoutOnError: false,
+        }, { root: true });
+      } catch (e) {
+      }
     }
 
     commit('loggedOut');

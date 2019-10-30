@@ -2,7 +2,7 @@
 export default {
   layout:   'unauthenticated',
   async fetch({ store, route, redirect }) {
-    const res = await store.dispatch('auth/verify', {
+    const res = await store.dispatch('auth/verifyGithub', {
       code:  route.query.code,
       nonce: route.query.state,
     });

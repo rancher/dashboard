@@ -18,6 +18,22 @@ export default {
   },
 
   methods: {
+    focus() {
+      const comp = this.$refs.value;
+
+      if ( comp ) {
+        comp.focus();
+      }
+    },
+
+    select() {
+      const comp = this.$refs.value;
+
+      if ( comp ) {
+        comp.select();
+      }
+    },
+
     onFocus() {
       this.onFocusLabeled();
       this.actualPlaceholder = `${ this.placeholder }`;
@@ -50,6 +66,8 @@ export default {
       </div>
       <TextAreaAutoGrow
         v-else-if="type === 'multiline'"
+        ref="value"
+        v-bind="$attrs"
         :value="value"
         :placeholder="actualPlaceholder"
         @input="$emit('input', $event)"
@@ -58,6 +76,7 @@ export default {
       />
       <input
         v-else
+        ref="value"
         v-bind="$attrs"
         :type="type"
         :value="value"

@@ -28,6 +28,12 @@ const LABEL = {
     waiting: 'Deleting&hellip;',
     success: 'Deleted',
     error:   'Error',
+  },
+  continue: {
+    action:  'Continue',
+    waiting: 'Saving&hellip;',
+    success: 'Saved',
+    error:   'Error',
   }
 };
 

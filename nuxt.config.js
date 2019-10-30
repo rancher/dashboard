@@ -39,7 +39,7 @@ console.log(`Steve: ${ steve }`);
 console.log(`Rancher: ${ rancher }`);
 
 if ( dev ) {
-  process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0;
+  process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
 }
 
 module.exports = {
@@ -73,6 +73,8 @@ module.exports = {
     //    extractCSS: true,
     cssSourceMap: true
   },
+
+  modern: 'client',
 
   generate: { dir: outputDir },
 
