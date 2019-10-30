@@ -1,6 +1,6 @@
 @import "../base/functions";
 
-$COLUMNS: 6 12 24;
+$COLUMNS: 6 11 12 23 24;
 $DEFAULT_COLUMNS: 12;
 $GUTTER: 1.75%;
 
@@ -24,7 +24,7 @@ $GUTTER: 1.75%;
 /* ROWS */
 .row {
   display: flex;
-  margin-bottom: 40px;
+  margin-bottom: 10px;
 }
 
 .row:before,

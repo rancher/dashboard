@@ -324,7 +324,10 @@ export default {
         opt.url = this.linkFor('self');
       }
 
-      opt.method = 'post';
+      if ( !opt.method ) {
+        opt.method = (this.id ? 'put' : 'post');
+      }
+
       opt.data = this;
 
       return this.$dispatch('request', opt);

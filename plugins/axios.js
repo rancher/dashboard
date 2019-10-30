@@ -1,5 +1,6 @@
 import https from 'https';
 import pkg from '../package.json';
+import { TIMED_OUT } from '@/config/query-params';
 
 export default function({
   $axios, isDev, route, redirect, req
@@ -22,9 +23,8 @@ export default function({
 
     const insecureAgent = new https.Agent({ rejectUnauthorized: false });
 
-    $axios.onRequest((config) => {
-      config.httpsAgent = insecureAgent;
-    });
+    $axios.defaults.httpsAgent = insecureAgent;
+    $axios.httpsAgent = insecureAgent;
 
     $axios.onError((error) => {
       const code = parseInt(error.response && error.response.status, 10);
@@ -33,7 +33,7 @@ export default function({
         if ( route.name === 'index' ) {
           redirect('/auth/login');
         } else {
-          redirect('/auth/login?timed-out');
+          redirect(`/auth/login?${ TIMED_OUT }`);
         }
       }
     });

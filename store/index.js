@@ -1,5 +1,5 @@
 import Norman from '@/plugins/norman';
-import { COUNT, NAMESPACE } from '~/config/types';
+import { COUNT, NAMESPACE, RANCHER } from '~/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
 
 export const plugins = [
@@ -55,6 +55,7 @@ export const actions = {
     await Promise.all([
       dispatch('prefs/loadCookies'),
       // ctx.store.dispatch('k8s/loadAll'),
+      dispatch('rancher/findAll', { type: RANCHER.PRINCIPAL, opt: { url: 'principals' } }),
       dispatch('cluster/loadSchemas'),
       dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
       dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })

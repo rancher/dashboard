@@ -49,7 +49,7 @@ const prefix = 'rd_';
 const options = {
   maxAge:   365 * 86400,
   path:     '/',
-  sameSite: true,
+  sameSite: false,
   secure:   true,
 };
 

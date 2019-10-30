@@ -36,18 +36,17 @@ export default {
       scaleStatus = {};
     }
 
-    const spec = (typeof this.spec.scale === 'undefined' ? 1 : this.spec.scale || 0);
-
-    // @TODO use only new fields after API changes
-    const global = (this.spec.global || (this.systemSpec && this.systemSpec.global)) === true;
-    const current = status.computedScale || scaleStatus.ready || 0;
-    const available = (scaleStatus.available || scaleStatus.ready || 0);
+    const spec = (typeof this.spec.replicas === 'undefined' ? 1 : this.spec.replicas || 0);
+    const global = this.spec.global === true;
+    const current = status.computedReplicas || 0;
+    const available = scaleStatus.available || 0;
     const unavailable = scaleStatus.unavailable || 0;
-
-    let desired = this._local.pendingScale >= 0 ? this._local.pendingScale : spec;
+    let desired = spec;
 
     if ( global ) {
       desired = current;
+    } else if ( this._local.pendingScale >= 0 ) {
+      desired = this._local.pendingScale;
     }
 
     const missing = desired - available - unavailable;

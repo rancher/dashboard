@@ -1,3 +1,4 @@
+import https from 'https';
 import { cloneDeep } from 'lodash';
 import { normalizeType } from './normalize';
 import { proxyFor, SELF } from './resource-proxy';
@@ -8,6 +9,8 @@ export default {
     // @TODO queue/defer duplicate requests
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
+
+    opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     return this.$axios(opt).then((res) => {
       let out = res.data;
@@ -44,7 +47,7 @@ export default {
       return out;
     }).catch((err) => {
       if ( process.client && err && err.response && err.response.status === 401 ) {
-        return dispatch('auth/logout', null, { root: true });
+        return dispatch('auth/logout', opt.logoutOnError, { root: true });
       }
 
       return Promise.reject(err);
