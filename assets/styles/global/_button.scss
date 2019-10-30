@@ -1,6 +1,6 @@
-$btn-padding: 8px 16px;
+$btn-padding: 15px 20px;
 $xs-padding: 2px 3px;
-$sm-padding: 5px 10px;
+$sm-padding: 8px 16px;
 $lg-padding: 18px 30px;
 
 // -----------------------------------------------------------------------------
@@ -30,6 +30,7 @@ button,
     color: var(--body-text);
   }
 }
+
 
 //icon button
 .icon-btn {
@@ -76,6 +77,29 @@ button,
     padding: $lg-padding;
     font-size: 1.2em;
 }
+
+//btn roles
+.role-primary {
+  background: var(--link-text);
+}
+
+.role-secondary {
+  background: transparent;
+  color: var(--link-text);
+  border: solid thin var(--link-text);
+}
+
+.role-tertiary {
+  background: var(--link-text);
+  padding: $sm-padding;
+}
+
+.role-link {
+  background: transparent;
+  color: var(--link-text);
+  padding: $sm-padding;
+}
+
 
 .icon-group i {
   font-size: 1.5em;

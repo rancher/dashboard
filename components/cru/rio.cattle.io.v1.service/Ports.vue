@@ -128,9 +128,6 @@ export default {
           <th class="hostPort">
             Host Port
           </th>
-          <th class="name">
-            Name
-          </th>
           <th v-if="showRemove" class="remove"></th>
         </tr>
       </thead>
@@ -212,15 +209,6 @@ export default {
               />
             </label>
           </td>
-          <td class="name">
-            <span v-if="isView">{{ row.name }}</span>
-            <input
-              v-else
-              v-model="row.name"
-              placeholder="e.g. web"
-              @input="queueUpdate"
-            />
-          </td>
           <td v-if="showRemove" class="remove">
             <button type="button" class="btn bg-transparent" @click="remove(idx)">
               Remove
@@ -230,7 +218,7 @@ export default {
       </tbody>
     </table>
     <div v-if="showAdd" class="footer">
-      <button type="button" class="btn bg-primary add" @click="add()">
+      <button type="button" class="btn role-tertiary add" @click="add()">
         <i class="icon icon-plus" />
         Add Port
       </button>
