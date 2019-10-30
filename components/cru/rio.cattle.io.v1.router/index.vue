@@ -61,7 +61,7 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import Route from '@/components/cru/rio.cattle.io.v1.router/Route';
 export default {
   name:       'CruRouter',
-  components: { Route, NameNsDescription },
+  // components: { Route, NameNsDescription },
   mixins:     [CreateEditView],
   data() {
     let routes = [];
@@ -108,13 +108,13 @@ export default {
 
 <template>
   <div>
-    <NameNsDescription :value="value" :mode="mode" />
+    <!-- <NameNsDescription :value="value" :mode="mode" />
     <button class="btn bg-primary" @click="addRouteSpec">
       add rule
     </button>
     <Route v-for="(route, i) in routes" :key="i" :spec="route" @input="e=>change('routes', e, i)" />
     <button @click="saveRouter">
       save
-    </button>
+    </button> -->
   </div>
 </template>

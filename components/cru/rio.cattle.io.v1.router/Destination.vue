@@ -1,4 +1,5 @@
 <script>
+import { filterBy } from '../../../utils/array';
 import { RIO, NAMESPACE } from '@/config/types';
 import LabeledInput from '@/components/form/LabeledInput';
 /*
@@ -36,6 +37,7 @@ export default {
       weight:     0,
     };
   },
+  // filterBy(ary, keyOrObj, val) {
   computed: {
     formatted() {
       return {
@@ -44,6 +46,11 @@ export default {
         port:      this.port,
         weight:    this.weight
       };
+    },
+    versions() {
+      const app = this.service.status.computedApp;
+
+      return filterBy(this.services, 'status.computedApp', app, );
     }
   },
   mounted() {
@@ -66,12 +73,10 @@ export default {
     },
     setService(service) {
       this.service = service;
-      this.updateDestination();
     },
     setNamespace(namespace) {
       this.namespace = namespace;
       this.getServices();
-      this.updateDestination();
     },
     updateDestination() {
       this.$emit('input', this.formatted );
@@ -108,6 +113,7 @@ export default {
         ></v-select>
       </div>
       <div v-if="service.metadata">
+        <v-select :options="versions" :get-option-label="option=>option.status.computedVersion" />
         <LabeledInput v-model="port" type="text" label="port" />
         <LabeledInput v-if="isWeighted" v-model="weight" type="text" label="weight" />
       </div>
