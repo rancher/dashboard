@@ -96,7 +96,6 @@ export default {
       console.log('done?');
     },
     saveRouter() {
-      console.log(this.routes);
       this.value.spec = { routes: this.routes };
       debugger;
       this.save(this.done);
@@ -123,5 +122,6 @@ export default {
     </button> -->
 
     <InputWithSelect :options="['Apples', 'Oranges']" :label="'a label'" @input="checkInput" />
+    <v-select :options="['Apples', 'Oranges']" class="inline" placeholder="'placeholder'" />
   </div>
 </template>
