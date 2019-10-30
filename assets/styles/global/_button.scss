@@ -79,28 +79,27 @@ button,
 }
 
 //btn roles
-.btn {
-  .role-primary {
-    background: var(--link-text);
-  }
-  
-  .role-secondary {
-    background: transparent;
-    color: var(--link-text);
-    border: solid thin var(--link-text);
-  }
-  
-  .role-tertiary {
-    background: var(--link-text);
-    padding: $sm-padding;
-  }
-  
-  .role-link {
-    background: transparent;
-    color: var(--link-text);
-    padding: $sm-padding;
-  }
+.role-primary {
+  background: var(--link-text);
 }
+
+.role-secondary {
+  background: transparent;
+  color: var(--link-text);
+  border: solid thin var(--link-text);
+}
+
+.role-tertiary {
+  background: var(--link-text);
+  padding: $sm-padding;
+}
+
+.role-link {
+  background: transparent;
+  color: var(--link-text);
+  padding: $sm-padding;
+}
+
 
 .icon-group i {
   font-size: 1.5em;

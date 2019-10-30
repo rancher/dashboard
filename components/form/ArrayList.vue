@@ -224,7 +224,7 @@ export default {
     </table>
     <div v-if="showAdd || showRead" class="footer">
       <slot v-if="showAdd" name="add">
-        <button type="button" class="btn bg-primary add" @click="add()">
+        <button type="button" class="btn role-tertiary add" @click="add()">
           <i v-if="addIcon" :class="{'icon': true, [addIcon]: true}" />
           {{ addLabel }}
         </button>
