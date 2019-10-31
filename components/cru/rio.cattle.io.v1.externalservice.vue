@@ -8,9 +8,10 @@ import LabeledInput from '@/components/form/LabeledInput';
 import ArrayList from '@/components/form/ArrayList';
 import Footer from '@/components/form/Footer';
 import { RIO } from '@/config/types';
+import { groupAndFilterOptions } from '@/utils/group';
 
 export default {
-  name: 'CruConfigMap',
+  name: 'CruExternalService',
 
   components: {
     Loading,
@@ -31,20 +32,49 @@ export default {
       this.value.spec = spec;
     }
 
+    if ( !spec.ipAddresses ) {
+      spec.ipAddresses = [];
+    }
+
     if ( spec.ipAddresses.length ) {
       kind = 'ip';
     } else if ( spec.fqdn ) {
       kind = 'fqdn';
     }
 
-    if ( spec.targetServiceNamespace && spec.targetServiceName ) {
+    let targetService = null;
 
+    if ( spec.targetServiceNamespace && spec.targetServiceName ) {
+      targetService = `${ spec.targetServiceNamespace }/${ spec.targetServiceName }`;
+    }
+
+    if ( typeof window !== 'undefined' ) {
+      window.v = this.value;
     }
 
     return {
       kind,
-      allServices: null
+      allServices: null,
+      targetService,
+      ipAddresses: spec.ipAddresses,
+      fqdn:        spec.fqdn,
     };
+  },
+
+  computed: {
+    serviceOptions() {
+      return groupAndFilterOptions(this.allServices);
+    },
+  },
+
+  watch: {
+    kind() {
+      this.update();
+    },
+
+    targetService() {
+      this.update();
+    }
   },
 
   methods: {
@@ -53,7 +83,33 @@ export default {
 
       this.allServices = services;
     },
-  }
+
+    update() {
+      const spec = this.value.spec;
+
+      spec.targetServiceNamespace = null;
+      spec.targetServiceName = null;
+      spec.ipAddresses = null;
+      spec.fqdn = null;
+
+      switch ( this.kind ) {
+      case 'service':
+        if ( this.targetService ) {
+          const [namespace, name] = this.targetService.split('/', 2);
+
+          spec.targetServiceNamespace = namespace;
+          spec.targetServiceName = name;
+        }
+        break;
+      case 'ip':
+        spec.ipAddresses = this.ipAddresses;
+        break;
+      case 'fqdn':
+        spec.fqdn = this.fqdn;
+        break;
+      }
+    }
+  },
 };
 </script>
 
@@ -70,7 +126,8 @@ export default {
       />
 
       <div class="row">
-        <div class="col span-4">
+        <div class="col span-12">
+          <h4>Target</h4>
           <div>
             <label class="radio">
               <input v-model="kind" type="radio" value="service" /> Another service
@@ -87,15 +144,26 @@ export default {
             </label>
           </div>
         </div>
-
-        <div v-if="kind === 'service'" class="col span-8">
+      </div>
+      <div class="row">
+        <div v-if="kind === 'service'" class="col span-6">
+          <select v-model="targetService">
+            <option disabled value="">
+              Select a Service...
+            </option>
+            <optgroup v-for="grp in serviceOptions" :key="grp.group" :label="grp.group">
+              <option v-for="opt in grp.items" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
+            </optgroup>
+          </select>
         </div>
-        <div v-if="kind === 'fqdn'" class="col span-8">
-          <LabeledInput v-model="value.spec.fqdn" label="DNS FQDN" />
+        <div v-if="kind === 'fqdn'" class="col span-6">
+          <LabeledInput v-model="fqdn" label="DNS FQDN" @input="update" />
         </div>
-        <div v-if="kind === 'ip'" class="col span-8">
+        <div v-if="kind === 'ip'" class="col span-6">
           <ArrayList
-            v-model="spec.ipAddresses"
+            v-model="ipAddresses"
             title="IP Addresses"
             value-placeholder="e.g. 1.1.1.1"
             add-label="Add Address"
@@ -103,6 +171,7 @@ export default {
             :mode="mode"
             :pad-left="false"
             :protip="false"
+            @input="update"
           />
         </div>
       </div>

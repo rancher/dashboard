@@ -3,7 +3,7 @@ import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
 import { eachLimit } from '~/utils/promise';
 import { MODE, _EDIT, EDIT_YAML, _FLAGGED } from '@/config/query-params';
-import { TO_FRIENDLY } from '@/pages/rio/_resource';
+import { TO_FRIENDLY } from '@/config/friendly';
 import { findBy } from '@/utils/array';
 
 const REMAP_STATE = { disabled: 'inactive' };

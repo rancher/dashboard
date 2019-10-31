@@ -1,7 +1,7 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceYaml from '@/components/ResourceYaml';
-import { FRIENDLY } from '@/pages/rio/_resource/index';
+import { FRIENDLY } from '@/config/friendly';
 import {
   MODE, _VIEW, _EDIT, EDIT_YAML, _FLAGGED
 } from '@/config/query-params';

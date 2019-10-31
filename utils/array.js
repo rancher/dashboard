@@ -149,39 +149,3 @@ export function uniq(ary) {
 
   return out;
 }
-
-/*
-export function groupAndFilterBy(ary, filterValue, filterKey='metadata.namespace', groupKey='metadata.namespace', labelKey='nameDisplay' prefix='Namespace: ') {
-  let matching;
-
-  if ( filterKey && filterValue ) {
-    matching = filterBy((ary || []), filterKey, filterValue);
-  } else {
-    matching = ary;
-  }
-
-  const out = [];
-
-  for ( const match of matching ) {
-    const value = get(match, groupKey);
-    const items = [];
-
-    for ( const k of Object.keys(item.data || {}) ) {
-      keys.push({ label: k, value: `${ name }/${ k }` });
-    }
-
-    for ( const k of Object.keys(item.binaryData || {}) ) {
-      keys.push({ label: k, value: `${ name }/${ k }` });
-    }
-
-    if ( keys.length ) {
-      out.push({
-        group: item.metadata.name,
-        items: keys
-      });
-    }
-  }
-
-  return out;
-}
-*/
