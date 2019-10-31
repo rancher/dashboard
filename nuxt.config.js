@@ -217,6 +217,7 @@ function onProxyReqWs(proxyReq, req, socket, options, head) {
   req.headers.origin = options.target.href;
   proxyReq.setHeader('origin', options.target.href);
   proxyReq.setHeader('x-api-host', req.headers['host']);
+  // console.log(proxyReq.getHeaders());
 
   socket.on('error', (err) => {
     console.error('Proxy WS Error:', err);

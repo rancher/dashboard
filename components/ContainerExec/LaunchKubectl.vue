@@ -1,11 +1,15 @@
 <script>
-import { mapState, mapGetters } from 'vuex';
-import { POD, NAMESPACE } from '@/config/types';
+import { mapGetters } from 'vuex';
+import { POD, NAMESPACE, RANCHER } from '@/config/types';
 
 export default {
   computed:   {
-    ...mapState('auth', ['principal']),
     ...mapGetters('cluster', ['urlFor', 'schemaFor', 'kubeUrlFor']),
+
+    principal() {
+      return this.$store.getters['rancher/byId'](RANCHER.PRINCIPAL, this.$store.getters['auth/principalId']);
+    },
+
     podConfig() {
       const config = {
         apiVersion: 'v1',
@@ -14,10 +18,11 @@ export default {
         spec:       {
           containers: [
             {
-              name:            'ubuntu-xenial',
+              name:            'shell',
               image:           'ubuntu:xenial',
               imagePullPolicy: 'Always',
-              stdin:           true
+              stdin:           true,
+              tty:             true,
             }
           ]
         }
@@ -25,15 +30,15 @@ export default {
 
       return config;
     },
+
     expectedPodName() {
       const regex = new RegExp(/[^a-zA-Z0-9\.-]/g);
-      const userName = this.principal.name.toLowerCase().replace(regex, '-' );
-      // TODO make pod different clusters
-      const cluster = 'local';
+      const userName = (this.principal.loginName || this.principal.name).toLowerCase().replace(regex, '-' );
 
-      return `manage-${ cluster }-${ userName }`;
+      return `shell-${ userName }`;
     },
   },
+
   methods:    {
     async findPod() {
       let pod;
@@ -46,6 +51,7 @@ export default {
 
       return pod;
     },
+
     async makePod() {
       let pod;
       const ns = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: 'default' });
@@ -54,7 +60,8 @@ export default {
 
       try {
         pod = await this.$store.dispatch('cluster/create', this.podConfig);
-        pod.save({ url });
+        await pod.save({ url });
+        await pod.waitForCondition('Ready', 'True');
       } catch (err) {
         console.error(err);
       } finally {
@@ -62,6 +69,7 @@ export default {
         return this.findPod();
       }
     },
+
     async openModal() {
       const resource = await this.findPod();
 
@@ -69,7 +77,6 @@ export default {
     }
   }
 };
-
 </script>
 
 <template>

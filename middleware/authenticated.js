@@ -5,25 +5,18 @@ import { SETUP } from '@/config/query-params';
 export default async function({
   route, app, store, redirect
 }) {
-  console.log('1');
   if ( store.getters['auth/principal'] || route.name === 'auth-setup' ) {
-    console.log('2');
-
     return;
   }
-  console.log('3');
 
   const initialPass = route.query[SETUP];
 
   if ( initialPass ) {
     const ok = await tryInitialSetup(store, initialPass);
 
-    console.log('4');
     if ( ok ) {
-      console.log('5');
       redirect(302, `/auth/setup?${ SETUP }=${ escape(initialPass) }`);
     } else {
-      console.log('6');
       redirect(302, '/auth/login');
     }
   }
