@@ -3,8 +3,9 @@ import { randomStr } from '@/utils/string';
 import LabeledInput from '@/components/form/LabeledInput';
 import CopyToClipboard from '@/components/CopyToClipboard';
 import AsyncButton from '@/components/AsyncButton';
-import { SETUP, _DELETE } from '@/config/query-params';
+import { SETUP, STEP, _DELETE } from '@/config/query-params';
 import { RANCHER } from '@/config/types';
+import { open, popupWindowOptions } from '@/utils/window';
 
 export default {
   layout: 'plain',
@@ -55,30 +56,60 @@ export default {
       opt:  { url: '/v3/settings/telemetry-opt' }
     });
 
+    const githubConfig = await store.dispatch('rancher/find', {
+      type: RANCHER.AUTH_CONFIG,
+      id:   'github',
+      opt:  { url: '/v3/authConfigs/github' }
+    });
+
+    let origin;
     let serverUrl = serverUrlSetting.value;
 
+    if ( process.server ) {
+      origin = req.headers.host;
+    } else {
+      origin = window.location.origin;
+    }
+
     if ( !serverUrl ) {
-      if ( process.server ) {
-        serverUrl = req.headers.host;
-      } else {
-        serverUrl = window.location.origin;
-      }
+      serverUrl = origin;
     }
 
     const telemetry = telemetrySetting.value !== 'out';
 
+    const kind = githubConfig.hostname && githubConfig.hostname !== 'github.com' ? 'enterprise' : 'public' ;
+
+    const clientId = githubConfig.clientId;
+    /*
+    const mapping = githubConfig.hostnameToClientId;
+    if ( mapping && mapping[origin] ) {
+
+    }
+    */
+
     return {
       step:        parseInt(route.query.step, 10) || 1,
+
       useRandom:   true,
       haveCurrent: !!current,
       username:    'admin',
       current,
       password,
       confirm:     '',
+
       serverUrl,
       serverUrlSetting,
+
       telemetry,
       telemetrySetting,
+
+      githubConfig,
+      kind,
+      clientId,
+      clientSecret: githubConfig.clientSecret || '',
+      hostname:     githubConfig.hostname || 'github.com',
+      tls:          kind === 'public' || githubConfig.tls,
+      githubError:  null,
     };
   },
 
@@ -104,10 +135,12 @@ export default {
           },
         });
 
-        this.$router.applyQuery({ [SETUP]: _DELETE });
-
         buttonCb(true);
         this.step = 2;
+        this.$router.applyQuery({
+          [SETUP]: _DELETE,
+          [STEP]:  this.step,
+        });
       } catch (err) {
         buttonCb(false);
       }
@@ -123,13 +156,81 @@ export default {
 
         buttonCb(true);
         this.step = 3;
+        this.$router.applyQuery({ [STEP]: this.step });
       } catch (err) {
         console.log(err);
         buttonCb(false);
       }
     },
 
-    finishGithub(buttonCb) {
+    async testGithub(buttonCb) {
+      try {
+        this.githubError = null;
+
+        const c = this.githubConfig;
+
+        c.clientId = this.clientId;
+        c.clientSecret = this.clientSecret;
+        c.enabled = true;
+        c.allowedPrincipalIds = c.allowedPrincipalIds || [];
+
+        if ( this.kind === 'public' ) {
+          c.hostname = 'github.com';
+          c.tls = true;
+          c.accessMode = 'restricted';
+        } else {
+          c.accessMode = c.accessMode || 'unrestricted';
+          c.tls = this.tls;
+        }
+
+        const waitForTest = new Promise(async(resolve, reject) => {
+          window.onAuthTest = (err, code) => {
+            if ( err ) {
+              return reject(err);
+            }
+
+            resolve(code);
+          };
+
+          window.authTestConfig = c;
+
+          await c.doAction('configureTest', c);
+
+          const url = await this.$store.dispatch('auth/redirectToGithub', { test: true, returnUrl: true });
+          const popup = open(url, 'auth-test', popupWindowOptions());
+
+          const timer = setInterval(() => {
+            if ( popup && popup.closed ) {
+              clearInterval(timer);
+
+              return reject(new Error('Access was not authorized'));
+            } else if ( popup === null || popup === undefined ) {
+              clearInterval(timer);
+
+              return reject(new Error('Please disable your popup blocker for this site'));
+            }
+          });
+        });
+
+        const code = await waitForTest;
+
+        await c.doAction('testAndApply', {
+          code,
+          enabled:      true,
+          githubConfig: c,
+          description:  'Initial setup session',
+        });
+
+        buttonCb(true);
+        this.step = 4;
+        this.$router.applyQuery({ [STEP]: this.step });
+      } catch (e) {
+        buttonCb(false);
+        this.githubError = e;
+      }
+    },
+
+    skipGithub() {
       this.$router.replace('/');
     },
   },
@@ -187,7 +288,7 @@ export default {
           >
             <template v-if="useRandom" #suffix>
               <div class="addon">
-                <CopyToClipboard :text="password" stlye="display: inline;" />
+                <CopyToClipboard :text="password" :show-label="false" />
               </div>
             </template>
           </LabeledInput>
@@ -211,7 +312,7 @@ export default {
 
       <div class="row mt-20">
         <div class="col span-6 offset-3 text-center" style="font-size: 24pt">
-          <AsyncButton mode="continue" :disabled="passwordSubmitDisabled" @click="finishPassword" />
+          <AsyncButton key="passwordSubmit" mode="continue" :disabled="passwordSubmitDisabled" @click="finishPassword" />
         </div>
       </div>
     </div>
@@ -254,7 +355,7 @@ export default {
 
       <div class="row mt-20">
         <div class="col span-6 offset-3 text-center" style="font-size: 24pt">
-          <AsyncButton mode="continue" :disabled="serverSubmitDisabled" @click="finishServerSettings" />
+          <AsyncButton key="serverSubmit" mode="continue" :disabled="serverSubmitDisabled" @click="finishServerSettings" />
         </div>
       </div>
     </div>
@@ -273,10 +374,93 @@ export default {
       </div>
 
       <div class="row mt-20">
-        <div class="col span-6 offset-3 text-center" style="font-size: 24pt">
-          <AsyncButton mode="continue" :disabled="serverSubmitDisabled" @click="finishGithub" />
+        <div class="col span-6 offset-3">
+          <div>
+            <label class="radio">
+              <input
+                v-model="kind"
+                type="radio"
+                value="public"
+              > Use public GitHub.com
+            </label>
+          </div>
+          <div>
+            <label class="radio">
+              <input
+                v-model="kind"
+                type="radio"
+                value="enterprise"
+              > Use a private GitHub Enterprise installation
+            </label>
+          </div>
         </div>
       </div>
+
+      <div class="row mt-20">
+        <div class="col span-6 offset-3">
+          Create an <a v-if="kind === 'public'" href="https://github.com/settings/developers" target="_blank" rel="nofollow noopener no">OAuth App</a>
+          <span v-else>OAuth App</span>
+          with <code>{{ serverUrl }}</code> <CopyToClipboard :text="serverUrl" :show-label="false" />
+          as the Homepage and Authorization callback URLs.
+          Then copy the Client ID and Client Secret from the new app and fill them in here:
+        </div>
+      </div>
+
+      <div v-if="kind === 'enterprise'" class="row mt-20">
+        <div class="col span-6 offset-3">
+          <LabeledInput
+            ref="hostname"
+            v-model.trim="hostname"
+            autocomplete="off"
+            label="GitHub Enterprise Hostname"
+          />
+          <div>
+            <label><input v-model="tls" type="checkbox" /> Use TLS (https://) connection</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-20">
+        <div class="col span-6 offset-3">
+          <LabeledInput
+            ref="clientId"
+            v-model.trim="clientId"
+            autocomplete="off"
+            label="GitHub Client ID"
+          />
+        </div>
+      </div>
+
+      <div class="row mt-20">
+        <div class="col span-6 offset-3">
+          <LabeledInput
+            ref="clientSecret"
+            v-model.trim="clientSecret"
+            type="password"
+            autocomplete="off"
+            label="GitHub Client Secret"
+          />
+        </div>
+      </div>
+
+      <div v-if="githubError" class="row mt-20">
+        <div class="col span-6 offset-3 text-center text-error">
+          {{ githubError }}
+        </div>
+      </div>
+
+      <div class="row mt-20">
+        <div class="col span-6 offset-3 text-center" style="font-size: 24pt">
+          <button type="button" class="btn bg-default" @click="skipGithub">
+            Skip
+          </button>
+          <AsyncButton key="githubSubmit" mode="continue" :disabled="serverSubmitDisabled" @click="testGithub" />
+        </div>
+      </div>
+    </div>
+
+    <div v-if="step === 4">
+      Allowed Principals...
     </div>
   </form>
 </template>

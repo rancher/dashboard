@@ -68,9 +68,9 @@ export function addObject(ary, obj) {
 export function addObjects(ary, objs) {
   const unique = [];
 
-  for ( let i = 0 ; i < objs.length ; i++ ) {
-    if ( !ary.includes(objs[i]) ) {
-      unique.push(objs[i]);
+  for ( const obj of objs ) {
+    if ( !ary.includes(obj) && !unique.includes(obj) ) {
+      unique.push(obj);
     }
   }
 
@@ -140,4 +140,12 @@ export function findBy(ary, keyOrObj, val) {
 
 export function sameContents(aryA, aryB) {
   return xor(aryA, aryB).length === 0;
+}
+
+export function uniq(ary) {
+  const out = [];
+
+  addObjects(out, ary);
+
+  return out;
 }

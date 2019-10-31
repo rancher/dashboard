@@ -175,7 +175,7 @@ export default {
       <div class="row">
         <div class="col span-12">
           <LabeledInput
-            v-model="httpGet.port"
+            v-model.number="httpGet.port"
             type="number"
             min="1"
             max="65535"
@@ -214,7 +214,7 @@ export default {
 
     <div v-if="kind === 'tcp'">
       <LabeledInput
-        v-model="tcpSocket.port"
+        v-model.number="tcpSocket.port"
         type="number"
         min="1"
         max="65535"

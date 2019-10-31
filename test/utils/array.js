@@ -4,13 +4,14 @@ import {
   removeObject, removeObjects, removeAt, clear,
   isArray,
   filterBy, findBy,
-  sameContents
+  sameContents, uniq
 } from '@/utils/array';
 
 const obj1 = { foo: 'bar' };
 const obj2 = { foo: 'baz', bar: false };
 const obj3 = { foo: 'bat', baz: 'bat' };
 const obj4 = { foo: 'qux', bar: true };
+const obj5 = { cat: 'hat' };
 
 test('addObject', (t) => {
   const ary = [];
@@ -36,6 +37,9 @@ test('addObjects', (t) => {
 
   addObjects(ary, [obj1, obj4]);
   t.deepEqual(ary, [obj1, obj2, obj3, obj4], "Doesn't add duplicates");
+
+  addObjects(ary, [obj5, obj5, obj5]);
+  t.deepEqual(ary, [obj1, obj2, obj3, obj4, obj5], 'Even in the new object list');
 });
 
 test('removeObject', (t) => {
@@ -207,4 +211,12 @@ test('sameContents', (t) => {
   b = [obj1, obj2, obj3];
 
   t.false(sameContents(a, b), 'Says different lengths are not the same');
+});
+
+test('uniq', (t) => {
+  const a = [obj1, obj2, obj1, obj2, obj2];
+  const b = uniq(a);
+
+  t.not(a, b, 'Returns a new array');
+  t.deepEqual(b, [obj1, obj2], 'Removes duplicates');
 });

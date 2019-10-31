@@ -25,10 +25,11 @@ export const RIO = {
 };
 
 export const RANCHER = {
-  PRINCIPAL:  'principal',
-  USER:       'user',
-  PREFERENCE: 'preference',
-  SETTING:    'setting',
+  AUTH_CONFIG: 'authconfig',
+  PRINCIPAL:   'principal',
+  USER:        'user',
+  PREFERENCE:  'preference',
+  SETTING:     'setting',
 };
 
 export const ANNOTATION = {

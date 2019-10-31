@@ -1,7 +1,8 @@
 import { parse as setCookieParser } from 'set-cookie-parser';
 import { randomStr } from '@/utils/string';
-import { addParams } from '@/utils/url';
-import { findBy } from '@/utils/array';
+import { parse as parseUrl, addParam, addParams } from '@/utils/url';
+import { findBy, addObjects } from '@/utils/array';
+import { SPA, AUTH_TEST, _FLAGGED } from '@/config/query-params';
 
 const KEY = 'rc_nonce';
 const BASE_SCOPES = ['read:user', 'read:org', 'user:email'];
@@ -53,14 +54,27 @@ export const actions = {
     }, { root: true });
   },
 
+  getAuthConfigs({ dispatch }) {
+    return dispatch('rancher/findAll', {
+      type: 'authConfig',
+      opt:  { url: `/v3/authConfigs` }
+    }, { root: true });
+  },
+
   async getAuthProvider({ dispatch }, id) {
-    const authConfigs = await dispatch('getAuthProviders');
+    const authProviders = await dispatch('getAuthProviders');
+
+    return findBy(authProviders, 'id', id);
+  },
+
+  async getAuthConfig({ dispatch }, id) {
+    const authConfigs = await dispatch('getAuthConfigs');
 
     return findBy(authConfigs, 'id', id);
   },
 
   async redirectToGithub({ state, commit, dispatch }, opt = {}) {
-    const authConfig = await dispatch('getAuthProvider', 'github');
+    const authProvider = await dispatch('getAuthProvider', 'github');
 
     const nonce = randomStr(16);
 
@@ -70,23 +84,39 @@ export const actions = {
       secure:   true,
     });
 
-    const scopes = BASE_SCOPES.slice();
+    const scope = BASE_SCOPES.slice();
 
-    if ( opt && opt.scopes ) {
-      scopes.push(...opt.scopes);
+    if ( opt.scopes ) {
+      addObjects(scope, opt.scopes);
     }
 
     if (!opt.route) {
       opt.route = '/auth/verify';
     }
 
-    const url = addParams(authConfig.redirectUrl, {
-      scope:        [...BASE_SCOPES, ...scopes].join(','),
-      redirect_uri: `${ window.location.origin }${ opt.route }${ (window.location.search || '').includes('spa') ? '?spa' : '' }`,
+    let redirectUri = `${ window.location.origin }${ opt.route }`;
+
+    const parsed = parseUrl(window.location.href);
+
+    if ( parsed.query.spa !== undefined ) {
+      redirectUri = addParam(redirectUri, SPA, _FLAGGED);
+    }
+
+    if ( opt.test ) {
+      redirectUri = addParam(redirectUri, AUTH_TEST, _FLAGGED);
+    }
+
+    const url = addParams(authProvider.redirectUrl, {
+      scope,
+      redirect_uri: redirectUri,
       state:        nonce
     });
 
-    window.location.href = url;
+    if ( opt.returnUrl ) {
+      return url;
+    } else {
+      window.location.href = url;
+    }
   },
 
   verifyGithub({ dispatch }, { nonce, code }) {
@@ -102,11 +132,27 @@ export const actions = {
     });
   },
 
+  async testGithub({ dispatch }, { nonce, code, config }) {
+    const expect = this.$cookies.get(KEY, { parseJSON: false });
+
+    if ( !expect || expect !== nonce ) {
+      return ERR_NONCE;
+    }
+
+    const authConfig = await dispatch('getAuthConfig', 'github');
+
+    await authConfig.doAction('testAndApply', {
+      code,
+      enabled:      true,
+      githubConfig: config
+    });
+  },
+
   async login({ dispatch }, { provider, body }) {
-    const authConfig = await dispatch('getAuthProvider', provider);
+    const authProvider = await dispatch('getAuthProvider', provider);
 
     try {
-      const res = await authConfig.doAction('login', {
+      const res = await authProvider.doAction('login', {
         description:  'Dashboard UI session',
         responseType: 'cookie',
         ttl:          16 * 60 * 60 * 1000,

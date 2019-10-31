@@ -9,6 +9,11 @@ export default {
       type:     String,
       required: true,
     },
+
+    showLabel: {
+      type:    Boolean,
+      default: true,
+    }
   },
 
   methods: {
@@ -26,6 +31,7 @@ export default {
 <template>
   <AsyncButton
     icon="icon-copy"
+    :show-label="showLabel"
     action-label="Copy to Clipboard"
     waiting-label="Copying..."
     success-label="Copied!"
