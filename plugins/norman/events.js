@@ -88,36 +88,14 @@ export default {
     console.log('Resource stop:', msg.resourceType);
   },
 
-  'ws.resource.create'(ctx, { data }) {
-    const { getters, commit } = ctx;
-    const type = getters.normalizeType(data.type);
-
-    if ( !getters.hasType(type) ) {
-      commit('registerType', type);
-    }
-
+  'ws.resource.create'({ dispatch }, { data }) {
     console.log('Create', data.type, data.id);
-    commit('load', {
-      ctx,
-      type,
-      resource: data,
-    });
+    dispatch('load', data);
   },
 
-  'ws.resource.change'(ctx, { data }) {
-    const { getters, commit } = ctx;
-    const type = getters.normalizeType(data.type);
-
-    if ( !getters.hasType(type) ) {
-      commit('registerType', type);
-    }
-
+  'ws.resource.change'({ dispatch }, { data }) {
     // console.log('Change', data.type, data.id);
-    commit('load', {
-      ctx,
-      type,
-      resource: data
-    });
+    dispatch('load', data);
   },
 
   'ws.resource.remove'({ getters, commit }, { data }) {
@@ -125,7 +103,11 @@ export default {
 
     if ( getters.hasType(type) ) {
       console.log('Remove', data.type, data.id);
-      commit('remove', { type, id: data.id });
+      const obj = getters.byId(data.type, data.id);
+
+      if ( obj ) {
+        commit('remove', obj);
+      }
     }
   },
 };

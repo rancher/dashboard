@@ -57,39 +57,51 @@ export default {
   },
 
   load(state, { resource, ctx }) {
-    const type = normalizeType(resource.type);
+    let type = normalizeType(resource.type);
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
     const id = resource[keyField];
-    const cache = state.types[type];
-    const entry = cache.map.get(id);
+    let cache = state.types[type];
+    let entry = cache.map.get(id);
 
     if ( entry ) {
       Object.assign(entry, resource);
-
-      return entry;
     } else {
-      const proxy = proxyFor(ctx, resource);
+      entry = proxyFor(ctx, resource);
 
-      addObject(cache.list, proxy);
-      cache.map.set(id, proxy);
+      addObject(cache.list, entry);
+      cache.map.set(id, entry);
+    }
 
-      return proxy;
+    if ( resource.baseType ) {
+      type = normalizeType(resource.baseType);
+      cache = state.types[type];
+      if ( cache ) {
+        addObject(cache.list, entry);
+        cache.map.set(id, entry);
+      }
     }
   },
 
-  remove(state, { type, id }) {
-    type = normalizeType(type);
-    const entry = state.types[type];
+  remove(state, obj) {
+    let type = normalizeType(obj.type);
+    const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
+    const id = obj[keyField];
 
-    if ( !entry ) {
-      return;
-    }
+    let entry = state.types[type];
 
-    const obj = entry.map.get(id);
-
-    if ( obj ) {
+    if ( entry ) {
       removeObject(entry.list, obj);
       entry.map.delete(id);
+    }
+
+    if ( obj.baseType ) {
+      type = normalizeType(obj.baseType);
+      entry = state.types[type];
+
+      if ( entry ) {
+        removeObject(entry.list, obj);
+        entry.map.delete(id);
+      }
     }
   }
 };

@@ -41,7 +41,7 @@ export default {
   props: {
     mode: {
       type:    String,
-      default: 'save',
+      default: 'edit',
     },
     delay: {
       type:    Number,
@@ -102,6 +102,10 @@ export default {
     icon: {
       type:    String,
       default: null,
+    },
+    showLabel: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -186,6 +190,6 @@ export default {
   >
     <i v-if="isSpinning" class="icon icon-spinner icon-spin mr-5" />
     <i v-else-if="icon" :class="{icon: true, [icon]: true, 'mr-5': true}" />
-    <span v-html="label" />
+    <span v-show="showLabel" v-html="label" />
   </button>
 </template>

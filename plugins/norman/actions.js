@@ -124,10 +124,10 @@ export default {
 
     console.log('Find', type, id);
 
-    const existing = getters.byId(type, id);
+    let out = getters.byId(type, id);
 
-    if ( existing ) {
-      return existing;
+    if ( out ) {
+      return out;
     }
 
     opt = opt || {};
@@ -139,15 +139,35 @@ export default {
       commit('registerType', type);
     }
 
+    await dispatch('load', res);
+
+    out = getters.byId(type, id);
+
+    return out;
+  },
+
+  load(ctx, resource) {
+    const { getters, commit } = ctx;
+
+    let type = normalizeType(resource.type);
+
+    if ( !getters.hasType(type) ) {
+      commit('registerType', type);
+    }
+
+    if ( resource.baseType && resource.baseType !== resource.type ) {
+      type = normalizeType(resource.baseType);
+
+      if ( !getters.hasType(type) ) {
+        commit('registerType', type);
+      }
+    }
+
     commit('load', {
       ctx,
       type,
-      resource: res,
+      resource
     });
-
-    const neu = getters.byId(type, id);
-
-    return neu;
   },
 
   create(ctx, data) {

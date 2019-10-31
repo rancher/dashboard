@@ -74,7 +74,7 @@ module.exports = {
     cssSourceMap: true
   },
 
-  modern: 'client',
+  modern: true,
 
   generate: { dir: outputDir },
 
