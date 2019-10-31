@@ -84,10 +84,10 @@ export const actions = {
       secure:   true,
     });
 
-    const scope = BASE_SCOPES.slice();
+    const scopes = BASE_SCOPES.slice();
 
     if ( opt.scopes ) {
-      addObjects(scope, opt.scopes);
+      addObjects(scopes, opt.scopes);
     }
 
     if (!opt.route) {
@@ -107,7 +107,7 @@ export const actions = {
     }
 
     const url = addParams(authProvider.redirectUrl, {
-      scope,
+      scope:        scopes.join(','),
       redirect_uri: redirectUri,
       state:        nonce
     });

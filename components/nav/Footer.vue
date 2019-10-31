@@ -13,12 +13,12 @@ export default {
 <template>
   <div class="footer">
     <div>{{ version }}</div>
-    <div><a href="#">Docs</a></div>
-    <div><a href="#">Forums</a></div>
-    <div><a href="#">Slack</a></div>
-    <div><a href="#">File an Issue</a></div>
+    <div><a href="https://github.com/rancher/rio" target="_blank">Docs</a></div>
+    <div><a href="https://forums.rancher.com/c/rio" target="_blank">Forums</a></div>
+    <div><a href="https://slack.rancher.io" target="_blank">Slack</a></div>
+    <div><a href="https://github.com/rancher/rio/issues/new" target="_blank">File an Issue</a></div>
     <div class="space" />
-    <div><a href="#">Download CLI</a></div>
+    <div><a href="https://github.com/rancher/rio#quick-start" target="_blank">Download CLI</a></div>
   </div>
 </template>
 

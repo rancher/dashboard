@@ -40,6 +40,8 @@ export function proxyFor(ctx, obj, isClone = false) {
         name = 'toString';
       } else if ( typeof name !== 'string' ) {
         return target[name];
+      } else if ( name === '__proto__' ) {
+        return function() {};
       }
 
       /*
@@ -72,12 +74,16 @@ export function proxyFor(ctx, obj, isClone = false) {
         fn = ResourceInstance[name];
       }
 
-      if ( fn ) {
+      if ( fn && fn.call ) {
         return fn.call(proxy);
       }
 
       return target[name];
     },
+
+    getPrototypeOf() {
+      return model;
+    }
   });
 
   return proxy;

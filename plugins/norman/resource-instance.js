@@ -4,11 +4,15 @@ import { ucFirst } from '@/utils/string';
 import { eachLimit } from '~/utils/promise';
 import { MODE, _EDIT, EDIT_YAML, _FLAGGED } from '@/config/query-params';
 import { TO_FRIENDLY } from '@/pages/rio/_resource';
+import { findBy } from '@/utils/array';
 
 const REMAP_STATE = { disabled: 'inactive' };
 
 const DEFAULT_COLOR = 'warning';
 const DEFAULT_ICON = 'x';
+
+const DEFAULT_WAIT_INTERVAL = 1000;
+const DEFAULT_WAIT_TMIMEOUT = 30000;
 
 const STATES = {
   active:   { color: 'success', icon: 'dot-open' },
@@ -146,6 +150,98 @@ export default {
     // @TODO unknown
     return 'active';
   },
+
+  // ------------------------------------------------------------------
+
+  waitForTestFn() {
+    return (fn, msg, timeoutMs, intervalMs) => {
+      console.log('Wait for', msg);
+
+      if ( !timeoutMs ) {
+        timeoutMs = DEFAULT_WAIT_TMIMEOUT;
+      }
+
+      if ( !intervalMs ) {
+        intervalMs = DEFAULT_WAIT_INTERVAL;
+      }
+
+      return new Promise((resolve, reject) => {
+        // Do a first check immediately
+        if ( fn.apply(this) ) {
+          console.log('Wait for', msg, 'done immediately');
+          resolve(this);
+        }
+
+        const timeout = setTimeout(() => {
+          console.log('Wait for', msg, 'timed out');
+          clearInterval(interval);
+          clearTimeout(timeout);
+          reject(new Error(`Failed while: ${ msg }`));
+        }, timeoutMs);
+
+        const interval = setInterval(() => {
+          if ( fn.apply(this) ) {
+            console.log('Wait for', msg, 'done');
+            clearInterval(interval);
+            clearTimeout(timeout);
+            resolve(this);
+          } else {
+            console.log('Wait for', msg, 'not done yet');
+          }
+        }, intervalMs);
+      });
+    };
+  },
+
+  waitForState() {
+    return (state, timeout, interval) => {
+      return this.waitForTestFn(() => {
+        return this.stateRelevant === state;
+      }, `Wait for state=${ state }`, timeout, interval);
+    };
+  },
+
+  waitForTransition() {
+    return () => {
+      return this.waitForTestFn(() => {
+        return this.transitioning !== 'yes';
+      }, 'Wait for transition completion');
+    };
+  },
+
+  waitForAction() {
+    return (name) => {
+      return this.waitForTestFn(() => {
+        return this.hasAction(name);
+      }, `Wait for action=${ name }`);
+    };
+  },
+
+  hasCondition() {
+    return (condition, withStatus = 'True') => {
+      const entry = findBy((this.conditions || []), 'type', condition);
+
+      if ( !entry ) {
+        return false;
+      }
+
+      if ( !withStatus ) {
+        return true;
+      }
+
+      return (entry.status || '').toLowerCase() === `${ withStatus }`.toLowerCase();
+    };
+  },
+
+  waitForCondition() {
+    return (name, withStatus = 'True') => {
+      return this.waitForTestFn(() => {
+        return this.hasCondition(name, status);
+      }, `Wait for condition=${ name }, status=${ status }`);
+    };
+  },
+
+  // ------------------------------------------------------------------
 
   // You can add custom actions by overriding your own availableActions (and probably reading _availableActions)
   availableActions() {

@@ -398,7 +398,7 @@ export default {
 
       <div class="row mt-20">
         <div class="col span-6 offset-3">
-          Create an <a v-if="kind === 'public'" href="https://github.com/settings/developers" target="_blank" rel="nofollow noopener no">OAuth App</a>
+          Create an <a v-if="kind === 'public'" href="https://github.com/settings/developers" target="_blank" rel="nofollow noopener noreferrer">OAuth App</a>
           <span v-else>OAuth App</span>
           with <code>{{ serverUrl }}</code> <CopyToClipboard :text="serverUrl" :show-label="false" />
           as the Homepage and Authorization callback URLs.
@@ -415,7 +415,7 @@ export default {
             label="GitHub Enterprise Hostname"
           />
           <div>
-            <label><input v-model="tls" type="checkbox" /> Use TLS (https://) connection</label>
+            <label class="checkbox"><input v-model="tls" type="checkbox" /> Use TLS (https://) connection</label>
           </div>
         </div>
       </div>

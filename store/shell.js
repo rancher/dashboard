@@ -15,7 +15,7 @@ export const state = () => {
 export const actions = {
   closeSocket({ commit, state }) {
     return new Promise((resolve) => {
-      if (state.socket) {
+      if ( state.socket && state.socket.close ) {
         state.socket.close();
         commit('clearBacklog');
         commit('socketOpened', { socket: {} });
@@ -23,6 +23,7 @@ export const actions = {
       resolve();
     });
   },
+
   defineSocket({ dispatch, state, rootGetters }, payload) {
     const resource = payload.resource ? payload.resource : state.resource;
     const action = payload.action ? payload.action : state.mode;
@@ -58,6 +59,7 @@ export const actions = {
       showLast
     });
   },
+
   openSocket({ commit, state }, payload) {
     commit('socketOpened', { ...payload });
     const socket = new WebSocket(payload.url, payload.protocol);
@@ -102,7 +104,7 @@ export const mutations = {
   }
 };
 
-const decodeMsg = (protocol, msg) => {
+function decodeMsg(protocol, msg) {
   return new Promise((resolve, reject) => {
     if (protocol === 'base64.binary.k8s.io') {
       resolve(base64Decode(msg));
@@ -112,8 +114,9 @@ const decodeMsg = (protocol, msg) => {
 
       if (type === '2') {
         reject(message);
+      } else {
+        resolve(message);
       }
-      resolve(message);
     }
   });
-};
+}
