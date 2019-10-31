@@ -1,5 +1,5 @@
 <script>
-import { FRIENDLY } from '~/pages/rio/_resource';
+import { FRIENDLY } from '@/config/friendly';
 
 export default {
   name: 'RioResourceCreate',

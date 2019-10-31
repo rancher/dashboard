@@ -39,12 +39,13 @@ export default {
     },
   },
 
-  methods:    {
+  methods: {
     async findPod() {
       let pod;
 
       try {
         pod = await this.$store.dispatch('cluster/find', { type: POD, id: `default/${ this.expectedPodName }` });
+        await this.$store.dispatch('cluster/watchType', { type: POD });
       } catch (err) {
         pod = await this.makePod();
       }

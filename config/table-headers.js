@@ -106,6 +106,26 @@ export const P95 = {
   align: 'right',
 };
 
+export const KEYS = {
+  name:      'keys',
+  label:     'Keys',
+  sort:      false,
+  value:     'keysDisplay',
+};
+
+export const TARGET_KIND = {
+  name:  'targetKind',
+  label: 'Target Type',
+  value: 'kindDisplay',
+  width: 100,
+};
+
+export const TARGET = {
+  name:  'target',
+  label: 'Target',
+  value: 'targetDisplay',
+};
+
 export function headersFor(schema) {
   const out = [];
   const columns = schema.attributes.columns;
