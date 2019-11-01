@@ -2,7 +2,7 @@
 import RioDetail, { asyncData } from '@/components/RioDetail';
 
 export default {
-  name:       'RioNamespaceResourceId',
+  name:       'RioResourceId',
   components: { RioDetail },
   asyncData
 };

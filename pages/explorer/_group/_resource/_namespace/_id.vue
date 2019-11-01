@@ -1,9 +1,13 @@
 <script>
-export { default } from '../_id.vue';
+import ExplorerDetail, { asyncData } from '@/components/ExplorerDetail';
+
+export default {
+  name:       'ExplorerGroupResourceNamespaceId',
+  components: { ExplorerDetail },
+  asyncData
+};
 </script>
 
 <template>
-  <div>
-    <ResourceYaml :obj="obj" :value="value" :done-route="doneRoute" />
-  </div>
+  <ExplorerDetail :async-data="_data" />
 </template>
