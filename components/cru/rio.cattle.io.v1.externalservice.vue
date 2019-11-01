@@ -48,10 +48,6 @@ export default {
       targetService = `${ spec.targetServiceNamespace }/${ spec.targetServiceName }`;
     }
 
-    if ( typeof window !== 'undefined' ) {
-      window.v = this.value;
-    }
-
     return {
       kind,
       allServices: null,

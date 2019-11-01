@@ -65,10 +65,6 @@ export default {
       spec.imagePullPolicy = 'Always';
     }
 
-    if ( typeof window !== 'undefined' ) {
-      window.v = this.value;
-    }
-
     return {
       multipleContainers,
       nameResource,

@@ -36,6 +36,10 @@ export default {
   },
 
   data() {
+    if ( typeof window !== 'undefined' ) {
+      window.v = this.value;
+    }
+
     return { errors: null };
   },
 
