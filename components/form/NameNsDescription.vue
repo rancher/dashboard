@@ -16,7 +16,11 @@ export default {
       type:     String,
       required: true,
     },
-    threeColumn: {
+    namespaced: {
+      type:    Boolean,
+      default: true,
+    },
+    extraColumn: {
       type:    Boolean,
       default: false,
     },
@@ -81,6 +85,13 @@ export default {
 
     notView() {
       return this.mode !== _VIEW;
+    },
+
+    colSpan() {
+      const cols = 1 + (this.namespaced ? 1 : 0) + (this.extraColumn ? 1 : 0);
+      const span = 12 / cols;
+
+      return `span-${ span }`;
     }
   },
 };
@@ -89,7 +100,7 @@ export default {
 <template>
   <div>
     <div class="row">
-      <div :class="{col: true, 'span-6': !threeColumn, 'span-4': threeColumn}">
+      <div :class="{col: true, [colSpan]: true}">
         <slot name="name">
           <LabeledInput
             key="name"
@@ -105,7 +116,7 @@ export default {
           </LabeledInput>
         </slot>
       </div>
-      <div :class="{col: true, 'span-6': !threeColumn, 'span-4': threeColumn}">
+      <div v-if="namespaced" :class="{col: true, [colSpan]: true}">
         <slot name="namespace">
           <LabeledSelect
             key="namespace"
@@ -118,7 +129,7 @@ export default {
           />
         </slot>
       </div>
-      <div v-if="threeColumn" class="col span-4">
+      <div v-if="extraColumn" :class="{col: true, [colSpan]: true}">
         <slot name="right">
         </slot>
       </div>
