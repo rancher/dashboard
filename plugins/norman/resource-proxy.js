@@ -3,6 +3,12 @@ import { lookup } from '@/utils/model';
 
 export const SELF = '__[[SELF]]__';
 
+const FAKE_CONSTRUCTOR = function() {};
+
+FAKE_CONSTRUCTOR.toString = function() {
+  return 'ResourceProxy';
+};
+
 export function proxyFor(ctx, obj, isClone = false) {
   // Attributes associated to the proxy, but not stored on the actual object
   let local;
@@ -40,8 +46,9 @@ export function proxyFor(ctx, obj, isClone = false) {
         name = 'toString';
       } else if ( typeof name !== 'string' ) {
         return target[name];
-      } else if ( name === '__proto__' ) {
-        return model.constructor;
+      } else if ( name === 'constructor' ) {
+        // To satisfy vue-devtools
+        return FAKE_CONSTRUCTOR;
       }
 
       /*
