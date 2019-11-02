@@ -40,8 +40,8 @@ export default {
 
     return { all };
   },
-  computed: {
-    formatted() {
+  methods: {
+    format() {
       const formatted = {
         add:    [], set:    [], remove: []
       };
@@ -55,10 +55,8 @@ export default {
 
       return formatted;
     },
-  },
-  methods: {
     change() {
-      this.$emit('input', this.formatted);
+      this.$emit('input', this.format());
     },
     addRule(rule) {
       this.all.push({

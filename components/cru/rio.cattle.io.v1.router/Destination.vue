@@ -1,16 +1,8 @@
 <script>
 import { filterBy } from '../../../utils/array';
-import { RIO, NAMESPACE } from '@/config/types';
+import { RIO } from '@/config/types';
 import LabeledInput from '@/components/form/LabeledInput';
-/*
- Weighted Destination
-                    Weight - int
-                    Desination
-                        service - string
-                        namespace - string
-                        revision - string
-                        port - uint32
-*/
+
 export default {
   components: { LabeledInput },
   props:      {

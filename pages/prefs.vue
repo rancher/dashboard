@@ -11,7 +11,6 @@ const KEYMAP_LABELS = {
 
 export default {
   components: { ButtonGroup },
-  layout:     'unauthenticated',
   computed:   {
     theme:  mapPref(THEME),
     keymap: mapPref(KEYMAP),

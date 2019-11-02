@@ -1,4 +1,4 @@
-.v-select, .multiselect {
+.v-select {
   position: relative;
   font-family: inherit;
 }
@@ -21,7 +21,7 @@
   }
 }
 
-.vs__dropdown-menu, .multiselect__content-wrapper {
+.vs__dropdown-menu {
   display: block;
   position: absolute;
   top: calc(100% - 1px);
@@ -46,7 +46,7 @@
 
 }
 
-.vs__dropdown-option, .multiselect__element {
+.vs__dropdown-option {
   line-height: 1.42857143; /* Normalize line height */
   display: block;
   padding: 3px 20px;
@@ -59,7 +59,7 @@
   }
 }
 
-.vs__dropdown-option--highlight, .multiselect__option--highlight {
+.vs__dropdown-option--highlight {
   color: var(--dropdown-hover-text);
   background: var(--dropdown-hover-bg);
 }
@@ -242,14 +242,4 @@ $transition-duration: 150ms;
     display:none;
   }
 
-  // &.vs--open {
-  //   & .vs__selected {
-  //     top: 0;
-  //     align-self: end;
-
-  //     // font-size: .9em;
-  //      transition: all 2s;
-      
-  //   }
-  // }
 }
