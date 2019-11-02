@@ -84,7 +84,6 @@ export function proxyFor(ctx, obj, isClone = false) {
       if ( fn && fn.call ) {
         return fn.call(proxy);
       }
-      debugger;
 
       return target[name];
     },

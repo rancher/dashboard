@@ -19,13 +19,21 @@ export default {
       headers = [], methods = [], path = {}, cookies = []
     } = this.spec;
 
+    let hostHeader = { name: 'host', value: { exact: '' } };
+
+    if (headers.length) {
+      hostHeader = headers.filter((rule) => {
+        return rule.name === 'host' && Object.keys(rule.value)[0] === 'exact';
+      })[0];
+    }
+
     return {
       httpMethods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'],
       headers,
       methods,
       cookies,
       path,
-      host:        { name: 'host', value: '' }
+      host:        hostHeader
     };
   },
   computed: {
@@ -75,7 +83,7 @@ export default {
         @input="e=>change('methods', e)"
       >
       </v-select>
-      <LabeledInput v-model="host.value" label="Host header" />
+      <LabeledInput v-model="host.value.exact" label="Host header" />
       <StringMatch :spec="path" label="Path" @input="e=>change('path', e)" />
     </div>
     <div class="row">

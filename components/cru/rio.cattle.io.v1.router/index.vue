@@ -15,6 +15,7 @@ export default {
     }
 
     return {
+      moved: 0,
       routes,
       spec:       this.value.spec || {}
     };
@@ -30,13 +31,20 @@ export default {
     },
     saveRouter() {
       this.value.spec = { routes: this.routes };
-      debugger;
       this.save(this.done);
     },
     change(type, value, index) {
       this[type][index] = value;
     },
-    reposition(direction, index) {}
+    reposition(oldIndex, newIndex) {
+      const moving = this.routes.splice(oldIndex, 1)[0];
+
+      this.routes.splice(newIndex, 0, moving);
+      this.moved++;
+    },
+    done() {
+      this.$router.push({ path: '/rio/routers' });
+    }
   }
 };
 </script>
@@ -51,12 +59,12 @@ export default {
       <div class="col span-12">
         <Rule
           v-for="(route, i) in routes"
-          :key="i"
+          :key="i + moved"
           :position="i"
           class="col span-12"
           :spec="route"
-          @up="reposition('up', i)"
-          @down="reposition('down',i)"
+          @up="reposition(i, i-1)"
+          @down="reposition(i, i+1)"
           @input="e=>change('routes', e, i)"
         />
       </div>
@@ -74,3 +82,10 @@ export default {
     </div>
   </div>
 </template>
+
+<style>
+  .footer-controls {
+    justify-content: center;
+    margin-right: 20px;
+  }
+</style>

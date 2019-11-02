@@ -73,8 +73,6 @@ export default {
   methods: {
     async getServices() {
       const services = await this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE });
-      const vm = this;
-
       const servicesinNS = JSON.parse(JSON.stringify(services));
 
       this.services = servicesinNS;
@@ -91,7 +89,7 @@ export default {
 </script>
 
 <template>
-  <div class="destination" @input="updateDestination">
+  <div class="destination" @input="updateDestination" @change="updateDestination">
     <div class="row inputs">
       <v-select
         class="inline"
@@ -99,7 +97,7 @@ export default {
         :searchable="false"
         :clearable="false"
         :value="service"
-        label="id"
+        :get-option-label="option=>option.metadata ? option.metadata.name : option.id"
         :options="services"
         @input="setService"
       ></v-select>

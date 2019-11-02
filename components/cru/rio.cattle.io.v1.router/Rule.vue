@@ -44,8 +44,12 @@ export default {
   },
 
   methods:  {
-    change(type, payload) {
-      this.$set(this, type, payload);
+    change(type, payload, index) {
+      if (index >= 0) {
+        this.$set(this[type], index, payload);
+      } else {
+        this.$set(this, type, payload);
+      }
     },
     addDestination() {
       this.to.push({});
@@ -71,6 +75,9 @@ export default {
       }
 
       this.$emit('input', out);
+    },
+    move(direction) {
+      this.$emit(direction);
     }
   }
 };
@@ -86,14 +93,17 @@ export default {
         <div class="position-mover">
           {{ position }}
           <div class="position-inputs">
-            <button class="btn bg-transparent icon-btn icon icon-sort-up" @click="$emit('up')">
+            <button class="btn bg-transparent icon-btn icon icon-sort-up" @click="move('up')">
               {{ '' }}
             </button>
-            <button class="btn bg-transparent icon-btn icon icon-sort-down" @click="$emit('down')">
+            <button class="btn bg-transparent icon-btn icon icon-sort-down" @click="move('down')">
               {{ '' }}
             </button>
           </div>
         </div>
+        <button class="btn role-link" @click="$emit('delete')">
+          REMOVE
+        </button>
       </div>
       <div class="row">
         <Match
@@ -110,12 +120,12 @@ export default {
       <RadioGroup id="destination-radio" v-model="mode" :selected="0" :options="['forwardOne', 'forwardMany', 'redirect']" :labels="['Forward to Service', 'Forward to Multiple Services', 'Redirect to URL']" />
       <div v-if="mode==='forwardOne'" class="row">
         <div class="col span-12">
-          <Destination :is-weighted="false" :spec="to[0]" @input="change('to', 0, $event)" />
+          <Destination :is-weighted="false" :spec="to[0]" @input="change('to', $event, 0)" />
         </div>
       </div>
       <div v-if="mode=='forwardMany'" class="row">
         <div class="col span-12">
-          <Destination v-for="(destination, i) in to" :key="i" :is-weighted="true" :spec="destination" @input="change('to', i, $event)" />
+          <Destination v-for="(destination, i) in to" :key="i" :is-weighted="true" :spec="destination" @input="change('to', $event, i)" />
           <button v-if="mode==='forwardMany'" class="btn btn-sm bg-primary " @click="addDestination">
             add destination
           </button>
@@ -154,7 +164,7 @@ export default {
 
 <style  lang='scss'>
   .route {
-    padding: 10px 20px 10px 20px;
+    padding: 5px 10px 5px 10px;
     background-color: var(--login-bg);
     margin-bottom: 20px;
 
@@ -162,6 +172,10 @@ export default {
       display: flex;
       justify-content: space-between;
       margin-bottom: 20px;
+
+      & H4 {
+        flex-grow: 2;
+      }
 
       & .position-mover {
         display: flex;
