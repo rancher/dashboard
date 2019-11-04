@@ -23,7 +23,7 @@ export default {
 </script>
 
 <template>
-  <span class="checkbox-container">
+  <label class="checkbox-container">
     <label class="checkbox-box">
       <input
         :checked="value"
@@ -33,7 +33,7 @@ export default {
       <span class="checkbox-custom"></span>
     </label>
     <span v-if="label" class="checkbox-label">{{ label }}</span>
-  </span>
+  </label>
 </template>
 
 <style>
