@@ -1,4 +1,6 @@
 <script>
+import pullAt from 'lodash/pullAt';
+import findIndex from 'lodash/findIndex';
 import KeyValue from '@/components/form/KeyValue';
 import StringMatch from '@/components/cru/rio.cattle.io.v1.router/StringMatch';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -22,9 +24,7 @@ export default {
     let hostHeader = { name: 'host', value: { exact: '' } };
 
     if (headers.length) {
-      hostHeader = headers.filter((rule) => {
-        return rule.name === 'host' && Object.keys(rule.value)[0] === 'exact';
-      })[0];
+      hostHeader = pullAt(headers, findIndex(headers, header => header.name === 'host' && Object.keys(header.value)[0] === 'exact'))[0];
     }
 
     return {
@@ -83,13 +83,18 @@ export default {
         @input="e=>change('methods', e)"
       >
       </v-select>
-      <LabeledInput v-model="host.value.exact" label="Host header" />
+      <LabeledInput v-if="host.value" v-model="host.value.exact" label="Host header" />
       <StringMatch :spec="path" label="Path" @input="e=>change('path', e)" />
     </div>
     <div class="row">
       <div class="col span-6">
         <h5>Headers</h5>
         <KeyValue add-label="Add Header Rule" :protip="false" :pad-left="false" :read-allowed="false" @input="e=>changeKV('headers', e)">
+          <template v-slot:removeButton="buttonProps">
+            <button class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
+              REMOVE
+            </button>
+          </template>
           <template v-slot:value="valProps">
             <StringMatch
               :spec="{'exact':valProps.row.value}"
@@ -106,6 +111,11 @@ export default {
       <div class="col span-6">
         <h5>Cookies</h5>
         <KeyValue add-label="Add Cookie Rule" :protip="false" :pad-left="false" :read-allowed="false" @input="e=>changeKV('cookies', e)">
+          <template v-slot:removeButton="buttonProps">
+            <button class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
+              REMOVE
+            </button>
+          </template>
           <template v-slot:value="valProps">
             <StringMatch
               :spec="{'exact':valProps.row.value}"
@@ -131,6 +141,9 @@ export default {
       }
       & .remove {
         text-align:left;
+        & button.role-link {
+          padding: 0 0 0 0;
+        }
       }
       & td {
         margin-right: 5px;

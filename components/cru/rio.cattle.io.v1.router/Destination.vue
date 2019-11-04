@@ -19,12 +19,21 @@ export default {
     pickVersion: {
       type:    Boolean,
       default: true
+    },
+    canRemove: {
+      type:    Boolean,
+      default: false
     }
   },
+
   data() {
-    const { namespace = 'default', port = '', service = {} } = this.spec;
+    const {
+      namespace = 'default', port = '', service = {}, uuid, version = ''
+    } = this.spec;
 
     return {
+      version,
+      uuid,
       services:    [],
       namespace,
       port,
@@ -37,16 +46,19 @@ export default {
     formatted() {
       return {
         service:   this.service.metadata ? this.service.metadata.name : '',
-        namespace: this.namespace.id,
+        version:   this.pickVersion ? this.version : null,
         port:      this.port,
-        weight:    this.weight
+        weight:    this.weight,
+        uuid:      this.uuid
       };
     },
     versions() {
       if (this.computedApp) {
         const app = this.service.status.computedApp;
 
-        return filterBy(this.services, 'status.computedApp', app, );
+        const thisApp = filterBy(this.services, 'status.computedApp', app, );
+
+        return thisApp.map(service => service.status.computedVersion);
       } else {
         return [];
       }
@@ -93,9 +105,18 @@ export default {
         :options="services"
         @input="setService"
       ></v-select>
-      <v-select v-if="pickVersion" placeholder="version" class="inline" :options="versions" :get-option-label="option=>option.status.computedVersion" />
+      <v-select
+        v-if="pickVersion"
+        v-model="version"
+        placeholder="version"
+        class="inline"
+        :options="versions"
+      />
       <LabeledInput v-model="port" type="text" label="port" />
       <LabeledInput v-model="weight" :class="{hidden: !isWeighted}" label="Weight" />
+      <button :class="{hidden: !canRemove}" class="btn btn-sm role-link" @click="$emit('remove')">
+        REMOVE
+      </button>
     </div>
   </div>
 </template>

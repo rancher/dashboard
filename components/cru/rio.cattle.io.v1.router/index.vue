@@ -27,25 +27,28 @@ export default {
     namespace() {
       return this.value.metadata.namespace;
     },
+    cleanedRoutes() {
+      return this.routes.map(route => pickBy(route, (value, key) => {
+        if (typeof value === 'object') {
+          return !!values(value).length;
+        } else {
+          return key !== 'uuid';
+        }
+      }));
+    }
   },
   methods:  {
     addRouteSpec() {
       this.routes.push({ uuid: randomStr() });
     },
     saveRouter() {
-      this.value.spec = {
-        routes: this.routes.map(route => pickBy(route, (value, key) => {
-          if (typeof value === 'object') {
-            return !!values(value).length;
-          } else {
-            return key !== 'uuid';
-          }
-        }))
-      };
-      this.save(this.done);
+      this.value.spec = this.cleanedRoutes;
+      // console.log(JSON.parse(JSON.stringify(this.value.spec[0])));
+      // debugger;
+      this.save(this.done());
     },
     change(type, value, index) {
-      this[type][index] = value;
+      this[type].splice(index, 1, value);
     },
     reposition(oldIndex, newIndex) {
       if (newIndex >= 0 && newIndex < this.routes.length) {
@@ -54,8 +57,10 @@ export default {
         this.routes.splice(newIndex, 0, moving);
       }
     },
-    done() {
-      this.$router.push({ path: '/rio/routers' });
+    done(success) {
+      if (success) {
+        this.$router.push('rio/routers');
+      }
     }
   }
 };
@@ -63,6 +68,9 @@ export default {
 
 <template>
   <div>
+    <div v-for="error in errors" :key="error" class="returned-errors">
+      {{ error }}
+    </div>
     <div class="row">
       <NameNsDescription class="col span-12" :value="value" :mode="mode" />
     </div>
@@ -99,5 +107,8 @@ export default {
   .footer-controls {
     justify-content: center;
     margin-right: 20px;
+  }
+  .returned-errors{
+    color: red;
   }
 </style>
