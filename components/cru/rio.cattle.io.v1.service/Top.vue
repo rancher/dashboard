@@ -105,13 +105,16 @@ export default {
         <div>
           <label class="radio">
             <input v-model="buildImage" type="radio" :value="false" />
-            Use an existing Docker image<span v-if="!buildImage">:</span>
+            <span class="input-title">Use an existing Docker image</span>
+            <span class="checkbox-custom circular"></span>
           </label>
         </div>
+
         <div>
           <label class="radio">
             <input v-model="buildImage" type="radio" :value="true" />
-            Build from Dockerfile in a repository<span v-if="buildImage">:</span>
+            <span class="input-title">Build from Dockerfile in a repositiory</span>
+            <span class="checkbox-custom circular"></span>
           </label>
         </div>
       </div>

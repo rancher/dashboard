@@ -62,7 +62,7 @@ $selected: rgba($primary, .5);
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
   --disabled-bg                : #{$disabled};
-  --header-bg                  : #{$primary};
+  --header-bg                  : #{$light};
   --nav-bg                     : #{$lighter};
   --footer-bg                  : #f1f2f3;
   --box-bg                     : #{$light};
@@ -107,7 +107,7 @@ $selected: rgba($primary, .5);
   --sortable-table-header-bg   : transparent;
   --sortable-table-accent-bg   : #{$lighter};
   --sortable-table-accent-alt  : #{$lightest};
-  --sortable-table-divider     : #{$medium};
+  --sortable-table-divider     : var(--border);
   --sortable-table-selected-bg : #{$light};
 
   --tooltip-bg                 : #{$lighter};

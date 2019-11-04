@@ -235,7 +235,7 @@ export default {
           <button
             v-for="act in availableActions"
             :key="act.action"
-            class="btn bg-primary"
+            class="btn bg-primary btn-sm"
             :disabled="!act.enabled"
             @click="applyTableAction(act)"
           >
@@ -359,7 +359,7 @@ export default {
 
 $group-row-height: 40px;
 $group-separation: 40px;
-$divider-height: 2px;
+$divider-height: 1px;
 
 .sortable-table {
   position: relative;
@@ -550,7 +550,7 @@ $divider-height: 2px;
 }
 
 .fixed-header-actions {
-  padding: 0 0 5px 0;
+  padding: 0 0 20px 0;
   width: 100%;
   z-index: z-index('fixedTableHeader');
   background: var(--sortable-table-header-bg);
