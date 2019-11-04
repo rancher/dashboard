@@ -14,8 +14,11 @@ export default {
   data() {
     let routes = [{ uuid: randomStr() }];
 
-    if (this.value.spec) {
-      routes = this.value.spec.routes || [{ uuid: randomStr() }];
+    if (this.value.spec ) {
+      routes = this.value.spec.map((route) => {
+        return { ...route, uuid: randomStr() }
+        ;
+      }) || [{ uuid: randomStr() }];
     }
 
     return {
@@ -43,9 +46,7 @@ export default {
     },
     saveRouter() {
       this.value.spec = this.cleanedRoutes;
-      // console.log(JSON.parse(JSON.stringify(this.value.spec[0])));
-      // debugger;
-      this.save(this.done());
+      this.save(this.done);
     },
     change(type, value, index) {
       this[type].splice(index, 1, value);
@@ -59,7 +60,7 @@ export default {
     },
     done(success) {
       if (success) {
-        this.$router.push('rio/routers');
+        this.$router.push('/rio/routers');
       }
     }
   }

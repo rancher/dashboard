@@ -83,7 +83,7 @@ export default {
         @input="e=>change('methods', e)"
       >
       </v-select>
-      <LabeledInput v-if="host.value" v-model="host.value.exact" label="Host header" />
+      <LabeledInput v-if="host" v-model="host.value.exact" label="Host header" />
       <StringMatch :spec="path" label="Path" @input="e=>change('path', e)" />
     </div>
     <div class="row">

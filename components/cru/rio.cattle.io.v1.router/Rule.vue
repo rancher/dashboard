@@ -32,6 +32,13 @@ export default {
     const {
       match = {}, to = [{ uuid: randomStr() }], mirror = {}, rewrite = {}, redirect = {}, headers = {}, fault = {},
     } = this.spec;
+    let mode = 'forwardOne';
+
+    if (this.spec.to.length > 1) {
+      mode = 'forwardMany';
+    } else if (this.spec.redirect) {
+      mode = 'redirect';
+    }
 
     return {
       match,
@@ -41,9 +48,9 @@ export default {
       redirect,
       headers,
       fault,
-      mode:         'forwardOne',
-      shouldFault:  false,
-      shouldMirror: false
+      mode,
+      shouldFault:  !!this.spec.fault,
+      shouldMirror: !!this.spec.mirror
     };
   },
 
