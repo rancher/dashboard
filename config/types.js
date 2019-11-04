@@ -15,13 +15,15 @@ export const RIO = {
   CLUSTER_DOMAIN:   'admin.rio.cattle.io.v1.clusterdomain',
   FEATURE:          'admin.rio.cattle.io.v1.feature',
   INFO:             'admin.rio.cattle.io.v1.rioinfo',
+  PUBLIC_DOMAIN:    'admin.rio.cattle.io.v1.publicdomain',
 
-  APP:                   'rio.cattle.io.v1.app',
-  EXTERNAL_SERVICE:      'rio.cattle.io.v1.externalservice',
-  PUBLIC_DOMAIN:         'admin.rio.cattle.io.v1.publicdomain',
-  STACK:                 'rio.cattle.io.v1.stack',
-  ROUTER:                'rio.cattle.io.v1.router',
-  SERVICE:               'rio.cattle.io.v1.service',
+  APP:              'rio.cattle.io.v1.app',
+  EXTERNAL_SERVICE: 'rio.cattle.io.v1.externalservice',
+  STACK:            'rio.cattle.io.v1.stack',
+  ROUTER:           'rio.cattle.io.v1.router',
+  SERVICE:          'rio.cattle.io.v1.service',
+
+  SYSTEM_NAMESPACE: 'rio-system',
 };
 
 export const RANCHER = {

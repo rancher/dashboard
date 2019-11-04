@@ -1,21 +1,31 @@
+import day from 'dayjs';
 import { insertAt } from '@/utils/array';
 import { ADD_SIDECAR, _FLAGGED } from '@/config/query-params';
+import { escapeHtml } from '@/utils/string';
+import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 
 export default {
-  appKey() {
-    return `${ this.spec.namespace }/${ this.appName }`;
+  app() {
+    return this.spec.app || this.status.computedApp || this.metadata.name;
   },
 
-  appName() {
-    return this.spec.app || this.metadata.name;
-  },
-
-  versionName() {
-    return this.spec.version || 'v0';
+  version() {
+    return this.spec.version || this.status.computedVersion;
   },
 
   nameDisplay() {
-    return `${ this.appName }:${ this.versionName }`;
+    return `${ this.app } (${ this.version })`;
+  },
+
+  namespaceNameDisplay() {
+    const namespace = this.metadata.namespace;
+    const name = this.metadata.name || this.id;
+
+    return `${ namespace }:${ name }`;
+  },
+
+  namespaceApp() {
+    return `${ this.metadata.namespace }:${ this.app }`;
   },
 
   imageDisplay() {
@@ -24,6 +34,17 @@ export default {
       .replace(/@sha256:[0-9a-f]+$/i, '')
       .replace(/:latest$/i, '')
       .replace(/localhost:5442\/(.*)/i, '$1 (local)');
+  },
+
+  createdDisplay() {
+    const dateFormat = escapeHtml( this.$rootGetters['prefs/get'](DATE_FORMAT));
+    const timeFormat = escapeHtml( this.$rootGetters['prefs/get'](TIME_FORMAT));
+
+    return day(this.metadata.creationTimestamp).format(`${ dateFormat } ${ timeFormat }`);
+  },
+
+  versionWithDateDisplay() {
+    return `${ this.version } (${ this.createdDisplay })`;
   },
 
   scales() {
@@ -37,10 +58,11 @@ export default {
     }
 
     const spec = (typeof this.spec.replicas === 'undefined' ? 1 : this.spec.replicas || 0);
-    const global = this.spec.global === true;
-    const current = status.computedReplicas || 0;
     const available = scaleStatus.available || 0;
+    const current = (typeof this.status.computedReplicas === 'undefined' ? available : status.computedReplicas || 0);
     const unavailable = scaleStatus.unavailable || 0;
+    const global = this.spec.global === true;
+
     let desired = spec;
 
     if ( global ) {
@@ -177,6 +199,32 @@ export default {
     };
   },
 
+  weights() {
+    let current = 0;
+    let desired = 0;
+    const spec = this.spec.weight;
+
+    if ( !this.status ) {
+      return { current, desired };
+    }
+
+    const status = this.status.computedWeight;
+
+    if ( typeof status === 'number' ) {
+      current = status;
+    } else if ( typeof spec === 'number' ) {
+      current = spec;
+    }
+
+    if ( typeof spec === 'number' ) {
+      desired = spec;
+    } else if ( typeof status === 'number' ) {
+      desired = status;
+    }
+
+    return { current, desired };
+  },
+
   async pauseOrResume(pause = true) {
     try {
       await this.patch({
@@ -236,110 +284,4 @@ export default {
       return this.goToEdit({ [ADD_SIDECAR]: _FLAGGED });
     };
   },
-
-  // @TODO fake
-  /*
-  pods() {
-    const out = [];
-    const status = this.status.scaleStatus;
-
-    if ( !status ) {
-      return out;
-    }
-
-    let idx = 1;
-
-    for ( let i = 0 ; i < status.ready ; i++ ) {
-      let state = 'active';
-      let transitioning = 'no';
-
-      if ( i >= this.spec.scale ) {
-        state = 'removing';
-        transitioning = 'yes';
-      }
-
-      out.push(store.createRecord({
-        type:           'pod',
-        name:           `${ this.nameDisplay }-${ idx }`,
-        state,
-        transitioning,
-
-        containers: [
-          store.createRecord({
-            type:          'container',
-            name:          `container${ idx }`,
-            state,
-            transitioning,
-          })
-        ]
-      }));
-
-      idx++;
-    }
-
-    for ( let i = 0 ; i < status.available ; i++ ) {
-      out.push(store.createRecord({
-        type:           'pod',
-        name:           `${ get(this, 'nameDisplay') }-${ idx }`,
-        state:          'not-ready',
-        transitioning:  'no',
-
-        containers: [
-          store.createRecord({
-            type:          'container',
-            name:          `container${ idx }`,
-            state:         'not-ready',
-            transitioning: 'no',
-          })
-        ]
-      }));
-
-      idx++;
-    }
-
-    for ( let i = 0 ; i < status.unavailable ; i++ ) {
-      out.push(store.createRecord({
-        type:          'pod',
-        name:          `${ get(this, 'nameDisplay') }-${ idx }`,
-        state:         'creating',
-        transitioning: 'yes',
-
-        containers: [
-          store.createRecord({
-            type:          'container',
-            name:          `container${ idx }`,
-            state:         'transitioning',
-            transitioning: 'yes',
-          })
-        ]
-      }));
-
-      idx++;
-    }
-
-    return out;
-  },
-
-  partiallyUpdated: computed('scale', 'scaleStatus.updated', function() {
-    let scale = get(this, 'scale');
-    let status = get(this, 'scaleStatus');
-
-    if ( !status ) {
-      return false;
-    }
-
-    if ( scale > 0 && status.updated > 0 && scale > status.updated ) {
-      return true;
-    }
-
-    return false;
-  }),
-
-  updatedPercent: computed('scale', 'scaleStatus.updated', function() {
-    let scale = get(this, 'scale');
-    let status = get(this, 'scaleStatus');
-
-    return formatPercent(100 * status.updated / scale);
-  }),
-  */
 };

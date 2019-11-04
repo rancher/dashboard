@@ -1,6 +1,10 @@
 export default {
-  kind() {
+  targetKind() {
     const spec = this.spec;
+
+    if ( !spec ) {
+      return 'unknown';
+    }
 
     if ( spec.targetServiceName && spec.targetServiceNamespace ) {
       return 'service';
@@ -19,7 +23,7 @@ export default {
 
   kindDisplay() {
     // Satisfy eslint that it's a string...
-    const kind = `${ this.kind }`;
+    const kind = `${ this.targetKind }`;
 
     switch ( kind ) {
     case 'service':
@@ -35,7 +39,7 @@ export default {
 
   targetDisplay() {
     // Satisfy eslint that it's a string...
-    const kind = `${ this.kind }`;
+    const kind = `${ this.targetKind }`;
 
     switch ( kind ) {
     case 'service':

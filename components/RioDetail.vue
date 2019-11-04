@@ -33,10 +33,11 @@ export async function asyncData({ store, params, route }) {
   return out;
 }
 
+export const watchQuery = [MODE, EDIT_YAML];
+
 export default {
   components: { ResourceYaml },
   mixins:     { CreateEditView },
-  watchQuery: [MODE, EDIT_YAML],
 
   props: {
     asyncData: {

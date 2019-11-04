@@ -59,7 +59,7 @@ export default {
     const name = this.metadata.name || this.id;
 
     if ( namespace ) {
-      return `${ namespace }/${ name }`;
+      return `${ namespace }:${ name }`;
     }
 
     return name;

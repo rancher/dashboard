@@ -7,7 +7,7 @@ export default {
 
   props: {
     value: {
-      type:     Number,
+      type:    Number,
       default: null
     },
 

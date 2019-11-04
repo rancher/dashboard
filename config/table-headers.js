@@ -74,12 +74,14 @@ export const SCALE = {
   formatter: 'Scale',
   align:     'center',
 };
+
 export const WEIGHT = {
   name:      'weight',
   label:     'Weight',
-  sort:      false,
-  width:     60,
+  value:     'status.computedWeight',
+  width:     100,
   align:     'center',
+  formatter: 'Weight',
 };
 
 export const SUCCESS = {
@@ -114,7 +116,7 @@ export const KEYS = {
 };
 
 export const TARGET_KIND = {
-  name:  'targetKind',
+  name:  'target-kind',
   label: 'Target Type',
   value: 'kindDisplay',
   width: 100,
@@ -124,6 +126,13 @@ export const TARGET = {
   name:  'target',
   label: 'Target',
   value: 'targetDisplay',
+};
+
+export const TARGET_SECRET = {
+  name:   'secret-name',
+  label:  'Secret',
+  value:  'secretName',
+  sort:   ['secretName', 'targetApp', 'targetVersion', 'id'],
 };
 
 export function headersFor(schema) {

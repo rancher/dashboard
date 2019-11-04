@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { trimWhitespaceSsr } from './plugins/trim-whitespace';
 
 require('dotenv').config();
 
@@ -73,6 +74,8 @@ module.exports = {
     //    extractCSS: true,
     cssSourceMap: true
   },
+
+  render: { bundleRenderer: { directives: { trimWhitespace: trimWhitespaceSsr } } },
 
   modern: true,
 

@@ -101,7 +101,7 @@ export default {
       return KIND_LABELS;
     },
 
-    kindChoices() {
+    kindOptions() {
       return Object.keys(KIND_LABELS).map((k) => {
         return { label: KIND_LABELS[k], value: k };
       });
@@ -163,7 +163,7 @@ export default {
       {{ kindLabels[kind] }}
     </div>
     <div v-else>
-      <div v-for="opt in kindChoices" :key="opt.value">
+      <div v-for="opt in kindOptions" :key="opt.value">
         <label class="radio">
           <input v-model="kind" type="radio" :value="opt.value" />
           {{ opt.label }}

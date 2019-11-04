@@ -1,7 +1,6 @@
 <script>
-import LabeledInput from '@/components/form/LabeledInput';
 import InputWithSelect from '@/components/form/InputWithSelect';
-import RadioGroup from '@/components/form/RadioGroup';
+
 export default {
   components: { InputWithSelect },
   props:      {
@@ -21,11 +20,13 @@ export default {
       default: () => {}
     }
   },
+
   data() {
     return {
       types: this.options || ['exact', 'prefix', 'regexp'], value: Object.values(this.spec)[0] || '', type:  Object.keys(this.spec)[0] || 'exact'
     };
   },
+
   methods: {
     selectType(type) {
       this.type = type;

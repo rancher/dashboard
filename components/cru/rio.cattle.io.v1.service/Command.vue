@@ -86,7 +86,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <UnitInput
-          v-model="spec.memory"
+          v-model.number="spec.memoryBytes"
           :mode="mode"
           :increment="1024"
           :input-exponent="2"
@@ -96,7 +96,7 @@ export default {
       </div>
       <div class="col span-6">
         <UnitInput
-          v-model="spec.cpu"
+          v-model="spec.cpuMillis"
           :mode="mode"
           label="CPU Reservation"
           :increment="1000"

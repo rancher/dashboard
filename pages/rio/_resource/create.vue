@@ -58,6 +58,7 @@ export default {
 
     return {
       resource,
+      schema,
       type,
       model,
     };
@@ -79,7 +80,7 @@ export default {
       v-model="model"
       :done-route="doneRoute"
       :done-params="doneParams"
-      :namespace-suffix-on-create="true"
+      :namespace-suffix-on-create="schema.attributes.namespaced"
       :type-label="typeDisplay"
       mode="create"
     />
