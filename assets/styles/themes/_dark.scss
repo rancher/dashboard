@@ -49,12 +49,12 @@
   --default-text               : #{$light};
 
   --login-bg                   : #{$darkest};
-  --body-bg                    : black;
+  --body-bg                    : #{$darker};
   --body-text                  : #{$lightest};
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$darker};
   --disabled-bg                : #{$disabled};
-  --header-bg                  : #{$primary};
+  --header-bg                  : #{$dark};
   --box-bg                     : #{$darker};
   --border                     : #{$medium};
   --nav-select                 : #{$darker};
@@ -63,7 +63,7 @@
   --nav-pkg                    : #{lighten($darkest, 10%)};
   --nav-sub                    : #{lighten($darkest, 15%)};
   --nav-cur-sub                : #{lighten($darkest, 25%)};
-  --nav-active                 : var(--outline);
+  --nav-active                 : var(--primary);
 
   --dropdown-bg                : #{$medium};
   --dropdown-border            : var(--border);
@@ -93,7 +93,7 @@
   --sortable-table-header-bg   : transparent;
   --sortable-table-accent-bg   : #{$darkest};
   --sortable-table-accent-alt  : #{$darker};
-  --sortable-table-divider-bg  : #{$dark};
+  --sortable-table-divider-bg  : var(--border);
   --sortable-table-selected-bg : #{$selected};
 
   --tooltip-bg                 : #{$lightest};

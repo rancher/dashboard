@@ -58,6 +58,9 @@ export default {
 
     &.nuxt-link-active {
       background-color: var(--nav-active);
+      a {
+        color: var(--lightest) !important;
+      }
     }
   }
 </style>

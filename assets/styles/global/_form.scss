@@ -177,17 +177,17 @@ SELECT {
     background-color: transparent;
     border-radius: 3px;
   	transition: all 0.3s ease-out;
-    border: 1px solid #FFFFFF;
+    border: 1px solid var(--secondary);
 }
 
 
 .checkbox input:checked ~ .checkbox-custom,
 .radio input:checked ~ .checkbox-custom{
-    background-color: #FFFFFF;
+    background-color: var(--lightest);
     border-radius: 5px;
     transform: rotate(0deg) scale(1);
     opacity:1;
-    border: 2px solid #FFFFFF;
+    border: 2px solid var(--lightest);
 }
 
 

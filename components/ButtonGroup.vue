@@ -63,6 +63,7 @@ export default {
       :key="idx"
       type="button"
       :class="opt.class"
+      class="btn-sm"
       @click="change(opt.value)"
     >
       <slot name="option" :label="opt.label" :value="opt.value">

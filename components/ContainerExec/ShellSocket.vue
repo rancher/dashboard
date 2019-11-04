@@ -137,6 +137,7 @@ export default {
 
     & .vs__dropdown-toggle {
       border: none;
+      background: var(--input-bg);
     }
     & .vs__selected{
       position: absolute;

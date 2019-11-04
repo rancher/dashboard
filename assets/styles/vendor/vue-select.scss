@@ -68,7 +68,7 @@
   appearance: none;
   display: flex;
   padding: 0 0 4px 0;
-  background: none;
+  background: var(--input-bg);
   border: 1px solid var(--dropdown-border);
   white-space: normal;
 }

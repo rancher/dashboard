@@ -24,10 +24,10 @@ export default {
 
 <style lang="scss" scoped>
   .footer {
-    background-color: var(--nav-bg);
     display: flex;
     justify-content: space-between;
     align-items: stretch;
+    border-top: solid thin var(--border);
 
     > DIV {
       line-height: 30px;

@@ -72,7 +72,7 @@ export default {
     background-color: transparent;
     border-radius: 3px;
     transition: all 0.3s ease-out;
-    border: 1px solid var( --input-label );
+    border: 1px solid red;
 }
 
 .checkbox-box input:checked ~ .checkbox-custom {
@@ -82,7 +82,7 @@ export default {
     -ms-transform: rotate(0deg) scale(1);
     transform: rotate(0deg) scale(1);
     opacity:1;
-    border: 1px solid var(--dropdown-text);
+    border: 1px solid var(--input-label);
 }
 
 .checkbox-box .checkbox-custom::after {
