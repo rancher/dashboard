@@ -397,10 +397,12 @@ export default {
           </td>
           <slot name="moreColumnHeaders" />
           <td v-if="showRemove" class="remove">
-            <button type="button" class="btn bg-primary" @click="remove(idx)">
-              <i v-if="removeIcon" :class="{'icon': true, [removeIcon]: true}" />
-              {{ removeLabel }}
-            </button>
+            <slot name="removeButton" :remove="remove" :idx="idx">
+              <button type="button" class="btn bg-primary" @click="remove(idx)">
+                <i v-if="removeIcon" :class="{'icon': true, [removeIcon]: true}" />
+                {{ removeLabel }}
+              </button>
+            </slot>
           </td>
         </tr>
       </tbody>

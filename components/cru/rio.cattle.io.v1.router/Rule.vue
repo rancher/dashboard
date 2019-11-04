@@ -1,5 +1,8 @@
 
 <script>
+import pickBy from 'lodash/pickBy';
+import values from 'lodash/values';
+import { randomStr } from '@/utils/string';
 import { isEmpty } from '@/utils/object';
 import Match from '@/components/cru/rio.cattle.io.v1.router/Match';
 import Destination from '@/components/cru/rio.cattle.io.v1.router/Destination';
@@ -27,7 +30,7 @@ export default {
   },
   data() {
     const {
-      match = {}, to = [{}], mirror = {}, rewrite = {}, redirect = {}, headers = {}, fault = {},
+      match = {}, to = [{ uuid: randomStr() }], mirror = {}, rewrite = {}, redirect = {}, headers = {}, fault = {},
     } = this.spec;
 
     return {
@@ -53,18 +56,24 @@ export default {
       }
     },
     addDestination() {
-      this.to.push({});
+      this.to.push({ uuid: randomStr() });
     },
     changeRoute() {
       const out = {
         match:   this.match,
-        mirror:  this.shouldMirror && !isEmpty(this.mirror) ? this.mirror : null,
+        mirror:  this.shouldMirror ? this.mirror : {},
         headers: this.headers,
-        fault:   this.shouldFault && !isEmpty(this.fault) ? this.fault : null
+        fault:   this.shouldFault ? this.fault : {}
       };
 
       if (this.mode !== 'redirect') {
-        out.to = this.to;
+        out.to = this.to.map(route => pickBy(route, (value, key) => {
+          if (typeof value === 'object') {
+            return !!values(value).length;
+          } else {
+            return key !== 'uuid';
+          }
+        }));
         if (!isEmpty(this.rewrite)) {
           out.rewrite = this.rewrite;
         }
@@ -76,6 +85,9 @@ export default {
     },
     move(direction) {
       this.$emit(direction);
+    },
+    remove(type, index) {
+      this[type].splice(index, 1);
     }
   }
 };
@@ -131,7 +143,15 @@ export default {
       </div>
       <div v-if="mode=='forwardMany'" class="row">
         <div class="col span-12">
-          <Destination v-for="(destination, i) in to" :key="i" :is-weighted="true" :spec="destination" @input="change('to', $event, i)" />
+          <Destination
+            v-for="(destination, i) in to"
+            :key="destination.uuid"
+            :is-weighted="true"
+            :spec="destination"
+            :can-remove="true"
+            @input="change('to', $event, i)"
+            @remove="remove('to', i)"
+          />
           <button v-if="mode==='forwardMany'" class="btn btn-sm bg-primary " @click="addDestination">
             add destination
           </button>
