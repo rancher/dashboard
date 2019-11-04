@@ -67,12 +67,6 @@ export function rioPackage($router, counts, namespaces) {
       { divider: true },
       */
       {
-        name:  'rio-stack',
-        count: countFor(RIO.STACK),
-        label: 'Stacks',
-        route: linkFor('stack'),
-      },
-      {
         name:    'rio-services',
         count:   countFor(RIO.SERVICE),
         label:   'Services',
@@ -108,6 +102,13 @@ export function rioPackage($router, counts, namespaces) {
         count: countFor(SECRET),
         label: 'Secrets',
         route: linkFor('secrets'),
+      },
+      { divider: true },
+      {
+        name:  'rio-stack',
+        count: countFor(RIO.STACK),
+        label: 'Stacks',
+        route: linkFor('stack'),
       },
     ],
   };

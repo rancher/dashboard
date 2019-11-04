@@ -194,9 +194,10 @@ export default {
 
           window.authTestConfig = c;
 
-          await c.doAction('configureTest', c);
+          const res = await c.doAction('configureTest', c);
+          const url = res.redirectUrl,
 
-          const url = await this.$store.dispatch('auth/redirectToGithub', { test: true, returnUrl: true });
+          const url = await this.$store.dispatch('auth/redirectToGithub', { redirectUrl, test: true, returnUrl: true });
           const popup = open(url, 'auth-test', popupWindowOptions());
 
           const timer = setInterval(() => {
