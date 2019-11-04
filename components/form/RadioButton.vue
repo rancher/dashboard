@@ -23,7 +23,7 @@ export default {
 </script>
 
 <template>
-  <span class="radio-container">
+  <label class="radio-container">
     <label class="radio-button">
       <input
         :checked="value"
@@ -34,7 +34,7 @@ export default {
       <span class="radio-custom"><span /></span>
     </label>
     <span class="radio-label">{{ label }}</span>
-  </span>
+  </label>
 </template>
 
 <style lang='scss'>

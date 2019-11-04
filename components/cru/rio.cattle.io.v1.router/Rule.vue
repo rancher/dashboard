@@ -1,15 +1,16 @@
 
 <script>
+import { isEmpty } from '@/utils/object';
 import Match from '@/components/cru/rio.cattle.io.v1.router/Match';
 import Destination from '@/components/cru/rio.cattle.io.v1.router/Destination';
 import Redirect from '@/components/cru/rio.cattle.io.v1.router/Redirect';
-import RadioGroup from '@/components/form/RadioGroup';
+// import RadioGroup from '@/components/form/RadioGroup';
 import Headers from '@/components/cru/rio.cattle.io.v1.router/Headers';
-import Checkbox from '@/components/form/Checkbox';
+// import Checkbox from '@/components/form/Checkbox';
 import Fault from '@/components/cru/rio.cattle.io.v1.router/Fault';
 export default {
   components: {
-    Match, Destination, RadioGroup, Redirect, Headers, Checkbox, Fault
+    Match, Destination, Redirect, Headers, Fault
   },
   props:      {
     position: {
@@ -54,20 +55,17 @@ export default {
     addDestination() {
       this.to.push({});
     },
-    isEmpty(obj) {
-      return !Object.keys(obj).length;
-    },
     changeRoute() {
       const out = {
         match:   this.match,
-        mirror:  this.shouldMirror ? this.mirror : null,
+        mirror:  this.shouldMirror && !isEmpty(this.mirror) ? this.mirror : null,
         headers: this.headers,
-        fault:   this.shouldFault ? this.fault : null
+        fault:   this.shouldFault && !isEmpty(this.fault) ? this.fault : null
       };
 
       if (this.mode !== 'redirect') {
         out.to = this.to;
-        if (!this.isEmpty(this.rewrite)) {
+        if (!isEmpty(this.rewrite)) {
           out.rewrite = this.rewrite;
         }
       } else {
@@ -117,7 +115,15 @@ export default {
       <div class="row">
         <h4>Destination</h4>
       </div>
-      <RadioGroup id="destination-radio" v-model="mode" :selected="0" :options="['forwardOne', 'forwardMany', 'redirect']" :labels="['Forward to Service', 'Forward to Multiple Services', 'Redirect to URL']" />
+      <div>
+        <input id="forwardOne" v-model="mode" type="radio" value="forwardOne" />
+        <label for="forwardOne"> Fordward to Service</label>
+        <input id="forwardMany" v-model="mode" type="radio" value="forwardMany" />
+        <label for="forwardMany"> Fordward to Multiple Services</label>
+        <input id="redirect" v-model="mode" type="radio" value="redirect" />
+        <label for="redirect"> Redirect</label>
+      </div>
+      <!-- <RadioGroup id="destination-radio" v-model="mode" :selected="0" :options="['forwardOne', 'forwardMany', 'redirect']" :labels="['Forward to Service', 'Forward to Multiple Services', 'Redirect to URL']" /> -->
       <div v-if="mode==='forwardOne'" class="row">
         <div class="col span-12">
           <Destination :is-weighted="false" :spec="to[0]" @input="change('to', $event, 0)" />
@@ -146,8 +152,12 @@ export default {
       </div>
     </div>
     <div class="row">
-      <Checkbox v-model="shouldMirror" label="Mirror" />
-      <Checkbox v-model="shouldFault" label="Fault" />
+      <!-- <Checkbox v-model="shouldMirror" label="Mirror" />
+      <Checkbox v-model="shouldFault" label="Fault" /> -->
+      <input id="shouldMirror" v-model="shouldMirror" type="checkbox" />
+      <label for="shouldMirror">Mirror</label>
+      <input id="shouldFault" v-model="shouldFault" type="checkbox" />
+      <label for="shouldFault">Fault</label>
     </div>
     <div v-if="shouldMirror" class="row">
       <div class="col span-12">

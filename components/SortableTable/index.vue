@@ -413,7 +413,7 @@ $divider-height: 2px;
           user-select: none;
         }
 
-        I.icon-sort {
+        I.icon-sort, I[class*="icon-sort-"]{
           width: 15px;
 
           &.faded {

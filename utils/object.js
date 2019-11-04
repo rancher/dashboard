@@ -23,3 +23,7 @@ export function getter(path) {
 export function clone(obj) {
   return cloneDeep(obj);
 }
+
+export function isEmpty(obj) {
+  return !Object.keys(obj).length;
+}

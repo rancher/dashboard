@@ -1,5 +1,9 @@
 
 <script>
+import values from 'lodash/values';
+import pickBy from 'lodash/pickBy';
+import { randomStr } from '@/utils/string';
+import { isEmpty } from '@/utils/object';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Rule from '@/components/cru/rio.cattle.io.v1.router/Rule';
@@ -8,14 +12,13 @@ export default {
   components: { Rule, NameNsDescription },
   mixins:     [CreateEditView],
   data() {
-    let routes = [{}];
+    let routes = [{ uuid: randomStr() }];
 
     if (this.value.spec) {
-      routes = this.value.spec.routes || [{}];
+      routes = this.value.spec.routes || [{ uuid: randomStr() }];
     }
 
     return {
-      moved: 0,
       routes,
       spec:       this.value.spec || {}
     };
@@ -27,20 +30,29 @@ export default {
   },
   methods:  {
     addRouteSpec() {
-      this.routes.push({});
+      this.routes.push({ uuid: randomStr() });
     },
     saveRouter() {
-      this.value.spec = { routes: this.routes };
+      this.value.spec = {
+        routes: this.routes.map(route => pickBy(route, (value, key) => {
+          if (typeof value === 'object') {
+            return !!values(value).length;
+          } else {
+            return key !== 'uuid';
+          }
+        }))
+      };
       this.save(this.done);
     },
     change(type, value, index) {
       this[type][index] = value;
     },
     reposition(oldIndex, newIndex) {
-      const moving = this.routes.splice(oldIndex, 1)[0];
+      if (newIndex >= 0 && newIndex < this.routes.length) {
+        const moving = this.routes.splice(oldIndex, 1)[0];
 
-      this.routes.splice(newIndex, 0, moving);
-      this.moved++;
+        this.routes.splice(newIndex, 0, moving);
+      }
     },
     done() {
       this.$router.push({ path: '/rio/routers' });
@@ -59,7 +71,7 @@ export default {
       <div class="col span-12">
         <Rule
           v-for="(route, i) in routes"
-          :key="i + moved"
+          :key="route.uuid"
           :position="i"
           class="col span-12"
           :spec="route"
