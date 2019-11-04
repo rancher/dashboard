@@ -235,7 +235,7 @@ export default {
           <button
             v-for="act in availableActions"
             :key="act.action"
-            class="btn bg-primary"
+            class="btn bg-primary btn-sm"
             :disabled="!act.enabled"
             @click="applyTableAction(act)"
           >

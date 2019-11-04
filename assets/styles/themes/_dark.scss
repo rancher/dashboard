@@ -53,6 +53,7 @@
   --body-text                  : #{$lightest};
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$darker};
+  --disabled-bg                : #{$disabled};
   --header-bg                  : #{$primary};
   --box-bg                     : #{$darker};
   --border                     : #{$medium};
@@ -89,7 +90,7 @@
   --progress-bg                : #{$medium};
   --progress-divider           : #{$lightest};
 
-  --sortable-table-header-bg   : #{$darker};
+  --sortable-table-header-bg   : transparent;
   --sortable-table-accent-bg   : #{$darkest};
   --sortable-table-accent-alt  : #{$darker};
   --sortable-table-divider-bg  : #{$dark};
