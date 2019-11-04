@@ -1,6 +1,9 @@
 import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
 import {
-  STATE, NAMESPACE_NAME, RIO_IMAGE, SCALE, AGE, KEYS, TARGET, TARGET_KIND,
+  STATE, NAME, NAMESPACE_NAME, AGE,
+  RIO_IMAGE, WEIGHT, SCALE,
+  KEYS,
+  TARGET, TARGET_KIND, TARGET_SECRET,
 } from '@/config/table-headers';
 
 export const FRIENDLY = {
@@ -31,8 +34,17 @@ export const FRIENDLY = {
   'public-domains': {
     singular: 'Public Domain',
     plural:   'Public Domains',
-    type:     RIO.PUBLIC_DOMAIN
+    type:     RIO.PUBLIC_DOMAIN,
+    headers:  [
+      STATE,
+      NAME,
+      TARGET_KIND,
+      TARGET,
+      TARGET_SECRET,
+      AGE,
+    ],
   },
+
   services: {
     singular: 'Service',
     plural:   'Services',
@@ -41,20 +53,24 @@ export const FRIENDLY = {
       STATE,
       NAMESPACE_NAME,
       RIO_IMAGE,
+      WEIGHT,
       SCALE,
       AGE,
     ]
   },
+
   stack: {
     singular: 'Stack',
     plural:   'Stacks',
     type:     RIO.STACK
   },
+
   routers: {
     singular: 'Router',
     plural:   'Routers',
     type:     RIO.ROUTER
   },
+
   secrets: {
     singular: 'Secret',
     plural:   'Secrets',

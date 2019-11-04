@@ -2,10 +2,10 @@
 import RioDetail, { watchQuery, asyncData } from '@/components/RioDetail';
 
 export default {
-  name:       'RioNamespaceResourceId',
+  name:       'RioResourceId',
   components: { RioDetail },
   asyncData,
-  watchQuery
+  watchQuery,
 };
 </script>
 

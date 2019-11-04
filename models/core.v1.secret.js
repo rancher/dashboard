@@ -1,13 +1,23 @@
+export const OPAQUE = 'Opaque';
+export const SERVICE_ACCT = 'kubernetes.io/service-account-token';
+export const DOCKER = 'kubernetes.io/dockercfg';
+export const DOCKER_JSON = 'kubernetes.io/dockerconfigjson';
+export const BASIC = 'kubernetes.io/basic-auth';
+export const SSH = 'kubernetes.io/ssh-auth';
+export const TLS = 'kubernetes.io/tls';
+export const BOOTSTRAP = 'bootstrap.kubernetes.io/token';
+export const ISTIO_TLS = 'istio.io/key-and-cert';
+
 const DISPLAY_TYPES = {
-  Opaque:                                'Opaque',
-  'kubernetes.io/service-account-token': 'Service Acct',
-  'kubernetes.io/dockercfg':             'Dockercfg',
-  'kubernetes.io/dockerconfigjson':      'Docker JSON',
-  'kubernetes.io/basic-auth':            'Basic Auth',
-  'kubernetes.io/ssh-auth':              'SSH',
-  'kubernetes.io/tls':                   'TLS',
-  'bootstrap.kubernetes.io/token':       'Bootstrap Token',
-  'istio.io/key-and-cert':               'TLS (Istio)',
+  [OPAQUE]:       'Opaque',
+  [SERVICE_ACCT]: 'Service Acct',
+  [DOCKER]:       'Dockercfg',
+  [DOCKER_JSON]:  'Docker JSON',
+  [BASIC]:        'Basic Auth',
+  [SSH]:          'SSH',
+  [TLS]:          'TLS',
+  [BOOTSTRAP]:    'Bootstrap Token',
+  [ISTIO_TLS]:    'TLS (Istio)',
 };
 
 export default {
@@ -26,6 +36,10 @@ export default {
     // }
 
     return keys.join(', ');
+  },
+
+  secretType() {
+    return this._type;
   },
 
   typeDisplay() {

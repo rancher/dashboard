@@ -10,11 +10,23 @@ export default {
       type:    Array,
       default: null,
     },
+    grouped: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   computed: {
     currentLabel() {
-      const entry = findBy(this.options || [], 'value', this.value);
+      let entry;
+
+      if ( this.grouped ) {
+        for ( let i = 0 ; i < this.options.length && !entry ; i++ ) {
+          entry = findBy(this.options[i].items || [], 'value', this.value);
+        }
+      } else {
+        entry = findBy(this.options || [], 'value', this.value);
+      }
 
       if ( entry ) {
         return entry.label;
@@ -65,7 +77,14 @@ export default {
         {{ placeholder }}
       </option>
       <slot name="options" :options="options">
-        <option v-for="opt in options" :key="opt.value" :value="opt.value">
+        <template v-if="grouped">
+          <optgroup v-for="grp in options" :key="grp.group" :label="grp.group">
+            <option v-for="opt in grp.items" :key="opt.value" :value="opt.value">
+              {{ opt.label }}
+            </option>
+          </optgroup>
+        </template>
+        <option v-for="opt in options" v-else :key="opt.value" :value="opt.value">
           <slot name="label" :opt="opt">
             {{ opt.label }}
           </slot>

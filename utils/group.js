@@ -2,11 +2,13 @@ import { get } from '@/utils/object';
 import { filterBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
 
-// groupAndFilterBy(services, 'default')
-export function groupAndFilterOptions(ary, filterValue, {
-  filterKey = 'metadata.namespace',
+const NOT_GROUPED = 'none';
 
-  groupKey = 'metadata.namespace',
+// groupAndFilterBy(services, 'default')
+export function groupAndFilterOptions(ary, filter, {
+  defaultFilterKey = 'metadata.namespace',
+
+  groupBy = 'metadata.namespace',
   groupPrefix = 'Namespace: ',
 
   itemLabelKey = 'nameDisplay',
@@ -15,8 +17,11 @@ export function groupAndFilterOptions(ary, filterValue, {
 } = {}) {
   let matching;
 
-  if ( filterKey && filterValue ) {
-    matching = filterBy((ary || []), filterKey, filterValue);
+  if ( filter && typeof filter === 'object' ) {
+    matching = filterBy((ary || []), filter);
+  } else if ( filter ) {
+    // If you want to filter on a value that's false-y (false, null, undefined) use the object version of filter
+    matching = filterBy((ary || []), defaultFilterKey, filter);
   } else {
     matching = ary;
   }
@@ -24,31 +29,42 @@ export function groupAndFilterOptions(ary, filterValue, {
   const groups = {};
 
   for ( const match of matching ) {
-    const name = get(match, groupKey);
+    const name = groupBy ? get(match, groupBy) : NOT_GROUPED;
     let entry = groups[name];
 
     if ( !entry ) {
       entry = {
         group: `${ groupPrefix }${ name }`,
-        items: [],
+        items: {},
       };
+
       groups[name] = entry;
     }
 
-    entry.items.push({
-      obj:   match,
-      label: get(match, itemLabelKey),
-      value: get(match, itemValueKey),
-    });
+    const value = get(match, itemValueKey);
+
+    if ( !entry.items[value] ) {
+      entry.items[value] = {
+        obj:   match,
+        label: get(match, itemLabelKey),
+        value
+      };
+    }
   }
 
   const out = Object.keys(groups).map((name) => {
     const entry = groups[name];
 
-    entry.items = sortBy(entry.items, `obj.${ itemSortKey }`);
+    entry.items = sortBy(Object.values(entry.items), `obj.${ itemSortKey }`);
 
     return entry;
   });
 
-  return sortBy(out, 'group');
+  if ( groupBy ) {
+    return sortBy(out, 'group');
+  } else if ( out.length ) {
+    return out[0].items;
+  } else {
+    return [];
+  }
 }

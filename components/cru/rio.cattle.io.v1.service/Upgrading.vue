@@ -31,7 +31,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           key="increment"
-          v-model="spec.weight"
+          v-model.number="spec.weight"
           :mode="mode"
           type="number"
           min="0"
@@ -43,7 +43,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           key="increment"
-          v-model="spec.rollout.increment"
+          v-model.number="spec.rollout.increment"
           :mode="mode"
           type="number"
           min="1"
@@ -52,7 +52,7 @@ export default {
       </div>
       <div class="col span-6">
         <UnitInput
-          v-model="spec.rollout.interval"
+          v-model.number="spec.rollout.intervalSeconds"
           :mode="mode"
           label="Rollout Interval"
           suffix="sec"
@@ -64,7 +64,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           key="maxUnavailable"
-          v-model="spec.maxUnavailable"
+          v-model.number="spec.maxUnavailable"
           :mode="mode"
           type="number"
           min="0"
@@ -74,7 +74,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           key="maxSurge"
-          v-model="spec.maxSurge"
+          v-model.number="spec.maxSurge"
           :mode="mode"
           type="number"
           min="0"

@@ -10,6 +10,12 @@ import Footer from '@/components/form/Footer';
 import { RIO } from '@/config/types';
 import { groupAndFilterOptions } from '@/utils/group';
 
+const KIND_LABELS = {
+  'service':  'Another service',
+  'ip':      'A list of IP Addresses',
+  'fqdn':    'A DNS name',
+};
+
 export default {
   name: 'CruExternalService',
 
@@ -48,10 +54,6 @@ export default {
       targetService = `${ spec.targetServiceNamespace }/${ spec.targetServiceName }`;
     }
 
-    if ( typeof window !== 'undefined' ) {
-      window.v = this.value;
-    }
-
     return {
       kind,
       allServices: null,
@@ -65,6 +67,16 @@ export default {
     serviceOptions() {
       return groupAndFilterOptions(this.allServices);
     },
+
+    kindLabels() {
+      return KIND_LABELS;
+    },
+
+    kindOptions() {
+      return Object.keys(KIND_LABELS).map((k) => {
+        return { label: KIND_LABELS[k], value: k };
+      });
+    }
   },
 
   watch: {
@@ -128,26 +140,25 @@ export default {
       <div class="row">
         <div class="col span-12">
           <h4>Target</h4>
-          <div>
-            <label class="radio">
-              <input v-model="kind" type="radio" value="service" /> Another service
-            </label>
+          <div v-if="mode === 'view'">
+            {{ kindLabels[kind] }}
           </div>
-          <div>
-            <label class="radio">
-              <input v-model="kind" type="radio" value="fqdn" /> A DNS name
-            </label>
-          </div>
-          <div>
-            <label class="radio">
-              <input v-model="kind" type="radio" value="ip" /> One or more IP addresses
-            </label>
+          <div v-else>
+            <div v-for="opt in kindOptions" :key="opt.value">
+              <label class="radio">
+                <input v-model="kind" type="radio" :value="opt.value" />
+                {{ opt.label }}
+              </label>
+            </div>
           </div>
         </div>
       </div>
       <div class="row">
         <div v-if="kind === 'service'" class="col span-6">
-          <select v-model="targetService">
+          <template v-if="isView">
+            {{ targetService }}
+          </template>
+          <select v-else v-model="targetService">
             <option disabled value="">
               Select a Service...
             </option>
@@ -159,7 +170,7 @@ export default {
           </select>
         </div>
         <div v-if="kind === 'fqdn'" class="col span-6">
-          <LabeledInput v-model="fqdn" label="DNS FQDN" @input="update" />
+          <LabeledInput v-model="fqdn" :mode="mode" label="DNS FQDN" @input="update" />
         </div>
         <div v-if="kind === 'ip'" class="col span-6">
           <ArrayList
