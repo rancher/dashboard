@@ -6,6 +6,7 @@
 
   LABEL {
     position: absolute;
+    bottom: 5px;
     transform: translate(0, -12px) scale(1);
     transform-origin: top left;
     transition-property: transform, font-size;

@@ -4,7 +4,7 @@ import { FRIENDLY } from '@/config/friendly';
 
 export default {
   components: { ResourceTable },
-
+  // layout:     'unauthenticated',
   validate({ params, query, store }) {
     return !!FRIENDLY[params.resource];
   },

@@ -1,5 +1,6 @@
 <script>
 import { debounce } from 'lodash';
+import { typeOf } from '../../utils/sort';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
 import { asciiLike } from '@/utils/string';
@@ -288,20 +289,25 @@ export default {
       const valueName = this.valueName;
 
       for ( const row of this.rows ) {
+        let value = (row[valueName] || '');
         const key = (row[keyName] || '').trim();
-        let value = (row[valueName] || '').trim();
 
-        row.binary = !asciiLike(value);
+        if (typeOf(value) === 'object') {
+          out[key] = JSON.parse(JSON.stringify(value));
+        } else {
+          value = value.trim();
 
-        if ( value && this.valueBase64 ) {
-          value = base64Encode(value);
-        }
+          row.binary = !asciiLike(value);
 
-        if ( key && (value || this.valueCanBeEmpty) ) {
-          out[key] = value;
+          if ( value && this.valueBase64 ) {
+            value = base64Encode(value);
+          }
+
+          if ( key && (value || this.valueCanBeEmpty) ) {
+            out[key] = value;
+          }
         }
       }
-
       this.$emit('input', out);
     }
   },
@@ -366,6 +372,7 @@ export default {
               :keyName="keyName"
               :valueName="valueName"
               :isView="isView"
+              :queueUpdate="queueUpdate"
             >
               <span v-if="valueBinary || row.binary">
                 {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>

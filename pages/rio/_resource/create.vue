@@ -4,6 +4,7 @@ import { FRIENDLY } from '@/config/friendly';
 export default {
   name: 'RioResourceCreate',
 
+  // mixins:   { CreateEditView },
   computed: {
     doneRoute() {
       const name = this.$route.name.replace(/-create$/, '');
