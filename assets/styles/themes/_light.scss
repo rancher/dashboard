@@ -34,9 +34,6 @@ $contrasted-light: $lightest !default;
 
 $selected: rgba($primary, .5);
 
-//Transparent colors
-$primary-transparent: rgba($primary,.3);
-
 :root {
   // Colors that will have text- and bg- helper classes created
   // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
@@ -73,6 +70,8 @@ $primary-transparent: rgba($primary,.3);
   --border-radius              : 2px;
   --outline                    : rgba(42,148,255,0.75);
   --outline-width              : 2px;
+
+  --accent-btn                 : rgba($primary, .7);
 
   --dropdown-bg                : #{$dark};
   --dropdown-border            : #{$medium};

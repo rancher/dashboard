@@ -66,7 +66,7 @@ export default {
         }
     }
     .vs__dropdown-toggle {
-        background-color: var(--primary-transparent);
+        background-color: var(--accent-btn);
         border-color: var(--primary);
         color: var(--primary) !important;
         height: 100%;

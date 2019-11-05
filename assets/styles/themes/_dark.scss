@@ -30,7 +30,7 @@
   $contrasted-light : $darkest !default;
 
   //Transparent colors
-  $primary-transparent: rgba($primary,.3);
+  $primary-transparent: rgba($primary, .3);
 
   // Colors that will have text- and bg- helper classes created
   // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
@@ -67,6 +67,8 @@
   --nav-sub                    : #{lighten($darkest, 15%)};
   --nav-cur-sub                : #{lighten($darkest, 25%)};
   --nav-active                 : var(--primary);
+
+  --accent-btn                 : rgba($primary, .7);
 
   --dropdown-bg                : #{$medium};
   --dropdown-border            : var(--border);

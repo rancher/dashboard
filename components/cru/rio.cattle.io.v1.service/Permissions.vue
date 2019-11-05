@@ -239,7 +239,7 @@ export default {
 
   TH {
     text-align: left;
-    font-size: 16px;
+    font-size: 12px;
     font-weight: normal;
     color: var(--input-label);
   }
