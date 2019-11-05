@@ -45,7 +45,7 @@ export default {
   computed: {
     formatted() {
       return {
-        service:   this.service.metadata ? this.service.metadata.name : '',
+        service:   this.service.metadata ? this.service.metadata.name : this.service,
         version:   this.pickVersion ? this.version : null,
         port:      this.port,
         weight:    this.weight,
