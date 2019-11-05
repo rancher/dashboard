@@ -26,6 +26,9 @@ export default {
     change() {
       console.log('inputwithselect change');
       this.$emit('input', { option: this.selected, string: this.string });
+    },
+    blurred() {
+      console.log('blurred');
     }
   }
 };
@@ -39,7 +42,7 @@ export default {
       :options="options"
       :clearable="false"
       :searchable="false"
-      @input="change"
+      @search:focused="blurred"
     />
     <LabeledInput v-model="string" class="input-string" :label="label" :value="string" />
   </div>
@@ -53,11 +56,15 @@ export default {
 .v-select.in-input{
     flex-basis:20%;
     .vs__selected {
-        margin: auto;
+       margin-right: 0;
+       margin-left: 0;
         color: var(--input-text)
     }
     .vs__dropdown-menu {
         min-width: 0px;
+        .vs__dropdown-option {
+          padding: 3px 5px;
+        }
     }
     .vs__dropdown-toggle {
         background-color: var(--default-text);
@@ -71,10 +78,12 @@ export default {
         display: -webkit-box;
     }
     .vs__actions {
-      padding: 0 4px 0 0;
+      padding: 0;
     }
     .vs__search {
-        display: none;
+        background-color: var(--default-text);
+        width: 0px;
+        padding: 0;
     }
     .vs__open-indicator{
         fill: var(--input-text);
