@@ -74,6 +74,7 @@ export default {
 
 <template>
   <div>
+  <div class="spacer"></div>
     <ul role="tablist" class="tabs clearfix">
       <li
         v-for="tab in tabs"
@@ -91,7 +92,7 @@ export default {
         </a>
       </li>
     </ul>
-    <div class="container">
+    <div class="tab-container">
       <slot />
     </div>
   </div>
@@ -126,7 +127,7 @@ export default {
     }
   }
 
-  .container {
+  .tab-container {
     padding: 40px;
     border: 1px solid var(--tabbed-border);
     background-color: var(--tabbed-container-bg);
