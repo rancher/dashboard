@@ -144,7 +144,8 @@ SELECT {
     // color: rgba(255,255,255,.6);
 }
 
-/* Styling Checkbox Starts */
+// Styling Checkbox Starts
+/*
 .checkbox, 
 .radio {
     position: relative;
@@ -223,7 +224,7 @@ SELECT {
 }
 
 
-/* Style for Radio */
+// Style for Radio 
 .radio .checkbox-custom.circular {
     border-radius: 50%;
     border: 1.5px solid #FFFFFF;
@@ -250,3 +251,4 @@ SELECT {
 .radio input:checked ~ .checkbox-custom.circular::before {
     border-radius: 50%;
 }
+*/

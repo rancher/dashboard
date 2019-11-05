@@ -5,6 +5,7 @@ import { eachLimit } from '~/utils/promise';
 import { MODE, _EDIT, EDIT_YAML, _FLAGGED } from '@/config/query-params';
 import { TO_FRIENDLY } from '@/config/friendly';
 import { findBy } from '@/utils/array';
+import { VIEW_IN_API } from '@/store/prefs';
 
 const REMAP_STATE = { disabled: 'inactive' };
 
@@ -280,11 +281,13 @@ export default {
       bulkAction: 'downloadBulk',
     });
 
+    const viewInApiEnabled = this.$rootGetters['prefs/get'](VIEW_IN_API);
+
     all.push({
       action:  'viewInApi',
       label:   'View in API',
       icon:    'icon icon-fw icon-external-link',
-      enabled:  !!links.self,
+      enabled:  !!links.self && viewInApiEnabled,
     });
 
     all.push({ divider: true });

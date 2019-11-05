@@ -317,6 +317,7 @@ export default {
       v-if="!isPreview"
       :value="currentValue"
       :options="cmOptions"
+      :footer-space="50"
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"

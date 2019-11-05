@@ -7,6 +7,8 @@ import { SPA, AUTH_TEST, _FLAGGED } from '@/config/query-params';
 const KEY = 'rc_nonce';
 const BASE_SCOPES = ['read:user', 'read:org', 'user:email'];
 
+export const EXTENDED_SCOPES = ['repo'];
+
 const ERR_NONCE = 'nonce';
 const ERR_CLIENT = 'client';
 const ERR_SERVER = 'server';
@@ -25,6 +27,10 @@ export const getters = {
 
   principalId(state) {
     return state.principalId;
+  },
+
+  isGithub(state) {
+    return state.principalId.startsWith('github_user://');
   }
 };
 
