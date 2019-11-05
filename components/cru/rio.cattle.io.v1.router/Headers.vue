@@ -74,7 +74,7 @@ export default {
   <div class="headers" @input="change">
     <template v-if="enabled">
       <div v-for="(rule, i) in all" :key="i" class="row inputs">
-        <v-select v-model="rule.op" class="inline" :options="['add', 'set', 'remove']" />
+        <v-select v-model="rule.op" :serachable="false" class="inline" :options="['add', 'set', 'remove']" />
         <LabeledInput v-model="rule.name" label="Header Name" />
         <LabeledInput v-model="rule.value" label="Header Value" />
         <button class="btn btn-sm role-link" @click="remove(i)">
@@ -84,7 +84,7 @@ export default {
     </template>
 
     <button :class="{disabled: !enabled}" class="btn bg-primary btn-sm" @click="addRule">
-      add header operation
+      + ADD HEADER OPERATION
     </button>
   </div>
 </template>
