@@ -108,7 +108,7 @@ export default {
           Match
         </h4>
         <div class="position-mover">
-          {{ position }}
+          {{ position + 1 }}
           <div class="position-inputs">
             <button class="btn bg-transparent icon-btn icon icon-sort-up" @click="move('up')">
               {{ '' }}
@@ -160,7 +160,7 @@ export default {
             @remove="remove('to', i)"
           />
           <button v-if="mode==='forwardMany'" class="btn btn-sm bg-primary " @click="addDestination">
-            add destination
+            + ADD DESTINATION
           </button>
         </div>
       </div>
@@ -168,7 +168,7 @@ export default {
         <Redirect class="col span-12" :spec="redirect" @input="e=>change('redirect', e)" />
       </div>
     </div>
-    <div class="header section">
+    <div v-if="mode!=='redirect'" class="header section">
       <div class="row">
         <h4 class="col span-12">
           Rewrite Request Headers
@@ -220,10 +220,11 @@ export default {
         padding: 5px;
         background-color: var(--input-bg);
         border-radius: var(--border-radius);
-        & > div {
+        & > .position-inputs {
           margin-left: 5px;
           display: flex;
           flex-direction: column;
+          position:relative;
           & button {
             height: 10px;
           }

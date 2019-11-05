@@ -56,8 +56,7 @@ export default {
 .v-select.in-input{
     flex-basis:20%;
     .vs__selected {
-       margin-right: 0;
-       margin-left: 0;
+       margin: 0;
         color: var(--input-text)
     }
     .vs__dropdown-menu {
@@ -72,18 +71,23 @@ export default {
         height: 100%;
         padding: none;
         display: flex;
-        align-items: center;
+        align-items: stretch;
+        padding: 0 3px 0 3px;
+        & * {
+          padding: 0
+          }
     }
     .vs__selected-options {
         display: -webkit-box;
     }
     .vs__actions {
-      padding: 0;
+      padding: 2px;;
     }
     .vs__search {
         background-color: var(--default-text);
         width: 0px;
         padding: 0;
+        align-self: center;
     }
     .vs__open-indicator{
         fill: var(--input-text);
