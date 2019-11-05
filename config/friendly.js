@@ -3,7 +3,7 @@ import {
   STATE, NAME, NAMESPACE_NAME, AGE,
   RIO_IMAGE, WEIGHT, SCALE,
   KEYS,
-  TARGET, TARGET_KIND, TARGET_SECRET,
+  TARGET, TARGET_KIND,
 } from '@/config/table-headers';
 
 export const FRIENDLY = {
@@ -40,7 +40,12 @@ export const FRIENDLY = {
       NAME,
       TARGET_KIND,
       TARGET,
-      TARGET_SECRET,
+      {
+        name:   'secret-name',
+        label:  'Secret',
+        value:  'secretName',
+        sort:   ['secretName', 'targetApp', 'targetVersion'],
+      },
       AGE,
     ],
   },
@@ -82,6 +87,7 @@ export const FRIENDLY = {
         name:  'type',
         label: 'Type',
         value: 'typeDisplay',
+        sort:  ['typeDisplay', 'nameSort'],
       },
       KEYS,
       AGE
