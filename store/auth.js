@@ -106,6 +106,14 @@ export const actions = {
       opt.route = '/auth/verify';
     }
 
+    if ( this.$router.options && this.$router.options.base ) {
+      const routerBase = this.$router.options.base;
+
+      if ( routerBase !== '/' ) {
+        opt.route = `${ routerBase.replace(/\/+$/, '') }/${ opt.route.replace(/^\/+/, '') }`;
+      }
+    }
+
     let returnToUrl = `${ window.location.origin }${ opt.route }`;
 
     const parsed = parseUrl(window.location.href);
