@@ -34,7 +34,7 @@ export default {
     } = this.spec;
     let mode = 'forwardOne';
 
-    if (this.spec.to.length > 1) {
+    if (to.length > 1) {
       mode = 'forwardMany';
     } else if (this.spec.redirect) {
       mode = 'redirect';
