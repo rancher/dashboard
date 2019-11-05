@@ -398,8 +398,8 @@ export default {
           <slot name="moreColumnHeaders" />
           <td v-if="showRemove" class="remove">
             <slot name="removeButton" :remove="remove" :idx="idx">
-              <button type="button" class="btn bg-primary" @click="remove(idx)">
-                <i v-if="removeIcon" :class="{'icon': true, [removeIcon]: true}" />
+              <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
+                Remove
                 {{ removeLabel }}
               </button>
             </slot>
@@ -434,7 +434,7 @@ export default {
 
 <style lang="scss" scoped>
   $separator: 20;
-  $remove: 50;
+  $remove: 75;
 
   .title {
     margin-bottom: 10px;
@@ -474,7 +474,7 @@ export default {
   }
 
   .remove {
-    vertical-align: top;
+    vertical-align: middle;
     text-align: right;
     width: #{$remove}px;
   }

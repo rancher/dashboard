@@ -29,6 +29,9 @@
   $contrasted-dark  : $lightest !default;
   $contrasted-light : $darkest !default;
 
+  //Transparent colors
+  $primary-transparent: rgba($primary,.3);
+
   // Colors that will have text- and bg- helper classes created
   // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
   @include color-variables((

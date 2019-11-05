@@ -201,7 +201,7 @@ export default {
 
 <style  lang='scss'>
   .route {
-    padding: 5px 10px 5px 10px;
+    padding: 20px;
     background-color: var(--login-bg);
     margin-bottom: 20px;
 
