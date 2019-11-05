@@ -47,6 +47,6 @@ export default {
       :input-exponent="0"
       suffix="ms"
     />
-    <LabeledInput v-model="abortHTTPStatus" label="fault HTTP abort code" />
+    <LabeledInput v-model="abortHTTPStatus" label="Fault HTTP Abort Code" />
   </div>
 </template>

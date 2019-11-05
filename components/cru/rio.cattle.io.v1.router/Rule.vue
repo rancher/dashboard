@@ -159,8 +159,9 @@ export default {
             @input="change('to', $event, i)"
             @remove="remove('to', i)"
           />
-          <button v-if="mode==='forwardMany'" class="btn btn-sm bg-primary " @click="addDestination">
-            + ADD DESTINATION
+          <button v-if="mode==='forwardMany'" class="btn role-tertiary add" @click="addDestination">
+            <i class="icon icon-plus" />
+            Add Destination
           </button>
         </div>
       </div>

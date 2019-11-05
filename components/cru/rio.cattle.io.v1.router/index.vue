@@ -95,8 +95,9 @@ export default {
         />
       </div>
     </div>
-    <button class="btn bg-primary" @click="addRouteSpec">
-      + ADD RULE
+    <button class="btn role-tertiary add" @click="addRouteSpec">
+      <i class="icon icon-plus" />
+      Add Rule
     </button>
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </div>
