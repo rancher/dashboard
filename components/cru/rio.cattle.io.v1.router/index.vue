@@ -7,9 +7,13 @@ import { randomStr } from '@/utils/string';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Rule from '@/components/cru/rio.cattle.io.v1.router/Rule';
+import Footer from '@/components/form/Footer';
+
 export default {
   name:       'CruRouter',
-  components: { Rule, NameNsDescription },
+  components: {
+    Rule, NameNsDescription, Footer
+  },
   mixins:     [CreateEditView],
   data() {
     let routes = [{ uuid: randomStr() }];
@@ -58,6 +62,9 @@ export default {
         this.routes.splice(newIndex, 0, moving);
       }
     },
+    remove(index) {
+      this.routes.splice(index, 1);
+    },
     done(success) {
       if (success) {
         this.$router.push('/rio/routers');
@@ -69,9 +76,6 @@ export default {
 
 <template>
   <div>
-    <div v-for="error in errors" :key="error" class="returned-errors">
-      {{ error }}
-    </div>
     <div class="row">
       <NameNsDescription class="col span-12" :value="value" :mode="mode" />
     </div>
@@ -84,6 +88,7 @@ export default {
           :position="i"
           class="col span-12"
           :spec="route"
+          @delete="remove(i)"
           @up="reposition(i, i-1)"
           @down="reposition(i, i+1)"
           @input="e=>change('routes', e, i)"
@@ -91,16 +96,9 @@ export default {
       </div>
     </div>
     <button class="btn bg-primary" @click="addRouteSpec">
-      + add rule
+      + ADD RULE
     </button>
-    <div class=" row footer-controls">
-      <button class="btn btn-lg bg-transparent border">
-        Cancel
-      </button>
-      <button class="btn btn-lg bg-primary" @click="saveRouter">
-        Deploy
-      </button>
-    </div>
+    <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </div>
 </template>
 
