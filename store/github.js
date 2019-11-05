@@ -3,7 +3,7 @@ export const state = function() {
     repositories: [],
     branches:     [],
     files:        [],
-    scopes:        []
+    scopes:       []
   }
   ;
 };
@@ -34,6 +34,7 @@ export const actions = {
 
     getRepos(page);
   },
+
   getBranches({ commit }, payload) {
     fetch(`${ window.location.origin }/v1/github/repos/${ payload.repo.owner.login }/${ payload.repo.name }/branches`)
       .then(res => res.json())
@@ -41,8 +42,9 @@ export const actions = {
         commit({ type: 'addBranches', branches: json });
       });
   },
+
   getContents({ commit }, payload) {
-    fetch(`${ window.location.origin }/v1/github/repos/${ payload.repo.owner.login }/${ payload.repo.name }/git/trees/${ payload.branch.sha }?recursive=1`)
+    fetch(`${ window.location.origin }/v1/github/repos/${ payload.repo.owner.login }/${ payload.repo.name }/git/trees/${ payload.branch.commit.sha }?recursive=1`)
       .then(res => res.json())
       .then((json) => {
         const files = json.tree.filter(file => file.type === 'blob' && file.path.match(payload.filePattern));
@@ -57,9 +59,11 @@ export const mutations = {
     state.repositories = [...state.repositories, ...payload.repos];
     state.scopes = payload.scopes;
   },
+
   addBranches(state, payload) {
     state.branches = payload.branches;
   },
+
   addFiles(state, payload) {
     state.files = payload.files;
   }

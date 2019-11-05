@@ -21,13 +21,16 @@
     background-color: var(--input-hover-bg);
   }
 
+  /*
   &.raised LABEL, .corner {
     transform: translate(0, -20px);
     font-size: 0.75em;
     color: var(--input-label);
   }
+  */
 
   .corner {
+    top: 5px;
     right: 10px;
     margin: 0;
     padding: 0;
