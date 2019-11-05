@@ -150,7 +150,7 @@ export default {
         />
       </template>
     </NameNsDescription>
-
+    <div class="spacer"></div>
     <h4>Image</h4>
     <div class="row">
       <div class="col span-4">

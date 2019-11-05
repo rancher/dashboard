@@ -21,6 +21,7 @@ button,
   border: 0 solid transparent;
   padding: $btn-padding;
   border-radius: var(--border-radius);
+  color: white;
 
   &:hover {
       text-decoration: none;
@@ -85,7 +86,7 @@ button,
 
 .role-secondary {
   background: transparent;
-  color: var(--link-text);
+  color: var(--link-text) !important;
   border: solid thin var(--link-text);
 }
 
@@ -96,8 +97,10 @@ button,
 
 .role-link {
   background: transparent;
-  color: var(--link-text);
+  color: var(--link-text) !important;
   padding: $sm-padding;
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }
 
 

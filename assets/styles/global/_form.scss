@@ -56,7 +56,7 @@ FORM {
   LABEL {
     color: var(--input-label);
     display: inline-block;
-    margin: #{$spacing * 2} 0 $spacing 0;
+    margin: $spacing 0 $spacing 0;
 
     &.radio, &.checkbox {
       cursor: pointer;
@@ -89,7 +89,7 @@ FORM {
 }
 
 .field-required {
-  color: red;
+  color: var(--error);
   font-weight: bold;
 }
 
@@ -99,9 +99,6 @@ INPUT.inline-input {
   margin: 0 10px;
 }
 
-SELECT {
-  height: 35px;
-}
 
 /*
 .validated-input {
@@ -252,3 +249,7 @@ SELECT {
     border-radius: 50%;
 }
 */
+
+.fixed input, .fixed select {
+  height: 44px;
+}
