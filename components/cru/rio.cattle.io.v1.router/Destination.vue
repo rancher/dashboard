@@ -97,7 +97,7 @@ export default {
     <div class="row inputs">
       <v-select
         class="inline"
-        placeholder="service"
+        placeholder="Service"
         :searchable="false"
         :clearable="false"
         :value="service"
@@ -108,11 +108,11 @@ export default {
       <v-select
         v-if="pickVersion"
         v-model="version"
-        placeholder="version"
+        placeholder="Version"
         class="inline"
         :options="versions"
       />
-      <LabeledInput v-model="port" type="text" label="port" />
+      <LabeledInput v-model="port" type="text" label="Port" />
       <LabeledInput v-model="weight" :class="{hidden: !isWeighted}" label="Weight" />
       <button :class="{hidden: !canRemove}" class="btn btn-sm role-link" @click="$emit('remove')">
         REMOVE
