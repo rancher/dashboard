@@ -153,10 +153,6 @@ export default {
             bottom: -2px;
           }
         }
-        & > * {
-          padding: 8px;
-          height: 100%;
-        }
       }
     }
   }
