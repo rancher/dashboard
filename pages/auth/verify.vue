@@ -5,6 +5,11 @@ import {
 
 export default {
   layout:   'unauthenticated',
+
+  data() {
+    return { testing: this.$route.query[AUTH_TEST] === _FLAGGED };
+  },
+
   async fetch({ store, route, redirect }) {
     if ( route.query[AUTH_TEST] === _FLAGGED ) {
       return;
@@ -24,26 +29,11 @@ export default {
     }
   },
 
-  async mounted() {
-    const route = this.$route;
-
-    if ( route.query[AUTH_TEST] === _FLAGGED ) {
+  mounted() {
+    if ( this.testing ) {
       try {
-        await this.$store.dispatch('auth/testGithub', {
-          code:   route.query[GITHUB_CODE],
-          nonce:  route.query[GITHUB_NONCE],
-          config: window.opener.window.authTestConfig,
-        });
+        window.opener.window.onAuthTest(this.$route.query[GITHUB_CODE]);
 
-        reply(null);
-      } catch (e) {
-        reply(e);
-      }
-    }
-
-    function reply(err) {
-      try {
-        window.opener.window.onAuthTest(err);
         setTimeout(() => {
           window.close();
         }, 250);
@@ -58,7 +48,12 @@ export default {
 <template>
   <main>
     <h1 class="text-center mt-50">
-      Logging In&hellip;
+      <span v-if="testing">
+        Testing&hellip;
+      </span>
+      <span v-else>
+        Logging In&hellip;
+      </span>
     </h1>
   </main>
 </template>
