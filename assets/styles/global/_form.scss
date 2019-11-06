@@ -254,3 +254,16 @@ INPUT.inline-input {
 .fixed input, .fixed select {
   height: 44px;
 }
+
+label {
+  color: var(--input-label);
+}
+
+.radio {
+  color: var(--input-label);
+  margin-left: 20px;
+
+  &:first-child {
+    margin: 0;
+  }
+}
