@@ -199,7 +199,7 @@ export default {
           const url = await this.$store.dispatch('auth/redirectToGithub', {
             redirectUrl: res.redirectUrl,
             test:        true,
-            returnUrl:   true
+            redirect:    false
           });
 
           const popup = open(url, 'auth-test', popupWindowOptions());

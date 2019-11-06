@@ -26,6 +26,21 @@ export function addParams(url, params) {
   return url;
 }
 
+export function parseLinkHeader(str) {
+  const out = {};
+  const lines = (str || '').split(',');
+
+  for ( const line of lines ) {
+    const match = line.match(/^\s*<([^>]+)>\s*;\s*rel\s*="(.*)"/);
+
+    if ( match ) {
+      out[match[2].toLowerCase()] = match[1];
+    }
+  }
+
+  return out;
+}
+
 // parseUri 1.2.2
 // (c) Steven Levithan <stevenlevithan.com>
 // https://javascriptsource.com/parseuri/

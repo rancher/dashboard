@@ -243,3 +243,8 @@ $transition-duration: 150ms;
   }
 
 }
+
+.vs__selected-options INPUT {
+  width: auto;
+  display: inline-block;
+}

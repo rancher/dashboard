@@ -2,7 +2,7 @@ import { parse as setCookieParser } from 'set-cookie-parser';
 import { randomStr } from '@/utils/string';
 import { parse as parseUrl, addParam, addParams } from '@/utils/url';
 import { findBy, addObjects } from '@/utils/array';
-import { SPA, AUTH_TEST, _FLAGGED } from '@/config/query-params';
+import { BACK_TO, SPA, AUTH_TEST, _FLAGGED } from '@/config/query-params';
 
 const KEY = 'rc_nonce';
 const BASE_SCOPES = ['read:user', 'read:org', 'user:email'];
@@ -126,13 +126,17 @@ export const actions = {
       returnToUrl = addParam(returnToUrl, AUTH_TEST, _FLAGGED);
     }
 
+    if ( opt.backTo ) {
+      returnToUrl = addParam(returnToUrl, BACK_TO, opt.backTo);
+    }
+
     const url = addParams(redirectUrl, {
       scope:        scopes.join(','),
       redirect_uri: returnToUrl,
       state:        nonce
     });
 
-    if ( opt.returnUrl ) {
+    if ( opt.redirect === false ) {
       return url;
     } else {
       window.location.href = url;

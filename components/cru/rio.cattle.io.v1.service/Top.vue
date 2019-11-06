@@ -119,7 +119,7 @@ export default {
       :value="value"
       :mode="mode"
       :name-label="isSidecar ? 'Container Name' : 'Service Name'"
-      :three-column="!isSidecar"
+      :extra-column="!isSidecar"
     >
       <template v-if="isSidecar" #name>
         <LabeledInput
@@ -130,7 +130,7 @@ export default {
           :required="true"
         />
       </template>
-      <template v-if="!isSidecar" #right>
+      <template v-if="!isSidecar" #extra>
         <LabeledInput
           key="scale"
           v-model.number="spec.replicas"
@@ -153,54 +153,73 @@ export default {
     <div class="spacer"></div>
     <h4>Image</h4>
     <div class="row">
-      <div class="col span-4">
+      <div class="col span-12">
         <div v-if="mode === 'view'">
           {{ buildModeLabels[buildMode] }}
         </div>
         <div v-else>
-          <div v-for="opt in buildModeOptions" :key="opt.value">
-            <label class="radio" :class="{disabled: opt.value === 'github' && !hasGithub}">
-              <input v-model="buildMode" type="radio" :value="opt.value" :disabled="opt.value === 'github ' && !hasGithub" />
-              {{ opt.label }}
-            </label>
-          </div>
+          <label v-for="opt in buildModeOptions" :key="opt.value" class="radio" :class="{disabled: opt.value === 'github' && !hasGithub}">
+            <input v-model="buildMode" type="radio" :value="opt.value" :disabled="opt.value === 'github ' && !hasGithub" />
+            {{ opt.label }}
+          </label>
         </div>
       </div>
+    </div>
 
-      <div v-if="buildMode === 'image'" class="col span-8">
-        <div class="row">
-          <div class="col span-6">
-            <LabeledInput v-model="spec.image" :mode="mode" label="Image" :required="true" />
-          </div>
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="spec.imagePullPolicy"
-              :mode="mode"
-              :options="imagePullPolicyChoices"
-              label="Pull Policy"
-              placeholder="Select a pull policy..."
-            />
-          </div>
-        </div>
+    <div v-if="buildMode === 'image'" class="row">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="spec.image"
+          :mode="mode"
+          label="Image"
+          placeholder="e.g. nginx:latest"
+          :required="true"
+        />
       </div>
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="spec.imagePullPolicy"
+          :mode="mode"
+          :options="imagePullPolicyChoices"
+          label="Pull Policy"
+          placeholder="Select a pull policy..."
+        />
+      </div>
+    </div>
 
-      <div v-if="buildMode === 'github'" class="col span-12">
+    <div v-if="buildMode === 'github'" class="row">
+      <div class="col span-12">
         <GithubPicker v-model="spec.build" file-key="dockefile" />
       </div>
+    </div>
 
-      <div v-if="buildMode === 'git'" class="col span-8">
-        <LabeledInput v-model="build.repo" :mode="mode" label="Repo URL" :required="true" @input="update" />
-        <LabeledInput v-model="build.branch" :mode="mode" label="Branch" @input="update" />
-        <LabeledInput v-model="build.revision" :mode="mode" label="Revision" @input="update" />
-        <LabeledInput v-model="build.dockerfile" :mode="mode" label="Dockerfile" @input="update" />
+    <div v-if="buildMode === 'git'">
+      <div class="row">
+        <div class="col span-6">
+          <LabeledInput v-model="build.repo" :mode="mode" label="Repo URL" :required="true" @input="update" />
+        </div>
+        <div class="col span-6">
+          <LabeledInput v-model="build.branch" :mode="mode" label="Branch" @input="update" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col span-6">
+          <LabeledInput v-model="build.dockerfile" :mode="mode" label="Path to Dockerfile" @input="update" />
+        </div>
+        <div class="col span-6">
+          <LabeledInput v-model="build.revision" :mode="mode" label="Commit ID or Tag" @input="update" />
+        </div>
       </div>
     </div>
 
     <div v-if="buildMode === 'git' || buildMode === 'github'" class="row">
       <div class="col span-12">
-        <label v-if="buildMode === 'github'" v-tooltip="'Create an entire new service for each pull request, instead of a new version of this service.'" class="checkbox"><input v-model="spec.build.pr" type="checkbox"> Pull Request Workflow
-          <label class="checkbox"><input v-model="spec.build.tag" type="checkbox"> Build on git tag</label>
+        <label v-if="buildMode === 'github'" class="checkbox">
+          <input v-model="spec.build.pr" type="checkbox">
+          Pull Request Workflow
+          <i v-tooltip="'Creates a brand new service for each pull request created, using this service as a template.'" class="icon icon-info" />
         </label>
+        <label class="checkbox"><input v-model="spec.build.tag" type="checkbox"> Build on tag</label>
       </div>
     </div>
 

@@ -1,5 +1,7 @@
 <script>
-import { AUTH_TEST, GITHUB_CODE, GITHUB_NONCE, _FLAGGED } from '@/config/query-params';
+import {
+  AUTH_TEST, GITHUB_CODE, GITHUB_NONCE, _FLAGGED, BACK_TO
+} from '@/config/query-params';
 
 export default {
   layout:   'unauthenticated',
@@ -14,7 +16,9 @@ export default {
     });
 
     if ( res === true ) {
-      redirect('/');
+      const backTo = route.query[BACK_TO] || '/';
+
+      redirect(backTo);
     } else {
       redirect(`/auth/login?err=${ escape(res) }`);
     }
