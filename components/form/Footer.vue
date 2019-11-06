@@ -42,18 +42,19 @@ export default {
 </script>
 <template>
   <div>
-    <hr class="mb-10" />
+    <div class="spacer"></div>
 
     <div v-for="(err,idx) in errors" :key="idx">
       <div class="text-error">
         {{ err }}
       </div>
     </div>
-
-    <AsyncButton v-if="isEdit" key="edit" mode="edit" @click="save" />
-    <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
-    <button v-if="!isView" class="btn bg-transparent" @click="done">
-      Cancel
-    </button>
+    <div class="text-center">
+      <AsyncButton v-if="isEdit" key="edit" mode="edit" @click="save" />
+      <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
+      <button v-if="!isView" class="btn bg-transparent" @click="done">
+        Cancel
+      </button>
+    </div>
   </div>
 </template>

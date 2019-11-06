@@ -149,7 +149,10 @@ export default {
   },
 
   methods: {
-    clicked() {
+    clicked($event) {
+      $event.stopPropagation();
+      $event.preventDefault();
+
       if ( this.isDisabled ) {
         return;
       }

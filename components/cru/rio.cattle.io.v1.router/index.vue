@@ -3,7 +3,7 @@
 import values from 'lodash/values';
 import pickBy from 'lodash/pickBy';
 import { randomStr } from '@/utils/string';
-import { isEmpty } from '@/utils/object';
+// import { isEmpty } from '@/utils/object';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Rule from '@/components/cru/rio.cattle.io.v1.router/Rule';
@@ -95,8 +95,9 @@ export default {
         />
       </div>
     </div>
-    <button class="btn bg-primary" @click="addRouteSpec">
-      + ADD RULE
+    <button class="btn role-tertiary add" @click="addRouteSpec">
+      <i class="icon icon-plus" />
+      Add Rule
     </button>
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </div>

@@ -1,12 +1,14 @@
 <script>
 import { mapState } from 'vuex';
+import { EXTENDED_SCOPES } from '@/store/auth';
+
 export default {
   props: {
     // filter files displayed in dropdown - default to .yml and Dockerfile files
     filePattern: {
       type:    RegExp,
       default: () => {
-        new RegExp('^.*\.(yml)$|.*(Dockerfile)\..*', 'i');
+        return new RegExp('\.ya?ml$|^Dockerfile(\..*)?', 'i');
       }
     },
     // page to redirect back to from GH
@@ -15,6 +17,7 @@ export default {
       default: ''
     }
   },
+
   data() {
     return {
       selectedRepo:   null,
@@ -22,15 +25,19 @@ export default {
       selectedFile:   null
     };
   },
+
   computed:   {
     ...mapState('github', ['repositories', 'branches', 'files', 'scopes']),
+
     hasPrivate() {
       return this.scopes.includes('repo');
     }
   },
+
   mounted() {
     this.$store.dispatch('github/getRepositories', { page: 0 });
   },
+
   methods: {
     selectRepo(repo) {
       this.selectedBranch = null;
@@ -38,6 +45,7 @@ export default {
       this.$emit('selectedRepo', repo);
       this.$store.dispatch('github/getBranches', { repo });
     },
+
     selectBranch(branch) {
       this.selectedBranch = branch;
       this.$emit('selectedBranch', branch);
@@ -47,11 +55,13 @@ export default {
         filePattern: this.filePattern
       });
     },
+
     selectFile(file) {
       this.$emit('selectedFile', file);
     },
+
     expandScope() {
-      this.$store.dispatch('auth/redirectToGithub', { scopes: ['repo'], route: this.path } );
+      this.$store.dispatch('auth/redirectToGithub', { scopes: EXTENDED_SCOPES, route: this.path } );
     }
   },
 };
@@ -61,19 +71,20 @@ export default {
 <template>
   <div>
     <div v-if="!hasPrivate" class="expand-scope">
-      <a
+      Showing public repos.  <a
         href="#"
         class="text-primary bg-transparent"
         @click="expandScope"
       >
-        grant access to private repos
+        Click here
       </a>
+      to grant Rio access to read private repos.
     </div>
     <div class="repo-dropdown">
       <v-select
         placeholder="Choose repository"
         :options="repositories"
-        label="name"
+        label="full_name"
         :value="selectedRepo"
         :clearable="false"
         @input="selectRepo"

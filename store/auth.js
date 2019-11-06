@@ -7,6 +7,8 @@ import { SPA, AUTH_TEST, _FLAGGED } from '@/config/query-params';
 const KEY = 'rc_nonce';
 const BASE_SCOPES = ['read:user', 'read:org', 'user:email'];
 
+export const EXTENDED_SCOPES = ['repo'];
+
 const ERR_NONCE = 'nonce';
 const ERR_CLIENT = 'client';
 const ERR_SERVER = 'server';
@@ -25,6 +27,10 @@ export const getters = {
 
   principalId(state) {
     return state.principalId;
+  },
+
+  isGithub(state) {
+    return state.principalId.startsWith('github_user://');
   }
 };
 
@@ -74,7 +80,13 @@ export const actions = {
   },
 
   async redirectToGithub({ state, commit, dispatch }, opt = {}) {
-    const authProvider = await dispatch('getAuthProvider', 'github');
+    let redirectUrl = opt.redirectUrl;
+
+    if ( !redirectUrl ) {
+      const authProvider = await dispatch('getAuthProvider', 'github');
+
+      redirectUrl = authProvider.redirectUrl;
+    }
 
     const nonce = randomStr(16);
 
@@ -94,21 +106,29 @@ export const actions = {
       opt.route = '/auth/verify';
     }
 
-    let redirectUri = `${ window.location.origin }${ opt.route }`;
+    if ( this.$router.options && this.$router.options.base ) {
+      const routerBase = this.$router.options.base;
+
+      if ( routerBase !== '/' ) {
+        opt.route = `${ routerBase.replace(/\/+$/, '') }/${ opt.route.replace(/^\/+/, '') }`;
+      }
+    }
+
+    let returnToUrl = `${ window.location.origin }${ opt.route }`;
 
     const parsed = parseUrl(window.location.href);
 
     if ( parsed.query.spa !== undefined ) {
-      redirectUri = addParam(redirectUri, SPA, _FLAGGED);
+      returnToUrl = addParam(returnToUrl, SPA, _FLAGGED);
     }
 
     if ( opt.test ) {
-      redirectUri = addParam(redirectUri, AUTH_TEST, _FLAGGED);
+      returnToUrl = addParam(returnToUrl, AUTH_TEST, _FLAGGED);
     }
 
-    const url = addParams(authProvider.redirectUrl, {
+    const url = addParams(redirectUrl, {
       scope:        scopes.join(','),
-      redirect_uri: redirectUri,
+      redirect_uri: returnToUrl,
       state:        nonce
     });
 

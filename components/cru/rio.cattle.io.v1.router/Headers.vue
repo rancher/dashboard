@@ -83,8 +83,9 @@ export default {
       </div>
     </template>
 
-    <button :class="{disabled: !enabled}" class="btn bg-primary btn-sm" @click="addRule">
-      + ADD HEADER OPERATION
+    <button :class="{disabled: !enabled}" class="btn role-tertiary add" @click="addRule">
+      <i class="icon icon-plus" />
+      Add Header Operation
     </button>
   </div>
 </template>

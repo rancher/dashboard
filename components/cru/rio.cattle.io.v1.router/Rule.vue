@@ -161,7 +161,8 @@ export default {
             @remove="remove('to', i)"
           />
           <button class="btn btn-sm bg-primary " @click="addDestination">
-            + ADD DESTINATION
+            <i class="icon icon-plus" />
+            Add Destination
           </button>
         </div>
       </div>

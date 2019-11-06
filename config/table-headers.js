@@ -1,7 +1,9 @@
+// Note: 'id' is always the last sort, so you don't have to specify it here.
+
 export const STATE = {
   name:      'state',
   label:     'State',
-  sort:      ['stateSort', 'nameSort', 'id'],
+  sort:      ['stateSort', 'nameSort'],
   value:     'stateDisplay',
   width:     90,
   default:   'unknown',
@@ -12,7 +14,7 @@ export const NAME = {
   name:      'name',
   label:     'Name',
   value:     'nameDisplay',
-  sort:      ['nameSort', 'id'],
+  sort:      ['nameSort'],
   formatter: 'LinkDetail',
 };
 
@@ -20,21 +22,21 @@ export const NAME_UNLINKED = {
   name:      'name',
   label:     'Name',
   value:     'nameDisplay',
-  sort:      ['nameSort', 'id'],
+  sort:      ['nameSort'],
 };
 
 export const NAMESPACE_NAME_UNLINKED = {
   name:      'namespace-name',
   label:     'Name',
   value:     'namespaceNameDisplay',
-  sort:      ['namespaceNameSort', 'id'],
+  sort:      ['namespaceNameSort'],
 };
 
 export const NAMESPACE_NAME = {
   name:      'namespace-name',
   label:     'Name',
   value:     'namespaceNameDisplay',
-  sort:      ['namespaceNameSort', 'id'],
+  sort:      ['namespaceNameSort'],
   formatter: 'LinkDetail',
 };
 
@@ -43,7 +45,7 @@ export const NAMESPACE = {
   name:   'namespace',
   label:  'Namespace',
   value:  'metadata.namespace',
-  sort:   ['metadata.namespace', 'nameSort', 'id'],
+  sort:   ['metadata.namespace', 'nameSort'],
 };
 */
 
@@ -51,7 +53,7 @@ export const AGE = {
   name:       'age',
   label:      'Age',
   value:      'metadata.creationTimestamp',
-  sort:       ['createdTs', 'nameSort', 'id'],
+  sort:       ['createdTs', 'nameSort'],
   search:     false,
   width:      75,
   formatter:  'LiveDate',
@@ -62,14 +64,14 @@ export const RIO_IMAGE = {
   name:  'image',
   label: 'Image',
   value: 'imageDisplay',
-  sort:  ['imageDisplay', 'nameSort', 'id'],
+  sort:  ['imageDisplay', 'nameSort'],
 };
 
 export const SCALE = {
   name:      'scale',
   label:     'Scale',
   value:     'scales.desired',
-  sort:      ['scales.desired', 'nameSort', 'id'],
+  sort:      ['scales.desired', 'nameSort'],
   width:     100,
   formatter: 'Scale',
   align:     'center',
@@ -128,13 +130,6 @@ export const TARGET = {
   value: 'targetDisplay',
 };
 
-export const TARGET_SECRET = {
-  name:   'secret-name',
-  label:  'Secret',
-  value:  'secretName',
-  sort:   ['secretName', 'targetApp', 'targetVersion', 'id'],
-};
-
 export function headersFor(schema) {
   const out = [];
   const columns = schema.attributes.columns;
@@ -149,7 +144,7 @@ export function headersFor(schema) {
         name:  col.name.toLowerCase(),
         label: col.name,
         value: col.field.replace(/^\./, ''),
-        sort:  [col.field, 'id']
+        sort:  [col.field]
       });
     }
   }

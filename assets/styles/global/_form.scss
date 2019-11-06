@@ -56,7 +56,7 @@ FORM {
   LABEL {
     color: var(--input-label);
     display: inline-block;
-    margin: #{$spacing * 2} 0 $spacing 0;
+    margin: $spacing 0 $spacing 0;
 
     &.radio, &.checkbox {
       cursor: pointer;
@@ -89,7 +89,7 @@ FORM {
 }
 
 .field-required {
-  color: red;
+  color: var(--error);
   font-weight: bold;
 }
 
@@ -99,9 +99,6 @@ INPUT.inline-input {
   margin: 0 10px;
 }
 
-SELECT {
-  height: 35px;
-}
 
 /*
 .validated-input {
@@ -144,7 +141,8 @@ SELECT {
     // color: rgba(255,255,255,.6);
 }
 
-/* Styling Checkbox Starts */
+// Styling Checkbox Starts
+/*
 .checkbox, 
 .radio {
     position: relative;
@@ -223,7 +221,7 @@ SELECT {
 }
 
 
-/* Style for Radio */
+// Style for Radio 
 .radio .checkbox-custom.circular {
     border-radius: 50%;
     border: 1.5px solid #FFFFFF;
@@ -249,4 +247,9 @@ SELECT {
 
 .radio input:checked ~ .checkbox-custom.circular::before {
     border-radius: 50%;
+}
+*/
+
+.fixed input, .fixed select {
+  height: 44px;
 }

@@ -105,6 +105,7 @@ export default {
 
 <template>
   <div>
+    <div class="spacer"></div>
     <div class="title clearfix">
       <h4>Ports</h4>
     </div>
@@ -210,7 +211,7 @@ export default {
             </label>
           </td>
           <td v-if="showRemove" class="remove">
-            <button type="button" class="btn bg-transparent" @click="remove(idx)">
+            <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
               Remove
             </button>
           </td>
@@ -227,8 +228,8 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $remove: 50;
-  $checkbox: 100;
+  $remove: 75;
+  $checkbox: 75;
 
   .title {
     margin-bottom: 10px;
@@ -267,7 +268,7 @@ export default {
   }
 
   .remove {
-    vertical-align: top;
+    vertical-align: middle;
     text-align: right;
     width: #{$remove}px;
   }

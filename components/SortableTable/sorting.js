@@ -1,5 +1,6 @@
 import { SORT_BY, DESCENDING, PAGE } from '@/config/query-params';
 import { sortBy } from '@/utils/sort';
+import { addObject } from '@/utils/array';
 
 export default {
   computed: {
@@ -21,7 +22,12 @@ export default {
         fromColumn = [fromColumn];
       }
 
-      return [...fromGroup, ...fromColumn];
+      const out = [...fromGroup, ...fromColumn];
+
+      addObject(out, 'nameSort');
+      addObject(out, 'id');
+
+      return out;
     },
 
     arrangedRows() {
