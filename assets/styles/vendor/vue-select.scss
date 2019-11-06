@@ -67,7 +67,7 @@
 .vs__dropdown-toggle {
   appearance: none;
   display: flex;
-  padding: 0 0 4px 0;
+  // padding: 0 0 4px 0;
   background: var(--input-bg);
   border: 1px solid var(--dropdown-border);
   white-space: normal;
@@ -85,7 +85,7 @@
 .vs__actions {
   display: flex;
   align-items: center;
-  padding: 4px 6px 0 3px;
+  padding: 0 6px 0 3px;
   pointer-events: none;
 }
 
@@ -134,7 +134,7 @@ $transition-duration: 150ms;
   appearance: none;
   border-left: none;
   outline: none;
-  margin: 4px 0 0 0;
+  margin: 0;
   background: none;
   box-shadow: none;
   width: 0;

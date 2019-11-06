@@ -68,7 +68,7 @@
   --nav-cur-sub                : #{lighten($darkest, 25%)};
   --nav-active                 : var(--primary);
 
-  --accent-btn                 : rgba($primary, .7);
+  --accent-btn                 : #{rgba($primary, 0.3)};
 
   --dropdown-bg                : #{$medium};
   --dropdown-border            : var(--border);
