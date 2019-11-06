@@ -72,16 +72,33 @@ export default {
 
 <template>
   <div class="headers" @input="change">
-    <template v-if="enabled">
-      <div v-for="(rule, i) in all" :key="i" class="row inputs">
-        <v-select v-model="rule.op" :serachable="false" class="inline" :options="['add', 'set', 'remove']" />
-        <LabeledInput v-model="rule.name" label="Header Name" />
-        <LabeledInput v-model="rule.value" label="Header Value" />
-        <button class="btn btn-sm role-link" @click="remove(i)">
-          REMOVE
-        </button>
-      </div>
-    </template>
+    <table v-if="enabled" class="inputs-table">
+      <tr v-if="all.length">
+        <th>
+          Header Operation
+        </th>
+        <th>Header Name</th>
+        <th>
+          Header Value
+        </th>
+      </tr>
+      <tr v-for="(rule, i) in all" :key="i">
+        <td>
+          <v-select v-model="rule.op" :serachable="false" class="inline" :options="['add', 'set', 'remove']" />
+        </td>
+        <td>
+          <LabeledInput v-model="rule.name" label="xxxx" />
+        </td>
+        <td>
+          <LabeledInput v-model="rule.value" label="xxxx" />
+        </td>
+        <td>
+          <button class="btn btn-sm role-link" @click="remove(i)">
+            REMOVE
+          </button>
+        </td>
+      </tr>
+    </table>
 
     <button :class="{disabled: !enabled}" class="btn role-tertiary add" @click="addRule">
       <i class="icon icon-plus" />
