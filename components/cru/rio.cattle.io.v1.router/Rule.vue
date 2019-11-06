@@ -102,7 +102,7 @@ export default {
 </script>
 
 <template>
-  <form class="route" @input="changeRoute">
+  <div class="route" @input="changeRoute">
     <div class="section">
       <div class="header">
         <h4>
@@ -227,7 +227,7 @@ export default {
         <Fault :spec="fault" @input="e=>change('fault', e)" />
       </div>
     </div>
-  </form>
+  </div>
 </template>
 
 <style  lang='scss'>
