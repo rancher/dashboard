@@ -23,8 +23,7 @@ export default {
     spec: {
       type:    Object,
       default: () => {
-        return {}
-        ;
+        return {};
       }
     }
   },
@@ -49,11 +48,13 @@ export default {
       headers,
       fault,
       mode,
-      shouldFault:  !!this.spec.fault,
-      shouldMirror: !!this.spec.mirror
+      shouldFault:  !isEmpty(fault),
+      shouldMirror: !isEmpty(mirror)
     };
   },
-
+  mounted() {
+    this.changeRoute();
+  },
   methods:  {
     change(type, payload, index) {
       if (index >= 0) {
@@ -159,7 +160,7 @@ export default {
             @input="change('to', $event, i)"
             @remove="remove('to', i)"
           />
-          <button v-if="mode==='forwardMany'" class="btn role-tertiary add" @click="addDestination">
+          <button class="btn btn-sm bg-primary " @click="addDestination">
             <i class="icon icon-plus" />
             Add Destination
           </button>
