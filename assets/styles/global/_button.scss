@@ -103,6 +103,12 @@ button,
   text-transform: uppercase;
 }
 
+.role-multi-action {
+  background: var(--accent-btn);
+  border: solid thin var(--link-text);
+  color: var(--link-text);
+}
+
 
 .icon-group i {
   font-size: 1.5em;

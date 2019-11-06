@@ -202,8 +202,8 @@ export default {
             </td>
           </template>
           <td v-if="showRemove" class="remove">
-            <button type="button" class="btn bg-primary" @click="remove(idx)">
-              <i class="icon icon-minus" />
+            <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
+              Remove
             </button>
           </td>
         </tr>
@@ -213,7 +213,7 @@ export default {
       &mdash;
     </div>
     <div v-if="showAdd" class="footer">
-      <button type="button" class="btn bg-primary add" @click="add()">
+      <button type="button" class="btn bg-primary btn-sm add" @click="add()">
         <i class="icon icon-plus" />
         Add {{ label }}
       </button>
@@ -222,7 +222,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $remove: 50;
+  $remove: 75;
   $checkbox: 100;
 
   .title {
@@ -239,7 +239,7 @@ export default {
 
   TH {
     text-align: left;
-    font-size: 16px;
+    font-size: 12px;
     font-weight: normal;
     color: var(--input-label);
   }
@@ -249,7 +249,7 @@ export default {
   }
 
   .remove {
-    vertical-align: top;
+    vertical-align: middle;
     text-align: right;
     width: #{$remove}px;
   }

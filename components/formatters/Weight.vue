@@ -67,9 +67,9 @@ export default {
 
 <template>
   <div>
-    <p v-trim-whitespace :class="{'text-muted': current === 100 && desired === 100}">
+    <span v-trim-whitespace :class="{'text-muted': current === 100 && desired === 100}">
       {{ current }}%
-    </p>
+    </span>
     <div v-if="showDesired">
       <i class="icon icon-chevron-right" />
       {{ desired }}%

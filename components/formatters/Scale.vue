@@ -33,13 +33,13 @@ export default {
     <span>
       <ProgressBarMulti v-if="row.complexScale" :values="row.scaleParts" />
       <p v-if="row.scales && row.scales.global" class="scale">Global</p>
-      <p v-else class="scale">
+      <span v-else class="scale">
         {{ row.scales.current }}
         <span v-if="row.showDesiredScale">
           <i class="icon icon-chevron-right" />
           {{ row.scales.desired }}
         </span>
-      </p>
+      </span>
     </span>
 
     <template #popover>

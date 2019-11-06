@@ -172,6 +172,8 @@ export default {
       </div>
     </div>
 
+    <div class="spacer"></div>
+    
     <KeyValue
       key="env"
       v-model="spec.env"

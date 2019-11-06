@@ -214,8 +214,8 @@ export default {
             </slot>
           </td>
           <td v-if="showRemove" class="remove">
-            <button type="button" class="btn bg-primary" @click="remove(idx)">
-              <i v-if="removeIcon" :class="{'icon': true, [removeIcon]: true}" />
+            <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
+              Remove
               {{ removeLabel }}
             </button>
           </td>
@@ -235,7 +235,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $remove: 50;
+  $remove: 75;
 
   .title {
     margin-bottom: 10px;
@@ -265,7 +265,7 @@ export default {
   }
 
   .remove {
-    vertical-align: top;
+    vertical-align: middle;
     text-align: right;
     width: #{$remove}px;
   }

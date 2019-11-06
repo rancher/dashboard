@@ -66,13 +66,15 @@ export default {
         }
     }
     .vs__dropdown-toggle {
-        background-color: var(--default-text);
-        border:none;
+        background-color: var(--accent-btn);
+        border-color: var(--primary);
+        color: var(--primary) !important;
         height: 100%;
         padding: none;
         display: flex;
         align-items: stretch;
-        padding: 0 3px 0 3px;
+        padding: 0 8px 0 8px;
+        border-radius: var(--border-radius) 0 0 var(--border-radius);
         & * {
           padding: 0
           }
