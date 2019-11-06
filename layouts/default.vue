@@ -37,7 +37,7 @@ export default {
 
   computed: {
     principal() {
-      return this.$store.getters['rancher/byId'](RANCHER.PRINCIPAL, this.$store.getters['auth/principalId']);
+      return this.$store.getters['rancher/byId'](RANCHER.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
 
     counts() {
