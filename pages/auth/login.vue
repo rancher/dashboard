@@ -82,9 +82,9 @@ export default {
 </script>
 
 <template>
-  <main>
+  <main class="login">
     <div class="row">
-      <div class="col span-5">
+      <div class="col span-6">
         <h1 class="text-center">
           Rio Dashboard
         </h1>
@@ -149,9 +149,19 @@ export default {
           </div>
         </form>
       </div>
-      <div class="col span-7">
+      <div class="col span-6">
         <img src="~/assets/images/login-landscape.svg" alt="landscape" />
       </div>
     </div>
   </main>
 </template>
+
+<style lang="scss" scoped>
+  .login {
+    overflow: hidden;
+    
+    .row {
+      align-items: center;
+    }
+  }
+</style>
