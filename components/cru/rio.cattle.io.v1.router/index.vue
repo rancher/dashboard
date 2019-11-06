@@ -1,5 +1,6 @@
 
 <script>
+
 import values from 'lodash/values';
 import pickBy from 'lodash/pickBy';
 import { randomStr } from '@/utils/string';
@@ -42,7 +43,7 @@ export default {
           return key !== 'uuid';
         }
       }));
-    }
+    },
   },
   methods:  {
     addRouteSpec() {
@@ -64,11 +65,6 @@ export default {
     },
     remove(index) {
       this.routes.splice(index, 1);
-    },
-    done(success) {
-      if (success) {
-        this.$router.push('/rio/routers');
-      }
     }
   }
 };

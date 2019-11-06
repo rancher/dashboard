@@ -12,7 +12,7 @@ export default {
     }
   },
   data() {
-    const { percentage = 0, delayMillis = 0, abortHTTPStatus = '' } = this.spec;
+    const { percentage = null, delayMillis = null, abortHTTPStatus = '' } = this.spec;
 
     return {
       percentage, delayMillis, abortHTTPStatus
