@@ -130,7 +130,7 @@ export default {
         </slot>
       </div>
       <div v-if="extraColumn" :class="{col: true, [colSpan]: true}">
-        <slot name="right">
+        <slot name="extra">
         </slot>
       </div>
     </div>

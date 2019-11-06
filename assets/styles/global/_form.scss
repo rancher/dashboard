@@ -61,15 +61,16 @@ FORM {
     &.radio, &.checkbox {
       cursor: pointer;
       margin: 5px 0;
-
-      &.standalone {
-        margin: 10px 0;
+      
+      > INPUT {
+        margin-right: 5px;
       }
     }
-  }
 
-  .radio-group, .checkbox-group {
-    margin: #{$spacing * 2} 0 $spacing 0;
+    &.radio + LABEL.radio,
+    &.checkbox + LABEL.checkbox {
+      margin-left: 20px;
+    }
   }
 
   .actions {

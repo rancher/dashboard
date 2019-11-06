@@ -74,7 +74,7 @@ export default {
 
 <template>
   <div>
-  <div class="spacer"></div>
+    <div class="spacer"></div>
     <ul role="tablist" class="tabs clearfix">
       <li
         v-for="tab in tabs"

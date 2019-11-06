@@ -1,6 +1,12 @@
+const EMPTY = {};
+
 export default {
   app() {
-    return this.spec.app || this.status.computedApp || this.metadata.name;
+    const spec = this.spec || EMPTY;
+    const status = this.status || EMPTY;
+    const metadata = this.metadata || EMPTY;
+
+    return spec.app || status.computedApp || metadata.name;
   },
 
   namespaceApp() {

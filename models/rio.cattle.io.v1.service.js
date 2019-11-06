@@ -4,13 +4,22 @@ import { ADD_SIDECAR, _FLAGGED } from '@/config/query-params';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 
+const EMPTY = {};
+
 export default {
   app() {
-    return this.spec.app || this.status.computedApp || this.metadata.name;
+    const spec = this.spec || EMPTY;
+    const status = this.status || EMPTY;
+    const metadata = this.metadata || EMPTY;
+
+    return spec.app || status.computedApp || metadata.name;
   },
 
   version() {
-    return this.spec.version || this.status.computedVersion;
+    const spec = this.spec || EMPTY;
+    const status = this.status || EMPTY;
+
+    return spec.version || status.computedVersion;
   },
 
   nameDisplay() {

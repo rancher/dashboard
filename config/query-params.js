@@ -8,6 +8,7 @@ export const STEP = 'step';
 export const LOGGED_OUT = 'logged-out';
 export const TIMED_OUT = 'timed-out';
 export const AUTH_TEST = 'test';
+export const BACK_TO = 'back-to';
 export const GITHUB_CODE = 'code';
 export const GITHUB_NONCE = 'state';
 

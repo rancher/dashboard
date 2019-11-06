@@ -18,5 +18,5 @@ export function popupWindowOptions(width, height) {
 }
 
 export function open(url, name = '_blank', opt = '') {
-  window.open(url, name, opt);
+  return window.open(url, name, opt);
 }
