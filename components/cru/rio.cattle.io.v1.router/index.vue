@@ -71,7 +71,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <form>
     <div class="row">
       <NameNsDescription class="col span-12" :value="value" :mode="mode" />
     </div>
@@ -96,7 +96,7 @@ export default {
       Add Rule
     </button>
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
-  </div>
+  </form>
 </template>
 
 <style>
