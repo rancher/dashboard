@@ -184,11 +184,7 @@ export default {
         }
 
         const waitForTest = new Promise(async(resolve, reject) => {
-          window.onAuthTest = (err, code) => {
-            if ( err ) {
-              return reject(err);
-            }
-
+          window.onAuthTest = (code) => {
             resolve(code);
           };
 
