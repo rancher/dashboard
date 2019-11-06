@@ -135,13 +135,23 @@ export default {
       <div class="row">
         <h4>Destination</h4>
       </div>
-      <div>
-        <input id="forwardOne" v-model="mode" type="radio" value="forwardOne" />
-        <label for="forwardOne"> Forward to Service</label>
-        <input id="forwardMany" v-model="mode" type="radio" value="forwardMany" />
-        <label for="forwardMany"> Forward to Multiple Services</label>
-        <input id="redirect" v-model="mode" type="radio" value="redirect" />
-        <label for="redirect"> Redirect</label>
+      <div class="row">
+        <div class="col span-12">
+          <label class="radio">
+              <input type="radio" value="forwardOne">
+              Forward to Service
+          </label>
+
+          <label class="radio">
+              <input type="radio" value="forwardMany">
+              Forward to Multiple Services
+          </label>
+
+          <label class="radio">
+              <input type="radio" value="redirect">
+              Redirect
+          </label>
+        </div>
       </div>
       <div class="row">
         <template v-if="mode!=='redirect'">
@@ -195,12 +205,15 @@ export default {
       </div>
     </div>
     <div class="row">
-      <!-- <Checkbox v-model="shouldMirror" label="Mirror" />
-      <Checkbox v-model="shouldFault" label="Fault" /> -->
-      <input id="shouldMirror" v-model="shouldMirror" type="checkbox" />
-      <label for="shouldMirror">Mirror</label>
-      <input id="shouldFault" v-model="shouldFault" type="checkbox" />
-      <label for="shouldFault">Fault</label>
+    <label>
+        <input v-model="shouldMirror" type="checkbox" />
+        Mirror
+    </label>
+
+    <label class="ml-20">
+        <input v-model="shouldFault" type="checkbox" />
+        Fault
+    </label>
     </div>
     <div v-if="shouldMirror" class="row">
       <div class="col span-12">

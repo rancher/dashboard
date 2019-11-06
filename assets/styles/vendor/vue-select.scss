@@ -209,8 +209,8 @@ $transition-duration: 150ms;
   .vs__selected {
     color: var(--input-text);
     position: absolute;
-    top: 1em;
-    left: 0.5em;
+    top: 1.15em;
+    align-self: start;
   }
 
   .vs__dropdown-menu {
