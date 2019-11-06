@@ -143,28 +143,42 @@ export default {
         <input id="redirect" v-model="mode" type="radio" value="redirect" />
         <label for="redirect"> Redirect</label>
       </div>
-      <!-- <RadioGroup id="destination-radio" v-model="mode" :selected="0" :options="['forwardOne', 'forwardMany', 'redirect']" :labels="['Forward to Service', 'Forward to Multiple Services', 'Redirect to URL']" /> -->
-      <div v-if="mode==='forwardOne'" class="row">
-        <div class="col span-12">
-          <Destination :is-weighted="false" :spec="to[0]" @input="change('to', $event, 0)" />
-        </div>
+      <div class="row">
+        <template v-if="mode!=='redirect'">
+          <table class="inputs-table">
+            <tr>
+              <th class="input-col">
+                Service
+              </th>
+              <th class="input-col">
+                Version
+              </th>
+              <th class="input-col sm">
+                Port
+              </th>
+              <th v-if="mode==='forwardMany'" class="input-col sm">
+                Weight
+              </th>
+              <th class="input-col sm">
+              </th>
+            </tr>
+            <Destination
+              v-for="(destination, i) in to"
+              :key="destination.uuid"
+              :placeholders="['xxxx', 'xxxx', 'xxxx', 'xxxx']"
+              :is-weighted="mode==='forwardMany'"
+              :spec="destination"
+              :can-remove="to.length>1"
+              @input="change('to', $event, i)"
+              @remove="remove('to', i)"
+            />
+          </table>
+        </template>
       </div>
-      <div v-if="mode=='forwardMany'" class="row">
-        <div class="col span-12">
-          <Destination
-            v-for="(destination, i) in to"
-            :key="destination.uuid"
-            :is-weighted="true"
-            :spec="destination"
-            :can-remove="true"
-            @input="change('to', $event, i)"
-            @remove="remove('to', i)"
-          />
-          <button class="btn btn-sm bg-primary " @click="addDestination">
-            <i class="icon icon-plus" />
-            Add Destination
-          </button>
-        </div>
+      <div v-if="mode==='forwardMany'" class="row">
+        <button class="btn btn-sm bg-primary " @click="addDestination">
+          + ADD DESTINATION
+        </button>
       </div>
       <div v-if="mode==='redirect'" class="row">
         <Redirect class="col span-12" :spec="redirect" @input="e=>change('redirect', e)" />
@@ -177,7 +191,7 @@ export default {
         </h4>
       </div>
       <div class="row">
-        <Headers :enabled="mode!=='redirect'" class="col span-12" :spec="headers" @input="e=>change('headers', e)" />
+        <Headers class="col span-12" :enabled="mode!=='redirect'" :spec="headers" @input="e=>change('headers', e)" />
       </div>
     </div>
     <div class="row">
@@ -190,7 +204,9 @@ export default {
     </div>
     <div v-if="shouldMirror" class="row">
       <div class="col span-12">
-        <Destination v-if="shouldMirror" :pick-version="false" :spec="mirror" :is-weighted="false" @input="e=>change('mirror', e)" />
+        <table class="inputs-table">
+          <Destination v-if="shouldMirror" :pick-version="false" :spec="mirror" :is-weighted="false" @input="e=>change('mirror', e)" />
+        </table>
       </div>
     </div>
     <div class="row">
@@ -206,6 +222,31 @@ export default {
     padding: 20px;
     background-color: var(--login-bg);
     margin-bottom: 20px;
+
+    & .inputs-table {
+      margin: 10px 0 10px 0;
+      table-layout:fixed;
+
+      & th {
+        text-align: left;
+        padding-bottom: 10px;
+        color: var(--input-label);
+        font-weight: normal;
+      }
+      & td {
+        padding: 0  10px 10px 0;
+        vertical-align:middle;
+        & > * {
+          height: 4em;
+        }
+      }
+      & td.sm{
+        width:100px;
+      }
+      & td:not(.sm) {
+        width: 200px;
+      }
+    }
 
     & .header{
       display: flex;
@@ -242,9 +283,6 @@ export default {
     border-bottom: 1px solid var(--border);
 
   }
-   #destination-radio {
-     display: flex;
-   }
     .row.inputs > *:not(button) {
       margin-right: 10px;
       flex: 1;

@@ -23,6 +23,10 @@ export default {
     canRemove: {
       type:    Boolean,
       default: false
+    },
+    placeholders: {
+      type:    Array,
+      default: () => ['Service', 'Version', 'Port', 'Weight']
     }
   },
 
@@ -38,7 +42,7 @@ export default {
       namespace,
       port,
       service,
-      weight:     null,
+      weight:     '',
       mode:       null
     };
   },
@@ -92,12 +96,12 @@ export default {
 };
 </script>
 
-<template>
-  <div class="destination" @input="updateDestination" @change="updateDestination">
-    <div class="row inputs">
+<template @input="updateDestination" @change="updateDestination">
+  <tr>
+    <td>
       <v-select
         class="inline"
-        placeholder="Service"
+        :placeholder="placeholders[0]"
         :searchable="false"
         :clearable="false"
         :value="service"
@@ -105,20 +109,27 @@ export default {
         :options="services"
         @input="setService"
       ></v-select>
+    </td>
+    <td v-if="pickVersion">
       <v-select
-        v-if="pickVersion"
         v-model="version"
-        placeholder="Version"
+        :placeholder="placeholders[1]"
         class="inline"
         :options="versions"
       />
-      <LabeledInput v-model="port" type="text" label="Port" />
-      <LabeledInput v-model="weight" :class="{hidden: !isWeighted}" label="Weight" />
-      <button :class="{hidden: !canRemove}" class="btn btn-sm role-link" @click="$emit('remove')">
+    </td>
+    <td class="sm">
+      <LabeledInput v-model="port" type="text" :label="placeholders[2]" />
+    </td>
+    <td v-if="isWeighted" class="sm">
+      <LabeledInput v-model="weight" :label="placeholders[3]" />
+    </td>
+    <td v-if="canRemove" class="sm">
+      <button class="btn btn-sm role-link" @click="$emit('remove')">
         REMOVE
       </button>
-    </div>
-  </div>
+    </td>
+  </tr>
 </template>
 
 <style scoped lang='scss'>
