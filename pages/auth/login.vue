@@ -159,7 +159,7 @@ export default {
 <style lang="scss" scoped>
   .login {
     overflow: hidden;
-    
+
     .row {
       align-items: center;
     }
