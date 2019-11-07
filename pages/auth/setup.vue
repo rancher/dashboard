@@ -550,10 +550,10 @@ export default {
           </label>
         </div>
       </div>
-    </div>
-    <div class="row mt-20">
-      <div class="col span-6 offset-3 text-center" style="font-size: 24pt">
-        <AsyncButton key="githubSubmit" mode="done" @click="setAuthorized" />
+      <div class="row mt-20">
+        <div class="col span-6 offset-3 text-center" style="font-size: 24pt">
+          <AsyncButton key="githubSubmit" mode="done" @click="setAuthorized" />
+        </div>
       </div>
     </div>
   </form>
