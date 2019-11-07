@@ -66,13 +66,30 @@ export default {
     },
 
     filteredRows() {
-      const namespaces = this.$store.getters['namespaces'];
+      let namespaces = this.$store.getters['namespaces'];
 
-      if ( !this.schema.attributes.namespaced || !namespaces.length ) {
+      if ( !this.schema.attributes.namespaced ) {
         return this.rows;
+      } else if ( !namespaces.length ) {
+        namespaces = ['!kube-system', '!cattle-system', '!rio-system'];
       }
 
-      return this.rows.filter(x => namespaces.includes(x.metadata.namespace));
+      const include = namespaces.filter(x => !x.startsWith('!'));
+      const exclude = namespaces.filter(x => x.startsWith('!')).map(x => x.substr(1) );
+
+      return this.rows.filter((x) => {
+        const ns = x.metadata.namespace;
+
+        if ( include.length && !include.includes(ns) ) {
+          return false;
+        }
+
+        if ( exclude.length && exclude.includes(ns) ) {
+          return false;
+        }
+
+        return true;
+      });
     },
 
     group: mapPref(GROUP_RESOURCES),
