@@ -3,11 +3,9 @@ import { randomStr } from '@/utils/string';
 import { parse as parseUrl, addParam, addParams } from '@/utils/url';
 import { findBy, addObjects } from '@/utils/array';
 import { BACK_TO, SPA, AUTH_TEST, _FLAGGED } from '@/config/query-params';
+import { BASE_SCOPES } from '@/store/github';
 
 const KEY = 'rc_nonce';
-const BASE_SCOPES = ['read:user', 'read:org', 'user:email'];
-
-export const EXTENDED_SCOPES = ['repo'];
 
 const ERR_NONCE = 'nonce';
 const ERR_CLIENT = 'client';

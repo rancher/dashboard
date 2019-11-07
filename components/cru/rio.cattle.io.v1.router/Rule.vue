@@ -138,18 +138,18 @@ export default {
       <div class="row">
         <div class="col span-12">
           <label class="radio">
-              <input type="radio" value="forwardOne">
-              Forward to Service
+            <input type="radio" value="forwardOne">
+            Forward to Service
           </label>
 
           <label class="radio">
-              <input type="radio" value="forwardMany">
-              Forward to Multiple Services
+            <input type="radio" value="forwardMany">
+            Forward to Multiple Services
           </label>
 
           <label class="radio">
-              <input type="radio" value="redirect">
-              Redirect
+            <input type="radio" value="redirect">
+            Redirect
           </label>
         </div>
       </div>
@@ -205,15 +205,15 @@ export default {
       </div>
     </div>
     <div class="row">
-    <label>
+      <label>
         <input v-model="shouldMirror" type="checkbox" />
         Mirror
-    </label>
+      </label>
 
-    <label class="ml-20">
+      <label class="ml-20">
         <input v-model="shouldFault" type="checkbox" />
         Fault
-    </label>
+      </label>
     </div>
     <div v-if="shouldMirror" class="row">
       <div class="col span-12">

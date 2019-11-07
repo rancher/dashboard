@@ -34,6 +34,12 @@ const LABEL = {
     waiting: 'Saving&hellip;',
     success: 'Saved',
     error:   'Error',
+  },
+  done: {
+    action:  'Done',
+    waiting: 'Saving&hellip;',
+    success: 'Saved',
+    error:   'Error',
   }
 };
 

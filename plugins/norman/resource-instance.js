@@ -416,9 +416,9 @@ export default {
   },
 
   save() {
-    delete this.__rehydrate;
-
     return (opt = {}) => {
+      delete this.__rehydrate;
+
       if ( !opt.url ) {
         opt.url = this.linkFor('self');
       }

@@ -189,7 +189,12 @@ export default {
 
     <div v-if="buildMode === 'github'" class="row">
       <div class="col span-12">
-        <GithubPicker v-model="spec.build" file-key="dockefile" />
+        <GithubPicker
+          v-model="spec.build"
+          file-key="dockefile"
+          file-pattern="Dockerfile"
+          preferred-file="Dockerfile"
+        />
       </div>
     </div>
 

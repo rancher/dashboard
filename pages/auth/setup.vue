@@ -6,6 +6,7 @@ import AsyncButton from '@/components/AsyncButton';
 import { SETUP, STEP, _DELETE } from '@/config/query-params';
 import { RANCHER } from '@/config/types';
 import { open, popupWindowOptions } from '@/utils/window';
+import { findBy, filterBy, addObject } from '@/utils/array';
 
 export default {
   layout: 'plain',
@@ -15,6 +16,15 @@ export default {
   },
 
   computed: {
+    telemetryTooltip() {
+      return `Rancher Labs would like to collect a bit of anonymized information<br/>
+      about the configuration of your installation to help make Rio better.<br/></br>
+      Your data will not be shared with anyone else, and no information about<br/>
+      what specific resources or endpoints you are deploying is included.<br/>
+      Once enabled you can view exactly what data will be sent at <code>/v1-telemetry</code>.<br/><br/>
+      <a href="https://rancher.com/docs/rancher/v2.x/en/faq/telemetry/" target="_blank">More Info</a>`;
+    },
+
     passwordSubmitDisabled() {
       if ( this.useRandom ) {
         return false;
@@ -38,6 +48,18 @@ export default {
 
       return false;
     },
+
+    me() {
+      const out = findBy(this.prinicipals, 'me', true);
+
+      return out;
+    },
+
+    orgs() {
+      const out = filterBy(this.principals, 'principalType', 'org');
+
+      return out;
+    }
   },
 
   async asyncData({ route, req, store }) {
@@ -56,10 +78,17 @@ export default {
       opt:  { url: '/v3/settings/telemetry-opt' }
     });
 
-    const githubConfig = await store.dispatch('rancher/find', {
+    let githubConfig = await store.dispatch('rancher/find', {
       type: RANCHER.AUTH_CONFIG,
       id:   'github',
       opt:  { url: '/v3/authConfigs/github' }
+    });
+
+    githubConfig = await store.dispatch('rancher/clone', githubConfig);
+
+    const principals = await store.dispatch('rancher/findAll', {
+      type: RANCHER.PRINCIPAL,
+      opt:  { url: '/v3/principals' }
     });
 
     let origin;
@@ -110,6 +139,8 @@ export default {
       hostname:     githubConfig.hostname || 'github.com',
       tls:          kind === 'public' || githubConfig.tls,
       githubError:  null,
+
+      principals
     };
   },
 
@@ -222,6 +253,25 @@ export default {
           description:  'Initial setup session',
         });
 
+        const githubConfig = await this.$store.dispatch('rancher/find', {
+          type: RANCHER.AUTH_CONFIG,
+          id:   'github',
+          opt:  { url: '/v3/authConfigs/github' }
+        });
+
+        this.githubConfig = await this.$store.dispatch('rancher/clone', githubConfig);
+
+        this.githubConfig.allowedPrincipalIds = this.githubConfig.allowedPrincipalIds || [];
+
+        if ( this.me ) {
+          addObject(this.githubConfig.allowedPrincipalIds, this.me.id);
+        }
+
+        this.principals = await this.$store.dispatch('rancher/findAll', {
+          type: RANCHER.PRINCIPAL,
+          opt:  { url: '/v3/principals' }
+        });
+
         buttonCb(true);
         this.step = 4;
         this.$router.applyQuery({ [STEP]: this.step });
@@ -231,7 +281,19 @@ export default {
       }
     },
 
-    skipGithub() {
+    async setAuthorized(buttonCb) {
+      try {
+        window.z = this.githubConfig;
+        console.log(this.githubConfig);
+        await this.githubConfig.save();
+        buttonCb(true);
+        this.done();
+      } catch (e) {
+        buttonCb(false);
+      }
+    },
+
+    done() {
       this.$router.replace('/');
     },
   },
@@ -341,16 +403,11 @@ export default {
         <div class="col span-6 offset-3">
           <div class="checkbox">
             <label>
-              <input v-model="telemetry" type="checkbox" disabled />
-              Allow collection of anonymous statistics (required during beta period).
+              <input v-model="telemetry" type="checkbox" />
+              Allow collection of anonymous statistics
             </label>
+            <i v-tooltip="{content: telemetryTooltip, placement: 'right', trigger: 'click'}" class="icon icon-info" />
           </div>
-          <p>
-            Rancher Labs would like to collect anonymous information about
-            the configuration of your installation to help make Rio better.
-            Your data will not be shared with anyone else, and no specific
-            resource names or addresses are collected.
-          </p>
         </div>
       </div>
 
@@ -452,7 +509,7 @@ export default {
 
       <div class="row mt-20">
         <div class="col span-6 offset-3 text-center" style="font-size: 24pt">
-          <button type="button" class="btn bg-default" @click="skipGithub">
+          <button type="button" class="btn bg-default" @click="done">
             Skip
           </button>
           <AsyncButton key="githubSubmit" mode="continue" :disabled="serverSubmitDisabled" @click="testGithub" />
@@ -461,7 +518,58 @@ export default {
     </div>
 
     <div v-if="step === 4">
-      Allowed Principals...
+      <div class="text-center mb-40">
+        <div style="width: 50%; margin: 50px auto; height: 300px; padding-top: 100px; border: 1px solid var(--border); text-align: center; background-color: var(--border);">
+          <h1>An even snazzier picture, with octocats</h1>
+        </div>
+
+        <h1>GitHub Integration, Part Deux</h1>
+        <p class="m-20">
+          Who should be able to login?
+        </p>
+      </div>
+      <div class="row">
+        <div class="col span-4 offset-4">
+          <label v-if="me" class="principal">
+            <input type="checkbox" checked disabled />
+            <img :src="me.avatarSrc" width="40" height="40" />
+            <div class="login">
+              {{ me.loginName }}
+            </div>
+            <div class="name">
+              {{ me.name }}
+            </div>
+          </label>
+
+          <label v-for="org in orgs" :key="org.id" class="principal">
+            <input v-model="githubConfig.allowedPrincipalIds" type="checkbox" :value="org.id" />
+            <img :src="org.avatarSrc" width="40" height="40" />
+            <span class="login">
+              Members of <b>{{ org.loginName }}</b>
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="row mt-20">
+      <div class="col span-6 offset-3 text-center" style="font-size: 24pt">
+        <AsyncButton key="githubSubmit" mode="done" @click="setAuthorized" />
+      </div>
     </div>
   </form>
 </template>
+
+<style lang="scss" scoped>
+  .principal {
+    display: block;
+    border: 1px solid var(--border);
+    margin: 10px 0;
+    padding: 10px;
+    line-height: 40px;
+
+    img {
+      vertical-align: middle;
+      margin: 0 10px;
+    }
+  }
+</style>
