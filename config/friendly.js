@@ -2,7 +2,7 @@ import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
 import {
   STATE, NAME, NAMESPACE_NAME, AGE,
   RIO_IMAGE, WEIGHT, SCALE,
-  KEYS,
+  KEYS, ENDPOINTS,
   TARGET, TARGET_KIND,
 } from '@/config/table-headers';
 
@@ -58,6 +58,7 @@ export const FRIENDLY = {
       STATE,
       NAMESPACE_NAME,
       RIO_IMAGE,
+      ENDPOINTS,
       WEIGHT,
       SCALE,
       AGE,

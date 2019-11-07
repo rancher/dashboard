@@ -5,7 +5,7 @@ export const STATE = {
   label:     'State',
   sort:      ['stateSort', 'nameSort'],
   value:     'stateDisplay',
-  width:     90,
+  width:     75,
   default:   'unknown',
   formatter: 'BadgeState',
 };
@@ -55,8 +55,8 @@ export const AGE = {
   value:      'metadata.creationTimestamp',
   sort:       ['createdTs', 'nameSort'],
   search:     false,
-  width:      75,
   formatter:  'LiveDate',
+  width:      75,
   align:     'right'
 };
 
@@ -67,13 +67,22 @@ export const RIO_IMAGE = {
   sort:  ['imageDisplay', 'nameSort'],
 };
 
+export const ENDPOINTS = {
+  name:      'endpoint',
+  label:     'Endpoint',
+  value:     'status.endpoints',
+  formatter: 'Endpoints',
+  width:      60,
+  align:     'center',
+};
+
 export const SCALE = {
   name:      'scale',
   label:     'Scale',
   value:     'scales.desired',
   sort:      ['scales.desired', 'nameSort'],
-  width:     100,
   formatter: 'Scale',
+  width:     60,
   align:     'center',
 };
 
@@ -81,9 +90,10 @@ export const WEIGHT = {
   name:      'weight',
   label:     'Weight',
   value:     'status.computedWeight',
-  width:     100,
-  align:     'center',
+  sort:      'status.computedWeight',
   formatter: 'Weight',
+  width:     60,
+  align:     'center',
 };
 
 export const SUCCESS = {

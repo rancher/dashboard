@@ -76,11 +76,11 @@ export default {
 
     if ( global ) {
       desired = current;
-    } else if ( this._local.pendingScale >= 0 ) {
+    } else if ( typeof this._local.pendingScale === 'number' ) {
       desired = this._local.pendingScale;
     }
 
-    const missing = desired - available - unavailable;
+    const missing = Math.max(0, desired - available - unavailable);
 
     return {
       hasStatus,
@@ -158,8 +158,10 @@ export default {
       if ( this._local.scaleTimer ) {
         scale = this._local.pendingScale;
       } else {
-        scale = this.spec.scale;
+        scale = this.scales.desired;
       }
+
+      scale = scale || 0;
 
       this._local.pendingScale = scale + 1;
       this.saveScale();
@@ -174,11 +176,13 @@ export default {
         return;
       }
 
-      if ( this.this._local.scaleTimer ) {
+      if ( this._local.scaleTimer ) {
         scale = this._local.pendingScale;
       } else {
-        scale = this.spec.scale;
+        scale = this.scales.desired;
       }
+
+      scale = scale || 1;
 
       this._local.pendingScale = Math.max(scale - 1, 0);
       this.saveScale();
@@ -193,11 +197,11 @@ export default {
 
       this._local.scaleTimer = setTimeout(async() => {
         try {
-          await this.patch({
+          await this.patch([{
             op:    'replace',
-            path:  '/spec/scale',
+            path:  '/spec/replicas',
             value: this._local.pendingScale
-          });
+          }]);
         } catch (err) {
           this.$dispatch('growl/fromError', { title: 'Error updating scale', err }, { root: true });
         }

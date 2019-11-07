@@ -25,18 +25,24 @@ export default {
 
       let desired = 0;
       let current = 0;
+      let count = 0;
 
       for ( const service of forThisApp ) {
         const weights = service.weights;
 
         desired += weights.desired || 0;
         current += weights.current || 0;
+        count++;
       }
 
       desired = Math.max(1, desired);
       current = Math.max(1, current);
 
-      return { desired, current };
+      return {
+        desired,
+        current,
+        count
+      };
     },
 
     desired() {
@@ -67,7 +73,10 @@ export default {
 
 <template>
   <div>
-    <span v-trim-whitespace :class="{'text-muted': current === 100 && desired === 100}">
+    <span v-if="total.count === 1" class="text-muted">
+      &mdash;
+    </span>
+    <span v-else v-trim-whitespace :class="{'text-muted': current === 0 && desired === 0}">
       {{ current }}%
     </span>
     <div v-if="showDesired">
