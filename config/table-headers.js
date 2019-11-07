@@ -1,3 +1,5 @@
+import { RIO } from './types';
+
 // Note: 'id' is always the last sort, so you don't have to specify it here.
 
 export const STATE = {
@@ -140,10 +142,29 @@ export const TARGET = {
   value: 'targetDisplay',
 };
 
+export const MATCHES = {
+  name:      'matches',
+  label:     'Matches',
+  value:     'spec.routes',
+  formatter: 'RouterMatch'
+};
+
+export const DESTINATION = {
+  name:      'destination',
+  label:     'Target',
+  value:     'spec.routes',
+  formatter: 'RouterDestination'
+};
+
 export function headersFor(schema) {
-  const out = [];
+  let out = [];
   const columns = schema.attributes.columns;
 
+  if (schema.id === RIO.ROUTER) {
+    out = [STATE, NAME, MATCHES, DESTINATION, AGE];
+
+    return out;
+  }
   for ( const col of columns ) {
     if ( col.format === 'name' && col.field === 'metadata.name' ) {
       out.push(NAMESPACE_NAME);
