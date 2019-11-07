@@ -101,14 +101,32 @@ export default {
     </div>
 
     <div class="row">
-      <div class="col span-2">
+      <div class="col span-6">
         <LabeledInput
           v-model="spec.workingDir"
           :mode="mode"
           label="Working Directory"
         />
       </div>
-      <div class="col span-2">
+      <div class="col span-6 pt-10">
+        <div>
+          <label class="checkbox">
+            <input v-model="spec.stdin" type="checkbox" />
+            Interactive
+          </label>
+          <label class="checkbox">
+            <input v-model="spec.tty" type="checkbox" />
+            TTY
+          </label>
+          <label class="checkbox">
+            <input v-model="spec.readOnlyRootFilesystem" type="checkbox" />
+            Read-Only Root FS
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col span-3">
         <UnitInput
           v-model.number="spec.memoryBytes"
           :mode="mode"
@@ -118,7 +136,7 @@ export default {
           placeholder="Default: None"
         />
       </div>
-      <div class="col span-2">
+      <div class="col span-3">
         <UnitInput
           v-model="spec.cpuMillis"
           :mode="mode"
@@ -129,37 +147,19 @@ export default {
           placeholder="Default: None"
         />
       </div>
-      <div class="col span-2">
+      <div class="col span-3">
         <LabeledInput
           v-model="spec.runAsUser"
           :mode="mode"
           label="Run as User number"
         />
       </div>
-      <div class="col span-2">
+      <div class="col span-3">
         <LabeledInput
           v-model="spec.runAsGroup"
           :mode="mode"
           label="Run as Group number"
         />
-      </div>
-      <div class="col span-2">
-        <div>
-          <label class="checkbox">
-            <input v-model="spec.stdin" type="checkbox" />
-            Interactive
-          </label>
-          <label class="checkbox">
-            <input v-model="spec.tty" type="checkbox" />
-            TTY
-          </label>
-        </div>
-        <div>
-          <label class="checkbox">
-            <input v-model="spec.readOnlyRootFilesystem" type="checkbox" />
-            Read-Only Root FS
-          </label>
-        </div>
       </div>
     </div>
 
