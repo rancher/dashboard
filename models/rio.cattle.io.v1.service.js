@@ -72,7 +72,7 @@ export default {
 
     const spec = (typeof this.spec.replicas === 'undefined' ? 1 : this.spec.replicas || 0);
     const available = scaleStatus.available || 0;
-    const current = (typeof this.status.computedReplicas === 'undefined' ? available : status.computedReplicas || 0);
+    const current = (typeof status.computedReplicas === 'undefined' ? available : status.computedReplicas || 0);
     const unavailable = scaleStatus.unavailable || 0;
     const global = this.spec.global === true;
 
