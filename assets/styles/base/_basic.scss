@@ -15,9 +15,12 @@ BODY {
   direction: ltr;
   position: relative;
   margin: 0;
-  overflow: hidden;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  
+  &.overflow-hidden {
+    overflow: hidden;
+  }
 }
 
 ::-webkit-scrollbar {

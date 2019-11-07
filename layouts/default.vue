@@ -30,7 +30,7 @@ export default {
     const theme = this.$store.getters['prefs/get'](THEME);
 
     return {
-      bodyAttrs: { class: `theme-${ theme }` },
+      bodyAttrs: { class: `theme-${ theme } overflow-hidden` },
       title:     'Rio Dashboard',
     };
   },
