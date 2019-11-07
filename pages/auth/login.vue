@@ -82,69 +82,86 @@ export default {
 </script>
 
 <template>
-  <main>
-    <h1 class="text-center mt-50">
-      Rio Dashboard
-    </h1>
-    <h4 v-if="loggedOut" class="text-success text-center">
-      You have been logged out.
-    </h4>
-    <h4 v-if="timedOut" class="text-error text-center">
-      Log in again to continue.
-    </h4>
-    <h4 v-else-if="err" class="text-error text-center">
-      An error occurred logging in.  Please try again.
-    </h4>
+  <main class="login">
+    <div class="row">
+      <div class="col span-6">
+        <h1 class="text-center">
+          Rio Dashboard
+        </h1>
+        <h4 v-if="loggedOut" class="text-success text-center">
+          You have been logged out.
+        </h4>
+        <h4 v-if="timedOut" class="text-error text-center">
+          Log in again to continue.
+        </h4>
+        <h4 v-else-if="err" class="text-error text-center">
+          An error occurred logging in.  Please try again.
+        </h4>
 
-    <div v-if="hasGithub" class="text-center mt-50 mb-50">
-      <button class="btn bg-primary" style="font-size: 18px;" @click="loginGithub">
-        Log In with GitHub
-      </button>
-      <div v-if="!showLocal" class="mt-20">
-        <button type="button" class="btn bg-link" @click="toggleLocal">
-          Use a Local User
-        </button>
+        <div v-if="hasGithub" class="text-center mt-50 mb-50">
+          <button class="btn bg-primary" style="font-size: 18px;" @click="loginGithub">
+            Log In with GitHub
+          </button>
+          <div v-if="!showLocal" class="mt-20">
+            <button type="button" class="btn bg-link" @click="toggleLocal">
+              Use a Local User
+            </button>
+          </div>
+        </div>
+
+        <form v-if="hasLocal && showLocal">
+          <div class="row">
+            <div class="col span-4 offset-4">
+              <LabeledInput
+                ref="username"
+                v-model="username"
+                label="Username"
+                autocomplete="username"
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-4 offset-4">
+              <LabeledInput
+                ref="password"
+                v-model="password"
+                type="password"
+                label="Password"
+                autocomplete="password"
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-4 offset-4">
+              <AsyncButton
+                type="submit"
+                action-label="Log In with Local User"
+                waiting-label="Logging In..."
+                success-label="Logged In"
+                error-label="Error"
+                @click="loginLocal"
+              />
+              <label class="pull-right">
+                <input v-model="remember" type="checkbox" />
+                Remember Username
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="col span-6">
+        <img src="~/assets/images/login-landscape.svg" alt="landscape" />
       </div>
     </div>
-
-    <form v-if="hasLocal && showLocal">
-      <div class="row">
-        <div class="col span-4 offset-4">
-          <LabeledInput
-            ref="username"
-            v-model="username"
-            label="Username"
-            autocomplete="username"
-          />
-        </div>
-      </div>
-      <div class="row">
-        <div class="col span-4 offset-4">
-          <LabeledInput
-            ref="password"
-            v-model="password"
-            type="password"
-            label="Password"
-            autocomplete="password"
-          />
-        </div>
-      </div>
-      <div class="row">
-        <div class="col span-4 offset-4">
-          <AsyncButton
-            type="submit"
-            action-label="Log In with Local User"
-            waiting-label="Logging In..."
-            success-label="Logged In"
-            error-label="Error"
-            @click="loginLocal"
-          />
-          <label class="pull-right">
-            <input v-model="remember" type="checkbox" />
-            Remember Username
-          </label>
-        </div>
-      </div>
-    </form>
   </main>
 </template>
+
+<style lang="scss" scoped>
+  .login {
+    overflow: hidden;
+    
+    .row {
+      align-items: center;
+    }
+  }
+</style>
