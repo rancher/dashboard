@@ -1,11 +1,13 @@
 <script>
 import { mapState } from 'vuex';
 import { debounce } from 'lodash';
-import { addParam, parseLinkHeader } from '@/utils/url';
-import { addObjects, isArray } from '@/utils/array';
-import { EXTENDED_SCOPES } from '@/store/auth';
+import { findBy } from '../utils/array';
+import { EXTENDED_SCOPES } from '@/store/github';
 
-const API_BASE = 'https://api.github.com/';
+export const FILE_PATTERNS = {
+  'dockerfile': /^Dockerfile(\..*)?$/i,
+  'yaml':       /^.*\.ya?ml?$/i,
+};
 
 export default {
   props: {
@@ -14,19 +16,20 @@ export default {
       required: true,
     },
 
-    // filter files displayed in dropdown - default to .yml and Dockerfile files
+    // Filter files displayed in dropdown by keys in FILE_PATTERNS
     filePattern: {
-      type:    RegExp,
-      default: () => {
-        return new RegExp('\.ya?ml$|^Dockerfile(\..*)?', 'i');
-      }
+      type:    String,
+      default: null,
     },
+
+    preferredFile: {
+      type:    String,
+      default: null,
+    }
   },
 
   data() {
     return {
-      scopes:      [],
-      recentRepos: [],
       repos:       [],
       branches:    [],
       files:       [],
@@ -42,8 +45,45 @@ export default {
   },
 
   computed:   {
+    ...mapState({
+      scopes:      state => state.github.scopes,
+      recentRepos: state => state.github.repos,
+    }),
+
     hasPrivate() {
       return this.scopes.includes('repo');
+    },
+
+    repoPlaceholder() {
+      if ( this.loadingRecentRepos ) {
+        return 'Loading...';
+      } else {
+        return 'Select a Repository...';
+      }
+    },
+
+    branchPlaceholder() {
+      if ( this.selectedRepo ) {
+        if ( this.loadingBranches ) {
+          return 'Loading...';
+        } else {
+          return 'Select a Branch...';
+        }
+      } else {
+        return 'Select a Repository First';
+      }
+    },
+
+    filePlaceholder() {
+      if ( this.selectedBranch ) {
+        if ( this.loadingFiles ) {
+          return 'Loading...';
+        } else {
+          return 'Select a File...';
+        }
+      } else {
+        return 'Select a Branch First';
+      }
     }
   },
 
@@ -56,14 +96,22 @@ export default {
   },
 
   methods: {
+    update() {
+      if ( this.selectedRepo && this.selectedBranch && this.selectedFile ) {
+        // Do something
+      }
+    },
+
     selectRepo(repo) {
+      this.selectedFile = null;
       this.selectedBranch = null;
       this.selectedRepo = repo;
-      this.$emit('selectedRepo', repo);
       this.fetchBranches(repo);
+      this.update();
     },
 
     selectBranch(branch) {
+      this.selectedFile = null;
       this.selectedBranch = branch;
       this.$emit('selectedBranch', branch);
       this.fetchFiles(this.selectedRepo, branch);
@@ -96,7 +144,8 @@ export default {
 
       try {
         loading(true);
-        const res = await this.apiList(`/search/repositories?q=${ escape(search) }`, { depaginate: false });
+
+        const res = await this.$store.dispatch('github/searchRepos', { search });
 
         this.repos = res;
       } catch (err) {
@@ -108,12 +157,9 @@ export default {
 
     async fetchRepos() {
       try {
-        if ( !this.recentRepos.length) {
-          const res = await this.apiList('/user/repos?sort=updated', { depaginate: false });
+        const res = await this.$store.dispatch('github/fetchRecentRepos');
 
-          this.recentRepos = res;
-          this.repos = res.slice();
-        }
+        this.repos = res;
       } finally {
         this.loadingRecentRepos = false;
       }
@@ -122,69 +168,43 @@ export default {
     async fetchBranches(repo) {
       this.loadingBranches = true;
 
-      const url = repo.branches_url.replace('{/branch}', '');
+      try {
+        const res = await this.$store.dispatch('github/fetchBranches', { repo: this.selectedRepo });
 
-      const res = await this.apiList(url);
+        this.branches = res;
 
-      this.branches = res;
-      this.loadingBranches = false;
+        if ( !this.selectedBranch ) {
+          const master = findBy(this.branches, 'name', 'master');
+
+          if ( master ) {
+            this.selectBranch(master);
+          }
+        }
+      } finally {
+        this.loadingBranches = false;
+      }
     },
 
     async fetchFiles(repo, branch) {
-      let url = repo.trees_url.replace('{/sha}', `/${ branch.commit.sha }`);
+      try {
+        const res = await this.$store.dispatch('github/fetchFiles', {
+          repo:    this.selectedRepo,
+          branch:  this.selectedBranch,
+          pattern: FILE_PATTERNS[(this.filePattern || '').toLowerCase()],
+        });
 
-      url = addParam(url, 'recursive', 1);
+        this.files = res;
 
-      const res = await this.apiList(url, { objectKey: 'tree' });
+        if ( !this.selecteeFile && this.preferredFile ) {
+          const file = findBy(this.files, 'path', this.preferredFile);
 
-      this.files = res.filter(file => file.type === 'blob' && file.path.match(this.filePattern));
-      this.loadingFiles = false;
-    },
-
-    proxifyUrl(url) {
-      // Strip off absolute links to github API
-      if ( url.startsWith(API_BASE) ) {
-        url = url.substr(API_BASE.length);
+          if ( file ) {
+            this.selectFile(file);
+          }
+        }
+      } finally {
+        this.loadingFiles = false;
       }
-
-      // Add our proxy prefix
-      url = `/v1/github/${ url.replace(/^\/+/, '') }`;
-
-      // Less pages please
-      addParam(url, 'per_page', 100);
-
-      return url;
-    },
-
-    async apiList(url, { depaginate = true, onPageFn = null, objectKey = 'items' } = {}) {
-      const out = [];
-
-      url = this.proxifyUrl(url);
-
-      while ( true ) {
-        console.log('Github Request:', url);
-        const res = await this.$store.dispatch('rancher/request', { url });
-        const links = parseLinkHeader(res._headers['link']);
-        const scopes = res._headers['x-oauth-scopes'];
-
-        if ( scopes ) {
-          this.scopes = scopes;
-        }
-
-        addObjects(out, isArray(res) ? res : res[objectKey]);
-
-        if ( onPageFn ) {
-          onPageFn(out);
-        }
-
-        if ( depaginate && links.next ) {
-          url = this.proxifyUrl(links.next);
-        } else {
-          break;
-        }
-      }
-
-      return out;
     },
   },
 };
@@ -206,7 +226,7 @@ export default {
     <div class="row">
       <div class="col span-4">
         <v-select
-          :placeholder="loadingRecentRepos ? 'Loading...' : 'Choose a Repository...'"
+          :placeholder="repoPlaceholder"
           :disabled="loadingRecentRepos"
           :options="repos"
           label="full_name"
@@ -240,7 +260,7 @@ export default {
       <div class="col span-4">
         <v-select
           :disabled="!selectedRepo || loadingBranches"
-          placeholder="Choose branch"
+          :placeholder="branchPlaceholder"
           :options="branches"
           label="name"
           :value="selectedBranch"
@@ -252,7 +272,7 @@ export default {
       <div class="col span-4">
         <v-select
           :disabled="!selectedBranch"
-          placeholder="Choose file"
+          :placeholder="filePlaceholder"
           :options="files"
           label="path"
           :value="selectedFile"

@@ -15,5 +15,15 @@ export default {
 
       return out;
     }
+  },
+
+  principalType() {
+    const parts = this.id.replace(/:.*$/, '').split('_', 2);
+
+    if ( parts.length === 2 ) {
+      return parts[1];
+    }
+
+    return null;
   }
 };
