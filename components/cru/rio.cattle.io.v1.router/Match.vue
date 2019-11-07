@@ -91,7 +91,7 @@ export default {
         <h5>Headers</h5>
         <KeyValue add-label="Add Header Rule" :protip="false" :pad-left="false" :read-allowed="false" @input="e=>changeKV('headers', e)">
           <template v-slot:removeButton="buttonProps">
-            <button class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
+            <button type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
               REMOVE
             </button>
           </template>
@@ -112,7 +112,7 @@ export default {
         <h5>Cookies</h5>
         <KeyValue add-label="Add Cookie Rule" :protip="false" :pad-left="false" :read-allowed="false" @input="e=>changeKV('cookies', e)">
           <template v-slot:removeButton="buttonProps">
-            <button class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
+            <button type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
               REMOVE
             </button>
           </template>

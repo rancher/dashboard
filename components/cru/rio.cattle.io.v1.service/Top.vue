@@ -85,8 +85,15 @@ export default {
     },
 
     buildModeOptions() {
+      const githubDisabled = !this.$store.getters['auth/isGithub'];
+
       return Object.keys(BUILD_MODES).map((k) => {
-        return { label: BUILD_MODES[k], value: k };
+        return {
+          label:    BUILD_MODES[k],
+          value:    k,
+          disabled: k === 'github' && githubDisabled,
+          tooltip:  k === 'github' && githubDisabled ? 'You did not log in with GitHub' : null,
+        };
       });
     }
   },
@@ -158,8 +165,8 @@ export default {
           {{ buildModeLabels[buildMode] }}
         </div>
         <div v-else>
-          <label v-for="opt in buildModeOptions" :key="opt.value" class="radio" :class="{disabled: opt.value === 'github' && !hasGithub}">
-            <input v-model="buildMode" type="radio" :value="opt.value" :disabled="opt.value === 'github ' && !hasGithub" />
+          <label v-for="opt in buildModeOptions" :key="opt.value" v-tooltip="opt.tooltip" class="radio" :class="{disabled: opt.disabled}">
+            <input v-model="buildMode" type="radio" :value="opt.value" :disabled="opt.disabled" />
             {{ opt.label }}
           </label>
         </div>
@@ -191,7 +198,6 @@ export default {
       <div class="col span-12">
         <GithubPicker
           v-model="spec.build"
-          file-key="dockefile"
           file-pattern="Dockerfile"
           preferred-file="Dockerfile"
         />

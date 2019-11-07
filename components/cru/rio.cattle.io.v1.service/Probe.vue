@@ -3,6 +3,7 @@ import { _EDIT, _VIEW } from '@/config/query-params';
 import { clone } from '@/utils/object';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import ShellInput from '@/components/form/ShellInput';
 import KeyValue from '@/components/form/KeyValue';
 
@@ -16,7 +17,7 @@ const KIND_LABELS = {
 
 export default {
   components: {
-    LabeledInput, UnitInput, ShellInput, KeyValue,
+    LabeledInput, LabeledSelect, UnitInput, ShellInput, KeyValue,
   },
 
   props: {
@@ -159,15 +160,15 @@ export default {
       </h4>
     </div>
 
-    <div v-if="mode === 'view'">
-      {{ kindLabels[kind] }}
-    </div>
-    <div v-else>
-      <div v-for="opt in kindOptions" :key="opt.value">
-        <label class="radio">
-          <input v-model="kind" type="radio" :value="opt.value" />
-          {{ opt.label }}
-        </label>
+    <div class="row">
+      <div class="col span-12">
+        <LabeledSelect
+          v-model="kind"
+          :mode="mode"
+          label="Type"
+          :options="kindOptions"
+          placeholder="Select a check type"
+        />
       </div>
     </div>
 
@@ -212,23 +213,27 @@ export default {
       </div>
     </div>
 
-    <div v-if="kind === 'tcp'">
-      <LabeledInput
-        v-model.number="tcpSocket.port"
-        type="number"
-        min="1"
-        max="65535"
-        :mode="mode"
-        label="Check Port"
-        placeholder="e.g. 25"
-      />
+    <div v-if="kind === 'tcp'" class="row">
+      <div class="col span-12">
+        <LabeledInput
+          v-model.number="tcpSocket.port"
+          type="number"
+          min="1"
+          max="65535"
+          :mode="mode"
+          label="Check Port"
+          placeholder="e.g. 25"
+        />
+      </div>
     </div>
 
-    <div v-if="kind === 'exec'">
-      <ShellInput
-        v-model="exec.command"
-        label="Command to run"
-      />
+    <div v-if="kind === 'exec'" class="row">
+      <div class="col span-12">
+        <ShellInput
+          v-model="exec.command"
+          label="Command to run"
+        />
+      </div>
     </div>
 
     <div v-if="!isNone">

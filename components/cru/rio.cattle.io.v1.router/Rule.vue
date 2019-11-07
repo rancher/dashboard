@@ -111,15 +111,15 @@ export default {
         <div class="position-mover">
           {{ position + 1 }}
           <div class="position-inputs">
-            <button class="btn bg-transparent icon-btn icon icon-sort-up" @click="move('up')">
+            <button type="button" class="btn bg-transparent icon-btn icon icon-sort-up" @click="move('up')">
               {{ '' }}
             </button>
-            <button class="btn bg-transparent icon-btn icon icon-sort-down" @click="move('down')">
+            <button type="button" class="btn bg-transparent icon-btn icon icon-sort-down" @click="move('down')">
               {{ '' }}
             </button>
           </div>
         </div>
-        <button class="btn role-link" @click="$emit('delete')">
+        <button type="button" class="btn role-link" @click="$emit('delete')">
           REMOVE
         </button>
       </div>
@@ -138,18 +138,18 @@ export default {
       <div class="row">
         <div class="col span-12">
           <label class="radio">
-            <input type="radio" value="forwardOne">
-            Forward to Service
+            <input v-model="mode" type="radio" value="forwardOne">
+            Forward to One Service
           </label>
 
           <label class="radio">
-            <input type="radio" value="forwardMany">
+            <input v-model="mode" type="radio" value="forwardMany">
             Forward to Multiple Services
           </label>
 
           <label class="radio">
-            <input type="radio" value="redirect">
-            Redirect
+            <input v-model="mode" type="radio" value="redirect">
+            HTTP Redirect
           </label>
         </div>
       </div>
@@ -186,7 +186,7 @@ export default {
         </template>
       </div>
       <div v-if="mode==='forwardMany'" class="row">
-        <button class="btn btn-sm bg-primary " @click="addDestination">
+        <button type="button" class="btn btn-sm bg-primary " @click="addDestination">
           + ADD DESTINATION
         </button>
       </div>

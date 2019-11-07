@@ -43,7 +43,7 @@ export const FRIENDLY = {
       {
         name:   'secret-name',
         label:  'Secret',
-        value:  'secretName',
+        value:  'status.assignedSecretName',
         sort:   ['secretName', 'targetApp', 'targetVersion'],
       },
       AGE,

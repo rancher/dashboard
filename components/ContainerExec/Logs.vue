@@ -66,16 +66,16 @@ export default {
       </div>
     </div>
     <div class="controls-bottom">
-      <button class="btn btn-sm bg-primary" type="button" @click="scrollToTop">
+      <button type="button" class="btn btn-sm bg-primary" @click="scrollToTop">
         Scroll to Top
       </button>
-      <button class="btn btn-sm bg-primary" type="button" @click="scrollToBottom">
+      <button type="button" class="btn btn-sm bg-primary" @click="scrollToBottom">
         Scroll to Bottom
       </button>
-      <button class="btn btn-sm bg-primary" @click="clear">
+      <button type="button" class="btn btn-sm bg-primary" @click="clear">
         Clear
       </button>
-      <button class="btn btn-sm bg-primary" @click="download">
+      <button type="button" class="btn btn-sm bg-primary" @click="download">
         Download Logs
       </button>
     </div>

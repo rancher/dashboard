@@ -1,22 +1,23 @@
 import dayjs from 'dayjs';
 import { addParam, parseLinkHeader } from '@/utils/url';
 import { addObjects, isArray } from '@/utils/array';
-import { GITHUB_REPOS, _DATE } from '@/config/local-storage';
+import { GITHUB_REPOS, GITHUB_SCOPES, _DATE } from '@/config/local-storage';
 
 const API_BASE = 'https://api.github.com/';
 
-export const BASE_SCOPES = ['read:user', 'read:org', 'user:email'];
+export const BASE_SCOPES = ['read:org'];
+export const HOSTED_SCOPES = ['read:user', 'user:email'];
 export const EXTENDED_SCOPES = ['repo'];
 
 export const DOCKERFILE = /^Dockerfile(\..*)?$/i;
 export const YAML_FILE = /^.*\.ya?ml$/i;
 
-function getCached() {
+function getFromStorage(key) {
   if ( process.server ) {
-    return [];
+    return null;
   }
 
-  const cached = window.localStorage.getItem(GITHUB_REPOS);
+  const cached = window.localStorage.getItem(key);
 
   if ( cached ) {
     try {
@@ -25,8 +26,18 @@ function getCached() {
       return parsed;
     } catch (e) {}
   }
+}
 
-  return [];
+function getCachedRepos() {
+  const cached = getFromStorage(GITHUB_REPOS);
+
+  return cached || [];
+}
+
+function getCachedScopes() {
+  const cached = getFromStorage(GITHUB_SCOPES);
+
+  return cached;
 }
 
 function hasCached() {
@@ -53,9 +64,15 @@ function cacheExpired() {
   return true;
 }
 
-function setCache(repos) {
-  window.localStorage.setItem(GITHUB_REPOS, JSON.stringify(repos));
-  window.localStorage.setItem(GITHUB_REPOS + _DATE, (new Date()).toISOString());
+function setCache(repos, scopes) {
+  if ( repos ) {
+    window.localStorage.setItem(GITHUB_REPOS, JSON.stringify(repos));
+    window.localStorage.setItem(GITHUB_REPOS + _DATE, (new Date()).toISOString());
+  }
+
+  if ( scopes ) {
+    window.localStorage.setItem(GITHUB_SCOPES, JSON.stringify(scopes));
+  }
 }
 
 function proxifyUrl(url) {
@@ -96,7 +113,7 @@ export const actions = {
       const scopes = res._headers['x-oauth-scopes'];
 
       if ( scopes ) {
-        commit('setScopes', scopes);
+        commit('setScopes', scopes.split(/\s*,\s*/));
       }
 
       addObjects(out, isArray(res) ? res : res[objectKey]);
@@ -116,8 +133,14 @@ export const actions = {
   },
 
   async fetchRecentRepos({ commit, dispatch }, { allowCache = true } = {}) {
+    const cachedScopes = getCachedScopes();
+
+    if ( cachedScopes ) {
+      commit('setScopes', cachedScopes);
+    }
+
     if ( allowCache && hasCached ) {
-      const cached = getCached();
+      const cached = getCachedRepos();
 
       if ( cacheExpired() ) {
         dispatch('fetchRecentRepos', { allowCache: false });
@@ -173,6 +196,7 @@ export const actions = {
 export const mutations = {
   setScopes(state, scopes) {
     state.scopes = scopes;
+    setCache(null, scopes);
   },
 
   setRepos(state, repos) {

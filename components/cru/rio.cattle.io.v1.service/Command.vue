@@ -85,6 +85,30 @@ export default {
   <div>
     <div class="row">
       <div class="col span-6">
+        <ShellInput
+          v-model="spec.entrypoint"
+          :mode="mode"
+          label="Entrypoint"
+        />
+      </div>
+      <div class="col span-6">
+        <ShellInput
+          v-model="spec.command"
+          :mode="mode"
+          label="Command"
+        />
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col span-2">
+        <LabeledInput
+          v-model="spec.workingDir"
+          :mode="mode"
+          label="Working Directory"
+        />
+      </div>
+      <div class="col span-2">
         <UnitInput
           v-model.number="spec.memoryBytes"
           :mode="mode"
@@ -94,7 +118,7 @@ export default {
           placeholder="Default: None"
         />
       </div>
-      <div class="col span-6">
+      <div class="col span-2">
         <UnitInput
           v-model="spec.cpuMillis"
           :mode="mode"
@@ -105,25 +129,26 @@ export default {
           placeholder="Default: None"
         />
       </div>
-    </div>
-
-    <div class="row">
-      <div class="col span-9">
-        <ShellInput
-          v-model="spec.entrypoint"
+      <div class="col span-2">
+        <LabeledInput
+          v-model="spec.runAsUser"
           :mode="mode"
-          label="Entrypoint"
+          label="Run as User number"
         />
       </div>
-
-      <div class="col span-3 pt-5">
+      <div class="col span-2">
+        <LabeledInput
+          v-model="spec.runAsGroup"
+          :mode="mode"
+          label="Run as Group number"
+        />
+      </div>
+      <div class="col span-2">
         <div>
           <label class="checkbox">
             <input v-model="spec.stdin" type="checkbox" />
             Interactive
           </label>
-        </div>
-        <div>
           <label class="checkbox">
             <input v-model="spec.tty" type="checkbox" />
             TTY
@@ -135,40 +160,6 @@ export default {
             Read-Only Root FS
           </label>
         </div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col span-12">
-        <ShellInput
-          v-model="spec.command"
-          :mode="mode"
-          label="Command"
-        />
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="col span-4">
-        <LabeledInput
-          v-model="spec.workingDir"
-          :mode="mode"
-          label="Working Directory"
-        />
-      </div>
-      <div class="col span-4">
-        <LabeledInput
-          v-model="spec.runAsUser"
-          :mode="mode"
-          label="Run as User number"
-        />
-      </div>
-      <div class="col span-4">
-        <LabeledInput
-          v-model="spec.runAsGroup"
-          :mode="mode"
-          label="Run as Group number"
-        />
       </div>
     </div>
 

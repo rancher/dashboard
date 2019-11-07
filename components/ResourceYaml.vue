@@ -289,10 +289,10 @@ export default {
         </span>
       </h1>
       <div class="actions">
-        <button v-if="!isView" class="btn bg-transparent" @click="cancel">
+        <button v-if="!isView" type="button" class="btn bg-transparent" @click="cancel">
           Cancel
         </button>
-        <button v-if="isEdit" class="btn bg-transparent" @click="preview">
+        <button v-if="isEdit" type="button" class="btn bg-transparent" @click="preview">
           Preview
         </button>
         <AsyncButton
@@ -303,7 +303,7 @@ export default {
           waiting-color="bg-error"
           @click="remove"
         />
-        <button v-if="canEdit && (isView || isPreview)" class="btn bg-primary" @click="edit">
+        <button v-if="canEdit && (isView || isPreview)" type="button" class="btn bg-primary" @click="edit">
           Edit
         </button>
         <AsyncButton v-if="isEdit || isPreview" key="apply" mode="apply" @click="save" />

@@ -93,14 +93,14 @@ export default {
           <LabeledInput v-model="rule.value" label="xxxx" />
         </td>
         <td>
-          <button class="btn btn-sm role-link" @click="remove(i)">
+          <button type="button" class="btn btn-sm role-link" @click="remove(i)">
             REMOVE
           </button>
         </td>
       </tr>
     </table>
 
-    <button :class="{disabled: !enabled}" class="btn role-tertiary add" @click="addRule">
+    <button type="button" :class="{disabled: !enabled}" class="btn role-tertiary add" @click="addRule">
       <i class="icon icon-plus" />
       Add Header Operation
     </button>

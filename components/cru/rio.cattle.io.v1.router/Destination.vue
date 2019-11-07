@@ -125,7 +125,7 @@ export default {
       <LabeledInput v-model="weight" :label="placeholders[3]" />
     </td>
     <td v-if="canRemove" class="sm">
-      <button class="btn btn-sm role-link" @click="$emit('remove')">
+      <button type="button" class="btn btn-sm role-link" @click="$emit('remove')">
         REMOVE
       </button>
     </td>

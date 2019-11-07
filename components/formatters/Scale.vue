@@ -44,10 +44,10 @@ export default {
 
     <template #popover>
       <div class="text-center pb-5">
-        <button class="btn btn-sm bg-primary scale-btn" @click="scaleDown">
+        <button type="button" class="btn btn-sm bg-primary scale-btn" @click="scaleDown">
           <i class="icon icon-minus" />
         </button>
-        <button class="btn btn-sm bg-primary scale-btn" @click="scaleUp">
+        <button type="button" class="btn btn-sm bg-primary scale-btn" @click="scaleUp">
           <i class="icon icon-plus" />
         </button>
       </div>

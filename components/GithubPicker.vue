@@ -6,6 +6,7 @@ import { EXTENDED_SCOPES } from '@/store/github';
 
 export const FILE_PATTERNS = {
   'dockerfile': /^Dockerfile(\..*)?$/i,
+  'riofile':    /^Riofile(\..*)?$/i,
   'yaml':       /^.*\.ya?ml?$/i,
 };
 
@@ -113,13 +114,16 @@ export default {
     selectBranch(branch) {
       this.selectedFile = null;
       this.selectedBranch = branch;
-      this.$emit('selectedBranch', branch);
       this.fetchFiles(this.selectedRepo, branch);
     },
 
     selectFile(file) {
       this.selectedFile = file;
-      this.$emit('selectedFile', file);
+      this.value.repo = this.selectedRepo.clone_url;
+      this.value.branch = this.selectedBranch.name;
+      this.value.revision = null;
+      this.value.dockerfile = file.path;
+      this.$emit('input', this.value);
     },
 
     expandScope() {
@@ -195,7 +199,7 @@ export default {
 
         this.files = res;
 
-        if ( !this.selecteeFile && this.preferredFile ) {
+        if ( !this.selectedFile && this.preferredFile ) {
           const file = findBy(this.files, 'path', this.preferredFile);
 
           if ( file ) {
