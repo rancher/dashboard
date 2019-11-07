@@ -2,8 +2,8 @@
 <script>
 import pickBy from 'lodash/pickBy';
 import values from 'lodash/values';
+import { isEmpty } from 'lodash';
 import { randomStr } from '@/utils/string';
-import { isEmpty } from '@/utils/object';
 import Match from '@/components/cru/rio.cattle.io.v1.router/Match';
 import Destination from '@/components/cru/rio.cattle.io.v1.router/Destination';
 import Redirect from '@/components/cru/rio.cattle.io.v1.router/Redirect';

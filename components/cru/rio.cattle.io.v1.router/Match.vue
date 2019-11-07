@@ -1,6 +1,9 @@
 <script>
 import pullAt from 'lodash/pullAt';
+import pickBy from 'lodash/pickBy';
+import { isEmpty } from 'lodash';
 import findIndex from 'lodash/findIndex';
+import { typeOf } from '@/utils/sort';
 import KeyValue from '@/components/form/KeyValue';
 import StringMatch from '@/components/cru/rio.cattle.io.v1.router/StringMatch';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -38,12 +41,30 @@ export default {
   },
   computed: {
     formatted() {
-      return {
-        headers: [this.host, ...this.headers],
+      const all = {
+        headers: !!this.host.value.exact ? [this.host, ...this.headers] : this.headers,
         methods: this.methods,
         path:    this.path,
         cookies: this.cookies
       };
+
+      const out = pickBy(all, (value, key) => {
+        if (typeOf(value) === 'array') {
+          value.forEach((condition) => {
+            if (typeOf(condition) === 'string') {
+              return true;
+            } else {
+              return !isEmpty(condition);
+            }
+          });
+
+          return value.length;
+        } else {
+          return !!Object.values(value)[0];
+        }
+      });
+
+      return out;
     },
   },
   methods: {
@@ -79,8 +100,9 @@ export default {
         multiple
         :close-on-select="false"
         :options="httpMethods.filter(opt=>!isSelected(opt))"
+        :value="methods"
         placeholder="Method"
-        @input="e=>change('methods', e)"
+        @input="e=>{change('methods', e); matchChange()}"
       >
       </v-select>
       <LabeledInput v-if="host" v-model="host.value.exact" label="Host header" />

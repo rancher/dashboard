@@ -4,7 +4,6 @@
 import values from 'lodash/values';
 import pickBy from 'lodash/pickBy';
 import { randomStr } from '@/utils/string';
-// import { isEmpty } from '@/utils/object';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Rule from '@/components/cru/rio.cattle.io.v1.router/Rule';
@@ -20,7 +19,7 @@ export default {
     let routes = [{ uuid: randomStr() }];
 
     if (this.value.spec ) {
-      routes = this.value.spec.map((route) => {
+      routes = this.value.spec.routes.map((route) => {
         return { ...route, uuid: randomStr() }
         ;
       }) || [{ uuid: randomStr() }];
@@ -50,7 +49,7 @@ export default {
       this.routes.push({ uuid: randomStr() });
     },
     saveRouter() {
-      this.value.spec = this.cleanedRoutes;
+      this.value.spec = { routes: this.cleanedRoutes };
       this.save(this.done);
     },
     change(type, value, index) {
@@ -95,7 +94,7 @@ export default {
       <i class="icon icon-plus" />
       Add Rule
     </button>
-    <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
+    <Footer :mode="mode" :errors="errors" @save="saveRouter" @done="done" />
   </form>
 </template>
 
