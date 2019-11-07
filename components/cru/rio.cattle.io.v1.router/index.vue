@@ -91,7 +91,7 @@ export default {
         />
       </div>
     </div>
-    <button class="btn role-tertiary add" @click="addRouteSpec">
+    <button type="button" class="btn role-tertiary add" @click="addRouteSpec">
       <i class="icon icon-plus" />
       Add Rule
     </button>

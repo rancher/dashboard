@@ -36,6 +36,10 @@ export default {
     };
   },
 
+  mounted() {
+    this.focusSomething();
+  },
+
   methods: {
     loginGithub() {
       this.$store.dispatch('auth/redirectToGithub');
@@ -46,19 +50,28 @@ export default {
       this.$router.applyQuery({ [LOCAL]: _FLAGGED });
 
       this.$nextTick(() => {
-        let elem;
+        this.focusSomething();
+      });
+    },
 
-        if ( this.username ) {
-          elem = this.$refs.password;
-        } else {
-          elem = this.$refs.username;
-        }
+    focusSomething() {
+      let elem;
 
-        if ( elem ) {
-          elem.focus();
+      if ( this.hasGithub && !this.showLocal ) {
+        elem = this.$refs.github;
+      } else if ( this.username ) {
+        elem = this.$refs.password;
+      } else {
+        elem = this.$refs.username;
+      }
+
+      if ( elem ) {
+        elem.focus();
+
+        if ( elem.select ) {
           elem.select();
         }
-      });
+      }
     },
 
     async loginLocal(buttonCb) {
@@ -86,7 +99,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <h1 class="text-center">
-          Rio Dashboard
+          Welcome to Rio
         </h1>
         <h4 v-if="loggedOut" class="text-success text-center">
           You have been logged out.
@@ -99,7 +112,7 @@ export default {
         </h4>
 
         <div v-if="hasGithub" class="text-center mt-50 mb-50">
-          <button class="btn bg-primary" style="font-size: 18px;" @click="loginGithub">
+          <button ref="github" class="btn bg-primary" style="font-size: 18px;" @click="loginGithub">
             Log In with GitHub
           </button>
           <div v-if="!showLocal" class="mt-20">
@@ -109,7 +122,7 @@ export default {
           </div>
         </div>
 
-        <form v-if="hasLocal && showLocal">
+        <form v-if="hasLocal && showLocal" class="mt-50">
           <div class="row">
             <div class="col span-4 offset-4">
               <LabeledInput
@@ -132,7 +145,7 @@ export default {
             </div>
           </div>
           <div class="row">
-            <div class="col span-4 offset-4">
+            <div class="col span-4 offset-4 text-center">
               <AsyncButton
                 type="submit"
                 action-label="Log In with Local User"
@@ -141,10 +154,12 @@ export default {
                 error-label="Error"
                 @click="loginLocal"
               />
-              <label class="pull-right">
-                <input v-model="remember" type="checkbox" />
-                Remember Username
-              </label>
+              <div>
+                <label>
+                  <input v-model="remember" type="checkbox" />
+                  Remember Username
+                </label>
+              </div>
             </div>
           </div>
         </form>

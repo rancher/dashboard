@@ -36,13 +36,15 @@ export default {
 
 <template>
   <div id="redirect" class="row inputs" @input="change">
-    <LabeledInput v-model="host" label="host" />
-    <LabeledInput v-model="path" label="path" />
-    <LabeledInput v-model="prefix" label="prefix" />
+    <LabeledInput v-model="host" label="Host" />
+    <LabeledInput v-model="path" label="Path" />
+    <LabeledInput v-model="prefix" label="Prefix" />
     <!-- <Checkbox v-model="toHTTPS" label="Change protocol to HTTPS" /> -->
     <span>
-      <input id="toHTTPS" v-model="toHTTPS" type="checkbox" />
-      <label for="toHTTPS">Change protocol to HTTPS</label>
+      <label>
+        <input v-model="toHTTPS" type="checkbox" />
+        Change protocol to <code>https</code>
+      </label>
     </span>
   </div>
 </template>

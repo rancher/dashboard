@@ -38,6 +38,10 @@ export default {
   },
 
   imageDisplay() {
+    if ( this.spec.build && !this.spec.image ) {
+      return 'Building from Git...';
+    }
+
     return (this.spec.image || '')
       .replace(/^index.docker.io\//i, '')
       .replace(/@sha256:[0-9a-f]+$/i, '')

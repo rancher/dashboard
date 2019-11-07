@@ -14,18 +14,6 @@ if ( typeof process.env.ROUTER_BASE !== 'undefined' ) {
   }
 }
 
-/*
-function resolve($router, name, params) {
-  let out = $router.resolve({ name, params }).href;
-
-  if ( routerBase && out.startsWith(routerBase) ) {
-    out = out.substr(routerBase.length);
-  }
-
-  return out;
-}
-*/
-
 export function rioPackage($router, counts, namespaces) {
   function countFor(type) {
     const entry = findBy(counts, 'id', type);
@@ -48,24 +36,30 @@ export function rioPackage($router, counts, namespaces) {
     name:     'rio',
     label:    'Rio',
     children: [
-      /*
       {
         name:    'rio-dashboard',
         label:   'Dashboard',
-        route:   rnioLink('dashboard'),
+        route:   { name: 'rio-dashboard' },
       },
       {
         name:    'rio-graph',
-        label:   'App Mesh',
-        route:   rioLink('mesh'),
+        label:   'Service Mesh',
+        route:   { name: 'rio-mesh' },
       },
+      /*
       {
         name:    'rio-tap',
         label:   'Live Traffic Tap',
-        route:   rioLink('tap'),
+        route:   { name: 'rio-tap' },
       },
-      { divider: true },
       */
+      { divider: true },
+      {
+        name:  'rio-stack',
+        count: countFor(RIO.STACK),
+        label: 'Stacks',
+        route: linkFor('stack'),
+      },
       {
         name:    'rio-services',
         count:   countFor(RIO.SERVICE),
@@ -102,13 +96,6 @@ export function rioPackage($router, counts, namespaces) {
         count: countFor(SECRET),
         label: 'Secrets',
         route: linkFor('secrets'),
-      },
-      { divider: true },
-      {
-        name:  'rio-stack',
-        count: countFor(RIO.STACK),
-        label: 'Stacks',
-        route: linkFor('stack'),
       },
     ],
   };

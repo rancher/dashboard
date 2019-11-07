@@ -164,17 +164,17 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
       <div class="box">
         <p>The primary container</p>
         <p>{{ value.nameDisplay }}</p>
-        <button class="btn bg-primary" type="button" @click="selectContainer('')">
+        <button type="button" class="btn bg-primary" @click="selectContainer('')">
           Edit
         </button>
       </div>
       <div v-for="choice in value.spec.containers" :key="choice.name" class="box">
         <p>Sidecar</p>
         <p>{{ choice.name }}</p>
-        <button class="btn bg-primary" type="button" @click="selectContainer(choice.name)">
+        <button type="button" class="btn bg-primary" @click="selectContainer(choice.name)">
           Edit
         </button>
-        <button class="btn bg-error" type="button" @click="remove(choice.name)">
+        <button type="button" class="btn bg-error" @click="remove(choice.name)">
           Delete
         </button>
       </div>
