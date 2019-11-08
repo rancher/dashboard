@@ -35,7 +35,10 @@ export default {
       <p v-if="row.scales && row.scales.global" class="scale">Global</p>
       <span v-else class="scale">
         {{ row.scales.current }}
-        <span v-if="row.showDesiredScale">
+        <div v-if="row.scales.auto" class="text-small text-muted">
+          ({{ row.scales.desired }})
+        </div>
+        <span v-else-if="row.showDesiredScale">
           <i class="icon icon-chevron-right" />
           {{ row.scales.desired }}
         </span>

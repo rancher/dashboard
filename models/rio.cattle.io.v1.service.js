@@ -18,8 +18,9 @@ export default {
   version() {
     const spec = this.spec || EMPTY;
     const status = this.status || EMPTY;
+    const uid = ((this.metadata || EMPTY)['uid'] || '').replace(/-.*$/, '');
 
-    return spec.version || status.computedVersion;
+    return spec.version || status.computedVersion || uid || '?';
   },
 
   nameDisplay() {
@@ -70,13 +71,21 @@ export default {
       scaleStatus = {};
     }
 
-    const spec = (typeof this.spec.replicas === 'undefined' ? 1 : this.spec.replicas || 0);
+    const auto = !!this.spec.autoscale;
+    const fixed = (typeof this.spec.replicas === 'undefined' ? 1 : this.spec.replicas || 0);
     const available = scaleStatus.available || 0;
     const current = (typeof status.computedReplicas === 'undefined' ? available : status.computedReplicas || 0);
     const unavailable = scaleStatus.unavailable || 0;
     const global = this.spec.global === true;
 
-    let desired = spec;
+    let desired = fixed;
+    let min, max;
+
+    if ( auto ) {
+      min = this.spec.autoscale.minReplicas;
+      max = this.spec.autoscale.maxReplicas;
+      desired = `${ min } - ${ max }`;
+    }
 
     if ( global ) {
       desired = current;
@@ -87,8 +96,10 @@ export default {
     const missing = Math.max(0, desired - available - unavailable);
 
     return {
-      hasStatus,
       global,
+      auto,
+      min,
+      max,
       current,
       desired,
       available,

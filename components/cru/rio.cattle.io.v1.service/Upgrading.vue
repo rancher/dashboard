@@ -30,12 +30,22 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          key="increment"
+          key="weight"
           v-model.number="spec.weight"
           :mode="mode"
           type="number"
           min="0"
           label="Weight"
+        />
+      </div>
+      <div v-if="spec.autoscale" class="col span-6">
+        <LabeledInput
+          key="concurrency"
+          v-model.number="spec.autoscale.concurrency"
+          :mode="mode"
+          type="number"
+          min="0"
+          label="Concurrency"
         />
       </div>
     </div>

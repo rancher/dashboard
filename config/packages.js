@@ -36,6 +36,7 @@ export function rioPackage($router, counts, namespaces) {
     name:     'rio',
     label:    'Rio',
     children: [
+      /*
       {
         name:    'rio-dashboard',
         label:   'Dashboard',
@@ -46,14 +47,13 @@ export function rioPackage($router, counts, namespaces) {
         label:   'Service Mesh',
         route:   { name: 'rio-mesh' },
       },
-      /*
       {
         name:    'rio-tap',
         label:   'Live Traffic Tap',
         route:   { name: 'rio-tap' },
       },
-      */
       { divider: true },
+      */
       {
         name:  'rio-stack',
         count: countFor(RIO.STACK),
