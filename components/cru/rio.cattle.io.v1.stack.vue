@@ -38,7 +38,7 @@ export default {
     const hasGithub = this.$store.getters['auth/isGithub'];
     let buildMode = 'empty';
 
-    if ( hasGithub && buildImage && spec.build.repo.startsWith('https://github.com/') ) {
+    if ( hasGithub && buildImage && spec.build.repo.startsWith('https://github.com/' && !this.isDemo) ) {
       buildMode = 'github';
       spec.build.branch = spec.build.branch || 'master';
       spec.build.riofile = spec.build.riofile || 'Riofile';

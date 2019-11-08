@@ -1,6 +1,6 @@
 <script>
+import demoSpecs from '@/config/demoSpecs';
 import { FRIENDLY } from '@/config/friendly';
-
 export default {
   name: 'RioResourceCreate',
 
@@ -45,6 +45,11 @@ export default {
     if ( schema.attributes.namespaced ) {
       metadata.namespace = '';
     }
+    let spec = {};
+
+    if (ctx.query.demo) {
+      spec = demoSpecs[ctx.query.demo];
+    }
 
     const data = {
       type,
@@ -52,11 +57,13 @@ export default {
       apiVersion: `${ schema.attributes.group }/${ schema.attributes.version }`,
       metadata,
       data:       {},
+      spec
     };
 
     const model = await ctx.store.dispatch('cluster/create', data);
 
     return {
+      isDemo: !!ctx.query.demo,
       resource,
       schema,
       type,
@@ -83,6 +90,8 @@ export default {
       :namespace-suffix-on-create="schema.attributes.namespaced"
       :type-label="typeDisplay"
       mode="create"
-    />
+      :is-demo="isDemo"
+    >
+    </component>
   </div>
 </template>

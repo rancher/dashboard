@@ -23,6 +23,10 @@ export default {
   },
 
   props: {
+    isDemo: {
+      type:    Boolean,
+      default: false
+    },
     isSidecar: {
       type:    Boolean,
       default: false
@@ -53,7 +57,7 @@ export default {
     let buildMode = 'image';
     let image, build;
 
-    if ( hasGithub && buildImage && spec.build.repo.startsWith('https://github.com/') ) {
+    if ( hasGithub && buildImage && spec.build.repo.startsWith('https://github.com/' && !this.isDemo) ) {
       buildMode = 'github';
       build = spec.build;
       spec.build.branch = spec.build.branch || 'master';

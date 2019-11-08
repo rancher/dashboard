@@ -180,7 +180,14 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
       </div>
     </div>
     <div v-else>
-      <Top :value="value" :spec="spec" :name-resource="nameResource" :is-sidecar="isSidecar" :mode="mode" />
+      <Top
+        :value="value"
+        :spec="spec"
+        :name-resource="nameResource"
+        :is-sidecar="isSidecar"
+        :mode="mode"
+        :is-demo="isDemo"
+      />
 
       <Tabbed default-tab="command">
         <Tab name="command" label="Command">

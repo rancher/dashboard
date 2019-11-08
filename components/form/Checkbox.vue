@@ -8,6 +8,10 @@ export default {
     label: {
       type:    String,
       default: ''
+    },
+    disabled: {
+      type:    Boolean,
+      default: false
     }
   },
   data() {
@@ -23,7 +27,14 @@ export default {
 </script>
 
 <template>
-  <label class="checkbox-container">
+  <label
+    class="checkbox-container"
+    :aria-label="label"
+    :aria-checked="status"
+    role="checkbox"
+    :tabindex="disabled ? -1 : 0"
+    @keyup.shift.exact="clicked"
+  >
     <label class="checkbox-box">
       <input
         :checked="value"
