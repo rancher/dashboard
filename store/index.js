@@ -20,7 +20,13 @@ export const getters = {
   },
 
   namespaces(state) {
-    return state.namespaces;
+    const namespaces = state.namespaces;
+
+    if ( namespaces.length ) {
+      return namespaces;
+    } else {
+      return ['!kube-system', '!cattle-system', '!rio-system'];
+    }
   },
 
   preloaded(state) {

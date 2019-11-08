@@ -182,15 +182,22 @@ function ensureGroup(level, name, route) {
 }
 
 function matchingCounts(obj, namespaces) {
-  if ( namespaces.length === 0 ) {
-    return obj.count;
-  }
+  const allNegative = namespaces.filter(x => x.startsWith('!')).length === namespaces.length;
+  let out = 0;
 
   if ( !obj.byNamespace ) {
     return 0;
   }
 
-  let out = 0;
+  if ( allNegative ) {
+    out = obj.count;
+
+    for ( let i = 0 ; i < namespaces.length ; i++ ) {
+      out -= obj.byNamespace[namespaces[i].substr(1)] || 0;
+    }
+
+    return out;
+  }
 
   for ( let i = 0 ; i < namespaces.length ; i++ ) {
     out += obj.byNamespace[namespaces[i]] || 0;
