@@ -306,9 +306,9 @@ export default {
         <div class="col span-6">
           <h1>Welcome to Rio</h1>
 
-          <h4>The first order of business is to set a strong password for the default <code>admin</code> user.</h4>
+          <h3 class="mb-20">The first order of business is to set a strong password for the default <code>admin</code> user.</h3>
 
-          <p class="mb-40">
+          <p class="text-muted mb-40">
             We suggest using this random one generated just for you, but you enter your own if you like.
           </p>
 
@@ -558,7 +558,7 @@ export default {
 
     code {
       background: var(--accent-btn);
-      padding: 5px;
+      padding: 2.5px 5px;
       border-radius: 3px;
     }
   }
