@@ -300,7 +300,7 @@ export default {
 };
 </script>
 <template>
-  <form class="container">
+  <form class="container setup">
     <div v-if="step === 1">
       <div class="row">
         <div class="col span-6">
@@ -308,7 +308,7 @@ export default {
 
           <h4>The first order of business is to set a strong password for the default <code>admin</code> user.</h4>
 
-          <p>
+          <p class="mb-40">
             We suggest using this random one generated just for you, but you enter your own if you like.
           </p>
 
@@ -366,7 +366,6 @@ export default {
         </div>
         <div class="col span-6">
           <img src="~/assets/images/setup-step-one.svg" />
-          <h1>A snazzy picture</h1>
         </div>
       </div>
 
@@ -400,7 +399,6 @@ export default {
 
         <div class="col span-6">
           <img src="~/assets/images/setup-step-one.svg" />
-          <h1>A snazzier picture</h1>
         </div>
       </div>
 
@@ -487,7 +485,6 @@ export default {
         </div>
         <div class="col span-6">
           <img src="~/assets/images/setup-step-one.svg" />
-          <h1>An even snazzier picture, with octocats</h1>
         </div>
       </div>
 
@@ -509,31 +506,28 @@ export default {
             Who should be able to login?
           </p>
           <div class="row">
-            <div class="col span-4 offset-4">
-              <label v-if="me" class="principal">
-                <input type="checkbox" checked disabled />
-                <img :src="me.avatarSrc" width="40" height="40" />
-                <div class="login">
-                  {{ me.loginName }}
-                </div>
-                <div class="name">
-                  {{ me.name }}
-                </div>
-              </label>
+            <label v-if="me" class="principal">
+              <input type="checkbox" checked disabled />
+              <img :src="me.avatarSrc" width="40" height="40" />
+              <div class="login">
+                {{ me.loginName }}
+              </div>
+              <div class="name">
+                {{ me.name }}
+              </div>
+            </label>
 
-              <label v-for="org in orgs" :key="org.id" class="principal">
-                <input v-model="githubConfig.allowedPrincipalIds" type="checkbox" :value="org.id" />
-                <img :src="org.avatarSrc" width="40" height="40" />
-                <span class="login">
-                  Members of <b>{{ org.loginName }}</b>
-                </span>
-              </label>
-            </div>
+            <label v-for="org in orgs" :key="org.id" class="principal">
+              <input v-model="githubConfig.allowedPrincipalIds" type="checkbox" :value="org.id" />
+              <img :src="org.avatarSrc" width="40" height="40" />
+              <span class="login">
+                Members of <b>{{ org.loginName }}</b>
+              </span>
+            </label>
           </div>
         </div>
         <div class="col span-6">
           <img src="~/assets/images/setup-step-one.svg" />
-          <h1>An even snazzier picture, with octocats</h1>
         </div>
       </div>
       <div class="mt-20 text-center">
@@ -554,6 +548,18 @@ export default {
     img {
       vertical-align: middle;
       margin: 0 10px;
+    }
+  }
+
+  .setup {
+    .row {
+      align-items: center;
+    }
+
+    code {
+      background: var(--accent-btn);
+      padding: 5px;
+      border-radius: 3px;
     }
   }
 </style>
