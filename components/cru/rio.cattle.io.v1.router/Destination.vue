@@ -88,6 +88,7 @@ export default {
     },
     setService(service) {
       this.service = service;
+      this.updateDestination();
     },
     updateDestination() {
       this.$emit('input', this.formatted );
@@ -96,7 +97,7 @@ export default {
 };
 </script>
 
-<template @input="updateDestination" @change="updateDestination">
+<template>
   <tr>
     <td>
       <v-select
@@ -116,13 +117,14 @@ export default {
         :placeholder="placeholders[1]"
         class="inline"
         :options="versions"
+        @input="updateDestination"
       />
     </td>
     <td class="sm">
-      <LabeledInput v-model="port" type="text" :label="placeholders[2]" />
+      <LabeledInput v-model.number="port" type="number" :label="placeholders[2]" @input="updateDestination" />
     </td>
     <td v-if="isWeighted" class="sm">
-      <LabeledInput v-model="weight" :label="placeholders[3]" />
+      <LabeledInput v-model.number="weight" type="number" :label="placeholders[3]" @input="updateDestination" />
     </td>
     <td v-if="canRemove" class="sm">
       <button type="button" class="btn btn-sm role-link" @click="$emit('remove')">
