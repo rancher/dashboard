@@ -229,6 +229,10 @@ export function mapGroup(obj) {
     return 'gloo';
   }
 
+  if ( group.endsWith('.tekton.dev') || group === 'tekton.dev' ) {
+    return 'tekton';
+  }
+
   if ( group === 'rio.cattle.io' || group.endsWith('.rio.cattle.io') ) {
     return 'rio';
   }
@@ -260,8 +264,6 @@ function groupLabel(group) {
     return 'RBAC';
   case 'cert-manager':
     return 'Cert Manager';
-  case 'gloo':
-    return 'Gloo';
   case 'admissionregistration.k8s.io':
     return 'Admission Registration';
   }

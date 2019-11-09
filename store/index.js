@@ -1,6 +1,7 @@
 import Norman from '@/plugins/norman';
 import { COUNT, NAMESPACE, RANCHER } from '~/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
+import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 
 export const plugins = [
   Norman({ namespace: 'cluster', baseUrl: '/k8s/clusters/local/v1' }), // @TODO cluster-specific URL
@@ -25,7 +26,7 @@ export const getters = {
     if ( namespaces.length ) {
       return namespaces;
     } else {
-      return ['!kube-system', '!cattle-system', '!rio-system'];
+      return SYSTEM_NAMESPACES.map(x => `!${ x }`);
     }
   },
 
