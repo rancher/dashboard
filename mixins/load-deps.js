@@ -21,7 +21,13 @@ export default {
         this.$refs.loader.start();
       }
 
-      await Promise.all(deps);
+      if ( deps.length ) {
+        try {
+          await Promise.all(deps);
+        } catch (e) {
+          console.log('Load Deps error:', e);
+        }
+      }
 
       if ( this.$refs.loader ) {
         this.$refs.loader.finish();

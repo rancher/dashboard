@@ -66,9 +66,27 @@ export const FRIENDLY = {
   },
 
   stack: {
-    singular: 'Stack',
-    plural:   'Stacks',
-    type:     RIO.STACK
+    singular:  'Stack',
+    plural:    'Stacks',
+    hasDetail: true,
+    type:      RIO.STACK,
+    headers:   [
+      STATE,
+      NAMESPACE_NAME,
+      {
+        name:  'repo',
+        label: 'Repo',
+        value: 'repoDisplay',
+        sort:  'repoDisplay',
+      },
+      {
+        name:  'branch',
+        label: 'Branch',
+        value: 'branchDisplay',
+        sort:  'branchDisplay',
+      },
+      AGE,
+    ],
   },
 
   routers: {

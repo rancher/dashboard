@@ -6,6 +6,7 @@ import { MODE, _EDIT, EDIT_YAML, _FLAGGED } from '@/config/query-params';
 import { TO_FRIENDLY } from '@/config/friendly';
 import { findBy } from '@/utils/array';
 import { VIEW_IN_API } from '@/store/prefs';
+import { addParams } from '@/utils/url';
 
 const REMAP_STATE = { disabled: 'inactive' };
 
@@ -447,41 +448,48 @@ export default {
 
   // ------------------------------------------------------------------
 
-  goToEdit() {
-    return (moreQuery = {}) => {
-      const currentRoute = window.$nuxt.$route.name;
-      const router = window.$nuxt.$router;
-      const schema = this.$getters['schemaFor'](this.type);
-      let route, params;
+  detailUrl() {
+    const currentRoute = window.$nuxt.$route.name;
+    const router = window.$nuxt.$router;
+    const schema = this.$getters['schemaFor'](this.type);
+    let route, params;
 
-      if ( currentRoute.startsWith('rio-') ) {
-        const friendly = TO_FRIENDLY[this.type.replace(/^rio-/i, '')];
+    if ( currentRoute.startsWith('rio-') ) {
+      const friendly = TO_FRIENDLY[this.type.replace(/^rio-/i, '')];
 
-        if ( friendly ) {
-          route = `rio-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
-          params = {
-            resource:  friendly.resource,
-            namespace: this.metadata && this.metadata.namespace,
-            id:        this.metadata.name
-          };
-        }
-      }
-
-      if ( !route ) {
-        route = `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+      if ( friendly ) {
+        route = `rio-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
         params = {
-          group:     schema.groupName,
-          resource:  this.type,
+          resource:  friendly.resource,
           namespace: this.metadata && this.metadata.namespace,
           id:        this.metadata.name
         };
       }
+    }
 
-      const url = router.resolve({
-        name:   route,
-        params,
-        query:  { [MODE]: _EDIT, ...moreQuery }
-      }).href;
+    if ( !route ) {
+      route = `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+      params = {
+        group:     schema.groupName,
+        resource:  this.type,
+        namespace: this.metadata && this.metadata.namespace,
+        id:        this.metadata.name
+      };
+    }
+
+    const url = router.resolve({
+      name:   route,
+      params,
+    }).href;
+
+    return url;
+  },
+
+  goToEdit() {
+    const router = window.$nuxt.$router;
+
+    return (moreQuery = {}) => {
+      const url = addParams(this.detailUrl, { [MODE]: _EDIT, ...moreQuery });
 
       router.push({ path: url });
     };

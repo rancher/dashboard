@@ -49,15 +49,12 @@ export default {
     return {
       hasGithub,
       buildMode,
-      build: spec.build,
+      build:           spec.build,
+      buildModeLabels: BUILD_MODES,
     };
   },
 
   computed: {
-    namespaceSuffixOnCreate() {
-      return true;
-    },
-
     buildModeOptions() {
       const githubDisabled = !this.hasGithub;
 
@@ -107,6 +104,7 @@ export default {
             v-model="build"
             file-pattern="Riofile"
             preferred-file="Riofile"
+            file-key="rioFile"
           />
         </div>
       </div>

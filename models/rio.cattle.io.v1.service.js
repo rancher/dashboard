@@ -63,14 +63,7 @@ export default {
 
   scales() {
     const status = this.status || {};
-    let scaleStatus = status.scaleStatus;
-    let hasStatus = true;
-
-    if ( !scaleStatus ) {
-      hasStatus = false;
-      scaleStatus = {};
-    }
-
+    const scaleStatus = status.scaleStatus || {};
     const auto = !!this.spec.autoscale;
     const fixed = (typeof this.spec.replicas === 'undefined' ? 1 : this.spec.replicas || 0);
     const available = scaleStatus.available || 0;

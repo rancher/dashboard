@@ -47,15 +47,14 @@ export default {
   },
 
   data() {
-    const mode = this.$route.query.mode || _VIEW;
-
-    return {
-      mode,
-      ...this.asyncData
-    };
+    return { ...this.asyncData };
   },
 
   computed: {
+    mode() {
+      return this.$route.query.mode || _VIEW;
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -87,6 +86,10 @@ export default {
     },
 
     cruComponent() {
+      if ( this.isView && FRIENDLY[this.resource].hasDetail ) {
+        return () => import(`@/components/detail/${ this.type }`);
+      }
+
       return () => import(`@/components/cru/${ this.type }`);
     },
 
@@ -119,7 +122,7 @@ export default {
     <template v-else>
       <header>
         <h1 v-trim-whitespace>
-          <span v-if="isEdit">Edit</span>
+          <span v-if="isEdit">Edit&nbsp;</span>
           <nuxt-link v-trim-whitespace :to="parentLink">
             {{ typeDisplay }}
           </nuxt-link>: {{ originalModel.nameDisplay }}

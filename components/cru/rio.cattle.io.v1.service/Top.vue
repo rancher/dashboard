@@ -83,6 +83,7 @@ export default {
       build,
       scaleInput,
       scaleMode,
+      buildModeLabels: BUILD_MODES,
     };
   },
 
@@ -94,10 +95,6 @@ export default {
           value:    k,
         };
       });
-    },
-
-    buildModeLabels() {
-      return BUILD_MODES;
     },
 
     buildModeOptions() {
@@ -256,6 +253,7 @@ export default {
           v-model="spec.build"
           file-pattern="Dockerfile"
           preferred-file="Dockerfile"
+          file-key="dockerfile"
         />
       </div>
     </div>
