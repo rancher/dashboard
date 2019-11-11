@@ -11,9 +11,8 @@ export default {
 
   stackFromGit:  {
     build: {
-      repo:     'https://github.com/rancher-max/riofile-demo.git',
-      branch:   'master',
-      revision: '4f229a31977ccdc3afff12f8fe16ef46a491d70c',
+      repo:     'https://github.com/daxmc99/rio-demo.git',
+      revision: '03094af324bb8e8a72e34394089ab796692a9358',
       riofile:  'Riofile'
     }
   }
