@@ -11,29 +11,26 @@ export default {
         {
           title:       'Create stack from GitHub',
           demo:        'stackFromGit',
-          description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ',
+          description: 'This is a demo rio script that will deploy a stack.',
           createPath:  '/rio/stack/create'
         },
         {
           title:       'Deploy service with Dockerfile',
           demo:        'serviceFromGit',
-          description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ',
+          description: 'This demostrates how to use a dockerfile inside the Add Service.',
           createPath:  '/rio/services/create'
-
         },
         {
           title:       'Autoscaling',
           demo:        null,
-          description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ',
+          description: 'Coming Soon.',
           createPath:  null
-
         },
         {
           title:       'Service Mesh',
           demo:        null,
-          description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ',
+          description: 'Coming Soon.',
           createPath:  null
-
         }
       ]
     };
