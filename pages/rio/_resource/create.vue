@@ -1,5 +1,5 @@
 <script>
-import demoSpecs from '@/config/demo-specs';
+import demoSpecs from '@/config/demo-stacks';
 import { FRIENDLY } from '@/config/friendly';
 export default {
   name: 'RioResourceCreate',
