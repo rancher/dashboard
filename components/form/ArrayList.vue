@@ -45,7 +45,7 @@ export default {
 
     padLeft: {
       type:    Boolean,
-      default: true,
+      default: false,
     },
 
     valueLabel: {

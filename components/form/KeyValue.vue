@@ -48,7 +48,7 @@ export default {
 
     padLeft: {
       type:    Boolean,
-      default: true,
+      default: false,
     },
 
     // For asMap=false, the name of the field that goes into the row objects
