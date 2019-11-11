@@ -7,7 +7,6 @@ import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
 // import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
 import ShellSocket from '@/components/ContainerExec/ShellSocket';
-import LaunchKubectl from '@/components/ContainerExec/LaunchKubectl';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
 import { COUNT, RANCHER } from '@/config/types';
@@ -21,7 +20,6 @@ export default {
     ActionMenu,
     Group,
     ShellSocket,
-    LaunchKubectl
   },
 
   middleware: ['authenticated'],
@@ -126,8 +124,6 @@ export default {
       <n-link to="/">
         <img src="~/assets/images/logo.svg" alt="logo" height="30" class="m-15" />
       </n-link>
-
-      <LaunchKubectl style="position: absolute; top: 20px;" />
     </div>
 
     <div class="user">

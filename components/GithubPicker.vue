@@ -100,7 +100,7 @@ export default {
   async mounted() {
     await this.fetchRepos();
 
-    if ( this.value ) {
+    if ( this.value && this.value.repo ) {
       const repo = await this.$store.dispatch('github/fetchRepoByUrl', this.value.repo);
 
       if ( !repo ) {
@@ -180,8 +180,10 @@ export default {
     },
 
     async searchRepos(search, loading) {
+      const recent = await this.$store.dispatch('github/fetchRecentRepos');
+
       if ( !search ) {
-        this.repos = this.recentRepos;
+        this.repos = recent;
         loading(false);
 
         return;
@@ -190,11 +192,19 @@ export default {
       try {
         loading(true);
 
-        const res = await this.$store.dispatch('github/searchRepos', { search });
+        const remote = await this.$store.dispatch('github/searchRepos', { search });
+        let matchingRecent = [];
 
-        this.repos = res;
+        if ( recent ) {
+          matchingRecent = recent.filter((x) => {
+            return x.full_name.toLowerCase().includes(search.toLowerCase()) &&
+            !findBy(remote, 'full_name', x.full_name);
+          });
+        }
+
+        this.repos = [...matchingRecent, ...remote];
       } catch (err) {
-        this.repos = this.recentRepos;
+        this.repos = recent;
       } finally {
         loading(false);
       }
