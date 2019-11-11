@@ -3,6 +3,7 @@
 
 import values from 'lodash/values';
 import pickBy from 'lodash/pickBy';
+import { get } from '../../../utils/object';
 import { randomStr } from '@/utils/string';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -18,7 +19,7 @@ export default {
   data() {
     let routes = [{ uuid: randomStr() }];
 
-    if (this.value.spec ) {
+    if (get(this.value, 'spec.routes') ) {
       routes = this.value.spec.routes.map((route) => {
         return { ...route, uuid: randomStr() }
         ;
