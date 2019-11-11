@@ -59,7 +59,9 @@ export default {
     <slot name="prefix" />
     <slot name="field">
       <div v-if="isView && value">
-        {{ value }}
+        <slot name="view">
+          {{ value }}
+        </slot>
       </div>
       <div v-else-if="isView" class="text-muted">
         &mdash;

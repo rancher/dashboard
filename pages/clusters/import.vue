@@ -5,11 +5,11 @@ import { allHash } from '@/utils/promise';
 import { RANCHER, CLOUD } from '@/config/types';
 import LabeledInput from '@/components/form/LabeledInput';
 import AsyncButton from '@/components/AsyncButton';
-import CopyToClipboard from '@/components/CopyToClipboard';
+import CopyCode from '@/components/CopyCode';
 
 export default {
   components: {
-    AsyncButton, CopyToClipboard, LabeledInput
+    AsyncButton, CopyCode, LabeledInput
   },
 
   data() {
@@ -96,9 +96,7 @@ export default {
         <pre
           class="p-20"
           style="background-color: #333"
-        ><code v-trim-whitespace>{{ command }}</code></pre>
-
-        <CopyToClipboard :text="command" />
+        ><CopyCode v-trim-whitespace>{{ command }}</CopyCode></pre>
       </div>
       <div v-else>
         <AsyncButton mode="edit" action-label="Next" @click="goToStepTwo" />

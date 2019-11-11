@@ -75,6 +75,12 @@ function setCache(repos, scopes) {
   }
 }
 
+function forgetCache() {
+  window.localStorage.removeItem(GITHUB_REPOS);
+  window.localStorage.removeItem(GITHUB_REPOS + _DATE);
+  window.localStorage.removeItem(GITHUB_SCOPES);
+}
+
 function proxifyUrl(url) {
   // Strip off absolute links to github API
   if ( url.startsWith(API_BASE) ) {
@@ -99,7 +105,11 @@ export const state = function() {
 
 export const actions = {
   async apiList({ commit, dispatch }, {
-    url = null, depaginate = true, onPageFn = null, objectKey = 'items'
+    url = null,
+    single = false,
+    depaginate = true,
+    onPageFn = null,
+    objectKey = 'items',
   } = {}) {
     const out = [];
 
@@ -114,6 +124,10 @@ export const actions = {
 
       if ( scopes ) {
         commit('setScopes', scopes.split(/\s*,\s*/));
+      }
+
+      if ( single ) {
+        return res;
       }
 
       addObjects(out, isArray(res) ? res : res[objectKey]);
@@ -132,6 +146,10 @@ export const actions = {
     return out;
   },
 
+  forgetCache() {
+    forgetCache();
+  },
+
   async fetchRecentRepos({ commit, dispatch }, { allowCache = true } = {}) {
     const cachedScopes = getCachedScopes();
 
@@ -139,7 +157,7 @@ export const actions = {
       commit('setScopes', cachedScopes);
     }
 
-    if ( allowCache && hasCached ) {
+    if ( allowCache && hasCached() ) {
       const cached = getCachedRepos();
 
       if ( cacheExpired() ) {
@@ -169,9 +187,27 @@ export const actions = {
     return res;
   },
 
+  async fetchRepoByUrl({ dispatch }, url) {
+    url = url.replace(/.git$/i, '');
+    url = url.replace(/https:\/\/github.com\//, '');
+    url = `/repos/${ url }`;
+    const res = await dispatch('apiList', { url, single: true });
+
+    return res;
+  },
+
   async fetchBranches({ dispatch }, { repo }) {
     const url = repo.branches_url.replace('{/branch}', '');
     const res = await dispatch('apiList', { url });
+
+    return res;
+  },
+
+  async fetchBranch({ dispatch }, { repo, name }) {
+    name = name || 'master';
+
+    const url = repo.branches_url.replace('{/branch}', `/${ name }`);
+    const res = await dispatch('apiList', { url, single: true });
 
     return res;
   },
@@ -190,6 +226,16 @@ export const actions = {
     const out = res.filter(file => file.type === 'blob' && file.path.match(pattern));
 
     return out;
+  },
+
+  async fetchFile({ dispatch }, { repo, branch, file }) {
+    let url = repo.contents_url.replace('{+path}', file);
+
+    url = addParam(url, 'ref', branch.commit.sha);
+
+    const res = await dispatch('apiList', { url, single: true });
+
+    return res;
   },
 };
 

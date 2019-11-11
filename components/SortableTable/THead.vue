@@ -1,6 +1,6 @@
 <script>
 import { SOME, NONE } from './selection';
-import { queryParamsFor } from '@/plugins/apply-query';
+import { queryParamsFor } from '@/plugins/extend-router';
 import { SORT_BY, DESCENDING } from '@/config/query-params';
 
 export default {

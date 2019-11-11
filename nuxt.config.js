@@ -127,7 +127,7 @@ module.exports = {
     // First-party
     '~/plugins/global-formatters',
     '~/plugins/trim-whitespace',
-    { src: '~/plugins/apply-query' },
+    { src: '~/plugins/extend-router' },
     { src: '~/plugins/lookup', ssr: false },
     { src: '~/plugins/nuxt-client-init', ssr: false },
     { src: '~/plugins/websocket', ssr: false },

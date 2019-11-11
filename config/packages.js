@@ -36,6 +36,7 @@ export function rioPackage($router, counts, namespaces) {
     name:     'rio',
     label:    'Rio',
     children: [
+      /*
       {
         name:    'rio-dashboard',
         label:   'Dashboard',
@@ -46,14 +47,13 @@ export function rioPackage($router, counts, namespaces) {
         label:   'Service Mesh',
         route:   { name: 'rio-mesh' },
       },
-      /*
       {
         name:    'rio-tap',
         label:   'Live Traffic Tap',
         route:   { name: 'rio-tap' },
       },
-      */
       { divider: true },
+      */
       {
         name:  'rio-stack',
         count: countFor(RIO.STACK),
@@ -182,15 +182,22 @@ function ensureGroup(level, name, route) {
 }
 
 function matchingCounts(obj, namespaces) {
-  if ( namespaces.length === 0 ) {
-    return obj.count;
-  }
+  const allNegative = namespaces.filter(x => x.startsWith('!')).length === namespaces.length;
+  let out = 0;
 
   if ( !obj.byNamespace ) {
     return 0;
   }
 
-  let out = 0;
+  if ( allNegative ) {
+    out = obj.count;
+
+    for ( let i = 0 ; i < namespaces.length ; i++ ) {
+      out -= obj.byNamespace[namespaces[i].substr(1)] || 0;
+    }
+
+    return out;
+  }
 
   for ( let i = 0 ; i < namespaces.length ; i++ ) {
     out += obj.byNamespace[namespaces[i]] || 0;
@@ -220,6 +227,10 @@ export function mapGroup(obj) {
 
   if ( group.match(/gateway.solo.io(.v\d+)?$/) || group === 'gloo.solo.io' ) {
     return 'gloo';
+  }
+
+  if ( group.endsWith('.tekton.dev') || group === 'tekton.dev' ) {
+    return 'tekton';
   }
 
   if ( group === 'rio.cattle.io' || group.endsWith('.rio.cattle.io') ) {
@@ -253,8 +264,6 @@ function groupLabel(group) {
     return 'RBAC';
   case 'cert-manager':
     return 'Cert Manager';
-  case 'gloo':
-    return 'Gloo';
   case 'admissionregistration.k8s.io':
     return 'Admission Registration';
   }

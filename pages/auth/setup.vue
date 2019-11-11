@@ -1,18 +1,17 @@
 <script>
-import { randomStr } from '@/utils/string';
 import LabeledInput from '@/components/form/LabeledInput';
-import CopyToClipboard from '@/components/CopyToClipboard';
+import CopyCode from '@/components/CopyCode';
 import AsyncButton from '@/components/AsyncButton';
 import { SETUP, STEP, _DELETE } from '@/config/query-params';
 import { RANCHER } from '@/config/types';
 import { open, popupWindowOptions } from '@/utils/window';
-import { findBy, filterBy, addObject } from '@/utils/array';
+import { findBy, filterBy, addObject, removeObject } from '@/utils/array';
 
 export default {
   layout: 'plain',
 
   components: {
-    AsyncButton, CopyToClipboard, LabeledInput
+    AsyncButton, CopyCode, LabeledInput
   },
 
   computed: {
@@ -26,10 +25,6 @@ export default {
     },
 
     passwordSubmitDisabled() {
-      if ( this.useRandom ) {
-        return false;
-      }
-
       if ( !this.password || this.password !== this.confirm ) {
         return true;
       }
@@ -64,8 +59,6 @@ export default {
 
   async asyncData({ route, req, store }) {
     const current = route.query[SETUP] || '';
-    const password = randomStr();
-
     const serverUrlSetting = await store.dispatch('rancher/find', {
       type: RANCHER.SETTING,
       id:   'server-url',
@@ -119,11 +112,10 @@ export default {
     return {
       step:        parseInt(route.query.step, 10) || 1,
 
-      useRandom:   true,
       haveCurrent: !!current,
       username:    'admin',
       current,
-      password,
+      password:    '',
       confirm:     '',
 
       serverUrl,
@@ -145,15 +137,6 @@ export default {
   },
 
   methods: {
-    manual() {
-      this.useRandom = false;
-      this.password = '';
-      this.$nextTick(() => {
-        this.$refs.password.focus();
-        this.$refs.password.select();
-      });
-    },
-
     async finishPassword(buttonCb) {
       try {
         await this.$store.dispatch('rancher/request', {
@@ -281,6 +264,16 @@ export default {
       }
     },
 
+    togglePrincipal(e) {
+      const target = e.target;
+
+      if ( target.checked ) {
+        addObject(this.githubConfig.allowedPrincipalIds, target.value);
+      } else {
+        removeObject(this.githubConfig.allowedPrincipalIds, target.value);
+      }
+    },
+
     async setAuthorized(buttonCb) {
       try {
         window.z = this.githubConfig;
@@ -304,21 +297,14 @@ export default {
     <div v-if="step === 1">
       <div class="row">
         <div class="col span-6">
-          <h1>Welcome to Rio</h1>
+          <h1>Welcome to Rio!</h1>
 
-          <h3 class="mb-20">The first order of business is to set a strong password for the default <code>admin</code> user.</h3>
-
-          <p class="text-muted mb-40">
-            We suggest using this random one generated just for you, but you enter your own if you like.
-          </p>
+          <h3 class="mb-20 mt-20" style="line-height: 1.2em;">
+            The first order of business is to set a strong password for the default <code>admin</code> user.
+          </h3>
 
           <!-- For password managers... -->
-          <LabeledInput
-            ref="username"
-            v-model="username"
-            autocomplete="username"
-            label="Username"
-          />
+          <input type="hidden" name="username" autocomplete="username" :value="username" />
 
           <div class="mt-20">
             <div>
@@ -332,30 +318,20 @@ export default {
             </div>
           </div>
           <div class="mt-20">
-            <div class="">
+            <div>
               <LabeledInput
                 ref="password"
                 v-model.trim="password"
-                :type="useRandom ? 'text' : 'password'"
+                type="password"
                 autocomplete="new-password"
                 label="New Password"
-              >
-                <template v-if="useRandom" #suffix>
-                  <div class="addon">
-                    <CopyToClipboard :text="password" :show-label="false" />
-                  </div>
-                </template>
-              </LabeledInput>
-              <div v-if="useRandom" class="mt-5">
-                <a href="#" @click.prevent.stop="manual">Choose a password manually</a>
-              </div>
+              />
             </div>
           </div>
 
           <div class="mt-20">
             <div>
               <LabeledInput
-                v-show="!useRandom"
                 v-model.trim="confirm"
                 autocomplete="new-password"
                 type="password"
@@ -363,14 +339,14 @@ export default {
               />
             </div>
           </div>
+
+          <div class="mt-20">
+            <AsyncButton key="passwordSubmit" mode="continue" :disabled="passwordSubmitDisabled" @click="finishPassword" />
+          </div>
         </div>
         <div class="col span-6">
           <img src="~/assets/images/setup-step-one.svg" />
         </div>
-      </div>
-
-      <div class="mt-20 text-center">
-        <AsyncButton key="passwordSubmit" mode="continue" :disabled="passwordSubmitDisabled" @click="finishPassword" />
       </div>
     </div>
 
@@ -382,6 +358,7 @@ export default {
             v-model.trim="serverUrl"
             type="url"
             label="Server URL"
+            class="mt-20"
           />
 
           <div class="mt-20">
@@ -389,21 +366,21 @@ export default {
               <div class="checkbox">
                 <label>
                   <input v-model="telemetry" type="checkbox" />
-                  Allow collection of anonymous statistics
+                  Allow collection of anonymous statistics to help us improve Rio
                 </label>
                 <i v-tooltip="{content: telemetryTooltip, placement: 'right', trigger: 'click'}" class="icon icon-info" />
               </div>
             </div>
+          </div>
+
+          <div class="mt-20">
+            <AsyncButton key="serverSubmit" mode="continue" :disabled="serverSubmitDisabled" @click="finishServerSettings" />
           </div>
         </div>
 
         <div class="col span-6">
           <img src="~/assets/images/setup-step-one.svg" />
         </div>
-      </div>
-
-      <div class="mt-20 text-center">
-        <AsyncButton key="serverSubmit" mode="continue" :disabled="serverSubmitDisabled" @click="finishServerSettings" />
       </div>
     </div>
 
@@ -437,10 +414,10 @@ export default {
           </div>
 
           <div class="mt-20">
-            <p>
+            <p style="line-height: 1.4em;">
               Create an <a v-if="kind === 'public'" href="https://github.com/settings/developers" target="_blank" rel="nofollow noopener noreferrer">OAuth App</a>
               <span v-else>OAuth App</span>
-              with <code>{{ serverUrl }}</code> <CopyToClipboard :text="serverUrl" :show-label="false" />
+              with <CopyCode>{{ serverUrl }}</CopyCode>
               as the Homepage and Authorization callback URLs.
               Then copy the Client ID and Client Secret from the new app and fill them in here:
             </p>
@@ -482,18 +459,15 @@ export default {
             </div>
           </div>
 
+          <div class="mt-20">
+            <button type="button" class="btn bg-default mr-20" @click="done">
+              Skip
+            </button>
+            <AsyncButton key="githubSubmit" mode="continue" :disabled="serverSubmitDisabled" @click="testGithub" />
+          </div>
         </div>
         <div class="col span-6">
           <img src="~/assets/images/setup-step-one.svg" />
-        </div>
-      </div>
-
-      <div class="mt-20">
-        <div class="text-center">
-          <button type="button" class="btn bg-default" @click="done">
-            Skip
-          </button>
-          <AsyncButton key="githubSubmit" mode="continue" :disabled="serverSubmitDisabled" @click="testGithub" />
         </div>
       </div>
     </div>
@@ -505,7 +479,7 @@ export default {
           <p>
             Who should be able to login?
           </p>
-          <div class="row">
+          <div>
             <label v-if="me" class="principal">
               <input type="checkbox" checked disabled />
               <img :src="me.avatarSrc" width="40" height="40" />
@@ -518,20 +492,20 @@ export default {
             </label>
 
             <label v-for="org in orgs" :key="org.id" class="principal">
-              <input v-model="githubConfig.allowedPrincipalIds" type="checkbox" :value="org.id" />
+              <input :checked="githubConfig.allowedPrincipalIds.includes(org.id)" type="checkbox" :value="org.id" @click="togglePrincipal" />
               <img :src="org.avatarSrc" width="40" height="40" />
               <span class="login">
                 Members of <b>{{ org.loginName }}</b>
               </span>
             </label>
           </div>
+          <div class="mt-20">
+            <AsyncButton key="githubSubmit" mode="done" @click="setAuthorized" />
+          </div>
         </div>
         <div class="col span-6">
           <img src="~/assets/images/setup-step-one.svg" />
         </div>
-      </div>
-      <div class="mt-20 text-center">
-        <AsyncButton key="githubSubmit" mode="done" @click="setAuthorized" />
       </div>
     </div>
   </form>

@@ -14,6 +14,7 @@
 <script>
 import { NAMESPACES } from '@/store/prefs';
 import { NAMESPACE } from '@/config/types';
+import { sortBy } from '@/utils/sort';
 
 export default {
   computed: {
@@ -30,12 +31,14 @@ export default {
     },
 
     namespaces() {
-      const choices = this.$store.getters['cluster/all'](NAMESPACE);
+      let choices = this.$store.getters['cluster/all'](NAMESPACE);
+
+      choices = sortBy(choices, ['isSystem:desc', 'nameDisplay']);
 
       return choices.map((obj) => {
         return {
           id:    obj.id,
-          label: obj.nameDisplay,
+          label: (obj.isSystem ? `(${ obj.nameDisplay })` : obj.nameDisplay),
         };
       });
     }

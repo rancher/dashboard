@@ -86,7 +86,11 @@ export default (config = {}) => {
 
           delete parent[rehydrateKey];
 
-          return state.types[type].list;
+          const cache = state.types[type];
+
+          if ( cache ) {
+            return cache.list;
+          }
         } else {
           return obj.map(x => recurse(x));
         }

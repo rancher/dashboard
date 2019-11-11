@@ -198,7 +198,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
         <Tab name="security" label="Security">
           <Security :spec="spec" :mode="mode" />
         </Tab>
-        <Tab name="upgrading" label="Upgrading">
+        <Tab name="upgrading" label="Scaling & Upgrading">
           <Upgrading :spec="rootSpec" :mode="mode" />
         </Tab>
         <Tab v-if="false" name="volumes" label="Volumes">

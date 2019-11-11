@@ -11,15 +11,15 @@ const BUILD_MODES = {
   git:    'Build from Dockerfile in another repository'
 };
 
-const imagePullPolicyChoices = [
-  { value: 'Always', label: 'Always pull' },
-  { value: 'IfNotPresent', label: 'Pull if not present on the node' },
-  { value: 'Never', label: 'Never pull' },
-];
+const IMAGE_PULL_POLICIES = {
+  Always:       'Always pull',
+  IfNotPresent: 'Pull if not present on the node',
+  Never:        'Never pull',
+};
 
 export default {
   components: {
-    NameNsDescription, LabeledInput, LabeledSelect, Ports, GithubPicker
+    NameNsDescription, LabeledInput, LabeledSelect, Ports, GithubPicker,
   },
 
   props: {
@@ -65,6 +65,15 @@ export default {
       image = spec.image;
     }
 
+    let scaleInput = spec.replicas;
+    let scaleMode = 'fixed';
+    const autoscale = spec.autoscale || {};
+
+    if ( autoscale.minReplicas && autoscale.maxReplicas ) {
+      scaleInput = `${ autoscale.minReplicas } - ${ autoscale.maxReplicas }`;
+      scaleMode = 'auto';
+    }
+
     build = build || {};
 
     return {
@@ -72,16 +81,20 @@ export default {
       buildMode,
       image,
       build,
+      scaleInput,
+      scaleMode,
+      buildModeLabels: BUILD_MODES,
     };
   },
 
   computed: {
     imagePullPolicyChoices() {
-      return imagePullPolicyChoices;
-    },
-
-    buildModeLabels() {
-      return BUILD_MODES;
+      return Object.keys(IMAGE_PULL_POLICIES).map((k) => {
+        return {
+          label:    IMAGE_PULL_POLICIES[k],
+          value:    k,
+        };
+      });
     },
 
     buildModeOptions() {
@@ -95,13 +108,13 @@ export default {
           tooltip:  k === 'github' && githubDisabled ? 'You did not log in with GitHub' : null,
         };
       });
-    }
+    },
   },
 
   watch: {
-    buildMode(mode) {
+    buildMode() {
       this.update();
-    }
+    },
   },
 
   methods: {
@@ -116,7 +129,41 @@ export default {
         delete this.spec.image;
         this.spec.build = this.build || {};
       }
-    }
+    },
+
+    updateScale(neu) {
+      // Scale
+      const parts = (neu || '').split(/\s*-\s*/, 2);
+
+      if ( parts.length === 2 ) {
+        let min = parseInt(parts[0], 10) || 0;
+        let max = parseInt(parts[1], 10) || 0;
+
+        if ( min < 0 ) {
+          min = 0;
+        }
+
+        if ( max < min ) {
+          max = min;
+        }
+
+        this.spec.autoscale = this.spec.autoscale || {};
+        this.spec.autoscale.minReplicas = min;
+        this.spec.autoscale.maxReplicas = max;
+        delete this.spec.replicas;
+        this.scaleMode = 'auto';
+      } else {
+        let parsed = parseInt(neu, 10);
+
+        if ( isNaN(parsed) ) {
+          parsed = 1;
+        }
+
+        this.spec.replicas = parsed;
+        delete this.spec.autoscale;
+        this.scaleMode = 'fixed';
+      }
+    },
   }
 };
 </script>
@@ -140,12 +187,18 @@ export default {
       <template v-if="!isSidecar" #extra>
         <LabeledInput
           key="scale"
-          v-model.number="spec.replicas"
+          v-model="scaleInput"
           :mode="mode"
-          type="number"
-          min="0"
-          label="Scale"
-        />
+          :label="scaleMode === 'fixed' ? 'Scale' : 'Scale Between'"
+          placeholder="e.g. 1 or 1-10"
+          @input="updateScale"
+        >
+          <template #suffix>
+            <div class="addon">
+              {{ scaleMode === 'fixed' && spec.replicas === 1 ? 'Pod' : 'Pods' }}
+            </div>
+          </template>
+        </LabeledInput>
       </template>
       <template v-if="mode === 'edit'" #namespace>
         <LabeledInput
@@ -200,6 +253,7 @@ export default {
           v-model="spec.build"
           file-pattern="Dockerfile"
           preferred-file="Dockerfile"
+          file-key="dockerfile"
         />
       </div>
     </div>

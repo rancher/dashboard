@@ -16,6 +16,26 @@ export default {
     }
   },
 
+  computed: {
+    canAdjust() {
+      const row = this.row;
+
+      if ( !row.scales ) {
+        return false;
+      }
+
+      if ( row.scales.global || row.scales.auto ) {
+        return false;
+      }
+
+      return true;
+    },
+
+    showHover() {
+      return this.row.complexScale || this.canAdjust;
+    }
+  },
+
   methods:  {
     scaleDown() {
       this.row.scaleDown();
@@ -24,18 +44,21 @@ export default {
     scaleUp() {
       this.row.scaleUp();
     },
-  }
+  },
 };
 </script>
 
 <template>
-  <v-popover placement="top" :trigger="(row.scales && row.scales.global ? 'manual' : 'hover')" offset="1">
+  <v-popover :class="{'hand': showHover}" placement="top" :open-group="row.id" :trigger="showHover ? 'click' : 'manual'" offset="1">
     <span>
       <ProgressBarMulti v-if="row.complexScale" :values="row.scaleParts" />
       <p v-if="row.scales && row.scales.global" class="scale">Global</p>
       <span v-else class="scale">
         {{ row.scales.current }}
-        <span v-if="row.showDesiredScale">
+        <div v-if="row.scales.auto" class="text-small text-muted">
+          ({{ row.scales.desired }})
+        </div>
+        <span v-else-if="row.showDesiredScale">
           <i class="icon icon-chevron-right" />
           {{ row.scales.desired }}
         </span>
@@ -43,7 +66,7 @@ export default {
     </span>
 
     <template #popover>
-      <div class="text-center pb-5">
+      <div v-if="canAdjust" class="text-center pb-5">
         <button type="button" class="btn btn-sm bg-primary scale-btn" @click="scaleDown">
           <i class="icon icon-minus" />
         </button>
@@ -73,7 +96,6 @@ export default {
 
     .trigger {
       width: 100%;
-      cursor: pointer;
     }
   }
 

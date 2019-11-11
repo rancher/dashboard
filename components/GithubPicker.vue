@@ -26,6 +26,11 @@ export default {
     preferredFile: {
       type:    String,
       default: null,
+    },
+
+    fileKey: {
+      type:    String,
+      default: 'dockerfile',
     }
   },
 
@@ -92,8 +97,38 @@ export default {
     this.queueSearchRepos = debounce(this.searchRepos, 300);
   },
 
-  mounted() {
-    this.fetchRepos();
+  async mounted() {
+    await this.fetchRepos();
+
+    if ( this.value ) {
+      const repo = await this.$store.dispatch('github/fetchRepoByUrl', this.value.repo);
+
+      if ( !repo ) {
+        return;
+      }
+
+      this.selectRepo(repo);
+
+      const branch = await this.$store.dispatch('github/fetchBranch', { repo, branch: this.value.branch });
+
+      if ( !branch ) {
+        return;
+      }
+
+      this.selectBranch(branch);
+
+      const file = await this.$store.dispatch('github/fetchFile', {
+        repo,
+        branch,
+        file: this.value.file || this.preferredFile
+      });
+
+      if ( !file ) {
+        return;
+      }
+
+      this.selectFile(file);
+    }
   },
 
   methods: {
@@ -107,14 +142,19 @@ export default {
       this.selectedFile = null;
       this.selectedBranch = null;
       this.selectedRepo = repo;
-      this.fetchBranches(repo);
+      if ( repo ) {
+        this.fetchBranches(repo);
+      }
+
       this.update();
     },
 
     selectBranch(branch) {
       this.selectedFile = null;
       this.selectedBranch = branch;
-      this.fetchFiles(this.selectedRepo, branch);
+      if ( branch ) {
+        this.fetchFiles(this.selectedRepo, branch);
+      }
     },
 
     selectFile(file) {
@@ -122,11 +162,12 @@ export default {
       this.value.repo = this.selectedRepo.clone_url;
       this.value.branch = this.selectedBranch.name;
       this.value.revision = null;
-      this.value.dockerfile = file.path;
+      this.value[this.fileKey] = file.path;
       this.$emit('input', this.value);
     },
 
-    expandScope() {
+    async expandScope() {
+      await this.$store.dispatch('github/forgetCache');
       this.$store.dispatch('auth/redirectToGithub', {
         scopes: EXTENDED_SCOPES,
         backTo: this.$route.fullPath

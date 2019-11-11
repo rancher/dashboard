@@ -66,12 +66,10 @@ export default {
     },
 
     filteredRows() {
-      let namespaces = this.$store.getters['namespaces'];
+      const namespaces = this.$store.getters['namespaces'];
 
       if ( !this.schema.attributes.namespaced ) {
         return this.rows;
-      } else if ( !namespaces.length ) {
-        namespaces = ['!kube-system', '!cattle-system', '!rio-system'];
       }
 
       const include = namespaces.filter(x => !x.startsWith('!'));

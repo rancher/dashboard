@@ -1,6 +1,4 @@
 <script>
-import isEmpty from 'lodash/isEmpty';
-import pickBy from 'lodash/pickBy';
 import { typeOf } from '../../utils/sort';
 import { get } from '@/utils/object';
 
