@@ -1,15 +1,108 @@
-<template>
-  <div class="mt-50 text-center">
-    <img src="~/assets/images/sunglasses.svg" alt="logo" width="50%" />
+<script>
+import { get } from '@/utils/object';
+import demoSpecs from '@/config/demo-stacks';
 
-    <h1 class="mb-50 mt-10">
-      Welcome to Rio
-    </h1>
-    <h4>
-      All resources from all namespaces are shown by default.
-    </h4>
-    <h4>
-      To filter down to one or more particular namespaces, select them above.
-    </h4>
+import Card from '@/components/Card';
+export default {
+  components: { Card },
+  data() {
+    return {
+      demos: [
+        {
+          title:       'Create stack from GitHub',
+          demo:        'stackFromGit',
+          description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ',
+          createPath:  '/rio/stack/create'
+        },
+        {
+          title:       'Deploy service with Dockerfile',
+          demo:        'serviceFromGit',
+          description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ',
+          createPath:  '/rio/services/create'
+
+        },
+        {
+          title:       'Autoscaling',
+          demo:        null,
+          description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ',
+          createPath:  null
+
+        },
+        {
+          title:       'Service Mesh',
+          demo:        null,
+          description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ',
+          createPath:  null
+
+        }
+      ]
+    };
+  },
+  methods: {
+    createDemo(index) {
+      this.$router.push({ path: this.demos[index].createPath, query: { demo: this.demos[index].demo } });
+    },
+    repoUrl(demo) {
+      const spec = demoSpecs[demo];
+
+      return get(spec, 'build.repo');
+    }
+  }
+};
+</script>
+
+<template>
+  <div>
+    <header>
+      <h1>
+        Discover Rio
+      </h1>
+      <br>
+      <span class="subtitle">Deploy preconfigured sample snacks</span>
+    </header>
+    <div class="row">
+      <div class="col span-6">
+        <div class="cards">
+          <Card
+            v-for="(demo, i) in demos"
+            :key="demo.title"
+            :content="demo.description"
+          >
+            <template v-slot:title>
+              <span>{{ demo.title }}</span>
+              <a target="_blank" class="icon icon-download role-multi-action" :href="repoUrl(demo.demo)" />
+            </template>
+            <template v-slot:actions>
+              <button class="btn role-multi-action" :disabled="!demo.demo" @click="e=>createDemo(i)">
+                Deploy
+              </button>
+            </template>
+          </Card>
+        </div>
+      </div>
+      <div class="col span-6">
+        <img src="~/assets/images/login-landscape.svg" alt="landscape" />
+      </div>
+    </div>
   </div>
 </template>
+
+<style lang='scss'>
+    .subtitle{
+        margin-top: 20px;
+    }
+    .cards {
+         margin-right: 20px;
+        // width: 50%;
+        display: grid;
+        grid-template-columns:  50% 50%;
+        grid-row-gap: 20px;
+        grid-column-gap: 20px;
+        & > * {
+            align-content: center;
+        }
+        & span.icon{
+            padding: 3px;
+        }
+    }
+</style>

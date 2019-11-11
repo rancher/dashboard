@@ -267,10 +267,17 @@ export default {
     togglePrincipal(e) {
       const target = e.target;
 
+      let ary = this.githubConfig.allowedPrincipalIds;
+
+      if ( !ary ) {
+        ary = [];
+        this.githubConfig.allowedPrincipalIds = ary;
+      }
+
       if ( target.checked ) {
-        addObject(this.githubConfig.allowedPrincipalIds, target.value);
+        addObject(ary, target.value);
       } else {
-        removeObject(this.githubConfig.allowedPrincipalIds, target.value);
+        removeObject(ary, target.value);
       }
     },
 
@@ -492,7 +499,7 @@ export default {
             </label>
 
             <label v-for="org in orgs" :key="org.id" class="principal">
-              <input :checked="githubConfig.allowedPrincipalIds.includes(org.id)" type="checkbox" :value="org.id" @click="togglePrincipal" />
+              <input :checked="(githubConfig.allowedPrincipalIds || []).includes(org.id)" type="checkbox" :value="org.id" @click="togglePrincipal" />
               <img :src="org.avatarSrc" width="40" height="40" />
               <span class="login">
                 Members of <b>{{ org.loginName }}</b>

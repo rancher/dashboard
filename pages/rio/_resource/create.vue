@@ -1,5 +1,5 @@
 <script>
-import demoSpecs from '@/config/demoSpecs';
+import demoSpecs from '@/config/demo-specs';
 import { FRIENDLY } from '@/config/friendly';
 export default {
   name: 'RioResourceCreate',
@@ -45,6 +45,7 @@ export default {
     if ( schema.attributes.namespaced ) {
       metadata.namespace = '';
     }
+
     let spec = {};
 
     if (ctx.query.demo) {
@@ -56,7 +57,6 @@ export default {
       kind:       schema.attributes.kind,
       apiVersion: `${ schema.attributes.group }/${ schema.attributes.version }`,
       metadata,
-      data:       {},
       spec
     };
 
