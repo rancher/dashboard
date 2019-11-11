@@ -33,9 +33,10 @@ test('clone', (t) => {
 
 test('isEmpty', (t) => {
   t.true(isEmpty({}), 'Says empty things are empty');
-  t.false(isEmpty({foo: 42}), 'Says not-empty things are not empty');
+  t.false(isEmpty({ foo: 42 }), 'Says not-empty things are not empty');
 
   const x = {};
+
   Object.defineProperty(x, 'foo', { value: 'bar' });
 
   t.true(isEmpty(x), 'Ignores non-enumerable properties');

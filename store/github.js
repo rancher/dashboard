@@ -168,10 +168,12 @@ export const actions = {
     }
 
     const res = await dispatch('apiList', { url: '/user/repos?sort=updated', depaginate: false });
+    const more = await dispatch('apiList', { url: '/user/repos?affiliation=owner,collaborator' });
+    const out = [...res, ...more];
 
-    commit('setRepos', res.slice());
+    commit('setRepos', out);
 
-    return res;
+    return out;
   },
 
   async searchRepos({ state, dispatch }, { search }) {
