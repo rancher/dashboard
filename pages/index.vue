@@ -70,7 +70,7 @@ export default {
               <a target="_blank" class="icon icon-download role-multi-action" :href="repoUrl(demo.demo)" />
             </template>
             <template v-slot:actions>
-              <button class="btn role-multi-action" :disabled="!demo.demo" @click="e=>createDemo(i)">
+              <button class="btn role-secondary btn-sm" :disabled="!demo.demo" @click="e=>createDemo(i)">
                 Deploy
               </button>
             </template>
@@ -78,7 +78,7 @@ export default {
         </div>
       </div>
       <div class="col span-6">
-        <img src="~/assets/images/login-landscape.svg" alt="landscape" />
+        <img src="~/assets/images/setup-step-one.svg" alt="landscape" />
       </div>
     </div>
   </div>
