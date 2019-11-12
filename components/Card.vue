@@ -49,8 +49,8 @@ export default {
         border: 1px solid  var(--border);
         background: var(--nav-bg);
         display: grid;
-        padding: 1rem;
-        grid-gap: 1rem;
+        padding: 1.25rem;
+        grid-gap: .75rem;
         grid-template-rows: 1fr 3fr 1fr;
         & .card-body {
             overflow: hidden;

@@ -540,6 +540,13 @@ $divider-height: 1px;
     }
   }
 
+  .no-rows {
+    height: auto;
+    padding: $group-row-height;
+    color: var(--disabled-bg);
+    text-align: center;
+  }
+
   TH[align=left], TD[align=left] { text-align: left; }
   TH[align=center], TD[align=center] { text-align: center; }
   TH[align=right], TD[align=right] { text-align: right; }
