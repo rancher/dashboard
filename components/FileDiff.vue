@@ -1,6 +1,7 @@
 <script>
 import { Diff2Html } from 'diff2html';
 import { createPatch } from 'diff';
+import $ from 'jquery';
 
 export default {
   props: {
@@ -22,6 +23,19 @@ export default {
     neu: {
       type:     String,
       required: true,
+    },
+
+    autoResize: {
+      type:    Boolean,
+      default: true,
+    },
+    footerSpace: {
+      type:    Number,
+      default: 0,
+    },
+    minHeight: {
+      type:    Number,
+      default: 200,
     }
   },
 
@@ -52,18 +66,46 @@ export default {
         synchronizedScroll: true,
       });
     }
-  }
+  },
+
+  methods: {
+    fit() {
+      if ( !this.autoResize ) {
+        return;
+      }
+
+      const container = $(this.$refs.root);
+
+      if ( !container || !container.length ) {
+        return;
+      }
+
+      const offset = container.offset();
+
+      if ( !offset ) {
+        return;
+      }
+
+      const desired = $(window).innerHeight() - offset.top - this.footerSpace;
+
+      container.css('height', `${ Math.max(0, desired) }px`);
+    },
+  },
 };
 </script>
 
 <template>
-  <div class="root" v-html="html" />
+  <div>
+    <resize-observer @notify="fit" />
+    <div ref="root" class="root" v-html="html" />
+  </div>
 </template>
 
 <style lang="scss" scoped>
 .root {
   max-width: 100%;
   position: relative;
+  overflow: auto;
 }
 
 .mode {

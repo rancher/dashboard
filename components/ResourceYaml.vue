@@ -317,7 +317,7 @@ export default {
       v-if="!isPreview"
       :value="currentValue"
       :options="cmOptions"
-      :footer-space="50"
+      :footer-space="71"
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"
@@ -328,6 +328,7 @@ export default {
       :side-by-side="diffMode === 'split'"
       :orig="value"
       :neu="currentValue"
+      :footer-space="71"
     />
   </div>
 </template>
