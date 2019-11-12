@@ -1,3 +1,5 @@
+import JSZip from 'jszip';
+
 export async function downloadFile(fileName, content, contentType = 'text/plain;charset=utf-8') {
   const blob = new Blob([content], { type: contentType });
   const { saveAs } = await import('file-saver');
@@ -6,9 +8,8 @@ export async function downloadFile(fileName, content, contentType = 'text/plain;
 }
 
 // [{name: 'file1', file: 'data'}, {name: 'file2', file: 'data2'}]
-export async function generateZip(files) {
-  const JSZip = await import('jszip');
-
+export function generateZip(files) {
+  // Moving this to a dynamic const JSZip = import('jszip') didn't work... figure out later
   const zip = new JSZip();
 
   for ( let i = 0 ; i < files.length ; i++ ) {

@@ -49,7 +49,7 @@ export default {
     },
     realMode: {
       type:     String,
-      required: true,
+      default: null,
     }
   },
 
