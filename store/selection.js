@@ -215,13 +215,15 @@ function _execute(resources, action, args) {
     }
   }
 
+  const promises = [];
+
   for ( const resource of resources ) {
     const fn = resource[action.action];
 
     if ( fn ) {
-      return fn.apply(resource, args);
+      promises.push(fn.apply(resource, args));
     }
   }
 
-  throw new Error(`Unknown action: ${ action.action }`);
+  return Promise.all(promises);
 }
