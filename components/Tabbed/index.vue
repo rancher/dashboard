@@ -110,6 +110,7 @@ export default {
       float: left;
       border: 1px solid var(--tabbed-border);
       margin-right: 8px;
+      border-radius: 3px 3px 0 0;
 
       A {
         display: block;
