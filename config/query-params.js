@@ -29,6 +29,8 @@ export const _CREATE = 'create';
 export const _VIEW = 'view';
 export const _EDIT = 'edit';
 export const _PREVIEW = 'preview';
+export const _CLONE = 'clone';
+export const _STAGE = 'stage';
 
 export const DIFF = 'diff';
 export const _UNIFIED = 'unified';

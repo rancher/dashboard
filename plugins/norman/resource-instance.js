@@ -2,7 +2,10 @@ import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
 import { eachLimit } from '~/utils/promise';
-import { MODE, _EDIT, EDIT_YAML, _FLAGGED } from '@/config/query-params';
+import {
+  MODE, _EDIT, _CLONE,
+  EDIT_YAML, _FLAGGED
+} from '@/config/query-params';
 import { TO_FRIENDLY } from '@/config/friendly';
 import { findBy } from '@/utils/array';
 import { VIEW_IN_API } from '@/store/prefs';
@@ -245,62 +248,8 @@ export default {
 
   // ------------------------------------------------------------------
 
-  // You can add custom actions by overriding your own availableActions (and probably reading _availableActions)
   availableActions() {
-    return this._availableActions;
-  },
-
-  _availableActions() {
-    const all = [];
-    const links = this.links || {};
-    const friendly = TO_FRIENDLY[this.type.replace(/^rio-/i, '')];
-
-    all.push({
-      action:  'goToEdit',
-      label:   'Edit',
-      icon:    'icon icon-fw icon-edit',
-      enabled:  !!links.update,
-    });
-
-    if ( friendly ) {
-      all.push({
-        action:  'viewEditYaml',
-        label:   (links.update ? 'View/Edit YAML' : 'View YAML'),
-        icon:    'icon icon-file',
-        enabled:  !!links.view,
-      });
-    }
-
-    all.push({ divider: true });
-
-    all.push({
-      action:     'download',
-      label:      'Download',
-      icon:       'icon icon-fw icon-download',
-      enabled:    !!links.view,
-      bulkable:   true,
-      bulkAction: 'downloadBulk',
-    });
-
-    const viewInApiEnabled = this.$rootGetters['prefs/get'](VIEW_IN_API);
-
-    all.push({
-      action:  'viewInApi',
-      label:   'View in API',
-      icon:    'icon icon-fw icon-external-link',
-      enabled:  !!links.self && viewInApiEnabled,
-    });
-
-    all.push({ divider: true });
-
-    all.push({
-      action:    'promptRemove',
-      altAction: 'remove',
-      label:     'Delete',
-      icon:      'icon icon-fw icon-trash',
-      bulkable:  true,
-      enabled:   !!links.view,
-    });
+    const all = this._availableActions;
 
     // Remove disabled items and consecutive dividers
     let last = null;
@@ -328,6 +277,73 @@ export default {
     }
 
     return out;
+  },
+
+  // You can add custom actions by overriding your own availableActions (and probably reading _standardActions)
+  _availableActions() {
+    return this._standardActions;
+  },
+
+  _standardActions() {
+    const all = [];
+    const links = this.links || {};
+    const friendly = TO_FRIENDLY[this.type.replace(/^rio-/i, '')];
+
+    all.push({
+      action:  'goToEdit',
+      label:   'Edit',
+      icon:    'icon icon-fw icon-edit',
+      enabled:  !!links.update,
+    });
+
+    all.push({
+      action:  'goToClone',
+      label:   'Clone',
+      icon:    'icon icon-fw icon-copy',
+      enabled:  !!links.update,
+    });
+
+    all.push({ divider: true });
+
+    if ( friendly ) {
+      all.push({
+        action:  'viewEditYaml',
+        label:   (links.update ? 'View/Edit YAML' : 'View YAML'),
+        icon:    'icon icon-file',
+        enabled:  !!links.view,
+      });
+    }
+
+    all.push({
+      action:     'download',
+      label:      'Download YAML',
+      icon:       'icon icon-fw icon-download',
+      enabled:    !!links.view,
+      bulkable:   true,
+      bulkAction: 'downloadBulk',
+    });
+
+    const viewInApiEnabled = this.$rootGetters['prefs/get'](VIEW_IN_API);
+
+    all.push({
+      action:  'viewInApi',
+      label:   'View in API',
+      icon:    'icon icon-fw icon-external-link',
+      enabled:  !!links.self && viewInApiEnabled,
+    });
+
+    all.push({ divider: true });
+
+    all.push({
+      action:    'promptRemove',
+      altAction: 'remove',
+      label:     'Delete',
+      icon:      'icon icon-fw icon-trash',
+      bulkable:  true,
+      enabled:   !!links.view,
+    });
+
+    return all;
   },
 
   maybeFn() {
@@ -448,9 +464,29 @@ export default {
 
   // ------------------------------------------------------------------
 
+  currentRoute() {
+    return () => {
+      if ( process.server ) {
+        return this.$rootState.$route;
+      } else {
+        return window.$nuxt.$route;
+      }
+    };
+  },
+
+  currentRouter() {
+    return () => {
+      if ( process.server ) {
+        return this.$rootState.$router;
+      } else {
+        return window.$nuxt.$router;
+      }
+    };
+  },
+
   detailUrl() {
-    const currentRoute = window.$nuxt.$route.name;
-    const router = window.$nuxt.$router;
+    const currentRoute = this.currentRoute().name;
+    const router = this.currentRouter();
     const schema = this.$getters['schemaFor'](this.type);
     let route, params;
 
@@ -485,13 +521,22 @@ export default {
     return url;
   },
 
-  goToEdit() {
-    const router = window.$nuxt.$router;
+  goToClone() {
+    return (moreQuery = {}) => {
+      const url = addParams(this.detailUrl, {
+        [MODE]:  _CLONE,
+        ...moreQuery
+      });
 
+      this.currentRouter().push({ path: url });
+    };
+  },
+
+  goToEdit() {
     return (moreQuery = {}) => {
       const url = addParams(this.detailUrl, { [MODE]: _EDIT, ...moreQuery });
 
-      router.push({ path: url });
+      this.currentRouter().push({ path: url });
     };
   },
 

@@ -3,8 +3,10 @@ import ResourceTable from '@/components/ResourceTable';
 import { FRIENDLY } from '@/config/friendly';
 
 export default {
+  name: 'RioResouce',
+
   components: { ResourceTable },
-  // layout:     'unauthenticated',
+
   validate({ params, query, store }) {
     return !!FRIENDLY[params.resource];
   },

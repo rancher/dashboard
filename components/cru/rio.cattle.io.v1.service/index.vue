@@ -38,6 +38,13 @@ export default {
 
   mixins:     [CreateEditView, LoadDeps],
 
+  props: {
+    realMode: {
+      type:    String,
+      default: null,
+    }
+  },
+
   data() {
     if ( !this.value.spec ) {
       this.value.spec = {};
@@ -186,6 +193,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
         :name-resource="nameResource"
         :is-sidecar="isSidecar"
         :mode="mode"
+        :real-mode="realMode"
         :is-demo="isDemo"
       />
 
@@ -200,7 +208,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
           <HealthCheck :spec="spec" :mode="mode" />
         </Tab>
         <Tab v-if="!isSidecar" name="labels" label="Labels">
-          <Labels :spec="rootSpec" :mode="mode" />
+          <Labels :spec="value" :mode="mode" />
         </Tab>
         <Tab name="security" label="Security">
           <Security :spec="spec" :mode="mode" />

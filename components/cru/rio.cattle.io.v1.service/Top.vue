@@ -46,6 +46,10 @@ export default {
     mode: {
       type:     String,
       required: true,
+    },
+    realMode: {
+      type:     String,
+      required: true,
     }
   },
 
@@ -188,6 +192,16 @@ export default {
           :required="true"
         />
       </template>
+      <template v-else-if="realMode === 'stage'" #name>
+        <LabeledInput
+          key="appName"
+          v-model="spec.app"
+          :mode="mode"
+          label="App Name"
+          :required="true"
+          :disabled="true"
+        />
+      </template>
       <template v-if="!isSidecar" #extra>
         <LabeledInput
           key="scale"
@@ -204,13 +218,12 @@ export default {
           </template>
         </LabeledInput>
       </template>
-      <template v-if="mode === 'edit'" #namespace>
+      <template v-if="realMode === 'edit' || realMode === 'stage'" #namespace>
         <LabeledInput
           key="version"
           v-model="spec.version"
           :mode="mode"
           label="Version"
-          :required="true"
         />
       </template>
     </NameNsDescription>

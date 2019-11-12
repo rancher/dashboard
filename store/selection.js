@@ -159,12 +159,21 @@ export const actions = {
 
 // -----------------------------
 
+let anon = 0;
+
 function _add(map, act, incrementCounts = true) {
-  let obj = map[act.action];
+  let id = act.action;
+
+  if ( !id ) {
+    id = `anon${ anon }`;
+    anon++;
+  }
+
+  let obj = map[id];
 
   if ( !obj ) {
     obj = Object.assign({}, act);
-    map[act.action] = obj;
+    map[id] = obj;
     obj.allEnabled = false;
   }
 

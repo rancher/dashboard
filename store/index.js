@@ -32,7 +32,7 @@ export const getters = {
 
   preloaded(state) {
     return state.preloaded === true;
-  }
+  },
 };
 
 export const mutations = {
@@ -85,6 +85,12 @@ export const actions = {
     commit('updateCluster', val);
   },
 
+  nuxtServerInit(ctx, nuxt) {
+    // Models in SSR server mode have no way to get to the route or router, so hack one in...
+    Object.defineProperty(ctx.rootState, '$router', { value: nuxt.app.router });
+    Object.defineProperty(ctx.rootState, '$route', { value: nuxt.route });
+  },
+
   nuxtClientInit() {
-  }
+  },
 };
