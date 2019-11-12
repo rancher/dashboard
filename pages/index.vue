@@ -9,15 +9,15 @@ export default {
     return {
       demos: [
         {
-          title:       'Deploy service with Dockerfile',
+          title:       'Deploy service using a Dockerfile',
           demo:        'serviceFromGit',
-          description: 'This demostrates how to use a dockerfile inside the Add Service.',
+          description: 'Clicking deploy will prefill the image section of Service with a Dockerfile.',
           createPath:  '/rio/services/create'
         },
         {
-          title:       'Create stack from GitHub',
+          title:       'Deploy stack using a Riofile',
           demo:        'stackFromGit',
-          description: 'This is a demo rio script that will deploy a stack.',
+          description: 'Deploying a stack allows multiple resources to be deployed at once and updated through a rio file you keep in GitHub. Clicking deploy will pre-fill the stack fields with a demo rio file.',
           createPath:  '/rio/stack/create'
         },
         {
