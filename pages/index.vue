@@ -9,16 +9,16 @@ export default {
     return {
       demos: [
         {
-          title:       'Create stack from GitHub',
-          demo:        'stackFromGit',
-          description: 'This is a demo rio script that will deploy a stack.',
-          createPath:  '/rio/stack/create'
-        },
-        {
           title:       'Deploy service with Dockerfile',
           demo:        'serviceFromGit',
           description: 'This demostrates how to use a dockerfile inside the Add Service.',
           createPath:  '/rio/services/create'
+        },
+        {
+          title:       'Create stack from GitHub',
+          demo:        'stackFromGit',
+          description: 'This is a demo rio script that will deploy a stack.',
+          createPath:  '/rio/stack/create'
         },
         {
           title:       'Autoscaling',
@@ -67,7 +67,7 @@ export default {
           >
             <template v-slot:title>
               <span>{{ demo.title }}</span>
-              <a target="_blank" class="icon icon-download role-multi-action" :href="repoUrl(demo.demo)" />
+              <a target="_blank" class="icon icon-external-link role-multi-action" :href="repoUrl(demo.demo)" />
             </template>
             <template v-slot:actions>
               <button class="btn role-secondary btn-sm" :disabled="!demo.demo" @click="e=>createDemo(i)">
