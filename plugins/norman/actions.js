@@ -174,7 +174,7 @@ export default {
     return proxyFor(ctx, data);
   },
 
-  clone(ctx, resource) {
+  clone(ctx, { resource } = {}) {
     const copy = cloneDeep(resource[SELF]);
 
     return proxyFor(ctx, copy, true);

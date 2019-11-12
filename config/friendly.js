@@ -5,6 +5,7 @@ import {
   KEYS, ENDPOINTS,
   TARGET, TARGET_KIND,
 } from '@/config/table-headers';
+import { _CREATE, _CLONE, _STAGE } from '@/config/query-params';
 
 export const FRIENDLY = {
   'config-maps': {
@@ -62,7 +63,17 @@ export const FRIENDLY = {
       WEIGHT,
       SCALE,
       AGE,
-    ]
+    ],
+
+    applyDefaults(ctx, model, mode) {
+      if ( mode === _CREATE || mode === _CLONE ) {
+        delete model.spec.app;
+        model.spec.version = 'v0';
+      } else if ( mode === _STAGE ) {
+        model.spec.app = model.app;
+        delete model.spec.version;
+      }
+    },
   },
 
   stack: {

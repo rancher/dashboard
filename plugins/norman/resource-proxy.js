@@ -2,6 +2,8 @@ import ResourceInstance from './resource-instance';
 import { lookup } from '@/utils/model';
 
 export const SELF = '__[[SELF]]__';
+export const ALREADY_A_PROXY = '__[[PROXY]]__';
+export const PRIVATE = '__[[PRIVATE]]__';
 
 const FAKE_CONSTRUCTOR = function() {};
 
@@ -10,10 +12,10 @@ FAKE_CONSTRUCTOR.toString = function() {
 };
 
 export function proxyFor(ctx, obj, isClone = false) {
-  // Attributes associated to the proxy, but not stored on the actual object
-  let local;
+  // Attributes associated to the proxy, but not stored on the actual backing object
+  let priv;
 
-  if ( obj.__isProxy ) {
+  if ( obj[ALREADY_A_PROXY] ) {
     return obj;
   }
 
@@ -38,7 +40,7 @@ export function proxyFor(ctx, obj, isClone = false) {
 
   const proxy = new Proxy(obj, {
     get(target, name) {
-      if ( name === '__isProxy' ) {
+      if ( name === ALREADY_A_PROXY ) {
         return true;
       } else if ( name === SELF ) {
         return obj;
@@ -49,26 +51,14 @@ export function proxyFor(ctx, obj, isClone = false) {
       } else if ( name === 'constructor' ) {
         // To satisfy vue-devtools
         return FAKE_CONSTRUCTOR;
-      }
-
-      /*
-      if ( name === '$constructor' ) {
-        return model;
-      } else if ( name === '$super' && model ) {
-        return ResourceInstance;
-      }
-      */
-
-      if ( name.startsWith('$') ) {
+      } else if ( name.startsWith('$') ) {
         return ctx[name.substr(1)];
-      }
-
-      if ( name === '_local' ) {
-        if ( !local ) {
-          local = {};
+      } else if ( name === PRIVATE ) {
+        if ( !priv ) {
+          priv = {};
         }
 
-        return local;
+        return priv;
       }
 
       let fn;

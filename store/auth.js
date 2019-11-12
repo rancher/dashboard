@@ -41,7 +41,7 @@ export const mutations = {
   },
 
   loggedOut(state) {
-    if ( typeof window !== 'undefined' ) {
+    if ( !process.server ) {
       window.$nuxt.$disconnect();
     }
 

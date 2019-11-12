@@ -1,8 +1,10 @@
 import day from 'dayjs';
 import { insertAt } from '@/utils/array';
-import { ADD_SIDECAR, _FLAGGED } from '@/config/query-params';
+import { ADD_SIDECAR, _FLAGGED, MODE, _STAGE } from '@/config/query-params';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
+import { addParams } from '@/utils/url';
+import { PRIVATE } from '@/plugins/norman/resource-proxy';
 
 const EMPTY = {};
 
@@ -82,8 +84,8 @@ export default {
 
     if ( global ) {
       desired = current;
-    } else if ( typeof this._local.pendingScale === 'number' ) {
-      desired = this._local.pendingScale;
+    } else if ( typeof this[PRIVATE].pendingScale === 'number' ) {
+      desired = this[PRIVATE].pendingScale;
     }
 
     const missing = Math.max(0, desired - available - unavailable);
@@ -163,15 +165,15 @@ export default {
         return;
       }
 
-      if ( this._local.scaleTimer ) {
-        scale = this._local.pendingScale;
+      if ( this[PRIVATE].scaleTimer ) {
+        scale = this[PRIVATE].pendingScale;
       } else {
         scale = this.scales.desired;
       }
 
       scale = scale || 0;
 
-      this._local.pendingScale = scale + 1;
+      this[PRIVATE].pendingScale = scale + 1;
       this.saveScale();
     };
   },
@@ -184,39 +186,53 @@ export default {
         return;
       }
 
-      if ( this._local.scaleTimer ) {
-        scale = this._local.pendingScale;
+      if ( this[PRIVATE].scaleTimer ) {
+        scale = this[PRIVATE].pendingScale;
       } else {
         scale = this.scales.desired;
       }
 
       scale = scale || 1;
 
-      this._local.pendingScale = Math.max(scale - 1, 0);
+      this[PRIVATE].pendingScale = Math.max(scale - 1, 0);
       this.saveScale();
     };
   },
 
   saveScale() {
     return () => {
-      if ( this._local.scaleTimer ) {
-        clearTimeout(this._local.scaleTimer);
+      if ( this[PRIVATE].scaleTimer ) {
+        clearTimeout(this[PRIVATE].scaleTimer);
       }
 
-      this._local.scaleTimer = setTimeout(async() => {
+      this[PRIVATE].scaleTimer = setTimeout(async() => {
         try {
           await this.patch([{
             op:    'replace',
             path:  '/spec/replicas',
-            value: this._local.pendingScale
+            value: this[PRIVATE].pendingScale
           }]);
         } catch (err) {
           this.$dispatch('growl/fromError', { title: 'Error updating scale', err }, { root: true });
         }
 
-        this._local.scaleTimer = null;
-        this._local.pendingScale = null;
+        this[PRIVATE].scaleTimer = null;
+        this[PRIVATE].pendingScale = null;
       }, 500);
+    };
+  },
+
+  saveWeight() {
+    return async(neu) => {
+      try {
+        await this.patch([{
+          op:    'replace',
+          path:  '/spec/weight',
+          value: neu
+        }]);
+      } catch (err) {
+        this.$dispatch('growl/fromError', { title: 'Error updating weight', err }, { root: true });
+      }
     };
   },
 
@@ -266,16 +282,22 @@ export default {
     return this.pauseOrResume(false);
   },
 
-  availableActions() {
-    const links = this.links || {};
-    const out = this._availableActions;
+  goToStage() {
+    const router = this.currentRouter();
 
-    insertAt(out, 1, {
-      action:  'addSidecar',
-      label:   'Add a Sidecar',
-      icon:    'icon icon-circle-plus',
-      enabled:  !!links.update,
-    });
+    return (moreQuery = {}) => {
+      const url = addParams(this.detailUrl, {
+        [MODE]:  _STAGE,
+        ...moreQuery
+      });
+
+      router.push({ path: url });
+    };
+  },
+
+  _availableActions() {
+    const links = this.links || {};
+    const out = this._standardActions;
 
     let isPaused = false;
 
@@ -283,19 +305,35 @@ export default {
       isPaused = true;
     }
 
-    insertAt(out, 1, {
+    insertAt(out, 2, {
       action:  'pause',
       label:   'Pause Rollout',
-      icon:    'icon icon-pause',
+      icon:    'icon icon-gear',
       enabled:  !!links.update && !isPaused,
     });
 
-    insertAt(out, 1, {
+    insertAt(out, 2, {
       action:  'resume',
       label:   'Resume Rollout',
-      icon:    'icon icon-circle-play',
+      icon:    'icon icon-gear',
       enabled:  !!links.update && isPaused,
     });
+
+    insertAt(out, 2, {
+      action:  'addSidecar',
+      label:   'Add a Sidecar',
+      icon:    'icon icon-circle-plus',
+      enabled:  !!links.update,
+    });
+
+    insertAt(out, 2, {
+      action:  'goToStage',
+      label:   'Stage New Version',
+      icon:    'icon icon-copy',
+      enabled:  !!links.update,
+    });
+
+    insertAt(out, 2, { divider: true });
 
     return out;
   },

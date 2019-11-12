@@ -15,6 +15,8 @@ export function trimWhitespace(el, dir) {
 }
 
 export function trimWhitespaceSsr(el, dir) {
+  // This causes server<->client dom mismatches sometimes... gave up for now.
+  /*
   for ( const node of (el.children || []) ) {
     if ( node.text ) {
       const trimmed = node.text.trim();
@@ -26,6 +28,7 @@ export function trimWhitespaceSsr(el, dir) {
       trimWhitespaceSsr(node);
     }
   }
+  */
 }
 
 Vue.directive('trim-whitespace', {

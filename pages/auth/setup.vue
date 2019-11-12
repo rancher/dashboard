@@ -77,7 +77,7 @@ export default {
       opt:  { url: '/v3/authConfigs/github' }
     });
 
-    githubConfig = await store.dispatch('rancher/clone', githubConfig);
+    githubConfig = await store.dispatch('rancher/clone', { resource: githubConfig });
 
     const principals = await store.dispatch('rancher/findAll', {
       type: RANCHER.PRINCIPAL,
@@ -242,7 +242,7 @@ export default {
           opt:  { url: '/v3/authConfigs/github' }
         });
 
-        this.githubConfig = await this.$store.dispatch('rancher/clone', githubConfig);
+        this.githubConfig = await this.$store.dispatch('rancher/clone', { resource: githubConfig });
 
         this.githubConfig.allowedPrincipalIds = this.githubConfig.allowedPrincipalIds || [];
 
