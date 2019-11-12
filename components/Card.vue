@@ -28,7 +28,6 @@ export default {
         {{ title }}
       </slot>
     </div>
-    <hr>
     <div class="card-body">
       <slot name="body">
         {{ content }}
@@ -52,20 +51,20 @@ export default {
         display: grid;
         padding: 1rem;
         grid-gap: 1rem;
+        grid-template-rows: 1fr 3fr 1fr;
         & .card-body {
             overflow: hidden;
         }
         & .card-actions{
             align-self: end;
         }
-        // & > * {
-        //     margin: 10px;
-        // }
         & .card-title{
             color: var(--primary);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
         }
     }
 </style>
