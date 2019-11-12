@@ -118,4 +118,20 @@ $selected: rgba($primary, .5);
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$light};
+
+  --diff-border                : var(--border);
+  --diff-header-bg             : #f8fafd;
+  --diff-header-border         : var(--border);
+  --diff-header                : rgba(0,0,0,0.3);
+  --diff-linenum-bg            : #fff;
+  --diff-linenum               : rgba(0,0,0,0.3);
+  --diff-linenum-border        : var(--border);
+  --diff-line-ins-bg           : #97f295;
+  --diff-line-del-bg           : #ffb6ba;
+  --diff-del-bg                : #fee8e9;
+  --diff-del-border            : #e9aeae;
+  --diff-ins-bg                : #dfd;
+  --diff-ins-border            : #b4e2b4;
+  --diff-chg-ins               : #ded;
+  --diff-chg-del               : #fdf2d0;
 }
