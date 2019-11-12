@@ -193,7 +193,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
         :name-resource="nameResource"
         :is-sidecar="isSidecar"
         :mode="mode"
-        :real-mode="realMode"
+        :real-mode="realMode || mode"
         :is-demo="isDemo"
       />
 

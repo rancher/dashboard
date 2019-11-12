@@ -30,7 +30,7 @@ export async function asyncData(ctx) {
   let yaml = null;
 
   if ( asYaml ) {
-    yaml = await obj.followLink('view', { headers: { accept: 'application/yaml' } }).data;
+    yaml = (await obj.followLink('view', { headers: { accept: 'application/yaml' } })).data;
   }
 
   const forNew = mode === _CLONE || mode === _STAGE;
@@ -44,6 +44,9 @@ export async function asyncData(ctx) {
     cleanForNew(model);
   }
 
+  /*******
+   * Important: these need to be declared below as props too
+   *******/
   const out = {
     asYaml,
     resource,
@@ -51,6 +54,9 @@ export async function asyncData(ctx) {
     yaml,
     originalModel: obj
   };
+  /*******
+   * Important: these need to be declared below as props too
+   *******/
 
   return out;
 }
@@ -62,14 +68,26 @@ export default {
   mixins:     { CreateEditView },
 
   props: {
-    asyncData: {
-      type:     Object,
-      required: true,
+    asYaml: {
+      type:    Boolean,
+      default: null,
     },
-  },
-
-  data() {
-    return { ...this.asyncData };
+    resource: {
+      type:    String,
+      default: null,
+    },
+    model: {
+      type:    Object,
+      default: null,
+    },
+    yaml: {
+      type:    String,
+      default: null,
+    },
+    originalModel: {
+      type:    Object,
+      default: null,
+    },
   },
 
   computed: {
@@ -142,14 +160,15 @@ export default {
 
 <template>
   <div>
-    <ResourceYaml
-      v-if="asYaml"
-      :obj="model"
-      :value="yaml"
-      :done-route="doneRoute"
-      :parent-route="doneRoute"
-      :parent-params="doneParams"
-    />
+    <template v-if="asYaml">
+      <ResourceYaml
+        :obj="model"
+        :value="yaml"
+        :done-route="doneRoute"
+        :parent-route="doneRoute"
+        :parent-params="doneParams"
+      />
+    </template>
     <template v-else>
       <header>
         <h1 v-trim-whitespace>

@@ -10,5 +10,5 @@ export default {
 </script>
 
 <template>
-  <RioDetail :async-data="_data" />
+  <RioDetail v-bind="_data" />
 </template>
