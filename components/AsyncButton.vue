@@ -198,7 +198,7 @@ export default {
     @click="clicked"
   >
     <i v-if="isSpinning" class="icon icon-spinner icon-spin mr-5" />
-    <i v-else-if="icon" :class="{icon: true, [icon]: true, 'mr-5': true}" />
+    <i v-else-if="icon" :class="{icon: true, [icon]: true}" />
     <span v-show="showLabel" v-html="label" />
   </button>
 </template>

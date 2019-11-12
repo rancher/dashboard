@@ -306,9 +306,9 @@ export default {
         <div class="col span-6">
           <h1>Welcome to Rio!</h1>
 
-          <h3 class="mb-20 mt-20" style="line-height: 1.2em;">
+          <p class="text-muted mb-20 mt-20" style="line-height: 1.2em;">
             The first order of business is to set a strong password for the default <code>admin</code> user.
-          </h3>
+          </p>
 
           <!-- For password managers... -->
           <input type="hidden" name="username" autocomplete="username" :value="username" />
@@ -394,8 +394,8 @@ export default {
     <div v-if="step === 3">
       <div class="row">
         <div class="col span-6">
-          <h1>GitHub Integration</h1>
-          <p>
+          <h1 class="mb-20">GitHub Integration</h1>
+          <p class="text-muted mb-40">
             Rio can optionally integrate with GitHub to read resources from
             repositories and automatically update them when code is pushed.
           </p>
@@ -420,14 +420,13 @@ export default {
             </div>
           </div>
 
-          <div class="mt-20">
-            <p style="line-height: 1.4em;">
-              Create an <a v-if="kind === 'public'" href="https://github.com/settings/developers" target="_blank" rel="nofollow noopener noreferrer">OAuth App</a>
-              <span v-else>OAuth App</span>
-              with <CopyCode>{{ serverUrl }}</CopyCode>
-              as the Homepage and Authorization callback URLs.
-              Then copy the Client ID and Client Secret from the new app and fill them in here:
-            </p>
+          <div class="mt-20 text-muted">
+            <p>1. Create an <a v-if="kind === 'public'" href="https://github.com/settings/developers" target="_blank" rel="nofollow noopener noreferrer">OAuth App</a>
+            <span v-else>OAuth App</span>
+            with <CopyCode>{{ serverUrl }}</CopyCode>
+            as the Homepage and Authorization callback URLs.</p>
+            <p>&nbsp;</p>
+            <p>2. Then copy the Client ID and Client Secret from the new app and fill them in here:</p>
             <div v-if="kind === 'enterprise'" class="mt-20">
               <LabeledInput
                 ref="hostname"
@@ -483,7 +482,7 @@ export default {
       <div class="row">
         <div class="col span-6">
           <h1>GitHub Integration, Part Deux</h1>
-          <p>
+          <p class="text-muted">
             Who should be able to login?
           </p>
           <div>
