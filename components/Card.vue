@@ -50,8 +50,8 @@ export default {
         border: 1px solid  var(--border);
         background: var(--nav-bg);
         display: grid;
-        padding: 1rem;
-        grid-gap: 1rem;
+        padding: 1.25rem;
+        grid-gap: .75rem;
         & .card-body {
             overflow: hidden;
         }

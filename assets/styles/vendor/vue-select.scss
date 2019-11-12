@@ -181,12 +181,12 @@ $transition-duration: 150ms;
 .vs__selected {
   display: flex;
   align-items: center;
-  background-color: #f0f0f0;
-  border: 1px solid var(--dropdown-border);
-  border-radius: 4px;
+  background-color: var(--accent-btn);
+  border: 1px solid var(--primary);
+  border-radius: 3px;
   color: var(--link-text);
   margin: 4px 2px 0px 2px;
-  padding: 0 0.25em;
+  padding: 0.25em;
 }
 
 .vs__deselect {
