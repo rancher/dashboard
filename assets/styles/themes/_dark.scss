@@ -111,17 +111,9 @@
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);
   --diff-header-border         : var(--border);
-  --diff-header                : rgba(0,0,0,0.3);
-  --diff-linenum-bg            : #{$darkest};
-  --diff-linenum               : rgba(0,0,0,0.3);
+  --diff-header                : #{rgba($darkest, 0.3)};
+  --diff-linenum-bg            : var(--nav-bg);
+  --diff-linenum               : var(--muted);
   --diff-linenum-border        : var(--border);
-  --diff-line-ins-bg           : #97f295;
-  --diff-line-del-bg           : rgba(#{$error}, 0.75);
-  --diff-del-bg                : #{$error};
-  --diff-del-border            : rgba(#{$error}, 0.25);
-  --diff-ins-bg                : #dfd;
-  --diff-ins-border            : #b4e2b4;
-  --diff-chg-ins               : #ded;
-  --diff-chg-del               : #fdf2d0;
 }
 
