@@ -299,5 +299,8 @@ export default {
     .row.inputs > *:not(button) {
       margin-right: 10px;
       flex: 1;
+      & .vs__dropdown-toggle {
+        height: 100%
+      }
     }
 </style>
