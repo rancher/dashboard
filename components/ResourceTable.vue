@@ -34,7 +34,7 @@ export default {
     showNamespaceColumn() {
       const groupable = this.$store.getters['multipleNamespaces'];
       const groupNamespaces = this.group === 'namespace';
-      const showNamespace = this.namespaced && groupable && !groupNamespaces;
+      const showNamespace = !!this.namespaced && groupable && !groupNamespaces;
 
       return showNamespace;
     },
@@ -96,7 +96,7 @@ export default {
     group: mapPref(GROUP_RESOURCES),
 
     groupable() {
-      return this.$store.getters['multipleNamespaces'] && this.namespaced;
+      return this.$store.getters['multipleNamespaces'] && !!this.namespaced;
     },
 
     groupBy() {
