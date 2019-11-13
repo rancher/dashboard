@@ -99,7 +99,7 @@ export default {
         return;
       }
 
-      const desired = $(window).innerHeight() - offset.top - this.footerSpace - 20;
+      const desired = $(window).innerHeight() - offset.top - this.footerSpace;
 
       container.css('height', `${ Math.max(this.minHeight, desired) }px`);
     },

@@ -1,5 +1,5 @@
 <script>
-import demoSpecs from '@/config/demo-stacks';
+import demos from '@/config/demos';
 import { FRIENDLY } from '@/config/friendly';
 export default {
   name: 'RioResourceCreate',
@@ -49,7 +49,7 @@ export default {
     let spec = {};
 
     if (ctx.query.demo) {
-      spec = demoSpecs[ctx.query.demo];
+      spec = demos[ctx.query.demo].spec;
     }
 
     const data = {

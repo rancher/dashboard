@@ -121,8 +121,8 @@ export default {
 <template>
   <div class="dashboard-root">
     <div class="logo">
-      <n-link to="/">
-        <img src="~/assets/images/logo.svg" alt="logo" height="30" class="m-15" />
+      <n-link v-trim-whitespace to="/">
+        <img src="~/assets/images/logo.svg" alt="logo" height="30" />
       </n-link>
     </div>
 
@@ -199,6 +199,12 @@ export default {
     .logo {
       grid-area: logo;
       background-color: var(--header-bg);
+
+      A {
+        display: inline-block;
+        padding: 10px 15px;
+        margin: 3px;
+      }
     }
 
     .user {
