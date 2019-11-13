@@ -24,17 +24,20 @@ export default {
     headers: {
       type:    Array,
       default: null,
+    },
+    showGroups: {
+      type:    Boolean,
+      default: true
     }
   },
 
   computed: {
-    nameSpaced() {
-      return get( this.schema, 'attributes.namespaced');
-    },
+
     showNamespaceColumn() {
+      const namespaced = !!get( this.schema, 'attributes.namespaced');
       const groupable = this.$store.getters['multipleNamespaces'];
       const groupNamespaces = this.group === 'namespace';
-      const showNamespace = !!this.namespaced && groupable && !groupNamespaces;
+      const showNamespace = namespaced && groupable && !groupNamespaces;
 
       return showNamespace;
     },
@@ -96,11 +99,13 @@ export default {
     group: mapPref(GROUP_RESOURCES),
 
     groupable() {
-      return this.$store.getters['multipleNamespaces'] && !!this.namespaced;
+      const namespaced = !!get( this.schema, 'attributes.namespaced');
+
+      return this.$store.getters['multipleNamespaces'] && namespaced;
     },
 
     groupBy() {
-      if ( this.group === 'namespace' && this.groupable) {
+      if ( this.group === 'namespace' && this.groupable && this.showGroups) {
         return 'metadata.namespace';
       }
 

@@ -6,9 +6,9 @@ import {
   STATE, NAME, AGE, POD_IMAGES, NODE,
 } from '@/config/table-headers';
 import { sortBy } from '@/utils/sort';
-
+import LiveDate from '@/components/formatters/LiveDate';
 export default {
-  components: { ResourceTable },
+  components: { ResourceTable, LiveDate },
 
   props:      {
     value: {
@@ -57,9 +57,10 @@ export default {
           value: 'message'
         },
         {
-          name:  'time',
-          label: 'Time',
-          value: 'eventTime'
+          name:      'time',
+          label:     'Time',
+          value:     'firstTimestamp',
+          formatter: 'LiveDate'
         }
       ],
       eventSort: { column: 'eventTime', desc: true }
@@ -150,6 +151,9 @@ export default {
       });
 
       this.events = relevant;
+    },
+    rowClick(e) {
+      window.alert(e);
     }
   }
 };
@@ -182,16 +186,17 @@ export default {
         <span> {{ creationTimestamp }}</span>
       </div>
     </div>
-    <div class="section">
+    <div>
       <h4>Pods</h4>
       <ResourceTable
         class="flat"
         :schema="table.schema"
         :rows="table.rows"
         :headers="table.headers"
+        :show-groups="false"
       />
     </div>
-    <div class="section">
+    <div>
       <h4>Ports</h4>
       <table class="flat">
         <thead>
@@ -222,7 +227,7 @@ export default {
         </tbody>
       </table>
     </div>
-    <div class="section">
+    <div>
       <h4>Events</h4>
       <div>
         <table class="flat">
@@ -239,9 +244,14 @@ export default {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="event in events" :key="event.eventTime">
+            <tr v-for="event in events" :key="event.eventTime" class="click-row">
               <td v-for="col in eventColumns" :key="col.name + '--row'">
-                {{ event[col.value] }}
+                <a :href="event.metadata.selfLink" target="_blank">
+                  <template v-if="!!col.formatter">
+                    <component :is="col.formatter" :value="event[col.value]" /> ago
+                  </template>
+                  <span v-else> {{ event[col.value] }}</span>
+                </a>
               </td>
             </tr>
           </tbody>
@@ -254,34 +264,52 @@ export default {
 <style lang='scss'>
 
   .service-detail {
+    & > * {
+      margin: 10px 0 10px 0;
+    }
     & h4{
       margin: 20px 20px 20px 0
     }
-    & .section {
-      margin-bottom: 20px;
-      border-bottom: 1px solid var(--border)
-    }
   }
   .flat {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+
    &  .sortable-table-header {
       display: none;
     }
-    table-layout: fixed;
-    width: 100%;
+
     & th{
       padding-bottom: 1rem;
       text-align: left;
     }
+
+    & :not(THEAD) tr{
+      border-bottom: 1px solid var(--border);
+
+      & td {
+        padding: 10px 0 10px 0;
+      }
+    }
     & tr td:last-child, th:last-child{
       text-align: right;
     }
+
+    & .click-row a{
+      color: var(--input-text);
+    }
+
+    & .click-row:hover{
+      @extend .faded;
+    }
+
     & .faded {
-      opacity: 0.3
+      opacity: 0.5
     }
   }
   .flatter{
     display: flex;
-
     & > * {
       margin-right: 20px;
       padding: 10px 0 10px 0;
