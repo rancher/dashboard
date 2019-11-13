@@ -81,6 +81,7 @@ export default {
       spec,
       allConfigMaps: null,
       allSecrets:    null,
+      showTabs:      false
     };
   },
 
@@ -125,6 +126,9 @@ export default {
       removeObject(containers, entry);
       this.save();
     },
+    toggleTabs() {
+      this.showTabs = !this.showTabs;
+    }
   },
 };
 
@@ -196,8 +200,10 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
         :real-mode="realMode || mode"
         :is-demo="isDemo"
       />
-
-      <Tabbed default-tab="command">
+      <a href="#" @click.prevent="toggleTabs">
+        <span v-if="!showTabs">Show</span> <span v-else>Hide</span> additional options
+      </a>
+      <Tabbed v-if="showTabs" default-tab="command">
         <Tab name="command" label="Command">
           <Command :spec="spec" :mode="mode" :config-maps="configMaps" :secrets="secrets" :namespace="namespace" />
         </Tab>

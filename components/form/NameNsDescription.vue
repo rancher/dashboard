@@ -1,5 +1,6 @@
 <script>
 import { NAMESPACE, ANNOTATION } from '~/config/types';
+import { NAMESPACES } from '@/store/prefs';
 import { _CREATE, _VIEW } from '~/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -50,9 +51,10 @@ export default {
       metadata.annotations = {};
     }
 
-    // @TODO pick a smarter default based on the previous used or what NS is selected for view
     if ( !metadata.namespace ) {
-      metadata.namespace = 'default';
+      const selectedNS = this.$store.getters['prefs/get'](NAMESPACES)[0] || 'default';
+
+      metadata.namespace = selectedNS;
     }
 
     const description = metadata.annotations[ANNOTATION.DESCRIPTION];
