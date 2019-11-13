@@ -1,4 +1,5 @@
 <script>
+import { get } from '../utils/object';
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
 import SortableTable from '@/components/SortableTable';
@@ -24,11 +25,16 @@ export default {
       type:    Array,
       default: null,
     },
+    showGroups: {
+      type:    Boolean,
+      default: true
+    }
   },
 
   computed: {
+
     showNamespaceColumn() {
-      const namespaced = this.schema.attributes.namespaced;
+      const namespaced = !!get( this.schema, 'attributes.namespaced');
       const groupable = this.$store.getters['multipleNamespaces'];
       const groupNamespaces = this.group === 'namespace';
       const showNamespace = namespaced && groupable && !groupNamespaces;
@@ -68,7 +74,7 @@ export default {
     filteredRows() {
       const namespaces = this.$store.getters['namespaces'];
 
-      if ( !this.schema.attributes.namespaced ) {
+      if ( !this.namespaced ) {
         return this.rows;
       }
 
@@ -93,11 +99,13 @@ export default {
     group: mapPref(GROUP_RESOURCES),
 
     groupable() {
-      return this.$store.getters['multipleNamespaces'] && this.schema.attributes.namespaced;
+      const namespaced = !!get( this.schema, 'attributes.namespaced');
+
+      return this.$store.getters['multipleNamespaces'] && namespaced;
     },
 
     groupBy() {
-      if ( this.group === 'namespace' && this.groupable ) {
+      if ( this.group === 'namespace' && this.groupable && this.showGroups) {
         return 'metadata.namespace';
       }
 

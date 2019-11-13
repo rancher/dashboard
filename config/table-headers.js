@@ -51,6 +51,13 @@ export const NAMESPACE = {
 };
 */
 
+export const NODE = {
+  name:  'node',
+  label: 'Node',
+  value: 'spec.nodeName',
+  width: 75
+};
+
 export const AGE = {
   name:       'age',
   label:      'Age',
@@ -67,6 +74,13 @@ export const RIO_IMAGE = {
   label: 'Image',
   value: 'imageDisplay',
   sort:  ['imageDisplay', 'nameSort'],
+};
+
+export const POD_IMAGES = {
+  name:      'pod_images',
+  label:     'Images',
+  value:     'status.containerStatuses',
+  formatter: 'PodImages'
 };
 
 export const ENDPOINTS = {

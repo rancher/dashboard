@@ -52,10 +52,11 @@ export const FRIENDLY = {
   },
 
   services: {
-    singular: 'Service',
-    plural:   'Services',
-    type:     RIO.SERVICE,
-    headers:  [
+    singular:  'Service',
+    plural:    'Services',
+    hasDetail: true,
+    type:      RIO.SERVICE,
+    headers:   [
       STATE,
       NAMESPACE_NAME,
       RIO_IMAGE,

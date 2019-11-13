@@ -42,9 +42,11 @@ export const getters = {
     // Find and add all the actions for all the nodes so that we know
     // what all the possible actions are
     for ( const node of all ) {
-      for ( const act of node.availableActions ) {
-        if ( act.bulkable ) {
-          _add(map, act, false);
+      if (node.availableActions) {
+        for ( const act of node.availableActions ) {
+          if ( act.bulkable ) {
+            _add(map, act, false);
+          }
         }
       }
     }
@@ -52,9 +54,11 @@ export const getters = {
     // Go through all the selected items and add the actions (which were already identified above)
     // as availalable for some (or all) of the selected nodes
     for ( const node of selected ) {
-      for ( const act of node.availableActions ) {
-        if ( act.bulkable ) {
-          _add(map, act);
+      if (node.availableActions) {
+        for ( const act of node.availableActions ) {
+          if ( act.bulkable ) {
+            _add(map, act, false);
+          }
         }
       }
     }

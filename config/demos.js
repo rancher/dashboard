@@ -29,7 +29,7 @@ export default {
     spec:        {
       build: {
         repo:     'https://github.com/daxmc99/rio-demo.git',
-        revision: '03094af324bb8e8a72e34394089ab796692a9358',
+        revision: 'cb86f2ae38426001ed024db73864e482beedf5ad',
         riofile:  'Riofile'
       }
     }
