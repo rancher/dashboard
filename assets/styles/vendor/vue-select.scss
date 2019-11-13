@@ -197,7 +197,7 @@ $transition-duration: 150ms;
   border: 0;
   cursor: pointer;
   background: none;
-  fill: rgba(60,60,60,0.26);
+  fill: var(--primary);
   text-shadow: 0 1px 0 #fff
 }
 
@@ -209,7 +209,7 @@ $transition-duration: 150ms;
   .vs__selected {
     color: var(--input-text);
     position: absolute;
-    top: 1.15em;
+    top: .85em;
     align-self: start;
   }
 

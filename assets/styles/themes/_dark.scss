@@ -67,7 +67,7 @@
 
   --accent-btn                 : #{rgba($primary, 0.3)};
 
-  --dropdown-bg                : #{$medium};
+  --dropdown-bg                : #{$dark};
   --dropdown-border            : var(--border);
   --dropdown-divider           : #{$light};
   --dropdown-text              : #{$link};
@@ -76,7 +76,7 @@
   --dropdown-active-text       : var(--active-text);
   --dropdown-active-bg         : var(--active-bg);
   --dropdown-disabled-text     : var(--muted);
-  --dropdown-disabled-bg       : transparent;
+  --dropdown-disabled-bg       : #{$disabled};
 
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
@@ -85,6 +85,10 @@
   --input-bg                   : #{$dark};
   --input-hover-bg             : #{$medium};
   --input-focus-bg             : #{$darkest};
+  --input-disabled-text        : #{$medium};
+  --input-disabled-bg          : #{$disabled};
+  --input-disabled-border      : #{$disabled};
+  --input-disabled-placeholder : darken($disabled, 10%);
   --input-addon-bg             : #{$darker};
 
   --modal-overlay-bg           : rgba(#000, 0.75);
@@ -103,5 +107,21 @@
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$darkest};
+
+  --diff-border                : var(--border);
+  --diff-header-bg             : var(--nav-bg);
+  --diff-header-border         : var(--border);
+  --diff-header                : rgba(0,0,0,0.3);
+  --diff-linenum-bg            : #{$darkest};
+  --diff-linenum               : rgba(0,0,0,0.3);
+  --diff-linenum-border        : var(--border);
+  --diff-line-ins-bg           : #97f295;
+  --diff-line-del-bg           : rgba(#{$error}, 0.75);
+  --diff-del-bg                : #{$error};
+  --diff-del-border            : rgba(#{$error}, 0.25);
+  --diff-ins-bg                : #dfd;
+  --diff-ins-border            : #b4e2b4;
+  --diff-chg-ins               : #ded;
+  --diff-chg-del               : #fdf2d0;
 }
 
