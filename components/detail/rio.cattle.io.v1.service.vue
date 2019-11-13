@@ -310,6 +310,7 @@ export default {
   }
   .flatter{
     display: flex;
+    min-height: 75px;
     & > * {
       margin-right: 20px;
       padding: 10px 0 10px 0;
