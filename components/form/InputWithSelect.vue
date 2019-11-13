@@ -55,16 +55,19 @@ export default {
 }
 .v-select.in-input{
     flex-basis:20%;
+
     .vs__selected {
        margin: 0;
         color: var(--input-text)
     }
+
     .vs__dropdown-menu {
         min-width: 0px;
         .vs__dropdown-option {
           padding: 3px 5px;
         }
     }
+
     .vs__dropdown-toggle {
         background-color: var(--accent-btn);
         border-color: var(--primary);
@@ -79,6 +82,7 @@ export default {
           padding: 0
           }
     }
+
     .vs__selected-options {
         display: -webkit-box;
     }
@@ -91,9 +95,15 @@ export default {
         padding: 0;
         align-self: center;
     }
+
     .vs__open-indicator{
         fill: var(--input-text);
-        transform: scale(0.75)
+        transform: scale(0.75);
     }
+
+    &.vs--open .vs__open-indicator {
+      transform: rotate(180deg) scale(0.75);
+    }
+
 }
 </style>
