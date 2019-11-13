@@ -30,8 +30,8 @@ export default {
 </script>
 
 <template>
-  <span>
-    <span v-if="!value[0].redirect">{{ to.service }}{{ `(${to.version})` }}:{{ to.port }}</span>
+  <span v-if="to">
+    <span v-if="!value[0].redirect">{{ to.app }}{{ to.version ?`(${to.version}):` : '' }}{{ to.port }}</span>
     <span v-else>
       <span v-for="(string,key) in to" :key="string">
         {{ key }}: {{ string }}

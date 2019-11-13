@@ -32,7 +32,7 @@ export default {
 
   data() {
     const {
-      namespace = 'default', port = '', service = {}, uuid, version = ''
+      namespace = 'default', port = '', app = {}, uuid, version = ''
     } = this.spec;
 
     return {
@@ -41,7 +41,7 @@ export default {
       services:    [],
       namespace,
       port,
-      service,
+      service:  app,
       weight:     '',
       mode:       null
     };
@@ -49,7 +49,7 @@ export default {
   computed: {
     formatted() {
       return {
-        service:   this.service.metadata ? this.service.metadata.name : this.service,
+        app:     this.service.metadata ? this.service.metadata.name : this.service,
         version:   this.pickVersion ? this.version : null,
         port:      this.port,
         weight:    this.weight,
