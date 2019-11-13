@@ -56,15 +56,15 @@ $selected: rgba($primary, .5);
     error:      $error
   ), true);
 
-  --body-bg                    : white;
-  --body-text                  : black;
+  --body-bg                    : #{$lightest};
+  --body-text                  : #{$dark};
   --scrollbar-thumb            : #{$dark};
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
   --disabled-bg                : #{$disabled};
   --header-bg                  : #{$light};
   --nav-bg                     : #{$lighter};
-  --footer-bg                  : #f1f2f3;
+  --footer-bg                  : ;
   --box-bg                     : #{$light};
   --border                     : #{$medium};
   --border-radius              : 2px;
@@ -92,7 +92,7 @@ $selected: rgba($primary, .5);
   --input-border               : var(--$border);
   --input-bg                   : #{$light};
   --input-hover-bg             : lighten($light, 10%);
-  --input-focus-bg             : white;
+  --input-focus-bg             : #{$lightest};
   --input-hover-border         : transparent;
   --input-disabled-text        : #{$dark};
   --input-disabled-bg          : #{$medium};
@@ -114,22 +114,22 @@ $selected: rgba($primary, .5);
 
   --tooltip-bg                 : #{$lighter};
   --tooltip-text               : #{$lightest};
-  --tooltip-border-radius      : 4px;
+  --tooltip-border-radius      : 2px;
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$light};
 
   --diff-border                : var(--border);
-  --diff-header-bg             : #f8fafd;
+  --diff-header-bg             : var(--nav-bg);
   --diff-header-border         : var(--border);
   --diff-header                : rgba(0,0,0,0.3);
-  --diff-linenum-bg            : #fff;
+  --diff-linenum-bg            : #{$lightest};
   --diff-linenum               : rgba(0,0,0,0.3);
   --diff-linenum-border        : var(--border);
   --diff-line-ins-bg           : #97f295;
-  --diff-line-del-bg           : #ffb6ba;
-  --diff-del-bg                : #fee8e9;
-  --diff-del-border            : #e9aeae;
+  --diff-line-del-bg           : rgba(#{$error}, 0.75);
+  --diff-del-bg                : #{$error};
+  --diff-del-border            : rgba(#{$error}, 0.25);
   --diff-ins-bg                : #dfd;
   --diff-ins-border            : #b4e2b4;
   --diff-chg-ins               : #ded;
