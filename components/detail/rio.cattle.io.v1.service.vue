@@ -189,7 +189,7 @@ export default {
     <div>
       <h4>Pods</h4>
       <ResourceTable
-        class="flat"
+        class=""
         :schema="table.schema"
         :rows="table.rows"
         :headers="table.headers"
@@ -270,16 +270,14 @@ export default {
     & h4{
       margin: 20px 20px 20px 0
     }
+    &  .sortable-table-header {
+      display: none;
+    }
   }
   .flat {
     border-collapse: collapse;
     table-layout: fixed;
     width: 100%;
-
-   &  .sortable-table-header {
-      display: none;
-    }
-
     & th{
       padding-bottom: 1rem;
       text-align: left;
@@ -294,6 +292,10 @@ export default {
     }
     & tr td:last-child, th:last-child{
       text-align: right;
+    }
+
+    & tr td:first-child, th:first-child{
+      margin-left: 15px;
     }
 
     & .click-row a{
