@@ -82,7 +82,7 @@ $selected: rgba($primary, .5);
   --dropdown-active-text       : var(--active-text);
   --dropdown-active-bg         : var(--active-bg);
   --dropdown-disabled-text     : var(--muted);
-  --dropdown-disabled-bg       : transparent;
+  --dropdown-disabled-bg       : #{$disabled};
 
   --overlay-bg                 : #{rgba($medium, 0.5)};
 

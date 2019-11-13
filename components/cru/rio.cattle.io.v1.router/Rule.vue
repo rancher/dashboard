@@ -232,9 +232,11 @@ export default {
 
 <style  lang='scss'>
   .route {
+    margin-top: 20px;
     padding: 20px;
     background-color: var(--login-bg);
     margin-bottom: 20px;
+    border-radius: 3px;
 
     & .inputs-table {
       margin: 10px 0 10px 0;
@@ -273,16 +275,20 @@ export default {
       & .position-mover {
         display: flex;
         align-items: center;
-        padding: 5px;
+        padding: 10px 15px;
         background-color: var(--input-bg);
         border-radius: var(--border-radius);
         & > .position-inputs {
-          margin-left: 5px;
+          margin-left: 10px;
           display: flex;
           flex-direction: column;
           position:relative;
           & button {
             height: 10px;
+            font-size: 10px;
+          }
+          & button:focus {
+            box-shadow: none;
           }
         }
       }

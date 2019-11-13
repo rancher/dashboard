@@ -76,7 +76,7 @@
   --dropdown-active-text       : var(--active-text);
   --dropdown-active-bg         : var(--active-bg);
   --dropdown-disabled-text     : var(--muted);
-  --dropdown-disabled-bg       : transparent;
+  --dropdown-disabled-bg       : #{$disabled};
 
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
@@ -85,6 +85,10 @@
   --input-bg                   : #{$dark};
   --input-hover-bg             : #{$medium};
   --input-focus-bg             : #{$darkest};
+  --input-disabled-text        : #{$medium};
+  --input-disabled-bg          : #{$disabled};
+  --input-disabled-border      : #{$disabled};
+  --input-disabled-placeholder : darken($disabled, 10%);
   --input-addon-bg             : #{$darker};
 
   --modal-overlay-bg           : rgba(#000, 0.75);
