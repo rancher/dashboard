@@ -1,49 +1,18 @@
 <script>
-import { get } from '@/utils/object';
-import demoSpecs from '@/config/demo-stacks';
+import demos from '@/config/demos';
 
 import Card from '@/components/Card';
 export default {
   components: { Card },
-  data() {
-    return {
-      demos: [
-        {
-          title:       'Deploy service using a Dockerfile',
-          demo:        'serviceFromGit',
-          description: 'Clicking deploy will prefill the image section of Service with a Dockerfile.',
-          createPath:  '/rio/services/create'
-        },
-        {
-          title:       'Deploy stack using a Riofile',
-          demo:        'stackFromGit',
-          description: 'Deploying a stack allows multiple resources to be deployed at once and updated through a rio file you keep in GitHub. Clicking deploy will pre-fill the stack fields with a demo rio file.',
-          createPath:  '/rio/stack/create'
-        },
-        {
-          title:       'Autoscaling',
-          demo:        null,
-          description: 'Coming Soon.',
-          createPath:  null
-        },
-        {
-          title:       'Service Mesh',
-          demo:        null,
-          description: 'Coming Soon.',
-          createPath:  null
-        }
-      ]
-    };
-  },
-  methods: {
-    createDemo(index) {
-      this.$router.push({ path: this.demos[index].createPath, query: { demo: this.demos[index].demo } });
-    },
-    repoUrl(demo) {
-      const spec = demoSpecs[demo];
 
-      return get(spec, 'build.repo');
-    }
+  data() {
+    return { demos };
+  },
+
+  methods: {
+    createDemo(name) {
+      this.$router.push({ path: this.demos[name].createPath, query: { demo: name } });
+    },
   }
 };
 </script>
@@ -61,16 +30,16 @@ export default {
       <div class="col span-6">
         <div class="cards">
           <Card
-            v-for="(demo, i) in demos"
+            v-for="(demo, name) in demos"
             :key="demo.title"
             :content="demo.description"
           >
             <template v-slot:title>
               <span>{{ demo.title }}</span>
-              <a target="_blank" class="icon icon-external-link role-multi-action" :href="repoUrl(demo.demo)" />
+              <a v-if="demo.spec" target="_blank" class="icon icon-external-link role-multi-action" :href="demo.spec.build.repo" />
             </template>
             <template v-slot:actions>
-              <button class="btn role-secondary btn-sm" :disabled="!demo.demo" @click="e=>createDemo(i)">
+              <button class="btn role-secondary btn-sm" :disabled="!demo.spec" @click="createDemo(name)">
                 Deploy
               </button>
             </template>

@@ -415,7 +415,7 @@ export default {
         </button>
         <slot name="moreAdd" :rows="rows" />
       </slot>
-      <button v-if="showRead" type="button" class="btn bg-primary read-from-file" @click="readFromFile">
+      <button v-if="showRead" type="button" class="btn role-tertiary read-from-file" @click="readFromFile">
         <i v-if="readIcon" :class="{'icon': true, [readIcon]: true}" />
         {{ readLabel }}
       </button>

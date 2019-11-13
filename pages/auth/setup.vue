@@ -394,7 +394,9 @@ export default {
     <div v-if="step === 3">
       <div class="row">
         <div class="col span-6">
-          <h1 class="mb-20">GitHub Integration</h1>
+          <h1 class="mb-20">
+            GitHub Integration
+          </h1>
           <p class="text-muted mb-40">
             Rio can optionally integrate with GitHub to read resources from
             repositories and automatically update them when code is pushed.
@@ -421,10 +423,12 @@ export default {
           </div>
 
           <div class="mt-20 text-muted">
-            <p>1. Create an <a v-if="kind === 'public'" href="https://github.com/settings/developers" target="_blank" rel="nofollow noopener noreferrer">OAuth App</a>
-            <span v-else>OAuth App</span>
-            with <CopyCode>{{ serverUrl }}</CopyCode>
-            as the Homepage and Authorization callback URLs.</p>
+            <p>
+              1. Create an <a v-if="kind === 'public'" href="https://github.com/settings/developers" target="_blank" rel="nofollow noopener noreferrer">OAuth App</a>
+              <span v-else>OAuth App</span>
+              with <CopyCode>{{ serverUrl }}</CopyCode>
+              as the Homepage and Authorization callback URLs.
+            </p>
             <p>&nbsp;</p>
             <p>2. Then copy the Client ID and Client Secret from the new app and fill them in here:</p>
             <div v-if="kind === 'enterprise'" class="mt-20">
