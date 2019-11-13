@@ -182,6 +182,7 @@ export default {
       :mode="mode"
       :name-label="isSidecar ? 'Container Name' : 'Service Name'"
       :extra-column="!isSidecar"
+      :use-generated-name="true"
     >
       <template v-if="isSidecar" #name>
         <LabeledInput

@@ -4,6 +4,7 @@ import { NAMESPACES } from '@/store/prefs';
 import { _CREATE, _VIEW } from '~/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import { escapeRegex } from '@/utils/string';
 
 export default {
   components:   { LabeledInput, LabeledSelect },
@@ -37,6 +38,15 @@ export default {
       type:    String,
       default: 'Any text you want that better describes this resource'
     },
+
+    useGeneratedName: {
+      type:    Boolean,
+      default: false,
+    },
+    generatedSuffix: {
+      type:    String,
+      default: '-'
+    },
   },
 
   data() {
@@ -59,7 +69,19 @@ export default {
 
     const description = metadata.annotations[ANNOTATION.DESCRIPTION];
 
+    let name;
+
+    if ( this.useGeneratedName ) {
+      name = metadata.generateName || '';
+      const re = new RegExp(`${ escapeRegex(this.generatedSuffix) }$`, 'i');
+
+      name = name.replace(re, '');
+    } else {
+      name = metadata.name || '';
+    }
+
     return {
+      name,
       wantDescription:        !!description,
       ANNOTATION_DESCRIPTION: ANNOTATION.DESCRIPTION,
     };
@@ -96,6 +118,17 @@ export default {
       return `span-${ span }`;
     }
   },
+
+  watch: {
+    name(neu) {
+      if ( this.useGeneratedName ) {
+        this.value.metadata.generateName = neu + this.generatedSuffix;
+        delete this.value.metadata.name;
+      } else {
+        this.value.metadata.name = neu;
+      }
+    },
+  },
 };
 </script>
 
@@ -106,7 +139,7 @@ export default {
         <slot name="name">
           <LabeledInput
             key="name"
-            v-model="value.metadata.name"
+            v-model="name"
             :mode="onlyForCreate"
             :label="nameLabel"
             :placeholder="namePlaceholder"

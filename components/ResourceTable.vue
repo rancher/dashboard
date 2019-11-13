@@ -32,14 +32,17 @@ export default {
   },
 
   computed: {
+    namespaced() {
+      const namespaced = !!get( this.schema, 'attributes.namespaced');
+
+      return namespaced;
+    },
 
     showNamespaceColumn() {
-      const namespaced = !!get( this.schema, 'attributes.namespaced');
-      const groupable = this.$store.getters['multipleNamespaces'];
       const groupNamespaces = this.group === 'namespace';
-      const showNamespace = namespaced && groupable && !groupNamespaces;
+      const out = this.groupable && !groupNamespaces;
 
-      return showNamespace;
+      return out;
     },
 
     _headers() {
@@ -99,9 +102,7 @@ export default {
     group: mapPref(GROUP_RESOURCES),
 
     groupable() {
-      const namespaced = !!get( this.schema, 'attributes.namespaced');
-
-      return this.$store.getters['multipleNamespaces'] && namespaced;
+      return this.$store.getters['multipleNamespaces'] && this.namespaced;
     },
 
     groupBy() {
