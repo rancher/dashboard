@@ -3,10 +3,10 @@
   z-index: 10000;
 
   .tooltip-inner {
-    background: black;
-    color: white;
-    border-radius: 16px;
-    padding: 5px 10px 4px;
+    background: var(--modal-overlay-bg);
+    color: var(--body-text);
+    border-radius: 6px;
+    padding: 20px;
   }
 
   .tooltip-arrow {
@@ -15,7 +15,7 @@
     border-style: solid;
     position: absolute;
     margin: 5px;
-    border-color: black;
+    border-color: var(--modal-overlay-bg);
     z-index: 1;
   }
 
@@ -84,10 +84,10 @@
 
     .popover-inner {
       background: $color;
-      color: black;
+      color: --modal-overlay-bg;
       padding: 10px;
       border-radius: 5px;
-      box-shadow: 0 5px 30px rgba(black, .1);
+      box-shadow: 0 5px 30px rgba(var(--modal-overlay-bg), .1);
     }
 
     .popover-arrow {

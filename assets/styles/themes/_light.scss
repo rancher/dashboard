@@ -100,7 +100,7 @@ $selected: rgba($primary, .5);
   --input-disabled-placeholder : darken($medium, 10%);
   --input-addon-bg             : #{$medium};
 
-  --modal-overlay-bg           : rgba(#{$lighter}, 0.75);
+  --modal-overlay-bg           : #{rgba($lighter, 0.75)};
 
   --progress-bg                : #{$medium};
   --progress-divider           : #{$medium};

@@ -91,7 +91,7 @@
   --input-disabled-placeholder : darken($disabled, 10%);
   --input-addon-bg             : #{$darker};
 
-  --modal-overlay-bg           : rgba(#000, 0.75);
+  --modal-overlay-bg           : #{rgba($darkest, 0.75)};
 
   --progress-bg                : #{$medium};
   --progress-divider           : #{$lightest};
