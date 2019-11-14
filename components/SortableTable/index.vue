@@ -213,7 +213,7 @@ export default {
       const expr = col.value;
 
       if ( expr ) {
-        if ( expr.startsWith('$') || expr.startsWith('.') ) {
+        if ( expr.startsWith('$') ) {
           try {
             return jsonpath.query(row, expr)[0];
           } catch (e) {

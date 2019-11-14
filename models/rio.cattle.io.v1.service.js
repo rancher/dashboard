@@ -52,7 +52,7 @@ export default {
     }
 
     return (this.spec.image || '')
-      .replace(/^index.docker.io\//i, '')
+      .replace(/^(index\.)?docker.io\/(library\/)?/i, '')
       .replace(/@sha256:[0-9a-f]+$/i, '')
       .replace(/:latest$/i, '')
       .replace(/localhost:5442\/(.*)/i, '$1 (local)');
