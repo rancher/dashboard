@@ -1,7 +1,16 @@
+import { findBy, insertAt } from '@/utils/array';
 
 export default {
   availableActions() {
-    const out = this._availableActions;
+    const out = this._standardActions;
+
+    const removeAction = findBy(out, 'altAction', ' remove');
+    let idx = out.length - 1;
+
+    if ( removeAction ) {
+      idx = out.indexOf(removeAction);
+    }
+
     const openShell = {
       action:     'openShell',
       enabled:    true,
@@ -17,7 +26,9 @@ export default {
       total:      1,
     };
 
-    out.push(openShell, openLogs);
+    insertAt(out, idx, openShell);
+    insertAt(out, idx + 1, openLogs);
+    insertAt(out, idx + 2, { divider: true });
 
     return out;
   },

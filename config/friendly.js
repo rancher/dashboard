@@ -3,6 +3,7 @@ import {
   STATE, NAME, NAMESPACE_NAME, AGE,
   RIO_IMAGE, WEIGHT, SCALE,
   KEYS, ENDPOINTS,
+  MATCHES, DESTINATION,
   TARGET, TARGET_KIND,
 } from '@/config/table-headers';
 import { _CREATE, _CLONE, _STAGE } from '@/config/query-params';
@@ -104,7 +105,14 @@ export const FRIENDLY = {
   routers: {
     singular: 'Router',
     plural:   'Routers',
-    type:     RIO.ROUTER
+    type:     RIO.ROUTER,
+    headers:  [
+      STATE,
+      NAMESPACE_NAME,
+      MATCHES,
+      DESTINATION,
+      AGE
+    ],
   },
 
   secrets: {

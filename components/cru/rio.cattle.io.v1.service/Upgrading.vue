@@ -27,18 +27,8 @@ export default {
 </script>
 <template>
   <div>
-    <div class="row">
+    <div v-if="spec.autoscale" class="row">
       <div class="col span-6">
-        <LabeledInput
-          key="weight"
-          v-model.number="spec.weight"
-          :mode="mode"
-          type="number"
-          min="0"
-          label="Weight"
-        />
-      </div>
-      <div v-if="spec.autoscale" class="col span-6">
         <LabeledInput
           key="concurrency"
           v-model.number="spec.autoscale.concurrency"

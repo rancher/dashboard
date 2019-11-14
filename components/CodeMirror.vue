@@ -43,6 +43,7 @@ export default {
       const out = {
         // codemirror options
         tabSize:                 2,
+        indentWithTabs:          false,
         mode:                    'yaml',
         keyMap:                  keymap,
         theme:                   `base16-${ theme }`,

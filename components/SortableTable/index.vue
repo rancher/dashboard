@@ -1,4 +1,5 @@
 <script>
+import jsonpath from 'jsonpath';
 import THead from './THead';
 import filtering from './filtering';
 import selection from './selection';
@@ -208,6 +209,26 @@ export default {
     get,
     dasherize,
 
+    valueFor(row, col) {
+      const expr = col.value;
+
+      if ( expr ) {
+        if ( expr.startsWith('$') ) {
+          try {
+            return jsonpath.query(row, expr)[0];
+          } catch (e) {
+            console.log('JSON Path error', e);
+
+            return '(JSON Path err)';
+          }
+        } else {
+          return get(row, expr);
+        }
+      } else {
+        return get(row, col.name);
+      }
+    },
+
     isExpanded(row) {
       const key = row[this.keyField];
 
@@ -319,9 +340,9 @@ export default {
                 >
                   <td :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'" :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}">
                     <slot :name="'cell:' + col.name" :row="row" :col="col">
-                      <component :is="col.formatter" v-if="col.formatter" :value="get(row, col.value||col.name)" :row="row" :col="col" />
+                      <component :is="col.formatter" v-if="col.formatter" :value="valueFor(row,col)" :row="row" :col="col" />
                       <template v-else>
-                        {{ get(row, col.value||col.name) }}
+                        {{ valueFor(row,col) }}
                       </template>
                     </slot>
                   </td>

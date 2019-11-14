@@ -29,7 +29,10 @@ export default {
     servicesForApp() {
       const services = this.$store.getters['cluster/all'](RIO.SERVICE);
 
-      return filterBy(services, 'app', this.row.app);
+      return filterBy(services, {
+        'app':                this.row.app,
+        'metadata.namespace': this.row.metadata.namespace,
+      });
     },
 
     totalForApp() {
