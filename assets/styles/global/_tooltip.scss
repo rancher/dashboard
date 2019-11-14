@@ -80,11 +80,11 @@
   }
 
   &.popover {
-    $color: #f9f9f9;
+    $color: var(--tooltip-bg);
 
     .popover-inner {
       background: $color;
-      color: --modal-overlay-bg;
+      color: var(--tooltip-text);
       padding: 10px;
       border-radius: 5px;
       box-shadow: 0 5px 30px rgba(var(--modal-overlay-bg), .1);
@@ -106,4 +106,8 @@
     opacity: 1;
     transition: opacity .15s;
   }
+}
+
+.v-popover {
+  display: inline;
 }
