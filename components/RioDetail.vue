@@ -16,7 +16,9 @@ export async function asyncData(ctx) {
   const friendly = FRIENDLY[resource];
   const type = friendly.type;
   const asYaml = route.query[EDIT_YAML] === _FLAGGED;
-  const mode = route.query[MODE];
+
+  // In the beginning, there was 20 bits of address-space, and it was... adequate.  Please enable your A20 handler now.
+  const realMode = route.query[MODE];
   const schema = store.getters['cluster/schemaFor'](type);
 
   let fqid = id;
@@ -33,17 +35,22 @@ export async function asyncData(ctx) {
     yaml = (await obj.followLink('view', { headers: { accept: 'application/yaml' } })).data;
   }
 
-  const forNew = mode === _CLONE || mode === _STAGE;
+  const forNew = realMode === _CLONE || realMode === _STAGE;
   const model = await store.dispatch('cluster/clone', { resource: obj });
 
   if ( friendly.applyDefaults ) {
-    friendly.applyDefaults(ctx, model, mode);
+    friendly.applyDefaults(ctx, model, realMode);
   }
 
   if ( forNew ) {
     cleanForNew(model);
   }
 
+  let mode = realMode;
+
+  if ( realMode === _STAGE || realMode === _CLONE ) {
+    mode = _CREATE;
+  }
   /*******
    * Important: these need to be declared below as props too
    *******/
@@ -52,7 +59,9 @@ export async function asyncData(ctx) {
     resource,
     model,
     yaml,
-    originalModel: obj
+    originalModel: obj,
+    mode,
+    realMode
   };
   /*******
    * Important: these need to be declared below as props too
@@ -66,6 +75,10 @@ export const watchQuery = [MODE, EDIT_YAML];
 export default {
   components: { ResourceYaml },
   mixins:     { CreateEditView },
+
+  provide() {
+    return { realMode: this.realMode };
+  },
 
   props: {
     asYaml: {
@@ -88,22 +101,17 @@ export default {
       type:    Object,
       default: null,
     },
+    mode: {
+      type:    String,
+      default: null
+    },
+    realMode: {
+      type:    String,
+      default: null
+    }
   },
 
   computed: {
-    // In the beginning, there was 20 bits of address-space, and it was... adequate.  Please enable your A20 handler now.
-    realMode() {
-      return this.$route.query.mode || _VIEW;
-    },
-
-    mode() {
-      if ( this.realMode === _STAGE || this.realMode === _CLONE ) {
-        return _CREATE;
-      }
-
-      return this.realMode;
-    },
-
     isView() {
       return this.mode === _VIEW;
     },
@@ -196,7 +204,6 @@ export default {
         :namespace-suffix-on-create="true"
         :type-label="typeDisplay"
         :mode="mode"
-        :real-mode="realMode"
       />
     </template>
   </div>

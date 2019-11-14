@@ -47,16 +47,12 @@ export default {
       type:     String,
       required: true,
     },
-    realMode: {
-      type:     String,
-      default: null,
-    },
     registerAfterHook: {
       type:    Function,
       default: null,
     }
   },
-
+  inject: ['realMode'],
   data() {
     const spec = this.spec;
     const buildImage = !!(spec && spec.build && spec.build.repo);

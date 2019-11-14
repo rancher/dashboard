@@ -38,13 +38,6 @@ export default {
 
   mixins:     [CreateEditView, LoadDeps],
 
-  props: {
-    realMode: {
-      type:    String,
-      default: null,
-    }
-  },
-
   data() {
     if ( !this.value.spec ) {
       this.value.spec = {};
@@ -198,7 +191,6 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
         :name-resource="nameResource"
         :is-sidecar="isSidecar"
         :mode="mode"
-        :real-mode="realMode || mode"
         :is-demo="isDemo"
         :register-after-hook="registerAfterHook"
       />
@@ -206,7 +198,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
       <a href="#" @click.prevent="toggleTabs">
         <span v-if="!showTabs">Show</span> <span v-else>Hide</span> additional options
       </a>
-      <Tabbed v-if="showTabs" default-tab="command">
+      <Tabbed v-show="showTabs" default-tab="command">
         <Tab name="command" label="Command">
           <Command :spec="spec" :mode="mode" :config-maps="configMaps" :secrets="secrets" :namespace="namespace" />
         </Tab>
