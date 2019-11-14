@@ -24,7 +24,7 @@ export default {
     },
     extraColumns: {
       type:    Array,
-      default: null
+      default: () => []
     },
     nameLabel: {
       type:    String,
