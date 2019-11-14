@@ -1,6 +1,4 @@
 <script>
-import { RIO } from '@/config/types';
-import { filterBy } from '@/utils/array';
 import LabeledInput from '@/components/form/LabeledInput';
 
 export default {
@@ -26,33 +24,8 @@ export default {
   },
 
   computed: {
-    servicesForApp() {
-      const services = this.$store.getters['cluster/all'](RIO.SERVICE);
-
-      return filterBy(services, {
-        'app':                this.row.app,
-        'metadata.namespace': this.row.metadata.namespace,
-      });
-    },
-
     totalForApp() {
-      let desired = 0;
-      let current = 0;
-      let count = 0;
-
-      for ( const service of this.servicesForApp ) {
-        const weights = service.weights;
-
-        desired += weights.desired || 0;
-        current += weights.current || 0;
-        count++;
-      }
-
-      return {
-        desired,
-        current,
-        count
-      };
+      return this.row.weightsOfApp;
     },
 
     desired() {
@@ -82,7 +55,7 @@ export default {
     },
 
     canAdjust() {
-      return this.totalForApp.count > 1;
+      return this.totalForApp.count > 1 && this.current !== 100;
     },
 
     newWeightValid() {
@@ -94,59 +67,15 @@ export default {
 
   methods: {
     onShown() {
-      this.$nextTick(() => {
+      setTimeout(() => {
         this.$refs.newPercent.focus();
-      });
+      }, 250);
     },
 
     setWeight() {
-      const currentPercent = this.desired || 0;
       const newPercent = this.newPercent || 0;
-      const totalWeight = this.totalForApp.desired;
-      const count = this.totalForApp.count;
 
-      if ( currentPercent === 100 ) {
-        if ( newPercent === 100 ) {
-          return;
-        } else if ( newPercent === 0 ) {
-          this.row.saveWeight(0);
-
-          return;
-        }
-
-        const weight = newWeight(100 - newPercent) / (count - 1);
-
-        for ( const svc of this.servicesForApp ) {
-          if ( svc === this.row ) {
-            continue;
-          }
-
-          svc.saveWeight(weight);
-        }
-      } else if ( totalWeight === 0 || newPercent === 100 ) {
-        this.row.saveWeight(10000);
-
-        for ( const svc of this.servicesForApp ) {
-          if ( svc === this.row ) {
-            continue;
-          }
-          svc.saveWeight(0);
-        }
-      } else {
-        const weight = newWeight(newPercent);
-
-        this.row.saveWeight(weight);
-      }
-
-      function newWeight(percent) {
-        if ( percent === 0 ) {
-          return 0;
-        }
-
-        const out = Math.round(totalWeight / (1 - (percent / 100))) - totalWeight;
-
-        return out;
-      }
+      this.row.saveWeightPercent(newPercent);
     },
   }
 };

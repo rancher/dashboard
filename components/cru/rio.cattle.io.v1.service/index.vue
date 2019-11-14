@@ -7,7 +7,7 @@ import Labels from './Labels';
 import Security from './Security';
 import Upgrading from './Upgrading';
 import Volumes from './Volumes';
-import { CONFIG_MAP, SECRET } from '@/config/types';
+import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
 import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import Tab from '@/components/Tabbed/Tab';
@@ -108,6 +108,7 @@ export default {
       const hash = await allHash({
         configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
         secrets:    this.$store.dispatch('cluster/findAll', { type: SECRET }),
+        services:    this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE }),
       });
 
       this.allSecrets = hash.secrets;
@@ -199,6 +200,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
         :mode="mode"
         :real-mode="realMode || mode"
         :is-demo="isDemo"
+        :register-after-hook="registerAfterHook"
       />
       <div class="spacer"></div>
       <a href="#" @click.prevent="toggleTabs">

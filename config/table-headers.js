@@ -1,5 +1,3 @@
-import { RIO } from './types';
-
 // Note: 'id' is always the last sort, so you don't have to specify it here.
 
 export const STATE = {

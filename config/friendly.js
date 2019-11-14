@@ -75,6 +75,14 @@ export const FRIENDLY = {
         model.spec.app = model.app;
         delete model.spec.version;
       }
+
+      if ( mode === _CREATE ) {
+        model.spec.weight = 10000;
+      } else if ( mode === _CLONE ) {
+        delete model.spec.weight;
+      } else if ( mode === _STAGE ) {
+        model.spec.weight = 0;
+      }
     },
   },
 

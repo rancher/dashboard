@@ -1,5 +1,6 @@
 import { allHash } from '@/utils/promise';
 import { findBy } from '@/utils/array';
+import { sortBy } from '@/utils/sort';
 
 let NEXT_ID = 1;
 
@@ -21,11 +22,11 @@ export default {
         throw new Error('Must specify key');
       }
 
-      const hooks = (this[key] || []).sortBy('priority', 'name');
+      const hooks = sortBy(this[key] || [], ['priority', 'name']);
       const promises = {};
 
       hooks.forEach((x) => {
-        promises[x.name] = x.fn(...args);
+        promises[x.name] = x.fn.apply(this, args);
       });
 
       return allHash(promises);
