@@ -136,6 +136,7 @@ export default {
   background-color: var(--diff-linenum-bg);
   color: var(--diff-linenum);
   border-color: var(--diff-linenum-border);
+  border-left: 0;
 }
 
 .d2h-code-line del,.d2h-code-side-line del {
@@ -149,11 +150,13 @@ export default {
 .d2h-del {
   background-color: var(--diff-del-bg);
   border-color: var(--diff-del-border);
+  color: var(--body-text);
 }
 
 .d2h-ins {
   background-color: var(--diff-ins-bg);
   border-color: var(--diff-ins-border);
+  color: var(--body-text);
 }
 
 .d2h-info {
