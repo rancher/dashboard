@@ -1,10 +1,11 @@
 import day from 'dayjs';
-import { insertAt } from '@/utils/array';
+import { insertAt, filterBy } from '@/utils/array';
 import { ADD_SIDECAR, _FLAGGED, MODE, _STAGE } from '@/config/query-params';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { addParams } from '@/utils/url';
 import { PRIVATE } from '@/plugins/norman/resource-proxy';
+import { RIO } from '@/config/types';
 
 const EMPTY = {};
 
@@ -228,8 +229,136 @@ export default {
     };
   },
 
+  allVersions() {
+    const services = this.$getters['all'](RIO.SERVICE);
+
+    const out = filterBy(services, {
+      'app':                this.app,
+      'metadata.namespace': this.metadata.namespace,
+    });
+
+    return out;
+  },
+
+  weightsOfApp() {
+    let desired = 0;
+    let current = 0;
+    let count = 0;
+
+    for ( const service of this.allVersions ) {
+      const weights = service.weights;
+
+      desired += weights.desired || 0;
+      current += weights.current || 0;
+      count++;
+    }
+
+    return {
+      desired,
+      current,
+      count
+    };
+  },
+
+  weights() {
+    let current = 0;
+    let desired = 0;
+
+    const fromSpec = this.spec.weight;
+
+    if ( this.status ) {
+      const fromStatus = this.status.computedWeight;
+
+      if ( typeof fromStatus === 'number' ) {
+        current = fromStatus;
+      } else if ( typeof fromSpec === 'number' ) {
+        current = fromSpec;
+      }
+
+      if ( typeof fromSpec === 'number' ) {
+        desired = fromSpec;
+      } else if ( typeof fromStatus === 'number' ) {
+        desired = fromStatus;
+      }
+    }
+
+    return { current, desired };
+  },
+
+  weightsPercent() {
+    const self = this.weights;
+    const app = this.weightsOfApp;
+
+    let desired = 0;
+    let current = 0;
+
+    if ( self.desired && app.desired ) {
+      desired = self.desired / app.desired * 100;
+    }
+
+    if ( self.current && app.current ) {
+      current = self.current / app.current * 100;
+    }
+
+    return { current, desired };
+  },
+
+  saveWeightPercent() {
+    return (newPercent) => {
+      const appInfo = this.weightsOfApp;
+      const totalWeight = appInfo.desired;
+      const currentPercent = (totalWeight === 0 ? 0 : this.weights.desired / totalWeight);
+      const currentWeight = this.spec.weight || 0;
+      const totalOfOthers = totalWeight - currentWeight;
+      const count = appInfo.count;
+
+      if ( currentPercent === 100 ) {
+        if ( newPercent === 100 ) {
+          return;
+        } else if ( newPercent === 0 ) {
+          return this.saveWeight(0);
+        }
+
+        const weight = newWeight(100 - newPercent) / (count - 1);
+
+        for ( const svc of this.allVersions ) {
+          if ( svc.id === this.id ) {
+            continue;
+          }
+
+          svc.saveWeight(weight);
+        }
+      } else if ( totalOfOthers === 0 || newPercent === 100 ) {
+        this.saveWeight(10000);
+
+        for ( const svc of this.allVersions ) {
+          if ( svc.id === this.id ) {
+            continue;
+          }
+
+          svc.saveWeight(0);
+        }
+      } else {
+        const weight = newWeight(newPercent);
+
+        this.saveWeight(weight);
+      }
+
+      function newWeight(percent) {
+        if ( percent === 0 ) {
+          return 0;
+        }
+
+        const out = Math.round(totalOfOthers / (1 - (percent / 100))) - totalOfOthers;
+
+        return out;
+      }
+    };
+  },
+
   saveWeight() {
     return async(neu) => {
+      console.log('Save Weight', this.spec.app, this.spec.version, neu);
       try {
         await this.patch([{
           op:    'replace',
@@ -240,32 +369,6 @@ export default {
         this.$dispatch('growl/fromError', { title: 'Error updating weight', err }, { root: true });
       }
     };
-  },
-
-  weights() {
-    let current = 0;
-    let desired = 0;
-    const spec = this.spec.weight;
-
-    if ( !this.status ) {
-      return { current, desired };
-    }
-
-    const status = this.status.computedWeight;
-
-    if ( typeof status === 'number' ) {
-      current = status;
-    } else if ( typeof spec === 'number' ) {
-      current = spec;
-    }
-
-    if ( typeof spec === 'number' ) {
-      desired = spec;
-    } else if ( typeof status === 'number' ) {
-      desired = status;
-    }
-
-    return { current, desired };
   },
 
   async pauseOrResume(pause = true) {

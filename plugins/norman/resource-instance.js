@@ -433,20 +433,36 @@ export default {
   },
 
   save() {
-    return (opt = {}) => {
+    return async(opt = {}) => {
       delete this.__rehydrate;
 
       if ( !opt.url ) {
-        opt.url = this.linkFor('self');
+        opt.url = this.linkFor('update') || this.linkFor('self');
       }
 
       if ( !opt.method ) {
         opt.method = (this.id ? 'put' : 'post');
       }
 
+      if ( !opt.headers ) {
+        opt.headers = {};
+      }
+
+      if ( !opt.headers['content-type'] ) {
+        opt.headers['content-type'] = 'application/json';
+      }
+
+      if ( !opt.headers['accept'] ) {
+        opt.headers['accept'] = 'application/json';
+      }
+
       opt.data = this;
 
-      return this.$dispatch('request', opt);
+      const res = await this.$dispatch('request', opt);
+
+      await this.$dispatch('load', res);
+
+      return res;
     };
   },
 

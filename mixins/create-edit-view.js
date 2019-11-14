@@ -1,4 +1,4 @@
-import ChildHook from './child-hook';
+import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
@@ -82,28 +82,27 @@ export default {
     async save(buttonDone) {
       this.errors = null;
       try {
+        await this.applyHooks(BEFORE_SAVE_HOOKS);
+
         if ( this.isCreate ) {
-          await this.schema.followLink('collection', {
-            urlSuffix: ( this.namespaceSuffixOnCreate ? `/${ this.value.metadata.namespace }` : null),
-            method:    'POST',
-            headers:   {
-              'content-type': 'application/json',
-              accept:         'application/json',
-            },
-            data: this.value,
-          });
+          let url = this.schema.linkFor('collection');
+
+          if ( this.namespaceSuffixOnCreate ) {
+            url += `/${ this.value.metadata.namespace }`;
+          }
+
+          const res = await this.value.save({ url });
+
+          Object.assign(this.value, res);
+          await this.value.$dispatch('load', this.value);
         } else {
-          await this.value.followLink('update', {
-            method:  'PUT',
-            headers: {
-              'content-type': 'application/json',
-              accept:         'application/json',
-            },
-            data: this.value,
-          });
+          await this.value.save();
         }
 
+        await this.applyHooks(AFTER_SAVE_HOOKS);
+
         buttonDone(true);
+
         this.done();
       } catch (err) {
         if ( err && err.response && err.response.data ) {

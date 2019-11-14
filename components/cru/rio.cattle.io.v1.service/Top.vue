@@ -23,6 +23,10 @@ export default {
   },
 
   props: {
+    value: {
+      type:     Object,
+      required: true,
+    },
     isDemo: {
       type:    Boolean,
       default: false
@@ -39,14 +43,14 @@ export default {
       type:     Object,
       required: true,
     },
-    value: {
-      type:     Object,
-      required: true,
-    },
     mode: {
       type:     String,
       required: true,
     },
+    registerAfterHook: {
+      type:    Function,
+      default: null,
+    }
   },
   inject: ['realMode'],
   data() {
@@ -87,7 +91,9 @@ export default {
       build,
       scaleInput,
       scaleMode,
-      buildModeLabels: BUILD_MODES,
+      buildModeLabels:      BUILD_MODES,
+      initialWeightPercent: this.value.weightsPercent.desired,
+      weightPercent:        this.value.weightsPercent.desired,
     };
   },
 
@@ -113,12 +119,60 @@ export default {
         };
       });
     },
+
+    showWeight() {
+      return this.realMode === 'stage' || this.realMode === 'edit';
+    },
+
+    showVersion() {
+      return this.realMode === 'stage' || this.realMode === 'edit';
+    },
+
+    showScale() {
+      return true;
+    },
+
+    showNamespace() {
+      return this.realMode === 'create';
+    },
+
+    extraColumns() {
+      const out = [];
+
+      if ( this.showVersion ) {
+        out.push('version');
+      }
+
+      if ( this.showWeight ) {
+        out.push('weight');
+      }
+
+      if ( this.showScale ) {
+        out.push('scale');
+      }
+
+      return out;
+    }
   },
 
   watch: {
     buildMode() {
       this.update();
     },
+  },
+
+  created() {
+    this.registerAfterHook(() => {
+      if ( this.realMode !== 'stage' && this.realMode !== 'edit' ) {
+        return;
+      }
+
+      if ( this.weightPercent === this.initialWeightPercent ) {
+        return;
+      }
+
+      return this.value.saveWeightPercent(this.weightPercent);
+    });
   },
 
   methods: {
@@ -184,7 +238,8 @@ export default {
       :value="value"
       :mode="mode"
       :name-label="isSidecar ? 'Container Name' : 'Service Name'"
-      :extra-column="!isSidecar"
+      :extra-columns="extraColumns"
+      :namespaced="showNamespace"
     >
       <template v-if="isSidecar" #name>
         <LabeledInput
@@ -206,7 +261,19 @@ export default {
           @input="updateGeneratedName"
         />
       </template>
-      <template v-if="!isSidecar" #extra>
+
+      <template #version>
+        <LabeledInput
+          key="version"
+          v-model="spec.version"
+          :mode="mode"
+          label="Version"
+          :disabled="realMode !== 'stage'"
+          @input="updateGeneratedName"
+        />
+      </template>
+
+      <template #scale>
         <LabeledInput
           key="scale"
           v-model="scaleInput"
@@ -222,14 +289,23 @@ export default {
           </template>
         </LabeledInput>
       </template>
-      <template v-if="realMode === 'edit' || realMode === 'stage'" #namespace>
+
+      <template #weight>
         <LabeledInput
-          key="version"
-          v-model="spec.version"
-          :mode="mode"
-          label="Version"
-          @input="updateGeneratedName"
-        />
+          ref="weightPercent"
+          v-model.number="weightPercent"
+          type="number"
+          label="Weight"
+          size="4"
+          min="0"
+          max="100"
+        >
+          <template #suffix>
+            <div class="addon">
+              %
+            </div>
+          </template>
+        </LabeledInput>
       </template>
     </NameNsDescription>
     <div class="spacer"></div>
