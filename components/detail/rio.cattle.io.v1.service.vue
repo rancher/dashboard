@@ -171,11 +171,6 @@ export default {
         <span>{{ value.spec.image }}</span>
       </div>
       <div>
-        <span>Endpoints</span>
-        <span v-for="endpoint in endpoints" :key="endpoint">{{ endpoint }}</span>
-        <span v-if="!endpoints.length">n/a</span>
-      </div>
-      <div>
         <span>Scale</span>
         <span>
           {{ value.status.scaleStatus.available }}
@@ -189,43 +184,61 @@ export default {
     <div>
       <h4>Pods</h4>
       <ResourceTable
-        class=""
         :schema="table.schema"
         :rows="table.rows"
         :headers="table.headers"
         :show-groups="false"
       />
     </div>
-    <div>
-      <h4>Ports</h4>
-      <table class="flat">
-        <thead>
-          <tr>
-            <th :width="eventColumns[0].width">
-              Listening Port
-            </th>
-            <th :width="eventColumns[1].width">
-              Protocol
-            </th>
-            <th>Target Port</th>
-            <th width="75px">
-              Exposed
-            </th>
-            <th width="75px">
-              Host Port
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="port in ports" :key="port.name">
-            <td>{{ port.port }}</td>
-            <td>{{ port.protocol }}</td>
-            <td>{{ port.targetPort }}</td>
-            <td>{{ yesno(port.expose ? port.expose : true) }}</td>
-            <td>{{ yesno(!!port.hostPort) }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="row">
+      <div class="col span-6">
+        <h4>Endpoints</h4>
+        <table class="flat">
+          <thead>
+            <tr>
+              <th>url</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="endpoint in endpoints" :key="endpoint">
+              <td>
+                <a :href="endpoint">{{ endpoint }}</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col span-6>">
+        <h4>Ports</h4>
+        <table class="flat">
+          <thead>
+            <tr>
+              <th :width="eventColumns[0].width">
+                Listening Port
+              </th>
+              <th :width="eventColumns[1].width">
+                Protocol
+              </th>
+              <th>Target Port</th>
+              <th width="75px">
+                Exposed
+              </th>
+              <th width="75px">
+                Host Port
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="port in ports" :key="port.name">
+              <td>{{ port.port }}</td>
+              <td>{{ port.protocol }}</td>
+              <td>{{ port.targetPort }}</td>
+              <td>{{ yesno(port.expose ? port.expose : true) }}</td>
+              <td>{{ yesno(!!port.hostPort) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
     <div>
       <h4>Events</h4>
@@ -295,6 +308,7 @@ export default {
     }
 
     & tr td:first-child, th:first-child{
+      text-align: left;
       margin-left: 15px;
     }
 
