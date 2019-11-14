@@ -279,14 +279,16 @@ export default {
             {{ schema.attributes.kind }}
           </nuxt-link>: {{ obj.id }}
         </span>
-        <span v-if="isPreview" v-trim-whitespace class="btn-group btn-xs mode">
-          <button type="button" :class="{'btn': true, 'btn-sm': true, 'bg-default': true, 'active': diffMode !== 'split'}" @click="diffMode='unified'">
-            <i class="icon icon-dot-open" />
-          </button>
-          <button type="button" :class="{'btn': true, 'btn-sm': true, 'bg-default': true, 'active': diffMode === 'split'}" @click="diffMode='split'">
-            <i class="icon icon-dot-half" />
-          </button>
-        </span>
+        <p>
+          <span v-if="isPreview" v-trim-whitespace class="btn-group btn-xs mode">
+            <button type="button" :class="{'btn': true, 'btn-xs': true, 'bg-default': true, 'active': diffMode !== 'split'}" @click="diffMode='unified'">
+              Unified
+            </button>
+            <button type="button" :class="{'btn': true, 'btn-xs': true, 'bg-default': true, 'active': diffMode === 'split'}" @click="diffMode='split'">
+              Split
+            </button>
+          </span>
+        </p>
       </h1>
       <div class="actions">
         <button v-if="!isView" type="button" class="btn bg-transparent" @click="cancel">

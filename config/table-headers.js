@@ -55,7 +55,6 @@ export const NODE = {
   name:  'node',
   label: 'Node',
   value: 'spec.nodeName',
-  width: 75
 };
 
 export const AGE = {
@@ -66,7 +65,7 @@ export const AGE = {
   search:     false,
   formatter:  'LiveDate',
   width:      75,
-  align:     'right'
+  align:     'left'
 };
 
 export const RIO_IMAGE = {

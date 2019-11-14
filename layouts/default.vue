@@ -257,6 +257,10 @@ export default {
         grid-area: title;
         margin: 0;
         padding-top: 4px;
+
+        .nuxt-link-active {
+          padding-right: 10px;
+        }
       }
 
       .actions {
