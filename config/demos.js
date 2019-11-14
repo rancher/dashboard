@@ -1,7 +1,7 @@
 export default {
   serviceFromGit: {
-    title:       'Deploy service from Dockerfile',
-    description: 'Clicking deploy will prefill the image section of Service with a Dockerfile.',
+    title:       'Create service from Dockerfile',
+    description: 'Clicking create will prefill the image section of a service with a demo Dockerfile.',
     createPath:  '/rio/services/create',
     spec:        {
       replicas: 1,
@@ -23,8 +23,8 @@ export default {
   },
 
   stackFromGit:  {
-    title:       'Create stack from GitHub',
-    description: 'Deploying a stack allows multiple resources to be deployed at once and updated through a rio file you keep in GitHub. Clicking deploy will pre-fill the stack fields with a demo rio file.',
+    title:       'Create stack from Riofile',
+    description: 'Creating a stack allows multiple resources to be created at once and updated through a rio file you keep in GitHub. Clicking create will pre-fill the stack fields with a demo Riofile.',
     createPath:  '/rio/stack/create',
     spec:        {
       build: {
