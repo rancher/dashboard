@@ -22,9 +22,9 @@ export default {
       type:    Boolean,
       default: true,
     },
-    extraColumn: {
-      type:    Boolean,
-      default: false,
+    extraColumns: {
+      type:    Array,
+      default: null
     },
     nameLabel: {
       type:    String,
@@ -112,11 +112,11 @@ export default {
     },
 
     colSpan() {
-      const cols = 1 + (this.namespaced ? 1 : 0) + (this.extraColumn ? 1 : 0);
+      const cols = 1 + (this.namespaced ? 1 : 0) + this.extraColumns.length;
       const span = 12 / cols;
 
       return `span-${ span }`;
-    }
+    },
   },
 
   watch: {
@@ -164,8 +164,8 @@ export default {
           />
         </slot>
       </div>
-      <div v-if="extraColumn" :class="{col: true, [colSpan]: true}">
-        <slot name="extra">
+      <div v-for="slot in extraColumns" :key="slot" :class="{col: true, [colSpan]: true}">
+        <slot :name="slot">
         </slot>
       </div>
     </div>

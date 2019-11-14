@@ -36,7 +36,6 @@ export default {
   },
 
   async asyncData(ctx) {
-    const { route } = ctx;
     const { resource } = ctx.params;
     const friendly = FRIENDLY[resource];
     const type = friendly.type;
