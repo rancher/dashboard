@@ -7,9 +7,7 @@ import { randomStr } from '@/utils/string';
 import Match from '@/components/cru/rio.cattle.io.v1.router/Match';
 import Destination from '@/components/cru/rio.cattle.io.v1.router/Destination';
 import Redirect from '@/components/cru/rio.cattle.io.v1.router/Redirect';
-// import RadioGroup from '@/components/form/RadioGroup';
 import Headers from '@/components/cru/rio.cattle.io.v1.router/Headers';
-// import Checkbox from '@/components/form/Checkbox';
 import Fault from '@/components/cru/rio.cattle.io.v1.router/Fault';
 export default {
   components: {
@@ -71,7 +69,8 @@ export default {
         match:   this.match,
         mirror:  this.shouldMirror ? this.mirror : {},
         headers: this.headers,
-        fault:   this.shouldFault ? this.fault : {}
+        fault:   this.shouldFault ? this.fault : {},
+        uuid:    this.spec.uuid
       };
 
       if (this.mode !== 'redirect') {
