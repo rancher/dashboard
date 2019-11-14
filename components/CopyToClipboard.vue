@@ -36,6 +36,7 @@ export default {
     waiting-label="Copying..."
     success-label="Copied!"
     error-label="Error Copying"
+    v-bind="$attrs"
     @click="clicked"
   />
 </template>
