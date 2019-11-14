@@ -40,7 +40,7 @@ export default {
             </template>
             <template v-slot:actions>
               <button class="btn role-secondary btn-sm" :disabled="!demo.spec" @click="createDemo(name)">
-                Create
+                Start
               </button>
             </template>
           </Card>
