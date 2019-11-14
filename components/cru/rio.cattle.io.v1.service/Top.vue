@@ -139,6 +139,13 @@ export default {
       }
     },
 
+    updateGeneratedName() {
+      const metadata = this.nameResource;
+      const spec = this.spec;
+
+      metadata.generateName = `${ spec.app }-`;
+    },
+
     updateScale(neu) {
       // Scale
       const parts = (neu || '').split(/\s*-\s*/, 2);
@@ -182,7 +189,6 @@ export default {
       :mode="mode"
       :name-label="isSidecar ? 'Container Name' : 'Service Name'"
       :extra-column="!isSidecar"
-      :use-generated-name="true"
     >
       <template v-if="isSidecar" #name>
         <LabeledInput
@@ -193,14 +199,15 @@ export default {
           :required="true"
         />
       </template>
-      <template v-else-if="realMode === 'stage'" #name>
+      <template v-else #name>
         <LabeledInput
           key="appName"
           v-model="spec.app"
           :mode="mode"
           label="App Name"
           :required="true"
-          :disabled="true"
+          :disabled="mode !== 'create'"
+          @input="updateGeneratedName"
         />
       </template>
       <template v-if="!isSidecar" #extra>
@@ -225,6 +232,7 @@ export default {
           v-model="spec.version"
           :mode="mode"
           label="Version"
+          @input="updateGeneratedName"
         />
       </template>
     </NameNsDescription>

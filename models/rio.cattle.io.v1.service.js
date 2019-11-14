@@ -26,7 +26,13 @@ export default {
   },
 
   nameDisplay() {
-    return `${ this.app } (${ this.version })`;
+    const version = this.version;
+
+    if ( version === 'v0' ) {
+      return this.app;
+    }
+
+    return `${ this.app }@${ this.version }`;
   },
 
   namespaceNameDisplay() {

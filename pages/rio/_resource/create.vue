@@ -1,6 +1,8 @@
 <script>
 import demos from '@/config/demos';
 import { FRIENDLY } from '@/config/friendly';
+import { _CREATE } from '@/config/query-params';
+
 export default {
   name: 'RioResourceCreate',
 
@@ -34,9 +36,10 @@ export default {
   },
 
   async asyncData(ctx) {
+    const { route } = ctx;
     const { resource } = ctx.params;
-    const mapping = FRIENDLY[resource];
-    const type = mapping.type;
+    const friendly = FRIENDLY[resource];
+    const type = friendly.type;
 
     const schema = ctx.store.getters['cluster/schemaFor'](type);
 
@@ -61,6 +64,10 @@ export default {
     };
 
     const model = await ctx.store.dispatch('cluster/create', data);
+
+    if ( friendly.applyDefaults ) {
+      friendly.applyDefaults(ctx, model, _CREATE);
+    }
 
     return {
       isDemo: !!ctx.query.demo,
