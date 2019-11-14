@@ -294,6 +294,8 @@ export default {
     & th{
       padding-bottom: 1rem;
       text-align: left;
+      font-weight: normal;
+      color: var(--secondary);
     }
 
     & :not(THEAD) tr{
@@ -336,7 +338,7 @@ export default {
       justify-content: flex-start;
 
       &:not(:last-child){
-      border-right: 1px solid var(--input-text);
+      border-right: 1px solid var(--border);
       }
 
       & >:not(:first-child){

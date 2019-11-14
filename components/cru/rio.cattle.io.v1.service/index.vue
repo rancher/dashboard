@@ -200,6 +200,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
         :real-mode="realMode || mode"
         :is-demo="isDemo"
       />
+      <div class="spacer"></div>
       <a href="#" @click.prevent="toggleTabs">
         <span v-if="!showTabs">Show</span> <span v-else>Hide</span> additional options
       </a>
