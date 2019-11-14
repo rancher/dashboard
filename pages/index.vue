@@ -24,7 +24,7 @@ export default {
         Discover Rio
       </h1>
       <br>
-      <span class="subtitle">Deploy preconfigured sample snacks</span>
+      <span class="subtitle">Learn about our new features by creating preconfigured resources</span>
     </header>
     <div class="row">
       <div class="col span-6">
@@ -40,7 +40,7 @@ export default {
             </template>
             <template v-slot:actions>
               <button class="btn role-secondary btn-sm" :disabled="!demo.spec" @click="createDemo(name)">
-                Deploy
+                Create
               </button>
             </template>
           </Card>
