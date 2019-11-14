@@ -45,9 +45,6 @@ export default {
         count++;
       }
 
-      desired = Math.max(1, desired);
-      current = Math.max(1, current);
-
       return {
         desired,
         current,
@@ -59,6 +56,10 @@ export default {
       const desired = this.row.weights.desired;
       const total = this.totalForApp.desired;
 
+      if ( total === 0 ) {
+        return 0;
+      }
+
       return Math.round(desired / total * 1000) / 10;
     },
 
@@ -67,7 +68,7 @@ export default {
       const total = this.totalForApp.current;
 
       if ( total === 0 ) {
-        return 100;
+        return 0;
       }
 
       return Math.round(current / total * 1000) / 10;
@@ -89,34 +90,59 @@ export default {
   },
 
   methods: {
+    onShown() {
+      this.$nextTick(() => {
+        this.$refs.newPercent.focus();
+      });
+    },
+
     setWeight() {
-      const current = this.desired;
-      const neu = this.newPercent;
-      const total = this.totalForApp.desired;
+      const currentPercent = this.desired || 0;
+      const newPercent = this.newPercent || 0;
+      const totalWeight = this.totalForApp.desired;
       const count = this.totalForApp.count;
 
-      if ( current === 100 ) {
-        if ( neu === 100 ) {
+      if ( currentPercent === 100 ) {
+        if ( newPercent === 100 ) {
+          return;
+        } else if ( newPercent === 0 ) {
+          this.row.saveWeight(0);
+
           return;
         }
 
-        const weight = newWeight(100 - neu) / (count - 1);
+        const weight = newWeight(100 - newPercent) / (count - 1);
 
         for ( const svc of this.servicesForApp ) {
-          if ( svc === this.crow ) {
+          if ( svc === this.row ) {
             continue;
           }
 
-          svc.setWeight(weight);
+          svc.saveWeight(weight);
+        }
+      } else if ( totalWeight === 0 || newPercent === 100 ) {
+        this.row.saveWeight(10000);
+
+        for ( const svc of this.servicesForApp ) {
+          if ( svc === this.row ) {
+            continue;
+          }
+          svc.saveWeight(0);
         }
       } else {
-        const weight = newWeight(neu);
+        const weight = newWeight(newPercent);
 
         this.row.saveWeight(weight);
       }
 
       function newWeight(percent) {
-        return Math.ceil(total / (1 - (percent / 100))) - total;
+        if ( percent === 0 ) {
+          return 0;
+        }
+
+        const out = Math.round(totalWeight / (1 - (percent / 100))) - totalWeight;
+
+        return out;
       }
     },
   }
@@ -124,7 +150,14 @@ export default {
 </script>
 
 <template>
-  <v-popover :class="{'hand': canAdjust}" placement="top" :open-group="row.id" :trigger="canAdjust ? 'click' : 'manual'" offset="1">
+  <v-popover
+    :class="{'hand': canAdjust}"
+    placement="top"
+    :open-group="row.id"
+    :trigger="canAdjust ? 'click' : 'manual'"
+    offset="1"
+    @apply-show="onShown"
+  >
     <div>
       <span v-if="totalForApp.count === 1" class="text-muted">
         &mdash;
@@ -142,6 +175,7 @@ export default {
       <div v-if="canAdjust" class="text-center pb-5">
         <form>
           <LabeledInput
+            ref="newPercent"
             v-model.number="newPercent"
             label="Target"
             size="4"
@@ -156,7 +190,7 @@ export default {
               </div>
             </template>
           </LabeledInput>
-          <button type="button" class="btn bg-primary btn-sm mt-20" :disabled="!newWeightValid" @click="setWeight">
+          <button type="submit" class="btn bg-primary btn-sm mt-20" :disabled="!newWeightValid" @click.stop.prevent="setWeight">
             Set
           </button>
         </form>
