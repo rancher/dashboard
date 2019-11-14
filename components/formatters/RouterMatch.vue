@@ -65,7 +65,7 @@ export default {
 </script>
 
 <template>
-  <span>
+  <span v-if="methodToShow">
     <span v-if="methodToShow==='headers'||methodToShow==='cookies'">
       {{ methodToShow }} = {{ valueToShow.name }}:{{ valueToShow.value }}
     </span>
@@ -74,6 +74,9 @@ export default {
     </span>
     <br />
     <span v-if="remaining>0" class="plus-more">+{{ remaining }} more</span>
+  </span>
+  <span v-else class="text-muted">
+    &mdash;
   </span>
 </template>
 
