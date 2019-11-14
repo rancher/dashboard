@@ -19,6 +19,8 @@ export default {
     mode(newProp) {
       if (newProp) {
         this.$modal.show('terminal');
+      } else {
+        this.$modal.hide('terminal');
       }
     }
   },
@@ -61,64 +63,87 @@ export default {
   <modal
     ref="modal"
     name="terminal"
-    :resizable="true"
+    :click-to-close="false"
     :adaptive="true"
-    height="auto"
+    width="95%"
+    height="95%"
     @before-close="hide"
   >
-    <div v-if="containers.length>1" class="controls-top">
-      <span>
-        ≥
+    <div class="controls-top">
+      <span v-show="containers.length>1">
+        <span class="fake-icon">
+          ≥
+        </span>
+        <v-select
+          class="inline"
+          :clearable="false"
+          :value="container"
+          :options="containers"
+          label="name"
+          @input="selectContainer"
+        >
+        </v-select>
       </span>
-      <v-select
-        :clearable="false"
-        :value="container"
-        :options="containers"
-        label="name"
-        @input="selectContainer"
-      >
-      </v-select>
+      <button type="button" class="btn role-secondary icon icon-btn icon-close" @click="hide" />
     </div>
     <div v-if="containers.length<=1" class="label-top">
       <span>
-        ≥ {{ container.name }}
+        {{ container.name }}
       </span>
+    </div>
+    <div class="connection-status" :class="{disconnected: !isOpen}">
+      <span v-if="!isOpen">Disconnected</span>
+      <span v-else>Connected</span>
     </div>
     <!-- use bound key here to make the terminal re-render every time container changes -->
     <Terminal
       v-if="mode==='openShell'"
       :key="container.name"
       :lines="backlog"
-      :class=" { disconnected: !isOpen }"
       :is-open="isOpen"
       @clearBacklog="$store.commit('shell/clearBacklog')"
       @resized="resized"
       @input="terminalInput"
       @terminalReady="terminalReady"
     />
-    <Logs v-if="mode==='openLogs'" :class=" { disconnected: !isOpen }" :backlog="backlog" />
+    <Logs v-if="mode==='openLogs'" :backlog="backlog" />
   </modal>
 </template>
 
 <style lang="scss">
 @import '@/node_modules/xterm/css/xterm.css';
+
+  .v--modal {
+    background-color: var(--box-bg);
+  }
+
   .v--modal-box{
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px -2px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px -2px rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
 
-    &  > :nth-child(2){
+    &  > :last-child{
       flex-grow: 1;
     }
   }
-  .terminal, .xterm, .xterm-viewport{
+
+  #terminal, .logs{
+    flex-grow:1;
+    width: 95%;
+    height: 95%;
+    margin: auto;
+    padding: 10px;
+    background-color: var(--nav-bg);
+    & .datestring {
+        color: var(--input-label)
+      }
+  }
+
+   .xterm, .xterm-viewport{
     width: 100%;
     height: 100%;
     background-color: var(--nav-bg );
-
-      & .datestring {
-        color: var(--input-label)
-      }
 
       & div {
         color: rgba(39,170,94,1);
@@ -126,45 +151,65 @@ export default {
   }
   .controls-top, .label-top {
     color: var(--dropdown-text);
-    margin: 5px;
+    width:95%;
+    margin: auto;
+    padding: 20px 0 20px 0;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+
+    & .fake-icon{
+      font-size: 1.5em;
+      padding: 8px 8px 8px 8px;
+      margin: 0;
+      border:none;
+      color: var(--input-text);
+    }
+
+    & > :first-child{
+      display: flex;
+      flex-grow: 1;
+    }
 
     & .v-select{
-      flex-grow: 1;
-      flex-basis: 0%;
-      border: none;
+        min-width: 300px;
+        flex-basis: 0%;
+        border: none;
 
-    & .vs__dropdown-toggle {
-      border: none;
-      background: var(--input-bg);
+      & .vs__dropdown-toggle {
+        border: none;
+        background: var(--input-bg);
+      }
+
+      & .vs__selected{
+        top: 0.4rem;
+      }
     }
-    & .vs__selected{
+
+    & button.icon-close {
+      border:none;
+      transform: scale(2);
       position: absolute;
-      top: 25%;
-      color: var(--dropdown-text)
+      top: 10px;
+      right: 10px;
     }
-  }}
+  }
 
   .label-top{
     margin: 15px;
   }
 
-  .v--modal {
-    background-color: var(--box-bg);
+  .connection-status{
+    width: 95%;
+    margin: auto;
+    display: flex;
+    justify-content: flex-end;
+    z-index: 1;
+    &.disconnected{
+      color: var(--error);
+    }
+    &:not(.disconnected) {
+      color: var(--success);
+    }
   }
-
-  .disconnected{
-     & > :nth-child(1) {
-       border: 1px solid red;
-     }
-    }
-    .socket-status{
-      // border: 1px dashed red;
-      align-self: flex-end;
-      position: relative;
-      top: 20px;
-      right: 10px;
-      z-index: 1;
-    }
 </style>

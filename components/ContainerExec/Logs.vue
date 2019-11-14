@@ -88,12 +88,15 @@ export default {
 
 <style scoped lang='scss'>
   .logs{
-     height: 80%;
-     overflow-y: scroll;
-     max-height: 80vh;
-     min-height: 500px;
+    min-height: 95%;
+    height: 95%;
+    min-width: 95%;
+    width: 95%;
+    overflow-y: scroll;
     scroll-behavior: smooth;
-    }
+    margin: auto;
+    padding: 10px;
+  }
 
    .controls-bottom{
     display: flex;
