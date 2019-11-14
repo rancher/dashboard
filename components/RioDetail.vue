@@ -18,7 +18,7 @@ export async function asyncData(ctx) {
   const asYaml = route.query[EDIT_YAML] === _FLAGGED;
 
   // In the beginning, there was 20 bits of address-space, and it was... adequate.  Please enable your A20 handler now.
-  const realMode = route.query[MODE];
+  const realMode = route.query.mode || _VIEW;
   const schema = store.getters['cluster/schemaFor'](type);
 
   let fqid = id;
