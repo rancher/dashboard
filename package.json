@@ -40,6 +40,7 @@
     "js-yaml": "^3.13.1",
     "jsdiff": "^1.1.1",
     "jsdom-global": "^3.0.2",
+    "jsonpath": "^1.0.2",
     "jszip": "^3.2.2",
     "lodash": "^4.17.15",
     "node-sass": "^4.12.0",

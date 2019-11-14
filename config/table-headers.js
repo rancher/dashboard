@@ -170,27 +170,40 @@ export const DESTINATION = {
 };
 
 export function headersFor(schema) {
-  let out = [];
-  const columns = schema.attributes.columns;
+  const out = [];
+  const attributes = schema.attributes || {};
+  const columns = attributes.columns;
+  const namespaced = attributes.namespaced;
 
-  if (schema.id === RIO.ROUTER) {
-    out = [STATE, NAME, MATCHES, DESTINATION, AGE];
+  let hasName = false;
 
-    return out;
-  }
   for ( const col of columns ) {
     if ( col.format === 'name' && col.field === 'metadata.name' ) {
-      out.push(NAMESPACE_NAME);
+      hasName = true;
+      out.push(namespaced ? NAMESPACE_NAME : NAME);
     } else if ( col.format === 'date' && col.field === 'metadata.creationTimestamp' ) {
       out.push(AGE);
     } else {
+      let formatter, width;
+
+      if ( col.format === 'date' || col.type === 'date' ) {
+        formatter = 'Date';
+        width = 120;
+      }
+
       out.push({
         name:  col.name.toLowerCase(),
         label: col.name,
-        value: col.field.replace(/^\./, ''),
-        sort:  [col.field]
+        value: col.field.startsWith('$') ? col.field : `$${ col.field }`,
+        sort:  [col.field],
+        formatter,
+        width,
       });
     }
+  }
+
+  if ( !hasName ) {
+    out.unshift(namespaced ? NAMESPACE_NAME : NAME);
   }
 
   return out;
