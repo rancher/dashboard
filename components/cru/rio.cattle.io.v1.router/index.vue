@@ -3,7 +3,7 @@
 
 import values from 'lodash/values';
 import pickBy from 'lodash/pickBy';
-import { get, clone } from '@/utils/object';
+import { get } from '@/utils/object';
 import { randomStr } from '@/utils/string';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
