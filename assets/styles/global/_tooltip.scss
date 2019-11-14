@@ -81,7 +81,6 @@
 
   &.popover {
     $color: var(--tooltip-bg);
-    display:inline;
 
     .popover-inner {
       background: $color;
@@ -107,4 +106,8 @@
     opacity: 1;
     transition: opacity .15s;
   }
+}
+
+.v-popover {
+  display: inline;
 }
