@@ -1,4 +1,5 @@
 <script>
+import { randomStr } from '@/utils/string';
 import LabeledInput from '@/components/form/LabeledInput';
 import CopyCode from '@/components/CopyCode';
 import AsyncButton from '@/components/AsyncButton';
@@ -16,6 +17,9 @@ export default {
 
   computed: {
     passwordSubmitDisabled() {
+      if ( this.useRandom ) {
+        return false;
+      }
       if ( !this.password || this.password !== this.confirm ) {
         return true;
       }
@@ -50,6 +54,7 @@ export default {
 
   async asyncData({ route, req, store }) {
     const current = route.query[SETUP] || '';
+    const password = randomStr();
     const serverUrlSetting = await store.dispatch('rancher/find', {
       type: RANCHER.SETTING,
       id:   'server-url',
@@ -103,10 +108,11 @@ export default {
     return {
       step:        parseInt(route.query.step, 10) || 1,
 
+      useRandom:   true,
       haveCurrent: !!current,
       username:    'admin',
       current,
-      password:    '',
+      password,
       confirm:     '',
 
       serverUrl,
@@ -149,6 +155,14 @@ export default {
       } catch (err) {
         buttonCb(false);
       }
+    },
+    manual() {
+      this.useRandom = false;
+      this.password = '';
+      this.$nextTick(() => {
+        this.$refs.password.focus();
+        this.$refs.password.select();
+      });
     },
 
     async finishServerSettings(buttonCb) {
@@ -300,6 +314,10 @@ export default {
           <p class="text-muted mb-20 mt-20" style="line-height: 1.2em;">
             The first order of business is to set a strong password for the default <code>admin</code> user.
           </p>
+          <p class="text-muted mb-40">
+            </h3>
+            We suggest using this random one generated just for you, but you enter your own if you like.
+          </p>
 
           <!-- For password managers... -->
           <input type="hidden" name="username" autocomplete="username" :value="username" />
@@ -320,16 +338,26 @@ export default {
               <LabeledInput
                 ref="password"
                 v-model.trim="password"
-                type="password"
+                :type="useRandom ? 'text' : 'password'"
                 autocomplete="new-password"
                 label="New Password"
-              />
+              >
+                <template v-if="useRandom" #suffix>
+                  <div class="addon">
+                    <CopyToClipboard :text="password" :show-label="false" />
+                  </div>
+                </template>
+              </LabeledInput>
+              <div v-if="useRandom" class="mt-5">
+                <a href="#" @click.prevent.stop="manual">Choose a password manually</a>
+              </div>
             </div>
           </div>
 
           <div class="mt-20">
             <div>
               <LabeledInput
+                v-show="!useRandom"
                 v-model.trim="confirm"
                 autocomplete="new-password"
                 type="password"
