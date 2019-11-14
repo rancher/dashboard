@@ -104,7 +104,7 @@ export default {
 <template>
   <thead>
     <tr>
-      <th v-if="tableActions" :width="checkWidth">
+      <th v-if="tableActions" :width="checkWidth" align="center">
         <input
           v-model="isAll"
           class="check"

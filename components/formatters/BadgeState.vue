@@ -28,7 +28,7 @@ export default {
   @import "@/assets/styles/base/_mixins.scss";
 
   .badge-state {
-    padding: 5px;
+    padding: 5px 5px 5px 0;
     border: 1px solid transparent;
     border-radius: 2px;
 
@@ -44,7 +44,7 @@ export default {
     display: inline-block;
     max-width: 100%;
     position: relative;
-    padding: 1px 10px;
+    padding: 1px 10px 1px 0;
     font-size: 1em;
     max-width: 110px;
     font-size: .85em;
