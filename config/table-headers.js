@@ -192,7 +192,7 @@ export function headersFor(schema) {
       out.push({
         name:  col.name.toLowerCase(),
         label: col.name,
-        value: col.field.startsWith('$') ? col.field : `$${ col.field }`,
+        value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
         sort:  [col.field],
         formatter,
         width,
