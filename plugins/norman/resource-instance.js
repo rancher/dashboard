@@ -251,7 +251,6 @@ export default {
   availableActions() {
     const all = this._availableActions;
 
-    debugger;
     // Remove disabled items and consecutive dividers
     let last = null;
     const out = all.filter((item) => {

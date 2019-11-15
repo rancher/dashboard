@@ -157,7 +157,7 @@ export default {
 
   methods: {
     showActions() {
-      this.$store.commit('selection/show', {
+      this.$store.commit('actionMenu/show', {
         resources: this.originalModel,
         elem:      this.$refs.actions,
       });

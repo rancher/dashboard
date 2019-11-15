@@ -201,7 +201,7 @@ export default {
     },
 
     availableActions() {
-      return this.$store.getters['selection/forTable'];
+      return this.$store.getters[`${ this.storeName }/forTable`];
     }
   },
 

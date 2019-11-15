@@ -11,13 +11,16 @@ export const state = function() {
   };
 };
 
-export const getters = {
-  showing:       state => state.show,
-  elem:          state => state.elem,
-  event:         state => state.event,
-  tableSelected: state => state.tableSelected || [],
+// default to initial state in args below in case something is called before registerModule
+const stateSchema = state();
 
-  forTable(state) {
+export const getters = {
+  showing:       (state = stateSchema) => state.show,
+  elem:          (state = stateSchema) => state.elem,
+  event:         (state = stateSchema) => state.event,
+  tableSelected: (state = stateSchema) => state.tableSelected || [],
+
+  forTable(state = stateSchema) {
     let disableAll = false;
     let selected = state.tableSelected;
     const all = state.tableAll;
@@ -70,7 +73,7 @@ export const getters = {
     return out;
   },
 
-  options(state) {
+  options(state = stateSchema) {
     let selected = state.resources;
 
     if ( !selected ) {
@@ -94,13 +97,13 @@ export const getters = {
     return { ...out };
   },
 
-  isSelected: state => (resource) => {
+  isSelected: (state = stateSchema) => (resource) => {
     return state.tableSelected.includes(resource);
   }
 };
 
 export const mutations = {
-  setTable(state, { table, clearSelection = false }) {
+  setTable(state = stateSchema, { table, clearSelection = false }) {
     const selected = state.tableSelected;
 
     state.tableAll = table;
@@ -121,8 +124,8 @@ export const mutations = {
     }
   },
 
-  update(state, { toAdd, toRemove }) {
-    const selected = state.tableSelected;
+  update(state = stateSchema, { toAdd, toRemove }) {
+    const selected = state.tableSelected || [];
 
     if (toRemove && toRemove.length) {
       removeObjects(selected, toRemove);
@@ -133,7 +136,7 @@ export const mutations = {
     }
   },
 
-  show(state, { resources, elem, event }) {
+  show(state = stateSchema, { resources, elem, event }) {
     if ( !isArray(resources) ) {
       resources = [resources];
     }
@@ -144,7 +147,7 @@ export const mutations = {
     state.show = true;
   },
 
-  hide(state) {
+  hide(state = stateSchema) {
     state.show = false;
     state.resources = null;
     state.elem = null;
@@ -159,6 +162,10 @@ export const actions = {
   execute({ state }, { action, args }) {
     return _execute(state.resources, action, args);
   },
+};
+
+export default {
+  state, actions, getters, mutations, namespaced: true
 };
 
 // -----------------------------
@@ -191,7 +198,6 @@ function _add(map, act, incrementCounts = true) {
     obj.available = (obj.available || 0) + (act.enabled === false ? 0 : 1 );
     obj.total = (obj.total || 0) + 1;
   }
-  debugger;
 
   return obj;
 }
