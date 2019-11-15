@@ -191,6 +191,7 @@ function _add(map, act, incrementCounts = true) {
     obj.available = (obj.available || 0) + (act.enabled === false ? 0 : 1 );
     obj.total = (obj.total || 0) + 1;
   }
+  debugger;
 
   return obj;
 }

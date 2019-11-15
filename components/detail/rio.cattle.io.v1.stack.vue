@@ -105,12 +105,28 @@ export default {
   <div>
     <Loading ref="loader" />
     <div v-if="loading" />
-    <div v-else>
-      <div v-for="(obj,idx) in childTypes" :key="obj.id" class="mt-20">
-        <hr v-if="idx>0" />
-        <h4>{{ obj.label }}</h4>
-        <ResourceTable :schema="obj.schema" :rows="obj.rows" :headers="obj.headers" />
+    <div v-else class="stack-detail">
+      <div class="detail-top">
+        <div>
+          <span>Namespace</span>
+          <span>{{ value.metadata.namespace }}</span>
+        </div>
+      </div>
+      <div>
+        <div v-for="(obj,idx) in childTypes" :key="obj.id" class=" mt-20">
+          <h4 class="mb-10">
+            {{ obj.label }}
+          </h4>
+          <ResourceTable :schema="obj.schema" :rows="obj.rows" :headers="obj.headers" :show-groups="false" />
+          <hr v-if="idx<childTypes.length" />
+        </div>
       </div>
     </div>
   </div>
 </template>
+
+<style>
+.stack-detail {
+  height: 100%;
+}
+</style>

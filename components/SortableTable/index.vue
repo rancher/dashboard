@@ -258,7 +258,7 @@ export default {
             :key="act.action"
             type="button"
             class="btn bg-primary btn-sm"
-            :disabled="!act.enabled"
+            :disabled="howMuchSelected==='none'"
             @click="applyTableAction(act)"
           >
             <i v-if="act.icon" :class="act.icon" />
