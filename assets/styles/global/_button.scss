@@ -107,8 +107,9 @@ button,
   background: var(--accent-btn);
   border: solid thin var(--link-text);
   color: var(--link-text);
-  padding: $sm-padding;
+  padding: 8px;
   border-radius: 3px;
+  line-height: 0;
 }
 
 
