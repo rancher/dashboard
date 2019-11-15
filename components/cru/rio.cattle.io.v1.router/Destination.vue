@@ -1,10 +1,9 @@
 <script>
-import { filterBy } from '../../../utils/array';
+import isEmpty from 'lodash/isEmpty';
 import { RIO } from '@/config/types';
-import LabeledInput from '@/components/form/LabeledInput';
+import { get } from '@/utils/object';
 
 export default {
-  components: { LabeledInput },
   props:      {
     spec: {
       type:     Object,
@@ -24,24 +23,28 @@ export default {
       type:    Boolean,
       default: false
     },
+    showPlaceholders: {
+      type:    Boolean,
+      default: false
+    },
     placeholders: {
       type:    Array,
-      default: () => ['Service', 'Version', 'Port', 'Weight']
+      default: () => ['App', 'Version', 'Port', 'Weight']
     }
   },
 
   data() {
     const {
-      namespace = 'default', port = '', app = {}, uuid, version = ''
+      namespace = 'default', port = '', app = '', uuid, version = ''
     } = this.spec;
 
     return {
       version,
       uuid,
-      services:    [],
+      apps:     [],
       namespace,
       port,
-      service:  app,
+      app,
       weight:     '',
       mode:       null
     };
@@ -49,7 +52,7 @@ export default {
   computed: {
     formatted() {
       return {
-        app:     this.service.metadata ? this.service.metadata.name : this.service,
+        app:     this.app,
         version:   this.pickVersion ? this.version : null,
         port:      this.port,
         weight:    this.weight,
@@ -57,21 +60,10 @@ export default {
       };
     },
     versions() {
-      if (this.computedApp) {
-        const app = this.service.status.computedApp;
-
-        const thisApp = filterBy(this.services, 'status.computedApp', app, );
-
-        return thisApp.map(service => service.status.computedVersion);
+      if (this.app && !isEmpty(this.apps)) {
+        return this.apps[this.app].map(service => service.version);
       } else {
         return [];
-      }
-    },
-    computedApp() {
-      if (this.service.status) {
-        return this.service.status.computedApp;
-      } else {
-        return null;
       }
     },
   },
@@ -81,13 +73,29 @@ export default {
   methods: {
     async getServices() {
       const services = await this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE });
-      const servicesinNS = JSON.parse(JSON.stringify(services));
+      const servicesinNS = [];
 
-      this.services = servicesinNS;
-      this.service = '';
+      services.forEach((service) => {
+        if ( get(service, 'metadata.namespace') === this.namespace) {
+          servicesinNS.push(service);
+        }
+      });
+
+      const apps = {};
+
+      servicesinNS.forEach((service) => {
+        if (!apps[service.app]) {
+          apps[service.app] = [service];
+        } else {
+          apps[service.app].push(service);
+        }
+      });
+
+      this.apps = apps;
     },
-    setService(service) {
-      this.service = service;
+    setApp(app) {
+      this.app = app;
+      this.version = '';
       this.updateDestination();
     },
     updateDestination() {
@@ -102,29 +110,28 @@ export default {
     <td>
       <v-select
         class="inline"
-        :placeholder="placeholders[0]"
-        :searchable="false"
         :clearable="false"
-        :value="service"
-        :get-option-label="option=>option.metadata ? option.metadata.name : option.id"
-        :options="services"
-        @input="setService"
+        :value="app"
+        :options="Object.keys(apps)"
+        :placeholder="showPlaceholders ? placeholders[0] : null"
+        @input="setApp"
       ></v-select>
     </td>
     <td v-if="pickVersion">
       <v-select
         v-model="version"
-        :placeholder="placeholders[1]"
         class="inline"
         :options="versions"
+        :placeholder="showPlaceholders ? placeholders[1] : null"
+
         @input="updateDestination"
       />
     </td>
     <td class="sm">
-      <LabeledInput v-model.number="port" type="number" :label="placeholders[2]" @input="updateDestination" />
+      <input v-model.number="port" type="number" :placeholder="showPlaceholders ? placeholders[2] : null" @input="updateDestination" />
     </td>
     <td v-if="isWeighted" class="sm">
-      <LabeledInput v-model.number="weight" type="number" :label="placeholders[3]" @input="updateDestination" />
+      <input v-model.number="weight" type="number" :placeholder="showPlaceholders ? placeholders[3] : null" @input="updateDestination" />
     </td>
     <td v-if="canRemove" class="sm">
       <button type="button" class="btn btn-sm role-link" @click="$emit('remove')">

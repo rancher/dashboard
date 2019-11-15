@@ -29,11 +29,9 @@ export default {
     const {
       match = {}, to = [{ uuid: randomStr() }], mirror = {}, rewrite = {}, redirect = {}, headers = {}, fault = {},
     } = this.spec;
-    let mode = 'forwardOne';
+    let mode = 'forwardMany';
 
-    if (to.length > 1) {
-      mode = 'forwardMany';
-    } else if (this.spec.redirect) {
+    if (this.spec.redirect) {
       mode = 'redirect';
     }
 
@@ -137,13 +135,8 @@ export default {
       <div class="row">
         <div class="col span-12">
           <label class="radio">
-            <input v-model="mode" type="radio" value="forwardOne">
-            Forward to One Service
-          </label>
-
-          <label class="radio">
             <input v-model="mode" type="radio" value="forwardMany">
-            Forward to Multiple Services
+            Forward to a Service
           </label>
 
           <label class="radio">
@@ -157,7 +150,7 @@ export default {
           <table class="inputs-table">
             <tr>
               <th class="input-col">
-                Service
+                App
               </th>
               <th class="input-col">
                 Version
@@ -165,7 +158,7 @@ export default {
               <th class="input-col sm">
                 Port
               </th>
-              <th v-if="mode==='forwardMany'" class="input-col sm">
+              <th v-if="to.length>1" class="input-col sm">
                 Weight
               </th>
               <th class="input-col sm">
@@ -174,8 +167,7 @@ export default {
             <Destination
               v-for="(destination, i) in to"
               :key="destination.uuid"
-              :placeholders="['xxxx', 'xxxx', 'xxxx', 'xxxx']"
-              :is-weighted="mode==='forwardMany'"
+              :is-weighted="to.length>1"
               :spec="destination"
               :can-remove="to.length>1"
               @input="change('to', $event, i)"
@@ -217,7 +209,14 @@ export default {
     <div v-if="shouldMirror" class="row">
       <div class="col span-12">
         <table class="inputs-table">
-          <Destination v-if="shouldMirror" :pick-version="false" :spec="mirror" :is-weighted="false" @input="e=>change('mirror', e)" />
+          <Destination
+            v-if="shouldMirror"
+            show-placeholders
+            :pick-version="false"
+            :spec="mirror"
+            :is-weighted="false"
+            @input="e=>change('mirror', e)"
+          />
         </table>
       </div>
     </div>
