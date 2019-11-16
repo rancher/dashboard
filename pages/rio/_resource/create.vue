@@ -6,6 +6,10 @@ import { _CREATE } from '@/config/query-params';
 export default {
   name: 'RioResourceCreate',
 
+  provide() {
+    return { realMode: 'create' };
+  },
+
   // mixins:   { CreateEditView },
   computed: {
     doneRoute() {

@@ -325,7 +325,6 @@ export default {
             The first order of business is to set a strong password for the default <code>admin</code> user.
           </p>
           <p class="text-muted mb-40">
-            </h3>
             We suggest using this random one generated just for you, but you enter your own if you like.
           </p>
 
@@ -407,12 +406,14 @@ export default {
                 </label>
                 <v-popover placement="right">
                   <i class="icon icon-info" />
-                  <span slot="popover">Rancher Labs would like to collect a bit of anonymized information<br />
-                    about the configuration of your installation to help make Rio better.<br /></br>
+                  <span slot="popover">
+                    Rancher Labs would like to collect a bit of anonymized information<br />
+                    about the configuration of your installation to help make Rio better.<br /><br />
                     Your data will not be shared with anyone else, and no information about<br />
                     what specific resources or endpoints you are deploying is included.<br />
                     Once enabled you can view exactly what data will be sent at <code>/v1-telemetry</code>.<br /><br />
-                    <a href="https://rancher.com/docs/rancher/v2.x/en/faq/telemetry/" target="_blank">More Info</a></span>
+                    <a href="https://rancher.com/docs/rancher/v2.x/en/faq/telemetry/" target="_blank">More Info</a>
+                  </span>
                 </v-popover>
               </div>
             </div>

@@ -239,7 +239,7 @@ export default {
     .outlet {
       padding: 20px 20px 70px 20px;
       min-height: 100%;
-      margin-bottom: -50px;
+      margin-bottom: -51px;
     }
 
     FOOTER {
