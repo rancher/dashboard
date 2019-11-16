@@ -288,6 +288,7 @@ export default {
     const all = [];
     const links = this.links || {};
     const friendly = TO_FRIENDLY[this.type.replace(/^rio-/i, '')];
+    const hasView = !!links.rioview || !!links.view;
 
     all.push({
       action:  'goToEdit',
@@ -310,7 +311,7 @@ export default {
         action:  'viewEditYaml',
         label:   (links.update ? 'View/Edit YAML' : 'View YAML'),
         icon:    'icon icon-file',
-        enabled:  !!links.view,
+        enabled:  hasView,
       });
     }
 
@@ -318,7 +319,7 @@ export default {
       action:     'download',
       label:      'Download YAML',
       icon:       'icon icon-fw icon-download',
-      enabled:    !!links.view,
+      enabled:    hasView,
       bulkable:   true,
       bulkAction: 'downloadBulk',
     });
@@ -340,7 +341,7 @@ export default {
       label:     'Delete',
       icon:      'icon icon-fw icon-trash',
       bulkable:  true,
-      enabled:   !!links.view,
+      enabled:   !!links.remove,
     });
 
     return all;
@@ -564,7 +565,8 @@ export default {
 
   download() {
     return async() => {
-      const value = await this.followLink('view', { headers: { accept: 'application/yaml' } });
+      const link = this.hasLink('rioview') ? 'rioview' : 'view';
+      const value = await this.followLink(link, { headers: { accept: 'application/yaml' } });
 
       downloadFile(`${ this.nameDisplay }.yaml`, value.data, 'application/yaml');
     };
@@ -587,7 +589,9 @@ export default {
       }
 
       await eachLimit(items, 10, (item, idx) => {
-        return item.followLink('view', { headers: { accept: 'application/yaml' } } ).then((data) => {
+        const link = item.hasLink('rioview') ? 'rioview' : 'view';
+
+        return item.followLink(link, { headers: { accept: 'application/yaml' } } ).then((data) => {
           files[`resources/${ names[idx] }`] = data;
         });
       });

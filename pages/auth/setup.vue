@@ -2,6 +2,7 @@
 import { randomStr } from '@/utils/string';
 import LabeledInput from '@/components/form/LabeledInput';
 import CopyCode from '@/components/CopyCode';
+import CopyToClipboard from '@/components/CopyToClipboard';
 import AsyncButton from '@/components/AsyncButton';
 import { SETUP, STEP, _DELETE } from '@/config/query-params';
 import { RANCHER } from '@/config/types';
@@ -12,7 +13,7 @@ export default {
   layout: 'plain',
 
   components: {
-    AsyncButton, CopyCode, LabeledInput
+    AsyncButton, CopyCode, LabeledInput, CopyToClipboard,
   },
 
   computed: {
@@ -33,6 +34,14 @@ export default {
 
     serverSubmitDisabled() {
       if ( !this.serverUrl ) {
+        return true;
+      }
+
+      return false;
+    },
+
+    githubSubmitDisabled() {
+      if ( !this.clientId || !this.clientSecret ) {
         return true;
       }
 
@@ -156,6 +165,7 @@ export default {
         buttonCb(false);
       }
     },
+
     manual() {
       this.useRandom = false;
       this.password = '';
@@ -315,7 +325,6 @@ export default {
             The first order of business is to set a strong password for the default <code>admin</code> user.
           </p>
           <p class="text-muted mb-40">
-            </h3>
             We suggest using this random one generated just for you, but you enter your own if you like.
           </p>
 
@@ -339,12 +348,13 @@ export default {
                 ref="password"
                 v-model.trim="password"
                 :type="useRandom ? 'text' : 'password'"
+                :readonly="useRandom"
                 autocomplete="new-password"
                 label="New Password"
               >
                 <template v-if="useRandom" #suffix>
-                  <div class="addon">
-                    <CopyToClipboard :text="password" :show-label="false" />
+                  <div class="addon" style="padding: 0 0 0 12px;">
+                    <CopyToClipboard :text="password" class="btn-sm" />
                   </div>
                 </template>
               </LabeledInput>
@@ -367,7 +377,7 @@ export default {
           </div>
 
           <div class="mt-20">
-            <AsyncButton key="passwordSubmit" mode="continue" :disabled="passwordSubmitDisabled" @click="finishPassword" />
+            <AsyncButton key="passwordSubmit" type="submit" mode="continue" :disabled="passwordSubmitDisabled" @click="finishPassword" />
           </div>
         </div>
         <div class="col span-6">
@@ -396,19 +406,21 @@ export default {
                 </label>
                 <v-popover placement="right">
                   <i class="icon icon-info" />
-                  <span slot="popover">Rancher Labs would like to collect a bit of anonymized information<br />
-                    about the configuration of your installation to help make Rio better.<br /></br>
+                  <span slot="popover">
+                    Rancher Labs would like to collect a bit of anonymized information<br />
+                    about the configuration of your installation to help make Rio better.<br /><br />
                     Your data will not be shared with anyone else, and no information about<br />
                     what specific resources or endpoints you are deploying is included.<br />
                     Once enabled you can view exactly what data will be sent at <code>/v1-telemetry</code>.<br /><br />
-                    <a href="https://rancher.com/docs/rancher/v2.x/en/faq/telemetry/" target="_blank">More Info</a></span>
+                    <a href="https://rancher.com/docs/rancher/v2.x/en/faq/telemetry/" target="_blank">More Info</a>
+                  </span>
                 </v-popover>
               </div>
             </div>
           </div>
 
           <div class="mt-20">
-            <AsyncButton key="serverSubmit" mode="continue" :disabled="serverSubmitDisabled" @click="finishServerSettings" />
+            <AsyncButton key="serverSubmit" type="submit" mode="continue" :disabled="serverSubmitDisabled" @click="finishServerSettings" />
           </div>
         </div>
 
@@ -500,7 +512,7 @@ export default {
             <button type="button" class="btn bg-default mr-20" @click="done">
               Skip
             </button>
-            <AsyncButton key="githubSubmit" mode="continue" :disabled="serverSubmitDisabled" @click="testGithub" />
+            <AsyncButton key="githubSubmit" type="submit" mode="continue" :disabled="githubSubmitDisabled" @click="testGithub" />
           </div>
         </div>
         <div class="col span-6">
@@ -537,7 +549,7 @@ export default {
             </label>
           </div>
           <div class="mt-20">
-            <AsyncButton key="githubSubmit" mode="done" @click="setAuthorized" />
+            <AsyncButton key="githubSubmit" type="submit" mode="done" @click="setAuthorized" />
           </div>
         </div>
         <div class="col span-6">

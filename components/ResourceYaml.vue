@@ -218,7 +218,9 @@ export default {
             data: this.currentValue,
           });
         } else {
-          await this.obj.followLink('update', {
+          const link = this.obj.hasLink('rioupdate') ? 'rioupdate' : 'update';
+
+          await this.obj.followLink(link, {
             method:  'PUT',
             headers: {
               'content-type': 'application/yaml',
@@ -268,16 +270,14 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div class="root">
     <header>
       <h1>
         <span v-if="isCreate">
           Create {{ schema.attributes.kind }}
         </span>
         <span v-else>
-          <nuxt-link :to="parentLink">
-            {{ schema.attributes.kind }}
-          </nuxt-link>: {{ obj.id }}
+          {{ schema.attributes.kind }}: {{ obj.id }}
         </span>
       </h1>
       <div class="actions">
@@ -306,11 +306,11 @@ export default {
       </div>
     </header>
     <div class="text-right">
-      <span v-if="isPreview" v-trim-whitespace class="btn-group btn-sm mode">
-        <button type="button" :class="{'btn': true, 'btn-sm': true, 'bg-default': true, 'active': diffMode !== 'split'}" @click="diffMode='unified'">
+      <span v-if="isPreview" v-trim-whitespace class="btn-group btn-sm diff-mode">
+        <button type="button" class="btn btn-sm bg-default" :class="{'active': diffMode !== 'split'}" @click="diffMode='unified'">
           Unified
         </button>
-        <button type="button" :class="{'btn': true, 'btn-sm': true, 'bg-default': true, 'active': diffMode === 'split'}" @click="diffMode='split'">
+        <button type="button" class="btn btn-sm bg-default" :class="{'active': diffMode === 'split'}" @click="diffMode='split'">
           Split
         </button>
       </span>
@@ -336,8 +336,14 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .mode {
-    position: relative;
-    top: -4px;
+  @import "@/assets/styles/base/_variables.scss";
+  @import "@/assets/styles/base/_functions.scss";
+  @import "@/assets/styles/base/_mixins.scss";
+
+  .diff-mode {
+    position: absolute;
+    top: 95px;
+    right: 21px;
+    z-index: z-index('overContent');
   }
 </style>

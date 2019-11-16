@@ -32,7 +32,9 @@ export async function asyncData(ctx) {
   let yaml = null;
 
   if ( asYaml ) {
-    yaml = (await obj.followLink('view', { headers: { accept: 'application/yaml' } })).data;
+    const link = obj.hasLink('rioview') ? 'rioview' : 'view';
+
+    yaml = (await obj.followLink(link, { headers: { accept: 'application/yaml' } })).data;
   }
 
   const forNew = realMode === _CLONE || realMode === _STAGE;
