@@ -513,7 +513,7 @@ export default {
       <div class="row">
         <div class="col span-6">
           <h1>GitHub Integration, Part Deux</h1>
-          <p class="text-muted">
+          <p class="text-muted mb-20 mt-20">
             Who should be able to login?
           </p>
           <div>
@@ -551,7 +551,9 @@ export default {
 <style lang="scss" scoped>
   .principal {
     display: block;
+    background: var(--box-bg);
     border: 1px solid var(--border);
+    border-radius: 3px;
     margin: 10px 0;
     padding: 10px;
     line-height: 40px;
