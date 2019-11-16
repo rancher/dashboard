@@ -513,7 +513,7 @@ export default {
       <div class="row">
         <div class="col span-6">
           <h1>GitHub Integration, Part Deux</h1>
-          <p class="text-muted">
+          <p class="text-muted mb-20 mt-20">
             Who should be able to login?
           </p>
           <div>
