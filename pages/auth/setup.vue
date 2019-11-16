@@ -551,7 +551,9 @@ export default {
 <style lang="scss" scoped>
   .principal {
     display: block;
+    background: var(--box-bg);
     border: 1px solid var(--border);
+    border-radius: 3px;
     margin: 10px 0;
     padding: 10px;
     line-height: 40px;
