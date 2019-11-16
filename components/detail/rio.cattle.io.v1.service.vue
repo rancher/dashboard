@@ -161,7 +161,7 @@ export default {
 
 <template>
   <div class="service-detail">
-    <div class="flatter">
+    <div class="detail-top">
       <div>
         <span>Namespace</span>
         <span>{{ namespace }}</span>
@@ -326,7 +326,7 @@ export default {
       opacity: 0.5
     }
   }
-  .flatter{
+  .detail-top{
     display: flex;
     min-height: 75px;
     & > * {

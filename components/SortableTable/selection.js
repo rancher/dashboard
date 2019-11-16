@@ -1,14 +1,17 @@
 import $ from 'jquery';
+import selectionStore from './selectionStore';
 import { isMore, isRange, suppressContextMenu } from '@/utils/platform';
 import { get } from '@/utils/object';
-
+import { randomStr } from '~/utils/string';
 export const ALL = 'all';
 export const SOME = 'some';
 export const NONE = 'none';
 
 export default {
   created() {
-    this.$store.commit('selection/setTable', {
+    // give each sortableTable its own selection Vuex module
+    this.$store.registerModule(this.storeName, selectionStore, { preserveState: false });
+    this.$store.commit(`${ this.storeName }/setTable`, {
       table:          this.pagedRows,
       clearSelection: true,
     });
@@ -32,11 +35,14 @@ export default {
     $table.off('click', '> TBODY > TR', this._onRowClickBound);
     $table.off('mousedown', '> TBODY > TR', this._onRowMousedownBound);
     $table.off('contextmenu', '> TBODY > TR', this._onRowContextBound);
+
+    // get rid of the selection Vuex module when the table is destroyed
+    this.$store.unregisterModule(this.storeName);
   },
 
   computed: {
     selectedNodes() {
-      return this.$store.getters['selection/tableSelected'];
+      return this.$store.getters[`${ this.storeName }/tableSelected`];
     },
 
     howMuchSelected() {
@@ -53,7 +59,7 @@ export default {
     },
   },
 
-  data: () => ({ prevNode: null }),
+  data: () => ({ prevNode: null, storeName: randomStr() }),
 
   methods: {
     onToggleAll(value) {
@@ -138,7 +144,7 @@ export default {
       const actionElement = $(e.target).closest('.actions')[0];
 
       if ( actionElement ) {
-        this.$store.commit('selection/show', {
+        this.$store.commit(`actionMenu/show`, {
           resources: node,
           elem:      actionElement
         });
@@ -194,7 +200,7 @@ export default {
         this.update([node], this.selectedNodes.slice());
       }
 
-      this.$store.commit('selection/show', {
+      this.$store.commit(`actionMenu/show`, {
         resources: this.selectedNodes,
         event:     e.originalEvent,
       });
@@ -265,7 +271,7 @@ export default {
       const add = [];
       const remove = [];
 
-      if ( this.$store.getters['selection/isSelected'](node) ) {
+      if ( this.$store.getters[`${ this.storeName }/isSelected`](node) ) {
         remove.push(node);
       } else {
         add.push(node);
@@ -275,7 +281,7 @@ export default {
     },
 
     update(toAdd, toRemove) {
-      this.$store.commit('selection/update', { toAdd, toRemove });
+      this.$store.commit(`${ this.storeName }/update`, { toAdd, toRemove });
 
       if (toRemove.length) {
         this.$nextTick(() => {
@@ -317,15 +323,7 @@ export default {
     },
 
     applyTableAction(action, args) {
-      this.$store.dispatch('selection/executeTable', { action, args });
-    }
-  },
-
-  watch: {
-    pagedRows: {
-      handler(nowNodes, beforeNodes) {
-        this.$store.commit('selection/setTable', { table: this.pagedRows });
-      },
+      this.$store.dispatch(`${ this.storeName }/executeTable`, { action, args });
     }
   }
 };

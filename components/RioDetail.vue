@@ -157,7 +157,7 @@ export default {
 
   methods: {
     showActions() {
-      this.$store.commit('selection/show', {
+      this.$store.commit('actionMenu/show', {
         resources: this.originalModel,
         elem:      this.$refs.actions,
       });
@@ -208,3 +208,67 @@ export default {
     </template>
   </div>
 </template>
+
+<style lang='scss'>
+  .flat {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    & th{
+      padding-bottom: 1rem;
+      text-align: left;
+      font-weight: normal;
+      color: var(--secondary);
+    }
+
+    & :not(THEAD) tr{
+      border-bottom: 1px solid var(--border);
+
+      & td {
+        padding: 10px 0 10px 0;
+      }
+    }
+    & tr td:last-child, th:last-child{
+      text-align: right;
+    }
+
+    & tr td:first-child, th:first-child{
+      text-align: left;
+      margin-left: 15px;
+    }
+
+    & .click-row a{
+      color: var(--input-text);
+    }
+
+    & .click-row:hover{
+      @extend .faded;
+    }
+
+    & .faded {
+      opacity: 0.5
+    }
+  }
+  .detail-top{
+    display: flex;
+    height: 75px;
+
+    & > * {
+      margin-right: 20px;
+      padding: 10px 0 10px 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+
+      &:not(:last-child){
+      border-right: 1px solid var(--border);
+      }
+
+      & >:not(:first-child){
+        color: var(--input-label);
+        padding: 3px;
+      }
+    }
+  }
+</style>

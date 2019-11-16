@@ -140,7 +140,7 @@ export default {
       table-actions
       v-on="$listeners"
     >
-      <template v-if="groupable" #header-middle>
+      <template v-if="groupable && showGroups" #header-middle>
         <slot name="more-header-middle" />
         <ButtonGroup v-model="group" :options="groupOptions" />
       </template>

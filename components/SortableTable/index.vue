@@ -201,7 +201,7 @@ export default {
     },
 
     availableActions() {
-      return this.$store.getters['selection/forTable'];
+      return this.$store.getters[`${ this.storeName }/forTable`];
     }
   },
 
@@ -258,7 +258,7 @@ export default {
             :key="act.action"
             type="button"
             class="btn bg-primary btn-sm"
-            :disabled="!act.enabled"
+            :disabled="howMuchSelected==='none'"
             @click="applyTableAction(act)"
           >
             <i v-if="act.icon" :class="act.icon" />
