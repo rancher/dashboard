@@ -36,12 +36,12 @@ export function rioPackage($router, counts, namespaces) {
     name:     'rio',
     label:    'Rio',
     children: [
+      /*
       {
         name:    'rio-graph',
         label:   'Service Mesh',
         route:   { name: 'rio-mesh' },
       },
-      /*
       {
         name:    'rio-dashboard',
         label:   'Dashboard',
