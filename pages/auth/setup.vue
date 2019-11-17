@@ -32,14 +32,6 @@ export default {
       return false;
     },
 
-    serverSubmitDisabled() {
-      if ( !this.serverUrl ) {
-        return true;
-      }
-
-      return false;
-    },
-
     githubSubmitDisabled() {
       if ( !this.clientId || !this.clientSecret ) {
         return true;
@@ -64,12 +56,6 @@ export default {
   async asyncData({ route, req, store }) {
     const current = route.query[SETUP] || '';
     const password = randomStr();
-    const serverUrlSetting = await store.dispatch('rancher/find', {
-      type: RANCHER.SETTING,
-      id:   'server-url',
-      opt:  { url: '/v3/settings/server-url' }
-    });
-
     const telemetrySetting = await store.dispatch('rancher/find', {
       type: RANCHER.SETTING,
       id:   'telemetry-opt',
@@ -89,17 +75,12 @@ export default {
       opt:  { url: '/v3/principals' }
     });
 
-    let origin;
-    let serverUrl = serverUrlSetting.value;
+    let serverUrl;
 
     if ( process.server ) {
-      origin = req.headers.host;
+      serverUrl = req.headers.host;
     } else {
-      origin = window.location.origin;
-    }
-
-    if ( !serverUrl ) {
-      serverUrl = origin;
+      serverUrl = window.location.origin;
     }
 
     const telemetry = telemetrySetting.value !== 'out';
@@ -125,7 +106,6 @@ export default {
       confirm:     '',
 
       serverUrl,
-      serverUrlSetting,
 
       telemetry,
       telemetrySetting,
@@ -145,6 +125,9 @@ export default {
   methods: {
     async finishPassword(buttonCb) {
       try {
+        this.telemetrySetting.value = this.telemetry ? 'in' : 'out';
+        await this.telemetrySetting.save();
+
         await this.$store.dispatch('rancher/request', {
           url:           '/v3/users?action=changepassword',
           method:        'post',
@@ -173,23 +156,6 @@ export default {
         this.$refs.password.focus();
         this.$refs.password.select();
       });
-    },
-
-    async finishServerSettings(buttonCb) {
-      try {
-        this.serverUrlSetting.value = this.serverUrl;
-        await this.serverUrlSetting.save();
-
-        this.telemetrySetting.value = this.telemetry ? 'in' : 'out';
-        await this.telemetrySetting.save();
-
-        buttonCb(true);
-        this.step = 3;
-        this.$router.applyQuery({ [STEP]: this.step });
-      } catch (err) {
-        console.log(err);
-        buttonCb(false);
-      }
     },
 
     async testGithub(buttonCb) {
@@ -271,7 +237,7 @@ export default {
         });
 
         buttonCb(true);
-        this.step = 4;
+        this.step = 3;
         this.$router.applyQuery({ [STEP]: this.step });
       } catch (e) {
         buttonCb(false);
@@ -376,6 +342,24 @@ export default {
             </div>
           </div>
 
+          <div class="checkbox mt-20">
+            <label>
+              <input v-model="telemetry" type="checkbox" />
+              Allow collection of anonymous statistics to help us improve Rio
+            </label>
+            <v-popover placement="right">
+              <i class="icon icon-info" />
+              <span slot="popover">
+                Rancher Labs would like to collect a bit of anonymized information<br />
+                about the configuration of your installation to help make Rio better.<br /><br />
+                Your data will not be shared with anyone else, and no information about<br />
+                what specific resources or endpoints you are deploying is included.<br />
+                Once enabled you can view exactly what data will be sent at <code>/v1-telemetry</code>.<br /><br />
+                <a href="https://rancher.com/docs/rancher/v2.x/en/faq/telemetry/" target="_blank">More Info</a>
+              </span>
+            </v-popover>
+          </div>
+
           <div class="mt-20">
             <AsyncButton key="passwordSubmit" type="submit" mode="continue" :disabled="passwordSubmitDisabled" @click="finishPassword" />
           </div>
@@ -387,50 +371,6 @@ export default {
     </div>
 
     <div v-if="step === 2">
-      <div class="row">
-        <div class="col span-6">
-          <h1>Server Configuration</h1>
-          <LabeledInput
-            v-model.trim="serverUrl"
-            type="url"
-            label="Server URL"
-            class="mt-20"
-          />
-
-          <div class="mt-20">
-            <div>
-              <div class="checkbox">
-                <label>
-                  <input v-model="telemetry" type="checkbox" />
-                  Allow collection of anonymous statistics to help us improve Rio
-                </label>
-                <v-popover placement="right">
-                  <i class="icon icon-info" />
-                  <span slot="popover">
-                    Rancher Labs would like to collect a bit of anonymized information<br />
-                    about the configuration of your installation to help make Rio better.<br /><br />
-                    Your data will not be shared with anyone else, and no information about<br />
-                    what specific resources or endpoints you are deploying is included.<br />
-                    Once enabled you can view exactly what data will be sent at <code>/v1-telemetry</code>.<br /><br />
-                    <a href="https://rancher.com/docs/rancher/v2.x/en/faq/telemetry/" target="_blank">More Info</a>
-                  </span>
-                </v-popover>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-20">
-            <AsyncButton key="serverSubmit" type="submit" mode="continue" :disabled="serverSubmitDisabled" @click="finishServerSettings" />
-          </div>
-        </div>
-
-        <div class="col span-6">
-          <img src="~/assets/images/setup-step-one.svg" />
-        </div>
-      </div>
-    </div>
-
-    <div v-if="step === 3">
       <div class="row">
         <div class="col span-6">
           <h1 class="mb-20">
@@ -521,7 +461,7 @@ export default {
       </div>
     </div>
 
-    <div v-if="step === 4">
+    <div v-if="step === 3">
       <div class="row">
         <div class="col span-6">
           <h1>GitHub Integration, Part Deux</h1>
