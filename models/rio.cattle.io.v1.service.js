@@ -6,6 +6,8 @@ import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { addParams } from '@/utils/url';
 import { PRIVATE } from '@/plugins/norman/resource-proxy';
 import { RIO } from '@/config/types';
+import { formatSi } from '@/utils/units';
+import { get } from '@/utils/object';
 
 const EMPTY = {};
 
@@ -451,5 +453,32 @@ export default {
     return () => {
       return this.goToEdit({ [ADD_SIDECAR]: _FLAGGED });
     };
+  },
+
+  networkBytes() {
+    const read = get(this, 'metadata.computed.fields.readBytesPerSecond') || 0;
+    const write = get(this, 'metadata.computed.fields.writeBytesPerSecond') || 0;
+
+    return read + write;
+  },
+
+  networkDisplay() {
+    return formatSi(this.networkBytes, { suffix: 'Bps' });
+  },
+
+  p95() {
+    const out = get(this, 'metadata.computed.fields.p95') || 0;
+
+    return out;
+  },
+
+  p95Display() {
+    return `${ this.p95 }ms`;
+  },
+
+  connections() {
+    const out = get(this, 'metadata.computed.fields.openConnections') || 0;
+
+    return out;
   },
 };

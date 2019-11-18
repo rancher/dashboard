@@ -40,6 +40,22 @@ export const NAMESPACE_NAME = {
   formatter: 'LinkDetail',
 };
 
+export const NAMESPACE_NAME_IMAGE = {
+  name:      'namespace-name-image',
+  label:     'Name',
+  value:     'namespaceNameDisplay',
+  sort:      ['namespaceNameSort'],
+  formatter: 'LinkDetailImage',
+};
+
+export const NAME_IMAGE = {
+  name:      '-name-image',
+  label:     'Name',
+  value:     'nameDisplay',
+  sort:      ['nameSort'],
+  formatter: 'LinkDetailImage',
+};
+
 /*
 export const NAMESPACE = {
   name:   'namespace',
@@ -63,7 +79,7 @@ export const AGE = {
   search:     false,
   formatter:  'LiveDate',
   width:      75,
-  align:     'left'
+  align:     'right'
 };
 
 export const RIO_IMAGE = {

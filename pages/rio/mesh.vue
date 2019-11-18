@@ -1,4 +1,5 @@
 <script>
+import $ from 'jquery';
 import { escapeHtml } from '@/utils/string';
 
 const RADIUS = 5;
@@ -252,10 +253,10 @@ export default {
         const weight = Math.floor(4 * (edge.stats.rps - min) / (max - min)) + 1;
 
         g.setEdge(fromId(edge), toId(edge), {
-          arrowhead:      'smaller',
-          arrowheadClass: 'arrowhead',
-          class:          `weight${ weight }`,
-          curve:          this.d3.curveBasis,
+          arrowhead:       'smaller',
+          arrowheadClass:  'arrowhead',
+          class:           `weight${ weight }`,
+          curve:           this.d3.curveBasis,
           weight,
         });
       }
@@ -307,6 +308,12 @@ export default {
 
       this.loading = false;
     },
+
+    clicked(event) {
+      const path = $(event.target).closest('.edgePath');
+
+      console.log(path);
+    }
   },
 };
 </script>
@@ -316,7 +323,7 @@ export default {
       <h1>App Mesh</h1>
     </header>
 
-    <svg id="mesh" ref="mesh" />
+    <svg id="mesh" ref="mesh" @click="clicked" />
   </div>
 </template>
 
@@ -394,6 +401,10 @@ export default {
 
     PATH {
       stroke: #6c6c76;
+    }
+
+    .edgePath {
+      cursor: pointer;
     }
 
     .weight1 { stroke-width: 2px; }
