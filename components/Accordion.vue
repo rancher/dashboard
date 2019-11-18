@@ -72,6 +72,15 @@ export default {
     position: relative;
     cursor: pointer;
 
+    &:first-child {
+      // border-top: 0;
+      // padding-top: 0;
+    }
+
+    > H6 {
+      color: var(--input-label);
+    }
+
     > I {
       position: absolute;
       right: 10px;

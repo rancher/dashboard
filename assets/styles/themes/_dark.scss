@@ -102,8 +102,8 @@
   --sortable-table-divider-bg  : var(--border);
   --sortable-table-selected-bg : #{$selected};
 
-  --tooltip-bg                 : #{$lightest};
-  --tooltip-text               : #{$dark};
+  --tooltip-bg                 : #{$darkest};
+  --tooltip-text               : #{$light};
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$darkest};

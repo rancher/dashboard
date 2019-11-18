@@ -139,15 +139,15 @@ export default {
         </div>
 
         <template slot="popover">
-          <ul class="list-unstyled text-right dropdown" style="margin: -1px;">
+          <ul class="list-unstyled dropdown" style="margin: -1px;">
             <li>
-              <div><b>{{ principal.loginName }}</b></div>
-              <div><span>{{ principal.name }}</span></div>
+              <div>{{ principal.loginName }}</div>
+              <div><span class="text-muted">{{ principal.name }}</span></div>
             </li>
-            <nuxt-link tag="li" :to="{name: 'prefs'}" class="p-10">
+            <nuxt-link tag="li" :to="{name: 'prefs'}" class="pt-10 pb-10">
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
-            <nuxt-link tag="li" :to="{name: 'auth-logout'}" class="p-10">
+            <nuxt-link tag="li" :to="{name: 'auth-logout'}" class="pt-10 pb-10">
               <a>Log Out <i class="icon icon-fw icon-close" /></a>
             </nuxt-link>
           </ul>
