@@ -1,6 +1,6 @@
 import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
 import {
-  STATE, NAME, NAMESPACE_NAME, AGE,
+  STATE, NAME, NAMESPACE_NAME, NAMESPACE_NAME_IMAGE, AGE,
   RIO_IMAGE, WEIGHT, SCALE,
   KEYS, ENDPOINTS,
   MATCHES, DESTINATION,
@@ -59,11 +59,34 @@ export const FRIENDLY = {
     type:      RIO.SERVICE,
     headers:   [
       STATE,
-      NAMESPACE_NAME,
-      RIO_IMAGE,
+      NAMESPACE_NAME_IMAGE,
       ENDPOINTS,
       WEIGHT,
       SCALE,
+      {
+        name:  'connections',
+        label: 'Conn.',
+        value: 'connections',
+        sort:  ['connections'],
+        align: 'right',
+        width: 60,
+      },
+      {
+        name:  'p95',
+        label: '95%',
+        value: 'p95Display',
+        sort:  ['p95'],
+        align: 'right',
+        width: 75,
+      },
+      {
+        name:  'network',
+        label: 'Network',
+        value: 'networkDisplay',
+        sort:  ['networkBytes'],
+        align: 'right',
+        width: 75,
+      },
       AGE,
     ],
 
