@@ -57,9 +57,11 @@ export default {
         }
         & .card-actions{
             align-self: end;
+            display: flex;
+            justify-content: space-between;
         }
         & .card-title{
-            color: var(--primary);
+            // color: var(--primary);
             display: flex;
             justify-content: space-between;
             align-items: center;

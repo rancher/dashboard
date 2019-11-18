@@ -35,7 +35,7 @@ export default {
             :content="demo.description"
           >
             <template v-slot:title>
-              <span>{{ demo.title }}</span>
+              <span class="text-primary">{{ demo.title }}</span>
               <a v-if="demo.spec" target="_blank" class="icon icon-external-link role-multi-action" :href="demo.spec.build.repo" />
             </template>
             <template v-slot:actions>

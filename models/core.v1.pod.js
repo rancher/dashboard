@@ -35,7 +35,6 @@ export default {
 
   openShell() {
     return () => {
-      console.log('this in openShell: ', this);
       this.$dispatch('shell/defineSocket', { resource: this, action: 'openShell' }, { root: true });
     };
   },

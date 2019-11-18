@@ -2,12 +2,14 @@ import { isArray, filterBy } from '@/utils/array';
 
 export const state = function() {
   return {
-    show:          false,
-    tableSelected: [],
-    tableAll:      [],
-    resources:     [],
-    elem:          null,
-    event:         null,
+    show:             false,
+    tableSelected:    [],
+    tableAll:         [],
+    resources:        [],
+    elem:             null,
+    event:            null,
+    showPromptRemove: false,
+    toRemove:         null
   };
 };
 
@@ -63,6 +65,10 @@ export const mutations = {
     state.resources = null;
     state.elem = null;
   },
+  togglePromptRemove(state, resource) {
+    state.showPromptRemove = !state.showPromptRemove;
+    state.toRemove = resource;
+  }
 };
 
 export const actions = {
