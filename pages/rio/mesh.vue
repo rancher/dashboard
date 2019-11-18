@@ -4,6 +4,9 @@ import { escapeHtml } from '@/utils/string';
 
 const RADIUS = 5;
 
+const INTERVAL = 10000;
+
+/*
 function randomStats() {
   return {
     'p50ms':       Math.random(),
@@ -18,28 +21,6 @@ function randomItem(ary) {
   const idx = Math.floor(Math.random() * ary.length);
 
   return ary[idx];
-}
-
-function nodeIdFor(obj) {
-  return `${ obj.namespace }:${ obj.app }@${ obj.version }`;
-}
-
-function fromId(obj) {
-  return `${ obj.fromNamespace }:${ obj.fromApp }@${ obj.fromVersion }`;
-}
-
-function toId(obj) {
-  return `${ obj.toNamespace }:${ obj.toApp }@${ obj.toVersion }`;
-}
-
-function round3Digits(num) {
-  if ( num > 100 ) {
-    return Math.round(num);
-  } else if ( num > 10 ) {
-    return Math.round(num * 10) / 10;
-  } else {
-    return Math.round(num * 100) / 100;
-  }
 }
 
 function randomData() {
@@ -96,28 +77,150 @@ function randomData() {
     edges
   };
 }
+*/
+
+function nodeIdFor(obj) {
+  return `${ obj.namespace }:${ obj.app }@${ obj.version }`;
+}
+
+function fromId(obj) {
+  return `${ obj.fromNamespace }:${ obj.fromApp }@${ obj.fromVersion }`;
+}
+
+function toId(obj) {
+  return `${ obj.toNamespace }:${ obj.toApp }@${ obj.toVersion }`;
+}
+
+async function loadData(store) {
+  const data = await store.dispatch('rancher/request', { url: '/v1-metrics/meshsummary' });
+
+  const known = {};
+
+  data.nodes = data.nodes.filter(x => !!x.app && !!x.namespace);
+  data.nodes.forEach((x) => {
+    x.id = nodeIdFor(x);
+    known[x.id] = true;
+  });
+
+  data.edges = data.edges.filter(x => known[fromId(x)] && known[toId(x)]);
+
+  return data;
+}
+
+function round3Digits(num) {
+  if ( !num ) {
+    return 0;
+  }
+
+  if ( num > 100 ) {
+    return Math.round(num);
+  } else if ( num > 10 ) {
+    return Math.round(num * 10) / 10;
+  } else {
+    return Math.round(num * 100) / 100;
+  }
+}
 
 export default {
+  computed: {
+    namespaces() {
+      return this.$store.getters['namespaces'];
+    },
+
+    displayNodes() {
+      console.log('get displayNodes');
+      const namespaces = this.namespaces;
+
+      const include = namespaces.filter(x => !x.startsWith('!'));
+      const exclude = namespaces.filter(x => x.startsWith('!')).map(x => x.substr(1) );
+
+      const out = this.nodes.filter((x) => {
+        const ns = x.namespace;
+
+        if ( include.length && !include.includes(ns) ) {
+          return false;
+        }
+
+        if ( exclude.length && exclude.includes(ns) ) {
+          return false;
+        }
+
+        return true;
+      });
+
+      return out;
+    },
+
+    displayEdges() {
+      console.log('get displayEdges');
+      const namespaces = this.namespaces;
+
+      const include = namespaces.filter(x => !x.startsWith('!'));
+      const exclude = namespaces.filter(x => x.startsWith('!')).map(x => x.substr(1) );
+
+      const out = this.edges.filter((x) => {
+        const ns1 = x.fromNamespace;
+        const ns2 = x.toNamespace;
+
+        if ( include.length ) {
+          if ( !include.includes(ns1) || !include.includes(ns2) ) {
+            return false;
+          }
+        }
+
+        if ( exclude.length ) {
+          if ( exclude.includes(ns1) || exclude.includes(ns2) ) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      return out;
+    },
+  },
+
+  watch: {
+    // Nodes isn't watched, but gets updated at the same time...
+    nodes() {
+      console.log('nodes updated');
+      this.updateGraph();
+      this.renderGraph();
+    },
+    namespaces() {
+      console.log('namespaces updated');
+      this.updateGraph();
+      this.renderGraph();
+    },
+    edges() {
+      console.log('edges updated');
+      this.updateGraph();
+      this.renderGraph();
+    },
+  },
+
+  /* (
   data() {
     return {
       loading: true,
       ...randomData(),
     };
   },
+  */
+
+  async asyncData({ store }) {
+    const data = await loadData(store);
+
+    return data;
+  },
 
   async mounted() {
+    console.log('Mounted');
     this.timer = setInterval(() => {
-      for ( const node of this.nodes ) {
-        node.stats = randomStats();
-      }
-
-      for ( const edge of this.edges ) {
-        edge.stats = randomStats();
-      }
-
-      this.updateGraph();
-      this.renderGraph();
-    }, 10000);
+      console.log('Timer');
+      this.refreshData();
+    }, INTERVAL);
 
     await this.initGraph();
     this.updateGraph();
@@ -131,6 +234,15 @@ export default {
   },
 
   methods: {
+    async refreshData() {
+      console.log('Refreshing...');
+      const neu = await loadData(this.$store);
+
+      this.nodes = neu.nodes;
+      this.edges = neu.edges;
+      console.log('Refreshed');
+    },
+
     async initGraph() {
       const d3 = await import('d3');
       const dagreD3 = await import('dagre-d3');
@@ -195,13 +307,14 @@ export default {
 
     updateGraph() {
       // @TODO diff nodes/edges, remove unexpected and add missing ones
+      console.log('Updating...');
 
       const e = escapeHtml;
       const g = this.graph;
 
       const seenNamespaces = {};
 
-      for ( const node of this.nodes ) {
+      for ( const node of this.displayNodes ) {
         const nsId = ensureNamespace(node.namespace);
         const id = nodeIdFor(node);
 
@@ -243,11 +356,11 @@ export default {
         g.setParent(id, nsId);
       }
 
-      const rpses = this.edges.map(x => x.stats.rps);
+      const rpses = this.displayEdges.map(x => x.stats.rps);
       const min = Math.min(...rpses);
       const max = Math.max(...rpses);
 
-      for ( const edge of this.edges ) {
+      for ( const edge of this.displayEdges ) {
         ensureNamespace(edge.fromNamespace);
         ensureNamespace(edge.toNamespace);
         const weight = Math.floor(4 * (edge.stats.rps - min) / (max - min)) + 1;
@@ -279,6 +392,8 @@ export default {
     },
 
     renderGraph() {
+      console.log('Rendering...');
+
       const d3 = this.d3;
       const svg = this.d3.select(this.$refs.mesh);
       const group = this.group;

@@ -223,6 +223,11 @@ export default {
           opt:  { url: '/v3/authConfigs/github' }
         });
 
+        this.principals = await this.$store.dispatch('rancher/findAll', {
+          type: RANCHER.PRINCIPAL,
+          opt:  { url: '/v3/principals', force: true }
+        });
+
         this.githubConfig = await this.$store.dispatch('rancher/clone', { resource: githubConfig });
 
         this.githubConfig.allowedPrincipalIds = this.githubConfig.allowedPrincipalIds || [];
@@ -230,11 +235,6 @@ export default {
         if ( this.me ) {
           addObject(this.githubConfig.allowedPrincipalIds, this.me.id);
         }
-
-        this.principals = await this.$store.dispatch('rancher/findAll', {
-          type: RANCHER.PRINCIPAL,
-          opt:  { url: '/v3/principals' }
-        });
 
         buttonCb(true);
         this.step = 3;

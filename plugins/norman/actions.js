@@ -77,6 +77,8 @@ export default {
   async findAll(ctx, { type, opt }) {
     const { getters, commit, dispatch } = ctx;
 
+    opt = opt || {};
+
     console.log('Find All', type);
     type = getters.normalizeType(type);
 
@@ -84,7 +86,7 @@ export default {
       commit('registerType', type);
     }
 
-    if ( getters['haveAll'](type) ) {
+    if ( opt.force !== true && getters['haveAll'](type) ) {
       return getters.all(type);
     }
 
