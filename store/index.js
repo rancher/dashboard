@@ -46,6 +46,9 @@ export const mutations = {
 
   updateCluster(state, neu) {
     state.cluster = neu;
+  },
+  unloaded(state) {
+    state.preloaded = false;
   }
 };
 
@@ -54,6 +57,7 @@ export const actions = {
   clearNorman({ commit }) {
     commit('cluster/removeAll');
     commit('rancher/removeAll');
+    commit('unloaded');
   },
 
   async preload({
