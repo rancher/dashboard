@@ -37,7 +37,7 @@ export default {
 
   autoScaling: {
     title:       'Auto-Scaling',
-    description: 'Coming Soon.',
+    description: 'Demo Coming Soon.',
     createPath:  null,
     spec:        null,
   },
