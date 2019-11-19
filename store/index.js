@@ -50,6 +50,12 @@ export const mutations = {
 };
 
 export const actions = {
+
+  clearNorman({ commit }) {
+    commit('cluster/removeAll');
+    commit('rancher/removeAll');
+  },
+
   async preload({
     state, getters, commit, dispatch
   }) {
@@ -92,5 +98,5 @@ export const actions = {
   },
 
   nuxtClientInit() {
-  },
+  }
 };

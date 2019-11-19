@@ -103,5 +103,9 @@ export default {
         entry.map.delete(id);
       }
     }
+  },
+  removeAll(state) {
+    state.types = {};
   }
+
 };
