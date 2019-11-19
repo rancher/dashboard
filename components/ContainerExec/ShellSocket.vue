@@ -115,6 +115,7 @@ export default {
 
   .v--modal {
     background-color: var(--box-bg);
+    position: absolute;
   }
 
   .v--modal-box{
