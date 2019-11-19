@@ -51,7 +51,7 @@ export const mutations = {
 
 export const actions = {
 
-  clearNormen({ commit }) {
+  clearNorman({ commit }) {
     commit('cluster/removeAll');
     commit('rancher/removeAll');
   },
