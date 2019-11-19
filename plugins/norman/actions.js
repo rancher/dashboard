@@ -122,14 +122,20 @@ export default {
   async find(ctx, { type, id, opt }) {
     const { getters, commit, dispatch } = ctx;
 
+    opt = opt || {};
+
     type = normalizeType(type);
 
     console.log('Find', type, id);
 
-    let out = getters.byId(type, id);
+    let out;
 
-    if ( out ) {
-      return out;
+    if ( opt.force !== true ) {
+      out = getters.byId(type, id);
+
+      if ( out ) {
+        return out;
+      }
     }
 
     opt = opt || {};

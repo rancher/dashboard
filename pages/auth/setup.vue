@@ -220,7 +220,7 @@ export default {
         const githubConfig = await this.$store.dispatch('rancher/find', {
           type: RANCHER.AUTH_CONFIG,
           id:   'github',
-          opt:  { url: '/v3/authConfigs/github' }
+          opt:  { url: '/v3/authConfigs/github', force: true }
         });
 
         this.principals = await this.$store.dispatch('rancher/findAll', {
