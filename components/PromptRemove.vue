@@ -23,6 +23,9 @@ export default {
     selfLink() {
       return get(this.toRemove, 'links.self');
     },
+    needsConfirm() {
+      return this.kind === 'namespace' || this.kind === 'stack';
+    },
     ...mapState('actionMenu', ['showPromptRemove', 'toRemove'])
   },
   watch:    {
@@ -39,7 +42,7 @@ export default {
       this.$store.commit('actionMenu/togglePromptRemove', null);
     },
     remove() {
-      if (this.confirmName !== this.name) {
+      if (this.needsConfirm && this.confirmName !== this.name) {
         this.error = 'Resource names do not match';
       } else {
         this.toRemove.remove();
@@ -61,9 +64,9 @@ export default {
       <span slot="title" class="text-default-text">Are you sure?</span>
       <div slot="body">
         <div class="mb-10">
-          You are attempting to remove the {{ kind }} <a :href="selfLink">{{ name }}</a>. Re-enter its name below to confirm:
+          You are attempting to remove the {{ kind }} <a :href="selfLink">{{ name }}</a>. <span v-if="needsConfirm">Re-enter its name below to confirm:</span>
         </div>
-        <input id="confirm" v-model="confirmName" type="text" />
+        <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
         <span class="text-error"> {{ error }}</span>
       </div>
       <template slot="actions">
