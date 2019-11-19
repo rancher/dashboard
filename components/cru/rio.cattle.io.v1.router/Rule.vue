@@ -23,6 +23,10 @@ export default {
       default: () => {
         return {};
       }
+    },
+    namespace: {
+      type:    String,
+      default: null
     }
   },
   data() {
@@ -167,6 +171,7 @@ export default {
             <Destination
               v-for="(destination, i) in to"
               :key="destination.uuid"
+              :namespace="namespace"
               :is-weighted="to.length>1"
               :spec="destination"
               :can-remove="to.length>1"

@@ -11,6 +11,10 @@ export default {
         return {};
       }
     },
+    namespace: {
+      type:    String,
+      default: 'default'
+    },
     isWeighted: {
       type:    Boolean,
       default: false
@@ -32,17 +36,15 @@ export default {
       default: () => ['App', 'Version', 'Port', 'Weight']
     }
   },
-
   data() {
     const {
-      namespace = 'default', port = '', app = '', uuid, version = ''
+      port = '', app = '', uuid, version = ''
     } = this.spec;
 
     return {
+      services: [],
       version,
       uuid,
-      apps:     [],
-      namespace,
       port,
       app,
       weight:     '',
@@ -60,30 +62,25 @@ export default {
       };
     },
     versions() {
-      if (this.app && !isEmpty(this.apps)) {
-        return this.apps[this.app].map(service => service.version);
+      if (this.app && !isEmpty(this.appsInNS)) {
+        return this.appsInNS[this.app].map(service => service.version);
       } else {
         return [];
       }
     },
-  },
-  mounted() {
-    this.getServices();
-  },
-  methods: {
-    async getServices() {
-      const services = await this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE });
-      const servicesinNS = [];
+    servicesInNS() {
+      if (!this.services) {
+        return [];
+      }
 
-      services.forEach((service) => {
-        if ( get(service, 'metadata.namespace') === this.namespace) {
-          servicesinNS.push(service);
-        }
+      return this.services.filter((service) => {
+        return service.metadata.namespace === this.namespace;
       });
-
+    },
+    appsInNS() {
       const apps = {};
 
-      servicesinNS.forEach((service) => {
+      this.servicesInNS.forEach((service) => {
         if (!apps[service.app]) {
           apps[service.app] = [service];
         } else {
@@ -91,7 +88,17 @@ export default {
         }
       });
 
-      this.apps = apps;
+      return apps;
+    }
+  },
+  mounted() {
+    this.getServices();
+  },
+  methods: {
+    async getServices() {
+      const services = await this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE });
+
+      this.services = services;
     },
     setApp(app) {
       this.app = app;
@@ -112,7 +119,7 @@ export default {
         class="inline"
         :clearable="false"
         :value="app"
-        :options="Object.keys(apps)"
+        :options="Object.keys(appsInNS)"
         :placeholder="showPlaceholders ? placeholders[0] : null"
         @input="setApp"
       ></v-select>

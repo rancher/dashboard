@@ -81,6 +81,7 @@ export default {
         <Rule
           v-for="(route, i) in routes"
           :key="route.uuid"
+          :namespace="value.metadata.namespace"
           :position="i"
           class="col span-12"
           :spec="route"
