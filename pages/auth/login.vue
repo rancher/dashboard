@@ -4,10 +4,13 @@ import { USERNAME } from '@/config/cookies';
 import LabeledInput from '@/components/form/LabeledInput';
 import AsyncButton from '@/components/AsyncButton';
 import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@/config/query-params';
+import Checkbox from '@/components/form/Checkbox';
 
 export default {
   layout:     'unauthenticated',
-  components: { LabeledInput, AsyncButton },
+  components: {
+    LabeledInput, AsyncButton, Checkbox
+  },
 
   data({ $cookies }) {
     const username = $cookies.get(USERNAME) || '';
@@ -155,10 +158,7 @@ export default {
                 @click="loginLocal"
               />
               <div>
-                <label>
-                  <input v-model="remember" type="checkbox" />
-                  Remember Username
-                </label>
+                <Checkbox v-model="remember" label="Remember Username" type="checkbox" />
               </div>
             </div>
           </div>

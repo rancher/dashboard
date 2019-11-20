@@ -2,9 +2,11 @@
 import { SOME, NONE } from './selection';
 import { queryParamsFor } from '@/plugins/extend-router';
 import { SORT_BY, DESCENDING } from '@/config/query-params';
+import Checkbox from '@/components/form/Checkbox';
 
 export default {
-  props: {
+  components: { Checkbox },
+  props:      {
     columns: {
       type:     Array,
       required: true
@@ -105,11 +107,11 @@ export default {
   <thead>
     <tr>
       <th v-if="tableActions" :width="checkWidth" align="center">
-        <input
+        <Checkbox
           v-model="isAll"
           class="check"
           type="checkbox"
-          :indeterminate.prop="isIndeterminate"
+          :indeterminate="isIndeterminate"
         />
       </th>
       <th v-if="subExpandColumn" :width="expandWidth"></th>

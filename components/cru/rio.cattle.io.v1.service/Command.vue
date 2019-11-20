@@ -3,10 +3,10 @@ import LabeledInput from '@/components/form/LabeledInput';
 import ShellInput from '@/components/form/ShellInput';
 import UnitInput from '@/components/form/UnitInput';
 import KeyValue from '@/components/form/KeyValue';
-
+import Checkbox from '@/components/form/Checkbox';
 export default {
   components: {
-    LabeledInput, ShellInput, UnitInput, KeyValue
+    LabeledInput, ShellInput, UnitInput, KeyValue, Checkbox
   },
 
   props: {
@@ -110,18 +110,11 @@ export default {
       </div>
       <div class="col span-6 pt-10">
         <div>
-          <label class="checkbox">
-            <input v-model="spec.stdin" type="checkbox" />
-            Interactive
-          </label>
-          <label class="checkbox">
-            <input v-model="spec.tty" type="checkbox" />
-            TTY
-          </label>
-          <label class="checkbox">
-            <input v-model="spec.readOnlyRootFilesystem" type="checkbox" />
-            Read-Only Root FS
-          </label>
+          <Checkbox v-model="spec.stdin" type="checkbox" label="Interactive" />
+
+          <Checkbox v-model="spec.tty" type="checkbox" label="TTY" />
+
+          <Checkbox v-model="spec.readOnlyRootFilesystem" type="checkbox" label="Read-Only Root FS" />
         </div>
       </div>
     </div>
