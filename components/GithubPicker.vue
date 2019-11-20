@@ -161,7 +161,7 @@ export default {
       this.selectedFile = file;
       this.value.repo = this.selectedRepo.clone_url;
       this.value.branch = this.selectedBranch.name;
-      this.value.revision = null;
+      delete this.value.revision;
       this.value[this.fileKey] = file.path;
       this.$emit('input', this.value);
     },
