@@ -610,8 +610,7 @@ export default {
 
   promptRemove() {
     return () => {
-      // @TODO actually prompt...
-      this.remove();
+      this.$dispatch('promptRemove', this);
     };
   },
 };

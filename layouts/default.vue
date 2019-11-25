@@ -7,6 +7,7 @@ import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
 // import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
 import ShellSocket from '@/components/ContainerExec/ShellSocket';
+import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
 import { COUNT, RANCHER } from '@/config/types';
@@ -15,6 +16,7 @@ export default {
 
   components: {
     // ClusterSwitcher,
+    PromptRemove,
     Footer,
     NamespaceFilter,
     ActionMenu,
@@ -181,6 +183,7 @@ export default {
     </main>
     <ShellSocket />
     <ActionMenu />
+    <PromptRemove />
   </div>
 </template>
 
