@@ -197,7 +197,7 @@ export default {
       "logo user main"
       "nav  nav  main";
     grid-template-columns: 190px 60px auto;
-    grid-template-rows: $header-height auto;
+    grid-template-rows: $header-height auto 0px;
 
     .logo {
       grid-area: logo;
