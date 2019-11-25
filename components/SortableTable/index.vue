@@ -1,4 +1,5 @@
 <script>
+import { mapState } from 'vuex';
 import jsonpath from 'jsonpath';
 import THead from './THead';
 import filtering from './filtering';
@@ -6,7 +7,7 @@ import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
-
+import Checkbox from '@/components/form/Checkbox';
 import { removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 import { dasherize } from '@/utils/string';
@@ -24,7 +25,7 @@ import { dasherize } from '@/utils/string';
 
 export default {
   name:       'SortableTable',
-  components: { THead },
+  components: { THead, Checkbox },
   mixins:     [filtering, sorting, paging, grouping, selection],
 
   props: {
@@ -202,7 +203,12 @@ export default {
 
     availableActions() {
       return this.$store.getters[`${ this.storeName }/forTable`];
-    }
+    },
+    ...mapState({
+      tableSelected(state) {
+        return state[this.storeName].tableSelected;
+      }
+    })
   },
 
   methods: {
@@ -324,7 +330,7 @@ export default {
           <slot name="main-row" :row="row">
             <tr :key="get(row,keyField)" class="main-row">
               <td v-if="tableActions" class="row-check" align="middle">
-                <input type="checkbox" :data-node-id="get(row,keyField)" />
+                <Checkbox type="checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
               </td>
               <td v-if="subExpandColumn" class="row-expand" align="middle">
                 <i data-title="Toggle Expand" :class="{icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[get(row, keyField)]}" />

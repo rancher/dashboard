@@ -4,6 +4,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Ports from '@/components/cru/rio.cattle.io.v1.service/Ports';
 import GithubPicker from '@/components/GithubPicker';
+import Checkbox from '@/components/form/Checkbox';
 
 const BUILD_MODES = {
   image:  'Use an existing Docker image',
@@ -19,7 +20,7 @@ const IMAGE_PULL_POLICIES = {
 
 export default {
   components: {
-    NameNsDescription, LabeledInput, LabeledSelect, Ports, GithubPicker,
+    NameNsDescription, LabeledInput, LabeledSelect, Ports, GithubPicker, Checkbox
   },
 
   props: {
@@ -377,12 +378,19 @@ export default {
 
     <div v-if="buildMode === 'git' || buildMode === 'github'" class="row">
       <div class="col span-12">
-        <label v-if="buildMode === 'github'" class="checkbox">
-          <input v-model="spec.build.pr" type="checkbox">
-          Pull Request Workflow
-          <i v-tooltip="'Creates a brand new service for each pull request created, using this service as a template.'" class="icon icon-info" />
-        </label>
-        <label class="checkbox"><input v-model="spec.build.tag" type="checkbox"> Build on tag</label>
+        <Checkbox
+          v-if="buildMode === 'github'"
+          v-model="spec.build.pr"
+          class="checkbox"
+          type="checkbox"
+          label="true"
+        >
+          <template v-slot:label>
+            Pull Request Workflow
+            <i v-tooltip="'Creates a brand new service for each pull request created, using this service as a template.'" class="icon icon-info" />
+          </template>
+        </Checkbox>
+        <Checkbox v-model="spec.build.tag" class="checkbox" label="Build on tag" type="checkbox" />
       </div>
     </div>
 

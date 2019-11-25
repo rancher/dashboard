@@ -3,9 +3,11 @@ import { debounce } from 'lodash';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
 import { clone } from '@/utils/object';
+import Checkbox from '@/components/form/Checkbox';
 
 export default {
-  props: {
+  components: { Checkbox },
+  props:      {
     spec: {
       type:    Object,
       default: null,
@@ -192,23 +194,21 @@ export default {
           </td>
           <td class="expose">
             <span v-if="isView">{{ row.expose ? "Yes" : "No" }}</span>
-            <label v-else>
-              <input
-                v-model="row.expose"
-                type="checkbox"
-                @input="queueUpdate"
-              />
-            </label>
+            <Checkbox
+              v-else
+              v-model="row.expose"
+              type="checkbox"
+              @input="queueUpdate"
+            />
           </td>
           <td class="hostPort">
             <span v-if="isView">{{ row.hostPort ? "Yes" : "No" }}</span>
-            <label v-else>
-              <input
-                v-model="row.hostPort"
-                type="checkbox"
-                @input="queueUpdate"
-              />
-            </label>
+            <Checkbox
+              v-else
+              v-model="row.hostPort"
+              type="checkbox"
+              @input="queueUpdate"
+            />
           </td>
           <td v-if="showRemove" class="remove">
             <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">

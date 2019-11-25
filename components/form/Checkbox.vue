@@ -6,21 +6,22 @@ export default {
       default: false
     },
     label: {
-      type:    String,
-      default: ''
+      type:    [String, Boolean],
+      default: false
     },
     disabled: {
       type:    Boolean,
       default: false
+    },
+    indeterminate: {
+      type:    Boolean,
+      default: false
     }
-  },
-  data() {
-    return { status: this.value };
   },
   methods: {
     clicked() {
-      this.status = !this.status;
-      this.$emit('input', this.status);
+      this.$el.click();
+      this.$emit('input', !this.value);
     }
   }
 };
@@ -29,37 +30,48 @@ export default {
 <template>
   <label
     class="checkbox-container"
-    :aria-label="label"
-    :aria-checked="status"
-    role="checkbox"
-    :tabindex="disabled ? -1 : 0"
-    @keyup.shift.exact="clicked"
   >
     <label class="checkbox-box">
       <input
         :checked="value"
+        :v-model="value"
         type="checkbox"
-        @input="clicked"
+        :tabindex="-1"
+        @click.stop.prevent
       />
-      <span class="checkbox-custom"></span>
+      <span
+        class="checkbox-custom"
+        :class="{indeterminate: indeterminate}"
+        :tabindex="disabled ? -1 : 0"
+        :aria-label="label"
+        :aria-checked="!!value"
+        role="checkbox"
+        @keyup.16="clicked"
+        @click.stop="clicked"
+      ></span>
     </label>
-    <span v-if="label" class="checkbox-label">{{ label }}</span>
+    <span
+      v-if="label"
+      class="checkbox-label"
+      @click.stop="clicked"
+    >
+      <slot name="label">  {{ label }}</slot>
+    </span>
   </label>
 </template>
 
-<style>
+<style lang='scss'>
 .checkbox-container {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  margin-right: 10px;
 }
 .checkbox-label {
   color: var(--input-label);
+  margin: 3px 10px 3px 0;
 }
 .checkbox-box {
     display: block;
     position: relative;
-    margin-right: 3px;
     cursor: pointer;
     font-size: 18px;
     line-height: 24px;
@@ -78,12 +90,12 @@ export default {
     position: absolute;
     top: 0px;
     left: 0px;
-    height: 18px;
-    width: 18px;
+    height: 14px;
+    width: 14px;
     background-color: transparent;
     border-radius: 3px;
     transition: all 0.3s ease-out;
-    border: 1px solid red;
+    border: 1px solid var(--border);
 }
 
 .checkbox-box input:checked ~ .checkbox-custom {
@@ -94,6 +106,10 @@ export default {
     transform: rotate(0deg) scale(1);
     opacity:1;
     border: 1px solid var(--input-label);
+    &.indeterminate{
+      background-color: transparent;
+      border: 1px solid var(--border)
+    }
 }
 
 .checkbox-box .checkbox-custom::after {
@@ -119,11 +135,26 @@ export default {
   transform: rotate(45deg) scale(1);
   opacity:1;
   left: 4px;
-  width: 6px;
-  height: 12px;
+  width: 4px;
+  height: 10px;
   border: solid;
   border-color: var(--input-text);
   border-width: 0 2px 2px 0;
+  background-color: transparent;
+  border-radius: 0;
+}
+.checkbox-box input:checked ~ .checkbox-custom.indeterminate::after {
+  -webkit-transform:  scale(1);
+  -ms-transform:  scale(1);
+  transform:  scale(1);
+  opacity:1;
+  left: 2px;
+  top:2px;
+  width: 7px;
+  height: 5px;
+  border: solid;
+  border-color: var(--dropdown-text);
+  border-width: 0 0 2px 0;
   background-color: transparent;
   border-radius: 0;
 }

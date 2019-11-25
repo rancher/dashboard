@@ -1,8 +1,8 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
-// import Checkbox from '@/components/form/Checkbox';
+import Checkbox from '@/components/form/Checkbox';
 export default {
-  components: { LabeledInput },
+  components: { LabeledInput, Checkbox },
   props:      {
     spec: {
       type:    Object,
@@ -39,12 +39,12 @@ export default {
     <LabeledInput v-model="host" label="Host" />
     <LabeledInput v-model="path" label="Path" />
     <LabeledInput v-model="prefix" label="Prefix" />
-    <!-- <Checkbox v-model="toHTTPS" label="Change protocol to HTTPS" /> -->
     <span>
-      <label>
-        <input v-model="toHTTPS" type="checkbox" />
-        Change protocol to <code>https</code>
-      </label>
+      <Checkbox v-model="toHTTPS" type="checkbox" :label="true">
+        <template v-slot:label>
+          Change protocol to <code>https</code>
+        </template>
+      </Checkbox>
     </span>
   </div>
 </template>

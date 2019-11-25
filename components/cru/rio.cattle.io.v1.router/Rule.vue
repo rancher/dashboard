@@ -9,9 +9,11 @@ import Destination from '@/components/cru/rio.cattle.io.v1.router/Destination';
 import Redirect from '@/components/cru/rio.cattle.io.v1.router/Redirect';
 import Headers from '@/components/cru/rio.cattle.io.v1.router/Headers';
 import Fault from '@/components/cru/rio.cattle.io.v1.router/Fault';
+import Checkbox from '@/components/form/Checkbox';
+
 export default {
   components: {
-    Match, Destination, Redirect, Headers, Fault
+    Match, Destination, Redirect, Headers, Fault, Checkbox
   },
   props:      {
     position: {
@@ -201,15 +203,9 @@ export default {
       </div>
     </div>
     <div class="row">
-      <label>
-        <input v-model="shouldMirror" type="checkbox" />
-        Mirror
-      </label>
+      <Checkbox v-model="shouldMirror" type="checkbox" label="Mirror" />
 
-      <label class="ml-20">
-        <input v-model="shouldFault" type="checkbox" />
-        Fault
-      </label>
+      <Checkbox v-model="shouldFault" type="checkbox" label="Fault" />
     </div>
     <div v-if="shouldMirror" class="row">
       <div class="col span-12">

@@ -49,7 +49,7 @@ export default {
       const total = this.pagedRows.length;
       const selected = this.selectedNodes.length;
 
-      if ( selected >= total ) {
+      if ( selected >= total && total > 0 ) {
         return ALL;
       } else if ( selected > 0 ) {
         return SOME;
@@ -110,7 +110,7 @@ export default {
         return;
       }
 
-      const check = tgtRow.find('input[type="checkbox"]');
+      const check = tgtRow.find('label[type="checkbox"]');
       const nodeId = check.data('node-id');
 
       if ( !nodeId || !check || !check.length || check[0].disabled ) {
@@ -304,13 +304,13 @@ export default {
       const id = get(node, keyField);
 
       if ( id ) {
-        const input = $(`input[data-node-id="${ id }"]`);
+        const input = $(`label[data-node-id="${ id }"]`);
 
         if ( input && input.length && !input[0].disabled ) {
           // can't reuse the input ref here because the table has rerenderd and the ref is no longer good
-          $(`input[data-node-id="${ id }"]`).prop('checked', on);
+          $(`label[data-node-id="${ id }"]`).prop('value', on);
 
-          let tr = $(`input[data-node-id="${ id }"]`).closest('tr');
+          let tr = $(`label[data-node-id="${ id }"]`).closest('tr');
           let first = true;
 
           while ( tr && (first || tr.hasClass('sub-row') ) ) {

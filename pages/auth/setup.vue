@@ -8,12 +8,13 @@ import { SETUP, STEP, _DELETE } from '@/config/query-params';
 import { RANCHER } from '@/config/types';
 import { open, popupWindowOptions } from '@/utils/window';
 import { findBy, filterBy, addObject, removeObject } from '@/utils/array';
+import Checkbox from '@/components/form/Checkbox';
 
 export default {
   layout: 'plain',
 
   components: {
-    AsyncButton, CopyCode, LabeledInput, CopyToClipboard,
+    AsyncButton, CopyCode, LabeledInput, CopyToClipboard, Checkbox
   },
 
   computed: {
@@ -343,10 +344,7 @@ export default {
           </div>
 
           <div class="checkbox mt-20">
-            <label>
-              <input v-model="telemetry" type="checkbox" />
-              Allow collection of anonymous statistics to help us improve Rio
-            </label>
+            <Checkbox v-model="telemetry" label="Allow collection of anonymous statistics to help us improve Rio" type="checkbox" />
             <v-popover placement="right">
               <i class="icon icon-info" />
               <span slot="popover">
@@ -470,7 +468,7 @@ export default {
           </p>
           <div>
             <label v-if="me" class="principal">
-              <input type="checkbox" checked disabled />
+              <Checkbox type="checkbox" checked disabled />
               <img :src="me.avatarSrc" width="40" height="40" />
               <div class="login">
                 {{ me.loginName }}
@@ -481,7 +479,7 @@ export default {
             </label>
 
             <label v-for="org in orgs" :key="org.id" class="principal">
-              <input :checked="(githubConfig.allowedPrincipalIds || []).includes(org.id)" type="checkbox" :value="org.id" @click="togglePrincipal" />
+              <Checkbox :checked="(githubConfig.allowedPrincipalIds || []).includes(org.id)" type="checkbox" :value="org.id" @click="togglePrincipal" />
               <img :src="org.avatarSrc" width="40" height="40" />
               <span class="login">
                 Members of <b>{{ org.loginName }}</b>
@@ -519,6 +517,10 @@ export default {
   .setup {
     .row {
       align-items: center;
+      & .checkbox {
+        display: flex;
+        align-items: center;
+      }
     }
 
     code {
