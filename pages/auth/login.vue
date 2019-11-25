@@ -164,8 +164,8 @@ export default {
           </div>
         </form>
       </div>
-      <div class="col span-6">
-        <img src="~/assets/images/login-landscape.svg" alt="landscape" />
+      <div class="col span-6 landscape">
+        <!-- <img src="~/assets/images/login-landscape.svg" alt="landscape" /> -->
       </div>
     </div>
   </main>
@@ -177,6 +177,14 @@ export default {
 
     .row {
       align-items: center;
+    }
+
+    .landscape {
+      background-image: url('~assets/images/login-landscape.svg'); 
+      background-repeat: no-repeat;
+      background-size: cover; 
+      background-position: center center;
+      height: 100vh;
     }
   }
 </style>
