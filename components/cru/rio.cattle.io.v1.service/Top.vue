@@ -51,6 +51,10 @@ export default {
     registerAfterHook: {
       type:    Function,
       default: null,
+    },
+    registerBeforeHook: {
+      type:    Function,
+      default: null,
     }
   },
   inject: ['realMode'],
@@ -241,6 +245,7 @@ export default {
       :name-label="isSidecar ? 'Container Name' : 'Service Name'"
       :extra-columns="extraColumns"
       :namespaced="showNamespace"
+      :register-before-hook="registerBeforeHook"
     >
       <template v-if="isSidecar" #name>
         <LabeledInput

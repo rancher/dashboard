@@ -47,8 +47,11 @@ export default {
       type:    String,
       default: '-'
     },
+    registerBeforeHook: {
+      type:    Function,
+      default: null
+    }
   },
-
   data() {
     let metadata = this.value.metadata;
 
@@ -84,6 +87,8 @@ export default {
       name,
       wantDescription:        !!description,
       ANNOTATION_DESCRIPTION: ANNOTATION.DESCRIPTION,
+      createNS:               false,
+      toCreate:               ''
     };
   },
 
@@ -129,6 +134,36 @@ export default {
       }
     },
   },
+  created() {
+    if (this.registerBeforeHook) {
+      this.registerBeforeHook(this.createNamespace);
+    }
+  },
+  methods: {
+    toggleNSMode() {
+      this.createNS = !this.createNS;
+    },
+    async createNamespace() {
+      if (this.createNS) {
+        if (!this.toCreate) {
+          throw new Error('no namespace name provided');
+        } else {
+          try {
+            const nsSchema = this.$store.getters['cluster/schemaFor'](NAMESPACE);
+            const data = { metadata: { name: this.toCreate } };
+
+            await nsSchema.followLink('collection', {
+              method:  'POST',
+              data
+            });
+            this.value.metadata.namespace = this.toCreate;
+          } catch (err) {
+            throw err;
+          }
+        }
+      }
+    }
+  }
 };
 </script>
 
@@ -153,7 +188,15 @@ export default {
       </div>
       <div v-if="namespaced" :class="{col: true, [colSpan]: true}">
         <slot name="namespace">
+          <LabeledInput v-if="createNS" v-model="toCreate" required label="Namespace" placeholder="e.g. myapp">
+            <template #corner>
+              <a href="#" @click.prevent="toggleNSMode">
+                Use an existing namespace
+              </a>
+            </template>
+          </LabeledInput>
           <LabeledSelect
+            v-else
             key="namespace"
             v-model="value.metadata.namespace"
             :mode="onlyForCreate"
@@ -161,7 +204,13 @@ export default {
             :required="true"
             label="Namespace"
             placeholder="Select a namespace"
-          />
+          >
+            <template #corner>
+              <a v-if="registerBeforeHook" href="#" @click.prevent="toggleNSMode">
+                Create new namespace
+              </a>
+            </template>
+          </LabeledSelect>
         </slot>
       </div>
       <div v-for="slot in extraColumns" :key="slot" :class="{col: true, [colSpan]: true}">

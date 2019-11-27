@@ -102,7 +102,6 @@ export default {
         await this.applyHooks(AFTER_SAVE_HOOKS);
 
         buttonDone(true);
-
         this.done();
       } catch (err) {
         if ( err && err.response && err.response.data ) {

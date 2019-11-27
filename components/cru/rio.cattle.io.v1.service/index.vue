@@ -193,6 +193,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
         :mode="mode"
         :is-demo="isDemo"
         :register-after-hook="registerAfterHook"
+        :register-before-hook="registerBeforeHook"
       />
       <div class="spacer"></div>
       <a href="#" @click.prevent="toggleTabs">

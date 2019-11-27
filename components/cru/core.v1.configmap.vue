@@ -22,6 +22,7 @@ export default {
       :value="value"
       :mode="mode"
       name-label="Config Map Name"
+      :register-before-hook="registerBeforeHook"
     />
 
     <div v-if="!isView || Object.keys(value.data||{}).length" class="row">
