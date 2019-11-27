@@ -1,4 +1,4 @@
-import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
+import { CONFIG_MAP, SECRET, RIO, NAMESPACE } from '@/config/types';
 import {
   STATE, NAME, NAMESPACE_NAME, NAMESPACE_NAME_IMAGE, AGE,
   WEIGHT, SCALE,
@@ -9,6 +9,11 @@ import {
 import { _CREATE, _CLONE, _STAGE } from '@/config/query-params';
 
 export const FRIENDLY = {
+  [NAMESPACE]: {
+    singular: 'Namespace',
+    type:     NAMESPACE,
+    headers:  [STATE, NAME, AGE]
+  },
   'config-maps': {
     singular: 'Config Map',
     plural:   'Config Maps',

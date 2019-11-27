@@ -1,7 +1,6 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 import { RIO } from '@/config/types';
-import { get } from '@/utils/object';
 
 export default {
   props:      {

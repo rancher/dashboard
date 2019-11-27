@@ -1,5 +1,7 @@
 <script>
+import { get } from '@/utils/object';
 import ResourceTable from '@/components/ResourceTable';
+import { FRIENDLY } from '@/config/friendly';
 
 export default {
   components: { ResourceTable },
@@ -7,6 +9,9 @@ export default {
   computed: {
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.resource);
+    },
+    headers() {
+      return get(FRIENDLY[this.resource], 'headers');
     },
   },
 
@@ -34,7 +39,7 @@ export default {
         </nuxt-link>
       </div>
     </header>
-    <ResourceTable :schema="schema" :rows="rows" />
+    <ResourceTable :schema="schema" :rows="rows" :headers="headers" />
   </div>
 </template>
 

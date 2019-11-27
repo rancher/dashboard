@@ -1,4 +1,5 @@
-import { cloneDeep } from 'lodash';
+import { cloneDeep, flattenDeep, compact, pick } from 'lodash';
+import { typeOf } from './sort';
 
 const quotedKey = /['"]/;
 
@@ -36,4 +37,37 @@ export function clone(obj) {
 
 export function isEmpty(obj) {
   return !Object.keys(obj).length;
+}
+
+/*
+returns an object with no key/value pairs (including nested) where the value is:
+  empty array
+  empty object
+  null
+  undefined
+*/
+export function cleanUp(obj) {
+  return pick(obj, definedValueKeys(obj));
+}
+
+function definedValueKeys(obj) {
+  const validKeys = Object.keys(obj).map((key) => {
+    if (typeOf(obj[key]) === 'object') {
+      const recursed = definedValueKeys(obj[key]);
+
+      if (recursed) {
+        return recursed.map((subkey) => {
+          return `${ key }.${ subkey }`;
+        });
+      }
+    } else if (typeOf(obj[key]) === 'array') {
+      if (compact(obj[key]).length) {
+        return key;
+      }
+    } else if (!!obj[key] || obj[key] === 0) {
+      return key;
+    }
+  });
+
+  return compact(flattenDeep(validKeys));
 }

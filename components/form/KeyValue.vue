@@ -385,6 +385,7 @@ export default {
                 v-else-if="valueMultiline"
                 v-model="row[valueName]"
                 :placeholder="valuePlaceholder"
+                :min-height="50"
                 @input="queueUpdate"
               />
               <input

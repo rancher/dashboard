@@ -180,9 +180,9 @@ export default {
     }
 
     .landscape {
-      background-image: url('~assets/images/login-landscape.svg'); 
+      background-image: url('~assets/images/login-landscape.svg');
       background-repeat: no-repeat;
-      background-size: cover; 
+      background-size: cover;
       background-position: center center;
       height: 100vh;
     }
