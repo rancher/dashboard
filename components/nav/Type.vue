@@ -33,8 +33,7 @@ export default {
       display: grid;
       grid-template-areas: "label count";
       grid-template-columns: auto 40px;
-
-      font-size: 14px;
+      font-size: 12px;
       padding: 10px 0 10px 10px;
       overflow: hidden;
       text-overflow: ellipsis;

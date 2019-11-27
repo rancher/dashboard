@@ -67,10 +67,11 @@ export default {
 <style lang="scss" scoped>
   .header {
     border-top: solid thin var(--border);
-    font-size: 14px;
+    font-size: 12px;
     padding: 10px;
     position: relative;
     cursor: pointer;
+    color: var(--input-label);
 
     &:first-child {
       // border-top: 0;
