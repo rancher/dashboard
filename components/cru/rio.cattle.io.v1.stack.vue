@@ -79,6 +79,7 @@ export default {
         :value="value"
         :mode="mode"
         name-label="Stack Name"
+        :register-before-hook="registerBeforeHook"
       />
 
       <div class="spacer"></div>

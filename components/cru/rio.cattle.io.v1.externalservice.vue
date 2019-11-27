@@ -135,6 +135,7 @@ export default {
         :value="value"
         :mode="mode"
         name-label="External Service Name"
+        :register-before-hook="registerBeforeHook"
       />
 
       <div class="row">

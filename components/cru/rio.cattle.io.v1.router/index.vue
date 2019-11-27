@@ -49,9 +49,9 @@ export default {
     addRouteSpec() {
       this.routes.push({ uuid: randomStr() });
     },
-    saveRouter() {
+    saveRouter(buttonCB) {
       this.value.spec = { routes: this.cleanedRoutes };
-      this.save(this.done);
+      this.save(buttonCB);
     },
     change(type, value, index) {
       this[type].splice(index, 1, value);
@@ -73,7 +73,7 @@ export default {
 <template>
   <form>
     <div class="row">
-      <NameNsDescription class="col span-12" :value="value" :mode="mode" />
+      <NameNsDescription class="col span-12" :value="value" :mode="mode" :register-before-hook="registerBeforeHook" />
     </div>
     <h2>Rules</h2>
     <div class="row">
