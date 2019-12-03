@@ -48,5 +48,6 @@ export default {
     font-size: 1em;
     max-width: 110px;
     font-size: .85em;
+    vertical-align: middle;
   }
 </style>

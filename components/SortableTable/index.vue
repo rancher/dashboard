@@ -503,6 +503,7 @@ $divider-height: 1px;
 
     > TR > TD {
       height: $group-row-height;
+      vertical-align: middle;
 
       &.clip {
         padding-right: 25px;
