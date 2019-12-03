@@ -138,14 +138,16 @@ export default {
         :register-before-hook="registerBeforeHook"
       />
 
+      <div class="spacer"></div>
+
       <div class="row">
         <div class="col span-12">
           <h4>Target</h4>
           <div v-if="mode === 'view'">
             {{ kindLabels[kind] }}
           </div>
-          <div v-else>
-            <div v-for="opt in kindOptions" :key="opt.value">
+          <div v-else class="row">
+            <div v-for="opt in kindOptions" :key="opt.value" class="col">
               <label class="radio">
                 <input v-model="kind" type="radio" :value="opt.value" />
                 {{ opt.label }}

@@ -187,6 +187,7 @@ export default {
         <tr
           v-for="(row, idx) in rows"
           :key="idx"
+          class="pt-10"
         >
           <td v-if="padLeft" class="left"></td>
           <td class="value">
