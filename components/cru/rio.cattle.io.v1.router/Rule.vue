@@ -3,6 +3,7 @@
 import pickBy from 'lodash/pickBy';
 import values from 'lodash/values';
 import { isEmpty } from 'lodash';
+import { cleanUp } from '../../../utils/object';
 import { randomStr } from '@/utils/string';
 import Match from '@/components/cru/rio.cattle.io.v1.router/Match';
 import Destination from '@/components/cru/rio.cattle.io.v1.router/Destination';
@@ -69,7 +70,7 @@ export default {
       this.to.push({ uuid: randomStr() });
     },
     changeRoute() {
-      const out = {
+      let out = {
         match:   this.match,
         mirror:  this.shouldMirror ? this.mirror : {},
         headers: this.headers,
@@ -78,20 +79,14 @@ export default {
       };
 
       if (this.mode !== 'redirect') {
-        out.to = this.to.map(route => pickBy(route, (value, key) => {
-          if (typeof value === 'object') {
-            return !!values(value).length;
-          } else {
-            return key !== 'uuid';
-          }
-        }));
+        out.to = this.to.map(destination => cleanUp(destination));
         if (!isEmpty(this.rewrite)) {
           out.rewrite = this.rewrite;
         }
       } else {
         out.redirect = this.redirect;
       }
-
+      out = cleanUp(out);
       this.$emit('input', out);
     },
     move(direction) {
