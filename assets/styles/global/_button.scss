@@ -22,6 +22,7 @@ button,
   padding: $btn-padding;
   border-radius: var(--border-radius);
   color: white;
+  display: inline-flex;
 
   &:hover {
       text-decoration: none;
