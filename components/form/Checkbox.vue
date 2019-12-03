@@ -62,7 +62,7 @@ export default {
 
 <style lang='scss'>
 .checkbox-container {
-  display: inline-flex;
+  // display: inline-flex;
   align-items: center;
 }
 .checkbox-label {
@@ -75,13 +75,14 @@ export default {
     cursor: pointer;
     font-size: 18px;
     line-height: 24px;
-    height: 18px;
-    width: 18px;
+    height: 14px;
+    width: 14px;
     clear: both;
 }
 
 .checkbox-box input {
     position: absolute;
+    left: 0;
     opacity: 0;
     cursor: pointer;
 }
@@ -93,7 +94,7 @@ export default {
     height: 14px;
     width: 14px;
     background-color: transparent;
-    border-radius: 3px;
+    border-radius: 2px;
     transition: all 0.3s ease-out;
     border: 1px solid var(--border);
 }

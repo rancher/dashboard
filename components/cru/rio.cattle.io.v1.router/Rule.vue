@@ -185,7 +185,7 @@ export default {
       </div>
       <div v-if="mode==='forwardMany'" class="row">
         <button type="button" class="btn btn-sm bg-primary " @click="addDestination">
-          + ADD DESTINATION
+          + Add Destination
         </button>
       </div>
       <div v-if="mode==='redirect'" class="row">
