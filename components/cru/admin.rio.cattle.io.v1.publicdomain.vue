@@ -228,56 +228,58 @@ export default {
       <div class="spacer"></div>
 
       <div>
-        <h4>Target</h4>
-        <div v-if="mode === 'view'">
-          {{ kindLabels[kind] }}
-        </div>
-        <div v-else class="row">
-          <div v-for="opt in kindOptions" :key="opt.value" class="col">
-            <label class="radio">
-              <input v-model="kind" type="radio" :value="opt.value" />
-              {{ opt.label }}
-            </label>
+        <div class="section">
+          <h4>Target</h4>
+          <div v-if="mode === 'view'">
+            {{ kindLabels[kind] }}
+          </div>
+          <div v-else class="row">
+            <div v-for="opt in kindOptions" :key="opt.value" class="col">
+              <label class="radio">
+                <input v-model="kind" type="radio" :value="opt.value" />
+                {{ opt.label }}
+              </label>
+            </div>
+          </div>
+
+          <div class="row">
+            <div v-if="kind === 'router'" class="col span-6">
+              <LabeledSelect
+                v-model="targetRouter"
+                :options="routerOptions"
+                :grouped="true"
+                :mode="mode"
+                label="Target Router"
+                placeholder="Select a Router..."
+                @input="update"
+              />
+            </div>
+
+            <div v-if="kind === 'app' || kind === 'version'" class="col span-6">
+              <LabeledSelect
+                v-model="targetApp"
+                :mode="mode"
+                label="Target App"
+                :options="appOptions"
+                :grouped="true"
+                placeholder="Select a service"
+                @input="update"
+              />
+            </div>
+
+            <div v-if="kind === 'version'" class="col span-6">
+              <LabeledSelect
+                v-model="targetVersion"
+                label="Target Version"
+                :mode="mode"
+                :options="versionOptions"
+                placeholder="Select a version"
+                @input="update"
+              />
+            </div>
           </div>
         </div>
-
-        <div v-if="kind === 'router'" class="mt-20">
-          <LabeledSelect
-            v-model="targetRouter"
-            :options="routerOptions"
-            :grouped="true"
-            :mode="mode"
-            label="Target Router"
-            placeholder="Select a Router..."
-            @input="update"
-          />
-        </div>
-
-        <div v-if="kind === 'app' || kind === 'version'" class="mt-20">
-          <LabeledSelect
-            v-model="targetApp"
-            :mode="mode"
-            label="Target App"
-            :options="appOptions"
-            :grouped="true"
-            placeholder="Select a service"
-            @input="update"
-          />
-        </div>
-
-        <div v-if="kind === 'version'" class="mt-20">
-          <LabeledSelect
-            v-model="targetVersion"
-            label="Target Version"
-            :mode="mode"
-            :options="versionOptions"
-            placeholder="Select a version"
-            @input="update"
-          />
-        </div>
-
-        <div class="spacer"></div>
-
+        
         <h4>Certificate</h4>
         <div v-if="mode === 'view'">
           {{ secretKindLabels[kind] }}
@@ -307,3 +309,13 @@ export default {
     </template>
   </form>
 </template>
+
+<style  lang='scss'>
+  .section {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+</style>
