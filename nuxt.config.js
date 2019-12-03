@@ -10,8 +10,7 @@ const version = process.env.VERSION ||
   require('./package.json').version;
 
 const dev = (process.env.NODE_ENV !== 'production');
-const steve = process.env.API || 'http://localhost:8989';
-const rancher = process.env.RANCHER || 'https://localhost:30443';
+const api = process.env.API || 'http://localhost:8989';
 
 let routerBasePath = '/';
 let resourceBase = '';
@@ -36,8 +35,7 @@ if ( resourceBase && !resourceBase.endsWith('/') ) {
 console.log(`Mode: ${ dev ? 'Development' : 'Production' }`);
 console.log(`Router Base Path: ${ routerBasePath || '(none)' }`);
 console.log(`Resource Base URL: ${ resourceBase || '(none)' }`);
-console.log(`Steve: ${ steve }`);
-console.log(`Rancher: ${ rancher }`);
+console.log(`API: ${ api }`);
 
 if ( dev ) {
   process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
@@ -65,7 +63,7 @@ module.exports = {
   build: {
     publicPath: resourceBase,
     extend(config, { isClient }) {
-      config.devtool = isClient ? '#source-map' : 'inline-source-map';
+      config.devtool = isClient ? 'source-map' : 'inline-source-map';
 
       if ( resourceBase ) {
         config.output.publicPath = resourceBase;
@@ -136,7 +134,7 @@ module.exports = {
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
     '/k8s': {
-      target:       steve,
+      target:       api,
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
@@ -145,7 +143,7 @@ module.exports = {
       onError,
     },
     '/v1': {
-      target:       steve,
+      target:       api,
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
@@ -154,7 +152,7 @@ module.exports = {
       onError,
     },
     '/api/v1': {
-      target:       steve,
+      target:       api,
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
@@ -163,7 +161,7 @@ module.exports = {
       onError,
     },
     '/apis': {
-      target:       steve,
+      target:       api,
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
@@ -172,7 +170,7 @@ module.exports = {
       onError,
     },
     '/v3': {
-      target:       rancher,
+      target:       api,
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
@@ -181,14 +179,14 @@ module.exports = {
       onError,
     },
     '/v3-public': {
-      target: rancher,
+      target: api,
       xfwd:   true,
       onProxyReq,
       onProxyReqWs,
       onError
     },
     '/api-ui':    {
-      target: rancher,
+      target: api,
       xfwd:   true,
       onProxyReq,
       onProxyReqWs,

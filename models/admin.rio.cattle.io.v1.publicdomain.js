@@ -18,7 +18,7 @@ export default {
       return 'app';
     }
 
-    return 'unknown';
+    return 'none';
   },
 
   kindDisplay() {
@@ -32,8 +32,8 @@ export default {
       return 'Service version';
     case 'app':
       return 'Service';
-    case 'unknown':
-      return '?';
+    case 'none':
+      return 'None';
     }
   },
 

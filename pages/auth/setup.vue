@@ -57,6 +57,13 @@ export default {
   async asyncData({ route, req, store }) {
     const current = route.query[SETUP] || '';
     const password = randomStr();
+
+    const firstLoginSetting = await store.dispatch('rancher/find', {
+      type: RANCHER.SETTING,
+      id:   'first-login',
+      opt:  { url: '/v3/settings/first-login' }
+    });
+
     const telemetrySetting = await store.dispatch('rancher/find', {
       type: RANCHER.SETTING,
       id:   'telemetry-opt',
@@ -97,6 +104,7 @@ export default {
     */
 
     return {
+      firstLogin:  firstLoginSetting.value === 'true',
       step:        parseInt(route.query.step, 10) || 1,
 
       useRandom:   true,
@@ -124,6 +132,18 @@ export default {
   },
 
   methods: {
+    goToStep(num) {
+      this.step = num;
+      this.$router.applyQuery({
+        [SETUP]: _DELETE,
+        [STEP]:  this.step,
+      });
+    },
+
+    skipPassword() {
+      this.goToStep(2);
+    },
+
     async finishPassword(buttonCb) {
       try {
         this.telemetrySetting.value = this.telemetry ? 'in' : 'out';
@@ -140,11 +160,7 @@ export default {
         });
 
         buttonCb(true);
-        this.step = 2;
-        this.$router.applyQuery({
-          [SETUP]: _DELETE,
-          [STEP]:  this.step,
-        });
+        this.goToStep(2);
       } catch (err) {
         buttonCb(false);
       }
@@ -238,8 +254,7 @@ export default {
         }
 
         buttonCb(true);
-        this.step = 3;
-        this.$router.applyQuery({ [STEP]: this.step });
+        this.goToStep(3);
       } catch (e) {
         buttonCb(false);
         this.githubError = e;
@@ -282,8 +297,8 @@ export default {
 };
 </script>
 <template>
-  <form class="container setup">
-    <div v-if="step === 1">
+  <div class="container setup">
+    <form v-if="step === 1">
       <div class="row">
         <div class="col span-6">
           <h1>Welcome to Rio!</h1>
@@ -359,6 +374,9 @@ export default {
           </div>
 
           <div class="mt-20">
+            <button v-if="!firstLogin" type="button" class="btn bg-default mr-20" @click="skipPassword">
+              Skip
+            </button>
             <AsyncButton key="passwordSubmit" type="submit" mode="continue" :disabled="passwordSubmitDisabled" @click="finishPassword" />
           </div>
         </div>
@@ -366,9 +384,9 @@ export default {
           <img src="~/assets/images/setup-step-one.svg" />
         </div>
       </div>
-    </div>
+    </form>
 
-    <div v-if="step === 2">
+    <form v-if="step === 2">
       <div class="row">
         <div class="col span-6">
           <h1 class="mb-20">
@@ -425,7 +443,7 @@ export default {
             <LabeledInput
               ref="clientId"
               v-model.trim="clientId"
-              autocomplete="off"
+              autocomplete="username"
               label="GitHub Client ID"
             />
           </div>
@@ -435,7 +453,7 @@ export default {
               ref="clientSecret"
               v-model.trim="clientSecret"
               type="password"
-              autocomplete="off"
+              autocomplete="password"
               label="GitHub Client Secret"
             />
           </div>
@@ -457,9 +475,9 @@ export default {
           <img src="~/assets/images/setup-step-one.svg" />
         </div>
       </div>
-    </div>
+    </form>
 
-    <div v-if="step === 3">
+    <form v-if="step === 3">
       <div class="row">
         <div class="col span-6">
           <h1>GitHub Integration, Part Deux</h1>
@@ -494,8 +512,8 @@ export default {
           <img src="~/assets/images/setup-step-one.svg" />
         </div>
       </div>
-    </div>
-  </form>
+    </form>
+  </div>
 </template>
 
 <style lang="scss" scoped>

@@ -13,8 +13,8 @@ const ERR_SERVER = 'server';
 
 export const state = function() {
   return {
-    loggedIn:  false,
-    principal: null,
+    loggedIn:    false,
+    principalId: null,
   };
 };
 
@@ -28,7 +28,7 @@ export const getters = {
   },
 
   isGithub(state) {
-    return state.principalId.startsWith('github_user://');
+    return state.principalId && state.principalId.startsWith('github_user://');
   }
 };
 
@@ -46,7 +46,7 @@ export const mutations = {
     }
 
     state.loggedIn = false;
-    state.principal = null;
+    state.principalId = null;
   },
 };
 
