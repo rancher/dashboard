@@ -222,7 +222,7 @@ export default {
         :namespaced="false"
         :value="value"
         :mode="mode"
-        name-label="Public Domain Name"
+        name-label="Name"
       />
 
       <div class="spacer"></div>

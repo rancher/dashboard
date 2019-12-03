@@ -261,7 +261,7 @@ export default {
           key="appName"
           v-model="spec.app"
           :mode="mode"
-          label="App Name"
+          label="Name"
           :required="true"
           :disabled="mode !== 'create'"
           @input="updateGeneratedName"

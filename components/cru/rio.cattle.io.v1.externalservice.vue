@@ -134,7 +134,7 @@ export default {
       <NameNsDescription
         :value="value"
         :mode="mode"
-        name-label="External Service Name"
+        name-label="Name"
         :register-before-hook="registerBeforeHook"
       />
 
