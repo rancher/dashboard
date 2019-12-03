@@ -89,7 +89,7 @@ export default {
   },
 
   'ws.resource.create'({ dispatch }, { data }) {
-    console.log('Create', data.type, data.id);
+    // console.log('Create', data.type, data.id);
     dispatch('load', data);
   },
 
@@ -102,7 +102,7 @@ export default {
     const type = getters.normalizeType(data.type);
 
     if ( getters.hasType(type) ) {
-      console.log('Remove', data.type, data.id);
+      // console.log('Remove', data.type, data.id);
       const obj = getters.byId(data.type, data.id);
 
       if ( obj ) {

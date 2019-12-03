@@ -3,9 +3,12 @@ import { findBy } from '@/utils/array';
 import { SETUP } from '@/config/query-params';
 
 export default async function({
-  route, app, store, redirect
+  route, app, store, redirect, req
 }) {
-  if ( store.getters['auth/principal'] || route.name === 'auth-setup' ) {
+  if ( store.getters['auth/principal'] ||
+       route.name === 'auth-setup' ||
+       (route.path && typeof route.path === 'string' && route.path.startsWith('/__webpack_hmr/'))
+  ) {
     return;
   }
 

@@ -7,6 +7,7 @@ import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
 
 export default {
+  name:       'Login',
   layout:     'unauthenticated',
   components: {
     LabeledInput, AsyncButton, Checkbox

@@ -1,5 +1,6 @@
 
 <script>
+import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
 import { explorerPackage, rioPackage } from '@/config/packages';
 import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
@@ -36,11 +37,17 @@ export default {
   },
 
   computed: {
+    ...mapState(['preloaded']),
+
     principal() {
       return this.$store.getters['rancher/byId'](RANCHER.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
 
     counts() {
+      if ( !this.$store.getters['cluster/haveAll'](COUNT) ) {
+        return null;
+      }
+
       const obj = this.$store.getters['cluster/all'](COUNT)[0].counts;
       const out = Object.keys(obj).map((id) => {
         const schema = this.$store.getters['cluster/schemaFor'](id);
@@ -77,6 +84,10 @@ export default {
     packages() {
       const namespaces = this.$store.getters['namespaces'] || [];
       const counts = this.counts;
+
+      if ( !counts ) {
+        return [];
+      }
 
       const explorer = explorerPackage(this.$router, counts, namespaces);
       const rio = rioPackage(this.$router, counts, namespaces);
@@ -121,7 +132,7 @@ export default {
 </script>
 
 <template>
-  <div class="dashboard-root">
+  <div v-if="preloaded" class="dashboard-root">
     <div class="logo">
       <n-link v-trim-whitespace to="/">
         <img src="~/assets/images/logo.svg" alt="logo" height="30" />
