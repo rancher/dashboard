@@ -17,11 +17,11 @@ export default {
 
   created() {
     if ( !this.spec.metadata ) {
-      this.spec.metadata = {};
+      this.$set(this.spec, 'metadata', {});
     }
 
     if ( !this.spec.annotations ) {
-      this.spec.annotations = {};
+      this.$set(this.spec, 'annotations', {});
     }
   },
 };

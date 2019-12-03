@@ -1,4 +1,5 @@
 <script>
+import { get } from '../../utils/object';
 import { NAMESPACE, ANNOTATION } from '~/config/types';
 import { NAMESPACES } from '@/store/prefs';
 import { _CREATE, _VIEW } from '~/config/query-params';
@@ -47,6 +48,10 @@ export default {
       type:    String,
       default: '-'
     },
+    alwaysDescribe: {
+      type:    Boolean,
+      default: false
+    },
     registerBeforeHook: {
       type:    Function,
       default: null
@@ -70,8 +75,6 @@ export default {
       metadata.namespace = selectedNS;
     }
 
-    const description = metadata.annotations[ANNOTATION.DESCRIPTION];
-
     let name;
 
     if ( this.useGeneratedName ) {
@@ -85,7 +88,6 @@ export default {
 
     return {
       name,
-      wantDescription:        !!description,
       ANNOTATION_DESCRIPTION: ANNOTATION.DESCRIPTION,
       createNS:               false,
       toCreate:               ''
@@ -122,6 +124,19 @@ export default {
 
       return `span-${ span }`;
     },
+    description: {
+      get() {
+        return get(this.value, `metadata.annotations.${ ANNOTATION.DESCRIPTION }`);
+      },
+      set(val) {
+        this.value.metadata.annotations[ANNOTATION.DESCRIPTION] = val;
+      }
+    },
+    wantDescription() {
+      const description = get(this.value, `metadata.annotations.${ ANNOTATION.DESCRIPTION }`);
+
+      return !!description || this.alwaysDescribe;
+    }
   },
 
   watch: {
@@ -218,16 +233,19 @@ export default {
         </slot>
       </div>
     </div>
-    <div v-if="wantDescription || value.metadata.annotations[ANNOTATION_DESCRIPTION]" class="row">
+    <div v-if="wantDescription" class="row">
       <div class="col span-12">
-        <LabeledInput
-          key="description"
-          v-model="value.metadata.annotations[ANNOTATION_DESCRIPTION]"
-          type="multiline"
-          label="Description"
-          :mode="mode"
-          :placeholder="descriptionPlaceholder"
-        />
+        <div>
+          <LabeledInput
+            key="description"
+            v-model="description"
+            type="multiline"
+            label="Description"
+            :mode="mode"
+            :placeholder="descriptionPlaceholder"
+            :min-height="30"
+          />
+        </div>
       </div>
     </div>
   </div>

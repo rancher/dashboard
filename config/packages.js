@@ -54,6 +54,14 @@ export function rioPackage($router, counts, namespaces) {
         route:   { name: 'rio-mesh' },
       },
       {
+        name:  'namespaces',
+        label: 'Namespaces',
+        route: {
+          name:   'explorer-group-resource',
+          params: { group: 'core', resource: 'core.v1.namespace' }
+        }
+      },
+      {
         name:  'rio-stack',
         count: countFor(RIO.STACK),
         label: 'Stacks',
