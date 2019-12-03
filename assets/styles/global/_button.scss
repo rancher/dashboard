@@ -1,4 +1,4 @@
-$btn-padding: 15px 20px;
+$btn-padding: 15px 40px;
 $xs-padding: 2px 3px;
 $sm-padding: 8px 16px;
 $lg-padding: 18px 30px;
@@ -86,8 +86,8 @@ button,
 
 .role-secondary {
   background: transparent;
-  color: var(--link-text) !important;
-  border: solid thin var(--link-text);
+  color: var(--muted) !important;
+  border: solid thin var(--muted);
 }
 
 .role-tertiary {

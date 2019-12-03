@@ -50,11 +50,11 @@ export default {
       </div>
     </div>
     <div class="text-center">
-      <AsyncButton v-if="isEdit" key="edit" mode="edit" @click="save" />
-      <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
-      <button v-if="!isView" type="button" class="btn bg-transparent" @click="done">
+      <button v-if="!isView" type="button" class="btn role-secondary" @click="done">
         Cancel
       </button>
+      <AsyncButton v-if="isEdit" key="edit" mode="edit" @click="save" />
+      <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
     </div>
   </div>
 </template>
