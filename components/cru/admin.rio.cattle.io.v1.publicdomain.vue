@@ -225,87 +225,81 @@ export default {
         name-label="Public Domain Name"
       />
 
-      <hr />
+      <div class="spacer"></div>
 
-      <div class="row">
-        <div class="col span-11-of-23">
-          <h4>Target</h4>
-          <div v-if="mode === 'view'">
-            {{ kindLabels[kind] }}
-          </div>
-          <div v-else>
-            <div v-for="opt in kindOptions" :key="opt.value">
-              <label class="radio">
-                <input v-model="kind" type="radio" :value="opt.value" />
-                {{ opt.label }}
-              </label>
-            </div>
-          </div>
-
-          <div v-if="kind === 'router'" class="mt-20">
-            <LabeledSelect
-              v-model="targetRouter"
-              :options="routerOptions"
-              :grouped="true"
-              :mode="mode"
-              label="Target Router"
-              placeholder="Select a Router..."
-              @input="update"
-            />
-          </div>
-
-          <div v-if="kind === 'app' || kind === 'version'" class="mt-20">
-            <LabeledSelect
-              v-model="targetApp"
-              :mode="mode"
-              label="Target App"
-              :options="appOptions"
-              :grouped="true"
-              placeholder="Select a service"
-              @input="update"
-            />
-          </div>
-
-          <div v-if="kind === 'version'" class="mt-20">
-            <LabeledSelect
-              v-model="targetVersion"
-              label="Target Version"
-              :mode="mode"
-              :options="versionOptions"
-              placeholder="Select a version"
-              @input="update"
-            />
+      <div>
+        <h4>Target</h4>
+        <div v-if="mode === 'view'">
+          {{ kindLabels[kind] }}
+        </div>
+        <div v-else class="row">
+          <div v-for="opt in kindOptions" :key="opt.value" class="col">
+            <label class="radio">
+              <input v-model="kind" type="radio" :value="opt.value" />
+              {{ opt.label }}
+            </label>
           </div>
         </div>
 
-        <div class="col span-1-of-23" style="position: relative; overflow: hidden">
-          <hr class="vertical" />
+        <div v-if="kind === 'router'" class="mt-20">
+          <LabeledSelect
+            v-model="targetRouter"
+            :options="routerOptions"
+            :grouped="true"
+            :mode="mode"
+            label="Target Router"
+            placeholder="Select a Router..."
+            @input="update"
+          />
         </div>
 
-        <div class="col span-11-of-23">
-          <h4>Certificate</h4>
-          <div v-if="mode === 'view'">
-            {{ secretKindLabels[kind] }}
-          </div>
-          <div v-else>
-            <div v-for="opt in secretKindOptions" :key="opt.value">
-              <label class="radio">
-                <input v-model="secretKind" type="radio" :value="opt.value" />
-                {{ opt.label }}
-              </label>
-            </div>
-          </div>
+        <div v-if="kind === 'app' || kind === 'version'" class="mt-20">
+          <LabeledSelect
+            v-model="targetApp"
+            :mode="mode"
+            label="Target App"
+            :options="appOptions"
+            :grouped="true"
+            placeholder="Select a service"
+            @input="update"
+          />
+        </div>
 
-          <div v-if="secretKind === 'secret'" class="mt-20">
-            <LabeledSelect
-              v-model="secret"
-              :mode="mode"
-              label="Secret Name"
-              :options="secretOptions"
-              placeholder="Select a Certificate Secret..."
-              @input="update"
-            />
+        <div v-if="kind === 'version'" class="mt-20">
+          <LabeledSelect
+            v-model="targetVersion"
+            label="Target Version"
+            :mode="mode"
+            :options="versionOptions"
+            placeholder="Select a version"
+            @input="update"
+          />
+        </div>
+
+        <div class="spacer"></div>
+
+        <h4>Certificate</h4>
+        <div v-if="mode === 'view'">
+          {{ secretKindLabels[kind] }}
+        </div>
+        <div v-else class="row">
+          <div v-for="opt in secretKindOptions" :key="opt.value" class="col">
+            <label class="radio">
+              <input v-model="secretKind" type="radio" :value="opt.value" />
+              {{ opt.label }}
+            </label>
           </div>
+        </div>
+
+        <div v-if="secretKind === 'secret'" class="mt-20">
+          <LabeledSelect
+            v-model="secret"
+            :mode="mode"
+            label="Secret Name"
+            :options="secretOptions"
+            placeholder="Select a Certificate Secret..."
+            @input="update"
+          />
         </div>
       </div>
 
