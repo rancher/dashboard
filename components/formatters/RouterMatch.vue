@@ -24,7 +24,7 @@ export default {
       return this.value[0];
     },
     matches() {
-      return get(this.route, 'match');
+      return get(this.route, 'match') || {};
     },
     methodToShow() {
       if (this.matches.path) {

@@ -3,7 +3,7 @@
 
 import values from 'lodash/values';
 import pickBy from 'lodash/pickBy';
-import { get } from '@/utils/object';
+import { get, cleanUp } from '@/utils/object';
 import { randomStr } from '@/utils/string';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -36,13 +36,7 @@ export default {
       return this.value.metadata.namespace;
     },
     cleanedRoutes() {
-      return this.routes.map(route => pickBy(route, (value, key) => {
-        if (typeof value === 'object') {
-          return !!values(value).length;
-        } else {
-          return key !== 'uuid';
-        }
-      }));
+      return this.routes.map(route => cleanUp(route));
     },
   },
   methods:  {
