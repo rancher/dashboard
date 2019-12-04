@@ -50,6 +50,9 @@ TEXTAREA,
     }
   }
 
+  LABEL {
+    margin: $spacing 0 $spacing 0;
+  }
 }
 
 FORM {
@@ -61,7 +64,7 @@ FORM {
     &.radio, &.checkbox {
       cursor: pointer;
       margin: 5px 0;
-      
+
       > INPUT {
         margin-right: 5px;
       }
