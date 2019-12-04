@@ -24,7 +24,7 @@ export default {
       name-label="Name"
       :register-before-hook="registerBeforeHook"
     />
-
+    
     <div v-if="!isView || Object.keys(value.data||{}).length" class="row">
       <div class="col span-12">
         <KeyValue

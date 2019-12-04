@@ -229,7 +229,9 @@ export default {
 
       <div>
         <div class="section">
-          <h4>Target</h4>
+          <div class="title clearfix">
+            <h4>Target</h4>
+          </div>
           <div v-if="mode === 'view'">
             {{ kindLabels[kind] }}
           </div>
@@ -280,7 +282,10 @@ export default {
           </div>
         </div>
         
-        <h4>Certificate</h4>
+        <div class="title clearfix">
+          <h4>Certificate</h4>
+        </div>
+        
         <div v-if="mode === 'view'">
           {{ secretKindLabels[kind] }}
         </div>
