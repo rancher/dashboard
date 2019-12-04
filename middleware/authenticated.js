@@ -3,7 +3,7 @@ import { findBy } from '@/utils/array';
 import { SETUP } from '@/config/query-params';
 
 export default async function({
-  route, app, store, redirect, req
+  route, app, store, redirect, req, isDev
 }) {
   if ( store.getters['auth/principal'] ||
        route.name === 'auth-setup' ||
@@ -15,7 +15,7 @@ export default async function({
   const initialPass = route.query[SETUP];
 
   if ( initialPass ) {
-    const ok = await tryInitialSetup(store, initialPass);
+    const ok = await tryInitialSetup(store, initialPass, isDev);
 
     if ( ok ) {
       redirect(302, `/auth/setup?${ SETUP }=${ escape(initialPass) }`);
@@ -40,7 +40,7 @@ export default async function({
   }
 }
 
-async function tryInitialSetup(store, password) {
+async function tryInitialSetup(store, password, isDev) {
   try {
     const firstLogin = await store.dispatch('rancher/find', {
       type: RANCHER.SETTING,
@@ -48,7 +48,10 @@ async function tryInitialSetup(store, password) {
       opt:  { url: '/v3/settings/first-login' }
     });
 
-    if ( !firstLogin || firstLogin.value !== 'true' ) {
+    if ( isDev ) {
+      // Ignore first-login for dev
+    } else if ( !firstLogin || firstLogin.value !== 'true' ) {
+      // Require first-login to be set for prod
       return false;
     }
 

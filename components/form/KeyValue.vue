@@ -158,7 +158,7 @@ export default {
   },
 
   data() {
-    // @TODO base64 and binary support for asMap
+    // @TODO base64 and binary support for as Array (!asMap)
     if ( !this.asMap ) {
       return { rows: (this.value || []).slice() };
     }
@@ -212,12 +212,12 @@ export default {
   },
 
   methods: {
-    add(key = '', value = '') {
-      if ( this.valueBase64 ) {
-        value = base64Encode(value);
-      }
-
-      this.rows.push({ [this.keyName]: key, [this.valueName]: value });
+    add(key = '', value = '', binary = false) {
+      this.rows.push({
+        [this.keyName]:   key,
+        [this.valueName]: value,
+        binary,
+      });
       this.queueUpdate();
 
       this.$nextTick(() => {
@@ -253,7 +253,9 @@ export default {
           const reader = new FileReader();
 
           reader.onload = (loaded) => {
-            this.add(names[i], loaded.target.result);
+            const value = loaded.target.result;
+
+            this.add(names[i], value, !asciiLike(value));
           };
 
           reader.onerror = (err) => {
@@ -271,11 +273,7 @@ export default {
     download(idx) {
       const row = this.rows[idx];
       const name = row[this.keyName];
-      let value = row[this.valueName];
-
-      if ( this.valueBase64 ) {
-        value = base64Decode(value);
-      }
+      const value = row[this.valueName];
 
       downloadFile(name, value, 'application/octet-stream');
     },
@@ -303,8 +301,6 @@ export default {
           out[key] = JSON.parse(JSON.stringify(value));
         } else {
           value = value.trim();
-
-          row.binary = !asciiLike(value);
 
           if ( value && this.valueBase64 ) {
             value = base64Encode(value);
