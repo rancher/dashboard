@@ -25,6 +25,8 @@ export default {
       :register-before-hook="registerBeforeHook"
     />
     
+    <div class="spacer"></div>
+    
     <div v-if="!isView || Object.keys(value.data||{}).length" class="row">
       <div class="col span-12">
         <KeyValue
@@ -38,6 +40,8 @@ export default {
       </div>
     </div>
 
+    <div class="spacer"></div>
+    
     <div v-if="!isView || Object.keys(value.binaryData||{}).length" class="row">
       <div class="col span-12">
         <KeyValue
