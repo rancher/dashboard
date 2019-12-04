@@ -12,10 +12,10 @@ export function generateZip(files) {
   // Moving this to a dynamic const JSZip = import('jszip') didn't work... figure out later
   const zip = new JSZip();
 
-  for ( let i = 0 ; i < files.length ; i++ ) {
-    const file = files[i];
+  for ( const fileName in files) {
+    const file = files[fileName];
 
-    zip.file(file.name, file.file);
+    zip.file(fileName, file.data);
   }
 
   return zip.generateAsync({ type: 'blob' }).then((contents) => {

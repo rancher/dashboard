@@ -336,12 +336,13 @@ export default {
     all.push({ divider: true });
 
     all.push({
-      action:    'promptRemove',
-      altAction: 'remove',
-      label:     'Delete',
-      icon:      'icon icon-fw icon-trash',
-      bulkable:  true,
-      enabled:   !!links.remove,
+      action:     'promptRemove',
+      altAction:  'remove',
+      label:      'Delete',
+      icon:       'icon icon-fw icon-trash',
+      bulkable:   true,
+      enabled:    !!links.remove,
+      bulkAction: 'promptRemove',
     });
 
     return all;
@@ -596,7 +597,7 @@ export default {
         });
       });
 
-      const zip = generateZip(files);
+      const zip = await generateZip(files);
 
       downloadFile('resources.zip', zip, 'application/zip');
     };
@@ -609,8 +610,8 @@ export default {
   },
 
   promptRemove() {
-    return () => {
-      this.$dispatch('promptRemove', this);
+    return (resources = this) => {
+      this.$dispatch('promptRemove', resources);
     };
   },
 };

@@ -33,52 +33,54 @@ export default {
 
 <template>
   <div>
-    <div class="row">
-      <NameNsDescription
-        v-model="value"
-        class="col span-12 inline-description"
-        :namespaced="false"
-        :mode="mode"
-        always-describe
-      />
-    </div>
-    <h4 class="mb-10">
-      Container Default Resource Limit
-    </h4>
-    <div class="row">
-      <ResourceQuota class="col span-12" :register-after-hook="registerAfterHook" :value="value" />
-    </div>
-    <h4 class="mb-10">
-      Labels and Annotations
-    </h4>
-    <div class="row">
-      <div class="col span-6">
-        <KeyValue
-          key="labels"
-          v-model="labels"
+    <form>
+      <div class="row">
+        <NameNsDescription
+          v-model="value"
+          class="col span-12 inline-description"
+          :namespaced="false"
           :mode="mode"
-          :value-multiline="false"
-          :pad-left="false"
-          :read-allowed="false"
-          add-label="Add Label"
-          :protip="false"
+          always-describe
         />
       </div>
-      <div class="col span-6">
-        <KeyValue
-          key="annotations"
-          v-model="annotations"
-          :value-multiline="false"
-          :mode="mode"
-          :pad-left="false"
-          :read-allowed="false"
-          add-label="Add Annotation"
-          :protip="false"
-        />
+      <h4 class="mb-10">
+        Container Default Resource Limit
+      </h4>
+      <div class="row">
+        <ResourceQuota class="col span-12" :register-after-hook="registerAfterHook" :value="value" />
       </div>
-    </div>
+      <h4 class="mb-10">
+        Labels and Annotations
+      </h4>
+      <div class="row">
+        <div class="col span-6">
+          <KeyValue
+            key="labels"
+            v-model="labels"
+            :mode="mode"
+            :value-multiline="false"
+            :pad-left="false"
+            :read-allowed="false"
+            add-label="Add Label"
+            :protip="false"
+          />
+        </div>
+        <div class="col span-6">
+          <KeyValue
+            key="annotations"
+            v-model="annotations"
+            :value-multiline="false"
+            :mode="mode"
+            :pad-left="false"
+            :read-allowed="false"
+            add-label="Add Annotation"
+            :protip="false"
+          />
+        </div>
+      </div>
 
-    <Footer :mode="mode" @save="save" @done="done" />
+      <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
+    </form>
   </div>
 </template>
 

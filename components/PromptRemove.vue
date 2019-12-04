@@ -1,30 +1,38 @@
 <script>
 import { mapState } from 'vuex';
 import { get } from '../utils/object';
+import { NAMESPACE, RIO } from '@/config/types';
 import Card from '@/components/Card';
+import { TO_FRIENDLY } from '@/config/friendly';
 export default {
   components: { Card },
   data() {
     return { confirmName: '', error: '' };
   },
   computed:   {
-    name() {
-      return get(this.toRemove, 'metadata.name');
+    names() {
+      return this.toRemove.map((resource) => {
+        return get(resource, 'metadata.name');
+      });
     },
-    kind() {
-      const kind = get(this.toRemove, 'kind');
+    type() {
+      const type = get(this.toRemove[0], '_type');
 
-      if (kind) {
-        return kind.toLowerCase();
+      if (TO_FRIENDLY[type]) {
+        return this.toRemove.length > 1 ? TO_FRIENDLY[type].plural : TO_FRIENDLY[type].singular;
       }
 
       return 'resource';
     },
-    selfLink() {
-      return get(this.toRemove, 'links.self');
+    selfLinks() {
+      return this.toRemove.map((resource) => {
+        return get(resource, 'links.self');
+      });
     },
     needsConfirm() {
-      return this.kind === 'namespace' || this.kind === 'stack';
+      const type = get(this.toRemove[0], '_type');
+
+      return (type === NAMESPACE || type === RIO.STACK) && this.toRemove.length === 1;
     },
     ...mapState('actionMenu', ['showPromptRemove', 'toRemove'])
   },
@@ -39,13 +47,13 @@ export default {
   },
   methods: {
     close() {
-      this.$store.commit('actionMenu/togglePromptRemove', null);
+      this.$store.commit('actionMenu/togglePromptRemove');
     },
     remove() {
-      if (this.needsConfirm && this.confirmName !== this.name) {
+      if (this.needsConfirm && this.confirmName !== this.names[0]) {
         this.error = 'Resource names do not match';
       } else {
-        this.toRemove.remove();
+        this.toRemove.map(resource => resource.remove());
         this.confirmName = '';
         this.close();
       }
@@ -64,7 +72,9 @@ export default {
       <span slot="title" class="text-default-text">Are you sure?</span>
       <div slot="body">
         <div class="mb-10">
-          You are attempting to remove the {{ kind }} <a :href="selfLink">{{ name }}</a>. <span v-if="needsConfirm">Re-enter its name below to confirm:</span>
+          You are attempting to remove the {{ type }} <template v-for="(resource, i) in names">
+            <a :key="resource" :href="selfLinks[i]">{{ resource }}</a><span v-if="i<toRemove.length-1" :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
+          </template>. <span v-if="needsConfirm">Re-enter its name below to confirm:</span>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
         <span class="text-error"> {{ error }}</span>
