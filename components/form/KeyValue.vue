@@ -231,7 +231,13 @@ export default {
       removeAt(this.rows, idx);
       this.queueUpdate();
     },
+    removeEmptyRows() {
+      const cleaned = this.rows.filter((row) => {
+        return (row.value.length || row.key.length);
+      });
 
+      this.$set(this, 'rows', cleaned);
+    },
     readFromFile() {
       this.$refs.uploader.click();
     },
@@ -241,6 +247,7 @@ export default {
       const handles = input.files;
       const names = [];
 
+      this.removeEmptyRows();
       if ( handles ) {
         for ( let i = 0 ; i < handles.length ; i++ ) {
           const reader = new FileReader();

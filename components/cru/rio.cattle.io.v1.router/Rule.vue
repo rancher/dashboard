@@ -1,7 +1,5 @@
 
 <script>
-import pickBy from 'lodash/pickBy';
-import values from 'lodash/values';
 import { isEmpty } from 'lodash';
 import { cleanUp } from '../../../utils/object';
 import { randomStr } from '@/utils/string';
@@ -65,6 +63,7 @@ export default {
       } else {
         this.$set(this, type, payload);
       }
+      this.changeRoute();
     },
     addDestination() {
       this.to.push({ uuid: randomStr() });

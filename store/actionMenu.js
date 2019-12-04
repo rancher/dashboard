@@ -9,7 +9,7 @@ export const state = function() {
     elem:             null,
     event:            null,
     showPromptRemove: false,
-    toRemove:         null
+    toRemove:         []
   };
 };
 
@@ -65,9 +65,12 @@ export const mutations = {
     state.resources = null;
     state.elem = null;
   },
-  togglePromptRemove(state, resource) {
+  togglePromptRemove(state, resources = []) {
     state.showPromptRemove = !state.showPromptRemove;
-    state.toRemove = resource;
+    if (!isArray(resources)) {
+      resources = [resources];
+    }
+    state.toRemove = resources;
   }
 };
 
