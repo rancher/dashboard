@@ -281,11 +281,11 @@ export default {
             </div>
           </div>
         </div>
-        
+
         <div class="title clearfix">
           <h4>Certificate</h4>
         </div>
-        
+
         <div v-if="mode === 'view'">
           {{ secretKindLabels[kind] }}
         </div>
