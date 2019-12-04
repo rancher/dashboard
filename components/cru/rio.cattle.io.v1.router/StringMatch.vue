@@ -15,6 +15,10 @@ export default {
       type:    String,
       default: ''
     },
+    placeholder: {
+      type:    String,
+      default: ''
+    },
     options: {
       type:    Array,
       default: () => {}
@@ -49,6 +53,6 @@ export default {
 
 <template>
   <div class="match-input">
-    <InputWithSelect :options="types" :string-input="value" :label="label" @input="update" />
+    <InputWithSelect :options="types" :string-input="value" :label="label" :placeholder="placeholder" @input="update" />
   </div>
 </template>

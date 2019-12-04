@@ -64,18 +64,17 @@ export default {
     const hasGithub = this.$store.getters['auth/isGithub'];
 
     let buildMode = 'image';
-    let image, build;
+    let image;
+
+    let { build = { branch: 'master', dockerfile: '/Dockerfile' } } = this.spec;
 
     if ( hasGithub && buildImage && spec.build.repo.startsWith('https://github.com/' && !this.isDemo) ) {
       buildMode = 'github';
-      build = spec.build;
-      spec.build.branch = spec.build.branch || 'master';
-      spec.build.dockerfile = spec.build.dockerfile || '/Dockerfile';
     } else if ( buildImage ) {
       buildMode = 'git';
-      build = spec.build;
     } else {
       image = spec.image;
+      build = null;
     }
 
     let scaleInput = spec.replicas;
@@ -354,7 +353,7 @@ export default {
     <div v-if="buildMode === 'github'" class="row">
       <div class="col span-12">
         <GithubPicker
-          v-model="spec.build"
+          v-model="build"
           file-pattern="Dockerfile"
           preferred-file="Dockerfile"
           file-key="dockerfile"

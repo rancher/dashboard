@@ -1,4 +1,5 @@
 <script>
+import { cleanUp } from '@/utils/object';
 import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -65,7 +66,8 @@ export default {
 
   computed: {
     serviceOptions() {
-      return groupAndFilterOptions(this.allServices);
+      // return groupAndFilterOptions(this.allServices);
+      return this.allServices.map(service => service.id);
     },
 
     kindLabels() {
@@ -120,6 +122,7 @@ export default {
         spec.fqdn = this.fqdn;
         break;
       }
+      this.value.spec = cleanUp(spec);
     }
   },
 };
@@ -161,7 +164,8 @@ export default {
           <template v-if="isView">
             {{ targetService }}
           </template>
-          <select v-else v-model="targetService">
+          <v-select v-else v-model="targetService" :options="serviceOptions" :clearable="false" />
+          <!-- <select v-else v-model="targetService">
             <option disabled value="">
               Select a Service...
             </option>
@@ -170,7 +174,7 @@ export default {
                 {{ opt.label }}
               </option>
             </optgroup>
-          </select>
+          </select> -->
         </div>
         <div v-if="kind === 'fqdn'" class="col span-6">
           <LabeledInput v-model="fqdn" :mode="mode" label="DNS FQDN" @input="update" />

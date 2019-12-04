@@ -7,6 +7,10 @@ export default {
       type:    String,
       default: ''
     },
+    placeholder: {
+      type:    String,
+      default: ''
+    },
     options: {
       type:     Array,
       required: true
@@ -44,7 +48,7 @@ export default {
       :searchable="false"
       @search:focused="blurred"
     />
-    <LabeledInput v-model="string" class="input-string" :label="label" :value="string" />
+    <LabeledInput v-model="string" class="input-string" :label="label" :placeholder="placeholder" :value="string" />
   </div>
 </template>
 

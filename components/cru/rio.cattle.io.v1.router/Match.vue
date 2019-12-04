@@ -121,7 +121,7 @@ export default {
             <StringMatch
               :spec="{'exact':valProps.row.value}"
               :options="['exact', 'prefix', 'regexp']"
-              label="e.g. bar"
+              placeholder="e.g. bar"
               @input="e=>{
                 valProps.row.value = e
                 valProps.queueUpdate()
@@ -142,7 +142,7 @@ export default {
             <StringMatch
               :spec="{'exact':valProps.row.value}"
               :options="['exact', 'prefix']"
-              label="e.g. bar"
+              placeholder="e.g. bar"
               @input="e=>{
                 valProps.row.value = e
                 valProps.queueUpdate()

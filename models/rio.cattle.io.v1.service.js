@@ -373,24 +373,26 @@ export default {
     };
   },
 
-  async pauseOrResume(pause = true) {
-    try {
-      await this.patch({
-        op:    'replace',
-        path:  '/spec/rollout/pause',
-        value: pause
-      });
-    } catch (err) {
-      this.$dispatch('growl/fromError', { title: 'Error updating pause', err }, { root: true });
-    }
+  pauseOrResume() {
+    return async(pause = true) => {
+      try {
+        await this.patch([{
+          op:    'replace',
+          path:  '/spec/rollout/pause',
+          value: pause
+        }]);
+      } catch (err) {
+        this.$dispatch('growl/fromError', { title: 'Error updating pause', err }, { root: true });
+      }
+    };
   },
 
   pause() {
-    return this.pauseOrResume(true);
+    this.pauseOrResume(true);
   },
 
   resume() {
-    return this.pauseOrResume(false);
+    this.pauseOrResume(false);
   },
 
   goToStage() {

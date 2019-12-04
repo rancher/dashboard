@@ -12,7 +12,7 @@ export default {
     }
   },
   data() {
-    const { percentage = null, delayMillis = null, abortHTTPStatus = '' } = this.spec;
+    const { percentage = null, delayMillis = null, abortHTTPStatus = null } = this.spec;
 
     return {
       percentage, delayMillis, abortHTTPStatus
@@ -23,7 +23,7 @@ export default {
       const { percentage, delayMillis, abortHTTPStatus } = this;
 
       this.$emit('input', {
-        percentage, delayMillis, abortHTTPStatus
+        percentage, delayMillis, abortHTTPStatus: parseInt(abortHTTPStatus)
       } );
     }
   }
@@ -47,6 +47,6 @@ export default {
       :input-exponent="0"
       suffix="ms"
     />
-    <LabeledInput v-model="abortHTTPStatus" label="Fault HTTP Abort Code" />
+    <LabeledInput v-model="abortHTTPStatus" label="Fault HTTP Abort Code" type="number" />
   </div>
 </template>
