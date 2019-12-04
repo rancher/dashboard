@@ -309,7 +309,7 @@ export default {
       <tbody v-else-if="noResults">
         <slot name="no-results">
           <tr>
-            <td :colspan="fullColspan" class="no-results">
+            <td :colspan="fullColspan" class="no-results text-center">
               There are no rows which match your search query.
             </td>
           </tr>
@@ -538,6 +538,11 @@ $divider-height: 1px;
 
     > TR.total > TD {
       background: var(--sortable-table-accent-bg);
+    }
+
+    > TR > TD.no-results {
+      padding: 20px;
+      color: var(--muted);
     }
   }
 
