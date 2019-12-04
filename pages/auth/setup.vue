@@ -42,7 +42,7 @@ export default {
     },
 
     me() {
-      const out = findBy(this.prinicipals, 'me', true);
+      const out = findBy(this.principals, 'me', true);
 
       return out;
     },
@@ -486,18 +486,15 @@ export default {
           </p>
           <div>
             <label v-if="me" class="principal">
-              <Checkbox type="checkbox" checked disabled />
+              <input type="checkbox" checked disabled />
               <img :src="me.avatarSrc" width="40" height="40" />
-              <div class="login">
+              <span class="login">
                 {{ me.loginName }}
-              </div>
-              <div class="name">
-                {{ me.name }}
-              </div>
+              </span>
             </label>
 
             <label v-for="org in orgs" :key="org.id" class="principal">
-              <Checkbox :checked="(githubConfig.allowedPrincipalIds || []).includes(org.id)" type="checkbox" :value="org.id" @click="togglePrincipal" />
+              <input type="checkbox" :checked="(githubConfig.allowedPrincipalIds || []).includes(org.id)" :value="org.id" @click="togglePrincipal" />
               <img :src="org.avatarSrc" width="40" height="40" />
               <span class="login">
                 Members of <b>{{ org.loginName }}</b>
