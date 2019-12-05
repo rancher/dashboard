@@ -379,8 +379,8 @@ export default {
             >
               <span v-if="valueBinary || row.binary">
                 {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
-                <button type="button" class="bg-link" @click="download(idx)">
-                  <i class="icon icon-download text-small" />
+                <button type="button" class="btn bg-transparent role-link" @click="download(idx)">
+                  Download
                 </button>
               </span>
               <span v-else-if="isView">{{ row[valueName] }}</span>
@@ -474,7 +474,7 @@ export default {
   }
 
   .value {
-    vertical-align: top;
+    vertical-align: middle;
   }
 
   .remove {

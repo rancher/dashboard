@@ -98,6 +98,7 @@ export default {
         width: 0px;
         padding: 0;
         align-self: center;
+        border: 0;
     }
 
     .vs__open-indicator{
