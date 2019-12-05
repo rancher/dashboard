@@ -209,7 +209,8 @@ $transition-duration: 150ms;
   .vs__selected {
     color: var(--input-text);
     position: absolute;
-    top: .85em;
+    top: 0;
+    bottom:0;
     align-self: start;
   }
 
