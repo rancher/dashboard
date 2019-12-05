@@ -18,7 +18,7 @@ export default {
 
   data() {
     if ( !this.spec.rollout ) {
-      this.spec.rollout = {};
+      this.$set(this.spec, 'rollout', { pause: false });
     }
 
     return {};
