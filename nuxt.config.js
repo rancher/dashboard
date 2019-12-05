@@ -96,7 +96,9 @@ module.exports = {
       }
     ],
     link: [{
-      rel:  'icon', type: 'image/x-icon', href: '/favicon.png'
+      rel:  'icon',
+      type: 'image/x-icon',
+      href: `${resourceBase}favicon.png`
     }]
   },
 
