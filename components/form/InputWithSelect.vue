@@ -48,7 +48,19 @@ export default {
       :searchable="false"
       @search:focused="blurred"
     />
-    <LabeledInput v-model="string" class="input-string" :label="label" :placeholder="placeholder" :value="string" />
+    <LabeledInput
+      v-if="label"
+      v-model="string"
+      class="input-string"
+      :label="label"
+      :placeholder="placeholder"
+    />
+    <input
+      v-else
+      v-model="string"
+      class="input-string"
+      :placeholder="placeholder"
+    />
   </div>
 </template>
 
