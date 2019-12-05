@@ -25,8 +25,10 @@ export default {
       :register-before-hook="registerBeforeHook"
     />
 
+    <div class="spacer"></div>
+    
     <div class="row">
-      <div class="col span-12">
+      <div class="col span-6">
         <KeyValue
           key="data"
           v-model="value.data"
