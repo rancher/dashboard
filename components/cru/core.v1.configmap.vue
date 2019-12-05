@@ -28,7 +28,7 @@ export default {
     <div class="spacer"></div>
 
     <div v-if="!isView || Object.keys(value.data||{}).length" class="row">
-      <div class="col span-12">
+      <div class="col span-6">
         <KeyValue
           key="data"
           v-model="value.data"
@@ -43,7 +43,7 @@ export default {
     <div class="spacer"></div>
 
     <div v-if="!isView || Object.keys(value.binaryData||{}).length" class="row">
-      <div class="col span-12">
+      <div class="col span-6">
         <KeyValue
           key="binaryData"
           v-model="value.binaryData"
