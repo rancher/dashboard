@@ -17,7 +17,10 @@ TEXTAREA,
   width: 100%;
   padding: 10px;
   font-size: 12px;
+  background-color: var(--input-bg);
+  border-radius: var(--border-radius);
 
+  border: solid $outline-width var(--input-border);
   color: var(--input-text);
 
   &:not(.view) {
@@ -25,15 +28,8 @@ TEXTAREA,
 
     &:hover {
       background: var(--input-hover-bg, var(--input-bg));
-      border:none;
     }
   }
-
-  border-color: var(--input-border);
-  border-width: $outline-width;
-  border-radius: var(--border-radius);
-  border-style: solid;
-  border-color: transparent;
 
   &::placeholder {
     color: var(--input-placeholder);

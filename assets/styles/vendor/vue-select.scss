@@ -107,7 +107,7 @@ $transition-timing-function: cubic-bezier(1.000, -0.115, 0.975, 0.855);
 $transition-duration: 150ms;
 
 .vs__open-indicator {
-  fill: var(--dropdown-text);
+  fill: var(--dropdown-disabled-text);
   transform: scale(1);
   transition: transform $transition-duration $transition-timing-function;
   transition-timing-function: $transition-timing-function;
@@ -220,7 +220,8 @@ $transition-duration: 150ms;
     background-color: var(--input-bg);
     border:none;
     height: 100%;
-    padding: none; 
+    padding: none;
+    border-radius: var(--border-radius);
   }
 
   .vs__selected-options {
