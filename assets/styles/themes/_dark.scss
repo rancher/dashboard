@@ -83,7 +83,7 @@
   --input-placeholder          : #{$disabled};
   --input-border               : var(--border);
   --input-bg                   : #{$dark};
-  --input-hover-bg             : #{$medium};
+  --input-hover-bg             : #{darken($medium, 15%)};
   --input-focus-bg             : #{$darkest};
   --input-disabled-text        : #{$medium};
   --input-disabled-bg          : #{$disabled};

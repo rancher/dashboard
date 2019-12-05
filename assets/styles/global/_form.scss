@@ -27,7 +27,7 @@ TEXTAREA,
     background-color: var(--input-bg);
 
     &:hover {
-      background: var(--input-hover-bg, var(--input-bg));
+      background: var(--input-hover-bg);
     }
   }
 
