@@ -30,7 +30,7 @@ export default {
       });
     },
     needsConfirm() {
-      const type = get(this.toRemove[0], '_type');
+      const type = get(this.toRemove[0], 'type');
 
       return (type === NAMESPACE || type === RIO.STACK) && this.toRemove.length === 1;
     },

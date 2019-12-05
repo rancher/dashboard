@@ -69,7 +69,7 @@ export default {
       metadata.annotations = {};
     }
 
-    if ( !metadata.namespace ) {
+    if ( !metadata.namespace) {
       const selectedNS = this.$store.getters['prefs/get'](NAMESPACES)[0] || 'default';
 
       metadata.namespace = selectedNS;
@@ -126,7 +126,7 @@ export default {
     },
     description: {
       get() {
-        return get(this.value, `metadata.annotations.${ ANNOTATION.DESCRIPTION }`);
+        return this.value.metadata.annotations[ANNOTATION.DESCRIPTION];
       },
       set(val) {
         this.value.metadata.annotations[ANNOTATION.DESCRIPTION] = val;

@@ -127,7 +127,6 @@ export default {
     type = normalizeType(type);
 
     console.log('Find', type, id);
-
     let out;
 
     if ( opt.force !== true ) {

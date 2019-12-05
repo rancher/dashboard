@@ -1,7 +1,15 @@
 <script>
-import { get, cleanUp, isEmpty } from '@/utils/object';
+import { get, isEmpty } from '@/utils/object';
 import UnitInput from '@/components/form/UnitInput';
 import { RESOURCE_QUOTA } from '@/config/types';
+
+const SPEC_KEYS = {
+  'limits.cpu':      'limitsCPU',
+  'requests.cpu':    'reqCPU',
+  'limits.memory':   'limitsMem',
+  'requests.memory': 'reqMem'
+};
+
 export default {
   components: { UnitInput },
   props:      {
@@ -9,42 +17,87 @@ export default {
       type:    Function,
       default: null
     },
-    value: {
+    mode: {
+      type:    String,
+      default: 'create'
+    },
+    originalID: {
+      type:    String,
+      default: null
+    },
+    namespace: {
       type:    Object,
-      default: () => {
-        return {};
-      }
+      default: () => {}
     }
   },
   data() {
-    const schema = this.$store.getters['cluster/schemaFor'](RESOURCE_QUOTA);
-    const {
-      hard = {
-        'limits.cpu':      null, 'limits.memory':   null, 'requests.cpu':    null, 'requests.memory':  null
-      }
-    } = this.value.spec || {};
-
-    return { schema, hard };
+    return {
+      'limitsCPU':      null, 'limitsMem':   null, 'reqCPU':      null, 'reqMem':      null, originalQuota: {}
+    };
   },
   computed: {
-    nsURL() {
-      return get(this.value, 'metadata.selfLink');
+    hard() {
+      const hard = {};
+
+      Object.keys(SPEC_KEYS).forEach((key) => {
+        if (this[SPEC_KEYS[key]]) {
+          hard[key] = this[SPEC_KEYS[key]];
+        }
+      });
+
+      return hard;
     }
   },
   created() {
-    this.registerAfterHook(this.createQuota);
+    if (this.originalID) {
+      this.findQuota(this.originalID);
+    }
+    if (this.mode === 'create') {
+      this.registerAfterHook(this.createQuota);
+    } else {
+      this.registerAfterHook(this.updateQuota);
+    }
   },
   methods: {
+    async findQuota(ID) {
+      const quota = await this.$store.dispatch('cluster/find', { type: RESOURCE_QUOTA, id: ID });
+
+      Object.keys(quota.spec.hard).forEach((key) => {
+        this.$set(this, SPEC_KEYS[key], parseInt(quota.spec.hard[key]));
+      });
+      this.originalQuota = quota;
+    },
     async createQuota() {
       const metadata = { name: `default-quota` };
-      const data = { spec: { hard: cleanUp(this.hard) }, metadata };
+      const hard = {};
 
-      if (isEmpty(data.spec.hard)) {
+      Object.keys(SPEC_KEYS).forEach((key) => {
+        if (this[SPEC_KEYS[key]]) {
+          hard[key] = this[SPEC_KEYS[key]];
+        }
+      });
+
+      if (isEmpty(hard)) {
         return;
       }
+      const data = { metadata, spec: { hard } };
+      const nsURL = get(this.namespace, 'metadata.selfLink');
+
       try {
         await this.$store.dispatch('cluster/request', {
-          url:    `${ this.nsURL }/resourcequotas`, data, method: 'POST'
+          url:    `${ nsURL }/resourcequotas`, data, method: 'POST'
+        } );
+      } catch (err) {
+        throw err;
+      }
+    },
+    async updateQuota() {
+      const updated = this.originalQuota;
+
+      updated.spec.hard = this.hard;
+      try {
+        await this.$store.dispatch('cluster/request', {
+          url:    updated.links.update, data:   updated, method: 'PUT'
         } );
       } catch (err) {
         throw err;
@@ -58,22 +111,43 @@ export default {
   <div>
     <div class="row">
       <span class="col span-6">
-        <UnitInput v-model="hard['limits.cpu']" suffix="Mil CPUs" label="CPU Limit" />
+        <UnitInput
+          v-model="limitsCPU"
+          suffix="CPUs"
+          label="CPU Limit"
+          :input-exponent="2"
+          :mode="mode"
+        />
       </span>
       <span class="col span-6">
-        <UnitInput v-model="hard['requests.cpu']" suffix="Mil CPUs" label="CPU Reservation" />
+        <UnitInput
+          v-model="reqCPU"
+          suffix="CPUs"
+          label="CPU Reservation"
+          :input-exponent="2"
+          :mode="mode"
+        />
       </span>
     </div>
     <div class="row">
       <span class="col span-6">
-        <UnitInput v-model="hard['limits.memory']" label="Memory Limit" suffix="MB" />
+        <UnitInput
+          v-model="limitsMem"
+          label="Memory Limit"
+          suffix="B"
+          :input-exponent="2"
+          :mode="mode"
+        />
       </span>
       <span class="col span-6">
-        <UnitInput v-model="hard['requests.memory']" label="Memory Reservation" suffix="MB" />
+        <UnitInput
+          v-model="reqMem"
+          label="Memory Reservation"
+          suffix="B"
+          :input-exponent="2"
+          :mode="mode"
+        />
       </span>
     </div>
   </div>
 </template>
-
-<style lang='scss'>
-</style>

@@ -441,7 +441,6 @@ export default {
       if ( !opt.url ) {
         opt.url = this.linkFor('update') || this.linkFor('self');
       }
-
       if ( !opt.method ) {
         opt.method = (this.id ? 'put' : 'post');
       }
