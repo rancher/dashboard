@@ -6,7 +6,6 @@ import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import LabeledSelect from '@/components/form/LabeledSelect';
 import Footer from '@/components/form/Footer';
 import { RIO, SECRET } from '@/config/types';
 import { groupAndFilterOptions } from '@/utils/group';
@@ -29,7 +28,6 @@ export default {
   components: {
     Loading,
     NameNsDescription,
-    LabeledSelect,
     Footer,
   },
   mixins:     [CreateEditView, LoadDeps],
@@ -235,7 +233,7 @@ export default {
       <div class="spacer"></div>
 
       <div>
-        <div class="section">
+        <div>
           <div class="title clearfix">
             <h4>Target</h4>
           </div>
@@ -251,43 +249,51 @@ export default {
             </div>
           </div>
         </div>
+        <div class="row">
+          <div v-if="kind === 'router'" class="mt-20 col span-6">
+            <v-select
+              v-model="targetRouter"
+              :options="routerOptions"
+              :mode="mode"
+              placeholder="Select a Router..."
+              :clearable="false"
 
-        <div v-if="kind === 'router'" class="mt-20">
-          <v-select
-            v-model="targetRouter"
-            :options="routerOptions"
-            :mode="mode"
-            placeholder="Select a Router..."
-            :clearable="false"
+              :reduce="opt=>opt.value"
+              @input="update"
+            />
+          </div>
 
-            :reduce="opt=>opt.value"
-            @input="update"
-          />
+          <div v-if="kind === 'app' || kind === 'version'" class="mt-20 col span-6">
+            <v-select
+              v-model="targetApp"
+              :mode="mode"
+              :options="appOptions"
+              placeholder="Select a service"
+              :reduce="opt=>opt.value"
+              :clearable="false"
+              @input="update"
+            />
+          </div>
+
+          <div v-if="kind === 'version'" class="mt-20 col span-6">
+            <v-select
+              v-model="targetVersion"
+              :mode="mode"
+              :options="versionOptions"
+              placeholder="Select a version"
+              :clearable="false"
+
+              @input="update"
+            >
+              <template v-slot:selected-option="option">
+                {{ option.value }}
+              </template>
+            </v-select>
+          </div>
         </div>
 
-        <div v-if="kind === 'app' || kind === 'version'" class="mt-20">
-          <v-select
-            v-model="targetApp"
-            :mode="mode"
-            :options="appOptions"
-            placeholder="Select a service"
-            :reduce="opt=>opt.value"
-            :clearable="false"
-            @input="update"
-          />
-        </div>
-
-        <div v-if="kind === 'version'" class="mt-20">
-          <v-select
-            v-model="targetVersion"
-            :mode="mode"
-            :options="versionOptions"
-            placeholder="Select a version"
-            :searchable="false"
-            :clearable="false"
-
-            @input="update"
-          />
+        <div class="title clearfix mt-20">
+          <h4>Certificate</h4>
         </div>
 
         <div v-if="mode === 'view'">
@@ -303,12 +309,12 @@ export default {
         </div>
 
         <div v-if="secretKind === 'secret'" class="mt-20">
-          <LabeledSelect
+          <v-select
             v-model="secret"
-            :mode="mode"
-            label="Secret Name"
             :options="secretOptions"
             placeholder="Select a Certificate Secret..."
+            :reduce="opt=>opt.value"
+            :clearable="false"
             @input="update"
           />
         </div>
