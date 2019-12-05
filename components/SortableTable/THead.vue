@@ -106,7 +106,7 @@ export default {
 <template>
   <thead>
     <tr>
-      <th v-if="tableActions" :width="checkWidth" align="center">
+      <th v-if="tableActions" :width="checkWidth" align="middle">
         <Checkbox
           v-model="isAll"
           class="check"
