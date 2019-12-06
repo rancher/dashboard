@@ -22,6 +22,7 @@ export default {
       if ( this.useRandom ) {
         return false;
       }
+
       if ( !this.password || this.password !== this.confirm ) {
         return true;
       }
@@ -502,7 +503,7 @@ export default {
             </label>
           </div>
           <div class="mt-20">
-            <AsyncButton key="githubSubmit" type="submit" mode="done" @click="setAuthorized" />
+            <AsyncButton key="setAuthorized" type="submit" mode="done" @click="setAuthorized" />
           </div>
         </div>
         <div class="col span-6">

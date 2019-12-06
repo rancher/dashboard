@@ -80,6 +80,7 @@ export default {
 
     async loginLocal(buttonCb) {
       try {
+        this.err = null;
         await this.$store.dispatch('auth/login', {
           provider: 'local',
           body:     {
@@ -90,7 +91,8 @@ export default {
 
         buttonCb(true);
         this.$router.replace('/');
-      } catch (e) {
+      } catch (err) {
+        this.err = err;
         buttonCb(false);
       }
     },
@@ -105,14 +107,14 @@ export default {
         <h1 class="text-center">
           Welcome to Rio
         </h1>
-        <h4 v-if="loggedOut" class="text-success text-center">
+        <h4 v-if="err" class="text-error text-center">
+          An error occurred logging in.  Please try again.
+        </h4>
+        <h4 v-else-if="loggedOut" class="text-success text-center">
           You have been logged out.
         </h4>
-        <h4 v-if="timedOut" class="text-error text-center">
+        <h4 v-else-if="timedOut" class="text-error text-center">
           Log in again to continue.
-        </h4>
-        <h4 v-else-if="err" class="text-error text-center">
-          An error occurred logging in.  Please try again.
         </h4>
 
         <div v-if="hasGithub" class="text-center mt-50 mb-50">

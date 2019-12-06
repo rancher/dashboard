@@ -13,14 +13,8 @@ export default {
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     return this.$axios(opt).then((res) => {
-      let out = res.data;
-
       if ( res.status === 204 ) {
         return;
-      }
-
-      if ( typeof out !== 'object' ) {
-        out = { data: out };
       }
 
       if ( opt.depaginate ) {
@@ -37,6 +31,33 @@ export default {
         */
       }
 
+      return responseObject(res);
+    }).catch((err) => {
+      if ( !err || !err.response ) {
+        return Promise.reject(err);
+      }
+
+      const res = err.response;
+
+      // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
+      if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
+        return dispatch('auth/logout', opt.logoutOnError, { root: true });
+      }
+
+      if ( typeof res.data !== 'undefined' ) {
+        return Promise.reject(responseObject(res));
+      }
+
+      return Promise.reject(err);
+    });
+
+    function responseObject(res) {
+      let out = res.data;
+
+      if ( typeof out !== 'object' ) {
+        out = { data: out };
+      }
+
       Object.defineProperties(out, {
         _status:     { value: res.status },
         _statusText: { value: res.statusText },
@@ -45,13 +66,7 @@ export default {
       });
 
       return out;
-    }).catch((err) => {
-      if ( process.client && err && err.response && err.response.status === 401 ) {
-        return dispatch('auth/logout', opt.logoutOnError, { root: true });
-      }
-
-      return Promise.reject(err);
-    });
+    }
   },
 
   async loadSchemas(ctx) {
