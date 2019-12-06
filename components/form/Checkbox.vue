@@ -70,13 +70,13 @@ export default {
   margin: 3px 10px 3px 0;
 }
 .checkbox-box {
-    display: block;
+    display: inline-block;
     position: relative;
     cursor: pointer;
     font-size: 18px;
     line-height: 24px;
     height: 14px;
-    width: 14px;
+    width: 18px;
     clear: both;
 }
 

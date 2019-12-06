@@ -223,6 +223,7 @@ $transition-duration: 150ms;
     height: 100%;
     padding: none;
     border-radius: var(--border-radius);
+    border: 1px solid var(--dropdown-border);
   }
 
   .vs__selected-options {
@@ -248,4 +249,5 @@ $transition-duration: 150ms;
 .vs__selected-options INPUT {
   width: auto;
   display: inline-block;
+  border: 0;
 }

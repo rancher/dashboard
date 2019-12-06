@@ -465,6 +465,7 @@ export default {
 
   .key {
     vertical-align: top;
+    border-radius: 3px;
   }
 
   .separator {
@@ -475,6 +476,10 @@ export default {
 
   .value {
     vertical-align: middle;
+    
+    select {
+      border-radius: 3px;
+    }
   }
 
   .remove {
