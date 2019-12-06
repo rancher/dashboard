@@ -257,7 +257,7 @@ export default {
               :mode="mode"
               placeholder="Select a Router..."
               :clearable="false"
-
+              class="inline"
               :reduce="opt=>opt.value"
               @input="update"
             />
@@ -271,6 +271,7 @@ export default {
               placeholder="Select a service"
               :reduce="opt=>opt.value"
               :clearable="false"
+              class="inline"
               @input="update"
             />
           </div>
@@ -282,6 +283,7 @@ export default {
               :options="versionOptions"
               placeholder="Select a version"
               :clearable="false"
+              class="inline"
 
               @input="update"
             >
@@ -315,6 +317,8 @@ export default {
             placeholder="Select a Certificate Secret..."
             :reduce="opt=>opt.value"
             :clearable="false"
+            class="inline"
+
             @input="update"
           />
         </div>
