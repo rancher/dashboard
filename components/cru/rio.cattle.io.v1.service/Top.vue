@@ -332,7 +332,7 @@ export default {
     <div v-if="buildMode === 'image'" class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="spec.image"
+          v-model="image"
           :mode="mode"
           label="Image"
           placeholder="e.g. nginx:latest"
