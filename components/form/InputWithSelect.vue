@@ -42,7 +42,7 @@ export default {
   <div class="input-container" @input="change" @change="change">
     <v-select
       v-model="selected"
-      class="in-input"
+      class="in-input fixed"
       :options="options"
       :clearable="false"
       :searchable="false"
@@ -68,6 +68,12 @@ export default {
 .input-container{
     display: flex;
     align-items: stretch;
+    & .input-string{
+      flex-shrink: 1;
+      padding-right: 0;
+      display: block;
+      height: 50px;
+    }
 }
 .v-select.in-input{
     flex-basis:20%;

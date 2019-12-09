@@ -97,6 +97,7 @@ export default {
   <div class="match" @change="matchChange" @input="matchChange">
     <div class="row inputs">
       <v-select
+        class="col span-4"
         multiple
         :close-on-select="false"
         :options="httpMethods.filter(opt=>!isSelected(opt))"
@@ -105,8 +106,12 @@ export default {
         @input="e=>{change('methods', e); matchChange()}"
       >
       </v-select>
-      <LabeledInput v-if="host" v-model="host.value.exact" label="Host header" />
-      <StringMatch :spec="path" label="Path" @input="e=>change('path', e)" />
+      <div class="col span-4">
+        <LabeledInput v-if="host" v-model="host.value.exact" class="col span-4" label="Host header" />
+      </div>
+      <div class="col span-4">
+        <StringMatch :spec="path" label="Path" @input="e=>change('path', e)" />
+      </div>
     </div>
     <div class="row">
       <div class="col span-6">
