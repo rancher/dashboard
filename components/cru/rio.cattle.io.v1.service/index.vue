@@ -1,4 +1,5 @@
 <script>
+import { get } from '../../../utils/object';
 import Top from './Top';
 import Command from './Command';
 import HealthCheck from './HealthCheck';
@@ -122,7 +123,8 @@ export default {
     },
     toggleTabs() {
       this.showTabs = !this.showTabs;
-    }
+    },
+    get
   },
 };
 
@@ -216,7 +218,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
           <Security :spec="spec" :mode="mode" />
         </Tab>
         <Tab name="upgrading" label="Scaling & Upgrading">
-          <Upgrading :spec="rootSpec" :mode="mode" />
+          <Upgrading :spec="rootSpec" :concurrency="get(rootSpec, 'autoscale.concurrency')" :mode="mode" />
         </Tab>
         <Tab v-if="false" name="volumes" label="Volumes">
           <Volumes :spec="spec" :mode="mode" />

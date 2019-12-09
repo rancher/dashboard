@@ -219,6 +219,9 @@ export default {
         this.spec.autoscale = this.spec.autoscale || {};
         this.spec.autoscale.minReplicas = min;
         this.spec.autoscale.maxReplicas = max;
+        if (!this.spec.autoscale.concurrecy) {
+          this.spec.autoscale.concurrency = 10;
+        }
         delete this.spec.replicas;
         this.scaleMode = 'auto';
       } else {
