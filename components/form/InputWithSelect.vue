@@ -20,6 +20,8 @@ export default {
       default: ''
     }
   },
+  inject: { disableInputs: { default: false } },
+
   data() {
     return { selected: this.options[0], string: this.inputString };
   },
@@ -47,6 +49,7 @@ export default {
       :options="options"
       :clearable="false"
       :searchable="false"
+      :disabled="disableInputs"
       @search:focused="blurred"
     />
     <LabeledInput
@@ -55,12 +58,14 @@ export default {
       class="input-string"
       :label="label"
       :placeholder="placeholder"
+      :disabled="disableInputs"
     />
     <input
       v-else
       v-model="inputString"
       class="input-string"
       :placeholder="placeholder"
+      :disabled="disableInputs"
     />
   </div>
 </template>

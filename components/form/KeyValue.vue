@@ -188,10 +188,10 @@ export default {
 
     return { rows };
   },
-
+  inject:   { disableInputs: { default: false } },
   computed: {
     isView() {
-      return this.mode === _VIEW;
+      return this.mode === _VIEW || this.disableInputs;
     },
 
     showAdd() {
@@ -475,7 +475,7 @@ export default {
 
   .value {
     vertical-align: middle;
-    
+
     select {
       -webkit-appearance: none;
       -webkit-border-radius: 2px;

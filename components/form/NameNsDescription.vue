@@ -49,10 +49,6 @@ export default {
       type:    String,
       default: '-'
     },
-    alwaysDescribe: {
-      type:    Boolean,
-      default: false
-    },
     registerBeforeHook: {
       type:    Function,
       default: null
@@ -94,7 +90,7 @@ export default {
       toCreate:               ''
     };
   },
-
+  inject:   { disableInputs: { default: false } },
   computed: {
     namespaces() {
       const choices = this.$store.getters['cluster/all'](NAMESPACE);
@@ -134,9 +130,7 @@ export default {
       }
     },
     wantDescription() {
-      const description = get(this.value, `metadata.annotations.${ ANNOTATION.DESCRIPTION }`);
-
-      return !!description || this.alwaysDescribe;
+      return !!get(this.value, `metadata.annotations.${ ANNOTATION.DESCRIPTION }`);
     }
   },
 
@@ -197,7 +191,7 @@ export default {
             :required="true"
           >
             <template v-if="notView && !wantDescription" #corner>
-              <a href="#" @click.prevent="wantDescription=true">Add a description</a>
+              <a v-if="!disableInputs" href="#" @click.prevent="wantDescription=true">Add a description</a>
             </template>
           </LabeledInput>
         </slot>
@@ -206,7 +200,7 @@ export default {
         <slot name="namespace">
           <LabeledInput v-if="createNS" v-model="toCreate" required label="Namespace" placeholder="e.g. myapp">
             <template #corner>
-              <a href="#" @click.prevent="toggleNSMode">
+              <a v-if="!disableInputs" href="#" @click.prevent="toggleNSMode">
                 Use an existing namespace
               </a>
             </template>
@@ -222,7 +216,7 @@ export default {
             placeholder="Select a namespace"
           >
             <template #corner>
-              <a v-if="registerBeforeHook" href="#" @click.prevent="toggleNSMode">
+              <a v-if="registerBeforeHook && !disableInputs" href="#" @click.prevent="toggleNSMode">
                 Create new namespace
               </a>
             </template>

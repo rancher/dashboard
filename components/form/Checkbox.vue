@@ -18,10 +18,18 @@ export default {
       default: false
     }
   },
+  inject:   { disableInputs: { default: false } },
+  computed: {
+    isDisabled() {
+      return (this.disabled || this.disableInputs);
+    }
+  },
   methods: {
     clicked() {
-      this.$el.click();
-      this.$emit('input', !this.value);
+      if (!this.isDisabled) {
+        this.$el.click();
+        this.$emit('input', !this.value);
+      }
     }
   }
 };
@@ -42,7 +50,7 @@ export default {
       <span
         class="checkbox-custom"
         :class="{indeterminate: indeterminate}"
-        :tabindex="disabled ? -1 : 0"
+        :tabindex="isDisabled ? -1 : 0"
         :aria-label="label"
         :aria-checked="!!value"
         role="checkbox"

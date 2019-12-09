@@ -25,6 +25,7 @@ export default {
       default: true
     }
   },
+  inject: { disableInputs: { default: false } },
   data() {
     const all = [];
 
@@ -84,7 +85,7 @@ export default {
       </tr>
       <tr v-for="(rule, i) in all" :key="i">
         <td>
-          <v-select v-model="rule.op" :serachable="false" class="inline" :options="['add', 'set', 'remove']" />
+          <v-select v-model="rule.op" :disabled="disableInputs" :serachable="false" class="inline" :options="['add', 'set', 'remove']" />
         </td>
         <td>
           <LabeledInput v-model="rule.name" label="xxxx" />
@@ -93,14 +94,14 @@ export default {
           <LabeledInput v-model="rule.value" label="xxxx" />
         </td>
         <td>
-          <button type="button" class="btn btn-sm role-link" @click="remove(i)">
+          <button :disabled="disableInputs" type="button" class="btn btn-sm role-link" @click="remove(i)">
             REMOVE
           </button>
         </td>
       </tr>
     </table>
 
-    <button type="button" :class="{disabled: !enabled}" class="btn role-tertiary add" @click="addRule">
+    <button :disabled="disableInputs" type="button" :class="{disabled: !enabled}" class="btn role-tertiary add" @click="addRule">
       <i class="icon icon-plus" />
       Add Header Operation
     </button>
