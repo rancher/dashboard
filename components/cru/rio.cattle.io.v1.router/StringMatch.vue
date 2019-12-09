@@ -30,7 +30,18 @@ export default {
       types: this.options || ['exact', 'prefix', 'regexp'], value: Object.values(this.spec)[0] || '', type:  Object.keys(this.spec)[0] || 'exact'
     };
   },
+  watch: {
+    // spec: {
+    //   hander(neu) {
+    //     const pathString = Object.values(neu)[0];
 
+    //     debugger;
+    //     if (pathString !== this.value) {
+    //       this.value = pathString;
+    //     }
+    //   }
+    // }
+  },
   methods: {
     selectType(type) {
       this.type = type;
@@ -53,6 +64,6 @@ export default {
 
 <template>
   <div class="match-input">
-    <InputWithSelect :options="types" :string-input="value" :label="label" :placeholder="placeholder" @input="update" />
+    <InputWithSelect :options="types" :input-string="spec[type]" :label="label" :placeholder="placeholder" @input="update" />
   </div>
 </template>

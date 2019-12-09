@@ -21,14 +21,15 @@ export default {
     }
   },
   data() {
-    return {
-      selected: this.options[0],
-      string:   this.inputString
-    };
+    return { selected: this.options[0], string: this.inputString };
+  },
+  watch: {
+    inputString(neu) {
+      this.string = neu;
+    }
   },
   methods: {
     change() {
-      console.log('inputwithselect change');
       this.$emit('input', { option: this.selected, string: this.string });
     },
     blurred() {
@@ -57,7 +58,7 @@ export default {
     />
     <input
       v-else
-      v-model="string"
+      v-model="inputString"
       class="input-string"
       :placeholder="placeholder"
     />

@@ -88,6 +88,16 @@ export default {
       }
 
       this[type] = set;
+    },
+    changePath(stringmatch) {
+      const pathString = Object.values(stringmatch)[0];
+      const method = Object.keys(stringmatch)[0];
+
+      if (!pathString.match(/^\/.+/)) {
+        this.$set(this.path, method, `/${ pathString }`);
+      } else {
+        this.path[method] = pathString;
+      }
     }
   }
 };
@@ -110,7 +120,7 @@ export default {
         <LabeledInput v-if="host" v-model="host.value.exact" class="col span-4" label="Host header" />
       </div>
       <div class="col span-4">
-        <StringMatch :spec="path" label="Path" @input="e=>change('path', e)" />
+        <StringMatch :spec="path" label="Path" @input="e=>changePath(e)" />
       </div>
     </div>
     <div class="row">
