@@ -1,5 +1,6 @@
 <script>
 import { get } from '../../utils/object';
+import { sortBy } from '../../utils/sort';
 import { NAMESPACE, ANNOTATION } from '~/config/types';
 import { NAMESPACES } from '@/store/prefs';
 import { _CREATE, _VIEW } from '~/config/query-params';
@@ -98,12 +99,12 @@ export default {
     namespaces() {
       const choices = this.$store.getters['cluster/all'](NAMESPACE);
 
-      return choices.map((obj) => {
+      return sortBy(choices.map((obj) => {
         return {
           label: obj.nameDisplay,
           value: obj.id,
         };
-      });
+      }), 'label');
     },
 
     onlyForCreate() {
