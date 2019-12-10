@@ -67,22 +67,6 @@ export default {
       return out;
     },
   },
-  watch: {
-    // spec: {
-    //   deep: true,
-    //   handler(neu) {
-    //     const {
-    //       headers, methods, path, cookies
-    //     } = this.spec;
-
-    //     let hostHeader;
-
-    //     if (headers.length) {
-    //       hostHeader = pullAt(headers, findIndex(headers, header => header.name === 'host' && Object.keys(header.value)[0] === 'exact'))[0];
-    //     }
-    //   }
-    // }
-  },
   inject:   { disableInputs: { default: false } },
   methods: {
     matchChange() {

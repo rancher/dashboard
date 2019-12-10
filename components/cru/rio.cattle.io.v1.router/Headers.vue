@@ -88,10 +88,10 @@ export default {
           <v-select v-model="rule.op" :disabled="disableInputs" :serachable="false" class="inline" :options="['add', 'set', 'remove']" />
         </td>
         <td>
-          <LabeledInput v-model="rule.name" label="xxxx" />
+          <LabeledInput v-model="rule.name" />
         </td>
         <td>
-          <LabeledInput v-model="rule.value" label="xxxx" />
+          <LabeledInput v-model="rule.value" />
         </td>
         <td>
           <button :disabled="disableInputs" type="button" class="btn btn-sm role-link" @click="remove(i)">

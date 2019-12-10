@@ -95,8 +95,8 @@ export function rioPackage($router, counts, namespaces) {
       },
       {
         name:  'rio-public-domains',
-        label: 'Public Domains',
         count: countFor(RIO.PUBLIC_DOMAIN),
+        label: 'Public Domains',
         route: linkFor('public-domains'),
       },
       {

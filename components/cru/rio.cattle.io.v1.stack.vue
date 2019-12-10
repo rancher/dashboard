@@ -66,22 +66,7 @@ export default {
         };
       });
     }
-  },
-  watch: {
-    buildMode(mode) {
-      debugger;
-      switch (mode) {
-      case 'github':
-        this.build.branch = this.build.branch || 'master';
-        this.build.riofile = this.build.riofile || 'Riofile';
-        break;
-      case 'git':
-        this.build.branch = this.build.branch || 'master';
-        break;
-      case 'image':
-      }
-    }
-  },
+  }
 };
 </script>
 <template>

@@ -63,7 +63,7 @@ export default {
     }
 
     if ( !metadata.annotations ) {
-      metadata.annotations = {};
+      metadata.annotations = { [ANNOTATION.DESCRIPTION]: '' };
     }
 
     if ( !metadata.namespace) {
@@ -87,7 +87,8 @@ export default {
       name,
       ANNOTATION_DESCRIPTION: ANNOTATION.DESCRIPTION,
       createNS:               false,
-      toCreate:               ''
+      toCreate:               '',
+      addDescription:         false
     };
   },
   inject:   { disableInputs: { default: false } },
@@ -121,16 +122,11 @@ export default {
 
       return `span-${ span }`;
     },
-    description: {
-      get() {
-        return this.value.metadata.annotations[ANNOTATION.DESCRIPTION];
-      },
-      set(val) {
-        this.value.metadata.annotations[ANNOTATION.DESCRIPTION] = val;
-      }
+    description() {
+      return get(this.value, `metadata.annotations[${ ANNOTATION.DESCRIPTION }]`);
     },
     wantDescription() {
-      return !!get(this.value, `metadata.annotations.${ ANNOTATION.DESCRIPTION }`);
+      return !!this.description || this.addDescription;
     }
   },
 
@@ -147,6 +143,13 @@ export default {
   created() {
     if (this.registerBeforeHook) {
       this.registerBeforeHook(this.createNamespace);
+    }
+  },
+  mounted() {
+    const valueRef = get(this.$refs, 'name.$refs.value');
+
+    if (valueRef) {
+      valueRef.focus();
     }
   },
   methods: {
@@ -183,6 +186,7 @@ export default {
       <div :class="{col: true, [colSpan]: true}">
         <slot name="name">
           <LabeledInput
+            ref="name"
             key="name"
             v-model="name"
             :mode="onlyForCreate"
@@ -191,7 +195,7 @@ export default {
             :required="true"
           >
             <template v-if="notView && !wantDescription" #corner>
-              <a v-if="!disableInputs" href="#" @click.prevent="wantDescription=true">Add a description</a>
+              <a v-if="!disableInputs" href="#" @click.prevent="addDescription=true">Add a description</a>
             </template>
           </LabeledInput>
         </slot>
@@ -233,7 +237,7 @@ export default {
         <div>
           <LabeledInput
             key="description"
-            v-model="description"
+            v-model="value.metadata.annotations[ANNOTATION_DESCRIPTION]"
             type="multiline"
             label="Description"
             :mode="mode"
