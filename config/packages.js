@@ -95,8 +95,8 @@ export function rioPackage($router, counts, namespaces) {
       },
       {
         name:  'rio-public-domains',
-        count: countFor(RIO.PUBLIC_DOMAIN),
         label: 'Public Domains',
+        count: countFor(RIO.PUBLIC_DOMAIN),
         route: linkFor('public-domains'),
       },
       {
@@ -194,7 +194,7 @@ function matchingCounts(obj, namespaces) {
   let out = 0;
 
   if ( !obj.byNamespace ) {
-    return 0;
+    return obj.count || 0;
   }
 
   if ( allNegative ) {
