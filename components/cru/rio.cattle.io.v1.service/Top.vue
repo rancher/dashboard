@@ -66,10 +66,11 @@ export default {
     let buildMode = 'image';
     let image;
 
-    let { build = { branch: 'master', dockerfile: '/Dockerfile' } } = this.spec;
+    let { build } = this.spec || {};
 
     if ( hasGithub && buildImage && spec.build.repo.startsWith('https://github.com/' && !this.isDemo) ) {
       buildMode = 'github';
+      build.branch = build.branch || 'master';
     } else if ( buildImage ) {
       buildMode = 'git';
     } else {
@@ -189,6 +190,9 @@ export default {
       case 'github':
       case 'git':
         delete this.spec.image;
+        if (!this.build.branch) {
+          this.build.branch = 'master';
+        }
         this.spec.build = this.build || {};
       }
     },

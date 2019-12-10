@@ -53,7 +53,6 @@ export default {
       buildModeLabels: BUILD_MODES,
     };
   },
-
   computed: {
     buildModeOptions() {
       const githubDisabled = !this.hasGithub;
@@ -66,6 +65,21 @@ export default {
           tooltip:  k === 'github' && githubDisabled ? 'You did not log in with GitHub' : null,
         };
       });
+    }
+  },
+  watch: {
+    buildMode(mode) {
+      debugger;
+      switch (mode) {
+      case 'github':
+        this.build.branch = this.build.branch || 'master';
+        this.build.riofile = this.build.riofile || 'Riofile';
+        break;
+      case 'git':
+        this.build.branch = this.build.branch || 'master';
+        break;
+      case 'image':
+      }
     }
   },
 };
