@@ -6,7 +6,11 @@ export default {
       return 'unknown';
     }
 
-    if ( spec.targetServiceName && spec.targetServiceNamespace ) {
+    if ( spec.targetApp ) {
+      if (spec.targetVersion) {
+        return 'version';
+      }
+
       return 'service';
     }
 
@@ -28,6 +32,8 @@ export default {
     switch ( kind ) {
     case 'service':
       return 'Service';
+    case 'version':
+      return 'Version';
     case 'ipaddress':
       return 'IP Address';
     case 'fqdn':
@@ -42,8 +48,10 @@ export default {
     const kind = `${ this.targetKind }`;
 
     switch ( kind ) {
+    case 'version':
+      return `${ this.spec.targetApp }/${ this.spec.targetVersion }`;
     case 'service':
-      return `${ this.spec.targetServiceName }/${ this.spec.targetServiceName }`;
+      return `${ this.spec.targetApp }`;
     case 'fqdn':
       return this.spec.fqdn;
     case 'ipaddress':

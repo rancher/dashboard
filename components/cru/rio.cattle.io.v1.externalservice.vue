@@ -1,20 +1,18 @@
 <script>
-import { cleanUp } from '@/utils/object';
 import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledInput from '@/components/form/LabeledInput';
-// import LabeledSelect from '@/components/form/LabeledSelect';
 import ArrayList from '@/components/form/ArrayList';
 import Footer from '@/components/form/Footer';
-import { RIO } from '@/config/types';
-import { groupAndFilterOptions } from '@/utils/group';
+import Target from '@/components/form/Target';
 
 const KIND_LABELS = {
-  'service':  'Another service',
-  'ip':      'A list of IP Addresses',
-  'fqdn':    'A DNS name',
+  'router':      'A router',
+  'app':         'A service',
+  'ipAddresses':      'A list of IP Addresses',
+  'fqdn':        'A DNS name',
 };
 
 export default {
@@ -24,7 +22,7 @@ export default {
     Loading,
     NameNsDescription,
     LabeledInput,
-    // LabeledSelect,
+    Target,
     ArrayList,
     Footer,
   },
@@ -32,97 +30,28 @@ export default {
 
   data() {
     let spec = this.value.spec;
-    let kind = 'service';
+    let kind = 'app';
 
     if ( !this.value.spec ) {
       spec = {};
       this.value.spec = spec;
     }
 
-    if ( !spec.ipAddresses ) {
-      spec.ipAddresses = [];
-    }
-
-    if ( spec.ipAddresses.length ) {
+    if ( spec.ipAddresses ) {
       kind = 'ip';
     } else if ( spec.fqdn ) {
       kind = 'fqdn';
     }
 
-    let targetService = null;
-
-    if ( spec.targetServiceNamespace && spec.targetServiceName ) {
-      targetService = `${ spec.targetServiceNamespace }/${ spec.targetServiceName }`;
-    }
-
     return {
       kind,
-      allServices: null,
-      targetService,
       ipAddresses: spec.ipAddresses,
       fqdn:        spec.fqdn,
     };
   },
-
   computed: {
-    serviceOptions() {
-      // return groupAndFilterOptions(this.allServices);
-      return this.allServices.map(service => service.id);
-    },
-
     kindLabels() {
       return KIND_LABELS;
-    },
-
-    kindOptions() {
-      return Object.keys(KIND_LABELS).map((k) => {
-        return { label: KIND_LABELS[k], value: k };
-      });
-    }
-  },
-
-  watch: {
-    kind() {
-      this.update();
-    },
-
-    targetService() {
-      this.update();
-    }
-  },
-
-  methods: {
-    async loadDeps() {
-      const services = await this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE });
-
-      this.allServices = services;
-    },
-
-    update() {
-      const spec = this.value.spec;
-
-      spec.targetServiceNamespace = null;
-      spec.targetServiceName = null;
-      spec.ipAddresses = null;
-      spec.fqdn = null;
-
-      switch ( this.kind ) {
-      case 'service':
-        if ( this.targetService ) {
-          const [namespace, name] = this.targetService.split('/', 2);
-
-          spec.targetServiceNamespace = namespace;
-          spec.targetServiceName = name;
-        }
-        break;
-      case 'ip':
-        spec.ipAddresses = this.ipAddresses;
-        break;
-      case 'fqdn':
-        spec.fqdn = this.fqdn;
-        break;
-      }
-      this.value.spec = cleanUp(spec);
     }
   },
 };
@@ -143,43 +72,11 @@ export default {
 
       <div class="spacer"></div>
 
-      <div class="row">
-        <div class="col span-12">
-          <h4>Target</h4>
-          <div v-if="mode === 'view'">
-            {{ kindLabels[kind] }}
-          </div>
-          <div v-else class="row">
-            <div v-for="opt in kindOptions" :key="opt.value" class="col">
-              <label class="radio">
-                <input v-model="kind" type="radio" :value="opt.value" />
-                {{ opt.label }}
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <div v-if="kind === 'service'" class="col span-6">
-          <template v-if="isView">
-            {{ targetService }}
-          </template>
-          <v-select v-else v-model="targetService" :options="serviceOptions" :clearable="false" />
-          <!-- <select v-else v-model="targetService">
-            <option disabled value="">
-              Select a Service...
-            </option>
-            <optgroup v-for="grp in serviceOptions" :key="grp.group" :label="grp.group">
-              <option v-for="opt in grp.items" :key="opt.value" :value="opt.value">
-                {{ opt.label }}
-              </option>
-            </optgroup>
-          </select> -->
-        </div>
-        <div v-if="kind === 'fqdn'" class="col span-6">
-          <LabeledInput v-model="fqdn" :mode="mode" label="DNS FQDN" @input="update" />
-        </div>
-        <div v-if="kind === 'ip'" class="col span-6">
+      <Target v-model="value.spec" :kind-labels="kindLabels">
+        <template v-slot:fqdn="slotProps">
+          <LabeledInput v-model="fqdn" :mode="mode" label="DNS FQDN" @input="e=>slotProps.update(e)" />
+        </template>
+        <template v-slot:ipAddresses="slotProps">
           <ArrayList
             v-model="ipAddresses"
             title="IP Addresses"
@@ -189,10 +86,10 @@ export default {
             :mode="mode"
             :pad-left="false"
             :protip="false"
-            @input="update"
+            @input="e=>slotProps.update(e)"
           />
-        </div>
-      </div>
+        </template>
+      </Target>
 
       <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
     </template>
