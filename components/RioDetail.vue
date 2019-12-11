@@ -7,6 +7,7 @@ import {
   MODE, _VIEW, _EDIT, _CLONE, _STAGE,
   EDIT_YAML, _FLAGGED, _CREATE
 } from '@/config/query-params';
+import { NAMESPACE } from '@/config/types';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.
@@ -155,6 +156,9 @@ export default {
     typeDisplay() {
       return FRIENDLY[this.resource].singular;
     },
+    namespaceSUffixOnCreate() {
+      return this.resource !== NAMESPACE;
+    }
   },
 
   methods: {
@@ -203,7 +207,7 @@ export default {
         :done-params="doneParams"
         :parent-route="doneRoute"
         :parent-params="doneParams"
-        :namespace-suffix-on-create="true"
+        :namespace-suffix-on-create="namespaceSUffixOnCreate"
         :type-label="typeDisplay"
         :mode="mode"
       />

@@ -1,5 +1,5 @@
 <script>
-import { parseSi, UNITS, FRACTIONAL } from '../../utils/units';
+import { parseSi, UNITS, FRACTIONAL } from '@/utils/units';
 import LabeledInput from '@/components/form/LabeledInput';
 
 export default {
@@ -30,21 +30,10 @@ export default {
       type:    Number,
       default: 0,
     },
-  },
-
-  data() {
-    let userValue = '';
-
-    if ( this.value !== null && this.value !== undefined ) {
-      userValue = parseSi(`${ this.value } ${ this.unit || '' }`, {
-        addSuffix:   false,
-        increment:   this.increment,
-        minExponent: this.inputExponent,
-        maxExponent: this.outputExponent,
-      });
+    mode: {
+      type:    String,
+      default: 'edit'
     }
-
-    return { userValue };
   },
 
   computed: {
@@ -58,6 +47,20 @@ export default {
       } else {
         return FRACTIONAL[-1 * this.inputExponent];
       }
+    },
+    userValue() {
+      let userValue = '';
+
+      if ( this.value !== null && this.value !== undefined ) {
+        userValue = parseSi(`${ this.value } ${ this.unit || '' }`, {
+          addSuffix:   false,
+          increment:   this.increment,
+          minExponent: this.inputExponent,
+          maxExponent: this.outputExponent,
+        });
+      }
+
+      return userValue ;
     }
   },
 
@@ -77,10 +80,11 @@ export default {
 
 <template>
   <LabeledInput
-    v-model="userValue"
+    :value="userValue"
     v-bind="$attrs"
     type="number"
     min="0"
+    :mode="mode"
     @input="update($event)"
   >
     <template #suffix>
