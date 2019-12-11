@@ -52,7 +52,7 @@ export default {
     if (this.originalID) {
       this.findQuota(this.originalID);
     }
-    if (this.mode === 'create') {
+    if (this.mode === 'create' || isEmpty(this.originalQuota)) {
       this.registerAfterHook(this.createQuota);
     } else {
       this.registerAfterHook(this.updateQuota);

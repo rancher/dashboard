@@ -1,6 +1,7 @@
 <script>
 import omit from 'lodash/omit';
-import { get } from '@/utils/object';
+import { isEmpty, get } from '@/utils/object';
+
 import createEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
 import ResourceQuota from '@/components/cru/core.v1.namespace/ResourceQuota';
@@ -25,8 +26,10 @@ export default {
         description = orignalAnnotations[ANNOTATION.DESCRIPTION];
       }
     }
-    if (!this.value.metadata) {
-      this.value.metadata = { annotations: {}, labels: {} };
+    if (isEmpty(this.value.metadata)) {
+      this.value.metadata = {
+        annotations: {}, labels:      {}, name:        ''
+      };
     }
 
     return { originalQuotaID, description };
@@ -61,6 +64,7 @@ export default {
             required
             label="Name"
             type="text"
+            :disabled="mode!=='create'"
           />
         </div>
         <div class="col span-6">
