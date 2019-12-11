@@ -1,6 +1,4 @@
 <script>
-import { findBy } from '@/utils/array';
-import { cleanUp } from '@/utils/object';
 import { TLS } from '@/models/core.v1.secret';
 import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
@@ -10,6 +8,7 @@ import Footer from '@/components/form/Footer';
 import { RIO, SECRET } from '@/config/types';
 import { groupAndFilterOptions } from '@/utils/group';
 import { allHash } from '@/utils/promise';
+import Target from '@/components/form/Target';
 
 const KIND_LABELS = {
   'router':  'A router',
@@ -26,6 +25,7 @@ export default {
   name: 'CruPublicDomain',
 
   components: {
+    Target,
     Loading,
     NameNsDescription,
     Footer,
@@ -40,25 +40,7 @@ export default {
       this.value.spec = spec;
     }
 
-    let kind, targetApp, targetVersion, targetRouter, secretKind, secret;
-
-    if ( spec.targetVersion ) {
-      targetApp = spec.targetApp;
-      targetVersion = spec.targetVersion;
-      kind = 'version';
-    } else if ( spec.targetApp ) {
-      const matchingRouter = findBy(this.allRouters, 'app', spec.targetApp );
-
-      if ( matchingRouter ) {
-        targetRouter = spec.targetApp;
-        kind = 'router';
-      } else {
-        targetApp = spec.targetApp;
-        kind = 'app';
-      }
-    } else {
-      kind = 'router';
-    }
+    let kind, secretKind, secret;
 
     if ( spec.secret ) {
       secret = spec.secret;
@@ -68,15 +50,10 @@ export default {
     }
 
     return {
-      allServices:     null,
-      allRouters:      null,
       allSecrets:      null,
       targetNamespace: spec.targetNamespace || null,
 
       kind,
-      targetApp,
-      targetVersion,
-      targetRouter,
       secretKind,
       secret,
     };
@@ -154,64 +131,19 @@ export default {
 
   methods: {
     async loadDeps() {
-      const hash = await allHash({
-        services: this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE }),
-        routers:  this.$store.dispatch('cluster/findAll', { type: RIO.ROUTER }),
-        secrets:  this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      });
+      const hash = await allHash({ secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }) });
 
-      this.allServices = hash.services;
-      this.allRouters = hash.routers;
       this.allSecrets = hash.secrets;
     },
 
     update() {
       const spec = this.value.spec;
 
-      spec.targetNamespace = null;
-      spec.targetRouter = null;
-      spec.targetApp = null;
-      spec.targetVersion = null;
-
-      switch ( this.kind ) {
-      case 'router':
-        if ( this.targetRouter ) {
-          const [ns, router] = this.targetRouter.split(':', 2);
-
-          this.targetNamespace = ns;
-          spec.targetNamespace = ns;
-          spec.targetRouter = router;
-        }
-
-        break;
-      case 'app':
-      case 'version':
-        if ( this.targetApp ) {
-          const [ns, app] = this.targetApp.split(':', 2);
-
-          this.targetNamespace = ns;
-          spec.targetNamespace = ns;
-          spec.targetApp = app;
-        }
-
-        if ( this.kind === 'version' ) {
-          if ( this.targetVersion ) {
-            spec.targetVersion = this.targetVersion;
-          } else if ( this.versionOptions.length ) {
-            this.targetVersion = this.versionOptions[0].value;
-            spec.targetVersion = this.targetVersion;
-          }
-        }
-
-        break;
-      }
-
       if ( this.secretKind === 'secret' ) {
         if ( this.secret ) {
           spec.secretName = this.secret;
         }
       }
-      this.value.spec = cleanUp(spec);
     }
   },
 };
@@ -232,96 +164,35 @@ export default {
 
       <div class="spacer"></div>
 
-      <div>
-        <div>
-          <div class="title clearfix">
-            <h4>Target</h4>
-          </div>
-          <div v-if="mode === 'view'">
-            {{ kindLabels[kind] }}
-          </div>
-          <div v-else class="row">
-            <div v-for="opt in kindOptions" :key="opt.value" class="col">
-              <label class="radio">
-                <input v-model="kind" type="radio" :value="opt.value" />
-                {{ opt.label }}
-              </label>
-            </div>
-          </div>
+      <Target v-model="value.spec" />
+
+      <div class="title clearfix mt-20">
+        <h4>Certificate</h4>
+      </div>
+
+      <div v-if="mode === 'view'">
+        {{ secretKindLabels[kind] }}
+      </div>
+      <div v-else class="row">
+        <div v-for="opt in secretKindOptions" :key="opt.value" class="col">
+          <label class="radio">
+            <input v-model="secretKind" type="radio" :value="opt.value" />
+            {{ opt.label }}
+          </label>
         </div>
-        <div class="row">
-          <div v-if="kind === 'router'" class="mt-20 col span-6">
-            <v-select
-              v-model="targetRouter"
-              :options="routerOptions"
-              :mode="mode"
-              placeholder="Select a Router..."
-              :clearable="false"
-              class="inline"
-              :reduce="opt=>opt.value"
-              @input="update"
-            />
-          </div>
+      </div>
 
-          <div v-if="kind === 'app' || kind === 'version'" class="mt-20 col span-6">
-            <v-select
-              v-model="targetApp"
-              :mode="mode"
-              :options="appOptions"
-              placeholder="Select a service"
-              :reduce="opt=>opt.value"
-              :clearable="false"
-              class="inline"
-              @input="update"
-            />
-          </div>
+      <div v-if="secretKind === 'secret'" class="mt-20">
+        <v-select
+          v-model="secret"
+          :options="secretOptions"
+          placeholder="Select a Certificate Secret..."
+          :reduce="opt=>opt.value"
+          :clearable="false"
+          class="inline"
 
-          <div v-if="kind === 'version'" class="mt-20 col span-6">
-            <v-select
-              v-model="targetVersion"
-              :mode="mode"
-              :options="versionOptions"
-              placeholder="Select a version"
-              :clearable="false"
-              class="inline"
-
-              @input="update"
-            >
-              <template v-slot:selected-option="option">
-                {{ option.value }}
-              </template>
-            </v-select>
-          </div>
-        </div>
-
-        <div class="title clearfix mt-20">
-          <h4>Certificate</h4>
-        </div>
-
-        <div v-if="mode === 'view'">
-          {{ secretKindLabels[kind] }}
-        </div>
-        <div v-else class="row">
-          <div v-for="opt in secretKindOptions" :key="opt.value" class="col">
-            <label class="radio">
-              <input v-model="secretKind" type="radio" :value="opt.value" />
-              {{ opt.label }}
-            </label>
-          </div>
-        </div>
-
-        <div v-if="secretKind === 'secret'" class="mt-20">
-          <v-select
-            v-model="secret"
-            :options="secretOptions"
-            placeholder="Select a Certificate Secret..."
-            :reduce="opt=>opt.value"
-            :clearable="false"
-            class="inline"
-
-            @input="update"
-          />
-        </div>
+          @input="update"
+        />
       </div>
 
       <Footer :mode="mode" :errors="errors" @save="save" @done="done" />

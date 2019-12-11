@@ -62,7 +62,7 @@ export default {
 
 <style lang='scss'>
 .checkbox-container {
-  // display: inline-flex;
+  display: inline-flex;
   align-items: center;
 }
 .checkbox-label {
