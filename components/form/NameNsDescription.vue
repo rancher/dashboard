@@ -1,5 +1,6 @@
 <script>
 import { get } from '../../utils/object';
+import { sortBy } from '../../utils/sort';
 import { NAMESPACE, ANNOTATION } from '~/config/types';
 import { NAMESPACES } from '@/store/prefs';
 import { _CREATE, _VIEW } from '~/config/query-params';
@@ -48,10 +49,6 @@ export default {
       type:    String,
       default: '-'
     },
-    alwaysDescribe: {
-      type:    Boolean,
-      default: false
-    },
     registerBeforeHook: {
       type:    Function,
       default: null
@@ -66,7 +63,7 @@ export default {
     }
 
     if ( !metadata.annotations ) {
-      metadata.annotations = {};
+      metadata.annotations = { [ANNOTATION.DESCRIPTION]: '' };
     }
 
     if ( !metadata.namespace) {
@@ -90,20 +87,21 @@ export default {
       name,
       ANNOTATION_DESCRIPTION: ANNOTATION.DESCRIPTION,
       createNS:               false,
-      toCreate:               ''
+      toCreate:               '',
+      addDescription:         false
     };
   },
-
+  inject:   { disableInputs: { default: false } },
   computed: {
     namespaces() {
       const choices = this.$store.getters['cluster/all'](NAMESPACE);
 
-      return choices.map((obj) => {
+      return sortBy(choices.map((obj) => {
         return {
           label: obj.nameDisplay,
           value: obj.id,
         };
-      });
+      }), 'label');
     },
 
     onlyForCreate() {
@@ -124,18 +122,11 @@ export default {
 
       return `span-${ span }`;
     },
-    description: {
-      get() {
-        return this.value.metadata.annotations[ANNOTATION.DESCRIPTION];
-      },
-      set(val) {
-        this.value.metadata.annotations[ANNOTATION.DESCRIPTION] = val;
-      }
+    description() {
+      return get(this.value, `metadata.annotations[${ ANNOTATION.DESCRIPTION }]`);
     },
     wantDescription() {
-      const description = get(this.value, `metadata.annotations.${ ANNOTATION.DESCRIPTION }`);
-
-      return !!description || this.alwaysDescribe;
+      return !!this.description || this.addDescription;
     }
   },
 
@@ -152,6 +143,13 @@ export default {
   created() {
     if (this.registerBeforeHook) {
       this.registerBeforeHook(this.createNamespace);
+    }
+  },
+  mounted() {
+    const valueRef = get(this.$refs, 'name.$refs.value');
+
+    if (valueRef) {
+      valueRef.focus();
     }
   },
   methods: {
@@ -188,6 +186,7 @@ export default {
       <div :class="{col: true, [colSpan]: true}">
         <slot name="name">
           <LabeledInput
+            ref="name"
             key="name"
             v-model="name"
             :mode="onlyForCreate"
@@ -196,7 +195,7 @@ export default {
             :required="true"
           >
             <template v-if="notView && !wantDescription" #corner>
-              <a href="#" @click.prevent="wantDescription=true">Add a description</a>
+              <a v-if="!disableInputs" href="#" @click.prevent="addDescription=true">Add a description</a>
             </template>
           </LabeledInput>
         </slot>
@@ -205,7 +204,7 @@ export default {
         <slot name="namespace">
           <LabeledInput v-if="createNS" v-model="toCreate" required label="Namespace" placeholder="e.g. myapp">
             <template #corner>
-              <a href="#" @click.prevent="toggleNSMode">
+              <a v-if="!disableInputs" href="#" @click.prevent="toggleNSMode">
                 Use an existing namespace
               </a>
             </template>
@@ -221,7 +220,7 @@ export default {
             placeholder="Select a namespace"
           >
             <template #corner>
-              <a v-if="registerBeforeHook" href="#" @click.prevent="toggleNSMode">
+              <a v-if="registerBeforeHook && !disableInputs" href="#" @click.prevent="toggleNSMode">
                 Create new namespace
               </a>
             </template>
@@ -238,7 +237,7 @@ export default {
         <div>
           <LabeledInput
             key="description"
-            v-model="description"
+            v-model="value.metadata.annotations[ANNOTATION_DESCRIPTION]"
             type="multiline"
             label="Description"
             :mode="mode"

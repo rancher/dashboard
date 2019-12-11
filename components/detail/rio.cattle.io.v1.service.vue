@@ -83,6 +83,9 @@ export default {
     version() {
       return get(this.value, 'status.computedVersion');
     },
+    scaleAvailable() {
+      return get(this.value, 'status.scaleStatus.available');
+    },
     creationTimestamp() {
       const date = new Date(get(this.value, 'metadata.creationTimestamp'));
 
@@ -173,7 +176,7 @@ export default {
       <div>
         <span>Scale</span>
         <span>
-          {{ value.status.scaleStatus.available }}
+          {{ scaleAvailable }}
         </span>
       </div>
       <div>

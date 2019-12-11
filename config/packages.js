@@ -194,7 +194,7 @@ function matchingCounts(obj, namespaces) {
   let out = 0;
 
   if ( !obj.byNamespace ) {
-    return 0;
+    return obj.count || 0;
   }
 
   if ( allNegative ) {

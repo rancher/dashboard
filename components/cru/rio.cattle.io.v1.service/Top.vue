@@ -66,10 +66,11 @@ export default {
     let buildMode = 'image';
     let image;
 
-    let { build = { branch: 'master', dockerfile: '/Dockerfile' } } = this.spec;
+    let { build } = this.spec || {};
 
     if ( hasGithub && buildImage && spec.build.repo.startsWith('https://github.com/' && !this.isDemo) ) {
       buildMode = 'github';
+      build.branch = build.branch || 'master';
     } else if ( buildImage ) {
       buildMode = 'git';
     } else {
@@ -189,6 +190,9 @@ export default {
       case 'github':
       case 'git':
         delete this.spec.image;
+        if (!this.build.branch) {
+          this.build.branch = 'master';
+        }
         this.spec.build = this.build || {};
       }
     },
@@ -219,6 +223,9 @@ export default {
         this.spec.autoscale = this.spec.autoscale || {};
         this.spec.autoscale.minReplicas = min;
         this.spec.autoscale.maxReplicas = max;
+        if (!this.spec.autoscale.concurrecy) {
+          this.spec.autoscale.concurrency = 10;
+        }
         delete this.spec.replicas;
         this.scaleMode = 'auto';
       } else {
@@ -332,7 +339,7 @@ export default {
     <div v-if="buildMode === 'image'" class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="spec.image"
+          v-model="image"
           :mode="mode"
           label="Image"
           placeholder="e.g. nginx:latest"

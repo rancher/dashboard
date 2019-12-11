@@ -2,6 +2,7 @@ import { _VIEW } from '@/config/query-params';
 
 export default {
   inheritAttrs: false,
+  inject:       { disableInputs: { default: false } },
 
   props: {
     mode: {
@@ -32,7 +33,7 @@ export default {
 
   data() {
     return {
-      raised:  this.mode === _VIEW || !!`${ this.value }`,
+      raised:  this.mode === _VIEW || !!`${ this.value }` || this.disableInputs,
       focused: false
     };
   },
@@ -43,7 +44,7 @@ export default {
     },
 
     isView() {
-      return this.mode === _VIEW;
+      return this.mode === _VIEW || this.disableInputs;
     },
 
     notView() {

@@ -20,15 +20,18 @@ export default {
       default: ''
     }
   },
+  inject: { disableInputs: { default: false } },
+
   data() {
-    return {
-      selected: this.options[0],
-      string:   this.inputString
-    };
+    return { selected: this.options[0], string: this.inputString };
+  },
+  watch: {
+    inputString(neu) {
+      this.string = neu;
+    }
   },
   methods: {
     change() {
-      console.log('inputwithselect change');
       this.$emit('input', { option: this.selected, string: this.string });
     },
     blurred() {
@@ -42,10 +45,11 @@ export default {
   <div class="input-container" @input="change" @change="change">
     <v-select
       v-model="selected"
-      class="in-input"
+      class="in-input fixed"
       :options="options"
       :clearable="false"
       :searchable="false"
+      :disabled="disableInputs"
       @search:focused="blurred"
     />
     <LabeledInput
@@ -54,12 +58,14 @@ export default {
       class="input-string"
       :label="label"
       :placeholder="placeholder"
+      :disabled="disableInputs"
     />
     <input
       v-else
-      v-model="string"
+      v-model="inputString"
       class="input-string"
       :placeholder="placeholder"
+      :disabled="disableInputs"
     />
   </div>
 </template>
@@ -68,6 +74,12 @@ export default {
 .input-container{
     display: flex;
     align-items: stretch;
+    & .input-string{
+      flex-shrink: 1;
+      padding-right: 0;
+      display: block;
+      height: 50px;
+    }
 }
 .v-select.in-input{
     flex-basis:20%;

@@ -53,7 +53,6 @@ export default {
       buildModeLabels: BUILD_MODES,
     };
   },
-
   computed: {
     buildModeOptions() {
       const githubDisabled = !this.hasGithub;
@@ -67,7 +66,7 @@ export default {
         };
       });
     }
-  },
+  }
 };
 </script>
 <template>

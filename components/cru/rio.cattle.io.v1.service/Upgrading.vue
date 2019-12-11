@@ -13,6 +13,10 @@ export default {
     mode: {
       type:     String,
       required: true,
+    },
+    concurrency: {
+      type:    Number,
+      default: null
     }
   },
 
@@ -22,12 +26,12 @@ export default {
     }
 
     return {};
-  }
+  },
 };
 </script>
 <template>
   <div>
-    <div v-if="spec.autoscale" class="row">
+    <div v-if="concurrency" class="row">
       <div class="col span-6">
         <LabeledInput
           key="concurrency"

@@ -67,6 +67,7 @@ export default {
       return out;
     },
   },
+  inject:   { disableInputs: { default: false } },
   methods: {
     matchChange() {
       this.$emit('input', this.formatted);
@@ -88,6 +89,16 @@ export default {
       }
 
       this[type] = set;
+    },
+    changePath(stringmatch) {
+      const pathString = Object.values(stringmatch)[0];
+      const method = Object.keys(stringmatch)[0];
+
+      if (!pathString.match(/^\/.+/)) {
+        this.$set(this.path, method, `/${ pathString }`);
+      } else {
+        this.path[method] = pathString;
+      }
     }
   }
 };
@@ -97,29 +108,44 @@ export default {
   <div class="match" @change="matchChange" @input="matchChange">
     <div class="row inputs">
       <v-select
+        class="col span-4"
         multiple
         :close-on-select="false"
         :options="httpMethods.filter(opt=>!isSelected(opt))"
         :value="methods"
         placeholder="Method"
+        :disabled="disableInputs"
         @input="e=>{change('methods', e); matchChange()}"
       >
       </v-select>
-      <LabeledInput v-if="host" v-model="host.value.exact" label="Host header" />
-      <StringMatch :spec="path" label="Path" @input="e=>change('path', e)" />
+      <div class="col span-4">
+        <LabeledInput v-if="host" v-model="host.value.exact" label="Host header" />
+      </div>
+      <div class="col span-4">
+        <StringMatch :spec="path" label="Path" @input="e=>changePath(e)" />
+      </div>
     </div>
     <div class="row">
       <div class="col span-6">
         <h5>Headers</h5>
-        <KeyValue add-label="Add Header Rule" :protip="false" :pad-left="false" :read-allowed="false" @input="e=>changeKV('headers', e)">
+        <KeyValue
+          :value="headers"
+          key-name="name"
+          :as-map="false"
+          add-label="Add Header Rule"
+          :protip="false"
+          :pad-left="false"
+          :read-allowed="false"
+          @input="e=>changeKV('headers', e)"
+        >
           <template v-slot:removeButton="buttonProps">
-            <button type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
+            <button :disabled="disableInputs" type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
               REMOVE
             </button>
           </template>
           <template v-slot:value="valProps">
             <StringMatch
-              :spec="{'exact':valProps.row.value}"
+              :spec="valProps.row.value"
               :options="['exact', 'prefix', 'regexp']"
               placeholder="e.g. bar"
               @input="e=>{
@@ -132,15 +158,24 @@ export default {
       </div>
       <div class="col span-6">
         <h5>Cookies</h5>
-        <KeyValue add-label="Add Cookie Rule" :protip="false" :pad-left="false" :read-allowed="false" @input="e=>changeKV('cookies', e)">
+        <KeyValue
+          key-name="name"
+          :value="cookies"
+          :as-map="false"
+          add-label="Add Cookie Rule"
+          :protip="false"
+          :pad-left="false"
+          :read-allowed="false"
+          @input="e=>changeKV('cookies', e)"
+        >
           <template v-slot:removeButton="buttonProps">
-            <button type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
+            <button :disabled="disableInputs" type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
               REMOVE
             </button>
           </template>
           <template v-slot:value="valProps">
             <StringMatch
-              :spec="{'exact':valProps.row.value}"
+              :spec="valProps.row.value"
               :options="['exact', 'prefix']"
               placeholder="e.g. bar"
               @input="e=>{
