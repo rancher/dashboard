@@ -24,10 +24,13 @@ export default {
       headers = [], methods = [], path = {}, cookies = []
     } = this.spec;
 
-    let hostHeader = { name: 'host', value: { exact: '' } };
+    let hostHeader;
 
     if (headers.length) {
       hostHeader = pullAt(headers, findIndex(headers, header => header.name === 'host' && Object.keys(header.value)[0] === 'exact'))[0];
+    }
+    if (!hostHeader) {
+      hostHeader = { name: 'host', value: { exact: '' } };
     }
 
     return {
@@ -42,7 +45,7 @@ export default {
   computed: {
     formatted() {
       const all = {
-        headers: !!this.host.value.exact ? [this.host, ...this.headers] : this.headers,
+        headers: !!this.host.value.exact ? [this.hostHeader, ...this.headers] : this.headers,
         methods: this.methods,
         path:    this.path,
         cookies: this.cookies
@@ -94,7 +97,7 @@ export default {
       const pathString = Object.values(stringmatch)[0];
       const method = Object.keys(stringmatch)[0];
 
-      if (!pathString.match(/^\/.+/)) {
+      if (pathString.charAt(0) !== '/') {
         this.$set(this.path, method, `/${ pathString }`);
       } else {
         this.path[method] = pathString;
