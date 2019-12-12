@@ -1,6 +1,6 @@
 <script>
 import { mapState } from 'vuex';
-import { get } from '../utils/object';
+import { get } from '@/utils/object';
 import { NAMESPACE, RIO } from '@/config/types';
 import Card from '@/components/Card';
 import { TO_FRIENDLY } from '@/config/friendly';

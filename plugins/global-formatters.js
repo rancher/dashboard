@@ -1,6 +1,6 @@
 import Vue from 'vue';
 
-const components = require.context('@/components/formatters', false, /[A-Z]\w+\.(vue)$/);
+const components = require.context('@/components/formatter', false, /[A-Z]\w+\.(vue)$/);
 
 components.keys().forEach((fileName) => {
   const componentConfig = components(fileName);

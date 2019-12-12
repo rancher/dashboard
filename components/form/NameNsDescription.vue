@@ -1,12 +1,12 @@
 <script>
-import { get } from '../../utils/object';
-import { sortBy } from '../../utils/sort';
-import { NAMESPACE, ANNOTATION } from '~/config/types';
+import { sortBy } from '@/utils/sort';
+import { get } from '@/utils/object';
+import { escapeRegex } from '@/utils/string';
 import { NAMESPACES } from '@/store/prefs';
-import { _CREATE, _VIEW } from '~/config/query-params';
+import { NAMESPACE, ANNOTATION } from '@/config/types';
+import { _CREATE, _VIEW } from '@/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import { escapeRegex } from '@/utils/string';
 
 export default {
   components:   { LabeledInput, LabeledSelect },

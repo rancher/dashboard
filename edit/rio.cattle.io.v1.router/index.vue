@@ -1,13 +1,11 @@
 
 <script>
 
-import values from 'lodash/values';
-import pickBy from 'lodash/pickBy';
 import { get, cleanUp } from '@/utils/object';
 import { randomStr } from '@/utils/string';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import Rule from '@/components/cru/rio.cattle.io.v1.router/Rule';
+import Rule from '@/edit/rio.cattle.io.v1.router/Rule';
 import Footer from '@/components/form/Footer';
 
 export default {

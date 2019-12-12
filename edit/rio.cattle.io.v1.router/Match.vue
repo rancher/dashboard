@@ -5,7 +5,7 @@ import { isEmpty } from 'lodash';
 import findIndex from 'lodash/findIndex';
 import { typeOf } from '@/utils/sort';
 import KeyValue from '@/components/form/KeyValue';
-import StringMatch from '@/components/cru/rio.cattle.io.v1.router/StringMatch';
+import StringMatch from '@/edit/rio.cattle.io.v1.router/StringMatch';
 import LabeledInput from '@/components/form/LabeledInput';
 export default {
   components: {

@@ -1,5 +1,5 @@
 <script>
-import { sortBy } from '../utils/sort';
+import { sortBy } from '@/utils/sort';
 import { get } from '@/utils/object';
 
 export default {

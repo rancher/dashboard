@@ -6,7 +6,7 @@ import {
   STATE, NAME, AGE, POD_IMAGES, NODE,
 } from '@/config/table-headers';
 import { sortBy } from '@/utils/sort';
-import LiveDate from '@/components/formatters/LiveDate';
+import LiveDate from '@/components/formatter/LiveDate';
 export default {
   components: { ResourceTable, LiveDate },
 

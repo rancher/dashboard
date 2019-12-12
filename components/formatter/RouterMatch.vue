@@ -1,5 +1,5 @@
 <script>
-import { typeOf } from '../../utils/sort';
+import { typeOf } from '@/utils/sort';
 import { get } from '@/utils/object';
 
 export default {

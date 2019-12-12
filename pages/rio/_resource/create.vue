@@ -23,7 +23,7 @@ export default {
     },
 
     cruComponent() {
-      return () => import(`@/components/cru/${ this.type }`);
+      return () => import(`@/edit/${ this.type }`);
     },
 
     typeDisplay() {

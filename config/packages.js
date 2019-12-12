@@ -1,7 +1,7 @@
 import { ucFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { findBy } from '@/utils/array';
-import { CONFIG_MAP, RIO, SECRET } from '~/config/types';
+import { CONFIG_MAP, NODE, RIO, SECRET } from '~/config/types';
 // import config from '@/nuxt.config';
 
 let routerBase = null;
@@ -14,15 +14,19 @@ if ( typeof process.env.ROUTER_BASE !== 'undefined' ) {
   }
 }
 
+function _countFor(counts, type, namespaces) {
+  const entry = findBy(counts, 'id', type);
+
+  if ( !entry ) {
+    return 0;
+  }
+
+  return matchingCounts(entry, namespaces);
+}
+
 export function rioPackage($router, counts, namespaces) {
   function countFor(type) {
-    const entry = findBy(counts, 'id', type);
-
-    if ( !entry ) {
-      return 0;
-    }
-
-    return matchingCounts(entry, namespaces);
+    return _countFor(counts, type, namespaces);
   }
 
   function linkFor(resource) {
@@ -101,6 +105,46 @@ export function rioPackage($router, counts, namespaces) {
       },
       {
         name:  'rio-secrets',
+        count: countFor(SECRET),
+        label: 'Secrets',
+        route: linkFor('secrets'),
+      },
+    ],
+  };
+
+  return out;
+}
+
+export function clusterPackage($router, counts, namespaces) {
+  function countFor(type) {
+    return _countFor(counts, type, namespaces);
+  }
+
+  function linkFor(resource) {
+    return {
+      name:   'cluster-resource',
+      params: { resource }
+    };
+  }
+
+  const out = {
+    name:     'cluster',
+    label:    'Cluster',
+    children: [
+      {
+        name:  'cluster-nodes',
+        count: countFor(NODE),
+        label: 'Nodes',
+        route: linkFor('nodes'),
+      },
+      {
+        name:  'cluster-config-maps',
+        count: countFor(CONFIG_MAP),
+        label: 'Config Maps',
+        route: linkFor('config-maps'),
+      },
+      {
+        name:  'cluster-secrets',
         count: countFor(SECRET),
         label: 'Secrets',
         route: linkFor('secrets'),

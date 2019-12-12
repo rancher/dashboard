@@ -7,6 +7,7 @@ export const CONFIG_MAP = 'core.v1.configmap';
 export const SECRET = 'core.v1.secret';
 export const EVENT = 'core.v1.event';
 export const RESOURCE_QUOTA = 'core.v1.resourcequota';
+export const NODE = 'core.v1.node';
 
 export const CLOUD = {
   CLUSTER:            'cloud.rio.rancher.io.v1.cluster',

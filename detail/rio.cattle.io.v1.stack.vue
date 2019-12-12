@@ -1,5 +1,5 @@
 <script>
-import { findBy, filterBy } from '../../utils/array';
+import { findBy, filterBy } from '@/utils/array';
 import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import ResourceTable from '@/components/ResourceTable';

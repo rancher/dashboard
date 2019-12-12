@@ -1,6 +1,6 @@
 <script>
 import NameNsDescription from '@/components/form/NameNsDescription';
-import GithubPicker from '@/components/GithubPicker';
+import GithubPicker from '@/components/form/GithubPicker';
 import LabeledInput from '@/components/form/LabeledInput';
 import CreateEditView from '@/mixins/create-edit-view';
 import LoadDeps from '@/mixins/load-deps';

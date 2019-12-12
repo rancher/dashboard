@@ -1,5 +1,5 @@
 <script>
-import { get } from '../../../utils/object';
+import { get } from '@/utils/object';
 import Top from './Top';
 import Command from './Command';
 import HealthCheck from './HealthCheck';

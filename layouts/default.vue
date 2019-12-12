@@ -2,7 +2,7 @@
 <script>
 import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
-import { explorerPackage, rioPackage } from '@/config/packages';
+import { explorerPackage, clusterPackage, rioPackage } from '@/config/packages';
 import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
@@ -89,12 +89,10 @@ export default {
         return [];
       }
 
-      const explorer = explorerPackage(this.$router, counts, namespaces);
-      const rio = rioPackage(this.$router, counts, namespaces);
-
       const out = [
-        rio,
-        explorer,
+        rioPackage(this.$router, counts, namespaces),
+        // clusterPackage(this.$router, counts, namespaces),
+        explorerPackage(this.$router, counts, namespaces),
       ];
 
       return out.filter(x => !!x);

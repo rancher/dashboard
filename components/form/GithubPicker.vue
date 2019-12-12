@@ -1,7 +1,7 @@
 <script>
 import { mapState } from 'vuex';
 import { debounce } from 'lodash';
-import { findBy } from '../utils/array';
+import { findBy } from '@/utils/array';
 import { EXTENDED_SCOPES } from '@/store/github';
 
 export const FILE_PATTERNS = {
