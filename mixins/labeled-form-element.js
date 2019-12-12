@@ -48,7 +48,7 @@ export default {
     },
 
     notView() {
-      return this.mode !== _VIEW;
+      return (this.mode !== _VIEW && !this.disableInputs);
     },
   },
 
