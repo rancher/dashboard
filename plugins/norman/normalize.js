@@ -24,7 +24,7 @@ export function cleanForNew(obj) {
   if ( obj.metadata ) {
     const m = obj.metadata;
 
-    delete m.name;
+    m.name = '';
     delete m.uid;
     delete m.ownerReferences;
     delete m.generation;

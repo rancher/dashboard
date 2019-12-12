@@ -52,11 +52,8 @@ export default {
     if (this.originalID) {
       this.findQuota(this.originalID);
     }
-    if (this.mode === 'create' || isEmpty(this.originalQuota)) {
-      this.registerAfterHook(this.createQuota);
-    } else {
-      this.registerAfterHook(this.updateQuota);
-    }
+
+    this.registerAfterHook(this.createQuota);
   },
   methods: {
     async findQuota(ID) {
@@ -68,27 +65,31 @@ export default {
       this.originalQuota = quota;
     },
     async createQuota() {
-      const metadata = { name: `default-quota` };
-      const hard = {};
+      if (!isEmpty(this.originalQuota) && this.mode !== 'create') {
+        this.updateQuota();
+      } else {
+        const metadata = { name: `default-quota` };
+        const hard = {};
 
-      Object.keys(SPEC_KEYS).forEach((key) => {
-        if (this[SPEC_KEYS[key]]) {
-          hard[key] = this[SPEC_KEYS[key]];
+        Object.keys(SPEC_KEYS).forEach((key) => {
+          if (this[SPEC_KEYS[key]]) {
+            hard[key] = this[SPEC_KEYS[key]];
+          }
+        });
+
+        if (isEmpty(hard)) {
+          return;
         }
-      });
+        const data = { metadata, spec: { hard } };
+        const nsURL = get(this.namespace, 'metadata.selfLink');
 
-      if (isEmpty(hard)) {
-        return;
-      }
-      const data = { metadata, spec: { hard } };
-      const nsURL = get(this.namespace, 'metadata.selfLink');
-
-      try {
-        await this.$store.dispatch('cluster/request', {
-          url:    `${ nsURL }/resourcequotas`, data, method: 'POST'
-        } );
-      } catch (err) {
-        throw err;
+        try {
+          await this.$store.dispatch('cluster/request', {
+            url:    `${ nsURL }/resourcequotas`, data, method: 'POST'
+          } );
+        } catch (err) {
+          throw err;
+        }
       }
     },
     async updateQuota() {

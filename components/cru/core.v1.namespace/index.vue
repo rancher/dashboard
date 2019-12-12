@@ -16,7 +16,7 @@ export default {
   mixins:     [createEditView],
   data() {
     let originalQuotaID = null;
-    let description = '';
+    let description;
 
     if (!!this.originalValue) {
       originalQuotaID = `${ this.originalValue.metadata.name }/default-quota`;
@@ -25,14 +25,28 @@ export default {
       if (orignalAnnotations) {
         description = orignalAnnotations[ANNOTATION.DESCRIPTION];
       }
+      this.value.metadata.annotations = this.originalValue.metadata.annotations ? JSON.parse(JSON.stringify(this.originalValue.metadata.annotations)) : {};
+      this.value.metadata.labels = this.originalValue.metadata.labels ? JSON.parse(JSON.stringify(this.originalValue.metadata.labels)) : {};
     }
-    if (isEmpty(this.value.metadata)) {
+    if (!this.value.metadata) {
       this.value.metadata = {
-        annotations: {}, labels:      {}, name:        ''
+        annotations: {},
+        labels:      {},
+        name:        ''
       };
     }
 
-    return { originalQuotaID, description };
+    if (!this.value.metadata.annotations) {
+      this.value.metadata.annotations = {};
+    }
+
+    if (!this.value.metadata.labels) {
+      this.value.metadata.labels = {};
+    }
+
+    return {
+      originalQuotaID, description, name: this.value.metadata.name
+    };
   },
   computed: {
     annotations: {
@@ -49,6 +63,9 @@ export default {
   watch: {
     description(description) {
       this.value.metadata.annotations[ANNOTATION.DESCRIPTION] = description;
+    },
+    name(name) {
+      this.value.metadata.name = name;
     }
   }
 };
@@ -60,15 +77,16 @@ export default {
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.metadata.name"
+            v-model="name"
             required
             label="Name"
             type="text"
             :disabled="mode!=='create'"
+            :mode="mode"
           />
         </div>
         <div class="col span-6">
-          <LabeledInput v-model="description" label="Description" type="text" placeholder="Any text you want that better describes the namespace" />
+          <LabeledInput v-model="description" :mode="mode" label="Description" type="text" placeholder="Any text you want that better describes the namespace" />
         </div>
       </div>
       <h4 class="mb-10">
@@ -117,14 +135,3 @@ export default {
     </form>
   </div>
 </template>
-
-<style lang = 'scss'>
-  .inline-description {
-      display: flex;
-      & > * {
-        align-content: stretch;
-        margin-right: 10px;
-        flex: 1;
-      }
-  }
-</style>
