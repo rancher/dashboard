@@ -1,4 +1,4 @@
-import { RANCHER } from '~/config/types';
+import { RANCHER } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { SETUP } from '@/config/query-params';
 

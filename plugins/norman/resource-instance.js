@@ -1,7 +1,7 @@
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
-import { eachLimit } from '~/utils/promise';
+import { eachLimit } from '@/utils/promise';
 import {
   MODE, _EDIT, _CLONE,
   EDIT_YAML, _FLAGGED

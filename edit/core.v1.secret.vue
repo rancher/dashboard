@@ -26,7 +26,7 @@ export default {
     />
 
     <div class="spacer"></div>
-    
+
     <div class="row">
       <div class="col span-6">
         <KeyValue

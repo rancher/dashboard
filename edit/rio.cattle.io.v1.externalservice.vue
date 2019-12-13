@@ -7,6 +7,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import ArrayList from '@/components/form/ArrayList';
 import Footer from '@/components/form/Footer';
 import Target from '@/components/form/Target';
+import { clone } from '@/utils/object';
 
 const KIND_LABELS = {
   'router':      'A router',
@@ -29,7 +30,7 @@ export default {
   mixins:     [CreateEditView, LoadDeps],
 
   data() {
-    const spec = this.value.spec ? JSON.parse(JSON.stringify(this.value.spec)) : {};
+    const spec = this.value.spec ? clone(this.value.spec) : {};
     let kind = 'app';
 
     if ( spec.ipAddresses ) {

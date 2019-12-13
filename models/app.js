@@ -1,4 +1,4 @@
-// import { RIO } from '~/config/types';
+// import { RIO } from '@/config/types';
 // import { filterBy } from '@/utils/array';
 
 export default {};

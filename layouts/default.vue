@@ -2,7 +2,7 @@
 <script>
 import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
-import { explorerPackage, clusterPackage, rioPackage } from '@/config/packages';
+import { explorerPackage, /* clusterPackage, */ rioPackage } from '@/config/packages';
 import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';

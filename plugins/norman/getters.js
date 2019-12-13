@@ -1,6 +1,6 @@
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import urlOptions from './urloptions';
-import { SCHEMA } from '~/config/types';
+import { SCHEMA } from '@/config/types';
 
 export default {
   all: (state, getters) => (type) => {

@@ -1,5 +1,4 @@
 <script>
-import { get } from '@/utils/object';
 import Top from './Top';
 import Command from './Command';
 import HealthCheck from './HealthCheck';
@@ -8,6 +7,7 @@ import Labels from './Labels';
 import Security from './Security';
 import Upgrading from './Upgrading';
 import Volumes from './Volumes';
+import { get } from '@/utils/object';
 import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
 import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
