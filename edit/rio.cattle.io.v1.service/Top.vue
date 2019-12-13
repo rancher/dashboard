@@ -2,9 +2,9 @@
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import Ports from '@/components/cru/rio.cattle.io.v1.service/Ports';
-import GithubPicker from '@/components/GithubPicker';
+import GithubPicker from '@/components/form/GithubPicker';
 import Checkbox from '@/components/form/Checkbox';
+import Ports from '@/edit/rio.cattle.io.v1.service/Ports';
 
 const BUILD_MODES = {
   image:  'Use an existing Docker image',
@@ -402,6 +402,7 @@ export default {
           </template>
         </Checkbox>
         <Checkbox v-model="spec.build.tag" class="checkbox" label="Build on tag" type="checkbox" />
+        <Checkbox v-model="spec.build.template" class="checkbox" label="Use this service as a template" type="checkbox" />
       </div>
     </div>
 

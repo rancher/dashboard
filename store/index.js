@@ -1,5 +1,5 @@
 import Norman from '@/plugins/norman';
-import { COUNT, NAMESPACE, RANCHER } from '~/config/types';
+import { COUNT, NAMESPACE, RANCHER } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 

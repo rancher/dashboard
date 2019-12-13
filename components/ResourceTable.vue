@@ -1,5 +1,5 @@
 <script>
-import { get } from '../utils/object';
+import { get } from '@/utils/object';
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
 import SortableTable from '@/components/SortableTable';
@@ -8,7 +8,7 @@ import {
   NAME, NAME_UNLINKED,
   NAMESPACE_NAME, NAMESPACE_NAME_UNLINKED,
   NAMESPACE_NAME_IMAGE, NAME_IMAGE,
-} from '~/config/table-headers';
+} from '@/config/table-headers';
 
 export default {
   components: { ButtonGroup, SortableTable },

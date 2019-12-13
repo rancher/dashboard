@@ -1,13 +1,13 @@
 
 <script>
 import { isEmpty } from 'lodash';
-import { cleanUp } from '../../../utils/object';
+import { cleanUp } from '@/utils/object';
 import { randomStr } from '@/utils/string';
-import Match from '@/components/cru/rio.cattle.io.v1.router/Match';
-import Destination from '@/components/cru/rio.cattle.io.v1.router/Destination';
-import Redirect from '@/components/cru/rio.cattle.io.v1.router/Redirect';
-import Headers from '@/components/cru/rio.cattle.io.v1.router/Headers';
-import Fault from '@/components/cru/rio.cattle.io.v1.router/Fault';
+import Match from '@/edit/rio.cattle.io.v1.router/Match';
+import Destination from '@/edit/rio.cattle.io.v1.router/Destination';
+import Redirect from '@/edit/rio.cattle.io.v1.router/Redirect';
+import Headers from '@/edit/rio.cattle.io.v1.router/Headers';
+import Fault from '@/edit/rio.cattle.io.v1.router/Fault';
 import Checkbox from '@/components/form/Checkbox';
 
 export default {

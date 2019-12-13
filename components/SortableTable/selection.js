@@ -2,7 +2,7 @@ import $ from 'jquery';
 import selectionStore from './selectionStore';
 import { isMore, isRange, suppressContextMenu } from '@/utils/platform';
 import { get } from '@/utils/object';
-import { randomStr } from '~/utils/string';
+import { randomStr } from '@/utils/string';
 export const ALL = 'all';
 export const SOME = 'some';
 export const NONE = 'none';

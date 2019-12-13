@@ -7,6 +7,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import ArrayList from '@/components/form/ArrayList';
 import Footer from '@/components/form/Footer';
 import Target from '@/components/form/Target';
+import { clone } from '@/utils/object';
 
 const KIND_LABELS = {
   'router':      'A router',
@@ -29,13 +30,8 @@ export default {
   mixins:     [CreateEditView, LoadDeps],
 
   data() {
-    let spec = this.value.spec;
+    const spec = this.value.spec ? clone(this.value.spec) : {};
     let kind = 'app';
-
-    if ( !this.value.spec ) {
-      spec = {};
-      this.value.spec = spec;
-    }
 
     if ( spec.ipAddresses ) {
       kind = 'ip';
@@ -44,6 +40,7 @@ export default {
     }
 
     return {
+      spec,
       kind,
       ipAddresses: spec.ipAddresses,
       fqdn:        spec.fqdn,
@@ -54,6 +51,17 @@ export default {
       return KIND_LABELS;
     }
   },
+  methods: {
+    update(spec) {
+      const targetNS = spec.targetNamespace;
+
+      if (targetNS) {
+        delete spec.targetNamespace;
+        spec.targetServiceNamespace = targetNS;
+      }
+      this.value.spec = spec;
+    }
+  }
 };
 </script>
 
@@ -72,7 +80,7 @@ export default {
 
       <div class="spacer"></div>
 
-      <Target v-model="value.spec" :kind-labels="kindLabels">
+      <Target v-model="spec" :kind-labels="kindLabels" @input="update">
         <template v-slot:fqdn="slotProps">
           <LabeledInput v-model="fqdn" :mode="mode" label="DNS FQDN" @input="e=>slotProps.update(e)" />
         </template>

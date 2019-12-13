@@ -14,8 +14,8 @@ export default {
 
       return name;
     },
-    cruComponent() {
-      return () => import(`@/components/cru/${ this.obj.type }`);
+    showComponent() {
+      return () => import(`@/edit/${ this.obj.type }`);
     },
     typeDisplay() {
       return get(FRIENDLY[this.obj.type], 'singular');
@@ -47,7 +47,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="cruComponent">
+  <div v-if="showComponent">
     <header>
       <h1>
         Create <nuxt-link :to="parentLink">
@@ -56,7 +56,7 @@ export default {
       </h1>
     </header>
     <component
-      :is="cruComponent"
+      :is="showComponent"
       :done-route="doneRoute"
       mode="create"
       :value="obj"

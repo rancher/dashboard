@@ -179,7 +179,7 @@ export const actions = {
         responseType: 'cookie',
         ttl:          16 * 60 * 60 * 1000,
         ...body
-      });
+      }, { redirectUnauthorized: false });
 
       if ( process.server ) {
         const parsed = setCookieParser(res._headers['set-cookie'] || []);
@@ -200,11 +200,11 @@ export const actions = {
 
       return true;
     } catch (err) {
-      if ( err.response.status >= 400 && err.response.status <= 499 ) {
-        return ERR_CLIENT;
+      if ( err._status >= 400 && err._status <= 499 ) {
+        return Promise.reject(ERR_CLIENT);
       }
 
-      return ERR_SERVER;
+      return Promise.reject(ERR_SERVER);
     }
   },
 

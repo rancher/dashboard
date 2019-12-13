@@ -208,6 +208,7 @@ export default {
               :clearable="false"
               class="inline"
               :reduce="opt=>opt.value"
+              label="value"
               @input="update"
             />
           </div>
@@ -223,6 +224,7 @@ export default {
                 :reduce="opt=>opt.value"
                 :clearable="false"
                 class="inline"
+                label="value"
                 @input="update"
               />
               <Checkbox v-if="kind==='app'" v-model="pickVersion" label="Target one version" />
@@ -236,6 +238,7 @@ export default {
                 placeholder="Select a version"
                 :clearable="false"
                 class="inline"
+                label="value"
                 :reduce="opt=>opt.value"
                 @input="update"
               />

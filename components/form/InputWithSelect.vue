@@ -62,7 +62,7 @@ export default {
     />
     <input
       v-else
-      v-model="inputString"
+      v-model="string"
       class="input-string"
       :placeholder="placeholder"
       :disabled="disableInputs"

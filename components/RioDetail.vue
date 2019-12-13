@@ -145,12 +145,12 @@ export default {
       return out;
     },
 
-    cruComponent() {
+    showComponent() {
       if ( this.isView && FRIENDLY[this.resource].hasDetail ) {
-        return () => import(`@/components/detail/${ this.type }`);
+        return () => import(`@/detail/${ this.type }`);
       }
 
-      return () => import(`@/components/cru/${ this.type }`);
+      return () => import(`@/edit/${ this.type }`);
     },
 
     typeDisplay() {
@@ -200,7 +200,7 @@ export default {
         </div>
       </header>
       <component
-        :is="cruComponent"
+        :is="showComponent"
         v-model="model"
         :original-value="originalModel"
         :done-route="doneRoute"
