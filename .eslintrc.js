@@ -8,9 +8,21 @@ module.exports = {
     parser: 'babel-eslint'
   },
   extends: [
+    'standard',
+    'plugin:vue/recommended',
     'eslint:recommended',
     '@nuxtjs',
-    'plugin:nuxt/recommended'
+    'plugin:nuxt/recommended',
+  ],
+  overrides: [
+    {
+      files: ['**/*.ts', '**/*.tsx'],
+      parser: 'vue-eslint-parser',
+      parserOptions: {
+        parser: '@typescript-eslint/parser',
+        sourceType: 'module',
+      },
+    }
   ],
   // add your custom rules here
   rules: {
@@ -69,7 +81,7 @@ module.exports = {
     }],
 
     'keyword-spacing':               'warn',
-    'lines-between-class-members':   'warn',
+    'lines-between-class-members':   ['error', 'always', { exceptAfterSingleLine: true}],
     'newline-per-chained-call':      ['warn', { 'ignoreChainWithDepth': 4 }],
     'no-whitespace-before-property': 'warn',
     'object-curly-newline':          ['warn', {

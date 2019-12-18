@@ -1,6 +1,7 @@
 --ignore-dir=.git
 --ignore-dir=.vscode
 --ignore-dir=.nuxt
+--ignore-dir=.nuxt-prod
 --ignore-dir=coverage
 --ignore-dir=dist
 --ignore-dir=node_modules

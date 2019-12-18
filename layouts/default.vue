@@ -101,14 +101,6 @@ export default {
     expandedGroups: mapPref(EXPANDED_GROUPS),
   },
 
-  mounted() {
-    if ( this.$store.state.auth.loggedIn ) {
-      const url = `${ window.location.origin.replace(/^http(s)?:/, 'ws$1:') }/k8s/clusters/local/v1/subscribe`;
-
-      this.$connect(url);
-    }
-  },
-
   methods: {
     toggleGroup(route, expanded) {
       const groups = this.expandedGroups.slice();

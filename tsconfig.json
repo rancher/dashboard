@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es2018",
     "module": "esnext",
     "moduleResolution": "node",
     "lib": [
@@ -26,7 +26,14 @@
     },
     "types": [
       "@types/node",
-      "@nuxt/vue-app"
+      "@nuxt/vue-app",
+      "@types/websocket",
+      "@nuxt/typescript",
+      "@types/jquery"
     ]
-  }
+  },
+
+  "exclude": [
+    "node_modules"
+  ]
 }

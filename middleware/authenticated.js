@@ -24,6 +24,10 @@ export default async function({
     }
   }
 
+  if ( store.getters['auth/loggedIn'] ) {
+    return;
+  }
+
   try {
     const principals = await store.dispatch('rancher/findAll', {
       type: RANCHER.PRINCIPAL,
@@ -33,6 +37,9 @@ export default async function({
     const me = findBy(principals, 'me', true);
 
     store.commit('auth/loggedInAs', me.id);
+
+    // @TODO pick a cluster for multi-cluster or do something different for global scope
+    store.dispatch('cluster/subscribe');
 
     await store.dispatch('preload');
   } catch (e) {

@@ -73,6 +73,10 @@ module.exports = {
     cssSourceMap: true
   },
 
+  buildModules: [
+    '@nuxt/typescript-build',
+  ],
+
   render: { bundleRenderer: { directives: { trimWhitespace: trimWhitespaceSsr } } },
 
   modern: true,
@@ -109,7 +113,7 @@ module.exports = {
     '@nuxtjs/eslint-module',
     'cookie-universal-nuxt',
     'portal-vue/nuxt',
-    '~/modules/norman-rehydrate',
+    '~/plugins/norman/rehydrate-all',
   ],
 
   // Vue plugins
@@ -130,7 +134,6 @@ module.exports = {
     { src: '~/plugins/extend-router' },
     { src: '~/plugins/lookup', ssr: false },
     { src: '~/plugins/nuxt-client-init', ssr: false },
-    { src: '~/plugins/websocket', ssr: false },
   ],
 
   // Proxy: https://github.com/nuxt-community/proxy-module#options
