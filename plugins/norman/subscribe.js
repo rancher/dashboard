@@ -1,8 +1,61 @@
 import { normalizeType } from './normalize';
+import { get } from '@/utils/object';
+import Socket, {
+  EVENT_CONNECTED,
+  EVENT_DISCONNECTED,
+  EVENT_MESSAGE,
+  //  EVENT_FRAME_TIMEOUT,
+  EVENT_CONNECT_ERROR
+} from '@/utils/socket';
 
 const NO_WATCHING = ['schema'];
 
-export default {
+export const actions = {
+  subscribe(ctx, opt) {
+    const { state, commit, dispatch } = ctx;
+    let socket = state.socket;
+
+    if ( !socket ) {
+      socket = new Socket(`${ state.config.baseUrl }/subscribe`);
+
+      commit('setSocket', socket);
+
+      socket.addEventListener(EVENT_CONNECTED, (e) => {
+        dispatch('opened', e);
+      });
+
+      socket.addEventListener(EVENT_DISCONNECTED, (e) => {
+        dispatch('closed', e);
+      });
+
+      socket.addEventListener(EVENT_CONNECT_ERROR, (e) => {
+        dispatch('error', e.detail);
+      });
+
+      socket.addEventListener(EVENT_MESSAGE, (e) => {
+        const event = e.detail;
+
+        if ( event.data) {
+          const msg = JSON.parse(event.data);
+
+          if (msg.name) {
+            dispatch(`ws.${ msg.name }`, msg);
+          }
+        }
+      });
+    }
+
+    socket.connect(get(opt, 'metadata'));
+  },
+
+  unsubscribe({ state, commit }) {
+    const socket = state.socket;
+
+    if ( socket ) {
+      socket.disconnect();
+    }
+  },
+
   watchType({ dispatch, getters }, { type, revision }) {
     if ( !process.client ) {
       return;
@@ -18,7 +71,7 @@ export default {
       revision = getters.nextResourceVersion(type);
     }
 
-    return dispatch('ws.send', { resourceType: type, revision });
+    return dispatch('send', { resourceType: type, revision });
   },
 
   watchHaveAllTypes({ state, dispatch }) {
@@ -34,8 +87,7 @@ export default {
     return Promise.all(promises);
   },
 
-  async 'ws.open'({ commit, dispatch }, event) {
-    commit('updateSocket', { status: 'connected', count: 0 });
+  async opened({ commit, dispatch }, event) {
     console.log('WebSocket Opened');
     const socket = event.currentTarget;
 
@@ -44,31 +96,19 @@ export default {
     await dispatch('watchHaveAllTypes');
   },
 
-  'ws.close'({ commit }, event) {
-    commit('updateSocket', { status: 'disconnected', count: 0 });
+  closed({ commit }, event) {
     console.log('WebSocket Closed');
   },
 
-  'ws.error'({ commit }, event) {
-    commit('updateSocket', { status: 'error' });
-    console.log('WebSocket Error');
+  error({ commit }, event) {
+    console.log('WebSocket Error', event);
   },
 
-  'ws.reconnect'({ commit }, count) {
-    commit('updateSocket', { status: 'disconnected', count });
-    console.log(`WebSocket Reconnect Attempt #${ count }`);
-  },
-
-  'ws.reconnect-error'({ commit }) {
-    commit('updateSocket', { status: 'failed' });
-    console.error('WebSocket Reconnect Failed');
-  },
-
-  async 'ws.send'(ctx, obj) {
-    if ( this.$socket ) {
-      await this.$socket.send(JSON.stringify(obj));
+  send({ state }, obj) {
+    if ( state.socket ) {
+      return state.socket.send(JSON.stringify(obj));
     } else {
-      console.log('Socket is not up yet');
+      console.log('Socket is not up yet', obj);
     }
   },
 
@@ -110,4 +150,10 @@ export default {
       }
     }
   },
+};
+
+export const mutations = {
+  setSocket(state, socket) {
+    state.socket = socket;
+  }
 };

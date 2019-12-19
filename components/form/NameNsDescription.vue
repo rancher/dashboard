@@ -161,18 +161,14 @@ export default {
         if (!this.toCreate) {
           throw new Error('no namespace name provided');
         } else {
-          try {
-            const nsSchema = this.$store.getters['cluster/schemaFor'](NAMESPACE);
-            const data = { metadata: { name: this.toCreate } };
+          const nsSchema = this.$store.getters['cluster/schemaFor'](NAMESPACE);
+          const data = { metadata: { name: this.toCreate } };
 
-            await nsSchema.followLink('collection', {
-              method:  'POST',
-              data
-            });
-            this.value.metadata.namespace = this.toCreate;
-          } catch (err) {
-            throw err;
-          }
+          await nsSchema.followLink('collection', {
+            method:  'POST',
+            data
+          });
+          this.value.metadata.namespace = this.toCreate;
         }
       }
     }

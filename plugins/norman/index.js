@@ -3,7 +3,7 @@ import Vue from 'vue';
 import actions from './actions';
 import getters from './getters';
 import mutations from './mutations';
-import events from './events';
+import { mutations as subscribeMutations, actions as subscribeActions } from './subscribe';
 import { proxyFor } from './resource-proxy';
 import { keyFieldFor } from './normalize';
 import { isArray } from '@/utils/array';
@@ -18,19 +18,19 @@ function NormanFactory(namespace, baseUrl) {
           baseUrl,
           namespace
         },
-        types:   {},
-        socket:    {
-          status: 'disconnected',
-          count:  0,
-        }
+        types:  {},
+        socket: null,
       };
     },
 
     getters,
-    mutations,
+    mutations: {
+      ...mutations,
+      ...subscribeMutations,
+    },
     actions: {
       ...actions,
-      ...events
+      ...subscribeActions
     },
   };
 }
@@ -49,6 +49,12 @@ export default (config = {}) => {
     if ( !process.client || !window.__NUXT__ ) {
       return;
     }
+
+    store.subscribe(({ type }, state) => {
+      if ( type === 'auth/loggedOut' ) {
+        store.dispatch(`${ namespace }/unsubscribe`);
+      }
+    });
 
     const module = store._modules.root._children[namespace];
     const fromServer = window.__NUXT__;

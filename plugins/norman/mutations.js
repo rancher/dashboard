@@ -3,11 +3,6 @@ import { proxyFor } from './resource-proxy';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 
 export default {
-  updateSocket(state, obj) {
-    state.socket.status = obj.status;
-    state.socket.count = obj.count || 0;
-  },
-
   applyConfig(state, config) {
     if ( !state.config ) {
       state.config = {};
@@ -104,8 +99,8 @@ export default {
       }
     }
   },
+
   removeAll(state) {
     state.types = {};
   }
-
 };

@@ -19,7 +19,7 @@ export const state = function() {
 };
 
 export const getters = {
-  loggedIn() {
+  loggedIn(state) {
     return state.loggedIn;
   },
 
@@ -41,9 +41,8 @@ export const mutations = {
   },
 
   loggedOut(state) {
-    if ( !process.server ) {
-      window.$nuxt.$disconnect();
-    }
+    // Note: plugin/norman/index watches for this mutation
+    // to automatically disconnect subscribe sockets.
 
     state.loggedIn = false;
     state.principalId = null;
@@ -54,7 +53,7 @@ export const actions = {
   getAuthProviders({ dispatch }) {
     return dispatch('rancher/findAll', {
       type: 'authProvider',
-      opt:  { url: `/v3-public/authProviders` }
+      opt:  { url: `/v3-public/authProviders`, watch: false }
     }, { root: true });
   },
 
@@ -79,6 +78,7 @@ export const actions = {
 
   async redirectToGithub({ state, commit, dispatch }, opt = {}) {
     let redirectUrl = opt.redirectUrl;
+    let route = opt.route;
 
     if ( !redirectUrl ) {
       const authProvider = await dispatch('getAuthProvider', 'github');
@@ -100,19 +100,19 @@ export const actions = {
       addObjects(scopes, opt.scopes);
     }
 
-    if (!opt.route) {
-      opt.route = '/auth/verify';
+    if (!route) {
+      route = '/auth/verify';
     }
 
     if ( this.$router.options && this.$router.options.base ) {
       const routerBase = this.$router.options.base;
 
       if ( routerBase !== '/' ) {
-        opt.route = `${ routerBase.replace(/\/+$/, '') }/${ opt.route.replace(/^\/+/, '') }`;
+        route = `${ routerBase.replace(/\/+$/, '') }/${ opt.route.replace(/^\/+/, '') }`;
       }
     }
 
-    let returnToUrl = `${ window.location.origin }${ opt.route }`;
+    let returnToUrl = `${ window.location.origin }${ route }`;
 
     const parsed = parseUrl(window.location.href);
 

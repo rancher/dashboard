@@ -120,7 +120,9 @@ export default {
       data: res.data
     });
 
-    dispatch('watchType', { type });
+    if ( opt.watch !== false ) {
+      dispatch('watchType', { type });
+    }
 
     const all = getters.all(type);
 

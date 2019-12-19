@@ -235,7 +235,7 @@ export default {
     const services = this.$getters['all'](RIO.SERVICE);
 
     const out = filterBy(services, {
-      'app':                this.app,
+      app:                  this.app,
       'metadata.namespace': this.metadata.namespace,
     });
 
