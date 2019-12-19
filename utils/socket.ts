@@ -87,7 +87,7 @@ export default class Socket extends EventTarget {
   }
 
   send(data: any) {
-    if ( this.socket ) {
+    if ( this.socket &&  this.state === STATE_CONNECTED ) {
       this.socket.send(data);
     }
   }
