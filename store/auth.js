@@ -108,7 +108,7 @@ export const actions = {
       const routerBase = this.$router.options.base;
 
       if ( routerBase !== '/' ) {
-        route = `${ routerBase.replace(/\/+$/, '') }/${ opt.route.replace(/^\/+/, '') }`;
+        route = `${ routerBase.replace(/\/+$/, '') }/${ route.replace(/^\/+/, '') }`;
       }
     }
 
