@@ -10,8 +10,8 @@ import { allHash } from '@/utils/promise';
 import Checkbox from '@/components/form/Checkbox';
 
 const KIND_LABELS = {
-  'router':  'A router',
-  'app':     'A service',
+  router:  'A router',
+  app:     'A service',
 };
 
 export default {

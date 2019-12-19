@@ -5,9 +5,9 @@ import { findBy } from '@/utils/array';
 import { EXTENDED_SCOPES } from '@/store/github';
 
 export const FILE_PATTERNS = {
-  'dockerfile': /^Dockerfile(\..*)?$/i,
-  'riofile':    /^Riofile(\..*)?$/i,
-  'yaml':       /^.*\.ya?ml?$/i,
+  dockerfile: /^Dockerfile(\..*)?$/i,
+  riofile:    /^Riofile(\..*)?$/i,
+  yaml:       /^.*\.ya?ml?$/i,
 };
 
 export default {

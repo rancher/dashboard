@@ -176,6 +176,42 @@ export default {
       });
     },
 
+    configureTest(c) {
+      return new Promise((resolve, reject) => {
+        window.authTestConfig = c;
+
+        window.onAuthTest = (code) => {
+          resolve(code);
+        };
+
+        let popup;
+
+        const timer = setInterval(() => {
+          if ( popup && popup.closed ) {
+            clearInterval(timer);
+
+            return reject(new Error('Access was not authorized'));
+          } else if ( popup === null || popup === undefined ) {
+            clearInterval(timer);
+
+            return reject(new Error('Please disable your popup blocker for this site'));
+          }
+        }, 500);
+
+        c.doAction('configureTest', c).then((res) => {
+          this.$store.dispatch('auth/redirectToGithub', {
+            redirectUrl: res.redirectUrl,
+            test:        true,
+            redirect:    false
+          }).then((url) => {
+            popup = open(url, 'auth-test', popupWindowOptions());
+          }).catch((err) => {
+            reject(err);
+          });
+        });
+      });
+    },
+
     async testGithub(buttonCb) {
       try {
         this.githubError = null;
@@ -196,37 +232,7 @@ export default {
           c.tls = this.tls;
         }
 
-        const waitForTest = new Promise(async(resolve, reject) => {
-          window.onAuthTest = (code) => {
-            resolve(code);
-          };
-
-          window.authTestConfig = c;
-
-          const res = await c.doAction('configureTest', c);
-
-          const url = await this.$store.dispatch('auth/redirectToGithub', {
-            redirectUrl: res.redirectUrl,
-            test:        true,
-            redirect:    false
-          });
-
-          const popup = open(url, 'auth-test', popupWindowOptions());
-
-          const timer = setInterval(() => {
-            if ( popup && popup.closed ) {
-              clearInterval(timer);
-
-              return reject(new Error('Access was not authorized'));
-            } else if ( popup === null || popup === undefined ) {
-              clearInterval(timer);
-
-              return reject(new Error('Please disable your popup blocker for this site'));
-            }
-          });
-        });
-
-        const code = await waitForTest;
+        const code = await this.configureTest(c);
 
         await c.doAction('testAndApply', {
           code,

@@ -32,7 +32,7 @@ export default {
   },
   data() {
     return {
-      'limitsCPU':      null, 'limitsMem':   null, 'reqCPU':      null, 'reqMem':      null, originalQuota: {}
+      limitsCPU:      null, limitsMem:     null, reqCPU:        null, reqMem:        null, originalQuota: {}
     };
   },
   computed: {
@@ -83,26 +83,19 @@ export default {
         const data = { metadata, spec: { hard } };
         const nsURL = get(this.namespace, 'metadata.selfLink');
 
-        try {
-          await this.$store.dispatch('cluster/request', {
-            url:    `${ nsURL }/resourcequotas`, data, method: 'POST'
-          } );
-        } catch (err) {
-          throw err;
-        }
+        await this.$store.dispatch('cluster/request', {
+          url:    `${ nsURL }/resourcequotas`, data, method: 'POST'
+        });
       }
     },
     async updateQuota() {
       const updated = this.originalQuota;
 
       updated.spec.hard = this.hard;
-      try {
-        await this.$store.dispatch('cluster/request', {
-          url:    updated.links.update, data:   updated, method: 'PUT'
-        } );
-      } catch (err) {
-        throw err;
-      }
+
+      await this.$store.dispatch('cluster/request', {
+        url:    updated.links.update, data:   updated, method: 'PUT'
+      });
     }
   }
 };

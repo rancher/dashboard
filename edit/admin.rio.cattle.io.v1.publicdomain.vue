@@ -11,14 +11,14 @@ import { allHash } from '@/utils/promise';
 import Target from '@/components/form/Target';
 
 const KIND_LABELS = {
-  'router':  'A router',
-  'app':     'All versions of a service',
-  'version': 'A single version of a service',
+  router:  'A router',
+  app:     'All versions of a service',
+  version: 'A single version of a service',
 };
 
 const SECRET_LABELS = {
-  'auto':    'Automatically generate a certificate',
-  'secret':  'Choose a secret in the rio-system namespace',
+  auto:    'Automatically generate a certificate',
+  secret:  'Choose a secret in the rio-system namespace',
 };
 
 export default {
@@ -76,7 +76,7 @@ export default {
     secretOptions() {
       return groupAndFilterOptions(this.allSecrets, {
         'metadata.namespace': RIO.SYSTEM_NAMESPACE,
-        'secretType':         TLS,
+        secretType:           TLS,
       }, {
         groupBy:      null,
         itemValueKey: 'metadata.name',

@@ -10,10 +10,10 @@ import Target from '@/components/form/Target';
 import { clone } from '@/utils/object';
 
 const KIND_LABELS = {
-  'router':      'A router',
-  'app':         'A service',
-  'ipAddresses':      'A list of IP Addresses',
-  'fqdn':        'A DNS name',
+  router:      'A router',
+  app:         'A service',
+  ipAddresses:      'A list of IP Addresses',
+  fqdn:        'A DNS name',
 };
 
 export default {

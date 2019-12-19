@@ -37,8 +37,8 @@ export default {
           [`metadata.labels.'${ RIO_STACK }'`]: this.value.metadata.name,
         });
 
-        map[ schema.id ] = relevant;
-        schemas[ schema.id ] = schema;
+        map[schema.id] = relevant;
+        schemas[schema.id] = schema;
       }
 
       const out = Object.keys(map).map((key) => {
