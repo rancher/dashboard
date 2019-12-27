@@ -38,11 +38,17 @@ export default async function({
 
     store.commit('auth/loggedInAs', me.id);
 
-    // @TODO pick a cluster for multi-cluster or do something different for global scope
-    store.dispatch('cluster/subscribe');
+    if ( !process.server ) {
+      // @TODO pick a cluster for multi-cluster or do something different for global scope
+      store.dispatch('cluster/subscribe');
+    }
 
     await store.dispatch('preload');
   } catch (e) {
+    if ( e && (!e.status || e.status !== '401') ) {
+      console.log(JSON.stringify(e));
+    }
+
     redirect(302, '/auth/login');
   }
 }

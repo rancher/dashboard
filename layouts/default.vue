@@ -3,7 +3,7 @@
 import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
 import { explorerPackage, /* clusterPackage, */ rioPackage } from '@/config/packages';
-import { mapPref, THEME, EXPANDED_GROUPS } from '@/store/prefs';
+import { mapPref, DEV, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
 // import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
@@ -38,6 +38,8 @@ export default {
 
   computed: {
     ...mapState(['preloaded']),
+    dev:            mapPref(DEV),
+    expandedGroups: mapPref(EXPANDED_GROUPS),
 
     principal() {
       return this.$store.getters['rancher/byId'](RANCHER.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
@@ -97,8 +99,6 @@ export default {
 
       return out.filter(x => !!x);
     },
-
-    expandedGroups: mapPref(EXPANDED_GROUPS),
   },
 
   methods: {
@@ -116,6 +116,10 @@ export default {
 
     isExpanded(name) {
       return this.expandedGroups.includes(name);
+    },
+
+    toggleLocale() {
+      this.$store.dispatch('i18n/toggleNone');
     }
   }
 };
@@ -123,10 +127,12 @@ export default {
 
 <template>
   <div v-if="preloaded" class="dashboard-root">
-    <div class="logo">
-      <n-link v-trim-whitespace to="/">
-        <img src="~/assets/images/logo.svg" alt="logo" height="30" />
-      </n-link>
+    <div class="switcher">
+      <img src="~/assets/images/logo.svg" class="logo" alt="Logo" height="30" />
+    </div>
+
+    <div class="header">
+      <NamespaceFilter />
     </div>
 
     <div class="user">
@@ -147,10 +153,10 @@ export default {
               <div>{{ principal.loginName }}</div>
               <div><span class="text-muted">{{ principal.name }}</span></div>
             </li>
-            <nuxt-link tag="li" :to="{name: 'prefs'}" class="pt-10 pb-10">
+            <nuxt-link tag="li" :to="{name: 'prefs'}" class="pt-10 pb-10 hand">
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
-            <nuxt-link tag="li" :to="{name: 'auth-logout'}" class="pt-10 pb-10">
+            <nuxt-link tag="li" :to="{name: 'auth-logout'}" class="pt-10 pb-10 hand">
               <a>Log Out <i class="icon icon-fw icon-close" /></a>
             </nuxt-link>
           </ul>
@@ -159,8 +165,6 @@ export default {
     </div>
 
     <nav>
-      <NamespaceFilter class="mt-20 mb-0" />
-
       <div v-for="pkg in packages" :key="pkg.name" class="package">
         <Group
           :key="pkg.name"
@@ -185,35 +189,46 @@ export default {
     <ShellSocket />
     <ActionMenu />
     <PromptRemove />
+    <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleLocale()" />
   </div>
 </template>
 
 <style lang="scss">
-  $header-height: 60px;
+  $header-height: 50px;
 
   .dashboard-root {
     display: grid;
     height: 100vh;
     grid-template-areas:
-      "logo user main"
-      "nav  nav  main";
-    grid-template-columns: 190px 60px auto;
+      "switcher header user"
+      "nav      main  main";
+    grid-template-columns: 220px auto $header-height;
     grid-template-rows: $header-height auto 0px;
 
-    .logo {
-      grid-area: logo;
+    .switcher {
+      grid-area: switcher;
       background-color: var(--header-bg);
+      position: relative;
+    }
 
-      A {
-        display: inline-block;
-        padding: 10px 15px;
-        margin: 3px;
-      }
+    .logo {
+      position: absolute;
+      left: -30px;
+      top: 10px;
+    }
+
+    .header {
+      grid-area: header;
+      background-color: var(--header-bg);
+      padding-top: 6px;
     }
 
     .user {
       grid-area: user;
-      padding: 10px;
+      padding: 5px;
+    }
+
+    .switcher, .header, .user {
       background-color: var(--header-bg);
     }
 

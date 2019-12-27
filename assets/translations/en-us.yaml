@@ -1,0 +1,10 @@
+locale:
+  none: (None)
+  en-us: English
+
+footer:
+  docs: Docs
+  forums: Forums
+  slack: Slack
+  issue: File an Issue
+  download: Download CLI

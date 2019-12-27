@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { trimWhitespaceSsr } from './plugins/trim-whitespace';
+import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
+import { directiveSsr as t } from './plugins/i18n';
 
 require('dotenv').config();
 
@@ -58,7 +59,10 @@ module.exports = {
     // debug:   true
   },
 
-  router: { base: routerBasePath },
+  router: {
+    base:       routerBasePath,
+    middleware: ['i18n'],
+  },
 
   build: {
     publicPath: resourceBase,
@@ -68,6 +72,12 @@ module.exports = {
       if ( resourceBase ) {
         config.output.publicPath = resourceBase;
       }
+
+      config.module.rules.push({
+        test:    /\.ya?ml$/i,
+        loader:  'js-yaml-loader',
+        options: { name: '[path][name].[ext]' },
+      });
     },
     //    extractCSS: true,
     cssSourceMap: true
@@ -77,7 +87,14 @@ module.exports = {
     '@nuxt/typescript-build',
   ],
 
-  render: { bundleRenderer: { directives: { trimWhitespace: trimWhitespaceSsr } } },
+  render: {
+    bundleRenderer: {
+      directives: {
+        trimWhitespace,
+        t,
+      }
+    }
+  },
 
   modern: true,
 
@@ -127,8 +144,10 @@ module.exports = {
     { src: '~plugins/vue-js-modal' },
     { src: '~/plugins/js-yaml', ssr: false },
     { src: '~/plugins/resize', ssr: false },
+    { src: '~/plugins/shortkey', ssr: false },
 
     // First-party
+    '~/plugins/i18n',
     '~/plugins/global-formatters',
     '~/plugins/trim-whitespace',
     { src: '~/plugins/extend-router' },

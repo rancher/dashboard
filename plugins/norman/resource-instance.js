@@ -8,7 +8,7 @@ import {
 } from '@/config/query-params';
 import { TO_FRIENDLY } from '@/config/friendly';
 import { findBy } from '@/utils/array';
-import { VIEW_IN_API } from '@/store/prefs';
+import { DEV } from '@/store/prefs';
 import { addParams } from '@/utils/url';
 
 const REMAP_STATE = { disabled: 'inactive' };
@@ -324,7 +324,7 @@ export default {
       bulkAction: 'downloadBulk',
     });
 
-    const viewInApiEnabled = this.$rootGetters['prefs/get'](VIEW_IN_API);
+    const viewInApiEnabled = this.$rootGetters['prefs/get'](DEV);
 
     all.push({
       action:  'viewInApi',
