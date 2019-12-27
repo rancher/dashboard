@@ -1,10 +1,42 @@
 <script>
+import { mapGetters } from 'vuex';
+import { options } from '@/config/footer';
+import { mapPref, DEV } from '@/store/prefs';
 
 const VERSION = process.env.VERSION || 'dev';
 
 export default {
   data() {
     return { version: VERSION };
+  },
+
+  computed: {
+    ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
+
+    dev:    mapPref(DEV),
+
+    showLocale() {
+      return Object.keys(this.availableLocales).length > 1 || this.dev;
+    },
+
+    showNone() {
+      return this.dev;
+    },
+
+    pl() {
+      // @TODO PL support
+      return 'rancher';
+    },
+
+    options() {
+      return options(this.pl);
+    }
+  },
+
+  methods: {
+    switchLocale(locale) {
+      this.$store.dispatch('i18n/switchTo', locale);
+    }
   }
 };
 
@@ -13,12 +45,39 @@ export default {
 <template>
   <div class="footer">
     <div>{{ version }}</div>
-    <div><a href="https://github.com/rancher/rio" target="_blank">Docs</a></div>
-    <div><a href="https://forums.rancher.com/c/rio" target="_blank">Forums</a></div>
-    <div><a href="https://slack.rancher.io" target="_blank">Slack</a></div>
-    <div><a href="https://github.com/rancher/rio/issues/new" target="_blank">File an Issue</a></div>
+
+    <div v-for="(value, name) in options" :key="name">
+      <a v-t="name" :href="value" target="_blank" />
+    </div>
+
     <div class="space" />
-    <div><a href="https://github.com/rancher/rio#quick-start" target="_blank">Download CLI</a></div>
+
+    <div><a v-t="'footer.download'" href="https://github.com/rancher/rio#quick-start" target="_blank" /></div>
+
+    <div v-if="showLocale">
+      <v-popover
+        placement="top"
+        trigger="click"
+      >
+        <a>
+          {{ selectedLocaleLabel }}
+        </a>
+
+        <template slot="popover">
+          <ul class="list-unstyled dropdown" style="margin: -1px;">
+            <li v-if="showNone" v-t="'locale.none'" class="p-10 hand" @click="switchLocale('none')" />
+            <li
+              v-for="(value, name) in availableLocales"
+              :key="name"
+              class="p-10 hand"
+              @click="switchLocale(name)"
+            >
+              {{ value }}
+            </li>
+          </ul>
+        </template>
+      </v-popover>
+    </div>
   </div>
 </template>
 

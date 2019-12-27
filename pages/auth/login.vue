@@ -14,7 +14,7 @@ export default {
   },
 
   data({ $cookies }) {
-    const username = $cookies.get(USERNAME) || '';
+    const username = $cookies.get(USERNAME, { parseJSON: false }) || '';
 
     return {
       username,
@@ -88,6 +88,16 @@ export default {
             password: this.password
           }
         });
+
+        if ( this.remember ) {
+          this.$cookies.set(USERNAME, this.username, {
+            encode: x => x,
+            maxAge: 86400 * 365,
+            secure: true,
+          });
+        } else {
+          this.$cookies.remove(USERNAME);
+        }
 
         buttonCb(true);
         this.$router.replace('/');

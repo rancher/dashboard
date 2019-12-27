@@ -1,3 +1,4 @@
+import { EventTarget } from 'event-target-shim';
 import { isSafari } from '@/utils/platform';
 import { addParam } from '@/utils/url';
 
@@ -87,7 +88,7 @@ export default class Socket extends EventTarget {
   }
 
   send(data: any) {
-    if ( this.socket &&  this.state === STATE_CONNECTED ) {
+    if ( this.socket && this.state === STATE_CONNECTED ) {
       this.socket.send(data);
     }
   }

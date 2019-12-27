@@ -27,6 +27,7 @@
     "types": [
       "@types/node",
       "@nuxt/vue-app",
+      "@nuxtjs/axios",
       "@types/websocket",
       "@nuxt/typescript",
       "@types/jquery"

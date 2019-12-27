@@ -53,8 +53,8 @@ export default {
   </div>
 </template>
 
-<style lang='scss'>
-    .subtitle{
+<style lang="scss">
+    .subtitle {
         margin-top: 20px;
     }
     .cards {

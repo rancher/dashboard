@@ -2,7 +2,6 @@ import { ucFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { findBy } from '@/utils/array';
 import { CONFIG_MAP, NODE, RIO, SECRET } from '@/config/types';
-// import config from '@/nuxt.config';
 
 let routerBase = null;
 

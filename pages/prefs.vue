@@ -1,6 +1,6 @@
 <script>
 import ButtonGroup from '@/components/ButtonGroup';
-import { mapPref, THEME, KEYMAP } from '@/store/prefs';
+import { mapPref, THEME, KEYMAP, DEV } from '@/store/prefs';
 import { ucFirst } from '@/utils/string';
 
 const KEYMAP_LABELS = {
@@ -14,6 +14,7 @@ export default {
   computed:   {
     theme:  mapPref(THEME),
     keymap: mapPref(KEYMAP),
+    dev:    mapPref(DEV),
 
     themeOptions() {
       return this.$store.getters['prefs/options'](THEME).map((value) => {
@@ -45,6 +46,9 @@ export default {
 
     <h6>YAML Editor Mode</h6>
     <ButtonGroup v-model="keymap" :options="keymapOptions" />
+
+    <h6>Advanced</h6>
+    <label><input v-model="dev" type="checkbox"> Developer Tools</label>
   </div>
 </template>
 

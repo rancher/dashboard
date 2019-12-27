@@ -41,7 +41,7 @@ export const ROWS_PER_PAGE = create('per_page', 100);
 export const DATE_FORMAT = create('date_format', 'ddd, MMM D YYYY');
 export const TIME_FORMAT = create('time_format', 'h:mm:ss a');
 export const TIME_ZONE = create('time_zone', 'local');
-export const VIEW_IN_API = create('view_in_api', false, { parseJSON });
+export const DEV = create('dev', false, { parseJSON });
 
 // --------------------
 
