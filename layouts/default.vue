@@ -131,7 +131,7 @@ export default {
       <img src="~/assets/images/logo.svg" class="logo" alt="Logo" height="30" />
     </div>
 
-    <div class="header">
+    <div class="top">
       <NamespaceFilter />
     </div>
 
@@ -200,7 +200,7 @@ export default {
     display: grid;
     height: 100vh;
     grid-template-areas:
-      "switcher header user"
+      "switcher top user"
       "nav      main  main";
     grid-template-columns: 220px auto $header-height;
     grid-template-rows: $header-height auto 0px;
@@ -217,8 +217,8 @@ export default {
       top: 10px;
     }
 
-    .header {
-      grid-area: header;
+    .top {
+      grid-area: top;
       background-color: var(--header-bg);
       padding-top: 6px;
     }
