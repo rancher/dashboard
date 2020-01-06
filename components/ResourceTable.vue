@@ -31,7 +31,17 @@ export default {
     showGroups: {
       type:    Boolean,
       default: true
-    }
+    },
+    search: {
+      // Show search input to filter rows
+      type:    Boolean,
+      default: true
+    },
+    tableActions: {
+      // Show bulk table actions
+      type:    Boolean,
+      default: true
+    },
   },
 
   computed: {
@@ -145,8 +155,9 @@ export default {
       :headers="_headers"
       :rows="filteredRows"
       :group-by="groupBy"
+      :search="search"
+      :table-actions="tableActions"
       key-field="_key"
-      table-actions
       v-on="$listeners"
     >
       <template v-if="groupable && showGroups" #header-middle>

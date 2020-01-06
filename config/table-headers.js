@@ -71,6 +71,52 @@ export const NODE = {
   value: 'spec.nodeName',
 };
 
+export const NODE_NAME = {
+  name:      'nodeName',
+  label:     'Name',
+  sort:      'name',
+  value:     'name',
+  formatter: 'LinkDetail',
+};
+
+export const ROLES = {
+  name:  'roles',
+  label: 'Roles',
+  sort:  'roles',
+  value: 'roles'
+};
+
+export const VERSION = {
+  name:  'version',
+  label: 'Version',
+  sort:  'version',
+  value: 'version'
+};
+
+export const CPU = {
+  name:      'cpu',
+  label:     'CPU',
+  sort:      'cpu',
+  value:     'cpuUsage',
+  formatter: 'PercentageBar'
+};
+
+export const RAM = {
+  name:      'ram',
+  label:     'RAM',
+  sort:      'ram',
+  value:     'ramUsage',
+  formatter: 'PercentageBar'
+};
+
+export const PODS = {
+  name:      'pods',
+  label:     'Pods',
+  sort:      'pods',
+  value:     'podUsage',
+  formatter: 'PercentageBar'
+};
+
 export const AGE = {
   name:       'age',
   label:      'Age',
@@ -208,6 +254,49 @@ export const USER_STATUS = {
   formatter: 'BadgeState'
 };
 
+export const TYPE = {
+  name:  'type',
+  label: 'Type',
+  value: 'type',
+  sort:  ['type']
+};
+export const STATUS = {
+  name:  'status',
+  label: 'Status',
+  value: 'status',
+  sort:  ['status']
+};
+export const LAST_HEARTBEAT_TIME = {
+  name:      'lastHeartbeatTime',
+  label:     'Last update',
+  value:     'lastHeartbeatTime',
+  sort:      ['lastHeartbeatTime'],
+  formatter:  'LiveDate',
+};
+export const REASON = {
+  name:  'reason',
+  label: 'Reason',
+  value: 'reason',
+  sort:  ['reason']
+};
+export const MESSAGE = {
+  name:  'message',
+  label: 'Message',
+  value: 'message',
+  sort:  ['message']
+};
+export const KEY = {
+  name:  'key',
+  label: 'Key',
+  value: 'key',
+  sort:  ['key']
+};
+export const VALUE = {
+  name:  'value',
+  label: 'Value',
+  value: 'value',
+  sort:  ['value']
+};
 export function headersFor(schema) {
   const out = [];
   const attributes = schema.attributes || {};
