@@ -4,7 +4,7 @@ import {
   WEIGHT, SCALE,
   KEYS, ENDPOINTS,
   MATCHES, DESTINATION,
-  TARGET, TARGET_KIND,
+  TARGET, TARGET_KIND, USERNAME, USER_DISPLAY_NAME, USER_ID, USER_STATUS,
 } from '@/config/table-headers';
 import { _CREATE, _CLONE, _STAGE } from '@/config/query-params';
 
@@ -168,6 +168,18 @@ export const FRIENDLY = {
       AGE
     ],
   },
+
+  users: {
+    singular: 'User',
+    plural:   'Users',
+    type:     RIO.USER,
+    headers:  [
+      USER_STATUS,
+      USERNAME,
+      USER_DISPLAY_NAME,
+      USER_ID
+    ]
+  }
 };
 
 export const TO_FRIENDLY = {};

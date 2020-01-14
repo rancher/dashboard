@@ -216,6 +216,34 @@ export function explorerPackage($router, counts, namespaces) {
   return out;
 }
 
+export function settingsPackage($router, counts, namespaces) {
+  function linkFor(resource) {
+    return {
+      name:   'settings-resource',
+      params: { resource }
+    };
+  }
+
+  function countFor(type) {
+    return _countFor(counts, type, namespaces);
+  }
+
+  const out = {
+    name:     'settings',
+    label:    'Settings',
+    children: [
+      {
+        name:    'users',
+        count:   countFor(RIO.USER),
+        label:   'Users',
+        route:   linkFor('users'),
+      },
+    ]
+  };
+
+  return out;
+}
+
 function ensureGroup(level, name, route) {
   let group = level[name];
 
