@@ -1,12 +1,11 @@
 @import "variables";
-$icomoon-font-path: '~assets/fonts/icons/fonts';
 
 @font-face {
   font-family: '#{$icomoon-font-family}';
   src:
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?et2mic') format('truetype'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?et2mic') format('woff'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?et2mic##{$icomoon-font-family}') format('svg');
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?g1p8hr') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?g1p8hr') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?g1p8hr##{$icomoon-font-family}') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -72,9 +71,24 @@ $icomoon-font-path: '~assets/fonts/icons/fonts';
     content: $icon-x; 
   }
 }
+.icon-chevron-checkmark {
+  &:before {
+    content: $icon-chevron-checkmark; 
+  }
+}
+.icon-chevron-warning {
+  &:before {
+    content: $icon-chevron-warning; 
+  }
+}
 .icon-info {
   &:before {
     content: $icon-info; 
+  }
+}
+.icon-error {
+  &:before {
+    content: $icon-error; 
   }
 }
 .icon-chevron-right {
@@ -110,6 +124,11 @@ $icomoon-font-path: '~assets/fonts/icons/fonts';
 .icon-download {
   &:before {
     content: $icon-download; 
+  }
+}
+.icon-upload {
+  &:before {
+    content: $icon-upload; 
   }
 }
 .icon-copy {
@@ -157,11 +176,6 @@ $icomoon-font-path: '~assets/fonts/icons/fonts';
     content: $icon-dot-half; 
   }
 }
-.icon-error {
-  &:before {
-    content: $icon-error; 
-  }
-}
 .icon-dot-open {
   &:before {
     content: $icon-dot-open; 
@@ -190,6 +204,21 @@ $icomoon-font-path: '~assets/fonts/icons/fonts';
 .icon-sort {
   &:before {
     content: $icon-sort; 
+  }
+}
+.icon-github1 {
+  &:before {
+    content: $icon-github1; 
+  }
+}
+.icon-terminal {
+  &:before {
+    content: $icon-terminal; 
+  }
+}
+.icon-github {
+  &:before {
+    content: $icon-github; 
   }
 }
 
