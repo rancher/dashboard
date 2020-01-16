@@ -83,6 +83,7 @@
     "@storybook/addon-actions": "^5.3.3",
     "@storybook/addon-backgrounds": "^5.3.4",
     "@storybook/addon-centered": "^5.3.4",
+    "@storybook/addon-docs": "^5.3.0-rc.14",
     "@storybook/addon-links": "^5.3.3",
     "@storybook/addons": "^5.3.3",
     "@storybook/preset-scss": "^1.0.2",
