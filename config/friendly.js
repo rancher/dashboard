@@ -10,9 +10,10 @@ import { _CREATE, _CLONE, _STAGE } from '@/config/query-params';
 
 export const FRIENDLY = {
   [NAMESPACE]: {
-    singular: 'Namespace',
-    type:     NAMESPACE,
-    headers:  [STATE, NAME, AGE]
+    singular:  'Namespace',
+    hasDetail: true,
+    type:      NAMESPACE,
+    headers:   [STATE, NAME, AGE]
   },
   'config-maps': {
     singular: 'Config Map',

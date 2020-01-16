@@ -131,6 +131,14 @@ export function clusterPackage($router, counts, namespaces) {
     label:    'Cluster',
     children: [
       {
+        name:  'namespaces',
+        label: 'Namespaces',
+        route: {
+          name:   'explorer-group-resource',
+          params: { group: 'core', resource: 'core.v1.namespace' }
+        }
+      },
+      {
         name:  'cluster-nodes',
         count: countFor(NODE),
         label: 'Nodes',

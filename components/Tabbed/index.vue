@@ -108,7 +108,7 @@ export default {
       position: relative;
       top: 1px;
       float: left;
-      border: 1px solid var(--tabbed-border);
+      /* border: 1px solid var(--tabbed-border); */
       margin-right: 8px;
       border-radius: 3px 3px 0 0;
 
@@ -130,7 +130,7 @@ export default {
 
   .tab-container {
     padding: 40px;
-    border: 1px solid var(--tabbed-border);
+    /* border: 1px solid var(--tabbed-border); */
     background-color: var(--tabbed-container-bg);
   }
 </style>
