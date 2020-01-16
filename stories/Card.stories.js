@@ -13,12 +13,12 @@ const defaultState = {
 export default {
   title: 'Card',
   component: Card,
-  decorators: [centered]
+  decorators: [centered],
 };
 
 export const ToStorybook = () => ({
   components: { Card },
-  template: `<Card style="max-width: 50vw;" title="${ defaultState.title }" content="${ defaultState.content }" buttonText="${ defaultState.buttonText }" :buttonAction="action" />`,
+  template: `<Card style="max-width: 50vw;" title="${ defaultState.title }" content="${ defaultState.content }" buttonText="${ defaultState.buttonText }" :buttonAction="buttonAction" />`,
   methods: { buttonAction: defaultState.buttonAction },
 });
 
