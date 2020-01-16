@@ -20,6 +20,11 @@ export default {
       host, path, prefix, toHTTPS
     };
   },
+  watch: {
+    toHTTPS() {
+      this.change();
+    }
+  },
   methods: {
     change() {
       const {
