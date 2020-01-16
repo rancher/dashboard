@@ -29,6 +29,8 @@ export const RIO = {
   SYSTEM_NAMESPACE: 'rio-system',
 
   TASK_RUN:         'tekton.dev.v1alpha1.taskruns',
+
+  USER: 'management.cattle.io.v3.user'
 };
 
 export const RANCHER = {
