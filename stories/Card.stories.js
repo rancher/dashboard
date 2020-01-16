@@ -1,6 +1,5 @@
 import Card from '../components/Card';
-// import { action } from '@storybook/addon-actions';
-// import Loading from '../components/Loading.vue'
+import centered from '@storybook/addon-centered/vue';
 
 import '../assets/styles/app.scss'
 
@@ -14,11 +13,13 @@ const defaultState = {
 export default {
   title: 'Card',
   component: Card,
+  decorators: [centered]
 };
 
 export const ToStorybook = () => ({
   components: { Card },
-  template: `<Card title="Tod" content="Is" buttonText="Save" />`,
+  template: `<Card style="max-width: 50vw;" title="${ defaultState.title }" content="${ defaultState.content }" buttonText="${ defaultState.buttonText }" :buttonAction="action" />`,
+  methods: { buttonAction: defaultState.buttonAction },
 });
 
 ToStorybook.story = {

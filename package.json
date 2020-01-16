@@ -81,6 +81,7 @@
     "@nuxtjs/eslint-config": "2.0.0",
     "@nuxtjs/eslint-module": "^1.1.0",
     "@storybook/addon-actions": "^5.3.3",
+    "@storybook/addon-centered": "^5.3.4",
     "@storybook/addon-links": "^5.3.3",
     "@storybook/addons": "^5.3.3",
     "@storybook/preset-scss": "^1.0.2",
