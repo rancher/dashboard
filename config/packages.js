@@ -52,11 +52,6 @@ export function rioPackage($router, counts, namespaces) {
       },
       */
       {
-        name:    'rio-graph',
-        label:   'App Mesh',
-        route:   { name: 'rio-mesh' },
-      },
-      {
         name:  'namespaces',
         label: 'Namespaces',
         route: {
@@ -138,24 +133,24 @@ export function clusterPackage($router, counts, namespaces) {
           params: { group: 'core', resource: 'core.v1.namespace' }
         }
       },
-      {
-        name:  'cluster-nodes',
-        count: countFor(NODE),
-        label: 'Nodes',
-        route: linkFor('nodes'),
-      },
-      {
-        name:  'cluster-config-maps',
-        count: countFor(CONFIG_MAP),
-        label: 'Config Maps',
-        route: linkFor('config-maps'),
-      },
-      {
-        name:  'cluster-secrets',
-        count: countFor(SECRET),
-        label: 'Secrets',
-        route: linkFor('secrets'),
-      },
+      // {
+      //   name:  'cluster-nodes',
+      //   count: countFor(NODE),
+      //   label: 'Nodes',
+      //   route: linkFor('nodes'),
+      // },
+      // {
+      //   name:  'cluster-config-maps',
+      //   count: countFor(CONFIG_MAP),
+      //   label: 'Config Maps',
+      //   route: linkFor('config-maps'),
+      // },
+      // {
+      //   name:  'cluster-secrets',
+      //   count: countFor(SECRET),
+      //   label: 'Secrets',
+      //   route: linkFor('secrets'),
+      // },
     ],
   };
 
