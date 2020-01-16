@@ -94,9 +94,9 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  @import "@/assets/styles/base/_variables.scss";
-  @import "@/assets/styles/base/_functions.scss";
-  @import "@/assets/styles/base/_mixins.scss";
+  @import "../assets/styles/base/_variables.scss";
+  @import "../assets/styles/base/_functions.scss";
+  @import "../assets/styles/base/_mixins.scss";
 
   .root {
     position: absolute;
