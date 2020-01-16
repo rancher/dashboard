@@ -2,6 +2,7 @@
 import { get } from '@/utils/object';
 
 import createEditView from '@/mixins/create-edit-view';
+import ResourceQuota from '@/edit/core.v1.namespace/ResourceQuota';
 import { ANNOTATION } from '@/config/types';
 import KeyValue from '@/components/form/KeyValue';
 import Tab from '@/components/Tabbed/Tab';
@@ -12,9 +13,11 @@ export default {
 
   components: {
     KeyValue,
-    Tabbed,
+    ResourceQuota,
     Tab,
+    Tabbed,
   },
+
   mixins:     [createEditView],
 
   props: {
@@ -58,42 +61,49 @@ export default {
       originalQuotaID, description, name: this.value.metadata.name
     };
   },
-
 };
 </script>
 
 <template>
   <div class="namespace-detail">
-    <div class="detail-top">
-      <div>
-        <label for="">CPU Limit</label>
-        <span>
-          xxxx
-          <span class="addon">MCPUs</span>
-        </span>
-      </div>
-      <div>
-        <label for="">CPU Reservation</label>
-        <span>
-          xxxx
-          <span class="addon">MCPUs</span>
-        </span>
-      </div>
-      <div>
-        <label for="">Memory Limit</label>
-        <span>
-          xxxx
-          <span class="addon">MB</span>
-        </span>
-      </div>
-      <div>
-        <label for="">Memory Reservation</label>
-        <span>
-          xxxx
-          <span class="addon">MB</span>
-        </span>
-      </div>
-    </div>
+    <ResourceQuota
+      :original-i-d="originalQuotaID"
+      :register-after-hook="registerAfterHook"
+      :mode="mode"
+      :namespace="value"
+      row-classes="detail-top"
+    >
+      <template v-slot:default="slotProps">
+        <div>
+          <label for="">CPU Limit</label>
+          <span>
+            {{ slotProps.limitsCPU }}
+            <span class="addon">MCPUs</span>
+          </span>
+        </div>
+        <div>
+          <label for="">CPU Reservation</label>
+          <span>
+            {{ slotProps.limitsMem }}
+            <span class="addon">MCPUs</span>
+          </span>
+        </div>
+        <div>
+          <label for="">Memory Limit</label>
+          <span>
+            {{ slotProps.reqCPU }}
+            <span class="addon">MB</span>
+          </span>
+        </div>
+        <div>
+          <label for="">Memory Reservation</label>
+          <span>
+            {{ slotProps.reqMem }}
+            <span class="addon">MB</span>
+          </span>
+        </div>
+      </template>
+    </ResourceQuota>
     <div class="spacer"></div>
     <Tabbed default-tab="labels">
       <Tab name="labels" label="Labels">
