@@ -18,10 +18,9 @@ export default {
       default: false
     }
   },
-  inject:   { disableInputs: { default: false } },
   computed: {
     isDisabled() {
-      return (this.disabled || this.disableInputs);
+      return (this.disabled );
     }
   },
   methods: {
