@@ -1,5 +1,7 @@
 import { addParameters } from '@storybook/vue';
 
+import '!style-loader!css-loader!sass-loader!../assets/styles/app.scss';
+
 addParameters({
   // default background colors for light and dark themes
   backgrounds: [
