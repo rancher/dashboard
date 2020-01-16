@@ -5,5 +5,8 @@ addParameters({
   backgrounds: [
     { name: 'Dark Theme', value: '#1B1C21', default: true },
     { name: 'Light Theme', value: '#6C6C76' },
-  ]
+  ],
+  options: {
+    showRoots: true
+  }
 });

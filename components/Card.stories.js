@@ -11,7 +11,7 @@ const defaultState = {
 };
 
 export default {
-  title: 'Card',
+  title: 'Components/Card',
   component: Card,
   decorators: [centered],
 };
