@@ -36,6 +36,9 @@ export default {
     };
   },
 
+  data() {
+    return { packages: [] };
+  },
   computed: {
     ...mapState(['preloaded']),
     dev:            mapPref(DEV),
@@ -82,8 +85,29 @@ export default {
 
       return out.filter(x => !!x);
     },
+  },
+  watch: {
+    counts() {
+      this.getPackages();
+    }
+  },
+  mounted() {
+    this.getPackages();
+  },
+  methods: {
+    checkForMesh() {
+      return this.$store.dispatch('cluster/request', { url: '/v1-metrics/meshsummary' })
+        .then((res) => {
+          return true;
+        })
+        .catch(() => {
+          console.log('servicemesh metrics unavailable');
 
-    packages() {
+          return false;
+        });
+    },
+
+    async getPackages() {
       const namespaces = this.$store.getters['namespaces'] || [];
       const counts = this.counts;
 
@@ -97,12 +121,18 @@ export default {
         explorerPackage(this.$router, counts, namespaces),
         settingsPackage(this.$router, counts, namespaces)
       ];
+      const hasServiceMesh = await this.checkForMesh();
 
-      return out.filter(x => !!x);
+      if (hasServiceMesh) {
+        out[0].children.unshift( {
+          name:    'rio-graph',
+          label:   'App Mesh',
+          route:   { name: 'rio-mesh' },
+        });
+      }
+
+      this.packages = out.filter(x => !!x);
     },
-  },
-
-  methods: {
     toggleGroup(route, expanded) {
       const groups = this.expandedGroups.slice();
 
