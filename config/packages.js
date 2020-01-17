@@ -1,7 +1,7 @@
 import { ucFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { findBy } from '@/utils/array';
-import { CONFIG_MAP, NODE, RIO, SECRET } from '@/config/types';
+import { CONFIG_MAP, /* NODE,  */RIO, SECRET } from '@/config/types';
 
 let routerBase = null;
 
@@ -110,16 +110,16 @@ export function rioPackage($router, counts, namespaces) {
 }
 
 export function clusterPackage($router, counts, namespaces) {
-  function countFor(type) {
-    return _countFor(counts, type, namespaces);
-  }
+  // function countFor(type) {
+  //   return _countFor(counts, type, namespaces);
+  // }
 
-  function linkFor(resource) {
-    return {
-      name:   'cluster-resource',
-      params: { resource }
-    };
-  }
+  // function linkFor(resource) {
+  //   return {
+  //     name:   'cluster-resource',
+  //     params: { resource }
+  //   };
+  // }
 
   const out = {
     name:     'cluster',

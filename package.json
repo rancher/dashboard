@@ -78,7 +78,7 @@
     "@babel/runtime-corejs3": "^7.8.3",
     "@nuxt/typescript": "^2.8.1",
     "@nuxt/typescript-build": "^0.5.1",
-    "@nuxtjs/eslint-config": "^2.0.0",
+    "@nuxtjs/eslint-config": "^1.1.2",
     "@nuxtjs/eslint-module": "^1.1.0",
     "@storybook/addon-actions": "^5.3.3",
     "@storybook/addon-backgrounds": "^5.3.4",
@@ -109,7 +109,7 @@
     "eslint-plugin-nuxt": ">=0.4.2",
     "eslint-plugin-promise": ">=4.0.1",
     "eslint-plugin-standard": ">=4.0.0",
-    "eslint-plugin-vue": "^6.1.2",
+    "eslint-plugin-vue": "^5.2.2",
     "nodemon": "^2.0.2",
     "nyc": "^15.0.0",
     "style-loader": "^1.1.2"

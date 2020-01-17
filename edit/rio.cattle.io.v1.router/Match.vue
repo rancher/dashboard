@@ -12,7 +12,7 @@ export default {
   components: {
     StringMatch, KeyValue, LabeledInput
   },
-  mixins:[createEditView],
+  mixins: [createEditView],
   props:      {
     spec: {
       type:     Object,

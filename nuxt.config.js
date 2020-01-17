@@ -81,17 +81,17 @@ module.exports = {
     },
     //    extractCSS: true,
     cssSourceMap: true,
-    babel: {
+    babel:        {
       presets({ isServer }) {
         return [
           [
             require.resolve('@nuxt/babel-preset-app'),
             {
               buildTarget: isServer ? 'server' : 'client',
-              corejs: { version: 3 }
+              corejs:      { version: 3 }
             }
           ]
-        ]
+        ];
       }
     }
   },
