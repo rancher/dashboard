@@ -1,7 +1,9 @@
 <script>
+import labeledFormElement from '@/mixins/labeled-form-element';
 import LabeledInput from '@/components/form/LabeledInput';
 export default {
   components: { LabeledInput },
+  mixins:[labeledFormElement],
   props:      {
     label: {
       type:    String,
@@ -20,7 +22,6 @@ export default {
       default: ''
     }
   },
-  inject: { disableInputs: { default: ()=>false } },
 
   data() {
     return { selected: this.options[0], string: this.inputString };
@@ -49,7 +50,7 @@ export default {
       :options="options"
       :clearable="false"
       :searchable="false"
-      :disabled="disableInputs()"
+      :disabled="isView"
       @search:focused="blurred"
     />
     <LabeledInput
@@ -58,14 +59,14 @@ export default {
       class="input-string"
       :label="label"
       :placeholder="placeholder"
-      :disabled="disableInputs()"
+      :disabled="isView"
     />
     <input
       v-else
       v-model="string"
       class="input-string"
       :placeholder="placeholder"
-      :disabled="disableInputs()"
+      :disabled="isView"
     />
   </div>
 </template>

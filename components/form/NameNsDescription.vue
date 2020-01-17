@@ -91,7 +91,6 @@ export default {
       addDescription:         false
     };
   },
-  inject:   { disableInputs: { default: ()=>false } },
   computed: {
     namespaces() {
       const choices = this.$store.getters['cluster/all'](NAMESPACE);
@@ -191,7 +190,7 @@ export default {
             :required="true"
           >
             <template v-if="notView && !wantDescription" #corner>
-              <a v-if="!disableInputs()" href="#" @click.prevent="addDescription=true">Add a description</a>
+              <a v-if="mode!=='view'" href="#" @click.prevent="addDescription=true">Add a description</a>
             </template>
           </LabeledInput>
         </slot>
@@ -200,7 +199,7 @@ export default {
         <slot name="namespace">
           <LabeledInput v-if="createNS" v-model="toCreate" required label="Namespace" placeholder="e.g. myapp">
             <template #corner>
-              <a v-if="!disableInputs()" href="#" @click.prevent="toggleNSMode">
+              <a v-if="!mode!=='view'" href="#" @click.prevent="toggleNSMode">
                 Use an existing namespace
               </a>
             </template>
@@ -216,7 +215,7 @@ export default {
             placeholder="Select a namespace"
           >
             <template #corner>
-              <a v-if="registerBeforeHook && !disableInputs()" href="#" @click.prevent="toggleNSMode">
+              <a v-if="registerBeforeHook && mode!=='view'" href="#" @click.prevent="toggleNSMode">
                 Create new namespace
               </a>
             </template>
