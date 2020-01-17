@@ -162,7 +162,7 @@ export default {
 </template>
 
 <style lang="scss">
-@import "@/assets/styles/base/_color.scss";
+@import "../../assets/styles/base/_color.scss";
     svg.lineplot{
       overflow: hidden;
     }

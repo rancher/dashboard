@@ -10,7 +10,6 @@ HTML {
 
 BODY {
   color: var(--body-text);
-  background-color: var(--body-bg);
   font-family: 'Fira Sans';
   direction: ltr;
   position: relative;
@@ -21,6 +20,12 @@ BODY {
   &.overflow-hidden {
     overflow: hidden;
   }
+}
+
+.dashboard-body {
+  // this was moved to its own class because the background color prop conflicts with storybookjs addon "backgrounds".
+  // decoupling this style allows us to preview components in both light and dark themes
+  background-color: var(--body-bg);
 }
 
 ::-webkit-scrollbar {

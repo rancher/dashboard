@@ -3,7 +3,7 @@ import labeledFormElement from '@/mixins/labeled-form-element';
 import LabeledInput from '@/components/form/LabeledInput';
 export default {
   components: { LabeledInput },
-  mixins:[labeledFormElement],
+  mixins:     [labeledFormElement],
   props:      {
     label: {
       type:    String,

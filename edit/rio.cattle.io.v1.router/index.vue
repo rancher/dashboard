@@ -29,7 +29,7 @@ export default {
       spec:       this.value.spec || {}
     };
   },
-  inject:   { disableInputs: { default: ()=>false } },
+  inject:   { disableInputs: { default: () => false } },
   computed: {
     namespace() {
       return this.value.metadata.namespace;

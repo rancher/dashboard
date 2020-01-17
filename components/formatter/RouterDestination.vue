@@ -1,6 +1,5 @@
 <script>
 import { RIO } from '../../config/types';
-import { get } from '../../utils/object';
 export default {
   props: {
     value: {

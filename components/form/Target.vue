@@ -15,7 +15,7 @@ const KIND_LABELS = {
 };
 
 export default {
-  inject:     { disableInputs: { default: ()=>false } },
+  inject:     { disableInputs: { default: () => false } },
   components: { Loading, Checkbox },
   mixins:     [CreateEditView, LoadDeps],
   props:      {

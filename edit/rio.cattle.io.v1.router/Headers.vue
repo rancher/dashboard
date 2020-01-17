@@ -25,7 +25,7 @@ export default {
       default: true
     }
   },
-  inject: { disableInputs: { default: ()=>false } },
+  inject: { disableInputs: { default: () => false } },
   data() {
     const all = [];
 
