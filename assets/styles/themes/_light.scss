@@ -53,7 +53,8 @@ $selected: rgba($primary, .5);
     success:    $success,
     info:       $info,
     warning:    $warning,
-    error:      $error
+    error:      $error,
+    darker:     $darker
   ), true);
 
   --body-bg                    : #{$lightest};

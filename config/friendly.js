@@ -1,10 +1,15 @@
-import { CONFIG_MAP, SECRET, RIO, NAMESPACE } from '@/config/types';
+import {
+  CONFIG_MAP, SECRET, RIO, NAMESPACE, NODE
+} from '@/config/types';
 import {
   STATE, NAME, NAMESPACE_NAME, NAMESPACE_NAME_IMAGE, AGE,
   WEIGHT, SCALE,
   KEYS, ENDPOINTS,
   MATCHES, DESTINATION,
   TARGET, TARGET_KIND, USERNAME, USER_DISPLAY_NAME, USER_ID, USER_STATUS,
+  NODE_NAME, ROLES,
+  VERSION, CPU,
+  RAM, PODS
 } from '@/config/table-headers';
 import { _CREATE, _CLONE, _STAGE } from '@/config/query-params';
 
@@ -37,6 +42,24 @@ export const FRIENDLY = {
       TARGET,
       AGE,
     ],
+  },
+
+  nodes: {
+    singular:  'Node',
+    plural:    'Nodes',
+    type:      NODE,
+    headers:   [
+      STATE,
+      NODE_NAME,
+      ROLES,
+      VERSION,
+      CPU,
+      RAM,
+      PODS
+    ],
+    search:       false,
+    tableActions: false,
+    hasDetail:    true
   },
 
   'public-domains': {

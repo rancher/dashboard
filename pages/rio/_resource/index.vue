@@ -23,6 +23,18 @@ export default {
     headers() {
       return FRIENDLY[this.resource].headers;
     },
+
+    search() {
+      return FRIENDLY[this.resource].search;
+    },
+
+    tableActions() {
+      return FRIENDLY[this.resource].tableActions;
+    },
+
+    showCreate() {
+      return typeof this.tableActions === 'undefined' || this.tableActions;
+    }
   },
 
   asyncData(ctx) {
@@ -46,12 +58,12 @@ export default {
       <h1>
         {{ typeDisplay }}
       </h1>
-      <div class="actions">
+      <div v-if="showCreate" class="actions">
         <nuxt-link to="create" append tag="button" type="button" class="btn bg-primary">
           Create
         </nuxt-link>
       </div>
     </header>
-    <ResourceTable :schema="schema" :rows="rows" :headers="headers" />
+    <ResourceTable :schema="schema" :rows="rows" :headers="headers" :search="search" :table-actions="tableActions" />
   </div>
 </template>
