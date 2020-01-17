@@ -188,10 +188,10 @@ export default {
 
     return { rows };
   },
-  inject:   { disableInputs: { default: false } },
+  inject:   { disableInputs: { default: ()=>false } },
   computed: {
     isView() {
-      return this.mode === _VIEW || this.disableInputs;
+      return this.mode === _VIEW || this.disableInputs();
     },
 
     showAdd() {

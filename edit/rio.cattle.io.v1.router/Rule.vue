@@ -53,7 +53,7 @@ export default {
       shouldMirror: !isEmpty(mirror)
     };
   },
-  inject: { disableInputs: { default: false } },
+  inject: { disableInputs: { default: ()=>false } },
   mounted() {
     this.changeRoute();
   },
@@ -117,7 +117,7 @@ export default {
             </button>
           </div>
         </div>
-        <button :disabled="disableInputs" type="button" class="btn role-link" @click="$emit('delete')">
+        <button :disabled="disableInputs()" type="button" class="btn role-link" @click="$emit('delete')">
           REMOVE
         </button>
       </div>
@@ -136,12 +136,12 @@ export default {
       <div class="row">
         <div class="col span-12">
           <label class="radio">
-            <input v-model="mode" :disabled="disableInputs" type="radio" value="forwardMany">
+            <input v-model="mode" :disabled="disableInputs()" type="radio" value="forwardMany">
             Forward to a Service
           </label>
 
           <label class="radio">
-            <input v-model="mode" :disabled="disableInputs" type="radio" value="redirect">
+            <input v-model="mode" :disabled="disableInputs()" type="radio" value="redirect">
             HTTP Redirect
           </label>
         </div>
@@ -179,7 +179,7 @@ export default {
         </template>
       </div>
       <div v-if="mode==='forwardMany'" class="row">
-        <button :disabled="disableInputs" type="button" class="btn btn-sm bg-primary " @click="addDestination">
+        <button :disabled="disableInputs()" type="button" class="btn btn-sm bg-primary " @click="addDestination">
           + Add Destination
         </button>
       </div>

@@ -80,7 +80,7 @@ export default {
   mixins:     { CreateEditView },
 
   provide() {
-    return { realMode: this.realMode, disableInputs: this.mode === _VIEW };
+    return { realMode: this.realMode, disableInputs: () => this.mode === _VIEW };
   },
 
   props: {
