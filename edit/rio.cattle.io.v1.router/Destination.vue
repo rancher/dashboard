@@ -1,8 +1,10 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
+import createEditView from '../../mixins/create-edit-view';
 import { RIO } from '@/config/types';
 
 export default {
+  mixins: [createEditView],
   props:      {
     spec: {
       type:     Object,
@@ -35,8 +37,6 @@ export default {
       default: () => ['App', 'Version', 'Port', 'Weight']
     }
   },
-  inject: { disableInputs: { default: ()=>false } },
-
   data() {
     const {
       port = '', app = '', uuid, version = ''
@@ -122,7 +122,7 @@ export default {
         :value="app"
         :options="Object.keys(appsInNS)"
         :placeholder="showPlaceholders ? placeholders[0] : null"
-        :disabled="disableInputs()"
+        :disabled="isView"
         @input="setApp"
       ></v-select>
     </td>
@@ -132,18 +132,18 @@ export default {
         class="inline"
         :options="versions"
         :placeholder="showPlaceholders ? placeholders[1] : null"
-        :disabled="disableInputs()"
+        :disabled="isView"
         @input="updateDestination"
       />
     </td>
     <td class="sm">
-      <input v-model.number="port" :disabled="disableInputs()" type="number" :placeholder="showPlaceholders ? placeholders[2] : null" @input="updateDestination" />
+      <input v-model.number="port" :disabled="isView" type="number" :placeholder="showPlaceholders ? placeholders[2] : null" @input="updateDestination" />
     </td>
     <td v-if="isWeighted" class="sm">
-      <input v-model.number="weight" :disabled="disableInputs()" type="number" :placeholder="showPlaceholders ? placeholders[3] : null" @input="updateDestination" />
+      <input v-model.number="weight" :disabled="isView" type="number" :placeholder="showPlaceholders ? placeholders[3] : null" @input="updateDestination" />
     </td>
     <td v-if="canRemove" class="sm">
-      <button :disabled="disableInputs()" type="button" class="btn btn-sm role-link" @click="$emit('remove')">
+      <button :disabled="isView" type="button" class="btn btn-sm role-link" @click="$emit('remove')">
         REMOVE
       </button>
     </td>
