@@ -3,6 +3,7 @@ import pullAt from 'lodash/pullAt';
 import pickBy from 'lodash/pickBy';
 import { isEmpty } from 'lodash';
 import findIndex from 'lodash/findIndex';
+import createEditView from '../../mixins/create-edit-view';
 import { typeOf } from '@/utils/sort';
 import KeyValue from '@/components/form/KeyValue';
 import StringMatch from '@/edit/rio.cattle.io.v1.router/StringMatch';
@@ -11,6 +12,7 @@ export default {
   components: {
     StringMatch, KeyValue, LabeledInput
   },
+  mixins:[createEditView],
   props:      {
     spec: {
       type:     Object,
@@ -70,7 +72,6 @@ export default {
       return out;
     },
   },
-  inject:   { disableInputs: { default: ()=>false } },
   methods: {
     matchChange() {
       this.$emit('input', this.formatted);
@@ -117,7 +118,7 @@ export default {
         :options="httpMethods.filter(opt=>!isSelected(opt))"
         :value="methods"
         placeholder="Method"
-        :disabled="disableInputs()"
+        :disabled="!isView"
         @input="e=>{change('methods', e); matchChange()}"
       >
       </v-select>
@@ -142,7 +143,7 @@ export default {
           @input="e=>changeKV('headers', e)"
         >
           <template v-slot:removeButton="buttonProps">
-            <button :disabled="disableInputs()" type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
+            <button :disabled="!isView" type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
               REMOVE
             </button>
           </template>
@@ -172,7 +173,7 @@ export default {
           @input="e=>changeKV('cookies', e)"
         >
           <template v-slot:removeButton="buttonProps">
-            <button :disabled="disableInputs()" type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
+            <button :disabled="!isView" type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
               REMOVE
             </button>
           </template>
