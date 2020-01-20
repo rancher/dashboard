@@ -4,7 +4,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 export default {
   title:      'Components/Form/Labeled Input',
   component:  LabeledInput,
-  decorators: [() => '<form><story/></form>'],
+  decorators: [centered],
 };
 
 export const labeledInput = () => ({

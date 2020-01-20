@@ -9,7 +9,7 @@ export default {
     const theme = this.$store.getters['prefs/get'](THEME);
 
     return {
-      bodyAttrs: { class: `theme-${ theme }` },
+      bodyAttrs: { class: `theme-${ theme } dashboard-body` },
       title:     'Rio Dashboard',
     };
   },

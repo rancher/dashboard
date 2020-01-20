@@ -44,29 +44,28 @@ export default {
 </template>
 
 <style lang='scss'>
-    .card-container {
-        padding: 10px;
-        border: 1px solid  var(--border);
-        background: var(--nav-bg);
-        display: grid;
-        padding: 1.25rem;
-        grid-gap: .75rem;
-        grid-template-rows: 1fr 2fr 1fr;
-        & .card-body {
-            overflow: hidden;
-        }
-        & .card-actions{
-            align-self: end;
-            display: flex;
-            justify-content: space-between;
-        }
-        & .card-title{
-            // color: var(--primary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border);
-        }
-    }
+ .card-container {
+   padding: 10px;
+   border: 1px solid  var(--border);
+   background: var(--nav-bg);
+   display: grid;
+   padding: 1.25rem;
+   grid-gap: .75rem;
+   grid-template-rows: 1fr 2fr 1fr;
+   & .card-body {
+     overflow: hidden;
+   }
+   & .card-actions {
+     align-self: end;
+     display: flex;
+     justify-content: space-between;
+   }
+   & .card-title {
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding-bottom: 0.5rem;
+     border-bottom: 1px solid var(--border);
+   }
+ }
 </style>
