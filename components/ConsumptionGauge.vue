@@ -2,28 +2,46 @@
 import PercentageCircle from '@/components/PercentageCircle';
 import VStack from '@/components/Layout/Stack/VStack';
 
+/**
+ * A detailed view of how much a resource is being consumed.
+ */
 export default {
   components: {
     PercentageCircle,
     VStack
   },
   props: {
+    /**
+     * The name of the resource to be displayed.
+     */
     resourceName: {
       type:     String,
       required: true
     },
+    /**
+     * The total amount of the resource (both used and unused amount).
+     */
     capacity: {
       type:     Number,
       required: true
     },
+    /**
+     * The amount of the resource that is currently in use.
+     */
     used: {
       type:     Number,
       required: true
     },
+    /**
+     * The units that should be displayed when referencing amounts of the resource.
+     */
     units:           {
       type:     String,
       default:  ''
     },
+    /**
+     * A method which can be used to format the *capacity* and *used* numbers for display.
+     */
     numberFormatter: {
       type:    Function,
       default: value => value

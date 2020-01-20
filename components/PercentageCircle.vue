@@ -1,35 +1,18 @@
 <script>
 import VStack from '@/components/Layout/Stack/VStack';
 
-function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-  const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
-
-  return {
-    x: centerX + (radius * Math.cos(angleInRadians)),
-    y: centerY + (radius * Math.sin(angleInRadians))
-  };
-}
-
-function describeArc(x, y, radius, startAngle, endAngle) {
-  const start = polarToCartesian(x, y, radius, endAngle);
-  const end = polarToCartesian(x, y, radius, startAngle);
-
-  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
-
-  const d = [
-    'M', start.x, start.y,
-    'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y
-  ].join(' ');
-
-  return d;
-}
-
+/**
+ * Used to display a percentage and indicate the health based on boundaries set.
+ */
 export default {
   name: 'PercentageCircle',
 
   components: { VStack },
 
   props: {
+    /**
+     * A value representing the percentage to be displayed. *Must be a value between 0 and 1*.
+     */
     value: {
       type:      Number,
       required:  true,
@@ -37,9 +20,21 @@ export default {
         return value >= 0 && value <= 1;
       }
     },
+    /**
+     * A number representing the lower bound the `value` can be before it ends up in a **warning** state. *Must be a value between 0 and 1*.
+     */
     lowerWarningBound: { type: Number, default: undefined },
+    /**
+     * A number representing the upper bound the `value` can be before it ends up in a **warning** state. *Must be a value between 0 and 1*.
+     */
     upperWarningBound: { type: Number, default: undefined },
+    /**
+     * A number representing the lower bound the `value` can be before it ends up in an **error** state. *Must be a value between 0 and 1*.
+     */
     lowerErrorBound:   { type: Number, default: undefined },
+    /**
+     * A number representing the upper bound the `value` can be before it ends up in an **error** state. *Must be a value between 0 and 1*.
+     */
     upperErrorBound:   { type: Number, default: undefined }
   },
 
@@ -77,6 +72,29 @@ export default {
     }
   }
 };
+
+function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+  const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
+
+  return {
+    x: centerX + (radius * Math.cos(angleInRadians)),
+    y: centerY + (radius * Math.sin(angleInRadians))
+  };
+}
+
+function describeArc(x, y, radius, startAngle, endAngle) {
+  const start = polarToCartesian(x, y, radius, endAngle);
+  const end = polarToCartesian(x, y, radius, startAngle);
+
+  const largeArcFlag = endAngle - startAngle <= 180 ? '0' : '1';
+
+  const d = [
+    'M', start.x, start.y,
+    'A', radius, radius, 0, largeArcFlag, 0, end.x, end.y
+  ].join(' ');
+
+  return d;
+}
 </script>
 
 <template>
