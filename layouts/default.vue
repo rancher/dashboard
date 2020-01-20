@@ -2,7 +2,9 @@
 <script>
 import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
-import { explorerPackage, clusterPackage, rioPackage, settingsPackage } from '@/config/packages';
+import {
+  explorerPackage, clusterPackage, rioPackage, settingsPackage, rbacResource
+} from '@/config/packages';
 import { mapPref, DEV, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
@@ -119,7 +121,8 @@ export default {
         rioPackage(this.$router, counts, namespaces),
         clusterPackage(this.$router, counts, namespaces),
         explorerPackage(this.$router, counts, namespaces),
-        settingsPackage(this.$router, counts, namespaces)
+        settingsPackage(this.$router, counts, namespaces),
+        rbacResource(this.$router, counts, namespaces)
       ];
       const hasServiceMesh = await this.checkForMesh();
 

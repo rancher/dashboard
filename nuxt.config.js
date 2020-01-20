@@ -66,7 +66,7 @@ module.exports = {
 
   build: {
     publicPath: resourceBase,
-    extend(config, { isClient }) {
+    extend(config, { isClient, isDev }) {
       config.devtool = isClient ? 'source-map' : 'inline-source-map';
 
       if ( resourceBase ) {
@@ -78,6 +78,16 @@ module.exports = {
         loader:  'js-yaml-loader',
         options: { name: '[path][name].[ext]' },
       });
+
+      // Run ESLint on save
+      if (isDev && isClient) {
+        config.module.rules.push({
+          enforce: 'pre',
+          test:    /\.(js|vue)$/,
+          loader:  'eslint-loader',
+          exclude: /(node_modules)/
+        });
+      }
     },
     //    extractCSS: true,
     cssSourceMap: true,
