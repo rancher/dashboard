@@ -25,7 +25,7 @@ export default {
 </template>
 
 <style lang="scss">
-  @import "../../assets/styles/base/_mixins.scss";
+  @import "~assets/styles/base/_mixins.scss";
 
   .badge-state {
     padding: 5px 5px 5px 0;

@@ -1,5 +1,5 @@
 import centered from '@storybook/addon-centered/vue';
-import Card from '../components/Card';
+import Card from '@/components/Card';
 
 const defaultState = {
   title:        'This is a Title',

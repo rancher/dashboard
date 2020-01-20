@@ -18,7 +18,8 @@ module.exports = {
       },
       {
         test: /\.(svg|woff|woff2|ttf)$/,
-        loader: "file-loader"
+        loader: "file-loader",
+        include: path.resolve(__dirname, '../')
       }
     ];
 
@@ -26,6 +27,10 @@ module.exports = {
 
     config.resolve.alias['@'] = path.dirname(path.resolve(__dirname));
     config.resolve.alias['~'] = path.dirname(path.resolve(__dirname));
+
+    config.resolve.modules.push(path.resolve(__dirname, '../'));
+
+    // console.dir(config, { depth: null }) || config
 
     // Return the altered config
     return config;
