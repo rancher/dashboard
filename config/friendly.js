@@ -21,10 +21,11 @@ export const FRIENDLY = {
     headers:   [STATE, NAME, AGE]
   },
   'config-maps': {
-    singular: 'Config Map',
-    plural:   'Config Maps',
-    type:     CONFIG_MAP,
-    headers:  [
+    singular:  'Config Map',
+    plural:    'Config Maps',
+    type:      CONFIG_MAP,
+    hasDetail: true,
+    headers:   [
       STATE,
       NAMESPACE_NAME,
       KEYS,

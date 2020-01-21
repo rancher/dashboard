@@ -128,6 +128,22 @@ export const AGE = {
   align:     'right'
 };
 
+export const CREATED = {
+  name:       'created',
+  label:      'Created',
+  value:      'created',
+  sort:       ['created', 'name'],
+  search:     false,
+  formatter:  'LiveDate',
+};
+
+export const IMAGE = {
+  name:  'image',
+  label: 'Image',
+  value: 'image',
+  sort:  ['image', 'nameSort'],
+};
+
 export const RIO_IMAGE = {
   name:  'image',
   label: 'Image',
@@ -159,6 +175,13 @@ export const SCALE = {
   formatter: 'Scale',
   width:     60,
   align:     'center',
+};
+
+export const SIMPLE_SCALE = {
+  name:      'simple-scale',
+  label:     'Scale',
+  value:     'scale',
+  sort:      ['scale']
 };
 
 export const WEIGHT = {

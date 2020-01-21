@@ -123,14 +123,15 @@ export default {
         :class="{ sortable: col.sort }"
         @click.prevent="changeSort($event, col)"
       >
-        <nuxt-link :to="{query: queryFor(col)}">
+        <nuxt-link v-if="col.sort" :to="{query: queryFor(col)}">
           {{ col.label }}
-          <span v-if="col.sort" class="icon-stack">
+          <span class="icon-stack">
             <i class="icon icon-sort icon-stack-1x faded" />
             <i v-if="isCurrent(col) && !descending" class="icon icon-sort-down icon-stack-1x" />
             <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
           </span>
         </nuxt-link>
+        <span v-else>{{ col.label }}</span>
       </th>
       <th v-if="rowActions" :width="rowActionsWidth">
       </th>
