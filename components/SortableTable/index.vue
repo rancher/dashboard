@@ -128,6 +128,30 @@ export default {
       // Search this list of fields within the items in "subSearch" of each row
       type:    Array,
       default: null,
+    },
+
+    /**
+     * Show the divider between the thead and tbody.
+     */
+    topDivider: {
+      type:    Boolean,
+      default: true
+    },
+
+    /**
+     * Show the dividers between rows
+     */
+    bodyDividers: {
+      type:    Boolean,
+      default: false
+    },
+
+    /**
+     * Emphasize the text within tbody to have a brighter color.
+     */
+    emphasizedBody: {
+      type:    Boolean,
+      default: true
     }
 
   },
@@ -195,6 +219,7 @@ export default {
       };
 
       this.columns.forEach((col) => {
+        console.log(col);
         out[col.name] = `${ (col.label || col.name) }:`;
       });
 
@@ -208,7 +233,12 @@ export default {
       tableSelected(state) {
         return state[this.storeName].tableSelected;
       }
-    })
+    }),
+    classObject() {
+      return {
+        'top-divider':     this.topDivider, 'emphasized-body': this.emphasizedBody, 'body-dividers':   this.bodyDividers
+      };
+    }
   },
 
   methods: {
@@ -281,7 +311,7 @@ export default {
         </div>
       </div>
     </div>
-    <table class="sortable-table" width="100%">
+    <table class="sortable-table" :class="classObject" width="100%">
       <thead
         is="THead"
         :columns="columns"
@@ -395,6 +425,10 @@ $divider-height: 1px;
   border-spacing: 0;
   width: 100%;
 
+  &.top-divider > THEAD > TR > TH {
+    border-width: 0 0 $divider-height 0;
+  }
+
   > THEAD > TR > TH,
   > TBODY > TR > TD {
     padding: 0;
@@ -416,13 +450,16 @@ $divider-height: 1px;
       transition: none;
 
       > TH {
-        border-width: 0 0 $divider-height 0;
+        border-width: 0;
         border-style: solid;
-        border-color: var(--sortable-table-divider);
+        border-color: var(--sortable-table-top-divider);
         border-radius: 0;
         outline: none;
         transition: none;
-        color: var(--link-text);
+
+        &.sortable {
+          color: var(--link-text);
+        }
         font-weight: normal;
 
         &.sortable {
@@ -450,6 +487,14 @@ $divider-height: 1px;
         }
       }
     }
+  }
+
+  &.emphasized-body > TBODY > TR > TD {
+    color: var(--body-text);
+  }
+
+  &.body-dividers > TBODY > TR > TD {
+    border-bottom: 1px solid var(--sortable-table-body-divider);
   }
 
   > TBODY {
@@ -504,6 +549,7 @@ $divider-height: 1px;
     > TR > TD {
       height: $group-row-height;
       vertical-align: middle;
+      color: var(--muted);
 
       &.clip {
         padding-right: 25px;

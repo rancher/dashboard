@@ -110,7 +110,8 @@ $selected: rgba($primary, .5);
   --sortable-table-header-bg   : transparent;
   --sortable-table-accent-bg   : #{$lighter};
   --sortable-table-accent-alt  : #{$lightest};
-  --sortable-table-divider     : var(--border);
+  --sortable-table-top-divider : var(--border);
+  --sortable-table-body-divider : #{$darker};
   --sortable-table-selected-bg : #{$light};
 
   --tooltip-bg                 : #{$lighter};
