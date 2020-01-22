@@ -17,44 +17,42 @@ export const buttons = () => ({
   <th scope="col">Disabled</th>
   </tr>
   <tr>
-  <th scope="row">Primary</th>
+  <th scope="row" align="right">Primary</th>
   <td><button class="btn role-primary">Primary</button></td>
   <td><button class="btn role-primary">Primary</button></td>
   <td><button class="btn role-primary">Primary</button></td>
-  <td><button class="btn role-primary">Primary</button></td>
+  <td><button class="btn role-primary btn-disabled">Primary</button></td>
   </tr>
   <tr>
-  <th scope="row">Secondary</th>
+  <th scope="row" align="right">Secondary</th>
   <td><button class="btn role-secondary">Secondary</button></td>
   <td><button class="btn role-secondary">Secondary</button></td>
   <td><button class="btn role-secondary">Secondary</button></td>
-  <td><button class="btn role-secondary">Secondary</button></td>
+  <td><button class="btn role-secondary btn-disabled">Secondary</button></td>
   </tr>
   <tr>
-  <th scope="row">Tertiary</th>
+  <th scope="row" align="right">Tertiary</th>
   <td><button class="btn role-tertiary">Tertiary</button></td>
   <td><button class="btn role-tertiary">Tertiary</button></td>
   <td><button class="btn role-tertiary">Tertiary</button></td>
-  <td><button class="btn role-tertiary">Tertiary</button></td>
+  <td><button class="btn role-tertiary btn-disabled">Tertiary</button></td>
   </tr>
   <tr>
-  <th scope="row">Link</th>
+  <th scope="row" align="right">Link</th>
   <td><button class="btn bg-transparent role-link">Button Link</button></td>
   <td><button class="btn bg-transparent role-link">Button Link</button></td>
   <td><button class="btn bg-transparent role-link">Button Link</button></td>
-  <td><button class="btn bg-transparent role-link">Button Link</button></td>
+  <td><button class="btn bg-transparent role-link btn-disabled">Button Link</button></td>
   </tr>
   <tr>
-  <th scope="row">Dropdown</th>
-  <td><button class="btn bg-primary">Button Dropdown</button></td>
-  <td><button class="btn bg-primary">Button Dropdown</button></td>
-  <td><button class="btn bg-primary">Button Dropdown</button></td>
-  <td><button class="btn bg-primary">Button Dropdown</button></td>
+  <th scope="row" align="right">Dropdown and Action</th>
+  <td><button class="btn role-multi-action">Button Dropdown</button></td>
+  <td><button class="btn role-multi-action">Button Dropdown</button></td>
+  <td><button class="btn role-multi-action">Button Dropdown</button></td>
+  <td><button class="btn role-multi-action">Button Dropdown</button></td>
   </tr>
   </table>`
 });
-
-{/* <button type="button" class="btn btn-sm role-multi-action actions"><i class="icon icon-actions"></i></button> */}
 
 // Headers
 export const headers = () => ({
@@ -76,27 +74,30 @@ export const textColor = () => ({
   template:   `
     <div class="row">
     <div class="col span-12">
-    <h1>Header One</h1>
-    <h2>Header Two</h2>
-    <h3>Header Three</h3>
-    <h4>Header Four</h4>
+    <p class="">Primary Text</p>
+    <p class="text-secondary">Secondary Text</p>
+    <p class="text-primary">Interactive Text</p>
+    <p class="text-muted">Disable Text</p>
     </div>
     </div>`
 });
 
-export const primaryText = () => ({
+// All colors
+export const allColors = () => ({
   components: {},
-  template:   `<div class="bg-link">Header One</div>`
-});
-export const secondaryText = () => ({
-  components: {},
-  template:   `<div class="bg-link">Header One</div>`
-});
-export const interactiveText = () => ({
-  components: {},
-  template:   `<div class="bg-link">Header One</div>`
-});
-export const disabledText = () => ({
-  components: {},
-  template:   `<div class="bg-link">Header One</div>`
+  template:   `
+    <div class="row">
+    <div class="col span-12">
+    <div><div style="background: #141419; height: 25px; width: 25px;"></div><p>Dark: Sidebar & Block Light: Primary Text</p></div>
+    <div><div style="background: #1B1C21; height: 25px; width: 25px;"></div><p>Dark: Body Background Light: None</p></div>
+    <div><div style="background: #27292E; height: 25px; width: 25px;"></div><p>Dark: Input Fill Light: None</p></div>
+    <div><div style="background: #4A4B52; height: 25px; width: 25px;"></div><p>Dark: Borders & Buttons Light: None</p></div>
+    <div><div style="background: #6C6C76; height: 25px; width: 25px;"></div><p>Dark: Disabled Text Light: Secondary Text</p></div>
+    <div><div style="background: #B6B6C2; height: 25px; width: 25px;"></div><p>Dark: Secondary Text Light: Disabled</p></div>
+    <div><div style="background: #DCDEE7; height: 25px; width: 25px;"></div><p>Dark: None Light: Borders & Buttons</p></div>
+    <div><div style="background: #EEEFF4; height: 25px; width: 25px;"></div><p>Dark: None Light: Input Fill</p></div>
+    <div><div style="background: #F4F5FA; height: 25px; width: 25px;"></div><p>Dark: None Light: Sidebar and Block</p></div>
+    <div><div style="background: #FFFFFF; height: 25px; width: 25px;"></div><p>Dark: Primary Text Light: Body Background</p></div>
+    </div>
+    </div>`
 });
