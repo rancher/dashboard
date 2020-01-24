@@ -219,7 +219,6 @@ export default {
       };
 
       this.columns.forEach((col) => {
-        console.log(col);
         out[col.name] = `${ (col.label || col.name) }:`;
       });
 
