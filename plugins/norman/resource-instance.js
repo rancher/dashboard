@@ -151,12 +151,10 @@ export default {
   _stateRelevant() {
     if ( this.computed && this.computed.state && this.computed.state.name ) {
       return this.computed.state.name;
-    } else {
-      return this.enabled ? 'active' : 'inactive';
     }
 
     // @TODO unknown
-    // return 'active';
+    return 'active';
   },
 
   // ------------------------------------------------------------------
