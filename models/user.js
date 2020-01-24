@@ -41,6 +41,10 @@ export default {
         this.deactivate(item);
       });
     };
+  },
+
+  stateRelevant() {
+    return this.enabled ? 'active' : 'inactive';
   }
 }
 ;

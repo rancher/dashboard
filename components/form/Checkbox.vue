@@ -82,7 +82,7 @@ export default {
     cursor: pointer;
     font-size: 18px;
     line-height: 24px;
-    height: 14px;
+    height: 0.8em;
     width: 18px;
     clear: both;
 }
