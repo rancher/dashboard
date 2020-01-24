@@ -42,8 +42,8 @@ export default {
       this.$emit('input', out );
     },
     update(input) {
-      this.value = input.string;
-      this.type = input.option;
+      this.value = input.text;
+      this.type = input.selected;
       this.change();
     }
   }
@@ -52,6 +52,6 @@ export default {
 
 <template>
   <div class="match-input">
-    <InputWithSelect :options="types" :input-string="spec[type]" :label="label" :placeholder="placeholder" @input="update" />
+    <InputWithSelect :options="types" :text-value="spec[type]" :label="label" :placeholder="placeholder" @input="update" />
   </div>
 </template>

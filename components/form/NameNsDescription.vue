@@ -6,10 +6,10 @@ import { NAMESPACES } from '@/store/prefs';
 import { NAMESPACE, ANNOTATION } from '@/config/types';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
-import LabeledSelect from '@/components/form/LabeledSelect';
+import InputWithSelect from '@/components/form/InputWithSelect';
 
 export default {
-  components:   { LabeledInput, LabeledSelect },
+  components:   { LabeledInput, InputWithSelect },
 
   props: {
     value: {
@@ -48,10 +48,6 @@ export default {
     generatedSuffix: {
       type:    String,
       default: '-'
-    },
-    registerBeforeHook: {
-      type:    Function,
-      default: null
     }
   },
   data() {
@@ -139,11 +135,6 @@ export default {
       }
     },
   },
-  created() {
-    if (this.registerBeforeHook) {
-      this.registerBeforeHook(this.createNamespace);
-    }
-  },
   mounted() {
     const valueRef = get(this.$refs, 'name.$refs.value');
 
@@ -152,24 +143,9 @@ export default {
     }
   },
   methods: {
-    toggleNSMode() {
-      this.createNS = !this.createNS;
-    },
-    async createNamespace() {
-      if (this.createNS) {
-        if (!this.toCreate) {
-          throw new Error('no namespace name provided');
-        } else {
-          const nsSchema = this.$store.getters['cluster/schemaFor'](NAMESPACE);
-          const data = { metadata: { name: this.toCreate } };
-
-          await nsSchema.followLink('collection', {
-            method:  'POST',
-            data
-          });
-          this.value.metadata.namespace = this.toCreate;
-        }
-      }
+    changeNameNS(e) {
+      this.name = e.text;
+      this.value.metadata.namespace = e.selected;
     }
   }
 };
@@ -178,68 +154,33 @@ export default {
 <template>
   <div>
     <div class="row">
-      <div :class="{col: true, [colSpan]: true}">
-        <slot name="name">
-          <LabeledInput
-            ref="name"
-            key="name"
-            v-model="name"
-            :mode="onlyForCreate"
-            :label="nameLabel"
-            :placeholder="namePlaceholder"
-            :required="true"
-          >
-            <template v-if="notView && !wantDescription" #corner>
-              <a v-if="mode!=='view'" href="#" @click.prevent="addDescription=true">Add a description</a>
-            </template>
-          </LabeledInput>
-        </slot>
-      </div>
       <div v-if="namespaced" :class="{col: true, [colSpan]: true}">
         <slot name="namespace">
-          <LabeledInput v-if="createNS" v-model="toCreate" required label="Namespace" placeholder="e.g. myapp">
-            <template #corner>
-              <a v-if="!mode!=='view'" href="#" @click.prevent="toggleNSMode">
-                Use an existing namespace
-              </a>
-            </template>
-          </LabeledInput>
-          <LabeledSelect
-            v-else
-            key="namespace"
-            v-model="value.metadata.namespace"
-            :mode="onlyForCreate"
+          <InputWithSelect
             :options="namespaces"
-            :required="true"
-            label="Namespace"
-            placeholder="Select a namespace"
-          >
-            <template #corner>
-              <a v-if="registerBeforeHook && mode!=='view'" href="#" @click.prevent="toggleNSMode">
-                Create new namespace
-              </a>
-            </template>
-          </LabeledSelect>
+            text-label="Name"
+            select-label="Namespace"
+            :text-value="name"
+            :text-required="true"
+            select-value="default"
+            @input="changeNameNS"
+          />
         </slot>
+      </div>
+      <div :class="{col: true, [colSpan]: true}">
+        <LabeledInput
+          key="description"
+          v-model="value.metadata.annotations[ANNOTATION_DESCRIPTION]"
+          type="multiline"
+          label="Description"
+          :mode="mode"
+          :placeholder="descriptionPlaceholder"
+          :min-height="30"
+        />
       </div>
       <div v-for="slot in extraColumns" :key="slot" :class="{col: true, [colSpan]: true}">
         <slot :name="slot">
         </slot>
-      </div>
-    </div>
-    <div v-if="wantDescription" class="row">
-      <div class="col span-12">
-        <div>
-          <LabeledInput
-            key="description"
-            v-model="value.metadata.annotations[ANNOTATION_DESCRIPTION]"
-            type="multiline"
-            label="Description"
-            :mode="mode"
-            :placeholder="descriptionPlaceholder"
-            :min-height="30"
-          />
-        </div>
       </div>
     </div>
   </div>
