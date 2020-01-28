@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 import { RIO } from '@/config/types';
-import { _VIEW } from '../../config/query-params';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   props:      {

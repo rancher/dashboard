@@ -30,8 +30,8 @@ export default {
         hostnames: entry.hostnames.join(', ')
       };
     });
-    const { dnsConfig = {}, hostname = '' } = this.value;
-    const { nameservers, searches } = dnsConfig;
+    const { dnsConfig = {}, hostname, subdomain } = this.value;
+    const { nameservers, searches, options } = dnsConfig;
 
     const out = {
       dnsPolicy:   this.value.dnsPolicy || 'Default',
@@ -39,7 +39,9 @@ export default {
       hostAliases,
       nameservers,
       searches,
-      hostname
+      hostname,
+      subdomain,
+      options
     };
 
     return out;
@@ -120,7 +122,8 @@ export default {
       const dnsConfig = {
         ...this.dnsConfig,
         nameservers: this.nameservers,
-        searches:    this.searches
+        searches:    this.searches,
+        options:     this.options
       };
       const out = {
         ...this.value,
@@ -128,6 +131,7 @@ export default {
         dnsPolicy:   this.dnsPolicy,
         hostname:    this.hostname,
         hostAliases: this.hostAliases,
+        subdomain:   this.subdomain,
         hostNetwork: (this.networkMode === 'host')
       };
 
@@ -139,7 +143,7 @@ export default {
 <template>
   <div>
     <div class="row">
-      <div class="col span-4">
+      <div class="col span-6">
         <LabeledSelect
           v-model="networkMode"
           :mode="mode"
@@ -150,7 +154,7 @@ export default {
         />
       </div>
 
-      <div class="col span-4">
+      <div class="col span-6">
         <LabeledSelect
           v-model="dnsPolicy"
           :mode="mode"
@@ -160,10 +164,22 @@ export default {
           @input="update"
         />
       </div>
-      <div class="col span-4">
+    </div>
+
+    <div class="row">
+      <div class="col span-6">
         <LabeledInput
           v-model="hostname"
           label="Hostname"
+          :mode="mode"
+          placeholder="e.g. web"
+          @input="update"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="subdomain"
+          label="Subdomain"
           :mode="mode"
           placeholder="e.g. web"
           @input="update"
@@ -203,6 +219,10 @@ export default {
     </div>
 
     <div class="row">
+      <KeyValue v-model="options" key-label="Name" :mode="mode" title="DNS Resolver Options" :read-allowed="false" />
+    </div>
+
+    <div class="row">
       <div class="col span-12">
         <KeyValue
           key="hostAliases"
@@ -216,7 +236,7 @@ export default {
           key-label="IP Address"
           key-placeholder="e.g. 1.1.1.1"
           value-name="hostnames"
-          value-label="Hostname(s)"
+          value-label="Hostname"
           value-placeholder="e.g. foo.com, bar.com"
           :pad-left="false"
           add-label="Add Alias"

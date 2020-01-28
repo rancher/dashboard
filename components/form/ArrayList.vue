@@ -219,6 +219,7 @@ export default {
                 :row="row"
                 :mode="mode"
                 :isView="isView"
+                :queue-update="queueUpdate"
               >
                 <span v-if="isView">{{ row.value }}</span>
                 <TextAreaAutoGrow

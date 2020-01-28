@@ -154,7 +154,6 @@ function matches(fields, token, item) {
       if ( val === undefined ) {
         continue;
       }
-
       val = (`${ val }`).toLowerCase();
       if ( !val ) {
         continue;

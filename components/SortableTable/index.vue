@@ -1,9 +1,9 @@
 <script>
 import { mapState } from 'vuex';
-import Checkbox from '@/components/form/Checkbox';
-import { removeObject } from '@/utils/array';
-import { get } from '@/utils/object';
 import { dasherize } from '@/utils/string';
+import { get } from '@/utils/object';
+import { removeObject } from '@/utils/array';
+import Checkbox from '@/components/form/Checkbox';
 import THead from './THead';
 import filtering from './filtering';
 import selection from './selection';
@@ -522,6 +522,10 @@ $group-row-height: 40px;
 $group-separation: 40px;
 $divider-height: 1px;
 
+$separator: 20;
+$remove: 75;
+$spacing: 10px;
+
 .sortable-table {
   position: relative;
   table-layout: fixed;
@@ -742,6 +746,37 @@ $divider-height: 1px;
   TH[align=center], TD[align=center] { text-align: center; }
   TH[align=right], TD[align=right] { text-align: right; }
 }
+
+ .for-inputs{
+   & TABLE.sortable-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: $spacing;
+
+    >TBODY>TR>TD, >THEAD>TR>TH {
+      padding-right: $spacing;
+      padding-bottom: $spacing;
+
+      &:last-of-type {
+        padding-right: 0;
+      }
+    }
+
+    >TBODY>TR:first-of-type>TD {
+      padding-top: $spacing;
+    }
+
+    >TBODY>TR:last-of-type>TD {
+      padding-bottom: 0;
+    }
+  }
+
+    &.edit, &.create, &.clone {
+     TABLE.sortable-table>THEAD>TR>TH {
+      border-color: transparent;
+      }
+    }
+  }
 
 .sortable-table-header {
   position: relative;

@@ -1,22 +1,38 @@
 <script>
-import { NODE } from '@/config/types';
+import { NODE, POD, NAMESPACE } from '@/config/types';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import SortableTable from '@/components/SortableTable';
+import { sortBy } from '@/utils/sort';
+import ArrayList from '@/components/form/ArrayList';
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
     LabeledInput,
     LabeledSelect,
-    SortableTable
+    SortableTable,
+    ArrayList
   },
   props:      {
     // array of match expressions
     value: {
       type:     Array,
-      required: true
+      default: () => []
     },
 
+    namespaces: {
+      type:    Array,
+      default: null
+    },
+
+    // show selector weight (if present) in view mode
+    weight: {
+      type:    Number,
+      default: null
+    },
+
+    // CRU mode
     mode: {
       type:    String,
       default: 'edit'
@@ -47,18 +63,18 @@ export default {
     const tableHeaders = [
       {
         name:  'key',
-        label: t('workload.matchExpressions.key'),
+        label: t('workload.scheduling.affinity.matchExpressions.key'),
         value: 'key'
       },
       {
         name:  'operator',
-        label: t('workload.matchExpressions.operator'),
+        label: t('workload.scheduling.affinity.matchExpressions.operator'),
         value: 'operator',
         width: '20%'
       },
       {
         name:  'value',
-        label: t('workload.matchExpressions.value'),
+        label: t('workload.scheduling.affinity.matchExpressions.value'),
         value: 'values'
       },
     ];
@@ -68,30 +84,30 @@ export default {
         name:          'remove',
         label:         '',
         value:         '',
-        width:         25
+        width:         50
       });
     }
 
     const podOptions = [
-      { label: t('workload.matchExpressions.exists'), value: 'Exists' },
-      { label: t('workload.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
-      { label: t('workload.matchExpressions.in'), value: 'In' },
-      { label: t('workload.matchExpressions.notIn'), value: 'NotIn' }];
+      { label: t('workload.scheduling.affinity.matchExpressions.exists'), value: 'Exists' },
+      { label: t('workload.scheduling.affinity.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
+      { label: t('workload.scheduling.affinity.matchExpressions.in'), value: 'In' },
+      { label: t('workload.scheduling.affinity.matchExpressions.notIn'), value: 'NotIn' }];
 
     const nodeOptions = [
-      { label: t('workload.matchExpressions.lessThan'), value: 'Lt' },
-      { label: t('workload.matchExpressions.greaterThan'), value: 'Gt' },
-      { label: t('workload.matchExpressions.exists'), value: 'Exists' },
-      { label: t('workload.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
-      { label: t('workload.matchExpressions.in'), value: 'In' },
-      { label: t('workload.matchExpressions.notIn'), value: 'NotIn' }];
+      { label: t('workload.scheduling.affinity.matchExpressions.lessThan'), value: 'Lt' },
+      { label: t('workload.scheduling.affinity.matchExpressions.greaterThan'), value: 'Gt' },
+      { label: t('workload.scheduling.affinity.matchExpressions.exists'), value: 'Exists' },
+      { label: t('workload.scheduling.affinity.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
+      { label: t('workload.scheduling.affinity.matchExpressions.in'), value: 'In' },
+      { label: t('workload.scheduling.affinity.matchExpressions.notIn'), value: 'NotIn' }];
 
     const ops = this.type === NODE ? nodeOptions : podOptions;
 
-    let rules = this.value;
+    let rules = [...this.value];
 
     rules = rules.map((rule) => {
-      if (rule.values) {
+      if (rule.values && typeof rule.values !== 'string') {
         rule.values = rule.values.join(',');
       }
 
@@ -108,9 +124,35 @@ export default {
   },
 
   computed: {
+    // include an empty option for default option 'this pod's namespace
+    allNamespaces() {
+      const choices = this.$store.getters['cluster/all'](NAMESPACE);
+
+      const out = sortBy(choices.map((obj) => {
+        return {
+          label: obj.nameDisplay,
+          value: obj.id,
+        };
+      }), 'label');
+
+      out.unshift({ label: this.t('workload.scheduling.affinity.thisPodNamespace'), value: null });
+
+      return out;
+    },
+
     isView() {
       return this.mode === 'view';
-    }
+    },
+
+    node() {
+      return NODE;
+    },
+
+    pod() {
+      return POD;
+    },
+
+    ...mapGetters({ t: 'i18n/t' })
   },
 
   methods: {
@@ -154,9 +196,22 @@ export default {
 
 <template>
   <div :style="{'position':'relative'}" @input="update">
-    <button v-if="showRemove && !isView" id="remove-btn" class="btn btn-sm role-link" @click="$emit('remove')">
-      <t k="buttons.remove" />
+    <span v-if="weight && isView" class="selector-weight"><t k="workload.scheduling.affinity.matchExpressions.weight" />: {{ weight }}</span>
+    <button v-if="showRemove && !isView" id="remove-btn" class="btn role-link" @click="$emit('remove')">
+      <i class="icon icon-x" />
     </button>
+
+    <div v-if="type===pod" class="row mt-20">
+      <div class="col span-12">
+        <t k="workload.scheduling.affinity.matchExpressions.inNamespaces" />
+        <ArrayList :value="namespaces" @input="e=>$emit('update:namespaces', e)">
+          <template #value="props">
+            <LabeledSelect v-model="props.row.value" :options="allNamespaces" label="Namespaces" :multiple="false" @input="props.queueUpdate" />
+          </template>
+        </ArrayList>
+      </div>
+    </div>
+
     <SortableTable
       class="match-expressions"
       :class="mode"
@@ -197,19 +252,19 @@ export default {
           <button
             v-if="!isView"
             type="button"
-            class="btn role-link col remove-rule-button"
+            class="btn btn-sm role-link col remove-rule-button"
             :style="{padding:'0px'}"
 
             :disabled="mode==='view'"
             @click="removeRule(row)"
           >
-            <i class="icon icon-minus" />
+            <t k="buttons.remove" />
           </button>
         </td>
       </template>
     </SortableTable>
     <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addRule">
-      <t k="workload.matchExpressions.addRule" />
+      <t k="workload.scheduling.affinity.matchExpressions.addRule" />
     </button>
   </div>
 </template>
@@ -225,13 +280,21 @@ export default {
     }
   }
 
-  #remove-btn{
+  #remove-btn, .selector-weight{
     padding:  8px;
     position: absolute;
     margin-bottom:10px;
     right:  0px;
     top: 0px;
     z-index: z-index('overContent');
+  }
+
+  #remove-btn i {
+    font-size:2em;
+  }
+
+  .selector-weight {
+    color: var(--input-label)
   }
 
   .match-expressions {
@@ -267,7 +330,7 @@ export default {
     &.edit, &.create, &.clone {
       TABLE.sortable-table THEAD TR TH {
         border-color: transparent;
+      }
     }
-  }
   }
 </style>

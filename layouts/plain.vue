@@ -1,4 +1,3 @@
-
 <script>
 import { mapState } from 'vuex';
 import Header from '@/components/nav/Header';

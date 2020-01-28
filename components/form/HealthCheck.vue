@@ -1,5 +1,6 @@
 <script>
 import Probe from '@/components/form/Probe';
+import { _VIEW } from '../../config/query-params';
 
 export default {
   components: { Probe },
@@ -13,6 +14,12 @@ export default {
       required: true,
     },
   },
+
+  computed: {
+    isView() {
+      return this.mode === _VIEW;
+    }
+  }
 };
 </script>
 
@@ -27,7 +34,7 @@ export default {
         :description="t('workload.container.healthcheck.readinessTip')"
       />
     </div>
-    <hr />
+    <hr v-if="!isView" />
     <div class="row">
       <Probe
         v-model="value.livenessProbe"
@@ -37,7 +44,7 @@ export default {
         :description="t('workload.container.healthcheck.livenessTip')"
       />
     </div>
-    <hr />
+    <hr v-if="!isView" />
     <div class="row mb-0">
       <Probe
         v-model="value.startupProbe"

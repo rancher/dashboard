@@ -451,18 +451,13 @@ secret:
     domainName: Registry Domain Name
 
 workload:
-  matchExpressions:
-    in: '='
-    notIn: ≠
-    exists: Exists
-    doesNotExist: Does Not Exist
-    greaterThan: '>'
-    lessThan: <
-    key: Key
-    value: Value
-    operator: Operator
-    addRule: Add Rule
   container:
+    titles:
+      ports: Ports
+      command: Command
+      resources: Resources
+      healthCheck: Health Check
+      securityContext: Security Context
     name: Container Name
     image: Container Image
     imagePullPolicy: Image Pull Policy
@@ -499,7 +494,85 @@ workload:
       privileged: Privileged
       allowPrivilegeEscalation: Privilege Escalation
       runAsNonRoot: Run as Non-Root
+      runAsNonRootOptions:
+        yesOption: 'Yes: containers must run as non-root-user'
+        noOption: 'No'
       readOnlyRootFilesystem: Read-Only Root Filesystem
-      runAsUser: Run as User
+      runAsUser: Run as User ID
+      runAsGroup: Run as Group ID
+      supplementalGroups: Additional Group IDs
+      addGroupIDs: Add Group IDs
+      fsGroup: Filesystem Group
       addCapabilities: Add Capabilities
       dropCapabilities: Drop Capabilities
+      shareProcessNamespace: Share single process namespace
+      hostPID: "Use Host PID Namespace"
+      hostIPC: "Use Host IPC Namespace"
+      sysctls: Sysctls
+      sysctlsKey: 'Name'
+  scheduling:
+    titles:
+      tab: Scheduling
+      nodeScheduling: Node Scheduling
+      podScheduling: Pod Scheduling
+      tolerations: Tolerations
+      priority: Priority
+      advanced: Advanced
+    activeDeadlineSeconds: Pod Active Deadline
+    terminationGracePeriodSeconds: Termination Grace Period
+    activeDeadlineSecondsTip: The duration that the pod may be active before the system tries to mark it failed and kill associated containers.
+    terminationGracePeriodSecondsTip: The duration that the pod needs to terminate gracefully.
+    priority:
+      priority: Priority
+      className: Priority Class Name
+    tolerations:
+      labelKey: Label Key
+      operator: Operator
+      value: Value
+      effect: Effect
+      tolerationSeconds: Toleration Seconds
+      addToleration: Add Toleration
+      operatorOptions: 
+        exists: Exists
+        equal: '='
+      effectOptions:
+        all: All
+        noSchedule: NoSchedule,
+        preferNoSchedule: PreferNoSchedule
+        noExecute: NoExecute
+    affinity:
+      specificNode: Run pods on specific node(s)
+      schedulingRules: Run pods on node(s) matching these scheduling rules
+      requireAny: 'Require any of:'
+      preferAny: 'Prefer any of:'
+      thisPodNamespace: This pod's namespace
+      affinityTitle: Run pods on nodes with pods matching these selectors
+      antiAffinityTitle: Run pods on nodes without pods matching these selectors
+      matchExpressions:
+        in: '='
+        notIn: ≠
+        exists: Exists
+        doesNotExist: Does Not Exist
+        greaterThan: '>'
+        lessThan: <
+        key: Key
+        value: Value
+        operator: Operator
+        addRule: Add Rule
+        weight: Weight
+        inNamespaces: Pods in these namespaces
+
+rioConfig:
+  header: Rio
+  configure:
+    description: Description
+    helpText:
+      listItem1: The application deployment engine for Kubernetes.
+      listItem2: Rio makes it faster and easier for DevOps to build, test, deploy, scale and version stateless applications
+    requirements:
+      header: Requirements
+      helpText:
+        listItem1: 1 CPU Core
+        listItem2: 2 GiB of Memory
+  yaml:
+    buttonText: Customize

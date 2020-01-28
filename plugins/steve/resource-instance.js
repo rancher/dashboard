@@ -13,15 +13,15 @@ import { DEV } from '@/store/prefs';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { cleanForNew } from './normalize';
 
-const REMAP_STATE = { disabled: 'inactive' };
+export const REMAP_STATE = { disabled: 'inactive' };
 
-const DEFAULT_COLOR = 'warning';
+export const DEFAULT_COLOR = 'warning';
 const DEFAULT_ICON = 'x';
 
 const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TMIMEOUT = 30000;
 
-const STATES = {
+export const STATES = {
   unknown:        { color: 'warning', icon: 'x' },
   aborted:        { color: 'warning', icon: 'error' },
   activating:     { color: 'info', icon: 'tag' },

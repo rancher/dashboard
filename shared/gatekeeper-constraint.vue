@@ -4,11 +4,9 @@ import { merge } from 'lodash';
 import jsyaml from 'js-yaml';
 import { ucFirst } from '@/utils/string';
 import { isSimpleKeyValue } from '@/utils/object';
-
 import { _VIEW, _CREATE } from '@/config/query-params';
 import { SCHEMA, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
-
 import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -18,7 +16,6 @@ import NamespaceList, { NAMESPACE_FILTERS } from '@/components/form/NamespaceLis
 import RadioGroup from '@/components/form/RadioGroup';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import RuleSelector from '@/components/form/RuleSelector';
-
 import Tab from '@/components/Tabbed/Tab';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import GatekeeperViolationsTable from '@/components/chart/gatekeeper/ViolationsTable';
