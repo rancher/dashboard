@@ -15,7 +15,6 @@ const KIND_LABELS = {
 };
 
 export default {
-  inject:     { disableInputs: { default: () => false } },
   components: { Loading, Checkbox },
   mixins:     [CreateEditView, LoadDeps],
   props:      {
@@ -192,7 +191,7 @@ export default {
         <div v-else class="row">
           <div v-for="opt in kindOptions" :key="opt.value" class="col">
             <label class="radio">
-              <input v-model="kind" :disabled="disableInputs()" type="radio" :value="opt.value" />
+              <input v-model="kind" :disabled="isView" type="radio" :value="opt.value" />
               {{ opt.label }}
             </label>
           </div>
@@ -201,7 +200,7 @@ export default {
           <div v-if="kind === 'router'" class="col span-6">
             <v-select
               v-model="targetRouter"
-              :disabled="disableInputs()"
+              :disabled="isView"
               :options="routerOptions"
               :mode="mode"
               placeholder="Select a Router..."
@@ -217,7 +216,7 @@ export default {
             <div class="col span-6">
               <v-select
                 v-model="targetApp"
-                :disabled="disableInputs()"
+                :disabled="isView"
                 :mode="mode"
                 :options="appOptions"
                 placeholder="Select a service"
@@ -232,7 +231,7 @@ export default {
             <div v-if="pickVersion" class="col span-6">
               <v-select
                 v-model="targetVersion"
-                :disabled="disableInputs()"
+                :disabled="isView"
                 :mode="mode"
                 :options="versionOptions"
                 placeholder="Select a version"

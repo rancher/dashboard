@@ -29,7 +29,6 @@ export default {
       spec:       this.value.spec || {}
     };
   },
-  inject:   { disableInputs: { default: () => false } },
   computed: {
     namespace() {
       return this.value.metadata.namespace;
@@ -85,7 +84,7 @@ export default {
         />
       </div>
     </div>
-    <button :disabled="disableInputs()" type="button" class="btn role-tertiary add" @click="addRouteSpec">
+    <button :disabled="isView" type="button" class="btn role-tertiary add" @click="addRouteSpec">
       <i class="icon icon-plus" />
       Add Rule
     </button>
