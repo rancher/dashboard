@@ -118,7 +118,7 @@ export default {
         :options="httpMethods.filter(opt=>!isSelected(opt))"
         :value="methods"
         placeholder="Method"
-        :disabled="!isView"
+        :disabled="isView"
         @input="e=>{change('methods', e); matchChange()}"
       >
       </v-select>
