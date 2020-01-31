@@ -131,10 +131,11 @@ export const AGE = {
 export const CREATED = {
   name:       'created',
   label:      'Created',
-  value:      'created',
+  value:      'metadata.creationTimestamp',
   sort:       ['created', 'name'],
   search:     false,
   formatter:  'LiveDate',
+  align:     'right'
 };
 
 export const IMAGE = {

@@ -458,6 +458,7 @@ export default {
         opt.headers['accept'] = 'application/json';
       }
 
+      this.type = this._type;
       opt.data = this;
 
       const res = await this.$dispatch('request', opt);

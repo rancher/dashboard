@@ -29,13 +29,17 @@ export default {
 
     dockerRows() {
       const auths = JSON.parse(this.dataRows[0].value).auths;
+      const rows = [];
 
-      const address = Object.keys(auths)[0];
-      const { username, url } = auths[address];
+      for (const address in auths) {
+        rows.push({
+          address,
+          username: auths[address].username,
+          password: auths[address].password
+        });
+      }
 
-      return [{
-        address, username, url
-      }];
+      return rows;
     },
 
     dockerHeaders() {
@@ -52,14 +56,6 @@ export default {
           value: 'username',
         }
       ];
-
-      if (this.dockerRows[0].url) {
-        headers.push({
-          name:  'url',
-          label: 'url(for artifactory/custom)',
-          value: 'url'
-        });
-      }
 
       return headers;
     },
