@@ -13,9 +13,15 @@ export default {
     grouped: {
       type:    Boolean,
       default: false,
+    },
+    disabled: {
+      type:    Boolean,
+      default: false
     }
   },
-
+  data() {
+    return { selectedDisplay: 'block' };
+  },
   computed: {
     currentLabel() {
       let entry;
@@ -49,50 +55,78 @@ export default {
       if ( this.$refs.input ) {
         this.$refs.input.placeholder = '';
       }
+    },
+
+    searchFocus() {
+      this.selectedDisplay = 'none';
+    },
+
+    searchBlur() {
+      this.selectedDisplay = 'block';
     }
   }
 };
 </script>
 
 <template>
-  <div :class="{'labeled-input': true, raised, focused, empty, [mode]: true}">
-    <label>
-      {{ label }}
-      <span v-if="required && !value" class="required">*</span>
-    </label>
-    <label class="corner">
-      <slot name="corner" />
-    </label>
+  <div>
     <div v-if="isView">
       {{ currentLabel }}
     </div>
-    <select
+    <v-select
       v-else
       ref="input"
+      class="inline"
       v-bind="$attrs"
+      :disabled="isView || disabled"
       :value="value"
-      @input="$emit('input', $event.target.value)"
+      :options="options"
+      @input="e=>$emit('input', e)"
+      @search:focus="searchFocus"
+      @search:blur="searchBlur"
       @focus="onFocus"
       @blur="onBlur"
     >
-      <option v-if="!focused" disabled value=""></option>
-      <option v-if="focused" disabled value="">
-        {{ placeholder }}
-      </option>
-      <slot name="options" :options="options">
-        <template v-if="grouped">
-          <optgroup v-for="grp in options" :key="grp.group" :label="grp.group">
-            <option v-for="opt in grp.items" :key="opt.value" :value="opt.value">
-              {{ opt.label }}
-            </option>
-          </optgroup>
-        </template>
-        <option v-for="opt in options" v-else :key="opt.value" :value="opt.value">
-          <slot name="label" :opt="opt">
-            {{ opt.label }}
-          </slot>
-        </option>
-      </slot>
-    </select>
+      <template v-slot:selected-option-container>
+        <div :class="{'labeled-input': true, raised, focused, empty, [mode]: true}" :style="{border:'none'}">
+          <label>
+            {{ label }}
+            <span v-if="required && !value" class="required">*</span>
+          </label>
+          <label class="corner">
+            <slot name="corner" />
+          </label>
+          <div v-if="isView">
+            {{ currentLabel }}
+          </div>
+          <div class="selected" :style="{display:selectedDisplay}">
+            {{ currentLabel }}
+          </div>
+        </div>
+      </template>
+    </v-select>
   </div>
 </template>
+
+<style lang='scss'>
+.v-select.inline {
+
+  & .labeled-input {
+    background-color: rgba(0,0,0,0);
+
+     & *{
+      background-color: rgba(0,0,0,0);
+    }
+  }
+
+  & .vs__search {
+    background-color: none;
+    padding: 3px 10px 0px 10px;
+  }
+
+  &  .selected{
+    position:relative;
+    top: 1.4em;
+  }
+}
+</style>

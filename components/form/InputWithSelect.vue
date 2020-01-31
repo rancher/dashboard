@@ -1,11 +1,16 @@
 <script>
 import labeledFormElement from '@/mixins/labeled-form-element';
 import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
 export default {
-  components: { LabeledInput },
+  components: { LabeledInput, LabeledSelect },
   mixins:     [labeledFormElement],
   props:      {
-    label: {
+    textLabel: {
+      type:    String,
+      default: ''
+    },
+    selectLabel: {
       type:    String,
       default: ''
     },
@@ -17,49 +22,56 @@ export default {
       type:     Array,
       required: true
     },
-    inputString: {
+    textRequired: {
+      type:    Boolean,
+      default: false
+    },
+    textValue: {
       type:    String,
       default: ''
+    },
+    selectValue: {
+      type:    String,
+      default: null
     }
   },
 
   data() {
-    return { selected: this.options[0], string: this.inputString };
+    return { selected: this.selectValue || this.options[0], string: this.textValue };
   },
   watch: {
-    inputString(neu) {
-      this.string = neu;
+    selected() {
+      this.change();
     }
   },
   methods: {
     change() {
-      this.$emit('input', { option: this.selected, string: this.string });
-    },
-    blurred() {
-      console.log('blurred');
+      this.$emit('input', { selected: this.selected, text: this.string });
     }
   }
 };
 </script>
 
 <template>
-  <div class="input-container" @input="change" @change="change">
-    <v-select
-      v-model="selected"
-      class="in-input fixed"
+  <div class="input-container row" @input="change">
+    <LabeledSelect
+      :value="selected"
+      :label="selectLabel"
+      class="in-input col span-5"
       :options="options"
-      :clearable="false"
       :searchable="false"
-      :disabled="isView"
-      @search:focused="blurred"
+      :disbaled="isView"
+      :clearable="false"
+      @input="e=>selected=e.value"
     />
     <LabeledInput
-      v-if="label"
+      v-if="textLabel"
       v-model="string"
-      class="input-string"
-      :label="label"
+      class="input-string col span-7"
+      :label="textLabel"
       :placeholder="placeholder"
       :disabled="isView"
+      :required="textRequired"
     />
     <input
       v-else
@@ -73,17 +85,17 @@ export default {
 
 <style lang='scss'>
 .input-container{
-    display: flex;
-    align-items: stretch;
     & .input-string{
-      flex-shrink: 1;
       padding-right: 0;
-      display: block;
       height: 50px;
+      width:60%;
     }
 }
-.v-select.in-input{
-    flex-basis:20%;
+.in-input {
+    margin-right: 0;
+
+& .v-select{
+    height: 100%;
 
     .vs__selected {
        margin: 0;
@@ -114,7 +126,14 @@ export default {
 
     .vs__selected-options {
         display: -webkit-box;
+        & .labeled-input {
+          top:10px;
+              & LABEL {
+        color: var(--primary);
     }
+        }
+    }
+
     .vs__actions {
       padding: 2px;;
     }
@@ -135,5 +154,6 @@ export default {
       transform: rotate(180deg) scale(0.75);
     }
 
+}
 }
 </style>

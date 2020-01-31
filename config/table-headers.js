@@ -220,7 +220,7 @@ export const P95 = {
 
 export const KEYS = {
   name:      'keys',
-  label:     'Keys',
+  label:     'Detail',
   sort:      false,
   value:     'keysDisplay',
 };
@@ -315,10 +315,11 @@ export const KEY = {
   sort:  ['key']
 };
 export const VALUE = {
-  name:  'value',
-  label: 'Value',
-  value: 'value',
-  sort:  ['value']
+  name:      'value',
+  label:     'Value',
+  value:     'value',
+  sort:      ['value'],
+  formatter: 'ClickExpand'
 };
 export function headersFor(schema) {
   const out = [];

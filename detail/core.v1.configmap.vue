@@ -1,6 +1,6 @@
 <script>
+import { ANNOTATION } from '@/config/types';
 import DetailTop from '@/components/DetailTop';
-import DetailTopColumn from '@/components/DetailTopColumn';
 import SortableTable from '@/components/SortableTable';
 import VStack from '@/components/Layout/Stack/VStack';
 import {
@@ -17,7 +17,6 @@ export default {
   name:       'DetailConfigMap',
   components: {
     DetailTop,
-    DetailTopColumn,
     SortableTable,
     VStack
   },
@@ -73,22 +72,30 @@ export default {
           created:         '2020-01-20T11:00:00+00:00'
         }
       ];
-    }
+    },
 
+    detailTopColumns() {
+      const { metadata = {} } = this.value;
+      const { annotations = {} } = metadata;
+
+      return [
+        {
+          title:   'Description',
+          content: annotations[ANNOTATION.DESCRIPTION]
+        },
+        {
+          title:   'Namespace',
+          content: metadata.namespace
+        }
+      ];
+    }
   },
 };
 </script>
 
 <template>
   <VStack class="config-map">
-    <DetailTop>
-      <DetailTopColumn title="Description">
-        {{ value.metadata.annotations['cattle.io/description'] }}
-      </DetailTopColumn>
-      <DetailTopColumn title="Namespace">
-        {{ value.metadata.namespace }}
-      </DetailTopColumn>
-    </DetailTop>
+    <DetailTop :columns="detailTopColumns" />
     <div>
       <div class="title">
         Values

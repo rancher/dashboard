@@ -12,28 +12,40 @@ export default {
     label: {
       type:    String,
       default: ''
+    },
+    grouped: {
+      type:    Boolean,
+      default: false
     }
   },
+
   methods: {
     clicked() {
       this.$emit('input', this.value);
-    }
+      console.log('clicked', this.label);
+    },
   }
 };
 </script>
 
 <template>
   <label class="radio-container">
-    <label class="radio-button">
+    <label
+      ref="radio"
+      class="radio-button"
+      :tabindex="grouped ? -1 : 0"
+    >
       <input
         :checked="value"
         type="radio"
         :name="name"
-        @click="clicked"
+        :tabindex="-1"
+        @keyup.16="clicked"
+        @click.stop="clicked"
       />
       <span class="radio-custom"><span /></span>
     </label>
-    <span class="radio-label">{{ label }}</span>
+    <span class="radio-label" @click.stop="clicked">{{ label }}</span>
   </label>
 </template>
 

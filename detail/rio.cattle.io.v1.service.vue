@@ -7,8 +7,11 @@ import {
 } from '@/config/table-headers';
 import { sortBy } from '@/utils/sort';
 import LiveDate from '@/components/formatter/LiveDate';
+import DetailTop from '@/components/DetailTop';
 export default {
-  components: { ResourceTable, LiveDate },
+  components: {
+    ResourceTable, LiveDate, DetailTop
+  },
 
   props:      {
     value: {
@@ -18,24 +21,6 @@ export default {
   },
   data() {
     return {
-      // mockEvents: [
-      //   {
-      //     _type:     'Warning',
-      //     name:      'rhdrtrtehtrrhe',
-      //     reason:    'sdsfweqrwerer',
-      //     message:   'dskhfsdkhfahfauewhfew',
-      //     eventTime:    Date.now(),
-      //     links:     { self: 'http://google.com' }
-      //   },
-      //   {
-      //     _type:      'Something Else',
-      //     name:      'sdfsafasdfasfsdfhft',
-      //     reason:    'sdsfwwertewtrewer',
-      //     message:   'ouehfpifkrsdfheorf',
-      //     eventTime:    Date.now() + Date.now(),
-      //     links:     { self: 'http://google.com' }
-      //   }
-      // ],
       pods:         [],
       events:       [],
       eventColumns:  [
@@ -96,6 +81,26 @@ export default {
     },
     ports() {
       return get(this.value, 'spec.ports') || [];
+    },
+    detailTopColumns() {
+      return [
+        {
+          title:   'Namespace',
+          content: this.namespace
+        },
+        {
+          title:   'Image',
+          content: get(this.value, 'spec.image')
+        },
+        {
+          title:   'Scale',
+          content: this.scaleAvailable
+        },
+        {
+          title:   'Created',
+          content: this.creationTimestamp
+        }
+      ];
     }
   },
   mounted() {
@@ -164,26 +169,7 @@ export default {
 
 <template>
   <div class="service-detail">
-    <div class="detail-top">
-      <div>
-        <span>Namespace</span>
-        <span>{{ namespace }}</span>
-      </div>
-      <div>
-        <span>Image</span>
-        <span>{{ value.spec.image }}</span>
-      </div>
-      <div>
-        <span>Scale</span>
-        <span>
-          {{ scaleAvailable }}
-        </span>
-      </div>
-      <div>
-        <span>Created</span>
-        <span> {{ creationTimestamp }}</span>
-      </div>
-    </div>
+    <DetailTop :columns="detailTopColumns" />
     <div>
       <h4>Pods</h4>
       <ResourceTable
@@ -327,27 +313,6 @@ export default {
 
     & .faded {
       opacity: 0.5
-    }
-  }
-  .detail-top{
-    display: flex;
-    min-height: 75px;
-    & > * {
-      margin-right: 20px;
-      padding: 10px 0 10px 0;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-
-      &:not(:last-child){
-      border-right: 1px solid var(--border);
-      }
-
-      & >:not(:first-child){
-        color: var(--input-label);
-        padding: 3px;
-      }
     }
   }
 </style>

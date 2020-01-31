@@ -9,7 +9,8 @@ import {
   TARGET, TARGET_KIND, USERNAME, USER_DISPLAY_NAME, USER_ID, USER_STATUS,
   NODE_NAME, ROLES,
   VERSION, CPU,
-  RAM, PODS
+  RAM, PODS,
+  CREATED
 } from '@/config/table-headers';
 import { _CREATE, _CLONE, _STAGE } from '@/config/query-params';
 
@@ -183,15 +184,16 @@ export const FRIENDLY = {
     headers:  [
       STATE,
       NAMESPACE_NAME,
+      KEYS,
       {
         name:  'type',
         label: 'Type',
         value: 'typeDisplay',
         sort:  ['typeDisplay', 'nameSort'],
       },
-      KEYS,
-      AGE
+      CREATED
     ],
+    hasDetail: true
   },
 
   users: {

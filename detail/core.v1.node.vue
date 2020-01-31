@@ -2,7 +2,6 @@
 import CopyToClipboardText from '@/components/CopyToClipboardText';
 import ConsumptionGauge from '@/components/ConsumptionGauge';
 import DetailTop from '@/components/DetailTop';
-import DetailTopColumn from '@/components/DetailTopColumn';
 import HStack from '@/components/Layout/Stack/HStack';
 import VStack from '@/components/Layout/Stack/VStack';
 import Alert from '@/components/Alert';
@@ -23,7 +22,7 @@ export default {
   name: 'DetailNode',
 
   components: {
-    Alert, ConsumptionGauge, CopyToClipboardText, DetailTop, DetailTopColumn, HStack, VStack, Tab, Tabbed, SortableTable
+    Alert, ConsumptionGauge, CopyToClipboardText, DetailTop, HStack, VStack, Tab, Tabbed, SortableTable
   },
 
   props: {
@@ -93,6 +92,31 @@ export default {
           key,
           value: this.value.metadata.annotations[key]
         }));
+    },
+
+    detailTopColumns() {
+      return [
+        {
+          title:   'Description',
+          content: this.value.id
+        },
+        {
+          title: 'IP Address',
+          name:  'ipAddress'
+        },
+        {
+          title: 'Version',
+          name:  'version'
+        },
+        {
+          title: 'OS',
+          name:  'os'
+        },
+        {
+          title: 'Created',
+          name:  'created'
+        },
+      ];
     }
   },
 
@@ -111,22 +135,19 @@ export default {
 
 <template>
   <VStack class="node">
-    <DetailTop>
-      <DetailTopColumn title="Description">
-        {{ value.id }}
-      </DetailTopColumn>
-      <DetailTopColumn title="IP Address">
+    <DetailTop :columns="detailTopColumns">
+      <template v-slot:ipAddress>
         <CopyToClipboardText :text="value.status.addresses[0].address" />
-      </DetailTopColumn>
-      <DetailTopColumn title="Version">
+      </template>
+      <template v-slot:version>
         <CopyToClipboardText :text="value.status.nodeInfo.kubeletVersion" />
-      </DetailTopColumn>
-      <DetailTopColumn title="OS">
+      </template>
+      <template v-slot:os>
         <CopyToClipboardText :text="value.status.nodeInfo.operatingSystem" />
-      </DetailTopColumn>
-      <DetailTopColumn title="Created">
+      </template>
+      <template v-slot:created>
         <CopyToClipboardText :text="value.metadata.creationTimestamp" />
-      </DetailTopColumn>
+      </template>
     </DetailTop>
     <HStack class="glance" :show-dividers="true">
       <VStack class="alerts" :show-dividers="true" vertical-align="space-evenly">

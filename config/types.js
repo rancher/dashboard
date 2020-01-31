@@ -8,6 +8,7 @@ export const SECRET = 'core.v1.secret';
 export const EVENT = 'core.v1.event';
 export const RESOURCE_QUOTA = 'core.v1.resourcequota';
 export const NODE = 'core.v1.node';
+export const SERVICE_ACCOUNT = 'core.v1.serviceaccount';
 
 export const CLOUD = {
   CLUSTER:            'cloud.rio.rancher.io.v1.cluster',
@@ -42,6 +43,8 @@ export const RANCHER = {
 };
 
 export const ANNOTATION = {
-  DESCRIPTION: 'cattle.io/description',
-  TIMESTAMP:   'cattle.io/timestamp'
+  DESCRIPTION:  'cattle.io/description',
+  TIMESTAMP:    'cattle.io/timestamp',
+  CERT_ISSUER:  'cert-manager.io/issuer-name',
+  SERVICE_ACCT: 'kubernetes.io/service-account.uid'
 };
