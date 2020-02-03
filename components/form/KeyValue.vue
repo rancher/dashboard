@@ -338,80 +338,83 @@ export default {
         </tr>
       </thead>
       <tbody>
-        <tr
+        <template
           v-for="(row, idx) in rows"
-          :key="idx"
         >
-          <td v-if="padLeft" class="left"></td>
-          <td class="key">
-            <slot
-              name="key"
-              :row="row"
-              :mode="mode"
-              :keyName="keyName"
-              :valueName="valueName"
-              :isView="isView"
-            >
-              <span v-if="isView">{{ row[keyName] }}</span>
-              <input
-                v-else
-                ref="key"
-                v-model="row[keyName]"
-                :placeholder="keyPlaceholder"
-                type="text"
-                @input="queueUpdate"
-              />
-            </slot>
-          </td>
-          <td v-if="separatorLabel" class="separator">
-            {{ separatorLabel }}
-          </td>
-          <td class="value">
-            <slot
-              name="value"
-              :row="row"
-              :mode="mode"
-              :keyName="keyName"
-              :valueName="valueName"
-              :isView="isView"
-              :queueUpdate="queueUpdate"
-            >
-              <span v-if="valueBinary || row.binary">
-                {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
-                <button type="button" class="btn bg-transparent role-link" @click="download(idx)">
-                  Download
-                </button>
-              </span>
-              <span v-else-if="isView">{{ row[valueName] }}</span>
-              <TextAreaAutoGrow
-                v-else-if="valueMultiline"
-                v-model="row[valueName]"
-                :placeholder="valuePlaceholder"
-                :min-height="50"
-                :spellcheck="false"
-                @input="queueUpdate"
-              />
-              <input
-                v-else
-                v-model="row[valueName]"
-                :placeholder="valuePlaceholder"
-                autocorrect="off"
-                autocapitalize="off"
-                spellcheck="false"
-                @input="queueUpdate"
-              />
-            </slot>
-          </td>
-          <slot name="moreColumnHeaders" />
-          <td v-if="showRemove" class="remove">
-            <slot name="removeButton" :remove="remove" :idx="idx">
-              <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
-                Remove
-                {{ removeLabel }}
-              </button>
-            </slot>
-          </td>
-        </tr>
+          <slot name="row" :row="row">
+            <tr :key="idx">
+              <td v-if="padLeft" class="left"></td>
+              <td class="key">
+                <slot
+                  name="key"
+                  :row="row"
+                  :mode="mode"
+                  :keyName="keyName"
+                  :valueName="valueName"
+                  :isView="isView"
+                >
+                  <span v-if="isView">{{ row[keyName] }}</span>
+                  <input
+                    v-else
+                    ref="key"
+                    v-model="row[keyName]"
+                    :placeholder="keyPlaceholder"
+                    type="text"
+                    @input="queueUpdate"
+                  />
+                </slot>
+              </td>
+              <td v-if="separatorLabel" class="separator">
+                {{ separatorLabel }}
+              </td>
+              <td class="value">
+                <slot
+                  name="value"
+                  :row="row"
+                  :mode="mode"
+                  :keyName="keyName"
+                  :valueName="valueName"
+                  :isView="isView"
+                  :queueUpdate="queueUpdate"
+                >
+                  <span v-if="valueBinary || row.binary">
+                    {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
+                    <button type="button" class="btn bg-transparent role-link" @click="download(idx)">
+                      Download
+                    </button>
+                  </span>
+                  <span v-else-if="isView">{{ row[valueName] }}</span>
+                  <TextAreaAutoGrow
+                    v-else-if="valueMultiline"
+                    v-model="row[valueName]"
+                    :placeholder="valuePlaceholder"
+                    :min-height="50"
+                    :spellcheck="false"
+                    @input="queueUpdate"
+                  />
+                  <input
+                    v-else
+                    v-model="row[valueName]"
+                    :placeholder="valuePlaceholder"
+                    autocorrect="off"
+                    autocapitalize="off"
+                    spellcheck="false"
+                    @input="queueUpdate"
+                  />
+                </slot>
+              </td>
+              <slot name="moreColumnHeaders" />
+              <td v-if="showRemove" class="remove">
+                <slot name="removeButton" :remove="remove" :idx="idx" :row="row">
+                  <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
+                    Remove
+                    {{ removeLabel }}
+                  </button>
+                </slot>
+              </td>
+            </tr>
+          </slot>
+        </template>
       </tbody>
     </table>
     <div v-if="showAdd || showRead" class="footer">

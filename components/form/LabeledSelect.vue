@@ -17,6 +17,14 @@ export default {
     disabled: {
       type:    Boolean,
       default: false
+    },
+    multiple: {
+      type:    Boolean,
+      default: false
+    },
+    optionLabel: {
+      type:    String,
+      default: 'label'
     }
   },
   data() {
@@ -37,9 +45,15 @@ export default {
       if ( entry ) {
         return entry.label;
       }
+      if (this.optionLabel && typeof this.value === 'object') {
+        return this.value[this.optionLabel];
+      }
 
       return this.value;
     },
+    shownValue() {
+      return this.value ? this.value : ' ';
+    }
   },
 
   methods: {
@@ -64,7 +78,7 @@ export default {
     searchBlur() {
       this.selectedDisplay = 'block';
     }
-  }
+  },
 };
 </script>
 
@@ -79,9 +93,12 @@ export default {
       class="inline"
       v-bind="$attrs"
       :disabled="isView || disabled"
-      :value="value"
+      :value="shownValue"
       :options="options"
-      @input="e=>$emit('input', e)"
+      :multiple="multiple"
+      :get-option-label="opt=>opt[optionLabel]||opt"
+      :label="optionLabel"
+      @input="e=>e.value ? $emit('input', e.value) : $emit('input', e) "
       @search:focus="searchFocus"
       @search:blur="searchBlur"
       @focus="onFocus"
@@ -99,7 +116,7 @@ export default {
           <div v-if="isView">
             {{ currentLabel }}
           </div>
-          <div class="selected" :style="{display:selectedDisplay}">
+          <div class="selected" :class="{'no-label':!label}" :style="{display:selectedDisplay}">
             {{ currentLabel }}
           </div>
         </div>
@@ -113,6 +130,9 @@ export default {
 
   & .labeled-input {
     background-color: rgba(0,0,0,0);
+    padding-right:0;
+    display: flex;
+    flex-direction: column;
 
      & *{
       background-color: rgba(0,0,0,0);
@@ -127,6 +147,9 @@ export default {
   &  .selected{
     position:relative;
     top: 1.4em;
+    &.no-label{
+      top:7px;
+    }
   }
 }
 </style>

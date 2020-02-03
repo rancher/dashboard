@@ -25,8 +25,13 @@ export default {
     },
 
     value: {
-      type:    [String, Number],
+      type:    [String, Number, Object],
       default: ''
+    },
+
+    i18nLabel: {
+      type:    String,
+      default: null
     }
   },
 

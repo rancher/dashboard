@@ -55,14 +55,13 @@ export default {
 <template>
   <div class="input-container row" @input="change">
     <LabeledSelect
-      :value="selected"
+      v-model="selected"
       :label="selectLabel"
       class="in-input col span-4"
       :options="options"
       :searchable="false"
       :disbaled="isView"
       :clearable="false"
-      @input="e=>selected=e.value"
     />
     <LabeledInput
       v-if="textLabel"
@@ -129,9 +128,9 @@ export default {
         display: -webkit-box;
         & .labeled-input {
           top:10px;
-              & LABEL {
-        color: var(--primary);
-    }
+          & LABEL, .selected {
+                color: var(--primary);
+          }
         }
     }
 
@@ -147,7 +146,7 @@ export default {
     }
 
     .vs__open-indicator{
-        fill: var(--input-text);
+        fill: var(--primary);
         transform: scale(0.75);
     }
 

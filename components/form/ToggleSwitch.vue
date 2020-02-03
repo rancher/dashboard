@@ -57,7 +57,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--dropdown-text);
+  background-color: var(--dropdown-bg);
   -webkit-transition: .4s;
   transition: .4s;
 }
@@ -69,7 +69,7 @@ export default {
   width: 16px;
   left: 0px;
   bottom: -3px;
-  background-color: var(--input-text);
+  background-color: var(--input-label);
   -webkit-transition: .4s;
   transition: .4s;
 }
@@ -82,6 +82,8 @@ input:checked + .slider:before {
   -webkit-transform: translateX(16px);
   -ms-transform: translateX(16px);
   transform: translateX(16px);
+  background-color: var(--dropdown-text);
+
 }
 
 /* Rounded sliders */

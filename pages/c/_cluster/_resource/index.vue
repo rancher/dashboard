@@ -1,6 +1,11 @@
 <script>
+import {
+  STATE, CREATED, NAME, IMAGE, PODS, SCALE
+} from '../../../../config/table-headers';
+import { get } from '@/utils/object';
 import ResourceTable from '@/components/ResourceTable';
-import { hasCustomList, importList, pluralLabelFor, headersFor } from '@/utils/customized';
+import { FRIENDLY } from '@/config/friendly';
+import { WORKLOAD } from '@/config/types';
 
 export default {
   components: { ResourceTable },
@@ -11,24 +16,43 @@ export default {
     },
 
     headers() {
-      return headersFor(this.schema);
-    },
+      if (this.isWorkload) {
+        return [STATE,
+          NAME,
+          // IMAGE,
+          // PODS,
+          // SCALE,
+          CREATED];
+      }
 
-    hasComponent() {
-      return hasCustomList(this.resource);
-    },
-
-    showComponent() {
-      return importList(this.resource);
-    },
-
-    typeDisplay() {
-      return pluralLabelFor(this.schema);
+      return get(FRIENDLY[this.resource], 'headers');
     },
   },
 
   asyncData(ctx) {
     const resource = ctx.params.resource;
+    const isWorkload = resource === 'workload';
+
+    if (isWorkload) {
+      const types = Object.values(WORKLOAD);
+
+      return Promise.all( types.map((type) => {
+        return ctx.store.dispatch('cluster/findAll', { type });
+      })).then((resources) => {
+        resources = resources.map((rows, i) => {
+          rows = rows.filter(row => !row.metadata.ownerReferences);
+          const type = types[i];
+          const schema = ctx.store.getters['cluster/schemaFor'](type);
+
+          return {
+            type, rows, schema
+          };
+        });
+        // .filter(resource => resource.rows.length);
+
+        return { resources, isWorkload };
+      });
+    }
 
     return ctx.store.dispatch('cluster/findAll', { type: resource }).then((rows) => {
       return {
@@ -40,7 +64,25 @@ export default {
 }; </script>
 
 <template>
-  <div>
+  <div v-if="isWorkload">
+    <header>
+      <h1>
+        Workloads
+      </h1>
+      <div class="actions">
+        <nuxt-link to="create" append tag="button" type="button" class="btn bg-primary">
+          Create
+        </nuxt-link>
+      </div>
+    </header>
+    <div v-for="resource in resources" :key="resource.type">
+      <h4 class="mt-20">
+        {{ resource.type }}
+      </h4>
+      <ResourceTable :schema="resource.schema" :rows="resource.rows" :headers="headers" />
+    </div>
+  </div>
+  <div v-else>
     <header>
       <h1>
         {{ typeDisplay }}

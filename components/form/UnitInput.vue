@@ -92,5 +92,11 @@ export default {
         {{ addon }}
       </div>
     </template>
+    <template #corner>
+      <slot name="corner" />
+    </template>
+    <template #label>
+      <slot name="label" />
+    </template>
   </LabeledInput>
 </template>

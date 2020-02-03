@@ -1,5 +1,5 @@
 <script>
-import Probe from '@/edit/rio.cattle.io.v1.service/Probe';
+import Probe from '@/components/form/Probe';
 
 export default {
   components: { Probe },

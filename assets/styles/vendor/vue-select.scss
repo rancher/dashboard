@@ -205,6 +205,7 @@ $transition-duration: 150ms;
 
 .v-select.inline {
   background-color: var(--input-bg);
+  height: 100%;
 
   .vs__selected {
     color: var(--input-text);

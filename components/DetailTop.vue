@@ -24,6 +24,9 @@ export default {
 <style lang="scss" scoped>
 .detail-top {
     display: flex;
+    flex-wrap: wrap;
+    position:relative;
+    right: 50px;
     & > * {
         padding: 10px 50px;
         display: flex;
@@ -38,8 +41,8 @@ export default {
             border-right: 2px solid var(--border);
         }
 
-        &:first-child {
-            padding-left: 0;
+        &:last-child {
+            padding-right: 0;
         }
 
         & >:not(:first-child) {

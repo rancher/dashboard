@@ -1,4 +1,3 @@
-
 export const CONFIG_MAP = 'core.v1.configmap';
 export const COUNT = 'count';
 export const EVENT = 'core.v1.event';
@@ -46,4 +45,14 @@ export const RIO = {
 
   SYSTEM_NAMESPACE: 'rio-system',
 
+};
+
+export const WORKLOAD = {
+  DEPLOYMENT:             'apps.v1.deployment',
+  DAEMON_SET:             'apps.v1.daemonset',
+  STATEFUL_SET:           'apps.v1.statefulset',
+  CRON_JOB:               'batch.v1beta1.cronjob',
+  JOB:                    'batch.v1.job',
+  REPLICA_SET:            'apps.v1.replicaset',
+  REPLICATION_CONTROLLER: 'core.v1.replicationcontroller'
 };
