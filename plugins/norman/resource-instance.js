@@ -458,9 +458,11 @@ export default {
         opt.headers['accept'] = 'application/json';
       }
 
+      // @TODO remove this once the API maps steve _type <-> k8s type in both directions
       if (this._type) {
         this.type = this._type;
       }
+      
       opt.data = this;
 
       const res = await this.$dispatch('request', opt);
