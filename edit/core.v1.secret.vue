@@ -1,6 +1,6 @@
 <script>
 import { DOCKER_JSON, OPAQUE, TLS } from '@/models/core.v1.secret';
-import { base64Encode } from '@/utils/crypto';
+import { base64Encode, base64Decode } from '@/utils/crypto';
 import { get } from '@/utils/object';
 import { ANNOTATION, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -34,15 +34,30 @@ export default {
     ];
     const isNamespaced = !!this.value.metadata.namespace;
 
+    let username;
+    let password;
+    let registryFQDN;
+
+    if (this.value._type === DOCKER_JSON) {
+      const json = base64Decode(this.value.data['.dockerconfigjson']);
+
+      const { auths } = JSON.parse(json);
+
+      registryFQDN = Object.keys(auths)[0];
+
+      username = auths[registryFQDN].username;
+      password = auths[registryFQDN].password;
+    }
+
     return {
       types,
       isNamespaced,
       registryAddresses,
       newNS:            false,
       registryProvider: registryAddresses[0],
-      username:         '',
-      password:         '',
-      registryFQDN:     null,
+      username,
+      password,
+      registryFQDN,
       toUpload:         null,
       key:              null,
       cert:             null
