@@ -6,12 +6,12 @@ import createEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
 import ResourceQuota from '@/edit/core.v1.namespace/ResourceQuota';
 import Footer from '@/components/form/Footer';
-import KeyValue from '@/components/form/KeyValue';
+import LabelsAndAnnotationsEditor from '@/components/LabelsAndAnnotations/Editor';
 import { ANNOTATION } from '@/config/types';
 
 export default {
   components: {
-    LabeledInput, ResourceQuota, Footer, KeyValue
+    LabeledInput, ResourceQuota, Footer, LabelsAndAnnotationsEditor
   },
   mixins:     [createEditView],
   data() {
@@ -101,36 +101,7 @@ export default {
           :namespace="value"
         />
       </div>
-      <h4 class="mb-10">
-        Labels and Annotations
-      </h4>
-      <div class="row">
-        <div class="col span-6">
-          <KeyValue
-            key="labels"
-            v-model="value.metadata.labels"
-            :mode="mode"
-            :value-multiline="false"
-            :pad-left="false"
-            :read-allowed="false"
-            add-label="Add Label"
-            :protip="false"
-          />
-        </div>
-        <div class="col span-6">
-          <KeyValue
-            key="annotations"
-            v-model="annotations"
-            :value-multiline="false"
-            :mode="mode"
-            :pad-left="false"
-            :read-allowed="false"
-            add-label="Add Annotation"
-            :protip="false"
-          />
-        </div>
-      </div>
-
+      <LabelsAndAnnotationsEditor :mode="mode" :labels.sync="value.metadata.labels" :annotations.sync="annotations" />
       <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
     </form>
   </div>
