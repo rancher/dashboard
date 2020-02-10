@@ -17,6 +17,10 @@ export default {
     placeholder: {
       type:    String,
       default: '',
+    },
+    spellcheck: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -84,6 +88,7 @@ export default {
     :placeholder="placeholder"
     class="no-resize no-ease"
     v-bind="$attrs"
+    :spellcheck="spellcheck"
     @input="onInput($event.target.value)"
     @focus="$emit('focus', $event)"
     @blur="$emit('blur', $event)"

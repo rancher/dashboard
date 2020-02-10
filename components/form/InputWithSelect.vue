@@ -57,7 +57,7 @@ export default {
     <LabeledSelect
       :value="selected"
       :label="selectLabel"
-      class="in-input col span-5"
+      class="in-input col span-4"
       :options="options"
       :searchable="false"
       :disbaled="isView"
@@ -67,7 +67,7 @@ export default {
     <LabeledInput
       v-if="textLabel"
       v-model="string"
-      class="input-string col span-7"
+      class="input-string col span-8"
       :label="textLabel"
       :placeholder="placeholder"
       :disabled="isView"
@@ -89,6 +89,7 @@ export default {
       padding-right: 0;
       height: 50px;
       width:60%;
+      flex-grow: 1;
     }
 }
 .in-input {
