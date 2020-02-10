@@ -25,9 +25,9 @@ export default {
   mixins:     [CreateEditView],
   data() {
     const types = [
+      { label: 'Certificate', value: TLS },
       { label: 'Registry', value: DOCKER_JSON },
       { label: 'Secret', value: OPAQUE },
-      { label: 'Certificate', value: TLS }
     ];
     const registryAddresses = [
       'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
@@ -214,7 +214,7 @@ export default {
         Provider: &nbsp; <RadioGroup row :options="registryAddresses" :selected="registryAddresses.indexOf(registryProvider)" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row">
-        <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="Docker registry FQDN" />
+        <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" :hide-placeholder="false" />
       </div>
       <div class="row">
         <div class="col span-6">
@@ -249,6 +249,10 @@ export default {
         title="Data"
         :initial-empty-row="true"
         :value-base64="true"
+        read-icon=""
+        add-icon=""
+        add-label="ADD"
+        read-label="READ FROM A FILE"
       />
     </div>
 

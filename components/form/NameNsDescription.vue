@@ -176,6 +176,7 @@ export default {
           :mode="mode"
           :placeholder="descriptionPlaceholder"
           :min-height="30"
+          :hide-placeholder="false"
         />
       </div>
       <div v-for="slot in extraColumns" :key="slot" :class="{col: true, [colSpan]: true}">

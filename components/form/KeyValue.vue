@@ -388,12 +388,16 @@ export default {
                 v-model="row[valueName]"
                 :placeholder="valuePlaceholder"
                 :min-height="50"
+                :spellcheck="false"
                 @input="queueUpdate"
               />
               <input
                 v-else
                 v-model="row[valueName]"
                 :placeholder="valuePlaceholder"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
                 @input="queueUpdate"
               />
             </slot>
@@ -449,6 +453,8 @@ export default {
 
   TABLE {
     width: 100%;
+    border-collapse: separate;
+    border-spacing: 5px 10px;
   }
 
   TH {

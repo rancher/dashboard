@@ -11,10 +11,16 @@ export default {
       type:    String,
       default: 'text',
     },
+    hidePlaceholder: {
+      type:    Boolean,
+      default: true
+    }
   },
 
   data() {
-    return { actualPlaceholder: '' };
+    const actualPlaceholder = this.hidePlaceholder ? '' : this.placeholder;
+
+    return { actualPlaceholder };
   },
 
   methods: {
@@ -41,7 +47,9 @@ export default {
 
     onBlur() {
       this.onBlurLabeled();
-      this.actualPlaceholder = null;
+      if (this.hidePlaceholder) {
+        this.actualPlaceholder = null;
+      }
     }
   }
 };
@@ -83,6 +91,7 @@ export default {
         :type="type"
         :value="value"
         :placeholder="actualPlaceholder"
+        autocomplete="off"
         @input="$emit('input', $event.target.value)"
         @focus="onFocus"
         @blur="onBlur"
