@@ -180,11 +180,12 @@ module.exports = {
 
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
-    '/k8s': {
+    '/k8s':         {
       target:       api,
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      secure:       !dev,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -194,6 +195,7 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      secure:       !dev,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -203,6 +205,7 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      secure:       !dev,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -212,6 +215,7 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      secure:       !dev,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -221,6 +225,7 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      secure:       !dev,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -228,6 +233,7 @@ module.exports = {
     '/v3-public': {
       target: api,
       xfwd:   true,
+      secure: !dev,
       onProxyReq,
       onProxyReqWs,
       onError
@@ -235,6 +241,7 @@ module.exports = {
     '/api-ui':    {
       target: api,
       xfwd:   true,
+      secure: false,
       onProxyReq,
       onProxyReqWs,
       onError
