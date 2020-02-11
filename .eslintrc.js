@@ -16,16 +16,6 @@ module.exports = {
     '@nuxtjs',
     'plugin:nuxt/recommended',
   ],
-  overrides: [
-    {
-      files: ['**/*.ts', '**/*.tsx'],
-      parser: 'vue-eslint-parser',
-      parserOptions: {
-        parser: '@typescript-eslint/parser',
-        sourceType: 'module',
-      },
-    }
-  ],
   // add your custom rules here
   rules: {
     'dot-notation':             'off',
