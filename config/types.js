@@ -1,18 +1,39 @@
-export const SCHEMA = 'schema';
-export const COUNT = 'count';
-
-export const POD = 'core.v1.pod';
-export const NAMESPACE = 'core.v1.namespace';
 export const CONFIG_MAP = 'core.v1.configmap';
-export const SECRET = 'core.v1.secret';
+export const COUNT = 'count';
 export const EVENT = 'core.v1.event';
-export const RESOURCE_QUOTA = 'core.v1.resourcequota';
+export const NAMESPACE = 'core.v1.namespace';
 export const NODE = 'core.v1.node';
+export const POD = 'core.v1.pod';
+export const RESOURCE_QUOTA = 'core.v1.resourcequota';
+export const SCHEMA = 'schema';
+export const SECRET = 'core.v1.secret';
 export const SERVICE_ACCOUNT = 'core.v1.serviceaccount';
+
+export const ANNOTATION = {
+  DESCRIPTION:  'cattle.io/description',
+  TIMESTAMP:    'cattle.io/timestamp',
+  CERT_ISSUER:  'cert-manager.io/issuer-name',
+  SERVICE_ACCT: 'kubernetes.io/service-account.uid'
+};
 
 export const CLOUD = {
   CLUSTER:            'cloud.rio.rancher.io.v1.cluster',
   REGISTRATION_TOKEN: 'cloud.rio.rancher.io.v1.registrationtoken',
+};
+
+export const RANCHER = {
+  AUTH_CONFIG: 'authconfig',
+  PRINCIPAL:   'principal',
+  USER:        'user',
+  PREFERENCE:  'preference',
+  SETTING:     'setting',
+};
+
+export const RBAC = {
+  ROLES:                 'rbac.authorization.k8s.io.v1.role',
+  CLUSTER_ROLES:         'rbac.authorization.k8s.io.v1.clusterrole',
+  ROLE_BINDINGS:         'rbac.authorization.k8s.io.v1.rolebinding',
+  CLUSTER_ROLE_BINDINGS: 'rbac.authorization.k8s.io.v1.clusterrolebinding',
 };
 
 export const RIO = {
@@ -32,19 +53,4 @@ export const RIO = {
   TASK_RUN:         'tekton.dev.v1alpha1.taskruns',
 
   USER: 'management.cattle.io.v3.user'
-};
-
-export const RANCHER = {
-  AUTH_CONFIG: 'authconfig',
-  PRINCIPAL:   'principal',
-  USER:        'user',
-  PREFERENCE:  'preference',
-  SETTING:     'setting',
-};
-
-export const ANNOTATION = {
-  DESCRIPTION:  'cattle.io/description',
-  TIMESTAMP:    'cattle.io/timestamp',
-  CERT_ISSUER:  'cert-manager.io/issuer-name',
-  SERVICE_ACCT: 'kubernetes.io/service-account.uid'
 };

@@ -66,7 +66,7 @@ module.exports = {
 
   build: {
     publicPath: resourceBase,
-    extend(config, { isClient }) {
+    extend(config, { isClient, isDev }) {
       config.devtool = isClient ? 'source-map' : 'inline-source-map';
 
       if ( resourceBase ) {
@@ -78,6 +78,16 @@ module.exports = {
         loader:  'js-yaml-loader',
         options: { name: '[path][name].[ext]' },
       });
+
+      // Run ESLint on save
+      if (isDev && isClient) {
+        config.module.rules.push({
+          enforce: 'pre',
+          test:    /\.(js|vue)$/,
+          loader:  'eslint-loader',
+          exclude: /(node_modules)/
+        });
+      }
     },
     //    extractCSS: true,
     cssSourceMap: true,
@@ -170,11 +180,12 @@ module.exports = {
 
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
-    '/k8s': {
+    '/k8s':         {
       target:       api,
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      secure:       !dev,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -184,6 +195,7 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      secure:       !dev,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -193,6 +205,7 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      secure:       !dev,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -202,6 +215,7 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      secure:       !dev,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -211,6 +225,7 @@ module.exports = {
       xfwd:         true,
       ws:           true,
       changeOrigin: true,
+      secure:       !dev,
       onProxyReq,
       onProxyReqWs,
       onError,
@@ -218,6 +233,7 @@ module.exports = {
     '/v3-public': {
       target: api,
       xfwd:   true,
+      secure: !dev,
       onProxyReq,
       onProxyReqWs,
       onError
@@ -225,6 +241,7 @@ module.exports = {
     '/api-ui':    {
       target: api,
       xfwd:   true,
+      secure: false,
       onProxyReq,
       onProxyReqWs,
       onError

@@ -24,7 +24,7 @@ export async function asyncData(ctx) {
 
   let fqid = id;
 
-  if ( schema.attributes.namespaced ) {
+  if ( schema.attributes.namespaced && namespace ) {
     fqid = `${ namespace }/${ fqid }`;
   }
 
@@ -168,6 +168,10 @@ export default {
         elem:      this.$refs.actions,
       });
     },
+
+    goBack() {
+      window.history.length > 1 ? this.$router.go(-1) : this.$router.push('/');
+    }
   }
 };
 </script>
@@ -189,9 +193,14 @@ export default {
           <span v-if="realMode === 'edit'">Edit {{ typeDisplay }}:&nbsp;</span>
           <span v-else-if="realMode === 'stage'">Stage from {{ typeDisplay }}:&nbsp;</span>
           <span v-else-if="realMode === 'clone'">Clone from {{ typeDisplay }}:&nbsp;</span>
-          <nuxt-link v-else v-trim-whitespace :to="parentLink">
+          <a
+            v-else
+            v-trim-whitespace
+            href="#"
+            @click.prevent="goBack"
+          >
             {{ typeDisplay }}:&nbsp;
-          </nuxt-link>{{ originalModel.nameDisplay }}
+          </a>{{ originalModel.nameDisplay }}
         </h1>
         <div v-if="isView" class="actions">
           <button ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">

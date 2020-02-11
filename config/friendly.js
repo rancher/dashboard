@@ -1,5 +1,5 @@
 import {
-  CONFIG_MAP, SECRET, RIO, NAMESPACE, NODE
+  CONFIG_MAP, SECRET, RIO, NAMESPACE, NODE, RBAC
 } from '@/config/types';
 import {
   STATE, NAME, NAMESPACE_NAME, NAMESPACE_NAME_IMAGE, AGE,
@@ -10,7 +10,8 @@ import {
   NODE_NAME, ROLES,
   VERSION, CPU,
   RAM, PODS,
-  CREATED
+  CREATED,
+  BUILT_IN, CLUSTER_CREATOR_DEFAULT
 } from '@/config/table-headers';
 import { _CREATE, _CLONE, _STAGE } from '@/config/query-params';
 
@@ -206,7 +207,35 @@ export const FRIENDLY = {
       USER_DISPLAY_NAME,
       USER_ID
     ]
+  },
+
+  [RBAC.ROLES]: {
+    singular:  'Role',
+    plural:    'Roles',
+    type:      RBAC.ROLES,
+    hasDetail: true,
+    headers:   [
+      STATE,
+      NAME,
+      BUILT_IN,
+      AGE
+    ]
+  },
+
+  [RBAC.CLUSTER_ROLES]: {
+    singular:  'Cluster Role',
+    plural:    'Cluster Roles',
+    type:      RBAC.CLUSTER_ROLES,
+    hasDetail: true,
+    headers:   [
+      STATE,
+      NAME,
+      BUILT_IN,
+      CLUSTER_CREATOR_DEFAULT,
+      AGE
+    ]
   }
+
 };
 
 export const TO_FRIENDLY = {};

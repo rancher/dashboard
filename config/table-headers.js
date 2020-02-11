@@ -322,6 +322,91 @@ export const VALUE = {
   sort:      ['value'],
   formatter: 'ClickExpand'
 };
+
+export const BUILT_IN = {
+  name:      'builtIn',
+  label:     'Built In',
+  value:     'builtIn',
+  sort:      ['builtIn'],
+  align:     'center',
+  formatter: 'IconIsDefault'
+};
+
+export const CLUSTER_CREATOR_DEFAULT = {
+  name:      'default',
+  label:     'Cluster Creator Default',
+  value:     'default',
+  sort:      ['Default'],
+  align:     'center',
+  formatter:  'IconIsDefault'
+};
+
+export const RBAC_HEADERS = [
+  {
+    name:      'create',
+    label:     'Create',
+    value:     'create',
+    align:     'center',
+    formatter: 'IconIsDefault',
+  },
+  {
+    name:      'delete',
+    label:     'Delete',
+    value:     'delete',
+    align:     'center',
+    formatter: 'IconIsDefault',
+  },
+  {
+    name:      'get',
+    label:     'Get',
+    value:     'get',
+    align:     'center',
+    formatter: 'IconIsDefault',
+  },
+  {
+    name:      'list',
+    label:     'List',
+    value:     'list',
+    align:     'center',
+    formatter: 'IconIsDefault',
+  },
+  {
+    name:      'patch',
+    label:     'Patch',
+    value:     'patch',
+    align:     'center',
+    formatter: 'IconIsDefault',
+  },
+  {
+    name:      'update',
+    label:     'Update',
+    value:     'update',
+    align:     'center',
+    formatter: 'IconIsDefault',
+  },
+  {
+    name:      'watch',
+    label:     'Watch',
+    value:     'watch',
+    align:     'center',
+    formatter: 'IconIsDefault',
+  }
+];
+
+export const RESOURCE = {
+  name:  'resource',
+  label: 'Resource',
+  value: 'resource',
+  sort:  ['resourceNames']
+};
+
+export const API_GROUP = {
+  name:  'apigroups',
+  label: 'API Groups',
+  value: 'apiGroups',
+  sort:  ['apiGroups']
+};
+
 export function headersFor(schema) {
   const out = [];
   const attributes = schema.attributes || {};

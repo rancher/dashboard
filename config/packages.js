@@ -1,7 +1,7 @@
 import { ucFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { findBy } from '@/utils/array';
-import { CONFIG_MAP, /* NODE,  */RIO, SECRET } from '@/config/types';
+import { CONFIG_MAP, /* NODE, RBAC */RIO, SECRET } from '@/config/types';
 
 let routerBase = null;
 
@@ -239,8 +239,35 @@ export function settingsPackage($router, counts, namespaces) {
         name:    'users',
         count:   countFor(RIO.USER),
         label:   'Users',
-        route:   linkFor('users'),
-      },
+        route:   linkFor('users')
+      }
+    ]
+  };
+
+  return out;
+}
+
+export function rbacResource($router, counts, namespaces) {
+  // function linkFor(name = 'rbac-resource', resource) {
+  //   return {
+  //     name,
+  //     params: { resource }
+  //   };
+  // }
+
+  // function countFor(type) {
+  //   return _countFor(counts, type, namespaces);
+  // }
+
+  const out = {
+    name:     'rbac',
+    label:    'RBAC',
+    children: [
+      {
+        label:   'Roles',
+        name:    'roles',
+        route:   { name: 'rbac-roles' }
+      }
     ]
   };
 

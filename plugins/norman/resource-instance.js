@@ -462,7 +462,7 @@ export default {
       if (this._type) {
         this.type = this._type;
       }
-      
+
       opt.data = this;
 
       const res = await this.$dispatch('request', opt);
@@ -511,10 +511,18 @@ export default {
     const currentRoute = this.currentRoute().name;
     const router = this.currentRouter();
     const schema = this.$getters['schemaFor'](this.type);
-    let route, params;
+    let params, route, friendly;
 
-    if ( currentRoute.startsWith('rio-') ) {
-      const friendly = TO_FRIENDLY[this.type.replace(/^rio-/i, '')];
+    if (currentRoute.startsWith('explorer-group-')) {
+      route = `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+      params = {
+        group:     schema.groupName,
+        resource:  this.type,
+        namespace: this.metadata && this.metadata.namespace,
+        id:        this.metadata.name
+      };
+    } else if (currentRoute.startsWith('rio-')) {
+      friendly = TO_FRIENDLY[this.type.replace(/^rio-/i, '')];
 
       if ( friendly ) {
         route = `rio-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
@@ -524,12 +532,16 @@ export default {
           id:        this.metadata.name
         };
       }
-    }
+    } else if (currentRoute.startsWith('rbac')) {
+      route = `rbac-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
 
-    if ( !route ) {
-      route = `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
       params = {
-        group:     schema.groupName,
+        resource:  this.type,
+        namespace: this.metadata && this.metadata.namespace,
+        id:        this.metadata.name
+      };
+    } else {
+      params = {
         resource:  this.type,
         namespace: this.metadata && this.metadata.namespace,
         id:        this.metadata.name
