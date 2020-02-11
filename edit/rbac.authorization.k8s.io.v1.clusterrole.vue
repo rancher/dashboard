@@ -3,6 +3,7 @@ import RbacPermissions from '@/components/RbacPermissions';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Footer from '@/components/form/Footer';
+import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 
 /**
@@ -14,6 +15,7 @@ export default {
 
   components: {
     Footer,
+    LabeledInput,
     NameNsDescription,
     RadioGroup,
     RbacPermissions,
@@ -51,7 +53,16 @@ export default {
       :mode="mode"
       name-label="Name"
       :register-before-hook="registerBeforeHook"
-    />
+    >
+      <template v-slot:namespace>
+        <LabeledInput
+          key="name"
+          v-model="value.metadata.name"
+          label="Name"
+          :mode="mode"
+        />
+      </template>
+    </NameNsDescription>
 
     <div class="spacer"></div>
 
