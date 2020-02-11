@@ -210,8 +210,8 @@ export const FRIENDLY = {
   },
 
   [RBAC.ROLES]: {
-    singular:  'Global Role',
-    plural:    'Global Roles',
+    singular:  'Role',
+    plural:    'Roles',
     type:      RBAC.ROLES,
     hasDetail: true,
     headers:   [

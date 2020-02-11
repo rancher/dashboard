@@ -7,11 +7,11 @@ import { ANNOTATION } from '@/config/types';
 import { FRIENDLY } from '@/config/friendly';
 
 /**
- * Detail view for RBAC Global Role
-   @displayName RBAC Cluster Role Detail
+ * Detail view for RBAC Role
+   @displayName RBAC Role Detail
  */
 export default {
-  name: 'DetailGlobalRole',
+  name: 'DetailRole',
 
   components: {
     DetailTop,

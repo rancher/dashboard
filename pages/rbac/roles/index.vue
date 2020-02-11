@@ -5,11 +5,11 @@ import { RBAC } from '@/config/types';
 import TabbedLinks from '@/components/TabbedLinks';
 
 /**
- * RBAC Global Roles Index Table view 
-   @displayName RBAC Global Role Index
+ * RBAC Roles Index Table view
+ * @displayName RBAC Role Index
  */
 export default {
-  name: 'RBACGlobalIndex',
+  name: 'RBACIndex',
 
   components: {
     ResourceTable,
@@ -18,10 +18,10 @@ export default {
 
   props: {
     /**
-     * Global roles
+     * Roles
      * @model
      */
-    globalRows: {
+    roleRows: {
       type:     Array,
       required: true,
       default:  () => []
@@ -53,7 +53,7 @@ export default {
     /**
      * Returns RBAC Cluster Role Schmea
      */
-    globalSchema() {
+    rolesSchema() {
       return this.$store.getters['cluster/schemaFor'](RBAC.ROLES);
     },
     /**
@@ -69,7 +69,7 @@ export default {
   <div>
     <header>
       <h1>
-        Roles - Global
+        Roles
       </h1>
       <div class="actions">
         <nuxt-link
@@ -84,7 +84,7 @@ export default {
       </div>
     </header>
     <TabbedLinks :tab-list="tabList">
-      <ResourceTable :rows="globalRows" :schema="globalSchema" :headers="headers" />
+      <ResourceTable :rows="roleRows" :schema="rolesSchema" :headers="headers" />
     </TabbedLinks>
   </div>
 </template>

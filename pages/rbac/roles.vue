@@ -8,19 +8,19 @@ import Loading from '@/components/Loading';
 /* route in this case is the nested route under rbac/roles/<global/cluster> */
 const Tabs = [
   {
-    label:     'Global Roles',
-    name:      'global',
-    route:     'global',
+    label:     'Roles',
+    name:      'role',
+    route:     { name: 'rbac-roles' },
   },
   {
     label:     'Cluster Roles',
     name:      'cluster',
-    route:     'cluster',
+    route:     { name: 'rbac-roles-cluster' },
   },
 ];
 
 /**
- * Parent container for Cluster/Global role resources
+ * Parent container for Roles/ClusterRole role resources
    @displayName RBAC Resource
  */
 export default {
@@ -36,15 +36,15 @@ export default {
 
   methods: {
     /**
-     * Returns global and cluster rows ( ansync )
+     * Returns roles and cluster roles rows ( ansync )
      */
     async loadDeps() {
       const hash = await allHash({
-        globalRows:  this.$store.dispatch('cluster/findAll', { type: RBAC.ROLES }),
+        roleRows:    this.$store.dispatch('cluster/findAll', { type: RBAC.ROLES }),
         clusterRows: this.$store.dispatch('cluster/findAll', { type: RBAC.CLUSTER_ROLES }),
       });
 
-      this.globalRows = hash.globalRows;
+      this.roleRows = hash.roleRows;
       this.clusterRows = hash.clusterRows;
     },
   },
@@ -58,7 +58,7 @@ export default {
     </div>
     <div v-else>
       <nuxt-child
-        :global-rows="globalRows"
+        :role-rows="roleRows"
         :cluster-rows="clusterRows"
         :tab-list="tabs"
       />

@@ -266,7 +266,7 @@ export function rbacResource($router, counts, namespaces) {
       {
         label:   'Roles',
         name:    'roles',
-        route:   { name: 'rbac-roles-global' }/*  */
+        route:   { name: 'rbac-roles' }
       }
     ]
   };

@@ -7,11 +7,11 @@ import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 
 /**
- * Edit view for RBAC Global Role
-   @displayName Edit RBAC Global Role
+ * Edit view for RBAC Role
+   @displayName Edit RBAC Role
  */
 export default {
-  name: 'CruGlobalRole',
+  name: 'CruRole',
 
   components: {
     Footer,
@@ -37,10 +37,10 @@ export default {
 
   methods: {
     /**
-     * Sends the user back to global roles page after save is finished
+     * Sends the user back to roles page after save is finished
      */
     done() {
-      this.$router.replace({ name: 'rbac-roles-global' });
+      this.$router.replace({ name: 'rbac-roles' });
     }
   },
 };
