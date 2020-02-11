@@ -462,7 +462,7 @@ export default {
       if (this._type) {
         this.type = this._type;
       }
-      
+
       opt.data = this;
 
       const res = await this.$dispatch('request', opt);

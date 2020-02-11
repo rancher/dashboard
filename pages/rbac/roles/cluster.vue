@@ -5,7 +5,7 @@ import { RBAC } from '@/config/types';
 import TabbedLinks from '@/components/TabbedLinks';
 
 /**
- * RBAC Cluster Roles Index Table view 
+ * RBAC Cluster Roles Index Table view
    @displayName RBAC Cluster Role Index
  */
 export default {

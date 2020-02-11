@@ -111,7 +111,7 @@ t>
         </span>
       </template>
     </DetailTop>
-    
+
     <div class="spacer"></div>
 
     <div class="row mt-50">
