@@ -3,7 +3,8 @@ import { sortBy } from '@/utils/sort';
 import { get } from '@/utils/object';
 import { escapeRegex } from '@/utils/string';
 import { NAMESPACES } from '@/store/prefs';
-import { NAMESPACE, ANNOTATION } from '@/config/types';
+import { NAMESPACE } from '@/config/types';
+import { DESCRIPTION } from '@/config/labels-annotations';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
 import InputWithSelect from '@/components/form/InputWithSelect';
@@ -59,7 +60,7 @@ export default {
     }
 
     if ( !metadata.annotations ) {
-      metadata.annotations = { [ANNOTATION.DESCRIPTION]: '' };
+      metadata.annotations = { [DESCRIPTION]: '' };
     }
 
     if ( !metadata.namespace) {
@@ -81,7 +82,7 @@ export default {
 
     return {
       name,
-      ANNOTATION_DESCRIPTION: ANNOTATION.DESCRIPTION,
+      ANNOTATION_DESCRIPTION: DESCRIPTION,
       createNS:               false,
       toCreate:               '',
       addDescription:         false
@@ -118,7 +119,7 @@ export default {
       return `span-${ span }`;
     },
     description() {
-      return get(this.value, `metadata.annotations[${ ANNOTATION.DESCRIPTION }]`);
+      return get(this.value, `metadata.annotations[${ DESCRIPTION }]`);
     },
     wantDescription() {
       return !!this.description || this.addDescription;

@@ -4,6 +4,7 @@ import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 
 export const plugins = [
+  Norman({ namespace: 'management', baseUrl: '/v1' }),
   Norman({ namespace: 'cluster', baseUrl: '/k8s/clusters/local/v1' }), // @TODO cluster-specific URL
   Norman({ namespace: 'rancher', baseUrl: '/v3' })
 ];
@@ -73,6 +74,7 @@ export const actions = {
       dispatch('prefs/loadCookies'),
       // ctx.store.dispatch('k8s/loadAll'),
       dispatch('rancher/findAll', { type: RANCHER.PRINCIPAL, opt: { url: 'principals' } }),
+      dispatch('management/loadSchemas'),
       dispatch('cluster/loadSchemas'),
       dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
       dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })

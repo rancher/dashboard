@@ -4,7 +4,7 @@ import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import ResourceTable from '@/components/ResourceTable';
 import { SCHEMA } from '@/config/types';
-import { RIO_STACK } from '@/config/labels';
+import { RIO } from '@/config/labels-annotations';
 import { TO_FRIENDLY } from '@/config/friendly';
 
 export default {
@@ -34,7 +34,7 @@ export default {
 
         const relevant = filterBy(all, {
           'metadata.namespace':                 this.value.metadata.namespace,
-          [`metadata.labels.'${ RIO_STACK }'`]: this.value.metadata.name,
+          [`metadata.labels.'${ RIO.STACK }'`]: this.value.metadata.name,
         });
 
         map[schema.id] = relevant;

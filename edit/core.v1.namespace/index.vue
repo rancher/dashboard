@@ -7,7 +7,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import ResourceQuota from '@/edit/core.v1.namespace/ResourceQuota';
 import Footer from '@/components/form/Footer';
 import LabelsAndAnnotationsEditor from '@/components/LabelsAndAnnotations/Editor';
-import { ANNOTATION } from '@/config/types';
+import { DESCRIPTION } from '@/config/labels-annotations';
 
 export default {
   components: {
@@ -20,11 +20,12 @@ export default {
 
     if (!!this.originalValue) {
       originalQuotaID = `${ this.originalValue.metadata.name }/default-quota`;
-      const orignalAnnotations = get(this.originalValue, 'metadata.annotations');
+      const originalAnnotations = get(this.originalValue, 'metadata.annotations');
 
-      if (orignalAnnotations) {
-        description = orignalAnnotations[ANNOTATION.DESCRIPTION];
+      if (originalAnnotations) {
+        description = originalAnnotations[DESCRIPTION];
       }
+
       this.value.metadata.annotations = this.originalValue.metadata.annotations ? JSON.parse(JSON.stringify(this.originalValue.metadata.annotations)) : {};
       this.value.metadata.labels = this.originalValue.metadata.labels ? JSON.parse(JSON.stringify(this.originalValue.metadata.labels)) : {};
     }
@@ -53,16 +54,16 @@ export default {
       get() {
         const all = get(this.value, 'metadata.annotations');
 
-        return omit(all, [ANNOTATION.DESCRIPTION]);
+        return omit(all, [DESCRIPTION]);
       },
       set(annotations) {
-        this.$set(this.value.metadata, 'annotations', { ...annotations, [ANNOTATION.DESCRIPTION]: this.description });
+        this.$set(this.value.metadata, 'annotations', { ...annotations, [DESCRIPTION]: this.description });
       }
     },
   },
   watch: {
     description(description) {
-      this.value.metadata.annotations[ANNOTATION.DESCRIPTION] = description;
+      this.value.metadata.annotations[DESCRIPTION] = description;
     },
     name(name) {
       this.value.metadata.name = name;

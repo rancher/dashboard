@@ -1,6 +1,6 @@
 <script>
 import { get } from '@/utils/object';
-import { ANNOTATION } from '@/config/types';
+import { CERTMANAGER, DESCRIPTION } from '@/config/labels-annotations';
 import { DOCKER_JSON } from '@/models/core.v1.secret';
 import DetailTop from '@/components/DetailTop';
 import SortableTable from '@/components/SortableTable';
@@ -63,12 +63,12 @@ export default {
     issuer() {
       const { metadata:{ annotations = {} } } = this.value;
 
-      return annotations[ANNOTATION.CERT_ISSUER];
+      return annotations[CERTMANAGER.ISSUER];
     },
     description() {
       const { metadata:{ annotations = {} } } = this.value;
 
-      return annotations[ANNOTATION.DESCRIPTION];
+      return annotations[DESCRIPTION];
     },
     detailTopColumns() {
       const columns = [

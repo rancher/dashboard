@@ -3,7 +3,7 @@ import createEditView from '@/mixins/create-edit-view';
 import DetailTop from '@/components/DetailTop';
 import VStack from '@/components/Layout/Stack/VStack';
 import TableRbacRules from '@/components/TableRbacRules';
-import { ANNOTATION } from '@/config/types';
+import { DESCRIPTION } from '@/config/labels-annotations';
 import { FRIENDLY } from '@/config/friendly';
 
 /**
@@ -45,7 +45,7 @@ export default {
     description() {
       const { metadata:{ annotations = {} } } = this.value;
 
-      return annotations[ANNOTATION.DESCRIPTION];
+      return annotations[DESCRIPTION];
     },
     /**
      * Returns columns for the detail top

@@ -9,18 +9,6 @@ export const SCHEMA = 'schema';
 export const SECRET = 'core.v1.secret';
 export const SERVICE_ACCOUNT = 'core.v1.serviceaccount';
 
-export const ANNOTATION = {
-  DESCRIPTION:  'cattle.io/description',
-  TIMESTAMP:    'cattle.io/timestamp',
-  CERT_ISSUER:  'cert-manager.io/issuer-name',
-  SERVICE_ACCT: 'kubernetes.io/service-account.uid'
-};
-
-export const CLOUD = {
-  CLUSTER:            'cloud.rio.rancher.io.v1.cluster',
-  REGISTRATION_TOKEN: 'cloud.rio.rancher.io.v1.registrationtoken',
-};
-
 export const RANCHER = {
   AUTH_CONFIG: 'authconfig',
   PRINCIPAL:   'principal',
