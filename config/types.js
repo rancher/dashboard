@@ -24,6 +24,8 @@ export const NORMAN = {
   SETTING:     'setting',
 };
 
+export const PROJECT = { APPS: 'project.cattle.io.v3.app' };
+
 // New Rancher API via Steve, /v1
 export const RANCHER = {
   CLUSTER: 'management.cattle.io.v3.cluster',
