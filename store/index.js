@@ -5,6 +5,8 @@ import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 import { allHash } from '@/utils/promise';
 import { ClusterNotFoundError } from '@/utils/error';
 
+// export const strict = false;
+
 export const plugins = [
   Steve({ namespace: 'management', baseUrl: '/v1' }),
   Steve({ namespace: 'cluster', baseUrl: '/k8s/clusters/local/v1' }), // @TODO cluster-specific URL
@@ -143,10 +145,23 @@ export const actions = {
 
     dispatch('cluster/subscribe');
 
+<<<<<<< HEAD
     const res = await allHash({
       counts:     dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
       namespaces: dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })
     });
+=======
+    await Promise.all([
+      dispatch('prefs/loadCookies'),
+      // ctx.store.dispatch('k8s/loadAll'),
+      dispatch('rancher/findAll', { type: RANCHER.PRINCIPAL, opt: { url: 'principals' } }),
+      dispatch('cluster/loadSchemas'),
+      dispatch('management/loadSchemas', { opt: { url: 'schemas' } }),
+      dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
+      dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })
+      //      dispatch('cluster/findAll', { type: POD, opt: { url: 'core.v1.pods' } }),
+    ]);
+>>>>>>> Expose managment cluster
 
     commit('updateNamespaces', {
       selected: getters['prefs/get'](NAMESPACES),
