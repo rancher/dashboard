@@ -4,7 +4,7 @@ import { ADD_SIDECAR, _FLAGGED, MODE, _STAGE } from '@/config/query-params';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { addParams } from '@/utils/url';
-import { PRIVATE } from '@/plugins/norman/resource-proxy';
+import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import { RIO } from '@/config/types';
 import { formatSi } from '@/utils/units';
 import { get } from '@/utils/object';

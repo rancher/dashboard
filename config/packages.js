@@ -1,7 +1,7 @@
 import { ucFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { findBy } from '@/utils/array';
-import { CONFIG_MAP, /* NODE, RBAC */RIO, SECRET } from '@/config/types';
+import { CONFIG_MAP, RANCHER, RIO, SECRET } from '@/config/types';
 
 let routerBase = null;
 
@@ -237,7 +237,7 @@ export function settingsPackage($router, counts, namespaces) {
     children: [
       {
         name:    'users',
-        count:   countFor(RIO.USER),
+        count:   countFor(RANCHER.USER),
         label:   'Users',
         route:   linkFor('users')
       }

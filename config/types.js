@@ -1,3 +1,4 @@
+
 export const CONFIG_MAP = 'core.v1.configmap';
 export const COUNT = 'count';
 export const EVENT = 'core.v1.event';
@@ -9,12 +10,17 @@ export const SCHEMA = 'schema';
 export const SECRET = 'core.v1.secret';
 export const SERVICE_ACCOUNT = 'core.v1.serviceaccount';
 
-export const RANCHER = {
+export const NORMAN = {
   AUTH_CONFIG: 'authconfig',
   PRINCIPAL:   'principal',
   USER:        'user',
   PREFERENCE:  'preference',
   SETTING:     'setting',
+};
+
+export const RANCHER = {
+  CLUSTER: 'management.cattle.io.v3.cluster',
+  USER:    'management.cattle.io.v3.user'
 };
 
 export const RBAC = {
@@ -38,7 +44,4 @@ export const RIO = {
 
   SYSTEM_NAMESPACE: 'rio-system',
 
-  TASK_RUN:         'tekton.dev.v1alpha1.taskruns',
-
-  USER: 'management.cattle.io.v3.user'
 };

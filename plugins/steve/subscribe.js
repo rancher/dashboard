@@ -15,6 +15,12 @@ export const actions = {
     const { state, commit, dispatch } = ctx;
     let socket = state.socket;
 
+    commit('setWantSocket', true);
+
+    if ( process.server ) {
+      return;
+    }
+
     if ( !socket ) {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`);
 
@@ -51,16 +57,20 @@ export const actions = {
   unsubscribe({ state, commit }) {
     const socket = state.socket;
 
+    commit('setWantSocket', false);
+
     if ( socket ) {
       socket.disconnect();
     }
   },
 
-  watchType({ dispatch, getters }, { type, revision }) {
-    if ( !process.client ) {
-      return;
+  rehydrateSubscribe({ state, dispatch }) {
+    if ( process.client && state.wantSocket && !state.socket ) {
+      dispatch('subscribe');
     }
+  },
 
+  watchType({ dispatch, getters }, { type, revision }) {
     type = normalizeType(type);
 
     if ( NO_WATCHING.includes(type) ) {
@@ -74,6 +84,7 @@ export const actions = {
     return dispatch('send', { resourceType: type, revision });
   },
 
+  /* Should be no longer needed because of enqueuePending / rehydrateSubscribe
   watchHaveAllTypes({ state, dispatch }) {
     const promises = [];
     const cache = state.types;
@@ -86,14 +97,23 @@ export const actions = {
 
     return Promise.all(promises);
   },
+  */
 
-  async opened({ commit, dispatch }, event) {
+  opened({ commit, dispatch, state }, event) {
     console.log('WebSocket Opened');
     const socket = event.currentTarget;
 
     this.$socket = socket;
 
-    await dispatch('watchHaveAllTypes');
+    // await dispatch('watchHaveAllTypes');
+
+    // Try resending any frames that were attempted to be sent while the socket was down, once.
+    if ( !process.server ) {
+      for ( const obj of state.pendingSends.slice() ) {
+        commit('dequeuePending', obj);
+        dispatch('sendImmediate', obj);
+      }
+    }
   },
 
   closed({ commit }, event) {
@@ -104,11 +124,17 @@ export const actions = {
     console.log('WebSocket Error', event);
   },
 
-  send({ state }, obj) {
+  send({ state, commit }, obj) {
     if ( state.socket ) {
       return state.socket.send(JSON.stringify(obj));
-    } else {
-      console.log('Socket is not up yet', obj);
+    } else if ( state.wantSocket ) {
+      commit('enqueuePending', obj);
+    }
+  },
+
+  sendImmediate({ state, commit }, obj) {
+    if ( state.socket ) {
+      return state.socket.send(JSON.stringify(obj));
     }
   },
 

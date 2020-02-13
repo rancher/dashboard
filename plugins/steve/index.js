@@ -8,7 +8,7 @@ import { proxyFor } from './resource-proxy';
 import { keyFieldFor } from './normalize';
 import { isArray } from '@/utils/array';
 
-function NormanFactory(namespace, baseUrl) {
+function SteveFactory(namespace, baseUrl) {
   return {
     namespaced: true,
 
@@ -18,8 +18,10 @@ function NormanFactory(namespace, baseUrl) {
           baseUrl,
           namespace
         },
-        types:  {},
-        socket: null,
+        types:        {},
+        socket:       null,
+        wantSocket:   false,
+        pendingSends: [],
       };
     },
 
@@ -41,7 +43,7 @@ export default (config = {}) => {
   config.baseUrl = config.baseUrl || `/${ namespace }`;
 
   return function(store) {
-    const inst = NormanFactory(namespace, config.baseUrl);
+    const inst = SteveFactory(namespace, config.baseUrl);
 
     store.registerModule(namespace, inst);
     store.commit(`${ namespace }/applyConfig`, config);
@@ -50,11 +52,11 @@ export default (config = {}) => {
       return;
     }
 
-    store.subscribe(({ type }, state) => {
-      if ( type === 'auth/loggedOut' ) {
-        store.dispatch(`${ namespace }/unsubscribe`);
-      }
-    });
+    // store.subscribe(({ type }, state) => {
+    //   if ( type === 'auth/loggedOut' ) {
+    //     store.dispatch(`${ namespace }/unsubscribe`);
+    //   }
+    // });
 
     const module = store._modules.root._children[namespace];
     const fromServer = window.__NUXT__;

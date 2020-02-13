@@ -5,7 +5,7 @@ import CopyCode from '@/components/CopyCode';
 import CopyToClipboard from '@/components/CopyToClipboard';
 import AsyncButton from '@/components/AsyncButton';
 import { SETUP, STEP, _DELETE } from '@/config/query-params';
-import { RANCHER } from '@/config/types';
+import { NORMAN } from '@/config/types';
 import { open, popupWindowOptions } from '@/utils/window';
 import { findBy, filterBy, addObject, removeObject } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
@@ -60,19 +60,19 @@ export default {
     const password = randomStr();
 
     const firstLoginSetting = await store.dispatch('rancher/find', {
-      type: RANCHER.SETTING,
+      type: NORMAN.SETTING,
       id:   'first-login',
       opt:  { url: '/v3/settings/first-login' }
     });
 
     const telemetrySetting = await store.dispatch('rancher/find', {
-      type: RANCHER.SETTING,
+      type: NORMAN.SETTING,
       id:   'telemetry-opt',
       opt:  { url: '/v3/settings/telemetry-opt' }
     });
 
     let githubConfig = await store.dispatch('rancher/find', {
-      type: RANCHER.AUTH_CONFIG,
+      type: NORMAN.AUTH_CONFIG,
       id:   'github',
       opt:  { url: '/v3/authConfigs/github' }
     });
@@ -80,7 +80,7 @@ export default {
     githubConfig = await store.dispatch('rancher/clone', { resource: githubConfig });
 
     const principals = await store.dispatch('rancher/findAll', {
-      type: RANCHER.PRINCIPAL,
+      type: NORMAN.PRINCIPAL,
       opt:  { url: '/v3/principals' }
     });
 
@@ -242,13 +242,13 @@ export default {
         });
 
         const githubConfig = await this.$store.dispatch('rancher/find', {
-          type: RANCHER.AUTH_CONFIG,
+          type: NORMAN.AUTH_CONFIG,
           id:   'github',
           opt:  { url: '/v3/authConfigs/github', force: true }
         });
 
         this.principals = await this.$store.dispatch('rancher/findAll', {
-          type: RANCHER.PRINCIPAL,
+          type: NORMAN.PRINCIPAL,
           opt:  { url: '/v3/principals', force: true }
         });
 

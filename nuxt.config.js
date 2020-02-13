@@ -164,7 +164,7 @@ module.exports = {
     '@nuxtjs/eslint-module',
     'cookie-universal-nuxt',
     'portal-vue/nuxt',
-    '~/plugins/norman/rehydrate-all',
+    '~/plugins/steve/rehydrate-all',
   ],
 
   // Vue plugins

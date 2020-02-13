@@ -13,7 +13,7 @@ import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
-import { COUNT, RANCHER } from '@/config/types';
+import { COUNT, NORMAN } from '@/config/types';
 
 export default {
 
@@ -41,13 +41,15 @@ export default {
   data() {
     return { packages: [] };
   },
+
   computed: {
-    ...mapState(['preloaded']),
+    ...mapState(['managementReady', 'clusterReady']),
+
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
 
     principal() {
-      return this.$store.getters['rancher/byId'](RANCHER.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
+      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
 
     counts() {
@@ -109,7 +111,7 @@ export default {
         });
     },
 
-    async getPackages() {
+    /* async */ getPackages() {
       const namespaces = this.$store.getters['namespaces'] || [];
       const counts = this.counts;
 
@@ -124,7 +126,8 @@ export default {
         settingsPackage(this.$router, counts, namespaces),
         rbacResource(this.$router, counts, namespaces)
       ];
-      const hasServiceMesh = await this.checkForMesh();
+
+      const hasServiceMesh = false; // await this.checkForMesh();
 
       if (hasServiceMesh) {
         out[0].children.unshift( {
@@ -160,12 +163,12 @@ export default {
 </script>
 
 <template>
-  <div v-if="preloaded" class="dashboard-root">
+  <div v-if="managementReady" class="dashboard-root">
     <div class="switcher">
       <img src="~/assets/images/logo.svg" class="logo" alt="Logo" height="30" />
     </div>
 
-    <div class="top">
+    <div v-if="clusterReady" class="top">
       <NamespaceFilter />
     </div>
 
@@ -198,7 +201,7 @@ export default {
       </v-popover>
     </div>
 
-    <nav>
+    <nav v-if="clusterReady">
       <div v-for="pkg in packages" :key="pkg.name" class="package">
         <Group
           :key="pkg.name"

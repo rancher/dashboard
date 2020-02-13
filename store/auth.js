@@ -223,6 +223,6 @@ export const actions = {
     }
 
     commit('loggedOut');
-    dispatch('clearNorman', null, { root: true });
+    dispatch('onLogout', null, { root: true });
   }
 };

@@ -102,5 +102,18 @@ export default {
 
   removeAll(state) {
     state.types = {};
+  },
+
+  setWantSocket(state, want) {
+    console.log('wantSocket:', want);
+    state.wantSocket = want;
+  },
+
+  enqueuePending(state, obj) {
+    state.pendingSends.push(obj);
+  },
+
+  dequeuePending(state, obj) {
+    removeObject(state.pendingSends, obj);
   }
 };

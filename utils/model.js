@@ -1,4 +1,4 @@
-import { normalizeType } from '@/plugins/norman/normalize';
+import { normalizeType } from '@/plugins/steve/normalize';
 
 const cache = {};
 

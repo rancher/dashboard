@@ -1,5 +1,5 @@
 <script>
-import { cleanForNew } from '@/plugins/norman/normalize';
+import { cleanForNew } from '@/plugins/steve/normalize';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceYaml from '@/components/ResourceYaml';
 import { FRIENDLY } from '@/config/friendly';
