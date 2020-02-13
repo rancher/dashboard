@@ -2,20 +2,19 @@
   "files.exclude": {
     ".ackrc": true,
     ".dockerignore": true,
+    ".drone.yml": true,
     ".editorconfig": true,
     ".eslintcache": true,
-    ".nyc_output": true,
-    "jsconfig.json": true,
-    "Dockerfile": true,
-    ".drone.yml": true,
     ".eslintignore": true,
     ".eslintrc.js": true,
     ".gitignore": true,
+    ".nuxt*": true,
+    ".nyc_output": true,
     ".vscode": true,
-    "yarn-error.log": true,
+    "Dockerfile": true,
     "LICENSE": true,
     "babel.config.js": true,
-    "**/.nuxt": true,
-    "**/.nuxt.*": true
+    "jsconfig.json": true,
+    "yarn-error.log": true
   }
 }

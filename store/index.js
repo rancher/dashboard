@@ -55,10 +55,9 @@ export const mutations = {
 };
 
 export const actions = {
-  async loadManagement(ctx) {
-    const { state, commit, dispatch } = ctx;
-
+  async loadManagement({ state, commit, dispatch }) {
     if ( state.managementReady ) {
+      // Do nothing, it's already loaded
       return;
     }
 
@@ -82,8 +81,13 @@ export const actions = {
   },
 
   async loadCluster({ state, commit, dispatch }, id) {
-    // Clear the old cluster out
-    if ( state.clusterId && state.clusterId !== id ) {
+    if ( state.clusterReady && state.clusterId && state.clusterId === id ) {
+      // Do nothing, we're already connected to this cluster
+      return;
+    }
+
+    if ( state.clusterId ) {
+      // Clear the old cluster state out
       await dispatch('cluster/unsubscribe');
       commit('cluster/removeAll');
       commit('clusterChanged', false);

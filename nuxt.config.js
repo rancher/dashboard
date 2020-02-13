@@ -191,48 +191,12 @@ module.exports = {
 
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
-    '/k8s':         {
-      target:       api,
-      xfwd:         true,
-      ws:           true,
-      changeOrigin: true,
-      secure:       !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError,
-    },
-    '/v1': {
-      target: api,
-      xfwd:   true,
-      secure: !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError
-    },
-    '/v3': {
-      target: api,
-      xfwd:   true,
-      secure: !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError
-    },
-    '/v3-public': {
-      target: api,
-      xfwd:   true,
-      secure: !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError
-    },
-    '/api-ui':    {
-      target: api,
-      xfwd:   true,
-      secure: !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError
-    }
+    '/k8s':       proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+    '/apis':      proxyOpts(api), // Managment k8s API
+    '/v1':        proxyOpts(api), // Management Steve API
+    '/v3':        proxyOpts(api), // Rancher API
+    '/v3-public': proxyOpts(api), // Rancher Unauthed API
+    '/api-ui':    proxyOpts(api), // Browser API UI
   },
 
   // Nuxt server
@@ -253,6 +217,25 @@ module.exports = {
   // Eslint module options
   eslint: { cache: '.eslintcache' },
 };
+
+function proxyOpts(target) {
+  return {
+    target,
+    xfwd:   true,
+    secure: !dev,
+    onProxyReq,
+    onProxyReqWs,
+    onError
+  };
+}
+
+function proxyWsOpts(target) {
+  return {
+    ...proxyOpts(target),
+    ws:           true,
+    changeOrigin: true,
+  };
+}
 
 function onProxyReq(proxyReq, req) {
   proxyReq.setHeader('x-api-host', req.headers['host']);

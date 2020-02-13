@@ -508,45 +508,16 @@ export default {
   },
 
   detailUrl() {
-    const currentRoute = this.currentRoute().name;
     const router = this.currentRouter();
     const schema = this.$getters['schemaFor'](this.type);
-    let params, route, friendly;
 
-    if (currentRoute.startsWith('explorer-group-')) {
-      route = `explorer-group-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
-      params = {
-        group:     schema.groupName,
-        resource:  this.type,
-        namespace: this.metadata && this.metadata.namespace,
-        id:        this.metadata.name
-      };
-    } else if (currentRoute.startsWith('rio-')) {
-      friendly = TO_FRIENDLY[this.type.replace(/^rio-/i, '')];
+    const route = `clusters-cluster-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
 
-      if ( friendly ) {
-        route = `rio-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
-        params = {
-          resource:  friendly.resource,
-          namespace: this.metadata && this.metadata.namespace,
-          id:        this.metadata.name
-        };
-      }
-    } else if (currentRoute.startsWith('rbac')) {
-      route = `rbac-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
-
-      params = {
-        resource:  this.type,
-        namespace: this.metadata && this.metadata.namespace,
-        id:        this.metadata.name
-      };
-    } else {
-      params = {
-        resource:  this.type,
-        namespace: this.metadata && this.metadata.namespace,
-        id:        this.metadata.name
-      };
-    }
+    const params = {
+      resource:  this.type,
+      namespace: this.metadata && this.metadata.namespace,
+      id:        this.metadata.name
+    };
 
     const url = router.resolve({
       name:   route,
