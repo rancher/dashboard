@@ -25,6 +25,7 @@ export const NORMAN = {
 };
 
 export const PROJECT = { APPS: 'project.cattle.io.v3.app' };
+export const MANAGEMENT = { PROJECTS: 'management.cattle.io.v3.project' };
 
 // New Rancher API via Steve, /v1
 export const RANCHER = {

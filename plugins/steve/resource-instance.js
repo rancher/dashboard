@@ -505,8 +505,20 @@ export default {
       delete this.__rehydrate;
 
       if ( !opt.url ) {
-        opt.url = this.linkFor('update') || this.linkFor('self');
+        if (this.id) {
+          opt.url = this.linkFor('update') || this.linkFor('self');
+        } else {
+          const schema = this.$getters['schemaFor'](this.type);
+          let url = schema.linkFor('collection');
+
+          if ( schema.attributes && schema.attributes.namespaced ) {
+            url += `/${ this.metadata.namespace }`;
+          }
+
+          opt.url = url;
+        }
       }
+
       if ( !opt.method ) {
         opt.method = (this.id ? 'put' : 'post');
       }
