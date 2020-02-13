@@ -19,7 +19,6 @@ TEXTAREA,
   font-size: 12px;
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
-
   border: solid $outline-width var(--input-border);
   color: var(--input-text);
 
@@ -48,6 +47,10 @@ TEXTAREA,
 
   LABEL {
     margin: $spacing 0 $spacing 0;
+  }
+
+  &.no-resize::placeholder {
+    padding-top: 8px;
   }
 }
 

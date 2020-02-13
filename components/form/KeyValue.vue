@@ -417,13 +417,11 @@ export default {
     <div v-if="showAdd || showRead" class="footer">
       <slot v-if="showAdd" name="add">
         <button type="button" class="btn role-tertiary add" @click="add()">
-          <i v-if="addIcon" :class="{'icon': true, [addIcon]: true}" />
           {{ addLabel }}
         </button>
         <slot name="moreAdd" :rows="rows" />
       </slot>
       <button v-if="showRead" type="button" class="btn role-tertiary read-from-file" @click="readFromFile">
-        <i v-if="readIcon" :class="{'icon': true, [readIcon]: true}" />
         {{ readLabel }}
       </button>
     </div>
@@ -464,6 +462,10 @@ export default {
     color: var(--input-label);
   }
 
+  TD {
+    padding-bottom: 10px;
+  }
+
   .left {
     width: #{$remove}px;
   }
@@ -484,6 +486,11 @@ export default {
     select {
       -webkit-appearance: none;
       -webkit-border-radius: 2px;
+    }
+    
+    textarea::placeholder {
+      padding-top: 8px;
+      color: var(--input-placeholder);
     }
   }
 

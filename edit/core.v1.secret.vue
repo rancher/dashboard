@@ -214,7 +214,7 @@ export default {
         Provider: &nbsp; <RadioGroup row :options="registryAddresses" :selected="registryAddresses.indexOf(registryProvider)" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row">
-        <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" :hide-placeholder="false" />
+        <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" />
       </div>
       <div class="row">
         <div class="col span-6">
