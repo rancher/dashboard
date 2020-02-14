@@ -35,7 +35,7 @@ export default {
     </div>
     <div class="card-actions">
       <slot name="actions">
-        <button class="btn role-secondary" @click="buttonAction">
+        <button class="btn role-primary" @click="buttonAction">
           {{ buttonText }}
         </button>
       </slot>

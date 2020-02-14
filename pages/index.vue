@@ -39,7 +39,7 @@ export default {
               <a v-if="demo.spec" target="_blank" class="icon icon-external-link role-multi-action" :href="demo.spec.build.repo" />
             </template>
             <template v-slot:actions>
-              <button class="btn role-secondary btn-sm" :disabled="!demo.spec" @click="createDemo(name)">
+              <button class="btn role-primary btn-sm" :disabled="!demo.spec" @click="createDemo(name)">
                 Start
               </button>
             </template>
