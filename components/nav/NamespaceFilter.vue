@@ -33,7 +33,7 @@ export default {
     namespaces() {
       let choices = this.$store.getters['cluster/all'](NAMESPACE);
 
-      choices = sortBy(choices, ['isSystem:desc', 'nameDisplay']);
+      choices = sortBy(choices, ['isSystem', 'nameDisplay']);
 
       return choices.map((obj) => {
         return {
@@ -48,6 +48,17 @@ export default {
 </script>
 
 <style type="scss" scoped>
+  .filter >>> .v-select {
+    max-width: 100%;
+    display: inline-block;
+  }
+
+  .filter >>> .v-select .vs__selected {
+    margin: 2px;
+    user-select: none;
+    cursor: default;
+  }
+
   .filter >>> INPUT {
     width: auto;
     background-color: transparent;

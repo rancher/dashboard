@@ -8,7 +8,7 @@ import {
 import { mapPref, DEV, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
-// import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
+import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
 import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
@@ -18,7 +18,7 @@ import { COUNT, NORMAN } from '@/config/types';
 export default {
 
   components: {
-    // ClusterSwitcher,
+    ClusterSwitcher,
     PromptRemove,
     Footer,
     NamespaceFilter,
@@ -165,7 +165,8 @@ export default {
 <template>
   <div v-if="managementReady" class="dashboard-root">
     <div class="switcher">
-      <img src="~/assets/images/logo.svg" class="logo" alt="Logo" height="30" />
+      <div class="logo" alt="Logo" />
+      <ClusterSwitcher />
     </div>
 
     <div v-if="clusterReady" class="top">
@@ -231,42 +232,41 @@ export default {
 </template>
 
 <style lang="scss">
-  $header-height: 50px;
-
   .dashboard-root {
     display: grid;
     height: 100vh;
     grid-template-areas:
       "switcher top user"
       "nav      main  main";
-    grid-template-columns: 220px auto $header-height;
-    grid-template-rows: $header-height auto 0px;
+    grid-template-columns: var(--nav-width) auto var(--header-height);
+    grid-template-rows: var(--header-height) auto 0px;
 
-    .switcher {
+    > .switcher {
       grid-area: switcher;
       background-color: var(--header-bg);
       position: relative;
+
+      .logo {
+        background-color: var(--header-logo);
+        mask: url("~assets/images/logo.svg") no-repeat center;
+        height: 30px;
+        width: 64px;
+        position: absolute;
+        top: 9px;
+        left: -30px;
+      }
     }
 
-    .logo {
-      position: absolute;
-      left: -30px;
-      top: 10px;
-    }
-
-    .top {
+    > .top {
       grid-area: top;
       background-color: var(--header-bg);
-      padding-top: 6px;
+      padding-top: 8px;
     }
 
-    .user {
+    > .user {
       grid-area: user;
-      padding: 5px;
-    }
-
-    .switcher, .header, .user {
       background-color: var(--header-bg);
+      padding: 5px;
     }
 
     NAV {

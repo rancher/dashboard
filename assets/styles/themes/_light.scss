@@ -62,10 +62,15 @@ $selected: rgba($primary, .5);
   --scrollbar-thumb            : #{$dark};
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
-  --disabled-bg                : #{$disabled};
-  --header-bg                  : #{$primary};
+
+  --header-bg                  : #3797D5;
+  --header-logo                : #9FC4DD;
+  --header-height              : 50px;
+  --nav-width                  : 220px;
   --nav-bg                     : #{$lighter};
-  --footer-bg                  : ;
+  --footer-bg                  : transparent;
+
+  --disabled-bg                : #{$disabled};
   --box-bg                     : #{$lighter};
   --border                     : #{$medium};
   --border-radius              : 2px;

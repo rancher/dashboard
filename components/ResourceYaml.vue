@@ -113,9 +113,9 @@ export default {
     diffMode: mapPref(DIFF),
 
     parentLink() {
-      const name = this.parentRoute || 'explorer-group-resource';
+      const name = this.parentRoute || 'c-cluster-resource';
       const params = this.parentParams || {
-        group:    this.schema.groupName,
+        cluster:  this.$store.state.clusterId,
         resource: this.obj.type
       };
 

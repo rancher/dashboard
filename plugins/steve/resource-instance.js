@@ -511,7 +511,7 @@ export default {
     const router = this.currentRouter();
     const schema = this.$getters['schemaFor'](this.type);
 
-    const route = `clusters-cluster-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+    const route = `c-cluster-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
 
     const params = {
       resource:  this.type,

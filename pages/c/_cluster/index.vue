@@ -17,9 +17,11 @@ export default {
 
 <template>
   <div>
-    Cluster: {{ cluster.nameDisplay }}
-    <pre>
-        {{ cluster }}
-    </pre>
+    <h1>
+      Cluster: {{ cluster.nameDisplay }}
+    </h1>
+    <div class="text-center" style="margin-top: 200px;">
+      Dashboard...
+    </div>
   </div>
 </template>

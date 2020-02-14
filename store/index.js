@@ -25,6 +25,10 @@ export const getters = {
     return state.namespaces.length !== 1;
   },
 
+  currentCluster(state, getters) {
+    return getters['management/byId'](RANCHER.CLUSTER, state.clusterId);
+  },
+
   namespaces(state) {
     const namespaces = state.namespaces;
 

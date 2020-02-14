@@ -416,11 +416,9 @@ export function headersFor(schema) {
   let hasName = false;
 
   for ( const col of columns ) {
-    if ( col.format === 'name' && col.field === 'metadata.name' ) {
+    if ( col.format === 'name' ) {
       hasName = true;
       out.push(namespaced ? NAMESPACE_NAME : NAME);
-    } else if ( col.format === 'date' && col.field === 'metadata.creationTimestamp' ) {
-      out.push(AGE);
     } else {
       let formatter, width;
 
