@@ -3,17 +3,18 @@
 import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
 import {
-  explorerPackage, clusterPackage, rioPackage, settingsPackage, rbacResource
-} from '@/config/packages';
-import { mapPref, DEV, THEME, EXPANDED_GROUPS } from '@/store/prefs';
+  mapPref, DEV, THEME, EXPANDED_GROUPS, NAV_SHOW
+} from '@/store/prefs';
+import { allTypes, getTree } from '@/config/nav-cluster';
 import ActionMenu from '@/components/ActionMenu';
+import ButtonGroup from '@/components/ButtonGroup';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
 import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
 import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
-import { COUNT, NORMAN } from '@/config/types';
+import { NORMAN, RANCHER } from '@/config/types';
 
 export default {
 
@@ -23,6 +24,7 @@ export default {
     Footer,
     NamespaceFilter,
     ActionMenu,
+    ButtonGroup,
     Group,
     ShellSocket,
   },
@@ -47,98 +49,70 @@ export default {
 
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
+    navShow:        mapPref(NAV_SHOW),
+
+    multiCluster() {
+      return this.$store.getters['management/hasType'](RANCHER.CLUSTER);
+    },
+
+    backToRancherLink() {
+      if ( !this.multiCluster ) {
+        return;
+      }
+
+      const cluster = this.$store.getters['currentCluster'];
+
+      if ( !cluster ) {
+        return;
+      }
+
+      let link = `/c/${ escape(cluster.id) }`;
+
+      if ( process.env.dev ) {
+        link = `https://localhost:8000${ link }`;
+      }
+
+      return link;
+    },
+
+    navOptions() {
+      return this.$store.getters['prefs/options'](NAV_SHOW).map((value) => {
+        return {
+          label: `nav.show.${ value }`,
+          value
+        };
+      });
+    },
 
     principal() {
       return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
 
-    counts() {
-      if ( !this.$store.getters['cluster/haveAll'](COUNT) ) {
-        return null;
-      }
-
-      const obj = this.$store.getters['cluster/all'](COUNT)[0].counts;
-      const out = Object.keys(obj).map((id) => {
-        const schema = this.$store.getters['cluster/schemaFor'](id);
-
-        if ( !schema ) {
-          return null;
-        }
-
-        const attrs = schema.attributes || {};
-        const entry = obj[id];
-
-        if ( !attrs.kind ) {
-          // Skip apiGroups resource
-          return;
-        }
-
-        return {
-          id,
-          schema,
-          label:       attrs.kind,
-          group:       attrs.group,
-          version:     attrs.version,
-          namespaced:  attrs.namespaced,
-          verbs:       attrs.verbs,
-          count:       entry.count,
-          byNamespace: entry.namespaces,
-          revision:    entry.revision,
-        };
-      });
-
-      return out.filter(x => !!x);
-    },
-  },
-  watch: {
-    counts() {
-      this.getPackages();
-    }
-  },
-  mounted() {
-    this.getPackages();
-  },
-  methods: {
-    checkForMesh() {
-      return this.$store.dispatch('cluster/request', { url: '/v1-metrics/meshsummary' })
-        .then((res) => {
-          return true;
-        })
-        .catch(() => {
-          console.log('servicemesh metrics unavailable');
-
-          return false;
-        });
-    },
-
-    /* async */ getPackages() {
+    groups() {
+      const clusterId = this.$store.getters['clusterId'] || [];
       const namespaces = this.$store.getters['namespaces'] || [];
-      const counts = this.counts;
+      const types = allTypes(this.$store);
+      const mode = this.navShow;
 
-      if ( !counts ) {
+      if ( !types ) {
         return [];
       }
 
-      const out = [
-        rioPackage(this.$router, counts, namespaces),
-        clusterPackage(this.$router, counts, namespaces),
-        explorerPackage(this.$router, counts, namespaces),
-        settingsPackage(this.$router, counts, namespaces),
-        rbacResource(this.$router, counts, namespaces)
-      ];
+      const out = getTree(mode, clusterId, types, namespaces /* , @TODO currentType */);
 
-      const hasServiceMesh = false; // await this.checkForMesh();
+      return out;
+    }
+  },
 
-      if (hasServiceMesh) {
-        out[0].children.unshift( {
-          name:    'rio-graph',
-          label:   'App Mesh',
-          route:   { name: 'rio-mesh' },
-        });
-      }
+  /*
+  watch: {
+    allTypes() {
+      this.getTree();
+    }
+  },
+*/
 
-      this.packages = out.filter(x => !!x);
-    },
+  methods: {
     toggleGroup(route, expanded) {
       const groups = this.expandedGroups.slice();
 
@@ -155,7 +129,7 @@ export default {
       return this.expandedGroups.includes(name);
     },
 
-    toggleLocale() {
+    toggleNoneLocale() {
       this.$store.dispatch('i18n/toggleNone');
     }
   }
@@ -163,14 +137,18 @@ export default {
 </script>
 
 <template>
-  <div v-if="managementReady" class="dashboard-root">
-    <div class="switcher">
+  <div v-if="managementReady" class="dashboard-root" :class="{'multi-cluster': multiCluster, 'back-to-rancher': backToRancherLink}">
+    <div class="cluster">
       <div class="logo" alt="Logo" />
-      <ClusterSwitcher />
+      <ClusterSwitcher v-if="multiCluster" />
     </div>
 
     <div v-if="clusterReady" class="top">
       <NamespaceFilter />
+    </div>
+
+    <div v-if="backToRancherLink" class="back">
+      <a v-t="'header.backToRancher'" :href="backToRancherLink" />
     </div>
 
     <div class="user">
@@ -181,7 +159,7 @@ export default {
         :delay="{show: 0, hide: 200}"
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >
-        <div class="header-right text-right">
+        <div class="text-right">
           <img :src="principal.avatarSrc" width="40" height="40" />
         </div>
 
@@ -203,22 +181,26 @@ export default {
     </div>
 
     <nav v-if="clusterReady">
-      <div v-for="pkg in packages" :key="pkg.name" class="package">
+      <div v-for="g in groups" :key="g.name" class="package">
         <Group
-          :key="pkg.name"
+          :key="g.name"
           id-prefix=""
           :is-expanded="isExpanded"
-          :group="pkg"
+          :group="g"
           :toggle-group="toggleGroup"
           :custom-header="true"
           :can-collapse="true"
         >
           <template slot="accordion">
-            <h6>{{ pkg.label }}</h6>
+            <h6>{{ g.label }}</h6>
           </template>
         </Group>
       </div>
     </nav>
+
+    <div v-if="clusterReady" class="switcher">
+      <ButtonGroup v-model="navShow" :options="navOptions" :labels-are-translations="true" />
+    </div>
 
     <main>
       <nuxt class="outlet" />
@@ -227,7 +209,7 @@ export default {
     <ShellSocket />
     <ActionMenu />
     <PromptRemove />
-    <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleLocale()" />
+    <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
   </div>
 </template>
 
@@ -235,14 +217,20 @@ export default {
   .dashboard-root {
     display: grid;
     height: 100vh;
-    grid-template-areas:
-      "switcher top user"
-      "nav      main  main";
-    grid-template-columns: var(--nav-width) auto var(--header-height);
-    grid-template-rows: var(--header-height) auto 0px;
 
-    > .switcher {
-      grid-area: switcher;
+    grid-template-areas:
+      "cluster top   back user"
+      "nav      main  main main"
+      "switcher main  main main";
+    grid-template-columns: var(--nav-width) auto 0px var(--header-height);
+    grid-template-rows: var(--header-height) auto var(--footer-height);
+
+    &.back-to-rancher {
+      grid-template-columns: var(--nav-width) auto 150px var(--header-height);
+    }
+
+    > .cluster {
+      grid-area: cluster;
       background-color: var(--header-bg);
       position: relative;
 
@@ -261,6 +249,19 @@ export default {
       grid-area: top;
       background-color: var(--header-bg);
       padding-top: 8px;
+    }
+
+    > .back {
+      grid-area: back;
+      background-color: var(--header-bg);
+
+      A {
+        line-height: var(--header-height);
+        display: block;
+        color: var(--body-text);
+        padding: 0 5px;
+        text-align: right;
+      }
     }
 
     > .user {
@@ -290,6 +291,11 @@ export default {
         line-height: initial;
       }
     }
+
+    > .switcher {
+      margin: 10px 0 0 0;
+      text-align: center;
+    }
   }
 
   MAIN {
@@ -304,7 +310,7 @@ export default {
 
     FOOTER {
       background-color: var(--nav-bg);
-      height: 50px;
+      height: var(--footer-height);
     }
 
     HEADER {

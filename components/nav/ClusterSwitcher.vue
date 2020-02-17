@@ -1,21 +1,18 @@
 <script>
 import { RANCHER } from '@/config/types';
+import { sortBy } from '@/utils/sort';
 
 export default {
-  data() {
-    return { clusters: this.$store.getters['management/all'](RANCHER.CLUSTER) };
-  },
-
   computed: {
     current() {
       return this.$store.getters['currentCluster'];
-    }
-  },
+    },
 
-  methods: {
-    backToRancher(id) {
-      window.location.href = `/c/${ escape(id) }`;
-    }
+    clusters() {
+      const clusters = this.$store.getters['management/all'](RANCHER.CLUSTER);
+
+      return sortBy(clusters, ['isReady:desc', 'nameDisplay']);
+    },
   },
 };
 
@@ -40,9 +37,12 @@ export default {
       <template slot="popover">
         <ul class="list-unstyled cluster-list dropdown" style="margin: -14px;">
           <li v-for="c of clusters" :key="c.id">
-            <nuxt-link :to="{name: 'c-cluster', params: { cluster: c.id }}">
+            <nuxt-link v-if="c.isReady" class="cluster" :to="{name: 'c-cluster', params: { cluster: c.id }}">
               {{ c.nameDisplay }}
             </nuxt-link>
+            <span v-else class="cluster not-ready">
+              Not Ready: {{ c.nameDisplay }}
+            </span>
           </li>
         </ul>
 
@@ -88,9 +88,13 @@ export default {
     padding-bottom: 30px;
     width: 210px;
 
-    LI A {
+    .cluster {
       display: block;
       padding: 10px;
+    }
+
+    .not-ready {
+      cursor: not-allowed;
     }
   }
 </style>

@@ -8,7 +8,7 @@ function stringFor(store, key, args, raw = false) {
 
   if ( translation !== undefined ) {
     out = translation;
-  } else if ( args ) {
+  } else if ( args && Object.keys(args).length ) {
     out = `%${ key }(${ JSON.stringify(args) })%`;
   } else {
     out = `%${ key }%`;

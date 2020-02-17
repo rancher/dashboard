@@ -10,6 +10,7 @@ export const SCHEMA = 'schema';
 export const SECRET = 'core.v1.secret';
 export const SERVICE_ACCOUNT = 'core.v1.serviceaccount';
 
+// Old Rancher API via Norman, /v3
 export const NORMAN = {
   AUTH_CONFIG: 'authconfig',
   PRINCIPAL:   'principal',
@@ -18,6 +19,7 @@ export const NORMAN = {
   SETTING:     'setting',
 };
 
+// New Rancher API via Steve, /v1
 export const RANCHER = {
   CLUSTER: 'management.cattle.io.v3.cluster',
   USER:    'management.cattle.io.v3.user'

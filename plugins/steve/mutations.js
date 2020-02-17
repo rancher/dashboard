@@ -105,7 +105,6 @@ export default {
   },
 
   setWantSocket(state, want) {
-    console.log('wantSocket:', want);
     state.wantSocket = want;
   },
 

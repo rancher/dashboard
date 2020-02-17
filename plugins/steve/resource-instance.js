@@ -225,7 +225,11 @@ export default {
 
   hasCondition() {
     return (condition, withStatus = 'True') => {
-      const entry = findBy((this.conditions || []), 'type', condition);
+      if ( !this.status || !this.status.conditions ) {
+        return false;
+      }
+
+      const entry = findBy((this.status.conditions || []), 'type', condition);
 
       if ( !entry ) {
         return false;
@@ -243,7 +247,7 @@ export default {
     return (name, withStatus = 'True') => {
       return this.waitForTestFn(() => {
         return this.hasCondition(name, status);
-      }, `Wait for condition=${ name }, status=${ status }`);
+      }, `Wait for condition ${ name }=${ status }`);
     };
   },
 
