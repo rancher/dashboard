@@ -221,7 +221,6 @@ module.exports = {
 function proxyOpts(target) {
   return {
     target,
-    xfwd:   true,
     secure: !dev,
     onProxyReq,
     onProxyReqWs,

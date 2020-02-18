@@ -408,7 +408,7 @@ export const API_GROUP = {
 };
 
 export function headersFor(schema) {
-  const out = [];
+  const out = [STATE];
   const attributes = schema.attributes || {};
   const columns = attributes.columns;
   const namespaced = attributes.namespaced;

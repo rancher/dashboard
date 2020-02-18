@@ -75,12 +75,22 @@ export default {
     return sortableNumericSuffix(this.namespaceNameDisplay).toLowerCase();
   },
 
+  // You can override the state by providing your own state (and possibly reading metadata.state)
+  state() {
+    if ( !this.metadata || !this.metadata.state || !this.metadata.state.name ) {
+      return 'unknown';
+    }
+
+    return this.metadata.state.name;
+  },
+
+  // You can override the displayed by providing your own stateDisplay (and possibly reading _stateDisplay)
   stateDisplay() {
     return this._stateDisplay;
   },
 
   _stateDisplay() {
-    const state = this.stateRelevant || 'unknown';
+    const state = this.state;
 
     if ( REMAP_STATE[state] ) {
       return REMAP_STATE[state];
@@ -90,11 +100,11 @@ export default {
   },
 
   stateColor() {
-    if ( this.computed && this.computed.state && this.computed.state.error ) {
+    if ( this.metadata && this.metadata.state && this.metadata.state.error ) {
       return 'text-error';
     }
 
-    const key = (this.stateRelevant || '').toLowerCase();
+    const key = (this.state || '').toLowerCase();
     let color;
 
     if ( STATES[key] && STATES[key].color ) {
@@ -113,17 +123,23 @@ export default {
   },
 
   stateIcon() {
-    const trans = ( this.computed && this.computed.state && this.computed.state.transitioning ) || 'no';
+    let trans = false;
+    let error = false;
 
-    if ( trans === 'yes' ) {
+    if ( this.metadata && this.metadata.state ) {
+      trans = this.metadata.state.transitioning;
+      error = this.metadata.state.error;
+    }
+
+    if ( trans ) {
       return 'icon icon-spinner icon-spin';
     }
 
-    if ( trans === 'error' ) {
+    if ( error ) {
       return 'icon icon-error';
     }
 
-    const key = (this.stateRelevant || '').toLowerCase();
+    const key = (this.state || '').toLowerCase();
     let icon;
 
     if ( STATES[key] && STATES[key].icon ) {
@@ -140,21 +156,7 @@ export default {
   stateSort() {
     const color = this.stateColor.replace('text-', '');
 
-    return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ this.stateRelevant }`;
-  },
-
-  // You can override the state by providing your own stateRelevant (and possibly reading _stateRelevant)
-  stateRelevant() {
-    return this._stateRelevant;
-  },
-
-  _stateRelevant() {
-    if ( this.computed && this.computed.state && this.computed.state.name ) {
-      return this.computed.state.name;
-    }
-
-    // @TODO unknown
-    return 'active';
+    return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ this.stateDisplay }`;
   },
 
   // ------------------------------------------------------------------
@@ -202,7 +204,7 @@ export default {
   waitForState() {
     return (state, timeout, interval) => {
       return this.waitForTestFn(() => {
-        return this.stateRelevant === state;
+        return this.state === state;
       }, `Wait for state=${ state }`, timeout, interval);
     };
   },

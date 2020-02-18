@@ -1,57 +1,69 @@
+// basicType(type): Mark type as one shown in basic view
+// ignoreType(type): Never show type
+// weightType(typeOrArrayOfTypes, weight): Set the weight (sort) order of one or more types
+// mapType(matchRegexOrString, replacementStringOrFn, mapWeight, continueOnMatch): Remap a type id to a display name
+//
+// ignoreGroup(group): Never show group or any types in it
+// weightGroup(groupOrArrayOfGroups, weight): Set the weight (sort) order of one or more groups
+// mapGroup(matchRegexOrString, replacementString, mapWeight, continueOnMatch): Remap a group name to a display name
+//
+// Weight on mappings determines the order in which they are applied (highest first)
+// Weight of types and groups determines the order in which they are displayed (highest first/higher up on nav)
+
 import { escapeRegex } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { SCHEMA, COUNT } from '@/config/types';
 import { isArray } from '@/utils/array';
 
-const basicTypes = {};
-const groupWeights = {};
-const groupMappings = [];
-const groupLabelCache = {};
-const typeWeights = {};
-const typeMappings = [];
-const typeLabelCache = {};
-
-export function addBasicType(types) {
+export function basicType(types) {
   if ( !isArray(types) ) {
     types = [types];
   }
 
   for ( const t of types ) {
-    basicTypes[t] = true;
+    _basicTypes[t] = true;
   }
 }
 
+export function ignoreGroup(group) {
+  _groupIgnore[group] = true;
+}
+
+export function ignoreType(type) {
+  _typeIgnore[type] = true;
+}
+
 // setGroupWeight('Core' 99); -- higher groups are shown first
-export function setGroupWeight(groups, weight) {
+export function weightGroup(groups, weight) {
   if ( !isArray(groups) ) {
     groups = [groups];
   }
 
   for ( const g of groups ) {
-    groupWeights[g] = weight;
+    _groupWeights[g] = weight;
   }
 }
 
 // setTypeWeight('Cluster' 99); -- higher groups are shown first
-export function setTypeWeight(entries, weight) {
+export function weightType(entries, weight) {
   if ( !isArray(entries) ) {
     entries = [entries];
   }
 
   for ( const e of entries ) {
-    typeWeights[e] = weight;
+    _typeWeights[e] = weight;
   }
 }
 
 // addGroupMapping('ugly.thing', 'Nice Thing', 1);
 // addGroupMapping(/ugly.thing.(stuff)', '$1', 2);
 // addGroupMapping(/ugly.thing.(stuff)', function(groupStr, ruleObj, regexMatch, typeObj) { return ucFirst(group.id) } , 2);
-export function addGroupMapping(match, replace, priority = 5, continueOnMatch = false) {
-  _addMapping(groupMappings, match, replace, priority, continueOnMatch);
+export function mapGroup(match, replace, weight = 5, continueOnMatch = false) {
+  _addMapping(_groupMappings, match, replace, weight, continueOnMatch);
 }
 
-export function addTypeMapping(match, replace, priority = 5, continueOnMatch = false) {
-  _addMapping(typeMappings, match, replace, priority, continueOnMatch);
+export function mapType(match, replace, weight = 5, continueOnMatch = false) {
+  _addMapping(_typeMappings, match, replace, weight, continueOnMatch);
 }
 
 export function allTypes($store) {
@@ -66,17 +78,23 @@ export function allTypes($store) {
   for ( const schema of schemas ) {
     const attrs = schema.attributes || {};
     const count = counts[schema.id];
+    const group = attrs.group;
 
     if ( !attrs.kind ) {
       // Skip the apiGroups resource
       continue;
     }
 
+    if ( _groupIgnore[group] || _typeIgnore[schema.id] ) {
+      // Skip ignored groups & types
+      continue;
+    }
+
     out.push({
       schema,
+      group,
       id:          schema.id,
       label:       singularLabelFor(schema),
-      group:       attrs.group,
       namespaced:  attrs.namespaced,
       count:       count ? count.count : 0,
       byNamespace: count ? count.namespaces : {},
@@ -104,7 +122,7 @@ export function getTree(mode, clusterId, types, namespaces, currentType) {
     } else if ( count === 0 && mode === 'used') {
       // If there's none of this type, ignore this entry when viewing only in-use types
       continue;
-    } else if ( mode === 'basic' && !basicTypes[typeObj.id]) {
+    } else if ( mode === 'basic' && !_basicTypes[typeObj.id]) {
       // If the mode is basic, ignore this entry unless it's a basic type
       continue;
     }
@@ -116,7 +134,7 @@ export function getTree(mode, clusterId, types, namespaces, currentType) {
       count,
       namespaced,
       name:   typeObj.id,
-      weight: typeWeights[typeObj.id] || 0,
+      weight: _typeWeights[typeObj.id] || 0,
       label:  typeLabelForObj(typeObj),
       route:  {
         name:   'c-cluster-resource',
@@ -159,7 +177,17 @@ export function pluralLabelFor($store, typeStr) {
 
 // --------------------------------------------
 
-function _addMapping(mappings, match, replace, priority, continueOnMatch) {
+const _basicTypes = {};
+const _groupIgnore = {};
+const _groupWeights = {};
+const _groupMappings = [];
+const _groupLabelCache = {};
+const _typeIgnore = {};
+const _typeWeights = {};
+const _typeMappings = [];
+const _typeLabelCache = {};
+
+function _addMapping(mappings, match, replace, weight, continueOnMatch) {
   if ( typeof match === 'string' ) {
     match = new RegExp(escapeRegex(match), 'i');
   }
@@ -167,14 +195,14 @@ function _addMapping(mappings, match, replace, priority, continueOnMatch) {
   mappings.push({
     match,
     replace,
-    priority,
+    weight,
     continueOnMatch,
     insertIndex: mappings.length,
   });
 
-  // Re-sort the list by priority (highest first) and insert time (oldest first)
+  // Re-sort the list by weight (highest first) and insert time (oldest first)
   mappings.sort((a, b) => {
-    const pri = b.priority - a.priority;
+    const pri = b.weight - a.weight;
 
     if ( pri ) {
       return pri;
@@ -190,7 +218,7 @@ function _ensureGroup(tree, label, route) {
   if ( !tree[label] ) {
     group = {
       label,
-      weight:   groupWeights[label] || 0,
+      weight:   _groupWeights[label] || 0,
       children: [],
     };
 
@@ -206,12 +234,12 @@ function _ensureGroup(tree, label, route) {
 
 // Turns a type name into a display label (e.g. management.cattle.io.v3.cluster -> Cluster)
 function typeLabelForObj(typeObj) {
-  return _applyMapping(typeObj, typeMappings, 'id', typeLabelCache);
+  return _applyMapping(typeObj, _typeMappings, 'id', _typeLabelCache);
 }
 
 // Turns a group name into a display label (e.g. management.cattle.io.v3.cluster -> Cluster)
 function groupLabelForObjn(typeObj) {
-  return _applyMapping(typeObj, groupMappings, 'group', groupLabelCache);
+  return _applyMapping(typeObj, _groupMappings, 'group', _groupLabelCache);
 }
 
 function _applyMapping(obj, mappings, keyField, cache) {
