@@ -13,7 +13,7 @@ export default {
   <n-link :key="type.name" :to="type.route" tag="li" class="child">
     <a>
       <span v-trim-whitespace class="label">
-        <i v-if="type.icon" :class="{icon: true, [type.icon]: true}" />
+        <i v-if="type.namespaced" class="icon icon-folder mr-5" />
         {{ type.label }}
       </span>
       <span v-if="typeof type.count !== 'undefined'" class="count">

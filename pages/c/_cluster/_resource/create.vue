@@ -2,8 +2,7 @@
 import ResourceYaml from '@/components/ResourceYaml';
 import { createYaml } from '@/utils/create-yaml';
 import { SCHEMA } from '@/config/types';
-import { FRIENDLY } from '@/config/friendly';
-import { get } from '@/utils/object';
+import { singularLabelFor } from '@/config/nav-cluster';
 
 export default {
   components: { ResourceYaml },
@@ -14,12 +13,25 @@ export default {
 
       return name;
     },
+
+    hasComponent() {
+      try {
+        require.resolve(`@/edit/${ this.resource }`);
+
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+
     showComponent() {
-      return () => import(`@/edit/${ this.obj.type }`);
+      return () => import(`@/edit/${ this.resource }`);
     },
+
     typeDisplay() {
-      return get(FRIENDLY[this.obj.type], 'singular');
+      return singularLabelFor(this.schema);
     },
+
     parentLink() {
       const name = this.doneRoute;
       const params = this.$route.params;
@@ -38,16 +50,18 @@ export default {
     if ( schema.attributes.namespaced ) {
       data.metadata = { namespace };
     }
-    const obj = await ctx.store.dispatch('cluster/create', data);
-    const value = createYaml(schemas, resource, data);
+    const model = await ctx.store.dispatch('cluster/create', data);
+    const yaml = createYaml(schemas, resource, data);
 
-    return { obj, value };
+    return {
+      resource, model, yaml, schema
+    };
   }
 };
 </script>
 
 <template>
-  <div v-if="showComponent">
+  <div v-if="hasComponent">
     <header>
       <h1>
         Create <nuxt-link :to="parentLink">
@@ -59,10 +73,8 @@ export default {
       :is="showComponent"
       :done-route="doneRoute"
       mode="create"
-      :value="obj"
+      :value="model"
     />
   </div>
-  <div v-else>
-    <ResourceYaml :obj="obj" :value="value" :done-route="doneRoute" :for-create="true" />
-  </div>
+  <ResourceYaml v-else :obj="model" :value="yaml" :done-route="doneRoute" :for-create="true" />
 </template>

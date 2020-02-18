@@ -13,6 +13,21 @@ export default {
     headers() {
       return get(FRIENDLY[this.resource], 'headers');
     },
+
+    hasComponent() {
+      try {
+        require.resolve(`@/list/${ this.resource }`);
+
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+
+    showComponent() {
+      return () => import(`@/list/${ this.resource }`);
+    },
+
   },
 
   asyncData(ctx) {
@@ -39,7 +54,15 @@ export default {
         </nuxt-link>
       </div>
     </header>
-    <ResourceTable :schema="schema" :rows="rows" :headers="headers" />
+    <div v-if="hasComponent">
+      <component
+        :is="showComponent"
+        :schema="schema"
+        :rows="rows"
+        :headers="headers"
+      />
+    </div>
+    <ResourceTable v-else :schema="schema" :rows="rows" :headers="headers" />
   </div>
 </template>
 

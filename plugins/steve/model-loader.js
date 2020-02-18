@@ -1,4 +1,4 @@
-import { normalizeType } from '@/plugins/steve/normalize';
+import { normalizeType } from './normalize';
 
 const cache = {};
 

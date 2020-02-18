@@ -1,5 +1,5 @@
 import ResourceInstance from './resource-instance';
-import { lookup } from '@/utils/model';
+import { lookup } from './model-loader';
 
 export const SELF = '__[[SELF]]__';
 export const ALREADY_A_PROXY = '__[[PROXY]]__';

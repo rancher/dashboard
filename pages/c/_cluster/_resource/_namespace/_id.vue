@@ -1,13 +1,13 @@
 <script>
-import ExplorerDetail, { asyncData } from '@/components/ExplorerDetail';
+import ResourceDetail, { asyncData } from '@/components/ResourceDetail';
 
 export default {
-  name:       'ExplorerGroupResourceNamespaceId',
-  components: { ExplorerDetail },
+  name:       'ClusterResourceNamespaceId',
+  components: { ResourceDetail },
   asyncData
 };
 </script>
 
 <template>
-  <ExplorerDetail :async-data="_data" />
+  <ResourceDetail :async-data="_data" />
 </template>

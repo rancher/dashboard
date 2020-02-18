@@ -6,6 +6,7 @@ import {
   mapPref, DEV, THEME, EXPANDED_GROUPS, NAV_SHOW
 } from '@/store/prefs';
 import { allTypes, getTree } from '@/config/nav-cluster';
+import applyTypeConfigs from '@/config/type-config';
 import ActionMenu from '@/components/ActionMenu';
 import ButtonGroup from '@/components/ButtonGroup';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
@@ -15,6 +16,8 @@ import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
 import { NORMAN, RANCHER } from '@/config/types';
+
+applyTypeConfigs();
 
 export default {
 
@@ -89,16 +92,17 @@ export default {
     },
 
     groups() {
-      const clusterId = this.$store.getters['clusterId'] || [];
+      const clusterId = this.$store.getters['clusterId'];
       const namespaces = this.$store.getters['namespaces'] || [];
       const types = allTypes(this.$store);
       const mode = this.navShow;
+      const currentType = this.$route.params.resource || '';
 
       if ( !types ) {
         return [];
       }
 
-      const out = getTree(mode, clusterId, types, namespaces /* , @TODO currentType */);
+      const out = getTree(mode, clusterId, types, namespaces, currentType);
 
       return out;
     }
