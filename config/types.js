@@ -1,3 +1,4 @@
+
 export const CONFIG_MAP = 'core.v1.configmap';
 export const COUNT = 'count';
 export const EVENT = 'core.v1.event';
@@ -9,19 +10,8 @@ export const SCHEMA = 'schema';
 export const SECRET = 'core.v1.secret';
 export const SERVICE_ACCOUNT = 'core.v1.serviceaccount';
 
-export const ANNOTATION = {
-  DESCRIPTION:  'cattle.io/description',
-  TIMESTAMP:    'cattle.io/timestamp',
-  CERT_ISSUER:  'cert-manager.io/issuer-name',
-  SERVICE_ACCT: 'kubernetes.io/service-account.uid'
-};
-
-export const CLOUD = {
-  CLUSTER:            'cloud.rio.rancher.io.v1.cluster',
-  REGISTRATION_TOKEN: 'cloud.rio.rancher.io.v1.registrationtoken',
-};
-
-export const RANCHER = {
+// Old Rancher API via Norman, /v3
+export const NORMAN = {
   AUTH_CONFIG: 'authconfig',
   PRINCIPAL:   'principal',
   USER:        'user',
@@ -29,11 +19,17 @@ export const RANCHER = {
   SETTING:     'setting',
 };
 
+// New Rancher API via Steve, /v1
+export const RANCHER = {
+  CLUSTER: 'management.cattle.io.v3.cluster',
+  USER:    'management.cattle.io.v3.user'
+};
+
 export const RBAC = {
-  ROLES:                 'rbac.authorization.k8s.io.v1.role',
-  CLUSTER_ROLES:         'rbac.authorization.k8s.io.v1.clusterrole',
-  ROLE_BINDINGS:         'rbac.authorization.k8s.io.v1.rolebinding',
-  CLUSTER_ROLE_BINDINGS: 'rbac.authorization.k8s.io.v1.clusterrolebinding',
+  ROLE:                 'rbac.authorization.k8s.io.v1.role',
+  CLUSTER_ROLE:         'rbac.authorization.k8s.io.v1.clusterrole',
+  ROLE_BINDING:         'rbac.authorization.k8s.io.v1.rolebinding',
+  CLUSTER_ROLE_BINDING: 'rbac.authorization.k8s.io.v1.clusterrolebinding',
 };
 
 export const RIO = {
@@ -50,7 +46,4 @@ export const RIO = {
 
   SYSTEM_NAMESPACE: 'rio-system',
 
-  TASK_RUN:         'tekton.dev.v1alpha1.taskruns',
-
-  USER: 'management.cattle.io.v3.user'
 };

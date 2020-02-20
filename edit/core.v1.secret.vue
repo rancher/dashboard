@@ -2,7 +2,8 @@
 import { DOCKER_JSON, OPAQUE, TLS } from '@/models/core.v1.secret';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { get } from '@/utils/object';
-import { ANNOTATION, NAMESPACE } from '@/config/types';
+import { NAMESPACE } from '@/config/types';
+import { DESCRIPTION } from '@/config/labels-annotations';
 import CreateEditView from '@/mixins/create-edit-view';
 import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
@@ -82,10 +83,10 @@ export default {
       get() {
         const { metadata:{ annotations = {} } } = this.value;
 
-        return annotations[ANNOTATION.DESCRIPTION] || '';
+        return annotations[DESCRIPTION] || '';
       },
       set(neu) {
-        this.$set(this.value.metadata.annotations, ANNOTATION.DESCRIPTION, neu );
+        this.$set(this.value.metadata.annotations, DESCRIPTION, neu );
       }
     },
 

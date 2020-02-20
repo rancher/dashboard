@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
 import { directiveSsr as t } from './plugins/i18n';
+import { STANDARD } from './config/private-label';
 
 require('dotenv').config();
 
@@ -12,6 +13,7 @@ const version = process.env.VERSION ||
 
 const dev = (process.env.NODE_ENV !== 'production');
 const api = process.env.API || 'http://localhost:8989';
+const pl = process.env.PL || STANDARD;
 
 let routerBasePath = '/';
 let resourceBase = '';
@@ -33,18 +35,31 @@ if ( resourceBase && !resourceBase.endsWith('/') ) {
   resourceBase += '/';
 }
 
-console.log(`Mode: ${ dev ? 'Development' : 'Production' }`);
-console.log(`Router Base Path: ${ routerBasePath || '(none)' }`);
-console.log(`Resource Base URL: ${ resourceBase || '(none)' }`);
-console.log(`API: ${ api }`);
+console.log(`Build: ${ dev ? 'Development' : 'Production' }`);
 
-if ( dev ) {
-  process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+if ( resourceBase ) {
+  console.log(`Resource Base URL: ${ resourceBase }`);
 }
+
+if ( routerBasePath !== '/' ) {
+  console.log(`Router Base Path: ${ routerBasePath }`);
+}
+
+if ( pl !== STANDARD ) {
+  console.log(`PL: ${ pl }`);
+}
+
+console.log(`API: ${ api }`);
 
 module.exports = {
   dev,
-  version,
+
+  // Configuration visible to the client, https://nuxtjs.org/api/configuration-env
+  env: {
+    version,
+    dev,
+    pl,
+  },
 
   buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
@@ -106,10 +121,6 @@ module.exports = {
     }
   },
 
-  buildModules: [
-    '@nuxt/typescript-build',
-  ],
-
   render: {
     bundleRenderer: {
       directives: {
@@ -153,7 +164,7 @@ module.exports = {
     '@nuxtjs/eslint-module',
     'cookie-universal-nuxt',
     'portal-vue/nuxt',
-    '~/plugins/norman/rehydrate-all',
+    '~/plugins/steve/rehydrate-all',
   ],
 
   // Vue plugins
@@ -180,72 +191,13 @@ module.exports = {
 
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
-    '/k8s':         {
-      target:       api,
-      xfwd:         true,
-      ws:           true,
-      changeOrigin: true,
-      secure:       !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError,
-    },
-    '/v1': {
-      target:       api,
-      xfwd:         true,
-      ws:           true,
-      changeOrigin: true,
-      secure:       !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError,
-    },
-    '/api/v1': {
-      target:       api,
-      xfwd:         true,
-      ws:           true,
-      changeOrigin: true,
-      secure:       !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError,
-    },
-    '/apis': {
-      target:       api,
-      xfwd:         true,
-      ws:           true,
-      changeOrigin: true,
-      secure:       !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError,
-    },
-    '/v3': {
-      target:       api,
-      xfwd:         true,
-      ws:           true,
-      changeOrigin: true,
-      secure:       !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError,
-    },
-    '/v3-public': {
-      target: api,
-      xfwd:   true,
-      secure: !dev,
-      onProxyReq,
-      onProxyReqWs,
-      onError
-    },
-    '/api-ui':    {
-      target: api,
-      xfwd:   true,
-      secure: false,
-      onProxyReq,
-      onProxyReqWs,
-      onError
-    }
+    '/k8s':       proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+    '/api':       proxyOpts(api), // Managment k8s API
+    '/apis':      proxyOpts(api), // Managment k8s API
+    '/v1':        proxyOpts(api), // Management Steve API
+    '/v3':        proxyOpts(api), // Rancher API
+    '/v3-public': proxyOpts(api), // Rancher Unauthed API
+    '/api-ui':    proxyOpts(api), // Browser API UI
   },
 
   // Nuxt server
@@ -262,7 +214,28 @@ module.exports = {
   serverMiddleware: [
     '~/server/no-ssr'
   ],
+
+  // Eslint module options
+  eslint: { cache: '.eslintcache' },
 };
+
+function proxyOpts(target) {
+  return {
+    target,
+    secure: !dev,
+    onProxyReq,
+    onProxyReqWs,
+    onError
+  };
+}
+
+function proxyWsOpts(target) {
+  return {
+    ...proxyOpts(target),
+    ws:           true,
+    changeOrigin: true,
+  };
+}
 
 function onProxyReq(proxyReq, req) {
   proxyReq.setHeader('x-api-host', req.headers['host']);

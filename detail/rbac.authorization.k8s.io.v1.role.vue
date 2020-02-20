@@ -3,8 +3,8 @@ import createEditView from '@/mixins/create-edit-view';
 import DetailTop from '@/components/DetailTop';
 import VStack from '@/components/Layout/Stack/VStack';
 import TableRbacRules from '@/components/TableRbacRules';
-import { ANNOTATION } from '@/config/types';
-import { FRIENDLY } from '@/config/friendly';
+import { DESCRIPTION } from '@/config/labels-annotations';
+import { singularLabelFor } from '@/utils/customized';
 
 /**
  * Detail view for RBAC Role
@@ -37,16 +37,18 @@ export default {
      * Returns friendly type (singlar)
      */
     typeDisplay() {
-      return FRIENDLY[this.value.type].singular;
+      return singularLabelFor(this.value.schema);
     },
+
     /**
      * Returns description from annotations
      */
     description() {
       const { metadata:{ annotations = {} } } = this.value;
 
-      return annotations[ANNOTATION.DESCRIPTION];
+      return annotations[DESCRIPTION];
     },
+
     /**
      * Returns columns for the detail top
      */

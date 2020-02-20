@@ -2,6 +2,15 @@ locale:
   none: (None)
   en-us: English
 
+header:
+  backToRancher: Back to Rancher
+
+nav:
+  show:
+    basic: Basic
+    used: In-Use
+    all: All
+
 footer:
   docs: Docs
   forums: Forums

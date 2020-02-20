@@ -4,11 +4,11 @@ import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
 import SortableTable from '@/components/SortableTable';
 import {
-  headersFor,
   NAME, NAME_UNLINKED,
   NAMESPACE_NAME, NAMESPACE_NAME_UNLINKED,
   NAMESPACE_NAME_IMAGE, NAME_IMAGE,
 } from '@/config/table-headers';
+import { headersFor } from '@/utils/customized';
 
 export default {
   components: { ButtonGroup, SortableTable },
@@ -65,7 +65,7 @@ export default {
       if ( this.headers ) {
         headers = this.headers.slice();
       } else {
-        headers = headersFor(this.schema, false);
+        headers = headersFor(this.schema);
       }
 
       // If only one namespace is selected, replace the namespace_name

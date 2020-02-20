@@ -1,0 +1,20 @@
+{
+  "files.exclude": {
+    ".ackrc": true,
+    ".dockerignore": true,
+    ".drone.yml": true,
+    ".editorconfig": true,
+    ".eslintcache": true,
+    ".eslintignore": true,
+    ".eslintrc.js": true,
+    ".gitignore": true,
+    ".nuxt*": true,
+    ".nyc_output": true,
+    ".vscode": true,
+    "Dockerfile": true,
+    "LICENSE": true,
+    "babel.config.js": true,
+    "jsconfig.json": true,
+    "yarn-error.log": true
+  }
+}

@@ -43,8 +43,11 @@ export default {
     };
   },
 
-  stateRelevant() {
-    return this.enabled ? 'active' : 'inactive';
+  state() {
+    if ( this.enabled ) {
+      return 'active';
+    }
+
+    return 'inactive';
   }
-}
-;
+};

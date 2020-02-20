@@ -19,6 +19,11 @@ export default {
     options: {
       type:     Array,
       required: true,
+    },
+
+    labelsAreTranslations: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -68,7 +73,8 @@ export default {
     >
       <slot name="option" :label="opt.label" :value="opt.value">
         <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />
-        <span v-if="opt.label">{{ opt.label }}</span>
+        <t v-if="opt.label && labelsAreTranslations" :k="opt.label" />
+        <span v-else-if="opt.label">{{ opt.label }}</span>
       </slot>
     </button>
   </div>
