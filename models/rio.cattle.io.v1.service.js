@@ -1,6 +1,8 @@
 import day from 'dayjs';
 import { insertAt, filterBy } from '@/utils/array';
-import { ADD_SIDECAR, _FLAGGED, MODE, _STAGE } from '@/config/query-params';
+import {
+  ADD_SIDECAR, _FLAGGED, MODE, _CREATE, _CLONE, _STAGE
+} from '@/config/query-params';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { addParams } from '@/utils/url';
@@ -12,6 +14,26 @@ import { get } from '@/utils/object';
 const EMPTY = {};
 
 export default {
+  applyDefaults(ctx, mode) {
+    const spec = this.spec;
+
+    if ( mode === _CREATE || mode === _CLONE ) {
+      delete spec.app;
+      spec.version = 'v0';
+    } else if ( mode === _STAGE ) {
+      spec.app = this.app;
+      delete spec.version;
+    }
+
+    if ( mode === _CREATE ) {
+      spec.weight = 10000;
+    } else if ( mode === _CLONE ) {
+      delete spec.weight;
+    } else if ( mode === _STAGE ) {
+      spec.weight = 0;
+    }
+  },
+
   app() {
     const spec = this.spec || EMPTY;
     const status = this.status || EMPTY;

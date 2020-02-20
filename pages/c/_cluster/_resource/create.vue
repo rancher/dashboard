@@ -50,6 +50,7 @@ export default {
     if ( schema.attributes.namespaced ) {
       data.metadata = { namespace };
     }
+
     const model = await ctx.store.dispatch('cluster/create', data);
     const yaml = createYaml(schemas, resource, data);
 

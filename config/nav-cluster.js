@@ -1,7 +1,9 @@
+// virtualType(obj): Add an item to the tree that goes to a route instead of an actual type.  Obj can contain anything in the objects getTree returns.
 // basicType(type): Mark type as one shown in basic view
 // ignoreType(type): Never show type
 // weightType(typeOrArrayOfTypes, weight): Set the weight (sort) order of one or more types
 // mapType(matchRegexOrString, replacementStringOrFn, mapWeight, continueOnMatch): Remap a type id to a display name
+// labelType(type, singular, plural): Remap the displayed name for a type
 //
 // ignoreGroup(group): Never show group or any types in it
 // weightGroup(groupOrArrayOfGroups, weight): Set the weight (sort) order of one or more groups
@@ -14,6 +16,10 @@ import { escapeRegex } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { SCHEMA, COUNT } from '@/config/types';
 import { isArray } from '@/utils/array';
+
+export function virtualType(obj) {
+  _virtualTypes.push(obj);
+}
 
 export function basicType(types) {
   if ( !isArray(types) ) {
@@ -31,6 +37,11 @@ export function ignoreGroup(group) {
 
 export function ignoreType(type) {
   _typeIgnore[type] = true;
+}
+
+export function labelType(type, singular, plural) {
+  _singularLabels[type] = singular;
+  _pluralLabels[type] = plural;
 }
 
 // setGroupWeight('Core' 99); -- higher groups are shown first
@@ -127,7 +138,7 @@ export function getTree(mode, clusterId, types, namespaces, currentType) {
       continue;
     }
 
-    const groupName = groupLabelForObjn(typeObj);
+    const groupName = groupLabelForObj(typeObj);
     const group = _ensureGroup(root, groupName);
 
     group.children.push({
@@ -146,6 +157,13 @@ export function getTree(mode, clusterId, types, namespaces, currentType) {
     });
   }
 
+  // Add virtual types
+  for ( const item of _virtualTypes ) {
+    const group = _ensureGroup(root, item.group);
+
+    group.children.push(item);
+  }
+
   // Sort all the insides of the groups
   for ( const group of Object.keys(root) ) {
     if ( root[group] && root[group].children ) {
@@ -158,15 +176,21 @@ export function getTree(mode, clusterId, types, namespaces, currentType) {
 }
 
 export function singularLabelFor(schema) {
+  if ( _singularLabels[schema.id] ) {
+    return _singularLabels[schema.id];
+  }
+
   const attrs = schema.attributes || {};
 
   return attrs.kind;
 }
 
-export function pluralLabelFor($store, typeStr) {
-  const singular = singularLabelFor($store, typeStr);
+export function pluralLabelFor(schema) {
+  if ( _pluralLabels[schema.id] ) {
+    return _pluralLabels[schema.id];
+  }
 
-  // @TODO add mapper to customize pluralizing things here...
+  const singular = singularLabelFor(schema);
 
   if ( singular.endsWith('s') ) {
     return `${ singular }es`;
@@ -177,6 +201,7 @@ export function pluralLabelFor($store, typeStr) {
 
 // --------------------------------------------
 
+const _virtualTypes = [];
 const _basicTypes = {};
 const _groupIgnore = {};
 const _groupWeights = {};
@@ -186,6 +211,8 @@ const _typeIgnore = {};
 const _typeWeights = {};
 const _typeMappings = [];
 const _typeLabelCache = {};
+const _singularLabels = {};
+const _pluralLabels = {};
 
 function _addMapping(mappings, match, replace, weight, continueOnMatch) {
   if ( typeof match === 'string' ) {
@@ -238,7 +265,7 @@ function typeLabelForObj(typeObj) {
 }
 
 // Turns a group name into a display label (e.g. management.cattle.io.v3.cluster -> Cluster)
-function groupLabelForObjn(typeObj) {
+function groupLabelForObj(typeObj) {
   return _applyMapping(typeObj, _groupMappings, 'group', _groupLabelCache);
 }
 

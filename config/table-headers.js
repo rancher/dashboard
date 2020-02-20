@@ -49,7 +49,7 @@ export const NAMESPACE_NAME_IMAGE = {
 };
 
 export const NAME_IMAGE = {
-  name:      '-name-image',
+  name:      'name-image',
   label:     'Name',
   value:     'nameDisplay',
   sort:      ['nameSort'],
@@ -408,7 +408,8 @@ export const API_GROUP = {
 };
 
 export function headersFor(schema) {
-  const out = [STATE];
+  const out = [STATE]; // Everybody gets a state
+
   const attributes = schema.attributes || {};
   const columns = attributes.columns;
   const namespaced = attributes.namespaced;

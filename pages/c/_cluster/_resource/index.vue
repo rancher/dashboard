@@ -2,6 +2,7 @@
 import { get } from '@/utils/object';
 import ResourceTable from '@/components/ResourceTable';
 import { FRIENDLY } from '@/config/friendly';
+import { pluralLabelFor } from '@/config/nav-cluster';
 
 export default {
   components: { ResourceTable },
@@ -10,6 +11,7 @@ export default {
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.resource);
     },
+
     headers() {
       return get(FRIENDLY[this.resource], 'headers');
     },
@@ -28,6 +30,9 @@ export default {
       return () => import(`@/list/${ this.resource }`);
     },
 
+    typeDisplay() {
+      return pluralLabelFor(this.schema);
+    },
   },
 
   asyncData(ctx) {
@@ -46,7 +51,7 @@ export default {
   <div>
     <header>
       <h1>
-        {{ schema.attributes.kind }}
+        {{ typeDisplay }}
       </h1>
       <div class="actions">
         <nuxt-link to="create" append tag="button" type="button" class="btn bg-primary">

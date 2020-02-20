@@ -46,6 +46,12 @@ export default {
     return this.id || Math.random();
   },
 
+  schema() {
+    return () => {
+      return this.$getters['schemaFor'](this.type);
+    };
+  },
+
   toString() {
     return () => {
       return `[${ this.type }: ${ this.id }]`;
@@ -608,4 +614,10 @@ export default {
       this.$dispatch('promptRemove', resources);
     };
   },
+
+  applyDefaults() {
+    return () => {
+      return this;
+    };
+  }
 };

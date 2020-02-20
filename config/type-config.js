@@ -3,7 +3,8 @@ import {
   basicType,
   weightGroup,
   mapGroup,
-  mapType
+  mapType,
+  labelType,
 } from '@/config/nav-cluster';
 
 import { ucFirst } from '@/utils/string';
@@ -44,6 +45,8 @@ export default function() {
 
     return typeStr;
   }, 1);
+
+  labelType('core.v1.endpoints', 'Endpoint', 'Endpoints');
 
   weightGroup(CORE, 99);
   weightGroup(APPS, 98);

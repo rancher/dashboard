@@ -3,7 +3,8 @@ import { mapState } from 'vuex';
 import { get } from '@/utils/object';
 import { NAMESPACE, RIO } from '@/config/types';
 import Card from '@/components/Card';
-import { TO_FRIENDLY } from '@/config/friendly';
+import { singularLabelFor, pluralLabelFor } from '@/config/nav-cluster';
+
 export default {
   components: { Card },
   data() {
@@ -11,24 +12,29 @@ export default {
   },
   computed:   {
     names() {
-      return this.toRemove.map((resource) => {
-        return get(resource, 'metadata.name');
-      });
+      return this.toRemove.map(obj => obj.nameDisplay);
     },
-    type() {
-      const type = get(this.toRemove[0], '_type');
 
-      if (TO_FRIENDLY[type]) {
-        return this.toRemove.length > 1 ? TO_FRIENDLY[type].plural : TO_FRIENDLY[type].singular;
+    type() {
+      const schema = this.toRemove[0].schema;
+
+      if ( !schema ) {
+        return `resource${ this.toRemove.length === 1 ? '' : 's' }`;
       }
 
-      return 'resource';
+      if ( this.toRemove.length > 1 ) {
+        return pluralLabelFor(schema);
+      } else {
+        return singularLabelFor(schema);
+      }
     },
+
     selfLinks() {
       return this.toRemove.map((resource) => {
         return get(resource, 'links.self');
       });
     },
+
     needsConfirm() {
       const type = get(this.toRemove[0], 'type');
 
@@ -36,6 +42,7 @@ export default {
     },
     ...mapState('actionMenu', ['showPromptRemove', 'toRemove'])
   },
+
   watch:    {
     showPromptRemove(show) {
       if (show) {
@@ -45,10 +52,12 @@ export default {
       }
     }
   },
+
   methods: {
     close() {
       this.$store.commit('actionMenu/togglePromptRemove');
     },
+
     remove() {
       if (this.needsConfirm && this.confirmName !== this.names[0]) {
         this.error = 'Resource names do not match';

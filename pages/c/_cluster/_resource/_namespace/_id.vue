@@ -1,13 +1,14 @@
 <script>
-import ResourceDetail, { asyncData } from '@/components/ResourceDetail';
+import ResourceDetail, { asyncData, watchQuery } from '@/components/ResourceDetail';
 
 export default {
   name:       'ClusterResourceNamespaceId',
   components: { ResourceDetail },
-  asyncData
+  asyncData,
+  watchQuery,
 };
 </script>
 
 <template>
-  <ResourceDetail :async-data="_data" />
+  <ResourceDetail v-bind="_data" />
 </template>

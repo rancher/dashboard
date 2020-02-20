@@ -13,7 +13,6 @@ import {
   CREATED,
   BUILT_IN, CLUSTER_CREATOR_DEFAULT
 } from '@/config/table-headers';
-import { _CREATE, _CLONE, _STAGE } from '@/config/query-params';
 
 export const FRIENDLY = {
   [NAMESPACE]: {
@@ -121,24 +120,6 @@ export const FRIENDLY = {
       },
       AGE,
     ],
-
-    applyDefaults(ctx, model, mode) {
-      if ( mode === _CREATE || mode === _CLONE ) {
-        delete model.spec.app;
-        model.spec.version = 'v0';
-      } else if ( mode === _STAGE ) {
-        model.spec.app = model.app;
-        delete model.spec.version;
-      }
-
-      if ( mode === _CREATE ) {
-        model.spec.weight = 10000;
-      } else if ( mode === _CLONE ) {
-        delete model.spec.weight;
-      } else if ( mode === _STAGE ) {
-        model.spec.weight = 0;
-      }
-    },
   },
 
   stack: {

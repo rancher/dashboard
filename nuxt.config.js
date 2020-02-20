@@ -192,6 +192,7 @@ module.exports = {
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
     '/k8s':       proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
+    '/api':       proxyOpts(api), // Managment k8s API
     '/apis':      proxyOpts(api), // Managment k8s API
     '/v1':        proxyOpts(api), // Management Steve API
     '/v3':        proxyOpts(api), // Rancher API
