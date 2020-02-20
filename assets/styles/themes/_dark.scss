@@ -54,7 +54,7 @@
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$darker};
   --disabled-bg                : #{$disabled};
-  --header-bg                  : #{$dark};
+  --header-bg                  : #{$primary};
   --box-bg                     : #{$darkest};
   --border                     : #{$medium};
   --nav-select                 : #{$darker};
@@ -80,7 +80,7 @@
 
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
-  --input-placeholder          : #{$disabled};
+  --input-placeholder          : #{$secondary};
   --input-border               : var(--border);
   --input-bg                   : #{$dark};
   --input-hover-bg             : #{darken($medium, 15%)};

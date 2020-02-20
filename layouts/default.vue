@@ -277,6 +277,10 @@ export default {
         margin-top: 20px;
       }
 
+      .header {
+        background: transparent;
+      }
+      
       H6 {
         margin: 0;
         letter-spacing: 0.1em;

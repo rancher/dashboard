@@ -229,9 +229,13 @@ export default {
   .route {
     margin-top: 20px;
     padding: 20px;
-    background-color: var(--login-bg);
+    background-color: var(--box-bg);
     margin-bottom: 20px;
     border-radius: 3px;
+
+    .header {
+      background: transparent;
+    }
 
     & .inputs-table {
       margin: 10px 0 10px 0;

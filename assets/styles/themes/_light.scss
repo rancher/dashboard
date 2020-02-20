@@ -63,10 +63,10 @@ $selected: rgba($primary, .5);
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
   --disabled-bg                : #{$disabled};
-  --header-bg                  : #{$light};
+  --header-bg                  : #{$primary};
   --nav-bg                     : #{$lighter};
   --footer-bg                  : ;
-  --box-bg                     : #{$light};
+  --box-bg                     : #{$lighter};
   --border                     : #{$medium};
   --border-radius              : 2px;
   --outline                    : rgba(42,148,255,0.75);
@@ -74,7 +74,7 @@ $selected: rgba($primary, .5);
 
   --accent-btn                 : #{rgba($primary, 0.2)};
 
-  --dropdown-bg                : #{$dark};
+  --dropdown-bg                : #{$lighter};
   --dropdown-border            : #{$medium};
   --dropdown-divider           : #{$medium};
   --dropdown-text              : #{$link};
@@ -90,9 +90,9 @@ $selected: rgba($primary, .5);
   --input-label                : #{$secondary};
   --input-text                 : #{$darkest};
   --input-placeholder          : #{$secondary};
-  --input-border               : var(--$border);
+  --input-border               : #{$medium};
   --input-bg                   : #{$light};
-  --input-hover-bg             : lighten($light, 10%);
+  --input-hover-bg             : #{$lighter};
   --input-focus-bg             : #{$lightest};
   --input-hover-border         : transparent;
   --input-disabled-text        : #{$dark};
@@ -119,7 +119,7 @@ $selected: rgba($primary, .5);
   --tooltip-border-radius      : 2px;
 
   --tabbed-border              : #{$medium};
-  --tabbed-container-bg        : #{$light};
+  --tabbed-container-bg        : #{$lighter};
 
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);
