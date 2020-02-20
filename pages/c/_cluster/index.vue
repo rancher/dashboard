@@ -21,7 +21,7 @@ export default {
       Cluster: {{ cluster.nameDisplay }}
     </h1>
     <div class="text-center" style="margin-top: 200px;">
-      Dashboard...
+      Dashboard wheels...
     </div>
   </div>
 </template>

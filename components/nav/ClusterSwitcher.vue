@@ -23,6 +23,7 @@ export default {
     <v-popover
       placement="bottom"
       trigger="click"
+      :hide-on-target-click="true"
       :delay="{show: 0, hide: 200}"
     >
       <div class="cluster-dropdown">
@@ -37,7 +38,7 @@ export default {
       <template slot="popover">
         <ul class="list-unstyled cluster-list dropdown" style="margin: -14px;">
           <li v-for="c of clusters" :key="c.id">
-            <nuxt-link v-if="c.isReady" class="cluster" :to="{name: 'c-cluster', params: { cluster: c.id }}">
+            <nuxt-link v-if="c.isReady" v-close-popover class="cluster" :to="{name: 'c-cluster', params: { cluster: c.id }}">
               {{ c.nameDisplay }}
             </nuxt-link>
             <span v-else class="cluster not-ready">

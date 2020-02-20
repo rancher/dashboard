@@ -6,7 +6,7 @@ import {
   MODE, _EDIT, _CLONE,
   EDIT_YAML, _FLAGGED
 } from '@/config/query-params';
-import { TO_FRIENDLY } from '@/config/friendly';
+import { hasCustomEdit } from '@/utils/customized';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { addParams } from '@/utils/url';
@@ -300,33 +300,40 @@ export default {
   _standardActions() {
     const all = [];
     const links = this.links || {};
-    const friendly = TO_FRIENDLY[this.type.replace(/^rio-/i, '')];
     const hasView = !!links.rioview || !!links.view;
+    const customEdit = hasCustomEdit(this.type);
 
-    all.push({
-      action:  'goToEdit',
-      label:   'Edit',
-      icon:    'icon icon-fw icon-edit',
-      enabled:  !!links.update,
-    });
+    if ( customEdit ) {
+      all.push({
+        action:  'goToEdit',
+        label:   'Edit as Form',
+        icon:    'icon icon-fw icon-edit',
+        enabled:  !!links.update,
+      });
 
-    all.push({
-      action:  'goToClone',
-      label:   'Clone',
-      icon:    'icon icon-fw icon-copy',
-      enabled:  !!links.update,
-    });
+      all.push({
+        action:  'goToClone',
+        label:   'Clone as Form',
+        icon:    'icon icon-fw icon-copy',
+        enabled:  !!links.update,
+      });
+    }
 
     all.push({ divider: true });
 
-    if ( friendly ) {
-      all.push({
-        action:  'viewEditYaml',
-        label:   (links.update ? 'View/Edit YAML' : 'View YAML'),
-        icon:    'icon icon-file',
-        enabled:  hasView,
-      });
-    }
+    all.push({
+      action:  'viewEditYaml',
+      label:   (links.update ? 'Edit/View as YAML' : 'View as YAML'),
+      icon:    'icon icon-file',
+      enabled:  hasView,
+    });
+
+    all.push({
+      action:  'cloneYaml',
+      label:   'Clone as YAML',
+      icon:    'icon icon-fw icon-copy',
+      enabled:  !!links.update,
+    });
 
     all.push({
       action:     'download',
@@ -561,6 +568,18 @@ export default {
   viewEditYaml() {
     return () => {
       return this.goToEdit({ [EDIT_YAML]: _FLAGGED });
+    };
+  },
+
+  cloneYaml() {
+    return (moreQuery = {}) => {
+      const url = addParams(this.detailUrl, {
+        [MODE]:      _CLONE,
+        [EDIT_YAML]: _FLAGGED,
+        ...moreQuery
+      });
+
+      this.currentRouter().push({ path: url });
     };
   },
 

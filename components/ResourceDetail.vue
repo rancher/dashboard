@@ -7,7 +7,12 @@ import {
   EDIT_YAML, _FLAGGED, _CREATE
 } from '@/config/query-params';
 import { NAMESPACE } from '@/config/types';
-import { singularLabelFor } from '@/config/nav-cluster';
+import {
+  singularLabelFor,
+  hasCustomDetail as _hasCustomDetail,
+  hasCustomEdit as _hasCustomEdit,
+  importDetail, importEdit
+} from '@/utils/customized';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.
@@ -15,20 +20,8 @@ export async function asyncData(ctx) {
   const { store, params, route } = ctx;
   const { resource, namespace, id } = params;
 
-  let hasCustomDetail = true;
-  let hasCustomEdit = true;
-
-  try {
-    require.resolve(`@/detail/${ resource }`);
-  } catch (e) {
-    hasCustomDetail = false;
-  }
-
-  try {
-    require.resolve(`@/edit/${ resource }`);
-  } catch (e) {
-    hasCustomEdit = false;
-  }
+  const hasCustomDetail = _hasCustomDetail(resource);
+  const hasCustomEdit = _hasCustomEdit(resource);
 
   // There are 5 "real" modes: view, create, edit, stage, clone
   // which later map to 3 logical/page modes: view, create, edit (stage and clone are "create")
@@ -169,9 +162,9 @@ export default {
 
     showComponent() {
       if ( this.isView && this.hasCustomDetail ) {
-        return () => import(`@/detail/${ this.resource }`);
+        return importDetail(this.resource);
       } else if ( !this.isView && this.hasCustomEdit ) {
-        return () => import(`@/edit/${ this.resource }`);
+        return importEdit(this.resource);
       }
 
       return null;

@@ -4,7 +4,7 @@ import DetailTop from '@/components/DetailTop';
 import VStack from '@/components/Layout/Stack/VStack';
 import TableRbacRules from '@/components/TableRbacRules';
 import { DESCRIPTION } from '@/config/labels-annotations';
-import { FRIENDLY } from '@/config/friendly';
+import { singularLabelFor } from '@/utils/customized';
 
 /**
  * Detail view for RBAC Role
@@ -37,8 +37,9 @@ export default {
      * Returns friendly type (singlar)
      */
     typeDisplay() {
-      return FRIENDLY[this.value.type].singular;
+      return singularLabelFor(this.value.schema);
     },
+
     /**
      * Returns description from annotations
      */
@@ -47,6 +48,7 @@ export default {
 
       return annotations[DESCRIPTION];
     },
+
     /**
      * Returns columns for the detail top
      */

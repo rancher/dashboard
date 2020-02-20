@@ -2,7 +2,7 @@
 import ResourceYaml from '@/components/ResourceYaml';
 import { createYaml } from '@/utils/create-yaml';
 import { SCHEMA } from '@/config/types';
-import { singularLabelFor } from '@/config/nav-cluster';
+import { hasCustomEdit, importEdit, singularLabelFor } from '@/utils/customized';
 
 export default {
   components: { ResourceYaml },
@@ -15,17 +15,11 @@ export default {
     },
 
     hasComponent() {
-      try {
-        require.resolve(`@/edit/${ this.resource }`);
-
-        return true;
-      } catch (e) {
-        return false;
-      }
+      return hasCustomEdit(this.resource);
     },
 
     showComponent() {
-      return () => import(`@/edit/${ this.resource }`);
+      return importEdit(this.resource);
     },
 
     typeDisplay() {

@@ -5,7 +5,6 @@ import createEditView from '@/mixins/create-edit-view';
 import ResourceQuota from '@/edit/core.v1.namespace/ResourceQuota';
 import LabelsAndAnnotationsTabs from '@/components/LabelsAndAnnotations/Tabs';
 import { DESCRIPTION } from '@/config/labels-annotations';
-import Tabbed from '@/components/Tabbed';
 
 export default {
   name: 'DetailNamespace',

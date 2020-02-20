@@ -1,11 +1,11 @@
 <script>
+import { pluralLabelFor, headersFor } from '../utils/customized';
 import { findBy, filterBy } from '@/utils/array';
 import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import ResourceTable from '@/components/ResourceTable';
 import { SCHEMA } from '@/config/types';
 import { RIO } from '@/config/labels-annotations';
-import { TO_FRIENDLY } from '@/config/friendly';
 
 export default {
   name: 'DetailStack',
@@ -43,21 +43,13 @@ export default {
 
       const out = Object.keys(map).map((key) => {
         const schema = schemas[key];
-        const friendly = TO_FRIENDLY[schema.id];
-        let label = schema.kind;
-        let headers = null;
-
-        if ( friendly ) {
-          label = friendly.plural;
-          headers = friendly.headers;
-        }
 
         return {
-          id:     key,
-          label,
           schema,
-          headers,
-          rows:   map[key],
+          id:      key,
+          label:   pluralLabelFor(schema),
+          headers: headersFor(schema),
+          rows:    map[key],
         };
       });
 

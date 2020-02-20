@@ -206,7 +206,7 @@ export default {
       <ButtonGroup v-model="navShow" :options="navOptions" :labels-are-translations="true" />
     </div>
 
-    <main>
+    <main v-if="clusterReady">
       <nuxt class="outlet" />
       <Footer />
     </main>
@@ -288,7 +288,7 @@ export default {
       .header {
         background: transparent;
       }
-      
+
       H6 {
         margin: 0;
         letter-spacing: 0.1em;

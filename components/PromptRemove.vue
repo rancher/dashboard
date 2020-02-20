@@ -3,7 +3,7 @@ import { mapState } from 'vuex';
 import { get } from '@/utils/object';
 import { NAMESPACE, RIO } from '@/config/types';
 import Card from '@/components/Card';
-import { singularLabelFor, pluralLabelFor } from '@/config/nav-cluster';
+import { singularLabelFor, pluralLabelFor } from '@/utils/customized';
 
 export default {
   components: { Card },
@@ -16,7 +16,7 @@ export default {
     },
 
     type() {
-      const schema = this.toRemove[0].schema;
+      const schema = this.toRemove[0]?.schema;
 
       if ( !schema ) {
         return `resource${ this.toRemove.length === 1 ? '' : 's' }`;
@@ -36,10 +36,16 @@ export default {
     },
 
     needsConfirm() {
-      const type = get(this.toRemove[0], 'type');
+      const first = this.toRemove[0];
+
+      if ( !first ) {
+        return false;
+      }
+      const type = first.type;
 
       return (type === NAMESPACE || type === RIO.STACK) && this.toRemove.length === 1;
     },
+
     ...mapState('actionMenu', ['showPromptRemove', 'toRemove'])
   },
 

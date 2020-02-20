@@ -1,8 +1,6 @@
 <script>
-import { get } from '@/utils/object';
 import ResourceTable from '@/components/ResourceTable';
-import { FRIENDLY } from '@/config/friendly';
-import { pluralLabelFor } from '@/config/nav-cluster';
+import { hasCustomList, importList, pluralLabelFor, headersFor } from '@/utils/customized';
 
 export default {
   components: { ResourceTable },
@@ -13,21 +11,15 @@ export default {
     },
 
     headers() {
-      return get(FRIENDLY[this.resource], 'headers');
+      return headersFor(this.schema);
     },
 
     hasComponent() {
-      try {
-        require.resolve(`@/list/${ this.resource }`);
-
-        return true;
-      } catch (e) {
-        return false;
-      }
+      return hasCustomList(this.resource);
     },
 
     showComponent() {
-      return () => import(`@/list/${ this.resource }`);
+      return importList(this.resource);
     },
 
     typeDisplay() {
