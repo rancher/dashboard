@@ -4,11 +4,15 @@ import {
 } from '../../../../config/table-headers';
 import { get } from '@/utils/object';
 import ResourceTable from '@/components/ResourceTable';
+import SortableTable from '@/components/SortableTable';
 import { FRIENDLY } from '@/config/friendly';
 import { WORKLOAD } from '@/config/types';
 
 export default {
-  components: { ResourceTable },
+  components: {
+    ResourceTable,
+    SortableTable
+  },
 
   computed: {
     schema() {
@@ -39,15 +43,13 @@ export default {
       return Promise.all( types.map((type) => {
         return ctx.store.dispatch('cluster/findAll', { type });
       })).then((resources) => {
-        resources = resources.map((rows, i) => {
+        resources = resources.reduce((all, rows) => {
           rows = rows.filter(row => !row.metadata.ownerReferences);
-          const type = types[i];
-          const schema = ctx.store.getters['cluster/schemaFor'](type);
 
-          return {
-            type, rows, schema
-          };
-        });
+          all.push(...rows);
+
+          return all;
+        }, []);
         // .filter(resource => resource.rows.length);
 
         return { resources, isWorkload };
@@ -57,7 +59,8 @@ export default {
     return ctx.store.dispatch('cluster/findAll', { type: resource }).then((rows) => {
       return {
         resource,
-        rows
+        rows,
+        isWorkload: false
       };
     });
   },
@@ -75,12 +78,13 @@ export default {
         </nuxt-link>
       </div>
     </header>
-    <div v-for="resource in resources" :key="resource.type">
+    <SortableTable :rows="resources" :headers="headers" key-field="id" />
+    <!-- <div v-for="resource in resources" :key="resource.type">
       <h4 class="mt-20">
         {{ resource.type }}
       </h4>
       <ResourceTable :schema="resource.schema" :rows="resource.rows" :headers="headers" />
-    </div>
+    </div> -->
   </div>
   <div v-else>
     <header>
