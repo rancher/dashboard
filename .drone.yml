@@ -97,8 +97,6 @@ steps:
 - name: build
   pull: default
   image: node:10
-  environment:
-    GIT_TAG: latest
   commands:
   - ./scripts/build-hosted
 
