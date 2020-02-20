@@ -78,7 +78,7 @@ steps:
 
 ---
 kind: pipeline
-name: hosted-branch
+name: hosted-master
 
 depends_on:
 - test
@@ -86,6 +86,43 @@ depends_on:
 trigger:
   ref:
   - "refs/heads/master"
+  event:
+  - push
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build
+  pull: default
+  image: node:10
+  environment:
+    GIT_TAG=latest
+  commands:
+  - ./scripts/build-hosted
+
+- name: upload
+  pull: default
+  image: plugins/gcs
+  settings:
+    acl:
+    - allUsers:READER
+    cache_control: "no-cache,must-revalidate"
+    source: dist/${DRONE_BRANCH}
+    target: releases.rancher.com/dashboard/${DRONE_BRANCH}
+    token:
+      from_secret: google_auth_key
+
+---
+kind: pipeline
+name: hosted-branch
+
+depends_on:
+- test
+
+trigger:
+  ref:
   - "refs/heads/*-dev"
   event:
   - push
@@ -147,73 +184,73 @@ steps:
     token:
       from_secret: google_auth_key
 
----
-kind: pipeline
-name: embedded-branch
-
-depends_on:
-- test
-
-trigger:
-  ref:
-  - "refs/heads/master"
-  - "refs/heads/*-dev"
-  event:
-  - push
-
-platform:
-  os: linux
-  arch: amd64
-
-steps:
-- name: build
-  pull: default
-  image: node:10
-  commands:
-  - ./scripts/build-embedded
-
-- name: upload
-  pull: default
-  image: plugins/gcs
-  settings:
-    acl:
-    - allUsers:READER
-    cache_control: "no-cache,must-revalidate"
-    source: dist/${DRONE_BRANCH}.tar.gz
-    target: releases.rancher.com/dashboard/${DRONE_BRANCH}.tar.gz
-    token:
-      from_secret: google_auth_key
-
----
-kind: pipeline
-name: embedded-tag
-
-depends_on:
-- test
-
-trigger:
-  event:
-  - tag
-
-platform:
-  os: linux
-  arch: amd64
-
-steps:
-- name: build
-  pull: default
-  image: node:10
-  commands:
-  - ./scripts/build-embedded
-
-- name: upload
-  pull: default
-  image: plugins/gcs
-  settings:
-    acl:
-    - allUsers:READER
-    cache_control: "no-cache,must-revalidate"
-    source: dist/${DRONE_TAG}.tar.gz
-    target: releases.rancher.com/dashboard/${DRONE_TAG}.tar.gz
-    token:
-      from_secret: google_auth_key
+#---
+#kind: pipeline
+#name: embedded-branch
+#
+#depends_on:
+#- test
+#
+#trigger:
+#  ref:
+#  - "refs/heads/master"
+#  - "refs/heads/*-dev"
+#  event:
+#  - push
+#
+#platform:
+#  os: linux
+#  arch: amd64
+#
+#steps:
+#- name: build
+#  pull: default
+#  image: node:10
+#  commands:
+#  - ./scripts/build-embedded
+#
+#- name: upload
+#  pull: default
+#  image: plugins/gcs
+#  settings:
+#    acl:
+#    - allUsers:READER
+#    cache_control: "no-cache,must-revalidate"
+#    source: dist/${DRONE_BRANCH}.tar.gz
+#    target: releases.rancher.com/dashboard/${DRONE_BRANCH}.tar.gz
+#    token:
+#      from_secret: google_auth_key
+#
+#---
+#kind: pipeline
+#name: embedded-tag
+#
+#depends_on:
+#- test
+#
+#trigger:
+#  event:
+#  - tag
+#
+#platform:
+#  os: linux
+#  arch: amd64
+#
+#steps:
+#- name: build
+#  pull: default
+#  image: node:10
+#  commands:
+#  - ./scripts/build-embedded
+#
+#- name: upload
+#  pull: default
+#  image: plugins/gcs
+#  settings:
+#    acl:
+#    - allUsers:READER
+#    cache_control: "no-cache,must-revalidate"
+#    source: dist/${DRONE_TAG}.tar.gz
+#    target: releases.rancher.com/dashboard/${DRONE_TAG}.tar.gz
+#    token:
+#      from_secret: google_auth_key
