@@ -62,10 +62,17 @@ $selected: rgba($primary, .5);
   --scrollbar-thumb            : #{$dark};
   --scrollbar-thumb-dropdown   : #{$lighter};
   --scrollbar-track            : transparent;
-  --disabled-bg                : #{$disabled};
-  --header-bg                  : #{$primary};
+
+  --header-bg                  : #3797D5;
+  --header-logo                : #9FC4DD;
+  --header-height              : 50px;
+  --nav-width                  : 220px;
   --nav-bg                     : #{$lighter};
-  --footer-bg                  : ;
+  --nav-active                 : var(--primary);
+  --footer-bg                  : transparent;
+  --footer-height              : 50px;
+
+  --disabled-bg                : #{$disabled};
   --box-bg                     : #{$lighter};
   --border                     : #{$medium};
   --border-radius              : 2px;
@@ -73,6 +80,7 @@ $selected: rgba($primary, .5);
   --outline-width              : 2px;
 
   --accent-btn                 : #{rgba($primary, 0.2)};
+  --overlay-bg                 : #{rgba($lighter, 0.75)};
 
   --dropdown-bg                : #{$lighter};
   --dropdown-border            : #{$medium};
@@ -85,23 +93,18 @@ $selected: rgba($primary, .5);
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
 
-  --overlay-bg                 : #{rgba($medium, 0.5)};
-
-  --input-label                : #{$secondary};
   --input-text                 : #{$darkest};
+  --input-label                : #{$secondary};
   --input-placeholder          : #{$secondary};
-  --input-border               : #{$medium};
+  --input-border               : var(--border);
   --input-bg                   : #{$light};
   --input-hover-bg             : #{$lighter};
   --input-focus-bg             : #{$lightest};
-  --input-hover-border         : transparent;
   --input-disabled-text        : #{$dark};
   --input-disabled-bg          : #{$medium};
   --input-disabled-border      : #{$medium};
   --input-disabled-placeholder : darken($medium, 10%);
   --input-addon-bg             : #{$medium};
-
-  --modal-overlay-bg           : #{rgba($lighter, 0.75)};
 
   --progress-bg                : #{$medium};
   --progress-divider           : #{$medium};

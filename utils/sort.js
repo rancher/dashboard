@@ -197,7 +197,7 @@ export function sortBy(ary, keys, desc) {
         }
 
         if ( parsed.reverse ) {
-          res *= -1 * res;
+          res *= -1;
         }
 
         return res;

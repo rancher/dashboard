@@ -1,5 +1,5 @@
 <script>
-import { ANNOTATION } from '@/config/types';
+import { DESCRIPTION } from '@/config/labels-annotations';
 import DetailTop from '@/components/DetailTop';
 import SortableTable from '@/components/SortableTable';
 import VStack from '@/components/Layout/Stack/VStack';
@@ -81,7 +81,7 @@ export default {
       return [
         {
           title:   'Description',
-          content: annotations[ANNOTATION.DESCRIPTION]
+          content: annotations[DESCRIPTION]
         },
         {
           title:   'Namespace',

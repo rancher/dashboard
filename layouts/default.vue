@@ -3,26 +3,31 @@
 import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
 import {
-  explorerPackage, clusterPackage, rioPackage, settingsPackage, rbacResource
-} from '@/config/packages';
-import { mapPref, DEV, THEME, EXPANDED_GROUPS } from '@/store/prefs';
+  mapPref, DEV, THEME, EXPANDED_GROUPS, NAV_SHOW
+} from '@/store/prefs';
+import { allTypes, getTree } from '@/config/nav-cluster';
+import applyTypeConfigs from '@/config/type-config';
 import ActionMenu from '@/components/ActionMenu';
+import ButtonGroup from '@/components/ButtonGroup';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
-// import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
+import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
 import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
-import { COUNT, RANCHER } from '@/config/types';
+import { NORMAN, RANCHER } from '@/config/types';
+
+applyTypeConfigs();
 
 export default {
 
   components: {
-    // ClusterSwitcher,
+    ClusterSwitcher,
     PromptRemove,
     Footer,
     NamespaceFilter,
     ActionMenu,
+    ButtonGroup,
     Group,
     ShellSocket,
   },
@@ -41,101 +46,77 @@ export default {
   data() {
     return { packages: [] };
   },
+
   computed: {
-    ...mapState(['preloaded']),
+    ...mapState(['managementReady', 'clusterReady']),
+
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
+    navShow:        mapPref(NAV_SHOW),
 
-    principal() {
-      return this.$store.getters['rancher/byId'](RANCHER.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
+    multiCluster() {
+      return this.$store.getters['management/hasType'](RANCHER.CLUSTER);
     },
 
-    counts() {
-      if ( !this.$store.getters['cluster/haveAll'](COUNT) ) {
-        return null;
+    backToRancherLink() {
+      if ( !this.multiCluster ) {
+        return;
       }
 
-      const obj = this.$store.getters['cluster/all'](COUNT)[0].counts;
-      const out = Object.keys(obj).map((id) => {
-        const schema = this.$store.getters['cluster/schemaFor'](id);
+      const cluster = this.$store.getters['currentCluster'];
 
-        if ( !schema ) {
-          return null;
-        }
+      if ( !cluster ) {
+        return;
+      }
 
-        const attrs = schema.attributes || {};
-        const entry = obj[id];
+      let link = `/c/${ escape(cluster.id) }`;
 
-        if ( !attrs.kind ) {
-          // Skip apiGroups resource
-          return;
-        }
+      if ( process.env.dev ) {
+        link = `https://localhost:8000${ link }`;
+      }
 
+      return link;
+    },
+
+    navOptions() {
+      return this.$store.getters['prefs/options'](NAV_SHOW).map((value) => {
         return {
-          id,
-          schema,
-          label:       attrs.kind,
-          group:       attrs.group,
-          version:     attrs.version,
-          namespaced:  attrs.namespaced,
-          verbs:       attrs.verbs,
-          count:       entry.count,
-          byNamespace: entry.namespaces,
-          revision:    entry.revision,
+          label: `nav.show.${ value }`,
+          value
         };
       });
-
-      return out.filter(x => !!x);
-    },
-  },
-  watch: {
-    counts() {
-      this.getPackages();
-    }
-  },
-  mounted() {
-    this.getPackages();
-  },
-  methods: {
-    checkForMesh() {
-      return this.$store.dispatch('cluster/request', { url: '/v1-metrics/meshsummary' })
-        .then((res) => {
-          return true;
-        })
-        .catch(() => {
-          console.log('servicemesh metrics unavailable');
-
-          return false;
-        });
     },
 
-    async getPackages() {
+    principal() {
+      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
+    },
+
+    groups() {
+      const clusterId = this.$store.getters['clusterId'];
       const namespaces = this.$store.getters['namespaces'] || [];
-      const counts = this.counts;
+      const types = allTypes(this.$store);
+      const mode = this.navShow;
+      const currentType = this.$route.params.resource || '';
 
-      if ( !counts ) {
+      if ( !types ) {
         return [];
       }
 
-      const out = [
-        rioPackage(this.$router, counts, namespaces),
-        clusterPackage(this.$router, counts, namespaces),
-        explorerPackage(this.$router, counts, namespaces),
-        settingsPackage(this.$router, counts, namespaces),
-        rbacResource(this.$router, counts, namespaces)
-      ];
-      const hasServiceMesh = await this.checkForMesh();
+      const out = getTree(mode, clusterId, types, namespaces, currentType);
 
-      if (hasServiceMesh) {
-        out[0].children.unshift( {
-          name:    'rio-graph',
-          label:   'App Mesh',
-          route:   { name: 'rio-mesh' },
-        });
-      }
+      return out;
+    }
+  },
 
-      this.packages = out.filter(x => !!x);
-    },
+  /*
+  watch: {
+    allTypes() {
+      this.getTree();
+    }
+  },
+*/
+
+  methods: {
     toggleGroup(route, expanded) {
       const groups = this.expandedGroups.slice();
 
@@ -152,7 +133,7 @@ export default {
       return this.expandedGroups.includes(name);
     },
 
-    toggleLocale() {
+    toggleNoneLocale() {
       this.$store.dispatch('i18n/toggleNone');
     }
   }
@@ -160,13 +141,18 @@ export default {
 </script>
 
 <template>
-  <div v-if="preloaded" class="dashboard-root">
-    <div class="switcher">
-      <img src="~/assets/images/logo.svg" class="logo" alt="Logo" height="30" />
+  <div v-if="managementReady" class="dashboard-root" :class="{'multi-cluster': multiCluster, 'back-to-rancher': backToRancherLink}">
+    <div class="cluster">
+      <div class="logo" alt="Logo" />
+      <ClusterSwitcher v-if="multiCluster" />
     </div>
 
-    <div class="top">
+    <div v-if="clusterReady" class="top">
       <NamespaceFilter />
+    </div>
+
+    <div v-if="backToRancherLink" class="back">
+      <a v-t="'header.backToRancher'" :href="backToRancherLink" />
     </div>
 
     <div class="user">
@@ -177,7 +163,7 @@ export default {
         :delay="{show: 0, hide: 200}"
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >
-        <div class="header-right text-right">
+        <div class="text-right">
           <img :src="principal.avatarSrc" width="40" height="40" />
         </div>
 
@@ -198,72 +184,94 @@ export default {
       </v-popover>
     </div>
 
-    <nav>
-      <div v-for="pkg in packages" :key="pkg.name" class="package">
+    <nav v-if="clusterReady">
+      <div v-for="g in groups" :key="g.name" class="package">
         <Group
-          :key="pkg.name"
+          :key="g.name"
           id-prefix=""
           :is-expanded="isExpanded"
-          :group="pkg"
+          :group="g"
           :toggle-group="toggleGroup"
           :custom-header="true"
           :can-collapse="true"
         >
           <template slot="accordion">
-            <h6>{{ pkg.label }}</h6>
+            <h6>{{ g.label }}</h6>
           </template>
         </Group>
       </div>
     </nav>
 
-    <main>
+    <div v-if="clusterReady" class="switcher">
+      <ButtonGroup v-model="navShow" :options="navOptions" :labels-are-translations="true" />
+    </div>
+
+    <main v-if="clusterReady">
       <nuxt class="outlet" />
       <Footer />
     </main>
     <ShellSocket />
     <ActionMenu />
     <PromptRemove />
-    <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleLocale()" />
+    <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
   </div>
 </template>
 
 <style lang="scss">
-  $header-height: 50px;
-
   .dashboard-root {
     display: grid;
     height: 100vh;
-    grid-template-areas:
-      "switcher top user"
-      "nav      main  main";
-    grid-template-columns: 220px auto $header-height;
-    grid-template-rows: $header-height auto 0px;
 
-    .switcher {
-      grid-area: switcher;
+    grid-template-areas:
+      "cluster top   back user"
+      "nav      main  main main"
+      "switcher main  main main";
+    grid-template-columns: var(--nav-width) auto 0px var(--header-height);
+    grid-template-rows: var(--header-height) auto var(--footer-height);
+
+    &.back-to-rancher {
+      grid-template-columns: var(--nav-width) auto 150px var(--header-height);
+    }
+
+    > .cluster {
+      grid-area: cluster;
       background-color: var(--header-bg);
       position: relative;
+
+      .logo {
+        background-color: var(--header-logo);
+        mask: url("~assets/images/logo.svg") no-repeat center;
+        height: 30px;
+        width: 64px;
+        position: absolute;
+        top: 9px;
+        left: -30px;
+      }
     }
 
-    .logo {
-      position: absolute;
-      left: -30px;
-      top: 10px;
-    }
-
-    .top {
+    > .top {
       grid-area: top;
       background-color: var(--header-bg);
-      padding-top: 6px;
+      padding-top: 8px;
     }
 
-    .user {
-      grid-area: user;
-      padding: 5px;
-    }
-
-    .switcher, .header, .user {
+    > .back {
+      grid-area: back;
       background-color: var(--header-bg);
+
+      A {
+        line-height: var(--header-height);
+        display: block;
+        color: var(--body-text);
+        padding: 0 5px;
+        text-align: right;
+      }
+    }
+
+    > .user {
+      grid-area: user;
+      background-color: var(--header-bg);
+      padding: 5px;
     }
 
     NAV {
@@ -280,12 +288,17 @@ export default {
       .header {
         background: transparent;
       }
-      
+
       H6 {
         margin: 0;
         letter-spacing: 0.1em;
         line-height: initial;
       }
+    }
+
+    > .switcher {
+      margin: 10px 0 0 0;
+      text-align: center;
     }
   }
 
@@ -301,7 +314,7 @@ export default {
 
     FOOTER {
       background-color: var(--nav-bg);
-      height: 50px;
+      height: var(--footer-height);
     }
 
     HEADER {

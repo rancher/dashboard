@@ -1,13 +1,13 @@
 <script>
 import { mapGetters } from 'vuex';
-import { POD, NAMESPACE, RANCHER } from '@/config/types';
+import { POD, NAMESPACE, NORMAN } from '@/config/types';
 
 export default {
   computed:   {
     ...mapGetters('cluster', ['urlFor', 'schemaFor', 'kubeUrlFor']),
 
     principal() {
-      return this.$store.getters['rancher/byId'](RANCHER.PRINCIPAL, this.$store.getters['auth/principalId']);
+      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']);
     },
 
     podConfig() {

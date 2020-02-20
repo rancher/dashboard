@@ -34,6 +34,7 @@ export const CLUSTER = create('cluster', 'local'); // @TODO remember last cluste
 export const NAMESPACES = create('ns', [], { parseJSON });
 export const EXPANDED_GROUPS = create('open_groups', ['rio'], { parseJSON });
 export const GROUP_RESOURCES = create('group_by', 'namespace');
+export const NAV_SHOW = create('nav', 'basic', { options: ['basic', 'used', 'all'] });
 export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
 export const THEME = create('theme', 'dark', { options: ['light', 'dark'] });
 export const KEYMAP = create('keymap', 'sublime', { options: ['sublime', 'emacs', 'vim'] });

@@ -49,7 +49,7 @@ export const NAMESPACE_NAME_IMAGE = {
 };
 
 export const NAME_IMAGE = {
-  name:      '-name-image',
+  name:      'name-image',
   label:     'Name',
   value:     'nameDisplay',
   sort:      ['nameSort'],
@@ -406,43 +406,3 @@ export const API_GROUP = {
   value: 'apiGroups',
   sort:  ['apiGroups']
 };
-
-export function headersFor(schema) {
-  const out = [];
-  const attributes = schema.attributes || {};
-  const columns = attributes.columns;
-  const namespaced = attributes.namespaced;
-
-  let hasName = false;
-
-  for ( const col of columns ) {
-    if ( col.format === 'name' && col.field === 'metadata.name' ) {
-      hasName = true;
-      out.push(namespaced ? NAMESPACE_NAME : NAME);
-    } else if ( col.format === 'date' && col.field === 'metadata.creationTimestamp' ) {
-      out.push(AGE);
-    } else {
-      let formatter, width;
-
-      if ( col.format === 'date' || col.type === 'date' ) {
-        formatter = 'Date';
-        width = 120;
-      }
-
-      out.push({
-        name:  col.name.toLowerCase(),
-        label: col.name,
-        value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
-        sort:  [col.field],
-        formatter,
-        width,
-      });
-    }
-  }
-
-  if ( !hasName ) {
-    out.unshift(namespaced ? NAMESPACE_NAME : NAME);
-  }
-
-  return out;
-}

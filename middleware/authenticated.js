@@ -1,17 +1,18 @@
-import { RANCHER } from '@/config/types';
+import { NORMAN } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { SETUP } from '@/config/query-params';
+import { get } from '@/utils/object';
+import { ClusterNotFoundError } from '@/utils/error';
 
 export default async function({
   route, app, store, redirect, req, isDev
 }) {
-  if ( store.getters['auth/principal'] ||
-       route.name === 'auth-setup' ||
-       (route.path && typeof route.path === 'string' && route.path.startsWith('/__webpack_hmr/'))
-  ) {
+  // Ignore webpack hot module reload requests
+  if ( route.path && typeof route.path === 'string' && route.path.startsWith('/__webpack_hmr/') ) {
     return;
   }
 
+  // Initial ?setup=admin-password can technically be on any route
   const initialPass = route.query[SETUP];
 
   if ( initialPass ) {
@@ -24,39 +25,47 @@ export default async function({
     }
   }
 
-  if ( store.getters['auth/loggedIn'] ) {
-    return;
+  // Make sure you're actually logged in
+  if ( !store.getters['auth/loggedIn'] ) {
+    try {
+      const principals = await store.dispatch('rancher/findAll', {
+        type: NORMAN.PRINCIPAL,
+        opt:  { url: '/v3/principals' }
+      });
+
+      const me = findBy(principals, 'me', true);
+
+      store.commit('auth/loggedInAs', me.id);
+    } catch (e) {
+      if ( e && (!e.status || e.status !== '401') ) {
+        console.log(JSON.stringify(e));
+      }
+
+      redirect(302, '/auth/login');
+    }
   }
 
+  // Load stuff
+  const clusterId = get(route, 'params.cluster');
+
   try {
-    const principals = await store.dispatch('rancher/findAll', {
-      type: RANCHER.PRINCIPAL,
-      opt:  { url: '/v3/principals' }
-    });
-
-    const me = findBy(principals, 'me', true);
-
-    store.commit('auth/loggedInAs', me.id);
-
-    if ( !process.server ) {
-      // @TODO pick a cluster for multi-cluster or do something different for global scope
-      store.dispatch('cluster/subscribe');
-    }
-
-    await store.dispatch('preload');
+    await Promise.all([
+      store.dispatch('loadManagement'),
+      store.dispatch('loadCluster', clusterId),
+    ]);
   } catch (e) {
-    if ( e && (!e.status || e.status !== '401') ) {
-      console.log(JSON.stringify(e));
+    if ( e instanceof ClusterNotFoundError ) {
+      redirect(302, '/clusters');
+    } else {
+      throw e;
     }
-
-    redirect(302, '/auth/login');
   }
 }
 
 async function tryInitialSetup(store, password, isDev) {
   try {
     const firstLogin = await store.dispatch('rancher/find', {
-      type: RANCHER.SETTING,
+      type: NORMAN.SETTING,
       id:   'first-login',
       opt:  { url: '/v3/settings/first-login' }
     });

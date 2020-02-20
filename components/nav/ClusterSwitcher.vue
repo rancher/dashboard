@@ -1,41 +1,18 @@
 <script>
-import { CLUSTER } from '@/store/prefs';
-// import { CLOUD } from '@/config/types';
+import { RANCHER } from '@/config/types';
+import { sortBy } from '@/utils/sort';
 
 export default {
   computed: {
-    value: {
-      get() {
-        const value = this.$store.getters['prefs/get'](CLUSTER);
-
-        return value || 'local';
-      },
-
-      set(neu) {
-        this.$store.dispatch('switchClusters', neu);
-      }
+    current() {
+      return this.$store.getters['currentCluster'];
     },
 
     clusters() {
-      return [
-        { id: 'local', label: 'Local' },
-        { id: 'c1', label: 'Cluster 1' },
-        { id: 'c2', label: 'Cluster 2' },
-        { id: 'c3', label: 'Cluster 3' },
-        { id: 'c4', label: 'Cluster 4' },
-      ];
+      const clusters = this.$store.getters['management/all'](RANCHER.CLUSTER);
 
-      /*
-      const choices = this.$store.getters['cluster/all'](CLOUD.CLUSTER);
-
-      return choices.map((obj) => {
-        return {
-          id:    obj.id,
-          label: obj.nameDisplay,
-        };
-      });
-      */
-    }
+      return sortBy(clusters, ['isReady:desc', 'nameDisplay']);
+    },
   },
 };
 
@@ -45,26 +22,32 @@ export default {
   <div class="filter">
     <v-popover
       placement="bottom"
-      offset="-10"
       trigger="click"
+      :hide-on-target-click="true"
       :delay="{show: 0, hide: 200}"
-      :popper-options="{modifiers: { flip: { enabled: false } } }"
     >
-      <div class="btn cluster-dropdown bg-info">
-        Cluster: Local
+      <div class="cluster-dropdown">
+        <div v-if="current">
+          {{ current.nameDisplay }}
+        </div>
+        <div v-else>
+          None
+        </div>
       </div>
 
       <template slot="popover">
         <ul class="list-unstyled cluster-list dropdown" style="margin: -14px;">
           <li v-for="c of clusters" :key="c.id">
-            <a href="#">{{ c.label }}</a>
+            <nuxt-link v-if="c.isReady" v-close-popover class="cluster" :to="{name: 'c-cluster', params: { cluster: c.id }}">
+              {{ c.nameDisplay }}
+            </nuxt-link>
+            <span v-else class="cluster not-ready">
+              Not Ready: {{ c.nameDisplay }}
+            </span>
           </li>
         </ul>
 
         <div class="clearfix">
-          <nuxt-link tag="button" :to="{name: 'clusters-import'}" class="btn bg-primary pull-right">
-            <i class="icon icon-plus" /> Import
-          </nuxt-link>
           <nuxt-link tag="button" :to="{name: 'clusters'}" class="btn bg-link">
             View All
           </nuxt-link>
@@ -75,20 +58,30 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .cluster-dropdown {
+  .filter {
     position: relative;
-    margin: 10px;
-    width: 230px;
-    height: 40px;
-    line-height: 24px;
+    z-index: 1; // Above the cow so you can click there too
+  }
+
+  .cluster-dropdown {
+    width: var(--nav-width);
+    line-height: var(--header-height);
+    cursor: pointer;
     text-align: left;
 
+    > div {
+      padding: 0 15px 0 40px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     &:after {
-      content: '\e908';
-      right: 10px;
-      font-size: 12px;
       position: absolute;
+      top: 0;
+      right: 5px;
+      font-size: 18px;
       font-family: 'icons';
+      content: '\e906';
     }
   }
 
@@ -96,9 +89,13 @@ export default {
     padding-bottom: 30px;
     width: 210px;
 
-    LI A {
+    .cluster {
       display: block;
-      padding: 5px 0;
+      padding: 10px;
+    }
+
+    .not-ready {
+      cursor: not-allowed;
     }
   }
 </style>

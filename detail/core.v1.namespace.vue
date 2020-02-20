@@ -3,8 +3,8 @@ import { get } from '@/utils/object';
 
 import createEditView from '@/mixins/create-edit-view';
 import ResourceQuota from '@/edit/core.v1.namespace/ResourceQuota';
-import { ANNOTATION } from '@/config/types';
 import LabelsAndAnnotationsTabs from '@/components/LabelsAndAnnotations/Tabs';
+import { DESCRIPTION } from '@/config/labels-annotations';
 
 export default {
   name: 'DetailNamespace',
@@ -29,10 +29,10 @@ export default {
 
     if (!!this.originalValue) {
       originalQuotaID = `${ this.originalValue.metadata.name }/default-quota`;
-      const orignalAnnotations = get(this.originalValue, 'metadata.annotations');
+      const originalAnnotations = get(this.originalValue, 'metadata.annotations');
 
-      if (orignalAnnotations) {
-        description = orignalAnnotations[ANNOTATION.DESCRIPTION];
+      if (originalAnnotations) {
+        description = originalAnnotations[DESCRIPTION];
       }
       this.value.metadata.annotations = this.originalValue.metadata.annotations ? JSON.parse(JSON.stringify(this.originalValue.metadata.annotations)) : {};
       this.value.metadata.labels = this.originalValue.metadata.labels ? JSON.parse(JSON.stringify(this.originalValue.metadata.labels)) : {};

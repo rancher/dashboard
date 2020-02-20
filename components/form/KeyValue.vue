@@ -485,9 +485,9 @@ export default {
 
     select {
       -webkit-appearance: none;
-      -webkit-border-radius: 2px;
+      border-radius: 2px;
     }
-    
+
     textarea::placeholder {
       padding-top: 8px;
       color: var(--input-placeholder);
