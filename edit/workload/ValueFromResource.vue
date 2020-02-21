@@ -1,6 +1,6 @@
 <script>
-import { CONFIG_MAP, SECRET } from '../../config/types';
-import { get } from '../../utils/object';
+import { CONFIG_MAP, SECRET } from '@/config/types';
+import { get } from '@/utils/object';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
 

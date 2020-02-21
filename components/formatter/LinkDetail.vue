@@ -4,7 +4,7 @@ export default {
   props: {
     value: {
       type:     String,
-      required: true
+      default: ''
     },
     row: {
       type:     Object,

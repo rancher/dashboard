@@ -4,14 +4,21 @@ import FileDiff from './FileDiff';
 import AsyncButton from './AsyncButton';
 
 import {
-  MODE, _CREATE, _VIEW, _EDIT, _PREVIEW
+  MODE,
+  _CREATE,
+  _VIEW,
+  _EDIT,
+  _PREVIEW,
+  EDIT_YAML
 } from '@/config/query-params';
 
 import { mapPref, DIFF } from '@/store/prefs';
 
 export default {
   components: {
-    CodeMirror, FileDiff, AsyncButton
+    CodeMirror,
+    FileDiff,
+    AsyncButton
   },
 
   props: {
@@ -19,7 +26,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-
     obj: {
       type:     Object,
       required: true,
@@ -39,10 +45,16 @@ export default {
       type:    String,
       default: null,
     },
+
+    hasEditAsForm: {
+      type:    Boolean,
+      default: false,
+    },
+
     parentParams: {
       type:    Object,
       default: null,
-    },
+    }
   },
 
   data() {
@@ -59,9 +71,9 @@ export default {
     }
 
     return {
-      mode,
       currentValue: this.value,
-      errors:       null,
+      mode,
+      errors:       null
     };
   },
 
@@ -85,7 +97,7 @@ export default {
         lint:            true,
         lineNumbers:     !readOnly,
         extraKeys:       { 'Ctrl-Space': 'autocomplete' },
-        cursorBlinkRate: ( readOnly ? -1 : 530)
+        cursorBlinkRate: ( readOnly ? -1 : 530 )
       };
     },
 
@@ -100,6 +112,10 @@ export default {
     },
     isPreview() {
       return this.mode === _PREVIEW;
+    },
+
+    showEditAsForm() {
+      return this.isEdit && this.hasEditAsForm;
     },
 
     canEdit() {
@@ -122,7 +138,7 @@ export default {
       const out = this.$router.resolve({ name, params }).href;
 
       return out;
-    },
+    }
   },
 
   methods: {
@@ -206,6 +222,10 @@ export default {
       this.currentValue = this.value;
     },
 
+    navigateToEditAsForm() {
+      this.$router.applyQuery({ [EDIT_YAML]: undefined });
+    },
+
     async save(buttonDone) {
       try {
         if ( this.isCreate ) {
@@ -248,7 +268,6 @@ export default {
         buttonDone(false);
       }
     },
-
     async remove(buttonDone) {
       await this.obj.remove();
       buttonDone(true);
@@ -273,20 +292,10 @@ export default {
   <div class="root">
     <header>
       <h1>
-        <span v-if="isCreate">
-          Create {{ schema.attributes.kind }}
-        </span>
-        <span v-else>
-          {{ schema.attributes.kind }}: {{ obj.id }}
-        </span>
+        <span v-if="isCreate">Create {{ schema.attributes.kind }}</span>
+        <span v-else>{{ schema.attributes.kind }}: {{ obj.id }}</span>
       </h1>
       <div class="actions">
-        <button v-if="!isView" type="button" class="btn bg-transparent" @click="cancel">
-          Cancel
-        </button>
-        <button v-if="isEdit" type="button" class="btn bg-transparent" @click="preview">
-          Preview
-        </button>
         <AsyncButton
           v-if="canDelete && isView"
           key="delete"
@@ -295,11 +304,17 @@ export default {
           waiting-color="bg-error"
           @click="remove"
         />
-        <button v-if="canEdit && (isView || isPreview)" type="button" class="btn bg-primary" @click="edit">
+        <button
+          v-if="canEdit && (isView || isPreview)"
+          type="button"
+          class="btn bg-primary"
+          @click="edit"
+        >
           Edit
         </button>
-        <AsyncButton v-if="isEdit || isPreview" key="apply" mode="apply" @click="save" />
-        <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
+        <span v-if="showEditAsForm">
+          <button class="btn bg-primary" @click="navigateToEditAsForm">Edit as form</button>
+        </span>
       </div>
       <div v-for="(err, idx) in errors" :key="idx" class="text-error">
         {{ err }}
@@ -307,14 +322,21 @@ export default {
     </header>
     <div class="text-right">
       <span v-if="isPreview" v-trim-whitespace class="btn-group btn-sm diff-mode">
-        <button type="button" class="btn btn-sm bg-default" :class="{'active': diffMode !== 'split'}" @click="diffMode='unified'">
-          Unified
-        </button>
-        <button type="button" class="btn btn-sm bg-default" :class="{'active': diffMode === 'split'}" @click="diffMode='split'">
-          Split
-        </button>
+        <button
+          type="button"
+          class="btn btn-sm bg-default"
+          :class="{'active': diffMode !== 'split'}"
+          @click="diffMode='unified'"
+        >Unified</button>
+        <button
+          type="button"
+          class="btn btn-sm bg-default"
+          :class="{'active': diffMode === 'split'}"
+          @click="diffMode='split'"
+        >Split</button>
       </span>
     </div>
+
     <CodeMirror
       v-if="!isPreview"
       :value="currentValue"
@@ -332,18 +354,34 @@ export default {
       :neu="currentValue"
       :footer-space="71"
     />
+    <footer>
+      <div class="actions">
+        <button v-if="!isView" type="button" class="btn bg-transparent" @click="cancel">
+          Cancel
+        </button>
+        <button v-if="isEdit" type="button" class="btn bg-transparent" @click="preview">
+          Preview
+        </button>
+        <AsyncButton v-if="isEdit || isPreview" key="apply" mode="apply" @click="save" />
+        <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
+      </div>
+    </footer>
   </div>
 </template>
 
 <style lang="scss" scoped>
-  @import "~assets/styles/base/_variables.scss";
-  @import "~assets/styles/base/_functions.scss";
-  @import "~assets/styles/base/_mixins.scss";
+@import "~assets/styles/base/_variables.scss";
+@import "~assets/styles/base/_functions.scss";
+@import "~assets/styles/base/_mixins.scss";
 
-  .diff-mode {
-    position: absolute;
-    top: 95px;
-    right: 21px;
-    z-index: z-index('overContent');
-  }
+.diff-mode {
+  position: absolute;
+  top: 95px;
+  right: 21px;
+  z-index: z-index("overContent");
+}
+
+footer .actions {
+  text-align: center;
+}
 </style>

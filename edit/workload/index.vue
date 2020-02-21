@@ -1,5 +1,5 @@
 <script>
-import { get, clone } from '../../utils/object';
+import { clone } from '@/utils/object';
 import { CONFIG_MAP, SECRET, WORKLOAD, NODE } from '@/config/types';
 import LoadDeps from '@/mixins/load-deps';
 import Tab from '@/components/Tabbed/Tab';
@@ -298,7 +298,7 @@ export default {
       <Tab label="Labels" name="labelsAndAnnotations">
         <Labels :spec="{metadata}" :mode="mode" />
       </Tab>
-</Tabbed>
+    </Tabbed>
     <Footer :errors="errors" :mode="mode" @save="saveWorkload" @done="done" />
   </form>
 </template>

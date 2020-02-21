@@ -1,5 +1,5 @@
 <script>
-import { WORKLOAD } from '../../config/types';
+import { WORKLOAD } from '@/config/types';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';

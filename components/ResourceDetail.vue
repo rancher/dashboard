@@ -133,6 +133,10 @@ export default {
     }
   },
 
+  data() {
+    return { currentValue: this.value };
+  },
+
   computed: {
     isView() {
       return this.mode === _VIEW;
@@ -140,6 +144,10 @@ export default {
 
     isEdit() {
       return this.mode === _EDIT;
+    },
+
+    showEditAsYaml() {
+      return this.isEdit;
     },
 
     doneRoute() {
@@ -189,7 +197,11 @@ export default {
 
     goBack() {
       window.history.length > 1 ? this.$router.go(-1) : this.$router.push('/');
-    }
+    },
+
+    navigateToEditAsYaml() {
+      this.$router.push({ query: { ...this.$route.query, [EDIT_YAML]: _FLAGGED } });
+    },
   }
 };
 </script>
@@ -203,6 +215,7 @@ export default {
         :done-route="doneRoute"
         :parent-route="doneRoute"
         :parent-params="doneParams"
+        :has-edit-as-form="hasCustomEdit"
       />
     </template>
     <template v-else>
@@ -222,6 +235,11 @@ export default {
         <div v-if="isView" class="actions">
           <button ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
             <i class="icon icon-actions" />
+          </button>
+        </div>
+        <div v-if="showEditAsYaml" class="actions">
+          <button class="btn bg-primary" @click="navigateToEditAsYaml">
+            Edit as YAML
           </button>
         </div>
       </header>

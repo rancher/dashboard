@@ -30,6 +30,11 @@ TEXTAREA,
     }
   }
 
+  &.view {
+    border: none;
+    background-color: transparent;
+  }
+
   &::placeholder {
     color: var(--input-placeholder);
   }

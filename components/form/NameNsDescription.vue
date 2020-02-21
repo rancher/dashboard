@@ -8,9 +8,12 @@ import { DESCRIPTION } from '@/config/labels-annotations';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
 import InputWithSelect from '@/components/form/InputWithSelect';
+import DetailTop from '@/components/DetailTop';
 
 export default {
-  components:   { LabeledInput, InputWithSelect },
+  components:   {
+    DetailTop, LabeledInput, InputWithSelect
+  },
 
   props: {
     value: {
@@ -63,7 +66,7 @@ export default {
       metadata.annotations = { [DESCRIPTION]: '' };
     }
 
-    if ( !metadata.namespace) {
+    if ( this.namespaced && !metadata.namespace ) {
       const selectedNS = this.$store.getters['prefs/get'](NAMESPACES)[0] || 'default';
 
       metadata.namespace = selectedNS;
@@ -113,7 +116,7 @@ export default {
     },
 
     colSpan() {
-      const cols = 1 + (this.namespaced ? 1 : 0) + this.extraColumns.length;
+      const cols = 2 + this.extraColumns.length;
       const span = 12 / cols;
 
       return `span-${ span }`;
@@ -123,6 +126,28 @@ export default {
     },
     wantDescription() {
       return !!this.description || this.addDescription;
+    },
+    detailTopColumns() {
+      const { metadata = {} } = this.value;
+      const { annotations = {} } = metadata;
+
+      return [
+        metadata.namespace
+          ? {
+            title:   'Namespace',
+            content: metadata.namespace
+          } : null,
+        metadata.name
+          ? {
+            title:   'Name',
+            content: metadata.name
+          } : null,
+        annotations[DESCRIPTION]
+          ? {
+            title:   'Description',
+            content: annotations[DESCRIPTION]
+          } : null,
+      ].filter(c => c);
     }
   },
 
@@ -154,10 +179,11 @@ export default {
 
 <template>
   <div>
-    <div class="row">
-      <div v-if="namespaced" :class="{col: true, [colSpan]: true}">
+    <div v-if="notView" class="row">
+      <div :class="{col: true, [colSpan]: true}">
         <slot name="namespace">
           <InputWithSelect
+            v-if="namespaced"
             ref="nameNS"
             :options="namespaces"
             text-label="Name"
@@ -165,7 +191,17 @@ export default {
             :text-value="name"
             :text-required="true"
             select-value="default"
+            :mode="mode"
             @input="changeNameNS"
+          />
+          <LabeledInput
+            v-else
+            key="name"
+            v-model="name"
+            label="name"
+            :mode="mode"
+            :min-height="30"
+            :hide-placeholder="false"
           />
         </slot>
       </div>
@@ -185,5 +221,6 @@ export default {
         </slot>
       </div>
     </div>
+    <DetailTop v-else :columns="detailTopColumns" />
   </div>
 </template>
