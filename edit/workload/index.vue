@@ -1,5 +1,5 @@
 <script>
-import { get } from '../../utils/object';
+import { get, clone } from '../../utils/object';
 import { CONFIG_MAP, SECRET, WORKLOAD, NODE } from '@/config/types';
 import LoadDeps from '@/mixins/load-deps';
 import Tab from '@/components/Tabbed/Tab';
@@ -14,7 +14,7 @@ import Command from '@/edit/workload/Command';
 import Security from '@/edit/workload/Security';
 import Scheduling from '@/edit/workload/Scheduling';
 import Upgrading from '@/edit/workload/Upgrading';
-import Networking from '@/components/Networking';
+import Networking from '@/edit/workload/Networking';
 import Footer from '@/components/form/Footer';
 import Job from '@/edit/workload/Job';
 import Labels from '@/components/form/Labels';
@@ -79,7 +79,8 @@ export default {
       type = WORKLOAD.DEPLOYMENT;
     }
 
-    const { spec = { }, metadata = {} } = this.value;
+    const spec = this.value.spec ? clone(this.value.spec) : {};
+    const metadata = this.value.metadata ? clone(this.value.metadata) : {};
 
     if (!spec.template) {
       spec.template = { spec: {} };
@@ -114,13 +115,12 @@ export default {
         const { containers } = template.spec;
 
         if (!containers) {
-          this.$set(template.spec, 'containers', []);
-
-          return {};
+          this.$set(template.spec, 'containers', [{}]);
         }
 
-        return containers[0] || {};
+        return template.spec.containers[0];
       },
+
       set(neu) {
         let template = this.spec.template;
 
@@ -231,7 +231,8 @@ export default {
         />
       </Tab>
       <Tab label="Networking" name="networking">
-        <Networking :spec="isCronJob ? spec.jobTemplate.spec.template.spec : spec.template.spec" mode="create" />
+        <Networking v-if="isCronJob" v-model="spec.jobTemplate.spec.template.spec" mode="create" />
+        <Networking v-else v-model="spec.template.spec" />
       </Tab>
       <Tab label="Health" name="health">
         <HealthCheck :spec="container" mode="create" />
@@ -249,7 +250,7 @@ export default {
       </Tab>
 
       <Tab label="Labels and Annotations" name="labelsAndAnnotations">
-        <Labels :spec="spec" mode="create" />
+        <Labels :spec="{metadata}" mode="create" />
       </Tab>
     </Tabbed>
     <Footer mode="create" @save="saveWorkload" />

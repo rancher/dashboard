@@ -1,5 +1,6 @@
 <script>
 import { isEqual } from 'lodash';
+import { parseSi } from '../../utils/units';
 import LabeledInput from '@/components/form/LabeledInput';
 import ShellInput from '@/components/form/ShellInput';
 import UnitInput from '@/components/form/UnitInput';
@@ -43,11 +44,21 @@ export default {
   },
 
   data() {
-    const { spec = {} } = this.value;
-    const { env = [], envFrom = [] } = spec;
+    const spec = { ...this.value };
+    const {
+      env = [], envFrom = [], resources = {}, securityContext = {}
+    } = spec;
+    const { limits = {}, requests = {} } = resources;
+
+    // Object.keys(limits).forEach((resource) => {
+    //   limits[resource] = parseSi(limits[resource]);
+    // });
+    // Object.keys(requests).forEach((resource) => {
+    //   requests[resource] = parseSi(requests[resource]);
+    // });
 
     return {
-      spec, env, envFrom
+      spec, env, envFrom, limits, requests, securityContext
     };
   },
 
@@ -82,10 +93,14 @@ export default {
 
   methods: {
     update() {
-      this.$set(this.spec, 'env', this.env);
-      this.$set(this.spec, 'envFrom', this.envFrom);
+      // this.$set(this.spec, 'env', this.env);
+      // this.$set(this.spec, 'envFrom', this.envFrom);
+      const { env, envFrom } = this;
+      const resources = { requests: this.requests, limits: this.limits };
 
-      this.$emit('input', { spec: this.spec, ...this.value } );
+      this.$emit('input', {
+        ...this.spec, resources, env, envFrom
+      } );
     },
 
     updateRow(idx, neu, old) {
@@ -138,15 +153,13 @@ export default {
           <Checkbox v-model="spec.stdin" type="checkbox" label="Interactive" />
 
           <Checkbox v-model="spec.tty" type="checkbox" label="TTY" />
-
-          <Checkbox v-model="spec.readOnlyRootFilesystem" type="checkbox" label="Read-Only Root FS" />
         </div>
       </div>
     </div>
     <div class="row">
       <div class="col span-3">
         <UnitInput
-          v-model.number="spec.memoryBytes"
+          v-model.number="requests.memory"
           :mode="mode"
           :input-exponent="2"
           label="Memory Reservation"
@@ -155,7 +168,7 @@ export default {
       </div>
       <div class="col span-3">
         <UnitInput
-          v-model="spec.cpuMillis"
+          v-model="requests.cpu"
           :mode="mode"
           label="CPU Reservation"
           :input-exponent="-1"
@@ -165,14 +178,14 @@ export default {
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model="spec.runAsUser"
+          v-model="securityContext.runAsUser"
           :mode="mode"
           label="Run as User number"
         />
       </div>
       <div class="col span-3">
         <LabeledInput
-          v-model="spec.runAsGroup"
+          v-model="securityContext.fsGroup"
           :mode="mode"
           label="Run as Group number"
         />

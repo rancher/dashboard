@@ -4,7 +4,7 @@ import Security from './Security';
 import Upgrading from './Upgrading';
 import Volumes from './Volumes';
 import Labels from '@/components/form/Labels';
-import Networking from '@/components//Networking';
+import Networking from '@/edit/rio.cattle.io.v1.service//Networking';
 import Command from '@/edit/rio.cattle.io.v1.service/Command';
 import HealthCheck from '@/components/form/HealthCheck';
 import { get } from '@/utils/object';

@@ -9,7 +9,7 @@ export default {
   components: { Checkbox },
   props:      {
     value: {
-      type:    Object,
+      type:    Array,
       default: null,
     },
     mode: {

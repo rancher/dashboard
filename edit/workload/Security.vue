@@ -12,7 +12,7 @@ export default {
     }
   },
   data() {
-    const capabilities = ['ALL',
+    const allCapabilities = ['ALL',
       'AUDIT_CONTROL',
       'AUDIT_WRITE',
       'BLOCK_SUSPEND',
@@ -53,14 +53,13 @@ export default {
     const privileged = !!this.value.privileged;
     const allowPrivilegeEscalation = !!this.value.allowPrivilegeEscalation;
     const { hostIPC = false, hostPID = false, containers = [] } = this.value;
-    const container = containers[0] || { securityContext: {} };
-    const { imagePullPolicy = 'always' } = container;
-    const {
-      defaultAddCapabilities = [], runAsRoot = true, readOnlyRootFilesystem = false, requiredDropCapabilities = []
-    } = container.securityContext || {};
+    const container = containers[0] || { };
+    const { imagePullPolicy = 'always', securityContext = {} } = container;
+    const { capabilities = {}, runAsRoot = true, readOnlyRootFilesystem = false } = securityContext;
+    const { add = [], drop = [] } = capabilities;
 
     return {
-      container, privileged, allowPrivilegeEscalation, capabilities, defaultAddCapabilities, hostPID, runAsRoot, readOnlyRootFilesystem, hostIPC, imagePullPolicy, requiredDropCapabilities
+      container, privileged, allowPrivilegeEscalation, allCapabilities, hostPID, runAsRoot, readOnlyRootFilesystem, hostIPC, imagePullPolicy, add, drop
     };
   },
   computed: {
@@ -68,7 +67,7 @@ export default {
     dropCapabilities() {
       const addCapabilities = this.defaultAddCapabilities || [];
 
-      return this.capabilities.filter((opt) => {
+      return this.allCapabilities.filter((opt) => {
         return !addCapabilities.includes(opt);
       });
     }
@@ -86,10 +85,9 @@ export default {
         ...this.container,
         imagePullPolicy:          this.imagePullPolicy,
         securityContext: {
-          defaultAddCapabilities:   this.defaultAddCapabilities,
           runAsRoot:                this.runAsRoot,
           readOnlyRootFilesystem:   this.readOnlyRootFilesystem,
-          requiredDropCapabilities: this.requiredDropCapabilities,
+          capabilities:           { add: this.add, drop: this.drop }
         }
       };
       const spec = {
@@ -158,19 +156,19 @@ export default {
       <div class="col span-6">
         <h5>Add Capabilities</h5>
         <v-select
-          v-model="defaultAddCapabilities"
+          v-model="add"
           multiple
-          :options="capabilities"
+          :options="allCapabilities"
           @input="update"
         />
       </div>
       <div class="col span-6">
         <h5>Drop Capabilities</h5>
         <v-select
-          :value="requiredDropCapabilities"
+          v-model="drop"
           multiple
           :options="dropCapabilities"
-          @input="e=>{requiredDropCapabilities = e; update()}"
+          @input="update"
         />
       </div>
     </div>
