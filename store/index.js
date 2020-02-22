@@ -94,18 +94,18 @@ export const actions = {
       return;
     }
 
-    if ( state.clusterId ) {
-      // Clear the old cluster state out
+    if ( state.clusterId && id ) {
+      // Clear the old cluster state out if switching to a new one
       await dispatch('cluster/unsubscribe');
       commit('cluster/removeAll');
       commit('clusterChanged', false);
     }
 
     // Remember the new one
-    commit('prefs/set', { key: CLUSTER_PREF, id });
-    commit('setCluster', id);
-
-    if ( !id ) {
+    if ( id ) {
+      commit('prefs/set', { key: CLUSTER_PREF, id });
+      commit('setCluster', id);
+    } else {
       return;
     }
 
