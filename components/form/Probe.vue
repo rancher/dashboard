@@ -283,7 +283,7 @@ export default {
         <div class="col span-6">
           <UnitInput
             v-model="probe.timeoutSeconds"
-            mode="mode"
+            :mode="mode"
             label="Timeout"
             suffix="sec"
             min="0"

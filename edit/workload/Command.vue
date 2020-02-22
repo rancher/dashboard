@@ -150,9 +150,9 @@ export default {
       </div>
       <div class="col span-6 pt-10">
         <div>
-          <Checkbox v-model="spec.stdin" type="checkbox" label="Interactive" />
+          <Checkbox v-model="spec.stdin" :mode="mode" type="checkbox" label="Interactive" />
 
-          <Checkbox v-model="spec.tty" type="checkbox" label="TTY" />
+          <Checkbox v-model="spec.tty" :mode="mode" type="checkbox" label="TTY" />
         </div>
       </div>
     </div>
@@ -242,6 +242,7 @@ export default {
       :all-secrets="secrets"
       :all-config-maps="configMaps"
       :namespace="namespace"
+      :mode="mode"
       @input="e=>updateRow(i, e.value, e.old)"
     />
     <button type="button" class="btn btn-sm role-primary" @click="addFromReference">

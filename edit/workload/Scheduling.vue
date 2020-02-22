@@ -18,7 +18,8 @@ export default {
     nodes: {
       type:    Array,
       default: () => []
-    }
+    },
+    mode: { type: String, default: 'edit' }
   },
   data() {
     const { affinity = {}, nodeName = '' } = this.value;
@@ -74,10 +75,10 @@ export default {
 <template>
   <div @input="update">
     <div class="row">
-      <RadioGroup v-model="selectNode" :row="true" :options="[true,false]" :labels="['Run pods on specific node', 'Choose node using scheduling rules']" />
+      <RadioGroup v-model="selectNode" :row="true" :options="[true,false]" :labels="['Run pods on specific node', 'Choose node using scheduling rules']" :mode="mode" />
     </div>
     <div v-if="selectNode" class="row">
-      <LabeledSelect v-model="nodeName" :options="nodes" />
+      <LabeledSelect v-model="nodeName" :options="nodes" :mode="mode" />
     </div>
     <template v-else>
       <div class="row">
@@ -91,7 +92,7 @@ export default {
           <h5 class="mb-10">
             Require any of:
           </h5>
-          <Selectors v-model="required" />
+          <Selectors v-model="required" :mode="mode" />
         </div>
         <!-- </div>
       <div class="row"> -->
@@ -99,7 +100,7 @@ export default {
           <h5 class="mb-10">
             Prefer any of:
           </h5>
-          <Selectors v-model="preferred" />
+          <Selectors v-model="preferred" :mode="mode" />
         </div>
       </div>
     </template>

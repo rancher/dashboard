@@ -15,7 +15,15 @@ export async function asyncData(ctx) {
   const workloadTypes = Object.values(WORKLOAD);
 
   if (workloadTypes.includes(resource)) {
-    return { isWorkload: true, obj };
+    let mode = 'view';
+
+    if (ctx.query.mdoe) {
+      mode = ctx.query.mode;
+    }
+
+    return {
+      isWorkload: true, obj, mode
+    };
   }
 
   return {
@@ -50,7 +58,7 @@ export default {
 
 <template>
   <div v-if="isWorkload">
-    <Workload :value="obj" />
+    <Workload :value="obj" :mode="mode" />
   </div>
   <div v-else>
     <ResourceYaml :obj="obj" :value="value" :done-route="doneRoute" />

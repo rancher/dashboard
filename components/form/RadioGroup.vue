@@ -26,6 +26,10 @@ export default {
     disabled: {
       type:    Boolean,
       default: false
+    },
+    mode: {
+      type:    String,
+      default: 'edit'
     }
   },
   data() {
@@ -115,7 +119,7 @@ export default {
       :label="labelsToUse[i]"
       grouped
       :class="{focused:focused&&selectedIndex===i}"
-      :disabled="disabled"
+      :disabled="disabled || mode=='view'"
       @input="select(option)"
     />
   </div>

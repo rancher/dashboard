@@ -11,7 +11,8 @@ export default {
       default: () => {
         return {};
       }
-    }
+    },
+    mode: { type: String, default: 'edit' }
   },
   data() {
     const { strategy:strategyObj = {}, minReadySeconds = 0, progressDeadlineSeconds = 600 } = this.value;
@@ -127,10 +128,11 @@ export default {
           v-model="actualStrategy"
           :options="['newOld', 'oldNew', 'recreate', 'custom']"
           :labels="['Rolling: start new pods, then stop old', 'Rolling: stop old pods, then start new', 'Kill ALL pods, then start new', 'Custom']"
+          :mode="mode"
         />
       </div>
       <div v-if="actualStrategy !== 'recreate'" class="col span-6">
-        <UnitInput v-if="actualStrategy !=='custom'" v-model="batchSize" :suffix="batchSize == 1 ? 'Pod' : 'Pods'" label="Batch Size">
+        <UnitInput v-if="actualStrategy !=='custom'" v-model="batchSize" :suffix="batchSize == 1 ? 'Pod' : 'Pods'" label="Batch Size" :mode="mode">
           <template v-slot:label>
             <span :style="{'color':'var(--input-label)'}">
               Batch Size
@@ -141,7 +143,7 @@ export default {
         <template v-else>
           <div class="row">
             <div class="col span-6">
-              <UnitInput v-model="maxSurge" :suffix="maxSurge == 1 ? 'Pod' : 'Pods'" label="Max Surge">
+              <UnitInput v-model="maxSurge" :suffix="maxSurge == 1 ? 'Pod' : 'Pods'" label="Max Surge" :mode="mode">
                 <template v-slot:label>
                   <span :style="{'color':'var(--input-label)'}">
                     Max Surge
@@ -151,7 +153,7 @@ export default {
               </UnitInput>
             </div>
             <div class="col span-6">
-              <UnitInput v-model="maxUnavailable" :suffix="maxUnavailable == 1 ? 'Pod' : 'Pods'" label="Max Unavailable">
+              <UnitInput v-model="maxUnavailable" :suffix="maxUnavailable == 1 ? 'Pod' : 'Pods'" label="Max Unavailable" :mode="mode">
                 <template v-slot:label>
                   <span :style="{'color':'var(--input-label)'}">
                     Max Unavailable
@@ -166,7 +168,7 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <UnitInput v-model="minReadySeconds" :suffix="minReadySeconds == 1 ? 'Second' : 'Seconds'" label="Minimum Ready Time">
+        <UnitInput v-model="minReadySeconds" :suffix="minReadySeconds == 1 ? 'Second' : 'Seconds'" label="Minimum Ready Time" :mode="mode">
           <template #label>
             <span :style="{'color':'var(--input-label)'}">
               Minimum Ready Time
@@ -176,7 +178,7 @@ export default {
         </UnitInput>
       </div>
       <div class="col span-6">
-        <UnitInput v-model="progressDeadlineSeconds" :suffix="progressDeadlineSeconds == 1 ? 'Second' : 'Seconds'" label="Progress Deadline">
+        <UnitInput v-model="progressDeadlineSeconds" :suffix="progressDeadlineSeconds == 1 ? 'Second' : 'Seconds'" label="Progress Deadline" :mode="mode">
           <template #label>
             <span :style="{'color':'var(--input-label)'}">
               Progress Deadline

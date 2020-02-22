@@ -8,6 +8,10 @@ export default {
     value: {
       type:    Array,
       default: () => []
+    },
+    mode: {
+      type:    String,
+      default: 'edit'
     }
   },
   data() {
@@ -106,29 +110,29 @@ export default {
     <div v-for="(rule, i) in rules" :key="i">
       <div class="row">
         <div class="col span-4">
-          <LabeledInput v-model="rule.key" label="Key" />
+          <LabeledInput v-model="rule.key" label="Key" :mode="mode" />
         </div>
-        <LabeledSelect v-model="rule.operator" class="col span-2" :options="ops" @input="update" />
+        <LabeledSelect v-model="rule.operator" class="col span-2" :options="ops" :mode="mode" @input="update" />
         <div class="col span-4">
-          <LabeledInput v-model="rule.values[0]" label="Value" :disabled="rule.op===' '||rule.op==='!'" />
+          <LabeledInput v-model="rule.values[0]" label="Value" :disabled="rule.op===' '||rule.op==='!'" :mode="mode" />
         </div>
-        <button type="button" class="btn btn-sm role-link" :style="{padding:'0px'}" @click="removeRule(i)">
+        <button type="button" class="btn btn-sm role-link" :style="{padding:'0px'}" :disabled="mode==='view'" @click="removeRule(i)">
           REMOVE
         </button>
       </div>
     </div>
     <div v-for="(rule, i) in custom" :key="i" class="row">
       <div class="col span-10">
-        <LabeledInput :multiline="false" :value="rule" placeholder="e.g. foo > 42 && bar != baz" @input="e=>updateCustom(i, e)" />
+        <LabeledInput :multiline="false" :value="rule" placeholder="e.g. foo > 42 && bar != baz" :mode="mode" @input="e=>updateCustom(i, e)" />
       </div>
-      <button type="button" class="btn btn-sm role-link" :style="{padding:'0px'}" @click="removeCustom(i)">
+      <button type="button" class="btn btn-sm role-link" :style="{padding:'0px'}" :disabled="mode==='view'" @click="removeCustom(i)">
         REMOVE
       </button>
     </div>
-    <button type="button" class="btn btn-sm role-primary" @click="addRule">
+    <button type="button" class="btn btn-sm role-primary" :disabled="mode==='view'" @click="addRule">
       ADD RULE
     </button>
-    <button type="button" class="btn btn-sm role-secondary" @click="addCustomRule">
+    <button type="button" class="btn btn-sm role-secondary" :disabled="mode==='view'" @click="addCustomRule">
       Add custom rule
     </button>
   </div>

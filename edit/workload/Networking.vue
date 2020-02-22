@@ -164,6 +164,7 @@ export default {
         <LabeledInput
           v-model="hostname"
           label="Hostname"
+          :mode="mode"
           @input="update"
         />
       </div>

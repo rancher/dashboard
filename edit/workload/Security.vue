@@ -9,7 +9,8 @@ export default {
       default: () => {
         return {};
       }
-    }
+    },
+    mode: { type: String, default: 'edit' }
   },
   data() {
     const allCapabilities = ['ALL',
@@ -108,15 +109,15 @@ export default {
     <div class="row mb-20">
       <div class="col span-4">
         <h5>Image Pull Policy</h5>
-        <RadioGroup v-model="imagePullPolicy" :options="['always', 'ifNotPresent', 'never']" :labels="['Always', 'If not present', 'Never']" />
+        <RadioGroup v-model="imagePullPolicy" :options="['always', 'ifNotPresent', 'never']" :labels="['Always', 'If not present', 'Never']" :mode="mode" />
       </div>
       <div class="col span-4">
         <h5>Privileged</h5>
-        <RadioGroup v-model="privileged" :options="[false,true]" :labels="['No', 'Yes: container has full access to the host']" />
+        <RadioGroup v-model="privileged" :options="[false,true]" :labels="['No', 'Yes: container has full access to the host']" :mode="mode" />
       </div>
       <div class="col span-4">
         <h5>Privilege Escalation</h5>
-        <RadioGroup v-model="allowPrivilegeEscalation" :disabled="privileged" :options="[false,true]" :labels="['No', 'Yes: container can gain more privileges than its parent process']" />
+        <RadioGroup v-model="allowPrivilegeEscalation" :disabled="privileged" :options="[false,true]" :labels="['No', 'Yes: container can gain more privileges than its parent process']" :mode="mode" />
       </div>
     </div>
     <div class="row mb-20">
@@ -124,13 +125,13 @@ export default {
         <h5>
           Use Host's PID Namespace
         </h5>
-        <RadioGroup v-model="hostPID" :options="[false, true]" :labels="['No', 'Yes']" />
+        <RadioGroup v-model="hostPID" :options="[false, true]" :labels="['No', 'Yes']" :mode="mode" />
       </div>
       <div class="col span-6">
         <h5>
           Use Host's IPC Namespace
         </h5>
-        <RadioGroup v-model="hostIPC" :options="[false, true]" :labels="['No', 'Yes']" />
+        <RadioGroup v-model="hostIPC" :options="[false, true]" :labels="['No', 'Yes']" :mode="mode" />
       </div>
     </div>
     <div class="row mb-20">
@@ -142,6 +143,7 @@ export default {
           :value="!runAsRoot"
           :options="[false, true]"
           :labels="['No', 'Yes: container must run as a non-root user']"
+          :mode="mode"
           @input="e=>runAsRoot = !e"
         />
       </div>
@@ -149,7 +151,7 @@ export default {
         <h5>
           Read-Only Root Filesystem
         </h5>
-        <RadioGroup v-model="readOnlyRootFilesystem" :options="[false, true]" :labels="['No', 'Yes: container has a read-only root filesystem']" />
+        <RadioGroup v-model="readOnlyRootFilesystem" :options="[false, true]" :labels="['No', 'Yes: container has a read-only root filesystem']" :mode="mode" />
       </div>
     </div>
     <div class="row mb-20">
@@ -159,6 +161,7 @@ export default {
           v-model="add"
           multiple
           :options="allCapabilities"
+          :disabled="mode==='view'"
           @input="update"
         />
       </div>
@@ -168,6 +171,7 @@ export default {
           v-model="drop"
           multiple
           :options="dropCapabilities"
+          :disabled="mode==='view'"
           @input="update"
         />
       </div>

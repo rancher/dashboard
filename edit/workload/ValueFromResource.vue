@@ -10,6 +10,10 @@ export default {
     LabeledInput
   },
   props:      {
+    mode: {
+      type:    String,
+      default: 'create'
+    },
     row: {
       type:    Object,
       default: () => {
@@ -182,7 +186,7 @@ export default {
         :multiple="false"
         :options="typeOpts"
         label="Type"
-        mode="edit"
+        :mode="mode"
         @input="updateRow"
       />
     </div>
@@ -194,6 +198,7 @@ export default {
           :multiple="false"
           label="Source"
           option-label="id"
+          :mode="mode"
           @input="updateRow"
         />
       </div>
@@ -204,31 +209,32 @@ export default {
           :options="keys"
           :multiple="false"
           label="Key"
+          :mode="mode"
           @input="updateRow"
         />
       </div>
     </template>
     <template v-else-if="type==='resourceFieldRef'">
       <div class="col span-3">
-        <LabeledInput v-model="refName" label="Source" placeholder="e.g. my-container" />
+        <LabeledInput v-model="refName" label="Source" placeholder="e.g. my-container" :mode="mode" />
       </div>
 
       <div class="col span-3">
-        <LabeledInput v-model="key" label="Key" placeholder="e.g. requests.cpu" />
+        <LabeledInput v-model="key" label="Key" placeholder="e.g. requests.cpu" :mode="mode" />
       </div>
     </template>
     <template v-else>
       <div class="col span-3">
-        <LabeledInput v-model="fieldPath" label="Source" placeholder="e.g. requests.cpu" />
+        <LabeledInput v-model="fieldPath" label="Source" placeholder="e.g. requests.cpu" :mode="mode" />
       </div>
 
       <div class="col span-3">
-        <LabeledInput value="n/a" label="Key" placeholder="e.g. requests.cpu" disabled />
+        <LabeledInput value="n/a" label="Key" placeholder="e.g. requests.cpu" disabled :mode="mode" />
       </div>
     </template>
     <div class="col">
       as
     </div>
-    <LabeledInput v-model="name" label="Prefix or Alias" />
+    <LabeledInput v-model="name" label="Prefix or Alias" :mode="mode" />
   </div>
 </template>
