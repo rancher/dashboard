@@ -28,7 +28,9 @@ export default {
       const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
       const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
 
-      return day(this.value).format(`${ dateFormat } ${ timeFormat }`);
+      const out = day(this.value).format(`${ dateFormat } ${ timeFormat }`);
+
+      return out;
     },
   },
 
