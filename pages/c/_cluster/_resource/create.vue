@@ -1,28 +1,25 @@
 <script>
 import ResourceYaml from '@/components/ResourceYaml';
 import { createYaml } from '@/utils/create-yaml';
-import { SCHEMA, WORKLOAD } from '@/config/types';
-import { FRIENDLY } from '@/config/friendly';
-import { get } from '@/utils/object';
-
+import { SCHEMA } from '@/config/types';
+import { hasCustomEdit, importEdit, singularLabelFor } from '@/utils/customized';
 export default {
   components: { ResourceYaml },
-
-  computed: {
+  computed:   {
     doneRoute() {
       const name = this.$route.name.replace(/-create$/, '');
 
       return name;
     },
-
+    hasComponent() {
+      return hasCustomEdit(this.resource);
+    },
     showComponent() {
-      return () => import(`@/edit/${ this.type }`);
+      return importEdit(this.resource);
     },
-
     typeDisplay() {
-      return get(FRIENDLY[this.type], 'singular');
+      return singularLabelFor(this.schema);
     },
-
     parentLink() {
       const name = this.doneRoute;
       const params = this.$route.params;
@@ -31,33 +28,20 @@ export default {
       return out;
     },
   },
-
   async asyncData(ctx) {
     const { resource, namespace } = ctx.params;
-
     const schemas = ctx.store.getters['cluster/all'](SCHEMA);
+    const schema = ctx.store.getters['cluster/schemaFor'](resource);
     const data = { type: resource };
-    let value;
 
-    if (resource !== 'workload') {
-      const schema = ctx.store.getters['cluster/schemaFor'](resource);
-
-      value = createYaml(schemas, resource, data);
-      if ( schema.attributes.namespaced ) {
-        data.metadata = { namespace };
-      }
+    if ( schema.attributes.namespaced ) {
+      data.metadata = { namespace };
     }
-    const obj = await ctx.store.dispatch('cluster/create', data);
-    let type = obj.type;
-
-    const workloadTypes = Object.values(WORKLOAD);
-
-    if (workloadTypes.includes(resource)) {
-      type = 'workload';
-    }
+    const model = await ctx.store.dispatch('cluster/create', data);
+    const yaml = createYaml(schemas, resource, data);
 
     return {
-      obj, value, type
+      resource, model, yaml, schema
     };
   }
 };
