@@ -10,7 +10,7 @@ import {
   NAME,
   SIMPLE_SCALE,
   IMAGE,
-  CREATED
+  AGE,
 } from '@/config/table-headers';
 
 export default {
@@ -39,7 +39,7 @@ export default {
         NAME,
         SIMPLE_SCALE,
         IMAGE,
-        CREATED
+        AGE
       ]
     };
   },

@@ -2,29 +2,66 @@
 // over the generic info that is specified or generated from schemas.
 //
 // 1) Getting info about types
-// singularLabelFor(schema): Get the singular form of this schema's type
-// pluralLabelFor(schema): Get the plural form of this schema's type
 //
-// 2) Changing specialization info about a type
-// virtualType(obj): Add an item to the tree that goes to a route instead of an actual type.  Obj can contain anything in the objects getTree returns.
-// basicType(type): Mark type as one shown in basic view
-// ignoreType(type): Never show type
-// weightType(typeOrArrayOfTypes, weight): Set the weight (sort) order of one or more types
-// mapType(matchRegexOrString, replacementStringOrFn, mapWeight, continueOnMatch): Remap a type id to a display name
-// labelType(type, singular, plural): Remap the displayed name for a type
+// singularLabelFor(schema)   Get the singular form of this schema's type
+// pluralLabelFor(schema)     Get the plural form of this schema's type
+// groupLabelFor(schema)      Get the label for the API group of this schema's type
+// isIgnored(schema)          Returns true if this type should be hidden from the tree
+// isBasic(schema)            Returns true if this type should be included in basic view
+// typeWeightFor(type)        Get the weight value for a particular type label
+// groupWeightFor(group)      Get the weight value for a particular group
+// virtualTypes()             Returns a list of the virtual pages to add to the treee
+// headersFor(schema)         Returns the column definitions for a type to give to SortableTable
 //
-// ignoreGroup(group): Never show group or any types in it
-// weightGroup(groupOrArrayOfGroups, weight): Set the weight (sort) order of one or more groups
-// mapGroup(matchRegexOrString, replacementString, mapWeight, continueOnMatch): Remap a group name to a display name
+// 2) Detecting and usign custom list/detail/edit/header components
 //
-// Weight on mappings determines the order in which they are applied (highest first)
-// Weight of types and groups determines the order in which they are displayed (highest first/higher up on nav)
+// hasCustomList(type)        Does type have a custom list implementation?
+// hasCustomDetail(type)      Does type have a custom detail implementation?
+// hasCustomEdit(type)        Does type have a custom edit implementation?
+// importList(type)           Returns a promise that resolves to the list component for type
+// importDetail(type)         Returns a promise that resolves to the detail component for type
+// importEdit(type)           Returns a promise that resolves to the edit component for type
+//
+// 3) Changing specialization info about a type
+//
+// virtualType(obj)           Add an item to the tree that goes to a route instead of an actual type.
+//                            Obj can contain anything in the objects getTree returns.
+// basicType(type)            Mark type as one shown in basic view
+// ignoreType(type)           Never show type
+// weightType(                Set the weight (sorting) order of one or more types
+//   typeOrArrayOfTypes,
+//   weight                   -- Higher numbers are shown first/higher up on the nav tree
+// )
+// mapType(                   Remap a type id to a display name
+//   matchRegexOrString,      -- Type to match, or regex that matches types
+//   replacementStringOrFn,   -- String to replace the type with, or
+//                            -- sync function: (type, capturedString, schemaObj => { return 'new-type'; }
+//   mapWeight,               -- Priority for apply this mapping (higher numbers applied first)
+//   continueOnMatch          -- If true, continue applying to hit other rules that might match the new type.
+// )
+// labelType(                 Remap the displayed label for a type
+//   type,
+//   singular,
+//   plural
+// )
+//
+// ignoreGroup(group):        Never show group or any types in it
+// weightGroup(               Set the weight (sort) order of one or more groups
+//   groupOrArrayOfGroups,    -- see weightType...
+//   weight
+// )
+// mapGroup(                  Remap a group name to a display name
+//   matchRegexOrString,      -- see mapType...
+//   replacementString,
+//   mapWeight,
+//   continueOnMatch
+// )
 
 import { escapeRegex } from '@/utils/string';
 import { isArray } from '@/utils/array';
 import { get } from '@/utils/object';
 
-import { STATE, NAMESPACE_NAME, NAME } from '@/config/table-headers';
+import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
 import { WORKLOAD } from '@/config/types';
 
 // ----------------------------------------------------------------------------
@@ -94,6 +131,11 @@ export function headersFor(schema) {
     } else {
       let formatter, width;
 
+      if ( col.format === '' && col.name === 'Age' ) {
+        out.push(AGE);
+        continue;
+      }
+
       if ( col.format === 'date' || col.type === 'date' ) {
         formatter = 'Date';
         width = 120;
@@ -117,27 +159,84 @@ export function headersFor(schema) {
   return out;
 }
 
-// ----------------------------------------------------------------------------
-// 2) Changing info
-// ----------------------------------------------------------------------------
-const _virtualTypes = [];
-const _basicTypes = {};
-const _groupIgnore = {};
-const _groupWeights = {};
-const _groupMappings = [];
-const _groupLabelCache = {};
-const _typeIgnore = {};
-const _typeWeights = {};
-const _typeMappings = [];
-const _typeLabelCache = {};
-const _pluralLabels = {};
-const _headers = {};
-const _hasCustom = {
-  list:    {},
-  detail:  {},
-  edit:    {},
-};
+// ------------------------------------
+// 2) Custom list/detail/edit/header component detection
+//
+// Note: you can't refactor these into one function that does `@/${kind}/${type}`,
+// because babel needs some hardcoded idea where to look for the dependency.
+// ------------------------------------
+export function hasCustomList(type) {
+  const cache = _hasCustom.list;
 
+  if ( cache[type] !== undefined ) {
+    return cache[type];
+  }
+
+  try {
+    require.resolve(`@/list/${ type }`);
+    cache[type] = true;
+
+    return true;
+  } catch (e) {
+    cache[type] = false;
+
+    return false;
+  }
+}
+
+export function hasCustomDetail(type) {
+  const cache = _hasCustom.detail;
+
+  if ( cache[type] !== undefined ) {
+    return cache[type];
+  }
+
+  try {
+    require.resolve(`@/detail/${ type }`);
+    cache[type] = true;
+
+    return true;
+  } catch (e) {
+    cache[type] = false;
+
+    return false;
+  }
+}
+
+export function hasCustomEdit(type) {
+  const cache = _hasCustom.edit;
+
+  if ( cache[type] !== undefined ) {
+    return cache[type];
+  }
+
+  try {
+    require.resolve(`@/edit/${ type }`);
+    cache[type] = true;
+
+    return true;
+  } catch (e) {
+    cache[type] = false;
+
+    return false;
+  }
+}
+
+export function importList(type) {
+  return () => import(`@/list/${ type }`);
+}
+
+export function importDetail(type) {
+  return () => import(`@/detail/${ type }`);
+}
+
+export function importEdit(type) {
+  return () => import(`@/edit/${ type }`);
+}
+
+// ----------------------------------------------------------------------------
+// 3) Changing info
+// ----------------------------------------------------------------------------
 export function virtualType(obj) {
   _virtualTypes.push(obj);
 }
@@ -203,6 +302,27 @@ export function pluralizeType(type, plural) {
   _pluralLabels[type] = plural;
 }
 
+// ----------------------------------------------------------------------------
+// 4) Internals
+// ----------------------------------------------------------------------------
+const _virtualTypes = [];
+const _basicTypes = {};
+const _groupIgnore = {};
+const _groupWeights = {};
+const _groupMappings = [];
+const _groupLabelCache = {};
+const _typeIgnore = {};
+const _typeWeights = {};
+const _typeMappings = [];
+const _typeLabelCache = {};
+const _pluralLabels = {};
+const _headers = {};
+const _hasCustom = {
+  list:    {},
+  detail:  {},
+  edit:    {},
+};
+
 function _applyMapping(obj, mappings, keyField, cache) {
   const key = get(obj, keyField);
 
@@ -217,11 +337,11 @@ function _applyMapping(obj, mappings, keyField, cache) {
   let out = `${ key }`;
 
   for ( const rule of mappings ) {
-    const res = out.match(rule.match);
+    const captured = out.match(rule.match);
 
-    if ( res ) {
+    if ( captured ) {
       if ( typeof rule.replace === 'function' ) {
-        out = rule.replace(out, rule, res, obj);
+        out = rule['replace'](out, captured, obj);
       } else {
         out = out.replace(rule.match, rule.replace);
       }
@@ -236,8 +356,6 @@ function _applyMapping(obj, mappings, keyField, cache) {
 
   return out;
 }
-
-// --------------------------------------------
 
 function _addMapping(mappings, match, replace, weight, continueOnMatch) {
   if ( typeof match === 'string' ) {
@@ -262,84 +380,4 @@ function _addMapping(mappings, match, replace, weight, continueOnMatch) {
 
     return a.insertIndex - b.insertIndex;
   });
-}
-
-// ------------------------------------
-// Custom list/detail/edit/header component detection
-//
-// Note: you can't refactor these into one function that does `@/${kind}/${type}`,
-// because babel needs some hardcoded idea where to look for the dependency.
-// ------------------------------------
-
-export function hasCustomList(type) {
-  const cache = _hasCustom.list;
-
-  if ( cache[type] !== undefined ) {
-    return cache[type];
-  }
-
-  try {
-    require.resolve(`@/list/${ type }`);
-    cache[type] = true;
-
-    return true;
-  } catch (e) {
-    cache[type] = false;
-
-    return false;
-  }
-}
-
-export function hasCustomDetail(type) {
-  const cache = _hasCustom.detail;
-
-  if ( cache[type] !== undefined ) {
-    return cache[type];
-  }
-
-  try {
-    require.resolve(`@/detail/${ type }`);
-    cache[type] = true;
-
-    return true;
-  } catch (e) {
-    cache[type] = false;
-
-    return false;
-  }
-}
-
-export function hasCustomEdit(type) {
-  if (Object.values(WORKLOAD).includes(type)) {
-    type = 'workload';
-  }
-
-  const cache = _hasCustom.edit;
-
-  if ( cache[type] !== undefined ) {
-    return cache[type];
-  }
-
-  try {
-    require.resolve(`@/edit/${ type }`);
-    cache[type] = true;
-
-    return true;
-  } catch (e) {
-    cache[type] = false;
-
-    return false;
-  }
-}
-
-export function importList(type) {
-  return () => import(`@/list/${ type }`);
-}
-
-export function importDetail(type) {
-  return () => import(`@/detail/${ type }`);
-}
-
-export function importEdit(type) {
-  return () => import(`@/edit/${ type }`);
 }
