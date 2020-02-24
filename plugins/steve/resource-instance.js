@@ -21,10 +21,57 @@ const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TMIMEOUT = 30000;
 
 const STATES = {
-  active:   { color: 'success', icon: 'dot-open' },
-  inactive: { color: 'info', icon: 'dot' },
-  error:    { color: 'error', icon: 'error' },
-  unknown:  { color: 'warning', icon: 'x' },
+  unknown:        { color: 'warning', icon: 'x' },
+  aborted:        { color: 'warning', icon: 'error' },
+  activating:     { color: 'info', icon: 'tag' },
+  active:         { color: 'success', icon: 'dot-open' },
+  available:      { color: 'success', icon: 'dot-open' },
+  backedup:       { color: 'success', icon: 'backup' },
+  bound:          { color: 'success', icon: 'dot' },
+  building:       { color: 'success', icon: 'dot-open' },
+  created:        { color: 'info', icon: 'tag' },
+  creating:       { color: 'info', icon: 'tag' },
+  deactivating:   { color: 'info', icon: 'adjust' },
+  degraded:       { color: 'warning', icon: 'error' },
+  denied:         { color: 'error', icon: 'adjust' },
+  disabled:       { color: 'warning', icon: 'error' },
+  disconnected:   { color: 'warning', icon: 'error' },
+  error:          { color: 'error', icon: 'error' },
+  erroring:       { color: 'error', icon: 'error' },
+  expired:        { color: 'warning', icon: 'error' },
+  failed:         { color: 'error', icon: 'error' },
+  healthy:        { color: 'success', icon: 'dot-open' },
+  inactive:       { color: 'error', icon: 'dot' },
+  initializing:   { color: 'warning', icon: 'error' },
+  locked:         { color: 'warning', icon: 'adjust' },
+  migrating:      { color: 'info', icon: 'info' },
+  paused:         { color: 'info', icon: 'info' },
+  pending:        { color: 'info', icon: 'tag' },
+  provisioning:   { color: 'info', icon: 'dot' },
+  purged:         { color: 'error', icon: 'purged' },
+  purging:        { color: 'info', icon: 'purged' },
+  reconnecting:   { color: 'error', icon: 'error' },
+  registering:    { color: 'info', icon: 'tag' },
+  reinitializing: { color: 'warning', icon: 'error' },
+  released:       { color: 'warning', icon: 'error' },
+  removed:        { color: 'error', icon: 'trash' },
+  removing:       { color: 'info', icon: 'trash' },
+  requested:      { color: 'info', icon: 'tag' },
+  restarting:     { color: 'info', icon: 'adjust' },
+  restoring:      { color: 'info', icon: 'medicalcross' },
+  running:        { color: 'success', icon: 'dot-open' },
+  skipped:        { color: 'info', icon: 'dot-open' },
+  starting:       { color: 'info', icon: 'adjust' },
+  stopped:        { color: 'error', icon: 'dot' },
+  stopping:       { color: 'info', icon: 'adjust' },
+  succeeded:      { color: 'success', icon: 'dot-dotfill' },
+  success:        { color: 'success', icon: 'dot-open' },
+  suspended:      { color: 'info', icon: 'pause' },
+  unavailable:    { color: 'error', icon: 'error' },
+  unhealthy:      { color: 'error', icon: 'error' },
+  untriggered:    { color: 'success', icon: 'tag' },
+  updating:       { color: 'warning', icon: 'tag' },
+  waiting:        { color: 'info', icon: 'tag' },
 };
 
 const SORT_ORDER = {
@@ -47,9 +94,7 @@ export default {
   },
 
   schema() {
-    return () => {
-      return this.$getters['schemaFor'](this.type);
-    };
+    return this.$getters['schemaFor'](this.type);
   },
 
   toString() {
@@ -83,11 +128,11 @@ export default {
 
   // You can override the state by providing your own state (and possibly reading metadata.state)
   state() {
-    if ( !this.metadata || !this.metadata.state || !this.metadata.state.name ) {
-      return 'unknown';
+    if ( this.metadata?.state?.name ) {
+      return this.metadata.state.name;
     }
 
-    return this.metadata.state.name;
+    return 'unknown';
   },
 
   // You can override the displayed by providing your own stateDisplay (and possibly reading _stateDisplay)
@@ -106,7 +151,7 @@ export default {
   },
 
   stateColor() {
-    if ( this.metadata && this.metadata.state && this.metadata.state.error ) {
+    if ( this.metadata?.state?.error ) {
       return 'text-error';
     }
 
@@ -218,7 +263,7 @@ export default {
   waitForTransition() {
     return () => {
       return this.waitForTestFn(() => {
-        return this.transitioning !== 'yes';
+        return !this.transitioning;
       }, 'Wait for transition completion');
     };
   },

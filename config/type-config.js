@@ -14,7 +14,7 @@ import {
 import {
   STATE,
   NAME, NAMESPACE_NAME, NAMESPACE_NAME_IMAGE,
-  AGE, CREATED, WEIGHT, SCALE,
+  AGE, WEIGHT, SCALE,
   KEYS, ENDPOINTS,
   MATCHES, DESTINATION,
   TARGET, TARGET_KIND, USERNAME, USER_DISPLAY_NAME, USER_ID, USER_STATUS,
@@ -38,7 +38,7 @@ export default function() {
   ignoreType('events.k8s.io.v1beta1.event'); // Events type moved into core
 
   mapType('core.v1.endpoints', 'Endpoint');
-  mapType('', (typeStr, rule, match, schema) => {
+  mapType('', (typeStr, match, schema) => {
     return schema.attributes.kind;
   }, 1);
 
@@ -60,7 +60,7 @@ export default function() {
   mapGroup(/^(.*\.)?istio.io$/, 'Istio');
   mapGroup(/^(.*\.)?knative.io$/, 'Knative');
 
-  mapGroup(/^(.*)\.k8s.io$/, (type, rule, match) => {
+  mapGroup(/^(.*)\.k8s.io$/, (type, match) => {
     return match[1].split(/\./).map(x => ucFirst(x)).join('.');
   }, 1);
 
@@ -77,7 +77,7 @@ export default function() {
       value: 'typeDisplay',
       sort:  ['typeDisplay', 'nameSort'],
     },
-    CREATED
+    AGE
   ]);
 
   headers(RIO.EXTERNAL_SERVICE, [STATE, NAMESPACE_NAME, TARGET_KIND, TARGET, AGE]);
