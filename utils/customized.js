@@ -25,6 +25,7 @@ import { isArray } from '@/utils/array';
 import { get } from '@/utils/object';
 
 import { STATE, NAMESPACE_NAME, NAME } from '@/config/table-headers';
+import { WORKLOAD } from '@/config/types';
 
 // ----------------------------------------------------------------------------
 // 1 ) Getting info
@@ -309,6 +310,10 @@ export function hasCustomDetail(type) {
 }
 
 export function hasCustomEdit(type) {
+  if (Object.values(WORKLOAD).includes(type)) {
+    type = 'workload';
+  }
+
   const cache = _hasCustom.edit;
 
   if ( cache[type] !== undefined ) {
