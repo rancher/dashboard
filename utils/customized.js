@@ -62,7 +62,6 @@ import { isArray } from '@/utils/array';
 import { get } from '@/utils/object';
 
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
-import { WORKLOAD } from '@/config/types';
 
 // ----------------------------------------------------------------------------
 // 1 ) Getting info
