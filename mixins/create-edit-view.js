@@ -59,6 +59,10 @@ export default {
     },
 
     schema() {
+      if (this.type) {
+        return this.$store.getters['cluster/schemaFor'](this.type);
+      }
+
       return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
   },
@@ -82,6 +86,7 @@ export default {
     async save(buttonDone) {
       this.errors = null;
       try {
+        debugger;
         await this.applyHooks(BEFORE_SAVE_HOOKS);
         if ( this.isCreate ) {
           let url = this.schema.linkFor('collection');

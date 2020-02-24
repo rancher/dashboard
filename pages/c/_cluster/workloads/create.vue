@@ -31,7 +31,7 @@ export default {
 
 <template>
   <div>
-    <h1>
+    <h1 class="mb-20">
       Create <nuxt-link :to="parentLink">
         Workload
       </nuxt-link>

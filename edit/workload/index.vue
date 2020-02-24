@@ -167,6 +167,8 @@ export default {
         this.$set(this.spec, 'jobTemplate', { spec: { template: this.spec.template } });
         delete this.spec.template;
       }
+
+      this.$set(this.value, 'type', neu);
     }
   },
 
@@ -253,6 +255,6 @@ export default {
         <Labels :spec="{metadata}" :mode="mode" />
       </Tab>
     </Tabbed>
-    <Footer mode="create" @save="saveWorkload" />
+    <Footer mode="create" :errors="errors" @save="saveWorkload" />
   </form>
 </template>

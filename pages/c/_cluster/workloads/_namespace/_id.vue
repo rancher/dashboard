@@ -40,7 +40,7 @@ export default {
 <template>
   <div>
     <header>
-      <h1 v-trim-whitespace>
+      <h1 v-trim-whitespace class="mb-20">
         <span v-if="mode === 'edit'">Edit Workload:&nbsp;</span>
         <span v-else-if="mode === 'stage'">Stage from Workload:&nbsp;</span>
         <span v-else-if="mode === 'clone'">Clone from Workload:&nbsp;</span>
