@@ -85,7 +85,21 @@ export default {
 <template>
   <div>
     <div v-if="isView">
-      {{ currentLabel }}
+      <div :class="{'labeled-input': true, raised, focused, empty, [mode]: true}" :style="{border:'none'}">
+        <label>
+          {{ label }}
+          <span v-if="required && !value" class="required">*</span>
+        </label>
+        <label class="corner">
+          <slot name="corner" />
+        </label>
+        <div v-if="isView">
+          {{ currentLabel }}
+        </div>
+        <div class="selected" :class="{'no-label':!label}" :style="{display:selectedDisplay}">
+          {{ currentLabel }}
+        </div>
+      </div>
     </div>
     <v-select
       v-else
