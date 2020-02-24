@@ -2,7 +2,7 @@
 export default {
   props: {
     value: {
-      type:    Boolean,
+      type:    [Boolean, String],
       default: false
     },
     name: {
@@ -16,20 +16,27 @@ export default {
     grouped: {
       type:    Boolean,
       default: false
+    },
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
+    indeterminate: {
+      type:    Boolean,
+      default: false
     }
   },
 
   methods: {
     clicked() {
       this.$emit('input', this.value);
-      console.log('clicked', this.label);
     },
   }
 };
 </script>
 
 <template>
-  <label class="radio-container">
+  <label class="radio-container" :class="{disabled}">
     <label
       ref="radio"
       class="radio-button"
@@ -40,10 +47,11 @@ export default {
         type="radio"
         :name="name"
         :tabindex="-1"
+        :indeterminate="disabled||indeterminate"
         @keyup.16="clicked"
         @click.stop="clicked"
       />
-      <span class="radio-custom"><span /></span>
+      <span class="radio-custom" :class="{indeterminate:indeterminate || disabled}"><span /></span>
     </label>
     <span class="radio-label" @click.stop="clicked">{{ label }}</span>
   </label>
@@ -76,7 +84,7 @@ export default {
     background-color: transparent;
     border-radius: 50%;
     transition: all 0.3s ease-out;
-    border: 1px solid var( --input-label );
+    border: 2px solid var( --input-label );
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -90,7 +98,8 @@ export default {
     -ms-transform: rotate(0deg) scale(1);
     transform: rotate(0deg) scale(1); */
     opacity:1;
-    border: 1px solid var(--dropdown-text);
+    // border: 2px solid var(--dropdown-text);
+    border:none;
 }
 
 .radio-button .radio-custom > span {
@@ -101,10 +110,23 @@ export default {
 }
 
 .radio-button input:checked ~ .radio-custom > span {
-  width: 15px;
-  height: 15px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   background: var(--dropdown-text);
+
+}
+
+.radio-button input:checked ~ .radio-custom.indeterminate > span {
+  width:3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--dropdown-text);
+}
+
+.radio-button input:checked ~ .radio-custom.indeterminate  {
+  border: 2px solid var(--dropdown-text);
+
 }
 
 .radio-container{
@@ -112,6 +134,10 @@ export default {
   align-items: center;
   & > * {
     margin: 3px;
+  }
+  &.disabled * {
+    color: var(--input-disabled-text);
+    border-color: var(--input-disabled-text)
   }
 }
 .radio-label {

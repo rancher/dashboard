@@ -1,12 +1,12 @@
 <script>
 import Top from './Top';
-import Command from './Command';
-import HealthCheck from './HealthCheck';
-import Networking from './Networking';
-import Labels from './Labels';
 import Security from './Security';
 import Upgrading from './Upgrading';
 import Volumes from './Volumes';
+import Labels from '@/components/form/Labels';
+import Networking from '@/edit/rio.cattle.io.v1.service//Networking';
+import Command from '@/edit/rio.cattle.io.v1.service/Command';
+import HealthCheck from '@/components/form/HealthCheck';
 import { get } from '@/utils/object';
 import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
 import LoadDeps from '@/mixins/load-deps';
@@ -203,7 +203,14 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
       </a>
       <Tabbed v-show="showTabs" default-tab="command">
         <Tab name="command" label="Command">
-          <Command :spec="spec" :mode="mode" :config-maps="configMaps" :secrets="secrets" :namespace="namespace" />
+          <Command
+            :spec="spec"
+            :mode="mode"
+            :config-maps="configMaps"
+            :secrets="secrets"
+            :namespace="namespace"
+            :more-add="true"
+          />
         </Tab>
         <Tab name="network" label="Network">
           <Networking :spec="spec" :mode="mode" />

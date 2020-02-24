@@ -234,7 +234,7 @@ export function importEdit(type) {
 }
 
 // ----------------------------------------------------------------------------
-// 2) Changing info
+// 3) Changing info
 // ----------------------------------------------------------------------------
 export function virtualType(obj) {
   _virtualTypes.push(obj);

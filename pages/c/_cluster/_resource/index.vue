@@ -1,32 +1,25 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import { hasCustomList, importList, pluralLabelFor, headersFor } from '@/utils/customized';
-
 export default {
   components: { ResourceTable },
-
-  computed: {
+  computed:   {
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.resource);
     },
-
     headers() {
       return headersFor(this.schema);
     },
-
     hasComponent() {
       return hasCustomList(this.resource);
     },
-
     showComponent() {
       return importList(this.resource);
     },
-
     typeDisplay() {
       return pluralLabelFor(this.schema);
     },
   },
-
   asyncData(ctx) {
     const resource = ctx.params.resource;
 
@@ -67,12 +60,10 @@ export default {
   .header {
     position: relative;
   }
-
   H2 {
     position: relative;
     margin: 0 0 20px 0;
   }
-
   .right-action {
     position: absolute;
     top: 10px;

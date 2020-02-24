@@ -57,10 +57,13 @@ export default {
 
 <template>
   <div :class="{'labeled-input': true, raised, focused, [mode]: true}">
-    <label>
-      {{ label }}
-      <span v-if="required && !value" class="required">*</span>
-    </label>
+    <slot name="label">
+      <label v-if="i18nLabel" k-t="i18nLabel" />
+      <label v-else>
+        {{ label }}
+        <span v-if="required && !value" class="required">*</span>
+      </label>
+    </slot>
     <label class="corner">
       <slot name="corner" />
     </label>

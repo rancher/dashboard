@@ -11,9 +11,9 @@ export default {
       type:    Boolean,
       default: false
     },
-    selected: {
-      type:    Number,
-      default: -1
+    value: {
+      type:    [Boolean, String],
+      default: null
     },
     labels: {
       type:    Array,
@@ -22,13 +22,21 @@ export default {
     row: {
       type:    Boolean,
       default: false
+    },
+    disabled: {
+      type:    Boolean,
+      default: false
+    },
+    mode: {
+      type:    String,
+      default: 'edit'
     }
   },
   data() {
     const statuses = {};
 
     this.options.forEach((option, index) => {
-      statuses[option] = index === this.selected;
+      statuses[option] = option === this.value;
     });
 
     return { statuses, focused: false };
@@ -40,6 +48,26 @@ export default {
       } else {
         return this.options;
       }
+    },
+    selectedIndex() {
+      if (this.value) {
+        return this.options.indexOf(this.value);
+      } else {
+        for (const option in this.statuses) {
+          if (this.statuses[option]) {
+            return this.options.indexOf(option);
+          }
+        }
+
+        return 0;
+      }
+    },
+  },
+  watch: {
+    value() {
+      this.options.forEach((option, index) => {
+        this.statuses[option] = option === this.value;
+      });
     }
   },
   methods: {
@@ -64,7 +92,7 @@ export default {
     },
 
     clickNext(direction) {
-      const newSelection = this.options[this.selected + direction];
+      const newSelection = this.options[this.value + direction];
 
       this.select(newSelection);
     }
@@ -90,7 +118,8 @@ export default {
       :value="statuses[option]"
       :label="labelsToUse[i]"
       grouped
-      :class="{focused:focused&&selected===i}"
+      :class="{focused:focused&&selectedIndex===i}"
+      :disabled="disabled || mode=='view'"
       @input="select(option)"
     />
   </div>

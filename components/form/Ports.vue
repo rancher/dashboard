@@ -8,8 +8,8 @@ import Checkbox from '@/components/form/Checkbox';
 export default {
   components: { Checkbox },
   props:      {
-    spec: {
-      type:    Object,
+    value: {
+      type:    Array,
       default: null,
     },
     mode: {
@@ -23,7 +23,7 @@ export default {
   },
 
   data() {
-    const rows = clone(this.spec.ports || []);
+    const rows = clone(this.value || []);
 
     return { rows };
   },
@@ -98,8 +98,7 @@ export default {
           out.push(value);
         }
       }
-
-      this.spec.ports = out;
+      this.$emit('input', out);
     }
   },
 };

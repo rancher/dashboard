@@ -257,6 +257,6 @@ INPUT.inline-input {
 }
 */
 
-.fixed input, .fixed select, .fixed.v-select{
+.fixed select, .fixed.v-select, .fixed input:not(.vs__search){
   height: 50px;
 }

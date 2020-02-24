@@ -212,7 +212,7 @@ export default {
     </NameNsDescription>
     <template v-if="isRegistry">
       <div id="registry-type" class="row">
-        Provider: &nbsp; <RadioGroup row :options="registryAddresses" :selected="registryAddresses.indexOf(registryProvider)" @input="e=>registryProvider = e" />
+        Provider: &nbsp; <RadioGroup row :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row">
         <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" />

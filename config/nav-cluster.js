@@ -92,7 +92,7 @@ export function getTree(mode, clusterId, types, namespaces, currentType) {
 
   // Add virtual types
   for ( const item of virtualTypes() ) {
-    const group = _ensureGroup(root, item.group);
+    const group = _ensureGroup(root, item.group, item.route);
 
     group.children.push(item);
   }

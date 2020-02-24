@@ -4,7 +4,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import GithubPicker from '@/components/form/GithubPicker';
 import Checkbox from '@/components/form/Checkbox';
-import Ports from '@/edit/rio.cattle.io.v1.service/Ports';
+import Ports from '@/components/form/Ports';
 
 const BUILD_MODES = {
   image:  'Use an existing Docker image',
@@ -408,8 +408,8 @@ export default {
 
     <div class="row">
       <Ports
+        v-model="spec.ports"
         class="col span-12"
-        :spec="spec"
         :name-resource="nameResource"
         :is-sidecar="isSidecar"
         :mode="mode"

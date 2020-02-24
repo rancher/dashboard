@@ -11,6 +11,7 @@ import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { addParams } from '@/utils/url';
 import { get } from '~/utils/object';
+import { WORKLOAD } from '@/config/types';
 
 const REMAP_STATE = { disabled: 'inactive' };
 
@@ -574,8 +575,14 @@ export default {
   detailUrl() {
     const router = this.currentRouter();
     const schema = this.$getters['schemaFor'](this.type);
+    const query = {};
 
-    const route = `c-cluster-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+    let route = `c-cluster-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+
+    if (Object.values(WORKLOAD).includes(this.type)) {
+      route = `c-cluster-workloads${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+      query.type = this.type;
+    }
 
     const params = {
       resource:  this.type,
@@ -586,6 +593,7 @@ export default {
     const url = router.resolve({
       name:   route,
       params,
+      query
     }).href;
 
     return url;

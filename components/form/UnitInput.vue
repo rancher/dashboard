@@ -7,7 +7,7 @@ export default {
 
   props: {
     value: {
-      type:    Number,
+      type:    [Number, String],
       default: null
     },
 
@@ -91,6 +91,12 @@ export default {
       <div class="addon">
         {{ addon }}
       </div>
+    </template>
+    <template #corner>
+      <slot name="corner" />
+    </template>
+    <template #label>
+      <slot name="label" />
     </template>
   </LabeledInput>
 </template>
