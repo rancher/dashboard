@@ -16,6 +16,7 @@ export const state = () => {
     managementReady:  false,
     clusterReady:    false,
     namespaces:      [],
+    allNamespaces:   null,
     clusterId:       null,
   };
 };
@@ -53,8 +54,12 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
-  updateNamespaces(state, neu) {
-    state.namespaces = neu;
+  updateNamespaces(state, { selected, all }) {
+    state.namespaces = selected;
+
+    if ( all ) {
+      state.allNamespaces = all;
+    }
   },
 
   setCluster(state, neu) {
@@ -91,7 +96,9 @@ export const actions = {
     console.log('Done loading management.');
   },
 
-  async loadCluster({ state, commit, dispatch }, id) {
+  async loadCluster({
+    state, commit, dispatch, getters
+  }, id) {
     if ( state.clusterReady && state.clusterId && state.clusterId === id ) {
       // Do nothing, we're already connected to this cluster
       return;
@@ -136,10 +143,15 @@ export const actions = {
 
     dispatch('cluster/subscribe');
 
-    await Promise.all([
-      dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
-      dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })
-    ]);
+    const res = await allHash({
+      counts:     dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
+      namespaces: dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })
+    });
+
+    commit('updateNamespaces', {
+      selected: getters['prefs/get'](NAMESPACES),
+      all:      res.namespaces
+    });
 
     commit('clusterChanged', true);
 
@@ -148,7 +160,7 @@ export const actions = {
 
   switchNamespaces({ commit }, val) {
     commit('prefs/set', { key: NAMESPACES, val });
-    commit('updateNamespaces', val);
+    commit('updateNamespaces', { selected: val });
   },
 
   onLogout({ commit }) {
