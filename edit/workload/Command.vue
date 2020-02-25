@@ -1,6 +1,4 @@
 <script>
-import { isEqual } from 'lodash';
-import { parseSi } from '../../utils/units';
 import LabeledInput from '@/components/form/LabeledInput';
 import ShellInput from '@/components/form/ShellInput';
 import UnitInput from '@/components/form/UnitInput';
@@ -235,10 +233,10 @@ export default {
       </template>
     </KeyValue>
     <ValueFromResource
-      v-for="(value,i) in referencedValues"
+      v-for="(val,i) in referencedValues"
       ref="fromResource"
       :key="`${Object.values(value)}-${i}`"
-      :row="value"
+      :row="val"
       :all-secrets="secrets"
       :all-config-maps="configMaps"
       :namespace="namespace"

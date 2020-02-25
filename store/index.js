@@ -71,11 +71,14 @@ export const actions = {
 
     console.log('Loading management...');
 
+    try {
+      await dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: 'principals' } });
+    } catch (e) {
+      // Maybe not Rancher
+    }
+
     await allHash({
-      prefs:   dispatch('prefs/loadCookies'),
-      rancher: Promise.all([
-        dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: 'principals' } }),
-      ]),
+      prefs:      dispatch('prefs/loadCookies'),
       management: Promise.all([
         dispatch('management/subscribe'),
         dispatch('management/loadSchemas'),

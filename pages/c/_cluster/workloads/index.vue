@@ -1,11 +1,9 @@
-
 <script>
 import {
-  STATE, CREATED, NAME, IMAGE, PODS, SCALE
-} from '../../../../config/table-headers';
-import { get } from '@/utils/object';
+  STATE, AGE, NAME,
+  // IMAGE, PODS, SCALE
+} from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
-import { FRIENDLY } from '@/config/friendly';
 import { WORKLOAD } from '@/config/types';
 export default {
   components: { SortableTable },
@@ -13,19 +11,19 @@ export default {
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.resource);
     },
-    headers() {
-      if (this.isWorkload) {
-        return [STATE,
-          NAME,
-          // IMAGE,
-          // PODS,
-          // SCALE,
-          CREATED];
-      }
 
-      return get(FRIENDLY[this.resource], 'headers');
+    headers() {
+      return [
+        STATE,
+        NAME,
+        // IMAGE,
+        // PODS,
+        // SCALE,
+        AGE
+      ];
     },
   },
+
   asyncData(ctx) {
     const types = Object.values(WORKLOAD);
 
@@ -43,7 +41,8 @@ export default {
       return { resources };
     });
   },
-}; </script>
+};
+</script>
 
 <template>
   <div>

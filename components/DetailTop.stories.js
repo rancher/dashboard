@@ -1,6 +1,6 @@
 import centered from '@storybook/addon-centered/vue';
 import DetailTop from '@/components/DetailTop';
-import LabeledInput from '~/components/form/LabeledInput';
+import LabeledInput from '@/components/form/LabeledInput';
 
 export default {
   title:       'Components/DetailTop',

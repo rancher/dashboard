@@ -2,8 +2,18 @@
 import Workload from '@/edit/workload';
 export default {
   components: { Workload },
+
+  computed:   {
+    parentLink() {
+      const name = 'c-cluster-workloads';
+      const out = this.$router.resolve({ name }).href;
+
+      return out;
+    },
+  },
+
   async asyncData(ctx) {
-    const { cluster, id, namespace } = ctx.params;
+    const { id, namespace } = ctx.params;
     const { mode = 'create', type } = ctx.query;
 
     let value;
@@ -48,6 +58,6 @@ export default {
         </button>
       </div> -->
     </header>
-    <Workload :value="obj" :mode="mode" :cluster="cluster" />
+    <Workload :value="obj" :mode="mode" />
   </div>
 </template>

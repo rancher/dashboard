@@ -10,7 +10,7 @@ import { hasCustomEdit } from '@/utils/customized';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { addParams } from '@/utils/url';
-import { get } from '~/utils/object';
+import { get } from '@/utils/object';
 import { WORKLOAD } from '@/config/types';
 
 const REMAP_STATE = { disabled: 'inactive' };

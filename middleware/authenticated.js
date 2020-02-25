@@ -26,7 +26,7 @@ export default async function({
   }
 
   // Make sure you're actually logged in
-  if ( !store.getters['auth/loggedIn'] ) {
+  if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
     try {
       const principals = await store.dispatch('rancher/findAll', {
         type: NORMAN.PRINCIPAL,
@@ -37,11 +37,19 @@ export default async function({
 
       store.commit('auth/loggedInAs', me.id);
     } catch (e) {
-      if ( e && (!e.status || e.status !== '401') ) {
-        console.log(JSON.stringify(e));
-      }
+      const status = e?._status;
 
-      redirect(302, '/auth/login');
+      if ( status === 404 ) {
+        store.commit('auth/hasAuth', false);
+      } else {
+        store.commit('auth/hasAuth', true);
+
+        if ( status === 401 ) {
+          redirect(302, '/auth/login');
+        } else {
+          console.log(JSON.stringify(e));
+        }
+      }
     }
   }
 
