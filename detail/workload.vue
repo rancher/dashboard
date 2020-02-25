@@ -1,37 +1,39 @@
 <script>
 import { get } from '@/utils/object';
-import { STATE, NAME, IMAGE, NODE } from '@/config/table-headers';
-import { POD } from '@/config/types';
+import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
+import { POD, WORKLOAD } from '@/config/types';
 import SortableTable from '@/components/SortableTable';
-import Tabbed from '@/components/Tabbed';
-import Tab from '@/components/Tabbed/Tab';
-import KVTable from '@/components/KVTable';
+import DetailTop from '@/components/DetailTop';
+import CRUWorkload from '@/edit/workload';
+import Date from '@/components/formatter/Date';
+import LoadDeps from '@/mixins/load-deps';
+import { allHash } from '@/utils/promise';
+import Ports from '@/edit/workload/ports';
 
 export default {
   components: {
+    CRUWorkload,
+    DetailTop,
+    Date,
     SortableTable,
-    Tabbed,
-    Tab,
-    KVTable
+    Ports,
   },
+  mixins:     [LoadDeps],
   props:      {
-    id: {
-      type:     String,
-      required: true
-    },
-    namespace: {
-      type:     String,
-      required: true
-    },
     value: {
       type:    Object,
       default: () => {
         return {};
       }
+    },
+    mode: {
+      type:    String,
+      default: 'view'
     }
   },
+
   data() {
-    const podHeaders = [STATE, NAME, IMAGE, NODE];
+    const podHeaders = [STATE, NAME, POD_IMAGES, NODE];
 
     const volumeHeaders = [
       {
@@ -50,23 +52,114 @@ export default {
         value: 'secret.secretName'
       }
     ];
+    let container;
+
+    if (this.value.type === WORKLOAD.CRON_JOB) {
+      // cronjob pod template is nested slightly different than other types
+      const { spec: { jobTemplate: { spec: { template: { spec: { containers } } } } } } = this.value;
+
+      container = containers[0];
+    } else {
+      const { spec:{ template:{ spec:{ containers } } } } = this.value;
+
+      container = containers[0];
+    }
+
+    let name = this.value.id;
+
+    if (get(this.value, 'metadata.namespace')) {
+      name = name.slice(name.indexOf('/') + 1);
+    }
 
     return {
-      volumeHeaders, podHeaders, pods:  []
+      name,
+      volumeHeaders,
+      podHeaders,
+      allPods:        [],
+      allReplicasets: [],
+      allJobs:        [],
+      container
     };
   },
   computed:   {
 
-    labels() {
-      const { labels = {} } = this.value;
+    pods() {
+      if (this.value.type === WORKLOAD.DEPLOYMENT) {
+        const replicaset = this.filterResourcesByOwner(this.allReplicasets, this.name )[0];
 
-      return labels;
+        if (replicaset) {
+          const replicaName = replicaset.id.slice(replicaset.id.indexOf('/') + 1);
+
+          return this.filterResourcesByOwner(this.allPods, replicaName);
+        }
+
+        return [];
+      } else if (this.value.type === WORKLOAD.CRON_JOB) {
+        const job = this.filterResourcesByOwner(this.allJobs, this.name)[0];
+
+        if (job) {
+          const jobName = job.id.slice(job.id.indexOf('/') + 1);
+
+          return this.filterResourcesByOwner(this.allPods, jobName);
+        }
+
+        return [];
+      } else {
+        return this.filterResourcesByOwner(this.allPods, this.name);
+      }
     },
 
-    annotations() {
-      const { workloadAnnotations = {} } = this.value;
+    podRestarts() {
+      return this.pods.reduce((total, pod) => {
+        const { status:{ containerStatuses = [] } } = pod;
 
-      return workloadAnnotations;
+        if (containerStatuses.length) {
+          total += containerStatuses.reduce((tot, container) => {
+            tot += container.restartCount;
+
+            return tot;
+          }, 0);
+        }
+
+        return total;
+      }, 0);
+    },
+
+    detailTopColumns() {
+      return [
+        {
+          title:   'Namespace',
+          content: get(this.value, 'metadata.namespace')
+        },
+        {
+          title:   'Image',
+          content: this.container.image
+        },
+        {
+          title:   'Type',
+          content:  this.value._type ? this.value._type : this.value.type
+        },
+        {
+          title:    'Config Scale',
+          content:  get(this.value, 'spec.replicas'),
+          fallback: 0
+
+        },
+        {
+          title:    'Ready Scale',
+          content:  get(this.value, 'status.readyReplicas'),
+          fallback: 0
+        },
+        {
+          title:    'Pod Restarts',
+          content:  this.podRestarts,
+          fallback: 0
+        },
+        {
+          title:   'Created',
+          name:  'created'
+        },
+      ];
     },
 
     podTemplateSpec() {
@@ -98,55 +191,75 @@ export default {
       return volumes;
     }
   },
-  mounted() {
-    this.findPods(this.id, this.namespace);
-  },
+
   methods: {
-    async findPods(id, ns) {
-      const pods = await this.$store.dispatch('cluster/findAll', { type: POD }).then((pods) => {
-        return pods.filter((pod) => {
-          const { metadata:{ ownerReferences = [], namespace } } = pod;
 
-          return (ownerReferences.filter((owner) => {
-            return owner.name === id;
-          }).length && namespace === ns);
-        });
+    // filter a given list of resrouces by the ownerReference.name prop
+    filterResourcesByOwner(resourceList, ownerId) {
+      return resourceList.filter((resource) => {
+        const { metadata:{ ownerReferences = [] } } = resource;
+
+        return (ownerReferences.filter((owner) => {
+          return owner.name === ownerId;
+        }).length);
       });
-
-      this.pods = pods;
     },
-  }
+
+    // find all pods to filter by ownerRef
+    // in case of deployment, pods are owned by related replicaset, so get replicasets
+    // in case of cronjob, pods are owned by job
+    async loadDeps() {
+      if (this.value.type === WORKLOAD.DEPLOYMENT) {
+        const hash = await allHash({
+          replicasets: this.$store.dispatch('cluster/findAll', { type: WORKLOAD.REPLICA_SET }),
+          pods:        this.$store.dispatch('cluster/findAll', { type: POD }),
+        });
+
+        this.allPods = hash.pods;
+        this.allReplicasets = hash.replicasets;
+      } else if (this.value.type === WORKLOAD.CRON_JOB) {
+        const hash = await allHash({
+          jobs: this.$store.dispatch('cluster/findAll', { type: WORKLOAD.JOB }),
+          pods:        this.$store.dispatch('cluster/findAll', { type: POD }),
+        });
+
+        this.allPods = hash.pods;
+        this.allJobs = hash.jobs;
+      } else {
+        const pods = await this.$store.dispatch('cluster/findAll', { type: POD });
+
+        this.allPods = pods;
+      }
+    },
+  },
 };
 </script>
 
 <template>
-  <div>
-    <div v-if="pods.length" class="mt-20">
-      <h4>Pods</h4>
-      <SortableTable :rows="pods" :search="false" :table-actions="false" :headers="podHeaders" :key-field="id" />
-    </div>
-    <div class="row mt-20">
-      <Tabbed default-tab="Labels">
-        <Tab name="labels" label="Labels">
-          <h4>Labels</h4>
-          <KVTable :rows="labels" class="mb-20" />
-
-          <h4>Annotations</h4>
-          <KVTable :rows="annotations" />
-        </Tab>
-        <Tab name="volumes" label="Volumes">
+  <CRUWorkload :value="value" :mode="mode">
+    <template v-if="mode==='view'" #top>
+      <DetailTop :columns="detailTopColumns">
+        <template v-slot:created>
+          <Date :value="value.metadata.creationTimestamp" />
+        </template>
+      </DetailTop>
+      <div class="row mt-20">
+        <Ports :value="container.ports" mode="view" />
+      </div>
+      <div class="row mt-20">
+        <div class="col span-12">
+          <h3>
+            Pods
+          </h3>
           <SortableTable
-            :rows="volumes"
-            :headers="volumeHeaders"
-            key-field="name"
+            :rows="pods"
+            :headers="podHeaders"
+            key-field="id"
             :search="false"
             :table-actions="false"
-            :row-actions="false"
           />
-        </Tab>
-        <Tab name="variables" label="Variables">
-        </Tab>
-      </Tabbed>
-    </div>
-  </div>
+        </div>
+      </div>
+    </template>
+  </CRUWorkload>
 </template>

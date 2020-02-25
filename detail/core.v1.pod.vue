@@ -101,18 +101,6 @@ export default {
       <Tab label="Annotations" name="annotations">
         <SortableTable :rows="annotations" :headers="KVHeaders" key-field="value" :search="false" :table-actions="false" />
       </Tab>
-      <Tab label="Events" name="events">
-        events
-      </Tab>
-      <Tab label="Status" name="status">
-        status
-      </Tab>
-      <Tab label="Scheduling" name="scheduling">
-        scheduling
-      </Tab>
-      <Tab label="Networking" name="networking">
-        networking
-      </Tab>
     </Tabbed>
   </div>
 </template>

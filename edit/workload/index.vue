@@ -18,7 +18,7 @@ import Networking from '@/edit/workload/Networking';
 import Footer from '@/components/form/Footer';
 import Job from '@/edit/workload/Job';
 import Labels from '@/components/form/Labels';
-import Ports from '@/components/form/Ports';
+import Ports from '@/edit/workload/Ports';
 
 export default {
   name:       'CruWorkload',
@@ -201,22 +201,23 @@ export default {
 
 <template>
   <form>
-    <NameNsDescription :value="{metadata}" :mode="mode" :extra-columns="['type']" @input="e=>metadata=e">
-      <template v-slot:type>
-        <LabeledSelect v-model="type" label="Type" :options="typeOpts" />
-      </template>
-    </NameNsDescription>
+    <slot :value="value" name="top">
+      <NameNsDescription :value="{metadata}" :mode="mode" :extra-columns="['type']" @input="e=>metadata=e">
+        <template v-slot:type>
+          <LabeledSelect v-model="type" label="Type" :options="typeOpts" />
+        </template>
+      </NameNsDescription>
 
-    <div class="row">
-      <div class="col span-4">
-        <LabeledInput v-model="containerImage" label="Container Image" placeholder="eg nginx:latest" />
+      <div class="row">
+        <div class="col span-4">
+          <LabeledInput v-model="containerImage" label="Container Image" placeholder="eg nginx:latest" />
+        </div>
       </div>
-    </div>
 
-    <div class="row">
-      <Ports v-model="containerPorts" :mode="mode" />
-    </div>
-
+      <div class="row">
+        <Ports v-model="containerPorts" :mode="mode" />
+      </div>
+    </slot>
     <Tabbed :default-tab="isJob ? 'job' : 'command'">
       <Tab v-if="isJob" label="Job Configuration" name="job">
         <Job v-model="spec" :mode="mode" :type="type" />
@@ -255,6 +256,6 @@ export default {
         <Labels :spec="{metadata}" :mode="mode" />
       </Tab>
     </Tabbed>
-    <Footer mode="create" :errors="errors" @save="saveWorkload" />
+    <Footer :errors="errors" :mode="mode" @save="saveWorkload" />
   </form>
 </template>

@@ -172,7 +172,6 @@ export default {
         <LabeledInput
           key="description"
           v-model="value.metadata.annotations[ANNOTATION_DESCRIPTION]"
-          type="multiline"
           label="Description"
           :mode="mode"
           :placeholder="descriptionPlaceholder"

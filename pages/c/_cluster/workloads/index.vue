@@ -1,8 +1,5 @@
 <script>
-import {
-  STATE, AGE, NAME,
-  // IMAGE, PODS, SCALE
-} from '@/config/table-headers';
+import { STATE, CREATED, NAME } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 import { WORKLOAD } from '@/config/types';
 export default {
@@ -11,16 +8,13 @@ export default {
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.resource);
     },
-
     headers() {
-      return [
-        STATE,
+      return [STATE,
         NAME,
         // IMAGE,
         // PODS,
         // SCALE,
-        AGE
-      ];
+        CREATED];
     },
   },
 
@@ -37,7 +31,6 @@ export default {
         return all;
       }, []);
 
-      // .filter(resource => resource.rows.length);
       return { resources };
     });
   },

@@ -66,9 +66,11 @@ export const NAMESPACE = {
 */
 
 export const NODE = {
-  name:  'node',
-  label: 'Node',
-  value: 'spec.nodeName',
+  name:      'node',
+  label:     'Node',
+  value:     'spec.nodeName',
+  sort:      'spec.nodeName',
+  formatter: 'LinkNode'
 };
 
 export const NODE_NAME = {
@@ -144,7 +146,7 @@ export const RIO_IMAGE = {
 
 export const POD_IMAGES = {
   name:      'pod_images',
-  label:     'Images',
+  label:     'Image',
   value:     'status.containerStatuses',
   formatter: 'PodImages'
 };

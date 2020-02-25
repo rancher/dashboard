@@ -1,20 +1,16 @@
 <script>
-import Workload from '@/edit/workload';
+import Workload from '@/detail/workload';
+import ResourceYaml from '@/components/ResourceYaml';
+import { createYaml } from '@/utils/create-yaml';
+import { WORKLOAD, SCHEMA } from '@/config/types';
+
 export default {
-  components: { Workload },
-
-  computed:   {
-    parentLink() {
-      const name = 'c-cluster-workloads';
-      const out = this.$router.resolve({ name }).href;
-
-      return out;
-    },
-  },
-
+  components: { Workload, ResourceYaml },
   async asyncData(ctx) {
     const { id, namespace } = ctx.params;
-    const { mode = 'create', type } = ctx.query;
+    const { mode = 'view', type = WORKLOAD.DEPLOYMENT } = ctx.query;
+
+    const asYaml = !!Object.keys(ctx.query).includes('as-yaml');
 
     let value;
     let obj;
@@ -28,10 +24,11 @@ export default {
 
       obj = await ctx.store.dispatch('cluster/find', { type, id: fqid });
     }
-    // type = obj.type;
+    const schemas = ctx.store.getters['cluster/all'](SCHEMA);
+    const yaml = createYaml(schemas, type, obj);
 
     return {
-      obj, value, type, mode
+      obj, value, type, mode, asYaml, yaml
     };
   }
 };
@@ -47,7 +44,7 @@ export default {
         <nuxt-link
           v-else
           v-trim-whitespace
-          :to="parentLink"
+          :to="''"
         >
           Workload:&nbsp;
         </nuxt-link>{{ obj.id }}
@@ -58,6 +55,8 @@ export default {
         </button>
       </div> -->
     </header>
-    <Workload :value="obj" :mode="mode" />
+    <ResourceYaml v-if="asYaml" :obj="obj" :value="yaml" :done-route="doneRoute" :for-create="true" />
+
+    <Workload v-else :value="obj" :mode="mode" />
   </div>
 </template>
