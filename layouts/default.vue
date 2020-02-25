@@ -6,7 +6,6 @@ import {
   mapPref, DEV, THEME, EXPANDED_GROUPS, NAV_SHOW
 } from '@/store/prefs';
 import { allTypes, getTree } from '@/config/nav-cluster';
-import { virtualType } from '@/utils/customized';
 import applyTypeConfigs from '@/config/type-config';
 import ActionMenu from '@/components/ActionMenu';
 import ButtonGroup from '@/components/ButtonGroup';
@@ -116,21 +115,6 @@ export default {
     }
   },
 */
-
-  created() {
-    const cluster = this.$store.getters['currentCluster'];
-
-    virtualType({
-      label:      'Workloads',
-      namespaced: false,
-      name:       'workloads',
-      group:      'apps',
-      route:      {
-        name:   'c-cluster-workloads',
-        params: { cluster: cluster.id, resource: 'workload' }
-      },
-    });
-  },
 
   methods: {
     toggleGroup(route, expanded) {

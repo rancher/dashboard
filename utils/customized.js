@@ -25,7 +25,8 @@
 // 3) Changing specialization info about a type
 //
 // virtualType(obj)           Add an item to the tree that goes to a route instead of an actual type.
-//                            Obj can contain anything in the objects getTree returns.
+//                            -- Obj can contain anything in the objects getTree returns.
+//                            -- `cluster` is automatically added to route.params if it exists.
 // basicType(type)            Mark type as one shown in basic view
 // ignoreType(type)           Never show type
 // weightType(                Set the weight (sorting) order of one or more types

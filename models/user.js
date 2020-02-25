@@ -1,5 +1,5 @@
 import { insertAt } from '@/utils/array';
-import { get, clone } from '~/utils/object';
+import { get, clone } from '@/utils/object';
 
 export default {
   _availableActions() {

@@ -13,12 +13,17 @@ const ERR_SERVER = 'server';
 
 export const state = function() {
   return {
+    hasAuth:     null,
     loggedIn:    false,
     principalId: null,
   };
 };
 
 export const getters = {
+  enabled(state) {
+    return state.hasAuth;
+  },
+
   loggedIn(state) {
     return state.loggedIn;
   },
@@ -33,6 +38,10 @@ export const getters = {
 };
 
 export const mutations = {
+  hasAuth(state, hasAuth) {
+    state.hasAuth = !!hasAuth;
+  },
+
   loggedInAs(state, principalId) {
     state.loggedIn = true;
     state.principalId = principalId;

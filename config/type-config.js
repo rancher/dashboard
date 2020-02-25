@@ -5,10 +5,11 @@ import {
   mapGroup,
   mapType,
   headers,
+  virtualType,
 } from '@/utils/customized';
 
 import {
-  CONFIG_MAP, NAMESPACE, NODE, POD, SECRET, RIO, RBAC,
+  CONFIG_MAP, NAMESPACE, NODE, POD, SECRET, RIO, RBAC, SERVICE, PV, PVC, INGRESS,
 } from '@/config/types';
 
 import {
@@ -32,7 +33,11 @@ export default function() {
     NAMESPACE,
     NODE,
     POD,
-    SECRET
+    SECRET,
+    SERVICE,
+    INGRESS,
+    PV,
+    PVC,
   ]);
 
   ignoreType('events.k8s.io.v1beta1.event'); // Events type moved into core
@@ -46,6 +51,8 @@ export default function() {
   weightGroup('Core', 98);
 
   mapGroup(/^(core)?$/, 'Core', 99);
+  mapGroup('apps', 'Core');
+  mapGroup('batch', 'Core');
   mapGroup(/^api.*\.k8s\.io$/, 'API');
   mapGroup('rbac.authorization.k8s.io', 'RBAC');
   mapGroup('admissionregistration.k8s.io', 'Admission');
@@ -175,4 +182,15 @@ export default function() {
     CLUSTER_CREATOR_DEFAULT,
     AGE
   ]);
+
+  virtualType({
+    label:      'Workloads',
+    namespaced: true,
+    name:       'workloads',
+    group:      'Core',
+    route:      {
+      name:     'c-cluster-workloads',
+      params:   { resource: 'workload' }
+    },
+  });
 }

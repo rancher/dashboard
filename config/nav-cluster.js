@@ -1,4 +1,5 @@
 import { sortBy } from '@/utils/sort';
+import { clone } from '@/utils/object';
 import { SCHEMA, COUNT } from '@/config/types';
 import {
   isBasic,
@@ -91,7 +92,14 @@ export function getTree(mode, clusterId, types, namespaces, currentType) {
   }
 
   // Add virtual types
-  for ( const item of virtualTypes() ) {
+  for ( const vt of virtualTypes() ) {
+    const item = clone(vt);
+
+    if ( item.route && typeof item.route === 'object' ) {
+      item.route.params = item.route.params || {};
+      item.route.params.cluster = clusterId;
+    }
+
     const group = _ensureGroup(root, item.group, item.route);
 
     group.children.push(item);

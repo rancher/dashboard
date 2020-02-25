@@ -2,6 +2,7 @@
 import Workload from '@/edit/workload';
 export default {
   components: { Workload },
+
   computed:   {
     parentLink() {
       const name = 'c-cluster-workloads';
@@ -11,6 +12,7 @@ export default {
       return out;
     },
   },
+
   async asyncData(ctx) {
     const { resource } = ctx.params;
     const { mode = 'create' } = ctx.query;
