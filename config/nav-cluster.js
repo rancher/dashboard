@@ -18,7 +18,7 @@ export function allTypes($store) {
 
   const schemas = $store.getters['cluster/all'](SCHEMA);
   const counts = $store.getters['cluster/all'](COUNT)[0].counts;
-  const out = [];
+  const out = {};
 
   for ( const schema of schemas ) {
     const attrs = schema.attributes || {};
@@ -35,7 +35,7 @@ export function allTypes($store) {
       continue;
     }
 
-    out.push({
+    out[schema.id] = {
       schema,
       group,
       id:          schema.id,
@@ -44,7 +44,7 @@ export function allTypes($store) {
       count:       count ? count.count : 0,
       byNamespace: count ? count.namespaces : {},
       revision:    count ? count.revision : null,
-    });
+    };
   }
 
   return out;
@@ -53,7 +53,8 @@ export function allTypes($store) {
 export function getTree(mode, clusterId, types, namespaces, currentType) {
   const root = {};
 
-  for ( const typeObj of types ) {
+  for ( const type in types ) {
+    const typeObj = types[type];
     const namespaced = typeObj.namespaced;
     const count = matchingCounts(typeObj, namespaces);
 
@@ -98,6 +99,16 @@ export function getTree(mode, clusterId, types, namespaces, currentType) {
     if ( item.route && typeof item.route === 'object' ) {
       item.route.params = item.route.params || {};
       item.route.params.cluster = clusterId;
+    }
+
+    if ( item.aggregateCount ) {
+      let count = 0;
+
+      for ( const type of item.aggregateCount ) {
+        count += matchingCounts(types[type], namespaces);
+      }
+
+      item.count = count;
     }
 
     const group = _ensureGroup(root, item.group, item.route);

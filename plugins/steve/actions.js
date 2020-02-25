@@ -173,12 +173,6 @@ export default {
   load(ctx, resource) {
     const { getters, commit } = ctx;
 
-    // @TODO until server fixes this...
-    if ( resource.type === 'subscribe' && resource._type ) {
-      resource.type = resource._type;
-      delete resource._type;
-    }
-
     let type = normalizeType(resource.type);
 
     if ( !getters.hasType(type) ) {

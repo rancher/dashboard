@@ -41,7 +41,7 @@ export default {
 
   computed: {
     id() {
-      return (this.idPrefix || '') + this.group.name;
+      return (this.idPrefix || '') + this.group.label;
     }
   }
 };
@@ -50,7 +50,7 @@ export default {
 <template>
   <Accordion
     :id="id"
-    :key="group.name"
+    :key="group.label"
     :label="group.label"
     :expanded="isExpanded"
     :can-collapse="canCollapse"

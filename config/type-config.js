@@ -9,7 +9,7 @@ import {
 } from '@/utils/customized';
 
 import {
-  CONFIG_MAP, NAMESPACE, NODE, POD, SECRET, RIO, RBAC, SERVICE, PV, PVC, INGRESS,
+  CONFIG_MAP, NAMESPACE, NODE, POD, SECRET, RIO, RBAC, SERVICE, PV, PVC, INGRESS, WORKLOAD
 } from '@/config/types';
 
 import {
@@ -192,5 +192,6 @@ export default function() {
       name:     'c-cluster-workloads',
       params:   { resource: 'workload' }
     },
+    aggregateCount: Object.values(WORKLOAD)
   });
 }
