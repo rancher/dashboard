@@ -197,4 +197,12 @@ export default function() {
     },
     aggregateCount: Object.values(WORKLOAD)
   });
+
+  virtualType({
+    label:      'OPA+Gatekeeper',
+    namespaced: false,
+    name:       'gatekeeper',
+    group:      'Core',
+    route:      { name: 'c-cluster-gatekeeper' },
+  });
 }

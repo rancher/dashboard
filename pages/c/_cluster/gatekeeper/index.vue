@@ -4,6 +4,8 @@ import GatekeeperConfig from '@/components/GatekeeperConfig';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { allHash } from '@/utils/promise';
 
+const SYSTEM_PROJECT_LABEL = 'authz.management.cattle.io/system-project';
+
 export default {
   components: { GatekeeperConfig },
 
@@ -25,15 +27,15 @@ export default {
         });
 
         return promises.then((hash) => {
-          const { namespaces, projects } = hash;
-          const gatekeeper = hash.apps.find(app => app.metadata.name === 'gatekeeper-operator');
+          const { namespaces, projects, apps } = hash;
+          const gatekeeper = apps.find(app => app.metadata.name === 'gatekeeper-operator');
           // clusterID is on router.state.clusterid and find
           const targetClusterId = ctx.store.state.clusterId;
           const targetSystemProject = projects.find(( proj ) => {
             // find the management project with "authz.management.cattle.io/system-project": "true", label and namespace === current cluster id
             if (proj.metadata.namespace === targetClusterId &&
-                Object.prototype.hasOwnProperty.call(proj.metadata.labels, 'authz.management.cattle.io/system-project') &&
-                proj.metadata.labels['authz.management.cattle.io/system-project']) {
+                Object.prototype.hasOwnProperty.call(proj.metadata.labels, SYSTEM_PROJECT_LABEL) &&
+                proj.metadata.labels[SYSTEM_PROJECT_LABEL]) {
               return proj;
             }
           });
@@ -59,7 +61,8 @@ export default {
             kind:       'App',
             apiVersion: `${ hash.schema.attributes.group }/${ hash.schema.attributes.version }`,
             metadata:   {
-              name:      'gatekeeper-operator',
+              name:        'gatekeeper-operator',
+              annotations: { 'field.cattle.io/creatorId': ctx.store.getters['auth/principalId'].split('//')[1] },
               namespace,
             },
             spec: {
@@ -81,6 +84,8 @@ export default {
       } else {
         return { gateKeeperUnAvailable: true };
       }
+    }).catch(() => {
+      return { gateKeeperUnAvailable: true };
     });
   },
 };

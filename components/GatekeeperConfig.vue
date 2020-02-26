@@ -214,7 +214,6 @@ export default {
 <template>
   <div>
     <header>
-      Is: {{ systemNamespaceExists }}
       <h1>
         OPA + Gatekeeper
       </h1>
@@ -230,8 +229,10 @@ export default {
         />
       </div>
     </header>
-    <div v-if="gatekeeperEnabled" class="row mt-20">
-      Gatekeeper is enabled.
+    <div v-if="gatekeeperEnabled" class="mt-20 text-center">
+      <h3>
+        Gatekeeper is enabled.
+      </h3>
     </div>
     <div v-else class="row action-group mt-20 mb-20">
       <div class="col">
