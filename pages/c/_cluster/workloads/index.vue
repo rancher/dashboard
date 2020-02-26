@@ -27,13 +27,13 @@ export default {
       return ctx.store.dispatch('cluster/findAll', { type });
     }))
       .then((resources) => {
-        resources = resources
-          .reduce((all, rows) => {
-            rows = rows.filter(row => !row.metadata.ownerReferences);
-            all.push(...rows);
+        resources =
+        resources.reduce((all, rows) => {
+          rows = rows.filter(row => !row.metadata.ownerReferences);
+          all.push(...rows);
 
-            return all;
-          }, []);
+          return all;
+        }, []);
 
         return { resources };
       });
