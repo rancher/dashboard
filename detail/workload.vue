@@ -8,15 +8,16 @@ import CRUWorkload from '@/edit/workload';
 import Date from '@/components/formatter/Date';
 import LoadDeps from '@/mixins/load-deps';
 import { allHash } from '@/utils/promise';
-import Ports from '@/edit/workload/ports';
+import WorkloadPorts from '@/edit/workload/WorkloadPorts';
 
 export default {
+  name:       'DetailWorkload',
   components: {
     CRUWorkload,
     DetailTop,
     Date,
     SortableTable,
-    Ports,
+    WorkloadPorts,
   },
   mixins:     [LoadDeps],
   props:      {
@@ -244,7 +245,7 @@ export default {
         </template>
       </DetailTop>
       <div class="row mt-20">
-        <Ports :value="container.ports" mode="view" />
+        <WorkloadPorts :value="container.ports" mode="view" />
       </div>
       <div class="row mt-20">
         <div class="col span-12">

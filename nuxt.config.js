@@ -63,7 +63,7 @@ module.exports = {
 
   buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
-  mode:    'spa',
+  // mode:    'spa',
   // mode: 'universal',
   loading: '~/components/Loading.vue',
 

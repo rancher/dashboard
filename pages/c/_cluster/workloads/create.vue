@@ -8,7 +8,6 @@ export default {
   computed:   {
     parentLink() {
       const name = 'c-cluster-workloads';
-      //   const params = this.$route.params;
       const out = this.$router.resolve({ name }).href;
 
       return out;
@@ -16,9 +15,9 @@ export default {
   },
 
   async asyncData(ctx) {
+    const asYaml = !!Object.keys(ctx.query).includes('as-yaml');
     const { mode = 'create' } = ctx.query;
     const data = { type: WORKLOAD.DEPLOYMENT };
-    let value;
 
     const obj = await ctx.store.dispatch('cluster/create', data);
     const schemas = ctx.store.getters['cluster/all'](SCHEMA);
@@ -26,7 +25,7 @@ export default {
     const yaml = createYaml(schemas, WORKLOAD.DEPLOYMENT, data);
 
     return {
-      obj, value, type: WORKLOAD.DEPLOYMENT, mode, yaml
+      obj, type: WORKLOAD.DEPLOYMENT, mode, yaml, asYaml
     };
   }
 };
@@ -40,6 +39,6 @@ export default {
         Workload
       </nuxt-link>
     </h1>
-    <Workload :value="obj" :mode="mode" />
+    <Workload :value="obj" :mode="mode" :namespace-suffix-on-create="true" />
   </div>
 </template>

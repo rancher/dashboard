@@ -86,7 +86,6 @@ export default {
     async save(buttonDone) {
       this.errors = null;
       try {
-        debugger;
         await this.applyHooks(BEFORE_SAVE_HOOKS);
         if ( this.isCreate ) {
           let url = this.schema.linkFor('collection');

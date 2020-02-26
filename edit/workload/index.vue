@@ -18,7 +18,7 @@ import Networking from '@/edit/workload/Networking';
 import Footer from '@/components/form/Footer';
 import Job from '@/edit/workload/Job';
 import Labels from '@/components/form/Labels';
-import Ports from '@/edit/workload/Ports';
+import WorkloadPorts from '@/edit/workload/WorkloadPorts';
 
 export default {
   name:       'CruWorkload',
@@ -37,7 +37,7 @@ export default {
     Networking,
     Footer,
     Job,
-    Ports
+    WorkloadPorts
   },
 
   mixins:     [CreateEditView, LoadDeps],
@@ -215,7 +215,7 @@ export default {
       </div>
 
       <div class="row">
-        <Ports v-model="containerPorts" :mode="mode" />
+        <WorkloadPorts v-model="containerPorts" :mode="mode" />
       </div>
     </slot>
     <Tabbed :default-tab="isJob ? 'job' : 'command'">
