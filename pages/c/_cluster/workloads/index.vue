@@ -18,6 +18,20 @@ export default {
         // SCALE,
         AGE];
     },
+
+    filteredRows() {
+      const namespaces = this.$store.getters['namespaces'];
+      const include = namespaces.filter(x => !x.startsWith('!'));
+      const exclude = namespaces.filter(x => x.startsWith('!')).map(x => x.substr(1) );
+
+      const rows = this.resources.filter((row) => {
+        const inNS = include.length ? include.includes(row.metadata.namespace) : exclude.length ? !exclude.includes(row.metadata.namespace) : true;
+
+        return (!row.metadata.ownerReferences && inNS);
+      });
+
+      return rows;
+    }
   },
 
   asyncData(ctx) {
@@ -29,7 +43,6 @@ export default {
       .then((resources) => {
         resources =
         resources.reduce((all, rows) => {
-          rows = rows.filter(row => !row.metadata.ownerReferences);
           all.push(...rows);
 
           return all;
@@ -53,6 +66,6 @@ export default {
         </nuxt-link>
       </div>
     </header>
-    <SortableTable :rows="resources" :headers="headers" key-field="id" />
+    <SortableTable :rows="filteredRows" :headers="headers" key-field="id" />
   </div>
 </template>
