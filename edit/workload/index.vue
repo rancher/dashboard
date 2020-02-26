@@ -83,7 +83,7 @@ export default {
     const metadata = this.value.metadata ? clone(this.value.metadata) : {};
 
     if (!spec.template) {
-      spec.template = { spec: { restartPolicy: 'Never' } };
+      spec.template = { spec: { restartPolicy: this.isJob ? 'Never' : 'Always' } };
     }
 
     return {
@@ -190,6 +190,10 @@ export default {
       const [group, version] = neu.split('.');
 
       this.$set(this.value, 'apiVersion', `${ group }/${ version }`);
+
+      const restartPolicy = this.isJob ? 'Never' : 'Always';
+
+      this.$set(this.spec.template.spec, 'restartPolicy', restartPolicy);
     }
   },
 
