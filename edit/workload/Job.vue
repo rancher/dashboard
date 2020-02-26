@@ -61,7 +61,8 @@ export default {
           completions:           this.completions,
           parallelism:           this.parallelism,
           backOffLimit:          this.backOffLimit,
-          activeDeadlineSeconds: this.activeDeadlineSeconds
+          activeDeadlineSeconds: this.activeDeadlineSeconds,
+          restartPolicy:         'never'
         };
 
         this.$emit('input', spec);

@@ -5,9 +5,11 @@ import { WORKLOAD } from '@/config/types';
 export default {
   components: { SortableTable },
   computed:   {
+
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.resource);
     },
+
     headers() {
       return [STATE,
         NAME,
@@ -23,16 +25,18 @@ export default {
 
     return Promise.all( types.map((type) => {
       return ctx.store.dispatch('cluster/findAll', { type });
-    })).then((resources) => {
-      resources = resources.reduce((all, rows) => {
-        rows = rows.filter(row => !row.metadata.ownerReferences);
-        all.push(...rows);
+    }))
+      .then((resources) => {
+        resources = resources
+          .reduce((all, rows) => {
+            rows = rows.filter(row => !row.metadata.ownerReferences);
+            all.push(...rows);
 
-        return all;
-      }, []);
+            return all;
+          }, []);
 
-      return { resources };
-    });
+        return { resources };
+      });
   },
 };
 </script>

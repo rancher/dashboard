@@ -83,7 +83,7 @@ export default {
     const metadata = this.value.metadata ? clone(this.value.metadata) : {};
 
     if (!spec.template) {
-      spec.template = { spec: {} };
+      spec.template = { spec: { restartPolicy: 'Never' } };
     }
 
     return {
@@ -100,6 +100,9 @@ export default {
   },
 
   computed: {
+    schema() {
+      return this.$store.getters['cluster/schemaFor']( this.type );
+    },
 
     namespace() {
       return get(this.metadata, 'namespace');
@@ -115,7 +118,7 @@ export default {
         const { containers } = template.spec;
 
         if (!containers) {
-          this.$set(template.spec, 'containers', [{}]);
+          this.$set(template.spec, 'containers', [{ name: this.metadata.name }]);
         }
 
         return template.spec.containers[0];
@@ -127,7 +130,7 @@ export default {
         if (this.isCronJob) {
           template = this.spec.jobTemplate.spec.template;
         }
-        this.$set(template.spec.containers, 0, neu);
+        this.$set(template.spec.containers, 0, { ...neu, name: this.metadata.name });
       }
     },
 
@@ -155,6 +158,20 @@ export default {
 
     isCronJob() {
       return this.type === WORKLOAD.CRON_JOB;
+    },
+
+    workloadSelector() {
+      return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.namespace }-${ this.metadata.name }` };
+    },
+
+    saveUrl() {
+      let url = this.schema.linkFor('collection');
+
+      const [group, version, type] = this.type.split('.');
+
+      url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/${ version }/namespaces/${ this.namespace }/${ type }s`;
+
+      return url;
     }
   },
 
@@ -169,6 +186,10 @@ export default {
       }
 
       this.$set(this.value, 'type', neu);
+
+      const [group, version] = neu.split('.');
+
+      this.$set(this.value, 'apiVersion', `${ group }/${ version }`);
     }
   },
 
@@ -190,10 +211,27 @@ export default {
     },
 
     saveWorkload(cb) {
+      if (!this.spec.selector && this.type !== WORKLOAD.JOB) {
+        this.spec.selector = { matchLabels: this.workloadSelector };
+      }
+
+      let template;
+
+      if (this.type === WORKLOAD.CRON_JOB) {
+        template = this.spec.jobTemplate;
+      } else {
+        template = this.spec.template;
+      }
+
+      if (!template.metadata && this.type !== WORKLOAD.JOB) {
+        template.metadata = { labels: this.workloadSelector };
+      }
+
+      delete this.value.kind;
       this.value.spec = this.spec;
       this.value.metadata = this.metadata;
 
-      this.save(cb);
+      this.save(cb, this.saveUrl);
     }
   },
 };

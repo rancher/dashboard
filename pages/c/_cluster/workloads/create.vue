@@ -39,6 +39,6 @@ export default {
         Workload
       </nuxt-link>
     </h1>
-    <Workload :value="obj" :mode="mode" :namespace-suffix-on-create="true" />
+    <Workload :value="obj" :mode="mode" :namespace-suffix-on-create="false" />
   </div>
 </template>
