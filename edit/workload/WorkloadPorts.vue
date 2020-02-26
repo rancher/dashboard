@@ -60,12 +60,11 @@ export default {
   methods: {
     add() {
       this.rows.push({
-        name:       '',
-        expose:     true,
-        protocol:   'TCP',
-        port:       null,
-        targetPort: null,
-        hostPort:   false
+        name:          '',
+        expose:        true,
+        protocol:      'TCP',
+        containerPort: null,
+        hostPort:      false
       });
 
       this.queueUpdate();
@@ -92,7 +91,7 @@ export default {
       for ( const row of this.rows ) {
         const value = clone(row);
 
-        if ( value.port ) {
+        if ( value.hostPort ) {
           out.push(value);
         }
       }

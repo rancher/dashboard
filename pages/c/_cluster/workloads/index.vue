@@ -13,10 +13,14 @@ export default {
     headers() {
       return [STATE,
         NAME,
-        // IMAGE,
-        // PODS,
-        // SCALE,
-        AGE];
+        {
+          name:      'ports',
+          label:     'Ports',
+          value:     '$.spec.template.spec.containers[0].ports',
+          formatter: 'Port'
+        },
+        AGE,
+      ];
     },
 
     filteredRows() {
