@@ -1,5 +1,5 @@
 <script>
-import { STATE, CREATED, NAME } from '@/config/table-headers';
+import { STATE, AGE, NAME } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 import { WORKLOAD } from '@/config/types';
 export default {
@@ -14,7 +14,7 @@ export default {
         // IMAGE,
         // PODS,
         // SCALE,
-        CREATED];
+        AGE];
     },
   },
 
