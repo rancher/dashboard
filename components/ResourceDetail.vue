@@ -154,7 +154,7 @@ export default {
 
     parentLink() {
       const name = this.doneRoute;
-      const params = this.donneParams;
+      const params = this.doneParams;
       const out = this.$router.resolve({ name, params }).href;
 
       return out;

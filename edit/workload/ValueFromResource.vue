@@ -238,3 +238,10 @@ export default {
     <LabeledInput v-model="name" label="Prefix or Alias" :mode="mode" />
   </div>
 </template>
+
+<style lang ="scss" scoped>
+  .row{
+    display: flex;
+    align-items: center;
+  }
+</style>

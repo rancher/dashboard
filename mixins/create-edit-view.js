@@ -59,6 +59,10 @@ export default {
     },
 
     schema() {
+      if (this.type) {
+        return this.$store.getters['cluster/schemaFor'](this.type);
+      }
+
       return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
   },
@@ -79,12 +83,12 @@ export default {
       });
     },
 
-    async save(buttonDone) {
+    async save(buttonDone, url) {
       this.errors = null;
       try {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
         if ( this.isCreate ) {
-          let url = this.schema.linkFor('collection');
+          url = url || this.schema.linkFor('collection');
 
           if ( this.namespaceSuffixOnCreate ) {
             url += `/${ this.value.metadata.namespace }`;

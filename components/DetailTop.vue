@@ -1,4 +1,3 @@
-
 <script>
 export default {
   props: {
@@ -15,7 +14,7 @@ export default {
     <div v-for="col in columns" :key="col.title">
       <span>{{ col.title }}</span>
       <slot :name="col.name">
-        <span>{{ col.content || 'n/a' }}</span>
+        <span>{{ col.content || col.content===0 ? col.content : col.fallback || 'n/a' }}</span>
       </slot>
     </div>
   </div>

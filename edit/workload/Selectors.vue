@@ -22,6 +22,11 @@ export default {
       ops, rules, custom: []
     };
   },
+  computed: {
+    isView() {
+      return this.mode === 'view';
+    }
+  },
   methods: {
     parseRuleString(rule) {
       const all = rule.split(' ');
@@ -116,7 +121,14 @@ export default {
         <div class="col span-4">
           <LabeledInput v-model="rule.values[0]" label="Value" :disabled="rule.op===' '||rule.op==='!'" :mode="mode" />
         </div>
-        <button type="button" class="btn btn-sm role-link" :style="{padding:'0px'}" :disabled="mode==='view'" @click="removeRule(i)">
+        <button
+          v-if="!isView"
+          type="button"
+          class="btn btn-sm role-link"
+          :style="{padding:'0px'}"
+          :disabled="mode==='view'"
+          @click="removeRule(i)"
+        >
           REMOVE
         </button>
       </div>
@@ -125,14 +137,21 @@ export default {
       <div class="col span-10">
         <LabeledInput :multiline="false" :value="rule" placeholder="e.g. foo > 42 && bar != baz" :mode="mode" @input="e=>updateCustom(i, e)" />
       </div>
-      <button type="button" class="btn btn-sm role-link" :style="{padding:'0px'}" :disabled="mode==='view'" @click="removeCustom(i)">
+      <button
+        v-if="!isView"
+        type="button"
+        class="btn btn-sm role-link"
+        :style="{padding:'0px'}"
+        :disabled="mode==='view'"
+        @click="removeCustom(i)"
+      >
         REMOVE
       </button>
     </div>
-    <button type="button" class="btn btn-sm role-primary" :disabled="mode==='view'" @click="addRule">
+    <button v-if="!isView" type="button" class="btn btn-sm role-primary" :disabled="mode==='view'" @click="addRule">
       ADD RULE
     </button>
-    <button type="button" class="btn btn-sm role-secondary" :disabled="mode==='view'" @click="addCustomRule">
+    <button v-if="!isView" type="button" class="btn btn-sm role-secondary" :disabled="mode==='view'" @click="addCustomRule">
       Add custom rule
     </button>
   </div>

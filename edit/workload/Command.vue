@@ -235,7 +235,7 @@ export default {
     <ValueFromResource
       v-for="(val,i) in referencedValues"
       ref="fromResource"
-      :key="`${Object.values(value)}-${i}`"
+      :key="`${Object.values(val)}-${i}`"
       :row="val"
       :all-secrets="secrets"
       :all-config-maps="configMaps"
@@ -243,7 +243,7 @@ export default {
       :mode="mode"
       @input="e=>updateRow(i, e.value, e.old)"
     />
-    <button type="button" class="btn btn-sm role-primary" @click="addFromReference">
+    <button type="button" class="btn btn-sm role-primary" :disabled="mode==='view'" @click="addFromReference">
       Add from Resource
     </button>
   </div>

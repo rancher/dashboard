@@ -168,7 +168,7 @@ export default {
       :read-allowed="false"
       title="Environment Variables"
     >
-      <template #value="{row, isView}">
+      <template #value="{row}">
         <span v-if="typeof row.secretName !== 'undefined'">
           <select v-model="row.secretRef" @input="changedRef(row, $event.target.value, 'secret')">
             <option disabled value="">Select a Secret Key...</option>
