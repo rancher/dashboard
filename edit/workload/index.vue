@@ -298,6 +298,6 @@ export default {
         <Labels :spec="{metadata}" :mode="mode" />
       </Tab>
     </Tabbed>
-    <Footer :errors="errors" :mode="mode" @save="saveWorkload" />
+    <Footer :errors="errors" :mode="mode" @save="saveWorkload" @done="done" />
   </form>
 </template>
