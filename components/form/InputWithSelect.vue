@@ -65,6 +65,7 @@ export default {
     />
     <LabeledInput
       v-if="textLabel"
+      ref="text"
       v-model="string"
       class="input-string col span-8"
       :label="textLabel"
@@ -74,10 +75,11 @@ export default {
     />
     <input
       v-else
+      ref="text"
       v-model="string"
       class="input-string"
       :placeholder="placeholder"
-      :disabled="isView"
+      autocomplete="off"
     />
   </div>
 </template>

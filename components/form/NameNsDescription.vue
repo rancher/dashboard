@@ -137,7 +137,7 @@ export default {
     },
   },
   mounted() {
-    const valueRef = get(this.$refs, 'name.$refs.value');
+    const valueRef = get(this.$refs, 'nameNS.$refs.text.$refs.value');
 
     if (valueRef) {
       valueRef.focus();
@@ -158,6 +158,7 @@ export default {
       <div v-if="namespaced" :class="{col: true, [colSpan]: true}">
         <slot name="namespace">
           <InputWithSelect
+            ref="nameNS"
             :options="namespaces"
             text-label="Name"
             select-label="Namespace"

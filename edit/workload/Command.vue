@@ -1,4 +1,5 @@
 <script>
+import { get } from '../../utils/object';
 import LabeledInput from '@/components/form/LabeledInput';
 import ShellInput from '@/components/form/ShellInput';
 import UnitInput from '@/components/form/UnitInput';
@@ -104,13 +105,26 @@ export default {
     updateRow(idx, neu, old) {
       const newArr = [...this.referencedValues];
 
-      newArr[idx] = neu;
+      if (neu) {
+        newArr[idx] = neu;
+      } else {
+        newArr.splice(idx, 1);
+      }
       this.referencedValues = newArr;
       this.update();
     },
 
     addFromReference() {
       this.env.push({ name: '', valueFrom: {} });
+
+      this.$nextTick(() => {
+        const newRow = this.$refs.referenced[this.referencedValues.length - 1];
+        const input = get(newRow, '$refs.typeSelect.$refs.input');
+
+        if (input) {
+          input.open = true;
+        }
+      });
     }
   },
 };
@@ -201,6 +215,7 @@ export default {
       :as-map="false"
       :read-allowed="false"
       title="Environment Variables"
+      class="mb-10"
     >
       <template #key="{row}">
         <span v-if="row.valueFrom" />
@@ -234,7 +249,7 @@ export default {
     </KeyValue>
     <ValueFromResource
       v-for="(val,i) in referencedValues"
-      ref="fromResource"
+      ref="referenced"
       :key="`${Object.values(val)}-${i}`"
       :row="val"
       :all-secrets="secrets"
