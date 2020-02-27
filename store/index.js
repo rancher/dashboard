@@ -5,7 +5,7 @@ import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 import { allHash } from '@/utils/promise';
 import { ClusterNotFoundError } from '@/utils/error';
 
-export const strict = false;
+// export const strict = false;
 
 export const plugins = [
   Steve({ namespace: 'management', baseUrl: '/v1' }),
