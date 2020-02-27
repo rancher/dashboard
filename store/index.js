@@ -1,5 +1,7 @@
 import Steve from '@/plugins/steve';
-import { COUNT, NAMESPACE, NORMAN, RANCHER } from '@/config/types';
+import {
+  API_GROUP, COUNT, NAMESPACE, NORMAN, RANCHER
+} from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 import { allHash } from '@/utils/promise';
@@ -144,6 +146,7 @@ export const actions = {
     dispatch('cluster/subscribe');
 
     const res = await allHash({
+      apiGroups:  dispatch('cluster/findAll', { type: API_GROUP, opt: { url: 'apiGroups' } }),
       counts:     dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
       namespaces: dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })
     });
