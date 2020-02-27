@@ -12,6 +12,9 @@ export default {
 
       return out;
     },
+    doneParams() {
+      return this.$route.params;
+    },
   },
 
   async asyncData(ctx) {
@@ -39,6 +42,6 @@ export default {
         Workload
       </nuxt-link>
     </h1>
-    <Workload :value="obj" :mode="mode" :namespace-suffix-on-create="false" />
+    <Workload :value="obj" :mode="mode" :namespace-suffix-on-create="false" done-route="c-cluster-workloads" :done-params="doneParams" />
   </div>
 </template>
