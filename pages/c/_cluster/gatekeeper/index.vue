@@ -94,7 +94,9 @@ export default {
 <template>
   <div>
     <div v-if="gateKeeperUnAvailable">
-      Gatekeeper is not yet available in your system catalog.
+      <h2 class="text-center mt-50">
+        OPA + Gatekeeper is not available in the system-charts catalog.
+      </h2>
     </div>
     <GatekeeperConfig
       v-else
