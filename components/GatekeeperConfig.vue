@@ -3,6 +3,7 @@ import CodeMirror from './CodeMirror';
 import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
 import { NAMESPACE } from '@/config/types';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   name: 'GatekeeperConfig',
@@ -23,11 +24,18 @@ export default {
       default: null,
     },
 
+    /**
+     * Page mode
+     * @values view, create
+     */
     mode: {
       type:    String,
       default: null,
     },
 
+    /**
+     * All namespaces
+     */
     namespaces: {
       type:    Array,
       default: null,
@@ -66,7 +74,7 @@ export default {
     },
 
     cmOptions() {
-      const readOnly = false; // this.mode === _VIEW;
+      const readOnly = this.mode === _VIEW;
       const gutters = ['CodeMirror-lint-markers'];
 
       if ( !readOnly ) {
@@ -86,6 +94,13 @@ export default {
   },
 
   methods: {
+    /**
+     * Gets called when the user clicks on the button
+     * Checks for the system namespace and creates that first if it does not exist
+     * Creates gatekeeper app deployment
+     *
+     * @param {buttonCb} Callback to be called on success or fail
+     */
     async clicked(buttonCb) {
       if (this.systemNamespaceExists) {
         try {
@@ -102,7 +117,7 @@ export default {
         const newSystemNs = await this.$store.dispatch('cluster/create', {
           type:        NAMESPACE,
           kind:        'Namespace',
-          apiVersion:  'v1', // `${ hash.schema.attributes.group }/${ hash.schema.attributes.version }`,
+          apiVersion:  'v1',
           metadata:    {
             name:        'gatekeeper-system',
             annotations: { 'field.cattle.io/projectId': this.config.spec.projectName },
@@ -130,6 +145,10 @@ export default {
       }
     },
 
+    /**
+     * Gets called when the user selects advanced configuartion
+     *
+     */
     openYamlEditor() {
       if (this.showYamlEditor) {
         this.showYamlEditor = false;
@@ -138,6 +157,11 @@ export default {
       }
     },
 
+    /**
+     * Gets called when the user clicks on the disable button
+     *
+     * @param {buttonCb} Callback to be called on success or fail
+     */
     async disable(buttonCb) {
       await this.config.remove();
 
@@ -146,16 +170,31 @@ export default {
       buttonCb(true);
     },
 
+    /**
+     * An event handler that will be called whenever keydown fires in the CodeMirror input.
+     *
+     * @param {value} Yaml string
+     */
     onInput(value) {
       this.config.spec.valuesYaml = value;
     },
 
+    /**
+     * Gets called when CodeMirror is ready and folds
+     *
+     */
     onReady(cm) {
       cm.getMode().fold = 'yaml';
 
       cm.execCommand('foldAll');
     },
 
+    /**
+     * An event handler that will be called whenever CodeMirror onChange event fires.
+     *
+     * @param {cm} CodeMirror instance
+     * @param {changes} Changes from CodeMirror
+     */
     onChanges(cm, changes) {
       if ( changes.length !== 1 ) {
         return;
