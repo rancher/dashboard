@@ -1,3 +1,5 @@
+// Steve
+export const API_GROUP = 'apiGroups';
 export const CONFIG_MAP = 'core.v1.configmap';
 export const COUNT = 'count';
 export const EVENT = 'core.v1.event';
@@ -9,7 +11,7 @@ export const SCHEMA = 'schema';
 export const SECRET = 'core.v1.secret';
 export const SERVICE_ACCOUNT = 'core.v1.serviceaccount';
 export const SERVICE = 'core.v1.service';
-export const INGRESS = 'extensions.v1beta1.ingresses';
+export const INGRESS = 'networking.k8s.io.v1beta1.ingresses';
 export const PV = 'core.v1.persistentvolume';
 export const PVC = 'core.v1.persistentvolumeclaim';
 

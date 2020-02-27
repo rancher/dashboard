@@ -59,7 +59,7 @@
 // )
 
 import { escapeRegex } from '@/utils/string';
-import { isArray } from '@/utils/array';
+import { isArray, removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
@@ -154,6 +154,12 @@ export function headersFor(schema) {
 
   if ( !hasName ) {
     out.unshift(namespaced ? NAMESPACE_NAME : NAME);
+  }
+
+  // Age always goes last
+  if ( out.includes(AGE) ) {
+    removeObject(out, AGE);
+    out.push(AGE);
   }
 
   return out;
