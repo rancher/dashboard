@@ -70,7 +70,7 @@
     line-height: 1.25rem;
   }
 
-  &.view > DIV {
+  &.view > DIV:not(.addon) {
     font-size: 12px;
     padding: 17px 0 0 0;
   }

@@ -10,7 +10,7 @@ export default {
 
     return {
       bodyAttrs: { class: `theme-${ theme } dashboard-body` },
-      title:     'Rio Dashboard',
+      title:     'Dashboard',
     };
   },
 };

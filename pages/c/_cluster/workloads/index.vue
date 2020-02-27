@@ -1,27 +1,41 @@
 <script>
-import {
-  STATE, AGE, NAME,
-  // IMAGE, PODS, SCALE
-} from '@/config/table-headers';
+import { STATE, AGE, NAME } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 import { WORKLOAD } from '@/config/types';
 export default {
   components: { SortableTable },
   computed:   {
+
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.resource);
     },
 
     headers() {
-      return [
-        STATE,
+      return [STATE,
         NAME,
-        // IMAGE,
-        // PODS,
-        // SCALE,
-        AGE
+        {
+          name:      'ports',
+          label:     'Ports',
+          value:     '$.spec.template.spec.containers[0].ports',
+          formatter: 'Port'
+        },
+        AGE,
       ];
     },
+
+    filteredRows() {
+      const namespaces = this.$store.getters['namespaces'];
+      const include = namespaces.filter(x => !x.startsWith('!'));
+      const exclude = namespaces.filter(x => x.startsWith('!')).map(x => x.substr(1) );
+
+      const rows = this.resources.filter((row) => {
+        const inNS = include.length ? include.includes(row.metadata.namespace) : exclude.length ? !exclude.includes(row.metadata.namespace) : true;
+
+        return (!row.metadata.ownerReferences && inNS);
+      });
+
+      return rows;
+    }
   },
 
   asyncData(ctx) {
@@ -29,17 +43,17 @@ export default {
 
     return Promise.all( types.map((type) => {
       return ctx.store.dispatch('cluster/findAll', { type });
-    })).then((resources) => {
-      resources = resources.reduce((all, rows) => {
-        rows = rows.filter(row => !row.metadata.ownerReferences);
-        all.push(...rows);
+    }))
+      .then((resources) => {
+        resources =
+        resources.reduce((all, rows) => {
+          all.push(...rows);
 
-        return all;
-      }, []);
+          return all;
+        }, []);
 
-      // .filter(resource => resource.rows.length);
-      return { resources };
-    });
+        return { resources };
+      });
   },
 };
 </script>
@@ -56,6 +70,6 @@ export default {
         </nuxt-link>
       </div>
     </header>
-    <SortableTable :rows="resources" :headers="headers" key-field="id" />
+    <SortableTable :rows="filteredRows" :headers="headers" key-field="id" />
   </div>
 </template>

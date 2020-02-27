@@ -1,7 +1,7 @@
 # dashboard
 [![Build Status](http://drone-publish.rancher.io/api/badges/rancher/dashboard/status.svg)](http://drone-publish.rancher.io/rancher/dashboard)
 
-Rio Dashboard UI.  For Rancher UI see [rancher/ui](https://github.com/rancher/ui).
+Dashboard UI.  For the other Rancher UI see [rancher/ui](https://github.com/rancher/ui).
 
 ## Build Setup
 
@@ -21,7 +21,7 @@ $ yarn generate
 ```
 
 ## Multiple GitHub auth configs
-Rio auth supports multiple GitHub auth URLs and using the appropriate one based on the Host header that a request comes in on.  This is particularly useful for development against a server that already has GitHub setup.
+Auth supports multiple GitHub auth URLs and using the appropriate one based on the Host header that a request comes in on.  This is particularly useful for development against a server that already has GitHub setup.
 
 In `management.cattle.io.v3.authconfig` `github`, add a `hostnameToClientId` map of Host header value -> GitHub client ID:
 

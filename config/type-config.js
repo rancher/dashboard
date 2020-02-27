@@ -41,6 +41,7 @@ export default function() {
   ]);
 
   ignoreType('events.k8s.io.v1beta1.event'); // Events type moved into core
+  ignoreType('extensions.v1beta1.ingress'); // Moved into networking
 
   mapType('core.v1.endpoints', 'Endpoint');
   mapType('', (typeStr, match, schema) => {
@@ -53,6 +54,8 @@ export default function() {
   mapGroup(/^(core)?$/, 'Core', 99);
   mapGroup('apps', 'Core');
   mapGroup('batch', 'Core');
+  mapGroup('extensions', 'Core');
+  mapGroup('networking.k8s.io', 'Core');
   mapGroup(/^api.*\.k8s\.io$/, 'API');
   mapGroup('rbac.authorization.k8s.io', 'RBAC');
   mapGroup('admissionregistration.k8s.io', 'Admission');
@@ -184,7 +187,7 @@ export default function() {
   ]);
 
   virtualType({
-    label:      'Workloads',
+    label:      'Workload',
     namespaced: true,
     name:       'workloads',
     group:      'Core',

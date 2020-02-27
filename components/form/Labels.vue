@@ -29,28 +29,26 @@ export default {
 <template>
   <div>
     <div class="row">
-      <div class="col span-6">
-        <KeyValue
-          key="labels"
-          v-model="spec.metadata.labels"
-          :mode="mode"
-          title="Labels"
-          :initial-empty-row="true"
-          :pad-left="false"
-          :read-allowed="false"
-        />
-      </div>
-      <div class="col span-6">
-        <KeyValue
-          key="annotations"
-          v-model="spec.metadata.annotations"
-          :mode="mode"
-          title="Annotations"
-          :initial-empty-row="true"
-          :pad-left="false"
-          :read-allowed="false"
-        />
-      </div>
+      <KeyValue
+        key="labels"
+        v-model="spec.metadata.labels"
+        :mode="mode"
+        title="Labels"
+        :initial-empty-row="true"
+        :pad-left="false"
+        :read-allowed="false"
+      />
+    </div>
+    <div class="row">
+      <KeyValue
+        key="annotations"
+        v-model="spec.metadata.annotations"
+        :mode="mode"
+        title="Annotations"
+        :initial-empty-row="true"
+        :pad-left="false"
+        :read-allowed="false"
+      />
     </div>
   </div>
 </template>

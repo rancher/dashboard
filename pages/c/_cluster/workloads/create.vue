@@ -1,4 +1,6 @@
 <script>
+import { WORKLOAD, SCHEMA } from '@/config/types';
+import { createYaml } from '@/utils/create-yaml';
 import Workload from '@/edit/workload';
 export default {
   components: { Workload },
@@ -6,24 +8,27 @@ export default {
   computed:   {
     parentLink() {
       const name = 'c-cluster-workloads';
-      //   const params = this.$route.params;
       const out = this.$router.resolve({ name }).href;
 
       return out;
     },
+    doneParams() {
+      return this.$route.params;
+    },
   },
 
   async asyncData(ctx) {
-    const { resource } = ctx.params;
+    const asYaml = !!Object.keys(ctx.query).includes('as-yaml');
     const { mode = 'create' } = ctx.query;
-    const data = { type: resource };
-    let value;
+    const data = { type: WORKLOAD.DEPLOYMENT };
 
     const obj = await ctx.store.dispatch('cluster/create', data);
-    const type = obj.type;
+    const schemas = ctx.store.getters['cluster/all'](SCHEMA);
+
+    const yaml = createYaml(schemas, WORKLOAD.DEPLOYMENT, data);
 
     return {
-      obj, value, type, mode
+      obj, type: WORKLOAD.DEPLOYMENT, mode, yaml, asYaml
     };
   }
 };

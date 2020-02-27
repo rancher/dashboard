@@ -235,7 +235,7 @@ export default {
     <ValueFromResource
       v-for="(val,i) in referencedValues"
       ref="fromResource"
-      :key="`${Object.values(value)}-${i}`"
+      :key="`${Object.values(val)}-${i}`"
       :row="val"
       :all-secrets="secrets"
       :all-config-maps="configMaps"

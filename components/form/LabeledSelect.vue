@@ -85,7 +85,7 @@ export default {
 <template>
   <div>
     <div v-if="isView">
-      <div :class="{'labeled-input': true, raised, focused, empty, [mode]: true}" :style="{border:'none'}">
+      <div :class="{'labeled-input': true, raised, focused, empty, [mode]: true}">
         <label>
           {{ label }}
           <span v-if="required && !value" class="required">*</span>
@@ -93,9 +93,6 @@ export default {
         <label class="corner">
           <slot name="corner" />
         </label>
-        <div v-if="isView">
-          {{ currentLabel }}
-        </div>
         <div class="selected" :class="{'no-label':!label}" :style="{display:selectedDisplay}">
           {{ currentLabel }}
         </div>
@@ -130,7 +127,7 @@ export default {
           <div v-if="isView">
             {{ currentLabel }}
           </div>
-          <div class="selected" :class="{'no-label':!label}" :style="{display:selectedDisplay}">
+          <div v-else class="selected" :class="{'no-label':!label}" :style="{display:selectedDisplay}">
             {{ currentLabel }}
           </div>
         </div>
