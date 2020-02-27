@@ -14,10 +14,10 @@ export default {
       return [STATE,
         NAME,
         {
-          name:      'ports',
-          label:     'Ports',
-          value:     '$.spec.template.spec.containers[0].ports',
-          formatter: 'Port'
+          name:      'endpoints',
+          label:     'Endpoints',
+          formatter: 'Endpoints',
+          value:     "$['metadata']['annotations']['field.cattle.io/publicEndpoints']"
         },
         AGE,
       ];

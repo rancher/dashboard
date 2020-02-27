@@ -182,6 +182,7 @@ export default {
   <div class="row" @input="updateRow">
     <div class="col span-2">
       <LabeledSelect
+        ref="typeSelect"
         v-model="type"
         :multiple="false"
         :options="typeOpts"
@@ -235,7 +236,14 @@ export default {
     <div class="col">
       as
     </div>
-    <LabeledInput v-model="name" label="Prefix or Alias" :mode="mode" />
+    <div>
+      <LabeledInput v-model="name" label="Prefix or Alias" :mode="mode" />
+    </div>
+    <div class="col">
+      <button type="button" class="btn btn-sm role-link" @click="$emit('input', { value:null })">
+        remove
+      </button>
+    </div>
   </div>
 </template>
 

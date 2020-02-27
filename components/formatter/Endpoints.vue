@@ -3,7 +3,7 @@
 export default {
   props: {
     value: {
-      type:     Array,
+      type:     [Array, String],
       default: null,
     },
     row: {
@@ -17,18 +17,42 @@ export default {
   },
 
   computed: {
-    bestLink() {
+    // value may be JSON from "field.cattle.io/publicEndpoints" label
+    parsed() {
       if ( this.value && this.value.length ) {
-        return this.value[0];
+        let out ;
+
+        try {
+          out = JSON.parse(this.value);
+        } catch (err) {
+          return this.value[0];
+        }
+
+        return out;
       }
 
       return null;
+    },
+    bestLink() {
+      if (this.parsed && this.parsed.length ) {
+        if (this.parsed[0].addresses) {
+          return `http://${ this.parsed[0].addresses[0] }:${ this.parsed[0].port }`;
+        }
+
+        return this.parsed;
+      } else {
+        return null;
+      }
     },
 
     protocol() {
       const link = this.bestLink;
 
-      if ( link ) {
+      if ( link) {
+        if (this.parsed[0].protocol) {
+          return this.parsed[0].protocol;
+        }
+
         const match = link.match(/^([^:]+):\/\//);
 
         if ( match ) {
@@ -47,7 +71,7 @@ export default {
 <template>
   <span>
     <a v-if="bestLink" :href="bestLink" target="_blank" rel="nofollow noopener noreferrer">
-      {{ protocol }}
+      <span v-if="parsed[0].port">{{ parsed[0].port }}/</span>{{ protocol }}
     </a>
     <span v-else class="text-muted">
       &mdash;

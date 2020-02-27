@@ -123,7 +123,7 @@ export const AGE = {
   name:       'age',
   label:      'Age',
   value:      'metadata.creationTimestamp',
-  sort:       ['createdTs', 'nameSort'],
+  sort:       'metadata.creationTimestamp',
   search:     false,
   formatter:  'LiveDate',
   width:      75,

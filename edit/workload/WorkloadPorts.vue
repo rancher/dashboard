@@ -134,6 +134,7 @@ export default {
             <span v-if="isView">{{ row.hostPort }}</span>
             <input
               v-else
+              ref="port"
               v-model.number="row.hostPort"
               type="number"
               min="1"
@@ -146,7 +147,6 @@ export default {
             <span v-if="isView">{{ row.containerPort }}</span>
             <input
               v-else
-              ref="port"
               v-model.number="row.containerPort"
               type="number"
               min="1"

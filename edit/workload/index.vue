@@ -105,7 +105,7 @@ export default {
     },
 
     namespace() {
-      return get(this.metadata, 'namespace');
+      return this.metadata.namespace;
     },
 
     container: {
@@ -161,7 +161,7 @@ export default {
     },
 
     workloadSelector() {
-      return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.namespace }-${ this.metadata.name }` };
+      return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.metadata.namespace }-${ this.metadata.name }` };
     },
 
     saveUrl() {
@@ -169,7 +169,7 @@ export default {
 
       const [group, version, type] = this.type.split('.');
 
-      url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/${ version }/namespaces/${ this.namespace }/${ type }s`;
+      url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/${ version }/namespaces/${ this.metadata.namespace }/${ type }s`;
 
       return url;
     }
