@@ -31,11 +31,13 @@ export default {
 
 <template>
   <div>
-    <h1>
-      Create <nuxt-link :to="parentLink">
-        Workload
-      </nuxt-link>
-    </h1>
+    <header>
+      <h1>
+        Create <nuxt-link :to="parentLink">
+          Workload
+        </nuxt-link>
+      </h1>
+    </header>
     <Workload :value="obj" :mode="mode" />
   </div>
 </template>

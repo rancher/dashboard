@@ -85,7 +85,6 @@ export default {
       </div>
     </div>
     <button :disabled="isView" type="button" class="btn role-tertiary add" @click="addRouteSpec">
-      <i class="icon icon-plus" />
       Add Rule
     </button>
     <Footer :mode="mode" :errors="errors" @save="saveRouter" @done="done" />

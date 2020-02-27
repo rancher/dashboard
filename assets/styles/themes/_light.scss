@@ -64,7 +64,8 @@ $selected: rgba($primary, .5);
   --scrollbar-track            : transparent;
 
   --header-bg                  : #3797D5;
-  --header-logo                : #9FC4DD;
+  --header-logo                : #{$lightest};
+  --header-dropdown            : #{rgba($darkest, 0.2)};
   --header-height              : 50px;
   --nav-width                  : 220px;
   --nav-bg                     : #{$lighter};

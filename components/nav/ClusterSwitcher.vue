@@ -68,6 +68,7 @@ export default {
     line-height: var(--header-height);
     cursor: pointer;
     text-align: left;
+    background: var(--header-dropdown);
 
     > div {
       padding: 0 15px 0 40px;
