@@ -43,13 +43,22 @@ export default function() {
   ignoreType('events.k8s.io.v1beta1.event'); // Events type moved into core
   ignoreType('extensions.v1beta1.ingress'); // Moved into networking
 
-  mapType('core.v1.endpoints', 'Endpoint');
+  mapType('core.v1.endpoints', 'Endpoint'); // Bad plural
+
+  // Move some core things into Cluster
+  mapType(/^core\.v1\.(namespace|node|persistentvolume)$/, (out, match, schema) => {
+    schema.attributes.group = 'Cluster';
+
+    return out;
+  }, 99, true);
+
   mapType('', (typeStr, match, schema) => {
     return schema.attributes.kind;
   }, 1);
 
-  weightGroup('Apps', 99);
+  weightGroup('Cluster', 99);
   weightGroup('Core', 98);
+  weightGroup('Apps', 97);
 
   mapGroup(/^(core)?$/, 'Core', 99);
   mapGroup('apps', 'Core');
@@ -70,7 +79,7 @@ export default function() {
   mapGroup(/^(.*\.)?istio.io$/, 'Istio');
   mapGroup(/^(.*\.)?knative.io$/, 'Knative');
 
-  mapGroup(/^(.*)\.k8s.io$/, (type, match) => {
+  mapGroup(/^(.*)\.k8s.io$/, (group, match) => {
     return match[1].split(/\./).map(x => ucFirst(x)).join('.');
   }, 1);
 

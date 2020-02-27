@@ -10,7 +10,6 @@ import { hasCustomEdit } from '@/utils/customized';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { addParams } from '@/utils/url';
-import { get } from '@/utils/object';
 import { WORKLOAD } from '@/config/types';
 
 const REMAP_STATE = { disabled: 'inactive' };
@@ -105,7 +104,7 @@ export default {
   },
 
   nameDisplay() {
-    return get(this, 'metadata.name') || this.id;
+    return this.spec?.displayName || this.metadata?.name || this.id;
   },
 
   nameSort() {
@@ -129,11 +128,7 @@ export default {
 
   // You can override the state by providing your own state (and possibly reading metadata.state)
   state() {
-    if ( this.metadata?.state?.name ) {
-      return this.metadata.state.name;
-    }
-
-    return 'unknown';
+    return this.metadata?.state?.name || 'unknown';
   },
 
   // You can override the displayed by providing your own stateDisplay (and possibly reading _stateDisplay)

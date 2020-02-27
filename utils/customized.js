@@ -345,7 +345,7 @@ function _applyMapping(obj, mappings, keyField, cache) {
   for ( const rule of mappings ) {
     const captured = out.match(rule.match);
 
-    if ( captured ) {
+    if ( captured && rule.replace ) {
       if ( typeof rule.replace === 'function' ) {
         out = rule['replace'](out, captured, obj);
       } else {

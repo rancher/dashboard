@@ -10,6 +10,7 @@ import { isArray } from '@/utils/array';
 
 function SteveFactory(namespace, baseUrl) {
   return {
+    strict:     false,
     namespaced: true,
 
     state() {

@@ -210,6 +210,9 @@ export default {
       <nuxt class="outlet" />
       <Footer />
     </main>
+
+    <div class="wm">
+    </div>
     <ShellSocket />
     <ActionMenu />
     <PromptRemove />
@@ -223,11 +226,13 @@ export default {
     height: 100vh;
 
     grid-template-areas:
-      "cluster top   back user"
+      "cluster  top   back user"
       "nav      main  main main"
-      "switcher main  main main";
+      "switcher main  main main"
+      "wm       wm    wm   wm";
+
     grid-template-columns: var(--nav-width) auto 0px var(--header-height);
-    grid-template-rows: var(--header-height) auto var(--footer-height);
+    grid-template-rows: var(--header-height) auto var(--footer-height) var(--wm-height, 0px);
 
     &.back-to-rancher {
       grid-template-columns: var(--nav-width) auto 150px var(--header-height);
@@ -351,5 +356,10 @@ export default {
       }
     }
 
+  }
+
+  .wm {
+    grid-area: wm;
+    background-color: red;
   }
 </style>
