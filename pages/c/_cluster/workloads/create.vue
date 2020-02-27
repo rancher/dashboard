@@ -35,13 +35,14 @@ export default {
 </script>
 
 <template>
-  <ResourceYaml v-if="asYaml" :obj="model" :value="yaml" :done-route="doneRoute" :for-create="true" />
-  <div v-else>
-    <h1 class="mb-20">
-      Create <nuxt-link :to="parentLink">
-        Workload
-      </nuxt-link>
-    </h1>
-    <Workload :value="obj" :mode="mode" :namespace-suffix-on-create="false" done-route="c-cluster-workloads" :done-params="doneParams" />
+  <div>
+    <header>
+      <h1>
+        Create <nuxt-link :to="parentLink">
+          Workload
+        </nuxt-link>
+      </h1>
+    </header>
+    <Workload :value="obj" :mode="mode" />
   </div>
 </template>

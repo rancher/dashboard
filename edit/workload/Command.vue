@@ -160,7 +160,7 @@ export default {
           label="Working Directory"
         />
       </div>
-      <div class="col span-6 pt-10">
+      <div class="col span-6">
         <div>
           <Checkbox v-model="spec.stdin" :mode="mode" type="checkbox" label="Interactive" />
 
@@ -258,7 +258,7 @@ export default {
       :mode="mode"
       @input="e=>updateRow(i, e.value, e.old)"
     />
-    <button type="button" class="btn btn-sm role-primary" :disabled="mode==='view'" @click="addFromReference">
+    <button type="button" class="btn role-tertiary add mt-10" @click="addFromReference">
       Add from Resource
     </button>
   </div>

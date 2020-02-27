@@ -246,6 +246,7 @@ export default {
         position: absolute;
         top: 9px;
         left: -30px;
+        z-index: 2;
       }
     }
 
@@ -253,6 +254,16 @@ export default {
       grid-area: top;
       background-color: var(--header-bg);
       padding-top: 8px;
+
+      .filter {
+        margin-left: 10px;
+
+        .vs__dropdown-toggle {
+          background: var(--header-dropdown);
+          border-radius: var(--border-radius);
+          border: none;
+        }
+      }
     }
 
     > .back {
