@@ -43,6 +43,6 @@ export default {
         </nuxt-link>
       </h1>
     </header>
-    <Workload :value="obj" :mode="mode" />
+    <Workload :value="obj" :mode="mode" done-route="c-cluster-workloads" :done-params="doneParams" />
   </div>
 </template>

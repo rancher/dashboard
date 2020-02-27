@@ -57,6 +57,13 @@ export default {
     </header>
     <ResourceYaml v-if="asYaml" :obj="obj" :value="yaml" :done-route="doneRoute" :for-create="true" />
 
-    <Workload v-else :value="obj" :mode="mode" :namespace-suffix-on-create="false" />
+    <Workload
+      v-else
+      :value="obj"
+      done-route="c-cluster-workloads"
+      :done-params="{}"
+      :mode="mode"
+      :namespace-suffix-on-create="false"
+    />
   </div>
 </template>
