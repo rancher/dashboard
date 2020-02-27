@@ -121,7 +121,7 @@ export default {
 </script>
 
 <template>
-  <form @input="update">
+  <div @input="update">
     <div class="row">
       <div class="col span-6">
         <RadioGroup
@@ -188,5 +188,5 @@ export default {
         </UnitInput>
       </div>
     </div>
-  </form>
+  </div>
 </template>
