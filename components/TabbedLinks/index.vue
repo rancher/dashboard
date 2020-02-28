@@ -75,7 +75,7 @@ export default {
 
       A {
         display: block;
-        padding: 10px;
+        padding: 10px 15px;
       }
 
       &:last-child {

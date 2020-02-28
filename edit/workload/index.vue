@@ -294,7 +294,7 @@ export default {
         <Upgrading v-model="spec" :mode="mode" />
       </Tab>
 
-      <Tab label="Labels and Annotations" name="labelsAndAnnotations">
+      <Tab label="Labels" name="labelsAndAnnotations">
         <Labels :spec="{metadata}" :mode="mode" />
       </Tab>
     </Tabbed>

@@ -74,6 +74,7 @@ export default {
 
 <template>
   <div @input="update">
+    <h5>Node Scheduling</h5>
     <div class="row">
       <RadioGroup v-model="selectNode" :row="true" :options="[true,false]" :labels="['Run pods on specific node', 'Choose node using scheduling rules']" :mode="mode" />
     </div>

@@ -104,7 +104,6 @@ export default {
   <div
     ref="radio-group"
     class="radio-group"
-    :style="{display:row?'flex':'block'}"
     tabindex="0"
     @focus="focusGroup"
     @blur="blurred"

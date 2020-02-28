@@ -48,7 +48,7 @@ export default {
         :name="name"
         :tabindex="-1"
         :indeterminate="disabled||indeterminate"
-        @keyup.16="clicked"
+        @keyup.10="clicked"
         @click.stop="clicked"
       />
       <span class="radio-custom" :class="{indeterminate:indeterminate || disabled}"><span /></span>
@@ -62,10 +62,10 @@ export default {
     display: block;
     position: relative;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 12px;
     line-height: 18px;
-    height: 16px;
-    width: 16px;
+    height: 12px;
+    width: 12px;
     clear: both;
 }
 
@@ -79,12 +79,12 @@ export default {
     position: absolute;
     top: 0px;
     left: 0px;
-    height: 16px;
-    width: 16px;
+    height: 12px;
+    width: 12px;
     background-color: transparent;
     border-radius: 50%;
     transition: all 0.3s ease-out;
-    border: 2px solid var( --input-label );
+    border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -110,8 +110,8 @@ export default {
 }
 
 .radio-button input:checked ~ .radio-custom > span {
-  width: 17px;
-  height: 17px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: var(--dropdown-text);
 
