@@ -4,6 +4,12 @@ import GatekeeperConfig from '@/components/GatekeeperConfig';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { allHash } from '@/utils/promise';
 
+const gatekeeprInfo = {
+  name:              'rancher-gatekeeper-operator',
+  catalogTemplateId: 'cattle-global-data/system-library-rancher-gatekeeper-operator',
+  type:              MANAGEMENT.CATALOG_TEMPLATE,
+};
+
 const SYSTEM_PROJECT_LABEL = 'authz.management.cattle.io/system-project';
 
 export default {
@@ -16,7 +22,7 @@ export default {
   asyncData(ctx) {
     let mode = _VIEW;
 
-    return ctx.store.dispatch('management/find', { type: MANAGEMENT.CATALOG_TEMPLATE, id: 'cattle-global-data/system-library-gatekeeper-operator' }).then((resp) => {
+    return ctx.store.dispatch('management/find', { type: gatekeeprInfo.type, id: gatekeeprInfo.catalogTemplateId }).then((resp) => {
       if (resp && resp.id) {
         const promises = allHash({
           apps:             ctx.store.dispatch('management/findAll', { type: PROJECT.APPS }),
@@ -28,7 +34,7 @@ export default {
 
         return promises.then((hash) => {
           const { namespaces, projects, apps } = hash;
-          const gatekeeper = apps.find(app => app.metadata.name === 'gatekeeper-operator');
+          const gatekeeper = apps.find(app => app.metadata.name === gatekeeprInfo.name);
           // clusterID is on router.state.clusterid and find
           const targetClusterId = ctx.store.state.clusterId;
           const targetSystemProject = projects.find(( proj ) => {
@@ -61,9 +67,9 @@ export default {
             kind:       'App',
             apiVersion: `${ hash.schema.attributes.group }/${ hash.schema.attributes.version }`,
             metadata:   {
-              name:        'gatekeeper-operator',
-              annotations: { 'field.cattle.io/creatorId': ctx.store.getters['auth/principalId'].split('//')[1] },
               namespace,
+              name:        gatekeeprInfo.name,
+              annotations: { 'field.cattle.io/creatorId': ctx.store.getters['auth/principalId'].split('//')[1] },
             },
             spec: {
               projectName,
