@@ -7,6 +7,8 @@ import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 import { allHash } from '@/utils/promise';
 import { ClusterNotFoundError } from '@/utils/error';
 
+// export const strict = false;
+
 export const plugins = [
   Steve({ namespace: 'management', baseUrl: '/v1' }),
   Steve({ namespace: 'cluster', baseUrl: '/k8s/clusters/local/v1' }), // @TODO cluster-specific URL
