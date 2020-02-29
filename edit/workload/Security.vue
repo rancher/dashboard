@@ -105,7 +105,7 @@ export default {
 </script>
 
 <template>
-  <form @input="update">
+  <div @input="update">
     <div class="row mb-20">
       <div class="col span-4">
         <h5>Image Pull Policy</h5>
@@ -176,7 +176,7 @@ export default {
         />
       </div>
     </div>
-  </form>
+  </div>
 </template>
 
 <style lang='scss'>

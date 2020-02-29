@@ -286,6 +286,7 @@ export default {
         <Security v-if="isCronJob" v-model="spec.jobTemplate.spec.template.spec" :mode="mode" />
         <Security v-else v-model="spec.template.spec" :mode="mode" />
       </Tab>
+
       <Tab label="Node Scheduling" name="scheduling">
         <Scheduling v-if="isCronJob" v-model="spec.jobTemplate.spec.template.spec" :nodes="allNodes" :mode="mode" />
         <Scheduling v-else v-model="spec.template.spec" :mode="mode" />
@@ -297,7 +298,7 @@ export default {
       <Tab label="Labels and Annotations" name="labelsAndAnnotations">
         <Labels :spec="{metadata}" :mode="mode" />
       </Tab>
-    </Tabbed>
+</Tabbed>
     <Footer :errors="errors" :mode="mode" @save="saveWorkload" @done="done" />
   </form>
 </template>

@@ -68,6 +68,20 @@ export default {
 
       this.$emit('changed', { tab: selected });
     },
+
+    selectNext(direction) {
+      const currentIdx = this.tabs.findIndex(x => x.active);
+
+      const nextIdx = currentIdx + direction >= this.tabs.length ? 0 : currentIdx + direction < 0 ? this.tabs.length - 1 : currentIdx + direction;
+
+      const nextName = this.tabs[nextIdx].name;
+
+      this.select(nextName);
+
+      this.$nextTick(() => {
+        this.$refs.tablist.focus();
+      });
+    }
   },
 };
 </script>
@@ -75,7 +89,14 @@ export default {
 <template>
   <div>
     <div class="spacer"></div>
-    <ul role="tablist" class="tabs clearfix">
+    <ul
+      ref="tablist"
+      role="tablist"
+      class="tabs clearfix"
+      tabindex="0"
+      @keyup.39.stop="selectNext(1)"
+      @keyup.37.stop="selectNext(-1)"
+    >
       <li
         v-for="tab in tabs"
         :key="tab.name"
@@ -103,6 +124,16 @@ export default {
     list-style-type: none;
     margin: 0;
     padding: 0;
+
+    &:focus {
+     outline:none;
+
+      & .tab.active {
+          outline-color: var(--outline);
+          outline-style: solid;
+          outline-width: var(--outline-width);
+      }
+    }
 
     .tab {
       position: relative;
