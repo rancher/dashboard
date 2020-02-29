@@ -128,7 +128,7 @@ export default {
             {{ currentLabel }}
           </div>
           <div v-else class="selected" :class="{'no-label':!label}" :style="{display:selectedDisplay}">
-            {{ currentLabel }}
+            {{ currentLabel }}&nbsp;
           </div>
         </div>
       </template>

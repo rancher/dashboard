@@ -1,6 +1,6 @@
 import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
-import { SCHEMA, COUNT } from '@/config/types';
+import { SCHEMA, COUNT, INGRESS } from '@/config/types';
 import {
   isBasic,
   isIgnored,
@@ -41,7 +41,7 @@ export function allTypes($store) {
       id:          schema.id,
       label:       singularLabelFor(schema),
       namespaced:  attrs.namespaced,
-      count:       count ? count.count : 0,
+      count:       count ? count.count : null,
       byNamespace: count ? count.namespaces : {},
       revision:    count ? count.revision : null,
     };
@@ -153,12 +153,15 @@ function allNegativeFilters(namespaces) {
 }
 
 function matchingCounts(typeObj, namespaces) {
+  if (!typeObj.count && typeObj.count !== 0) {
+    return '';
+  }
   // That was easy
   if ( !typeObj.namespaced || !typeObj.byNamespace ) {
-    return typeObj.count || 0;
+    return typeObj.count || '';
   }
 
-  const allNegative = allNegativeFilters(namespaces);
+  const allNegative = !!allNegativeFilters(namespaces);
   let out = 0;
 
   // If all the filters are negative, start with the full count and subtract
