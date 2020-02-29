@@ -156,7 +156,7 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <h5>Add Capabilities</h5>
+        <label>Add Capabilities</label>
         <v-select
           v-model="add"
           multiple
@@ -166,7 +166,7 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <h5>Drop Capabilities</h5>
+        <label>Drop Capabilities</label>
         <v-select
           v-model="drop"
           multiple

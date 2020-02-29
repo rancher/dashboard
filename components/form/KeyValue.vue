@@ -327,11 +327,11 @@ export default {
         <tr>
           <th v-if="padLeft" class="left"></th>
           <th class="key">
-            {{ keyLabel }}
+            <label>{{ keyLabel }}</label>
           </th>
           <th v-if="separatorLabel" class="separator"></th>
           <th class="value">
-            {{ valueLabel }}
+            <label>{{ valueLabel }}</label>
           </th>
           <slot name="moreColumnHeaders" />
           <th v-if="showRemove" class="remove"></th>
@@ -475,6 +475,10 @@ export default {
 
   .key {
     vertical-align: top;
+
+    label {
+      margin-bottom: 0!important;
+    }
   }
 
   .separator {
@@ -485,6 +489,10 @@ export default {
 
   .value {
     vertical-align: middle;
+
+    label {
+      margin-bottom: 0!important;
+    }
 
     select {
       -webkit-appearance: none;
@@ -504,8 +512,7 @@ export default {
   }
 
   .footer {
-    margin-top: 10px;
-
+    
     .protip {
       float: right;
       padding: 5px 0;

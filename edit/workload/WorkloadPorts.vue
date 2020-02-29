@@ -177,7 +177,6 @@ export default {
     </table>
     <div v-if="showAdd" class="footer">
       <button type="button" class="btn role-tertiary add" @click="add()">
-        <i class="icon icon-plus" />
         Add Port
       </button>
     </div>
