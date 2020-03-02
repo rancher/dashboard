@@ -62,6 +62,8 @@ export default {
       :searchable="false"
       :disbaled="isView"
       :clearable="false"
+      :mode="mode"
+      @input="e=>selected=e.value"
     />
     <LabeledInput
       v-if="textLabel"
@@ -72,6 +74,7 @@ export default {
       :placeholder="placeholder"
       :disabled="isView"
       :required="textRequired"
+      :mode="mode"
     />
     <input
       v-else

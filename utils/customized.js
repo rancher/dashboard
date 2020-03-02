@@ -40,6 +40,11 @@
 //   mapWeight,               -- Priority for apply this mapping (higher numbers applied first)
 //   continueOnMatch          -- If true, continue applying to hit other rules that might match the new type.
 // )
+// mapTypeToComponentName( Map matching types to a single component name (this is helpful if multiple types should be rendered by a single component)
+// (
+//   matchRegexOrString,      -- Type to match, or regex that matches types
+//   replacementString        -- String to replace the type with
+// )
 // labelType(                 Remap the displayed label for a type
 //   type,
 //   singular,
@@ -166,12 +171,13 @@ export function headersFor(schema) {
 }
 
 // ------------------------------------
-// 2) Custom list/detail/edit/header component detection
+// Custom list/detail/edit/header component detection
 //
 // Note: you can't refactor these into one function that does `@/${kind}/${type}`,
 // because babel needs some hardcoded idea where to look for the dependency.
 // ------------------------------------
-export function hasCustomList(type) {
+export function hasCustomList(rawType) {
+  const type = _normalizeType(rawType);
   const cache = _hasCustom.list;
 
   if ( cache[type] !== undefined ) {
@@ -190,7 +196,8 @@ export function hasCustomList(type) {
   }
 }
 
-export function hasCustomDetail(type) {
+export function hasCustomDetail(rawType) {
+  const type = _normalizeType(rawType);
   const cache = _hasCustom.detail;
 
   if ( cache[type] !== undefined ) {
@@ -209,7 +216,8 @@ export function hasCustomDetail(type) {
   }
 }
 
-export function hasCustomEdit(type) {
+export function hasCustomEdit(rawType) {
+  const type = _normalizeType(rawType);
   const cache = _hasCustom.edit;
 
   if ( cache[type] !== undefined ) {
@@ -228,15 +236,23 @@ export function hasCustomEdit(type) {
   }
 }
 
-export function importList(type) {
+export function importList(rawType) {
+  const type = _normalizeType(rawType);
+
   return () => import(`@/list/${ type }`);
 }
 
-export function importDetail(type) {
+export function importDetail(rawType) {
+  const type = _normalizeType(rawType);
+
   return () => import(`@/detail/${ type }`);
 }
 
-export function importEdit(type) {
+export function importEdit(rawType) {
+  const type = _normalizeType(rawType);
+
+  console.log('boom', type);
+
   return () => import(`@/edit/${ type }`);
 }
 
@@ -304,6 +320,10 @@ export function mapType(match, replace, weight = 5, continueOnMatch = false) {
   _addMapping(_typeMappings, match, replace, weight, continueOnMatch);
 }
 
+export function mapTypeToComponentName(match, replace, weight = 5, continueOnMatch = false) {
+  _typeToComponentMappings.push({ match, replace });
+}
+
 export function pluralizeType(type, plural) {
   _pluralLabels[type] = plural;
 }
@@ -320,6 +340,7 @@ const _groupLabelCache = {};
 const _typeIgnore = {};
 const _typeWeights = {};
 const _typeMappings = [];
+const _typeToComponentMappings = [];
 const _typeLabelCache = {};
 const _pluralLabels = {};
 const _headers = {};
@@ -362,6 +383,14 @@ function _applyMapping(obj, mappings, keyField, cache) {
 
   return out;
 }
+
+function _normalizeType(type) {
+  const mapping = _typeToComponentMappings.find(mapping => mapping.match.test(type));
+
+  return mapping ? mapping.replace : type;
+}
+
+// --------------------------------------------
 
 function _addMapping(mappings, match, replace, weight, continueOnMatch) {
   if ( typeof match === 'string' ) {

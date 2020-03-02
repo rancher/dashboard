@@ -173,7 +173,7 @@ export default {
         value = base64Decode(value);
       }
 
-      const binary = !asciiLike(value);
+      const binary = typeof value === 'string' && !asciiLike(value);
 
       rows.push({
         key,
@@ -512,7 +512,7 @@ export default {
   }
 
   .footer {
-    
+
     .protip {
       float: right;
       padding: 5px 0;

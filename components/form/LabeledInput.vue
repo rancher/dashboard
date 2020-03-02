@@ -1,6 +1,7 @@
 <script>
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
+import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   components: { TextAreaAutoGrow },
@@ -16,6 +17,10 @@ export default {
     hidePlaceholder: {
       type:    Boolean,
       default: true
+    },
+    mode: {
+      type:    String,
+      default: _EDIT
     }
   },
 
@@ -23,6 +28,12 @@ export default {
     const actualPlaceholder = this.hidePlaceholder ? '' : this.placeholder;
 
     return { actualPlaceholder };
+  },
+
+  computed: {
+    isViewing() {
+      return this.mode === _VIEW;
+    }
   },
 
   methods: {
@@ -64,7 +75,18 @@ export default {
 </script>
 
 <template>
-  <div :class="{'labeled-input': true, raised, focused, [mode]: true}">
+  <div v-if="isViewing" :class="{'labeled-input': true, [mode]: true}">
+    <label>
+      {{ label }}
+      <span v-if="required && !value" class="required">*</span>
+    </label>
+    <label class="corner">
+      <slot name="corner" />
+    </label>
+    <slot name="prefix" />
+    <div>{{ value || '&lt;empty&gt;' }}</div>
+  </div>
+  <div v-else :class="{'labeled-input': true, raised, focused, [mode]: true}">
     <slot name="label">
       <label v-if="i18nLabel" k-t="i18nLabel" />
       <label v-else>

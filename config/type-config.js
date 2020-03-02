@@ -4,6 +4,7 @@ import {
   weightGroup,
   mapGroup,
   mapType,
+  mapTypeToComponentName,
   headers,
   virtualType,
 } from '@/utils/customized';
@@ -78,6 +79,9 @@ export default function() {
   mapGroup(/^(.*\.)?cattle.io$/, 'Rancher');
   mapGroup(/^(.*\.)?istio.io$/, 'Istio');
   mapGroup(/^(.*\.)?knative.io$/, 'Knative');
+  mapGroup(/^(.*\.)?constraints.gatekeeper.sh.*$/, 'Gatekeeper Constraints');
+  mapGroup(/^(.*\.)?templates.gatekeeper.sh.*$/, 'Gatekeeper Constraint Templates');
+  mapTypeToComponentName(/^constraints.gatekeeper.sh.*$/, 'gatekeeper-constraint');
 
   mapGroup(/^(.*)\.k8s.io$/, (group, match) => {
     return match[1].split(/\./).map(x => ucFirst(x)).join('.');

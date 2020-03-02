@@ -90,6 +90,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    defaultAddValue: {
+      type:    [String, Number, Object, Array],
+      default: ''
+    }
   },
 
   data() {
@@ -126,18 +130,20 @@ export default {
   },
 
   created() {
-    this.queueUpdate = debounce(this.update, 500);
+    this.queueUpdate = debounce(this.update, 100);
   },
 
   methods: {
-    add(value = '') {
-      this.rows.push({ value });
+    add() {
+      this.rows.push({ value: this.defaultAddValue });
       this.queueUpdate();
 
       this.$nextTick(() => {
         const inputs = this.$refs.value;
 
-        inputs[inputs.length - 1].focus();
+        if ( inputs && inputs.length > 0 ) {
+          inputs[inputs.length - 1].focus();
+        }
       });
     },
 
@@ -154,9 +160,9 @@ export default {
       const out = [];
 
       for ( const row of this.rows ) {
-        const value = (row.value || '').trim();
+        const value = (typeof row.value === 'string') ? row.value.trim() : row.value;
 
-        if ( value ) {
+        if ( typeof value !== 'undefined' ) {
           out.push(value);
         }
       }
@@ -169,7 +175,7 @@ export default {
 
 <template>
   <div>
-    <div class="title clearfix">
+    <div v-if="title" class="title clearfix">
       <h4>{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" /></h4>
     </div>
 
@@ -177,9 +183,11 @@ export default {
       <thead v-if="showHeader">
         <tr>
           <th v-if="padLeft" class="left"></th>
-          <th class="value">
-            {{ valueLabel }}
-          </th>
+          <slot name="thead-columns">
+            <th class="value">
+              {{ valueLabel }}
+            </th>
+          </slot>
           <th v-if="showRemove" class="remove"></th>
         </tr>
       </thead>
@@ -190,30 +198,40 @@ export default {
           class="pt-10"
         >
           <td v-if="padLeft" class="left"></td>
-          <td class="value">
-            <slot
-              name="value"
-              :row="row"
-              :mode="mode"
-              :isView="isView"
-            >
-              <span v-if="isView">{{ row.value }}</span>
-              <TextAreaAutoGrow
-                v-else-if="valueMultiline"
-                ref="value"
-                v-model="row.value"
-                :placeholder="valuePlaceholder"
-                @input="queueUpdate"
-              />
-              <input
-                v-else
-                ref="value"
-                v-model="row.value"
-                :placeholder="valuePlaceholder"
-                @input="queueUpdate"
-              />
-            </slot>
-          </td>
+          <slot
+            name="tbody-columns"
+            :queueUpdate="queueUpdate"
+            :i="idx"
+            :rows="rows"
+            :row="row"
+            :mode="mode"
+            :isView="isView"
+          >
+            <td class="value">
+              <slot
+                name="value"
+                :row="row"
+                :mode="mode"
+                :isView="isView"
+              >
+                <span v-if="isView">{{ row.value }}</span>
+                <TextAreaAutoGrow
+                  v-else-if="valueMultiline"
+                  ref="value"
+                  v-model="row.value"
+                  :placeholder="valuePlaceholder"
+                  @input="queueUpdate"
+                />
+                <input
+                  v-else
+                  ref="value"
+                  v-model="row.value"
+                  :placeholder="valuePlaceholder"
+                  @input="queueUpdate"
+                />
+              </slot>
+            </td>
+          </slot>
           <td v-if="showRemove" class="remove">
             <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
               Remove
