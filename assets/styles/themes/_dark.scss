@@ -96,8 +96,8 @@
   --sortable-table-accent-alt  : #{$darker};
   --sortable-table-selected-bg : #{$selected};
 
-  --tooltip-bg                 : #{$darkest};
-  --tooltip-text               : #{$light};
+  --tooltip-bg                 : #{rgba($primary, 0.7)};
+  --tooltip-text               : var(--body-text);
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$darkest};

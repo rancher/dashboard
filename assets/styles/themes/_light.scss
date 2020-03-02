@@ -118,8 +118,8 @@ $selected: rgba($primary, .5);
   --sortable-table-body-divider : #{$darker};
   --sortable-table-selected-bg : #{$light};
 
-  --tooltip-bg                 : #{$lighter};
-  --tooltip-text               : #{$lightest};
+  --tooltip-bg                 : #{rgba($primary, 0.7)};
+  --tooltip-text               : var(--body-text);
   --tooltip-border-radius      : 2px;
 
   --tabbed-border              : #{$medium};
