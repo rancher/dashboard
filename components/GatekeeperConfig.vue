@@ -57,6 +57,17 @@ export default {
   },
 
   computed: {
+    appVersion() {
+      const externalId = this.config?.spec?.externalId;
+
+      if (!externalId) {
+        return null;
+      }
+
+      const version = externalId.split('&').find(e => e.includes('version')).split('=').pop() || null;
+
+      return version;
+    },
     gatekeeperSystemNamespace() {
       const { namespaces } = this;
 
@@ -277,7 +288,7 @@ export default {
       <div class="col">
         <AsyncButton
           :mode="mode"
-          action-label="Enable With Defaults"
+          action-label="Enable"
           waiting-label="Enabling"
           success-label="Enabled"
           error-label="Error enabling"
@@ -286,7 +297,7 @@ export default {
           @click="clicked"
         />
         <p>
-          Enable Gatekeeper with deafult configuartion.
+          Enable Gatekeeper <span v-if="appVersion">({{ appVersion }}) </span>with deafults.
         </p>
       </div>
       <div class="col">
