@@ -6,7 +6,7 @@ import {
   MODE, _EDIT, _CLONE,
   EDIT_YAML, _FLAGGED
 } from '@/config/query-params';
-import { hasCustomEdit } from '@/utils/customized';
+import { hasCustomEdit, pluralLabelFor } from '@/utils/customized';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { addParams } from '@/utils/url';
@@ -698,5 +698,19 @@ export default {
     return () => {
       return this;
     };
+  },
+
+  urlFromAPIVersion() {
+    const schema = this.$getters['schemaFor'](this.type);
+    const { metadata:{ namespace = 'default' } } = this;
+    let url = schema.links.collection;
+
+    const [group, version] = this.apiVersion.split('/');
+
+    const pluralName = pluralLabelFor(schema).split('.').pop().toLowerCase();
+
+    url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/${ version }/namespaces/${ namespace }/${ pluralName }`;
+
+    return url;
   }
 };

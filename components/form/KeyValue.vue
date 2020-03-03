@@ -500,7 +500,7 @@ export default {
     }
 
     textarea::placeholder {
-      padding-top: 8px;
+      padding-top: 0px;
       color: var(--input-placeholder);
     }
   }

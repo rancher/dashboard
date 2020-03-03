@@ -11,9 +11,10 @@ export const SCHEMA = 'schema';
 export const SECRET = 'core.v1.secret';
 export const SERVICE_ACCOUNT = 'core.v1.serviceaccount';
 export const SERVICE = 'core.v1.service';
-export const INGRESS = 'networking.k8s.io.v1beta1.ingresses';
+export const INGRESS = 'networking.k8s.io.v1beta1.ingress';
 export const PV = 'core.v1.persistentvolume';
 export const PVC = 'core.v1.persistentvolumeclaim';
+export const TLS_CERT = 'kubernetes.io/tls';
 
 // Old Rancher API via Norman, /v3
 export const NORMAN = {
