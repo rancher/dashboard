@@ -1,6 +1,6 @@
 import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
-import { SCHEMA, COUNT } from '@/config/types';
+import { SCHEMA, COUNT, API_GROUP } from '@/config/types';
 import {
   isBasic,
   isIgnored,
@@ -23,7 +23,15 @@ export function allTypes($store) {
   for ( const schema of schemas ) {
     const attrs = schema.attributes || {};
     const count = counts[schema.id];
-    const group = attrs.group;
+    const groupName = attrs.group || 'core';
+    const api = $store.getters['cluster/byId'](API_GROUP, groupName);
+
+    // Skip non-preferred versions
+    if ( api?.preferredVersion?.version ) {
+      if ( api.preferredVersion.version !== attrs.version ) {
+        continue;
+      }
+    }
 
     if ( !attrs.kind ) {
       // Skip the apiGroups resource
@@ -37,7 +45,7 @@ export function allTypes($store) {
 
     out[schema.id] = {
       schema,
-      group,
+      group:       groupName,
       id:          schema.id,
       label:       singularLabelFor(schema),
       namespaced:  attrs.namespaced,
@@ -99,16 +107,6 @@ export function getTree(mode, clusterId, types, namespaces, currentType) {
     if ( item.route && typeof item.route === 'object' ) {
       item.route.params = item.route.params || {};
       item.route.params.cluster = clusterId;
-    }
-
-    if ( item.aggregateCount ) {
-      let count = 0;
-
-      for ( const type of item.aggregateCount ) {
-        count += matchingCounts(types[type], namespaces);
-      }
-
-      item.count = count;
     }
 
     const group = _ensureGroup(root, item.group, item.route);
