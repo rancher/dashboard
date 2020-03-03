@@ -11,6 +11,7 @@ import ActionMenu from '@/components/ActionMenu';
 import ButtonGroup from '@/components/ButtonGroup';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
 import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
+import WindowManager from '@/components/nav/WindowManager';
 import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
@@ -30,6 +31,7 @@ export default {
     ButtonGroup,
     Group,
     ShellSocket,
+    WindowManager
   },
 
   middleware: ['authenticated'],
@@ -212,7 +214,9 @@ export default {
     </main>
 
     <div class="wm">
+      <WindowManager />
     </div>
+
     <ShellSocket />
     <ActionMenu />
     <PromptRemove />
@@ -231,8 +235,8 @@ export default {
       "switcher main  main main"
       "wm       wm    wm   wm";
 
-    grid-template-columns: var(--nav-width) auto 0px var(--header-height);
-    grid-template-rows: var(--header-height) auto var(--footer-height) var(--wm-height, 0px);
+    grid-template-columns: var(--nav-width)     auto 0px                  var(--header-height);
+    grid-template-rows:    var(--header-height) auto var(--footer-height) var(--wm-height, 0px);
 
     &.back-to-rancher {
       grid-template-columns: var(--nav-width) auto 150px var(--header-height);
@@ -360,6 +364,5 @@ export default {
 
   .wm {
     grid-area: wm;
-    background-color: red;
   }
 </style>

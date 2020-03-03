@@ -101,5 +101,12 @@
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$darkest};
+
+  --wm-tabs-bg                 : #{$medium};
+  --wm-tab-bg                  : #{$darker};
+  --wm-closer-hover-bg         : #{$medium};
+  --wm-tab-active-bg           : #{$darker};
+  --wm-body-bg                 : #{$darker};
+  --wm-border                  : black;
 }
 

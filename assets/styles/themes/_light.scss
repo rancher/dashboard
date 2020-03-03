@@ -140,4 +140,12 @@ $selected: rgba($primary, .5);
   --diff-ins-border            : #{rgba($success, 0.5)};
   --diff-chg-ins               : #{rgba($success, 0.25)};
   --diff-chg-del               : #{rgba($warning, 0.5)};
+
+  --wm-tabs-bg                 : #{$medium};
+  --wm-tab-bg                  : #{$light};
+  --wm-closer-hover-bg         : #{$lighter};
+  --wm-tab-active-bg           : #{$lighter};
+  --wm-body-bg                 : #{$lighter};
+  --wm-border                  : var(--border);
+  --wm-tab-height              : 25px;
 }
