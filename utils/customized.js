@@ -394,7 +394,7 @@ function _normalizeType(type) {
 
 function _addMapping(mappings, match, replace, weight, continueOnMatch) {
   if ( typeof match === 'string' ) {
-    match = new RegExp(escapeRegex(match), 'i');
+    match = new RegExp(`^${ escapeRegex(match) }$`, 'i');
   }
 
   mappings.push({

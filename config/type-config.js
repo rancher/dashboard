@@ -10,7 +10,7 @@ import {
 } from '@/utils/customized';
 
 import {
-  CONFIG_MAP, NAMESPACE, NODE, POD, SECRET, RIO, RBAC, SERVICE, PV, PVC, INGRESS, WORKLOAD
+  CONFIG_MAP, NAMESPACE, NODE, POD, SECRET, RIO, RBAC, SERVICE, PV, PVC, INGRESS
 } from '@/config/types';
 
 import {
@@ -53,7 +53,7 @@ export default function() {
     return out;
   }, 99, true);
 
-  mapType('', (typeStr, match, schema) => {
+  mapType(/.*/, (typeStr, match, schema) => {
     return schema.attributes.kind;
   }, 1);
 
@@ -73,6 +73,7 @@ export default function() {
   mapGroup('certmanager.k8s.io', 'Cert Manager');
   mapGroup(/^gateway.solo.io(.v\d+)?$/, 'Gloo');
   mapGroup('gloo.solo.io', 'Gloo');
+  mapGroup(/^(.*\.)?monitoring.coreos.com$/, 'Monitoring');
   mapGroup(/^(.*\.)?tekton.dev$/, 'Tekton');
   mapGroup(/^(.*\.)?rio.cattle.io$/, 'Rio');
   mapGroup(/^(.*\.)?longhorn.rancher.io$/, 'Longhorn');
@@ -208,7 +209,6 @@ export default function() {
       name:     'c-cluster-workloads',
       params:   { resource: 'workload' }
     },
-    aggregateCount: Object.values(WORKLOAD)
   });
 
   virtualType({
