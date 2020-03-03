@@ -20,8 +20,8 @@ export default {
     <h1>
       Cluster: {{ cluster.nameDisplay }}
     </h1>
-    <div class="text-center" style="margin-top: 200px;">
-      Dashboard wheels...
+    <div class="text-center">
+      <img src="~assets/images/i-cant-believe-its-not-wheels.png" style="width: 100%" />
     </div>
   </div>
 </template>

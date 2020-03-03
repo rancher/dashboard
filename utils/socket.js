@@ -24,7 +24,7 @@ const STATE_RECONNECTING = 'reconnecting';
 export default class Socket extends EventTarget {
   url;
   autoReconnect = true;
-  frameTimeout = 32000;
+  frameTimeout = 35000;
   metadata = {};
 
   // "Private"
