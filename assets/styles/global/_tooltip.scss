@@ -3,8 +3,8 @@
   z-index: 10000;
 
   .tooltip-inner {
-    background: var(--overlay-bg);
-    color: var(--body-text);
+    background: var(--tooltip-bg);
+    color: var(--tooltip-text);
     border-radius: 6px;
     padding: 20px;
   }
@@ -15,7 +15,7 @@
     border-style: solid;
     position: absolute;
     margin: 5px;
-    border-color: var(--overlay-bg);
+    border-color: var(--tooltip-bg);
     z-index: 1;
   }
 

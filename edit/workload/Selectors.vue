@@ -148,10 +148,10 @@ export default {
         REMOVE
       </button>
     </div>
-    <button v-if="!isView" type="button" class="btn btn-sm role-primary" :disabled="mode==='view'" @click="addRule">
-      ADD RULE
+    <button v-if="!isView" type="button" class="btn role-tertiary add" :disabled="mode==='view'" @click="addRule">
+      Add Rule
     </button>
-    <button v-if="!isView" type="button" class="btn btn-sm role-secondary" :disabled="mode==='view'" @click="addCustomRule">
+    <button v-if="!isView" type="button" class="btn role-tertiary add" :disabled="mode==='view'" @click="addCustomRule">
       Add custom rule
     </button>
   </div>
