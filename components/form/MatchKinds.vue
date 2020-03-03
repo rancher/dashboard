@@ -45,7 +45,7 @@ export default {
       :mode="mode"
       :default-add-value="defaultAddValue"
     >
-      <template slot="tbody-columns" scope="scope">
+      <template slot="tbody-columns" slot-scope="scope">
         <td class="api-groups">
           <ArrayList
             v-model="scope.row.value.apiGroups"

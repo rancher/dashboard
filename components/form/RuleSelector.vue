@@ -79,7 +79,7 @@ export default {
         <th>{{ operatorHeader }}</th>
         <th>{{ valueHeader }}</th>
       </template>
-      <template slot="tbody-columns" scope="scope">
+      <template slot="tbody-columns" slot-scope="scope">
         <td>
           <LabeledInput v-model="scope.row.value.key" :mode="mode" @input="scope.queueUpdate" />
         </td>
