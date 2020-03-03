@@ -7,12 +7,14 @@ import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 import { allHash } from '@/utils/promise';
 import { ClusterNotFoundError } from '@/utils/error';
 
-// export const strict = false;
+// disables stict mode for all store instances to prevent mutation errors
+export const strict = false;
 
 export const plugins = [
   Steve({ namespace: 'management', baseUrl: '/v1' }),
-  Steve({ namespace: 'cluster', baseUrl: '/k8s/clusters/local/v1' }), // @TODO cluster-specific URL
-  Steve({ namespace: 'rancher', baseUrl: '/v3' })
+  Steve({ namespace: 'cluster', baseUrl: '' }),
+  Steve({ namespace: 'rancher', baseUrl: '/v3' }),
+  Steve({ namespace: 'clusterExternal', baseUrl: '' }), // project scoped cluster stuff
 ];
 
 export const state = () => {
@@ -113,7 +115,9 @@ export const actions = {
       // If there is not an id then stay connected to the old one behind the scenes,
       // so that the nav and header stay the same when going to things like prefs
       await dispatch('cluster/unsubscribe');
+      await dispatch('clusterExternal/unsubscribe');
       commit('cluster/removeAll');
+      commit('clusterExternal/removeAll');
       commit('clusterChanged', false);
     }
 
@@ -137,15 +141,19 @@ export const actions = {
     if ( !cluster ) {
       commit('setCluster', null);
       commit('cluster/applyConfig', { baseUrl: null });
+      commit('clusterExternal/applyConfig', { baseUrl: null });
       throw new ClusterNotFoundError(id);
     }
 
     // Update the Steve client URL
     commit('cluster/applyConfig', { baseUrl: `/k8s/clusters/${ escape(id) }/v1` });
+    commit('clusterExternal/applyConfig', { baseUrl: `/v1/management.cattle.io.v3.clusters/${ escape(id) }` });
 
     await dispatch('cluster/loadSchemas');
+    await dispatch('clusterExternal/loadSchemas');
 
     dispatch('cluster/subscribe');
+    dispatch('clusterExternal/subscribe');
 
     const res = await allHash({
       apiGroups:  dispatch('cluster/findAll', { type: API_GROUP, opt: { url: 'apiGroups', watch: false } }),
