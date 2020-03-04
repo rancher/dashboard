@@ -64,9 +64,7 @@ export default {
           const latestGKVersion = gatekeeperVersionsMap.pop();
 
           return ctx.store.dispatch('clusterExternal/create', {
-            type:       PROJECT.APPS,
-            kind:       'App',
-            apiVersion: `${ hash.schema.attributes.group }/${ hash.schema.attributes.version }`,
+            type:       'app',
             metadata:   {
               namespace,
               name:        gatekeeprInfo.name,

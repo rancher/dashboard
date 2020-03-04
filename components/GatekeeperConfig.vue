@@ -116,14 +116,18 @@ export default {
       if (this.systemNamespaceExists) {
         try {
           await this.config.save();
+          this.gatekeeperEnabled = true;
+          this.showYamlEditor = false;
+          buttonCb(true);
         } catch (err) {
           this.gatekeeperEnabled = false;
-          buttonCb(false, err);
+          if (err?.message) {
+            this.errors = [err.message];
+          } else {
+            this.errors = [err];
+          }
+          buttonCb(false);
         }
-
-        this.gatekeeperEnabled = true;
-        this.showYamlEditor = false;
-        buttonCb(true);
       } else {
         const newSystemNs = await this.$store.dispatch('cluster/create', {
           type:        NAMESPACE,
@@ -140,19 +144,28 @@ export default {
           await newSystemNs.save();
         } catch (err) {
           this.gatekeeperEnabled = false;
-          buttonCb(false, err);
+          if (err?.message) {
+            this.errors = [err.message];
+          } else {
+            this.errors = [err];
+          }
+          buttonCb(false);
         }
 
         try {
           await this.config.save();
+          this.gatekeeperEnabled = true;
+          this.showYamlEditor = false;
+          buttonCb(true);
         } catch (err) {
           this.gatekeeperEnabled = false;
-          buttonCb(false, err);
+          if (err?.message) {
+            this.errors = [err.message];
+          } else {
+            this.errors = [err];
+          }
+          buttonCb(false);
         }
-
-        this.gatekeeperEnabled = true;
-        this.showYamlEditor = false;
-        buttonCb(true);
       }
     },
 
@@ -174,11 +187,17 @@ export default {
      * @param {buttonCb} Callback to be called on success or fail
      */
     async disable(buttonCb) {
-      await this.config.remove();
+      try {
+        await this.config.remove();
 
-      this.gatekeeperEnabled = false;
+        this.gatekeeperEnabled = false;
 
-      buttonCb(true);
+        buttonCb(true);
+      } catch (err) {
+        this.errors = [err];
+
+        buttonCb(false);
+      }
     },
 
     /**
@@ -343,6 +362,7 @@ export default {
       />
       <Footer
         mode="create"
+        @errors="errors"
         @save="clicked"
         @done="openYamlEditor"
       />
