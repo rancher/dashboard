@@ -251,7 +251,7 @@ export default {
   waitForState() {
     return (state, timeout, interval) => {
       return this.waitForTestFn(() => {
-        return this.state === state;
+        return this.state.toLowerCase() === state.toLowerCase();
       }, `Wait for state=${ state }`, timeout, interval);
     };
   },
