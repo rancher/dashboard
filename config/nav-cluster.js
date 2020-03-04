@@ -1,6 +1,6 @@
 import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
-import { SCHEMA, COUNT, API_GROUP, INGRESS } from '@/config/types';
+import { SCHEMA, COUNT, API_GROUP } from '@/config/types';
 import {
   isBasic,
   isIgnored,

@@ -1,7 +1,6 @@
 <script>
-import { SECRET } from '../config/types';
+import { SECRET, SERVICE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
-import LoadDeps from '@/mixins/load-deps';
 import DetailTop from '@/components/DetailTop';
 import SortableTable from '@/components/SortableTable';
 import Tabbed from '@/components/Tabbed';
@@ -16,7 +15,7 @@ export default {
     Tab,
     KVTable
   },
-  mixins:     [CreateEditView, LoadDeps],
+  mixins:     [CreateEditView],
   props:      {
     value: {
       type:    Object,
@@ -119,8 +118,22 @@ export default {
   methods: {
     withUrl(paths = []) {
       const rows = paths.map((path) => {
-        const name = 'c-cluster-workloads-namespace-id';
-        const params = { namespace: this.value?.metadata?.namespace, id: path?.backend?.serviceName };
+        const serviceName = path?.backend?.serviceName;
+
+        const targetsWorkload = !serviceName.startsWith('ingress-');
+        let name; let params;
+
+        if (targetsWorkload) {
+          name = 'c-cluster-workloads-namespace-id';
+          params = { namespace: this.value?.metadata?.namespace, id: serviceName };
+        } else {
+          name = 'c-cluster-resource-namespace-id';
+          params = {
+            resource:  SERVICE,
+            id:        serviceName,
+            namespace: this.value?.metadata?.namespace
+          };
+        }
 
         const url = this.$router.resolve({ name, params }).href;
 

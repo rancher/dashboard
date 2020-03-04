@@ -23,7 +23,7 @@ import {
   NODE_NAME, ROLES,
   VERSION, CPU,
   RAM, PODS,
-  BUILT_IN, CLUSTER_CREATOR_DEFAULT
+  BUILT_IN, CLUSTER_CREATOR_DEFAULT, INGRESS_TARGET
 } from '@/config/table-headers';
 
 import { ucFirst } from '@/utils/string';
@@ -103,6 +103,7 @@ export default function() {
     },
     AGE
   ]);
+  headers(INGRESS, [STATE, NAME, INGRESS_TARGET, AGE]);
 
   headers(RIO.EXTERNAL_SERVICE, [STATE, NAMESPACE_NAME, TARGET_KIND, TARGET, AGE]);
   headers(RIO.PUBLIC_DOMAIN, [
