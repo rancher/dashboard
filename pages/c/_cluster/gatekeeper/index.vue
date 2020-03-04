@@ -1,7 +1,6 @@
 <script>
 import { PROJECT, NAMESPACE, MANAGEMENT } from '@/config/types';
 import GatekeeperConfig from '@/components/GatekeeperConfig';
-import GatekeeperTables from '@/components/GatekeeperTables';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { allHash } from '@/utils/promise';
 
@@ -14,7 +13,7 @@ const gatekeeprInfo = {
 const SYSTEM_PROJECT_LABEL = 'authz.management.cattle.io/system-project';
 
 export default {
-  components: { GatekeeperConfig, GatekeeperTables },
+  components: { GatekeeperConfig },
 
   data() {
     return { gateKeeperUnAvailable: false };
@@ -64,9 +63,7 @@ export default {
           const latestGKVersion = gatekeeperVersionsMap.pop();
 
           return ctx.store.dispatch('clusterExternal/create', {
-            type:       PROJECT.APPS,
-            kind:       'App',
-            apiVersion: `${ hash.schema.attributes.group }/${ hash.schema.attributes.version }`,
+            type:       'app',
             metadata:   {
               namespace,
               name:        gatekeeprInfo.name,
@@ -111,7 +108,6 @@ export default {
         :namespaces="namespaces"
         :projects="projects"
       />
-      <GatekeeperTables />
     </div>
   </div>
 </template>

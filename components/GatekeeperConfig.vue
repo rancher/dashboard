@@ -4,6 +4,7 @@ import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
 import { NAMESPACE } from '@/config/types';
 import { _VIEW } from '@/config/query-params';
+import GatekeeperTables from '@/components/GatekeeperTables';
 
 export default {
   name: 'GatekeeperConfig',
@@ -11,6 +12,7 @@ export default {
   components: {
     AsyncButton,
     CodeMirror,
+    GatekeeperTables,
     Footer,
   },
 
@@ -113,22 +115,9 @@ export default {
      * @param {buttonCb} Callback to be called on success or fail
      */
     async clicked(buttonCb) {
-      if (this.systemNamespaceExists) {
-        try {
-          await this.config.save();
-        } catch (err) {
-          this.gatekeeperEnabled = false;
-          buttonCb(false, err);
-        }
-
-        this.gatekeeperEnabled = true;
-        this.showYamlEditor = false;
-        buttonCb(true);
-      } else {
+      if (!this.systemNamespaceExists) {
         const newSystemNs = await this.$store.dispatch('cluster/create', {
           type:        NAMESPACE,
-          kind:        'Namespace',
-          apiVersion:  'v1',
           metadata:    {
             name:        'gatekeeper-system',
             annotations: { 'field.cattle.io/projectId': this.config.spec.projectName },
@@ -138,21 +127,34 @@ export default {
 
         try {
           await newSystemNs.save();
+          // TODO save doesnt push this object into the store it cerates a new one so waiting on a merge fucntion to be added to save before do this.
+          // await newSystemNs.waitForState('active');
         } catch (err) {
           this.gatekeeperEnabled = false;
-          buttonCb(false, err);
-        }
+          if (err?.message) {
+            this.errors = [err.message];
+          } else {
+            this.errors = [err];
+          }
+          buttonCb(false);
 
-        try {
-          await this.config.save();
-        } catch (err) {
-          this.gatekeeperEnabled = false;
-          buttonCb(false, err);
+          return;
         }
-
+      }
+      try {
+        await this.config.save();
+        // await this.config.waitForCondition('Installed');
         this.gatekeeperEnabled = true;
         this.showYamlEditor = false;
         buttonCb(true);
+      } catch (err) {
+        this.gatekeeperEnabled = false;
+        if (err?.message) {
+          this.errors = [err.message];
+        } else {
+          this.errors = [err];
+        }
+        buttonCb(false);
       }
     },
 
@@ -174,11 +176,17 @@ export default {
      * @param {buttonCb} Callback to be called on success or fail
      */
     async disable(buttonCb) {
-      await this.config.remove();
+      try {
+        await this.config.remove();
 
-      this.gatekeeperEnabled = false;
+        this.gatekeeperEnabled = false;
 
-      buttonCb(true);
+        buttonCb(true);
+      } catch (err) {
+        this.errors = [err];
+
+        buttonCb(false);
+      }
     },
 
     /**
@@ -281,9 +289,7 @@ export default {
       </div>
     </header>
     <div v-if="gatekeeperEnabled" class="mt-20 text-center">
-      <h3>
-        Gatekeeper is enabled.
-      </h3>
+      <GatekeeperTables />
     </div>
     <div v-else class="mt-20 mb-20">
       <hr />
@@ -343,6 +349,7 @@ export default {
       />
       <Footer
         mode="create"
+        @errors="errors"
         @save="clicked"
         @done="openYamlEditor"
       />
