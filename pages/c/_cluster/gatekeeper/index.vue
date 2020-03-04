@@ -62,14 +62,13 @@ export default {
           const gatekeeperVersionsMap = hash.systemCatalogApp.spec.versions;
           const latestGKVersion = gatekeeperVersionsMap.pop();
 
-          return ctx.store.dispatch('management/create', {
+          return ctx.store.dispatch('clusterExternal/create', {
             type:       PROJECT.APPS,
             kind:       'App',
             apiVersion: `${ hash.schema.attributes.group }/${ hash.schema.attributes.version }`,
             metadata:   {
               namespace,
               name:        gatekeeprInfo.name,
-              annotations: { 'field.cattle.io/creatorId': ctx.store.getters['auth/principalId'].split('//')[1] },
             },
             spec: {
               projectName,

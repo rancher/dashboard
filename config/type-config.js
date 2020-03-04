@@ -215,7 +215,7 @@ export default function() {
     label:      'OPA+Gatekeeper',
     namespaced: false,
     name:       'gatekeeper',
-    group:      'Core',
+    group:      'Cluster',
     route:      { name: 'c-cluster-gatekeeper' },
   });
 }

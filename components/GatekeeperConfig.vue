@@ -315,7 +315,7 @@ export default {
             @click="clicked"
           />
           <p>
-            Enable Gatekeeper <span v-if="appVersion">({{ appVersion }}) </span>with deafults.
+            Enable Gatekeeper <span v-if="appVersion">({{ appVersion }}) </span>with defaults.
           </p>
         </div>
         <div class="col">
