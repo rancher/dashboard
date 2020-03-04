@@ -1,6 +1,6 @@
 import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
-import { SCHEMA, COUNT, INGRESS, API_GROUP } from '@/config/types';
+import { SCHEMA, COUNT, API_GROUP, INGRESS } from '@/config/types';
 import {
   isBasic,
   isIgnored,
@@ -26,10 +26,18 @@ export function allTypes($store) {
     const groupName = attrs.group || 'core';
     const api = $store.getters['cluster/byId'](API_GROUP, groupName);
 
-    // Skip non-preferred versions
-    if ( api?.preferredVersion?.version ) {
+    // Skip non-preferred versions if preferred version available
+    if ( api?.preferredVersion?.version) {
       if ( api.preferredVersion.version !== attrs.version ) {
-        continue;
+        if (attrs.version) {
+          const preferred = schema.id.replace(attrs.version, api.preferredVersion.version);
+
+          if (Object.keys(schemas).includes(preferred)) {
+            continue;
+          }
+        } else {
+          continue;
+        }
       }
     }
 
