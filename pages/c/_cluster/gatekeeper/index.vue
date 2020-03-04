@@ -1,6 +1,7 @@
 <script>
 import { PROJECT, NAMESPACE, MANAGEMENT } from '@/config/types';
 import GatekeeperConfig from '@/components/GatekeeperConfig';
+import GatekeeperTables from '@/components/GatekeeperTables';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { allHash } from '@/utils/promise';
 
@@ -13,7 +14,7 @@ const gatekeeprInfo = {
 const SYSTEM_PROJECT_LABEL = 'authz.management.cattle.io/system-project';
 
 export default {
-  components: { GatekeeperConfig },
+  components: { GatekeeperConfig, GatekeeperTables },
 
   data() {
     return { gateKeeperUnAvailable: false };
@@ -103,12 +104,14 @@ export default {
         OPA + Gatekeeper is not available in the system-charts catalog.
       </h2>
     </div>
-    <GatekeeperConfig
-      v-else
-      :config="gatekeeper"
-      :mode="mode"
-      :namespaces="namespaces"
-      :projects="projects"
-    />
+    <div v-else>
+      <GatekeeperConfig
+        :config="gatekeeper"
+        :mode="mode"
+        :namespaces="namespaces"
+        :projects="projects"
+      />
+      <GatekeeperTables />
+    </div>
   </div>
 </template>
