@@ -1,6 +1,6 @@
 import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
-import { SCHEMA, COUNT, API_GROUP } from '@/config/types';
+import { SCHEMA, COUNT, API_GROUP, INGRESS } from '@/config/types';
 import {
   isBasic,
   isIgnored,
@@ -18,24 +18,30 @@ export function allTypes($store) {
 
   const schemas = $store.getters['cluster/all'](SCHEMA);
   const counts = $store.getters['cluster/all'](COUNT)[0].counts;
+  const versionMap = $store.getters['cluster/all'](API_GROUP).reduce((map, group) => {
+    if (group?.preferredVersion) {
+      map[group.name] = group?.preferredVersion?.version;
+    }
+
+    return map;
+  }, {});
+
   const out = {};
 
   for ( const schema of schemas ) {
     const attrs = schema.attributes || {};
     const count = counts[schema.id];
     const groupName = attrs.group || 'core';
-    const api = $store.getters['cluster/byId'](API_GROUP, groupName);
+    const preferredVersion = versionMap[groupName];
 
     // Skip non-preferred versions if preferred version available
-    if ( api?.preferredVersion?.version) {
-      if ( api.preferredVersion.version !== attrs.version ) {
-        if (attrs.version) {
-          const preferred = schema.id.replace(attrs.version, api.preferredVersion.version);
+    if (preferredVersion) {
+      if ( attrs.version !== preferredVersion) {
+        const { kind = '' } = attrs;
+        const preferredId = `${ groupName }.${ preferredVersion }.${ kind.toLowerCase() }`;
+        const preferreredSchema = $store.getters['cluster/byId'](SCHEMA, preferredId);
 
-          if (Object.keys(schemas).includes(preferred)) {
-            continue;
-          }
-        } else {
+        if (preferreredSchema) {
           continue;
         }
       }
