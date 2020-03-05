@@ -34,6 +34,8 @@ export default {
 
         & >:first-child {
             padding-bottom: 5px;
+            color: var(--input-placeholder);
+
         }
 
         &:not(:last-child) {
@@ -42,10 +44,6 @@ export default {
 
         &:last-child {
             padding-right: 0;
-        }
-
-        & >:not(:first-child) {
-            color: var(--input-label);
         }
     }
 }

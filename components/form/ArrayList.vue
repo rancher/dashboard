@@ -199,7 +199,7 @@ export default {
         >
           <td v-if="padLeft" class="left"></td>
           <slot
-            name="tbody-columns"
+            name="columns"
             :queueUpdate="queueUpdate"
             :i="idx"
             :rows="rows"

@@ -16,6 +16,7 @@ export const NAME = {
   value:     'nameDisplay',
   sort:      ['nameSort'],
   formatter: 'LinkDetail',
+  width:     200
 };
 
 export const NAME_UNLINKED = {
@@ -398,3 +399,12 @@ export const API_GROUP = {
   value: 'apiGroups',
   sort:  ['apiGroups']
 };
+
+export const INGRESS_TARGET = {
+  name:      'ingressTarget',
+  label:     'Target',
+  value:     "$['spec']['rules'][0]",
+  formatter: 'IngressTarget',
+  sort:      "$['spec']['rules'][0].host",
+}
+;

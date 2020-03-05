@@ -1,4 +1,3 @@
-
 <script>
 import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';

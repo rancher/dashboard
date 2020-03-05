@@ -50,7 +50,7 @@ export default {
 
 <template>
   <ArrayList v-model="localValue" class="namespace-list" :mode="mode" default-add-value="default">
-    <template slot="tbody-columns" slot-scope="scope">
+    <template v-slot:columns="scope">
       <td>
         <div class="input-container">
           <LabeledSelect

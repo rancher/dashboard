@@ -74,12 +74,12 @@ export default {
       :default-add-value="defaultAddValue"
       :mode="mode"
     >
-      <template slot="thead-columns">
+      <template v-slot:columns>
         <th>{{ keyHeader }}</th>
         <th>{{ operatorHeader }}</th>
         <th>{{ valueHeader }}</th>
       </template>
-      <template slot="tbody-columns" slot-scope="scope">
+      <template v-slot:columns="scope">
         <td>
           <LabeledInput v-model="scope.row.value.key" :mode="mode" @input="scope.queueUpdate" />
         </td>
