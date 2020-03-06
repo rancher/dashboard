@@ -194,6 +194,16 @@ export default {
     });
   },
 
+  loadAll(ctx, { type, data }) {
+    const { commit } = ctx;
+
+    commit('loadAll', {
+      ctx,
+      type,
+      data
+    });
+  },
+
   create(ctx, data) {
     return proxyFor(ctx, data);
   },

@@ -116,7 +116,7 @@ export function getTree(mode, clusterId, types, namespaces, currentType) {
   }
 
   // Add virtual types
-  for ( const vt of virtualTypes() ) {
+  for ( const vt of virtualTypes(types) ) {
     const item = clone(vt);
 
     if ( item.route && typeof item.route === 'object' ) {

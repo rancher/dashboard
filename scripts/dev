@@ -1,0 +1,4 @@
+#!/bin/bash
+
+yarn --pure-lockfile install
+yarn dev

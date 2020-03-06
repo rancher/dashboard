@@ -11,6 +11,7 @@
     "test": "./node_modules/.bin/nyc ava --serial --verbose",
     "nuxt": "./node_modules/.bin/nuxt",
     "dev": "./node_modules/.bin/nuxt dev",
+    "docker-dev": "docker run --rm --name dashboard-dev -p 8005:8005 -e API=$API -v $(pwd):/src -v dashboard_node:/src/node_modules rancher/dashboard:dev",
     "build": "./node_modules/.bin/nuxt build --devtools",
     "analyze": "./node_modules/.bin/nuxt build --analyze",
     "start": "./node_modules/.bin/nuxt start",

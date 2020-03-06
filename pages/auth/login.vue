@@ -1,4 +1,5 @@
 <script>
+import { getVendor, getProduct } from '../../config/private-label';
 import { findBy } from '@/utils/array';
 import { USERNAME } from '@/config/cookies';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -17,6 +18,9 @@ export default {
     const username = $cookies.get(USERNAME, { parseJSON: false }) || '';
 
     return {
+      vendor:  getVendor(),
+      product: getProduct(),
+
       username,
       remember:  !!username,
       password:  '',
@@ -115,7 +119,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <h1 class="text-center">
-          Welcome to Rio
+          {{ vendor }} {{ product }}
         </h1>
         <h4 v-if="err" class="text-error text-center">
           An error occurred logging in.  Please try again.

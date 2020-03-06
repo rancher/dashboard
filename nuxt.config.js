@@ -63,8 +63,8 @@ module.exports = {
 
   buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
-  mode:    'spa',
-  // mode: 'universal',
+  // mode:    'spa', --- Use --spa CLI flag, or ?spa query param.
+
   loading: '~/components/Loading.vue',
 
   // Axios: https://axios.nuxtjs.org/options

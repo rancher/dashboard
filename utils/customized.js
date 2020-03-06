@@ -135,8 +135,14 @@ export function groupWeightFor(group) {
   return _groupWeights[group.toLowerCase()] || 0;
 }
 
-export function virtualTypes() {
-  return _virtualTypes.slice();
+export function virtualTypes(allTypes, isRancher) {
+  return _virtualTypes.filter((typeObj) => {
+    if ( typeObj.ifIsRancher && !isRancher ) {
+      return false;
+    }
+
+    return !typeObj.ifTypeExists || !!allTypes[typeObj.ifTypeExists];
+  });
 }
 
 export function headersFor(schema) {

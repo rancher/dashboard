@@ -49,18 +49,14 @@ export default {
   },
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady']),
+    ...mapState(['managementReady', 'clusterReady', 'isRancher']),
 
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
     navShow:        mapPref(NAV_SHOW),
 
-    multiCluster() {
-      return this.$store.getters['management/hasType'](RANCHER.CLUSTER);
-    },
-
     backToRancherLink() {
-      if ( !this.multiCluster ) {
+      if ( !this.isRancher ) {
         return;
       }
 
@@ -142,10 +138,10 @@ export default {
 </script>
 
 <template>
-  <div v-if="managementReady" class="dashboard-root" :class="{'multi-cluster': multiCluster, 'back-to-rancher': backToRancherLink}">
+  <div v-if="managementReady" class="dashboard-root" :class="{'multi-cluster': isRancher, 'back-to-rancher': backToRancherLink}">
     <div class="cluster">
       <div class="logo" alt="Logo" />
-      <ClusterSwitcher v-if="multiCluster" />
+      <ClusterSwitcher v-if="isRancher" />
     </div>
 
     <div v-if="clusterReady" class="top">
@@ -165,7 +161,8 @@ export default {
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >
         <div class="text-right">
-          <img :src="principal.avatarSrc" width="40" height="40" />
+          <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" width="40" height="40" />
+          <i v-else class="icon icon-user icon-3x" />
         </div>
 
         <template slot="popover">
@@ -177,7 +174,7 @@ export default {
             <nuxt-link tag="li" :to="{name: 'prefs'}" class="pt-10 pb-10 hand">
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
-            <nuxt-link tag="li" :to="{name: 'auth-logout'}" class="pt-10 pb-10 hand">
+            <nuxt-link v-if="isRancher" tag="li" :to="{name: 'auth-logout'}" class="pt-10 pb-10 hand">
               <a>Log Out <i class="icon icon-fw icon-close" /></a>
             </nuxt-link>
           </ul>
@@ -318,6 +315,7 @@ export default {
     > .switcher {
       margin: 10px 0 0 0;
       text-align: center;
+      grid-area: switcher;
     }
   }
 

@@ -6,7 +6,8 @@ export default {
   layout: 'plain',
 
   fetch({ store, redirect }) {
-    const clusters = sortBy(filterBy(store.getters['management/all'](RANCHER.CLUSTER), 'isReady'), 'nameDisplay');
+    const all = store.getters['management/all'](RANCHER.CLUSTER);
+    const clusters = sortBy(filterBy(all, 'isReady'), 'nameDisplay');
 
     if ( clusters.length ) {
       redirect(`/c/${ escape(clusters[0].id) }`);
