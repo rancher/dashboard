@@ -1,12 +1,13 @@
 import {
   ignoreType,
   basicType,
-  weightGroup,
-  mapGroup,
   mapType,
   mapTypeToComponentName,
-  headers,
   virtualType,
+  ignoreGroup,
+  weightGroup,
+  mapGroup,
+  headers,
 } from '@/utils/customized';
 
 import {
@@ -59,32 +60,29 @@ export default function() {
 
   weightGroup('Cluster', 99);
   weightGroup('Core', 98);
-  weightGroup('Apps', 97);
 
   mapGroup(/^(core)?$/, 'Core', 99);
   mapGroup('apps', 'Core');
   mapGroup('batch', 'Core');
   mapGroup('extensions', 'Core');
+  mapGroup('autoscaling', 'Autoscaling');
+  mapGroup('policy', 'Policy');
   mapGroup('networking.k8s.io', 'Core');
   mapGroup(/^api.*\.k8s\.io$/, 'API');
   mapGroup('rbac.authorization.k8s.io', 'RBAC');
   mapGroup('admissionregistration.k8s.io', 'Admission');
-  mapGroup(/^(.+\.)?cert-manager.io$/, 'Cert Manager');
-  mapGroup('certmanager.k8s.io', 'Cert Manager');
-  mapGroup(/^gateway.solo.io(.v\d+)?$/, 'Gloo');
-  mapGroup('gloo.solo.io', 'Gloo');
-  mapGroup(/^(.*\.)?monitoring.coreos.com$/, 'Monitoring');
-  mapGroup(/^(.*\.)?tekton.dev$/, 'Tekton');
-  mapGroup(/^(.*\.)?rio.cattle.io$/, 'Rio');
-  mapGroup(/^(.*\.)?longhorn.rancher.io$/, 'Longhorn');
-  mapGroup(/^(.*\.)?cattle.io$/, 'Rancher');
-  mapGroup(/^(.*\.)?istio.io$/, 'Istio');
-  mapGroup(/^(.*\.)?knative.io$/, 'Knative');
-  mapGroup(/^(.*\.)?constraints.gatekeeper.sh.*$/, 'Gatekeeper Constraints');
-  mapGroup(/^(.*\.)?templates.gatekeeper.sh.*$/, 'Gatekeeper Constraint Templates');
-  mapTypeToComponentName(/^constraints.gatekeeper.sh.*$/, 'gatekeeper-constraint');
+  mapGroup('crd.projectcalico.org', 'Calico');
+  mapGroup(/^(.+\.)?cert-manager\.(k8s\.)?io$/, 'Cert Manager');
+  mapGroup(/^(gateway|gloo)\.solo\.io$/, 'Gloo');
+  mapGroup(/^(.*\.)?monitoring\.coreos\.com$/, 'Monitoring');
+  mapGroup(/^(.*\.)?tekton\.dev$/, 'Tekton');
+  mapGroup(/^(.*\.)?rio\.cattle\.io$/, 'Rio');
+  mapGroup(/^(.*\.)?longhorn\.rancher\.io$/, 'Longhorn');
+  mapGroup(/^(.*\.)?cattle\.io$/, 'Rancher');
+  mapGroup(/^(.*\.)?istio\.io$/, 'Istio');
+  mapGroup(/^(.*\.)?knative\.io$/, 'Knative');
 
-  mapGroup(/^(.*)\.k8s.io$/, (group, match) => {
+  mapGroup(/^(.*)\.k8s\.io$/, (group, match) => {
     return match[1].split(/\./).map(x => ucFirst(x)).join('.');
   }, 1);
 
@@ -212,11 +210,31 @@ export default function() {
     },
   });
 
+  // OPA Gatekeeper
+  mapTypeToComponentName(/^constraints.gatekeeper.sh\..*$/, 'gatekeeper-constraint');
+  ignoreGroup(/^.*\.gatekeeper\.sh$/);
+
   virtualType({
-    label:      'OPA+Gatekeeper',
+    label:      'OPA Gatekeeper',
     namespaced: false,
     name:       'gatekeeper',
     group:      'Cluster',
     route:      { name: 'c-cluster-gatekeeper' },
+  });
+
+  virtualType({
+    label:      'Constraints',
+    namespaced: false,
+    name:       'gatkeeper-constraints',
+    group:      'Cluster::OPA Gatekeeper',
+    route:      { name: 'c-cluster-gatekeeper-constraints' },
+  });
+
+  virtualType({
+    label:      'Templates',
+    namespaced: false,
+    name:       'gatkeeper-templates',
+    group:      'Cluster::OPA Gatekeeper',
+    route:      { name: 'c-cluster-gatekeeper-templates' },
   });
 }

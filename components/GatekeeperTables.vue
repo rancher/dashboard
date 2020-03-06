@@ -1,6 +1,5 @@
 <script>
 import { SCHEMA, API_GROUP } from '@/config/types';
-import { isIgnored } from '@/utils/customized';
 import { AGE, NAME, STATE } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 import { DESCRIPTION } from '@/config/labels-annotations';
@@ -8,8 +7,8 @@ import { DESCRIPTION } from '@/config/labels-annotations';
 const CONSTRAINTS_REGEX = new RegExp(/^(.*\.)?constraints.gatekeeper.sh.*$/);
 const CONSTRAINT_TEMPLATES_REGEX = new RegExp(/^(.*\.)?templates.gatekeeper.sh.*$/);
 
-async function getAllSchemas(store) {
-  const schemas = await store.getters['cluster/all'](SCHEMA);
+function getAllSchemas(store) {
+  const schemas = store.getters['cluster/all'](SCHEMA);
 
   return schemas.filter((schema) => {
     const attrs = schema.attributes || {};
@@ -17,7 +16,6 @@ async function getAllSchemas(store) {
     const api = store.getters['cluster/byId'](API_GROUP, groupName);
 
     return attrs.kind &&
-        !isIgnored(schema) &&
         (!api?.preferredVersion?.version || (api.preferredVersion.version === attrs.version));
   });
 }

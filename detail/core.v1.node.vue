@@ -60,18 +60,23 @@ export default {
     pidPressureStatus() {
       return this.mapToStatus(this.value.isPidPressureOk);
     },
+
     diskPressureStatus() {
       return this.mapToStatus(this.value.isDiskPressureOk);
     },
+
     memoryPressureStatus() {
       return this.mapToStatus(this.value.isMemoryPressureOk);
     },
+
     kubeletStatus() {
       return this.mapToStatus(this.value.isKubeletOk);
     },
+
     statusTableRows() {
       return this.value.status.conditions;
     },
+
     systemTableRows() {
       return Object.keys(this.value.status.nodeInfo)
         .map(key => ({
@@ -79,6 +84,7 @@ export default {
           value: this.value.status.nodeInfo[key]
         }));
     },
+
     labelsTableRows() {
       return Object.keys(this.value.metadata.labels)
         .map(key => ({
@@ -86,6 +92,7 @@ export default {
           value: this.value.metadata.labels[key]
         }));
     },
+
     annotationsTableRows() {
       return Object.keys(this.value.metadata.annotations)
         .map(key => ({
@@ -122,8 +129,9 @@ export default {
 
   methods: {
     memoryFormatter(value) {
-      return (value / 1000000).toFixed(2);
+      return (value / 1048576).toFixed(2);
     },
+
     mapToStatus(isOk) {
       return isOk
         ? 'success'

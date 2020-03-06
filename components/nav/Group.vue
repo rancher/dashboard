@@ -8,6 +8,11 @@ export default {
   components: { Accordion, Type },
 
   props: {
+    depth: {
+      type:    Number,
+      default: 0,
+    },
+
     group: {
       type:     Object,
       required: true,
@@ -51,15 +56,24 @@ export default {
   <Accordion
     :id="id"
     :key="group.label"
+    :depth="depth"
     :label="group.label"
     :expanded="isExpanded"
     :can-collapse="canCollapse"
+    :has-children="group.children && group.children.length > 0"
     class="group"
     @on-toggle="toggleGroup"
   >
     <template #header>
       <slot name="accordion">
-        {{ group.label }}
+        <Type
+          v-if="group.route"
+          :key="group.name"
+          :type="group"
+        />
+        <span v-else>
+          {{ group.label }}
+        </span>
       </slot>
     </template>
 
@@ -71,6 +85,7 @@ export default {
         <li v-else-if="child[childrenKey]" :key="child.name">
           <Group
             :key="child.name"
+            :depth="depth + 1"
             :is-expanded="isExpanded"
             :toggle-group="toggleGroup"
             :children-key="childrenKey"
@@ -87,10 +102,3 @@ export default {
     </ul>
   </Accordion>
 </template>
-
-<style lang="scss" scoped>
-  ul {
-    border-left: solid thin var(--border);
-    margin-left: 10px;
-  }
-</style>
