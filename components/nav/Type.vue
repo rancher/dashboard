@@ -54,14 +54,5 @@ export default {
       justify-items: center;
       padding-right: 10px;
     }
-
-    &.nuxt-link-active {
-      background-color: var(--nav-active);
-      padding: 0;
-
-      a {
-        color: var(--lightest) !important;
-      }
-    }
   }
 </style>

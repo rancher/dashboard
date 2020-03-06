@@ -300,8 +300,8 @@ export default {
       padding: 0 10px;
       overflow-y: auto;
 
-      .package:not(:first-child) {
-        margin-top: 20px;
+      .package .expanded .body {
+        margin-bottom: 20px;
       }
 
       .header {

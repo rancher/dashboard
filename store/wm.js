@@ -35,7 +35,6 @@ export const mutations = {
 
 export const actions = {
   close({ state, commit }, tab) {
-    debugger;
     // @TODO close/disconnect things hook...
     let idx = state.tabs.indexOf(tab);
 

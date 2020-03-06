@@ -25,7 +25,8 @@
 // 3) Changing specialization info about a type
 //
 // virtualType(obj)           Add an item to the tree that goes to a route instead of an actual type.
-//                            -- Obj can contain anything in the objects getTree returns.
+//                            --  obj can contain anything in the objects getTree returns.
+//                            --  obj must have a `name` that is unique among all virtual types.
 //                            -- `cluster` is automatically added to route.params if it exists.
 // basicType(type)            Mark type as one shown in basic view
 // ignoreType(type)           Never show type
@@ -64,7 +65,7 @@
 // )
 
 import { escapeRegex } from '@/utils/string';
-import { isArray, removeObject } from '@/utils/array';
+import { isArray, findBy, addObject, removeObject } from '@/utils/array';
 import { get } from '@/utils/object';
 
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
@@ -74,7 +75,7 @@ import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
 // ----------------------------------------------------------------------------
 // Turns a type name into a display label (e.g. management.cattle.io.v3.cluster -> Cluster)
 export function singularLabelFor(schema) {
-  return _applyMapping(schema, _typeMappings, 'id', _typeLabelCache);
+  return _applyMapping(schema, _typeMappings, 'id', _cache.typeLabel);
 }
 
 export function pluralLabelFor(schema) {
@@ -93,11 +94,33 @@ export function pluralLabelFor(schema) {
 
 // Turns a group name into a display label (e.g. management.cattle.io.v3.cluster -> Cluster)
 export function groupLabelFor(schema) {
-  return _applyMapping(schema, _groupMappings, 'attributes.group', _groupLabelCache);
+  return _applyMapping(schema, _groupMappings, 'attributes.group', _cache.groupLabel);
 }
 
 export function isIgnored(schema) {
-  return _groupIgnore[schema.attributes.group] || _typeIgnore[schema.id] || false;
+  if ( typeof _cache.ignore[schema.id] === 'undefined' ) {
+    let ignore = false;
+
+    for ( const rule of _groupIgnore ) {
+      if ( schema.attributes.group.match(rule) ) {
+        ignore = true;
+        break;
+      }
+    }
+
+    if ( !ignore ) {
+      for ( const rule of _typeIgnore ) {
+        if ( schema.id.match(rule) ) {
+          ignore = true;
+          break;
+        }
+      }
+    }
+
+    _cache.ignore[schema.id] = ignore;
+  }
+
+  return _cache.ignore[schema.id];
 }
 
 export function isBasic(schema) {
@@ -178,7 +201,7 @@ export function headersFor(schema) {
 // ------------------------------------
 export function hasCustomList(rawType) {
   const type = _normalizeType(rawType);
-  const cache = _hasCustom.list;
+  const cache = _cache.list;
 
   if ( cache[type] !== undefined ) {
     return cache[type];
@@ -198,7 +221,7 @@ export function hasCustomList(rawType) {
 
 export function hasCustomDetail(rawType) {
   const type = _normalizeType(rawType);
-  const cache = _hasCustom.detail;
+  const cache = _cache.detail;
 
   if ( cache[type] !== undefined ) {
     return cache[type];
@@ -218,7 +241,7 @@ export function hasCustomDetail(rawType) {
 
 export function hasCustomEdit(rawType) {
   const type = _normalizeType(rawType);
-  const cache = _hasCustom.edit;
+  const cache = _cache.edit;
 
   if ( cache[type] !== undefined ) {
     return cache[type];
@@ -260,7 +283,9 @@ export function importEdit(rawType) {
 // 3) Changing info
 // ----------------------------------------------------------------------------
 export function virtualType(obj) {
-  _virtualTypes.push(obj);
+  if ( !findBy(_virtualTypes, 'name', obj.name) ) {
+    addObject(_virtualTypes, obj);
+  }
 }
 
 export function basicType(types) {
@@ -273,12 +298,20 @@ export function basicType(types) {
   }
 }
 
-export function ignoreGroup(group) {
-  _groupIgnore[group] = true;
+export function ignoreGroup(match) {
+  if ( typeof match === 'string' ) {
+    match = new RegExp(`^${ escapeRegex(match) }$`, 'i');
+  }
+
+  _groupIgnore.push(match);
 }
 
-export function ignoreType(type) {
-  _typeIgnore[type] = true;
+export function ignoreType(match) {
+  if ( typeof match === 'string' ) {
+    match = new RegExp(`^${ escapeRegex(match) }$`, 'i');
+  }
+
+  _typeIgnore.push(match);
 }
 
 export function headers(type, headers) {
@@ -333,24 +366,29 @@ export function pluralizeType(type, plural) {
 // ----------------------------------------------------------------------------
 const _virtualTypes = [];
 const _basicTypes = {};
-const _groupIgnore = {};
+const _groupIgnore = [];
 const _groupWeights = {};
 const _groupMappings = [];
-const _groupLabelCache = {};
-const _typeIgnore = {};
+const _typeIgnore = [];
 const _typeWeights = {};
 const _typeMappings = [];
 const _typeToComponentMappings = [];
-const _typeLabelCache = {};
 const _pluralLabels = {};
 const _headers = {};
-const _hasCustom = {
-  list:    {},
-  detail:  {},
-  edit:    {},
+const _cache = {
+  typeLabel:  {},
+  groupLabel: {},
+  ignore:     {},
+  list:       {},
+  detail:     {},
+  edit:       {},
 };
 
 function _applyMapping(obj, mappings, keyField, cache) {
+  if ( typeof obj !== 'object' ) {
+    return obj;
+  }
+
   const key = get(obj, keyField);
 
   if ( typeof key !== 'string' ) {

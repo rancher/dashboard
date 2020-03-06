@@ -198,7 +198,7 @@ export default {
             v-else
             key="name"
             v-model="name"
-            label="name"
+            label="Name"
             :mode="mode"
             :min-height="30"
             :hide-placeholder="false"

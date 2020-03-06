@@ -46,12 +46,6 @@ export default {
             </span>
           </li>
         </ul>
-
-        <div class="clearfix">
-          <nuxt-link tag="button" :to="{name: 'clusters'}" class="btn bg-link">
-            View All
-          </nuxt-link>
-        </div>
       </template>
     </v-popover>
   </div>

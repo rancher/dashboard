@@ -48,18 +48,18 @@ export default {
 </script>
 
 <style type="scss" scoped>
-  .filter >>> .v-select {
+  .filter ::v-deep .v-select {
     max-width: 100%;
     display: inline-block;
   }
 
-  .filter >>> .v-select .vs__selected {
+  .filter ::v-deep .v-select .vs__selected {
     margin: 2px;
     user-select: none;
     cursor: default;
   }
 
-  .filter >>> INPUT {
+  .filter ::v-deep INPUT {
     width: auto;
     background-color: transparent;
   }

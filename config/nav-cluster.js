@@ -1,6 +1,7 @@
 import { sortBy } from '@/utils/sort';
 import { clone } from '@/utils/object';
-import { SCHEMA, COUNT, API_GROUP, INGRESS } from '@/config/types';
+import { findBy } from '@/utils/array';
+import { SCHEMA, COUNT, API_GROUP } from '@/config/types';
 import {
   isBasic,
   isIgnored,
@@ -73,7 +74,7 @@ export function allTypes($store) {
 }
 
 export function getTree(mode, clusterId, types, namespaces, currentType) {
-  const root = {};
+  const root = { children: [] };
 
   for ( const type in types ) {
     const typeObj = types[type];
@@ -128,33 +129,49 @@ export function getTree(mode, clusterId, types, namespaces, currentType) {
     group.children.push(item);
   }
 
-  // Sort all the insides of the groups
-  for ( const group of Object.keys(root) ) {
-    if ( root[group] && root[group].children ) {
-      root[group].children = sortBy(root[group].children, ['namespaced', 'weight:desc', 'label']);
+  // Recursively sort the groups
+  _sortGroup(root);
+
+  return root.children;
+}
+
+function _sortGroup(tree) {
+  tree.children = sortBy(tree.children, ['namespaced', 'weight:desc', 'label']);
+  for (const entry of tree.children ) {
+    if ( entry.children ) {
+      _sortGroup(entry);
     }
   }
-
-  // Sort the groups themselves
-  return sortBy(Object.values(root), ['weight:desc', 'label']);
 }
+
 function _ensureGroup(tree, schemaOrLabel, route) {
-  const label = route ? schemaOrLabel : groupLabelFor(schemaOrLabel);
+  let label = groupLabelFor(schemaOrLabel);
 
-  let group = tree[label];
+  if ( label && label.includes('::') ) {
+    let parent;
 
-  if ( !tree[label] ) {
+    [parent, label] = label.split('::', 2);
+    tree = _ensureGroup(tree, parent);
+  }
+
+  let group = findBy(tree.children, 'label', label);
+
+  if ( !group ) {
     group = {
+      name:   label,
       label,
       weight:   groupWeightFor(label),
-      children: [],
     };
 
     if ( route ) {
       group.route = route;
     }
 
-    tree[label] = group;
+    tree.children.push(group);
+  }
+
+  if ( !group.children ) {
+    group.children = [];
   }
 
   return group;
