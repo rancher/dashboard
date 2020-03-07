@@ -3,7 +3,6 @@ import { mapState } from 'vuex';
 import { get } from '@/utils/object';
 import { NAMESPACE, RIO } from '@/config/types';
 import Card from '@/components/Card';
-import { singularLabelFor, pluralLabelFor } from '@/utils/customized';
 
 export default {
   components: { Card },
@@ -23,9 +22,9 @@ export default {
       }
 
       if ( this.toRemove.length > 1 ) {
-        return pluralLabelFor(schema);
+        return this.$store.getters['nav-tree/pluralLabelFor'](schema);
       } else {
-        return singularLabelFor(schema);
+        return this.$store.getters['nav-tree/singularLabelFor'](schema);
       }
     },
 
@@ -46,7 +45,7 @@ export default {
       return (type === NAMESPACE || type === RIO.STACK) && this.toRemove.length === 1;
     },
 
-    ...mapState('actionMenu', ['showPromptRemove', 'toRemove'])
+    ...mapState('action-menu', ['showPromptRemove', 'toRemove'])
   },
 
   watch:    {
@@ -61,7 +60,7 @@ export default {
 
   methods: {
     close() {
-      this.$store.commit('actionMenu/togglePromptRemove');
+      this.$store.commit('action-menu/togglePromptRemove');
     },
 
     remove() {

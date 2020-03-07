@@ -154,7 +154,7 @@ module.exports = {
     link: [{
       rel:  'icon',
       type: 'image/x-icon',
-      href: `${ resourceBase }favicon.png`
+      href: `${ resourceBase || '/' }favicon.png`
     }]
   },
 

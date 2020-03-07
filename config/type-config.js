@@ -1,16 +1,4 @@
 import {
-  ignoreType,
-  basicType,
-  mapType,
-  mapTypeToComponentName,
-  virtualType,
-  ignoreGroup,
-  weightGroup,
-  mapGroup,
-  headers,
-} from '@/utils/customized';
-
-import {
   CONFIG_MAP, NAMESPACE, NODE, POD, SECRET, RIO, RBAC, SERVICE, PV, PVC, INGRESS
 } from '@/config/types';
 
@@ -27,9 +15,23 @@ import {
   BUILT_IN, CLUSTER_CREATOR_DEFAULT, INGRESS_TARGET
 } from '@/config/table-headers';
 
-import { ucFirst } from '@/utils/string';
+import { DSL } from '@/store/nav-tree';
 
-export default function() {
+export default function(store) {
+  const {
+    basicType,
+    ignoreType,
+    mapType,
+    moveType,
+    // weightType,
+    ignoreGroup,
+    mapGroup,
+    weightGroup,
+    headers,
+    virtualType,
+    mapTypeToComponentName,
+  } = DSL(store);
+
   basicType([
     CONFIG_MAP,
     NAMESPACE,
@@ -48,15 +50,7 @@ export default function() {
   mapType('core.v1.endpoints', 'Endpoint'); // Bad plural
 
   // Move some core things into Cluster
-  mapType(/^core\.v1\.(namespace|node|persistentvolume)$/, (out, match, schema) => {
-    schema.attributes.group = 'Cluster';
-
-    return out;
-  }, 99, true);
-
-  mapType(/.*/, (typeStr, match, schema) => {
-    return schema.attributes.kind;
-  }, 1);
+  moveType(/^core\.v1\.(namespace|node|persistentvolume)$/, 'Cluster');
 
   weightGroup('Cluster', 99);
   weightGroup('Core', 98);
@@ -81,10 +75,6 @@ export default function() {
   mapGroup(/^(.*\.)?cattle\.io$/, 'Rancher');
   mapGroup(/^(.*\.)?istio\.io$/, 'Istio');
   mapGroup(/^(.*\.)?knative\.io$/, 'Knative');
-
-  mapGroup(/^(.*)\.k8s\.io$/, (group, match) => {
-    return match[1].split(/\./).map(x => ucFirst(x)).join('.');
-  }, 1);
 
   headers(CONFIG_MAP, [STATE, NAMESPACE_NAME, KEYS, AGE]);
   headers(NAMESPACE, [STATE, NAME, AGE]);
@@ -215,26 +205,29 @@ export default function() {
   ignoreGroup(/^.*\.gatekeeper\.sh$/);
 
   virtualType({
-    label:      'OPA Gatekeeper',
-    namespaced: false,
-    name:       'gatekeeper',
-    group:      'Cluster',
-    route:      { name: 'c-cluster-gatekeeper' },
+    label:       'OPA Gatekeeper',
+    namespaced:  false,
+    name:        'gatekeeper',
+    group:       'Cluster',
+    route:       { name: 'c-cluster-gatekeeper' },
+    ifIsRancher: true,
   });
 
   virtualType({
     label:      'Constraints',
     namespaced: false,
-    name:       'gatkeeper-constraints',
+    name:       'gatekeeper-constraints',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-constraints' },
+    ifHaveType: 'templates.gatekeeper.sh.v1alpha1.constrainttemplates'
   });
 
   virtualType({
     label:      'Templates',
     namespaced: false,
-    name:       'gatkeeper-templates',
+    name:       'gatekeeper-templates',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-templates' },
+    ifHaveType: 'templates.gatekeeper.sh.v1alpha1.constrainttemplates'
   });
 }

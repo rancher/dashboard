@@ -6,7 +6,6 @@ import {
   MODE, _EDIT, _CLONE,
   EDIT_YAML, _FLAGGED
 } from '@/config/query-params';
-import { hasCustomEdit, pluralLabelFor } from '@/utils/customized';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { addParams } from '@/utils/url';
@@ -109,6 +108,10 @@ export default {
 
   nameSort() {
     return sortableNumericSuffix(this.nameDisplay).toLowerCase();
+  },
+
+  typeDisplay() {
+    return this.$store.getters['nav-tree/singularLabelFor'](this.schema);
   },
 
   namespaceNameDisplay() {
@@ -342,7 +345,7 @@ export default {
     const all = [];
     const links = this.links || {};
     const hasView = !!links.rioview || !!links.view;
-    const customEdit = hasCustomEdit(this.type);
+    const customEdit = this.$rootGetters['nav-tree/hasCustomEdit'](this.type);
 
     if ( customEdit ) {
       all.push({
@@ -707,7 +710,7 @@ export default {
 
     const [group, version] = this.apiVersion.split('/');
 
-    const pluralName = pluralLabelFor(schema).split('.').pop().toLowerCase();
+    const pluralName = this.$rootGetters['nav-tree/pluralLabelFor'](schema).split('.').pop().toLowerCase();
 
     url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/${ version }/namespaces/${ namespace }/${ pluralName }`;
 

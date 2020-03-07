@@ -1,6 +1,6 @@
 import Steve from '@/plugins/steve';
 import {
-  API_GROUP, COUNT, NAMESPACE, NORMAN, RANCHER, SCHEMA
+  API_GROUP, COUNT, NAMESPACE, NORMAN, RANCHER,
 } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
@@ -91,7 +91,6 @@ export const actions = {
     console.log('Loading management...');
 
     try {
-      console.log('Here');
       await dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: 'principals' } });
     } catch (e) {
       // Maybe not Rancher

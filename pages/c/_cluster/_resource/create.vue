@@ -2,7 +2,7 @@
 import ResourceYaml from '@/components/ResourceYaml';
 import { createYaml } from '@/utils/create-yaml';
 import { SCHEMA } from '@/config/types';
-import { hasCustomEdit, importEdit, singularLabelFor } from '@/utils/customized';
+
 export default {
   components: { ResourceYaml },
   computed:   {
@@ -11,15 +11,19 @@ export default {
 
       return name;
     },
+
     hasComponent() {
-      return hasCustomEdit(this.resource);
+      return this.$store.getters['nav-tree/hasCustomEdit'](this.resource);
     },
+
     showComponent() {
-      return importEdit(this.resource);
+      return this.$store.getters['nav-tree/importEdit'](this.resource);
     },
+
     typeDisplay() {
-      return singularLabelFor(this.schema);
+      return this.$store.getters['nav-tree/singularLabelFor'](this.schema);
     },
+
     parentLink() {
       const name = this.doneRoute;
       const params = this.$route.params;

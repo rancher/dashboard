@@ -4,7 +4,6 @@ import { addObject, removeObject } from '@/utils/array';
 import {
   mapPref, DEV, THEME, EXPANDED_GROUPS, NAV_SHOW
 } from '@/store/prefs';
-import { allTypes, getTree } from '@/config/nav-cluster';
 import applyTypeConfigs from '@/config/type-config';
 import ActionMenu from '@/components/ActionMenu';
 import ButtonGroup from '@/components/ButtonGroup';
@@ -15,9 +14,7 @@ import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
-import { NORMAN, RANCHER } from '@/config/types';
-
-applyTypeConfigs();
+import { NORMAN } from '@/config/types';
 
 export default {
 
@@ -33,6 +30,10 @@ export default {
     WindowManager
   },
 
+  data() {
+    return { packages: [] };
+  },
+
   middleware: ['authenticated'],
 
   head() {
@@ -42,10 +43,6 @@ export default {
       bodyAttrs: { class: `theme-${ theme } overflow-hidden dashboard-body` },
       title:     'Dashboard',
     };
-  },
-
-  data() {
-    return { packages: [] };
   },
 
   computed: {
@@ -89,29 +86,20 @@ export default {
     },
 
     groups() {
+      const mode = this.navShow;
       const clusterId = this.$store.getters['clusterId'];
       const namespaces = this.$store.getters['namespaces'] || [];
-      const types = allTypes(this.$store);
-      const mode = this.navShow;
       const currentType = this.$route.params.resource || '';
 
-      if ( !types ) {
-        return [];
-      }
-
-      const out = getTree(mode, clusterId, types, namespaces, currentType);
+      const out = this.$store.getters['nav-tree/getTree'](mode, clusterId, namespaces, currentType);
 
       return out;
     }
   },
 
-  /*
-  watch: {
-    allTypes() {
-      this.getTree();
-    }
+  created() {
+    applyTypeConfigs(this.$store);
   },
-*/
 
   methods: {
     toggleGroup(route, expanded) {
