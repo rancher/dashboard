@@ -219,7 +219,7 @@ export default function(store) {
     name:       'gatekeeper-constraints',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-constraints' },
-    ifHaveType: 'templates.gatekeeper.sh.v1alpha1.constrainttemplates'
+    ifHaveType: 'templates.gatekeeper.sh.v1beta1.constrainttemplate'
   });
 
   virtualType({
@@ -228,6 +228,6 @@ export default function(store) {
     name:       'gatekeeper-templates',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-templates' },
-    ifHaveType: 'templates.gatekeeper.sh.v1alpha1.constrainttemplates'
+    ifHaveType: 'templates.gatekeeper.sh.v1beta1.constrainttemplate'
   });
 }

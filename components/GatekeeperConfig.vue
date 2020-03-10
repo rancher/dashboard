@@ -5,6 +5,7 @@ import Footer from '@/components/form/Footer';
 import { NAMESPACE } from '@/config/types';
 import { _VIEW } from '@/config/query-params';
 import GatekeeperTables from '@/components/GatekeeperTables';
+import { findBy } from '@/utils/array';
 
 export default {
   name: 'GatekeeperConfig',
@@ -70,20 +71,11 @@ export default {
 
       return version;
     },
+
     gatekeeperSystemNamespace() {
       const { namespaces } = this;
 
       return namespaces.find(ns => ns.metadata.name === 'gatekeeper-system');
-    },
-
-    systemNamespaceExists() {
-      const match = this.gatekeeperSystemNamespace;
-
-      if (match) {
-        return true;
-      }
-
-      return false;
     },
 
     cmOptions() {
@@ -107,6 +99,25 @@ export default {
   },
 
   methods: {
+    async ensureNamespace() {
+      if ( findBy(this.namespaces, 'metadata.name', 'gatekeeper-system') ) {
+        return;
+      }
+
+      const newSystemNs = await this.$store.dispatch('cluster/create', {
+        type:        NAMESPACE,
+        metadata:    {
+          name:        'gatekeeper-system',
+          annotations: { 'field.cattle.io/projectId': this.config.spec.projectName },
+          labels:      { 'field.cattle.io/projectId': this.config.metadata.namespace },
+        },
+      });
+
+      await newSystemNs.save();
+      // TODO save doesnt push this object into the store it cerates a new one so waiting on a merge fucntion to be added to save before do this.
+      // await newSystemNs.waitForState('active');
+    },
+
     /**
      * Gets called when the user clicks on the button
      * Checks for the system namespace and creates that first if it does not exist
@@ -114,34 +125,9 @@ export default {
      *
      * @param {buttonCb} Callback to be called on success or fail
      */
-    async clicked(buttonCb) {
-      if (!this.systemNamespaceExists) {
-        const newSystemNs = await this.$store.dispatch('cluster/create', {
-          type:        NAMESPACE,
-          metadata:    {
-            name:        'gatekeeper-system',
-            annotations: { 'field.cattle.io/projectId': this.config.spec.projectName },
-            labels:      { 'field.cattle.io/projectId': this.config.metadata.namespace },
-          },
-        });
-
-        try {
-          await newSystemNs.save();
-          // TODO save doesnt push this object into the store it cerates a new one so waiting on a merge fucntion to be added to save before do this.
-          // await newSystemNs.waitForState('active');
-        } catch (err) {
-          this.gatekeeperEnabled = false;
-          if (err?.message) {
-            this.errors = [err.message];
-          } else {
-            this.errors = [err];
-          }
-          buttonCb(false);
-
-          return;
-        }
-      }
+    async enable(buttonCb) {
       try {
+        await this.ensureNamespace();
         await this.config.save();
         // await this.config.waitForCondition('Installed');
         this.gatekeeperEnabled = true;
@@ -271,10 +257,9 @@ export default {
 
 <template>
   <div>
-    <header class="opa-header">
-      <div class="opa-logo"></div>
+    <header>
       <h1>
-        OPA + Gatekeeper
+        OPA Gatekeeper
       </h1>
       <div v-if="gatekeeperEnabled" class="actions">
         <AsyncButton
@@ -318,7 +303,7 @@ export default {
             error-label="Error enabling"
             :disabled="showYamlEditor"
             v-bind="$attrs"
-            @click="clicked"
+            @click="enable"
           />
           <p>
             Enable Gatekeeper <span v-if="appVersion">({{ appVersion }}) </span>with defaults.
@@ -350,7 +335,7 @@ export default {
       <Footer
         mode="create"
         @errors="errors"
-        @save="clicked"
+        @save="enable"
         @done="openYamlEditor"
       />
     </section>
@@ -368,6 +353,7 @@ export default {
      }
    }
  }
+
  .action-group {
    padding-top: 20px;
    .col {
@@ -377,16 +363,5 @@ export default {
    .col:first-of-type {
      border-right: 1px solid;
    }
- }
- .opa-logo {
-   background-color: var(--header-logo);
-   display: inline-block;
-   height: 50px;
-   mask: url("~assets/images/opa-logo.svg") no-repeat center;
- }
- .opa-header {
-   display: grid;
-   grid-template-areas: "logo title actions";
-   grid-template-columns: 64px auto min-content;
  }
 </style>
