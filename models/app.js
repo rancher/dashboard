@@ -9,7 +9,7 @@ export default {
   },
   availableActions() {
     const { isGateKeeper } = this;
-    let out = this._standardActions.slice();
+    let out = this._availableActions;
 
     if (isGateKeeper) {
       const toFilter = ['cloneYaml'];
@@ -19,6 +19,12 @@ export default {
           return action;
         }
       });
+
+      const removeMatch = out.find(a => a.action === 'promptRemove');
+
+      if (removeMatch) {
+        removeMatch.label = 'Disable';
+      }
     }
 
     return out;

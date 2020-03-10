@@ -47,14 +47,19 @@ export default {
 
   data() {
     let gatekeeperEnabled = false;
+    let showYamlEditor = false;
 
     if (this.config && this.config.id) {
       gatekeeperEnabled = true;
     }
 
+    if (this.mode === _EDIT) {
+      showYamlEditor = true;
+    }
+
     return {
       gatekeeperEnabled,
-      showYamlEditor: false,
+      showYamlEditor,
       errors:         [],
       saving:         false,
     };
@@ -130,7 +135,7 @@ export default {
     },
 
     showActions() {
-      this.$store.commit('actionMenu/show', {
+      this.$store.commit('action-menu/show', {
         resources: this.config,
         elem:      this.$refs.actions,
       });
@@ -285,15 +290,6 @@ export default {
         OPA Gatekeeper
       </h1>
       <div v-if="gatekeeperEnabled" class="actions">
-        <AsyncButton
-          :mode="mode"
-          action-label="Disable Gatekeeper"
-          waiting-label="Disabling"
-          success-label="Disabled"
-          error-label="Error disabled"
-          v-bind="$attrs"
-          @click="disable"
-        />
         <button ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
           <i class="icon icon-actions" />
         </button>

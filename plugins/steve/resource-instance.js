@@ -344,7 +344,7 @@ export default {
   _standardActions() {
     const all = [];
     const links = this.links || {};
-    const hasView = !!links.rioview || !!links.view;
+    // const hasView = !!links.rioview || !!links.view;
     const customEdit = this.$rootGetters['type-map/hasCustomEdit'](this.type);
 
     if ( customEdit ) {
@@ -369,7 +369,6 @@ export default {
       action:  'viewEditYaml',
       label:   (links.update ? 'Edit/View as YAML' : 'View as YAML'),
       icon:    'icon icon-file',
-      enabled:  hasView,
     });
 
     all.push({
@@ -383,7 +382,6 @@ export default {
       action:     'download',
       label:      'Download YAML',
       icon:       'icon icon-fw icon-download',
-      enabled:    hasView,
       bulkable:   true,
       bulkAction: 'downloadBulk',
     });

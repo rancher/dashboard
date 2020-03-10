@@ -51,7 +51,7 @@ export default {
       if (!template?.id ) {
         return {
           gateKeeperUnavailable: true,
-          mode:                  _VIEW,
+          mode,
         };
       }
 
@@ -66,7 +66,10 @@ export default {
       });
 
       if ( !targetSystemProject ) {
-        return { gateKeeperUnAvailable: true };
+        return {
+          gateKeeperUnAvailable: true,
+          mode,
+        };
       }
 
       const namespace = targetSystemProject.metadata.name; // name of system project in management cluster
@@ -110,9 +113,19 @@ export default {
 
       return {
         gateKeeperUnavailable: true,
-        mode:                  _VIEW,
+        mode,
       };
     }
+  },
+
+  beforeRouteEnter(to, from, next) {
+    next(( vm ) => {
+      if (to.query?.mode === _EDIT) {
+        vm.mode = _EDIT;
+      } else if (from.query?.mode === _EDIT && !to.query?.mode) {
+        vm.mode = _VIEW;
+      }
+    });
   },
 
   beforeRouteUpdate(to, from, next) {
