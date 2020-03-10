@@ -542,9 +542,12 @@ export default {
 
       const res = await this.$dispatch('request', opt);
 
-      await this.$dispatch('load', res);
+      // @TODO Steve always returns tables...
+      if ( !res.Kind !== 'Table') {
+        await this.$dispatch('load', { data: res, existing: this });
+      }
 
-      return res;
+      return this;
     };
   },
 

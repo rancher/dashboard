@@ -8,7 +8,7 @@ import Socket, {
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
 
-const NO_WATCHING = ['schema'];
+const NO_WATCHING = ['schema', 'apigroups'];
 
 export const actions = {
   subscribe(ctx, opt) {
@@ -84,7 +84,6 @@ export const actions = {
     return dispatch('send', { resourceType: type, revision });
   },
 
-  /* Should be no longer needed because of enqueuePending / rehydrateSubscribe
   watchHaveAllTypes({ state, dispatch }) {
     const promises = [];
     const cache = state.types;
@@ -97,15 +96,17 @@ export const actions = {
 
     return Promise.all(promises);
   },
-  */
 
-  opened({ commit, dispatch, state }, event) {
+  async opened({ commit, dispatch, state }, event) {
     console.log('WebSocket Opened');
     const socket = event.currentTarget;
 
     this.$socket = socket;
 
-    // await dispatch('watchHaveAllTypes');
+    if ( socket.hasReconnected ) {
+      console.log('Reconnect, re-watching types');
+      await dispatch('watchHaveAllTypes');
+    }
 
     // Try resending any frames that were attempted to be sent while the socket was down, once.
     if ( !process.server ) {
@@ -156,12 +157,12 @@ export const actions = {
 
   'ws.resource.create'({ dispatch }, { data }) {
     // console.log('Create', data.type, data.id);
-    dispatch('load', data);
+    dispatch('load', { data });
   },
 
   'ws.resource.change'({ dispatch }, { data }) {
     // console.log('Change', data.type, data.id);
-    dispatch('load', data);
+    dispatch('load', { data });
   },
 
   'ws.resource.remove'({ getters, commit }, { data }) {
