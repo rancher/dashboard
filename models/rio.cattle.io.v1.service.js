@@ -60,13 +60,6 @@ export default {
     return `${ this.app }@${ this.version }`;
   },
 
-  namespaceNameDisplay() {
-    const namespace = this.metadata.namespace;
-    const name = this.metadata.name || this.id;
-
-    return `${ namespace }:${ name }`;
-  },
-
   namespaceApp() {
     return `${ this.metadata.namespace }:${ this.app }`;
   },

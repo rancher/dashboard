@@ -96,7 +96,7 @@ export default {
 
     > I {
       position: absolute;
-      right: 10px;
+      right: 0;
       top: 10px;
     }
 

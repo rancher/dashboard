@@ -235,14 +235,20 @@ export const getters = {
     };
   },
 
-  getTree(state, getters) {
+  getTree(state, getters, rootState, rootGetters) {
     return (mode, clusterId, namespaces, currentType) => {
-      const allTypes = getters.allTypes;
+      const allTypes = getters.allTypes() || {};
 
       const root = { children: [] };
 
       for ( const type in allTypes ) {
         const typeObj = allTypes[type];
+
+        if ( getters.isIgnored(typeObj.schema) ) {
+          // Skip ignored groups & types
+          continue;
+        }
+
         const namespaced = typeObj.namespaced;
         const count = _matchingCounts(typeObj, namespaces);
 
@@ -281,7 +287,7 @@ export const getters = {
       }
 
       // Add virtual types
-      const virt = getters.virtualTypes;
+      const virt = getters.virtualTypes();
 
       for ( const vt of virt ) {
         const item = clone(vt);
@@ -339,59 +345,57 @@ export const getters = {
   },
 
   allTypes(state, getters, rootState, rootGetters) {
-    if ( !rootGetters['cluster/haveAll'](COUNT) || !rootGetters['cluster/haveAll'](SCHEMA) ) {
-      return null;
-    }
+    return () => {
+      const schemas = rootGetters['cluster/all'](SCHEMA);
+      const counts = rootGetters['cluster/all'](COUNT)[0].counts;
+      const out = {};
 
-    const schemas = rootGetters['cluster/all'](SCHEMA);
-    const counts = rootGetters['cluster/all'](COUNT)[0].counts;
-    const out = {};
+      for ( const schema of schemas ) {
+        const attrs = schema.attributes || {};
+        const count = counts[schema.id];
+        const groupName = attrs.group || 'core';
 
-    for ( const schema of schemas ) {
-      const attrs = schema.attributes || {};
-      const count = counts[schema.id];
-      const groupName = attrs.group || 'core';
+        if ( !attrs.kind ) {
+          // Skip the "apiGroups" resource which has no kind
+          continue;
+        }
 
-      if ( !attrs.kind ) {
-        // Skip the "apiGroups" resource whic has no kind
-        continue;
+        if ( !getters.isPreferred(schema) ) {
+          // Skip non-preferred versions of a type
+          continue;
+        }
+
+        out[schema.id] = {
+          schema,
+          group:       groupName,
+          id:          schema.id,
+          label:       getters.singularLabelFor(schema),
+          namespaced:  attrs.namespaced,
+          count:       count ? count.count : null,
+          byNamespace: count ? count.namespaces : {},
+          revision:    count ? count.revision : null,
+        };
       }
 
-      if ( getters.isIgnored(schema) ) {
-        // Skip ignored groups & types
-        continue;
-      }
-
-      if ( !getters.isPreferred(schema) ) {
-        continue;
-      }
-
-      out[schema.id] = {
-        schema,
-        group:       groupName,
-        id:          schema.id,
-        label:       getters.singularLabelFor(schema),
-        namespaced:  attrs.namespaced,
-        count:       count ? count.count : null,
-        byNamespace: count ? count.namespaces : {},
-        revision:    count ? count.revision : null,
-      };
-    }
-
-    return out;
+      return out;
+    };
   },
 
   virtualTypes(state, getters, rootState, rootGetters) {
-    const isRancher = rootGetters.isRancher;
-    const allTypes = getters.allTypes;
+    return () => {
+      const isRancher = rootGetters.isRancher;
+      const allTypes = getters.allTypes() || {};
 
-    return state.virtualTypes.filter((typeObj) => {
-      if ( typeObj.ifIsRancher && !isRancher ) {
-        return false;
-      }
+      const out = state.virtualTypes.filter((typeObj) => {
+        if ( typeObj.ifIsRancher && !isRancher ) {
+          return false;
+        }
 
-      return !typeObj.ifHaveType || !!allTypes[typeObj.ifHaveType];
-    });
+        return !typeObj.ifHaveType || !!allTypes[typeObj.ifHaveType];
+      });
+
+      return out;
+    };
   },
 
   headersFor(state) {
@@ -563,15 +567,17 @@ export const getters = {
   },
 
   preferredVersions(_state, _getters, _rootState, rootGetters) {
-    const versionMap = rootGetters['cluster/all'](API_GROUP).reduce((map, group) => {
-      if (group?.preferredVersion) {
-        map[group.name] = group?.preferredVersion?.version;
-      }
+    return () => {
+      const versionMap = rootGetters['cluster/all'](API_GROUP).reduce((map, group) => {
+        if (group?.preferredVersion) {
+          map[group.name] = group?.preferredVersion?.version;
+        }
 
-      return map;
-    }, {});
+        return map;
+      }, {});
 
-    return versionMap;
+      return versionMap;
+    };
   },
 
   isPreferred(state, getters, rootState, rootGetters) {
@@ -583,7 +589,7 @@ export const getters = {
 
         const attrs = schema.attributes || {};
         const groupName = attrs.group || 'core';
-        const preferredVersion = getters.preferredVersions[groupName];
+        const preferredVersion = getters.preferredVersions()[groupName];
 
         if ( preferredVersion && attrs.version !== preferredVersion ) {
           // This is not the preferred version, but see if there really is one for this type

@@ -114,7 +114,7 @@ export default {
     return this.$store.getters['nav-tree/singularLabelFor'](this.schema);
   },
 
-  namespaceNameDisplay() {
+  namespacedName() {
     const namespace = this.metadata.namespace;
     const name = this.metadata.name || this.id;
 
@@ -125,8 +125,8 @@ export default {
     return name;
   },
 
-  namespaceNameSort() {
-    return sortableNumericSuffix(this.namespaceNameDisplay).toLowerCase();
+  namespacedNameSort() {
+    return sortableNumericSuffix(this.namespacedName).toLowerCase();
   },
 
   // You can override the state by providing your own state (and possibly reading metadata.state)

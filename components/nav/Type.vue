@@ -12,8 +12,8 @@ export default {
 <template>
   <n-link :key="type.name" :to="type.route" tag="li" class="child">
     <a>
-      <span v-trim-whitespace class="label">
-        <i v-if="type.namespaced" class="icon icon-folder mr-5" />
+      <span class="label">
+        <i class="icon" :class="{'icon-folder': type.namespaced, 'icon-globe': !type.namespaced}" />
         {{ type.label }}
       </span>
       <span v-if="typeof type.count !== 'undefined'" class="count">
@@ -25,16 +25,13 @@ export default {
 
 <style lang="scss" scoped>
   .child {
-    width: calc(100% - 5px);
-    position: relative;
-    left: 2px;
-
     A {
       display: grid;
       grid-template-areas: "label count";
-      grid-template-columns: auto 40px;
+      grid-template-columns: auto auto;
+      grid-column-gap: 5px;
       font-size: 12px;
-      padding: 10px 0 10px 10px;
+      padding: 7px 5px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -45,6 +42,11 @@ export default {
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
+
+      .icon {
+        position: relative;
+        top: -2px;
+      }
     }
 
     .count {
@@ -52,7 +54,6 @@ export default {
       font-size: 12px;
       text-align: right;
       justify-items: center;
-      padding-right: 10px;
     }
   }
 </style>

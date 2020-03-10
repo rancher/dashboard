@@ -1,4 +1,5 @@
 <script>
+import { debounce } from 'lodash';
 import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
 import {
@@ -14,7 +15,7 @@ import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
-import { NORMAN } from '@/config/types';
+import { COUNT, NORMAN } from '@/config/types';
 
 export default {
 
@@ -31,7 +32,7 @@ export default {
   },
 
   data() {
-    return { packages: [] };
+    return { groups: [] };
   },
 
   middleware: ['authenticated'],
@@ -85,7 +86,41 @@ export default {
       return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
 
-    groups() {
+    counts() {
+      // So that there's something to watch for updates
+      if ( this.$store.getters['cluster/haveAll'](COUNT) ) {
+        const counts = this.$store.getters['cluster/all'](COUNT)[0].counts;
+
+        return counts;
+      }
+
+      return {};
+    },
+  },
+
+  watch: {
+    counts() {
+      this.queueUpdate();
+    }
+  },
+
+  mounted() {
+    this.getGroups();
+  },
+
+  created() {
+    this.queueUpdate = debounce(this.getGroups, 500);
+    applyTypeConfigs(this.$store);
+  },
+
+  methods: {
+    getGroups() {
+      if ( !this.clusterReady ) {
+        this.groups = [];
+
+        return;
+      }
+
       const mode = this.navShow;
       const clusterId = this.$store.getters['clusterId'];
       const namespaces = this.$store.getters['namespaces'] || [];
@@ -93,15 +128,9 @@ export default {
 
       const out = this.$store.getters['nav-tree/getTree'](mode, clusterId, namespaces, currentType);
 
-      return out;
-    }
-  },
+      this.groups = out;
+    },
 
-  created() {
-    applyTypeConfigs(this.$store);
-  },
-
-  methods: {
     toggleGroup(route, expanded) {
       const groups = this.expandedGroups.slice();
 

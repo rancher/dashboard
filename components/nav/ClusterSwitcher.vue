@@ -1,5 +1,5 @@
 <script>
-import { RANCHER } from '@/config/types';
+import { MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 
 export default {
@@ -9,7 +9,7 @@ export default {
     },
 
     clusters() {
-      const clusters = this.$store.getters['management/all'](RANCHER.CLUSTER);
+      const clusters = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
 
       return sortBy(clusters, ['isReady:desc', 'nameDisplay']);
     },

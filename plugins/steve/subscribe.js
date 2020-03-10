@@ -139,7 +139,7 @@ export const actions = {
   },
 
   'ws.ping'() {
-    console.log('WebSocket Ping');
+    // console.log('WebSocket Ping');
   },
 
   'ws.resource.start'(_, msg) {

@@ -1,6 +1,6 @@
 import Steve from '@/plugins/steve';
 import {
-  API_GROUP, COUNT, NAMESPACE, NORMAN, RANCHER,
+  API_GROUP, COUNT, NAMESPACE, NORMAN, EXTERNAL, MANAGEMENT
 } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
@@ -42,7 +42,7 @@ export const getters = {
   },
 
   currentCluster(state, getters) {
-    return getters['management/byId'](RANCHER.CLUSTER, state.clusterId);
+    return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId);
   },
 
   namespaces(state) {
@@ -106,10 +106,10 @@ export const actions = {
 
     let isRancher = false;
 
-    if ( getters['management/schemaFor'](RANCHER.CLUSTER) ) {
+    if ( getters['management/schemaFor'](MANAGEMENT.CLUSTER) ) {
       isRancher = true;
 
-      await dispatch('management/findAll', { type: RANCHER.CLUSTER, opt: { url: 'management.cattle.io.v3.clusters' } });
+      await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { url: `${ MANAGEMENT.CLUSTER }s` } });
     }
 
     commit('managementChanged', { ready: true, isRancher });
@@ -147,12 +147,12 @@ export const actions = {
       return;
     }
 
-    console.log('Loading cluster...');
+    console.log(`Loading ${ isRancher ? 'Rancher ' : '' }cluster...`);
 
     if ( isRancher ) {
       // See if it really exists
       cluster = dispatch('management/find', {
-        type: RANCHER.CLUSTER,
+        type: MANAGEMENT.CLUSTER,
         id,
         opt:  { url: `management.cattle.io.v3.clusters/${ escape(id) }` }
       });
@@ -161,10 +161,10 @@ export const actions = {
       externalBase = `/v1/management.cattle.io.v3.clusters/${ escape(id) }`;
     } else {
       // Make a fake cluste and push it into the store
-      if ( !getters['management/byId'](RANCHER.CLUSTER, 'local') ) {
+      if ( !getters['management/byId'](MANAGEMENT.CLUSTER, 'local') ) {
         cluster = await dispatch('management/create', {
           id:         'local',
-          type:       RANCHER.CLUSTER,
+          type:       MANAGEMENT.CLUSTER,
           links:      { self: '' },
           metadata:   { name: 'local' },
           status:   {
@@ -200,6 +200,7 @@ export const actions = {
       commit('clusterExternal/applyConfig', { baseUrl: externalBase });
       dispatch('clusterExternal/subscribe');
       await dispatch('clusterExternal/loadSchemas');
+      await dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT, opt: { url: 'projects' } });
     }
 
     const res = await allHash({
