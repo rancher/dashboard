@@ -20,23 +20,26 @@ export const TLS_CERT = 'kubernetes.io/tls';
 export const NORMAN = {
   AUTH_CONFIG: 'authconfig',
   PRINCIPAL:   'principal',
-  USER:        'user',
-  PREFERENCE:  'preference',
   SETTING:     'setting',
 };
 
-export const PROJECT = { APPS: 'project.cattle.io.v3.app' };
+// Rancher Management API via Steve, /v1
 export const MANAGEMENT = {
   PROJECTS:         'management.cattle.io.v3.project',
   CATALOGS:         'management.cattle.io.v3.catalog',
   CATALOG_TEMPLATE: 'management.cattle.io.v3.catalogtemplate',
+  CLUSTER:          'management.cattle.io.v3.cluster',
+  USER:             'management.cattle.io.v3.user'
 };
 
-// New Rancher API via Steve, /v1
-export const RANCHER = {
-  CLUSTER: 'management.cattle.io.v3.cluster',
-  USER:    'management.cattle.io.v3.user'
+// Rancher cluster-scoped things that actually live in management plane
+// /v1/management.cattle.io.v3.clusters/<id>/
+export const EXTERNAL = {
+  PROJECT: 'project',
+  APP:     'app',
 };
+
+// Other types via Steve, /k8s/clusters/<id>/v1/
 
 export const RBAC = {
   ROLE:                 'rbac.authorization.k8s.io.v1.role',
@@ -58,7 +61,6 @@ export const RIO = {
   SERVICE:          'rio.cattle.io.v1.service',
 
   SYSTEM_NAMESPACE: 'rio-system',
-
 };
 
 export const WORKLOAD = {

@@ -9,6 +9,7 @@ import { NORMAN } from '@/config/types';
 import { open, popupWindowOptions } from '@/utils/window';
 import { findBy, filterBy, addObject, removeObject } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
+import { getVendor, getProduct } from '@/config/private-label';
 
 export default {
   layout: 'plain',
@@ -105,6 +106,8 @@ export default {
     */
 
     return {
+      vendor:      getVendor(),
+      product:     getProduct(),
       firstLogin:  firstLoginSetting.value === 'true',
       step:        parseInt(route.query.step, 10) || 1,
 
@@ -308,7 +311,7 @@ export default {
     <form v-if="step === 1">
       <div class="row">
         <div class="col span-6">
-          <h1>Welcome to Rio!</h1>
+          <h1>Welcome to {{ product }}!</h1>
 
           <p class="text-muted mb-20 mt-20" style="line-height: 1.2em;">
             The first order of business is to set a strong password for the default <code>admin</code> user.

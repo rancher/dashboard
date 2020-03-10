@@ -17,10 +17,10 @@ export default {
 
   computed: {
     ...mapGetters({
-      targetElem:  'actionMenu/elem',
-      targetEvent: 'actionMenu/event',
-      shouldShow:  'actionMenu/showing',
-      options:     'actionMenu/options'
+      targetElem:  'action-menu/elem',
+      targetEvent: 'action-menu/event',
+      shouldShow:  'action-menu/showing',
+      options:     'action-menu/options'
     }),
 
     showing() {
@@ -50,7 +50,7 @@ export default {
 
   methods: {
     hide() {
-      this.$store.commit('actionMenu/hide');
+      this.$store.commit('action-menu/hide');
     },
 
     updateStyle() {
@@ -74,7 +74,7 @@ export default {
     },
 
     execute(action, args) {
-      this.$store.dispatch('actionMenu/execute', { action, args });
+      this.$store.dispatch('action-menu/execute', { action, args });
       this.hide();
     }
   },

@@ -144,7 +144,7 @@ export default {
       const actionElement = $(e.target).closest('.actions')[0];
 
       if ( actionElement ) {
-        this.$store.commit(`actionMenu/show`, {
+        this.$store.commit(`action-menu/show`, {
           resources: node,
           elem:      actionElement
         });
@@ -200,7 +200,7 @@ export default {
         this.update([node], this.selectedNodes.slice());
       }
 
-      this.$store.commit(`actionMenu/show`, {
+      this.$store.commit(`action-menu/show`, {
         resources: this.selectedNodes,
         event:     e.originalEvent,
       });

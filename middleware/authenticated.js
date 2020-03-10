@@ -57,10 +57,9 @@ export default async function({
   const clusterId = get(route, 'params.cluster');
 
   try {
-    await Promise.all([
-      store.dispatch('loadManagement'),
-      store.dispatch('loadCluster', clusterId),
-    ]);
+    // Not in parallel, cluster needs isRancher from management
+    await store.dispatch('loadManagement');
+    await store.dispatch('loadCluster', clusterId);
   } catch (e) {
     if ( e instanceof ClusterNotFoundError ) {
       redirect(302, '/clusters');

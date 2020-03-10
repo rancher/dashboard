@@ -29,23 +29,23 @@ export const NAME_UNLINKED = {
 export const NAMESPACE_NAME_UNLINKED = {
   name:      'namespace-name',
   label:     'Name',
-  value:     'namespaceNameDisplay',
-  sort:      ['namespaceNameSort'],
+  value:     'namespacedName',
+  sort:      ['namespacedNameSort'],
 };
 
 export const NAMESPACE_NAME = {
   name:      'namespace-name',
   label:     'Name',
-  value:     'namespaceNameDisplay',
-  sort:      ['namespaceNameSort'],
+  value:     'namespacedName',
+  sort:      ['namespacedNameSort'],
   formatter: 'LinkDetail',
 };
 
 export const NAMESPACE_NAME_IMAGE = {
   name:      'namespace-name-image',
   label:     'Name',
-  value:     'namespaceNameDisplay',
-  sort:      ['namespaceNameSort'],
+  value:     'namespacedName',
+  sort:      ['namespacedNameSort'],
   formatter: 'LinkDetailImage',
 };
 

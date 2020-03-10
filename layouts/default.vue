@@ -1,10 +1,10 @@
 <script>
+import { debounce } from 'lodash';
 import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
 import {
   mapPref, DEV, THEME, EXPANDED_GROUPS, NAV_SHOW
 } from '@/store/prefs';
-import { allTypes, getTree } from '@/config/nav-cluster';
 import applyTypeConfigs from '@/config/type-config';
 import ActionMenu from '@/components/ActionMenu';
 import ButtonGroup from '@/components/ButtonGroup';
@@ -15,9 +15,7 @@ import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
-import { NORMAN, RANCHER } from '@/config/types';
-
-applyTypeConfigs();
+import { COUNT, NORMAN } from '@/config/types';
 
 export default {
 
@@ -33,6 +31,10 @@ export default {
     WindowManager
   },
 
+  data() {
+    return { groups: [] };
+  },
+
   middleware: ['authenticated'],
 
   head() {
@@ -44,23 +46,15 @@ export default {
     };
   },
 
-  data() {
-    return { packages: [] };
-  },
-
   computed: {
-    ...mapState(['managementReady', 'clusterReady']),
+    ...mapState(['managementReady', 'clusterReady', 'isRancher']),
 
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
     navShow:        mapPref(NAV_SHOW),
 
-    multiCluster() {
-      return this.$store.getters['management/hasType'](RANCHER.CLUSTER);
-    },
-
     backToRancherLink() {
-      if ( !this.multiCluster ) {
+      if ( !this.isRancher ) {
         return;
       }
 
@@ -92,32 +86,51 @@ export default {
       return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
 
-    groups() {
-      const clusterId = this.$store.getters['clusterId'];
-      const namespaces = this.$store.getters['namespaces'] || [];
-      const types = allTypes(this.$store);
-      const mode = this.navShow;
-      const currentType = this.$route.params.resource || '';
+    counts() {
+      // So that there's something to watch for updates
+      if ( this.$store.getters['cluster/haveAll'](COUNT) ) {
+        const counts = this.$store.getters['cluster/all'](COUNT)[0].counts;
 
-      if ( !types ) {
-        return [];
+        return counts;
       }
 
-      const out = getTree(mode, clusterId, types, namespaces, currentType);
-
-      return out;
-    }
+      return {};
+    },
   },
 
-  /*
   watch: {
-    allTypes() {
-      this.getTree();
+    counts() {
+      this.queueUpdate();
     }
   },
-*/
+
+  mounted() {
+    this.getGroups();
+  },
+
+  created() {
+    this.queueUpdate = debounce(this.getGroups, 500);
+    applyTypeConfigs(this.$store);
+  },
 
   methods: {
+    getGroups() {
+      if ( !this.clusterReady ) {
+        this.groups = [];
+
+        return;
+      }
+
+      const mode = this.navShow;
+      const clusterId = this.$store.getters['clusterId'];
+      const namespaces = this.$store.getters['namespaces'] || [];
+      const currentType = this.$route.params.resource || '';
+
+      const out = this.$store.getters['nav-tree/getTree'](mode, clusterId, namespaces, currentType);
+
+      this.groups = out;
+    },
+
     toggleGroup(route, expanded) {
       const groups = this.expandedGroups.slice();
 
@@ -142,10 +155,10 @@ export default {
 </script>
 
 <template>
-  <div v-if="managementReady" class="dashboard-root" :class="{'multi-cluster': multiCluster, 'back-to-rancher': backToRancherLink}">
+  <div v-if="managementReady" class="dashboard-root" :class="{'multi-cluster': isRancher, 'back-to-rancher': backToRancherLink}">
     <div class="cluster">
       <div class="logo" alt="Logo" />
-      <ClusterSwitcher v-if="multiCluster" />
+      <ClusterSwitcher v-if="isRancher" />
     </div>
 
     <div v-if="clusterReady" class="top">
@@ -165,7 +178,8 @@ export default {
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >
         <div class="text-right">
-          <img :src="principal.avatarSrc" width="40" height="40" />
+          <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" width="40" height="40" />
+          <i v-else class="icon icon-user icon-3x" />
         </div>
 
         <template slot="popover">
@@ -177,7 +191,7 @@ export default {
             <nuxt-link tag="li" :to="{name: 'prefs'}" class="pt-10 pb-10 hand">
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
-            <nuxt-link tag="li" :to="{name: 'auth-logout'}" class="pt-10 pb-10 hand">
+            <nuxt-link v-if="isRancher" tag="li" :to="{name: 'auth-logout'}" class="pt-10 pb-10 hand">
               <a>Log Out <i class="icon icon-fw icon-close" /></a>
             </nuxt-link>
           </ul>
@@ -318,6 +332,7 @@ export default {
     > .switcher {
       margin: 10px 0 0 0;
       text-align: center;
+      grid-area: switcher;
     }
   }
 

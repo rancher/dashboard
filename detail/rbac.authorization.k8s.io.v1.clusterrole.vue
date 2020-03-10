@@ -4,7 +4,6 @@ import DetailTop from '@/components/DetailTop';
 import VStack from '@/components/Layout/Stack/VStack';
 import TableRbacRules from '@/components/TableRbacRules';
 import { DESCRIPTION } from '@/config/labels-annotations';
-import { singularLabelFor } from '@/utils/customized';
 
 /**
  * Detail view for RBAC Cluster Role
@@ -33,13 +32,6 @@ export default {
   },
 
   computed: {
-    /**
-     * Returns friendly type (singlar)
-     */
-    typeDisplay() {
-      return singularLabelFor(this.value.schema);
-    },
-
     /**
      * Returns description from annotations
      */

@@ -1,6 +1,6 @@
 import Steve from '@/plugins/steve';
 import {
-  API_GROUP, COUNT, NAMESPACE, NORMAN, RANCHER
+  API_GROUP, COUNT, NAMESPACE, NORMAN, EXTERNAL, MANAGEMENT
 } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
@@ -21,6 +21,7 @@ export const state = () => {
   return {
     managementReady:  false,
     clusterReady:    false,
+    isRancher:       false,
     namespaces:      [],
     allNamespaces:   null,
     clusterId:       null,
@@ -32,12 +33,16 @@ export const getters = {
     return state.namespaces.length !== 1;
   },
 
+  isRancher(state) {
+    return state.isRancher === true;
+  },
+
   clusterId(state) {
     return state.clusterId;
   },
 
   currentCluster(state, getters) {
-    return getters['management/byId'](RANCHER.CLUSTER, state.clusterId);
+    return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId);
   },
 
   namespaces(state) {
@@ -52,8 +57,9 @@ export const getters = {
 };
 
 export const mutations = {
-  managementChanged(state, ready) {
+  managementChanged(state, { ready, isRancher }) {
     state.managementReady = ready;
+    state.isRancher = isRancher;
   },
 
   clusterChanged(state, ready) {
@@ -74,7 +80,9 @@ export const mutations = {
 };
 
 export const actions = {
-  async loadManagement({ state, commit, dispatch }) {
+  async loadManagement({
+    getters, state, commit, dispatch
+  }) {
     if ( state.managementReady ) {
       // Do nothing, it's already loaded
       return;
@@ -90,14 +98,21 @@ export const actions = {
 
     await allHash({
       prefs:      dispatch('prefs/loadCookies'),
-      management: Promise.all([
+      schemas: Promise.all([
         dispatch('management/subscribe'),
         dispatch('management/loadSchemas'),
-        dispatch('management/findAll', { type: RANCHER.CLUSTER, opt: { url: 'management.cattle.io.v3.clusters' } }),
       ]),
     });
 
-    commit('managementChanged', true);
+    let isRancher = false;
+
+    if ( getters['management/schemaFor'](MANAGEMENT.CLUSTER) ) {
+      isRancher = true;
+
+      await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { url: `${ MANAGEMENT.CLUSTER }s` } });
+    }
+
+    commit('managementChanged', { ready: true, isRancher });
 
     console.log('Done loading management.');
   },
@@ -105,6 +120,9 @@ export const actions = {
   async loadCluster({
     state, commit, dispatch, getters
   }, id) {
+    let cluster, clusterBase, externalBase;
+    const isRancher = getters['isRancher'];
+
     if ( state.clusterReady && state.clusterId && state.clusterId === id ) {
       // Do nothing, we're already connected to this cluster
       return;
@@ -129,14 +147,42 @@ export const actions = {
       return;
     }
 
-    console.log('Loading cluster...');
+    console.log(`Loading ${ isRancher ? 'Rancher ' : '' }cluster...`);
 
-    // See if it really exists
-    const cluster = dispatch('management/find', {
-      type: RANCHER.CLUSTER,
-      id,
-      opt:  { url: `management.cattle.io.v3.clusters/${ escape(id) }` }
-    });
+    if ( isRancher ) {
+      // See if it really exists
+      cluster = dispatch('management/find', {
+        type: MANAGEMENT.CLUSTER,
+        id,
+        opt:  { url: `management.cattle.io.v3.clusters/${ escape(id) }` }
+      });
+
+      clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
+      externalBase = `/v1/management.cattle.io.v3.clusters/${ escape(id) }`;
+    } else {
+      // Make a fake cluste and push it into the store
+      if ( !getters['management/byId'](MANAGEMENT.CLUSTER, 'local') ) {
+        cluster = await dispatch('management/create', {
+          id:         'local',
+          type:       MANAGEMENT.CLUSTER,
+          links:      { self: '' },
+          metadata:   { name: 'local' },
+          status:   {
+            conditions: [{
+              type:   'Ready',
+              status: 'True'
+            }],
+          }
+        });
+
+        await dispatch('management/load', cluster);
+      }
+
+      commit('setCluster', cluster.id);
+
+      clusterBase = '/v1';
+      externalBase = null;
+    }
 
     if ( !cluster ) {
       commit('setCluster', null);
@@ -146,14 +192,16 @@ export const actions = {
     }
 
     // Update the Steve client URL
-    commit('cluster/applyConfig', { baseUrl: `/k8s/clusters/${ escape(id) }/v1` });
-    commit('clusterExternal/applyConfig', { baseUrl: `/v1/management.cattle.io.v3.clusters/${ escape(id) }` });
-
+    commit('cluster/applyConfig', { baseUrl: clusterBase });
     await dispatch('cluster/loadSchemas');
-    await dispatch('clusterExternal/loadSchemas');
-
     dispatch('cluster/subscribe');
-    dispatch('clusterExternal/subscribe');
+
+    if ( isRancher ) {
+      commit('clusterExternal/applyConfig', { baseUrl: externalBase });
+      dispatch('clusterExternal/subscribe');
+      await dispatch('clusterExternal/loadSchemas');
+      await dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT, opt: { url: 'projects' } });
+    }
 
     const res = await allHash({
       apiGroups:  dispatch('cluster/findAll', { type: API_GROUP, opt: { url: 'apiGroups', watch: false } }),
@@ -177,7 +225,7 @@ export const actions = {
   },
 
   onLogout({ commit }) {
-    commit('managementChanged', false);
+    commit('managementChanged', { ready: false });
     commit('management/removeAll');
 
     commit('cluster/removeAll');

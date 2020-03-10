@@ -3,7 +3,7 @@ export const STANDARD = 1;
 export const CUSTOM = 2;
 
 let mode = STANDARD;
-let vendor = 'YourCompany';
+let vendor = 'Rancher';
 let product = 'Dashboard';
 
 export function setMode(m) {

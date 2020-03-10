@@ -26,6 +26,8 @@ export default class Socket extends EventTarget {
   autoReconnect = true;
   frameTimeout = 35000;
   metadata = {};
+  hasBeenOpen = false;
+  hasReconnected = false;
 
   // "Private"
   socket = null;
@@ -161,6 +163,11 @@ export default class Socket extends EventTarget {
       after = now - at;
     }
 
+    if ( this.hasBeenOpen ) {
+      this.hasReconnected = true;
+    }
+
+    this.hasBeenOpen = true;
     this.state = STATE_CONNECTED;
     this.framesReceived = 0;
     this.disconnectedAt = 0;

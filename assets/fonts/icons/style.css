@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'icons';
   src:
-    url('fonts/icons.ttf?g1p8hr') format('truetype'),
-    url('fonts/icons.woff?g1p8hr') format('woff'),
-    url('fonts/icons.svg?g1p8hr#icons') format('svg');
+    url('fonts/icons.ttf?o382oj') format('truetype'),
+    url('fonts/icons.woff?o382oj') format('woff'),
+    url('fonts/icons.svg?o382oj#icons') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -101,6 +101,9 @@
 }
 .icon-gear:before {
   content: "\e910";
+}
+.icon-globe:before {
+  content: "\e924";
 }
 .icon-search:before {
   content: "\e911";

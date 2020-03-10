@@ -1,5 +1,4 @@
 <script>
-import { pluralLabelFor, headersFor } from '../utils/customized';
 import { findBy, filterBy } from '@/utils/array';
 import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
@@ -47,8 +46,8 @@ export default {
         return {
           schema,
           id:      key,
-          label:   pluralLabelFor(schema),
-          headers: headersFor(schema),
+          label:   this.$store.getters['nav-tree/pluralLabelFor'](schema),
+          headers: this.$store.getters['nav-tree/headersFor'](schema),
           rows:    map[key],
         };
       });

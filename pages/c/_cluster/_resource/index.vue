@@ -1,23 +1,27 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import { hasCustomList, importList, pluralLabelFor, headersFor } from '@/utils/customized';
+
 export default {
   components: { ResourceTable },
   computed:   {
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.resource);
     },
+
     headers() {
-      return headersFor(this.schema);
+      return this.$store.getters['nav-tree/headersFor'](this.schema);
     },
+
     hasComponent() {
-      return hasCustomList(this.resource);
+      return this.$store.getters['nav-tree/hasCustomList'](this.resource);
     },
+
     showComponent() {
-      return importList(this.resource);
+      return this.$store.getters['nav-tree/importList'](this.resource);
     },
+
     typeDisplay() {
-      return pluralLabelFor(this.schema);
+      return this.$store.getters['nav-tree/pluralLabelFor'](this.schema);
     },
   },
   asyncData(ctx) {

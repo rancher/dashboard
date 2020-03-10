@@ -7,12 +7,6 @@ import {
   EDIT_YAML, _FLAGGED, _CREATE
 } from '@/config/query-params';
 import { NAMESPACE } from '@/config/types';
-import {
-  singularLabelFor,
-  hasCustomDetail as _hasCustomDetail,
-  hasCustomEdit as _hasCustomEdit,
-  importDetail, importEdit
-} from '@/utils/customized';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.
@@ -20,8 +14,8 @@ export async function asyncData(ctx) {
   const { store, params, route } = ctx;
   const { resource, namespace, id } = params;
 
-  const hasCustomDetail = _hasCustomDetail(resource);
-  const hasCustomEdit = _hasCustomEdit(resource);
+  const hasCustomDetail = store.getters['nav-tree/hasCustomDetail'](resource);
+  const hasCustomEdit = store.getters['nav-tree/hasCustomEdit'](resource);
 
   // There are 5 "real" modes: view, create, edit, stage, clone
   // which later map to 3 logical/page modes: view, create, edit (stage and clone are "create")
@@ -170,16 +164,16 @@ export default {
 
     showComponent() {
       if ( this.isView && this.hasCustomDetail ) {
-        return importDetail(this.resource);
+        return this.$store.getters['nav-tree/importDetail'](this.resource);
       } else if ( !this.isView && this.hasCustomEdit ) {
-        return importEdit(this.resource);
+        return this.$store.getters['nav-tree/importEdit'](this.resource);
       }
 
       return null;
     },
 
     typeDisplay() {
-      return singularLabelFor(this.schema);
+      return this.$store.getters['nav-tree/singularLabelFor'](this.schema);
     },
 
     namespaceSuffixOnCreate() {
@@ -189,7 +183,7 @@ export default {
 
   methods: {
     showActions() {
-      this.$store.commit('actionMenu/show', {
+      this.$store.commit('action-menu/show', {
         resources: this.originalModel,
         elem:      this.$refs.actions,
       });

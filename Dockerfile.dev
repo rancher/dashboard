@@ -1,0 +1,7 @@
+FROM node:10
+
+RUN mkdir /src
+WORKDIR /src
+
+EXPOSE 8005
+ENTRYPOINT ["scripts/dev"]

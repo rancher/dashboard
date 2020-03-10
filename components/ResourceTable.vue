@@ -8,7 +8,6 @@ import {
   NAMESPACE_NAME, NAMESPACE_NAME_UNLINKED,
   NAMESPACE_NAME_IMAGE, NAME_IMAGE,
 } from '@/config/table-headers';
-import { headersFor } from '@/utils/customized';
 
 export default {
   components: { ButtonGroup, SortableTable },
@@ -65,7 +64,7 @@ export default {
       if ( this.headers ) {
         headers = this.headers.slice();
       } else {
-        headers = headersFor(this.schema);
+        headers = this.$store.getters['nav-tree/headersFor'](this.schema);
       }
 
       // If only one namespace is selected, replace the namespace_name

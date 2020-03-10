@@ -6,7 +6,6 @@ import {
   MODE, _EDIT, _CLONE,
   EDIT_YAML, _FLAGGED
 } from '@/config/query-params';
-import { hasCustomEdit, pluralLabelFor } from '@/utils/customized';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { addParams } from '@/utils/url';
@@ -111,7 +110,11 @@ export default {
     return sortableNumericSuffix(this.nameDisplay).toLowerCase();
   },
 
-  namespaceNameDisplay() {
+  typeDisplay() {
+    return this.$store.getters['nav-tree/singularLabelFor'](this.schema);
+  },
+
+  namespacedName() {
     const namespace = this.metadata.namespace;
     const name = this.metadata.name || this.id;
 
@@ -122,8 +125,8 @@ export default {
     return name;
   },
 
-  namespaceNameSort() {
-    return sortableNumericSuffix(this.namespaceNameDisplay).toLowerCase();
+  namespacedNameSort() {
+    return sortableNumericSuffix(this.namespacedName).toLowerCase();
   },
 
   // You can override the state by providing your own state (and possibly reading metadata.state)
@@ -342,7 +345,7 @@ export default {
     const all = [];
     const links = this.links || {};
     const hasView = !!links.rioview || !!links.view;
-    const customEdit = hasCustomEdit(this.type);
+    const customEdit = this.$rootGetters['nav-tree/hasCustomEdit'](this.type);
 
     if ( customEdit ) {
       all.push({
@@ -539,9 +542,12 @@ export default {
 
       const res = await this.$dispatch('request', opt);
 
-      await this.$dispatch('load', res);
+      // @TODO Steve always returns tables...
+      if ( !res.Kind !== 'Table') {
+        await this.$dispatch('load', { data: res, existing: this });
+      }
 
-      return res;
+      return this;
     };
   },
 
@@ -707,7 +713,7 @@ export default {
 
     const [group, version] = this.apiVersion.split('/');
 
-    const pluralName = pluralLabelFor(schema).split('.').pop().toLowerCase();
+    const pluralName = this.$rootGetters['nav-tree/pluralLabelFor'](schema).split('.').pop().toLowerCase();
 
     url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/${ version }/namespaces/${ namespace }/${ pluralName }`;
 

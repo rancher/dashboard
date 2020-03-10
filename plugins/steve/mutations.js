@@ -54,24 +54,33 @@ export default {
     cache.haveAll = true;
   },
 
-  load(state, { resource, ctx }) {
-    let type = normalizeType(resource.type);
+  load(state, { data, ctx, existing }) {
+    let type = normalizeType(data.type);
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
-    const id = resource[keyField];
+    const id = data[keyField];
     let cache = state.types[type];
+
     let entry = cache.map.get(id);
 
-    if ( entry ) {
-      Object.assign(entry, resource);
+    if ( existing ) {
+      // A specific proxy instance to used was passed in (for create -> save),
+      // use it instead of making a new proxy
+      entry = existing;
+      Object.assign(entry, data);
+      cache.map.set(id, entry);
+    } else if ( entry ) {
+      // There's already an entry in the store, update it
+      Object.assign(entry, data);
     } else {
-      entry = proxyFor(ctx, resource);
+      // There's no entry, make a new proxy
+      entry = proxyFor(ctx, data);
 
       addObject(cache.list, entry);
       cache.map.set(id, entry);
     }
 
-    if ( resource.baseType ) {
-      type = normalizeType(resource.baseType);
+    if ( data.baseType ) {
+      type = normalizeType(data.baseType);
       cache = state.types[type];
       if ( cache ) {
         addObject(cache.list, entry);

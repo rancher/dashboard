@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es2017",
-    "allowSyntheticDefaultImports": false,
-    "baseUrl": "./",
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "module": "commonjs",
     "paths": {
-      "@/*": ["*"],
-      "~/*": ["*"]
-    }
+      "@/*": ["*"]
+    },
+    "sourceMap": true,
+    "target": "es2017"
   },
   "exclude": ["node_modules", "dist","tmp"]
 }

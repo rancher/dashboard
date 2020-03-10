@@ -163,24 +163,24 @@ export default {
       commit('registerType', type);
     }
 
-    await dispatch('load', res);
+    await dispatch('load', { data: res });
 
     out = getters.byId(type, id);
 
     return out;
   },
 
-  load(ctx, resource) {
+  load(ctx, { data, existing }) {
     const { getters, commit } = ctx;
 
-    let type = normalizeType(resource.type);
+    let type = normalizeType(data.type);
 
     if ( !getters.hasType(type) ) {
       commit('registerType', type);
     }
 
-    if ( resource.baseType && resource.baseType !== resource.type ) {
-      type = normalizeType(resource.baseType);
+    if ( data.baseType && data.baseType !== data.type ) {
+      type = normalizeType(data.baseType);
 
       if ( !getters.hasType(type) ) {
         commit('registerType', type);
@@ -190,7 +190,18 @@ export default {
     commit('load', {
       ctx,
       type,
-      resource
+      data,
+      existing
+    });
+  },
+
+  loadAll(ctx, { type, data }) {
+    const { commit } = ctx;
+
+    commit('loadAll', {
+      ctx,
+      type,
+      data
     });
   },
 
@@ -205,6 +216,6 @@ export default {
   },
 
   promptRemove({ commit, state }, resources = []) {
-    commit('actionMenu/togglePromptRemove', resources, { root: true });
+    commit('action-menu/togglePromptRemove', resources, { root: true });
   }
 };
