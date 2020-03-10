@@ -3,7 +3,7 @@ import CodeMirror from './CodeMirror';
 import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
 import { NAMESPACE } from '@/config/types';
-import { _VIEW } from '@/config/query-params';
+import { _VIEW, _EDIT } from '@/config/query-params';
 import GatekeeperTables from '@/components/GatekeeperTables';
 import { findBy } from '@/utils/array';
 
@@ -55,7 +55,8 @@ export default {
     return {
       gatekeeperEnabled,
       showYamlEditor: false,
-      errors:         null,
+      errors:         [],
+      saving:         false,
     };
   },
 
@@ -98,6 +99,16 @@ export default {
     },
   },
 
+  watch: {
+    mode() {
+      if (this.mode === _EDIT) {
+        this.showYamlEditor = true;
+      } else {
+        this.showYamlEditor = false;
+      }
+    },
+  },
+
   methods: {
     async ensureNamespace() {
       if ( findBy(this.namespaces, 'metadata.name', 'gatekeeper-system') ) {
@@ -118,6 +129,12 @@ export default {
       // await newSystemNs.waitForState('active');
     },
 
+    showActions() {
+      this.$store.commit('actionMenu/show', {
+        resources: this.config,
+        elem:      this.$refs.actions,
+      });
+    },
     /**
      * Gets called when the user clicks on the button
      * Checks for the system namespace and creates that first if it does not exist
@@ -142,6 +159,8 @@ export default {
         }
         buttonCb(false);
       }
+
+      this.saving = false;
     },
 
     /**
@@ -150,7 +169,11 @@ export default {
      */
     openYamlEditor() {
       if (this.showYamlEditor) {
-        this.showYamlEditor = false;
+        if (this.mode === _EDIT) {
+          this.$router.push({ name: this.$route.name });
+        } else {
+          this.showYamlEditor = false;
+        }
       } else {
         this.showYamlEditor = true;
       }
@@ -271,10 +294,13 @@ export default {
           v-bind="$attrs"
           @click="disable"
         />
+        <button ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
+          <i class="icon icon-actions" />
+        </button>
       </div>
     </header>
-    <div v-if="gatekeeperEnabled" class="mt-20 text-center">
-      <GatekeeperTables />
+    <div v-if="gatekeeperEnabled" class="mt-20">
+      <GatekeeperTables v-if="gatekeeperEnabled && !showYamlEditor" />
     </div>
     <div v-else class="mt-20 mb-20">
       <hr />
@@ -313,6 +339,7 @@ export default {
           <button
             type="button"
             class="btn bg-primary"
+            :disable="saving"
             @click="openYamlEditor"
           >
             Customize Configuration
@@ -333,7 +360,7 @@ export default {
         @onChanges="onChanges"
       />
       <Footer
-        mode="create"
+        :mode="mode"
         @errors="errors"
         @save="enable"
         @done="openYamlEditor"

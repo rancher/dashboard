@@ -1,7 +1,7 @@
 <script>
 import { NAMESPACE, MANAGEMENT, EXTERNAL } from '@/config/types';
 import GatekeeperConfig from '@/components/GatekeeperConfig';
-import { _CREATE, _VIEW } from '@/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 
 const TEMPLATE_ID = 'cattle-global-data/system-library-rancher-gatekeeper-operator';
 const APP_ID = 'rancher-gatekeeper-operator';
@@ -33,11 +33,14 @@ export default {
   components: { GatekeeperConfig },
 
   data() {
-    return { gateKeeperUnAvailable: false };
+    return {
+      gateKeeperUnavailable: false,
+      mode:                  _VIEW,
+    };
   },
 
-  async asyncData({ store }) {
-    let mode = _VIEW;
+  async asyncData({ store, route }) {
+    let mode = route?.query?.mode ? route.query.mode : _VIEW;
 
     try {
       const template = await store.dispatch('management/find', {
@@ -46,7 +49,10 @@ export default {
       });
 
       if (!template?.id ) {
-        return { gateKeeperUnAvailable: true };
+        return {
+          gateKeeperUnavailable: true,
+          mode:                  _VIEW,
+        };
       }
 
       // clusterID is on router.state.clusterid and find
@@ -102,15 +108,27 @@ export default {
     } catch (e) {
       console.error(e);
 
-      return { gateKeeperUnAvailable: true };
+      return {
+        gateKeeperUnavailable: true,
+        mode:                  _VIEW,
+      };
     }
+  },
+
+  beforeRouteUpdate(to, from, next) {
+    if (to.query?.mode === _EDIT) {
+      this.mode = _EDIT;
+    } else if (from.query?.mode === _EDIT && !to.query?.mode) {
+      this.mode = _VIEW;
+    }
+    next();
   },
 };
 </script>
 
 <template>
   <div>
-    <div v-if="gateKeeperUnAvailable">
+    <div v-if="gateKeeperUnavailable">
       <h2 class="text-center mt-50">
         OPA + Gatekeeper is not available in the system-charts catalog.
       </h2>
