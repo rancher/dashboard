@@ -47,7 +47,7 @@ export default function(store) {
   ignoreType('events.k8s.io.event'); // Events type moved into core
   ignoreType('extensions.ingress'); // Moved into networking
 
-  mapType('core.v1.endpoints', 'Endpoint'); // Bad plural
+  mapType('endpoints', 'Endpoint'); // Bad plural
 
   // Move some core things into Cluster
   moveType(/^core\.v1\.(namespace|node|persistentvolume)$/, 'Cluster');

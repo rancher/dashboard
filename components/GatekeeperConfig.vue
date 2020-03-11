@@ -3,8 +3,7 @@ import CodeMirror from './CodeMirror';
 import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
 import { NAMESPACE } from '@/config/types';
-import { _VIEW } from '@/config/query-params';
-import GatekeeperTables from '@/components/GatekeeperTables';
+import { _VIEW, _EDIT } from '@/config/query-params';
 import { findBy } from '@/utils/array';
 
 export default {
@@ -13,7 +12,6 @@ export default {
   components: {
     AsyncButton,
     CodeMirror,
-    GatekeeperTables,
     Footer,
   },
 
@@ -47,15 +45,21 @@ export default {
 
   data() {
     let gatekeeperEnabled = false;
+    let showYamlEditor = false;
 
     if (this.config && this.config.id) {
       gatekeeperEnabled = true;
     }
 
+    if (this.mode === _EDIT) {
+      showYamlEditor = true;
+    }
+
     return {
       gatekeeperEnabled,
-      showYamlEditor: false,
-      errors:         null,
+      showYamlEditor,
+      errors:         [],
+      saving:         false,
     };
   },
 
@@ -96,6 +100,31 @@ export default {
         cursorBlinkRate: ( readOnly ? -1 : 530)
       };
     },
+
+    parsedValuesYaml() {
+      const yamlValues = this.config?.spec?.valuesYaml;
+      let safeValues = null;
+
+      try {
+        safeValues = window.jsyaml.safeLoad(yamlValues);
+
+        return safeValues;
+      } catch (e) {
+        console.error('Unable to parse Yaml Values', e);
+
+        return {};
+      }
+    },
+  },
+
+  watch: {
+    mode() {
+      if (this.mode === _EDIT) {
+        this.showYamlEditor = true;
+      } else {
+        this.showYamlEditor = false;
+      }
+    },
   },
 
   methods: {
@@ -115,9 +144,16 @@ export default {
 
       await newSystemNs.save();
       // TODO save doesnt push this object into the store it cerates a new one so waiting on a merge fucntion to be added to save before do this.
+      // console.log('awaiting namespace');
       // await newSystemNs.waitForState('active');
     },
 
+    showActions() {
+      this.$store.commit('action-menu/show', {
+        resources: this.config,
+        elem:      this.$refs.actions,
+      });
+    },
     /**
      * Gets called when the user clicks on the button
      * Checks for the system namespace and creates that first if it does not exist
@@ -130,6 +166,7 @@ export default {
         await this.ensureNamespace();
         await this.config.save();
         // await this.config.waitForCondition('Installed');
+        // console.log('awaiting app installed');
         this.gatekeeperEnabled = true;
         this.showYamlEditor = false;
         buttonCb(true);
@@ -142,6 +179,8 @@ export default {
         }
         buttonCb(false);
       }
+
+      this.saving = false;
     },
 
     /**
@@ -150,7 +189,11 @@ export default {
      */
     openYamlEditor() {
       if (this.showYamlEditor) {
-        this.showYamlEditor = false;
+        if (this.mode === _EDIT) {
+          this.$router.push({ name: this.$route.name });
+        } else {
+          this.showYamlEditor = false;
+        }
       } else {
         this.showYamlEditor = true;
       }
@@ -262,19 +305,53 @@ export default {
         OPA Gatekeeper
       </h1>
       <div v-if="gatekeeperEnabled" class="actions">
-        <AsyncButton
-          :mode="mode"
-          action-label="Disable Gatekeeper"
-          waiting-label="Disabling"
-          success-label="Disabled"
-          error-label="Error disabled"
-          v-bind="$attrs"
-          @click="disable"
-        />
+        <button ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
+          <i class="icon icon-actions" />
+        </button>
       </div>
     </header>
-    <div v-if="gatekeeperEnabled" class="mt-20 text-center">
-      <GatekeeperTables />
+    <div v-if="gatekeeperEnabled" class="mt-20">
+      <div
+        v-if="!showYamlEditor"
+        class="row info-box"
+      >
+        <div class="col span-6">
+          <div class="info-line">
+            <label>Audit From Cache: </label>
+            {{ parsedValuesYaml.auditFromCache }}
+          </div>
+          <div class="info-line">
+            <label>Audit Interval: </label>
+            {{ parsedValuesYaml.auditInterval }}s
+          </div>
+          <div class="info-line">
+            <label>Constraint Violation Limit: </label>
+            {{ parsedValuesYaml.constraintViolationsLimit }}
+          </div>
+          <div class="info-line">
+            <label>Replicas: </label>
+            {{ parsedValuesYaml.replicas }}
+          </div>
+          <div class="info-line">
+            <label>Image: </label>
+            {{ parsedValuesYaml.image.repository }}
+          </div>
+          <div class="info-line">
+            <label>Version: </label>
+            {{ parsedValuesYaml.image.release }}
+          </div>
+        </div>
+        <div class="col span-6">
+          <div class="info-line">
+            <label>Image: </label>
+            {{ parsedValuesYaml.image.repository }}
+          </div>
+          <div class="info-line">
+            <label>Version: </label>
+            {{ parsedValuesYaml.image.release }}
+          </div>
+        </div>
+      </div>
     </div>
     <div v-else class="mt-20 mb-20">
       <hr />
@@ -313,6 +390,7 @@ export default {
           <button
             type="button"
             class="btn bg-primary"
+            :disable="saving"
             @click="openYamlEditor"
           >
             Customize Configuration
@@ -333,7 +411,7 @@ export default {
         @onChanges="onChanges"
       />
       <Footer
-        mode="create"
+        :mode="mode"
         @errors="errors"
         @save="enable"
         @done="openYamlEditor"
@@ -362,6 +440,19 @@ export default {
    }
    .col:first-of-type {
      border-right: 1px solid;
+   }
+ }
+
+ .info-box {
+   background-color: var(--tabbed-container-bg);
+   border: 1px solid var(--tabbed-border);
+   padding: 20px;
+   border-radius: var(--border-radius);
+   .info-line {
+     margin-bottom: 10px;
+     label {
+       color: var(--input-label);
+     }
    }
  }
 </style>
