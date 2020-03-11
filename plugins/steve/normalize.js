@@ -15,6 +15,30 @@ export function normalizeType(type) {
   return type;
 }
 
+/*
+export function parseType(type) {
+  const match = type.match(/^(.*)\.(v\d[^.]*)\.([^.]+)$/);
+
+  if ( match ) {
+    return {
+      group:   match[1],
+      version: match[2],
+      type:    match[3]
+    };
+  }
+}
+
+export function stripVersion(type) {
+  const match = parseType(type);
+
+  if ( !match ) {
+    return type;
+  }
+
+  return `${ match.group }.${ match.type }`;
+}
+*/
+
 export function cleanForNew(obj) {
   delete obj.id;
   delete obj.actions;

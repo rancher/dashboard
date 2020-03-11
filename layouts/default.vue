@@ -126,7 +126,7 @@ export default {
       const namespaces = this.$store.getters['namespaces'] || [];
       const currentType = this.$route.params.resource || '';
 
-      const out = this.$store.getters['nav-tree/getTree'](mode, clusterId, namespaces, currentType);
+      const out = this.$store.getters['type-map/getTree'](mode, clusterId, namespaces, currentType);
 
       this.groups = out;
     },

@@ -46,8 +46,8 @@ export default {
         return {
           schema,
           id:      key,
-          label:   this.$store.getters['nav-tree/pluralLabelFor'](schema),
-          headers: this.$store.getters['nav-tree/headersFor'](schema),
+          label:   this.$store.getters['type-map/pluralLabelFor'](schema),
+          headers: this.$store.getters['type-map/headersFor'](schema),
           rows:    map[key],
         };
       });

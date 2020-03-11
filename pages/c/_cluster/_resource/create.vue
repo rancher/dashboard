@@ -13,15 +13,15 @@ export default {
     },
 
     hasComponent() {
-      return this.$store.getters['nav-tree/hasCustomEdit'](this.resource);
+      return this.$store.getters['type-map/hasCustomEdit'](this.resource);
     },
 
     showComponent() {
-      return this.$store.getters['nav-tree/importEdit'](this.resource);
+      return this.$store.getters['type-map/importEdit'](this.resource);
     },
 
     typeDisplay() {
-      return this.$store.getters['nav-tree/singularLabelFor'](this.schema);
+      return this.$store.getters['type-map/singularLabelFor'](this.schema);
     },
 
     parentLink() {

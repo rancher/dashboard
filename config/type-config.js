@@ -15,7 +15,7 @@ import {
   BUILT_IN, CLUSTER_CREATOR_DEFAULT, INGRESS_TARGET
 } from '@/config/table-headers';
 
-import { DSL } from '@/store/nav-tree';
+import { DSL } from '@/store/type-map';
 
 export default function(store) {
   const {
@@ -44,8 +44,8 @@ export default function(store) {
     PVC,
   ]);
 
-  ignoreType('events.k8s.io.v1beta1.event'); // Events type moved into core
-  ignoreType('extensions.v1beta1.ingress'); // Moved into networking
+  ignoreType('events.k8s.io.event'); // Events type moved into core
+  ignoreType('extensions.ingress'); // Moved into networking
 
   mapType('core.v1.endpoints', 'Endpoint'); // Bad plural
 
@@ -219,7 +219,7 @@ export default function(store) {
     name:       'gatekeeper-constraints',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-constraints' },
-    ifHaveType: 'templates.gatekeeper.sh.v1beta1.constrainttemplate'
+    ifHaveType: 'templates.gatekeeper.sh.constrainttemplate'
   });
 
   virtualType({
@@ -228,6 +228,6 @@ export default function(store) {
     name:       'gatekeeper-templates',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-templates' },
-    ifHaveType: 'templates.gatekeeper.sh.v1beta1.constrainttemplate'
+    ifHaveType: 'templates.gatekeeper.sh.constrainttemplate'
   });
 }

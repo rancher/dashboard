@@ -6,7 +6,7 @@ import findIndex from 'lodash/findIndex';
 import createEditView from '../../mixins/create-edit-view';
 import { typeOf } from '@/utils/sort';
 import KeyValue from '@/components/form/KeyValue';
-import StringMatch from '@/edit/rio.cattle.io.v1.router/StringMatch';
+import StringMatch from '@/edit/rio.cattle.io.router/StringMatch';
 import LabeledInput from '@/components/form/LabeledInput';
 export default {
   components: {

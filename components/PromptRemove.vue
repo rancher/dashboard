@@ -22,9 +22,9 @@ export default {
       }
 
       if ( this.toRemove.length > 1 ) {
-        return this.$store.getters['nav-tree/pluralLabelFor'](schema);
+        return this.$store.getters['type-map/pluralLabelFor'](schema);
       } else {
-        return this.$store.getters['nav-tree/singularLabelFor'](schema);
+        return this.$store.getters['type-map/singularLabelFor'](schema);
       }
     },
 

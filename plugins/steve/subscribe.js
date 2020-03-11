@@ -1,4 +1,3 @@
-import { normalizeType } from './normalize';
 import { get } from '@/utils/object';
 import Socket, {
   EVENT_CONNECTED,
@@ -71,7 +70,7 @@ export const actions = {
   },
 
   watchType({ dispatch, getters }, { type, revision }) {
-    type = normalizeType(type);
+    type = getters.normalizeType(type);
 
     if ( NO_WATCHING.includes(type) ) {
       return;

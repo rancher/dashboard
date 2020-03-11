@@ -1,32 +1,23 @@
 <script>
-import { SCHEMA, API_GROUP } from '@/config/types';
+import { SCHEMA } from '@/config/types';
 import { AGE, NAME, STATE } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 import { DESCRIPTION } from '@/config/labels-annotations';
 
-const CONSTRAINTS_REGEX = new RegExp(/^(.*\.)?constraints.gatekeeper.sh.*$/);
-const CONSTRAINT_TEMPLATES_REGEX = new RegExp(/^(.*\.)?templates.gatekeeper.sh.*$/);
-
-function getAllSchemas(store) {
-  const schemas = store.getters['cluster/all'](SCHEMA);
-
-  return schemas.filter((schema) => {
-    const attrs = schema.attributes || {};
-    const groupName = attrs.group || 'core';
-    const api = store.getters['cluster/byId'](API_GROUP, groupName);
-
-    return attrs.kind &&
-        (!api?.preferredVersion?.version || (api.preferredVersion.version === attrs.version));
-  });
-}
-
 function findTemplateType(schemas) {
-  return schemas.find(schema => CONSTRAINT_TEMPLATES_REGEX.test(schema.id))?.id;
+  // @TODO this will just be a regular single type now that the server filters to preferred version
+  // so you can just add templates.gatekeeper.sh.constrainttemplate as a constant in types.js
+  const template = schemas.find((schema) => {
+    return schema?.attributes?.group === 'templates.gatekeeper.sh' &&
+      schema?.attributes?.kind === 'ConstraintTemplate';
+  });
+
+  return template?.id;
 }
 
 function findConstraintTypes(schemas) {
   return schemas
-    .filter(schema => CONSTRAINTS_REGEX.test(schema.id))
+    .filter(schema => schema?.attributes?.group === 'constraints.gatekeeper.sh')
     .map(schema => schema.id);
 }
 
@@ -64,7 +55,8 @@ export default {
   },
 
   async created() {
-    const schemas = await getAllSchemas(this.$store);
+    const schemas = this.$store.getters['cluster/all'](SCHEMA);
+
     const templateType = findTemplateType(schemas);
     const constraintTypes = findConstraintTypes(schemas);
 
