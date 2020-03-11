@@ -312,8 +312,8 @@ export default {
     </header>
     <div v-if="gatekeeperEnabled" class="mt-20">
       <div
-        class="row info-box"
         v-if="!showYamlEditor"
+        class="row info-box"
       >
         <div class="col span-6">
           <div class="info-line">

@@ -205,7 +205,7 @@ export const actions = {
 
     const res = await allHash({
       counts:     dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
-      namespaces: dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'core.v1.namespaces' } })
+      namespaces: dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })
     });
 
     commit('updateNamespaces', {
