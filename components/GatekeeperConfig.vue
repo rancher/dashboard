@@ -4,7 +4,6 @@ import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
 import { NAMESPACE } from '@/config/types';
 import { _VIEW, _EDIT } from '@/config/query-params';
-import GatekeeperTables from '@/components/GatekeeperTables';
 import { findBy } from '@/utils/array';
 
 export default {
@@ -13,7 +12,6 @@ export default {
   components: {
     AsyncButton,
     CodeMirror,
-    GatekeeperTables,
     Footer,
   },
 
@@ -102,6 +100,21 @@ export default {
         cursorBlinkRate: ( readOnly ? -1 : 530)
       };
     },
+
+    parsedValuesYaml() {
+      const yamlValues = this.config?.spec?.valuesYaml;
+      let safeValues = null;
+
+      try {
+        safeValues = window.jsyaml.safeLoad(yamlValues);
+
+        return safeValues;
+      } catch (e) {
+        console.error('Unable to parse Yaml Values', e);
+
+        return {};
+      }
+    },
   },
 
   watch: {
@@ -131,6 +144,7 @@ export default {
 
       await newSystemNs.save();
       // TODO save doesnt push this object into the store it cerates a new one so waiting on a merge fucntion to be added to save before do this.
+      // console.log('awaiting namespace');
       // await newSystemNs.waitForState('active');
     },
 
@@ -152,6 +166,7 @@ export default {
         await this.ensureNamespace();
         await this.config.save();
         // await this.config.waitForCondition('Installed');
+        // console.log('awaiting app installed');
         this.gatekeeperEnabled = true;
         this.showYamlEditor = false;
         buttonCb(true);
@@ -296,7 +311,47 @@ export default {
       </div>
     </header>
     <div v-if="gatekeeperEnabled" class="mt-20">
-      <GatekeeperTables v-if="gatekeeperEnabled && !showYamlEditor" />
+      <div
+        class="row info-box"
+        v-if="!showYamlEditor"
+      >
+        <div class="col span-6">
+          <div class="info-line">
+            <label>Audit From Cache: </label>
+            {{ parsedValuesYaml.auditFromCache }}
+          </div>
+          <div class="info-line">
+            <label>Audit Interval: </label>
+            {{ parsedValuesYaml.auditInterval }}s
+          </div>
+          <div class="info-line">
+            <label>Constraint Violation Limit: </label>
+            {{ parsedValuesYaml.constraintViolationsLimit }}
+          </div>
+          <div class="info-line">
+            <label>Replicas: </label>
+            {{ parsedValuesYaml.replicas }}
+          </div>
+          <div class="info-line">
+            <label>Image: </label>
+            {{ parsedValuesYaml.image.repository }}
+          </div>
+          <div class="info-line">
+            <label>Version: </label>
+            {{ parsedValuesYaml.image.release }}
+          </div>
+        </div>
+        <div class="col span-6">
+          <div class="info-line">
+            <label>Image: </label>
+            {{ parsedValuesYaml.image.repository }}
+          </div>
+          <div class="info-line">
+            <label>Version: </label>
+            {{ parsedValuesYaml.image.release }}
+          </div>
+        </div>
+      </div>
     </div>
     <div v-else class="mt-20 mb-20">
       <hr />
@@ -385,6 +440,19 @@ export default {
    }
    .col:first-of-type {
      border-right: 1px solid;
+   }
+ }
+
+ .info-box {
+   background-color: var(--tabbed-container-bg);
+   border: 1px solid var(--tabbed-border);
+   padding: 20px;
+   border-radius: var(--border-radius);
+   .info-line {
+     margin-bottom: 10px;
+     label {
+       color: var(--input-label);
+     }
    }
  }
 </style>
