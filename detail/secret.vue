@@ -1,7 +1,7 @@
 <script>
 import { get } from '@/utils/object';
 import { CERTMANAGER, DESCRIPTION } from '@/config/labels-annotations';
-import { DOCKER_JSON } from '@/models/core.v1.secret';
+import { DOCKER_JSON } from '@/models/secret';
 import DetailTop from '@/components/DetailTop';
 import SortableTable from '@/components/SortableTable';
 import { KEY, VALUE } from '@/config/table-headers';

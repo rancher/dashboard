@@ -1,5 +1,5 @@
 <script>
-import { DOCKER_JSON, OPAQUE, TLS } from '@/models/core.v1.secret';
+import { DOCKER_JSON, OPAQUE, TLS } from '@/models/secret';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { get } from '@/utils/object';
 import { NAMESPACE } from '@/config/types';

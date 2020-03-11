@@ -4,11 +4,11 @@ import { isEmpty } from 'lodash';
 import createEditView from '../../mixins/create-edit-view';
 import { cleanUp } from '@/utils/object';
 import { randomStr } from '@/utils/string';
-import Match from '@/edit/rio.cattle.io.v1.router/Match';
-import Destination from '@/edit/rio.cattle.io.v1.router/Destination';
-import Redirect from '@/edit/rio.cattle.io.v1.router/Redirect';
-import Headers from '@/edit/rio.cattle.io.v1.router/Headers';
-import Fault from '@/edit/rio.cattle.io.v1.router/Fault';
+import Match from '@/edit/rio.cattle.io.router/Match';
+import Destination from '@/edit/rio.cattle.io.router/Destination';
+import Redirect from '@/edit/rio.cattle.io.router/Redirect';
+import Headers from '@/edit/rio.cattle.io.router/Headers';
+import Fault from '@/edit/rio.cattle.io.router/Fault';
 import Checkbox from '@/components/form/Checkbox';
 
 export default {

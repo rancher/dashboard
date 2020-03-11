@@ -4,7 +4,7 @@ import { get } from '@/utils/object';
 
 import createEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
-import ResourceQuota from '@/edit/core.v1.namespace/ResourceQuota';
+import ResourceQuota from '@/edit/namespace/ResourceQuota';
 import Footer from '@/components/form/Footer';
 import LabelsAndAnnotationsEditor from '@/components/LabelsAndAnnotations/Editor';
 import { DESCRIPTION } from '@/config/labels-annotations';

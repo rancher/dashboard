@@ -14,8 +14,8 @@ export async function asyncData(ctx) {
   const { store, params, route } = ctx;
   const { resource, namespace, id } = params;
 
-  const hasCustomDetail = store.getters['nav-tree/hasCustomDetail'](resource);
-  const hasCustomEdit = store.getters['nav-tree/hasCustomEdit'](resource);
+  const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
+  const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
 
   // There are 5 "real" modes: view, create, edit, stage, clone
   // which later map to 3 logical/page modes: view, create, edit (stage and clone are "create")
@@ -164,16 +164,16 @@ export default {
 
     showComponent() {
       if ( this.isView && this.hasCustomDetail ) {
-        return this.$store.getters['nav-tree/importDetail'](this.resource);
+        return this.$store.getters['type-map/importDetail'](this.resource);
       } else if ( !this.isView && this.hasCustomEdit ) {
-        return this.$store.getters['nav-tree/importEdit'](this.resource);
+        return this.$store.getters['type-map/importEdit'](this.resource);
       }
 
       return null;
     },
 
     typeDisplay() {
-      return this.$store.getters['nav-tree/singularLabelFor'](this.schema);
+      return this.$store.getters['type-map/singularLabelFor'](this.schema);
     },
 
     namespaceSuffixOnCreate() {

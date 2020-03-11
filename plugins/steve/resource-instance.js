@@ -111,7 +111,7 @@ export default {
   },
 
   typeDisplay() {
-    return this.$store.getters['nav-tree/singularLabelFor'](this.schema);
+    return this.$store.getters['type-map/singularLabelFor'](this.schema);
   },
 
   namespacedName() {
@@ -345,7 +345,7 @@ export default {
     const all = [];
     const links = this.links || {};
     const hasView = !!links.rioview || !!links.view;
-    const customEdit = this.$rootGetters['nav-tree/hasCustomEdit'](this.type);
+    const customEdit = this.$rootGetters['type-map/hasCustomEdit'](this.type);
 
     if ( customEdit ) {
       all.push({
@@ -713,7 +713,7 @@ export default {
 
     const [group, version] = this.apiVersion.split('/');
 
-    const pluralName = this.$rootGetters['nav-tree/pluralLabelFor'](schema).split('.').pop().toLowerCase();
+    const pluralName = this.$rootGetters['type-map/pluralLabelFor'](schema).split('.').pop().toLowerCase();
 
     url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/${ version }/namespaces/${ namespace }/${ pluralName }`;
 

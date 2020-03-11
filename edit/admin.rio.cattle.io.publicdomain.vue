@@ -1,5 +1,5 @@
 <script>
-import { TLS } from '@/models/core.v1.secret';
+import { TLS } from '@/models/secret';
 import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';

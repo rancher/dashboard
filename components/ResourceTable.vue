@@ -64,7 +64,7 @@ export default {
       if ( this.headers ) {
         headers = this.headers.slice();
       } else {
-        headers = this.$store.getters['nav-tree/headersFor'](this.schema);
+        headers = this.$store.getters['type-map/headersFor'](this.schema);
       }
 
       // If only one namespace is selected, replace the namespace_name

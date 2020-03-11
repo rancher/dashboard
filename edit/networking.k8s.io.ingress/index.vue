@@ -1,15 +1,16 @@
 <script>
-import { clone } from '../../utils/object';
-import { allHash } from '../../utils/promise';
+import Certificate from './Certificate';
+import Rule from './Rule';
+
+import { clone } from '@/utils/object';
+import { allHash } from '@/utils/promise';
 import { WORKLOAD, SECRET, TLS_CERT } from '@/config/types';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import Rule from '@/edit/networking.k8s.io.v1beta1.ingress/Rule';
 import CreateEditView from '@/mixins/create-edit-view';
 import LoadDeps from '@/mixins/load-deps';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import Labels from '@/components/form/Labels';
-import Certificate from '@/edit/networking.k8s.io.v1beta1.ingress/Certificate';
 import Footer from '@/components/form/Footer';
 
 export default {

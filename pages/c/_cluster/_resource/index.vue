@@ -9,19 +9,19 @@ export default {
     },
 
     headers() {
-      return this.$store.getters['nav-tree/headersFor'](this.schema);
+      return this.$store.getters['type-map/headersFor'](this.schema);
     },
 
     hasComponent() {
-      return this.$store.getters['nav-tree/hasCustomList'](this.resource);
+      return this.$store.getters['type-map/hasCustomList'](this.resource);
     },
 
     showComponent() {
-      return this.$store.getters['nav-tree/importList'](this.resource);
+      return this.$store.getters['type-map/importList'](this.resource);
     },
 
     typeDisplay() {
-      return this.$store.getters['nav-tree/pluralLabelFor'](this.schema);
+      return this.$store.getters['type-map/pluralLabelFor'](this.schema);
     },
   },
   asyncData(ctx) {

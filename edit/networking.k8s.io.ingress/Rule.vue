@@ -2,7 +2,7 @@
 
 import { random32 } from '../../utils/string';
 import RadioGroup from '@/components/form/RadioGroup';
-import RulePath from '@/edit/networking.k8s.io.v1beta1.ingress/RulePath';
+import RulePath from '@/edit/networking.k8s.io.ingress/RulePath';
 import LabeledInput from '@/components/form/LabeledInput';
 
 export default {

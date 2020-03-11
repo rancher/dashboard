@@ -78,7 +78,7 @@ import { escapeRegex, ucFirst } from '@/utils/string';
 import { SCHEMA, COUNT, API_GROUP } from '@/config/types';
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
 
-export function DSL(store, module = 'nav-tree') {
+export function DSL(store, module = 'type-map') {
   return {
     basicType(types) {
       store.commit(`${ module }/basicType`, types);
