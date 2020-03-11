@@ -75,7 +75,7 @@ import { sortBy } from '@/utils/sort';
 import { get, clone } from '@/utils/object';
 import { isArray, findBy, addObject, removeObject } from '@/utils/array';
 import { escapeRegex, ucFirst } from '@/utils/string';
-import { SCHEMA, COUNT, API_GROUP } from '@/config/types';
+import { SCHEMA, COUNT } from '@/config/types';
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
 
 export function DSL(store, module = 'type-map') {
@@ -155,7 +155,6 @@ export const state = function() {
     pluralLabels:            {},
     headers:                 {},
     cache:                   {
-      isPreferred: {},
       typeLabel:   {},
       typeMove:    {},
       groupLabel:  {},
@@ -360,11 +359,6 @@ export const getters = {
           continue;
         }
 
-        if ( !getters.isPreferred(schema) ) {
-          // Skip non-preferred versions of a type
-          continue;
-        }
-
         out[schema.id] = {
           schema,
           group:       groupName,
@@ -563,55 +557,6 @@ export const getters = {
       });
 
       return mapping ? mapping.replace : type;
-    };
-  },
-
-  preferredVersions(_state, _getters, _rootState, rootGetters) {
-    return () => {
-      const versionMap = rootGetters['cluster/all'](API_GROUP).reduce((map, group) => {
-        if (group?.preferredVersion) {
-          map[group.name] = group?.preferredVersion?.version;
-        }
-
-        return map;
-      }, {});
-
-      return versionMap;
-    };
-  },
-
-  isPreferred(state, getters, rootState, rootGetters) {
-    return (schema) => {
-      let out = state.cache.isPreferred[schema.id];
-
-      if ( out === undefined ) {
-        out = true;
-
-        const attrs = schema.attributes || {};
-        const groupName = attrs.group || 'core';
-        const preferredVersion = getters.preferredVersions()[groupName];
-
-        if ( preferredVersion && attrs.version !== preferredVersion ) {
-          // This is not the preferred version, but see if there really is one for this type
-          // that is, because some resources only have a non-preferred version.
-          const allSchemas = rootGetters['cluster/all'](SCHEMA);
-
-          const matching = findBy(allSchemas, {
-            'attributes.group':   groupName,
-            'attributes.version': preferredVersion,
-            'attributes.kind':    attrs.kind,
-          });
-
-          if ( matching ) {
-            // There is a different schema for this type that is the preferred version
-            out = false;
-          }
-        }
-
-        state.cache.isPreferred[schema.id] = out;
-      }
-
-      return out;
     };
   },
 
