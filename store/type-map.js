@@ -282,10 +282,10 @@ export const getters = {
           continue;
         }
 
-        const originalLabel = getters.singularLabelFor(typeObj.schema);
-        const label = highlightLabel(originalLabel, namespaced);
+        const label = getters.singularLabelFor(typeObj.schema);
+        const labelDisplay = highlightLabel(label, namespaced);
 
-        if ( !label ) {
+        if ( !labelDisplay ) {
           // Search happens in highlight and retuns null if not found
           continue;
         }
@@ -304,10 +304,11 @@ export const getters = {
 
         group.children.push({
           label,
+          labelDisplay,
           count,
           namespaced,
           name:   typeObj.id,
-          weight: getters.typeWeightFor(originalLabel),
+          weight: getters.typeWeightFor(label),
           route:  {
             name:   'c-cluster-resource',
             params: {
@@ -331,14 +332,14 @@ export const getters = {
             item.route.params.cluster = clusterId;
           }
 
-          const label = highlightLabel(item.label, namespaced);
+          const labelDisplay = highlightLabel(item.label, namespaced);
 
-          if ( !label ) {
+          if ( !labelDisplay ) {
             // Search happens in highlight and retuns null if not found
             continue;
           }
 
-          item.label = label;
+          item.labelDisplay = labelDisplay;
 
           const group = _ensureGroup(root, item.group, item.route);
 

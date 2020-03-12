@@ -71,9 +71,7 @@ export default {
           :key="group.name"
           :type="group"
         />
-        <span v-else>
-          {{ group.label }}
-        </span>
+        <span v-else v-html="group.labelDisplay || group.label" />
       </slot>
     </template>
 
@@ -89,6 +87,7 @@ export default {
             :is-expanded="isExpanded"
             :toggle-group="toggleGroup"
             :children-key="childrenKey"
+            :can-collapse="canCollapse"
             :id-prefix="id+'_'"
             :group="child"
           />

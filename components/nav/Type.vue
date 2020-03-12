@@ -12,7 +12,7 @@ export default {
 <template>
   <n-link :key="type.name" :to="type.route" tag="li" class="child">
     <a>
-      <span class="label" v-html="type.label" />
+      <span class="label" v-html="type.labelDisplay || type.label" />
       <span v-if="typeof type.count !== 'undefined'" class="count">
         {{ type.count }}
       </span>

@@ -10,7 +10,7 @@ export function stringify(err) {
 
   if ( typeof err === 'string' ) {
     str = err;
-  } else if ( typeof err === 'object' ) {
+  } else if ( err && typeof err === 'object' ) {
     if ( err.message ) {
       str = err.message;
       if ( err.detail ) {
@@ -20,7 +20,7 @@ export function stringify(err) {
           str = err.detail;
         }
       }
-    } else if ( err.detail ) {
+    } else if ( err && err.detail ) {
       str = err.detail;
     }
   } else {

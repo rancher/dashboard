@@ -2,9 +2,7 @@
 import { debounce } from 'lodash';
 import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
-import {
-  mapPref, DEV, THEME, EXPANDED_GROUPS, NAV_SHOW
-} from '@/store/prefs';
+import { mapPref, DEV, THEME, EXPANDED_GROUPS } from '@/store/prefs';
 import applyTypeConfigs from '@/config/type-config';
 import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
@@ -70,15 +68,6 @@ export default {
       }
 
       return link;
-    },
-
-    navOptions() {
-      return this.$store.getters['prefs/options'](NAV_SHOW).map((value) => {
-        return {
-          label: `nav.show.${ value }`,
-          value
-        };
-      });
     },
 
     principal() {
@@ -328,7 +317,7 @@ export default {
       padding: 0 10px;
       overflow-y: auto;
 
-      .package .expanded .body {
+      .package .depth-0.expanded > .body {
         margin-bottom: 20px;
       }
 

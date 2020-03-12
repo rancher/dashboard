@@ -14,7 +14,7 @@ export default {
   },
 
   fetch({ store, redirect }) {
-    if ( !store.state.error ) {
+    if ( process.client && !store.state.error ) {
       redirect(`/clusters`);
     }
   },
@@ -24,7 +24,7 @@ export default {
 
 <template>
   <div>
-    <h1>Error</h1>
+    <h1>Error<span v-if="error && error._status">: {{ error._status }} {{ error._statusText }}</span></h1>
     <div>
       {{ displayError }}
     </div>

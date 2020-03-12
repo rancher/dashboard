@@ -9,11 +9,23 @@ export default {
   data() {
     return {
       isMac,
-      value:     '',
-      groups:    null,
-      isFocused: false,
-      blurTimer: null,
+      value:       '',
+      groups:      null,
+      isFocused:   false,
+      blurTimer:   null,
     };
+  },
+
+  computed: {
+    placeholder() {
+      if ( this.isFocused ) {
+        return 'Type to search...';
+      } else if ( isMac ) {
+        return 'Jump to... (\u2318-K)';
+      } else {
+        return 'Jump to... (Ctrl+K)';
+      }
+    },
   },
 
   watch: {
@@ -36,7 +48,7 @@ export default {
       clearTimeout(this.blurTimer);
       this.blurTimer = setTimeout(() => {
         this.hide();
-      }, 500);
+      }, 200);
     },
 
     hotkey() {
@@ -72,7 +84,7 @@ export default {
     <input
       ref="input"
       v-model="value"
-      placeholder="Jump to..."
+      :placeholder="placeholder"
       class="search"
       @focus="focused"
       @blur="blurred"

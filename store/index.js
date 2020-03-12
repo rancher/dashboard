@@ -163,7 +163,7 @@ export const actions = {
       });
 
       clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
-      externalBase = `/v1/management.cattle.io.v3.clusters/${ escape(id) }`;
+      externalBase = `/v1/management.cattle.io.clusters/${ escape(id) }`;
     } else {
       // Make a fake cluste and push it into the store
       if ( !getters['management/byId'](MANAGEMENT.CLUSTER, 'local') ) {
