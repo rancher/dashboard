@@ -25,6 +25,7 @@ export const state = () => {
     namespaces:      [],
     allNamespaces:   null,
     clusterId:       null,
+    error:           null,
   };
 };
 
@@ -77,6 +78,10 @@ export const mutations = {
   setCluster(state, neu) {
     state.clusterId = neu;
   },
+
+  setError(state, err) {
+    state.error = err;
+  }
 };
 
 export const actions = {
@@ -100,7 +105,7 @@ export const actions = {
       prefs:      dispatch('prefs/loadCookies'),
       schemas: Promise.all([
         dispatch('management/subscribe'),
-        dispatch('management/loadSchemas'),
+        dispatch('management/loadSchemas', true),
       ]),
     });
 
@@ -151,10 +156,10 @@ export const actions = {
 
     if ( isRancher ) {
       // See if it really exists
-      cluster = dispatch('management/find', {
+      cluster = await dispatch('management/find', {
         type: MANAGEMENT.CLUSTER,
         id,
-        opt:  { url: `management.cattle.io.v3.clusters/${ escape(id) }` }
+        opt:  { url: `management.cattle.io.clusters/${ escape(id) }` }
       });
 
       clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
@@ -193,13 +198,13 @@ export const actions = {
 
     // Update the Steve client URL
     commit('cluster/applyConfig', { baseUrl: clusterBase });
-    await dispatch('cluster/loadSchemas');
+    await dispatch('cluster/loadSchemas', true);
     dispatch('cluster/subscribe');
 
     if ( isRancher ) {
       commit('clusterExternal/applyConfig', { baseUrl: externalBase });
       dispatch('clusterExternal/subscribe');
-      await dispatch('clusterExternal/loadSchemas');
+      await dispatch('clusterExternal/loadSchemas', false);
       await dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT, opt: { url: 'projects' } });
     }
 
@@ -240,5 +245,10 @@ export const actions = {
   nuxtClientInit({ dispatch }) {
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
+  },
+
+  loadingError({ commit, redirect }, err) {
+    commit('setError', err);
+    redirect('/error');
   }
 };

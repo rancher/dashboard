@@ -1,5 +1,5 @@
 import {
-  CONFIG_MAP, NAMESPACE, NODE, POD, SECRET, RIO, RBAC, SERVICE, PV, PVC, INGRESS
+  CONFIG_MAP, NAMESPACE, NODE, SECRET, RIO, RBAC, INGRESS, WORKLOAD
 } from '@/config/types';
 
 import {
@@ -33,15 +33,9 @@ export default function(store) {
   } = DSL(store);
 
   basicType([
-    CONFIG_MAP,
     NAMESPACE,
     NODE,
-    POD,
-    SECRET,
-    SERVICE,
-    INGRESS,
-    PV,
-    PVC,
+    WORKLOAD,
   ]);
 
   ignoreType('events.k8s.io.event'); // Events type moved into core
@@ -50,18 +44,15 @@ export default function(store) {
   mapType('endpoints', 'Endpoint'); // Bad plural
 
   // Move some core things into Cluster
-  moveType(/^core\.v1\.(namespace|node|persistentvolume)$/, 'Cluster');
+  moveType(/^(namespace|node|persistentvolume)$/, 'Cluster');
 
   weightGroup('Cluster', 99);
   weightGroup('Core', 98);
 
   mapGroup(/^(core)?$/, 'Core', 99);
-  mapGroup('apps', 'Core');
-  mapGroup('batch', 'Core');
-  mapGroup('extensions', 'Core');
   mapGroup('autoscaling', 'Autoscaling');
   mapGroup('policy', 'Policy');
-  mapGroup('networking.k8s.io', 'Core');
+  mapGroup('networking.k8s.io', 'Networking');
   mapGroup(/^api.*\.k8s\.io$/, 'API');
   mapGroup('rbac.authorization.k8s.io', 'RBAC');
   mapGroup('admissionregistration.k8s.io', 'Admission');
@@ -193,7 +184,7 @@ export default function(store) {
     label:      'Workload',
     namespaced: true,
     name:       'workloads',
-    group:      'Core',
+    group:      'Cluster',
     route:      {
       name:     'c-cluster-workloads',
       params:   { resource: 'workload' }

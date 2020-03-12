@@ -7,8 +7,6 @@ import Socket, {
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
 
-const NO_WATCHING = ['schema', 'apigroups'];
-
 export const actions = {
   subscribe(ctx, opt) {
     const { state, commit, dispatch } = ctx;
@@ -72,7 +70,7 @@ export const actions = {
   watchType({ dispatch, getters }, { type, revision }) {
     type = getters.normalizeType(type);
 
-    if ( NO_WATCHING.includes(type) ) {
+    if ( !getters.canWatch(type) ) {
       return;
     }
 
@@ -146,12 +144,16 @@ export const actions = {
     console.log('Resource start:', msg.resourceType);
   },
 
-  'ws.resource.error'(_, msg) {
+  'ws.resource.error'({ commit }, msg) {
     console.log('Resource error for', msg.resourceType, ':', msg.data.error);
+    if ( msg.data?.error?.toLowerCase().includes('watch not allowed') ) {
+      commit('addNoWatch', msg.resourceType);
+    }
   },
 
-  'ws.resource.stop'(_, msg) {
+  'ws.resource.stop'({ dispatch }, msg) {
     console.log('Resource stop:', msg.resourceType);
+    dispatch('watchType', { type: msg.resourceType });
   },
 
   'ws.resource.create'({ dispatch }, { data }) {

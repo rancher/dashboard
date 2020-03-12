@@ -12,10 +12,7 @@ export default {
 <template>
   <n-link :key="type.name" :to="type.route" tag="li" class="child">
     <a>
-      <span class="label">
-        <i class="icon" :class="{'icon-folder': type.namespaced, 'icon-globe': !type.namespaced}" />
-        {{ type.label }}
-      </span>
+      <span class="label" v-html="type.label" />
       <span v-if="typeof type.count !== 'undefined'" class="count">
         {{ type.count }}
       </span>
@@ -42,6 +39,10 @@ export default {
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
+
+      ::v-deep .highlight {
+        filter: invert(1);
+      }
 
       .icon {
         position: relative;

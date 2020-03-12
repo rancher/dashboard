@@ -7,7 +7,7 @@ import {
 } from '@/store/prefs';
 import applyTypeConfigs from '@/config/type-config';
 import ActionMenu from '@/components/ActionMenu';
-import ButtonGroup from '@/components/ButtonGroup';
+import Jump from '@/components/nav/Jump';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
 import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
 import WindowManager from '@/components/nav/WindowManager';
@@ -15,17 +15,17 @@ import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
-import { COUNT, NORMAN } from '@/config/types';
+import { COUNT, NORMAN, SCHEMA } from '@/config/types';
 
 export default {
 
   components: {
     ClusterSwitcher,
+    Jump,
     PromptRemove,
     Footer,
     NamespaceFilter,
     ActionMenu,
-    ButtonGroup,
     Group,
     ShellSocket,
     WindowManager
@@ -51,7 +51,6 @@ export default {
 
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
-    navShow:        mapPref(NAV_SHOW),
 
     backToRancherLink() {
       if ( !this.isRancher ) {
@@ -86,6 +85,10 @@ export default {
       return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
 
+    allSchemas() {
+      return this.$store.getters['cluster/all'](SCHEMA);
+    },
+
     counts() {
       // So that there's something to watch for updates
       if ( this.$store.getters['cluster/haveAll'](COUNT) ) {
@@ -100,6 +103,10 @@ export default {
 
   watch: {
     counts() {
+      this.queueUpdate();
+    },
+
+    allSchemas() {
       this.queueUpdate();
     }
   },
@@ -121,14 +128,23 @@ export default {
         return;
       }
 
-      const mode = this.navShow;
       const clusterId = this.$store.getters['clusterId'];
       const namespaces = this.$store.getters['namespaces'] || [];
       const currentType = this.$route.params.resource || '';
 
-      const out = this.$store.getters['type-map/getTree'](mode, clusterId, namespaces, currentType);
+      const basicTypes = this.$store.getters['type-map/allTypes']('basic') || {};
+      const recentTypes = this.$store.getters['type-map/allTypes']('recent') || {};
+      const favoriteTypes = this.$store.getters['type-map/allTypes']('favorite') || {};
 
-      this.groups = out;
+      const basic = this.$store.getters['type-map/getTree']('basic', basicTypes, clusterId, namespaces, currentType);
+      const recent = this.$store.getters['type-map/getTree']('recent', recentTypes, clusterId, namespaces, currentType);
+      const favorite = this.$store.getters['type-map/getTree']('favorite', favoriteTypes, clusterId, namespaces, currentType);
+
+      this.groups = [
+        ...basic,
+        ...recent,
+        ...favorite
+      ];
     },
 
     toggleGroup(route, expanded) {
@@ -200,6 +216,8 @@ export default {
     </div>
 
     <nav v-if="clusterReady">
+      <Jump class="mt-10" />
+
       <div v-for="g in groups" :key="g.name" class="package">
         <Group
           :key="g.name"
@@ -216,10 +234,6 @@ export default {
         </Group>
       </div>
     </nav>
-
-    <div v-if="clusterReady" class="switcher">
-      <ButtonGroup v-model="navShow" :options="navOptions" :labels-are-translations="true" />
-    </div>
 
     <main v-if="clusterReady">
       <nuxt class="outlet" />
@@ -245,7 +259,7 @@ export default {
     grid-template-areas:
       "cluster  top   back user"
       "nav      main  main main"
-      "switcher main  main main"
+      "nav      main  main main"
       "wm       wm    wm   wm";
 
     grid-template-columns: var(--nav-width)     auto 0px                  var(--header-height);
@@ -327,12 +341,6 @@ export default {
         letter-spacing: 0.1em;
         line-height: initial;
       }
-    }
-
-    > .switcher {
-      margin: 10px 0 0 0;
-      text-align: center;
-      grid-area: switcher;
     }
   }
 

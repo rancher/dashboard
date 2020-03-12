@@ -129,5 +129,9 @@ export default {
     }
 
     return null;
-  }
+  },
+
+  canWatch: state => (type) => {
+    return !state.noWatch.includes(type);
+  },
 };
