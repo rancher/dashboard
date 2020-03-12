@@ -69,7 +69,7 @@ export default {
     }
   },
 
-  async loadSchemas(ctx) {
+  async loadSchemas(ctx, watch = true) {
     const { getters, dispatch, commit } = ctx;
     const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
 
@@ -83,6 +83,10 @@ export default {
       type: SCHEMA,
       data: res
     });
+
+    if ( watch !== false ) {
+      dispatch('watchType', { type: SCHEMA });
+    }
 
     const all = getters.all(SCHEMA);
 

@@ -74,9 +74,10 @@
 import { sortBy } from '@/utils/sort';
 import { get, clone } from '@/utils/object';
 import { isArray, findBy, addObject, removeObject } from '@/utils/array';
-import { escapeRegex, ucFirst } from '@/utils/string';
+import { escapeRegex, ucFirst, escapeHtml } from '@/utils/string';
 import { SCHEMA, COUNT } from '@/config/types';
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
+import { FAVORITE_TYPES, RECENT_TYPES } from '@/store/prefs';
 
 export function DSL(store, module = 'type-map') {
   return {
@@ -170,7 +171,7 @@ export const getters = {
   // ----------------------------------------------------------------------------
   // 1 ) Getting info
   // ----------------------------------------------------------------------------
-  // Turns a type name into a display label (e.g. management.cattle.io.v3.cluster -> Cluster)
+  // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
   singularLabelFor(state) {
     return (schema) => {
       return _applyMapping(schema, state.typeMappings, 'id', state.cache.typeLabel, () => {
@@ -222,6 +223,18 @@ export const getters = {
     };
   },
 
+  isFavorite(state, getters, rootState, rootGetters) {
+    return (schema) => {
+      return rootGetters['prefs/get'](FAVORITE_TYPES).includes(schema.id) || false;
+    };
+  },
+
+  isRecent(state, getters, rootState, rootGetters) {
+    return (schema) => {
+      return rootGetters['prefs/get'](RECENT_TYPES).includes(schema.id) || false;
+    };
+  },
+
   typeWeightFor(state) {
     return (type) => {
       return state.typeWeights[type.toLowerCase()] || 0;
@@ -235,10 +248,15 @@ export const getters = {
   },
 
   getTree(state, getters, rootState, rootGetters) {
-    return (mode, clusterId, namespaces, currentType) => {
-      const allTypes = getters.allTypes() || {};
+    return (mode, allTypes, clusterId, namespaces, currentType, search) => {
+      let searchRegex;
+
+      if ( search ) {
+        searchRegex = new RegExp(`^(.*)(${ escapeRegex(search) })(.*)$`, 'i');
+      }
 
       const root = { children: [] };
+      const allNegative = _allNegativeFilters(namespaces);
 
       for ( const type in allTypes ) {
         const typeObj = allTypes[type];
@@ -251,26 +269,42 @@ export const getters = {
         const namespaced = typeObj.namespaced;
         const count = _matchingCounts(typeObj, namespaces);
 
-        const allNegative = _allNegativeFilters(namespaces);
-
         if ( typeObj.id === currentType ) {
           // If this is the type currently being shown, always show it
-        } else if ( !namespaced && namespaces.length && !allNegative ) {
+        } else if ( mode === 'basic' && !getters.isBasic(typeObj.schema) ) {
+          // If we want the basic tree only return basic types;
+          continue;
+        } else if ( mode !== 'all' && !namespaced && namespaces.length && !allNegative ) {
           // If a namespace filter is specified, hide non-namespaced resources.
           continue;
         } else if ( count === 0 && mode === 'used') {
           // If there's none of this type, ignore this entry when viewing only in-use types
           continue;
-        } else if ( mode === 'basic' && !getters.isBasic(typeObj.schema) ) {
-          // If the mode is basic, ignore this entry unless it's a basic type
+        }
+
+        const label = getters.singularLabelFor(typeObj.schema);
+        const labelDisplay = highlightLabel(label, namespaced);
+
+        if ( !labelDisplay ) {
+          // Search happens in highlight and retuns null if not found
           continue;
         }
 
-        const group = _ensureGroup(root, typeObj.schema);
-        const label = getters.singularLabelFor(typeObj.schema);
+        let group;
+
+        if ( mode === 'basic' ) {
+          group = _ensureGroup(root, 'Cluster');
+        } else if ( mode === 'recent' ) {
+          group = _ensureGroup(root, 'Recent');
+        } else if ( mode === 'favorite' ) {
+          group = _ensureGroup(root, 'Favorite');
+        } else {
+          group = _ensureGroup(root, typeObj.schema);
+        }
 
         group.children.push({
           label,
+          labelDisplay,
           count,
           namespaced,
           name:   typeObj.id,
@@ -286,19 +320,31 @@ export const getters = {
       }
 
       // Add virtual types
-      const virt = getters.virtualTypes();
+      if ( mode === 'basic' || mode === 'all' ) {
+        const virt = getters.virtualTypes();
 
-      for ( const vt of virt ) {
-        const item = clone(vt);
+        for ( const vt of virt ) {
+          const item = clone(vt);
+          const namespaced = item.namespaced;
 
-        if ( item.route && typeof item.route === 'object' ) {
-          item.route.params = item.route.params || {};
-          item.route.params.cluster = clusterId;
+          if ( item.route && typeof item.route === 'object' ) {
+            item.route.params = item.route.params || {};
+            item.route.params.cluster = clusterId;
+          }
+
+          const labelDisplay = highlightLabel(item.label, namespaced);
+
+          if ( !labelDisplay ) {
+            // Search happens in highlight and retuns null if not found
+            continue;
+          }
+
+          item.labelDisplay = labelDisplay;
+
+          const group = _ensureGroup(root, item.group, item.route);
+
+          group.children.push(item);
         }
-
-        const group = _ensureGroup(root, item.group, item.route);
-
-        group.children.push(item);
       }
 
       // Recursively sort the groups
@@ -340,11 +386,29 @@ export const getters = {
 
         return group;
       }
+
+      function highlightLabel(original, namespaced) {
+        let label = escapeHtml(original);
+
+        if ( searchRegex ) {
+          const match = label.match(searchRegex);
+
+          if ( match ) {
+            label = `${ escapeHtml(match[1]) }<span class="highlight">${ escapeHtml(match[2]) }</span>${ escapeHtml(match[3]) }`;
+          } else {
+            return null;
+          }
+        }
+
+        label = `<i class="icon icon-${ namespaced ? 'folder' : 'globe' }"></i> ${ label }`;
+
+        return label;
+      }
     };
   },
 
   allTypes(state, getters, rootState, rootGetters) {
-    return () => {
+    return (mode = 'all') => {
       const schemas = rootGetters['cluster/all'](SCHEMA);
       const counts = rootGetters['cluster/all'](COUNT)[0].counts;
       const out = {};
@@ -356,6 +420,12 @@ export const getters = {
 
         if ( !attrs.kind ) {
           // Skip the "apiGroups" resource which has no kind
+          continue;
+        } else if ( mode === 'basic' && !getters.isBasic(schema) ) {
+          continue;
+        } else if ( mode === 'favorite' && !getters.isFavorite(schema) ) {
+          continue;
+        } else if ( mode === 'recent' && !getters.isRecent(schema) ) {
           continue;
         }
 
@@ -670,7 +740,7 @@ export const mutations = {
     _addMapping(state.typeMappings, match, replace, weight, continueOnMatch);
   },
 
-  // moveType('apps.v1.deployment', 'Core');
+  // moveType('apps.deployment', 'Core');
   moveType(state, { match, group, weight = 5 }) {
     _addMapping(state.typeMoveMappings, match, group, weight);
   },

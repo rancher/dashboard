@@ -126,5 +126,9 @@ export default {
 
   dequeuePending(state, obj) {
     removeObject(state.pendingSends, obj);
+  },
+
+  addNoWatch(state, type) {
+    state.noWatch.push(type);
   }
 };
