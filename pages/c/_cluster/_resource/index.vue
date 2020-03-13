@@ -3,6 +3,11 @@ import ResourceTable from '@/components/ResourceTable';
 
 export default {
   components: { ResourceTable },
+
+  data() {
+    return { listComponent: this.$store.getters['type-map/importList'](this.resource) };
+  },
+
   computed:   {
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.resource);
@@ -14,10 +19,6 @@ export default {
 
     hasComponent() {
       return this.$store.getters['type-map/hasCustomList'](this.resource);
-    },
-
-    showComponent() {
-      return this.$store.getters['type-map/importList'](this.resource);
     },
 
     typeDisplay() {
@@ -53,7 +54,7 @@ export default {
     </header>
     <div v-if="hasComponent">
       <component
-        :is="showComponent"
+        :is="listComponent"
         :schema="schema"
         :rows="rows"
         :headers="headers"

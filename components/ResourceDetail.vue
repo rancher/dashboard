@@ -128,7 +128,11 @@ export default {
   },
 
   data() {
-    return { currentValue: this.value };
+    return {
+      currentValue:    this.value,
+      detailComponent: this.$store.getters['type-map/importDetail'](this.resource),
+      editComponent:   this.$store.getters['type-map/importEdit'](this.resource),
+    };
   },
 
   computed: {
@@ -164,9 +168,9 @@ export default {
 
     showComponent() {
       if ( this.isView && this.hasCustomDetail ) {
-        return this.$store.getters['type-map/importDetail'](this.resource);
+        return this.detailComponent;
       } else if ( !this.isView && this.hasCustomEdit ) {
-        return this.$store.getters['type-map/importEdit'](this.resource);
+        return this.editComponent;
       }
 
       return null;

@@ -81,16 +81,17 @@ export default {
           <hr />
         </li>
         <li v-else-if="child[childrenKey]" :key="child.name">
-          <Group
-            :key="child.name"
-            :depth="depth + 1"
-            :is-expanded="isExpanded"
-            :toggle-group="toggleGroup"
-            :children-key="childrenKey"
-            :can-collapse="canCollapse"
-            :id-prefix="id+'_'"
-            :group="child"
-          />
+          <ul class="list-unstyled m-0">
+            <Group
+              :key="child.name"
+              :depth="depth + 1"
+              :is-expanded="isExpanded"
+              :children-key="childrenKey"
+              :can-collapse="canCollapse"
+              :id-prefix="id+'_'"
+              :group="child"
+            />
+          </ul>
         </li>
         <Type
           v-else

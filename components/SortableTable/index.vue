@@ -228,11 +228,13 @@ export default {
     availableActions() {
       return this.$store.getters[`${ this.storeName }/forTable`];
     },
+
     ...mapState({
       tableSelected(state) {
         return state[this.storeName].tableSelected;
       }
     }),
+
     classObject() {
       return {
         'top-divider':     this.topDivider, 'emphasized-body': this.emphasizedBody, 'body-dividers':   this.bodyDividers
