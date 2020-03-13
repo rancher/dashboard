@@ -1,7 +1,7 @@
 <script>
 import CodeMirror from './CodeMirror';
 import AsyncButton from '@/components/AsyncButton';
-// import GatekeeperTables from '@/components/GatekeeperTables';
+import GatekeeperTables from '@/components/GatekeeperTables';
 import Footer from '@/components/form/Footer';
 import { NAMESPACE } from '@/config/types';
 import { _VIEW, _EDIT } from '@/config/query-params';
@@ -12,7 +12,7 @@ export default {
 
   components: {
     AsyncButton,
-    // GatekeeperTables,
+    GatekeeperTables,
     CodeMirror,
     Footer,
   },
@@ -145,10 +145,7 @@ export default {
       });
 
       await newSystemNs.save();
-      // TODO save doesnt push this object into the store it cerates a new one so waiting on a merge fucntion to be added to save before do this.
-      console.time('SaveNamespace');
       await newSystemNs.waitForState('active');
-      console.timeEnd('SaveNamespace');
     },
 
     showActions() {
@@ -169,9 +166,7 @@ export default {
         await this.ensureNamespace();
         await this.config.save();
         // TODO something here causes my entire cluster to die
-        // console.time('GatekeeperInstall');
         // await this.config.waitForCondition('Installed');
-        // console.timeEnd('GatekeeperInstall');
         this.gatekeeperEnabled = true;
         this.showYamlEditor = false;
         buttonCb(true);
@@ -349,7 +344,7 @@ export default {
           </div>
         </div>
       </div>
-      <!-- <GatekeeperTables /> -->
+      <GatekeeperTables />
     </div>
     <div v-else class="mt-20 mb-20">
       <hr />

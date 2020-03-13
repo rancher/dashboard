@@ -84,7 +84,7 @@ export default {
         mode = _CREATE;
 
         const gatekeeperVersionsMap = template.spec.versions;
-        const latestGKVersion = gatekeeperVersionsMap.pop();
+        const latestGKVersion = gatekeeperVersionsMap[0] ? gatekeeperVersionsMap[0] : null;
 
         gatekeeper = await store.dispatch('clusterExternal/create', {
           type:       'app',
