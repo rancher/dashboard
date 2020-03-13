@@ -1,7 +1,6 @@
 <script>
 import Accordion from '@/components/Accordion';
 import Type from '@/components/nav/Type';
-
 export default {
   name: 'Group',
 
@@ -28,11 +27,6 @@ export default {
       required: true,
     },
 
-    toggleGroup: {
-      type:     Function,
-      required: true,
-    },
-
     childrenKey: {
       type:    String,
       default: 'children',
@@ -47,6 +41,12 @@ export default {
   computed: {
     id() {
       return (this.idPrefix || '') + this.group.label;
+    }
+  },
+
+  methods: {
+    toggleGroup(group, expanded) {
+      this.$store.dispatch('type-map/toggleGroup', { group, expanded });
     }
   }
 };

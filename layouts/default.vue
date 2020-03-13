@@ -1,7 +1,6 @@
 <script>
 import { debounce } from 'lodash';
 import { mapState } from 'vuex';
-import { addObject, removeObject } from '@/utils/array';
 import {
   mapPref, DEV, THEME, EXPANDED_GROUPS, RECENT_TYPES, FAVORITE_TYPES
 } from '@/store/prefs';
@@ -108,25 +107,20 @@ export default {
     },
 
     namespaces() {
-      // this.queueUpdate();
       // Immediately update because you'll see it come in later
       this.getGroups();
     },
 
     recentTypes() {
-      // this.queueUpdate();
       // Immediately update because you'll see it come in later
       this.getGroups();
     }
   },
 
-  mounted() {
-    this.getGroups();
-  },
-
   created() {
     this.queueUpdate = debounce(this.getGroups, 500);
     applyTypeConfigs(this.$store);
+    this.getGroups();
   },
 
   methods: {
@@ -154,18 +148,6 @@ export default {
         ...favorite,
         ...recent,
       ];
-    },
-
-    toggleGroup(route, expanded) {
-      const groups = this.expandedGroups.slice();
-
-      if ( expanded ) {
-        addObject(groups, route);
-      } else {
-        removeObject(groups, route);
-      }
-
-      this.$store.commit('prefs/set', { key: EXPANDED_GROUPS, val: groups });
     },
 
     isExpanded(name) {
@@ -233,7 +215,6 @@ export default {
           id-prefix=""
           :is-expanded="isExpanded"
           :group="g"
-          :toggle-group="toggleGroup"
           :custom-header="true"
           :can-collapse="true"
         >
