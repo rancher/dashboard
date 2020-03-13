@@ -38,22 +38,29 @@ export default {
     }
   },
 
-  asyncData(ctx) {
+  async asyncData({ store }) {
     const types = Object.values(WORKLOAD);
 
-    return Promise.all( types.map((type) => {
-      return ctx.store.dispatch('cluster/findAll', { type });
-    }))
-      .then((resources) => {
-        resources =
-        resources.reduce((all, rows) => {
-          all.push(...rows);
+    let resources = await Promise.all(types.map((type) => {
+      // You may not have RBAC to see some of the types
+      if ( !store.getters['cluster/schemaFor'](type) ) {
+        return null;
+      }
 
-          return all;
-        }, []);
+      return store.dispatch('cluster/findAll', { type });
+    }));
 
-        return { resources };
-      });
+    resources = resources.reduce((all, rows) => {
+      if ( rows ) {
+        all.push(...rows);
+      }
+
+      return all;
+    }, []);
+
+    await store.dispatch('type-map/addRecent', 'workload');
+
+    return { resources };
   },
 };
 </script>

@@ -5,15 +5,45 @@ export default {
       type:     Object,
       required: true
     }
+  },
+
+  data() {
+    return { over: false };
+  },
+
+  methods: {
+    onMouseover() {
+      this.over = true;
+      console.log('over');
+    },
+
+    onMouseout() {
+      this.over = false;
+      console.log('out');
+    },
+
+    removeFavorite() {
+      this.$store.commit('type-map/removeFavorite', this.type.id);
+    }
   }
 };
 </script>
 
 <template>
-  <n-link :key="type.name" :to="type.route" tag="li" class="child">
+  <n-link
+    :key="type.name"
+    :to="type.route"
+    tag="li"
+    class="child"
+    @onmouseover="onMouseover($event)"
+    @onmouseout="onMouseout($event)"
+  >
     <a>
       <span class="label" v-html="type.labelDisplay || type.label" />
-      <span v-if="typeof type.count !== 'undefined'" class="count">
+      <span v-if="over" class="count">
+        <i class="icon icon-trash" @click="removeFavorite" />
+      </span>
+      <span v-else-if="typeof type.count !== 'undefined'" class="count">
         {{ type.count }}
       </span>
     </a>
@@ -44,7 +74,7 @@ export default {
         filter: invert(1);
       }
 
-      .icon {
+      ::v-deep .icon {
         position: relative;
         top: -2px;
       }

@@ -2,7 +2,9 @@
 import { debounce } from 'lodash';
 import { mapState } from 'vuex';
 import { addObject, removeObject } from '@/utils/array';
-import { mapPref, DEV, THEME, EXPANDED_GROUPS } from '@/store/prefs';
+import {
+  mapPref, DEV, THEME, EXPANDED_GROUPS, RECENT_TYPES, FAVORITE_TYPES
+} from '@/store/prefs';
 import applyTypeConfigs from '@/config/type-config';
 import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
@@ -45,10 +47,12 @@ export default {
   },
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady', 'isRancher']),
+    ...mapState(['managementReady', 'clusterReady', 'isRancher', 'namespaces']),
 
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
+    recentTypes:    mapPref(RECENT_TYPES),
+    favoriteTypes:  mapPref(FAVORITE_TYPES),
 
     backToRancherLink() {
       if ( !this.isRancher ) {
@@ -97,6 +101,22 @@ export default {
 
     allSchemas() {
       this.queueUpdate();
+    },
+
+    favoriteTypes() {
+      this.queueUpdate();
+    },
+
+    namespaces() {
+      // this.queueUpdate();
+      // Immediately update because you'll see it come in later
+      this.getGroups();
+    },
+
+    recentTypes() {
+      // this.queueUpdate();
+      // Immediately update because you'll see it come in later
+      this.getGroups();
     }
   },
 
@@ -118,7 +138,7 @@ export default {
       }
 
       const clusterId = this.$store.getters['clusterId'];
-      const namespaces = this.$store.getters['namespaces'] || [];
+      const namespaces = this.namespaces;
       const currentType = this.$route.params.resource || '';
 
       const basicTypes = this.$store.getters['type-map/allTypes']('basic') || {};
@@ -131,8 +151,8 @@ export default {
 
       this.groups = [
         ...basic,
+        ...favorite,
         ...recent,
-        ...favorite
       ];
     },
 
@@ -205,7 +225,7 @@ export default {
     </div>
 
     <nav v-if="clusterReady">
-      <Jump class="mt-10" />
+      <Jump class="mt-10 mb-10" />
 
       <div v-for="g in groups" :key="g.name" class="package">
         <Group
