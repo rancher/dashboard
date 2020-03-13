@@ -77,7 +77,7 @@ import { isArray, findBy, addObject, removeObject } from '@/utils/array';
 import { escapeRegex, ucFirst, escapeHtml } from '@/utils/string';
 import { SCHEMA, COUNT } from '@/config/types';
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
-import { FAVORITE_TYPES, RECENT_TYPES } from '@/store/prefs';
+import { FAVORITE_TYPES, RECENT_TYPES, EXPANDED_GROUPS } from '@/store/prefs';
 
 export function DSL(store, module = 'type-map') {
   return {
@@ -156,13 +156,14 @@ export const state = function() {
     pluralLabels:            {},
     headers:                 {},
     cache:                   {
-      typeLabel:   {},
-      typeMove:    {},
-      groupLabel:  {},
-      ignore:      {},
-      list:        {},
-      detail:      {},
-      edit:        {},
+      typeLabel:    {},
+      typeMove:     {},
+      groupLabel:   {},
+      ignore:       {},
+      list:         {},
+      detail:       {},
+      edit:         {},
+      componentFor: {},
     },
   };
 };
@@ -541,13 +542,11 @@ export const getters = {
       try {
         require.resolve(`@/list/${ type }`);
         cache[type] = true;
-
-        return true;
       } catch (e) {
         cache[type] = false;
-
-        return false;
       }
+
+      return cache[type];
     };
   },
 
@@ -563,13 +562,11 @@ export const getters = {
       try {
         require.resolve(`@/detail/${ type }`);
         cache[type] = true;
-
-        return true;
       } catch (e) {
         cache[type] = false;
-
-        return false;
       }
+
+      return cache[type];
     };
   },
 
@@ -585,13 +582,11 @@ export const getters = {
       try {
         require.resolve(`@/edit/${ type }`);
         cache[type] = true;
-
-        return true;
       } catch (e) {
         cache[type] = false;
-
-        return false;
       }
+
+      return cache[type];
     };
   },
 
@@ -621,43 +616,57 @@ export const getters = {
 
   componentFor(state) {
     return (type) => {
+      if ( state.cache.componentFor[type] !== undefined ) {
+        return state.cache.componentFor[type];
+      }
+
+      let out = type;
+
       const mapping = state.typeToComponentMappings.find((mapping) => {
         const re = stringToRegex(mapping.match);
 
         return re.test(type);
       });
 
-      return mapping ? mapping.replace : type;
+      if ( mapping ) {
+        out = mapping.replace;
+      }
+
+      state.cache.componentFor[type] = out;
+
+      return out;
     };
   },
 
   isIgnored(state) {
     return (schema) => {
-      if ( typeof state.cache.ignore[schema.id] === 'undefined' ) {
-        let ignore = false;
+      if ( state.cache.ignore[schema.id] !== undefined ) {
+        return state.cache.ignore[schema.id];
+      }
 
-        for ( const rule of state.groupIgnore ) {
-          const group = schema?.attributes?.group;
+      let out = false;
 
-          if ( group && group.match(stringToRegex(rule)) ) {
-            ignore = true;
+      for ( const rule of state.groupIgnore ) {
+        const group = schema?.attributes?.group;
+
+        if ( group && group.match(stringToRegex(rule)) ) {
+          out = true;
+          break;
+        }
+      }
+
+      if ( !out ) {
+        for ( const rule of state.typeIgnore ) {
+          if ( schema.id.match(stringToRegex(rule)) ) {
+            out = true;
             break;
           }
         }
-
-        if ( !ignore ) {
-          for ( const rule of state.typeIgnore ) {
-            if ( schema.id.match(stringToRegex(rule)) ) {
-              ignore = true;
-              break;
-            }
-          }
-        }
-
-        state.cache.ignore[schema.id] = ignore;
       }
 
-      return state.cache.ignore[schema.id];
+      state.cache.ignore[schema.id] = out;
+
+      return out;
     };
   },
 };
@@ -757,6 +766,7 @@ export const mutations = {
 
 export const actions = {
   addRecent({ commit, rootGetters }, type) {
+    /*
     const types = rootGetters['prefs/get'](RECENT_TYPES) || [];
 
     removeObject(types, type);
@@ -767,6 +777,7 @@ export const actions = {
     }
 
     commit('prefs/set', { key: RECENT_TYPES, val: types }, { root: true });
+    */
   },
 
   addFavorite({ commit, rootGetters }, type) {
@@ -783,7 +794,19 @@ export const actions = {
     removeObject(types, type);
 
     commit('prefs/set', { key: FAVORITE_TYPES, val: types }, { root: true });
-  }
+  },
+
+  toggleGroup({ commit, rootGetters }, { group, expanded }) {
+    const groups = rootGetters['prefs/get'](EXPANDED_GROUPS);
+
+    if ( expanded ) {
+      addObject(groups, group);
+    } else {
+      removeObject(groups, group);
+    }
+
+    commit('prefs/set', { key: EXPANDED_GROUPS, val: groups }, { root: true });
+  },
 };
 
 function _sortGroup(tree) {
@@ -898,6 +921,7 @@ function _addMapping(mappings, match, replace, weight, continueOnMatch) {
   });
 }
 
+// Regexes can't be represented in state because they don't serialize to JSON..
 const regexCache = {};
 
 function ensureRegex(strOrRegex) {
