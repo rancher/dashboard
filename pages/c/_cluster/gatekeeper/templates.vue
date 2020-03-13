@@ -1,3 +1,3 @@
 <template>
-  <h1>Constraints</h1>
+  <h1>Templates</h1>
 </template>

@@ -24,15 +24,18 @@ export default {
       return this.$store.getters['type-map/pluralLabelFor'](this.schema);
     },
   },
-  asyncData(ctx) {
-    const resource = ctx.params.resource;
 
-    return ctx.store.dispatch('cluster/findAll', { type: resource }).then((rows) => {
-      return {
-        resource,
-        rows
-      };
-    });
+  async asyncData({ params, store }) {
+    const resource = params.resource;
+
+    const rows = await store.dispatch('cluster/findAll', { type: resource });
+
+    await store.dispatch('type-map/addRecent', resource);
+
+    return {
+      resource,
+      rows
+    };
   },
 }; </script>
 

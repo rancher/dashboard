@@ -116,6 +116,7 @@ export default {
 
       > H6 {
         font-weight: bold;
+        font-size: 18px;
         text-transform: none;
       }
     }

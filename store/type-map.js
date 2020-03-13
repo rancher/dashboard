@@ -431,6 +431,7 @@ export const getters = {
 
         out[schema.id] = {
           schema,
+          mode,
           group:       groupName,
           id:          schema.id,
           label:       getters.singularLabelFor(schema),
@@ -751,6 +752,37 @@ export const mutations = {
 
   pluralizeType(type, plural) {
     state.pluralLabels[type] = plural;
+  },
+};
+
+export const actions = {
+  addRecent({ commit, rootGetters }, type) {
+    const types = rootGetters['prefs/get'](RECENT_TYPES) || [];
+
+    removeObject(types, type);
+    types.unshift(type);
+
+    while ( types.length > 5 ) {
+      types.pop();
+    }
+
+    commit('prefs/set', { key: RECENT_TYPES, val: types }, { root: true });
+  },
+
+  addFavorite({ commit, rootGetters }, type) {
+    const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
+
+    addObject(types, type);
+
+    commit('prefs/set', { key: FAVORITE_TYPES, val: types }, { root: true });
+  },
+
+  removeFavorite({ commit, rootGetters }, type) {
+    const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
+
+    removeObject(types, type);
+
+    commit('prefs/set', { key: FAVORITE_TYPES, val: types }, { root: true });
   }
 };
 

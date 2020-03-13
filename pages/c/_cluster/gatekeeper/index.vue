@@ -102,6 +102,8 @@ export default {
         });
       }
 
+      await store.dispatch('type-map/addRecent', 'workload');
+
       return {
         gatekeeper,
         mode,
