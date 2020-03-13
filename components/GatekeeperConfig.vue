@@ -1,6 +1,7 @@
 <script>
 import CodeMirror from './CodeMirror';
 import AsyncButton from '@/components/AsyncButton';
+import GatekeeperTables from '@/components/GatekeeperTables';
 import Footer from '@/components/form/Footer';
 import { NAMESPACE } from '@/config/types';
 import { _VIEW, _EDIT } from '@/config/query-params';
@@ -11,6 +12,7 @@ export default {
 
   components: {
     AsyncButton,
+    GatekeeperTables,
     CodeMirror,
     Footer,
   },
@@ -143,9 +145,7 @@ export default {
       });
 
       await newSystemNs.save();
-      // TODO save doesnt push this object into the store it cerates a new one so waiting on a merge fucntion to be added to save before do this.
-      // console.log('awaiting namespace');
-      // await newSystemNs.waitForState('active');
+      await newSystemNs.waitForState('active');
     },
 
     showActions() {
@@ -165,8 +165,8 @@ export default {
       try {
         await this.ensureNamespace();
         await this.config.save();
+        // TODO something here causes my entire cluster to die
         // await this.config.waitForCondition('Installed');
-        // console.log('awaiting app installed');
         this.gatekeeperEnabled = true;
         this.showYamlEditor = false;
         buttonCb(true);
@@ -315,43 +315,36 @@ export default {
         v-if="!showYamlEditor"
         class="row info-box"
       >
-        <div class="col span-6">
-          <div class="info-line">
+        <div class="col span-6 info-column">
+          <div class="info-row">
             <label>Audit From Cache: </label>
             {{ parsedValuesYaml.auditFromCache }}
           </div>
-          <div class="info-line">
+          <div class="info-row">
             <label>Audit Interval: </label>
             {{ parsedValuesYaml.auditInterval }}s
           </div>
-          <div class="info-line">
+          <div class="info-row">
             <label>Constraint Violation Limit: </label>
             {{ parsedValuesYaml.constraintViolationsLimit }}
           </div>
-          <div class="info-line">
+          <div class="info-row">
             <label>Replicas: </label>
             {{ parsedValuesYaml.replicas }}
           </div>
-          <div class="info-line">
-            <label>Image: </label>
-            {{ parsedValuesYaml.image.repository }}
-          </div>
-          <div class="info-line">
-            <label>Version: </label>
-            {{ parsedValuesYaml.image.release }}
-          </div>
         </div>
-        <div class="col span-6">
-          <div class="info-line">
+        <div class="col span-6 info-column">
+          <div class="info-row">
             <label>Image: </label>
             {{ parsedValuesYaml.image.repository }}
           </div>
-          <div class="info-line">
+          <div class="info-row">
             <label>Version: </label>
             {{ parsedValuesYaml.image.release }}
           </div>
         </div>
       </div>
+      <GatekeeperTables />
     </div>
     <div v-else class="mt-20 mb-20">
       <hr />
@@ -448,7 +441,10 @@ export default {
    border: 1px solid var(--tabbed-border);
    padding: 20px;
    border-radius: var(--border-radius);
-   .info-line {
+   .info-column:not(:last-child) {
+     border-right: 1px solid var(--tabbed-border);
+   }
+   .info-row {
      margin-bottom: 10px;
      label {
        color: var(--input-label);
