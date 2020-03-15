@@ -310,6 +310,10 @@ export default {
         <div v-if="search" class="search">
           <input v-model="searchQuery" type="search" class="input-sm" placeholder="Filter">
         </div>
+
+        <div class="end">
+          <slot name="header-end" />
+        </div>
       </div>
     </div>
     <table class="sortable-table" :class="classObject" width="100%">
@@ -643,7 +647,7 @@ $divider-height: 1px;
   z-index: z-index('fixedTableHeader');
   background: var(--sortable-table-header-bg);
   display: grid;
-  grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px);
+  grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px) [end] min-content;
   grid-column-gap: 10px;
 
   .bulk {
@@ -661,6 +665,11 @@ $divider-height: 1px;
 
   .search {
     grid-area: search;
+  }
+
+  .end {
+    grid-area: end;
+    white-space: nowrap;
   }
 }
 </style>

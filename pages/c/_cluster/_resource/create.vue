@@ -5,6 +5,15 @@ import { SCHEMA } from '@/config/types';
 
 export default {
   components: { ResourceYaml },
+  data() {
+    if (this.hasComponent) {
+      this.$store.getters['type-map/importEdit'](this.resource)().then((component) => {
+        this.importedEditComponent = component.default;
+      });
+    }
+
+    return { importedEditComponent: null };
+  },
   computed:   {
     doneRoute() {
       const name = this.$route.name.replace(/-create$/, '');
@@ -18,6 +27,12 @@ export default {
 
     showComponent() {
       return this.$store.getters['type-map/importEdit'](this.resource);
+    },
+
+    doneEditOverride() {
+      return this.importedEditComponent?.doneOverride
+        ? this.importedEditComponent?.doneOverride.bind(this)
+        : null;
     },
 
     typeDisplay() {
@@ -65,6 +80,9 @@ export default {
       :done-route="doneRoute"
       mode="create"
       :value="model"
+      :obj="model"
+      :yaml="yaml"
+      :done-override="doneEditOverride"
     />
   </div>
   <ResourceYaml v-else :obj="model" :value="yaml" :done-route="doneRoute" :for-create="true" />

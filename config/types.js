@@ -15,6 +15,7 @@ export const INGRESS = 'networking.k8s.io.ingress';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
 export const TLS_CERT = 'kubernetes.io/tls';
+export const GATEKEEPER_CONSTRAINT_TEMPLATE = 'templates.gatekeeper.sh.constrainttemplate';
 
 // Old Rancher API via Norman, /v3
 export const NORMAN = {

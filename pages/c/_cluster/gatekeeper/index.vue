@@ -2,6 +2,8 @@
 import { NAMESPACE, MANAGEMENT, EXTERNAL } from '@/config/types';
 import GatekeeperConfig from '@/components/GatekeeperConfig';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
+import InfoBox from '@/components/InfoBox';
+import GatekeeperViolationsTable from '@/components/GatekeeperViolationsTable';
 
 const TEMPLATE_ID = 'cattle-global-data/system-library-rancher-gatekeeper-operator';
 const APP_ID = 'rancher-gatekeeper-operator';
@@ -30,7 +32,9 @@ global:
 const SYSTEM_PROJECT_LABEL = 'authz.management.cattle.io/system-project';
 
 export default {
-  components: { GatekeeperConfig },
+  components: {
+    GatekeeperConfig, GatekeeperViolationsTable, InfoBox
+  },
 
   data() {
     return {
@@ -155,6 +159,14 @@ export default {
         :namespaces="namespaces"
         :projects="projects"
       />
+      <InfoBox>
+        <div class="mb-15">
+          <h2>OPA Gatekeeper Violations</h2>
+        </div>
+        <div>
+          <GatekeeperViolationsTable :include-constraint="true" />
+        </div>
+      </InfoBox>
     </div>
   </div>
 </template>

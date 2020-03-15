@@ -1,8 +1,8 @@
 <script>
 import CodeMirror from './CodeMirror';
 import AsyncButton from '@/components/AsyncButton';
-import GatekeeperTables from '@/components/GatekeeperTables';
 import Footer from '@/components/form/Footer';
+import InfoBox from '@/components/InfoBox';
 import { NAMESPACE } from '@/config/types';
 import { _VIEW, _EDIT } from '@/config/query-params';
 import { findBy } from '@/utils/array';
@@ -12,8 +12,8 @@ export default {
 
   components: {
     AsyncButton,
-    GatekeeperTables,
     CodeMirror,
+    InfoBox,
     Footer,
   },
 
@@ -311,9 +311,9 @@ export default {
       </div>
     </header>
     <div v-if="gatekeeperEnabled" class="mt-20">
-      <div
+      <InfoBox
         v-if="!showYamlEditor"
-        class="row info-box"
+        class="row"
       >
         <div class="col span-6 info-column">
           <div class="info-row">
@@ -343,8 +343,7 @@ export default {
             {{ parsedValuesYaml.image.release }}
           </div>
         </div>
-      </div>
-      <GatekeeperTables />
+      </InfoBox>
     </div>
     <div v-else class="mt-20 mb-20">
       <hr />
@@ -433,22 +432,6 @@ export default {
    }
    .col:first-of-type {
      border-right: 1px solid;
-   }
- }
-
- .info-box {
-   background-color: var(--tabbed-container-bg);
-   border: 1px solid var(--tabbed-border);
-   padding: 20px;
-   border-radius: var(--border-radius);
-   .info-column:not(:last-child) {
-     border-right: 1px solid var(--tabbed-border);
-   }
-   .info-row {
-     margin-bottom: 10px;
-     label {
-       color: var(--input-label);
-     }
    }
  }
 </style>

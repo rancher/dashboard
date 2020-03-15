@@ -32,6 +32,10 @@ export default {
       type:    Array,
       default: () => []
     },
+    extraDetailColumns: {
+      type:    Array,
+      default: () => []
+    },
     nameLabel: {
       type:    String,
       default: 'Name'
@@ -147,6 +151,7 @@ export default {
             title:   'Description',
             content: annotations[DESCRIPTION]
           } : null,
+        ...this.extraDetailColumns
       ].filter(c => c);
     }
   },
