@@ -80,7 +80,7 @@ export default {
       {{ label }}
       <span v-if="required && !value" class="required">*</span>
     </label>
-    <label class="corner">
+    <label v-if="!!(this.$slots.corner || [])[0]" class="corner">
       <slot name="corner" />
     </label>
     <slot name="prefix" />
@@ -94,7 +94,7 @@ export default {
         <span v-if="required && !value" class="required">*</span>
       </label>
     </slot>
-    <label class="corner">
+    <label v-if="!!(this.$slots.corner || [])[0]" class="corner">
       <slot name="corner" />
     </label>
     <slot name="prefix" />

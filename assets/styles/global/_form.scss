@@ -28,6 +28,15 @@ TEXTAREA,
     &:hover {
       background: var(--input-hover-bg);
     }
+
+    input[type='number'] {
+      padding: 5px 5px 0 0;
+      line-height: 1.15rem;
+      &:hover {
+        padding: 5px 5px 0 0;
+        line-height: 1.15rem;
+      }
+    }
   }
 
   &.view {
@@ -156,7 +165,7 @@ INPUT.inline-input {
 
 // Styling Checkbox Starts
 /*
-.checkbox, 
+.checkbox,
 .radio {
     position: relative;
     margin: auto;
@@ -165,7 +174,7 @@ INPUT.inline-input {
     clear: both;
     display: inline-block;
     width: 100%;
-  
+
   > * {
     float: left;
   }
@@ -234,7 +243,7 @@ INPUT.inline-input {
 }
 
 
-// Style for Radio 
+// Style for Radio
 .radio .checkbox-custom.circular {
     border-radius: 50%;
     border: 1.5px solid #FFFFFF;
