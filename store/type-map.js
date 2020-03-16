@@ -616,6 +616,12 @@ export const getters = {
 
   componentFor(state) {
     return (type) => {
+      // @TODO We need to remove this special condition. This is here because
+      // the type-config was not getting called before componentFor was getting called.
+      if (type?.includes('constraints.gatekeeper.sh')) {
+        return 'gatekeeper-constraint';
+      }
+
       if ( state.cache.componentFor[type] !== undefined ) {
         return state.cache.componentFor[type];
       }

@@ -1,5 +1,5 @@
 import {
-  CONFIG_MAP, NAMESPACE, NODE, SECRET, RIO, RBAC, INGRESS, WORKLOAD
+  CONFIG_MAP, GATEKEEPER_CONSTRAINT_TEMPLATE, NAMESPACE, NODE, SECRET, RIO, RBAC, INGRESS, WORKLOAD
 } from '@/config/types';
 
 import {
@@ -37,6 +37,8 @@ export default function(store) {
     NODE,
     WORKLOAD,
   ]);
+
+  mapTypeToComponentName('constraints.gatekeeper.sh.k8sallowedrepos', 'gatekeeper-constraint');
 
   ignoreType('events.k8s.io.event'); // Events type moved into core
   ignoreType('extensions.ingress'); // Moved into networking
@@ -192,7 +194,7 @@ export default function(store) {
   });
 
   // OPA Gatekeeper
-  mapTypeToComponentName(/^constraints.gatekeeper.sh\..*$/, 'gatekeeper-constraint');
+
   ignoreGroup(/^.*\.gatekeeper\.sh$/);
 
   virtualType({
@@ -210,7 +212,7 @@ export default function(store) {
     name:       'gatekeeper-constraints',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-constraints' },
-    ifHaveType: 'templates.gatekeeper.sh.constrainttemplate'
+    ifHaveType: GATEKEEPER_CONSTRAINT_TEMPLATE
   });
 
   virtualType({
@@ -219,6 +221,6 @@ export default function(store) {
     name:       'gatekeeper-templates',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-templates' },
-    ifHaveType: 'templates.gatekeeper.sh.constrainttemplate'
+    ifHaveType: GATEKEEPER_CONSTRAINT_TEMPLATE
   });
 }

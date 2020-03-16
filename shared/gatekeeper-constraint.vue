@@ -1,20 +1,34 @@
 <script>
+import { _VIEW } from '../config/query-params';
+import { SCHEMA } from '@/config/types';
 import LabelSelector from '@/components/form/LabelSelector';
 import MatchKinds from '@/components/form/MatchKinds';
 import NamespaceSelector from '@/components/form/NamespaceSelector';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import KeyValue from '@/components/form/KeyValue';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import NamespaceList from '@/components/form/NamespaceList';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import Footer from '@/components/form/Footer';
+import GatekeeperViolationsTable from '@/components/GatekeeperViolationsTable';
+
+function findConstraintTypes(schemas) {
+  return schemas
+    .filter(schema => schema?.attributes?.group === 'constraints.gatekeeper.sh')
+    .map(schema => schema.id);
+}
+
+const CONSTRAINT_PREFIX = 'constraints.gatekeeper.sh.';
 
 export default {
   components: {
     Footer,
+    GatekeeperViolationsTable,
     KeyValue,
     LabelSelector,
+    LabeledSelect,
     MatchKinds,
     NameNsDescription,
     NamespaceList,
@@ -23,7 +37,7 @@ export default {
     Tabbed
   },
 
-  mixins: [CreateEditView],
+  extends: CreateEditView,
 
   props: {
     value: {
@@ -33,33 +47,114 @@ export default {
   },
 
   data() {
-    return { localValue: this.value };
+    const schemas = this.$store.getters['cluster/all'](SCHEMA);
+    const constraintTypes = findConstraintTypes(schemas);
+    const templateOptions = constraintTypes.map((type) => {
+      return {
+        label: type.replace(CONSTRAINT_PREFIX, ''),
+        value: type
+      };
+    });
+
+    const localValue = Object.keys(this.value).length > 0
+      ? this.value
+      : {
+        type:  templateOptions[0].value,
+        spec: {
+          parameters: {},
+          match:      {
+            kinds:              [],
+            namespaces:         [],
+            excludedNamespaces: [],
+            labelSelector:      { matchExpressions: [] },
+            namespaceSelector:  { matchExpressions: [] }
+          }
+        }
+      };
+
+    const extraDetailColumns = [
+      {
+        title:   'Template',
+        content: templateOptions.find(o => o.value === localValue.type).label
+      }
+    ];
+
+    return {
+      localValue,
+      templateOptions,
+      extraDetailColumns,
+    };
+  },
+
+  computed: {
+    isView() {
+      return this.mode === _VIEW;
+    }
+  },
+
+  watch: {
+    localValue: {
+      handler(value) {
+        // We have to set the type for the CreateEditView mixin to know what the type is when creating
+        this.type = value.type;
+      },
+      deep: true
+    }
   },
 
   created() {
-    const value = this.value;
+    (async() => {
+      const value = this.value.save
+        ? this.value
+        : Object.assign(await this.$store.dispatch('cluster/create', { type: this.templateOptions[0].value }), this.value);
 
-    value.spec = value.spec || {};
-    value.spec.parameters = value.spec.parameters || {};
-    value.spec.match = value.spec.match || {};
-    value.spec.match.kinds = value.spec.match.kinds || [];
-    value.spec.match.namespaces = value.spec.match.namespaces || [];
-    value.spec.match.excludedNamespaces = value.spec.match.excludedNamespaces || [];
-    value.spec.match.labelSelector = value.spec.match.labelSelector || {};
-    value.spec.match.labelSelector.matchExpressions = value.spec.match.labelSelector.matchExpressions || [];
-    value.spec.match.namespaceSelector = value.spec.match.namespaceSelector || {};
-    value.spec.match.namespaceSelector.matchExpressions = value.spec.match.namespaceSelector.matchExpressions || [];
+      value.type = value.type || this.templateOptions[0].value;
+      value.spec = value.spec || {};
+      value.spec.parameters = value.spec.parameters || {};
+      value.spec.match = value.spec.match || {};
+      value.spec.match.kinds = value.spec.match.kinds || [];
+      value.spec.match.namespaces = value.spec.match.namespaces || [];
+      value.spec.match.excludedNamespaces = value.spec.match.excludedNamespaces || [];
+      value.spec.match.labelSelector = value.spec.match.labelSelector || {};
+      value.spec.match.labelSelector.matchExpressions = value.spec.match.labelSelector.matchExpressions || [];
+      value.spec.match.namespaceSelector = value.spec.match.namespaceSelector || {};
+      value.spec.match.namespaceSelector.matchExpressions = value.spec.match.namespaceSelector.matchExpressions || [];
 
-    this.$emit('input', value);
+      this.$emit('input', value);
+    })();
+  },
+
+  methods: {
+    done() {
+      this.$router.replace({
+        name:   'c-cluster-gatekeeper-constraints',
+        params: this.$route.params
+      });
+    }
   }
 };
 </script>
 <template>
   <div>
     <div>
-      <NameNsDescription :value="value" :mode="mode" :namespaced="false" />
+      <NameNsDescription :value="value" :mode="mode" :namespaced="false" :extra-columns="['template']" :extra-detail-columns="extraDetailColumns">
+        <template v-slot:template>
+          <LabeledSelect
+            :mode="mode"
+            :value="localValue.type"
+            :options="templateOptions"
+            label="Template"
+            @input="$set(localValue, 'type', $event)"
+          />
+        </template>
+      </NameNsDescription>
     </div>
     <br />
+    <div v-if="isView">
+      <h2>Violations</h2>
+      <GatekeeperViolationsTable :constraint="localValue" />
+      <br />
+    </div>
     <div>
       <h2>Parameters</h2>
       <KeyValue

@@ -50,11 +50,9 @@ export async function asyncData(ctx) {
   const asYaml = (route.query[EDIT_YAML] === _FLAGGED) || (mode === _VIEW && !hasCustomDetail) || (mode !== _VIEW && !hasCustomEdit);
   let yaml = null;
 
-  if ( asYaml ) {
-    const link = obj.hasLink('rioview') ? 'rioview' : 'view';
+  const link = obj.hasLink('rioview') ? 'rioview' : 'view';
 
-    yaml = (await obj.followLink(link, { headers: { accept: 'application/yaml' } })).data;
-  }
+  yaml = (await obj.followLink(link, { headers: { accept: 'application/yaml' } })).data;
 
   /*******
    * Important: these need to be declared below as props too
@@ -128,10 +126,25 @@ export default {
   },
 
   data() {
+    if (this.hasCustomDetail) {
+      this.$store.getters['type-map/importDetail'](this.resource)().then((component) => {
+        this.importedDetailComponent = component.default;
+      });
+    }
+
+    if (this.hasCustomEdit) {
+      this.$store.getters['type-map/importEdit'](this.resource)().then((component) => {
+        this.importedEditComponent = component.default;
+      });
+    }
+
     return {
-      currentValue:    this.value,
-      detailComponent: this.$store.getters['type-map/importDetail'](this.resource),
-      editComponent:   this.$store.getters['type-map/importEdit'](this.resource),
+      isCustomYamlEditor:      false,
+      currentValue:            this.value,
+      detailComponent:         this.$store.getters['type-map/importDetail'](this.resource),
+      importedDetailComponent: null,
+      editComponent:           this.$store.getters['type-map/importEdit'](this.resource),
+      importedEditComponent:   null,
     };
   },
 
@@ -145,7 +158,7 @@ export default {
     },
 
     showEditAsYaml() {
-      return this.isEdit;
+      return this.isEdit && !this.importedEditComponent?.isYamlEditor;
     },
 
     doneRoute() {
@@ -214,6 +227,7 @@ export default {
         :parent-route="doneRoute"
         :parent-params="doneParams"
         :has-edit-as-form="hasCustomEdit"
+        :done-override="doneOverride"
       />
     </template>
     <template v-else>
@@ -252,6 +266,9 @@ export default {
         :namespace-suffix-on-create="namespaceSuffixOnCreate"
         :type-label="typeDisplay"
         :mode="mode"
+        :value="model"
+        :obj="model"
+        :yaml="yaml"
       />
     </template>
   </div>

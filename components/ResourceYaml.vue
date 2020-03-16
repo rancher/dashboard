@@ -54,6 +54,14 @@ export default {
     parentParams: {
       type:    Object,
       default: null,
+    },
+    doneOverride: {
+      type:    Function,
+      default: null
+    },
+    showHeader: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -217,6 +225,9 @@ export default {
     },
 
     cancel() {
+      if (this.mode === _CREATE) {
+        return this.done();
+      }
       this.mode = _VIEW;
       this.$router.applyQuery({ [MODE]: this.mode });
       this.currentValue = this.value;
@@ -275,6 +286,10 @@ export default {
     },
 
     done() {
+      if (this.doneOverride) {
+        return this.doneOverride();
+      }
+
       if ( !this.doneRoute ) {
         return;
       }
@@ -291,7 +306,7 @@ export default {
 <template>
   <div class="root">
     <header>
-      <h1>
+      <h1 v-if="showHeader">
         <span v-if="isCreate">Create {{ schema.attributes.kind }}</span>
         <span v-else>{{ schema.attributes.kind }}: {{ obj.id }}</span>
       </h1>

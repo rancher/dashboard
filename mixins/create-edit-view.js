@@ -93,11 +93,12 @@ export default {
           if ( this.namespaceSuffixOnCreate ) {
             url += `/${ this.value.metadata.namespace }`;
           }
-
           const res = await this.value.save({ url });
 
-          Object.assign(this.value, res);
-          await this.value.$dispatch('load', this.value);
+          if (res) {
+            Object.assign(this.value, res);
+            await this.value.$dispatch('load', { data: this.value });
+          }
         } else {
           await this.value.save();
         }
