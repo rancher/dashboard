@@ -73,7 +73,7 @@ export default {
         {{ label }}
       </slot>
 
-      <i v-if="canCollapse" class="icon toggle" :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}" />
+      <i v-if="canCollapse" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" />
     </div>
     <transition name="slide" mode="out-in">
       <div v-if="isExpanded" class="body">
@@ -91,7 +91,7 @@ export default {
     color: var(--input-label);
 
     > H6 {
-      color: var(--input-label);
+      color: var(--body-text);
     }
 
     > I {
@@ -116,15 +116,13 @@ export default {
       border-top: solid thin var(--border);
 
       > H6 {
-        font-weight: bold;
-        font-size: 18px;
+        font-size: 14px;
         text-transform: none;
       }
     }
 
     > .body ::v-deep > UL {
       margin-left: 0;
-      border-left: solid thin var(--border);
     }
   }
 

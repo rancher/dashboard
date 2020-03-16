@@ -76,7 +76,7 @@ export default {
       right: 5px;
       font-size: 18px;
       font-family: 'icons';
-      content: '\e906';
+      content: '\e908';
     }
   }
 
