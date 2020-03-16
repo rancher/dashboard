@@ -73,7 +73,7 @@ export default {
         {{ label }}
       </slot>
 
-      <i v-if="canCollapse" class="icon toggle" :class="{'icon-chevron-right': !isExpanded, 'icon-chevron-down': isExpanded}" />
+      <i v-if="canCollapse" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" />
     </div>
     <transition name="slide" mode="out-in">
       <div v-if="isExpanded" class="body">
