@@ -213,7 +213,7 @@ export default {
 
   waitForTestFn() {
     return (fn, msg, timeoutMs, intervalMs) => {
-      console.log('Wait for', msg);
+      console.log(msg);
 
       if ( !timeoutMs ) {
         timeoutMs = DEFAULT_WAIT_TMIMEOUT;
@@ -296,10 +296,10 @@ export default {
   },
 
   waitForCondition() {
-    return (name, withStatus = 'True') => {
+    return (name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) => {
       return this.waitForTestFn(() => {
-        return this.hasCondition(name, status);
-      }, `Wait for condition ${ name }=${ status }`);
+        return this.hasCondition(name, withStatus);
+      }, `Wait for condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
     };
   },
 
