@@ -82,6 +82,8 @@ $selected: rgba($primary, .5);
 
   --accent-btn                 : #{rgba($primary, 0.2)};
   --overlay-bg                 : #{rgba($lighter, 0.75)};
+  --shadow                     : #{rgba($lighter, 0.75)};
+
 
   --dropdown-bg                : #{$lighter};
   --dropdown-border            : #{$medium};
@@ -118,7 +120,7 @@ $selected: rgba($primary, .5);
   --sortable-table-body-divider : #{$darker};
   --sortable-table-selected-bg : #{$light};
 
-  --tooltip-bg                 : #{rgba($primary, 0.7)};
+  --tooltip-bg                 : #{$primary};
   --tooltip-text               : var(--body-text);
   --tooltip-border-radius      : 2px;
 
