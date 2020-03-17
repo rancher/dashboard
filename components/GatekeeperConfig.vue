@@ -165,8 +165,7 @@ export default {
       try {
         await this.ensureNamespace();
         await this.config.save();
-        // TODO something here causes my entire cluster to die
-        // await this.config.waitForCondition('Installed');
+        await this.config.waitForCondition('Installed');
         this.gatekeeperEnabled = true;
         this.showYamlEditor = false;
         buttonCb(true);
