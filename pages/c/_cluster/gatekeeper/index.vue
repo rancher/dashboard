@@ -159,7 +159,7 @@ export default {
         :namespaces="namespaces"
         :projects="projects"
       />
-      <InfoBox>
+      <InfoBox v-if="!gateKeeperUnavailable && gatekeeper.id">
         <div class="mb-15">
           <h2>OPA Gatekeeper Violations</h2>
         </div>
