@@ -55,6 +55,7 @@ export default {
       if (!template?.id ) {
         return {
           gateKeeperUnavailable: true,
+          gatekeeperEnabled:     false,
           mode,
         };
       }
@@ -72,6 +73,7 @@ export default {
       if ( !targetSystemProject ) {
         return {
           gateKeeperUnAvailable: true,
+          gatekeeperEnabled:     false,
           mode,
         };
       }
@@ -109,6 +111,7 @@ export default {
       await store.dispatch('type-map/addRecent', 'workload');
 
       return {
+        gatekeeperEnabled: !!gatekeeper?.id,
         gatekeeper,
         mode,
         namespaces,
@@ -119,6 +122,7 @@ export default {
 
       return {
         gateKeeperUnavailable: true,
+        gatekeeperEnabled:     false,
         mode,
       };
     }
@@ -158,8 +162,9 @@ export default {
         :mode="mode"
         :namespaces="namespaces"
         :projects="projects"
+        @gatekeeperEnabled="status => gatekeeperEnabled = status"
       />
-      <InfoBox>
+      <InfoBox v-if="gatekeeperEnabled">
         <div class="mb-15">
           <h2>OPA Gatekeeper Violations</h2>
         </div>
