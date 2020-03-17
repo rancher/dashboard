@@ -1,4 +1,5 @@
 import { formatPercent } from '@/utils/string';
+import { NODE_ROLES } from '@/config/labels-annotations.js';
 
 export default {
   name() {
@@ -6,9 +7,34 @@ export default {
   },
 
   roles() {
-    console.warn('no backend for roles');
+    const {
+      CONTROL_PLANE: controlPlane,
+      WORKER:        worker,
+      ETCD:          etcd
+    } = NODE_ROLES;
+    const labels = this.metadata?.labels;
 
-    return 'All';
+    const isControlPlane = labels[controlPlane];
+    const isWorker = labels[worker];
+    const isEtcd = labels[etcd];
+
+    if (( isControlPlane && isWorker && isEtcd ) ||
+        ( !isControlPlane && !isWorker && !isEtcd )) {
+      // !isControlPlane && !isWorker && !isEtcd === RKE?
+      return 'All';
+    }
+
+    if (isControlPlane) {
+      return 'Control Plane';
+    }
+
+    if (isWorker) {
+      return 'Worker';
+    }
+
+    if (isEtcd) {
+      return 'Etcd';
+    }
   },
 
   version() {

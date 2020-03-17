@@ -4,7 +4,7 @@ export const FRACTIONAL = ['', 'm', 'u', 'n', 'p', 'f']; // milli micro nano pic
 export function formatSi(inValue, {
   increment = 1000,
   addSuffix = true,
-  suffix = null,
+  suffix = '',
   firstSuffix = null,
   startingExponent = 0,
   minExponent = 0,
@@ -31,9 +31,9 @@ export function formatSi(inValue, {
 
   if ( addSuffix ) {
     if ( exp === 0 && firstSuffix !== null) {
-      out += ` ${ firstSuffix }`;
+      out += `${ firstSuffix }`;
     } else {
-      out += ` ${ UNITS[exp] }${ suffix }` || '';
+      out += `${ UNITS[exp] }${ suffix }` || '';
     }
   }
 
@@ -98,3 +98,9 @@ export function parseSi(inValue, { increment = null, allowFractional = true } = 
   // Unrecognized unit character
   return val;
 }
+
+export default {
+  exponentNeeded,
+  formatSi,
+  parseSi,
+};
