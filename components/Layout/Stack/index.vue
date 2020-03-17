@@ -64,7 +64,7 @@ export default {
 
             &.dividers {
                 & > *:not(:last-child) {
-                    border-right: 2px solid var(--border)
+                    border-right: 1px solid var(--border)
                 }
             }
 
@@ -122,7 +122,7 @@ export default {
 
             &.dividers {
                 & > *:not(:last-child) {
-                    border-bottom: 2px solid var(--border)
+                    border-bottom: 1px solid var(--border)
                 }
             }
 

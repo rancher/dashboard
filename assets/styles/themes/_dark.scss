@@ -65,6 +65,7 @@
 
   --accent-btn                 : #{rgba($primary, 0.2)};
   --overlay-bg                 : #{rgba($darkest, 0.75)};
+  --shadow                     : #{rgba($darkest, 0.75)};
 
   --dropdown-bg                : #{$dark};
   --dropdown-border            : var(--border);
@@ -96,7 +97,7 @@
   --sortable-table-accent-alt  : #{$darker};
   --sortable-table-selected-bg : #{$selected};
 
-  --tooltip-bg                 : #{rgba($primary, 0.7)};
+  --tooltip-bg                 : #{$primary};
   --tooltip-text               : var(--body-text);
 
   --tabbed-border              : #{$medium};
