@@ -88,7 +88,7 @@
       color: var(--tooltip-text);
       padding: 10px;
       border-radius: 5px;
-      box-shadow: 0 5px 30px rgba(var(--modal-overlay-bg), .1);
+      box-shadow: 0 5px 30px var(--overlay-bg);
     }
 
     .popover-arrow {

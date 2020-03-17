@@ -370,24 +370,16 @@ export default {
       </InfoBox>
     </div>
     <div v-else class="mt-20 mb-20">
-      <hr />
       <article class="col span-12 info">
         <p>
-          Every organization has policies. Some are essential to meet governance and legal requirements. Others help ensure adherance to best practices and institutional conventions. Attempting to ensure compliance manually would be error-prone and frustrating. Automating policy enforcement ensures consistency, lowers development latency through immediate feedback, and helps with agility by allowing developers to operate independently without sacrificing compliance.
-        </p>
-        <p>
-          Kubernetes allows decoupling policy decisions from the inner workings of the API Server by means of admission controller webhooks, which are executed whenever a resource is created, updated or deleted. Gatekeeper is a validating (mutating TBA) webhook that enforces CRD-based policies executed by Open Policy Agent, a policy engine for Cloud Native environments hosted by CNCF as an incubation-level project.
-        </p>
-        <p>
-          In addition to the admission scenario, Gatekeeper's audit functionality allows administrators to see what resources are currently violating any given policy.
-        </p>
-        <p>
-          Finally, Gatekeeper's engine is designed to be portable, allowing administrators to detect and reject non-compliant commits to an infrastructure-as-code system's source-of-truth, further strengthening compliance efforts and preventing bad state from slowing down the organization.
+          <a href="https://www.openpolicyagent.org/docs/latest/kubernetes-introduction/" target="blank">OPA Gatekeeper</a> provides first-class integration between OPA (Open Policy Agent) and Kubernetes. For more information, visit the OPA documentation.
         </p>
       </article>
-      <hr />
       <div class="row action-group">
         <div class="col">
+          <p>
+            Enable Gatekeeper <span v-if="appVersion">({{ appVersion }}) </span>with defaults.
+          </p>
           <AsyncButton
             :mode="mode"
             action-label="Enable"
@@ -398,11 +390,11 @@ export default {
             v-bind="$attrs"
             @click="enable"
           />
-          <p>
-            Enable Gatekeeper <span v-if="appVersion">({{ appVersion }}) </span>with defaults.
-          </p>
         </div>
         <div class="col">
+          <p>
+            Customize Gatekeeper yaml configuartion.
+          </p>
           <button
             type="button"
             class="btn bg-primary"
@@ -412,9 +404,6 @@ export default {
           >
             Customize Configuration
           </button>
-          <p>
-            Customize Gatekeeper yaml configuartion.
-          </p>
         </div>
       </div>
     </div>
