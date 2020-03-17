@@ -127,6 +127,28 @@ export default {
         this.showYamlEditor = false;
       }
     },
+
+    config: {
+      deep: true,
+      handler() {
+        const gatekeeper = this.config || {};
+        const meta = gatekeeper?.metadata;
+        const gatekeeperStatus = (gatekeeper.status?.conditions || []).slice();
+
+        // this doesn't seeem right but the only way I can see to check that it was removed before the object goes away
+        if (Object.prototype.hasOwnProperty.call(meta, 'deletionTimestamp')) {
+          this.gatekeeperEnabled = false;
+          this.$emit('gatekeeperEnabled', this.gatekeeperEnabled);
+
+          return;
+        }
+
+        if (gatekeeperStatus.some(app => app.type === 'Deployed')) {
+          this.gatekeeperEnabled = true;
+          this.$emit('gatekeeperEnabled', this.gatekeeperEnabled);
+        }
+      }
+    }
   },
 
   methods: {
@@ -165,7 +187,7 @@ export default {
       try {
         await this.ensureNamespace();
         await this.config.save();
-        await this.config.waitForCondition('Installed');
+        await this.config.waitForCondition('Deployed');
         this.gatekeeperEnabled = true;
         this.showYamlEditor = false;
         buttonCb(true);
