@@ -24,10 +24,13 @@ export default {
 .detail-top {
     display: flex;
     flex-wrap: wrap;
-    position:relative;
-    right: 50px;
+    background: var(--box-bg);
+    border: solid thin var(--border);
+    border-radius: var(--border-radius);
+
     & > * {
-        padding: 10px 50px;
+        padding: 0 10px;
+        margin: 15px 0;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -39,7 +42,7 @@ export default {
         }
 
         &:not(:last-child) {
-            border-right: 2px solid var(--border);
+            border-right: 1px solid var(--border);
         }
 
         &:last-child {

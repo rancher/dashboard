@@ -316,7 +316,10 @@ export default {
   }
   .detail-top{
     display: flex;
-    height: 75px;
+    flex-wrap: wrap;
+    background: var(--box-bg);
+    border: solid thin var(--border);
+    border-radius: var(--border-radius);
 
     & > * {
       margin-right: 20px;

@@ -13,11 +13,6 @@
     transition-timing-function: ease-in-out;
     z-index: 1;
     color: var(--input-label);
-    background-color: var(--input-bg);
-  }
-
-  &:hover LABEL {
-    background-color: var(--input-hover-bg);
   }
 
   /*
