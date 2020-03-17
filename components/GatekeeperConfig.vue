@@ -185,14 +185,17 @@ export default {
      */
     async enable(buttonCb) {
       try {
+        this.saving = true;
         await this.ensureNamespace();
         await this.config.save();
         await this.config.waitForCondition('Deployed');
         this.gatekeeperEnabled = true;
         this.showYamlEditor = false;
+        this.saving = false;
         buttonCb(true);
       } catch (err) {
         this.gatekeeperEnabled = false;
+        this.saving = false;
         if (err?.message) {
           this.errors = [err.message];
         } else {
@@ -403,6 +406,7 @@ export default {
           <button
             type="button"
             class="btn bg-primary"
+            :class="{ disabled: saving }"
             :disable="saving"
             @click="openYamlEditor"
           >
