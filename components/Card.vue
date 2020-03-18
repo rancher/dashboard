@@ -58,7 +58,11 @@ export default {
    & .card-actions {
      align-self: end;
      display: flex;
-     justify-content: space-between;
+     justify-content: center;
+
+     button {
+       margin: 0 5px;
+     }
    }
    & .card-title {
      display: flex;
