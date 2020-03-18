@@ -1,46 +1,145 @@
-<template>
-  <div class="filter">
-    <v-select
-      v-model="value"
-      multiple
-      placeholder="All User Namespaces"
-      :options="namespaces"
-      label="label"
-      :reduce="obj => obj.id"
-    />
-  </div>
-</template>
-
 <script>
-import { NAMESPACES } from '@/store/prefs';
-import { NAMESPACE } from '@/config/types';
+import { NAMESPACE_FILTERS } from '@/store/prefs';
+import { NAMESPACE, EXTERNAL } from '@/config/types';
 import { sortBy } from '@/utils/sort';
+import { isArray, addObjects, findBy } from '@/utils/array';
 
 export default {
   computed: {
     value: {
       get() {
-        const value = this.$store.getters['prefs/get'](NAMESPACES);
+        const values = this.$store.getters['prefs/get'](NAMESPACE_FILTERS);
+        const options = this.options;
 
-        return value || [];
+        if ( !values ) {
+          return [];
+        }
+
+        const out = values.map((value) => {
+          return findBy(options, 'id', value);
+        }).filter(x => !!x);
+
+        return out;
       },
 
       set(neu) {
-        this.$store.dispatch('switchNamespaces', neu);
+        this.$store.dispatch('switchNamespaces', neu.map(x => x.id).filter(x => !!x));
       }
     },
 
-    namespaces() {
-      let choices = this.$store.getters['cluster/all'](NAMESPACE);
+    options() {
+      const t = this.$store.getters['i18n/t'];
 
-      choices = sortBy(choices, ['isSystem', 'nameDisplay']);
+      const out = [
+        {
+          id:    'all',
+          kind:  'special',
+          label: t('nav.ns.all'),
+        },
+        {
+          id:    'all://system',
+          kind:   'special',
+          label:  t('nav.ns.system'),
+        },
+      ];
 
-      return choices.map((obj) => {
-        return {
-          id:    obj.id,
-          label: (obj.isSystem ? `(${ obj.nameDisplay })` : obj.nameDisplay),
-        };
-      });
+      divider();
+
+      const namespaces = sortBy(this.$store.getters['cluster/all'](NAMESPACE), ['nameDisplay']);
+
+      if ( this.$store.getters['isRancher'] ) {
+        const projects = sortBy(this.$store.getters['clusterExternal/all'](EXTERNAL.PROJECT), ['nameDisplay']);
+        const projectsById = {};
+        const namespacesByProject = {};
+        let firstProject = true;
+
+        namespacesByProject[null] = []; // For namespaces not in a project
+
+        for ( const project of projects ) {
+          projectsById[project.id] = project;
+        }
+
+        for (const namespace of namespaces ) {
+          let projectId = namespace.projectId;
+
+          if ( !projectId || !projectsById[projectId] ) {
+            // If there's a projectId but that project doesn't exist, treat it like no project
+            projectId = null;
+          }
+
+          let entry = namespacesByProject[namespace.projectId];
+
+          if ( !entry ) {
+            entry = [];
+            namespacesByProject[namespace.projectId] = entry;
+          }
+
+          entry.push(namespace);
+        }
+
+        for ( const project of projects ) {
+          const id = project.id;
+
+          if ( firstProject ) {
+            firstProject = false;
+          } else {
+            divider();
+          }
+
+          out.push({
+            id:    `project://${ id }`,
+            kind:  'project',
+            label:  t('nav.ns.project', { name: project.nameDisplay }),
+          });
+
+          const forThisProject = namespacesByProject[id] || [];
+
+          addNamespace(forThisProject);
+        }
+
+        const orphans = namespacesByProject[null];
+
+        if ( orphans.length ) {
+          if ( !firstProject ) {
+            divider();
+          }
+
+          out.push({
+            id:       'all://orphans',
+            kind:     'project',
+            label:    t('nav.ns.orphan'),
+            disabled: true,
+          });
+
+          addNamespace(orphans);
+        }
+      } else {
+        addNamespace(namespaces);
+      }
+
+      return out;
+
+      function addNamespace(namespaces) {
+        if ( !isArray(namespaces) ) {
+          namespaces = [namespaces];
+        }
+
+        addObjects(out, namespaces.map((namespace) => {
+          return {
+            id:    `ns://${ namespace.id }`,
+            kind:  'namespace',
+            label:  t('nav.ns.namespace', { name: namespace.nameDisplay }),
+          };
+        }));
+      }
+
+      function divider() {
+        out.push({
+          kind:     'divider',
+          label:    `Divider ${ out.length }`,
+          disabled: true,
+        });
+      }
     }
   },
 };
@@ -64,3 +163,31 @@ export default {
     background-color: transparent;
   }
 </style>
+
+<template>
+  <div class="filter">
+    <v-select
+      v-model="value"
+      multiple
+      placeholder="All User Namespaces"
+      :selectable="option => !option.disabled && option.id"
+      :options="options"
+      label="label"
+    >
+      <template v-slot:option="opt">
+        <template v-if="opt.kind === 'namespace'">
+          <i class="mr-5 icon icon-fw icon-folder" /> {{ opt.label }}
+        </template>
+        <template v-else-if="opt.kind === 'project'">
+          <b>{{ opt.label }}</b>
+        </template>
+        <template v-else-if="opt.kind === 'divider'">
+          <hr />
+        </template>
+        <template v-else>
+          {{ opt.label }}
+        </template>
+      </template>
+    </v-select>
+  </div>
+</template>

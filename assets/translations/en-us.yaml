@@ -6,10 +6,13 @@ header:
   backToRancher: Back to Rancher
 
 nav:
-  show:
-    basic: Basic
-    used: In-Use
-    all: All
+  ns:
+    all: All Namespaces
+    user: All User Nanmespaces
+    system: All System Namespaces
+    project: "Project: {name}"
+    namespace: "{name}"
+    orphan: "Not in a Project"
 
 footer:
   docs: Docs

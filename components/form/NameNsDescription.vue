@@ -2,7 +2,6 @@
 import { sortBy } from '@/utils/sort';
 import { get } from '@/utils/object';
 import { escapeRegex } from '@/utils/string';
-import { NAMESPACES } from '@/store/prefs';
 import { NAMESPACE } from '@/config/types';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { _CREATE, _VIEW } from '@/config/query-params';
@@ -58,6 +57,7 @@ export default {
       default: '-'
     }
   },
+
   data() {
     let metadata = this.value.metadata;
 
@@ -71,9 +71,7 @@ export default {
     }
 
     if ( this.namespaced && !metadata.namespace ) {
-      const selectedNS = this.$store.getters['prefs/get'](NAMESPACES)[0] || 'default';
-
-      metadata.namespace = selectedNS;
+      metadata.namespace = this.$store.getters['defaultNamespace'];
     }
 
     let name;
@@ -95,6 +93,7 @@ export default {
       addDescription:         false
     };
   },
+
   computed: {
     namespaces() {
       const choices = this.$store.getters['cluster/all'](NAMESPACE);
@@ -166,6 +165,7 @@ export default {
       }
     },
   },
+
   mounted() {
     const valueRef = get(this.$refs, 'nameNS.$refs.text.$refs.value');
 
@@ -173,6 +173,7 @@ export default {
       valueRef.focus();
     }
   },
+
   methods: {
     changeNameNS(e) {
       this.name = e.text;

@@ -4,4 +4,4 @@ RUN mkdir /src
 WORKDIR /src
 
 EXPOSE 8005
-ENTRYPOINT ["scripts/dev"]
+CMD ["scripts/dev"]

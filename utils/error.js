@@ -5,6 +5,19 @@ export class ClusterNotFoundError extends Error {
   }
 }
 
+export class ApiError extends Error {
+  constructor(res) {
+    super(stringify(res));
+    this.status = res.status || 0;
+    this.statusText = res.statusText;
+    this.headers = res.headers;
+  }
+
+  toString() {
+    return `[${ this.status } ${ this.statusText }]: ${ this.message }`;
+  }
+}
+
 export function stringify(err) {
   let str;
 

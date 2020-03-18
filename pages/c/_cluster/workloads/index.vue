@@ -24,18 +24,19 @@ export default {
     },
 
     filteredRows() {
-      const namespaces = this.$store.getters['namespaces'];
-      const include = namespaces.filter(x => !x.startsWith('!'));
-      const exclude = namespaces.filter(x => x.startsWith('!')).map(x => x.substr(1) );
+      const isAll = this.$store.getters['isAllNamespaces'];
 
-      const rows = this.resources.filter((row) => {
-        const inNS = include.length ? include.includes(row.metadata.namespace) : exclude.length ? !exclude.includes(row.metadata.namespace) : true;
+      // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
+      if ( !this.namespaced || isAll ) {
+        return this.rows;
+      }
 
-        return (!row.metadata.ownerReferences && inNS);
+      const includedNamespaces = this.$store.getters['namespaces'];
+
+      return this.rows.filter((row) => {
+        return !!includedNamespaces[row.metadata.namespace] && !row.metadata?.ownerReferences;
       });
-
-      return rows;
-    }
+    },
   },
 
   async asyncData({ store }) {
