@@ -166,7 +166,7 @@ export default {
       />
       <InfoBox v-if="gatekeeperEnabled">
         <div class="mb-15">
-          <h2>OPA Gatekeeper Violations</h2>
+          <h2>Violations</h2>
         </div>
         <div>
           <GatekeeperViolationsTable :include-constraint="true" />

@@ -98,7 +98,7 @@ export default {
       position: absolute;
       right: 0;
       top: 0;
-      padding: 10px 2px 10px 0;
+      padding: 9px 2px 9px 0;
     }
 
     > A {
@@ -132,7 +132,11 @@ export default {
     padding: 0;
 
     a {
-      color: var(--lightest) !important;
+      color: var(--body-text);
+    }
+
+    + I {
+      color: var(--body-text);
     }
   }
 </style>
