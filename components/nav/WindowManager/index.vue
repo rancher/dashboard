@@ -4,12 +4,11 @@ import { screenRect, boundingRect } from '@/utils/position';
 
 export default {
   data() {
-    return { dragOffset: 0, open: true };
+    return { dragOffset: 0 };
   },
 
   computed: {
-    // ...mapState('wm', ['tabs', 'active', 'open', 'userHeight']),
-    ...mapState('wm', ['tabs', 'active', 'userHeight']),
+    ...mapState('wm', ['tabs', 'active', 'open', 'userHeight']),
 
     height: {
       get() {
