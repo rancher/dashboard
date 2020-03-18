@@ -52,7 +52,7 @@ export const getters = {
 
   namespaces(state, getters) {
     const filters = state.namespaceFilters;
-    const namespaces = getters['cluster/all'](NAMESPACE);
+    const namespaces = getters['cluster/hasType'](NAMESPACE) ? getters['cluster/all'](NAMESPACE) : [];
 
     const includeAll = filters.includes('all');
     const includeSystem = filters.includes('all://system');
@@ -103,7 +103,7 @@ export const getters = {
   defaultNamespace(state, getters) {
     const filteredMap = getters['namespaces'];
     const isAll = getters['isAllNamespaces'];
-    const all = getters['cluster/all'](NAMESPACE).map(x => x.id);
+    const all = (getters['cluster/hasType'](NAMESPACE) ? getters['cluster/all'](NAMESPACE) : []).map(x => x.id);
     let out;
 
     function isOk(ns) {

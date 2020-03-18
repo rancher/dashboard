@@ -4,11 +4,12 @@ import { screenRect, boundingRect } from '@/utils/position';
 
 export default {
   data() {
-    return { dragOffset: 0 };
+    return { dragOffset: 0, open: true };
   },
 
   computed: {
-    ...mapState('wm', ['tabs', 'active', 'open', 'userHeight']),
+    // ...mapState('wm', ['tabs', 'active', 'open', 'userHeight']),
+    ...mapState('wm', ['tabs', 'active', 'userHeight']),
 
     height: {
       get() {
@@ -18,7 +19,6 @@ export default {
 
         // @TODO remember across reloads, normalize to fit into current screen
         // const cached = window.localStorage.getItem('wm-height');
-
         if ( this.userHeight ) {
           return this.userHeight;
         }

@@ -66,11 +66,7 @@ export default {
       container = containers[0];
     }
 
-    let name = this.value.id;
-
-    if (get(this.value, 'metadata.namespace')) {
-      name = name.slice(name.indexOf('/') + 1);
-    }
+    const name = this.value?.metadata?.name || this.value.id;
 
     return {
       name,

@@ -15,6 +15,15 @@ export function boundingRect(elem) {
   const width = $elem.outerWidth(false);
   const height = $elem.outerHeight(false);
 
+  console.log(`~~~~~~~boundingRect~~~~~~~~~~~${ {
+    top:    pos.top,
+    right:  pos.left + width,
+    bottom: pos.top + height,
+    left:   pos.left,
+    width,
+    height,
+  } }`);
+
   return {
     top:    pos.top,
     right:  pos.left + width,
@@ -42,6 +51,15 @@ export function screenRect() {
   const height = $window.height();
   const top = window.pageYOffset;
   const left = window.pageXOffset;
+
+  console.log(`~~~~~~~screenRect~~~~~~~${ {
+    top,
+    right:  left + width,
+    bottom: top + height,
+    left,
+    width,
+    height,
+  } }`);
 
   return {
     top,

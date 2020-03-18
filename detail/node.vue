@@ -22,7 +22,8 @@ export default {
   name: 'DetailNode',
 
   components: {
-    Alert, ConsumptionGauge, CopyToClipboardText, DetailTop, HStack, VStack, Tab, Tabbed, SortableTable
+    Alert, ConsumptionGauge, CopyToClipboardText, DetailTop, HStack, VStack,
+    // Tab, Tabbed, SortableTable
   },
 
   props: {
@@ -170,7 +171,7 @@ export default {
         <ConsumptionGauge resource-name="PODS" :capacity="value.podCapacity" :used="value.podConsumed" />
       </HStack>
     </HStack>
-    <Tabbed default-tab="status">
+    <!-- <Tabbed default-tab="status">
       <Tab name="status" label="Status">
         <SortableTable
           key-field="_key"
@@ -203,7 +204,7 @@ export default {
           :row-actions="false"
         />
       </Tab>
-    </Tabbed>
+    </Tabbed> -->
   </VStack>
 </template>
 
