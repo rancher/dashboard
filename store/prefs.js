@@ -31,7 +31,7 @@ export const mapPref = function(name) {
 const parseJSON = true; // Shortcut for setting it below
 
 export const CLUSTER = create('cluster', 'local'); // @TODO remember last cluster, handle if missing, combine with namespacess
-export const NAMESPACES = create('ns', [], { parseJSON });
+export const NAMESPACE_FILTERS = create('ns', [], { parseJSON });
 export const EXPANDED_GROUPS = create('open_groups', ['rio'], { parseJSON });
 export const FAVORITE_TYPES = create('fav_type', ['secret', 'configmap', 'service', 'persistentvolume'], { parseJSON });
 export const RECENT_TYPES = create('recent_type', ['serviceaccount'], { parseJSON });

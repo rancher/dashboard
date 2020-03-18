@@ -250,6 +250,8 @@ export const getters = {
 
   getTree(state, getters, rootState, rootGetters) {
     return (mode, allTypes, clusterId, namespaces, currentType, search) => {
+      // null namespaces means all, otherwise it will be an array of namespaces to include
+
       let searchRegex;
 
       if ( search ) {
@@ -257,7 +259,6 @@ export const getters = {
       }
 
       const root = { children: [] };
-      const allNegative = _allNegativeFilters(namespaces);
 
       for ( const type in allTypes ) {
         const typeObj = allTypes[type];
@@ -275,7 +276,7 @@ export const getters = {
         } else if ( mode === 'basic' && !getters.isBasic(typeObj.schema) ) {
           // If we want the basic tree only return basic types;
           continue;
-        } else if ( mode !== 'all' && !namespaced && namespaces.length && !allNegative ) {
+        } else if ( mode !== 'all' && !namespaced && namespaces ) {
           // If a namespace filter is specified, hide non-namespaced resources.
           continue;
         } else if ( count === 0 && mode === 'used') {
@@ -401,7 +402,7 @@ export const getters = {
           }
         }
 
-        label = `<i class="icon icon-${ namespaced ? 'folder' : 'globe' }"></i> ${ label }`;
+        label = `<i class="icon icon-fw icon-${ namespaced ? 'folder' : 'globe' }"></i> ${ label }`;
 
         return label;
       }
@@ -437,7 +438,7 @@ export const getters = {
           id:          schema.id,
           label:       getters.singularLabelFor(schema),
           namespaced:  attrs.namespaced,
-          count:       count ? count.count : null,
+          count:       count ? count.summary.count : null,
           byNamespace: count ? count.namespaces : {},
           revision:    count ? count.revision : null,
         };
@@ -616,12 +617,6 @@ export const getters = {
 
   componentFor(state) {
     return (type) => {
-      // @TODO We need to remove this special condition. This is here because
-      // the type-config was not getting called before componentFor was getting called.
-      if (type?.includes('constraints.gatekeeper.sh')) {
-        return 'gatekeeper-constraint';
-      }
-
       if ( state.cache.componentFor[type] !== undefined ) {
         return state.cache.componentFor[type];
       }
@@ -824,36 +819,17 @@ function _sortGroup(tree) {
   }
 }
 
-function _allNegativeFilters(namespaces) {
-  return namespaces.filter(x => x.startsWith('!')).length === namespaces.length;
-}
-
 function _matchingCounts(typeObj, namespaces) {
-  if (!typeObj.count && typeObj.count !== 0) {
-    return '';
-  }
   // That was easy
-  if ( !typeObj.namespaced || !typeObj.byNamespace ) {
-    return typeObj.count || '';
+  if ( !typeObj.namespaced || !typeObj.byNamespace || namespaces === null ) {
+    return typeObj.count || 0;
   }
 
-  const allNegative = !!_allNegativeFilters(namespaces);
   let out = 0;
 
-  // If all the filters are negative, start with the full count and subtract
-  if ( allNegative ) {
-    out = typeObj.count;
-
-    for ( let i = 0 ; i < namespaces.length ; i++ ) {
-      out -= typeObj.byNamespace[namespaces[i].substr(1)] || 0;
-    }
-
-    return out;
-  }
-
   // Otherwise start with 0 and count up
-  for ( let i = 0 ; i < namespaces.length ; i++ ) {
-    out += typeObj.byNamespace[namespaces[i]] || 0;
+  for ( const namespace of namespaces ) {
+    out += typeObj.byNamespace[namespace]?.count || 0;
   }
 
   return out;

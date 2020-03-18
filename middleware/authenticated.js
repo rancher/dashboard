@@ -66,7 +66,7 @@ export default async function({
       redirect(302, '/clusters');
     } else {
       store.commit('setError', e);
-      redirect(302, '/error');
+      redirect(302, '/fail-whale');
     }
   }
 }

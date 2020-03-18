@@ -68,7 +68,13 @@ export default {
 
     updateMatches() {
       const clusterId = this.$store.getters['clusterId'];
-      const namespaces = this.$store.getters['namespaces'] || [];
+      const isAllNamespaces = this.$store.getters['isAllNamespaces'];
+
+      let namespaces = null;
+
+      if ( !isAllNamespaces ) {
+        namespaces = Object.keys(this.$store.getters['namespaces']);
+      }
 
       const allTypes = this.$store.getters['type-map/allTypes']() || {};
       const out = this.$store.getters['type-map/getTree']('all', allTypes, clusterId, namespaces, null, this.value);

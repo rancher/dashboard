@@ -197,6 +197,8 @@ export default {
       data,
       existing
     });
+
+    return getters['byId'](type, data.id || existing.id);
   },
 
   loadAll(ctx, { type, data }) {

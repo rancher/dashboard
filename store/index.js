@@ -2,10 +2,9 @@ import Steve from '@/plugins/steve';
 import {
   COUNT, NAMESPACE, NORMAN, EXTERNAL, MANAGEMENT
 } from '@/config/types';
-import { CLUSTER as CLUSTER_PREF, NAMESPACES } from '@/store/prefs';
-import SYSTEM_NAMESPACES from '@/config/system-namespaces';
+import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS } from '@/store/prefs';
 import { allHash } from '@/utils/promise';
-import { ClusterNotFoundError } from '@/utils/error';
+import { ClusterNotFoundError, ApiError } from '@/utils/error';
 
 // disables stict mode for all store instances to prevent mutation errors
 export const strict = false;
@@ -20,20 +19,17 @@ export const plugins = [
 export const state = () => {
   return {
     managementReady:  false,
-    clusterReady:    false,
-    isRancher:       false,
-    namespaces:      [],
-    allNamespaces:   null,
-    clusterId:       null,
-    error:           null,
+    clusterReady:     false,
+    isRancher:        false,
+    namespaceFilters: [],
+    defaultNamespace: null,
+    allNamespaces:    null,
+    clusterId:        null,
+    error:            null,
   };
 };
 
 export const getters = {
-  multipleNamespaces(state, getters) {
-    return state.namespaces.length !== 1;
-  },
-
   isRancher(state) {
     return state.isRancher === true;
   },
@@ -46,15 +42,95 @@ export const getters = {
     return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId);
   },
 
-  namespaces(state) {
-    const namespaces = state.namespaces;
-
-    if ( namespaces.length ) {
-      return namespaces;
-    } else {
-      return SYSTEM_NAMESPACES.map(x => `!${ x }`);
-    }
+  isAllNamespaces(state) {
+    return state.namespaceFilters.includes('all');
   },
+
+  isMultipleNamespaces(state, getters) {
+    return Object.keys(getters.namespaces).length > 1;
+  },
+
+  namespaces(state, getters) {
+    const filters = state.namespaceFilters;
+    const namespaces = getters['cluster/all'](NAMESPACE);
+
+    const includeAll = filters.includes('all');
+    const includeSystem = filters.includes('all://system');
+    const includeUser = filters.includes('all://user') || filters.length === 0;
+    const includeOrphans = filters.includes('all://orphans');
+    const out = {};
+
+    // Special cases to pull in all the user, system, or orphaned namespaces
+    if ( includeAll || includeOrphans || includeSystem || includeUser ) {
+      for ( const ns of namespaces ) {
+        if (
+          includeAll ||
+          ( includeOrphans && !ns.projectId ) ||
+          ( includeUser && !ns.isSystem ) ||
+          ( includeSystem && ns.isSystem )
+        ) {
+          out[ns.id] = true;
+        }
+      }
+    }
+
+    // Individual requests for a specific project/namespace
+    if ( !includeAll ) {
+      for ( const filter of filters ) {
+        const [type, id] = filter.split('://', 2);
+
+        if ( !type ) {
+          continue;
+        }
+
+        if ( type === 'ns' ) {
+          out[id] = true;
+        } else if ( type === 'project' ) {
+          const project = getters['clusterExternal/byId'](EXTERNAL.PROJECT, id);
+
+          if ( project ) {
+            for ( const ns of project.namespaces ) {
+              out[ns.id] = true;
+            }
+          }
+        }
+      }
+    }
+
+    return out;
+  },
+
+  defaultNamespace(state, getters) {
+    const filteredMap = getters['namespaces'];
+    const isAll = getters['isAllNamespaces'];
+    const all = getters['cluster/all'](NAMESPACE).map(x => x.id);
+    let out;
+
+    function isOk(ns) {
+      return (isAll && all.includes(ns) ) ||
+             (!isAll && filteredMap && filteredMap[ns] );
+    }
+
+    out = state.defaultNamespace;
+    if ( isOk() ) {
+      return out;
+    }
+
+    out = 'default';
+    if ( isOk() ) {
+      return out;
+    }
+
+    if ( !isAll ) {
+      const keys = Object.keys(filteredMap);
+
+      if ( keys.length ) {
+        return keys[0];
+      }
+    }
+
+    return all[0] || 'default';
+  }
 };
 
 export const mutations = {
@@ -67,19 +143,27 @@ export const mutations = {
     state.clusterReady = ready;
   },
 
-  updateNamespaces(state, { selected, all }) {
-    state.namespaces = selected;
+  updateNamespaces(state, { filters, all }) {
+    state.namespaceFilters = filters;
 
     if ( all ) {
       state.allNamespaces = all;
     }
   },
 
+  setDefaultNamespace(state, ns) {
+    state.defaultNamespace = ns;
+  },
+
   setCluster(state, neu) {
     state.clusterId = neu;
   },
 
-  setError(state, err) {
+  setError(state, obj) {
+    const err = new ApiError(obj);
+
+    console.log('Loading error', err);
+
     state.error = err;
   }
 };
@@ -148,7 +232,8 @@ export const actions = {
       // Remember the new one
       commit('prefs/set', { key: CLUSTER_PREF, id });
       commit('setCluster', id);
-    } else {
+    } else if ( isRancher ) {
+      // Switching to a global page with no cluster id, keep it the same.
       return;
     }
 
@@ -165,22 +250,32 @@ export const actions = {
       clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
       externalBase = `/v1/management.cattle.io.clusters/${ escape(id) }`;
     } else {
-      // Make a fake cluste and push it into the store
-      if ( !getters['management/byId'](MANAGEMENT.CLUSTER, 'local') ) {
-        cluster = await dispatch('management/create', {
-          id:         'local',
-          type:       MANAGEMENT.CLUSTER,
-          links:      { self: '' },
-          metadata:   { name: 'local' },
-          status:   {
-            conditions: [{
-              type:   'Ready',
-              status: 'True'
-            }],
+      cluster = getters['management/byId'](MANAGEMENT.CLUSTER, 'local');
+
+      if ( !cluster ) {
+        // Make a fake cluster schema and push it into the store
+        await dispatch('management/load', {
+          data: {
+            id:   MANAGEMENT.CLUSTER,
+            type: 'schema',
           }
         });
 
-        await dispatch('management/load', cluster);
+        // Make a fake cluster and push it into the store
+        cluster = await dispatch('management/load', {
+          data: {
+            id:         'local',
+            type:       MANAGEMENT.CLUSTER,
+            links:      { self: '' },
+            metadata:   { name: 'local' },
+            status:   {
+              conditions: [{
+                type:   'Ready',
+                status: 'True'
+              }],
+            }
+          }
+        });
       }
 
       commit('setCluster', cluster.id);
@@ -214,8 +309,8 @@ export const actions = {
     });
 
     commit('updateNamespaces', {
-      selected: getters['prefs/get'](NAMESPACES),
-      all:      res.namespaces
+      filters: getters['prefs/get'](NAMESPACE_FILTERS),
+      all:     res.namespaces
     });
 
     commit('clusterChanged', true);
@@ -224,8 +319,8 @@ export const actions = {
   },
 
   switchNamespaces({ commit }, val) {
-    commit('prefs/set', { key: NAMESPACES, val });
-    commit('updateNamespaces', { selected: val });
+    commit('prefs/set', { key: NAMESPACE_FILTERS, val });
+    commit('updateNamespaces', { filters: val });
   },
 
   onLogout({ commit }) {
@@ -249,6 +344,6 @@ export const actions = {
 
   loadingError({ commit, redirect }, err) {
     commit('setError', err);
-    redirect('/error');
+    redirect('/fail-whale');
   }
 };

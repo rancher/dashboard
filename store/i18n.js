@@ -7,6 +7,9 @@ const translationContext = require.context('@/assets/translations', true, /.*/);
 
 const NONE = 'none';
 
+// Formatters can't be serialized into state
+const intlCache = {};
+
 export const state = function() {
   const available = translationContext.keys().map(path => path.replace(/^.*\/([^\/]+)\.[^.]+$/, '$1'));
 
@@ -16,7 +19,6 @@ export const state = function() {
     previous:     null,
     available,
     translations: { 'en-us': en },
-    intlCache:    {},
   };
 
   return out;
@@ -49,13 +51,13 @@ export const getters = {
     return out;
   },
 
-  translation: state => (key, args) => {
+  t: state => (key, args) => {
     if (state.selected === NONE ) {
       return undefined;
     }
 
     const cacheKey = `${ state.selected }/${ key }`;
-    let formatter = state.intlCache[cacheKey];
+    let formatter = intlCache[cacheKey];
 
     if ( !formatter ) {
       let msg = get(state.translations[state.selected], key);
@@ -74,13 +76,15 @@ export const getters = {
         formatter = msg;
       }
 
-      state.intlCache[cacheKey] = formatter;
+      intlCache[cacheKey] = formatter;
     }
 
     if ( typeof formatter === 'string' ) {
       return formatter;
-    } else {
+    } else if ( formatter && formatter.format ) {
       return formatter.format(args);
+    } else {
+      return '?';
     }
   },
 };

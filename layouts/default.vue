@@ -1,6 +1,6 @@
 <script>
 import { debounce } from 'lodash';
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 import {
   mapPref, DEV, THEME, EXPANDED_GROUPS, RECENT_TYPES, FAVORITE_TYPES
 } from '@/store/prefs';
@@ -46,7 +46,8 @@ export default {
   },
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady', 'isRancher', 'namespaces']),
+    ...mapState(['managementReady', 'clusterReady', 'isRancher']),
+    ...mapGetters(['namespaces']),
 
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
@@ -132,8 +133,12 @@ export default {
       }
 
       const clusterId = this.$store.getters['clusterId'];
-      const namespaces = this.namespaces;
       const currentType = this.$route.params.resource || '';
+      let namespaces = null;
+
+      if ( !this.$store.getters['isAllNamespaces'] ) {
+        namespaces = Object.keys(this.namespaces);
+      }
 
       const basicTypes = this.$store.getters['type-map/allTypes']('basic') || {};
       const recentTypes = this.$store.getters['type-map/allTypes']('recent') || {};

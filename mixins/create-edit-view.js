@@ -93,6 +93,12 @@ export default {
           if ( this.namespaceSuffixOnCreate ) {
             url += `/${ this.value.metadata.namespace }`;
           }
+
+          // @TODO Better place for this...
+          if ( this.value?.metadata?.namespace ) {
+            this.value.$commit('setDefaultNamespace', this.value?.metadata?.namespace, { root: true });
+          }
+
           const res = await this.value.save({ url });
 
           if (res) {

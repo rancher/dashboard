@@ -93,34 +93,24 @@ export default {
     },
 
     filteredRows() {
-      const namespaces = this.$store.getters['namespaces'];
+      const isAll = this.$store.getters['isAllNamespaces'];
 
-      if ( !this.namespaced ) {
+      // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
+      if ( !this.namespaced || isAll ) {
         return this.rows;
       }
 
-      const include = namespaces.filter(x => !x.startsWith('!'));
-      const exclude = namespaces.filter(x => x.startsWith('!')).map(x => x.substr(1) );
+      const includedNamespaces = this.$store.getters['namespaces'];
 
-      return this.rows.filter((x) => {
-        const ns = x.metadata.namespace;
-
-        if ( include.length && !include.includes(ns) ) {
-          return false;
-        }
-
-        if ( exclude.length && exclude.includes(ns) ) {
-          return false;
-        }
-
-        return true;
+      return this.rows.filter((row) => {
+        return !!includedNamespaces[row.metadata.namespace];
       });
     },
 
     group: mapPref(GROUP_RESOURCES),
 
     groupable() {
-      return this.$store.getters['multipleNamespaces'] && this.namespaced;
+      return this.$store.getters['isMultipleNamespaces'] && this.namespaced;
     },
 
     groupBy() {

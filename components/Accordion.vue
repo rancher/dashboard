@@ -98,7 +98,7 @@ export default {
       position: absolute;
       right: 0;
       top: 0;
-      padding: 10px;
+      padding: 10px 2px 10px 0;
     }
 
     > A {
