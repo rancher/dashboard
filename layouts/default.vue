@@ -4,7 +4,6 @@ import { mapState } from 'vuex';
 import {
   mapPref, DEV, THEME, EXPANDED_GROUPS, RECENT_TYPES, FAVORITE_TYPES
 } from '@/store/prefs';
-import applyTypeConfigs from '@/config/type-config';
 import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
@@ -128,7 +127,6 @@ export default {
 
   created() {
     this.queueUpdate = debounce(this.getGroups, 500);
-    applyTypeConfigs(this.$store);
     this.getGroups();
   },
 

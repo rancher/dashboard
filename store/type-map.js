@@ -769,6 +769,8 @@ export const mutations = {
   },
 
   mapTypeToComponentName(state, { match, replace }) {
+    match = ensureRegex(match);
+    match = regexToString(match);
     state.typeToComponentMappings.push({ match, replace });
   },
 
