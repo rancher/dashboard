@@ -17,7 +17,13 @@ import {
 
 import { DSL } from '@/store/type-map';
 
+let called = false;
+
 export default function(store) {
+  if (called) {
+    return;
+  }
+  called = true;
   const {
     basicType,
     ignoreType,
@@ -38,7 +44,7 @@ export default function(store) {
     WORKLOAD,
   ]);
 
-  mapTypeToComponentName('constraints.gatekeeper.sh.k8sallowedrepos', 'gatekeeper-constraint');
+  mapTypeToComponentName(/^constraints.gatekeeper.sh.*$/, 'gatekeeper-constraint');
 
   ignoreType('events.k8s.io.event'); // Events type moved into core
   ignoreType('extensions.ingress'); // Moved into networking
