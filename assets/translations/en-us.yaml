@@ -3,7 +3,7 @@ locale:
   en-us: English
 
 header:
-  backToRancher: Back to Rancher
+  backToRancher: "← Back to Rancher"
 
 nav:
   ns:
