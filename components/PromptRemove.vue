@@ -83,7 +83,9 @@ export default {
     :height="260"
   >
     <Card :style="{border:'none'}">
-      <h4 slot="title" class="text-default-text">Are you sure?</h4>
+      <h4 slot="title" class="text-default-text">
+        Are you sure?
+      </h4>
       <div slot="body">
         <div class="mb-10">
           You are attempting to remove the {{ type }} <template v-for="(resource, i) in names">
