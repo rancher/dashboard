@@ -103,7 +103,6 @@ export default {
 
           if (res) {
             Object.assign(this.value, res);
-            await this.value.$dispatch('load', { data: this.value });
           }
         } else {
           await this.value.save();

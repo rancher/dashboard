@@ -164,7 +164,7 @@ export default {
       this.$set(this.value, 'spec', this.spec);
       this.$set(this.value, 'metadata', this.metadata);
 
-      const saveUrl = this.value.urlFromAPIVersion;
+      const saveUrl = this.value.urlFromAttrs;
 
       this.save(cb, saveUrl);
     }

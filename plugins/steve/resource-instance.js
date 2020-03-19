@@ -540,10 +540,7 @@ export default {
 
       const res = await this.$dispatch('request', opt);
 
-      // @TODO Steve always returns tables...
-      if ( !res.Kind !== 'Table') {
-        await this.$dispatch('load', { data: res, existing: this });
-      }
+      await this.$dispatch('load', { data: res, existing: this });
 
       return this;
     };
@@ -704,16 +701,14 @@ export default {
     };
   },
 
-  urlFromAPIVersion() {
+  urlFromAttrs() {
     const schema = this.$getters['schemaFor'](this.type);
     const { metadata:{ namespace = 'default' } } = this;
     let url = schema.links.collection;
 
-    const [group, version] = this.apiVersion.split('/');
+    const [group, resource] = schema?.attributes;
 
-    const pluralName = this.$rootGetters['type-map/pluralLabelFor'](schema).split('.').pop().toLowerCase();
-
-    url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/${ version }/namespaces/${ namespace }/${ pluralName }`;
+    url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/namespaces/${ namespace }/${ resource }`;
 
     return url;
   }
