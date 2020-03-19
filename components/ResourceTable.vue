@@ -100,7 +100,7 @@ export default {
         return this.rows;
       }
 
-      const includedNamespaces = this.$store.getters['namespaces'];
+      const includedNamespaces = this.$store.getters['namespaces']();
 
       return this.rows.filter((row) => {
         return !!includedNamespaces[row.metadata.namespace];

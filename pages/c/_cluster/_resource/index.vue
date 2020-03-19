@@ -1,11 +1,22 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
+import { EDIT_YAML, _FLAGGED } from '@/config/query-params';
 
 export default {
   components: { ResourceTable },
 
   data() {
-    return { listComponent: this.$store.getters['type-map/importList'](this.resource) };
+    let listComponent;
+
+    if ( this.hasListComponent ) {
+      listComponent = this.$store.getters['type-map/importList'](this.resource);
+    }
+
+    return {
+      listComponent,
+      EDIT_YAML,
+      FLAGGED:       _FLAGGED
+    };
   },
 
   computed:   {
@@ -17,7 +28,11 @@ export default {
       return this.$store.getters['type-map/headersFor'](this.schema);
     },
 
-    hasComponent() {
+    hasEditComponent() {
+      return this.$store.getters['type-map/hasCustomEdit'](this.resource);
+    },
+
+    hasListComponent() {
       return this.$store.getters['type-map/hasCustomList'](this.resource);
     },
 
@@ -47,12 +62,22 @@ export default {
         {{ typeDisplay }}
       </h1>
       <div class="actions">
-        <nuxt-link to="create" append tag="button" type="button" class="btn bg-primary">
+        <nuxt-link :to="{path: 'create', params: {'as-yaml': null}}" append tag="button" type="button" class="btn bg-primary">
+          Import
+        </nuxt-link>
+        <nuxt-link
+          v-if="hasEditComponent"
+          to="create"
+          append
+          tag="button"
+          type="button"
+          class="btn bg-primary"
+        >
           Create
         </nuxt-link>
       </div>
     </header>
-    <div v-if="hasComponent">
+    <div v-if="hasListComponent">
       <component
         :is="listComponent"
         :schema="schema"

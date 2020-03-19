@@ -28,12 +28,12 @@ export default {
 
       // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
       if ( !this.namespaced || isAll ) {
-        return this.rows;
+        return this.resources;
       }
 
-      const includedNamespaces = this.$store.getters['namespaces'];
+      const includedNamespaces = this.$store.getters['namespaces']();
 
-      return this.rows.filter((row) => {
+      return this.resources.filter((row) => {
         return !!includedNamespaces[row.metadata.namespace] && !row.metadata?.ownerReferences;
       });
     },

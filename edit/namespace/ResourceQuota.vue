@@ -116,6 +116,26 @@ export default {
       <div class="row">
         <span class="col span-6">
           <UnitInput
+            v-model="reqCPU"
+            suffix="CPUs"
+            label="CPU Reservation"
+            :input-exponent="2"
+            :mode="mode"
+          />
+        </span>
+        <span class="col span-6">
+          <UnitInput
+            v-model="reqMem"
+            label="Memory Reservation"
+            suffix="B"
+            :input-exponent="2"
+            :mode="mode"
+          />
+        </span>
+      </div>
+      <div class="row">
+        <span class="col span-6">
+          <UnitInput
             v-model="limitsCPU"
             suffix="CPUs"
             label="CPU Limit"
@@ -125,28 +145,8 @@ export default {
         </span>
         <span class="col span-6">
           <UnitInput
-            v-model="reqCPU"
-            suffix="CPUs"
-            label="CPU Reservation"
-            :input-exponent="2"
-            :mode="mode"
-          />
-        </span>
-      </div>
-      <div class="row">
-        <span class="col span-6">
-          <UnitInput
             v-model="limitsMem"
             label="Memory Limit"
-            suffix="B"
-            :input-exponent="2"
-            :mode="mode"
-          />
-        </span>
-        <span class="col span-6">
-          <UnitInput
-            v-model="reqMem"
-            label="Memory Reservation"
             suffix="B"
             :input-exponent="2"
             :mode="mode"

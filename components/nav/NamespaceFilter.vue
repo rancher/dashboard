@@ -142,6 +142,12 @@ export default {
       }
     }
   },
+
+  methods: {
+    focus() {
+      this.$refs.select.$refs.search.focus();
+    }
+  },
 };
 
 </script>
@@ -162,11 +168,16 @@ export default {
     width: auto;
     background-color: transparent;
   }
+
+  .filter ::v-deep INPUT:hover {
+    background-color: transparent;
+  }
 </style>
 
 <template>
   <div class="filter">
     <v-select
+      ref="select"
       v-model="value"
       multiple
       placeholder="All User Namespaces"
@@ -189,5 +200,6 @@ export default {
         </template>
       </template>
     </v-select>
+    <button v-shortkey.once="['n']" class="hide" @shortkey="focus()" />
   </div>
 </template>

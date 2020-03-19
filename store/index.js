@@ -47,61 +47,69 @@ export const getters = {
   },
 
   isMultipleNamespaces(state, getters) {
-    return Object.keys(getters.namespaces).length > 1;
+    const filters = state.namespaceFilters;
+
+    if ( filters.length !== 1 ) {
+      return true;
+    }
+
+    return !filters[0].startsWith('ns://');
   },
 
   namespaces(state, getters) {
-    const filters = state.namespaceFilters;
-    const namespaces = getters['cluster/all'](NAMESPACE);
+    return () => {
+      const filters = state.namespaceFilters;
+      const namespaces = getters['cluster/all'](NAMESPACE);
 
-    const includeAll = filters.includes('all');
-    const includeSystem = filters.includes('all://system');
-    const includeUser = filters.includes('all://user') || filters.length === 0;
-    const includeOrphans = filters.includes('all://orphans');
-    const out = {};
+      const includeAll = filters.includes('all');
+      const includeSystem = filters.includes('all://system');
+      const includeUser = filters.includes('all://user') || filters.length === 0;
+      const includeOrphans = filters.includes('all://orphans');
+      const out = {};
 
-    // Special cases to pull in all the user, system, or orphaned namespaces
-    if ( includeAll || includeOrphans || includeSystem || includeUser ) {
-      for ( const ns of namespaces ) {
-        if (
-          includeAll ||
-          ( includeOrphans && !ns.projectId ) ||
-          ( includeUser && !ns.isSystem ) ||
-          ( includeSystem && ns.isSystem )
-        ) {
-          out[ns.id] = true;
+      // Special cases to pull in all the user, system, or orphaned namespaces
+      if ( includeAll || includeOrphans || includeSystem || includeUser ) {
+        for ( const ns of namespaces ) {
+          if (
+            includeAll ||
+            ( includeOrphans && !ns.projectId ) ||
+            ( includeUser && !ns.isSystem ) ||
+            ( includeSystem && ns.isSystem )
+          ) {
+            out[ns.id] = true;
+          }
         }
       }
-    }
 
-    // Individual requests for a specific project/namespace
-    if ( !includeAll ) {
-      for ( const filter of filters ) {
-        const [type, id] = filter.split('://', 2);
+      // Individual requests for a specific project/namespace
+      if ( !includeAll ) {
+        for ( const filter of filters ) {
+          const [type, id] = filter.split('://', 2);
 
-        if ( !type ) {
-          continue;
-        }
+          if ( !type ) {
+            continue;
+          }
 
-        if ( type === 'ns' ) {
-          out[id] = true;
-        } else if ( type === 'project' ) {
-          const project = getters['clusterExternal/byId'](EXTERNAL.PROJECT, id);
+          if ( type === 'ns' ) {
+            out[id] = true;
+          } else if ( type === 'project' ) {
+            const project = getters['clusterExternal/byId'](EXTERNAL.PROJECT, id);
 
-          if ( project ) {
-            for ( const ns of project.namespaces ) {
-              out[ns.id] = true;
+            if ( project ) {
+              for ( const ns of project.namespaces ) {
+                out[ns.id] = true;
+              }
             }
           }
         }
       }
-    }
 
-    return out;
+      return out;
+    };
   },
 
   defaultNamespace(state, getters) {
-    const filteredMap = getters['namespaces'];
+    const filteredMap = getters['namespaces']();
     const isAll = getters['isAllNamespaces'];
     const all = getters['cluster/all'](NAMESPACE).map(x => x.id);
     let out;

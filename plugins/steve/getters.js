@@ -1,16 +1,20 @@
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import urlOptions from './urloptions';
+import mutations from './mutations';
 import { SCHEMA } from '@/config/types';
 
 export default {
   all: (state, getters) => (type) => {
     type = getters.normalizeType(type);
 
-    if ( getters.hasType(type) ) {
-      return state.types[type].list;
-    } else {
-      throw new Error(`All of ${ type } is not loaded`);
+    if ( !getters.hasType(type) ) {
+      // Yes this is mutating state in a getter... it's not the end of the world..
+      // throw new Error(`All of ${ type } is not loaded`);
+      console.warn(`All of ${ type } is not loaded yet`);
+      mutations.registerType(state, type);
     }
+
+    return state.types[type].list;
   },
 
   byId: (state, getters) => (type, id) => {

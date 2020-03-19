@@ -52,6 +52,8 @@ export default function(store) {
   weightGroup('Core', 98);
 
   mapGroup(/^(core)?$/, 'Core', 99);
+  mapGroup('apps', 'Apps', 98);
+  mapGroup('batch', 'Batch');
   mapGroup('autoscaling', 'Autoscaling');
   mapGroup('policy', 'Policy');
   mapGroup('networking.k8s.io', 'Networking');

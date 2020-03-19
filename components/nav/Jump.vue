@@ -73,7 +73,7 @@ export default {
       let namespaces = null;
 
       if ( !isAllNamespaces ) {
-        namespaces = Object.keys(this.$store.getters['namespaces']);
+        namespaces = Object.keys(this.$store.getters['namespaces']());
       }
 
       const allTypes = this.$store.getters['type-map/allTypes']() || {};
@@ -104,6 +104,7 @@ export default {
           :group="g"
           :custom-header="true"
           :can-collapse="false"
+          :is-expanded="true"
         >
           <template slot="accordion">
             <h6>{{ g.label }}</h6>
