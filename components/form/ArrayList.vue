@@ -195,7 +195,7 @@ export default {
         <tr
           v-for="(row, idx) in rows"
           :key="idx"
-          class="pt-10"
+          class="box"
         >
           <td v-if="padLeft" class="left"></td>
           <slot
@@ -272,6 +272,20 @@ export default {
     font-size: 12px;
     font-weight: normal;
     color: var(--input-label);
+  }
+
+  .box {
+    background-color: var(--input-bg);
+    border-radius: var(--border-radius);
+    border-top-left-radius: 10px;
+    border-top-left-radius: 10px; 
+    border-top-right-radius: 10px; 
+    border-bottom-left-radius: 10px; 
+    border-bottom-right-radius: 10px; 
+  }
+
+  .api-groups, .kinds {
+    padding: 40px 20px 20px 20px;
   }
 
   .left {
