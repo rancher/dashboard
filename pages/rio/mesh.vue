@@ -124,28 +124,15 @@ function round3Digits(num) {
 export default {
   computed: {
     namespaces() {
-      return this.$store.getters['namespaces'];
+      return this.$store.getters['namespaces']();
     },
 
     displayNodes() {
       console.log('get displayNodes');
       const namespaces = this.namespaces;
 
-      const include = namespaces.filter(x => !x.startsWith('!'));
-      const exclude = namespaces.filter(x => x.startsWith('!')).map(x => x.substr(1) );
-
       const out = this.nodes.filter((x) => {
-        const ns = x.namespace;
-
-        if ( include.length && !include.includes(ns) ) {
-          return false;
-        }
-
-        if ( exclude.length && exclude.includes(ns) ) {
-          return false;
-        }
-
-        return true;
+        return namespaces[x.namespace];
       });
 
       return out;
@@ -155,26 +142,11 @@ export default {
       console.log('get displayEdges');
       const namespaces = this.namespaces;
 
-      const include = namespaces.filter(x => !x.startsWith('!'));
-      const exclude = namespaces.filter(x => x.startsWith('!')).map(x => x.substr(1) );
-
       const out = this.edges.filter((x) => {
         const ns1 = x.fromNamespace;
         const ns2 = x.toNamespace;
 
-        if ( include.length ) {
-          if ( !include.includes(ns1) || !include.includes(ns2) ) {
-            return false;
-          }
-        }
-
-        if ( exclude.length ) {
-          if ( exclude.includes(ns1) || exclude.includes(ns2) ) {
-            return false;
-          }
-        }
-
-        return true;
+        return namespaces[ns1] && namespaces[ns2];
       });
 
       return out;
@@ -188,11 +160,13 @@ export default {
       this.updateGraph();
       this.renderGraph();
     },
+
     namespaces() {
       console.log('namespaces updated');
       this.updateGraph();
       this.renderGraph();
     },
+
     edges() {
       console.log('edges updated');
       this.updateGraph();

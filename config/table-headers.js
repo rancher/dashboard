@@ -11,12 +11,13 @@ export const STATE = {
 };
 
 export const NAME = {
-  name:      'name',
-  label:     'Name',
-  value:     'nameDisplay',
-  sort:      ['nameSort'],
-  formatter: 'LinkDetail',
-  width:     200
+  name:          'name',
+  label:         'Name',
+  value:         'nameDisplay',
+  sort:          ['nameSort'],
+  formatter:     'LinkDetail',
+  width:         200,
+  canBeVariable: true,
 };
 
 export const NAME_UNLINKED = {

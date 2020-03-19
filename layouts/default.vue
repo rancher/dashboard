@@ -1,6 +1,6 @@
 <script>
 import { debounce } from 'lodash';
-import { mapState, mapGetters } from 'vuex';
+import { mapState } from 'vuex';
 import {
   mapPref, DEV, THEME, EXPANDED_GROUPS, RECENT_TYPES, FAVORITE_TYPES
 } from '@/store/prefs';
@@ -9,7 +9,7 @@ import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
 import NamespaceFilter from '@/components/nav/NamespaceFilter';
 import ClusterSwitcher from '@/components/nav/ClusterSwitcher';
-import WindowManager from '@/components/nav/WindowManager';
+// import WindowManager from '@/components/nav/WindowManager';
 import ShellSocket from '@/components/ContainerExec/ShellSocket';
 import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
@@ -27,7 +27,7 @@ export default {
     ActionMenu,
     Group,
     ShellSocket,
-    WindowManager
+    // WindowManager
   },
 
   data() {
@@ -46,8 +46,11 @@ export default {
   },
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady', 'isRancher']),
-    ...mapGetters(['namespaces']),
+    ...mapState(['managementReady', 'clusterReady', 'isRancher', 'currentCluster']),
+
+    namespaces() {
+      return this.$store.getters['namespaces']();
+    },
 
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
@@ -115,6 +118,11 @@ export default {
     recentTypes() {
       // Immediately update because you'll see it come in later
       this.getGroups();
+    },
+
+    clusterReady() {
+      // Immediately update because you'll see it come in later
+      this.getGroups();
     }
   },
 
@@ -173,8 +181,8 @@ export default {
       <ClusterSwitcher v-if="isRancher" />
     </div>
 
-    <div v-if="clusterReady" class="top">
-      <NamespaceFilter />
+    <div class="top">
+      <NamespaceFilter v-if="clusterReady" />
     </div>
 
     <div v-if="backToRancherLink" class="back">
@@ -236,7 +244,7 @@ export default {
     </main>
 
     <div class="wm">
-      <WindowManager />
+      <!-- WindowManager  -->
     </div>
 
     <ShellSocket />
@@ -266,7 +274,7 @@ export default {
 
     > .cluster {
       grid-area: cluster;
-      background-color: var(--header-bg);
+      background-color: var(--header-dropdown);
       position: relative;
 
       .logo {

@@ -127,15 +127,10 @@ export default {
 
     // filter a given list of resources by currently selected namespaces
     filterByNamespace(list) {
-      const namespaces = this.$store.getters['namespaces'];
-
-      const include = namespaces.filter(x => !x.startsWith('!'));
-      const exclude = namespaces.filter(x => x.startsWith('!')).map(x => x.substr(1) );
+      const namespaces = this.$store.getters['namespaces']();
 
       return list.filter((resource) => {
-        const inNS = include.length ? include.includes(resource.metadata.namespace) : exclude.length ? !exclude.includes(resource.metadata.namespace) : true;
-
-        return inNS;
+        return !!namespaces[resource.metadata.namespace];
       });
     },
 

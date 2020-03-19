@@ -1,18 +1,48 @@
 <script>
 import { MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
+import { findBy } from '@/utils/array';
 
 export default {
   computed: {
-    current() {
-      return this.$store.getters['currentCluster'];
+    value: {
+      get() {
+        console.log('Get Value');
+        const options = this.options;
+        const existing = findBy(options, 'id', this.$store.getters['clusterId']);
+
+        if ( existing ) {
+          return existing;
+        }
+
+        return options[0];
+      },
+
+      set(neu) {
+        this.$router.push({ name: 'c-cluster', params: { cluster: neu.id } });
+      }
     },
 
-    clusters() {
-      const clusters = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+    options() {
+      console.log('Get Options');
 
-      return sortBy(clusters, ['isReady:desc', 'nameDisplay']);
+      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+      const out = all.map((x) => {
+        return {
+          id:    x.id,
+          label: x.nameDisplay,
+          ready: x.isReady,
+        };
+      });
+
+      return sortBy(out, ['ready:desc', 'label']);
     },
+  },
+
+  methods: {
+    focus() {
+      this.$refs.select.$refs.search.focus();
+    }
   },
 };
 
@@ -20,34 +50,31 @@ export default {
 
 <template>
   <div class="filter">
-    <v-popover
-      placement="bottom"
-      trigger="click"
-      :hide-on-target-click="true"
-      :delay="{show: 0, hide: 200}"
+    <v-select
+      ref="select"
+      key="cluster"
+      v-model="value"
+      :selectable="option => option.ready"
+      :clearable="false"
+      :options="options"
+      label="label"
     >
-      <div class="cluster-dropdown">
-        <div v-if="current">
-          {{ current.nameDisplay }}
-        </div>
-        <div v-else>
-          None
-        </div>
-      </div>
-
-      <template slot="popover">
-        <ul class="list-unstyled cluster-list dropdown" style="margin: -14px;">
-          <li v-for="c of clusters" :key="c.id">
-            <nuxt-link v-if="c.isReady" v-close-popover class="cluster" :to="{name: 'c-cluster', params: { cluster: c.id }}">
-              {{ c.nameDisplay }}
-            </nuxt-link>
-            <span v-else class="cluster not-ready">
-              Not Ready: {{ c.nameDisplay }}
-            </span>
-          </li>
-        </ul>
+      <template #no-options="{ search, searching }">
+        <template v-if="searching">
+          No clusters found for <em>{{ search }}</em>.
+        </template>
+        <em v-else class="text-muted">Start typing to search for a cluster.</em>
       </template>
-    </v-popover>
+
+      <template #option="opt">
+        <b v-if="opt === value">{{ opt.label }}</b>
+        <nuxt-link v-else-if="opt.ready" class="cluster" :to="{name: 'c-cluster', params: { cluster: opt.id }}">
+          {{ opt.label }}
+        </nuxt-link>
+        <span v-else class="text-muted">{{ opt.label }}</span>
+      </template>
+    </v-select>
+    <button v-shortkey.once="['c']" class="hide" @shortkey="focus()" />
   </div>
 </template>
 
@@ -57,40 +84,34 @@ export default {
     z-index: 1; // Above the cow so you can click there too
   }
 
-  .cluster-dropdown {
-    width: var(--nav-width);
-    line-height: var(--header-height);
-    cursor: pointer;
-    text-align: left;
-    background: var(--header-dropdown);
+  .filter ::v-deep .v-select {
+    max-width: 100%;
+    display: inline-block;
+  }
 
-    > div {
-      padding: 0 15px 0 40px;
-      overflow: hidden;
-      text-overflow: ellipsis;
+  .filter ::v-deep .v-select {
+    .vs__dropdown-toggle {
+      height: var(--header-height);
+      margin-left: 35px;
+      background-color: transparent;
+      border: 0;
     }
 
-    &:after {
-      position: absolute;
-      top: 0;
-      right: 5px;
-      font-size: 18px;
-      font-family: 'icons';
-      content: '\e908';
+    .vs__selected {
+      margin: 2px;
+      user-select: none;
+      cursor: default;
+      color: var(--body-text);
+      line-height: calc(var(--header-height) - 10px);
     }
   }
 
-  .cluster-list {
-    padding-bottom: 30px;
-    width: 210px;
+  .filter ::v-deep INPUT {
+    width: auto;
+    background-color: transparent;
+  }
 
-    .cluster {
-      display: block;
-      padding: 10px;
-    }
-
-    .not-ready {
-      cursor: not-allowed;
-    }
+  .filter ::v-deep INPUT:hover {
+    background-color: transparent;
   }
 </style>

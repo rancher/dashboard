@@ -276,9 +276,6 @@ export const getters = {
         } else if ( mode === 'basic' && !getters.isBasic(typeObj.schema) ) {
           // If we want the basic tree only return basic types;
           continue;
-        } else if ( mode !== 'all' && !namespaced && namespaces ) {
-          // If a namespace filter is specified, hide non-namespaced resources.
-          continue;
         } else if ( count === 0 && mode === 'used') {
           // If there's none of this type, ignore this entry when viewing only in-use types
           continue;
@@ -476,8 +473,8 @@ export const getters = {
       const out = [STATE]; // Everybody gets a state
 
       const attributes = schema.attributes || {};
-      const columns = attributes.columns;
-      const namespaced = attributes.namespaced;
+      const columns = attributes.columns || [];
+      const namespaced = attributes.namespaced || false;
 
       let hasName = false;
 
@@ -517,6 +514,21 @@ export const getters = {
       if ( out.includes(AGE) ) {
         removeObject(out, AGE);
         out.push(AGE);
+      }
+
+      // If all columns have a width, try to remove it from a column that can be variable (name)
+      const missingWidth = out.find(x => !x.width);
+
+      if ( !missingWidth ) {
+        const variable = out.find(x => x.canBeVariable);
+
+        if ( variable ) {
+          const neu = clone(variable);
+
+          delete neu.width;
+
+          out.splice(out.indexOf(variable), 1, neu);
+        }
       }
 
       return out;
