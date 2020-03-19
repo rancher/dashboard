@@ -22,7 +22,15 @@ export default {
   name: 'DetailNode',
 
   components: {
-    Alert, ConsumptionGauge, CopyToClipboardText, DetailTop, HStack, VStack, Tab, Tabbed, SortableTable
+    Alert,
+    ConsumptionGauge,
+    CopyToClipboardText,
+    DetailTop,
+    HStack,
+    VStack,
+    Tab,
+    Tabbed,
+    SortableTable
   },
 
   props: {

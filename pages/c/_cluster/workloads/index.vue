@@ -42,7 +42,7 @@ export default {
   async asyncData({ store }) {
     const types = Object.values(WORKLOAD);
 
-    let resources = await Promise.all(types.map((type) => {
+    let rows = await Promise.all(types.map((type) => {
       // You may not have RBAC to see some of the types
       if ( !store.getters['cluster/schemaFor'](type) ) {
         return null;
@@ -51,7 +51,7 @@ export default {
       return store.dispatch('cluster/findAll', { type });
     }));
 
-    resources = resources.reduce((all, rows) => {
+    rows = rows.reduce((all, rows) => {
       if ( rows ) {
         all.push(...rows);
       }
@@ -61,7 +61,7 @@ export default {
 
     await store.dispatch('type-map/addRecent', 'workload');
 
-    return { resources };
+    return { rows };
   },
 };
 </script>

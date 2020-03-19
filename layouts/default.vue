@@ -381,5 +381,6 @@ export default {
 
   .wm {
     grid-area: wm;
+    overflow-y: hidden;
   }
 </style>

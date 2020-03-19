@@ -18,7 +18,6 @@ export default {
 
         // @TODO remember across reloads, normalize to fit into current screen
         // const cached = window.localStorage.getItem('wm-height');
-
         if ( this.userHeight ) {
           return this.userHeight;
         }
