@@ -6,6 +6,9 @@
   "license": "Apache-2.0",
   "author": "Rancher Labs, Inc.",
   "private": true,
+  "engines": {
+    "node": ">=10"
+  },
   "scripts": {
     "lint": "./node_modules/.bin/eslint --ext .js,.vue .",
     "test": "./node_modules/.bin/nyc ava --serial --verbose",
@@ -44,7 +47,6 @@
     "intl-messageformat": "^7.7.2",
     "jquery": "^3.4.1",
     "js-cookie": "^2.2.0",
-    "js-yaml": "^3.13.1",
     "js-yaml-loader": "^1.2.2",
     "jsdiff": "^1.1.1",
     "jsdom-global": "^3.0.2",
@@ -73,6 +75,7 @@
     "vue2-transitions": "^0.3.0",
     "xterm": "^4.3.0",
     "xterm-addon-fit": "^0.3.0",
+    "yaml": "^1.8.2",
     "yaml-js": "^0.2.3"
   },
   "devDependencies": {

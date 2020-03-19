@@ -1,38 +1,14 @@
-import { indent as _indent } from '@/utils/string';
-import { addObject, removeObject, removeObjects } from '@/utils/array';
-
-const SIMPLE_TYPES = [
-  'string',
-  'multiline',
-  'masked',
-  'password',
-  'float',
-  'int',
-  'date',
-  'blob',
-  'boolean',
-  'json',
-  'version'
-];
-
-const ALWAYS_ADD = [
-  'apiVersion',
-  'kind',
-  'metadata',
-  'metadata.name',
-  'spec',
-  'spec.selector',
-  'spec.selector.matchLabels',
-  'spec.template',
-  'spec.template.metadata',
-  'spec.template.metadata.labels',
-  'spec.template.spec.containers.name',
-  'spec.template.spec.containers.image',
-];
+import YAML from 'yaml';
+import { isEmpty } from 'lodash';
+import { createAllSubArrays } from '@/utils/array';
+import { COLLECTION_TYPES } from '@/config/types';
 
 const NEVER_ADD = [
+  'id',
+  'type',
+  '_type',
+  'links',
   'status',
-  'metadata.clusterName',
   'metadata.creationTimestamp',
   'metadata.clusterName',
   'metadata.deletionGracePeriodSeconds',
@@ -46,187 +22,224 @@ const NEVER_ADD = [
   'metadata.resourceVersion',
   'metadata.selfLink',
   'metadata.uid',
+  'metadata.state',
+  'metadata.fields',
 ];
 
-const INDENT = 2;
+const TYPE_ANNOTATION = 'typeAnnotation';
 
-export function createYaml(schemas, type, data, populate = true, depth = 0, path = '') {
-  const schema = schemas.find(x => x.id === type);
-
-  if ( !schema ) {
-    throw new Error('Unknown schema for', type);
+/**
+ * Given an expanded schema generate a list of path type pairs which look like
+ * [
+ *  {
+ *    path: ['metadata', 'name'],
+ *    type: { type: 'string', isPrimitive: true }
+ *  }
+ * ]
+ * @param {*} expandedSchema A schema with the extra fields expandedResourceFields and expandedSubTypes
+ *                           which links to schemas wrather than typeNames.
+ */
+export function getAllPathTypePairs(expandedSchema) {
+  if (expandedSchema.isPrimitive) {
+    return [{
+      path: [],
+      type: expandedSchema
+    }];
   }
 
-  data = data || {};
+  let entries = Object.entries(expandedSchema.expandedResourceFields || {});
 
-  if ( depth === 0 ) {
-    const attr = schema.attributes || {};
-
-    data.apiVersion = (attr.group ? `${ attr.group }/${ attr.version }` : attr.version);
-    data.kind = attr.kind;
+  if (expandedSchema.type === COLLECTION_TYPES.array) {
+    entries = [[0, expandedSchema.expandedSubType]];
   }
 
-  const regularFields = [];
-
-  // Add all the parents of each key so that spec.template.foo.blah
-  // causes 'spec', 'template' and 'foo' keys to be created
-  const always = ALWAYS_ADD.slice();
-
-  for ( let i = always.length - 1 ; i >= 0 ; i-- ) {
-    let entry = always[i].split(/\./);
-
-    while ( entry.length ) {
-      addObject(always, entry.join('.'));
-      entry = entry.slice(0, -1);
-    }
+  if (expandedSchema.type === COLLECTION_TYPES.map) {
+    entries = [['key', expandedSchema.expandedSubType]];
   }
 
-  // Mark always fields as regular so they're not commented out
-  for ( const entry of always ) {
-    const parts = entry.split(/\./);
-    const key = parts[parts.length - 1];
-    const prefix = parts.slice(0, -1).join('.');
+  const nestedResult = entries
+    .map((entry) => {
+      const prefix = entry[0];
+      const restOfSchema = entry[1];
 
-    if ( prefix === path && schema.resourceFields && schema.resourceFields[key] ) {
-      addObject(regularFields, key);
-    }
-  }
+      const pathTypePairs = exports.getAllPathTypePairs(restOfSchema);
 
-  // Mark any fields that are passed in as data as regular so they're not commented out
-  const commentFields = Object.keys(schema.resourceFields || {});
+      return pathTypePairs.map(pair => ({
+        path: [prefix, ...pair.path],
+        type: pair.type
+      }));
+    });
 
-  commentFields.forEach((key) => {
-    if ( typeof data[key] !== 'undefined' ) {
-      addObject(regularFields, key);
-    }
-  });
+  return [].concat(...nestedResult);
+}
 
-  NEVER_ADD.forEach((entry) => {
-    const parts = entry.split(/\./);
-    const key = parts[parts.length - 1];
-    const prefix = parts.slice(0, -1).join('.');
+/**
+ * Create the object chain represented by path inside of the document.
+ *
+ * If typeAnnotation is present then we will annotate any newly created
+ * portions of a path with a #typeAnnotation comment at the top of the objet
+ * and sentinel value of "#typeInfo - string" at the end of a the path.
+ * @param {Document} document The document to add paths to
+ * @param {Array} path An array that represents the path that should be created.
+ * @param {Object} typeAnnotation A schema object that has a type we should use to
+ *                           annotate a field with a sentinel value. This will
+ *                           also annotate any newly created portions of the path with
+ *                           a #typeAnnotation comment.
+ */
+export function createPath(document, path, typeAnnotation) {
+  const subPaths = createAllSubArrays(path);
 
-    if ( prefix === path && schema.resourceFields && schema.resourceFields[key] ) {
-      removeObject(commentFields, key);
-    }
-  });
+  subPaths.forEach((subPath) => {
+    const existingValue = document.getIn(subPath);
 
-  removeObjects(commentFields, regularFields);
+    if (!existingValue || (existingValue?.items && existingValue.items.length === 0)) {
+      const prefixPath = subPath.slice(0, -1);
+      const suffix = subPath.slice(-1);
 
-  const regular = regularFields.map((key) => {
-    return stringifyField(key);
-  });
+      // If there's a number we need to make sure an array is created first.
+      const newNode = YAML.createNode({});
 
-  const comments = commentFields.map((key) => {
-    return comment(stringifyField(key));
-  });
-
-  const out = [...regular, ...comments].join('\n').trim();
-
-  return out;
-
-  // ---------------
-
-  function typeRef(type, str) {
-    const re = new RegExp(`^${ type }\\[(.*)\\]$`);
-    const match = str.match(re);
-
-    if ( match ) {
-      return typeMunge(match[1]);
-    }
-  }
-
-  function typeMunge(type) {
-    if ( type === 'integer' ) {
-      return 'int';
-    }
-
-    if ( type === 'io.k8s.apimachinery.pkg.api.resource.Quantity' ) {
-      return 'string';
-    }
-
-    return type;
-  }
-
-  function stringifyField(key) {
-    const field = schema.resourceFields[key];
-    const type = typeMunge(field.type);
-
-    const mapOf = typeRef('map', type);
-    const arrayOf = typeRef('array', type);
-    const referenceTo = typeRef('reference', type);
-
-    let out = `${ key }:`;
-
-    if ( !field ) {
-      // Not much to do here...
-      return null;
-    }
-
-    if ( mapOf ) {
-      if ( SIMPLE_TYPES.includes(mapOf) ) {
-        out += `\n#  key: ${ mapOf }`;
-      } else {
-        const chunk = createYaml(schemas, mapOf, null, populate, depth + 1, (path ? `${ path }.${ key }` : key));
-        let indented = indent(chunk, 2);
-
-        indented = indented.replace(/^(#)?\s\s\s\s/, '$1');
-
-        out += `\n  ${ indented }`;
+      if (typeAnnotation) {
+        newNode.commentBefore = TYPE_ANNOTATION;
       }
 
-      return out;
-    }
-
-    if ( arrayOf ) {
-      if ( SIMPLE_TYPES.includes(arrayOf) ) {
-        out += `\n#  - ${ arrayOf }`;
+      if (typeof suffix[0] === 'number') {
+        document.setIn(prefixPath, YAML.createNode([]));
+        document.addIn(prefixPath, newNode);
       } else {
-        const chunk = createYaml(schemas, arrayOf, null, populate, depth + 1, (path ? `${ path }.${ key }` : key));
-        let indented = indent(chunk, 2);
-
-        indented = indented.replace(/^(#)?\s*\s\s([^\s])/, '$1  - $2');
-
-        out += `\n${ indented }`;
+        document.setIn(subPath, newNode);
       }
-
-      return out;
     }
+  });
 
-    if ( referenceTo ) {
-      out += ` #${ referenceTo }`;
-
-      return out;
-    }
-
-    if ( SIMPLE_TYPES.includes(type) ) {
-      if ( typeof data[key] === 'undefined' ) {
-        out += ` #${ type }`;
-      } else {
-        out += ` ${ data[key] }`;
-      }
-
-      return out;
-    }
-
-    const subDef = schemas.find(x => x.id === type);
-
-    if ( subDef ) {
-      const chunk = createYaml(schemas, type, data[key], populate, depth + 1, (path ? `${ path }.${ key }` : key));
-
-      out += `\n${ indent(chunk) }`;
-    } else {
-      out += ` #${ type }`;
-    }
-
-    return out;
+  if (typeAnnotation && isNodeEmpty(document.getIn(path))) {
+    document.setIn(path, `#${ TYPE_ANNOTATION } - ${ typeAnnotation.type }`);
   }
 }
 
-function comment(lines) {
-  return (lines || '').split('\n').map(x => `#${ x.replace(/#/g, '') }`).join('\n');
+/**
+ * Checks to see if a YAML.node is an empty collection
+ * @param {YAML.Node} node YAML.Node
+ */
+export function isNodeEmpty(node) {
+  return typeof node === 'undefined' || (typeof node === 'object' && isEmpty(node?.items));
 }
 
-function indent(lines, depth = 1) {
-  return _indent(lines, depth * INDENT, ' ', /^#/);
+/**
+ * All fields that are in the schema that are missing from the document are added to the document.
+ * @param {YAML.Document} document YAML.Document
+ * @param {*} expandedSchema A schema with the extra fields expandedResourceFields and expandedSubTypes
+ *                           which links to schemas wrather than typeNames.
+ */
+export function addMissingFieldsToDocument(document, expandedSchema) {
+  if (!expandedSchema) {
+    return;
+  }
+
+  const pathTypePairs = exports.getAllPathTypePairs(expandedSchema);
+
+  pathTypePairs.forEach(pair => exports.createPath(document, pair.path, pair.type));
+}
+
+/**
+ * Removes all fields from the document which are listed in the NEVER_ADD.
+ * @param {YAML.Document} document YAML.Document
+ */
+export function removeExtraneousFieldsFromDocument(document) {
+  NEVER_ADD
+    .map(stringPath => stringPath.split('.'))
+    .forEach((path) => {
+      if (document.hasIn(path)) {
+        document.deleteIn(path);
+      }
+    });
+}
+
+/**
+ * Comments out a line without affecting the indentation.
+ * @param {String} line a line of YAML
+ */
+export function commentLine(line) {
+  const correctedLine = /^\s.+/.test(line) ? line.substring(1) : line;
+
+  return `#${ correctedLine }`;
+}
+
+/**
+ * Looks for collection type annotations and comments out the collection.
+ *
+ * This is neccessary because the library YAML doesn't allow you to create
+ * a comment node and adding comments to the neighboring nodes makes the code
+ * clunky compared to doing a resolve pass.
+ *
+ * Source                   ->            Result
+ * collection:                            #collection:
+ *   #typeAnnotation                        key: value
+ *   key: value
+ * @param {*} documentArray
+ */
+export function resolveCollectionTypeAnnotations(documentArray) {
+  return documentArray.reduce((agg, line) => {
+    const lastLine = (agg.slice(-1)[0] || '');
+    const isTypeAnnotation = line.trim() === `#${ TYPE_ANNOTATION }`;
+    const beggining = isTypeAnnotation ? agg.slice(0, -1) : agg;
+    const newLine = isTypeAnnotation ? commentLine(lastLine) : line;
+
+    return [...beggining, newLine];
+  }, []);
+}
+
+/**
+ * Looks for scalar type annotations and comments out the scalar.
+ *
+ * Source                   ->            Result
+ * key: '#typeAnnotation - string'        #key: string
+ * @param {*} documentArray
+ */
+export function resolveScalarTypeAnnotations(documentArray) {
+  const annotation = `#${ TYPE_ANNOTATION } - `;
+
+  return documentArray.map((line) => {
+    return line.includes(annotation)
+      ? exports.commentLine(line.replace(annotation, '').replace(/\"+/g, ''))
+      : line;
+  });
+}
+
+/**
+ * Looks for collection and scalar type annotations and appropriately comments
+ * out the sections.
+ *
+ * This is neccessary because the library YAML doesn't allow you to create
+ * a comment node and adding comments to the neighboring nodes makes the code
+ * clunky compared to doing a resolve pass.
+ *
+ * @param {YAML.Document} document YAML.Document
+ */
+export function resolveTypeAnnotationsAndConvertToString(document) {
+  const documentAsString = document.toString();
+  let documentAsArray = documentAsString.split('\n');
+
+  documentAsArray = exports.resolveCollectionTypeAnnotations(documentAsArray);
+  documentAsArray = exports.resolveScalarTypeAnnotations(documentAsArray);
+
+  return documentAsArray.join('\n');
+}
+
+/**
+ * Given a js object and an expanded schema we will add fields
+ * that are in the schema that are missing from data, remove fields that
+ * are a part of the NEVER_ADD list, add type annotations as comments
+ * and serialize to yaml.
+ * @param {*} data Arbitrary js object
+ * @param {*} expandedSchema A schema with the extra fields expandedResourceFields and expandedSubTypes
+ *                           which links to schemas wrather than typeNames.
+ */
+export function createYaml(data, expandedSchema) {
+  const document = YAML.parseDocument(YAML.stringify(data));
+
+  exports.addMissingFieldsToDocument(document, expandedSchema);
+  exports.removeExtraneousFieldsFromDocument(document);
+
+  return exports.resolveTypeAnnotationsAndConvertToString(document);
 }

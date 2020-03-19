@@ -11,15 +11,22 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import NamespaceList, { NAMESPACE_FILTERS } from '@/components/form/NamespaceList';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
+import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import Footer from '@/components/form/Footer';
 import GatekeeperViolationsTable from '@/components/GatekeeperViolationsTable';
 import RuleSelector from '@/components/form/RuleSelector';
 import RadioGroup from '@/components/form/RadioGroup';
 import { ucFirst } from '@/utils/string';
+import { isSimpleKeyValue } from '@/utils/object';
+import { createYaml } from '@/utils/create-yaml';
 
 function findConstraintTypes(schemas) {
   return schemas
-    .filter(schema => schema?.attributes?.group === 'constraints.gatekeeper.sh')
+    .filter(schema => schema?.attributes?.group === 'constraints.gatekeeper.sh');
+}
+
+function findConstraintTypesIds(schemas) {
+  return findConstraintTypes(schemas)
     .map(schema => schema.id);
 }
 
@@ -41,7 +48,8 @@ export default {
     RuleSelector,
     RadioGroup,
     Tab,
-    Tabbed
+    Tabbed,
+    YamlEditor
   },
 
   extends: CreateEditView,
@@ -55,6 +63,8 @@ export default {
 
   data() {
     return {
+      parametersYaml:           this.value?.spec?.parameters ? createYaml(this.value.spec.parameters) : '',
+      showParametersAsYaml:     !isSimpleKeyValue(this.value.spec.parameters),
       enforcementActionOptions: Object.values(ENFORCEMENT_ACTION_VALUES),
       enforcementActionLabels:  Object.values(ENFORCEMENT_ACTION_VALUES).map(ucFirst),
       NAMESPACE_FILTERS
@@ -72,9 +82,10 @@ export default {
     },
     templateOptions() {
       const schemas = this.$store.getters['cluster/all'](SCHEMA);
-      const constraintTypes = findConstraintTypes(schemas);
+      const constraintTypes = findConstraintTypesIds(schemas);
 
       constraintTypes.sort();
+      console.log(constraintTypes);
 
       return constraintTypes.map((type) => {
         return {
@@ -85,6 +96,14 @@ export default {
     },
     isView() {
       return this.mode === _VIEW;
+    },
+    editorMode() {
+      return this.mode === _VIEW
+        ? EDITOR_MODES.VIEW_CODE
+        : EDITOR_MODES.EDIT_CODE;
+    },
+    canShowForm() {
+      return isSimpleKeyValue(this.value.spec.parameters) && !this.isView;
     },
     systemNamespaceIds() {
       return this.$store.getters['cluster/all'](NAMESPACE)
@@ -117,7 +136,7 @@ export default {
         this.purgeNamespacesField(this.value);
       },
       deep: true
-    }
+    },
   },
 
   async created() {
@@ -153,12 +172,18 @@ export default {
 
     updateType(type) {
       this.$set(this.value, 'type', type);
+    },
+    toggleParametersEditor() {
+      this.showParametersAsYaml = !this.showParametersAsYaml;
+      if (this.showParametersAsYaml) {
+        this.parametersYaml = createYaml(this.value.spec.parameters);
+      }
     }
   }
 };
 </script>
 <template>
-  <div v-if="value.save">
+  <div v-if="value.save" class="gatekeeper-constraint">
     <div>
       <NameNsDescription :value="value" :mode="mode" :namespaced="false" :extra-columns="['template']" :extra-detail-columns="extraDetailColumns">
         <template v-slot:template>
@@ -179,8 +204,20 @@ export default {
       <br />
     </div>
     <div>
-      <h2>Parameters</h2>
+      <h2 class="parameters">
+        Parameters
+        <a v-if="showParametersAsYaml && canShowForm" href="#" @click="toggleParametersEditor">Edit as Form</a>
+        <a v-else-if="canShowForm" href="#" @click="toggleParametersEditor">Edit as YAML</a>
+      </h2>
+      <YamlEditor
+        v-if="showParametersAsYaml"
+        v-model="parametersYaml"
+        class="yaml-editor"
+        :editor-mode="editorMode"
+        @newObject="$set(value.spec, 'parameters', $event)"
+      />
       <KeyValue
+        v-else
         v-model="value.spec.parameters"
         :value-multiline="false"
         :mode="mode"
@@ -249,8 +286,20 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
-.enforcement-action {
-  max-width: 200px;
+<style lang="scss">
+.gatekeeper-constraint {
+  .yaml-editor {
+    margin-top: 10px;
+    height: 200px;
+  }
+
+  .parameters a {
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .enforcement-action {
+    max-width: 200px;
+  }
 }
+
 </style>
