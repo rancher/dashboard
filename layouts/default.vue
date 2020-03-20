@@ -204,12 +204,12 @@ export default {
           <ul class="list-unstyled dropdown" style="margin: -1px;">
             <li>
               <div>{{ principal.loginName }}</div>
-              <div><span class="text-muted">{{ principal.name }}</span></div>
+              <div class="text-small pb-10">{{ principal.name }}</div>
             </li>
-            <nuxt-link tag="li" :to="{name: 'prefs'}" class="pt-10 pb-10 hand">
+            <nuxt-link tag="li" :to="{name: 'prefs'}" class="pt-5 pb-5 hand">
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
-            <nuxt-link v-if="isRancher" tag="li" :to="{name: 'auth-logout'}" class="pt-10 pb-10 hand">
+            <nuxt-link v-if="isRancher" tag="li" :to="{name: 'auth-logout'}" class="pt-5 pb-5 hand">
               <a>Log Out <i class="icon icon-fw icon-close" /></a>
             </nuxt-link>
           </ul>
