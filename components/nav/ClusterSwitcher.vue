@@ -7,7 +7,6 @@ export default {
   computed: {
     value: {
       get() {
-        console.log('Get Value');
         const options = this.options;
         const existing = findBy(options, 'id', this.$store.getters['clusterId']);
 
@@ -24,8 +23,6 @@ export default {
     },
 
     options() {
-      console.log('Get Options');
-
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
       const out = all.map((x) => {
         return {

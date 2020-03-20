@@ -59,7 +59,7 @@ export default {
       return all;
     }, []);
 
-    await store.dispatch('type-map/addRecent', 'workload');
+    await store.dispatch('type-map/addRecent', 'workloads');
 
     return { resources };
   },
