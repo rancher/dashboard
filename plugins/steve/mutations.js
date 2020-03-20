@@ -57,7 +57,9 @@ export default {
   load(state, { data, ctx, existing }) {
     let type = normalizeType(data.type);
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
+
     const id = data[keyField];
+
     let cache = state.types[type];
 
     let entry = cache.map.get(id);
@@ -74,7 +76,6 @@ export default {
     } else {
       // There's no entry, make a new proxy
       entry = proxyFor(ctx, data);
-
       addObject(cache.list, entry);
       cache.map.set(id, entry);
     }

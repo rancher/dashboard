@@ -1,4 +1,5 @@
 <script>
+import cronstrue from 'cronstrue';
 import { clone } from '@/utils/object';
 import { CONFIG_MAP, SECRET, WORKLOAD, NODE } from '@/config/types';
 import LoadDeps from '@/mixins/load-deps';
@@ -167,33 +168,53 @@ export default {
     saveUrl() {
       let url = this.schema.linkFor('collection');
 
-      const [group, version, type] = this.type.split('.');
+      const { group, resource, version } = this.schema.attributes;
 
-      url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/${ version }/namespaces/${ this.metadata.namespace }/${ type }s`;
+      url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/${ version }/namespaces/${ this.metadata.namespace }/${ resource }`;
 
       return url;
+    },
+
+    cronLabel() {
+      const { schedule } = this.spec;
+
+      if (!this.isCronJob || !schedule) {
+        return null;
+      }
+
+      try {
+        const hint = cronstrue.toString(schedule);
+
+        return hint;
+      } catch (e) {
+        return 'invalid cron expression';
+      }
     }
   },
 
   watch: {
     type(neu, old) {
+      const template = old === WORKLOAD.CRON_JOB ? this.spec?.jobTemplate?.spec?.template : this.spec?.template;
+
+      if (!template.spec) {
+        template.spec = {};
+      }
+      const restartPolicy = this.isJob ? 'Never' : 'Always';
+
+      this.$set(template.spec, 'restartPolicy', restartPolicy);
+
       if (old === WORKLOAD.CRON_JOB) {
-        this.$set(this.spec, 'template', { ...this.spec.jobTemplate });
+        this.$set(this.spec, 'template', { ...template });
         delete this.spec.jobTemplate;
+        delete this.spec.schedule;
       } else if (neu === WORKLOAD.CRON_JOB) {
-        this.$set(this.spec, 'jobTemplate', { spec: { template: this.spec.template } });
+        this.$set(this.spec, 'jobTemplate', { spec: { template } });
+        this.$set(this.spec, 'schedule', '0 * * * *');
         delete this.spec.template;
       }
 
       this.$set(this.value, 'type', neu);
-
-      const [group, version] = neu.split('.');
-
-      this.$set(this.value, 'apiVersion', `${ group }/${ version }`);
-
-      const restartPolicy = this.isJob ? 'Never' : 'Always';
-
-      this.$set(this.spec.template.spec, 'restartPolicy', restartPolicy);
+      delete this.value.apiVersion;
     }
   },
 
@@ -234,7 +255,6 @@ export default {
       delete this.value.kind;
       this.value.spec = this.spec;
       this.value.metadata = this.metadata;
-
       this.save(cb, this.saveUrl);
     }
   },
@@ -254,6 +274,13 @@ export default {
         <div class="col span-4">
           <LabeledInput v-model="containerImage" label="Container Image" placeholder="eg nginx:latest" />
         </div>
+        <template v-if="isCronJob">
+          <div class="col span-4" />
+          <div class="col span-4">
+            <LabeledInput v-model="spec.schedule" label="cron Schedule" />
+            <span class="cron-hint text-small">{{ cronLabel }}</span>
+          </div>
+        </template>
       </div>
 
       <div class="row">
@@ -302,3 +329,10 @@ export default {
     <Footer :errors="errors" :mode="mode" @save="saveWorkload" @done="done" />
   </form>
 </template>
+
+<style>
+  .cron-hint{
+    color: var(--muted);
+    padding: 3px;
+  }
+</style>
