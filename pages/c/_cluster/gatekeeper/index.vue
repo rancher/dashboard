@@ -108,7 +108,9 @@ export default {
         });
       }
 
-      await store.dispatch('type-map/addRecent', 'workload');
+      // Don't add to recent for now, it doesn't handle the parent of nested types well
+      // and it's always at the top anyway.
+      // await store.dispatch('type-map/addRecent', 'gatekeeper');
 
       return {
         gatekeeperEnabled: !!gatekeeper?.id,

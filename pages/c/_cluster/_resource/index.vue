@@ -12,7 +12,21 @@ export default {
       listComponent = this.$store.getters['type-map/importList'](this.resource);
     }
 
+    const params = { ...this.$route.params };
+
+    const formRoute = this.$router.resolve({ name: `${ this.$route.name }-create`, params }).href;
+
+    const query = { [EDIT_YAML]: _FLAGGED };
+
+    const yamlRoute = this.$router.resolve({
+      name: `${ this.$route.name }-create`,
+      params,
+      query
+    }).href;
+
     return {
+      formRoute,
+      yamlRoute,
       listComponent,
       EDIT_YAML,
       FLAGGED:       _FLAGGED
@@ -62,13 +76,17 @@ export default {
         {{ typeDisplay }}
       </h1>
       <div class="actions">
-        <nuxt-link :to="{path: 'create', params: {'as-yaml': null}}" append tag="button" type="button" class="btn bg-primary">
+        <nuxt-link
+          :to="{path: yamlRoute}"
+          tag="button"
+          type="button"
+          class="btn bg-primary"
+        >
           Import
         </nuxt-link>
         <nuxt-link
           v-if="hasEditComponent"
-          to="create"
-          append
+          :to="{path: formRoute}"
           tag="button"
           type="button"
           class="btn bg-primary"

@@ -1,5 +1,5 @@
 import {
-  CONFIG_MAP, GATEKEEPER_CONSTRAINT_TEMPLATE, NAMESPACE, NODE, SECRET, RIO, RBAC, INGRESS, WORKLOAD
+  CONFIG_MAP, GATEKEEPER_CONSTRAINT_TEMPLATE, NAMESPACE, NODE, SECRET, RIO, RBAC, INGRESS
 } from '@/config/types';
 
 import {
@@ -41,7 +41,10 @@ export default function(store) {
   basicType([
     NAMESPACE,
     NODE,
-    WORKLOAD,
+    'workloads',
+    'gatekeeper',
+    'gatekeeper-constraints',
+    'gatekeeper-templates',
   ]);
 
   mapTypeToComponentName(/^constraints.gatekeeper.sh.*$/, 'gatekeeper-constraint');
@@ -52,7 +55,7 @@ export default function(store) {
   mapType('endpoints', 'Endpoint'); // Bad plural
 
   // Move some core things into Cluster
-  moveType(/^(namespace|node|persistentvolume)$/, 'Cluster');
+  moveType(/^(namespace|node)$/, 'Cluster');
 
   weightGroup('Cluster', 99);
   weightGroup('Core', 98);
@@ -195,6 +198,7 @@ export default function(store) {
     namespaced: true,
     name:       'workloads',
     group:      'Cluster',
+    weight:     10,
     route:      {
       name:     'c-cluster-workloads',
       params:   { resource: 'workload' }

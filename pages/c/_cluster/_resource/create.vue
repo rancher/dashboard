@@ -2,11 +2,13 @@
 import ResourceYaml from '@/components/ResourceYaml';
 import { createYaml } from '@/utils/create-yaml';
 import { SCHEMA } from '@/config/types';
+import { EDIT_YAML, _FLAGGED } from '@/config/query-params';
 
 export default {
   components: { ResourceYaml },
+
   data() {
-    if (this.hasComponent) {
+    if (this.hasCustomEdit) {
       this.$store.getters['type-map/importEdit'](this.resource)().then((component) => {
         this.importedEditComponent = component.default;
       });
@@ -14,15 +16,12 @@ export default {
 
     return { importedEditComponent: null };
   },
+
   computed:   {
     doneRoute() {
       const name = this.$route.name.replace(/-create$/, '');
 
       return name;
-    },
-
-    hasComponent() {
-      return this.$store.getters['type-map/hasCustomEdit'](this.resource);
     },
 
     showComponent() {
@@ -47,27 +46,40 @@ export default {
       return out;
     },
   },
+
   async asyncData(ctx) {
+    const { route, store } = ctx;
     const { resource, namespace } = ctx.params;
-    const schemas = ctx.store.getters['cluster/all'](SCHEMA);
-    const schema = ctx.store.getters['cluster/schemaFor'](resource);
+    const schemas = store.getters['cluster/all'](SCHEMA);
+    const schema = store.getters['cluster/schemaFor'](resource);
     const data = { type: resource };
 
     if ( schema.attributes.namespaced ) {
       data.metadata = { namespace };
     }
-    const model = await ctx.store.dispatch('cluster/create', data);
+
+    const model = await store.dispatch('cluster/create', data);
     const yaml = createYaml(schemas, resource, data);
 
+    const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
+
+    const asYaml = (route.query[EDIT_YAML] === _FLAGGED) || !hasCustomEdit;
+
     return {
-      resource, model, yaml, schema
+      schema,
+      resource,
+      model,
+      yaml,
+      asYaml,
+      hasCustomEdit
     };
   }
 };
 </script>
 
 <template>
-  <div v-if="hasComponent">
+  <ResourceYaml v-if="asYaml" :obj="model" :value="yaml" :done-route="doneRoute" :for-create="true" />
+  <div v-else>
     <header>
       <h1>
         Create <nuxt-link :to="parentLink">
@@ -85,5 +97,4 @@ export default {
       :done-override="doneEditOverride"
     />
   </div>
-  <ResourceYaml v-else :obj="model" :value="yaml" :done-route="doneRoute" :for-create="true" />
 </template>
