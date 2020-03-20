@@ -9,12 +9,12 @@ const TEMPLATE_ID = 'cattle-global-data/system-library-rancher-gatekeeper-operat
 const APP_ID = 'rancher-gatekeeper-operator';
 const CONFIG = `---
 replicas: 1
-auditInterval: 60
+auditInterval: 300
 constraintViolationsLimit: 20
 auditFromCache: false
 image:
-  repository: quay.io/open-policy-agent/gatekeeper
-  release: v3.1.0-beta.7
+  repository: rancher/opa-gatekeeper
+  tag: v3.1.0-beta.7
   pullPolicy: IfNotPresent
 nodeSelector: {"beta.kubernetes.io/os": "linux"}
 tolerations: []
@@ -27,6 +27,9 @@ resources:
     memory: 256Mi
 global:
   systemDefaultRegistry: ""
+  kubectl:
+    repository: rancher/istio-kubectl
+    tag: 1.4.6
 `;
 
 const SYSTEM_PROJECT_LABEL = 'authz.management.cattle.io/system-project';
