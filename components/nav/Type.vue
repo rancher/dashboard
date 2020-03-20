@@ -4,26 +4,37 @@ export default {
     type: {
       type:     Object,
       required: true
-    }
+    },
   },
 
   data() {
-    return { over: false };
+    return {
+      near: false,
+      over: false,
+    };
+  },
+
+  computed: {
+    showFavorite() {
+      return this.type.mode === 'favorite' && this.near;
+    },
+
+    showCount() {
+      return typeof this.type.count !== 'undefined';
+    },
   },
 
   methods: {
-    onMouseover() {
-      this.over = true;
-      console.log('over');
+    setNear(val) {
+      this.near = val;
     },
 
-    onMouseout() {
-      this.over = false;
-      console.log('out');
+    setOver(val) {
+      this.over = val;
     },
 
     removeFavorite() {
-      this.$store.commit('type-map/removeFavorite', this.type.id);
+      this.$store.dispatch('type-map/removeFavorite', this.type.name);
     }
   }
 };
@@ -35,15 +46,21 @@ export default {
     :to="type.route"
     tag="li"
     class="child"
-    @onmouseover="onMouseover($event)"
-    @onmouseout="onMouseout($event)"
   >
-    <a>
+    <a
+      @mouseenter="setNear(true)"
+      @mouseleave="setNear(false)"
+    >
       <span class="label" v-html="type.labelDisplay || type.label" />
-      <span v-if="over" class="count">
-        <i class="icon icon-trash" @click="removeFavorite" />
-      </span>
-      <span v-else-if="typeof type.count !== 'undefined'" class="count">
+      <span v-if="showFavorite || showCount" class="count">
+        <i
+          v-if="showFavorite"
+          class="favorite icon"
+          :class="{'icon-star-open': over, 'icon-star': !over}"
+          @click.stop.prevent="removeFavorite"
+          @mouseenter="setOver(true)"
+          @mouseleave="setOver(false)"
+        />
         {{ type.count }}
       </span>
     </a>
@@ -76,9 +93,16 @@ export default {
 
       ::v-deep .icon {
         position: relative;
-        top: -2px;
+        top: -1px;
         color: var(--muted);
       }
+    }
+
+    .favorite {
+      grid-area: favorite;
+      font-size: 13px;
+      position: relative;
+      top: -1px;
     }
 
     .count {

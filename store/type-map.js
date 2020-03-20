@@ -350,6 +350,7 @@ export const getters = {
         group.children.push({
           label,
           labelDisplay,
+          mode:   typeObj.mode,
           count,
           namespaced,
           route,
@@ -834,6 +835,7 @@ export const actions = {
   },
 
   addFavorite({ commit, rootGetters }, type) {
+    console.log('addFavorite', type);
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
     addObject(types, type);
@@ -842,6 +844,7 @@ export const actions = {
   },
 
   removeFavorite({ commit, rootGetters }, type) {
+    console.log('removeFavorite', type);
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
     removeObject(types, type);
