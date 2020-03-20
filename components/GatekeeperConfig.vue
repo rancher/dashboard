@@ -372,14 +372,14 @@ export default {
     <div v-else class="mt-20 mb-20">
       <article class="col span-12 info">
         <p>
-          <a href="https://www.openpolicyagent.org/docs/latest/kubernetes-introduction/" target="blank">OPA Gatekeeper</a> provides first-class integration between OPA (Open Policy Agent) and Kubernetes. For more information, visit the OPA documentation.
+          OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes. For more information, visit the <a href="https://www.openpolicyagent.org/docs/latest/kubernetes-introduction/" target="blank">OPA documentation.</a>
         </p>
       </article>
       <div class="row action-group">
         <div class="col">
-          <p>
+          <h4 class="mb-20">
             Enable Gatekeeper <span v-if="appVersion">({{ appVersion }}) </span>with defaults.
-          </p>
+          </h4>
           <AsyncButton
             :mode="mode"
             action-label="Enable"
@@ -392,9 +392,9 @@ export default {
           />
         </div>
         <div class="col">
-          <p>
+          <h4 class="mb-20">
             Customize Gatekeeper yaml configuartion.
-          </p>
+          </h4>
           <button
             type="button"
             class="btn bg-primary"

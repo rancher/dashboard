@@ -292,6 +292,20 @@ export default {
       background-color: var(--header-bg);
       padding-top: 8px;
 
+      INPUT[type='search']::placeholder, 
+      .vs__open-indicator,
+      .vs__selected {
+        color: white!important;
+      }
+      
+      .vs__selected {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.25);
+      }
+      .vs__deselect {
+        fill: white;
+      }
+
       .filter {
         margin-left: 10px;
 
@@ -312,6 +326,7 @@ export default {
         display: block;
         color: var(--body-text);
         padding: 0 5px;
+        margin-right: 20px;
         text-align: right;
       }
     }
