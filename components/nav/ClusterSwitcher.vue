@@ -76,11 +76,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .filter {
-    position: relative;
-    z-index: 1; // Above the cow so you can click there too
-  }
-
   .filter ::v-deep .v-select {
     max-width: 100%;
     display: inline-block;

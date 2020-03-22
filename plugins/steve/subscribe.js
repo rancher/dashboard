@@ -140,20 +140,32 @@ export const actions = {
     // console.log('WebSocket Ping');
   },
 
-  'ws.resource.start'(_, msg) {
+  'ws.resource.start'({ commit }, msg) {
     console.log('Resource start:', msg.resourceType);
+    commit('setWatchStarted', msg.resourceType);
   },
 
   'ws.resource.error'({ commit }, msg) {
     console.log('Resource error for', msg.resourceType, ':', msg.data.error);
-    if ( msg.data?.error?.toLowerCase().includes('watch not allowed') ) {
+    const err = msg.data?.error?.toLowerCase();
+
+    if ( err.includes('watch not allowed') ) {
       commit('addNoWatch', msg.resourceType);
+    } else if ( err.includes('failed to find schema') ) {
+      // The reconnect should only happen once, so ignore
     }
   },
 
-  'ws.resource.stop'({ dispatch }, msg) {
-    console.log('Resource stop:', msg.resourceType);
-    dispatch('watchType', { type: msg.resourceType });
+  'ws.resource.stop'({ getters, commit, dispatch }, msg) {
+    const type = msg.resourceType;
+
+    console.log('Resource stop:', type);
+
+    if ( getters['schemaFor'](type) && getters['watchStarted'](type) ) {
+      // Try reconnecting once
+      commit('setWatchStopped', type);
+      dispatch('watchType', { type });
+    }
   },
 
   'ws.resource.create'({ dispatch }, { data }) {
@@ -175,6 +187,11 @@ export const actions = {
 
       if ( obj ) {
         commit('remove', obj);
+      }
+
+      if ( type === 'schema' ) {
+        // Clear the current records in the store
+        commit('forgetType', data.id);
       }
     }
   },

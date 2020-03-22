@@ -87,6 +87,26 @@ export const getters = {
       return '?';
     }
   },
+
+  exists: state => (key, args) => {
+    const cacheKey = `${ state.selected }/${ key }`;
+
+    if ( intlCache[cacheKey] ) {
+      return true;
+    }
+
+    let msg = get(state.translations[state.default], key);
+
+    if ( !msg && state.selected && state.selected !== NONE ) {
+      msg = get(state.translations[state.selected], key);
+    }
+
+    if ( msg ) {
+      return true;
+    }
+
+    return false;
+  },
 };
 
 export const mutations = {

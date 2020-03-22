@@ -100,7 +100,7 @@ export function removeAt(ary, idx, len = 1) {
 }
 
 export function clear(ary) {
-  ary.length = 0;
+  ary.splice(0, ary.length);
 }
 
 function findOrFilterBy(method, ary, keyOrObj, val) {

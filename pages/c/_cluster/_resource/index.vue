@@ -1,9 +1,10 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
+import Favorite from '@/components/nav/Favorite';
 import { EDIT_YAML, _FLAGGED } from '@/config/query-params';
 
 export default {
-  components: { ResourceTable },
+  components: { ResourceTable, Favorite },
 
   data() {
     let listComponent;
@@ -73,7 +74,7 @@ export default {
   <div>
     <header>
       <h1>
-        {{ typeDisplay }}
+        {{ typeDisplay }} <Favorite :resource="resource" />
       </h1>
       <div class="actions">
         <nuxt-link
