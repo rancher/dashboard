@@ -113,8 +113,26 @@ export default {
     }
   },
 
-  removeAll(state) {
-    state.types = {};
+  forgetAll(state) {
+    for ( const type of Object.keys(state.types) ) {
+      const cache = state.types[type];
+
+      if ( cache ) {
+        cache.haveAll = false;
+        clear(cache.list);
+        cache.map.clear();
+      }
+    }
+  },
+
+  forgetType(state, type) {
+    const cache = state.types[type];
+
+    if ( cache ) {
+      cache.haveAll = false;
+      clear(cache.list);
+      cache.map.clear();
+    }
   },
 
   setWantSocket(state, want) {
@@ -127,6 +145,14 @@ export default {
 
   dequeuePending(state, obj) {
     removeObject(state.pendingSends, obj);
+  },
+
+  setWatchStarted(state, type) {
+    addObject(state.started, type);
+  },
+
+  setWatchStopped(state, type) {
+    removeObject(state.started, type);
   },
 
   addNoWatch(state, type) {

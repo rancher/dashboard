@@ -23,6 +23,7 @@ function SteveFactory(namespace, baseUrl) {
         socket:       null,
         wantSocket:   false,
         pendingSends: [],
+        started:      [],
         noWatch:      [],
       };
     },

@@ -138,4 +138,8 @@ export default {
   canWatch: state => (type) => {
     return !state.noWatch.includes(type);
   },
+
+  watchStarted: state => (type) => {
+    return state.started.includes(type);
+  }
 };

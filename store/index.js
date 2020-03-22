@@ -231,8 +231,8 @@ export const actions = {
       // so that the nav and header stay the same when going to things like prefs
       await dispatch('cluster/unsubscribe');
       await dispatch('clusterExternal/unsubscribe');
-      commit('cluster/removeAll');
-      commit('clusterExternal/removeAll');
+      commit('cluster/forgetAll');
+      commit('clusterExternal/forgetAll');
       commit('clusterChanged', false);
     }
 
@@ -333,10 +333,10 @@ export const actions = {
 
   onLogout({ commit }) {
     commit('managementChanged', { ready: false });
-    commit('management/removeAll');
+    commit('management/forgetAll');
 
-    commit('cluster/removeAll');
-    commit('rancher/removeAll');
+    commit('cluster/forgetAll');
+    commit('rancher/forgetAll');
   },
 
   nuxtServerInit(ctx, nuxt) {
