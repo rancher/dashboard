@@ -200,7 +200,7 @@ export default function(store) {
     name:        'cluster-overview',
     group:       'Cluster',
     weight:      5,
-    route:       { name: 'c-cluster-index' },
+    route:       { name: 'c-cluster' },
   });
 
   virtualType({

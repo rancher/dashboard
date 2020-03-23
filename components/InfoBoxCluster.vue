@@ -2,7 +2,7 @@
 import { isEmpty } from 'lodash';
 import InfoBox from '@/components/InfoBox';
 import PercentageBar from '@/components/PercentageBar';
-import Units from '@/utils/units';
+import { parseSi, formatSi } from '@/utils/units';
 
 export default {
   components: {
@@ -25,52 +25,55 @@ export default {
     liveNodeUsage() {
       const clusterCapacityCpu = this.cluster?.status?.capacity?.cpu;
 
-      return this.getUsage(clusterCapacityCpu, Units.parseSi(clusterCapacityCpu), this.metrics, 'cpu');
+      return this.getUsage(clusterCapacityCpu, 'cpu');
     },
 
     nodeUsageReserved() {
       const allocatableCpu = this.cluster?.status?.allocatable?.cpu;
 
-      return this.getUsage(allocatableCpu, Units.parseSi(allocatableCpu), this.metrics, 'cpu');
+      return this.getUsage(allocatableCpu, 'cpu');
     },
 
     liveNodeMemUsage() {
-      let clusterCapacityMemory = this.cluster?.status?.capacity?.memory;
+      const clusterCapacityMemory = this.cluster?.status?.capacity?.memory;
 
-      clusterCapacityMemory = Units.parseSi(clusterCapacityMemory);
-
-      return this.getUsage(clusterCapacityMemory, clusterCapacityMemory, this.metrics, 'memory');
+      return this.getUsage(clusterCapacityMemory, 'memory');
     },
 
     nodeUsageMemReserved() {
-      let allocatableMem = this.cluster?.status?.allocatable?.memory;
+      const allocatableMem = this.cluster?.status?.allocatable?.memory;
 
-      allocatableMem = Units.parseSi(allocatableMem);
-
-      return this.getUsage(allocatableMem, allocatableMem, this.metrics, 'memory');
+      return this.getUsage(allocatableMem, 'memory');
     },
 
     nodeUsagePodReserved() {
-      const podCapacity = Units.parseSi(this.cluster?.status?.allocatable?.pods || 0);
-      const podUsage = Units.parseSi(this.cluster?.status?.requested?.pods || 0);
+      const podCapacity = parseSi(this.cluster?.status?.allocatable?.pods || 0);
+      const podUsage = parseSi(this.cluster?.status?.requested?.pods || 0);
 
       return {
-        clusterCapacity: Units.formatSi(podCapacity),
-        nodeUsage:       Units.formatSi(podUsage),
-        percentage:      ( podUsage * 100 ) / podCapacity,
+        clusterCapacity: formatSi(podCapacity),
+        nodeUsage:       formatSi(podUsage),
+        percentage:      podCapacity === 0 ? 0 : ( podUsage * 100 ) / podCapacity,
       };
     },
   },
 
   methods: {
-    getUsage(clusterCapacityCpu = 0, normalizedCpu = 0, metrics = [], field = 'cpu') {
-      const nodeCpuUsage = metrics.map( m => Units.parseSi(m.usage[field]));
-      const nodesCpuUsage = isEmpty(nodeCpuUsage) ? 0 : nodeCpuUsage.reduce( ( acc, cv ) => acc + cv);
+    getUsage(capacity = 0, field = 'cpu') {
+      const metrics = this.metrics;
+      const normalizedCapacity = parseSi(capacity);
+      const nodesEachUsage = metrics.map( m => parseSi(m.usage[field]));
+      const cumulativeUsage = isEmpty(nodesEachUsage) ? 0 : nodesEachUsage.reduce( ( acc, cv ) => acc + cv);
+      let formatedCapacity = formatSi(capacity);
+
+      if (isNaN(formatedCapacity)) {
+        formatedCapacity = formatSi(parseSi(capacity));
+      }
 
       return {
-        clusterCapacity: Units.formatSi(clusterCapacityCpu),
-        nodeUsage:       Units.formatSi(nodesCpuUsage),
-        percentage:      ( nodesCpuUsage * 100 ) / normalizedCpu,
+        clusterCapacity: formatedCapacity,
+        nodeUsage:       formatSi(cumulativeUsage),
+        percentage:      normalizedCapacity === 0 ? normalizedCapacity : ( cumulativeUsage * 100 ) / normalizedCapacity,
       };
     },
   }
