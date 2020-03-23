@@ -39,6 +39,7 @@ export default function(store) {
   } = DSL(store);
 
   basicType([
+    'cluster-overview',
     NAMESPACE,
     NODE,
     'workloads',
@@ -192,6 +193,15 @@ export default function(store) {
     CLUSTER_CREATOR_DEFAULT,
     AGE
   ]);
+
+  virtualType({
+    label:       'Overview',
+    namespaced:  false,
+    name:        'cluster-overview',
+    group:       'Cluster',
+    weight:      5,
+    route:       { name: 'c-cluster' },
+  });
 
   virtualType({
     label:      'Workload',

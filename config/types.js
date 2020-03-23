@@ -72,3 +72,8 @@ export const WORKLOAD = {
   REPLICA_SET:            'apps.replicaset',
   REPLICATION_CONTROLLER: 'replicationcontroller'
 };
+
+export const METRIC = {
+  NODE: 'metrics.k8s.io.nodemetrics',
+  POD:  'metrics.k8s.io.podmetrics',
+};
