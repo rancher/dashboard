@@ -123,13 +123,15 @@ export default {
 
   .results {
     position: absolute;
-    top: 50px;
+    top: 44px;
     left: 10px;
     right: 10px;
     bottom: 10px;
     overflow-y: auto;
     z-index: 1;
-    background-color: #444;
+    background: var(--box-bg);
+    border: solid var(--border) thin;
     padding: 0 10px;
+    box-shadow: var(--shadow)
   }
 </style>
