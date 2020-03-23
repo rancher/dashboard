@@ -29,41 +29,15 @@ export default {
 
   displayProvider() {
     const configName = this.configName.toLowerCase();
-    // const pools = get(this, 'nodePools');
-    // const firstPool = (pools || []).objectAt(0);
+    const driver = this.status?.driver;
+    const key = `cluster.provider.${ configName }`;
 
-    switch ( configName ) {
-    case 'amazonelasticcontainerserviceconfig':
-      return 'Amazon EKS';
-    case 'azurekubernetesserviceconfig':
-      return 'Azure AKS';
-    case 'googlekubernetesengineconfig':
-      return 'Google GKE';
-    case 'tencentengineconfig':
-      return 'Tencent TKE';
-    case 'aliyunengineconfig':
-      return 'Alibaba ACK';
-    case 'huaweiengineconfig':
-      return 'Huawei CCE';
-    case 'k3sconfig':
-      return 'k3s';
-    case 'rancherkubernetesengineconfig':
-      // if ( !!pools ) {
-      //   if ( firstPool ) {
-      //     return get(firstPool, 'displayProvider') ? get(firstPool, 'displayProvider') : intl.t('clusterNew.rke.shortLabel');
-      //   } else {
-      //     return 'Custom';
-      //   }
-      // } else {
-      //   return 'Custom';
-      // }
-      return 'Custom';
-    default:
-      if (this.status?.driver && this.configName) {
-        return capitalize(this.status.driver);
-      } else {
-        return 'Imported';
-      }
+    if ( this.$rootGetters['i18n/exists'](key) ) {
+      return this.$rootGetters['i18n/t'](key);
+    } else if (driver && configName) {
+      return capitalize(driver);
+    } else {
+      return this.$rootGetters['i18n/t']('cluster.provider.imported');
     }
   },
 };

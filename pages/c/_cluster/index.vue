@@ -69,9 +69,10 @@ export default {
     ];
 
     return {
+      pollingTimeoutId: null,
       constraintHeaders,
       eventHeaders,
-      nodeHeaders
+      nodeHeaders,
     };
   },
 
@@ -101,6 +102,9 @@ export default {
     this.constraints = resourcesHash.rawConstraints;
     this.events = resourcesHash.allEvents;
     this.nodes = resourcesHash.allNodes;
+  },
+
+  mounted() {
     this.pollMetrics();
   },
 
@@ -124,7 +128,7 @@ export default {
             return constraint;
           });
       } catch (err) {
-        console.error(err);
+        console.error(`Failed to fetch constraints:`, err);
 
         return [];
       }
@@ -148,23 +152,26 @@ export default {
       try {
         const metrics = await this.fetchClusterResources(METRIC.NODE, { force: true } );
 
-        console.log(`Polling NodeMetrics`);
-
         this.nodeMetrics = metrics;
-
-        setTimeout(this.pollMetrics, 30000);
+        this.pollingTimeoutId = setTimeout(this.pollMetrics, 30000);
       } catch (err) {
-        console.error(`Error polling metrics`);
+        console.error(`Error polling metrics`, err);
 
         if (errCount < 3) {
           this.pollingErrorCount = errCount++;
-
-          setTimeout(this.pollMetrics, 30000);
+          this.pollingTimeoutId = setTimeout(this.pollMetrics, 30000);
         } else {
           this.pollingErrorCount = 0;
         }
       }
     },
+  },
+
+  beforeRouteLeave(to, from, next) {
+    if (this.pollingTimeoutId) {
+      clearTimeout(this.pollingTimeoutId);
+    }
+    next();
   },
 };
 </script>
@@ -173,7 +180,7 @@ export default {
   <section>
     <header>
       <h1>
-        Cluster: {{ cluster.nameDisplay }}
+        <t k="clusterIndexPage.header" :name="cluster.nameDisplay" />
       </h1>
       <div class="actions">
         <button
@@ -193,7 +200,9 @@ export default {
     <div class="row">
       <div class="col span-6">
         <InfoBox>
-          <label>Nodes</label>
+          <label>
+            <t k="clusterIndexPage.sections.nodes.label" />
+          </label>
           <div class="row mt-10">
             <SortableTable
               :rows="nodes"
@@ -208,7 +217,9 @@ export default {
       </div>
       <div class="col span-6">
         <InfoBox>
-          <label>OPA Gatekeeper Constraints</label>
+          <label>
+            <t k="clusterIndexPage.sections.gatekeeper.label" />
+          </label>
           <div class="row mt-10">
             <SortableTable
               :rows="constraints"
@@ -225,7 +236,9 @@ export default {
     <div class="row">
       <div class="col span-12">
         <InfoBox>
-          <label>Events</label>
+          <label>
+            <t k="clusterIndexPage.sections.events.label" />
+          </label>
           <div class="row mt-10">
             <SortableTable
               :rows="events"

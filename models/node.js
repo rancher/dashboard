@@ -23,17 +23,30 @@ export default {
       // !isControlPlane && !isWorker && !isEtcd === RKE?
       return 'All';
     }
+    // worker+cp, worker+etcd, cp+etcd
+
+    if (isControlPlane && isWorker) {
+      return 'Control Plane & Worker';
+    }
+
+    if (isControlPlane && isEtcd) {
+      return 'Control Plane & Etcd';
+    }
+
+    if (isEtcd && isWorker) {
+      return 'Etcd & Worker';
+    }
 
     if (isControlPlane) {
       return 'Control Plane';
     }
 
-    if (isWorker) {
-      return 'Worker';
-    }
-
     if (isEtcd) {
       return 'Etcd';
+    }
+
+    if (isWorker) {
+      return 'Worker';
     }
   },
 

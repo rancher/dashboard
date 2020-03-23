@@ -81,23 +81,29 @@ export default {
   <InfoBox class="row">
     <div class="col span-3 info-column">
       <div class="info-row">
-        <label>Provider: </label>
+        <label><t k="infoBoxCluster.provider" />: </label>
         {{ cluster.displayProvider }}
       </div>
       <div class="info-row">
-        <label>Kubernetes Version: </label>
+        <label><t k="infoBoxCluster.version" />: </label>
         {{ cluster.kubernetesVersion }}
       </div>
       <div class="info-row">
-        <label>Created: </label>
-        {{ cluster.createdDisplay }}
+        <label><t k="infoBoxCluster.created" />: </label>
+        <LiveDate :value="cluster.metadata.creationTimestamp" />
       </div>
     </div>
     <div class="col span-3 info-column">
-      <label class="mb-10">CPU Usage: </label>
+      <label class="mb-10"><t k="infoBoxCluster.cpu" />: </label>
       <div class="container-flex">
         <div class="flex-item-half usage">
-          <label>{{ nodeUsageReserved.nodeUsage }} of {{ nodeUsageReserved.clusterCapacity }} Reserved</label>
+          <label>
+            <t
+              k="infoBoxCluster.reserved"
+              :numerator="nodeUsageReserved.nodeUsage"
+              :denominator="nodeUsageReserved.clusterCapacity"
+            />
+          </label>
         </div>
         <div class="flex-item-half">
           <PercentageBar :value="nodeUsageReserved.percentage" />
@@ -105,7 +111,13 @@ export default {
       </div>
       <div class="container-flex">
         <div class="flex-item-half usage">
-          <label>{{ liveNodeUsage.nodeUsage }} of {{ liveNodeUsage.clusterCapacity }} Used</label>
+          <label>
+            <t
+              k="infoBoxCluster.used"
+              :numerator="liveNodeUsage.nodeUsage"
+              :denominator="liveNodeUsage.clusterCapacity"
+            />
+          </label>
         </div>
         <div class="flex-item-half">
           <PercentageBar :value="liveNodeUsage.percentage" />
@@ -113,10 +125,16 @@ export default {
       </div>
     </div>
     <div class="col span-3 info-column">
-      <label class="mb-10">Memory: </label>
+      <label class="mb-10"><t k="infoBoxCluster.memory" />: </label>
       <div class="container-flex">
         <div class="flex-item-half usage">
-          <label>{{ nodeUsageMemReserved.nodeUsage }} of {{ nodeUsageMemReserved.clusterCapacity }} Reserved</label>
+          <label>
+            <t
+              k="infoBoxCluster.reserved"
+              :numerator="nodeUsageMemReserved.nodeUsage"
+              :denominator="nodeUsageMemReserved.clusterCapacity"
+            />
+          </label>
         </div>
         <div class="flex-item-half">
           <PercentageBar :value="nodeUsageMemReserved.percentage" />
@@ -124,7 +142,13 @@ export default {
       </div>
       <div class="container-flex">
         <div class="flex-item-half usage">
-          <label>{{ liveNodeMemUsage.nodeUsage }} of {{ liveNodeMemUsage.clusterCapacity }} Used</label>
+          <label>
+            <t
+              k="infoBoxCluster.used"
+              :numerator="liveNodeMemUsage.nodeUsage"
+              :denominator="liveNodeMemUsage.clusterCapacity"
+            />
+          </label>
         </div>
         <div class="flex-item-half">
           <PercentageBar :value="liveNodeMemUsage.percentage" />
@@ -132,10 +156,16 @@ export default {
       </div>
     </div>
     <div class="col span-3 info-column">
-      <label class="mb-10">Pods: </label>
+      <label class="mb-10"><t k="infoBoxCluster.pods" />: </label>
       <div class="container-flex">
         <div class="flex-item-half usage">
-          <label>{{ nodeUsagePodReserved.nodeUsage }} of {{ nodeUsagePodReserved.clusterCapacity }} Reserved</label>
+          <label>
+            <t
+              k="infoBoxCluster.reserved"
+              :numerator="nodeUsagePodReserved.nodeUsage"
+              :denominator="nodeUsagePodReserved.clusterCapacity"
+            />
+          </label>
         </div>
         <div class="flex-item-half">
           <PercentageBar :value="nodeUsagePodReserved.percentage" />
