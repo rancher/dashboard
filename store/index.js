@@ -5,6 +5,8 @@ import {
 import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS } from '@/store/prefs';
 import { allHash } from '@/utils/promise';
 import { ClusterNotFoundError, ApiError } from '@/utils/error';
+import { sortBy } from '@/utils/sort';
+import { filterBy } from '@/utils/array';
 
 // disables stict mode for all store instances to prevent mutation errors
 export const strict = false;
@@ -40,6 +42,20 @@ export const getters = {
 
   currentCluster(state, getters) {
     return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId);
+  },
+
+  defaultClusterId(state, getters) {
+    const all = getters['management/all'](MANAGEMENT.CLUSTER);
+    const clusters = sortBy(filterBy(all, 'isReady'), 'nameDisplay');
+    const desired = getters['prefs/get'](CLUSTER_PREF);
+
+    if ( clusters.find(x => x.id === desired) ) {
+      return desired;
+    } else if ( clusters.length ) {
+      return clusters[0].id;
+    }
+
+    return null;
   },
 
   isAllNamespaces(state) {
@@ -194,7 +210,7 @@ export const actions = {
     }
 
     await allHash({
-      prefs:      dispatch('prefs/loadCookies'),
+      prefs:      dispatch('prefs/loadServer'),
       schemas: Promise.all([
         dispatch('management/subscribe'),
         dispatch('management/loadSchemas', true),
@@ -238,7 +254,7 @@ export const actions = {
 
     if ( id ) {
       // Remember the new one
-      commit('prefs/set', { key: CLUSTER_PREF, id });
+      dispatch('prefs/set', { key: CLUSTER_PREF, val: id });
       commit('setCluster', id);
     } else if ( isRancher ) {
       // Switching to a global page with no cluster id, keep it the same.
@@ -326,8 +342,8 @@ export const actions = {
     console.log('Done loading cluster.');
   },
 
-  switchNamespaces({ commit }, val) {
-    commit('prefs/set', { key: NAMESPACE_FILTERS, val });
+  switchNamespaces({ commit, dispatch }, val) {
+    dispatch('prefs/set', { key: NAMESPACE_FILTERS, val });
     commit('updateNamespaces', { filters: val });
   },
 
@@ -343,11 +359,13 @@ export const actions = {
     // Models in SSR server mode have no way to get to the route or router, so hack one in...
     Object.defineProperty(ctx.rootState, '$router', { value: nuxt.app.router });
     Object.defineProperty(ctx.rootState, '$route', { value: nuxt.route });
+    ctx.dispatch('prefs/loadCookies');
   },
 
   nuxtClientInit({ dispatch }) {
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
+    dispatch('prefs/loadCookies');
   },
 
   loadingError({ commit, redirect }, err) {

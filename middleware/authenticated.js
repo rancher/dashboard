@@ -55,15 +55,26 @@ export default async function({
   }
 
   // Load stuff
-  const clusterId = get(route, 'params.cluster');
-
   applyTypeConfigs(store);
 
   try {
-    await Promise.all([
-      await store.dispatch('loadManagement'),
-      await store.dispatch('loadCluster', clusterId),
-    ]);
+    let clusterId = get(route, 'params.cluster');
+
+    if ( clusterId ) {
+      // Run them in parallel
+      await Promise.all([
+        await store.dispatch('loadManagement'),
+        await store.dispatch('loadCluster', clusterId),
+      ]);
+    } else {
+      await store.dispatch('loadManagement');
+
+      clusterId = store.getters['defaultClusterId']; // This needs the cluster list, so no parallel
+
+      if ( clusterId ) {
+        await store.dispatch('loadCluster', clusterId);
+      }
+    }
   } catch (e) {
     if ( e instanceof ClusterNotFoundError ) {
       redirect(302, '/clusters');

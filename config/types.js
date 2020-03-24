@@ -29,7 +29,8 @@ export const MANAGEMENT = {
   CATALOG:          'management.cattle.io.catalog',
   CATALOG_TEMPLATE: 'management.cattle.io.catalogtemplate',
   CLUSTER:          'management.cattle.io.cluster',
-  USER:             'management.cattle.io.user'
+  USER:             'management.cattle.io.user',
+  PREFERENCE:       'userpreference'
 };
 
 // Rancher cluster-scoped things that actually live in management plane

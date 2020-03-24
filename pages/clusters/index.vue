@@ -1,16 +1,12 @@
 <script>
-import { MANAGEMENT } from '@/config/types';
-import { filterBy } from '@/utils/array';
-import { sortBy } from '@/utils/sort';
 export default {
   layout: 'plain',
 
   fetch({ store, redirect }) {
-    const all = store.getters['management/all'](MANAGEMENT.CLUSTER);
-    const clusters = sortBy(filterBy(all, 'isReady'), 'nameDisplay');
+    const id = store.getters['defaultClusterId'];
 
-    if ( clusters.length ) {
-      redirect(`/c/${ escape(clusters[0].id) }`);
+    if ( id ) {
+      redirect(`/c/${ escape(id) }`);
     }
   }
 };

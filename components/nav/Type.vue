@@ -1,6 +1,10 @@
 <script>
+import Favorite from '@/components/nav/Favorite';
+
 export default {
-  props: {
+
+  components: { Favorite },
+  props:      {
     type: {
       type:     Object,
       required: true
@@ -16,7 +20,7 @@ export default {
 
   computed: {
     showFavorite() {
-      return this.type.mode === 'favorite' && this.near;
+      return (this.type.mode === 'favorite' || this.type.mode === 'recent') && this.near;
     },
 
     showCount() {
@@ -53,14 +57,7 @@ export default {
     >
       <span class="label" v-html="type.labelDisplay || type.label" />
       <span v-if="showFavorite || showCount" class="count">
-        <i
-          v-if="showFavorite"
-          class="favorite icon"
-          :class="{'icon-star-open': over, 'icon-star': !over}"
-          @click.stop.prevent="removeFavorite"
-          @mouseenter="setOver(true)"
-          @mouseleave="setOver(false)"
-        />
+        <Favorite v-if="showFavorite" :resource="type.name" />
         {{ type.count }}
       </span>
     </a>
@@ -100,7 +97,7 @@ export default {
 
     .favorite {
       grid-area: favorite;
-      font-size: 13px;
+      font-size: 12px;
       position: relative;
       top: -1px;
     }
