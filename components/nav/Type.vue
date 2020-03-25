@@ -88,7 +88,9 @@ export default {
       text-overflow: ellipsis;
 
       ::v-deep .highlight {
-        filter: invert(1);
+        background: var(--warning);
+        color: white;
+        font-weight: bold;
       }
 
       ::v-deep .icon {
