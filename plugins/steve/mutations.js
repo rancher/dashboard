@@ -22,7 +22,7 @@ export default {
       Object.defineProperty(cache, 'map', { value: new Map() });
 
       if ( process.server ) {
-        Object.defineProperty(cache.list, '__rehydrateAll', { value: type, enumerable: true });
+        Object.defineProperty(cache.list, '__rehydrateAll', { value: `${ state.config.namespace }/${ type }`, enumerable: true });
       }
 
       state.types[type] = cache;
@@ -40,7 +40,7 @@ export default {
     cache.map.clear();
 
     if ( process.server ) {
-      Object.defineProperty(cache.list, '__rehydrateAll', { value: type, enumerable: true });
+      Object.defineProperty(cache.list, '__rehydrateAll', { value: `${ state.config.namespace }/${ type }`, enumerable: true });
     }
 
     const proxies = data.map(x => proxyFor(ctx, x));

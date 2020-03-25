@@ -93,14 +93,20 @@ export default (config = {}) => {
         const rehydrateKey = `__rehydrateAll__${ key }`;
 
         if ( parent && key && parent[rehydrateKey] ) {
-          const type = parent[rehydrateKey];
+          const [ns, type] = parent[rehydrateKey].split('/', 2);
 
-          delete parent[rehydrateKey];
+          if ( ns === namespace ) {
+            // Don't delete the key, so that all the stores go through this path,
+            // and then do nothing if they are not for this namespace,
+            // instead of doing the else obj.map()
+            // and breaking the "live" reference to the cache.list array
+            // delete parent[rehydrateKey];
 
-          const cache = state.types[type];
+            const cache = state.types[type];
 
-          if ( cache ) {
-            return cache.list;
+            if ( cache ) {
+              return cache.list;
+            }
           }
         } else {
           return obj.map(x => recurse(x));
@@ -127,7 +133,13 @@ export default (config = {}) => {
           return proxyFor(module.context, obj);
         } else {
           for ( const k of Object.keys(obj) ) {
-            obj[k] = recurse(obj[k], obj, k);
+            if ( k.startsWith('__rehydrateAll__') ) {
+              continue;
+            }
+
+            if ( isArray(obj[k]) || typeof obj[k] === 'object' ) {
+              obj[k] = recurse(obj[k], obj, k);
+            }
           }
         }
       }
