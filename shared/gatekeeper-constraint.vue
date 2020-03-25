@@ -1,9 +1,7 @@
 <script>
 import { _VIEW } from '../config/query-params';
 import { SCHEMA } from '@/config/types';
-import LabelSelector from '@/components/form/LabelSelector';
 import MatchKinds from '@/components/form/MatchKinds';
-import NamespaceSelector from '@/components/form/NamespaceSelector';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import KeyValue from '@/components/form/KeyValue';
@@ -13,6 +11,7 @@ import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import Footer from '@/components/form/Footer';
 import GatekeeperViolationsTable from '@/components/GatekeeperViolationsTable';
+import RuleSelector from '@/components/form/RuleSelector';
 
 function findConstraintTypes(schemas) {
   return schemas
@@ -27,12 +26,11 @@ export default {
     Footer,
     GatekeeperViolationsTable,
     KeyValue,
-    LabelSelector,
     LabeledSelect,
     MatchKinds,
     NameNsDescription,
     NamespaceList,
-    NamespaceSelector,
+    RuleSelector,
     Tab,
     Tabbed
   },
@@ -189,11 +187,19 @@ export default {
           <div class="row">
             <div class="col span-6">
               <h4>Label Selector</h4>
-              <LabelSelector v-model="localValue.spec.match.labelSelector.matchExpressions" :mode="mode" />
+              <RuleSelector
+                v-model="localValue.spec.match.labelSelector.matchExpressions"
+                add-label="Add Label"
+                :mode="mode"
+              />
             </div>
             <div class="col span-6">
               <h4>Namespace Selector</h4>
-              <NamespaceSelector v-model="localValue.spec.match.namespaceSelector.matchExpressions" :mode="mode" />
+              <RuleSelector
+                v-model="localValue.spec.match.namespaceSelector.matchExpressions"
+                add-label="Add Namespace"
+                :mode="mode"
+              />
             </div>
           </div>
         </Tab>

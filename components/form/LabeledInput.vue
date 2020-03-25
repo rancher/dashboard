@@ -21,6 +21,10 @@ export default {
     mode: {
       type:    String,
       default: _EDIT
+    },
+    disabled: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -84,7 +88,7 @@ export default {
       <slot name="corner" />
     </label>
     <slot name="prefix" />
-    <div>{{ value || '&lt;empty&gt;' }}</div>
+    <div>{{ value }}</div>
   </div>
   <div v-else :class="{'labeled-input': true, raised, focused, [mode]: true}">
     <slot name="label">
@@ -111,6 +115,7 @@ export default {
         v-else-if="type === 'multiline'"
         ref="value"
         v-bind="$attrs"
+        :disabled="disabled"
         :value="value"
         :placeholder="actualPlaceholder"
         @input="$emit('input', $event)"
@@ -121,6 +126,7 @@ export default {
         v-else
         ref="value"
         v-bind="$attrs"
+        :disabled="disabled"
         :type="type"
         :value="value"
         :placeholder="actualPlaceholder"
