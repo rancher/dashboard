@@ -11,7 +11,6 @@ import {
   REASON,
   ROLES,
   STATE,
-  TYPE,
 } from '@/config/table-headers';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { findAllConstraints } from '@/utils/gatekeeper/util';
@@ -39,10 +38,8 @@ export default {
     ];
 
     const reason = { ...REASON, ...{ width: 100 } };
-    const type = { ...TYPE, ...{ width: 100 } };
     const eventHeaders = [
       NAMESPACE_NAME,
-      type,
       reason,
       {
         name:  'Object',
@@ -53,8 +50,8 @@ export default {
       },
       MESSAGE,
       {
-        name:      'Last Seen',
-        label:     'Last Seen',
+        name:      'Date',
+        label:     'Date',
         value:     'lastTimestamp',
         sort:      'lastTimestamp',
         formatter: 'Date',

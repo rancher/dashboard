@@ -84,20 +84,23 @@ export default {
   <InfoBox class="row">
     <div class="col span-3 info-column">
       <div class="info-row">
-        <label><t k="infoBoxCluster.provider" />: </label>
+        <label><t k="infoBoxCluster.provider" /></label>
+        <br/>
         {{ cluster.displayProvider }}
       </div>
       <div class="info-row">
-        <label><t k="infoBoxCluster.version" />: </label>
+        <label><t k="infoBoxCluster.version" /></label>
+        <br/>
         {{ cluster.kubernetesVersion }}
       </div>
       <div class="info-row">
-        <label><t k="infoBoxCluster.created" />: </label>
+        <label><t k="infoBoxCluster.created" /></label>
+        <br/>
         <LiveDate :value="cluster.metadata.creationTimestamp" />
       </div>
     </div>
     <div class="col span-3 info-column">
-      <label class="mb-10"><t k="infoBoxCluster.cpu" />: </label>
+      <label class="mb-10"><t k="infoBoxCluster.cpu" /></label>
       <div class="container-flex">
         <div class="flex-item-half usage">
           <label>
@@ -128,7 +131,7 @@ export default {
       </div>
     </div>
     <div class="col span-3 info-column">
-      <label class="mb-10"><t k="infoBoxCluster.memory" />: </label>
+      <label class="mb-10"><t k="infoBoxCluster.memory" /></label>
       <div class="container-flex">
         <div class="flex-item-half usage">
           <label>
@@ -159,7 +162,7 @@ export default {
       </div>
     </div>
     <div class="col span-3 info-column">
-      <label class="mb-10"><t k="infoBoxCluster.pods" />: </label>
+      <label class="mb-10"><t k="infoBoxCluster.pods" /></label>
       <div class="container-flex">
         <div class="flex-item-half usage">
           <label>
