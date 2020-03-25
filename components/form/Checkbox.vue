@@ -1,4 +1,6 @@
 <script>
+import $ from 'jquery';
+
 export default {
   props: {
     value: {
@@ -24,9 +26,17 @@ export default {
     }
   },
   methods: {
-    clicked() {
+    clicked(event) {
       if (!this.isDisabled) {
-        this.$el.click();
+        const click = $.Event('click');
+
+        click.shiftKey = event.shiftKey;
+        click.altKey = event.altKey;
+        click.ctrlKey = event.ctrlKey;
+        click.metaKey = event.metaKey;
+
+        $(this.$el).trigger(click);
+
         this.$emit('input', !this.value);
       }
     }
@@ -53,14 +63,14 @@ export default {
         :aria-label="label"
         :aria-checked="!!value"
         role="checkbox"
-        @keyup.16="clicked"
-        @click.stop="clicked"
+        @keyup.16="clicked($event)"
+        @click.stop="clicked($event)"
       ></span>
     </label>
     <span
       v-if="label"
       class="checkbox-label"
-      @click.stop="clicked"
+      @click.stop="clicked($event)"
     >
       <slot name="label">  {{ label }}</slot>
     </span>
