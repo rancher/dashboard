@@ -61,6 +61,28 @@ export default {
 
   data: () => ({ prevNode: null, storeName: randomStr() }),
 
+  watch: {
+    pagedRows() {
+      // When the table contents changes:
+      // - Remove orphaned items that are in the selection but no longer in the table.
+      // - Add items that are selected but weren't shown before
+
+      const content = this.pagedRows;
+      const toAdd = [];
+      const toRemove = [];
+
+      for ( const node of this.selectedNodes ) {
+        if ( content.includes(node) ) {
+          toAdd.push(node);
+        } else {
+          toRemove.push(node);
+        }
+      }
+
+      this.update(toAdd, toRemove);
+    }
+  },
+
   methods: {
     onToggleAll(value) {
       if ( value ) {
