@@ -101,7 +101,7 @@ export default {
     console.log('Find All', type);
     type = getters.normalizeType(type);
 
-    if ( !getters.hasType(type) ) {
+    if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
 
@@ -163,7 +163,7 @@ export default {
 
     const res = await dispatch('request', opt);
 
-    if ( !getters.hasType(type) ) {
+    if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
 
@@ -179,14 +179,14 @@ export default {
 
     let type = normalizeType(data.type);
 
-    if ( !getters.hasType(type) ) {
+    if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
 
     if ( data.baseType && data.baseType !== data.type ) {
       type = normalizeType(data.baseType);
 
-      if ( !getters.hasType(type) ) {
+      if ( !getters.typeRegistered(type) ) {
         commit('registerType', type);
       }
     }

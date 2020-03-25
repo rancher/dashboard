@@ -7,7 +7,7 @@ export default {
   all: (state, getters) => (type) => {
     type = getters.normalizeType(type);
 
-    if ( !getters.hasType(type) ) {
+    if ( !getters.typeRegistered(type) ) {
       // Yes this is mutating state in a getter... it's not the end of the world..
       // throw new Error(`All of ${ type } is not loaded`);
       console.warn(`All of ${ type } is not loaded yet`);
@@ -64,7 +64,7 @@ export default {
     return out;
   },
 
-  hasType: (state, getters) => (type) => {
+  typeRegistered: (state, getters) => (type) => {
     type = getters.normalizeType(type);
 
     return !!state.types[type];

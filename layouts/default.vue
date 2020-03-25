@@ -35,15 +35,6 @@ export default {
 
   middleware: ['authenticated'],
 
-  head() {
-    const theme = this.$store.getters['prefs/get'](THEME);
-
-    return {
-      bodyAttrs: { class: `theme-${ theme } overflow-hidden dashboard-body` },
-      title:     'Dashboard',
-    };
-  },
-
   computed: {
     ...mapState(['managementReady', 'clusterReady', 'isRancher', 'currentCluster']),
 
@@ -167,8 +158,34 @@ export default {
 
     toggleNoneLocale() {
       this.$store.dispatch('i18n/toggleNone');
+    },
+
+    wheresMyDebugger() {
+      // vue-shortkey is preventing F8 from passing through to the browser... this works for now.
+      // eslint-disable-next-line no-debugger
+      debugger;
     }
-  }
+  },
+
+  head() {
+    let theme = this.$store.getters['prefs/get'](THEME);
+
+    // Rancher
+    if ( theme.startsWith('ui-') ) {
+      theme = theme.substr(3);
+    }
+
+    // @TODO auto support
+    if ( theme === 'auto' ) {
+      theme = 'dark';
+    }
+
+    return {
+      bodyAttrs: { class: `theme-${ theme } overflow-hidden dashboard-body` },
+      title:     'Dashboard',
+    };
+  },
+
 };
 </script>
 
@@ -241,14 +258,17 @@ export default {
       <Footer />
     </main>
 
+    <!--
     <div class="wm">
-      <!-- WindowManager  -->
+      <WindowManager />
     </div>
+    -->
 
     <ShellSocket />
     <ActionMenu />
     <PromptRemove />
     <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
+    <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger" />
   </div>
 </template>
 

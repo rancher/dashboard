@@ -165,6 +165,7 @@ export const actions = {
       encode: x => x,
       maxAge: 86400 * 365,
       secure: true,
+      path:   '/',
     });
   },
 

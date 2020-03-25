@@ -821,7 +821,7 @@ export const mutations = {
 };
 
 export const actions = {
-  addRecent({ commit, rootGetters }, type) {
+  addRecent({ dispatch, rootGetters }, type) {
     const types = rootGetters['prefs/get'](RECENT_TYPES) || [];
 
     removeObject(types, type);
@@ -831,28 +831,28 @@ export const actions = {
       types.pop();
     }
 
-    commit('prefs/set', { key: RECENT_TYPES, val: types }, { root: true });
+    dispatch('prefs/set', { key: RECENT_TYPES, val: types }, { root: true });
   },
 
-  addFavorite({ commit, rootGetters }, type) {
+  addFavorite({ dispatch, rootGetters }, type) {
     console.log('addFavorite', type);
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
     addObject(types, type);
 
-    commit('prefs/set', { key: FAVORITE_TYPES, val: types }, { root: true });
+    dispatch('prefs/set', { key: FAVORITE_TYPES, val: types }, { root: true });
   },
 
-  removeFavorite({ commit, rootGetters }, type) {
+  removeFavorite({ dispatch, rootGetters }, type) {
     console.log('removeFavorite', type);
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
     removeObject(types, type);
 
-    commit('prefs/set', { key: FAVORITE_TYPES, val: types }, { root: true });
+    dispatch('prefs/set', { key: FAVORITE_TYPES, val: types }, { root: true });
   },
 
-  toggleGroup({ commit, rootGetters }, { group, expanded }) {
+  toggleGroup({ dispatch, rootGetters }, { group, expanded }) {
     const groups = rootGetters['prefs/get'](EXPANDED_GROUPS);
 
     if ( expanded ) {
@@ -861,7 +861,7 @@ export const actions = {
       removeObject(groups, group);
     }
 
-    commit('prefs/set', { key: EXPANDED_GROUPS, val: groups }, { root: true });
+    dispatch('prefs/set', { key: EXPANDED_GROUPS, val: groups }, { root: true });
   },
 };
 

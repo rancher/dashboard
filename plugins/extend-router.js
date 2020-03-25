@@ -17,7 +17,14 @@ VueRouter.prototype.resolve = function() {
 VueRouter.prototype.applyQuery = function(qp, defaults = {}) {
   const query = queryParamsFor(this.currentRoute.query, qp, defaults);
 
-  this.replace({ query });
+  this.replace({ query }).catch((err) => {
+    if ( err?.name === 'NavigationDuplicated' ) {
+      // Do nothing, this is fine...
+      // https://github.com/vuejs/vue-router/issues/2872
+    } else {
+      throw err;
+    }
+  });
 };
 
 export function queryParamsFor(current, qp, defaults = {}) {

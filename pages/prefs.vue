@@ -1,7 +1,11 @@
 <script>
+import day from 'dayjs';
 import ButtonGroup from '@/components/ButtonGroup';
-import { mapPref, THEME, KEYMAP, DEV } from '@/store/prefs';
+import {
+  mapPref, THEME, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT
+} from '@/store/prefs';
 import { ucFirst } from '@/utils/string';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 const KEYMAP_LABELS = {
   sublime: 'Normal human',
@@ -10,11 +14,13 @@ const KEYMAP_LABELS = {
 };
 
 export default {
-  components: { ButtonGroup },
+  components: { ButtonGroup, LabeledSelect },
   computed:   {
-    theme:  mapPref(THEME),
-    keymap: mapPref(KEYMAP),
-    dev:    mapPref(DEV),
+    theme:      mapPref(THEME),
+    keymap:     mapPref(KEYMAP),
+    dev:        mapPref(DEV),
+    dateFormat: mapPref(DATE_FORMAT),
+    timeFormat: mapPref(TIME_FORMAT),
 
     themeOptions() {
       return this.$store.getters['prefs/options'](THEME).map((value) => {
@@ -32,6 +38,28 @@ export default {
           value
         };
       });
+    },
+
+    dateOptions() {
+      const now = day();
+
+      return this.$store.getters['prefs/options'](DATE_FORMAT).map((value) => {
+        return {
+          label: now.format(value),
+          value
+        };
+      });
+    },
+
+    timeOptions() {
+      const now = day();
+
+      return this.$store.getters['prefs/options'](TIME_FORMAT).map((value) => {
+        return {
+          label: now.format(value),
+          value
+        };
+      });
     }
   },
 };
@@ -43,6 +71,26 @@ export default {
 
     <h6>Theme</h6>
     <ButtonGroup v-model="theme" :options="themeOptions" />
+
+    <h6>Date &amp; Time Format</h6>
+    <div class="row">
+      <div class="col span-3">
+        <LabeledSelect
+          v-model="dateFormat"
+          label="Date"
+          :options="dateOptions"
+          placeholder="Select a date format"
+        />
+      </div>
+      <div class="col span-3">
+        <LabeledSelect
+          v-model="timeFormat"
+          label="Time"
+          :options="timeOptions"
+          placeholder="Select a time format"
+        />
+      </div>
+    </div>
 
     <h6>YAML Editor Mode</h6>
     <ButtonGroup v-model="keymap" :options="keymapOptions" />

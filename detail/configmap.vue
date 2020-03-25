@@ -20,12 +20,14 @@ export default {
     SortableTable,
     VStack
   },
+
   props: {
     value: {
       type:     Object,
       required: true,
     },
   },
+
   data() {
     return {
       valuesTableHeaders: [
@@ -43,9 +45,10 @@ export default {
       ]
     };
   },
+
   computed: {
     valuesTableRows() {
-      return Object.entries(this.value.data).map(kvp => ({
+      return Object.entries(this.value.data || {}).map(kvp => ({
         key:   kvp[0],
         value: kvp[1]
       }));
