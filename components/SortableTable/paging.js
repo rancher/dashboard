@@ -3,7 +3,11 @@ import { PAGE } from '@/config/query-params';
 
 export default {
   computed: {
-    perPage: mapPref(ROWS_PER_PAGE),
+    perPagePref: mapPref(ROWS_PER_PAGE),
+
+    perPage() {
+      return typeof this.perPageOverride === 'number' ? this.perPageOverride : this.perPagePref;
+    },
 
     indexFrom() {
       return Math.max(0, 1 + this.perPage * (this.page - 1));
