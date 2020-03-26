@@ -29,7 +29,9 @@ export default {
 
   methods: {
     clicked() {
-      this.$emit('input', this.value);
+      if (!this.disabled) {
+        this.$emit('input', this.value);
+      }
     },
   }
 };
@@ -43,6 +45,7 @@ export default {
       :tabindex="grouped ? -1 : 0"
     >
       <input
+        :disabled="disabled"
         :checked="value"
         type="radio"
         :name="name"
