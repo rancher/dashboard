@@ -159,6 +159,16 @@ export default {
     },
 
     /**
+     * Allows you to override the default preference of the number of
+     * items to display per page. This is used by ./paging.js if you're
+     * looking for a reference.
+     */
+    perPageOverride: {
+      type:    Number,
+      default: null,
+    },
+
+    /**
      * What translation key to use for displaying the '1 - 10 of 100 Things' pagination info
      */
     pagingLabel: {
