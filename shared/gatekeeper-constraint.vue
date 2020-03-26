@@ -62,13 +62,13 @@ export default {
     });
 
     const localValue = Object.keys(this.value).length > 0
-      ? this.value
+      ? { ...this.value }
       : {
         type:  templateOptions[0].value,
         spec: {
           parameters: {},
           match:      {
-            kinds:              [],
+            kinds:              [{ apiGroups: [''] }],
             namespaces:         [],
             excludedNamespaces: [],
             labelSelector:      { matchExpressions: [] },
@@ -76,6 +76,10 @@ export default {
           }
         }
       };
+
+    localValue.spec.match.kinds = (localValue?.spec?.match?.kinds || []).length === 0
+      ? [{ apiGroups: [''] }]
+      : localValue.spec.match.kinds;
 
     const extraDetailColumns = [
       {
