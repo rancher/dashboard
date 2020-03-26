@@ -2,7 +2,7 @@
 import day from 'dayjs';
 import ButtonGroup from '@/components/ButtonGroup';
 import {
-  mapPref, THEME, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT
+  mapPref, THEME, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE
 } from '@/store/prefs';
 import { ucFirst } from '@/utils/string';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -21,6 +21,7 @@ export default {
     dev:        mapPref(DEV),
     dateFormat: mapPref(DATE_FORMAT),
     timeFormat: mapPref(TIME_FORMAT),
+    perPage:    mapPref(ROWS_PER_PAGE),
 
     themeOptions() {
       return this.$store.getters['prefs/options'](THEME).map((value) => {
@@ -60,7 +61,11 @@ export default {
           value
         };
       });
-    }
+    },
+
+    perPageOptions() {
+      return this.$store.getters['prefs/options'](ROWS_PER_PAGE);
+    },
   },
 };
 </script>
@@ -72,12 +77,12 @@ export default {
     <h6>Theme</h6>
     <ButtonGroup v-model="theme" :options="themeOptions" />
 
-    <h6>Date &amp; Time Format</h6>
+    <h6>Formatting</h6>
     <div class="row">
       <div class="col span-3">
         <LabeledSelect
           v-model="dateFormat"
-          label="Date"
+          label="Date Format"
           :options="dateOptions"
           placeholder="Select a date format"
         />
@@ -85,18 +90,29 @@ export default {
       <div class="col span-3">
         <LabeledSelect
           v-model="timeFormat"
-          label="Time"
+          label="Time Format"
           :options="timeOptions"
           placeholder="Select a time format"
         />
       </div>
     </div>
 
-    <h6>YAML Editor Mode</h6>
+    <div class="row">
+      <div class="col span-3">
+        <LabeledSelect
+          v-model="perPage"
+          label="Table Rows per Page"
+          :options="perPageOptions"
+          placeholder="Select a row count"
+        />
+      </div>
+    </div>
+
+    <h6>YAML Editor Key Bindings</h6>
     <ButtonGroup v-model="keymap" :options="keymapOptions" />
 
     <h6>Advanced</h6>
-    <label><input v-model="dev" type="checkbox"> Developer Tools</label>
+    <label><input v-model="dev" type="checkbox"> Enable Developer Tools</label>
   </div>
 </template>
 

@@ -54,7 +54,7 @@ export const THEME = create('theme', 'dark', {
 });
 export const LOCALE = create('locale', 'en-us', { asCookie });
 export const KEYMAP = create('keymap', 'sublime', { options: ['sublime', 'emacs', 'vim'] });
-export const ROWS_PER_PAGE = create('per-page', 100);
+export const ROWS_PER_PAGE = create('per-page', 100, { options: [10, 25, 50, 100, 250, 500, 1000], parseJSON });
 
 export const DATE_FORMAT = create('date-format', 'ddd, MMM D YYYY', {
   options: [

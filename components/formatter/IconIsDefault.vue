@@ -23,7 +23,7 @@ export default {
 <template>
   <span v-if="row[col.value]">
     <span>
-      <i class="icon icon-2x icon-chevron-checkmark" />
+      <i class="icon icon-2x icon-checkmark" />
     </span>
   </span>
   <span v-else>

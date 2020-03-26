@@ -79,7 +79,7 @@ export default {
         <span>
           <span v-if="true">
             <span>
-              <i class="icon icon-lg icon-chevron-checkmark" />
+              <i class="icon icon-lg icon-checkmark" />
             </span>
           </span>
           <span v-else>
@@ -93,7 +93,7 @@ export default {
         <span>
           <span v-if="true">
             <span>
-              <i class="icon icon-lg icon-chevron-checkmark" />
+              <i class="icon icon-lg icon-checkmark" />
             </span>
           </span>
           <span v-else>

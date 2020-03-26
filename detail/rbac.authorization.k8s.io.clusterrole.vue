@@ -80,7 +80,7 @@ t>
         <span>
           <span v-if="true">
             <span>
-              <i class="icon icon-lg icon-chevron-checkmark" />
+              <i class="icon icon-lg icon-checkmark" />
             </span>
           </span>
           <span v-else>
@@ -94,7 +94,7 @@ t>
         <span>
           <span v-if="true">
             <span>
-              <i class="icon icon-lg icon-chevron-checkmark" />
+              <i class="icon icon-lg icon-checkmark" />
             </span>
           </span>
           <span v-else>
