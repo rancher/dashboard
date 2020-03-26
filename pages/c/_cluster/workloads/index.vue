@@ -78,6 +78,12 @@ export default {
         </nuxt-link>
       </div>
     </header>
-    <SortableTable :rows="filteredRows" :headers="headers" key-field="id" />
+    <SortableTable
+      :rows="filteredRows"
+      :headers="headers"
+      key-field="id"
+      :paging="true"
+      paging-label="sortableTable.paging.workload"
+    />
   </div>
 </template>

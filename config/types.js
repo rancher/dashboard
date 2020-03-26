@@ -26,10 +26,10 @@ export const NORMAN = {
 
 // Rancher Management API via Steve, /v1
 export const MANAGEMENT = {
-  CATALOG:          'management.cattle.io.catalog',
+  // CATALOG:          'management.cattle.io.catalog',
   CATALOG_TEMPLATE: 'management.cattle.io.catalogtemplate',
   CLUSTER:          'management.cattle.io.cluster',
-  USER:             'management.cattle.io.user',
+  // USER:             'management.cattle.io.user',
   PREFERENCE:       'userpreference'
 };
 
