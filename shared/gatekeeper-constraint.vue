@@ -1,4 +1,5 @@
 <script>
+import Vue from 'vue';
 import { _VIEW } from '../config/query-params';
 import { SCHEMA } from '@/config/types';
 import MatchKinds from '@/components/form/MatchKinds';
@@ -81,6 +82,8 @@ export default {
       ? [{ apiGroups: [''] }]
       : localValue.spec.match.kinds;
 
+    this.purgeNamespacesField(localValue);
+
     const extraDetailColumns = [
       {
         title:   'Template',
@@ -108,6 +111,7 @@ export default {
       handler(value) {
         // We have to set the type for the CreateEditView mixin to know what the type is when creating
         this.type = value.type;
+        this.purgeNamespacesField(this.localValue);
       },
       deep: true
     }
@@ -125,7 +129,6 @@ export default {
       value.spec.parameters = value.spec.parameters || {};
       value.spec.match = value.spec.match || {};
       value.spec.match.kinds = value.spec.match.kinds || [];
-      value.spec.match.namespaces = value.spec.match.namespaces || [];
       value.spec.match.excludedNamespaces = value.spec.match.excludedNamespaces || [];
       value.spec.match.labelSelector = value.spec.match.labelSelector || {};
       value.spec.match.labelSelector.matchExpressions = value.spec.match.labelSelector.matchExpressions || [];
@@ -142,7 +145,17 @@ export default {
         name:   'c-cluster-gatekeeper-constraints',
         params: this.$route.params
       });
-    }
+    },
+    /**
+     * There's an upstream issue which prevents gatekeeper from processing namespaces with empty lists incorrectly.
+     * We need to remove the namespaces field if it's empty.
+     * https://github.com/open-policy-agent/gatekeeper/issues/508
+     */
+    purgeNamespacesField(value) {
+      if (value?.spec?.match?.namespaces && (value.spec.match.namespaces.length === 0)) {
+        Vue.delete(value.spec.match, 'namespaces');
+      }
+    },
   }
 };
 </script>
