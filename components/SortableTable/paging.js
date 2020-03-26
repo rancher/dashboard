@@ -1,4 +1,5 @@
 import { mapPref, ROWS_PER_PAGE } from '@/store/prefs';
+import { PAGE } from '@/config/query-params';
 
 export default {
   computed: {
@@ -35,31 +36,70 @@ export default {
 
     pagedRows() {
       if ( this.paging ) {
-        return this.arrangedRows.slice(this.indexFrom, this.indexTo);
+        return this.arrangedRows.slice(this.indexFrom - 1, this.indexTo);
       } else {
         return this.arrangedRows;
       }
     }
   },
 
-  data: () => ({ page: 1 }),
+  data() {
+    return { page: this.$route.query[PAGE] || 1 };
+  },
+
+  watch: {
+    pagedRows() {
+      // Go to the last page if we end up "past" the last page because the table changed
+
+      const from = this.indexFrom;
+      const last = this.arrangedRows.length;
+
+      if ( this.page > 1 && from > last ) {
+        this.setPage(this.totalPages);
+      }
+    },
+
+    sortFields(old, neu) {
+      if ( old.join(',') === neu.join(',') ) {
+        // Nothing really changed
+        return;
+      }
+
+      // Go back to the first page when sort changes
+      this.setPage(1);
+    }
+  },
 
   methods: {
+    setPage(num) {
+      this.page = num;
+
+      if ( num === 1 ) {
+        this.$router.applyQuery({ [PAGE]: undefined });
+      } else {
+        this.$router.applyQuery({ [PAGE]: num });
+      }
+    },
+
     goToPage(which) {
+      let page;
+
       switch (which) {
       case 'first':
-        this.page = 1;
+        page = 1;
         break;
       case 'prev':
-        this.page = Math.max(1, this.page - 1 );
+        page = Math.max(1, this.page - 1 );
         break;
       case 'next':
-        this.page = Math.min(this.totalPages, this.page + 1 );
+        page = Math.min(this.totalPages, this.page + 1 );
         break;
       case 'last':
-        this.page = this.totalPages;
+        page = this.totalPages;
         break;
       }
+
+      this.setPage(page);
     }
   }
 };

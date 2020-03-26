@@ -28,14 +28,14 @@ export const NAME_UNLINKED = {
 };
 
 export const NAMESPACE_NAME_UNLINKED = {
-  name:      'namespace-name',
+  name:      'name',
   label:     'Name',
   value:     'namespacedName',
   sort:      ['namespacedNameSort'],
 };
 
 export const NAMESPACE_NAME = {
-  name:      'namespace-name',
+  name:      'name',
   label:     'Name',
   value:     'namespacedName',
   sort:      ['namespacedNameSort'],
@@ -43,7 +43,7 @@ export const NAMESPACE_NAME = {
 };
 
 export const NAMESPACE_NAME_IMAGE = {
-  name:      'namespace-name-image',
+  name:      'name',
   label:     'Name',
   value:     'namespacedName',
   sort:      ['namespacedNameSort'],
@@ -51,7 +51,7 @@ export const NAMESPACE_NAME_IMAGE = {
 };
 
 export const NAME_IMAGE = {
-  name:      'name-image',
+  name:      'name',
   label:     'Name',
   value:     'nameDisplay',
   sort:      ['nameSort'],
