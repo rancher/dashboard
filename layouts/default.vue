@@ -138,17 +138,20 @@ export default {
       }
 
       const basicTypes = this.$store.getters['type-map/allTypes']('basic') || {};
-      const recentTypes = this.$store.getters['type-map/allTypes']('recent') || {};
+      // const recentTypes = this.$store.getters['type-map/allTypes']('recent') || {};
       const favoriteTypes = this.$store.getters['type-map/allTypes']('favorite') || {};
+      const usedTypes = this.$store.getters['type-map/allTypes']('used') || {};
 
       const basic = this.$store.getters['type-map/getTree']('basic', basicTypes, clusterId, namespaces, currentType);
-      const recent = this.$store.getters['type-map/getTree']('recent', recentTypes, clusterId, namespaces, currentType);
+      // const recent = this.$store.getters['type-map/getTree']('recent', recentTypes, clusterId, namespaces, currentType);
       const favorite = this.$store.getters['type-map/getTree']('favorite', favoriteTypes, clusterId, namespaces, currentType);
+      const used = this.$store.getters['type-map/getTree']('used', usedTypes, clusterId, namespaces, currentType);
 
       this.groups = [
         ...basic,
         ...favorite,
-        ...recent,
+        ...used,
+        // ...recent,
       ];
     },
 
@@ -221,7 +224,9 @@ export default {
           <ul class="list-unstyled dropdown" style="margin: -1px;">
             <li>
               <div>{{ principal.loginName }}</div>
-              <div class="text-small pb-10">{{ principal.name }}</div>
+              <div class="text-small pb-10">
+                {{ principal.name }}
+              </div>
             </li>
             <nuxt-link tag="li" :to="{name: 'prefs'}" class="pt-5 pb-5 hand">
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>

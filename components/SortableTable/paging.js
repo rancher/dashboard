@@ -1,12 +1,21 @@
-import { mapPref, ROWS_PER_PAGE } from '@/store/prefs';
+import { ROWS_PER_PAGE } from '@/store/prefs';
 import { PAGE } from '@/config/query-params';
 
 export default {
   computed: {
-    perPagePref: mapPref(ROWS_PER_PAGE),
-
     perPage() {
-      return typeof this.perPageOverride === 'number' ? this.perPageOverride : this.perPagePref;
+      let out = this.rowsPerPage;
+
+      if ( out <= 0 ) {
+        out = parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10);
+      }
+
+      // This should never happen, but if the preference value is invalid, return something
+      if ( out <= 0 ) {
+        out = 10;
+      }
+
+      return out;
     },
 
     indexFrom() {

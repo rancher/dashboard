@@ -94,13 +94,6 @@ export default {
       color: var(--body-text);
     }
 
-    > I {
-      position: absolute;
-      right: 0;
-      top: 0;
-      padding: 9px 2px 9px 0;
-    }
-
     > A {
       display: block;
     }
@@ -110,19 +103,51 @@ export default {
     margin-left: 10px;
   }
 
-  .depth-0 {
-    > .header {
-      padding: 10px 0;
-      border-top: solid thin var(--border);
+  .accordion {
+    &.depth-0 {
+      > .header {
+        padding: 10px 0;
+        border-top: solid thin var(--border);
 
-      > H6 {
-        font-size: 14px;
-        text-transform: none;
+        > H6 {
+          font-size: 14px;
+          text-transform: none;
+        }
+
+        > I {
+          position: absolute;
+          right: 0;
+          top: 0;
+          padding: 9px 2px 9px 0;
+        }
+      }
+
+      > .body ::v-deep > UL {
+        margin-left: 0;
       }
     }
 
-    > .body ::v-deep > UL {
-      margin-left: 0;
+    &:not(.depth-0) {
+      > .header {
+        padding: 5px 0 5px 5px;
+
+        > H6 {
+          font-size: 14px;
+          text-transform: none;
+        }
+
+        > I {
+          position: absolute;
+          right: 0;
+          top: 0;
+          padding: 4px 2px 4px 0;
+        }
+      }
+/*
+      &.expanded > .body {
+        border-bottom: solid thin var(--border);
+      }
+*/
     }
   }
 

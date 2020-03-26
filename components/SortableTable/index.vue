@@ -153,19 +153,12 @@ export default {
       default: true
     },
 
+    /**
+     * If pagination of the data is enabled or not
+     */
     paging: {
       type:    Boolean,
       default: false,
-    },
-
-    /**
-     * Allows you to override the default preference of the number of
-     * items to display per page. This is used by ./paging.js if you're
-     * looking for a reference.
-     */
-    perPageOverride: {
-      type:    Number,
-      default: null,
     },
 
     /**
@@ -182,7 +175,17 @@ export default {
     pagingParams: {
       type:    Object,
       default: null,
-    }
+    },
+
+    /**
+     * Allows you to override the default preference of the number of
+     * items to display per page. This is used by ./paging.js if you're
+     * looking for a reference.
+     */
+    rowsPerPage: {
+      type:    Number,
+      default: null, // Default comes from the user preference
+    },
   },
 
   data() {
