@@ -21,6 +21,10 @@ export default {
     spellcheck: {
       type:    Boolean,
       default: true
+    },
+    disabled: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -84,6 +88,7 @@ export default {
 <template>
   <textarea
     ref="ta"
+    :disabled="disabled"
     :style="style"
     :placeholder="placeholder"
     class="no-resize no-ease"
