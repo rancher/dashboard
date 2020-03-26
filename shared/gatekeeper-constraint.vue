@@ -12,6 +12,8 @@ import Tabbed from '@/components/Tabbed';
 import Footer from '@/components/form/Footer';
 import GatekeeperViolationsTable from '@/components/GatekeeperViolationsTable';
 import RuleSelector from '@/components/form/RuleSelector';
+import RadioGroup from '@/components/form/RadioGroup';
+import { ucFirst } from '@/utils/string';
 
 function findConstraintTypes(schemas) {
   return schemas
@@ -20,6 +22,10 @@ function findConstraintTypes(schemas) {
 }
 
 const CONSTRAINT_PREFIX = 'constraints.gatekeeper.sh.';
+const ENFORCEMENT_ACTION_VALUES = {
+  DENY:   'deny',
+  DRYRUN: 'dryrun'
+};
 
 export default {
   components: {
@@ -31,6 +37,7 @@ export default {
     NameNsDescription,
     NamespaceList,
     RuleSelector,
+    RadioGroup,
     Tab,
     Tabbed
   },
@@ -81,6 +88,8 @@ export default {
       localValue,
       templateOptions,
       extraDetailColumns,
+      enforcementActionOptions: Object.values(ENFORCEMENT_ACTION_VALUES),
+      enforcementActionLabels:  Object.values(ENFORCEMENT_ACTION_VALUES).map(ucFirst)
     };
   },
 
@@ -108,6 +117,7 @@ export default {
 
       value.type = value.type || this.templateOptions[0].value;
       value.spec = value.spec || {};
+      value.spec.enforcementAction = value.spec.enforcementAction || ENFORCEMENT_ACTION_VALUES.DENY;
       value.spec.parameters = value.spec.parameters || {};
       value.spec.match = value.spec.match || {};
       value.spec.match.kinds = value.spec.match.kinds || [];
@@ -167,6 +177,18 @@ export default {
       />
     </div>
     <br />
+    <div>
+      <h2>Enforcement Action</h2>
+      <RadioGroup
+        v-model="localValue.spec.enforcementAction"
+        class="enforcement-action"
+        :options="enforcementActionOptions"
+        :labels="enforcementActionLabels"
+        :mode="mode"
+        @input="e=>localValue.spec.enforcementAction = e"
+      />
+    </div>
+    <br />
     <br />
     <div class="match">
       <h2>Match</h2>
@@ -211,3 +233,9 @@ export default {
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.enforcement-action {
+  max-width: 200px;
+}
+</style>
