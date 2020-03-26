@@ -39,18 +39,23 @@ export default {
     let sortBy = null;
     let descending = false;
 
-    const hasName = !!this.headers.find( x => x.name === 'name' );
-
     this._defaultSortBy = this.defaultSortBy;
+
+    // Try to find a reasonable default sort
     if ( !this._defaultSortBy ) {
-      if ( hasName ) {
-        this._defaultSortBy = 'name';
+      const nameColumn = this.headers.find( x => x.name === 'name');
+
+      if ( nameColumn ) {
+        // Use the name column if there is one
+        this._defaultSortBy = nameColumn.name;
       } else {
+        // The first column that isn't state
         const first = this.headers.filter( x => x.name !== 'state' )[0];
 
         if ( first ) {
           this._defaultSortBy = first.name;
         } else {
+          // I give up
           this._defaultSortBy = 'id';
         }
       }
