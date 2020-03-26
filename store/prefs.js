@@ -109,6 +109,16 @@ export const getters = {
     return def;
   },
 
+  defaultValue: state => (key) => {
+    const definition = definitions[key];
+
+    if (!definition) {
+      throw new Error(`Unknown preference: ${ key }`);
+    }
+
+    return clone(definition.def);
+  },
+
   options: state => (key) => {
     const definition = definitions[key];
 

@@ -176,7 +176,7 @@ export const getters = {
   singularLabelFor(state) {
     return (schema) => {
       return _applyMapping(schema, state.typeMappings, 'id', state.cache.typeLabel, () => {
-        return schema.attributes.kind;
+        return schema?.attributes?.kind || '?';
       });
     };
   },
@@ -297,8 +297,12 @@ export const getters = {
         } else if ( mode === 'basic' && !getters.isBasic(typeObj.name) ) {
           // If we want the basic tree only return basic types;
           continue;
-        } else if ( count === 0 && mode === 'used') {
+        } else if ( mode === 'used' && getters.isBasic(typeObj.name) ) {
+          // If we want the used tree ignore basic types;
+          continue;
+        } else if ( mode === 'used' && count <= 0 ) {
           // If there's none of this type, ignore this entry when viewing only in-use types
+          // Note: count is sometimes null, which is <= 0.
           continue;
         }
 
@@ -321,7 +325,9 @@ export const getters = {
         } else if ( mode === 'recent' ) {
           group = _ensureGroup(root, 'Recent');
         } else if ( mode === 'favorite' ) {
-          group = _ensureGroup(root, 'Favorite');
+          group = _ensureGroup(root, 'Starred');
+        } else if ( mode === 'used' ) {
+          group = _ensureGroup(root, `In-Use::${ getters.groupLabelFor(typeObj.schema) }`);
         } else {
           group = _ensureGroup(root, typeObj.schema || typeObj.group );
         }
@@ -428,11 +434,12 @@ export const getters = {
       for ( const schema of schemas ) {
         const attrs = schema.attributes || {};
         const count = counts[schema.id];
-        let weight = null;
+        const label = getters.singularLabelFor(schema);
+        let weight = getters.typeWeightFor(label);
         let recentWeight = null;
 
         if ( !attrs.kind ) {
-          // Skip the "apiGroups" resource which has no kind
+          // Skip the schemas that aren't top-level types
           continue;
         } else if ( mode === 'basic' && !getters.isBasic(schema.id) ) {
           continue;
@@ -448,12 +455,12 @@ export const getters = {
         }
 
         out[schema.id] = {
-          schema,
+          label,
           mode,
           weight,
           recentWeight,
+          schema,
           name:        schema.id,
-          label:       getters.singularLabelFor(schema),
           namespaced:  attrs.namespaced,
           count:       count ? count.summary.count || 0 : null,
           byNamespace: count ? count.namespaces : {},
@@ -462,41 +469,43 @@ export const getters = {
       }
 
       // Add virtual types
-      const isRancher = rootGetters.isRancher;
+      if ( mode !== 'used' ) {
+        const isRancher = rootGetters.isRancher;
 
-      for ( const vt of state.virtualTypes ) {
-        const item = clone(vt);
-        const id = item.name;
-        let weight = null;
-        let recentWeight = null;
+        for ( const vt of state.virtualTypes ) {
+          const item = clone(vt);
+          const id = item.name;
+          let weight = vt.weight || getters.typeWeightFor(item.label);
+          let recentWeight = null;
 
-        if ( item.ifIsRancher && !isRancher ) {
-          continue;
-        }
-
-        if ( item.ifHaveType && !findBy(schemas, 'id', normalizeType(item.ifHaveType)) ) {
-          continue;
-        }
-
-        if ( mode === 'basic' && !getters.isBasic(id) ) {
-          continue;
-        } else if ( mode === 'favorite' && !getters.isFavorite(id) ) {
-          continue;
-        } else if ( mode === 'recent' ) {
-          weight = getters.recentWeight(id);
-          recentWeight = weight;
-
-          if ( weight < 0 ) {
+          if ( item.ifIsRancher && !isRancher ) {
             continue;
           }
+
+          if ( item.ifHaveType && !findBy(schemas, 'id', normalizeType(item.ifHaveType)) ) {
+            continue;
+          }
+
+          if ( mode === 'basic' && !getters.isBasic(id) ) {
+            continue;
+          } else if ( mode === 'favorite' && !getters.isFavorite(id) ) {
+            continue;
+          } else if ( mode === 'recent' ) {
+            weight = getters.recentWeight(id);
+            recentWeight = weight;
+
+            if ( weight < 0 ) {
+              continue;
+            }
+          }
+
+          item.mode = mode;
+          item.weight = weight;
+          item.recentWeight = recentWeight;
+          item.label = item.label || item.name;
+
+          out[id] = item;
         }
-
-        item.mode = mode;
-        item.weight = weight;
-        item.recentWeight = recentWeight;
-        item.label = item.label || item.name;
-
-        out[id] = item;
       }
 
       return out;
@@ -822,16 +831,16 @@ export const mutations = {
 
 export const actions = {
   addRecent({ dispatch, rootGetters }, type) {
-    const types = rootGetters['prefs/get'](RECENT_TYPES) || [];
+    // const types = rootGetters['prefs/get'](RECENT_TYPES) || [];
 
-    removeObject(types, type);
-    types.unshift(type);
+    // removeObject(types, type);
+    // types.unshift(type);
 
-    while ( types.length > 5 ) {
-      types.pop();
-    }
+    // while ( types.length > 5 ) {
+    //   types.pop();
+    // }
 
-    dispatch('prefs/set', { key: RECENT_TYPES, val: types }, { root: true });
+    // dispatch('prefs/set', { key: RECENT_TYPES, val: types }, { root: true });
   },
 
   addFavorite({ dispatch, rootGetters }, type) {

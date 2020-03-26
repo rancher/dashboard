@@ -76,7 +76,7 @@ export default {
       :table-actions="false"
       :row-actions="false"
       :paging="true"
-      :per-page-override="10"
+      :rows-per-page="10"
       key-field="id"
     />
   </div>

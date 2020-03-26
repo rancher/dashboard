@@ -200,7 +200,7 @@ export default function(store) {
     namespaced:  false,
     name:        'cluster-overview',
     group:       'Cluster',
-    weight:      5,
+    weight:      11,
     route:       { name: 'c-cluster' },
   });
 
