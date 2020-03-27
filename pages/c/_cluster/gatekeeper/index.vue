@@ -173,7 +173,6 @@ export default {
           newApp = await this.createGatekeeperDefaultApp(this.systemProject, latestGKVersion.externalId);
           this.gatekeeper = newApp;
           this.mode = _CREATE;
-          console.log('New Gatekeeper', this.gatekeeper);
         } catch (err) {
           console.error('could not create new gatekeeper app', err);
         }
