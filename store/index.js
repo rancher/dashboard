@@ -348,11 +348,18 @@ export const actions = {
     commit('updateNamespaces', { filters: val });
   },
 
-  onLogout({ commit }) {
+  async onLogout({ dispatch, commit }) {
+    await dispatch('management/unsubscribe');
     commit('managementChanged', { ready: false });
     commit('management/forgetAll');
 
+    await dispatch('cluster/unsubscribe');
+    commit('clusterChanged', false);
     commit('cluster/forgetAll');
+
+    await dispatch('clusterExternal/unsubscribe');
+    commit('clusterExternal/forgetAll');
+
     commit('rancher/forgetAll');
   },
 

@@ -4,10 +4,14 @@ import { options } from '@/config/footer';
 import { mapPref, DEV } from '@/store/prefs';
 
 const VERSION = process.env.VERSION || 'dev';
+const COMMIT = process.env.COMMIT || 'unknown';
 
 export default {
   data() {
-    return { version: VERSION };
+    return {
+      commit:  COMMIT,
+      version: VERSION
+    };
   },
 
   computed: {
@@ -44,7 +48,9 @@ export default {
 
 <template>
   <div class="footer">
-    <div>{{ version }}</div>
+    <div v-tooltip="commit">
+      {{ version }}
+    </div>
 
     <div v-for="(value, name) in options" :key="name">
       <a v-t="name" :href="value" target="_blank" />
@@ -52,7 +58,7 @@ export default {
 
     <div class="space" />
 
-    <div><a v-t="'footer.download'" href="https://github.com/rancher/rio#quick-start" target="_blank" /></div>
+    <div><a v-t="'footer.download'" href="https://github.com/rancher/cli/releases/latest" target="_blank" rel="nofollow noopener noreferrer" /></div>
 
     <div v-if="showLocale">
       <v-popover

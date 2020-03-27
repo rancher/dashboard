@@ -14,6 +14,9 @@ const version = process.env.VERSION ||
 const dev = (process.env.NODE_ENV !== 'production');
 const api = process.env.API || 'http://localhost:8989';
 const pl = process.env.PL || STANDARD;
+const commit = process.env.COMMIT || 'head';
+const commitDate = process.env.COMMIT_DATE || '';
+const commitBranch = process.env.COMMIT_BRANCH || '';
 
 let routerBasePath = '/';
 let resourceBase = '';
@@ -56,6 +59,9 @@ module.exports = {
 
   // Configuration visible to the client, https://nuxtjs.org/api/configuration-env
   env: {
+    commit,
+    commitDate,
+    commitBranch,
     version,
     dev,
     pl,

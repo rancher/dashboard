@@ -1,5 +1,5 @@
 <script>
-import { isEmpty } from 'lodash';
+import jsyaml from 'js-yaml';
 import CodeMirror from './CodeMirror';
 import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
@@ -105,18 +105,18 @@ export default {
     },
 
     parsedValuesYaml() {
-      const yamlValues = this.config?.spec?.valuesYaml;
-      let safeValues = null;
+      const str = this.config?.spec?.valuesYaml;
+      let values = null;
 
       try {
-        safeValues = window.jsyaml.safeLoad(yamlValues);
+        values = jsyaml.safeLoad(str);
 
-        return safeValues;
+        return values;
       } catch (e) {
-        console.error('Unable to parse Yaml Values', e);
-
-        return {};
+        console.error('Unable to parse valuesYaml', str, e);
       }
+
+      return null;
     },
   },
 
@@ -337,7 +337,7 @@ export default {
     </header>
     <div v-if="gatekeeperEnabled" class="mt-20">
       <InfoBox
-        v-if="!showYamlEditor"
+        v-if="parsedValuesYaml && !showYamlEditor"
         class="row"
       >
         <div class="col span-6 info-column">

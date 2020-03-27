@@ -156,7 +156,9 @@ export default {
     },
 
     isExpanded(name) {
-      return this.expandedGroups.includes(name);
+      const currentType = this.$route.params.resource || '';
+
+      return this.expandedGroups.includes(name) || name === currentType;
     },
 
     toggleNoneLocale() {
