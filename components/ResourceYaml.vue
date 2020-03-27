@@ -9,7 +9,8 @@ import {
   _VIEW,
   _EDIT,
   _PREVIEW,
-  EDIT_YAML
+  EDIT_YAML,
+  _CLONE
 } from '@/config/query-params';
 
 import { mapPref, DIFF } from '@/store/prefs';
@@ -118,6 +119,9 @@ export default {
     isEdit() {
       return this.mode === _EDIT;
     },
+    isClone() {
+      return this.mode === _CLONE;
+    },
     isPreview() {
       return this.mode === _PREVIEW;
     },
@@ -225,7 +229,7 @@ export default {
     },
 
     cancel() {
-      if (this.mode === _CREATE) {
+      if (this.isCreate || this.isClone) {
         return this.done();
       }
       this.mode = _VIEW;
@@ -239,7 +243,7 @@ export default {
 
     async save(buttonDone) {
       try {
-        if ( this.isCreate ) {
+        if ( this.isCreate || this.isClone ) {
           await this.schema.followLink('collection', {
             method:  'POST',
             headers: {
@@ -374,10 +378,10 @@ export default {
         <button v-if="!isView" type="button" class="btn bg-transparent" @click="cancel">
           Cancel
         </button>
-        <button v-if="isEdit" type="button" class="btn bg-transparent" @click="preview">
+        <button v-if="isEdit || isClone" type="button" class="btn bg-transparent" @click="preview">
           Preview
         </button>
-        <AsyncButton v-if="isEdit || isPreview" key="apply" mode="apply" @click="save" />
+        <AsyncButton v-if="isEdit || isClone || isPreview" key="apply" mode="apply" @click="save" />
         <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
       </div>
     </footer>

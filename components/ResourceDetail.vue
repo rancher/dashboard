@@ -227,7 +227,6 @@ export default {
         :parent-route="doneRoute"
         :parent-params="doneParams"
         :has-edit-as-form="hasCustomEdit"
-        :done-override="doneOverride"
       />
     </template>
     <template v-else>
