@@ -95,6 +95,7 @@
   --sortable-table-header-bg   : transparent;
   --sortable-table-accent-bg   : #{$darkest};
   --sortable-table-accent-alt  : #{$darker};
+  --sortable-table-top-divider : var(--border);
   --sortable-table-selected-bg : #{$selected};
 
   --tooltip-bg                 : #{$primary};

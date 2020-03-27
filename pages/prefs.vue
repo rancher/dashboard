@@ -74,10 +74,10 @@ export default {
   <div>
     <h1>Preferences</h1>
 
-    <h6>Theme</h6>
+    <h4 class="mb-10">Theme</h4>
     <ButtonGroup v-model="theme" :options="themeOptions" />
 
-    <h6>Formatting</h6>
+    <h4 class="mb-10">Formatting</h4>
     <div class="row">
       <div class="col span-3">
         <LabeledSelect
@@ -108,10 +108,10 @@ export default {
       </div>
     </div>
 
-    <h6>YAML Editor Key Bindings</h6>
+    <h4 class="mb-10">YAML Editor Mode</h4>
     <ButtonGroup v-model="keymap" :options="keymapOptions" />
 
-    <h6>Advanced</h6>
+    <h4 class="mb-10">Advanced</h4>
     <label><input v-model="dev" type="checkbox"> Enable Developer Tools</label>
   </div>
 </template>
@@ -121,7 +121,7 @@ export default {
     margin: 0;
   }
 
-  h6 {
+  h4 {
     margin: 20px 0 0 0;
 
     &:first-of-type {

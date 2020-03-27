@@ -85,9 +85,9 @@ export default {
       text-overflow: ellipsis;
 
       ::v-deep .highlight {
-        background: var(--warning);
+        background: var(--diff-ins-bg);
         color: white;
-        font-weight: bold;
+        padding: 2px;
       }
 
       ::v-deep .icon {

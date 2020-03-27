@@ -532,9 +532,10 @@ $divider-height: 1px;
         border-radius: 0;
         outline: none;
         transition: none;
+        color: var(--secondary);
 
-        &.sortable {
-          color: var(--link-text);
+        &.sortable a {
+          color: var(--secondary);
         }
         font-weight: normal;
 
@@ -592,6 +593,10 @@ $divider-height: 1px;
 
       .group-row {
         background-color: var(--body-bg);
+
+        :first-child {
+          margin-top: 20px;
+        }
       }
 
       .group-tab {
