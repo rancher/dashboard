@@ -1,17 +1,27 @@
 <script>
 import { STATE, AGE, NAME } from '@/config/table-headers';
-import SortableTable from '@/components/SortableTable';
-import { WORKLOAD } from '@/config/types';
+import ResourceTable from '@/components/ResourceTable';
+import { WORKLOAD, SCHEMA } from '@/config/types';
+
 export default {
-  components: { SortableTable },
+  components: { ResourceTable },
   computed:   {
 
     schema() {
-      return this.$store.getters['cluster/schemaFor'](this.resource);
+      return {
+        id:         'workload',
+        type:       SCHEMA,
+        attributes: {
+          kind:       'Workload',
+          namespaced: true
+        },
+        metadata: { name: 'workload' },
+      };
     },
 
     headers() {
-      return [STATE,
+      return [
+        STATE,
         NAME,
         {
           name:      'endpoints',
@@ -23,26 +33,29 @@ export default {
       ];
     },
 
-    filteredRows() {
-      const isAll = this.$store.getters['isAllNamespaces'];
+    rows() {
+      const out = [];
 
-      // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
-      if ( !this.namespaced || isAll ) {
-        return this.resources;
+      for ( const typeRows of this.resources ) {
+        if ( !typeRows ) {
+          continue;
+        }
+
+        for ( const row of typeRows ) {
+          if ( !row.metadata?.ownerReferences ) {
+            out.push(row);
+          }
+        }
       }
 
-      const includedNamespaces = this.$store.getters['namespaces']();
-
-      return this.resources.filter((row) => {
-        return !!includedNamespaces[row.metadata.namespace] && !row.metadata?.ownerReferences;
-      });
-    },
+      return out;
+    }
   },
 
   async asyncData({ store }) {
     const types = Object.values(WORKLOAD);
 
-    let resources = await Promise.all(types.map((type) => {
+    const resources = await Promise.all(types.map((type) => {
       // You may not have RBAC to see some of the types
       if ( !store.getters['cluster/schemaFor'](type) ) {
         return null;
@@ -50,14 +63,6 @@ export default {
 
       return store.dispatch('cluster/findAll', { type });
     }));
-
-    resources = resources.reduce((all, rows) => {
-      if ( rows ) {
-        all.push(...rows);
-      }
-
-      return all;
-    }, []);
 
     await store.dispatch('type-map/addRecent', 'workloads');
 
@@ -78,12 +83,6 @@ export default {
         </nuxt-link>
       </div>
     </header>
-    <SortableTable
-      :rows="filteredRows"
-      :headers="headers"
-      key-field="id"
-      :paging="true"
-      paging-label="sortableTable.paging.workload"
-    />
+    <ResourceTable :schema="schema" :rows="rows" :headers="headers" />
   </div>
 </template>
