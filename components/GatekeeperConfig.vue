@@ -1,4 +1,5 @@
 <script>
+import { isEmpty } from 'lodash';
 import CodeMirror from './CodeMirror';
 import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
@@ -136,14 +137,14 @@ export default {
         const gatekeeperStatus = (gatekeeper.status?.conditions || []).slice();
 
         // this doesn't seeem right but the only way I can see to check that it was removed before the object goes away
-        if (Object.prototype.hasOwnProperty.call(meta, 'deletionTimestamp')) {
+        if (meta && Object.prototype.hasOwnProperty.call(meta, 'deletionTimestamp')) {
           this.gatekeeperEnabled = false;
           this.$emit('gatekeeperEnabled', this.gatekeeperEnabled);
 
           return;
         }
 
-        if (gatekeeperStatus.some(app => app.type === 'Deployed')) {
+        if (!this.gatekeeperEnabled && gatekeeperStatus.some(app => app.type === 'Deployed')) {
           this.gatekeeperEnabled = true;
           this.$emit('gatekeeperEnabled', this.gatekeeperEnabled);
         }
