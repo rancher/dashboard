@@ -29,7 +29,7 @@ export default {
           label: 'Name',
           value: 'nameDisplay',
           sort:  `nameDisplay`,
-          width: 200
+          width: 270
         },
         this.includeConstraint ? {
           name:  'Constraint',
@@ -75,6 +75,8 @@ export default {
       :search="false"
       :table-actions="false"
       :row-actions="false"
+      :paging="true"
+      :rows-per-page="10"
       key-field="id"
     />
   </div>

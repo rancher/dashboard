@@ -1,9 +1,8 @@
 <script>
+import Vue from 'vue';
 import { _VIEW } from '../config/query-params';
 import { SCHEMA } from '@/config/types';
-import LabelSelector from '@/components/form/LabelSelector';
 import MatchKinds from '@/components/form/MatchKinds';
-import NamespaceSelector from '@/components/form/NamespaceSelector';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import KeyValue from '@/components/form/KeyValue';
@@ -13,6 +12,9 @@ import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import Footer from '@/components/form/Footer';
 import GatekeeperViolationsTable from '@/components/GatekeeperViolationsTable';
+import RuleSelector from '@/components/form/RuleSelector';
+import RadioGroup from '@/components/form/RadioGroup';
+import { ucFirst } from '@/utils/string';
 
 function findConstraintTypes(schemas) {
   return schemas
@@ -21,18 +23,22 @@ function findConstraintTypes(schemas) {
 }
 
 const CONSTRAINT_PREFIX = 'constraints.gatekeeper.sh.';
+const ENFORCEMENT_ACTION_VALUES = {
+  DENY:   'deny',
+  DRYRUN: 'dryrun'
+};
 
 export default {
   components: {
     Footer,
     GatekeeperViolationsTable,
     KeyValue,
-    LabelSelector,
     LabeledSelect,
     MatchKinds,
     NameNsDescription,
     NamespaceList,
-    NamespaceSelector,
+    RuleSelector,
+    RadioGroup,
     Tab,
     Tabbed
   },
@@ -57,13 +63,13 @@ export default {
     });
 
     const localValue = Object.keys(this.value).length > 0
-      ? this.value
+      ? { ...this.value }
       : {
         type:  templateOptions[0].value,
         spec: {
           parameters: {},
           match:      {
-            kinds:              [],
+            kinds:              [{ apiGroups: [''] }],
             namespaces:         [],
             excludedNamespaces: [],
             labelSelector:      { matchExpressions: [] },
@@ -71,6 +77,12 @@ export default {
           }
         }
       };
+
+    localValue.spec.match.kinds = (localValue?.spec?.match?.kinds || []).length === 0
+      ? [{ apiGroups: [''] }]
+      : localValue.spec.match.kinds;
+
+    this.purgeNamespacesField(localValue);
 
     const extraDetailColumns = [
       {
@@ -83,6 +95,8 @@ export default {
       localValue,
       templateOptions,
       extraDetailColumns,
+      enforcementActionOptions: Object.values(ENFORCEMENT_ACTION_VALUES),
+      enforcementActionLabels:  Object.values(ENFORCEMENT_ACTION_VALUES).map(ucFirst)
     };
   },
 
@@ -97,6 +111,7 @@ export default {
       handler(value) {
         // We have to set the type for the CreateEditView mixin to know what the type is when creating
         this.type = value.type;
+        this.purgeNamespacesField(this.localValue);
       },
       deep: true
     }
@@ -110,10 +125,10 @@ export default {
 
       value.type = value.type || this.templateOptions[0].value;
       value.spec = value.spec || {};
+      value.spec.enforcementAction = value.spec.enforcementAction || ENFORCEMENT_ACTION_VALUES.DENY;
       value.spec.parameters = value.spec.parameters || {};
       value.spec.match = value.spec.match || {};
       value.spec.match.kinds = value.spec.match.kinds || [];
-      value.spec.match.namespaces = value.spec.match.namespaces || [];
       value.spec.match.excludedNamespaces = value.spec.match.excludedNamespaces || [];
       value.spec.match.labelSelector = value.spec.match.labelSelector || {};
       value.spec.match.labelSelector.matchExpressions = value.spec.match.labelSelector.matchExpressions || [];
@@ -130,7 +145,17 @@ export default {
         name:   'c-cluster-gatekeeper-constraints',
         params: this.$route.params
       });
-    }
+    },
+    /**
+     * There's an upstream issue which prevents gatekeeper from processing namespaces with empty lists incorrectly.
+     * We need to remove the namespaces field if it's empty.
+     * https://github.com/open-policy-agent/gatekeeper/issues/508
+     */
+    purgeNamespacesField(value) {
+      if (value?.spec?.match?.namespaces && (value.spec.match.namespaces.length === 0)) {
+        Vue.delete(value.spec.match, 'namespaces');
+      }
+    },
   }
 };
 </script>
@@ -169,6 +194,18 @@ export default {
       />
     </div>
     <br />
+    <div>
+      <h2>Enforcement Action</h2>
+      <RadioGroup
+        v-model="localValue.spec.enforcementAction"
+        class="enforcement-action"
+        :options="enforcementActionOptions"
+        :labels="enforcementActionLabels"
+        :mode="mode"
+        @input="e=>localValue.spec.enforcementAction = e"
+      />
+    </div>
+    <br />
     <br />
     <div class="match">
       <h2>Match</h2>
@@ -189,11 +226,19 @@ export default {
           <div class="row">
             <div class="col span-6">
               <h4>Label Selector</h4>
-              <LabelSelector v-model="localValue.spec.match.labelSelector.matchExpressions" :mode="mode" />
+              <RuleSelector
+                v-model="localValue.spec.match.labelSelector.matchExpressions"
+                add-label="Add Label"
+                :mode="mode"
+              />
             </div>
             <div class="col span-6">
               <h4>Namespace Selector</h4>
-              <NamespaceSelector v-model="localValue.spec.match.namespaceSelector.matchExpressions" :mode="mode" />
+              <RuleSelector
+                v-model="localValue.spec.match.namespaceSelector.matchExpressions"
+                add-label="Add Namespace"
+                :mode="mode"
+              />
             </div>
           </div>
         </Tab>
@@ -205,3 +250,9 @@ export default {
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.enforcement-action {
+  max-width: 200px;
+}
+</style>

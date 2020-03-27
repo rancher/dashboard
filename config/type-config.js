@@ -87,13 +87,14 @@ export default function(store) {
   headers(SECRET, [
     STATE,
     NAMESPACE_NAME,
-    KEYS,
     {
       name:  'type',
       label: 'Type',
       value: 'typeDisplay',
       sort:  ['typeDisplay', 'nameSort'],
+      width: 100,
     },
+    KEYS,
     AGE
   ]);
   headers(INGRESS, [STATE, NAME, INGRESS_TARGET, AGE]);
@@ -199,7 +200,7 @@ export default function(store) {
     namespaced:  false,
     name:        'cluster-overview',
     group:       'Cluster',
-    weight:      5,
+    weight:      11,
     route:       { name: 'c-cluster' },
   });
 

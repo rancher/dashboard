@@ -1,4 +1,5 @@
 import VueRouter from 'vue-router';
+import { isEqual } from 'lodash';
 
 const _resolve = VueRouter.prototype.resolve;
 
@@ -16,6 +17,10 @@ VueRouter.prototype.resolve = function() {
 
 VueRouter.prototype.applyQuery = function(qp, defaults = {}) {
   const query = queryParamsFor(this.currentRoute.query, qp, defaults);
+
+  if ( isEqual(query, this.currentRoute.query) ) {
+    return;
+  }
 
   this.replace({ query }).catch((err) => {
     if ( err?.name === 'NavigationDuplicated' ) {

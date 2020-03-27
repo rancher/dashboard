@@ -13,7 +13,6 @@ import { get } from '@/utils/object';
 import { dasherize } from '@/utils/string';
 
 // @TODO:
-// Paging
 // Fixed header/scrolling
 
 // Data Flow:
@@ -152,8 +151,41 @@ export default {
     emphasizedBody: {
       type:    Boolean,
       default: true
-    }
+    },
 
+    /**
+     * If pagination of the data is enabled or not
+     */
+    paging: {
+      type:    Boolean,
+      default: false,
+    },
+
+    /**
+     * What translation key to use for displaying the '1 - 10 of 100 Things' pagination info
+     */
+    pagingLabel: {
+      type:    String,
+      default: 'sortableTable.paging.generic'
+    },
+
+    /**
+     * Additional params to pass to the pagingLabel translation
+     */
+    pagingParams: {
+      type:    Object,
+      default: null,
+    },
+
+    /**
+     * Allows you to override the default preference of the number of
+     * items to display per page. This is used by ./paging.js if you're
+     * looking for a reference.
+     */
+    rowsPerPage: {
+      type:    Number,
+      default: null, // Default comes from the user preference
+    },
   },
 
   data() {
@@ -237,7 +269,9 @@ export default {
 
     classObject() {
       return {
-        'top-divider':     this.topDivider, 'emphasized-body': this.emphasizedBody, 'body-dividers':   this.bodyDividers
+        'top-divider':     this.topDivider,
+        'emphasized-body': this.emphasizedBody,
+        'body-dividers':   this.bodyDividers
       };
     }
   },
@@ -408,6 +442,43 @@ export default {
         </template>
       </tbody>
     </table>
+    <div v-if="showPaging" class="paging">
+      <button
+        type="button"
+        class="btn btn-sm role-multi-action"
+        :disabled="page == 1"
+        @click="goToPage('first')"
+      >
+        <i class="icon icon-chevron-beginning" />
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm role-multi-action"
+        :disabled="page == 1"
+        @click="goToPage('prev')"
+      >
+        <i class="icon icon-chevron-left" />
+      </button>
+      <span>
+        {{ pagingDisplay }}
+      </span>
+      <button
+        type="button"
+        class="btn btn-sm role-multi-action"
+        :disabled="page == totalPages"
+        @click="goToPage('next')"
+      >
+        <i class="icon icon-chevron-right" />
+      </button>
+      <button
+        type="button"
+        class="btn btn-sm role-multi-action"
+        :disabled="page == totalPages"
+        @click="goToPage('last')"
+      >
+        <i class="icon icon-chevron-end" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -675,6 +746,16 @@ $divider-height: 1px;
   .end {
     grid-area: end;
     white-space: nowrap;
+  }
+}
+
+.paging {
+  margin-top: 10px;
+  text-align: center;
+
+  SPAN {
+    display: inline-block;
+    min-width: 200px;
   }
 }
 </style>

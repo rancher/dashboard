@@ -244,6 +244,8 @@ export default {
               :search="false"
               :table-actions="false"
               :row-actions="false"
+              :paging="true"
+              :rows-per-page="10"
             />
           </div>
         </InfoBox>

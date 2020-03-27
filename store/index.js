@@ -315,19 +315,20 @@ export const actions = {
       throw new ClusterNotFoundError(id);
     }
 
-    // Update the Steve client URL
+    // Update the Steve client URLs
     commit('cluster/applyConfig', { baseUrl: clusterBase });
-    await dispatch('cluster/loadSchemas', true);
-    dispatch('cluster/subscribe');
+    isRancher && commit('clusterExternal/applyConfig', { baseUrl: externalBase });
 
-    if ( isRancher ) {
-      commit('clusterExternal/applyConfig', { baseUrl: externalBase });
-      dispatch('clusterExternal/subscribe');
-      await dispatch('clusterExternal/loadSchemas', false);
-      await dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT, opt: { url: 'projects' } });
-    }
+    await Promise.all([
+      dispatch('cluster/loadSchemas', true),
+      isRancher && dispatch('clusterExternal/loadSchemas', false),
+    ]);
+
+    dispatch('cluster/subscribe');
+    isRancher && dispatch('clusterExternal/subscribe');
 
     const res = await allHash({
+      projects:   isRancher && dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT, opt: { url: 'projects' } }),
       counts:     dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
       namespaces: dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })
     });
