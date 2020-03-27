@@ -41,8 +41,10 @@ export default {
 
   data() {
     return {
-      gateKeeperUnavailable: false,
-      mode:                  _VIEW,
+      gateKeeperUnavailable:    false,
+      gatekeeperSystemTemplate: null,
+      mode:                     _VIEW,
+      systemProject:            null,
     };
   },
 
@@ -57,8 +59,10 @@ export default {
 
       if (!template?.id ) {
         return {
-          gateKeeperUnavailable: true,
-          gatekeeperEnabled:     false,
+          gateKeeperUnavailable:    true,
+          gatekeeperEnabled:        false,
+          gatekeeperSystemTemplate: null,
+          systemProject:            null,
           mode,
         };
       }
@@ -75,8 +79,10 @@ export default {
 
       if ( !targetSystemProject ) {
         return {
-          gateKeeperUnAvailable: true,
-          gatekeeperEnabled:     false,
+          gateKeeperUnAvailable:    true,
+          gatekeeperEnabled:        false,
+          gatekeeperSystemTemplate: null,
+          systemProject:            null,
           mode,
         };
       }
@@ -116,7 +122,9 @@ export default {
       // await store.dispatch('type-map/addRecent', 'gatekeeper');
 
       return {
-        gatekeeperEnabled: !!gatekeeper?.id,
+        gatekeeperEnabled:        !!gatekeeper?.id,
+        gatekeeperSystemTemplate: template,
+        systemProject:            targetSystemProject,
         gatekeeper,
         mode,
         namespaces,
@@ -151,6 +159,42 @@ export default {
     }
     next();
   },
+
+  methods: {
+    async syncGatekeeperStatus(status) {
+      const gatekeeperVersionsMap = this.gatekeeperSystemTemplate?.spec?.versions || [];
+      const latestGKVersion = gatekeeperVersionsMap[0] ? gatekeeperVersionsMap[0] : null;
+      let newApp = null;
+
+      this.gatekeeperEnabled = status;
+
+      if (!status && latestGKVersion) {
+        try {
+          newApp = await this.createGatekeeperDefaultApp(this.systemProject, latestGKVersion.externalId);
+          this.gatekeeper = newApp;
+          this.mode = _CREATE;
+        } catch (err) {
+          console.error('could not create new gatekeeper app', err);
+        }
+      }
+    },
+    createGatekeeperDefaultApp(systemProject, externalId) {
+      return this.$store.dispatch('clusterExternal/create', {
+        type:       'app',
+        metadata:   {
+          namespace: systemProject.metadata.name,
+          name:      APP_ID
+        },
+        spec: {
+          targetNamespace: 'gatekeeper-system',
+          timeout:         300,
+          valuesYaml:      CONFIG,
+          projectName:     systemProject.namespacedName,
+          externalId,
+        }
+      });
+    },
+  }
 };
 </script>
 
@@ -167,7 +211,7 @@ export default {
         :mode="mode"
         :namespaces="namespaces"
         :projects="projects"
-        @gatekeeperEnabled="status => gatekeeperEnabled = status"
+        @gatekeeperEnabled="syncGatekeeperStatus"
       />
       <InfoBox v-if="gatekeeperEnabled">
         <div class="mb-15">
