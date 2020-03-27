@@ -304,7 +304,7 @@ export default {
 </script>
 
 <template>
-  <div class="root">
+  <div class="root resource-yaml">
     <header>
       <h1 v-if="showHeader">
         <span v-if="isCreate">Create {{ schema.attributes.kind }}</span>
@@ -384,19 +384,24 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "~assets/styles/base/_variables.scss";
 @import "~assets/styles/base/_functions.scss";
 @import "~assets/styles/base/_mixins.scss";
+.resource-yaml {
+  .diff-mode {
+    background-color: var(--diff-header-bg);
+    padding: 5px 5px;
 
-.diff-mode {
-  position: absolute;
-  top: 95px;
-  right: 21px;
-  z-index: z-index("overContent");
-}
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
 
-footer .actions {
-  text-align: center;
+  .d2h-file-wrapper {
+    border-top-right-radius: 0;
+  }
+  footer .actions {
+    text-align: center;
+  }
 }
 </style>
