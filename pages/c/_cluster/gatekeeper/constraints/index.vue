@@ -42,7 +42,7 @@ export default {
     this.constraints = rawConstraints
       .flat()
       .map((constraint) => {
-        constraint.description = constraint.metadata.annotations[DESCRIPTION];
+        constraint.description = (constraint?.metadata?.annotations || {})[DESCRIPTION];
 
         return constraint;
       });
