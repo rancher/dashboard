@@ -129,18 +129,17 @@ export default {
 
     &:not(.depth-0) {
       > .header {
-        padding: 5px 0 5px 5px;
-
-        > H6 {
-          font-size: 14px;
-          text-transform: none;
+        > SPAN {
+          // Child groups that aren't linked themselves
+          display: inline-block;
+          padding: 5px 0 5px 5px;
         }
 
         > I {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 4px 2px 4px 0;
+          padding: 6px 2px 6px 0;
         }
       }
 /*
