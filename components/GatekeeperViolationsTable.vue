@@ -29,7 +29,7 @@ export default {
           label: 'Name',
           value: 'nameDisplay',
           sort:  `nameDisplay`,
-          width: 200
+          width: 270
         },
         this.includeConstraint ? {
           name:  'Constraint',
