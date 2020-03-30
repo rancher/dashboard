@@ -12,7 +12,15 @@ export default {
     value: {
       type:     String,
       default: ''
-    }
+    },
+    addSuffix: {
+      type:    Boolean,
+      default: false,
+    },
+    suffix: {
+      type:    String,
+      default: 'ago',
+    },
   },
 
   data() {
@@ -29,6 +37,16 @@ export default {
       const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
 
       const out = day(this.value).format(`${ dateFormat } ${ timeFormat }`);
+
+      return out;
+    },
+
+    suffixedLabel() {
+      let out = `${ this.label }`;
+
+      if (this.addSuffix) {
+        out = `${ out } ${ this.suffix }`;
+      }
 
       return out;
     },
@@ -102,6 +120,6 @@ export default {
 
 <template>
   <span v-tooltip="title">
-    {{ label }}
+    {{ suffixedLabel }}
   </span>
 </template>

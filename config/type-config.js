@@ -203,6 +203,7 @@ export default function(store) {
     group:       'Cluster',
     weight:      11,
     route:       { name: 'c-cluster' },
+    exact:       true,
   });
 
   virtualType({

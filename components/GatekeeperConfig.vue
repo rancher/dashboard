@@ -375,7 +375,7 @@ export default {
         <div class="col span-6">
           <h3>Description</h3>
           <ul>
-            <li>OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes.</li> 
+            <li>OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes.</li>
             <li>You can Customize Gatekeeper’s yaml configuartion or Enable Gatekeeper with defaults.</li>
             <li>For more information, visit the <a href="https://www.openpolicyagent.org/docs/latest/kubernetes-introduction/" target="blank">OPA documentation.</a></li>
           </ul>
@@ -389,7 +389,7 @@ export default {
         </div>
       </div>
       <div>
-        <div class="spacer"></div>  
+        <div class="spacer"></div>
         <div v-if="!showYamlEditor" class="text-center">
           <button
             type="button"

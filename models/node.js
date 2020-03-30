@@ -6,17 +6,29 @@ export default {
     return this.metadata.name;
   },
 
-  roles() {
-    const {
-      CONTROL_PLANE: controlPlane,
-      WORKER:        worker,
-      ETCD:          etcd
-    } = NODE_ROLES;
+  isWorker() {
+    const { WORKER: worker } = NODE_ROLES;
     const labels = this.metadata?.labels;
 
-    const isControlPlane = labels[controlPlane];
-    const isWorker = labels[worker];
-    const isEtcd = labels[etcd];
+    return labels[worker] && labels[worker].toLowerCase() === 'true';
+  },
+
+  isControlPlane() {
+    const { CONTROL_PLANE: controlPlane } = NODE_ROLES;
+    const labels = this.metadata?.labels;
+
+    return labels[controlPlane] && labels[controlPlane].toLowerCase() === 'true';
+  },
+
+  isEtcd() {
+    const { ETCD: etcd } = NODE_ROLES;
+    const labels = this.metadata?.labels;
+
+    return labels[etcd] && labels[etcd].toLowerCase() === 'true';
+  },
+
+  roles() {
+    const { isControlPlane, isWorker, isEtcd } = this;
 
     if (( isControlPlane && isWorker && isEtcd ) ||
         ( !isControlPlane && !isWorker && !isEtcd )) {

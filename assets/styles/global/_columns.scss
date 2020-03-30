@@ -81,6 +81,23 @@ $GUTTER: 1.75%;
   }
 }
 
+.flex-justify-center {
+  justify-content: center;
+}
+
+.flex-justify-right {
+  justify-content: right;
+}
+
+.flex-justify-left {
+  justify-content: left;
+}
+
+.container-flex-center {
+  @extend .container-flex;
+  align-items: center;
+}
+
 // Equal height columns
 .row-full-height {
   height: 100%;

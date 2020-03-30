@@ -30,7 +30,7 @@ export default {
   props: {
     headers: {
       // {
-      //    name:   Name for the column (goes in query param)
+      //    name:   Name for the column (goes in query param) and for defaultSortBy
       //    label:  Displayed column header
       //    sort:   string|array[string] Field name(s) to sort by, default: [name, keyField]
       //              fields can be suffixed with ':desc' to flip the normal sort order
@@ -69,6 +69,7 @@ export default {
 
     defaultSortBy: {
       // Default field to sort by if none is specified
+      // uses name on headers
       type:    String,
       default: null
     },
@@ -84,6 +85,7 @@ export default {
       type:    Boolean,
       default: true
     },
+
     rowActionsWidth: {
       // How wide the action dropdown column should be
       type:    Number,
@@ -95,6 +97,7 @@ export default {
       type:    Boolean,
       default: true
     },
+
     extraSearchFields: {
       // Additional fields that aren't defined in the headers to search in on each row
       type:    Array,
@@ -186,6 +189,23 @@ export default {
       type:    Number,
       default: null, // Default comes from the user preference
     },
+
+    /**
+     * Allows you to override the default translation text of no rows view
+     */
+    noRowsKey: {
+      type:    String,
+      default: 'sortableTable.noRows'
+    },
+
+    /**
+     * Allows you to override the default translation text of no search data view
+     */
+    noDataKey: {
+      type:    String,
+      default: 'sortableTable.noData'
+    }
+
   },
 
   data() {
@@ -351,8 +371,7 @@ export default {
       </div>
     </div>
     <table class="sortable-table" :class="classObject" width="100%">
-      <thead
-        is="THead"
+      <THead
         :columns="columns"
         :table-actions="tableActions"
         :row-actions="rowActions"
@@ -370,7 +389,7 @@ export default {
         <slot name="no-rows">
           <tr>
             <td :colspan="fullColspan" class="no-rows">
-              There are no rows to show.
+              <t :k="noRowsKey" />
             </td>
           </tr>
         </slot>
@@ -379,7 +398,7 @@ export default {
         <slot name="no-results">
           <tr>
             <td :colspan="fullColspan" class="no-results text-center">
-              There are no rows which match your search query.
+              <t :k="noDataKey" />
             </td>
           </tr>
         </slot>
@@ -421,7 +440,7 @@ export default {
                         :value="valueFor(row,col)"
                         :row="row"
                         :col="col"
-                        :opts="col.formatterOpts"
+                        v-bind="col.formatterOpts"
                       />
                       <template v-else>
                         {{ valueFor(row,col) }}

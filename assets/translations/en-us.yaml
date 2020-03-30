@@ -16,6 +16,18 @@ nav:
     namespace: "{name}"
     orphan: "Not in a Project"
 
+cluster:
+  provider:
+    aliyunengineconfig: Alibaba ACK
+    amazonelasticcontainerserviceconfig: Amazon EKS
+    azurekubernetesserviceconfig: Azure AKS
+    googlekubernetesengineconfig: Google GKE
+    huaweiengineconfig: Huawei CCE
+    importedconfig: Import
+    rancherkubernetesengineconfig: Rancher RKE
+    tencentengineconfig: Tencent TKE
+    baiduengineconfig: Baidu CCE
+
 footer:
   docs: Docs
   forums: Forums
@@ -27,9 +39,13 @@ clusterIndexPage:
   header: "Cluster: {name}"
   sections:
     nodes:
-      label: Nodes
+      label: Unhealthy Nodes
+      noRows: "There are no unhealthy nodes to show."
     gatekeeper:
-      label: OPA Gatekeeper Constraints
+      label: OPA Gatekeeper Constraint Violations
+      disabled: OPA Gatekeeper is not configured.
+      buttonText: Configure Gatekeeper
+      noRows: "There are no contrains with violations to show."
     events:
       label: Events
 
@@ -39,11 +55,20 @@ infoBoxCluster:
   memory: Memory
   pods: Pods
   provider: Provider
-  reserved: "{numerator} of {denominator} Reserved"
-  used: "{numerator} of {denominator} Used"
+  reserved: "{numerator} of {denominator} rsvd"
+  used: "{numerator} of {denominator} used"
   version: Kubernetes Version
+  nodes:
+    worker:
+      label: Worker Nodes
+    etcd:
+      label: Etcd Nodes
+    controlPlane:
+      label: Control Plane Nodes
 
 sortableTable:
+  noRows: "There are no rows to show."
+  noData: "There are no rows which match your search query."
   paging:
     generic: |
       {pages, plural,
