@@ -538,7 +538,7 @@ export const getters = {
         out = state.headers[schema.id];
       } else {
         // Make one up from schema
-        const out = [STATE]; // Everybody gets a state
+        out = [STATE]; // Everybody gets a state
 
         const attributes = schema.attributes || {};
         const columns = attributes.columns || [];
