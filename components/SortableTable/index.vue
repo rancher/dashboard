@@ -415,7 +415,14 @@ export default {
                 >
                   <td :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'" :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}">
                     <slot :name="'cell:' + col.name" :row="row" :col="col">
-                      <component :is="col.formatter" v-if="col.formatter" :value="valueFor(row,col)" :row="row" :col="col" />
+                      <component
+                        :is="col.formatter"
+                        v-if="col.formatter"
+                        :value="valueFor(row,col)"
+                        :row="row"
+                        :col="col"
+                        :opts="col.formatterOpts"
+                      />
                       <template v-else>
                         {{ valueFor(row,col) }}
                       </template>

@@ -2,6 +2,7 @@
 import { debounce } from 'lodash';
 import Group from '@/components/nav/Group';
 import { isMac } from '@/utils/platform';
+import { BOTH, ALL } from '@/store/type-map';
 
 export default {
   components: { Group },
@@ -77,7 +78,7 @@ export default {
       }
 
       const allTypes = this.$store.getters['type-map/allTypes']() || {};
-      const out = this.$store.getters['type-map/getTree']('all', allTypes, clusterId, namespaces, null, this.value);
+      const out = this.$store.getters['type-map/getTree'](ALL, allTypes, clusterId, BOTH, namespaces, null, this.value);
 
       this.groups = out;
     },

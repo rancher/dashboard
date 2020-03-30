@@ -1,5 +1,8 @@
 <script>
 import Favorite from '@/components/nav/Favorite';
+import { BASIC, FAVORITE, USED } from '@/store/type-map';
+
+const showFavoritesFor = [BASIC, FAVORITE, USED];
 
 export default {
 
@@ -20,7 +23,7 @@ export default {
 
   computed: {
     showFavorite() {
-      return (this.type.mode === 'favorite' || this.type.mode === 'recent') && this.near;
+      return ( showFavoritesFor.includes(this.type.mode) && this.near );
     },
 
     showCount() {

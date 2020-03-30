@@ -79,6 +79,16 @@ import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
 import { FAVORITE_TYPES, RECENT_TYPES, EXPANDED_GROUPS } from '@/store/prefs';
 import { normalizeType } from '@/plugins/steve/normalize';
 
+export const NAMESPACED = 'namespaced';
+export const CLUSTER_LEVEL = 'cluster';
+export const BOTH = 'both';
+
+export const ALL = 'all';
+export const BASIC = 'basic';
+export const RECENT = 'recent';
+export const FAVORITE = 'favorite';
+export const USED = 'used';
+
 export function DSL(store, module = 'type-map') {
   return {
     basicType(types) {
@@ -269,9 +279,10 @@ export const getters = {
   },
 
   getTree(state, getters, rootState, rootGetters) {
-    return (mode, allTypes, clusterId, namespaces, currentType, search) => {
+    return (mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
       // modes: basic, used, all, recent, favorite
-      // null namespaces means all, otherwise it will be an array of namespaces to include
+      // namespaceMode: 'namespaced', 'cluster', or 'both'
+      // nsamespaces: null means all, otherwise it will be an array of specific namespaces to include
 
       let searchRegex;
 
@@ -290,17 +301,23 @@ export const getters = {
         }
 
         const namespaced = typeObj.namespaced;
+
+        if ( (namespaceMode === NAMESPACED && !namespaced ) || (namespaceMode === CLUSTER_LEVEL && namespaced) ) {
+          // Skip types that are not the right namespace mode
+          continue;
+        }
+
         const count = _matchingCounts(typeObj, namespaces);
 
         if ( typeObj.id === currentType ) {
           // If this is the type currently being shown, always show it
-        } else if ( mode === 'basic' && !getters.isBasic(typeObj.name) ) {
+        } else if ( mode === BASIC && !getters.isBasic(typeObj.name) ) {
           // If we want the basic tree only return basic types;
           continue;
-        } else if ( mode === 'used' && getters.isBasic(typeObj.name) ) {
+        } else if ( mode === USED && getters.isBasic(typeObj.name) ) {
           // If we want the used tree ignore basic types;
           continue;
-        } else if ( mode === 'used' && count <= 0 ) {
+        } else if ( mode === USED && count <= 0 ) {
           // If there's none of this type, ignore this entry when viewing only in-use types
           // Note: count is sometimes null, which is <= 0.
           continue;
@@ -316,17 +333,17 @@ export const getters = {
 
         let group;
 
-        if ( mode === 'basic' ) {
+        if ( mode === BASIC ) {
           if ( typeObj.group && typeObj.group.includes('::') ) {
             group = _ensureGroup(root, typeObj.group);
           } else {
             group = _ensureGroup(root, 'Cluster');
           }
-        } else if ( mode === 'recent' ) {
+        } else if ( mode === RECENT ) {
           group = _ensureGroup(root, 'Recent');
-        } else if ( mode === 'favorite' ) {
+        } else if ( mode === FAVORITE ) {
           group = _ensureGroup(root, 'Starred');
-        } else if ( mode === 'used' ) {
+        } else if ( mode === USED ) {
           group = _ensureGroup(root, `In-Use::${ getters.groupLabelFor(typeObj.schema) }`);
         } else {
           group = _ensureGroup(root, typeObj.schema || typeObj.group );
@@ -426,7 +443,7 @@ export const getters = {
   },
 
   allTypes(state, getters, rootState, rootGetters) {
-    return (mode = 'all') => {
+    return (mode = ALL) => {
       const schemas = rootGetters['cluster/all'](SCHEMA);
       const counts = rootGetters['cluster/all'](COUNT)[0].counts;
       const out = {};
@@ -441,11 +458,11 @@ export const getters = {
         if ( !attrs.kind ) {
           // Skip the schemas that aren't top-level types
           continue;
-        } else if ( mode === 'basic' && !getters.isBasic(schema.id) ) {
+        } else if ( mode === BASIC && !getters.isBasic(schema.id) ) {
           continue;
-        } else if ( mode === 'favorite' && !getters.isFavorite(schema.id) ) {
+        } else if ( mode === FAVORITE && !getters.isFavorite(schema.id) ) {
           continue;
-        } else if ( mode === 'recent' ) {
+        } else if ( mode === RECENT ) {
           weight = getters.recentWeight(schema.id);
           recentWeight = weight;
 
@@ -469,7 +486,7 @@ export const getters = {
       }
 
       // Add virtual types
-      if ( mode !== 'used' ) {
+      if ( mode !== USED ) {
         const isRancher = rootGetters.isRancher;
 
         for ( const vt of state.virtualTypes ) {
@@ -486,11 +503,11 @@ export const getters = {
             continue;
           }
 
-          if ( mode === 'basic' && !getters.isBasic(id) ) {
+          if ( mode === BASIC && !getters.isBasic(id) ) {
             continue;
-          } else if ( mode === 'favorite' && !getters.isFavorite(id) ) {
+          } else if ( mode === FAVORITE && !getters.isFavorite(id) ) {
             continue;
-          } else if ( mode === 'recent' ) {
+          } else if ( mode === RECENT ) {
             weight = getters.recentWeight(id);
             recentWeight = weight;
 
@@ -514,56 +531,58 @@ export const getters = {
 
   headersFor(state) {
     return (schema) => {
+      let out;
+
       // A specific list has been provided
       if ( state.headers[schema.id] ) {
-        return state.headers[schema.id];
-      }
+        out = state.headers[schema.id];
+      } else {
+        // Make one up from schema
+        const out = [STATE]; // Everybody gets a state
 
-      // Make one up from schema
-      const out = [STATE]; // Everybody gets a state
+        const attributes = schema.attributes || {};
+        const columns = attributes.columns || [];
+        const namespaced = attributes.namespaced || false;
 
-      const attributes = schema.attributes || {};
-      const columns = attributes.columns || [];
-      const namespaced = attributes.namespaced || false;
+        let hasName = false;
 
-      let hasName = false;
+        for ( const col of columns ) {
+          if ( col.format === 'name' ) {
+            hasName = true;
+            out.push(namespaced ? NAMESPACE_NAME : NAME);
+          } else {
+            let formatter, width;
 
-      for ( const col of columns ) {
-        if ( col.format === 'name' ) {
-          hasName = true;
-          out.push(namespaced ? NAMESPACE_NAME : NAME);
-        } else {
-          let formatter, width;
+            if ( col.format === '' && col.name === 'Age' ) {
+              out.push(AGE);
+              continue;
+            }
 
-          if ( col.format === '' && col.name === 'Age' ) {
-            out.push(AGE);
-            continue;
+            if ( col.format === 'date' || col.type === 'date' ) {
+              formatter = 'Date';
+              width = 120;
+            }
+
+            out.push({
+              name:  col.name.toLowerCase(),
+              label: col.name,
+              value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
+              sort:  [col.field],
+              formatter,
+              width,
+            });
           }
-
-          if ( col.format === 'date' || col.type === 'date' ) {
-            formatter = 'Date';
-            width = 120;
-          }
-
-          out.push({
-            name:  col.name.toLowerCase(),
-            label: col.name,
-            value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
-            sort:  [col.field],
-            formatter,
-            width,
-          });
         }
-      }
 
-      if ( !hasName ) {
-        out.unshift(namespaced ? NAMESPACE_NAME : NAME);
-      }
+        if ( !hasName ) {
+          out.unshift(namespaced ? NAMESPACE_NAME : NAME);
+        }
 
-      // Age always goes last
-      if ( out.includes(AGE) ) {
-        removeObject(out, AGE);
-        out.push(AGE);
+        // Age always goes last
+        if ( out.includes(AGE) ) {
+          removeObject(out, AGE);
+          out.push(AGE);
+        }
       }
 
       // If all columns have a width, try to remove it from a column that can be variable (name)
@@ -877,7 +896,7 @@ export const actions = {
 function _sortGroup(tree, mode) {
   const by = ['namespaced', 'weight:desc', 'label'];
 
-  if ( mode === 'recent' ) {
+  if ( mode === RECENT ) {
     removeObject(by, 'namespaced');
   }
 

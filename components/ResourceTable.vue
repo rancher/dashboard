@@ -135,39 +135,31 @@ export default {
       };
     },
   },
-
-  methods: {
-    setGroup(group) {
-      this.group = group;
-    },
-  },
 };
 </script>
 
 <template>
-  <div>
-    <SortableTable
-      v-bind="$attrs"
-      :headers="_headers"
-      :rows="filteredRows"
-      :group-by="groupBy"
-      :search="search"
-      :paging="true"
-      :paging-params="pagingParams"
-      paging-label="sortableTable.paging.resource"
-      :table-actions="tableActions"
-      key-field="_key"
-      v-on="$listeners"
-    >
-      <template v-if="groupable && showGroups" #header-middle>
-        <slot name="more-header-middle" />
-        <ButtonGroup v-model="group" :options="groupOptions" />
-      </template>
+  <SortableTable
+    v-bind="$attrs"
+    :headers="_headers"
+    :rows="filteredRows"
+    :group-by="groupBy"
+    :search="search"
+    :paging="true"
+    :paging-params="pagingParams"
+    paging-label="sortableTable.paging.resource"
+    :table-actions="tableActions"
+    key-field="_key"
+    v-on="$listeners"
+  >
+    <template v-if="groupable && showGroups" #header-middle>
+      <slot name="more-header-middle" />
+      <ButtonGroup v-model="group" :options="groupOptions" />
+    </template>
 
-      <!-- Pass down templates provided by the caller -->
-      <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
-        <slot :name="slot" v-bind="scope" />
-      </template>
-    </SortableTable>
-  </div>
+    <!-- Pass down templates provided by the caller -->
+    <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+      <slot :name="slot" v-bind="scope" />
+    </template>
+  </SortableTable>
 </template>

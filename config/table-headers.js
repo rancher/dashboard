@@ -21,51 +21,47 @@ export const NAME = {
 };
 
 export const NAME_UNLINKED = {
-  name:      'name',
-  label:     'Name',
-  value:     'nameDisplay',
-  sort:      ['nameSort'],
+  name:          'name',
+  label:         'Name',
+  value:         'nameDisplay',
+  sort:          ['nameSort'],
+  canBeVariable: true,
 };
 
 export const NAMESPACE_NAME_UNLINKED = {
-  name:      'name',
-  label:     'Name',
-  value:     'namespacedName',
-  sort:      ['namespacedNameSort'],
+  name:          'name',
+  label:         'Name',
+  value:         'namespacedName',
+  sort:          ['namespacedNameSort'],
+  canBeVariable: true,
 };
 
 export const NAMESPACE_NAME = {
-  name:      'name',
-  label:     'Name',
-  value:     'namespacedName',
-  sort:      ['namespacedNameSort'],
-  formatter: 'LinkDetail',
+  name:          'name',
+  label:         'Name',
+  value:         'namespacedName',
+  sort:          ['namespacedNameSort'],
+  formatter:     'LinkDetail',
+  canBeVariable: true,
 };
 
 export const NAMESPACE_NAME_IMAGE = {
-  name:      'name',
-  label:     'Name',
-  value:     'namespacedName',
-  sort:      ['namespacedNameSort'],
-  formatter: 'LinkDetailImage',
+  name:          'name',
+  label:         'Name',
+  value:         'namespacedName',
+  sort:          ['namespacedNameSort'],
+  formatter:     'LinkDetailImage',
+  canBeVariable: true,
 };
 
 export const NAME_IMAGE = {
-  name:      'name',
-  label:     'Name',
-  value:     'nameDisplay',
-  sort:      ['nameSort'],
-  formatter: 'LinkDetailImage',
+  name:          'name',
+  label:         'Name',
+  value:         'nameDisplay',
+  sort:          ['nameSort'],
+  formatter:     'LinkDetailImage',
+  canBeVariable: true,
 };
-
-/*
-export const NAMESPACE = {
-  name:   'namespace',
-  label:  'Namespace',
-  value:  'metadata.namespace',
-  sort:   ['metadata.namespace', 'nameSort'],
-};
-*/
 
 export const NODE = {
   name:      'node',

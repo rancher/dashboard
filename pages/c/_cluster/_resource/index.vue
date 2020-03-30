@@ -7,17 +7,20 @@ export default {
   components: { ResourceTable, Favorite },
 
   data() {
-    let listComponent;
-
-    if ( this.hasListComponent ) {
-      listComponent = this.$store.getters['type-map/importList'](this.resource);
-    }
-
     const params = { ...this.$route.params };
+    const resource = params.resource;
 
     const formRoute = this.$router.resolve({ name: `${ this.$route.name }-create`, params }).href;
 
     const query = { [EDIT_YAML]: _FLAGGED };
+
+    const hasListComponent = this.$store.getters['type-map/hasCustomList'](resource);
+    const hasEditComponent = this.$store.getters['type-map/hasCustomEdit'](resource);
+    let listComponent;
+
+    if ( hasListComponent ) {
+      listComponent = this.$store.getters['type-map/importList'](resource);
+    }
 
     const yamlRoute = this.$router.resolve({
       name: `${ this.$route.name }-create`,
@@ -26,11 +29,13 @@ export default {
     }).href;
 
     return {
+      hasListComponent,
+      hasEditComponent,
+      listComponent,
       formRoute,
       yamlRoute,
-      listComponent,
       EDIT_YAML,
-      FLAGGED:       _FLAGGED
+      FLAGGED: _FLAGGED
     };
   },
 
@@ -40,15 +45,12 @@ export default {
     },
 
     headers() {
+      if ( this.hasListComponent ) {
+        // Custom lists figure out their own headers
+        return [];
+      }
+
       return this.$store.getters['type-map/headersFor'](this.schema);
-    },
-
-    hasEditComponent() {
-      return this.$store.getters['type-map/hasCustomEdit'](this.resource);
-    },
-
-    hasListComponent() {
-      return this.$store.getters['type-map/hasCustomList'](this.resource);
     },
 
     typeDisplay() {

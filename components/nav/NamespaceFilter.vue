@@ -1,4 +1,5 @@
 <script>
+import { BOTH } from '../../store/type-map';
 import { NAMESPACE_FILTERS } from '@/store/prefs';
 import { NAMESPACE, EXTERNAL } from '@/config/types';
 import { sortBy } from '@/utils/sort';
@@ -32,16 +33,34 @@ export default {
 
       const out = [
         {
-          id:    'all',
-          kind:  'special',
-          label: t('nav.ns.all'),
+          id:       'all',
+          kind:     'special',
+          label:    t('nav.ns.all'),
+          disabled: this.$store.getters['isAllNamespaces'],
         },
         {
-          id:    'all://system',
-          kind:   'special',
-          label:  t('nav.ns.system'),
+          id:       'all://system',
+          kind:     'special',
+          label:    t('nav.ns.system'),
+          disabled: this.$store.getters['isAllNamespaces'],
         },
       ];
+
+      divider();
+
+      out.push({
+        id:       'namespaced://true',
+        kind:     'special',
+        label:    t('nav.ns.namespaced'),
+        disabled: this.$store.getters['namespaceMode'] !== BOTH,
+      });
+
+      out.push({
+        id:       'namespaced://false',
+        kind:     'special',
+        label:    t('nav.ns.clusterLevel'),
+        disabled: this.$store.getters['namespaceMode'] !== BOTH,
+      });
 
       divider();
 

@@ -8,8 +8,10 @@ header:
 nav:
   ns:
     all: All Namespaces
-    user: All User Nanmespaces
+    user: All User Namespaces
     system: All System Namespaces
+    clusterLevel: Cluster-Level Resources
+    namespaced: Namespaced Resources
     project: "Project: {name}"
     namespace: "{name}"
     orphan: "Not in a Project"
@@ -58,3 +60,8 @@ sortableTable:
       =0 {No Workloads}
       =1 {{count} {count, plural, =1 {Workload} other {Workloads}}}
       other {{from} - {to} of {count} Workloads}}
+
+model:
+  namespace:
+    project: "Project: {name}"
+    notInAProject: "Not in a Project"

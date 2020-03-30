@@ -74,10 +74,14 @@ export default {
   <div>
     <h1>Preferences</h1>
 
-    <h4 class="mb-10">Theme</h4>
+    <h4 class="mb-10">
+      Theme
+    </h4>
     <ButtonGroup v-model="theme" :options="themeOptions" />
 
-    <h4 class="mb-10">Formatting</h4>
+    <h4 class="mb-10">
+      Formatting
+    </h4>
     <div class="row">
       <div class="col span-3">
         <LabeledSelect
@@ -108,10 +112,14 @@ export default {
       </div>
     </div>
 
-    <h4 class="mb-10">YAML Editor Mode</h4>
+    <h4 class="mb-10">
+      YAML Editor Mode
+    </h4>
     <ButtonGroup v-model="keymap" :options="keymapOptions" />
 
-    <h4 class="mb-10">Advanced</h4>
+    <h4 class="mb-10">
+      Advanced
+    </h4>
     <label><input v-model="dev" type="checkbox"> Enable Developer Tools</label>
   </div>
 </template>
