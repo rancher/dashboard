@@ -24,14 +24,22 @@ export default {
   },
 
   project() {
-    return () => {
-      if ( !this.projectId || !this.$rootGetters['isRancher'] ) {
-        return null;
-      }
+    if ( !this.projectId || !this.$rootGetters['isRancher'] ) {
+      return null;
+    }
 
-      const project = this.$rootGetters['clusterExternal/byId'](EXTERNAL.PROJECT, this.projectId);
+    const project = this.$rootGetters['clusterExternal/byId'](EXTERNAL.PROJECT, this.projectId);
 
-      return project;
-    };
+    return project;
+  },
+
+  projectNameDisplay() {
+    const name = this.project?.nameDisplay;
+
+    if ( name ) {
+      return this.$rootGetters['i18n/t']('model.namespace.project', { name });
+    } else {
+      return this.$rootGetters['i18n/t']('model.namespace.notInAProject');
+    }
   }
 };

@@ -12,7 +12,7 @@ import {
   NODE_NAME, ROLES,
   VERSION, CPU,
   RAM, PODS,
-  BUILT_IN, CLUSTER_CREATOR_DEFAULT, INGRESS_TARGET
+  BUILT_IN, CLUSTER_CREATOR_DEFAULT, INGRESS_TARGET,
 } from '@/config/table-headers';
 
 import { DSL } from '@/store/type-map';
@@ -77,12 +77,13 @@ export default function(store) {
   mapGroup(/^(.*\.)?tekton\.dev$/, 'Tekton');
   mapGroup(/^(.*\.)?rio\.cattle\.io$/, 'Rio');
   mapGroup(/^(.*\.)?longhorn\.rancher\.io$/, 'Longhorn');
-  mapGroup(/^(.*\.)?cattle\.io$/, 'Rancher');
+  mapGroup(/^(.*\.)?fleet\.cattle\.io$/, 'Fleet');
+  mapGroup(/^(.*\.)?k3s\.cattle\.io$/, 'k3s');
+  mapGroup(/^(project|management)\.cattle\.io$/, 'Rancher');
   mapGroup(/^(.*\.)?istio\.io$/, 'Istio');
   mapGroup(/^(.*\.)?knative\.io$/, 'Knative');
 
   headers(CONFIG_MAP, [STATE, NAMESPACE_NAME, KEYS, AGE]);
-  headers(NAMESPACE, [STATE, NAME, AGE]);
   headers(NODE, [STATE, NODE_NAME, ROLES, VERSION, CPU, RAM, PODS]);
   headers(SECRET, [
     STATE,
@@ -230,7 +231,7 @@ export default function(store) {
   });
 
   virtualType({
-    label:      'Constraints',
+    label:      'Constraint',
     namespaced: false,
     name:       'gatekeeper-constraints',
     group:      'Cluster::OPA Gatekeeper',
@@ -239,7 +240,7 @@ export default function(store) {
   });
 
   virtualType({
-    label:      'Templates',
+    label:      'Template',
     namespaced: false,
     name:       'gatekeeper-templates',
     group:      'Cluster::OPA Gatekeeper',

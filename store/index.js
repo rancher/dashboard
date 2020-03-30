@@ -7,15 +7,16 @@ import { allHash } from '@/utils/promise';
 import { ClusterNotFoundError, ApiError } from '@/utils/error';
 import { sortBy } from '@/utils/sort';
 import { filterBy } from '@/utils/array';
+import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
 
 // disables stict mode for all store instances to prevent mutation errors
 export const strict = false;
 
 export const plugins = [
+  Steve({ namespace: 'clusterExternal', baseUrl: '' }), // project scoped cluster stuff
   Steve({ namespace: 'management', baseUrl: '/v1' }),
   Steve({ namespace: 'cluster', baseUrl: '' }),
   Steve({ namespace: 'rancher', baseUrl: '/v3' }),
-  Steve({ namespace: 'clusterExternal', baseUrl: '' }), // project scoped cluster stuff
 ];
 
 export const state = () => {
@@ -72,9 +73,22 @@ export const getters = {
     return !filters[0].startsWith('ns://');
   },
 
+  namespaceMode(state) {
+    const filters = state.namespaceFilters;
+
+    if ( filters.includes('namespaced://true') ) {
+      return NAMESPACED;
+    } else if ( filters.includes('namespaced://false') ) {
+      return CLUSTER_LEVEL;
+    }
+
+    return BOTH;
+  },
+
   namespaces(state, getters) {
     return () => {
-      const filters = state.namespaceFilters;
+      const filters = state.namespaceFilters.filter(x => !x.startsWith('namespaced://'));
+
       const namespaces = getters['cluster/all'](NAMESPACE);
 
       const includeAll = filters.includes('all');

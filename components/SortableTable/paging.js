@@ -4,13 +4,17 @@ import { PAGE } from '@/config/query-params';
 export default {
   computed: {
     perPage() {
-      let out = this.rowsPerPage;
+      let out = this.rowsPerPage || 0;
 
       if ( out <= 0 ) {
-        out = parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10);
+        out = parseInt(this.$route.query.limit, 10) || 0;
       }
 
-      // This should never happen, but if the preference value is invalid, return something
+      if ( out <= 0 ) {
+        out = parseInt(this.$store.getters['prefs/get'](ROWS_PER_PAGE), 10) || 0;
+      }
+
+      // This should ideally never happen, but the preference value could be invalid, so return something...
       if ( out <= 0 ) {
         out = 10;
       }

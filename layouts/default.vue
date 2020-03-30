@@ -1,6 +1,7 @@
 <script>
 import { debounce } from 'lodash';
 import { mapState } from 'vuex';
+import { addObjects } from '../utils/array';
 import {
   mapPref, DEV, THEME, EXPANDED_GROUPS, RECENT_TYPES, FAVORITE_TYPES
 } from '@/store/prefs';
@@ -14,6 +15,7 @@ import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Footer from '@/components/nav/Footer';
 import { COUNT, NORMAN, SCHEMA } from '@/config/types';
+import { BASIC, FAVORITE, USED } from '@/store/type-map';
 
 export default {
 
@@ -137,22 +139,17 @@ export default {
         namespaces = Object.keys(this.namespaces);
       }
 
-      const basicTypes = this.$store.getters['type-map/allTypes']('basic') || {};
-      // const recentTypes = this.$store.getters['type-map/allTypes']('recent') || {};
-      const favoriteTypes = this.$store.getters['type-map/allTypes']('favorite') || {};
-      const usedTypes = this.$store.getters['type-map/allTypes']('used') || {};
+      const namespaceMode = this.$store.getters['namespaceMode'];
+      const out = [];
 
-      const basic = this.$store.getters['type-map/getTree']('basic', basicTypes, clusterId, namespaces, currentType);
-      // const recent = this.$store.getters['type-map/getTree']('recent', recentTypes, clusterId, namespaces, currentType);
-      const favorite = this.$store.getters['type-map/getTree']('favorite', favoriteTypes, clusterId, namespaces, currentType);
-      const used = this.$store.getters['type-map/getTree']('used', usedTypes, clusterId, namespaces, currentType);
+      for ( const mode of [BASIC, FAVORITE, USED] ) {
+        const types = this.$store.getters['type-map/allTypes'](mode) || {};
+        const more = this.$store.getters['type-map/getTree'](mode, types, clusterId, namespaceMode, namespaces, currentType);
 
-      this.groups = [
-        ...basic,
-        ...favorite,
-        ...used,
-        // ...recent,
-      ];
+        addObjects(out, more);
+      }
+
+      this.groups = out;
     },
 
     isExpanded(name) {

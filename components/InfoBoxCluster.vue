@@ -85,17 +85,17 @@ export default {
     <div class="col span-3 info-column">
       <div class="info-row">
         <label><t k="infoBoxCluster.provider" /></label>
-        <br/>
+        <br />
         {{ cluster.displayProvider }}
       </div>
       <div class="info-row">
         <label><t k="infoBoxCluster.version" /></label>
-        <br/>
+        <br />
         {{ cluster.kubernetesVersion }}
       </div>
       <div class="info-row">
         <label><t k="infoBoxCluster.created" /></label>
-        <br/>
+        <br />
         <LiveDate :value="cluster.metadata.creationTimestamp" />
       </div>
     </div>
