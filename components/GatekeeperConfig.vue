@@ -327,7 +327,7 @@ export default {
   <div>
     <header>
       <h1>
-        OPA Gatekeeper
+        OPA Gatekeeper <span class="flag">Experimental</span>
       </h1>
       <div v-if="gatekeeperEnabled" class="actions">
         <button ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
@@ -428,6 +428,32 @@ export default {
 </template>
 
 <style lang="scss">
+h1 {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+
+  .flag {
+    background: var(--warning);
+    padding: 2.5px 5px;
+    border-radius: 2px 0 0 2px;
+    font-size: 12px;
+    position: relative;
+    top: -10px;
+
+    &:after {
+      content: "";
+      clip-path: polygon(0% 0%, 100% 0%, 85% 50%, 100% 100%, 0% 100%);
+      background-color: var(--warning);
+      position: absolute;
+      height: 22.5px;
+      width: 55px;
+      right: -15px;
+      bottom: -.5px;
+      z-index: -1;
+    }
+  }
+}
  article {
    font-size: .8em;
    &.info {
