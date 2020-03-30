@@ -3,12 +3,12 @@ import { addParameters } from '@storybook/vue';
 import '!style-loader!css-loader!sass-loader!../assets/styles/app.scss';
 
 addParameters({
-  // default background colors for light and dark themes
-  backgrounds: [
-    { name: 'Dark Theme', value: '#1B1C21', default: true },
-    { name: 'Light Theme', value: '#6C6C76' },
+  layout: 'centered',
+  docs: {
+    inlineStories: true,
+  },
+  themes: [
+    { name: 'Light Theme', class: [ 'theme-light', 'overflow-hidden', 'dashboard-body' ], color: '#FFFFFF', default: true },
+    { name: 'Dark Theme', class: [ 'theme-dark', 'overflow-hidden', 'dashboard-body' ], color: '#1B1C21' },
   ],
-  options: {
-    showRoots: true
-  }
 });

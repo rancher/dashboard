@@ -1,0 +1,26 @@
+import { Meta, Props, Story, Preview } from '@storybook/addon-docs/blocks'
+
+<Meta title='Design Systems' />
+
+# All colors
+
+<Story name='All Colors'>
+  {{
+    components: {},
+    template: `
+    <div class="row">
+    <div class="col span-12">
+    <div><div style="background: #141419; height: 25px; width: 25px;"></div><p>Dark: Sidebar & Block Light: Primary Text</p></div>
+    <div><div style="background: #1B1C21; height: 25px; width: 25px;"></div><p>Dark: Body Background Light: None</p></div>
+    <div><div style="background: #27292E; height: 25px; width: 25px;"></div><p>Dark: Input Fill Light: None</p></div>
+    <div><div style="background: #4A4B52; height: 25px; width: 25px;"></div><p>Dark: Borders & Buttons Light: None</p></div>
+    <div><div style="background: #6C6C76; height: 25px; width: 25px;"></div><p>Dark: Disabled Text Light: Secondary Text</p></div>
+    <div><div style="background: #B6B6C2; height: 25px; width: 25px;"></div><p>Dark: Secondary Text Light: Disabled</p></div>
+    <div><div style="background: #DCDEE7; height: 25px; width: 25px;"></div><p>Dark: None Light: Borders & Buttons</p></div>
+    <div><div style="background: #EEEFF4; height: 25px; width: 25px;"></div><p>Dark: None Light: Input Fill</p></div>
+    <div><div style="background: #F4F5FA; height: 25px; width: 25px;"></div><p>Dark: None Light: Sidebar and Block</p></div>
+    <div><div style="background: #FFFFFF; height: 25px; width: 25px;"></div><p>Dark: Primary Text Light: Body Background</p></div>
+    </div>
+    </div>`
+  }}
+</Story>

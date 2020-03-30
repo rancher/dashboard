@@ -81,15 +81,15 @@
     "@babel/runtime-corejs3": "^7.8.3",
     "@nuxtjs/eslint-config": "^1.1.2",
     "@nuxtjs/eslint-module": "^1.1.0",
-    "@storybook/addon-actions": "^5.3.3",
-    "@storybook/addon-backgrounds": "^5.3.4",
-    "@storybook/addon-centered": "^5.3.4",
-    "@storybook/addon-docs": "^5.3.0-rc.14",
-    "@storybook/addon-links": "^5.3.3",
-    "@storybook/addons": "^5.3.3",
+    "@storybook/addon-actions": "^6.0.0-alpha.30",
+    "@storybook/addon-docs": "^6.0.0-alpha.30",
+    "@storybook/addon-knobs": "^6.0.0-alpha.30",
+    "@storybook/addon-links": "^6.0.0-alpha.30",
+    "@storybook/addons": "^6.0.0-alpha.30",
     "@storybook/preset-scss": "^1.0.2",
-    "@storybook/vue": "^5.3.3",
+    "@storybook/vue": "^6.0.0-alpha.30",
     "@vue/test-utils": "^1.0.0-beta.27",
+    "add": "^2.0.6",
     "ava": "^2.2.0",
     "babel-eslint": "^10.0.1",
     "babel-loader": "^8.0.6",
@@ -108,7 +108,9 @@
     "eslint-plugin-vue": "5.2.3",
     "nodemon": "^2.0.2",
     "nyc": "^15.0.0",
-    "style-loader": "^1.1.2"
+    "storybook-addon-themes": "^5.4.1",
+    "style-loader": "^1.1.2",
+    "yarn": "^1.22.4"
   },
   "ava": {
     "files": [
