@@ -209,7 +209,7 @@ export default {
     },
 
     /**
-     * Gets called when the user selects advanced configuartion
+     * Gets called when the user selects advanced configuration
      *
      */
     openYamlEditor() {
@@ -394,7 +394,7 @@ export default {
         </div>
         <div class="col">
           <h4 class="mb-20">
-            Customize Gatekeeper yaml configuartion.
+            Customize Gatekeeper yaml configuration.
           </h4>
           <button
             type="button"

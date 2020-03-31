@@ -7,10 +7,6 @@ export default {
     }
   },
 
-  data() {
-    return { over: false };
-  },
-
   computed: {
     isFavorite() {
       return this.$store.getters['type-map/isFavorite'](this.resource);
@@ -32,10 +28,8 @@ export default {
 <template>
   <i
     class="favorite icon"
-    :class="{'icon-star-open': !(over ^ isFavorite), 'icon-star': !!(over ^ isFavorite)}"
+    :class="{'icon-star-open': !isFavorite, 'icon-star': isFavorite}"
     @click.stop.prevent="toggle"
-    @mouseenter="over = true"
-    @mouseleave="over = false"
   />
 </template>
 

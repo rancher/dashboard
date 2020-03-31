@@ -1,8 +1,8 @@
 <script>
 import Favorite from '@/components/nav/Favorite';
-import { BASIC, FAVORITE, USED } from '@/store/type-map';
+import { FAVORITE, USED } from '@/store/type-map';
 
-const showFavoritesFor = [BASIC, FAVORITE, USED];
+const showFavoritesFor = [FAVORITE, USED];
 
 export default {
 
