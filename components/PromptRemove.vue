@@ -45,6 +45,20 @@ export default {
       return (type === NAMESPACE || type === RIO.STACK) && this.toRemove.length === 1;
     },
 
+    preventDeletionMessage() {
+      const toRemoveWithWarning = this.toRemove.filter(tr => tr?.preventDeletionMessage);
+
+      if (toRemoveWithWarning.length === 0) {
+        return null;
+      }
+
+      return toRemoveWithWarning[0].preventDeletionMessage;
+    },
+
+    isDeleteDisabled() {
+      return !!this.preventDeletionMessage;
+    },
+
     ...mapState('action-menu', ['showPromptRemove', 'toRemove'])
   },
 
@@ -93,13 +107,14 @@ export default {
           </template>. <span v-if="needsConfirm">Re-enter its name below to confirm:</span>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
-        <span class="text-error"> {{ error }}</span>
+        <span class="text-warning">{{ preventDeletionMessage }}</span>
+        <span class="text-error">{{ error }}</span>
       </div>
       <template slot="actions">
         <button class="btn role-secondary" @click="close">
           Cancel
         </button>
-        <button class="btn bg-error" @click="remove">
+        <button class="btn bg-error" :disabled="isDeleteDisabled" @click="remove">
           Delete
         </button>
       </template>
