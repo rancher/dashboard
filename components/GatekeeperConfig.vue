@@ -434,28 +434,29 @@ export default {
 
 <style lang="scss">
 h1 {
-  display: inline-block;
-  vertical-align: middle;
-  position: relative;
+  // display: inline-block;
+  // vertical-align: middle;
+  // position: relative;
 
   .flag {
+    text-align: center;
+    display: inline-block;
+    vertical-align: middle;
     background: var(--warning);
-    padding: 2.5px 5px;
+    font-size: 10px;
+    padding: 0 0 0 10px;
     border-radius: 2px 0 0 2px;
-    font-size: 12px;
-    position: relative;
-    top: -10px;
 
     &:after {
       content: "";
-      clip-path: polygon(0% 0%, 100% 0%, 85% 50%, 100% 100%, 0% 100%);
-      background-color: var(--warning);
-      position: absolute;
-      height: 22.5px;
-      width: 55px;
-      right: -15px;
-      bottom: -.5px;
-      z-index: -1;
+      display: inline-block;
+      vertical-align: middle;
+      position: relative;
+      right: -10px;
+      height: 100%;
+      border-width: 10px;
+      border-style: solid;
+      border-color: var(--warning) transparent var(--warning) var(--warning);
     }
   }
 }
