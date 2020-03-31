@@ -32,9 +32,19 @@ export default {
     };
   },
 
-  async created() {
-    this.templates = await this.$store.dispatch('cluster/findAll', { type: GATEKEEPER_CONSTRAINT_TEMPLATE });
-  }
+  async asyncData({ store }) {
+    const templates = await store.dispatch('cluster/findAll', { type: GATEKEEPER_CONSTRAINT_TEMPLATE });
+    const constraints = (await Promise.all(templates.map((template) => {
+      const type = `constraints.gatekeeper.sh.${ template.id }`;
+
+      return store.dispatch('cluster/findAll', { type });
+    }))).flat();
+
+    return {
+      templates,
+      constraints,
+    };
+  },
 
 };
 </script>
