@@ -383,8 +383,8 @@ export default {
         <div class="col span-6">
           <h3>Requirements</h3>
           <ul>
-            <li>XXXX CPU Cores</li>
-            <li>XXXX Gb of  Memory </li>
+            <li>0.1 CPU Cores</li>
+            <li>256 MiB of Memory </li>
           </ul>
         </div>
       </div>
