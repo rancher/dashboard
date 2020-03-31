@@ -209,7 +209,7 @@ export default {
     },
 
     /**
-     * Gets called when the user selects advanced configuartion
+     * Gets called when the user selects advanced configuration
      *
      */
     openYamlEditor() {

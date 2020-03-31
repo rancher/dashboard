@@ -4,6 +4,7 @@ import ButtonGroup from '@/components/ButtonGroup';
 import { STATE, NAME, AGE } from '@/config/table-headers';
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import { removeObject } from '@/utils/array';
+import { get } from '@/utils/object';
 
 export default {
   name:       'ListNamespace',
@@ -27,6 +28,8 @@ export default {
   },
 
   computed: {
+    get,
+
     customHeaders() {
       const project = {
         name:          'project',
@@ -37,7 +40,7 @@ export default {
 
       const out = [
         STATE,
-        NAME,
+        { ...NAME, label: 'Namespace Name' },
         project,
         AGE
       ];
@@ -96,6 +99,11 @@ export default {
     <template v-if="groupable" #header-middle>
       <slot name="more-header-middle" />
       <ButtonGroup v-model="group" :options="groupOptions" />
+    </template>
+
+    <template #cell:project="{row, col}">
+      <span v-if="row.project">{{ row.project.nameDisplay }}</span>
+      <span v-else class="text-muted">&ndash;</span>
     </template>
   </SortableTable>
 </template>

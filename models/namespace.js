@@ -41,5 +41,9 @@ export default {
     } else {
       return this.$rootGetters['i18n/t']('model.namespace.notInAProject');
     }
+  },
+
+  projectNameSort() {
+    return this.project?.nameSort || '';
   }
 };
