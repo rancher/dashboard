@@ -348,7 +348,7 @@ export default {
       A {
         line-height: var(--header-height);
         display: block;
-        color: var(--body-text);
+        color: white;
         padding: 0 5px;
         margin-right: 20px;
         text-align: right;

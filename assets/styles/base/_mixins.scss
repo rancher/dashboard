@@ -85,10 +85,8 @@
 
   color: $color;
 
-  &:visited,
-  &:focus,
-  &:hover,
-  &:active {
+  &:hover
+   {
     color: $hover;
   }
 }

@@ -110,7 +110,7 @@ export default {
     left: 0px;
     height: 14px;
     width: 14px;
-    background-color: transparent;
+    background-color: var(--body-bg);
     border-radius: 2px;
     transition: all 0.3s ease-out;
     border: 1px solid var(--border);

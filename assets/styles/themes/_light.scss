@@ -42,7 +42,7 @@ $selected: rgba($primary, .5);
     muted:      $disabled,
     link:       (
       default-text: $link,
-      hover-text:   darken($link, 10%),
+      hover-text:   lighten($link, 30%),
       active-text:  darken($link, 25%),
       default:      transparent,
       hover-bg:     transparent,
@@ -82,7 +82,7 @@ $selected: rgba($primary, .5);
 
   --accent-btn                 : #{rgba($primary, 0.2)};
   --overlay-bg                 : #{rgba($lighter, 0.75)};
-  --shadow                     : #{rgba($lighter, 0.75)};
+  --shadow                     : #{rgba($dark, 0.75)};
 
 
   --dropdown-bg                : #{$lighter};
@@ -90,7 +90,7 @@ $selected: rgba($primary, .5);
   --dropdown-divider           : #{$medium};
   --dropdown-text              : #{$link};
   --dropdown-hover-text        : darken($link, 1%);
-  --dropdown-hover-bg          : var(--primary-bg);
+  --dropdown-hover-bg          : #{$selected};
   --dropdown-active-text       : var(--active-text);
   --dropdown-active-bg         : var(--active-bg);
   --dropdown-disabled-text     : var(--muted);
