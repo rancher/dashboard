@@ -90,7 +90,7 @@ export default {
         if ( this.isCreate ) {
           url = url || this.schema.linkFor('collection');
 
-          if ( this.namespaceSuffixOnCreate ) {
+          if ( this.namespaceSuffixOnCreate && this.value.metadata.namespace ) {
             url += `/${ this.value.metadata.namespace }`;
           }
 
