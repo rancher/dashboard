@@ -390,7 +390,7 @@ export default {
       </div>
       <div>
         <div class="spacer"></div>  
-        <div class="text-center">
+        <div v-if="!showYamlEditor" class="text-center">
           <button
             type="button"
             class="btn role-secondary"
