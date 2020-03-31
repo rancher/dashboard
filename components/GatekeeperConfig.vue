@@ -371,16 +371,35 @@ export default {
       </InfoBox>
     </div>
     <div v-else class="mt-20 mb-20">
-      <article class="col span-12 info">
-        <p>
-          OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes. For more information, visit the <a href="https://www.openpolicyagent.org/docs/latest/kubernetes-introduction/" target="blank">OPA documentation.</a>
-        </p>
-      </article>
-      <div class="row action-group">
-        <div class="col">
-          <h4 class="mb-20">
-            Enable Gatekeeper <span v-if="appVersion">({{ appVersion }}) </span>with defaults.
-          </h4>
+      <div class="row">
+        <div class="col span-6">
+          <h3>Description</h3>
+          <ul>
+            <li>OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes.</li> 
+            <li>You can Customize Gatekeeper’s yaml configuartion or Enable Gatekeeper with defaults.</li>
+            <li>For more information, visit the <a href="https://www.openpolicyagent.org/docs/latest/kubernetes-introduction/" target="blank">OPA documentation.</a></li>
+          </ul>
+        </div>
+        <div class="col span-6">
+          <h3>Requirements</h3>
+          <ul>
+            <li>0.1 CPU Cores</li>
+            <li>256 MiB of Memory </li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="spacer"></div>  
+        <div v-if="!showYamlEditor" class="text-center">
+          <button
+            type="button"
+            class="btn role-secondary"
+            :class="{ disabled: saving }"
+            :disable="saving"
+            @click="openYamlEditor"
+          >
+            Customize
+          </button>
           <AsyncButton
             :mode="mode"
             action-label="Enable"
@@ -391,20 +410,6 @@ export default {
             v-bind="$attrs"
             @click="enable"
           />
-        </div>
-        <div class="col">
-          <h4 class="mb-20">
-            Customize Gatekeeper yaml configuartion.
-          </h4>
-          <button
-            type="button"
-            class="btn bg-primary"
-            :class="{ disabled: saving }"
-            :disable="saving"
-            @click="openYamlEditor"
-          >
-            Customize Configuration
-          </button>
         </div>
       </div>
     </div>
