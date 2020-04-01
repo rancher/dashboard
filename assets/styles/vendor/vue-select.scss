@@ -39,6 +39,7 @@
   text-align: left;
   list-style: none;
   background: var(--dropdown-bg);
+  box-shadow: 0px 8px 16px 0px var(--shadow);
   &::-webkit-scrollbar-thumb {
     background-color: var(--scrollbar-thumb-dropdown) !important;
     border-radius: 4px;

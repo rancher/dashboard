@@ -121,6 +121,7 @@ export default {
     .vs__dropdown-toggle {
         background-color: var(--accent-btn);
         border-color: var(--primary);
+        border-right: solid 2px;
         color: var(--primary) !important;
         height: 100%;
         padding: none;

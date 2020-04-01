@@ -84,7 +84,7 @@ export default {
     left: 0px;
     height: 12px;
     width: 12px;
-    background-color: transparent;
+    background-color: var(--body-bg);
     border-radius: 50%;
     transition: all 0.3s ease-out;
     border: 1px solid var(--border);

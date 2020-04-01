@@ -133,6 +133,6 @@ export default {
     background: var(--box-bg);
     border: solid var(--border) thin;
     padding: 0 10px;
-    box-shadow: var(--shadow)
+    box-shadow: 0px 8px 16px 0px var(--shadow);
   }
 </style>

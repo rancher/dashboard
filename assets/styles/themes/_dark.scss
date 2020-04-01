@@ -36,7 +36,7 @@
     muted:      $disabled,
     link:       (
       default-text: $link,
-      hover-text:   lighten($link, 10%),
+      hover-text:   darken($link, 30%),
       active-text:  lighten($link, 25%),
       default:      transparent,
       hover-bg:     transparent,

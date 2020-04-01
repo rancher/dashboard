@@ -186,6 +186,7 @@ export default {
         line-height: var(--wm-tab-height);
         overflow: hidden;
         text-overflow: ellipsis;
+        margin: 0;
 
         &.active {
           position: relative;
