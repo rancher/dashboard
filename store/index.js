@@ -388,6 +388,7 @@ export const actions = {
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
     dispatch('prefs/loadCookies');
+    dispatch('prefs/loadTheme');
   },
 
   loadingError({ commit, redirect }, err) {

@@ -3,7 +3,7 @@ import { debounce } from 'lodash';
 import { mapState } from 'vuex';
 import { addObjects } from '../utils/array';
 import {
-  mapPref, DEV, THEME, EXPANDED_GROUPS, RECENT_TYPES, FAVORITE_TYPES
+  mapPref, DEV, EXPANDED_GROUPS, RECENT_TYPES, FAVORITE_TYPES
 } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
@@ -162,6 +162,10 @@ export default {
       this.$store.dispatch('i18n/toggleNone');
     },
 
+    toggleTheme() {
+      this.$store.dispatch('prefs/toggleTheme');
+    },
+
     wheresMyDebugger() {
       // vue-shortkey is preventing F8 from passing through to the browser... this works for now.
       // eslint-disable-next-line no-debugger
@@ -170,17 +174,7 @@ export default {
   },
 
   head() {
-    let theme = this.$store.getters['prefs/get'](THEME);
-
-    // Rancher
-    if ( theme.startsWith('ui-') ) {
-      theme = theme.substr(3);
-    }
-
-    // @TODO auto support
-    if ( theme === 'auto' ) {
-      theme = 'dark';
-    }
+    const theme = this.$store.getters['prefs/theme'];
 
     return {
       bodyAttrs: { class: `theme-${ theme } overflow-hidden dashboard-body` },
@@ -272,6 +266,7 @@ export default {
     <ActionMenu />
     <PromptRemove />
     <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
+    <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
     <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger" />
   </div>
 </template>
