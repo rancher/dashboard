@@ -49,7 +49,8 @@ export default {
 
   async asyncData(ctx) {
     const { route, store } = ctx;
-    const { resource, namespace } = ctx.params;
+    const resource = ctx.params.resource;
+    const namespace = ctx.params.namespace || store.getters['defaultNamespace'];
     const schemas = store.getters['cluster/all'](SCHEMA);
     const schema = store.getters['cluster/schemaFor'](resource);
     const data = { type: resource };

@@ -32,11 +32,6 @@ export default {
       type:    Object,
       default: null,
     },
-
-    namespaceSuffixOnCreate: {
-      type:    Boolean,
-      default: false,
-    },
   },
 
   data() {
@@ -51,18 +46,16 @@ export default {
     isCreate() {
       return this.mode === _CREATE;
     },
+
     isEdit() {
       return this.mode === _EDIT;
     },
+
     isView() {
       return this.mode === _VIEW;
     },
 
     schema() {
-      if (this.type) {
-        return this.$store.getters['cluster/schemaFor'](this.type);
-      }
-
       return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
   },
@@ -89,10 +82,6 @@ export default {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
         if ( this.isCreate ) {
           url = url || this.schema.linkFor('collection');
-
-          if ( this.namespaceSuffixOnCreate ) {
-            url += `/${ this.value.metadata.namespace }`;
-          }
 
           // @TODO Better place for this...
           if ( this.value?.metadata?.namespace ) {

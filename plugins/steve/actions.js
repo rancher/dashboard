@@ -41,7 +41,7 @@ export default {
 
       // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
       if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
-        return dispatch('auth/logout', opt.logoutOnError, { root: true });
+        dispatch('auth/logout', opt.logoutOnError, { root: true });
       }
 
       if ( typeof res.data !== 'undefined' ) {

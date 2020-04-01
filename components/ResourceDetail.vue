@@ -192,10 +192,6 @@ export default {
     typeDisplay() {
       return this.$store.getters['type-map/singularLabelFor'](this.schema);
     },
-
-    namespaceSuffixOnCreate() {
-      return this.resource !== NAMESPACE;
-    }
   },
 
   methods: {
@@ -262,7 +258,6 @@ export default {
         :done-params="doneParams"
         :parent-route="doneRoute"
         :parent-params="doneParams"
-        :namespace-suffix-on-create="namespaceSuffixOnCreate"
         :type-label="typeDisplay"
         :mode="mode"
         :value="model"
