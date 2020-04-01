@@ -735,6 +735,7 @@ $divider-height: 1px;
 
   .bulk {
     grid-area: bulk;
+    align-self: center;
 
     BUTTON:not(:last-child) {
       margin-right: 10px;
@@ -744,6 +745,7 @@ $divider-height: 1px;
   .middle {
     grid-area: middle;
     white-space: nowrap;
+    align-self: center;
   }
 
   .search {
