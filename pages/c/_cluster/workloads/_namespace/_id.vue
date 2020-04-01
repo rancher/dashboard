@@ -50,7 +50,7 @@ export default {
         </nuxt-link>{{ obj.id }}
       </h1>
       <!-- <div v-if="isView" class="actions">
-        <button ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
+        <button aria-haspopup="true" aria-expanded="false" rearia-haspopup="true" aria-expanded="false" f="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
           <i class="icon icon-actions" />
         </button>
       </div> -->

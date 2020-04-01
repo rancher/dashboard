@@ -90,10 +90,11 @@ export default {
       <span>
         {{ container.name }}
       </span>
-    </div>
-    <div class="connection-status" :class="{disconnected: !isOpen}">
-      <span v-if="!isOpen">Disconnected</span>
-      <span v-else>Connected</span>
+    
+      <div class="connection-status" :class="{disconnected: !isOpen}">
+        <span v-if="!isOpen">Disconnected</span>
+        <span v-else>Connected</span>
+      </div>
     </div>
     <!-- use bound key here to make the terminal re-render every time container changes -->
     <Terminal
@@ -135,7 +136,9 @@ export default {
     height: 95%;
     margin: auto;
     padding: 10px;
-    background-color: var(--nav-bg);
+    background-color: var(--body-bg);
+    border: solid thin var(--border);
+    border-radius: var(--border-radius);
     & .datestring {
         color: var(--input-label)
       }
@@ -194,10 +197,6 @@ export default {
       top: 10px;
       right: 10px;
     }
-  }
-
-  .label-top{
-    margin: 15px;
   }
 
   .connection-status{
