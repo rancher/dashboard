@@ -195,7 +195,7 @@ export default {
       :metrics="nodeMetrics"
     />
     <div class="row">
-      <div class="col span-6">
+      <div class="col span-6 equal-height">
         <InfoBox>
           <label>
             <t k="clusterIndexPage.sections.nodes.label" />
@@ -212,7 +212,7 @@ export default {
           </div>
         </InfoBox>
       </div>
-      <div class="col span-6">
+      <div class="col span-6 equal-height">
         <InfoBox>
           <label>
             <t k="clusterIndexPage.sections.gatekeeper.label" />

@@ -89,7 +89,7 @@ export default {
 
       ::v-deep .highlight {
         background: var(--diff-ins-bg);
-        color: white;
+        color: var(--body-text);
         padding: 2px;
       }
 

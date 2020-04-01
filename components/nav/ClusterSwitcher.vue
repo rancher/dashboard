@@ -93,7 +93,7 @@ export default {
       margin: 2px;
       user-select: none;
       cursor: default;
-      color: var(--body-text);
+      color: white;
       line-height: calc(var(--header-height) - 10px);
     }
   }

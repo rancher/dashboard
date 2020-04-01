@@ -139,9 +139,8 @@ export default {
       position: relative;
       top: 1px;
       float: left;
-      /* border: 1px solid var(--tabbed-border); */
-      margin-right: 8px;
       border-radius: 3px 3px 0 0;
+      margin: 0 8px 0 0;
 
       A {
         display: block;
