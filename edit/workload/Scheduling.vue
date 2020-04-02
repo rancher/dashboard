@@ -21,14 +21,13 @@ export default {
     },
     mode: { type: String, default: 'edit' }
   },
+
   data() {
     const { affinity = {}, nodeName = '' } = this.value;
     const { nodeAffinity = {} } = affinity;
 
     const required = get(nodeAffinity, 'requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms') || [];
-    let preferred = get(nodeAffinity, 'preferredDuringSchedulingIgnoredDuringExecution') || [];
-
-    preferred = preferred.map(rule => rule.preference);
+    const preferred = get(nodeAffinity, 'preferredDuringSchedulingIgnoredDuringExecution') || [];
 
     let selectNode = false;
 
@@ -40,6 +39,16 @@ export default {
       required, preferred, selectNode, nodeName
     };
   },
+
+  watch: {
+    preferred() {
+      this.update();
+    },
+    required() {
+      this.update();
+    }
+  },
+
   methods: {
     update() {
       const out = {
@@ -47,11 +56,18 @@ export default {
         affinity: {
           nodeAffinity: {
             preferredDuringSchedulingIgnoredDuringExecution: this.preferred.map((rule) => {
-              return { preference: { matchExpressions: rule } };
+              let weight = 1;
+
+              if (!!rule.weight) {
+                weight = rule.weight;
+              }
+              delete rule.weight;
+
+              return { preference: { matchExpressions: [rule] }, weight };
             }),
             requiredDuringSchedulingIgnoredDuringExecution:  {
               nodeSelectorTerms: this.required.map((rule) => {
-                return { matchExpressions: rule };
+                return { matchExpressions: [rule] };
               })
             }
           }
@@ -83,25 +99,19 @@ export default {
     </div>
     <template v-else>
       <div class="row">
-        <!-- <div class="col span-6">
+        <div class="col span-6">
           <h5 class="mb-10">
             Require all of:
           </h5>
-          <Selectors v-model="required" />
-        </div> -->
-        <div class="col span-6">
-          <h5 class="mb-10">
-            Require any of:
-          </h5>
+          <span v-if="mode==='view' && !required.length">n/a </span>
           <Selectors v-model="required" :mode="mode" />
         </div>
-        <!-- </div>
-      <div class="row"> -->
         <div class="col span-6">
           <h5 class="mb-10">
             Prefer any of:
           </h5>
-          <Selectors v-model="preferred" :mode="mode" />
+          <span v-if="mode==='view' && !preferred.length">n/a </span>
+          <Selectors v-else v-model="preferred" is-weighted :mode="mode" />
         </div>
       </div>
     </template>

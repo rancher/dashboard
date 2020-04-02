@@ -177,7 +177,7 @@ export default {
   methods: {
     changeNameNS(e) {
       this.name = e.text;
-      this.value.metadata.namespace = e.selected;
+      this.$set(this.value.metadata, 'namespace', e.selected);
     }
   }
 };

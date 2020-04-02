@@ -88,7 +88,7 @@ export default {
       <slot name="corner" />
     </label>
     <slot name="prefix" />
-    <div>{{ value }}</div>
+    <div>{{ value || 'n/a' }}</div>
   </div>
   <div v-else :class="{'labeled-input': true, raised, focused, [mode]: true}">
     <slot name="label">

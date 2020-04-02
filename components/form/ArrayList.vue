@@ -233,7 +233,7 @@ export default {
             </td>
           </slot>
           <td v-if="showRemove" class="remove">
-            <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
+            <button type="button" class="btn role-link" @click="remove(idx)">
               Remove
               {{ removeLabel }}
             </button>
@@ -241,6 +241,9 @@ export default {
         </tr>
       </tbody>
     </table>
+    <div v-else-if="mode==='view'">
+      n/a
+    </div>
     <div v-if="showAdd || showRead" class="footer">
       <slot v-if="showAdd" name="add">
         <button type="button" class="btn role-tertiary add" @click="add()">
@@ -275,7 +278,6 @@ export default {
   }
 
   .box {
-    background-color: var(--input-bg);
     border-radius: var(--border-radius);
   }
 

@@ -95,20 +95,20 @@ export default {
       <div class="col span-6">
         <UnitInput v-model="completions" :suffix="completions===1 ? 'Time' : 'Times'">
           <template v-slot:label>
-            <span :style="{'color':'var(--input-label)'}">
+            <label :style="{'color':'var(--input-label)'}">
               Completions
               <i v-tooltip="'The number of successfully finished pods the job should be run with.'" class="icon icon-info" style="font-size: 14px" />
-            </span>
+            </label>
           </template>
         </UnitInput>
       </div>
       <div class="col span-6">
         <UnitInput v-model="parallelism" class="col span-6" :suffix="parallelism===1 ? 'Time' : 'Times'">
           <template v-slot:label>
-            <span :style="{'color':'var(--input-label)'}">
+            <label :style="{'color':'var(--input-label)'}">
               Parallelism
               <i v-tooltip="'The maximum number of pods the job should run at any given time.'" class="icon icon-info" style="font-size: 14px" />
-            </span>
+            </label>
           </template>
         </UnitInput>
       </div>
@@ -117,20 +117,20 @@ export default {
       <div class="col span-6">
         <UnitInput v-model="backOffLimit" :suffix="backOffLimit===1 ? 'Time' : 'Times'">
           <template v-slot:label>
-            <span :style="{'color':'var(--input-label)'}">
+            <label :style="{'color':'var(--input-label)'}">
               Back Off Limit
               <i v-tooltip="'The number of retries before marking this job failed.'" class="icon icon-info" style="font-size: 14px" />
-            </span>
+            </label>
           </template>
         </UnitInput>
       </div>
       <div class="col span-6">
         <UnitInput v-model="activeDeadlineSeconds" :suffix="activeDeadlineSeconds===1 ? 'Second' : 'Seconds'">
           <template v-slot:label>
-            <span :style="{'color':'var(--input-label)'}">
+            <label :style="{'color':'var(--input-label)'}">
               Active Deadline
               <i v-tooltip="'The duration that the job may be active before the system tries to terminate it.'" class="icon icon-info" style="font-size: 14px" />
-            </span>
+            </label>
           </template>
         </UnitInput>
       </div>
@@ -140,20 +140,20 @@ export default {
         <div class="col span-6">
           <LabeledInput v-model="successfulJobsHistoryLimit">
             <template v-slot:label>
-              <span :style="{'color':'var(--input-label)'}">
+              <label :style="{'color':'var(--input-label)'}">
                 Successful Job History Limit
                 <i v-tooltip="'The number of successful finished jobs to retain.'" class="icon icon-info" style="font-size: 14px" />
-              </span>
+              </label>
             </template>
           </LabeledInput>
         </div>
         <div class="col span-6">
           <LabeledInput v-model="failedJobsHistoryLimit">
             <template v-slot:label>
-              <span :style="{'color':'var(--input-label)'}">
+              <label :style="{'color':'var(--input-label)'}">
                 Failed Job History Limit
                 <i v-tooltip="'The number of failed finished jobs to retain.'" class="icon icon-info" style="font-size: 14px" />
-              </span>
+              </label>
             </template>
           </LabeledInput>
         </div>

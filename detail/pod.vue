@@ -40,11 +40,11 @@ export default {
         },
         {
           title:   'Pod Restarts',
-          content: this.value.status.containerStatuses[0].restartCount
+          content: (this.value?.status?.containerStatuses || [])[0]?.restartCount
         },
         {
           title:   'Created',
-          content: this.value.metadata.creationTimestamp
+          content: this.value?.metadata?.creationTimestamp
         }
       ];
     },

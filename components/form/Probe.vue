@@ -154,7 +154,7 @@ export default {
 <template>
   <div>
     <div class="title clearfix">
-      <h4>
+      <h4 :style="{'display':'flex'}">
         {{ label }}
         <i v-if="description" v-tooltip="description" class="icon icon-info" style="font-size: 12px" />
       </h4>

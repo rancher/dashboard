@@ -18,11 +18,16 @@ export default {
     indeterminate: {
       type:    Boolean,
       default: false
+    },
+
+    mode: {
+      type:    String,
+      default: 'edit'
     }
   },
   computed: {
     isDisabled() {
-      return (this.disabled );
+      return (this.disabled || this.mode === 'view' );
     }
   },
   methods: {
@@ -36,7 +41,6 @@ export default {
         click.metaKey = event.metaKey;
 
         $(this.$el).trigger(click);
-
         this.$emit('input', !this.value);
       }
     }
@@ -46,6 +50,7 @@ export default {
 
 <template>
   <label
+    v-if="mode!=='view' || !!value"
     class="checkbox-container"
   >
     <label class="checkbox-box">
