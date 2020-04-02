@@ -92,7 +92,7 @@ export default {
   <div @input="update">
     <h5>Node Scheduling</h5>
     <div class="row">
-      <RadioGroup v-model="selectNode" :row="true" :options="[true,false]" :labels="['Run pods on specific node', 'Choose node using scheduling rules']" :mode="mode" />
+      <RadioGroup v-model="selectNode" :options="[true,false]" :labels="['Run pods on specific node', 'Choose node using scheduling rules']" :mode="mode" />
     </div>
     <div v-if="selectNode" class="row">
       <LabeledSelect v-model="nodeName" :options="nodes" :mode="mode" />

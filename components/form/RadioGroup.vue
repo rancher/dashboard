@@ -25,11 +25,6 @@ export default {
       type:    Array,
       default: null
     },
-    // if true, group is displayed with flex:row instead of column
-    row: {
-      type:    Boolean,
-      default: false
-    },
     disabled: {
       type:    Boolean,
       default: false

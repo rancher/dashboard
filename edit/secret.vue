@@ -2,7 +2,7 @@
 import { DOCKER_JSON, OPAQUE, TLS } from '@/models/secret';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { get } from '@/utils/object';
-import { NAMESPACE } from '@/config/types';
+import { NAMESPACE, SECRET } from '@/config/types';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import CreateEditView from '@/mixins/create-edit-view';
 import Footer from '@/components/form/Footer';
@@ -51,6 +51,8 @@ export default {
     }
 
     return {
+      // define 'type' as secret so .save() function uses secret schema instead of looking for subtype schema
+      type:             SECRET,
       types,
       isNamespaced,
       registryAddresses,
@@ -90,12 +92,12 @@ export default {
       }
     },
 
-    type: {
+    secretSubType: {
       get() {
         return this.value._type || OPAQUE;
       },
       set(neu) {
-        this.$set(this.value, '_type', neu.value);
+        this.$set(this.value, '_type', neu);
       }
     },
 
@@ -146,7 +148,7 @@ export default {
     },
 
     isRegistry() {
-      return this.type === DOCKER_JSON;
+      return this.secretSubType === DOCKER_JSON;
     },
 
     needsDockerServer() {
@@ -156,11 +158,11 @@ export default {
 
   methods: {
     saveSecret(buttonCB) {
-      if (this.type === DOCKER_JSON) {
+      if (this.secretSubType === DOCKER_JSON) {
         const data = { '.dockerconfigjson': base64Encode(this.dockerconfigjson) };
 
         this.$set(this.value, 'data', data);
-      } else if (this.type === TLS) {
+      } else if (this.secretSubType === TLS) {
         const data = { 'tls.cert': base64Encode(this.cert), 'tls.key': base64Encode(this.key) };
 
         this.$set(this.value, 'data', data);
@@ -207,12 +209,12 @@ export default {
   <form>
     <NameNsDescription v-model="value" :mode="mode" :extra-columns="['type']">
       <template v-slot:type>
-        <LabeledSelect v-model="type" label="Type" :options="types" />
+        <LabeledSelect v-model="secretSubType" label="Type" :options="types" />
       </template>
     </NameNsDescription>
     <template v-if="isRegistry">
       <div id="registry-type" class="row">
-        Provider: &nbsp; <RadioGroup row :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
+        Provider: &nbsp; <RadioGroup :style="{'display':'flex'}" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row">
         <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" />
@@ -227,7 +229,7 @@ export default {
       </div>
     </template>
 
-    <div v-else-if="type===certificate" class="row">
+    <div v-else-if="secretSubType===certificate" class="row">
       <div class="col span-6">
         <LabeledInput v-model="key" label="Private Key" />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('key')">
