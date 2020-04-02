@@ -330,7 +330,7 @@ export default {
         OPA Gatekeeper <span class="flag">Experimental</span>
       </h1>
       <div v-if="gatekeeperEnabled" class="actions">
-        <button ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
+        <button aria-haspopup="true" ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
           <i class="icon icon-actions" />
         </button>
       </div>

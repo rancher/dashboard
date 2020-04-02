@@ -40,7 +40,7 @@ BODY {
 
 ::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb) !important;
-  border-radius: 4px;
+  border-radius: var(--border-radius);
 }
 
 ::-webkit-scrollbar-track {
