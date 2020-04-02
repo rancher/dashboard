@@ -375,6 +375,7 @@ export const getters = {
           labelDisplay,
           mode:   typeObj.mode,
           count,
+          exact:  typeObj.exact || false,
           namespaced,
           route,
           name:   typeObj.name,

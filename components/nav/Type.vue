@@ -53,6 +53,7 @@ export default {
     :to="type.route"
     tag="li"
     class="child"
+    :exact="type.exact"
   >
     <a
       @mouseenter="setNear(true)"

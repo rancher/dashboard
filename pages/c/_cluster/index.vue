@@ -1,5 +1,5 @@
 <script>
-// import { isEmpty } from 'lodash';
+import { isEmpty } from 'lodash';
 import { get } from '@/utils/object';
 import InfoBoxCluster from '@/components/InfoBoxCluster';
 import InfoBox from '@/components/InfoBox';
@@ -14,7 +14,15 @@ import {
 } from '@/config/table-headers';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { findAllConstraints } from '@/utils/gatekeeper/util';
-import { MANAGEMENT, EVENT, NODE, METRIC } from '@/config/types';
+import {
+  MANAGEMENT,
+  EVENT,
+  NODE,
+  METRIC,
+  EXTERNAL,
+  GATEKEEPER,
+  SYSTEM_PROJECT_LABEL,
+} from '@/config/types';
 import { allHash } from '@/utils/promise';
 
 export default {
@@ -28,7 +36,7 @@ export default {
     const constraintHeaders = [
       NAME,
       {
-        name:  'Violations',
+        name:  'violations',
         label: 'Violations',
         value: 'status.totalViolations',
         sort:  'status.totalViolations',
@@ -37,25 +45,28 @@ export default {
       STATE,
     ];
 
-    const reason = { ...REASON, ...{ width: 100 } };
+    const reason = { ...REASON, ...{ canBeVariable: true } };
+    const message = { ...MESSAGE, ...{ canBeVariable: true } };
     const eventHeaders = [
-      NAMESPACE_NAME,
       reason,
       {
-        name:  'Object',
-        label: 'Object',
-        value: 'involvedObject.kind',
-        sort:  'involvedObject.kind',
-        width: 100
+        name:          'object',
+        label:         'Object',
+        value:         'displayInvolvedObject',
+        sort:          ['involvedObject.kind', 'involvedObject.name'],
+        canBeVariable: true,
+        formatter:     'LinkDetail',
       },
-      MESSAGE,
+      message,
       {
-        name:      'Date',
-        label:     'Date',
-        value:     'lastTimestamp',
-        sort:      'lastTimestamp',
-        formatter: 'Date',
-        width:     125
+        align:         'center',
+        name:          'date',
+        label:         'Date',
+        value:         'lastTimestamp',
+        sort:          'lastTimestamp',
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true },
+        width:         125
       },
     ];
 
@@ -66,16 +77,57 @@ export default {
     ];
 
     return {
-      pollingTimeoutId: null,
+      pollingTimeoutId:  null,
+      gatekeeperEnabled: false,
       constraintHeaders,
       eventHeaders,
       nodeHeaders,
     };
   },
 
+  computed: {
+    filteredNodes() {
+      const allNodes = ( this.nodes || [] ).slice();
+
+      return allNodes.filter(node => !node.state.includes('healthy') && !node.state.includes('active'));
+    },
+    filteredConstraints() {
+      const allConstraints = ( this.constraints || [] ).slice();
+
+      return allConstraints.filter(constraint => constraint.status.totalViolations > 0);
+    },
+  },
+
   async asyncData(ctx) {
     const { route, store } = ctx;
     const id = get(route, 'params.cluster');
+    let gatekeeper = null;
+    let gatekeeperEnabled = false;
+
+    const projects = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT });
+    const targetSystemProject = projects.find(( proj ) => {
+      const labels = proj.metadata?.labels || {};
+
+      if ( labels[SYSTEM_PROJECT_LABEL] === 'true' ) {
+        return true;
+      }
+    });
+
+    if (!isEmpty(targetSystemProject)) {
+      const systemNamespace = targetSystemProject.metadata.name;
+
+      try {
+        gatekeeper = await store.dispatch('clusterExternal/find', {
+          type: EXTERNAL.APP,
+          id:   `${ systemNamespace }/${ GATEKEEPER.APP_ID }`,
+        });
+        if (!isEmpty(gatekeeper)) {
+          gatekeeperEnabled = true;
+        }
+      } catch (err) {
+        gatekeeperEnabled = false;
+      }
+    }
 
     const cluster = await store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id });
 
@@ -86,6 +138,7 @@ export default {
       nodeMetrics:       [],
       pollingErrorCount: 0,
       cluster,
+      gatekeeperEnabled,
     };
   },
 
@@ -102,7 +155,11 @@ export default {
   },
 
   mounted() {
-    this.pollMetrics();
+    const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
+
+    if (schema) {
+      this.pollMetrics();
+    }
   },
 
   methods: {
@@ -132,15 +189,21 @@ export default {
     },
 
     async fetchClusterResources(type, opt = {}) {
-      try {
-        const resources = await this.$store.dispatch('cluster/findAll', { type, opt });
+      const schema = this.$store.getters['cluster/schemaFor'](type);
 
-        return resources;
-      } catch (err) {
-        console.error(`Failed fetching cluster resource ${ type } with error:`, err);
+      if (schema) {
+        try {
+          const resources = await this.$store.dispatch('cluster/findAll', { type, opt });
 
-        return [];
+          return resources;
+        } catch (err) {
+          console.error(`Failed fetching cluster resource ${ type } with error:`, err);
+
+          return [];
+        }
       }
+
+      return [];
     },
 
     async pollMetrics() {
@@ -195,6 +258,7 @@ export default {
     <InfoBoxCluster
       :cluster="cluster"
       :metrics="nodeMetrics"
+      :nodes="nodes"
     />
     <div class="row">
       <div class="col span-6 equal-height">
@@ -204,12 +268,13 @@ export default {
           </label>
           <div class="row mt-10">
             <SortableTable
-              :rows="nodes"
+              :rows="filteredNodes"
               :headers="nodeHeaders"
-              key-field="id"
               :search="false"
               :table-actions="false"
               :row-actions="false"
+              no-rows-key="clusterIndexPage.sections.nodes.noRows"
+              key-field="id"
             />
           </div>
         </InfoBox>
@@ -219,15 +284,36 @@ export default {
           <label>
             <t k="clusterIndexPage.sections.gatekeeper.label" />
           </label>
-          <div class="row mt-10">
-            <SortableTable
-              :rows="constraints"
-              :headers="constraintHeaders"
-              key-field="id"
-              :search="false"
-              :table-actions="false"
-              :row-actions="false"
-            />
+          <div v-if="gatekeeperEnabled">
+            <div class="row mt-10">
+              <SortableTable
+                :rows="filteredConstraints"
+                :headers="constraintHeaders"
+                :search="false"
+                :table-actions="false"
+                :row-actions="false"
+                key-field="id"
+                no-rows-key="clusterIndexPage.sections.gatekeeper.noRows"
+              />
+            </div>
+          </div>
+          <div v-else>
+            <hr class="mt-35 mb-10" />
+            <div class="mt-35 mb-35 text-center">
+              <div>
+                <t k="clusterIndexPage.sections.gatekeeper.disabled" />
+              </div>
+              <n-link
+                :to="{ name: 'c-cluster-gatekeeper' }"
+                role="link"
+                type="button"
+                class="btn role-link"
+              >
+                <a>
+                  <t k="clusterIndexPage.sections.gatekeeper.buttonText" />
+                </a>
+              </n-link>
+            </div>
           </div>
         </InfoBox>
       </div>
@@ -248,6 +334,7 @@ export default {
               :row-actions="false"
               :paging="true"
               :rows-per-page="10"
+              default-sort-by="date"
             />
           </div>
         </InfoBox>

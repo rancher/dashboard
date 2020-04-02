@@ -1,5 +1,5 @@
-export const UNITS = ['', 'K', 'M', 'G', 'T', 'P'];
-export const FRACTIONAL = ['', 'm', 'u', 'n', 'p', 'f']; // milli micro nano pico femto
+export const UNITS = ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y'];
+export const FRACTIONAL = ['', 'm', 'u', 'n', 'p', 'f', 'a', 'z', 'y']; // milli micro nano pico femto
 
 export function formatSi(inValue, {
   increment = 1000,
@@ -14,7 +14,8 @@ export function formatSi(inValue, {
   let val = inValue;
   let exp = startingExponent;
 
-  while ( val >= increment && (exp + 1 < UNITS.length || exp < minExponent ) && (exp < maxExponent)) {
+  // TODO More to think about re: min > max
+  while ( ( val >= increment && exp + 1 < UNITS.length && exp < maxExponent ) || exp < minExponent ) {
     val = val / increment;
     exp++;
   }

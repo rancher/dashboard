@@ -6,14 +6,11 @@ import { formatPercent } from '@/utils/string';
 export default {
   props: {
     /**
-     * A value representing the percentage to be displayed. *Must be a value between 0 and 1*.
+     * A value representing the percentage to be displayed. *Must be a value between 0 and 100*.
      */
     value: {
       type:      Number,
       required:  true,
-      validator: (value) => {
-        return value >= 0 && value <= 1;
-      }
     }
   },
   data() {
@@ -26,7 +23,7 @@ export default {
   },
   methods: {
     getTickBackgroundClass(i) {
-      const valuePercentage = this.value;
+      const valuePercentage = ( this.value / 100 );
       const barPercentage = i / this.NUMBER_OF_TICKS;
 
       if (valuePercentage < barPercentage) {
@@ -58,17 +55,17 @@ export default {
 
 <style lang='scss'>
   .percentage {
-      vertical-align: middle;
+    vertical-align: middle;
   }
   .bar {
-      vertical-align: middle;
-      margin-left: 3px;
+    vertical-align: middle;
+    margin-left: 3px;
     .tick {
-        display: inline-block;
-        overflow: hidden;
-        margin-right: 3px;
-        width: 3px;
-        font-size: 1.2em;
+      display: inline-block;
+      overflow: hidden;
+      margin-right: 3px;
+      width: 3px;
+      font-size: 1.2em;
     }
   }
 </style>

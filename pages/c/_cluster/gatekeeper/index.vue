@@ -1,38 +1,15 @@
 <script>
-import { NAMESPACE, MANAGEMENT, EXTERNAL } from '@/config/types';
+import {
+  NAMESPACE,
+  MANAGEMENT,
+  EXTERNAL,
+  GATEKEEPER,
+  SYSTEM_PROJECT_LABEL,
+} from '@/config/types';
 import GatekeeperConfig from '@/components/GatekeeperConfig';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import InfoBox from '@/components/InfoBox';
 import GatekeeperViolationsTable from '@/components/GatekeeperViolationsTable';
-
-const TEMPLATE_ID = 'cattle-global-data/system-library-rancher-gatekeeper-operator';
-const APP_ID = 'rancher-gatekeeper-operator';
-const CONFIG = `---
-replicas: 1
-auditInterval: 300
-constraintViolationsLimit: 20
-auditFromCache: false
-image:
-  repository: rancher/opa-gatekeeper
-  tag: v3.1.0-beta.7
-  pullPolicy: IfNotPresent
-nodeSelector: {"beta.kubernetes.io/os": "linux"}
-tolerations: []
-resources:
-  limits:
-    cpu: 1000m
-    memory: 512Mi
-  requests:
-    cpu: 100m
-    memory: 256Mi
-global:
-  systemDefaultRegistry: ""
-  kubectl:
-    repository: rancher/istio-kubectl
-    tag: 1.4.6
-`;
-
-const SYSTEM_PROJECT_LABEL = 'authz.management.cattle.io/system-project';
 
 export default {
   components: {
@@ -54,7 +31,7 @@ export default {
     try {
       const template = await store.dispatch('management/find', {
         type: MANAGEMENT.CATALOG_TEMPLATE,
-        id:   TEMPLATE_ID
+        id:   GATEKEEPER.TEMPLATE_ID
       });
 
       if (!template?.id ) {
@@ -91,7 +68,7 @@ export default {
 
       // @TODO externalCluster service doesn't like getting things by ID, so load them all and find it...
       const apps = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.APP });
-      let gatekeeper = apps.find(app => app.id === `${ namespace }/${ APP_ID }`);
+      let gatekeeper = apps.find(app => app.id === `${ namespace }/${ GATEKEEPER.APP_ID }`);
 
       const namespaces = await store.dispatch('cluster/findAll', { type: NAMESPACE });
 
@@ -105,14 +82,14 @@ export default {
           type:       'app',
           metadata:   {
             namespace,
-            name:        APP_ID
+            name:        GATEKEEPER.APP_ID
           },
           spec: {
             projectName:     targetSystemProject.namespacedName,
             externalId:      latestGKVersion.externalId,
             targetNamespace: 'gatekeeper-system',
             timeout:         300,
-            valuesYaml:      CONFIG,
+            valuesYaml:      GATEKEEPER.CONFIG,
           }
         });
       }
@@ -183,12 +160,12 @@ export default {
         type:       'app',
         metadata:   {
           namespace: systemProject.metadata.name,
-          name:      APP_ID
+          name:      GATEKEEPER.APP_ID
         },
         spec: {
           targetNamespace: 'gatekeeper-system',
           timeout:         300,
-          valuesYaml:      CONFIG,
+          valuesYaml:      GATEKEEPER.CONFIG,
           projectName:     systemProject.namespacedName,
           externalId,
         }
