@@ -226,12 +226,6 @@ export default {
     },
 
     saveWorkload(cb) {
-      let url = this.schema.linkFor('collection');
-      const { namespace } = this.metadata;
-      const { group, resource, version } = this.schema.attributes;
-
-      url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/${ version }/namespaces/${ namespace }/${ resource }`;
-
       if (!this.spec.selector && this.type !== WORKLOAD.JOB) {
         this.spec.selector = { matchLabels: this.workloadSelector };
       }
@@ -251,7 +245,7 @@ export default {
       delete this.value.kind;
       this.value.spec = this.spec;
       this.value.metadata = this.metadata;
-      this.save(cb, url);
+      this.save(cb);
     },
   },
 };
