@@ -170,20 +170,20 @@ export default {
       <div class="col span-6">
         <UnitInput v-model="minReadySeconds" :suffix="minReadySeconds == 1 ? 'Second' : 'Seconds'" label="Minimum Ready Time" :mode="mode">
           <template #label>
-            <span :style="{'color':'var(--input-label)'}">
+            <label :style="{'color':'var(--input-label)'}">
               Minimum Ready Time
               <i v-tooltip="'Containers in the pods must be up for at least this long before the pod is considered available.'" class="icon icon-info" style="font-size: 14px" />
-            </span>
+            </label>
           </template>
         </UnitInput>
       </div>
       <div class="col span-6">
         <UnitInput v-model="progressDeadlineSeconds" :suffix="progressDeadlineSeconds == 1 ? 'Second' : 'Seconds'" label="Progress Deadline" :mode="mode">
           <template #label>
-            <span :style="{'color':'var(--input-label)'}">
+            <label :style="{'color':'var(--input-label)'}">
               Progress Deadline
               <i v-tooltip="'How long to wait without seeing progress before marking the deployment as stalled.'" class="icon icon-info" style="font-size: 14px" />
-            </span>
+            </label>
           </template>
         </UnitInput>
       </div>

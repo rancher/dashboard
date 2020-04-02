@@ -29,14 +29,14 @@ TEXTAREA,
       background: var(--input-hover-bg);
     }
 
-    input[type='number'] {
-      padding: 5px 5px 0 0;
-      line-height: 1.15rem;
-      &:hover {
-        padding: 5px 5px 0 0;
-        line-height: 1.15rem;
-      }
-    }
+    // input[type='number'] {
+    //   padding: 5px 5px 0 0;
+    //   line-height: 1.15rem;
+    //   &:hover {
+    //     padding: 5px 5px 0 0;
+    //     line-height: 1.15rem;
+    //   }
+    // }
   }
 
   &.view {

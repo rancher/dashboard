@@ -27,6 +27,7 @@ export default {
     background: var(--box-bg);
     border: solid thin var(--border);
     border-radius: var(--border-radius);
+    justify-content: space-between;
 
     & > * {
         padding: 0 10px;
@@ -34,6 +35,8 @@ export default {
         display: flex;
         flex-direction: column;
         justify-content: center;
+        align-items:center;
+        flex-grow:1;
 
         & >:first-child {
             padding-bottom: 5px;

@@ -319,7 +319,9 @@ export default {
 <template>
   <div>
     <div class="title clearfix">
-      <h4>{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" /></h4>
+      <h4 :style="{'display':'flex'}">
+        {{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" />
+      </h4>
     </div>
 
     <table v-if="rows.length" class="fixed">
@@ -417,6 +419,9 @@ export default {
         </template>
       </tbody>
     </table>
+    <div v-else-if="mode==='view'">
+      n/a
+    </div>
     <div v-if="showAdd || showRead" class="footer">
       <slot v-if="showAdd" name="add">
         <button type="button" class="btn role-tertiary add" @click="add()">

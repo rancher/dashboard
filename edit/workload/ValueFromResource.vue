@@ -236,11 +236,11 @@ export default {
     <div class="col">
       as
     </div>
-    <div>
+    <div class="col span-3">
       <LabeledInput v-model="name" label="Prefix or Alias" :mode="mode" />
     </div>
-    <div class="col">
-      <button type="button" class="btn btn-sm role-link" @click="$emit('input', { value:null })">
+    <div class="col span-1">
+      <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link" @click="$emit('input', { value:null })">
         remove
       </button>
     </div>

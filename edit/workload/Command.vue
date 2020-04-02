@@ -49,13 +49,6 @@ export default {
     } = spec;
     const { limits = {}, requests = {} } = resources;
 
-    // Object.keys(limits).forEach((resource) => {
-    //   limits[resource] = parseSi(limits[resource]);
-    // });
-    // Object.keys(requests).forEach((resource) => {
-    //   requests[resource] = parseSi(requests[resource]);
-    // });
-
     return {
       spec, env, envFrom, limits, requests, securityContext
     };
@@ -125,7 +118,8 @@ export default {
           input.open = true;
         }
       });
-    }
+    },
+
   },
 };
 </script>
@@ -162,9 +156,9 @@ export default {
       </div>
       <div class="col span-6">
         <div>
-          <Checkbox v-model="spec.stdin" :mode="mode" type="checkbox" label="Interactive" />
+          <Checkbox v-model="spec.stdin" :mode="mode" type="checkbox" label="Interactive" @input="update" />
 
-          <Checkbox v-model="spec.tty" :mode="mode" type="checkbox" label="TTY" />
+          <Checkbox v-model="spec.tty" :mode="mode" type="checkbox" label="TTY" @input="update" />
         </div>
       </div>
     </div>
@@ -258,7 +252,7 @@ export default {
       :mode="mode"
       @input="e=>updateRow(i, e.value, e.old)"
     />
-    <button type="button" class="btn role-tertiary add mt-10" @click="addFromReference">
+    <button type="button" class="btn role-tertiary add mt-10" :disabled="mode==='view'" @click="addFromReference">
       Add from Resource
     </button>
   </div>

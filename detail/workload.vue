@@ -2,7 +2,7 @@
 import { get } from '@/utils/object';
 import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
 import { POD, WORKLOAD } from '@/config/types';
-import SortableTable from '@/components/SortableTable';
+import ResourceTable from '@/components/ResourceTable';
 import DetailTop from '@/components/DetailTop';
 import CRUWorkload from '@/edit/workload';
 import Date from '@/components/formatter/Date';
@@ -16,7 +16,7 @@ export default {
     CRUWorkload,
     DetailTop,
     Date,
-    SortableTable,
+    ResourceTable,
     WorkloadPorts,
   },
   mixins:     [LoadDeps],
@@ -68,7 +68,10 @@ export default {
 
     const name = this.value?.metadata?.name || this.value.id;
 
+    const podSchema = this.$store.getters['cluster/schemaFor'](POD);
+
     return {
+      podSchema,
       name,
       volumeHeaders,
       podHeaders,
@@ -248,12 +251,14 @@ export default {
           <h3>
             Pods
           </h3>
-          <SortableTable
+          <ResourceTable
             :rows="pods"
             :headers="podHeaders"
             key-field="id"
             :search="false"
             :table-actions="false"
+            :schema="podSchema"
+            :show-groups="false"
           />
         </div>
       </div>

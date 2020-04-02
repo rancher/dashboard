@@ -398,7 +398,7 @@ export default {
         <template v-for="row in group.rows">
           <slot name="main-row" :row="row">
             <tr :key="get(row,keyField)" class="main-row">
-              <td v-if="tableActions" class="row-check" align="middle">
+              <td v-show="tableActions" class="row-check" align="middle">
                 <Checkbox type="checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
               </td>
               <td v-if="subExpandColumn" class="row-expand" align="middle">

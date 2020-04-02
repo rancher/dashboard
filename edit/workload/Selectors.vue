@@ -9,24 +9,38 @@ export default {
       type:    Array,
       default: () => []
     },
+
     mode: {
       type:    String,
       default: 'edit'
+    },
+
+    isWeighted: {
+      type:    Boolean,
+      default: false
     }
   },
+
   data() {
-    const ops = [{ label: '=', value: '=' }, { label: '<', value: 'lt' }, { label: '>', value: 'gt' }, { label: '≠', value: 'notin' }, { label: 'is set', value: ' ' }, { label: 'is not set', value: '!' }, { label: 'in list', value: 'in' }, { label: 'not in list', value: 'notin' }];
-    const rules = this.value.map(rule => rule.matchExpressions[0]);
+    const ops = [{ label: '<', value: 'Lt' }, { label: '>', value: 'Gt' }, { label: 'is set', value: 'Exists' }, { label: 'is not set', value: 'DoesNotExist' }, { label: 'in list', value: 'In' }, { label: 'not in list', value: 'NotIn' }];
+
+    // if node affinity has weighted rules, the matchExpressions are nested further in 'preference' field
+    const rules = this.isWeighted ? this.value.map((rule) => {
+      return { ...rule.preference.matchExpressions[0], weight: rule.weight };
+    })
+      : this.value.map(rule => rule.matchExpressions[0]);
 
     return {
       ops, rules, custom: []
     };
   },
+
   computed: {
     isView() {
       return this.mode === 'view';
     }
   },
+
   methods: {
     parseRuleString(rule) {
       const all = rule.split(' ');
@@ -57,10 +71,12 @@ export default {
 
     removeRule(idx) {
       this.rules.splice(idx, 1);
+      this.update();
     },
 
     removeCustom(idx) {
       this.custom.splice(idx, 1);
+      this.update();
     },
 
     addRule() {
@@ -76,35 +92,29 @@ export default {
     },
 
     update() {
-      // const out = this.rules.map((rule) => {
-      //   if (!rule.key) {
-      //     return;
-      //   }
-      //   if (rule.op === ' ' || rule.op === '!') {
-      //     return `${ rule.op }${ rule.key }`.trim();
-      //   } else if (rule.op === 'in' || rule.op === 'notin') {
-      //     return `${ rule.key } ${ rule.op } (${ rule.value.trim() })`;
-      //   } else {
-      //     return `${ rule.key } ${ rule.op } ${ rule.value }`;
-      //   }
-      // }).filter(rule => rule);
+      this.$nextTick(() => {
+        const out = [
+          ...this.rules.map((rule) => {
+            const matchExpression = { key: rule.key };
 
-      const out = [
-        ...this.rules.map((rule) => {
-          return {
-            key:      rule.key,
-            operator: rule.operator,
-            values:   [rule.value]
-          };
-        }),
-        ...this.custom.map((rule) => {
-          return {
-            key:      rule,
-            operator: 'exists'
-          };
-        })];
+            if (rule.operator) {
+              matchExpression.operator = rule.operator;
+            }
+            if (rule.values.length && rule.operator !== 'Exists' && rule.operator !== 'DoesNotExist') {
+              matchExpression.values = rule.values;
+            }
 
-      this.$emit('input', out);
+            return matchExpression;
+          }),
+          ...this.custom.map((rule) => {
+            return {
+              key:      rule,
+              operator: 'Exists'
+            };
+          })];
+
+        this.$emit('input', out);
+      });
     }
   }
 };
@@ -117,9 +127,21 @@ export default {
         <div class="col span-4">
           <LabeledInput v-model="rule.key" label="Key" :mode="mode" />
         </div>
-        <LabeledSelect v-model="rule.operator" class="col span-2" :options="ops" :mode="mode" @input="update" />
-        <div class="col span-4">
-          <LabeledInput v-model="rule.values[0]" label="Value" :disabled="rule.op===' '||rule.op==='!'" :mode="mode" />
+        <LabeledSelect
+          id="operator"
+          v-model="rule.operator"
+          class="col span-2"
+          :options="ops"
+          :mode="mode"
+          label="Op"
+          @input="update"
+        />
+        <!-- use conditional rendering here to avoid this v-model breaking the page if rule.values doesn't exist -->
+        <div v-if="rule.operator!=='Exists'&&rule.operator!=='DoesNotExist'" class="col span-4">
+          <LabeledInput v-model="rule.values[0]" label="Value" :mode="mode" />
+        </div>
+        <div v-if="isWeighted" class="col span-2">
+          <LabeledInput v-model="rule.weight" label="Weight" :mode="mode" />
         </div>
         <button
           v-if="!isView"
@@ -129,7 +151,8 @@ export default {
           :disabled="mode==='view'"
           @click="removeRule(i)"
         >
-          REMOVE
+          <!-- REMOVE -->
+          <i class="icon icon-minus icon-lg" />
         </button>
       </div>
     </div>
@@ -145,14 +168,23 @@ export default {
         :disabled="mode==='view'"
         @click="removeCustom(i)"
       >
-        REMOVE
+        <!-- REMOVE -->
+        <i class="icon icon-minus icon-lg" />
       </button>
     </div>
-    <button v-if="!isView" type="button" class="btn role-tertiary add" :disabled="mode==='view'" @click="addRule">
+    <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addRule">
       Add Rule
     </button>
-    <button v-if="!isView" type="button" class="btn role-tertiary add" :disabled="mode==='view'" @click="addCustomRule">
+    <!-- <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addCustomRule">
       Add custom rule
-    </button>
+    </button> -->
   </div>
 </template>
+
+<style lang='scss'>
+  #operator {
+    & .vs__dropdown-option{
+      padding: 3px 6px 3px 6px !important
+    }
+  }
+</style>
