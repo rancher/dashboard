@@ -96,6 +96,10 @@ export default {
 
     > A {
       display: block;
+
+      &:hover {
+        background: red!important;
+      }
     }
   }
 

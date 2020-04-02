@@ -58,6 +58,14 @@
   &:hover {
     cursor: pointer;
   }
+
+  a {
+    display: block;
+
+    &:hover {
+      color: var(--body-text);
+    }
+  }
 }
 
 .vs__dropdown-option--highlight {
@@ -171,8 +179,6 @@ $transition-duration: 150ms;
     border-color: transparent;
   }
   &.vs--open .vs__selected {
-  //   position: absolute;
-    opacity: .4;
   }
   &.vs--searching .vs__selected {
     display: none;

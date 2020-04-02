@@ -66,7 +66,8 @@
   color: contrast-color($background-color, $dark, $light);
 
   &:hover {
-    color: contrast-color($background-color, $dark, $light);
+    text-decoration: underline;
+    color: var(--body-text);
   }
 }
 
@@ -87,7 +88,8 @@
 
   &:hover
    {
-    color: $hover;
+    text-decoration: underline;
+    color: var(--body-text);
   }
 }
 

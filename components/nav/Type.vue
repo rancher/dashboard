@@ -80,6 +80,10 @@ export default {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+
+      &:hover {
+        background: var(--dropdown-hover-bg);
+      }
     }
 
     .label {
