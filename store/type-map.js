@@ -436,7 +436,7 @@ export const getters = {
           }
         }
 
-        label = `<i class="icon icon-fw icon-${ namespaced ? 'folder' : 'globe' }"></i> ${ label }`;
+        label = `<i class="icon icon-fw icon-${ namespaced ? 'folder' : 'globe' }"></i>${ label }`;
 
         return label;
       }

@@ -70,22 +70,6 @@ export default {
 
 <style lang="scss" scoped>
   .child {
-    A {
-      display: grid;
-      grid-template-areas: "label count";
-      grid-template-columns: auto auto;
-      grid-column-gap: 5px;
-      font-size: 12px;
-      padding: 7px 5px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-
-      &:hover {
-        background: var(--dropdown-hover-bg);
-      }
-    }
-
     .label {
       grid-area: label;
       display: block;
@@ -102,6 +86,26 @@ export default {
         position: relative;
         top: -1px;
         color: var(--muted);
+      }
+    }
+
+    A {
+      display: grid;
+      grid-template-areas: "label count";
+      grid-template-columns: auto auto;
+      grid-column-gap: 5px;
+      font-size: 12px;
+      padding: 7px 5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &:hover {
+        background: var(--dropdown-hover-bg);
+        
+        ::v-deep .icon {
+          color: var(--body-text);
+        }
       }
     }
 
