@@ -153,16 +153,16 @@ export default {
       }
     },
 
+    canReplicate() {
+      return (this.type === WORKLOAD.DEPLOYMENT || this.type === WORKLOAD.REPLICA_SET || this.type === WORKLOAD.REPLICATION_CONTROLLER || this.type === WORKLOAD.STATEFUL_SET);
+    },
+
     isJob() {
       return this.type === WORKLOAD.JOB || this.isCronJob;
     },
 
     isCronJob() {
       return this.type === WORKLOAD.CRON_JOB;
-    },
-
-    workloadSelector() {
-      return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.metadata.namespace }-${ this.metadata.name }` };
     },
 
     cronLabel() {
@@ -179,7 +179,12 @@ export default {
       } catch (e) {
         return 'invalid cron expression';
       }
-    }
+    },
+
+    workloadSelector() {
+      return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.metadata.namespace }-${ this.metadata.name }` };
+    },
+
   },
 
   watch: {
@@ -192,6 +197,10 @@ export default {
       const restartPolicy = this.isJob ? 'Never' : 'Always';
 
       this.$set(template.spec, 'restartPolicy', restartPolicy);
+
+      if (!this.canReplicate) {
+        delete this.spec.replicas;
+      }
 
       if (old === WORKLOAD.CRON_JOB) {
         this.$set(this.spec, 'template', { ...template });
@@ -264,11 +273,16 @@ export default {
         <div class="col span-4">
           <LabeledInput v-model="containerImage" label="Container Image" placeholder="eg nginx:latest" required />
         </div>
+        <div class="col span-4" />
         <template v-if="isCronJob">
-          <div class="col span-4" />
           <div class="col span-4">
             <LabeledInput v-model="spec.schedule" label="cron Schedule" />
             <span class="cron-hint text-small">{{ cronLabel }}</span>
+          </div>
+        </template>
+        <template v-if="canReplicate">
+          <div class="col span-4">
+            <LabeledInput v-model.number="spec.replicas" label="Replicas" />
           </div>
         </template>
       </div>
