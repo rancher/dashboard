@@ -24,12 +24,12 @@ export default {
 
 <template>
   <span class="toggle-container">
-    <span class="label" :class="{ active: !state}"> {{ labels[0] }}</span>
+    <span class="label" :class="{ active: !state}">{{ labels[0] }}</span>
     <label class="switch">
       <input type="checkbox" :checked="state" @input="toggle">
       <span class="slider round"></span>
     </label>
-    <span class="label" :class="{ active: state}">  {{ labels[1] }}</span>
+    <span class="label" :class="{ active: state}">{{ labels[1] }}</span>
   </span>
 </template>
 

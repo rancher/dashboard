@@ -71,6 +71,7 @@
 .vs__dropdown-option--highlight {
   color: var(--dropdown-hover-text);
   background: var(--dropdown-hover-bg);
+  text-decoration: underline;
 }
 
 .vs__dropdown-toggle {

@@ -96,10 +96,6 @@ export default {
 
     > A {
       display: block;
-
-      &:hover {
-        background: red!important;
-      }
     }
   }
 
@@ -122,7 +118,7 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 9px 2px 9px 0;
+          padding: 14px 2px 14px 0;
         }
       }
 
