@@ -103,6 +103,22 @@
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$darkest};
 
+  --diff-border                : var(--border);
+  --diff-header-bg             : var(--nav-bg);
+  --diff-header-border         : var(--border);
+  --diff-header                : #{rgba($darkest, 0.3)};
+  --diff-linenum-bg            : var(--nav-bg);
+  --diff-linenum               : var(--muted);
+  --diff-linenum-border        : var(--border);
+  --diff-line-ins-bg           : $success;
+  --diff-line-del-bg           : #{rgba($error, 0.75)};
+  --diff-del-bg                : #{rgba($error, 0.3)};
+  --diff-del-border            : #{$error};
+  --diff-ins-bg                : #{rgba($success, 0.3)};
+  --diff-ins-border            : #{rgba($success, 0.5)};
+  --diff-chg-ins               : #{rgba($success, 0.25)};
+  --diff-chg-del               : #{rgba($warning, 0.5)};
+
   --wm-tabs-bg                 : #{$medium};
   --wm-tab-bg                  : #{$darker};
   --wm-closer-hover-bg         : #{$medium};
