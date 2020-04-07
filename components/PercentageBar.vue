@@ -56,6 +56,7 @@ export default {
 <style lang='scss'>
   .percentage {
     vertical-align: middle;
+    width: 32px;
   }
   .bar {
     vertical-align: middle;
