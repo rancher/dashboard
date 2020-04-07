@@ -1,3 +1,8 @@
+@import "~assets/styles/base/_variables.scss";
+@import "~assets/styles/base/_functions.scss";
+@import "~assets/styles/base/_mixins.scss";
+
 .v--modal-overlay {
     background-color: var(--overlay-bg);
+    z-index: z-index('modalOverlay');
 }
