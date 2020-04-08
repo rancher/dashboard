@@ -2,7 +2,7 @@ import https from 'https';
 import { cloneDeep } from 'lodash';
 import { normalizeType } from './normalize';
 import { proxyFor, SELF } from './resource-proxy';
-import { SCHEMA } from '@/config/types';
+import { SCHEMA, WORKLOAD } from '@/config/types';
 
 export default {
   request({ dispatch }, opt) {
@@ -97,7 +97,6 @@ export default {
     const { getters, commit, dispatch } = ctx;
 
     opt = opt || {};
-
     console.log('Find All', type);
     type = getters.normalizeType(type);
 
