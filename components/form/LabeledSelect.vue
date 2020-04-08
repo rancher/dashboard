@@ -7,6 +7,10 @@ export default {
   mixins: [LabeledFormElement],
 
   props: {
+    value: {
+      type:    String,
+      default: null,
+    },
     options: {
       type:    Array,
       default: null,
@@ -49,12 +53,17 @@ export default {
 
       return this.getOptionLabel(this.value);
     },
-    shownValue() {
-      return this.value ? this.value : ' ';
-    }
   },
 
   methods: {
+    reduce(e) {
+      if ( e && typeof e === 'object' && e.value !== undefined ) {
+        return e.value;
+      }
+
+      return e;
+    },
+
     onFocus() {
       this.onFocusLabeled();
       if ( this.$refs.input ) {
@@ -109,15 +118,15 @@ export default {
       v-else
       ref="input"
       class="inline"
-      v-bind="$attrs"
       :disabled="isView || disabled"
-      :value="shownValue"
+      :value="value"
       :options="options"
       :multiple="multiple"
       :get-option-label="opt=>getOptionLabel(opt)"
       :get-option-key="opt=>optionKey ? get(opt, optionKey) : getOptionLabel(opt)"
       :label="optionLabel"
-      @input="e=>e.value ? $emit('input', e.value) : $emit('input', e) "
+      :reduce="x => reduce(x)"
+      @input="x => $emit('input', reduce(x))"
       @search:focus="searchFocus"
       @search:blur="searchBlur"
       @focus="onFocus"

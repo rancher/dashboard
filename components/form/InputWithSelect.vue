@@ -43,15 +43,25 @@ export default {
   data() {
     return { selected: this.selectValue || this.options[0], string: this.textValue };
   },
+
   watch: {
     selected() {
       this.change();
     }
   },
+
   methods: {
+    focus() {
+      const comp = this.$refs.text;
+
+      if ( comp ) {
+        comp.focus();
+      }
+    },
+
     change() {
       this.$emit('input', { selected: this.selected, text: this.string });
-    }
+    },
   }
 };
 </script>

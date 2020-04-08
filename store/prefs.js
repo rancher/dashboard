@@ -47,7 +47,7 @@ export const FAVORITE_TYPES = create('fav-type', ['secret', 'configmap', 'servic
 export const RECENT_TYPES = create('recent-type', ['serviceaccount'], { parseJSON });
 export const GROUP_RESOURCES = create('group-by', 'namespace');
 export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
-export const THEME = create('theme', 'dark', {
+export const THEME = create('theme', 'auto', {
   options:     ['light', 'auto', 'dark'],
   asCookie,
   parseJSON,

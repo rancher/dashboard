@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
@@ -10,6 +11,7 @@ import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { addParams } from '@/utils/url';
 import { WORKLOAD } from '@/config/types';
+import { DESCRIPTION } from '@/config/labels-annotations';
 
 const REMAP_STATE = { disabled: 'inactive' };
 
@@ -102,16 +104,16 @@ export default {
     };
   },
 
+  typeDisplay() {
+    return this.$store.getters['type-map/singularLabelFor'](this.schema);
+  },
+
   nameDisplay() {
     return this.spec?.displayName || this.metadata?.name || this.id;
   },
 
   nameSort() {
     return sortableNumericSuffix(this.nameDisplay).toLowerCase();
-  },
-
-  typeDisplay() {
-    return this.$store.getters['type-map/singularLabelFor'](this.schema);
   },
 
   namespacedName() {
@@ -127,6 +129,56 @@ export default {
 
   namespacedNameSort() {
     return sortableNumericSuffix(this.namespacedName).toLowerCase();
+  },
+
+  name() {
+    return this.metadata?.name;
+  },
+
+  namespace() {
+    return this.metadata?.namespace;
+  },
+
+  description() {
+    return this.metadata?.annotations?.[DESCRIPTION];
+  },
+
+  setLabel() {
+    return (key, val) => {
+      if ( val ) {
+        if ( !this.metadata ) {
+          this.metadata = {};
+        }
+
+        if ( !this.metadata.labels ) {
+          this.metadata.labels = {};
+        }
+
+        Vue.set(this.metadata.labels, key, val);
+      } else if ( this.metadata?.labels ) {
+        Vue.set(this.metadata.labels, key, undefined);
+        delete this.metadata.labels[key];
+      }
+    };
+  },
+
+  setAnnotation() {
+    return (key, val) => {
+      if ( val ) {
+        if ( !this.metadata ) {
+          this.metadata = {};
+        }
+
+        if ( !this.metadata.annotations ) {
+          this.metadata.annotations = {};
+        }
+
+        Vue.set(this.metadata.annotations, key, val);
+      } else if ( this.metadata?.annotations ) {
+        Vue.set(this.metadata.annotations, key, undefined);
+        delete this.metadata.annotations[key];
+      }
+    };
   },
 
   // You can override the state by providing your own state (and possibly reading metadata.state)

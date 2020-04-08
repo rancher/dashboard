@@ -1,7 +1,7 @@
 <script>
 export default {
   middleware({ redirect } ) {
-    return redirect('/clusters');
+    return redirect({ name: 'clusters' });
   }
 };
 </script>

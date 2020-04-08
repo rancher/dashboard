@@ -1,9 +1,7 @@
 <script>
 import { DOCKER_JSON, OPAQUE, TLS } from '@/models/secret';
 import { base64Encode, base64Decode } from '@/utils/crypto';
-import { get } from '@/utils/object';
 import { NAMESPACE, SECRET } from '@/config/types';
-import { DESCRIPTION } from '@/config/labels-annotations';
 import CreateEditView from '@/mixins/create-edit-view';
 import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
@@ -23,12 +21,14 @@ export default {
     RadioGroup,
     NameNsDescription
   },
+
   mixins:     [CreateEditView],
+
   data() {
     const types = [
       { label: 'Certificate', value: TLS },
       { label: 'Registry', value: DOCKER_JSON },
-      { label: 'Secret', value: OPAQUE },
+      { label: 'Secret (Opaque)', value: OPAQUE },
     ];
     const registryAddresses = [
       'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
@@ -68,49 +68,12 @@ export default {
   },
 
   computed: {
-    certificate() {
-      return TLS;
-    },
-
-    name: {
-      get() {
-        return get(this.value, 'metadata.name');
-      },
-      set(neu) {
-        this.$set(this.value.metadata, 'name', neu);
-      }
-    },
-
-    description: {
-      get() {
-        const { metadata:{ annotations = {} } } = this.value;
-
-        return annotations[DESCRIPTION] || '';
-      },
-      set(neu) {
-        this.$set(this.value.metadata.annotations, DESCRIPTION, neu );
-      }
-    },
-
     secretSubType: {
       get() {
         return this.value._type || OPAQUE;
       },
       set(neu) {
         this.$set(this.value, '_type', neu);
-      }
-    },
-
-    namespace: {
-      get() {
-        if (this.isNamespaced) {
-          return get(this.value, 'metadata.namespace') || 'default';
-        } else {
-          return 'n/a';
-        }
-      },
-      set(neu) {
-        this.$set(this.value.metadata, 'namespace', neu);
       }
     },
 
@@ -147,6 +110,10 @@ export default {
       });
     },
 
+    isCertificate() {
+      return this.secretSubType === TLS;
+    },
+
     isRegistry() {
       return this.secretSubType === DOCKER_JSON;
     },
@@ -157,7 +124,7 @@ export default {
   },
 
   methods: {
-    saveSecret(buttonCB) {
+    saveSecret(buttonCb) {
       if (this.secretSubType === DOCKER_JSON) {
         const data = { '.dockerconfigjson': base64Encode(this.dockerconfigjson) };
 
@@ -167,7 +134,7 @@ export default {
 
         this.$set(this.value, 'data', data);
       }
-      this.save(buttonCB);
+      this.save(buttonCb);
     },
 
     fileUpload(field) {
@@ -212,6 +179,7 @@ export default {
         <LabeledSelect v-model="secretSubType" label="Type" :options="types" />
       </template>
     </NameNsDescription>
+
     <template v-if="isRegistry">
       <div id="registry-type" class="row">
         Provider: &nbsp; <RadioGroup :style="{'display':'flex'}" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
@@ -229,17 +197,17 @@ export default {
       </div>
     </template>
 
-    <div v-else-if="secretSubType===certificate" class="row">
+    <div v-else-if="isCertificate" class="row">
       <div class="col span-6">
-        <LabeledInput v-model="key" label="Private Key" />
+        <LabeledInput v-model="key" type="multiline" label="Private Key" />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('key')">
-          READ FROM FILE
+          Read from file
         </button>
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="cert" label="CA Certificate" />
+        <LabeledInput v-model="cert" type="multiline" label="CA Certificate" />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('cert')">
-          READ FROM FILE
+          Read from file
         </button>
       </div>
     </div>
@@ -254,8 +222,6 @@ export default {
         :value-base64="true"
         read-icon=""
         add-icon=""
-        add-label="ADD"
-        read-label="READ FROM A FILE"
       />
     </div>
 

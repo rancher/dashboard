@@ -6,7 +6,6 @@ import {
   MODE, _VIEW, _EDIT, _CLONE, _STAGE,
   EDIT_YAML, _FLAGGED, _CREATE
 } from '@/config/query-params';
-import { NAMESPACE } from '@/config/types';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.
@@ -240,7 +239,7 @@ export default {
           </nuxt-link>{{ originalModel.nameDisplay }}
         </h1>
         <div v-if="isView" class="actions">
-          <button aria-haspopup="true" ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
+          <button ref="actions" aria-haspopup="true" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
             <i class="icon icon-actions" />
           </button>
         </div>

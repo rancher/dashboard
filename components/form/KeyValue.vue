@@ -119,7 +119,7 @@ export default {
 
     readLabel: {
       type:    String,
-      default: 'Read from a file'
+      default: 'Read from file'
     },
     readIcon: {
       type:    String,

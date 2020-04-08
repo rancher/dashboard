@@ -43,6 +43,15 @@ export default {
     },
   },
 
+  watch: {
+    $attrs: {
+      deep: true,
+      handler() {
+        this.queueResize();
+      }
+    },
+  },
+
   created() {
     this.queueResize = debounce(this.autoSize, 100);
   },

@@ -1,40 +1,5 @@
-<template>
-  <div class="labels-and-annotations-editor row">
-    <div class="col span-6">
-      <h4 class="mb-10">
-        Labels
-      </h4>
-      <KeyValue
-        key="labels"
-        v-model="localLabels"
-        :mode="mode"
-        :value-multiline="false"
-        :pad-left="false"
-        :read-allowed="false"
-        add-label="Add Label"
-        :protip="false"
-      />
-    </div>
-    <div class="col span-6">
-      <h4 class="mb-10">
-        Annotations
-      </h4>
-      <KeyValue
-        key="annotations"
-        v-model="localAnnotations"
-        :value-multiline="false"
-        :mode="mode"
-        :pad-left="false"
-        :read-allowed="false"
-        add-label="Add Annotation"
-        :protip="false"
-      />
-    </div>
-  </div>
-</template>
-
 <script>
-import { _VIEW, _EDIT } from '../../config/query-params';
+import { _CREATE, _VIEW, _EDIT } from '@/config/query-params';
 import KeyValue from '@/components/form/KeyValue';
 
 export default {
@@ -47,9 +12,10 @@ export default {
       type:      String,
       required:  true,
       validator: (value) => {
-        return [_VIEW, _EDIT].includes(value);
+        return [_CREATE, _VIEW, _EDIT].includes(value);
       }
     },
+
     /**
      * An object of key value pairs that represent labels.
      */
@@ -57,6 +23,7 @@ export default {
       type:     Object,
       required: true,
     },
+
     /**
      * An object of key value pairs that represent annotations.
      */
@@ -65,6 +32,7 @@ export default {
       required: true,
     },
   },
+
   computed: {
     localLabels: {
       get() {
@@ -85,3 +53,39 @@ export default {
   },
 };
 </script>
+
+<template>
+  <div class="labels-and-annotations-editor row">
+    <div class="col span-6">
+      <h4 class="mb-10">
+        Labels
+      </h4>
+      <KeyValue
+        key="labels"
+        v-model="localLabels"
+        :mode="mode"
+        :value-multiline="false"
+        :pad-left="false"
+        :read-allowed="false"
+        add-label="Add Label"
+        :protip="false"
+      />
+    </div>
+
+    <div class="col span-6">
+      <h4 class="mb-10">
+        Annotations
+      </h4>
+      <KeyValue
+        key="annotations"
+        v-model="localAnnotations"
+        :value-multiline="false"
+        :mode="mode"
+        :pad-left="false"
+        :read-allowed="false"
+        add-label="Add Annotation"
+        :protip="false"
+      />
+    </div>
+  </div>
+</template>
