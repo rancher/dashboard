@@ -1,13 +1,11 @@
-import centered from '@storybook/addon-centered/vue';
 import Editor from './Editor';
 
 export default {
-  title:       'Components/LabelsAndAnnotations/Editor',
+  title:       'Components/LabelsAndAnnotations',
   component:   Editor,
-  decorators:  [centered]
 };
 
-export const Story = () => ({
+export const editor = () => ({
   components: { Editor },
   data() {
     return {
@@ -17,9 +15,8 @@ export const Story = () => ({
       }
     };
   },
-  template:   `<div class="row">
-    <Editor :labels="keyValues" :annotations="keyValues" mode="edit"/>
-  </div>`,
+  template:   `
+    <div class="row p-20">
+      <Editor :labels="keyValues" :annotations="keyValues" mode="edit"/>
+    </div>`,
 });
-
-Story.story = { name: 'LabelsAndAnnotationsEditor' };

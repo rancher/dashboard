@@ -247,7 +247,7 @@ export default {
           ref="cluster-actions"
           type="button"
           class="btn btn-sm role-multi-action actions"
-          aria-haspopup="true" 
+          aria-haspopup="true"
           aria-expanded="false"
           @click="showActions"
         >

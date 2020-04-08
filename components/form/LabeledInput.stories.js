@@ -1,10 +1,9 @@
-import centered from '@storybook/addon-centered/vue';
 import LabeledInput from '@/components/form/LabeledInput';
 
 export default {
-  title:      'Components/Form/Labeled Input',
+  title:      'Components/Forms',
   component:  LabeledInput,
-  decorators: [centered],
+  decorators: [],
 };
 
 export const labeledInput = () => ({

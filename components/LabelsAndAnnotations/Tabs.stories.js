@@ -1,13 +1,11 @@
-import centered from '@storybook/addon-centered/vue';
 import Tabs from './Tabs';
 
 export default {
-  title:       'Components/LabelsAndAnnotations/Tabs',
+  title:       'Components/LabelsAndAnnotations',
   component:   Tabs,
-  decorators:  [centered]
 };
 
-export const Story = () => ({
+export const tabs = () => ({
   components: { Tabs },
   data() {
     return {
@@ -17,9 +15,8 @@ export const Story = () => ({
       }
     };
   },
-  template:   `<div class="row">
-    <Tabs :labels="keyValues" :annotations="keyValues" />
-  </div>`,
+  template:   `
+    <div class="row">
+      <Tabs :labels="keyValues" :annotations="keyValues" />
+    </div>`,
 });
-
-Story.story = { name: 'LabelsAndAnnotationsTabs' };

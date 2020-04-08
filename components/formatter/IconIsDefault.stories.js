@@ -1,4 +1,3 @@
-import centered from '@storybook/addon-centered/vue';
 import IconIsDefault from '@/components/formatter/IconIsDefault';
 
 const DefaultColumnState = {
@@ -13,7 +12,7 @@ const DefaultIsTrue = { builtIn: true };
 export default {
   title:      'Components/Formatters/IconIsDefault',
   component:  IconIsDefault,
-  decorators: [centered],
+  decorators: [],
 };
 
 export const DefaultStory = () => ({
