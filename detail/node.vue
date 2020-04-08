@@ -1,4 +1,5 @@
 <script>
+import { DESCRIPTION } from '../config/labels-annotations';
 import CopyToClipboardText from '@/components/CopyToClipboardText';
 import ConsumptionGauge from '@/components/ConsumptionGauge';
 import DetailTop from '@/components/DetailTop';
@@ -113,7 +114,7 @@ export default {
       return [
         {
           title:   'Description',
-          content: this.value.id
+          content: this.value.metadata.annotations[DESCRIPTION]
         },
         {
           title: 'IP Address',
@@ -185,6 +186,7 @@ export default {
           :headers="statusTableHeaders"
           :rows="statusTableRows"
           :row-actions="false"
+          :table-actions="false"
         />
       </Tab>
       <Tab name="system" label="System">
@@ -193,6 +195,7 @@ export default {
           :headers="systemTableHeaders"
           :rows="systemTableRows"
           :row-actions="false"
+          :table-actions="false"
         />
       </Tab>
       <Tab name="labels" label="Labels">
@@ -201,6 +204,7 @@ export default {
           :headers="labelsTableHeaders"
           :rows="labelsTableRows"
           :row-actions="false"
+          :table-actions="false"
         />
       </Tab>
       <Tab name="annotations" label="Annotations">
@@ -209,6 +213,7 @@ export default {
           :headers="annotationsTableHeaders"
           :rows="annotationsTableRows"
           :row-actions="false"
+          :table-actions="false"
         />
       </Tab>
     </Tabbed>
