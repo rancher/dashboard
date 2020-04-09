@@ -13,6 +13,18 @@ export default {
       type:     String,
       required: true,
     },
+    displaySideBySide: {
+      type:    Boolean,
+      default: false,
+    }
+  },
+
+  computed: {
+    sectionClass() {
+      return this.displaySideBySide
+        ? 'col span-6'
+        : 'row';
+    }
   },
 
   created() {
@@ -27,8 +39,8 @@ export default {
 };
 </script>
 <template>
-  <div>
-    <div class="row">
+  <div class="row">
+    <div :class="sectionClass">
       <KeyValue
         key="labels"
         v-model="spec.metadata.labels"
@@ -39,7 +51,7 @@ export default {
         :read-allowed="false"
       />
     </div>
-    <div class="row">
+    <div :class="sectionClass">
       <KeyValue
         key="annotations"
         v-model="spec.metadata.annotations"

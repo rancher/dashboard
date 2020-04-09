@@ -1,4 +1,5 @@
 export const DESCRIPTION = 'cattle.io/description';
+export const HOSTNAME = 'kubernetes.io/hostname';
 export const TIMESTAMP = 'cattle.io/timestamp';
 export const PROJECT = 'field.cattle.io/projectId';
 export const SYSTEM_PROJECT = 'authz.management.cattle.io/system-project';

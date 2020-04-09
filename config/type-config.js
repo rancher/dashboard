@@ -9,9 +9,6 @@ import {
   KEYS, ENDPOINTS,
   MATCHES, DESTINATION,
   TARGET, TARGET_KIND, USERNAME, USER_DISPLAY_NAME, USER_ID, USER_STATUS,
-  NODE_NAME, ROLES,
-  VERSION, CPU,
-  RAM, PODS,
   BUILT_IN, CLUSTER_CREATOR_DEFAULT, INGRESS_TARGET,
 } from '@/config/table-headers';
 
@@ -88,7 +85,6 @@ export default function(store) {
   mapGroup(/^(.*\.)?knative\.io$/, 'Knative');
 
   headers(CONFIG_MAP, [STATE, NAMESPACE_NAME, KEYS, AGE]);
-  headers(NODE, [STATE, NODE_NAME, ROLES, VERSION, CPU, RAM, PODS]);
   headers(SECRET, [
     STATE,
     NAMESPACE_NAME,
