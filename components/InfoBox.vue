@@ -14,6 +14,9 @@ export default {};
     border: 1px solid var(--tabbed-border);
     padding: 20px;
     border-radius: var(--border-radius);
+    flex-grow: 1;
+    flex-basis: 0;
+    
     .info-column:not(:last-child) {
       border-right: 1px solid var(--tabbed-border);
     }
