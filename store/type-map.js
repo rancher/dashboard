@@ -656,6 +656,7 @@ export const getters = {
   hasCustomEdit(state, getters) {
     return (rawType) => {
       const type = getters.componentFor(rawType);
+
       const cache = state.cache.edit;
 
       if ( cache[type] !== undefined ) {

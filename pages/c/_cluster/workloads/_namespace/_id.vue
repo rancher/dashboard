@@ -3,9 +3,22 @@ import Workload from '@/detail/workload';
 import ResourceYaml from '@/components/ResourceYaml';
 import { createYaml } from '@/utils/create-yaml';
 import { WORKLOAD, SCHEMA } from '@/config/types';
+import {
+  MODE,
+  EDIT_YAML, _VIEW
+} from '@/config/query-params';
 
 export default {
   components: { Workload, ResourceYaml },
+
+  watchQuery: [MODE, EDIT_YAML],
+
+  computed:   {
+    isView() {
+      return this.mode === _VIEW;
+    }
+  },
+
   async asyncData(ctx) {
     const { id, namespace } = ctx.params;
     const { mode = 'view', type = WORKLOAD.DEPLOYMENT } = ctx.query;
@@ -30,12 +43,27 @@ export default {
     return {
       obj, value, type, mode, asYaml, yaml
     };
+  },
+
+  methods: {
+    showActions() {
+      this.$store.commit('action-menu/show', {
+        resources: this.obj,
+        elem:      this.$refs.actions,
+      });
+    },
   }
 };
 </script>
 
 <template>
-  <div>
+  <ResourceYaml
+    v-if="asYaml"
+    :obj="obj"
+    :value="yaml"
+    :done-route="doneRoute"
+  />
+  <div v-else>
     <header>
       <h1 v-trim-whitespace class="mb-20">
         <span v-if="mode === 'edit'">Edit Workload:&nbsp;</span>
@@ -49,16 +77,20 @@ export default {
           Workload:&nbsp;
         </nuxt-link>{{ obj.id }}
       </h1>
-      <!-- <div v-if="isView" class="actions">
-        <button aria-haspopup="true" aria-expanded="false" rearia-haspopup="true" aria-expanded="false" f="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
+      <div v-if="isView" class="actions">
+        <button
+          ref="actions"
+          aria-haspopup="true"
+          aria-expanded="false"
+          type="button"
+          class="btn btn-sm role-multi-action actions"
+          @click="showActions"
+        >
           <i class="icon icon-actions" />
         </button>
-      </div> -->
+      </div>
     </header>
-    <ResourceYaml v-if="asYaml" :obj="obj" :value="yaml" :done-route="doneRoute" :for-create="true" />
-
     <Workload
-      v-else
       :value="obj"
       done-route="c-cluster-workloads"
       :done-params="{}"

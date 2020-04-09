@@ -1,5 +1,5 @@
 import {
-  CONFIG_MAP, GATEKEEPER_CONSTRAINT_TEMPLATE, NAMESPACE, NODE, SECRET, RIO, RBAC, INGRESS
+  CONFIG_MAP, GATEKEEPER_CONSTRAINT_TEMPLATE, NAMESPACE, NODE, SECRET, RIO, RBAC, INGRESS, WORKLOAD
 } from '@/config/types';
 
 import {
@@ -49,6 +49,10 @@ export default function(store) {
   ]);
 
   mapTypeToComponentName(/^constraints.gatekeeper.sh.*$/, 'gatekeeper-constraint');
+
+  for (const key in WORKLOAD) {
+    mapTypeToComponentName(WORKLOAD[key], 'workload');
+  }
 
   ignoreType('events.k8s.io.event'); // Events type moved into core
   ignoreType('extensions.ingress'); // Moved into networking

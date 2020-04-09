@@ -1,4 +1,5 @@
 <script>
+import { WORKLOAD } from '../config/types';
 import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
 import AsyncButton from './AsyncButton';
@@ -71,6 +72,8 @@ export default {
 
     if ( this.forCreate ) {
       mode = _CREATE;
+    } else if (!this.canEdit) {
+      mode = _VIEW;
     } else {
       mode = this.$route.query.mode || _VIEW;
     }
@@ -131,7 +134,7 @@ export default {
     },
 
     canEdit() {
-      return this.obj.hasLink('update');
+      return this.obj.hasLink('update') && !Object.values(WORKLOAD).includes(this.obj.type);
     },
 
     canDelete() {

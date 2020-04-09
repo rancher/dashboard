@@ -585,10 +585,10 @@ export default {
     const schema = this.$getters['schemaFor'](this.type);
     const query = {};
 
-    let route = `c-cluster-resource${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+    let route = `c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`;
 
     if (Object.values(WORKLOAD).includes(this.type)) {
-      route = `c-cluster-workloads${ schema.attributes.namespaced ? '-namespace' : '' }-id`;
+      route = `c-cluster-workloads-namespace-id`;
       query.type = this.type;
     }
 

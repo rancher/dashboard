@@ -167,11 +167,13 @@ export default {
   },
 
   mounted() {
-    const valueRef = get(this.$refs, 'nameNS.$refs.text.$refs.value');
+    this.$nextTick(() => {
+      const valueRef = get(this.$refs, 'nameNS.$refs.text.$refs.value');
 
-    if (valueRef) {
-      valueRef.focus();
-    }
+      if (valueRef) {
+        valueRef.focus();
+      }
+    });
   },
 
   methods: {
