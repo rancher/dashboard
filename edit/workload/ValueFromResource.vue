@@ -1,5 +1,5 @@
 <script>
-import { CONFIG_MAP, SECRET } from '@/config/types';
+import { CONFIG_MAP, SECRET, NAMESPACE } from '@/config/types';
 import { get } from '@/utils/object';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -20,10 +20,6 @@ export default {
         return { valueFrom: {} };
       }
     },
-    namespace: {
-      type:     String,
-      default: 'default'
-    },
     allConfigMaps: {
       type:    Array,
       default: () => []
@@ -31,6 +27,11 @@ export default {
     allSecrets: {
       type:    Array,
       default: () => []
+    },
+    // filter resource options by namespace(s) selected in top nav
+    namespaced: {
+      type:    Boolean,
+      default: true
     }
   },
   data() {
@@ -41,13 +42,8 @@ export default {
       { value: 'fieldRef', label: 'Field' },
       { value: 'secretRef', label: 'Secret' }];
 
-    let type;
+    let type = Object.keys((this.row.valueFrom || {}))[0];
 
-    if (this.row.valueFrom) {
-      type = Object.keys(this.row.valueFrom)[0];
-    } else {
-      type = 'secretRef';
-    }
     let refName;
     let name;
     let fieldPath;
@@ -92,10 +88,13 @@ export default {
       }
       this.getReferenced(refName, SECRET);
       break;
-    default:
+    case 'fieldRef':
       referenced = {};
       fieldPath = get(this.row.valueFrom, `${ type }.fieldPath`) || '';
       name = this.row.name;
+      break;
+    default:
+      break;
     }
 
     return {
@@ -103,11 +102,22 @@ export default {
     };
   },
   computed: {
+
+    namespaces() {
+      if (this.namespaced) {
+        const map = this.$store.getters.namespaces();
+
+        return Object.keys(map).filter(key => map[key]);
+      } else {
+        return this.$store.getters['cluster/findAll'](NAMESPACE);
+      }
+    },
+
     sourceOptions() {
       if (this.type === 'configMapKeyRef') {
-        return this.allConfigMaps.filter(map => map.metadata.namespace === this.namespace);
+        return this.allConfigMaps.filter(map => this.namespaces.includes(map?.metadata?.namespace));
       } else if (this.type === 'secretRef' || this.type === 'secretKeyRef') {
-        return this.allSecrets.filter(secret => secret.metadata.namespace === this.namespace);
+        return this.allSecrets.filter(secret => this.namespaces.includes(secret?.metadata?.namespace));
       } else {
         return [];
       }
@@ -188,6 +198,7 @@ export default {
         :options="typeOpts"
         label="Type"
         :mode="mode"
+        option-label="label"
         @input="updateRow"
       />
     </div>
@@ -198,7 +209,7 @@ export default {
           :options="sourceOptions"
           :multiple="false"
           label="Source"
-          option-label="id"
+          option-label="metadata.name"
           :mode="mode"
           @input="updateRow"
         />

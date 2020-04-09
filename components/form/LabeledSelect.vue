@@ -1,6 +1,7 @@
 <script>
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import { findBy } from '@/utils/array';
+import { get } from '@/utils/object';
 
 export default {
   mixins: [LabeledFormElement],
@@ -24,7 +25,7 @@ export default {
     },
     optionLabel: {
       type:    String,
-      default: 'label'
+      default: null
     }
   },
   data() {
@@ -46,7 +47,7 @@ export default {
         return entry.label;
       }
       if (this.optionLabel && typeof this.value === 'object') {
-        return this.value[this.optionLabel];
+        return get(this.value, this.optionLabel);
       }
 
       return this.value;
@@ -77,7 +78,8 @@ export default {
 
     searchBlur() {
       this.selectedDisplay = 'block';
-    }
+    },
+    get
   },
 };
 </script>
@@ -107,7 +109,8 @@ export default {
       :value="shownValue"
       :options="options"
       :multiple="multiple"
-      :get-option-label="opt=>opt[optionLabel]||opt"
+      :get-option-label="opt=>optionLabel ? get(opt, optionLabel) : opt"
+      :get-option-key="opt=>optionLabel ? get(opt, optionLabel) : opt"
       :label="optionLabel"
       @input="e=>e.value ? $emit('input', e.value) : $emit('input', e) "
       @search:focus="searchFocus"
