@@ -4,7 +4,7 @@ import Rule from './Rule';
 
 import { clone } from '@/utils/object';
 import { allHash } from '@/utils/promise';
-import { WORKLOAD, SECRET, TLS_CERT } from '@/config/types';
+import { SECRET, TLS_CERT, WORKLOAD_TYPES } from '@/config/types';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import LoadDeps from '@/mixins/load-deps';
@@ -79,14 +79,14 @@ export default {
     async loadDeps() {
       const hash = await allHash({
         secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }),
-        ...Object.values(WORKLOAD).reduce((all, type) => {
+        ...Object.values(WORKLOAD_TYPES).reduce((all, type) => {
           all[type] = this.$store.dispatch('cluster/findAll', { type });
 
           return all;
         }, {})
       });
 
-      const workloads = Object.values(WORKLOAD).map(type => hash[type]);
+      const workloads = Object.values(WORKLOAD_TYPES).map(type => hash[type]);
 
       const flattened = workloads.reduce((all, type) => {
         all.push(...type);

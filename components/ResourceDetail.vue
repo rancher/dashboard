@@ -54,7 +54,7 @@ export async function asyncData(ctx) {
   yaml = (await obj.followLink(link, { headers: { accept: 'application/yaml' } })).data;
 
   /*******
-   * Important: these need to be declared below as props too
+   * Important: these need to be declared below as props too if you want to use them
    *******/
   const out = {
     hasCustomDetail,
@@ -69,7 +69,7 @@ export async function asyncData(ctx) {
     realMode
   };
   /*******
-   * Important: these need to be declared below as props too
+   * Important: these need to be declared below as props too if you want to use them
    *******/
 
   return out;

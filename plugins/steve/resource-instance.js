@@ -10,7 +10,6 @@ import {
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { addParams } from '@/utils/url';
-import { WORKLOAD } from '@/config/types';
 import { DESCRIPTION } from '@/config/labels-annotations';
 
 const REMAP_STATE = { disabled: 'inactive' };
@@ -105,7 +104,13 @@ export default {
   },
 
   typeDisplay() {
-    return this.$store.getters['type-map/singularLabelFor'](this.schema);
+    const schema = this.schema;
+
+    if ( schema ) {
+      return this.$rootGetters['type-map/singularLabelFor'](schema);
+    }
+
+    return '?';
   },
 
   nameDisplay() {
@@ -635,14 +640,8 @@ export default {
   detailUrl() {
     const router = this.currentRouter();
     const schema = this.$getters['schemaFor'](this.type);
-    const query = {};
 
-    let route = `c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`;
-
-    if (Object.values(WORKLOAD).includes(this.type)) {
-      route = `c-cluster-workloads-namespace-id`;
-      query.type = this.type;
-    }
+    const route = `c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`;
 
     const params = {
       resource:  this.type,
@@ -653,7 +652,6 @@ export default {
     const url = router.resolve({
       name:   route,
       params,
-      query
     }).href;
 
     return url;

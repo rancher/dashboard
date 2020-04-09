@@ -1,5 +1,5 @@
 <script>
-import { WORKLOAD, SCHEMA } from '@/config/types';
+import { WORKLOAD_TYPES, SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Workload from '@/edit/workload';
 export default {
@@ -20,15 +20,15 @@ export default {
   async asyncData(ctx) {
     const asYaml = !!Object.keys(ctx.query).includes('as-yaml');
     const { mode = 'create' } = ctx.query;
-    const data = { type: WORKLOAD.DEPLOYMENT };
+    const data = { type: WORKLOAD_TYPES.DEPLOYMENT };
 
     const obj = await ctx.store.dispatch('cluster/create', data);
     const schemas = ctx.store.getters['cluster/all'](SCHEMA);
 
-    const yaml = createYaml(schemas, WORKLOAD.DEPLOYMENT, data);
+    const yaml = createYaml(schemas, WORKLOAD_TYPES.DEPLOYMENT, data);
 
     return {
-      obj, type: WORKLOAD.DEPLOYMENT, mode, yaml, asYaml
+      obj, type: WORKLOAD_TYPES.DEPLOYMENT, mode, yaml, asYaml
     };
   }
 };

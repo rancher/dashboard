@@ -4,7 +4,7 @@ import {
 
 import {
   STATE,
-  NAME, NAMESPACE_NAME, NAMESPACE_NAME_IMAGE,
+  NAME, NAMESPACE_NAME,
   AGE, WEIGHT, SCALE,
   KEYS, ENDPOINTS,
   MATCHES, DESTINATION,
@@ -39,7 +39,7 @@ export default function(store) {
     'cluster-overview',
     NAMESPACE,
     NODE,
-    'workloads',
+    'workload',
     'gatekeeper',
     'gatekeeper-constraints',
     'gatekeeper-templates',
@@ -117,7 +117,7 @@ export default function(store) {
 
   headers(RIO.SERVICE, [
     STATE,
-    NAMESPACE_NAME_IMAGE,
+    NAME,
     ENDPOINTS,
     WEIGHT,
     SCALE,
@@ -209,11 +209,11 @@ export default function(store) {
   virtualType({
     label:      'Workload',
     namespaced: true,
-    name:       'workloads',
+    name:       'workload',
     group:      'Cluster',
     weight:     10,
     route:      {
-      name:     'c-cluster-workloads',
+      name:     'c-cluster-resource',
       params:   { resource: 'workload' }
     },
   });

@@ -2,7 +2,7 @@
 import Workload from '@/detail/workload';
 import ResourceYaml from '@/components/ResourceYaml';
 import { createYaml } from '@/utils/create-yaml';
-import { WORKLOAD, SCHEMA } from '@/config/types';
+import { WORKLOAD_TYPES, SCHEMA } from '@/config/types';
 import {
   MODE,
   EDIT_YAML, _VIEW
@@ -21,7 +21,7 @@ export default {
 
   async asyncData(ctx) {
     const { id, namespace } = ctx.params;
-    const { mode = 'view', type = WORKLOAD.DEPLOYMENT } = ctx.query;
+    const { mode = 'view', type = WORKLOAD_TYPES.DEPLOYMENT } = ctx.query;
 
     const asYaml = !!Object.keys(ctx.query).includes('as-yaml');
 

@@ -678,7 +678,7 @@ export const getters = {
     return (rawType) => {
       const type = getters.componentFor(rawType);
 
-      return () => import(`@/list/${ type }`);
+      return () => import(`@/list/${ type }` /* webpackChunkName: "chunk-list" */);
     };
   },
 
@@ -686,7 +686,7 @@ export const getters = {
     return (rawType) => {
       const type = getters.componentFor(rawType);
 
-      return () => import(`@/detail/${ type }`);
+      return () => import(`@/detail/${ type }` /* webpackChunkName: "chunk-detail" */);
     };
   },
 
@@ -694,7 +694,7 @@ export const getters = {
     return (rawType) => {
       const type = getters.componentFor(rawType);
 
-      return () => import(`@/edit/${ type }`);
+      return () => import(`@/edit/${ type }` /* webpackChunkName: "chunk-edit" */);
     };
   },
 

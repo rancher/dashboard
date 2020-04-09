@@ -26,6 +26,7 @@ export default {
     }
   },
 
+  // Fuzzy search to find a matching schema name for plugins/lookup
   schemaName: (state, getters) => (type) => {
     type = getters.normalizeType(type);
     const schemas = state.types[SCHEMA];
@@ -39,6 +40,8 @@ export default {
     if ( entry ) {
       return entry[keyField];
     }
+
+    return type;
   },
 
   // Fuzzy is only for plugins/lookup, do not use in real code

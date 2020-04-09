@@ -73,7 +73,6 @@ export default {
   },
 
   computed: {
-
     nameMode() {
       if ( this.mode === _EDIT && !this.nameEditable) {
         return _VIEW;
@@ -185,7 +184,6 @@ export default {
             label="Name"
             :mode="nameMode"
             :min-height="30"
-            :hide-placeholder="false"
           />
         </slot>
       </div>
@@ -197,7 +195,6 @@ export default {
           :mode="mode"
           :placeholder="descriptionPlaceholder"
           :min-height="30"
-          :hide-placeholder="false"
         />
       </div>
       <div v-for="slot in extraColumns" :key="slot" :class="{col: true, [colSpan]: true}">

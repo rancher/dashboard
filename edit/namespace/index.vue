@@ -25,7 +25,7 @@ export default {
 
     return {
       originalQuotaId,
-      project: this.value?.metadata?.labels?.[PROJECT] || null,
+      project: this.value?.metadata?.labels?.[PROJECT],
     };
   },
 
@@ -58,24 +58,11 @@ export default {
   },
 
   watch: {
-    project() {
-      const val = this.project;
-
-      if ( val ) {
-        if ( !this.value.metadata ) {
-          this.value.metadata = {};
-        }
-
-        if ( !this.value.metadata.labels ) {
-          this.value.metadata.labels = {};
-        }
-
-        this.value.metadata.labels[PROJECT] = val;
-      } else if ( this.value?.metadata?.labels ) {
-        delete this.value.metadata.labels[PROJECT];
-      }
+    project(val) {
+      this.value.setLabel(PROJECT, val);
     },
   },
+
 };
 </script>
 

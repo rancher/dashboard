@@ -6,7 +6,6 @@ import SortableTable from '@/components/SortableTable';
 import {
   NAME, NAME_UNLINKED,
   NAMESPACE_NAME, NAMESPACE_NAME_UNLINKED,
-  NAMESPACE_NAME_IMAGE, NAME_IMAGE,
 } from '@/config/table-headers';
 
 export default {
@@ -74,12 +73,6 @@ export default {
 
         if ( idx >= 0 ) {
           headers.splice(idx, 1, NAME);
-        }
-
-        idx = headers.indexOf(NAMESPACE_NAME_IMAGE);
-
-        if ( idx >= 0 ) {
-          headers.splice(idx, 1, NAME_IMAGE);
         }
 
         idx = headers.indexOf(NAMESPACE_NAME_UNLINKED);

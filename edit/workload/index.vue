@@ -1,7 +1,7 @@
 <script>
 import cronstrue from 'cronstrue';
 import { clone } from '@/utils/object';
-import { CONFIG_MAP, SECRET, WORKLOAD, NODE } from '@/config/types';
+import { CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE } from '@/config/types';
 import LoadDeps from '@/mixins/load-deps';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
@@ -56,13 +56,13 @@ export default {
   data() {
     const typeOpts = [];
     const workloadMap = {
-      [WORKLOAD.DEPLOYMENT]:             'Deployment',
-      [WORKLOAD.DAEMON_SET]:             'Daemon Set',
-      [WORKLOAD.STATEFUL_SET]:           'Stateful Set',
-      [WORKLOAD.REPLICA_SET]:            'Replica Set',
-      [WORKLOAD.JOB]:                    'Job',
-      [WORKLOAD.CRON_JOB]:               'Cron Job',
-      [WORKLOAD.REPLICATION_CONTROLLER]: 'Replication Controller'
+      [WORKLOAD_TYPES.DEPLOYMENT]:             'Deployment',
+      [WORKLOAD_TYPES.DAEMON_SET]:             'Daemon Set',
+      [WORKLOAD_TYPES.STATEFUL_SET]:           'Stateful Set',
+      [WORKLOAD_TYPES.REPLICA_SET]:            'Replica Set',
+      [WORKLOAD_TYPES.JOB]:                    'Job',
+      [WORKLOAD_TYPES.CRON_JOB]:               'Cron Job',
+      [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 'Replication Controller'
     };
 
     for (const key in workloadMap) {
@@ -74,10 +74,10 @@ export default {
     if ( !this.value.spec ) {
       this.value.spec = {};
     }
-    let type = this.value._type || this.value.type || WORKLOAD.DEPLOYMENT;
+    let type = this.value._type || this.value.type || WORKLOAD_TYPES.DEPLOYMENT;
 
     if (type === 'workload') {
-      type = WORKLOAD.DEPLOYMENT;
+      type = WORKLOAD_TYPES.DEPLOYMENT;
     }
 
     const spec = this.value.spec ? clone(this.value.spec) : {};
@@ -154,15 +154,15 @@ export default {
     },
 
     canReplicate() {
-      return (this.type === WORKLOAD.DEPLOYMENT || this.type === WORKLOAD.REPLICA_SET || this.type === WORKLOAD.REPLICATION_CONTROLLER || this.type === WORKLOAD.STATEFUL_SET);
+      return (this.type === WORKLOAD_TYPES.DEPLOYMENT || this.type === WORKLOAD_TYPES.REPLICA_SET || this.type === WORKLOAD_TYPES.REPLICATION_CONTROLLER || this.type === WORKLOAD_TYPES.STATEFUL_SET);
     },
 
     isJob() {
-      return this.type === WORKLOAD.JOB || this.isCronJob;
+      return this.type === WORKLOAD_TYPES.JOB || this.isCronJob;
     },
 
     isCronJob() {
-      return this.type === WORKLOAD.CRON_JOB;
+      return this.type === WORKLOAD_TYPES.CRON_JOB;
     },
 
     cronLabel() {
@@ -189,7 +189,7 @@ export default {
 
   watch: {
     type(neu, old) {
-      const template = old === WORKLOAD.CRON_JOB ? this.spec?.jobTemplate?.spec?.template : this.spec?.template;
+      const template = old === WORKLOAD_TYPES.CRON_JOB ? this.spec?.jobTemplate?.spec?.template : this.spec?.template;
 
       if (!template.spec) {
         template.spec = {};
@@ -202,11 +202,11 @@ export default {
         delete this.spec.replicas;
       }
 
-      if (old === WORKLOAD.CRON_JOB) {
+      if (old === WORKLOAD_TYPES.CRON_JOB) {
         this.$set(this.spec, 'template', { ...template });
         delete this.spec.jobTemplate;
         delete this.spec.schedule;
-      } else if (neu === WORKLOAD.CRON_JOB) {
+      } else if (neu === WORKLOAD_TYPES.CRON_JOB) {
         this.$set(this.spec, 'jobTemplate', { spec: { template } });
         this.$set(this.spec, 'schedule', '0 * * * *');
         delete this.spec.template;
@@ -235,19 +235,19 @@ export default {
     },
 
     saveWorkload(cb) {
-      if (!this.spec.selector && this.type !== WORKLOAD.JOB) {
+      if (!this.spec.selector && this.type !== WORKLOAD_TYPES.JOB) {
         this.spec.selector = { matchLabels: this.workloadSelector };
       }
 
       let template;
 
-      if (this.type === WORKLOAD.CRON_JOB) {
+      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
         template = this.spec.jobTemplate;
       } else {
         template = this.spec.template;
       }
 
-      if (!template.metadata && this.type !== WORKLOAD.JOB) {
+      if (!template.metadata && this.type !== WORKLOAD_TYPES.JOB) {
         template.metadata = { labels: this.workloadSelector };
       }
 
