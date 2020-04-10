@@ -3,8 +3,8 @@ import { cleanForNew } from '@/plugins/steve/normalize';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceYaml from '@/components/ResourceYaml';
 import {
-  MODE, _VIEW, _EDIT, _CLONE, _STAGE,
-  EDIT_YAML, _FLAGGED, _CREATE
+  MODE, _VIEW, _EDIT, _CLONE, _STAGE, _PREVIEW,
+  EDIT_YAML, _FLAGGED, _CREATE, PREVIEW
 } from '@/config/query-params';
 
 // Components can't have asyncData, only pages.
@@ -16,8 +16,9 @@ export async function asyncData(ctx) {
   const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
 
-  // There are 5 "real" modes: view, create, edit, stage, clone
-  // which later map to 3 logical/page modes: view, create, edit (stage and clone are "create")
+  // There are 5 "real" modes that you can start in: view, edit, create, stage, clone
+  // These are mapped down to the 3 regular page modes that create-edit-view components
+  //  know about:  view, edit, create (stage and clone become "create")
   const realMode = route.query.mode || _VIEW;
   const schema = store.getters['cluster/schemaFor'](resource);
 
@@ -156,8 +157,8 @@ export default {
       return this.mode === _EDIT;
     },
 
-    showEditAsYaml() {
-      return this.isEdit && !this.importedEditComponent?.isYamlEditor;
+    offerPreview() {
+      return [_EDIT, _CLONE, _STAGE].includes(this.mode);
     },
 
     doneRoute() {
@@ -170,14 +171,6 @@ export default {
       return this.$route.params;
     },
 
-    parentLink() {
-      const name = this.doneRoute;
-      const params = this.doneParams;
-      const out = this.$router.resolve({ name, params }).href;
-
-      return out;
-    },
-
     showComponent() {
       if ( this.isView && this.hasCustomDetail ) {
         return this.detailComponent;
@@ -188,8 +181,19 @@ export default {
       return null;
     },
 
-    typeDisplay() {
-      return this.$store.getters['type-map/singularLabelFor'](this.schema);
+    h1() {
+      const typeLink = this.$router.resolve({
+        name:   this.doneRoute,
+        params: this.$route.params
+      }).href;
+
+      const out = this.$store.getters['i18n/t'](`resourceDetail.header.${ this.realMode }`, {
+        typeLink,
+        type: this.$store.getters['type-map/singularLabelFor'](this.schema),
+        name: this.originalModel?.nameDisplay,
+      });
+
+      return out;
     },
   },
 
@@ -200,65 +204,38 @@ export default {
         elem:      this.$refs.actions,
       });
     },
-
-    goBack() {
-      window.history.length > 1 ? this.$router.go(-1) : this.$router.push('/');
-    },
-
-    navigateToEditAsYaml() {
-      this.$router.push({ query: { ...this.$route.query, [EDIT_YAML]: _FLAGGED } });
-    },
   }
 };
 </script>
 
 <template>
   <div>
+    <header>
+      <h1 v-html="h1" />
+      <div v-if="isView" class="actions">
+        <button ref="actions" aria-haspopup="true" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
+          <i class="icon icon-actions" />
+        </button>
+      </div>
+    </header>
     <template v-if="asYaml">
       <ResourceYaml
         :obj="model"
+        :mode="mode"
         :value="yaml"
+        :offer-preview="offerPreview"
         :done-route="doneRoute"
-        :parent-route="doneRoute"
-        :parent-params="doneParams"
-        :has-edit-as-form="hasCustomEdit"
       />
     </template>
     <template v-else>
-      <header>
-        <h1 v-trim-whitespace>
-          <span v-if="realMode === 'edit'">Edit {{ typeDisplay }}:&nbsp;</span>
-          <span v-else-if="realMode === 'stage'">Stage from {{ typeDisplay }}:&nbsp;</span>
-          <span v-else-if="realMode === 'clone'">Clone from {{ typeDisplay }}:&nbsp;</span>
-          <nuxt-link
-            v-else
-            v-trim-whitespace
-            :to="parentLink"
-          >
-            {{ typeDisplay }}:&nbsp;
-          </nuxt-link>{{ originalModel.nameDisplay }}
-        </h1>
-        <div v-if="isView" class="actions">
-          <button ref="actions" aria-haspopup="true" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
-            <i class="icon icon-actions" />
-          </button>
-        </div>
-        <div v-if="showEditAsYaml" class="actions">
-          <button class="btn bg-primary" @click="navigateToEditAsYaml">
-            Edit as YAML
-          </button>
-        </div>
-      </header>
       <component
         :is="showComponent"
         v-model="model"
         :original-value="originalModel"
         :done-route="doneRoute"
         :done-params="doneParams"
-        :parent-route="doneRoute"
-        :parent-params="doneParams"
-        :type-label="typeDisplay"
         :mode="mode"
+        :real-mode="realMode"
         :value="model"
         :obj="model"
         :yaml="yaml"

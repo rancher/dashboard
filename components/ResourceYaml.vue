@@ -1,17 +1,14 @@
 <script>
-import { WORKLOAD } from '../config/types';
 import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
-import AsyncButton from './AsyncButton';
+import Footer from '@/components/form/Footer';
 
 import {
-  MODE,
   _CREATE,
   _VIEW,
-  _EDIT,
-  _PREVIEW,
-  EDIT_YAML,
-  _CLONE
+  PREVIEW,
+  _FLAGGED,
+  _UNFLAG,
 } from '@/config/query-params';
 
 import { mapPref, DIFF } from '@/store/prefs';
@@ -20,14 +17,15 @@ export default {
   components: {
     CodeMirror,
     FileDiff,
-    AsyncButton
+    Footer,
   },
 
   props: {
-    forCreate: {
-      type:    Boolean,
-      default: false,
+    mode: {
+      type:     String,
+      required: true,
     },
+
     obj: {
       type:     Object,
       required: true,
@@ -43,48 +41,29 @@ export default {
       default: null,
     },
 
-    parentRoute: {
-      type:    String,
-      default: null,
-    },
-
-    hasEditAsForm: {
+    offerPreview: {
       type:    Boolean,
-      default: false,
+      default: true,
     },
 
     parentParams: {
       type:    Object,
       default: null,
     },
+
     doneOverride: {
       type:    Function,
       default: null
     },
-    showHeader: {
-      type:    Boolean,
-      default: true
-    }
   },
 
   data() {
-    let mode;
-
-    if ( this.forCreate ) {
-      mode = _CREATE;
-    } else if (!this.canEdit) {
-      mode = _VIEW;
-    } else {
-      mode = this.$route.query.mode || _VIEW;
-    }
-
-    if ( mode === _PREVIEW ) {
-      mode = _EDIT;
-    }
+    // Initial load with a preview showing no diff isn't very useful
+    this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
 
     return {
       currentValue: this.value,
-      mode,
+      showPreview:  false,
       errors:       null
     };
   },
@@ -116,44 +95,12 @@ export default {
     isCreate() {
       return this.mode === _CREATE;
     },
+
     isView() {
       return this.mode === _VIEW;
     },
-    isEdit() {
-      return this.mode === _EDIT;
-    },
-    isClone() {
-      return this.mode === _CLONE;
-    },
-    isPreview() {
-      return this.mode === _PREVIEW;
-    },
-
-    showEditAsForm() {
-      return this.isEdit && this.hasEditAsForm;
-    },
-
-    canEdit() {
-      return this.obj.hasLink('update') && !Object.values(WORKLOAD).includes(this.obj.type);
-    },
-
-    canDelete() {
-      return this.obj.hasLink('remove');
-    },
 
     diffMode: mapPref(DIFF),
-
-    parentLink() {
-      const name = this.parentRoute || 'c-cluster-resource';
-      const params = this.parentParams || {
-        cluster:  this.$store.state.clusterId,
-        resource: this.obj.type
-      };
-
-      const out = this.$router.resolve({ name, params }).href;
-
-      return out;
-    }
   },
 
   methods: {
@@ -221,32 +168,19 @@ export default {
       }
     },
 
-    edit() {
-      this.mode = _EDIT;
-      this.$router.applyQuery({ [MODE]: this.mode });
-    },
-
     preview() {
-      this.mode = _PREVIEW;
-      this.$router.applyQuery({ [MODE]: this.mode });
+      this.showPreview = true;
+      this.$router.applyQuery({ [PREVIEW]: _FLAGGED });
     },
 
-    cancel() {
-      if (this.isCreate || this.isClone) {
-        return this.done();
-      }
-      this.mode = _VIEW;
-      this.$router.applyQuery({ [MODE]: this.mode });
-      this.currentValue = this.value;
-    },
-
-    navigateToEditAsForm() {
-      this.$router.applyQuery({ [EDIT_YAML]: undefined });
+    unpreview() {
+      this.showPreview = false;
+      this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
     },
 
     async save(buttonDone) {
       try {
-        if ( this.isCreate || this.isClone ) {
+        if ( this.isCreate ) {
           await this.schema.followLink('collection', {
             method:  'POST',
             headers: {
@@ -286,11 +220,6 @@ export default {
         buttonDone(false);
       }
     },
-    async remove(buttonDone) {
-      await this.obj.remove();
-      buttonDone(true);
-      this.done();
-    },
 
     done() {
       if (this.doneOverride) {
@@ -312,38 +241,8 @@ export default {
 
 <template>
   <div class="root resource-yaml">
-    <header>
-      <h1 v-if="showHeader">
-        <span v-if="isCreate">Create {{ schema.attributes.kind }}</span>
-        <span v-else>{{ schema.attributes.kind }}: {{ obj.id }}</span>
-      </h1>
-      <div class="actions">
-        <AsyncButton
-          v-if="canDelete && isView"
-          key="delete"
-          mode="delete"
-          action-color="bg-error"
-          waiting-color="bg-error"
-          @click="remove"
-        />
-        <button
-          v-if="canEdit && (isView || isPreview)"
-          type="button"
-          class="btn bg-primary"
-          @click="edit"
-        >
-          Edit
-        </button>
-        <span v-if="showEditAsForm">
-          <button class="btn bg-primary" @click="navigateToEditAsForm">Edit as form</button>
-        </span>
-      </div>
-      <div v-for="(err, idx) in errors" :key="idx" class="text-error">
-        {{ err }}
-      </div>
-    </header>
     <div class="text-right">
-      <span v-if="isPreview" v-trim-whitespace class="btn-group btn-sm diff-mode">
+      <span v-if="showPreview" v-trim-whitespace class="btn-group btn-sm diff-mode">
         <button
           type="button"
           class="btn btn-sm bg-default"
@@ -359,8 +258,16 @@ export default {
       </span>
     </div>
 
+    <FileDiff
+      v-if="showPreview"
+      :filename="obj.id + '.yaml'"
+      :side-by-side="diffMode === 'split'"
+      :orig="value"
+      :neu="currentValue"
+      :footer-space="71"
+    />
     <CodeMirror
-      v-if="!isPreview"
+      v-else
       :value="currentValue"
       :options="cmOptions"
       :footer-space="71"
@@ -368,26 +275,17 @@ export default {
       @onReady="onReady"
       @onChanges="onChanges"
     />
-    <FileDiff
-      v-if="isPreview"
-      :filename="obj.id + '.yaml'"
-      :side-by-side="diffMode === 'split'"
-      :orig="value"
-      :neu="currentValue"
-      :footer-space="71"
-    />
-    <footer>
-      <div class="actions">
-        <button v-if="!isView" type="button" class="btn bg-transparent" @click="cancel">
-          Cancel
+
+    <Footer v-if="!isView" :mode="mode" :errors="errors" @save="save" @done="done">
+      <template #middle>
+        <button v-if="showPreview" type="button" class="btn bg-transparent" @click="unpreview">
+          Continue Editing
         </button>
-        <button v-if="isEdit || isClone" type="button" class="btn bg-transparent" @click="preview">
-          Preview
+        <button v-else-if="offerPreview" type="button" class="btn bg-transparent" @click="preview">
+          Show Diff
         </button>
-        <AsyncButton v-if="isEdit || isClone || isPreview" key="apply" mode="apply" @click="save" />
-        <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
-      </div>
-    </footer>
+      </template>
+    </Footer>
   </div>
 </template>
 

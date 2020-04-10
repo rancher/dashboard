@@ -37,14 +37,6 @@ export default {
     typeDisplay() {
       return this.$store.getters['type-map/singularLabelFor'](this.schema);
     },
-
-    parentLink() {
-      const name = this.doneRoute;
-      const params = this.$route.params;
-      const out = this.$router.resolve({ name, params }).href;
-
-      return out;
-    },
   },
 
   async asyncData(ctx) {
@@ -83,9 +75,7 @@ export default {
   <div v-else>
     <header>
       <h1>
-        Create <nuxt-link :to="parentLink">
-          {{ typeDisplay }}
-        </nuxt-link>
+        OLD Create {{ typeDisplay }}
       </h1>
     </header>
     <component

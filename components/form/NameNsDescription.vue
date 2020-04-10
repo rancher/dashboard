@@ -152,7 +152,7 @@ export default {
 
   methods: {
     changeNameAndNamespace(e) {
-      this.name = e.text;
+      this.name = (e.text || '').toLowerCase();
       this.namespace = e.selected;
     }
   }

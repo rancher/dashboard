@@ -101,7 +101,7 @@ export default {
       <ButtonGroup v-model="group" :options="groupOptions" />
     </template>
 
-    <template #cell:project="{row, col}">
+    <template #cell:project="{row}">
       <span v-if="row.project">{{ row.project.nameDisplay }}</span>
       <span v-else class="text-muted">&ndash;</span>
     </template>

@@ -37,10 +37,6 @@ export default {
   },
 
   computed:   {
-    schema() {
-      return this.$store.getters['cluster/schemaFor'](this.resource);
-    },
-
     headers() {
       if ( this.hasListComponent || !this.schema ) {
         // Custom lists figure out their own headers
@@ -68,6 +64,7 @@ export default {
     const resource = params.resource;
     const hasListComponent = store.getters['type-map/hasCustomList'](resource);
     const hasEditComponent = store.getters['type-map/hasCustomEdit'](resource);
+    const schema = store.getters['cluster/schemaFor'](resource);
 
     let foundData = false;
     let rows;
@@ -96,6 +93,7 @@ export default {
     await store.dispatch('type-map/addRecent', resource);
 
     return {
+      schema,
       hasListComponent,
       hasEditComponent,
       resource,
@@ -120,7 +118,7 @@ export default {
           type="button"
           class="btn bg-primary"
         >
-          Import
+          Create from YAML
         </nuxt-link>
         <nuxt-link
           v-if="hasEditComponent"

@@ -1,5 +1,5 @@
 <script>
-import { STATE, AGE, NAME, TYPE } from '@/config/table-headers';
+import { STATE, AGE, NAMESPACE_NAME, TYPE } from '@/config/table-headers';
 import ResourceTable from '@/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA } from '@/config/types';
 
@@ -33,7 +33,8 @@ export default {
     headers() {
       return [
         STATE,
-        NAME,
+        TYPE,
+        NAMESPACE_NAME,
         {
           name:      'endpoints',
           label:     'Endpoints',

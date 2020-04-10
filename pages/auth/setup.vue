@@ -4,7 +4,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import CopyCode from '@/components/CopyCode';
 import CopyToClipboard from '@/components/CopyToClipboard';
 import AsyncButton from '@/components/AsyncButton';
-import { SETUP, STEP, _DELETE } from '@/config/query-params';
+import { SETUP, STEP, _UNFLAG } from '@/config/query-params';
 import { NORMAN } from '@/config/types';
 import { open, popupWindowOptions } from '@/utils/window';
 import { findBy, filterBy, addObject, removeObject } from '@/utils/array';
@@ -139,7 +139,7 @@ export default {
     goToStep(num) {
       this.step = num;
       this.$router.applyQuery({
-        [SETUP]: _DELETE,
+        [SETUP]: _UNFLAG,
         [STEP]:  this.step,
       });
     },

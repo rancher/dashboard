@@ -6,12 +6,6 @@ export default {
   components: { Workload },
 
   computed:   {
-    parentLink() {
-      const name = 'c-cluster-workloads';
-      const out = this.$router.resolve({ name }).href;
-
-      return out;
-    },
     doneParams() {
       return this.$route.params;
     },
@@ -38,9 +32,7 @@ export default {
   <div>
     <header>
       <h1>
-        Create <nuxt-link :to="parentLink">
-          Workload
-        </nuxt-link>
+        OLD Create Workload
       </h1>
     </header>
     <Workload :value="obj" :mode="mode" done-route="c-cluster-workloads" :done-params="doneParams" />
