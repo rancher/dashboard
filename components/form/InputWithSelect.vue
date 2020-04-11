@@ -26,6 +26,10 @@ export default {
       type:     Array,
       required: true
     },
+    disabled: {
+      type:    Boolean,
+      default: false,
+    },
     textRequired: {
       type:    Boolean,
       default: false
@@ -76,6 +80,7 @@ export default {
       :searchable="false"
       :disbaled="isView"
       :clearable="false"
+      :disabled="disabled"
       :mode="mode"
       :option-label="optionLabel"
     />
@@ -86,7 +91,7 @@ export default {
       class="input-string col span-8"
       :label="textLabel"
       :placeholder="placeholder"
-      :disabled="isView"
+      :disabled="disabled"
       :required="textRequired"
       :mode="mode"
     />
@@ -95,6 +100,7 @@ export default {
       ref="text"
       v-model="string"
       class="input-string"
+      :disabled="isView"
       :placeholder="placeholder"
       autocomplete="off"
     />

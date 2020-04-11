@@ -73,12 +73,8 @@ export default {
   },
 
   computed: {
-    nameMode() {
-      if ( this.mode === _EDIT && !this.nameEditable) {
-        return _VIEW;
-      }
-
-      return this.mode;
+    nameDisabled() {
+      return this.mode !== _EDIT || !this.nameEditable;
     },
 
     detailTopColumns() {
@@ -173,7 +169,8 @@ export default {
             :text-value="name"
             :text-required="true"
             select-value="default"
-            :mode="nameMode"
+            :mode="mode"
+            :disabled="nameDisabled"
             @input="changeNameAndNamespace($event)"
           />
           <LabeledInput
@@ -182,6 +179,7 @@ export default {
             key="name"
             v-model="name"
             label="Name"
+            :disabled="nameDisabled"
             :mode="nameMode"
             :min-height="30"
           />

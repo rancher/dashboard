@@ -13,7 +13,7 @@ export const GITHUB_CODE = 'code';
 export const GITHUB_NONCE = 'state';
 
 // GENERAL
-export const EDIT_YAML = 'as-yaml';
+export const AS_YAML = 'as-yaml';
 export const _FLAGGED = null; // The value for a key-only flag, like `?desc`
 export const _UNFLAG = undefined; // The value to remove a query param
 

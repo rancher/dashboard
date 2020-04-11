@@ -20,6 +20,8 @@ import Footer from '@/components/form/Footer';
 import Job from '@/edit/workload/Job';
 import Labels from '@/components/form/Labels';
 import WorkloadPorts from '@/edit/workload/WorkloadPorts';
+import { defaultAsyncData } from '@/components/ResourceDetail.vue';
+import { _EDIT } from '@/config/query-params';
 
 export default {
   name:       'CruWorkload',
@@ -185,6 +187,9 @@ export default {
       return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.metadata.namespace }-${ this.metadata.name }` };
     },
 
+    isEdit() {
+      return this.mode === _EDIT;
+    },
   },
 
   watch: {
@@ -215,6 +220,10 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     }
+  },
+
+  asyncData(ctx) {
+    return defaultAsyncData(ctx, WORKLOAD_TYPES.DEPLOYMENT);
   },
 
   methods: {
@@ -265,7 +274,7 @@ export default {
     <slot :value="value" name="top">
       <NameNsDescription :value="{metadata}" :mode="mode" :extra-columns="['type']" @input="e=>metadata=e">
         <template v-slot:type>
-          <LabeledSelect v-model="type" label="Type" :options="typeOpts" />
+          <LabeledSelect v-model="type" label="Type" :disabled="isEdit" :options="typeOpts" />
         </template>
       </NameNsDescription>
 

@@ -26,7 +26,7 @@ export default {
       required: true,
     },
 
-    obj: {
+    model: {
       type:     Object,
       required: true,
     },
@@ -70,7 +70,7 @@ export default {
 
   computed: {
     schema() {
-      return this.$store.getters['cluster/schemaFor'](this.obj.type);
+      return this.$store.getters['cluster/schemaFor'](this.model.type);
     },
 
     cmOptions() {
@@ -190,9 +190,9 @@ export default {
             data: this.currentValue,
           });
         } else {
-          const link = this.obj.hasLink('rioupdate') ? 'rioupdate' : 'update';
+          const link = this.model.hasLink('rioupdate') ? 'rioupdate' : 'update';
 
-          await this.obj.followLink(link, {
+          await this.model.followLink(link, {
             method:  'PUT',
             headers: {
               'content-type': 'application/yaml',
@@ -232,7 +232,7 @@ export default {
 
       this.$router.replace({
         name:   this.doneRoute,
-        params: { resource: this.obj.type }
+        params: { resource: this.model.type }
       });
     }
   }
@@ -260,7 +260,7 @@ export default {
 
     <FileDiff
       v-if="showPreview"
-      :filename="obj.id + '.yaml'"
+      :filename="model.id + '.yaml'"
       :side-by-side="diffMode === 'split'"
       :orig="value"
       :neu="currentValue"
@@ -278,10 +278,10 @@ export default {
 
     <Footer v-if="!isView" :mode="mode" :errors="errors" @save="save" @done="done">
       <template #middle>
-        <button v-if="showPreview" type="button" class="btn bg-transparent" @click="unpreview">
+        <button v-if="showPreview" type="button" class="btn role-secondary" @click="unpreview">
           Continue Editing
         </button>
-        <button v-else-if="offerPreview" type="button" class="btn bg-transparent" @click="preview">
+        <button v-else-if="offerPreview" :disabled="value === currentValue" type="button" class="btn role-secondary" @click="preview">
           Show Diff
         </button>
       </template>

@@ -5,7 +5,7 @@ import { ucFirst } from '@/utils/string';
 import { eachLimit } from '@/utils/promise';
 import {
   MODE, _EDIT, _CLONE,
-  EDIT_YAML, _FLAGGED, _VIEW
+  AS_YAML, _FLAGGED, _VIEW
 } from '@/config/query-params';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
@@ -679,7 +679,7 @@ export default {
     return () => {
       const url = addParams(this.detailUrl, {
         [MODE]:      _EDIT,
-        [EDIT_YAML]: _FLAGGED
+        [AS_YAML]: _FLAGGED
       });
 
       this.currentRouter().push({ path: url });
@@ -690,7 +690,7 @@ export default {
     return () => {
       const url = addParams(this.detailUrl, {
         [MODE]:      _VIEW,
-        [EDIT_YAML]: _FLAGGED
+        [AS_YAML]: _FLAGGED
       });
 
       this.currentRouter().push({ path: url });
@@ -701,7 +701,7 @@ export default {
     return (moreQuery = {}) => {
       const url = addParams(this.detailUrl, {
         [MODE]:      _CLONE,
-        [EDIT_YAML]: _FLAGGED,
+        [AS_YAML]: _FLAGGED,
         ...moreQuery
       });
 

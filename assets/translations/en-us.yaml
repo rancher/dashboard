@@ -101,7 +101,7 @@ infoBoxCluster:
 resourceDetail:
   header:
     view: '<a href="{typeLink}">{type}</a>: {name}'
-    create: 'Create <a href="{typeLink}">{name}</a>'
+    create: 'Create <a href="{typeLink}">{type}</a>'
     edit: 'Edit <a href="{typeLink}">{type}</a>: {name}'
     clone: 'Clone from <a href="{typeLink}">{type}</a>: {name}'
     stage: 'Stage from <a href="{typeLink}">{type}</a>: {name}'

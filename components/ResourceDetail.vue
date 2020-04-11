@@ -3,42 +3,115 @@ import { cleanForNew } from '@/plugins/steve/normalize';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceYaml from '@/components/ResourceYaml';
 import {
-  MODE, _VIEW, _EDIT, _CLONE, _STAGE, _PREVIEW,
-  EDIT_YAML, _FLAGGED, _CREATE, PREVIEW
+  MODE, _VIEW, _EDIT, _CLONE, _STAGE,
+  AS_YAML, _FLAGGED, _CREATE,
 } from '@/config/query-params';
+import { SCHEMA } from '@/config/types';
+import { createYaml } from '@/utils/create-yaml';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.
 export async function asyncData(ctx) {
-  const { store, params, route } = ctx;
-  const { resource, namespace, id } = params;
-
-  const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
+  const { params, store, route } = ctx;
+  const resource = params.resource;
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
+  const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
+  const realMode = realModeFor(route.query.mode, params.id);
+
+  if ( hasCustomEdit && [_EDIT, _CREATE, _STAGE].includes(realMode) ) {
+    const importer = store.getters['type-map/importEdit'](resource);
+    const component = (await importer())?.default;
+
+    if ( component?.asyncData ) {
+      return component.asyncData(ctx);
+    }
+  }
+
+  if ( hasCustomDetail && realMode === _VIEW ) {
+    const importer = store.getters['type-map/importDetail'](resource);
+    const component = (await importer())?.default;
+
+    if ( component?.asyncData ) {
+      return component.asyncData(ctx);
+    }
+  }
+
+  return defaultAsyncData(ctx);
+}
+
+function realModeFor(query, id) {
+  if ( id ) {
+    return query || _VIEW;
+  } else {
+    return _CREATE;
+  }
+}
+
+// You can pass in a resource from a edit/someType.vue to use this but with a different type
+// e.g. for workload to create a deployment
+export async function defaultAsyncData(ctx, resource) {
+  const { store, params, route } = ctx;
+  // eslint-disable-next-line prefer-const
+  let { namespace, id } = params;
+
+  if ( !resource ) {
+    resource = params.resource;
+  }
 
   // There are 5 "real" modes that you can start in: view, edit, create, stage, clone
   // These are mapped down to the 3 regular page modes that create-edit-view components
   //  know about:  view, edit, create (stage and clone become "create")
-  const realMode = route.query.mode || _VIEW;
+  const realMode = realModeFor(route.query.mode, id);
+
+  const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
+  const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
+  const asYaml = (route.query[AS_YAML] === _FLAGGED) || (realMode === _VIEW && !hasCustomDetail) || (realMode !== _VIEW && !hasCustomEdit);
   const schema = store.getters['cluster/schemaFor'](resource);
 
-  let fqid = id;
+  let originalModel, model, yaml;
 
-  if ( schema.attributes.namespaced && namespace ) {
-    fqid = `${ namespace }/${ fqid }`;
-  }
+  if ( realMode === _CREATE ) {
+    if ( !namespace ) {
+      namespace = store.getters['defaultNamespace'];
+    }
 
-  const obj = await store.dispatch('cluster/find', { type: resource, id: fqid });
+    const schemas = store.getters['cluster/all'](SCHEMA);
 
-  const forNew = realMode === _CLONE || realMode === _STAGE;
-  const model = await store.dispatch('cluster/clone', { resource: obj });
+    const data = { type: resource };
 
-  if ( forNew ) {
-    cleanForNew(model);
-  }
+    if ( schema.attributes.namespaced ) {
+      data.metadata = { namespace };
+    }
 
-  if ( model.applyDefaults ) {
-    model.applyDefaults(ctx, realMode);
+    originalModel = await store.dispatch('cluster/create', data);
+    model = await store.dispatch('cluster/clone', { resource: originalModel });
+
+    if ( asYaml ) {
+      yaml = createYaml(schemas, resource, data);
+    }
+  } else {
+    let fqid = id;
+
+    if ( schema.attributes.namespaced && namespace ) {
+      fqid = `${ namespace }/${ fqid }`;
+    }
+
+    originalModel = await store.dispatch('cluster/find', { type: resource, id: fqid });
+    model = await store.dispatch('cluster/clone', { resource: originalModel });
+
+    if ( realMode === _CLONE || realMode === _STAGE ) {
+      cleanForNew(model);
+    }
+
+    if ( model.applyDefaults ) {
+      model.applyDefaults(ctx, realMode);
+    }
+
+    if ( asYaml ) {
+      const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
+
+      yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
+    }
   }
 
   let mode = realMode;
@@ -46,13 +119,6 @@ export async function asyncData(ctx) {
   if ( realMode === _STAGE || realMode === _CLONE ) {
     mode = _CREATE;
   }
-
-  const asYaml = (route.query[EDIT_YAML] === _FLAGGED) || (mode === _VIEW && !hasCustomDetail) || (mode !== _VIEW && !hasCustomEdit);
-  let yaml = null;
-
-  const link = obj.hasLink('rioview') ? 'rioview' : 'view';
-
-  yaml = (await obj.followLink(link, { headers: { accept: 'application/yaml' } })).data;
 
   /*******
    * Important: these need to be declared below as props too if you want to use them
@@ -65,7 +131,7 @@ export async function asyncData(ctx) {
     model,
     asYaml,
     yaml,
-    originalModel: obj,
+    originalModel,
     mode,
     realMode
   };
@@ -76,7 +142,7 @@ export async function asyncData(ctx) {
   return out;
 }
 
-export const watchQuery = [MODE, EDIT_YAML];
+export const watchQuery = [MODE, AS_YAML];
 
 export default {
   components: { ResourceYaml },
@@ -162,7 +228,13 @@ export default {
     },
 
     doneRoute() {
-      const name = this.$route.name.replace(/(-namespace)?-id$/, '');
+      let name = this.$route.name;
+
+      if ( name.endsWith('-id') ) {
+        name = name.replace(/(-namespace)?-id$/, '');
+      } else if ( name.endsWith('-create') ) {
+        name = name.replace(/-create$/, '');
+      }
 
       return name;
     },
@@ -220,7 +292,7 @@ export default {
     </header>
     <template v-if="asYaml">
       <ResourceYaml
-        :obj="model"
+        :model="model"
         :mode="mode"
         :value="yaml"
         :offer-preview="offerPreview"

@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import Favorite from '@/components/nav/Favorite';
-import { EDIT_YAML, _FLAGGED } from '@/config/query-params';
+import { AS_YAML, _FLAGGED } from '@/config/query-params';
 
 export default {
   components: { ResourceTable, Favorite },
@@ -12,7 +12,7 @@ export default {
 
     const formRoute = this.$router.resolve({ name: `${ this.$route.name }-create`, params }).href;
 
-    const query = { [EDIT_YAML]: _FLAGGED };
+    const query = { [AS_YAML]: _FLAGGED };
 
     const hasListComponent = this.$store.getters['type-map/hasCustomList'](resource);
     let listComponent;
@@ -31,7 +31,7 @@ export default {
       listComponent,
       formRoute,
       yamlRoute,
-      EDIT_YAML,
+      AS_YAML,
       FLAGGED: _FLAGGED
     };
   },
