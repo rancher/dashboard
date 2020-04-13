@@ -365,7 +365,7 @@ export default {
           </div>
           <div class="info-row">
             <label>Version: </label>
-            {{ parsedValuesYaml.image.release }}
+            {{ parsedValuesYaml.image.tag }}
           </div>
         </div>
       </InfoBox>
