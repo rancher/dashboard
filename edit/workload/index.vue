@@ -265,7 +265,7 @@ export default {
     <slot :value="value" name="top">
       <NameNsDescription :value="{metadata}" :mode="mode" :extra-columns="['type']" @input="e=>metadata=e">
         <template v-slot:type>
-          <LabeledSelect v-model="type" label="Type" :options="typeOpts" />
+          <LabeledSelect v-model="type" label="Type" :options="typeOpts" option-label="label" />
         </template>
       </NameNsDescription>
 
