@@ -25,7 +25,7 @@ export default {
     },
     optionLabel: {
       type:    String,
-      default: null
+      default: 'label'
     }
   },
   data() {
@@ -46,11 +46,8 @@ export default {
       if ( entry ) {
         return entry.label;
       }
-      if (this.optionLabel && typeof this.value === 'object') {
-        return get(this.value, this.optionLabel);
-      }
 
-      return this.value;
+      return this.getOptionLabel(this.value);
     },
     shownValue() {
       return this.value ? this.value : ' ';
@@ -78,6 +75,14 @@ export default {
 
     searchBlur() {
       this.selectedDisplay = 'block';
+    },
+
+    getOptionLabel(option) {
+      if (get(option, this.optionLabel)) {
+        return get(option, this.optionLabel);
+      } else {
+        return option;
+      }
     },
     get
   },
@@ -109,8 +114,8 @@ export default {
       :value="shownValue"
       :options="options"
       :multiple="multiple"
-      :get-option-label="opt=>optionLabel ? get(opt, optionLabel) : opt"
-      :get-option-key="opt=>optionLabel ? get(opt, optionLabel) : opt"
+      :get-option-label="opt=>getOptionLabel(opt)"
+      :get-option-key="opt=>optionKey ? get(opt, optionKey) : getOptionLabel(opt)"
       :label="optionLabel"
       @input="e=>e.value ? $emit('input', e.value) : $emit('input', e) "
       @search:focus="searchFocus"

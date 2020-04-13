@@ -14,6 +14,10 @@ export default {
       type:    String,
       default: ''
     },
+    optionLabel: {
+      type:    String,
+      default: 'label'
+    },
     placeholder: {
       type:    String,
       default: ''
@@ -63,6 +67,7 @@ export default {
       :disbaled="isView"
       :clearable="false"
       :mode="mode"
+      :option-label="optionLabel"
     />
     <LabeledInput
       v-if="textLabel"
