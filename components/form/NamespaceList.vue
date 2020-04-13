@@ -5,6 +5,12 @@ import { _EDIT } from '@/config/query-params';
 import { NAMESPACE } from '@/config/types';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
+export const NAMESPACE_FILTERS = {
+  nonSystem(namespace) {
+    return !namespace.isSystem;
+  }
+};
+
 export default {
   components: {
     ArrayList,
@@ -19,6 +25,10 @@ export default {
     mode: {
       type:    String,
       default: _EDIT
+    },
+    namespaceFilter: {
+      type:    Function,
+      default: namespace => true
     }
   },
 
@@ -35,12 +45,14 @@ export default {
       const choices = this.$store.getters['cluster/all'](NAMESPACE);
 
       return sortBy(
-        choices.map((obj) => {
-          return {
-            label: obj.nameDisplay,
-            value: obj.id
-          };
-        }),
+        choices
+          .filter(this.namespaceFilter)
+          .map((obj) => {
+            return {
+              label: obj.nameDisplay,
+              value: obj.id
+            };
+          }),
         'label'
       );
     }
