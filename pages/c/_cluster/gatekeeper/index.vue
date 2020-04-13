@@ -179,7 +179,7 @@ export default {
   <div>
     <div v-if="gateKeeperUnavailable">
       <h2 class="text-center mt-50">
-        OPA + Gatekeeper is not available in the system-charts catalog.
+        <t k="gatekeeperIndex.unavailable" />
       </h2>
     </div>
     <div v-else>
@@ -192,7 +192,7 @@ export default {
       />
       <InfoBox v-if="gatekeeperEnabled">
         <div class="mb-15">
-          <h2>Violations</h2>
+          <h2><t k="gatekeeperIndex.violations" /></h2>
         </div>
         <div>
           <GatekeeperViolationsTable :include-constraint="true" />
