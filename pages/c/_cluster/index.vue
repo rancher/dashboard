@@ -94,7 +94,7 @@ export default {
     filteredConstraints() {
       const allConstraints = ( this.constraints || [] ).slice();
 
-      return allConstraints.filter(constraint => constraint.status.totalViolations > 0);
+      return allConstraints.filter(constraint => constraint?.status?.totalViolations > 0);
     },
   },
 
