@@ -2,6 +2,9 @@ locale:
   none: (None)
   en-us: English
 
+generic:
+  customize: Customize
+
 header:
   backToRancher: "← Back to Rancher"
 
@@ -48,6 +51,35 @@ clusterIndexPage:
       noRows: "There are no contrains with violations to show."
     events:
       label: Events
+
+gatekeeperIndex:
+  unavailable: "OPA + Gatekeeper is not available in the system-charts catalog."
+  violations: Violations
+
+gatekeeperConfig:
+  header: OPA Gatekeeper
+  flag: Experimental
+  configure:
+    description: Description
+    helpText:
+      listItem1: "OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes."
+      listItem2: "You can Customize Gatekeeper’s yaml configuartion or Enable Gatekeeper with defaults."
+      listItem3: "For more information, visit the "
+      listItem4: "OPA Documentation."
+    requirements:
+      header: Requirements
+      helpText:
+        listItem1: "0.1 CPU Cores"
+        listItem2: "256 MiB of Memory"
+  infoBox:
+    auditFromCache: Audit From Cache
+    auditInterval: Audit Interval
+    constraintViolationsLimit: Constraint Violation Limit
+    replicas: Replicas
+    imageRepository: Image
+    imageTag: Version
+  yaml:
+    buttonText: Customize
 
 infoBoxCluster:
   cpu: CPU Usage

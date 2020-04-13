@@ -327,10 +327,16 @@ export default {
   <div>
     <header>
       <h1>
-        OPA Gatekeeper <span class="flag">Experimental</span>
+        <t k="gatekeeperConfig.header" /> <span class="flag"><t k="gatekeeperConfig.flag" /></span>
       </h1>
       <div v-if="gatekeeperEnabled" class="actions">
-        <button aria-haspopup="true" ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
+        <button
+          ref="actions"
+          aria-haspopup="true"
+          type="button"
+          class="btn btn-sm role-multi-action actions"
+          @click="showActions"
+        >
           <i class="icon icon-actions" />
         </button>
       </div>
@@ -342,30 +348,30 @@ export default {
       >
         <div class="col span-6 info-column">
           <div class="info-row">
-            <label>Audit From Cache: </label>
+            <label><t k="gatekeeperConfig.infoBox.auditFromCache" />: </label>
             {{ parsedValuesYaml.auditFromCache }}
           </div>
           <div class="info-row">
-            <label>Audit Interval: </label>
+            <label><t k="gatekeeperConfig.infoBox.auditInterval" />: </label>
             {{ parsedValuesYaml.auditInterval }}s
           </div>
           <div class="info-row">
-            <label>Constraint Violation Limit: </label>
+            <label><t k="gatekeeperConfig.infoBox.constraintViolationsLimit" />: </label>
             {{ parsedValuesYaml.constraintViolationsLimit }}
           </div>
           <div class="info-row">
-            <label>Replicas: </label>
+            <label><t k="gatekeeperConfig.infoBox.replicas" />: </label>
             {{ parsedValuesYaml.replicas }}
           </div>
         </div>
         <div class="col span-6 info-column">
           <div class="info-row">
-            <label>Image: </label>
+            <label><t k="gatekeeperConfig.infoBox.imageRepository" />: </label>
             {{ parsedValuesYaml.image.repository }}
           </div>
           <div class="info-row">
-            <label>Version: </label>
-            {{ parsedValuesYaml.image.release }}
+            <label><t k="gatekeeperConfig.infoBox.imageTag" />: </label>
+            {{ parsedValuesYaml.image.tag }}
           </div>
         </div>
       </InfoBox>
@@ -373,18 +379,18 @@ export default {
     <div v-else class="mt-20 mb-20">
       <div class="row">
         <div class="col span-6">
-          <h3>Description</h3>
+          <h3><t k="gatekeeperConfig.configure.description" /></h3>
           <ul>
-            <li>OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes.</li>
-            <li>You can Customize Gatekeeper’s yaml configuartion or Enable Gatekeeper with defaults.</li>
-            <li>For more information, visit the <a href="https://www.openpolicyagent.org/docs/latest/kubernetes-introduction/" target="blank">OPA documentation.</a></li>
+            <li><t k="gatekeeperConfig.configure.helpText.listItem1" /></li>
+            <li><t k="gatekeeperConfig.configure.helpText.listItem2" /></li>
+            <li><t k="gatekeeperConfig.configure.helpText.listItem3" /> <a href="https://www.openpolicyagent.org/docs/latest/kubernetes-introduction/" target="blank"><t k="gatekeeperConfig.configure.helpText.listItem4" /></a></li>
           </ul>
         </div>
         <div class="col span-6">
-          <h3>Requirements</h3>
+          <h3><t k="gatekeeperConfig.configure.requirements.header" /></h3>
           <ul>
-            <li>0.1 CPU Cores</li>
-            <li>256 MiB of Memory </li>
+            <li><t k="gatekeeperConfig.configure.requirements.helpText.listItem1" /></li>
+            <li><t k="gatekeeperConfig.configure.requirements.helpText.listItem2" /></li>
           </ul>
         </div>
       </div>
@@ -398,6 +404,7 @@ export default {
             :disable="saving"
             @click="openYamlEditor"
           >
+            <t k="generic.customize" />
             Customize
           </button>
           <AsyncButton
@@ -434,10 +441,6 @@ export default {
 
 <style lang="scss">
 h1 {
-  // display: inline-block;
-  // vertical-align: middle;
-  // position: relative;
-
   .flag {
     text-align: center;
     display: inline-block;
