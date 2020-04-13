@@ -49,45 +49,28 @@ export default {
     } = spec;
     const { limits = {}, requests = {} } = resources;
 
+    // UI has two groups: from resource (referencedValues), not from resource (unreferencedValues)
+    // api spec has two different groups: key ref (env) or entire-resource's-key ref (envFrom)
+    const allEnv = [...env, ...envFrom];
+
+    const referencedValues = allEnv.filter((val) => {
+      return !!val.valueFrom || !!val.secretRef || !!val.configMapRef;
+    });
+
+    const unreferencedValues = env.filter((val) => {
+      return !val.valueFrom && !val.secretRef && !val.configmapRef;
+    });
+
     return {
-      spec, env, envFrom, limits, requests, securityContext
+      spec, env, envFrom, limits, requests, securityContext, referencedValues, unreferencedValues
     };
-  },
-
-  computed: {
-    referencedValues: {
-      get() {
-        const all = [...this.env, ...this.envFrom];
-
-        return all.filter((val) => {
-          return !!val.valueFrom || !!val.secretRef;
-        });
-      },
-      set(neu) {
-        this.envFrom = neu.filter(val => !!val.secretRef);
-        this.env = [...this.unreferencedValues, ...neu.filter(val => !val.secretRef)];
-      }
-    },
-
-    unreferencedValues: {
-      get() {
-        return this.env.filter((val) => {
-          return !val.valueFrom;
-        });
-      },
-      set(neu) {
-        const referenced = this.env.filter(val => val.valueFrom);
-
-        this.$set(this, 'env', [...neu, ...referenced]);
-      }
-    }
   },
 
   methods: {
     update() {
-      // this.$set(this.spec, 'env', this.env);
-      // this.$set(this.spec, 'envFrom', this.envFrom);
-      const { env, envFrom } = this;
+      // env should contain all unreferenced values and referenced values that refer to only part of a resource, ie contain 'valueFrom' key
+      const env = [...this.unreferencedValues, ...this.referencedValues.filter(val => !!val.valueFrom)];
+      const envFrom = this.referencedValues.filter(val => !!val.configmapRef || !!val.secretRef);
       const resources = { requests: this.requests, limits: this.limits };
 
       this.$emit('input', {
@@ -108,7 +91,7 @@ export default {
     },
 
     addFromReference() {
-      this.env.push({ name: '', valueFrom: {} });
+      this.referencedValues.push({ name: '', valueFrom: {} });
 
       this.$nextTick(() => {
         const newRow = this.$refs.referenced[this.referencedValues.length - 1];
@@ -244,11 +227,10 @@ export default {
     <ValueFromResource
       v-for="(val,i) in referencedValues"
       ref="referenced"
-      :key="`${Object.values(val)}-${i}`"
+      :key="`${i}`"
       :row="val"
       :all-secrets="secrets"
       :all-config-maps="configMaps"
-      :namespace="namespace"
       :mode="mode"
       @input="e=>updateRow(i, e.value, e.old)"
     />
