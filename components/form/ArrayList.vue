@@ -129,6 +129,12 @@ export default {
     },
   },
 
+  watch: {
+    value() {
+      this.rows = (this.value || []).map(v => ({ value: v }));
+    }
+  },
+
   created() {
     this.queueUpdate = debounce(this.update, 100);
   },

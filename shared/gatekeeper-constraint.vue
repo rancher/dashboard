@@ -1,13 +1,14 @@
 <script>
 import Vue from 'vue';
+import { merge } from 'lodash';
 import { _VIEW } from '../config/query-params';
-import { SCHEMA } from '@/config/types';
+import { SCHEMA, NAMESPACE } from '@/config/types';
 import MatchKinds from '@/components/form/MatchKinds';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import NamespaceList from '@/components/form/NamespaceList';
+import NamespaceList, { NAMESPACE_FILTERS } from '@/components/form/NamespaceList';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import Footer from '@/components/form/Footer';
@@ -53,22 +54,50 @@ export default {
   },
 
   data() {
-    const schemas = this.$store.getters['cluster/all'](SCHEMA);
-    const constraintTypes = findConstraintTypes(schemas);
-    const templateOptions = constraintTypes.map((type) => {
-      return {
-        label: type.replace(CONSTRAINT_PREFIX, ''),
-        value: type
-      };
-    });
+    return {
+      enforcementActionOptions: Object.values(ENFORCEMENT_ACTION_VALUES),
+      enforcementActionLabels:  Object.values(ENFORCEMENT_ACTION_VALUES).map(ucFirst),
+      NAMESPACE_FILTERS
+    };
+  },
 
-    const localValue = Object.keys(this.value).length > 0
-      ? { ...this.value }
-      : {
-        type:  templateOptions[0].value,
+  computed: {
+    extraDetailColumns() {
+      return [
+        {
+          title:   'Template',
+          content: this.templateOptions.find(o => o.value === this.value.type).label
+        }
+      ];
+    },
+    templateOptions() {
+      const schemas = this.$store.getters['cluster/all'](SCHEMA);
+      const constraintTypes = findConstraintTypes(schemas);
+
+      constraintTypes.sort();
+
+      return constraintTypes.map((type) => {
+        return {
+          label: type.replace(CONSTRAINT_PREFIX, ''),
+          value: type
+        };
+      });
+    },
+    isView() {
+      return this.mode === _VIEW;
+    },
+    systemNamespaceIds() {
+      return this.$store.getters['cluster/all'](NAMESPACE)
+        .filter(namespace => namespace.isSystem)
+        .map(namespace => namespace.id);
+    },
+    emptyDefaults() {
+      return {
+        type:  this.templateOptions[0].value,
         spec: {
-          parameters: {},
-          match:      {
+          enforcementAction: ENFORCEMENT_ACTION_VALUES.DENY,
+          parameters:        {},
+          match:             {
             kinds:              [{ apiGroups: [''] }],
             namespaces:         [],
             excludedNamespaces: [],
@@ -77,69 +106,34 @@ export default {
           }
         }
       };
-
-    localValue.spec.match.kinds = (localValue?.spec?.match?.kinds || []).length === 0
-      ? [{ apiGroups: [''] }]
-      : localValue.spec.match.kinds;
-
-    this.purgeNamespacesField(localValue);
-
-    const extraDetailColumns = [
-      {
-        title:   'Template',
-        content: templateOptions.find(o => o.value === localValue.type).label
-      }
-    ];
-
-    return {
-      localValue,
-      templateOptions,
-      extraDetailColumns,
-      enforcementActionOptions: Object.values(ENFORCEMENT_ACTION_VALUES),
-      enforcementActionLabels:  Object.values(ENFORCEMENT_ACTION_VALUES).map(ucFirst)
-    };
-  },
-
-  computed: {
-    isView() {
-      return this.mode === _VIEW;
     }
   },
 
   watch: {
-    localValue: {
+    value: {
       handler(value) {
         // We have to set the type for the CreateEditView mixin to know what the type is when creating
         this.type = value.type;
-        this.purgeNamespacesField(this.localValue);
+        this.purgeNamespacesField(this.value);
       },
       deep: true
     }
   },
 
-  created() {
-    (async() => {
-      const value = this.value.save
-        ? this.value
-        : Object.assign(await this.$store.dispatch('cluster/create', { type: this.templateOptions[0].value }), this.value);
-
-      value.type = value.type || this.templateOptions[0].value;
-      value.spec = value.spec || {};
-      value.spec.enforcementAction = value.spec.enforcementAction || ENFORCEMENT_ACTION_VALUES.DENY;
-      value.spec.parameters = value.spec.parameters || {};
-      value.spec.match = value.spec.match || {};
-      value.spec.match.kinds = value.spec.match.kinds || [];
-      value.spec.match.excludedNamespaces = value.spec.match.excludedNamespaces || [];
-      value.spec.match.labelSelector = value.spec.match.labelSelector || {};
-      value.spec.match.labelSelector.matchExpressions = value.spec.match.labelSelector.matchExpressions || [];
-      value.spec.match.namespaceSelector = value.spec.match.namespaceSelector || {};
-      value.spec.match.namespaceSelector.matchExpressions = value.spec.match.namespaceSelector.matchExpressions || [];
-
-      this.$emit('input', value);
-    })();
+  async created() {
+    if (!this.value.save) {
+      this.$emit('input', merge(await this.createConstraint(), this.value, this.emptyDefaults));
+    }
   },
 
   methods: {
+    async createConstraint() {
+      const constraint = await this.$store.dispatch('cluster/create', { type: this.templateOptions[0].value });
+
+      constraint.spec = { match: { excludedNamespaces: this.systemNamespaceIds } };
+
+      return constraint;
+    },
     done() {
       this.$router.replace({
         name:   'c-cluster-gatekeeper-constraints',
@@ -156,20 +150,24 @@ export default {
         Vue.delete(value.spec.match, 'namespaces');
       }
     },
+
+    updateType(type) {
+      this.$set(this.value, 'type', type);
+    }
   }
 };
 </script>
 <template>
-  <div>
+  <div v-if="value.save">
     <div>
       <NameNsDescription :value="value" :mode="mode" :namespaced="false" :extra-columns="['template']" :extra-detail-columns="extraDetailColumns">
         <template v-slot:template>
           <LabeledSelect
             :mode="mode"
-            :value="localValue.type"
+            :value="value.type"
             :options="templateOptions"
             label="Template"
-            @input="$set(localValue, 'type', $event)"
+            @input="updateType"
           />
         </template>
       </NameNsDescription>
@@ -177,13 +175,13 @@ export default {
     <br />
     <div v-if="isView">
       <h2>Violations</h2>
-      <GatekeeperViolationsTable :constraint="localValue" />
+      <GatekeeperViolationsTable :constraint="value" />
       <br />
     </div>
     <div>
       <h2>Parameters</h2>
       <KeyValue
-        v-model="localValue.spec.parameters"
+        v-model="value.spec.parameters"
         :value-multiline="false"
         :mode="mode"
         :pad-left="false"
@@ -197,12 +195,12 @@ export default {
     <div>
       <h2>Enforcement Action</h2>
       <RadioGroup
-        v-model="localValue.spec.enforcementAction"
+        v-model="value.spec.enforcementAction"
         class="enforcement-action"
         :options="enforcementActionOptions"
         :labels="enforcementActionLabels"
         :mode="mode"
-        @input="e=>localValue.spec.enforcementAction = e"
+        @input="e=>value.spec.enforcementAction = e"
       />
     </div>
     <br />
@@ -214,11 +212,11 @@ export default {
           <div class="row">
             <div class="col span-6">
               <h4>Namespaces</h4>
-              <NamespaceList v-model="localValue.spec.match.namespaces" :mode="mode" />
+              <NamespaceList v-model="value.spec.match.namespaces" :mode="mode" :namespace-filter="NAMESPACE_FILTERS.nonSystem" />
             </div>
             <div class="col span-6">
               <h4>Excluded Namespaces</h4>
-              <NamespaceList v-model="localValue.spec.match.excludedNamespaces" :mode="mode" />
+              <NamespaceList v-model="value.spec.match.excludedNamespaces" :mode="mode" />
             </div>
           </div>
         </Tab>
@@ -227,7 +225,7 @@ export default {
             <div class="col span-6">
               <h4>Label Selector</h4>
               <RuleSelector
-                v-model="localValue.spec.match.labelSelector.matchExpressions"
+                v-model="value.spec.match.labelSelector.matchExpressions"
                 add-label="Add Label"
                 :mode="mode"
               />
@@ -235,7 +233,7 @@ export default {
             <div class="col span-6">
               <h4>Namespace Selector</h4>
               <RuleSelector
-                v-model="localValue.spec.match.namespaceSelector.matchExpressions"
+                v-model="value.spec.match.namespaceSelector.matchExpressions"
                 add-label="Add Namespace"
                 :mode="mode"
               />
@@ -243,7 +241,7 @@ export default {
           </div>
         </Tab>
         <Tab name="kinds" label="Kinds">
-          <MatchKinds v-model="localValue.spec.match.kinds" :mode="mode" />
+          <MatchKinds v-model="value.spec.match.kinds" :mode="mode" />
         </Tab>
       </Tabbed>
     </div>
