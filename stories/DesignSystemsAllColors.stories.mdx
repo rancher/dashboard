@@ -2,25 +2,35 @@ import { Meta, Props, Story, Preview } from '@storybook/addon-docs/blocks'
 
 <Meta title='Design Systems' />
 
-# All colors
+# Colors: Essential
 
-<Story name='All Colors'>
+<Preview>
+  <Story name="Colors: Essential">
   {{
-    components: {},
-    template: `
-    <div class="row">
-    <div class="col span-12">
-    <div><div style="background: #141419; height: 25px; width: 25px;"></div><p>Dark: Sidebar & Block Light: Primary Text</p></div>
-    <div><div style="background: #1B1C21; height: 25px; width: 25px;"></div><p>Dark: Body Background Light: None</p></div>
-    <div><div style="background: #27292E; height: 25px; width: 25px;"></div><p>Dark: Input Fill Light: None</p></div>
-    <div><div style="background: #4A4B52; height: 25px; width: 25px;"></div><p>Dark: Borders & Buttons Light: None</p></div>
-    <div><div style="background: #6C6C76; height: 25px; width: 25px;"></div><p>Dark: Disabled Text Light: Secondary Text</p></div>
-    <div><div style="background: #B6B6C2; height: 25px; width: 25px;"></div><p>Dark: Secondary Text Light: Disabled</p></div>
-    <div><div style="background: #DCDEE7; height: 25px; width: 25px;"></div><p>Dark: None Light: Borders & Buttons</p></div>
-    <div><div style="background: #EEEFF4; height: 25px; width: 25px;"></div><p>Dark: None Light: Input Fill</p></div>
-    <div><div style="background: #F4F5FA; height: 25px; width: 25px;"></div><p>Dark: None Light: Sidebar and Block</p></div>
-    <div><div style="background: #FFFFFF; height: 25px; width: 25px;"></div><p>Dark: Primary Text Light: Body Background</p></div>
-    </div>
-    </div>`
-  }}
-</Story>
+      components: {},
+      template: `
+      <div class="row">
+        <div class="col span-2">
+          <div class="swatch-dot" style="background: var(--body-text);"></div>
+          <h3>Primary Text</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+        <div class="col span-2">
+          <div class="swatch-dot" style="background: var(--secondary);"></div>
+          <h3>Secondary Text</h3> 
+          <p class="text-secondary">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+        <div class="col span-2">
+          <div class="swatch-dot" style="background: var(--link-text);"></div>
+          <h3>Interactive Text</h3>
+          <p>Lorem ipsum dolor sit amet, <a href="#">consectetur adipiscing elit</a>, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+        <div class="col span-2">
+          <div class="swatch-dot" style="background: var(--muted);"></div>
+          <h3>Disabled Text</h3>
+          <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+      </div>`
+    }}
+  </Story>
+</Preview>
