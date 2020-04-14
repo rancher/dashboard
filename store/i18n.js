@@ -53,7 +53,7 @@ export const getters = {
 
   t: state => (key, args) => {
     if (state.selected === NONE ) {
-      return undefined;
+      return `%${ key }%`;
     }
 
     const cacheKey = `${ state.selected }/${ key }`;

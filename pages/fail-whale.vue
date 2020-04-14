@@ -7,6 +7,12 @@ export default {
 
   data() {
     const home = this.$router.resolve({ name: 'index' }).href;
+    const store = this.$store;
+
+    if ( process.client && !store.state.error && !store.state.cameFromError) {
+      store.commit('cameFromError');
+      this.$router.replace('/');
+    }
 
     return { home };
   },
@@ -19,19 +25,18 @@ export default {
     },
   },
 
-  fetch({ store, redirect }) {
-    if ( process.client && !store.state.error ) {
-      redirect(`/clusters`);
-    }
-  },
-
 };
 </script>
 
 <template>
-  <div class="m-20">
-    <h1>Error<span v-if="error && error._status">: {{ error._status }} {{ error._statusText }}</span></h1>
-    <div class="mt-20 mb-20">
+  <div v-if="error" class="m-20">
+    <h1 v-if="error.status">
+      HTTP Error {{ error.status }}: {{ error.statusText }}
+    </h1>
+    <h1 v-else>
+      Error
+    </h1>
+    <div v-if="error" class="mt-20 mb-20">
       {{ displayError }}
     </div>
     <div>

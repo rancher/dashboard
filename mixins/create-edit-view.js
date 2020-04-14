@@ -32,16 +32,27 @@ export default {
       type:    Object,
       default: null,
     },
-
-    namespaceSuffixOnCreate: {
-      type:    Boolean,
-      default: false,
-    },
   },
 
   data() {
+    const v = this.value;
+
+    // For easy access debugging...
     if ( typeof window !== 'undefined' ) {
-      window.v = this.value;
+      window.v = v;
+    }
+
+    // Ensure labels & annotations exists, since lots of things need them
+    if ( !v.metadata ) {
+      v.metadata = {};
+    }
+
+    if ( !v.metadata.annotations ) {
+      v.metadata.annotations = {};
+    }
+
+    if ( !v.metadata.labels ) {
+      v.metadata.labels = {};
     }
 
     return { errors: null };
@@ -51,18 +62,16 @@ export default {
     isCreate() {
       return this.mode === _CREATE;
     },
+
     isEdit() {
       return this.mode === _EDIT;
     },
+
     isView() {
       return this.mode === _VIEW;
     },
 
     schema() {
-      if (this.type) {
-        return this.$store.getters['cluster/schemaFor'](this.type);
-      }
-
       return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
   },
@@ -87,16 +96,23 @@ export default {
       this.errors = null;
       try {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
+
+        // Remove the labels map we created in data(), if it's empty
+        if ( this.value?.metadata?.labels && Object.keys(this.value.metadata.labels || {}).length === 0 ) {
+          delete this.value.metadata.labels;
+        }
+
+        // Remove the annotations map we created in data(), if it's empty
+        if ( this.value?.metadata?.annotations && Object.keys(this.value.metadata.annotations || {}).length === 0 ) {
+          delete this.value.metadata.annotations;
+        }
+
         if ( this.isCreate ) {
           url = url || this.schema.linkFor('collection');
 
-          if ( this.namespaceSuffixOnCreate ) {
-            url += `/${ this.value.metadata.namespace }`;
-          }
-
           // @TODO Better place for this...
           if ( this.value?.metadata?.namespace ) {
-            this.value.$commit('setDefaultNamespace', this.value?.metadata?.namespace, { root: true });
+            this.value.$commit('setDefaultNamespace', this.value.metadata.namespace, { root: true });
           }
 
           const res = await this.value.save({ url });

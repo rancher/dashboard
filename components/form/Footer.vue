@@ -21,9 +21,11 @@ export default {
     isCreate() {
       return this.mode === _CREATE;
     },
+
     isEdit() {
       return this.mode === _EDIT;
     },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -50,11 +52,18 @@ export default {
       </div>
     </div>
     <div class="text-center">
-      <button v-if="!isView" type="button" class="btn role-secondary" @click="done">
-        Cancel
-      </button>
-      <AsyncButton v-if="isEdit" key="edit" mode="edit" @click="save" />
-      <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
+      <slot name="left" />
+      <slot name="cancel">
+        <button type="button" class="btn role-secondary" @click="done">
+          Cancel
+        </button>
+      </slot>
+      <slot name="middle" />
+      <slot name="save">
+        <AsyncButton v-if="isEdit" key="edit" mode="edit" @click="save" />
+        <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
+      </slot>
+      <slot name="right" />
     </div>
   </div>
 </template>

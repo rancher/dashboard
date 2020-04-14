@@ -26,6 +26,10 @@ export default {
       type:     Array,
       required: true
     },
+    disabled: {
+      type:    Boolean,
+      default: false,
+    },
     textRequired: {
       type:    Boolean,
       default: false
@@ -43,15 +47,25 @@ export default {
   data() {
     return { selected: this.selectValue || this.options[0], string: this.textValue };
   },
+
   watch: {
     selected() {
       this.change();
     }
   },
+
   methods: {
+    focus() {
+      const comp = this.$refs.text;
+
+      if ( comp ) {
+        comp.focus();
+      }
+    },
+
     change() {
       this.$emit('input', { selected: this.selected, text: this.string });
-    }
+    },
   }
 };
 </script>
@@ -66,6 +80,7 @@ export default {
       :searchable="false"
       :disbaled="isView"
       :clearable="false"
+      :disabled="disabled"
       :mode="mode"
       :option-label="optionLabel"
     />
@@ -76,7 +91,7 @@ export default {
       class="input-string col span-8"
       :label="textLabel"
       :placeholder="placeholder"
-      :disabled="isView"
+      :disabled="disabled"
       :required="textRequired"
       :mode="mode"
     />
@@ -85,6 +100,7 @@ export default {
       ref="text"
       v-model="string"
       class="input-string"
+      :disabled="isView"
       :placeholder="placeholder"
       autocomplete="off"
     />

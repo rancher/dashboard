@@ -1,27 +1,39 @@
 <script>
-import { STATE, AGE, NAMESPACE_NAME } from '@/config/table-headers';
+import { STATE, AGE, NAMESPACE_NAME, TYPE } from '@/config/table-headers';
 import ResourceTable from '@/components/ResourceTable';
-import { WORKLOAD, SCHEMA } from '@/config/types';
+import { WORKLOAD_TYPES, SCHEMA } from '@/config/types';
+
+const schema = {
+  id:         'workload',
+  type:       SCHEMA,
+  attributes: {
+    kind:       'Workload',
+    namespaced: true
+  },
+  metadata: { name: 'workload' },
+};
 
 export default {
+  name:       'ListWorkload',
   components: { ResourceTable },
-  computed:   {
 
+  props: {
+    // The things out of asyncData come in as props
+    resources: {
+      type:    Array,
+      default: null,
+    },
+  },
+
+  computed: {
     schema() {
-      return {
-        id:         'workload',
-        type:       SCHEMA,
-        attributes: {
-          kind:       'Workload',
-          namespaced: true
-        },
-        metadata: { name: 'workload' },
-      };
+      return schema;
     },
 
     headers() {
       return [
         STATE,
+        TYPE,
         NAMESPACE_NAME,
         {
           name:      'endpoints',
@@ -53,7 +65,7 @@ export default {
   },
 
   async asyncData({ store }) {
-    const types = Object.values(WORKLOAD);
+    const types = Object.values(WORKLOAD_TYPES);
 
     const resources = await Promise.all(types.map((type) => {
       // You may not have RBAC to see some of the types
@@ -68,21 +80,13 @@ export default {
 
     return { resources };
   },
+
+  typeDisplay({ store }) {
+    return store.getters['type-map/pluralLabelFor'](schema);
+  },
 };
 </script>
 
 <template>
-  <div>
-    <header>
-      <h1>
-        Workloads
-      </h1>
-      <div class="actions">
-        <nuxt-link to="create" append tag="button" type="button" class="btn bg-primary">
-          Create
-        </nuxt-link>
-      </div>
-    </header>
-    <ResourceTable :schema="schema" :rows="rows" :headers="headers" />
-  </div>
+  <ResourceTable :schema="schema" :rows="rows" :headers="headers" />
 </template>

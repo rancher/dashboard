@@ -2,7 +2,31 @@ import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { proxyFor } from './resource-proxy';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 
+function registerType(state, type) {
+  let cache = state.types[type];
+
+  if ( !cache ) {
+    cache = {
+      list:    [],
+      haveAll: false,
+    };
+
+    // Not enumerable so they don't get sent back to the client for SSR
+    Object.defineProperty(cache, 'map', { value: new Map() });
+
+    if ( process.server && !cache.list.__rehydrateAll ) {
+      Object.defineProperty(cache.list, '__rehydrateAll', { value: `${ state.config.namespace }/${ type }`, enumerable: true });
+    }
+
+    state.types[type] = cache;
+  }
+
+  return cache;
+}
+
 export default {
+  registerType,
+
   applyConfig(state, config) {
     if ( !state.config ) {
       state.config = {};
@@ -11,39 +35,17 @@ export default {
     Object.assign(state.config, config);
   },
 
-  registerType(state, type) {
-    if ( !state.types[type] ) {
-      const cache = {
-        list:    [],
-        haveAll: false,
-      };
-
-      // Not enumerable so they don't get sent back to the client for SSR
-      Object.defineProperty(cache, 'map', { value: new Map() });
-
-      if ( process.server ) {
-        Object.defineProperty(cache.list, '__rehydrateAll', { value: `${ state.config.namespace }/${ type }`, enumerable: true });
-      }
-
-      state.types[type] = cache;
-    }
-  },
-
   loadAll(state, { type, data, ctx }) {
     if (!data) {
       return;
     }
-    const cache = state.types[type];
+
     const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
+    const proxies = data.map(x => proxyFor(ctx, x));
+    const cache = registerType(state, type);
 
     clear(cache.list);
     cache.map.clear();
-
-    if ( process.server ) {
-      Object.defineProperty(cache.list, '__rehydrateAll', { value: `${ state.config.namespace }/${ type }`, enumerable: true });
-    }
-
-    const proxies = data.map(x => proxyFor(ctx, x));
 
     addObjects(cache.list, proxies);
 
@@ -60,7 +62,7 @@ export default {
 
     const id = data[keyField];
 
-    let cache = state.types[type];
+    let cache = registerType(state, type);
 
     let entry = cache.map.get(id);
 

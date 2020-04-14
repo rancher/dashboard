@@ -102,7 +102,7 @@ export default {
 
       &:hover {
         background: var(--dropdown-hover-bg);
-        
+
         ::v-deep .icon {
           color: var(--body-text);
         }

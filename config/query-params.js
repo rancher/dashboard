@@ -13,9 +13,9 @@ export const GITHUB_CODE = 'code';
 export const GITHUB_NONCE = 'state';
 
 // GENERAL
-export const EDIT_YAML = 'as-yaml';
+export const AS_YAML = 'as-yaml';
 export const _FLAGGED = null; // The value for a key-only flag, like `?desc`
-export const _DELETE = undefined; // The value to remove a query param
+export const _UNFLAG = undefined; // The value to remove a query param
 
 // SortableTable
 export const SEARCH_QUERY = 'q';
@@ -28,9 +28,10 @@ export const MODE = 'mode';
 export const _CREATE = 'create';
 export const _VIEW = 'view';
 export const _EDIT = 'edit';
-export const _PREVIEW = 'preview';
 export const _CLONE = 'clone';
 export const _STAGE = 'stage';
+
+export const PREVIEW = 'preview';
 
 export const DIFF = 'diff';
 export const _UNIFIED = 'unified';

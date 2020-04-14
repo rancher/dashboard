@@ -113,6 +113,11 @@ export default (config = {}) => {
         }
       } else if ( obj && typeof obj === 'object' ) {
         if ( obj.__rehydrate ) {
+          if ( obj.__rehydrate !== namespace ) {
+            // Ignore types that are for another vuex namespace
+            return obj;
+          }
+
           const type = obj.type;
           const cache = state.types[type];
 
@@ -127,9 +132,9 @@ export default (config = {}) => {
             }
           }
 
+          // Or just return a proxied object
           delete obj.__rehydrate;
 
-          // Or just return a proxied object
           return proxyFor(module.context, obj);
         } else {
           for ( const k of Object.keys(obj) ) {

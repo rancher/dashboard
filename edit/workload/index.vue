@@ -1,7 +1,6 @@
 <script>
 import cronstrue from 'cronstrue';
-import { clone } from '@/utils/object';
-import { CONFIG_MAP, SECRET, WORKLOAD, NODE } from '@/config/types';
+import { CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE } from '@/config/types';
 import LoadDeps from '@/mixins/load-deps';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
@@ -20,6 +19,8 @@ import Footer from '@/components/form/Footer';
 import Job from '@/edit/workload/Job';
 import Labels from '@/components/form/Labels';
 import WorkloadPorts from '@/edit/workload/WorkloadPorts';
+import { defaultAsyncData } from '@/components/ResourceDetail.vue';
+import { _EDIT } from '@/config/query-params';
 
 export default {
   name:       'CruWorkload',
@@ -56,13 +57,13 @@ export default {
   data() {
     const typeOpts = [];
     const workloadMap = {
-      [WORKLOAD.DEPLOYMENT]:             'Deployment',
-      [WORKLOAD.DAEMON_SET]:             'Daemon Set',
-      [WORKLOAD.STATEFUL_SET]:           'Stateful Set',
-      [WORKLOAD.REPLICA_SET]:            'Replica Set',
-      [WORKLOAD.JOB]:                    'Job',
-      [WORKLOAD.CRON_JOB]:               'Cron Job',
-      [WORKLOAD.REPLICATION_CONTROLLER]: 'Replication Controller'
+      [WORKLOAD_TYPES.DEPLOYMENT]:             'Deployment',
+      [WORKLOAD_TYPES.DAEMON_SET]:             'Daemon Set',
+      [WORKLOAD_TYPES.STATEFUL_SET]:           'Stateful Set',
+      [WORKLOAD_TYPES.REPLICA_SET]:            'Replica Set',
+      [WORKLOAD_TYPES.JOB]:                    'Job',
+      [WORKLOAD_TYPES.CRON_JOB]:               'Cron Job',
+      [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 'Replication Controller'
     };
 
     for (const key in workloadMap) {
@@ -71,17 +72,18 @@ export default {
 
     const selectNode = false;
 
-    if ( !this.value.spec ) {
-      this.value.spec = {};
-    }
-    let type = this.value._type || this.value.type || WORKLOAD.DEPLOYMENT;
+    let type = this.value._type || this.value.type || WORKLOAD_TYPES.DEPLOYMENT;
 
     if (type === 'workload') {
-      type = WORKLOAD.DEPLOYMENT;
+      type = WORKLOAD_TYPES.DEPLOYMENT;
     }
 
-    const spec = this.value.spec ? clone(this.value.spec) : {};
-    const metadata = this.value.metadata ? clone(this.value.metadata) : {};
+    let spec = this.value.spec;
+
+    if ( !spec ) {
+      spec = {};
+      this.value.spec = spec;
+    }
 
     if (!spec.template) {
       spec.template = { spec: { restartPolicy: this.isJob ? 'Never' : 'Always' } };
@@ -89,10 +91,9 @@ export default {
 
     return {
       selectNode,
+      spec,
       type,
       typeOpts,
-      spec,
-      metadata,
       allConfigMaps: null,
       allSecrets:    null,
       allNodes:      null,
@@ -105,10 +106,6 @@ export default {
       return this.$store.getters['cluster/schemaFor']( this.type );
     },
 
-    namespace() {
-      return this.metadata.namespace;
-    },
-
     container: {
       get() {
         let template = this.spec.template;
@@ -119,7 +116,7 @@ export default {
         const { containers } = template.spec;
 
         if (!containers) {
-          this.$set(template.spec, 'containers', [{ name: this.metadata.name }]);
+          this.$set(template.spec, 'containers', [{ name: this.value.metadata.name }]);
         }
 
         return template.spec.containers[0];
@@ -131,7 +128,7 @@ export default {
         if (this.isCronJob) {
           template = this.spec.jobTemplate.spec.template;
         }
-        this.$set(template.spec.containers, 0, { ...neu, name: this.metadata.name });
+        this.$set(template.spec.containers, 0, { ...neu, name: this.value.metadata.name });
       }
     },
 
@@ -154,15 +151,15 @@ export default {
     },
 
     canReplicate() {
-      return (this.type === WORKLOAD.DEPLOYMENT || this.type === WORKLOAD.REPLICA_SET || this.type === WORKLOAD.REPLICATION_CONTROLLER || this.type === WORKLOAD.STATEFUL_SET);
+      return (this.type === WORKLOAD_TYPES.DEPLOYMENT || this.type === WORKLOAD_TYPES.REPLICA_SET || this.type === WORKLOAD_TYPES.REPLICATION_CONTROLLER || this.type === WORKLOAD_TYPES.STATEFUL_SET);
     },
 
     isJob() {
-      return this.type === WORKLOAD.JOB || this.isCronJob;
+      return this.type === WORKLOAD_TYPES.JOB || this.isCronJob;
     },
 
     isCronJob() {
-      return this.type === WORKLOAD.CRON_JOB;
+      return this.type === WORKLOAD_TYPES.CRON_JOB;
     },
 
     cronLabel() {
@@ -182,14 +179,17 @@ export default {
     },
 
     workloadSelector() {
-      return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.metadata.namespace }-${ this.metadata.name }` };
+      return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.value.metadata.namespace }-${ this.value.metadata.name }` };
     },
 
+    isEdit() {
+      return this.mode === _EDIT;
+    },
   },
 
   watch: {
     type(neu, old) {
-      const template = old === WORKLOAD.CRON_JOB ? this.spec?.jobTemplate?.spec?.template : this.spec?.template;
+      const template = old === WORKLOAD_TYPES.CRON_JOB ? this.spec?.jobTemplate?.spec?.template : this.spec?.template;
 
       if (!template.spec) {
         template.spec = {};
@@ -202,11 +202,11 @@ export default {
         delete this.spec.replicas;
       }
 
-      if (old === WORKLOAD.CRON_JOB) {
+      if (old === WORKLOAD_TYPES.CRON_JOB) {
         this.$set(this.spec, 'template', { ...template });
         delete this.spec.jobTemplate;
         delete this.spec.schedule;
-      } else if (neu === WORKLOAD.CRON_JOB) {
+      } else if (neu === WORKLOAD_TYPES.CRON_JOB) {
         this.$set(this.spec, 'jobTemplate', { spec: { template } });
         this.$set(this.spec, 'schedule', '0 * * * *');
         delete this.spec.template;
@@ -215,6 +215,16 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     }
+  },
+
+  asyncData(ctx) {
+    let resource;
+
+    if ( !ctx.params.id ) {
+      resource = WORKLOAD_TYPES.DEPLOYMENT;
+    }
+
+    return defaultAsyncData(ctx, resource);
   },
 
   methods: {
@@ -235,25 +245,23 @@ export default {
     },
 
     saveWorkload(cb) {
-      if (!this.spec.selector && this.type !== WORKLOAD.JOB) {
+      if (!this.spec.selector && this.type !== WORKLOAD_TYPES.JOB) {
         this.spec.selector = { matchLabels: this.workloadSelector };
       }
 
       let template;
 
-      if (this.type === WORKLOAD.CRON_JOB) {
+      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
         template = this.spec.jobTemplate;
       } else {
         template = this.spec.template;
       }
 
-      if (!template.metadata && this.type !== WORKLOAD.JOB) {
+      if (!template.metadata && this.type !== WORKLOAD_TYPES.JOB) {
         template.metadata = { labels: this.workloadSelector };
       }
 
       delete this.value.kind;
-      this.value.spec = this.spec;
-      this.value.metadata = this.metadata;
       this.save(cb);
     },
   },
@@ -263,9 +271,9 @@ export default {
 <template>
   <form>
     <slot :value="value" name="top">
-      <NameNsDescription :value="{metadata}" :mode="mode" :extra-columns="['type']" @input="e=>metadata=e">
+      <NameNsDescription :value="value" :mode="mode" :extra-columns="['type']">
         <template v-slot:type>
-          <LabeledSelect v-model="type" label="Type" :options="typeOpts" />
+          <LabeledSelect v-model="type" label="Type" :disabled="isEdit" :options="typeOpts" />
         </template>
       </NameNsDescription>
 
@@ -303,7 +311,7 @@ export default {
           :secrets="allSecrets"
           :config-maps="allConfigMaps"
           :mode="mode"
-          :namespace="namespace"
+          :namespace="value.metadata.namespace"
         />
       </Tab>
       <Tab label="Networking" name="networking">
@@ -327,7 +335,7 @@ export default {
       </Tab>
 
       <Tab label="Labels" name="labelsAndAnnotations">
-        <Labels :spec="{metadata}" :mode="mode" />
+        <Labels :spec="value" :mode="mode" />
       </Tab>
     </Tabbed>
     <Footer :errors="errors" :mode="mode" @save="saveWorkload" @done="done" />

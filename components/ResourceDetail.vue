@@ -4,41 +4,114 @@ import CreateEditView from '@/mixins/create-edit-view';
 import ResourceYaml from '@/components/ResourceYaml';
 import {
   MODE, _VIEW, _EDIT, _CLONE, _STAGE,
-  EDIT_YAML, _FLAGGED, _CREATE
+  AS_YAML, _FLAGGED, _CREATE,
 } from '@/config/query-params';
-import { NAMESPACE } from '@/config/types';
+import { SCHEMA } from '@/config/types';
+import { createYaml } from '@/utils/create-yaml';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.
 export async function asyncData(ctx) {
+  const { params, store, route } = ctx;
+  const resource = params.resource;
+  const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
+  const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
+  const realMode = realModeFor(route.query.mode, params.id);
+
+  if ( hasCustomEdit && [_EDIT, _CREATE, _STAGE].includes(realMode) ) {
+    const importer = store.getters['type-map/importEdit'](resource);
+    const component = (await importer())?.default;
+
+    if ( component?.asyncData ) {
+      return component.asyncData(ctx);
+    }
+  }
+
+  if ( hasCustomDetail && realMode === _VIEW ) {
+    const importer = store.getters['type-map/importDetail'](resource);
+    const component = (await importer())?.default;
+
+    if ( component?.asyncData ) {
+      return component.asyncData(ctx);
+    }
+  }
+
+  return defaultAsyncData(ctx);
+}
+
+function realModeFor(query, id) {
+  if ( id ) {
+    return query || _VIEW;
+  } else {
+    return _CREATE;
+  }
+}
+
+// You can pass in a resource from a edit/someType.vue to use this but with a different type
+// e.g. for workload to create a deployment
+export async function defaultAsyncData(ctx, resource) {
   const { store, params, route } = ctx;
-  const { resource, namespace, id } = params;
+  // eslint-disable-next-line prefer-const
+  let { namespace, id } = params;
+
+  if ( !resource ) {
+    resource = params.resource;
+  }
+
+  // There are 5 "real" modes that you can start in: view, edit, create, stage, clone
+  // These are mapped down to the 3 regular page modes that create-edit-view components
+  //  know about:  view, edit, create (stage and clone become "create")
+  const realMode = realModeFor(route.query.mode, id);
 
   const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
-
-  // There are 5 "real" modes: view, create, edit, stage, clone
-  // which later map to 3 logical/page modes: view, create, edit (stage and clone are "create")
-  const realMode = route.query.mode || _VIEW;
+  const asYaml = (route.query[AS_YAML] === _FLAGGED) || (realMode === _VIEW && !hasCustomDetail) || (realMode !== _VIEW && !hasCustomEdit);
   const schema = store.getters['cluster/schemaFor'](resource);
 
-  let fqid = id;
+  let originalModel, model, yaml;
 
-  if ( schema.attributes.namespaced && namespace ) {
-    fqid = `${ namespace }/${ fqid }`;
-  }
+  if ( realMode === _CREATE ) {
+    if ( !namespace ) {
+      namespace = store.getters['defaultNamespace'];
+    }
 
-  const obj = await store.dispatch('cluster/find', { type: resource, id: fqid });
+    const schemas = store.getters['cluster/all'](SCHEMA);
 
-  const forNew = realMode === _CLONE || realMode === _STAGE;
-  const model = await store.dispatch('cluster/clone', { resource: obj });
+    const data = { type: resource };
 
-  if ( forNew ) {
-    cleanForNew(model);
-  }
+    if ( schema.attributes.namespaced ) {
+      data.metadata = { namespace };
+    }
 
-  if ( model.applyDefaults ) {
-    model.applyDefaults(ctx, realMode);
+    originalModel = await store.dispatch('cluster/create', data);
+    model = await store.dispatch('cluster/clone', { resource: originalModel });
+
+    if ( asYaml ) {
+      yaml = createYaml(schemas, resource, data);
+    }
+  } else {
+    let fqid = id;
+
+    if ( schema.attributes.namespaced && namespace ) {
+      fqid = `${ namespace }/${ fqid }`;
+    }
+
+    originalModel = await store.dispatch('cluster/find', { type: resource, id: fqid });
+    model = await store.dispatch('cluster/clone', { resource: originalModel });
+
+    if ( realMode === _CLONE || realMode === _STAGE ) {
+      cleanForNew(model);
+    }
+
+    if ( model.applyDefaults ) {
+      model.applyDefaults(ctx, realMode);
+    }
+
+    if ( asYaml ) {
+      const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
+
+      yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
+    }
   }
 
   let mode = realMode;
@@ -47,36 +120,28 @@ export async function asyncData(ctx) {
     mode = _CREATE;
   }
 
-  const asYaml = (route.query[EDIT_YAML] === _FLAGGED) || (mode === _VIEW && !hasCustomDetail) || (mode !== _VIEW && !hasCustomEdit);
-  let yaml = null;
-
-  const link = obj.hasLink('rioview') ? 'rioview' : 'view';
-
-  yaml = (await obj.followLink(link, { headers: { accept: 'application/yaml' } })).data;
-
   /*******
-   * Important: these need to be declared below as props too
+   * Important: these need to be declared below as props too if you want to use them
    *******/
   const out = {
     hasCustomDetail,
     hasCustomEdit,
-    schema,
     resource,
     model,
     asYaml,
     yaml,
-    originalModel: obj,
+    originalModel,
     mode,
     realMode
   };
   /*******
-   * Important: these need to be declared below as props too
+   * Important: these need to be declared below as props too if you want to use them
    *******/
 
   return out;
 }
 
-export const watchQuery = [MODE, EDIT_YAML];
+export const watchQuery = [MODE, AS_YAML];
 
 export default {
   components: { ResourceYaml },
@@ -89,10 +154,6 @@ export default {
     },
     hasCustomEdit: {
       type:    Boolean,
-      default: null,
-    },
-    schema: {
-      type:    Object,
       default: null,
     },
     resource: {
@@ -149,6 +210,10 @@ export default {
   },
 
   computed: {
+    schema() {
+      return this.$store.getters['cluster/schemaFor']( this.model.type );
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -157,26 +222,24 @@ export default {
       return this.mode === _EDIT;
     },
 
-    showEditAsYaml() {
-      return this.isEdit && !this.importedEditComponent?.isYamlEditor;
+    offerPreview() {
+      return [_EDIT, _CLONE, _STAGE].includes(this.mode);
     },
 
     doneRoute() {
-      const name = this.$route.name.replace(/(-namespace)?-id$/, '');
+      let name = this.$route.name;
+
+      if ( name.endsWith('-id') ) {
+        name = name.replace(/(-namespace)?-id$/, '');
+      } else if ( name.endsWith('-create') ) {
+        name = name.replace(/-create$/, '');
+      }
 
       return name;
     },
 
     doneParams() {
       return this.$route.params;
-    },
-
-    parentLink() {
-      const name = this.doneRoute;
-      const params = this.doneParams;
-      const out = this.$router.resolve({ name, params }).href;
-
-      return out;
     },
 
     showComponent() {
@@ -189,13 +252,20 @@ export default {
       return null;
     },
 
-    typeDisplay() {
-      return this.$store.getters['type-map/singularLabelFor'](this.schema);
-    },
+    h1() {
+      const typeLink = this.$router.resolve({
+        name:   this.doneRoute,
+        params: this.$route.params
+      }).href;
 
-    namespaceSuffixOnCreate() {
-      return this.resource !== NAMESPACE;
-    }
+      const out = this.$store.getters['i18n/t'](`resourceDetail.header.${ this.realMode }`, {
+        typeLink,
+        type: this.$store.getters['type-map/singularLabelFor'](this.schema),
+        name: this.originalModel?.nameDisplay,
+      });
+
+      return out;
+    },
   },
 
   methods: {
@@ -205,66 +275,38 @@ export default {
         elem:      this.$refs.actions,
       });
     },
-
-    goBack() {
-      window.history.length > 1 ? this.$router.go(-1) : this.$router.push('/');
-    },
-
-    navigateToEditAsYaml() {
-      this.$router.push({ query: { ...this.$route.query, [EDIT_YAML]: _FLAGGED } });
-    },
   }
 };
 </script>
 
 <template>
   <div>
+    <header>
+      <h1 v-html="h1" />
+      <div v-if="isView" class="actions">
+        <button ref="actions" aria-haspopup="true" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
+          <i class="icon icon-actions" />
+        </button>
+      </div>
+    </header>
     <template v-if="asYaml">
       <ResourceYaml
-        :obj="model"
+        :model="model"
+        :mode="mode"
         :value="yaml"
+        :offer-preview="offerPreview"
         :done-route="doneRoute"
-        :parent-route="doneRoute"
-        :parent-params="doneParams"
-        :has-edit-as-form="hasCustomEdit"
       />
     </template>
     <template v-else>
-      <header>
-        <h1 v-trim-whitespace>
-          <span v-if="realMode === 'edit'">Edit {{ typeDisplay }}:&nbsp;</span>
-          <span v-else-if="realMode === 'stage'">Stage from {{ typeDisplay }}:&nbsp;</span>
-          <span v-else-if="realMode === 'clone'">Clone from {{ typeDisplay }}:&nbsp;</span>
-          <nuxt-link
-            v-else
-            v-trim-whitespace
-            :to="parentLink"
-          >
-            {{ typeDisplay }}:&nbsp;
-          </nuxt-link>{{ originalModel.nameDisplay }}
-        </h1>
-        <div v-if="isView" class="actions">
-          <button aria-haspopup="true" ref="actions" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
-            <i class="icon icon-actions" />
-          </button>
-        </div>
-        <div v-if="showEditAsYaml" class="actions">
-          <button class="btn bg-primary" @click="navigateToEditAsYaml">
-            Edit as YAML
-          </button>
-        </div>
-      </header>
       <component
         :is="showComponent"
         v-model="model"
         :original-value="originalModel"
         :done-route="doneRoute"
         :done-params="doneParams"
-        :parent-route="doneRoute"
-        :parent-params="doneParams"
-        :namespace-suffix-on-create="namespaceSuffixOnCreate"
-        :type-label="typeDisplay"
         :mode="mode"
+        :real-mode="realMode"
         :value="model"
         :obj="model"
         :yaml="yaml"

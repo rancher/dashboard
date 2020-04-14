@@ -1,7 +1,7 @@
 <script>
 
 import $ from 'jquery';
-import { THEME, KEYMAP } from '@/store/prefs';
+import { KEYMAP } from '@/store/prefs';
 
 export default {
   props: {
@@ -37,7 +37,7 @@ export default {
     },
 
     combinedOptions() {
-      const theme = this.$store.getters['prefs/get'](THEME);
+      const theme = this.$store.getters['prefs/theme'];
       const keymap = this.$store.getters['prefs/get'](KEYMAP);
 
       const out = {

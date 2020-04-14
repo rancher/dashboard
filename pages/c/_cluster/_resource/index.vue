@@ -1,7 +1,7 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import Favorite from '@/components/nav/Favorite';
-import { EDIT_YAML, _FLAGGED } from '@/config/query-params';
+import { AS_YAML, _FLAGGED } from '@/config/query-params';
 
 export default {
   components: { ResourceTable, Favorite },
@@ -12,10 +12,9 @@ export default {
 
     const formRoute = this.$router.resolve({ name: `${ this.$route.name }-create`, params }).href;
 
-    const query = { [EDIT_YAML]: _FLAGGED };
+    const query = { [AS_YAML]: _FLAGGED };
 
     const hasListComponent = this.$store.getters['type-map/hasCustomList'](resource);
-    const hasEditComponent = this.$store.getters['type-map/hasCustomEdit'](resource);
     let listComponent;
 
     if ( hasListComponent ) {
@@ -29,23 +28,17 @@ export default {
     }).href;
 
     return {
-      hasListComponent,
-      hasEditComponent,
       listComponent,
       formRoute,
       yamlRoute,
-      EDIT_YAML,
+      AS_YAML,
       FLAGGED: _FLAGGED
     };
   },
 
   computed:   {
-    schema() {
-      return this.$store.getters['cluster/schemaFor'](this.resource);
-    },
-
     headers() {
-      if ( this.hasListComponent ) {
+      if ( this.hasListComponent || !this.schema ) {
         // Custom lists figure out their own headers
         return [];
       }
@@ -54,20 +47,59 @@ export default {
     },
 
     typeDisplay() {
+      if ( this.customTypeDisplay ) {
+        return this.customTypeDisplay;
+      }
+
+      if ( !this.schema ) {
+        return '?';
+      }
+
       return this.$store.getters['type-map/pluralLabelFor'](this.schema);
     },
   },
 
-  async asyncData({ params, store }) {
+  async asyncData(ctx) {
+    const { params, store } = ctx;
     const resource = params.resource;
+    const hasListComponent = store.getters['type-map/hasCustomList'](resource);
+    const hasEditComponent = store.getters['type-map/hasCustomEdit'](resource);
+    const schema = store.getters['cluster/schemaFor'](resource);
 
-    const rows = await store.dispatch('cluster/findAll', { type: resource });
+    let foundData = false;
+    let rows;
+    let more = {};
+    let customTypeDisplay;
+
+    if ( hasListComponent ) {
+      // If you provide your own list then call its asyncData
+      const importer = store.getters['type-map/importList'](resource);
+      const component = (await importer())?.default;
+
+      if ( component?.asyncData ) {
+        more = await component.asyncData(ctx);
+        foundData = true;
+      }
+
+      if ( component?.typeDisplay ) {
+        customTypeDisplay = component.typeDisplay(ctx);
+      }
+    }
+
+    if ( !foundData ) {
+      rows = await store.dispatch('cluster/findAll', { type: resource });
+    }
 
     await store.dispatch('type-map/addRecent', resource);
 
     return {
+      schema,
+      hasListComponent,
+      hasEditComponent,
       resource,
-      rows
+      rows,
+      customTypeDisplay,
+      ...more
     };
   },
 }; </script>
@@ -80,12 +112,13 @@ export default {
       </h1>
       <div class="actions">
         <nuxt-link
+          v-if="schema"
           :to="{path: yamlRoute}"
           tag="button"
           type="button"
           class="btn bg-primary"
         >
-          Import
+          Create from YAML
         </nuxt-link>
         <nuxt-link
           v-if="hasEditComponent"
@@ -101,9 +134,7 @@ export default {
     <div v-if="hasListComponent">
       <component
         :is="listComponent"
-        :schema="schema"
-        :rows="rows"
-        :headers="headers"
+        v-bind="$data"
       />
     </div>
     <ResourceTable v-else :schema="schema" :rows="rows" :headers="headers" />

@@ -1,5 +1,5 @@
 <script>
-import { WORKLOAD } from '@/config/types';
+import { WORKLOAD_TYPES } from '@/config/types';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
@@ -17,7 +17,7 @@ export default {
     },
     type: {
       type:    String,
-      default: WORKLOAD.JOB
+      default: WORKLOAD_TYPES.JOB
     }
   },
   data() {
@@ -25,7 +25,7 @@ export default {
       failedJobsHistoryLimit, successfulJobsHistoryLimit, suspend, schedule
     } = this.value;
 
-    if (this.type === WORKLOAD.CRON_JOB) {
+    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
       if (!this.value.jobTemplate) {
         this.$set(this.value, 'jobTemplate', { spec: {} });
       }
@@ -48,12 +48,12 @@ export default {
   },
   computed: {
     isCronJob() {
-      return this.type === WORKLOAD.CRON_JOB;
+      return this.type === WORKLOAD_TYPES.CRON_JOB;
     }
   },
   methods: {
     update() {
-      if (this.type === WORKLOAD.JOB) {
+      if (this.type === WORKLOAD_TYPES.JOB) {
         const spec = {
           ...this.value,
           suspend:                    this.suspend,

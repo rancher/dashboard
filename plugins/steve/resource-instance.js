@@ -1,15 +1,16 @@
+import Vue from 'vue';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
 import { eachLimit } from '@/utils/promise';
 import {
   MODE, _EDIT, _CLONE,
-  EDIT_YAML, _FLAGGED
+  AS_YAML, _FLAGGED, _VIEW
 } from '@/config/query-params';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { addParams } from '@/utils/url';
-import { WORKLOAD } from '@/config/types';
+import { DESCRIPTION } from '@/config/labels-annotations';
 
 const REMAP_STATE = { disabled: 'inactive' };
 
@@ -102,16 +103,22 @@ export default {
     };
   },
 
+  typeDisplay() {
+    const schema = this.schema;
+
+    if ( schema ) {
+      return this.$rootGetters['type-map/singularLabelFor'](schema);
+    }
+
+    return '?';
+  },
+
   nameDisplay() {
     return this.spec?.displayName || this.metadata?.name || this.id;
   },
 
   nameSort() {
     return sortableNumericSuffix(this.nameDisplay).toLowerCase();
-  },
-
-  typeDisplay() {
-    return this.$store.getters['type-map/singularLabelFor'](this.schema);
   },
 
   namespacedName() {
@@ -127,6 +134,56 @@ export default {
 
   namespacedNameSort() {
     return sortableNumericSuffix(this.namespacedName).toLowerCase();
+  },
+
+  name() {
+    return this.metadata?.name;
+  },
+
+  namespace() {
+    return this.metadata?.namespace;
+  },
+
+  description() {
+    return this.metadata?.annotations?.[DESCRIPTION];
+  },
+
+  setLabel() {
+    return (key, val) => {
+      if ( val ) {
+        if ( !this.metadata ) {
+          this.metadata = {};
+        }
+
+        if ( !this.metadata.labels ) {
+          this.metadata.labels = {};
+        }
+
+        Vue.set(this.metadata.labels, key, val);
+      } else if ( this.metadata?.labels ) {
+        Vue.set(this.metadata.labels, key, undefined);
+        delete this.metadata.labels[key];
+      }
+    };
+  },
+
+  setAnnotation() {
+    return (key, val) => {
+      if ( val ) {
+        if ( !this.metadata ) {
+          this.metadata = {};
+        }
+
+        if ( !this.metadata.annotations ) {
+          this.metadata.annotations = {};
+        }
+
+        Vue.set(this.metadata.annotations, key, val);
+      } else if ( this.metadata?.annotations ) {
+        Vue.set(this.metadata.annotations, key, undefined);
+        delete this.metadata.annotations[key];
+      }
+    };
   },
 
   // You can override the state by providing your own state (and possibly reading metadata.state)
@@ -254,7 +311,7 @@ export default {
   waitForState() {
     return (state, timeout, interval) => {
       return this.waitForTestFn(() => {
-        return this.state.toLowerCase() === state.toLowerCase();
+        return (this.state || '').toLowerCase() === state.toLowerCase();
       }, `Wait for state=${ state }`, timeout, interval);
     };
   },
@@ -342,70 +399,69 @@ export default {
   },
 
   _standardActions() {
-    const all = [];
     const links = this.links || {};
-    // const hasView = !!links.rioview || !!links.view;
     const customEdit = this.$rootGetters['type-map/hasCustomEdit'](this.type);
+    const canCreate = (this.schema?.attributes?.verbs || []).includes('create');
+    const canUpdate = !!links.update;
+    const canViewInApi = this.$rootGetters['prefs/get'](DEV);
 
-    if ( customEdit ) {
-      all.push({
+    const all = [
+      {
         action:  'goToEdit',
         label:   'Edit as Form',
         icon:    'icon icon-fw icon-edit',
-        enabled:  !!links.update,
-      });
-
-      all.push({
+        enabled:  canUpdate && customEdit,
+      },
+      {
         action:  'goToClone',
         label:   'Clone as Form',
         icon:    'icon icon-fw icon-copy',
-        enabled:  !!links.update,
-      });
-    }
-
-    all.push({ divider: true });
-
-    all.push({
-      action:  'viewEditYaml',
-      label:   (links.update ? 'Edit/View as YAML' : 'View as YAML'),
-      icon:    'icon icon-file',
-    });
-
-    all.push({
-      action:  'cloneYaml',
-      label:   'Clone as YAML',
-      icon:    'icon icon-fw icon-copy',
-      enabled:  !!links.update,
-    });
-
-    all.push({
-      action:     'download',
-      label:      'Download YAML',
-      icon:       'icon icon-fw icon-download',
-      bulkable:   true,
-      bulkAction: 'downloadBulk',
-    });
-
-    const viewInApiEnabled = this.$rootGetters['prefs/get'](DEV);
-
-    all.push({
-      action:  'viewInApi',
-      label:   'View in API',
-      icon:    'icon icon-fw icon-external-link',
-      enabled:  !!links.self && viewInApiEnabled,
-    });
-
-    all.push({ divider: true });
-
-    all.push({
-      action:     'promptRemove',
-      altAction:  'remove',
-      label:      'Delete',
-      icon:       'icon icon-fw icon-trash',
-      bulkable:   true,
-      enabled:    !!links.remove,
-      bulkAction: 'promptRemove',
-    });
+        enabled:  canCreate && customEdit,
+      },
+      { divider: true },
+      {
+        action:  'goToEditYaml',
+        label:   'Edit as YAML',
+        icon:    'icon icon-file',
+        enabled: canUpdate,
+      },
+      {
+        action:  'goToViewYaml',
+        label:   'View as YAML',
+        icon:    'icon icon-file',
+        enabled: !canUpdate
+      },
+      {
+        action:  'cloneYaml',
+        label:   'Clone as YAML',
+        icon:    'icon icon-fw icon-copy',
+        enabled:  canCreate,
+      },
+      {
+        action:     'download',
+        label:      'Download YAML',
+        icon:       'icon icon-fw icon-download',
+        bulkable:   true,
+        bulkAction: 'downloadBulk',
+      },
+      { divider: true },
+      {
+        action:     'promptRemove',
+        altAction:  'remove',
+        label:      'Delete',
+        icon:       'icon icon-fw icon-trash',
+        bulkable:   true,
+        enabled:    !!links.remove,
+        bulkAction: 'promptRemove',
+      },
+      { divider: true },
+      {
+        action:  'viewInApi',
+        label:   'View in API',
+        icon:    'icon icon-fw icon-external-link',
+        enabled:  canViewInApi && !!links.self,
+      }
+    ];
 
     return all;
   },
@@ -583,14 +639,8 @@ export default {
   detailUrl() {
     const router = this.currentRouter();
     const schema = this.$getters['schemaFor'](this.type);
-    const query = {};
 
-    let route = `c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`;
-
-    if (Object.values(WORKLOAD).includes(this.type)) {
-      route = `c-cluster-workloads-namespace-id`;
-      query.type = this.type;
-    }
+    const route = `c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`;
 
     const params = {
       resource:  this.type,
@@ -601,7 +651,6 @@ export default {
     const url = router.resolve({
       name:   route,
       params,
-      query
     }).href;
 
     return url;
@@ -626,9 +675,25 @@ export default {
     };
   },
 
-  viewEditYaml() {
+  goToEditYaml() {
     return () => {
-      return this.goToEdit({ [EDIT_YAML]: _FLAGGED });
+      const url = addParams(this.detailUrl, {
+        [MODE]:      _EDIT,
+        [AS_YAML]: _FLAGGED
+      });
+
+      this.currentRouter().push({ path: url });
+    };
+  },
+
+  goToViewYaml() {
+    return () => {
+      const url = addParams(this.detailUrl, {
+        [MODE]:      _VIEW,
+        [AS_YAML]: _FLAGGED
+      });
+
+      this.currentRouter().push({ path: url });
     };
   },
 
@@ -636,7 +701,7 @@ export default {
     return (moreQuery = {}) => {
       const url = addParams(this.detailUrl, {
         [MODE]:      _CLONE,
-        [EDIT_YAML]: _FLAGGED,
+        [AS_YAML]: _FLAGGED,
         ...moreQuery
       });
 

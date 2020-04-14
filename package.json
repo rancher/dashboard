@@ -112,6 +112,9 @@
     "style-loader": "^1.1.2",
     "yarn": "^1.22.4"
   },
+  "resolutions": {
+    "caniuse-lite": "1.0.30001040"
+  },
   "ava": {
     "files": [
       "test/**/*"

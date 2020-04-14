@@ -1,10 +1,10 @@
 import {
-  CONFIG_MAP, GATEKEEPER_CONSTRAINT_TEMPLATE, NAMESPACE, NODE, SECRET, RIO, RBAC, INGRESS, WORKLOAD
+  CONFIG_MAP, GATEKEEPER_CONSTRAINT_TEMPLATE, NAMESPACE, NODE, SECRET, RIO, RBAC, INGRESS, WORKLOAD_TYPES
 } from '@/config/types';
 
 import {
   STATE,
-  NAME, NAMESPACE_NAME, NAMESPACE_NAME_IMAGE,
+  NAME, NAMESPACE_NAME,
   AGE, WEIGHT, SCALE,
   KEYS, ENDPOINTS,
   MATCHES, DESTINATION,
@@ -39,7 +39,7 @@ export default function(store) {
     'cluster-overview',
     NAMESPACE,
     NODE,
-    'workloads',
+    'workload',
     'gatekeeper',
     'gatekeeper-constraints',
     'gatekeeper-templates',
@@ -47,8 +47,8 @@ export default function(store) {
 
   mapTypeToComponentName(/^constraints.gatekeeper.sh.*$/, 'gatekeeper-constraint');
 
-  for (const key in WORKLOAD) {
-    mapTypeToComponentName(WORKLOAD[key], 'workload');
+  for (const key in WORKLOAD_TYPES) {
+    mapTypeToComponentName(WORKLOAD_TYPES[key], 'workload');
   }
 
   ignoreType('events.k8s.io.event'); // Events type moved into core
@@ -117,7 +117,7 @@ export default function(store) {
 
   headers(RIO.SERVICE, [
     STATE,
-    NAMESPACE_NAME_IMAGE,
+    NAME,
     ENDPOINTS,
     WEIGHT,
     SCALE,
@@ -209,11 +209,11 @@ export default function(store) {
   virtualType({
     label:      'Workload',
     namespaced: true,
-    name:       'workloads',
+    name:       'workload',
     group:      'Cluster',
     weight:     10,
     route:      {
-      name:     'c-cluster-workloads',
+      name:     'c-cluster-resource',
       params:   { resource: 'workload' }
     },
   });

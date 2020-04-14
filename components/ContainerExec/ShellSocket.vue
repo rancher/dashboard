@@ -90,7 +90,7 @@ export default {
       <span>
         {{ container.name }}
       </span>
-    
+
       <div class="connection-status" :class="{disconnected: !isOpen}">
         <span v-if="!isOpen">Disconnected</span>
         <span v-else>Connected</span>

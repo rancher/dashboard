@@ -45,24 +45,6 @@ export const NAMESPACE_NAME = {
   canBeVariable: true,
 };
 
-export const NAMESPACE_NAME_IMAGE = {
-  name:          'name',
-  label:         'Name',
-  value:         'namespacedName',
-  sort:          ['namespacedNameSort'],
-  formatter:     'LinkDetailImage',
-  canBeVariable: true,
-};
-
-export const NAME_IMAGE = {
-  name:          'name',
-  label:         'Name',
-  value:         'nameDisplay',
-  sort:          ['nameSort'],
-  formatter:     'LinkDetailImage',
-  canBeVariable: true,
-};
-
 export const NODE = {
   name:      'node',
   label:     'Node',
@@ -271,9 +253,11 @@ export const USER_STATUS = {
 export const TYPE = {
   name:  'type',
   label: 'Type',
-  value: 'type',
-  sort:  ['type']
+  value: 'typeDisplay',
+  sort:  ['typeDisplay'],
+  width: 100,
 };
+
 export const STATUS = {
   name:  'status',
   label: 'Status',

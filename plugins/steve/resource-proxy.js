@@ -21,7 +21,7 @@ export function proxyFor(ctx, obj, isClone = false) {
 
   if ( process.server ) {
     Object.defineProperty(obj, '__rehydrate', {
-      value:        true,
+      value:        ctx.state.config.namespace,
       enumerable:   true,
       configurable: true
     });

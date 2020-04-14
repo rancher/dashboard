@@ -238,7 +238,7 @@ export default {
 
     <div v-if="!isNone">
       <div class="row">
-        <div class="col span-6">
+        <div class="col span-4">
           <UnitInput
             v-model="probe.periodSeconds"
             :mode="mode"
@@ -248,7 +248,7 @@ export default {
             placeholder="Default: 10"
           />
         </div>
-        <div class="col span-3">
+        <div class="col span-4">
           <LabeledInput
             v-model="probe.successThreshold"
             type="number"
@@ -258,7 +258,7 @@ export default {
             placeholder="Default: 1"
           />
         </div>
-        <div class="col span-3">
+        <div class="col span-4">
           <LabeledInput
             v-model="probe.failureThreshold"
             type="number"

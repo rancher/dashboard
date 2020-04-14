@@ -91,6 +91,7 @@ export default {
 
       return allNodes.filter(node => !node.state.includes('healthy') && !node.state.includes('active'));
     },
+
     filteredConstraints() {
       const allConstraints = ( this.constraints || [] ).slice();
 

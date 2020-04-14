@@ -64,7 +64,10 @@ export const RIO = {
   SYSTEM_NAMESPACE: 'rio-system',
 };
 
-export const WORKLOAD = {
+export const WORKLOAD = 'workload';
+
+// The types that are aggregated into a "workload"
+export const WORKLOAD_TYPES = {
   DEPLOYMENT:             'apps.deployment',
   DAEMON_SET:             'apps.daemonset',
   STATEFUL_SET:           'apps.statefulset',

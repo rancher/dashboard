@@ -7,6 +7,7 @@ const definitions = {};
 export const create = function(name, def, opt = {}) {
   const parseJSON = opt.parseJSON === true;
   const asCookie = opt.asCookie === true;
+  const asUserPreference = opt.asUserPreference !== false;
   const options = opt.options;
 
   definitions[name] = {
@@ -14,6 +15,7 @@ export const create = function(name, def, opt = {}) {
     options,
     parseJSON,
     asCookie,
+    asUserPreference,
     mangleRead:  opt.mangleRead, // Alter the value read from the API (to match old Rancher expectations)
     mangleWrite: opt.mangleWrite, // Alter the value written back to the API (ditto)
   };
@@ -35,7 +37,7 @@ export const mapPref = function(name) {
 
 // --------------------
 const parseJSON = true; // Shortcut for setting it below
-const asCookie = true; // Also store as a cookie so that it's available before auth
+const asCookie = true; // Store as a cookie so that it's available before auth + on server-side
 
 // Keys must be lowercase and valid dns label (a-z 0-9 -)
 export const CLUSTER = create('cluster', '');
@@ -45,13 +47,14 @@ export const FAVORITE_TYPES = create('fav-type', ['secret', 'configmap', 'servic
 export const RECENT_TYPES = create('recent-type', ['serviceaccount'], { parseJSON });
 export const GROUP_RESOURCES = create('group-by', 'namespace');
 export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
-export const THEME = create('theme', 'dark', {
+export const THEME = create('theme', 'auto', {
   options:     ['light', 'auto', 'dark'],
   asCookie,
   parseJSON,
   mangleRead:  x => x.replace(/^ui-/, ''),
   mangleWrite: x => `ui-${ x }`,
 });
+export const PREFERS_SCHEME = create('pcs', '', { asCookie, asUserPreference: false });
 export const LOCALE = create('locale', 'en-us', { asCookie });
 export const KEYMAP = create('keymap', 'sublime', { options: ['sublime', 'emacs', 'vim'] });
 export const ROWS_PER_PAGE = create('per-page', 100, { options: [10, 25, 50, 100, 250, 500, 1000], parseJSON });
@@ -87,7 +90,10 @@ const cookieOptions = {
 };
 
 export const state = function() {
-  return {};
+  return {
+    cookiesLoaded: false,
+    data:          {},
+  };
 };
 
 export const getters = {
@@ -98,7 +104,7 @@ export const getters = {
       throw new Error(`Unknown preference: ${ key }`);
     }
 
-    const user = state[key];
+    const user = state.data[key];
 
     if (user !== undefined) {
       return clone(user);
@@ -131,12 +137,38 @@ export const getters = {
     }
 
     return definition.options.slice();
+  },
+
+  theme: (state, getters) => {
+    let theme = getters['get'](THEME);
+    const pcs = getters['get'](PREFERS_SCHEME);
+
+    // console.log('Get Theme', theme, pcs);
+
+    // Ember UI uses this prefix
+    if ( theme.startsWith('ui-') ) {
+      theme = theme.substr(3);
+    }
+
+    if ( theme === 'auto' ) {
+      if ( pcs === 'light' || pcs === 'dark' ) {
+        return pcs;
+      }
+
+      return 'dark';
+    }
+
+    return theme;
   }
 };
 
 export const mutations = {
   load(state, { key, val }) {
-    Vue.set(state, key, val);
+    Vue.set(state.data, key, val);
+  },
+
+  cookiesLoaded(state) {
+    state.cookiesLoaded = true;
   },
 };
 
@@ -144,13 +176,16 @@ export const actions = {
   async set({ dispatch, commit }, opt) {
     const { key, value } = opt;
     let { val } = opt;
+    const definition = definitions[key];
+    let server;
 
     if ( value ) {
       throw new Error('Use "val" instead of "value" for setting preference');
     }
 
-    const definition = definitions[key];
-    const server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
+    if ( definition.asUserPreference ) {
+      server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
+    }
 
     commit('load', { key, val });
 
@@ -160,7 +195,7 @@ export const actions = {
       this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), val, opt);
     }
 
-    if ( server?.data ) {
+    if ( definition.asUserPreference && server?.data ) {
       if ( definition.mangleWrite ) {
         val = definition.mangleWrite(val);
       }
@@ -175,7 +210,11 @@ export const actions = {
     }
   },
 
-  loadCookies({ commit }) {
+  loadCookies({ state, commit }) {
+    if ( state.cookiesLoaded ) {
+      return;
+    }
+
     for (const key in definitions) {
       const definition = definitions[key];
 
@@ -190,9 +229,68 @@ export const actions = {
         commit('load', { key, val });
       }
     }
+
+    commit('cookiesLoaded');
   },
 
-  async loadServer({ dispatch, commit }, ignoreKey) {
+  loadTheme({ state, dispatch }) {
+    if ( process.client ) {
+      const watchDark = window.matchMedia('(prefers-color-scheme: dark)');
+      const watchLight = window.matchMedia('(prefers-color-scheme: light)');
+      const watchNone = window.matchMedia('(prefers-color-scheme: no-preference)');
+
+      const interval = 30 * 60 * 1000;
+      const nextHalfHour = interval - Math.round(new Date().getTime()) % interval;
+
+      setTimeout(() => {
+        dispatch('loadTheme');
+      }, nextHalfHour);
+      // console.log('Update theme in', nextHalfHour, 'ms');
+
+      if ( watchDark.matches ) {
+        changed('dark');
+      } else if ( watchLight.matches ) {
+        changed('light');
+      } else {
+        changed(fromClock());
+      }
+
+      watchDark.addListener((e) => {
+        if ( e.matches ) {
+          changed('dark');
+        }
+      });
+
+      watchLight.addListener((e) => {
+        if ( e.matches ) {
+          changed('light');
+        }
+      });
+
+      watchNone.addListener((e) => {
+        if ( e.matches ) {
+          changed(fromClock());
+        }
+      });
+    }
+
+    function changed(val) {
+      // console.log('Prefers Theme:', val);
+      dispatch('set', { key: PREFERS_SCHEME, val });
+    }
+
+    function fromClock() {
+      const hour = new Date().getHours();
+
+      if ( hour < 7 || hour >= 18 ) {
+        return 'dark';
+      }
+
+      return 'light';
+    }
+  },
+
+  async loadServer({ state, dispatch, commit }, ignoreKey) {
     const all = await dispatch('management/findAll', {
       type: MANAGEMENT.PREFERENCE,
       opt:  {
@@ -233,5 +331,11 @@ export const actions = {
     }
 
     return server;
-  }
+  },
+
+  toggleTheme({ getters, dispatch }) {
+    const val = getters[THEME] === 'light' ? 'dark' : 'light';
+
+    return dispatch('set', { key: THEME, val });
+  },
 };

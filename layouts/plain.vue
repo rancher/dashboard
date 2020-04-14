@@ -1,12 +1,10 @@
 
 <script>
-import { THEME } from '@/store/prefs';
-
 export default {
   middleware: ['authenticated'],
 
   head() {
-    const theme = this.$store.getters['prefs/get'](THEME);
+    const theme = this.$store.getters['prefs/theme'];
 
     return {
       bodyAttrs: { class: `theme-${ theme } dashboard-body` },

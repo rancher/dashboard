@@ -1,6 +1,6 @@
 <script>
 import GatekeeperConstraint from '@/shared/gatekeeper-constraint';
-import { EDIT_YAML, _FLAGGED } from '@/config/query-params';
+import { AS_YAML, _FLAGGED } from '@/config/query-params';
 import ResourceYaml from '@/components/ResourceYaml';
 
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -52,7 +52,7 @@ export default {
   },
   computed: {
     editAsYaml() {
-      return this.$route.query[EDIT_YAML] === _FLAGGED;
+      return this.$route.query[AS_YAML] === _FLAGGED;
     },
   },
   watch: {
@@ -69,10 +69,10 @@ export default {
   },
   methods: {
     navigateToEditAsYaml() {
-      this.$router.push({ query: { ...this.$route.query, [EDIT_YAML]: _FLAGGED } });
+      this.$router.push({ query: { ...this.$route.query, [AS_YAML]: _FLAGGED } });
     },
     navigateToEditAsForm() {
-      this.$router.applyQuery({ [EDIT_YAML]: undefined });
+      this.$router.applyQuery({ [AS_YAML]: undefined });
     },
     done() {
       this.$router.replace({

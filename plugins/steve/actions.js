@@ -2,7 +2,7 @@ import https from 'https';
 import { cloneDeep } from 'lodash';
 import { normalizeType } from './normalize';
 import { proxyFor, SELF } from './resource-proxy';
-import { SCHEMA, WORKLOAD } from '@/config/types';
+import { SCHEMA } from '@/config/types';
 
 export default {
   request({ dispatch }, opt) {
@@ -41,7 +41,7 @@ export default {
 
       // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
       if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
-        return dispatch('auth/logout', opt.logoutOnError, { root: true });
+        dispatch('auth/logout', opt.logoutOnError, { root: true });
       }
 
       if ( typeof res.data !== 'undefined' ) {
@@ -77,7 +77,6 @@ export default {
       schema._id = normalizeType(schema.id);
     });
 
-    commit('registerType', SCHEMA);
     commit('loadAll', {
       ctx,
       type: SCHEMA,
@@ -120,7 +119,7 @@ export default {
     commit('loadAll', {
       ctx,
       type,
-      data: res.data
+      data:     res.data
     });
 
     if ( opt.watch !== false ) {
@@ -140,7 +139,7 @@ export default {
   //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstraping schemas on startup.
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
-    const { getters, commit, dispatch } = ctx;
+    const { getters, dispatch } = ctx;
 
     opt = opt || {};
 
@@ -161,10 +160,6 @@ export default {
     opt.url = getters.urlFor(type, id, opt);
 
     const res = await dispatch('request', opt);
-
-    if ( !getters.typeRegistered(type) ) {
-      commit('registerType', type);
-    }
 
     await dispatch('load', { data: res });
 
