@@ -1,6 +1,7 @@
 <script>
 import Vue from 'vue';
 import { merge } from 'lodash';
+import jsyaml from 'js-yaml';
 import { _VIEW } from '../config/query-params';
 import { SCHEMA, NAMESPACE } from '@/config/types';
 import MatchKinds from '@/components/form/MatchKinds';
@@ -18,7 +19,6 @@ import RuleSelector from '@/components/form/RuleSelector';
 import RadioGroup from '@/components/form/RadioGroup';
 import { ucFirst } from '@/utils/string';
 import { isSimpleKeyValue } from '@/utils/object';
-import { createYaml } from '@/utils/create-yaml';
 
 function findConstraintTypes(schemas) {
   return schemas
@@ -63,7 +63,7 @@ export default {
 
   data() {
     return {
-      parametersYaml:           this.value?.spec?.parameters ? createYaml(this.value.spec.parameters) : '',
+      parametersYaml:           this.value?.spec?.parameters ? jsyaml.safeDump(this.value.spec.parameters) : '',
       showParametersAsYaml:     !isSimpleKeyValue(this.value.spec.parameters),
       enforcementActionOptions: Object.values(ENFORCEMENT_ACTION_VALUES),
       enforcementActionLabels:  Object.values(ENFORCEMENT_ACTION_VALUES).map(ucFirst),
@@ -85,7 +85,6 @@ export default {
       const constraintTypes = findConstraintTypesIds(schemas);
 
       constraintTypes.sort();
-      console.log(constraintTypes);
 
       return constraintTypes.map((type) => {
         return {
@@ -103,7 +102,7 @@ export default {
         : EDITOR_MODES.EDIT_CODE;
     },
     canShowForm() {
-      return isSimpleKeyValue(this.value.spec.parameters) && !this.isView;
+      return this.value?.spec?.parameters && isSimpleKeyValue(this.value.spec.parameters) && !this.isView;
     },
     systemNamespaceIds() {
       return this.$store.getters['cluster/all'](NAMESPACE)
@@ -176,7 +175,7 @@ export default {
     toggleParametersEditor() {
       this.showParametersAsYaml = !this.showParametersAsYaml;
       if (this.showParametersAsYaml) {
-        this.parametersYaml = createYaml(this.value.spec.parameters);
+        this.parametersYaml = jsyaml.safeDump(this.value.spec.parameters);
       }
     }
   }

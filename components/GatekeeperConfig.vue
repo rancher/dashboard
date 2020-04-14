@@ -1,5 +1,5 @@
 <script>
-import YAML from 'yaml';
+import jsyaml from 'js-yaml';
 import CodeMirror from './CodeMirror';
 import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
@@ -109,7 +109,7 @@ export default {
       let values = null;
 
       try {
-        values = YAML.parse(str);
+        values = jsyaml.safeLoad(str);
 
         return values;
       } catch (e) {

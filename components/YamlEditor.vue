@@ -1,5 +1,5 @@
 <script>
-import YAML from 'yaml';
+import jsyaml from 'js-yaml';
 import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
 import { mapPref, DIFF } from '@/store/prefs';
@@ -70,7 +70,7 @@ export default {
   watch: {
     value(newYaml) {
       try {
-        const parsed = YAML.parse(newYaml);
+        const parsed = jsyaml.safeLoad(newYaml);
 
         this.$emit('newObject', parsed);
       } catch (ex) {}

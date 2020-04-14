@@ -6,7 +6,6 @@
 import Vue from 'vue';
 import VueCodemirror from 'vue-codemirror';
 import CodeMirror from 'codemirror';
-import YAML from 'yaml';
 
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/mode/yaml/yaml.js';
@@ -32,26 +31,6 @@ import 'codemirror/addon/fold/indent-fold.js';
 import 'codemirror/addon/hint/show-hint.css';
 import 'codemirror/addon/hint/show-hint.js';
 import 'codemirror/addon/hint/anyword-hint.js';
-
-CodeMirror.registerHelper('lint', 'yaml', (text) => {
-  const found = [];
-
-  try {
-    YAML.parse(text, { prettyErrors: true });
-  } catch (e) {
-    const start = e.linePos.start;
-    const end = e.linePos.end || start;
-
-    const from = CodeMirror.Pos(start.line - 1, start.col);
-    const to = CodeMirror.Pos(end.line - 1, end.col);
-
-    found.push({
-      from, to, message: e.message
-    });
-  }
-
-  return found;
-});
 
 Vue.use(VueCodemirror);
 export default VueCodemirror;
