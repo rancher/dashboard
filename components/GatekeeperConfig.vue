@@ -405,7 +405,6 @@ export default {
             @click="openYamlEditor"
           >
             <t k="generic.customize" />
-            Customize
           </button>
           <AsyncButton
             :mode="mode"
