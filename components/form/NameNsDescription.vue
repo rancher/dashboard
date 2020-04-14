@@ -74,7 +74,7 @@ export default {
 
   computed: {
     nameDisabled() {
-      return this.mode !== _EDIT || !this.nameEditable;
+      return this.mode === _EDIT && !this.nameEditable;
     },
 
     detailTopColumns() {

@@ -8,8 +8,8 @@ export class ClusterNotFoundError extends Error {
 export class ApiError extends Error {
   constructor(res) {
     super(stringify(res));
-    this.status = res.status || 0;
-    this.statusText = res.statusText;
+    this.status = res._status || 0;
+    this.statusText = res._statusText;
     this.headers = res.headers;
   }
 
@@ -33,8 +33,10 @@ export function stringify(err) {
           str = err.detail;
         }
       }
-    } else if ( err && err.detail ) {
+    } else if ( err.detail ) {
       str = err.detail;
+    } else if ( err._req?.responseURL ) {
+      str = `from ${ err._req.responseURL }`;
     }
   } else {
     // Good luck...

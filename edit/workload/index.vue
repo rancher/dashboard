@@ -1,6 +1,5 @@
 <script>
 import cronstrue from 'cronstrue';
-import { clone } from '@/utils/object';
 import { CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE } from '@/config/types';
 import LoadDeps from '@/mixins/load-deps';
 import Tab from '@/components/Tabbed/Tab';
@@ -73,17 +72,18 @@ export default {
 
     const selectNode = false;
 
-    if ( !this.value.spec ) {
-      this.value.spec = {};
-    }
     let type = this.value._type || this.value.type || WORKLOAD_TYPES.DEPLOYMENT;
 
     if (type === 'workload') {
       type = WORKLOAD_TYPES.DEPLOYMENT;
     }
 
-    const spec = this.value.spec ? clone(this.value.spec) : {};
-    const metadata = this.value.metadata ? clone(this.value.metadata) : {};
+    let spec = this.value.spec;
+
+    if ( !spec ) {
+      spec = {};
+      this.value.spec = spec;
+    }
 
     if (!spec.template) {
       spec.template = { spec: { restartPolicy: this.isJob ? 'Never' : 'Always' } };
@@ -91,10 +91,9 @@ export default {
 
     return {
       selectNode,
+      spec,
       type,
       typeOpts,
-      spec,
-      metadata,
       allConfigMaps: null,
       allSecrets:    null,
       allNodes:      null,
@@ -107,10 +106,6 @@ export default {
       return this.$store.getters['cluster/schemaFor']( this.type );
     },
 
-    namespace() {
-      return this.metadata.namespace;
-    },
-
     container: {
       get() {
         let template = this.spec.template;
@@ -121,7 +116,7 @@ export default {
         const { containers } = template.spec;
 
         if (!containers) {
-          this.$set(template.spec, 'containers', [{ name: this.metadata.name }]);
+          this.$set(template.spec, 'containers', [{ name: this.value.metadata.name }]);
         }
 
         return template.spec.containers[0];
@@ -133,7 +128,7 @@ export default {
         if (this.isCronJob) {
           template = this.spec.jobTemplate.spec.template;
         }
-        this.$set(template.spec.containers, 0, { ...neu, name: this.metadata.name });
+        this.$set(template.spec.containers, 0, { ...neu, name: this.value.metadata.name });
       }
     },
 
@@ -184,7 +179,7 @@ export default {
     },
 
     workloadSelector() {
-      return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.metadata.namespace }-${ this.metadata.name }` };
+      return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.value.metadata.namespace }-${ this.value.metadata.name }` };
     },
 
     isEdit() {
@@ -223,7 +218,13 @@ export default {
   },
 
   asyncData(ctx) {
-    return defaultAsyncData(ctx, WORKLOAD_TYPES.DEPLOYMENT);
+    let resource;
+
+    if ( !ctx.params.id ) {
+      resource = WORKLOAD_TYPES.DEPLOYMENT;
+    }
+
+    return defaultAsyncData(ctx, resource);
   },
 
   methods: {
@@ -261,8 +262,6 @@ export default {
       }
 
       delete this.value.kind;
-      this.value.spec = this.spec;
-      this.value.metadata = this.metadata;
       this.save(cb);
     },
   },
@@ -272,7 +271,7 @@ export default {
 <template>
   <form>
     <slot :value="value" name="top">
-      <NameNsDescription :value="{metadata}" :mode="mode" :extra-columns="['type']" @input="e=>metadata=e">
+      <NameNsDescription :value="value" :mode="mode" :extra-columns="['type']">
         <template v-slot:type>
           <LabeledSelect v-model="type" label="Type" :disabled="isEdit" :options="typeOpts" />
         </template>
@@ -312,7 +311,7 @@ export default {
           :secrets="allSecrets"
           :config-maps="allConfigMaps"
           :mode="mode"
-          :namespace="namespace"
+          :namespace="value.metadata.namespace"
         />
       </Tab>
       <Tab label="Networking" name="networking">
@@ -336,7 +335,7 @@ export default {
       </Tab>
 
       <Tab label="Labels" name="labelsAndAnnotations">
-        <Labels :spec="{metadata}" :mode="mode" />
+        <Labels :spec="value" :mode="mode" />
       </Tab>
     </Tabbed>
     <Footer :errors="errors" :mode="mode" @save="saveWorkload" @done="done" />

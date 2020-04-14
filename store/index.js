@@ -29,6 +29,7 @@ export const state = () => {
     allNamespaces:    null,
     clusterId:        null,
     error:            null,
+    cameFromError:    false,
   };
 };
 
@@ -203,6 +204,11 @@ export const mutations = {
     console.log('Loading error', err);
 
     state.error = err;
+    state.cameFromError = true;
+  },
+
+  cameFromError(state) {
+    state.cameFromError = true;
   }
 };
 

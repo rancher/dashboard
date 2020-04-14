@@ -126,7 +126,6 @@ export async function defaultAsyncData(ctx, resource) {
   const out = {
     hasCustomDetail,
     hasCustomEdit,
-    schema,
     resource,
     model,
     asYaml,
@@ -155,10 +154,6 @@ export default {
     },
     hasCustomEdit: {
       type:    Boolean,
-      default: null,
-    },
-    schema: {
-      type:    Object,
       default: null,
     },
     resource: {
@@ -215,6 +210,10 @@ export default {
   },
 
   computed: {
+    schema() {
+      return this.$store.getters['cluster/schemaFor']( this.model.type );
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
