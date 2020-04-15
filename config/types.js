@@ -17,6 +17,25 @@ export const PVC = 'persistentvolumeclaim';
 export const TLS_CERT = 'kubernetes.io/tls';
 export const GATEKEEPER_CONSTRAINT_TEMPLATE = 'templates.gatekeeper.sh.constrainttemplate';
 
+export const COLLECTION_TYPES = {
+  array: 'array',
+  map:   'map',
+};
+
+export const PRIMITIVE_TYPES = {
+  string:    'string',
+  multiline: 'multiline',
+  masked:    'masked',
+  password:  'password',
+  float:     'float',
+  int:       'int',
+  date:      'date',
+  blob:      'blob',
+  boolean:   'boolean',
+  json:      'json',
+  version:   'version',
+};
+
 // Old Rancher API via Norman, /v3
 export const NORMAN = {
   AUTH_CONFIG: 'authconfig',

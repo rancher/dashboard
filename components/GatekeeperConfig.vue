@@ -324,7 +324,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div class="gatekeeper-config">
     <header>
       <h1>
         <t k="gatekeeperConfig.header" /> <span class="flag"><t k="gatekeeperConfig.flag" /></span>
@@ -421,9 +421,9 @@ export default {
     </div>
     <section v-if="showYamlEditor">
       <CodeMirror
+        class="code-mirror"
         :value="config.spec.valuesYaml"
         :options="cmOptions"
-        :footer-space="71"
         @onInput="onInput"
         @onReady="onReady"
         @onChanges="onChanges"
@@ -439,6 +439,12 @@ export default {
 </template>
 
 <style lang="scss">
+.gatekeeper-config {
+  .code-mirror {
+    min-height: 200px;
+  }
+}
+
 h1 {
   .flag {
     text-align: center;

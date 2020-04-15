@@ -142,7 +142,9 @@ export default {
 
   mounted() {
     this.$nextTick(() => {
-      this.$refs.name.focus();
+      if (this.$refs.name) {
+        this.$refs.name.focus();
+      }
     });
   },
 

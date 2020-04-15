@@ -39,6 +39,18 @@ export function isEmpty(obj) {
   return !Object.keys(obj).length;
 }
 
+/**
+ * Checks to see if the object is a simple key value pair where all values are
+ * just primitives.
+ * @param {any} obj
+ */
+export function isSimpleKeyValue(obj) {
+  return obj !== null &&
+    !Array.isArray(obj) &&
+    typeof obj === 'object' &&
+    Object.values(obj || {}).every(v => typeof v !== 'object');
+}
+
 /*
 returns an object with no key/value pairs (including nested) where the value is:
   empty array

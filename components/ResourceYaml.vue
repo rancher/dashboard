@@ -1,6 +1,5 @@
 <script>
-import CodeMirror from './CodeMirror';
-import FileDiff from './FileDiff';
+import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import Footer from '@/components/form/Footer';
 
 import {
@@ -15,9 +14,8 @@ import { mapPref, DIFF } from '@/store/prefs';
 
 export default {
   components: {
-    CodeMirror,
-    FileDiff,
     Footer,
+    YamlEditor
   },
 
   props: {
@@ -100,7 +98,11 @@ export default {
       return this.mode === _VIEW;
     },
 
-    diffMode: mapPref(DIFF),
+    editorMode() {
+      return this.showPreview
+        ? EDITOR_MODES.DIFF_CODE
+        : EDITOR_MODES.EDIT_CODE;
+    },
   },
 
   methods: {
@@ -241,41 +243,14 @@ export default {
 
 <template>
   <div class="root resource-yaml">
-    <div class="text-right">
-      <span v-if="showPreview" v-trim-whitespace class="btn-group btn-sm diff-mode">
-        <button
-          type="button"
-          class="btn btn-sm bg-default"
-          :class="{'active': diffMode !== 'split'}"
-          @click="diffMode='unified'"
-        >Unified</button>
-        <button
-          type="button"
-          class="btn btn-sm bg-default"
-          :class="{'active': diffMode === 'split'}"
-          @click="diffMode='split'"
-        >Split</button>
-      </span>
-    </div>
-
-    <FileDiff
-      v-if="showPreview"
-      :filename="model.id + '.yaml'"
-      :side-by-side="diffMode === 'split'"
-      :orig="value"
-      :neu="currentValue"
-      :footer-space="71"
-    />
-    <CodeMirror
-      v-else
-      :value="currentValue"
-      :options="cmOptions"
-      :footer-space="71"
+    <YamlEditor
+      v-model="currentValue"
+      class="yaml-editor"
+      :editor-mode="editorMode"
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"
     />
-
     <Footer v-if="!isView" :mode="mode" :errors="errors" @save="save" @done="done">
       <template #middle>
         <button v-if="showPreview" type="button" class="btn role-secondary" @click="unpreview">
@@ -294,17 +269,15 @@ export default {
 @import "~assets/styles/base/_functions.scss";
 @import "~assets/styles/base/_mixins.scss";
 .resource-yaml {
-  .diff-mode {
-    background-color: var(--diff-header-bg);
-    padding: 5px 5px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
+  .yaml-editor {
+    flex: 1;
+    min-height: 200px;
   }
 
-  .d2h-file-wrapper {
-    border-top-right-radius: 0;
-  }
   footer .actions {
     text-align: center;
   }

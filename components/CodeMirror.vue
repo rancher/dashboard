@@ -1,6 +1,4 @@
 <script>
-
-import $ from 'jquery';
 import { KEYMAP } from '@/store/prefs';
 
 export default {
@@ -12,18 +10,6 @@ export default {
     options: {
       type:    Object,
       default: () => {}
-    },
-    autoResize: {
-      type:    Boolean,
-      default: true,
-    },
-    footerSpace: {
-      type:    Number,
-      default: 0,
-    },
-    minHeight: {
-      type:    Number,
-      default: 200,
     }
   },
 
@@ -32,10 +18,6 @@ export default {
   },
 
   computed: {
-    codemirror() {
-      return this.$refs.cm.codemirror;
-    },
-
     combinedOptions() {
       const theme = this.$store.getters['prefs/theme'];
       const keymap = this.$store.getters['prefs/get'](KEYMAP);
@@ -49,7 +31,6 @@ export default {
         theme:                   `base16-${ theme }`,
         lineNumbers:             true,
         line:                    true,
-        viewportMargin:          Infinity,
         styleActiveLine:         true,
         lineWrapping:            true,
         foldGutter:              true,
@@ -71,7 +52,6 @@ export default {
 
   methods: {
     onReady(cm) {
-      this.fit();
       this.$emit('onReady', cm);
     },
 
@@ -82,53 +62,38 @@ export default {
     onChanges(cm, changes) {
       this.$emit('onChanges', cm, changes);
     },
-
-    fit() {
-      if ( !this.autoResize ) {
-        return;
-      }
-
-      const container = $(this.$refs.cm.$el);
-
-      if ( !container || !container.length ) {
-        return;
-      }
-
-      const offset = container.offset();
-
-      if ( !offset ) {
-        return;
-      }
-
-      const desired = $(window).innerHeight() - offset.top - this.footerSpace;
-
-      container.css('height', `${ Math.max(this.minHeight, desired) }px`);
-    },
   }
 };
 </script>
 
 <template>
-  <client-only v-if="autoResize" placeholder=" Loading...">
-    <div v-if="loaded">
-      <resize-observer @notify="fit" />
+  <client-only placeholder=" Loading...">
+    <div class="code-mirror">
       <codemirror
-        ref="cm"
+        v-if="loaded"
         :value="value"
         :options="combinedOptions"
         @ready="onReady"
         @input="onInput"
         @changes="onChanges"
       />
-    </div>
-    <div v-else>
-      Loading...
+      <div v-else>
+        Loading...
+      </div>
     </div>
   </client-only>
 </template>
 
 <style lang="scss">
-  .CodeMirror {
-    height: 100% !important;
+  .code-mirror  {
+    position: relative;
+    .CodeMirror {
+      height: initial;
+      position: absolute;
+      top:0;
+      bottom:0;
+      left:0;
+      right:0;
+    }
   }
 </style>

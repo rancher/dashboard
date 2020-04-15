@@ -6,6 +6,9 @@
   "license": "Apache-2.0",
   "author": "Rancher Labs, Inc.",
   "private": true,
+  "engines": {
+    "node": ">=10"
+  },
   "scripts": {
     "lint": "./node_modules/.bin/eslint --ext .js,.vue .",
     "test": "./node_modules/.bin/nyc ava --serial --verbose",

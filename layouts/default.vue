@@ -384,6 +384,8 @@ export default {
     overflow: auto;
 
     .outlet {
+      display: flex;
+      flex-direction: column;
       padding: 20px 20px 70px 20px;
       min-height: 100%;
       margin-bottom: -51px;

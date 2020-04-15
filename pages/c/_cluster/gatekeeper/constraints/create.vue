@@ -1,4 +1,5 @@
 <script>
+import jsyaml from 'js-yaml';
 import GatekeeperConstraint from '@/shared/gatekeeper-constraint';
 import { AS_YAML, _FLAGGED } from '@/config/query-params';
 import ResourceYaml from '@/components/ResourceYaml';
@@ -12,7 +13,7 @@ const CONSTRAINT_PREFIX = 'constraints.gatekeeper.sh.';
 
 async function yamlUpdater(value) {
   this.obj = await this.$store.dispatch('cluster/create', this.localValue);
-  this.yaml = window.jsyaml.safeDump(this.localValue);
+  this.yaml = jsyaml.safeDump(this.localValue);
 }
 
 export default {
