@@ -404,7 +404,7 @@ export default {
     const canCreate = (this.schema?.attributes?.verbs || []).includes('create') && this.$rootGetters['type-map/isCreatable'](this.type);
     const canUpdate = !!links.update && this.$rootGetters['type-map/isEditable'](this.type);
     const canViewInApi = this.$rootGetters['prefs/get'](DEV);
-    const canDelete = !!links.remove && this.$rootGetters['type-map/isEditable'](this.type);
+    const canDelete = !!links.remove;
 
     const all = [
       {

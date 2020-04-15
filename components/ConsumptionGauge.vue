@@ -1,5 +1,5 @@
 <script>
-import PercentageCircle from '@/components/PercentageCircle';
+import PercentageBar from '@/components/PercentageBar';
 import VStack from '@/components/Layout/Stack/VStack';
 
 /**
@@ -7,7 +7,7 @@ import VStack from '@/components/Layout/Stack/VStack';
  */
 export default {
   components: {
-    PercentageCircle,
+    PercentageBar,
     VStack
   },
   props: {
@@ -59,8 +59,17 @@ export default {
 
 <template>
   <VStack class="consumption-gauge" :show-dividers="true">
-    <PercentageCircle :value="used / capacity" :lower-error-bound="0.25" :lower-warning-bound="0.25" :upper-warning-bound="0.7" :upper-error-bound="0.85" />
-    <VStack horizontal-align="center">
+    <VStack class="percentage-bar-container" horizontal-align="center" vertical-align="bottom">
+      <PercentageBar
+        :value="used / capacity"
+        :lower-error-bound="0.25"
+        :lower-warning-bound="0.25"
+        :upper-warning-bound="0.7"
+        :upper-error-bound="0.85"
+        :number-of-ticks="13"
+      />
+    </VStack>
+    <VStack class="consumption" horizontal-align="center">
       <div>{{ resourceName }}</div>
       <div class="amount">
         {{ numberFormatter(used) }} of {{ numberFormatter(capacity) }}{{ displayUnits }} reserved
@@ -69,10 +78,9 @@ export default {
   </VStack>
 </template>
 
-<style lang="scss" scoped>
-$divider-spacing: 20px;
-
+<style lang="scss">
 .consumption-gauge {
+  $divider-spacing: 20px;
   min-height: 300px;
   width: 100%;
   padding-right: $divider-spacing;
@@ -81,18 +89,47 @@ $divider-spacing: 20px;
     padding-right: 0;
   }
 
-  & > :first-child {
-    padding-bottom: $divider-spacing;
-    height: 75%;
-  }
-
   & > :last-child {
     padding-top: $divider-spacing;
     height: 25%;
   }
 
+  .consumption {
+    margin-bottom: 50px;
+  }
+
   .amount {
       color: var(--link-text);
   }
+
+  .percentage-bar-container {
+    padding-bottom: 8px;
+    height: 75%;
+    text-align: center;
+
+    .percentage-bar {
+      display: inline-grid;
+      grid-template-rows: [one] auto [two] auto;
+
+      .bar {
+        grid-row: one;
+        .tick {
+          margin-right: 5px;
+          width: 4px;
+          font-size: 1.7em;
+        }
+      }
+
+      .percentage {
+        margin-top: 20px;
+        width: 100%;
+        grid-row: two;
+        font-size: 45px;
+        font-weight: 100;
+        text-align: center;
+      }
+    }
+  }
+
 }
 </style>
