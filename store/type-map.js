@@ -20,6 +20,8 @@
 // importList(type)           Returns a promise that resolves to the list component for type
 // importDetail(type)         Returns a promise that resolves to the detail component for type
 // importEdit(type)           Returns a promise that resolves to the edit component for type
+// isCreatable(type)          Checks to see if the type has been marked as uncreatable and returns the response accordingly
+// isEditable(type)           Checks to see if the type has been marked as immutable and returns the response accordingly
 //
 // 3) Changing specialization info about a type
 // For all:
@@ -52,10 +54,11 @@
 //   matchRegexOrString,      -- Type to match, or regex that matches types
 //   replacementString        -- String to replace the type with
 // )
-// labelType(                 Remap the displayed label for a type
-//   type,
-//   singular,
-//   plural
+// markTypeAsUncreatable( Indicates that the type is uncretable and thus we shouldn't provide options in the UI to create the type (Hide create buttons, hide clone as yaml etc.)
+//  type
+// )
+// markTypeAsImmutable ( Indicates that a type is immutable and thus we should't provide options in the UI to modify the type ( Hide edit as form, edit as yaml etc.)
+//  type
 // )
 //
 // ignoreGroup(group):        Never show group or any types in it
@@ -147,6 +150,14 @@ export function DSL(store, module = 'type-map') {
 
     mapTypeToComponentName(match, replace) {
       store.commit(`${ module }/mapTypeToComponentName`, { match, replace });
+    },
+
+    markTypeAsUncreatable(match) {
+      store.commit(`${ module }/markTypeAsUncreatable`, { match });
+    },
+
+    markTypeAsImmutable(match) {
+      store.commit(`${ module }/markTypeAsImmutable`, { match });
     }
   };
 }
@@ -158,11 +169,13 @@ export const state = function() {
     groupIgnore:             [],
     groupWeights:            {},
     groupMappings:           [],
+    immutable:               [],
     typeIgnore:              [],
     typeWeights:             {},
     typeMappings:            [],
     typeMoveMappings:        [],
     typeToComponentMappings: [],
+    uncreatable:             [],
     pluralLabels:            {},
     headers:                 {},
     cache:                   {
@@ -244,6 +257,30 @@ export const getters = {
   isBasic(state) {
     return (schemaId) => {
       return state.basicTypes[schemaId] || false;
+    };
+  },
+
+  isCreatable(state) {
+    return (type) => {
+      const found = state.uncreatable.find((uncreatableType) => {
+        const re = stringToRegex(uncreatableType);
+
+        return re.test(type);
+      });
+
+      return !found;
+    };
+  },
+
+  isEditable(state) {
+    return (type) => {
+      const found = state.immutable.find((immutableType) => {
+        const re = stringToRegex(immutableType);
+
+        return re.test(type);
+      });
+
+      return !found;
     };
   },
 
@@ -843,6 +880,18 @@ export const mutations = {
     match = ensureRegex(match);
     match = regexToString(match);
     state.typeToComponentMappings.push({ match, replace });
+  },
+
+  markTypeAsUncreatable(state, { match }) {
+    match = ensureRegex(match);
+    match = regexToString(match);
+    state.uncreatable.push(match);
+  },
+
+  markTypeAsImmutable(state, { match }) {
+    match = ensureRegex(match);
+    match = regexToString(match);
+    state.immutable.push(match);
   },
 
   pluralizeType(type, plural) {
