@@ -57,6 +57,10 @@ export default {
 
       return this.$store.getters['type-map/pluralLabelFor'](this.schema);
     },
+
+    isCreatable() {
+      return this.$store.getters['type-map/isCreatable'](this.$route.params.resource);
+    }
   },
 
   async asyncData(ctx) {
@@ -112,7 +116,7 @@ export default {
       </h1>
       <div class="actions">
         <nuxt-link
-          v-if="schema"
+          v-if="schema && isCreatable"
           :to="{path: yamlRoute}"
           tag="button"
           type="button"
@@ -121,7 +125,7 @@ export default {
           Create from YAML
         </nuxt-link>
         <nuxt-link
-          v-if="hasEditComponent"
+          v-if="hasEditComponent && isCreatable"
           :to="{path: formRoute}"
           tag="button"
           type="button"

@@ -401,9 +401,10 @@ export default {
   _standardActions() {
     const links = this.links || {};
     const customEdit = this.$rootGetters['type-map/hasCustomEdit'](this.type);
-    const canCreate = (this.schema?.attributes?.verbs || []).includes('create');
-    const canUpdate = !!links.update;
+    const canCreate = (this.schema?.attributes?.verbs || []).includes('create') && this.$rootGetters['type-map/isCreatable'](this.type);
+    const canUpdate = !!links.update && this.$rootGetters['type-map/isEditable'](this.type);
     const canViewInApi = this.$rootGetters['prefs/get'](DEV);
+    const canDelete = !!links.remove && this.$rootGetters['type-map/isEditable'](this.type);
 
     const all = [
       {
@@ -451,7 +452,7 @@ export default {
         label:      'Delete',
         icon:       'icon icon-fw icon-trash',
         bulkable:   true,
-        enabled:    !!links.remove,
+        enabled:    canDelete,
         bulkAction: 'promptRemove',
       },
       { divider: true },

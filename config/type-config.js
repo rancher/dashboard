@@ -33,6 +33,8 @@ export default function(store) {
     headers,
     virtualType,
     mapTypeToComponentName,
+    markTypeAsUncreatable,
+    markTypeAsImmutable
   } = DSL(store);
 
   basicType([
@@ -61,6 +63,9 @@ export default function(store) {
 
   weightGroup('Cluster', 99);
   weightGroup('Core', 98);
+
+  markTypeAsUncreatable(NODE);
+  markTypeAsImmutable(NODE);
 
   mapGroup(/^(core)?$/, 'Core', 99);
   mapGroup('apps', 'Apps', 98);
