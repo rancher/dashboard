@@ -10,6 +10,14 @@ export const STATE = {
   formatter: 'BadgeState',
 };
 
+export const DOWNLOAD = {
+  name:          'download',
+  label:         'Download',
+  value:         'download',
+  canBeVariable: true,
+  align:         'right',
+};
+
 export const NAME = {
   name:          'name',
   label:         'Name',

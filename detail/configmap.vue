@@ -1,9 +1,16 @@
 <script>
 import { DESCRIPTION } from '@/config/labels-annotations';
+import CreateEditView from '@/mixins/create-edit-view';
 import DetailTop from '@/components/DetailTop';
+import Labels from '@/components/form/Labels';
 import SortableTable from '@/components/SortableTable';
 import VStack from '@/components/Layout/Stack/VStack';
+import { downloadFile } from '@/utils/download';
+import Tab from '@/components/Tabbed/Tab';
+import Tabbed from '@/components/Tabbed';
+
 import {
+  DOWNLOAD,
   KEY,
   VALUE,
   STATE,
@@ -17,9 +24,14 @@ export default {
   name:       'DetailConfigMap',
   components: {
     DetailTop,
+    Labels,
     SortableTable,
+    Tab,
+    Tabbed,
     VStack
   },
+
+  mixins: [CreateEditView],
 
   props: {
     value: {
@@ -29,12 +41,18 @@ export default {
   },
 
   data() {
+    const valuesTableHeaders = [
+      {
+        ...KEY, sort:  false, width: 400
+      },
+      { ...VALUE, sort: false },
+    ];
+
     return {
-      valuesTableHeaders: [
-        {
-          ...KEY, sort:  false, width: 400
-        },
-        { ...VALUE, sort: false },
+      valuesTableHeaders,
+      binaryValuesTableHeaders: [
+        ...valuesTableHeaders,
+        DOWNLOAD
       ],
       relatedWorkloadsHeaders: [
         STATE,
@@ -54,27 +72,15 @@ export default {
       }));
     },
 
+    binaryValuesTableRows() {
+      return Object.entries(this.value.binaryData || {}).map(kvp => ({
+        key:   kvp[0],
+        value: `${ kvp[1].length } byte${ kvp[1].length !== 1 ? 's' : '' }`
+      }));
+    },
+
     relatedWorkloadsRows() {
-      return [
-        {
-          stateDisplay:    'Success',
-          stateBackground: 'bg-success',
-          nameDisplay:     'Workload0',
-          detailUrl:       '#',
-          scale:           4,
-          image:           'nginx',
-          created:         '2020-01-20T09:00:00+00:00'
-        },
-        {
-          stateDisplay:    'Success',
-          stateBackground: 'bg-success',
-          nameDisplay:     'Workload1',
-          detailUrl:       '#',
-          scale:           44,
-          image:           'ubuntu',
-          created:         '2020-01-20T11:00:00+00:00'
-        }
-      ];
+      return [];
     },
 
     detailTopColumns() {
@@ -93,47 +99,74 @@ export default {
       ];
     }
   },
+
+  methods: {
+    onDownloadClick(file, ev) {
+      ev.preventDefault();
+      downloadFile(file.key, file.value, 'application/octet-stream');
+    }
+  },
 };
 </script>
 
 <template>
   <VStack class="config-map">
-    <DetailTop :columns="detailTopColumns" />
+    <DetailTop class="detail-top" :columns="detailTopColumns" />
     <div>
-      <div class="title">
-        Values
-      </div>
-      <SortableTable
-        key-field="_key"
-        :headers="valuesTableHeaders"
-        :rows="valuesTableRows"
-        :row-actions="false"
-        :search="false"
-        :table-actions="false"
-        :top-divider="false"
-        :emphasized-body="false"
-        :body-dividers="true"
-      />
-    </div>
-    <div>
-      <div>Related Workloads</div>
+      <h2>
+        Related Workloads
+      </h2>
       <SortableTable
         key-field="_key"
         :headers="relatedWorkloadsHeaders"
         :rows="relatedWorkloadsRows"
         :row-actions="false"
         :search="false"
+        no-rows-key="generic.commingSoon"
       />
     </div>
+    <Tabbed default-tab="values">
+      <Tab name="values" label="Values">
+        <SortableTable
+          key-field="_key"
+          :headers="valuesTableHeaders"
+          :rows="valuesTableRows"
+          :row-actions="false"
+          :search="false"
+          :table-actions="false"
+          :top-divider="false"
+          :emphasized-body="false"
+          :body-dividers="true"
+        />
+      </Tab>
+      <Tab name="binary-values" label="Binary Values">
+        <SortableTable
+          key-field="_key"
+          :headers="binaryValuesTableHeaders"
+          :rows="binaryValuesTableRows"
+          :row-actions="false"
+          :search="false"
+          :table-actions="false"
+          :top-divider="false"
+          :emphasized-body="false"
+          :body-dividers="true"
+        >
+          <template #col:download="{row}">
+            <td data-title="Download:" align="right" class="col-click-expand">
+              <a href="#" @click="onDownloadClick(row, $event)">Download</a>
+            </td>
+          </template>
+        </SortableTable>
+      </Tab>
+      <Tab label="Labels and Annotations" name="labelsAndAnnotations">
+        <Labels :spec="value" :mode="mode" />
+      </Tab>
+    </Tabbed>
   </VStack>
 </template>
 
 <style lang="scss" scoped>
-.config-map > * {
-    margin-bottom: 50px;
-}
-
-.title {
-    margin-bottom: 20px;
+.detail-top {
+  margin-bottom: 50px;
 }
 </style>

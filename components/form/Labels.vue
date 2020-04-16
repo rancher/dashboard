@@ -20,6 +20,11 @@ export default {
   },
 
   computed: {
+    containerClass() {
+      return this.displaySideBySide
+        ? 'row'
+        : '';
+    },
     sectionClass() {
       return this.displaySideBySide
         ? 'col span-6'
@@ -39,7 +44,7 @@ export default {
 };
 </script>
 <template>
-  <div class="row">
+  <div :class="containerClass">
     <div :class="sectionClass">
       <KeyValue
         key="labels"
