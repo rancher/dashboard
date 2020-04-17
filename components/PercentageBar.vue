@@ -27,7 +27,7 @@ export default {
       const barPercentage = i / this.NUMBER_OF_TICKS;
 
       if (valuePercentage < barPercentage) {
-        return 'bg-darker';
+        return 'bg-muted';
       }
 
       if (barPercentage <= 0.6) {
