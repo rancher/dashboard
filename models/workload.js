@@ -1,6 +1,5 @@
 export default {
   // remove clone as yaml/edit as yaml until API supported
-
   _availableActions() {
     let out = this._standardActions;
 
@@ -19,5 +18,5 @@ export default {
     });
 
     return out;
-  }
+  },
 };
