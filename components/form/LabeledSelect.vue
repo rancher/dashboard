@@ -35,10 +35,6 @@ export default {
       type:    String,
       default: 'label'
     },
-    optionKey: {
-      type:    String,
-      default: null
-    }
   },
   data() {
     return { selectedDisplay: 'block' };

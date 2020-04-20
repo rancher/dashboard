@@ -405,6 +405,7 @@ export default {
     const canUpdate = !!links.update && this.$rootGetters['type-map/isEditable'](this.type);
     const canViewInApi = this.$rootGetters['prefs/get'](DEV);
     const canDelete = !!links.remove;
+    const hasYaml = this.hasLink('rioview') || this.hasLink('view');
 
     const all = [
       {
@@ -424,19 +425,19 @@ export default {
         action:  'goToEditYaml',
         label:   'Edit as YAML',
         icon:    'icon icon-file',
-        enabled: canUpdate,
+        enabled: canUpdate && hasYaml,
       },
       {
         action:  'goToViewYaml',
         label:   'View as YAML',
         icon:    'icon icon-file',
-        enabled: !canUpdate
+        enabled: !canUpdate && hasYaml
       },
       {
         action:  'cloneYaml',
         label:   'Clone as YAML',
         icon:    'icon icon-fw icon-copy',
-        enabled:  canCreate,
+        enabled:  canCreate && hasYaml,
       },
       {
         action:     'download',
@@ -444,6 +445,7 @@ export default {
         icon:       'icon icon-fw icon-download',
         bulkable:   true,
         bulkAction: 'downloadBulk',
+        enabled:    hasYaml
       },
       { divider: true },
       {
