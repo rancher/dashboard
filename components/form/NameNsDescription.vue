@@ -182,7 +182,7 @@ export default {
             v-model="name"
             label="Name"
             :disabled="nameDisabled"
-            :mode="nameMode"
+            :mode="mode"
             :min-height="30"
           />
         </slot>
