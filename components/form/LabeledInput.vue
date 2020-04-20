@@ -16,7 +16,7 @@ export default {
     // If false, show placeholder text until field is focused
     hidePlaceholder: {
       type:    Boolean,
-      default: true
+      default: false
     },
     mode: {
       type:    String,

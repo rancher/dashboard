@@ -34,7 +34,7 @@ export default {
     optionLabel: {
       type:    String,
       default: 'label'
-    },
+    }
   },
   data() {
     return { selectedDisplay: 'block' };

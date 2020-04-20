@@ -51,8 +51,6 @@ export default {
     }
 
     return {
-      // define 'type' as secret so .save() function uses secret schema instead of looking for subtype schema
-      type:             SECRET,
       types,
       isNamespaced,
       registryAddresses,
@@ -69,8 +67,9 @@ export default {
 
   computed: {
     secretSubType: {
+      // when editing a secret with type other than registry, cert, or generic, like 'kubernetes.io/service-account-token', use generic layout
       get() {
-        return this.value._type || OPAQUE;
+        return this.isCertificate ? TLS : this.isRegistry ? DOCKER_JSON : OPAQUE;
       },
       set(neu) {
         this.$set(this.value, '_type', neu);
@@ -111,11 +110,11 @@ export default {
     },
 
     isCertificate() {
-      return this.secretSubType === TLS;
+      return this.value._type === TLS;
     },
 
     isRegistry() {
-      return this.secretSubType === DOCKER_JSON;
+      return this.value._type === DOCKER_JSON;
     },
 
     needsDockerServer() {
@@ -125,11 +124,11 @@ export default {
 
   methods: {
     saveSecret(buttonCb) {
-      if (this.secretSubType === DOCKER_JSON) {
+      if (this.isRegistry) {
         const data = { '.dockerconfigjson': base64Encode(this.dockerconfigjson) };
 
         this.$set(this.value, 'data', data);
-      } else if (this.secretSubType === TLS) {
+      } else if (this.isCertificate) {
         const data = { 'tls.cert': base64Encode(this.cert), 'tls.key': base64Encode(this.key) };
 
         this.$set(this.value, 'data', data);
@@ -176,36 +175,36 @@ export default {
   <form>
     <NameNsDescription v-model="value" :mode="mode" :extra-columns="['type']">
       <template v-slot:type>
-        <LabeledSelect v-model="secretSubType" label="Type" :options="types" />
+        <LabeledSelect v-model="secretSubType" label="Type" :options="types" :mode="mode" :disabled="mode!=='create'" />
       </template>
     </NameNsDescription>
 
     <template v-if="isRegistry">
       <div id="registry-type" class="row">
-        Provider: &nbsp; <RadioGroup :style="{'display':'flex'}" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
+        Provider: &nbsp; <RadioGroup :mode="mode" :style="{'display':'flex'}" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row">
-        <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" />
+        <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" :mode="mode" />
       </div>
       <div class="row">
         <div class="col span-6">
-          <LabeledInput v-model="username" label="Username" />
+          <LabeledInput v-model="username" label="Username" :mode="mode" />
         </div>
         <div class="col span-6">
-          <LabeledInput v-model="password" label="Password" />
+          <LabeledInput v-model="password" label="Password" :mode="mode" />
         </div>
       </div>
     </template>
 
     <div v-else-if="isCertificate" class="row">
       <div class="col span-6">
-        <LabeledInput v-model="key" type="multiline" label="Private Key" />
+        <LabeledInput v-model="key" type="multiline" label="Private Key" :mode="mode" />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('key')">
           Read from file
         </button>
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="cert" type="multiline" label="CA Certificate" />
+        <LabeledInput v-model="cert" type="multiline" label="CA Certificate" :mode="mode" />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('cert')">
           Read from file
         </button>

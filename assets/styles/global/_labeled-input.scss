@@ -11,7 +11,7 @@
     transition-property: transform, font-size;
     transition-duration: 0.1s;
     transition-timing-function: ease-in-out;
-    z-index: 1;
+    z-index: 10;
     color: var(--input-label);
   }
 
