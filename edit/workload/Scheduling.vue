@@ -1,14 +1,13 @@
 <script>
-import { get } from '../../utils/object';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import Selectors from '@/edit/workload/Selectors';
+import NodeAffinity from '@/components/form/NodeAffinity';
 
 export default {
   components: {
     RadioGroup,
-    Selectors,
-    LabeledSelect
+    LabeledSelect,
+    NodeAffinity
   },
   props:      {
     value: {
@@ -26,9 +25,12 @@ export default {
     const { affinity = {}, nodeName = '' } = this.value;
     const { nodeAffinity = {} } = affinity;
 
-    const required = get(nodeAffinity, 'requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms') || [];
-    const preferred = get(nodeAffinity, 'preferredDuringSchedulingIgnoredDuringExecution') || [];
-
+    if (!nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution) {
+      this.$set(nodeAffinity, 'requiredDuringSchedulingIgnoredDuringExecution', { nodeSelectorTerms: [] } );
+    }
+    if (!nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution) {
+      this.$set(nodeAffinity, 'preferredDuringSchedulingIgnoredDuringExecution', []);
+    }
     let selectNode = false;
 
     if (nodeName.length) {
@@ -36,44 +38,13 @@ export default {
     }
 
     return {
-      required, preferred, selectNode, nodeName
+      selectNode, nodeName, nodeAffinity
     };
-  },
-
-  watch: {
-    preferred() {
-      this.update();
-    },
-    required() {
-      this.update();
-    }
   },
 
   methods: {
     update() {
-      const out = {
-        ...this.value,
-        affinity: {
-          nodeAffinity: {
-            preferredDuringSchedulingIgnoredDuringExecution: this.preferred.map((rule) => {
-              let weight = 1;
-
-              if (!!rule.weight) {
-                weight = rule.weight;
-              }
-              delete rule.weight;
-
-              return { preference: { matchExpressions: [rule] }, weight };
-            }),
-            requiredDuringSchedulingIgnoredDuringExecution:  {
-              nodeSelectorTerms: this.required.map((rule) => {
-                return { matchExpressions: [rule] };
-              })
-            }
-          }
-        }
-
-      };
+      const out = { ...this.value, affinity: this.nodeAffinity };
 
       if (this.selectNode) {
         this.$set(out, 'nodeName', this.nodeName);
@@ -98,22 +69,18 @@ export default {
       <LabeledSelect v-model="nodeName" :options="nodes" :mode="mode" />
     </div>
     <template v-else>
-      <div class="row">
-        <div class="col span-6">
+      <NodeAffinity :value="nodeAffinity" :mode="mode">
+        <template #title>
           <h5 class="mb-10">
             Require all of:
           </h5>
-          <span v-if="mode==='view' && !required.length">n/a </span>
-          <Selectors v-model="required" :mode="mode" />
-        </div>
-        <div class="col span-6">
+        </template>
+        <template #title-weighted>
           <h5 class="mb-10">
             Prefer any of:
           </h5>
-          <span v-if="mode==='view' && !preferred.length">n/a </span>
-          <Selectors v-else v-model="preferred" is-weighted :mode="mode" />
-        </div>
-      </div>
+        </template>
+      </NodeAffinity>
     </template>
   </div>
 </template>

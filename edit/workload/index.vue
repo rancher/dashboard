@@ -22,6 +22,23 @@ import WorkloadPorts from '@/edit/workload/WorkloadPorts';
 import { defaultAsyncData } from '@/components/ResourceDetail.vue';
 import { _EDIT } from '@/config/query-params';
 
+const workloadTypeOptions = [
+  { value: WORKLOAD_TYPES.DEPLOYMENT, label: 'Deployment' },
+
+  { value: WORKLOAD_TYPES.DAEMON_SET, label: 'Daemon Set' },
+
+  { value: WORKLOAD_TYPES.STATEFUL_SET, label: 'Stateful Set' },
+
+  { value: WORKLOAD_TYPES.REPLICA_SET, label: 'Replica Set' },
+
+  { value: WORKLOAD_TYPES.JOB, label: 'Job' },
+
+  { value: WORKLOAD_TYPES.CRON_JOB, label: 'Cron Job' },
+
+  { value: WORKLOAD_TYPES.REPLICATION_CONTROLLER, label: 'Replication Controller' }
+
+];
+
 export default {
   name:       'CruWorkload',
   components: {
@@ -39,15 +56,17 @@ export default {
     Networking,
     Footer,
     Job,
-    WorkloadPorts
+    WorkloadPorts,
   },
 
   mixins:     [CreateEditView, LoadDeps],
+
   props:  {
     value: {
       type:     Object,
       required: true,
     },
+
     mode:     {
       type:    String,
       default: 'create'
@@ -55,23 +74,6 @@ export default {
   },
 
   data() {
-    const typeOpts = [];
-    const workloadMap = {
-      [WORKLOAD_TYPES.DEPLOYMENT]:             'Deployment',
-      [WORKLOAD_TYPES.DAEMON_SET]:             'Daemon Set',
-      [WORKLOAD_TYPES.STATEFUL_SET]:           'Stateful Set',
-      [WORKLOAD_TYPES.REPLICA_SET]:            'Replica Set',
-      [WORKLOAD_TYPES.JOB]:                    'Job',
-      [WORKLOAD_TYPES.CRON_JOB]:               'Cron Job',
-      [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 'Replication Controller'
-    };
-
-    for (const key in workloadMap) {
-      typeOpts.push({ value: key, label: workloadMap[key] });
-    }
-
-    const selectNode = false;
-
     let type = this.value._type || this.value.type || WORKLOAD_TYPES.DEPLOYMENT;
 
     if (type === 'workload') {
@@ -90,45 +92,62 @@ export default {
     }
 
     return {
-      selectNode,
       spec,
       type,
-      typeOpts,
-      allConfigMaps: null,
-      allSecrets:    null,
-      allNodes:      null,
-      showTabs:      false
+      workloadTypeOptions,
+      allConfigMaps:          null,
+      allSecrets:             null,
+      allNodes:               null,
+      showTabs:               false,
     };
   },
 
   computed: {
-    schema() {
-      return this.$store.getters['cluster/schemaFor']( this.type );
+
+    isEdit() {
+      return this.mode === _EDIT;
+    },
+
+    isJob() {
+      return this.type === WORKLOAD_TYPES.JOB || this.isCronJob;
+    },
+
+    isCronJob() {
+      return this.type === WORKLOAD_TYPES.CRON_JOB;
+    },
+
+    isReplicable() {
+      return (this.type === WORKLOAD_TYPES.DEPLOYMENT || this.type === WORKLOAD_TYPES.REPLICA_SET || this.type === WORKLOAD_TYPES.REPLICATION_CONTROLLER || this.type === WORKLOAD_TYPES.STATEFUL_SET);
+    },
+
+    // if this is a cronjob, grab pod spec from within job template spec
+    podTemplateSpec: {
+      get() {
+        return this.isCronJob ? this.spec.jobTemplate.spec.template.spec : this.spec.template.spec;
+      },
+      set(neu) {
+        if (this.isJob) {
+          this.$set(this.spec.jobTemplate.spec.template, 'spec', neu);
+        } else {
+          this.$set(this.spec.template, 'spec', neu);
+        }
+      }
     },
 
     container: {
       get() {
-        let template = this.spec.template;
-
-        if (this.isCronJob) {
-          template = this.spec.jobTemplate.spec.template;
-        }
-        const { containers } = template.spec;
+        const { containers } = this.podTemplateSpec;
 
         if (!containers) {
-          this.$set(template.spec, 'containers', [{ name: this.value.metadata.name }]);
+          this.$set(this.podTemplateSpec, 'containers', [{ name: this.value.metadata.name }]);
         }
 
-        return template.spec.containers[0];
+        // TODO account for multiple containers (sidecar)
+        return this.podTemplateSpec.containers[0];
       },
 
       set(neu) {
-        let template = this.spec.template;
-
-        if (this.isCronJob) {
-          template = this.spec.jobTemplate.spec.template;
-        }
-        this.$set(template.spec.containers, 0, { ...neu, name: this.value.metadata.name });
+        this.$set(this.podTemplateSpec.containers, 0, { ...neu, name: this.value.metadata.name });
       }
     },
 
@@ -150,18 +169,11 @@ export default {
       }
     },
 
-    canReplicate() {
-      return (this.type === WORKLOAD_TYPES.DEPLOYMENT || this.type === WORKLOAD_TYPES.REPLICA_SET || this.type === WORKLOAD_TYPES.REPLICATION_CONTROLLER || this.type === WORKLOAD_TYPES.STATEFUL_SET);
+    schema() {
+      return this.$store.getters['cluster/schemaFor']( this.type );
     },
 
-    isJob() {
-      return this.type === WORKLOAD_TYPES.JOB || this.isCronJob;
-    },
-
-    isCronJob() {
-      return this.type === WORKLOAD_TYPES.CRON_JOB;
-    },
-
+    // show cron schedule in human-readable format
     cronLabel() {
       const { schedule } = this.spec;
 
@@ -182,9 +194,6 @@ export default {
       return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.value.metadata.namespace }-${ this.value.metadata.name }` };
     },
 
-    isEdit() {
-      return this.mode === _EDIT;
-    },
   },
 
   watch: {
@@ -198,7 +207,7 @@ export default {
 
       this.$set(template.spec, 'restartPolicy', restartPolicy);
 
-      if (!this.canReplicate) {
+      if (!this.isReplicable) {
         delete this.spec.replicas;
       }
 
@@ -273,7 +282,7 @@ export default {
     <slot :value="value" name="top">
       <NameNsDescription :value="value" :mode="mode" :extra-columns="['type']">
         <template v-slot:type>
-          <LabeledSelect v-model="type" label="Type" :disabled="isEdit" :options="typeOpts" />
+          <LabeledSelect v-model="type" label="Type" :disabled="isEdit" :options="workloadTypeOptions" />
         </template>
       </NameNsDescription>
 
@@ -288,7 +297,7 @@ export default {
             <span class="cron-hint text-small">{{ cronLabel }}</span>
           </div>
         </template>
-        <template v-if="canReplicate">
+        <template v-if="isReplicable">
           <div class="col span-4">
             <LabeledInput v-model.number="spec.replicas" label="Replicas" />
           </div>
@@ -315,20 +324,17 @@ export default {
         />
       </Tab>
       <Tab label="Networking" name="networking">
-        <Networking v-if="isCronJob" v-model="spec.jobTemplate.spec.template.spec" :mode="mode" />
-        <Networking v-else v-model="spec.template.spec" :mode="mode" />
+        <Networking v-model="podTemplateSpec" :mode="mode" />
       </Tab>
       <Tab label="Health" name="health">
         <HealthCheck :spec="container" :mode="mode" />
       </Tab>
       <Tab label="Security" name="security">
-        <Security v-if="isCronJob" v-model="spec.jobTemplate.spec.template.spec" :mode="mode" />
-        <Security v-else v-model="spec.template.spec" :mode="mode" />
+        <Security v-model="podTemplateSpec" :mode="mode" />
       </Tab>
 
       <Tab label="Node Scheduling" name="scheduling">
-        <Scheduling v-if="isCronJob" v-model="spec.jobTemplate.spec.template.spec" :nodes="allNodes" :mode="mode" />
-        <Scheduling v-else v-model="spec.template.spec" :mode="mode" />
+        <Scheduling v-model="podTemplateSpec" :mode="mode" />
       </Tab>
       <Tab label="Scaling/Upgrade Policy" name="upgrading">
         <Upgrading v-model="spec" :mode="mode" />
@@ -338,7 +344,7 @@ export default {
         <Labels :spec="value" :mode="mode" />
       </Tab>
     </Tabbed>
-    <Footer :errors="errors" :mode="mode" @save="saveWorkload" @done="done" />
+    <Footer v-if="mode!= 'view'" :errors="errors" :mode="mode" @save="saveWorkload" @done="done" />
   </form>
 </template>
 

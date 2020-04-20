@@ -34,6 +34,10 @@ export default {
     optionLabel: {
       type:    String,
       default: 'label'
+    },
+    optionKey: {
+      type:    String,
+      default: null
     }
   },
   data() {
