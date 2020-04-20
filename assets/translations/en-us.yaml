@@ -4,7 +4,7 @@ locale:
 
 generic:
   customize: Customize
-  commingSoon: Comming Soon
+  comingSoon: Coming Soon
 
 header:
   backToRancher: "← Back to Rancher"
