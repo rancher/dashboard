@@ -94,11 +94,12 @@ export default function(store) {
     STATE,
     NAMESPACE_NAME,
     {
-      name:  'type',
-      label: 'Type',
-      value: 'typeDisplay',
-      sort:  ['typeDisplay', 'nameSort'],
-      width: 100,
+      name:      'type',
+      label:     'Type',
+      value:     'typeDisplay',
+      sort:      ['typeDisplay', 'nameSort'],
+      width:     100,
+      formatter: 'SecretType'
     },
     KEYS,
     AGE

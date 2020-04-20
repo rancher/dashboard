@@ -5,7 +5,6 @@ import DetailTop from '@/components/DetailTop';
 import SortableTable from '@/components/SortableTable';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import Labels from '@/components/form/Labels';
 
 export default {
   components: {
@@ -13,7 +12,6 @@ export default {
     SortableTable,
     Tabbed,
     Tab,
-    Labels
   },
   mixins:     [CreateEditView],
   props:      {
@@ -130,12 +128,14 @@ export default {
       });
     },
 
-    firstRule() {
-      return this.value?.spec?.rules?.[0];
-    },
+    labelRows() {
+      const out = [];
 
-    ruleRows() {
-      return this.withUrl(this.firstRule?.http?.paths || []);
+      for (const key in this.labels) {
+        out.push({ key, value: this.rows[key] });
+      }
+
+      return out;
     }
   },
 
@@ -211,7 +211,15 @@ export default {
     </div>
     <Tabbed default-tab="labels">
       <Tab name="labels" label="Labels">
-        <Labels :spec="value" :mode="mode" />
+        <SortableTable
+          class="kv-table"
+          :headers="headers"
+          :rows="labelRows"
+          :search="false"
+          :row-actions="false"
+          :table-actions="false"
+          key-field="key"
+        />
       </Tab>
       <Tab name="certificates" label="Certificates">
         <SortableTable

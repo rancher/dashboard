@@ -1,6 +1,7 @@
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
+import { DESCRIPTION } from '@/config/labels-annotations';
 
 export default {
   mixins: [ChildHook],
@@ -48,15 +49,18 @@ export default {
       v.metadata = {};
     }
 
-    if ( !v.metadata.annotations ) {
-      v.metadata.annotations = {};
+    // track description separately from the rest of annotations because it appears separately in UI
+    let description;
+
+    if ((v.metadata.annotations || {})[DESCRIPTION]) {
+      description = v.metadata.annotations[DESCRIPTION];
+      if (this.mode !== 'view') {
+        // remove description from annotations so it is not displayed/tracked in annotation component as well as NameNsDescription
+        delete v.metadata.annotations[DESCRIPTION];
+      }
     }
 
-    if ( !v.metadata.labels ) {
-      v.metadata.labels = {};
-    }
-
-    return { errors: null };
+    return { errors: null, description };
   },
 
   computed: {
@@ -75,6 +79,25 @@ export default {
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
+
+    labels: {
+      get() {
+        return this.value?.metadata?.labels || {};
+      },
+      set(neu) {
+        this.$set(this.value.metadata, 'labels', neu);
+      }
+    },
+
+    annotations: {
+      get() {
+        return this.value?.metadata?.annotations || {};
+      },
+      set(neu) {
+        this.$set(this.value.metadata, 'annotations', neu);
+      }
+    }
+
   },
 
   methods: {
@@ -97,13 +120,19 @@ export default {
       this.errors = null;
       try {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
+        // add description to annotations
+        if (!this.value.metadata.annotations) {
+          this.$set(this.value.metadata, 'annotations', {});
+        }
+        this.$set(this.value.metadata.annotations, DESCRIPTION, this.description);
 
-        // Remove the labels map we created in data(), if it's empty
+        // Remove the labels map if it's empty
         if ( this.value?.metadata?.labels && Object.keys(this.value.metadata.labels || {}).length === 0 ) {
+          this.$set(this.value.metadata, 'annotations', {});
           delete this.value.metadata.labels;
         }
 
-        // Remove the annotations map we created in data(), if it's empty
+        // Remove the annotations map if it's empty
         if ( this.value?.metadata?.annotations && Object.keys(this.value.metadata.annotations || {}).length === 0 ) {
           delete this.value.metadata.annotations;
         }

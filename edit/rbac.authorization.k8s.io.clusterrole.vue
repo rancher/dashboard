@@ -49,10 +49,11 @@ export default {
 <template>
   <form>
     <NameNsDescription
-      :value="value"
+      v-model="value.metadata"
       :mode="mode"
       name-label="Name"
       :register-before-hook="registerBeforeHook"
+      :description.sync="description"
     >
       <template v-slot:namespace>
         <LabeledInput

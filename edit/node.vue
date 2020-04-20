@@ -34,10 +34,11 @@ export default {
 <template>
   <div class="node">
     <NameNsDescription
+      v-model="value.metadata"
       :namespaced="false"
-      :value="value"
       :mode="mode"
       name-label="Name"
+      :description.sync="description"
     />
     <div class="row">
       <Labels :spec="value" :mode="mode" :display-side-by-side="true" />

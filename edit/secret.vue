@@ -1,7 +1,7 @@
 <script>
 import { DOCKER_JSON, OPAQUE, TLS } from '@/models/secret';
 import { base64Encode, base64Decode } from '@/utils/crypto';
-import { NAMESPACE, SECRET } from '@/config/types';
+import { NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
@@ -9,6 +9,17 @@ import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import Tab from '@/components/Tabbed/Tab';
+import Tabbed from '@/components/Tabbed';
+
+const types = [
+  { label: 'Certificate', value: TLS },
+  { label: 'Registry', value: DOCKER_JSON },
+  { label: 'Opaque', value: OPAQUE },
+];
+const registryAddresses = [
+  'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
+];
 
 export default {
   name: 'CruSecret',
@@ -19,20 +30,14 @@ export default {
     LabeledInput,
     LabeledSelect,
     RadioGroup,
-    NameNsDescription
+    NameNsDescription,
+    Tabbed,
+    Tab
   },
 
   mixins:     [CreateEditView],
 
   data() {
-    const types = [
-      { label: 'Certificate', value: TLS },
-      { label: 'Registry', value: DOCKER_JSON },
-      { label: 'Secret (Opaque)', value: OPAQUE },
-    ];
-    const registryAddresses = [
-      'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
-    ];
     const isNamespaced = !!this.value.metadata.namespace;
 
     let username;
@@ -50,10 +55,13 @@ export default {
       password = auths[registryFQDN].password;
     }
 
+    if (!this.value._type) {
+      this.value._type = OPAQUE;
+    }
+
     return {
-      // define 'type' as secret so .save() function uses secret schema instead of looking for subtype schema
-      type:             SECRET,
       types,
+      // type:             this.value._type,
       isNamespaced,
       registryAddresses,
       newNS:            false,
@@ -63,19 +71,10 @@ export default {
       registryFQDN,
       toUpload:         null,
       key:              null,
-      cert:             null
+      cert:             null,
     };
   },
-
   computed: {
-    secretSubType: {
-      get() {
-        return this.value._type || OPAQUE;
-      },
-      set(neu) {
-        this.$set(this.value, '_type', neu);
-      }
-    },
 
     dockerconfigjson() {
       let dockerServer = this.registryProvider === 'DockerHub' ? 'index.dockerhub.io/v1/' : 'quay.io';
@@ -111,25 +110,25 @@ export default {
     },
 
     isCertificate() {
-      return this.secretSubType === TLS;
+      return this.value._type === TLS;
     },
 
     isRegistry() {
-      return this.secretSubType === DOCKER_JSON;
+      return this.value._type === DOCKER_JSON;
     },
 
     needsDockerServer() {
       return this.registryProvider === 'Artifactory' || this.registryProvider === 'Custom';
-    },
+    }
   },
 
   methods: {
     saveSecret(buttonCb) {
-      if (this.secretSubType === DOCKER_JSON) {
+      if (this.isRegistry) {
         const data = { '.dockerconfigjson': base64Encode(this.dockerconfigjson) };
 
         this.$set(this.value, 'data', data);
-      } else if (this.secretSubType === TLS) {
+      } else if (this.isCertificate) {
         const data = { 'tls.cert': base64Encode(this.cert), 'tls.key': base64Encode(this.key) };
 
         this.$set(this.value, 'data', data);
@@ -174,38 +173,45 @@ export default {
 
 <template>
   <form>
-    <NameNsDescription v-model="value" :mode="mode" :extra-columns="['type']">
+    <NameNsDescription v-model="value.metadata" :description.sync="description" :mode="mode" :extra-columns="['type']">
       <template v-slot:type>
-        <LabeledSelect v-model="secretSubType" label="Type" :options="types" />
+        <LabeledSelect
+          v-model="value._type"
+          label="Type"
+          :options="types"
+          :mode="mode"
+          :disabled="mode!=='create'"
+          taggable
+        />
       </template>
     </NameNsDescription>
 
     <template v-if="isRegistry">
       <div id="registry-type" class="row">
-        Provider: &nbsp; <RadioGroup :style="{'display':'flex'}" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
+        <span> Provider: </span> &nbsp; <RadioGroup :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row">
-        <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" />
+        <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" :mode="mode" />
       </div>
       <div class="row">
         <div class="col span-6">
-          <LabeledInput v-model="username" label="Username" />
+          <LabeledInput v-model="username" label="Username" :mode="mode" />
         </div>
         <div class="col span-6">
-          <LabeledInput v-model="password" label="Password" />
+          <LabeledInput v-model="password" label="Password" :mode="mode" />
         </div>
       </div>
     </template>
 
     <div v-else-if="isCertificate" class="row">
       <div class="col span-6">
-        <LabeledInput v-model="key" type="multiline" label="Private Key" />
+        <LabeledInput v-model="key" type="multiline" label="Private Key" :mode="mode" />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('key')">
           Read from file
         </button>
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="cert" type="multiline" label="CA Certificate" />
+        <LabeledInput v-model="cert" type="multiline" label="CA Certificate" :mode="mode" />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('cert')">
           Read from file
         </button>
@@ -225,6 +231,31 @@ export default {
       />
     </div>
 
+    <Tabbed default-tab="labels">
+      <Tab name="labels" label="Labels">
+        <KeyValue
+          key="labels"
+          v-model="labels"
+          :mode="mode"
+          title="Labels"
+          :initial-empty-row="true"
+          :pad-left="false"
+          :read-allowed="false"
+        />
+      </Tab>
+      <Tab name="annotations" label="Annotations">
+        <KeyValue
+          key="annotations"
+          v-model="annotations"
+          :mode="mode"
+          title="Annotations"
+          :initial-empty-row="true"
+          :pad-left="false"
+          :read-allowed="false"
+        />
+      </Tab>
+    </Tabbed>
+
     <input
       ref="uploader"
       type="file"
@@ -236,9 +267,12 @@ export default {
   </form>
 </template>
 
-<style>
+<style lang='scss'>
 #registry-type {
   display: flex;
   align-items:center;
+  & > div {
+    display: flex;
+  }
 }
 </style>

@@ -83,7 +83,7 @@ export default {
     let spec = this.value.spec;
 
     if ( !spec ) {
-      spec = {};
+      spec = { replicas: 1 };
       this.value.spec = spec;
     }
 
@@ -280,7 +280,7 @@ export default {
 <template>
   <form>
     <slot :value="value" name="top">
-      <NameNsDescription :value="value" :mode="mode" :extra-columns="['type']">
+      <NameNsDescription v-model="value.metadata" :mode="mode" :extra-columns="['type']" :description.sync="description">
         <template v-slot:type>
           <LabeledSelect v-model="type" label="Type" :disabled="isEdit" :options="workloadTypeOptions" />
         </template>

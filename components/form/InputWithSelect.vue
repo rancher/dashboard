@@ -48,12 +48,6 @@ export default {
     return { selected: this.selectValue || this.options[0], string: this.textValue };
   },
 
-  watch: {
-    selected() {
-      this.change();
-    }
-  },
-
   methods: {
     focus() {
       const comp = this.$refs.text;
@@ -83,6 +77,7 @@ export default {
       :disabled="disabled"
       :mode="mode"
       :option-label="optionLabel"
+      @input="change"
     />
     <LabeledInput
       v-if="textLabel"

@@ -101,7 +101,13 @@ export default {
     <div
       v-if="editAsYaml"
     >
-      <NameNsDescription :value="localValue" :mode="mode" :namespaced="false" :extra-columns="['template']" @input="$set(localValue, 'type', $event)">
+      <NameNsDescription
+        v-model="localValue.metadata"
+        :mode="mode"
+        :namespaced="false"
+        :extra-columns="['template']"
+        :description.sync="description"
+      >
         <template v-slot:template>
           <LabeledSelect
             :mode="mode"

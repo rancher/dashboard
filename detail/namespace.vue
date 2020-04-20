@@ -3,16 +3,12 @@ import { get } from '@/utils/object';
 
 import createEditView from '@/mixins/create-edit-view';
 import ResourceQuota from '@/edit/namespace/ResourceQuota';
-import LabelsAndAnnotationsTabs from '@/components/LabelsAndAnnotations/Tabs';
 import { DESCRIPTION } from '@/config/labels-annotations';
 
 export default {
   name: 'DetailNamespace',
 
-  components: {
-    ResourceQuota,
-    LabelsAndAnnotationsTabs
-  },
+  components: { ResourceQuota },
 
   mixins:     [createEditView],
 
@@ -101,6 +97,30 @@ export default {
       </template>
     </ResourceQuota>
     <div class="spacer"></div>
-    <LabelsAndAnnotationsTabs :labels="value.metadata.labels" :annotations="value.metadata.annotations" />
+
+    <Tabbed default-tab="labels">
+      <Tab name="labels" label="Labels">
+        <KeyValue
+          key="labels"
+          v-model="labels"
+          :mode="mode"
+          title="Labels"
+          :initial-empty-row="true"
+          :pad-left="false"
+          :read-allowed="false"
+        />
+      </Tab>
+      <Tab name="annotations" label="Annotations">
+        <KeyValue
+          key="annotations"
+          v-model="annotations"
+          :mode="mode"
+          title="Annotations"
+          :initial-empty-row="true"
+          :pad-left="false"
+          :read-allowed="false"
+        />
+      </Tab>
+    </Tabbed>
   </div>
 </template>

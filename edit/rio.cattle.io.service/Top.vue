@@ -246,12 +246,13 @@ export default {
 <template>
   <div>
     <NameNsDescription
-      :value="value"
+      v-model="value.metadata"
       :mode="mode"
       :name-label="isSidecar ? 'Container Name' : 'Service Name'"
       :extra-columns="extraColumns"
       :namespaced="showNamespace"
       :register-before-hook="registerBeforeHook"
+      :description.sync="description"
     >
       <template v-if="isSidecar" #name>
         <LabeledInput

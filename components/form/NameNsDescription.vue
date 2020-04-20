@@ -1,7 +1,6 @@
 <script>
 import { sortBy } from '@/utils/sort';
 import { NAMESPACE } from '@/config/types';
-import { DESCRIPTION } from '@/config/labels-annotations';
 import { _VIEW, _EDIT } from '@/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
 import InputWithSelect from '@/components/form/InputWithSelect';
@@ -13,38 +12,52 @@ export default {
   },
 
   props: {
+    /* metadata or any object with name, namespace, fields to be modified */
     value: {
       type:     Object,
       required: true,
     },
+
+    description: {
+      type:    String,
+      default: null
+    },
+
     mode: {
       type:     String,
       required: true,
     },
+
     namespaced: {
       type:    Boolean,
       default: true,
     },
+
     extraColumns: {
       type:    Array,
       default: () => []
     },
+
     extraDetailColumns: {
       type:    Array,
       default: () => []
     },
+
     nameEditable: {
       type:    Boolean,
       default: false,
     },
+
     nameLabel: {
       type:    String,
       default: 'Name'
     },
+
     namePlaceholder: {
       type:    String,
       default: ''
     },
+
     descriptionPlaceholder: {
       type:    String,
       default: 'Any text you want that better describes this resource'
@@ -52,23 +65,15 @@ export default {
   },
 
   data() {
-    let metadata = this.value.metadata;
-
-    if ( !metadata ) {
-      metadata = {};
-      this.value.metadata = metadata;
-    }
+    const metadata = { ...this.value };
 
     if ( this.namespaced && !metadata.namespace ) {
       metadata.namespace = this.$store.getters['defaultNamespace'];
     }
 
-    const description = metadata.annotations?.[DESCRIPTION];
-
     return {
       namespace: metadata.namespace,
       name:      metadata.name,
-      description,
     };
   },
 
@@ -78,24 +83,21 @@ export default {
     },
 
     detailTopColumns() {
-      const { metadata = {} } = this.value;
-      const { annotations = {} } = metadata;
-
       return [
-        metadata.namespace
+        this.namespace
           ? {
             title:   'Namespace',
-            content: metadata.namespace
+            content: this.namespace
           } : null,
-        metadata.name
+        this.name
           ? {
             title:   'Name',
-            content: metadata.name
+            content: this.name
           } : null,
-        annotations[DESCRIPTION]
+        this.description
           ? {
             title:   'Description',
-            content: annotations[DESCRIPTION]
+            content: this.description
           } : null,
         ...this.extraDetailColumns
       ].filter(c => c);
@@ -126,20 +128,6 @@ export default {
     },
   },
 
-  watch: {
-    name(val) {
-      this.value.metadata.name = val;
-    },
-
-    namespace(val) {
-      this.value.metadata.namespace = val;
-    },
-
-    description(val) {
-      this.value.setAnnotation(DESCRIPTION, val);
-    },
-  },
-
   mounted() {
     this.$nextTick(() => {
       if (this.$refs.name) {
@@ -152,6 +140,22 @@ export default {
     changeNameAndNamespace(e) {
       this.name = (e.text || '').toLowerCase();
       this.namespace = e.selected;
+      this.$nextTick(() => {
+        this.update();
+      });
+    },
+
+    update() {
+      const out = {
+        ...this.value,
+        name:      this.name,
+      };
+
+      if (this.namespaced) {
+        out.namespace = this.namespace;
+      }
+
+      this.$emit('input', out);
     }
   }
 };
@@ -184,17 +188,19 @@ export default {
             :disabled="nameDisabled"
             :mode="mode"
             :min-height="30"
+            @input="update"
           />
         </slot>
       </div>
       <div :class="{col: true, [colSpan]: true}">
         <LabeledInput
           key="description"
-          v-model="description"
+          :value="description"
           label="Description"
           :mode="mode"
           :placeholder="descriptionPlaceholder"
           :min-height="30"
+          @input="e=>$emit('update:description', e)"
         />
       </div>
       <div v-for="slot in extraColumns" :key="slot" :class="{col: true, [colSpan]: true}">

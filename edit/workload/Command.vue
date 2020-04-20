@@ -115,6 +115,7 @@ export default {
             v-model="spec.entrypoint"
             :mode="mode"
             label="Entrypoint"
+            placeholder="e.g. /bin/sh"
           />
         </slot>
       </div>
@@ -124,6 +125,7 @@ export default {
             v-model="spec.command"
             :mode="mode"
             label="Command"
+            placeholder="e.g. /usr/sbin/httpd -f httpd.conf"
           />
         </slot>
       </div>
@@ -135,6 +137,7 @@ export default {
           v-model="spec.workingDir"
           :mode="mode"
           label="Working Directory"
+          placeholder="e.g. /myapp"
         />
       </div>
       <div class="col span-6">
@@ -170,6 +173,7 @@ export default {
           v-model="securityContext.runAsUser"
           :mode="mode"
           label="Run as User number"
+          placeholder="e.g. 501"
         />
       </div>
       <div class="col span-3">
@@ -177,6 +181,7 @@ export default {
           v-model="securityContext.fsGroup"
           :mode="mode"
           label="Run as Group number"
+          placeholder="e.g. 501"
         />
       </div>
     </div>

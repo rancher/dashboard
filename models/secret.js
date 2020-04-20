@@ -1,3 +1,5 @@
+import { KUBERNETES } from '@/config/labels-annotations';
+
 export const OPAQUE = 'Opaque';
 export const SERVICE_ACCT = 'kubernetes.io/service-account-token';
 export const DOCKER = 'kubernetes.io/dockercfg';
@@ -10,7 +12,7 @@ export const ISTIO_TLS = 'istio.io/key-and-cert';
 
 const DISPLAY_TYPES = {
   [OPAQUE]:       'Opaque',
-  [SERVICE_ACCT]: 'Service Acct',
+  [SERVICE_ACCT]: 'Service Acct Token',
   [DOCKER]:       'Dockercfg',
   [DOCKER_JSON]:  'Docker JSON',
   [BASIC]:        'Basic Auth',
@@ -43,6 +45,10 @@ export default {
   },
 
   typeDisplay() {
+    if (this._type === SERVICE_ACCT) {
+      return { typeDisplay: DISPLAY_TYPES[this._type], serviceAccountID: this.serviceAccountID };
+    }
+
     const mapped = DISPLAY_TYPES[this._type];
 
     if ( mapped ) {
@@ -51,4 +57,20 @@ export default {
 
     return (this._type || '').replace(/^kubernetes.io\//, '');
   },
+
+  serviceAccountID() {
+    if (this.secretType === SERVICE_ACCT) {
+      const name = this.metadata.annotations[KUBERNETES.SERVICE_ACCOUNT_NAME];
+      const namespace = this.namespace;
+      let fqid = name;
+
+      if (namespace ) {
+        fqid = `${ namespace }/${ name }`;
+      }
+
+      return fqid;
+    }
+
+    return null;
+  }
 };

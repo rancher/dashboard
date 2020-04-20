@@ -232,6 +232,7 @@ export default {
         <ShellInput
           v-model="exec.command"
           label="Command to run"
+          placeholder="e.g. cat /tmp/health"
         />
       </div>
     </div>
