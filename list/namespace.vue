@@ -20,17 +20,12 @@ export default {
       type:     Array,
       required: true,
     },
-
-    headers: {
-      type:     Array,
-      required: true
-    }
   },
 
   computed: {
     get,
 
-    customHeaders() {
+    headers() {
       const project = {
         name:          'project',
         label:         'Project',
@@ -87,7 +82,7 @@ export default {
 <template>
   <SortableTable
     v-bind="$attrs"
-    :headers="customHeaders"
+    :headers="headers"
     :rows="rows"
     :group-by="groupBy"
     :paging="true"

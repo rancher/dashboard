@@ -54,7 +54,7 @@ export default {
   <span class="percentage-bar">
     <span class="percentage">{{ formattedValue }}</span>
     <span class="bar">
-      <span v-for="i in numberOfTicks" :key="i" class="tick" :class="getTickBackgroundClass(i)">&nbsp;</span>
+      <span v-for="i in ticks" :key="i" class="tick" :class="getTickBackgroundClass(i)">&nbsp;</span>
     </span>
   </span>
 </template>

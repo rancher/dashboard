@@ -11,6 +11,7 @@ export class ApiError extends Error {
     this.status = res._status || 0;
     this.statusText = res._statusText;
     this.headers = res.headers;
+    this.url = res._url;
   }
 
   toString() {
@@ -35,8 +36,8 @@ export function stringify(err) {
       }
     } else if ( err.detail ) {
       str = err.detail;
-    } else if ( err._req?.responseURL ) {
-      str = `from ${ err._req.responseURL }`;
+    } else if ( err.url ) {
+      str = `from ${ err.url }`;
     }
   } else {
     // Good luck...

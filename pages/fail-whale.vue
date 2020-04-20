@@ -3,7 +3,7 @@ import { mapState } from 'vuex';
 import { stringify } from '@/utils/error';
 
 export default {
-  layout:     'unauthenticated',
+  layout: 'plain',
 
   data() {
     const home = this.$router.resolve({ name: 'index' }).href;
@@ -29,7 +29,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="error" class="m-20">
+  <div v-if="error">
     <h1 v-if="error.status">
       HTTP Error {{ error.status }}: {{ error.statusText }}
     </h1>

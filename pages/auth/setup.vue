@@ -12,7 +12,7 @@ import Checkbox from '@/components/form/Checkbox';
 import { getVendor, getProduct } from '@/config/private-label';
 
 export default {
-  layout: 'plain',
+  layout: 'blank',
 
   components: {
     AsyncButton, CopyCode, LabeledInput, CopyToClipboard, Checkbox

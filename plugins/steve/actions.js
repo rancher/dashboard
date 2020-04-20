@@ -63,6 +63,7 @@ export default {
         _statusText: { value: res.statusText },
         _headers:    { value: res.headers },
         _req:        { value: res.request },
+        _url:        { value: opt.url },
       });
 
       return out;
