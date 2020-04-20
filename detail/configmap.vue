@@ -122,7 +122,7 @@ export default {
         :rows="relatedWorkloadsRows"
         :row-actions="false"
         :search="false"
-        no-rows-key="generic.commingSoon"
+        no-rows-key="generic.comingSoon"
       />
     </div>
     <Tabbed default-tab="values">
