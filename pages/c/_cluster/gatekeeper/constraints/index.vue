@@ -9,8 +9,6 @@ export default {
   data(ctx) {
     const createUrl = this.$router.resolve({ name: 'c-cluster-gatekeeper-constraints-create', params: this.$route.params }).href;
 
-    this.$store.dispatch('type-map/addRecent', 'gatekeeper-constraints');
-
     return {
       headers: [
         STATE,

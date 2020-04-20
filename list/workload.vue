@@ -76,8 +76,6 @@ export default {
       return store.dispatch('cluster/findAll', { type });
     }));
 
-    await store.dispatch('type-map/addRecent', 'workloads');
-
     return { resources };
   },
 

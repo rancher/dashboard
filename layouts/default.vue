@@ -2,9 +2,7 @@
 import { debounce } from 'lodash';
 import { mapState } from 'vuex';
 import { addObjects } from '../utils/array';
-import {
-  mapPref, DEV, EXPANDED_GROUPS, RECENT_TYPES, FAVORITE_TYPES
-} from '@/store/prefs';
+import { mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
 // import WindowManager from '@/components/nav/WindowManager';
@@ -44,7 +42,6 @@ export default {
 
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
-    recentTypes:    mapPref(RECENT_TYPES),
     favoriteTypes:  mapPref(FAVORITE_TYPES),
 
     allSchemas() {
@@ -77,11 +74,6 @@ export default {
     },
 
     namespaces() {
-      // Immediately update because you'll see it come in later
-      this.getGroups();
-    },
-
-    recentTypes() {
       // Immediately update because you'll see it come in later
       this.getGroups();
     },
