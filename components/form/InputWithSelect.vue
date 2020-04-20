@@ -118,72 +118,73 @@ export default {
       border-left: 0;
       margin-left: -1px;
     }
-}
-.in-input {
+
+  .in-input {
     margin-right: 0;
     border-radius: var(--border-radius) 0 0 var(--border-radius);
 
-& .v-select{
-    height: 100%;
+    &.v-select {
+        height: initial;
 
-    .vs__selected {
-       margin: 0;
-        color: var(--input-text)
-    }
-
-    .vs__dropdown-menu {
-        min-width: 0px;
-        .vs__dropdown-option {
-          padding: 3px 5px;
+        .vs__selected {
+          margin: 0;
+            color: var(--input-text)
         }
-    }
 
-    .vs__dropdown-toggle {
-        background-color: var(--accent-btn);
-        border-color: var(--primary);
-        border-right: solid 2px;
-        color: var(--primary) !important;
-        height: 100%;
-        padding: none;
-        display: flex;
-        align-items: stretch;
-        padding: 0 8px 0 8px;
-        border-radius: var(--border-radius) 0 0 var(--border-radius);
-        & * {
-          padding: 0
-          }
-    }
-
-    .vs__selected-options {
-        display: -webkit-box;
-        & .labeled-input {
-          top:10px;
-          & LABEL, .selected {
-                color: var(--primary);
-          }
+        .vs__dropdown-menu {
+            min-width: 0px;
+            .vs__dropdown-option {
+              padding: 3px 5px;
+            }
         }
-    }
 
-    .vs__actions {
-      padding: 2px;;
-    }
-    .vs__search {
-        background-color: var(--default-text);
-        width: 0px;
-        padding: 0;
-        align-self: center;
-        border: 0;
-    }
+        .vs__dropdown-toggle {
+            background-color: var(--accent-btn);
+            border-color: var(--primary);
+            border-right: solid 2px;
+            color: var(--primary) !important;
+            height: 100%;
+            padding: none;
+            display: flex;
+            align-items: stretch;
+            padding: 0 8px 0 8px;
+            border-radius: var(--border-radius) 0 0 var(--border-radius);
+            & * {
+              padding: 0
+              }
+        }
 
-    .vs__open-indicator{
-        fill: var(--primary);
-        transform: scale(0.75);
-    }
+        .vs__selected-options {
+            display: -webkit-box;
+            & .labeled-input {
+              top:10px;
+              & LABEL, .selected {
+                    color: var(--primary);
+              }
+            }
+        }
 
-    &.vs--open .vs__open-indicator {
-      transform: rotate(180deg) scale(0.75);
-    }
+        .vs__actions {
+          padding: 2px;;
+        }
+        .vs__search {
+            background-color: var(--default-text);
+            width: 0px;
+            padding: 0;
+            align-self: center;
+            border: 0;
+        }
 
-}
+        .vs__open-indicator{
+            fill: var(--primary);
+            transform: scale(0.75);
+        }
+
+        &.vs--open .vs__open-indicator {
+          transform: rotate(180deg) scale(0.75);
+        }
+
+    }
+  }
 }
 </style>
