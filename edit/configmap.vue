@@ -3,11 +3,13 @@ import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
+import Labels from '@/components/form/Labels';
 
 export default {
   name: 'CruConfigMap',
 
   components: {
+    Labels,
     NameNsDescription,
     KeyValue,
     Footer,
@@ -33,7 +35,7 @@ export default {
           key="data"
           v-model="value.data"
           :mode="mode"
-          title="Data"
+          title="Values"
           protip="Use this area for anything that's UTF-8 text data"
           :initial-empty-row="true"
         />
@@ -47,7 +49,7 @@ export default {
         <KeyValue
           key="binaryData"
           v-model="value.binaryData"
-          title="Binary Data"
+          title="Binary Values"
           protip="Use this area for binary or other data that is not UTF-8 text"
           :mode="mode"
           :add-allowed="false"
@@ -60,6 +62,8 @@ export default {
         />
       </div>
     </div>
+
+    <Labels :spec="value" :mode="mode" />
 
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </form>

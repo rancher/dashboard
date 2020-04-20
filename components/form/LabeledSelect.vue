@@ -27,9 +27,17 @@ export default {
       type:    Boolean,
       default: false
     },
+    optionKey: {
+      type:    String,
+      default: null
+    },
     optionLabel: {
       type:    String,
       default: 'label'
+    },
+    optionKey: {
+      type:    String,
+      default: null
     }
   },
   data() {
