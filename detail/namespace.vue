@@ -3,7 +3,7 @@ import { get } from '@/utils/object';
 
 import createEditView from '@/mixins/create-edit-view';
 import ResourceQuota from '@/edit/namespace/ResourceQuota';
-import LabelsAndAnnotationsTabs from '@/components/LabelsAndAnnotations/Tabs';
+// import LabelsAndAnnotationsTabs from '@/components/form/LabelsAndAnnotations';
 import { DESCRIPTION } from '@/config/labels-annotations';
 
 export default {
@@ -11,7 +11,7 @@ export default {
 
   components: {
     ResourceQuota,
-    LabelsAndAnnotationsTabs
+    // LabelsAndAnnotationsTabs
   },
 
   mixins:     [createEditView],

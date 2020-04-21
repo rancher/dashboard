@@ -1,5 +1,6 @@
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
+import { DESCRIPTION } from '@/config/labels-annotations';
 
 export default {
   mixins: [ChildHook],
@@ -55,7 +56,10 @@ export default {
       v.metadata.labels = {};
     }
 
-    return { errors: null };
+    // track description separately from the rest of annotations because it is viewed/edited separately
+    const description = v.metadata.annotations[DESCRIPTION];
+
+    return { errors: null, description };
   },
 
   computed: {
@@ -74,6 +78,20 @@ export default {
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
+
+    metadata: {
+      get() {
+        return this.value.metadata || {};
+      },
+      set(neu) {
+        if (neu.annotations[DESCRIPTION]) {
+          this.description = neu.annotations[DESCRIPTION];
+        } else {
+          neu.annotations[DESCRIPTION] = this.description;
+        }
+        this.$set(this.value, 'metadata', neu);
+      }
+    }
   },
 
   methods: {

@@ -4,14 +4,18 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceQuota from '@/edit/namespace/ResourceQuota';
 import Footer from '@/components/form/Footer';
-import LabelsAndAnnotationsEditor from '@/components/LabelsAndAnnotations/Editor';
+// import LabelsAndAnnotationsEditor from '@/components/LabelsAndAnnotations/Editor';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { EXTERNAL } from '@/config/types';
 import { PROJECT } from '@/config/labels-annotations';
 
 export default {
   components: {
-    ResourceQuota, Footer, LabeledSelect, LabelsAndAnnotationsEditor, NameNsDescription
+    ResourceQuota,
+    Footer,
+    LabeledSelect,
+    // LabelsAndAnnotationsEditor,
+    NameNsDescription
   },
 
   mixins:     [CreateEditView],

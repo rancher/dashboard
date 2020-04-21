@@ -1,5 +1,4 @@
 <script>
-import { DESCRIPTION } from '../config/labels-annotations';
 import { DOCKER_JSON, OPAQUE, TLS } from '@/models/secret';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { NAMESPACE } from '@/config/types';
@@ -10,8 +9,8 @@ import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import Tabbed from '@/components/Tabbed';
-import Tab from '@/components/Tabbed/Tab';
+
+import LabelsAndAnnotations from '@/components/form/LabelsAndAnnotations';
 
 const types = [
   { label: 'Certificate', value: TLS },
@@ -32,8 +31,7 @@ export default {
     LabeledSelect,
     RadioGroup,
     NameNsDescription,
-    Tabbed,
-    Tab
+    LabelsAndAnnotations
   },
 
   mixins:     [CreateEditView],
@@ -56,7 +54,7 @@ export default {
       password = auths[registryFQDN].password;
     }
 
-    const { metadata:{ annotations = {}, labels = {} } } = this.value;
+    // const { metadata = { } } = this.value;
 
     return {
       types,
@@ -70,8 +68,7 @@ export default {
       toUpload:         null,
       key:              null,
       cert:             null,
-      annotations,
-      labels
+      // metadata
     };
   },
   computed: {
@@ -130,10 +127,11 @@ export default {
       return this.registryProvider === 'Artifactory' || this.registryProvider === 'Custom';
     }
   },
-  watch: { value: { deep: true } },
 
   methods: {
     saveSecret(buttonCb) {
+      this.$set(this.value, 'metadata', this.metadata);
+
       if (this.isRegistry) {
         const data = { '.dockerconfigjson': base64Encode(this.dockerconfigjson) };
 
@@ -183,7 +181,7 @@ export default {
 
 <template>
   <form>
-    <NameNsDescription v-model="value" :mode="mode" :extra-columns="['type']">
+    <NameNsDescription v-model="metadata" :mode="mode" :extra-columns="['type']">
       <template v-slot:type>
         <LabeledSelect
           v-model="secretSubType"
@@ -241,30 +239,7 @@ export default {
       />
     </div>
 
-    <Tabbed default-tab="labels">
-      <Tab name="labels" label="Labels">
-        <KeyValue
-          key="labels"
-          v-model="labels"
-          :mode="mode"
-          title="Labels"
-          :initial-empty-row="true"
-          :pad-left="false"
-          :read-allowed="false"
-        />
-      </Tab>
-      <Tab name="annotations" label="Annotations">
-        <KeyValue
-          key="annotations"
-          v-model="annotations"
-          :mode="mode"
-          title="Annotations"
-          :initial-empty-row="true"
-          :pad-left="false"
-          :read-allowed="false"
-        />
-      </Tab>
-    </Tabbed>
+    <LabelsAndAnnotations v-model="metadata" />
 
     <input
       ref="uploader"

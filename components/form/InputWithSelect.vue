@@ -49,9 +49,9 @@ export default {
   },
 
   watch: {
-    selected() {
-      this.change();
-    }
+    // selected() {
+    //   this.change();
+    // }
   },
 
   methods: {
@@ -83,6 +83,7 @@ export default {
       :disabled="disabled"
       :mode="mode"
       :option-label="optionLabel"
+      @input="change"
     />
     <LabeledInput
       v-if="textLabel"
