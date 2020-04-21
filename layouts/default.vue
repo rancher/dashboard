@@ -270,7 +270,6 @@ export default {
       .actions {
         grid-area: actions;
         text-align: right;
-        padding-top: 10px;
       }
     }
 

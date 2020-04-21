@@ -12,7 +12,7 @@ export default {
 <template>
   <div class="detail-top">
     <div v-for="col in columns" :key="col.title">
-      <span>{{ col.title }}</span>
+      <span>{{ col.title }}: </span>
       <slot :name="col.name">
         <span>{{ col.content || col.content===0 ? col.content : col.fallback || 'n/a' }}</span>
       </slot>
@@ -24,28 +24,14 @@ export default {
 .detail-top {
     display: flex;
     flex-wrap: wrap;
-    background: var(--box-bg);
-    border: solid thin var(--border);
-    border-radius: var(--border-radius);
-    justify-content: space-between;
+    border-top: solid thin var(--border);
+    border-bottom: solid thin var(--border);
+    padding: 15px 0;
 
     & > * {
         padding: 0 10px;
-        margin: 15px 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items:center;
-        flex-grow:1;
-
         & >:first-child {
-            padding-bottom: 5px;
             color: var(--input-placeholder);
-
-        }
-
-        &:not(:last-child) {
-            border-right: 1px solid var(--border);
         }
 
         &:last-child {
