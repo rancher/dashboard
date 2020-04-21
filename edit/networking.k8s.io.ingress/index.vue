@@ -1,8 +1,6 @@
 <script>
 import Certificate from './Certificate';
 import Rule from './Rule';
-
-import { clone } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { SECRET, TLS_CERT, WORKLOAD_TYPES } from '@/config/types';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -43,18 +41,7 @@ export default {
   },
 
   data() {
-    const { metadata = {}, spec = {} } = clone(this.value);
-
-    if (!spec.rules) {
-      spec.rules = [{}];
-    }
-    if (!spec.tls) {
-      spec.tls = [{ }];
-    }
-
-    return {
-      metadata, spec, allSecrets:   [], allWorkloads: []
-    };
+    return { allSecrets: [], allWorkloads: [] };
   },
 
   computed: {
@@ -75,6 +62,31 @@ export default {
     },
 
   },
+
+  created() {
+    if (!this.value.spec) {
+      this.value.spec = {};
+    }
+
+    if (!this.value.spec.rules) {
+      this.value.spec.rules = [{}];
+    }
+
+    if (this.value.spec.backend) {
+      if (!this.value.spec.rules[0].http) {
+        this.value.spec.rules[0].http = { paths: [] };
+      }
+      this.value.spec.rules[0].http.paths.push({ backend: this.value.spec.backend });
+      this.value.spec.rules[0].asDefault = true;
+    }
+
+    if (!this.value.spec.tls) {
+      this.value.spec.tls = [{ }];
+    }
+
+    this.registerBeforeHook(this.willSave, 'willSave');
+  },
+
   methods: {
     async loadDeps() {
       const hash = await allHash({
@@ -99,30 +111,30 @@ export default {
     },
 
     addRule() {
-      this.spec.rules = [...this.spec.rules, {}];
+      this.value.spec.rules = [...this.value.spec.rules, {}];
     },
 
     removeRule(idx) {
-      const neu = [...this.spec.rules];
+      const neu = [...this.value.spec.rules];
 
       neu.splice(idx, 1);
 
-      this.$set(this.spec, 'rules', neu);
+      this.$set(this.value.spec, 'rules', neu);
     },
 
     updateRule(neu, idx) {
-      this.$set(this.spec.rules, idx, neu);
+      this.$set(this.value.spec.rules, idx, neu);
     },
 
     addCert() {
-      this.spec.tls = [...this.spec.tls, {}];
+      this.value.spec.tls = [...this.value.spec.tls, {}];
     },
 
     removeCert(idx) {
-      const neu = [...this.spec.tls];
+      const neu = [...this.value.spec.tls];
 
       neu.splice(idx, 1);
-      this.$set(this.spec, 'tls', neu);
+      this.$set(this.value.spec, 'tls', neu);
     },
 
     // filter a given list of resources by currently selected namespaces
@@ -149,38 +161,31 @@ export default {
       });
     },
 
-    saveIngress(cb) {
-      const defaultRule = this.spec.rules.filter(rule => rule.asDefault)[0];
-      const nonDefaultRules = this.spec.rules.filter(rule => !rule.asDefault);
+    willSave() {
+      const defaultRule = this.value.spec.rules.filter(rule => rule.asDefault)[0];
       const defaultBackend = defaultRule?.http?.paths[0]?.backend;
+      const nonDefaultRules = this.value.spec.rules.filter(rule => !rule.asDefault);
 
       nonDefaultRules.forEach(rule => delete rule.asDefault);
+      this.value.spec.rules = nonDefaultRules;
 
       if (defaultBackend ) {
-        this.$set(this.spec, 'backend', defaultBackend);
+        this.$set(this.value.spec, 'backend', defaultBackend);
       }
-      this.spec.rules = nonDefaultRules;
-
-      this.$set(this.value, 'spec', this.spec);
-      this.$set(this.value, 'metadata', this.metadata);
-
-      const saveUrl = this.value.urlFromAttrs;
-
-      this.save(cb, saveUrl);
-    }
+    },
   }
 };
 </script>
 
 <template>
   <form>
-    <NameNsDescription :value="{metadata}" :mode="mode" @input="e=>metadata=e" />
+    <NameNsDescription v-model="value" :mode="mode" @input="e=>metadata=e" />
     <div>
       <h3>
         Rules
       </h3>
       <Rule
-        v-for="(rule, i) in spec.rules"
+        v-for="(rule, i) in value.spec.rules"
         :key="i"
         :value="rule"
         :workloads="workloads"
@@ -194,15 +199,15 @@ export default {
     <div>
       <Tabbed :default-tab="'labels'">
         <Tab name="labels" label="Labels">
-          <Labels :spec="{metadata:{}}" mode="create" />
+          <Labels :spec="value" mode="create" />
         </Tab>
         <Tab label="Certificates" name="certificates">
           <Certificate
-            v-for="(cert,i) in spec.tls"
+            v-for="(cert,i) in value.spec.tls"
             :key="i"
             :certs="certificates"
             :value="cert"
-            @input="e=>$set(spec.tls, i, e)"
+            @input="e=>$set(value.spec.tls, i, e)"
             @remove="e=>removeCert(i)"
           />
           <button class="btn btn-sm role-primary mt-20 " type="button" @click="addCert">
@@ -211,6 +216,6 @@ export default {
         </Tab>
       </Tabbed>
     </div>
-    <Footer :errors="errors" :mode="mode" @save="saveIngress" @done="done" />
+    <Footer :errors="errors" :mode="mode" @save="save" @done="done" />
   </form>
 </template>

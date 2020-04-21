@@ -5,7 +5,7 @@ import DetailTop from '@/components/DetailTop';
 import SortableTable from '@/components/SortableTable';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import KVTable from '@/components/KVTable';
+import Labels from '@/components/form/Labels';
 
 export default {
   components: {
@@ -13,7 +13,7 @@ export default {
     SortableTable,
     Tabbed,
     Tab,
-    KVTable
+    Labels
   },
   mixins:     [CreateEditView],
   props:      {
@@ -28,8 +28,8 @@ export default {
   computed: {
 
     detailTopColumns() {
-      const firstRule = this.value?.spec?.rules[0] || {};
-      const firstPath = firstRule?.http?.paths[0] || {};
+      const firstRule = this.firstRule || {};
+      const firstPath = firstRule?.http?.paths?.[0] || {};
 
       const columns = [
         {
@@ -75,6 +75,22 @@ export default {
       ];
     },
 
+    backendHeaders() {
+      return [
+        {
+          name:   'target',
+          label:  'Target',
+          value:  'serviceName',
+          width:  200
+        },
+        {
+          name:  'port',
+          label: 'Port',
+          value: 'servicePort'
+        }
+      ];
+    },
+
     certHeaders() {
       return [
         {
@@ -113,6 +129,14 @@ export default {
         return cert;
       });
     },
+
+    firstRule() {
+      return this.value?.spec?.rules?.[0];
+    },
+
+    ruleRows() {
+      return this.withUrl(this.firstRule?.http?.paths || []);
+    }
   },
 
   methods: {
@@ -150,20 +174,35 @@ export default {
 
 <template>
   <div>
-    <DetailTop :columns="detailTopColumns" />
+    <DetailTop class="mb-20" :columns="detailTopColumns" />
     <div>
       <h3 class="mb-20">
         Rules
       </h3>
-      <div v-for="(rule, i) in value.spec.rules" :key="i" class="rule mb-20">
-        <div class="label-col mb-40">
-          <span>Hostname</span>
-          <code>  {{ rule.host }}</code>
+      <div v-if="value.spec.rules">
+        <div v-for="(rule, i) in value.spec.rules" :key="i" class="rule mb-20">
+          <div class="label-col mb-40">
+            <span>Hostname</span>
+            <code>  {{ rule.host }}</code>
+          </div>
+          <SortableTable
+            :rows="ruleRows"
+            :headers="ruleHeaders"
+            key-field="path"
+            :search="false"
+            :table-actions="false"
+            :row-actions="false"
+          />
+        </div>
+      </div>
+      <div v-else class="rule">
+        <div class="mb-10">
+          Use as the default backend
         </div>
         <SortableTable
-          :rows="withUrl(rule.http.paths)"
-          :headers="ruleHeaders"
-          key-field="path"
+          :rows="[value.spec.backend]"
+          :headers="backendHeaders"
+          key-field="service"
           :search="false"
           :table-actions="false"
           :row-actions="false"
@@ -172,7 +211,7 @@ export default {
     </div>
     <Tabbed default-tab="labels">
       <Tab name="labels" label="Labels">
-        <KVTable :rows="value.metadata.labels" />
+        <Labels :spec="value" :mode="mode" />
       </Tab>
       <Tab name="certificates" label="Certificates">
         <SortableTable

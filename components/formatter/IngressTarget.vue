@@ -15,7 +15,7 @@ export default {
       }
     },
   data() {
-    const serviceName = this.value?.http?.paths[0]?.backend?.serviceName;
+    const serviceName = this.value?.rules?.[0].http?.paths[0]?.backend?.serviceName || this.value?.backend?.serviceName || '';
     const targetsWorkload = !serviceName.startsWith('ingress-');
     let name; let params;
 
@@ -34,16 +34,37 @@ export default {
     return {
       name, params, targetsWorkload
     };
+  },
+  computed: {
+    showHost() {
+      return !!this.host;
+    },
+    host() {
+      return this.value?.rules?.[0].host;
+    },
+    pathServiceName() {
+      return this.value?.rules?.[0]?.http?.paths?.[0]?.backend?.serviceName;
+    },
+    backendServiceName() {
+      return this.value?.backend?.serviceName;
+    }
   }
 };
 </script>
 
 <template>
-  <div>
-    <a rel="nofollow noopener noreferrer" target="_blank" :href="'http://'+value.host">{{ value.host }}</a>
-    <i class="icon icon-chevron-right" />
-    <nuxt-link :to="{name, params}">
-      {{ value.http.paths[0].backend.serviceName }}
-    </nuxt-link>
+  <div v-if="value">
+    <div v-if="pathServiceName">
+      <a v-if="showHost" rel="nofollow noopener noreferrer" target="_blank" :href="'http://' + host">{{ host }}</a>
+      <i v-if="showHost" class="icon icon-chevron-right" />
+      <nuxt-link :to="{name, params}">
+        {{ pathServiceName }}
+      </nuxt-link>
+    </div>
+    <div v-else-if="backendServiceName">
+      <nuxt-link :to="{name, params}">
+        {{ backendServiceName }}
+      </nuxt-link>
+    </div>
   </div>
 </template>

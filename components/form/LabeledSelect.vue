@@ -103,9 +103,40 @@ export default {
 </script>
 
 <template>
-  <div>
-    <div v-if="isView">
-      <div :class="{'labeled-input': true, raised, focused, empty, [mode]: true}">
+  <div v-if="isView">
+    <div :class="{'labeled-input': true, raised, focused, empty, [mode]: true}">
+      <label>
+        {{ label }}
+        <span v-if="required && !value" class="required">*</span>
+      </label>
+      <label class="corner">
+        <slot name="corner" />
+      </label>
+      <div class="selected" :class="{'no-label':!label}" :style="{display:selectedDisplay}">
+        {{ currentLabel }}
+      </div>
+    </div>
+  </div>
+  <v-select
+    v-else
+    ref="input"
+    class="inline"
+    :disabled="isView || disabled"
+    :value="value"
+    :options="options"
+    :multiple="multiple"
+    :get-option-label="opt=>getOptionLabel(opt)"
+    :get-option-key="opt=>optionKey ? get(opt, optionKey) : getOptionLabel(opt)"
+    :label="optionLabel"
+    :reduce="x => reduce(x)"
+    @input="x => $emit('input', reduce(x))"
+    @search:focus="searchFocus"
+    @search:blur="searchBlur"
+    @focus="onFocus"
+    @blur="onBlur"
+  >
+    <template v-slot:selected-option-container>
+      <div :class="{'labeled-input': true, raised, focused, empty, [mode]: true}" :style="{border:'none'}">
         <label>
           {{ label }}
           <span v-if="required && !value" class="required">*</span>
@@ -113,48 +144,15 @@ export default {
         <label class="corner">
           <slot name="corner" />
         </label>
-        <div class="selected" :class="{'no-label':!label}" :style="{display:selectedDisplay}">
+        <div v-if="isView">
           {{ currentLabel }}
         </div>
-      </div>
-    </div>
-    <v-select
-      v-else
-      ref="input"
-      class="inline"
-      :disabled="isView || disabled"
-      :value="value"
-      :options="options"
-      :multiple="multiple"
-      :get-option-label="opt=>getOptionLabel(opt)"
-      :get-option-key="opt=>optionKey ? get(opt, optionKey) : getOptionLabel(opt)"
-      :label="optionLabel"
-      :reduce="x => reduce(x)"
-      @input="x => $emit('input', reduce(x))"
-      @search:focus="searchFocus"
-      @search:blur="searchBlur"
-      @focus="onFocus"
-      @blur="onBlur"
-    >
-      <template v-slot:selected-option-container>
-        <div :class="{'labeled-input': true, raised, focused, empty, [mode]: true}" :style="{border:'none'}">
-          <label>
-            {{ label }}
-            <span v-if="required && !value" class="required">*</span>
-          </label>
-          <label class="corner">
-            <slot name="corner" />
-          </label>
-          <div v-if="isView">
-            {{ currentLabel }}
-          </div>
-          <div v-else class="selected" :class="{'no-label':!label}" :style="{display:selectedDisplay}">
-            {{ currentLabel }}&nbsp;
-          </div>
+        <div v-else class="selected" :class="{'no-label':!label}" :style="{display:selectedDisplay}">
+          {{ currentLabel }}&nbsp;
         </div>
-      </template>
-    </v-select>
-  </div>
+      </div>
+    </template>
+  </v-select>
 </template>
 
 <style lang='scss'>

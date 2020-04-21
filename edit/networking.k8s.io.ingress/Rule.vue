@@ -29,7 +29,7 @@ export default {
     const { paths = [{ id: random32(1) }] } = http;
 
     return {
-      host, paths, ruleMode: 'setHost'
+      host, paths, ruleMode: this.value.asDefault ? 'asDefault' : 'setHost'
     };
   },
 
@@ -93,7 +93,7 @@ export default {
         @remove="e=>removePath(i)"
       />
     </template>
-    <button :style="{'padding':'0px 0px 0px 5px'}" class="btn btn-sm role-link" @click="addPath">
+    <button v-if="ruleMode === 'setHost'" :style="{'padding':'0px 0px 0px 5px'}" class="btn btn-sm role-link" @click="addPath">
       add path
     </button>
   </div>

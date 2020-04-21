@@ -392,8 +392,7 @@ export const API_GROUP = {
 export const INGRESS_TARGET = {
   name:      'ingressTarget',
   label:     'Target',
-  value:     "$['spec']['rules'][0]",
+  value:     "$['spec']",
   formatter: 'IngressTarget',
   sort:      "$['spec']['rules'][0].host",
-}
-;
+};

@@ -774,7 +774,12 @@ export default {
     const { metadata:{ namespace = 'default' } } = this;
     let url = schema.links.collection;
 
-    const [group, resource] = schema?.attributes;
+    const attributes = schema?.attributes;
+
+    if (!attributes) {
+      throw new Error('Attributes must be present on the schema');
+    }
+    const { group, resource } = attributes;
 
     url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/namespaces/${ namespace }/${ resource }`;
 
