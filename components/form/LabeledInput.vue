@@ -79,7 +79,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="isViewing" :class="{'labeled-input': true, [mode]: true}">
+  <div v-if="isViewing" :class="{'labeled-input': true, [mode]: true, disabled}">
     <label>
       {{ label }}
       <span v-if="required && !value" class="required">*</span>
@@ -90,7 +90,7 @@ export default {
     <slot name="prefix" />
     <div>{{ value || 'n/a' }}</div>
   </div>
-  <div v-else :class="{'labeled-input': true, raised, focused, [mode]: true}">
+  <div v-else :class="{'labeled-input': true, raised, focused, [mode]: true, disabled}">
     <slot name="label">
       <label v-if="i18nLabel" k-t="i18nLabel" />
       <label v-else>

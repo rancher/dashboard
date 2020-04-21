@@ -75,7 +75,7 @@ export default {
     <LabeledSelect
       v-model="selected"
       :label="selectLabel"
-      class="in-input col span-4"
+      class="in-input"
       :options="options"
       :searchable="false"
       :disbaled="isView"
@@ -109,6 +109,7 @@ export default {
 
 <style lang='scss'>
 .input-container{
+    height: 55px;
     & .input-string{
       padding-right: 0;
       height: 50px;
@@ -123,8 +124,14 @@ export default {
     margin-right: 0;
     border-radius: var(--border-radius) 0 0 var(--border-radius);
 
-    &.v-select {
-        height: initial;
+    &.labeled-select {
+        display: block;
+        box-shadow: none;
+        width: 40%;
+        height: 100%;
+        background-color: var(--accent-btn);
+        border-color: var(--primary);
+        border-right-width: 2px;
 
         .vs__selected {
           margin: 0;
@@ -132,16 +139,17 @@ export default {
         }
 
         .vs__dropdown-menu {
-            min-width: 0px;
+            width: calc(100% + 2px);
+            left: -1px;
+            box-shadow: none;
+            border: 1px solid var(--primary);
             .vs__dropdown-option {
               padding: 3px 5px;
             }
         }
 
         .vs__dropdown-toggle {
-            background-color: var(--accent-btn);
-            border-color: var(--primary);
-            border-right: solid 2px;
+
             color: var(--primary) !important;
             height: 100%;
             padding: none;
@@ -151,7 +159,7 @@ export default {
             border-radius: var(--border-radius) 0 0 var(--border-radius);
             & * {
               padding: 0
-              }
+            }
         }
 
         .vs__selected-options {

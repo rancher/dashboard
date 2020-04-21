@@ -50,7 +50,7 @@ export default {
 </script>
 
 <template>
-  <div class="row mb-0" @input="update">
+  <div class="rule-path row mb-0" @input="update">
     <div v-if="ruleMode!=='asDefault'" class="col span-4">
       <LabeledInput v-model="path" label="Path" placeholder="e.g. /foo" />
     </div>
@@ -65,3 +65,9 @@ export default {
     </button>
   </div>
 </template>
+
+<style lang="scss">
+  .rule-path .labeled-select {
+    height: 100%;
+  }
+</style>

@@ -11,7 +11,8 @@ INPUT[type='tel'],
 INPUT[type='url'],
 SELECT,
 TEXTAREA,
-.labeled-input {
+.labeled-input,
+.labeled-select {
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -26,7 +27,9 @@ TEXTAREA,
     background-color: var(--input-bg);
 
     &:hover {
-      background: var(--input-hover-bg);
+      &, .vs__dropdown-menu {
+        background: var(--input-hover-bg);
+      }
     }
 
     // input[type='number'] {
@@ -48,7 +51,7 @@ TEXTAREA,
     color: var(--input-placeholder);
   }
 
-  &.disabled, &[disabled], &[disabled]:hover  {
+  &.disabled, &.disabled .selected, &[disabled], &[disabled]:hover {
     color: var(--input-disabled-text);
     background-color: var(--input-disabled-bg, var(--input-bg));
     outline-width: 0;
