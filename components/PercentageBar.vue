@@ -16,11 +16,12 @@ export default {
     /**
      * Indicates the number of tick marks that should be displayed.
      */
-    numberOfTicks: {
+    ticks: {
       type:    Number,
       default: 10,
     }
   },
+
   computed: {
     formattedValue() {
       return formatPercent(this.value);
@@ -28,8 +29,8 @@ export default {
   },
   methods: {
     getTickBackgroundClass(i) {
-      const valuePercentage = ( this.value / 100 );
-      const barPercentage = i / this.numberOfTicks;
+      const barPercentage = i / this.ticks;
+      const valuePercentage = Math.round(this.value / this.ticks) * this.ticks / 100;
 
       if (valuePercentage < barPercentage) {
         return 'bg-darker';
@@ -53,7 +54,7 @@ export default {
   <span class="percentage-bar">
     <span class="percentage">{{ formattedValue }}</span>
     <span class="bar">
-      <span v-for="i in numberOfTicks" :key="i" class="tick" :class="getTickBackgroundClass(i)">&nbsp;</span>
+      <span v-for="i in ticks" :key="i" class="tick" :class="getTickBackgroundClass(i)">&nbsp;</span>
     </span>
   </span>
 </template>

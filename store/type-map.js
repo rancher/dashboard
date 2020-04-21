@@ -79,7 +79,7 @@ import { isArray, findBy, addObject, removeObject } from '@/utils/array';
 import { escapeRegex, ucFirst, escapeHtml } from '@/utils/string';
 import { SCHEMA, COUNT } from '@/config/types';
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
-import { FAVORITE_TYPES, RECENT_TYPES, EXPANDED_GROUPS } from '@/store/prefs';
+import { FAVORITE_TYPES, EXPANDED_GROUPS } from '@/store/prefs';
 import { normalizeType } from '@/plugins/steve/normalize';
 
 export const NAMESPACED = 'namespaced';
@@ -88,7 +88,6 @@ export const BOTH = 'both';
 
 export const ALL = 'all';
 export const BASIC = 'basic';
-export const RECENT = 'recent';
 export const FAVORITE = 'favorite';
 export const USED = 'used';
 
@@ -290,19 +289,6 @@ export const getters = {
     };
   },
 
-  recentWeight(state, getters, rootState, rootGetters) {
-    return (schemaId) => {
-      const recents = rootGetters['prefs/get'](RECENT_TYPES);
-      const idx = recents.indexOf(schemaId);
-
-      if ( idx === -1 ) {
-        return idx;
-      }
-
-      return recents.length - idx;
-    };
-  },
-
   typeWeightFor(state) {
     return (type) => {
       return state.typeWeights[type.toLowerCase()] || 0;
@@ -317,7 +303,7 @@ export const getters = {
 
   getTree(state, getters, rootState, rootGetters) {
     return (mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
-      // modes: basic, used, all, recent, favorite
+      // modes: basic, used, all, favorite
       // namespaceMode: 'namespaced', 'cluster', or 'both'
       // nsamespaces: null means all, otherwise it will be an array of specific namespaces to include
 
@@ -376,8 +362,6 @@ export const getters = {
           } else {
             group = _ensureGroup(root, 'Cluster');
           }
-        } else if ( mode === RECENT ) {
-          group = _ensureGroup(root, 'Recent');
         } else if ( mode === FAVORITE ) {
           group = _ensureGroup(root, 'Starred');
         } else if ( mode === USED ) {
@@ -490,8 +474,7 @@ export const getters = {
         const attrs = schema.attributes || {};
         const count = counts[schema.id];
         const label = getters.singularLabelFor(schema);
-        let weight = getters.typeWeightFor(label);
-        let recentWeight = null;
+        const weight = getters.typeWeightFor(label);
 
         if ( !attrs.kind ) {
           // Skip the schemas that aren't top-level types
@@ -500,20 +483,12 @@ export const getters = {
           continue;
         } else if ( mode === FAVORITE && !getters.isFavorite(schema.id) ) {
           continue;
-        } else if ( mode === RECENT ) {
-          weight = getters.recentWeight(schema.id);
-          recentWeight = weight;
-
-          if ( weight < 0 ) {
-            continue;
-          }
         }
 
         out[schema.id] = {
           label,
           mode,
           weight,
-          recentWeight,
           schema,
           name:        schema.id,
           namespaced:  attrs.namespaced,
@@ -530,8 +505,7 @@ export const getters = {
         for ( const vt of state.virtualTypes ) {
           const item = clone(vt);
           const id = item.name;
-          let weight = vt.weight || getters.typeWeightFor(item.label);
-          let recentWeight = null;
+          const weight = vt.weight || getters.typeWeightFor(item.label);
 
           if ( item.ifIsRancher && !isRancher ) {
             continue;
@@ -545,18 +519,10 @@ export const getters = {
             continue;
           } else if ( mode === FAVORITE && !getters.isFavorite(id) ) {
             continue;
-          } else if ( mode === RECENT ) {
-            weight = getters.recentWeight(id);
-            recentWeight = weight;
-
-            if ( weight < 0 ) {
-              continue;
-            }
           }
 
           item.mode = mode;
           item.weight = weight;
-          item.recentWeight = recentWeight;
           item.label = item.label || item.name;
 
           out[id] = item;
@@ -900,19 +866,6 @@ export const mutations = {
 };
 
 export const actions = {
-  addRecent({ dispatch, rootGetters }, type) {
-    // const types = rootGetters['prefs/get'](RECENT_TYPES) || [];
-
-    // removeObject(types, type);
-    // types.unshift(type);
-
-    // while ( types.length > 5 ) {
-    //   types.pop();
-    // }
-
-    // dispatch('prefs/set', { key: RECENT_TYPES, val: types }, { root: true });
-  },
-
   addFavorite({ dispatch, rootGetters }, type) {
     console.log('addFavorite', type);
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
@@ -946,10 +899,6 @@ export const actions = {
 
 function _sortGroup(tree, mode) {
   const by = ['namespaced', 'weight:desc', 'label'];
-
-  if ( mode === RECENT ) {
-    removeObject(by, 'namespaced');
-  }
 
   tree.children = sortBy(tree.children, by);
 

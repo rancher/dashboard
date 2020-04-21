@@ -1,6 +1,6 @@
 <script>
 export default {
-  layout: 'plain',
+  layout: 'blank',
 
   fetch({ store, redirect }) {
     const id = store.getters['defaultClusterId'];

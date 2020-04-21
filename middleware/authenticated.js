@@ -8,9 +8,16 @@ import applyTypeConfigs from '@/config/type-config';
 export default async function({
   route, app, store, redirect, req, isDev
 }) {
-  // Ignore webpack hot module reload requests
-  if ( route.path && typeof route.path === 'string' && route.path.startsWith('/__webpack_hmr/') ) {
-    return;
+  if ( route.path && typeof route.path === 'string') {
+    // Ignore webpack hot module reload requests
+    if ( route.path.startsWith('/__webpack_hmr/') ) {
+      return;
+    }
+
+    // Ignore the error page
+    if ( route.path.startsWith('/fail-whale') ) {
+      return;
+    }
   }
 
   // Initial ?setup=admin-password can technically be on any route

@@ -12,8 +12,6 @@ export default {
     };
     const createUrl = this.$router.resolve({ name: 'c-cluster-resource-create', params }).href;
 
-    this.$store.dispatch('type-map/addRecent', 'gatekeeper-templates');
-
     return {
       headers: [
         STATE,

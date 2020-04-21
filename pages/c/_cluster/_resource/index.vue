@@ -94,8 +94,6 @@ export default {
       rows = await store.dispatch('cluster/findAll', { type: resource });
     }
 
-    await store.dispatch('type-map/addRecent', resource);
-
     return {
       schema,
       hasListComponent,
