@@ -2,7 +2,7 @@ import Steve from '@/plugins/steve';
 import {
   COUNT, NAMESPACE, NORMAN, EXTERNAL, MANAGEMENT
 } from '@/config/types';
-import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS } from '@/store/prefs';
+import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE } from '@/store/prefs';
 import { allHash } from '@/utils/promise';
 import { ClusterNotFoundError, ApiError } from '@/utils/error';
 import { sortBy } from '@/utils/sort';
@@ -25,7 +25,6 @@ export const state = () => {
     clusterReady:     false,
     isRancher:        false,
     namespaceFilters: [],
-    defaultNamespace: null,
     allNamespaces:    null,
     clusterId:        null,
     error:            null,
@@ -139,34 +138,49 @@ export const getters = {
     };
   },
 
-  defaultNamespace(state, getters) {
+  defaultNamespace(state, getters, rootState, rootGetters) {
     const filteredMap = getters['namespaces']();
     const isAll = getters['isAllNamespaces'];
     const all = getters['cluster/all'](NAMESPACE).map(x => x.id);
     let out;
 
-    function isOk(ns) {
-      return (isAll && all.includes(ns) ) ||
-             (!isAll && filteredMap && filteredMap[ns] );
+    function isOk() {
+      if ( !out ) {
+        return false;
+      }
+
+      return (isAll && all.includes(out) ) ||
+             (!isAll && filteredMap && filteredMap[out] );
     }
 
-    out = state.defaultNamespace;
+    out = rootGetters['prefs/get'](LAST_NAMESPACE);
+    console.log('1', out, isAll, all);
     if ( isOk() ) {
+      console.log('2', out);
+
       return out;
     }
 
     out = 'default';
+    console.log('3', out);
     if ( isOk() ) {
+      console.log('4', out);
+
       return out;
     }
 
     if ( !isAll ) {
+      console.log('5', out);
       const keys = Object.keys(filteredMap);
 
       if ( keys.length ) {
+        console.log('6', keys[0]);
+
         return keys[0];
       }
     }
+
+    console.log('7', all[0]);
 
     return all[0] || 'default';
   }
@@ -188,10 +202,6 @@ export const mutations = {
     if ( all ) {
       state.allNamespaces = all;
     }
-  },
-
-  setDefaultNamespace(state, ns) {
-    state.defaultNamespace = ns;
   },
 
   setCluster(state, neu) {

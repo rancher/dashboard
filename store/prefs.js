@@ -41,6 +41,7 @@ const asCookie = true; // Store as a cookie so that it's available before auth +
 
 // Keys must be lowercase and valid dns label (a-z 0-9 -)
 export const CLUSTER = create('cluster', '');
+export const LAST_NAMESPACE = create('last-namespace', '');
 export const NAMESPACE_FILTERS = create('ns', [], { parseJSON });
 export const EXPANDED_GROUPS = create('open-groups', ['cluster'], { parseJSON });
 export const FAVORITE_TYPES = create('fav-type', ['secret', 'configmap', 'service', 'persistentvolume'], { parseJSON });

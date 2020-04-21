@@ -1,5 +1,6 @@
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
+import { LAST_NAMESPACE } from '@/store/prefs';
 
 export default {
   mixins: [ChildHook],
@@ -110,9 +111,8 @@ export default {
         if ( this.isCreate ) {
           url = url || this.schema.linkFor('collection');
 
-          // @TODO Better place for this...
           if ( this.value?.metadata?.namespace ) {
-            this.value.$commit('setDefaultNamespace', this.value.metadata.namespace, { root: true });
+            this.value.$dispatch('prefs/set', { key: LAST_NAMESPACE, value: this.value.metadata.namespace }, { root: true });
           }
 
           const res = await this.value.save({ url });
