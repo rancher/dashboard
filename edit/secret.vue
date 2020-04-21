@@ -1,7 +1,8 @@
 <script>
+import { DESCRIPTION } from '../config/labels-annotations';
 import { DOCKER_JSON, OPAQUE, TLS } from '@/models/secret';
 import { base64Encode, base64Decode } from '@/utils/crypto';
-import { NAMESPACE, SECRET } from '@/config/types';
+import { NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
@@ -9,6 +10,17 @@ import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import Tabbed from '@/components/Tabbed';
+import Tab from '@/components/Tabbed/Tab';
+
+const types = [
+  { label: 'Certificate', value: TLS },
+  { label: 'Registry', value: DOCKER_JSON },
+  { label: 'Secret (Opaque)', value: OPAQUE },
+];
+const registryAddresses = [
+  'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
+];
 
 export default {
   name: 'CruSecret',
@@ -19,20 +31,14 @@ export default {
     LabeledInput,
     LabeledSelect,
     RadioGroup,
-    NameNsDescription
+    NameNsDescription,
+    Tabbed,
+    Tab
   },
 
   mixins:     [CreateEditView],
 
   data() {
-    const types = [
-      { label: 'Certificate', value: TLS },
-      { label: 'Registry', value: DOCKER_JSON },
-      { label: 'Secret (Opaque)', value: OPAQUE },
-    ];
-    const registryAddresses = [
-      'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
-    ];
     const isNamespaced = !!this.value.metadata.namespace;
 
     let username;
@@ -50,6 +56,8 @@ export default {
       password = auths[registryFQDN].password;
     }
 
+    const { metadata:{ annotations = {}, labels = {} } } = this.value;
+
     return {
       types,
       isNamespaced,
@@ -61,10 +69,11 @@ export default {
       registryFQDN,
       toUpload:         null,
       key:              null,
-      cert:             null
+      cert:             null,
+      annotations,
+      labels
     };
   },
-
   computed: {
     secretSubType: {
       // when editing a secret with type other than registry, cert, or generic, like 'kubernetes.io/service-account-token', use generic layout
@@ -119,8 +128,9 @@ export default {
 
     needsDockerServer() {
       return this.registryProvider === 'Artifactory' || this.registryProvider === 'Custom';
-    },
+    }
   },
+  watch: { value: { deep: true } },
 
   methods: {
     saveSecret(buttonCb) {
@@ -175,7 +185,14 @@ export default {
   <form>
     <NameNsDescription v-model="value" :mode="mode" :extra-columns="['type']">
       <template v-slot:type>
-        <LabeledSelect v-model="secretSubType" label="Type" :options="types" :mode="mode" :disabled="mode!=='create'" />
+        <LabeledSelect
+          v-model="secretSubType"
+          label="Type"
+          :options="types"
+          :mode="mode"
+          :disabled="mode!=='create'"
+          taggable
+        />
       </template>
     </NameNsDescription>
 
@@ -223,6 +240,31 @@ export default {
         add-icon=""
       />
     </div>
+
+    <Tabbed default-tab="labels">
+      <Tab name="labels" label="Labels">
+        <KeyValue
+          key="labels"
+          v-model="labels"
+          :mode="mode"
+          title="Labels"
+          :initial-empty-row="true"
+          :pad-left="false"
+          :read-allowed="false"
+        />
+      </Tab>
+      <Tab name="annotations" label="Annotations">
+        <KeyValue
+          key="annotations"
+          v-model="annotations"
+          :mode="mode"
+          title="Annotations"
+          :initial-empty-row="true"
+          :pad-left="false"
+          :read-allowed="false"
+        />
+      </Tab>
+    </Tabbed>
 
     <input
       ref="uploader"

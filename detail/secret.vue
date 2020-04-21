@@ -135,7 +135,7 @@ export default {
     </template>
     <template v-else>
       <div class="mt-20 mb-20">
-        <h4>Values</h4>
+        <h4>Data</h4>
         <SortableTable
           class="mt-20"
           :rows="dataRows"
