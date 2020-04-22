@@ -301,3 +301,11 @@ export default {
     </div>
   </InfoBox>
 </template>
+
+<style lang="scss" scoped>
+  .info-box {
+    &.row {
+      flex-grow: 0;
+    }
+  }
+</style>
