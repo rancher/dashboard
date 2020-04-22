@@ -17,8 +17,11 @@ export default {
 
   kubernetesVersion() {
     const configName = this.configName;
+    const k8sVersion = this.spec[configName]
+      ? this.spec[configName]
+      : this.$rootGetters['i18n/t']('generic.unknown');
 
-    return this.spec[configName].kubernetesVersion;
+    return k8sVersion;
   },
 
   createdDisplay() {
@@ -28,7 +31,7 @@ export default {
   },
 
   displayProvider() {
-    const configName = this.configName.toLowerCase();
+    const configName = this.configName?.toLowerCase();
     const driver = this.status?.driver;
     const key = `cluster.provider.${ configName }`;
 
@@ -37,7 +40,7 @@ export default {
     } else if (driver && configName) {
       return capitalize(driver);
     } else {
-      return this.$rootGetters['i18n/t']('cluster.provider.imported');
+      return this.$rootGetters['i18n/t']('cluster.provider.importedconfig');
     }
   },
 };
