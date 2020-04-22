@@ -120,7 +120,12 @@ export default {
     <h4 class="mb-10">
       Advanced
     </h4>
-    <label class="checkbox-container" mode="create" type="checkbox"><label class="checkbox-box"><input type="checkbox" tabindex="-1"> <span tabindex="0" aria-label="Interactive" role="checkbox" class="checkbox-custom"></span></label><span class="checkbox-label">Enable Developer Tools</span></label>
+    <label class="checkbox-container" mode="create" type="checkbox">
+      <label class="checkbox-box">
+        <input v-model="dev" type="checkbox" tabindex="-1"> <span tabindex="0" aria-label="Interactive" role="checkbox" class="checkbox-custom"></span>
+      </label>
+      <span class="checkbox-label">Enable Developer Tools</span>
+    </label>
   </div>
 </template>
 
