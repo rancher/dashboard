@@ -48,14 +48,6 @@ export default {
       v.metadata = {};
     }
 
-    // if ( !v.metadata.annotations ) {
-    //   v.metadata.annotations = {};
-    // }
-
-    // if ( !v.metadata.labels ) {
-    //   v.metadata.labels = {};
-    // }
-
     // track description separately from the rest of annotations because it appears separately in UI
     let description;
 
@@ -89,6 +81,7 @@ export default {
         return this.value?.metadata?.labels || {};
       },
       set(neu) {
+        // only set a 'label' key in metadata if we have labels to add: shouldn't get to save() with an empty labels prop this way
         if (Object.keys(neu).length) {
           this.$set(this.value.metadata, 'labels', neu);
         }
@@ -100,7 +93,6 @@ export default {
         return this.value?.metadata?.annotations || {};
       },
       set(neu) {
-        debugger;
         if (Object.keys(neu).length) {
           this.$set(this.value.metadata, 'annotations', neu);
         }
@@ -129,22 +121,12 @@ export default {
       this.errors = null;
       try {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
-        debugger;
+
         // add description to annotations
         if (!this.value.metadata.annotations) {
           this.$set(this.value.metadata, 'annotations', {});
         }
         this.$set(this.value.metadata.annotations, DESCRIPTION, this.description);
-
-        // // Remove the labels map we created in data(), if it's empty
-        // if ( this.value?.metadata?.labels && Object.keys(this.value.metadata.labels || {}).length === 0 ) {
-        //   delete this.value.metadata.labels;
-        // }
-
-        // // Remove the annotations map we created in data(), if it's empty
-        // if ( this.value?.metadata?.annotations && Object.keys(this.value.metadata.annotations || {}).length === 0 ) {
-        //   delete this.value.metadata.annotations;
-        // }
 
         if ( this.isCreate ) {
           url = url || this.schema.linkFor('collection');

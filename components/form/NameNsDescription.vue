@@ -19,7 +19,7 @@ export default {
       required: true,
     },
 
-    descriptopn: {
+    description: {
       type:    String,
       default: null
     },
@@ -72,12 +72,9 @@ export default {
       metadata.namespace = this.$store.getters['defaultNamespace'];
     }
 
-    const description = metadata?.annotations?.[DESCRIPTION];
-
     return {
       namespace: metadata.namespace,
       name:      metadata.name,
-      description,
     };
   },
 
@@ -210,7 +207,7 @@ export default {
       <div :class="{col: true, [colSpan]: true}">
         <LabeledInput
           key="description"
-          v-model="description"
+          :value="description"
           label="Description"
           :mode="mode"
           :placeholder="descriptionPlaceholder"
