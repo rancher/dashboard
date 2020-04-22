@@ -1,10 +1,18 @@
 import { MODE, _CREATE } from '@/config/query-params';
 import { addParams } from '@/utils/url';
 import { GATEKEEPER_CONSTRAINT_TEMPLATE } from '@/config/types';
+import { downloadFile } from '@/utils/download';
 
 export default {
   availableActions() {
     let out = this._availableActions;
+    const downloadAction = {
+      action:     'download',
+      label:      'Download YAML',
+      icon:       'icon icon-fw icon-download',
+      bulkable:   false,
+      enabled:    true
+    };
 
     const toFilter = ['cloneYaml'];
 
@@ -29,7 +37,8 @@ export default {
         action:  'goToAddTemplate',
         label:   'Add Template',
       },
-      ...out
+      ...out,
+      downloadAction,
     ];
   },
 
@@ -61,5 +70,9 @@ export default {
 
       this.currentRouter().push({ path: url });
     };
+  },
+
+  download() {
+    downloadFile(`${ this.nameDisplay }.yaml`, this.spec.valuesYaml, 'application/yaml');
   },
 };
