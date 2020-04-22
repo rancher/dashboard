@@ -2,22 +2,40 @@ import { normalizeType } from './normalize';
 
 const cache = {};
 
-export function lookup(type) {
+/**
+ * This will lookup and load a model based on the type and appSpecializationName if specified.
+ *
+ * We want to have the ability to treat chart apps as if they were native resources.
+ * As part of this desire to treat apps as a native resource we also want to be able to customize their models.
+ * If we attempt to load an 'app' type with an 'appSpecializationName' we will first
+ * load the 'app' type and then merge that with a model found in '@/models/apps/${appSpecializationName}'
+ * if the file exists.
+ * @param {*} type the type we'd like to lookup
+ * @param {*} appSpecializationName the name of the app so we can lookup a model with the given name and merge that with the app base type.
+ */
+export function lookup(type, appSpecializationName) {
   type = normalizeType(type).replace(/\//g, '');
 
-  let impl = cache[type];
+  const impl = cache[type];
 
   if ( impl ) {
-    return impl.default;
+    return impl;
   } else if ( typeof impl !== 'undefined' ) {
     return null;
   }
 
   try {
-    impl = require(`@/models/${ type }`);
-    cache[type] = impl;
+    const defaultValue = { default: {} };
+    const base = require(`@/models/${ type }`);
+    const appSpecialization = (type === 'app' && appSpecializationName)
+      ? (require(`@/models/apps/${ appSpecializationName }`) || defaultValue)
+      : defaultValue;
 
-    return impl.default;
+    const model = { ...appSpecialization.default, ...base.default };
+
+    cache[type] = model;
+
+    return model;
   } catch (e) {
   }
 
