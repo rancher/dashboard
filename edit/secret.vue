@@ -9,8 +9,8 @@ import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
-
-import LabelsAndAnnotations from '@/components/form/LabelsAndAnnotations';
+import Tab from '@/components/Tabbed/Tab';
+import Tabbed from '@/components/Tabbed';
 
 const types = [
   { label: 'Certificate', value: TLS },
@@ -31,7 +31,8 @@ export default {
     LabeledSelect,
     RadioGroup,
     NameNsDescription,
-    LabelsAndAnnotations
+    Tabbed,
+    Tab
   },
 
   mixins:     [CreateEditView],
@@ -54,8 +55,6 @@ export default {
       password = auths[registryFQDN].password;
     }
 
-    // const { metadata = { } } = this.value;
-
     return {
       types,
       isNamespaced,
@@ -68,7 +67,6 @@ export default {
       toUpload:         null,
       key:              null,
       cert:             null,
-      // metadata
     };
   },
   computed: {
@@ -130,8 +128,6 @@ export default {
 
   methods: {
     saveSecret(buttonCb) {
-      this.$set(this.value, 'metadata', this.metadata);
-
       if (this.isRegistry) {
         const data = { '.dockerconfigjson': base64Encode(this.dockerconfigjson) };
 
@@ -181,7 +177,7 @@ export default {
 
 <template>
   <form>
-    <NameNsDescription v-model="metadata" :mode="mode" :extra-columns="['type']">
+    <NameNsDescription v-model="value.metadata" :description="description" :mode="mode" :extra-columns="['type']" @input:description="e=>description=e">
       <template v-slot:type>
         <LabeledSelect
           v-model="secretSubType"
@@ -239,7 +235,30 @@ export default {
       />
     </div>
 
-    <LabelsAndAnnotations v-model="metadata" />
+    <Tabbed default-tab="labels">
+      <Tab name="labels" label="Labels">
+        <KeyValue
+          key="labels"
+          v-model="labels"
+          :mode="mode"
+          title="Labels"
+          :initial-empty-row="true"
+          :pad-left="false"
+          :read-allowed="false"
+        />
+      </Tab>
+      <Tab name="annotations" label="Annotations">
+        <KeyValue
+          key="annotations"
+          v-model="annotations"
+          :mode="mode"
+          title="Annotations"
+          :initial-empty-row="true"
+          :pad-left="false"
+          :read-allowed="false"
+        />
+      </Tab>
+    </Tabbed>
 
     <input
       ref="uploader"

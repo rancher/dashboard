@@ -48,16 +48,21 @@ export default {
       v.metadata = {};
     }
 
-    if ( !v.metadata.annotations ) {
-      v.metadata.annotations = {};
-    }
+    // if ( !v.metadata.annotations ) {
+    //   v.metadata.annotations = {};
+    // }
 
-    if ( !v.metadata.labels ) {
-      v.metadata.labels = {};
-    }
+    // if ( !v.metadata.labels ) {
+    //   v.metadata.labels = {};
+    // }
 
-    // track description separately from the rest of annotations because it is viewed/edited separately
-    const description = v.metadata.annotations[DESCRIPTION];
+    // track description separately from the rest of annotations because it appears separately in UI
+    let description;
+
+    if ((v.metadata.annotations || {})[DESCRIPTION]) {
+      description = v.metadata.annotations[DESCRIPTION];
+      delete v.metadata.annotations[DESCRIPTION];
+    }
 
     return { errors: null, description };
   },
@@ -79,19 +84,29 @@ export default {
       return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
 
-    metadata: {
+    labels: {
       get() {
-        return this.value.metadata || {};
+        return this.value?.metadata?.labels || {};
       },
       set(neu) {
-        if (neu.annotations[DESCRIPTION]) {
-          this.description = neu.annotations[DESCRIPTION];
-        } else {
-          neu.annotations[DESCRIPTION] = this.description;
+        if (Object.keys(neu).length) {
+          this.$set(this.value.metadata, 'labels', neu);
         }
-        this.$set(this.value, 'metadata', neu);
+      }
+    },
+
+    annotations: {
+      get() {
+        return this.value?.metadata?.annotations || {};
+      },
+      set(neu) {
+        debugger;
+        if (Object.keys(neu).length) {
+          this.$set(this.value.metadata, 'annotations', neu);
+        }
       }
     }
+
   },
 
   methods: {
@@ -114,16 +129,22 @@ export default {
       this.errors = null;
       try {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
-
-        // Remove the labels map we created in data(), if it's empty
-        if ( this.value?.metadata?.labels && Object.keys(this.value.metadata.labels || {}).length === 0 ) {
-          delete this.value.metadata.labels;
+        debugger;
+        // add description to annotations
+        if (!this.value.metadata.annotations) {
+          this.$set(this.value.metadata, 'annotations', {});
         }
+        this.$set(this.value.metadata.annotations, DESCRIPTION, this.description);
 
-        // Remove the annotations map we created in data(), if it's empty
-        if ( this.value?.metadata?.annotations && Object.keys(this.value.metadata.annotations || {}).length === 0 ) {
-          delete this.value.metadata.annotations;
-        }
+        // // Remove the labels map we created in data(), if it's empty
+        // if ( this.value?.metadata?.labels && Object.keys(this.value.metadata.labels || {}).length === 0 ) {
+        //   delete this.value.metadata.labels;
+        // }
+
+        // // Remove the annotations map we created in data(), if it's empty
+        // if ( this.value?.metadata?.annotations && Object.keys(this.value.metadata.annotations || {}).length === 0 ) {
+        //   delete this.value.metadata.annotations;
+        // }
 
         if ( this.isCreate ) {
           url = url || this.schema.linkFor('collection');

@@ -19,6 +19,11 @@ export default {
       required: true,
     },
 
+    descriptopn: {
+      type:    String,
+      default: null
+    },
+
     mode: {
       type:     String,
       required: true,
@@ -159,14 +164,10 @@ export default {
     },
 
     update() {
-      const annotations = this.value.annotations;
-
-      annotations[DESCRIPTION] = this.description;
       const out = {
         ...this.value,
         name:      this.name,
         namespace: this.namespace,
-        annotations
       };
 
       this.$emit('input', out);
@@ -214,7 +215,7 @@ export default {
           :mode="mode"
           :placeholder="descriptionPlaceholder"
           :min-height="30"
-          @input="update"
+          @input="e=>$emit('input:description', e)"
         />
       </div>
       <div v-for="slot in extraColumns" :key="slot" :class="{col: true, [colSpan]: true}">
