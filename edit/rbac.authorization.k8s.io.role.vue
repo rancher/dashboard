@@ -47,10 +47,11 @@ export default {
 <template>
   <form>
     <NameNsDescription
-      :value="value"
+      v-model="value.metadata"
       :mode="mode"
       name-label="Name"
       :register-before-hook="registerBeforeHook"
+      :description.sync="description"
     />
 
     <div class="spacer"></div>

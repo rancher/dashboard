@@ -53,7 +53,10 @@ export default {
 
     if ((v.metadata.annotations || {})[DESCRIPTION]) {
       description = v.metadata.annotations[DESCRIPTION];
-      delete v.metadata.annotations[DESCRIPTION];
+      if (this.mode !== 'view') {
+        // remove description from annotations so it is not displayed/tracked in annotation component as well as NameNsDescription
+        delete v.metadata.annotations[DESCRIPTION];
+      }
     }
 
     return { errors: null, description };
@@ -121,7 +124,6 @@ export default {
       this.errors = null;
       try {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
-
         // add description to annotations
         if (!this.value.metadata.annotations) {
           this.$set(this.value.metadata, 'annotations', {});

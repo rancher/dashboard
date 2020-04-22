@@ -177,7 +177,7 @@ export default {
 
 <template>
   <form>
-    <NameNsDescription v-model="value.metadata" :description="description" :mode="mode" :extra-columns="['type']" @input:description="e=>description=e">
+    <NameNsDescription v-model="value.metadata" :description.sync="description" :mode="mode" :extra-columns="['type']">
       <template v-slot:type>
         <LabeledSelect
           v-model="secretSubType"

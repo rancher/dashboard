@@ -174,7 +174,7 @@ export default {
 
 <template>
   <form>
-    <NameNsDescription :value="{metadata}" :mode="mode" @input="e=>metadata=e" />
+    <NameNsDescription v-model="metadata" :mode="mode" :description.sync="description" />
     <div>
       <h3>
         Rules

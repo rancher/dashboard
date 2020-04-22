@@ -21,7 +21,8 @@ export default {
 <template>
   <form>
     <NameNsDescription
-      :value="value"
+      v-model="value.metadata"
+      :description.sync="description"
       :mode="mode"
       name-label="Name"
       :register-before-hook="registerBeforeHook"

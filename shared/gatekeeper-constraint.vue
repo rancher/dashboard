@@ -184,7 +184,14 @@ export default {
 <template>
   <div v-if="value.save" class="gatekeeper-constraint">
     <div>
-      <NameNsDescription :value="value" :mode="mode" :namespaced="false" :extra-columns="['template']" :extra-detail-columns="extraDetailColumns">
+      <NameNsDescription
+        v-model="value.metadata"
+        :mode="mode"
+        :namespaced="false"
+        :extra-columns="['template']"
+        :extra-detail-columns="extraDetailColumns"
+        :description.sync="description"
+      >
         <template v-slot:template>
           <LabeledSelect
             :mode="mode"

@@ -73,7 +73,13 @@ export default {
 <template>
   <div>
     <form>
-      <NameNsDescription v-model="value" :namespaced="false" :mode="mode" :extra-columns="extraColumns">
+      <NameNsDescription
+        v-model="value.metadata"
+        :description.sync="description"
+        :namespaced="false"
+        :mode="mode"
+        :extra-columns="extraColumns"
+      >
         <template #project-col>
           <LabeledSelect v-model="project" label="Project" :options="projectOpts" />
         </template>

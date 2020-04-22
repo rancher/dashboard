@@ -164,8 +164,11 @@ export default {
       const out = {
         ...this.value,
         name:      this.name,
-        namespace: this.namespace,
       };
+
+      if (this.namespaced) {
+        out.namespace = this.namespace;
+      }
 
       this.$emit('input', out);
     }
@@ -212,7 +215,7 @@ export default {
           :mode="mode"
           :placeholder="descriptionPlaceholder"
           :min-height="30"
-          @input="e=>$emit('input:description', e)"
+          @input="e=>$emit('update:description', e)"
         />
       </div>
       <div v-for="slot in extraColumns" :key="slot" :class="{col: true, [colSpan]: true}">
