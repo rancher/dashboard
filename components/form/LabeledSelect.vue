@@ -34,7 +34,15 @@ export default {
     optionLabel: {
       type:    String,
       default: 'label'
-    }
+    },
+    taggable: {
+      type:    Boolean,
+      default: false
+    },
+    createOption: {
+      type:    Function,
+      default: opt => opt
+    },
   },
   data() {
     return { selectedDisplay: 'block' };
@@ -130,6 +138,8 @@ export default {
       :get-option-key="opt=>optionKey ? get(opt, optionKey) : getOptionLabel(opt)"
       :label="optionLabel"
       :reduce="x => reduce(x)"
+      :taggable="taggable"
+      :create-option="createOption"
       @input="x => $emit('input', reduce(x))"
       @search:focus="searchFocus"
       @search:blur="searchBlur"

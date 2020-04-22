@@ -15,7 +15,7 @@ import Tabbed from '@/components/Tabbed';
 const types = [
   { label: 'Certificate', value: TLS },
   { label: 'Registry', value: DOCKER_JSON },
-  { label: 'Secret (Opaque)', value: OPAQUE },
+  { label: 'Opaque', value: OPAQUE },
 ];
 const registryAddresses = [
   'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
@@ -73,7 +73,7 @@ export default {
     secretSubType: {
       // when editing a secret with type other than registry, cert, or generic, like 'kubernetes.io/service-account-token', use generic layout
       get() {
-        return this.isCertificate ? TLS : this.isRegistry ? DOCKER_JSON : OPAQUE;
+        return this.value._type;
       },
       set(neu) {
         this.$set(this.value, '_type', neu);
@@ -192,7 +192,7 @@ export default {
 
     <template v-if="isRegistry">
       <div id="registry-type" class="row">
-        Provider: &nbsp; <RadioGroup :mode="mode" :style="{'display':'flex'}" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
+        <span> Provider: </span> &nbsp; <RadioGroup :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row">
         <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" :mode="mode" />
@@ -271,9 +271,12 @@ export default {
   </form>
 </template>
 
-<style>
+<style lang='scss'>
 #registry-type {
   display: flex;
   align-items:center;
+  & > div {
+    display: flex;
+  }
 }
 </style>

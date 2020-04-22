@@ -10,7 +10,7 @@ export const ISTIO_TLS = 'istio.io/key-and-cert';
 
 const DISPLAY_TYPES = {
   [OPAQUE]:       'Opaque',
-  [SERVICE_ACCT]: 'Service Acct',
+  [SERVICE_ACCT]: 'Service Acct Token',
   [DOCKER]:       'Dockercfg',
   [DOCKER_JSON]:  'Docker JSON',
   [BASIC]:        'Basic Auth',
