@@ -36,7 +36,7 @@ export function proxyFor(ctx, obj, isClone = false) {
     }
   }
 
-  const model = lookup(obj.type) || ResourceInstance;
+  const model = lookup(obj.type, obj?.metadata?.name) || ResourceInstance;
 
   const proxy = new Proxy(obj, {
     get(target, name) {
