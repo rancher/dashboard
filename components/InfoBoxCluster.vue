@@ -167,7 +167,7 @@ export default {
           <t k="infoBoxCluster.version" />
         </label>
         <div>
-          {{ cluster.displayProvider }}
+          {{ cluster.kubernetesVersion }}
         </div>
       </div>
       <div class="info-row">
