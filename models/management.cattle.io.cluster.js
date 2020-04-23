@@ -18,7 +18,7 @@ export default {
   kubernetesVersion() {
     const configName = this.configName;
     const k8sVersion = this.spec[configName]
-      ? this.spec[configName]
+      ? this.spec[configName].kubernetesVersion
       : this.$rootGetters['i18n/t']('generic.unknown');
 
     return k8sVersion;
