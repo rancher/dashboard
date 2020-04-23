@@ -170,11 +170,6 @@ export default {
       this.errors = null;
       try {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
-        // add description to annotations
-        if (!this.value.metadata.annotations) {
-          this.$set(this.value.metadata, 'annotations', {});
-        }
-        this.$set(this.value.metadata.annotations, DESCRIPTION, this.description);
 
         // Remove the labels map if it's empty
         if ( this.value?.metadata?.labels && Object.keys(this.value.metadata.labels || {}).length === 0 ) {
