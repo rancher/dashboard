@@ -1,7 +1,33 @@
+import omitBy from 'lodash/omitBy';
+import pickBy from 'lodash/pickBy';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
-import { DESCRIPTION } from '@/config/labels-annotations';
+import { DESCRIPTION, LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';
+
+// return true if the string starts with one of the values in prefixes array
+const matchesSomePrefix = (string, prefixes) => {
+  for (const prefix of prefixes) {
+    const regex = new RegExp(`^${ prefix }`);
+
+    if (string.match(regex)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+// return true if string includes at least one of the strings in matchStrings array
+const containsSomeString = (string, matchStrings) => {
+  for (const matchString of matchStrings) {
+    if (string.includes(matchString)) {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 export default {
   mixins: [ChildHook],
@@ -49,18 +75,22 @@ export default {
       v.metadata = {};
     }
 
-    // track description separately from the rest of annotations because it appears separately in UI
-    let description;
-
-    if ((v.metadata.annotations || {})[DESCRIPTION]) {
-      description = v.metadata.annotations[DESCRIPTION];
-      if (this.mode !== 'view') {
-        // remove description from annotations so it is not displayed/tracked in annotation component as well as NameNsDescription
-        delete v.metadata.annotations[DESCRIPTION];
-      }
+    if ( !v.metadata.annotations ) {
+      v.metadata.annotations = {};
     }
 
-    return { errors: null, description };
+    if ( !v.metadata.labels ) {
+      v.metadata.labels = {};
+    }
+
+    // keep label and annotation filters in data so each resource CRUD page can alter individiaully
+    return {
+      errors:                      null,
+      labelPrefixToIgnore:         LABEL_PREFIX_TO_IGNORE,
+      annotationsToIgnoreContains: ANNOTATIONS_TO_IGNORE_CONTAINS,
+      annotationsToIgnorePrefix:   ANNOTATIONS_TO_IGNORE_PREFIX
+
+    };
   },
 
   computed: {
@@ -82,19 +112,39 @@ export default {
 
     labels: {
       get() {
-        return this.value?.metadata?.labels || {};
+        const all = this.value?.metadata?.labels || {};
+
+        return omitBy(all, (value, key) => {
+          return matchesSomePrefix(key, this.labelPrefixToIgnore);
+        });
       },
       set(neu) {
-        this.$set(this.value.metadata, 'labels', neu);
+        const all = this.value?.metadata?.labels || {};
+
+        const wasIgnored = pickBy(all, (value, key) => {
+          return matchesSomePrefix(key, this.labelPrefixToIgnore);
+        });
+
+        this.$set(this.value.metadata, 'labels', { ...neu, ...wasIgnored });
       }
     },
 
     annotations: {
       get() {
-        return this.value?.metadata?.annotations || {};
+        const all = this.value?.metadata?.annotations || {};
+
+        return omitBy(all, (value, key) => {
+          return (matchesSomePrefix(key, this.annotationsToIgnorePrefix) || containsSomeString(key, this.annotationsToIgnoreContains));
+        });
       },
       set(neu) {
-        this.$set(this.value.metadata, 'annotations', neu);
+        const all = this.value?.metadata?.annotations || {};
+
+        const wasIgnored = pickBy(all, (value, key) => {
+          return (matchesSomePrefix(key, this.annotationsToIgnorePrefix) || containsSomeString(key, this.annotationsToIgnoreContains));
+        });
+
+        this.$set(this.value.metadata, 'annotations', { ...neu, ...wasIgnored });
       }
     }
 

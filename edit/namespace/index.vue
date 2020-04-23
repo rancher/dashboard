@@ -72,8 +72,7 @@ export default {
   <div>
     <form>
       <NameNsDescription
-        v-model="value.metadata"
-        :description.sync="description"
+        :value="value"
         :namespaced="false"
         :mode="mode"
         :extra-columns="extraColumns"

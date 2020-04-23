@@ -173,7 +173,7 @@ export default {
 
 <template>
   <form>
-    <NameNsDescription v-model="value.metadata" :description.sync="description" :mode="mode" :extra-columns="['type']">
+    <NameNsDescription :value="value" :mode="mode" :extra-columns="['type']">
       <template v-slot:type>
         <LabeledSelect
           v-model="value._type"

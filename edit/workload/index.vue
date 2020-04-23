@@ -280,7 +280,7 @@ export default {
 <template>
   <form>
     <slot :value="value" name="top">
-      <NameNsDescription v-model="value.metadata" :mode="mode" :extra-columns="['type']" :description.sync="description">
+      <NameNsDescription :value="value" :mode="mode" :extra-columns="['type']">
         <template v-slot:type>
           <LabeledSelect v-model="type" label="Type" :disabled="isEdit" :options="workloadTypeOptions" />
         </template>

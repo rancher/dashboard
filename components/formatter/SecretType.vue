@@ -14,7 +14,7 @@ export default {
       return { typeDisplay: this.value.typeDisplay, serviceAccountLink: null };
     }
 
-    return { typeDisplay: this.value };
+    return { typeDisplay: this.value, serviceAccountLink: null };
   },
   methods: {
     async findServiceAccount() {

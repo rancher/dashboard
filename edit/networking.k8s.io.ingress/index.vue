@@ -179,7 +179,7 @@ export default {
 
 <template>
   <form>
-    <NameNsDescription v-model="metadata" :mode="mode" :description.sync="description" />
+    <NameNsDescription :value="value" :mode="mode" />
     <div>
       <h3>
         Rules

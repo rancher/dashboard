@@ -185,12 +185,11 @@ export default {
   <div v-if="value.save" class="gatekeeper-constraint">
     <div>
       <NameNsDescription
-        v-model="value.metadata"
+        :value="value"
         :mode="mode"
         :namespaced="false"
         :extra-columns="['template']"
         :extra-detail-columns="extraDetailColumns"
-        :description.sync="description"
       >
         <template v-slot:template>
           <LabeledSelect

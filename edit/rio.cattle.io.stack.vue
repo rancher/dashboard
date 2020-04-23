@@ -75,12 +75,11 @@ export default {
     <div v-if="loading" />
     <form v-else>
       <NameNsDescription
-        v-model="value.metadata"
+        :value="value"
         :mode="mode"
         name-label="Stack Name"
         :register-before-hook="registerBeforeHook"
-        :description.sync="description"
-      />
+/>
 
       <div class="spacer"></div>
 

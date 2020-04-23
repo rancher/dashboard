@@ -102,12 +102,11 @@ export default {
       v-if="editAsYaml"
     >
       <NameNsDescription
-        v-model="localValue.metadata"
+        :value="value"
         :mode="mode"
         :namespaced="false"
         :extra-columns="['template']"
-        :description.sync="description"
-      >
+>
         <template v-slot:template>
           <LabeledSelect
             :mode="mode"

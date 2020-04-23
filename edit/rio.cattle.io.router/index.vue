@@ -65,12 +65,11 @@ export default {
   <form>
     <div class="row">
       <NameNsDescription
-        v-model="value.metadata"
+        :value="value"
         class="col span-12"
         :mode="mode"
         :register-before-hook="registerBeforeHook"
-        :description.sync="description"
-      />
+/>
     </div>
     <h2>Rules</h2>
     <div class="row">
