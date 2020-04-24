@@ -96,7 +96,7 @@ export default function(store) {
     {
       name:      'type',
       label:     'Type',
-      value:     'typeDisplay',
+      value:     'tableTypeDisplay',
       sort:      ['typeDisplay', 'nameSort'],
       width:     100,
       formatter: 'SecretType'

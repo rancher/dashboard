@@ -179,7 +179,7 @@ export default {
           label="Type"
           :options="types"
           :mode="mode"
-          :disabled="mode!=='create'"
+          :disabled="isView"
           taggable
         />
       </template>

@@ -45,10 +45,6 @@ export default {
   },
 
   typeDisplay() {
-    if (this._type === SERVICE_ACCT) {
-      return { typeDisplay: DISPLAY_TYPES[this._type], serviceAccountID: this.serviceAccountID };
-    }
-
     const mapped = DISPLAY_TYPES[this._type];
 
     if ( mapped ) {
@@ -56,6 +52,14 @@ export default {
     }
 
     return (this._type || '').replace(/^kubernetes.io\//, '');
+  },
+
+  tableTypeDisplay() {
+    if (this._type === SERVICE_ACCT) {
+      return { typeDisplay: this.typeDisplay, serviceAccountID: this.serviceAccountID };
+    } else {
+      return this.typeDisplay;
+    }
   },
 
   serviceAccountID() {
