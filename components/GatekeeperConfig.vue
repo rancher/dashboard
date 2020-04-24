@@ -134,19 +134,20 @@ export default {
       handler() {
         const gatekeeper = this.config || {};
         const meta = gatekeeper?.metadata;
-        const gatekeeperStatus = (gatekeeper.status?.conditions || []).slice();
 
         // this doesn't seeem right but the only way I can see to check that it was removed before the object goes away
+        // TODO - perhaps the way to solve this is to fall into this branch, then watch the namespace for delete?
         if (meta && Object.prototype.hasOwnProperty.call(meta, 'deletionTimestamp')) {
           this.gatekeeperEnabled = false;
           this.$emit('gatekeeperEnabled', this.gatekeeperEnabled);
-
-          return;
         }
 
-        if (!this.gatekeeperEnabled && gatekeeperStatus.some(app => app.type === 'Deployed')) {
-          this.gatekeeperEnabled = true;
-          this.$emit('gatekeeperEnabled', this.gatekeeperEnabled);
+        if (!this.gatekeeperEnabled && this.saving && gatekeeper.hasCondition('Deployed', 'True')) { // we can get here if waitForCondition takes too long
+          if (this.showYamlEditor) {
+            this.showYamlEditor = false;
+          }
+
+          this.$emit('gatekeeperEnabled', this.gatekeeperEnabled = true);
         }
       }
     }
@@ -189,20 +190,24 @@ export default {
         this.saving = true;
         await this.ensureNamespace();
         await this.config.save();
-        await this.config.waitForState('active', 60000);
-        this.gatekeeperEnabled = true;
+        await this.config.waitForCondition('Deployed');
         this.showYamlEditor = false;
         this.saving = false;
+        this.$emit('gatekeeperEnabled', this.gatekeeperEnabled = true);
         buttonCb(true);
       } catch (err) {
-        this.gatekeeperEnabled = false;
-        this.saving = false;
-        if (err?.message) {
-          this.errors = [err.message];
+        if (this?.config.hasCondition('Deployed', 'True')) { // we can hit this if waitForCondition above fails, in that case the config observer will enable
+          buttonCb(true); // dont want to see red button error in this case
         } else {
-          this.errors = [err];
+          this.gatekeeperEnabled = false;
+          this.saving = false;
+          if (err?.message) {
+            this.errors = [err.message];
+          } else {
+            this.errors = [err];
+          }
+          buttonCb(false);
         }
-        buttonCb(false);
       }
 
       this.saving = false;
