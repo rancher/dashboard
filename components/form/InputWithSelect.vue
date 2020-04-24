@@ -114,14 +114,14 @@ export default {
       height: 50px;
       width:60%;
       flex-grow: 1;
-      border-radius: 0 var(--border-radius) var(--border-radius) 0;
+      border-radius: 0 calc(var(--border-radius) * 2) calc(var(--border-radius) * 2) 0;
       border-left: 0;
       margin-left: -1px;
     }
 
   .in-input {
     margin-right: 0;
-    border-radius: var(--border-radius) 0 0 var(--border-radius);
+    border-radius: calc(var(--border-radius) * 2) 0 0 calc(var(--border-radius) * 2);
 
     &.v-select {
         height: initial;
