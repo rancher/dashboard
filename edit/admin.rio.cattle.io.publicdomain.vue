@@ -156,8 +156,7 @@ export default {
     </div>
     <template v-else>
       <NameNsDescription
-        v-model="value.metadata"
-        :description.sync="description"
+        v-model="value"
         :namespaced="false"
         :mode="mode"
         name-label="Name"

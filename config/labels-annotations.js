@@ -16,32 +16,14 @@ export const NODE_ROLES = {
   ETCD:          'node-role.kubernetes.io/etcd',
 };
 
+// TODO consult w/ backend about what labels & annotations to hide from editing
 export const LABEL_PREFIX_TO_IGNORE = [
-  'io.cattle.lifecycle.',
-  'beta.kubernetes.io/',
-  'failure-domain.beta.kubernetes.io/',
-  'node-role.kubernetes.io/',
-  'kubernetes.io/',
-  'cattle.io/',
-  'authz.management.cattle.io',
-  'rke.cattle.io',
-  'field.cattle.io',
-  'workload.user.cattle.io/',
-  'k3s.io',
-  'node.kubernetes.io',
 ];
 
 export const ANNOTATIONS_TO_IGNORE_CONTAINS = [
-  'coreos.com/',
-  'cattle.io/',
-  'k3s.io',
 ];
 
 export const ANNOTATIONS_TO_IGNORE_PREFIX = [
-  'kubernetes.io/',
-  'beta.kubernetes.io/',
-  'node.alpha.kubernetes.io/',
-  'volumes.kubernetes.io/',
-  'k3s.io',
+  DESCRIPTION
 ]
 ;

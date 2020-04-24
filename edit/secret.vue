@@ -32,7 +32,7 @@ export default {
     RadioGroup,
     NameNsDescription,
     Tabbed,
-    Tab
+    Tab,
   },
 
   mixins:     [CreateEditView],
@@ -61,7 +61,6 @@ export default {
 
     return {
       types,
-      // type:             this.value._type,
       isNamespaced,
       registryAddresses,
       newNS:            false,
