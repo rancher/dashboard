@@ -4,14 +4,16 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceQuota from '@/edit/namespace/ResourceQuota';
 import Footer from '@/components/form/Footer';
-import LabelsAndAnnotationsEditor from '@/components/LabelsAndAnnotations/Editor';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { EXTERNAL } from '@/config/types';
 import { PROJECT } from '@/config/labels-annotations';
 
 export default {
   components: {
-    ResourceQuota, Footer, LabeledSelect, LabelsAndAnnotationsEditor, NameNsDescription
+    ResourceQuota,
+    Footer,
+    LabeledSelect,
+    NameNsDescription
   },
 
   mixins:     [CreateEditView],
@@ -69,7 +71,12 @@ export default {
 <template>
   <div>
     <form>
-      <NameNsDescription v-model="value" :namespaced="false" :mode="mode" :extra-columns="extraColumns">
+      <NameNsDescription
+        :value="value"
+        :namespaced="false"
+        :mode="mode"
+        :extra-columns="extraColumns"
+      >
         <template #project-col>
           <LabeledSelect v-model="project" label="Project" :options="projectOpts" />
         </template>
@@ -87,7 +94,31 @@ export default {
           :namespace="value"
         />
       </div>
-      <LabelsAndAnnotationsEditor :mode="mode" :labels.sync="value.metadata.labels" :annotations.sync="value.metadata.annotations" />
+
+      <Tabbed default-tab="labels">
+        <Tab name="labels" label="Labels">
+          <KeyValue
+            key="labels"
+            v-model="labels"
+            :mode="mode"
+            title="Labels"
+            :initial-empty-row="true"
+            :pad-left="false"
+            :read-allowed="false"
+          />
+        </Tab>
+        <Tab name="annotations" label="Annotations">
+          <KeyValue
+            key="annotations"
+            v-model="annotations"
+            :mode="mode"
+            title="Annotations"
+            :initial-empty-row="true"
+            :pad-left="false"
+            :read-allowed="false"
+          />
+        </Tab>
+      </Tabbed>
       <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
     </form>
   </div>

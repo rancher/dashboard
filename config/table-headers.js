@@ -201,7 +201,7 @@ export const P95 = {
 
 export const KEYS = {
   name:      'keys',
-  label:     'Detail',
+  label:     'Data',
   sort:      false,
   value:     'keysDisplay',
 };

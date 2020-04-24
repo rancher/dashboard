@@ -12,12 +12,6 @@ export default {
       type:    String,
       default: 'text',
     },
-    // if true, hide placeholder text until field is focused, then show until field has value
-    // If false, show placeholder text until field is focused
-    hidePlaceholder: {
-      type:    Boolean,
-      default: true
-    },
     mode: {
       type:    String,
       default: _EDIT
@@ -59,20 +53,12 @@ export default {
 
     onFocus() {
       this.onFocusLabeled();
-      if (this.hidePlaceholder) {
-        this.actualPlaceholder = `${ this.placeholder }`;
-      } else {
-        this.actualPlaceholder = '';
-      }
+      this.actualPlaceholder = '';
     },
 
     onBlur() {
       this.onBlurLabeled();
-      if (this.hidePlaceholder) {
-        this.actualPlaceholder = null;
-      } else {
-        this.actualPlaceholder = `${ this.placeholder }`;
-      }
+      this.actualPlaceholder = `${ this.placeholder }`;
     }
   }
 };

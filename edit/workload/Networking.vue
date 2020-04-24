@@ -165,6 +165,7 @@ export default {
           v-model="hostname"
           label="Hostname"
           :mode="mode"
+          placeholder="e.g. web"
           @input="update"
         />
       </div>

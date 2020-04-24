@@ -1,4 +1,3 @@
-
 <script>
 
 import { get, cleanUp } from '@/utils/object';
@@ -65,7 +64,12 @@ export default {
 <template>
   <form>
     <div class="row">
-      <NameNsDescription class="col span-12" :value="value" :mode="mode" :register-before-hook="registerBeforeHook" />
+      <NameNsDescription
+        :value="value"
+        class="col span-12"
+        :mode="mode"
+        :register-before-hook="registerBeforeHook"
+      />
     </div>
     <h2>Rules</h2>
     <div class="row">

@@ -83,7 +83,7 @@ export default {
     let spec = this.value.spec;
 
     if ( !spec ) {
-      spec = {};
+      spec = { replicas: 1 };
       this.value.spec = spec;
     }
 

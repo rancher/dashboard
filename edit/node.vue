@@ -34,8 +34,8 @@ export default {
 <template>
   <div class="node">
     <NameNsDescription
-      :namespaced="false"
       :value="value"
+      :namespaced="false"
       :mode="mode"
       name-label="Name"
     />

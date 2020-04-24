@@ -35,6 +35,14 @@ export default {
       type:    String,
       default: 'label'
     },
+    taggable: {
+      type:    Boolean,
+      default: false
+    },
+    createOption: {
+      type:    Function,
+      default: opt => opt
+    },
   },
   data() {
     return { selectedDisplay: 'block' };

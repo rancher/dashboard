@@ -218,7 +218,6 @@ export default {
         binary,
       });
       this.queueUpdate();
-
       this.$nextTick(() => {
         const inputs = this.$refs.key;
 
@@ -287,7 +286,6 @@ export default {
 
         return;
       }
-
       const out = {};
       const keyName = this.keyName;
       const valueName = this.valueName;

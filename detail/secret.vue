@@ -6,11 +6,14 @@ import DetailTop from '@/components/DetailTop';
 import SortableTable from '@/components/SortableTable';
 import { KEY, VALUE } from '@/config/table-headers';
 import { base64Decode } from '@/utils/crypto';
+import CreateEditView from '@/mixins/create-edit-view';
+
 export default {
   components: {
     DetailTop,
     SortableTable,
   },
+  mixins:     [CreateEditView],
   props:      {
     value: {
       type:    Object,
@@ -135,7 +138,7 @@ export default {
     </template>
     <template v-else>
       <div class="mt-20 mb-20">
-        <h4>Values</h4>
+        <h4>Data</h4>
         <SortableTable
           class="mt-20"
           :rows="dataRows"
@@ -147,5 +150,29 @@ export default {
         />
       </div>
     </template>
+    <Tabbed default-tab="labels">
+      <Tab name="labels" label="Labels">
+        <KeyValue
+          key="labels"
+          v-model="labels"
+          :mode="mode"
+          title="Labels"
+          :initial-empty-row="true"
+          :pad-left="false"
+          :read-allowed="false"
+        />
+      </Tab>
+      <Tab name="annotations" label="Annotations">
+        <KeyValue
+          key="annotations"
+          v-model="annotations"
+          :mode="mode"
+          title="Annotations"
+          :initial-empty-row="true"
+          :pad-left="false"
+          :read-allowed="false"
+        />
+      </Tab>
+    </Tabbed>
   </div>
 </template>

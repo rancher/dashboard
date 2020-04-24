@@ -156,8 +156,8 @@ export default {
     </div>
     <template v-else>
       <NameNsDescription
+        v-model="value"
         :namespaced="false"
-        :value="value"
         :mode="mode"
         name-label="Name"
       />
