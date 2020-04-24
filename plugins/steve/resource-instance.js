@@ -270,7 +270,7 @@ export default {
 
   waitForTestFn() {
     return (fn, msg, timeoutMs, intervalMs) => {
-      console.log(msg);
+      console.log(msg); // eslint-disable-line no-console
 
       if ( !timeoutMs ) {
         timeoutMs = DEFAULT_WAIT_TMIMEOUT;
@@ -283,12 +283,12 @@ export default {
       return new Promise((resolve, reject) => {
         // Do a first check immediately
         if ( fn.apply(this) ) {
-          console.log('Wait for', msg, 'done immediately');
+          console.log('Wait for', msg, 'done immediately'); // eslint-disable-line no-console
           resolve(this);
         }
 
         const timeout = setTimeout(() => {
-          console.log('Wait for', msg, 'timed out');
+          console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
           clearInterval(interval);
           clearTimeout(timeout);
           reject(new Error(`Failed while: ${ msg }`));
@@ -296,12 +296,12 @@ export default {
 
         const interval = setInterval(() => {
           if ( fn.apply(this) ) {
-            console.log('Wait for', msg, 'done');
+            console.log('Wait for', msg, 'done'); // eslint-disable-line no-console
             clearInterval(interval);
             clearTimeout(timeout);
             resolve(this);
           } else {
-            console.log('Wait for', msg, 'not done yet');
+            console.log('Wait for', msg, 'not done yet'); // eslint-disable-line no-console
           }
         }, intervalMs);
       });

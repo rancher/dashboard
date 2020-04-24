@@ -375,7 +375,7 @@ export default {
 
   saveWeight() {
     return async(neu) => {
-      console.log('Save Weight', this.spec.app, this.spec.version, neu);
+      console.log('Save Weight', this.spec.app, this.spec.version, neu); // eslint-disable-line no-console
       try {
         await this.patch([{
           op:    'replace',

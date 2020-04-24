@@ -48,7 +48,7 @@ export const actions = {
       protocol = 'base64.channel.k8s.io';
       url = `${ resource.links.view.replace('https', 'wss') }/pods/${ resource.metadata.name }/exec?container=${ currentContainer.name }`;
     }
-    console.log('socket url: ', url);
+    console.log('socket url: ', url); // eslint-disable-line no-console
     dispatch('openSocket', {
       url,
       resource,
@@ -68,14 +68,14 @@ export const actions = {
       decodeMsg(socket.protocol, e.data).then((message) => {
         commit('addBacklog', { log: message });
       })
-        .catch(err => console.error(err));
+        .catch(err => console.error(err)); // eslint-disable-line no-console
     };
     socket.onopen = () => {
       state.toSend.forEach(msg => socket.send(msg));
       commit('socketOpened', { socket, ...payload });
     };
     socket.onclose = (msg) => {
-      console.log('socket closed: ', msg);
+      console.log('socket closed: ', msg); // eslint-disable-line no-console
     };
   },
 };

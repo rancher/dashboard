@@ -81,7 +81,7 @@ export default {
     },
 
     dragStart(event) {
-      console.log('dragStart', event);
+      console.log('dragStart', event); // eslint-disable-line no-console
 
       const doc = document.documentElement;
 
@@ -96,7 +96,7 @@ export default {
       const rect = boundingRect(event.target);
       const offset = eventY - rect.top;
 
-      console.log(offset, eventY, rect);
+      console.log(offset, eventY, rect); // eslint-disable-line no-console
 
       this.dragOffset = offset;
     },
@@ -107,12 +107,12 @@ export default {
 
       const neu = rect.height - eventY - this.dragOffset;
 
-      console.log(rect.height, '-', eventY, '-', this.dragOffset, '=', neu);
+      console.log(rect.height, '-', eventY, '-', this.dragOffset, '=', neu); // eslint-disable-line no-console
       this.height = neu;
     },
 
     dragEnd(event) {
-      console.log('dragEnd', event);
+      console.log('dragEnd', event); // eslint-disable-line no-console
 
       const doc = document.documentElement;
 

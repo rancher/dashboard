@@ -318,7 +318,7 @@ export const actions = {
         try {
           val = JSON.parse(val);
         } catch (err) {
-          console.error('Error parsing server pref', key, val, err);
+          console.error('Error parsing server pref', key, val, err); // eslint-disable-line no-console
           continue;
         }
       }

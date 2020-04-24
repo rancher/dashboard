@@ -17,7 +17,7 @@ export function allHash(hash) {
 
 export function eachLimit(items, limit, iterator, debug = false) {
   if (debug) {
-    console.log('eachLimit of', items.length, ' items', limit, 'at a time');
+    console.log('eachLimit of', items.length, ' items', limit, 'at a time'); // eslint-disable-line no-console
   }
 
   return new Promise((resolve, reject) => {
@@ -34,7 +34,7 @@ export function eachLimit(items, limit, iterator, debug = false) {
 
     function process() {
       if (debug) {
-        console.log(`process, queue=${ queue.getLength() }, pending=${ pending }, failed=${ failed }`);
+        console.log(`process, queue=${ queue.getLength() }, pending=${ pending }, failed=${ failed }`); // eslint-disable-line no-console
       }
 
       if (failed) {
@@ -49,14 +49,14 @@ export function eachLimit(items, limit, iterator, debug = false) {
         const { item, idx } = queue.dequeue();
 
         if (debug) {
-          console.log('Running', item);
+          console.log('Running', item); // eslint-disable-line no-console
         }
 
         pending++;
 
         iterator(item, idx).then((res) => {
           if (debug) {
-            console.log('Done', item);
+            console.log('Done', item); // eslint-disable-line no-console
           }
 
           out[idx] = res;
@@ -65,7 +65,7 @@ export function eachLimit(items, limit, iterator, debug = false) {
           process();
         }).catch((err) => {
           if (debug) {
-            console.log('Failed', err, item);
+            console.log('Failed', err, item); // eslint-disable-line no-console
           }
 
           failed = true;

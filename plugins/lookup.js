@@ -30,6 +30,6 @@ export default (context) => {
     return context.store.dispatch(`${ namespace }/findAll`, { type: realType });
   };
 
-  console.log('# Welcome to warp zone');
-  console.log("# Try schemaFor('pod'), schemaName('pod'), all('pod'), byId('pod','abc'), await find('pod','abc'), await findAll('pod')");
+  console.log('# Welcome to warp zone'); // eslint-disable-line no-console
+  console.log("# Try schemaFor('pod'), schemaName('pod'), all('pod'), byId('pod','abc'), await find('pod','abc'), await findAll('pod')"); // eslint-disable-line no-console
 };

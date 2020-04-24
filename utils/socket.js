@@ -57,7 +57,7 @@ export default class Socket extends EventTarget {
 
   connect(metadata = {}) {
     if ( this.socket ) {
-      console.error('Socket refusing to connect while another socket exists');
+      console.error('Socket refusing to connect while another socket exists'); // eslint-disable-line no-console
 
       return;
     }
@@ -67,7 +67,7 @@ export default class Socket extends EventTarget {
     const url = this.url;
     const id = sockId++;
 
-    console.log(`Socket connecting (id=${ id }, url=${ `${ url.replace(/\?.*/, '') }...` })`);
+    console.log(`Socket connecting (id=${ id }, url=${ `${ url.replace(/\?.*/, '') }...` })`); // eslint-disable-line no-console
 
     const socket = new WebSocket(addParam(url, 'sockId', id));
 
@@ -209,7 +209,7 @@ export default class Socket extends EventTarget {
   }
 
   _closed() {
-    console.log(`Socket ${ this.closingId } closed`);
+    console.log(`Socket ${ this.closingId } closed`); // eslint-disable-line no-console
 
     this.closingId = 0;
     this.socket = null;
@@ -261,6 +261,6 @@ export default class Socket extends EventTarget {
 
     args.push(`(state=${ this.state }, id=${ this.socket ? this.socket.sockId : 0 })`);
 
-    console.log(args.join(' '));
+    console.log(args.join(' ')); // eslint-disable-line no-console
   }
 }

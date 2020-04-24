@@ -25,7 +25,7 @@ export default {
         try {
           await Promise.all(deps);
         } catch (e) {
-          console.log('Load Deps error:', e);
+          console.log('Load Deps error:', e); // eslint-disable-line no-console
         }
       }
 
