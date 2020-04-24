@@ -3,7 +3,6 @@ import cronstrue from 'cronstrue';
 import { CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE } from '@/config/types';
 import LoadDeps from '@/mixins/load-deps';
 import Tab from '@/components/Tabbed/Tab';
-import Tabbed from '@/components/Tabbed';
 import CreateEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -17,10 +16,10 @@ import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/edit/workload/Networking';
 import Footer from '@/components/form/Footer';
 import Job from '@/edit/workload/Job';
-import Labels from '@/components/form/Labels';
 import WorkloadPorts from '@/edit/workload/WorkloadPorts';
 import { defaultAsyncData } from '@/components/ResourceDetail.vue';
 import { _EDIT } from '@/config/query-params';
+import ResourceTabs from '@/components/form/ResourceTabs';
 
 const workloadTypeOptions = [
   { value: WORKLOAD_TYPES.DEPLOYMENT, label: 'Deployment' },
@@ -45,18 +44,17 @@ export default {
     NameNsDescription,
     LabeledSelect,
     LabeledInput,
-    Tabbed,
     Tab,
     HealthCheck,
     Command,
     Security,
     Scheduling,
     Upgrading,
-    Labels,
     Networking,
     Footer,
     Job,
     WorkloadPorts,
+    ResourceTabs
   },
 
   mixins:     [CreateEditView, LoadDeps],
@@ -308,42 +306,42 @@ export default {
         <WorkloadPorts v-model="containerPorts" :mode="mode" />
       </div>
     </slot>
-    <Tabbed :default-tab="isJob ? 'job' : 'command'">
-      <Tab v-if="isJob" label="Job Configuration" name="job">
-        <Job v-model="spec" :mode="mode" :type="type" />
-      </Tab>
-      <Tab label="Command" name="command">
-        <Command
-          v-if="allConfigMaps"
-          v-model="container"
-          :spec="container"
-          :secrets="allSecrets"
-          :config-maps="allConfigMaps"
-          :mode="mode"
-          :namespace="value.metadata.namespace"
-        />
-      </Tab>
-      <Tab label="Networking" name="networking">
-        <Networking v-model="podTemplateSpec" :mode="mode" />
-      </Tab>
-      <Tab label="Health" name="health">
-        <HealthCheck :spec="container" :mode="mode" />
-      </Tab>
-      <Tab label="Security" name="security">
-        <Security v-model="podTemplateSpec" :mode="mode" />
-      </Tab>
 
-      <Tab label="Node Scheduling" name="scheduling">
-        <Scheduling v-model="podTemplateSpec" :mode="mode" />
-      </Tab>
-      <Tab label="Scaling/Upgrade Policy" name="upgrading">
-        <Upgrading v-model="spec" :mode="mode" />
-      </Tab>
+    <ResourceTabs v-model="value" :default-tab="isJob ? 'job' : 'command'">
+      <template #before>
+        <Tab v-if="isJob" label="Job Configuration" name="job">
+          <Job v-model="spec" :mode="mode" :type="type" />
+        </Tab>
+        <Tab label="Command" name="command">
+          <Command
+            v-if="allConfigMaps"
+            v-model="container"
+            :spec="container"
+            :secrets="allSecrets"
+            :config-maps="allConfigMaps"
+            :mode="mode"
+            :namespace="value.metadata.namespace"
+          />
+        </Tab>
+        <Tab label="Networking" name="networking">
+          <Networking v-model="podTemplateSpec" :mode="mode" />
+        </Tab>
+        <Tab label="Health" name="health">
+          <HealthCheck :spec="container" :mode="mode" />
+        </Tab>
+        <Tab label="Security" name="security">
+          <Security v-model="podTemplateSpec" :mode="mode" />
+        </Tab>
 
-      <Tab label="Labels" name="labelsAndAnnotations">
-        <Labels :spec="value" :mode="mode" />
-      </Tab>
-    </Tabbed>
+        <Tab label="Node Scheduling" name="scheduling">
+          <Scheduling v-model="podTemplateSpec" :mode="mode" />
+        </Tab>
+        <Tab label="Scaling/Upgrade Policy" name="upgrading">
+          <Upgrading v-model="spec" :mode="mode" />
+        </Tab>
+      </template>
+    </ResourceTabs>
+
     <Footer v-if="mode!= 'view'" :errors="errors" :mode="mode" @save="saveWorkload" @done="done" />
   </form>
 </template>

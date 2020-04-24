@@ -9,8 +9,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import Tab from '@/components/Tabbed/Tab';
-import Tabbed from '@/components/Tabbed';
+import ResourceTabs from '@/components/form/ResourceTabs';
 
 const types = [
   { label: 'Certificate', value: TLS },
@@ -31,8 +30,7 @@ export default {
     LabeledSelect,
     RadioGroup,
     NameNsDescription,
-    Tabbed,
-    Tab,
+    ResourceTabs
   },
 
   mixins:     [CreateEditView],
@@ -230,30 +228,7 @@ export default {
       />
     </div>
 
-    <Tabbed default-tab="labels">
-      <Tab name="labels" label="Labels">
-        <KeyValue
-          key="labels"
-          v-model="labels"
-          :mode="mode"
-          title="Labels"
-          :initial-empty-row="true"
-          :pad-left="false"
-          :read-allowed="false"
-        />
-      </Tab>
-      <Tab name="annotations" label="Annotations">
-        <KeyValue
-          key="annotations"
-          v-model="annotations"
-          :mode="mode"
-          title="Annotations"
-          :initial-empty-row="true"
-          :pad-left="false"
-          :read-allowed="false"
-        />
-      </Tab>
-    </Tabbed>
+    <ResourceTabs v-model="value" />
 
     <input
       ref="uploader"

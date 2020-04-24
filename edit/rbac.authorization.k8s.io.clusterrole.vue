@@ -5,6 +5,7 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import Footer from '@/components/form/Footer';
 import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
+import ResourceTabs from '@/components/form/ResourceTabs';
 
 /**
  * Edit view for RBAC Cluster Role
@@ -19,6 +20,7 @@ export default {
     NameNsDescription,
     RadioGroup,
     RbacPermissions,
+    ResourceTabs
   },
 
   mixins:     [CreateEditView],
@@ -103,6 +105,7 @@ export default {
         />
       </div>
     </section>
+    <ResourceTabs v-model="value" />
 
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </form>

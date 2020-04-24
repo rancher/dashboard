@@ -7,13 +7,15 @@ import Footer from '@/components/form/Footer';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { EXTERNAL } from '@/config/types';
 import { PROJECT } from '@/config/labels-annotations';
+import ResourceTabs from '@/components/form/ResourceTabs';
 
 export default {
   components: {
     ResourceQuota,
     Footer,
     LabeledSelect,
-    NameNsDescription
+    NameNsDescription,
+    ResourceTabs
   },
 
   mixins:     [CreateEditView],
@@ -95,30 +97,8 @@ export default {
         />
       </div>
 
-      <Tabbed default-tab="labels">
-        <Tab name="labels" label="Labels">
-          <KeyValue
-            key="labels"
-            v-model="labels"
-            :mode="mode"
-            title="Labels"
-            :initial-empty-row="true"
-            :pad-left="false"
-            :read-allowed="false"
-          />
-        </Tab>
-        <Tab name="annotations" label="Annotations">
-          <KeyValue
-            key="annotations"
-            v-model="annotations"
-            :mode="mode"
-            title="Annotations"
-            :initial-empty-row="true"
-            :pad-left="false"
-            :read-allowed="false"
-          />
-        </Tab>
-      </Tabbed>
+      <ResourceTabs v-model="value" />
+
       <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
     </form>
   </div>
