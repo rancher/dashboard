@@ -106,7 +106,7 @@ export default {
         :mode="mode"
         :namespaced="false"
         :extra-columns="['template']"
->
+      >
         <template v-slot:template>
           <LabeledSelect
             :mode="mode"
