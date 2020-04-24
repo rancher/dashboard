@@ -11,7 +11,6 @@ import KeyValue from '@/components/form/KeyValue';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import NamespaceList, { NAMESPACE_FILTERS } from '@/components/form/NamespaceList';
 import Tab from '@/components/Tabbed/Tab';
-import Tabbed from '@/components/Tabbed';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import Footer from '@/components/form/Footer';
 import GatekeeperViolationsTable from '@/components/GatekeeperViolationsTable';
