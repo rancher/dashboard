@@ -33,7 +33,7 @@ export default {
       const valuePercentage = Math.round(this.value / this.ticks) * this.ticks / 100;
 
       if (valuePercentage < barPercentage) {
-        return 'bg-darker';
+        return 'bg-muted';
       }
 
       if (barPercentage <= 0.6) {
