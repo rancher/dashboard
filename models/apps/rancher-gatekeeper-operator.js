@@ -5,28 +5,24 @@ import { downloadFile } from '@/utils/download';
 
 export default {
   availableActions() {
-    let out = this._availableActions;
-    const downloadAction = {
-      action:     'download',
-      label:      'Download YAML',
-      icon:       'icon icon-fw icon-download',
-      bulkable:   false,
-      enabled:    true
-    };
-
     const toFilter = ['cloneYaml'];
+    let out = this._availableActions;
+    const downloadAction = out.find(a => a?.action === 'download');
+    const removeMatch = out.find(a => a.action === 'promptRemove');
+
+    if (downloadAction) {
+      downloadAction.enabled = true;
+    }
+
+    if (removeMatch) {
+      removeMatch.label = 'Disable';
+    }
 
     out = out.filter((action) => {
       if (!toFilter.includes(action.action)) {
         return action;
       }
     });
-
-    const removeMatch = out.find(a => a.action === 'promptRemove');
-
-    if (removeMatch) {
-      removeMatch.label = 'Disable';
-    }
 
     return [
       {
@@ -38,7 +34,6 @@ export default {
         label:   'Add Template',
       },
       ...out,
-      downloadAction,
     ];
   },
 
