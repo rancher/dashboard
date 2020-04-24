@@ -94,8 +94,8 @@ export default {
       grid-template-areas: "label count";
       grid-template-columns: auto auto;
       grid-column-gap: 5px;
-      font-size: 12px;
-      padding: 7px 5px;
+      font-size: 13px;
+      padding: 7.5px 5px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

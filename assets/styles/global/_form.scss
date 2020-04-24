@@ -16,9 +16,9 @@ TEXTAREA,
   box-sizing: border-box;
   width: 100%;
   padding: 10px;
-  font-size: 12px;
+  font-size: 14px;
   background-color: var(--input-bg);
-  border-radius: var(--border-radius);
+  border-radius: calc(var(--border-radius) * 2);
   border: solid $outline-width var(--input-border);
   color: var(--input-text);
 
@@ -28,15 +28,6 @@ TEXTAREA,
     &:hover {
       background: var(--input-hover-bg);
     }
-
-    // input[type='number'] {
-    //   padding: 5px 5px 0 0;
-    //   line-height: 1.15rem;
-    //   &:hover {
-    //     padding: 5px 5px 0 0;
-    //     line-height: 1.15rem;
-    //   }
-    // }
   }
 
   &.view {
@@ -162,115 +153,6 @@ INPUT.inline-input {
     font-size: 12px;
     // color: rgba(255,255,255,.6);
 }
-
-// Styling Checkbox Starts
-/*
-.checkbox,
-.radio {
-    position: relative;
-    margin: auto;
-    cursor: pointer;
-    font-size: 22px;
-    clear: both;
-    display: inline-block;
-    width: 100%;
-
-  > * {
-    float: left;
-  }
-}
-
-.checkbox input,
-.radio input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.checkbox .checkbox-custom,
-.radio .checkbox-custom{
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    height: 14px;
-    width: 14px;
-    background-color: transparent;
-    border-radius: 3px;
-  	transition: all 0.3s ease-out;
-    border: 1px solid var(--secondary);
-}
-
-
-.checkbox input:checked ~ .checkbox-custom,
-.radio input:checked ~ .checkbox-custom{
-    background-color: var(--lightest);
-    border-radius: 5px;
-    transform: rotate(0deg) scale(1);
-    opacity:1;
-    border: 2px solid var(--lightest);
-}
-
-
-.checkbox .checkbox-custom::after,
-.radio .checkbox-custom::after{
-    position: absolute;
-    content: "";
-    left: 6px;
-    top: 6px;
-    height: 0px;
-    width: 0px;
-    border-radius: 5px;
-    border: solid #009BFF;
-    border-width: 0 3px 3px 0;
-    transform: rotate(0deg) scale(0);
-    opacity:1;
-  	transition: all 0.3s ease-out;
-}
-
-
-.checkbox input:checked ~ .checkbox-custom::after,
-.radio input:checked ~ .checkbox-custom::after{
-  transform: rotate(45deg) scale(1);
-  opacity:1;
-  left: 4px;
-  top: 3px;
-  width: 3px;
-  height: 6px;
-  border: solid #009BFF;
-  border-width: 0 2px 2px 0;
-  background-color: transparent;
-  border-radius: 0;
-}
-
-
-// Style for Radio
-.radio .checkbox-custom.circular {
-    border-radius: 50%;
-    border: 1.5px solid #FFFFFF;
-}
-
-.radio input:checked ~ .checkbox-custom.circular {
-    background-color: #FFFFFF;
-    border-radius: 50%;
-    border: 1.5px solid #FFFFFF;
-}
-.radio input:checked ~ .checkbox-custom.circular::after {
-    border: solid #0067FF;
-    border-width: 0 1.5px 1.5px 0;
-}
-.radio .checkbox-custom.circular::after {
-    border-radius: 50%;
-}
-
-.radio .checkbox-custom.circular::before {
-    border-radius: 50%;
-    border: 1.5px solid #FFFFFF;
-}
-
-.radio input:checked ~ .checkbox-custom.circular::before {
-    border-radius: 50%;
-}
-*/
 
 .fixed select, .fixed.v-select, .fixed input:not(.vs__search){
   height: 50px;
