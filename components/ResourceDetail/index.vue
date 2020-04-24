@@ -8,6 +8,7 @@ import {
 } from '@/config/query-params';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
+import Masthead from '@/components/ResourceDetail/Masthead';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.
@@ -51,6 +52,7 @@ function realModeFor(query, id) {
 // e.g. for workload to create a deployment
 export async function defaultAsyncData(ctx, resource) {
   const { store, params, route } = ctx;
+
   // eslint-disable-next-line prefer-const
   let { namespace, id } = params;
 
@@ -65,7 +67,7 @@ export async function defaultAsyncData(ctx, resource) {
 
   const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
-  const asYaml = (route.query[AS_YAML] === _FLAGGED) || (realMode === _VIEW && !hasCustomDetail) || (realMode !== _VIEW && !hasCustomEdit);
+  const asYamlInit = (route.query[AS_YAML] === _FLAGGED) || (realMode === _VIEW && !hasCustomDetail) || (realMode !== _VIEW && !hasCustomEdit);
   const schema = store.getters['cluster/schemaFor'](resource);
 
   let originalModel, model, yaml;
@@ -86,9 +88,7 @@ export async function defaultAsyncData(ctx, resource) {
     originalModel = await store.dispatch('cluster/create', data);
     model = await store.dispatch('cluster/clone', { resource: originalModel });
 
-    if ( asYaml ) {
-      yaml = createYaml(schemas, resource, data);
-    }
+    yaml = createYaml(schemas, resource, data);
   } else {
     let fqid = id;
 
@@ -107,11 +107,9 @@ export async function defaultAsyncData(ctx, resource) {
       model.applyDefaults(ctx, realMode);
     }
 
-    if ( asYaml ) {
-      const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
+    const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
 
-      yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
-    }
+    yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
   }
 
   let mode = realMode;
@@ -128,11 +126,12 @@ export async function defaultAsyncData(ctx, resource) {
     hasCustomEdit,
     resource,
     model,
-    asYaml,
+    asYamlInit,
     yaml,
     originalModel,
     mode,
-    realMode
+    realMode,
+    route
   };
   /*******
    * Important: these need to be declared below as props too if you want to use them
@@ -144,7 +143,7 @@ export async function defaultAsyncData(ctx, resource) {
 export const watchQuery = [MODE, AS_YAML];
 
 export default {
-  components: { ResourceYaml },
+  components: { ResourceYaml, Masthead },
   mixins:     { CreateEditView },
 
   props: {
@@ -164,7 +163,7 @@ export default {
       type:    Object,
       default: null,
     },
-    asYaml: {
+    asYamlInit: {
       type:    Boolean,
       default: null,
     },
@@ -183,6 +182,12 @@ export default {
     realMode: {
       type:    String,
       default: null
+    },
+    route: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -199,7 +204,11 @@ export default {
       });
     }
 
+    // asYamlInit is taken from route query and passed as prop from _id page; asYaml is saved in local data to be manipulated by Masthead
+    const asYaml = this.asYamlInit;
+
     return {
+      asYaml,
       isCustomYamlEditor:      false,
       currentValue:            this.value,
       detailComponent:         this.$store.getters['type-map/importDetail'](this.resource),
@@ -210,9 +219,6 @@ export default {
   },
 
   computed: {
-    schema() {
-      return this.$store.getters['cluster/schemaFor']( this.model.type );
-    },
 
     isView() {
       return this.mode === _VIEW;
@@ -251,44 +257,20 @@ export default {
 
       return null;
     },
-
-    h1() {
-      const typeLink = this.$router.resolve({
-        name:   this.doneRoute,
-        params: this.$route.params
-      }).href;
-
-      const out = this.$store.getters['i18n/t'](`resourceDetail.header.${ this.realMode }`, {
-        typeLink,
-        type: this.$store.getters['type-map/singularLabelFor'](this.schema),
-        name: this.originalModel?.nameDisplay,
-      });
-
-      return out;
-    },
-  },
-
-  methods: {
-    showActions() {
-      this.$store.commit('action-menu/show', {
-        resources: this.originalModel,
-        elem:      this.$refs.actions,
-      });
-    },
   }
 };
 </script>
 
 <template>
   <div>
-    <header>
-      <h1 v-html="h1" />
-      <div v-if="isView" class="actions">
-        <button ref="actions" aria-haspopup="true" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
-          <i class="icon icon-actions" />
-        </button>
-      </div>
-    </header>
+    <Masthead
+      :value="originalModel"
+      :mode="mode"
+      :done-route="doneRoute"
+      :real-mode="realMode"
+      :as-yaml.sync="asYaml"
+      :has-detail="hasCustomDetail"
+    />
     <template v-if="asYaml">
       <ResourceYaml
         :model="model"
@@ -353,31 +335,6 @@ export default {
 
     & .faded {
       opacity: 0.5
-    }
-  }
-  .detail-top{
-    display: flex;
-    flex-wrap: wrap;
-    background: var(--box-bg);
-    border: solid thin var(--border);
-    border-radius: var(--border-radius);
-
-    & > * {
-      margin-right: 20px;
-      padding: 10px 0 10px 0;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-
-      &:not(:last-child){
-      border-right: 1px solid var(--border);
-      }
-
-      & >:not(:first-child){
-        color: var(--input-label);
-        padding: 3px;
-      }
     }
   }
 </style>
