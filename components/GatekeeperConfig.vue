@@ -136,7 +136,6 @@ export default {
         const meta = gatekeeper?.metadata;
 
         // this doesn't seeem right but the only way I can see to check that it was removed before the object goes away
-        // TODO - perhaps the way to solve this is to fall into this branch, then watch the namespace for delete?
         if (meta && Object.prototype.hasOwnProperty.call(meta, 'deletionTimestamp')) {
           this.gatekeeperEnabled = false;
           this.$emit('gatekeeperEnabled', this.gatekeeperEnabled);
@@ -434,6 +433,10 @@ export default {
         @onChanges="onChanges"
       />
       <Footer
+        create-action-label="Enable"
+        create-waiting-label="Enabling"
+        create-success-label="Enabled"
+        create-error-label="Error enabling"
         :mode="mode"
         @errors="errors"
         @save="enable"

@@ -14,7 +14,47 @@ export default {
     errors: {
       type:    Array,
       default: null,
-    }
+    },
+
+    createActionLabel: {
+      type:    String,
+      default: null,
+    },
+
+    createWaitingLabel: {
+      type:    String,
+      default: null,
+    },
+
+    createSuccessLabel: {
+      type:    String,
+      default: null,
+    },
+
+    createErrorLabel: {
+      type:    String,
+      default: null,
+    },
+
+    editActionLabel: {
+      type:    String,
+      default: null,
+    },
+
+    editWaitingLabel: {
+      type:    String,
+      default: null,
+    },
+
+    editSuccessLabel: {
+      type:    String,
+      default: null,
+    },
+
+    editErrorLabel: {
+      type:    String,
+      default: null,
+    },
   },
 
   computed: {
@@ -60,8 +100,26 @@ export default {
       </slot>
       <slot name="middle" />
       <slot name="save">
-        <AsyncButton v-if="isEdit" key="edit" mode="edit" @click="save" />
-        <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
+        <AsyncButton
+          v-if="isEdit"
+          key="edit"
+          mode="edit"
+          :action-label="editActionLabel"
+          :error-label="editErrorLabel"
+          :success-label="editSuccessLabel"
+          :waiting-label="editWaitingLabel"
+          @click="save"
+        />
+        <AsyncButton
+          v-if="isCreate"
+          key="create"
+          mode="create"
+          :action-label="createActionLabel"
+          :error-label="createErrorLabel"
+          :success-label="createSuccessLabel"
+          :waiting-label="createWaitingLabel"
+          @click="save"
+        />
       </slot>
       <slot name="right" />
     </div>
