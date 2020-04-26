@@ -3,16 +3,12 @@ import { get } from '../utils/object';
 import { VALUE } from '../config/table-headers';
 import createEditView from '@/mixins/create-edit-view';
 import DetailTop from '@/components/DetailTop';
-import Tabbed from '@/components/Tabbed';
-import Tab from '@/components/Tabbed/Tab';
-import SortableTable from '@/components/SortableTable';
+import ResourceTabs from '@/components/form/ResourceTabs';
 
 export default {
   components: {
     DetailTop,
-    Tabbed,
-    Tab,
-    SortableTable
+    ResourceTabs
   },
   mixins:     [createEditView],
   computed:   {
@@ -94,13 +90,6 @@ export default {
       </template>
     </DetailTop>
 
-    <Tabbed default-tab="labels">
-      <Tab label="Labels" name="labels">
-        <SortableTable :rows="labels" :headers="KVHeaders" key-field="value" :search="false" :table-actions="false" />
-      </Tab>
-      <Tab label="Annotations" name="annotations">
-        <SortableTable :rows="annotations" :headers="KVHeaders" key-field="value" :search="false" :table-actions="false" />
-      </Tab>
-    </Tabbed>
+    <ResourceTabs v-model="value" />
   </div>
 </template>
