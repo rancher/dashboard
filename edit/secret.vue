@@ -54,7 +54,7 @@ export default {
     }
 
     if (!this.value._type) {
-      this.value._type = OPAQUE;
+      this.$set(this.value, '_type', OPAQUE);
     }
 
     return {
@@ -72,7 +72,6 @@ export default {
     };
   },
   computed: {
-
     dockerconfigjson() {
       let dockerServer = this.registryProvider === 'DockerHub' ? 'index.dockerhub.io/v1/' : 'quay.io';
 
@@ -177,7 +176,7 @@ export default {
           label="Type"
           :options="types"
           :mode="mode"
-          :disabled="mode!=='create'"
+          :disabled="isView"
           taggable
         />
       </template>
