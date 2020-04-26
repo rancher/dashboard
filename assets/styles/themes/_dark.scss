@@ -80,9 +80,10 @@
   --input-placeholder          : #{$disabled};
   --input-border               : var(--border);
   --input-bg                   : #{$dark};
+  --input-hover-bg             : var(--body-bg);
   --input-focus-bg             : #{$darkest};
   --input-disabled-text        : #{$medium};
-  --input-disabled-bg          : #{$disabled};
+  --input-disabled-bg          : #{$dark};
   --input-disabled-border      : #{$disabled};
   --input-disabled-placeholder : darken($disabled, 10%);
   --input-addon-bg             : #{$darker};

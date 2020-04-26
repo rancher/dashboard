@@ -2,7 +2,7 @@
 import Vue from 'vue';
 import { merge } from 'lodash';
 import jsyaml from 'js-yaml';
-import { _VIEW } from '../config/query-params';
+import { _VIEW, _CREATE } from '../config/query-params';
 import { SCHEMA, NAMESPACE } from '@/config/types';
 import MatchKinds from '@/components/form/MatchKinds';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -96,6 +96,9 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+    isCreate() {
+      return this.mode === _CREATE;
+    },
     editorMode() {
       return this.mode === _VIEW
         ? EDITOR_MODES.VIEW_CODE
@@ -124,6 +127,9 @@ export default {
           }
         }
       };
+    },
+    isTemplateSelectorDisabled() {
+      return !this.isCreate;
     }
   },
 
@@ -196,6 +202,7 @@ export default {
             :mode="mode"
             :value="value.type"
             :options="templateOptions"
+            :disabled="isTemplateSelectorDisabled"
             label="Template"
             @input="updateType"
           />
