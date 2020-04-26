@@ -867,7 +867,7 @@ export const mutations = {
 
 export const actions = {
   addFavorite({ dispatch, rootGetters }, type) {
-    console.log('addFavorite', type);
+    console.log('addFavorite', type); // eslint-disable-line no-console
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
     addObject(types, type);
@@ -876,7 +876,7 @@ export const actions = {
   },
 
   removeFavorite({ dispatch, rootGetters }, type) {
-    console.log('removeFavorite', type);
+    console.log('removeFavorite', type); // eslint-disable-line no-console
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
     removeObject(types, type);

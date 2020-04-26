@@ -97,7 +97,7 @@ export default {
     const { getters, commit, dispatch } = ctx;
 
     opt = opt || {};
-    console.log('Find All', type);
+    console.log('Find All', type); // eslint-disable-line no-console
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -146,7 +146,7 @@ export default {
 
     type = normalizeType(type);
 
-    console.log('Find', type, id);
+    console.log('Find', type, id); // eslint-disable-line no-console
     let out;
 
     if ( opt.force !== true ) {

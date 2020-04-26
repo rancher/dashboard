@@ -104,7 +104,7 @@ export default {
         projects
       };
     } catch (e) {
-      console.error(e);
+      console.error(e); // eslint-disable-line no-console
 
       return {
         gateKeeperUnavailable: true,
@@ -147,7 +147,7 @@ export default {
           this.gatekeeper = newApp;
           this.mode = _CREATE;
         } catch (err) {
-          console.error('could not create new gatekeeper app', err);
+          console.error('could not create new gatekeeper app', err); // eslint-disable-line no-console
         }
       }
     },

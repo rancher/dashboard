@@ -183,7 +183,7 @@ export default {
             return constraint;
           });
       } catch (err) {
-        console.error(`Failed to fetch constraints:`, err);
+        console.error(`Failed to fetch constraints:`, err); // eslint-disable-line no-console
 
         return [];
       }
@@ -198,7 +198,7 @@ export default {
 
           return resources;
         } catch (err) {
-          console.error(`Failed fetching cluster resource ${ type } with error:`, err);
+          console.error(`Failed fetching cluster resource ${ type } with error:`, err); // eslint-disable-line no-console
 
           return [];
         }
@@ -216,7 +216,7 @@ export default {
         this.nodeMetrics = metrics;
         this.pollingTimeoutId = setTimeout(this.pollMetrics, 30000);
       } catch (err) {
-        console.error(`Error polling metrics`, err);
+        console.error(`Error polling metrics`, err); // eslint-disable-line no-console
 
         if (errCount < 3) {
           this.pollingErrorCount = errCount++;

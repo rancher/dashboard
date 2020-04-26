@@ -154,33 +154,33 @@ export const getters = {
     }
 
     out = rootGetters['prefs/get'](LAST_NAMESPACE);
-    console.log('1', out, isAll, all);
+    console.log('1', out, isAll, all); // eslint-disable-line no-console
     if ( isOk() ) {
-      console.log('2', out);
+      console.log('2', out); // eslint-disable-line no-console
 
       return out;
     }
 
     out = 'default';
-    console.log('3', out);
+    console.log('3', out); // eslint-disable-line no-console
     if ( isOk() ) {
-      console.log('4', out);
+      console.log('4', out); // eslint-disable-line no-console
 
       return out;
     }
 
     if ( !isAll ) {
-      console.log('5', out);
+      console.log('5', out); // eslint-disable-line no-console
       const keys = Object.keys(filteredMap);
 
       if ( keys.length ) {
-        console.log('6', keys[0]);
+        console.log('6', keys[0]); // eslint-disable-line no-console
 
         return keys[0];
       }
     }
 
-    console.log('7', all[0]);
+    console.log('7', all[0]); // eslint-disable-line no-console
 
     return all[0] || 'default';
   }
@@ -211,7 +211,7 @@ export const mutations = {
   setError(state, obj) {
     const err = new ApiError(obj);
 
-    console.log('Loading error', err);
+    console.log('Loading error', err); // eslint-disable-line no-console
 
     state.error = err;
     state.cameFromError = true;
@@ -231,7 +231,7 @@ export const actions = {
       return;
     }
 
-    console.log('Loading management...');
+    console.log('Loading management...'); // eslint-disable-line no-console
 
     try {
       await dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: 'principals' } });
@@ -257,7 +257,7 @@ export const actions = {
 
     commit('managementChanged', { ready: true, isRancher });
 
-    console.log('Done loading management.');
+    console.log('Done loading management.'); // eslint-disable-line no-console
   },
 
   async loadCluster({
@@ -291,7 +291,7 @@ export const actions = {
       return;
     }
 
-    console.log(`Loading ${ isRancher ? 'Rancher ' : '' }cluster...`);
+    console.log(`Loading ${ isRancher ? 'Rancher ' : '' }cluster...`); // eslint-disable-line no-console
 
     if ( isRancher ) {
       // See if it really exists
@@ -370,7 +370,7 @@ export const actions = {
 
     commit('clusterChanged', true);
 
-    console.log('Done loading cluster.');
+    console.log('Done loading cluster.'); // eslint-disable-line no-console
   },
 
   switchNamespaces({ commit, dispatch }, val) {

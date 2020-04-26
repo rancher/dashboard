@@ -64,7 +64,7 @@ export default {
         await pod.save({ url });
         await pod.waitForCondition('Ready', 'True');
       } catch (err) {
-        console.error(err);
+        console.error(err); // eslint-disable-line no-console
       } finally {
         // eslint-disable-next-line no-unsafe-finally
         return this.findPod();

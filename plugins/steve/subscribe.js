@@ -95,13 +95,13 @@ export const actions = {
   },
 
   async opened({ commit, dispatch, state }, event) {
-    console.log('WebSocket Opened');
+    console.log('WebSocket Opened'); // eslint-disable-line no-console
     const socket = event.currentTarget;
 
     this.$socket = socket;
 
     if ( socket.hasReconnected ) {
-      console.log('Reconnect, re-watching types');
+      console.log('Reconnect, re-watching types'); // eslint-disable-line no-console
       await dispatch('watchHaveAllTypes');
     }
 
@@ -115,11 +115,11 @@ export const actions = {
   },
 
   closed({ commit }, event) {
-    console.log('WebSocket Closed');
+    console.log('WebSocket Closed'); // eslint-disable-line no-console
   },
 
   error({ commit }, event) {
-    console.log('WebSocket Error', event);
+    console.log('WebSocket Error', event); // eslint-disable-line no-console
   },
 
   send({ state, commit }, obj) {
@@ -141,12 +141,12 @@ export const actions = {
   },
 
   'ws.resource.start'({ commit }, msg) {
-    console.log('Resource start:', msg.resourceType);
+    console.log('Resource start:', msg.resourceType); // eslint-disable-line no-console
     commit('setWatchStarted', msg.resourceType);
   },
 
   'ws.resource.error'({ commit }, msg) {
-    console.log('Resource error for', msg.resourceType, ':', msg.data.error);
+    console.log('Resource error for', msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
     const err = msg.data?.error?.toLowerCase();
 
     if ( err.includes('watch not allowed') ) {
@@ -159,7 +159,7 @@ export const actions = {
   'ws.resource.stop'({ getters, commit, dispatch }, msg) {
     const type = msg.resourceType;
 
-    console.log('Resource stop:', type);
+    console.log('Resource stop:', type); // eslint-disable-line no-console
 
     if ( getters['schemaFor'](type) && getters['watchStarted'](type) ) {
       // Try reconnecting once

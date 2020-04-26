@@ -90,7 +90,7 @@ export default {
   methods: {
     animateLine(ref) {
       if (this.interval !== 0) {
-        console.log('animating...');
+        console.log('animating...'); // eslint-disable-line no-console
         // calculate px distance to move line
         const distance = this.scaleX([0, 10], 0);
 

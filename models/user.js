@@ -20,7 +20,7 @@ export default {
 
   deactivate() {
     return async() => {
-      console.log('Deactivate user ', this.name);
+      console.log('Deactivate user ', this.name); // eslint-disable-line no-console
       const url = get(this, 'links.self');
 
       const data = clone(this);

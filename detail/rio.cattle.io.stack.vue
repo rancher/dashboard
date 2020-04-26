@@ -83,7 +83,7 @@ export default {
           this.depSchemas.push(schema);
           deps.push(this.$store.dispatch('cluster/findAll', { type: schema.id }));
         } else {
-          console.error('Unable to find schema for additional GVK', entry);
+          console.error('Unable to find schema for additional GVK', entry); // eslint-disable-line no-console
         }
       }
 

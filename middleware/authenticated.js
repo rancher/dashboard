@@ -55,7 +55,7 @@ export default async function({
         if ( status === 401 ) {
           redirect(302, '/auth/login');
         } else {
-          console.log(JSON.stringify(e));
+          console.log(JSON.stringify(e)); // eslint-disable-line no-console
         }
       }
     }
@@ -117,7 +117,7 @@ async function tryInitialSetup(store, password, isDev) {
 
     return res === true;
   } catch (e) {
-    console.log(e);
+    console.log(e); // eslint-disable-line no-console
 
     return false;
   }

@@ -59,7 +59,7 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt) {
     positionY = AUTO, // Preferred vertical position
   } = opt || {};
 
-  console.log(positionX, positionY);
+  console.log(positionX, positionY); // eslint-disable-line no-console
 
   const {
     fudgeX = 0,
@@ -156,7 +156,7 @@ export function fitOnScreen(contentElem, triggerElemOrEvent, opt) {
     break;
   }
 
-  console.log(positionX, positionY, style);
+  console.log(positionX, positionY, style); // eslint-disable-line no-console
 
   return style;
 }

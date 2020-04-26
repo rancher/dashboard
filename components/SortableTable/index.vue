@@ -308,7 +308,7 @@ export default {
           try {
             return jsonpath.query(row, expr)[0];
           } catch (e) {
-            console.log('JSON Path error', e);
+            console.log('JSON Path error', e); // eslint-disable-line no-console
 
             return '(JSON Path err)';
           }

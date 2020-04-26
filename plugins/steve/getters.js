@@ -10,7 +10,7 @@ export default {
     if ( !getters.typeRegistered(type) ) {
       // Yes this is mutating state in a getter... it's not the end of the world..
       // throw new Error(`All of ${ type } is not loaded`);
-      console.warn(`All of ${ type } is not loaded yet`);
+      console.warn(`All of ${ type } is not loaded yet`); // eslint-disable-line no-console
       mutations.registerType(state, type);
     }
 

@@ -291,7 +291,7 @@ export default {
     async setAuthorized(buttonCb) {
       try {
         window.z = this.githubConfig;
-        console.log(this.githubConfig);
+        console.log(this.githubConfig); // eslint-disable-line no-console
         await this.githubConfig.save();
         buttonCb(true);
         this.done();

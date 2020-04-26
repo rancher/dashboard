@@ -38,21 +38,21 @@ if ( resourceBase && !resourceBase.endsWith('/') ) {
   resourceBase += '/';
 }
 
-console.log(`Build: ${ dev ? 'Development' : 'Production' }`);
+console.log(`Build: ${ dev ? 'Development' : 'Production' }`); // eslint-disable-line no-console
 
 if ( resourceBase ) {
-  console.log(`Resource Base URL: ${ resourceBase }`);
+  console.log(`Resource Base URL: ${ resourceBase }`); // eslint-disable-line no-console
 }
 
 if ( routerBasePath !== '/' ) {
-  console.log(`Router Base Path: ${ routerBasePath }`);
+  console.log(`Router Base Path: ${ routerBasePath }`); // eslint-disable-line no-console
 }
 
 if ( pl !== STANDARD ) {
-  console.log(`PL: ${ pl }`);
+  console.log(`PL: ${ pl }`); // eslint-disable-line no-console
 }
 
-console.log(`API: ${ api }`);
+console.log(`API: ${ api }`); // eslint-disable-line no-console
 
 module.exports = {
   dev,
@@ -257,12 +257,12 @@ function onProxyReqWs(proxyReq, req, socket, options, head) {
   // console.log(proxyReq.getHeaders());
 
   socket.on('error', (err) => {
-    console.error('Proxy WS Error:', err);
+    console.error('Proxy WS Error:', err); // eslint-disable-line no-console
   });
 }
 
 function onError(err, req, res) {
   res.statusCode = 500;
-  console.error('Proxy Error:', err);
+  console.error('Proxy Error:', err); // eslint-disable-line no-console
   res.write(JSON.stringify(err));
 }

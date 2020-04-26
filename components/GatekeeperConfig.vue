@@ -113,7 +113,7 @@ export default {
 
         return values;
       } catch (e) {
-        console.error('Unable to parse valuesYaml', str, e);
+        console.error('Unable to parse valuesYaml', str, e); // eslint-disable-line no-console
       }
 
       return null;
