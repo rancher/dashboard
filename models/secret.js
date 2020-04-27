@@ -13,13 +13,13 @@ export const ISTIO_TLS = 'istio.io/key-and-cert';
 const DISPLAY_TYPES = {
   [OPAQUE]:       'Opaque',
   [SERVICE_ACCT]: 'Service Acct Token',
-  [DOCKER]:       'Dockercfg',
-  [DOCKER_JSON]:  'Docker JSON',
+  [DOCKER]:       'Registry',
+  [DOCKER_JSON]:  'Registry',
   [BASIC]:        'Basic Auth',
   [SSH]:          'SSH',
-  [TLS]:          'TLS',
+  [TLS]:          'Certificate',
   [BOOTSTRAP]:    'Bootstrap Token',
-  [ISTIO_TLS]:    'TLS (Istio)',
+  [ISTIO_TLS]:    'Certificate (Istio)',
 };
 
 export default {
