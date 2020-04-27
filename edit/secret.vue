@@ -183,8 +183,9 @@ export default {
     </NameNsDescription>
 
     <template v-if="isRegistry">
+      <h5>Address:</h5>
       <div id="registry-type" class="row">
-        <span> Provider: </span> &nbsp; <RadioGroup :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
+         <RadioGroup :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row">
         <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" :mode="mode" />
@@ -241,11 +242,11 @@ export default {
 </template>
 
 <style lang='scss'>
-#registry-type {
-  display: flex;
-  align-items:center;
-  & > div {
-    display: flex;
-  }
-}
+// #registry-type {
+//   display: flex;
+//   align-items:center;
+//   & > div {
+//     display: flex;
+//   }
+// }
 </style>
