@@ -227,7 +227,7 @@ export default {
       />
     </div>
 
-    <ResourceTabs v-model="value" />
+    <ResourceTabs v-model="value" :mode="mode" />
 
     <input
       ref="uploader"

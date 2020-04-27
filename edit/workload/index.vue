@@ -307,7 +307,7 @@ export default {
       </div>
     </slot>
 
-    <ResourceTabs v-model="value" :default-tab="isJob ? 'job' : 'command'">
+    <ResourceTabs v-model="value" :mode="mode" :default-tab="isJob ? 'job' : 'command'">
       <template #before>
         <Tab v-if="isJob" label="Job Configuration" name="job">
           <Job v-model="spec" :mode="mode" :type="type" />

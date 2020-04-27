@@ -112,6 +112,6 @@ export default {
     <div class="row mt-50">
       <TableRbacRules :role="value" />
     </div>
-    <ResourceTabs v-model="value" />
+    <ResourceTabs v-model="value" :mode="mode" />
   </VStack>
 </template>

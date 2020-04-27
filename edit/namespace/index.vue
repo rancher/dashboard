@@ -97,7 +97,7 @@ export default {
         />
       </div>
 
-      <ResourceTabs v-model="value" />
+      <ResourceTabs v-model="value" :mode="mode" />
 
       <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
     </form>
