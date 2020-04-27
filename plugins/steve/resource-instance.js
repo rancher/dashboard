@@ -404,7 +404,6 @@ export default {
     const canCreate = (this.schema?.attributes?.verbs || []).includes('create') && this.$rootGetters['type-map/isCreatable'](this.type);
     const canUpdate = !!links.update && this.$rootGetters['type-map/isEditable'](this.type);
     const canViewInApi = this.$rootGetters['prefs/get'](DEV);
-    const canDelete = !!links.remove;
     const hasYaml = this.hasLink('rioview') || this.hasLink('view');
 
     const all = [
@@ -454,7 +453,7 @@ export default {
         label:      'Delete',
         icon:       'icon icon-fw icon-trash',
         bulkable:   true,
-        enabled:    canDelete,
+        enabled:    this.canDelete,
         bulkAction: 'promptRemove',
       },
       { divider: true },
@@ -477,6 +476,12 @@ export default {
 
       return val;
     };
+  },
+
+  // ------------------------------------------------------------------
+
+  canDelete() {
+    return this.hasLink('remove');
   },
 
   // ------------------------------------------------------------------

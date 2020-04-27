@@ -43,4 +43,8 @@ export default {
       return this.$rootGetters['i18n/t']('cluster.provider.importedconfig');
     }
   },
+
+  canDelete() {
+    return this.hasLink('remove') && !this?.spec?.internal;
+  },
 };
