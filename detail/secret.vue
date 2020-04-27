@@ -152,6 +152,6 @@ export default {
         />
       </div>
     </template>
-    <ResourceTabs v-model="value" />
+    <ResourceTabs v-model="value" :mode="mode" />
   </div>
 </template>
