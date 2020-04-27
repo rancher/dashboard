@@ -412,11 +412,8 @@ export default {
           </button>
           <AsyncButton
             :mode="mode"
-            action-label="Enable"
-            waiting-label="Enabling"
-            success-label="Enabled"
-            error-label="Error enabling"
             :disabled="showYamlEditor"
+            :use-enable-label="true"
             v-bind="$attrs"
             @click="enable"
           />
@@ -433,11 +430,8 @@ export default {
         @onChanges="onChanges"
       />
       <Footer
-        create-action-label="Enable"
-        create-waiting-label="Enabling"
-        create-success-label="Enabled"
-        create-error-label="Error enabling"
         :mode="mode"
+        :use-enable-label-for-create="true"
         @errors="errors"
         @save="enable"
         @done="openYamlEditor"

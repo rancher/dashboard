@@ -16,45 +16,13 @@ export default {
       default: null,
     },
 
-    createActionLabel: {
-      type:    String,
-      default: null,
-    },
-
-    createWaitingLabel: {
-      type:    String,
-      default: null,
-    },
-
-    createSuccessLabel: {
-      type:    String,
-      default: null,
-    },
-
-    createErrorLabel: {
-      type:    String,
-      default: null,
-    },
-
-    editActionLabel: {
-      type:    String,
-      default: null,
-    },
-
-    editWaitingLabel: {
-      type:    String,
-      default: null,
-    },
-
-    editSuccessLabel: {
-      type:    String,
-      default: null,
-    },
-
-    editErrorLabel: {
-      type:    String,
-      default: null,
-    },
+    /**
+     * A value to tell async button to use the enabled labels instead of the default create labels
+     */
+    useEnableLabelForCreate: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   computed: {
@@ -104,20 +72,13 @@ export default {
           v-if="isEdit"
           key="edit"
           mode="edit"
-          :action-label="editActionLabel"
-          :error-label="editErrorLabel"
-          :success-label="editSuccessLabel"
-          :waiting-label="editWaitingLabel"
           @click="save"
         />
         <AsyncButton
           v-if="isCreate"
           key="create"
           mode="create"
-          :action-label="createActionLabel"
-          :error-label="createErrorLabel"
-          :success-label="createSuccessLabel"
-          :waiting-label="createWaitingLabel"
+          :use-enable-label="useEnableLabelForCreate"
           @click="save"
         />
       </slot>

@@ -1,4 +1,6 @@
 <script>
+import { _CREATE } from '@/config/query-params';
+
 const ACTION = 'action';
 const WAITING = 'waiting';
 const SUCCESS = 'success';
@@ -39,6 +41,12 @@ const LABEL = {
     action:  'Done',
     waiting: 'Saving&hellip;',
     success: 'Saved',
+    error:   'Error',
+  },
+  enable: {
+    action:  'Enable',
+    waiting: 'Enabling&hellip;',
+    success: 'Enabled',
     error:   'Error',
   }
 };
@@ -112,6 +120,14 @@ export default {
     showLabel: {
       type:    Boolean,
       default: true,
+    },
+
+    /**
+     * Use the enabled labels instead of the default create labels
+     */
+    useEnableLabel: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -142,7 +158,15 @@ export default {
         return override;
       }
 
-      return LABEL[this.mode][this.phase];
+      let mode = null;
+
+      if (this.mode === _CREATE && this.useEnableLabel) {
+        mode = 'enable';
+      } else {
+        mode = this.mode;
+      }
+
+      return LABEL[mode] ? LABEL[mode][this.phase] : '';
     },
 
     isSpinning() {
