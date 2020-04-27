@@ -93,12 +93,15 @@ infoBoxCluster:
   used: "{numerator} of {denominator} used"
   version: Kubernetes Version
   nodes:
+    label: Nodes
+    total:
+      label: Total Nodes
     worker:
-      label: Worker Nodes
+      label: Worker
     etcd:
-      label: Etcd Nodes
+      label: Etcd
     controlPlane:
-      label: Control Plane Nodes
+      label: Control Plane
 
 resourceDetail:
   header:

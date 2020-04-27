@@ -48,6 +48,7 @@ export default {
         workerNodes:       nodes.filter(n => n.isWorker).length || 0,
         etcdNodes:         nodes.filter(n => n.isEtcd).length || 0,
         controlPlaneNodes: nodes.filter(n => n.isControlPlane).length || 0,
+        total:             nodes.length,
       };
 
       return countsOut;
@@ -156,34 +157,38 @@ export default {
     <div class="col span-3 info-column">
       <div class="info-row">
         <label class="info-row-label">
-          <t k="infoBoxCluster.provider" />
+          <t k="infoBoxCluster.provider" />:
         </label>
-        <div>
+        <span class="info-row-data">
           {{ cluster.displayProvider }}
-        </div>
+        </span>
       </div>
       <div class="info-row">
         <label class="info-row-label">
-          <t k="infoBoxCluster.version" />
+          <t k="infoBoxCluster.version" />:
         </label>
-        <div>
+        <span class="info-row-data">
           {{ cluster.kubernetesVersion }}
-        </div>
+        </span>
       </div>
       <div class="info-row">
         <label class="info-row-label">
-          <t k="infoBoxCluster.created" />
+          <t k="infoBoxCluster.created" />:
         </label>
-        <div>
+        <span class="info-row-data">
           <LiveDate
             :value="cluster.metadata.creationTimestamp"
             :add-suffix="true"
           />
-        </div>
+        </span>
       </div>
     </div>
     <div class="col span-3 info-column">
-      <label class="mb-10"><t k="infoBoxCluster.cpu" /></label>
+      <label>
+        <h5>
+          <t k="infoBoxCluster.cpu" />
+        </h5>
+      </label>
       <div class="container-flex-center mb-10">
         <div class="flex-item-half">
           <label>
@@ -212,9 +217,11 @@ export default {
           <PercentageBar class="container-flex-center" :value="liveNodeUsage.percentage" />
         </div>
       </div>
-    </div>
-    <div class="col span-3 info-column">
-      <label class="mb-10"><t k="infoBoxCluster.memory" /></label>
+      <label class="mt-20">
+        <h5>
+          <t k="infoBoxCluster.memory" />
+        </h5>
+      </label>
       <div class="container-flex-center mb-10">
         <div class="flex-item-half">
           <label>
@@ -245,57 +252,77 @@ export default {
       </div>
     </div>
     <div class="col span-3 info-column">
-      <div>
-        <label class="mb-10"><t k="infoBoxCluster.pods" /></label>
-        <div class="container-flex-center mb-10">
-          <div class="flex-item-half">
+      <label>
+        <h5>
+          <t k="infoBoxCluster.pods" />
+        </h5>
+      </label>
+      <div class="container-flex-center mb-10">
+        <div class="flex-item-half">
+          <label>
+            <t
+              k="infoBoxCluster.reserved"
+              :numerator="nodeUsagePodReserved.nodeUsage"
+              :denominator="nodeUsagePodReserved.clusterCapacity"
+            />
+          </label>
+        </div>
+        <div class="flex-item-half flex-justify-start pl-5">
+          <PercentageBar class="container-flex-center" :value="nodeUsagePodReserved.percentage" />
+        </div>
+      </div>
+    </div>
+    <div class="col span-3 info-column">
+      <label>
+        <h5>
+          <t k="infoBoxCluster.nodes.label" />
+        </h5>
+      </label>
+      <div class="container-flex-center mb-10">
+        <div class="flex-item-half">
+          <label>
+            <t k="infoBoxCluster.nodes.total.label" />:
+          </label>
+        </div>
+        <div class="flex-item-half flex-justify-start pl-5">
+          <span>
+            {{ nodeCounts.total }}
+          </span>
+        </div>
+      </div>
+
+      <hr class="mt-40 mb-40" />
+
+      <div class="row">
+        <div class="col span-3">
+          <div class="text-center mb-10">
+            {{ nodeCounts.workerNodes }}
+          </div>
+          <div class="text-center">
             <label>
-              <t
-                k="infoBoxCluster.reserved"
-                :numerator="nodeUsagePodReserved.nodeUsage"
-                :denominator="nodeUsagePodReserved.clusterCapacity"
-              />
+              <t k="infoBoxCluster.nodes.worker.label" />
             </label>
           </div>
-          <div class="flex-item-half flex-justify-start pl-5">
-            <PercentageBar :value="nodeUsagePodReserved.percentage" />
+        </div>
+        <div class="col span-4 offset-1">
+          <div class="text-center mb-10">
+            {{ nodeCounts.etcdNodes }}
+          </div>
+          <div class="text-center">
+            <label>
+              <t k="infoBoxCluster.nodes.etcd.label" />
+            </label>
           </div>
         </div>
-      </div>
-      <div class="container-flex-center mb-10">
-        <div class="flex-item-half">
-          <label>
-            <t k="infoBoxCluster.nodes.worker.label" />:
-          </label>
-        </div>
-        <div class="flex-item-half flex-justify-start pl-5">
-          <span>
-            {{ nodeCounts.workerNodes }}
-          </span>
-        </div>
-      </div>
-      <div class="container-flex-center mb-10">
-        <div class="flex-item-half">
-          <label>
-            <t k="infoBoxCluster.nodes.etcd.label" />:
-          </label>
-        </div>
-        <div class="flex-item-half flex-justify-start pl-5">
-          <span>
-            {{ nodeCounts.etcdNodes }}
-          </span>
-        </div>
-      </div>
-      <div class="container-flex-center mb-10">
-        <div class="flex-item-half">
-          <label>
-            <t k="infoBoxCluster.nodes.controlPlane.label" />:
-          </label>
-        </div>
-        <div class="flex-item-half flex-justify-start pl-5">
-          <span>
+        <div class="col span-5">
+          <div class="text-center mb-10">
             {{ nodeCounts.controlPlaneNodes }}
-          </span>
+          </div>
+          <div class="text-center">
+            <label>
+              <t k="infoBoxCluster.nodes.controlPlane.label" />
+            </label>
+          </div>
         </div>
       </div>
     </div>
@@ -306,6 +333,12 @@ export default {
   .info-box {
     &.row {
       flex-grow: 0;
+    }
+    .info-column {
+      > label {
+        margin-bottom: 5px;
+        display: inline-block;
+      }
     }
   }
 </style>
