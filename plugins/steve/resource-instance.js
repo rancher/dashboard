@@ -399,45 +399,37 @@ export default {
   },
 
   _standardActions() {
-    const links = this.links || {};
-    const customEdit = this.$rootGetters['type-map/hasCustomEdit'](this.type);
-    const canCreate = (this.schema?.attributes?.verbs || []).includes('create') && this.$rootGetters['type-map/isCreatable'](this.type);
-    const canUpdate = !!links.update && this.$rootGetters['type-map/isEditable'](this.type);
-    const canViewInApi = this.$rootGetters['prefs/get'](DEV);
-    const canDelete = !!links.remove;
-    const hasYaml = this.hasLink('rioview') || this.hasLink('view');
-
     const all = [
       {
         action:  'goToEdit',
         label:   'Edit as Form',
         icon:    'icon icon-fw icon-edit',
-        enabled:  canUpdate && customEdit,
+        enabled:  this.canUpdate && this.canCustomEdit,
       },
       {
         action:  'goToClone',
         label:   'Clone as Form',
         icon:    'icon icon-fw icon-copy',
-        enabled:  canCreate && customEdit,
+        enabled:  this.canCreate && this.canCustomEdit,
       },
       { divider: true },
       {
         action:  'goToEditYaml',
         label:   'Edit as YAML',
         icon:    'icon icon-file',
-        enabled: canUpdate && hasYaml,
+        enabled: this.canUpdate && this.canYaml,
       },
       {
         action:  'goToViewYaml',
         label:   'View as YAML',
         icon:    'icon icon-file',
-        enabled: !canUpdate && hasYaml
+        enabled: !this.canUpdate && this.canYaml
       },
       {
         action:  'cloneYaml',
         label:   'Clone as YAML',
         icon:    'icon icon-fw icon-copy',
-        enabled:  canCreate && hasYaml,
+        enabled:  this.canCreate && this.canYaml,
       },
       {
         action:     'download',
@@ -445,7 +437,7 @@ export default {
         icon:       'icon icon-fw icon-download',
         bulkable:   true,
         bulkAction: 'downloadBulk',
-        enabled:    hasYaml
+        enabled:    this.canYaml
       },
       { divider: true },
       {
@@ -454,7 +446,7 @@ export default {
         label:      'Delete',
         icon:       'icon icon-fw icon-trash',
         bulkable:   true,
-        enabled:    canDelete,
+        enabled:    this.canDelete,
         bulkAction: 'promptRemove',
       },
       { divider: true },
@@ -462,7 +454,7 @@ export default {
         action:  'viewInApi',
         label:   'View in API',
         icon:    'icon icon-fw icon-external-link',
-        enabled:  canViewInApi && !!links.self,
+        enabled:  this.canViewInApi,
       }
     ];
 
@@ -477,6 +469,32 @@ export default {
 
       return val;
     };
+  },
+
+  // ------------------------------------------------------------------
+
+  canDelete() {
+    return this.hasLink('remove');
+  },
+
+  canUpdate() {
+    return this.hasLink('update') && this.$rootGetters['type-map/isEditable'](this.type);
+  },
+
+  canCustomEdit() {
+    return this.$rootGetters['type-map/hasCustomEdit'](this.type);
+  },
+
+  canCreate() {
+    return (this.schema?.attributes?.verbs || []).includes('create') && this.$rootGetters['type-map/isCreatable'](this.type);
+  },
+
+  canViewInApi() {
+    return this.hasLink('self') && this.$rootGetters['prefs/get'](DEV);
+  },
+
+  canYaml() {
+    return this.hasLink('rioview') || this.hasLink('view');
   },
 
   // ------------------------------------------------------------------
