@@ -257,7 +257,7 @@ export default {
     <div class="match">
       <h2>Match</h2>
 
-      <ResourceTabs v-model="value" default-tab="labels">
+      <ResourceTabs v-model="value" :mode="mode" default-tab="labels">
         <template #before>
           <Tab name="namespaces" label="Namespaces">
             <div class="row">

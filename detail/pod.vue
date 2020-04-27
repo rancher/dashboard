@@ -90,6 +90,6 @@ export default {
       </template>
     </DetailTop>
 
-    <ResourceTabs v-model="value" />
+    <ResourceTabs v-model="value" :mode="mode" />
   </div>
 </template>
