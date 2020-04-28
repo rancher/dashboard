@@ -1,6 +1,4 @@
 <script>
-import { _CREATE } from '@/config/query-params';
-
 const ACTION = 'action';
 const WAITING = 'waiting';
 const SUCCESS = 'success';
@@ -53,6 +51,9 @@ const LABEL = {
 
 export default {
   props: {
+    /**
+     * Mode maps to key in LABEL map for phase labels of button
+     */
     mode: {
       type:    String,
       default: 'edit',
@@ -121,14 +122,6 @@ export default {
       type:    Boolean,
       default: true,
     },
-
-    /**
-     * Use the enabled labels instead of the default create labels
-     */
-    useEnableLabel: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   data() {
@@ -158,15 +151,7 @@ export default {
         return override;
       }
 
-      let mode = null;
-
-      if (this.mode === _CREATE && this.useEnableLabel) {
-        mode = 'enable';
-      } else {
-        mode = this.mode;
-      }
-
-      return LABEL[mode] ? LABEL[mode][this.phase] : '';
+      return LABEL[this.mode][this.phase];
     },
 
     isSpinning() {

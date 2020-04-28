@@ -6,6 +6,10 @@ export default {
   components: { AsyncButton },
 
   props: {
+    /**
+     * Current mode of the page
+     * passed to asyncButton to determine lables of the button
+     */
     mode: {
       type:     String,
       required: true,
@@ -15,19 +19,11 @@ export default {
       type:    Array,
       default: null,
     },
-
-    /**
-     * A value to tell async button to use the enabled labels instead of the default create labels
-     */
-    useEnableLabelForCreate: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   computed: {
     isCreate() {
-      return this.mode === _CREATE;
+      return this.mode === _CREATE || this.mode === 'enable'; // not a query param but still a valid create mode, enable only affects lables of buttons
     },
 
     isEdit() {
@@ -69,16 +65,8 @@ export default {
       <slot name="middle" />
       <slot name="save">
         <AsyncButton
-          v-if="isEdit"
-          key="edit"
-          mode="edit"
-          @click="save"
-        />
-        <AsyncButton
-          v-if="isCreate"
-          key="create"
-          mode="create"
-          :use-enable-label="useEnableLabelForCreate"
+          v-if="!isView"
+          :mode="mode"
           @click="save"
         />
       </slot>

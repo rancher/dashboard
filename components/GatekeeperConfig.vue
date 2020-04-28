@@ -184,7 +184,7 @@ export default {
      *
      * @param {buttonCb} Callback to be called on success or fail
      */
-    async enable(buttonCb) {
+    async enableGatekeeper(buttonCb) {
       try {
         this.saving = true;
         await this.ensureNamespace();
@@ -411,11 +411,10 @@ export default {
             <t k="generic.customize" />
           </button>
           <AsyncButton
-            :mode="mode"
+            mode="enable"
             :disabled="showYamlEditor"
-            :use-enable-label="true"
             v-bind="$attrs"
-            @click="enable"
+            @click="enableGatekeeper"
           />
         </div>
       </div>
@@ -430,10 +429,9 @@ export default {
         @onChanges="onChanges"
       />
       <Footer
-        :mode="mode"
-        :use-enable-label-for-create="true"
+        mode="enable"
         @errors="errors"
-        @save="enable"
+        @save="enableGatekeeper"
         @done="openYamlEditor"
       />
     </section>
