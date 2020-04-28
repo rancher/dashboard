@@ -134,9 +134,11 @@ export default {
 
     return {
       constraints:       [],
-      nodes:             [],
       events:            [],
       nodeMetrics:       [],
+      nodePools:         [],
+      nodeTemplates:     [],
+      nodes:             [],
       pollingErrorCount: 0,
       cluster,
       gatekeeperEnabled,
@@ -145,14 +147,18 @@ export default {
 
   async created() {
     const resourcesHash = await allHash({
-      allNodes:       this.fetchClusterResources(NODE),
-      allEvents:      this.fetchClusterResources(EVENT),
-      rawConstraints: this.fetchConstraints(),
+      allNodes:         this.fetchClusterResources(NODE),
+      allEvents:        this.fetchClusterResources(EVENT),
+      rawConstraints:   this.fetchConstraints(),
+      allNodeTemplates: this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE }),
+      allNodePools:     this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL }),
     });
 
     this.constraints = resourcesHash.rawConstraints;
     this.events = resourcesHash.allEvents;
     this.nodes = resourcesHash.allNodes;
+    this.nodePools = resourcesHash.allNodePools;
+    this.nodeTemplates = resourcesHash.allNodeTemplates;
   },
 
   mounted() {
@@ -260,6 +266,8 @@ export default {
       :cluster="cluster"
       :metrics="nodeMetrics"
       :nodes="nodes"
+      :node-templates="nodeTemplates"
+      :node-pools="nodePools"
     />
     <div class="row">
       <div class="col span-6 equal-height">

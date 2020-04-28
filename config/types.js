@@ -45,11 +45,13 @@ export const NORMAN = {
 
 // Rancher Management API via Steve, /v1
 export const MANAGEMENT = {
-  // CATALOG:          'management.cattle.io.catalog',
+  CATALOG:          'management.cattle.io.catalog',
   CATALOG_TEMPLATE: 'management.cattle.io.catalogtemplate',
   CLUSTER:          'management.cattle.io.cluster',
-  // USER:             'management.cattle.io.user',
-  PREFERENCE:       'userpreference'
+  USER:             'management.cattle.io.user',
+  PREFERENCE:       'userpreference',
+  NODE_POOL:        'management.cattle.io.nodepool',
+  NODE_TEMPLATE:    'management.cattle.io.nodetemplate',
 };
 
 // Rancher cluster-scoped things that actually live in management plane

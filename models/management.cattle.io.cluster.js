@@ -30,20 +30,6 @@ export default {
     return day(this.metadata.creationTimestamp).format(`${ dateFormat }`);
   },
 
-  displayProvider() {
-    const configName = this.configName?.toLowerCase();
-    const driver = this.status?.driver;
-    const key = `cluster.provider.${ configName }`;
-
-    if ( this.$rootGetters['i18n/exists'](key) ) {
-      return this.$rootGetters['i18n/t'](key);
-    } else if (driver && configName) {
-      return capitalize(driver);
-    } else {
-      return this.$rootGetters['i18n/t']('cluster.provider.importedconfig');
-    }
-  },
-
   canDelete() {
     return this.hasLink('remove') && !this?.spec?.internal;
   },
