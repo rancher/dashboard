@@ -184,20 +184,20 @@ export default {
 
     <template v-if="isRegistry">
     <h5>Address:</h5>
-      <div id="registry-type" class="row">
-         <RadioGroup :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
+    <div id="registry-type" class="row">
+        <RadioGroup :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
+    </div>
+    <div v-if="needsDockerServer" class="row">
+      <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" :mode="mode" />
+    </div>
+    <div class="row">
+      <div class="col span-6">
+        <LabeledInput v-model="username" label="Username" :mode="mode" />
       </div>
-      <div v-if="needsDockerServer" class="row">
-        <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" :mode="mode" />
+      <div class="col span-6">
+        <LabeledInput v-model="password" label="Password" :mode="mode" />
       </div>
-      <div class="row">
-        <div class="col span-6">
-          <LabeledInput v-model="username" label="Username" :mode="mode" />
-        </div>
-        <div class="col span-6">
-          <LabeledInput v-model="password" label="Password" :mode="mode" />
-        </div>
-      </div>
+    </div>
     </template>
 
     <div v-else-if="isCertificate" class="row">
