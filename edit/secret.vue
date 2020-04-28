@@ -183,7 +183,7 @@ export default {
     </NameNsDescription>
 
     <template v-if="isRegistry">
-      <h5>Address:</h5>
+    <h5>Address:</h5>
       <div id="registry-type" class="row">
          <RadioGroup :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
