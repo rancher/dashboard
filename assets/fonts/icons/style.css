@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'icons';
   src:
-    url('fonts/icons.ttf?14h12e') format('truetype'),
-    url('fonts/icons.woff?14h12e') format('woff'),
-    url('fonts/icons.svg?14h12e#icons') format('svg');
+    url('fonts/icons.ttf?h2v172') format('truetype'),
+    url('fonts/icons.woff?h2v172') format('woff'),
+    url('fonts/icons.svg?h2v172#icons') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -147,11 +147,17 @@
 .icon-sort:before {
   content: "\e91a";
 }
-.icon-github1:before {
-  content: "\e921";
-}
 .icon-terminal:before {
   content: "\e923";
+}
+.icon-pause:before {
+  content: "\e921";
+}
+.icon-play:before {
+  content: "\e929";
+}
+.icon-docker:before {
+  content: "\e92a";
 }
 .icon-github:before {
   content: "\e922";
