@@ -363,15 +363,15 @@ export default {
             <label><t k="gatekeeperConfig.infoBox.constraintViolationsLimit" />: </label>
             {{ parsedValuesYaml.constraintViolationsLimit }}
           </div>
-          <div class="info-row">
-            <label><t k="gatekeeperConfig.infoBox.replicas" />: </label>
-            {{ parsedValuesYaml.replicas }}
-          </div>
         </div>
         <div class="col span-6 info-column">
           <div class="info-row">
             <label><t k="gatekeeperConfig.infoBox.imageRepository" />: </label>
             {{ parsedValuesYaml.image.repository }}
+          </div>
+          <div class="info-row">
+            <label><t k="gatekeeperConfig.infoBox.replicas" />: </label>
+            {{ parsedValuesYaml.replicas }}
           </div>
           <div class="info-row">
             <label><t k="gatekeeperConfig.infoBox.imageTag" />: </label>
