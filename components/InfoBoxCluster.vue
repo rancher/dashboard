@@ -261,7 +261,7 @@ export default {
         <div class="flex-item-half">
           <label>
             <t
-              k="infoBoxCluster.reserved"
+              k="infoBoxCluster.used"
               :numerator="nodeUsagePodReserved.nodeUsage"
               :denominator="nodeUsagePodReserved.clusterCapacity"
             />

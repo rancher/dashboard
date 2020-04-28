@@ -264,9 +264,9 @@ export default {
     <div class="row">
       <div class="col span-6 equal-height">
         <InfoBox>
-          <label>
+          <h5>
             <t k="clusterIndexPage.sections.nodes.label" />
-          </label>
+          </h5>
           <div class="row mt-10">
             <SortableTable
               :rows="filteredNodes"
@@ -282,9 +282,9 @@ export default {
       </div>
       <div class="col span-6 equal-height">
         <InfoBox>
-          <label>
+          <h5>
             <t k="clusterIndexPage.sections.gatekeeper.label" />
-          </label>
+          </h5>
           <div v-if="gatekeeperEnabled">
             <div class="row mt-10">
               <SortableTable
@@ -322,9 +322,9 @@ export default {
     <div class="row">
       <div class="col span-12">
         <InfoBox>
-          <label>
+          <h5>
             <t k="clusterIndexPage.sections.events.label" />
-          </label>
+          </h5>
           <div class="row mt-10">
             <SortableTable
               :rows="events"
