@@ -9,6 +9,7 @@ import {
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
+import GenericResourceDetail from '@/components/GenericResourceDetail';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.
@@ -67,7 +68,7 @@ export async function defaultAsyncData(ctx, resource) {
 
   const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
-  const asYamlInit = (route.query[AS_YAML] === _FLAGGED) || (realMode === _VIEW && !hasCustomDetail) || (realMode !== _VIEW && !hasCustomEdit);
+  const asYamlInit = (route.query[AS_YAML] === _FLAGGED) || (realMode !== _VIEW && !hasCustomEdit);
   const schema = store.getters['cluster/schemaFor'](resource);
 
   let originalModel, model, yaml;
@@ -142,7 +143,9 @@ export async function defaultAsyncData(ctx, resource) {
 export const watchQuery = [MODE, AS_YAML];
 
 export default {
-  components: { ResourceYaml, Masthead },
+  components: {
+    ResourceYaml, Masthead, GenericResourceDetail
+  },
   mixins:     { CreateEditView },
 
   props: {
@@ -185,18 +188,6 @@ export default {
   },
 
   data() {
-    if (this.hasCustomDetail) {
-      this.$store.getters['type-map/importDetail'](this.resource)().then((component) => {
-        this.importedDetailComponent = component.default;
-      });
-    }
-
-    if (this.hasCustomEdit) {
-      this.$store.getters['type-map/importEdit'](this.resource)().then((component) => {
-        this.importedEditComponent = component.default;
-      });
-    }
-
     // asYamlInit is taken from route query and passed as prop from _id page; asYaml is saved in local data to be manipulated by Masthead
     const asYaml = this.asYamlInit;
 
@@ -205,9 +196,7 @@ export default {
       isCustomYamlEditor:      false,
       currentValue:            this.value,
       detailComponent:         this.$store.getters['type-map/importDetail'](this.resource),
-      importedDetailComponent: null,
       editComponent:           this.$store.getters['type-map/importEdit'](this.resource),
-      importedEditComponent:   null,
     };
   },
 
@@ -242,8 +231,12 @@ export default {
     },
 
     showComponent() {
-      if ( this.isView && this.hasCustomDetail ) {
-        return this.detailComponent;
+      if ( this.isView ) {
+        if (this.hasCustomDetail) {
+          return this.detailComponent;
+        } else {
+          return GenericResourceDetail;
+        }
       } else if ( !this.isView && this.hasCustomEdit ) {
         return this.editComponent;
       }
