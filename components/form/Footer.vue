@@ -1,5 +1,5 @@
 <script>
-import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
+import { _VIEW } from '@/config/query-params';
 import AsyncButton from '@/components/AsyncButton';
 
 export default {
@@ -22,14 +22,6 @@ export default {
   },
 
   computed: {
-    isCreate() {
-      return this.mode === _CREATE || this.mode === 'enable'; // not a query param but still a valid create mode, enable only affects lables of buttons
-    },
-
-    isEdit() {
-      return this.mode === _EDIT;
-    },
-
     isView() {
       return this.mode === _VIEW;
     },
