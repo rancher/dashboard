@@ -1,4 +1,3 @@
-import { capitalize } from 'lodash';
 import day from 'dayjs';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT } from '@/store/prefs';
@@ -16,9 +15,8 @@ export default {
   },
 
   kubernetesVersion() {
-    const configName = this.configName;
-    const k8sVersion = this.spec[configName]
-      ? this.spec[configName].kubernetesVersion
+    const k8sVersion = this?.status?.version?.gitVersion
+      ? this.status.version.gitVersion
       : this.$rootGetters['i18n/t']('generic.unknown');
 
     return k8sVersion;
