@@ -1,5 +1,4 @@
 <script>
-import { pluralize } from '../utils/string';
 export default {
   data() {
     // make a map of all route names to validate programatically generated names
@@ -59,11 +58,17 @@ export default {
       const lastPiece = pieces[pieces.length - 1];
 
       if (lastPiece === 'resource') {
-        return pluralize(null, params[lastPiece]);
+        const resourceType = params[lastPiece];
+        const schema = this.$store.getters['cluster/schemaFor'](resourceType);
+
+        if (schema) {
+          return this.$store.getters['type-map/pluralLabelFor'](schema);
+        }
       }
 
       return params[lastPiece];
-    }
+    },
+
   }
 };
 </script>

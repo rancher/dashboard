@@ -120,7 +120,7 @@ export default {
     <div>
       <h1 v-html="h1" />
       <!-- //TODO use  nuxt-link for an internal project detail page once it exists -->
-      <span v-if="isNamespace">Project: <a :href="project.links.self">{{ project.id }}</a></span>
+      <span v-if="isNamespace">Project: {{ project.nameDisplay }}</span>
       <span v-else-if="namespace">Namespace: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
     </div>
     <div v-if="mode==='view'" class="actions">
