@@ -4,7 +4,7 @@ import VStack from '@/components/Layout/Stack/VStack';
 const STATUS_CLASS_MAP = {
   success: {
     container: 'text-success',
-    icon:      'icon-x'
+    icon:      'icon-checkmark'
   },
   warning: {
     container: 'text-warning',

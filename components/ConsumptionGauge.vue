@@ -44,7 +44,7 @@ export default {
      */
     numberFormatter: {
       type:    Function,
-      default: value => value
+      default: value => Number.isInteger(value) ? value : value.toFixed(2)
     }
   },
   computed: {
@@ -52,6 +52,13 @@ export default {
       return this.units
         ? ` ${ this.units }`
         : '';
+    },
+    percentageBarValue() {
+      if (!this.used || !this.capacity) {
+        return 0;
+      }
+
+      return (this.used * 100) / this.capacity;
     }
   }
 };
@@ -61,7 +68,7 @@ export default {
   <VStack class="consumption-gauge" :show-dividers="true">
     <VStack class="percentage-bar-container" horizontal-align="center" vertical-align="bottom">
       <PercentageBar
-        :value="used / capacity"
+        :value="percentageBarValue"
         :lower-error-bound="0.25"
         :lower-warning-bound="0.25"
         :upper-warning-bound="0.7"
@@ -72,7 +79,7 @@ export default {
     <VStack class="consumption" horizontal-align="center">
       <div>{{ resourceName }}</div>
       <div class="amount">
-        {{ numberFormatter(used) }} of {{ numberFormatter(capacity) }}{{ displayUnits }} reserved
+        {{ numberFormatter(used || 0) }} of {{ numberFormatter(capacity || 0) }}{{ displayUnits }} used
       </div>
     </VStack>
   </VStack>

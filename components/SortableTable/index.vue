@@ -1,6 +1,5 @@
 <script>
 import { mapState } from 'vuex';
-import jsonpath from 'jsonpath';
 import THead from './THead';
 import filtering from './filtering';
 import selection from './selection';
@@ -204,6 +203,14 @@ export default {
     noDataKey: {
       type:    String,
       default: 'sortableTable.noData'
+    },
+
+    /**
+     * Allows you to override showing the THEAD section.
+     */
+    showHeaders: {
+      type:    Boolean,
+      default: true
     }
 
   },
@@ -301,23 +308,9 @@ export default {
     dasherize,
 
     valueFor(row, col) {
-      const expr = col.value;
+      const expr = col.value || col.name;
 
-      if ( expr ) {
-        if ( expr.startsWith('$') ) {
-          try {
-            return jsonpath.query(row, expr)[0];
-          } catch (e) {
-            console.log('JSON Path error', e); // eslint-disable-line no-console
-
-            return '(JSON Path err)';
-          }
-        } else {
-          return get(row, expr);
-        }
-      } else {
-        return get(row, col.name);
-      }
+      return get(row, expr);
     },
 
     isExpanded(row) {
@@ -349,7 +342,7 @@ export default {
             :key="act.action"
             type="button"
             class="btn bg-primary btn-sm"
-            :disabled="howMuchSelected==='none'"
+            :disabled="!act.enabled"
             @click="applyTableAction(act)"
           >
             <i v-if="act.icon" :class="act.icon" />
@@ -372,6 +365,7 @@ export default {
     </div>
     <table class="sortable-table" :class="classObject" width="100%">
       <THead
+        v-if="showHeaders"
         :columns="columns"
         :table-actions="tableActions"
         :row-actions="rowActions"
@@ -432,7 +426,7 @@ export default {
                   :expanded="expanded"
                   :rowKey="get(row,keyField)"
                 >
-                  <td :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'" :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}">
+                  <td :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'" :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}" :width="col.width">
                     <slot :name="'cell:' + col.name" :row="row" :col="col">
                       <component
                         :is="col.formatter"

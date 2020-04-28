@@ -32,16 +32,14 @@ export default {
     <div class="spacer"></div>
 
     <div v-if="!isView || Object.keys(value.data||{}).length" class="row">
-      <div class="col span-6">
-        <KeyValue
-          key="data"
-          v-model="value.data"
-          :mode="mode"
-          :title="t('configmapPage.data.title')"
-          :protip="t('configmapPage.data.protip')"
-          :initial-empty-row="true"
-        />
-      </div>
+      <KeyValue
+        key="data"
+        v-model="value.data"
+        :mode="mode"
+        :title="t('configmapPage.data.title')"
+        :protip="t('configmapPage.data.protip')"
+        :initial-empty-row="true"
+      />
     </div>
 
     <div class="spacer"></div>

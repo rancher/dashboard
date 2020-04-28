@@ -23,7 +23,7 @@ export default {
 <style lang="scss" scoped>
   $sm-screen-grid: 1fr;
   $md-screen-grid: 1fr 1fr;
-  $default-screen-grid: 1fr 1fr 1fr 1fr;
+  $default-screen-grid: 1fr 1fr 1fr 1fr 1fr;
 
   .detail-top {
     display: grid;

@@ -296,6 +296,10 @@ export default {
 </template>
 
 <style lang='scss' scoped>
+  .actions > * {
+    display: inline-block;
+  }
+
   .flat {
     border-collapse: collapse;
     table-layout: fixed;

@@ -1,30 +1,71 @@
 import { formatPercent } from '@/utils/string';
 import { NODE_ROLES } from '@/config/labels-annotations.js';
+import { METRIC } from '@/config/types';
+import { parseSi } from '@/utils/units';
 
 export default {
+  availableActions() {
+    const cordon = {
+      action:     'cordon',
+      enabled:    this.isWorker && !this.isCordoned,
+      icon:       'icon icon-fw icon-pause',
+      label:      'Cordon',
+      total:      1,
+      bulkable:   true
+    };
+
+    const uncordon = {
+      action:     'uncordon',
+      enabled:    this.isWorker && this.isCordoned,
+      icon:       'icon icon-fw icon-play',
+      label:      'Uncordon',
+      total:      1,
+      bulkable:   true
+    };
+
+    return [
+      cordon,
+      uncordon,
+      ...this._standardActions
+    ];
+  },
+
+  showDetailStateBadge() {
+    return true;
+  },
+
   name() {
     return this.metadata.name;
   },
 
+  internalIp() {
+    return this.status?.addresses?.find(address => address.type === 'InternalIP')?.address;
+  },
+
+  externalIp() {
+    return this.status?.addresses?.find(address => address.type === 'ExternalIP')?.address;
+  },
+
+  labels() {
+    return this.metadata?.labels || {};
+  },
+
   isWorker() {
     const { WORKER: worker } = NODE_ROLES;
-    const labels = this.metadata?.labels;
 
-    return labels[worker] && labels[worker].toLowerCase() === 'true';
+    return `${ this.labels[worker] }` === 'true';
   },
 
   isControlPlane() {
     const { CONTROL_PLANE: controlPlane } = NODE_ROLES;
-    const labels = this.metadata?.labels;
 
-    return labels[controlPlane] && labels[controlPlane].toLowerCase() === 'true';
+    return `${ this.labels[controlPlane] }` === 'true';
   },
 
   isEtcd() {
     const { ETCD: etcd } = NODE_ROLES;
-    const labels = this.metadata?.labels;
 
-    return labels[etcd] && labels[etcd].toLowerCase() === 'true';
+    return `${ this.labels[etcd] }` === 'true';
   },
 
   roles() {
@@ -38,15 +79,15 @@ export default {
     // worker+cp, worker+etcd, cp+etcd
 
     if (isControlPlane && isWorker) {
-      return 'Control Plane & Worker';
+      return 'Control Plane, Worker';
     }
 
     if (isControlPlane && isEtcd) {
-      return 'Control Plane & Etcd';
+      return 'Control Plane, Etcd';
     }
 
     if (isEtcd && isWorker) {
-      return 'Etcd & Worker';
+      return 'Etcd, Worker';
     }
 
     if (isControlPlane) {
@@ -67,27 +108,27 @@ export default {
   },
 
   cpuUsage() {
-    return calculatePercentage(this.status.allocatable.cpu, this.status.capacity.cpu);
+    return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.cpu || '0');
   },
 
   cpuCapacity() {
-    return Number.parseInt(this.status.capacity.cpu);
+    return parseSi(this.status.allocatable.cpu);
   },
 
-  cpuConsumed() {
-    return Number.parseInt(this.status.capacity.cpu) - Number.parseInt(this.status.allocatable.cpu);
+  cpuUsagePercentage() {
+    return ((this.cpuUsage * 10000) / this.cpuCapacity).toString();
   },
 
   ramUsage() {
-    return calculatePercentage(this.status.allocatable.memory, this.status.capacity.memory);
+    return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.memory || '0');
   },
 
   ramCapacity() {
-    return Number.parseInt(this.status.capacity.memory);
+    return parseSi(this.status.capacity.memory);
   },
 
-  ramConsumed() {
-    return Number.parseInt(this.status.capacity.memory) - Number.parseInt(this.status.allocatable.memory);
+  ramUsagePercentage() {
+    return ((this.ramUsage * 10000) / this.ramCapacity).toString();
   },
 
   podUsage() {
@@ -116,7 +157,39 @@ export default {
 
   isKubeletOk() {
     return this.hasCondition('Ready');
-  }
+  },
+
+  isCordoned() {
+    return !!this.spec.unschedulable;
+  },
+
+  containerRuntimeVersion() {
+    return this.status.nodeInfo.containerRuntimeVersion.replace('docker://', '');
+  },
+
+  containerRuntimeIcon() {
+    return this.status.nodeInfo.containerRuntimeVersion.includes('docker')
+      ? 'icon-docker'
+      : false;
+  },
+
+  cordon() {
+    return async() => {
+      const clone = await this.$dispatch('clone', { resource: this });
+
+      clone.spec.unschedulable = true;
+      await clone.save();
+    };
+  },
+
+  uncordon() {
+    return async() => {
+      const clone = await this.$dispatch('clone', { resource: this });
+
+      clone.spec.unschedulable = false;
+      await clone.save();
+    };
+  },
 };
 
 function calculatePercentage(allocatable, capacity) {

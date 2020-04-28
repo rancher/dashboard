@@ -3,24 +3,16 @@
 export default {
   props: {
     value: {
-      type:     String,
-      default: ''
-    },
-    row: {
       type:     Object,
       required: true
-    },
-    col: {
-      type:     Object,
-      default: () => {}
-    },
+    }
   },
 };
 </script>
 
 <template>
-  <span :class="{'badge-state': true, [row.stateBackground]: true}">
-    {{ row.stateDisplay }}
+  <span :class="{'badge-state': true, [value.stateBackground]: true}">
+    {{ value.stateDisplay }}
   </span>
 </template>
 

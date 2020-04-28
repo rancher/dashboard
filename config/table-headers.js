@@ -7,7 +7,7 @@ export const STATE = {
   value:     'stateDisplay',
   width:     75,
   default:   'unknown',
-  formatter: 'BadgeState',
+  formatter: 'BadgeStateFormatter',
 };
 
 export const DOWNLOAD = {
@@ -18,6 +18,12 @@ export const DOWNLOAD = {
   align:         'right',
 };
 
+export const INTERNAL_EXTERNAL_IP = {
+  name:      'internal-external-ip',
+  label:     'Internal/External IP',
+  formatter: 'InternalExternalIP'
+};
+
 export const NAME = {
   name:          'name',
   label:         'Name',
@@ -26,6 +32,21 @@ export const NAME = {
   formatter:     'LinkDetail',
   width:         200,
   canBeVariable: true,
+};
+
+export const SIMPLE_NAME = {
+  name:          'name',
+  label:         'Name',
+  value:         'name',
+  sort:          ['name'],
+  width:         200
+};
+
+export const EFFECT = {
+  name:          'effect',
+  label:         'Effect',
+  value:         'effect',
+  sort:          ['effect'],
 };
 
 export const NAME_UNLINKED = {
@@ -70,10 +91,10 @@ export const NODE_NAME = {
 };
 
 export const ROLES = {
-  name:  'roles',
-  label: 'Roles',
-  sort:  'roles',
-  value: 'roles'
+  name:      'roles',
+  label:     'Roles',
+  sort:      'roles',
+  value:     'roles'
 };
 
 export const VERSION = {
@@ -87,7 +108,7 @@ export const CPU = {
   name:      'cpu',
   label:     'CPU',
   sort:      'cpu',
-  value:     'cpuUsage',
+  value:     'cpuUsagePercentage',
   formatter: 'PercentageBar'
 };
 
@@ -95,7 +116,7 @@ export const RAM = {
   name:      'ram',
   label:     'RAM',
   sort:      'ram',
-  value:     'ramUsage',
+  value:     'ramUsagePercentage',
   formatter: 'PercentageBar'
 };
 
@@ -255,7 +276,30 @@ export const USER_STATUS = {
   name:      'user-state',
   label:     'Status',
   value:     'stateDisplay',
-  formatter: 'BadgeState'
+  formatter: 'BadgeStateFormatter'
+};
+
+export const ADDRESS = {
+  name:  'address',
+  label: 'Address',
+  value: 'address',
+  sort:  ['address'],
+};
+
+export const SIMPLE_TYPE = {
+  name:  'type',
+  label: 'Type',
+  value: 'type',
+  sort:  ['type'],
+  width: 175,
+};
+
+export const IMAGE_SIZE = {
+  name:      'sizeBytes',
+  label:     'Size',
+  value:     'sizeBytes',
+  sort:      ['sizeBytes'],
+  formatter: 'Si'
 };
 
 export const TYPE = {
@@ -270,14 +314,16 @@ export const STATUS = {
   name:  'status',
   label: 'Status',
   value: 'status',
-  sort:  ['status']
+  sort:  ['status'],
+  width: 175
 };
 export const LAST_HEARTBEAT_TIME = {
   name:      'lastHeartbeatTime',
   label:     'Last update',
   value:     'lastHeartbeatTime',
   sort:      ['lastHeartbeatTime'],
-  formatter:  'LiveDate',
+  formatter: 'LiveDate',
+  width:     175
 };
 export const REASON = {
   name:  'reason',
