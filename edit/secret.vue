@@ -125,7 +125,7 @@ export default {
 
         this.$set(this.value, 'data', data);
       } else if (this.isCertificate) {
-        const data = { 'tls.cert': base64Encode(this.cert), 'tls.key': base64Encode(this.key) };
+        const data = { 'tls.crt': base64Encode(this.cert), 'tls.key': base64Encode(this.key) };
 
         this.$set(this.value, 'data', data);
       }
@@ -177,7 +177,8 @@ export default {
           :options="types"
           :mode="mode"
           :disabled="isView"
-          taggable
+          :taggable="true"
+          :create-option="opt=>opt"
         />
       </template>
     </NameNsDescription>

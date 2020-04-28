@@ -302,7 +302,6 @@ export const VALUE = {
   label:     'Value',
   value:     'value',
   sort:      ['value'],
-  formatter: 'ClickExpand'
 };
 
 export const BUILT_IN = {

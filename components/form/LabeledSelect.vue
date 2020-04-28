@@ -23,10 +23,6 @@ export default {
       type:    Boolean,
       default: false
     },
-    multiple: {
-      type:    Boolean,
-      default: false
-    },
     optionKey: {
       type:    String,
       default: null
@@ -34,14 +30,6 @@ export default {
     optionLabel: {
       type:    String,
       default: 'label'
-    },
-    taggable: {
-      type:    Boolean,
-      default: false
-    },
-    createOption: {
-      type:    Function,
-      default: opt => opt
     },
   },
   data() {
@@ -127,11 +115,11 @@ export default {
       :disabled="isView || disabled"
       :value="value"
       :options="options"
-      :multiple="multiple"
       :get-option-label="opt=>getOptionLabel(opt)"
       :get-option-key="opt=>optionKey ? get(opt, optionKey) : getOptionLabel(opt)"
       :label="optionLabel"
       :reduce="x => reduce(x)"
+      v-bind="$attrs"
       @input="x => $emit('input', reduce(x))"
       @search:focus="onFocus"
       @search:blur="onBlur"
