@@ -242,11 +242,4 @@ export default {
 </template>
 
 <style lang='scss'>
-// #registry-type {
-//   display: flex;
-//   align-items:center;
-//   & > div {
-//     display: flex;
-//   }
-// }
 </style>
