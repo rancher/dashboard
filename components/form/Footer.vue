@@ -1,11 +1,15 @@
 <script>
-import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
+import { _VIEW } from '@/config/query-params';
 import AsyncButton from '@/components/AsyncButton';
 
 export default {
   components: { AsyncButton },
 
   props: {
+    /**
+     * Current mode of the page
+     * passed to asyncButton to determine lables of the button
+     */
     mode: {
       type:     String,
       required: true,
@@ -14,18 +18,10 @@ export default {
     errors: {
       type:    Array,
       default: null,
-    }
+    },
   },
 
   computed: {
-    isCreate() {
-      return this.mode === _CREATE;
-    },
-
-    isEdit() {
-      return this.mode === _EDIT;
-    },
-
     isView() {
       return this.mode === _VIEW;
     },
@@ -60,8 +56,11 @@ export default {
       </slot>
       <slot name="middle" />
       <slot name="save">
-        <AsyncButton v-if="isEdit" key="edit" mode="edit" @click="save" />
-        <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
+        <AsyncButton
+          v-if="!isView"
+          :mode="mode"
+          @click="save"
+        />
       </slot>
       <slot name="right" />
     </div>

@@ -40,11 +40,20 @@ const LABEL = {
     waiting: 'Saving&hellip;',
     success: 'Saved',
     error:   'Error',
+  },
+  enable: {
+    action:  'Enable',
+    waiting: 'Enabling&hellip;',
+    success: 'Enabled',
+    error:   'Error',
   }
 };
 
 export default {
   props: {
+    /**
+     * Mode maps to key in LABEL map for phase labels of button
+     */
     mode: {
       type:    String,
       default: 'edit',
@@ -112,7 +121,7 @@ export default {
     showLabel: {
       type:    Boolean,
       default: true,
-    }
+    },
   },
 
   data() {
