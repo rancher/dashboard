@@ -242,6 +242,7 @@ export default {
 <template>
   <div class="root resource-yaml">
     <YamlEditor
+      ref="yamlEditor"
       v-model="currentValue"
       class="yaml-editor"
       :editor-mode="editorMode"

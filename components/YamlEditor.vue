@@ -89,6 +89,27 @@ export default {
     onChanges() {
       this.$emit('onChanges', ...arguments);
     },
+
+    fileChange(event) {
+      const input = event.target;
+      const handle = input.files[0];
+
+      if ( handle ) {
+        const reader = new FileReader();
+
+        reader.onload = (loaded) => {
+          const value = loaded.target.result;
+
+          this.value = value;
+        };
+
+        reader.onerror = (err) => {
+          this.$dispatch('growl/fromError', { title: 'Error reading file', err }, { root: true });
+        };
+        reader.readAsText(handle);
+        input.value = '';
+      }
+    },
   }
 };
 </script>
@@ -127,6 +148,14 @@ export default {
       :side-by-side="diffMode === 'split'"
       :orig="original"
       :neu="value"
+    />
+
+    <input
+      ref="yamluploader"
+      type="file"
+      class="hide"
+      :multiple="false"
+      @change="fileChange"
     />
   </div>
 </template>
