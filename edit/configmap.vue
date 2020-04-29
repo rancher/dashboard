@@ -3,16 +3,18 @@ import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
-import Labels from '@/components/form/Labels';
+import ResourceTabs from '@/components/form/ResourceTabs';
+import Tab from '@/components/Tabbed/Tab';
 
 export default {
   name: 'CruConfigMap',
 
   components: {
-    Labels,
     NameNsDescription,
     KeyValue,
     Footer,
+    ResourceTabs,
+    Tab,
   },
   mixins:     [CreateEditView],
 };
@@ -35,7 +37,7 @@ export default {
           key="data"
           v-model="value.data"
           :mode="mode"
-          title="Values"
+          title="Data"
           protip="Use this area for anything that's UTF-8 text data"
           :initial-empty-row="true"
         />
@@ -44,26 +46,25 @@ export default {
 
     <div class="spacer"></div>
 
-    <div v-if="!isView || Object.keys(value.binaryData||{}).length" class="row">
-      <div class="col span-6">
-        <KeyValue
-          key="binaryData"
-          v-model="value.binaryData"
-          title="Binary Values"
-          protip="Use this area for binary or other data that is not UTF-8 text"
-          :mode="mode"
-          :add-allowed="false"
-          :read-accept="'*'"
-          :read-multiple="true"
-          :value-binary="true"
-          :value-base64="true"
-          :value-can-be-empty="true"
-          :initial-empty-row="false"
-        />
-      </div>
-    </div>
-
-    <Labels :spec="value" :mode="mode" />
+    <ResourceTabs v-model="value" :mode="mode">
+      <template #before>
+        <Tab label="Binary Data" name="binary-data">
+          <KeyValue
+            key="binaryData"
+            v-model="value.binaryData"
+            :protip="false"
+            :mode="mode"
+            :add-allowed="false"
+            :read-accept="'*'"
+            :read-multiple="true"
+            :value-binary="true"
+            :value-base64="true"
+            :value-can-be-empty="true"
+            :initial-empty-row="false"
+          />
+        </Tab>
+      </template>
+    </ResourceTabs>
 
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </form>
