@@ -30,6 +30,13 @@ export default {
       });
     });
 
+    const clusterID = params.cluster;
+    let cluster;
+
+    if (clusterID) {
+      cluster = this.$store.getters['management/byId']( MANAGEMENT.CLUSTER, clusterID ) || {};
+    }
+
     // remove root route 'c'
     crumbLocations.shift();
 
@@ -39,7 +46,7 @@ export default {
     });
 
     return {
-      crumbLocations, params, crumbPieces, allRouteMap, clusterName: ''
+      crumbLocations, params, crumbPieces, allRouteMap, cluster
     };
   },
 
@@ -48,10 +55,8 @@ export default {
       const clusterID = this.params.cluster;
       const cluster = await this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: clusterID });
 
-      if (cluster.nameDisplay) {
-        this.clusterName = cluster.nameDisplay;
-      } else {
-        this.clusterName = clusterID;
+      if (cluster) {
+        this.cluster = cluster;
       }
     },
     paramsFor(crumbName, params = this.params) {
@@ -79,7 +84,7 @@ export default {
           return this.$store.getters['type-map/pluralLabelFor'](schema);
         }
       } else if (lastPiece === 'cluster') {
-        return this.clusterName;
+        return this.cluster.nameDisplay;
       } else {
         return params[lastPiece];
       }
