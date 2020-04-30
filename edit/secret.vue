@@ -41,6 +41,9 @@ export default {
     let username;
     let password;
     let registryFQDN;
+    let registryProvider = 'Custom';
+    let key;
+    let crt;
 
     if (this.value._type === DOCKER_JSON) {
       const json = base64Decode(this.value.data['.dockerconfigjson']);
@@ -51,6 +54,16 @@ export default {
 
       username = auths[registryFQDN].username;
       password = auths[registryFQDN].password;
+      registryAddresses.forEach((provider) => {
+        if (provider.toLowerCase() === registryFQDN) {
+          registryProvider = provider;
+        }
+      });
+    }
+
+    if (this.value._type === TLS) {
+      key = base64Decode((this.value.data || {})['tls.key']);
+      crt = base64Decode((this.value.data || {})['tls.crt']);
     }
 
     if (!this.value._type) {
@@ -62,13 +75,13 @@ export default {
       isNamespaced,
       registryAddresses,
       newNS:            false,
-      registryProvider: registryAddresses[0],
+      registryProvider,
       username,
       password,
       registryFQDN,
       toUpload:         null,
-      key:              null,
-      cert:             null,
+      key,
+      crt
     };
   },
   computed: {
@@ -125,7 +138,7 @@ export default {
 
         this.$set(this.value, 'data', data);
       } else if (this.isCertificate) {
-        const data = { 'tls.crt': base64Encode(this.cert), 'tls.key': base64Encode(this.key) };
+        const data = { 'tls.crt': base64Encode(this.crt), 'tls.key': base64Encode(this.key) };
 
         this.$set(this.value, 'data', data);
       }
@@ -169,14 +182,14 @@ export default {
 
 <template>
   <form>
-    <NameNsDescription :value="value" :mode="mode" :extra-columns="['type']">
+    <NameNsDescription v-model="value" :mode="mode" :extra-columns="['type']">
       <template v-slot:type>
         <LabeledSelect
           v-model="value._type"
           label="Type"
           :options="types"
           :mode="mode"
-          :disabled="isView"
+          :disabled="mode!=='create'"
           :taggable="true"
           :create-option="opt=>opt"
         />
@@ -209,8 +222,8 @@ export default {
         </button>
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="cert" type="multiline" label="CA Certificate" :mode="mode" />
-        <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('cert')">
+        <LabeledInput v-model="crt" type="multiline" label="CA Certificate" :mode="mode" />
+        <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('crt')">
           Read from file
         </button>
       </div>
