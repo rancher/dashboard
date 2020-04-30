@@ -173,7 +173,6 @@ export default {
 
         // Remove the labels map if it's empty
         if ( this.value?.metadata?.labels && Object.keys(this.value.metadata.labels || {}).length === 0 ) {
-          this.$set(this.value.metadata, 'annotations', {});
           delete this.value.metadata.labels;
         }
 

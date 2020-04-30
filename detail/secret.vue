@@ -1,7 +1,7 @@
 <script>
 import { get } from '@/utils/object';
 import { CERTMANAGER, DESCRIPTION } from '@/config/labels-annotations';
-import { DOCKER_JSON } from '@/models/secret';
+import { DOCKER_JSON, TLS } from '@/models/secret';
 import DetailTop from '@/components/DetailTop';
 import SortableTable from '@/components/SortableTable';
 import { KEY, VALUE } from '@/config/table-headers';
@@ -13,7 +13,7 @@ export default {
   components: {
     DetailTop,
     SortableTable,
-    ResourceTabs
+    ResourceTabs,
   },
   mixins:     [CreateEditView],
   props:      {
@@ -28,6 +28,14 @@ export default {
     return { relatedServices: [] };
   },
   computed:   {
+
+    isCertificate() {
+      return this.value._type === TLS;
+    },
+
+    isRegistry() {
+      return this.value._type === DOCKER_JSON;
+    },
     dockerJSON() {
       return DOCKER_JSON;
     },
@@ -53,7 +61,6 @@ export default {
           name:      'address',
           label:     'Address',
           value:     'address',
-          formatter: 'ExternalLink'
         },
         {
           name:  'username',
@@ -70,11 +77,13 @@ export default {
 
       return annotations[CERTMANAGER.ISSUER];
     },
+
     description() {
       const { metadata:{ annotations = {} } } = this.value;
 
       return annotations[DESCRIPTION];
     },
+
     detailTopColumns() {
       const columns = [
         {
@@ -120,6 +129,30 @@ export default {
     dataHeaders() {
       return [KEY, VALUE];
     },
+
+    certRows() {
+      let { 'tls.key':key, 'tls.crt': crt } = this.value.data;
+
+      key = base64Decode(key);
+      crt = base64Decode(crt);
+
+      return [{ key, crt }];
+    },
+
+    certHeaders() {
+      return [
+        {
+          name:  'privateKey',
+          label: 'Private Key',
+          value: 'key'
+        },
+        {
+          name:  'cert',
+          label: 'Certificate',
+          value: 'crt'
+        }
+      ];
+    }
   },
 };
 </script>
@@ -127,12 +160,23 @@ export default {
 <template>
   <div>
     <DetailTop :columns="detailTopColumns" />
-    <template v-if="value.secretType===dockerJSON">
+    <template v-if="isRegistry">
       <SortableTable
         class="mt-20"
         key-field="address"
         :rows="dockerRows"
         :headers="dockerHeaders"
+        :search="false"
+        :table-actions="false"
+        :row-actions="false"
+      />
+    </template>
+    <template v-else-if="isCertificate">
+      <SortableTable
+        class="mt-20"
+        key-field="value"
+        :rows="certRows"
+        :headers="certHeaders"
         :search="false"
         :table-actions="false"
         :row-actions="false"
