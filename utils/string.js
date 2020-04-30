@@ -135,6 +135,10 @@ export function pluralize(count, singular, plural) {
     }
   }
 
+  if (!count) {
+    return plural;
+  }
+
   if (count === 1) {
     return `${ count } ${ singular }`;
   } else {

@@ -253,7 +253,8 @@ export default {
 
     HEADER {
       display: grid;
-      grid-template-areas: "title actions";
+      grid-template-areas:  "breadcrumbs breadcrumbs"
+                            "title actions";
       grid-template-columns: "auto min-content";
       margin-bottom: 20px;
 
@@ -270,6 +271,10 @@ export default {
       .actions {
         grid-area: actions;
         text-align: right;
+      }
+
+      .breadcrumbs {
+        grid-area: breadcrumbs;
       }
     }
 

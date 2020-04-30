@@ -17,7 +17,7 @@ import Networking from '@/edit/workload/Networking';
 import Footer from '@/components/form/Footer';
 import Job from '@/edit/workload/Job';
 import WorkloadPorts from '@/edit/workload/WorkloadPorts';
-import { defaultAsyncData } from '@/components/ResourceDetail.vue';
+import { defaultAsyncData } from '@/components/ResourceDetail';
 import { _EDIT } from '@/config/query-params';
 import ResourceTabs from '@/components/form/ResourceTabs';
 

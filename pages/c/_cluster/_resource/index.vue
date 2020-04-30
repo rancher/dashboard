@@ -2,9 +2,14 @@
 import ResourceTable from '@/components/ResourceTable';
 import Favorite from '@/components/nav/Favorite';
 import { AS_YAML, _FLAGGED } from '@/config/query-params';
+import BreadCrumbs from '@/components/BreadCrumbs';
 
 export default {
-  components: { ResourceTable, Favorite },
+  components: {
+    ResourceTable,
+    Favorite,
+    BreadCrumbs
+  },
 
   data() {
     const params = { ...this.$route.params };
@@ -28,6 +33,7 @@ export default {
     }).href;
 
     return {
+      route:   this.$route,
       listComponent,
       formRoute,
       yamlRoute,
@@ -109,6 +115,8 @@ export default {
 <template>
   <div>
     <header>
+      <BreadCrumbs class="breadcrumbs" :route="route" />
+
       <h1>
         {{ typeDisplay }} <Favorite :resource="resource" />
       </h1>
