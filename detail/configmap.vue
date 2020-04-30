@@ -2,12 +2,12 @@
 import { DESCRIPTION } from '@/config/labels-annotations';
 import CreateEditView from '@/mixins/create-edit-view';
 import DetailTop from '@/components/DetailTop';
-import Labels from '@/components/form/Labels';
 import SortableTable from '@/components/SortableTable';
 import VStack from '@/components/Layout/Stack/VStack';
 import { downloadFile } from '@/utils/download';
 import Tab from '@/components/Tabbed/Tab';
-import Tabbed from '@/components/Tabbed';
+import KeyValue from '@/components/form/KeyValue';
+import ResourceTabs from '@/components/form/ResourceTabs';
 
 import {
   DOWNLOAD,
@@ -24,10 +24,10 @@ export default {
   name:       'DetailConfigMap',
   components: {
     DetailTop,
-    Labels,
+    KeyValue,
+    ResourceTabs,
     SortableTable,
     Tab,
-    Tabbed,
     VStack
   },
 
@@ -112,56 +112,40 @@ export default {
 <template>
   <VStack class="config-map">
     <DetailTop class="detail-top" :columns="detailTopColumns" />
-    <div>
-      <h2>
-        Related Workloads
-      </h2>
-      <SortableTable
-        key-field="_key"
-        :headers="relatedWorkloadsHeaders"
-        :rows="relatedWorkloadsRows"
-        :row-actions="false"
-        :search="false"
-        no-rows-key="generic.comingSoon"
+    <div class="spacer"></div>
+    <div class="col span-6">
+      <KeyValue
+        key="data"
+        v-model="value.data"
+        :mode="mode"
+        title="Data"
+        protip="Use this area for anything that's UTF-8 text data"
+        :initial-empty-row="true"
       />
     </div>
-    <Tabbed default-tab="values">
-      <Tab name="values" label="Values">
-        <SortableTable
-          key-field="_key"
-          :headers="valuesTableHeaders"
-          :rows="valuesTableRows"
-          :row-actions="false"
-          :search="false"
-          :table-actions="false"
-          :top-divider="false"
-          :emphasized-body="false"
-          :body-dividers="true"
-        />
-      </Tab>
-      <Tab name="binary-values" label="Binary Values">
-        <SortableTable
-          key-field="_key"
-          :headers="binaryValuesTableHeaders"
-          :rows="binaryValuesTableRows"
-          :row-actions="false"
-          :search="false"
-          :table-actions="false"
-          :top-divider="false"
-          :emphasized-body="false"
-          :body-dividers="true"
-        >
-          <template #col:download="{row}">
-            <td data-title="Download:" align="right" class="col-click-expand">
-              <a href="#" @click="onDownloadClick(row, $event)">Download</a>
-            </td>
-          </template>
-        </SortableTable>
-      </Tab>
-      <Tab label="Labels and Annotations" name="labelsAndAnnotations">
-        <Labels :spec="value" :mode="mode" />
-      </Tab>
-    </Tabbed>
+    <ResourceTabs v-model="value" :mode="mode">
+      <template #before>
+        <Tab name="binary-data" label="Binary Data">
+          <SortableTable
+            key-field="_key"
+            :headers="binaryValuesTableHeaders"
+            :rows="binaryValuesTableRows"
+            :row-actions="false"
+            :search="false"
+            :table-actions="false"
+            :top-divider="false"
+            :emphasized-body="false"
+            :body-dividers="true"
+          >
+            <template #col:download="{row}">
+              <td data-title="Download:" align="right" class="col-click-expand">
+                <a href="#" @click="onDownloadClick(row, $event)">Download</a>
+              </td>
+            </template>
+          </SortableTable>
+        </Tab>
+      </template>
+    </ResourceTabs>
   </VStack>
 </template>
 

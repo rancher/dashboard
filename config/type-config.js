@@ -89,7 +89,7 @@ export default function(store) {
   mapGroup(/^(.*\.)?istio\.io$/, 'Istio');
   mapGroup(/^(.*\.)?knative\.io$/, 'Knative');
 
-  headers(CONFIG_MAP, [STATE, NAMESPACE_NAME, KEYS, AGE]);
+  headers(CONFIG_MAP, [NAMESPACE_NAME, KEYS, AGE]);
   headers(SECRET, [
     STATE,
     NAMESPACE_NAME,
