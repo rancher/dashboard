@@ -66,7 +66,7 @@ export default {
       width: 32px;
     }
     .bar {
-      vertical-align: middle;
+      vertical-align: -5px; // this will align percentage-text in the center without having to change the line height
       margin-left: 3px;
       .tick {
         display: inline-block;
