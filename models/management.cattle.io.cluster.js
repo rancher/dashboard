@@ -1,4 +1,3 @@
-import { capitalize } from 'lodash';
 import day from 'dayjs';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT } from '@/store/prefs';
@@ -16,9 +15,8 @@ export default {
   },
 
   kubernetesVersion() {
-    const configName = this.configName;
-    const k8sVersion = this.spec[configName]
-      ? this.spec[configName].kubernetesVersion
+    const k8sVersion = this?.status?.version?.gitVersion
+      ? this.status.version.gitVersion
       : this.$rootGetters['i18n/t']('generic.unknown');
 
     return k8sVersion;
@@ -28,20 +26,6 @@ export default {
     const dateFormat = escapeHtml( this.$rootGetters['prefs/get'](DATE_FORMAT));
 
     return day(this.metadata.creationTimestamp).format(`${ dateFormat }`);
-  },
-
-  displayProvider() {
-    const configName = this.configName?.toLowerCase();
-    const driver = this.status?.driver;
-    const key = `cluster.provider.${ configName }`;
-
-    if ( this.$rootGetters['i18n/exists'](key) ) {
-      return this.$rootGetters['i18n/t'](key);
-    } else if (driver && configName) {
-      return capitalize(driver);
-    } else {
-      return this.$rootGetters['i18n/t']('cluster.provider.importedconfig');
-    }
   },
 
   canDelete() {

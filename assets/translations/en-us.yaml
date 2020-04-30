@@ -23,15 +23,39 @@ nav:
 
 cluster:
   provider:
-    aliyunengineconfig: Alibaba ACK
-    amazonelasticcontainerserviceconfig: Amazon EKS
-    azurekubernetesserviceconfig: Azure AKS
-    googlekubernetesengineconfig: Google GKE
-    huaweiengineconfig: Huawei CCE
-    importedconfig: Import
-    rancherkubernetesengineconfig: Rancher RKE
-    tencentengineconfig: Tencent TKE
-    baiduengineconfig: Baidu CCE
+    amazonelasticcontainerservice:
+      label: Amazon Elastic Container Service for Kubernetes
+      shortLabel: Amazon EKS
+    tencentengine:
+      label: Tencent Kubernetes Engine
+      shortLabel: Tencent TKE
+    azurekubernetesservice:
+      label: Azure Container Service
+      shortLabel: Azure AKS
+    aliyunengine:
+      label: Aliyun Kubernetes Container Service
+      shortLabel: Alibaba ACK
+    googlekubernetesengine:
+      label: Google Kubernetes Engine
+      shortLabel: Google GKE
+    k3simport:
+      label: Rancher K3S
+      shortLabel: K3S
+    huaweiengine:
+      label: Huawei Cloud Container Engine
+      shortLabel: Huawei CCE
+    oracleokeengine:
+      label: Oracle Container Engine long
+      shortLabel: Oracle OKE
+    rancherkubernetesengine:
+      label: Rancher Kubernetes Engine
+      shortLabel: Custom
+    custom:
+      label: From existing nodes (Custom)
+      shortLabel: Custom
+    imported:
+      label: Import an existing cluster
+      shortLabel: Imported
 
 footer:
   docs: Docs

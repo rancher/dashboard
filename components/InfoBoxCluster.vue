@@ -2,6 +2,7 @@
 import { isEmpty } from 'lodash';
 import InfoBox from '@/components/InfoBox';
 import PercentageBar from '@/components/PercentageBar';
+import ClusterDisplayProvider from '@/components/ClusterDisplayProvider';
 import { parseSi, formatSi, exponentNeeded } from '@/utils/units';
 
 const PARSE_RULES = {
@@ -21,22 +22,46 @@ const PARSE_RULES = {
 
 export default {
   components: {
+    ClusterDisplayProvider,
     InfoBox,
     PercentageBar,
   },
 
   props: {
+    /**
+     * The cluster for info
+     */
     cluster: {
       type:     Object,
       required: true,
     },
+    /**
+     * The node metrics used for parsing CPU/MEM graphs
+     */
     metrics: {
       type:     Array,
       required: true,
     },
+    /**
+     * The nodes belonging to this cluster
+     */
     nodes: {
       type:     Array,
       required: true,
+      default:  () => [],
+    },
+    /**
+     * The node pools belonging to this cluster
+     */
+    nodePools: {
+      type:     Array,
+      default:  () => [],
+    },
+    /**
+     * The node templates used to launch node pools for this cluster.
+     */
+    nodeTemplates: {
+      type:     Array,
       default:  () => [],
     }
   },
@@ -160,7 +185,11 @@ export default {
           <t k="infoBoxCluster.provider" />:
         </label>
         <span class="info-row-data">
-          {{ cluster.displayProvider }}
+          <ClusterDisplayProvider
+            :cluster="cluster"
+            :node-templates="nodeTemplates"
+            :node-pools="nodePools"
+          />
         </span>
       </div>
       <div class="info-row">
