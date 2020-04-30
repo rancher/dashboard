@@ -134,6 +134,11 @@ resourceDetail:
     edit: 'Edit <a href="{typeLink}">{type}</a>: {name}'
     clone: 'Clone from <a href="{typeLink}">{type}</a>: {name}'
     stage: 'Stage from <a href="{typeLink}">{type}</a>: {name}'
+  masthead:
+    namespace: 'Namespace'
+    project: 'Project'
+    yaml: 'YAML'
+    overview: 'Overview'
 
 sortableTable:
   noRows: "There are no rows to show."

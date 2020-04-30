@@ -1,10 +1,11 @@
 <script>
-import { PROJECT } from '../../config/labels-annotations';
+import { PROJECT } from '@/config/labels-annotations';
 import BreadCrumbs from '@/components/BreadCrumbs';
 import { NAMESPACE, EXTERNAL } from '@/config/types';
+import ButtonGroup from '@/components/ButtonGroup';
 
 export default {
-  components: { BreadCrumbs },
+  components: { BreadCrumbs, ButtonGroup },
   props:      {
     value: {
       type:    Object,
@@ -96,7 +97,6 @@ export default {
       }
     }
   },
-
   methods: {
     showActions() {
       this.$store.commit('action-menu/show', {
@@ -120,18 +120,13 @@ export default {
     <div>
       <h1 v-html="h1" />
       <!-- //TODO use  nuxt-link for an internal project detail page once it exists -->
-      <span v-if="isNamespace">Project: {{ project.nameDisplay }}</span>
-      <span v-else-if="namespace">Namespace: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
+      <span v-if="isNamespace && project"><t k="resourceDetail.masthead.project" />: {{ project.nameDisplay }}</span>
+      <span v-else-if="namespace"><t k="resourceDetail.masthead.namespace" />: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
     </div>
     <div v-if="mode==='view'" class="actions">
       <!-- //TODO remove check for custom detail component once there is a generic detail -->
-      <div v-if="hasDetail" class="yaml-toggle">
-        <button id="yaml-on" :disabled="asYaml" class="btn btn-sm role-primary" @click="toggleYaml">
-          YAML
-        </button>
-        <button id="yaml-off" :disabled="!asYaml" class="btn btn-sm role-primary" @click="toggleYaml">
-          Overview
-        </button>
+      <div v-if="hasDetail">
+        <ButtonGroup :labels-are-translations="true" :value="asYaml" :options="[{label: 'resourceDetail.masthead.overview', value: false},{label:'resourceDetail.masthead.yaml', value: true }]" @input="toggleYaml" />
       </div>
       <button ref="actions" aria-haspopup="true" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
         <i class="icon icon-actions" />
@@ -139,17 +134,3 @@ export default {
     </div>
   </header>
 </template>
-
-<style lang='scss'>
-  .yaml-toggle{
-    display: inline-flex;
-
-    & #yaml-on{
-      border-radius: calc(var(--border-radius) * 2) 0px  0px calc(var(--border-radius) * 2);
-    }
-
-    & #yaml-off{
-      border-radius:  0px  calc(var(--border-radius) * 2) calc(var(--border-radius) * 2) 0px;
-    }
-  }
-</style>

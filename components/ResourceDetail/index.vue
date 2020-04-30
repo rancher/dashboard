@@ -131,7 +131,6 @@ export async function defaultAsyncData(ctx, resource) {
     originalModel,
     mode,
     realMode,
-    route
   };
   /*******
    * Important: these need to be declared below as props too if you want to use them
@@ -182,12 +181,6 @@ export default {
     realMode: {
       type:    String,
       default: null
-    },
-    route: {
-      type:    Object,
-      default: () => {
-        return {};
-      }
     }
   },
 
