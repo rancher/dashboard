@@ -3,13 +3,20 @@ import { get } from '@/utils/object';
 
 import createEditView from '@/mixins/create-edit-view';
 import ResourceQuota from '@/edit/namespace/ResourceQuota';
+import DetailTop from '@/components/DetailTop';
+import LiveDate from '@/components/formatter/LiveDate';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import ResourceTabs from '@/components/form/ResourceTabs';
 
 export default {
   name: 'DetailNamespace',
 
-  components: { ResourceQuota, ResourceTabs },
+  components: {
+    DetailTop,
+    LiveDate,
+    ResourceQuota,
+    ResourceTabs
+  },
 
   mixins:     [createEditView],
 
@@ -54,11 +61,26 @@ export default {
       originalQuotaID, description, name: this.value.metadata.name
     };
   },
+  computed: {
+    detailTopColumns() {
+      return [
+        {
+          title: this.$store.getters['i18n/t']('generic.created'),
+          name:  'created'
+        },
+      ];
+    },
+  },
 };
 </script>
 
 <template>
   <div class="namespace-detail">
+    <DetailTop :columns="detailTopColumns">
+      <template v-slot:created>
+        <LiveDate :value="value.metadata.creationTimestamp" :add-suffix="true" />
+      </template>
+    </DetailTop>
     <ResourceQuota
       :original-i-d="originalQuotaID"
       :register-after-hook="registerAfterHook"

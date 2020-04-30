@@ -3,8 +3,9 @@ locale:
   en-us: English
 
 generic:
-  customize: Customize
   comingSoon: Coming Soon
+  created: Created
+  customize: Customize
   unknown: Unknown
 
 header:
