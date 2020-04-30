@@ -2,7 +2,6 @@
 import { isEmpty } from 'lodash';
 import InfoBox from '@/components/InfoBox';
 import PercentageBar from '@/components/PercentageBar';
-import ClusterDisplayProvider from '@/components/ClusterDisplayProvider';
 import { parseSi, formatSi, exponentNeeded } from '@/utils/units';
 
 const PARSE_RULES = {
@@ -22,7 +21,6 @@ const PARSE_RULES = {
 
 export default {
   components: {
-    ClusterDisplayProvider,
     InfoBox,
     PercentageBar,
   },
@@ -50,35 +48,9 @@ export default {
       required: true,
       default:  () => [],
     },
-    /**
-     * The node pools belonging to this cluster
-     */
-    nodePools: {
-      type:     Array,
-      default:  () => [],
-    },
-    /**
-     * The node templates used to launch node pools for this cluster.
-     */
-    nodeTemplates: {
-      type:     Array,
-      default:  () => [],
-    }
   },
 
   computed: {
-    nodeCounts() {
-      const nodes = this.nodes;
-      const countsOut = {
-        workerNodes:       nodes.filter(n => n.isWorker).length || 0,
-        etcdNodes:         nodes.filter(n => n.isEtcd).length || 0,
-        controlPlaneNodes: nodes.filter(n => n.isControlPlane).length || 0,
-        total:             nodes.length,
-      };
-
-      return countsOut;
-    },
-
     liveNodeUsage() {
       const clusterCapacityCpu = this.cluster?.status?.capacity?.cpu;
 
@@ -178,181 +150,76 @@ export default {
 </script>
 
 <template>
-  <InfoBox class="row">
-    <div class="col span-3 info-column">
-      <div class="info-row">
-        <label class="info-row-label">
-          <t k="infoBoxCluster.provider" />:
-        </label>
-        <span class="info-row-data">
-          <ClusterDisplayProvider
-            :cluster="cluster"
-            :node-templates="nodeTemplates"
-            :node-pools="nodePools"
-          />
-        </span>
-      </div>
-      <div class="info-row">
-        <label class="info-row-label">
-          <t k="infoBoxCluster.version" />:
-        </label>
-        <span class="info-row-data">
-          {{ cluster.kubernetesVersion }}
-        </span>
-      </div>
-      <div class="info-row">
-        <label class="info-row-label">
-          <t k="infoBoxCluster.created" />:
-        </label>
-        <span class="info-row-data">
-          <LiveDate
-            :value="cluster.metadata.creationTimestamp"
-            :add-suffix="true"
-          />
-        </span>
-      </div>
-    </div>
-    <div class="col span-3 info-column">
+  <InfoBox>
+    <div class="info-column">
       <label>
         <h5>
           <t k="infoBoxCluster.cpu" />
         </h5>
       </label>
-      <div class="container-flex-center mb-10">
-        <div class="flex-item-half">
-          <label>
-            <t
-              k="infoBoxCluster.reserved"
-              :numerator="nodeUsageReserved.requested"
-              :denominator="nodeUsageReserved.allocatable"
-            />
-          </label>
-        </div>
-        <div class="flex-item-half flex-justify-start pl-5">
-          <PercentageBar class="container-flex-center" :value="nodeUsageReserved.percentage" />
-        </div>
+      <div class="info-column-data mb-10">
+        <label>
+          <t
+            k="infoBoxCluster.reserved"
+            :numerator="nodeUsageReserved.requested"
+            :denominator="nodeUsageReserved.allocatable"
+          />
+        </label>
+        <PercentageBar :value="nodeUsageReserved.percentage" />
       </div>
-      <div class="container-flex-center mb-10">
-        <div class="flex-item-half">
-          <label>
-            <t
-              k="infoBoxCluster.used"
-              :numerator="liveNodeUsage.nodeUsage"
-              :denominator="liveNodeUsage.clusterCapacity"
-            />
-          </label>
-        </div>
-        <div class="flex-item-half flex-justify-start pl-5">
-          <PercentageBar class="container-flex-center" :value="liveNodeUsage.percentage" />
-        </div>
+      <div class="info-column-data mb-10">
+        <label>
+          <t
+            k="infoBoxCluster.used"
+            :numerator="liveNodeUsage.nodeUsage"
+            :denominator="liveNodeUsage.clusterCapacity"
+          />
+        </label>
+        <PercentageBar :value="liveNodeUsage.percentage" />
       </div>
-      <label class="mt-20">
+    </div>
+    <div class="info-column">
+      <label>
         <h5>
           <t k="infoBoxCluster.memory" />
         </h5>
       </label>
-      <div class="container-flex-center mb-10">
-        <div class="flex-item-half">
-          <label>
-            <t
-              k="infoBoxCluster.reserved"
-              :numerator="nodeUsageMemReserved.requested"
-              :denominator="nodeUsageMemReserved.allocatable"
-            />
-          </label>
-        </div>
-        <div class="flex-item-half flex-justify-start pl-5">
-          <PercentageBar class="container-flex-center" :value="nodeUsageMemReserved.percentage" />
-        </div>
+      <div class="info-column-data mb-10">
+        <label>
+          <t
+            k="infoBoxCluster.reserved"
+            :numerator="nodeUsageMemReserved.requested"
+            :denominator="nodeUsageMemReserved.allocatable"
+          />
+        </label>
+        <PercentageBar :value="nodeUsageMemReserved.percentage" />
       </div>
-      <div class="container-flex-center mb-10">
-        <div class="flex-item-half">
-          <label>
-            <t
-              k="infoBoxCluster.used"
-              :numerator="liveNodeMemUsage.nodeUsage"
-              :denominator="liveNodeMemUsage.clusterCapacity"
-            />
-          </label>
-        </div>
-        <div class="flex-item-half flex-justify-start pl-5">
-          <PercentageBar class="container-flex-center" :value="liveNodeMemUsage.percentage" />
-        </div>
+      <div class="info-column-data mb-10">
+        <label>
+          <t
+            k="infoBoxCluster.used"
+            :numerator="liveNodeMemUsage.nodeUsage"
+            :denominator="liveNodeMemUsage.clusterCapacity"
+          />
+        </label>
+        <PercentageBar :value="liveNodeMemUsage.percentage" />
       </div>
     </div>
-    <div class="col span-3 info-column">
+    <div class="info-column">
       <label>
         <h5>
           <t k="infoBoxCluster.pods" />
         </h5>
       </label>
-      <div class="container-flex-center mb-10">
-        <div class="flex-item-half">
-          <label>
-            <t
-              k="infoBoxCluster.used"
-              :numerator="nodeUsagePodReserved.nodeUsage"
-              :denominator="nodeUsagePodReserved.clusterCapacity"
-            />
-          </label>
-        </div>
-        <div class="flex-item-half flex-justify-start pl-5">
-          <PercentageBar class="container-flex-center" :value="nodeUsagePodReserved.percentage" />
-        </div>
-      </div>
-    </div>
-    <div class="col span-3 info-column">
-      <label>
-        <h5>
-          <t k="infoBoxCluster.nodes.label" />
-        </h5>
-      </label>
-      <div class="container-flex-center mb-10">
-        <div class="flex-item-half">
-          <label>
-            <t k="infoBoxCluster.nodes.total.label" />:
-          </label>
-        </div>
-        <div class="flex-item-half flex-justify-start pl-5">
-          <span>
-            {{ nodeCounts.total }}
-          </span>
-        </div>
-      </div>
-
-      <hr class="mt-40 mb-40" />
-
-      <div class="row">
-        <div class="col span-3">
-          <div class="text-center mb-10">
-            {{ nodeCounts.workerNodes }}
-          </div>
-          <div class="text-center">
-            <label>
-              <t k="infoBoxCluster.nodes.worker.label" />
-            </label>
-          </div>
-        </div>
-        <div class="col span-4 offset-1">
-          <div class="text-center mb-10">
-            {{ nodeCounts.etcdNodes }}
-          </div>
-          <div class="text-center">
-            <label>
-              <t k="infoBoxCluster.nodes.etcd.label" />
-            </label>
-          </div>
-        </div>
-        <div class="col span-5">
-          <div class="text-center mb-10">
-            {{ nodeCounts.controlPlaneNodes }}
-          </div>
-          <div class="text-center">
-            <label>
-              <t k="infoBoxCluster.nodes.controlPlane.label" />
-            </label>
-          </div>
-        </div>
+      <div class="info-column-data mb-10">
+        <label>
+          <t
+            k="infoBoxCluster.reserved"
+            :numerator="nodeUsagePodReserved.nodeUsage"
+            :denominator="nodeUsagePodReserved.clusterCapacity"
+          />
+        </label>
+        <PercentageBar :value="nodeUsagePodReserved.percentage" />
       </div>
     </div>
   </InfoBox>
@@ -360,13 +227,44 @@ export default {
 
 <style lang="scss" scoped>
   .info-box {
-    &.row {
-      flex-grow: 0;
-    }
+    // reset infobox flex styles
+    display: grid;
+    grid-template-columns: 1fr;
+    flex-grow: 0;
+    flex-basis: 0;
+    margin-bottom: 20px;
+
     .info-column {
+      padding-left: 10%;
+      &:not(:last-child) {
+        border-right: 0;
+        border-bottom: 1px solid var(--tabbed-border);
+        margin-bottom: 10px;
+      }
+      .info-column-data {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: center;
+      }
       > label {
         margin-bottom: 5px;
         display: inline-block;
+      }
+    }
+  }
+
+  @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
+    .info-box {
+      grid-template-columns: 1fr 1fr 1fr;
+      .info-column {
+        .info-column-data {
+          grid-template-columns: 1fr 1fr;
+        }
+        &:not(:last-child) {
+          border-right: 1px solid var(--tabbed-border);
+          border-bottom: 0;
+          margin-bottom: 0;
+        }
       }
     }
   }

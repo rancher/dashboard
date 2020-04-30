@@ -4,6 +4,8 @@ import { get } from '@/utils/object';
 import InfoBoxCluster from '@/components/InfoBoxCluster';
 import InfoBox from '@/components/InfoBox';
 import SortableTable from '@/components/SortableTable';
+import DetailTop from '@/components/DetailTop';
+import ClusterDisplayProvider from '@/components/ClusterDisplayProvider';
 import {
   MESSAGE,
   NAME,
@@ -27,6 +29,8 @@ import { allHash } from '@/utils/promise';
 
 export default {
   components: {
+    DetailTop,
+    ClusterDisplayProvider,
     InfoBox,
     InfoBoxCluster,
     SortableTable
@@ -86,6 +90,26 @@ export default {
   },
 
   computed: {
+    detailTopColumns() {
+      return [
+        {
+          title:   this.$store.getters['i18n/t']('infoBoxCluster.provider'),
+          name:    'cluster-provider',
+        },
+        {
+          title:   this.$store.getters['i18n/t']('infoBoxCluster.version'),
+          content: this.cluster.kubernetesVersion
+        },
+        {
+          title:   this.$store.getters['i18n/t']('infoBoxCluster.nodes.total.label'),
+          content: ( this.nodes || [] ).length
+        },
+        {
+          title:   this.$store.getters['i18n/t']('infoBoxCluster.created'),
+          name:    'live-date',
+        },
+      ];
+    },
     filteredNodes() {
       const allNodes = ( this.nodes || [] ).slice();
 
@@ -262,6 +286,14 @@ export default {
         </button>
       </div>
     </header>
+    <DetailTop :columns="detailTopColumns" class="mb-20">
+      <template v-slot:cluster-provider>
+        <ClusterDisplayProvider :cluster="cluster" :node-templates="nodeTemplates" :node-pools="nodePools" />
+      </template>
+      <template v-slot:live-date>
+        <LiveDate :value="cluster.metadata.creationTimestamp" :add-suffix="true" />
+      </template>
+    </DetailTop>
     <InfoBoxCluster
       :cluster="cluster"
       :metrics="nodeMetrics"
