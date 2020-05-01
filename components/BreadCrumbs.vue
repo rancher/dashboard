@@ -1,4 +1,6 @@
 <script>
+import { MANAGEMENT } from '@/config/types';
+
 export default {
   data() {
     // make a map of all route names to validate programatically generated names
@@ -26,16 +28,23 @@ export default {
       });
     });
 
+    const clusterID = params.cluster;
+    let cluster;
+
+    if (clusterID) {
+      cluster = this.$store.getters['management/byId']( MANAGEMENT.CLUSTER, clusterID ) || {};
+    }
+
     // remove root route 'c'
     crumbLocations.shift();
 
     // filter invalid routes
     crumbLocations = crumbLocations.filter((location) => {
-      return (allRouteMap[location.name] && this.displayName(location, params));
+      return (allRouteMap[location.name]);
     });
 
     return {
-      crumbLocations, params, crumbPieces, allRouteMap
+      crumbLocations, params, crumbPieces, allRouteMap, cluster
     };
   },
 
@@ -64,11 +73,12 @@ export default {
         if (schema) {
           return this.$store.getters['type-map/pluralLabelFor'](schema);
         }
+      } else if (lastPiece === 'cluster') {
+        return this.cluster.nameDisplay;
+      } else {
+        return params[lastPiece];
       }
-
-      return params[lastPiece];
     },
-
   }
 };
 </script>
@@ -76,11 +86,13 @@ export default {
 <template>
   <div class="row">
     <div v-for="(location, i) in crumbLocations" :key="location.name">
-      <span v-if="i > 0" class="divider">/</span>
-      <span v-if="i===crumbLocations.length-1">{{ displayName(location) }}</span>
-      <nuxt-link v-else :to="location">
-        {{ displayName(location) }}
-      </nuxt-link>
+      <template v-if="displayName(location)">
+        <span v-if="i > 0" class="divider">/</span>
+        <span v-if="i===crumbLocations.length-1">{{ displayName(location) }}</span>
+        <nuxt-link v-else :to="location">
+          {{ displayName(location) }}
+        </nuxt-link>
+      </template>
     </div>
   </div>
 </template>

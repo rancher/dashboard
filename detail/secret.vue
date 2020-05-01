@@ -1,5 +1,4 @@
 <script>
-import { get } from '@/utils/object';
 import { CERTMANAGER, DESCRIPTION } from '@/config/labels-annotations';
 import { DOCKER_JSON, TLS } from '@/models/secret';
 import DetailTop from '@/components/DetailTop';
@@ -86,14 +85,6 @@ export default {
 
     detailTopColumns() {
       const columns = [
-        {
-          title:   'Description',
-          content: this.description
-        },
-        {
-          title:   'Namespace',
-          content: get(this.value, 'metadata.namespace')
-        },
         {
           title:   'Type',
           content: this.value.typeDisplay

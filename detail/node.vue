@@ -1,5 +1,4 @@
 <script>
-import { DESCRIPTION } from '../config/labels-annotations';
 import CopyToClipboardText from '@/components/CopyToClipboardText';
 import ConsumptionGauge from '@/components/ConsumptionGauge';
 import DetailTop from '@/components/DetailTop';
@@ -112,10 +111,6 @@ export default {
 
     detailTopColumns() {
       return [
-        {
-          title:   'Description',
-          content: this.value.metadata.annotations[DESCRIPTION]
-        },
         {
           title: 'IP Address',
           name:  'ipAddress'

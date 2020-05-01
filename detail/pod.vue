@@ -1,5 +1,4 @@
 <script>
-import { get } from '../utils/object';
 import { VALUE } from '../config/table-headers';
 import createEditView from '@/mixins/create-edit-view';
 import DetailTop from '@/components/DetailTop';
@@ -14,10 +13,6 @@ export default {
   computed:   {
     detailTopColumns() {
       return [
-        {
-          title:   'Namespace',
-          content: get(this.value, 'metadata.namespace')
-        },
         {
           title:   'Image',
           content: this.value.spec.containers[0].image

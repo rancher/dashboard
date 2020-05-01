@@ -1,7 +1,5 @@
 <script>
-import { DESCRIPTION } from '@/config/labels-annotations';
 import CreateEditView from '@/mixins/create-edit-view';
-import DetailTop from '@/components/DetailTop';
 import SortableTable from '@/components/SortableTable';
 import VStack from '@/components/Layout/Stack/VStack';
 import { downloadFile } from '@/utils/download';
@@ -23,7 +21,6 @@ import {
 export default {
   name:       'DetailConfigMap',
   components: {
-    DetailTop,
     KeyValue,
     ResourceTabs,
     SortableTable,
@@ -82,22 +79,6 @@ export default {
     relatedWorkloadsRows() {
       return [];
     },
-
-    detailTopColumns() {
-      const { metadata = {} } = this.value;
-      const { annotations = {} } = metadata;
-
-      return [
-        {
-          title:   'Description',
-          content: annotations[DESCRIPTION]
-        },
-        {
-          title:   'Namespace',
-          content: metadata.namespace
-        }
-      ];
-    }
   },
 
   methods: {
@@ -111,7 +92,6 @@ export default {
 
 <template>
   <VStack class="config-map">
-    <DetailTop class="detail-top" :columns="detailTopColumns" />
     <div class="spacer"></div>
     <div class="col span-6">
       <KeyValue
