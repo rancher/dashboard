@@ -509,9 +509,6 @@ export default {
 </template>
 
 <style lang="scss">
-@import "~assets/styles/base/_variables.scss";
-@import "~assets/styles/base/_functions.scss";
-@import "~assets/styles/base/_mixins.scss";
 //
 // Important: Almost all selectors in here need to be ">"-ed together so they
 // apply only to the current table, not one nested inside another table.
