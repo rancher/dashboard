@@ -37,8 +37,8 @@ export default {
           key="data"
           v-model="value.data"
           :mode="mode"
-          title="Data"
-          protip="Use this area for anything that's UTF-8 text data"
+          :title="t('configmapPage.data.title')"
+          :protip="t('configmapPage.data.protip')"
           :initial-empty-row="true"
         />
       </div>
@@ -48,7 +48,7 @@ export default {
 
     <ResourceTabs v-model="value" :mode="mode">
       <template #before>
-        <Tab label="Binary Data" name="binary-data">
+        <Tab :label="t('configmapPage.tabs.binaryData.label')" name="binary-data">
           <KeyValue
             key="binaryData"
             v-model="value.binaryData"

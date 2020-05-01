@@ -98,15 +98,15 @@ export default {
         key="data"
         v-model="value.data"
         :mode="mode"
-        title="Data"
-        protip="Use this area for anything that's UTF-8 text data"
+        :title="t('configmapPage.data.title')"
         :initial-empty-row="true"
       />
     </div>
     <ResourceTabs v-model="value" :mode="mode">
       <template #before>
-        <Tab name="binary-data" label="Binary Data">
+        <Tab name="binary-data" :label="t('configmapPage.tabs.binaryData.label')">
           <SortableTable
+            class="binary-data"
             key-field="_key"
             :headers="binaryValuesTableHeaders"
             :rows="binaryValuesTableRows"

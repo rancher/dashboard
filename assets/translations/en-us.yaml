@@ -164,3 +164,11 @@ model:
   namespace:
     project: "Project: {name}"
     notInAProject: "Not in a Project"
+
+configmapPage:
+  data:
+    title: Data
+    protip: Use this area for anything that's UTF-8 text data
+  tabs:
+    binaryData:
+      label: Binary Data
