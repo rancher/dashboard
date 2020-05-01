@@ -21,6 +21,10 @@ function stringFor(store, key, args, raw = false) {
   }
 }
 
+Vue.prototype.t = function(key, args, raw) {
+  return stringFor(this.$store, key, args, raw);
+};
+
 function directive(el, binding, vnode /*, oldVnode */) {
   const { context } = vnode;
   const raw = binding.modifiers && binding.modifiers.raw === true;
