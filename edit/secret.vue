@@ -216,13 +216,13 @@ export default {
 
     <div v-else-if="isCertificate" class="row">
       <div class="col span-6">
-        <LabeledInput v-model="key" type="multiline" label="Private Key" :mode="mode" />
+        <LabeledInput v-model="key" type="multiline" label="Private Key" :mode="mode" placeholder="Paste in the private key, typically starting with-----BEGIN RSA PRIVATE KEY-----" />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('key')">
           Read from file
         </button>
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="crt" type="multiline" label="CA Certificate" :mode="mode" />
+        <LabeledInput v-model="crt" type="multiline" label="CA Certificate" :mode="mode" placeholder="Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----" />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('crt')">
           Read from file
         </button>
