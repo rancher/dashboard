@@ -257,7 +257,7 @@ export default {
 <template>
   <div>
     <Masthead
-      :value="originalModel"
+      :value="model"
       :mode="mode"
       :done-route="doneRoute"
       :real-mode="realMode"

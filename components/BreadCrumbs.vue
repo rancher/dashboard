@@ -1,9 +1,7 @@
 <script>
 import { MANAGEMENT } from '@/config/types';
-import loadDeps from '@/mixins/load-deps';
 
 export default {
-  mixins: [loadDeps],
   data() {
     // make a map of all route names to validate programatically generated names
     const allRoutes = this.$router.options.routes;
@@ -51,14 +49,6 @@ export default {
   },
 
   methods: {
-    async loadDeps() {
-      const clusterID = this.params.cluster;
-      const cluster = await this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: clusterID });
-
-      if (cluster) {
-        this.cluster = cluster;
-      }
-    },
     paramsFor(crumbName, params = this.params) {
       const pieces = crumbName.split('-');
       const out = {};
