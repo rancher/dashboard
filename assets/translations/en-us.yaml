@@ -113,7 +113,7 @@ infoBoxCluster:
   memory: Memory
   pods: Pods
   provider: Provider
-  reserved: "{numerator} of {denominator} rsvd"
+  reserved: "{numerator} of {denominator} reserved"
   used: "{numerator} of {denominator} used"
   version: Kubernetes Version
   nodes:

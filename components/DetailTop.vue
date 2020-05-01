@@ -12,7 +12,7 @@ export default {
 <template>
   <div class="detail-top">
     <div v-for="col in columns" :key="col.title">
-      <span>{{ col.title }}: </span>
+      <label>{{ col.title }}:</label>
       <slot :name="col.name">
         <span>{{ col.content || col.content===0 ? col.content : col.fallback || 'n/a' }}</span>
       </slot>
@@ -21,22 +21,55 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.detail-top {
-    display: flex;
-    flex-wrap: wrap;
+  $sm-screen-grid: 1fr;
+  $md-screen-grid: 1fr 1fr;
+  $default-screen-grid: 1fr 1fr 1fr 1fr;
+
+  .detail-top {
+    display: grid;
+    grid-template-columns: $default-screen-grid;
     border-top: solid thin var(--border);
     border-bottom: solid thin var(--border);
     padding: 15px 0;
 
     & > * {
-        padding: 0 10px;
-        & >:first-child {
-            color: var(--input-placeholder);
-        }
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
 
-        &:last-child {
-            padding-right: 0;
-        }
+      & > label {
+        color: var(--input-placeholder);
+        display: flex;
+        padding-right: 5px;
+      }
+
+      & > :not(label) {
+        display: flex;
+        flex: 1;
+      }
+
+      & :last-child {
+        padding-right: 0;
+      }
     }
-}
+  }
+
+  @media only screen and (min-width: map-get($breakpoints, '--viewport-4')) {
+    .detail-top {
+      grid-template-columns: $sm-screen-grid;
+    }
+  }
+
+  @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
+    .detail-top {
+      grid-template-columns: $md-screen-grid;
+    }
+  }
+
+  @media only screen and (min-width: map-get($breakpoints, '--viewport-9')) {
+    .detail-top {
+      grid-template-columns: $default-screen-grid;
+    }
+  }
+
 </style>

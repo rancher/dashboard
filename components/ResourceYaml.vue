@@ -263,9 +263,6 @@ export default {
 </template>
 
 <style lang="scss">
-@import "~assets/styles/base/_variables.scss";
-@import "~assets/styles/base/_functions.scss";
-@import "~assets/styles/base/_mixins.scss";
 .resource-yaml {
   flex: 1;
   display: flex;
