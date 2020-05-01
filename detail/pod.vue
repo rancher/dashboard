@@ -1,5 +1,4 @@
 <script>
-import { get } from '../utils/object';
 import { VALUE } from '../config/table-headers';
 import createEditView from '@/mixins/create-edit-view';
 import DetailTop from '@/components/DetailTop';

@@ -1,5 +1,4 @@
 <script>
-import { get } from '@/utils/object';
 import { CERTMANAGER, DESCRIPTION } from '@/config/labels-annotations';
 import { DOCKER_JSON, TLS } from '@/models/secret';
 import DetailTop from '@/components/DetailTop';
