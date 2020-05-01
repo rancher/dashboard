@@ -9,7 +9,6 @@ import Date from '@/components/formatter/Date';
 import LoadDeps from '@/mixins/load-deps';
 import { allHash } from '@/utils/promise';
 import WorkloadPorts from '@/edit/workload/WorkloadPorts';
-import { DESCRIPTION } from '@/config/labels-annotations';
 
 export default {
   components: {
@@ -127,15 +126,6 @@ export default {
 
     detailTopColumns() {
       return [
-
-        {
-          title:   'Namespace',
-          content: get(this.value, 'metadata.namespace')
-        },
-        {
-          title:   'Description',
-          content: this.value?.metadata?.annotations[DESCRIPTION]
-        },
         {
           title:   'Image',
           content: this.container.image

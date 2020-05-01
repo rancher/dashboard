@@ -15,10 +15,6 @@ export default {
     detailTopColumns() {
       return [
         {
-          title:   'Namespace',
-          content: get(this.value, 'metadata.namespace')
-        },
-        {
           title:   'Image',
           content: this.value.spec.containers[0].image
         },

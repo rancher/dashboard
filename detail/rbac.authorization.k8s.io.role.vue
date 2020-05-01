@@ -62,10 +62,6 @@ export default {
           title:   'Type',
           content: this.typeDisplay
         },
-        {
-          title:   'Description',
-          content: this.description
-        },
       ];
 
       return columns;

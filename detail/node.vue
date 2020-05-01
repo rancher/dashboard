@@ -113,10 +113,6 @@ export default {
     detailTopColumns() {
       return [
         {
-          title:   'Description',
-          content: this.value.metadata.annotations[DESCRIPTION]
-        },
-        {
           title: 'IP Address',
           name:  'ipAddress'
         },

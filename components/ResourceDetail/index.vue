@@ -250,6 +250,11 @@ export default {
 
       return null;
     },
+  },
+  watch: {
+    asYamlInit(neu) {
+      this.asYaml = neu;
+    }
   }
 };
 </script>

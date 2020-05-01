@@ -46,13 +46,7 @@ export default {
     },
 
     h1() {
-      const typeLink = this.$router.resolve({
-        name:   this.doneRoute,
-        params: this.$route.params
-      }).href;
-
       const out = this.$store.getters['i18n/t'](`resourceDetail.header.${ this.realMode }`, {
-        typeLink,
         type: this.$store.getters['type-map/singularLabelFor'](this.schema),
         name: this.value.nameDisplay,
       });
@@ -120,8 +114,11 @@ export default {
     <div>
       <h1 v-html="h1" />
       <!-- //TODO use  nuxt-link for an internal project detail page once it exists -->
-      <span v-if="isNamespace && project"><t k="resourceDetail.masthead.project" />: {{ project.nameDisplay }}</span>
-      <span v-else-if="namespace"><t k="resourceDetail.masthead.namespace" />: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
+      <div v-if="mode==='view'" class="subheader">
+        <span v-if="isNamespace && project"><t k="resourceDetail.masthead.project" />: {{ project.nameDisplay }}</span>
+        <span v-else-if="namespace"><t k="resourceDetail.masthead.namespace" />: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
+        <span v-if="value.description">{{ value.description }}</span>
+      </div>
     </div>
     <div v-if="mode==='view'" class="actions">
       <!-- //TODO remove check for custom detail component once there is a generic detail -->
@@ -134,3 +131,23 @@ export default {
     </div>
   </header>
 </template>
+
+<style lang='scss'>
+  .subheader{
+    display: flex;
+    flex-direction: column;
+    color: var(--input-label);
+    & > * {
+      margin: 5px;
+    }
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items:center;
+    & .btn-group {
+      margin-right: 5px;
+    }
+  }
+</style>

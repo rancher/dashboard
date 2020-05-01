@@ -87,14 +87,6 @@ export default {
     detailTopColumns() {
       const columns = [
         {
-          title:   'Description',
-          content: this.description
-        },
-        {
-          title:   'Namespace',
-          content: get(this.value, 'metadata.namespace')
-        },
-        {
           title:   'Type',
           content: this.value.typeDisplay
         }

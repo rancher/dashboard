@@ -79,23 +79,12 @@ export default {
 
     detailTopColumns() {
       const { metadata = {} } = this.value;
-      const { annotations = {} } = metadata;
 
       return [
-        metadata.namespace
-          ? {
-            title:   'Namespace',
-            content: metadata.namespace
-          } : null,
         metadata.name
           ? {
             title:   'Name',
             content: metadata.name
-          } : null,
-        annotations[DESCRIPTION]
-          ? {
-            title:   'Description',
-            content: annotations[DESCRIPTION]
           } : null,
         ...this.extraDetailColumns
       ].filter(c => c);

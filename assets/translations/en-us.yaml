@@ -130,10 +130,10 @@ infoBoxCluster:
 resourceDetail:
   header:
     view: '{name}'
-    create: 'Create <a href="{typeLink}">{type}</a>'
-    edit: 'Edit <a href="{typeLink}">{type}</a>: {name}'
-    clone: 'Clone from <a href="{typeLink}">{type}</a>: {name}'
-    stage: 'Stage from <a href="{typeLink}">{type}</a>: {name}'
+    create: 'Create {type}'
+    edit: 'Edit {type}: {name}'
+    clone: 'Clone from {type}: {name}'
+    stage: 'Stage from {type}: {name}'
   masthead:
     namespace: 'Namespace'
     project: 'Project'
