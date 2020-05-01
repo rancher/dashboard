@@ -182,7 +182,7 @@ export default {
 
     .vs__search {
       background-color: transparent;
-      padding: 3px 10px 0px 10px;
+      padding: 1px 10px 0px 10px;
     }
 
     .vs__dropdown-menu {
