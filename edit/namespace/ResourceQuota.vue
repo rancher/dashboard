@@ -36,7 +36,11 @@ export default {
   },
   data() {
     return {
-      limitsCPU:      null, limitsMem:     null, reqCPU:        null, reqMem:        null, originalQuota: {}
+      limitsCPU:     null,
+      limitsMem:     null,
+      reqCPU:        null,
+      reqMem:        null,
+      originalQuota: {}
     };
   },
   computed: {

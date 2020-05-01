@@ -4,6 +4,7 @@ import { get } from '@/utils/object';
 import createEditView from '@/mixins/create-edit-view';
 import ResourceQuota from '@/edit/namespace/ResourceQuota';
 import DetailTop from '@/components/DetailTop';
+// import UnitInput from '@/components/form/UnitInput';
 import LiveDate from '@/components/formatter/LiveDate';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import ResourceTabs from '@/components/form/ResourceTabs';
@@ -15,7 +16,8 @@ export default {
     DetailTop,
     LiveDate,
     ResourceQuota,
-    ResourceTabs
+    ResourceTabs,
+    // UnitInput
   },
 
   mixins:     [createEditView],
@@ -58,7 +60,9 @@ export default {
     }
 
     return {
-      originalQuotaID, description, name: this.value.metadata.name
+      originalQuotaID,
+      description,
+      name: this.value.metadata.name
     };
   },
   computed: {
@@ -82,45 +86,64 @@ export default {
       </template>
     </DetailTop>
     <ResourceQuota
-      :original-i-d="originalQuotaID"
+      :original-id="originalQuotaID"
       :register-after-hook="registerAfterHook"
       :mode="mode"
       :namespace="value"
       row-classes="detail-top"
-    >
-      <template v-slot:default="slotProps">
-        <div>
-          <label for="">CPU Limit</label>
-          <span>
-            {{ slotProps.limitsCPU }}
-            <span class="addon">MCPUs</span>
-          </span>
-        </div>
-        <div>
-          <label for="">CPU Reservation</label>
-          <span>
-            {{ slotProps.limitsMem }}
-            <span class="addon">MCPUs</span>
-          </span>
-        </div>
-        <div>
-          <label for="">Memory Limit</label>
-          <span>
-            {{ slotProps.reqCPU }}
-            <span class="addon">MB</span>
-          </span>
-        </div>
-        <div>
-          <label for="">Memory Reservation</label>
-          <span>
-            {{ slotProps.reqMem }}
-            <span class="addon">MB</span>
-          </span>
-        </div>
-      </template>
-    </ResourceQuota>
+    />
     <div class="spacer"></div>
 
     <ResourceTabs v-model="value" :mode="mode" />
   </div>
+  <!-- <template v-slot:default="slotProps">
+       <div class="row">
+       <div class="col span-6">
+       <UnitInput
+       v-model="slotProps.limitsCPU"
+       mode="view"
+       label="CPU Limit"
+       :increment="1000"
+       :input-exponent="-1"
+       suffix="milli CPUs"
+       placeholder="Default: None"
+       />
+       </div>
+       <div class="col span-6">
+       <UnitInput
+       v-model="slotProps.limitsMem"
+       mode="view"
+       label="CPU Reservation"
+       :increment="1000"
+       :input-exponent="-1"
+       suffix="milli CPUs"
+       placeholder="Default: None"
+       />
+       </div>
+       </div>
+       <div class="row">
+       <div class="col span-6">
+       <UnitInput
+       v-model="slotProps.reqCPU"
+       mode="view"
+       label="CPU Reservation"
+       :increment="1000"
+       :input-exponent="-1"
+       suffix="MB"
+       placeholder="Default: None"
+       />
+       </div>
+       <div class="col span-6">
+       <UnitInput
+       v-model="slotProps.reqMem"
+       mode="view"
+       label="Memory Reservation"
+       :increment="1000"
+       :input-exponent="-1"
+       suffix="MB"
+       placeholder="Default: None"
+       />
+       </div>
+       </div>
+       </template> -->
 </template>
