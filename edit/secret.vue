@@ -216,7 +216,7 @@ export default {
 
     <div v-else-if="isCertificate" class="row">
       <div class="col span-6">
-        <LabeledInput v-model="key" type="multiline" label="Private Key" :mode="mode" placeholder="Paste in the private key, typically starting with-----BEGIN RSA PRIVATE KEY-----" />
+        <LabeledInput v-model="key" type="multiline" label="Private Key" :mode="mode" placeholder="Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----" />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('key')">
           Read from file
         </button>
