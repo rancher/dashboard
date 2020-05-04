@@ -190,6 +190,7 @@ export default {
 
     return {
       asYaml,
+      showUploadPrompt: false,
       currentValue:            this.value,
       detailComponent:         this.$store.getters['type-map/importDetail'](this.resource),
       editComponent:           this.$store.getters['type-map/importEdit'](this.resource),
@@ -246,7 +247,10 @@ export default {
   methods: {
     // reading yamls from files is most easily tracked when done down in the component that handles other yaml-editing input, YamlEditor, but visually the button to upload lives up here
     readFromFile() {
-      this.$refs.resourceYaml.$refs.yamlEditor.$refs.yamluploader.click();
+      this.showUploadPrompt = true;
+      this.$nextTick(() => {
+        this.showUploadPrompt = false;
+      });
     },
   }
 };
@@ -269,12 +273,12 @@ export default {
         </button>
       </div>
       <ResourceYaml
-        ref="resourceYaml"
         :model="model"
         :mode="mode"
         :value="yaml"
         :offer-preview="offerPreview"
         :done-route="doneRoute"
+        :show-upload-prompt="showUploadPrompt"
       />
     </template>
     <template v-else>
