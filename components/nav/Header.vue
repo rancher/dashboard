@@ -138,6 +138,10 @@ export default {
         fill: white;
       }
 
+      .vs__actions {
+        background: red!important;
+      }
+
       .filter {
         margin-left: 10px;
 
@@ -145,6 +149,7 @@ export default {
           background: var(--header-dropdown);
           border-radius: var(--border-radius);
           border: none;
+          margin: 0 35px 0 25px!important;
         }
       }
     }
