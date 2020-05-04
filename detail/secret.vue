@@ -7,12 +7,14 @@ import { KEY, VALUE } from '@/config/table-headers';
 import { base64Decode } from '@/utils/crypto';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import KeyValue from '@/components/form/KeyValue';
 
 export default {
   components: {
     DetailTop,
     SortableTable,
     ResourceTabs,
+    KeyValue
   },
   mixins:     [CreateEditView],
   props:      {
@@ -139,7 +141,7 @@ export default {
         },
         {
           name:  'cert',
-          label: 'Certificate',
+          label: 'CA Certificate',
           value: 'crt'
         }
       ];
@@ -176,15 +178,7 @@ export default {
     <template v-else>
       <div class="mt-20 mb-20">
         <h4>Data</h4>
-        <SortableTable
-          class="mt-20"
-          :rows="dataRows"
-          :headers="dataHeaders"
-          key-field="value"
-          :search="false"
-          :row-actions="false"
-          :table-actions="false"
-        />
+        <KeyValue :value="value.data" mode="view" />
       </div>
     </template>
     <ResourceTabs v-model="value" :mode="mode" />
