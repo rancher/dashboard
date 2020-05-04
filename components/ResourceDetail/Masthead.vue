@@ -138,7 +138,7 @@ export default {
     flex-direction: column;
     color: var(--input-label);
     & > * {
-      margin: 5px;
+      margin: 5px 5px 5px 0px;
     }
   }
 
