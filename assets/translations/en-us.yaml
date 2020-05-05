@@ -17,8 +17,8 @@ nav:
     system: All System Namespaces
     clusterLevel: Cluster-Level Resources
     namespaced: Namespaced Resources
-    project: "Project: {name}"
-    namespace: "{name}"
+    project: '<span class="text-secondary">Project:</span> {name}'
+    namespace: "Namespace: {name}"
     orphan: "Not in a Project"
 
 cluster:
@@ -162,7 +162,7 @@ sortableTable:
 
 model:
   namespace:
-    project: "Project: {name}"
+    project: '<span class="text-secondary">Project:</span> {name}'
     notInAProject: "Not in a Project"
 
 configmapPage:

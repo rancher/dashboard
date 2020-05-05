@@ -38,7 +38,7 @@ export default {
       padding: 0 10px;
 
       & > label {
-        color: var(--input-placeholder);
+        color: var(--input-label);
         display: flex;
         padding-right: 5px;
       }

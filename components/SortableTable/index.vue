@@ -409,7 +409,7 @@ export default {
           <tr class="group-row">
             <td :colspan="fullColspan">
               <div class="group-tab">
-                {{ group.ref }}
+                <span v-html="group.ref" />
               </div>
             </td>
           </tr>
