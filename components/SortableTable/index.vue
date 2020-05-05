@@ -663,6 +663,10 @@ $divider-height: 1px;
         cursor: pointer;
       }
 
+      .row-check {
+        min-width: 80px;
+      }
+
       .actions {
         padding: 5px;
       }

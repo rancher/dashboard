@@ -108,9 +108,8 @@ export default {
 
     groupBy() {
       if ( this.group === 'namespace' && this.groupable && this.showGroups) {
-        return 'metadata.namespace';
+        return 'namespaceGroupLabel';
       }
-
       return null;
     },
 

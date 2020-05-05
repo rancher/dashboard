@@ -144,6 +144,10 @@ export default {
     return this.metadata?.namespace;
   },
 
+  namespaceGroupLabel() {
+    return this.$rootGetters['i18n/t']('resourceTable.namespace.tableGroupByLabel', { namespace: this.metadata?.namespace });
+  },
+
   description() {
     return this.metadata?.annotations?.[DESCRIPTION];
   },

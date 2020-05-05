@@ -172,3 +172,7 @@ configmapPage:
   tabs:
     binaryData:
       label: Binary Data
+
+resourceTable:
+  namespace:
+    tableGroupByLabel: '<span class="text-secondary">Namespace:</span> {namespace}'
