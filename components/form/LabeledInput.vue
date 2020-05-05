@@ -8,18 +8,27 @@ export default {
   mixins:     [LabeledFormElement],
 
   props: {
+
     type: {
       type:    String,
       default: 'text',
     },
+
     mode: {
       type:    String,
       default: _EDIT
     },
+
     disabled: {
       type:    Boolean,
       default: false,
+    },
+
+    placeholder: {
+      type:    String,
+      default: null
     }
+
   },
 
   data() {

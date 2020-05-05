@@ -30,9 +30,15 @@ export default {
       type:    Number,
       default: 0,
     },
+
     mode: {
       type:    String,
       default: 'edit'
+    },
+
+    placeholder: {
+      type:    String,
+      default: null
     }
   },
 
@@ -84,6 +90,7 @@ export default {
     v-bind="$attrs"
     type="number"
     min="0"
+    :placeholder="placeholder"
     :mode="mode"
     @input="update($event)"
   >

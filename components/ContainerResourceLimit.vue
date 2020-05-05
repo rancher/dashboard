@@ -112,8 +112,9 @@ export default {
           <span class="col span-6">
             <UnitInput
               v-model="requestsCpu"
-              suffix="CPUs"
               label="CPU Reservation"
+              placeholder="e.g. 1000"
+              suffix="CPUs"
               :input-exponent="-1"
               :mode="mode"
             />
@@ -122,7 +123,8 @@ export default {
             <UnitInput
               v-model="requestsMemory"
               label="Memory Reservation"
-              suffix="B"
+              placeholder="e.g. 128"
+              suffix="iB"
               :input-exponent="2"
               :mode="mode"
             />
@@ -132,8 +134,9 @@ export default {
           <span class="col span-6">
             <UnitInput
               v-model="limitsCpu"
-              suffix="CPUs"
               label="CPU Limit"
+              placeholder="e.g. 1000"
+              suffix="CPUs"
               :input-exponent="-1"
               :mode="mode"
             />
@@ -142,7 +145,8 @@ export default {
             <UnitInput
               v-model="limitsMemory"
               label="Memory Limit"
-              suffix="B"
+              placeholder="e.g. 128"
+              suffix="iB"
               :input-exponent="2"
               :mode="mode"
             />
