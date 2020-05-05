@@ -185,29 +185,14 @@ export default {
   },
 
   data() {
-    if (this.hasCustomDetail) {
-      this.$store.getters['type-map/importDetail'](this.resource)().then((component) => {
-        this.importedDetailComponent = component.default;
-      });
-    }
-
-    if (this.hasCustomEdit) {
-      this.$store.getters['type-map/importEdit'](this.resource)().then((component) => {
-        this.importedEditComponent = component.default;
-      });
-    }
-
     // asYamlInit is taken from route query and passed as prop from _id page; asYaml is saved in local data to be manipulated by Masthead
     const asYaml = this.asYamlInit;
 
     return {
       asYaml,
-      isCustomYamlEditor:      false,
       currentValue:            this.value,
       detailComponent:         this.$store.getters['type-map/importDetail'](this.resource),
-      importedDetailComponent: null,
       editComponent:           this.$store.getters['type-map/importEdit'](this.resource),
-      importedEditComponent:   null,
     };
   },
 
@@ -251,10 +236,22 @@ export default {
       return null;
     },
   },
+
   watch: {
     asYamlInit(neu) {
       this.asYaml = neu;
     }
+  },
+
+  methods: {
+    // reading yamls from files is most easily tracked when done down in the component that handles other yaml-editing input, YamlEditor, but visually the button to upload lives up here
+    readFromFile() {
+      const component = this.$refs.resourceyaml;
+
+      if (component) {
+        component.readFromFile();
+      }
+    },
   }
 };
 </script>
@@ -270,7 +267,13 @@ export default {
       :has-detail="hasCustomDetail"
     />
     <template v-if="asYaml">
+      <div v-if="!isView">
+        <button class="btn btn-sm role-primary" @click="readFromFile">
+          Read from file
+        </button>
+      </div>
       <ResourceYaml
+        ref="resourceyaml"
         :model="model"
         :mode="mode"
         :value="yaml"
