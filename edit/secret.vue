@@ -62,6 +62,7 @@ export default {
     }
 
     if (this.value._type === TLS) {
+      // remove private key on edit page
       key = this.mode === 'edit' ? '' : base64Decode((this.value.data || {})['tls.key']);
       crt = base64Decode((this.value.data || {})['tls.crt']);
     }
@@ -81,9 +82,10 @@ export default {
       registryFQDN,
       toUpload:         null,
       key,
-      crt
+      crt,
     };
   },
+
   computed: {
     dockerconfigjson() {
       let dockerServer = this.registryProvider === 'DockerHub' ? 'index.dockerhub.io/v1/' : 'quay.io';
@@ -130,6 +132,8 @@ export default {
       return this.registryProvider === 'Artifactory' || this.registryProvider === 'Custom';
     }
   },
+
+  watch: { 'value.data': () => {} },
 
   methods: {
     saveSecret(buttonCb) {
@@ -216,7 +220,7 @@ export default {
           <LabeledInput v-model="username" label="Username" :mode="mode" />
         </div>
         <div class="col span-6">
-          <LabeledInput v-model="password" label="Password" :mode="mode" />
+          <LabeledInput v-model="password" label="Password" :mode="mode" :type="mode==='edit' ? 'password':'text'" />
         </div>
       </div>
     </template>

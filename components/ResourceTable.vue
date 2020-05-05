@@ -65,11 +65,10 @@ export default {
       } else {
         headers = this.$store.getters['type-map/headersFor'](this.schema);
       }
-
       // If only one namespace is selected, replace the namespace_name
       // column with the just name one.
       if ( !showNamespace ) {
-        let idx = headers.indexOf(NAMESPACE_NAME);
+        let idx = headers.findIndex(header => header.value === NAMESPACE_NAME.value);
 
         if ( idx >= 0 ) {
           headers.splice(idx, 1, NAME);

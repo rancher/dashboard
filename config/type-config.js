@@ -101,7 +101,11 @@ export default function(store) {
       width:     100,
       formatter: 'SecretType'
     },
-    KEYS,
+    {
+      name:  'data',
+      label: 'Data',
+      value: 'dataPreview'
+    },
     AGE
   ]);
   headers(INGRESS, [STATE, NAME, INGRESS_TARGET, AGE]);

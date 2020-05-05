@@ -72,6 +72,10 @@ export default {
       // use it instead of making a new proxy
       entry = existing;
       Object.assign(entry, data);
+      // if no entry for this id in cache, add it
+      if (!cache.map.get(id)) {
+        addObject(cache.list, entry);
+      }
       cache.map.set(id, entry);
     } else if ( entry ) {
       // There's already an entry in the store, update it

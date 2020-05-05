@@ -9,7 +9,7 @@ export default {
 
   props: {
     value: {
-      type:    String,
+      type:    [String, Object],
       default: null,
     },
     options: {
@@ -40,6 +40,16 @@ export default {
       type:    Boolean,
       default: false
     },
+    reduce: {
+      type:     Function,
+      default: (e) => {
+        if ( e && typeof e === 'object' && e.value !== undefined ) {
+          return e.value;
+        }
+
+        return e;
+      }
+    }
   },
 
   data() {
@@ -67,16 +77,6 @@ export default {
   },
 
   methods: {
-    get,
-
-    reduce(e) {
-      if ( e && typeof e === 'object' && e.value !== undefined ) {
-        return e.value;
-      }
-
-      return e;
-    },
-
     onFocus() {
       this.selectedVisibility = 'hidden';
       this.onFocusLabeled();
@@ -145,6 +145,14 @@ export default {
        */
       return () => popper.destroy();
     },
+    open() {
+      const input = this.$refs.input;
+
+      if (input) {
+        input.open = true;
+      }
+    },
+    get
   },
 };
 </script>
@@ -169,9 +177,9 @@ export default {
     <v-select
       v-if="!isView"
       ref="input"
+      :value="value ? value : ' '"
       class="inline"
-      :disabled="disabled"
-      :value="value"
+      :disabled="isView || disabled"
       :options="options"
       :get-option-label="opt=>getOptionLabel(opt)"
       :get-option-key="opt=>optionKey ? get(opt, optionKey) : getOptionLabel(opt)"
@@ -180,9 +188,9 @@ export default {
       v-bind="$attrs"
       :append-to-body="!!placement"
       :calculate-position="placement ? withPopper : undefined"
-      @input="x => $emit('input', reduce(x))"
       @search:focus="onFocus"
       @search:blur="onBlur"
+      @input="e=>$emit('input', e)"
     >
       <template v-slot:selected-option-container>
         <span style="display: none"></span>

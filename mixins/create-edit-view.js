@@ -185,7 +185,7 @@ export default {
           url = url || this.schema.linkFor('collection');
 
           if ( this.value?.metadata?.namespace ) {
-            this.value.$dispatch('prefs/set', { key: LAST_NAMESPACE, value: this.value.metadata.namespace }, { root: true });
+            this.value.$dispatch('prefs/set', { key: LAST_NAMESPACE, val: this.value.metadata.namespace }, { root: true });
           }
 
           const res = await this.value.save({ url });

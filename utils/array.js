@@ -2,7 +2,7 @@ import { xor } from 'lodash';
 import { get } from '@/utils/object';
 
 export function removeObject(ary, obj) {
-  const idx = ary.indexOf(obj);
+  const idx = ary.findIndex(resource => resource.id === obj.id);
 
   if ( idx >= 0 ) {
     ary.splice(idx, 1);

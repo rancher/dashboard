@@ -613,11 +613,11 @@ export default {
       }
 
       // @TODO remove this once the API maps steve _type <-> k8s type in both directions
-      if (this._type) {
-        this.type = this._type;
-      }
+      opt.data = { ...this };
 
-      opt.data = this;
+      if (opt?.data._type) {
+        opt.data.type = opt.data._type;
+      }
 
       const res = await this.$dispatch('request', opt);
 
@@ -803,5 +803,5 @@ export default {
     url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/namespaces/${ namespace }/${ resource }`;
 
     return url;
-  }
+  },
 };
