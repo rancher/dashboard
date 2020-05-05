@@ -38,6 +38,7 @@ export default {
     checkWidth: {
       type:     Number,
       default:  30,
+      canBeVariable: true
     },
     rowActionsWidth: {
       type:     Number,
