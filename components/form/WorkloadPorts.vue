@@ -104,8 +104,8 @@ export default {
 <template>
   <div>
     <div class="spacer"></div>
-    <div class="clearfix">
-      <h4>Ports</h4>
+    <div class="title clearfix">
+      <h3>Ports</h3>
     </div>
 
     <table v-if="rows.length" class="fixed">
@@ -113,13 +113,13 @@ export default {
         <tr>
           <th v-if="padLeft" class="left"></th>
           <th class="targetPort">
-            Public Host Port
+            <t k="workload.container.ports.hostPort" />
           </th>
           <th class="port">
-            Private Container Port
+            <t k="workload.container.ports.containerPort" />
           </th>
           <th class="protocol">
-            Protocol
+            <t k="workload.container.ports.protocol" />
           </th>
           <th v-if="showRemove" class="remove"></th>
         </tr>

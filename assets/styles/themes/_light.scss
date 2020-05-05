@@ -130,6 +130,8 @@ $selected: rgba($primary, .5);
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$lighter};
+  --tabbed-container-bg-contrast: #{$light};
+
 
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);

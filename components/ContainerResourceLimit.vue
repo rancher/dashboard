@@ -15,22 +15,38 @@ export default {
 
     namespace: {
       type:    Object,
-      default: () => ({})
+      default: null
+    },
+
+    value: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     },
 
     registerBeforeHook: {
       type:    Function,
       default: null
     },
+
+    showTip: {
+      type:    Boolean,
+      default: true
+    }
   },
 
   data() {
+    const {
+      limitsCpu, limitsMemory, requestsCpu, requestsMemory
+    } = this.value;
+
     return {
-      limitsCpu:      null,
-      limitsMemory:   null,
-      requestsCpu:    null,
-      requestsMemory: null,
-      viewMode:       _VIEW,
+      limitsCpu,
+      limitsMemory,
+      requestsCpu,
+      requestsMemory,
+      viewMode: _VIEW,
     };
   },
 
@@ -51,12 +67,29 @@ export default {
     }
 
     if (this.registerBeforeHook) {
-      this.registerBeforeHook(this.updateLimits);
+      this.registerBeforeHook(this.updateBeforeSave);
     }
   },
 
   methods: {
-    updateLimits(value) {
+    updateLimits() {
+      const {
+        limitsCpu,
+        limitsMemory,
+        requestsCpu,
+        requestsMemory,
+      } = this;
+      const out = {
+        limitsCpu,
+        limitsMemory,
+        requestsCpu,
+        requestsMemory,
+      };
+
+      this.$emit('input', out);
+    },
+
+    updateBeforeSave(value) {
       const {
         limitsCpu,
         limitsMemory,
@@ -102,9 +135,11 @@ export default {
 <template>
   <div>
     <div class="row mb-5 pl-10">
-      <div class="banner secondary">
-        <t v-if="mode === viewMode" k="containerResourceLimit.helpTextDetail" />
-        <t v-else k="containerResourceLimit.helpText" />
+      <div v-if="showTip" class="col span-12">
+        <p class="helper-text mb-10">
+          <t v-if="mode === viewMode" k="containerResourceLimit.helpTextDetail" />
+          <t v-else k="containerResourceLimit.helpText" />
+        </p>
       </div>
     </div>
     <div class="row">
@@ -118,6 +153,7 @@ export default {
               :label="t('containerResourceLimit.requestsCpu')"
               :input-exponent="-1"
               :mode="mode"
+              @input="updateLimits"
             />
           </span>
           <span class="col span-6">
@@ -128,6 +164,7 @@ export default {
               :label="t('containerResourceLimit.requestsMemory')"
               :input-exponent="2"
               :mode="mode"
+              @input="updateLimits"
             />
           </span>
         </div>
@@ -140,6 +177,7 @@ export default {
               :label="t('containerResourceLimit.limitsCpu')"
               :input-exponent="-1"
               :mode="mode"
+              @input="updateLimits"
             />
           </span>
           <span class="col span-6">
@@ -150,6 +188,7 @@ export default {
               :label="t('containerResourceLimit.limitsMemory')"
               :input-exponent="2"
               :mode="mode"
+              @input="updateLimits"
             />
           </span>
         </div>

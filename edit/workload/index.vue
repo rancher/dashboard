@@ -7,18 +7,15 @@ import { allHash } from '@/utils/promise';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
-import HealthCheck from '@/components/form/HealthCheck';
-import Command from '@/edit/workload/Command';
-import Security from '@/edit/workload/Security';
 import Scheduling from '@/edit/workload/Scheduling';
 import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/edit/workload/Networking';
 import Footer from '@/components/form/Footer';
 import Job from '@/edit/workload/Job';
-import WorkloadPorts from '@/edit/workload/WorkloadPorts';
 import { defaultAsyncData } from '@/components/ResourceDetail';
 import { _EDIT } from '@/config/query-params';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import Container from '@/components/form/Container';
 
 const workloadTypeOptions = [
   { value: WORKLOAD_TYPES.DEPLOYMENT, label: 'Deployment' },
@@ -38,16 +35,13 @@ export default {
     LabeledSelect,
     LabeledInput,
     Tab,
-    HealthCheck,
-    Command,
-    Security,
     Scheduling,
     Upgrading,
     Networking,
     Footer,
     Job,
-    WorkloadPorts,
-    ResourceTabs
+    ResourceTabs,
+    Container
   },
 
   mixins: [CreateEditView],
@@ -152,7 +146,7 @@ export default {
         const { containers } = this.podTemplateSpec;
 
         if (!containers) {
-          this.$set(this.podTemplateSpec, 'containers', [{ name: this.value.metadata.name }]);
+          this.$set(this.podTemplateSpec, 'containers', [{ }]);
         }
 
         // TODO account for multiple containers (sidecar)
@@ -160,7 +154,7 @@ export default {
       },
 
       set(neu) {
-        this.$set(this.podTemplateSpec.containers, 0, { ...neu, name: this.value.metadata.name });
+        this.$set(this.podTemplateSpec.containers, 0, neu);
       }
     },
 
@@ -277,9 +271,6 @@ export default {
       </NameNsDescription>
 
       <div class="row">
-        <div class="col span-4">
-          <LabeledInput v-model="containerImage" label="Container Image" placeholder="eg nginx:latest" required />
-        </div>
         <div class="col span-4" />
         <template v-if="isCronJob">
           <div class="col span-4">
@@ -293,38 +284,19 @@ export default {
           </div>
         </template>
       </div>
-
-      <div class="row">
-        <WorkloadPorts v-model="containerPorts" :mode="mode" />
-      </div>
     </slot>
 
-    <ResourceTabs v-model="value" :mode="mode" :default-tab="isJob ? 'job' : 'command'">
+    <ResourceTabs v-model="value" :mode="mode">
       <template #before>
         <Tab v-if="isJob" label="Job Configuration" name="job">
           <Job v-model="spec" :mode="mode" :type="type" />
         </Tab>
-        <Tab label="Command" name="command">
-          <Command
-            v-if="allConfigMaps"
-            v-model="container"
-            :spec="container"
-            :secrets="allSecrets"
-            :config-maps="allConfigMaps"
-            :mode="mode"
-            :namespace="value.metadata.namespace"
-          />
+        <Tab label="Containers" name="containers">
+          <Container v-model="container" :mode="mode" />
         </Tab>
         <Tab label="Networking" name="networking">
           <Networking v-model="podTemplateSpec" :mode="mode" />
         </Tab>
-        <Tab label="Health" name="health">
-          <HealthCheck :spec="container" :mode="mode" />
-        </Tab>
-        <Tab label="Security" name="security">
-          <Security v-model="podTemplateSpec" :mode="mode" />
-        </Tab>
-
         <Tab label="Node Scheduling" name="scheduling">
           <Scheduling v-model="podTemplateSpec" :mode="mode" />
         </Tab>

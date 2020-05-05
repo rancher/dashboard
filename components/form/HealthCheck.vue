@@ -4,7 +4,7 @@ import Probe from '@/components/form/Probe';
 export default {
   components: { Probe },
   props:      {
-    spec: {
+    value: {
       type:     Object,
       required: true,
     },
@@ -17,26 +17,33 @@ export default {
 </script>
 
 <template>
-  <div class="row">
-    <div class="col span-11-of-23">
+  <div>
+    <div class="row">
       <Probe
-        v-model="spec.readinessProbe"
+        v-model="value.readinessProbe"
+        class="col span-12"
         :mode="mode"
-        :for-liveness="false"
         label="Readiness Check"
         description="Containers will be removed from service endpoints when this check is failing.  Recommended."
       />
     </div>
-    <div class="col span-1-of-23" style="position: relative; overflow: hidden">
-      <hr class="vertical" />
-    </div>
-    <div class="col span-11-of-23">
+    <hr />
+    <div class="row">
       <Probe
-        v-model="spec.livenessProbe"
+        v-model="value.livenessProbe"
+        class="col span-12"
         :mode="mode"
-        :for-liveness="true"
         label="Liveness Check"
         description="Containers will be restarted when this check is failing.  Not recommended for most uses."
+      />
+    </div>
+    <hr />
+    <div class="row">
+      <Probe
+        v-model="value.startupProbe"
+        class="col span-12"
+        :mode="mode"
+        label="Startup Check"
       />
     </div>
   </div>
