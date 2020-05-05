@@ -35,11 +35,6 @@ export default {
       type:    Boolean,
       default: true,
     },
-    // fires 'click' event on file input element when the prop changes from false to true
-    showUploadPrompt: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   data() {
@@ -98,6 +93,10 @@ export default {
 
     onChanges() {
       this.$emit('onChanges', ...arguments);
+    },
+
+    readFromFile() {
+      this.$refs.yamluploader.click();
     },
 
     fileChange(event) {

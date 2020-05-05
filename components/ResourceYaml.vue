@@ -51,11 +51,6 @@ export default {
       type:    Function,
       default: null
     },
-
-    showUploadPrompt: {
-      type:    Boolean,
-      default: false
-    }
   },
 
   data() {
@@ -173,6 +168,10 @@ export default {
       }
     },
 
+    readFromFile() {
+      this.$refs.yamleditor.readFromFile();
+    },
+
     preview() {
       this.showPreview = true;
       this.$router.applyQuery({ [PREVIEW]: _FLAGGED });
@@ -247,10 +246,10 @@ export default {
 <template>
   <div class="root resource-yaml">
     <YamlEditor
+      ref="yamleditor"
       v-model="currentValue"
       class="yaml-editor"
       :editor-mode="editorMode"
-      :show-upload-prompt="showUploadPrompt"
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"
