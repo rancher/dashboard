@@ -98,46 +98,57 @@ export default {
 </script>
 
 <template>
-  <div class="col span-12">
-    <div class="row">
-      <span class="col span-6">
-        <UnitInput
-          v-model="requestsCpu"
-          suffix="CPUs"
-          label="CPU Reservation"
-          :input-exponent="2"
-          :mode="mode"
-        />
-      </span>
-      <span class="col span-6">
-        <UnitInput
-          v-model="requestsMemory"
-          label="Memory Reservation"
-          suffix="B"
-          :input-exponent="2"
-          :mode="mode"
-        />
-      </span>
+  <div class="mt-20">
+    <div class="row mb-5 pl-10">
+      <div class="col span-12">
+        <h4 class="mb-10">
+          Container Default Resource Limit
+        </h4>
+      </div>
     </div>
     <div class="row">
-      <span class="col span-6">
-        <UnitInput
-          v-model="limitsCpu"
-          suffix="CPUs"
-          label="CPU Limit"
-          :input-exponent="2"
-          :mode="mode"
-        />
-      </span>
-      <span class="col span-6">
-        <UnitInput
-          v-model="limitsMemory"
-          label="Memory Limit"
-          suffix="B"
-          :input-exponent="2"
-          :mode="mode"
-        />
-      </span>
+      <div class="col span-12">
+        <div class="row">
+          <span class="col span-6">
+            <UnitInput
+              v-model="requestsCpu"
+              suffix="CPUs"
+              label="CPU Reservation"
+              :input-exponent="-1"
+              :mode="mode"
+            />
+          </span>
+          <span class="col span-6">
+            <UnitInput
+              v-model="requestsMemory"
+              label="Memory Reservation"
+              suffix="B"
+              :input-exponent="2"
+              :mode="mode"
+            />
+          </span>
+        </div>
+        <div class="row">
+          <span class="col span-6">
+            <UnitInput
+              v-model="limitsCpu"
+              suffix="CPUs"
+              label="CPU Limit"
+              :input-exponent="-1"
+              :mode="mode"
+            />
+          </span>
+          <span class="col span-6">
+            <UnitInput
+              v-model="limitsMemory"
+              label="Memory Limit"
+              suffix="B"
+              :input-exponent="2"
+              :mode="mode"
+            />
+          </span>
+        </div>
+      </div>
     </div>
   </div>
 </template>

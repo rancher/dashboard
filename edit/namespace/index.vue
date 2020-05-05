@@ -2,7 +2,6 @@
 
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
-// import ResourceQuota from '@/edit/namespace/ResourceQuota';
 import Footer from '@/components/form/Footer';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { EXTERNAL } from '@/config/types';
@@ -12,7 +11,6 @@ import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 
 export default {
   components: {
-    // ResourceQuota,
     ContainerResourceLimit,
     Footer,
     LabeledSelect,
@@ -86,16 +84,11 @@ export default {
         </template>
       </NameNsDescription>
 
-      <h4 class="mb-10">
-        Container Default Resource Limit
-      </h4>
-      <div class="row">
-        <ContainerResourceLimit
-          :mode="mode"
-          :namespace="value"
-          :register-before-hook="registerBeforeHook"
-        />
-      </div>
+      <ContainerResourceLimit
+        :mode="mode"
+        :namespace="value"
+        :register-before-hook="registerBeforeHook"
+      />
 
       <ResourceTabs v-model="value" :mode="mode" />
 
