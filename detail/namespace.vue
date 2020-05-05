@@ -6,6 +6,7 @@ import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 import LiveDate from '@/components/formatter/LiveDate';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import Tab from '@/components/Tabbed/Tab';
 
 export default {
   name: 'DetailNamespace',
@@ -15,6 +16,7 @@ export default {
     DetailTop,
     LiveDate,
     ResourceTabs,
+    Tab
   },
 
   mixins:     [createEditView],
@@ -84,10 +86,14 @@ export default {
       </template>
     </DetailTop>
 
-    <ContainerResourceLimit :mode="mode" :namespace="value" />
-
     <div class="spacer"></div>
 
-    <ResourceTabs v-model="value" :mode="mode" />
+    <ResourceTabs v-model="value" :mode="mode">
+      <template #before>
+        <Tab name="container-resource-limit" label="Container Default Resource Limit">
+          <ContainerResourceLimit :mode="mode" :namespace="value" />
+        </Tab>
+      </template>
+    </ResourceTabs>
   </div>
 </template>

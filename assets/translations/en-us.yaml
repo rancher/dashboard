@@ -6,6 +6,7 @@ generic:
   comingSoon: Coming Soon
   created: Created
   customize: Customize
+  na: "n/a"
   unknown: Unknown
 
 header:

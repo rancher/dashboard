@@ -98,7 +98,7 @@ export default {
 </script>
 
 <template>
-  <div class="mt-20">
+  <div>
     <div class="row mb-5 pl-10">
       <div class="col span-12">
         <h4 class="mb-10">

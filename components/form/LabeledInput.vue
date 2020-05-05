@@ -75,8 +75,13 @@ export default {
     </label>
     <slot name="prefix" />
     <div>
-      {{ value || 'n/a' }}
-      <slot name="suffix" />
+      <span v-if="value">
+        {{ value }}
+        <slot name="suffix" />
+      </span>
+      <span v-else>
+        <t k="generic.na" raw="true" />
+      </span>
     </div>
   </div>
   <div v-else :class="{'labeled-input': true, raised, focused, [mode]: true, disabled}">
