@@ -101,9 +101,9 @@ export default {
   <div>
     <div class="row mb-5 pl-10">
       <div class="col span-12">
-        <h4 class="mb-10">
-          Container Default Resource Limit
-        </h4>
+        <p class="helper-text mb-10">
+          <t k="containerResourceLimit.helpText" />
+        </p>
       </div>
     </div>
     <div class="row">
@@ -112,9 +112,9 @@ export default {
           <span class="col span-6">
             <UnitInput
               v-model="requestsCpu"
-              label="CPU Reservation"
-              placeholder="e.g. 1000"
-              suffix="CPUs"
+              :suffix="t('suffix.cpus')"
+              :placeholder="t('containerResourceLimit.cpuPlaceholder')"
+              :label="t('containerResourceLimit.requestsCpu')"
               :input-exponent="-1"
               :mode="mode"
             />
@@ -122,9 +122,9 @@ export default {
           <span class="col span-6">
             <UnitInput
               v-model="requestsMemory"
-              label="Memory Reservation"
-              placeholder="e.g. 128"
-              suffix="iB"
+              :suffix="t('suffix.ib')"
+              :placeholder="t('containerResourceLimit.memPlaceholder')"
+              :label="t('containerResourceLimit.requestsMemory')"
               :input-exponent="2"
               :mode="mode"
             />
@@ -134,9 +134,9 @@ export default {
           <span class="col span-6">
             <UnitInput
               v-model="limitsCpu"
-              label="CPU Limit"
-              placeholder="e.g. 1000"
-              suffix="CPUs"
+              :suffix="t('suffix.cpus')"
+              :placeholder="t('containerResourceLimit.cpuPlaceholder')"
+              :label="t('containerResourceLimit.limitsCpu')"
               :input-exponent="-1"
               :mode="mode"
             />
@@ -144,9 +144,9 @@ export default {
           <span class="col span-6">
             <UnitInput
               v-model="limitsMemory"
-              label="Memory Limit"
-              placeholder="e.g. 128"
-              suffix="iB"
+              :suffix="t('suffix.ib')"
+              :placeholder="t('containerResourceLimit.memPlaceholder')"
+              :label="t('containerResourceLimit.limitsMemory')"
               :input-exponent="2"
               :mode="mode"
             />

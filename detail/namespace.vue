@@ -90,7 +90,7 @@ export default {
 
     <ResourceTabs v-model="value" :mode="mode">
       <template #before>
-        <Tab name="container-resource-limit" label="Container Default Resource Limit">
+        <Tab name="container-resource-limit" :label="t('containerResourceLimit.label')">
           <ContainerResourceLimit :mode="mode" :namespace="value" />
         </Tab>
       </template>
