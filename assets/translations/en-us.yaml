@@ -66,6 +66,7 @@ cluster:
 containerResourceLimit:
   label: Container Default Resource Limit
   helpText: Configure how much of the resources the container can consume by default.
+  helpTextDetail: The amount of resources the container can consume by default.
   requestsCpu: CPU Reservation
   requestsMemory: Memory Reservation
   limitsCpu: CPU Limit

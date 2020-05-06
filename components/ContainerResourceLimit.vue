@@ -2,6 +2,7 @@
 import { isEmpty } from 'lodash';
 import UnitInput from '@/components/form/UnitInput';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT } from '@/config/labels-annotations';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: { UnitInput },
@@ -29,6 +30,7 @@ export default {
       limitsMemory:   null,
       requestsCpu:    null,
       requestsMemory: null,
+      viewMode:       _VIEW,
     };
   },
 
@@ -102,7 +104,8 @@ export default {
     <div class="row mb-5 pl-10">
       <div class="col span-12">
         <p class="helper-text mb-10">
-          <t k="containerResourceLimit.helpText" />
+          <t v-if="mode === viewMode" k="containerResourceLimit.helpTextDetail" />
+          <t v-else k="containerResourceLimit.helpText" />
         </p>
       </div>
     </div>
