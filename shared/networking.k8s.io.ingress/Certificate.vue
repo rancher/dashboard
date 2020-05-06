@@ -18,7 +18,7 @@ export default {
     certs: {
       type:    Array,
       default: () => []
-    }
+    },
   },
 
   data() {
@@ -31,9 +31,11 @@ export default {
   methods: {
     addHost() {
       this.hosts.push('');
+      this.update();
     },
     remove(idx) {
       this.hosts.splice(idx, 1);
+      this.update();
     },
 
     update() {
@@ -52,14 +54,20 @@ export default {
 <template>
   <div class="cert" @input="update">
     <div class="row">
-      <RadioGroup v-model="useDefault" class="col span-6" :options="[true, false]" :labels="['Use default ingress controller certificate', 'Choose a certificate']" @input="update" />
+      <RadioGroup
+        v-model="useDefault"
+        class="col span-6"
+        :options="[true, false]"
+        :labels="['Use default ingress controller certificate', 'Choose a certificate']"
+        @input="update"
+      />
       <div class="col span-5">
         <LabeledSelect
+          v-if="!useDefault"
           :value="secretName"
           :options="certs"
           label="Certificate"
           required
-          :disabled="useDefault"
           @input="e=>{secretName = e; update()}"
         />
       </div>
@@ -95,5 +103,9 @@ export default {
     padding-bottom: 10px;
     margin-bottom:30px;
     border-bottom: 1px solid var(--border);
+  }
+
+  button {
+    line-height: 40px;
   }
 </style>

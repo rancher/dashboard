@@ -1,14 +1,11 @@
 <script>
 
 import { random32 } from '../../utils/string';
-import RadioGroup from '@/components/form/RadioGroup';
 import RulePath from '@/edit/networking.k8s.io.ingress/RulePath';
 import LabeledInput from '@/components/form/LabeledInput';
 
 export default {
-  components: {
-    RadioGroup, RulePath, LabeledInput
-  },
+  components: { RulePath, LabeledInput },
 
   props: {
     value: {
@@ -44,10 +41,6 @@ export default {
         delete out.host;
       }
 
-      if (this.ruleMode === 'asDefault') {
-        out.asDefault = true;
-      }
-
       this.$emit('input', out);
     },
 
@@ -72,8 +65,7 @@ export default {
 <template>
   <div class="rule mt-20" @input="update">
     <div class="row">
-      <RadioGroup v-model="ruleMode" class="col span-4" :options="[ 'setHost', 'asDefault']" :labels="[ 'Specify a hostname to use', 'Use as the default backend']" />
-      <div id="host" :style="{'visibility': ruleMode==='setHost' ? 'visible':'hidden'}" class="col span-7">
+      <div id="host" class="col span-11">
         <LabeledInput v-model="host" label="Request Host" placeholder="e.g. example.com" />
       </div>
       <div class="col span-1">

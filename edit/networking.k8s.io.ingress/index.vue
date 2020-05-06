@@ -1,27 +1,27 @@
 <script>
-import Certificate from './Certificate';
 import Rule from './Rule';
+import Certificate from '@/shared/networking.k8s.io.ingress/Certificate';
+import DefaultBackend from '@/shared/networking.k8s.io.ingress/DefaultBackend';
 import { allHash } from '@/utils/promise';
 import { SECRET, TLS_CERT, WORKLOAD_TYPES } from '@/config/types';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import LoadDeps from '@/mixins/load-deps';
-import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import Labels from '@/components/form/Labels';
 import Footer from '@/components/form/Footer';
+import ResourceTabs from '@/components/form/ResourceTabs';
 
 export default {
   name:  'CRUIngress',
 
   components: {
+    DefaultBackend,
     NameNsDescription,
     Rule,
-    Tabbed,
     Tab,
-    Labels,
     Certificate,
-    Footer
+    Footer,
+    ResourceTabs
   },
 
   mixins: [CreateEditView, LoadDeps],
@@ -72,12 +72,8 @@ export default {
       this.value.spec.rules = [{}];
     }
 
-    if (this.value.spec.backend) {
-      if (!this.value.spec.rules[0].http) {
-        this.value.spec.rules[0].http = { paths: [] };
-      }
-      this.value.spec.rules[0].http.paths.push({ backend: this.value.spec.backend });
-      this.value.spec.rules[0].asDefault = true;
+    if (!this.value.spec.backend) {
+      this.value.spec.backend = { };
     }
 
     if (!this.value.spec.tls) {
@@ -112,6 +108,7 @@ export default {
 
     addRule() {
       this.value.spec.rules = [...this.value.spec.rules, {}];
+      this.$forceUpdate();
     },
 
     removeRule(idx) {
@@ -120,6 +117,7 @@ export default {
       neu.splice(idx, 1);
 
       this.$set(this.value.spec, 'rules', neu);
+      this.$forceUpdate();
     },
 
     updateRule(neu, idx) {
@@ -128,6 +126,7 @@ export default {
 
     addCert() {
       this.value.spec.tls = [...this.value.spec.tls, {}];
+      this.$forceUpdate();
     },
 
     removeCert(idx) {
@@ -135,6 +134,7 @@ export default {
 
       neu.splice(idx, 1);
       this.$set(this.value.spec, 'tls', neu);
+      this.$$forceUpdate();
     },
 
     // filter a given list of resources by currently selected namespaces
@@ -162,17 +162,10 @@ export default {
     },
 
     willSave() {
-      const defaultRule = this.value.spec.rules.filter(rule => rule.asDefault)[0];
-      const defaultBackend = defaultRule?.http?.paths[0]?.backend;
-      const nonDefaultRules = this.value.spec.rules.filter(rule => !rule.asDefault);
-
-      nonDefaultRules.forEach(rule => delete rule.asDefault);
-      this.value.spec.rules = nonDefaultRules;
-
-      if (defaultBackend ) {
-        this.$set(this.value.spec, 'backend', defaultBackend);
+      if (this.value?.spec?.backend && (!this.value?.spec?.backend?.serviceName || !this.value?.spec?.backend?.servicePort)) {
+        this.value.spec.backend = null;
       }
-    },
+    }
   }
 };
 </script>
@@ -197,24 +190,27 @@ export default {
       </button>
     </div>
     <div>
-      <Tabbed :default-tab="'labels'">
-        <Tab name="labels" label="Labels">
-          <Labels :spec="value" mode="create" />
-        </Tab>
-        <Tab label="Certificates" name="certificates">
-          <Certificate
-            v-for="(cert,i) in value.spec.tls"
-            :key="i"
-            :certs="certificates"
-            :value="cert"
-            @input="e=>$set(value.spec.tls, i, e)"
-            @remove="e=>removeCert(i)"
-          />
-          <button class="btn btn-sm role-primary mt-20 " type="button" @click="addCert">
-            Add Certificate
-          </button>
-        </Tab>
-      </Tabbed>
+      <ResourceTabs v-model="value" :mode="mode">
+        <template #before>
+          <Tab label="Certificates" name="certificates">
+            <Certificate
+              v-for="(cert,i) in value.spec.tls"
+              :key="i"
+              :mode="mode"
+              :certs="certificates"
+              :value="cert"
+              @input="e=>$set(value.spec.tls, i, e)"
+              @remove="e=>removeCert(i)"
+            />
+            <button class="btn btn-sm role-primary mt-20 " type="button" @click="addCert">
+              Add Certificate
+            </button>
+          </Tab>
+          <Tab label="Default Backend" name="default-backend">
+            <DefaultBackend v-model="value.spec.backend" :targets="workloads" :mode="mode" />
+          </Tab>
+        </template>
+      </ResourceTabs>
     </div>
     <Footer :errors="errors" :mode="mode" @save="save" @done="done" />
   </form>

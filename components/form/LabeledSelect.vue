@@ -93,26 +93,27 @@ export default {
 </script>
 
 <template>
-  <div class="labeled-select labeled-input" :class="{disabled, focused}">
-    <div v-if="isView">
-      <div :class="{'labeled-container': true, raised, empty, [mode]: true}">
-        <label>
-          {{ label }}
-          <span v-if="required && !value" class="required">*</span>
-        </label>
-        <label class="corner">
-          <slot name="corner" />
-        </label>
-        <div class="selected" :class="{'no-label':!label}" :style="{visibility:selectedVisibility}">
-          {{ currentLabel }}
-        </div>
+  <div class="labeled-select labeled-input" :class="{disabled, focused, [mode]: true}">
+    <div :class="{'labeled-container': true, raised, empty, [mode]: true}" :style="{border:'none'}">
+      <label v-if="label">
+        {{ label }}
+        <span v-if="required && !value" class="required">*</span>
+      </label>
+      <label v-if="label" class="corner">
+        <slot name="corner" />
+      </label>
+      <div v-if="isView" class="selected">
+        {{ currentLabel }}&nbsp;
+      </div>
+      <div v-else class="selected" :class="{'no-label':!label}" :style="{visibility:selectedVisibility}">
+        {{ currentLabel }}&nbsp;
       </div>
     </div>
     <v-select
-      v-else
+      v-if="!isView"
       ref="input"
       class="inline"
-      :disabled="isView || disabled"
+      :disabled="disabled"
       :value="value"
       :options="options"
       :get-option-label="opt=>getOptionLabel(opt)"
@@ -125,21 +126,7 @@ export default {
       @search:blur="onBlur"
     >
       <template v-slot:selected-option-container>
-        <div :class="{'labeled-container': true, raised, empty, [mode]: true}" :style="{border:'none'}">
-          <label>
-            {{ label }}
-            <span v-if="required && !value" class="required">*</span>
-          </label>
-          <label class="corner">
-            <slot name="corner" />
-          </label>
-          <div v-if="isView">
-            {{ currentLabel }}
-          </div>
-          <div v-else class="selected" :class="{'no-label':!label}" :style="{visibility:selectedVisibility}">
-            {{ currentLabel }}&nbsp;
-          </div>
-        </div>
+        <span style="display: none"></span>
       </template>
     </v-select>
   </div>
@@ -149,10 +136,22 @@ export default {
 .labeled-select {
   position: relative;
 
+  .labeled-container .selected {
+    background-color: transparent;
+  }
+
+  &.view.labeled-input .labeled-container {
+    padding: 0;
+  }
+
   &.disabled {
     .labeled-container, .vs__dropdown-toggle, input, label  {
       cursor: not-allowed;
     }
+  }
+
+  .selected {
+    padding-top: 17px;
   }
 
   &.focused .vs__dropdown-menu {
@@ -162,32 +161,26 @@ export default {
   }
 
   .v-select.inline {
-    position: initial;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 
     &, .vs__dropdown-toggle, .vs__dropdown-toggle * {
       background-color: transparent;
       border:transparent;
     }
 
-    .labeled-container {
-      width: 100%;
-      padding-right:0;
-      display: flex;
-      flex-direction: column;
-
-      &, .labeled-container * {
-        background-color: transparent;
-      }
-    }
-
     .vs__search {
       background-color: transparent;
-      padding: 1px 10px 0px 10px;
+      padding: 17px 10px 0px 10px;
     }
 
     .vs__dropdown-menu {
-      left: -3px;
-      width: calc(100% + 6px);
+      top: calc(100% - 4px);
+      left: -2px;
+      width: calc(100% + 4px);
     }
 
     .selected{
