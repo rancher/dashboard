@@ -1,4 +1,6 @@
 <script>
+import { isEmpty } from 'lodash';
+
 export default {
   name: 'Tabbed',
 
@@ -11,6 +13,29 @@ export default {
 
   data() {
     return { tabs: null };
+  },
+
+  watch: {
+    tabs(tabs) {
+      const activeTab = tabs.filter(t => t.active);
+      const defaultTab = this.defaultTab;
+
+      if (isEmpty(activeTab)) {
+        if (defaultTab) {
+          this.$nextTick(() => {
+            this.select(defaultTab);
+          });
+        } else {
+          const firstTab = tabs.length > 0 ? tabs[0] : null;
+
+          if (firstTab) {
+            this.$nextTick(() => {
+              this.select(firstTab._props.name);
+            });
+          }
+        }
+      }
+    },
   },
 
   created() {
