@@ -25,7 +25,8 @@ export default {
   data() {
     return {
       DESCRIPTION,
-      HOSTNAME
+      HOSTNAME,
+      metrics: { cpu: 0, memory: 0 }
     };
   },
 };

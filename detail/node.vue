@@ -1,37 +1,51 @@
 <script>
-import CopyToClipboardText from '@/components/CopyToClipboardText';
+import { capitalize, words } from 'lodash';
 import ConsumptionGauge from '@/components/ConsumptionGauge';
 import DetailTop from '@/components/DetailTop';
 import HStack from '@/components/Layout/Stack/HStack';
 import VStack from '@/components/Layout/Stack/VStack';
 import Alert from '@/components/Alert';
 import SortableTable from '@/components/SortableTable';
-import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import BadgeState from '@/components/BadgeState';
 import {
-  TYPE,
-  STATUS,
-  LAST_HEARTBEAT_TIME,
-  REASON,
-  MESSAGE,
+  ADDRESS,
+  EFFECT,
+  IMAGE_SIZE,
   KEY,
-  VALUE
+  LAST_HEARTBEAT_TIME,
+  MESSAGE,
+  REASON,
+  SIMPLE_NAME,
+  SIMPLE_TYPE,
+  STATUS,
+  VALUE,
 } from '@/config/table-headers';
+import ResourceTabs from '@/components/form/ResourceTabs';
+import Poller from '@/utils/poller';
+import { METRIC } from '@/config/types';
+import createEditView from '@/mixins/create-edit-view';
+import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
+
+const METRICS_POLL_RATE_MS = 30000;
+const MAX_FAILURES = 2;
 
 export default {
   name: 'DetailNode',
 
   components: {
     Alert,
+    BadgeState,
     ConsumptionGauge,
-    CopyToClipboardText,
     DetailTop,
     HStack,
     VStack,
+    ResourceTabs,
     Tab,
-    Tabbed,
     SortableTable
   },
+
+  mixins: [createEditView],
 
   props: {
     value: {
@@ -42,29 +56,49 @@ export default {
 
   data() {
     return {
-      statusTableHeaders: [
-        TYPE,
+      metricPoller:           new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
+      metrics:                { cpu: 0, memory: 0 },
+      conditionsTableHeaders: [
+        SIMPLE_TYPE,
         STATUS,
         LAST_HEARTBEAT_TIME,
         REASON,
         MESSAGE
       ],
-      systemTableHeaders: [
-        KEY,
-        VALUE
+      infoTableHeaders: [
+        {
+          ...KEY,
+          label: '',
+          width: 200
+        },
+        {
+          ...VALUE,
+          label: ''
+        }
       ],
-      labelsTableHeaders: [
-        KEY,
-        VALUE
+      addressTableHeaders: [
+        SIMPLE_TYPE,
+        ADDRESS
       ],
-      annotationsTableHeaders: [
-        KEY,
-        VALUE
+      imageTableHeaders: [
+        { ...SIMPLE_NAME, width: 400 },
+        IMAGE_SIZE
       ],
+      taintTableHeaders: [
+        KEY,
+        VALUE,
+        EFFECT
+      ]
     };
   },
 
   computed: {
+    memoryUnits() {
+      const exponent = exponentNeeded(this.value.ramCapacity, 1024);
+
+      return `${ UNITS[exponent] }iB`;
+    },
+
     pidPressureStatus() {
       return this.mapToStatus(this.value.isPidPressureOk);
     },
@@ -81,65 +115,94 @@ export default {
       return this.mapToStatus(this.value.isKubeletOk);
     },
 
-    statusTableRows() {
+    conditionsTableRows() {
       return this.value.status.conditions;
     },
 
-    systemTableRows() {
+    infoTableRows() {
       return Object.keys(this.value.status.nodeInfo)
         .map(key => ({
-          key,
+          key:   capitalize(words(key).join(' ')),
           value: this.value.status.nodeInfo[key]
         }));
     },
 
-    labelsTableRows() {
-      return Object.keys(this.value.metadata.labels)
-        .map(key => ({
-          key,
-          value: this.value.metadata.labels[key]
-        }));
+    addressTableRows() {
+      return this.value.status.addresses;
     },
 
-    annotationsTableRows() {
-      return Object.keys(this.value.metadata.annotations)
-        .map(key => ({
-          key,
-          value: this.value.metadata.annotations[key]
-        }));
+    imageTableRows() {
+      return this.value.status.images.map(image => ({
+        name:      image.names[1],
+        sizeBytes: image.sizeBytes
+      }));
+    },
+
+    taintTableRows() {
+      return this.value.spec.taints || [];
     },
 
     detailTopColumns() {
       return [
         {
-          title: 'IP Address',
-          name:  'ipAddress'
+          title: 'State',
+          name:  'state'
         },
         {
-          title: 'Version',
-          name:  'version'
+          title:   'IP Address',
+          content:  this.value.internalIp
         },
         {
-          title: 'OS',
-          name:  'os'
+          title:   'Version',
+          content:  this.value.version
         },
         {
-          title: 'Created',
-          name:  'created'
+          title:   'OS',
+          content:  this.value.status.nodeInfo.osImage
+        },
+        {
+          title:   'Container Runtime',
+          name:    'container-runtime'
         },
       ];
     }
   },
 
+  mounted() {
+    this.metricPoller.start();
+  },
+
+  beforeDestroy() {
+    this.metricPoller.stop();
+  },
+
   methods: {
     memoryFormatter(value) {
-      return (value / 1048576).toFixed(2);
+      const formatOptions = {
+        addSuffix:  false,
+        increment:  1024,
+      };
+
+      return formatSi(value, formatOptions);
     },
 
     mapToStatus(isOk) {
       return isOk
         ? 'success'
         : 'error';
+    },
+    async loadMetrics() {
+      const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
+
+      if (schema) {
+        await this.$store.dispatch('cluster/find', {
+          type: METRIC.NODE,
+          id:   this.value.id,
+          opt:  { force: true }
+        });
+
+        this.$forceUpdate();
+      }
     }
   }
 };
@@ -148,17 +211,11 @@ export default {
 <template>
   <VStack class="node">
     <DetailTop :columns="detailTopColumns">
-      <template v-slot:ipAddress>
-        <CopyToClipboardText :text="value.status.addresses[0].address" />
+      <template v-slot:state>
+        <BadgeState v-if="value.showDetailStateBadge" :value="value" />
       </template>
-      <template v-slot:version>
-        <CopyToClipboardText :text="value.status.nodeInfo.kubeletVersion" />
-      </template>
-      <template v-slot:os>
-        <CopyToClipboardText :text="value.status.nodeInfo.operatingSystem" />
-      </template>
-      <template v-slot:created>
-        <CopyToClipboardText :text="value.metadata.creationTimestamp" />
+      <template v-slot:container-runtime>
+        <span><span v-if="value.containerRuntimeIcon" class="icon" :class="value.containerRuntimeIcon" /> {{ value.containerRuntimeVersion }}</span>
       </template>
     </DetailTop>
     <HStack class="glance" :show-dividers="true">
@@ -169,49 +226,62 @@ export default {
         <Alert :status="kubeletStatus" message="Kubelet" />
       </VStack>
       <HStack class="cluster" horizontal-align="space-evenly">
-        <ConsumptionGauge resource-name="CPU" :capacity="value.cpuCapacity" :used="value.cpuConsumed" />
-        <ConsumptionGauge resource-name="MEMORY" :capacity="value.ramCapacity" :used="value.ramConsumed" units="GiB" :number-formatter="memoryFormatter" />
+        <ConsumptionGauge resource-name="CPU" :capacity="value.cpuCapacity" :used="value.cpuUsage" />
+        <ConsumptionGauge resource-name="MEMORY" :capacity="value.ramCapacity" :used="value.ramUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
         <ConsumptionGauge resource-name="PODS" :capacity="value.podCapacity" :used="value.podConsumed" />
       </HStack>
     </HStack>
-    <Tabbed default-tab="status">
-      <Tab name="status" label="Status">
-        <SortableTable
-          key-field="_key"
-          :headers="statusTableHeaders"
-          :rows="statusTableRows"
-          :row-actions="false"
-          :table-actions="false"
-        />
-      </Tab>
-      <Tab name="system" label="System">
-        <SortableTable
-          key-field="_key"
-          :headers="systemTableHeaders"
-          :rows="systemTableRows"
-          :row-actions="false"
-          :table-actions="false"
-        />
-      </Tab>
-      <Tab name="labels" label="Labels">
-        <SortableTable
-          key-field="_key"
-          :headers="labelsTableHeaders"
-          :rows="labelsTableRows"
-          :row-actions="false"
-          :table-actions="false"
-        />
-      </Tab>
-      <Tab name="annotations" label="Annotations">
-        <SortableTable
-          key-field="_key"
-          :headers="annotationsTableHeaders"
-          :rows="annotationsTableRows"
-          :row-actions="false"
-          :table-actions="false"
-        />
-      </Tab>
-    </Tabbed>
+    <ResourceTabs v-model="value" :mode="mode">
+      <template v-slot:before>
+        <Tab name="conditions" label="Conditions">
+          <SortableTable
+            key-field="_key"
+            :headers="conditionsTableHeaders"
+            :rows="conditionsTableRows"
+            :row-actions="false"
+            :table-actions="false"
+          />
+        </Tab>
+        <Tab name="info" label="Info">
+          <SortableTable
+            key-field="_key"
+            :headers="infoTableHeaders"
+            :rows="infoTableRows"
+            :row-actions="false"
+            :table-actions="false"
+            :show-headers="false"
+          />
+        </Tab>
+        <Tab name="address" label="Address">
+          <SortableTable
+            key-field="_key"
+            :headers="addressTableHeaders"
+            :rows="addressTableRows"
+            :row-actions="false"
+            :table-actions="false"
+            :search="false"
+          />
+        </Tab>
+        <Tab name="images" label="Images">
+          <SortableTable
+            key-field="_key"
+            :headers="imageTableHeaders"
+            :rows="imageTableRows"
+            :row-actions="false"
+            :table-actions="false"
+          />
+        </Tab>
+        <Tab name="taints" label="Taints">
+          <SortableTable
+            key-field="_key"
+            :headers="taintTableHeaders"
+            :rows="taintTableRows"
+            :row-actions="false"
+            :table-actions="false"
+          />
+        </Tab>
+      </template>
+    </ResourceTabs>
   </VStack>
 </template>
 
@@ -223,6 +293,8 @@ export default {
 $divider-spacing: 20px;
 
 .glance {
+  margin-top: 20px;
+
   & > * {
     padding: 0 $divider-spacing;
 

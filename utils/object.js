@@ -1,9 +1,20 @@
 import { cloneDeep, flattenDeep, compact, pick } from 'lodash';
+import jsonpath from 'jsonpath';
 import { typeOf } from './sort';
 
 const quotedKey = /['"]/;
 
 export function get(obj, path) {
+  if ( path.startsWith('$') ) {
+    try {
+      return jsonpath.query(obj, path)[0];
+    } catch (e) {
+      console.log('JSON Path error', e); // eslint-disable-line no-console
+
+      return '(JSON Path err)';
+    }
+  }
+
   let parts;
 
   if ( path.match(quotedKey) ) {

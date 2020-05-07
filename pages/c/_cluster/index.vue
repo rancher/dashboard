@@ -26,6 +26,9 @@ import {
   SYSTEM_PROJECT_LABEL,
 } from '@/config/types';
 import { allHash } from '@/utils/promise';
+import Poller from '@/utils/poller';
+const METRICS_POLL_RATE_MS = 30000;
+const MAX_FAILURES = 2;
 
 export default {
   components: {
@@ -81,7 +84,7 @@ export default {
     ];
 
     return {
-      pollingTimeoutId:  null,
+      metricPoller:      new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
       gatekeeperEnabled: false,
       constraintHeaders,
       eventHeaders,
@@ -163,10 +166,13 @@ export default {
       nodePools:         [],
       nodeTemplates:     [],
       nodes:             [],
-      pollingErrorCount: 0,
       cluster,
       gatekeeperEnabled,
     };
+  },
+
+  mounted() {
+    this.metricPoller.start();
   },
 
   async created() {
@@ -183,14 +189,6 @@ export default {
     this.nodes = resourcesHash.allNodes;
     this.nodePools = resourcesHash.allNodePools;
     this.nodeTemplates = resourcesHash.allNodeTemplates;
-  },
-
-  mounted() {
-    const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
-
-    if (schema) {
-      this.pollMetrics();
-    }
   },
 
   methods: {
@@ -237,33 +235,15 @@ export default {
       return [];
     },
 
-    async pollMetrics() {
-      let errCount = this.pollingErrorCount;
-
-      try {
-        const metrics = await this.fetchClusterResources(METRIC.NODE, { force: true } );
-
-        this.nodeMetrics = metrics;
-        this.pollingTimeoutId = setTimeout(this.pollMetrics, 30000);
-      } catch (err) {
-        console.error(`Error polling metrics`, err); // eslint-disable-line no-console
-
-        if (errCount < 3) {
-          this.pollingErrorCount = errCount++;
-          this.pollingTimeoutId = setTimeout(this.pollMetrics, 30000);
-        } else {
-          this.pollingErrorCount = 0;
-        }
-      }
+    async loadMetrics() {
+      this.nodeMetrics = await this.fetchClusterResources(METRIC.NODE, { force: true } );
     },
   },
 
   beforeRouteLeave(to, from, next) {
-    if (this.pollingTimeoutId) {
-      clearTimeout(this.pollingTimeoutId);
-    }
+    this.metricPoller.stop();
     next();
-  },
+  }
 };
 </script>
 
