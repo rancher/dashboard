@@ -24,23 +24,22 @@ const DISPLAY_TYPES = {
 };
 
 export default {
-  // TODO find out if you should be able ot edit service account tokens
-  // // remove edit option for service acct tokens
-  // _availableActions() {
-  //   let out = this._standardActions;
+  // remove edit option for service acct tokens
+  _availableActions() {
+    let out = this._standardActions;
 
-  //   if (this.secretType === SERVICE_ACCT) {
-  //     const toFilter = ['goToEdit', 'goToEditYaml'];
+    if (this.secretType === SERVICE_ACCT) {
+      const toFilter = ['goToEdit', 'goToEditYaml'];
 
-  //     out = out.filter((action) => {
-  //       if (!toFilter.includes(action.action)) {
-  //         return action;
-  //       }
-  //     });
-  //   }
+      out = out.filter((action) => {
+        if (!toFilter.includes(action.action)) {
+          return action;
+        }
+      });
+    }
 
-  //   return out;
-  // },
+    return out;
+  },
 
   keysDisplay() {
     const keys = [
@@ -77,7 +76,6 @@ export default {
 
           return out.join(', ');
         } catch (e) {
-          // if the dockerconfigjson somehow isn't valid json, give up :(
           return decodedJSON;
         }
       }
