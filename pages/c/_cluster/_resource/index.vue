@@ -126,7 +126,7 @@ export default {
           :to="{path: yamlRoute}"
           tag="button"
           type="button"
-          class="btn bg-primary"
+          class="btn bg-primary mr-10"
         >
           Create from YAML
         </nuxt-link>

@@ -137,12 +137,14 @@ export default {
         {
           name:  'privateKey',
           label: 'Private Key',
-          value: 'key'
+          value: 'key',
+          formatter: 'VerticalScroll'
         },
         {
           name:  'cert',
           label: 'CA Certificate',
-          value: 'crt'
+          value: 'crt',
+          formatter: 'VerticalScroll'
         }
       ];
     }
