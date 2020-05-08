@@ -135,15 +135,15 @@ export default {
     certHeaders() {
       return [
         {
-          name:  'privateKey',
-          label: 'Private Key',
-          value: 'key',
+          name:      'privateKey',
+          label:     'Private Key',
+          value:     'key',
           formatter: 'VerticalScroll'
         },
         {
-          name:  'cert',
-          label: 'CA Certificate',
-          value: 'crt',
+          name:      'cert',
+          label:     'CA Certificate',
+          value:     'crt',
           formatter: 'VerticalScroll'
         }
       ];

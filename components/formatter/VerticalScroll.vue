@@ -11,5 +11,7 @@ export default {
 </script>
 
 <template>
-  <div class="vertical-scroll">{{ value }}</div>
+  <div class="vertical-scroll">
+    {{ value }}
+  </div>
 </template>
