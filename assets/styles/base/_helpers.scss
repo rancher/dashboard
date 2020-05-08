@@ -207,6 +207,11 @@ $spacing-property-map: (
   vertical-align: top !important;
 }
 
+.vertical-scroll {
+  max-height: 150px;
+  overflow: scroll;
+}
+
 .comma-list {
   span:after {
     content: ','
