@@ -29,8 +29,6 @@ export default {
       :register-before-hook="registerBeforeHook"
     />
 
-    <div class="spacer"></div>
-
     <div v-if="!isView || Object.keys(value.data||{}).length" class="row">
       <KeyValue
         key="data"
@@ -41,8 +39,6 @@ export default {
         :initial-empty-row="true"
       />
     </div>
-
-    <div class="spacer"></div>
 
     <ResourceTabs v-model="value" :mode="mode">
       <template #before>
