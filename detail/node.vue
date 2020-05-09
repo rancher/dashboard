@@ -26,6 +26,7 @@ import Poller from '@/utils/poller';
 import { METRIC } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
+import CopyToClipboardText from '@/components/CopyToClipboardText';
 
 const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;
@@ -37,6 +38,7 @@ export default {
     Alert,
     BadgeState,
     ConsumptionGauge,
+    CopyToClipboardText,
     DetailTop,
     HStack,
     VStack,
@@ -145,12 +147,8 @@ export default {
     detailTopColumns() {
       return [
         {
-          title: 'State',
-          name:  'state'
-        },
-        {
           title:   'IP Address',
-          content:  this.value.internalIp
+          name:    'ip-address'
         },
         {
           title:   'Version',
@@ -211,6 +209,9 @@ export default {
 <template>
   <VStack class="node">
     <DetailTop :columns="detailTopColumns">
+      <template v-slot:ip-address>
+        <CopyToClipboardText :text="value.internalIp" />
+      </template>
       <template v-slot:state>
         <BadgeState v-if="value.showDetailStateBadge" :value="value" />
       </template>
@@ -240,6 +241,7 @@ export default {
             :rows="conditionsTableRows"
             :row-actions="false"
             :table-actions="false"
+            :search="false"
           />
         </Tab>
         <Tab name="info" label="Info">
@@ -250,6 +252,7 @@ export default {
             :row-actions="false"
             :table-actions="false"
             :show-headers="false"
+            :search="false"
           />
         </Tab>
         <Tab name="address" label="Address">
@@ -278,6 +281,7 @@ export default {
             :rows="taintTableRows"
             :row-actions="false"
             :table-actions="false"
+            :search="false"
           />
         </Tab>
       </template>
