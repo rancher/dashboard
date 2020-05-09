@@ -101,12 +101,13 @@ export default {
         allocatable: parseSi(allocatable),
       };
       const percentage = parsed.allocatable === 0 ? parsed.allocatable : ( parsed.requested * 100 ) / parsed.allocatable;
+      const increment = formatOpts?.increment ? formatOpts.increment : undefined; // exponentneeded has default for incremeent if not defined
 
       formatOpts = {
         ...formatOpts,
         ...{
-          maxExponent:      exponentNeeded(parsed.allocatable),
-          minExponent:      exponentNeeded(parsed.allocatable),
+          maxExponent:      exponentNeeded(parsed.allocatable, increment),
+          minExponent:      exponentNeeded(parsed.allocatable, increment),
         }
       };
 
@@ -123,14 +124,15 @@ export default {
       const normalizedCapacity = parseSi(capacity);
       const nodesEachUsage = metrics.map( m => parseSi(m.usage[field]));
       const cumulativeUsage = isEmpty(nodesEachUsage) ? 0 : nodesEachUsage.reduce( ( acc, cv ) => acc + cv);
+      const increment = formatOpts?.increment ? formatOpts.increment : 1024;
 
       if (field === 'memory') {
         formatOpts = {
           ...formatOpts,
           ...{
-            maxExponent: exponentNeeded(normalizedCapacity),
-            minExponent: exponentNeeded(normalizedCapacity),
-            increment:   1024,
+            maxExponent: exponentNeeded(normalizedCapacity, increment),
+            minExponent: exponentNeeded(normalizedCapacity, increment),
+            increment,
           }
         };
       }

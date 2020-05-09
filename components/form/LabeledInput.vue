@@ -8,18 +8,27 @@ export default {
   mixins:     [LabeledFormElement],
 
   props: {
+
     type: {
       type:    String,
       default: 'text',
     },
+
     mode: {
       type:    String,
       default: _EDIT
     },
+
     disabled: {
       type:    Boolean,
       default: false,
+    },
+
+    placeholder: {
+      type:    String,
+      default: null
     }
+
   },
 
   data() {
@@ -74,7 +83,15 @@ export default {
       <slot name="corner" />
     </label>
     <slot name="prefix" />
-    <div>{{ value || 'n/a' }}</div>
+    <div>
+      <span v-if="value">
+        {{ value }}
+        <slot name="suffix" />
+      </span>
+      <span v-else>
+        <t k="generic.na" raw="true" />
+      </span>
+    </div>
   </div>
   <div v-else :class="{'labeled-input': true, raised, focused, [mode]: true, disabled}">
     <slot name="label">

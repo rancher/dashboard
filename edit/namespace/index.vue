@@ -2,20 +2,22 @@
 
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
-import ResourceQuota from '@/edit/namespace/ResourceQuota';
 import Footer from '@/components/form/Footer';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { EXTERNAL } from '@/config/types';
 import { PROJECT } from '@/config/labels-annotations';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import ContainerResourceLimit from '@/components/ContainerResourceLimit';
+import Tab from '@/components/Tabbed/Tab';
 
 export default {
   components: {
-    ResourceQuota,
+    ContainerResourceLimit,
     Footer,
     LabeledSelect,
     NameNsDescription,
-    ResourceTabs
+    ResourceTabs,
+    Tab
   },
 
   mixins:     [CreateEditView],
@@ -84,20 +86,19 @@ export default {
         </template>
       </NameNsDescription>
 
-      <h4 class="mb-10">
-        Container Default Resource Limit
-      </h4>
-      <div class="row">
-        <ResourceQuota
-          :original-id="originalQuotaId"
-          class="col span-12"
-          :register-after-hook="registerAfterHook"
-          :mode="mode"
-          :namespace="value"
-        />
-      </div>
+      <div class="spacer"></div>
 
-      <ResourceTabs v-model="value" :mode="mode" />
+      <ResourceTabs v-model="value" :mode="mode">
+        <template #before>
+          <Tab name="container-resource-limit" label="Container Default Resource Limit">
+            <ContainerResourceLimit
+              :mode="mode"
+              :namespace="value"
+              :register-before-hook="registerBeforeHook"
+            />
+          </Tab>
+        </template>
+      </ResourceTabs>
 
       <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
     </form>

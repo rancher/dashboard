@@ -70,23 +70,32 @@
     padding: 17px 0 0 0;
   }
 
-  .addon,
-  .addon.btn {
-    display: table-cell;
-    vertical-align: middle;
-    width: 1%;
-    white-space: nowrap;
-    vertical-align: middle;
-    color: #{$secondary};
+  &.create,
+  &.edit {
+    .addon,
+    .addon.btn {
+      display: table-cell;
+      vertical-align: middle;
+      width: 1%;
+      white-space: nowrap;
+      vertical-align: middle;
+      color: #{$secondary};
+    }
+
+    .addon {
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: normal;
+      line-height: 1;
+      text-align: center;
+      border-left: solid thin #{$secondary};
+    }
   }
 
-  .addon {
-    padding: 6px 12px;
-    font-size: 14px;
-    font-weight: normal;
-    line-height: 1;
-    text-align: center;
-    border-left: solid thin #{$secondary};
+  &.view {
+    .addon {
+      display: inline;
+    }
   }
 
   /*!
@@ -215,5 +224,5 @@
     padding: 18px 30px;
     font-size: 1.25em;
   }
- */ 
+ */
 }

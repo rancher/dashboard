@@ -3,9 +3,15 @@ locale:
   en-us: English
 
 generic:
-  customize: Customize
   comingSoon: Coming Soon
+  created: Created
+  customize: Customize
+  na: "n/a"
   unknown: Unknown
+
+suffix:
+  ib: iB
+  cpus: CPUs
 
 header:
   backToRancher: "← Back to Rancher"
@@ -56,6 +62,18 @@ cluster:
     imported:
       label: Import an existing cluster
       shortLabel: Imported
+
+containerResourceLimit:
+  label: Container Default Resource Limit
+  helpText: Configure how much of the resources the container can consume by default.
+  helpTextDetail: The amount of resources the container can consume by default.
+  requestsCpu: CPU Reservation
+  requestsMemory: Memory Reservation
+  limitsCpu: CPU Limit
+  limitsMemory: Memory Limit
+  cpuPlaceholder: e.g. 1000
+  memPlaceholder: e.g. 128
+
 
 footer:
   docs: Docs

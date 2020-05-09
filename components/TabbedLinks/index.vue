@@ -89,8 +89,7 @@ export default {
   }
 
   .tab-container {
-    padding: 40px;
-    /* border: 1px solid var(--tabbed-border); */
+    padding: 20px;
     background-color: var(--tabbed-container-bg);
   }
 </style>
