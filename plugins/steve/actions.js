@@ -189,7 +189,6 @@ export default {
         commit('registerType', type);
       }
     }
-
     commit('load', {
       ctx,
       type,

@@ -49,7 +49,6 @@ export default {
         rows.push({
           address,
           username: auths[address].username,
-          password: auths[address].password
         });
       }
 

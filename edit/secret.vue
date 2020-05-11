@@ -62,8 +62,8 @@ export default {
     }
 
     if (this.value._type === TLS) {
-      // remove private key on edit page
-      key = this.mode === 'edit' ? '' : base64Decode((this.value.data || {})['tls.key']);
+      key = base64Decode((this.value.data || {})['tls.key']);
+
       crt = base64Decode((this.value.data || {})['tls.crt']);
     }
 
@@ -220,14 +220,20 @@ export default {
           <LabeledInput v-model="username" label="Username" :mode="mode" />
         </div>
         <div class="col span-6">
-          <LabeledInput v-model="password" label="Password" :mode="mode" :type="mode==='edit' ? 'password':'text'" />
+          <LabeledInput v-model="password" label="Password" :mode="mode" type="password" />
         </div>
       </div>
     </template>
 
     <div v-else-if="isCertificate" class="row">
       <div class="col span-6">
-        <LabeledInput v-model="key" type="multiline" label="Private Key" :mode="mode" placeholder="Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----" />
+        <LabeledInput
+          v-model="key"
+          type="multiline"
+          label="Private Key"
+          :mode="mode"
+          placeholder="Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
+        />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('key')">
           Read from file
         </button>

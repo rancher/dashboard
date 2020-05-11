@@ -24,21 +24,8 @@ const DISPLAY_TYPES = {
 };
 
 export default {
-  // remove edit option for service acct tokens
-  _availableActions() {
-    let out = this._standardActions;
-
-    if (this.secretType === SERVICE_ACCT) {
-      const toFilter = ['goToEdit', 'goToEditYaml'];
-
-      out = out.filter((action) => {
-        if (!toFilter.includes(action.action)) {
-          return action;
-        }
-      });
-    }
-
-    return out;
+  canUpdate() {
+    return this.hasLink('update') && this.$rootGetters['type-map/isEditable'](this.type) && this.secretType !== SERVICE_ACCT;
   },
 
   keysDisplay() {
