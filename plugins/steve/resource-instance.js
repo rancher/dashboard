@@ -1,4 +1,6 @@
 import Vue from 'vue';
+import jsyaml from 'js-yaml';
+import { cleanForNew } from './normalize';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
@@ -804,4 +806,46 @@ export default {
 
     return url;
   },
+
+  // convert yaml to object, clean for new if creating/cloning
+  // map _type to type
+  cleanyaml() {
+    return (yaml, mode = 'edit') => {
+      try {
+        const obj = jsyaml.safeLoad(yaml);
+
+        if (mode !== 'edit') {
+          cleanForNew(obj);
+        }
+
+        if (obj._type) {
+          obj.type = obj._type;
+          delete obj._type;
+        }
+        const out = jsyaml.safeDump(obj, { skipInvalid: true });
+
+        return out;
+      } catch (e) {
+        return null;
+      }
+    };
+  },
+
+  yamlForSave() {
+    return (yaml) => {
+      try {
+        const obj = jsyaml.safeLoad(yaml);
+
+        if (obj) {
+          if (this._type) {
+            obj._type = obj.type;
+          }
+
+          return jsyaml.safeDump(obj);
+        }
+      } catch (e) {
+        return null;
+      }
+    };
+  }
 };
