@@ -2,7 +2,7 @@
 
 export const STATE = {
   name:      'state',
-  label:     'State',
+  labelKey:  'tableHeaders.state',
   sort:      ['stateSort', 'nameSort'],
   value:     'stateDisplay',
   width:     75,
@@ -12,7 +12,7 @@ export const STATE = {
 
 export const DOWNLOAD = {
   name:          'download',
-  label:         'Download',
+  labelKey:      'tableHeaders.download',
   value:         'download',
   canBeVariable: true,
   align:         'right',
@@ -20,13 +20,13 @@ export const DOWNLOAD = {
 
 export const INTERNAL_EXTERNAL_IP = {
   name:      'internal-external-ip',
-  label:     'Internal/External IP',
+  labelKey:  'tableHeaders.internalExternalIp',
   formatter: 'InternalExternalIP'
 };
 
 export const NAME = {
   name:          'name',
-  label:         'Name',
+  labelKey:      'tableHeaders.name',
   value:         'nameDisplay',
   sort:          ['nameSort'],
   formatter:     'LinkDetail',
@@ -36,7 +36,7 @@ export const NAME = {
 
 export const SIMPLE_NAME = {
   name:          'name',
-  label:         'Name',
+  labelKey:      'tableHeaders.simpleName',
   value:         'name',
   sort:          ['name'],
   width:         200
@@ -44,14 +44,14 @@ export const SIMPLE_NAME = {
 
 export const EFFECT = {
   name:          'effect',
-  label:         'Effect',
+  labelKey:      'tableHeaders.effect',
   value:         'effect',
   sort:          ['effect'],
 };
 
 export const NAME_UNLINKED = {
   name:          'name',
-  label:         'Name',
+  labelKey:      'tableHeaders.nameUnlinked',
   value:         'nameDisplay',
   sort:          ['nameSort'],
   canBeVariable: true,
@@ -59,7 +59,7 @@ export const NAME_UNLINKED = {
 
 export const NAMESPACE_NAME_UNLINKED = {
   name:          'name',
-  label:         'Name',
+  labelKey:      'tableHeaders.namespaceNameUnlinked',
   value:         'namespacedName',
   sort:          ['namespacedNameSort'],
   canBeVariable: true,
@@ -67,7 +67,7 @@ export const NAMESPACE_NAME_UNLINKED = {
 
 export const NAMESPACE_NAME = {
   name:          'name',
-  label:         'Name',
+  labelKey:      'tableHeaders.namespaceName',
   value:         'namespacedName',
   sort:          ['namespacedNameSort'],
   formatter:     'LinkDetail',
@@ -76,7 +76,7 @@ export const NAMESPACE_NAME = {
 
 export const NODE = {
   name:      'node',
-  label:     'Node',
+  labelKey:  'tableHeaders.node',
   value:     'spec.nodeName',
   sort:      'spec.nodeName',
   formatter: 'LinkNode'
@@ -84,7 +84,7 @@ export const NODE = {
 
 export const NODE_NAME = {
   name:      'nodeName',
-  label:     'Name',
+  labelKey:  'tableHeaders.nodeName',
   sort:      'name',
   value:     'name',
   formatter: 'LinkDetail',
@@ -92,21 +92,21 @@ export const NODE_NAME = {
 
 export const ROLES = {
   name:      'roles',
-  label:     'Roles',
+  labelKey:  'tableHeaders.roles',
   sort:      'roles',
   value:     'roles'
 };
 
 export const VERSION = {
-  name:  'version',
-  label: 'Version',
-  sort:  'version',
-  value: 'version'
+  name:     'version',
+  labelKey: 'tableHeaders.version',
+  sort:     'version',
+  value:    'version'
 };
 
 export const CPU = {
   name:      'cpu',
-  label:     'CPU',
+  labelKey:  'tableHeaders.cpu',
   sort:      'cpu',
   value:     'cpuUsagePercentage',
   formatter: 'PercentageBar'
@@ -114,7 +114,7 @@ export const CPU = {
 
 export const RAM = {
   name:      'ram',
-  label:     'RAM',
+  labelKey:  'tableHeaders.ram',
   sort:      'ram',
   value:     'ramUsagePercentage',
   formatter: 'PercentageBar'
@@ -122,7 +122,7 @@ export const RAM = {
 
 export const PODS = {
   name:      'pods',
-  label:     'Pods',
+  labelKey:  'tableHeaders.pods',
   sort:      'pods',
   value:     'podUsage',
   formatter: 'PercentageBar'
@@ -130,7 +130,7 @@ export const PODS = {
 
 export const AGE = {
   name:       'age',
-  label:      'Age',
+  labelKey:   'tableHeaders.age',
   value:      'metadata.creationTimestamp',
   sort:       'metadata.creationTimestamp',
   search:     false,
@@ -140,29 +140,29 @@ export const AGE = {
 };
 
 export const IMAGE = {
-  name:  'image',
-  label: 'Image',
-  value: 'image',
-  sort:  ['image', 'nameSort'],
+  name:     'image',
+  labelKey: 'tableHeaders.image',
+  value:    'image',
+  sort:     ['image', 'nameSort'],
 };
 
 export const RIO_IMAGE = {
-  name:  'image',
-  label: 'Image',
-  value: 'imageDisplay',
-  sort:  ['imageDisplay', 'nameSort'],
+  name:     'image',
+  labelKey: 'tableHeaders.rioImage',
+  value:    'imageDisplay',
+  sort:     ['imageDisplay', 'nameSort'],
 };
 
 export const POD_IMAGES = {
   name:      'pod_images',
-  label:     'Image',
+  labelKey:  'tableHeaders.podImages',
   value:     'status.containerStatuses',
   formatter: 'PodImages'
 };
 
 export const ENDPOINTS = {
   name:      'endpoint',
-  label:     'Endpoint',
+  labelKey:  'tableHeaders.endpoints',
   value:     'status.endpoints',
   formatter: 'Endpoints',
   width:      60,
@@ -171,7 +171,7 @@ export const ENDPOINTS = {
 
 export const SCALE = {
   name:      'scale',
-  label:     'Scale',
+  labelKey:  'tableHeaders.scale',
   value:     'scales.desired',
   sort:      ['scales.desired', 'nameSort'],
   formatter: 'Scale',
@@ -181,14 +181,14 @@ export const SCALE = {
 
 export const SIMPLE_SCALE = {
   name:      'simple-scale',
-  label:     'Scale',
+  labelKey:  'tableHeaders.simpleScale',
   value:     'scale',
   sort:      ['scale']
 };
 
 export const WEIGHT = {
   name:      'weight',
-  label:     'Weight',
+  labelKey:  'tableHeaders.weight',
   value:     'status.computedWeight',
   sort:      'status.computedWeight',
   formatter: 'Weight',
@@ -197,162 +197,162 @@ export const WEIGHT = {
 };
 
 export const SUCCESS = {
-  name:  'success',
-  label: 'Success',
-  value: 'success',
-  width: 100,
-  align: 'right',
+  name:     'success',
+  labelKey: 'tableHeaders.success',
+  value:    'success',
+  width:    100,
+  align:    'right',
 };
 
 export const REQ_RATE = {
-  name:  'req-rate',
-  label: 'Req Rate',
-  value: 'rps',
-  width: 100,
-  align: 'right',
+  name:     'req-rate',
+  labelKey: 'tableHeaders.reqRate',
+  value:    'rps',
+  width:    100,
+  align:    'right',
 };
 
 export const P95 = {
-  name:  'p95',
-  label: '95%tile',
-  value: 'p95',
-  width: 100,
-  align: 'right',
+  name:     'p95',
+  labelKey: 'tableHeaders.p95',
+  value:    'p95',
+  width:    100,
+  align:    'right',
 };
 
 export const KEYS = {
   name:      'keys',
-  label:     'Data',
+  labelKey:  'tableHeaders.keys',
   sort:      false,
   value:     'keysDisplay',
 };
 
 export const TARGET_KIND = {
-  name:  'target-kind',
-  label: 'Target Type',
-  value: 'kindDisplay',
-  width: 100,
+  name:     'target-kind',
+  labelKey: 'tableHeaders.targetKind',
+  value:    'kindDisplay',
+  width:    100,
 };
 
 export const TARGET = {
-  name:  'target',
-  label: 'Target',
-  value: 'targetDisplay',
+  name:     'target',
+  labelKey: 'tableHeaders.target',
+  value:    'targetDisplay',
 };
 
 export const MATCHES = {
   name:      'matches',
-  label:     'Matches',
+  labelKey:  'tableHeaders.matches',
   value:     'spec.routes',
   formatter: 'RouterMatch'
 };
 
 export const DESTINATION = {
   name:      'destination',
-  label:     'Target',
+  labelKey:  'tableHeaders.destination',
   value:     'spec.routes',
   formatter: 'RouterDestination'
 };
 
 export const USERNAME = {
-  name:  'username',
-  label: 'Username',
-  value: 'username'
+  name:     'username',
+  labelKey: 'tableHeaders.username',
+  value:    'username'
 };
 
 export const USER_DISPLAY_NAME = {
-  name:  'display name',
-  label: 'Display Name',
-  value: 'name'
+  name:     'display name',
+  labelKey: 'tableHeaders.userDisplayName',
+  value:    'name'
 };
 
 export const USER_ID = {
-  name:  'user-id',
-  label: 'ID',
-  value: 'id'
+  name:     'user-id',
+  labelKey: 'tableHeaders.userId',
+  value:    'id'
 };
 
 export const USER_STATUS = {
   name:      'user-state',
-  label:     'Status',
+  labelKey:  'tableHeaders.userStatus',
   value:     'stateDisplay',
   formatter: 'BadgeStateFormatter'
 };
 
 export const ADDRESS = {
-  name:  'address',
-  label: 'Address',
-  value: 'address',
-  sort:  ['address'],
+  name:     'address',
+  labelKey: 'tableHeaders.address',
+  value:    'address',
+  sort:     ['address'],
 };
 
 export const SIMPLE_TYPE = {
-  name:  'type',
-  label: 'Type',
-  value: 'type',
-  sort:  ['type'],
-  width: 175,
+  name:     'type',
+  labelKey: 'tableHeaders.simpleType',
+  value:    'type',
+  sort:     ['type'],
+  width:    175,
 };
 
 export const IMAGE_SIZE = {
   name:      'sizeBytes',
-  label:     'Size',
+  labelKey:  'tableHeaders.imageSize',
   value:     'sizeBytes',
   sort:      ['sizeBytes'],
   formatter: 'Si'
 };
 
 export const TYPE = {
-  name:  'type',
-  label: 'Type',
-  value: 'typeDisplay',
-  sort:  ['typeDisplay'],
-  width: 100,
+  name:     'type',
+  labelKey: 'tableHeaders.type',
+  value:    'typeDisplay',
+  sort:     ['typeDisplay'],
+  width:    100,
 };
 
 export const STATUS = {
-  name:  'status',
-  label: 'Status',
-  value: 'status',
-  sort:  ['status'],
-  width: 175
+  name:     'status',
+  labelKey: 'tableHeaders.status',
+  value:    'status',
+  sort:     ['status'],
+  width:    175
 };
 export const LAST_HEARTBEAT_TIME = {
   name:      'lastHeartbeatTime',
-  label:     'Last update',
+  labelKey:  'tableHeaders.lastHeartbeatTime',
   value:     'lastHeartbeatTime',
   sort:      ['lastHeartbeatTime'],
   formatter: 'LiveDate',
   width:     175
 };
 export const REASON = {
-  name:  'reason',
-  label: 'Reason',
-  value: 'reason',
-  sort:  ['reason']
+  name:     'reason',
+  labelKey: 'tableHeaders.reason',
+  value:    'reason',
+  sort:     ['reason']
 };
 export const MESSAGE = {
-  name:  'message',
-  label: 'Message',
-  value: 'message',
-  sort:  ['message']
+  name:     'message',
+  labelKey: 'tableHeaders.message',
+  value:    'message',
+  sort:     ['message']
 };
 export const KEY = {
-  name:  'key',
-  label: 'Key',
-  value: 'key',
-  sort:  ['key']
+  name:     'key',
+  labelKey: 'tableHeaders.key',
+  value:    'key',
+  sort:     ['key']
 };
 export const VALUE = {
   name:      'value',
-  label:     'Value',
+  labelKey:  'tableHeaders.value',
   value:     'value',
   sort:      ['value'],
 };
 
 export const BUILT_IN = {
   name:      'builtIn',
-  label:     'Built In',
+  labelKey:  'tableHeaders.builtIn',
   value:     'builtIn',
   sort:      ['builtIn'],
   align:     'center',
@@ -361,59 +361,59 @@ export const BUILT_IN = {
 
 export const CLUSTER_CREATOR_DEFAULT = {
   name:      'default',
-  label:     'Cluster Creator Default',
+  labelKey:  'tableHeaders.clusterCreatorDefault',
   value:     'default',
   sort:      ['Default'],
   align:     'center',
-  formatter:  'IconIsDefault'
+  formatter: 'IconIsDefault'
 };
 
 export const RBAC_HEADERS = [
   {
     name:      'create',
-    label:     'Create',
+    labelKey:  'tableHeaders.rbac.create',
     value:     'create',
     align:     'center',
     formatter: 'IconIsDefault',
   },
   {
     name:      'delete',
-    label:     'Delete',
+    labelKey:  'tableHeaders.rbac.delete',
     value:     'delete',
     align:     'center',
     formatter: 'IconIsDefault',
   },
   {
     name:      'get',
-    label:     'Get',
+    labelKey:  'tableHeaders.rbac.get',
     value:     'get',
     align:     'center',
     formatter: 'IconIsDefault',
   },
   {
     name:      'list',
-    label:     'List',
+    labelKey:  'tableHeaders.rbac.list',
     value:     'list',
     align:     'center',
     formatter: 'IconIsDefault',
   },
   {
     name:      'patch',
-    label:     'Patch',
+    labelKey:  'tableHeaders.rbac.patch',
     value:     'patch',
     align:     'center',
     formatter: 'IconIsDefault',
   },
   {
     name:      'update',
-    label:     'Update',
+    labelKey:  'tableHeaders.rbac.update',
     value:     'update',
     align:     'center',
     formatter: 'IconIsDefault',
   },
   {
     name:      'watch',
-    label:     'Watch',
+    labelKey:  'tableHeaders.rbac.watch',
     value:     'watch',
     align:     'center',
     formatter: 'IconIsDefault',
@@ -421,22 +421,22 @@ export const RBAC_HEADERS = [
 ];
 
 export const RESOURCE = {
-  name:  'resource',
-  label: 'Resource',
-  value: 'resource',
-  sort:  ['resourceNames']
+  name:     'resource',
+  labelKey: 'tableHeaders.resource',
+  value:    'resource',
+  sort:     ['resourceNames']
 };
 
 export const API_GROUP = {
-  name:  'apigroups',
-  label: 'API Groups',
-  value: 'apiGroups',
-  sort:  ['apiGroups']
+  name:     'apigroups',
+  labelKey: 'tableHeaders.apiGroup',
+  value:    'apiGroups',
+  sort:     ['apiGroups']
 };
 
 export const INGRESS_TARGET = {
   name:      'ingressTarget',
-  label:     'Target',
+  labelKey:  'tableHeaders.ingressTarget',
   value:     "$['spec']",
   formatter: 'IngressTarget',
   sort:      "$['spec']['rules'][0].host",

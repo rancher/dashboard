@@ -98,6 +98,12 @@ export default {
       });
 
       return query;
+    },
+
+    label(col) {
+      return col.labelKey
+        ? this.t(col.labelKey, undefined, true)
+        : col.label;
     }
   }
 };
@@ -124,14 +130,14 @@ export default {
         @click.prevent="changeSort($event, col)"
       >
         <nuxt-link v-if="col.sort" :to="{query: queryFor(col)}">
-          {{ col.label }}
+          {{ label(col) }}
           <span class="icon-stack">
             <i class="icon icon-sort icon-stack-1x faded" />
             <i v-if="isCurrent(col) && !descending" class="icon icon-sort-down icon-stack-1x" />
             <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
           </span>
         </nuxt-link>
-        <span v-else>{{ col.label }}</span>
+        <span v-else>{{ label(col) }}</span>
       </th>
       <th v-if="rowActions" :width="rowActionsWidth">
       </th>
