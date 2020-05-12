@@ -84,7 +84,7 @@ export default function(store) {
   mapGroup(/^(.*\.)?rio\.cattle\.io$/, 'Rio');
   mapGroup(/^(.*\.)?longhorn\.rancher\.io$/, 'Longhorn');
   mapGroup(/^(.*\.)?fleet\.cattle\.io$/, 'Fleet');
-  mapGroup(/^(.*\.)?k3s\.cattle\.io$/, 'k3s');
+  mapGroup(/^(.*\.)?(helm|upgrade|k3s)\.cattle\.io$/, 'k3s');
   mapGroup(/^(project|management)\.cattle\.io$/, 'Rancher');
   mapGroup(/^(.*\.)?istio\.io$/, 'Istio');
   mapGroup(/^(.*\.)?knative\.io$/, 'Knative');

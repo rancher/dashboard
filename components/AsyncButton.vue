@@ -46,6 +46,12 @@ const LABEL = {
     waiting: 'Enabling&hellip;',
     success: 'Enabled',
     error:   'Error',
+  },
+  download: {
+    action:  'Download',
+    waiting: 'Downloading&hellip;',
+    success: 'Saving',
+    error:   'Error',
   }
 };
 

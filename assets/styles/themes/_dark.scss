@@ -98,17 +98,32 @@
   --sortable-table-top-divider : var(--border);
   --sortable-table-selected-bg : #{$selected};
 
+  --popover-bg                 : var(--body-bg);
+  --popover-border             : var(--border);
+  --popover-text               : var(--body-text);
   --tooltip-bg                 : #{$primary};
+  --tooltip-border             : var(--border);
   --tooltip-text               : var(--body-text);
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$darkest};
 
-  --wm-tabs-bg                 : #{$medium};
-  --wm-tab-bg                  : #{$darker};
+  --wm-tabs-bg                 : #{$darker};
+  --wm-tab-bg                  : #{$darkest};
   --wm-closer-hover-bg         : #{$medium};
   --wm-tab-active-bg           : #{$darker};
-  --wm-body-bg                 : #{$darker};
+  --wm-title-bg                : #{$darkest};
+  --wm-title-border            : #{$medium};
+  --wm-body-bg                 : #{$darkest};
   --wm-border                  : black;
+
+  --terminal-bg                : var(--wm-body-bg);
+  --terminal-cursor            : var(--warning);
+  --terminal-text              : var(--body-text);
+
+  --logs-bg                    : var(--wm-body-bg);
+  --logs-highlight             : var(--wm-body-bg);
+  --logs-highlight-bg          : var(--warning);
+  --logs-text                  : var(--body-text);
 }
 

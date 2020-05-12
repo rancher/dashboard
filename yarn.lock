@@ -4556,6 +4556,11 @@ ansi-to-html@^0.6.11:
   dependencies:
     entities "^1.1.2"
 
+ansi_up@^4.0.4:
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/ansi_up/-/ansi_up-4.0.4.tgz#5b8c35f0b02e4476f3f18cf89c3bf48d15d054f6"
+  integrity sha512-vRxC8q6QY918MbehO869biJW4tiunJdjOhi5fpY6NLOliBQlZhOkKgABJKJqH+JZfb/WfjvjN1chLWI6tODerw==
+
 anymatch@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/anymatch/-/anymatch-2.0.0.tgz#bcb24b4f37934d9aa7ac17b4adaf89e7c76ef2eb"
@@ -5929,10 +5934,10 @@ caniuse-api@^3.0.0:
     lodash.memoize "^4.1.2"
     lodash.uniq "^4.5.0"
 
-caniuse-lite@1.0.30001040, caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.30000999, caniuse-lite@^1.0.30001016, caniuse-lite@^1.0.30001017, caniuse-lite@^1.0.30001020, caniuse-lite@^1.0.30001035, caniuse-lite@^1.0.30001038, caniuse-lite@^1.0.30001043:
-  version "1.0.30001040"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001040.tgz#103fc8e6eb1d7397e95134cd0e996743353d58ea"
-  integrity sha512-Ep0tEPeI5wCvmJNrXjE3etgfI+lkl1fTDU6Y3ZH1mhrjkPlVI9W4pcKbMo+BQLpEWKVYYp2EmYaRsqpPC3k7lQ==
+caniuse-lite@1.0.30001053, caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.30000999, caniuse-lite@^1.0.30001016, caniuse-lite@^1.0.30001017, caniuse-lite@^1.0.30001020, caniuse-lite@^1.0.30001035, caniuse-lite@^1.0.30001038, caniuse-lite@^1.0.30001043:
+  version "1.0.30001053"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001053.tgz#b7ae027567ce2665b965b0437e4512b296ccd20d"
+  integrity sha512-HtV4wwIZl6GA4Oznse8aR274XUOYGZnQLcf/P8vHgmlfqSNelwD+id8CyHOceqLqt9yfKmo7DUZTh1EuS9pukg==
 
 capture-exit@^2.0.0:
   version "2.0.0"
@@ -18306,10 +18311,25 @@ xterm-addon-fit@^0.3.0:
   resolved "https://registry.yarnpkg.com/xterm-addon-fit/-/xterm-addon-fit-0.3.0.tgz#341710741027de9d648a9f84415a01ddfdbbe715"
   integrity sha512-kvkiqHVrnMXgyCH9Xn0BOBJ7XaWC/4BgpSWQy3SueqximgW630t/QOankgqkvk11iTOCwWdAY9DTyQBXUMN3lw==
 
-xterm@^4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/xterm/-/xterm-4.3.0.tgz#9a302efefe75172d4f7ea3afc20f9bd983f05027"
-  integrity sha512-6dnrC4nxgnRKQzIWwC5HA0mnT9/rpDPZflUIr24gdcdSMTKM1QQcor4qQ/xz4Zerz6AIL/CuuBPypFfzsB63dQ==
+xterm-addon-search@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/xterm-addon-search/-/xterm-addon-search-0.6.0.tgz#542cc2c35e83e7332ce1982b65ad218ee769836c"
+  integrity sha512-k3EsZzUptCXygHFP5rQuCBdWWkI/ZNuX3pDSOVdxPV9jB7U5Aha9guTIZoMP7FIjL8jce+ClQs6q7VINcRV1+w==
+
+xterm-addon-web-links@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/xterm-addon-web-links/-/xterm-addon-web-links-0.3.0.tgz#88affe9235c928b41bab660a65330f46d91c940e"
+  integrity sha512-vGXiIDqNMyxK5S1IzOjDqcgeQrrv7TDcSHiOeCNAoWCI2f+Rap9d18gjgnMKPyR+AbG0KoKnaKA6Dc1du1vs5A==
+
+xterm-addon-webgl@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/xterm-addon-webgl/-/xterm-addon-webgl-0.6.0.tgz#1bc625dce0210ad461b8fa5618435e442984d89f"
+  integrity sha512-1RToOJSZOF3qyJJhF9/LDHf6DNOX4mIYtpMnMNghhLUC/rZg+H5qf73dlP2KDtr9ZkZTJvVlu4SVF8lDGrvT2w==
+
+xterm@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/xterm/-/xterm-4.5.0.tgz#c7fd145c6cf91c9f2ef07011a9b35026cf4bfecc"
+  integrity sha512-4t12tsvtYnv13FBJwewddxdI/j4kSonmbQQv50j34R/rPIFbUNGtptbprmuUlTDAKvHLMDZ/Np2XcpNimga/HQ==
 
 xxhashjs@^0.2.1:
   version "0.2.2"

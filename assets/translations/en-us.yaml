@@ -3,6 +3,7 @@ locale:
   en-us: English
 
 generic:
+  close: Close
   comingSoon: Coming Soon
   created: Created
   customize: Customize
@@ -190,3 +191,29 @@ configmapPage:
   tabs:
     binaryData:
       label: Binary Data
+
+wm:
+  connection:
+    connected: Connected
+    disconnected: Disconnected
+    error: Error
+  containerShell:
+    containerName: 'Container: {label}'
+    clear: Clear
+  containerLogs:
+    containerName: 'Container: {label}'
+    clear: Clear
+    download: Download
+    follow: Follow
+    range:
+      label: Show the last
+      lines: '{value} Lines'
+      minutes: '{value} Minutes'
+      hours: '{value} Hours'
+      all: 'Everything'
+    previous: Use Previous Container
+    wrap: Wrap Lines
+    timestamps: Show Timestamps
+    search: Filter
+    noMatch: No lines match the current filter.
+    noData: There are no log entries to show in the current range.

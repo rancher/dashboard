@@ -5,9 +5,19 @@ import { escapeHtml } from '@/utils/string';
 
 export default {
   props: {
+    tagName: {
+      type:    String,
+      default: 'span',
+    },
+
     value: {
       type:     String,
       default: ''
+    },
+
+    multiline: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -36,7 +46,7 @@ export default {
 </script>
 
 <template>
-  <span>
-    {{ date }}<br />{{ time }}
-  </span>
+  <component :is="tagName">
+    {{ date }}<br v-if="multiline" /><span v-else>&nbsp;</span>{{ time }}
+  </component>
 </template>
