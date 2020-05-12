@@ -9,10 +9,21 @@ export const state = function() {
   };
 };
 
+export const getters = {
+  byId: state => (id) => {
+    return state.tabs.find(x => x.id === id);
+  }
+};
+
 export const mutations = {
   addTab(state, tab) {
-    addObject(state.tabs, tab);
-    state.active = tab;
+    const existing = state.tabs.find(x => x.id === tab.id);
+
+    if ( !existing ) {
+      addObject(state.tabs, tab);
+    }
+
+    state.active = tab.id;
     state.open = true;
   },
 
@@ -24,8 +35,8 @@ export const mutations = {
     state.open = open;
   },
 
-  setActive(state, tab) {
-    state.active = tab;
+  setActive(state, id) {
+    state.active = id;
   },
 
   setUserHeight(state, height) {
@@ -34,8 +45,13 @@ export const mutations = {
 };
 
 export const actions = {
-  close({ state, commit }, tab) {
-    // @TODO close/disconnect things hook...
+  close({ state, getters, commit }, id) {
+    const tab = getters.byId(id);
+
+    if ( !tab ) {
+      return;
+    }
+
     let idx = state.tabs.indexOf(tab);
 
     commit('removeTab', tab);
@@ -44,13 +60,26 @@ export const actions = {
     }
 
     if ( idx >= 0 ) {
-      commit('setActive', state.tabs[idx]);
+      commit('setActive', state.tabs[idx].id);
     } else {
       commit('setOpen', false);
     }
   },
 
+  // {
+  //   id:  shell-<pod id> -- A string that is be unique for this instance;
+  //                           if a window with this key exists it will be focused instead of creating another
+  //   label: Shown on the tab
+  //   icon:  Shown on the tab
+  //   component: 'ContainerShell',
+  //   attrs: { whateverTheComponent: wants }
+  //   onClose: () => { // something to do after the tab is closed }
+  // }
   open({ commit }, tab) {
+    if ( !tab.id ) {
+      throw new Error('Window must have an id property');
+    }
+
     commit('addTab', tab);
   }
 };

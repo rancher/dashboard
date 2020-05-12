@@ -29,8 +29,8 @@ export const mapPref = function(name) {
       return this.$store.getters['prefs/get'](name);
     },
 
-    set(val) {
-      this.$store.dispatch('prefs/set', { key: name, val });
+    set(value) {
+      this.$store.dispatch('prefs/set', { key: name, value });
     }
   };
 };
@@ -43,8 +43,8 @@ const asCookie = true; // Store as a cookie so that it's available before auth +
 export const CLUSTER = create('cluster', '');
 export const LAST_NAMESPACE = create('last-namespace', '');
 export const NAMESPACE_FILTERS = create('ns', [], { parseJSON });
-export const EXPANDED_GROUPS = create('open-groups', ['cluster'], { parseJSON });
-export const FAVORITE_TYPES = create('fav-type', ['secret', 'configmap', 'service', 'persistentvolume'], { parseJSON });
+export const EXPANDED_GROUPS = create('open-groups', ['Cluster', 'Starred', 'In-Use'], { parseJSON });
+export const FAVORITE_TYPES = create('fav-type', ['secret', 'configmap', 'service', 'pod', 'persistentvolume'], { parseJSON });
 export const GROUP_RESOURCES = create('group-by', 'namespace');
 export const DIFF = create('diff', 'unified', { options: ['unified', 'split'] });
 export const THEME = create('theme', 'auto', {
@@ -58,6 +58,9 @@ export const PREFERS_SCHEME = create('pcs', '', { asCookie, asUserPreference: fa
 export const LOCALE = create('locale', 'en-us', { asCookie });
 export const KEYMAP = create('keymap', 'sublime', { options: ['sublime', 'emacs', 'vim'] });
 export const ROWS_PER_PAGE = create('per-page', 100, { options: [10, 25, 50, 100, 250, 500, 1000], parseJSON });
+export const LOGS_WRAP = create('logs-wrap', true, { parseJSON });
+export const LOGS_TIME = create('logs-time', true, { parseJSON });
+export const LOGS_RANGE = create('logs-range', '30 minutes', { parseJSON });
 
 export const DATE_FORMAT = create('date-format', 'ddd, MMM D YYYY', {
   options: [
@@ -163,8 +166,8 @@ export const getters = {
 };
 
 export const mutations = {
-  load(state, { key, val }) {
-    Vue.set(state.data, key, val);
+  load(state, { key, value }) {
+    Vue.set(state.data, key, value);
   },
 
   cookiesLoaded(state) {
@@ -174,36 +177,35 @@ export const mutations = {
 
 export const actions = {
   async set({ dispatch, commit }, opt) {
-    const { key, value } = opt;
-    let { val } = opt;
+    let { key, value } = opt; // eslint-disable-line prefer-const
     const definition = definitions[key];
     let server;
 
-    if ( value ) {
-      throw new Error('Use "val" instead of "value" for setting preference');
+    if ( opt.val ) {
+      throw new Error('Use value, not val');
     }
 
     if ( definition.asUserPreference ) {
       server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
     }
 
-    commit('load', { key, val });
+    commit('load', { key, value });
 
     if ( definition.asCookie ) {
       const opt = { ...cookieOptions, parseJSON: definition.parseJSON === true };
 
-      this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), val, opt);
+      this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), value, opt);
     }
 
     if ( definition.asUserPreference && server?.data ) {
       if ( definition.mangleWrite ) {
-        val = definition.mangleWrite(val);
+        value = definition.mangleWrite(value);
       }
 
       if ( definition.parseJSON ) {
-        Vue.set(server.data, key, JSON.stringify(val));
+        Vue.set(server.data, key, JSON.stringify(value));
       } else {
-        Vue.set(server.data, key, val);
+        Vue.set(server.data, key, value);
       }
 
       server.save();
@@ -223,10 +225,10 @@ export const actions = {
       }
 
       const opt = { parseJSON: definition.parseJSON === true };
-      const val = this.$cookies.get(`${ cookiePrefix }${ key }`.toUpperCase(), opt);
+      const value = this.$cookies.get(`${ cookiePrefix }${ key }`.toUpperCase(), opt);
 
-      if (val !== undefined) {
-        commit('load', { key, val });
+      if (value !== undefined) {
+        commit('load', { key, value });
       }
     }
 
@@ -274,9 +276,9 @@ export const actions = {
       });
     }
 
-    function changed(val) {
-      // console.log('Prefers Theme:', val);
-      dispatch('set', { key: PREFERS_SCHEME, val });
+    function changed(value) {
+      // console.log('Prefers Theme:', value);
+      dispatch('set', { key: PREFERS_SCHEME, value });
     }
 
     function fromClock() {
@@ -308,34 +310,34 @@ export const actions = {
 
     for (const key in definitions) {
       const definition = definitions[key];
-      let val = clone(server.data[key]);
+      let value = clone(server.data[key]);
 
-      if ( val === undefined || key === ignoreKey) {
+      if ( value === undefined || key === ignoreKey) {
         continue;
       }
 
       if ( definition.parseJSON ) {
         try {
-          val = JSON.parse(val);
+          value = JSON.parse(value);
         } catch (err) {
-          console.error('Error parsing server pref', key, val, err); // eslint-disable-line no-console
+          console.error('Error parsing server pref', key, value, err); // eslint-disable-line no-console
           continue;
         }
       }
 
       if ( definition.mangleRead ) {
-        val = definition.mangleRead(val);
+        value = definition.mangleRead(value);
       }
 
-      commit('load', { key, val });
+      commit('load', { key, value });
     }
 
     return server;
   },
 
   toggleTheme({ getters, dispatch }) {
-    const val = getters[THEME] === 'light' ? 'dark' : 'light';
+    const value = getters[THEME] === 'light' ? 'dark' : 'light';
 
-    return dispatch('set', { key: THEME, val });
+    return dispatch('set', { key: THEME, value });
   },
 };

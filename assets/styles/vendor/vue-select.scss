@@ -1,6 +1,12 @@
 .v-select {
   position: relative;
   font-family: inherit;
+
+  &.auto-width {
+    display: inline-block;
+    width: auto;
+    min-width: 2em;
+  }
 }
 
 
@@ -179,8 +185,7 @@ $transition-duration: 150ms;
     background-color: transparent;
     border-color: transparent;
   }
-  &.vs--open .vs__selected {
-  }
+
   &.vs--searching .vs__selected {
     display: none;
   }
@@ -255,6 +260,23 @@ $transition-duration: 150ms;
     display:none;
   }
 
+}
+
+.v-select.mini {
+  position: relative;
+  top: 2px;
+
+  .vs__dropdown-toggle {
+    padding: 5px 0;
+  }
+
+  .vs__selected {
+    margin: 0;
+  }
+
+  INPUT {
+    padding: 0;
+  }
 }
 
 .vs__selected-options INPUT {

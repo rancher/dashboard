@@ -120,9 +120,13 @@ $selected: rgba($primary, .5);
   --sortable-table-body-divider : #{$darker};
   --sortable-table-selected-bg : #{$light};
 
+  --popover-bg                 : var(--body-bg);
+  --popover-border             : var(--border);
+  --popover-text               : var(--body-text);
+  --popover-border-radius      : var(--border-radius);
   --tooltip-bg                 : #{$primary};
+  --tooltip-border             : var(--border);
   --tooltip-text               : var(--body-text);
-  --tooltip-border-radius      : 2px;
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$lighter};
@@ -147,7 +151,18 @@ $selected: rgba($primary, .5);
   --wm-tab-bg                  : #{$light};
   --wm-closer-hover-bg         : #{$lighter};
   --wm-tab-active-bg           : #{$lighter};
+  --wm-title-bg                : #{$lightest};
+  --wm-title-border            : #{$medium};
   --wm-body-bg                 : #{$lighter};
   --wm-border                  : var(--border);
   --wm-tab-height              : 25px;
+
+  --terminal-bg                : var(--body-bg);
+  --terminal-cursor            : var(--warning);
+  --terminal-text              : var(--body-text);
+
+  --logs-bg                    : var(--wm-body-bg);
+  --logs-highlight             : var(--wm-body-bg);
+  --logs-highlight-bg          : var(--warning);
+  --logs-text                  : var(--body-text);
 }

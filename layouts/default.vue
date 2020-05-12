@@ -5,8 +5,7 @@ import { addObjects } from '../utils/array';
 import { mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
-// import WindowManager from '@/components/nav/WindowManager';
-import ShellSocket from '@/components/ContainerExec/ShellSocket';
+import WindowManager from '@/components/nav/WindowManager';
 import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
@@ -23,8 +22,7 @@ export default {
     Footer,
     ActionMenu,
     Group,
-    ShellSocket,
-    // WindowManager
+    WindowManager
   },
 
   data() {
@@ -177,20 +175,17 @@ export default {
     <main v-if="clusterReady">
       <nuxt class="outlet" />
       <Footer />
+
+      <ActionMenu />
+      <PromptRemove />
+      <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
+      <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
+      <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger" />
     </main>
 
-    <!--
     <div class="wm">
       <WindowManager />
     </div>
-    -->
-
-    <ShellSocket />
-    <ActionMenu />
-    <PromptRemove />
-    <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
-    <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
-    <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger" />
   </div>
 </template>
 

@@ -555,7 +555,7 @@ export const getters = {
             hasName = true;
             out.push(namespaced ? NAMESPACE_NAME : NAME);
           } else {
-            let formatter, width;
+            let formatter, width, formatterOpts;
 
             if ( col.format === '' && col.name === 'Age' ) {
               out.push(AGE);
@@ -565,6 +565,7 @@ export const getters = {
             if ( col.format === 'date' || col.type === 'date' ) {
               formatter = 'Date';
               width = 120;
+              formatterOpts = { multiline: true };
             }
 
             out.push({
@@ -573,6 +574,7 @@ export const getters = {
               value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
               sort:  [col.field],
               formatter,
+              formatterOpts,
               width,
             });
           }
@@ -872,7 +874,7 @@ export const actions = {
 
     addObject(types, type);
 
-    dispatch('prefs/set', { key: FAVORITE_TYPES, val: types }, { root: true });
+    dispatch('prefs/set', { key: FAVORITE_TYPES, value: types }, { root: true });
   },
 
   removeFavorite({ dispatch, rootGetters }, type) {
@@ -881,7 +883,7 @@ export const actions = {
 
     removeObject(types, type);
 
-    dispatch('prefs/set', { key: FAVORITE_TYPES, val: types }, { root: true });
+    dispatch('prefs/set', { key: FAVORITE_TYPES, value: types }, { root: true });
   },
 
   toggleGroup({ dispatch, rootGetters }, { group, expanded }) {
@@ -893,7 +895,7 @@ export const actions = {
       removeObject(groups, group);
     }
 
-    dispatch('prefs/set', { key: EXPANDED_GROUPS, val: groups }, { root: true });
+    dispatch('prefs/set', { key: EXPANDED_GROUPS, value: groups }, { root: true });
   },
 };
 

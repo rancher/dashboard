@@ -31,7 +31,11 @@ export default {
         */
       }
 
-      return responseObject(res);
+      if ( opt.responseType ) {
+        return res;
+      } else {
+        return responseObject(res);
+      }
     }).catch((err) => {
       if ( !err || !err.response ) {
         return Promise.reject(err);

@@ -181,7 +181,7 @@ export default {
     realMode: {
       type:    String,
       default: null
-    }
+    },
   },
 
   data() {

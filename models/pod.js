@@ -33,15 +33,44 @@ export default {
     return out;
   },
 
+  defaultContainerName() {
+    const containers = this.spec.containers;
+    const desirable = containers.filter(c => c.name !== 'istio-proxy');
+
+    if ( desirable.length ) {
+      return desirable[0].name;
+    }
+
+    return containers[0]?.name;
+  },
+
   openShell() {
     return () => {
-      this.$dispatch('shell/defineSocket', { resource: this, action: 'openShell' }, { root: true });
+      this.$dispatch('wm/open', {
+        id:        `${ this.id }-shell`,
+        label:     this.nameDisplay,
+        icon:      'terminal',
+        component: 'ContainerShell',
+        attrs:     {
+          pod:       this,
+          container: this.defaultContainerName
+        }
+      }, { root: true });
     };
   },
 
   openLogs() {
     return () => {
-      this.$dispatch('shell/defineSocket', { resource: this, action: 'openLogs' }, { root: true });
+      this.$dispatch('wm/open', {
+        id:        `${ this.id }-logs`,
+        label:     this.nameDisplay,
+        icon:      'file',
+        component: 'ContainerLogs',
+        attrs:     {
+          pod:       this,
+          container: this.defaultContainerName
+        }
+      }, { root: true });
     };
   }
 };

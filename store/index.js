@@ -154,33 +154,22 @@ export const getters = {
     }
 
     out = rootGetters['prefs/get'](LAST_NAMESPACE);
-    console.log('1', out, isAll, all); // eslint-disable-line no-console
     if ( isOk() ) {
-      console.log('2', out); // eslint-disable-line no-console
-
       return out;
     }
 
     out = 'default';
-    console.log('3', out); // eslint-disable-line no-console
     if ( isOk() ) {
-      console.log('4', out); // eslint-disable-line no-console
-
       return out;
     }
 
     if ( !isAll ) {
-      console.log('5', out); // eslint-disable-line no-console
       const keys = Object.keys(filteredMap);
 
       if ( keys.length ) {
-        console.log('6', keys[0]); // eslint-disable-line no-console
-
         return keys[0];
       }
     }
-
-    console.log('7', all[0]); // eslint-disable-line no-console
 
     return all[0] || 'default';
   }
@@ -284,7 +273,7 @@ export const actions = {
 
     if ( id ) {
       // Remember the new one
-      dispatch('prefs/set', { key: CLUSTER_PREF, val: id });
+      dispatch('prefs/set', { key: CLUSTER_PREF, value: id });
       commit('setCluster', id);
     } else if ( isRancher ) {
       // Switching to a global page with no cluster id, keep it the same.
@@ -373,9 +362,9 @@ export const actions = {
     console.log('Done loading cluster.'); // eslint-disable-line no-console
   },
 
-  switchNamespaces({ commit, dispatch }, val) {
-    dispatch('prefs/set', { key: NAMESPACE_FILTERS, val });
-    commit('updateNamespaces', { filters: val });
+  switchNamespaces({ commit, dispatch }, value) {
+    dispatch('prefs/set', { key: NAMESPACE_FILTERS, value });
+    commit('updateNamespaces', { filters: value });
   },
 
   async onLogout({ dispatch, commit }) {

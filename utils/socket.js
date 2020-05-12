@@ -28,6 +28,7 @@ export default class Socket extends EventTarget {
   metadata = {};
   hasBeenOpen = false;
   hasReconnected = false;
+  protocol = null;
 
   // "Private"
   socket = null;
@@ -40,7 +41,7 @@ export default class Socket extends EventTarget {
   disconnectedAt = 0;
   closingId = 0;
 
-  constructor(url, autoReconnect = true) {
+  constructor(url, autoReconnect = true, frameTimeout = null, protocol = null) {
     super();
 
     if ( !url.match(/wss?:\/\//) ) {
@@ -53,6 +54,11 @@ export default class Socket extends EventTarget {
 
     this.url = url;
     this.autoReconnect = autoReconnect;
+    this.protocol = protocol;
+
+    if ( frameTimeout !== null ) {
+      this.frameTimeout = frameTimeout;
+    }
   }
 
   connect(metadata = {}) {
@@ -64,12 +70,18 @@ export default class Socket extends EventTarget {
 
     Object.assign(this.metadata, metadata);
 
-    const url = this.url;
     const id = sockId++;
+    const url = addParam(this.url, 'sockId', id);
 
     console.log(`Socket connecting (id=${ id }, url=${ `${ url.replace(/\?.*/, '') }...` })`); // eslint-disable-line no-console
 
-    const socket = new WebSocket(addParam(url, 'sockId', id));
+    let socket;
+
+    if ( this.protocol ) {
+      socket = new WebSocket(url, this.protocol);
+    } else {
+      socket = new WebSocket(url);
+    }
 
     socket.sockId = id;
     socket.metadata = this.metadata;
@@ -93,8 +105,29 @@ export default class Socket extends EventTarget {
       this.disconnectCbs.push(cb);
     }
 
+    const self = this;
+    const promise = new Promise((resolve, reject) => {
+      if ( this.state === STATE_DISCONNECTED ) {
+        resolve();
+      }
+
+      function onError(e) {
+        reject(e);
+        self.removeEventListener(EVENT_CONNECT_ERROR, onError);
+      }
+
+      this.addEventListener(EVENT_CONNECT_ERROR, onError);
+
+      this.disconnectCbs.push(() => {
+        this.removeEventListener(EVENT_CONNECT_ERROR, onError);
+        resolve();
+      });
+    });
+
     this.autoReconnect = false;
     this._close();
+
+    return promise;
   }
 
   reconnect(metadata = {}) {
