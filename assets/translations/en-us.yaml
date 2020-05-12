@@ -251,6 +251,67 @@ wm:
     noMatch: No lines match the current filter.
     noData: There are no log entries to show in the current range.
 
+tableHeaders:
+  state: State
+  download: Download
+  internalExternalIp: "Internal/External IP"
+  name: Name
+  simpleName: Name
+  effect: Effect
+  nameUnlinked: Name
+  namespaceNameUnlinked: Name
+  namespaceName: Name
+  node: Node
+  nodeName: Name
+  roles: Roles
+  version: Version
+  cpu: CPU
+  ram: RAM
+  pods: Pods
+  age: Age
+  image: Image
+  rioImage: Image
+  podImages: Image
+  endpoints: Endpoint
+  scale: Scale
+  simpleScale: Scale
+  weight: Weight
+  success: Success
+  reqRate: Req Rate
+  p95: 95%tile
+  keys: Data
+  targetKind: Target Type
+  target: Target
+  matches: Matches
+  destination: Target
+  username: Username
+  userDisplayName: Display Name
+  userId: ID
+  userStatus: Status
+  address: Address
+  simpleType: Type
+  imageSize: Size
+  type: Type
+  status: Status
+  lastHeartbeatTime: Last update
+  reason: Reason
+  message: Message
+  key: Key
+  value: Value
+  builtIn: Built In
+  clusterCreatorDefault: Cluster Creator Default
+  resource: Resource
+  apiGroup: API Groups
+  ingressTarget: Target
+  rbac:
+    create: Create
+    delete: Delete
+    get: Get
+    list: List
+    patch: Patch
+    update: Update
+    watch: Watch
+
 node:
   detail:
     detailTop:
@@ -277,4 +338,3 @@ node:
 
 internalExternalIP:
   none: None
-
