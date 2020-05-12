@@ -147,19 +147,19 @@ export default {
     detailTopColumns() {
       return [
         {
-          title:   'IP Address',
+          title:   this.t('node.detail.detailTop.ipAddress'),
           name:    'ip-address'
         },
         {
-          title:   'Version',
+          title:   this.t('node.detail.detailTop.version'),
           content:  this.value.version
         },
         {
-          title:   'OS',
+          title:   this.t('node.detail.detailTop.os'),
           content:  this.value.status.nodeInfo.osImage
         },
         {
-          title:   'Container Runtime',
+          title:   this.t('node.detail.detailTop.containerRuntime'),
           name:    'container-runtime'
         },
       ];
@@ -221,20 +221,20 @@ export default {
     </DetailTop>
     <HStack class="glance" :show-dividers="true">
       <VStack class="alerts" :show-dividers="true" vertical-align="space-evenly">
-        <Alert :status="pidPressureStatus" message="PID Pressure" />
-        <Alert :status="diskPressureStatus" message="Disk Pressure" />
-        <Alert :status="memoryPressureStatus" message="Memory Pressure" />
-        <Alert :status="kubeletStatus" message="Kubelet" />
+        <Alert :status="pidPressureStatus" :message="t('node.detail.glance.pidPressure')" />
+        <Alert :status="diskPressureStatus" :message="t('node.detail.glance.diskPressure')" />
+        <Alert :status="memoryPressureStatus" :message="t('node.detail.glance.memoryPressure')" />
+        <Alert :status="kubeletStatus" :message="t('node.detail.glance.kubelet')" />
       </VStack>
       <HStack class="cluster" horizontal-align="space-evenly">
-        <ConsumptionGauge resource-name="CPU" :capacity="value.cpuCapacity" :used="value.cpuUsage" />
-        <ConsumptionGauge resource-name="MEMORY" :capacity="value.ramCapacity" :used="value.ramUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
-        <ConsumptionGauge resource-name="PODS" :capacity="value.podCapacity" :used="value.podConsumed" />
+        <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.cpu')" :capacity="value.cpuCapacity" :used="value.cpuUsage" />
+        <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.memory')" :capacity="value.ramCapacity" :used="value.ramUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
+        <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.pods')" :capacity="value.podCapacity" :used="value.podConsumed" />
       </HStack>
     </HStack>
     <ResourceTabs v-model="value" :mode="mode">
       <template v-slot:before>
-        <Tab name="conditions" label="Conditions">
+        <Tab name="conditions" :label="t('node.detail.tab.conditions')">
           <SortableTable
             key-field="_key"
             :headers="conditionsTableHeaders"
@@ -244,7 +244,7 @@ export default {
             :search="false"
           />
         </Tab>
-        <Tab name="info" label="Info">
+        <Tab name="info" :label="t('node.detail.tab.info')">
           <SortableTable
             key-field="_key"
             :headers="infoTableHeaders"
@@ -255,7 +255,7 @@ export default {
             :search="false"
           />
         </Tab>
-        <Tab name="address" label="Address">
+        <Tab name="address" :label="t('node.detail.tab.address')">
           <SortableTable
             key-field="_key"
             :headers="addressTableHeaders"
@@ -265,7 +265,7 @@ export default {
             :search="false"
           />
         </Tab>
-        <Tab name="images" label="Images">
+        <Tab name="images" :label="t('node.detail.tab.images')">
           <SortableTable
             key-field="_key"
             :headers="imageTableHeaders"
@@ -274,7 +274,7 @@ export default {
             :table-actions="false"
           />
         </Tab>
-        <Tab name="taints" label="Taints">
+        <Tab name="taints" :label="t('node.detail.tab.taints')">
           <SortableTable
             key-field="_key"
             :headers="taintTableHeaders"

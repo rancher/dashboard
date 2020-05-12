@@ -203,7 +203,7 @@ export default {
             :value="value.type"
             :options="templateOptions"
             :disabled="isTemplateSelectorDisabled"
-            label="Template"
+            :label="t('gatekeeperConstraint.template')"
             @input="updateType"
           />
         </template>
@@ -211,15 +211,15 @@ export default {
     </div>
     <br />
     <div v-if="isView">
-      <h2>Violations</h2>
+      <h2>{{ t('gatekeeperConstraint.violations.title') }}</h2>
       <GatekeeperViolationsTable :constraint="value" />
       <br />
     </div>
     <div>
       <h2 class="parameters">
-        Parameters
-        <a v-if="showParametersAsYaml && canShowForm" href="#" @click="toggleParametersEditor">Edit as Form</a>
-        <a v-else-if="canShowForm" href="#" @click="toggleParametersEditor">Edit as YAML</a>
+        {{ t('gatekeeperConstraint.parameters.title') }}
+        <a v-if="showParametersAsYaml && canShowForm" href="#" @click="toggleParametersEditor">{{ t('gatekeeperConstraint.parameters.editAsForm') }}</a>
+        <a v-else-if="canShowForm" href="#" @click="toggleParametersEditor">{{ t('gatekeeperConstraint.parameters.editAsYaml') }}</a>
       </h2>
       <YamlEditor
         v-if="showParametersAsYaml"
@@ -236,13 +236,13 @@ export default {
         :pad-left="false"
         :read-allowed="false"
         :as-map="true"
-        add-label="Add Parameter"
+        :add-label="t('gatekeeperConstraint.parameters.addParameter')"
         :protip="false"
       />
     </div>
     <br />
     <div>
-      <h2>Enforcement Action</h2>
+      <h2>{{ t('gatekeeperConstraint.enforcementAction.title') }}</h2>
       <RadioGroup
         v-model="value.spec.enforcementAction"
         class="enforcement-action"
@@ -255,43 +255,43 @@ export default {
     <br />
     <br />
     <div class="match">
-      <h2>Match</h2>
+      <h2>{{ t('gatekeeperConstraint.match.title') }}</h2>
 
       <ResourceTabs v-model="value" :mode="mode" default-tab="labels">
         <template #before>
-          <Tab name="namespaces" label="Namespaces">
+          <Tab name="namespaces" :label="t('gatekeeperConstraint.tab.namespaces.title')">
             <div class="row">
               <div class="col span-6">
-                <h4>Namespaces</h4>
+                <h4>{{ t('gatekeeperConstraint.tab.namespaces.sub.namespaces') }}</h4>
                 <NamespaceList v-model="value.spec.match.namespaces" :mode="mode" :namespace-filter="NAMESPACE_FILTERS.nonSystem" />
               </div>
               <div class="col span-6">
-                <h4>Excluded Namespaces</h4>
+                <h4>{{ t('gatekeeperConstraint.tab.namespaces.sub.excludedNamespaces') }}</h4>
                 <NamespaceList v-model="value.spec.match.excludedNamespaces" :mode="mode" />
               </div>
             </div>
           </Tab>
-          <Tab name="selectors" label="Selectors">
+          <Tab name="selectors" :label="t('gatekeeperConstraint.tab.selectors.title')">
             <div class="row">
               <div class="col span-6">
-                <h4>Label Selector</h4>
+                <h4>{{ t('gatekeeperConstraint.tab.selectors.sub.labelSelector.title') }}</h4>
                 <RuleSelector
                   v-model="value.spec.match.labelSelector.matchExpressions"
-                  add-label="Add Label"
+                  :add-label="t('gatekeeperConstraint.tab.selectors.sub.labelSelector.addLabel')"
                   :mode="mode"
                 />
               </div>
               <div class="col span-6">
-                <h4>Namespace Selector</h4>
+                <h4>{{ t('gatekeeperConstraint.tab.selectors.sub.namespaceSelector.title') }}</h4>
                 <RuleSelector
                   v-model="value.spec.match.namespaceSelector.matchExpressions"
-                  add-label="Add Namespace"
+                  :add-label="t('gatekeeperConstraint.tab.selectors.sub.namespaceSelector.addNamespace')"
                   :mode="mode"
                 />
               </div>
             </div>
           </Tab>
-          <Tab name="kinds" label="Kinds">
+          <Tab name="kinds" :label="t('gatekeeperConstraint.tab.kinds.title')">
             <MatchKinds v-model="value.spec.match.kinds" :mode="mode" />
           </Tab>
         </template>

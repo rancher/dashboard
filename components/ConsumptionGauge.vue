@@ -59,6 +59,13 @@ export default {
       }
 
       return (this.used * 100) / this.capacity;
+    },
+    amountTemplateValues() {
+      return {
+        used:  this.numberFormatter(this.used || 0),
+        total: this.numberFormatter(this.capacity || 0),
+        unit:  this.displayUnits
+      };
     }
   }
 };
@@ -79,7 +86,7 @@ export default {
     <VStack class="consumption" horizontal-align="center">
       <div>{{ resourceName }}</div>
       <div class="amount">
-        {{ numberFormatter(used || 0) }} of {{ numberFormatter(capacity || 0) }}{{ displayUnits }} used
+        {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
       </div>
     </VStack>
   </VStack>
