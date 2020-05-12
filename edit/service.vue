@@ -210,7 +210,6 @@ export default {
                 <KeyValue
                   key="selectors"
                   v-model="value.spec.selector"
-                  :title="t('servicesPage.selectors.label')"
                   :mode="mode"
                   :initial-empty-row="true"
                   :pad-left="false"
