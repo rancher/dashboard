@@ -126,6 +126,39 @@ gatekeeperConfig:
   yaml:
     buttonText: Customize
 
+gatekeeperConstraint:
+  template: Template
+  violations:
+    title: Violations
+  parameters:
+    title: Parameters
+    editAsForm: Edit as Form
+    editAsYaml: Edit as YAML
+    addParameter: Add Parameter
+  enforcementAction:
+    title: Enforcement Action
+  match:
+    title: Match
+  tab:
+    namespaces:
+      title: Namespaces
+      sub:
+        namespaces: Namespaces
+        excludedNamespaces: Excluded Namespaces
+    selectors:
+      title: Selectors
+      sub:
+        labelSelector: 
+          title: Label Selector
+          addLabel: Add Label
+        namespaceSelector: 
+          title: Namespace Selector
+          addNamespace: Add Namespace
+    kinds:
+      title: Kinds
+
+
+
 infoBoxCluster:
   cpu: CPU Usage
   created: Created
@@ -217,3 +250,31 @@ wm:
     search: Filter
     noMatch: No lines match the current filter.
     noData: There are no log entries to show in the current range.
+
+node:
+  detail:
+    detailTop:
+      ipAddress: IP Address
+      version: Version
+      os: OS
+      containerRuntime: Container Runtime
+    glance:
+      pidPressure: PID Pressure
+      diskPressure: Disk Pressure
+      memoryPressure: Memory Pressure
+      kubelet: kubelet
+      consumptionGauge:
+        cpu: CPU
+        memory: MEMORY
+        pods: PODS
+        amount: '{used} of {total} {unit} used'
+    tab:
+      conditions: Conditions
+      info: Info
+      address: Address
+      images: images
+      taints: Taints
+
+internalExternalIP:
+  none: None
+
