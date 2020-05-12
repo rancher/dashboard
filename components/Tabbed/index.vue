@@ -17,23 +17,36 @@ export default {
 
   watch: {
     tabs(tabs) {
-      const activeTab = tabs.filter(t => t.active);
+      const activeTab = tabs.find(t => t.active);
       const defaultTab = this.defaultTab;
+      const windowsHash = window.location.hash.slice(1);
+      const windowHashTabMatch = tabs.find(t => t.name === windowsHash && !t.active);
+      const firstTab = tabs.length > 0 ? tabs[0] : null;
 
       if (isEmpty(activeTab)) {
-        if (defaultTab) {
-          this.$nextTick(() => {
-            this.select(defaultTab);
-          });
+        if (defaultTab && !isEmpty(tabs.find(t => t.name === defaultTab))) {
+          this.select(defaultTab);
         } else {
-          const firstTab = tabs.length > 0 ? tabs[0] : null;
+          if (!isEmpty(windowHashTabMatch)) {
+            this.select(windowHashTabMatch.name);
+
+            return;
+          }
 
           if (firstTab) {
-            this.$nextTick(() => {
-              this.select(firstTab._props.name);
-            });
+            this.select(firstTab.name);
+
+            return;
           }
         }
+      }
+
+      if (activeTab.name === windowsHash) {
+        this.select(activeTab.name);
+      } else if (!isEmpty(windowHashTabMatch)) {
+        this.select(windowHashTabMatch.name);
+      } else {
+        this.select(firstTab.name);
       }
     },
   },
