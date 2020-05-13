@@ -452,10 +452,11 @@ export const SPEC_TYPE = {
 };
 
 export const TARGET_PORT = {
-  name:     'targetPort',
-  labelKey: 'tableHeaders.targetPort',
-  value:    `$['spec']['targetPort']`,
-  sort:     `$['spec']['targetPort']`,
+  formatter: 'ServiceTargets',
+  labelKey:  'tableHeaders.targetPort',
+  name:      'targetPort',
+  sort:      `$['spec']['targetPort']`,
+  value:     `$['spec']['targetPort']`,
 };
 
 export const SELECTOR = {
