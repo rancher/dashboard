@@ -3,6 +3,7 @@ import Window from './Window';
 import { allHash } from '@/utils/promise';
 import { addParams } from '@/utils/url';
 import { base64Decode, base64Encode } from '@/utils/crypto';
+import Select from '@/components/form/Select';
 
 import Socket, {
   EVENT_CONNECTED,
@@ -15,7 +16,7 @@ import Socket, {
 const DEFAULT_COMMAND = ['/bin/sh', '-c', 'TERM=xterm-256color; export TERM; [ -x /bin/bash ] && ([ -x /usr/bin/script ] && /usr/bin/script -q -c "/bin/bash" /dev/null || exec /bin/bash) || exec /bin/sh'];
 
 export default {
-  components: { Window },
+  components: { Window, Select },
 
   props:      {
     // The definition of the tab itself
@@ -230,7 +231,7 @@ export default {
 <template>
   <Window :active="active">
     <template #title>
-      <v-select
+      <Select
         v-model="container"
         :disabled="containerChoices.length <= 1"
         class="auto-width inline mini"
@@ -242,11 +243,11 @@ export default {
         <template #selected-option="option">
           <t v-if="option" k="wm.containerShell.containerName" :label="option.label" />
         </template>
-      </v-select>
+      </Select>
       <button class="btn btn-sm bg-primary" @click="clear">
         <t k="wm.containerShell.clear" />
       </button>
-      <div class="pull-right">
+      <div class="pull-right text-center ml-5" style="min-width: 80px">
         <t :class="{'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
       </div>
     </template>

@@ -46,11 +46,18 @@
   list-style: none;
   background: var(--dropdown-bg);
   box-shadow: 0px 8px 16px 0px var(--shadow);
+
   &::-webkit-scrollbar-thumb {
     background-color: var(--scrollbar-thumb-dropdown) !important;
     border-radius: 4px;
   }
 
+  &[data-popper-placement='top'] {
+    border-radius: 4px 4px 0 0;
+    border-top-style: solid;
+    border-bottom-style: none;
+    box-shadow: 0px -8px 16px 0px var(--shadow);
+  }
 }
 
 .vs__dropdown-option {
