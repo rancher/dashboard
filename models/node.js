@@ -1,7 +1,11 @@
+import Vue from 'vue';
 import { formatPercent } from '@/utils/string';
 import { NODE_ROLES } from '@/config/labels-annotations.js';
 import { METRIC } from '@/config/types';
 import { parseSi } from '@/utils/units';
+import { PRIVATE } from '@/plugins/steve/resource-proxy';
+
+const CORDONED_STATE = 'cordoned';
 
 export default {
   availableActions() {
@@ -175,21 +179,32 @@ export default {
 
   cordon() {
     return async() => {
-      const clone = await this.$dispatch('clone', { resource: this });
-
-      clone.spec.unschedulable = true;
-      await clone.save();
+      Vue.set(this.spec, 'unschedulable', true);
+      await this.save();
     };
   },
 
   uncordon() {
     return async() => {
-      const clone = await this.$dispatch('clone', { resource: this });
-
-      clone.spec.unschedulable = false;
-      await clone.save();
+      Vue.set(this.spec, 'unschedulable', false);
+      await this.save();
     };
   },
+
+  state() {
+    return !this[PRIVATE].isDetailPage && this.isCordoned
+      ? CORDONED_STATE
+      : this.metadata?.state?.name || 'unknown';
+  },
+
+  highlightBadge() {
+    return this.isCordoned
+      ? {
+        stateBackground: this.stateBackground,
+        stateDisplay:    this.stateDisplay
+      }
+      : false;
+  }
 };
 
 function calculatePercentage(allocatable, capacity) {
