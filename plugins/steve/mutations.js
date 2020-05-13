@@ -1,3 +1,4 @@
+import Vue from 'vue';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { proxyFor } from './resource-proxy';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
@@ -18,7 +19,7 @@ function registerType(state, type) {
       Object.defineProperty(cache.list, '__rehydrateAll', { value: `${ state.config.namespace }/${ type }`, enumerable: true });
     }
 
-    state.types[type] = cache;
+    Vue.set(state.types, type, cache);
   }
 
   return cache;

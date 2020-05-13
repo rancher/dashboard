@@ -1,16 +1,16 @@
 <script>
+import DefaultBackend from '@/shared/networking.k8s.io.ingress/DefaultBackend';
 import { SECRET, SERVICE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
-import DetailTop from '@/components/DetailTop';
 import SortableTable from '@/components/SortableTable';
-import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import ResourceTabs from '@/components/form/ResourceTabs';
 
 export default {
   components: {
-    DetailTop,
+    DefaultBackend,
+    ResourceTabs,
     SortableTable,
-    Tabbed,
     Tab,
   },
   mixins:     [CreateEditView],
@@ -24,46 +24,19 @@ export default {
   },
 
   computed: {
-
-    detailTopColumns() {
-      const firstRule = this.firstRule || {};
-      const firstPath = firstRule?.http?.paths?.[0] || {};
-
-      const columns = [
-        {
-          title:   'Hostname',
-          content: firstRule?.host
-        },
-        {
-          title:   'Path',
-          content: firstPath?.path
-        },
-        {
-          title:   'Target',
-          content: firstPath?.backend?.serviceName
-        },
-        {
-          title:   'Port',
-          content: firstPath?.backend?.servicePort
-        }
-
-      ];
-
-      return columns;
-    },
-
     ruleHeaders() {
       return [
         {
-          name:  'path',
-          label: 'Path',
-          value: 'path'
+          name:      'path',
+          label:     'Path',
+          formatter: 'Link',
+          value:     'pathLink'
         },
         {
           name:      'target',
           label:     'Target',
-          value:     'link',
-          formatter: 'Link'
+          formatter: 'Link',
+          value:     'targetLink',
         },
         {
           name:  'port',
@@ -107,6 +80,17 @@ export default {
       ];
     },
 
+    ruleRows() {
+      return this.value.spec.rules
+        .filter(rule => rule?.http?.paths)
+        .map((rule) => {
+          return {
+            ...rule,
+            http: { paths: this.withUrl(rule.host, rule.http.paths) }
+          };
+        });
+    },
+
     certRows() {
       return this.value?.spec?.tls.map((cert) => {
         if (cert.secretName) {
@@ -127,20 +111,10 @@ export default {
         return cert;
       });
     },
-
-    labelRows() {
-      const out = [];
-
-      for (const key in this.labels) {
-        out.push({ key, value: this.rows[key] });
-      }
-
-      return out;
-    }
   },
 
   methods: {
-    withUrl(paths = []) {
+    withUrl(host, paths = []) {
       const rows = paths.map((path) => {
         const serviceName = path?.backend?.serviceName;
 
@@ -148,8 +122,10 @@ export default {
         let name; let params;
 
         if (targetsWorkload) {
-          name = 'c-cluster-workloads-namespace-id';
-          params = { namespace: this.value?.metadata?.namespace, id: serviceName };
+          name = 'c-cluster-resource';
+          params = {
+            namespace: this.value?.metadata?.namespace, resource:  'workload', id:        serviceName
+          };
         } else {
           name = 'c-cluster-resource-namespace-id';
           params = {
@@ -159,9 +135,21 @@ export default {
           };
         }
 
-        const url = this.$router.resolve({ name, params }).href;
+        const targetUrl = this.$router.resolve({ name, params }).href;
+        const pathUrl = `https://${ host }${ path?.path }`;
 
-        path.link = { url, text: path?.backend?.serviceName };
+        path.targetLink = {
+          url:     targetUrl,
+          text:    path?.backend?.serviceName
+        };
+        path.pathLink = {
+          url:     pathUrl,
+          text:    path?.path,
+          options: {
+            rel:    'nofollow noopener noreferrer',
+            target: '_blank'
+          }
+        };
 
         return path;
       });
@@ -174,64 +162,47 @@ export default {
 
 <template>
   <div>
-    <DetailTop class="mb-20" :columns="detailTopColumns" />
     <div>
       <h3 class="mb-20">
         Rules
       </h3>
-      <div v-if="value.spec.rules">
-        <div v-for="(rule, i) in value.spec.rules" :key="i" class="rule mb-20">
-          <div class="label-col mb-40">
-            <span>Hostname</span>
-            <code>  {{ rule.host }}</code>
+      <div v-if="ruleRows">
+        <div v-for="(rule, i) in ruleRows" :key="i" class="rule mb-20">
+          <label>Hostname</label>
+          <div class="mb-20">
+            {{ rule.host }}
           </div>
           <SortableTable
-            :rows="ruleRows"
+            :rows="rule.http.paths"
             :headers="ruleHeaders"
-            key-field="path"
+            key-field="_key"
             :search="false"
             :table-actions="false"
             :row-actions="false"
           />
         </div>
       </div>
-      <div v-else class="rule">
-        <div class="mb-10">
-          Use as the default backend
-        </div>
-        <SortableTable
-          :rows="[value.spec.backend]"
-          :headers="backendHeaders"
-          key-field="service"
-          :search="false"
-          :table-actions="false"
-          :row-actions="false"
-        />
+      <div v-else>
+        No rules found
       </div>
+      <ResourceTabs v-model="value" :mode="mode">
+        <template #before>
+          <Tab label="Certificates" name="certificates">
+            <SortableTable
+              :rows="certRows"
+              :headers="certHeaders"
+              key-field="_key"
+              :search="false"
+              :table-actions="false"
+              :row-actions="false"
+            />
+          </Tab>
+          <Tab label="Default Backend" name="default-backend">
+            <DefaultBackend v-model="value.spec.backend" :targets="[]" :mode="mode" />
+          </Tab>
+        </template>
+      </ResourceTabs>
     </div>
-    <Tabbed default-tab="labels">
-      <Tab name="labels" label="Labels">
-        <SortableTable
-          class="kv-table"
-          :headers="headers"
-          :rows="labelRows"
-          :search="false"
-          :row-actions="false"
-          :table-actions="false"
-          key-field="key"
-        />
-      </Tab>
-      <Tab name="certificates" label="Certificates">
-        <SortableTable
-          :rows="certRows"
-          :headers="certHeaders"
-          key-field="secretName"
-          :search="false"
-          :table-actions="false"
-          :row-actions="false"
-        />
-      </Tab>
-    </Tabbed>
   </div>
 </template>
 
@@ -241,6 +212,10 @@ export default {
     border: 1px solid var(--tabbed-border);
     border-radius: var(--border-radius);
     padding: 20px;
+
+    label {
+      color: var(--input-placeholder);
+    }
   }
 
   .label-col {
