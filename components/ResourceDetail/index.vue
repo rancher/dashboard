@@ -110,7 +110,7 @@ export async function defaultAsyncData(ctx, resource) {
 
     const originalYaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
 
-    yaml = model.cleanyaml(originalYaml, realMode);
+    yaml = model.cleanYaml(originalYaml, realMode);
   }
 
   let mode = realMode;

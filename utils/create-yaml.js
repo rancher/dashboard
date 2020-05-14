@@ -152,7 +152,6 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
   function stringifyField(key) {
     const field = schema.resourceFields[key];
     const type = typeMunge(field.type);
-
     const mapOf = typeRef('map', type);
     const arrayOf = typeRef('array', type);
     const referenceTo = typeRef('reference', type);

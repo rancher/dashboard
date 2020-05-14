@@ -809,7 +809,7 @@ export default {
 
   // convert yaml to object, clean for new if creating/cloning
   // map _type to type
-  cleanyaml() {
+  cleanYaml() {
     return (yaml, mode = 'edit') => {
       try {
         const obj = jsyaml.safeLoad(yaml);

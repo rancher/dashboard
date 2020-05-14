@@ -107,5 +107,5 @@ export default {
     }
 
     return null;
-  }
+  },
 };
