@@ -22,12 +22,12 @@ export default {
       required: true,
     },
 
-    model: {
+    value: {
       type:     Object,
       required: true,
     },
 
-    value: {
+    yaml: {
       type:     String,
       required: true,
     },
@@ -58,7 +58,7 @@ export default {
     this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
 
     return {
-      currentValue: this.value,
+      currentYaml: this.yaml,
       showPreview:  false,
       errors:       null
     };
@@ -66,7 +66,7 @@ export default {
 
   computed: {
     schema() {
-      return this.$store.getters['cluster/schemaFor'](this.model.type);
+      return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
 
     cmOptions() {
@@ -104,8 +104,8 @@ export default {
   },
 
   methods: {
-    onInput(value) {
-      this.currentValue = value;
+    onInput(yaml) {
+      this.currentYaml = yaml;
     },
 
     onReady(cm) {
@@ -183,29 +183,35 @@ export default {
     },
 
     async save(buttonDone) {
+      const yaml = this.value.yamlForSave(this.currentYaml) || this.currentYaml;
+      let res;
+
       try {
         if ( this.isCreate ) {
-          await this.schema.followLink('collection', {
+          res = await this.schema.followLink('collection', {
             method:  'POST',
             headers: {
               'content-type': 'application/yaml',
               accept:         'application/json',
             },
-            data: this.currentValue,
+            data: yaml
           });
         } else {
-          const link = this.model.hasLink('rioupdate') ? 'rioupdate' : 'update';
+          const link = this.value.hasLink('rioupdate') ? 'rioupdate' : 'update';
 
-          await this.model.followLink(link, {
+          res = await this.value.followLink(link, {
             method:  'PUT',
             headers: {
               'content-type': 'application/yaml',
               accept:         'application/json',
             },
-            data: this.currentValue,
+            data: yaml
           });
         }
 
+        if (res) {
+          await this.$store.dispatch('cluster/load', { data: res, existing: this.value });
+        }
         buttonDone(true);
         this.done();
       } catch (err) {
@@ -220,23 +226,19 @@ export default {
         } else {
           this.errors = [err];
         }
-
         buttonDone(false);
       }
     },
-
     done() {
       if (this.doneOverride) {
         return this.doneOverride();
       }
-
       if ( !this.doneRoute ) {
         return;
       }
-
       this.$router.replace({
         name:   this.doneRoute,
-        params: { resource: this.model.type }
+        params: { resource: this.value.type }
       });
     }
   }
@@ -247,7 +249,7 @@ export default {
   <div class="root resource-yaml">
     <YamlEditor
       ref="yamleditor"
-      v-model="currentValue"
+      v-model="currentYaml"
       class="yaml-editor"
       :editor-mode="editorMode"
       @onInput="onInput"
@@ -259,7 +261,7 @@ export default {
         <button v-if="showPreview" type="button" class="btn role-secondary" @click="unpreview">
           Continue Editing
         </button>
-        <button v-else-if="offerPreview" :disabled="value === currentValue" type="button" class="btn role-secondary" @click="preview">
+        <button v-else-if="offerPreview" :disabled="yaml === currentYaml" type="button" class="btn role-secondary" @click="preview">
           Show Diff
         </button>
       </template>

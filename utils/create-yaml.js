@@ -46,6 +46,7 @@ const NEVER_ADD = [
   'metadata.resourceVersion',
   'metadata.selfLink',
   'metadata.uid',
+  'stringData'
 ];
 
 const INDENT = 2;
@@ -96,7 +97,7 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
   const commentFields = Object.keys(schema.resourceFields || {});
 
   commentFields.forEach((key) => {
-    if ( typeof data[key] !== 'undefined' ) {
+    if ( typeof data[key] !== 'undefined' || key === '_type' ) {
       addObject(regularFields, key);
     }
   });
@@ -151,12 +152,16 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
   function stringifyField(key) {
     const field = schema.resourceFields[key];
     const type = typeMunge(field.type);
-
     const mapOf = typeRef('map', type);
     const arrayOf = typeRef('array', type);
     const referenceTo = typeRef('reference', type);
 
     let out = `${ key }:`;
+
+    // '_type' in steve maps to kubernetes 'type' field; show 'type' field in yaml
+    if (key === '_type') {
+      out = 'type:';
+    }
 
     if ( !field ) {
       // Not much to do here...

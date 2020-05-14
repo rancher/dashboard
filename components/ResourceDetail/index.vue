@@ -69,6 +69,7 @@ export async function defaultAsyncData(ctx, resource) {
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
   const asYamlInit = (route.query[AS_YAML] === _FLAGGED) || (realMode === _VIEW && !hasCustomDetail) || (realMode !== _VIEW && !hasCustomEdit);
   const schema = store.getters['cluster/schemaFor'](resource);
+  const schemas = store.getters['cluster/all'](SCHEMA);
 
   let originalModel, model, yaml;
 
@@ -76,8 +77,6 @@ export async function defaultAsyncData(ctx, resource) {
     if ( !namespace ) {
       namespace = store.getters['defaultNamespace'];
     }
-
-    const schemas = store.getters['cluster/all'](SCHEMA);
 
     const data = { type: resource };
 
@@ -109,7 +108,9 @@ export async function defaultAsyncData(ctx, resource) {
 
     const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
 
-    yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
+    const originalYaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
+
+    yaml = model.cleanYaml(originalYaml, realMode);
   }
 
   let mode = realMode;
@@ -274,9 +275,9 @@ export default {
       </div>
       <ResourceYaml
         ref="resourceyaml"
-        :model="model"
+        :value="model"
         :mode="mode"
-        :value="yaml"
+        :yaml="yaml"
         :offer-preview="offerPreview"
         :done-route="doneRoute"
       />
