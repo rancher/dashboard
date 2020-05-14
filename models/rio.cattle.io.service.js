@@ -5,7 +5,6 @@ import {
 } from '@/config/query-params';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
-import { addParams } from '@/utils/url';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import { RIO } from '@/config/types';
 import { formatSi } from '@/utils/units';
@@ -411,15 +410,16 @@ export default {
   },
 
   goToStage() {
-    const router = this.currentRouter();
-
     return (moreQuery = {}) => {
-      const url = addParams(this.detailUrl, {
+      const location = this.detailLocation;
+
+      location.query = {
+        ...location.query,
         [MODE]:  _STAGE,
         ...moreQuery
-      });
+      };
 
-      router.push({ path: url });
+      this.currentRouter().push(location);
     };
   },
 

@@ -1,5 +1,4 @@
 import { MODE, _CREATE } from '@/config/query-params';
-import { addParams } from '@/utils/url';
 import { GATEKEEPER_CONSTRAINT_TEMPLATE } from '@/config/types';
 import { downloadFile } from '@/utils/download';
 
@@ -45,25 +44,30 @@ export default {
 
   goToAddConstraint() {
     return (moreQuery = {}) => {
-      const constraintUrl = this.currentRouter().resolve({ name: 'c-cluster-gatekeeper-constraints-create' }).href;
-      const url = addParams(constraintUrl, {
-        [MODE]:   _CREATE,
-        ...moreQuery
-      });
+      const location = {
+        name:  'c-cluster-gatekeeper-constraints-create',
+        query: {
+          [MODE]:   _CREATE,
+          ...moreQuery
+        }
+      };
 
-      this.currentRouter().push({ path: url });
+      this.currentRouter().push(location);
     };
   },
 
   goToAddTemplate() {
     return (moreQuery = {}) => {
-      const constraintUrl = this.currentRouter().resolve({ name: 'c-cluster-resource-create', params: { resource: GATEKEEPER_CONSTRAINT_TEMPLATE } }).href;
-      const url = addParams(constraintUrl, {
-        [MODE]:   _CREATE,
-        ...moreQuery
-      });
+      const location = {
+        name:   'c-cluster-resource-create',
+        params: { resource: GATEKEEPER_CONSTRAINT_TEMPLATE },
+        query:  {
+          [MODE]:   _CREATE,
+          ...moreQuery
+        }
+      };
 
-      this.currentRouter().push({ path: url });
+      this.currentRouter().push(location);
     };
   },
 

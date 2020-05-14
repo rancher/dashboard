@@ -1,20 +1,6 @@
 import VueRouter from 'vue-router';
 import { isEqual } from 'lodash';
 
-const _resolve = VueRouter.prototype.resolve;
-
-// Resolve returns URLs that include the base URL, which then gets added again
-// by router.replace or router.push.  So don't do that.
-VueRouter.prototype.resolve = function() {
-  const out = _resolve.apply(this, arguments);
-
-  if ( this.options.base ) {
-    out.href = out.href.substr(this.options.base.length).replace(/^\/*/, '/');
-  }
-
-  return out;
-};
-
 VueRouter.prototype.applyQuery = function(qp, defaults = {}) {
   const query = queryParamsFor(this.currentRoute.query, qp, defaults);
 

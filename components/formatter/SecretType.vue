@@ -21,7 +21,7 @@ export default {
       const serviceAccount = await this.$store.dispatch('cluster/find', { type: SERVICE_ACCOUNT, id: this.value.serviceAccountID });
 
       if (serviceAccount) {
-        this.serviceAccountLink = serviceAccount.detailUrl;
+        this.serviceAccountLink = serviceAccount.detailLocation;
       }
     }
   }

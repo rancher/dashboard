@@ -9,7 +9,6 @@ import {
 } from '@/config/query-params';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
-import { addParams } from '@/utils/url';
 import { DESCRIPTION } from '@/config/labels-annotations';
 
 const REMAP_STATE = { disabled: 'inactive' };
@@ -662,76 +661,73 @@ export default {
     };
   },
 
-  detailUrl() {
-    const router = this.currentRouter();
+  detailLocation() {
     const schema = this.$getters['schemaFor'](this.type);
 
-    const route = `c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`;
-
-    const params = {
-      resource:  this.type,
-      namespace: this.metadata && this.metadata.namespace,
-      id:        this.metadata.name
-    };
-
-    const url = router.resolve({
-      name:   route,
-      params,
-    }).href;
-
-    return url;
-  },
-
-  goToClone() {
-    return (moreQuery = {}) => {
-      const url = addParams(this.detailUrl, {
-        [MODE]:  _CLONE,
-        ...moreQuery
-      });
-
-      this.currentRouter().push({ path: url });
+    return {
+      name:   `c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+      params: {
+        resource:  this.type,
+        namespace: this.metadata && this.metadata.namespace,
+        id:        this.metadata.name
+      }
     };
   },
 
   goToEdit() {
     return (moreQuery = {}) => {
-      const url = addParams(this.detailUrl, { [MODE]: _EDIT, ...moreQuery });
+      const location = this.detailLocation;
 
-      this.currentRouter().push({ path: url });
+      location.query = {
+        ...location.query,
+        [MODE]: _EDIT,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
     };
   },
 
   goToEditYaml() {
     return () => {
-      const url = addParams(this.detailUrl, {
+      const location = this.detailLocation;
+
+      location.query = {
+        ...location.query,
         [MODE]:      _EDIT,
         [AS_YAML]: _FLAGGED
-      });
+      };
 
-      this.currentRouter().push({ path: url });
+      this.currentRouter().push(location);
     };
   },
 
   goToViewYaml() {
     return () => {
-      const url = addParams(this.detailUrl, {
+      const location = this.detailLocation;
+
+      location.query = {
+        ...location.query,
         [MODE]:      _VIEW,
         [AS_YAML]: _FLAGGED
-      });
+      };
 
-      this.currentRouter().push({ path: url });
+      this.currentRouter().push(location);
     };
   },
 
   cloneYaml() {
     return (moreQuery = {}) => {
-      const url = addParams(this.detailUrl, {
+      const location = this.detailLocation;
+
+      location.query = {
+        ...location.query,
         [MODE]:      _CLONE,
         [AS_YAML]: _FLAGGED,
         ...moreQuery
-      });
+      };
 
-      this.currentRouter().push({ path: url });
+      this.currentRouter().push(location);
     };
   },
 
