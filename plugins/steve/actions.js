@@ -191,12 +191,20 @@ export default {
     }
     commit('load', {
       ctx,
-      type,
       data,
       existing
     });
 
     return getters['byId'](type, data.id || existing.id);
+  },
+
+  loadMulti(ctx, entries) {
+    const { commit } = ctx;
+
+    commit('loadMulti', {
+      entries,
+      ctx,
+    });
   },
 
   loadAll(ctx, { type, data }) {

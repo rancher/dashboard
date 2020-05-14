@@ -25,8 +25,53 @@ function registerType(state, type) {
   return cache;
 }
 
+function load(state, { data, ctx, existing }) {
+  let type = normalizeType(data.type);
+  const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
+
+  const id = data[keyField];
+
+  let cache = registerType(state, type);
+
+  let entry;
+
+  if ( existing ) {
+    // A specific proxy instance to used was passed in (for create -> save),
+    // use it instead of making a new proxy
+    entry = existing;
+    Object.assign(entry, data);
+    addObject(cache.list, entry);
+    cache.map.set(id, entry);
+    // console.log('### Mutation added from existing proxy', type, id);
+  } else {
+    entry = cache.map.get(id);
+
+    if ( entry ) {
+      // There's already an entry in the store, update it
+      Object.assign(entry, data);
+      // console.log('### Mutation Updated', type, id);
+    } else {
+      // There's no entry, make a new proxy
+      entry = proxyFor(ctx, data);
+      addObject(cache.list, entry);
+      cache.map.set(id, entry);
+      // console.log('### Mutation', type, id);
+    }
+  }
+
+  if ( data.baseType ) {
+    type = normalizeType(data.baseType);
+    cache = state.types[type];
+    if ( cache ) {
+      addObject(cache.list, entry);
+      cache.map.set(id, entry);
+    }
+  }
+}
+
 export default {
   registerType,
+  load,
 
   applyConfig(state, config) {
     if ( !state.config ) {
@@ -34,6 +79,13 @@ export default {
     }
 
     Object.assign(state.config, config);
+  },
+
+  loadMulti(state, { entries, ctx }) {
+    // console.log('### Mutation loadMulti', entries.length);
+    for ( const data of entries ) {
+      load(state, { data, ctx });
+    }
   },
 
   loadAll(state, { type, data, ctx }) {
@@ -55,42 +107,6 @@ export default {
     }
 
     cache.haveAll = true;
-  },
-
-  load(state, { data, ctx, existing }) {
-    let type = normalizeType(data.type);
-    const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
-
-    const id = data[keyField];
-
-    let cache = registerType(state, type);
-
-    let entry = cache.map.get(id);
-
-    if ( existing ) {
-      // A specific proxy instance to used was passed in (for create -> save),
-      // use it instead of making a new proxy
-      entry = existing;
-      Object.assign(entry, data);
-      cache.map.set(id, entry);
-    } else if ( entry ) {
-      // There's already an entry in the store, update it
-      Object.assign(entry, data);
-    } else {
-      // There's no entry, make a new proxy
-      entry = proxyFor(ctx, data);
-      addObject(cache.list, entry);
-      cache.map.set(id, entry);
-    }
-
-    if ( data.baseType ) {
-      type = normalizeType(data.baseType);
-      cache = state.types[type];
-      if ( cache ) {
-        addObject(cache.list, entry);
-        cache.map.set(id, entry);
-      }
-    }
   },
 
   remove(state, obj) {
