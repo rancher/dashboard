@@ -1,4 +1,5 @@
 import { KUBERNETES } from '@/config/labels-annotations';
+import { base64Decode } from '@/utils/crypto';
 
 export const OPAQUE = 'Opaque';
 export const SERVICE_ACCT = 'kubernetes.io/service-account-token';
@@ -23,6 +24,10 @@ const DISPLAY_TYPES = {
 };
 
 export default {
+  canUpdate() {
+    return this.hasLink('update') && this.$rootGetters['type-map/isEditable'](this.type) && this.secretType !== SERVICE_ACCT;
+  },
+
   keysDisplay() {
     const keys = [
       ...Object.keys(this.data || []),
@@ -38,6 +43,32 @@ export default {
     // }
 
     return keys.join(', ');
+  },
+
+  // decode some secret data to show in list view
+  dataPreview() {
+    if (this._type === DOCKER_JSON) {
+      const encodedJSON = this.data['.dockerconfigjson'];
+
+      if (encodedJSON) {
+        const decodedJSON = base64Decode(encodedJSON);
+
+        try {
+          const auths = JSON.parse(decodedJSON).auths;
+          const out = [];
+
+          for (const domain in auths) {
+            out.push(domain);
+          }
+
+          return out.join(', ');
+        } catch (e) {
+          return decodedJSON;
+        }
+      }
+    } else {
+      return this.keysDisplay;
+    }
   },
 
   secretType() {

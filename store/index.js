@@ -171,7 +171,7 @@ export const getters = {
       }
     }
 
-    return all[0] || 'default';
+    return all[0];
   }
 };
 

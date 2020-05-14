@@ -42,12 +42,12 @@ export default {
       { value: 'fieldRef', label: 'Field' },
       { value: 'secretRef', label: 'Secret' }];
 
-    let type = Object.keys((this.row.valueFrom || {}))[0];
+    let type = this.row.secretRef ? 'secretRef' : Object.keys((this.row.valueFrom))[0];
 
     let refName;
     let name;
     let fieldPath;
-    let referenced = {};
+    let referenced;
     let key;
 
     switch (type) {
@@ -63,33 +63,19 @@ export default {
       type = Object.keys(this.row.valueFrom)[0];
       key = this.row.valueFrom[type].key || '';
       refName = this.row.valueFrom[type].name;
-      if (!refName.includes('/')) {
-        refName = `${ this.namespace }/${ refName }`;
-      }
-
-      this.getReferenced(refName, CONFIG_MAP);
       break;
     case 'secretRef':
       name = this.row.prefix;
       type = 'secretRef';
       refName = this.row[type].name;
-      if (!refName.includes('/')) {
-        refName = `${ this.namespace }/${ refName }`;
-      }
-      this.getReferenced(refName, SECRET);
       break;
     case 'secretKeyRef':
       name = this.row.name;
       type = Object.keys(this.row.valueFrom)[0];
       key = this.row.valueFrom[type].key || '';
       refName = this.row.valueFrom[type].name;
-      if (!refName.includes('/')) {
-        refName = `${ this.namespace }/${ refName }`;
-      }
-      this.getReferenced(refName, SECRET);
       break;
     case 'fieldRef':
-      referenced = {};
       fieldPath = get(this.row.valueFrom, `${ type }.fieldPath`) || '';
       name = this.row.name;
       break;
@@ -98,7 +84,7 @@ export default {
     }
 
     return {
-      typeOpts, type, refName, referenced, secrets:    this.allSecrets, keys:       [], key, fieldPath, name
+      typeOpts, type, refName, referenced: refName, secrets:    this.allSecrets, keys:       [], key, fieldPath, name
     };
   },
   computed: {
@@ -122,31 +108,34 @@ export default {
         return [];
       }
     },
-    referencedID: {
-      get() {
-        return this.referenced.id;
-      },
-      set(neu) {
-        this.referenced = { id: neu };
-      }
-    }
   },
+
   watch: {
     type() {
-      this.referenced = {};
+      this.referenced = null;
     },
 
     referenced(neu, old) {
-      if (Object.keys(old).length) {
+      if (old) {
         this.key = '';
       }
       if (neu) {
         if (neu.type === SECRET || neu.type === CONFIG_MAP) {
           this.keys = Object.keys(neu.data);
         }
+        this.refName = neu?.metadata?.name;
       }
     },
   },
+
+  mounted() {
+    const typeSelect = this.$refs.typeSelect;
+
+    if (typeSelect && this.mode === 'create') {
+      typeSelect.open();
+    }
+  },
+
   methods: {
     async  getReferenced(name, type) {
       const resource = await this.$store.dispatch('cluster/find', { id: name, type });
@@ -155,7 +144,7 @@ export default {
     },
 
     updateRow() {
-      const out = { name: this.name };
+      const out = { name: this.name || this.refName };
       const old = { ...this.row };
 
       switch (this.type) {
@@ -163,7 +152,7 @@ export default {
       case 'secretKeyRef':
         out.valueFrom = {
           [this.type]: {
-            key:      this.key, name:     this.referencedID, optional: false
+            key:      this.key, name:     this.refName, optional: false
           }
         };
         break;
@@ -180,10 +169,11 @@ export default {
       default:
         delete out.name;
         out.prefix = this.name;
-        out[this.type] = { name: this.referencedID, optional: false };
+        out[this.type] = { name: this.refName, optional: false };
       }
       this.$emit('input', { value: out, old });
-    }
+    },
+
   }
 };
 </script>
@@ -210,6 +200,7 @@ export default {
           :multiple="false"
           label="Source"
           option-label="metadata.name"
+          option-key
           :mode="mode"
           @input="updateRow"
         />

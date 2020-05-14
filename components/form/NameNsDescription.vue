@@ -62,7 +62,6 @@ export default {
     if ( this.namespaced && !metadata.namespace ) {
       metadata.namespace = this.$store.getters['defaultNamespace'];
     }
-
     const description = metadata.annotations?.[DESCRIPTION];
 
     return {
@@ -159,7 +158,7 @@ export default {
             select-label="Namespace"
             :text-value="name"
             :text-required="true"
-            select-value="default"
+            :select-value="namespace"
             :mode="mode"
             :disabled="nameDisabled"
             @input="changeNameAndNamespace($event)"

@@ -1,5 +1,4 @@
 <script>
-import { get } from '../../utils/object';
 import LabeledInput from '@/components/form/LabeledInput';
 import ShellInput from '@/components/form/ShellInput';
 import UnitInput from '@/components/form/UnitInput';
@@ -92,15 +91,6 @@ export default {
 
     addFromReference() {
       this.referencedValues.push({ name: '', valueFrom: {} });
-
-      this.$nextTick(() => {
-        const newRow = this.$refs.referenced[this.referencedValues.length - 1];
-        const input = get(newRow, '$refs.typeSelect.$refs.input');
-
-        if (input) {
-          input.open = true;
-        }
-      });
     },
 
   },
