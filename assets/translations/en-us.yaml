@@ -80,7 +80,6 @@ containerResourceLimit:
   cpuPlaceholder: e.g. 1000
   memPlaceholder: e.g. 128
 
-
 footer:
   docs: Docs
   forums: Forums
@@ -103,7 +102,7 @@ servicesPage:
     placeholder: e.g. my.database.example.com
   selectors:
     label: Selectors
-    helpText:  If no selector is created, manual endpoints must be made.
+    helpText: If no selector is created, manual endpoints must be made.
   ips:
     label: IPs
     helpText: The IP address must be within the CIDR range configured for the API server.
@@ -196,8 +195,6 @@ gatekeeperConstraint:
           addNamespace: Add Namespace
     kinds:
       title: Kinds
-
-
 
 infoBoxCluster:
   cpu: CPU Usage
@@ -297,7 +294,7 @@ wm:
     follow: Follow
     range:
       label: Show the last
-      lines: '{value, number} Lines'
+      lines: "{value, number} Lines"
       minutes: |
         {value, number} {value, plural,
         =1 {Minute}
@@ -309,7 +306,7 @@ wm:
         =1 {Hour}
         other {Hours}
         }
-      all: 'Everything'
+      all: "Everything"
     previous: Use Previous Container
     wrap: Wrap Lines
     timestamps: Show Timestamps
@@ -358,6 +355,8 @@ tableHeaders:
   simpleType: Type
   imageSize: Size
   type: Type
+  targetPort: Target
+  selector: Selector
   status: Status
   lastHeartbeatTime: Last update
   reason: Reason
@@ -404,3 +403,10 @@ node:
 
 internalExternalIP:
   none: None
+
+serviceTypes:
+  clusterip: Cluster IP
+  externalname: External Name
+  headless: Headless
+  loadbalancer: Load Balancer
+  nodeport: Node Port

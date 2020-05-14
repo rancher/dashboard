@@ -441,3 +441,28 @@ export const INGRESS_TARGET = {
   formatter: 'IngressTarget',
   sort:      "$['spec']['rules'][0].host",
 };
+
+export const SPEC_TYPE = {
+  name:      'type',
+  labelKey:  'tableHeaders.type',
+  value:     `$['spec']['type']`,
+  sort:      `$['spec']['type']`,
+  formatter: 'ServiceType',
+  width:     100,
+};
+
+export const TARGET_PORT = {
+  formatter: 'ServiceTargets',
+  labelKey:  'tableHeaders.targetPort',
+  name:      'targetPort',
+  sort:      `$['spec']['targetPort']`,
+  value:     `$['spec']['targetPort']`,
+};
+
+export const SELECTOR = {
+  formatter: 'KeyValue',
+  name:      'selector',
+  labelKey:  'tableHeaders.selector',
+  value:     `$['spec']['selector']`,
+  sort:      `$['spec']['selector']`,
+};
