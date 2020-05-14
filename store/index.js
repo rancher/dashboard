@@ -171,8 +171,6 @@ export const getters = {
       }
     }
 
-    console.log('7', all[0]); // eslint-disable-line no-console
-
     return all[0];
   }
 };
