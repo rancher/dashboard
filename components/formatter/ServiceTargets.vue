@@ -25,26 +25,37 @@ export default {
         spec: {
           clusterIP = null,
           ports = [],
-          type: serviceType
+          type: serviceType,
+          externalName
         }
       } = row;
       const out = [];
       const parsedClusterIp = !isEmpty(clusterIP) ? `${ clusterIP }:` : '';
+      let label = '';
+      let link = '';
 
       // <CLUSTER_IP>:<PORT>/<PROTOCOL> > <TARGET PORT>
       if (isEmpty(ports)) {
         if (!isEmpty(parsedClusterIp)) {
-          out.push(parsedClusterIp);
+          label = parsedClusterIp;
+        } else if (serviceType === 'ExternalName' && !isEmpty(externalName)) {
+          label = externalName;
+          link = `<a href="${ label }" target="_blank" rel="noopener nofollow">${ label }</a>`;
         }
+
+        out.push({
+          label,
+          link,
+        });
       } else {
         ports.forEach(( p ) => {
           const clusterIpAndPort = `${ parsedClusterIp }${ p.port }`;
           const protocol = p?.protocol ? ` /${ p.protocol }` : '';
           const targetPort = p?.targetPort ? ` > ${ p.targetPort }` : '';
-          const label = `${ clusterIpAndPort }${ protocol }${ targetPort }`;
 
-          // TODO - Should this be a relative link (//) as to avoid opening secure when it may not be?
-          const link = serviceType === 'ClusterIP' && !isEmpty(clusterIP) ? `<a href="https://${ clusterIP }/${ p.port }" target="_blank" rel="noopener nofollow">${ clusterIpAndPort }</a>${ protocol }${ targetPort }` : null;
+          label = `${ clusterIpAndPort }${ protocol }${ targetPort }`;
+
+          link = serviceType === 'ClusterIP' && !isEmpty(clusterIP) ? `<a href="//${ clusterIP }/${ p.port }" target="_blank" rel="noopener nofollow">${ clusterIpAndPort }</a>${ protocol }${ targetPort }` : null;
 
           out.push({
             label,
