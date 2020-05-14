@@ -94,33 +94,43 @@ export default {
 
   computed: {
     detailTopColumns() {
-      return [
-        {
+      const out = [];
+
+      if ( this.haveNodeTemplates && this.haveNodePools ) {
+        out.push({
           title:   this.$store.getters['i18n/t']('infoBoxCluster.provider'),
           name:    'cluster-provider',
-        },
-        {
-          title:   this.$store.getters['i18n/t']('infoBoxCluster.version'),
-          content: this.cluster.kubernetesVersion
-        },
-        {
+        });
+      }
+
+      out.push({
+        title:   this.$store.getters['i18n/t']('infoBoxCluster.version'),
+        content: this.cluster.kubernetesVersion
+      });
+
+      if ( this.haveNodes ) {
+        out.push({
           title:   this.$store.getters['i18n/t']('infoBoxCluster.nodes.total.label'),
           content: ( this.nodes || [] ).length
-        },
-        {
-          title:   this.$store.getters['i18n/t']('infoBoxCluster.created'),
-          name:    'live-date',
-        },
-      ];
+        });
+      }
+
+      out.push({
+        title:   this.$store.getters['i18n/t']('infoBoxCluster.created'),
+        name:    'live-date',
+      });
+
+      return out;
     },
+
     filteredNodes() {
-      const allNodes = ( this.nodes || [] ).slice();
+      const allNodes = this.nodes || [];
 
       return allNodes.filter(node => !node.state.includes('healthy') && !node.state.includes('active'));
     },
 
     filteredConstraints() {
-      const allConstraints = ( this.constraints || [] ).slice();
+      const allConstraints = this.constraints || [];
 
       return allConstraints.filter(constraint => constraint?.status?.totalViolations > 0);
     },
@@ -163,6 +173,9 @@ export default {
       constraints:       [],
       events:            [],
       nodeMetrics:       [],
+      haveNodes:         !!store.getters['cluster/schemaFor'](NODE),
+      haveNodeTemplates: !!store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE),
+      haveNodePools:     !!store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL),
       nodePools:         [],
       nodeTemplates:     [],
       nodes:             [],
@@ -176,19 +189,25 @@ export default {
   },
 
   async created() {
-    const resourcesHash = await allHash({
-      allNodes:         this.fetchClusterResources(NODE),
-      allEvents:        this.fetchClusterResources(EVENT),
-      rawConstraints:   this.fetchConstraints(),
-      allNodeTemplates: this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE }),
-      allNodePools:     this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL }),
-    });
+    const hash = {
+      nodes:         this.fetchClusterResources(NODE),
+      events:        this.fetchClusterResources(EVENT),
+      constraints:   this.fetchConstraints(),
+    };
 
-    this.constraints = resourcesHash.rawConstraints;
-    this.events = resourcesHash.allEvents;
-    this.nodes = resourcesHash.allNodes;
-    this.nodePools = resourcesHash.allNodePools;
-    this.nodeTemplates = resourcesHash.allNodeTemplates;
+    if ( this.haveNodeTemplates ) {
+      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+    }
+
+    if ( this.haveNodePools ) {
+      hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+    }
+
+    const res = await allHash(hash);
+
+    for ( const k in res ) {
+      this[k] = res[k];
+    }
   },
 
   methods: {
