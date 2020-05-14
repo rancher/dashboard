@@ -62,7 +62,7 @@ export default {
     }
 
     if (this.value._type === TLS) {
-      key = base64Decode((this.value.data || {})['tls.key']);
+      key = this.mode === 'edit' ? '' : base64Decode((this.value.data || {})['tls.key']);
       crt = base64Decode((this.value.data || {})['tls.crt']);
     }
 
@@ -138,7 +138,14 @@ export default {
 
         this.$set(this.value, 'data', data);
       } else if (this.isCertificate) {
-        const data = { 'tls.crt': base64Encode(this.crt), 'tls.key': base64Encode(this.key) };
+        let keyToSave;
+
+        if (this.mode === 'edit' && !this.key.length) {
+          keyToSave = (this.value.data || {})['tls.key'];
+        } else {
+          keyToSave = base64Encode(this.key);
+        }
+        const data = { 'tls.crt': base64Encode(this.crt), 'tls.key': keyToSave };
 
         this.$set(this.value, 'data', data);
       }
