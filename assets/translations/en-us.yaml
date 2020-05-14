@@ -13,6 +13,7 @@ generic:
   customize: Customize
   na: "n/a"
   unknown: Unknown
+  type: Type
 
 suffix:
   ib: iB
