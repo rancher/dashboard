@@ -9,6 +9,7 @@ import DateFormatter from '@/components/formatter/Date';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
 import AsyncButton from '@/components/AsyncButton';
+import Select from '@/components/form/Select';
 
 import { escapeRegex } from '@/utils/string';
 
@@ -25,7 +26,7 @@ const ansiup = new AnsiUp();
 
 export default {
   components: {
-    Window, LabeledSelect, Checkbox, DateFormatter, AsyncButton
+    Window, Select, LabeledSelect, Checkbox, DateFormatter, AsyncButton
   },
 
   props:      {
@@ -218,7 +219,7 @@ export default {
 
         switch ( unit ) {
         case 'all':
-          params.tailLines = -1;
+          // Do nothing
           break;
         case 'line':
           params.tailLines = count;
@@ -382,6 +383,7 @@ export default {
 
     togglePrevious(on) {
       this.previous = on;
+      // Intentionally not saved as a pref
       this.connect();
     },
 
@@ -402,7 +404,7 @@ export default {
 <template>
   <Window :active="active">
     <template #title>
-      <v-select
+      <Select
         v-model="container"
         :disabled="containerChoices.length <= 1"
         class="auto-width inline mini"
@@ -414,7 +416,7 @@ export default {
         <template #selected-option="option">
           <t v-if="option" k="wm.containerLogs.containerName" :label="option.label" />
         </template>
-      </v-select>
+      </Select>
       <button class="btn btn-sm bg-primary" :disabled="isFollowing" @click="follow">
         <t k="wm.containerLogs.follow" />
       </button>
@@ -423,7 +425,7 @@ export default {
       </button>
       <AsyncButton class="btn-sm" mode="download" @click="download" />
 
-      <div class="pull-right ml-5">
+      <div class="pull-right text-center ml-5" style="min-width: 80px">
         <t :class="{'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
       </div>
       <div class="pull-right ml-5">
@@ -445,6 +447,7 @@ export default {
               :options="rangeOptions"
               :searchable="false"
               :clearable="false"
+              placement="top"
               @input="toggleRange($event)"
             />
             <div><Checkbox :label="t('wm.containerLogs.previous')" :value="previous" @input="togglePrevious" /></div>

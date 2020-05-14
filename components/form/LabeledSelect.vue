@@ -1,4 +1,5 @@
 <script>
+import { createPopper } from '@popperjs/core';
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
@@ -31,10 +32,16 @@ export default {
       type:    String,
       default: 'label'
     },
+    placement: {
+      type:    String,
+      default: null,
+    },
   },
+
   data() {
     return { selectedVisibility: 'visible' };
   },
+
   computed: {
     currentLabel() {
       let entry;
@@ -56,6 +63,8 @@ export default {
   },
 
   methods: {
+    get,
+
     reduce(e) {
       if ( e && typeof e === 'object' && e.value !== undefined ) {
         return e.value;
@@ -87,7 +96,47 @@ export default {
         return option;
       }
     },
-    get
+
+    withPopper(dropdownList, component, { width }) {
+      /**
+       * We need to explicitly define the dropdown width since
+       * it is usually inherited from the parent with CSS.
+       */
+      dropdownList.style.width = width;
+
+      /**
+       * Here we position the dropdownList relative to the $refs.toggle Element.
+       *
+       * The 'offset' modifier aligns the dropdown so that the $refs.toggle and
+       * the dropdownList overlap by 1 pixel.
+       *
+       * The 'toggleClass' modifier adds a 'drop-up' class to the Vue Select
+       * wrapper so that we can set some styles for when the dropdown is placed
+       * above.
+       */
+      const popper = createPopper(component.$refs.toggle, dropdownList, {
+        placement: this.placement,
+        modifiers: [
+          {
+            name:    'offset',
+            options: { offset: [0, -1] }
+          },
+          {
+            name:    'toggleClass',
+            enabled: true,
+            phase:   'write',
+            fn({ state }) {
+              component.$el.setAttribute('x-placement', state.placement);
+            },
+          }]
+      });
+
+      /**
+       * To prevent memory leaks Popper needs to be destroyed.
+       * If you return function, it will be called just before dropdown is removed from DOM.
+       */
+      return () => popper.destroy();
+    },
   },
 };
 </script>
@@ -121,6 +170,8 @@ export default {
       :label="optionLabel"
       :reduce="x => reduce(x)"
       v-bind="$attrs"
+      :append-to-body="!!placement"
+      :calculate-position="placement ? withPopper : undefined"
       @input="x => $emit('input', reduce(x))"
       @search:focus="onFocus"
       @search:blur="onBlur"

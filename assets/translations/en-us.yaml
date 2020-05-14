@@ -240,9 +240,18 @@ wm:
     follow: Follow
     range:
       label: Show the last
-      lines: '{value} Lines'
-      minutes: '{value} Minutes'
-      hours: '{value} Hours'
+      lines: '{value, number} Lines'
+      minutes: |
+        {value, number} {value, plural,
+        =1 {Minute}
+        other {Minutes}
+        }
+      hours: |
+        {value, number}
+        {value, plural,
+        =1 {Hour}
+        other {Hours}
+        }
       all: 'Everything'
     previous: Use Previous Container
     wrap: Wrap Lines

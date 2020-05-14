@@ -65,6 +65,10 @@ export default {
     },
 
     isCreatable() {
+      if ( !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+        return false;
+      }
+
       return this.$store.getters['type-map/isCreatable'](this.$route.params.resource);
     }
   },

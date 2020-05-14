@@ -331,7 +331,7 @@ export default {
   <div class="gatekeeper-config">
     <header>
       <h1>
-        <t k="gatekeeperConfig.header" /> <span class="flag"><t k="gatekeeperConfig.flag" /></span>
+        <t k="gatekeeperConfig.header" />
       </h1>
       <div v-if="gatekeeperEnabled" class="actions">
         <button

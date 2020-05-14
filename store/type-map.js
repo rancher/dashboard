@@ -467,7 +467,7 @@ export const getters = {
   allTypes(state, getters, rootState, rootGetters) {
     return (mode = ALL) => {
       const schemas = rootGetters['cluster/all'](SCHEMA);
-      const counts = rootGetters['cluster/all'](COUNT)[0].counts;
+      const counts = rootGetters['cluster/all'](COUNT)?.[0]?.counts || {};
       const out = {};
 
       for ( const schema of schemas ) {
