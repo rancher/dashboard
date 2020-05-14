@@ -490,7 +490,7 @@ export default {
   },
 
   canCreate() {
-    return (this.schema?.attributes?.verbs || []).includes('create') && this.$rootGetters['type-map/isCreatable'](this.type);
+    return this.$rootGetters['type-map/isCreatable'](this.type);
   },
 
   canViewInApi() {
@@ -621,6 +621,7 @@ export default {
 
       const res = await this.$dispatch('request', opt);
 
+      // console.log('### Resource Save', this.type, this.id);
       await this.$dispatch('load', { data: res, existing: this });
 
       return this;
