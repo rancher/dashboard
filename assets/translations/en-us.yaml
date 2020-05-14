@@ -11,7 +11,7 @@ generic:
   comingSoon: Coming Soon
   created: Created
   customize: Customize
-  na: 'n/a'
+  na: "n/a"
   unknown: Unknown
 
 suffix:
@@ -20,7 +20,7 @@ suffix:
   seconds: Seconds
 
 header:
-  backToRancher: '← Back to Rancher'
+  backToRancher: "← Back to Rancher"
 
 nav:
   ns:
@@ -29,9 +29,9 @@ nav:
     system: All System Namespaces
     clusterLevel: Cluster-Level Resources
     namespaced: Namespaced Resources
-    project: 'Project: {name}'
-    namespace: '{name}'
-    orphan: 'Not in a Project'
+    project: "Project: {name}"
+    namespace: "{name}"
+    orphan: "Not in a Project"
 
 cluster:
   provider:
@@ -123,21 +123,21 @@ servicesPage:
       placeholder: e.g. 10800
 
 clusterIndexPage:
-  header: 'Cluster: {name}'
+  header: "Cluster: {name}"
   sections:
     nodes:
       label: Unhealthy Nodes
-      noRows: 'There are no unhealthy nodes to show.'
+      noRows: "There are no unhealthy nodes to show."
     gatekeeper:
       label: OPA Gatekeeper Constraint Violations
       disabled: OPA Gatekeeper is not configured.
       buttonText: Configure Gatekeeper
-      noRows: 'There are no contrains with violations to show.'
+      noRows: "There are no contrains with violations to show."
     events:
       label: Events
 
 gatekeeperIndex:
-  unavailable: 'OPA + Gatekeeper is not available in the system-charts catalog.'
+  unavailable: "OPA + Gatekeeper is not available in the system-charts catalog."
   violations: Violations
 
 gatekeeperConfig:
@@ -146,15 +146,15 @@ gatekeeperConfig:
   configure:
     description: Description
     helpText:
-      listItem1: 'OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes.'
-      listItem2: 'You can Customize Gatekeeper’s yaml configuartion or Enable Gatekeeper with defaults.'
-      listItem3: 'For more information, visit the '
-      listItem4: 'OPA Documentation.'
+      listItem1: "OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes."
+      listItem2: "You can Customize Gatekeeper’s yaml configuartion or Enable Gatekeeper with defaults."
+      listItem3: "For more information, visit the "
+      listItem4: "OPA Documentation."
     requirements:
       header: Requirements
       helpText:
-        listItem1: '0.1 CPU Cores'
-        listItem2: '256 MiB of Memory'
+        listItem1: "0.1 CPU Cores"
+        listItem2: "256 MiB of Memory"
   infoBox:
     auditFromCache: Audit From Cache
     auditInterval: Audit Interval
@@ -202,8 +202,8 @@ infoBoxCluster:
   memory: Memory
   pods: Pods
   provider: Provider
-  reserved: '{numerator} of {denominator} reserved'
-  used: '{numerator} of {denominator} used'
+  reserved: "{numerator} of {denominator} reserved"
+  used: "{numerator} of {denominator} used"
   version: Kubernetes Version
   nodes:
     label: Nodes
@@ -218,16 +218,16 @@ infoBoxCluster:
 
 resourceDetail:
   header:
-    view: '{name}'
-    create: 'Create {type}'
-    edit: 'Edit {type}: {name}'
-    clone: 'Clone from {type}: {name}'
-    stage: 'Stage from {type}: {name}'
+    view: "{name}"
+    create: "Create {type}"
+    edit: "Edit {type}: {name}"
+    clone: "Clone from {type}: {name}"
+    stage: "Stage from {type}: {name}"
   masthead:
-    namespace: 'Namespace'
-    project: 'Project'
-    yaml: 'YAML'
-    overview: 'Overview'
+    namespace: "Namespace"
+    project: "Project"
+    yaml: "YAML"
+    overview: "Overview"
 
 servicePorts:
   header:
@@ -247,8 +247,8 @@ servicePorts:
       label: Node Port
 
 sortableTable:
-  noRows: 'There are no rows to show.'
-  noData: 'There are no rows which match your search query.'
+  noRows: "There are no rows to show."
+  noData: "There are no rows which match your search query."
   paging:
     generic: |
       {pages, plural,
@@ -268,8 +268,8 @@ sortableTable:
 
 model:
   namespace:
-    project: 'Project: {name}'
-    notInAProject: 'Not in a Project'
+    project: "Project: {name}"
+    notInAProject: "Not in a Project"
 
 configmapPage:
   data:
@@ -285,10 +285,10 @@ wm:
     disconnected: Disconnected
     error: Error
   containerShell:
-    containerName: 'Container: {label}'
+    containerName: "Container: {label}"
     clear: Clear
   containerLogs:
-    containerName: 'Container: {label}'
+    containerName: "Container: {label}"
     clear: Clear
     download: Download
     follow: Follow
@@ -317,7 +317,7 @@ wm:
 tableHeaders:
   state: State
   download: Download
-  internalExternalIp: 'Internal/External IP'
+  internalExternalIp: "Internal/External IP"
   name: Name
   simpleName: Name
   effect: Effect
@@ -393,7 +393,7 @@ node:
         cpu: CPU
         memory: MEMORY
         pods: PODS
-        amount: '{used} of {total} {unit} used'
+        amount: "{used} of {total} {unit} used"
     tab:
       conditions: Conditions
       info: Info

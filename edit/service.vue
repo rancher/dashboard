@@ -13,29 +13,7 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 import ServicePorts from '@/components/form/ServicePorts';
 import Tab from '@/components/Tabbed/Tab';
 import UnitInput from '@/components/form/UnitInput';
-
-export const DEFAULT_SERVICE_TYPES = [
-  {
-    id:               'ClusterIP',
-    translationLabel: 'servicesPage.serviceTypes.clusterIp'
-  },
-  {
-    id:               'ExternalName',
-    translationLabel: 'servicesPage.serviceTypes.externalName'
-  },
-  {
-    id:               'Headless',
-    translationLabel: 'servicesPage.serviceTypes.headless'
-  },
-  {
-    id:               'LoadBalancer',
-    translationLabel: 'servicesPage.serviceTypes.loadBalancer'
-  },
-  {
-    id:               'NodePort',
-    translationLabel: 'servicesPage.serviceTypes.nodePort'
-  },
-];
+import { DEFAULT_SERVICE_TYPES } from '@/config/types';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:      'None',
