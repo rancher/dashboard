@@ -1,16 +1,21 @@
-import { addParams } from '@/utils/url';
 import { MODE, _EDIT } from '@/config/query-params';
 
 export default {
   appEditUrl() {
-    return this.detailUrl();
+    return this.detailLocation;
   },
 
   goToEdit() {
     return (moreQuery = {}) => {
-      const url = addParams(this.appEditUrl, { [MODE]: _EDIT, ...moreQuery });
+      const location = this.appEditUrl;
 
-      this.currentRouter().push({ path: url });
+      location.query = {
+        ...location.query,
+        [MODE]: _EDIT,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
     };
   },
 };

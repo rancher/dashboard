@@ -27,7 +27,7 @@ export default {
         return get(this.row, this.opts.reference);
       }
 
-      return this.row?.detailUrl;
+      return this.row?.detailLocation;
     },
   }
 };
@@ -35,8 +35,8 @@ export default {
 
 <template>
   <span>
-    <nuxt-link :to="to">
+    <n-link :to="to">
       {{ value }}
-    </nuxt-link>
+    </n-link>
   </span>
 </template>

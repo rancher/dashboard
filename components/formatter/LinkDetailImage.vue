@@ -20,7 +20,7 @@ export default {
 
 <template>
   <span>
-    <nuxt-link :to="row.detailUrl">
+    <nuxt-link :to="row.detailLocation">
       {{ value }}
     </nuxt-link>
     <br />

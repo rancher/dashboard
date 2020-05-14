@@ -84,7 +84,7 @@ export default {
       const id = `${ this.namespace }/${ serviceName }`;
 
       return isTargetsWorkload
-        ? this.findWorkload(id)?.detailUrl || ''
+        ? this.findWorkload(id)?.detailLocation || ''
         : {
           resource:  SERVICE,
           id:        serviceName,
