@@ -1,6 +1,5 @@
 <script>
 import { isEmpty } from 'lodash';
-// import { escapeHtml } from '@/utils/string';
 
 export default {
   props: {

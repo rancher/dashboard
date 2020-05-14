@@ -1,26 +1,5 @@
 <script>
-export const DEFAULT_SERVICE_TYPES = [
-  {
-    id:               'ClusterIP',
-    translationLabel: 'serviceTypes.clusterip'
-  },
-  {
-    id:               'ExternalName',
-    translationLabel: 'serviceTypes.externalname'
-  },
-  {
-    id:               'Headless',
-    translationLabel: 'serviceTypes.headless'
-  },
-  {
-    id:               'LoadBalancer',
-    translationLabel: 'serviceTypes.loadbalancer'
-  },
-  {
-    id:               'NodePort',
-    translationLabel: 'serviceTypes.nodeport'
-  },
-];
+import { DEFAULT_SERVICE_TYPES } from '@/config/types';
 
 export default {
   props: {
@@ -34,7 +13,7 @@ export default {
     const { translationLabel } = match;
     let translated;
 
-    if (translationLabel) {
+    if (translationLabel && this.$store.getters['i18n/exists'](translationLabel)) {
       translated = this.$store.getters['i18n/t'](translationLabel);
     } else {
       translated = this.value;
