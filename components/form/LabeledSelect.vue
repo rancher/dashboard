@@ -37,8 +37,8 @@ export default {
       default: null,
     },
     localizedLabel: {
-        type:    Boolean,
-        default: false
+      type:    Boolean,
+      default: false
     },
   },
 
