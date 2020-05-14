@@ -460,8 +460,9 @@ export const TARGET_PORT = {
 };
 
 export const SELECTOR = {
-  name:     'selector',
-  labelKey: 'tableHeaders.selector',
-  value:    '$.metadata.fields[6]',
-  sort:     ['$.metadata.fields[6]'],
+  formatter: 'KeyValue',
+  name:      'selector',
+  labelKey:  'tableHeaders.selector',
+  value:     `$['spec']['selector']`,
+  sort:      `$['spec']['selector']`,
 };
