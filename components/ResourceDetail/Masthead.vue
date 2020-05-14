@@ -3,9 +3,12 @@ import { PROJECT } from '@/config/labels-annotations';
 import BreadCrumbs from '@/components/BreadCrumbs';
 import { NAMESPACE, EXTERNAL } from '@/config/types';
 import ButtonGroup from '@/components/ButtonGroup';
+import BadgeState from '@/components/BadgeState';
 
 export default {
-  components: { BreadCrumbs, ButtonGroup },
+  components: {
+    BadgeState, BreadCrumbs, ButtonGroup
+  },
   props:      {
     value: {
       type:    Object,
@@ -109,10 +112,13 @@ export default {
 </script>
 
 <template>
-  <header>
+  <header class="masthead">
     <BreadCrumbs class="breadcrumbs" />
     <div>
-      <h1 v-html="h1" />
+      <div class="primaryheader">
+        <h1 v-html="h1" />
+        <BadgeState v-if="value.highlightBadge" class="highlight-badge" :value="value.highlightBadge" />
+      </div>
       <!-- //TODO use  nuxt-link for an internal project detail page once it exists -->
       <div v-if="mode==='view'" class="subheader">
         <span v-if="isNamespace && project"><t k="resourceDetail.masthead.project" />: {{ project.nameDisplay }}</span>
@@ -133,21 +139,40 @@ export default {
 </template>
 
 <style lang='scss'>
-  .subheader{
-    display: flex;
-    flex-direction: column;
-    color: var(--input-label);
-    & > * {
-      margin: 5px 5px 5px 0px;
+  .masthead {
+    .primaryheader {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      h1 {
+        margin-right: 8px;
+      }
+
+      .highlight-badge {
+        margin-top: 2px;
+        padding: 5px 8px 3px 8px;
+        font-size: 12px;
+      }
+    }
+
+    .subheader{
+      display: flex;
+      flex-direction: column;
+      color: var(--input-label);
+      & > * {
+        margin: 5px 5px 5px 0px;
+      }
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items:center;
+      & .btn-group {
+        margin-right: 5px;
+      }
     }
   }
 
-  .actions {
-    display: flex;
-    justify-content: flex-end;
-    align-items:center;
-    & .btn-group {
-      margin-right: 5px;
-    }
-  }
 </style>

@@ -29,6 +29,7 @@ const STATES = {
   backedup:       { color: 'success', icon: 'backup' },
   bound:          { color: 'success', icon: 'dot' },
   building:       { color: 'success', icon: 'dot-open' },
+  cordoned:       { color: 'info', icon: 'tag' },
   created:        { color: 'info', icon: 'tag' },
   creating:       { color: 'info', icon: 'tag' },
   deactivating:   { color: 'info', icon: 'adjust' },
@@ -184,6 +185,10 @@ export default {
         delete this.metadata.annotations[key];
       }
     };
+  },
+
+  highlightBadge() {
+    return false;
   },
 
   // You can override the state by providing your own state (and possibly reading metadata.state)

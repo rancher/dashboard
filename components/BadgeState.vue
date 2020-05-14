@@ -18,9 +18,13 @@ export default {
 
 <style lang="scss">
   .badge-state {
-    padding: 5px 5px 5px 0;
+    padding: 5px;
     border: 1px solid transparent;
     border-radius: 2px;
+
+    &.bg-info {
+      border-color: var(--primary);
+    }
 
     // Successful states are de-emphasized by using [text-]color instead of background-color
     &.bg-success {
@@ -34,7 +38,7 @@ export default {
     display: inline-block;
     max-width: 100%;
     position: relative;
-    padding: 1px 10px 1px 0;
+    padding: 2px 8px 1px 8px;
     font-size: 1em;
     max-width: 110px;
     font-size: .85em;
