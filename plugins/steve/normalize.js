@@ -55,6 +55,8 @@ export function cleanForNew(obj) {
     delete m.resourceVersion;
     delete m.selfLink;
     delete m.creationTimestamp;
+    delete m.fields;
+    delete m.state;
     dropKeys(m.annotations);
     dropKeys(m.labels);
   }

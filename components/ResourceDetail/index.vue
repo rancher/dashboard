@@ -1,4 +1,5 @@
 <script>
+import jsyaml from 'js-yaml';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceYaml from '@/components/ResourceYaml';
@@ -69,6 +70,7 @@ export async function defaultAsyncData(ctx, resource) {
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
   const asYamlInit = (route.query[AS_YAML] === _FLAGGED) || (realMode === _VIEW && !hasCustomDetail) || (realMode !== _VIEW && !hasCustomEdit);
   const schema = store.getters['cluster/schemaFor'](resource);
+  const schemas = store.getters['cluster/all'](SCHEMA);
 
   let originalModel, model, yaml;
 
@@ -76,9 +78,6 @@ export async function defaultAsyncData(ctx, resource) {
     if ( !namespace ) {
       namespace = store.getters['defaultNamespace'];
     }
-
-    const schemas = store.getters['cluster/all'](SCHEMA);
-
     const data = { type: resource };
 
     if ( schema.attributes.namespaced ) {
@@ -107,9 +106,7 @@ export async function defaultAsyncData(ctx, resource) {
       model.applyDefaults(ctx, realMode);
     }
 
-    const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
-
-    yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
+    yaml = jsyaml.safeDump(model);
   }
 
   let mode = realMode;
