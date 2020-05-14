@@ -2,6 +2,10 @@ locale:
   none: (None)
   en-us: English
 
+buttons:
+  add: Add
+  remove: Remove
+
 generic:
   close: Close
   comingSoon: Coming Soon
@@ -13,6 +17,7 @@ generic:
 suffix:
   ib: iB
   cpus: CPUs
+  seconds: Seconds
 
 header:
   backToRancher: "← Back to Rancher"
@@ -83,6 +88,41 @@ footer:
   issue: File an Issue
   download: Download CLI
 
+servicesPage:
+  typeOpts:
+    label: Service Type
+  serviceTypes:
+    clusterIp: Cluster IP
+    externalName: External Name
+    headless: Headless
+    loadBalancer: Load Balancer
+    nodePort: Node Port
+  externalName:
+    label: External Name
+    helpText: External Name is intended to specify a canonical DNS name. To hardcode an IP address, use a Headless service.
+    placeholder: e.g. my.database.example.com
+  selectors:
+    label: Selectors
+    helpText:  If no selector is created, manual endpoints must be made.
+  ips:
+    label: IPs
+    helpText: The IP address must be within the CIDR range configured for the API server.
+    input:
+      label: Cluster IP
+      placeholder: e.g. 10.0.171.239
+    external:
+      label: External IPs
+      placeholder: e.g. 1.1.1.1
+  affinity:
+    label: Session Affinity
+    helpText: Map connections to a consistent target based on their source IP.
+    actionLabels:
+      none: None
+      clusterIp: ClusterIP
+    timeout:
+      label: Session Sticky Time
+      placeholder: e.g. 10800
+
 clusterIndexPage:
   header: "Cluster: {name}"
   sections:
@@ -148,10 +188,10 @@ gatekeeperConstraint:
     selectors:
       title: Selectors
       sub:
-        labelSelector: 
+        labelSelector:
           title: Label Selector
           addLabel: Add Label
-        namespaceSelector: 
+        namespaceSelector:
           title: Namespace Selector
           addNamespace: Add Namespace
     kinds:
@@ -181,16 +221,33 @@ infoBoxCluster:
 
 resourceDetail:
   header:
-    view: '{name}'
-    create: 'Create {type}'
-    edit: 'Edit {type}: {name}'
-    clone: 'Clone from {type}: {name}'
-    stage: 'Stage from {type}: {name}'
+    view: "{name}"
+    create: "Create {type}"
+    edit: "Edit {type}: {name}"
+    clone: "Clone from {type}: {name}"
+    stage: "Stage from {type}: {name}"
   masthead:
-    namespace: 'Namespace'
-    project: 'Project'
-    yaml: 'YAML'
-    overview: 'Overview'
+    namespace: "Namespace"
+    project: "Project"
+    yaml: "YAML"
+    overview: "Overview"
+
+servicePorts:
+  header:
+    label: Port Rules
+  rules:
+    name:
+      label: Port Name
+      placeholder: e.g. myport
+    listening:
+      label: Listening Port
+      placeholder: e.g. 8080
+    protocol:
+      label: Protocol
+    target:
+      label: Target Port
+    node:
+      label: Node Port
 
 sortableTable:
   noRows: "There are no rows to show."
@@ -231,10 +288,10 @@ wm:
     disconnected: Disconnected
     error: Error
   containerShell:
-    containerName: 'Container: {label}'
+    containerName: "Container: {label}"
     clear: Clear
   containerLogs:
-    containerName: 'Container: {label}'
+    containerName: "Container: {label}"
     clear: Clear
     download: Download
     follow: Follow
@@ -337,7 +394,7 @@ node:
         cpu: CPU
         memory: MEMORY
         pods: PODS
-        amount: '{used} of {total} {unit} used'
+        amount: "{used} of {total} {unit} used"
     tab:
       conditions: Conditions
       info: Info

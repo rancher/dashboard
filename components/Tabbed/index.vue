@@ -1,4 +1,6 @@
 <script>
+import { isEmpty } from 'lodash';
+
 export default {
   name: 'Tabbed',
 
@@ -11,6 +13,42 @@ export default {
 
   data() {
     return { tabs: null };
+  },
+
+  watch: {
+    tabs(tabs) {
+      const activeTab = tabs.find(t => t.active);
+      const defaultTab = this.defaultTab;
+      const windowsHash = window.location.hash.slice(1);
+      const windowHashTabMatch = tabs.find(t => t.name === windowsHash && !t.active);
+      const firstTab = tabs.length > 0 ? tabs[0] : null;
+
+      if (isEmpty(activeTab)) {
+        if (defaultTab && !isEmpty(tabs.find(t => t.name === defaultTab))) {
+          this.select(defaultTab);
+        } else {
+          if (!isEmpty(windowHashTabMatch)) {
+            this.select(windowHashTabMatch.name);
+
+            return;
+          }
+
+          if (firstTab) {
+            this.select(firstTab.name);
+
+            return;
+          }
+        }
+      }
+
+      if (activeTab.name === windowsHash) {
+        this.select(activeTab.name);
+      } else if (!isEmpty(windowHashTabMatch)) {
+        this.select(windowHashTabMatch.name);
+      } else {
+        this.select(firstTab.name);
+      }
+    },
   },
 
   created() {

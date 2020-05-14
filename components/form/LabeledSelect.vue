@@ -36,6 +36,10 @@ export default {
       type:    String,
       default: null,
     },
+    localizedLabel: {
+      type:    Boolean,
+      default: false
+    },
   },
 
   data() {
@@ -91,7 +95,11 @@ export default {
 
     getOptionLabel(option) {
       if (get(option, this.optionLabel)) {
-        return get(option, this.optionLabel);
+        if (this.localizedLabel) {
+          return this.$store.getters['i18n/t'](get(option, this.optionLabel));
+        } else {
+          return get(option, this.optionLabel);
+        }
       } else {
         return option;
       }

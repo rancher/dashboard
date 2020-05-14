@@ -291,3 +291,9 @@ $transition-duration: 150ms;
   display: inline-block;
   border: 0;
 }
+
+.protocol-select {
+  .vs__dropdown-toggle {
+    padding: 5px !important;
+  }
+}
