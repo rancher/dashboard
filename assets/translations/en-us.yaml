@@ -7,13 +7,14 @@ buttons:
   remove: Remove
 
 generic:
+  cancel: Cancel
   close: Close
   comingSoon: Coming Soon
   created: Created
   customize: Customize
   na: "n/a"
-  unknown: Unknown
   type: Type
+  unknown: Unknown
 
 suffix:
   ib: iB
@@ -411,3 +412,8 @@ serviceTypes:
   headless: Headless
   loadbalancer: Load Balancer
   nodeport: Node Port
+
+resourceYaml:
+  buttons:
+    continue: Continue Editing
+    diff: Show Diff

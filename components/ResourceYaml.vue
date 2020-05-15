@@ -256,13 +256,29 @@ export default {
       @onReady="onReady"
       @onChanges="onChanges"
     />
-    <Footer v-if="!isView" :mode="mode" :errors="errors" @save="save" @done="done">
-      <template #middle>
-        <button v-if="showPreview" type="button" class="btn role-secondary" @click="unpreview">
-          Continue Editing
+    <Footer
+      :mode="mode"
+      :errors="errors"
+      @save="save"
+      @done="done"
+    >
+      <template v-if="!isView" #middle>
+        <button
+          v-if="showPreview"
+          type="button"
+          class="btn role-secondary"
+          @click="unpreview"
+        >
+          <t k="resourceYaml.buttons.continue" />
         </button>
-        <button v-else-if="offerPreview" :disabled="yaml === currentYaml" type="button" class="btn role-secondary" @click="preview">
-          Show Diff
+        <button
+          v-else-if="offerPreview"
+          :disabled="yaml === currentYaml"
+          type="button"
+          class="btn role-secondary"
+          @click="preview"
+        >
+          <t k="resourceYaml.buttons.diff" />
         </button>
       </template>
     </Footer>
