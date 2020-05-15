@@ -677,6 +677,20 @@ export default {
     };
   },
 
+  goToClone() {
+    return (moreQuery = {}) => {
+      const location = this.detailLocation;
+
+      location.query = {
+        ...location.query,
+        [MODE]: _CLONE,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
+    };
+  },
+
   goToEdit() {
     return (moreQuery = {}) => {
       const location = this.detailLocation;

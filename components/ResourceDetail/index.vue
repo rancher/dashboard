@@ -285,6 +285,7 @@ export default {
         :yaml="yaml"
         :offer-preview="offerPreview"
         :done-route="doneRoute"
+        :done-override="model.doneOverride"
       />
     </template>
     <template v-else>

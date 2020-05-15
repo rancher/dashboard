@@ -47,7 +47,7 @@ export default {
             namespaceSelector:  { matchExpressions: [] }
           }
         },
-        metadata: { name: null, annotations: { [DESCRIPTION]: null } }
+        metadata: { name: '', annotations: { [DESCRIPTION]: '' } }
       },
     };
   },
@@ -69,12 +69,6 @@ export default {
     yamlUpdater.call(this, this.localValue);
   },
   methods: {
-    navigateToEditAsYaml() {
-      this.$router.push({ query: { ...this.$route.query, [AS_YAML]: _FLAGGED } });
-    },
-    navigateToEditAsForm() {
-      this.$router.applyQuery({ [AS_YAML]: undefined });
-    },
     done() {
       this.$router.replace({
         name:   'c-cluster-gatekeeper-constraints',
@@ -89,20 +83,12 @@ export default {
   <div>
     <header>
       <h1>Constraint</h1>
-      <div class="actions">
-        <button v-if="editAsYaml" class="btn bg-primary" @click="navigateToEditAsForm">
-          Edit as form
-        </button>
-        <button v-else class="btn bg-primary" @click="navigateToEditAsYaml">
-          Edit as YAML
-        </button>
-      </div>
     </header>
     <div
       v-if="editAsYaml"
     >
       <NameNsDescription
-        :value="value"
+        :value="localValue"
         :mode="mode"
         :namespaced="false"
         :extra-columns="['template']"

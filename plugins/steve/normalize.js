@@ -61,6 +61,10 @@ export function cleanForNew(obj) {
     dropKeys(m.labels);
   }
 
+  if ( obj?.spec?.crd?.spec?.names?.kind ) {
+    obj.spec.crd.spec.names.kind = '';
+  }
+
   return obj;
 }
 

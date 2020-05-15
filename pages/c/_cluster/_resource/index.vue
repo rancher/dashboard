@@ -1,14 +1,12 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import Favorite from '@/components/nav/Favorite';
 import { AS_YAML, _FLAGGED } from '@/config/query-params';
-import BreadCrumbs from '@/components/BreadCrumbs';
+import Masthead from '@/components/ResourceList/Masthead';
 
 export default {
   components: {
     ResourceTable,
-    Favorite,
-    BreadCrumbs
+    Masthead
   },
 
   data() {
@@ -118,33 +116,15 @@ export default {
 
 <template>
   <div>
-    <header>
-      <BreadCrumbs class="breadcrumbs" :route="route" />
+    <Masthead
+      :resource="resource"
+      :type-display="typeDisplay"
+      :is-yaml-creatable="schema && isCreatable"
+      :is-creatable="hasEditComponent && isCreatable"
+      :yaml-create-location="{path: yamlRoute}"
+      :create-location="{path: formRoute}"
+    />
 
-      <h1>
-        {{ typeDisplay }} <Favorite :resource="resource" />
-      </h1>
-      <div class="actions">
-        <nuxt-link
-          v-if="schema && isCreatable"
-          :to="yamlRoute"
-          tag="button"
-          type="button"
-          class="btn bg-primary mr-10"
-        >
-          Create from YAML
-        </nuxt-link>
-        <nuxt-link
-          v-if="hasEditComponent && isCreatable"
-          :to="formRoute"
-          tag="button"
-          type="button"
-          class="btn bg-primary"
-        >
-          Create
-        </nuxt-link>
-      </div>
-    </header>
     <div v-if="hasListComponent">
       <component
         :is="listComponent"
