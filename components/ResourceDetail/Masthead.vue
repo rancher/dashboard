@@ -37,7 +37,7 @@ export default {
       default: false
     },
 
-    hasDetail: {
+    hasDetailOrEdit: {
       type:    Boolean,
       default: false
     }
@@ -128,7 +128,7 @@ export default {
     </div>
     <div v-if="mode==='view'" class="actions">
       <!-- //TODO remove check for custom detail component once there is a generic detail -->
-      <div v-if="hasDetail">
+      <div v-if="hasDetailOrEdit">
         <ButtonGroup :labels-are-translations="true" :value="asYaml" :options="[{label: 'resourceDetail.masthead.overview', value: false},{label:'resourceDetail.masthead.yaml', value: true }]" @input="toggleYaml" />
       </div>
       <button ref="actions" aria-haspopup="true" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">

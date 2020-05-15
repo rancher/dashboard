@@ -236,7 +236,7 @@ export default {
     showComponent() {
       if ( this.isView && this.hasCustomDetail ) {
         return this.detailComponent;
-      } else if ( !this.asYaml && this.hasCustomEdit ) {
+      } else if ( this.hasCustomEdit ) {
         return this.editComponent;
       }
 
@@ -271,23 +271,9 @@ export default {
       :done-route="doneRoute"
       :real-mode="realMode"
       :as-yaml.sync="asYaml"
-      :has-detail="hasCustomDetail"
+      :has-detail-or-edit="(hasCustomDetail || hasCustomEdit)"
     />
-    <template v-if="(hasCustomEdit || hasCustomDetail) && showComponent">
-      <component
-        :is="showComponent"
-        v-model="model"
-        :original-value="originalModel"
-        :done-route="doneRoute"
-        :done-params="doneParams"
-        :mode="mode"
-        :real-mode="realMode"
-        :value="model"
-        :obj="model"
-        :yaml="yaml"
-      />
-    </template>
-    <template v-else>
+    <template v-if="asYaml">
       <div v-if="!isView">
         <button class="btn btn-sm role-primary" @click="readFromFile">
           Read from file
@@ -300,6 +286,20 @@ export default {
         :yaml="yaml"
         :offer-preview="offerPreview"
         :done-route="doneRoute"
+      />
+    </template>
+    <template v-else>
+      <component
+        :is="showComponent"
+        v-model="model"
+        :original-value="originalModel"
+        :done-route="doneRoute"
+        :done-params="doneParams"
+        :mode="mode"
+        :real-mode="realMode"
+        :value="model"
+        :obj="model"
+        :yaml="yaml"
       />
     </template>
   </div>
