@@ -101,7 +101,7 @@ export default {
             resource:  SECRET
           };
 
-          const url = this.$router.resolve({ name, params }).href;
+          const url = { name, params };
 
           cert.link = { url, text: cert.secretName };
         } else {
@@ -135,7 +135,7 @@ export default {
           };
         }
 
-        const targetUrl = this.$router.resolve({ name, params }).href;
+        const targetUrl = { name, params };
         const pathUrl = `https://${ host }${ path?.path }`;
 
         path.targetLink = {
