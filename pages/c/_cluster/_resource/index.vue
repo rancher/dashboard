@@ -15,7 +15,7 @@ export default {
     const params = { ...this.$route.params };
     const resource = params.resource;
 
-    const formRoute = this.$router.resolve({ name: `${ this.$route.name }-create`, params }).href;
+    const formRoute = { name: `${ this.$route.name }-create`, params };
 
     const query = { [AS_YAML]: _FLAGGED };
 
@@ -26,11 +26,11 @@ export default {
       listComponent = this.$store.getters['type-map/importList'](resource);
     }
 
-    const yamlRoute = this.$router.resolve({
+    const yamlRoute = {
       name: `${ this.$route.name }-create`,
       params,
       query
-    }).href;
+    };
 
     return {
       route:   this.$route,
@@ -127,7 +127,7 @@ export default {
       <div class="actions">
         <nuxt-link
           v-if="schema && isCreatable"
-          :to="{path: yamlRoute}"
+          :to="yamlRoute"
           tag="button"
           type="button"
           class="btn bg-primary mr-10"
@@ -136,7 +136,7 @@ export default {
         </nuxt-link>
         <nuxt-link
           v-if="hasEditComponent && isCreatable"
-          :to="{path: formRoute}"
+          :to="formRoute"
           tag="button"
           type="button"
           class="btn bg-primary"
