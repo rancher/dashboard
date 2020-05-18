@@ -122,7 +122,7 @@ export default {
       <!-- //TODO use  nuxt-link for an internal project detail page once it exists -->
       <div v-if="mode==='view'" class="subheader">
         <span v-if="isNamespace && project"><t k="resourceDetail.masthead.project" />: {{ project.nameDisplay }}</span>
-        <span v-else-if="namespace">k="resourceDetail.masthead.namespace" />: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
+        <span v-else-if="namespace"><t k="resourceDetail.masthead.namespace" />: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
         <span v-if="value.description">{{ value.description }}</span>
       </div>
     </div>

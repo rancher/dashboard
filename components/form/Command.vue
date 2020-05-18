@@ -1,9 +1,9 @@
 <script>
-import { get, cleanUp } from '../../utils/object';
+import { cleanUp } from '@/utils/object';
 import LabeledInput from '@/components/form/LabeledInput';
 import ShellInput from '@/components/form/ShellInput';
 import KeyValue from '@/components/form/KeyValue';
-import ValueFromResource from '@/edit/workload/ValueFromResource';
+import ValueFromResource from '@/components/form/ValueFromResource';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
 

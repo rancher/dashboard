@@ -36,7 +36,15 @@ export default {
       default: 'create'
     },
 
-    // TODO: require secrets and configmaps (for env from resrouce in command tab) or fetch them here (bad)
+    configMaps: {
+      type:    Array,
+      default: () => []
+    },
+
+    secrets: {
+      type:    Array,
+      default: () => []
+    }
   },
 
   data() {
@@ -107,9 +115,6 @@ export default {
 
 <template>
   <div @input="update">
-    <h2 class="mb-10">
-      Container
-    </h2>
     <div class="row">
       <div class="col span-4">
         <LabeledInput v-model="name" :label="t('workload.container.name')" :mode="mode" />
@@ -130,7 +135,7 @@ export default {
     <WorkloadPorts v-model="ports" :mode="mode" />
     <Tabbed class="contrast">
       <Tab label="Command" name="command">
-        <Command v-model="commandTab" :mode="mode" :secrets="[]" :config-maps="[]" />
+        <Command v-model="commandTab" :mode="mode" :secrets="secrets" :config-maps="configMaps" />
       </Tab>
       <Tab label="Resources" name="resources">
         <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />

@@ -102,8 +102,8 @@ export default {
       spec,
       type,
       workloadTypeOptions,
-      allConfigMaps:          null,
-      allSecrets:             null,
+      allConfigMaps:          [],
+      allSecrets:             [],
       allNodes:               null,
       showTabs:               false,
     };
@@ -141,38 +141,24 @@ export default {
       }
     },
 
-    container: {
+    containers: {
       get() {
-        const { containers } = this.podTemplateSpec;
-
-        if (!containers) {
+        if (!this.podTemplateSpec.containers) {
           this.$set(this.podTemplateSpec, 'containers', [{ }]);
         }
+        // add a key for list rendering porpoises
+        this.podTemplateSpec.containers.forEach((container) => {
+          if (!container._key) {
+            container._key = Math.random();
+          }
+        });
 
-        // TODO account for multiple containers (sidecar)
-        return this.podTemplateSpec.containers[0];
+        return this.podTemplateSpec.containers
+        ;
       },
 
       set(neu) {
-        this.$set(this.podTemplateSpec.containers, 0, neu);
-      }
-    },
-
-    containerImage: {
-      get() {
-        return this.container.image;
-      },
-      set(neu) {
-        this.container = { ...this.container, image: neu };
-      }
-    },
-
-    containerPorts: {
-      get() {
-        return this.container.ports || [];
-      },
-      set(neu) {
-        this.container = { ...this.container, ports: neu };
+        this.$set(this.podTemplateSpec, 'containers', neu);
       }
     },
 
@@ -230,7 +216,7 @@ export default {
 
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
-    }
+    },
   },
 
   methods: {
@@ -256,7 +242,7 @@ export default {
       }
       delete this.value.kind;
       this.save(cb);
-    },
+    }
   },
 };
 </script>
@@ -292,7 +278,23 @@ export default {
           <Job v-model="spec" :mode="mode" :type="type" />
         </Tab>
         <Tab label="Containers" name="containers">
-          <Container v-model="container" :mode="mode" />
+          <div class="containers-container">
+            <div v-for="(container, i) in containers" :key="container._key">
+              <div class="row">
+                <h2 class="mb-10 col span-11">
+                  Container
+                </h2>
+                <button class="btn role-link" @click="e=>containers.splice(i, 1)">
+                  remove
+                </button>
+              </div>
+              <Container :value="container" :mode="mode" :config-maps="allConfigMaps" :secrets="allSecrets" @input="e=>containers[i]=e" />
+              <hr v-if="i<containers.length-1" class="mb-20 mt-20">
+            </div>
+            <button :mode="mode" class="btn role-primary mt-20" @click="e=>containers.push({_key:Math.random()})">
+              Add Container
+            </button>
+          </div>
         </Tab>
         <Tab label="Networking" name="networking">
           <Networking v-model="podTemplateSpec" :mode="mode" />
