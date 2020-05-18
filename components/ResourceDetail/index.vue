@@ -67,7 +67,9 @@ export async function defaultAsyncData(ctx, resource) {
 
   const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
-  const asYamlInit = (route.query[AS_YAML] === _FLAGGED) || (realMode === _VIEW && !hasCustomDetail) || (realMode !== _VIEW && !hasCustomEdit);
+  const asYamlInit = (route.query[AS_YAML] === _FLAGGED) ||
+   (realMode === _VIEW && !hasCustomDetail && !hasCustomEdit) ||
+    (realMode !== _VIEW && !hasCustomEdit);
   const schema = store.getters['cluster/schemaFor'](resource);
   const schemas = store.getters['cluster/all'](SCHEMA);
 
@@ -187,11 +189,14 @@ export default {
 
   data() {
     // asYamlInit is taken from route query and passed as prop from _id page; asYaml is saved in local data to be manipulated by Masthead
-    const asYaml = this.asYamlInit;
+    const {
+      asYamlInit: asYaml,
+      value: currentValue,
+    } = this;
 
     return {
       asYaml,
-      currentValue:            this.value,
+      currentValue,
       detailComponent:         this.$store.getters['type-map/importDetail'](this.resource),
       editComponent:           this.$store.getters['type-map/importEdit'](this.resource),
     };
@@ -230,7 +235,7 @@ export default {
     showComponent() {
       if ( this.isView && this.hasCustomDetail ) {
         return this.detailComponent;
-      } else if ( !this.isView && this.hasCustomEdit ) {
+      } else if ( this.hasCustomEdit ) {
         return this.editComponent;
       }
 
@@ -265,7 +270,7 @@ export default {
       :done-route="doneRoute"
       :real-mode="realMode"
       :as-yaml.sync="asYaml"
-      :has-detail="hasCustomDetail"
+      :has-detail-or-edit="(hasCustomDetail || hasCustomEdit)"
     />
     <template v-if="asYaml">
       <div v-if="!isView">

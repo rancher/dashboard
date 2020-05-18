@@ -1,12 +1,13 @@
 <script>
 import { find } from 'lodash';
-import { ucFirst } from '@/utils/string';
-import CreateEditView from '@/mixins/create-edit-view';
 import ArrayList from '@/components/form/ArrayList';
+import CreateEditView from '@/mixins/create-edit-view';
+import DetailTop from '@/components/DetailTop';
 import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import LiveDate from '@/components/formatter/LiveDate';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
 import ResourceTabs from '@/components/form/ResourceTabs';
@@ -14,6 +15,7 @@ import ServicePorts from '@/components/form/ServicePorts';
 import Tab from '@/components/Tabbed/Tab';
 import UnitInput from '@/components/form/UnitInput';
 import { DEFAULT_SERVICE_TYPES } from '@/config/types';
+import { ucFirst } from '@/utils/string';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:      'None',
@@ -28,12 +30,17 @@ const SESSION_AFFINITY_ACTION_LABELS = {
 const SESSION_STICKY_TIME_DEFAULT = 10800;
 
 export default {
+  // Props are found in CreateEditView
+  // props: {},
+
   components: {
     ArrayList,
+    DetailTop,
     Footer,
     KeyValue,
     LabeledInput,
     LabeledSelect,
+    LiveDate,
     NameNsDescription,
     RadioGroup,
     ResourceTabs,
@@ -69,6 +76,20 @@ export default {
   computed: {
     extraColumns() {
       return ['type-col'];
+    },
+
+    detailTopColumns() {
+      return [
+        {
+          title:   this.$store.getters['i18n/t']('generic.type'),
+          content: this.value?.spec.type,
+          name:    'type',
+        },
+        {
+          title: this.$store.getters['i18n/t']('generic.created'),
+          name:  'created'
+        },
+      ];
     },
   },
 
@@ -107,14 +128,23 @@ export default {
 
       return false;
     }
-  }
+  },
 };
 </script>
 
 <template>
   <div>
+    <DetailTop v-if="isView" :columns="detailTopColumns">
+      <template v-slot:created>
+        <LiveDate
+          :value="value.metadata.creationTimestamp"
+          :add-suffix="true"
+        />
+      </template>
+    </DetailTop>
     <form>
       <NameNsDescription
+        v-if="!isView"
         :value="value"
         :namespaced="false"
         :mode="mode"
@@ -154,7 +184,6 @@ export default {
               v-model.number="value.spec.externalName"
               type="text"
               :placeholder="t('servicesPage.externalName.placeholder')"
-              @input="e=>$set(value.spec, 'externalName', e)"
             />
           </div>
         </div>
@@ -210,6 +239,7 @@ export default {
               <div class="col span-6">
                 <LabeledInput
                   v-model="value.spec.clusterIP"
+                  :mode="mode"
                   :label="t('servicesPage.ips.input.label')"
                   :placeholder="t('servicesPage.ips.input.placeholder')"
                   @input="e=>$set(value.spec, 'clusterIP', e)"
@@ -217,7 +247,7 @@ export default {
               </div>
             </div>
             <div class="row">
-              <div class="col span-6">
+              <div class="col span-6 pl-10">
                 <ArrayList
                   key="clusterExternalIpAddresses"
                   v-model="value.spec.externalIPs"
@@ -270,6 +300,7 @@ export default {
       </ResourceTabs>
 
       <Footer
+        v-if="!isView"
         :mode="mode"
         :errors="errors"
         @save="save"
