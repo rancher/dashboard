@@ -1,5 +1,4 @@
 <script>
-import { hasIn } from 'lodash';
 import { cleanForNew } from '@/plugins/steve/normalize';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceYaml from '@/components/ResourceYaml';
@@ -68,7 +67,7 @@ export async function defaultAsyncData(ctx, resource) {
 
   const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
-  const asYamlInit = (hasIn(route.query, AS_YAML) && (route.query[AS_YAML] === _FLAGGED)) ||
+  const asYamlInit = (route.query[AS_YAML] === _FLAGGED) ||
    (realMode === _VIEW && !hasCustomDetail && !hasCustomEdit) ||
     (realMode !== _VIEW && !hasCustomEdit);
   const schema = store.getters['cluster/schemaFor'](resource);

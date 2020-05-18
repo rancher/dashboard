@@ -129,10 +129,6 @@ export default {
       return false;
     }
   },
-
-  updateExternalName(e) {
-    this.$set(this.value.spec, 'externalName', e);
-  },
 };
 </script>
 
@@ -148,7 +144,7 @@ export default {
     </DetailTop>
     <form>
       <NameNsDescription
-        v-if="isCreate"
+        v-if="!isView"
         :value="value"
         :namespaced="false"
         :mode="mode"
@@ -304,6 +300,7 @@ export default {
       </ResourceTabs>
 
       <Footer
+        v-if="!isView"
         :mode="mode"
         :errors="errors"
         @save="save"
