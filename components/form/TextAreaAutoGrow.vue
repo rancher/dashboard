@@ -8,7 +8,7 @@ export default {
   props: {
     minHeight: {
       type:    Number,
-      default: 44,
+      default: 55,
     },
     maxHeight: {
       type:    Number,
