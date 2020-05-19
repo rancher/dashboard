@@ -5,77 +5,39 @@
   border-radius: var(--border-radius);
   transition: all 0.2s ease;
 
-  &.bg-default {
-    background: rgba(var(--primary), 0.2);
-    border: solid var(--default);
-    color: white;
-
-    .banner-icon, .banner-title {
-      background: var(--default);
-    }
-  }
-
   &.bg-primary {
     background: var(--primary);
     border: solid 1px var(--primary);
-    color: white;
-
-    .banner-icon, .banner-title {
-      background: $primary;
-    }
+    color: var(--body-text);
   }
 
   &.bg-secondary {
-    background: rgba(var(--primary), 0.2);
+    background: rgba($secondary, 0.15);
     border: solid 1px var(--secondary);
-    color: white;
-
-    .banner-icon, .banner-title {
-      background: var(--secondary);
-    }
+    color: var(--body-text);
   }
 
   &.bg-success {
-    background: rgba(var(--primary), 0.2);
+    background: rgba($success, 0.15);
     border: solid 1px var(--success);
-    color: white;
-
-    .banner-icon, .banner-title {
-      background: var(--success);
-      color: var(--success);
-    }
+    color: var(--body-text);
   }
 
   &.bg-info {
-    background: rgba(var(--primary), 0.2);
+    background: rgba($info, 0.15);
     border: solid 1px var(--info);
-    color: white;
-
-    .banner-icon, .banner-title, .banner-close {
-      background: var(--info);
-      color: var(--info);
-    }
+    color: var(--body-text);
   }
 
   &.bg-warning {
-    background: rgba(var(--primary), 0.2);
+    background: rgba($warning, 0.15);
     border: solid 1px var(--warning);
-    color: white;
-
-    .banner-icon, .banner-title, .banner-close {
-      background: var(--warning);
-      color: var(--warning);
-    }
+    color: var(--body-text);
   }
 
   &.bg-error {
-    background: rgba(var(--primary), 0.2);
+    background: rgba($error, 0.15);
     border: solid 1px (--error);
     color: var(--error);
-
-    .banner-icon, .banner-title, .banner-close {
-      background: (--error);
-      color: (--error);
-    }
   }
 }
