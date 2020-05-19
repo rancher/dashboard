@@ -412,7 +412,7 @@ export default {
           <slot name="main-row" :row="row">
             <tr :key="get(row,keyField)" class="main-row">
               <td v-show="tableActions" class="row-check" align="middle">
-                <Checkbox type="checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
+                <Checkbox class="selection-checkbox" type="checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
               </td>
               <td v-if="subExpandColumn" class="row-expand" align="middle">
                 <i data-title="Toggle Expand" :class="{icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[get(row, keyField)]}" />
