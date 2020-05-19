@@ -24,7 +24,7 @@ export default {
         class="col span-12"
         :mode="mode"
         label="Readiness Check"
-        description="Containers will be removed from service endpoints when this check is failing.  Recommended."
+        :description="t('workload.container.healthcheck.readinessTip')"
       />
     </div>
     <hr />
@@ -34,16 +34,17 @@ export default {
         class="col span-12"
         :mode="mode"
         label="Liveness Check"
-        description="Containers will be restarted when this check is failing.  Not recommended for most uses."
+        :description="t('workload.container.healthcheck.livenessTip')"
       />
     </div>
     <hr />
-    <div class="row">
+    <div class="row mb-0">
       <Probe
         v-model="value.startupProbe"
         class="col span-12"
         :mode="mode"
         label="Startup Check"
+        :description="t('workload.container.healthcheck.startupTip')"
       />
     </div>
   </div>

@@ -179,9 +179,33 @@ export default {
 </script>
 
 <template>
-  <div @input="updateRow">
-    <div class="value-from">
-      <div>
+  <div class="row" @input="updateRow">
+    <div class="col span-5-of-23">
+      <LabeledSelect
+        ref="typeSelect"
+        v-model="type"
+        :multiple="false"
+        :options="typeOpts"
+        label="Type"
+        :mode="mode"
+        option-label="label"
+        @input="updateRow"
+      />
+    </div>
+    <template v-if="type === 'configMapKeyRef' || type === 'secretRef' || type === 'secretKeyRef'">
+      <div class="col span-5-of-23">
+        <LabeledSelect
+          v-model="referenced"
+          :options="sourceOptions"
+          :multiple="false"
+          label="Source"
+          option-label="metadata.name"
+          option-key
+          :mode="mode"
+          @input="updateRow"
+        />
+      </div>
+      <div class="col span-5-of-23">
         <LabeledSelect
           ref="typeSelect"
           v-model="type"
@@ -192,58 +216,52 @@ export default {
           @input="updateRow"
         />
       </div>
-      <template v-if="type === 'configMapKeyRef' || type === 'secretRef' || type === 'secretKeyRef'">
-        <div>
-          <LabeledSelect
-            v-model="referenced"
-            :options="sourceOptions"
-            :multiple="false"
-            option-label="metadata.name"
-            option-key
-            :mode="mode"
-            @input="updateRow"
-          />
-        </div>
-        <div>
-          <LabeledSelect
-            v-model="key"
-            :disabled="type==='secretRef'"
-            :options="keys"
-            :multiple="false"
-            :mode="mode"
-            @input="updateRow"
-          />
-        </div>
-      </template>
-      <template v-else-if="type==='resourceFieldRef'">
-        <div>
-          <LabeledInput v-model="refName" type="text" placeholder="e.g. my-container" :mode="mode" />
-        </div>
+    </template>
+    <template v-else-if="type==='resourceFieldRef'">
+      <div class="col span-5-of-23">
+        <LabeledInput v-model="refName" label="Source" placeholder="e.g. my-container" :mode="mode" />
+      </div>
 
-        <div>
-          <LabeledInput v-model="key" type="text" placeholder="e.g. requests.cpu" :mode="mode" />
-        </div>
-      </template>
-      <template v-else>
-        <div>
-          <LabeledInput v-model="fieldPath" type="text" placeholder="e.g. requests.cpu" :mode="mode" />
-        </div>
+      <div class="col span-5-of-23">
+        <LabeledInput v-model="key" label="Key" placeholder="e.g. requests.cpu" :mode="mode" />
+      </div>
+    </template>
+    <template v-else>
+      <div class="col span-5-of-23">
+        <LabeledInput v-model="fieldPath" label="Source" placeholder="e.g. requests.cpu" :mode="mode" />
+      </div>
 
-        <div>
-          <LabeledInput type="text" value="n/a" placeholder="e.g. requests.cpu" disabled :mode="mode" />
-        </div>
-      </template>
-      <div style="justify-self:center">
+      <div class="col span-5-of-23">
+        <LabeledInput value="n/a" label="Key" placeholder="e.g. requests.cpu" disabled :mode="mode" />
+      </div>
+    </template>
+    <div class="col span-1-of-23">
+      <div id="as">
         as
       </div>
-      <div>
-        <LabeledInput v-model="name" :mode="mode" />
-      </div>
-      <div>
-        <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link" @click="$emit('input', { value:null })">
-          remove
-        </button>
-      </div>
+    </div>
+    <div class="col span-5-of-23">
+      <LabeledInput v-model="name" label="Prefix or Alias" :mode="mode" />
+    </div>
+    <div class="col span-2-of-23">
+      <button v-if="mode!=='view'" id="remove" type="button" class="btn btn-sm role-link" @click="$emit('input', { value:null })">
+        remove
+      </button>
     </div>
   </div>
 </template>
+
+<style lang ="scss" scoped>
+  .row{
+    display: flex;
+    align-items: center;
+  }
+
+  #as {
+    text-align:center;
+  }
+  #remove{
+    padding: 0px;
+  }
+
+</style>

@@ -117,10 +117,10 @@ export default {
   <div @input="update">
     <div class="row">
       <div class="col span-4">
-        <LabeledInput v-model="name" :label="t('workload.container.name')" :mode="mode" />
+        <LabeledInput v-model="name" :label="t('workload.container.name')" :mode="mode" required />
       </div>
       <div class="col span-4">
-        <LabeledInput v-model="image" :label="t('workload.container.image')" :mode="mode" />
+        <LabeledInput v-model="image" :label="t('workload.container.image')" :mode="mode" required />
       </div>
       <div class="col span-4">
         <LabeledSelect
@@ -132,8 +132,10 @@ export default {
         />
       </div>
     </div>
-    <WorkloadPorts v-model="ports" :mode="mode" />
     <Tabbed class="contrast">
+      <Tab name="ports" label="Ports">
+        <WorkloadPorts v-model="ports" :mode="mode" />
+      </Tab>
       <Tab label="Command" name="command">
         <Command v-model="commandTab" :mode="mode" :secrets="secrets" :config-maps="configMaps" />
       </Tab>

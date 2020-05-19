@@ -23,7 +23,10 @@ export default {
   data() {
     const rows = clone(this.value || []);
 
-    return { rows };
+    // show host port column if existing port data has any host ports defined
+    const showHostPorts = !!rows.filter(row => !!row.hostPort).length;
+
+    return { rows, showHostPorts };
   },
 
   computed: {
@@ -70,7 +73,7 @@ export default {
       this.queueUpdate();
 
       this.$nextTick(() => {
-        const inputs = this.$refs.port;
+        const inputs = this.$refs.name;
 
         inputs[inputs.length - 1].focus();
       });
@@ -103,20 +106,19 @@ export default {
 
 <template>
   <div>
-    <div class="spacer"></div>
-    <div class="title clearfix">
-      <h3>Ports</h3>
-    </div>
-
     <table v-if="rows.length" class="fixed">
       <thead>
         <tr>
           <th v-if="padLeft" class="left"></th>
-          <th class="targetPort">
-            <t k="workload.container.ports.hostPort" />
+          <th class="portName">
+            <t k="workload.container.ports.name" />
           </th>
           <th class="port">
             <t k="workload.container.ports.containerPort" />
+            <span class="toggle-host-ports" @click="()=>showHostPorts=!showHostPorts">{{ showHostPorts ? 'Hide Host Ports' : 'Show Host Ports' }}</span>
+          </th>
+          <th v-if="showHostPorts" class="targetPort">
+            <t k="workload.container.ports.hostPort" />
           </th>
           <th class="protocol">
             <t k="workload.container.ports.protocol" />
@@ -130,16 +132,12 @@ export default {
           :key="idx"
         >
           <td v-if="padLeft" class="left"></td>
-          <td class="targetPort">
-            <span v-if="isView">{{ row.hostPort }}</span>
+          <td class="portName">
+            <span v-if="isView">{{ row.name }}</span>
             <input
               v-else
-              ref="port"
-              v-model.number="row.hostPort"
-              type="number"
-              min="1"
-              max="65535"
-              placeholder="e.g. 80"
+              ref="name"
+              v-model="row.name"
               @input="queueUpdate"
             />
           </td>
@@ -155,6 +153,19 @@ export default {
               @input="queueUpdate"
             />
           </td>
+          <td v-if="showHostPorts" class="targetPort">
+            <span v-if="isView">{{ row.hostPort }}</span>
+            <input
+              v-else
+              ref="port"
+              v-model.number="row.hostPort"
+              type="number"
+              min="1"
+              max="65535"
+              placeholder="e.g. 80"
+              @input="queueUpdate"
+            />
+          </td>
           <td class="protocol">
             <span v-if="isView">{{ row.protocol }}</span>
             <v-select
@@ -162,7 +173,7 @@ export default {
               v-model="row.protocol"
               :style="{'height':'50px'}"
               class="inline"
-              :options="['TCP', 'UDP']"
+              :options="['TCP', 'UDP', 'SCTP']"
               :searchable="false"
               @input="queueUpdate"
             />
@@ -197,6 +208,8 @@ export default {
 
   TABLE {
     width: 100%;
+        border-collapse: separate;
+    border-spacing: 5px 10px;
   }
 
   TH {
@@ -204,6 +217,20 @@ export default {
     font-size: 12px;
     font-weight: normal;
     color: var(--input-label);
+
+    &.port {
+      display: flex;
+      justify-content: space-between;
+
+      & .toggle-host-ports{
+        padding-right: 5px;
+        color: var(--primary)
+      }
+    }
+  }
+
+   TD {
+    padding-bottom: 10px;
   }
 
   .left {
@@ -219,6 +246,10 @@ export default {
     text-align: center;
   }
 
+  .targetPort{
+    width: 100px;
+  }
+
   .value {
     vertical-align: top;
   }
@@ -231,6 +262,7 @@ export default {
 
   .footer {
     margin-top: 10px;
+    margin-left: 5px;
 
     .protip {
       float: right;

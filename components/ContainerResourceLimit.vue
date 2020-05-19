@@ -142,57 +142,54 @@ export default {
         </p>
       </div>
     </div>
+
     <div class="row">
-      <div class="col span-12">
-        <div class="row">
-          <span class="col span-6">
-            <UnitInput
-              v-model="requestsCpu"
-              :suffix="t('suffix.cpus')"
-              :placeholder="t('containerResourceLimit.cpuPlaceholder')"
-              :label="t('containerResourceLimit.requestsCpu')"
-              :input-exponent="-1"
-              :mode="mode"
-              @input="updateLimits"
-            />
-          </span>
-          <span class="col span-6">
-            <UnitInput
-              v-model="requestsMemory"
-              :suffix="t('suffix.ib')"
-              :placeholder="t('containerResourceLimit.memPlaceholder')"
-              :label="t('containerResourceLimit.requestsMemory')"
-              :input-exponent="2"
-              :mode="mode"
-              @input="updateLimits"
-            />
-          </span>
-        </div>
-        <div class="row">
-          <span class="col span-6">
-            <UnitInput
-              v-model="limitsCpu"
-              :suffix="t('suffix.cpus')"
-              :placeholder="t('containerResourceLimit.cpuPlaceholder')"
-              :label="t('containerResourceLimit.limitsCpu')"
-              :input-exponent="-1"
-              :mode="mode"
-              @input="updateLimits"
-            />
-          </span>
-          <span class="col span-6">
-            <UnitInput
-              v-model="limitsMemory"
-              :suffix="t('suffix.ib')"
-              :placeholder="t('containerResourceLimit.memPlaceholder')"
-              :label="t('containerResourceLimit.limitsMemory')"
-              :input-exponent="2"
-              :mode="mode"
-              @input="updateLimits"
-            />
-          </span>
-        </div>
-      </div>
+      <span class="col span-6">
+        <UnitInput
+          v-model="requestsCpu"
+          :suffix="t('suffix.cpus')"
+          :placeholder="t('containerResourceLimit.cpuPlaceholder')"
+          :label="t('containerResourceLimit.requestsCpu')"
+          :input-exponent="-1"
+          :mode="mode"
+          @input="updateLimits"
+        />
+      </span>
+      <span class="col span-6">
+        <UnitInput
+          v-model="requestsMemory"
+          :suffix="t('suffix.ib')"
+          :placeholder="t('containerResourceLimit.memPlaceholder')"
+          :label="t('containerResourceLimit.requestsMemory')"
+          :input-exponent="2"
+          :mode="mode"
+          @input="updateLimits"
+        />
+      </span>
+    </div>
+    <div class="row mb-0">
+      <span class="col span-6">
+        <UnitInput
+          v-model="limitsCpu"
+          :suffix="t('suffix.cpus')"
+          :placeholder="t('containerResourceLimit.cpuPlaceholder')"
+          :label="t('containerResourceLimit.limitsCpu')"
+          :input-exponent="-1"
+          :mode="mode"
+          @input="updateLimits"
+        />
+      </span>
+      <span class="col span-6">
+        <UnitInput
+          v-model="limitsMemory"
+          :suffix="t('suffix.ib')"
+          :placeholder="t('containerResourceLimit.memPlaceholder')"
+          :label="t('containerResourceLimit.limitsMemory')"
+          :input-exponent="2"
+          :mode="mode"
+          @input="updateLimits"
+        />
+      </span>
     </div>
   </div>
 </template>

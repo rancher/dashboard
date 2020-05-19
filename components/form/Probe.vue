@@ -154,9 +154,9 @@ export default {
         <i v-if="description" v-tooltip="description" class="icon icon-info" style="font-size: 12px" />
       </h4>
     </div>
-    <div class="row">
+    <div class="row mb-0">
       <div class="col span-11-of-23">
-        <div class="row">
+        <div class="row" :class="{'mb-0':!kind||kind==='none'}">
           <div class="col span-12">
             <LabeledSelect
               v-model="kind"
@@ -183,28 +183,13 @@ export default {
             </div>
           </div>
 
-          <div class="row">
+          <div class="row mb-0">
             <div class="col span-12">
               <LabeledInput
                 v-model="httpGet.path"
                 :mode="mode"
                 :label="t('workload.container.healthcheck.httpGet.path')"
                 placeholder="e.g. /healthz"
-              />
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col span-12">
-              <KeyValue
-                v-model="httpGet.headers"
-                key-name="name"
-                :mode="mode"
-                :pad-left="false"
-                :as-map="false"
-                :read-allowed="false"
-                :title="t('workload.container.healthcheck.httpGet.headers')"
-                key-label="Name"
               />
             </div>
           </div>
@@ -236,7 +221,7 @@ export default {
       </div>
 
       <div class="col span-1-of-13">
-        <hr :style="{'position':'relative', 'margin':'0px'}" class="vertical" />
+        <hr v-if="kind && kind!=='none'" :style="{'position':'relative', 'margin':'0px'}" class="vertical" />
       </div>
 
       <div v-if="!isNone" class="col span-11-of-23">
@@ -291,6 +276,20 @@ export default {
               :mode="mode"
               :label="t('workload.container.healthcheck.failureThreshold')"
               placeholder="Default: 3"
+            />
+          </div>
+        </div>
+        <div class="row mb-0">
+          <div class="col span-12">
+            <KeyValue
+              v-model="httpGet.headers"
+              key-name="name"
+              :mode="mode"
+              :pad-left="false"
+              :as-map="false"
+              :read-allowed="false"
+              :title="t('workload.container.healthcheck.httpGet.headers')"
+              key-label="Name"
             />
           </div>
         </div>

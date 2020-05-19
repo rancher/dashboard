@@ -188,10 +188,6 @@ export default {
         </div>
       </div>
     </div>
-    <div class="row">
-    </div>
-
-    <div class="spacer"></div>
 
     <KeyValue
       key="env"

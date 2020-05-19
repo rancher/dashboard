@@ -463,6 +463,7 @@ workload:
       containerPort: Private Container Port
       hostPort: Public Host Port
       protocol: Protocol
+      name: Name
     command:
       command: Entrypoint
       args: Arguments
@@ -475,6 +476,7 @@ workload:
       startupProbe: Startup Probe
       livenessTip: Containers will be restarted when this check is failing.  Not recommended for most uses.
       readinessTip: Containers will be removed from service endpoints when this check is failing.  Recommended.
+      startupTip: Containers will wait until this check succeeds before attempting other health checks.
       checkInterval: Check Interval
       successThreshold: Success Threshold
       failureThreshold: Failure Threshold

@@ -187,6 +187,26 @@ export default {
       return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.value.metadata.namespace }-${ this.value.metadata.name }` };
     },
 
+    namespacedSecrets() {
+      const namespace = this.value?.metadata?.namespace;
+
+      if (namespace) {
+        return this.allSecrets.filter(secret => secret.metadata.namespace === namespace);
+      } else {
+        return this.allSecrets;
+      }
+    },
+
+    namespacedConfigMaps() {
+      const namespace = this.value?.metadata?.namespace;
+
+      if (namespace) {
+        return this.allConfigMaps.filter(configMap => configMap.metadata.namespace === namespace);
+      } else {
+        return this.allConfigMaps;
+      }
+    },
+
   },
 
   watch: {
@@ -242,7 +262,7 @@ export default {
       }
       delete this.value.kind;
       this.save(cb);
-    }
+    },
   },
 };
 </script>
@@ -288,10 +308,17 @@ export default {
                   remove
                 </button>
               </div>
-              <Container :value="container" :mode="mode" :config-maps="allConfigMaps" :secrets="allSecrets" @input="e=>containers[i]=e" />
+              <Container
+                :ref="`container-${i}`"
+                :value="container"
+                :mode="mode"
+                :config-maps="namespacedConfigMaps"
+                :secrets="namespacedSecrets"
+                @input="e=>containers[i]=e"
+              />
               <hr v-if="i<containers.length-1" class="mb-20 mt-20">
             </div>
-            <button :mode="mode" class="btn role-primary mt-20" @click="e=>containers.push({_key:Math.random()})">
+            <button :mode="mode" class="btn role-primary mt-20" @click="e=>containers.push({ _key: Math.random() })">
               Add Container
             </button>
           </div>

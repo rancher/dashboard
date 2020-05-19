@@ -96,23 +96,23 @@ export default {
   <div @input="update">
     <div class="row mb-20">
       <div class="col span-6">
-        <h3>
+        <h4>
           <t k="workload.container.security.privileged" />
-        </h3>
+        </h4>
         <RadioGroup v-model="privileged" :options="[false,true]" :labels="['No', 'Yes: container has full access to the host']" :mode="mode" />
       </div>
       <div class="col span-6">
-        <h3>
+        <h4>
           <t k="workload.container.security.allowPrivilegeEscalation" />
-        </h3>
+        </h4>
         <RadioGroup v-model="allowPrivilegeEscalation" :disabled="privileged" :options="[false,true]" :labels="['No', 'Yes: container can gain more privileges than its parent process']" :mode="mode" />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <h3>
+        <h4>
           <t k="workload.container.security.runAsNonRoot" />
-        </h3>
+        </h4>
         <RadioGroup
           :value="!runAsRoot"
           :options="[false, true]"
@@ -122,9 +122,9 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <h3>
+        <h4>
           <t k="workload.container.security.readOnlyRootFilesystem" />
-        </h3>
+        </h4>
         <RadioGroup v-model="readOnlyRootFilesystem" :options="[false, true]" :labels="['No', 'Yes: container has a read-only root filesystem']" :mode="mode" />
       </div>
     </div>
@@ -133,7 +133,7 @@ export default {
         <LabeledInput v-model.number="runAsUser" :label="t('workload.container.security.runAsUser')" :mode="mode" />
       </div>
     </div>
-    <div class="row mb-20">
+    <div class="row mb-0">
       <div class="col span-6">
         <label><t k="workload.container.security.addCapabilities" /></label>
         <v-select
