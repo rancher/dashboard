@@ -3,13 +3,25 @@ import { AGE, NAME, STATE } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { findAllConstraints } from '@/utils/gatekeeper/util';
+import Masthead from '@/components/ResourceList/Masthead';
+import { AS_YAML, _FLAGGED } from '@/config/query-params';
 
 export default {
-  components: { SortableTable },
+  components: { Masthead, SortableTable },
   data(ctx) {
-    const createUrl = this.$router.resolve({ name: 'c-cluster-gatekeeper-constraints-create', params: this.$route.params }).href;
+    const createLocation = {
+      name:   'c-cluster-gatekeeper-constraints-create',
+      params: this.$route.params,
+    };
+
+    const yamlCreateLocation = {
+      ...createLocation,
+      query: { [AS_YAML]: _FLAGGED }
+    };
 
     return {
+      createLocation,
+      yamlCreateLocation,
       headers: [
         STATE,
         NAME,
@@ -30,7 +42,6 @@ export default {
       ],
       templates:   [],
       constraints: [],
-      createUrl
     };
   },
 
@@ -51,21 +62,21 @@ export default {
 
 <template>
   <div class="gatekeeper-constraints">
-    <header>
-      <h1>Constraints</h1>
-    </header>
+    <Masthead
+      resource="gatekeeper-constraint"
+      :type-display="'Constraint'"
+      :is-yaml-creatable="true"
+      :is-creatable="true"
+      :yaml-create-location="yamlCreateLocation"
+      :create-location="createLocation"
+    />
+
     <SortableTable
       :headers="headers"
       :rows="constraints"
       key-field="id"
       group-by="kind"
-    >
-      <template v-slot:header-end>
-        <nuxt-link :to="createUrl" append tag="button" type="button" class="create btn bg-primary">
-          Create
-        </nuxt-link>
-      </template>
-    </SortableTable>
+    />
   </div>
 </template>
 

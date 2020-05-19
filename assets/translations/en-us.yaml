@@ -417,3 +417,9 @@ resourceYaml:
   buttons:
     continue: Continue Editing
     diff: Show Diff
+    
+resourceList:
+  head:
+    create: Create
+    createFromYaml: Create from YAML
+

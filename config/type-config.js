@@ -43,8 +43,8 @@ export default function(store) {
     NODE,
     'workload',
     'gatekeeper',
-    'gatekeeper-constraints',
-    'gatekeeper-templates',
+    'gatekeeper-constraint',
+    'gatekeeper-template',
   ]);
 
   mapTypeToComponentName(/^constraints.gatekeeper.sh.*$/, 'gatekeeper-constraint');
@@ -245,7 +245,7 @@ export default function(store) {
   virtualType({
     label:      'Constraint',
     namespaced: false,
-    name:       'gatekeeper-constraints',
+    name:       'gatekeeper-constraint',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-constraints' },
     ifHaveType: GATEKEEPER_CONSTRAINT_TEMPLATE
@@ -254,7 +254,7 @@ export default function(store) {
   virtualType({
     label:      'Template',
     namespaced: false,
-    name:       'gatekeeper-templates',
+    name:       'gatekeeper-template',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-templates' },
     ifHaveType: GATEKEEPER_CONSTRAINT_TEMPLATE
