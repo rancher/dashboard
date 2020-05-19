@@ -48,7 +48,7 @@ export default {
 
 <template>
   <div>
-    <div class="row text-warning" :class="{'pl-10': isView}">
+    <div class="banner bg-warning">
       Warning: Default backend is used globally for the entire cluster.
     </div>
     <div class="row">
