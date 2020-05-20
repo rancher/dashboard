@@ -582,11 +582,10 @@ export default {
   save() {
     return async(opt = {}) => {
       delete this.__rehydrate;
+      const forNew = !this.id;
 
       if ( !opt.url ) {
-        if (this.id) {
-          opt.url = this.linkFor('update') || this.linkFor('self');
-        } else {
+        if ( forNew ) {
           const schema = this.$getters['schemaFor'](this.type);
           let url = schema.linkFor('collection');
 
@@ -595,11 +594,13 @@ export default {
           }
 
           opt.url = url;
+        } else {
+          opt.url = this.linkFor('update') || this.linkFor('self');
         }
       }
 
       if ( !opt.method ) {
-        opt.method = (this.id ? 'put' : 'post');
+        opt.method = ( forNew ? 'post' : 'put' );
       }
 
       if ( !opt.headers ) {
@@ -624,7 +625,11 @@ export default {
       const res = await this.$dispatch('request', opt);
 
       // console.log('### Resource Save', this.type, this.id);
-      await this.$dispatch('load', { data: res, existing: this });
+
+      // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
+      if ( res && res.kind !== 'Table') {
+        await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
+      }
 
       return this;
     };

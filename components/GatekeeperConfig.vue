@@ -445,29 +445,6 @@ export default {
   }
 }
 
-h1 {
-  .flag {
-    text-align: center;
-    display: inline-block;
-    vertical-align: middle;
-    background: var(--warning);
-    font-size: 10px;
-    padding: 0 0 0 10px;
-    border-radius: 2px 0 0 2px;
-
-    &:after {
-      content: "";
-      display: inline-block;
-      vertical-align: middle;
-      position: relative;
-      right: -10px;
-      height: 100%;
-      border-width: 10px;
-      border-style: solid;
-      border-color: var(--warning) transparent var(--warning) var(--warning);
-    }
-  }
-}
  article {
    font-size: .8em;
    &.info {

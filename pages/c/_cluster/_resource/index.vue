@@ -63,7 +63,7 @@ export default {
     },
 
     isCreatable() {
-      if (this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+      if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
         return false;
       }
 

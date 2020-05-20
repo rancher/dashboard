@@ -104,7 +104,7 @@ export default {
     <div class="row">
       <div class="col span-3">
         <LabeledSelect
-          v-model="perPage"
+          v-model.number="perPage"
           label="Table Rows per Page"
           :options="perPageOptions"
           placeholder="Select a row count"
