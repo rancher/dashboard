@@ -121,8 +121,8 @@ export default {
       :type-display="typeDisplay"
       :is-yaml-creatable="schema && isCreatable"
       :is-creatable="hasEditComponent && isCreatable"
-      :yaml-create-location="{path: yamlRoute}"
-      :create-location="{path: formRoute}"
+      :yaml-create-location="yamlRoute"
+      :create-location="formRoute"
     />
 
     <div v-if="hasListComponent">
