@@ -35,7 +35,7 @@ function load(state, { data, ctx, existing }) {
 
   let entry;
 
-  if ( existing ) {
+  if ( existing && !existing.id ) {
     // A specific proxy instance to used was passed in (for create -> save),
     // use it instead of making a new proxy
     entry = existing;

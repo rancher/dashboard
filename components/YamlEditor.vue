@@ -55,7 +55,25 @@ export default {
         mode:            'yaml',
         lint:            true,
         lineNumbers:     !readOnly,
-        extraKeys:       { 'Ctrl-Space': 'autocomplete' },
+        extraKeys:       {
+          'Ctrl-Space': 'autocomplete',
+
+          Tab: (cm) => {
+            if (cm.somethingSelected()) {
+              cm.indentSelection('add');
+
+              return;
+            }
+
+            cm.execCommand('insertSoftTab');
+          },
+
+          'Shift-Tab': (cm) => {
+            cm.indentSelection('subtract');
+          }
+        },
+        tabSize:         2,
+        indentWithTabs:  false,
         cursorBlinkRate: ( readOnly ? -1 : 530 )
       };
     },
