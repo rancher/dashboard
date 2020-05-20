@@ -41,7 +41,7 @@ export default {
       }
 
       if (barPercentage <= 0.8) {
-        return 'bg-info';
+        return 'bg-warning';
       }
 
       return 'bg-error';

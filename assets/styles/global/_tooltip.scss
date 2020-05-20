@@ -101,7 +101,13 @@
   .popover-arrow {
     border-color: $color;
   }
+}
 
+.v-popover {
+  display: inline;
+}
+
+.tooltip, .popover {
   &[aria-hidden='true'] {
     visibility: hidden;
     opacity: 0;
@@ -113,8 +119,4 @@
     opacity: 1;
     transition: opacity .15s;
   }
-}
-
-.v-popover {
-  display: inline;
 }

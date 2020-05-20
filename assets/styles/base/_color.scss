@@ -14,6 +14,7 @@
     $default-text: get-or-def($color, "default-text", contrast-color($default));
     $hover-text:   get-or-def($color, "hover-text",   saturate($link, 20%));
     $active-text:  get-or-def($color, "active-text",  contrast-color($active-bg));
+    $border:       get-or-def($color, "border",       $color);
 
     --#{$name}:             #{$default};
     --#{$name}-text:        #{$default-text};
@@ -21,6 +22,7 @@
     --#{$name}-hover-text:  #{$hover-text};
     --#{$name}-active-bg:   #{$active-bg};
     --#{$name}-active-text: #{$active-text};
+    --#{$name}-border:      #{$border};
 
     @if $write-classes {
       .text-#{$name} {
@@ -47,6 +49,10 @@
           color: var(--#{$name}-active-text);
           background: var(--#{$name}-active-bg);
         }
+      }
+
+      .border-#{name} {
+        border-color: var(--#{$name}-border);
       }
     }
   }
