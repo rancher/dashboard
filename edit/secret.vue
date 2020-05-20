@@ -62,7 +62,8 @@ export default {
     }
 
     if (this.value._type === TLS) {
-      key = base64Decode((this.value.data || {})['tls.key']);
+      // do not show existing key when editing
+      key = this.mode === 'edit' ? '' : base64Decode((this.value.data || {})['tls.key']);
 
       crt = base64Decode((this.value.data || {})['tls.crt']);
     }
@@ -144,6 +145,7 @@ export default {
       } else if (this.isCertificate) {
         let keyToSave;
 
+        // use preexisting key if no new one was provided while editing
         if (this.mode === 'edit' && !this.key.length) {
           keyToSave = (this.value.data || {})['tls.key'];
         } else {
