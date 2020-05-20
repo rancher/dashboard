@@ -209,9 +209,10 @@ export default {
           });
         }
 
-        if (res) {
-          await this.$store.dispatch('cluster/load', { data: res, existing: this.value });
+        if ( res && res.kind !== 'Table') {
+          await this.$store.dispatch('cluster/load', { data: res, existing: (this.isCreate ? this.value : undefined) });
         }
+
         buttonDone(true);
         this.done();
       } catch (err) {
