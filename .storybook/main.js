@@ -29,11 +29,21 @@ module.exports = {
     // You can change the configuration based on that.
     // 'PRODUCTION' is used when building the static version of storybook.
 
+    const sassLerder = {
+      loader: 'sass-loader',
+      options: {
+        prependData: `
+          @import '~assets/styles/base/_variables.scss';
+          @import '~assets/styles/base/_functions.scss';
+          @import '~assets/styles/base/_mixins.scss'; `,
+      },
+    }
+
     // Make whatever fine-grained changes you need
     const extraRules = [
       {
         test: /\.s?css$/,
-        loaders: ['style-loader', 'css-loader', 'sass-loader'],
+        loaders: ['style-loader', 'css-loader', sassLerder],
         include: path.resolve(__dirname, '../')
       },
       {
