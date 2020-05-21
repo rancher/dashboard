@@ -1,3 +1,4 @@
+import r from 'jsrsasign';
 import { KUBERNETES } from '@/config/labels-annotations';
 import { base64Decode } from '@/utils/crypto';
 
@@ -64,6 +65,23 @@ export default {
           return out.join(', ');
         } catch (e) {
           return decodedJSON;
+        }
+      }
+    } else if (this._type === TLS) {
+      const pem = base64Decode(this.data['tls.crt']);
+
+      if (pem) {
+        try {
+          const x = new r.X509();
+
+          x.readCertPEM(pem);
+          const issuerString = x.getIssuerString();
+          const issuer = issuerString.slice(issuerString.indexOf('CN=') + 3);
+          const notAfter = r.zulutodate(x.getNotAfter());
+
+          return { issuer, notAfter };
+        } catch {
+          return this.keysDisplay;
         }
       }
     } else {
