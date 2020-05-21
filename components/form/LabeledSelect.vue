@@ -219,6 +219,10 @@ export default {
 
   .selected {
     padding-top: 17px;
+    &.no-label{
+      position: relative;
+      top:-7px;
+      }
   }
 
   &.focused .vs__dropdown-menu {
@@ -253,9 +257,6 @@ export default {
     .selected{
       position:relative;
       top: 1.4em;
-      &.no-label{
-        top:7px;
-      }
     }
   }
 }
