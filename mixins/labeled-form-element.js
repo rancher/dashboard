@@ -11,7 +11,7 @@ export default {
 
     label: {
       type:     String,
-      default: ''
+      default: null
     },
 
     required: {

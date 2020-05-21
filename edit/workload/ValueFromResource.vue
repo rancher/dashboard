@@ -179,79 +179,71 @@ export default {
 </script>
 
 <template>
-  <div class="row" @input="updateRow">
-    <div class="col span-2">
-      <LabeledSelect
-        ref="typeSelect"
-        v-model="type"
-        :multiple="false"
-        :options="typeOpts"
-        label="Type"
-        :mode="mode"
-        option-label="label"
-        @input="updateRow"
-      />
-    </div>
-    <template v-if="type === 'configMapKeyRef' || type === 'secretRef' || type === 'secretKeyRef'">
-      <div class="col span-3">
+  <div @input="updateRow">
+    <div class="value-from">
+      <div>
         <LabeledSelect
-          v-model="referenced"
-          :options="sourceOptions"
+          ref="typeSelect"
+          v-model="type"
           :multiple="false"
-          label="Source"
-          option-label="metadata.name"
-          option-key
+          :options="typeOpts"
           :mode="mode"
+          option-label="label"
           @input="updateRow"
         />
       </div>
-      <div class="col span-3">
-        <LabeledSelect
-          v-model="key"
-          :disabled="type==='secretRef'"
-          :options="keys"
-          :multiple="false"
-          label="Key"
-          :mode="mode"
-          @input="updateRow"
-        />
-      </div>
-    </template>
-    <template v-else-if="type==='resourceFieldRef'">
-      <div class="col span-3">
-        <LabeledInput v-model="refName" label="Source" placeholder="e.g. my-container" :mode="mode" />
-      </div>
+      <template v-if="type === 'configMapKeyRef' || type === 'secretRef' || type === 'secretKeyRef'">
+        <div>
+          <LabeledSelect
+            v-model="referenced"
+            :options="sourceOptions"
+            :multiple="false"
+            option-label="metadata.name"
+            option-key
+            :mode="mode"
+            @input="updateRow"
+          />
+        </div>
+        <div>
+          <LabeledSelect
+            v-model="key"
+            :disabled="type==='secretRef'"
+            :options="keys"
+            :multiple="false"
+            :mode="mode"
+            @input="updateRow"
+          />
+        </div>
+      </template>
+      <template v-else-if="type==='resourceFieldRef'">
+        <div>
+          <LabeledInput v-model="refName" type="text" placeholder="e.g. my-container" :mode="mode" />
+        </div>
 
-      <div class="col span-3">
-        <LabeledInput v-model="key" label="Key" placeholder="e.g. requests.cpu" :mode="mode" />
-      </div>
-    </template>
-    <template v-else>
-      <div class="col span-3">
-        <LabeledInput v-model="fieldPath" label="Source" placeholder="e.g. requests.cpu" :mode="mode" />
-      </div>
+        <div>
+          <LabeledInput v-model="key" type="text" placeholder="e.g. requests.cpu" :mode="mode" />
+        </div>
+      </template>
+      <template v-else>
+        <div>
+          <LabeledInput v-model="fieldPath" type="text" placeholder="e.g. requests.cpu" :mode="mode" />
+        </div>
 
-      <div class="col span-3">
-        <LabeledInput value="n/a" label="Key" placeholder="e.g. requests.cpu" disabled :mode="mode" />
+        <div>
+          <LabeledInput type="text" value="n/a" placeholder="e.g. requests.cpu" disabled :mode="mode" />
+        </div>
+      </template>
+      <div style="justify-self:center">
+        as
       </div>
-    </template>
-    <div class="col">
-      as
-    </div>
-    <div class="col span-3">
-      <LabeledInput v-model="name" label="Prefix or Alias" :mode="mode" />
-    </div>
-    <div class="col span-1">
-      <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link" @click="$emit('input', { value:null })">
-        remove
-      </button>
+      <div>
+        <LabeledInput v-model="name" :mode="mode" />
+      </div>
+      <div>
+        <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link" @click="$emit('input', { value:null })">
+          remove
+        </button>
+      </div>
     </div>
   </div>
 </template>
-
-<style lang ="scss" scoped>
-  .row{
-    display: flex;
-    align-items: center;
-  }
-</style>

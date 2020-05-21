@@ -119,7 +119,6 @@ export default {
         </div>
         <LabeledSelect
           v-model="rule.operator"
-          class=""
           :options="ops"
           :mode="mode"
           @input="update"
@@ -179,6 +178,6 @@ export default {
   }
 
   .remove-rule-button{
-    justify-content:center;
+    align-self:center;
   }
 </style>

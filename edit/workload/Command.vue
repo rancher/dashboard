@@ -219,6 +219,13 @@ export default {
         </span>
       </template>
     </KeyValue>
+    <div v-if="referencedValues.length" class="value-from headers">
+      <span>Type</span>
+      <span>Source</span>
+      <span>Key</span>
+      <span />
+      <span>Prefix or Alias</span>
+    </div>
     <ValueFromResource
       v-for="(val,i) in referencedValues"
       ref="referenced"
@@ -234,3 +241,29 @@ export default {
     </button>
   </div>
 </template>
+
+<style lang='scss'>
+  .value-from {
+    display:grid;
+    grid-template-columns: 20% 25% 25% 5% 15% auto;
+    grid-column-gap:10px;
+    margin-bottom:10px;
+
+    &.headers>* {
+      padding:0px 10px 0px 10px;
+      color: var(--input-label);
+      align-self: end;
+    }
+    & :not(.headers){
+      align-self:center;
+    }
+
+    & .labeled-input.create INPUT[type='text']{
+      padding: 9px 0px 9px 0px !important
+    }
+
+    & BUTTON{
+      padding:0px;
+    }
+  }
+</style>
