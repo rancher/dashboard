@@ -56,7 +56,7 @@ export default {
     <DetailTop :columns="detailTopColumns" />
     <ResourceTabs v-model="value" mode="view">
       <template #before>
-        <Tab label="Conditions" name="conditions">
+        <Tab v-if="!!(value.status||{}).conditions" label="Conditions" name="conditions">
           <Conditions v-model="value" />
         </Tab>
         <Tab label="Owner References" name="ownerReferences">
