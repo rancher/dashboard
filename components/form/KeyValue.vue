@@ -364,6 +364,7 @@ export default {
       :search="false"
       :table-actions="false"
       :row-actions="false"
+      :show-no-rows="isView"
       key-field="id"
     >
       <template #col:key="{row}">

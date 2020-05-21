@@ -198,6 +198,14 @@ export default {
     },
 
     /**
+     * Allows you to hide the no rows messaging.
+     */
+    showNoRows: {
+      type:    Boolean,
+      default: true
+    },
+
+    /**
      * Allows you to override the default translation text of no search data view
      */
     noDataKey: {
@@ -383,7 +391,7 @@ export default {
         <slot name="no-rows">
           <tr>
             <td :colspan="fullColspan" class="no-rows">
-              <t :k="noRowsKey" />
+              <t v-if="showNoRows" :k="noRowsKey" />
             </td>
           </tr>
         </slot>
