@@ -68,22 +68,7 @@ export default {
         }
       }
     } else if (this._type === TLS) {
-      const pem = base64Decode(this.data['tls.crt']);
-
-      if (pem) {
-        try {
-          const x = new r.X509();
-
-          x.readCertPEM(pem);
-          const issuerString = x.getIssuerString();
-          const issuer = issuerString.slice(issuerString.indexOf('CN=') + 3);
-          const notAfter = r.zulutodate(x.getNotAfter());
-
-          return { issuer, notAfter };
-        } catch {
-          return this.keysDisplay;
-        }
-      }
+      return this.certInfo || this.keysDisplay;
     } else {
       return this.keysDisplay;
     }
@@ -126,4 +111,24 @@ export default {
 
     return null;
   },
+
+  // parse TLS certs and return issuer, notAfter
+  certInfo() {
+    const pem = base64Decode(this.data['tls.crt']);
+
+    if (pem) {
+      try {
+        const x = new r.X509();
+
+        x.readCertPEM(pem);
+        const issuerString = x.getIssuerString();
+        const issuer = issuerString.slice(issuerString.indexOf('CN=') + 3);
+        const notAfter = r.zulutodate(x.getNotAfter());
+
+        return { issuer, notAfter };
+      } catch {
+        return null;
+      }
+    }
+  }
 };

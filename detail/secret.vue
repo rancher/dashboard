@@ -8,13 +8,15 @@ import { base64Decode } from '@/utils/crypto';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import KeyValue from '@/components/form/KeyValue';
+import Date from '@/components/formatter/Date';
 
 export default {
   components: {
     DetailTop,
     SortableTable,
     ResourceTabs,
-    KeyValue
+    KeyValue,
+    Date
   },
   mixins:     [CreateEditView],
   props:      {
@@ -75,7 +77,21 @@ export default {
     issuer() {
       const { metadata:{ annotations = {} } } = this.value;
 
-      return annotations[CERTMANAGER.ISSUER];
+      if (annotations[CERTMANAGER.ISSUER]) {
+        return annotations[CERTMANAGER.ISSUER];
+      } else if (this.isCertificate) {
+        return this.value.certInfo?.issuer;
+      } else {
+        return null;
+      }
+    },
+
+    notAfter() {
+      if (this.isCertificate) {
+        return this.value.certInfo?.notAfter;
+      } else {
+        return null;
+      }
     },
 
     description() {
@@ -97,6 +113,10 @@ export default {
           title:   'Issuer',
           content: this.issuer
         });
+      }
+
+      if (this.notAfter) {
+        columns.push({ name: 'notAfter', title: 'Expires' });
       }
 
       return columns;
@@ -153,7 +173,11 @@ export default {
 
 <template>
   <div>
-    <DetailTop :columns="detailTopColumns" />
+    <DetailTop :columns="detailTopColumns">
+      <template v-if="notAfter" #notAfter>
+        <Date :value="notAfter" />
+      </template>
+    </DetailTop>
     <template v-if="isRegistry">
       <SortableTable
         class="mt-20"
