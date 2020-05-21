@@ -1,8 +1,7 @@
 <script>
-import Date from '@/components/formatter/Date';
-
+import DateComponent from '@/components/formatter/Date';
 export default {
-  components: { Date },
+  components: { DateComponent },
   props:      {
     value: {
       type:     [Object, String],
@@ -16,13 +15,27 @@ export default {
 
   data() {
     if (this.value.issuer) {
-      const { issuer, notAfter } = this.value;
+      const { cn, notAfter, sans = [] } = this.value;
 
       return {
-        issuer, expiration: notAfter, isTLS:      true
+        cn, expiration: notAfter, sans, isTLS:      true
       };
     } else {
       return { isTLS: false };
+    }
+  },
+  computed: {
+    // use 'text-warning' or 'text-error' classes if the cert is <8 days from expiring or expired respectively
+    dateClass() {
+      const eightDays = 691200000;
+
+      if (this.row.timeTilExpiration > eightDays ) {
+        return '';
+      } else if (this.row.timeTilExpiration > 0) {
+        return 'text-warning';
+      } else {
+        return 'text-error';
+      }
     }
   }
 };
@@ -30,8 +43,8 @@ export default {
 
 <template>
   <div v-if="isTLS">
-    <t k="secret.certificate.issuer" />: {{ issuer }} <br />
-    <t k="secret.certificate.expires" />: <Date :value="expiration" />
+    <t k="secret.certificate.cn" /> {{ cn }} <span v-if="row.unrepeatedSans.length">{{ t('secret.certificate.plusMore', {n:row.unrepeatedSans.length}) }}</span><br />
+    <t k="secret.certificate.expires" />: <DateComponent :class="dateClass" :value="expiration" />
   </div>
   <div v-else>
     {{ value }}

@@ -432,6 +432,8 @@ secret:
       privateKey: Private Key
       caCertificate: CA Certificate
       readFromFile: Read from File
+      cn: Domain Name
+      plusMore: + {n} more
   registry:
     address: Address
     username: Username

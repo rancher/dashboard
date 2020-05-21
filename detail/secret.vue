@@ -94,6 +94,40 @@ export default {
       }
     },
 
+    cn() {
+      if (this.isCertificate) {
+        return this.value.certInfo.cn;
+      }
+
+      return null;
+    },
+
+    // show plus n more for cert names
+    plusMoreNames() {
+      if (this.isCertificate) {
+        return this.value.unrepeatedSans.length;
+      }
+
+      return null;
+    },
+
+    // use text-warning' or 'text-error' if cert is expiring within 8 days or is expired
+    dateClass() {
+      if (this.isCertificate) {
+        const eightDays = 691200000;
+
+        if (this.value.timeTilExpiration > eightDays ) {
+          return '';
+        } else if (this.value.timeTilExpiration > 0) {
+          return 'text-warning';
+        } else {
+          return 'text-error';
+        }
+      }
+
+      return null;
+    },
+
     description() {
       const { metadata:{ annotations = {} } } = this.value;
 
@@ -101,16 +135,25 @@ export default {
     },
 
     detailTopColumns() {
+      const t = this.$store.getters['i18n/t'];
+
       const columns = [
         {
-          title:   'Type',
+          title:   t('secret.type'),
           content: this.value.typeDisplay
         }
       ];
 
+      if (this.cn) {
+        columns.push({
+          title:   t('secret.certificate.cn'),
+          content: this.plusMoreNames ? `${ this.cn } ${ t('secret.certificate.plusMore', { n: this.plusMoreNames }) }` : this.cn
+        });
+      }
+
       if (this.issuer) {
         columns.push({
-          title:   'Issuer',
+          title:   t('secret.certificate.issuer'),
           content: this.issuer
         });
       }
@@ -175,7 +218,7 @@ export default {
   <div>
     <DetailTop :columns="detailTopColumns">
       <template v-if="notAfter" #notAfter>
-        <Date :value="notAfter" />
+        <Date :class="dateClass" :value="notAfter" />
       </template>
     </DetailTop>
     <template v-if="isRegistry">
