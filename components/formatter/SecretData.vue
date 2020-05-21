@@ -30,8 +30,8 @@ export default {
 
 <template>
   <div v-if="isTLS">
-    Issuer: {{ issuer }} <br />
-    Expires: <Date :value="expiration" />
+    <t k="secret.certificate.issuer" />: {{ issuer }} <br />
+    <t k="secret.certificate.expires" />: <Date :value="expiration" />
   </div>
   <div v-else>
     {{ value }}
