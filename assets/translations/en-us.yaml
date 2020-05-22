@@ -423,3 +423,19 @@ resourceList:
     create: Create
     createFromYaml: Create from YAML
 
+secret:
+  type: Type
+  data: Data
+  certificate:
+      issuer: Issuer
+      expires: Expires
+      privateKey: Private Key
+      caCertificate: CA Certificate
+      readFromFile: Read from File
+      cn: Domain Name
+      plusMore: + {n} more
+  registry:
+    address: Address
+    username: Username
+    password: Password
+    domainName: Registry Domain Name

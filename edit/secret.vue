@@ -199,7 +199,7 @@ export default {
       <template v-slot:type>
         <LabeledSelect
           v-model="value._type"
-          label="Type"
+          :label="t('secret.type')"
           :options="types"
           :mode="mode"
           :disabled="mode!=='create'"
@@ -215,14 +215,14 @@ export default {
         <RadioGroup :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row">
-        <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" :mode="mode" />
+        <LabeledInput v-model="registryFQDN" :label="t('secret.registry.domainName')" placeholder="e.g. index.docker.io" :mode="mode" />
       </div>
       <div class="row">
         <div class="col span-6">
-          <LabeledInput v-model="username" label="Username" :mode="mode" />
+          <LabeledInput v-model="username" :label="t('secret.registry.username')" :mode="mode" />
         </div>
         <div class="col span-6">
-          <LabeledInput v-model="password" label="Password" :mode="mode" type="password" />
+          <LabeledInput v-model="password" :label="t('secret.registry.password')" :mode="mode" type="password" />
         </div>
       </div>
     </template>
@@ -232,18 +232,18 @@ export default {
         <LabeledInput
           v-model="key"
           type="multiline"
-          label="Private Key"
+          :label="t('secret.certificate.privateKey')"
           :mode="mode"
           placeholder="Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
         />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('key')">
-          Read from file
+          <t k="secret.certificate.readFromFile" />
         </button>
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="crt" type="multiline" label="CA Certificate" :mode="mode" placeholder="Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----" />
+        <LabeledInput v-model="crt" type="multiline" :label="t('secret.certificate.caCertificate')" :mode="mode" placeholder="Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----" />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('crt')">
-          Read from file
+          <t k="secret.certificate.readFromFile" />
         </button>
       </div>
     </div>

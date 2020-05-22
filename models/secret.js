@@ -1,6 +1,7 @@
+import r from 'jsrsasign';
 import { KUBERNETES } from '@/config/labels-annotations';
 import { base64Decode } from '@/utils/crypto';
-
+import { removeObjects } from '@/utils/array';
 export const OPAQUE = 'Opaque';
 export const SERVICE_ACCT = 'kubernetes.io/service-account-token';
 export const DOCKER = 'kubernetes.io/dockercfg';
@@ -66,6 +67,8 @@ export default {
           return decodedJSON;
         }
       }
+    } else if (this._type === TLS) {
+      return this.certInfo || this.keysDisplay;
     } else {
       return this.keysDisplay;
     }
@@ -107,5 +110,59 @@ export default {
     }
 
     return null;
+  },
+
+  // parse TLS certs and return issuer, notAfter, cn, sans
+  certInfo() {
+    const pem = base64Decode(this.data['tls.crt']);
+    let issuer, notAfter, cn, sans, x;
+
+    if (pem) {
+      try {
+        x = new r.X509();
+
+        x.readCertPEM(pem);
+        const issuerString = x.getIssuerString();
+
+        issuer = issuerString.slice(issuerString.indexOf('CN=') + 3);
+        notAfter = r.zulutodate(x.getNotAfter());
+
+        const cnString = x.getSubjectString();
+
+        cn = cnString.slice(cnString.indexOf('CN=') + 3);
+      } catch {
+        return null;
+      }
+
+      try {
+        sans = x.getExtSubjectAltName();
+      } catch (e) {
+        sans = [];
+      }
+
+      return {
+        issuer, notAfter, cn, sans
+      };
+    }
+  },
+
+  // use for + n more name display
+  unrepeatedSans() {
+    if (this._type === TLS ) {
+      const commonBases = this.certInfo.sans.filter(name => name.indexOf('*.') === 0 || name.indexOf('www.') === 0).map(name => name.substr(name.indexOf('.')));
+      const displaySans = removeObjects(this.certInfo.sans, commonBases);
+
+      return displaySans;
+    }
+  },
+
+  timeTilExpiration() {
+    if (this._type === TLS) {
+      const expiration = this.certInfo.notAfter;
+      const timeThen = expiration.valueOf();
+      const timeNow = Date.now();
+
+      return timeThen - timeNow;
+    }
   },
 };

@@ -102,9 +102,10 @@ export default function(store) {
       formatter: 'SecretType'
     },
     {
-      name:  'data',
-      label: 'Data',
-      value: 'dataPreview'
+      name:      'data',
+      label:     'Data',
+      value:     'dataPreview',
+      formatter: 'SecretData'
     },
     AGE
   ]);
