@@ -831,6 +831,9 @@ export default {
   // map _type to type
   cleanYaml() {
     return (yaml, mode = 'edit') => {
+      if (mode === _VIEW) {
+        return yaml;
+      }
       try {
         const obj = jsyaml.safeLoad(yaml);
 

@@ -230,6 +230,10 @@ resourceDetail:
     project: "Project"
     yaml: "YAML"
     overview: "Overview"
+  detailTop:
+    created: Created
+    deleted: Deleted
+    ownerReferences: Owner References
 
 servicePorts:
   header:
