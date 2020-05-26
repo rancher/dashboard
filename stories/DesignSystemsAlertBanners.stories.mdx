@@ -2,14 +2,26 @@ import { Meta, Props, Story, Preview } from '@storybook/addon-docs/blocks'
 
 <Meta title='Design Systems' />
 
-# Colors: Alert
+# Alerts: Banners
 
 <Preview>
-  <Story name="Colors: Alert">
+  <Story name="Alerts: Banners">
   {{
       components: {},
       template: `
+      <div class="banner bg-primary">
+        This is a banner
+      </div>
+      <div class="banner bg-secondary">
+        This is a banner
+      </div>
+      <div class="banner bg-success">
+        This is a banner
+      </div>
       <div class="banner bg-warning">
+        This is a banner
+      </div>
+      <div class="banner bg-error">
         This is a banner
       </div>`
     }}
