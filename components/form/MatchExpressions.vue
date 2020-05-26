@@ -1,15 +1,15 @@
 <script>
+import { NODE } from '@/config/types';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
 export default {
   components: { LabeledInput, LabeledSelect },
   props:      {
+    // array of match expressions
     value: {
-      type:    Object,
-      default: () => {
-        return {};
-      }
+      type:     Array,
+      required: true
     },
 
     mode: {
@@ -17,13 +17,19 @@ export default {
       default: 'edit'
     },
 
-    // weighted selector terms are nested differently
-    isWeighted: {
-      type:    Boolean,
-      default: false
+    // pod/node affinity types have different operator options
+    type: {
+      type:     String,
+      required: true
     },
 
-    // whether or not to show removal 'x' button in upper right (probably shouldn't show if node selectors are required)
+    // whether or not to show an initial empty row of inputs when value is empty in editing modes
+    initialEmptyRow: {
+      type:    Boolean,
+      default: false,
+    },
+
+    // whether or not to show remove button in upper right
     showRemove: {
       type:    Boolean,
       default: true
@@ -31,15 +37,25 @@ export default {
   },
 
   data() {
-    const ops = [{ label: '<', value: 'Lt' }, { label: '>', value: 'Gt' }, { label: 'is set', value: 'Exists' }, { label: 'is not set', value: 'DoesNotExist' }, { label: 'in list', value: 'In' }, { label: 'not in list', value: 'NotIn' }];
+    const t = this.$store.getters['i18n/t'];
 
-    let rules;
+    const podOptions = [
+      { label: t('workload.matchExpressions.exists'), value: 'Exists' },
+      { label: t('workload.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
+      { label: t('workload.matchExpressions.in'), value: 'In' },
+      { label: t('workload.matchExpressions.notIn'), value: 'NotIn' }];
 
-    rules = this.value.matchExpressions || [];
+    const nodeOptions = [
+      { label: t('workload.matchExpressions.lessThan'), value: 'Lt' },
+      { label: t('workload.matchExpressions.greaterThan'), value: 'Gt' },
+      { label: t('workload.matchExpressions.exists'), value: 'Exists' },
+      { label: t('workload.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
+      { label: t('workload.matchExpressions.in'), value: 'In' },
+      { label: t('workload.matchExpressions.notIn'), value: 'NotIn' }];
 
-    if (this.isWeighted) {
-      rules = this.value?.preference?.matchExpressions || [];
-    }
+    const ops = this.type === NODE ? nodeOptions : podOptions;
+
+    let rules = this.value;
 
     rules = rules.map((rule) => {
       if (rule.values) {
@@ -49,7 +65,7 @@ export default {
       return rule;
     });
 
-    if (!rules.length) {
+    if (!rules.length && this.initialEmptyRow) {
       rules.push({ values: '' });
     }
 
@@ -76,7 +92,7 @@ export default {
 
     update() {
       this.$nextTick(() => {
-        const matchExpressions = [
+        const out = [
           ...this.rules.map((rule) => {
             const matchExpression = { key: rule.key };
 
@@ -90,11 +106,6 @@ export default {
             return matchExpression;
           })];
 
-        let out = { matchExpressions };
-
-        if (this.isWeighted) {
-          out = { preference: { matchExpressions }, weight: this.value.weight || 1 };
-        }
         this.$emit('input', out);
       });
     }
@@ -104,27 +115,32 @@ export default {
 
 <template>
   <div :style="{'position':'relative'}" @input="update">
-    <button v-if="showRemove" id="remove-btn" class="btn btn-lg role-link">
-      <i class="icon icon-lg icon-x" @click="$emit('remove')" />
+    <button v-if="showRemove && !isView" id="remove-btn" class="btn btn-sm role-link" @click="$emit('remove')">
+      <t k="buttons.remove" />
     </button>
     <div class="rule-row headers">
-      <span>Key</span>
-      <span>Operator</span>
-      <span>Value</span>
+      <t k="workload.matchExpressions.key" />
+      <t k="workload.matchExpressions.operator" />
+      <t k="workload.matchExpressions.value" />
     </div>
-    <div v-for="(rule, i) in rules" :key="i">
+    <t v-if="!rules.length && isView" class="no-rows" k="sortableTable.noRows" />
+    <div v-for="(rule, i) in rules" v-else :key="i">
       <div class="rule-row">
         <div class="">
           <LabeledInput v-model="rule.key" :mode="mode" />
         </div>
         <LabeledSelect
+          id="operator"
           v-model="rule.operator"
           :options="ops"
           :mode="mode"
           @input="update"
         />
-        <div>
-          <LabeledInput v-model="rule.values" :mode="mode" :disabled="rule.operator==='Exists' && rule.operator==='DoesNotExist'" />
+        <div v-if="rule.operator==='Exists' || rule.operator==='DoesNotExist'" class="no-value">
+          <label>n/a</label>
+        </div>
+        <div v-else>
+          <LabeledInput v-model="rule.values" :mode="mode" :disabled="rule.operator==='Exists' || rule.operator==='DoesNotExist'" />
         </div>
         <button
           v-if="!isView"
@@ -134,12 +150,12 @@ export default {
           :disabled="mode==='view'"
           @click="removeRule(i)"
         >
-          <i class="icon icon-minus icon-lg" />
+          <i class="icon icon-minus" />
         </button>
       </div>
     </div>
     <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addRule">
-      Add Rule
+      <t k="workload.matchExpressions.addRule" />
     </button>
   </div>
 </template>
@@ -161,11 +177,20 @@ export default {
     }
   }
 
+    .no-rows{
+        text-align: center;
+        display: block;
+    }
+
   .rule-row {
     display:grid;
-    grid-template-columns: auto 20% auto 3%;
+    grid-template-columns: 35% 20% 35% 5%;
     grid-column-gap:10px;
     margin-bottom:10px;
+    & .no-value{
+        align-self:center;
+        margin-left:10px
+    }
 
     &.headers>* {
       padding:0px 10px 0px 10px;
