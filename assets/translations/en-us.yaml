@@ -439,3 +439,16 @@ secret:
     username: Username
     password: Password
     domainName: Registry Domain Name
+
+workload:
+    matchExpressions:
+      in: '='
+      notIn: ≠
+      exists: Exists
+      doesNotExist: Does Not Exist
+      greaterThan: '>'
+      lessThan: <
+      key: Key
+      value: Value
+      operator: Operator
+      addRule: Add Rule
