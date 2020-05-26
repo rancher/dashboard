@@ -72,7 +72,7 @@ export async function defaultAsyncData(ctx, resource) {
   const schema = store.getters['cluster/schemaFor'](resource);
   const schemas = store.getters['cluster/all'](SCHEMA);
 
-  let originalModel, model, originalYaml, yaml;
+  let originalModel, model, yaml;
 
   if ( realMode === _CREATE ) {
     if ( !namespace ) {
@@ -110,8 +110,6 @@ export async function defaultAsyncData(ctx, resource) {
     const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
 
     yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
-
-    // yaml = model.cleanYaml(originalYaml, realMode);
   }
 
   let mode = realMode;
