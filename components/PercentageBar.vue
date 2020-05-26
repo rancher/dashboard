@@ -64,6 +64,7 @@ export default {
     .percentage {
       vertical-align: middle;
       width: 32px;
+      display: inline-block;
     }
     .bar {
       vertical-align: -5px; // this will align percentage-text in the center without having to change the line height
