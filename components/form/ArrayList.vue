@@ -181,7 +181,7 @@ export default {
 
 <template>
   <div>
-    <div v-if="title" class="title clearfix">
+    <div v-if="title" class="clearfix">
       <h4>{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" /></h4>
     </div>
 

@@ -182,7 +182,7 @@ export default {
       <div class="spacer"></div>
 
       <div>
-        <div class="title clearfix">
+        <div class="clearfix">
           <h4>Target</h4>
         </div>
         <div v-if="mode === 'view'">

@@ -108,7 +108,7 @@ export default {
 
 <template>
   <div>
-    <div class="title clearfix">
+    <div class="clearfix">
       <h4>
         <t k="servicePorts.header.label" />
       </h4>

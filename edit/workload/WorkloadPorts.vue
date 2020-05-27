@@ -104,7 +104,7 @@ export default {
 <template>
   <div>
     <div class="spacer"></div>
-    <div class="title clearfix">
+    <div class="clearfix">
       <h4>Ports</h4>
     </div>
 

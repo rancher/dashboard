@@ -7,7 +7,7 @@ H1, H2, H3, H4, H5, H6 {
   font-style: normal;
   font-weight: 400;
   letter-spacing: 0em;
-  margin: 0;
+  margin: 0 0 10px 0;
 }
 
 H1 {
@@ -24,19 +24,16 @@ H3 {
 
 H4 {
   font-size: 16px;
-  font-weight: 300;
 }
 
 H5 {
   font-size: 14px;
-  font-weight: 300;
 }
 
 H6 {
   font-size: 12px;
   letter-spacing: .25em;
   text-transform: uppercase;
-  font-weight: 300;
 }
 
 P {

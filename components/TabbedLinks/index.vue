@@ -32,7 +32,6 @@ export default {
 
 <template>
   <div>
-    <div class="spacer"></div>
     <ul
       v-if="tabs !== null && tabs.length > 0"
       role="tablist"

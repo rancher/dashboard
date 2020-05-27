@@ -55,7 +55,7 @@ export default {
 
 <template>
   <div class="window">
-    <div class="title clearfix">
+    <div class="clearfix">
       <slot name="title" />
     </div>
     <div class="body clearfix">

@@ -167,7 +167,7 @@ export default {
       <div class="spacer"></div>
 
       <div v-if="checkTypeIs('ExternalName')">
-        <div class="title clearfix">
+        <div class="clearfix">
           <h4>
             <t k="servicesPage.externalName.label" />
           </h4>
