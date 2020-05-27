@@ -13,12 +13,8 @@ import {
   EFFECT,
   IMAGE_SIZE,
   KEY,
-  LAST_HEARTBEAT_TIME,
-  MESSAGE,
-  REASON,
   SIMPLE_NAME,
   SIMPLE_TYPE,
-  STATUS,
   VALUE,
 } from '@/config/table-headers';
 import ResourceTabs from '@/components/form/ResourceTabs';
@@ -27,6 +23,7 @@ import { METRIC } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import CopyToClipboardText from '@/components/CopyToClipboardText';
+import Conditions from '@/components/form/Conditions';
 
 const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;
@@ -44,7 +41,8 @@ export default {
     VStack,
     ResourceTabs,
     Tab,
-    SortableTable
+    SortableTable,
+    Conditions
   },
 
   mixins: [createEditView],
@@ -60,13 +58,6 @@ export default {
     return {
       metricPoller:           new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
       metrics:                { cpu: 0, memory: 0 },
-      conditionsTableHeaders: [
-        SIMPLE_TYPE,
-        STATUS,
-        LAST_HEARTBEAT_TIME,
-        REASON,
-        MESSAGE
-      ],
       infoTableHeaders: [
         {
           ...KEY,
@@ -115,10 +106,6 @@ export default {
 
     kubeletStatus() {
       return this.mapToStatus(this.value.isKubeletOk);
-    },
-
-    conditionsTableRows() {
-      return this.value.status.conditions;
     },
 
     infoTableRows() {
@@ -235,14 +222,7 @@ export default {
     <ResourceTabs v-model="value" :mode="mode">
       <template v-slot:before>
         <Tab name="conditions" :label="t('node.detail.tab.conditions')">
-          <SortableTable
-            key-field="_key"
-            :headers="conditionsTableHeaders"
-            :rows="conditionsTableRows"
-            :row-actions="false"
-            :table-actions="false"
-            :search="false"
-          />
+          <Conditions :value="value" />
         </Tab>
         <Tab name="info" :label="t('node.detail.tab.info')">
           <SortableTable
