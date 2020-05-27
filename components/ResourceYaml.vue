@@ -51,6 +51,11 @@ export default {
       type:    Function,
       default: null
     },
+
+    showFooter: {
+      type:    Boolean,
+      default: true
+    }
   },
 
   data() {
@@ -58,7 +63,7 @@ export default {
     this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
 
     return {
-      currentYaml: this.yaml,
+      currentYaml:  this.value.cleanYaml(this.yaml, this.mode),
       showPreview:  false,
       errors:       null
     };
@@ -97,10 +102,18 @@ export default {
     },
 
     editorMode() {
-      return this.showPreview
-        ? EDITOR_MODES.DIFF_CODE
-        : EDITOR_MODES.EDIT_CODE;
+      return this.isView
+        ? EDITOR_MODES.VIEW_CODE
+        : this.showPreview
+          ? EDITOR_MODES.DIFF_CODE
+          : EDITOR_MODES.EDIT_CODE;
     },
+  },
+
+  watch: {
+    mode(neu) {
+      this.currentYaml = this.value.cleanYaml(this.yaml, neu);
+    }
   },
 
   methods: {
@@ -258,6 +271,7 @@ export default {
       @onChanges="onChanges"
     />
     <Footer
+      v-if="showFooter"
       :mode="mode"
       :errors="errors"
       @save="save"

@@ -9,6 +9,7 @@ import {
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
+import GenericResourceDetail from '@/components/GenericResourceDetail';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.
@@ -67,9 +68,7 @@ export async function defaultAsyncData(ctx, resource) {
 
   const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
-  const asYamlInit = (route.query[AS_YAML] === _FLAGGED) ||
-   (realMode === _VIEW && !hasCustomDetail && !hasCustomEdit) ||
-    (realMode !== _VIEW && !hasCustomEdit);
+  const asYamlInit = (route.query[AS_YAML] === _FLAGGED) || (realMode !== _VIEW && !hasCustomEdit);
   const schema = store.getters['cluster/schemaFor'](resource);
   const schemas = store.getters['cluster/all'](SCHEMA);
 
@@ -110,9 +109,7 @@ export async function defaultAsyncData(ctx, resource) {
 
     const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
 
-    const originalYaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
-
-    yaml = model.cleanYaml(originalYaml, realMode);
+    yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
   }
 
   let mode = realMode;
@@ -145,7 +142,9 @@ export async function defaultAsyncData(ctx, resource) {
 export const watchQuery = [MODE, AS_YAML];
 
 export default {
-  components: { ResourceYaml, Masthead },
+  components: {
+    ResourceYaml, Masthead, GenericResourceDetail
+  },
   mixins:     { CreateEditView },
 
   props: {
@@ -233,9 +232,13 @@ export default {
     },
 
     showComponent() {
-      if ( this.isView && this.hasCustomDetail ) {
-        return this.detailComponent;
-      } else if ( this.hasCustomEdit ) {
+      if ( this.isView ) {
+        if (this.hasCustomDetail) {
+          return this.detailComponent;
+        } else {
+          return GenericResourceDetail;
+        }
+      } else if ( !this.isView && this.hasCustomEdit ) {
         return this.editComponent;
       }
 
