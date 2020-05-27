@@ -45,6 +45,13 @@ export default {
 
 <template>
   <div>
-    <SortableTable :headers="statusTableHeaders" :rows="(value.status||{}).conditions || []" key-field="message" :row-actions="false" :search="false" />
+    <SortableTable
+      :headers="statusTableHeaders"
+      :rows="(value.status||{}).conditions || []"
+      key-field="message"
+      :table-actions="false"
+      :row-actions="false"
+      :search="false"
+    />
   </div>
 </template>
