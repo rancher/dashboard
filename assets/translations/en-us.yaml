@@ -444,21 +444,21 @@ secret:
     domainName: Registry Domain Name
 
 workload:
+  matchExpressions:
+    in: '='
+    notIn: ≠
+    exists: Exists
+    doesNotExist: Does Not Exist
+    greaterThan: '>'
+    lessThan: <
+    key: Key
+    value: Value
+    operator: Operator
+    addRule: Add Rule
   container:
     name: Container Name
     image: Container Image
     imagePullPolicy: Image Pull Policy
-    matchExpressions:
-      in: '='
-      notIn: ≠
-      exists: Exists
-      doesNotExist: Does Not Exist
-      greaterThan: '>'
-      lessThan: <
-      key: Key
-      value: Value
-      operator: Operator
-      addRule: Add Rule
     ports:
       containerPort: Private Container Port
       hostPort: Public Host Port
