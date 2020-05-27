@@ -44,7 +44,7 @@ export default {
 
   methods: {
     update() {
-      const out = { ...this.value, affinity: this.nodeAffinity };
+      const out = { ...this.value, affinity: { nodeAffinity: this.nodeAffinity } };
 
       if (this.selectNode) {
         this.$set(out, 'nodeName', this.nodeName);
