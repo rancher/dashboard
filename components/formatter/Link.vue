@@ -1,21 +1,28 @@
 <script>
 export default {
-  props:
-    {
-      value: {
-        type:     Object,
-        required: true
-      }
+  props: {
+    value: {
+      type:     Object,
+      required: true
     }
+  },
+  data() {
+    const defaultOptions = {
+      rel:    'nofollow noopener noreferrer',
+      target: '_blank'
+    };
+
+    return { options: this.value.options || defaultOptions };
+  }
 };
 </script>
 
 <template>
-  <a v-if="value.url && value.options && (value.options.rel || value.options.target)" :href="value.url" :rel="value.options.rel" :target="value.options.target">
-    {{ value.text || value.url }}
-  </a>
-  <nuxt-link v-else-if="value.url" :to="value.url">
+  <nuxt-link v-if="options === 'internal' && value.url" :to="value.url">
     {{ value.text || value.url }}
   </nuxt-link>
+  <a v-else-if="value.url && (options.rel || options.target)" :href="value.url" :rel="options.rel" :target="options.target">
+    {{ value.text || value.url }}
+  </a>
   <span v-else>{{ value.text }}</span>
 </template>

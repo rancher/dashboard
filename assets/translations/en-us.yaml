@@ -413,6 +413,53 @@ node:
       images: images
       taints: Taints
 
+ingress:
+  rules:
+    headers:
+      path: Path
+      target: Target Service
+      port: Port
+    hostname: Hostname
+    title: Rules
+    requestHost: 
+      label: Request Host
+      placeholder: e.g. example.com
+    path:
+      label: Path
+      placeholder: e.g. /foo
+    target:
+      label: Target Service
+    port:
+      label: Port
+      placeholder: e.g. 80 or http
+    addPath: Add Path
+    removePath: Remove
+    addRule: Add Rule
+  certificates:
+    headers:
+      certificate: Certificate
+      hosts: Hosts
+    label: Certificates
+    defaultCertLabel: Default Ingress Controller Certificate
+    certificate:
+      label: Certificate - Secret Name
+    host:
+      label: Host
+      placeholder: e.g. example.com
+    removeHost: Remove
+    addHost: Add Host
+    addCertificate: Add Certificate
+  defaultBackend:
+    label: Default Backend
+    warning: "Warning: Default backend is used globally for the entire cluster."
+    targetService:
+      label: Target Service
+    port:
+      label: Port
+      placeholder: e.g. 80 or http
+    noServiceSelected: No default backend is configured.
+
+
 internalExternalIP:
   none: None
 
