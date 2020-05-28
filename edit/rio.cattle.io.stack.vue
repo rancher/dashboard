@@ -20,7 +20,7 @@ export default {
     NameNsDescription, GithubPicker, LabeledInput, Loading, Footer
   },
 
-  mixins:     [CreateEditView, LoadDeps],
+  mixins: [CreateEditView, LoadDeps],
 
   data() {
     let spec = this.value.spec;

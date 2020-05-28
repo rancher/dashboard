@@ -18,7 +18,7 @@ export default {
       const { cn, notAfter, sans = [] } = this.value;
 
       return {
-        cn, expiration: notAfter, sans, isTLS:      true
+        cn, expiration: notAfter, sans, isTLS: true
       };
     } else {
       return { isTLS: false };

@@ -1,12 +1,12 @@
 <script>
 import jsyaml from 'js-yaml';
-import CodeMirror from './CodeMirror';
 import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
 import InfoBox from '@/components/InfoBox';
 import { NAMESPACE } from '@/config/types';
 import { _VIEW, _EDIT } from '@/config/query-params';
 import { findBy } from '@/utils/array';
+import CodeMirror from './CodeMirror';
 
 export default {
   name: 'GatekeeperConfig',

@@ -8,7 +8,6 @@
     * Labels
     * Annotations
 */
-import { get } from '../utils/object';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import Tab from '@/components/Tabbed/Tab';
 import Conditions from '@/components/form/Conditions';
@@ -16,6 +15,7 @@ import DetailTop from '@/components/DetailTop';
 import LinkDetail from '@/components/formatter/LinkDetail';
 import LiveDate from '@/components/formatter/LiveDate';
 import ResourceYaml from '@/components/ResourceYaml';
+import { get } from '../utils/object';
 
 export default {
   components: {
@@ -52,7 +52,7 @@ export default {
     });
 
     return {
-      ownersByType, owners: [], yaml:   ''
+      ownersByType, owners: [], yaml: ''
     };
   },
 

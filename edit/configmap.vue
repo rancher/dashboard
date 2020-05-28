@@ -16,7 +16,7 @@ export default {
     ResourceTabs,
     Tab,
   },
-  mixins:     [CreateEditView],
+  mixins: [CreateEditView],
 };
 </script>
 

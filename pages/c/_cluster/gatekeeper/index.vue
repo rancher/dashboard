@@ -16,15 +16,6 @@ export default {
     GatekeeperConfig, GatekeeperViolationsTable, InfoBox
   },
 
-  data() {
-    return {
-      gateKeeperUnavailable:    false,
-      gatekeeperSystemTemplate: null,
-      mode:                     _VIEW,
-      systemProject:            null,
-    };
-  },
-
   async asyncData({ store, route }) {
     let mode = route?.query?.mode ? route.query.mode : _VIEW;
 
@@ -82,7 +73,7 @@ export default {
           type:       'app',
           metadata:   {
             namespace,
-            name:        GATEKEEPER.APP_ID
+            name: GATEKEEPER.APP_ID
           },
           spec: {
             projectName:     targetSystemProject.namespacedName,
@@ -112,6 +103,15 @@ export default {
         mode,
       };
     }
+  },
+
+  data() {
+    return {
+      gateKeeperUnavailable:    false,
+      gatekeeperSystemTemplate: null,
+      mode:                     _VIEW,
+      systemProject:            null,
+    };
   },
 
   beforeRouteEnter(to, from, next) {

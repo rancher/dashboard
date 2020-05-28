@@ -12,7 +12,7 @@ export default {
   components: {
     Rule, NameNsDescription, Footer
   },
-  mixins:     [CreateEditView],
+  mixins: [CreateEditView],
   data() {
     let routes = [{ uuid: randomStr() }];
 
@@ -25,7 +25,7 @@ export default {
 
     return {
       routes,
-      spec:       this.value.spec || {}
+      spec: this.value.spec || {}
     };
   },
   computed: {

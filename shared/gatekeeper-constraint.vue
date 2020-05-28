@@ -2,7 +2,6 @@
 import Vue from 'vue';
 import { merge } from 'lodash';
 import jsyaml from 'js-yaml';
-import { _VIEW, _CREATE } from '../config/query-params';
 import { SCHEMA, NAMESPACE } from '@/config/types';
 import MatchKinds from '@/components/form/MatchKinds';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -19,6 +18,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import { ucFirst } from '@/utils/string';
 import { isSimpleKeyValue } from '@/utils/object';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import { _VIEW, _CREATE } from '../config/query-params';
 
 function findConstraintTypes(schemas) {
   return schemas

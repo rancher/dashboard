@@ -1,7 +1,7 @@
 <script>
-import { SERVICE } from '../../config/types';
 import { WORKLOAD_TYPES } from '@/config/types';
 import LoadDeps from '@/mixins/load-deps';
+import { SERVICE } from '../../config/types';
 
 export default {
   mixins: [LoadDeps],

@@ -1,8 +1,8 @@
 <script>
 import jsyaml from 'js-yaml';
+import { mapPref, DIFF } from '@/store/prefs';
 import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
-import { mapPref, DIFF } from '@/store/prefs';
 
 export const EDITOR_MODES = {
   EDIT_CODE: 'EDIT_CODE',

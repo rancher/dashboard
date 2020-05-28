@@ -23,7 +23,7 @@ export const DefaultStory = () => ({
       col: DefaultColumnState
     };
   },
-  template:   `<IconIsDefault :row="row" :col="col" />`
+  template: `<IconIsDefault :row="row" :col="col" />`
 });
 
 DefaultStory.story = { name: 'Input Not Default' };
@@ -36,7 +36,7 @@ export const IsDefault = () => ({
       col: DefaultColumnState
     };
   },
-  template:   `<IconIsDefault :row="row" :col="col" />`
+  template: `<IconIsDefault :row="row" :col="col" />`
 });
 
 IsDefault.story = { name: 'Input Is Default' };

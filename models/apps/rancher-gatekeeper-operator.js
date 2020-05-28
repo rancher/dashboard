@@ -47,7 +47,7 @@ export default {
       const location = {
         name:  'c-cluster-gatekeeper-constraints-create',
         query: {
-          [MODE]:   _CREATE,
+          [MODE]: _CREATE,
           ...moreQuery
         }
       };
@@ -62,7 +62,7 @@ export default {
         name:   'c-cluster-resource-create',
         params: { resource: GATEKEEPER_CONSTRAINT_TEMPLATE },
         query:  {
-          [MODE]:   _CREATE,
+          [MODE]: _CREATE,
           ...moreQuery
         }
       };

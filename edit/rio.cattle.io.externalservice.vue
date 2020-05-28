@@ -27,7 +27,7 @@ export default {
     ArrayList,
     Footer,
   },
-  mixins:     [CreateEditView, LoadDeps],
+  mixins: [CreateEditView, LoadDeps],
 
   data() {
     const spec = this.value.spec ? clone(this.value.spec) : {};

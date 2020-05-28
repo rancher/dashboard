@@ -17,7 +17,7 @@ export default {
   computed: {
     ...mapGetters('i18n', ['selectedLocaleLabel', 'availableLocales']),
 
-    dev:    mapPref(DEV),
+    dev: mapPref(DEV),
 
     showLocale() {
       return Object.keys(this.availableLocales).length > 1 || this.dev;

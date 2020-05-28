@@ -1,9 +1,9 @@
 <script>
-import { BOTH } from '../../store/type-map';
 import { NAMESPACE_FILTERS } from '@/store/prefs';
 import { NAMESPACE, EXTERNAL } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { isArray, addObjects, findBy } from '@/utils/array';
+import { BOTH } from '../../store/type-map';
 
 export default {
   computed: {

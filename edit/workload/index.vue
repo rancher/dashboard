@@ -57,7 +57,7 @@ export default {
     ResourceTabs
   },
 
-  mixins:     [CreateEditView, LoadDeps],
+  mixins: [CreateEditView, LoadDeps],
 
   props:  {
     value: {
@@ -69,6 +69,16 @@ export default {
       type:    String,
       default: 'create'
     }
+  },
+
+  asyncData(ctx) {
+    let resource;
+
+    if ( !ctx.params.id ) {
+      resource = WORKLOAD_TYPES.DEPLOYMENT;
+    }
+
+    return defaultAsyncData(ctx, resource);
   },
 
   data() {
@@ -222,16 +232,6 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     }
-  },
-
-  asyncData(ctx) {
-    let resource;
-
-    if ( !ctx.params.id ) {
-      resource = WORKLOAD_TYPES.DEPLOYMENT;
-    }
-
-    return defaultAsyncData(ctx, resource);
   },
 
   methods: {

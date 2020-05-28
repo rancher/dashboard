@@ -1,8 +1,4 @@
 <script>
-import Top from './Top';
-import Security from './Security';
-import Upgrading from './Upgrading';
-import Volumes from './Volumes';
 import Labels from '@/components/form/Labels';
 import Networking from '@/edit/rio.cattle.io.service//Networking';
 import Command from '@/edit/rio.cattle.io.service/Command';
@@ -18,9 +14,13 @@ import { _EDIT, EDIT_CONTAINER } from '@/config/query-params';
 import Footer from '@/components/form/Footer';
 import { findBy, filterBy, removeObject } from '@/utils/array';
 import { allHash } from '@/utils/promise';
+import Volumes from './Volumes';
+import Upgrading from './Upgrading';
+import Security from './Security';
+import Top from './Top';
 
 export default {
-  name:       'CruService',
+  name: 'CruService',
 
   components: {
     Loading,
@@ -37,7 +37,7 @@ export default {
     Footer
   },
 
-  mixins:     [CreateEditView, LoadDeps],
+  mixins: [CreateEditView, LoadDeps],
 
   data() {
     if ( !this.value.spec ) {

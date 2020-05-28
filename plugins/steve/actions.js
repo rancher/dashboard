@@ -1,8 +1,8 @@
 import https from 'https';
 import { cloneDeep } from 'lodash';
+import { SCHEMA } from '@/config/types';
 import { normalizeType } from './normalize';
 import { proxyFor, SELF } from './resource-proxy';
-import { SCHEMA } from '@/config/types';
 
 export default {
   request({ dispatch }, opt) {
@@ -124,7 +124,7 @@ export default {
     commit('loadAll', {
       ctx,
       type,
-      data:     res.data
+      data: res.data
     });
 
     if ( opt.watch !== false ) {

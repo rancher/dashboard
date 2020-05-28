@@ -33,7 +33,7 @@ export default {
     ResourceTabs
   },
 
-  mixins:     [CreateEditView],
+  mixins: [CreateEditView],
 
   data() {
     const isNamespaced = !!this.value.metadata.namespace;

@@ -1,15 +1,15 @@
 <script>
 import { mapState } from 'vuex';
+import Checkbox from '@/components/form/Checkbox';
+import { removeObject } from '@/utils/array';
+import { get } from '@/utils/object';
+import { dasherize } from '@/utils/string';
 import THead from './THead';
 import filtering from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
-import Checkbox from '@/components/form/Checkbox';
-import { removeObject } from '@/utils/array';
-import { get } from '@/utils/object';
-import { dasherize } from '@/utils/string';
 
 // @TODO:
 // Fixed header/scrolling

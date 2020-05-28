@@ -7,6 +7,10 @@ import { AS_YAML, _FLAGGED } from '@/config/query-params';
 
 export default {
   components: { Masthead, SortableTable },
+
+  async asyncData({ store }) {
+    return { templates: await store.dispatch('cluster/findAll', { type: GATEKEEPER_CONSTRAINT_TEMPLATE }) };
+  },
   data(ctx) {
     const params = {
       ...this.$route.params,
@@ -14,7 +18,7 @@ export default {
     };
 
     const createLocation = {
-      name:   'c-cluster-resource-create',
+      name: 'c-cluster-resource-create',
       params,
     };
 
@@ -37,12 +41,8 @@ export default {
         },
         AGE,
       ],
-      templates:   [],
+      templates: [],
     };
-  },
-
-  async asyncData({ store }) {
-    return { templates: await store.dispatch('cluster/findAll', { type: GATEKEEPER_CONSTRAINT_TEMPLATE }) };
   },
 
 };

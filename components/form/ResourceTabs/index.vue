@@ -16,7 +16,7 @@ export default {
     KeyValue
   },
 
-  mixins:     [CreateEditView],
+  mixins: [CreateEditView],
 
   props: {
     // resource instance
