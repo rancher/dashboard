@@ -5,37 +5,37 @@
   border-radius: var(--border-radius);
   transition: all 0.2s ease;
 
-  &.bg-primary {
+  &.primary {
     background: var(--primary);
     border: solid 1px var(--primary);
     color: var(--body-text);
   }
 
-  &.bg-secondary {
-    background: rgba($secondary, 0.15);
+  &.secondary {
+    background: var(--baner-bg);
     border: solid 1px var(--secondary);
     color: var(--body-text);
   }
 
-  &.bg-success {
+  &.success {
     background: rgba($success, 0.15);
     border: solid 1px var(--success);
     color: var(--body-text);
   }
 
-  &.bg-info {
+  &.info {
     background: rgba($info, 0.15);
     border: solid 1px var(--info);
     color: var(--body-text);
   }
 
-  &.bg-warning {
+  &.warning {
     background: rgba($warning, 0.15);
     border: solid 1px var(--warning);
     color: var(--body-text);
   }
 
-  &.bg-error {
+  &.error {
     background: rgba($error, 0.15);
     border: solid 1px (--error);
     color: var(--error);

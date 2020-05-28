@@ -2,9 +2,10 @@
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { _VIEW } from '@/config/query-params';
+import Banner from '@/components/Banner';
 
 export default {
-  components: { LabeledInput, LabeledSelect },
+  components: { LabeledInput, LabeledSelect, Banner },
 
   props:      {
     value: {
@@ -48,9 +49,7 @@ export default {
 
 <template>
   <div>
-    <div class="banner bg-warning">
-      Warning: Default backend is used globally for the entire cluster.
-    </div>
+    <Banner color="warning" label="Warning: Default backend is used globally for the entire cluster." />
     <div class="row">
       <div class="col span-4">
         <LabeledSelect v-model="serviceName" :mode="mode" label="Target Service" :options="targets" @input="update" />

@@ -102,7 +102,7 @@ export default {
 <template>
   <div>
     <div class="row mb-5 pl-10">
-      <div class="banner bg-secondary">
+      <div class="banner secondary">
         <t v-if="mode === viewMode" k="containerResourceLimit.helpTextDetail" />
         <t v-else k="containerResourceLimit.helpText" />
       </div>
