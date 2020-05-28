@@ -1,12 +1,12 @@
 import Vue from 'vue';
 
+import { isArray } from '@/utils/array';
 import actions from './actions';
 import getters from './getters';
 import mutations from './mutations';
 import { mutations as subscribeMutations, actions as subscribeActions } from './subscribe';
 import { proxyFor } from './resource-proxy';
 import { keyFieldFor } from './normalize';
-import { isArray } from '@/utils/array';
 
 function SteveFactory(namespace, baseUrl) {
   return {

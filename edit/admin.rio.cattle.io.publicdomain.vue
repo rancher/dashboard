@@ -30,7 +30,7 @@ export default {
     NameNsDescription,
     Footer,
   },
-  mixins:     [CreateEditView, LoadDeps],
+  mixins: [CreateEditView, LoadDeps],
 
   data() {
     let spec = this.value.spec;
@@ -62,14 +62,14 @@ export default {
   computed: {
     appOptions() {
       return groupAndFilterOptions(this.allServices, null, {
-        itemValueKey: 'namespaceApp', itemLabelKey: 'app', groupBy:      null
+        itemValueKey: 'namespaceApp', itemLabelKey: 'app', groupBy: null
       });
     },
 
     routerOptions() {
       // return this.allRouters;
       return groupAndFilterOptions(this.allRouters, null, {
-        itemValueKey: 'namespaceApp', itemLabelKey: 'app', groupBy:      null
+        itemValueKey: 'namespaceApp', itemLabelKey: 'app', groupBy: null
       });
     },
 

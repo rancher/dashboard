@@ -23,7 +23,7 @@ export default {
     ResourceTabs
   },
 
-  mixins:     [CreateEditView],
+  mixins: [CreateEditView],
 
   data() {
     const radioOptions = [true, false];

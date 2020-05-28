@@ -145,7 +145,7 @@ export default {
   components: {
     ResourceYaml, Masthead, GenericResourceDetail
   },
-  mixins:     { CreateEditView },
+  mixins: { CreateEditView },
 
   props: {
     hasCustomDetail: {

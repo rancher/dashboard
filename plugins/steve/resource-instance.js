@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import jsyaml from 'js-yaml';
-import { cleanForNew } from './normalize';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
@@ -12,6 +11,7 @@ import {
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { DESCRIPTION } from '@/config/labels-annotations';
+import { cleanForNew } from './normalize';
 
 const REMAP_STATE = { disabled: 'inactive' };
 

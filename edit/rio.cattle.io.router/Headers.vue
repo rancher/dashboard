@@ -43,7 +43,7 @@ export default {
   methods: {
     format() {
       const formatted = {
-        add:    [], set:    [], remove: []
+        add: [], set: [], remove: []
       };
 
       for (const rule of this.all) {
@@ -60,7 +60,7 @@ export default {
     },
     addRule(rule) {
       this.all.push({
-        op:    'add', name:  '', value: ''
+        op: 'add', name: '', value: ''
       });
     },
     remove( index) {

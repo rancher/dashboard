@@ -1,7 +1,6 @@
 <script>
 import { debounce } from 'lodash';
 import { mapState } from 'vuex';
-import { addObjects } from '../utils/array';
 import { mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
@@ -12,6 +11,7 @@ import Header from '@/components/nav/Header';
 import Footer from '@/components/nav/Footer';
 import { COUNT, SCHEMA } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
+import { addObjects } from '../utils/array';
 
 export default {
 

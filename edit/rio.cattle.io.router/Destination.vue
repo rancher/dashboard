@@ -1,7 +1,7 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
-import createEditView from '../../mixins/create-edit-view';
 import { RIO } from '@/config/types';
+import createEditView from '../../mixins/create-edit-view';
 
 export default {
   mixins: [createEditView],

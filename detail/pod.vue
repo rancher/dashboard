@@ -1,8 +1,8 @@
 <script>
-import { VALUE } from '../config/table-headers';
 import createEditView from '@/mixins/create-edit-view';
 import DetailTop from '@/components/DetailTop';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import { VALUE } from '../config/table-headers';
 
 export default {
   components: {
@@ -42,7 +42,7 @@ export default {
 
     KVHeaders() {
       return [{
-        label:  'Key', name:   'keys', value:  'key', sort:  'key'
+        label: 'Key', name: 'keys', value: 'key', sort: 'key'
       }, VALUE];
     },
 

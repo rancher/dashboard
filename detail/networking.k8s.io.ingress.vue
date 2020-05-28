@@ -124,7 +124,7 @@ export default {
         if (targetsWorkload) {
           name = 'c-cluster-resource';
           params = {
-            namespace: this.value?.metadata?.namespace, resource:  'workload', id:        serviceName
+            namespace: this.value?.metadata?.namespace, resource: 'workload', id: serviceName
           };
         } else {
           name = 'c-cluster-resource-namespace-id';

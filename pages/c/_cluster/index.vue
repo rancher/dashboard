@@ -39,6 +39,54 @@ export default {
     SortableTable
   },
 
+  async asyncData(ctx) {
+    const { route, store } = ctx;
+    const id = get(route, 'params.cluster');
+    let gatekeeper = null;
+    let gatekeeperEnabled = false;
+
+    const projects = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT });
+    const targetSystemProject = projects.find(( proj ) => {
+      const labels = proj.metadata?.labels || {};
+
+      if ( labels[SYSTEM_PROJECT_LABEL] === 'true' ) {
+        return true;
+      }
+    });
+
+    if (!isEmpty(targetSystemProject)) {
+      const systemNamespace = targetSystemProject.metadata.name;
+
+      try {
+        gatekeeper = await store.dispatch('clusterExternal/find', {
+          type: EXTERNAL.APP,
+          id:   `${ systemNamespace }/${ GATEKEEPER.APP_ID }`,
+        });
+        if (!isEmpty(gatekeeper)) {
+          gatekeeperEnabled = true;
+        }
+      } catch (err) {
+        gatekeeperEnabled = false;
+      }
+    }
+
+    const cluster = await store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id });
+
+    return {
+      constraints:       [],
+      events:            [],
+      nodeMetrics:       [],
+      haveNodes:         !!store.getters['cluster/schemaFor'](NODE),
+      haveNodeTemplates: !!store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE),
+      haveNodePools:     !!store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL),
+      nodePools:         [],
+      nodeTemplates:     [],
+      nodes:             [],
+      cluster,
+      gatekeeperEnabled,
+    };
+  },
+
   data() {
     const constraintHeaders = [
       NAME,
@@ -134,54 +182,6 @@ export default {
 
       return allConstraints.filter(constraint => constraint?.status?.totalViolations > 0);
     },
-  },
-
-  async asyncData(ctx) {
-    const { route, store } = ctx;
-    const id = get(route, 'params.cluster');
-    let gatekeeper = null;
-    let gatekeeperEnabled = false;
-
-    const projects = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT });
-    const targetSystemProject = projects.find(( proj ) => {
-      const labels = proj.metadata?.labels || {};
-
-      if ( labels[SYSTEM_PROJECT_LABEL] === 'true' ) {
-        return true;
-      }
-    });
-
-    if (!isEmpty(targetSystemProject)) {
-      const systemNamespace = targetSystemProject.metadata.name;
-
-      try {
-        gatekeeper = await store.dispatch('clusterExternal/find', {
-          type: EXTERNAL.APP,
-          id:   `${ systemNamespace }/${ GATEKEEPER.APP_ID }`,
-        });
-        if (!isEmpty(gatekeeper)) {
-          gatekeeperEnabled = true;
-        }
-      } catch (err) {
-        gatekeeperEnabled = false;
-      }
-    }
-
-    const cluster = await store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id });
-
-    return {
-      constraints:       [],
-      events:            [],
-      nodeMetrics:       [],
-      haveNodes:         !!store.getters['cluster/schemaFor'](NODE),
-      haveNodeTemplates: !!store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE),
-      haveNodePools:     !!store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL),
-      nodePools:         [],
-      nodeTemplates:     [],
-      nodes:             [],
-      cluster,
-      gatekeeperEnabled,
-    };
   },
 
   mounted() {

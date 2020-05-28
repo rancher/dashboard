@@ -1,17 +1,30 @@
 <script>
-import { getVendor, getProduct } from '../../config/private-label';
 import { findBy } from '@/utils/array';
 import { USERNAME } from '@/config/cookies';
 import LabeledInput from '@/components/form/LabeledInput';
 import AsyncButton from '@/components/AsyncButton';
 import { LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
+import { getVendor, getProduct } from '../../config/private-label';
 
 export default {
   name:       'Login',
   layout:     'unauthenticated',
   components: {
     LabeledInput, AsyncButton, Checkbox
+  },
+
+  async asyncData({ route, store }) {
+    const providers = await store.dispatch('auth/getAuthProviders');
+
+    const hasGithub = !!findBy(providers, 'id', 'github');
+    const hasLocal = !!findBy(providers, 'id', 'local');
+
+    return {
+      hasGithub,
+      hasLocal,
+      showLocal: !hasGithub || (route.query[LOCAL] === _FLAGGED),
+    };
   },
 
   data({ $cookies }) {
@@ -28,19 +41,6 @@ export default {
       timedOut:  this.$route.query[TIMED_OUT] === _FLAGGED,
       loggedOut: this.$route.query[LOGGED_OUT] === _FLAGGED,
       err:       this.$route.query.err,
-    };
-  },
-
-  async asyncData({ route, store }) {
-    const providers = await store.dispatch('auth/getAuthProviders');
-
-    const hasGithub = !!findBy(providers, 'id', 'github');
-    const hasLocal = !!findBy(providers, 'id', 'local');
-
-    return {
-      hasGithub,
-      hasLocal,
-      showLocal: !hasGithub || (route.query[LOCAL] === _FLAGGED),
     };
   },
 

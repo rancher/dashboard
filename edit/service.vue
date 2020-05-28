@@ -49,7 +49,7 @@ export default {
     UnitInput,
   },
 
-  mixins:     [CreateEditView],
+  mixins: [CreateEditView],
 
   data() {
     if (!this?.value?.spec?.type) {

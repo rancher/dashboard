@@ -1,7 +1,7 @@
 import Vue from 'vue';
+import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { proxyFor } from './resource-proxy';
-import { addObject, addObjects, clear, removeObject } from '@/utils/array';
 
 function registerType(state, type) {
   let cache = state.types[type];

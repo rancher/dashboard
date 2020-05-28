@@ -1,7 +1,6 @@
 <script>
 import { saveAs } from 'file-saver';
 import AnsiUp from 'ansi_up';
-import Window from './Window';
 import { addParams } from '@/utils/url';
 import { base64Decode } from '@/utils/crypto';
 import { LOGS_RANGE, LOGS_TIME, LOGS_WRAP } from '@/store/prefs';
@@ -20,6 +19,7 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
+import Window from './Window';
 
 let lastId = 1;
 const ansiup = new AnsiUp();

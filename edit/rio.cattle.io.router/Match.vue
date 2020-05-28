@@ -3,11 +3,11 @@ import pullAt from 'lodash/pullAt';
 import pickBy from 'lodash/pickBy';
 import { isEmpty } from 'lodash';
 import findIndex from 'lodash/findIndex';
-import createEditView from '../../mixins/create-edit-view';
 import { typeOf } from '@/utils/sort';
 import KeyValue from '@/components/form/KeyValue';
 import StringMatch from '@/edit/rio.cattle.io.router/StringMatch';
 import LabeledInput from '@/components/form/LabeledInput';
+import createEditView from '../../mixins/create-edit-view';
 export default {
   components: {
     StringMatch, KeyValue, LabeledInput

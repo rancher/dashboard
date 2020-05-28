@@ -84,7 +84,7 @@ export default {
     }
 
     return {
-      typeOpts, type, refName, referenced: refName, secrets:    this.allSecrets, keys:       [], key, fieldPath, name
+      typeOpts, type, refName, referenced: refName, secrets: this.allSecrets, keys: [], key, fieldPath, name
     };
   },
   computed: {
@@ -152,14 +152,14 @@ export default {
       case 'secretKeyRef':
         out.valueFrom = {
           [this.type]: {
-            key:      this.key, name:     this.refName, optional: false
+            key: this.key, name: this.refName, optional: false
           }
         };
         break;
       case 'resourceFieldRef':
         out.valueFrom = {
           [this.type]: {
-            containerName: this.refName, divisor:       0, resource:      this.key
+            containerName: this.refName, divisor: 0, resource: this.key
           }
         };
         break;

@@ -1,7 +1,6 @@
 
 <script>
 import { isEmpty } from 'lodash';
-import createEditView from '../../mixins/create-edit-view';
 import { cleanUp } from '@/utils/object';
 import { randomStr } from '@/utils/string';
 import Match from '@/edit/rio.cattle.io.router/Match';
@@ -10,6 +9,7 @@ import Redirect from '@/edit/rio.cattle.io.router/Redirect';
 import Headers from '@/edit/rio.cattle.io.router/Headers';
 import Fault from '@/edit/rio.cattle.io.router/Fault';
 import Checkbox from '@/components/form/Checkbox';
+import createEditView from '../../mixins/create-edit-view';
 
 export default {
   components: {

@@ -13,7 +13,7 @@ export default {
     Footer, Labels, NameNsDescription, Taints
   },
 
-  mixins:     [CreateEditView],
+  mixins: [CreateEditView],
 
   props: {
     value: {

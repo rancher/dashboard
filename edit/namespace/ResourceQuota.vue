@@ -92,7 +92,7 @@ export default {
         const nsURL = get(this.namespace, 'metadata.selfLink');
 
         await this.$store.dispatch('cluster/request', {
-          url:    `${ nsURL }/resourcequotas`, data, method: 'POST'
+          url: `${ nsURL }/resourcequotas`, data, method: 'POST'
         });
       } else {
         this.updateQuota();
@@ -105,7 +105,7 @@ export default {
       updated.spec.hard = this.hard;
 
       await this.$store.dispatch('cluster/request', {
-        url:    updated.links.update, data:   updated, method: 'PUT'
+        url: updated.links.update, data: updated, method: 'PUT'
       });
     }
   }

@@ -122,6 +122,21 @@ function round3Digits(num) {
 }
 
 export default {
+
+  /* (
+  data() {
+    return {
+      loading: true,
+      ...randomData(),
+    };
+  },
+  */
+
+  async asyncData({ store }) {
+    const data = await loadData(store);
+
+    return data;
+  },
   computed: {
     namespaces() {
       return this.$store.getters['namespaces']();
@@ -172,21 +187,6 @@ export default {
       this.updateGraph();
       this.renderGraph();
     },
-  },
-
-  /* (
-  data() {
-    return {
-      loading: true,
-      ...randomData(),
-    };
-  },
-  */
-
-  async asyncData({ store }) {
-    const data = await loadData(store);
-
-    return data;
   },
 
   async mounted() {

@@ -1,5 +1,4 @@
 <script>
-import Rule from './Rule';
 import Certificate from '@/shared/networking.k8s.io.ingress/Certificate';
 import DefaultBackend from '@/shared/networking.k8s.io.ingress/DefaultBackend';
 import { allHash } from '@/utils/promise';
@@ -10,9 +9,10 @@ import LoadDeps from '@/mixins/load-deps';
 import Tab from '@/components/Tabbed/Tab';
 import Footer from '@/components/form/Footer';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import Rule from './Rule';
 
 export default {
-  name:  'CRUIngress',
+  name: 'CRUIngress',
 
   components: {
     DefaultBackend,
