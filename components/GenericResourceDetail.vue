@@ -147,7 +147,7 @@ export default {
     <ResourceTabs v-model="value" mode="view">
       <template #before>
         <Tab v-if="!!(value.status||{}).conditions" label="Conditions" name="conditions">
-          <Conditions v-model="value" />
+          <Conditions :value="value" />
         </Tab>
       </template>
     </ResourceTabs>
@@ -163,8 +163,6 @@ export default {
   & .resource-yaml{
     flex-grow:1;
     flex-basis: auto;
-    border-radius: var(--border-radius);
-    border: var(--outline-width) solid var(--border);
     -ms-overflow-style: none;
     overflow: scroll;
     max-height: 75vh;

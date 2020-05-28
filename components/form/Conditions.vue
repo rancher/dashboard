@@ -1,7 +1,6 @@
 <script>
 import {
   STATUS,
-  LAST_HEARTBEAT_TIME,
   REASON,
   MESSAGE
 } from '@/config/table-headers';
@@ -27,7 +26,14 @@ export default {
         width: 100,
       },
       STATUS,
-      LAST_HEARTBEAT_TIME,
+      {
+        name:          'lastUpdated',
+        label:         'Last Update',
+        value:         'lastTransitionTime',
+        sort:          ['lastTransitionTime'],
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true },
+      },
       REASON,
       MESSAGE
     ];
@@ -39,6 +45,13 @@ export default {
 
 <template>
   <div>
-    <SortableTable :headers="statusTableHeaders" :rows="(value.status||{}).conditions || []" key-field="message" :row-actions="false" :search="false" />
+    <SortableTable
+      :headers="statusTableHeaders"
+      :rows="(value.status||{}).conditions || []"
+      key-field="message"
+      :table-actions="false"
+      :row-actions="false"
+      :search="false"
+    />
   </div>
 </template>

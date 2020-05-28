@@ -127,7 +127,7 @@ export default {
       </div>
     </div>
     <div v-if="mode==='view'" class="actions">
-      <div>
+      <div v-if="hasDetailOrEdit">
         <ButtonGroup :labels-are-translations="true" :value="asYaml" :options="[{label: 'resourceDetail.masthead.overview', value: false},{label:'resourceDetail.masthead.yaml', value: true }]" @input="toggleYaml" />
       </div>
       <button ref="actions" aria-haspopup="true" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
