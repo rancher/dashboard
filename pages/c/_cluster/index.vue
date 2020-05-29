@@ -268,21 +268,28 @@ export default {
 
 <template>
   <section>
-    <header>
-      <h1>
-        <t k="clusterIndexPage.header" :name="cluster.nameDisplay" />
-      </h1>
-      <div class="actions">
-        <button
-          ref="cluster-actions"
-          type="button"
-          class="btn btn-sm role-multi-action actions"
-          aria-haspopup="true"
-          aria-expanded="false"
-          @click="showActions"
-        >
-          <i class="icon icon-actions" />
-        </button>
+    <header class="row">
+      <div class="span-6">
+        <h1>
+          <t k="clusterIndexPage.header" :name="cluster.nameDisplay" />
+        </h1>
+        <div>
+          <span v-if="cluster.spec.description">{{ cluster.spec.description }}</span>
+        </div>
+      </div>
+      <div class="span-6 actions-span">
+        <div class="actions">
+          <button
+            ref="cluster-actions"
+            type="button"
+            class="btn btn-sm role-multi-action actions"
+            aria-haspopup="true"
+            aria-expanded="false"
+            @click="showActions"
+          >
+            <i class="icon icon-actions" />
+          </button>
+        </div>
       </div>
     </header>
     <DetailTop :columns="detailTopColumns" class="mb-20">
@@ -382,3 +389,9 @@ export default {
     </div>
   </section>
 </template>
+
+<style lang="scss" scoped>
+  .actions-span {
+    align-self: center;
+  }
+</style>
