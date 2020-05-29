@@ -29,6 +29,12 @@ const SESSION_AFFINITY_ACTION_LABELS = {
 
 const SESSION_STICKY_TIME_DEFAULT = 10800;
 
+const HEADLESS = (() => {
+  const headless = find(DEFAULT_SERVICE_TYPES, ['id', 'Headless']);
+
+  return headless.id;
+})();
+
 export default {
   // Props are found in CreateEditView
   // props: {},
@@ -66,10 +72,15 @@ export default {
       }
     }
 
+    if (this.value.spec.type === 'ClusterIP' && this.value.spec.clusterIP === 'None') {
+      this.$set(this.value.spec, 'type', HEADLESS);
+    }
+
     return {
-      sessionAffinityActionOptions: Object.values(SESSION_AFFINITY_ACTION_VALUES),
-      sessionAffinityActionLabels:  Object.values(SESSION_AFFINITY_ACTION_LABELS).map(v => this.$store.getters['i18n/t'](v)).map(ucFirst),
       defaultServiceTypes:          DEFAULT_SERVICE_TYPES,
+      saving:                       false,
+      sessionAffinityActionLabels:  Object.values(SESSION_AFFINITY_ACTION_LABELS).map(v => this.$store.getters['i18n/t'](v)).map(ucFirst),
+      sessionAffinityActionOptions: Object.values(SESSION_AFFINITY_ACTION_VALUES),
     };
   },
 
@@ -95,14 +106,18 @@ export default {
 
   watch: {
     'value.spec.type'(val) {
+      const { saving } = this;
+
       if (val === 'ExternalName') {
         this.value.spec.ports = null;
       }
 
-      if (val === 'Headless') {
-        this.value.spec.clusterIP = 'None';
-      } else if (val !== 'Headless' && this.value.spec.clusterIP === 'None') {
-        this.value.spec.clusterIP = null;
+      if (!saving) {
+        if (val === HEADLESS) {
+          this.value.spec.clusterIP = 'None';
+        } else if (val !== HEADLESS && this.value.spec.clusterIP === 'None') {
+          this.value.spec.clusterIP = null;
+        }
       }
     },
 
@@ -118,6 +133,10 @@ export default {
     }
   },
 
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
+  },
+
   methods: {
     checkTypeIs(typeIn) {
       const { value: { spec: { type } } } = this;
@@ -127,7 +146,24 @@ export default {
       }
 
       return false;
+    },
+
+    willSave() {
+      if (this?.value?.spec?.type === HEADLESS) {
+        const portRows = this?.value?.spec?.ports || [];
+
+        portRows.forEach((row) => {
+          if (Object.prototype.hasOwnProperty.call(row, 'targetPort')) {
+            delete row.targetPort;
+          }
+        });
+
+        this.saving = true;
+        this.value.spec.type = 'ClusterIP';
+        this.value.spec.clusterIP = 'None';
+      }
     }
+
   },
 };
 </script>
@@ -146,7 +182,6 @@ export default {
       <NameNsDescription
         v-if="!isView"
         :value="value"
-        :namespaced="false"
         :mode="mode"
         :extra-columns="extraColumns"
       >
@@ -194,6 +229,7 @@ export default {
         class="col span-12"
         :mode="mode"
         :spec-type="value.spec.type"
+        :cluster-ip="value.spec.clusterIP"
       />
 
       <div class="spacer"></div>
@@ -201,7 +237,7 @@ export default {
       <ResourceTabs v-model="value" :mode="mode">
         <template #before>
           <Tab
-            v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName')"
+            v-if="!checkTypeIs('ExternalName')"
             name="selectors"
             :label="t('servicesPage.selectors.label')"
           >
@@ -228,14 +264,17 @@ export default {
             </div>
           </Tab>
           <Tab name="ips" :label="t('servicesPage.ips.label')">
-            <div v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer')" class="row">
+            <div class="row">
               <div class="col span-12">
                 <p class="helper-text">
                   <t k="servicesPage.ips.helpText" />
                 </p>
+                <p v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')" class="helper-text">
+                  <t k="servicesPage.ips.clusterIpHelpText" />
+                </p>
               </div>
             </div>
-            <div v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer')" class="row mb-20">
+            <div v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')" class="row mb-20">
               <div class="col span-6">
                 <LabeledInput
                   v-model="value.spec.clusterIP"
@@ -256,14 +295,14 @@ export default {
                   :value-multiline="false"
                   :mode="mode"
                   :pad-left="false"
-                  :protip="false"
+                  :protip="t('servicesPage.ips.external.protip')"
                   @input="e=>$set(value.spec, 'externalIPs', e)"
                 />
               </div>
             </div>
           </Tab>
           <Tab
-            v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName')"
+            v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
             name="session-affinity"
             :label="t('servicesPage.affinity.label')"
           >

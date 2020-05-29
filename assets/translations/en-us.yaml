@@ -106,14 +106,16 @@ servicesPage:
     label: Selectors
     helpText: If no selector is created, manual endpoints must be made.
   ips:
-    label: IPs
-    helpText: The IP address must be within the CIDR range configured for the API server.
+    label: Listener IPs
+    helpText: "Warning: Configuring additional listener IPs is an advanced use case."
+    clusterIpHelpText: The Cluster IP address must be within the CIDR range configured for the API server.
     input:
       label: Cluster IP
       placeholder: e.g. 10.0.171.239
     external:
       label: External IPs
       placeholder: e.g. 1.1.1.1
+      protip: List of IP addresses for which nodes in the cluster will also accept traffic for this service.
   affinity:
     label: Session Affinity
     helpText: Map connections to a consistent target based on their source IP.
@@ -256,8 +258,10 @@ servicePorts:
       label: Protocol
     target:
       label: Target Port
+      placeholder: e.g. 80 or http
     node:
       label: Node Port
+      placeholder: e.g. 80
 
 sortableTable:
   noRows: "There are no rows to show."
