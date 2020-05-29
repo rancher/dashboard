@@ -1,5 +1,5 @@
 <script>
-import { cleanUp } from '../../utils/object';
+import { cleanUp } from '@/utils/object';
 import HealthCheck from '@/components/form/HealthCheck';
 import Command from '@/components/form/Command';
 import Security from '@/components/form/Security';
