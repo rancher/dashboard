@@ -1,8 +1,10 @@
 import { parse as setCookieParser } from 'set-cookie-parser';
 import { randomStr } from '@/utils/string';
-import { parse as parseUrl, addParam, addParams } from '@/utils/url';
+import { parse as parseUrl, removeParam, addParam, addParams } from '@/utils/url';
 import { findBy, addObjects } from '@/utils/array';
-import { BACK_TO, SPA, AUTH_TEST, _FLAGGED } from '@/config/query-params';
+import {
+  BACK_TO, SPA, AUTH_TEST, _FLAGGED, GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT
+} from '@/config/query-params';
 import { BASE_SCOPES } from '@/store/github';
 
 const KEY = 'rc_nonce';
@@ -103,12 +105,6 @@ export const actions = {
       secure:   true,
     });
 
-    const scopes = BASE_SCOPES.slice();
-
-    if ( opt.scopes ) {
-      addObjects(scopes, opt.scopes);
-    }
-
     if (!route) {
       route = '/auth/verify';
     }
@@ -137,10 +133,21 @@ export const actions = {
       returnToUrl = addParam(returnToUrl, BACK_TO, opt.backTo);
     }
 
-    const url = addParams(redirectUrl, {
-      scope:        scopes.join(','),
-      redirect_uri: returnToUrl,
-      state:        nonce
+    const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
+    const scopes = fromQuery.split(/[, ]+/).filter(x => !!x);
+
+    addObjects(scopes, BASE_SCOPES);
+
+    if ( opt.scopes ) {
+      addObjects(scopes, opt.scopes);
+    }
+
+    let url = removeParam(redirectUrl, GITHUB_SCOPE);
+
+    url = addParams(url, {
+      [GITHUB_SCOPE]:    scopes.join(','),
+      [GITHUB_REDIRECT]: returnToUrl,
+      [GITHUB_NONCE]:    nonce
     });
 
     if ( opt.redirect === false ) {
