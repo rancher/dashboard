@@ -20,7 +20,9 @@ export default {
   <div class="banner" :class="{[color]: true}">
     <slot>
       <t v-if="labelKey" :k="labelKey" />
-      <template v-else>{{ label }}</template>
+      <template v-else>
+        {{ label }}
+      </template>
     </slot>
   </div>
 </template>

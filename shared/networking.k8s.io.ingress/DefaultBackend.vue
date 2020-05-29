@@ -5,7 +5,9 @@ import { _VIEW } from '@/config/query-params';
 import Banner from '@/components/Banner';
 
 export default {
-  components: { LabeledInput, LabeledSelect, Banner },
+  components: {
+    LabeledInput, LabeledSelect, Banner
+  },
 
   props:      {
     value: {
