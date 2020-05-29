@@ -48,7 +48,7 @@ export default {
     <div class="col span-3" :style="{'margin-right': '0px'}">
       <LabeledInput v-model.number="servicePort" label="Port" placeholder="e.g. 80" />
     </div>
-    <button class="btn btn-sm role-link col" @click="$emit('remove')">
+    <button class="btn role-link col" @click="$emit('remove')">
       remove
     </button>
   </div>
