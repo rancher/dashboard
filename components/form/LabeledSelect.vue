@@ -222,6 +222,8 @@ export default {
     &.no-label{
       position: relative;
       top:-7px;
+      max-height:2.3em;
+      overflow:hidden;
       }
   }
 

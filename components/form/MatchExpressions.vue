@@ -54,7 +54,7 @@ export default {
         name:  'operator',
         label: t('workload.matchExpressions.operator'),
         value: 'operator',
-        width: 100
+        width: '20%'
       },
       {
         name:  'value',
