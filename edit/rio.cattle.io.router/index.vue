@@ -4,8 +4,8 @@ import { get, cleanUp } from '@/utils/object';
 import { randomStr } from '@/utils/string';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import Rule from '@/edit/rio.cattle.io.router/Rule';
 import Footer from '@/components/form/Footer';
+import Rule from './Rule';
 
 export default {
   name:       'CruRouter',
@@ -13,6 +13,7 @@ export default {
     Rule, NameNsDescription, Footer
   },
   mixins: [CreateEditView],
+
   data() {
     let routes = [{ uuid: randomStr() }];
 
@@ -28,25 +29,22 @@ export default {
       spec: this.value.spec || {}
     };
   },
-  computed: {
-    namespace() {
-      return this.value.metadata.namespace;
-    },
-    cleanedRoutes() {
-      return this.routes.map(route => cleanUp(route));
-    },
-  },
+
   methods:  {
     addRouteSpec() {
       this.routes.push({ uuid: randomStr() });
     },
-    saveRouter(buttonCB) {
-      this.value.spec = { routes: this.cleanedRoutes };
-      this.save(buttonCB);
+
+    saveRouter(buttonCb) {
+      this.value.spec.routes = this.routes.map(route => cleanUp(route));
+
+      this.save(buttonCb);
     },
+
     change(type, value, index) {
       this[type].splice(index, 1, value);
     },
+
     reposition(oldIndex, newIndex) {
       if (newIndex >= 0 && newIndex < this.routes.length) {
         const moving = this.routes.splice(oldIndex, 1)[0];
@@ -54,6 +52,7 @@ export default {
         this.routes.splice(newIndex, 0, moving);
       }
     },
+
     remove(index) {
       this.routes.splice(index, 1);
     }
@@ -81,6 +80,7 @@ export default {
           :position="i"
           class="col span-12"
           :spec="route"
+          :mode="mode"
           @delete="remove(i)"
           @up="reposition(i, i-1)"
           @down="reposition(i, i+1)"

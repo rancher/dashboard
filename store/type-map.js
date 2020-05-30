@@ -241,7 +241,7 @@ export const getters = {
         }
       }
 
-      return _applyMapping(group, state.groupMappings, null, state.cache.groupLabel, (group) => {
+      const out = _applyMapping(group, state.groupMappings, null, state.cache.groupLabel, (group) => {
         const match = group.match(/^(.*)\.k8s\.io$/);
 
         if ( match ) {
@@ -250,6 +250,8 @@ export const getters = {
 
         return group;
       });
+
+      return out;
     };
   },
 
@@ -315,7 +317,11 @@ export const getters = {
 
       const root = { children: [] };
 
-      for ( const type in allTypes ) {
+      // Add types from shortest to longest so that parents
+      // get added before children
+      const keys = Object.keys(allTypes).sort((a, b) => a.length - b.length);
+
+      for ( const type of keys ) {
         const typeObj = allTypes[type];
 
         if ( typeObj.schema && getters.isIgnored(typeObj.schema) ) {
@@ -357,7 +363,11 @@ export const getters = {
         let group;
 
         if ( mode === BASIC ) {
-          if ( typeObj.group && typeObj.group.includes('::') ) {
+          const mappedGroup = getters.groupLabelFor(typeObj.schema);
+
+          if ( mappedGroup && mappedGroup.startsWith('Cluster::') ) {
+            group = _ensureGroup(root, mappedGroup);
+          } else if ( typeObj.group && typeObj.group.includes('::') ) {
             group = _ensureGroup(root, typeObj.group);
           } else {
             group = _ensureGroup(root, 'Cluster');

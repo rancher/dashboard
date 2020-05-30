@@ -5,15 +5,16 @@ import Command from '@/edit/rio.cattle.io.service/Command';
 import HealthCheck from '@/components/form/HealthCheck';
 import { get } from '@/utils/object';
 import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
-import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import CreateEditView from '@/mixins/create-edit-view';
-import { _EDIT, EDIT_CONTAINER } from '@/config/query-params';
+import { _EDIT, EDIT_CONTAINER, DEMO } from '@/config/query-params';
 import Footer from '@/components/form/Footer';
 import { findBy, filterBy, removeObject } from '@/utils/array';
 import { allHash } from '@/utils/promise';
+import { defaultAsyncData } from '@/components/ResourceDetail';
+import DEMOS from '@/config/demos';
 import Volumes from './Volumes';
 import Upgrading from './Upgrading';
 import Security from './Security';
@@ -37,7 +38,31 @@ export default {
     Footer
   },
 
-  mixins: [CreateEditView, LoadDeps],
+  mixins: [CreateEditView],
+
+  async fetch() {
+    const hash = await allHash({
+      configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
+      secrets:    this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      services:   this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE }),
+    });
+
+    this.allSecrets = hash.secrets;
+    this.allConfigMaps = hash.configMaps;
+  },
+
+  async asyncData(ctx) {
+    const { query } = ctx;
+
+    const out = await defaultAsyncData(ctx);
+    const demoName = query[DEMO];
+
+    if ( demoName && DEMOS[demoName] ) {
+      out.model.spec = DEMOS[demoName].spec;
+    }
+
+    return out;
+  },
 
   data() {
     if ( !this.value.spec ) {
@@ -98,17 +123,6 @@ export default {
   },
 
   methods: {
-    async loadDeps() {
-      const hash = await allHash({
-        configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
-        secrets:    this.$store.dispatch('cluster/findAll', { type: SECRET }),
-        services:    this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE }),
-      });
-
-      this.allSecrets = hash.secrets;
-      this.allConfigMaps = hash.configMaps;
-    },
-
     selectContainer(name) {
       this.$router.applyQuery({ [EDIT_CONTAINER]: name });
       this.containerName = name;
@@ -121,9 +135,11 @@ export default {
       removeObject(containers, entry);
       this.save();
     },
+
     toggleTabs() {
       this.showTabs = !this.showTabs;
     },
+
     get
   },
 };
@@ -163,9 +179,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
 
 <template>
   <form>
-    <Loading ref="loader" />
-    <div v-if="loading">
-    </div>
+    <Loading v-if="$fetchState.pending" />
     <div v-else-if="promptForContainer" class="clearfix">
       <p>This service consists of multiple containers, which one do you want to edit?</p>
       <div class="box">

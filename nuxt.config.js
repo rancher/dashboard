@@ -12,11 +12,16 @@ const version = process.env.VERSION ||
   require('./package.json').version;
 
 const dev = (process.env.NODE_ENV !== 'production');
-const api = process.env.API || 'http://localhost:8989';
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 const commitDate = process.env.COMMIT_DATE || '';
 const commitBranch = process.env.COMMIT_BRANCH || '';
+
+let api = process.env.API || 'http://localhost:8989';
+
+if ( !api.startsWith('http') ) {
+  api = `https://${ api }`;
+}
 
 let routerBasePath = '/';
 let resourceBase = '';
@@ -83,7 +88,7 @@ module.exports = {
 
   // mode:    'spa', --- Use --spa CLI flag, or ?spa query param.
 
-  loading: '~/components/Loading.vue',
+  loading: '~/components/nav/GlobalLoading.vue',
 
   // Axios: https://axios.nuxtjs.org/options
   axios: {

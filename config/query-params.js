@@ -11,6 +11,8 @@ export const AUTH_TEST = 'test';
 export const BACK_TO = 'back-to';
 export const GITHUB_CODE = 'code';
 export const GITHUB_NONCE = 'state';
+export const GITHUB_SCOPE = 'scope';
+export const GITHUB_REDIRECT = 'redirect_uri';
 
 // GENERAL
 export const AS_YAML = 'as-yaml';
@@ -37,6 +39,7 @@ export const DIFF = 'diff';
 export const _UNIFIED = 'unified';
 export const _SPLIT = 'split';
 
-// Edit Service
+// Rio Service/K8s Workload
+export const DEMO = 'demo';
 export const ADD_SIDECAR = 'add-sidecar';
 export const EDIT_CONTAINER = 'container';

@@ -33,10 +33,6 @@ export default {
   mixins: [ChildHook],
 
   props: {
-    isDemo: {
-      type:    Boolean,
-      default: false
-    },
     mode: {
       type:     String,
       required: true,

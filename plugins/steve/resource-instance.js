@@ -276,7 +276,7 @@ export default {
 
   waitForTestFn() {
     return (fn, msg, timeoutMs, intervalMs) => {
-      console.log(msg); // eslint-disable-line no-console
+      console.log('Starting wait for', msg); // eslint-disable-line no-console
 
       if ( !timeoutMs ) {
         timeoutMs = DEFAULT_WAIT_TMIMEOUT;
@@ -318,7 +318,7 @@ export default {
     return (state, timeout, interval) => {
       return this.waitForTestFn(() => {
         return (this.state || '').toLowerCase() === state.toLowerCase();
-      }, `Wait for state=${ state }`, timeout, interval);
+      }, `state=${ state }`, timeout, interval);
     };
   },
 
@@ -326,7 +326,7 @@ export default {
     return () => {
       return this.waitForTestFn(() => {
         return !this.transitioning;
-      }, 'Wait for transition completion');
+      }, 'transition completion');
     };
   },
 
@@ -334,7 +334,7 @@ export default {
     return (name) => {
       return this.waitForTestFn(() => {
         return this.hasAction(name);
-      }, `Wait for action=${ name }`);
+      }, `action=${ name }`);
     };
   },
 
@@ -362,7 +362,7 @@ export default {
     return (name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) => {
       return this.waitForTestFn(() => {
         return this.hasCondition(name, withStatus);
-      }, `Wait for condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
+      }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
     };
   },
 

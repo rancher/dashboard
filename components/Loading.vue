@@ -1,16 +1,11 @@
 <script>
 export default {
-  data: () => ({ loading: false }),
-
-  methods: {
-    start() {
-      this.loading = true;
-    },
-
-    finish() {
-      this.loading = false;
+  props: {
+    loading: {
+      type:    Boolean,
+      default: true,
     }
-  }
+  },
 };
 </script>
 
@@ -20,6 +15,9 @@ export default {
     <div class="content">
       Loading...
     </div>
+  </div>
+  <div v-else>
+    <slot />
   </div>
 </template>
 

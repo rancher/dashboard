@@ -43,18 +43,25 @@ export default {
   computed: {
     cmOptions() {
       const readOnly = this.editorMode === EDITOR_MODES.VIEW_CODE;
-      const gutters = ['CodeMirror-lint-markers'];
+
+      const gutters = [];
 
       if ( !readOnly ) {
-        gutters.push('CodeMirror-foldgutter');
+        gutters.push('CodeMirror-lint-markers');
       }
+
+      gutters.push('CodeMirror-foldgutter');
 
       return {
         readOnly,
         gutters,
         mode:            'yaml',
-        lint:            true,
+        lint:            !readOnly,
         lineNumbers:     !readOnly,
+        styleActiveLine: true,
+        tabSize:         2,
+        indentWithTabs:  false,
+        cursorBlinkRate: ( readOnly ? -1 : 530 ),
         extraKeys:       {
           'Ctrl-Space': 'autocomplete',
 
@@ -72,9 +79,6 @@ export default {
             cm.indentSelection('subtract');
           }
         },
-        tabSize:         2,
-        indentWithTabs:  false,
-        cursorBlinkRate: ( readOnly ? -1 : 530 )
       };
     },
     isPreview() {
