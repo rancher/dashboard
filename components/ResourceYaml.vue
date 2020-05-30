@@ -8,6 +8,7 @@ import {
   PREVIEW,
   _FLAGGED,
   _UNFLAG,
+  _EDIT,
 } from '@/config/query-params';
 
 export default {
@@ -74,31 +75,16 @@ export default {
       return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
 
-    cmOptions() {
-      const readOnly = this.mode === _VIEW;
-      const gutters = ['CodeMirror-lint-markers'];
-
-      if ( !readOnly ) {
-        gutters.push('CodeMirror-foldgutter');
-      }
-
-      return {
-        readOnly,
-        gutters,
-        mode:            'yaml',
-        lint:            true,
-        lineNumbers:     !readOnly,
-        extraKeys:       { 'Ctrl-Space': 'autocomplete' },
-        cursorBlinkRate: ( readOnly ? -1 : 530 )
-      };
-    },
-
     isCreate() {
       return this.mode === _CREATE;
     },
 
     isView() {
       return this.mode === _VIEW;
+    },
+
+    isEdit() {
+      return this.mode === _EDIT;
     },
 
     editorMode() {
@@ -122,11 +108,14 @@ export default {
     },
 
     onReady(cm) {
-      cm.getMode().fold = 'yaml';
-
       if ( this.isCreate ) {
+        cm.getMode().fold = 'yamlcomments';
         cm.execCommand('foldAll');
+      } else if ( this.isEdit ) {
+        cm.foldLinesMatching(/^status:\s*$/);
       }
+
+      cm.foldLinesMatching(/^\s+managedFields:\s*$/);
     },
 
     onChanges(cm, changes) {
