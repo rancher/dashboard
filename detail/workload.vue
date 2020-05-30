@@ -6,7 +6,6 @@ import ResourceTable from '@/components/ResourceTable';
 import DetailTop from '@/components/DetailTop';
 import CRUWorkload from '@/edit/workload';
 import Date from '@/components/formatter/Date';
-import LoadDeps from '@/mixins/load-deps';
 import { allHash } from '@/utils/promise';
 import WorkloadPorts from '@/edit/workload/WorkloadPorts';
 
@@ -18,7 +17,6 @@ export default {
     ResourceTable,
     WorkloadPorts,
   },
-  mixins:     [LoadDeps],
   props:      {
     value: {
       type:    Object,
@@ -29,6 +27,34 @@ export default {
     mode: {
       type:    String,
       default: 'view'
+    }
+  },
+
+  async fetch() {
+    // find all pods to filter by ownerRef
+    // in case of deployment, pods are owned by related replicaset, so get replicasets
+    // in case of cronjob, pods are owned by job
+
+    if (this.value.type === WORKLOAD_TYPES.DEPLOYMENT) {
+      const hash = await allHash({
+        replicasets: this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.REPLICA_SET }),
+        pods:        this.$store.dispatch('cluster/findAll', { type: POD }),
+      });
+
+      this.allPods = hash.pods;
+      this.allReplicasets = hash.replicasets;
+    } else if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
+      const hash = await allHash({
+        jobs: this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB }),
+        pods:        this.$store.dispatch('cluster/findAll', { type: POD }),
+      });
+
+      this.allPods = hash.pods;
+      this.allJobs = hash.jobs;
+    } else {
+      const pods = await this.$store.dispatch('cluster/findAll', { type: POD });
+
+      this.allPods = pods;
     }
   },
 
@@ -80,8 +106,8 @@ export default {
       container
     };
   },
-  computed:   {
 
+  computed:   {
     pods() {
       if (this.value.type === WORKLOAD_TYPES.DEPLOYMENT) {
         const replicaset = this.filterResourcesByOwner(this.allReplicasets, this.name )[0];
@@ -198,33 +224,6 @@ export default {
           return owner.name === ownerId;
         }).length);
       });
-    },
-
-    // find all pods to filter by ownerRef
-    // in case of deployment, pods are owned by related replicaset, so get replicasets
-    // in case of cronjob, pods are owned by job
-    async loadDeps() {
-      if (this.value.type === WORKLOAD_TYPES.DEPLOYMENT) {
-        const hash = await allHash({
-          replicasets: this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.REPLICA_SET }),
-          pods:        this.$store.dispatch('cluster/findAll', { type: POD }),
-        });
-
-        this.allPods = hash.pods;
-        this.allReplicasets = hash.replicasets;
-      } else if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
-        const hash = await allHash({
-          jobs: this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB }),
-          pods:        this.$store.dispatch('cluster/findAll', { type: POD }),
-        });
-
-        this.allPods = hash.pods;
-        this.allJobs = hash.jobs;
-      } else {
-        const pods = await this.$store.dispatch('cluster/findAll', { type: POD });
-
-        this.allPods = pods;
-      }
     },
   },
 };
