@@ -78,14 +78,14 @@ export default {
       </div>
     </div>
     <div v-for="(host, i) in hosts" :key="i" class="row mb-10">
-      <div :style="{'margin-right': '0px'}" class="col span-11">
+      <div :style="{'margin-right': '0px'}" class="col span-6">
         <LabeledInput :value="host" label="Host" placeholder="e.g. example.com" @input="e=>$set(hosts, i, e)" />
       </div>
-      <button class="btn btn-sm role-link col" @click="e=>remove(i)">
+      <button class="btn role-link col remove" @click="e=>remove(i)">
         remove
       </button>
     </div>
-    <button :style="{'padding':'0px 0px 0px 5px'}" class="bn btn-sm role-link" @click="addHost">
+    <button class="btn btn-sm role-link" @click="addHost">
       add host
     </button>
   </div>
@@ -96,8 +96,8 @@ export default {
     float:right;
     padding: 0px;
     position: relative;
-    top: -25px;
-    right: -25px;
+    top: -10px;
+    right: -10px;
   }
   .cert:not(:last-of-type) {
     padding-bottom: 10px;
@@ -105,7 +105,7 @@ export default {
     border-bottom: 1px solid var(--border);
   }
 
-  button {
+  button.remove {
     line-height: 40px;
   }
 </style>

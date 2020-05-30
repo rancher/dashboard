@@ -189,7 +189,7 @@ export default {
         this.saving = true;
         await this.ensureNamespace();
         await this.config.save();
-        await this.config.waitForCondition('Deployed');
+        await this.config.waitForCondition('Deployed', 'True', 300000);
         this.showYamlEditor = false;
         this.saving = false;
         this.$emit('gatekeeperEnabled', this.gatekeeperEnabled = true);

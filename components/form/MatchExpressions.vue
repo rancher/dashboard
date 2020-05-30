@@ -197,7 +197,9 @@ export default {
           <button
             v-if="!isView"
             type="button"
-            class="btn btn-sm role-link col remove-rule-button"
+            class="btn role-link col remove-rule-button"
+            :style="{padding:'0px'}"
+
             :disabled="mode==='view'"
             @click="removeRule(row)"
           >
