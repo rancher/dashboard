@@ -103,35 +103,6 @@ export const METRIC = {
   POD:  'metrics.k8s.io.podmetrics',
 };
 
-export const GATEKEEPER = {
-  TEMPLATE_ID: 'cattle-global-data/system-library-rancher-gatekeeper-operator',
-  APP_ID:      'rancher-gatekeeper-operator',
-  CONFIG:      `---
-replicas: 1
-auditInterval: 300
-constraintViolationsLimit: 20
-auditFromCache: false
-image:
-  repository: rancher/opa-gatekeeper
-  tag: v3.1.0-beta.7
-  pullPolicy: IfNotPresent
-nodeSelector: {"beta.kubernetes.io/os": "linux"}
-tolerations: []
-resources:
-  limits:
-    cpu: 1000m
-    memory: 512Mi
-  requests:
-    cpu: 100m
-    memory: 256Mi
-global:
-  systemDefaultRegistry: ""
-  kubectl:
-    repository: rancher/istio-kubectl
-    tag: 1.4.6
-`
-};
-
 export const SYSTEM_PROJECT_LABEL = 'authz.management.cattle.io/system-project';
 
 export const DEFAULT_SERVICE_TYPES = [

@@ -6,7 +6,7 @@ import InfoBox from '@/components/InfoBox';
 import { NAMESPACE } from '@/config/types';
 import { _VIEW, _EDIT } from '@/config/query-params';
 import { findBy } from '@/utils/array';
-import CodeMirror from './CodeMirror';
+import CodeMirror from '@/components/CodeMirror';
 
 export default {
   name: 'GatekeeperConfig',
@@ -261,7 +261,7 @@ export default {
      *
      */
     onReady(cm) {
-      cm.getMode().fold = 'yaml';
+      cm.getMode().fold = 'yamlcomments';
 
       cm.execCommand('foldAll');
     },

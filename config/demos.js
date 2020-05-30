@@ -1,8 +1,10 @@
+import { RIO } from './types';
+
 export default {
   serviceFromGit: {
+    resource:    RIO.SERVICE,
     title:       'Create service from Dockerfile',
     description: 'Learn how to use a Dockerfile in our Create Service.',
-    createPath:  '/rio/services/create',
     spec:        {
       replicas: 1,
       build:    {
@@ -23,9 +25,9 @@ export default {
   },
 
   stackFromGit:  {
+    resource:    RIO.STACK,
     title:       'Create stack from Riofile',
     description: 'Learn how to fill out Create Stack and deploy multiple resources using a Riofile.',
-    createPath:  '/rio/stack/create',
     spec:        {
       build: {
         repo:     'https://github.com/daxmc99/rio-demo.git',

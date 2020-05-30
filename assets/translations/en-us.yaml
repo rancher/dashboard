@@ -144,7 +144,6 @@ gatekeeperIndex:
 
 gatekeeperConfig:
   header: OPA Gatekeeper
-  flag: Experimental
   configure:
     description: Description
     helpText:
@@ -421,7 +420,7 @@ resourceYaml:
   buttons:
     continue: Continue Editing
     diff: Show Diff
-    
+
 resourceList:
   head:
     create: Create
@@ -456,3 +455,18 @@ workload:
       value: Value
       operator: Operator
       addRule: Add Rule
+
+rioConfig:
+  header: Rio
+  configure:
+    description: Description
+    helpText:
+      listItem1: The application deployment engine for Kubernetes.
+      listItem2: Rio makes it faster and easier for DevOps to build, test, deploy, scale and version stateless applications
+    requirements:
+      header: Requirements
+      helpText:
+        listItem1: 1 CPU Core
+        listItem2: 2 GiB of Memory
+  yaml:
+    buttonText: Customize

@@ -22,9 +22,9 @@ import {
   NODE,
   METRIC,
   EXTERNAL,
-  GATEKEEPER,
   SYSTEM_PROJECT_LABEL,
 } from '@/config/types';
+import { APP_ID as GATEKEEPER_APP_ID } from '@/config/chart/gatekeeper';
 import { allHash } from '@/utils/promise';
 import Poller from '@/utils/poller';
 const METRICS_POLL_RATE_MS = 30000;
@@ -60,7 +60,7 @@ export default {
       try {
         gatekeeper = await store.dispatch('clusterExternal/find', {
           type: EXTERNAL.APP,
-          id:   `${ systemNamespace }/${ GATEKEEPER.APP_ID }`,
+          id:   `${ systemNamespace }/${ GATEKEEPER_APP_ID }`,
         });
         if (!isEmpty(gatekeeper)) {
           gatekeeperEnabled = true;
