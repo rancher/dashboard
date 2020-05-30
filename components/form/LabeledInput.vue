@@ -81,7 +81,7 @@ export default {
         <slot name="suffix" />
       </span>
       <span v-else>
-        <t k="generic.na" raw="true" />
+        <t k="generic.na" :raw="true" />
       </span>
     </div>
   </div>

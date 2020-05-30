@@ -267,7 +267,6 @@ export default {
       if (!template.metadata && this.type !== WORKLOAD_TYPES.JOB) {
         template.metadata = { labels: this.workloadSelector };
       }
-
       delete this.value.kind;
       this.save(cb);
     },

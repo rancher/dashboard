@@ -30,7 +30,7 @@ export default {
         hostnames: entry.hostnames.join(', ')
       };
     });
-    const { dnsConfig = {}, hostname } = this.value;
+    const { dnsConfig = {}, hostname = '' } = this.value;
     const { nameservers, searches } = dnsConfig;
 
     const out = {
