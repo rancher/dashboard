@@ -304,7 +304,7 @@ export default {
                 <h2 class="mb-10 col span-11">
                   Container
                 </h2>
-                <button class="btn role-link" @click="e=>containers.splice(i, 1)">
+                <button v-if="mode!=='view'" class="btn role-link" @click="e=>containers.splice(i, 1)">
                   remove
                 </button>
               </div>
@@ -318,7 +318,7 @@ export default {
               />
               <hr v-if="i<containers.length-1" class="mb-20 mt-20">
             </div>
-            <button :mode="mode" class="btn role-primary mt-20" @click="e=>containers.push({ _key: Math.random() })">
+            <button v-if="mode!=='view'" class="btn role-primary mt-20" @click="e=>containers.push({ _key: Math.random() })">
               Add Container
             </button>
           </div>
