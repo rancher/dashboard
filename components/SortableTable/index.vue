@@ -263,6 +263,7 @@ export default {
 
     normalizedGroupRef() {
       const { groupRef = '' } = this;
+
       return capitalize(groupRef);
     },
 
@@ -656,7 +657,7 @@ $divider-height: 1px;
         transform: skewX(40deg);
         z-index: -1;
       }
-      
+
       .group-tab-title-ref {
         color: var(--input-label);
       }
