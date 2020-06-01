@@ -269,7 +269,7 @@ export default {
 <template>
   <section>
     <header class="row">
-      <div class="span-6">
+      <div class="span-11">
         <h1>
           <t k="clusterIndexPage.header" :name="cluster.nameDisplay" />
         </h1>
@@ -277,7 +277,7 @@ export default {
           <span v-if="cluster.spec.description">{{ cluster.spec.description }}</span>
         </div>
       </div>
-      <div class="span-6 actions-span">
+      <div class="span-1 actions-span">
         <div class="actions">
           <button
             ref="cluster-actions"
