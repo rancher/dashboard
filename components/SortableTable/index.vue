@@ -1,4 +1,5 @@
 <script>
+import { capitalize } from 'lodash';
 import { mapState } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
 import { removeObject } from '@/utils/array';
@@ -260,6 +261,11 @@ export default {
       return !this.noResults && this.rows.length === 0;
     },
 
+    normalizedGroupRef() {
+      const { groupRef = '' } = this;
+      return capitalize(groupRef);
+    },
+
     showHeaderRow() {
       return this.search || this.tableActions;
     },
@@ -411,7 +417,7 @@ export default {
           <tr class="group-row">
             <td :colspan="fullColspan">
               <div class="group-tab">
-                {{ group.ref }}
+                <span class="group-tab-title-ref">{{ normalizedGroupRef }}:</span>&nbsp;{{ group.ref }}
               </div>
             </td>
           </tr>
@@ -649,6 +655,10 @@ $divider-height: 1px;
         top: 0px;
         transform: skewX(40deg);
         z-index: -1;
+      }
+      
+      .group-tab-title-ref {
+        color: var(--input-label);
       }
     }
 

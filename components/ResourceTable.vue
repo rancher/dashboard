@@ -107,7 +107,7 @@ export default {
 
     groupBy() {
       if ( this.group === 'namespace' && this.groupable && this.showGroups) {
-        return 'metadata.namespace';
+        return 'namespaceGroupLabel';
       }
 
       return null;
@@ -136,6 +136,7 @@ export default {
     :headers="_headers"
     :rows="filteredRows"
     :group-by="groupBy"
+    :group-ref="group"
     :search="search"
     :paging="true"
     :paging-params="pagingParams"

@@ -234,6 +234,10 @@ resourceDetail:
     deleted: Deleted
     ownerReferences: Owner References
 
+resourceTable:
+  namespace:
+    tableGroupByLabel: "<span>Namespace:</span> {namespace}"
+
 servicePorts:
   header:
     label: Port Rules
