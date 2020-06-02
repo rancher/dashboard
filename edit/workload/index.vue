@@ -1,4 +1,5 @@
 <script>
+import { cleanUp } from '@/utils/object';
 import cronstrue from 'cronstrue';
 import { CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE } from '@/config/types';
 import Tab from '@/components/Tabbed/Tab';
@@ -15,7 +16,11 @@ import Job from '@/edit/workload/Job';
 import { defaultAsyncData } from '@/components/ResourceDetail';
 import { _EDIT } from '@/config/query-params';
 import ResourceTabs from '@/components/form/ResourceTabs';
-import Container from '@/components/form/Container';
+import HealthCheck from '@/components/form/HealthCheck';
+import Command from '@/components/form/Command';
+import Security from '@/components/form/Security';
+import WorkloadPorts from '@/components/form/WorkloadPorts';
+import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 
 const workloadTypeOptions = [
   { value: WORKLOAD_TYPES.DEPLOYMENT, label: 'Deployment' },
@@ -41,7 +46,11 @@ export default {
     Footer,
     Job,
     ResourceTabs,
-    Container
+    HealthCheck,
+    Command,
+    Security,
+    WorkloadPorts,
+    ContainerResourceLimit
   },
 
   mixins: [CreateEditView],
@@ -141,24 +150,75 @@ export default {
       }
     },
 
-    containers: {
+    container: {
       get() {
         if (!this.podTemplateSpec.containers) {
           this.$set(this.podTemplateSpec, 'containers', [{ }]);
         }
-        // add a key for list rendering porpoises
-        this.podTemplateSpec.containers.forEach((container) => {
-          if (!container._key) {
-            container._key = Math.random();
-          }
-        });
 
-        return this.podTemplateSpec.containers
-        ;
+        return this.podTemplateSpec.containers[0];
       },
 
       set(neu) {
-        this.$set(this.podTemplateSpec, 'containers', neu);
+        this.$set(this.podTemplateSpec.containers, 0, neu);
+      }
+    },
+
+    flatResources: {
+      get() {
+        const { limits = {}, requests = {} } = this.container.resources || {};
+        const { cpu:limitsCpu, memory:limitsMemory } = limits;
+        const { cpu:requestsCpu, memory:requestsMemory } = requests;
+
+        return {
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+        };
+      },
+      set(neu) {
+        const {
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+        } = neu;
+
+        const out = {
+          requests: {
+            cpu:    requestsCpu,
+            memory: requestsMemory
+          },
+          limits: {
+            cpu:    limitsCpu,
+            memory: limitsMemory
+          }
+        };
+
+        this.$set(this.container, 'resources', cleanUp(out));
+      }
+    },
+
+    healthCheck: {
+      get() {
+        const { readinessProbe, livenessProbe, startupProbe } = this.container;
+
+        return {
+          readinessProbe, livenessProbe, startupProbe
+        };
+      },
+      set(neu) {
+        Object.assign(this.container, neu);
+      }
+    },
+
+    command: {
+      get() {
+        const {
+          env, envFrom, command, args, workingDir, stdin, stdinOnce, tty
+        } = this.container;
+
+        return {
+          env, envFrom, command, args, workingDir, stdin, stdinOnce, tty
+        };
+      },
+      set(neu) {
+        Object.assign(this.container, neu);
       }
     },
 
@@ -277,6 +337,14 @@ export default {
       </NameNsDescription>
 
       <div class="row">
+        <div class="col span-4">
+          <LabeledSelect
+            v-model="container.imagePullPolicy"
+            :label="t('workload.container.imagePullPolicy')"
+            :options="['Always', 'IfNotPresent', 'Never']"
+            :mode="mode"
+          />
+        </div>
         <div class="col span-4" />
         <template v-if="isCronJob">
           <div class="col span-4">
@@ -297,31 +365,20 @@ export default {
         <Tab v-if="isJob" label="Job Configuration" name="job">
           <Job v-model="spec" :mode="mode" :type="type" />
         </Tab>
-        <Tab label="Containers" name="containers">
-          <div class="containers-container">
-            <div v-for="(container, i) in containers" :key="container._key">
-              <div class="row">
-                <h2 class="mb-10 col span-11">
-                  Container
-                </h2>
-                <button v-if="mode!=='view'" class="btn role-link" @click="e=>containers.splice(i, 1)">
-                  remove
-                </button>
-              </div>
-              <Container
-                :ref="`container-${i}`"
-                :value="container"
-                :mode="mode"
-                :config-maps="namespacedConfigMaps"
-                :secrets="namespacedSecrets"
-                @input="e=>containers[i]=e"
-              />
-              <hr v-if="i<containers.length-1" class="mb-20 mt-20">
-            </div>
-            <button v-if="mode!=='view'" class="btn role-primary mt-20" @click="e=>containers.push({ _key: Math.random() })">
-              Add Container
-            </button>
-          </div>
+        <Tab name="ports" label="Ports">
+          <WorkloadPorts v-model="container.ports" :mode="mode" />
+        </Tab>
+        <Tab label="Command" name="command">
+          <Command v-model="command" :mode="mode" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" />
+        </Tab>
+        <Tab label="Resources" name="resources">
+          <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
+        </Tab>
+        <Tab label="Health Check" name="healthCheck">
+          <HealthCheck v-model="healthCheck" :mode="mode" />
+        </Tab>
+        <Tab label="Security Context" name="securityContext">
+          <Security v-model="container.securityContext" :mode="mode" />
         </Tab>
         <Tab label="Networking" name="networking">
           <Networking v-model="podTemplateSpec" :mode="mode" />
