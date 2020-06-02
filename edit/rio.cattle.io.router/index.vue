@@ -17,6 +17,10 @@ export default {
   data() {
     let routes = [{ uuid: randomStr() }];
 
+    if ( !this.value.spec ) {
+      this.value.spec = {};
+    }
+
     if (get(this.value, 'spec.routes') ) {
       routes = this.value.spec.routes.map((route) => {
         return { ...route, uuid: randomStr() }
@@ -26,7 +30,7 @@ export default {
 
     return {
       routes,
-      spec: this.value.spec || {}
+      spec: this.value.spec
     };
   },
 

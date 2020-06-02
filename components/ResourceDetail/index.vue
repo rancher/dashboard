@@ -136,6 +136,8 @@ export async function defaultAsyncData(ctx, resource) {
    * Important: these need to be declared below as props too if you want to use them
    *******/
 
+  console.log('b2', out);
+
   return out;
 }
 
@@ -180,10 +182,6 @@ export default {
       type:    String,
       default: null
     },
-    realMode: {
-      type:    String,
-      default: null
-    },
   },
 
   data() {
@@ -202,6 +200,14 @@ export default {
   },
 
   computed: {
+    realMode() {
+      // There are 5 "real" modes that you can start in: view, edit, create, stage, clone
+      // These are mapped down to the 3 regular page modes that create-edit-view components
+      //  know about:  view, edit, create (stage and clone become "create")
+      const realMode = realModeFor(this.$route.query.mode, this.model?.id);
+
+      return realMode;
+    },
 
     isView() {
       return this.mode === _VIEW;
@@ -303,8 +309,7 @@ export default {
         :mode="mode"
         :real-mode="realMode"
         :value="model"
-        :obj="model"
-        :yaml="yaml"
+        v-bind="_data"
       />
     </template>
   </div>

@@ -13,7 +13,6 @@ import { _EDIT, EDIT_CONTAINER, DEMO } from '@/config/query-params';
 import Footer from '@/components/form/Footer';
 import { findBy, filterBy, removeObject } from '@/utils/array';
 import { allHash } from '@/utils/promise';
-import { defaultAsyncData } from '@/components/ResourceDetail';
 import DEMOS from '@/config/demos';
 import Volumes from './Volumes';
 import Upgrading from './Upgrading';
@@ -40,6 +39,13 @@ export default {
 
   mixins: [CreateEditView],
 
+  props: {
+    realMode: {
+      type:     String,
+      required: true,
+    },
+  },
+
   async fetch() {
     const hash = await allHash({
       configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
@@ -49,19 +55,6 @@ export default {
 
     this.allSecrets = hash.secrets;
     this.allConfigMaps = hash.configMaps;
-  },
-
-  async asyncData(ctx) {
-    const { query } = ctx;
-
-    const out = await defaultAsyncData(ctx);
-    const demoName = query[DEMO];
-
-    if ( demoName && DEMOS[demoName] ) {
-      out.model.spec = DEMOS[demoName].spec;
-    }
-
-    return out;
   },
 
   data() {
@@ -91,6 +84,14 @@ export default {
       spec.imagePullPolicy = 'Always';
     }
 
+    const demoName = this.$route.query[DEMO];
+    let isDemo = false;
+
+    if ( demoName && DEMOS[demoName] ) {
+      isDemo = true;
+      Object.assign(spec, DEMOS[demoName].spec);
+    }
+
     return {
       multipleContainers,
       nameResource,
@@ -98,6 +99,7 @@ export default {
       isSidecar,
       rootSpec,
       spec,
+      isDemo,
       allConfigMaps: null,
       allSecrets:    null,
       showTabs:      false
@@ -207,6 +209,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
         :name-resource="nameResource"
         :is-sidecar="isSidecar"
         :mode="mode"
+        :real-mode="realMode"
         :is-demo="isDemo"
         :register-after-hook="registerAfterHook"
         :register-before-hook="registerBeforeHook"

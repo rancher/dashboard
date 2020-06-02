@@ -7,11 +7,12 @@ import { typeOf } from '@/utils/sort';
 import KeyValue from '@/components/form/KeyValue';
 import StringMatch from '@/edit/rio.cattle.io.router/StringMatch';
 import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import { _VIEW } from '@/config/query-params';
 
 export default {
   components: {
-    StringMatch, KeyValue, LabeledInput
+    StringMatch, KeyValue, LabeledInput, LabeledSelect
   },
   props: {
     mode: {
@@ -120,17 +121,16 @@ export default {
 <template>
   <div class="match" @change="matchChange" @input="matchChange">
     <div class="row inputs">
-      <v-select
+      <LabeledSelect
         class="col span-4"
         multiple
         :close-on-select="false"
         :options="httpMethods.filter(opt=>!isSelected(opt))"
         :value="methods"
-        placeholder="Method"
+        label="Method"
         :disabled="isView"
         @input="e=>{change('methods', e); matchChange()}"
-      >
-      </v-select>
+      />
       <div class="col span-4">
         <LabeledInput v-if="host" v-model="host.value.exact" label="Host header" />
       </div>

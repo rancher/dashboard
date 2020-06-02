@@ -9,7 +9,7 @@ export default {
 
   props: {
     value: {
-      type:    [String, Object, Number],
+      type:    [String, Object, Number, Array],
       default: null,
     },
     options: {
