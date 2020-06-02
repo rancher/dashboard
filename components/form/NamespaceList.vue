@@ -80,7 +80,13 @@ export default {
 </template>
 
 <style lang="scss">
-.namespace-list .fixed input {
+.namespace-list {
+  .fixed input {
     height: initial;
+  }
+
+  tr:not(:last-of-type) td {
+    padding-bottom: 10px;
+  }
 }
 </style>

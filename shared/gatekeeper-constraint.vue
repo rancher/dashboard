@@ -2,23 +2,26 @@
 import Vue from 'vue';
 import { merge } from 'lodash';
 import jsyaml from 'js-yaml';
-import { _VIEW, _CREATE } from '../config/query-params';
-import { SCHEMA, NAMESPACE } from '@/config/types';
-import MatchKinds from '@/components/form/MatchKinds';
-import NameNsDescription from '@/components/form/NameNsDescription';
-import CreateEditView from '@/mixins/create-edit-view';
-import KeyValue from '@/components/form/KeyValue';
-import LabeledSelect from '@/components/form/LabeledSelect';
-import NamespaceList, { NAMESPACE_FILTERS } from '@/components/form/NamespaceList';
-import Tab from '@/components/Tabbed/Tab';
-import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
-import Footer from '@/components/form/Footer';
-import GatekeeperViolationsTable from '@/components/GatekeeperViolationsTable';
-import RuleSelector from '@/components/form/RuleSelector';
-import RadioGroup from '@/components/form/RadioGroup';
 import { ucFirst } from '@/utils/string';
 import { isSimpleKeyValue } from '@/utils/object';
+
+import { _VIEW, _CREATE } from '@/config/query-params';
+import { SCHEMA, NAMESPACE } from '@/config/types';
+import CreateEditView from '@/mixins/create-edit-view';
+
+import Footer from '@/components/form/Footer';
+import KeyValue from '@/components/form/KeyValue';
+import LabeledSelect from '@/components/form/LabeledSelect';
+import MatchKinds from '@/components/form/MatchKinds';
+import NameNsDescription from '@/components/form/NameNsDescription';
+import NamespaceList, { NAMESPACE_FILTERS } from '@/components/form/NamespaceList';
+import RadioGroup from '@/components/form/RadioGroup';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import RuleSelector from '@/components/form/RuleSelector';
+
+import Tab from '@/components/Tabbed/Tab';
+import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
+import GatekeeperViolationsTable from '@/components/chart/gatekeeper/ViolationsTable';
 
 function findConstraintTypes(schemas) {
   return schemas
@@ -209,11 +212,10 @@ export default {
         </template>
       </NameNsDescription>
     </div>
-    <br />
+    <div class="spacer"></div>
     <div v-if="isView">
       <h2>{{ t('gatekeeperConstraint.violations.title') }}</h2>
       <GatekeeperViolationsTable :constraint="value" />
-      <br />
     </div>
     <div>
       <h2 class="parameters">
@@ -240,7 +242,7 @@ export default {
         :protip="false"
       />
     </div>
-    <br />
+    <div class="spacer"></div>
     <div>
       <h2>{{ t('gatekeeperConstraint.enforcementAction.title') }}</h2>
       <RadioGroup
@@ -252,11 +254,9 @@ export default {
         @input="e=>value.spec.enforcementAction = e"
       />
     </div>
-    <br />
-    <br />
+    <div class="spacer"></div>
     <div class="match">
       <h2>{{ t('gatekeeperConstraint.match.title') }}</h2>
-
       <ResourceTabs v-model="value" :mode="mode" default-tab="labels">
         <template #before>
           <Tab name="namespaces" :label="t('gatekeeperConstraint.tab.namespaces.title')">

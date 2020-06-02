@@ -1,7 +1,7 @@
+import { SCHEMA, COLLECTION_TYPES, PRIMITIVE_TYPES } from '@/config/types';
 import { normalizeType, keyFieldFor, KEY_FIELD_FOR } from './normalize';
 import urlOptions from './urloptions';
 import mutations from './mutations';
-import { SCHEMA, COLLECTION_TYPES, PRIMITIVE_TYPES } from '@/config/types';
 
 export default {
   all: (state, getters) => (type) => {

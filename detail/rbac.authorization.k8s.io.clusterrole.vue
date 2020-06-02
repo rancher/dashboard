@@ -20,7 +20,7 @@ export default {
     ResourceTabs
   },
 
-  mixins:     [createEditView],
+  mixins: [createEditView],
 
   props: {
     /**

@@ -19,7 +19,7 @@ export default {
     Tab
   },
 
-  mixins:     [createEditView],
+  mixins: [createEditView],
 
   props: {
     value: {

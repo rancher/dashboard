@@ -12,7 +12,7 @@ export default {
 <template>
   <div class="detail-top">
     <div v-for="col in columns" :key="col.title">
-      <label>{{ col.title }}:</label>
+      <label>{{ col.title+': ' }}</label>
       <slot :name="col.name">
         <span>{{ col.content || col.content===0 ? col.content : col.fallback || 'n/a' }}</span>
       </slot>

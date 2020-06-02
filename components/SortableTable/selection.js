@@ -1,8 +1,8 @@
 import $ from 'jquery';
-import selectionStore from './selectionStore';
 import { isMore, isRange, suppressContextMenu } from '@/utils/platform';
 import { get } from '@/utils/object';
 import { randomStr } from '@/utils/string';
+import selectionStore from './selectionStore';
 export const ALL = 'all';
 export const SOME = 'some';
 export const NONE = 'none';
@@ -97,7 +97,7 @@ export default {
     },
 
     onRowMousedown(e) {
-      if ( isRange(e) || e.target.tagName === 'INPUT' ) {
+      if ( isRange(e) || this.isSelectionCheckbox(e.target) ) {
         e.preventDefault();
       }
     },
@@ -147,9 +147,8 @@ export default {
     onRowClick(e) {
       const node = this.nodeForEvent(e);
       const td = $(e.target).closest('TD');
-      const tagName = e.target.tagName;
       const selection = this.selectedNodes;
-      const isCheckbox = tagName === 'INPUT' || td.hasClass('row-check');
+      const isCheckbox = this.isSelectionCheckbox(e.target) || td.hasClass('row-check');
       const isExpand = td.hasClass('row-expand');
       const content = this.pagedRows;
 
@@ -226,6 +225,12 @@ export default {
         resources: this.selectedNodes,
         event:     e.originalEvent,
       });
+    },
+
+    isSelectionCheckbox(element) {
+      return element.tagName === 'INPUT' &&
+        element.type === 'checkbox' &&
+        ($(element).closest('.selection-checkbox').length > 0);
     },
 
     nodesBetween(a, b) {

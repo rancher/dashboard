@@ -3,17 +3,22 @@ import pullAt from 'lodash/pullAt';
 import pickBy from 'lodash/pickBy';
 import { isEmpty } from 'lodash';
 import findIndex from 'lodash/findIndex';
-import createEditView from '../../mixins/create-edit-view';
 import { typeOf } from '@/utils/sort';
 import KeyValue from '@/components/form/KeyValue';
 import StringMatch from '@/edit/rio.cattle.io.router/StringMatch';
 import LabeledInput from '@/components/form/LabeledInput';
+import { _VIEW } from '@/config/query-params';
+
 export default {
   components: {
     StringMatch, KeyValue, LabeledInput
   },
-  mixins: [createEditView],
-  props:      {
+  props: {
+    mode: {
+      type:     String,
+      required: true,
+    },
+
     spec: {
       type:     Object,
       default: () => {
@@ -45,6 +50,10 @@ export default {
     };
   },
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+
     formatted() {
       const all = {
         headers: !!this.host.value.exact ? [this.hostHeader, ...this.headers] : this.headers,

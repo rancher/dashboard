@@ -7,11 +7,13 @@ buttons:
   remove: Remove
 
 generic:
+  cancel: Cancel
   close: Close
   comingSoon: Coming Soon
   created: Created
   customize: Customize
   na: "n/a"
+  type: Type
   unknown: Unknown
 
 suffix:
@@ -142,7 +144,6 @@ gatekeeperIndex:
 
 gatekeeperConfig:
   header: OPA Gatekeeper
-  flag: Experimental
   configure:
     description: Description
     helpText:
@@ -228,6 +229,10 @@ resourceDetail:
     project: "Project"
     yaml: "YAML"
     overview: "Overview"
+  detailTop:
+    created: Created
+    deleted: Deleted
+    ownerReferences: Owner References
 
 servicePorts:
   header:
@@ -410,3 +415,58 @@ serviceTypes:
   headless: Headless
   loadbalancer: Load Balancer
   nodeport: Node Port
+
+resourceYaml:
+  buttons:
+    continue: Continue Editing
+    diff: Show Diff
+
+resourceList:
+  head:
+    create: Create
+    createFromYaml: Create from YAML
+
+secret:
+  type: Type
+  data: Data
+  certificate:
+      issuer: Issuer
+      expires: Expires
+      privateKey: Private Key
+      caCertificate: CA Certificate
+      readFromFile: Read from File
+      cn: Domain Name
+      plusMore: + {n} more
+  registry:
+    address: Address
+    username: Username
+    password: Password
+    domainName: Registry Domain Name
+
+workload:
+    matchExpressions:
+      in: '='
+      notIn: ≠
+      exists: Exists
+      doesNotExist: Does Not Exist
+      greaterThan: '>'
+      lessThan: <
+      key: Key
+      value: Value
+      operator: Operator
+      addRule: Add Rule
+
+rioConfig:
+  header: Rio
+  configure:
+    description: Description
+    helpText:
+      listItem1: The application deployment engine for Kubernetes.
+      listItem2: Rio makes it faster and easier for DevOps to build, test, deploy, scale and version stateless applications
+    requirements:
+      header: Requirements
+      helpText:
+        listItem1: 1 CPU Core
+        listItem2: 2 GiB of Memory
+  yaml:
+    buttonText: Customize

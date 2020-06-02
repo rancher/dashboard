@@ -1,11 +1,14 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
-import createEditView from '../../mixins/create-edit-view';
 import { RIO } from '@/config/types';
+import { _VIEW } from '../../config/query-params';
 
 export default {
-  mixins: [createEditView],
   props:      {
+    mode: {
+      type:     String,
+      required: true,
+    },
     spec: {
       type:     Object,
       default: () => {
@@ -49,10 +52,13 @@ export default {
       port,
       app,
       weight:     '',
-      mode:       null
     };
   },
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+
     formatted() {
       return {
         app:     this.app,

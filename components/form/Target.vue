@@ -1,7 +1,6 @@
 <script>
 import { findBy } from '@/utils/array';
 import { cleanUp } from '@/utils/object';
-import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import { RIO } from '@/config/types';
@@ -16,7 +15,7 @@ const KIND_LABELS = {
 
 export default {
   components: { Loading, Checkbox },
-  mixins:     [CreateEditView, LoadDeps],
+  mixins:     [CreateEditView],
   props:      {
     value: {
       type:    Object,
@@ -29,6 +28,17 @@ export default {
       default: KIND_LABELS
     }
   },
+
+  async fetch() {
+    const hash = await allHash({
+      services: this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE }),
+      routers:  this.$store.dispatch('cluster/findAll', { type: RIO.ROUTER }),
+    });
+
+    this.allServices = hash.services;
+    this.allRouters = hash.routers;
+  },
+
   data() {
     const spec = this.value;
 
@@ -122,16 +132,6 @@ export default {
   },
 
   methods: {
-    async loadDeps() {
-      const hash = await allHash({
-        services: this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE }),
-        routers:  this.$store.dispatch('cluster/findAll', { type: RIO.ROUTER }),
-      });
-
-      this.allServices = hash.services;
-      this.allRouters = hash.routers;
-    },
-
     update(value) {
       const spec = {};
 
@@ -175,14 +175,12 @@ export default {
 
 <template>
   <form>
-    <Loading ref="loader" />
-    <div v-if="loading">
-    </div>
+    <Loading v-if="$fetchState.pending" />
     <template v-else>
       <div class="spacer"></div>
 
       <div>
-        <div class="title clearfix">
+        <div class="clearfix">
           <h4>Target</h4>
         </div>
         <div v-if="mode === 'view'">

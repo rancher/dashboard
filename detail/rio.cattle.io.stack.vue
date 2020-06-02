@@ -1,6 +1,5 @@
 <script>
 import { findBy, filterBy } from '@/utils/array';
-import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import ResourceTable from '@/components/ResourceTable';
 import { SCHEMA } from '@/config/types';
@@ -10,13 +9,45 @@ export default {
   name: 'DetailStack',
 
   components: { Loading, ResourceTable },
-  mixins:     [LoadDeps],
 
   props: {
     value: {
       type:     Object,
       required: true,
     },
+  },
+
+  async fetch() {
+    const deps = [];
+
+    const all = this.$store.getters['cluster/all'](SCHEMA);
+    const additional = this.value.spec.additionalGroupVersionKinds || [];
+    const seen = {};
+
+    for ( const entry of additional ) {
+      const key = `${ entry.Group }.${ entry.Version }.${ entry.Kind }`;
+
+      if ( seen[key] ) {
+        continue;
+      } else {
+        seen[key] = true;
+      }
+
+      const schema = findBy(all, {
+        'attributes.kind':    entry.Kind,
+        'attributes.group':   entry.Group,
+        'attributes.version': entry.Version,
+      });
+
+      if ( schema ) {
+        this.depSchemas.push(schema);
+        deps.push(this.$store.dispatch('cluster/findAll', { type: schema.id }));
+      } else {
+        console.error('Unable to find schema for additional GVK', entry); // eslint-disable-line no-console
+      }
+    }
+
+    await Promise.all(deps);
   },
 
   data() {
@@ -54,48 +85,12 @@ export default {
 
       return out;
     }
-  },
-
-  methods: {
-    loadDeps() {
-      const deps = [];
-
-      const all = this.$store.getters['cluster/all'](SCHEMA);
-      const additional = this.value.spec.additionalGroupVersionKinds || [];
-      const seen = {};
-
-      for ( const entry of additional ) {
-        const key = `${ entry.Group }.${ entry.Version }.${ entry.Kind }`;
-
-        if ( seen[key] ) {
-          continue;
-        } else {
-          seen[key] = true;
-        }
-
-        const schema = findBy(all, {
-          'attributes.kind':    entry.Kind,
-          'attributes.group':   entry.Group,
-          'attributes.version': entry.Version,
-        });
-
-        if ( schema ) {
-          this.depSchemas.push(schema);
-          deps.push(this.$store.dispatch('cluster/findAll', { type: schema.id }));
-        } else {
-          console.error('Unable to find schema for additional GVK', entry); // eslint-disable-line no-console
-        }
-      }
-
-      return Promise.all(deps);
-    }
-  },
+  }
 };
 </script>
 <template>
   <div>
-    <Loading ref="loader" />
-    <div v-if="loading" />
+    <Loading v-if="$fetchState.pending" />
     <div v-else class="stack-detail">
       <div class="detail-top">
         <div>

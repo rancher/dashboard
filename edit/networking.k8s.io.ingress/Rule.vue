@@ -1,8 +1,8 @@
 <script>
 
-import { random32 } from '../../utils/string';
 import RulePath from '@/edit/networking.k8s.io.ingress/RulePath';
 import LabeledInput from '@/components/form/LabeledInput';
+import { random32 } from '../../utils/string';
 
 export default {
   components: { RulePath, LabeledInput },
@@ -65,10 +65,10 @@ export default {
 <template>
   <div class="rule mt-20" @input="update">
     <div class="row">
-      <div id="host" class="col span-11">
+      <div id="host" class="col span-6">
         <LabeledInput v-model="host" label="Request Host" placeholder="e.g. example.com" />
       </div>
-      <div class="col span-1">
+      <div class="col span-6">
         <button class="btn role-link close" @click="removeRule">
           <i class="icon icon-2x icon-x" />
         </button>
@@ -85,7 +85,7 @@ export default {
         @remove="e=>removePath(i)"
       />
     </template>
-    <button v-if="ruleMode === 'setHost'" :style="{'padding':'0px 0px 0px 5px'}" class="btn btn-sm role-link" @click="addPath">
+    <button v-if="ruleMode === 'setHost'" class="btn btn-sm role-link" @click="addPath">
       add path
     </button>
   </div>
@@ -96,7 +96,7 @@ export default {
     background: var(--tabbed-container-bg);
     border: 1px solid var(--tabbed-border);
     border-radius: var(--border-radius);
-    padding: 40px;
+    padding: 20px;
   }
 
   #host {
@@ -107,7 +107,7 @@ export default {
     float:right;
     padding: 0px;
     position: relative;
-    top: -25px;
-    right: -25px;
+    top: -10px;
+    right: -10px;
   }
 </style>

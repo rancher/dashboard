@@ -8,6 +8,7 @@ import {
   PREVIEW,
   _FLAGGED,
   _UNFLAG,
+  _EDIT,
 } from '@/config/query-params';
 
 export default {
@@ -51,6 +52,11 @@ export default {
       type:    Function,
       default: null
     },
+
+    showFooter: {
+      type:    Boolean,
+      default: true
+    }
   },
 
   data() {
@@ -58,7 +64,7 @@ export default {
     this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
 
     return {
-      currentYaml: this.yaml,
+      currentYaml:  this.value.cleanYaml(this.yaml, this.mode),
       showPreview:  false,
       errors:       null
     };
@@ -69,25 +75,6 @@ export default {
       return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
 
-    cmOptions() {
-      const readOnly = this.mode === _VIEW;
-      const gutters = ['CodeMirror-lint-markers'];
-
-      if ( !readOnly ) {
-        gutters.push('CodeMirror-foldgutter');
-      }
-
-      return {
-        readOnly,
-        gutters,
-        mode:            'yaml',
-        lint:            true,
-        lineNumbers:     !readOnly,
-        extraKeys:       { 'Ctrl-Space': 'autocomplete' },
-        cursorBlinkRate: ( readOnly ? -1 : 530 )
-      };
-    },
-
     isCreate() {
       return this.mode === _CREATE;
     },
@@ -96,11 +83,23 @@ export default {
       return this.mode === _VIEW;
     },
 
-    editorMode() {
-      return this.showPreview
-        ? EDITOR_MODES.DIFF_CODE
-        : EDITOR_MODES.EDIT_CODE;
+    isEdit() {
+      return this.mode === _EDIT;
     },
+
+    editorMode() {
+      return this.isView
+        ? EDITOR_MODES.VIEW_CODE
+        : this.showPreview
+          ? EDITOR_MODES.DIFF_CODE
+          : EDITOR_MODES.EDIT_CODE;
+    },
+  },
+
+  watch: {
+    mode(neu) {
+      this.currentYaml = this.value.cleanYaml(this.yaml, neu);
+    }
   },
 
   methods: {
@@ -109,11 +108,14 @@ export default {
     },
 
     onReady(cm) {
-      cm.getMode().fold = 'yaml';
-
       if ( this.isCreate ) {
+        cm.getMode().fold = 'yamlcomments';
         cm.execCommand('foldAll');
+      } else if ( this.isEdit ) {
+        cm.foldLinesMatching(/^status:\s*$/);
       }
+
+      cm.foldLinesMatching(/^\s+managedFields:\s*$/);
     },
 
     onChanges(cm, changes) {
@@ -209,9 +211,10 @@ export default {
           });
         }
 
-        if (res) {
-          await this.$store.dispatch('cluster/load', { data: res, existing: this.value });
+        if ( res && res.kind !== 'Table') {
+          await this.$store.dispatch('cluster/load', { data: res, existing: (this.isCreate ? this.value : undefined) });
         }
+
         buttonDone(true);
         this.done();
       } catch (err) {
@@ -256,13 +259,30 @@ export default {
       @onReady="onReady"
       @onChanges="onChanges"
     />
-    <Footer v-if="!isView" :mode="mode" :errors="errors" @save="save" @done="done">
-      <template #middle>
-        <button v-if="showPreview" type="button" class="btn role-secondary" @click="unpreview">
-          Continue Editing
+    <Footer
+      v-if="showFooter"
+      :mode="mode"
+      :errors="errors"
+      @save="save"
+      @done="done"
+    >
+      <template v-if="!isView" #middle>
+        <button
+          v-if="showPreview"
+          type="button"
+          class="btn role-secondary"
+          @click="unpreview"
+        >
+          <t k="resourceYaml.buttons.continue" />
         </button>
-        <button v-else-if="offerPreview" :disabled="yaml === currentYaml" type="button" class="btn role-secondary" @click="preview">
-          Show Diff
+        <button
+          v-else-if="offerPreview"
+          :disabled="yaml === currentYaml"
+          type="button"
+          class="btn role-secondary"
+          @click="preview"
+        >
+          <t k="resourceYaml.buttons.diff" />
         </button>
       </template>
     </Footer>

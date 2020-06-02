@@ -1,18 +1,17 @@
 <script>
-import Rule from './Rule';
 import Certificate from '@/shared/networking.k8s.io.ingress/Certificate';
 import DefaultBackend from '@/shared/networking.k8s.io.ingress/DefaultBackend';
 import { allHash } from '@/utils/promise';
 import { SECRET, TLS_CERT, WORKLOAD_TYPES } from '@/config/types';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
-import LoadDeps from '@/mixins/load-deps';
 import Tab from '@/components/Tabbed/Tab';
 import Footer from '@/components/form/Footer';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import Rule from './Rule';
 
 export default {
-  name:  'CRUIngress',
+  name: 'CRUIngress',
 
   components: {
     DefaultBackend,
@@ -24,7 +23,7 @@ export default {
     ResourceTabs
   },
 
-  mixins: [CreateEditView, LoadDeps],
+  mixins: [CreateEditView],
 
   props: {
     value: {
@@ -38,6 +37,28 @@ export default {
       type:    String,
       default: 'edit'
     }
+  },
+
+  async fetch() {
+    const hash = await allHash({
+      secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      ...Object.values(WORKLOAD_TYPES).reduce((all, type) => {
+        all[type] = this.$store.dispatch('cluster/findAll', { type });
+
+        return all;
+      }, {})
+    });
+
+    const workloads = Object.values(WORKLOAD_TYPES).map(type => hash[type]);
+
+    const flattened = workloads.reduce((all, type) => {
+      all.push(...type);
+
+      return all;
+    }, []);
+
+    this.allSecrets = hash.secrets;
+    this.allWorkloads = flattened;
   },
 
   data() {
@@ -84,28 +105,6 @@ export default {
   },
 
   methods: {
-    async loadDeps() {
-      const hash = await allHash({
-        secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }),
-        ...Object.values(WORKLOAD_TYPES).reduce((all, type) => {
-          all[type] = this.$store.dispatch('cluster/findAll', { type });
-
-          return all;
-        }, {})
-      });
-
-      const workloads = Object.values(WORKLOAD_TYPES).map(type => hash[type]);
-
-      const flattened = workloads.reduce((all, type) => {
-        all.push(...type);
-
-        return all;
-      }, []);
-
-      this.allSecrets = hash.secrets;
-      this.allWorkloads = flattened;
-    },
-
     addRule() {
       this.value.spec.rules = [...this.value.spec.rules, {}];
       this.$forceUpdate();

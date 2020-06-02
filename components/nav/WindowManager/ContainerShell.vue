@@ -1,5 +1,4 @@
 <script>
-import Window from './Window';
 import { allHash } from '@/utils/promise';
 import { addParams } from '@/utils/url';
 import { base64Decode, base64Encode } from '@/utils/crypto';
@@ -12,6 +11,7 @@ import Socket, {
   //  EVENT_FRAME_TIMEOUT,
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
+import Window from './Window';
 
 const DEFAULT_COMMAND = ['/bin/sh', '-c', 'TERM=xterm-256color; export TERM; [ -x /bin/bash ] && ([ -x /usr/bin/script ] && /usr/bin/script -q -c "/bin/bash" /dev/null || exec /bin/bash) || exec /bin/sh'];
 

@@ -1,7 +1,7 @@
 <script>
-import AspectPreserver from '@/components/charts/AspectPreserver';
-import LinePlot from '@/components/charts/LinePlot';
-import ProgressArc from '@/components/charts/ProgressArc';
+import AspectPreserver from '@/components/graph/AspectPreserver';
+import LinePlot from '@/components/graph/LinePlot';
+import ProgressArc from '@/components/graph/ProgressArc';
 export default {
   components: {
     AspectPreserver, ProgressArc, LinePlot

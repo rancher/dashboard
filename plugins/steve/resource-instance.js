@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import jsyaml from 'js-yaml';
-import { cleanForNew } from './normalize';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
 import { ucFirst } from '@/utils/string';
@@ -12,6 +11,7 @@ import {
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { DESCRIPTION } from '@/config/labels-annotations';
+import { cleanForNew } from './normalize';
 
 const REMAP_STATE = { disabled: 'inactive' };
 
@@ -276,7 +276,7 @@ export default {
 
   waitForTestFn() {
     return (fn, msg, timeoutMs, intervalMs) => {
-      console.log(msg); // eslint-disable-line no-console
+      console.log('Starting wait for', msg); // eslint-disable-line no-console
 
       if ( !timeoutMs ) {
         timeoutMs = DEFAULT_WAIT_TMIMEOUT;
@@ -318,7 +318,7 @@ export default {
     return (state, timeout, interval) => {
       return this.waitForTestFn(() => {
         return (this.state || '').toLowerCase() === state.toLowerCase();
-      }, `Wait for state=${ state }`, timeout, interval);
+      }, `state=${ state }`, timeout, interval);
     };
   },
 
@@ -326,7 +326,7 @@ export default {
     return () => {
       return this.waitForTestFn(() => {
         return !this.transitioning;
-      }, 'Wait for transition completion');
+      }, 'transition completion');
     };
   },
 
@@ -334,7 +334,7 @@ export default {
     return (name) => {
       return this.waitForTestFn(() => {
         return this.hasAction(name);
-      }, `Wait for action=${ name }`);
+      }, `action=${ name }`);
     };
   },
 
@@ -362,7 +362,7 @@ export default {
     return (name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) => {
       return this.waitForTestFn(() => {
         return this.hasCondition(name, withStatus);
-      }, `Wait for condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
+      }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
     };
   },
 
@@ -582,11 +582,10 @@ export default {
   save() {
     return async(opt = {}) => {
       delete this.__rehydrate;
+      const forNew = !this.id;
 
       if ( !opt.url ) {
-        if (this.id) {
-          opt.url = this.linkFor('update') || this.linkFor('self');
-        } else {
+        if ( forNew ) {
           const schema = this.$getters['schemaFor'](this.type);
           let url = schema.linkFor('collection');
 
@@ -595,11 +594,13 @@ export default {
           }
 
           opt.url = url;
+        } else {
+          opt.url = this.linkFor('update') || this.linkFor('self');
         }
       }
 
       if ( !opt.method ) {
-        opt.method = (this.id ? 'put' : 'post');
+        opt.method = ( forNew ? 'post' : 'put' );
       }
 
       if ( !opt.headers ) {
@@ -624,7 +625,11 @@ export default {
       const res = await this.$dispatch('request', opt);
 
       // console.log('### Resource Save', this.type, this.id);
-      await this.$dispatch('load', { data: res, existing: this });
+
+      // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
+      if ( res && res.kind !== 'Table') {
+        await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
+      }
 
       return this;
     };
@@ -674,6 +679,20 @@ export default {
         namespace: this.metadata && this.metadata.namespace,
         id:        this.metadata.name
       }
+    };
+  },
+
+  goToClone() {
+    return (moreQuery = {}) => {
+      const location = this.detailLocation;
+
+      location.query = {
+        ...location.query,
+        [MODE]: _CLONE,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
     };
   },
 
@@ -812,6 +831,9 @@ export default {
   // map _type to type
   cleanYaml() {
     return (yaml, mode = 'edit') => {
+      if (mode === _VIEW) {
+        return yaml;
+      }
       try {
         const obj = jsyaml.safeLoad(yaml);
 

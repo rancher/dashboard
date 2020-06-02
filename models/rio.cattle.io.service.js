@@ -415,7 +415,7 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]:  _STAGE,
+        [MODE]: _STAGE,
         ...moreQuery
       };
 

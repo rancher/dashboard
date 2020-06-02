@@ -22,9 +22,9 @@ import {
   NODE,
   METRIC,
   EXTERNAL,
-  GATEKEEPER,
   SYSTEM_PROJECT_LABEL,
 } from '@/config/types';
+import { APP_ID as GATEKEEPER_APP_ID } from '@/config/chart/gatekeeper';
 import { allHash } from '@/utils/promise';
 import Poller from '@/utils/poller';
 const METRICS_POLL_RATE_MS = 30000;
@@ -37,6 +37,54 @@ export default {
     InfoBox,
     InfoBoxCluster,
     SortableTable
+  },
+
+  async asyncData(ctx) {
+    const { route, store } = ctx;
+    const id = get(route, 'params.cluster');
+    let gatekeeper = null;
+    let gatekeeperEnabled = false;
+
+    const projects = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT });
+    const targetSystemProject = projects.find(( proj ) => {
+      const labels = proj.metadata?.labels || {};
+
+      if ( labels[SYSTEM_PROJECT_LABEL] === 'true' ) {
+        return true;
+      }
+    });
+
+    if (!isEmpty(targetSystemProject)) {
+      const systemNamespace = targetSystemProject.metadata.name;
+
+      try {
+        gatekeeper = await store.dispatch('clusterExternal/find', {
+          type: EXTERNAL.APP,
+          id:   `${ systemNamespace }/${ GATEKEEPER_APP_ID }`,
+        });
+        if (!isEmpty(gatekeeper)) {
+          gatekeeperEnabled = true;
+        }
+      } catch (err) {
+        gatekeeperEnabled = false;
+      }
+    }
+
+    const cluster = await store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id });
+
+    return {
+      constraints:       [],
+      events:            [],
+      nodeMetrics:       [],
+      haveNodes:         !!store.getters['cluster/schemaFor'](NODE),
+      haveNodeTemplates: !!store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE),
+      haveNodePools:     !!store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL),
+      nodePools:         [],
+      nodeTemplates:     [],
+      nodes:             [],
+      cluster,
+      gatekeeperEnabled,
+    };
   },
 
   data() {
@@ -136,54 +184,6 @@ export default {
     },
   },
 
-  async asyncData(ctx) {
-    const { route, store } = ctx;
-    const id = get(route, 'params.cluster');
-    let gatekeeper = null;
-    let gatekeeperEnabled = false;
-
-    const projects = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT });
-    const targetSystemProject = projects.find(( proj ) => {
-      const labels = proj.metadata?.labels || {};
-
-      if ( labels[SYSTEM_PROJECT_LABEL] === 'true' ) {
-        return true;
-      }
-    });
-
-    if (!isEmpty(targetSystemProject)) {
-      const systemNamespace = targetSystemProject.metadata.name;
-
-      try {
-        gatekeeper = await store.dispatch('clusterExternal/find', {
-          type: EXTERNAL.APP,
-          id:   `${ systemNamespace }/${ GATEKEEPER.APP_ID }`,
-        });
-        if (!isEmpty(gatekeeper)) {
-          gatekeeperEnabled = true;
-        }
-      } catch (err) {
-        gatekeeperEnabled = false;
-      }
-    }
-
-    const cluster = await store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id });
-
-    return {
-      constraints:       [],
-      events:            [],
-      nodeMetrics:       [],
-      haveNodes:         !!store.getters['cluster/schemaFor'](NODE),
-      haveNodeTemplates: !!store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE),
-      haveNodePools:     !!store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL),
-      nodePools:         [],
-      nodeTemplates:     [],
-      nodes:             [],
-      cluster,
-      gatekeeperEnabled,
-    };
-  },
-
   mounted() {
     this.metricPoller.start();
   },
@@ -268,21 +268,28 @@ export default {
 
 <template>
   <section>
-    <header>
-      <h1>
-        <t k="clusterIndexPage.header" :name="cluster.nameDisplay" />
-      </h1>
-      <div class="actions">
-        <button
-          ref="cluster-actions"
-          type="button"
-          class="btn btn-sm role-multi-action actions"
-          aria-haspopup="true"
-          aria-expanded="false"
-          @click="showActions"
-        >
-          <i class="icon icon-actions" />
-        </button>
+    <header class="row">
+      <div class="span-11">
+        <h1>
+          <t k="clusterIndexPage.header" :name="cluster.nameDisplay" />
+        </h1>
+        <div>
+          <span v-if="cluster.spec.description">{{ cluster.spec.description }}</span>
+        </div>
+      </div>
+      <div class="span-1 actions-span">
+        <div class="actions">
+          <button
+            ref="cluster-actions"
+            type="button"
+            class="btn btn-sm role-multi-action actions"
+            aria-haspopup="true"
+            aria-expanded="false"
+            @click="showActions"
+          >
+            <i class="icon icon-actions" />
+          </button>
+        </div>
       </div>
     </header>
     <DetailTop :columns="detailTopColumns" class="mb-20">
@@ -382,3 +389,9 @@ export default {
     </div>
   </section>
 </template>
+
+<style lang="scss" scoped>
+  .actions-span {
+    align-self: center;
+  }
+</style>

@@ -1,8 +1,8 @@
 <script>
 import { mapState } from 'vuex';
+import { NORMAN } from '@/config/types';
 import ClusterSwitcher from './ClusterSwitcher';
 import NamespaceFilter from './NamespaceFilter';
-import { NORMAN } from '@/config/types';
 
 export default {
   components: {

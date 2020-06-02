@@ -1,15 +1,15 @@
 <script>
 import { mapState } from 'vuex';
+import Checkbox from '@/components/form/Checkbox';
+import { removeObject } from '@/utils/array';
+import { get } from '@/utils/object';
+import { dasherize } from '@/utils/string';
 import THead from './THead';
 import filtering from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
-import Checkbox from '@/components/form/Checkbox';
-import { removeObject } from '@/utils/array';
-import { get } from '@/utils/object';
-import { dasherize } from '@/utils/string';
 
 // @TODO:
 // Fixed header/scrolling
@@ -198,6 +198,14 @@ export default {
     },
 
     /**
+     * Allows you to hide the no rows messaging.
+     */
+    showNoRows: {
+      type:    Boolean,
+      default: true
+    },
+
+    /**
      * Allows you to override the default translation text of no search data view
      */
     noDataKey: {
@@ -383,7 +391,7 @@ export default {
         <slot name="no-rows">
           <tr>
             <td :colspan="fullColspan" class="no-rows">
-              <t :k="noRowsKey" />
+              <t v-if="showNoRows" :k="noRowsKey" />
             </td>
           </tr>
         </slot>
@@ -412,7 +420,7 @@ export default {
           <slot name="main-row" :row="row">
             <tr :key="get(row,keyField)" class="main-row">
               <td v-show="tableActions" class="row-check" align="middle">
-                <Checkbox type="checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
+                <Checkbox class="selection-checkbox" type="checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
               </td>
               <td v-if="subExpandColumn" class="row-expand" align="middle">
                 <i data-title="Toggle Expand" :class="{icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[get(row, keyField)]}" />

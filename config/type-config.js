@@ -42,12 +42,7 @@ export default function(store) {
     NAMESPACE,
     NODE,
     'workload',
-    'gatekeeper',
-    'gatekeeper-constraints',
-    'gatekeeper-templates',
   ]);
-
-  mapTypeToComponentName(/^constraints.gatekeeper.sh.*$/, 'gatekeeper-constraint');
 
   for (const key in WORKLOAD_TYPES) {
     mapTypeToComponentName(WORKLOAD_TYPES[key], 'workload');
@@ -81,13 +76,14 @@ export default function(store) {
   mapGroup(/^(gateway|gloo)\.solo\.io$/, 'Gloo');
   mapGroup(/^(.*\.)?monitoring\.coreos\.com$/, 'Monitoring');
   mapGroup(/^(.*\.)?tekton\.dev$/, 'Tekton');
-  mapGroup(/^(.*\.)?rio\.cattle\.io$/, 'Rio');
   mapGroup(/^(.*\.)?longhorn\.rancher\.io$/, 'Longhorn');
+  mapGroup(/^(.*\.)?(rio|gitwatcher)\.cattle\.io$/, 'Rio');
   mapGroup(/^(.*\.)?fleet\.cattle\.io$/, 'Fleet');
   mapGroup(/^(.*\.)?(helm|upgrade|k3s)\.cattle\.io$/, 'k3s');
   mapGroup(/^(project|management)\.cattle\.io$/, 'Rancher');
   mapGroup(/^(.*\.)?istio\.io$/, 'Istio');
-  mapGroup(/^(.*\.)?knative\.io$/, 'Knative');
+  mapGroup('split.smi-spec.io', 'SMI');
+  mapGroup(/^(.*\.)*knative\.io$/, 'Knative');
 
   headers(CONFIG_MAP, [NAMESPACE_NAME, KEYS, AGE]);
   headers(SECRET, [
@@ -102,9 +98,10 @@ export default function(store) {
       formatter: 'SecretType'
     },
     {
-      name:  'data',
-      label: 'Data',
-      value: 'dataPreview'
+      name:      'data',
+      label:     'Data',
+      value:     'dataPreview',
+      formatter: 'SecretData'
     },
     AGE
   ]);
@@ -230,6 +227,13 @@ export default function(store) {
   });
 
   // OPA Gatekeeper
+  mapTypeToComponentName(/^constraints.gatekeeper.sh.*$/, 'gatekeeper-constraint');
+
+  basicType([
+    'gatekeeper',
+    'gatekeeper-constraint',
+    'gatekeeper-template',
+  ]);
 
   ignoreGroup(/^.*\.gatekeeper\.sh$/);
 
@@ -245,7 +249,7 @@ export default function(store) {
   virtualType({
     label:      'Constraint',
     namespaced: false,
-    name:       'gatekeeper-constraints',
+    name:       'gatekeeper-constraint',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-constraints' },
     ifHaveType: GATEKEEPER_CONSTRAINT_TEMPLATE
@@ -254,9 +258,36 @@ export default function(store) {
   virtualType({
     label:      'Template',
     namespaced: false,
-    name:       'gatekeeper-templates',
+    name:       'gatekeeper-template',
     group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-templates' },
     ifHaveType: GATEKEEPER_CONSTRAINT_TEMPLATE
   });
+
+  // Rio
+  /*
+  basicType([
+    'rio',
+    RIO.SERVICE,
+    RIO.ROUTER,
+    RIO.PUBLIC_DOMAIN,
+    RIO.EXTERNAL_SERVICE,
+    RIO.STACK
+  ]);
+
+  virtualType({
+    label:       'Rio',
+    namespaced:  false,
+    name:        'rio',
+    group:       'Cluster',
+    route:       { name: 'c-cluster-rio' },
+    ifIsRancher: true,
+  });
+
+  moveType(RIO.SERVICE, 'Cluster::Rio::Service');
+  moveType(RIO.ROUTER, 'Cluster::Rio::Router');
+  moveType(RIO.PUBLIC_DOMAIN, 'Cluster::Rio::Public Domain');
+  moveType(RIO.EXTERNAL_SERVICE, 'Cluster::Rio::External Service');
+  moveType(RIO.STACK, 'Cluster::Rio::Stack');
+  */
 }

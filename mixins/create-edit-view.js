@@ -1,9 +1,9 @@
 import omitBy from 'lodash/omitBy';
 import pickBy from 'lodash/pickBy';
-import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
 import { LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';
+import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
 
 // return true if the string starts with one of the values in prefixes array
 const matchesSomePrefix = (string, prefixes) => {
@@ -33,10 +33,6 @@ export default {
   mixins: [ChildHook],
 
   props: {
-    isDemo: {
-      type:    Boolean,
-      default: false
-    },
     mode: {
       type:     String,
       required: true,
@@ -185,7 +181,7 @@ export default {
           url = url || this.schema.linkFor('collection');
 
           if ( this.value?.metadata?.namespace ) {
-            this.value.$dispatch('prefs/set', { key: LAST_NAMESPACE, val: this.value.metadata.namespace }, { root: true });
+            this.value.$dispatch('prefs/set', { key: LAST_NAMESPACE, value: this.value.metadata.namespace }, { root: true });
           }
 
           const res = await this.value.save({ url });

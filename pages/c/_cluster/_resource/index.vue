@@ -1,14 +1,54 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import Favorite from '@/components/nav/Favorite';
 import { AS_YAML, _FLAGGED } from '@/config/query-params';
-import BreadCrumbs from '@/components/BreadCrumbs';
+import Masthead from '@/components/ResourceList/Masthead';
 
 export default {
   components: {
     ResourceTable,
-    Favorite,
-    BreadCrumbs
+    Masthead
+  },
+
+  async asyncData(ctx) {
+    const { params, store } = ctx;
+    const resource = params.resource;
+    const hasListComponent = store.getters['type-map/hasCustomList'](resource);
+    const hasEditComponent = store.getters['type-map/hasCustomEdit'](resource);
+    const schema = store.getters['cluster/schemaFor'](resource);
+
+    let foundData = false;
+    let rows;
+    let more = {};
+    let customTypeDisplay;
+
+    if ( hasListComponent ) {
+      // If you provide your own list then call its asyncData
+      const importer = store.getters['type-map/importList'](resource);
+      const component = (await importer())?.default;
+
+      if ( component?.asyncData ) {
+        more = await component.asyncData(ctx);
+        foundData = true;
+      }
+
+      if ( component?.typeDisplay ) {
+        customTypeDisplay = component.typeDisplay(ctx);
+      }
+    }
+
+    if ( !foundData ) {
+      rows = await store.dispatch('cluster/findAll', { type: resource });
+    }
+
+    return {
+      schema,
+      hasListComponent,
+      hasEditComponent,
+      resource,
+      rows,
+      customTypeDisplay,
+      ...more
+    };
   },
 
   data() {
@@ -65,86 +105,26 @@ export default {
     },
 
     isCreatable() {
-      if ( !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+      if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
         return false;
       }
 
       return this.$store.getters['type-map/isCreatable'](this.$route.params.resource);
     }
   },
-
-  async asyncData(ctx) {
-    const { params, store } = ctx;
-    const resource = params.resource;
-    const hasListComponent = store.getters['type-map/hasCustomList'](resource);
-    const hasEditComponent = store.getters['type-map/hasCustomEdit'](resource);
-    const schema = store.getters['cluster/schemaFor'](resource);
-
-    let foundData = false;
-    let rows;
-    let more = {};
-    let customTypeDisplay;
-
-    if ( hasListComponent ) {
-      // If you provide your own list then call its asyncData
-      const importer = store.getters['type-map/importList'](resource);
-      const component = (await importer())?.default;
-
-      if ( component?.asyncData ) {
-        more = await component.asyncData(ctx);
-        foundData = true;
-      }
-
-      if ( component?.typeDisplay ) {
-        customTypeDisplay = component.typeDisplay(ctx);
-      }
-    }
-
-    if ( !foundData ) {
-      rows = await store.dispatch('cluster/findAll', { type: resource });
-    }
-
-    return {
-      schema,
-      hasListComponent,
-      hasEditComponent,
-      resource,
-      rows,
-      customTypeDisplay,
-      ...more
-    };
-  },
 }; </script>
 
 <template>
   <div>
-    <header>
-      <BreadCrumbs class="breadcrumbs" :route="route" />
+    <Masthead
+      :resource="resource"
+      :type-display="typeDisplay"
+      :is-yaml-creatable="schema && isCreatable"
+      :is-creatable="hasEditComponent && isCreatable"
+      :yaml-create-location="yamlRoute"
+      :create-location="formRoute"
+    />
 
-      <h1>
-        {{ typeDisplay }} <Favorite :resource="resource" />
-      </h1>
-      <div class="actions">
-        <nuxt-link
-          v-if="schema && isCreatable"
-          :to="yamlRoute"
-          tag="button"
-          type="button"
-          class="btn bg-primary mr-10"
-        >
-          Create from YAML
-        </nuxt-link>
-        <nuxt-link
-          v-if="hasEditComponent && isCreatable"
-          :to="formRoute"
-          tag="button"
-          type="button"
-          class="btn bg-primary"
-        >
-          Create
-        </nuxt-link>
-      </div>
-    </header>
     <div v-if="hasListComponent">
       <component
         :is="listComponent"

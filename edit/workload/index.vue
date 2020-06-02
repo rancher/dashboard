@@ -1,7 +1,6 @@
 <script>
 import cronstrue from 'cronstrue';
 import { CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE } from '@/config/types';
-import LoadDeps from '@/mixins/load-deps';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
@@ -23,17 +22,11 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 
 const workloadTypeOptions = [
   { value: WORKLOAD_TYPES.DEPLOYMENT, label: 'Deployment' },
-
   { value: WORKLOAD_TYPES.DAEMON_SET, label: 'Daemon Set' },
-
   { value: WORKLOAD_TYPES.STATEFUL_SET, label: 'Stateful Set' },
-
   { value: WORKLOAD_TYPES.REPLICA_SET, label: 'Replica Set' },
-
   { value: WORKLOAD_TYPES.JOB, label: 'Job' },
-
   { value: WORKLOAD_TYPES.CRON_JOB, label: 'Cron Job' },
-
   { value: WORKLOAD_TYPES.REPLICATION_CONTROLLER, label: 'Replication Controller' }
 
 ];
@@ -57,7 +50,7 @@ export default {
     ResourceTabs
   },
 
-  mixins:     [CreateEditView, LoadDeps],
+  mixins: [CreateEditView],
 
   props:  {
     value: {
@@ -69,6 +62,28 @@ export default {
       type:    String,
       default: 'create'
     }
+  },
+
+  async fetch() {
+    const hash = await allHash({
+      configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
+      secrets:    this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      nodes:      this.$store.dispatch('cluster/findAll', { type: NODE })
+    });
+
+    this.allSecrets = hash.secrets;
+    this.allConfigMaps = hash.configMaps;
+    this.allNodes = hash.nodes.map(node => node.id);
+  },
+
+  asyncData(ctx) {
+    let resource;
+
+    if ( !ctx.params.id ) {
+      resource = WORKLOAD_TYPES.DEPLOYMENT;
+    }
+
+    return defaultAsyncData(ctx, resource);
   },
 
   data() {
@@ -224,29 +239,7 @@ export default {
     }
   },
 
-  asyncData(ctx) {
-    let resource;
-
-    if ( !ctx.params.id ) {
-      resource = WORKLOAD_TYPES.DEPLOYMENT;
-    }
-
-    return defaultAsyncData(ctx, resource);
-  },
-
   methods: {
-    async loadDeps() {
-      const hash = await allHash({
-        configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
-        secrets:    this.$store.dispatch('cluster/findAll', { type: SECRET }),
-        nodes:      this.$store.dispatch('cluster/findAll', { type: NODE })
-      });
-
-      this.allSecrets = hash.secrets;
-      this.allConfigMaps = hash.configMaps;
-      this.allNodes = hash.nodes.map(node => node.id);
-    },
-
     toggleTabs() {
       this.showTabs = !this.showTabs;
     },
@@ -267,7 +260,6 @@ export default {
       if (!template.metadata && this.type !== WORKLOAD_TYPES.JOB) {
         template.metadata = { labels: this.workloadSelector };
       }
-
       delete this.value.kind;
       this.save(cb);
     },

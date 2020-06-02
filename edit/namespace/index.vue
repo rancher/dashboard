@@ -20,7 +20,7 @@ export default {
     Tab
   },
 
-  mixins:     [CreateEditView],
+  mixins: [CreateEditView],
 
   data() {
     let originalQuotaId = null;

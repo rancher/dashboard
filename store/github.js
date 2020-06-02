@@ -6,7 +6,6 @@ import { GITHUB_REPOS, GITHUB_SCOPES, _DATE } from '@/config/local-storage';
 const API_BASE = 'https://api.github.com/';
 
 export const BASE_SCOPES = ['read:org'];
-export const HOSTED_SCOPES = ['read:user', 'user:email'];
 export const EXTENDED_SCOPES = ['repo'];
 
 export const DOCKERFILE = /^Dockerfile(\..*)?$/i;

@@ -9,7 +9,7 @@ export default {
 
   props: {
     value: {
-      type:    [String, Object],
+      type:    [String, Object, Number],
       default: null,
     },
     options: {
@@ -219,6 +219,12 @@ export default {
 
   .selected {
     padding-top: 17px;
+    &.no-label{
+      position: relative;
+      top:-7px;
+      max-height:2.3em;
+      overflow:hidden;
+      }
   }
 
   &.focused .vs__dropdown-menu {
@@ -253,9 +259,6 @@ export default {
     .selected{
       position:relative;
       top: 1.4em;
-      &.no-label{
-        top:7px;
-      }
     }
   }
 }

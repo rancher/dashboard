@@ -51,7 +51,7 @@ export default {
       <slot name="left" />
       <slot name="cancel">
         <button type="button" class="btn role-secondary" @click="done">
-          Cancel
+          <t k="generic.cancel" />
         </button>
       </slot>
       <slot name="middle" />

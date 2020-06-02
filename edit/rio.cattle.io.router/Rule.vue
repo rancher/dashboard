@@ -1,7 +1,6 @@
 
 <script>
 import { isEmpty } from 'lodash';
-import createEditView from '../../mixins/create-edit-view';
 import { cleanUp } from '@/utils/object';
 import { randomStr } from '@/utils/string';
 import Match from '@/edit/rio.cattle.io.router/Match';
@@ -10,13 +9,19 @@ import Redirect from '@/edit/rio.cattle.io.router/Redirect';
 import Headers from '@/edit/rio.cattle.io.router/Headers';
 import Fault from '@/edit/rio.cattle.io.router/Fault';
 import Checkbox from '@/components/form/Checkbox';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: {
     Match, Destination, Redirect, Headers, Fault, Checkbox
   },
-  mxins: [createEditView],
+
   props:      {
+    mode: {
+      type:     String,
+      required: true,
+    },
+
     position: {
       type:     Number,
       required: true
@@ -32,14 +37,22 @@ export default {
       default: null
     }
   },
+
   data() {
     const {
-      match = {}, to = [{ uuid: randomStr() }], mirror = {}, rewrite = {}, redirect = {}, headers = {}, fault = {},
+      match = {},
+      to = [{ uuid: randomStr() }],
+      mirror = {},
+      rewrite = {},
+      redirect = {},
+      headers = {},
+      fault = {},
     } = this.spec;
-    let mode = 'forwardMany';
+
+    let action = 'forwardMany';
 
     if (this.spec.redirect) {
-      mode = 'redirect';
+      action = 'redirect';
     }
 
     return {
@@ -50,15 +63,23 @@ export default {
       redirect,
       headers,
       fault,
-      mode,
+      action,
       shouldFault:  !isEmpty(fault),
       shouldMirror: !isEmpty(mirror)
     };
   },
+
+  computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+  },
+
   mounted() {
     this.changeRoute();
   },
-  methods:  {
+
+  methods: {
     change(type, payload, index) {
       if (index >= 0) {
         this.$set(this[type], index, payload);
@@ -67,9 +88,11 @@ export default {
       }
       this.changeRoute();
     },
+
     addDestination() {
       this.to.push({ uuid: randomStr() });
     },
+
     changeRoute() {
       let out = {
         match:   this.match,
@@ -79,20 +102,23 @@ export default {
         uuid:    this.spec.uuid
       };
 
-      if (this.mode !== 'redirect') {
+      if (this.action === 'redirect') {
+        out.redirect = this.redirect;
+      } else {
         out.to = this.to.map(destination => cleanUp(destination));
         if (!isEmpty(this.rewrite)) {
           out.rewrite = this.rewrite;
         }
-      } else {
-        out.redirect = this.redirect;
       }
+
       out = cleanUp(out);
       this.$emit('input', out);
     },
+
     move(direction) {
       this.$emit(direction);
     },
+
     remove(type, index) {
       this[type].splice(index, 1);
     }
@@ -125,6 +151,7 @@ export default {
       <div class="row">
         <Match
           v-model="match"
+          :mode="mode"
           class="col span-12"
           :spec="match"
         />
@@ -137,18 +164,18 @@ export default {
       <div class="row">
         <div class="col span-12">
           <label class="radio">
-            <input v-model="mode" :disabled="isView" type="radio" value="forwardMany">
+            <input v-model="action" :disabled="isView" type="radio" value="forwardMany">
             Forward to a Service
           </label>
 
           <label class="radio">
-            <input v-model="mode" :disabled="isView" type="radio" value="redirect">
+            <input v-model="action" :disabled="isView" type="radio" value="redirect">
             HTTP Redirect
           </label>
         </div>
       </div>
       <div class="row">
-        <template v-if="mode!=='redirect'">
+        <template v-if="action!=='redirect'">
           <table class="inputs-table">
             <tr>
               <th class="input-col">
@@ -169,6 +196,7 @@ export default {
             <Destination
               v-for="(destination, i) in to"
               :key="destination.uuid"
+              :mode="mode"
               :namespace="namespace"
               :is-weighted="to.length>1"
               :spec="destination"
@@ -179,23 +207,23 @@ export default {
           </table>
         </template>
       </div>
-      <div v-if="mode==='forwardMany'" class="row">
+      <div v-if="action==='forwardMany'" class="row">
         <button :disabled="isView" type="button" class="btn btn-sm bg-primary " @click="addDestination">
           + Add Destination
         </button>
       </div>
-      <div v-if="mode==='redirect'" class="row">
+      <div v-if="action==='redirect'" class="row">
         <Redirect class="col span-12" :spec="redirect" @input="e=>change('redirect', e)" />
       </div>
     </div>
-    <div v-if="mode!=='redirect'" class="header section">
+    <div v-if="action!=='redirect'" class="header section">
       <div class="row">
         <h4 class="col span-12">
           Rewrite Request Headers
         </h4>
       </div>
       <div class="row">
-        <Headers class="col span-12" :enabled="mode!=='redirect'" :spec="headers" @input="e=>change('headers', e)" />
+        <Headers class="col span-12" :enabled="action!=='redirect'" :spec="headers" @input="e=>change('headers', e)" />
       </div>
     </div>
     <div class="row">
@@ -208,6 +236,7 @@ export default {
         <table class="inputs-table">
           <Destination
             v-if="shouldMirror"
+            :mode="mode"
             show-placeholders
             :pick-version="false"
             :spec="mirror"

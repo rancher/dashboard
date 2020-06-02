@@ -169,7 +169,7 @@ export default {
         </label>
         <PercentageBar :value="nodeUsageReserved.percentage" />
       </div>
-      <div class="info-column-data mb-10">
+      <div class="info-column-data">
         <label>
           <t
             k="infoBoxCluster.used"
@@ -196,7 +196,7 @@ export default {
         </label>
         <PercentageBar :value="nodeUsageMemReserved.percentage" />
       </div>
-      <div class="info-column-data mb-10">
+      <div class="info-column-data">
         <label>
           <t
             k="infoBoxCluster.used"

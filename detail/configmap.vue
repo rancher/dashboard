@@ -1,8 +1,6 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
-import SortableTable from '@/components/SortableTable';
 import VStack from '@/components/Layout/Stack/VStack';
-import { downloadFile } from '@/utils/download';
 import Tab from '@/components/Tabbed/Tab';
 import KeyValue from '@/components/form/KeyValue';
 import ResourceTabs from '@/components/form/ResourceTabs';
@@ -23,7 +21,6 @@ export default {
   components: {
     KeyValue,
     ResourceTabs,
-    SortableTable,
     Tab,
     VStack
   },
@@ -40,7 +37,7 @@ export default {
   data() {
     const valuesTableHeaders = [
       {
-        ...KEY, sort:  false, width: 400
+        ...KEY, sort: false, width: 400
       },
       { ...VALUE, sort: false },
     ];
@@ -80,13 +77,6 @@ export default {
       return [];
     },
   },
-
-  methods: {
-    onDownloadClick(file, ev) {
-      ev.preventDefault();
-      downloadFile(file.key, file.value, 'application/octet-stream');
-    }
-  },
 };
 </script>
 
@@ -102,24 +92,19 @@ export default {
     <ResourceTabs v-model="value" :mode="mode">
       <template #before>
         <Tab name="binary-data" :label="t('configmapPage.tabs.binaryData.label')">
-          <SortableTable
-            class="binary-data"
-            key-field="_key"
-            :headers="binaryValuesTableHeaders"
-            :rows="binaryValuesTableRows"
-            :row-actions="false"
-            :search="false"
-            :table-actions="false"
-            :top-divider="false"
-            :emphasized-body="false"
-            :body-dividers="true"
-          >
-            <template #col:download="{row}">
-              <td data-title="Download:" align="right" class="col-click-expand">
-                <a href="#" @click="onDownloadClick(row, $event)">Download</a>
-              </td>
-            </template>
-          </SortableTable>
+          <KeyValue
+            key="binaryData"
+            v-model="value.binaryData"
+            :protip="false"
+            :mode="mode"
+            :add-allowed="false"
+            :read-accept="'*'"
+            :read-multiple="true"
+            :value-binary="true"
+            :value-base64="true"
+            :value-can-be-empty="true"
+            :initial-empty-row="false"
+          />
         </Tab>
       </template>
     </ResourceTabs>

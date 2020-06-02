@@ -41,7 +41,7 @@ export default {
       }
 
       if (barPercentage <= 0.8) {
-        return 'bg-info';
+        return 'bg-warning';
       }
 
       return 'bg-error';
@@ -64,6 +64,7 @@ export default {
     .percentage {
       vertical-align: middle;
       width: 32px;
+      display: inline-block;
     }
     .bar {
       vertical-align: -5px; // this will align percentage-text in the center without having to change the line height

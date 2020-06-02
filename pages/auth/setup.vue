@@ -18,44 +18,6 @@ export default {
     AsyncButton, CopyCode, LabeledInput, CopyToClipboard, Checkbox
   },
 
-  computed: {
-    passwordSubmitDisabled() {
-      if ( this.useRandom ) {
-        return false;
-      }
-
-      if ( !this.password || this.password !== this.confirm ) {
-        return true;
-      }
-
-      if ( !this.current ) {
-        return true;
-      }
-
-      return false;
-    },
-
-    githubSubmitDisabled() {
-      if ( !this.clientId || !this.clientSecret ) {
-        return true;
-      }
-
-      return false;
-    },
-
-    me() {
-      const out = findBy(this.principals, 'me', true);
-
-      return out;
-    },
-
-    orgs() {
-      const out = filterBy(this.principals, 'principalType', 'org');
-
-      return out;
-    }
-  },
-
   async asyncData({ route, req, store }) {
     const current = route.query[SETUP] || '';
     const password = randomStr();
@@ -133,6 +95,44 @@ export default {
 
       principals
     };
+  },
+
+  computed: {
+    passwordSubmitDisabled() {
+      if ( this.useRandom ) {
+        return false;
+      }
+
+      if ( !this.password || this.password !== this.confirm ) {
+        return true;
+      }
+
+      if ( !this.current ) {
+        return true;
+      }
+
+      return false;
+    },
+
+    githubSubmitDisabled() {
+      if ( !this.clientId || !this.clientSecret ) {
+        return true;
+      }
+
+      return false;
+    },
+
+    me() {
+      const out = findBy(this.principals, 'me', true);
+
+      return out;
+    },
+
+    orgs() {
+      const out = filterBy(this.principals, 'principalType', 'org');
+
+      return out;
+    }
   },
 
   methods: {

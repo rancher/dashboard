@@ -44,7 +44,7 @@ export default {
 
   methods: {
     update() {
-      const out = { ...this.value, affinity: this.nodeAffinity };
+      const out = { ...this.value, affinity: { nodeAffinity: this.nodeAffinity } };
 
       if (this.selectNode) {
         this.$set(out, 'nodeName', this.nodeName);
@@ -69,7 +69,7 @@ export default {
       <LabeledSelect v-model="nodeName" :options="nodes" :mode="mode" />
     </div>
     <template v-else>
-      <NodeAffinity :value="nodeAffinity" :mode="mode">
+      <NodeAffinity v-model="nodeAffinity" :mode="mode">
         <template #title>
           <h5 class="mb-10">
             Require all of:

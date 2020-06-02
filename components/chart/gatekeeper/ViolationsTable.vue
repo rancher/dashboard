@@ -58,7 +58,7 @@ export default {
         violations: constraint?.status?.violations || []
       }))
       .map(pair => pair.violations.map((v, i) => ({
-        ...v, nameDisplay: v.name, constraint:  pair.constraint
+        ...v, nameDisplay: v.name, constraint: pair.constraint
       })))
       .flat()
       .map((violation, i) => ({ ...violation, id: i }));

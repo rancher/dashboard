@@ -1,12 +1,12 @@
 <script>
 import jsyaml from 'js-yaml';
-import CodeMirror from './CodeMirror';
 import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
 import InfoBox from '@/components/InfoBox';
 import { NAMESPACE } from '@/config/types';
 import { _VIEW, _EDIT } from '@/config/query-params';
 import { findBy } from '@/utils/array';
+import CodeMirror from '@/components/CodeMirror';
 
 export default {
   name: 'GatekeeperConfig',
@@ -189,7 +189,7 @@ export default {
         this.saving = true;
         await this.ensureNamespace();
         await this.config.save();
-        await this.config.waitForCondition('Deployed');
+        await this.config.waitForCondition('Deployed', 'True', 300000);
         this.showYamlEditor = false;
         this.saving = false;
         this.$emit('gatekeeperEnabled', this.gatekeeperEnabled = true);
@@ -261,7 +261,7 @@ export default {
      *
      */
     onReady(cm) {
-      cm.getMode().fold = 'yaml';
+      cm.getMode().fold = 'yamlcomments';
 
       cm.execCommand('foldAll');
     },
@@ -445,29 +445,6 @@ export default {
   }
 }
 
-h1 {
-  .flag {
-    text-align: center;
-    display: inline-block;
-    vertical-align: middle;
-    background: var(--warning);
-    font-size: 10px;
-    padding: 0 0 0 10px;
-    border-radius: 2px 0 0 2px;
-
-    &:after {
-      content: "";
-      display: inline-block;
-      vertical-align: middle;
-      position: relative;
-      right: -10px;
-      height: 100%;
-      border-width: 10px;
-      border-style: solid;
-      border-color: var(--warning) transparent var(--warning) var(--warning);
-    }
-  }
-}
  article {
    font-size: .8em;
    &.info {

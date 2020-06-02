@@ -1,10 +1,7 @@
 <script>
-import { SERVICE } from '../../config/types';
-import { WORKLOAD_TYPES } from '@/config/types';
-import LoadDeps from '@/mixins/load-deps';
+import { WORKLOAD_TYPES, SERVICE } from '@/config/types';
 
 export default {
-  mixins: [LoadDeps],
   props:  {
     value: {
       type:     Object,
@@ -17,6 +14,11 @@ export default {
       }
     }
   },
+
+  async fetch() {
+    await Promise.all(Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })));
+  },
+
   data() {
     const serviceName = this.value?.rules?.[0].http?.paths[0]?.backend?.serviceName || this.value?.backend?.serviceName || '';
     const targetsWorkload = !serviceName.startsWith('ingress-');
@@ -75,10 +77,6 @@ export default {
     }
   },
   methods: {
-    async loadDeps() {
-      await Promise.all(Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })));
-    },
-
     targetTo(serviceName) {
       const isTargetsWorkload = !serviceName.startsWith('ingress-');
       const id = `${ this.namespace }/${ serviceName }`;

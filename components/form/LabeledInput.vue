@@ -26,15 +26,9 @@ export default {
 
     placeholder: {
       type:    String,
-      default: null
+      default: ''
     }
 
-  },
-
-  data() {
-    const actualPlaceholder = this.hidePlaceholder ? '' : this.placeholder;
-
-    return { actualPlaceholder };
   },
 
   computed: {
@@ -62,12 +56,10 @@ export default {
 
     onFocus() {
       this.onFocusLabeled();
-      this.actualPlaceholder = '';
     },
 
     onBlur() {
       this.onBlurLabeled();
-      this.actualPlaceholder = `${ this.placeholder }`;
     }
   }
 };
@@ -89,7 +81,7 @@ export default {
         <slot name="suffix" />
       </span>
       <span v-else>
-        <t k="generic.na" raw="true" />
+        <t k="generic.na" :raw="true" />
       </span>
     </div>
   </div>
@@ -120,7 +112,7 @@ export default {
         v-bind="$attrs"
         :disabled="disabled"
         :value="value"
-        :placeholder="actualPlaceholder"
+        :placeholder="placeholder"
         @input="$emit('input', $event)"
         @focus="onFocus"
         @blur="onBlur"
@@ -132,7 +124,7 @@ export default {
         :disabled="disabled"
         :type="type"
         :value="value"
-        :placeholder="actualPlaceholder"
+        :placeholder="placeholder"
         autocomplete="off"
         @input="$emit('input', $event.target.value)"
         @focus="onFocus"

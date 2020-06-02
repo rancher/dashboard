@@ -10,3 +10,4 @@ node_modules/
 .nuxt
 dist
 .DS_Store
+store/type-map.js

@@ -126,7 +126,6 @@ export default {
 
 <template>
   <div>
-    <div class="spacer"></div>
     <ul
       ref="tablist"
       role="tablist"

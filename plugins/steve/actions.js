@@ -1,8 +1,8 @@
 import https from 'https';
 import { cloneDeep } from 'lodash';
+import { SCHEMA } from '@/config/types';
 import { normalizeType } from './normalize';
 import { proxyFor, SELF } from './resource-proxy';
-import { SCHEMA } from '@/config/types';
 
 export default {
   request({ dispatch }, opt) {
@@ -124,7 +124,7 @@ export default {
     commit('loadAll', {
       ctx,
       type,
-      data:     res.data
+      data: res.data
     });
 
     if ( opt.watch !== false ) {
@@ -189,13 +189,22 @@ export default {
         commit('registerType', type);
       }
     }
+
+    const id = data?.id || existing?.id;
+
+    if ( !id ) {
+      console.warn('Attempting to load a resource with no id', data, existing); // eslint-disable-line no-console
+
+      return;
+    }
+
     commit('load', {
       ctx,
       data,
       existing
     });
 
-    return getters['byId'](type, data.id || existing.id);
+    return getters['byId'](type, id);
   },
 
   loadMulti(ctx, entries) {
