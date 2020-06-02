@@ -245,7 +245,7 @@ export default {
     </template>
     <template v-else>
       <div class="mt-20 mb-20">
-        <KeyValue :title="t('secret.data')" :value="value.data" mode="view" />
+        <KeyValue :title="t('secret.data')" :value="dataRows" mode="view" :as-map="false" />
       </div>
     </template>
     <ResourceTabs v-model="value" :mode="mode" />
