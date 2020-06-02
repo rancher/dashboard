@@ -7,7 +7,7 @@ import DetailTop from '@/components/DetailTop';
 import CRUWorkload from '@/edit/workload';
 import Date from '@/components/formatter/Date';
 import { allHash } from '@/utils/promise';
-import WorkloadPorts from '@/edit/workload/WorkloadPorts';
+import WorkloadPorts from '@/components/form/WorkloadPorts';
 
 export default {
   components: {

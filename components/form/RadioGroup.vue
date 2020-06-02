@@ -21,6 +21,7 @@ export default {
       type:    [Boolean, String],
       default: null
     },
+    // individiual option labels
     labels: {
       type:    Array,
       default: null

@@ -1,19 +1,20 @@
 <script>
+import { cleanUp } from '@/utils/object';
 import LabeledInput from '@/components/form/LabeledInput';
 import ShellInput from '@/components/form/ShellInput';
-import UnitInput from '@/components/form/UnitInput';
 import KeyValue from '@/components/form/KeyValue';
+import ValueFromResource from '@/components/form/ValueFromResource';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
-import ValueFromResource from '@/edit/workload/ValueFromResource';
 
 export default {
   components: {
     LabeledInput,
     ShellInput,
-    UnitInput,
     KeyValue,
-    Checkbox,
-    ValueFromResource
+    ValueFromResource,
+    LabeledSelect,
+    Checkbox
   },
 
   props: {
@@ -21,18 +22,15 @@ export default {
       type:     String,
       required: true,
     },
-    namespace: {
-      type:     String,
-      required: true,
-    },
     configMaps: {
       type:     Array,
-      required: true,
+      required: true
     },
     secrets: {
       type:     Array,
       required: true
     },
+    // container spec
     value: {
       type:    Object,
       default: () => {
@@ -42,11 +40,9 @@ export default {
   },
 
   data() {
-    const spec = { ...this.value };
     const {
-      env = [], envFrom = [], resources = {}, securityContext = {}
-    } = spec;
-    const { limits = {}, requests = {} } = resources;
+      env = [], envFrom = [], command, args, workingDir, stdin = false, stdinOnce = false, tty = false
+    } = this.value;
 
     // UI has two groups: from resource (referencedValues), not from resource (unreferencedValues)
     // api spec has two different groups: key ref (env) or entire-resource's-key ref (envFrom)
@@ -61,8 +57,48 @@ export default {
     });
 
     return {
-      spec, env, envFrom, limits, requests, securityContext, referencedValues, unreferencedValues
+      env, envFrom, referencedValues, unreferencedValues, command, args, workingDir, stdin, stdinOnce, tty
     };
+  },
+
+  computed: {
+    stdinSelect: {
+      get() {
+        if (this.stdin) {
+          if (this.stdinOnce) {
+            return 'Once';
+          }
+
+          return 'Yes';
+        }
+        if (this.stdinOnce) {
+          return null;
+        }
+
+        return 'No';
+      },
+      set(neu) {
+        switch (neu) {
+        case 'Yes':
+          this.stdin = true;
+          this.stdinOnce = false;
+          break;
+        case 'Once':
+          this.stdin = true;
+          this.stdinOnce = true;
+          break;
+        case 'No':
+          this.stdin = false;
+          this.stdinOnce = false;
+          this.tty = false;
+          break;
+        default:
+          this.stdin = false;
+          this.stdinOnce = true;
+          this.tty = false;
+        }
+      }
+    }
   },
 
   methods: {
@@ -70,11 +106,22 @@ export default {
       // env should contain all unreferenced values and referenced values that refer to only part of a resource, ie contain 'valueFrom' key
       const env = [...this.unreferencedValues, ...this.referencedValues.filter(val => !!val.valueFrom)];
       const envFrom = this.referencedValues.filter(val => !!val.configmapRef || !!val.secretRef);
-      const resources = { requests: this.requests, limits: this.limits };
 
-      this.$emit('input', {
-        ...this.spec, resources, env, envFrom
-      } );
+      const out = {
+        ...this.value,
+        ...cleanUp({
+          stdin:      this.stdin,
+          stdinOnce:  this.stdinOnce,
+          command:    this.command,
+          args:       this.args,
+          workingDir: this.workingDir,
+          tty:        this.tty,
+          env,
+          envFrom
+        })
+      };
+
+      this.$emit('input', out );
     },
 
     updateRow(idx, neu, old) {
@@ -102,9 +149,9 @@ export default {
       <div class="col span-6">
         <slot name="entrypoint">
           <ShellInput
-            v-model="spec.entrypoint"
+            v-model="command"
             :mode="mode"
-            label="Entrypoint"
+            :label="t('workload.container.command.command')"
             placeholder="e.g. /bin/sh"
           />
         </slot>
@@ -112,9 +159,9 @@ export default {
       <div class="col span-6">
         <slot name="command">
           <ShellInput
-            v-model="spec.command"
+            v-model="args"
             :mode="mode"
-            label="Command"
+            :label="t('workload.container.command.args')"
             placeholder="e.g. /usr/sbin/httpd -f httpd.conf"
           />
         </slot>
@@ -124,59 +171,23 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledInput
-          v-model="spec.workingDir"
+          v-model="workingDir"
           :mode="mode"
-          label="Working Directory"
+          :label="t('workload.container.command.workingDir')"
           placeholder="e.g. /myapp"
         />
       </div>
       <div class="col span-6">
-        <div>
-          <Checkbox v-model="spec.stdin" :mode="mode" type="checkbox" label="Interactive" @input="update" />
-
-          <Checkbox v-model="spec.tty" :mode="mode" type="checkbox" label="TTY" @input="update" />
+        <div class="row">
+          <div class="col span-6">
+            <LabeledSelect v-model="stdinSelect" label="Stdin" :options="[, 'No', 'Once', 'Yes']" :mode="mode" />
+          </div>
+          <div class="col span-6">
+            <Checkbox v-model="tty" :disabled="!stdin" label="TTY" />
+          </div>
         </div>
       </div>
     </div>
-    <div class="row">
-      <div class="col span-3">
-        <UnitInput
-          v-model.number="requests.memory"
-          :mode="mode"
-          :input-exponent="2"
-          label="Memory Reservation"
-          placeholder="Default: None"
-        />
-      </div>
-      <div class="col span-3">
-        <UnitInput
-          v-model="requests.cpu"
-          :mode="mode"
-          label="CPU Reservation"
-          :input-exponent="-1"
-          suffix="CPUs"
-          placeholder="Default: None"
-        />
-      </div>
-      <div class="col span-3">
-        <LabeledInput
-          v-model="securityContext.runAsUser"
-          :mode="mode"
-          label="Run as User number"
-          placeholder="e.g. 501"
-        />
-      </div>
-      <div class="col span-3">
-        <LabeledInput
-          v-model="securityContext.fsGroup"
-          :mode="mode"
-          label="Run as Group number"
-          placeholder="e.g. 501"
-        />
-      </div>
-    </div>
-
-    <div class="spacer"></div>
 
     <KeyValue
       key="env"
@@ -236,8 +247,8 @@ export default {
       :mode="mode"
       @input="e=>updateRow(i, e.value, e.old)"
     />
-    <button type="button" class="btn role-tertiary add mt-10" :disabled="mode==='view'" @click="addFromReference">
-      Add from Resource
+    <button v-show="mode!=='view'" type="button" class="btn role-tertiary add mt-10" @click="addFromReference">
+      <t k="workload.container.command.addFromResource" />
     </button>
   </div>
 </template>

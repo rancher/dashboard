@@ -444,29 +444,55 @@ secret:
     domainName: Registry Domain Name
 
 workload:
-    matchExpressions:
-      in: '='
-      notIn: ≠
-      exists: Exists
-      doesNotExist: Does Not Exist
-      greaterThan: '>'
-      lessThan: <
-      key: Key
-      value: Value
-      operator: Operator
-      addRule: Add Rule
-
-rioConfig:
-  header: Rio
-  configure:
-    description: Description
-    helpText:
-      listItem1: The application deployment engine for Kubernetes.
-      listItem2: Rio makes it faster and easier for DevOps to build, test, deploy, scale and version stateless applications
-    requirements:
-      header: Requirements
-      helpText:
-        listItem1: 1 CPU Core
-        listItem2: 2 GiB of Memory
-  yaml:
-    buttonText: Customize
+  matchExpressions:
+    in: '='
+    notIn: ≠
+    exists: Exists
+    doesNotExist: Does Not Exist
+    greaterThan: '>'
+    lessThan: <
+    key: Key
+    value: Value
+    operator: Operator
+    addRule: Add Rule
+  container:
+    name: Container Name
+    image: Container Image
+    imagePullPolicy: Image Pull Policy
+    ports:
+      containerPort: Private Container Port
+      hostPort: Public Host Port
+      protocol: Protocol
+      name: Name
+    command:
+      command: Entrypoint
+      args: Arguments
+      workingDir: WorkingDir
+      env: Environment Variables
+      addFromResource: Add from Resource
+    healthcheck:
+      readinessProbe: Readiness Probe
+      livenessProbe: Liveness Probe
+      startupProbe: Startup Probe
+      livenessTip: Containers will be restarted when this check is failing.  Not recommended for most uses.
+      readinessTip: Containers will be removed from service endpoints when this check is failing.  Recommended.
+      startupTip: Containers will wait until this check succeeds before attempting other health checks.
+      checkInterval: Check Interval
+      successThreshold: Success Threshold
+      failureThreshold: Failure Threshold
+      initialDelay: Initial Delay
+      timeout: Timeout
+      httpGet:
+        port: Check Port
+        path: Request Path
+        headers: Request Headers
+      command: 
+        command: Command to run
+    security:
+      privileged: Privileged
+      allowPrivilegeEscalation: Privilege Escalation
+      runAsNonRoot: Run as Non-Root
+      readOnlyRootFilesystem: Read-Only Root Filesystem
+      runAsUser: Run as User
+      addCapabilities: Add Capabilities
+      dropCapabilities: Drop Capabilities

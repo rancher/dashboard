@@ -1,4 +1,5 @@
 <script>
+import { cleanUp } from '@/utils/object';
 import cronstrue from 'cronstrue';
 import { CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE } from '@/config/types';
 import Tab from '@/components/Tabbed/Tab';
@@ -7,18 +8,19 @@ import { allHash } from '@/utils/promise';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
-import HealthCheck from '@/components/form/HealthCheck';
-import Command from '@/edit/workload/Command';
-import Security from '@/edit/workload/Security';
 import Scheduling from '@/edit/workload/Scheduling';
 import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/edit/workload/Networking';
 import Footer from '@/components/form/Footer';
 import Job from '@/edit/workload/Job';
-import WorkloadPorts from '@/edit/workload/WorkloadPorts';
 import { defaultAsyncData } from '@/components/ResourceDetail';
 import { _EDIT } from '@/config/query-params';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import HealthCheck from '@/components/form/HealthCheck';
+import Command from '@/components/form/Command';
+import Security from '@/components/form/Security';
+import WorkloadPorts from '@/components/form/WorkloadPorts';
+import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 
 const workloadTypeOptions = [
   { value: WORKLOAD_TYPES.DEPLOYMENT, label: 'Deployment' },
@@ -38,16 +40,17 @@ export default {
     LabeledSelect,
     LabeledInput,
     Tab,
-    HealthCheck,
-    Command,
-    Security,
     Scheduling,
     Upgrading,
     Networking,
     Footer,
     Job,
+    ResourceTabs,
+    HealthCheck,
+    Command,
+    Security,
     WorkloadPorts,
-    ResourceTabs
+    ContainerResourceLimit
   },
 
   mixins: [CreateEditView],
@@ -108,8 +111,8 @@ export default {
       spec,
       type,
       workloadTypeOptions,
-      allConfigMaps:          null,
-      allSecrets:             null,
+      allConfigMaps:          [],
+      allSecrets:             [],
       allNodes:               null,
       showTabs:               false,
     };
@@ -149,36 +152,73 @@ export default {
 
     container: {
       get() {
-        const { containers } = this.podTemplateSpec;
-
-        if (!containers) {
-          this.$set(this.podTemplateSpec, 'containers', [{ name: this.value.metadata.name }]);
+        if (!this.podTemplateSpec.containers) {
+          this.$set(this.podTemplateSpec, 'containers', [{ }]);
         }
 
-        // TODO account for multiple containers (sidecar)
         return this.podTemplateSpec.containers[0];
       },
 
       set(neu) {
-        this.$set(this.podTemplateSpec.containers, 0, { ...neu, name: this.value.metadata.name });
+        this.$set(this.podTemplateSpec.containers, 0, neu);
       }
     },
 
-    containerImage: {
+    flatResources: {
       get() {
-        return this.container.image;
+        const { limits = {}, requests = {} } = this.container.resources || {};
+        const { cpu:limitsCpu, memory:limitsMemory } = limits;
+        const { cpu:requestsCpu, memory:requestsMemory } = requests;
+
+        return {
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+        };
       },
       set(neu) {
-        this.container = { ...this.container, image: neu };
+        const {
+          limitsCpu, limitsMemory, requestsCpu, requestsMemory
+        } = neu;
+
+        const out = {
+          requests: {
+            cpu:    requestsCpu,
+            memory: requestsMemory
+          },
+          limits: {
+            cpu:    limitsCpu,
+            memory: limitsMemory
+          }
+        };
+
+        this.$set(this.container, 'resources', cleanUp(out));
       }
     },
 
-    containerPorts: {
+    healthCheck: {
       get() {
-        return this.container.ports || [];
+        const { readinessProbe, livenessProbe, startupProbe } = this.container;
+
+        return {
+          readinessProbe, livenessProbe, startupProbe
+        };
       },
       set(neu) {
-        this.container = { ...this.container, ports: neu };
+        Object.assign(this.container, neu);
+      }
+    },
+
+    command: {
+      get() {
+        const {
+          env, envFrom, command, args, workingDir, stdin, stdinOnce, tty
+        } = this.container;
+
+        return {
+          env, envFrom, command, args, workingDir, stdin, stdinOnce, tty
+        };
+      },
+      set(neu) {
+        Object.assign(this.container, neu);
       }
     },
 
@@ -205,6 +245,26 @@ export default {
 
     workloadSelector() {
       return { 'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${ this.value.metadata.namespace }-${ this.value.metadata.name }` };
+    },
+
+    namespacedSecrets() {
+      const namespace = this.value?.metadata?.namespace;
+
+      if (namespace) {
+        return this.allSecrets.filter(secret => secret.metadata.namespace === namespace);
+      } else {
+        return this.allSecrets;
+      }
+    },
+
+    namespacedConfigMaps() {
+      const namespace = this.value?.metadata?.namespace;
+
+      if (namespace) {
+        return this.allConfigMaps.filter(configMap => configMap.metadata.namespace === namespace);
+      } else {
+        return this.allConfigMaps;
+      }
     },
 
   },
@@ -236,7 +296,7 @@ export default {
 
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
-    }
+    },
   },
 
   methods: {
@@ -278,7 +338,12 @@ export default {
 
       <div class="row">
         <div class="col span-4">
-          <LabeledInput v-model="containerImage" label="Container Image" placeholder="eg nginx:latest" required />
+          <LabeledSelect
+            v-model="container.imagePullPolicy"
+            :label="t('workload.container.imagePullPolicy')"
+            :options="['Always', 'IfNotPresent', 'Never']"
+            :mode="mode"
+          />
         </div>
         <div class="col span-4" />
         <template v-if="isCronJob">
@@ -293,38 +358,31 @@ export default {
           </div>
         </template>
       </div>
-
-      <div class="row">
-        <WorkloadPorts v-model="containerPorts" :mode="mode" />
-      </div>
     </slot>
 
-    <ResourceTabs v-model="value" :mode="mode" :default-tab="isJob ? 'job' : 'command'">
+    <ResourceTabs v-model="value" :mode="mode">
       <template #before>
         <Tab v-if="isJob" label="Job Configuration" name="job">
           <Job v-model="spec" :mode="mode" :type="type" />
         </Tab>
+        <Tab name="ports" label="Ports">
+          <WorkloadPorts v-model="container.ports" :mode="mode" />
+        </Tab>
         <Tab label="Command" name="command">
-          <Command
-            v-if="allConfigMaps"
-            v-model="container"
-            :spec="container"
-            :secrets="allSecrets"
-            :config-maps="allConfigMaps"
-            :mode="mode"
-            :namespace="value.metadata.namespace"
-          />
+          <Command v-model="command" :mode="mode" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" />
+        </Tab>
+        <Tab label="Resources" name="resources">
+          <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
+        </Tab>
+        <Tab label="Health Check" name="healthCheck">
+          <HealthCheck v-model="healthCheck" :mode="mode" />
+        </Tab>
+        <Tab label="Security Context" name="securityContext">
+          <Security v-model="container.securityContext" :mode="mode" />
         </Tab>
         <Tab label="Networking" name="networking">
           <Networking v-model="podTemplateSpec" :mode="mode" />
         </Tab>
-        <Tab label="Health" name="health">
-          <HealthCheck :spec="container" :mode="mode" />
-        </Tab>
-        <Tab label="Security" name="security">
-          <Security v-model="podTemplateSpec" :mode="mode" />
-        </Tab>
-
         <Tab label="Node Scheduling" name="scheduling">
           <Scheduling v-model="podTemplateSpec" :mode="mode" />
         </Tab>

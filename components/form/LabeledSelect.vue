@@ -80,17 +80,11 @@ export default {
     onFocus() {
       this.selectedVisibility = 'hidden';
       this.onFocusLabeled();
-      if ( this.$refs.input ) {
-        this.$refs.input.placeholder = this.placeholder;
-      }
     },
 
     onBlur() {
       this.selectedVisibility = 'visible';
       this.onBlurLabeled();
-      if ( this.$refs.input ) {
-        this.$refs.input.placeholder = '';
-      }
     },
 
     getOptionLabel(option) {
