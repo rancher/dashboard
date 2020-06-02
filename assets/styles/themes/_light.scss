@@ -20,14 +20,14 @@ $lighter   : #F4F5FA;
 //light body bg
 $lightest  : #FFFFFF;
 
-$primary   : #3D98D3;
-$secondary : $darker;
-$link      : $primary;
-$disabled  : $dark;
-$success   : #5D995D;
-$warning   : #DAC342;
-$error     : #F64747;
-$info      : #213444;
+$primary         : #3D98D3;
+$secondary       : $darker;
+$link            : $primary;
+$disabled        : $dark;
+$success         : #5D995D;
+$warning         : #DAC342;
+$error           : #F64747;
+$info            : #213444;
 
 $contrasted-dark: $darkest !default;
 $contrasted-light: $lightest !default;

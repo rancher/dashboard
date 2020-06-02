@@ -36,6 +36,7 @@ TEXTAREA,
   &.view {
     border: none;
     background-color: transparent;
+    padding: 0;
   }
 
   &::placeholder {
@@ -57,9 +58,9 @@ TEXTAREA,
     margin: $spacing 0 $spacing 0;
   }
 
-  &.no-resize::placeholder {
-    padding-top: 8px;
-  }
+  // &.no-resize::placeholder {
+  //   padding-top: 8px;
+  // }
 }
 
 TEXTAREA {

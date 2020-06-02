@@ -15,6 +15,7 @@
     $hover-text:   get-or-def($color, "hover-text",   saturate($link, 20%));
     $active-text:  get-or-def($color, "active-text",  contrast-color($active-bg));
     $border:       get-or-def($color, "border",       $color);
+    $banner-bg:    get-or-def($color, "banner",      rgba($default, 0.15));
 
     --#{$name}:             #{$default};
     --#{$name}-text:        #{$default-text};
@@ -23,6 +24,7 @@
     --#{$name}-active-bg:   #{$active-bg};
     --#{$name}-active-text: #{$active-text};
     --#{$name}-border:      #{$border};
+    --#{$name}-banner-bg:   #{$banner-bg};
 
     @if $write-classes {
       .text-#{$name} {

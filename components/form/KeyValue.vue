@@ -352,7 +352,7 @@ export default {
 
 <template>
   <div class="key-value" :class="mode">
-    <div v-if="title" class="title clearfix">
+    <div v-if="title" class="clearfix">
       <h4 :style="{'display':'flex'}">
         {{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" />
       </h4>
@@ -493,7 +493,6 @@ export default {
 
     TD, TH {
       padding-right: $spacing;
-      padding-bottom: $spacing;
 
       &:last-of-type {
         padding-right: 0;
@@ -526,6 +525,7 @@ export default {
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
+      display: inline;
     }
 
     label {

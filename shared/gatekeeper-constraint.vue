@@ -212,11 +212,10 @@ export default {
         </template>
       </NameNsDescription>
     </div>
-    <br />
+    <div class="spacer"></div>
     <div v-if="isView">
       <h2>{{ t('gatekeeperConstraint.violations.title') }}</h2>
       <GatekeeperViolationsTable :constraint="value" />
-      <br />
     </div>
     <div>
       <h2 class="parameters">
@@ -243,7 +242,7 @@ export default {
         :protip="false"
       />
     </div>
-    <br />
+    <div class="spacer"></div>
     <div>
       <h2>{{ t('gatekeeperConstraint.enforcementAction.title') }}</h2>
       <RadioGroup
@@ -255,11 +254,9 @@ export default {
         @input="e=>value.spec.enforcementAction = e"
       />
     </div>
-    <br />
-    <br />
+    <div class="spacer"></div>
     <div class="match">
       <h2>{{ t('gatekeeperConstraint.match.title') }}</h2>
-
       <ResourceTabs v-model="value" :mode="mode" default-tab="labels">
         <template #before>
           <Tab name="namespaces" :label="t('gatekeeperConstraint.tab.namespaces.title')">
