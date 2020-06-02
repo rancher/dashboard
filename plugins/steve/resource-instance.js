@@ -2,7 +2,7 @@ import Vue from 'vue';
 import jsyaml from 'js-yaml';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
-import { ucFirst } from '@/utils/string';
+import { escapeHtml, ucFirst } from '@/utils/string';
 import { eachLimit } from '@/utils/promise';
 import {
   MODE, _EDIT, _CLONE,
@@ -146,8 +146,17 @@ export default {
     return this.metadata?.namespace;
   },
 
-  namespaceGroupLabel() {
-    return this.$rootGetters['i18n/t']('resourceTable.namespace.tableGroupByLabel', { namespace: this.metadata?.namespace });
+  groupByLabel() {
+    const name = this.metadata?.namespace;
+    let out;
+
+    if ( name ) {
+      out = this.$rootGetters['i18n/t']('resourceTable.groupLabel.namespace', { name: escapeHtml(name) });
+    } else {
+      out = this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInANamespace');
+    }
+
+    return out;
   },
 
   description() {

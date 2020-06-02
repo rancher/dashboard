@@ -1,5 +1,4 @@
 <script>
-import { capitalize } from 'lodash';
 import { mapState } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
 import { removeObject } from '@/utils/array';
@@ -261,12 +260,6 @@ export default {
       return !this.noResults && this.rows.length === 0;
     },
 
-    normalizedGroupRef() {
-      const { groupRef = '' } = this;
-
-      return capitalize(groupRef);
-    },
-
     showHeaderRow() {
       return this.search || this.tableActions;
     },
@@ -414,12 +407,14 @@ export default {
       </tbody>
 
       <tbody v-for="group in groupedRows" :key="group.key" :class="{ group: groupBy }">
-        <slot v-if="groupBy" name="group-header" :group="group">
+        <slot v-if="groupBy" name="group-row" :group="group" :fullColspan="fullColspan">
           <tr class="group-row">
             <td :colspan="fullColspan">
-              <div class="group-tab">
-                <span class="group-tab-title-ref">{{ normalizedGroupRef }}:</span>&nbsp;{{ group.ref }}
-              </div>
+              <slot name="group-by" :group="group">
+                <div v-trim-whitespace class="group-tab">
+                  {{ group.ref }}
+                </div>
+              </slot>
             </td>
           </tr>
         </slot>
@@ -643,6 +638,10 @@ $divider-height: 1px;
         display: inline-block;
         z-index: z-index('tableGroup');
         min-width: $group-row-height * 1.8;
+
+        > SPAN {
+          color: var(--sortable-table-group-label);
+        }
       }
 
       .group-tab:after {
@@ -656,10 +655,6 @@ $divider-height: 1px;
         top: 0px;
         transform: skewX(40deg);
         z-index: -1;
-      }
-
-      .group-tab-title-ref {
-        color: var(--input-label);
       }
     }
 
