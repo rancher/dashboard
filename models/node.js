@@ -4,8 +4,10 @@ import { NODE_ROLES } from '@/config/labels-annotations.js';
 import { METRIC } from '@/config/types';
 import { parseSi } from '@/utils/units';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
+import { findLast } from 'lodash';
 
 const CORDONED_STATE = 'cordoned';
+const EXTERNAL_IP_ANNOTATION = 'rke.cattle.io/external-ip';
 
 export default {
   availableActions() {
@@ -43,11 +45,17 @@ export default {
   },
 
   internalIp() {
-    return this.status?.addresses?.find(address => address.type === 'InternalIP')?.address;
+    const addresses = this.status?.addresses || [];
+
+    return findLast(addresses, address => address.type === 'InternalIP')?.address;
   },
 
   externalIp() {
-    return this.status?.addresses?.find(address => address.type === 'ExternalIP')?.address;
+    const addresses = this.status?.addresses || [];
+    const annotationAddress = this.metadata.annotations[EXTERNAL_IP_ANNOTATION];
+    const statusAddress = findLast(addresses, address => address.type === 'ExternalIP')?.address;
+
+    return statusAddress || annotationAddress;
   },
 
   labels() {
