@@ -168,6 +168,10 @@ export default {
 
     await dispatch('load', { data: res });
 
+    if ( opt.watch ) {
+      dispatch('watchType', { type });
+    }
+
     out = getters.byId(type, id);
 
     return out;

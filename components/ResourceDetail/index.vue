@@ -96,8 +96,14 @@ export async function defaultAsyncData(ctx, resource) {
       fqid = `${ namespace }/${ fqid }`;
     }
 
-    originalModel = await store.dispatch('cluster/find', { type: resource, id: fqid });
-    model = await store.dispatch('cluster/clone', { resource: originalModel });
+    originalModel = await store.dispatch('cluster/find', {
+      type: resource, id: fqid, opt: { watch: true }
+    });
+    if (realMode === _VIEW) {
+      model = originalModel;
+    } else {
+      model = await store.dispatch('cluster/clone', { resource: originalModel });
+    }
 
     if ( realMode === _CLONE || realMode === _STAGE ) {
       cleanForNew(model);
@@ -274,7 +280,7 @@ export default {
 <template>
   <div>
     <Masthead
-      :value="model"
+      :value="originalModel"
       :mode="mode"
       :done-route="doneRoute"
       :real-mode="realMode"
