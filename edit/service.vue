@@ -247,7 +247,7 @@ export default {
               </div>
             </div>
             <div class="row">
-              <div class="col span-6 pl-10">
+              <div class="col span-7">
                 <ArrayList
                   key="clusterExternalIpAddresses"
                   v-model="value.spec.externalIPs"
@@ -267,12 +267,10 @@ export default {
             name="session-affinity"
             :label="t('servicesPage.affinity.label')"
           >
-            <div class="row">
-              <div class="col span-12">
-                <p class="helper-text">
-                  <t k="servicesPage.affinity.helpText" />
-                </p>
-              </div>
+            <div class="col span-12">
+              <p class="helper-text">
+                <t k="servicesPage.affinity.helpText" />
+              </p>
             </div>
             <div class="row session-affinity">
               <div class="col span-6">
