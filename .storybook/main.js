@@ -7,6 +7,7 @@ module.exports = {
     '../components/**/*.stories.@(js|mdx)'
   ],
   addons: [
+    '@storybook/preset-scss',
     '@storybook/addon-actions',
     '@storybook/addon-links',
     '@storybook/addon-knobs/register',
@@ -23,7 +24,6 @@ module.exports = {
     },
     'storybook-addon-themes'
   ],
-  presets: ['@storybook/preset-scss'],
   webpackFinal: async (config, { configType }) => {
     // `configType` has a value of 'DEVELOPMENT' or 'PRODUCTION'
     // You can change the configuration based on that.

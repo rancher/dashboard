@@ -7,20 +7,14 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Launch storybook",
-      "program": "${workspaceFolder}/node_modules/.bin/start-storybook",
-      "outFiles": ["${workspaceFolder}/**/*.js"],
-      "envFile": "${workspaceFolder}/.env",
-      "outputCapture": "std"
-    },
-    {
-      "type": "node",
-      "request": "launch",
       "name": "Launch Program",
       "program": "${workspaceFolder}/node_modules/.bin/nuxt",
-      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "outFiles": [
+        "${workspaceFolder}/**/*.js"
+      ],
       "envFile": "${workspaceFolder}/.env",
-      "outputCapture": "std"
-    }
+      "outputCapture": "std",
+    },
   ]
+
 }
