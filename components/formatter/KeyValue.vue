@@ -57,12 +57,14 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .formatter-key-value-container {
+  td.col-key-value {
     .formatter-key-value-item {
-      font-size: 11px;
-      padding: 1px 0;
+      padding: 3px 0;
       &:first-child {
-        margin-top: 5px;
+        margin-top: 10px;
+      }
+      &:last-child {
+        margin-bottom: 10px;
       }
     }
   }
