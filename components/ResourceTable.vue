@@ -107,7 +107,7 @@ export default {
 
     groupBy() {
       if ( this.group === 'namespace' && this.groupable && this.showGroups) {
-        return 'metadata.namespace';
+        return 'groupByLabel';
       }
 
       return null;
@@ -147,6 +147,10 @@ export default {
     <template v-if="groupable && showGroups" #header-middle>
       <slot name="more-header-middle" />
       <ButtonGroup v-model="group" :options="groupOptions" />
+    </template>
+
+    <template #group-by="{group: thisGroup}">
+      <div class="group-tab" v-html="thisGroup.ref" />
     </template>
 
     <!-- Pass down templates provided by the caller -->

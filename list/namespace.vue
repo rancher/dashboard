@@ -56,7 +56,7 @@ export default {
     groupBy() {
       // The value of the preference is "namespace" but we take that to mean group by project here...
       if ( this.groupable && this.group === 'namespace') {
-        return 'projectNameDisplay';
+        return 'groupByLabel';
       }
 
       return null;
@@ -94,6 +94,10 @@ export default {
     <template v-if="groupable" #header-middle>
       <slot name="more-header-middle" />
       <ButtonGroup v-model="group" :options="groupOptions" />
+    </template>
+
+    <template #group-by="{group: thisGroup}">
+      <div class="group-tab" v-html="thisGroup.ref" />
     </template>
 
     <template #cell:project="{row}">

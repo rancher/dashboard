@@ -234,6 +234,14 @@ resourceDetail:
     deleted: Deleted
     ownerReferences: Owner References
 
+resourceTable:
+  groupLabel:
+    namespace: "<span>Namespace:</span> {name}"
+    project: "<span>Project:</span> {name}"
+    notInAProject: "Not in a Project"
+    notInANamespace: "Not Namespaced"
+
+
 servicePorts:
   header:
     label: Port Rules
@@ -270,11 +278,6 @@ sortableTable:
       =0 {No Workloads}
       =1 {{count} {count, plural, =1 {Workload} other {Workloads}}}
       other {{from} - {to} of {count} Workloads}}
-
-model:
-  namespace:
-    project: "Project: {name}"
-    notInAProject: "Not in a Project"
 
 configmapPage:
   data:

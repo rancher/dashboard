@@ -119,6 +119,7 @@ $selected: rgba($primary, .5);
   --sortable-table-top-divider : var(--border);
   --sortable-table-body-divider : #{$darker};
   --sortable-table-selected-bg : #{$light};
+  --sortable-table-group-label : #{$secondary};
 
   --popover-bg                 : var(--body-bg);
   --popover-border             : var(--border);
