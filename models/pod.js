@@ -1,5 +1,4 @@
 import { findBy, insertAt } from '@/utils/array';
-import { REMAP_STATE, STATES, DEFAULT_COLOR } from '@/plugins/steve/resource-instance';
 
 export default {
   availableActions() {
@@ -79,29 +78,15 @@ export default {
     return (container) => {
       const state = Object.keys(container.state || {})[0];
 
-      if ( REMAP_STATE[state] ) {
-        return REMAP_STATE[state];
-      }
-
-      return state;
+      return this._stateDisplay(state);
     };
   },
 
   containerStateColor() {
     return (container) => {
-      const state = this.containerStateDisplay(container);
-      const key = (state || '').toLowerCase();
-      let color;
+      const state = Object.keys(container.state || {})[0];
 
-      if ( STATES[key] && STATES[key].color ) {
-        color = this.maybeFn(STATES[key].color);
-      }
-
-      if ( !color ) {
-        color = DEFAULT_COLOR;
-      }
-
-      return `text-${ color }`;
+      return this.stateColor(state);
     };
   }
 

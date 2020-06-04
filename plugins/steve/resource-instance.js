@@ -13,15 +13,15 @@ import { DEV } from '@/store/prefs';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { cleanForNew } from './normalize';
 
-export const REMAP_STATE = { disabled: 'inactive' };
+const REMAP_STATE = { disabled: 'inactive' };
 
-export const DEFAULT_COLOR = 'warning';
+const DEFAULT_COLOR = 'warning';
 const DEFAULT_ICON = 'x';
 
 const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TMIMEOUT = 30000;
 
-export const STATES = {
+const STATES = {
   unknown:        { color: 'warning', icon: 'x' },
   aborted:        { color: 'warning', icon: 'error' },
   activating:     { color: 'info', icon: 'tag' },
@@ -212,40 +212,42 @@ export default {
 
   // You can override the displayed by providing your own stateDisplay (and possibly reading _stateDisplay)
   stateDisplay() {
-    return this._stateDisplay;
+    return this._stateDisplay(this.state);
   },
 
   _stateDisplay() {
-    const state = this.state;
+    return (state) => {
+      if ( REMAP_STATE[state] ) {
+        return REMAP_STATE[state];
+      }
 
-    if ( REMAP_STATE[state] ) {
-      return REMAP_STATE[state];
-    }
-
-    return state.split(/-/).map(ucFirst).join('-');
+      return state.split(/-/).map(ucFirst).join('-');
+    };
   },
 
   stateColor() {
-    if ( this.metadata?.state?.error ) {
-      return 'text-error';
-    }
+    return (state) => {
+      if ( state?.error ) {
+        return 'text-error';
+      }
 
-    const key = (this.state || '').toLowerCase();
-    let color;
+      const key = (state || '').toLowerCase();
+      let color;
 
-    if ( STATES[key] && STATES[key].color ) {
-      color = this.maybeFn(STATES[key].color);
-    }
+      if ( STATES[key] && STATES[key].color ) {
+        color = this.maybeFn(STATES[key].color);
+      }
 
-    if ( !color ) {
-      color = DEFAULT_COLOR;
-    }
+      if ( !color ) {
+        color = DEFAULT_COLOR;
+      }
 
-    return `text-${ color }`;
+      return `text-${ color }`;
+    };
   },
 
   stateBackground() {
-    return this.stateColor.replace('text-', 'bg-');
+    return this.stateColor(this.state).replace('text-', 'bg-');
   },
 
   stateIcon() {

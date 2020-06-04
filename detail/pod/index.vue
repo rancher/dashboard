@@ -11,6 +11,7 @@ import Tab from '@/components/Tabbed/Tab';
 import Scheduling from '@/components/form/Scheduling';
 import Container from '@/components/form/Container';
 import PodSecurity from '@/components/form/PodSecurity';
+import Loading from '@/components/Loading';
 
 export default {
 
@@ -25,10 +26,16 @@ export default {
     Networking,
     Scheduling,
     Container,
-    PodSecurity
+    PodSecurity,
+    Loading
   },
 
   mixins: [createEditView],
+
+  fetch() {
+    this.findWorkload();
+    this.findNode();
+  },
 
   data() {
     return {
@@ -101,11 +108,6 @@ export default {
     }
   },
 
-  mounted() {
-    this.findWorkload();
-    this.findNode();
-  },
-
   methods: {
     // containers are listed in both 'spec.containers' and 'status.containerStatuses', table needs info from each
     findContainerStatus(container) {
@@ -152,7 +154,9 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+
+  <div v-else>
     <DetailTop :columns="detailTopColumns">
       <template #node>
         <LinkDetail v-if="node" :row="node" :value="node.metadata.name" />
