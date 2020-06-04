@@ -1,8 +1,8 @@
 export const TEMPLATE_NAME = 'rio';
 export const APP_ID = 'rancher-rio';
 export const CONFIG = `---
-image: strongmonkey1992/rio-controller
-tag: dev                # Rio version to install
+image: rancher/rio-controller
+tag: v0.8.0-rc1         # Rio version to install
 letsEncryptEmail: ""    # Provide an email for Let's Encrypt account registration
 ipAddress: ""           # Manually specify IP addresses to generate rdns domain, supports comma separated values
 debug: false            # Enable debug logging in controller

@@ -136,8 +136,6 @@ export async function defaultAsyncData(ctx, resource) {
    * Important: these need to be declared below as props too if you want to use them
    *******/
 
-  console.log('b2', out);
-
   return out;
 }
 
