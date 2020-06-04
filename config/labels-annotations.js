@@ -5,7 +5,10 @@ export const PROJECT = 'field.cattle.io/projectId';
 export const SYSTEM_PROJECT = 'authz.management.cattle.io/system-project';
 export const CONTAINER_DEFAULT_RESOURCE_LIMIT = 'field.cattle.io/containerDefaultResourceLimit';
 
-export const KUBERNETES = { SERVICE_ACCOUNT_UID: 'kubernetes.io/service-account.uid', SERVICE_ACCOUNT_NAME: 'kubernetes.io/service-account.name' };
+export const KUBERNETES = {
+  SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
+  SERVICE_ACCOUNT_NAME: 'kubernetes.io/service-account.name'
+};
 
 export const RIO = { STACK: 'rio.cattle.io/stack' };
 
@@ -17,6 +20,8 @@ export const NODE_ROLES = {
   ETCD:          'node-role.kubernetes.io/etcd',
 };
 
+export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
+
 // TODO consult w/ backend about what labels & annotations to hide from editing
 export const LABEL_PREFIX_TO_IGNORE = [
 ];
@@ -26,5 +31,4 @@ export const ANNOTATIONS_TO_IGNORE_CONTAINS = [
 
 export const ANNOTATIONS_TO_IGNORE_PREFIX = [
   DESCRIPTION
-]
-;
+];

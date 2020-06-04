@@ -24,12 +24,23 @@ export default {
   },
   computed: {
     to() {
-      return this.value[0].to
-        ? this.value[0].to[0] : this.value[0].redirect;
+      const first = this.value[0];
+
+      if ( first.to ) {
+        return first.to[0];
+      } else {
+        return first.redirect;
+      }
     },
+
     remaining() {
-      return this.value[0].to
-        ? this.value[0].to.length - 1 : 0;
+      const first = this.value[0];
+
+      if ( first.to ) {
+        return first.to.length - 1;
+      } else {
+        return 0;
+      }
     }
   },
   created() {

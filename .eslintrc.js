@@ -51,6 +51,7 @@ module.exports = {
     indent:                          ['warn', 2],
     'keyword-spacing':                'warn',
     'lines-between-class-members':    ['warn', 'always', { exceptAfterSingleLine: true }],
+    'multiline-ternary':              ['warn', 'never'],
     'newline-per-chained-call':       ['warn', { ignoreChainWithDepth: 4 }],
     'no-caller':                      'warn',
     'no-cond-assign':                 ['warn', 'except-parens'],

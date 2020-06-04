@@ -88,11 +88,13 @@ export default {
     },
 
     editorMode() {
-      return this.isView
-        ? EDITOR_MODES.VIEW_CODE
-        : this.showPreview
-          ? EDITOR_MODES.DIFF_CODE
-          : EDITOR_MODES.EDIT_CODE;
+      if ( this.isView ) {
+        return EDITOR_MODES.VIEW_CODE;
+      } else if ( this.showPreview ) {
+        return EDITOR_MODES.DIFF_CODE;
+      }
+
+      return EDITOR_MODES.EDIT_CODE;
     },
   },
 

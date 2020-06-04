@@ -103,9 +103,11 @@ export default {
       return this.mode === _CREATE;
     },
     editorMode() {
-      return this.mode === _VIEW
-        ? EDITOR_MODES.VIEW_CODE
-        : EDITOR_MODES.EDIT_CODE;
+      if ( this.mode === _VIEW ) {
+        return EDITOR_MODES.VIEW_CODE;
+      } else {
+        return EDITOR_MODES.EDIT_CODE;
+      }
     },
     canShowForm() {
       return this.value?.spec?.parameters && isSimpleKeyValue(this.value.spec.parameters) && !this.isView;

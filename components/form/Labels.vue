@@ -21,14 +21,11 @@ export default {
 
   computed: {
     containerClass() {
-      return this.displaySideBySide
-        ? 'row'
-        : '';
+      return this.displaySideBySide ? 'row' : '';
     },
+
     sectionClass() {
-      return this.displaySideBySide
-        ? 'col span-6'
-        : 'row';
+      return this.displaySideBySide ? 'col span-6' : 'row';
     }
   },
 
