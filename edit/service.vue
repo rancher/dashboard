@@ -61,19 +61,13 @@ export default {
     if (!this?.value?.spec?.type) {
       const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', 'ClusterIP']);
 
-      if (!this?.value?.spec) {
+      if (!this.value?.spec) {
         this.$set(this.value, 'spec', {
           ports:           [],
           sessionAffinity: 'None',
           type:            defaultService.id,
         });
-      } else {
-        this.$set(this.value.spec, 'type', defaultService.id);
       }
-    }
-
-    if (this.value.spec.type === 'ClusterIP' && this.value.spec.clusterIP === 'None') {
-      this.$set(this.value.spec, 'type', HEADLESS);
     }
 
     return {
@@ -93,7 +87,7 @@ export default {
       return [
         {
           title:   this.$store.getters['i18n/t']('generic.type'),
-          content: this.value?.spec.type,
+          content: this.serviceType,
           name:    'type',
         },
         {
@@ -102,25 +96,48 @@ export default {
         },
       ];
     },
+
+    serviceType: {
+      get() {
+        const serviceType = this.value?.spec?.type;
+        const clusterIp = this.value?.spec?.clusterIP;
+
+        if (serviceType) {
+          if (serviceType === 'ClusterIP' && clusterIp === 'None') {
+            return HEADLESS;
+          } else {
+            return serviceType;
+          }
+        }
+
+        return 'ClusterIP';
+      },
+
+      set(serviceType) {
+        if (serviceType === HEADLESS) {
+          // if this is create AND we change cluster ip to headless as the first action we wont get
+          // a recompute on this prop which causes the dropdown to display ClusterIP instead of the
+          // logical Headless label.
+          if (this.value.spec.type === 'ClusterIP' && !this.value.spec.clusterIP === 'None') {
+            this.value.spec.type = null;
+          }
+
+          this.value.spec.type = 'ClusterIP';
+          this.value.spec.clusterIP = 'None';
+        } else {
+          if (serviceType !== HEADLESS && this.value?.spec?.clusterIP === 'None') {
+            this.value.spec.clusterIP = null;
+          } else if (serviceType === 'ExternalName') {
+            this.value.spec.ports = null;
+          }
+
+          this.value.spec.type = serviceType;
+        }
+      },
+    },
   },
 
   watch: {
-    'value.spec.type'(val) {
-      const { saving } = this;
-
-      if (val === 'ExternalName') {
-        this.value.spec.ports = null;
-      }
-
-      if (!saving) {
-        if (val === HEADLESS) {
-          this.value.spec.clusterIP = 'None';
-        } else if (val !== HEADLESS && this.value.spec.clusterIP === 'None') {
-          this.value.spec.clusterIP = null;
-        }
-      }
-    },
-
     'value.spec.sessionAffinity'(val) {
       if (val === 'ClusterIP') {
         this.value.spec.sessionAffinityConfig = { clientIP: { timeoutSeconds: null } };
@@ -133,37 +150,16 @@ export default {
     }
   },
 
-  created() {
-    this.registerBeforeHook(this.willSave, 'willSave');
-  },
-
   methods: {
     checkTypeIs(typeIn) {
-      const { value: { spec: { type } } } = this;
+      const { serviceType } = this;
 
-      if (type === typeIn) {
+      if (serviceType === typeIn) {
         return true;
       }
 
       return false;
     },
-
-    willSave() {
-      if (this?.value?.spec?.type === HEADLESS) {
-        const portRows = this?.value?.spec?.ports || [];
-
-        portRows.forEach((row) => {
-          if (Object.prototype.hasOwnProperty.call(row, 'targetPort')) {
-            delete row.targetPort;
-          }
-        });
-
-        this.saving = true;
-        this.value.spec.type = 'ClusterIP';
-        this.value.spec.clusterIP = 'None';
-      }
-    }
-
   },
 };
 </script>
@@ -193,8 +189,8 @@ export default {
             :localized-label="true"
             :mode="mode"
             :options="defaultServiceTypes"
-            :value="value.spec.type"
-            @input="e=>$set(value.spec, 'type', e.id)"
+            :value="serviceType"
+            @input="e=>serviceType = e.id"
           />
         </template>
       </NameNsDescription>
@@ -228,8 +224,7 @@ export default {
         v-model="value.spec.ports"
         class="col span-12"
         :mode="mode"
-        :spec-type="value.spec.type"
-        :cluster-ip="value.spec.clusterIP"
+        :spec-type="serviceType"
       />
 
       <div class="spacer"></div>

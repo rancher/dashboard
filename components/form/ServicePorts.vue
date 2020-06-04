@@ -19,10 +19,6 @@ export default {
       type:    String,
       default: 'ClusterIP',
     },
-    clusterIp: {
-      type:    String,
-      default: null,
-    },
     padLeft: {
       type:    Boolean,
       default: false,
@@ -40,21 +36,6 @@ export default {
   },
 
   computed: {
-    isHeadless() {
-      const {
-        clusterIp,
-        specType,
-      } = this;
-
-      if (specType === 'Headless') {
-        return true;
-      } else if (specType === 'ClusterIP' && clusterIp === 'None') {
-        return true;
-      }
-
-      return false;
-    },
-
     isView() {
       return this.mode === _VIEW;
     },
@@ -151,7 +132,7 @@ export default {
           <th v-if="specType !== 'NodePort'" class="port-protocol">
             <t k="servicePorts.rules.protocol.label" />
           </th>
-          <th v-if="!isHeadless" class="target-port">
+          <th v-if="specType !== 'Headless'" class="target-port">
             <t k="servicePorts.rules.target.label" />
           </th>
           <th v-if="specType === 'NodePort' || specType === 'LoadBalancer'" class="node-port">
@@ -201,7 +182,7 @@ export default {
               @input="queueUpdate"
             />
           </td>
-          <td v-if="!isHeadless" class="target-port">
+          <td v-if="specType !== 'Headless'" class="target-port">
             <span v-if="isView">{{ row.targetPort }}</span>
             <input
               v-else
