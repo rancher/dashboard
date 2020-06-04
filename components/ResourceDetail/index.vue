@@ -235,10 +235,12 @@ export default {
       if ( this.isView ) {
         if (this.hasCustomDetail) {
           return this.detailComponent;
+        } else if ( this.hasCustomEdit ) {
+          return this.editComponent;
         } else {
           return GenericResourceDetail;
         }
-      } else if ( !this.isView && this.hasCustomEdit ) {
+      } else if ( this.hasCustomEdit ) {
         return this.editComponent;
       }
 
