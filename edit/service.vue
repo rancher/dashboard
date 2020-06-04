@@ -35,6 +35,12 @@ const HEADLESS = (() => {
   return headless.id;
 })();
 
+const CLUSTERIP = (() => {
+  const clusterIp = find(DEFAULT_SERVICE_TYPES, ['id', 'ClusterIP']);
+
+  return clusterIp.id;
+})();
+
 export default {
   // Props are found in CreateEditView
   // props: {},
@@ -59,14 +65,15 @@ export default {
 
   data() {
     if (!this?.value?.spec?.type) {
-      const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', 'ClusterIP']);
-
       if (!this.value?.spec) {
+        const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
+
         this.$set(this.value, 'spec', {
           ports:           [],
           sessionAffinity: 'None',
-          type:            defaultService.id,
         });
+
+        this.serviceType = defaultService.id;
       }
     }
 
@@ -101,37 +108,31 @@ export default {
       get() {
         const serviceType = this.value?.spec?.type;
         const clusterIp = this.value?.spec?.clusterIP;
+        const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
 
         if (serviceType) {
-          if (serviceType === 'ClusterIP' && clusterIp === 'None') {
+          if (serviceType === CLUSTERIP && clusterIp === 'None') {
             return HEADLESS;
           } else {
             return serviceType;
           }
         }
 
-        return 'ClusterIP';
+        return defaultService;
       },
 
       set(serviceType) {
         if (serviceType === HEADLESS) {
-          // if this is create AND we change cluster ip to headless as the first action we wont get
-          // a recompute on this prop which causes the dropdown to display ClusterIP instead of the
-          // logical Headless label.
-          if (this.value.spec.type === 'ClusterIP' && !this.value.spec.clusterIP === 'None') {
-            this.value.spec.type = null;
-          }
-
-          this.value.spec.type = 'ClusterIP';
-          this.value.spec.clusterIP = 'None';
+          this.$set(this.value.spec, 'type', CLUSTERIP);
+          this.$set(this.value.spec, 'clusterIP', 'None');
         } else {
           if (serviceType !== HEADLESS && this.value?.spec?.clusterIP === 'None') {
-            this.value.spec.clusterIP = null;
+            this.$set(this.value.spec, 'clusterIP', null);
           } else if (serviceType === 'ExternalName') {
-            this.value.spec.ports = null;
+            this.$set(this.value.spec, 'ports', null);
           }
 
-          this.value.spec.type = serviceType;
+          this.$set(this.value.spec, 'type', serviceType);
         }
       },
     },
@@ -139,7 +140,7 @@ export default {
 
   watch: {
     'value.spec.sessionAffinity'(val) {
-      if (val === 'ClusterIP') {
+      if (val === CLUSTERIP) {
         this.value.spec.sessionAffinityConfig = { clientIP: { timeoutSeconds: null } };
 
         // set it null and then set it with vue to make reactive.

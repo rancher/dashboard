@@ -29,7 +29,7 @@ export default {
         }
       } = row;
       const out = [];
-      const isHeadless = clusterIP === 'None';
+      const isHeadless = serviceType === 'ClusterIP' && clusterIP === 'None';
       const parsedClusterIp = !isEmpty(clusterIP) && !isHeadless ? `${ clusterIP }:` : '';
       let label = '';
       let link = '';
