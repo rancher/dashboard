@@ -136,7 +136,7 @@ clusterIndexPage:
       label: OPA Gatekeeper Constraint Violations
       disabled: OPA Gatekeeper is not configured.
       buttonText: Configure Gatekeeper
-      noRows: "There are no contrains with violations to show."
+      noRows: "There are no contraints with violations to show."
     events:
       label: Events
 
@@ -150,7 +150,7 @@ gatekeeperConfig:
     description: Description
     helpText:
       listItem1: "OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes."
-      listItem2: "You can Customize Gatekeeper’s yaml configuartion or Enable Gatekeeper with defaults."
+      listItem2: "You can customize Gatekeeper’s yaml configuration or Enable Gatekeeper with defaults."
       listItem3: "For more information, visit the "
       listItem4: "OPA Documentation."
     requirements:
