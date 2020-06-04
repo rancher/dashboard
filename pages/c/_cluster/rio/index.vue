@@ -9,26 +9,27 @@ import {
   SYSTEM_PROJECT_LABEL,
 } from '@/config/types';
 import { _VIEW, _CREATE, DEMO } from '@/config/query-params';
+import { TEMPLATE_NAME, APP_ID, CONFIG } from '@/config/chart/rio';
 import RioConfig from '@/components/chart/rio/Config';
+import { findBy } from '@/utils/array';
 
 export default {
   components: { Card, RioConfig },
 
   async asyncData({ store, route }) {
     let mode = route?.query?.mode ? route.query.mode : _VIEW;
+    const hasSchemas = !!store.getters['cluster/schemaFor'](RIO.SERVICE);
 
     try {
-      const template = await store.dispatch('management/find', {
-        type: MANAGEMENT.CATALOG_TEMPLATE,
-        id:   RIO.TEMPLATE_ID
-      });
+      const templates = await store.dispatch('management/findAll', { type: MANAGEMENT.CATALOG_TEMPLATE });
+      const template = findBy(templates, 'spec.displayName', TEMPLATE_NAME);
 
       if (!template?.id ) {
         return {
-          rioUnavailable:    true,
-          enabled:           false,
-          rioSystemTemplate: null,
-          systemProject:            null,
+          available:     false,
+          enabled:       hasSchemas,
+          template:      null,
+          systemProject: null,
           mode,
         };
       }
@@ -45,10 +46,10 @@ export default {
 
       if ( !targetSystemProject ) {
         return {
-          rioUnavailable:    true,
-          enabled:           false,
-          rioSystemTemplate: null,
-          systemProject:            null,
+          available:     false,
+          enabled:       hasSchemas,
+          template:      null,
+          systemProject: null,
           mode,
         };
       }
@@ -57,37 +58,37 @@ export default {
 
       // @TODO externalCluster service doesn't like getting things by ID, so load them all and find it...
       const apps = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.APP });
-      let rio = apps.find(app => app.id === `${ namespace }/${ RIO.APP_ID }`);
+      let app = apps.find(app => app.id === `${ namespace }/${ APP_ID }`);
 
       const namespaces = await store.dispatch('cluster/findAll', { type: NAMESPACE });
 
-      if ( !rio ) {
+      if ( !app ) {
         mode = _CREATE;
 
-        const rioVersionsMap = template.spec.versions;
-        const latestGKVersion = rioVersionsMap[0] ? rioVersionsMap[0] : null;
+        const latestVersion = template?.spec?.versions?.[0];
 
-        rio = await store.dispatch('clusterExternal/create', {
-          type:       'app',
-          metadata:   {
+        app = await store.dispatch('clusterExternal/create', {
+          type:     'app',
+          metadata: {
             namespace,
-            name: RIO.APP_ID
+            name: APP_ID
           },
           spec: {
             projectName:     targetSystemProject.namespacedName,
-            externalId:      latestGKVersion.externalId,
+            externalId:      latestVersion.externalId,
             targetNamespace: 'rio-system',
             timeout:         300,
-            valuesYaml:      RIO.CONFIG,
+            valuesYaml:      CONFIG,
           }
         });
       }
 
       return {
-        enabled:           !!rio?.id,
-        rioSystemTemplate: template,
-        systemProject:            targetSystemProject,
-        rio,
+        available:     !hasSchemas,
+        enabled:       !!app?.id || hasSchemas,
+        template,
+        systemProject: targetSystemProject,
+        app,
         mode,
         namespaces,
         projects
@@ -96,18 +97,15 @@ export default {
       console.error(e); // eslint-disable-line no-console
 
       return {
-        rioUnavailable: true,
-        enabled:        false,
+        available: false,
+        enabled:   hasSchemas,
         mode,
       };
     }
   },
 
   data() {
-    return {
-      demos,
-      fakeEnabled: !!this.$store.getters['cluster/schemaFor'](RIO.SERVICE),
-    };
+    return { demos };
   },
 
   methods: {
@@ -124,7 +122,7 @@ export default {
 
 <template>
   <div>
-    <div v-if="fakeEnabled">
+    <div v-if="enabled">
       <h1>
         Discover Rio
       </h1>
@@ -153,13 +151,16 @@ export default {
         </div>
       </div>
     </div>
-    <div v-else>
-      <RioConfig
-        :config="rio"
-        :mode="mode"
-        :namespaces="namespaces"
-        :projects="projects"
-      />
+
+    <RioConfig
+      v-if="available"
+      :config="app"
+      :mode="mode"
+      :namespaces="namespaces"
+      :projects="projects"
+    />
+    <div v-else-if="!enabled">
+      Rio is not currently available
     </div>
   </div>
 </template>

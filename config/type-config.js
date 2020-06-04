@@ -265,7 +265,6 @@ export default function(store) {
   });
 
   // Rio
-  /*
   basicType([
     'rio',
     RIO.SERVICE,
@@ -289,5 +288,4 @@ export default function(store) {
   moveType(RIO.PUBLIC_DOMAIN, 'Cluster::Rio::Public Domain');
   moveType(RIO.EXTERNAL_SERVICE, 'Cluster::Rio::External Service');
   moveType(RIO.STACK, 'Cluster::Rio::Stack');
-  */
 }

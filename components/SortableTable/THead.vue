@@ -101,9 +101,11 @@ export default {
     },
 
     label(col) {
-      return col.labelKey
-        ? this.t(col.labelKey, undefined, true)
-        : col.label;
+      if ( col.labelKey ) {
+        return this.t(col.labelKey, undefined, true);
+      }
+
+      return col.label;
     }
   }
 };

@@ -49,9 +49,11 @@ export default {
   },
   computed: {
     displayUnits() {
-      return this.units
-        ? ` ${ this.units }`
-        : '';
+      if ( this.units ) {
+        return ` ${ this.units }`;
+      }
+
+      return '';
     },
     percentageBarValue() {
       if (!this.used || !this.capacity) {

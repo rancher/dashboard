@@ -15,11 +15,11 @@ export default {
   },
 
   kubernetesVersion() {
-    const k8sVersion = this?.status?.version?.gitVersion
-      ? this.status.version.gitVersion
-      : this.$rootGetters['i18n/t']('generic.unknown');
-
-    return k8sVersion;
+    if ( this?.status?.version?.gitVersion ) {
+      return this.status.version.gitVersion;
+    } else {
+      return this.$rootGetters['i18n/t']('generic.unknown');
+    }
   },
 
   createdDisplay() {

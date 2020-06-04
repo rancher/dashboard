@@ -1,13 +1,10 @@
 import Vue from 'vue';
 import { formatPercent } from '@/utils/string';
-import { NODE_ROLES } from '@/config/labels-annotations.js';
+import { NODE_ROLES, RKE } from '@/config/labels-annotations.js';
 import { METRIC } from '@/config/types';
 import { parseSi } from '@/utils/units';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import { findLast } from 'lodash';
-
-const CORDONED_STATE = 'cordoned';
-const EXTERNAL_IP_ANNOTATION = 'rke.cattle.io/external-ip';
 
 export default {
   availableActions() {
@@ -52,7 +49,7 @@ export default {
 
   externalIp() {
     const addresses = this.status?.addresses || [];
-    const annotationAddress = this.metadata.annotations[EXTERNAL_IP_ANNOTATION];
+    const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
     const statusAddress = findLast(addresses, address => address.type === 'ExternalIP')?.address;
 
     return statusAddress || annotationAddress;
@@ -180,9 +177,11 @@ export default {
   },
 
   containerRuntimeIcon() {
-    return this.status.nodeInfo.containerRuntimeVersion.includes('docker')
-      ? 'icon-docker'
-      : false;
+    if ( this.status.nodeInfo.containerRuntimeVersion.includes('docker') ) {
+      return 'icon-docker';
+    }
+
+    return false;
   },
 
   cordon() {
@@ -200,18 +199,22 @@ export default {
   },
 
   state() {
-    return !this[PRIVATE].isDetailPage && this.isCordoned
-      ? CORDONED_STATE
-      : this.metadata?.state?.name || 'unknown';
+    if ( !this[PRIVATE].isDetailPage && this.isCordoned ) {
+      return 'cordoned';
+    }
+
+    return this.metadata?.state?.name || 'unknown';
   },
 
   highlightBadge() {
-    return this.isCordoned
-      ? {
+    if ( this.isCordoned ) {
+      return {
         stateBackground: this.stateBackground,
         stateDisplay:    this.stateDisplay
-      }
-      : false;
+      };
+    }
+
+    return false;
   }
 };
 

@@ -58,9 +58,7 @@ export default {
   },
 
   expandedSchema: (state, getters) => (typeInput) => {
-    const type = typeof typeInput === 'string'
-      ? typeInput
-      : typeInput.type || typeInput.id;
+    const type = (typeof typeInput === 'string') ? typeInput : (typeInput.type || typeInput.id);
 
     if (Object.values(PRIMITIVE_TYPES).includes(type)) {
       return { type, isPrimitive: true };

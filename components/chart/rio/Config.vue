@@ -1,11 +1,10 @@
 <script>
 import jsyaml from 'js-yaml';
-import CodeMirror from '@/components/CodeMirror';
+import YamlEditor from '@/components/YamlEditor';
 import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
-import InfoBox from '@/components/InfoBox';
 import { NAMESPACE } from '@/config/types';
-import { _VIEW, _EDIT } from '@/config/query-params';
+import { _EDIT } from '@/config/query-params';
 import { findBy } from '@/utils/array';
 
 export default {
@@ -13,8 +12,7 @@ export default {
 
   components: {
     AsyncButton,
-    CodeMirror,
-    InfoBox,
+    YamlEditor,
     Footer,
   },
 
@@ -83,25 +81,6 @@ export default {
       const { namespaces } = this;
 
       return namespaces.find(ns => ns.metadata.name === 'rio-system');
-    },
-
-    cmOptions() {
-      const readOnly = this.mode === _VIEW;
-      const gutters = ['CodeMirror-lint-markers'];
-
-      if ( !readOnly ) {
-        gutters.push('CodeMirror-foldgutter');
-      }
-
-      return {
-        readOnly,
-        gutters,
-        mode:            'yaml',
-        lint:            true,
-        lineNumbers:     !readOnly,
-        extraKeys:       { 'Ctrl-Space': 'autocomplete' },
-        cursorBlinkRate: ( readOnly ? -1 : 530)
-      };
     },
 
     parsedValuesYaml() {
@@ -346,39 +325,7 @@ export default {
       </div>
     </header>
     <div v-if="rioEnabled" class="mt-20">
-      <InfoBox
-        v-if="parsedValuesYaml && !showYamlEditor"
-        class="row"
-      >
-        <div class="col span-6 info-column">
-          <div class="info-row">
-            <label><t k="rioConfig.infoBox.auditFromCache" />: </label>
-            {{ parsedValuesYaml.auditFromCache }}
-          </div>
-          <div class="info-row">
-            <label><t k="rioConfig.infoBox.auditInterval" />: </label>
-            {{ parsedValuesYaml.auditInterval }}s
-          </div>
-          <div class="info-row">
-            <label><t k="rioConfig.infoBox.constraintViolationsLimit" />: </label>
-            {{ parsedValuesYaml.constraintViolationsLimit }}
-          </div>
-        </div>
-        <div class="col span-6 info-column">
-          <div class="info-row">
-            <label><t k="rioConfig.infoBox.imageRepository" />: </label>
-            {{ parsedValuesYaml.image.repository }}
-          </div>
-          <div class="info-row">
-            <label><t k="rioConfig.infoBox.replicas" />: </label>
-            {{ parsedValuesYaml.replicas }}
-          </div>
-          <div class="info-row">
-            <label><t k="rioConfig.infoBox.imageTag" />: </label>
-            {{ parsedValuesYaml.image.tag }}
-          </div>
-        </div>
-      </InfoBox>
+      Rio is Enabled
     </div>
     <div v-else class="mt-20 mb-20">
       <div class="row">
@@ -419,10 +366,9 @@ export default {
       </div>
     </div>
     <section v-if="showYamlEditor">
-      <CodeMirror
+      <YamlEditor
         class="code-mirror"
         :value="config.spec.valuesYaml"
-        :options="cmOptions"
         @onInput="onInput"
         @onReady="onReady"
         @onChanges="onChanges"

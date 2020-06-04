@@ -58,7 +58,7 @@ export default {
     },
 
     isNamespace() {
-      return this.schema.id === NAMESPACE;
+      return this.schema?.id === NAMESPACE;
     },
 
     namespace() {

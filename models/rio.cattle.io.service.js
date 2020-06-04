@@ -13,7 +13,7 @@ import { get } from '@/utils/object';
 const EMPTY = {};
 
 export default {
-  applyDefaults(ctx, mode) {
+  applyDefaults(mode) {
     const spec = this.spec;
 
     if ( mode === _CREATE || mode === _CLONE ) {

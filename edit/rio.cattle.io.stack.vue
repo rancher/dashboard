@@ -4,6 +4,9 @@ import GithubPicker from '@/components/form/GithubPicker';
 import LabeledInput from '@/components/form/LabeledInput';
 import CreateEditView from '@/mixins/create-edit-view';
 import Footer from '@/components/form/Footer';
+import { defaultAsyncData } from '@/components/ResourceDetail';
+import { DEMO } from '@/config/query-params';
+import DEMOS from '@/config/demos';
 
 const BUILD_MODES = {
   empty:  'Create an empty stack',
@@ -19,6 +22,22 @@ export default {
   },
 
   mixins: [CreateEditView],
+
+  async asyncData(ctx) {
+    const { query } = ctx;
+
+    const out = await defaultAsyncData(ctx);
+    const demoName = query[DEMO];
+
+    out.isDemo = false;
+
+    if ( demoName && DEMOS[demoName] ) {
+      out.model.spec = DEMOS[demoName].spec;
+      out.isDemo = true;
+    }
+
+    return out;
+  },
 
   data() {
     let spec = this.value.spec;
@@ -51,6 +70,7 @@ export default {
       buildModeLabels: BUILD_MODES,
     };
   },
+
   computed: {
     buildModeOptions() {
       const githubDisabled = !this.hasGithub;

@@ -161,7 +161,6 @@ module.exports = {
 
   // Global CSS
   css: [
-    'vue-js-modal',
     '@/assets/styles/app.scss'
   ],
 

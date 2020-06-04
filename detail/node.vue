@@ -172,10 +172,9 @@ export default {
     },
 
     mapToStatus(isOk) {
-      return isOk
-        ? 'success'
-        : 'error';
+      return isOk ? 'success' : 'error';
     },
+
     async loadMetrics() {
       const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
 

@@ -77,16 +77,18 @@ export default {
     },
 
     detailTopColumns() {
-      const { metadata = {} } = this.value;
+      const name = this.value?.metadata?.name;
 
-      return [
-        metadata.name
-          ? {
-            title:   'Name',
-            content: metadata.name
-          } : null,
-        ...this.extraDetailColumns
-      ].filter(c => c);
+      const nameColumn = {
+        title:   'Name',
+        content: name
+      };
+
+      if ( name ) {
+        return [nameColumn, ...this.extraDetailColumns];
+      }
+
+      return this.extraDetailColumns;
     },
 
     namespaces() {
@@ -102,8 +104,8 @@ export default {
       return out;
     },
 
-    notView() {
-      return this.mode !== _VIEW;
+    isView() {
+      return this.mode === _VIEW;
     },
 
     colSpan() {
@@ -147,7 +149,8 @@ export default {
 
 <template>
   <div>
-    <div v-if="notView" class="row">
+    <DetailTop v-if="isView" :columns="detailTopColumns" />
+    <div v-else class="row">
       <div :class="{col: true, [colSpan]: true}">
         <slot name="namespace">
           <InputWithSelect
@@ -190,6 +193,5 @@ export default {
         </slot>
       </div>
     </div>
-    <DetailTop v-else :columns="detailTopColumns" />
   </div>
 </template>

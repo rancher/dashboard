@@ -12,9 +12,9 @@ export default {
   preventDeletionMessage() {
     const constraints = this.constraints;
 
-    return constraints.length > 0
-      ? `There are still constaints using this template. You cannot delete this template while it's in use.`
-      : null;
+    if ( constraints.length > 0 ) {
+      return `There are still constaints using this template. You cannot delete this template while it's in use.`;
+    }
   },
 
   doneOverride() {

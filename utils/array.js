@@ -149,16 +149,3 @@ export function uniq(ary) {
 
   return out;
 }
-
-export function createAllSubArrays(ary) {
-  return ary.reduce((agg, cur) => {
-    const newElement = agg.length === 0
-      ? [cur]
-      : [...agg[agg.length - 1], cur];
-
-    return [
-      ...agg,
-      newElement
-    ];
-  }, []);
-}

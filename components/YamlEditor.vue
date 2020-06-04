@@ -26,7 +26,7 @@ export default {
     },
     editorMode: {
       type:      String,
-      required:  true,
+      default:  EDITOR_MODES.EDIT_CODE,
       validator(value) {
         return Object.values(EDITOR_MODES).includes(value);
       }

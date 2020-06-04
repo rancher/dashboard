@@ -817,7 +817,7 @@ export default {
     };
   },
 
-  applyDefaults() {
+  applyDefaults(/* mode */) {
     return () => {
       return this;
     };

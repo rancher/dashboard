@@ -81,13 +81,15 @@ export default {
       const isTargetsWorkload = !serviceName.startsWith('ingress-');
       const id = `${ this.namespace }/${ serviceName }`;
 
-      return isTargetsWorkload
-        ? this.findWorkload(id)?.detailLocation || ''
-        : {
+      if ( isTargetsWorkload ) {
+        return this.findWorkload(id)?.detailLocation || '';
+      } else {
+        return {
           resource:  SERVICE,
           id:        serviceName,
           namespace: this.namespace
         };
+      }
     },
 
     findWorkload(id) {

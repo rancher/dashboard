@@ -25,13 +25,16 @@ export function lookup(type, appSpecializationName) {
   }
 
   try {
-    const defaultValue = { default: {} };
     const base = require(`@/models/${ type }`);
-    const appSpecialization = (type === 'app' && appSpecializationName)
-      ? (require(`@/models/apps/${ appSpecializationName }`) || defaultValue)
-      : defaultValue;
+    const model = { ...base.default };
 
-    const model = { ...appSpecialization.default, ...base.default };
+    if (type === 'app' && appSpecializationName) {
+      const loaded = require(`@/models/apps/${ appSpecializationName }`);
+
+      if ( loaded?.default ) {
+        Object.assign(model, loaded.default);
+      }
+    }
 
     cache[type] = model;
 

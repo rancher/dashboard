@@ -211,35 +211,39 @@ export default {
     },
 
     headers() {
-      const keyHeader = {
-        name:          'key',
-        label:         'Key',
-        value:         this.keyName,
-      };
-      const valueHeader = {
-        name:          'value',
-        label:         'Value',
-        value:         this.valueName,
-      };
-      const removeHeader = this.showRemove
-        ? {
-          name:          'remove',
-          label:         '',
-          value:         '',
-          align:         'right',
-          width:         100
+      const out = [
+        {
+          name:  'key',
+          label: 'Key',
+          value: this.keyName,
+        },
+        {
+          name:  'value',
+          label: 'Value',
+          value: this.valueName,
         }
-        : null;
-      const downloadHeader = this.valueBinary && this.isView
-        ? {
-          name:          'download',
-          label:         'Download',
-          value:         '',
-          align:         'right'
-        }
-        : null;
+      ];
 
-      return [keyHeader, valueHeader, removeHeader, downloadHeader].filter(h => h);
+      if ( this.showRemove ) {
+        out.push({
+          name:  'remove',
+          label: '',
+          value: '',
+          align: 'right',
+          width: 100
+        });
+      }
+
+      if ( this.valueBinary && this.isView ) {
+        out.push({
+          name:  'download',
+          label: 'Download',
+          value: '',
+          align: 'right'
+        });
+      }
+
+      return out;
     }
   },
 

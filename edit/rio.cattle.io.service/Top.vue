@@ -55,9 +55,13 @@ export default {
     registerBeforeHook: {
       type:    Function,
       default: null,
+    },
+    realMode: {
+      type:     String,
+      required: true,
     }
   },
-  inject: ['realMode'],
+
   data() {
     const spec = this.spec;
     const buildImage = !!(spec && spec.build && spec.build.repo);
@@ -344,6 +348,7 @@ export default {
           label="Image"
           placeholder="e.g. nginx:latest"
           :required="true"
+          @input="update"
         />
       </div>
       <div class="col span-6">
@@ -352,7 +357,6 @@ export default {
           :mode="mode"
           :options="imagePullPolicyChoices"
           label="Pull Policy"
-          placeholder="Select a pull policy..."
         />
       </div>
     </div>
