@@ -36,6 +36,34 @@ nav:
     orphan: "Not in a Project"
 
 cluster:
+  nodeDriver:
+    displayName:
+      aliyun: Alibaba ACK
+      aliyunecs: Aliyun ECS
+      amazonec2: Amazon EC2
+      amazoneks: Amazon EKS
+      azure: Azure
+      azureaks: Azure AKS
+      baidu: Baidu CCE
+      cloudca: Cloud.ca
+      digitalocean: DigitalOcean
+      exoscale: Exoscale
+      googlegke: Google GKE
+      huaweicce: Huawei CCE
+      linode: Linode
+      oci: Oracle Cloud Infrastructure
+      openstack: OpenStack
+      oracleoke: Oracle OKE
+      otc: Open Telekom Cloud
+      packet: Packet
+      pinganyunecs: Pinganyun ECS
+      rackspace: RackSpace
+      rancherkubernetesengine: RKE
+      softlayer: SoftLayer
+      tencenttke: Tencent TKE
+      upcloud: UpCloud
+      vmwarevsphere: vSphere
+      zstack: ZStack
   provider:
     amazonelasticcontainerservice:
       label: Amazon Elastic Container Service for Kubernetes
@@ -88,6 +116,7 @@ footer:
   slack: Slack
   issue: File an Issue
   download: Download CLI
+
 
 servicesPage:
   typeOpts:
@@ -488,7 +517,7 @@ workload:
         port: Check Port
         path: Request Path
         headers: Request Headers
-      command: 
+      command:
         command: Command to run
     security:
       privileged: Privileged

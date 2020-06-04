@@ -42,8 +42,13 @@ export default {
             const nodeTemplateId = firstNodePool?.spec?.nodeTemplateName;
             const normalizedId = nodeTemplateId.split(':').join('/');
             const nodeTemplate = this.nodeTemplates.find(nt => nt.id === normalizedId);
+            const nodeDriver = nodeTemplate?.spec?.driver || null;
 
-            if (nodeTemplate?.spec?.driver) {
+            if (nodeDriver) {
+              if (this.$store.getters['i18n/exists'](`cluster.nodeDriver.displayName.${ nodeDriver.toLowerCase() }`)) {
+                return this.$store.getters['i18n/t'](`cluster.nodeDriver.displayName.${ nodeDriver.toLowerCase() }`);
+              }
+
               return capitalize( nodeTemplate.spec.driver );
             } else {
               // things are not good if we get here
