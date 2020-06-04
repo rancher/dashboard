@@ -29,6 +29,18 @@ const SESSION_AFFINITY_ACTION_LABELS = {
 
 const SESSION_STICKY_TIME_DEFAULT = 10800;
 
+const HEADLESS = (() => {
+  const headless = find(DEFAULT_SERVICE_TYPES, ['id', 'Headless']);
+
+  return headless.id;
+})();
+
+const CLUSTERIP = (() => {
+  const clusterIp = find(DEFAULT_SERVICE_TYPES, ['id', 'ClusterIP']);
+
+  return clusterIp.id;
+})();
+
 export default {
   // Props are found in CreateEditView
   // props: {},
@@ -53,23 +65,23 @@ export default {
 
   data() {
     if (!this?.value?.spec?.type) {
-      const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', 'ClusterIP']);
+      if (!this.value?.spec) {
+        const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
 
-      if (!this?.value?.spec) {
         this.$set(this.value, 'spec', {
           ports:           [],
           sessionAffinity: 'None',
-          type:            defaultService.id,
         });
-      } else {
-        this.$set(this.value.spec, 'type', defaultService.id);
+
+        this.serviceType = defaultService.id;
       }
     }
 
     return {
-      sessionAffinityActionOptions: Object.values(SESSION_AFFINITY_ACTION_VALUES),
-      sessionAffinityActionLabels:  Object.values(SESSION_AFFINITY_ACTION_LABELS).map(v => this.$store.getters['i18n/t'](v)).map(ucFirst),
       defaultServiceTypes:          DEFAULT_SERVICE_TYPES,
+      saving:                       false,
+      sessionAffinityActionLabels:  Object.values(SESSION_AFFINITY_ACTION_LABELS).map(v => this.$store.getters['i18n/t'](v)).map(ucFirst),
+      sessionAffinityActionOptions: Object.values(SESSION_AFFINITY_ACTION_VALUES),
     };
   },
 
@@ -82,7 +94,7 @@ export default {
       return [
         {
           title:   this.$store.getters['i18n/t']('generic.type'),
-          content: this.value?.spec.type,
+          content: this.serviceType,
           name:    'type',
         },
         {
@@ -91,23 +103,44 @@ export default {
         },
       ];
     },
+
+    serviceType: {
+      get() {
+        const serviceType = this.value?.spec?.type;
+        const clusterIp = this.value?.spec?.clusterIP;
+        const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
+
+        if (serviceType) {
+          if (serviceType === CLUSTERIP && clusterIp === 'None') {
+            return HEADLESS;
+          } else {
+            return serviceType;
+          }
+        }
+
+        return defaultService;
+      },
+
+      set(serviceType) {
+        if (serviceType === HEADLESS) {
+          this.$set(this.value.spec, 'type', CLUSTERIP);
+          this.$set(this.value.spec, 'clusterIP', 'None');
+        } else {
+          if (serviceType !== HEADLESS && this.value?.spec?.clusterIP === 'None') {
+            this.$set(this.value.spec, 'clusterIP', null);
+          } else if (serviceType === 'ExternalName') {
+            this.$set(this.value.spec, 'ports', null);
+          }
+
+          this.$set(this.value.spec, 'type', serviceType);
+        }
+      },
+    },
   },
 
   watch: {
-    'value.spec.type'(val) {
-      if (val === 'ExternalName') {
-        this.value.spec.ports = null;
-      }
-
-      if (val === 'Headless') {
-        this.value.spec.clusterIP = 'None';
-      } else if (val !== 'Headless' && this.value.spec.clusterIP === 'None') {
-        this.value.spec.clusterIP = null;
-      }
-    },
-
     'value.spec.sessionAffinity'(val) {
-      if (val === 'ClusterIP') {
+      if (val === CLUSTERIP) {
         this.value.spec.sessionAffinityConfig = { clientIP: { timeoutSeconds: null } };
 
         // set it null and then set it with vue to make reactive.
@@ -120,14 +153,14 @@ export default {
 
   methods: {
     checkTypeIs(typeIn) {
-      const { value: { spec: { type } } } = this;
+      const { serviceType } = this;
 
-      if (type === typeIn) {
+      if (serviceType === typeIn) {
         return true;
       }
 
       return false;
-    }
+    },
   },
 };
 </script>
@@ -146,7 +179,6 @@ export default {
       <NameNsDescription
         v-if="!isView"
         :value="value"
-        :namespaced="false"
         :mode="mode"
         :extra-columns="extraColumns"
       >
@@ -158,8 +190,8 @@ export default {
             :localized-label="true"
             :mode="mode"
             :options="defaultServiceTypes"
-            :value="value.spec.type"
-            @input="e=>$set(value.spec, 'type', e.id)"
+            :value="serviceType"
+            @input="e=>serviceType = e.id"
           />
         </template>
       </NameNsDescription>
@@ -193,7 +225,7 @@ export default {
         v-model="value.spec.ports"
         class="col span-12"
         :mode="mode"
-        :spec-type="value.spec.type"
+        :spec-type="serviceType"
       />
 
       <div class="spacer"></div>
@@ -201,7 +233,7 @@ export default {
       <ResourceTabs v-model="value" :mode="mode">
         <template #before>
           <Tab
-            v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName')"
+            v-if="!checkTypeIs('ExternalName')"
             name="selectors"
             :label="t('servicesPage.selectors.label')"
           >
@@ -228,14 +260,17 @@ export default {
             </div>
           </Tab>
           <Tab name="ips" :label="t('servicesPage.ips.label')">
-            <div v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer')" class="row">
+            <div class="row">
               <div class="col span-12">
                 <p class="helper-text">
                   <t k="servicesPage.ips.helpText" />
                 </p>
+                <p v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')" class="helper-text">
+                  <t k="servicesPage.ips.clusterIpHelpText" />
+                </p>
               </div>
             </div>
-            <div v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer')" class="row mb-20">
+            <div v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')" class="row mb-20">
               <div class="col span-6">
                 <LabeledInput
                   v-model="value.spec.clusterIP"
@@ -256,14 +291,14 @@ export default {
                   :value-multiline="false"
                   :mode="mode"
                   :pad-left="false"
-                  :protip="false"
+                  :protip="t('servicesPage.ips.external.protip')"
                   @input="e=>$set(value.spec, 'externalIPs', e)"
                 />
               </div>
             </div>
           </Tab>
           <Tab
-            v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName')"
+            v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
             name="session-affinity"
             :label="t('servicesPage.affinity.label')"
           >

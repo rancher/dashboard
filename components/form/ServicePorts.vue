@@ -22,6 +22,10 @@ export default {
     padLeft: {
       type:    Boolean,
       default: false,
+    },
+    autoAddIfEmpty: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -45,21 +49,22 @@ export default {
     },
 
     protocolOptions() {
-      const { specType } = this;
-
-      switch (specType) {
-      case 'ClusterIP':
-      case 'Headless':
-      default:
-        return ['TCP', 'UDP', 'HTTP', 'PROXY'];
-      case 'LoadBalancer':
-        return ['TCP', 'UDP'];
-      }
+      return ['TCP', 'UDP'];
     },
   },
 
   created() {
     this.queueUpdate = debounce(this.update, 500);
+  },
+
+  mounted() {
+    if ( this.isView ) {
+      return;
+    }
+
+    if (this.autoAddIfEmpty && this.mode !== _EDIT && this?.rows.length < 1) {
+      this.add();
+    }
   },
 
   methods: {
@@ -127,10 +132,10 @@ export default {
           <th v-if="specType !== 'NodePort'" class="port-protocol">
             <t k="servicePorts.rules.protocol.label" />
           </th>
-          <th class="target-port">
+          <th v-if="specType !== 'Headless'" class="target-port">
             <t k="servicePorts.rules.target.label" />
           </th>
-          <th v-if="specType === 'NodePort'" class="node-port">
+          <th v-if="specType === 'NodePort' || specType === 'LoadBalancer'" class="node-port">
             <t k="servicePorts.rules.node.label" />
           </th>
           <th v-if="showRemove" class="remove"></th>
@@ -177,7 +182,7 @@ export default {
               @input="queueUpdate"
             />
           </td>
-          <td class="target-port">
+          <td v-if="specType !== 'Headless'" class="target-port">
             <span v-if="isView">{{ row.targetPort }}</span>
             <input
               v-else
@@ -185,11 +190,11 @@ export default {
               type="number"
               min="1"
               max="65535"
-              placeholder="e.g. 80"
+              :placeholder="t('servicePorts.rules.target.placeholder')"
               @input="queueUpdate"
             />
           </td>
-          <td v-if="specType === 'NodePort'" class="node-port">
+          <td v-if="specType === 'NodePort' || specType === 'LoadBalancer'" class="node-port">
             <span v-if="isView">{{ row.nodePort }}</span>
             <input
               v-else
@@ -197,7 +202,7 @@ export default {
               type="number"
               min="1"
               max="65535"
-              placeholder="e.g. 80"
+              :placeholder="t('servicePorts.rules.node.placeholder')"
               @input="queueUpdate"
             />
           </td>
@@ -245,10 +250,6 @@ export default {
 
   .port-protocol {
     width: 100px;
-  }
-
-  .node-port, .target-port {
-    text-align: center;
   }
 
   .value {

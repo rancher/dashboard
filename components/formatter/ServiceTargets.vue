@@ -29,7 +29,8 @@ export default {
         }
       } = row;
       const out = [];
-      const parsedClusterIp = !isEmpty(clusterIP) ? `${ clusterIP }:` : '';
+      const isHeadless = serviceType === 'ClusterIP' && clusterIP === 'None';
+      const parsedClusterIp = !isEmpty(clusterIP) && !isHeadless ? `${ clusterIP }:` : '';
       let label = '';
       let link = '';
 
@@ -39,7 +40,9 @@ export default {
           label = parsedClusterIp;
         } else if (serviceType === 'ExternalName' && !isEmpty(externalName)) {
           label = externalName;
-          link = `<a href="${ label }" target="_blank" rel="noopener nofollow">${ label }</a>`;
+          if (!isHeadless) {
+            link = `<a href="${ label }" target="_blank" rel="noopener nofollow">${ label }</a>`;
+          }
         }
 
         out.push({
@@ -54,7 +57,7 @@ export default {
 
           label = `${ clusterIpAndPort }${ protocol }${ targetPort }`;
 
-          link = serviceType === 'ClusterIP' && !isEmpty(clusterIP) ? `<a href="//${ clusterIP }/${ p.port }" target="_blank" rel="noopener nofollow">${ clusterIpAndPort }</a>${ protocol }${ targetPort }` : null;
+          link = serviceType === 'ClusterIP' && !isEmpty(clusterIP) && !isHeadless ? `<a href="//${ clusterIP }/${ p.port }" target="_blank" rel="noopener nofollow">${ clusterIpAndPort }</a>${ protocol }${ targetPort }` : null;
 
           out.push({
             label,
