@@ -496,15 +496,11 @@ export default {
     margin-bottom: $spacing;
 
     TD, TH {
-      padding-right: $spacing;
-
-      &:last-of-type {
-        padding-right: 0;
-      }
+      padding: 0 $spacing $spacing 0;
     }
 
     TR:first-of-type TD {
-      padding-top: $spacing;
+      padding-top: 0;
     }
 
     TR:last-of-type TD {

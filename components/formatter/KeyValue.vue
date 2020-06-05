@@ -66,6 +66,9 @@ export default {
       &:last-child {
         margin-bottom: 10px;
       }
+      input, textarea {
+        margin-bottom: 10px;
+      }
     }
   }
 </style>
