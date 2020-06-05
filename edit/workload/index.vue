@@ -153,7 +153,7 @@ export default {
     container: {
       get() {
         if (!this.podTemplateSpec.containers) {
-          this.$set(this.podTemplateSpec, 'containers', [{ }]);
+          this.$set(this.podTemplateSpec, 'containers', [{ name: this.value?.metadata?.name, imagePullPolicy: 'Always' }]);
         }
 
         return this.podTemplateSpec.containers[0];
@@ -161,6 +161,15 @@ export default {
 
       set(neu) {
         this.$set(this.podTemplateSpec.containers, 0, neu);
+      }
+    },
+
+    containerImage: {
+      get() {
+        return this.container.image;
+      },
+      set(neu) {
+        this.container = { ...this.container, image: neu };
       }
     },
 
@@ -321,6 +330,10 @@ export default {
         template.metadata = { labels: this.workloadSelector };
       }
       delete this.value.kind;
+
+      if (!this.container.name) {
+        this.$set(this.container, 'name', this.value.metadata.name);
+      }
       this.save(cb);
     },
   },
@@ -337,6 +350,9 @@ export default {
       </NameNsDescription>
 
       <div class="row">
+        <div class="col span-4">
+          <LabeledInput v-model="containerImage" label="Container Image" placeholder="eg nginx:latest" />
+        </div>
         <div class="col span-4">
           <LabeledSelect
             v-model="container.imagePullPolicy"
