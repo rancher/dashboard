@@ -499,10 +499,6 @@ export default {
       padding: 0 $spacing $spacing 0;
     }
 
-    TR:first-of-type TD {
-      padding-top: 0;
-    }
-
     TR:last-of-type TD {
       padding-bottom: 0;
     }
@@ -582,5 +578,26 @@ export default {
   .empty {
     text-align: center;
   }
+
+  .create {
+  }
+
+  .view {    
+    TABLE.sortable-table {
+        TD, TH {
+          padding: $spacing 0;
+        }
+      }
+    }
+    
+    TR:first-of-type TD {
+      padding-top: 0;
+    }
+}
+
+.no-rows {
+  padding: 40px;
+  color: var(--disabled-bg);
+  text-align: center;
 }
 </style>
