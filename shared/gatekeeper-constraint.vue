@@ -121,7 +121,7 @@ export default {
           enforcementAction: ENFORCEMENT_ACTION_VALUES.DENY,
           parameters:        {},
           match:             {
-            kinds:              [{ apiGroups: [''] }],
+            kinds:              [{}],
             namespaces:         [],
             excludedNamespaces: [],
             labelSelector:      { matchExpressions: [] },

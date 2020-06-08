@@ -240,10 +240,12 @@ export default {
             </td>
           </slot>
           <td v-if="showRemove" class="remove">
-            <button type="button" class="btn role-link" @click="remove(idx)">
-              Remove
-              {{ removeLabel }}
-            </button>
+            <slot name="remove-button" :remove="() => remove(idx)">
+              <button type="button" class="btn role-link" @click="remove(idx)">
+                Remove
+                {{ removeLabel }}
+              </button>
+            </slot>
           </td>
         </tr>
       </tbody>
