@@ -1,9 +1,7 @@
 <script>
-import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 export default {
-  components: { LabeledInput, LabeledSelect },
-
+  components: { LabeledSelect },
   props:      {
     value: {
       type:    Object,
@@ -11,13 +9,11 @@ export default {
         return {};
       }
     },
-
-    targets:  {
+    serviceTargets:  {
       type:    Array,
       default: () => []
     }
   },
-
   data() {
     const { backend = {}, path = '' } = this.value;
     const { serviceName = '', servicePort = '' } = backend;
@@ -26,38 +22,66 @@ export default {
       serviceName, servicePort, path
     };
   },
+  computed: {
+    portOptions() {
+      const service = this.serviceTargets.find(s => s.label === this.serviceName);
 
+      return service?.ports || [];
+    }
+  },
   methods: {
     update() {
-      const out = { backend: { serviceName: this.serviceName, servicePort: this.servicePort }, path: this.path };
+      const servicePort = Number.parseInt(this.servicePort) || this.servicePort;
+      const serviceName = this.serviceName.label || this.serviceName;
+      const out = { backend: { serviceName, servicePort }, path: this.path };
 
       this.$emit('input', out);
     }
   }
 };
 </script>
-
 <template>
-  <div class="rule-path row mb-0" @input="update">
+  <div class="rule-path row mb-0">
     <div class="col span-4">
-      <LabeledInput v-model="path" label="Path" placeholder="e.g. /foo" />
+      <input v-model="path" :placeholder="t('ingress.rules.path.placeholder', undefined, true)" />
     </div>
     <div class="col span-4">
-      <LabeledSelect v-model="serviceName" label="Target" option-label="Target" :options="targets" @input="update" />
+      <LabeledSelect
+        v-model="serviceName"
+        option-label="label"
+        option-key="label"
+        :options="serviceTargets"
+        :taggable="true"
+        @input="update(); servicePort = ''"
+      />
     </div>
     <div class="col span-3" :style="{'margin-right': '0px'}">
-      <LabeledInput v-model.number="servicePort" label="Port" placeholder="e.g. 80" />
+      <input
+        v-if="portOptions.length === 0"
+        v-model="servicePort"
+        :placeholder="t('ingress.rules.port.placeholder')"
+        @input="update"
+      />
+      <LabeledSelect
+        v-else
+        v-model="servicePort"
+        :options="portOptions"
+        :placeholder="t('ingress.rules.port.placeholder')"
+        @input="update"
+      />
     </div>
-    <button class="btn role-link col" @click="$emit('remove')">
-      remove
+    <button class="btn btn-sm role-link col" @click="$emit('remove')">
+      {{ t('ingress.rules.removePath') }}
     </button>
   </div>
 </template>
-
 <style lang="scss" scoped>
 .rule-path {
   button {
     line-height: 40px;
+  }
+  input {
+    height: 55px;
   }
 }
 </style>
