@@ -77,6 +77,11 @@ export default {
         this.$emit('input', out);
       });
     },
+    updateSelector(map, key, val) {
+      this.$set(map, key, val);
+      this.update();
+    },
+
     get,
     isEmpty
   }
@@ -107,7 +112,7 @@ export default {
             :type="node"
             :value="nodeSelectorTerm.matchExpressions"
             @remove="$delete(selectorMap, key)"
-            @input="e=>$set(selectorMap, key, {matchExpressions:e})"
+            @input="e=>updateSelector(selectorMap, key, {matchExpressions:e})"
           />
         </div>
       </template>
@@ -138,7 +143,7 @@ export default {
             :value="get(nodeSelectorTerm, 'preference.matchExpressions')"
             :weight="nodeSelectorTerm.weight"
             @remove="$delete(weightedSelectorMap, key)"
-            @input="e=>$set(weightedSelectorMap, key, {preference:{matchExpressions:e}, weight:defaultWeight})"
+            @input="e=>updateSelector(weightedSelectorMap, key, {preference:{matchExpressions:e}, weight:defaultWeight})"
           />
         </div>
       </template>

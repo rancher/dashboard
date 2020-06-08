@@ -329,6 +329,32 @@ export default {
       if (!template.metadata && this.type !== WORKLOAD_TYPES.JOB) {
         template.metadata = { labels: this.workloadSelector };
       }
+
+      // matchExpressions 'values' are formatted incorrectly; fix them before sending to API
+      const nodeAffinity = template?.spec?.affinity?.nodeAffinity || {};
+      const preferredDuringSchedulingIgnoredDuringExecution = nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution || [];
+      const requiredDuringSchedulingIgnoredDuringExecution = nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution || {};
+
+      preferredDuringSchedulingIgnoredDuringExecution.forEach((term) => {
+        const matchExpressions = term?.preference?.matchExpressions || [];
+
+        matchExpressions.forEach((expression) => {
+          if (expression.values) {
+            expression.values = typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+          }
+        });
+      });
+
+      (requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms || []).forEach((term) => {
+        const matchExpressions = term.matchExpressions || [];
+
+        matchExpressions.forEach((expression) => {
+          if (expression.values) {
+            expression.values = typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+          }
+        });
+      });
+
       delete this.value.kind;
 
       if (!this.container.name) {
@@ -400,7 +426,7 @@ export default {
           <Networking v-model="podTemplateSpec" :mode="mode" />
         </Tab>
         <Tab label="Node Scheduling" name="scheduling">
-          <Scheduling v-model="podTemplateSpec" :mode="mode" />
+          <Scheduling v-model="podTemplateSpec" :mode="mode" :show-pod="false" />
         </Tab>
         <Tab label="Scaling/Upgrade Policy" name="upgrading">
           <Upgrading v-model="spec" :mode="mode" />
