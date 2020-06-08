@@ -85,8 +85,8 @@ export async function defaultAsyncData(ctx, resource) {
       data.metadata = { namespace };
     }
 
-    originalModel = null;
-    model = await store.dispatch('cluster/create', data);
+    originalModel = await store.dispatch('cluster/create', data);
+    model = originalModel;
 
     yaml = createYaml(schemas, resource, data);
   } else {
