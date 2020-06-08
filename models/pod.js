@@ -72,5 +72,22 @@ export default {
         }
       }, { root: true });
     };
+  },
+
+  containerStateDisplay() {
+    return (container) => {
+      const state = Object.keys(container.state || {})[0];
+
+      return this._stateDisplay(state);
+    };
+  },
+
+  containerStateColor() {
+    return (container) => {
+      const state = Object.keys(container.state || {})[0];
+
+      return this.stateColor(state);
+    };
   }
+
 };

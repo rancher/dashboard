@@ -1,6 +1,7 @@
 <script>
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: {
@@ -65,6 +66,12 @@ export default {
     return {
       privileged, allowPrivilegeEscalation, allCapabilities, runAsRoot, readOnlyRootFilesystem, add, drop, runAsUser
     };
+  },
+
+  computed: {
+    isView() {
+      return this.mode === _VIEW;
+    }
   },
 
   watch: {
@@ -136,7 +143,16 @@ export default {
     <div class="row mb-0">
       <div class="col span-6">
         <label><t k="workload.container.security.addCapabilities" /></label>
+        <div v-if="isView">
+          <span v-if="!add.length">n/a</span>
+          <ul v-else>
+            <li v-for="capability in add" :key="capability">
+              {{ capability }}
+            </li>
+          </ul>
+        </div>
         <v-select
+          v-else
           v-model="add"
           multiple
           :options="allCapabilities"
@@ -146,7 +162,16 @@ export default {
       </div>
       <div class="col span-6">
         <label><t k="workload.container.security.dropCapabilities" /></label>
+        <div v-if="isView">
+          <span v-if="!drop.length">n/a</span>
+          <ul v-else>
+            <li v-for="capability in drop" :key="capability">
+              {{ capability }}
+            </li>
+          </ul>
+        </div>
         <v-select
+          v-else
           v-model="drop"
           multiple
           :options="allCapabilities"

@@ -33,8 +33,10 @@ export const getters = {
     const map = {};
 
     for ( const node of selected ) {
-      for ( const act of node.availableActions ) {
-        _add(map, act);
+      if (node.availableActions) {
+        for ( const act of node.availableActions ) {
+          _add(map, act);
+        }
       }
     }
 

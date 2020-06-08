@@ -9,6 +9,7 @@ import WorkloadPorts from '@/components/form/WorkloadPorts';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: {
@@ -66,6 +67,9 @@ export default {
   },
 
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
     flatResources: {
       get() {
         const { limits = {}, requests = {} } = this.resources || {};
@@ -114,7 +118,36 @@ export default {
 </script>
 
 <template>
-  <div @input="update">
+  <div v-if="isView">
+    <div>
+      <h3><t k="workload.container.titles.ports" /></h3>
+      <WorkloadPorts v-model="ports" :mode="mode" />
+      <hr class="mt-20 mb-20" />
+    </div>
+    <div>
+      <h3><t k="workload.container.titles.command" /></h3>
+      <Command v-model="commandTab" :mode="mode" :secrets="secrets" :config-maps="configMaps" />
+      <hr class="mt-20 mb-20" />
+    </div>
+
+    <div>
+      <h3><t k="workload.container.titles.resources" /></h3>
+      <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
+      <hr class="mt-20 mb-20" />
+    </div>
+
+    <div>
+      <h3><t k="workload.container.titles.healthCheck" /></h3>
+      <HealthCheck v-model="healthCheck" :mode="mode" />
+      <hr class="mt-20 mb-20" />
+    </div>
+
+    <div>
+      <h3><t k="workload.container.titles.securityContext" /></h3>
+      <Security v-model="securityContext" :mode="mode" />
+    </div>
+  </div>
+  <div v-else @input="update">
     <div class="row">
       <div class="col span-4">
         <LabeledInput v-model="name" :label="t('workload.container.name')" :mode="mode" required />

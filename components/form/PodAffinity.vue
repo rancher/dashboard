@@ -1,14 +1,14 @@
 <script>
 import { _VIEW } from '@/config/query-params';
 import { get, isEmpty } from '@/utils/object';
-import { NODE } from '@/config/types';
+import { POD, NODE } from '@/config/types';
 import MatchExpressions from '@/components/form/MatchExpressions';
 
 export default {
   components: { MatchExpressions },
 
   props:      {
-    // value should be NodeAffinity or VolumeNodeAffinity
+    // value should be PodAffinity
     value: {
       type:    Object,
       default: () => {
@@ -20,45 +20,41 @@ export default {
       type:    String,
       default: 'create'
     },
+
   },
 
   data() {
-    // VolumeNodeAffinity only has 'required' field
-    if (this.value.required) {
-      return { nodeSelectorTerms: this.value.required.nodeSelectorTerms };
-    } else {
-      const { preferredDuringSchedulingIgnoredDuringExecution = [], requiredDuringSchedulingIgnoredDuringExecution = {} } = this.value;
-      const { nodeSelectorTerms = [] } = requiredDuringSchedulingIgnoredDuringExecution;
+    const { preferredDuringSchedulingIgnoredDuringExecution = [], requiredDuringSchedulingIgnoredDuringExecution = [] } = this.value;
 
-      const selectorMap = {};
-      const weightedSelectorMap = {};
+    const selectorMap = {};
+    const weightedSelectorMap = {};
 
-      nodeSelectorTerms.forEach((term, i) => {
-        selectorMap[i] = term;
-      });
-      preferredDuringSchedulingIgnoredDuringExecution.forEach((term, i) => {
-        weightedSelectorMap[i] = term;
-      });
+    requiredDuringSchedulingIgnoredDuringExecution.forEach((term, i) => {
+      selectorMap[i] = term;
+    });
+    preferredDuringSchedulingIgnoredDuringExecution.forEach((term, i) => {
+      weightedSelectorMap[i] = term;
+    });
 
-      return {
-        selectorMap,
-        weightedSelectorMap,
-        weightedNodeSelectorTerms: preferredDuringSchedulingIgnoredDuringExecution,
-        defaultWeight:             1
-      };
-    }
+    return {
+      selectorMap,
+      weightedSelectorMap,
+      defaultWeight: 1
+    };
   },
 
   computed: {
     isView() {
       return this.mode === _VIEW;
     },
-    hasWeighted() {
-      return !!this.weightedNodeSelectorTerms;
+
+    pod() {
+      return POD;
     },
+
     node() {
       return NODE;
-    },
+    }
   },
 
   methods: {
@@ -69,24 +65,39 @@ export default {
         const weightedSelectors = Object.values(this.weightedSelectorMap) || [];
 
         if (selectors.length) {
-          out['requiredDuringSchedulingIgnoredDuringExecution'] = { nodeSelectorTerms: selectors };
+          out['requiredDuringSchedulingIgnoredDuringExecution'] = selectors;
         }
         if (weightedSelectors.length) {
           out['preferredDuringSchedulingIgnoredDuringExecution'] = weightedSelectors;
         }
+
         this.$emit('input', out);
       });
     },
+
+    addSelector() {
+      const neu = { namespaces: [], labelSelector: { matchExpressions: [] } };
+      const key = Math.random();
+
+      this.$set(this.selectorMap, key, neu);
+    },
+
+    addWeightedSelector() {
+      const neu = { weight: this.defaultWeight, podAffinityTerm: { namespaces: [], labelSelector: { matchExpressions: [] } } };
+      const key = Math.random();
+
+      this.$set(this.weightedSelectorMap, key, neu);
+    },
+    isEmpty,
     get,
-    isEmpty
   }
 
 };
 </script>
 
 <template>
-  <div class="row" @input="update">
-    <div :class="{'col span-6':hasWeighted, 'col span-12':!hasWeighted}">
+  <div :style="{'width':'100%'}" class="row" @input="update">
+    <div class="col span-6">
       <div class="mb-10">
         <t k="workload.scheduling.affinity.requireAny" />
       </div>
@@ -104,23 +115,24 @@ export default {
             :initial-empty-row="!isView"
             :mode="mode"
             class="node-selector col span-12"
-            :type="node"
-            :value="nodeSelectorTerm.matchExpressions"
+            :type="pod"
+            :namespaces.sync="nodeSelectorTerm.namespaces"
+            :value="get(nodeSelectorTerm, 'labelSelector.matchExpressions')"
             @remove="$delete(selectorMap, key)"
-            @input="e=>$set(selectorMap, key, {matchExpressions:e})"
+            @input="e=>$set(selectorMap[key].labelSelector, 'matchExpressions', e )"
           />
         </div>
       </template>
-      <button v-if="!isView" type="button" class="btn btn-sm role-primary" @click="e=>$set(selectorMap, Math.random(), {matchExpressions:[]})">
-        Add Node Selector
+      <button v-if="!isView && isEmpty(selectorMap)" type="button" class="btn btn-sm role-primary" @click="addSelector">
+        Add Pod Selector
       </button>
     </div>
 
-    <div v-if="hasWeighted" class="col span-6">
+    <div class="col span-6">
       <div class="mb-10">
         <t k="workload.scheduling.affinity.preferAny" />
       </div>
-      <div v-if="isView && isEmpty(selectorMap)">
+      <div v-if="isView && isEmpty(weightedSelectorMap)">
         <MatchExpressions
           :mode="mode"
           class="node-selector col span-12"
@@ -134,16 +146,17 @@ export default {
             :mode="mode"
             class="node-selector col span-12"
             :initial-empty-row="!isView"
-            :type="node"
-            :value="get(nodeSelectorTerm, 'preference.matchExpressions')"
-            :weight="nodeSelectorTerm.weight"
+            :type="pod"
+            :namespaces.sync="nodeSelectorTerm.podAffinityTerm.namespaces"
+            :value="get(nodeSelectorTerm, 'podAffinityTerm.labelSelector.matchExpressions')"
+            :weight="get(nodeSelectorTerm, 'weight')"
             @remove="$delete(weightedSelectorMap, key)"
-            @input="e=>$set(weightedSelectorMap, key, {preference:{matchExpressions:e}, weight:defaultWeight})"
+            @input="e=>$set(weightedSelectorMap[key].podAffinityTerm.labelSelector, 'matchExpressions', e)"
           />
         </div>
       </template>
-      <button v-if="!isView" type="button" class="btn btn-sm role-primary" @click="e=>$set(weightedSelectorMap, Math.random(), {preference:{matchExpressions:[]}, weight:defaultWeight})">
-        Add Node Selector
+      <button v-if="!isView" type="button" class="btn btn-sm role-primary" @click="addWeightedSelector">
+        Add Pod Selector
       </button>
     </div>
   </div>

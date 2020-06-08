@@ -1,12 +1,8 @@
 <script>
 import RadioButton from '@/components/form/RadioButton';
-import LabeledInput from '@/components/form/LabeledInput';
 
 export default {
-  components: {
-    RadioButton,
-    LabeledInput
-  },
+  components: { RadioButton },
   props:      {
     options: {
       type:     Array,
@@ -150,7 +146,9 @@ export default {
       @focus="focusGroup"
     />
   </div>
-  <LabeledInput v-else :mode="mode" :value="labelsToUse[selectedIndex]" />
+  <div v-else>
+    {{ labelsToUse[selectedIndex] }}
+  </div>
 </template>
 
 <style>

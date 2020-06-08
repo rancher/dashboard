@@ -1,4 +1,3 @@
-
 <script>
 import { isEmpty } from 'lodash';
 import { cleanUp } from '@/utils/object';
