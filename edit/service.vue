@@ -16,6 +16,7 @@ import Tab from '@/components/Tabbed/Tab';
 import UnitInput from '@/components/form/UnitInput';
 import { DEFAULT_SERVICE_TYPES } from '@/config/types';
 import { ucFirst } from '@/utils/string';
+import Banner from '@/components/Banner';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:      'None',
@@ -47,6 +48,7 @@ export default {
 
   components: {
     ArrayList,
+    Banner,
     DetailTop,
     Footer,
     KeyValue,
@@ -203,9 +205,7 @@ export default {
           <h4>
             <t k="servicesPage.externalName.label" />
           </h4>
-          <p class="helper-text">
-            <t k="servicesPage.externalName.helpText" />
-          </p>
+          <Banner color="info" :label="t('servicesPage.externalName.helpText')" />
         </div>
         <div class="row mt-10">
           <div class="col span-6">
@@ -239,9 +239,7 @@ export default {
           >
             <div class="row">
               <div class="col span-12">
-                <p class="helper-text">
-                  <t k="servicesPage.selectors.helpText" />
-                </p>
+                <Banner color="info" :label="t('servicesPage.selectors.helpText')" />
               </div>
             </div>
             <div class="row">
@@ -262,12 +260,12 @@ export default {
           <Tab name="ips" :label="t('servicesPage.ips.label')">
             <div class="row">
               <div class="col span-12">
-                <p class="helper-text">
-                  <t k="servicesPage.ips.helpText" />
-                </p>
-                <p v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')" class="helper-text">
-                  <t k="servicesPage.ips.clusterIpHelpText" />
-                </p>
+                <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
+                <Banner
+                  v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
+                  color="info"
+                  :label="t('servicesPage.ips.clusterIpHelpText')"
+                />
               </div>
             </div>
             <div v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')" class="row mb-20">
@@ -303,9 +301,7 @@ export default {
             :label="t('servicesPage.affinity.label')"
           >
             <div class="col span-12">
-              <p class="helper-text">
-                <t k="servicesPage.affinity.helpText" />
-              </p>
+              <Banner color="info" :label="t('servicesPage.affinity.helpText')" />
             </div>
             <div class="row session-affinity">
               <div class="col span-6">
