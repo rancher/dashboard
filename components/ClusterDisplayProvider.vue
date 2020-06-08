@@ -32,6 +32,7 @@ export default {
     displayProvider() {
       const cluster = this.cluster;
       const driver = cluster.status?.driver.toLowerCase();
+      const customShortLabel = this.$store.getters['i18n/t']('cluster.provider.rancherkubernetesengine.shortLabel');
 
       if (driver && this.$store.getters['i18n/exists'](`cluster.provider.${ driver }.shortLabel`)) {
         if (driver === 'rancherkubernetesengine') {
@@ -47,12 +48,14 @@ export default {
             if (nodeDriver) {
               if (this.$store.getters['i18n/exists'](`cluster.nodeDriver.displayName.${ nodeDriver.toLowerCase() }`)) {
                 return this.$store.getters['i18n/t'](`cluster.nodeDriver.displayName.${ nodeDriver.toLowerCase() }`);
+              } else if (nodeTemplate?.spec?.diver) {
+                return capitalize( nodeTemplate.spec.driver );
               }
 
-              return capitalize( nodeTemplate.spec.driver );
+              return customShortLabel;
             } else {
               // things are not good if we get here
-              return this.$store.getters['i18n/t']('cluster.provider.rancherkubernetesengine.shortLabel');
+              return customShortLabel;
             }
           }
         }
