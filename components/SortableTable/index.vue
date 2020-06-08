@@ -736,7 +736,6 @@ $spacing: 10px;
   }
 
   .no-rows {
-    height: auto;
     padding: $group-row-height;
     color: var(--disabled-bg);
     text-align: center;
