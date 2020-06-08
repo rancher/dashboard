@@ -582,14 +582,14 @@ export default {
   .create {
   }
 
-  .view {    
+  .view {
     TABLE.sortable-table {
         TD, TH {
           padding: $spacing 0;
         }
       }
     }
-    
+
     TR:first-of-type TD {
       padding-top: 0;
     }
