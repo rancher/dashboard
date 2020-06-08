@@ -146,7 +146,7 @@ export default {
     </ResourceTabs>
     <div id="yaml-container">
       <h3 class="mb-10 mt-20">
-        YAML
+        <t k="resourceDetail.masthead.yaml" />
       </h3>
       <ResourceYaml v-if="yaml.length" :value="value" mode="view" :yaml="yaml" :show-footer="false" />
     </div>
