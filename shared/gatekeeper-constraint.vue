@@ -72,7 +72,7 @@ export default {
   },
 
   computed: {
-    extraDetailColumns() {
+    detailTopColumns() {
       return [
         {
           title:   'Template',
@@ -197,7 +197,7 @@ export default {
         :mode="mode"
         :namespaced="false"
         :extra-columns="['template']"
-        :extra-detail-columns="extraDetailColumns"
+        :detail-top-columns="detailTopColumns"
       >
         <template v-slot:template>
           <LabeledSelect
