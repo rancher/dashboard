@@ -225,7 +225,7 @@ $transition-duration: 150ms;
 /*inline single-option select*/
 
 .v-select.inline {
-  background-color: var(--input-bg);
+  background-color: transparent;
 
   .vs__selected {
     color: var(--input-text);
@@ -292,6 +292,6 @@ $transition-duration: 150ms;
 
 .protocol-select {
   .vs__dropdown-toggle {
-    padding: 5px !important;
+    padding: 6px 0 6px 6px !important;
   }
 }
