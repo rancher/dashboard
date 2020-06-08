@@ -137,20 +137,19 @@ export default {
         <LiveDate :value="get(value, 'metadata.deletionTimestamp')" :add-suffix="true" />
       </template>
     </DetailTop>
-
-    <div id="yaml-container">
-      <h3 class="mb-10 mt-20">
-        YAML
-      </h3>
-      <ResourceYaml v-if="yaml.length" :value="value" mode="view" :yaml="yaml" :show-footer="false" />
-    </div>
-    <ResourceTabs v-model="value" mode="view">
+    <ResourceTabs v-model="value" class="mt-20" mode="view">
       <template #before>
         <Tab v-if="!!(value.status||{}).conditions" label="Conditions" name="conditions">
           <Conditions :value="value" />
         </Tab>
       </template>
     </ResourceTabs>
+    <div id="yaml-container">
+      <h3 class="mb-10 mt-20">
+        YAML
+      </h3>
+      <ResourceYaml v-if="yaml.length" :value="value" mode="view" :yaml="yaml" :show-footer="false" />
+    </div>
   </div>
 </template>
 
@@ -165,7 +164,6 @@ export default {
     flex-basis: auto;
     -ms-overflow-style: none;
     overflow: scroll;
-    max-height: 75vh;
     min-height:0px;
 
     &::-webkit-scrollbar {
