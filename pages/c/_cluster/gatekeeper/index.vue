@@ -3,8 +3,8 @@ import {
   NAMESPACE,
   MANAGEMENT,
   EXTERNAL,
-  SYSTEM_PROJECT_LABEL,
 } from '@/config/types';
+import { SYSTEM_PROJECT } from '@/config/labels-annotations';
 import { TEMPLATE_ID, APP_ID, CONFIG } from '@/config/chart/gatekeeper';
 import GatekeeperConfig from '@/components/chart/gatekeeper/Config';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
@@ -42,7 +42,7 @@ export default {
       const targetSystemProject = projects.find(( proj ) => {
         const labels = proj.metadata?.labels || {};
 
-        if ( labels[SYSTEM_PROJECT_LABEL] === 'true' ) {
+        if ( labels[SYSTEM_PROJECT] === 'true' ) {
           return true;
         }
       });

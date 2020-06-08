@@ -14,7 +14,7 @@ import {
   ROLES,
   STATE,
 } from '@/config/table-headers';
-import { DESCRIPTION } from '@/config/labels-annotations';
+import { DESCRIPTION, SYSTEM_PROJECT } from '@/config/labels-annotations';
 import { findAllConstraints } from '@/utils/gatekeeper/util';
 import {
   MANAGEMENT,
@@ -22,8 +22,8 @@ import {
   NODE,
   METRIC,
   EXTERNAL,
-  SYSTEM_PROJECT_LABEL,
 } from '@/config/types';
+
 import { APP_ID as GATEKEEPER_APP_ID } from '@/config/chart/gatekeeper';
 import { allHash } from '@/utils/promise';
 import Poller from '@/utils/poller';
@@ -49,7 +49,7 @@ export default {
     const targetSystemProject = projects.find(( proj ) => {
       const labels = proj.metadata?.labels || {};
 
-      if ( labels[SYSTEM_PROJECT_LABEL] === 'true' ) {
+      if ( labels[SYSTEM_PROJECT] === 'true' ) {
         return true;
       }
     });
