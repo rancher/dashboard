@@ -275,6 +275,7 @@ export default {
 
   TABLE {
     width: 100%;
+    border-spacing: 0;
   }
 
   TH {
