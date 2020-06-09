@@ -104,18 +104,18 @@ export async function defaultAsyncData(ctx, resource) {
     } else {
       model = await store.dispatch('cluster/clone', { resource: originalModel });
     }
+    const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
+
+    yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
 
     if ( realMode === _CLONE || realMode === _STAGE ) {
       cleanForNew(model);
+      yaml = model.cleanYaml(yaml, realMode);
     }
 
     if ( model.applyDefaults ) {
       model.applyDefaults(ctx, realMode);
     }
-
-    const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
-
-    yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
   }
 
   let mode = realMode;
