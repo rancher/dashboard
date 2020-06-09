@@ -29,7 +29,7 @@ export default {
       type:    Array,
       default: () => []
     },
-    extraDetailColumns: {
+    detailTopColumns: {
       type:    Array,
       default: () => []
     },
@@ -74,21 +74,6 @@ export default {
   computed: {
     nameDisabled() {
       return this.mode === _EDIT && !this.nameEditable;
-    },
-
-    detailTopColumns() {
-      const name = this.value?.metadata?.name;
-
-      const nameColumn = {
-        title:   'Name',
-        content: name
-      };
-
-      if ( name ) {
-        return [nameColumn, ...this.extraDetailColumns];
-      }
-
-      return this.extraDetailColumns;
     },
 
     namespaces() {
