@@ -6,7 +6,7 @@ import { escapeHtml, ucFirst } from '@/utils/string';
 import { eachLimit } from '@/utils/promise';
 import {
   MODE, _EDIT, _CLONE,
-  AS_YAML, _FLAGGED, _VIEW
+  AS_YAML, _FLAGGED, _VIEW,
 } from '@/config/query-params';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
@@ -846,9 +846,6 @@ export default {
   // map _type to type
   cleanYaml() {
     return (yaml, mode = 'edit') => {
-      if (mode === _VIEW) {
-        return yaml;
-      }
       try {
         const obj = jsyaml.safeLoad(yaml);
 

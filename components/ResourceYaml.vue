@@ -64,7 +64,7 @@ export default {
     this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
 
     return {
-      currentYaml:  this.value.cleanYaml(this.yaml, this.mode),
+      currentYaml:  this.yaml,
       showPreview:  false,
       errors:       null
     };
@@ -99,8 +99,12 @@ export default {
   },
 
   watch: {
-    mode(neu) {
-      this.currentYaml = this.value.cleanYaml(this.yaml, neu);
+    mode(neu, old) {
+      // if this component is changing from viewing a resource to 'creating' that resource, it must actually be cloning
+      // clean yaml accordingly
+      if (neu === _CREATE && old === _VIEW) {
+        this.currentYaml = this.value.cleanYaml(this.yaml, neu);
+      }
     }
   },
 
