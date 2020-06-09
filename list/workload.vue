@@ -2,6 +2,7 @@
 import { STATE, AGE, NAMESPACE_NAME, TYPE } from '@/config/table-headers';
 import ResourceTable from '@/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA } from '@/config/types';
+import { mapGetters } from 'vuex';
 
 const schema = {
   id:         'workload',
@@ -48,13 +49,12 @@ export default {
     headers() {
       return [
         STATE,
-        TYPE,
         NAMESPACE_NAME,
+        TYPE,
         {
-          name:      'endpoints',
-          label:     'Endpoints',
-          formatter: 'Endpoints',
-          value:     "$['metadata']['annotations']['field.cattle.io/publicEndpoints']"
+          name:      'pods',
+          label:     this.t('tableHeaders.pods'),
+          formatter: 'PodCount',
         },
         AGE,
       ];
@@ -76,7 +76,10 @@ export default {
       }
 
       return out;
-    }
+    },
+
+    ...mapGetters({ t: 'i18n/t' })
+
   },
 
   typeDisplay({ store }) {
