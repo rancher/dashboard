@@ -100,6 +100,10 @@ export default {
       margin-left: 35px;
       background-color: transparent;
       border: 0;
+
+      .vs__actions {
+        margin-left: -10px;
+      }
     }
 
     .vs__selected {
@@ -119,4 +123,5 @@ export default {
   .filter ::v-deep INPUT:hover {
     background-color: transparent;
   }
+
 </style>
