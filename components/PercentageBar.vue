@@ -67,7 +67,6 @@ export default {
       display: inline-block;
     }
     .bar {
-      vertical-align: -5px; // this will align percentage-text in the center without having to change the line height
       margin-left: 3px;
       .tick {
         display: inline-block;
@@ -75,6 +74,7 @@ export default {
         margin-right: 3px;
         width: 3px;
         font-size: 1.2em;
+        vertical-align: -5px; // this will align percentage-text in the center without having to change the line height
       }
     }
   }
