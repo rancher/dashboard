@@ -21,4 +21,24 @@ export const DEFAULT_SERVICE_TYPES = [
   },
 ];
 
-export default {};
+export default {
+  // if not a function it does exist, why?
+  customValidationRules() {
+    return [
+      {
+        nullable:       false,
+        path:           'metadata.name',
+        required:       true,
+        translationKey: 'generic.name',
+        type:           'dnsLabel',
+      },
+      {
+        nullable:       false,
+        path:           'spec.ports',
+        required:       true,
+        type:           'array',
+        validators:     ['servicePort'],
+      }
+    ];
+  },
+};

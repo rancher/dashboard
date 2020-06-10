@@ -1,5 +1,4 @@
-import omitBy from 'lodash/omitBy';
-import pickBy from 'lodash/pickBy';
+import { omitBy, pickBy, isArray } from 'lodash';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
 import { LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';
@@ -205,6 +204,10 @@ export default {
           } else {
             this.errors = [err];
           }
+        } else if (err.status && err.message) {
+          this.errors = [err.message];
+        } else if (isArray(err)) {
+          this.errors = err;
         } else {
           this.errors = [err];
         }

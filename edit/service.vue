@@ -226,6 +226,7 @@ export default {
         class="col span-12"
         :mode="mode"
         :spec-type="serviceType"
+        @input="e=>$set(value.spec, 'ports', e)"
       />
 
       <div class="spacer"></div>

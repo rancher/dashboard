@@ -70,7 +70,6 @@ export default {
   methods: {
     add() {
       this.rows.push({
-        hostPort:   false,
         name:       '',
         port:       null,
         protocol:   'TCP',
@@ -79,11 +78,13 @@ export default {
 
       this.queueUpdate();
 
-      this.$nextTick(() => {
-        const inputs = this.$refs.port;
+      if (this.rows.length > 1) {
+        this.$nextTick(() => {
+          const inputs = this.$refs.port;
 
-        inputs[inputs.length - 1].focus();
-      });
+          inputs[inputs.length - 1].focus();
+        });
+      }
     },
 
     remove(idx) {
@@ -96,16 +97,7 @@ export default {
         return;
       }
 
-      const out = [];
-
-      for ( const row of this.rows ) {
-        const value = clone(row);
-
-        if ( value.port ) {
-          out.push(value);
-        }
-      }
-      this.$emit('input', out);
+      this.$emit('input', this.rows);
     }
   },
 };
@@ -186,10 +178,7 @@ export default {
             <span v-if="isView">{{ row.targetPort }}</span>
             <input
               v-else
-              v-model.number="row.targetPort"
-              type="number"
-              min="1"
-              max="65535"
+              v-model="row.targetPort"
               :placeholder="t('servicePorts.rules.target.placeholder')"
               @input="queueUpdate"
             />

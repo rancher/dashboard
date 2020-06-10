@@ -1,3 +1,9 @@
+export function camelToTitle(str) {
+  return dasherize((str || '')).split('-').map((str) => {
+    return ucFirst(str);
+  }).join(' ');
+}
+
 export function ucFirst(str) {
   str = str || '';
 
@@ -195,4 +201,27 @@ export function asciiLike(str) {
   }
 
   return true;
+}
+
+export function coerceStringTypeToScalarType(val, type) {
+  if ( type === 'float' ) {
+    // Coerce strings to floats
+    val = parseFloat(val) || null; // NaN becomes null
+  } else if ( type === 'int' ) {
+    // Coerce strings to ints
+    val = parseInt(val, 10);
+
+    if ( isNaN(val) ) {
+      val = null;
+    }
+  } else if ( type === 'boolean') {
+    // Coerce strings to boolean
+    if (val.toLowerCase() === 'true') {
+      val = true;
+    } else if (val.toLowerCase() === 'false') {
+      val = false;
+    }
+  }
+
+  return val;
 }
