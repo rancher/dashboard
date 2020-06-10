@@ -43,6 +43,7 @@ export default async function({
 
       const me = findBy(principals, 'me', true);
 
+      store.commit('auth/hasAuth', true);
       store.commit('auth/loggedInAs', me.id);
     } catch (e) {
       const status = e?._status;
@@ -117,7 +118,7 @@ async function tryInitialSetup(store, password, isDev) {
 
     return res === true;
   } catch (e) {
-    console.log(e); // eslint-disable-line no-console
+    console.error('Error trying initial setup', e); // eslint-disable-line no-console
 
     return false;
   }

@@ -17,6 +17,10 @@ export const NORMAN = {
   SETTING:     'setting',
 };
 
+// Public (via Norman)
+// Base: /v3-public
+export const PUBLIC = { AUTH_PROVIDER: 'authprovider' };
+
 // Common native k8s types (via Steve)
 // Base: /k8s/clusters/<id>/v1/
 export const API_GROUP = 'apiGroups';

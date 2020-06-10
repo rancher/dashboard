@@ -40,7 +40,7 @@ export default {
         AGE
       ];
 
-      if ( this.groupBy ) {
+      if ( this.groupBy || !this.groupable ) {
         removeObject(out, project);
       }
 

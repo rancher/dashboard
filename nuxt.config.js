@@ -264,6 +264,7 @@ function proxyWsOpts(target) {
 
 function onProxyReq(proxyReq, req) {
   proxyReq.setHeader('x-api-host', req.headers['host']);
+  proxyReq.setHeader('x-forwarded-proto', 'https');
   // console.log(proxyReq.getHeaders());
 }
 
@@ -271,6 +272,7 @@ function onProxyReqWs(proxyReq, req, socket, options, head) {
   req.headers.origin = options.target.href;
   proxyReq.setHeader('origin', options.target.href);
   proxyReq.setHeader('x-api-host', req.headers['host']);
+  proxyReq.setHeader('x-forwarded-proto', 'https');
   // console.log(proxyReq.getHeaders());
 
   socket.on('error', (err) => {

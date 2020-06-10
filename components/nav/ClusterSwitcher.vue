@@ -1,10 +1,13 @@
 <script>
-import { MANAGEMENT } from '@/config/types';
+import { MANAGEMENT, STEVE } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { findBy } from '@/utils/array';
+import { mapState } from 'vuex';
 
 export default {
   computed: {
+    ...mapState(['isRancher']),
+
     value: {
       get() {
         const options = this.options;
@@ -23,7 +26,14 @@ export default {
     },
 
     options() {
-      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+      let all;
+
+      if ( this.isRancher ) {
+        all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
+      } else {
+        all = this.$store.getters['management/all'](STEVE.CLUSTER);
+      }
+
       const out = all.map((x) => {
         return {
           id:    x.id,
@@ -51,6 +61,7 @@ export default {
       ref="select"
       key="cluster"
       v-model="value"
+      :disabled="!isRancher"
       :selectable="option => option.ready"
       :clearable="false"
       :options="options"
@@ -79,9 +90,11 @@ export default {
   .filter ::v-deep .v-select {
     max-width: 100%;
     display: inline-block;
-  }
 
-  .filter ::v-deep .v-select {
+    &.vs--disabled .vs__actions {
+      display: none;
+    }
+
     .vs__dropdown-toggle {
       height: var(--header-height);
       margin-left: 35px;
