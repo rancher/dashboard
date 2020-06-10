@@ -1,38 +1,29 @@
 <script>
-
-import { random32 } from '../../utils/string';
-import RadioGroup from '@/components/form/RadioGroup';
 import RulePath from '@/edit/networking.k8s.io.ingress/RulePath';
 import LabeledInput from '@/components/form/LabeledInput';
-
+import { random32 } from '../../utils/string';
 export default {
-  components: {
-    RadioGroup, RulePath, LabeledInput
-  },
-
-  props: {
+  components: { RulePath, LabeledInput },
+  props:      {
     value: {
       type:    Object,
       default: () => {
         return {};
       }
     },
-    workloads: {
+    serviceTargets: {
       type:    Array,
       default: () => []
     }
   },
-
   data() {
     const { host = '', http = {} } = this.value;
-
     const { paths = [{ id: random32(1) }] } = http;
 
     return {
-      host, paths, ruleMode: 'setHost'
+      host, paths, ruleMode: this.value.asDefault ? 'asDefault' : 'setHost'
     };
   },
-
   methods: {
     update() {
       const http = { paths: this.paths };
@@ -43,25 +34,18 @@ export default {
       } else {
         delete out.host;
       }
-
-      if (this.ruleMode === 'asDefault') {
-        out.asDefault = true;
-      }
-
       this.$emit('input', out);
     },
-
-    addPath() {
+    addPath(ev) {
+      ev.preventDefault();
       this.paths = [...this.paths, { id: random32(1) }];
     },
-
     removePath(idx) {
       const neu = [...this.paths];
 
       neu.splice(idx, 1);
       this.paths = neu;
     },
-
     removeRule() {
       this.$emit('remove');
     }
@@ -72,9 +56,8 @@ export default {
 <template>
   <div class="rule mt-20" @input="update">
     <div class="row">
-      <RadioGroup v-model="ruleMode" class="col span-4" :options="[ 'setHost', 'asDefault']" :labels="[ 'Specify a hostname to use', 'Use as the default backend']" />
-      <div id="host" :style="{'visibility': ruleMode==='setHost' ? 'visible':'hidden'}" class="col span-7">
-        <LabeledInput v-model="host" label="Request Host" placeholder="e.g. example.com" />
+      <div id="host" class="col span-11">
+        <LabeledInput v-model="host" :label="t('ingress.rules.requestHost.label')" :placeholder="t('ingress.rules.requestHost.placeholder')" />
       </div>
       <div class="col span-1">
         <button class="btn role-link close" @click="removeRule">
@@ -82,19 +65,31 @@ export default {
         </button>
       </div>
     </div>
+    <div class="rule-path-headings row mb-0">
+      <div class="col span-4">
+        {{ t('ingress.rules.path.label') }}
+      </div>
+      <div class="col span-4">
+        {{ t('ingress.rules.target.label') }}
+      </div>
+      <div class="col span-3" :style="{'margin-right': '0px'}">
+        {{ t('ingress.rules.port.label') }}
+      </div>
+      <div class="col" />
+    </div>
     <template v-for="(path, i) in paths">
       <RulePath
         :key="path.id"
         class="row mb-10"
         :value="path"
         :rule-mode="ruleMode"
-        :targets="workloads"
+        :service-targets="serviceTargets"
         @input="e=>$set(paths, i, e)"
         @remove="e=>removePath(i)"
       />
     </template>
-    <button :style="{'padding':'0px 0px 0px 5px'}" class="btn btn-sm role-link" @click="addPath">
-      add path
+    <button v-if="ruleMode === 'setHost'" :style="{'padding':'0px 0px 0px 5px'}" class="btn btn-sm role-link" @click="addPath">
+      {{ t('ingress.rules.addPath') }}
     </button>
   </div>
 </template>
@@ -106,11 +101,9 @@ export default {
     border-radius: var(--border-radius);
     padding: 40px;
   }
-
   #host {
     align-self: center
   }
-
   .close{
     float:right;
     padding: 0px;

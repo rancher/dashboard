@@ -20,17 +20,12 @@ export default {
       type:     Array,
       required: true,
     },
-
-    headers: {
-      type:     Array,
-      required: true
-    }
   },
 
   computed: {
     get,
 
-    customHeaders() {
+    headers() {
       const project = {
         name:          'project',
         label:         'Project',
@@ -61,7 +56,7 @@ export default {
     groupBy() {
       // The value of the preference is "namespace" but we take that to mean group by project here...
       if ( this.groupable && this.group === 'namespace') {
-        return 'projectNameDisplay';
+        return 'groupByLabel';
       }
 
       return null;
@@ -87,7 +82,7 @@ export default {
 <template>
   <SortableTable
     v-bind="$attrs"
-    :headers="customHeaders"
+    :headers="headers"
     :rows="rows"
     :group-by="groupBy"
     :paging="true"
@@ -101,7 +96,11 @@ export default {
       <ButtonGroup v-model="group" :options="groupOptions" />
     </template>
 
-    <template #cell:project="{row, col}">
+    <template #group-by="{group: thisGroup}">
+      <div class="group-tab" v-html="thisGroup.ref" />
+    </template>
+
+    <template #cell:project="{row}">
       <span v-if="row.project">{{ row.project.nameDisplay }}</span>
       <span v-else class="text-muted">&ndash;</span>
     </template>

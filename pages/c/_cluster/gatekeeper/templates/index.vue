@@ -2,19 +2,34 @@
 import { GATEKEEPER_CONSTRAINT_TEMPLATE } from '@/config/types';
 import { AGE, NAME, STATE } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
+import Masthead from '@/components/ResourceList/Masthead';
+import { AS_YAML, _FLAGGED } from '@/config/query-params';
 
 export default {
-  components: { SortableTable },
+  components: { Masthead, SortableTable },
+
+  async asyncData({ store }) {
+    return { templates: await store.dispatch('cluster/findAll', { type: GATEKEEPER_CONSTRAINT_TEMPLATE }) };
+  },
   data(ctx) {
     const params = {
       ...this.$route.params,
       resource: GATEKEEPER_CONSTRAINT_TEMPLATE
     };
-    const createUrl = this.$router.resolve({ name: 'c-cluster-resource-create', params }).href;
 
-    this.$store.dispatch('type-map/addRecent', 'gatekeeper-templates');
+    const createLocation = {
+      name: 'c-cluster-resource-create',
+      params,
+    };
+
+    const yamlCreateLocation = {
+      ...createLocation,
+      query: { [AS_YAML]: _FLAGGED }
+    };
 
     return {
+      createLocation,
+      yamlCreateLocation,
       headers: [
         STATE,
         NAME,
@@ -26,23 +41,7 @@ export default {
         },
         AGE,
       ],
-      templates:   [],
-      constraints: [],
-      createUrl
-    };
-  },
-
-  async asyncData({ store }) {
-    const templates = await store.dispatch('cluster/findAll', { type: GATEKEEPER_CONSTRAINT_TEMPLATE });
-    const constraints = (await Promise.all(templates.map((template) => {
-      const type = `constraints.gatekeeper.sh.${ template.id }`;
-
-      return store.dispatch('cluster/findAll', { type });
-    }))).flat();
-
-    return {
-      templates,
-      constraints,
+      templates: [],
     };
   },
 
@@ -51,22 +50,21 @@ export default {
 
 <template>
   <div class="gatekeeper-templates">
-    <header>
-      <h1>Templates</h1>
-    </header>
+    <Masthead
+      resource="gatekeeper-template"
+      :type-display="'Template'"
+      :is-yaml-creatable="true"
+      :is-creatable="false"
+      :yaml-create-location="yamlCreateLocation"
+      :create-location="createLocation"
+    />
     <SortableTable
       :headers="headers"
       :rows="templates"
       :search="true"
       key-field="id"
       group-by="kind"
-    >
-      <template v-slot:header-end>
-        <nuxt-link :to="createUrl" append tag="button" type="button" class="create btn bg-primary">
-          Create
-        </nuxt-link>
-      </template>
-    </SortableTable>
+    />
   </div>
 </template>
 

@@ -1,26 +1,26 @@
 <script>
-import Top from './Top';
-import Security from './Security';
-import Upgrading from './Upgrading';
-import Volumes from './Volumes';
 import Labels from '@/components/form/Labels';
 import Networking from '@/edit/rio.cattle.io.service//Networking';
 import Command from '@/edit/rio.cattle.io.service/Command';
 import HealthCheck from '@/components/form/HealthCheck';
 import { get } from '@/utils/object';
 import { CONFIG_MAP, SECRET, RIO } from '@/config/types';
-import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import CreateEditView from '@/mixins/create-edit-view';
-import { _EDIT, EDIT_CONTAINER } from '@/config/query-params';
+import { _EDIT, EDIT_CONTAINER, DEMO } from '@/config/query-params';
 import Footer from '@/components/form/Footer';
 import { findBy, filterBy, removeObject } from '@/utils/array';
 import { allHash } from '@/utils/promise';
+import DEMOS from '@/config/demos';
+import Volumes from './Volumes';
+import Upgrading from './Upgrading';
+import Security from './Security';
+import Top from './Top';
 
 export default {
-  name:       'CruService',
+  name: 'CruService',
 
   components: {
     Loading,
@@ -37,7 +37,25 @@ export default {
     Footer
   },
 
-  mixins:     [CreateEditView, LoadDeps],
+  mixins: [CreateEditView],
+
+  props: {
+    realMode: {
+      type:     String,
+      required: true,
+    },
+  },
+
+  async fetch() {
+    const hash = await allHash({
+      configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
+      secrets:    this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      services:   this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE }),
+    });
+
+    this.allSecrets = hash.secrets;
+    this.allConfigMaps = hash.configMaps;
+  },
 
   data() {
     if ( !this.value.spec ) {
@@ -66,6 +84,14 @@ export default {
       spec.imagePullPolicy = 'Always';
     }
 
+    const demoName = this.$route.query[DEMO];
+    let isDemo = false;
+
+    if ( demoName && DEMOS[demoName] ) {
+      isDemo = true;
+      Object.assign(spec, DEMOS[demoName].spec);
+    }
+
     return {
       multipleContainers,
       nameResource,
@@ -73,6 +99,7 @@ export default {
       isSidecar,
       rootSpec,
       spec,
+      isDemo,
       allConfigMaps: null,
       allSecrets:    null,
       showTabs:      false
@@ -98,17 +125,6 @@ export default {
   },
 
   methods: {
-    async loadDeps() {
-      const hash = await allHash({
-        configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
-        secrets:    this.$store.dispatch('cluster/findAll', { type: SECRET }),
-        services:    this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE }),
-      });
-
-      this.allSecrets = hash.secrets;
-      this.allConfigMaps = hash.configMaps;
-    },
-
     selectContainer(name) {
       this.$router.applyQuery({ [EDIT_CONTAINER]: name });
       this.containerName = name;
@@ -121,9 +137,11 @@ export default {
       removeObject(containers, entry);
       this.save();
     },
+
     toggleTabs() {
       this.showTabs = !this.showTabs;
     },
+
     get
   },
 };
@@ -163,9 +181,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
 
 <template>
   <form>
-    <Loading ref="loader" />
-    <div v-if="loading">
-    </div>
+    <Loading v-if="$fetchState.pending" />
     <div v-else-if="promptForContainer" class="clearfix">
       <p>This service consists of multiple containers, which one do you want to edit?</p>
       <div class="box">
@@ -193,6 +209,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
         :name-resource="nameResource"
         :is-sidecar="isSidecar"
         :mode="mode"
+        :real-mode="realMode"
         :is-demo="isDemo"
         :register-after-hook="registerAfterHook"
         :register-before-hook="registerBeforeHook"

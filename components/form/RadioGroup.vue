@@ -1,12 +1,8 @@
 <script>
 import RadioButton from '@/components/form/RadioButton';
-import LabeledInput from '@/components/form/LabeledInput';
 
 export default {
-  components: {
-    RadioButton,
-    LabeledInput
-  },
+  components: { RadioButton },
   props:      {
     options: {
       type:     Array,
@@ -21,6 +17,7 @@ export default {
       type:    [Boolean, String],
       default: null
     },
+    // individiual option labels
     labels: {
       type:    Array,
       default: null
@@ -109,15 +106,17 @@ export default {
 
     // keyboard left/right event listener to select next/previous option
     clickNext(direction) {
-      const newIndex = direction + this.selectedIndex;
-      // if at end of array of options, return start of array, and fivce-versa
-      const newSelection = newIndex >= this.options.length
-        ? this.options[0]
-        : newIndex < 0
-          ? this.options[this.options.length - 1]
-          : this.options[newIndex];
+      const newIndex = this.selectedIndex + direction;
 
-      this.select(newSelection);
+      if ( newIndex >= this.options.length ) {
+        // if at end of array of options, return start of array
+        this.select(this.options[0]);
+      } else if ( newIndex < 0 ) {
+        // and vice-versa
+        this.select(this.options[this.options.length - 1]);
+      } else {
+        this.select(this.options[newIndex]);
+      }
     }
   }
 };
@@ -147,7 +146,9 @@ export default {
       @focus="focusGroup"
     />
   </div>
-  <LabeledInput v-else :mode="mode" :value="labelsToUse[selectedIndex]" />
+  <div v-else>
+    {{ labelsToUse[selectedIndex] }}
+  </div>
 </template>
 
 <style>

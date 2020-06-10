@@ -2,8 +2,24 @@ locale:
   none: (None)
   en-us: English
 
+buttons:
+  add: Add
+  remove: Remove
+
 generic:
+  cancel: Cancel
+  close: Close
+  comingSoon: Coming Soon
+  created: Created
   customize: Customize
+  na: "n/a"
+  type: Type
+  unknown: Unknown
+
+suffix:
+  ib: iB
+  cpus: CPUs
+  seconds: Seconds
 
 header:
   backToRancher: "← Back to Rancher"
@@ -20,16 +36,79 @@ nav:
     orphan: "Not in a Project"
 
 cluster:
+  nodeDriver:
+    displayName:
+      aliyun: Alibaba ACK
+      aliyunecs: Aliyun ECS
+      amazonec2: Amazon EC2
+      amazoneks: Amazon EKS
+      azure: Azure
+      azureaks: Azure AKS
+      baidu: Baidu CCE
+      cloudca: Cloud.ca
+      digitalocean: DigitalOcean
+      exoscale: Exoscale
+      googlegke: Google GKE
+      huaweicce: Huawei CCE
+      linode: Linode
+      oci: Oracle Cloud Infrastructure
+      openstack: OpenStack
+      oracleoke: Oracle OKE
+      otc: Open Telekom Cloud
+      packet: Packet
+      pinganyunecs: Pinganyun ECS
+      rackspace: RackSpace
+      rancherkubernetesengine: RKE
+      softlayer: SoftLayer
+      tencenttke: Tencent TKE
+      upcloud: UpCloud
+      vmwarevsphere: vSphere
+      zstack: ZStack
   provider:
-    aliyunengineconfig: Alibaba ACK
-    amazonelasticcontainerserviceconfig: Amazon EKS
-    azurekubernetesserviceconfig: Azure AKS
-    googlekubernetesengineconfig: Google GKE
-    huaweiengineconfig: Huawei CCE
-    importedconfig: Import
-    rancherkubernetesengineconfig: Rancher RKE
-    tencentengineconfig: Tencent TKE
-    baiduengineconfig: Baidu CCE
+    amazonelasticcontainerservice:
+      label: Amazon Elastic Container Service for Kubernetes
+      shortLabel: Amazon EKS
+    tencentengine:
+      label: Tencent Kubernetes Engine
+      shortLabel: Tencent TKE
+    azurekubernetesservice:
+      label: Azure Container Service
+      shortLabel: Azure AKS
+    aliyunengine:
+      label: Aliyun Kubernetes Container Service
+      shortLabel: Alibaba ACK
+    googlekubernetesengine:
+      label: Google Kubernetes Engine
+      shortLabel: Google GKE
+    k3simport:
+      label: Rancher K3S
+      shortLabel: K3S
+    huaweiengine:
+      label: Huawei Cloud Container Engine
+      shortLabel: Huawei CCE
+    oracleokeengine:
+      label: Oracle Container Engine long
+      shortLabel: Oracle OKE
+    rancherkubernetesengine:
+      label: Rancher Kubernetes Engine
+      shortLabel: Custom
+    custom:
+      label: From existing nodes (Custom)
+      shortLabel: Custom
+    imported:
+      label: Import an existing cluster
+      shortLabel: Imported
+
+containerResourceLimit:
+  label: Container Default Resource Limit
+  helpText: Configure how much of the resources the container can consume by default.
+  helpTextDetail: The amount of resources the container can consume by default.
+  requestsCpu: CPU Reservation
+  requestsMemory: Memory Reservation
+  limitsCpu: CPU Limit
+  limitsMemory: Memory Limit
+  cpuPlaceholder: e.g. 1000
+  memPlaceholder: e.g. 128
 
 footer:
   docs: Docs
@@ -37,6 +116,44 @@ footer:
   slack: Slack
   issue: File an Issue
   download: Download CLI
+
+
+servicesPage:
+  typeOpts:
+    label: Service Type
+  serviceTypes:
+    clusterIp: Cluster IP
+    externalName: External Name
+    headless: Headless
+    loadBalancer: Load Balancer
+    nodePort: Node Port
+  externalName:
+    label: External Name
+    helpText: External Name is intended to specify a canonical DNS name. To hardcode an IP address, use a Headless service.
+    placeholder: e.g. my.database.example.com
+  selectors:
+    label: Selectors
+    helpText: If no selector is created, manual endpoints must be made.
+  ips:
+    label: Listener IPs
+    helpText: "Warning: Configuring additional listener IPs is an advanced use case."
+    clusterIpHelpText: The Cluster IP address must be within the CIDR range configured for the API server.
+    input:
+      label: Cluster IP
+      placeholder: e.g. 10.0.171.239
+    external:
+      label: External IPs
+      placeholder: e.g. 1.1.1.1
+      protip: List of IP addresses for which nodes in the cluster will also accept traffic for this service.
+  affinity:
+    label: Session Affinity
+    helpText: Map connections to a consistent target based on their source IP.
+    actionLabels:
+      none: None
+      clusterIp: ClusterIP
+    timeout:
+      label: Session Sticky Time
+      placeholder: e.g. 10800
 
 clusterIndexPage:
   header: "Cluster: {name}"
@@ -48,7 +165,7 @@ clusterIndexPage:
       label: OPA Gatekeeper Constraint Violations
       disabled: OPA Gatekeeper is not configured.
       buttonText: Configure Gatekeeper
-      noRows: "There are no contrains with violations to show."
+      noRows: "There are no contraints with violations to show."
     events:
       label: Events
 
@@ -58,12 +175,11 @@ gatekeeperIndex:
 
 gatekeeperConfig:
   header: OPA Gatekeeper
-  flag: Experimental
   configure:
     description: Description
     helpText:
       listItem1: "OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes."
-      listItem2: "You can Customize Gatekeeper’s yaml configuartion or Enable Gatekeeper with defaults."
+      listItem2: "You can customize Gatekeeper’s yaml configuration or Enable Gatekeeper with defaults."
       listItem3: "For more information, visit the "
       listItem4: "OPA Documentation."
     requirements:
@@ -81,22 +197,100 @@ gatekeeperConfig:
   yaml:
     buttonText: Customize
 
+gatekeeperConstraint:
+  template: Template
+  violations:
+    title: Violations
+  parameters:
+    title: Parameters
+    editAsForm: Edit as Form
+    editAsYaml: Edit as YAML
+    addParameter: Add Parameter
+  enforcementAction:
+    title: Enforcement Action
+  match:
+    title: Match
+  tab:
+    namespaces:
+      title: Namespaces
+      sub:
+        namespaces: Namespaces
+        excludedNamespaces: Excluded Namespaces
+    selectors:
+      title: Selectors
+      sub:
+        labelSelector:
+          title: Label Selector
+          addLabel: Add Label
+        namespaceSelector:
+          title: Namespace Selector
+          addNamespace: Add Namespace
+    kinds:
+      title: Kinds
+
 infoBoxCluster:
   cpu: CPU Usage
   created: Created
   memory: Memory
   pods: Pods
   provider: Provider
-  reserved: "{numerator} of {denominator} rsvd"
+  reserved: "{numerator} of {denominator} reserved"
   used: "{numerator} of {denominator} used"
   version: Kubernetes Version
   nodes:
+    label: Nodes
+    total:
+      label: Total Nodes
     worker:
-      label: Worker Nodes
+      label: Worker
     etcd:
-      label: Etcd Nodes
+      label: Etcd
     controlPlane:
-      label: Control Plane Nodes
+      label: Control Plane
+
+resourceDetail:
+  header:
+    view: "{name}"
+    create: "Create {type}"
+    edit: "Edit {type}: {name}"
+    clone: "Clone from {type}: {name}"
+    stage: "Stage from {type}: {name}"
+  masthead:
+    namespace: "Namespace"
+    project: "Project"
+    yaml: "YAML"
+    overview: "Overview"
+  detailTop:
+    created: Created
+    deleted: Deleted
+    ownerReferences: Owner References
+
+resourceTable:
+  groupLabel:
+    namespace: "<span>Namespace:</span> {name}"
+    project: "<span>Project:</span> {name}"
+    notInAProject: "Not in a Project"
+    notInANamespace: "Not Namespaced"
+
+
+servicePorts:
+  header:
+    label: Port Rules
+  rules:
+    name:
+      label: Port Name
+      placeholder: e.g. myport
+    listening:
+      label: Listening Port
+      placeholder: e.g. 8080
+    protocol:
+      label: Protocol
+    target:
+      label: Target Port
+      placeholder: e.g. 80 or http
+    node:
+      label: Node Port
+      placeholder: e.g. 80
 
 sortableTable:
   noRows: "There are no rows to show."
@@ -118,7 +312,343 @@ sortableTable:
       =1 {{count} {count, plural, =1 {Workload} other {Workloads}}}
       other {{from} - {to} of {count} Workloads}}
 
-model:
-  namespace:
-    project: "Project: {name}"
-    notInAProject: "Not in a Project"
+configmapPage:
+  data:
+    title: Data
+    protip: Use this area for anything that's UTF-8 text data
+  tabs:
+    binaryData:
+      label: Binary Data
+
+wm:
+  connection:
+    connected: Connected
+    disconnected: Disconnected
+    error: Error
+  containerShell:
+    containerName: "Container: {label}"
+    clear: Clear
+  containerLogs:
+    containerName: "Container: {label}"
+    clear: Clear
+    download: Download
+    follow: Follow
+    range:
+      label: Show the last
+      lines: "{value, number} Lines"
+      minutes: |
+        {value, number} {value, plural,
+        =1 {Minute}
+        other {Minutes}
+        }
+      hours: |
+        {value, number}
+        {value, plural,
+        =1 {Hour}
+        other {Hours}
+        }
+      all: "Everything"
+    previous: Use Previous Container
+    wrap: Wrap Lines
+    timestamps: Show Timestamps
+    search: Filter
+    noMatch: No lines match the current filter.
+    noData: There are no log entries to show in the current range.
+
+tableHeaders:
+  state: State
+  download: Download
+  internalExternalIp: "Internal/External IP"
+  name: Name
+  simpleName: Name
+  effect: Effect
+  nameUnlinked: Name
+  namespaceNameUnlinked: Name
+  namespaceName: Name
+  node: Node
+  nodeName: Name
+  roles: Roles
+  version: Version
+  cpu: CPU
+  ram: RAM
+  pods: Pods
+  age: Age
+  image: Image
+  rioImage: Image
+  podImages: Image
+  endpoints: Endpoint
+  scale: Scale
+  simpleScale: Scale
+  weight: Weight
+  success: Success
+  reqRate: Req Rate
+  p95: 95%tile
+  keys: Data
+  targetKind: Target Type
+  target: Target
+  matches: Matches
+  destination: Target
+  username: Username
+  userDisplayName: Display Name
+  userId: ID
+  userStatus: Status
+  address: Address
+  simpleType: Type
+  imageSize: Size
+  type: Type
+  targetPort: Target
+  selector: Selector
+  status: Status
+  lastHeartbeatTime: Last update
+  reason: Reason
+  message: Message
+  key: Key
+  value: Value
+  builtIn: Built In
+  clusterCreatorDefault: Cluster Creator Default
+  resource: Resource
+  apiGroup: API Groups
+  ingressTarget: Target
+  rbac:
+    create: Create
+    delete: Delete
+    get: Get
+    list: List
+    patch: Patch
+    update: Update
+    watch: Watch
+
+node:
+  detail:
+    detailTop:
+      ipAddress: IP Address
+      version: Version
+      os: OS
+      containerRuntime: Container Runtime
+    glance:
+      pidPressure: PID Pressure
+      diskPressure: Disk Pressure
+      memoryPressure: Memory Pressure
+      kubelet: kubelet
+      consumptionGauge:
+        cpu: CPU
+        memory: MEMORY
+        pods: PODS
+        amount: "{used} of {total} {unit} used"
+    tab:
+      conditions: Conditions
+      info: Info
+      address: Address
+      images: images
+      taints: Taints
+
+ingress:
+  rules:
+    headers:
+      path: Path
+      target: Target Service
+      port: Port
+    hostname: Hostname
+    title: Rules
+    requestHost: 
+      label: Request Host
+      placeholder: e.g. example.com
+    path:
+      label: Path
+      placeholder: e.g. /foo
+    target:
+      label: Target Service
+    port:
+      label: Port
+      placeholder: e.g. 80 or http
+    addPath: Add Path
+    removePath: Remove
+    addRule: Add Rule
+  certificates:
+    headers:
+      certificate: Certificate
+      hosts: Hosts
+    label: Certificates
+    defaultCertLabel: Default Ingress Controller Certificate
+    certificate:
+      label: Certificate - Secret Name
+    host:
+      label: Host
+      placeholder: e.g. example.com
+    removeHost: Remove
+    addHost: Add Host
+    addCertificate: Add Certificate
+  defaultBackend:
+    label: Default Backend
+    warning: "Warning: Default backend is used globally for the entire cluster."
+    targetService:
+      label: Target Service
+    port:
+      label: Port
+      placeholder: e.g. 80 or http
+    noServiceSelected: No default backend is configured.
+
+
+internalExternalIP:
+  none: None
+
+serviceTypes:
+  clusterip: Cluster IP
+  externalname: External Name
+  headless: Headless
+  loadbalancer: Load Balancer
+  nodeport: Node Port
+
+resourceYaml:
+  buttons:
+    continue: Continue Editing
+    diff: Show Diff
+
+resourceList:
+  head:
+    create: Create
+    createFromYaml: Create from YAML
+
+secret:
+  type: Type
+  data: Data
+  certificate:
+      issuer: Issuer
+      expires: Expires
+      privateKey: Private Key
+      caCertificate: CA Certificate
+      readFromFile: Read from File
+      cn: Domain Name
+      plusMore: + {n} more
+  registry:
+    address: Address
+    username: Username
+    password: Password
+    domainName: Registry Domain Name
+
+workload:
+  container:
+    titles:
+      ports: Ports
+      command: Command
+      resources: Resources
+      healthCheck: Health Check
+      securityContext: Security Context
+    name: Container Name
+    image: Container Image
+    imagePullPolicy: Image Pull Policy
+    ports:
+      containerPort: Private Container Port
+      hostPort: Public Host Port
+      protocol: Protocol
+      name: Name
+    command:
+      command: Entrypoint
+      args: Arguments
+      workingDir: WorkingDir
+      env: Environment Variables
+      addFromResource: Add from Resource
+    healthcheck:
+      readinessProbe: Readiness Probe
+      livenessProbe: Liveness Probe
+      startupProbe: Startup Probe
+      livenessTip: Containers will be restarted when this check is failing.  Not recommended for most uses.
+      readinessTip: Containers will be removed from service endpoints when this check is failing.  Recommended.
+      startupTip: Containers will wait until this check succeeds before attempting other health checks.
+      checkInterval: Check Interval
+      successThreshold: Success Threshold
+      failureThreshold: Failure Threshold
+      initialDelay: Initial Delay
+      timeout: Timeout
+      httpGet:
+        port: Check Port
+        path: Request Path
+        headers: Request Headers
+      command:
+        command: Command to run
+    security:
+      privileged: Privileged
+      allowPrivilegeEscalation: Privilege Escalation
+      runAsNonRoot: Run as Non-Root
+      runAsNonRootOptions:
+        yesOption: 'Yes: containers must run as non-root-user'
+        noOption: 'No'
+      readOnlyRootFilesystem: Read-Only Root Filesystem
+      runAsUser: Run as User ID
+      runAsGroup: Run as Group ID
+      supplementalGroups: Additional Group IDs
+      addGroupIDs: Add Group IDs
+      fsGroup: Filesystem Group
+      addCapabilities: Add Capabilities
+      dropCapabilities: Drop Capabilities
+      shareProcessNamespace: Share single process namespace
+      hostPID: "Use Host PID Namespace"
+      hostIPC: "Use Host IPC Namespace"
+      sysctls: Sysctls
+      sysctlsKey: 'Name'
+  scheduling:
+    titles:
+      tab: Scheduling
+      nodeScheduling: Node Scheduling
+      podScheduling: Pod Scheduling
+      tolerations: Tolerations
+      priority: Priority
+      advanced: Advanced
+    activeDeadlineSeconds: Pod Active Deadline
+    terminationGracePeriodSeconds: Termination Grace Period
+    activeDeadlineSecondsTip: The duration that the pod may be active before the system tries to mark it failed and kill associated containers.
+    terminationGracePeriodSecondsTip: The duration that the pod needs to terminate gracefully.
+    priority:
+      priority: Priority
+      className: Priority Class Name
+    tolerations:
+      labelKey: Label Key
+      operator: Operator
+      value: Value
+      effect: Effect
+      tolerationSeconds: Toleration Seconds
+      addToleration: Add Toleration
+      operatorOptions: 
+        exists: Exists
+        equal: '='
+      effectOptions:
+        all: All
+        noSchedule: NoSchedule,
+        preferNoSchedule: PreferNoSchedule
+        noExecute: NoExecute
+    affinity:
+      specificNode: Run pods on specific node(s)
+      schedulingRules: Run pods on node(s) matching these scheduling rules
+      requireAny: 'Require any of:'
+      preferAny: 'Prefer any of:'
+      thisPodNamespace: This pod's namespace
+      affinityTitle: Run pods on nodes with pods matching these selectors
+      antiAffinityTitle: Run pods on nodes without pods matching these selectors
+      matchExpressions:
+        in: '='
+        notIn: ≠
+        exists: Exists
+        doesNotExist: Does Not Exist
+        greaterThan: '>'
+        lessThan: <
+        key: Key
+        value: Value
+        operator: Operator
+        addRule: Add Rule
+        weight: Weight
+        inNamespaces: Pods in these namespaces
+
+rioConfig:
+  header: Rio
+  configure:
+    description: Description
+    helpText:
+      listItem1: The application deployment engine for Kubernetes.
+      listItem2: Rio makes it faster and easier for DevOps to build, test, deploy, scale and version stateless applications
+    requirements:
+      header: Requirements
+      helpText:
+        listItem1: 1 CPU Core
+        listItem2: 2 GiB of Memory
+  yaml:
+    buttonText: Customize

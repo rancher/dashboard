@@ -3,17 +3,23 @@ import pullAt from 'lodash/pullAt';
 import pickBy from 'lodash/pickBy';
 import { isEmpty } from 'lodash';
 import findIndex from 'lodash/findIndex';
-import createEditView from '../../mixins/create-edit-view';
 import { typeOf } from '@/utils/sort';
 import KeyValue from '@/components/form/KeyValue';
 import StringMatch from '@/edit/rio.cattle.io.router/StringMatch';
 import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
+import { _VIEW } from '@/config/query-params';
+
 export default {
   components: {
-    StringMatch, KeyValue, LabeledInput
+    StringMatch, KeyValue, LabeledInput, LabeledSelect
   },
-  mixins: [createEditView],
-  props:      {
+  props: {
+    mode: {
+      type:     String,
+      required: true,
+    },
+
     spec: {
       type:     Object,
       default: () => {
@@ -45,6 +51,10 @@ export default {
     };
   },
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+
     formatted() {
       const all = {
         headers: !!this.host.value.exact ? [this.hostHeader, ...this.headers] : this.headers,
@@ -111,17 +121,16 @@ export default {
 <template>
   <div class="match" @change="matchChange" @input="matchChange">
     <div class="row inputs">
-      <v-select
+      <LabeledSelect
         class="col span-4"
         multiple
         :close-on-select="false"
         :options="httpMethods.filter(opt=>!isSelected(opt))"
         :value="methods"
-        placeholder="Method"
+        label="Method"
         :disabled="isView"
         @input="e=>{change('methods', e); matchChange()}"
-      >
-      </v-select>
+      />
       <div class="col span-4">
         <LabeledInput v-if="host" v-model="host.value.exact" label="Host header" />
       </div>

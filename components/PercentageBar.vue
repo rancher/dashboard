@@ -11,11 +11,17 @@ export default {
     value: {
       type:      Number,
       required:  true,
+    },
+
+    /**
+     * Indicates the number of tick marks that should be displayed.
+     */
+    ticks: {
+      type:    Number,
+      default: 10,
     }
   },
-  data() {
-    return { NUMBER_OF_TICKS: 10 };
-  },
+
   computed: {
     formattedValue() {
       return formatPercent(this.value);
@@ -23,11 +29,11 @@ export default {
   },
   methods: {
     getTickBackgroundClass(i) {
-      const valuePercentage = ( this.value / 100 );
-      const barPercentage = i / this.NUMBER_OF_TICKS;
+      const barPercentage = i / this.ticks;
+      const valuePercentage = Math.round(this.value / this.ticks) * this.ticks / 100;
 
       if (valuePercentage < barPercentage) {
-        return 'bg-darker';
+        return 'bg-muted';
       }
 
       if (barPercentage <= 0.6) {
@@ -35,7 +41,7 @@ export default {
       }
 
       if (barPercentage <= 0.8) {
-        return 'bg-info';
+        return 'bg-warning';
       }
 
       return 'bg-error';
@@ -45,28 +51,31 @@ export default {
 </script>
 
 <template>
-  <span>
+  <span class="percentage-bar">
     <span class="percentage">{{ formattedValue }}</span>
     <span class="bar">
-      <span v-for="i in NUMBER_OF_TICKS" :key="i" class="tick" :class="getTickBackgroundClass(i)">&nbsp;</span>
+      <span v-for="i in ticks" :key="i" class="tick" :class="getTickBackgroundClass(i)">&nbsp;</span>
     </span>
   </span>
 </template>
 
 <style lang='scss'>
-  .percentage {
-    vertical-align: middle;
-    width: 32px;
-  }
-  .bar {
-    vertical-align: middle;
-    margin-left: 3px;
-    .tick {
+  .percentage-bar {
+    .percentage {
+      vertical-align: middle;
+      width: 32px;
       display: inline-block;
-      overflow: hidden;
-      margin-right: 3px;
-      width: 3px;
-      font-size: 1.2em;
+    }
+    .bar {
+      vertical-align: -5px; // this will align percentage-text in the center without having to change the line height
+      margin-left: 3px;
+      .tick {
+        display: inline-block;
+        overflow: hidden;
+        margin-right: 3px;
+        width: 3px;
+        font-size: 1.2em;
+      }
     }
   }
 </style>

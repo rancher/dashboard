@@ -6,7 +6,6 @@ import { GITHUB_REPOS, GITHUB_SCOPES, _DATE } from '@/config/local-storage';
 const API_BASE = 'https://api.github.com/';
 
 export const BASE_SCOPES = ['read:org'];
-export const HOSTED_SCOPES = ['read:user', 'user:email'];
 export const EXTENDED_SCOPES = ['repo'];
 
 export const DOCKERFILE = /^Dockerfile(\..*)?$/i;
@@ -116,7 +115,7 @@ export const actions = {
     url = proxifyUrl(url);
 
     while ( true ) {
-      console.log('Github Request:', url);
+      console.log('Github Request:', url); // eslint-disable-line no-console
       const res = await dispatch('rancher/request', { url }, { root: true });
       const links = parseLinkHeader(res._headers['link']);
 

@@ -20,6 +20,8 @@
 // importList(type)           Returns a promise that resolves to the list component for type
 // importDetail(type)         Returns a promise that resolves to the detail component for type
 // importEdit(type)           Returns a promise that resolves to the edit component for type
+// isCreatable(type)          Checks to see if the type has been marked as uncreatable and returns the response accordingly
+// isEditable(type)           Checks to see if the type has been marked as immutable and returns the response accordingly
 //
 // 3) Changing specialization info about a type
 // For all:
@@ -52,10 +54,11 @@
 //   matchRegexOrString,      -- Type to match, or regex that matches types
 //   replacementString        -- String to replace the type with
 // )
-// labelType(                 Remap the displayed label for a type
-//   type,
-//   singular,
-//   plural
+// markTypeAsUncreatable( Indicates that the type is uncretable and thus we shouldn't provide options in the UI to create the type (Hide create buttons, hide clone as yaml etc.)
+//  type
+// )
+// markTypeAsImmutable ( Indicates that a type is immutable and thus we should't provide options in the UI to modify the type ( Hide edit as form, edit as yaml etc.)
+//  type
 // )
 //
 // ignoreGroup(group):        Never show group or any types in it
@@ -76,7 +79,7 @@ import { isArray, findBy, addObject, removeObject } from '@/utils/array';
 import { escapeRegex, ucFirst, escapeHtml } from '@/utils/string';
 import { SCHEMA, COUNT } from '@/config/types';
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
-import { FAVORITE_TYPES, RECENT_TYPES, EXPANDED_GROUPS } from '@/store/prefs';
+import { FAVORITE_TYPES, EXPANDED_GROUPS } from '@/store/prefs';
 import { normalizeType } from '@/plugins/steve/normalize';
 
 export const NAMESPACED = 'namespaced';
@@ -85,7 +88,6 @@ export const BOTH = 'both';
 
 export const ALL = 'all';
 export const BASIC = 'basic';
-export const RECENT = 'recent';
 export const FAVORITE = 'favorite';
 export const USED = 'used';
 
@@ -147,6 +149,14 @@ export function DSL(store, module = 'type-map') {
 
     mapTypeToComponentName(match, replace) {
       store.commit(`${ module }/mapTypeToComponentName`, { match, replace });
+    },
+
+    markTypeAsUncreatable(match) {
+      store.commit(`${ module }/markTypeAsUncreatable`, { match });
+    },
+
+    markTypeAsImmutable(match) {
+      store.commit(`${ module }/markTypeAsImmutable`, { match });
     }
   };
 }
@@ -158,11 +168,13 @@ export const state = function() {
     groupIgnore:             [],
     groupWeights:            {},
     groupMappings:           [],
+    immutable:               [],
     typeIgnore:              [],
     typeWeights:             {},
     typeMappings:            [],
     typeMoveMappings:        [],
     typeToComponentMappings: [],
+    uncreatable:             [],
     pluralLabels:            {},
     headers:                 {},
     cache:                   {
@@ -229,7 +241,7 @@ export const getters = {
         }
       }
 
-      return _applyMapping(group, state.groupMappings, null, state.cache.groupLabel, (group) => {
+      const out = _applyMapping(group, state.groupMappings, null, state.cache.groupLabel, (group) => {
         const match = group.match(/^(.*)\.k8s\.io$/);
 
         if ( match ) {
@@ -238,6 +250,8 @@ export const getters = {
 
         return group;
       });
+
+      return out;
     };
   },
 
@@ -247,22 +261,33 @@ export const getters = {
     };
   },
 
-  isFavorite(state, getters, rootState, rootGetters) {
-    return (schemaId) => {
-      return rootGetters['prefs/get'](FAVORITE_TYPES).includes(schemaId) || false;
+  isCreatable(state) {
+    return (type) => {
+      const found = state.uncreatable.find((uncreatableType) => {
+        const re = stringToRegex(uncreatableType);
+
+        return re.test(type);
+      });
+
+      return !found;
     };
   },
 
-  recentWeight(state, getters, rootState, rootGetters) {
+  isEditable(state) {
+    return (type) => {
+      const found = state.immutable.find((immutableType) => {
+        const re = stringToRegex(immutableType);
+
+        return re.test(type);
+      });
+
+      return !found;
+    };
+  },
+
+  isFavorite(state, getters, rootState, rootGetters) {
     return (schemaId) => {
-      const recents = rootGetters['prefs/get'](RECENT_TYPES);
-      const idx = recents.indexOf(schemaId);
-
-      if ( idx === -1 ) {
-        return idx;
-      }
-
-      return recents.length - idx;
+      return rootGetters['prefs/get'](FAVORITE_TYPES).includes(schemaId) || false;
     };
   },
 
@@ -280,7 +305,7 @@ export const getters = {
 
   getTree(state, getters, rootState, rootGetters) {
     return (mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
-      // modes: basic, used, all, recent, favorite
+      // modes: basic, used, all, favorite
       // namespaceMode: 'namespaced', 'cluster', or 'both'
       // nsamespaces: null means all, otherwise it will be an array of specific namespaces to include
 
@@ -292,7 +317,11 @@ export const getters = {
 
       const root = { children: [] };
 
-      for ( const type in allTypes ) {
+      // Add types from shortest to longest so that parents
+      // get added before children
+      const keys = Object.keys(allTypes).sort((a, b) => a.length - b.length);
+
+      for ( const type of keys ) {
         const typeObj = allTypes[type];
 
         if ( typeObj.schema && getters.isIgnored(typeObj.schema) ) {
@@ -334,13 +363,15 @@ export const getters = {
         let group;
 
         if ( mode === BASIC ) {
-          if ( typeObj.group && typeObj.group.includes('::') ) {
+          const mappedGroup = getters.groupLabelFor(typeObj.schema);
+
+          if ( mappedGroup && mappedGroup.startsWith('Cluster::') ) {
+            group = _ensureGroup(root, mappedGroup);
+          } else if ( typeObj.group && typeObj.group.includes('::') ) {
             group = _ensureGroup(root, typeObj.group);
           } else {
             group = _ensureGroup(root, 'Cluster');
           }
-        } else if ( mode === RECENT ) {
-          group = _ensureGroup(root, 'Recent');
         } else if ( mode === FAVORITE ) {
           group = _ensureGroup(root, 'Starred');
         } else if ( mode === USED ) {
@@ -446,15 +477,14 @@ export const getters = {
   allTypes(state, getters, rootState, rootGetters) {
     return (mode = ALL) => {
       const schemas = rootGetters['cluster/all'](SCHEMA);
-      const counts = rootGetters['cluster/all'](COUNT)[0].counts;
+      const counts = rootGetters['cluster/all'](COUNT)?.[0]?.counts || {};
       const out = {};
 
       for ( const schema of schemas ) {
         const attrs = schema.attributes || {};
         const count = counts[schema.id];
         const label = getters.singularLabelFor(schema);
-        let weight = getters.typeWeightFor(label);
-        let recentWeight = null;
+        const weight = getters.typeWeightFor(label);
 
         if ( !attrs.kind ) {
           // Skip the schemas that aren't top-level types
@@ -463,20 +493,12 @@ export const getters = {
           continue;
         } else if ( mode === FAVORITE && !getters.isFavorite(schema.id) ) {
           continue;
-        } else if ( mode === RECENT ) {
-          weight = getters.recentWeight(schema.id);
-          recentWeight = weight;
-
-          if ( weight < 0 ) {
-            continue;
-          }
         }
 
         out[schema.id] = {
           label,
           mode,
           weight,
-          recentWeight,
           schema,
           name:        schema.id,
           namespaced:  attrs.namespaced,
@@ -493,8 +515,7 @@ export const getters = {
         for ( const vt of state.virtualTypes ) {
           const item = clone(vt);
           const id = item.name;
-          let weight = vt.weight || getters.typeWeightFor(item.label);
-          let recentWeight = null;
+          const weight = vt.weight || getters.typeWeightFor(item.label);
 
           if ( item.ifIsRancher && !isRancher ) {
             continue;
@@ -508,18 +529,10 @@ export const getters = {
             continue;
           } else if ( mode === FAVORITE && !getters.isFavorite(id) ) {
             continue;
-          } else if ( mode === RECENT ) {
-            weight = getters.recentWeight(id);
-            recentWeight = weight;
-
-            if ( weight < 0 ) {
-              continue;
-            }
           }
 
           item.mode = mode;
           item.weight = weight;
-          item.recentWeight = recentWeight;
           item.label = item.label || item.name;
 
           out[id] = item;
@@ -552,7 +565,7 @@ export const getters = {
             hasName = true;
             out.push(namespaced ? NAMESPACE_NAME : NAME);
           } else {
-            let formatter, width;
+            let formatter, width, formatterOpts;
 
             if ( col.format === '' && col.name === 'Age' ) {
               out.push(AGE);
@@ -562,6 +575,7 @@ export const getters = {
             if ( col.format === 'date' || col.type === 'date' ) {
               formatter = 'Date';
               width = 120;
+              formatterOpts = { multiline: true };
             }
 
             out.push({
@@ -570,6 +584,7 @@ export const getters = {
               value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
               sort:  [col.field],
               formatter,
+              formatterOpts,
               width,
             });
           }
@@ -845,41 +860,40 @@ export const mutations = {
     state.typeToComponentMappings.push({ match, replace });
   },
 
+  markTypeAsUncreatable(state, { match }) {
+    match = ensureRegex(match);
+    match = regexToString(match);
+    state.uncreatable.push(match);
+  },
+
+  markTypeAsImmutable(state, { match }) {
+    match = ensureRegex(match);
+    match = regexToString(match);
+    state.immutable.push(match);
+  },
+
   pluralizeType(type, plural) {
     state.pluralLabels[type] = plural;
   },
 };
 
 export const actions = {
-  addRecent({ dispatch, rootGetters }, type) {
-    // const types = rootGetters['prefs/get'](RECENT_TYPES) || [];
-
-    // removeObject(types, type);
-    // types.unshift(type);
-
-    // while ( types.length > 5 ) {
-    //   types.pop();
-    // }
-
-    // dispatch('prefs/set', { key: RECENT_TYPES, val: types }, { root: true });
-  },
-
   addFavorite({ dispatch, rootGetters }, type) {
-    console.log('addFavorite', type);
+    console.log('addFavorite', type); // eslint-disable-line no-console
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
     addObject(types, type);
 
-    dispatch('prefs/set', { key: FAVORITE_TYPES, val: types }, { root: true });
+    dispatch('prefs/set', { key: FAVORITE_TYPES, value: types }, { root: true });
   },
 
   removeFavorite({ dispatch, rootGetters }, type) {
-    console.log('removeFavorite', type);
+    console.log('removeFavorite', type); // eslint-disable-line no-console
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
     removeObject(types, type);
 
-    dispatch('prefs/set', { key: FAVORITE_TYPES, val: types }, { root: true });
+    dispatch('prefs/set', { key: FAVORITE_TYPES, value: types }, { root: true });
   },
 
   toggleGroup({ dispatch, rootGetters }, { group, expanded }) {
@@ -891,16 +905,12 @@ export const actions = {
       removeObject(groups, group);
     }
 
-    dispatch('prefs/set', { key: EXPANDED_GROUPS, val: groups }, { root: true });
+    dispatch('prefs/set', { key: EXPANDED_GROUPS, value: groups }, { root: true });
   },
 };
 
 function _sortGroup(tree, mode) {
   const by = ['namespaced', 'weight:desc', 'label'];
-
-  if ( mode === RECENT ) {
-    removeObject(by, 'namespaced');
-  }
 
   tree.children = sortBy(tree.children, by);
 

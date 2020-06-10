@@ -1,12 +1,12 @@
 import Vue from 'vue';
 
+import { isArray } from '@/utils/array';
 import actions from './actions';
 import getters from './getters';
 import mutations from './mutations';
 import { mutations as subscribeMutations, actions as subscribeActions } from './subscribe';
 import { proxyFor } from './resource-proxy';
 import { keyFieldFor } from './normalize';
-import { isArray } from '@/utils/array';
 
 function SteveFactory(namespace, baseUrl) {
   return {
@@ -64,7 +64,15 @@ export default (config = {}) => {
     const module = store._modules.root._children[namespace];
     const fromServer = window.__NUXT__;
 
-    module.context.rootGetters = store.getters;
+    const ctx = new Proxy(module.context, {
+      get(obj, key) {
+        if ( key === 'rootGetters' ) {
+          return store.getters;
+        }
+
+        return obj[key];
+      }
+    });
 
     // Turn all the objects in the store from the server into proxies
     const state = fromServer.state[namespace];
@@ -75,7 +83,7 @@ export default (config = {}) => {
       const map = new Map();
 
       for ( let i = 0 ; i < cache.list.length ; i++ ) {
-        const proxy = proxyFor(module.context, cache.list[i]);
+        const proxy = proxyFor(ctx, cache.list[i]);
 
         cache.list[i] = proxy;
         map.set(proxy[keyField], proxy);
@@ -113,6 +121,11 @@ export default (config = {}) => {
         }
       } else if ( obj && typeof obj === 'object' ) {
         if ( obj.__rehydrate ) {
+          if ( obj.__rehydrate !== namespace ) {
+            // Ignore types that are for another vuex namespace
+            return obj;
+          }
+
           const type = obj.type;
           const cache = state.types[type];
 
@@ -127,10 +140,10 @@ export default (config = {}) => {
             }
           }
 
+          // Or just return a proxied object
           delete obj.__rehydrate;
 
-          // Or just return a proxied object
-          return proxyFor(module.context, obj);
+          return proxyFor(ctx, obj);
         } else {
           for ( const k of Object.keys(obj) ) {
             if ( k.startsWith('__rehydrateAll__') ) {

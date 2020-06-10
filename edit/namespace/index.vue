@@ -1,108 +1,105 @@
 <script>
-import omit from 'lodash/omit';
-import { get } from '@/utils/object';
 
-import createEditView from '@/mixins/create-edit-view';
-import LabeledInput from '@/components/form/LabeledInput';
-import ResourceQuota from '@/edit/namespace/ResourceQuota';
+import NameNsDescription from '@/components/form/NameNsDescription';
+import CreateEditView from '@/mixins/create-edit-view';
 import Footer from '@/components/form/Footer';
-import LabelsAndAnnotationsEditor from '@/components/LabelsAndAnnotations/Editor';
-import { DESCRIPTION } from '@/config/labels-annotations';
+import LabeledSelect from '@/components/form/LabeledSelect';
+import { EXTERNAL } from '@/config/types';
+import { PROJECT } from '@/config/labels-annotations';
+import ResourceTabs from '@/components/form/ResourceTabs';
+import ContainerResourceLimit from '@/components/ContainerResourceLimit';
+import Tab from '@/components/Tabbed/Tab';
 
 export default {
   components: {
-    LabeledInput, ResourceQuota, Footer, LabelsAndAnnotationsEditor
+    ContainerResourceLimit,
+    Footer,
+    LabeledSelect,
+    NameNsDescription,
+    ResourceTabs,
+    Tab
   },
-  mixins:     [createEditView],
+
+  mixins: [CreateEditView],
+
   data() {
-    let originalQuotaID = null;
-    let description;
+    let originalQuotaId = null;
 
     if (!!this.originalValue) {
-      originalQuotaID = `${ this.originalValue.metadata.name }/default-quota`;
-      const originalAnnotations = get(this.originalValue, 'metadata.annotations');
-
-      if (originalAnnotations) {
-        description = originalAnnotations[DESCRIPTION];
-      }
-
-      this.value.metadata.annotations = this.originalValue.metadata.annotations ? JSON.parse(JSON.stringify(this.originalValue.metadata.annotations)) : {};
-      this.value.metadata.labels = this.originalValue.metadata.labels ? JSON.parse(JSON.stringify(this.originalValue.metadata.labels)) : {};
-    }
-    if (!this.value.metadata) {
-      this.value.metadata = {
-        annotations: {},
-        labels:      {},
-        name:        ''
-      };
-    }
-
-    if (!this.value.metadata.annotations) {
-      this.value.metadata.annotations = {};
-    }
-
-    if (!this.value.metadata.labels) {
-      this.value.metadata.labels = {};
+      originalQuotaId = `${ this.originalValue.metadata.name }/default-quota`;
     }
 
     return {
-      originalQuotaID, description, name: this.value.metadata.name
+      originalQuotaId,
+      project: this.value?.metadata?.labels?.[PROJECT],
     };
   },
-  computed: {
-    annotations: {
-      get() {
-        const all = get(this.value, 'metadata.annotations');
 
-        return omit(all, [DESCRIPTION]);
-      },
-      set(annotations) {
-        this.$set(this.value.metadata, 'annotations', { ...annotations, [DESCRIPTION]: this.description });
+  computed: {
+    extraColumns() {
+      if ( this.$store.getters['isRancher'] ) {
+        return ['project-col'];
       }
+
+      return [];
+    },
+
+    projectOpts() {
+      const projects = this.$store.getters['clusterExternal/all'](EXTERNAL.PROJECT);
+
+      const out = projects.map((project) => {
+        return {
+          label: project.nameDisplay,
+          value: project.id,
+        };
+      });
+
+      out.unshift({
+        label: '(None)',
+        value: null,
+      });
+
+      return out;
     },
   },
+
   watch: {
-    description(description) {
-      this.value.metadata.annotations[DESCRIPTION] = description;
+    project(val) {
+      this.value.setLabel(PROJECT, val);
     },
-    name(name) {
-      this.value.metadata.name = name;
-    }
-  }
+  },
+
 };
 </script>
 
 <template>
   <div>
     <form>
-      <div class="row">
-        <div class="col span-6">
-          <LabeledInput
-            v-model="name"
-            required
-            label="Name"
-            type="text"
-            :disabled="mode!=='create'"
-            :mode="mode"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput v-model="description" :mode="mode" label="Description" type="text" placeholder="Any text you want that better describes the namespace" />
-        </div>
-      </div>
-      <h4 class="mb-10">
-        Container Default Resource Limit
-      </h4>
-      <div class="row">
-        <ResourceQuota
-          :original-i-d="originalQuotaID"
-          class="col span-12"
-          :register-after-hook="registerAfterHook"
-          :mode="mode"
-          :namespace="value"
-        />
-      </div>
-      <LabelsAndAnnotationsEditor :mode="mode" :labels.sync="value.metadata.labels" :annotations.sync="annotations" />
+      <NameNsDescription
+        :value="value"
+        :namespaced="false"
+        :mode="mode"
+        :extra-columns="extraColumns"
+      >
+        <template #project-col>
+          <LabeledSelect v-model="project" label="Project" :options="projectOpts" />
+        </template>
+      </NameNsDescription>
+
+      <div class="spacer"></div>
+
+      <ResourceTabs v-model="value" :mode="mode">
+        <template #before>
+          <Tab name="container-resource-limit" label="Container Default Resource Limit">
+            <ContainerResourceLimit
+              :mode="mode"
+              :namespace="value"
+              :register-before-hook="registerBeforeHook"
+            />
+          </Tab>
+        </template>
+      </ResourceTabs>
+
       <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
     </form>
   </div>

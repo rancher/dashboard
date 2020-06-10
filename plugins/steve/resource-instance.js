@@ -1,15 +1,17 @@
+import Vue from 'vue';
+import jsyaml from 'js-yaml';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
-import { ucFirst } from '@/utils/string';
+import { escapeHtml, ucFirst } from '@/utils/string';
 import { eachLimit } from '@/utils/promise';
 import {
   MODE, _EDIT, _CLONE,
-  EDIT_YAML, _FLAGGED
+  AS_YAML, _FLAGGED, _VIEW,
 } from '@/config/query-params';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
-import { addParams } from '@/utils/url';
-import { WORKLOAD } from '@/config/types';
+import { DESCRIPTION } from '@/config/labels-annotations';
+import { cleanForNew } from './normalize';
 
 const REMAP_STATE = { disabled: 'inactive' };
 
@@ -28,6 +30,7 @@ const STATES = {
   backedup:       { color: 'success', icon: 'backup' },
   bound:          { color: 'success', icon: 'dot' },
   building:       { color: 'success', icon: 'dot-open' },
+  cordoned:       { color: 'info', icon: 'tag' },
   created:        { color: 'info', icon: 'tag' },
   creating:       { color: 'info', icon: 'tag' },
   deactivating:   { color: 'info', icon: 'adjust' },
@@ -102,16 +105,22 @@ export default {
     };
   },
 
+  typeDisplay() {
+    const schema = this.schema;
+
+    if ( schema ) {
+      return this.$rootGetters['type-map/singularLabelFor'](schema);
+    }
+
+    return '?';
+  },
+
   nameDisplay() {
     return this.spec?.displayName || this.metadata?.name || this.id;
   },
 
   nameSort() {
     return sortableNumericSuffix(this.nameDisplay).toLowerCase();
-  },
-
-  typeDisplay() {
-    return this.$store.getters['type-map/singularLabelFor'](this.schema);
   },
 
   namespacedName() {
@@ -129,6 +138,73 @@ export default {
     return sortableNumericSuffix(this.namespacedName).toLowerCase();
   },
 
+  name() {
+    return this.metadata?.name;
+  },
+
+  namespace() {
+    return this.metadata?.namespace;
+  },
+
+  groupByLabel() {
+    const name = this.metadata?.namespace;
+    let out;
+
+    if ( name ) {
+      out = this.$rootGetters['i18n/t']('resourceTable.groupLabel.namespace', { name: escapeHtml(name) });
+    } else {
+      out = this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInANamespace');
+    }
+
+    return out;
+  },
+
+  description() {
+    return this.metadata?.annotations?.[DESCRIPTION];
+  },
+
+  setLabel() {
+    return (key, val) => {
+      if ( val ) {
+        if ( !this.metadata ) {
+          this.metadata = {};
+        }
+
+        if ( !this.metadata.labels ) {
+          this.metadata.labels = {};
+        }
+
+        Vue.set(this.metadata.labels, key, val);
+      } else if ( this.metadata?.labels ) {
+        Vue.set(this.metadata.labels, key, undefined);
+        delete this.metadata.labels[key];
+      }
+    };
+  },
+
+  setAnnotation() {
+    return (key, val) => {
+      if ( val ) {
+        if ( !this.metadata ) {
+          this.metadata = {};
+        }
+
+        if ( !this.metadata.annotations ) {
+          this.metadata.annotations = {};
+        }
+
+        Vue.set(this.metadata.annotations, key, val);
+      } else if ( this.metadata?.annotations ) {
+        Vue.set(this.metadata.annotations, key, undefined);
+        delete this.metadata.annotations[key];
+      }
+    };
+  },
+
+  highlightBadge() {
+    return false;
+  },
+
   // You can override the state by providing your own state (and possibly reading metadata.state)
   state() {
     return this.metadata?.state?.name || 'unknown';
@@ -136,40 +212,42 @@ export default {
 
   // You can override the displayed by providing your own stateDisplay (and possibly reading _stateDisplay)
   stateDisplay() {
-    return this._stateDisplay;
+    return this._stateDisplay(this.state);
   },
 
   _stateDisplay() {
-    const state = this.state;
+    return (state) => {
+      if ( REMAP_STATE[state] ) {
+        return REMAP_STATE[state];
+      }
 
-    if ( REMAP_STATE[state] ) {
-      return REMAP_STATE[state];
-    }
-
-    return state.split(/-/).map(ucFirst).join('-');
+      return state.split(/-/).map(ucFirst).join('-');
+    };
   },
 
   stateColor() {
-    if ( this.metadata?.state?.error ) {
-      return 'text-error';
-    }
+    return (state) => {
+      if ( state?.error ) {
+        return 'text-error';
+      }
 
-    const key = (this.state || '').toLowerCase();
-    let color;
+      const key = (state || '').toLowerCase();
+      let color;
 
-    if ( STATES[key] && STATES[key].color ) {
-      color = this.maybeFn(STATES[key].color);
-    }
+      if ( STATES[key] && STATES[key].color ) {
+        color = this.maybeFn(STATES[key].color);
+      }
 
-    if ( !color ) {
-      color = DEFAULT_COLOR;
-    }
+      if ( !color ) {
+        color = DEFAULT_COLOR;
+      }
 
-    return `text-${ color }`;
+      return `text-${ color }`;
+    };
   },
 
   stateBackground() {
-    return this.stateColor.replace('text-', 'bg-');
+    return this.stateColor(this.state).replace('text-', 'bg-');
   },
 
   stateIcon() {
@@ -213,7 +291,7 @@ export default {
 
   waitForTestFn() {
     return (fn, msg, timeoutMs, intervalMs) => {
-      console.log(msg);
+      console.log('Starting wait for', msg); // eslint-disable-line no-console
 
       if ( !timeoutMs ) {
         timeoutMs = DEFAULT_WAIT_TMIMEOUT;
@@ -226,12 +304,12 @@ export default {
       return new Promise((resolve, reject) => {
         // Do a first check immediately
         if ( fn.apply(this) ) {
-          console.log('Wait for', msg, 'done immediately');
+          console.log('Wait for', msg, 'done immediately'); // eslint-disable-line no-console
           resolve(this);
         }
 
         const timeout = setTimeout(() => {
-          console.log('Wait for', msg, 'timed out');
+          console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
           clearInterval(interval);
           clearTimeout(timeout);
           reject(new Error(`Failed while: ${ msg }`));
@@ -239,12 +317,12 @@ export default {
 
         const interval = setInterval(() => {
           if ( fn.apply(this) ) {
-            console.log('Wait for', msg, 'done');
+            console.log('Wait for', msg, 'done'); // eslint-disable-line no-console
             clearInterval(interval);
             clearTimeout(timeout);
             resolve(this);
           } else {
-            console.log('Wait for', msg, 'not done yet');
+            console.log('Wait for', msg, 'not done yet'); // eslint-disable-line no-console
           }
         }, intervalMs);
       });
@@ -254,8 +332,8 @@ export default {
   waitForState() {
     return (state, timeout, interval) => {
       return this.waitForTestFn(() => {
-        return this.state.toLowerCase() === state.toLowerCase();
-      }, `Wait for state=${ state }`, timeout, interval);
+        return (this.state || '').toLowerCase() === state.toLowerCase();
+      }, `state=${ state }`, timeout, interval);
     };
   },
 
@@ -263,7 +341,7 @@ export default {
     return () => {
       return this.waitForTestFn(() => {
         return !this.transitioning;
-      }, 'Wait for transition completion');
+      }, 'transition completion');
     };
   },
 
@@ -271,7 +349,7 @@ export default {
     return (name) => {
       return this.waitForTestFn(() => {
         return this.hasAction(name);
-      }, `Wait for action=${ name }`);
+      }, `action=${ name }`);
     };
   },
 
@@ -299,7 +377,7 @@ export default {
     return (name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) => {
       return this.waitForTestFn(() => {
         return this.hasCondition(name, withStatus);
-      }, `Wait for condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
+      }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
     };
   },
 
@@ -342,70 +420,64 @@ export default {
   },
 
   _standardActions() {
-    const all = [];
-    const links = this.links || {};
-    // const hasView = !!links.rioview || !!links.view;
-    const customEdit = this.$rootGetters['type-map/hasCustomEdit'](this.type);
-
-    if ( customEdit ) {
-      all.push({
+    const all = [
+      {
         action:  'goToEdit',
         label:   'Edit as Form',
         icon:    'icon icon-fw icon-edit',
-        enabled:  !!links.update,
-      });
-
-      all.push({
+        enabled:  this.canUpdate && this.canCustomEdit,
+      },
+      {
         action:  'goToClone',
         label:   'Clone as Form',
         icon:    'icon icon-fw icon-copy',
-        enabled:  !!links.update,
-      });
-    }
-
-    all.push({ divider: true });
-
-    all.push({
-      action:  'viewEditYaml',
-      label:   (links.update ? 'Edit/View as YAML' : 'View as YAML'),
-      icon:    'icon icon-file',
-    });
-
-    all.push({
-      action:  'cloneYaml',
-      label:   'Clone as YAML',
-      icon:    'icon icon-fw icon-copy',
-      enabled:  !!links.update,
-    });
-
-    all.push({
-      action:     'download',
-      label:      'Download YAML',
-      icon:       'icon icon-fw icon-download',
-      bulkable:   true,
-      bulkAction: 'downloadBulk',
-    });
-
-    const viewInApiEnabled = this.$rootGetters['prefs/get'](DEV);
-
-    all.push({
-      action:  'viewInApi',
-      label:   'View in API',
-      icon:    'icon icon-fw icon-external-link',
-      enabled:  !!links.self && viewInApiEnabled,
-    });
-
-    all.push({ divider: true });
-
-    all.push({
-      action:     'promptRemove',
-      altAction:  'remove',
-      label:      'Delete',
-      icon:       'icon icon-fw icon-trash',
-      bulkable:   true,
-      enabled:    !!links.remove,
-      bulkAction: 'promptRemove',
-    });
+        enabled:  this.canCreate && this.canCustomEdit,
+      },
+      { divider: true },
+      {
+        action:  'goToEditYaml',
+        label:   'Edit as YAML',
+        icon:    'icon icon-file',
+        enabled: this.canUpdate && this.canYaml,
+      },
+      {
+        action:  'goToViewYaml',
+        label:   'View as YAML',
+        icon:    'icon icon-file',
+        enabled: !this.canUpdate && this.canYaml
+      },
+      {
+        action:  'cloneYaml',
+        label:   'Clone as YAML',
+        icon:    'icon icon-fw icon-copy',
+        enabled:  this.canCreate && this.canYaml,
+      },
+      {
+        action:     'download',
+        label:      'Download YAML',
+        icon:       'icon icon-fw icon-download',
+        bulkable:   true,
+        bulkAction: 'downloadBulk',
+        enabled:    this.canYaml
+      },
+      { divider: true },
+      {
+        action:     'promptRemove',
+        altAction:  'remove',
+        label:      'Delete',
+        icon:       'icon icon-fw icon-trash',
+        bulkable:   true,
+        enabled:    this.canDelete,
+        bulkAction: 'promptRemove',
+      },
+      { divider: true },
+      {
+        action:  'viewInApi',
+        label:   'View in API',
+        icon:    'icon icon-fw icon-external-link',
+        enabled:  this.canViewInApi,
+      }
+    ];
 
     return all;
   },
@@ -418,6 +490,32 @@ export default {
 
       return val;
     };
+  },
+
+  // ------------------------------------------------------------------
+
+  canDelete() {
+    return this.hasLink('remove');
+  },
+
+  canUpdate() {
+    return this.hasLink('update') && this.$rootGetters['type-map/isEditable'](this.type);
+  },
+
+  canCustomEdit() {
+    return this.$rootGetters['type-map/hasCustomEdit'](this.type);
+  },
+
+  canCreate() {
+    return this.$rootGetters['type-map/isCreatable'](this.type);
+  },
+
+  canViewInApi() {
+    return this.hasLink('self') && this.$rootGetters['prefs/get'](DEV);
+  },
+
+  canYaml() {
+    return this.hasLink('rioview') || this.hasLink('view');
   },
 
   // ------------------------------------------------------------------
@@ -499,11 +597,10 @@ export default {
   save() {
     return async(opt = {}) => {
       delete this.__rehydrate;
+      const forNew = !this.id;
 
       if ( !opt.url ) {
-        if (this.id) {
-          opt.url = this.linkFor('update') || this.linkFor('self');
-        } else {
+        if ( forNew ) {
           const schema = this.$getters['schemaFor'](this.type);
           let url = schema.linkFor('collection');
 
@@ -512,11 +609,13 @@ export default {
           }
 
           opt.url = url;
+        } else {
+          opt.url = this.linkFor('update') || this.linkFor('self');
         }
       }
 
       if ( !opt.method ) {
-        opt.method = (this.id ? 'put' : 'post');
+        opt.method = ( forNew ? 'post' : 'put' );
       }
 
       if ( !opt.headers ) {
@@ -532,15 +631,20 @@ export default {
       }
 
       // @TODO remove this once the API maps steve _type <-> k8s type in both directions
-      if (this._type) {
-        this.type = this._type;
-      }
+      opt.data = { ...this };
 
-      opt.data = this;
+      if (opt?.data._type) {
+        opt.data.type = opt.data._type;
+      }
 
       const res = await this.$dispatch('request', opt);
 
-      await this.$dispatch('load', { data: res, existing: this });
+      // console.log('### Resource Save', this.type, this.id);
+
+      // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
+      if ( res && res.kind !== 'Table') {
+        await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
+      }
 
       return this;
     };
@@ -580,67 +684,87 @@ export default {
     };
   },
 
-  detailUrl() {
-    const router = this.currentRouter();
+  detailLocation() {
     const schema = this.$getters['schemaFor'](this.type);
-    const query = {};
 
-    let route = `c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`;
-
-    if (Object.values(WORKLOAD).includes(this.type)) {
-      route = `c-cluster-workloads-namespace-id`;
-      query.type = this.type;
-    }
-
-    const params = {
-      resource:  this.type,
-      namespace: this.metadata && this.metadata.namespace,
-      id:        this.metadata.name
+    return {
+      name:   `c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+      params: {
+        resource:  this.type,
+        namespace: this.metadata && this.metadata.namespace,
+        id:        this.metadata.name
+      }
     };
-
-    const url = router.resolve({
-      name:   route,
-      params,
-      query
-    }).href;
-
-    return url;
   },
 
   goToClone() {
     return (moreQuery = {}) => {
-      const url = addParams(this.detailUrl, {
-        [MODE]:  _CLONE,
-        ...moreQuery
-      });
+      const location = this.detailLocation;
 
-      this.currentRouter().push({ path: url });
+      location.query = {
+        ...location.query,
+        [MODE]: _CLONE,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
     };
   },
 
   goToEdit() {
     return (moreQuery = {}) => {
-      const url = addParams(this.detailUrl, { [MODE]: _EDIT, ...moreQuery });
+      const location = this.detailLocation;
 
-      this.currentRouter().push({ path: url });
+      location.query = {
+        ...location.query,
+        [MODE]: _EDIT,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
     };
   },
 
-  viewEditYaml() {
+  goToEditYaml() {
     return () => {
-      return this.goToEdit({ [EDIT_YAML]: _FLAGGED });
+      const location = this.detailLocation;
+
+      location.query = {
+        ...location.query,
+        [MODE]:      _EDIT,
+        [AS_YAML]: _FLAGGED
+      };
+
+      this.currentRouter().push(location);
+    };
+  },
+
+  goToViewYaml() {
+    return () => {
+      const location = this.detailLocation;
+
+      location.query = {
+        ...location.query,
+        [MODE]:      _VIEW,
+        [AS_YAML]: _FLAGGED
+      };
+
+      this.currentRouter().push(location);
     };
   },
 
   cloneYaml() {
     return (moreQuery = {}) => {
-      const url = addParams(this.detailUrl, {
-        [MODE]:      _CLONE,
-        [EDIT_YAML]: _FLAGGED,
-        ...moreQuery
-      });
+      const location = this.detailLocation;
 
-      this.currentRouter().push({ path: url });
+      location.query = {
+        ...location.query,
+        [MODE]:      _CLONE,
+        [AS_YAML]: _FLAGGED,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
     };
   },
 
@@ -695,7 +819,7 @@ export default {
     };
   },
 
-  applyDefaults() {
+  applyDefaults(/* mode */) {
     return () => {
       return this;
     };
@@ -706,10 +830,57 @@ export default {
     const { metadata:{ namespace = 'default' } } = this;
     let url = schema.links.collection;
 
-    const [group, resource] = schema?.attributes;
+    const attributes = schema?.attributes;
+
+    if (!attributes) {
+      throw new Error('Attributes must be present on the schema');
+    }
+    const { group, resource } = attributes;
 
     url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/namespaces/${ namespace }/${ resource }`;
 
     return url;
+  },
+
+  // convert yaml to object, clean for new if creating/cloning
+  // map _type to type
+  cleanYaml() {
+    return (yaml, mode = 'edit') => {
+      try {
+        const obj = jsyaml.safeLoad(yaml);
+
+        if (mode !== 'edit') {
+          cleanForNew(obj);
+        }
+
+        if (obj._type) {
+          obj.type = obj._type;
+          delete obj._type;
+        }
+        const out = jsyaml.safeDump(obj, { skipInvalid: true });
+
+        return out;
+      } catch (e) {
+        return null;
+      }
+    };
+  },
+
+  yamlForSave() {
+    return (yaml) => {
+      try {
+        const obj = jsyaml.safeLoad(yaml);
+
+        if (obj) {
+          if (this._type) {
+            obj._type = obj.type;
+          }
+
+          return jsyaml.safeDump(obj);
+        }
+      } catch (e) {
+        return null;
+      }
+    };
   }
 };

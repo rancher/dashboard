@@ -32,7 +32,6 @@ export default {
 
 <template>
   <div>
-    <div class="spacer"></div>
     <ul
       v-if="tabs !== null && tabs.length > 0"
       role="tablist"
@@ -89,8 +88,7 @@ export default {
   }
 
   .tab-container {
-    padding: 40px;
-    /* border: 1px solid var(--tabbed-border); */
+    padding: 20px;
     background-color: var(--tabbed-container-bg);
   }
 </style>

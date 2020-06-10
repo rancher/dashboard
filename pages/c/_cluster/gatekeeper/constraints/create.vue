@@ -1,6 +1,7 @@
 <script>
+import jsyaml from 'js-yaml';
 import GatekeeperConstraint from '@/shared/gatekeeper-constraint';
-import { EDIT_YAML, _FLAGGED } from '@/config/query-params';
+import { AS_YAML, _FLAGGED } from '@/config/query-params';
 import ResourceYaml from '@/components/ResourceYaml';
 
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -12,7 +13,7 @@ const CONSTRAINT_PREFIX = 'constraints.gatekeeper.sh.';
 
 async function yamlUpdater(value) {
   this.obj = await this.$store.dispatch('cluster/create', this.localValue);
-  this.yaml = window.jsyaml.safeDump(this.localValue);
+  this.yaml = jsyaml.safeDump(this.localValue);
 }
 
 export default {
@@ -46,13 +47,13 @@ export default {
             namespaceSelector:  { matchExpressions: [] }
           }
         },
-        metadata: { name: null, annotations: { [DESCRIPTION]: null } }
+        metadata: { name: '', annotations: { [DESCRIPTION]: '' } }
       },
     };
   },
   computed: {
     editAsYaml() {
-      return this.$route.query[EDIT_YAML] === _FLAGGED;
+      return this.$route.query[AS_YAML] === _FLAGGED;
     },
   },
   watch: {
@@ -68,12 +69,6 @@ export default {
     yamlUpdater.call(this, this.localValue);
   },
   methods: {
-    navigateToEditAsYaml() {
-      this.$router.push({ query: { ...this.$route.query, [EDIT_YAML]: _FLAGGED } });
-    },
-    navigateToEditAsForm() {
-      this.$router.applyQuery({ [EDIT_YAML]: undefined });
-    },
     done() {
       this.$router.replace({
         name:   'c-cluster-gatekeeper-constraints',
@@ -88,19 +83,16 @@ export default {
   <div>
     <header>
       <h1>Constraint</h1>
-      <div class="actions">
-        <button v-if="editAsYaml" class="btn bg-primary" @click="navigateToEditAsForm">
-          Edit as form
-        </button>
-        <button v-else class="btn bg-primary" @click="navigateToEditAsYaml">
-          Edit as YAML
-        </button>
-      </div>
     </header>
     <div
       v-if="editAsYaml"
     >
-      <NameNsDescription :value="localValue" :mode="mode" :namespaced="false" :extra-columns="['template']" @input="$set(localValue, 'type', $event)">
+      <NameNsDescription
+        :value="localValue"
+        :mode="mode"
+        :namespaced="false"
+        :extra-columns="['template']"
+      >
         <template v-slot:template>
           <LabeledSelect
             :mode="mode"

@@ -12,11 +12,16 @@ const version = process.env.VERSION ||
   require('./package.json').version;
 
 const dev = (process.env.NODE_ENV !== 'production');
-const api = process.env.API || 'http://localhost:8989';
 const pl = process.env.PL || STANDARD;
 const commit = process.env.COMMIT || 'head';
 const commitDate = process.env.COMMIT_DATE || '';
 const commitBranch = process.env.COMMIT_BRANCH || '';
+
+let api = process.env.API || 'http://localhost:8989';
+
+if ( !api.startsWith('http') ) {
+  api = `https://${ api }`;
+}
 
 let routerBasePath = '/';
 let resourceBase = '';
@@ -38,21 +43,21 @@ if ( resourceBase && !resourceBase.endsWith('/') ) {
   resourceBase += '/';
 }
 
-console.log(`Build: ${ dev ? 'Development' : 'Production' }`);
+console.log(`Build: ${ dev ? 'Development' : 'Production' }`); // eslint-disable-line no-console
 
 if ( resourceBase ) {
-  console.log(`Resource Base URL: ${ resourceBase }`);
+  console.log(`Resource Base URL: ${ resourceBase }`); // eslint-disable-line no-console
 }
 
 if ( routerBasePath !== '/' ) {
-  console.log(`Router Base Path: ${ routerBasePath }`);
+  console.log(`Router Base Path: ${ routerBasePath }`); // eslint-disable-line no-console
 }
 
 if ( pl !== STANDARD ) {
-  console.log(`PL: ${ pl }`);
+  console.log(`PL: ${ pl }`); // eslint-disable-line no-console
 }
 
-console.log(`API: ${ api }`);
+console.log(`API: ${ api }`); // eslint-disable-line no-console
 
 module.exports = {
   dev,
@@ -69,9 +74,21 @@ module.exports = {
 
   buildDir: dev ? '.nuxt' : '.nuxt-prod',
 
+  buildModules: [
+    '@nuxtjs/style-resources',
+  ],
+  styleResources: {
+    // only import functions, mixins, or variables, NEVER import full styles https://github.com/nuxt-community/style-resources-module#warning
+    scss: [
+      '~assets/styles/base/_variables.scss',
+      '~assets/styles/base/_functions.scss',
+      '~assets/styles/base/_mixins.scss',
+    ],
+  },
+
   // mode:    'spa', --- Use --spa CLI flag, or ?spa query param.
 
-  loading: '~/components/Loading.vue',
+  loading: '~/components/nav/GlobalLoading.vue',
 
   // Axios: https://axios.nuxtjs.org/options
   axios: {
@@ -124,7 +141,8 @@ module.exports = {
             }
           ]
         ];
-      }
+      },
+      plugins: ['@babel/plugin-transform-modules-commonjs'],
     }
   },
 
@@ -256,12 +274,12 @@ function onProxyReqWs(proxyReq, req, socket, options, head) {
   // console.log(proxyReq.getHeaders());
 
   socket.on('error', (err) => {
-    console.error('Proxy WS Error:', err);
+    console.error('Proxy WS Error:', err); // eslint-disable-line no-console
   });
 }
 
 function onError(err, req, res) {
   res.statusCode = 500;
-  console.error('Proxy Error:', err);
+  console.error('Proxy Error:', err); // eslint-disable-line no-console
   res.write(JSON.stringify(err));
 }

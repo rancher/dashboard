@@ -1,14 +1,9 @@
 <script>
-import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-
 export default {
-  components: {
-    RadioGroup, LabeledInput, LabeledSelect
-  },
-
-  props: {
+  components: { LabeledInput, LabeledSelect },
+  props:      {
     value: {
       type:    Object,
       default: () => {
@@ -18,31 +13,41 @@ export default {
     certs: {
       type:    Array,
       default: () => []
-    }
+    },
   },
-
   data() {
-    const { hosts = [''], secretName = '' } = this.value;
+    const defaultCert = {
+      label: this.t('ingress.certificates.defaultCertLabel'),
+      value: null,
+    };
+    const { hosts = [''], secretName = defaultCert.value } = this.value;
 
     return {
-      hosts, secretName, useDefault: !!secretName.length
+      defaultCert, hosts, secretName
     };
   },
+  computed: {
+    certsWithDefault() {
+      return [this.defaultCert, ...this.certs];
+    }
+  },
   methods: {
-    addHost() {
+    addHost(ev) {
+      ev.preventDefault();
       this.hosts.push('');
+      this.update();
     },
-    remove(idx) {
+    remove(ev, idx) {
+      ev.preventDefault();
       this.hosts.splice(idx, 1);
+      this.update();
     },
-
     update() {
       const out = { hosts: this.hosts };
 
-      if (!this.useDefault) {
+      if (this.secretName !== this.defaultCert) {
         out.secretName = this.secretName;
       }
-
       this.$emit('input', out);
     }
   }
@@ -52,16 +57,27 @@ export default {
 <template>
   <div class="cert" @input="update">
     <div class="row">
-      <RadioGroup v-model="useDefault" class="col span-6" :options="[true, false]" :labels="['Use default ingress controller certificate', 'Choose a certificate']" @input="update" />
-      <div class="col span-5">
+      <div class="col span-6">
         <LabeledSelect
           :value="secretName"
-          :options="certs"
-          label="Certificate"
+          :options="certsWithDefault"
+          :label="t('ingress.certificates.certificate.label')"
           required
-          :disabled="useDefault"
           @input="e=>{secretName = e; update()}"
         />
+      </div>
+      <div class="col span-5">
+        <div v-for="(host, i) in hosts" :key="i" class="row mb-10">
+          <div :style="{'margin-right': '0px'}" class="col span-11">
+            <LabeledInput :value="host" :label="t('ingress.certificates.host.label')" :placeholder="t('ingress.certificates.host.placeholder')" @input="e=>$set(hosts, i, e)" />
+          </div>
+          <button class="btn btn-sm role-link col" @click="e=>remove(e, i)">
+            {{ t('ingress.certificates.removeHost') }}
+          </button>
+        </div>
+        <button :style="{'padding':'0px 0px 0px 5px'}" class="bn btn-sm role-link" @click="addHost">
+          {{ t('ingress.certificates.addHost') }}
+        </button>
       </div>
       <div class="col span-1">
         <button class="btn role-link close" @click="$emit('remove')">
@@ -69,17 +85,6 @@ export default {
         </button>
       </div>
     </div>
-    <div v-for="(host, i) in hosts" :key="i" class="row mb-10">
-      <div :style="{'margin-right': '0px'}" class="col span-11">
-        <LabeledInput :value="host" label="Host" placeholder="e.g. example.com" @input="e=>$set(hosts, i, e)" />
-      </div>
-      <button class="btn btn-sm role-link col" @click="e=>remove(i)">
-        remove
-      </button>
-    </div>
-    <button :style="{'padding':'0px 0px 0px 5px'}" class="bn btn-sm role-link" @click="addHost">
-      add host
-    </button>
   </div>
 </template>
 
@@ -88,12 +93,15 @@ export default {
     float:right;
     padding: 0px;
     position: relative;
-    top: -25px;
-    right: -25px;
+    top: -10px;
+    right: -10px;
   }
   .cert:not(:last-of-type) {
     padding-bottom: 10px;
     margin-bottom:30px;
     border-bottom: 1px solid var(--border);
+  }
+  button {
+    line-height: 40px;
   }
 </style>

@@ -2,11 +2,12 @@ const path = require('path');
 
 module.exports = {
   stories: [
-    '../stories/**/Welcome*.stories.(js|mdx)',
-    '../stories/**/*.stories.(js|mdx)',
-    '../components/**/*.stories.(js|mdx)'
+    '../stories/**/Welcome*.stories.@(js|mdx)',
+    '../stories/**/*.stories.@(js|mdx)',
+    '../components/**/*.stories.@(js|mdx)'
   ],
   addons: [
+    '@storybook/preset-scss',
     '@storybook/addon-actions',
     '@storybook/addon-links',
     '@storybook/addon-knobs/register',
@@ -23,17 +24,26 @@ module.exports = {
     },
     'storybook-addon-themes'
   ],
-  presets: ['@storybook/preset-scss'],
   webpackFinal: async (config, { configType }) => {
     // `configType` has a value of 'DEVELOPMENT' or 'PRODUCTION'
     // You can change the configuration based on that.
     // 'PRODUCTION' is used when building the static version of storybook.
 
+    const sassLerder = {
+      loader: 'sass-loader',
+      options: {
+        prependData: `
+          @import '~assets/styles/base/_variables.scss';
+          @import '~assets/styles/base/_functions.scss';
+          @import '~assets/styles/base/_mixins.scss'; `,
+      },
+    }
+
     // Make whatever fine-grained changes you need
     const extraRules = [
       {
         test: /\.s?css$/,
-        loaders: ['style-loader', 'css-loader', 'sass-loader'],
+        loaders: ['style-loader', 'css-loader', sassLerder],
         include: path.resolve(__dirname, '../')
       },
       {

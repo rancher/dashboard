@@ -1,16 +1,15 @@
 <script>
 import { mapState } from 'vuex';
-import jsonpath from 'jsonpath';
+import { dasherize } from '@/utils/string';
+import { get } from '@/utils/object';
+import { removeObject } from '@/utils/array';
+import Checkbox from '@/components/form/Checkbox';
 import THead from './THead';
 import filtering from './filtering';
 import selection from './selection';
 import sorting from './sorting';
 import paging from './paging';
 import grouping from './grouping';
-import Checkbox from '@/components/form/Checkbox';
-import { removeObject } from '@/utils/array';
-import { get } from '@/utils/object';
-import { dasherize } from '@/utils/string';
 
 // @TODO:
 // Fixed header/scrolling
@@ -199,11 +198,27 @@ export default {
     },
 
     /**
+     * Allows you to hide the no rows messaging.
+     */
+    showNoRows: {
+      type:    Boolean,
+      default: true
+    },
+
+    /**
      * Allows you to override the default translation text of no search data view
      */
     noDataKey: {
       type:    String,
       default: 'sortableTable.noData'
+    },
+
+    /**
+     * Allows you to override showing the THEAD section.
+     */
+    showHeaders: {
+      type:    Boolean,
+      default: true
     }
 
   },
@@ -301,23 +316,9 @@ export default {
     dasherize,
 
     valueFor(row, col) {
-      const expr = col.value;
+      const expr = col.value || col.name;
 
-      if ( expr ) {
-        if ( expr.startsWith('$') ) {
-          try {
-            return jsonpath.query(row, expr)[0];
-          } catch (e) {
-            console.log('JSON Path error', e);
-
-            return '(JSON Path err)';
-          }
-        } else {
-          return get(row, expr);
-        }
-      } else {
-        return get(row, col.name);
-      }
+      return get(row, expr);
     },
 
     isExpanded(row) {
@@ -349,7 +350,7 @@ export default {
             :key="act.action"
             type="button"
             class="btn bg-primary btn-sm"
-            :disabled="howMuchSelected==='none'"
+            :disabled="!act.enabled"
             @click="applyTableAction(act)"
           >
             <i v-if="act.icon" :class="act.icon" />
@@ -372,6 +373,7 @@ export default {
     </div>
     <table class="sortable-table" :class="classObject" width="100%">
       <THead
+        v-if="showHeaders"
         :columns="columns"
         :table-actions="tableActions"
         :row-actions="rowActions"
@@ -389,7 +391,7 @@ export default {
         <slot name="no-rows">
           <tr>
             <td :colspan="fullColspan" class="no-rows">
-              <t :k="noRowsKey" />
+              <t v-if="showNoRows" :k="noRowsKey" />
             </td>
           </tr>
         </slot>
@@ -405,12 +407,14 @@ export default {
       </tbody>
 
       <tbody v-for="group in groupedRows" :key="group.key" :class="{ group: groupBy }">
-        <slot v-if="groupBy" name="group-header" :group="group">
+        <slot v-if="groupBy" name="group-row" :group="group" :fullColspan="fullColspan">
           <tr class="group-row">
             <td :colspan="fullColspan">
-              <div class="group-tab">
-                {{ group.ref }}
-              </div>
+              <slot name="group-by" :group="group">
+                <div v-trim-whitespace class="group-tab">
+                  {{ group.ref }}
+                </div>
+              </slot>
             </td>
           </tr>
         </slot>
@@ -418,7 +422,7 @@ export default {
           <slot name="main-row" :row="row">
             <tr :key="get(row,keyField)" class="main-row">
               <td v-show="tableActions" class="row-check" align="middle">
-                <Checkbox type="checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
+                <Checkbox class="selection-checkbox" type="checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
               </td>
               <td v-if="subExpandColumn" class="row-expand" align="middle">
                 <i data-title="Toggle Expand" :class="{icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[get(row, keyField)]}" />
@@ -432,7 +436,7 @@ export default {
                   :expanded="expanded"
                   :rowKey="get(row,keyField)"
                 >
-                  <td :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'" :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}">
+                  <td :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'" :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}" :width="col.width">
                     <slot :name="'cell:' + col.name" :row="row" :col="col">
                       <component
                         :is="col.formatter"
@@ -509,9 +513,6 @@ export default {
 </template>
 
 <style lang="scss">
-@import "~assets/styles/base/_variables.scss";
-@import "~assets/styles/base/_functions.scss";
-@import "~assets/styles/base/_mixins.scss";
 //
 // Important: Almost all selectors in here need to be ">"-ed together so they
 // apply only to the current table, not one nested inside another table.
@@ -520,6 +521,10 @@ export default {
 $group-row-height: 40px;
 $group-separation: 40px;
 $divider-height: 1px;
+
+$separator: 20;
+$remove: 75;
+$spacing: 10px;
 
 .sortable-table {
   position: relative;
@@ -637,6 +642,10 @@ $divider-height: 1px;
         display: inline-block;
         z-index: z-index('tableGroup');
         min-width: $group-row-height * 1.8;
+
+        > SPAN {
+          color: var(--sortable-table-group-label);
+        }
       }
 
       .group-tab:after {
@@ -727,7 +736,6 @@ $divider-height: 1px;
   }
 
   .no-rows {
-    height: auto;
     padding: $group-row-height;
     color: var(--disabled-bg);
     text-align: center;
@@ -737,6 +745,37 @@ $divider-height: 1px;
   TH[align=center], TD[align=center] { text-align: center; }
   TH[align=right], TD[align=right] { text-align: right; }
 }
+
+ .for-inputs{
+   & TABLE.sortable-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: $spacing;
+
+    >TBODY>TR>TD, >THEAD>TR>TH {
+      padding-right: $spacing;
+      padding-bottom: $spacing;
+
+      &:last-of-type {
+        padding-right: 0;
+      }
+    }
+
+    >TBODY>TR:first-of-type>TD {
+      padding-top: $spacing;
+    }
+
+    >TBODY>TR:last-of-type>TD {
+      padding-bottom: 0;
+    }
+  }
+
+    &.edit, &.create, &.clone {
+     TABLE.sortable-table>THEAD>TR>TH {
+      border-color: transparent;
+      }
+    }
+  }
 
 .sortable-table-header {
   position: relative;

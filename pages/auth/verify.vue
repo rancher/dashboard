@@ -4,11 +4,7 @@ import {
 } from '@/config/query-params';
 
 export default {
-  layout:   'unauthenticated',
-
-  data() {
-    return { testing: this.$route.query[AUTH_TEST] === _FLAGGED };
-  },
+  layout: 'unauthenticated',
 
   async fetch({ store, route, redirect }) {
     if ( route.query[AUTH_TEST] === _FLAGGED ) {
@@ -27,6 +23,10 @@ export default {
     } else {
       redirect(`/auth/login?err=${ escape(res) }`);
     }
+  },
+
+  data() {
+    return { testing: this.$route.query[AUTH_TEST] === _FLAGGED };
   },
 
   mounted() {

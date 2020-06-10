@@ -3,9 +3,9 @@
 @font-face {
   font-family: '#{$icomoon-font-family}';
   src:
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?14h12e') format('truetype'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?14h12e') format('woff'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?14h12e##{$icomoon-font-family}') format('svg');
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?h2v172') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?h2v172') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?h2v172##{$icomoon-font-family}') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -231,14 +231,24 @@
     content: $icon-sort; 
   }
 }
-.icon-github1 {
-  &:before {
-    content: $icon-github1; 
-  }
-}
 .icon-terminal {
   &:before {
     content: $icon-terminal; 
+  }
+}
+.icon-pause {
+  &:before {
+    content: $icon-pause; 
+  }
+}
+.icon-play {
+  &:before {
+    content: $icon-play; 
+  }
+}
+.icon-docker {
+  &:before {
+    content: $icon-docker; 
   }
 }
 .icon-github {

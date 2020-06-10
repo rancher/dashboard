@@ -8,7 +8,7 @@ export default {
   props: {
     minHeight: {
       type:    Number,
-      default: 44,
+      default: 55,
     },
     maxHeight: {
       type:    Number,
@@ -40,6 +40,15 @@ export default {
       // This sets the height to one-line for SSR pageload so that it's already right
       // (unless the input is long)
       return `height: ${ this.curHeight }px; overflow: ${ this.overflow };`;
+    },
+  },
+
+  watch: {
+    $attrs: {
+      deep: true,
+      handler() {
+        this.queueResize();
+      }
     },
   },
 

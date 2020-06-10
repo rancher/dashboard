@@ -5,7 +5,6 @@ import {
 } from '@/config/query-params';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
-import { addParams } from '@/utils/url';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import { RIO } from '@/config/types';
 import { formatSi } from '@/utils/units';
@@ -14,7 +13,7 @@ import { get } from '@/utils/object';
 const EMPTY = {};
 
 export default {
-  applyDefaults(ctx, mode) {
+  applyDefaults(mode) {
     const spec = this.spec;
 
     if ( mode === _CREATE || mode === _CLONE ) {
@@ -375,7 +374,7 @@ export default {
 
   saveWeight() {
     return async(neu) => {
-      console.log('Save Weight', this.spec.app, this.spec.version, neu);
+      console.log('Save Weight', this.spec.app, this.spec.version, neu); // eslint-disable-line no-console
       try {
         await this.patch([{
           op:    'replace',
@@ -411,15 +410,16 @@ export default {
   },
 
   goToStage() {
-    const router = this.currentRouter();
-
     return (moreQuery = {}) => {
-      const url = addParams(this.detailUrl, {
-        [MODE]:  _STAGE,
-        ...moreQuery
-      });
+      const location = this.detailLocation;
 
-      router.push({ path: url });
+      location.query = {
+        ...location.query,
+        [MODE]: _STAGE,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
     };
   },
 

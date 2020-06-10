@@ -1,5 +1,6 @@
 <script>
-import { RIO } from '../../config/types';
+import { RIO } from '@/config/types';
+
 export default {
   props: {
     value: {
@@ -23,12 +24,23 @@ export default {
   },
   computed: {
     to() {
-      return this.value[0].to
-        ? this.value[0].to[0] : this.value[0].redirect;
+      const first = this.value[0];
+
+      if ( first.to ) {
+        return first.to[0];
+      } else {
+        return first.redirect;
+      }
     },
+
     remaining() {
-      return this.value[0].to
-        ? this.value[0].to.length - 1 : 0;
+      const first = this.value[0];
+
+      if ( first.to ) {
+        return first.to.length - 1;
+      } else {
+        return 0;
+      }
     }
   },
   created() {
@@ -40,7 +52,7 @@ export default {
     async findEndpoint() {
       let route = '';
 
-      if (this.value[0].to) {
+      if (this.value?.[0]?.to) {
         const destination = this.value[0].to[0];
         const services = await this.$store.dispatch('cluster/findAll', { type: RIO.SERVICE });
         let targetService;
@@ -55,8 +67,11 @@ export default {
             return service.spec.app === destination.app && service.spec.version === destination.version;
           })[0];
         }
-        route = `/rio/services/${ targetService.id }` ;
-      } else {
+
+        if ( targetService ) {
+          route = `/rio/services/${ targetService.id }` ;
+        }
+      } else if ( this.value?.[0]?.redirect ) {
         const {
           prefix, host, path, toHTTPS
         } = this.value[0].redirect;

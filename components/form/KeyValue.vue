@@ -7,6 +7,7 @@ import { asciiLike } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
+import SortableTable from '@/components/SortableTable';
 
 /*
   @TODO
@@ -17,7 +18,7 @@ import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 */
 
 export default {
-  components: { TextAreaAutoGrow },
+  components: { SortableTable, TextAreaAutoGrow },
 
   props: {
     value: {
@@ -87,6 +88,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    downloadLabel: {
+      type:    String,
+      default: 'Download'
+    },
     valueBinary: {
       type:    Boolean,
       default: false,
@@ -119,7 +124,7 @@ export default {
 
     readLabel: {
       type:    String,
-      default: 'Read from a file'
+      default: 'Read from file'
     },
     readIcon: {
       type:    String,
@@ -140,7 +145,7 @@ export default {
 
     removeLabel: {
       type:    String,
-      default: '',
+      default: 'Remove',
     },
     removeIcon: {
       type:    String,
@@ -182,7 +187,7 @@ export default {
       });
     });
 
-    if ( !rows.length && this.initialEmptyRow ) {
+    if ( !rows.length && this.initialEmptyRow && this.mode !== _VIEW) {
       rows.push({ [this.keyName]: '', [this.valueName]: '' });
     }
 
@@ -204,6 +209,42 @@ export default {
     showRemove() {
       return !this.isView && this.removeAllowed;
     },
+
+    headers() {
+      const out = [
+        {
+          name:  'key',
+          label: 'Key',
+          value: this.keyName,
+        },
+        {
+          name:  'value',
+          label: 'Value',
+          value: this.valueName,
+        }
+      ];
+
+      if ( this.showRemove ) {
+        out.push({
+          name:  'remove',
+          label: '',
+          value: '',
+          align: 'right',
+          width: 100
+        });
+      }
+
+      if ( this.valueBinary && this.isView ) {
+        out.push({
+          name:  'download',
+          label: 'Download',
+          value: '',
+          align: 'right'
+        });
+      }
+
+      return out;
+    }
   },
 
   created() {
@@ -218,15 +259,14 @@ export default {
         binary,
       });
       this.queueUpdate();
-
       this.$nextTick(() => {
-        const inputs = this.$refs.key;
-
-        inputs[inputs.length - 1].focus();
+        this.$refs.key.focus();
       });
     },
 
-    remove(idx) {
+    remove(row) {
+      const idx = this.rows.indexOf(row);
+
       removeAt(this.rows, idx);
       this.queueUpdate();
     },
@@ -269,8 +309,7 @@ export default {
       }
     },
 
-    download(idx) {
-      const row = this.rows[idx];
+    download(row) {
       const name = row[this.keyName];
       const value = row[this.valueName];
 
@@ -287,7 +326,6 @@ export default {
 
         return;
       }
-
       const out = {};
       const keyName = this.keyName;
       const valueName = this.valueName;
@@ -317,111 +355,98 @@ export default {
 </script>
 
 <template>
-  <div>
-    <div class="title clearfix">
+  <div class="key-value" :class="mode">
+    <div v-if="title" class="clearfix">
       <h4 :style="{'display':'flex'}">
         {{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" />
       </h4>
     </div>
 
-    <table v-if="rows.length" class="fixed">
-      <thead>
-        <tr>
-          <th v-if="padLeft" class="left"></th>
-          <th class="key">
-            <label>{{ keyLabel }}</label>
-          </th>
-          <th v-if="separatorLabel" class="separator"></th>
-          <th class="value">
-            <label>{{ valueLabel }}</label>
-          </th>
-          <slot name="moreColumnHeaders" />
-          <th v-if="showRemove" class="remove"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <template
-          v-for="(row, idx) in rows"
-        >
-          <slot name="row" :row="row">
-            <tr :key="idx">
-              <td v-if="padLeft" class="left"></td>
-              <td class="key">
-                <slot
-                  name="key"
-                  :row="row"
-                  :mode="mode"
-                  :keyName="keyName"
-                  :valueName="valueName"
-                  :isView="isView"
-                >
-                  <span v-if="isView">{{ row[keyName] }}</span>
-                  <input
-                    v-else
-                    ref="key"
-                    v-model="row[keyName]"
-                    :placeholder="keyPlaceholder"
-                    type="text"
-                    @input="queueUpdate"
-                  />
-                </slot>
-              </td>
-              <td v-if="separatorLabel" class="separator">
-                {{ separatorLabel }}
-              </td>
-              <td class="value">
-                <slot
-                  name="value"
-                  :row="row"
-                  :mode="mode"
-                  :keyName="keyName"
-                  :valueName="valueName"
-                  :isView="isView"
-                  :queueUpdate="queueUpdate"
-                >
-                  <span v-if="valueBinary || row.binary">
-                    {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
-                    <button type="button" class="btn bg-transparent role-link" @click="download(idx)">
-                      Download
-                    </button>
-                  </span>
-                  <span v-else-if="isView">{{ row[valueName] }}</span>
-                  <TextAreaAutoGrow
-                    v-else-if="valueMultiline"
-                    v-model="row[valueName]"
-                    :placeholder="valuePlaceholder"
-                    :min-height="50"
-                    :spellcheck="false"
-                    @input="queueUpdate"
-                  />
-                  <input
-                    v-else
-                    v-model="row[valueName]"
-                    :placeholder="valuePlaceholder"
-                    autocorrect="off"
-                    autocapitalize="off"
-                    spellcheck="false"
-                    @input="queueUpdate"
-                  />
-                </slot>
-              </td>
-              <slot name="moreColumnHeaders" />
-              <td v-if="showRemove" class="remove">
-                <slot name="removeButton" :remove="remove" :idx="idx" :row="row">
-                  <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
-                    Remove
-                    {{ removeLabel }}
-                  </button>
-                </slot>
-              </td>
-            </tr>
+    <SortableTable
+      :headers="headers"
+      :rows="rows"
+      :search="false"
+      :table-actions="false"
+      :row-actions="false"
+      :show-no-rows="isView"
+      key-field="id"
+    >
+      <template #col:key="{row}">
+        <td class="key">
+          <slot
+            name="key"
+            :row="row"
+            :mode="mode"
+            :keyName="keyName"
+            :valueName="valueName"
+            :isView="isView"
+          >
+            <div v-if="isView" class="view">
+              {{ row[keyName] }}
+            </div>
+            <input
+              v-else
+              ref="key"
+              v-model="row[keyName]"
+              :placeholder="keyPlaceholder"
+              @input="queueUpdate"
+            />
           </slot>
-        </template>
-      </tbody>
-    </table>
-    <div v-else-if="mode==='view'">
-      n/a
-    </div>
+        </td>
+      </template>
+      <template #col:value="{row}">
+        <td class="value">
+          <slot
+            name="value"
+            :row="row"
+            :mode="mode"
+            :keyName="keyName"
+            :valueName="valueName"
+            :isView="isView"
+            :queueUpdate="queueUpdate"
+          >
+            <span v-if="valueBinary || row.binary">
+              {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
+            </span>
+            <div v-else-if="isView" class="view">
+              {{ row[valueName] }}
+            </div>
+            <TextAreaAutoGrow
+              v-else-if="valueMultiline"
+              v-model="row[valueName]"
+              :placeholder="valuePlaceholder"
+              :min-height="50"
+              :spellcheck="false"
+              @input="queueUpdate"
+            />
+            <input
+              v-else
+              v-model="row[valueName]"
+              :placeholder="valuePlaceholder"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              @input="queueUpdate"
+            />
+          </slot>
+        </td>
+      </template>
+      <template v-if="valueBinary" #col:download="{row}">
+        <td class="download" :data-title="valueLabel">
+          <a href="#" @click="download(row)">Download</a>
+        </td>
+      </template>
+      <template #col:remove="{row}">
+        <td class="remove">
+          <slot name="removeButton" :remove="remove" :row="row">
+            <button type="button" class="btn bg-transparent role-link" @click="remove(row)">
+              {{ removeLabel }}
+            </button>
+          </slot>
+        </td>
+      </template>
+    </SortableTable>
+
     <div v-if="showAdd || showRead" class="footer">
       <slot v-if="showAdd" name="add">
         <button type="button" class="btn role-tertiary add" @click="add()">
@@ -445,9 +470,11 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
+.key-value {
   $separator: 20;
   $remove: 75;
+  $spacing: 10px;
 
   .title {
     margin-bottom: 10px;
@@ -457,46 +484,63 @@ export default {
     }
   }
 
-  TABLE {
+  &.edit, &.create, &.clone {
+    TABLE.sortable-table THEAD TR TH {
+      border-color: transparent;
+    }
+  }
+
+  TABLE.sortable-table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 5px 10px;
-  }
+    border-collapse: collapse;
+    margin-bottom: $spacing;
 
-  TH {
-    text-align: left;
-    font-size: 10px;
-    font-weight: normal;
-    color: var(--input-label);
-  }
+    TD, TH {
+      padding: 0 $spacing $spacing 0;
+    }
 
-  TD {
-    padding-bottom: 10px;
+    TR:last-of-type TD {
+      padding-bottom: 0;
+    }
   }
 
   .left {
     width: #{$remove}px;
   }
 
-  .key {
-    vertical-align: top;
-
-    label {
-      margin-bottom: 0!important;
-    }
+  input {
+    height: 50px;
   }
 
-  .separator {
-    width: #{$separator}px;
-    vertical-align: top;
-    text-align: center;
+  .key {
+    vertical-align: middle;
+
+    .view {
+      width: 100%;
+      height: 100%;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      display: inline;
+    }
+
+    label {
+      margin: 0;
+    }
   }
 
   .value {
     vertical-align: middle;
 
+    .view {
+      width: 100%;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
     label {
-      margin-bottom: 0!important;
+      margin: 0;
     }
 
     select {
@@ -517,10 +561,43 @@ export default {
   }
 
   .footer {
+    .add {
+      margin-left: 1px;
+    }
 
     .protip {
       float: right;
       padding: 5px 0;
     }
   }
+
+  .download {
+    text-align: right;
+  }
+
+  .empty {
+    text-align: center;
+  }
+
+  .create {
+  }
+
+  .view {
+    TABLE.sortable-table {
+        TD, TH {
+          padding: $spacing 0;
+        }
+      }
+    }
+
+    TR:first-of-type TD {
+      padding-top: 0;
+    }
+}
+
+.no-rows {
+  padding: 40px;
+  color: var(--disabled-bg);
+  text-align: center;
+}
 </style>

@@ -181,8 +181,8 @@ export default {
 
 <template>
   <div>
-    <div v-if="title" class="title clearfix">
-      <h4>{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" /></h4>
+    <div v-if="title" class="clearfix">
+      <label>{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" /></label>
     </div>
 
     <table v-if="rows.length" class="fixed">
@@ -219,6 +219,7 @@ export default {
                 :row="row"
                 :mode="mode"
                 :isView="isView"
+                :queue-update="queueUpdate"
               >
                 <span v-if="isView">{{ row.value }}</span>
                 <TextAreaAutoGrow
@@ -239,10 +240,12 @@ export default {
             </td>
           </slot>
           <td v-if="showRemove" class="remove">
-            <button type="button" class="btn role-link" @click="remove(idx)">
-              Remove
-              {{ removeLabel }}
-            </button>
+            <slot name="remove-button" :remove="() => remove(idx)">
+              <button type="button" class="btn role-link" @click="remove(idx)">
+                Remove
+                {{ removeLabel }}
+              </button>
+            </slot>
           </td>
         </tr>
       </tbody>
@@ -274,6 +277,7 @@ export default {
 
   TABLE {
     width: 100%;
+    border-spacing: 0;
   }
 
   TH {

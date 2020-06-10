@@ -1,16 +1,11 @@
 <script>
 export default {
-  data: () => ({ loading: false }),
-
-  methods: {
-    start() {
-      this.loading = true;
-    },
-
-    finish() {
-      this.loading = false;
+  props: {
+    loading: {
+      type:    Boolean,
+      default: true,
     }
-  }
+  },
 };
 </script>
 
@@ -21,13 +16,12 @@ export default {
       Loading...
     </div>
   </div>
+  <div v-else>
+    <slot />
+  </div>
 </template>
 
 <style lang="scss" scoped>
-  @import "~assets/styles/base/_variables.scss";
-  @import "~assets/styles/base/_functions.scss";
-  @import "~assets/styles/base/_mixins.scss";
-
   .overlay {
     z-index: z-index('loadingOverlay');
     background-color: var(--overlay-bg);

@@ -1,8 +1,8 @@
 import https from 'https';
 import { cloneDeep } from 'lodash';
+import { SCHEMA } from '@/config/types';
 import { normalizeType } from './normalize';
 import { proxyFor, SELF } from './resource-proxy';
-import { SCHEMA, WORKLOAD } from '@/config/types';
 
 export default {
   request({ dispatch }, opt) {
@@ -31,7 +31,11 @@ export default {
         */
       }
 
-      return responseObject(res);
+      if ( opt.responseType ) {
+        return res;
+      } else {
+        return responseObject(res);
+      }
     }).catch((err) => {
       if ( !err || !err.response ) {
         return Promise.reject(err);
@@ -41,7 +45,7 @@ export default {
 
       // Go to the logout page for 401s, unless redirectUnauthorized specifically disables (for the login page)
       if ( opt.redirectUnauthorized !== false && process.client && res.status === 401 ) {
-        return dispatch('auth/logout', opt.logoutOnError, { root: true });
+        dispatch('auth/logout', opt.logoutOnError, { root: true });
       }
 
       if ( typeof res.data !== 'undefined' ) {
@@ -63,6 +67,7 @@ export default {
         _statusText: { value: res.statusText },
         _headers:    { value: res.headers },
         _req:        { value: res.request },
+        _url:        { value: opt.url },
       });
 
       return out;
@@ -77,7 +82,6 @@ export default {
       schema._id = normalizeType(schema.id);
     });
 
-    commit('registerType', SCHEMA);
     commit('loadAll', {
       ctx,
       type: SCHEMA,
@@ -97,7 +101,7 @@ export default {
     const { getters, commit, dispatch } = ctx;
 
     opt = opt || {};
-    console.log('Find All', type);
+    console.log('Find All', type); // eslint-disable-line no-console
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -140,13 +144,13 @@ export default {
   //  url: Use this specific URL instead of looking up the URL for the type/id.  This should only be used for bootstraping schemas on startup.
   //  @TODO depaginate: If the response is paginated, retrieve all the pages. (default: true)
   async find(ctx, { type, id, opt }) {
-    const { getters, commit, dispatch } = ctx;
+    const { getters, dispatch } = ctx;
 
     opt = opt || {};
 
     type = normalizeType(type);
 
-    console.log('Find', type, id);
+    console.log('Find', type, id); // eslint-disable-line no-console
     let out;
 
     if ( opt.force !== true ) {
@@ -162,11 +166,11 @@ export default {
 
     const res = await dispatch('request', opt);
 
-    if ( !getters.typeRegistered(type) ) {
-      commit('registerType', type);
-    }
-
     await dispatch('load', { data: res });
+
+    if ( opt.watch ) {
+      dispatch('watchType', { type });
+    }
 
     out = getters.byId(type, id);
 
@@ -190,14 +194,30 @@ export default {
       }
     }
 
+    const id = data?.id || existing?.id;
+
+    if ( !id ) {
+      console.warn('Attempting to load a resource with no id', data, existing); // eslint-disable-line no-console
+
+      return;
+    }
+
     commit('load', {
       ctx,
-      type,
       data,
       existing
     });
 
-    return getters['byId'](type, data.id || existing.id);
+    return getters['byId'](type, id);
+  },
+
+  loadMulti(ctx, entries) {
+    const { commit } = ctx;
+
+    commit('loadMulti', {
+      entries,
+      ctx,
+    });
   },
 
   loadAll(ctx, { type, data }) {

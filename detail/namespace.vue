@@ -1,20 +1,25 @@
 <script>
 import { get } from '@/utils/object';
-
 import createEditView from '@/mixins/create-edit-view';
-import ResourceQuota from '@/edit/namespace/ResourceQuota';
-import LabelsAndAnnotationsTabs from '@/components/LabelsAndAnnotations/Tabs';
+import DetailTop from '@/components/DetailTop';
+import ContainerResourceLimit from '@/components/ContainerResourceLimit';
+import LiveDate from '@/components/formatter/LiveDate';
 import { DESCRIPTION } from '@/config/labels-annotations';
+import ResourceTabs from '@/components/form/ResourceTabs';
+import Tab from '@/components/Tabbed/Tab';
 
 export default {
   name: 'DetailNamespace',
 
   components: {
-    ResourceQuota,
-    LabelsAndAnnotationsTabs
+    ContainerResourceLimit,
+    DetailTop,
+    LiveDate,
+    ResourceTabs,
+    Tab
   },
 
-  mixins:     [createEditView],
+  mixins: [createEditView],
 
   props: {
     value: {
@@ -54,53 +59,41 @@ export default {
     }
 
     return {
-      originalQuotaID, description, name: this.value.metadata.name
+      originalQuotaID,
+      description,
+      name: this.value.metadata.name
     };
+  },
+
+  computed: {
+    detailTopColumns() {
+      return [
+        {
+          title: this.$store.getters['i18n/t']('generic.created'),
+          name:  'created'
+        },
+      ];
+    },
   },
 };
 </script>
 
 <template>
   <div class="namespace-detail">
-    <ResourceQuota
-      :original-i-d="originalQuotaID"
-      :register-after-hook="registerAfterHook"
-      :mode="mode"
-      :namespace="value"
-      row-classes="detail-top"
-    >
-      <template v-slot:default="slotProps">
-        <div>
-          <label for="">CPU Limit</label>
-          <span>
-            {{ slotProps.limitsCPU }}
-            <span class="addon">MCPUs</span>
-          </span>
-        </div>
-        <div>
-          <label for="">CPU Reservation</label>
-          <span>
-            {{ slotProps.limitsMem }}
-            <span class="addon">MCPUs</span>
-          </span>
-        </div>
-        <div>
-          <label for="">Memory Limit</label>
-          <span>
-            {{ slotProps.reqCPU }}
-            <span class="addon">MB</span>
-          </span>
-        </div>
-        <div>
-          <label for="">Memory Reservation</label>
-          <span>
-            {{ slotProps.reqMem }}
-            <span class="addon">MB</span>
-          </span>
-        </div>
+    <DetailTop :columns="detailTopColumns">
+      <template v-slot:created>
+        <LiveDate :value="value.metadata.creationTimestamp" :add-suffix="true" />
       </template>
-    </ResourceQuota>
+    </DetailTop>
+
     <div class="spacer"></div>
-    <LabelsAndAnnotationsTabs :labels="value.metadata.labels" :annotations="value.metadata.annotations" />
+
+    <ResourceTabs v-model="value" :mode="mode">
+      <template #before>
+        <Tab name="container-resource-limit" :label="t('containerResourceLimit.label')">
+          <ContainerResourceLimit :mode="mode" :namespace="value" />
+        </Tab>
+      </template>
+    </ResourceTabs>
   </div>
 </template>

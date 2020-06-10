@@ -59,7 +59,7 @@ export const getters = {
     for ( const node of selected ) {
       if (node.availableActions) {
         for ( const act of node.availableActions ) {
-          if ( act.bulkable ) {
+          if ( act.bulkable && act.enabled ) {
             _add(map, act, false);
           }
         }
@@ -69,6 +69,16 @@ export const getters = {
     // If there's no items actually selected, we want to see all the actions
     // so you know what exists, but have them all be disabled since there's nothing to do them on.
     const out = _filter(map, disableAll);
+
+    // Enable actions based on the selection all being enabled.
+    out.forEach((bulkAction) => {
+      const actionEnabledForAllSelected = state.tableSelected.every((node) => {
+        return node.availableActions
+          .some(action => action.action === bulkAction.action && action.enabled);
+      });
+
+      bulkAction.enabled = state.tableSelected.length > 0 && actionEnabledForAllSelected;
+    });
 
     return out;
   },
@@ -87,8 +97,10 @@ export const getters = {
     const map = {};
 
     for ( const node of selected ) {
-      for ( const act of node.availableActions ) {
-        _add(map, act);
+      if (node.availableActions) {
+        for ( const act of node.availableActions ) {
+          _add(map, act);
+        }
       }
     }
 

@@ -23,7 +23,7 @@
   $lightest         : #FFFFFF;
 
   $secondary        : $lighter;
-  $disabled         : $light;
+  $disabled         : $medium;
 
   //Contrast colors
   $contrasted-dark  : $lightest !default;
@@ -77,12 +77,13 @@
 
   --input-text                 : #{$lightest};
   --input-label                : #{$lighter};
-  --input-placeholder          : #{$secondary};
+  --input-placeholder          : #{$disabled};
   --input-border               : var(--border);
   --input-bg                   : #{$dark};
+  --input-hover-bg             : var(--body-bg);
   --input-focus-bg             : #{$darkest};
   --input-disabled-text        : #{$medium};
-  --input-disabled-bg          : #{$disabled};
+  --input-disabled-bg          : #{$dark};
   --input-disabled-border      : #{$disabled};
   --input-disabled-placeholder : darken($disabled, 10%);
   --input-addon-bg             : #{$darker};
@@ -96,34 +97,36 @@
   --sortable-table-accent-alt  : #{$darker};
   --sortable-table-top-divider : var(--border);
   --sortable-table-selected-bg : #{$selected};
+  --sortable-table-group-label : #{$lighter};
 
+  --popover-bg                 : var(--body-bg);
+  --popover-border             : var(--border);
+  --popover-text               : var(--body-text);
   --tooltip-bg                 : #{$primary};
+  --tooltip-border             : var(--border);
   --tooltip-text               : var(--body-text);
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$darkest};
+  --tabbed-container-bg-contrast        : #{$dark};
 
-  --diff-border                : var(--border);
-  --diff-header-bg             : var(--nav-bg);
-  --diff-header-border         : var(--border);
-  --diff-header                : #{rgba($darkest, 0.3)};
-  --diff-linenum-bg            : var(--nav-bg);
-  --diff-linenum               : var(--muted);
-  --diff-linenum-border        : var(--border);
-  --diff-line-ins-bg           : $success;
-  --diff-line-del-bg           : #{rgba($error, 0.75)};
-  --diff-del-bg                : #{rgba($error, 0.3)};
-  --diff-del-border            : #{$error};
-  --diff-ins-bg                : #{rgba($success, 0.3)};
-  --diff-ins-border            : #{rgba($success, 0.5)};
-  --diff-chg-ins               : #{rgba($success, 0.25)};
-  --diff-chg-del               : #{rgba($warning, 0.5)};
 
-  --wm-tabs-bg                 : #{$medium};
-  --wm-tab-bg                  : #{$darker};
+  --wm-tabs-bg                 : #{$darker};
+  --wm-tab-bg                  : #{$darkest};
   --wm-closer-hover-bg         : #{$medium};
   --wm-tab-active-bg           : #{$darker};
-  --wm-body-bg                 : #{$darker};
+  --wm-title-bg                : #{$darkest};
+  --wm-title-border            : #{$medium};
+  --wm-body-bg                 : #{$darkest};
   --wm-border                  : black;
+
+  --terminal-bg                : var(--wm-body-bg);
+  --terminal-cursor            : var(--warning);
+  --terminal-text              : var(--body-text);
+
+  --logs-bg                    : var(--wm-body-bg);
+  --logs-highlight             : var(--wm-body-bg);
+  --logs-highlight-bg          : var(--warning);
+  --logs-text                  : var(--body-text);
 }
 

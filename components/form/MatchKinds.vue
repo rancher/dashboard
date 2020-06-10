@@ -71,6 +71,11 @@ export default {
           />
         </td>
       </template>
+      <template v-slot:remove-button="scope">
+        <button class="btn role-link close" @click="scope.remove">
+          <i class="icon icon-2x icon-x" />
+        </button>
+      </template>
     </ArrayList>
   </div>
 </template>
@@ -86,11 +91,22 @@ export default {
     border-collapse: separate;
     border-spacing: 0px 15px;
 
-    & > tbody > tr:not(:last-of-type) > td {
-      vertical-align: top;
-      padding-bottom: 10px;
+    & > tbody > tr {
+      background: var(--default);
+      border: 1px solid var(--tabbed-border);
       border-radius: var(--border-radius);
-      border-bottom: 1px solid var(--border);
+      padding: 40px;
+
+      &:not(:last-of-type) > td {
+        vertical-align: top;
+        padding-bottom: 10px;
+        border-radius: var(--border-radius);
+        border-bottom: 1px solid var(--border);
+      }
+
+      & > td.remove {
+        vertical-align: top;
+      }
     }
   }
 }

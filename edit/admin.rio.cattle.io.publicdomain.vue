@@ -1,13 +1,11 @@
 <script>
 import { TLS } from '@/models/secret';
-import LoadDeps from '@/mixins/load-deps';
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Footer from '@/components/form/Footer';
 import { RIO, SECRET } from '@/config/types';
 import { groupAndFilterOptions } from '@/utils/group';
-import { allHash } from '@/utils/promise';
 import Target from '@/components/form/Target';
 
 const KIND_LABELS = {
@@ -30,7 +28,7 @@ export default {
     NameNsDescription,
     Footer,
   },
-  mixins:     [CreateEditView, LoadDeps],
+  mixins: [CreateEditView],
 
   data() {
     let spec = this.value.spec;
@@ -62,14 +60,14 @@ export default {
   computed: {
     appOptions() {
       return groupAndFilterOptions(this.allServices, null, {
-        itemValueKey: 'namespaceApp', itemLabelKey: 'app', groupBy:      null
+        itemValueKey: 'namespaceApp', itemLabelKey: 'app', groupBy: null
       });
     },
 
     routerOptions() {
       // return this.allRouters;
       return groupAndFilterOptions(this.allRouters, null, {
-        itemValueKey: 'namespaceApp', itemLabelKey: 'app', groupBy:      null
+        itemValueKey: 'namespaceApp', itemLabelKey: 'app', groupBy: null
       });
     },
 
@@ -129,13 +127,11 @@ export default {
     },
   },
 
+  async fetc() {
+    this.allSecrets = await this.$store.dispatch('cluster/findAll', { type: SECRET });
+  },
+
   methods: {
-    async loadDeps() {
-      const hash = await allHash({ secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }) });
-
-      this.allSecrets = hash.secrets;
-    },
-
     update() {
       const spec = this.value.spec;
 
@@ -151,13 +147,11 @@ export default {
 
 <template>
   <form>
-    <Loading ref="loader" />
-    <div v-if="loading">
-    </div>
+    <Loading v-if="$fetchState.pending" />
     <template v-else>
       <NameNsDescription
+        v-model="value"
         :namespaced="false"
-        :value="value"
         :mode="mode"
         name-label="Name"
       />

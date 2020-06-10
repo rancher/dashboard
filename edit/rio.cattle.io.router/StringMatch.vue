@@ -27,7 +27,7 @@ export default {
 
   data() {
     return {
-      types: this.options || ['exact', 'prefix', 'regexp'], value: Object.values(this.spec)[0] || '', type:  Object.keys(this.spec)[0] || 'exact'
+      types: this.options || ['exact', 'prefix', 'regexp'], value: Object.values(this.spec)[0] || '', type: Object.keys(this.spec)[0] || 'exact'
     };
   },
   methods: {

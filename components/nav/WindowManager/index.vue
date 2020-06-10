@@ -1,10 +1,15 @@
 <script>
 import { mapState } from 'vuex';
+import { debounce } from 'lodash';
 import { screenRect, boundingRect } from '@/utils/position';
 
 export default {
   data() {
-    return { dragOffset: 0 };
+    return {
+      dragOffset:     0,
+      reportedHeight: this.height,
+      firstHeight:    true,
+    };
   },
 
   computed: {
@@ -16,17 +21,26 @@ export default {
           return 0;
         }
 
-        // @TODO remember across reloads, normalize to fit into current screen
-        // const cached = window.localStorage.getItem('wm-height');
         if ( this.userHeight ) {
           return this.userHeight;
         }
 
-        return 200;
+        const windowHeight = window.innerHeight;
+        let height = parseInt(window.localStorage.getItem('wm-height'), 10);
+
+        if ( !height ) {
+          height = Math.round(windowHeight / 2);
+        }
+        height = Math.min(height, 3 * windowHeight / 4);
+
+        window.localStorage.setItem('wm-height', height);
+
+        return height;
       },
 
       set(val) {
         this.$store.commit('wm/setUserHeight', val);
+        window.localStorage.setItem('wm-height', val);
         this.show();
 
         return val;
@@ -36,7 +50,12 @@ export default {
 
   watch: {
     tabs() {
-      if ( this.open ) {
+      this.toggle(true);
+    },
+
+    open(neu) {
+      if ( neu ) {
+        this.setReportedHeight();
         this.show();
       } else {
         this.hide();
@@ -45,24 +64,25 @@ export default {
   },
 
   mounted() {
-    if ( this.open ) {
-      this.show();
-    } else {
-      this.hide();
-    }
+    this.toggle(true);
+    this.queueUpdate = debounce(this.setReportedHeight, 250);
   },
 
   methods: {
-    toggle() {
-      if ( this.open ) {
+    switchTo(id) {
+      this.$store.commit('wm/setActive', id);
+    },
+
+    toggle(reverse = false) {
+      if ( this.dragging ) {
+        return;
+      }
+
+      if ( this.open ^ reverse ) {
         this.hide();
       } else {
         this.show();
       }
-    },
-
-    switchTo(tab) {
-      this.$store.commit('wm/setActive', tab);
     },
 
     show() {
@@ -81,8 +101,6 @@ export default {
     },
 
     dragStart(event) {
-      console.log('dragStart', event);
-
       const doc = document.documentElement;
 
       doc.addEventListener('mousemove', this.dragMove);
@@ -96,24 +114,25 @@ export default {
       const rect = boundingRect(event.target);
       const offset = eventY - rect.top;
 
-      console.log(offset, eventY, rect);
-
       this.dragOffset = offset;
     },
 
     dragMove(event) {
-      const rect = screenRect();
+      const screen = screenRect();
       const eventY = event.screenY;
+      const min = 50;
+      const max = Math.round( 3 * screen.height / 4);
 
-      const neu = rect.height - eventY - this.dragOffset;
+      let neu = screen.height - eventY + this.dragOffset;
 
-      console.log(rect.height, '-', eventY, '-', this.dragOffset, '=', neu);
+      neu = Math.max(min, Math.min(neu, max));
+
       this.height = neu;
+      this.dragging = true;
+      this.queueUpdate();
     },
 
     dragEnd(event) {
-      console.log('dragEnd', event);
-
       const doc = document.documentElement;
 
       doc.removeEventListener('mousemove', this.dragMove);
@@ -122,11 +141,24 @@ export default {
       doc.removeEventListener('mouseleave', this.dragEnd);
       doc.removeEventListener('touchend touchcancel', this.dragEnd, true);
       doc.removeEventListener('touchstart', this.dragEnd, true);
+
+      this.setReportedHeight();
+      setTimeout(() => {
+        this.dragging = false;
+      }, 100);
     },
 
-    close(tab) {
-      this.$store.dispatch('wm/close', tab);
+    setReportedHeight() {
+      this.reportedHeight = this.height;
     },
+
+    close(id) {
+      this.$store.dispatch('wm/close', id);
+    },
+
+    componentFor(tab) {
+      return require(`@/components/nav/WindowManager/${ tab.component }`).default;
+    }
   }
 };
 </script>
@@ -136,25 +168,37 @@ export default {
     <div ref="tabs" class="tabs">
       <div
         v-for="tab in tabs"
-        :key="tab"
+        :key="tab.id"
         class="tab"
-        :class="{'active': tab === active}"
-        @click="switchTo(tab)"
+        :class="{'active': tab.id === active}"
+        @click="switchTo(tab.id)"
       >
-        {{ tab }}
-        <i class="closer icon icon-x" @click="close(tab)" />
+        <i v-if="tab.icon" class="icon" :class="{['icon-'+ tab.icon]: true}" />
+        {{ tab.label }}
+        <i class="closer icon icon-x" @click="close(tab.id)" />
       </div>
       <div
-        class="collapser"
-        @click="toggle"
+        class="resizer"
         @mousedown.prevent.stop="dragStart($event)"
         @touchstart.prevent.stop="dragStart($event)"
+        @click="toggle"
       >
-        <i class="icon" :class="{'icon-chevron-up': !open, 'icon-chevron-down': open}" />
+        <i class="icon icon-sort" />
       </div>
     </div>
-    <div class="body">
-      {{ active }} Body
+    <div
+      v-for="tab in tabs"
+      :key="tab.id"
+      class="body"
+      :class="{'active': tab.id === active}"
+    >
+      <component
+        :is="componentFor(tab)"
+        :tab="tab"
+        :active="tab.id === active"
+        :height="reportedHeight"
+        v-bind="tab.attrs"
+      />
     </div>
   </div>
 </template>
@@ -170,6 +214,10 @@ export default {
 
     grid-template-rows: var(--wm-tab-height) auto;
 
+    .tabs, .body {
+      max-width: 100%;
+    }
+
     .tabs {
       grid-area: tabs;
       background-color: var(--wm-tabs-bg);
@@ -180,6 +228,7 @@ export default {
       align-content: stretch;
 
       .tab {
+        cursor: pointer;
         border-top: 1px solid var(--wm-border);
         border-right: 1px solid var(--wm-border);
         padding: 0 10px;
@@ -196,29 +245,37 @@ export default {
         }
       }
 
-      .collapser {
+      .resizer {
         width: var(--wm-tab-height);
-        padding: 0 10px;
+        padding: 0 5px;
+        margin: 0 0 0 1px;
         text-align: center;
         border-left: 1px solid var(--wm-border);
+        border-right: 1px solid var(--wm-border);
         line-height: var(--wm-tab-height);
         height: calc(var(--wm-tab-height) + 1px);
         flex-grow: 0;
-        cursor: pointer;
-      }
-
-      .closer {
-        padding: 0 0 0 10px;
 
         &:hover {
           background-color: var(--wm-closer-hover-bg);
         }
+      }
+
+      .resizer {
+        cursor: ns-resize;
       }
     }
 
     .body {
       grid-area: body;
       background-color: var(--wm-body-bg);
+      display: none;
+      overflow: hidden;
+
+      &.active {
+        display: block;
+        height: 100%;
+      }
     }
   }
 </style>

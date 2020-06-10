@@ -1,9 +1,7 @@
 <script>
 import { DOCKER_JSON, OPAQUE, TLS } from '@/models/secret';
 import { base64Encode, base64Decode } from '@/utils/crypto';
-import { get } from '@/utils/object';
-import { NAMESPACE, SECRET } from '@/config/types';
-import { DESCRIPTION } from '@/config/labels-annotations';
+import { NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
@@ -11,6 +9,16 @@ import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import ResourceTabs from '@/components/form/ResourceTabs';
+
+const types = [
+  { label: 'Certificate', value: TLS },
+  { label: 'Registry', value: DOCKER_JSON },
+  { label: 'Opaque', value: OPAQUE },
+];
+const registryAddresses = [
+  'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
+];
 
 export default {
   name: 'CruSecret',
@@ -21,23 +29,21 @@ export default {
     LabeledInput,
     LabeledSelect,
     RadioGroup,
-    NameNsDescription
+    NameNsDescription,
+    ResourceTabs
   },
-  mixins:     [CreateEditView],
+
+  mixins: [CreateEditView],
+
   data() {
-    const types = [
-      { label: 'Certificate', value: TLS },
-      { label: 'Registry', value: DOCKER_JSON },
-      { label: 'Secret', value: OPAQUE },
-    ];
-    const registryAddresses = [
-      'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
-    ];
     const isNamespaced = !!this.value.metadata.namespace;
 
     let username;
     let password;
     let registryFQDN;
+    let registryProvider = 'Custom';
+    let key;
+    let crt;
 
     if (this.value._type === DOCKER_JSON) {
       const json = base64Decode(this.value.data['.dockerconfigjson']);
@@ -48,72 +54,40 @@ export default {
 
       username = auths[registryFQDN].username;
       password = auths[registryFQDN].password;
+      registryAddresses.forEach((provider) => {
+        if (provider.toLowerCase() === registryFQDN) {
+          registryProvider = provider;
+        }
+      });
+    }
+
+    if (this.value._type === TLS) {
+      // do not show existing key when editing
+      key = this.mode === 'edit' ? '' : base64Decode((this.value.data || {})['tls.key']);
+
+      crt = base64Decode((this.value.data || {})['tls.crt']);
+    }
+
+    if (!this.value._type) {
+      this.$set(this.value, '_type', OPAQUE);
     }
 
     return {
-      // define 'type' as secret so .save() function uses secret schema instead of looking for subtype schema
-      type:             SECRET,
       types,
       isNamespaced,
       registryAddresses,
       newNS:            false,
-      registryProvider: registryAddresses[0],
+      registryProvider,
       username,
       password,
       registryFQDN,
       toUpload:         null,
-      key:              null,
-      cert:             null
+      key,
+      crt,
     };
   },
 
   computed: {
-    certificate() {
-      return TLS;
-    },
-
-    name: {
-      get() {
-        return get(this.value, 'metadata.name');
-      },
-      set(neu) {
-        this.$set(this.value.metadata, 'name', neu);
-      }
-    },
-
-    description: {
-      get() {
-        const { metadata:{ annotations = {} } } = this.value;
-
-        return annotations[DESCRIPTION] || '';
-      },
-      set(neu) {
-        this.$set(this.value.metadata.annotations, DESCRIPTION, neu );
-      }
-    },
-
-    secretSubType: {
-      get() {
-        return this.value._type || OPAQUE;
-      },
-      set(neu) {
-        this.$set(this.value, '_type', neu);
-      }
-    },
-
-    namespace: {
-      get() {
-        if (this.isNamespaced) {
-          return get(this.value, 'metadata.namespace') || 'default';
-        } else {
-          return 'n/a';
-        }
-      },
-      set(neu) {
-        this.$set(this.value.metadata, 'namespace', neu);
-      }
-    },
-
     dockerconfigjson() {
       let dockerServer = this.registryProvider === 'DockerHub' ? 'index.dockerhub.io/v1/' : 'quay.io';
 
@@ -147,27 +121,41 @@ export default {
       });
     },
 
+    isCertificate() {
+      return this.value._type === TLS;
+    },
+
     isRegistry() {
-      return this.secretSubType === DOCKER_JSON;
+      return this.value._type === DOCKER_JSON;
     },
 
     needsDockerServer() {
       return this.registryProvider === 'Artifactory' || this.registryProvider === 'Custom';
-    },
+    }
   },
 
+  watch: { 'value.data': () => {} },
+
   methods: {
-    saveSecret(buttonCB) {
-      if (this.secretSubType === DOCKER_JSON) {
+    saveSecret(buttonCb) {
+      if (this.isRegistry) {
         const data = { '.dockerconfigjson': base64Encode(this.dockerconfigjson) };
 
         this.$set(this.value, 'data', data);
-      } else if (this.secretSubType === TLS) {
-        const data = { 'tls.cert': base64Encode(this.cert), 'tls.key': base64Encode(this.key) };
+      } else if (this.isCertificate) {
+        let keyToSave;
+
+        // use preexisting key if no new one was provided while editing
+        if (this.mode === 'edit' && !this.key.length) {
+          keyToSave = (this.value.data || {})['tls.key'];
+        } else {
+          keyToSave = base64Encode(this.key);
+        }
+        const data = { 'tls.crt': base64Encode(this.crt), 'tls.key': keyToSave };
 
         this.$set(this.value, 'data', data);
       }
-      this.save(buttonCB);
+      this.save(buttonCb);
     },
 
     fileUpload(field) {
@@ -209,37 +197,53 @@ export default {
   <form>
     <NameNsDescription v-model="value" :mode="mode" :extra-columns="['type']">
       <template v-slot:type>
-        <LabeledSelect v-model="secretSubType" label="Type" :options="types" />
+        <LabeledSelect
+          v-model="value._type"
+          :label="t('secret.type')"
+          :options="types"
+          :mode="mode"
+          :disabled="mode!=='create'"
+          :taggable="true"
+          :create-option="opt=>opt"
+        />
       </template>
     </NameNsDescription>
+
     <template v-if="isRegistry">
+      <h5>Address:</h5>
       <div id="registry-type" class="row">
-        Provider: &nbsp; <RadioGroup :style="{'display':'flex'}" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
+        <RadioGroup :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row">
-        <LabeledInput v-model="registryFQDN" label="Registry Domain Name" placeholder="e.g. index.docker.io" />
+        <LabeledInput v-model="registryFQDN" :label="t('secret.registry.domainName')" placeholder="e.g. index.docker.io" :mode="mode" />
       </div>
       <div class="row">
         <div class="col span-6">
-          <LabeledInput v-model="username" label="Username" />
+          <LabeledInput v-model="username" :label="t('secret.registry.username')" :mode="mode" />
         </div>
         <div class="col span-6">
-          <LabeledInput v-model="password" label="Password" />
+          <LabeledInput v-model="password" :label="t('secret.registry.password')" :mode="mode" type="password" />
         </div>
       </div>
     </template>
 
-    <div v-else-if="secretSubType===certificate" class="row">
+    <div v-else-if="isCertificate" class="row">
       <div class="col span-6">
-        <LabeledInput v-model="key" label="Private Key" />
+        <LabeledInput
+          v-model="key"
+          type="multiline"
+          :label="t('secret.certificate.privateKey')"
+          :mode="mode"
+          placeholder="Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
+        />
         <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('key')">
-          READ FROM FILE
+          <t k="secret.certificate.readFromFile" />
         </button>
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="cert" label="CA Certificate" />
-        <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('cert')">
-          READ FROM FILE
+        <LabeledInput v-model="crt" type="multiline" :label="t('secret.certificate.caCertificate')" :mode="mode" placeholder="Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----" />
+        <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('crt')">
+          <t k="secret.certificate.readFromFile" />
         </button>
       </div>
     </div>
@@ -254,10 +258,10 @@ export default {
         :value-base64="true"
         read-icon=""
         add-icon=""
-        add-label="ADD"
-        read-label="READ FROM A FILE"
       />
     </div>
+
+    <ResourceTabs v-model="value" :mode="mode" />
 
     <input
       ref="uploader"
@@ -270,9 +274,5 @@ export default {
   </form>
 </template>
 
-<style>
-#registry-type {
-  display: flex;
-  align-items:center;
-}
+<style lang='scss'>
 </style>

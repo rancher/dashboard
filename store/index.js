@@ -2,7 +2,7 @@ import Steve from '@/plugins/steve';
 import {
   COUNT, NAMESPACE, NORMAN, EXTERNAL, MANAGEMENT
 } from '@/config/types';
-import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS } from '@/store/prefs';
+import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE } from '@/store/prefs';
 import { allHash } from '@/utils/promise';
 import { ClusterNotFoundError, ApiError } from '@/utils/error';
 import { sortBy } from '@/utils/sort';
@@ -25,10 +25,10 @@ export const state = () => {
     clusterReady:     false,
     isRancher:        false,
     namespaceFilters: [],
-    defaultNamespace: null,
     allNamespaces:    null,
     clusterId:        null,
     error:            null,
+    cameFromError:    false,
   };
 };
 
@@ -138,18 +138,22 @@ export const getters = {
     };
   },
 
-  defaultNamespace(state, getters) {
+  defaultNamespace(state, getters, rootState, rootGetters) {
     const filteredMap = getters['namespaces']();
     const isAll = getters['isAllNamespaces'];
     const all = getters['cluster/all'](NAMESPACE).map(x => x.id);
     let out;
 
-    function isOk(ns) {
-      return (isAll && all.includes(ns) ) ||
-             (!isAll && filteredMap && filteredMap[ns] );
+    function isOk() {
+      if ( !out ) {
+        return false;
+      }
+
+      return (isAll && all.includes(out) ) ||
+             (!isAll && filteredMap && filteredMap[out] );
     }
 
-    out = state.defaultNamespace;
+    out = rootGetters['prefs/get'](LAST_NAMESPACE);
     if ( isOk() ) {
       return out;
     }
@@ -167,7 +171,7 @@ export const getters = {
       }
     }
 
-    return all[0] || 'default';
+    return all[0];
   }
 };
 
@@ -189,10 +193,6 @@ export const mutations = {
     }
   },
 
-  setDefaultNamespace(state, ns) {
-    state.defaultNamespace = ns;
-  },
-
   setCluster(state, neu) {
     state.clusterId = neu;
   },
@@ -200,9 +200,14 @@ export const mutations = {
   setError(state, obj) {
     const err = new ApiError(obj);
 
-    console.log('Loading error', err);
+    console.log('Loading error', err); // eslint-disable-line no-console
 
     state.error = err;
+    state.cameFromError = true;
+  },
+
+  cameFromError(state) {
+    state.cameFromError = true;
   }
 };
 
@@ -215,7 +220,7 @@ export const actions = {
       return;
     }
 
-    console.log('Loading management...');
+    console.log('Loading management...'); // eslint-disable-line no-console
 
     try {
       await dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: 'principals' } });
@@ -241,7 +246,7 @@ export const actions = {
 
     commit('managementChanged', { ready: true, isRancher });
 
-    console.log('Done loading management.');
+    console.log('Done loading management.'); // eslint-disable-line no-console
   },
 
   async loadCluster({
@@ -268,14 +273,14 @@ export const actions = {
 
     if ( id ) {
       // Remember the new one
-      dispatch('prefs/set', { key: CLUSTER_PREF, val: id });
+      dispatch('prefs/set', { key: CLUSTER_PREF, value: id });
       commit('setCluster', id);
     } else if ( isRancher ) {
       // Switching to a global page with no cluster id, keep it the same.
       return;
     }
 
-    console.log(`Loading ${ isRancher ? 'Rancher ' : '' }cluster...`);
+    console.log(`Loading ${ isRancher ? 'Rancher ' : '' }cluster...`); // eslint-disable-line no-console
 
     if ( isRancher ) {
       // See if it really exists
@@ -354,12 +359,12 @@ export const actions = {
 
     commit('clusterChanged', true);
 
-    console.log('Done loading cluster.');
+    console.log('Done loading cluster.'); // eslint-disable-line no-console
   },
 
-  switchNamespaces({ commit, dispatch }, val) {
-    dispatch('prefs/set', { key: NAMESPACE_FILTERS, val });
-    commit('updateNamespaces', { filters: val });
+  switchNamespaces({ commit, dispatch }, value) {
+    dispatch('prefs/set', { key: NAMESPACE_FILTERS, value });
+    commit('updateNamespaces', { filters: value });
   },
 
   async onLogout({ dispatch, commit }) {
@@ -388,6 +393,7 @@ export const actions = {
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
     dispatch('prefs/loadCookies');
+    dispatch('prefs/loadTheme');
   },
 
   loadingError({ commit, redirect }, err) {

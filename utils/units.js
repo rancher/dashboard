@@ -32,9 +32,9 @@ export function formatSi(inValue, {
 
   if ( addSuffix ) {
     if ( exp === 0 && firstSuffix !== null) {
-      out += `${ firstSuffix }`;
+      out += ` ${ firstSuffix }`;
     } else {
-      out += `${ UNITS[exp] }${ suffix }` || '';
+      out += ` ${ UNITS[exp] }${ suffix }` || '';
     }
   }
 

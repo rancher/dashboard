@@ -4,6 +4,7 @@ import DetailTop from '@/components/DetailTop';
 import VStack from '@/components/Layout/Stack/VStack';
 import TableRbacRules from '@/components/TableRbacRules';
 import { DESCRIPTION } from '@/config/labels-annotations';
+import ResourceTabs from '@/components/form/ResourceTabs';
 
 /**
  * Detail view for RBAC Cluster Role
@@ -16,9 +17,10 @@ export default {
     DetailTop,
     TableRbacRules,
     VStack,
+    ResourceTabs
   },
 
-  mixins:     [createEditView],
+  mixins: [createEditView],
 
   props: {
     /**
@@ -59,10 +61,6 @@ export default {
         {
           title:   'Type',
           content: this.typeDisplay
-        },
-        {
-          title:   'Description',
-          content: this.description
         },
       ];
 
@@ -111,5 +109,6 @@ t>
     <div class="row mt-50">
       <TableRbacRules :role="value" />
     </div>
+    <ResourceTabs v-model="value" :mode="mode" />
   </VStack>
 </template>

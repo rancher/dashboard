@@ -1,6 +1,12 @@
 .v-select {
   position: relative;
   font-family: inherit;
+
+  &.auto-width {
+    display: inline-block;
+    width: auto;
+    min-width: 2em;
+  }
 }
 
 
@@ -40,11 +46,18 @@
   list-style: none;
   background: var(--dropdown-bg);
   box-shadow: 0px 8px 16px 0px var(--shadow);
+
   &::-webkit-scrollbar-thumb {
     background-color: var(--scrollbar-thumb-dropdown) !important;
     border-radius: 4px;
   }
 
+  &[data-popper-placement='top'] {
+    border-radius: 4px 4px 0 0;
+    border-top-style: solid;
+    border-bottom-style: none;
+    box-shadow: 0px -8px 16px 0px var(--shadow);
+  }
 }
 
 .vs__dropdown-option {
@@ -80,6 +93,7 @@
   // padding: 0 0 4px 0;
   background: var(--input-bg);
   border: 1px solid var(--dropdown-border);
+  border-radius: 4px;
   white-space: normal;
 }
 
@@ -95,8 +109,8 @@
 .vs__actions {
   display: flex;
   align-items: center;
-  padding: 0 6px 0 3px;
   pointer-events: none;
+  padding-right: 10px;
 }
 
 .vs--searchable .vs__dropdown-toggle {
@@ -179,8 +193,7 @@ $transition-duration: 150ms;
     background-color: transparent;
     border-color: transparent;
   }
-  &.vs--open .vs__selected {
-  }
+
   &.vs--searching .vs__selected {
     display: none;
   }
@@ -212,10 +225,7 @@ $transition-duration: 150ms;
 /*inline single-option select*/
 
 .v-select.inline {
-  background-color: var(--input-bg);
-  height: 100%;
-  // border: solid $outline-width var(--input-border);
-  // border-radius: var(--border-radius);
+  background-color: transparent;
 
   .vs__selected {
     color: var(--input-text);
@@ -233,7 +243,7 @@ $transition-duration: 150ms;
     border:none;
     height: 100%;
     padding: none;
-    border-radius: var(--border-radius);
+    border-radius: calc(var(--border-radius) * 2);
     border: 1px solid var(--dropdown-border);
   }
 
@@ -257,8 +267,31 @@ $transition-duration: 150ms;
 
 }
 
+.v-select.mini {
+  position: relative;
+  top: 2px;
+
+  .vs__dropdown-toggle {
+    padding: 5px 0;
+  }
+
+  .vs__selected {
+    margin: 0;
+  }
+
+  INPUT {
+    padding: 0;
+  }
+}
+
 .vs__selected-options INPUT {
   width: auto;
   display: inline-block;
   border: 0;
+}
+
+.protocol-select {
+  .vs__dropdown-toggle {
+    padding: 6px 0 6px 6px !important;
+  }
 }

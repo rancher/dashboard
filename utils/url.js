@@ -26,6 +26,16 @@ export function addParams(url, params) {
   return url;
 }
 
+export function removeParam(url, key) {
+  const parsed = parse(url);
+
+  if ( parsed.query?.[key] ) {
+    delete parsed.query[key];
+  }
+
+  return stringify(parsed);
+}
+
 export function parseLinkHeader(str) {
   const out = {};
   const lines = (str || '').split(',');
@@ -77,3 +87,29 @@ parse.options = {
     loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
   }
 };
+
+export function stringify(uri) {
+  let out = `${ uri.protocol }://`;
+
+  if ( uri.user && uri.password ) {
+    out += `${ uri.user }:${ uri.password }@`;
+  } else if ( uri.user ) {
+    out += `${ uri.user }@`;
+  }
+
+  out += uri.host;
+
+  if ( uri.port ) {
+    out += `:${ uri.port }`;
+  }
+
+  out += uri.path || '/';
+
+  out = addParams(out, uri.query || {});
+
+  if ( uri.anchor ) {
+    out += `#${ uri.anchor }`;
+  }
+
+  return out;
+}

@@ -21,7 +21,7 @@ export function proxyFor(ctx, obj, isClone = false) {
 
   if ( process.server ) {
     Object.defineProperty(obj, '__rehydrate', {
-      value:        true,
+      value:        ctx.state.config.namespace,
       enumerable:   true,
       configurable: true
     });
@@ -36,7 +36,8 @@ export function proxyFor(ctx, obj, isClone = false) {
     }
   }
 
-  const model = lookup(obj.type) || ResourceInstance;
+  const mappedType = ctx.rootGetters['type-map/componentFor'](obj.type);
+  const model = lookup(mappedType, obj?.metadata?.name) || ResourceInstance;
 
   const proxy = new Proxy(obj, {
     get(target, name) {

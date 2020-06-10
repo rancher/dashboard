@@ -1,10 +1,11 @@
 <script>
 import Probe from '@/components/form/Probe';
+import { _VIEW } from '../../config/query-params';
 
 export default {
   components: { Probe },
   props:      {
-    spec: {
+    value: {
       type:     Object,
       required: true,
     },
@@ -13,30 +14,44 @@ export default {
       required: true,
     },
   },
+
+  computed: {
+    isView() {
+      return this.mode === _VIEW;
+    }
+  }
 };
 </script>
 
 <template>
-  <div class="row">
-    <div class="col span-11-of-23">
+  <div>
+    <div class="row">
       <Probe
-        v-model="spec.readinessProbe"
+        v-model="value.readinessProbe"
+        class="col span-12"
         :mode="mode"
-        :for-liveness="false"
         label="Readiness Check"
-        description="Containers will be removed from service endpoints when this check is failing.  Recommended."
+        :description="t('workload.container.healthcheck.readinessTip')"
       />
     </div>
-    <div class="col span-1-of-23" style="position: relative; overflow: hidden">
-      <hr class="vertical" />
-    </div>
-    <div class="col span-11-of-23">
+    <hr v-if="!isView" />
+    <div class="row">
       <Probe
-        v-model="spec.livenessProbe"
+        v-model="value.livenessProbe"
+        class="col span-12"
         :mode="mode"
-        :for-liveness="true"
         label="Liveness Check"
-        description="Containers will be restarted when this check is failing.  Not recommended for most uses."
+        :description="t('workload.container.healthcheck.livenessTip')"
+      />
+    </div>
+    <hr v-if="!isView" />
+    <div class="row mb-0">
+      <Probe
+        v-model="value.startupProbe"
+        class="col span-12"
+        :mode="mode"
+        label="Startup Check"
+        :description="t('workload.container.healthcheck.startupTip')"
       />
     </div>
   </div>

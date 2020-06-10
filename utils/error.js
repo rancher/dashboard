@@ -8,9 +8,10 @@ export class ClusterNotFoundError extends Error {
 export class ApiError extends Error {
   constructor(res) {
     super(stringify(res));
-    this.status = res.status || 0;
-    this.statusText = res.statusText;
+    this.status = res._status || 0;
+    this.statusText = res._statusText;
     this.headers = res.headers;
+    this.url = res._url;
   }
 
   toString() {
@@ -33,8 +34,10 @@ export function stringify(err) {
           str = err.detail;
         }
       }
-    } else if ( err && err.detail ) {
+    } else if ( err.detail ) {
       str = err.detail;
+    } else if ( err.url ) {
+      str = `from ${ err.url }`;
     }
   } else {
     // Good luck...

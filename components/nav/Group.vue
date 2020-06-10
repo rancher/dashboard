@@ -23,7 +23,7 @@ export default {
     },
 
     isExpanded: {
-      type:     Function,
+      type:     [Function, Boolean],
       required: true,
     },
 

@@ -1,9 +1,20 @@
 import { cloneDeep, flattenDeep, compact, pick } from 'lodash';
+import jsonpath from 'jsonpath';
 import { typeOf } from './sort';
 
 const quotedKey = /['"]/;
 
 export function get(obj, path) {
+  if ( path.startsWith('$') ) {
+    try {
+      return jsonpath.query(obj, path)[0];
+    } catch (e) {
+      console.log('JSON Path error', e); // eslint-disable-line no-console
+
+      return '(JSON Path err)';
+    }
+  }
+
   let parts;
 
   if ( path.match(quotedKey) ) {
@@ -37,6 +48,18 @@ export function clone(obj) {
 
 export function isEmpty(obj) {
   return !Object.keys(obj).length;
+}
+
+/**
+ * Checks to see if the object is a simple key value pair where all values are
+ * just primitives.
+ * @param {any} obj
+ */
+export function isSimpleKeyValue(obj) {
+  return obj !== null &&
+    !Array.isArray(obj) &&
+    typeof obj === 'object' &&
+    Object.values(obj || {}).every(v => typeof v !== 'object');
 }
 
 /*

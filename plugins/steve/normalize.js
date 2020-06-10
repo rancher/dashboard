@@ -55,8 +55,14 @@ export function cleanForNew(obj) {
     delete m.resourceVersion;
     delete m.selfLink;
     delete m.creationTimestamp;
+    delete m.deletionTimestamp;
+    delete m.state;
     dropKeys(m.annotations);
     dropKeys(m.labels);
+  }
+
+  if ( obj?.spec?.crd?.spec?.names?.kind ) {
+    obj.spec.crd.spec.names.kind = '';
   }
 
   return obj;

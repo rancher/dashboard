@@ -4,6 +4,8 @@ import { get } from '@/utils/object';
 import InfoBoxCluster from '@/components/InfoBoxCluster';
 import InfoBox from '@/components/InfoBox';
 import SortableTable from '@/components/SortableTable';
+import DetailTop from '@/components/DetailTop';
+import ClusterDisplayProvider from '@/components/ClusterDisplayProvider';
 import {
   MESSAGE,
   NAME,
@@ -20,16 +22,69 @@ import {
   NODE,
   METRIC,
   EXTERNAL,
-  GATEKEEPER,
   SYSTEM_PROJECT_LABEL,
 } from '@/config/types';
+import { APP_ID as GATEKEEPER_APP_ID } from '@/config/chart/gatekeeper';
 import { allHash } from '@/utils/promise';
+import Poller from '@/utils/poller';
+const METRICS_POLL_RATE_MS = 30000;
+const MAX_FAILURES = 2;
 
 export default {
   components: {
+    DetailTop,
+    ClusterDisplayProvider,
     InfoBox,
     InfoBoxCluster,
     SortableTable
+  },
+
+  async asyncData(ctx) {
+    const { route, store } = ctx;
+    const id = get(route, 'params.cluster');
+    let gatekeeper = null;
+    let gatekeeperEnabled = false;
+
+    const projects = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT });
+    const targetSystemProject = projects.find(( proj ) => {
+      const labels = proj.metadata?.labels || {};
+
+      if ( labels[SYSTEM_PROJECT_LABEL] === 'true' ) {
+        return true;
+      }
+    });
+
+    if (!isEmpty(targetSystemProject)) {
+      const systemNamespace = targetSystemProject.metadata.name;
+
+      try {
+        gatekeeper = await store.dispatch('clusterExternal/find', {
+          type: EXTERNAL.APP,
+          id:   `${ systemNamespace }/${ GATEKEEPER_APP_ID }`,
+        });
+        if (!isEmpty(gatekeeper)) {
+          gatekeeperEnabled = true;
+        }
+      } catch (err) {
+        gatekeeperEnabled = false;
+      }
+    }
+
+    const cluster = await store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id });
+
+    return {
+      constraints:       [],
+      events:            [],
+      nodeMetrics:       [],
+      haveNodes:         !!store.getters['cluster/schemaFor'](NODE),
+      haveNodeTemplates: !!store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE),
+      haveNodePools:     !!store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL),
+      nodePools:         [],
+      nodeTemplates:     [],
+      nodes:             [],
+      cluster,
+      gatekeeperEnabled,
+    };
   },
 
   data() {
@@ -77,7 +132,7 @@ export default {
     ];
 
     return {
-      pollingTimeoutId:  null,
+      metricPoller:      new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
       gatekeeperEnabled: false,
       constraintHeaders,
       eventHeaders,
@@ -86,79 +141,72 @@ export default {
   },
 
   computed: {
+    detailTopColumns() {
+      const out = [];
+
+      if ( this.haveNodeTemplates && this.haveNodePools ) {
+        out.push({
+          title:   this.$store.getters['i18n/t']('infoBoxCluster.provider'),
+          name:    'cluster-provider',
+        });
+      }
+
+      out.push({
+        title:   this.$store.getters['i18n/t']('infoBoxCluster.version'),
+        content: this.cluster.kubernetesVersion
+      });
+
+      if ( this.haveNodes ) {
+        out.push({
+          title:   this.$store.getters['i18n/t']('infoBoxCluster.nodes.total.label'),
+          content: ( this.nodes || [] ).length
+        });
+      }
+
+      out.push({
+        title:   this.$store.getters['i18n/t']('infoBoxCluster.created'),
+        name:    'live-date',
+      });
+
+      return out;
+    },
+
     filteredNodes() {
-      const allNodes = ( this.nodes || [] ).slice();
+      const allNodes = this.nodes || [];
 
       return allNodes.filter(node => !node.state.includes('healthy') && !node.state.includes('active'));
     },
-    filteredConstraints() {
-      const allConstraints = ( this.constraints || [] ).slice();
 
-      return allConstraints.filter(constraint => constraint.status.totalViolations > 0);
+    filteredConstraints() {
+      const allConstraints = this.constraints || [];
+
+      return allConstraints.filter(constraint => constraint?.status?.totalViolations > 0);
     },
   },
 
-  async asyncData(ctx) {
-    const { route, store } = ctx;
-    const id = get(route, 'params.cluster');
-    let gatekeeper = null;
-    let gatekeeperEnabled = false;
-
-    const projects = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT });
-    const targetSystemProject = projects.find(( proj ) => {
-      const labels = proj.metadata?.labels || {};
-
-      if ( labels[SYSTEM_PROJECT_LABEL] === 'true' ) {
-        return true;
-      }
-    });
-
-    if (!isEmpty(targetSystemProject)) {
-      const systemNamespace = targetSystemProject.metadata.name;
-
-      try {
-        gatekeeper = await store.dispatch('clusterExternal/find', {
-          type: EXTERNAL.APP,
-          id:   `${ systemNamespace }/${ GATEKEEPER.APP_ID }`,
-        });
-        if (!isEmpty(gatekeeper)) {
-          gatekeeperEnabled = true;
-        }
-      } catch (err) {
-        gatekeeperEnabled = false;
-      }
-    }
-
-    const cluster = await store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id });
-
-    return {
-      constraints:       [],
-      nodes:             [],
-      events:            [],
-      nodeMetrics:       [],
-      pollingErrorCount: 0,
-      cluster,
-      gatekeeperEnabled,
-    };
+  mounted() {
+    this.metricPoller.start();
   },
 
   async created() {
-    const resourcesHash = await allHash({
-      allNodes:       this.fetchClusterResources(NODE),
-      allEvents:      this.fetchClusterResources(EVENT),
-      rawConstraints: this.fetchConstraints(),
-    });
+    const hash = {
+      nodes:         this.fetchClusterResources(NODE),
+      events:        this.fetchClusterResources(EVENT),
+      constraints:   this.fetchConstraints(),
+    };
 
-    this.constraints = resourcesHash.rawConstraints;
-    this.events = resourcesHash.allEvents;
-    this.nodes = resourcesHash.allNodes;
-  },
+    if ( this.haveNodeTemplates ) {
+      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+    }
 
-  mounted() {
-    const schema = this.$store.getters['cluster/schemaFor'](METRIC.NODE);
+    if ( this.haveNodePools ) {
+      hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+    }
 
-    if (schema) {
-      this.pollMetrics();
+    const res = await allHash(hash);
+
+    for ( const k in res ) {
+      this[k] = res[k];
     }
   },
 
@@ -182,7 +230,7 @@ export default {
             return constraint;
           });
       } catch (err) {
-        console.error(`Failed to fetch constraints:`, err);
+        console.error(`Failed to fetch constraints:`, err); // eslint-disable-line no-console
 
         return [];
       }
@@ -197,7 +245,7 @@ export default {
 
           return resources;
         } catch (err) {
-          console.error(`Failed fetching cluster resource ${ type } with error:`, err);
+          console.error(`Failed fetching cluster resource ${ type } with error:`, err); // eslint-disable-line no-console
 
           return [];
         }
@@ -206,66 +254,65 @@ export default {
       return [];
     },
 
-    async pollMetrics() {
-      let errCount = this.pollingErrorCount;
-
-      try {
-        const metrics = await this.fetchClusterResources(METRIC.NODE, { force: true } );
-
-        this.nodeMetrics = metrics;
-        this.pollingTimeoutId = setTimeout(this.pollMetrics, 30000);
-      } catch (err) {
-        console.error(`Error polling metrics`, err);
-
-        if (errCount < 3) {
-          this.pollingErrorCount = errCount++;
-          this.pollingTimeoutId = setTimeout(this.pollMetrics, 30000);
-        } else {
-          this.pollingErrorCount = 0;
-        }
-      }
+    async loadMetrics() {
+      this.nodeMetrics = await this.fetchClusterResources(METRIC.NODE, { force: true } );
     },
   },
 
   beforeRouteLeave(to, from, next) {
-    if (this.pollingTimeoutId) {
-      clearTimeout(this.pollingTimeoutId);
-    }
+    this.metricPoller.stop();
     next();
-  },
+  }
 };
 </script>
 
 <template>
   <section>
-    <header>
-      <h1>
-        <t k="clusterIndexPage.header" :name="cluster.nameDisplay" />
-      </h1>
-      <div class="actions">
-        <button
-          ref="cluster-actions"
-          type="button"
-          class="btn btn-sm role-multi-action actions"
-          aria-haspopup="true"
-          aria-expanded="false"
-          @click="showActions"
-        >
-          <i class="icon icon-actions" />
-        </button>
+    <header class="row">
+      <div class="span-11">
+        <h1>
+          <t k="clusterIndexPage.header" :name="cluster.nameDisplay" />
+        </h1>
+        <div>
+          <span v-if="cluster.spec.description">{{ cluster.spec.description }}</span>
+        </div>
+      </div>
+      <div class="span-1 actions-span">
+        <div class="actions">
+          <button
+            ref="cluster-actions"
+            type="button"
+            class="btn btn-sm role-multi-action actions"
+            aria-haspopup="true"
+            aria-expanded="false"
+            @click="showActions"
+          >
+            <i class="icon icon-actions" />
+          </button>
+        </div>
       </div>
     </header>
+    <DetailTop :columns="detailTopColumns" class="mb-20">
+      <template v-slot:cluster-provider>
+        <ClusterDisplayProvider :cluster="cluster" :node-templates="nodeTemplates" :node-pools="nodePools" />
+      </template>
+      <template v-slot:live-date>
+        <LiveDate :value="cluster.metadata.creationTimestamp" :add-suffix="true" />
+      </template>
+    </DetailTop>
     <InfoBoxCluster
       :cluster="cluster"
       :metrics="nodeMetrics"
       :nodes="nodes"
+      :node-templates="nodeTemplates"
+      :node-pools="nodePools"
     />
     <div class="row">
       <div class="col span-6 equal-height">
         <InfoBox>
-          <label>
+          <h5>
             <t k="clusterIndexPage.sections.nodes.label" />
-          </label>
+          </h5>
           <div class="row mt-10">
             <SortableTable
               :rows="filteredNodes"
@@ -281,9 +328,9 @@ export default {
       </div>
       <div class="col span-6 equal-height">
         <InfoBox>
-          <label>
+          <h5>
             <t k="clusterIndexPage.sections.gatekeeper.label" />
-          </label>
+          </h5>
           <div v-if="gatekeeperEnabled">
             <div class="row mt-10">
               <SortableTable
@@ -321,9 +368,9 @@ export default {
     <div class="row">
       <div class="col span-12">
         <InfoBox>
-          <label>
+          <h5>
             <t k="clusterIndexPage.sections.events.label" />
-          </label>
+          </h5>
           <div class="row mt-10">
             <SortableTable
               :rows="events"
@@ -342,3 +389,9 @@ export default {
     </div>
   </section>
 </template>
+
+<style lang="scss" scoped>
+  .actions-span {
+    align-self: center;
+  }
+</style>

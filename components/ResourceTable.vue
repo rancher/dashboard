@@ -6,7 +6,6 @@ import SortableTable from '@/components/SortableTable';
 import {
   NAME, NAME_UNLINKED,
   NAMESPACE_NAME, NAMESPACE_NAME_UNLINKED,
-  NAMESPACE_NAME_IMAGE, NAME_IMAGE,
 } from '@/config/table-headers';
 
 export default {
@@ -66,20 +65,13 @@ export default {
       } else {
         headers = this.$store.getters['type-map/headersFor'](this.schema);
       }
-
       // If only one namespace is selected, replace the namespace_name
       // column with the just name one.
       if ( !showNamespace ) {
-        let idx = headers.indexOf(NAMESPACE_NAME);
+        let idx = headers.findIndex(header => header.value === NAMESPACE_NAME.value);
 
         if ( idx >= 0 ) {
           headers.splice(idx, 1, NAME);
-        }
-
-        idx = headers.indexOf(NAMESPACE_NAME_IMAGE);
-
-        if ( idx >= 0 ) {
-          headers.splice(idx, 1, NAME_IMAGE);
         }
 
         idx = headers.indexOf(NAMESPACE_NAME_UNLINKED);
@@ -115,7 +107,7 @@ export default {
 
     groupBy() {
       if ( this.group === 'namespace' && this.groupable && this.showGroups) {
-        return 'metadata.namespace';
+        return 'groupByLabel';
       }
 
       return null;
@@ -155,6 +147,10 @@ export default {
     <template v-if="groupable && showGroups" #header-middle>
       <slot name="more-header-middle" />
       <ButtonGroup v-model="group" :options="groupOptions" />
+    </template>
+
+    <template #group-by="{group: thisGroup}">
+      <div class="group-tab" v-html="thisGroup.ref" />
     </template>
 
     <!-- Pass down templates provided by the caller -->

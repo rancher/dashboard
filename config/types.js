@@ -17,6 +17,25 @@ export const PVC = 'persistentvolumeclaim';
 export const TLS_CERT = 'kubernetes.io/tls';
 export const GATEKEEPER_CONSTRAINT_TEMPLATE = 'templates.gatekeeper.sh.constrainttemplate';
 
+export const COLLECTION_TYPES = {
+  array: 'array',
+  map:   'map',
+};
+
+export const PRIMITIVE_TYPES = {
+  string:    'string',
+  multiline: 'multiline',
+  masked:    'masked',
+  password:  'password',
+  float:     'float',
+  int:       'int',
+  date:      'date',
+  blob:      'blob',
+  boolean:   'boolean',
+  json:      'json',
+  version:   'version',
+};
+
 // Old Rancher API via Norman, /v3
 export const NORMAN = {
   AUTH_CONFIG: 'authconfig',
@@ -26,11 +45,13 @@ export const NORMAN = {
 
 // Rancher Management API via Steve, /v1
 export const MANAGEMENT = {
-  // CATALOG:          'management.cattle.io.catalog',
+  CATALOG:          'management.cattle.io.catalog',
   CATALOG_TEMPLATE: 'management.cattle.io.catalogtemplate',
   CLUSTER:          'management.cattle.io.cluster',
-  // USER:             'management.cattle.io.user',
-  PREFERENCE:       'userpreference'
+  USER:             'management.cattle.io.user',
+  PREFERENCE:       'userpreference',
+  NODE_POOL:        'management.cattle.io.nodepool',
+  NODE_TEMPLATE:    'management.cattle.io.nodetemplate',
 };
 
 // Rancher cluster-scoped things that actually live in management plane
@@ -64,7 +85,10 @@ export const RIO = {
   SYSTEM_NAMESPACE: 'rio-system',
 };
 
-export const WORKLOAD = {
+export const WORKLOAD = 'workload';
+
+// The types that are aggregated into a "workload"
+export const WORKLOAD_TYPES = {
   DEPLOYMENT:             'apps.deployment',
   DAEMON_SET:             'apps.daemonset',
   STATEFUL_SET:           'apps.statefulset',
@@ -79,33 +103,27 @@ export const METRIC = {
   POD:  'metrics.k8s.io.podmetrics',
 };
 
-export const GATEKEEPER = {
-  TEMPLATE_ID: 'cattle-global-data/system-library-rancher-gatekeeper-operator',
-  APP_ID:      'rancher-gatekeeper-operator',
-  CONFIG:      `---
-replicas: 1
-auditInterval: 300
-constraintViolationsLimit: 20
-auditFromCache: false
-image:
-  repository: rancher/opa-gatekeeper
-  tag: v3.1.0-beta.7
-  pullPolicy: IfNotPresent
-nodeSelector: {"beta.kubernetes.io/os": "linux"}
-tolerations: []
-resources:
-  limits:
-    cpu: 1000m
-    memory: 512Mi
-  requests:
-    cpu: 100m
-    memory: 256Mi
-global:
-  systemDefaultRegistry: ""
-  kubectl:
-    repository: rancher/istio-kubectl
-    tag: 1.4.6
-`
-};
-
 export const SYSTEM_PROJECT_LABEL = 'authz.management.cattle.io/system-project';
+
+export const DEFAULT_SERVICE_TYPES = [
+  {
+    id:               'ClusterIP',
+    translationLabel: 'serviceTypes.clusterip'
+  },
+  {
+    id:               'ExternalName',
+    translationLabel: 'serviceTypes.externalname'
+  },
+  {
+    id:               'Headless',
+    translationLabel: 'serviceTypes.headless'
+  },
+  {
+    id:               'LoadBalancer',
+    translationLabel: 'serviceTypes.loadbalancer'
+  },
+  {
+    id:               'NodePort',
+    translationLabel: 'serviceTypes.nodeport'
+  },
+];

@@ -160,7 +160,7 @@ export default {
 
 <template>
   <div>
-    <div class="title clearfix">
+    <div class="clearfix">
       <h4>{{ label }}</h4>
     </div>
 

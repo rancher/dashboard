@@ -4,7 +4,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import CopyCode from '@/components/CopyCode';
 import CopyToClipboard from '@/components/CopyToClipboard';
 import AsyncButton from '@/components/AsyncButton';
-import { SETUP, STEP, _DELETE } from '@/config/query-params';
+import { SETUP, STEP, _UNFLAG } from '@/config/query-params';
 import { NORMAN } from '@/config/types';
 import { open, popupWindowOptions } from '@/utils/window';
 import { findBy, filterBy, addObject, removeObject } from '@/utils/array';
@@ -12,48 +12,10 @@ import Checkbox from '@/components/form/Checkbox';
 import { getVendor, getProduct } from '@/config/private-label';
 
 export default {
-  layout: 'plain',
+  layout: 'blank',
 
   components: {
     AsyncButton, CopyCode, LabeledInput, CopyToClipboard, Checkbox
-  },
-
-  computed: {
-    passwordSubmitDisabled() {
-      if ( this.useRandom ) {
-        return false;
-      }
-
-      if ( !this.password || this.password !== this.confirm ) {
-        return true;
-      }
-
-      if ( !this.current ) {
-        return true;
-      }
-
-      return false;
-    },
-
-    githubSubmitDisabled() {
-      if ( !this.clientId || !this.clientSecret ) {
-        return true;
-      }
-
-      return false;
-    },
-
-    me() {
-      const out = findBy(this.principals, 'me', true);
-
-      return out;
-    },
-
-    orgs() {
-      const out = filterBy(this.principals, 'principalType', 'org');
-
-      return out;
-    }
   },
 
   async asyncData({ route, req, store }) {
@@ -135,11 +97,49 @@ export default {
     };
   },
 
+  computed: {
+    passwordSubmitDisabled() {
+      if ( this.useRandom ) {
+        return false;
+      }
+
+      if ( !this.password || this.password !== this.confirm ) {
+        return true;
+      }
+
+      if ( !this.current ) {
+        return true;
+      }
+
+      return false;
+    },
+
+    githubSubmitDisabled() {
+      if ( !this.clientId || !this.clientSecret ) {
+        return true;
+      }
+
+      return false;
+    },
+
+    me() {
+      const out = findBy(this.principals, 'me', true);
+
+      return out;
+    },
+
+    orgs() {
+      const out = filterBy(this.principals, 'principalType', 'org');
+
+      return out;
+    }
+  },
+
   methods: {
     goToStep(num) {
       this.step = num;
       this.$router.applyQuery({
-        [SETUP]: _DELETE,
+        [SETUP]: _UNFLAG,
         [STEP]:  this.step,
       });
     },
@@ -291,7 +291,7 @@ export default {
     async setAuthorized(buttonCb) {
       try {
         window.z = this.githubConfig;
-        console.log(this.githubConfig);
+        console.log(this.githubConfig); // eslint-disable-line no-console
         await this.githubConfig.save();
         buttonCb(true);
         this.done();

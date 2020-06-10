@@ -1,7 +1,7 @@
-import { normalizeType, KEY_FIELD_FOR } from './normalize';
+import { SCHEMA, COLLECTION_TYPES, PRIMITIVE_TYPES } from '@/config/types';
+import { normalizeType, keyFieldFor, KEY_FIELD_FOR } from './normalize';
 import urlOptions from './urloptions';
 import mutations from './mutations';
-import { SCHEMA } from '@/config/types';
 
 export default {
   all: (state, getters) => (type) => {
@@ -10,7 +10,7 @@ export default {
     if ( !getters.typeRegistered(type) ) {
       // Yes this is mutating state in a getter... it's not the end of the world..
       // throw new Error(`All of ${ type } is not loaded`);
-      console.warn(`All of ${ type } is not loaded yet`);
+      console.warn(`All of ${ type } is not loaded yet`); // eslint-disable-line no-console
       mutations.registerType(state, type);
     }
 
@@ -26,6 +26,80 @@ export default {
     }
   },
 
+  expandedArraySchema: (state, getters) => (type) => {
+    const unwrappedType = type.match(new RegExp(`^${ COLLECTION_TYPES.array }\\[(.*)\\]$`))[1];
+
+    return {
+      type:            COLLECTION_TYPES.array,
+      subType:         unwrappedType,
+      expandedSubType: getters.expandedSchema(unwrappedType)
+    };
+  },
+
+  expandedMapSchema: (state, getters) => (type) => {
+    const unwrappedType = type.match(new RegExp(`^${ COLLECTION_TYPES.map }\\[(.*)\\]$`))[1];
+
+    return {
+      type:            COLLECTION_TYPES.map,
+      subType:         unwrappedType,
+      expandedSubType: getters.expandedSchema(unwrappedType)
+    };
+  },
+
+  expandedResourceFields: (state, getters) => (schema) => {
+    return Object.keys(schema.resourceFields || {}).reduce((agg, key) => {
+      const field = schema.resourceFields[key];
+
+      return {
+        ...agg,
+        [key]: getters.expandedSchema(field)
+      };
+    }, {});
+  },
+
+  expandedSchema: (state, getters) => (typeInput) => {
+    const type = (typeof typeInput === 'string') ? typeInput : (typeInput.type || typeInput.id);
+
+    if (Object.values(PRIMITIVE_TYPES).includes(type)) {
+      return { type, isPrimitive: true };
+    }
+
+    const schema = getters.schema(type) || { type: typeInput };
+
+    if (type.startsWith(COLLECTION_TYPES.array)) {
+      return getters.expandedArraySchema(type);
+    }
+
+    if (type.startsWith(COLLECTION_TYPES.map)) {
+      return getters.expandedMapSchema(type);
+    }
+
+    if (!schema.resourceFields) {
+      return schema;
+    }
+
+    const keyField = keyFieldFor(type);
+
+    return {
+      ...schema,
+      type:                   schema[keyField],
+      expandedResourceFields: getters.expandedResourceFields(schema)
+    };
+  },
+
+  schema: (state, getters) => (type) => {
+    type = getters.normalizeType(type);
+    const schemas = state.types[SCHEMA];
+    const keyField = KEY_FIELD_FOR[SCHEMA] || KEY_FIELD_FOR['default'];
+
+    return schemas.list.find((x) => {
+      const thisOne = getters.normalizeType(x[keyField]);
+
+      return thisOne === type || thisOne.endsWith(`.${ type }`);
+    });
+  },
+
+  // Fuzzy search to find a matching schema name for plugins/lookup
   schemaName: (state, getters) => (type) => {
     type = getters.normalizeType(type);
     const schemas = state.types[SCHEMA];
@@ -39,6 +113,8 @@ export default {
     if ( entry ) {
       return entry[keyField];
     }
+
+    return type;
   },
 
   // Fuzzy is only for plugins/lookup, do not use in real code

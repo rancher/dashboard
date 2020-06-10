@@ -30,7 +30,7 @@ $spacing-property-map: (
 }
 
 .spacer {
-  padding: 20px 0 0 0;
+  padding: 40px 0 0 0;
 }
 
 .pull-right {
@@ -148,6 +148,10 @@ $spacing-property-map: (
   visibility: hidden;
 }
 
+.helper-text {
+  font-size: 12px;
+  color: var(--secondary);
+}
 // Only display content to screen readers
 //
 // See: http://a11yproject.com/posts/how-to-hide-content
@@ -205,6 +209,11 @@ $spacing-property-map: (
 
 .align-top {
   vertical-align: top !important;
+}
+
+.vertical-scroll {
+  max-height: 150px;
+  overflow: scroll;
 }
 
 .comma-list {

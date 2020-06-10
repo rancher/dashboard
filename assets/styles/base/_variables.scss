@@ -21,3 +21,14 @@ $z-indexes: (
 );
 
 $text-light: 300;
+
+
+// Usage Example:
+// @media only screen and (min-width: map-get($breakpoints, '--viewport-*')) {
+// }
+$breakpoints: (
+  '--viewport-4':  480px,
+  '--viewport-7':  768px,
+  '--viewport-9':  992px,
+  '--viewport-12': 1200px,
+);

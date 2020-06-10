@@ -1,25 +1,32 @@
 <script>
 import Vue from 'vue';
 import { merge } from 'lodash';
-import { _VIEW } from '../config/query-params';
+import jsyaml from 'js-yaml';
+import { ucFirst } from '@/utils/string';
+import { isSimpleKeyValue } from '@/utils/object';
+import { _VIEW, _CREATE } from '@/config/query-params';
 import { SCHEMA, NAMESPACE } from '@/config/types';
-import MatchKinds from '@/components/form/MatchKinds';
-import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
+import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import MatchKinds from '@/components/form/MatchKinds';
+import NameNsDescription from '@/components/form/NameNsDescription';
 import NamespaceList, { NAMESPACE_FILTERS } from '@/components/form/NamespaceList';
-import Tab from '@/components/Tabbed/Tab';
-import Tabbed from '@/components/Tabbed';
-import Footer from '@/components/form/Footer';
-import GatekeeperViolationsTable from '@/components/GatekeeperViolationsTable';
-import RuleSelector from '@/components/form/RuleSelector';
 import RadioGroup from '@/components/form/RadioGroup';
-import { ucFirst } from '@/utils/string';
+import ResourceTabs from '@/components/form/ResourceTabs';
+import RuleSelector from '@/components/form/RuleSelector';
+import Tab from '@/components/Tabbed/Tab';
+import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
+import GatekeeperViolationsTable from '@/components/chart/gatekeeper/ViolationsTable';
 
 function findConstraintTypes(schemas) {
   return schemas
-    .filter(schema => schema?.attributes?.group === 'constraints.gatekeeper.sh')
+    .filter(schema => schema?.attributes?.group === 'constraints.gatekeeper.sh');
+}
+
+function findConstraintTypesIds(schemas) {
+  return findConstraintTypes(schemas)
     .map(schema => schema.id);
 }
 
@@ -41,7 +48,8 @@ export default {
     RuleSelector,
     RadioGroup,
     Tab,
-    Tabbed
+    YamlEditor,
+    ResourceTabs
   },
 
   extends: CreateEditView,
@@ -55,6 +63,8 @@ export default {
 
   data() {
     return {
+      parametersYaml:           this.value?.spec?.parameters ? jsyaml.safeDump(this.value.spec.parameters) : '',
+      showParametersAsYaml:     !isSimpleKeyValue(this.value.spec.parameters),
       enforcementActionOptions: Object.values(ENFORCEMENT_ACTION_VALUES),
       enforcementActionLabels:  Object.values(ENFORCEMENT_ACTION_VALUES).map(ucFirst),
       NAMESPACE_FILTERS
@@ -62,7 +72,7 @@ export default {
   },
 
   computed: {
-    extraDetailColumns() {
+    detailTopColumns() {
       return [
         {
           title:   'Template',
@@ -72,7 +82,7 @@ export default {
     },
     templateOptions() {
       const schemas = this.$store.getters['cluster/all'](SCHEMA);
-      const constraintTypes = findConstraintTypes(schemas);
+      const constraintTypes = findConstraintTypesIds(schemas);
 
       constraintTypes.sort();
 
@@ -86,6 +96,19 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+    isCreate() {
+      return this.mode === _CREATE;
+    },
+    editorMode() {
+      if ( this.mode === _VIEW ) {
+        return EDITOR_MODES.VIEW_CODE;
+      } else {
+        return EDITOR_MODES.EDIT_CODE;
+      }
+    },
+    canShowForm() {
+      return this.value?.spec?.parameters && isSimpleKeyValue(this.value.spec.parameters) && !this.isView;
+    },
     systemNamespaceIds() {
       return this.$store.getters['cluster/all'](NAMESPACE)
         .filter(namespace => namespace.isSystem)
@@ -98,7 +121,7 @@ export default {
           enforcementAction: ENFORCEMENT_ACTION_VALUES.DENY,
           parameters:        {},
           match:             {
-            kinds:              [{ apiGroups: [''] }],
+            kinds:              [{}],
             namespaces:         [],
             excludedNamespaces: [],
             labelSelector:      { matchExpressions: [] },
@@ -106,6 +129,9 @@ export default {
           }
         }
       };
+    },
+    isTemplateSelectorDisabled() {
+      return !this.isCreate;
     }
   },
 
@@ -117,7 +143,7 @@ export default {
         this.purgeNamespacesField(this.value);
       },
       deep: true
-    }
+    },
   },
 
   async created() {
@@ -153,47 +179,71 @@ export default {
 
     updateType(type) {
       this.$set(this.value, 'type', type);
+    },
+    toggleParametersEditor() {
+      this.showParametersAsYaml = !this.showParametersAsYaml;
+      if (this.showParametersAsYaml) {
+        this.parametersYaml = jsyaml.safeDump(this.value.spec.parameters);
+      }
     }
   }
 };
 </script>
 <template>
-  <div v-if="value.save">
+  <div v-if="value.save" class="gatekeeper-constraint">
     <div>
-      <NameNsDescription :value="value" :mode="mode" :namespaced="false" :extra-columns="['template']" :extra-detail-columns="extraDetailColumns">
+      <NameNsDescription
+        :value="value"
+        :mode="mode"
+        :namespaced="false"
+        :extra-columns="['template']"
+        :detail-top-columns="detailTopColumns"
+      >
         <template v-slot:template>
           <LabeledSelect
             :mode="mode"
             :value="value.type"
             :options="templateOptions"
-            label="Template"
+            :disabled="isTemplateSelectorDisabled"
+            :label="t('gatekeeperConstraint.template')"
             @input="updateType"
           />
         </template>
       </NameNsDescription>
     </div>
-    <br />
+    <div class="spacer"></div>
     <div v-if="isView">
-      <h2>Violations</h2>
+      <h2>{{ t('gatekeeperConstraint.violations.title') }}</h2>
       <GatekeeperViolationsTable :constraint="value" />
-      <br />
     </div>
     <div>
-      <h2>Parameters</h2>
+      <h2 class="parameters">
+        {{ t('gatekeeperConstraint.parameters.title') }}
+        <a v-if="showParametersAsYaml && canShowForm" href="#" @click="toggleParametersEditor">{{ t('gatekeeperConstraint.parameters.editAsForm') }}</a>
+        <a v-else-if="canShowForm" href="#" @click="toggleParametersEditor">{{ t('gatekeeperConstraint.parameters.editAsYaml') }}</a>
+      </h2>
+      <YamlEditor
+        v-if="showParametersAsYaml"
+        v-model="parametersYaml"
+        class="yaml-editor"
+        :editor-mode="editorMode"
+        @newObject="$set(value.spec, 'parameters', $event)"
+      />
       <KeyValue
+        v-else
         v-model="value.spec.parameters"
         :value-multiline="false"
         :mode="mode"
         :pad-left="false"
         :read-allowed="false"
         :as-map="true"
-        add-label="Add Parameter"
+        :add-label="t('gatekeeperConstraint.parameters.addParameter')"
         :protip="false"
       />
     </div>
-    <br />
+    <div class="spacer"></div>
     <div>
-      <h2>Enforcement Action</h2>
+      <h2>{{ t('gatekeeperConstraint.enforcementAction.title') }}</h2>
       <RadioGroup
         v-model="value.spec.enforcementAction"
         class="enforcement-action"
@@ -203,54 +253,67 @@ export default {
         @input="e=>value.spec.enforcementAction = e"
       />
     </div>
-    <br />
-    <br />
+    <div class="spacer"></div>
     <div class="match">
-      <h2>Match</h2>
-      <Tabbed default-tab="labels">
-        <Tab name="namespaces" label="Namespaces">
-          <div class="row">
-            <div class="col span-6">
-              <h4>Namespaces</h4>
-              <NamespaceList v-model="value.spec.match.namespaces" :mode="mode" :namespace-filter="NAMESPACE_FILTERS.nonSystem" />
+      <h2>{{ t('gatekeeperConstraint.match.title') }}</h2>
+      <ResourceTabs v-model="value" :mode="mode" default-tab="labels">
+        <template #before>
+          <Tab name="namespaces" :label="t('gatekeeperConstraint.tab.namespaces.title')">
+            <div class="row">
+              <div class="col span-6">
+                <h4>{{ t('gatekeeperConstraint.tab.namespaces.sub.namespaces') }}</h4>
+                <NamespaceList v-model="value.spec.match.namespaces" :mode="mode" :namespace-filter="NAMESPACE_FILTERS.nonSystem" />
+              </div>
+              <div class="col span-6">
+                <h4>{{ t('gatekeeperConstraint.tab.namespaces.sub.excludedNamespaces') }}</h4>
+                <NamespaceList v-model="value.spec.match.excludedNamespaces" :mode="mode" />
+              </div>
             </div>
-            <div class="col span-6">
-              <h4>Excluded Namespaces</h4>
-              <NamespaceList v-model="value.spec.match.excludedNamespaces" :mode="mode" />
+          </Tab>
+          <Tab name="selectors" :label="t('gatekeeperConstraint.tab.selectors.title')">
+            <div class="row">
+              <div class="col span-6">
+                <h4>{{ t('gatekeeperConstraint.tab.selectors.sub.labelSelector.title') }}</h4>
+                <RuleSelector
+                  v-model="value.spec.match.labelSelector.matchExpressions"
+                  :add-label="t('gatekeeperConstraint.tab.selectors.sub.labelSelector.addLabel')"
+                  :mode="mode"
+                />
+              </div>
+              <div class="col span-6">
+                <h4>{{ t('gatekeeperConstraint.tab.selectors.sub.namespaceSelector.title') }}</h4>
+                <RuleSelector
+                  v-model="value.spec.match.namespaceSelector.matchExpressions"
+                  :add-label="t('gatekeeperConstraint.tab.selectors.sub.namespaceSelector.addNamespace')"
+                  :mode="mode"
+                />
+              </div>
             </div>
-          </div>
-        </Tab>
-        <Tab name="selectors" label="Selectors">
-          <div class="row">
-            <div class="col span-6">
-              <h4>Label Selector</h4>
-              <RuleSelector
-                v-model="value.spec.match.labelSelector.matchExpressions"
-                add-label="Add Label"
-                :mode="mode"
-              />
-            </div>
-            <div class="col span-6">
-              <h4>Namespace Selector</h4>
-              <RuleSelector
-                v-model="value.spec.match.namespaceSelector.matchExpressions"
-                add-label="Add Namespace"
-                :mode="mode"
-              />
-            </div>
-          </div>
-        </Tab>
-        <Tab name="kinds" label="Kinds">
-          <MatchKinds v-model="value.spec.match.kinds" :mode="mode" />
-        </Tab>
-      </Tabbed>
+          </Tab>
+          <Tab name="kinds" :label="t('gatekeeperConstraint.tab.kinds.title')">
+            <MatchKinds v-model="value.spec.match.kinds" :mode="mode" />
+          </Tab>
+        </template>
+      </ResourceTabs>
     </div>
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </div>
 </template>
 
-<style lang="scss" scoped>
-.enforcement-action {
-  max-width: 200px;
+<style lang="scss">
+.gatekeeper-constraint {
+  .yaml-editor {
+    margin-top: 10px;
+    height: 200px;
+  }
+
+  .parameters a {
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .enforcement-action {
+    max-width: 200px;
+  }
 }
+
 </style>

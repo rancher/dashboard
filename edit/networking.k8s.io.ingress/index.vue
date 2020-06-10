@@ -1,130 +1,80 @@
 <script>
-import Certificate from './Certificate';
-import Rule from './Rule';
-
-import { clone } from '@/utils/object';
 import { allHash } from '@/utils/promise';
-import { WORKLOAD, SECRET, TLS_CERT } from '@/config/types';
+import { SECRET, SERVICE } from '@/config/types';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
-import LoadDeps from '@/mixins/load-deps';
-import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import Labels from '@/components/form/Labels';
 import Footer from '@/components/form/Footer';
-
+import ResourceTabs from '@/components/form/ResourceTabs';
+import { _VIEW } from '@/config/query-params';
+import DefaultBackend from './DefaultBackend';
+import Certificates from './Certificates';
+import Rules from './Rules';
 export default {
-  name:  'CRUIngress',
-
+  name:       'CRUIngress',
   components: {
+    DefaultBackend,
     NameNsDescription,
-    Rule,
-    Tabbed,
+    Rules,
     Tab,
-    Labels,
-    Certificate,
-    Footer
+    Certificates,
+    Footer,
+    ResourceTabs
   },
-
-  mixins: [CreateEditView, LoadDeps],
-
-  props: {
+  mixins: [CreateEditView],
+  props:  {
     value: {
       type:    Object,
       default: () => {
         return {};
       }
     },
-
     mode: {
       type:    String,
       default: 'edit'
     }
   },
+  async fetch() {
+    const hash = await allHash({
+      secrets:  this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      services: this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+    });
 
-  data() {
-    const { metadata = {}, spec = {} } = clone(this.value);
-
-    if (!spec.rules) {
-      spec.rules = [{}];
-    }
-    if (!spec.tls) {
-      spec.tls = [{ }];
-    }
-
-    return {
-      metadata, spec, allSecrets:   [], allWorkloads: []
-    };
+    this.allServices = hash.services;
+    this.allSecrets = hash.secrets;
   },
-
+  data() {
+    return { allSecrets: [], allServices: [] };
+  },
   computed: {
-    workloads() {
-      return this.filterByNamespace(this.filterByOwner(this.allWorkloads)).reduce((all, workload) => {
-        all.push(workload?.metadata?.name);
-
-        return all;
-      }, []);
+    isView() {
+      return this.mode === _VIEW;
     },
-
-    certificates() {
-      return this.filterByNamespace(this.allSecrets.filter(secret => secret._type === TLS_CERT)).map((secret) => {
-        const { id } = secret;
-
-        return id.slice(id.indexOf('/') + 1);
-      });
-    },
-
+    serviceTargets() {
+      return this.filterByNamespace(this.allServices)
+        .map(service => ({
+          label: service.metadata.name,
+          value: service.metadata.name,
+          ports: service.spec.ports?.map(p => p.port)
+        }));
+    }
+  },
+  created() {
+    if (!this.value.spec) {
+      this.value.spec = {};
+    }
+    if (!this.value.spec.rules) {
+      this.value.spec.rules = [{}];
+    }
+    if (!this.value.spec.backend) {
+      this.value.spec.backend = { };
+    }
+    if (!this.value.spec.tls || Object.keys(this.value.spec.tls[0]).length === 0) {
+      this.value.spec.tls = [];
+    }
+    this.registerBeforeHook(this.willSave, 'willSave');
   },
   methods: {
-    async loadDeps() {
-      const hash = await allHash({
-        secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }),
-        ...Object.values(WORKLOAD).reduce((all, type) => {
-          all[type] = this.$store.dispatch('cluster/findAll', { type });
-
-          return all;
-        }, {})
-      });
-
-      const workloads = Object.values(WORKLOAD).map(type => hash[type]);
-
-      const flattened = workloads.reduce((all, type) => {
-        all.push(...type);
-
-        return all;
-      }, []);
-
-      this.allSecrets = hash.secrets;
-      this.allWorkloads = flattened;
-    },
-
-    addRule() {
-      this.spec.rules = [...this.spec.rules, {}];
-    },
-
-    removeRule(idx) {
-      const neu = [...this.spec.rules];
-
-      neu.splice(idx, 1);
-
-      this.$set(this.spec, 'rules', neu);
-    },
-
-    updateRule(neu, idx) {
-      this.$set(this.spec.rules, idx, neu);
-    },
-
-    addCert() {
-      this.spec.tls = [...this.spec.tls, {}];
-    },
-
-    removeCert(idx) {
-      const neu = [...this.spec.tls];
-
-      neu.splice(idx, 1);
-      this.$set(this.spec, 'tls', neu);
-    },
-
     // filter a given list of resources by currently selected namespaces
     filterByNamespace(list) {
       const namespaces = this.$store.getters['namespaces']();
@@ -133,84 +83,37 @@ export default {
         return !!namespaces[resource.metadata.namespace];
       });
     },
-
-    // filter by ownerReference id OR filter by lack of owner
-    filterByOwner(list, id) {
-      return list.filter((resource) => {
-        const owners = resource.metadata.ownerReferences;
-
-        if (!id) {
-          return !owners;
-        }
-
-        const owner = owners[0] || {};
-
-        return (owner.name === id);
-      });
-    },
-
-    saveIngress(cb) {
-      const defaultRule = this.spec.rules.filter(rule => rule.asDefault)[0];
-      const nonDefaultRules = this.spec.rules.filter(rule => !rule.asDefault);
-      const defaultBackend = defaultRule?.http?.paths[0]?.backend;
-
-      nonDefaultRules.forEach(rule => delete rule.asDefault);
-
-      if (defaultBackend ) {
-        this.$set(this.spec, 'backend', defaultBackend);
+    willSave() {
+      if (this.value?.spec?.backend && (!this.value?.spec?.backend?.serviceName || !this.value?.spec?.backend?.servicePort)) {
+        this.value.spec.backend = null;
       }
-      this.spec.rules = nonDefaultRules;
-
-      this.$set(this.value, 'spec', this.spec);
-      this.$set(this.value, 'metadata', this.metadata);
-
-      const saveUrl = this.value.urlFromAttrs;
-
-      this.save(cb, saveUrl);
-    }
+    },
   }
 };
 </script>
-
 <template>
   <form>
-    <NameNsDescription :value="{metadata}" :mode="mode" @input="e=>metadata=e" />
-    <div>
-      <h3>
-        Rules
-      </h3>
-      <Rule
-        v-for="(rule, i) in spec.rules"
-        :key="i"
-        :value="rule"
-        :workloads="workloads"
-        @remove="e=>removeRule(i)"
-        @input="e=>updateRule(e,i)"
-      />
-      <button class="btn btn-sm role-primary mt-20 " type="button" @click="addRule">
-        Add Rule
-      </button>
+    <NameNsDescription :value="value" :mode="mode" />
+    <div class="row">
+      <div class="col span-12">
+        <h3 :class="{'mt-20': isView}">
+          {{ t('ingress.rules.title') }}
+        </h3>
+        <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" />
+      </div>
     </div>
     <div>
-      <Tabbed :default-tab="'labels'">
-        <Tab name="labels" label="Labels">
-          <Labels :spec="{metadata:{}}" mode="create" />
-        </Tab>
-        <Tab label="Certificates" name="certificates">
-          <Certificate
-            v-for="(cert,i) in spec.tls"
-            :key="i"
-            :certs="certificates"
-            :value="cert"
-            @input="e=>$set(spec.tls, i, e)"
-            @remove="e=>removeCert(i)"
-          />
-          <button class="btn btn-sm role-primary mt-20 " type="button" @click="addCert">
-            Add Certificate
-          </button>
-        </Tab>
-      </Tabbed>
+      <ResourceTabs v-model="value" :mode="mode">
+        <template #before>
+          <Tab :label="t('ingress.certificates.label')" name="certificates">
+            <Certificates v-model="value" :mode="mode" :secrets="allSecrets" />
+          </Tab>
+          <Tab :label="t('ingress.defaultBackend.label')" name="default-backend">
+            <DefaultBackend v-model="value.spec.backend" :service-targets="serviceTargets" :mode="mode" />
+          </Tab>
+        </template>
+      </ResourceTabs>
     </div>
-    <Footer :errors="errors" :mode="mode" @save="saveIngress" @done="done" />
+    <Footer :errors="errors" :mode="mode" @save="save" @done="done" />
   </form>
 </template>

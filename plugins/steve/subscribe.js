@@ -61,6 +61,41 @@ export const actions = {
     }
   },
 
+  flush({ state, commit, dispatch }) {
+    const queue = state.queue;
+    let toLoad = [];
+
+    state.queue = [];
+
+    // console.log('### Subscribe Flush', queue.length);
+
+    for ( const { action, event, body } of queue ) {
+      if ( action === 'dispatch' && event === 'load' ) {
+        // Group loads into one loadMulti when possible
+        toLoad.push(body);
+      } else {
+        // When we hit a differet kind of event, process all the previous loads, then the other event.
+        if ( toLoad.length ) {
+          dispatch('loadMulti', toLoad);
+          toLoad = [];
+        }
+
+        if ( action === 'dispatch' ) {
+          dispatch(event, body);
+        } else if ( action === 'commit' ) {
+          commit(event, body);
+        } else {
+          throw new Error('Invalid queued action');
+        }
+      }
+    }
+
+    // Process any remaining loads
+    if ( toLoad.length ) {
+      dispatch('loadMulti', toLoad);
+    }
+  },
+
   rehydrateSubscribe({ state, dispatch }) {
     if ( process.client && state.wantSocket && !state.socket ) {
       dispatch('subscribe');
@@ -95,13 +130,23 @@ export const actions = {
   },
 
   async opened({ commit, dispatch, state }, event) {
-    console.log('WebSocket Opened');
+    console.log('WebSocket Opened'); // eslint-disable-line no-console
     const socket = event.currentTarget;
 
     this.$socket = socket;
 
+    if ( !state.queue ) {
+      state.queue = [];
+
+      state.queueTimer = setInterval(() => {
+        if ( state.queue.length ) {
+          dispatch('flush');
+        }
+      }, 1000);
+    }
+
     if ( socket.hasReconnected ) {
-      console.log('Reconnect, re-watching types');
+      console.log('Reconnect, re-watching types'); // eslint-disable-line no-console
       await dispatch('watchHaveAllTypes');
     }
 
@@ -114,12 +159,14 @@ export const actions = {
     }
   },
 
-  closed({ commit }, event) {
-    console.log('WebSocket Closed');
+  closed({ state }, event) {
+    console.log('WebSocket Closed'); // eslint-disable-line no-console
+    clearInterval(state.queueTimer);
   },
 
-  error({ commit }, event) {
-    console.log('WebSocket Error', event);
+  error({ state }, event) {
+    console.log('WebSocket Error', event); // eslint-disable-line no-console
+    clearInterval(state.queueTimer);
   },
 
   send({ state, commit }, obj) {
@@ -141,12 +188,12 @@ export const actions = {
   },
 
   'ws.resource.start'({ commit }, msg) {
-    console.log('Resource start:', msg.resourceType);
+    console.log('Resource start:', msg.resourceType); // eslint-disable-line no-console
     commit('setWatchStarted', msg.resourceType);
   },
 
   'ws.resource.error'({ commit }, msg) {
-    console.log('Resource error for', msg.resourceType, ':', msg.data.error);
+    console.log('Resource error for', msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
     const err = msg.data?.error?.toLowerCase();
 
     if ( err.includes('watch not allowed') ) {
@@ -159,7 +206,7 @@ export const actions = {
   'ws.resource.stop'({ getters, commit, dispatch }, msg) {
     const type = msg.resourceType;
 
-    console.log('Resource stop:', type);
+    console.log('Resource stop:', type); // eslint-disable-line no-console
 
     if ( getters['schemaFor'](type) && getters['watchStarted'](type) ) {
       // Try reconnecting once
@@ -168,31 +215,49 @@ export const actions = {
     }
   },
 
-  'ws.resource.create'({ dispatch }, { data }) {
-    // console.log('Create', data.type, data.id);
-    dispatch('load', { data });
+  'ws.resource.create'({ state }, { data }) {
+    // console.log('### Create Event', data.type, data.id);
+    state.queue.push({
+      action: 'dispatch',
+      event:  'load',
+      body:   data
+    });
   },
 
-  'ws.resource.change'({ dispatch }, { data }) {
-    // console.log('Change', data.type, data.id);
-    dispatch('load', { data });
+  'ws.resource.change'({ state }, { data }) {
+    // console.log('### Change Event', data.type, data.id);
+    state.queue.push({
+      action: 'dispatch',
+      event:  'load',
+      body:   data
+    });
   },
 
-  'ws.resource.remove'({ getters, commit }, { data }) {
+  'ws.resource.remove'({ getters, state }, { data }) {
     const type = getters.normalizeType(data.type);
 
-    if ( getters.typeRegistered(type) ) {
-      // console.log('Remove', data.type, data.id);
-      const obj = getters.byId(data.type, data.id);
+    if ( !getters.typeRegistered(type) ) {
+      return;
+    }
 
-      if ( obj ) {
-        commit('remove', obj);
-      }
+    // console.log('### Remove Event', data.type, data.id);
+    const obj = getters.byId(data.type, data.id);
 
-      if ( type === 'schema' ) {
-        // Clear the current records in the store
-        commit('forgetType', data.id);
-      }
+    if ( obj ) {
+      state.queue.push({
+        action: 'commit',
+        event:  'remove',
+        body:   obj
+      });
+    }
+
+    if ( type === 'schema' ) {
+      // Clear the current records in the store
+      state.queue.push({
+        action: 'commit',
+        event:  'forgetType',
+        body:   data.id
+      });
     }
   },
 };
@@ -200,5 +265,5 @@ export const actions = {
 export const mutations = {
   setSocket(state, socket) {
     state.socket = socket;
-  }
+  },
 };

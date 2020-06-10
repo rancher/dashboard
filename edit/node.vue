@@ -13,7 +13,7 @@ export default {
     Footer, Labels, NameNsDescription, Taints
   },
 
-  mixins:     [CreateEditView],
+  mixins: [CreateEditView],
 
   props: {
     value: {
@@ -25,7 +25,8 @@ export default {
   data() {
     return {
       DESCRIPTION,
-      HOSTNAME
+      HOSTNAME,
+      metrics: { cpu: 0, memory: 0 }
     };
   },
 };
@@ -34,8 +35,8 @@ export default {
 <template>
   <div class="node">
     <NameNsDescription
-      :namespaced="false"
       :value="value"
+      :namespaced="false"
       :mode="mode"
       name-label="Name"
     />

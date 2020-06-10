@@ -4,6 +4,7 @@ import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Footer from '@/components/form/Footer';
 import RadioGroup from '@/components/form/RadioGroup';
+import ResourceTabs from '@/components/form/ResourceTabs';
 
 /**
  * Edit view for RBAC Role
@@ -17,9 +18,10 @@ export default {
     NameNsDescription,
     RadioGroup,
     RbacPermissions,
+    ResourceTabs
   },
 
-  mixins:     [CreateEditView],
+  mixins: [CreateEditView],
 
   data() {
     const radioOptions = [true, false];
@@ -105,6 +107,7 @@ export default {
         />
       </div>
     </section>
+    <ResourceTabs v-model="value" :mode="mode" />
 
     <Footer
       :mode="mode"

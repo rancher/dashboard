@@ -28,7 +28,7 @@ export default {
       const name = 'c-cluster-resource-id';
       const params = { resource: NODE, id: this.value };
 
-      this.url = this.$router.resolve({ name, params }).href;
+      this.url = { name, params };
     }
   }
 };

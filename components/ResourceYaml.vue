@@ -1,39 +1,34 @@
 <script>
-import { WORKLOAD } from '../config/types';
-import CodeMirror from './CodeMirror';
-import FileDiff from './FileDiff';
-import AsyncButton from './AsyncButton';
+import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
+import Footer from '@/components/form/Footer';
 
 import {
-  MODE,
   _CREATE,
   _VIEW,
+  PREVIEW,
+  _FLAGGED,
+  _UNFLAG,
   _EDIT,
-  _PREVIEW,
-  EDIT_YAML,
-  _CLONE
 } from '@/config/query-params';
-
-import { mapPref, DIFF } from '@/store/prefs';
 
 export default {
   components: {
-    CodeMirror,
-    FileDiff,
-    AsyncButton
+    Footer,
+    YamlEditor
   },
 
   props: {
-    forCreate: {
-      type:    Boolean,
-      default: false,
-    },
-    obj: {
-      type:     Object,
+    mode: {
+      type:     String,
       required: true,
     },
 
     value: {
+      type:     Object,
+      required: true,
+    },
+
+    yaml: {
       type:     String,
       required: true,
     },
@@ -43,130 +38,90 @@ export default {
       default: null,
     },
 
-    parentRoute: {
-      type:    String,
-      default: null,
-    },
-
-    hasEditAsForm: {
+    offerPreview: {
       type:    Boolean,
-      default: false,
+      default: true,
     },
 
     parentParams: {
       type:    Object,
       default: null,
     },
+
     doneOverride: {
       type:    Function,
       default: null
     },
-    showHeader: {
+
+    showFooter: {
       type:    Boolean,
       default: true
     }
   },
 
   data() {
-    let mode;
-
-    if ( this.forCreate ) {
-      mode = _CREATE;
-    } else if (!this.canEdit) {
-      mode = _VIEW;
-    } else {
-      mode = this.$route.query.mode || _VIEW;
-    }
-
-    if ( mode === _PREVIEW ) {
-      mode = _EDIT;
-    }
+    // Initial load with a preview showing no diff isn't very useful
+    this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
 
     return {
-      currentValue: this.value,
-      mode,
+      currentYaml:  this.yaml,
+      showPreview:  false,
       errors:       null
     };
   },
 
   computed: {
     schema() {
-      return this.$store.getters['cluster/schemaFor'](this.obj.type);
-    },
-
-    cmOptions() {
-      const readOnly = this.mode === _VIEW;
-      const gutters = ['CodeMirror-lint-markers'];
-
-      if ( !readOnly ) {
-        gutters.push('CodeMirror-foldgutter');
-      }
-
-      return {
-        readOnly,
-        gutters,
-        mode:            'yaml',
-        lint:            true,
-        lineNumbers:     !readOnly,
-        extraKeys:       { 'Ctrl-Space': 'autocomplete' },
-        cursorBlinkRate: ( readOnly ? -1 : 530 )
-      };
+      return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
 
     isCreate() {
       return this.mode === _CREATE;
     },
+
     isView() {
       return this.mode === _VIEW;
     },
+
     isEdit() {
       return this.mode === _EDIT;
     },
-    isClone() {
-      return this.mode === _CLONE;
+
+    editorMode() {
+      if ( this.isView ) {
+        return EDITOR_MODES.VIEW_CODE;
+      } else if ( this.showPreview ) {
+        return EDITOR_MODES.DIFF_CODE;
+      }
+
+      return EDITOR_MODES.EDIT_CODE;
     },
-    isPreview() {
-      return this.mode === _PREVIEW;
-    },
+  },
 
-    showEditAsForm() {
-      return this.isEdit && this.hasEditAsForm;
-    },
-
-    canEdit() {
-      return this.obj.hasLink('update') && !Object.values(WORKLOAD).includes(this.obj.type);
-    },
-
-    canDelete() {
-      return this.obj.hasLink('remove');
-    },
-
-    diffMode: mapPref(DIFF),
-
-    parentLink() {
-      const name = this.parentRoute || 'c-cluster-resource';
-      const params = this.parentParams || {
-        cluster:  this.$store.state.clusterId,
-        resource: this.obj.type
-      };
-
-      const out = this.$router.resolve({ name, params }).href;
-
-      return out;
+  watch: {
+    mode(neu, old) {
+      // if this component is changing from viewing a resource to 'creating' that resource, it must actually be cloning
+      // clean yaml accordingly
+      if (neu === _CREATE && old === _VIEW) {
+        this.currentYaml = this.value.cleanYaml(this.yaml, neu);
+      }
     }
   },
 
   methods: {
-    onInput(value) {
-      this.currentValue = value;
+    onInput(yaml) {
+      this.currentYaml = yaml;
     },
 
     onReady(cm) {
-      cm.getMode().fold = 'yaml';
-
       if ( this.isCreate ) {
+        cm.getMode().fold = 'yamlcomments';
         cm.execCommand('foldAll');
+      } else if ( this.isEdit ) {
+        cm.foldLinesMatching(/^status:\s*$/);
       }
+
+      cm.foldLinesMatching(/^\s+managedFields:\s*$/);
     },
 
     onChanges(cm, changes) {
@@ -221,51 +176,49 @@ export default {
       }
     },
 
-    edit() {
-      this.mode = _EDIT;
-      this.$router.applyQuery({ [MODE]: this.mode });
+    readFromFile() {
+      this.$refs.yamleditor.readFromFile();
     },
 
     preview() {
-      this.mode = _PREVIEW;
-      this.$router.applyQuery({ [MODE]: this.mode });
+      this.showPreview = true;
+      this.$router.applyQuery({ [PREVIEW]: _FLAGGED });
     },
 
-    cancel() {
-      if (this.isCreate || this.isClone) {
-        return this.done();
-      }
-      this.mode = _VIEW;
-      this.$router.applyQuery({ [MODE]: this.mode });
-      this.currentValue = this.value;
-    },
-
-    navigateToEditAsForm() {
-      this.$router.applyQuery({ [EDIT_YAML]: undefined });
+    unpreview() {
+      this.showPreview = false;
+      this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
     },
 
     async save(buttonDone) {
+      const yaml = this.value.yamlForSave(this.currentYaml) || this.currentYaml;
+      let res;
+
       try {
-        if ( this.isCreate || this.isClone ) {
-          await this.schema.followLink('collection', {
+        if ( this.isCreate ) {
+          res = await this.schema.followLink('collection', {
             method:  'POST',
             headers: {
               'content-type': 'application/yaml',
               accept:         'application/json',
             },
-            data: this.currentValue,
+            data: yaml
           });
         } else {
-          const link = this.obj.hasLink('rioupdate') ? 'rioupdate' : 'update';
+          const link = this.value.hasLink('rioupdate') ? 'rioupdate' : 'update';
 
-          await this.obj.followLink(link, {
+          res = await this.value.followLink(link, {
             method:  'PUT',
             headers: {
               'content-type': 'application/yaml',
               accept:         'application/json',
             },
-            data: this.currentValue,
+            data: yaml
           });
+        }
+
+        if ( res && res.kind !== 'Table') {
+          await this.$store.dispatch('cluster/load', { data: res, existing: (this.isCreate ? this.value : undefined) });
         }
 
         buttonDone(true);
@@ -282,28 +235,19 @@ export default {
         } else {
           this.errors = [err];
         }
-
         buttonDone(false);
       }
     },
-    async remove(buttonDone) {
-      await this.obj.remove();
-      buttonDone(true);
-      this.done();
-    },
-
     done() {
       if (this.doneOverride) {
         return this.doneOverride();
       }
-
       if ( !this.doneRoute ) {
         return;
       }
-
       this.$router.replace({
         name:   this.doneRoute,
-        params: { resource: this.obj.type }
+        params: { resource: this.value.type }
       });
     }
   }
@@ -312,101 +256,56 @@ export default {
 
 <template>
   <div class="root resource-yaml">
-    <header>
-      <h1 v-if="showHeader">
-        <span v-if="isCreate">Create {{ schema.attributes.kind }}</span>
-        <span v-else>{{ schema.attributes.kind }}: {{ obj.id }}</span>
-      </h1>
-      <div class="actions">
-        <AsyncButton
-          v-if="canDelete && isView"
-          key="delete"
-          mode="delete"
-          action-color="bg-error"
-          waiting-color="bg-error"
-          @click="remove"
-        />
-        <button
-          v-if="canEdit && (isView || isPreview)"
-          type="button"
-          class="btn bg-primary"
-          @click="edit"
-        >
-          Edit
-        </button>
-        <span v-if="showEditAsForm">
-          <button class="btn bg-primary" @click="navigateToEditAsForm">Edit as form</button>
-        </span>
-      </div>
-      <div v-for="(err, idx) in errors" :key="idx" class="text-error">
-        {{ err }}
-      </div>
-    </header>
-    <div class="text-right">
-      <span v-if="isPreview" v-trim-whitespace class="btn-group btn-sm diff-mode">
-        <button
-          type="button"
-          class="btn btn-sm bg-default"
-          :class="{'active': diffMode !== 'split'}"
-          @click="diffMode='unified'"
-        >Unified</button>
-        <button
-          type="button"
-          class="btn btn-sm bg-default"
-          :class="{'active': diffMode === 'split'}"
-          @click="diffMode='split'"
-        >Split</button>
-      </span>
-    </div>
-
-    <CodeMirror
-      v-if="!isPreview"
-      :value="currentValue"
-      :options="cmOptions"
-      :footer-space="71"
+    <YamlEditor
+      ref="yamleditor"
+      v-model="currentYaml"
+      class="yaml-editor"
+      :editor-mode="editorMode"
       @onInput="onInput"
       @onReady="onReady"
       @onChanges="onChanges"
     />
-    <FileDiff
-      v-if="isPreview"
-      :filename="obj.id + '.yaml'"
-      :side-by-side="diffMode === 'split'"
-      :orig="value"
-      :neu="currentValue"
-      :footer-space="71"
-    />
-    <footer>
-      <div class="actions">
-        <button v-if="!isView" type="button" class="btn bg-transparent" @click="cancel">
-          Cancel
+    <Footer
+      v-if="showFooter"
+      :mode="mode"
+      :errors="errors"
+      @save="save"
+      @done="done"
+    >
+      <template v-if="!isView" #middle>
+        <button
+          v-if="showPreview"
+          type="button"
+          class="btn role-secondary"
+          @click="unpreview"
+        >
+          <t k="resourceYaml.buttons.continue" />
         </button>
-        <button v-if="isEdit || isClone" type="button" class="btn bg-transparent" @click="preview">
-          Preview
+        <button
+          v-else-if="offerPreview"
+          :disabled="yaml === currentYaml"
+          type="button"
+          class="btn role-secondary"
+          @click="preview"
+        >
+          <t k="resourceYaml.buttons.diff" />
         </button>
-        <AsyncButton v-if="isEdit || isClone || isPreview" key="apply" mode="apply" @click="save" />
-        <AsyncButton v-if="isCreate" key="create" mode="create" @click="save" />
-      </div>
-    </footer>
+      </template>
+    </Footer>
   </div>
 </template>
 
 <style lang="scss">
-@import "~assets/styles/base/_variables.scss";
-@import "~assets/styles/base/_functions.scss";
-@import "~assets/styles/base/_mixins.scss";
 .resource-yaml {
-  .diff-mode {
-    background-color: var(--diff-header-bg);
-    padding: 5px 5px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
+  .yaml-editor {
+    flex: 1;
+    min-height: 200px;
   }
 
-  .d2h-file-wrapper {
-    border-top-right-radius: 0;
-  }
   footer .actions {
     text-align: center;
   }

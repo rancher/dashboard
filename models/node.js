@@ -1,30 +1,80 @@
+import Vue from 'vue';
 import { formatPercent } from '@/utils/string';
-import { NODE_ROLES } from '@/config/labels-annotations.js';
+import { NODE_ROLES, RKE } from '@/config/labels-annotations.js';
+import { METRIC } from '@/config/types';
+import { parseSi } from '@/utils/units';
+import { PRIVATE } from '@/plugins/steve/resource-proxy';
+import { findLast } from 'lodash';
 
 export default {
+  availableActions() {
+    const cordon = {
+      action:     'cordon',
+      enabled:    this.isWorker && !this.isCordoned,
+      icon:       'icon icon-fw icon-pause',
+      label:      'Cordon',
+      total:      1,
+      bulkable:   true
+    };
+
+    const uncordon = {
+      action:     'uncordon',
+      enabled:    this.isWorker && this.isCordoned,
+      icon:       'icon icon-fw icon-play',
+      label:      'Uncordon',
+      total:      1,
+      bulkable:   true
+    };
+
+    return [
+      cordon,
+      uncordon,
+      ...this._standardActions
+    ];
+  },
+
+  showDetailStateBadge() {
+    return true;
+  },
+
   name() {
     return this.metadata.name;
   },
 
+  internalIp() {
+    const addresses = this.status?.addresses || [];
+
+    return findLast(addresses, address => address.type === 'InternalIP')?.address;
+  },
+
+  externalIp() {
+    const addresses = this.status?.addresses || [];
+    const annotationAddress = this.metadata.annotations[RKE.EXTERNAL_IP];
+    const statusAddress = findLast(addresses, address => address.type === 'ExternalIP')?.address;
+
+    return statusAddress || annotationAddress;
+  },
+
+  labels() {
+    return this.metadata?.labels || {};
+  },
+
   isWorker() {
     const { WORKER: worker } = NODE_ROLES;
-    const labels = this.metadata?.labels;
 
-    return labels[worker] && labels[worker].toLowerCase() === 'true';
+    return `${ this.labels[worker] }` === 'true';
   },
 
   isControlPlane() {
     const { CONTROL_PLANE: controlPlane } = NODE_ROLES;
-    const labels = this.metadata?.labels;
 
-    return labels[controlPlane] && labels[controlPlane].toLowerCase() === 'true';
+    return `${ this.labels[controlPlane] }` === 'true';
   },
 
   isEtcd() {
     const { ETCD: etcd } = NODE_ROLES;
-    const labels = this.metadata?.labels;
 
-    return labels[etcd] && labels[etcd].toLowerCase() === 'true';
+    return `${ this.labels[etcd] }` === 'true';
   },
 
   roles() {
@@ -38,15 +88,15 @@ export default {
     // worker+cp, worker+etcd, cp+etcd
 
     if (isControlPlane && isWorker) {
-      return 'Control Plane & Worker';
+      return 'Control Plane, Worker';
     }
 
     if (isControlPlane && isEtcd) {
-      return 'Control Plane & Etcd';
+      return 'Control Plane, Etcd';
     }
 
     if (isEtcd && isWorker) {
-      return 'Etcd & Worker';
+      return 'Etcd, Worker';
     }
 
     if (isControlPlane) {
@@ -67,27 +117,27 @@ export default {
   },
 
   cpuUsage() {
-    return calculatePercentage(this.status.allocatable.cpu, this.status.capacity.cpu);
+    return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.cpu || '0');
   },
 
   cpuCapacity() {
-    return Number.parseInt(this.status.capacity.cpu);
+    return parseSi(this.status.allocatable.cpu);
   },
 
-  cpuConsumed() {
-    return Number.parseInt(this.status.capacity.cpu) - Number.parseInt(this.status.allocatable.cpu);
+  cpuUsagePercentage() {
+    return ((this.cpuUsage * 10000) / this.cpuCapacity).toString();
   },
 
   ramUsage() {
-    return calculatePercentage(this.status.allocatable.memory, this.status.capacity.memory);
+    return parseSi(this.$rootGetters['cluster/byId'](METRIC.NODE, this.id)?.usage?.memory || '0');
   },
 
   ramCapacity() {
-    return Number.parseInt(this.status.capacity.memory);
+    return parseSi(this.status.capacity.memory);
   },
 
-  ramConsumed() {
-    return Number.parseInt(this.status.capacity.memory) - Number.parseInt(this.status.allocatable.memory);
+  ramUsagePercentage() {
+    return ((this.ramUsage * 10000) / this.ramCapacity).toString();
   },
 
   podUsage() {
@@ -116,6 +166,55 @@ export default {
 
   isKubeletOk() {
     return this.hasCondition('Ready');
+  },
+
+  isCordoned() {
+    return !!this.spec.unschedulable;
+  },
+
+  containerRuntimeVersion() {
+    return this.status.nodeInfo.containerRuntimeVersion.replace('docker://', '');
+  },
+
+  containerRuntimeIcon() {
+    if ( this.status.nodeInfo.containerRuntimeVersion.includes('docker') ) {
+      return 'icon-docker';
+    }
+
+    return false;
+  },
+
+  cordon() {
+    return async() => {
+      Vue.set(this.spec, 'unschedulable', true);
+      await this.save();
+    };
+  },
+
+  uncordon() {
+    return async() => {
+      Vue.set(this.spec, 'unschedulable', false);
+      await this.save();
+    };
+  },
+
+  state() {
+    if ( !this[PRIVATE].isDetailPage && this.isCordoned ) {
+      return 'cordoned';
+    }
+
+    return this.metadata?.state?.name || 'unknown';
+  },
+
+  highlightBadge() {
+    if ( this.isCordoned ) {
+      return {
+        stateBackground: this.stateBackground,
+        stateDisplay:    this.stateDisplay
+      };
+    }
+
+    return false;
   }
 };
 

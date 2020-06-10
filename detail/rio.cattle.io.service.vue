@@ -85,10 +85,6 @@ export default {
     detailTopColumns() {
       return [
         {
-          title:   'Namespace',
-          content: this.namespace
-        },
-        {
           title:   'Image',
           content: get(this.value, 'spec.image')
         },

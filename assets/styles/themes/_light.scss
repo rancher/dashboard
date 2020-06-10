@@ -20,14 +20,14 @@ $lighter   : #F4F5FA;
 //light body bg
 $lightest  : #FFFFFF;
 
-$primary   : #3D98D3;
-$secondary : $darker;
-$link      : $primary;
-$disabled  : $dark;
-$success   : #96BD7F;
-$warning   : #DAC342;
-$error     : #EF5A53;
-$info      : $warning;
+$primary         : #3D98D3;
+$secondary       : $darker;
+$link            : $primary;
+$disabled        : $dark;
+$success         : #5D995D;
+$warning         : #DAC342;
+$error           : #F64747;
+$info            : #213444;
 
 $contrasted-dark: $darkest !default;
 $contrasted-light: $lightest !default;
@@ -98,12 +98,13 @@ $selected: rgba($primary, .5);
 
   --input-text                 : #{$darkest};
   --input-label                : #{$secondary};
-  --input-placeholder          : #{$secondary};
+  --input-placeholder          : #{$disabled};
   --input-border               : var(--border);
   --input-bg                   : #{$light};
+  --input-hover-bg             : var(--body-bg);
   --input-focus-bg             : #{$lightest};
   --input-disabled-text        : #{$dark};
-  --input-disabled-bg          : #{$medium};
+  --input-disabled-bg          : #{$light};
   --input-disabled-border      : #{$medium};
   --input-disabled-placeholder : darken($medium, 10%);
   --input-addon-bg             : #{$medium};
@@ -118,13 +119,20 @@ $selected: rgba($primary, .5);
   --sortable-table-top-divider : var(--border);
   --sortable-table-body-divider : #{$darker};
   --sortable-table-selected-bg : #{$light};
+  --sortable-table-group-label : #{$secondary};
 
+  --popover-bg                 : var(--body-bg);
+  --popover-border             : var(--border);
+  --popover-text               : var(--body-text);
+  --popover-border-radius      : var(--border-radius);
   --tooltip-bg                 : #{$primary};
+  --tooltip-border             : var(--border);
   --tooltip-text               : var(--body-text);
-  --tooltip-border-radius      : 2px;
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$lighter};
+  --tabbed-container-bg-contrast: #{$light};
+
 
   --diff-border                : var(--border);
   --diff-header-bg             : var(--nav-bg);
@@ -146,7 +154,18 @@ $selected: rgba($primary, .5);
   --wm-tab-bg                  : #{$light};
   --wm-closer-hover-bg         : #{$lighter};
   --wm-tab-active-bg           : #{$lighter};
+  --wm-title-bg                : #{$lightest};
+  --wm-title-border            : #{$medium};
   --wm-body-bg                 : #{$lighter};
   --wm-border                  : var(--border);
   --wm-tab-height              : 25px;
+
+  --terminal-bg                : var(--body-bg);
+  --terminal-cursor            : var(--warning);
+  --terminal-text              : var(--body-text);
+
+  --logs-bg                    : var(--wm-body-bg);
+  --logs-highlight             : var(--wm-body-bg);
+  --logs-highlight-bg          : var(--warning);
+  --logs-text                  : var(--body-text);
 }

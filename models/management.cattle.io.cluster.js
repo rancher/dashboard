@@ -1,4 +1,3 @@
-import { capitalize } from 'lodash';
 import day from 'dayjs';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT } from '@/store/prefs';
@@ -16,9 +15,11 @@ export default {
   },
 
   kubernetesVersion() {
-    const configName = this.configName;
-
-    return this.spec[configName].kubernetesVersion;
+    if ( this?.status?.version?.gitVersion ) {
+      return this.status.version.gitVersion;
+    } else {
+      return this.$rootGetters['i18n/t']('generic.unknown');
+    }
   },
 
   createdDisplay() {
@@ -27,17 +28,7 @@ export default {
     return day(this.metadata.creationTimestamp).format(`${ dateFormat }`);
   },
 
-  displayProvider() {
-    const configName = this.configName.toLowerCase();
-    const driver = this.status?.driver;
-    const key = `cluster.provider.${ configName }`;
-
-    if ( this.$rootGetters['i18n/exists'](key) ) {
-      return this.$rootGetters['i18n/t'](key);
-    } else if (driver && configName) {
-      return capitalize(driver);
-    } else {
-      return this.$rootGetters['i18n/t']('cluster.provider.imported');
-    }
+  canDelete() {
+    return this.hasLink('remove') && !this?.spec?.internal;
   },
 };

@@ -1,6 +1,6 @@
 import https from 'https';
-import pkg from '../package.json';
 import { TIMED_OUT } from '@/config/query-params';
+import pkg from '../package.json';
 
 export default function({
   $axios, isDev, route, redirect, req

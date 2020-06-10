@@ -21,7 +21,7 @@ export default {
       type:    String,
       default: 'create'
     },
-    originalID: {
+    originalId: {
       type:    String,
       default: null
     },
@@ -36,7 +36,11 @@ export default {
   },
   data() {
     return {
-      limitsCPU:      null, limitsMem:     null, reqCPU:        null, reqMem:        null, originalQuota: {}
+      limitsCPU:     null,
+      limitsMem:     null,
+      reqCPU:        null,
+      reqMem:        null,
+      originalQuota: {}
     };
   },
   computed: {
@@ -53,26 +57,25 @@ export default {
     }
   },
   created() {
-    if (this.originalID) {
-      this.findQuota(this.originalID);
+    if (this.originalId) {
+      this.findQuota(this.originalId);
     }
 
-    this.registerAfterHook(this.createQuota);
+    this.registerAfterHook(this.setQuota);
   },
   methods: {
-    async findQuota(ID) {
-      const quota = await this.$store.dispatch('cluster/find', { type: RESOURCE_QUOTA, id: ID });
+    async findQuota(id) {
+      const quota = await this.$store.dispatch('cluster/find', { type: RESOURCE_QUOTA, id });
 
       Object.keys(quota.spec.hard).forEach((key) => {
         this.$set(this, SPEC_KEYS[key], parseInt(quota.spec.hard[key]));
       });
+
       this.originalQuota = quota;
     },
-    async createQuota() {
-      if (!isEmpty(this.originalQuota) && this.mode !== 'create') {
-        this.updateQuota();
-      } else {
-        const metadata = { name: `default-quota` };
+
+    async setQuota() {
+      if (isEmpty(this.originalQuota) || this.mode === 'create') {
         const hard = {};
 
         Object.keys(SPEC_KEYS).forEach((key) => {
@@ -84,21 +87,25 @@ export default {
         if (isEmpty(hard)) {
           return;
         }
-        const data = { metadata, spec: { hard } };
+
+        const data = { metadata: { name: 'default-quota' }, spec: { hard } };
         const nsURL = get(this.namespace, 'metadata.selfLink');
 
         await this.$store.dispatch('cluster/request', {
-          url:    `${ nsURL }/resourcequotas`, data, method: 'POST'
+          url: `${ nsURL }/resourcequotas`, data, method: 'POST'
         });
+      } else {
+        this.updateQuota();
       }
     },
+
     async updateQuota() {
       const updated = this.originalQuota;
 
       updated.spec.hard = this.hard;
 
       await this.$store.dispatch('cluster/request', {
-        url:    updated.links.update, data:   updated, method: 'PUT'
+        url: updated.links.update, data: updated, method: 'PUT'
       });
     }
   }

@@ -1,8 +1,8 @@
 <script>
-import { SOME, NONE } from './selection';
 import { queryParamsFor } from '@/plugins/extend-router';
 import { SORT_BY, DESCENDING } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
+import { SOME, NONE } from './selection';
 
 export default {
   components: { Checkbox },
@@ -98,6 +98,14 @@ export default {
       });
 
       return query;
+    },
+
+    label(col) {
+      if ( col.labelKey ) {
+        return this.t(col.labelKey, undefined, true);
+      }
+
+      return col.label;
     }
   }
 };
@@ -124,14 +132,14 @@ export default {
         @click.prevent="changeSort($event, col)"
       >
         <nuxt-link v-if="col.sort" :to="{query: queryFor(col)}">
-          {{ col.label }}
+          {{ label(col) }}
           <span class="icon-stack">
             <i class="icon icon-sort icon-stack-1x faded" />
             <i v-if="isCurrent(col) && !descending" class="icon icon-sort-down icon-stack-1x" />
             <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
           </span>
         </nuxt-link>
-        <span v-else>{{ col.label }}</span>
+        <span v-else>{{ label(col) }}</span>
       </th>
       <th v-if="rowActions" :width="rowActionsWidth">
       </th>

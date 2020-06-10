@@ -1,51 +1,90 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import Favorite from '@/components/nav/Favorite';
-import { EDIT_YAML, _FLAGGED } from '@/config/query-params';
+import { AS_YAML, _FLAGGED } from '@/config/query-params';
+import Masthead from '@/components/ResourceList/Masthead';
 
 export default {
-  components: { ResourceTable, Favorite },
+  components: {
+    ResourceTable,
+    Masthead
+  },
+
+  async asyncData(ctx) {
+    const { params, store } = ctx;
+    const resource = params.resource;
+    const hasListComponent = store.getters['type-map/hasCustomList'](resource);
+    const hasEditComponent = store.getters['type-map/hasCustomEdit'](resource);
+    const schema = store.getters['cluster/schemaFor'](resource);
+
+    let foundData = false;
+    let rows;
+    let more = {};
+    let customTypeDisplay;
+
+    if ( hasListComponent ) {
+      // If you provide your own list then call its asyncData
+      const importer = store.getters['type-map/importList'](resource);
+      const component = (await importer())?.default;
+
+      if ( component?.asyncData ) {
+        more = await component.asyncData(ctx);
+        foundData = true;
+      }
+
+      if ( component?.typeDisplay ) {
+        customTypeDisplay = component.typeDisplay(ctx);
+      }
+    }
+
+    if ( !foundData ) {
+      rows = await store.dispatch('cluster/findAll', { type: resource });
+    }
+
+    return {
+      schema,
+      hasListComponent,
+      hasEditComponent,
+      resource,
+      rows,
+      customTypeDisplay,
+      ...more
+    };
+  },
 
   data() {
     const params = { ...this.$route.params };
     const resource = params.resource;
 
-    const formRoute = this.$router.resolve({ name: `${ this.$route.name }-create`, params }).href;
+    const formRoute = { name: `${ this.$route.name }-create`, params };
 
-    const query = { [EDIT_YAML]: _FLAGGED };
+    const query = { [AS_YAML]: _FLAGGED };
 
     const hasListComponent = this.$store.getters['type-map/hasCustomList'](resource);
-    const hasEditComponent = this.$store.getters['type-map/hasCustomEdit'](resource);
     let listComponent;
 
     if ( hasListComponent ) {
       listComponent = this.$store.getters['type-map/importList'](resource);
     }
 
-    const yamlRoute = this.$router.resolve({
+    const yamlRoute = {
       name: `${ this.$route.name }-create`,
       params,
       query
-    }).href;
+    };
 
     return {
-      hasListComponent,
-      hasEditComponent,
+      route:   this.$route,
       listComponent,
       formRoute,
       yamlRoute,
-      EDIT_YAML,
+      AS_YAML,
       FLAGGED: _FLAGGED
     };
   },
 
   computed:   {
-    schema() {
-      return this.$store.getters['cluster/schemaFor'](this.resource);
-    },
-
     headers() {
-      if ( this.hasListComponent ) {
+      if ( this.hasListComponent || !this.schema ) {
         // Custom lists figure out their own headers
         return [];
       }
@@ -54,56 +93,42 @@ export default {
     },
 
     typeDisplay() {
+      if ( this.customTypeDisplay ) {
+        return this.customTypeDisplay;
+      }
+
+      if ( !this.schema ) {
+        return '?';
+      }
+
       return this.$store.getters['type-map/pluralLabelFor'](this.schema);
     },
-  },
 
-  async asyncData({ params, store }) {
-    const resource = params.resource;
+    isCreatable() {
+      if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+        return false;
+      }
 
-    const rows = await store.dispatch('cluster/findAll', { type: resource });
-
-    await store.dispatch('type-map/addRecent', resource);
-
-    return {
-      resource,
-      rows
-    };
+      return this.$store.getters['type-map/isCreatable'](this.$route.params.resource);
+    }
   },
 }; </script>
 
 <template>
   <div>
-    <header>
-      <h1>
-        {{ typeDisplay }} <Favorite :resource="resource" />
-      </h1>
-      <div class="actions">
-        <nuxt-link
-          :to="{path: yamlRoute}"
-          tag="button"
-          type="button"
-          class="btn bg-primary"
-        >
-          Import
-        </nuxt-link>
-        <nuxt-link
-          v-if="hasEditComponent"
-          :to="{path: formRoute}"
-          tag="button"
-          type="button"
-          class="btn bg-primary"
-        >
-          Create
-        </nuxt-link>
-      </div>
-    </header>
+    <Masthead
+      :resource="resource"
+      :type-display="typeDisplay"
+      :is-yaml-creatable="schema && isCreatable"
+      :is-creatable="hasEditComponent && isCreatable"
+      :yaml-create-location="yamlRoute"
+      :create-location="formRoute"
+    />
+
     <div v-if="hasListComponent">
       <component
         :is="listComponent"
-        :schema="schema"
-        :rows="rows"
-        :headers="headers"
+        v-bind="$data"
       />
     </div>
     <ResourceTable v-else :schema="schema" :rows="rows" :headers="headers" />
