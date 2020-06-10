@@ -1,5 +1,5 @@
 import Vue from 'vue';
-import { MANAGEMENT } from '@/config/types';
+import { STEVE } from '@/config/types';
 import { clone } from '@/utils/object';
 
 const definitions = {};
@@ -293,16 +293,22 @@ export const actions = {
   },
 
   async loadServer({ state, dispatch, commit }, ignoreKey) {
-    const all = await dispatch('management/findAll', {
-      type: MANAGEMENT.PREFERENCE,
-      opt:  {
-        url:   'userpreferences',
-        force: true,
-        watch: false
-      }
-    }, { root: true });
+    let server = { data: {} };
 
-    const server = all?.[0];
+    try {
+      const all = await dispatch('management/findAll', {
+        type: STEVE.PREFERENCE,
+        opt:  {
+          url:   'userpreferences',
+          force: true,
+          watch: false
+        }
+      }, { root: true });
+
+      server = all?.[0];
+    } catch (e) {
+      console.error('Error loading preferences', e); // eslint-disable-line no-console
+    }
 
     if ( !server?.data ) {
       return;

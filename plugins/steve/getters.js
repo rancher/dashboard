@@ -1,4 +1,5 @@
-import { SCHEMA, COLLECTION_TYPES, PRIMITIVE_TYPES } from '@/config/types';
+import { SCHEMA } from '@/config/types';
+import { COLLECTION_TYPES, PRIMITIVE_TYPES } from '@/config/schema';
 import { normalizeType, keyFieldFor, KEY_FIELD_FOR } from './normalize';
 import urlOptions from './urloptions';
 import mutations from './mutations';

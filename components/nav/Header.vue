@@ -11,7 +11,11 @@ export default {
   },
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady', 'isRancher', 'currentCluster']),
+    ...mapState(['managementReady', 'clusterReady', 'isRancher', 'isMultiCluster', 'currentCluster']),
+
+    authEnabled() {
+      return this.$store.getters['auth/enabled'];
+    },
 
     principal() {
       return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
@@ -44,7 +48,7 @@ export default {
   <header :class="{'back-to-rancher': backToRancherLink}">
     <div class="cluster">
       <div class="logo" alt="Logo" />
-      <ClusterSwitcher v-if="isRancher" />
+      <ClusterSwitcher v-if="isMultiCluster" />
     </div>
 
     <div class="top">
@@ -70,7 +74,7 @@ export default {
 
         <template slot="popover">
           <ul class="list-unstyled dropdown" style="margin: -1px;">
-            <li>
+            <li v-if="authEnabled">
               <div>{{ principal.loginName }}</div>
               <div class="text-small pb-10">
                 {{ principal.name }}
@@ -79,7 +83,7 @@ export default {
             <nuxt-link tag="li" :to="{name: 'prefs'}" class="pt-5 pb-5 hand">
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
-            <nuxt-link v-if="isRancher" tag="li" :to="{name: 'auth-logout'}" class="pt-5 pb-5 hand">
+            <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="pt-5 pb-5 hand">
               <a>Log Out <i class="icon icon-fw icon-close" /></a>
             </nuxt-link>
           </ul>

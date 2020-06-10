@@ -1,6 +1,6 @@
 import Steve from '@/plugins/steve';
 import {
-  COUNT, NAMESPACE, NORMAN, EXTERNAL, MANAGEMENT
+  COUNT, NAMESPACE, NORMAN, EXTERNAL, MANAGEMENT, STEVE
 } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE } from '@/store/prefs';
 import { allHash } from '@/utils/promise';
@@ -13,9 +13,9 @@ import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
 export const strict = false;
 
 export const plugins = [
-  Steve({ namespace: 'clusterExternal', baseUrl: '' }), // project scoped cluster stuff
+  Steve({ namespace: 'clusterExternal', baseUrl: '' }), // project scoped cluster stuff, url set later
   Steve({ namespace: 'management', baseUrl: '/v1' }),
-  Steve({ namespace: 'cluster', baseUrl: '' }),
+  Steve({ namespace: 'cluster', baseUrl: '' }), // url set later
   Steve({ namespace: 'rancher', baseUrl: '/v3' }),
 ];
 
@@ -37,16 +37,30 @@ export const getters = {
     return state.isRancher === true;
   },
 
+  isMultiCluster(state) {
+    return state.isMultiCluster === true;
+  },
+
   clusterId(state) {
     return state.clusterId;
   },
 
   currentCluster(state, getters) {
-    return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId);
+    return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId) ||
+      getters['management/byId'](STEVE.CLUSTER, state.clusterId);
   },
 
   defaultClusterId(state, getters) {
-    const all = getters['management/all'](MANAGEMENT.CLUSTER);
+    let all;
+
+    if ( state.isRancher ) {
+      all = getters['management/all'](MANAGEMENT.CLUSTER);
+    } else if ( state.isMultiCluster ) {
+      all = getters['management/all'](STEVE.CLUSTER);
+    } else {
+      return null;
+    }
+
     const clusters = sortBy(filterBy(all, 'isReady'), 'nameDisplay');
     const desired = getters['prefs/get'](CLUSTER_PREF);
 
@@ -176,9 +190,10 @@ export const getters = {
 };
 
 export const mutations = {
-  managementChanged(state, { ready, isRancher }) {
+  managementChanged(state, { ready, isRancher, isMultiCluster }) {
     state.managementReady = ready;
     state.isRancher = isRancher;
+    state.isMultiCluster = isMultiCluster;
   },
 
   clusterChanged(state, ready) {
@@ -237,16 +252,36 @@ export const actions = {
     });
 
     let isRancher = false;
+    let isMultiCluster = false;
+    const promises = [];
+
+    if ( getters['management/schemaFor'](STEVE.CLUSTER) ) {
+      isMultiCluster = true;
+      promises.push(dispatch('management/findAll', {
+        type: STEVE.CLUSTER,
+        opt:  { url: `${ STEVE.CLUSTER }s` }
+      }));
+    }
 
     if ( getters['management/schemaFor'](MANAGEMENT.CLUSTER) ) {
       isRancher = true;
+      isMultiCluster = true;
 
-      await dispatch('management/findAll', { type: MANAGEMENT.CLUSTER, opt: { url: `${ MANAGEMENT.CLUSTER }s` } });
+      promises.push(dispatch('management/findAll', {
+        type: MANAGEMENT.CLUSTER,
+        opt:  { url: `${ MANAGEMENT.CLUSTER }s` }
+      }));
     }
 
-    commit('managementChanged', { ready: true, isRancher });
+    await Promise.all(promises);
 
-    console.log('Done loading management.'); // eslint-disable-line no-console
+    commit('managementChanged', {
+      ready: true,
+      isRancher,
+      isMultiCluster
+    });
+
+    console.log(`Done loading management; isRancher=${ isRancher }, isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },
 
   async loadCluster({
@@ -254,6 +289,7 @@ export const actions = {
   }, id) {
     let cluster, clusterBase, externalBase;
     const isRancher = getters['isRancher'];
+    const isMultiCluster = getters['isMultiCluster'];
 
     if ( state.clusterReady && state.clusterId && state.clusterId === id ) {
       // Do nothing, we're already connected to this cluster
@@ -287,11 +323,21 @@ export const actions = {
       cluster = await dispatch('management/find', {
         type: MANAGEMENT.CLUSTER,
         id,
-        opt:  { url: `management.cattle.io.clusters/${ escape(id) }` }
+        opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
       });
 
       clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
       externalBase = `/v1/management.cattle.io.clusters/${ escape(id) }`;
+    } else if ( isMultiCluster ) {
+      // See if it really exists
+      cluster = await dispatch('management/find', {
+        type: STEVE.CLUSTER,
+        id,
+        opt:  { url: `${ STEVE.CLUSTER }s/${ escape(id) }` }
+      });
+
+      clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
+      externalBase = null;
     } else {
       cluster = getters['management/byId'](MANAGEMENT.CLUSTER, 'local');
 
@@ -299,7 +345,7 @@ export const actions = {
         // Make a fake cluster schema and push it into the store
         await dispatch('management/load', {
           data: {
-            id:   MANAGEMENT.CLUSTER,
+            id:   STEVE.CLUSTER,
             type: 'schema',
           }
         });
@@ -308,7 +354,7 @@ export const actions = {
         cluster = await dispatch('management/load', {
           data: {
             id:         'local',
-            type:       MANAGEMENT.CLUSTER,
+            type:       STEVE.CLUSTER,
             links:      { self: '' },
             metadata:   { name: 'local' },
             status:   {

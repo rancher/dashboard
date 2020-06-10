@@ -6,6 +6,9 @@ import InfoBox from '@/components/InfoBox';
 import SortableTable from '@/components/SortableTable';
 import DetailTop from '@/components/DetailTop';
 import ClusterDisplayProvider from '@/components/ClusterDisplayProvider';
+import { APP_ID as GATEKEEPER_APP_ID } from '@/config/chart/gatekeeper';
+import { allHash } from '@/utils/promise';
+import Poller from '@/utils/poller';
 import {
   MESSAGE,
   NAME,
@@ -14,19 +17,17 @@ import {
   ROLES,
   STATE,
 } from '@/config/table-headers';
-import { DESCRIPTION } from '@/config/labels-annotations';
+import { DESCRIPTION, SYSTEM_PROJECT } from '@/config/labels-annotations';
 import { findAllConstraints } from '@/utils/gatekeeper/util';
 import {
-  MANAGEMENT,
-  EVENT,
-  NODE,
-  METRIC,
   EXTERNAL,
-  SYSTEM_PROJECT_LABEL,
+  EVENT,
+  MANAGEMENT,
+  METRIC,
+  NODE,
+  STEVE,
 } from '@/config/types';
-import { APP_ID as GATEKEEPER_APP_ID } from '@/config/chart/gatekeeper';
-import { allHash } from '@/utils/promise';
-import Poller from '@/utils/poller';
+
 const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;
 
@@ -44,33 +45,38 @@ export default {
     const id = get(route, 'params.cluster');
     let gatekeeper = null;
     let gatekeeperEnabled = false;
+    let cluster = null;
 
-    const projects = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT });
-    const targetSystemProject = projects.find(( proj ) => {
-      const labels = proj.metadata?.labels || {};
+    if ( store.getters['isRancher'] ) {
+      const projects = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT });
+      const targetSystemProject = projects.find(( proj ) => {
+        const labels = proj.metadata?.labels || {};
 
-      if ( labels[SYSTEM_PROJECT_LABEL] === 'true' ) {
-        return true;
-      }
-    });
-
-    if (!isEmpty(targetSystemProject)) {
-      const systemNamespace = targetSystemProject.metadata.name;
-
-      try {
-        gatekeeper = await store.dispatch('clusterExternal/find', {
-          type: EXTERNAL.APP,
-          id:   `${ systemNamespace }/${ GATEKEEPER_APP_ID }`,
-        });
-        if (!isEmpty(gatekeeper)) {
-          gatekeeperEnabled = true;
+        if ( labels[SYSTEM_PROJECT] === 'true' ) {
+          return true;
         }
-      } catch (err) {
-        gatekeeperEnabled = false;
-      }
-    }
+      });
 
-    const cluster = await store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id });
+      if (!isEmpty(targetSystemProject)) {
+        const systemNamespace = targetSystemProject.metadata.name;
+
+        try {
+          gatekeeper = await store.dispatch('clusterExternal/find', {
+            type: EXTERNAL.APP,
+            id:   `${ systemNamespace }/${ GATEKEEPER_APP_ID }`,
+          });
+          if (!isEmpty(gatekeeper)) {
+            gatekeeperEnabled = true;
+          }
+        } catch (err) {
+          gatekeeperEnabled = false;
+        }
+      }
+
+      cluster = await store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id });
+    } else {
+      cluster = await store.dispatch('management/find', { type: STEVE.CLUSTER, id });
+    }
 
     return {
       constraints:       [],

@@ -601,21 +601,6 @@ export const getters = {
         }
       }
 
-      // If all columns have a width, try to remove it from a column that can be variable (name)
-      const missingWidth = out.find(x => !x.width);
-
-      if ( !missingWidth ) {
-        const variable = out.find(x => x.canBeVariable);
-
-        if ( variable ) {
-          const neu = clone(variable);
-
-          delete neu.width;
-
-          out.splice(out.indexOf(variable), 1, neu);
-        }
-      }
-
       return out;
     };
   },

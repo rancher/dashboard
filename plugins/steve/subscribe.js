@@ -105,7 +105,7 @@ export const actions = {
   watchType({ dispatch, getters }, { type, revision }) {
     type = getters.normalizeType(type);
 
-    if ( !getters.canWatch(type) ) {
+    if ( !getters.canWatch(type) || getters.watchStarted(type) ) {
       return;
     }
 
@@ -211,7 +211,11 @@ export const actions = {
     if ( getters['schemaFor'](type) && getters['watchStarted'](type) ) {
       // Try reconnecting once
       commit('setWatchStopped', type);
-      dispatch('watchType', { type });
+      setTimeout(() => {
+        // Delay a bit so that immediate start/stop/error causes
+        // only a slow infinite loop instead of a tight one.
+        dispatch('watchType', { type });
+      }, 1000);
     }
   },
 

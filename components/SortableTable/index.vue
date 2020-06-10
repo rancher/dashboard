@@ -1,7 +1,7 @@
 <script>
 import { mapState } from 'vuex';
 import { dasherize } from '@/utils/string';
-import { get } from '@/utils/object';
+import { get, clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
 import THead from './THead';
@@ -272,6 +272,21 @@ export default {
 
         if ( entry ) {
           removeObject(out, entry);
+        }
+      }
+
+      // If all columns have a width, try to remove it from a column that can be variable (name)
+      const missingWidth = out.find(x => !x.width);
+
+      if ( !missingWidth ) {
+        const variable = out.find(x => x.canBeVariable);
+
+        if ( variable ) {
+          const neu = clone(variable);
+
+          delete neu.width;
+
+          out.splice(out.indexOf(variable), 1, neu);
         }
       }
 

@@ -1,6 +1,4 @@
 <script>
-import { MANAGEMENT } from '@/config/types';
-
 export default {
   data() {
     // make a map of all route names to validate programatically generated names
@@ -28,12 +26,7 @@ export default {
       });
     });
 
-    const clusterID = params.cluster;
-    let cluster;
-
-    if (clusterID) {
-      cluster = this.$store.getters['management/byId']( MANAGEMENT.CLUSTER, clusterID ) || {};
-    }
+    const cluster = this.$store.getters['currentCluster'];
 
     // remove root route 'c'
     crumbLocations.shift();

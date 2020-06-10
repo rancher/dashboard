@@ -14,7 +14,7 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 import ServicePorts from '@/components/form/ServicePorts';
 import Tab from '@/components/Tabbed/Tab';
 import UnitInput from '@/components/form/UnitInput';
-import { DEFAULT_SERVICE_TYPES } from '@/config/types';
+import { DEFAULT_SERVICE_TYPES } from '@/models/service';
 import { ucFirst } from '@/utils/string';
 import Banner from '@/components/Banner';
 

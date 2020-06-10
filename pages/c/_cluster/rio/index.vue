@@ -6,8 +6,8 @@ import {
   MANAGEMENT,
   EXTERNAL,
   RIO,
-  SYSTEM_PROJECT_LABEL,
 } from '@/config/types';
+import { SYSTEM_PROJECT } from '@/config/labels-annotations';
 import { _VIEW, _CREATE, DEMO } from '@/config/query-params';
 import { TEMPLATE_NAME, APP_ID, CONFIG } from '@/config/chart/rio';
 import RioConfig from '@/components/chart/rio/Config';
@@ -39,7 +39,7 @@ export default {
       const targetSystemProject = projects.find(( proj ) => {
         const labels = proj.metadata?.labels || {};
 
-        if ( labels[SYSTEM_PROJECT_LABEL] === 'true' ) {
+        if ( labels[SYSTEM_PROJECT] === 'true' ) {
           return true;
         }
       });
