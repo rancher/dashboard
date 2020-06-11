@@ -177,7 +177,7 @@ export default {
                 min="1"
                 max="65535"
                 :mode="mode"
-                :label="t('workload.container.healthcheck.httpGet.port')"
+                :label="t('workload.container.healthCheck.httpGet.port')"
                 placeholder="e.g. 80"
               />
             </div>
@@ -188,7 +188,7 @@ export default {
               <LabeledInput
                 v-model="httpGet.path"
                 :mode="mode"
-                :label="t('workload.container.healthcheck.httpGet.path')"
+                :label="t('workload.container.healthCheck.httpGet.path')"
                 placeholder="e.g. /healthz"
               />
             </div>
@@ -203,7 +203,7 @@ export default {
               min="1"
               max="65535"
               :mode="mode"
-              :label="t('workload.container.healthcheck.httpGet.port')"
+              :label="t('workload.container.healthCheck.httpGet.port')"
               placeholder="e.g. 25"
             />
           </div>
@@ -213,7 +213,7 @@ export default {
           <div class="col span-12">
             <ShellInput
               v-model="exec.command"
-              :label="t('workload.container.healthcheck.command.command')"
+              :label="t('workload.container.healthCheck.command.command')"
               placeholder="e.g. cat /tmp/health"
             />
           </div>
@@ -230,7 +230,7 @@ export default {
             <UnitInput
               v-model="probe.periodSeconds"
               :mode="mode"
-              :label="t('workload.container.healthcheck.checkInterval')"
+              :label="t('workload.container.healthCheck.checkInterval')"
               min="1"
               suffix="sec"
               placeholder="Default: 10"
@@ -240,7 +240,7 @@ export default {
             <UnitInput
               v-model="probe.initialDelaySeconds"
               :mode="mode"
-              :label="t('workload.container.healthcheck.initialDelay')"
+              :label="t('workload.container.healthCheck.initialDelay')"
               suffix="sec"
               min="0"
               placeholder="Default: 0"
@@ -250,7 +250,7 @@ export default {
             <UnitInput
               v-model="probe.timeoutSeconds"
               :mode="mode"
-              :label="t('workload.container.healthcheck.timeout')"
+              :label="t('workload.container.healthCheck.timeout')"
               suffix="sec"
               min="0"
               placeholder="Default: 3"
@@ -264,7 +264,7 @@ export default {
               type="number"
               min="1"
               :mode="mode"
-              :label="t('workload.container.healthcheck.successThreshold')"
+              :label="t('workload.container.healthCheck.successThreshold')"
               placeholder="Default: 1"
             />
           </div>
@@ -274,7 +274,7 @@ export default {
               type="number"
               min="1"
               :mode="mode"
-              :label="t('workload.container.healthcheck.failureThreshold')"
+              :label="t('workload.container.healthCheck.failureThreshold')"
               placeholder="Default: 3"
             />
           </div>
@@ -288,7 +288,7 @@ export default {
               :pad-left="false"
               :as-map="false"
               :read-allowed="false"
-              :title="t('workload.container.healthcheck.httpGet.headers')"
+              :title="t('workload.container.healthCheck.httpGet.headers')"
               key-label="Name"
             />
           </div>

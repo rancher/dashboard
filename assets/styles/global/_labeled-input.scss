@@ -6,7 +6,7 @@
 
   LABEL {
     position: absolute;
-    transform: translate(0, -12px) scale(1);
+    transform: translate(0, -10px) scale(1);
     transform-origin: top left;
     transition-property: transform, font-size;
     transition-duration: 0.1s;
@@ -68,6 +68,10 @@
   &.view > DIV:not(.addon) {
     font-size: 14px;
     padding: 17px 0 0 0;
+
+    &.no-label {
+      padding-top:0px;
+    }
   }
 
   &.create,

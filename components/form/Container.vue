@@ -70,6 +70,7 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+
     flatResources: {
       get() {
         const { limits = {}, requests = {} } = this.resources || {};
@@ -99,6 +100,20 @@ export default {
         this.resources = cleanUp(out);
       }
     },
+
+    hasResourceLimits() {
+      const {
+        limitsCpu, limitsMemory, requestsCpu, requestsMemory
+      } = this.flatResources;
+
+      return !!limitsCpu || !!limitsMemory || !!requestsCpu || !!requestsMemory;
+    },
+
+    hasHealthCheck() {
+      const { readinessProbe, livenessProbe, startupProbe } = this.healthCheck;
+
+      return !!readinessProbe || !!livenessProbe || !!startupProbe;
+    }
   },
 
   methods: {
@@ -132,13 +147,19 @@ export default {
 
     <div>
       <h3><t k="workload.container.titles.resources" /></h3>
-      <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
+      <ContainerResourceLimit v-if="hasResourceLimits" v-model="flatResources" :mode="mode" :show-tip="false" />
+      <div v-else>
+        <t k="workload.container.noResourceLimits" />
+      </div>
       <hr class="mt-20 mb-20" />
     </div>
 
     <div>
       <h3><t k="workload.container.titles.healthCheck" /></h3>
-      <HealthCheck v-model="healthCheck" :mode="mode" />
+      <HealthCheck v-if="hasHealthCheck" v-model="healthCheck" :mode="mode" />
+      <div v-else>
+        <t k="workload.container.healthCheck.noHealthCheck" />
+      </div>
       <hr class="mt-20 mb-20" />
     </div>
 

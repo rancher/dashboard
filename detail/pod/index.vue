@@ -133,17 +133,11 @@ export default {
     },
 
     async findNode() {
-      const IP = this.value.status.hostIP;
-
-      if (!IP) {
-        return null;
-      }
+      const { nodeName } = this.value.spec;
 
       const nodes = await this.$store.dispatch('cluster/findAll', { type: NODE });
       const out = nodes.filter((node) => {
-        const { addresses } = node.status;
-
-        return !!addresses.findIndex(obj => obj.address === IP);
+        return node?.metadata?.name === nodeName;
       })[0];
 
       this.nodes = nodes;
@@ -169,7 +163,8 @@ export default {
       </template>
     </DetailTop>
 
-    <div class="row mt-20">
+    <div class="mt-20">
+      <h3><t k="workload.container.titles.containers" /></h3>
       <SortableTable
         id="container-table"
         :table-actions="false"

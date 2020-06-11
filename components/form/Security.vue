@@ -2,6 +2,7 @@
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import { _VIEW } from '@/config/query-params';
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
@@ -71,7 +72,9 @@ export default {
   computed: {
     isView() {
       return this.mode === _VIEW;
-    }
+    },
+
+    ...mapGetters({ t: 'i18n/t' })
   },
 
   watch: {
@@ -103,24 +106,23 @@ export default {
   <div @input="update">
     <div class="row mb-20">
       <div class="col span-6">
-        <h4>
-          <t k="workload.container.security.privileged" />
-        </h4>
-        <RadioGroup v-model="privileged" :options="[false,true]" :labels="['No', 'Yes: container has full access to the host']" :mode="mode" />
+        <RadioGroup v-model="privileged" :label="t('workload.container.security.privileged')" :options="[false,true]" :labels="['No', 'Yes: container has full access to the host']" :mode="mode" />
       </div>
       <div class="col span-6">
-        <h4>
-          <t k="workload.container.security.allowPrivilegeEscalation" />
-        </h4>
-        <RadioGroup v-model="allowPrivilegeEscalation" :disabled="privileged" :options="[false,true]" :labels="['No', 'Yes: container can gain more privileges than its parent process']" :mode="mode" />
+        <RadioGroup
+          v-model="allowPrivilegeEscalation"
+          :label="t('workload.container.security.allowPrivilegeEscalation')"
+          :disabled="privileged"
+          :options="[false,true]"
+          :labels="['No', 'Yes: container can gain more privileges than its parent process']"
+          :mode="mode"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <h4>
-          <t k="workload.container.security.runAsNonRoot" />
-        </h4>
         <RadioGroup
+          :label="t('workload.container.security.runAsNonRoot')"
           :value="!runAsRoot"
           :options="[false, true]"
           :labels="['No', 'Yes: container must run as a non-root user']"
@@ -129,10 +131,7 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <h4>
-          <t k="workload.container.security.readOnlyRootFilesystem" />
-        </h4>
-        <RadioGroup v-model="readOnlyRootFilesystem" :options="[false, true]" :labels="['No', 'Yes: container has a read-only root filesystem']" :mode="mode" />
+        <RadioGroup v-model="readOnlyRootFilesystem" :label="t('workload.container.security.readOnlyRootFilesystem')" :options="[false, true]" :labels="['No', 'Yes: container has a read-only root filesystem']" :mode="mode" />
       </div>
     </div>
     <div class="row mb-20">

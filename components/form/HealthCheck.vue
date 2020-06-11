@@ -31,7 +31,7 @@ export default {
         class="col span-12"
         :mode="mode"
         label="Readiness Check"
-        :description="t('workload.container.healthcheck.readinessTip')"
+        :description="t('workload.container.healthCheck.readinessTip')"
       />
     </div>
     <hr v-if="!isView" />
@@ -41,7 +41,7 @@ export default {
         class="col span-12"
         :mode="mode"
         label="Liveness Check"
-        :description="t('workload.container.healthcheck.livenessTip')"
+        :description="t('workload.container.healthCheck.livenessTip')"
       />
     </div>
     <hr v-if="!isView" />
@@ -51,7 +51,7 @@ export default {
         class="col span-12"
         :mode="mode"
         label="Startup Check"
-        :description="t('workload.container.healthcheck.startupTip')"
+        :description="t('workload.container.healthCheck.startupTip')"
       />
     </div>
   </div>

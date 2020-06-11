@@ -54,12 +54,10 @@ export default {
   <div>
     <div class="row">
       <div class="col span-3">
-        <h5><t k="workload.container.security.shareProcessNamespace" /></h5>
-        <RadioGroup v-model="shareProcessNamespace" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
+        <RadioGroup v-model="shareProcessNamespace" :label="t('workload.container.security.shareProcessNamespace')" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
       </div>
       <div class="col span-3">
-        <h5><t k="workload.container.security.runAsNonRoot" /></h5>
-        <RadioGroup v-model="runasNonRoot" :options="[false, true]" :labels="[t('workload.container.security.runAsNonRootOptions.noOption'), t('workload.container.security.runAsNonRootOptions.yesOption')]" :mode="mode" />
+        <RadioGroup v-model="runasNonRoot" :label="t('workload.container.security.runAsNonRoot')" :options="[false, true]" :labels="[t('workload.container.security.runAsNonRootOptions.noOption'), t('workload.container.security.runAsNonRootOptions.yesOption')]" :mode="mode" />
       </div>
     </div>
 
@@ -87,12 +85,10 @@ export default {
 
     <div class="row">
       <div class="col span-3">
-        <h5><t k="workload.container.security.hostIPC" /></h5>
-        <RadioGroup v-model="hostIPC" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
+        <RadioGroup v-model="hostIPC" :label="t('workload.container.security.hostIPC')" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
       </div>
       <div class="col span-3">
-        <h5><t k="workload.container.security.hostPID" /></h5>
-        <RadioGroup v-model="hostPID" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
+        <RadioGroup v-model="hostPID" :label="t('workload.container.security.hostPID')" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
       </div>
     </div>
 
@@ -102,4 +98,4 @@ export default {
       </div>
     </div>
   </div>
-</template>>
+</template>

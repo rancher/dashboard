@@ -182,7 +182,7 @@ export default {
 <template>
   <div>
     <div v-if="title" class="clearfix">
-      <label>{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" /></label>
+      <label :style="{'color': 'var(--input-label)', 'font-size':'14px'}">{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" /></label>
     </div>
 
     <table v-if="rows.length" class="fixed">

@@ -1,6 +1,6 @@
 <script>
 import { _VIEW } from '@/config/query-params';
-import { get, isEmpty } from '@/utils/object';
+import { get, isEmpty, cleanUp } from '@/utils/object';
 import { POD, NODE } from '@/config/types';
 import MatchExpressions from '@/components/form/MatchExpressions';
 
@@ -71,19 +71,26 @@ export default {
           out['preferredDuringSchedulingIgnoredDuringExecution'] = weightedSelectors;
         }
 
-        this.$emit('input', out);
+        this.$emit('input', cleanUp(out));
       });
     },
 
     addSelector() {
-      const neu = { namespaces: [], labelSelector: { matchExpressions: [] } };
+      const neu = {
+        namespaces: [], labelSelector: { matchExpressions: [] }, topologyKey: ''
+      };
       const key = Math.random();
 
       this.$set(this.selectorMap, key, neu);
     },
 
     addWeightedSelector() {
-      const neu = { weight: this.defaultWeight, podAffinityTerm: { namespaces: [], labelSelector: { matchExpressions: [] } } };
+      const neu = {
+        weight:          this.defaultWeight,
+        podAffinityTerm: {
+          namespaces: [], labelSelector: { matchExpressions: [] }, topologyKey: ''
+        }
+      };
       const key = Math.random();
 
       this.$set(this.weightedSelectorMap, key, neu);
@@ -98,28 +105,21 @@ export default {
 <template>
   <div :style="{'width':'100%'}" class="row" @input="update">
     <div class="col span-6">
-      <div class="mb-10">
+      <div v-if="!isView || Object.values(selectorMap).length " class="mb-10">
         <t k="workload.scheduling.affinity.requireAny" />
-      </div>
-      <div v-if="isView && isEmpty(selectorMap)">
-        <MatchExpressions
-          :mode="mode"
-          class="node-selector col span-12"
-          :type="node"
-        />
       </div>
       <template v-for="(nodeSelectorTerm, key) in selectorMap">
         <div :key="key" class="row">
           <MatchExpressions
             :key="key"
-            :initial-empty-row="!isView"
             :mode="mode"
             class="node-selector col span-12"
             :type="pod"
             :namespaces.sync="nodeSelectorTerm.namespaces"
+            :topology-key.sync="nodeSelectorTerm.topologyKey"
             :value="get(nodeSelectorTerm, 'labelSelector.matchExpressions')"
             @remove="$delete(selectorMap, key)"
-            @input="e=>$set(selectorMap[key].labelSelector, 'matchExpressions', e )"
+            @input="e=>$set(selectorMap[key], 'labelSelector', {matchExpressions:e})"
           />
         </div>
       </template>
@@ -129,15 +129,8 @@ export default {
     </div>
 
     <div class="col span-6">
-      <div class="mb-10">
+      <div v-if="!isView || Object.values(weightedSelectorMap).length " class="mb-10">
         <t k="workload.scheduling.affinity.preferAny" />
-      </div>
-      <div v-if="isView && isEmpty(weightedSelectorMap)">
-        <MatchExpressions
-          :mode="mode"
-          class="node-selector col span-12"
-          :type="node"
-        />
       </div>
       <template v-for="(nodeSelectorTerm, key) in weightedSelectorMap">
         <div :key="key" class="row">
@@ -145,13 +138,13 @@ export default {
             :key="key"
             :mode="mode"
             class="node-selector col span-12"
-            :initial-empty-row="!isView"
             :type="pod"
             :namespaces.sync="nodeSelectorTerm.podAffinityTerm.namespaces"
+            :topology-key.sync="nodeSelectorTerm.podAffinityTerm.topologyKey"
             :value="get(nodeSelectorTerm, 'podAffinityTerm.labelSelector.matchExpressions')"
             :weight="get(nodeSelectorTerm, 'weight')"
             @remove="$delete(weightedSelectorMap, key)"
-            @input="e=>$set(weightedSelectorMap[key].podAffinityTerm.labelSelector, 'matchExpressions', e)"
+            @input="e=>$set(weightedSelectorMap[key].podAffinityTerm, 'labelSelector', {matchExpressions:e})"
           />
         </div>
       </template>

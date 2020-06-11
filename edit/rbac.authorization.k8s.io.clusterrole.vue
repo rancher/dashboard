@@ -70,10 +70,8 @@ export default {
 
     <div class="row">
       <div class="col span-6">
-        <label>
-          Locked
-        </label>
         <RadioGroup
+          label="Locked"
           :options="radioOptions"
           :selected="value.locked"
           :labels="lockedLabels"
@@ -81,10 +79,8 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <label>
-          Cluster Creator Default
-        </label>
         <RadioGroup
+          label="Cluster Creator Default"
           :options="radioOptions"
           :selected="value.clusterCretorDefault"
           :labels="newUserDefault"

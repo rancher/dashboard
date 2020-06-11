@@ -77,7 +77,7 @@ export default {
       <slot name="corner" />
     </label>
     <slot name="prefix" />
-    <div>
+    <div :class="{'no-label':!(label||'').length}">
       <span v-if="value">
         {{ value }}
         <slot name="suffix" />
