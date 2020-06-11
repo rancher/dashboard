@@ -55,8 +55,8 @@ export default {
 
     groupBy() {
       // The value of the preference is "namespace" but we take that to mean group by project here...
-      if ( this.groupable && this.group === 'namespace') {
-        return 'groupByLabel';
+      if (this.group === 'namespace') {
+        return 'groupByName';
       }
 
       return null;
@@ -97,7 +97,15 @@ export default {
     </template>
 
     <template #group-by="{group: thisGroup}">
-      <div class="group-tab" v-html="thisGroup.ref" />
+      <div v-if="thisGroup.ref" class="group-tab">
+        {{ t('resourceTable.groupLabel.project') }}
+        <nuxt-link :to="thisGroup.rows[0].project.location">
+          {{ thisGroup.rows[0].project.spec.displayName }}
+        </nuxt-link>
+      </div>
+      <div v-else class="group-tab">
+        {{ t('resourceTable.groupLabel.notInAProject') }}
+      </div>
     </template>
 
     <template #cell:project="{row}">

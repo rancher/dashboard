@@ -167,10 +167,7 @@ export default {
         />
       </span>
     </div>
-
-    <div class="spacer" />
-
-    <div class="row mb-0">
+    <div class="row mb-0 mt-10">
       <span class="col span-6">
         <UnitInput
           v-model="limitsCpu"

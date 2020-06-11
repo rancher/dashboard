@@ -1,5 +1,13 @@
 <script>
+import { EXTERNAL, NAMESPACE } from '@/config/types';
+
 export default {
+  props: {
+    value: {
+      type:    Object,
+      default: () => ({})
+    }
+  },
   data() {
     // make a map of all route names to validate programatically generated names
     const allRoutes = this.$router.options.routes;
@@ -20,9 +28,15 @@ export default {
       if (crumbLocations[i - 1]) {
         nextName = ( `${ crumbLocations[i - 1].name }-${ piece }`);
       }
+      const nextParams = this.paramsFor(nextName, params);
+
+      if (nextName === 'c-cluster-resource' && params.resource === EXTERNAL.PROJECT) {
+        nextParams.resource = NAMESPACE;
+      }
+
       crumbLocations.push({
         name:   nextName,
-        params: this.paramsFor(nextName, params)
+        params: nextParams
       });
     });
 
@@ -61,7 +75,11 @@ export default {
 
       if (lastPiece === 'resource') {
         const resourceType = params[lastPiece];
-        const schema = this.$store.getters['cluster/schemaFor'](resourceType);
+        let schema = this.$store.getters['cluster/schemaFor'](resourceType);
+
+        if (resourceType === EXTERNAL.PROJECT) {
+          schema = this.$store.getters['cluster/schemaFor'](NAMESPACE);
+        }
 
         if (schema) {
           return this.$store.getters['type-map/pluralLabelFor'](schema);
@@ -69,6 +87,10 @@ export default {
       } else if (lastPiece === 'cluster') {
         return this.cluster.nameDisplay;
       } else {
+        if (this.value?.type === EXTERNAL.PROJECT) {
+          return this.value.spec?.displayName;
+        }
+
         return params[lastPiece];
       }
     },

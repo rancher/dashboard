@@ -1,5 +1,5 @@
 import { SYSTEM_PROJECT } from '@/config/labels-annotations';
-import { NAMESPACE } from '@/config/types';
+import { EXTERNAL, NAMESPACE } from '@/config/types';
 
 export default {
   isSystem() {
@@ -21,5 +21,11 @@ export default {
     return all.filter((ns) => {
       return ns.projectId === this.id;
     });
+  },
+  location() {
+    return {
+      name:     'c-cluster-resource-id',
+      params:   { resource: EXTERNAL.PROJECT, id: this.id }
+    };
   }
 };

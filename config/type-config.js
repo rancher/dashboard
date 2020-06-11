@@ -1,5 +1,5 @@
 import {
-  CONFIG_MAP, GATEKEEPER_CONSTRAINT_TEMPLATE, NAMESPACE, NODE, SECRET, RIO, RBAC, INGRESS, WORKLOAD_TYPES
+  CONFIG_MAP, GATEKEEPER_CONSTRAINT_TEMPLATE, NAMESPACE, NODE, SECRET, RIO, RBAC, INGRESS, WORKLOAD_TYPES, EXTERNAL
 } from '@/config/types';
 
 import {
@@ -212,6 +212,17 @@ export default function(store) {
     weight:      11,
     route:       { name: 'c-cluster' },
     exact:       true,
+  });
+
+  virtualType({
+    label:      'Project',
+    namespaced: false,
+    name:       'project',
+    weight:     10,
+    route:      {
+      name:     'c-cluster-resource',
+      params:   { resource: EXTERNAL.PROJECT }
+    },
   });
 
   virtualType({

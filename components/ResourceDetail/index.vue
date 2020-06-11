@@ -6,7 +6,7 @@ import {
   MODE, _VIEW, _EDIT, _CLONE, _STAGE,
   AS_YAML, _FLAGGED, _CREATE,
 } from '@/config/query-params';
-import { SCHEMA } from '@/config/types';
+import { SCHEMA, EXTERNAL } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import GenericResourceDetail from '@/components/GenericResourceDetail';
@@ -65,12 +65,19 @@ export async function defaultAsyncData(ctx, resource) {
   // These are mapped down to the 3 regular page modes that create-edit-view components
   //  know about:  view, edit, create (stage and clone become "create")
   const realMode = realModeFor(route.query.mode, id);
+  const isExternalType = Object.values(EXTERNAL).includes(resource);
+  const prefix = isExternalType ? 'clusterExternal' : 'cluster';
+
+  const findAction = `${ prefix }/find`;
+  const cloneAction = `${ prefix }/clone`;
+  const schemaForGetter = `${ prefix }/schemaFor`;
+  const allGetter = `${ prefix }/all`;
 
   const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
   const asYamlInit = (route.query[AS_YAML] === _FLAGGED) || (realMode !== _VIEW && !hasCustomEdit);
-  const schema = store.getters['cluster/schemaFor'](resource);
-  const schemas = store.getters['cluster/all'](SCHEMA);
+  const schema = store.getters[schemaForGetter](resource);
+  const schemas = store.getters[allGetter](SCHEMA);
 
   let originalModel, model, yaml;
 
@@ -92,21 +99,25 @@ export async function defaultAsyncData(ctx, resource) {
   } else {
     let fqid = id;
 
-    if ( schema.attributes.namespaced && namespace ) {
+    if ( schema?.attributes?.namespaced && namespace ) {
       fqid = `${ namespace }/${ fqid }`;
     }
 
-    originalModel = await store.dispatch('cluster/find', {
+    originalModel = await store.dispatch(findAction, {
       type: resource, id: fqid, opt: { watch: true }
     });
     if (realMode === _VIEW) {
       model = originalModel;
     } else {
-      model = await store.dispatch('cluster/clone', { resource: originalModel });
+      model = await store.dispatch(cloneAction, { resource: originalModel });
     }
     const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
 
-    yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
+    // External types don't currently have a link to retrieve the yaml. Once the support
+    // is present we can remove the condition.
+    if (originalModel.hasLink(link)) {
+      yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
+    }
 
     if ( realMode === _CLONE || realMode === _STAGE ) {
       cleanForNew(model);

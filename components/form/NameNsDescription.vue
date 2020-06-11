@@ -1,6 +1,6 @@
 <script>
 import { sortBy } from '@/utils/sort';
-import { NAMESPACE } from '@/config/types';
+import { EXTERNAL, NAMESPACE } from '@/config/types';
 import { DESCRIPTION } from '@/config/labels-annotations';
 import { _VIEW, _EDIT } from '@/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -63,10 +63,11 @@ export default {
       metadata.namespace = this.$store.getters['defaultNamespace'];
     }
     const description = metadata.annotations?.[DESCRIPTION];
+    const name = this.value.nameDisplay;
 
     return {
       namespace: metadata.namespace,
-      name:      metadata.name,
+      name,
       description,
     };
   },
@@ -103,7 +104,13 @@ export default {
 
   watch: {
     name(val) {
-      this.value.metadata.name = val;
+      const isExternal = Object.values(EXTERNAL).includes(this.value.type);
+
+      if (isExternal) {
+        this.value.spec.displayName = val;
+      } else {
+        this.value.metadata.name = val;
+      }
     },
 
     namespace(val) {
@@ -134,7 +141,9 @@ export default {
 
 <template>
   <div>
-    <DetailTop v-if="isView" :columns="detailTopColumns" />
+    <div v-if="isView">
+      <DetailTop v-if="detailTopColumns.length > 0" :columns="detailTopColumns" />
+    </div>
     <div v-else class="row">
       <div :class="{col: true, [colSpan]: true}">
         <slot name="namespace">

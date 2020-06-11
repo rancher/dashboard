@@ -1,7 +1,6 @@
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 import { PROJECT } from '@/config/labels-annotations';
 import { EXTERNAL } from '@/config/types';
-import { escapeHtml } from '@/utils/string';
 
 export default {
   isSystem() {
@@ -34,14 +33,8 @@ export default {
     return project;
   },
 
-  groupByLabel() {
-    const name = this.project?.nameDisplay;
-
-    if ( name ) {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.project', { name: escapeHtml(name) });
-    } else {
-      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAProject');
-    }
+  groupByName() {
+    return this.project?.nameDisplay;
   },
 
   projectNameSort() {

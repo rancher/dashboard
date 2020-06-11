@@ -45,7 +45,10 @@ export default {
 
   computed: {
     schema() {
-      return this.$store.getters['cluster/schemaFor']( this.value.type );
+      const isExternal = Object.values(EXTERNAL).includes(this.value.type);
+      const getterModule = isExternal ? 'clusterExternal' : 'cluster';
+
+      return this.$store.getters[`${ getterModule }/schemaFor`]( this.value.type );
     },
 
     h1() {
@@ -55,6 +58,10 @@ export default {
       });
 
       return out;
+    },
+
+    isProject() {
+      return this.value.type === EXTERNAL.PROJECT;
     },
 
     isNamespace() {
@@ -113,7 +120,7 @@ export default {
 
 <template>
   <header class="masthead">
-    <BreadCrumbs class="breadcrumbs" />
+    <BreadCrumbs class="breadcrumbs" :value="value" />
     <div>
       <div class="primaryheader">
         <h1 v-html="h1" />
@@ -121,7 +128,8 @@ export default {
       </div>
       <!-- //TODO use  nuxt-link for an internal project detail page once it exists -->
       <div v-if="mode==='view'" class="subheader">
-        <span v-if="isNamespace && project"><t k="resourceDetail.masthead.project" />: {{ project.nameDisplay }}</span>
+        <span v-if="isProject"></span>
+        <span v-else-if="isNamespace && project"><t k="resourceDetail.masthead.project" />: {{ project.nameDisplay }}</span>
         <span v-else-if="namespace"><t k="resourceDetail.masthead.namespace" />: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
         <span v-if="value.description">{{ value.description }}</span>
       </div>

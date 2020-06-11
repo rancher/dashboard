@@ -267,8 +267,8 @@ resourceDetail:
 
 resourceTable:
   groupLabel:
+    project: "Project:"
     namespace: "<span>Namespace:</span> {name}"
-    project: "<span>Project:</span> {name}"
     notInAProject: "Not in a Project"
     notInANamespace: "Not Namespaced"
 
@@ -820,3 +820,31 @@ model:
     displayKind:
       generic: Service
       loadBalancer: L4 Balancer
+projectPage:
+  namespaces: Namespaces
+  tabs:
+    resourceQuota:
+      numberPlaceholder: "e.g. {number}"
+      label: Resource Quota
+      add: Add
+      remove: Remove
+      headers:
+        resourceType: Resource Type
+        projectLimit: Project Limit
+        defaultLimit: Namespace Default Limit
+      options:
+        cpuLimit: "CPU Limit"
+        cpuReservation: "CPU Reservation"
+        memoryLimit: "Memory Limit"
+        memoryReservation: "Memory Reservation"
+        storageReservation: "Storage Reservation"
+        servicesLoadBalancers: "Services - Load Balancers"
+        servicesNodePorts: "Services - Node Ports"
+        pods: "Pods"
+        services: "Services"
+        configMaps: "Config Maps"
+        persistentVolumeClaims: "Persistent Volume Claims"
+        replicationControllers: "Replication Controllers"
+        secrets: "Secrets"
+    containerResourceLimit:
+      label: Container Resource Limit

@@ -211,14 +211,15 @@ export default {
     }
   }
 
-  .selected {
+  &.edit .selected.no-label {
     padding-top: 17px;
-    &.no-label{
-      padding-top:0px;
-      position: relative;
-      max-height:2.3em;
-      overflow:hidden;
-      }
+  }
+
+  .selected.no-label {
+    position: relative;
+    top:-7px;
+    max-height:2.3em;
+    overflow:hidden;
   }
 
   &.focused .vs__dropdown-menu {
@@ -246,8 +247,8 @@ export default {
 
     .vs__dropdown-menu {
       top: calc(100% - 4px);
-      left: -2px;
-      width: calc(100% + 4px);
+      left: -3px;
+      width: calc(100% + 6px);
     }
 
     .selected{

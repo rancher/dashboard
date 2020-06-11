@@ -8,7 +8,6 @@ export default {
   mixins:     [LabeledFormElement],
 
   props: {
-
     type: {
       type:    String,
       default: 'text',
@@ -28,12 +27,15 @@ export default {
       type:    String,
       default: ''
     }
-
   },
 
   computed: {
     isViewing() {
       return this.mode === _VIEW;
+    },
+
+    labeled() {
+      return !!this.label;
     }
   },
 
@@ -66,7 +68,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="isViewing" :class="{'labeled-input': true, [mode]: true, disabled}">
+  <div v-if="isViewing" :class="{'labeled-input': true, [mode]: true, disabled, labeled: labeled}">
     <slot name="label">
       <label>
         {{ label }}
@@ -87,7 +89,7 @@ export default {
       </span>
     </div>
   </div>
-  <div v-else :class="{'labeled-input': true, raised, focused, [mode]: true, disabled}">
+  <div v-else :class="{'labeled-input': true, raised, focused, [mode]: true, disabled, labeled}">
     <slot name="label">
       <label>
         {{ label }}
