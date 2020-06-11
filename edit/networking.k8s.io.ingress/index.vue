@@ -94,14 +94,16 @@ export default {
 <template>
   <form>
     <NameNsDescription :value="value" :mode="mode" />
+    <div class="spacer"></div>
     <div class="row">
       <div class="col span-12">
-        <h3 :class="{'mt-20': isView}">
+        <h2>
           {{ t('ingress.rules.title') }}
-        </h3>
+        </h2>
         <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" />
       </div>
     </div>
+    <div class="spacer"></div>
     <div>
       <ResourceTabs v-model="value" :mode="mode">
         <template #before>

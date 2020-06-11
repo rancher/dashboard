@@ -2,8 +2,9 @@
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { _EDIT, _VIEW } from '@/config/query-params';
+import Banner from '@/components/Banner';
 export default {
-  components: { LabeledInput, LabeledSelect },
+  components: { LabeledInput, LabeledSelect, Banner },
   props:      {
     value: {
       type:    Object,
@@ -46,9 +47,7 @@ export default {
 </script>
 <template>
   <div>
-    <div class="row text-warning" :class="{'pl-10': isView}">
-      {{ t('ingress.defaultBackend.warning') }}
-    </div>
+    <Banner color="warning" :label="t('ingress.defaultBackend.warning')" />
     <div v-if="serviceName || !isView" class="row">
       <div class="col span-4">
         <LabeledSelect
