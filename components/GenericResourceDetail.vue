@@ -137,13 +137,14 @@ export default {
         <LiveDate :value="get(value, 'metadata.deletionTimestamp')" :add-suffix="true" />
       </template>
     </DetailTop>
-
+    <div class="spacer"></div>
     <div id="yaml-container">
-      <h3 class="mb-10 mt-20">
+      <h2>
         YAML
-      </h3>
+      </h2>
       <ResourceYaml v-if="yaml.length" :value="value" mode="view" :yaml="yaml" :show-footer="false" />
     </div>
+    <div class="spacer"></div>
     <ResourceTabs v-model="value" mode="view">
       <template #before>
         <Tab v-if="!!(value.status||{}).conditions" label="Conditions" name="conditions">

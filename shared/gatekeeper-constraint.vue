@@ -261,11 +261,11 @@ export default {
           <Tab name="namespaces" :label="t('gatekeeperConstraint.tab.namespaces.title')">
             <div class="row">
               <div class="col span-6">
-                <h4>{{ t('gatekeeperConstraint.tab.namespaces.sub.namespaces') }}</h4>
+                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.namespaces') }}</h3>
                 <NamespaceList v-model="value.spec.match.namespaces" :mode="mode" :namespace-filter="NAMESPACE_FILTERS.nonSystem" />
               </div>
               <div class="col span-6">
-                <h4>{{ t('gatekeeperConstraint.tab.namespaces.sub.excludedNamespaces') }}</h4>
+                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.excludedNamespaces') }}</h3>
                 <NamespaceList v-model="value.spec.match.excludedNamespaces" :mode="mode" />
               </div>
             </div>
@@ -273,7 +273,7 @@ export default {
           <Tab name="selectors" :label="t('gatekeeperConstraint.tab.selectors.title')">
             <div class="row">
               <div class="col span-6">
-                <h4>{{ t('gatekeeperConstraint.tab.selectors.sub.labelSelector.title') }}</h4>
+                <h3>{{ t('gatekeeperConstraint.tab.selectors.sub.labelSelector.title') }}</h3>
                 <RuleSelector
                   v-model="value.spec.match.labelSelector.matchExpressions"
                   :add-label="t('gatekeeperConstraint.tab.selectors.sub.labelSelector.addLabel')"
@@ -281,7 +281,7 @@ export default {
                 />
               </div>
               <div class="col span-6">
-                <h4>{{ t('gatekeeperConstraint.tab.selectors.sub.namespaceSelector.title') }}</h4>
+                <h3>{{ t('gatekeeperConstraint.tab.selectors.sub.namespaceSelector.title') }}</h3>
                 <RuleSelector
                   v-model="value.spec.match.namespaceSelector.matchExpressions"
                   :add-label="t('gatekeeperConstraint.tab.selectors.sub.namespaceSelector.addNamespace')"
