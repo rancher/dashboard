@@ -228,7 +228,7 @@ export default {
         </div>
       </div>
     </template>
-    
+
     <div v-else-if="isCertificate" class="row">
       <div class="col span-6">
         <LabeledInput
