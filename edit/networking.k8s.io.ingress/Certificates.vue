@@ -1,7 +1,8 @@
 <script>
 import SortableTable from '@/components/SortableTable';
 import { _EDIT, _VIEW } from '@/config/query-params';
-import { SECRET, TLS_CERT } from '@/config/types';
+import { SECRET } from '@/config/types';
+import { TLS } from '@/models/secret';
 import Certificate from './Certificate';
 export default {
   components: { Certificate, SortableTable },
@@ -65,7 +66,7 @@ export default {
       });
     },
     certificates() {
-      return this.filterByNamespace(this.secrets.filter(secret => secret._type === TLS_CERT)).map((secret) => {
+      return this.filterByNamespace(this.secrets.filter(secret => secret._type === TLS)).map((secret) => {
         const { id } = secret;
 
         return id.slice(id.indexOf('/') + 1);
