@@ -13,6 +13,7 @@ export default {};
     background-color: var(--tabbed-container-bg);
     border: 1px solid var(--tabbed-border);
     padding: 20px;
+    margin-bottom: 20px;
     border-radius: var(--border-radius);
     flex-grow: 1;
     flex-basis: 0;

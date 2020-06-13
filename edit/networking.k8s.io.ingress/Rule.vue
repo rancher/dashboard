@@ -54,8 +54,8 @@ export default {
 </script>
 
 <template>
-  <div class="rule mt-20" @input="update">
-    <div class="row">
+  <div class="rule" @input="update">
+    <div class="row mb-20">
       <div id="host" class="col span-11">
         <LabeledInput v-model="host" :label="t('ingress.rules.requestHost.label')" :placeholder="t('ingress.rules.requestHost.placeholder')" />
       </div>

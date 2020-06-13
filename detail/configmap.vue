@@ -82,6 +82,7 @@ export default {
 
 <template>
   <VStack class="config-map">
+    <div class="spacer"></div>
     <KeyValue
       key="data"
       v-model="value.data"
@@ -89,6 +90,7 @@ export default {
       :title="t('configmapPage.data.title')"
       :initial-empty-row="true"
     />
+    <div class="spacer"></div>
     <ResourceTabs v-model="value" :mode="mode">
       <template #before>
         <Tab name="binary-data" :label="t('configmapPage.tabs.binaryData.label')">

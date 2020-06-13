@@ -752,7 +752,7 @@ $spacing: 10px;
 
   .no-rows {
     padding: $group-row-height;
-    color: var(--disabled-bg);
+    color: var(--disabled-bg) !important;
     text-align: center;
   }
 

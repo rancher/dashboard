@@ -209,6 +209,8 @@ export default {
       </template>
     </NameNsDescription>
 
+    <div class="spacer"></div>
+
     <template v-if="isRegistry">
       <h5>Address:</h5>
       <div id="registry-type" class="row">
@@ -260,7 +262,7 @@ export default {
         add-icon=""
       />
     </div>
-
+    <div class="spacer"></div>
     <ResourceTabs v-model="value" :mode="mode" />
 
     <input

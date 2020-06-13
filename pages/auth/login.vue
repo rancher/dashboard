@@ -116,7 +116,7 @@ export default {
 
 <template>
   <main class="login">
-    <div class="row">
+    <div class="row mb-20">
       <div class="col span-6">
         <h1 class="text-center">
           {{ vendor }} {{ product }}
@@ -143,7 +143,7 @@ export default {
         </div>
 
         <form v-if="hasLocal && showLocal" class="mt-50">
-          <div class="row">
+          <div class="row mb-20">
             <div class="col span-4 offset-4">
               <LabeledInput
                 ref="username"
@@ -153,7 +153,7 @@ export default {
               />
             </div>
           </div>
-          <div class="row">
+          <div class="row mb-20">
             <div class="col span-4 offset-4">
               <LabeledInput
                 ref="password"
@@ -164,7 +164,7 @@ export default {
               />
             </div>
           </div>
-          <div class="row">
+          <div class="row mb-20">
             <div class="col span-4 offset-4 text-center">
               <AsyncButton
                 type="submit"

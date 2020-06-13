@@ -114,9 +114,9 @@ export default {
 <template>
   <div>
     <div class="clearfix">
-      <h4>
+      <h2>
         <t k="servicePorts.header.label" />
-      </h4>
+      </h2>
     </div>
 
     <table v-if="rows.length" class="fixed">
