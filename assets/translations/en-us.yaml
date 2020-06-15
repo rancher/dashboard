@@ -675,7 +675,7 @@ validation:
     max: '"{key}" should be at most {val}'
   chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
   dns:
-    doubleHyphen: Cannot contain two consecutive hyphens
+    doubleHyphen: '"{key}" Cannot contain two or more consecutive hyphens'
     hostname:
       startDot: '"{key}" cannot start with a dot'
       endDot: '"{key}" cannot end with a dot'
@@ -716,7 +716,6 @@ validation:
         iana: "Port Rule [{position}] - Target Port must be an IANA Service Name or Integer"
         ianaAt: "Port Rule [{position}] - Target Port "
         required: "Port Rule [{position}] - Target Port is required"
-        ianaDoubleDashError: "{displayKey} Name can not start, end, or contain more then one consecutive hyphen"
 
 ##############################
 # Model Properties

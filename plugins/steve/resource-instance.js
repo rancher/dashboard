@@ -2,7 +2,7 @@ import Vue from 'vue';
 import jsyaml from 'js-yaml';
 import {
   compact,
-  isArray,
+  uniq,
   isEmpty,
   isFunction,
   isString
@@ -112,12 +112,7 @@ const SORT_ORDER = {
   other:   5,
 };
 
-const RESERVED_KEYS = ['reservedKeys'];
-
 export default {
-  concatenatedProperties: RESERVED_KEYS,
-  reservedKeys:           [...RESERVED_KEYS, 'constructor'],
-
   customValidationRules() {
     return [
       /**
@@ -654,11 +649,10 @@ export default {
     return async(opt = {}) => {
       delete this.__rehydrate;
       const forNew = !this.id;
+      const errors = await this.validationErrors(this);
 
-      const okay = await this.validationErrors(this);
-
-      if (!isEmpty(okay)) {
-        return Promise.reject(okay);
+      if (!isEmpty(errors)) {
+        return Promise.reject(errors);
       }
 
       if ( !opt.url ) {
@@ -946,82 +940,6 @@ export default {
     };
   },
 
-  allKeys() {
-    return () => {
-      const { reservedKeys = [] } = this;
-
-      return Object.keys(this).filter((k) => {
-        return k.charAt(0) !== '_' && reservedKeys.includes(k);
-      });
-    };
-  },
-
-  eachKeys() {
-    return (fn) => {
-      const self = this;
-
-      this.allKeys().forEach((k) => {
-        fn.call(self, self.get(k), k);
-      });
-    };
-  },
-
-  trimValues() {
-    return (depth, seenObjs) => {
-      if ( !depth ) {
-        depth = 0;
-      }
-
-      if ( !seenObjs ) {
-        seenObjs = [];
-      }
-
-      this.eachKeys((val, key) => {
-        Vue.set(this, key, recurse(val, depth));
-      }, false);
-
-      return this;
-
-      function recurse(val, depth) {
-        if ( depth > 20 ) {
-          return val;
-        } else if ( isString(val) ) {
-          return val.trim();
-        } else if ( isArray(val) ) {
-          val.forEach((v, idx) => {
-            const out = recurse(v, depth + 1);
-
-            if ( val.objectAt(idx) !== out ) {
-              val.replace(idx, 1, [out]);
-            }
-          });
-
-          return val;
-        } else if ( Object.prototype.hasOwnProperty.call(this, val) ) {
-          // Don't include a resource we've already seen in the chain
-          if ( seenObjs.indexOf(val) > 0 ) {
-            return null;
-          }
-
-          seenObjs.pushObject(val);
-
-          return val.trimValues(depth + 1, seenObjs);
-        } else if ( val && typeof val === 'object' ) {
-          Object.keys(val).forEach((key) => {
-            // Skip keys with dots in them, like container labels
-            if ( key.includes('.') ) {
-              Vue.set(val, key, recurse(val[key], depth + 1));
-            }
-          });
-
-          return val;
-        } else {
-          return val;
-        }
-      }
-    };
-  },
-
   validationErrors() {
     return (data, ignoreFields) => {
       const errors = [];
@@ -1044,9 +962,6 @@ export default {
 
         return errors;
       }
-
-      // Trim all the values to start so that empty strings become nulls
-      this.trimValues();
 
       const fields = schema.resourceFields || {};
       const keys = Object.keys(fields);
@@ -1172,7 +1087,7 @@ export default {
         });
       }
 
-      return errors;
+      return uniq(errors);
     };
   },
 };
