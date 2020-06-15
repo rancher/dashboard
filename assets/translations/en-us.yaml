@@ -149,7 +149,7 @@ servicesPage:
     label: Session Affinity
     helpText: Map connections to a consistent target based on their source IP.
     actionLabels:
-      none: None
+      none: There is no session affinity configured.
       clusterIp: ClusterIP
     timeout:
       label: Session Sticky Time
@@ -450,7 +450,7 @@ ingress:
       port: Port
     hostname: Hostname
     title: Rules
-    requestHost: 
+    requestHost:
       label: Request Host
       placeholder: e.g. example.com
     path:
@@ -608,7 +608,7 @@ workload:
       effect: Effect
       tolerationSeconds: Toleration Seconds
       addToleration: Add Toleration
-      operatorOptions: 
+      operatorOptions:
         exists: Exists
         equal: '='
       effectOptions:
