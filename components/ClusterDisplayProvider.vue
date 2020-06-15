@@ -37,7 +37,7 @@ export default {
       if (driver && this.$store.getters['i18n/exists'](`cluster.provider.${ driver }.shortLabel`)) {
         if (driver === 'rancherkubernetesengine') {
           const pools = this.nodePools;
-          const firstNodePool = pools[0];
+          const firstNodePool = pools.find(pool => pool.spec.clusterName === cluster.id);
 
           if (firstNodePool) {
             const nodeTemplateId = firstNodePool?.spec?.nodeTemplateName;
