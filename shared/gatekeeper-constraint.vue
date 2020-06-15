@@ -147,12 +147,22 @@ export default {
   },
 
   async created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
     if (!this.value.save) {
       this.$emit('input', merge(await this.createConstraint(), this.value, this.emptyDefaults));
     }
   },
 
   methods: {
+    willSave() {
+      this.value.spec.match.kinds.forEach((kind) => {
+        const apiGroups = kind.apiGroups || [];
+
+        if (apiGroups.length === 0) {
+          kind.apiGroups = ['*'];
+        }
+      });
+    },
     async createConstraint() {
       const constraint = await this.$store.dispatch('cluster/create', { type: this.templateOptions[0].value });
 
