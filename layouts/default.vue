@@ -9,9 +9,9 @@ import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
 import Footer from '@/components/nav/Footer';
-import { COUNT, SCHEMA } from '@/config/types';
+import { COUNT, SCHEMA, STEVE } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
-import { addObjects } from '../utils/array';
+import { addObjects } from '@/utils/array';
 
 export default {
 
@@ -134,6 +134,25 @@ export default {
       // vue-shortkey is preventing F8 from passing through to the browser... this works for now.
       // eslint-disable-next-line no-debugger
       debugger;
+    },
+
+    async toggleShell() {
+      const clusterId = this.$route.params.cluster;
+
+      if ( !clusterId || !this.$store.getters['isMultiCluster'] ) {
+        return;
+      }
+
+      const cluster = await this.$store.dispatch('management/find', {
+        type: STEVE.CLUSTER,
+        id:   clusterId,
+      });
+
+      if (!cluster ) {
+        return;
+      }
+
+      cluster.openShell();
     }
   },
 
@@ -180,7 +199,8 @@ export default {
       <PromptRemove />
       <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
       <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
-      <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger" />
+      <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />
+      <button v-shortkey.once="['`']" class="hide" @shortkey="toggleShell" />
     </main>
 
     <div class="wm">

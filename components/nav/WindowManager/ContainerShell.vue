@@ -52,7 +52,7 @@ export default {
 
   data() {
     return {
-      container:   this.initialContainer || this.pod.defaultContainerName,
+      container:   this.initialContainer || this.pod?.defaultContainerName,
       socket:      null,
       terminal:    null,
       fitAddon:    null,
@@ -72,7 +72,7 @@ export default {
     },
 
     containerChoices() {
-      return this.pod.spec.containers.map(x => x.name);
+      return this.pod?.spec?.containers?.map(x => x.name);
     },
   },
 
@@ -146,13 +146,7 @@ export default {
       this.terminal.clear();
     },
 
-    async connect() {
-      if ( this.socket ) {
-        await this.socket.disconnect();
-        this.socket = null;
-        this.terminal.reset();
-      }
-
+    getSocketUrl() {
       const url = addParams(`${ this.pod.links.view.replace(/^http/, 'ws') }/exec`, {
         container: this.container,
         stdout:    1,
@@ -161,6 +155,18 @@ export default {
         tty:       1,
         command:   DEFAULT_COMMAND,
       });
+
+      return url;
+    },
+
+    async connect() {
+      if ( this.socket ) {
+        await this.socket.disconnect();
+        this.socket = null;
+        this.terminal.reset();
+      }
+
+      const url = this.getSocketUrl();
 
       this.socket = new Socket(url, false, 0, 'base64.channel.k8s.io');
       this.socket.addEventListener(EVENT_CONNECTED, (e) => {
@@ -232,6 +238,7 @@ export default {
   <Window :active="active">
     <template #title>
       <Select
+        v-if="containerChoices"
         v-model="container"
         :disabled="containerChoices.length <= 1"
         class="auto-width inline mini"

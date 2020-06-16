@@ -354,6 +354,8 @@ wm:
     search: Filter
     noMatch: No lines match the current filter.
     noData: There are no log entries to show in the current range.
+  kubectlShell:
+    title: "Kubectl: {name}"
 
 tableHeaders:
   state: State
