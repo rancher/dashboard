@@ -1,17 +1,45 @@
 import Vue from 'vue';
 import jsyaml from 'js-yaml';
+import {
+  compact,
+  uniq,
+  isEmpty,
+  isFunction,
+  isString
+} from 'lodash';
+import {
+  displayKeyFor,
+  validateLength,
+  validateChars,
+  validateDnsLikeTypes,
+} from '@/utils/validators';
+import CustomValidators from '@/utils/custom-validators';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
-import { escapeHtml, ucFirst } from '@/utils/string';
+import { escapeHtml, ucFirst, coerceStringTypeToScalarType } from '@/utils/string';
+import { get } from '@/utils/object';
 import { eachLimit } from '@/utils/promise';
 import {
   MODE, _EDIT, _CLONE,
-  AS_YAML, _FLAGGED, _VIEW,
+  AS_YAML, _FLAGGED, _VIEW
 } from '@/config/query-params';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { DESCRIPTION } from '@/config/labels-annotations';
-import { cleanForNew } from './normalize';
+import { normalizeType, cleanForNew } from './normalize';
+
+const STRING_LIKE_TYPES = [
+  'string',
+  'date',
+  'blob',
+  'enum',
+  'multiline',
+  'masked',
+  'password',
+  'dnsLabel',
+  'hostname',
+];
+const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
 const REMAP_STATE = { disabled: 'inactive' };
 
@@ -85,6 +113,29 @@ const SORT_ORDER = {
 };
 
 export default {
+  customValidationRules() {
+    return [
+      /**
+       * Essentially a fake schema object with additonal params to extend validation
+       *
+       * @param {nullable} Value is nullabel
+       * @param {path} Path on the resource to the value to validate
+       * @param {required} Value required
+       * @param {requiredIf} Value required if value at path not empty
+       * @param {translationKey} Human readable display key for param in path e.g. metadata.name === Name
+       * @param {type} Type of field to validate
+       * @param {validators} array of strings where item is name of exported validator function in custom-validtors, args can be passed by prepending args seperated by colon. e.g maxLength:63
+       */
+      /* {
+        nullable:       false,
+        path:           'spec.ports',
+        required:       true,
+        type:           'array',
+        validators:     ['servicePort'],
+      } */
+    ];
+  },
+
   _key() {
     const m = this.metadata;
 
@@ -484,7 +535,7 @@ export default {
 
   maybeFn() {
     return (val) => {
-      if ( typeof val === 'function' ) {
+      if ( isFunction(val) ) {
         return val(this);
       }
 
@@ -598,6 +649,11 @@ export default {
     return async(opt = {}) => {
       delete this.__rehydrate;
       const forNew = !this.id;
+      const errors = await this.validationErrors(this);
+
+      if (!isEmpty(errors)) {
+        return Promise.reject(errors);
+      }
 
       if ( !opt.url ) {
         if ( forNew ) {
@@ -819,7 +875,7 @@ export default {
     };
   },
 
-  applyDefaults(/* mode */) {
+  applyDefaults() {
     return () => {
       return this;
     };
@@ -882,5 +938,156 @@ export default {
         return null;
       }
     };
-  }
+  },
+
+  validationErrors() {
+    return (data, ignoreFields) => {
+      const errors = [];
+      const {
+        type: originalType,
+        schema
+      } = data;
+      const type = normalizeType(originalType);
+
+      if ( !originalType ) {
+        // eslint-disable-next-line
+        console.warn(this.$rootGetters['i18n/t']('validation.noType'), data);
+
+        return errors;
+      }
+
+      if ( !schema ) {
+        // eslint-disable-next-line
+        console.warn(this.$rootGetters['i18n/t']('validation.noSchema'), originalType, data);
+
+        return errors;
+      }
+
+      const fields = schema.resourceFields || {};
+      const keys = Object.keys(fields);
+      let field, key, val, displayKey;
+
+      for ( let i = 0 ; i < keys.length ; i++ ) {
+        key = keys[i];
+        field = fields[key];
+        val = get(data, key);
+        displayKey = displayKeyFor(type, key, this.$rootGetters);
+
+        const fieldType = field?.type ? normalizeType(field.type) : null;
+        const valIsString = isString(val);
+
+        if ( ignoreFields && ignoreFields.includes(key) ) {
+          continue;
+        }
+
+        if ( val === undefined ) {
+          val = null;
+        }
+
+        if (valIsString) {
+          if (fieldType) {
+            Vue.set(data, key, coerceStringTypeToScalarType(val, fieldType));
+          }
+
+          // Empty strings on nullable string fields -> null
+          if ( field.nullable && val.length === 0 && STRING_LIKE_TYPES.includes(fieldType)) {
+            val = null;
+
+            Vue.set(data, key, val);
+          }
+        }
+
+        validateLength(val, field, displayKey, this.$rootGetters, errors);
+        validateChars(val, field, displayKey, this.$rootGetters, errors);
+
+        if (errors.length > 0) {
+          errors.push(this.$rootGetters['i18n/t']('validation.required', { key: displayKey }));
+
+          continue;
+        }
+
+        // IDs claim to be these but are lies...
+        if ( key !== 'id' && !isEmpty(val) && DNS_LIKE_TYPES.includes(fieldType) ) {
+          // DNS types should be lowercase
+          const tolower = (val || '').toLowerCase();
+
+          if ( tolower !== val ) {
+            val = tolower;
+
+            Vue.set(data, key, val);
+          }
+
+          errors.push(...validateDnsLikeTypes(val, fieldType, displayKey, this.$rootGetters, errors));
+        }
+      }
+
+      let { customValidationRules } = this;
+
+      if (!isEmpty(customValidationRules)) {
+        if (isFunction(customValidationRules)) {
+          customValidationRules = customValidationRules();
+        }
+
+        customValidationRules.forEach((rule) => {
+          const {
+            path,
+            requiredIf: requiredIfPath,
+            validators = [],
+            type: fieldType,
+          } = rule;
+          let pathValue = get(data, path) || null;
+          const parsedRules = compact((validators || []));
+          let displayKey = path;
+
+          if (rule.translationKey && this.$rootGetters['i18n/exists'](rule.translationKey)) {
+            displayKey = this.$rootGetters['i18n/t'](rule.translationKey);
+          }
+
+          if (isString(pathValue)) {
+            pathValue = pathValue.trim();
+          }
+
+          if (requiredIfPath) {
+            const reqIfVal = get(data, requiredIfPath);
+
+            if (!isEmpty(reqIfVal) && isEmpty(pathValue)) {
+              errors.push(this.$rootGetters['i18n/t']('validation.required', { key: displayKey }));
+            }
+          }
+
+          validateLength(pathValue, rule, displayKey, this.$rootGetters, errors);
+          validateChars(pathValue, rule, displayKey, this.$rootGetters, errors);
+
+          if ( !isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType) ) {
+            // DNS types should be lowercase
+            const tolower = (pathValue || '').toLowerCase();
+
+            if ( tolower !== pathValue ) {
+              pathValue = tolower;
+
+              Vue.set(data, path, pathValue);
+            }
+
+            errors.push(...validateDnsLikeTypes(pathValue, fieldType, displayKey, this.$rootGetters, errors));
+          }
+
+          parsedRules.forEach((validator) => {
+            const validatorAndArgs = validator.split(':');
+            const validatorName = validatorAndArgs.slice();
+            const validatorArgs = validatorAndArgs.slice(1) || null;
+            const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
+
+            if (!isEmpty(validatorName) && validatorExists) {
+              CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs);
+            } else if (!isEmpty(validatorName) && !validatorExists) {
+              // eslint-disable-next-line
+              console.warn(this.$rootGetters['i18n/t']('validation.custom.missing', { validatorName }));
+            }
+          });
+        });
+      }
+
+      return uniq(errors);
+    };
+  },
 };

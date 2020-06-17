@@ -13,6 +13,7 @@ generic:
   created: Created
   customize: Customize
   na: "n/a"
+  name: Name
   type: Type
   unknown: Unknown
 
@@ -116,7 +117,6 @@ footer:
   slack: Slack
   issue: File an Issue
   download: Download CLI
-
 
 servicesPage:
   typeOpts:
@@ -271,7 +271,6 @@ resourceTable:
     project: "<span>Project:</span> {name}"
     notInAProject: "Not in a Project"
     notInANamespace: "Not Namespaced"
-
 
 servicePorts:
   header:
@@ -488,7 +487,6 @@ ingress:
       placeholder: e.g. 80 or http
     noServiceSelected: No default backend is configured.
 
-
 internalExternalIP:
   none: None
 
@@ -513,13 +511,13 @@ secret:
   type: Type
   data: Data
   certificate:
-      issuer: Issuer
-      expires: Expires
-      privateKey: Private Key
-      caCertificate: CA Certificate
-      readFromFile: Read from File
-      cn: Domain Name
-      plusMore: + {n} more
+    issuer: Issuer
+    expires: Expires
+    privateKey: Private Key
+    caCertificate: CA Certificate
+    readFromFile: Read from File
+    cn: Domain Name
+    plusMore: + {n} more
   registry:
     address: Address
     username: Username
@@ -571,8 +569,8 @@ workload:
       allowPrivilegeEscalation: Privilege Escalation
       runAsNonRoot: Run as Non-Root
       runAsNonRootOptions:
-        yesOption: 'Yes: containers must run as non-root-user'
-        noOption: 'No'
+        yesOption: "Yes: containers must run as non-root-user"
+        noOption: "No"
       readOnlyRootFilesystem: Read-Only Root Filesystem
       runAsUser: Run as User ID
       runAsGroup: Run as Group ID
@@ -585,7 +583,7 @@ workload:
       hostPID: "Use Host PID Namespace"
       hostIPC: "Use Host IPC Namespace"
       sysctls: Sysctls
-      sysctlsKey: 'Name'
+      sysctlsKey: "Name"
   scheduling:
     titles:
       tab: Scheduling
@@ -610,7 +608,7 @@ workload:
       addToleration: Add Toleration
       operatorOptions:
         exists: Exists
-        equal: '='
+        equal: "="
       effectOptions:
         all: All
         noSchedule: NoSchedule,
@@ -619,17 +617,17 @@ workload:
     affinity:
       specificNode: Run pods on specific node(s)
       schedulingRules: Run pods on node(s) matching these scheduling rules
-      requireAny: 'Require any of:'
-      preferAny: 'Prefer any of:'
+      requireAny: "Require any of:"
+      preferAny: "Prefer any of:"
       thisPodNamespace: This pod's namespace
       affinityTitle: Run pods on nodes with pods matching these selectors
       antiAffinityTitle: Run pods on nodes without pods matching these selectors
       matchExpressions:
-        in: '='
+        in: "="
         notIn: ≠
         exists: Exists
         doesNotExist: Does Not Exist
-        greaterThan: '>'
+        greaterThan: ">"
         lessThan: <
         key: Key
         value: Value
@@ -652,3 +650,120 @@ rioConfig:
         listItem2: 2 GiB of Memory
   yaml:
     buttonText: Customize
+
+validation:
+  custom:
+    missing: "No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?"
+  noType: No type to validate
+  noSchema: No schema found to validate
+  required: '"{key}" is required'
+  requiredOrOverride: '"{key}" is required or must allow override'
+  arrayLength:
+    exactly: '"{key}" should contain {count, plural, =1 {# item} other {# items}}'
+    between: '"{key}" should contain between {min} and {max} {max, plural, =1 {item} other {items}}'
+    min: '"{key}" should contain at least {count} {count, plural, =1 {item} other {items}}'
+    max: '"{key}" should contain at most {count} {count, plural, =1 {item} other {items}}'
+  stringLength:
+    exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
+    between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
+    min: '"{key}" should be at least {count} {count, plural, =1 {character} other {characters}}'
+    max: '"{key}" should be at most {count} {count, plural, =1 {character} other {characters}}'
+  number:
+    exactly: '"{key}" should be exactly {val}'
+    between: '"{key}" should be between {min} and {max}'
+    min: '"{key}" should be at least {val}'
+    max: '"{key}" should be at most {val}'
+  chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
+  dns:
+    doubleHyphen: '"{key}" Cannot contain two or more consecutive hyphens'
+    hostname:
+      startDot: '"{key}" cannot start with a dot'
+      endDot: '"{key}" cannot end with a dot'
+      empty: '"{key}" must be at least one character'
+      tooLong: '"{key}" cannot be longer than {max} characters'
+      startNumber: '"{key}" cannot start with a number'
+      startHyphen: '"{key}" cannot start with a hyphen'
+      endHyphen: '"{key}" cannot end with a hyphen'
+      emptyLabel: '"{key}" cannot contain two consecutive dots'
+      tooLongLabel: '"{key}" cannot contain a section longer than {max} characters'
+    label:
+      startNumber: '"{key}" cannot start with a number'
+      startHyphen: '"{key}" cannot start with a hyphen'
+      endHyphen: '"{key}" cannot end with a hyphen'
+      emptyLabel: '"{key}" cannot be empty'
+      tooLongLabel: '"{key}" cannot be more than {max} characters'
+  k8s:
+    identifier:
+      startLetter: '"{key}" must start with a letter or number'
+      endLetter: '"{key}" must end with a letter or number'
+      emptyPrefix: '"{key}" cannot have an empty prefix'
+      tooLongPrefix: '"{key}" cannot have a prefix longer than {max} characters'
+      emptyLabel: '"{key}" cannot have an empty key'
+      tooLongKey: '"{key}" cannot have a key longer than {max} characters'
+  targets:
+    missingProjectId: A target must have a project selected.
+  service:
+    ports:
+      name:
+        required: "Port Rule [{position}] - Name is required."
+      nodePort:
+        requriedInt: "Port Rule [{position}] - Node Port must be interger values if included."
+      port:
+        requriedInt: "Port Rule [{position}] - Port must be interger values if included."
+        required: "Port Rule [{position}] - Port is required."
+      targetPort:
+        between: "Port Rule [{position}] - Target Port must be between 1 and 65535"
+        iana: "Port Rule [{position}] - Target Port must be an IANA Service Name or Integer"
+        ianaAt: "Port Rule [{position}] - Target Port "
+        required: "Port Rule [{position}] - Target Port is required"
+
+##############################
+# Model Properties
+##############################
+model:
+  account:
+    kind:
+      registeredAgent: Registered Agent
+      agent: Agent
+      service: Service
+      user: User
+      admin: Admin
+      project: Environment
+  cluster:
+    name: Cluster Name
+  identity:
+    displayType:
+      user: User
+      team: Team
+      group: Group
+      org: Organization
+      localUser: Local User
+      unknown: "{type}?"
+  ingress:
+    displayKind: L7 Ingress
+  machine:
+    role:
+      worker: Worker
+      etcd: etcd
+      controlPlane: Control Plane
+  openldapconfig:
+    server:
+      label: Hostname or IP Address
+    serviceAccountUsername:
+      label: Service Account Username
+    serviceAccountPassword:
+      label: Service Account Password
+    domain:
+      label: User Search Base
+      placeholder: "e.g. ou=Users,dc=mycompany,dc=com"
+      help: "Only users below this base will be used."
+  projectMember:
+    role:
+      member: Member
+      owner: Owner
+      readonly: Read-Only
+      restricted: Restricted
+  service:
+    displayKind:
+      generic: Service
+      loadBalancer: L4 Balancer
