@@ -150,14 +150,29 @@ export default {
             />
           </div>
         </div>
+
+        <div class="spacer" />
+
         <div v-if="mode!=='view' || !isEmpty(nodeSelector)" class="row">
-          <KeyValue title="Nodes with these labels" :value="nodeSelector" :mode="mode" :initial-empty-row="true" :pro-tip="false" />
+          <KeyValue
+            title="Nodes with these labels"
+            :value="nodeSelector"
+            :mode="mode"
+            :initial-empty-row="true"
+            :pro-tip="false"
+          >
+            <template #title>
+              <h4>{{ t('workload.scheduling.titles.nodeSelector') }}</h4>
+            </template>
+          </KeyValue>
         </div>
       </template>
       <template v-else>
         <NodeAffinity v-model="nodeAffinity" :type="node" :mode="mode" @input="update" />
       </template>
     </div>
+
+    <div class="spacer" />
 
     <div>
       <h3 class="mb-10">
@@ -169,18 +184,16 @@ export default {
           <h4 class="mb-10">
             <t k="workload.scheduling.affinity.affinityTitle" />
           </h4>
-          <div class="row">
-            <PodAffinity v-model="podAffinity" :type="pod" :mode="mode" />
-          </div>
+          <PodAffinity v-model="podAffinity" :type="pod" :mode="mode" />
         </template>
+
+        <div class="spacer" />
 
         <template v-if="!isView || hasPodAntiAffinity">
           <h4 class="mb-10">
             <t k="workload.scheduling.affinity.antiAffinityTitle" />
           </h4>
-          <div>
-            <PodAffinity v-model="podAntiAffinity" :type="pod" :mode="mode" />
-          </div>
+          <PodAffinity v-model="podAntiAffinity" :type="pod" :mode="mode" />
         </template>
       </template>
 
@@ -191,6 +204,8 @@ export default {
       </template>
     </div>
 
+    <div class="spacer" />
+
     <div>
       <h3 class="mb-10">
         <t k="workload.scheduling.titles.tolerations" />
@@ -199,6 +214,8 @@ export default {
         <Tolerations :value="value.tolerations" :mode="mode" />
       </div>
     </div>
+
+    <div class="spacer" />
 
     <div>
       <h3 class="mb-10">
@@ -213,6 +230,8 @@ export default {
         </div>
       </div>
     </div>
+
+    <div class="spacer" />
 
     <div>
       <h3 class="mb-10">

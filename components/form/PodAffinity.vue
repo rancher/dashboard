@@ -109,7 +109,7 @@ export default {
         <t k="workload.scheduling.affinity.requireAny" />
       </div>
       <template v-for="(nodeSelectorTerm, key) in selectorMap">
-        <div :key="key" class="row">
+        <div :key="key">
           <MatchExpressions
             :key="key"
             :mode="mode"
@@ -133,7 +133,7 @@ export default {
         <t k="workload.scheduling.affinity.preferAny" />
       </div>
       <template v-for="(nodeSelectorTerm, key) in weightedSelectorMap">
-        <div :key="key" class="row">
+        <div :key="key">
           <MatchExpressions
             :key="key"
             :mode="mode"
@@ -146,6 +146,7 @@ export default {
             @remove="$delete(weightedSelectorMap, key)"
             @input="e=>$set(weightedSelectorMap[key].podAffinityTerm, 'labelSelector', {matchExpressions:e})"
           />
+          <div class="spacer" />
         </div>
       </template>
       <button v-if="!isView" type="button" class="btn btn-sm role-primary" @click="addWeightedSelector">

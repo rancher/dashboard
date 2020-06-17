@@ -103,7 +103,7 @@ export default {
         />
       </div>
       <template v-for="(nodeSelectorTerm, key) in selectorMap">
-        <div :key="key" class="row">
+        <div :key="key">
           <MatchExpressions
             :key="key"
             :initial-empty-row="!isView"
@@ -114,6 +114,7 @@ export default {
             @remove="$delete(selectorMap, key)"
             @input="e=>updateSelector(selectorMap, key, {matchExpressions:e})"
           />
+          <div class="spacer" />
         </div>
       </template>
       <button v-if="!isView" type="button" class="btn btn-sm role-primary" @click="e=>$set(selectorMap, Math.random(), {matchExpressions:[]})">
@@ -133,7 +134,7 @@ export default {
         />
       </div>
       <template v-for="(nodeSelectorTerm, key) in weightedSelectorMap">
-        <div :key="key" class="row">
+        <div :key="key">
           <MatchExpressions
             :key="key"
             :mode="mode"
@@ -145,6 +146,7 @@ export default {
             @remove="$delete(weightedSelectorMap, key)"
             @input="e=>updateSelector(weightedSelectorMap, key, {preference:{matchExpressions:e}, weight:defaultWeight})"
           />
+          <div class="spacer" />
         </div>
       </template>
       <button v-if="!isView" type="button" class="btn btn-sm role-primary" @click="e=>$set(weightedSelectorMap, Math.random(), {preference:{matchExpressions:[]}, weight:defaultWeight})">

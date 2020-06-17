@@ -168,6 +168,8 @@ export default {
       </div>
     </div>
 
+    <div class="spacer" />
+
     <div class="row">
       <div class="col span-6">
         <LabeledInput
@@ -189,6 +191,8 @@ export default {
       </div>
     </div>
 
+    <div class="spacer" />
+
     <KeyValue
       key="env"
       v-model="unreferencedValues"
@@ -200,6 +204,11 @@ export default {
       title="Environment Variables"
       class="mb-10"
     >
+      <template #title>
+        <h4>
+          {{ t('workload.container.command.env') }}
+        </h4>
+      </template>
       <template #key="{row}">
         <span v-if="row.valueFrom" />
       </template>
@@ -241,6 +250,7 @@ export default {
       v-for="(val,i) in referencedValues"
       ref="referenced"
       :key="`${i}`"
+      class="mb-10"
       :row="val"
       :all-secrets="secrets"
       :all-config-maps="configMaps"

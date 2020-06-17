@@ -104,7 +104,7 @@ export default {
 
 <template>
   <div @input="update">
-    <div class="row mb-20">
+    <div class="row">
       <div class="col span-6">
         <RadioGroup v-model="privileged" :label="t('workload.container.security.privileged')" :options="[false,true]" :labels="['No', 'Yes: container has full access to the host']" :mode="mode" />
       </div>
@@ -119,7 +119,10 @@ export default {
         />
       </div>
     </div>
-    <div class="row mb-20">
+
+    <div class="spacer" />
+
+    <div class="row">
       <div class="col span-6">
         <RadioGroup
           :label="t('workload.container.security.runAsNonRoot')"
@@ -134,14 +137,20 @@ export default {
         <RadioGroup v-model="readOnlyRootFilesystem" :label="t('workload.container.security.readOnlyRootFilesystem')" :options="[false, true]" :labels="['No', 'Yes: container has a read-only root filesystem']" :mode="mode" />
       </div>
     </div>
-    <div class="row mb-20">
+
+    <div class="spacer" />
+
+    <div class="row">
       <div class="col span-6">
         <LabeledInput v-model.number="runAsUser" :label="t('workload.container.security.runAsUser')" :mode="mode" />
       </div>
     </div>
+
+    <div class="spacer" />
+
     <div class="row mb-0">
       <div class="col span-6">
-        <label><t k="workload.container.security.addCapabilities" /></label>
+        <label class="text-label"><t k="workload.container.security.addCapabilities" /></label>
         <div v-if="isView">
           <span v-if="!add.length">n/a</span>
           <ul v-else>
@@ -160,7 +169,7 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <label><t k="workload.container.security.dropCapabilities" /></label>
+        <label class="text-label"><t k="workload.container.security.dropCapabilities" /></label>
         <div v-if="isView">
           <span v-if="!drop.length">n/a</span>
           <ul v-else>

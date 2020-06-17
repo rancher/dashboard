@@ -34,7 +34,10 @@ export default {
         :description="t('workload.container.healthCheck.readinessTip')"
       />
     </div>
-    <hr v-if="!isView" />
+
+    <hr v-if="!isView" class="mt-40 mb-40" />
+    <div v-else class="spacer" />
+
     <div class="row">
       <Probe
         v-model="value.livenessProbe"
@@ -44,8 +47,11 @@ export default {
         :description="t('workload.container.healthCheck.livenessTip')"
       />
     </div>
-    <hr v-if="!isView" />
-    <div class="row mb-0">
+
+    <hr v-if="!isView" class="mt-40 mb-40" />
+    <div v-else class="spacer" />
+
+    <div class="row">
       <Probe
         v-model="value.startupProbe"
         class="col span-12"

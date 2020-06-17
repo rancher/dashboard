@@ -527,6 +527,10 @@ secret:
     domainName: Registry Domain Name
 
 workload:
+  tabs:
+    networking: Networking
+    scheduling: Scheduling
+    security: Security
   container:
     noResourceLimits: There are no resource requirements configured.
     titles:
@@ -594,7 +598,7 @@ workload:
       label: Network Mode
       placeholder: Select a Mode...
       options: 
-        normal: normal
+        normal: Normal
         hostNetwork: Host Network
     dnsPolicy: 
       label: DNS Policy
@@ -635,6 +639,7 @@ workload:
       tolerations: Tolerations
       priority: Priority
       advanced: Advanced
+      nodeSelector: Nodes with these labels
     activeDeadlineSeconds: Pod Active Deadline
     terminationGracePeriodSeconds: Termination Grace Period
     activeDeadlineSecondsTip: The duration that the pod may be active before the system tries to mark it failed and kill associated containers.

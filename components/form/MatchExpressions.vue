@@ -222,21 +222,23 @@ export default {
           </ArrayList>
         </div>
       </div>
-      <div class="row">
-        <div class="col span-12">
-          <LabeledInput
-            :mode="mode"
-            :value="topologyKey"
-            required
-            :label="t('workload.scheduling.affinity.topologyKey.label')"
-            :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
-            @input="e=>$emit('update:topologyKey', e)"
-          />
-        </div>
-      </div>
+
+      <div class="spacer" />
+
+      <LabeledInput
+        :mode="mode"
+        :value="topologyKey"
+        required
+        :label="t('workload.scheduling.affinity.topologyKey.label')"
+        :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
+        @input="e=>$emit('update:topologyKey', e)"
+      />
     </template>
 
+    <div class="spacer" />
+
     <SortableTable
+      v-if="rules.length"
       class="match-expressions"
       :class="mode"
       :headers="tableHeaders"

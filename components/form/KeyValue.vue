@@ -42,6 +42,12 @@ export default {
       type:    String,
       default: ''
     },
+
+    titleComponent: {
+      type:    String,
+      default: 'h2'
+    },
+
     protip: {
       type:    [String, Boolean],
       default: 'ProTip: Paste lines of <code>key=value</code> or <code>key: value</code> into any key field for easy bulk entry',
@@ -356,11 +362,16 @@ export default {
 
 <template>
   <div class="key-value" :class="mode">
-    <div v-if="title" class="clearfix">
-      <h2 :style="{'display':'flex'}">
-        {{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" />
-      </h2>
-    </div>
+    <template v-if="title || !!$slots.title">
+      <div :style="{'display':'flex'}" class="clearfix">
+        <slot name="title">
+          <h2 :style="{'display':'flex'}">
+            {{ title }}
+          </h2>
+        </slot>
+        <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" />
+      </div>
+    </template>
 
     <SortableTable
       :headers="headers"

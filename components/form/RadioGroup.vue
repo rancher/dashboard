@@ -134,7 +134,7 @@ export default {
 
 <template>
   <div>
-    <div v-if="label" class="radio-group label" :class="{'view':isView}">
+    <div v-if="label" class="radio-group text-label" :class="{'view':isView}">
       {{ label }}
     </div>
     <div
@@ -170,9 +170,5 @@ export default {
 .radio-group:focus{
   border:none;
   outline:none;
-}
-.radio-group.label{
-  color: var(--input-label);
-  font-size:14px;
 }
 </style>

@@ -182,6 +182,8 @@ export default {
       </div>
     </div>
 
+    <div class="spacer" />
+
     <div class="row">
       <div class="col span-6">
         <LabeledInput
@@ -202,6 +204,8 @@ export default {
         />
       </div>
     </div>
+
+    <div class="spacer" />
 
     <div class="row">
       <div class="col span-6">
@@ -234,8 +238,20 @@ export default {
       </div>
     </div>
 
+    <div class="spacer" />
+
     <div class="row">
-      <KeyValue v-model="options" key-label="Name" :mode="mode" :title="t('workload.networking.resolver')" :read-allowed="false" />
+      <KeyValue
+        v-model="options"
+        key-label="Name"
+        :mode="mode"
+        :title="t('workload.networking.resolver')"
+        :read-allowed="false"
+      >
+        <template #title>
+          <h3>{{ t('workload.networking.resolver') }}</h3>
+        </template>
+      </KeyValue>
     </div>
 
     <div class="row">
@@ -257,7 +273,11 @@ export default {
           :pad-left="false"
           :add-label="t('workload.networking.hostAliases.add')"
           @input="updateHostAliases"
-        />
+        >
+          <template #title>
+            <h3>{{ t('workload.networking.hostAliases.label') }}</h3>
+          </template>
+        </KeyValue>
       </div>
     </div>
   </div>

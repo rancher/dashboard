@@ -137,13 +137,16 @@ export default {
     <div>
       <h3><t k="workload.container.titles.ports" /></h3>
       <WorkloadPorts v-model="ports" :mode="mode" />
-      <hr class="mt-20 mb-20" />
     </div>
+
+    <div class="spacer" />
+
     <div>
       <h3><t k="workload.container.titles.command" /></h3>
       <Command v-model="commandTab" :mode="mode" :secrets="secrets" :config-maps="configMaps" />
-      <hr class="mt-20 mb-20" />
     </div>
+
+    <div class="spacer" />
 
     <div>
       <h3><t k="workload.container.titles.resources" /></h3>
@@ -151,8 +154,9 @@ export default {
       <div v-else>
         <t k="workload.container.noResourceLimits" />
       </div>
-      <hr class="mt-20 mb-20" />
     </div>
+
+    <div class="spacer" />
 
     <div>
       <h3><t k="workload.container.titles.healthCheck" /></h3>
@@ -160,14 +164,16 @@ export default {
       <div v-else>
         <t k="workload.container.healthCheck.noHealthCheck" />
       </div>
-      <hr class="mt-20 mb-20" />
     </div>
+
+    <div class="spacer" />
 
     <div>
       <h3><t k="workload.container.titles.securityContext" /></h3>
       <Security v-model="securityContext" :mode="mode" />
     </div>
   </div>
+
   <div v-else @input="update">
     <div class="row">
       <div class="col span-4">
