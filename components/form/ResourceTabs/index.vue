@@ -60,6 +60,5 @@ export default {
         :protip="false"
       />
     </Tab>
-    <slot name="after" />
   </Tabbed>
 </template>

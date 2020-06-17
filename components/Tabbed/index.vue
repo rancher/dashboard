@@ -12,11 +12,37 @@ export default {
   },
 
   data() {
-    return { tabs: null };
+    return {
+      tabs:            [],
+      initialTabOrder: []
+    };
+  },
+
+  computed: {
+    filteredTabs() {
+      // keep the tabs list ordered for dynamic tabs
+      const tabs = this.tabs;
+      const { initialTabOrder } = this;
+      const out = [];
+
+      if (isEmpty(initialTabOrder) && !isEmpty(tabs)) {
+        tabs.forEach(tab => initialTabOrder.push(tab.name));
+      }
+
+      initialTabOrder.forEach((tabId) => {
+        const match = tabs.find(t => t.name === tabId);
+
+        if (match) {
+          out.push(match);
+        }
+      });
+
+      return out;
+    }
   },
 
   watch: {
-    tabs(tabs) {
+    filteredTabs(tabs) {
       const activeTab = tabs.find(t => t.active);
       const defaultTab = this.defaultTab;
       const windowsHash = window.location.hash.slice(1);
@@ -70,7 +96,7 @@ export default {
     }
 
     if ( !tab ) {
-      tab = this.tabs[0];
+      tab = this.filteredTabs[0];
     }
 
     if ( tab ) {
@@ -88,7 +114,7 @@ export default {
     },
 
     find(name) {
-      return this.tabs.find(x => x.name === name );
+      return this.filteredTabs.find(x => x.name === name );
     },
 
     select(name, event) {
@@ -100,7 +126,7 @@ export default {
 
       window.location.hash = `#${ name }`;
 
-      for ( const tab of this.tabs ) {
+      for ( const tab of this.filteredTabs ) {
         tab.active = (tab.name === selected.name);
       }
 
@@ -108,11 +134,11 @@ export default {
     },
 
     selectNext(direction) {
-      const currentIdx = this.tabs.findIndex(x => x.active);
+      const currentIdx = this.filteredTabs.findIndex(x => x.active);
 
-      const nextIdx = currentIdx + direction >= this.tabs.length ? 0 : currentIdx + direction < 0 ? this.tabs.length - 1 : currentIdx + direction;
+      const nextIdx = currentIdx + direction >= this.filteredTabs.length ? 0 : currentIdx + direction < 0 ? this.filteredTabs.length - 1 : currentIdx + direction;
 
-      const nextName = this.tabs[nextIdx].name;
+      const nextName = this.filteredTabs[nextIdx].name;
 
       this.select(nextName);
 
@@ -135,7 +161,8 @@ export default {
       @keyup.37.stop="selectNext(-1)"
     >
       <li
-        v-for="tab in tabs"
+        v-for="tab in filteredTabs"
+        :id="tab.name"
         :key="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled}"
         role="presentation"
