@@ -1,8 +1,38 @@
 import day from 'dayjs';
 import { escapeHtml } from '@/utils/string';
 import { DATE_FORMAT } from '@/store/prefs';
+import { insertAt } from '@/utils/array';
 
 export default {
+
+  _availableActions() {
+    const out = this._standardActions;
+
+    insertAt(out, 0, {
+      action:     'openShell',
+      label:      'Kubectl Shell',
+      icon:       'icon icon-terminal',
+      enabled:    !!this.links.shell,
+    });
+
+    return out;
+  },
+
+  openShell() {
+    return () => {
+      this.$dispatch('wm/open', {
+        id:        `kubectl-${ this.id }`,
+        label:     this.$rootGetters['i18n/t']('wm.kubectlShell.title', { name: this.nameDisplay }),
+        icon:      'terminal',
+        component: 'KubectlShell',
+        attrs:     {
+          cluster: this,
+          pod:     {}
+        }
+      }, { root: true });
+    };
+  },
+
   isReady() {
     return this.hasCondition('Ready') || this.type === 'cluster'; // @TODO no conditions on steve clusters yet
   },

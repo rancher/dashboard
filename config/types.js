@@ -87,7 +87,7 @@ export const EXTERNAL = {
 };
 
 // --------------------------------------
-// 2. Optional add-on packages in a cluster
+// 3. Optional add-on packages in a cluster
 // --------------------------------------
 // Base: /k8s/clusters/<id>/v1/
 

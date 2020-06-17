@@ -56,9 +56,12 @@ export default async function({
         if ( status === 401 ) {
           redirect(302, '/auth/login');
         } else {
+          store.commit('setError', e);
           console.log(JSON.stringify(e)); // eslint-disable-line no-console
         }
       }
+
+      return;
     }
   }
 

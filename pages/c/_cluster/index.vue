@@ -12,7 +12,6 @@ import Poller from '@/utils/poller';
 import {
   MESSAGE,
   NAME,
-  NAMESPACE_NAME,
   REASON,
   ROLES,
   STATE,
@@ -132,9 +131,9 @@ export default {
     ];
 
     const nodeHeaders = [
-      NAMESPACE_NAME,
-      ROLES,
       STATE,
+      NAME,
+      ROLES,
     ];
 
     return {
@@ -307,6 +306,7 @@ export default {
       </template>
     </DetailTop>
     <InfoBoxCluster
+      v-if="nodes.length"
       :cluster="cluster"
       :metrics="nodeMetrics"
       :nodes="nodes"
