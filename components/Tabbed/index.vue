@@ -1,5 +1,5 @@
 <script>
-import { isEmpty } from 'lodash';
+import { isEmpty, head } from 'lodash';
 
 export default {
   name: 'Tabbed',
@@ -21,8 +21,10 @@ export default {
   computed: {
     filteredTabs() {
       // keep the tabs list ordered for dynamic tabs
-      const tabs = this.tabs;
-      const { initialTabOrder } = this;
+      const {
+        initialTabOrder,
+        tabs
+      } = this;
       const out = [];
 
       if (isEmpty(initialTabOrder) && !isEmpty(tabs)) {
@@ -42,12 +44,18 @@ export default {
   },
 
   watch: {
+    '$route.hash'() {
+      this.hashChange();
+    },
     filteredTabs(tabs) {
+      const {
+        defaultTab,
+        $route: { hash }
+      } = this;
       const activeTab = tabs.find(t => t.active);
-      const defaultTab = this.defaultTab;
-      const windowsHash = window.location.hash.slice(1);
-      const windowHashTabMatch = tabs.find(t => t.name === windowsHash && !t.active);
-      const firstTab = tabs.length > 0 ? tabs[0] : null;
+      const windowHash = hash.slice(1);
+      const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
+      const firstTab = head(tabs) || null;
 
       if (isEmpty(activeTab)) {
         if (defaultTab && !isEmpty(tabs.find(t => t.name === defaultTab))) {
@@ -67,7 +75,7 @@ export default {
         }
       }
 
-      if (activeTab.name === windowsHash) {
+      if (activeTab.name === windowHash) {
         this.select(activeTab.name);
       } else if (!isEmpty(windowHashTabMatch)) {
         this.select(windowHashTabMatch.name);
@@ -78,25 +86,28 @@ export default {
   },
 
   created() {
-    this.tabs = this.$children;
-  },
+    const {
+      $children,
+      $route: { hash },
+      defaultTab,
+      filteredTabs,
+    } = this;
 
-  mounted() {
-    window.addEventListener('hashchange', this.hashChange);
+    this.tabs = $children;
 
     let tab;
-    const selected = (window.location.hash || '').replace(/^#/, '');
+    const selected = (hash || '').replace(/^#/, '');
 
     if ( selected ) {
       tab = this.find(selected);
     }
 
     if ( !tab ) {
-      tab = this.find(this.defaultTab);
+      tab = this.find(defaultTab);
     }
 
     if ( !tab ) {
-      tab = this.filteredTabs[0];
+      tab = head(filteredTabs);
     }
 
     if ( tab ) {
@@ -104,29 +115,36 @@ export default {
     }
   },
 
-  unmounted() {
-    window.removeEventListener('hashchange', this.hashChange);
-  },
-
   methods: {
     hashChange() {
-      this.select(window.location.hash);
+      this.select(this.$route.hash);
     },
 
     find(name) {
       return this.filteredTabs.find(x => x.name === name );
     },
 
-    select(name, event) {
+    select(name/* , event */) {
+      const {
+        filteredTabs,
+        $router,
+        $route: {
+          name: routeName,
+          hash: routeHash
+        },
+      } = this;
       const selected = this.find(name);
+      const hashName = `#${ name }`;
 
       if ( !selected || selected.disabled) {
         return;
       }
 
-      window.location.hash = `#${ name }`;
+      if (routeHash !== hashName) {
+        $router.replace({ name: routeName, hash: hashName });
+      }
 
-      for ( const tab of this.filteredTabs ) {
+      for ( const tab of filteredTabs ) {
         tab.active = (tab.name === selected.name);
       }
 
@@ -134,17 +152,28 @@ export default {
     },
 
     selectNext(direction) {
-      const currentIdx = this.filteredTabs.findIndex(x => x.active);
-
-      const nextIdx = currentIdx + direction >= this.filteredTabs.length ? 0 : currentIdx + direction < 0 ? this.filteredTabs.length - 1 : currentIdx + direction;
-
-      const nextName = this.filteredTabs[nextIdx].name;
+      const { filteredTabs } = this;
+      const currentIdx = filteredTabs.findIndex(x => x.active);
+      const nextIdx = getNextIdx(currentIdx, direction, filteredTabs.length);
+      const nextName = filteredTabs[nextIdx].name;
 
       this.select(nextName);
 
       this.$nextTick(() => {
         this.$refs.tablist.focus();
       });
+
+      function getNextIdx(currentIdx, direction, tabsLength) {
+        const nxt = currentIdx + direction;
+
+        if (nxt >= tabsLength) {
+          return 0;
+        } else if (nxt <= 0) {
+          return tabsLength - 1;
+        } else {
+          return nxt;
+        }
+      }
     }
   },
 };
