@@ -38,7 +38,7 @@ export default {
 <template>
   <Tabbed v-bind="$attrs">
     <slot name="before" />
-    <Tab name="Labels" label="Labels">
+    <Tab name="labels" :label="t('resourceTabs.tabs.labels')">
       <KeyValue
         key="labels"
         v-model="labels"
@@ -49,7 +49,7 @@ export default {
         :protip="false"
       />
     </Tab>
-    <Tab name="annotations" label="Annotations">
+    <Tab name="annotations" :label="t('resourceTabs.tabs.annotations')">
       <KeyValue
         key="annotations"
         v-model="annotations"
