@@ -1,5 +1,5 @@
 <script>
-import { isEmpty, head } from 'lodash';
+import { isEmpty, head, sortBy } from 'lodash';
 
 export default {
   name: 'Tabbed',
@@ -21,25 +21,9 @@ export default {
   computed: {
     filteredTabs() {
       // keep the tabs list ordered for dynamic tabs
-      const {
-        initialTabOrder,
-        tabs
-      } = this;
-      const out = [];
+      const { tabs } = this;
 
-      if (isEmpty(initialTabOrder) && !isEmpty(tabs)) {
-        tabs.forEach(tab => initialTabOrder.push(tab.name));
-      }
-
-      initialTabOrder.forEach((tabId) => {
-        const match = tabs.find(t => t.name === tabId);
-
-        if (match) {
-          out.push(match);
-        }
-      });
-
-      return out;
+      return sortBy(tabs, ['weight', 'label', 'name']);
     }
   },
 
@@ -127,9 +111,9 @@ export default {
     select(name/* , event */) {
       const {
         filteredTabs,
-        $router,
+        // $router,
         $route: {
-          name: routeName,
+          // name: routeName,
           hash: routeHash
         },
       } = this;
@@ -141,7 +125,9 @@ export default {
       }
 
       if (routeHash !== hashName) {
-        $router.replace({ name: routeName, hash: hashName });
+        // TODO This throws a router error, can we handle this?
+        // $router.replace({ name: routeName, hash: hashName });
+        window.location.hash = hashName;
       }
 
       for ( const tab of filteredTabs ) {
@@ -154,7 +140,7 @@ export default {
     selectNext(direction) {
       const { filteredTabs } = this;
       const currentIdx = filteredTabs.findIndex(x => x.active);
-      const nextIdx = getNextIdx(currentIdx, direction, filteredTabs.length);
+      const nextIdx = getCyclicalIdx(currentIdx, direction, filteredTabs.length);
       const nextName = filteredTabs[nextIdx].name;
 
       this.select(nextName);
@@ -163,7 +149,7 @@ export default {
         this.$refs.tablist.focus();
       });
 
-      function getNextIdx(currentIdx, direction, tabsLength) {
+      function getCyclicalIdx(currentIdx, direction, tabsLength) {
         const nxt = currentIdx + direction;
 
         if (nxt >= tabsLength) {
