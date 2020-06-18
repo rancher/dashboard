@@ -111,9 +111,9 @@ export default {
     select(name/* , event */) {
       const {
         filteredTabs,
-        // $router,
+        $router,
         $route: {
-          // name: routeName,
+          name: routeName,
           hash: routeHash
         },
       } = this;
@@ -125,9 +125,7 @@ export default {
       }
 
       if (routeHash !== hashName) {
-        // TODO This throws a router error, can we handle this?
-        // $router.replace({ name: routeName, hash: hashName });
-        window.location.hash = hashName;
+        $router.replace({ name: routeName, hash: hashName });
       }
 
       for ( const tab of filteredTabs ) {
