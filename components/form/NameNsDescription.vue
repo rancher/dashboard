@@ -135,7 +135,7 @@ export default {
 <template>
   <div>
     <DetailTop v-if="isView" :columns="detailTopColumns" />
-    <div v-else class="row">
+    <div v-else class="row mb-20">
       <div :class="{col: true, [colSpan]: true}">
         <slot name="namespace">
           <InputWithSelect
