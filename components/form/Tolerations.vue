@@ -154,7 +154,7 @@ export default {
       </template>
       <template #col:value="{row}">
         <td v-if="row.operator==='Exists'">
-          <div :style="{'padding-top':'17px'}">
+          <div>
             n/a
           </div>
         </td>

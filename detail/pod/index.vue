@@ -133,17 +133,11 @@ export default {
     },
 
     async findNode() {
-      const IP = this.value.status.hostIP;
-
-      if (!IP) {
-        return null;
-      }
+      const { nodeName } = this.value.spec;
 
       const nodes = await this.$store.dispatch('cluster/findAll', { type: NODE });
       const out = nodes.filter((node) => {
-        const { addresses } = node.status;
-
-        return !!addresses.findIndex(obj => obj.address === IP);
+        return node?.metadata?.name === nodeName;
       })[0];
 
       this.nodes = nodes;
@@ -169,7 +163,10 @@ export default {
       </template>
     </DetailTop>
 
-    <div class="row mt-20">
+    <div class="spacer" />
+
+    <div>
+      <h2><t k="workload.container.titles.containers" /></h2>
       <SortableTable
         id="container-table"
         :table-actions="false"
@@ -192,15 +189,17 @@ export default {
       </SortableTable>
     </div>
 
+    <div class="spacer" />
+
     <ResourceTabs v-model="value" :mode="mode">
       <template #before>
-        <Tab name="networking" label="Networking">
+        <Tab name="networking" :label="t('workload.tabs.networking')">
           <Networking :value="value.spec" mode="view" />
         </Tab>
-        <Tab name="scheduling" label="Scheduling">
+        <Tab name="scheduling" :label="t('workload.tabs.scheduling')">
           <Scheduling :value="value.spec" mode="view" :nodes="nodes" />
         </Tab>
-        <Tab name="security" label="Security">
+        <Tab name="security" :label="t('workload.tabs.security')">
           <PodSecurity :value="value.spec" mode="view" />
         </Tab>
       </template>

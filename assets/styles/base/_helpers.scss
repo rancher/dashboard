@@ -123,6 +123,11 @@ $spacing-property-map: (
   text-transform: capitalize;
 }
 
+.text-label {
+  color: var(--input-label);
+  font-size: 14px;
+}
+
 .hide {
   display: none !important;
 }

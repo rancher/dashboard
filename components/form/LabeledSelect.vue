@@ -161,10 +161,10 @@ export default {
       <label v-if="label" class="corner">
         <slot name="corner" />
       </label>
-      <div v-if="isView" class="selected">
+      <div v-if="isView" :class="{'no-label':!(label||'').length}" class="selected">
         {{ currentLabel }}&nbsp;
       </div>
-      <div v-else class="selected" :class="{'no-label':!label}" :style="{visibility:selectedVisibility}">
+      <div v-else class="selected" :style="{visibility:selectedVisibility}">
         {{ currentLabel }}&nbsp;
       </div>
     </div>
@@ -214,8 +214,8 @@ export default {
   .selected {
     padding-top: 17px;
     &.no-label{
+      padding-top:0px;
       position: relative;
-      top:-7px;
       max-height:2.3em;
       overflow:hidden;
       }

@@ -70,6 +70,7 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+
     flatResources: {
       get() {
         const { limits = {}, requests = {} } = this.resources || {};
@@ -99,6 +100,20 @@ export default {
         this.resources = cleanUp(out);
       }
     },
+
+    hasResourceLimits() {
+      const {
+        limitsCpu, limitsMemory, requestsCpu, requestsMemory
+      } = this.flatResources;
+
+      return !!limitsCpu || !!limitsMemory || !!requestsCpu || !!requestsMemory;
+    },
+
+    hasHealthCheck() {
+      const { readinessProbe, livenessProbe, startupProbe } = this.healthCheck;
+
+      return !!readinessProbe || !!livenessProbe || !!startupProbe;
+    }
   },
 
   methods: {
@@ -122,31 +137,43 @@ export default {
     <div>
       <h3><t k="workload.container.titles.ports" /></h3>
       <WorkloadPorts v-model="ports" :mode="mode" />
-      <hr class="mt-20 mb-20" />
     </div>
+
+    <div class="spacer" />
+
     <div>
       <h3><t k="workload.container.titles.command" /></h3>
       <Command v-model="commandTab" :mode="mode" :secrets="secrets" :config-maps="configMaps" />
-      <hr class="mt-20 mb-20" />
     </div>
+
+    <div class="spacer" />
 
     <div>
       <h3><t k="workload.container.titles.resources" /></h3>
-      <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
-      <hr class="mt-20 mb-20" />
+      <ContainerResourceLimit v-if="hasResourceLimits" v-model="flatResources" :mode="mode" :show-tip="false" />
+      <div v-else>
+        <t k="workload.container.noResourceLimits" />
+      </div>
     </div>
+
+    <div class="spacer" />
 
     <div>
       <h3><t k="workload.container.titles.healthCheck" /></h3>
-      <HealthCheck v-model="healthCheck" :mode="mode" />
-      <hr class="mt-20 mb-20" />
+      <HealthCheck v-if="hasHealthCheck" v-model="healthCheck" :mode="mode" />
+      <div v-else>
+        <t k="workload.container.healthCheck.noHealthCheck" />
+      </div>
     </div>
+
+    <div class="spacer" />
 
     <div>
       <h3><t k="workload.container.titles.securityContext" /></h3>
       <Security v-model="securityContext" :mode="mode" />
     </div>
   </div>
+
   <div v-else @input="update">
     <div class="row">
       <div class="col span-4">

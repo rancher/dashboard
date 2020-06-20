@@ -53,15 +53,15 @@ export default {
 <template>
   <div>
     <div class="row">
-      <div class="col span-3">
-        <h5><t k="workload.container.security.shareProcessNamespace" /></h5>
-        <RadioGroup v-model="shareProcessNamespace" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
+      <div class="col span-6">
+        <RadioGroup v-model="shareProcessNamespace" :label="t('workload.container.security.shareProcessNamespace')" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
       </div>
-      <div class="col span-3">
-        <h5><t k="workload.container.security.runAsNonRoot" /></h5>
-        <RadioGroup v-model="runasNonRoot" :options="[false, true]" :labels="[t('workload.container.security.runAsNonRootOptions.noOption'), t('workload.container.security.runAsNonRootOptions.yesOption')]" :mode="mode" />
+      <div class="col span-6">
+        <RadioGroup v-model="runasNonRoot" :label="t('workload.container.security.runAsNonRoot')" :options="[false, true]" :labels="[t('workload.container.security.runAsNonRootOptions.noOption'), t('workload.container.security.runAsNonRootOptions.yesOption')]" :mode="mode" />
       </div>
     </div>
+
+    <div class="spacer" />
 
     <div class="row">
       <div class="col span-6">
@@ -72,12 +72,18 @@ export default {
       </div>
     </div>
 
+    <div class="spacer" />
+
     <div class="row">
       <div class="col span-6">
-        <h5> <t k="workload.container.security.supplementalGroups" /> </h5>
+        <h5 class="text-label">
+          <t k="workload.container.security.supplementalGroups" />
+        </h5>
         <ArrayList v-model="supplementalGroups" :add-label="t('workload.container.security.addGroupIDs')" :mode="mode" />
       </div>
     </div>
+
+    <div class="spacer" />
 
     <div class="row">
       <div class="col span-6">
@@ -85,21 +91,34 @@ export default {
       </div>
     </div>
 
+    <div class="spacer" />
+
     <div class="row">
-      <div class="col span-3">
-        <h5><t k="workload.container.security.hostIPC" /></h5>
-        <RadioGroup v-model="hostIPC" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
+      <div class="col span-6">
+        <RadioGroup v-model="hostIPC" :label="t('workload.container.security.hostIPC')" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
       </div>
-      <div class="col span-3">
-        <h5><t k="workload.container.security.hostPID" /></h5>
-        <RadioGroup v-model="hostPID" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
+      <div class="col span-6">
+        <RadioGroup v-model="hostPID" :label="t('workload.container.security.hostPID')" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
       </div>
     </div>
 
-    <div class="row mb-0">
+    <div class="spacer" />
+
+    <div class="row">
       <div class="col span-12">
-        <KeyValue v-model="sysctls" :title="t('workload.container.security.sysctls')" :key-label="t('workload.container.security.sysctlsKey')" :mode="mode" />
+        <KeyValue
+          v-model="sysctls"
+          :title="t('workload.container.security.sysctls')"
+          :key-label="t('workload.container.security.sysctlsKey')"
+          :mode="mode"
+        >
+          <template #title>
+            <h3>
+              {{ t('workload.container.security.sysctls') }}
+            </h3>
+          </template>
+        </KeyValue>
       </div>
     </div>
   </div>
-</template>>
+</template>

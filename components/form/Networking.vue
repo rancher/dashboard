@@ -3,6 +3,7 @@ import ArrayList from '@/components/form/ArrayList';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import { mapGetters } from 'vuex';
 
 const CLUSTER_FIRST = 'ClusterFirst';
 const CLUSTER_FIRST_HOST = 'ClusterFirstWithHostNet';
@@ -50,23 +51,38 @@ export default {
   computed: {
     dnsPolicyChoices() {
       return [
-        { label: 'Default', value: 'Default' },
-        { label: 'ClusterFirst', value: 'Cluster First' },
-        { label: 'None', value: 'None' },
+        {
+          label: this.t('workload.networking.dnsPolicy.options.default'),
+          value: 'Default'
+        },
+        {
+          label: this.t('workload.networking.dnsPolicy.options.clusterFirst'),
+          value: 'ClusterFirst'
+        },
+        {
+          label: this.t('workload.networking.dnsPolicy.options.clusterFirstWithHostNet'),
+          value: 'ClusterFirstWithHostNet'
+        },
+        {
+          label: this.t('workload.networking.dnsPolicy.options.none'),
+          value: 'None'
+        },
       ];
     },
 
     networkModeChoices() {
       return [
-        { label: 'Normal', value: 'normal' },
-        { label: 'Host Network', value: 'host' },
+        { label: this.t('workload.networking.networkMode.options.normal'), value: false },
+        { label: this.t('workload.networking.networkMode.options.hostNetwork'), value: true },
       ];
     },
+
+    ...mapGetters({ t: 'i18n/t' })
   },
 
   watch: {
     networkMode(neu) {
-      const on = neu === 'host';
+      const on = neu;
 
       this.value.hostNetwork = on;
       if ( this.dnsPolicy === CLUSTER_FIRST ) {
@@ -80,7 +96,7 @@ export default {
 
     dnsPolicy(neu) {
       if ( neu === CLUSTER_FIRST ) {
-        if ( this.networkMode === 'host' ) {
+        if ( this.networkMode ) {
           this.value.dnsPolicy = CLUSTER_FIRST_HOST;
         } else {
           this.value.dnsPolicy = CLUSTER_FIRST;
@@ -132,7 +148,7 @@ export default {
         hostname:    this.hostname,
         hostAliases: this.hostAliases,
         subdomain:   this.subdomain,
-        hostNetwork: (this.networkMode === 'host')
+        hostNetwork: this.networkMode
       };
 
       this.$emit('input', out);
@@ -148,8 +164,8 @@ export default {
           v-model="networkMode"
           :mode="mode"
           :options="networkModeChoices"
-          label="Network Mode"
-          placeholder="Select a Mode..."
+          :label="t('workload.networking.networkMode.label')"
+          :placeholder="t('workload.networking.networkMode.placeholder')"
           @input="update"
         />
       </div>
@@ -159,42 +175,46 @@ export default {
           v-model="dnsPolicy"
           :mode="mode"
           :options="dnsPolicyChoices"
-          label="DNS Policy"
-          placeholder="Select a Policy..."
+          :label="t('workload.networking.dnsPolicy.label')"
+          :placeholder="t('workload.networking.dnsPolicy.placeholder')"
           @input="update"
         />
       </div>
     </div>
 
+    <div class="spacer" />
+
     <div class="row">
       <div class="col span-6">
         <LabeledInput
           v-model="hostname"
-          label="Hostname"
           :mode="mode"
-          placeholder="e.g. web"
+          :label="t('workload.networking.hostname.label')"
+          :placeholder="t('workload.networking.hostname.placeholder')"
           @input="update"
         />
       </div>
       <div class="col span-6">
         <LabeledInput
           v-model="subdomain"
-          label="Subdomain"
           :mode="mode"
-          placeholder="e.g. web"
+          :label="t('workload.networking.subdomain.label')"
+          :placeholder="t('workload.networking.subdomain.placeholder')"
           @input="update"
         />
       </div>
     </div>
+
+    <div class="spacer" />
 
     <div class="row">
       <div class="col span-6">
         <ArrayList
           key="dnsNameservers"
           v-model="nameservers"
-          title="Nameservers"
-          value-placeholder="e.g. 1.1.1.1"
-          add-label="Add Nameserver"
+          :title="t('workload.networking.nameservers.label')"
+          :value-placeholder="t('workload.networking.nameservers.placeholder')"
+          :add-label="t('workload.networking.nameservers.add')"
           :value-multiline="false"
           :mode="mode"
           :pad-left="false"
@@ -206,9 +226,9 @@ export default {
         <ArrayList
           key="dnsSearches"
           v-model="searches"
-          title="Search Domains"
-          value-placeholder="e.g. mycompany.com"
-          add-label="Add Search Domain"
+          :title="t('workload.networking.searches.label')"
+          :value-placeholder="t('workload.networking.searches.placeholder')"
+          :add-label="t('workload.networking.searches.add')"
           :value-multiline="false"
           :mode="mode"
           :pad-left="false"
@@ -218,8 +238,20 @@ export default {
       </div>
     </div>
 
+    <div class="spacer" />
+
     <div class="row">
-      <KeyValue v-model="options" key-label="Name" :mode="mode" title="DNS Resolver Options" :read-allowed="false" />
+      <KeyValue
+        v-model="options"
+        key-label="Name"
+        :mode="mode"
+        :title="t('workload.networking.resolver')"
+        :read-allowed="false"
+      >
+        <template #title>
+          <h3>{{ t('workload.networking.resolver') }}</h3>
+        </template>
+      </KeyValue>
     </div>
 
     <div class="row">
@@ -228,20 +260,24 @@ export default {
           key="hostAliases"
           v-model="hostAliases"
           :mode="mode"
-          title="Host Aliases"
-          protip="Additional /etc/hosts entries to be injected in the container."
+          :title="t('workload.networking.hostAliases.label')"
+          :protip="t('workload.networking.hostAliases.tip')"
           :read-allowed="false"
           :as-map="false"
           key-name="ip"
-          key-label="IP Address"
-          key-placeholder="e.g. 1.1.1.1"
+          :key-label="t('workload.networking.hostAliases.keyLabel')"
+          :key-placeholder="t('workload.networking.hostAliases.keyPlaceholder')"
           value-name="hostnames"
-          value-label="Hostname"
-          value-placeholder="e.g. foo.com, bar.com"
+          :value-label="t('workload.networking.hostAliases.valueLabel')"
+          :value-placeholder="t('workload.networking.hostAliases.valuePlaceholder')"
           :pad-left="false"
-          add-label="Add Alias"
+          :add-label="t('workload.networking.hostAliases.add')"
           @input="updateHostAliases"
-        />
+        >
+          <template #title>
+            <h3>{{ t('workload.networking.hostAliases.label') }}</h3>
+          </template>
+        </KeyValue>
       </div>
     </div>
   </div>

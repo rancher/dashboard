@@ -527,8 +527,14 @@ secret:
     domainName: Registry Domain Name
 
 workload:
+  tabs:
+    networking: Networking
+    scheduling: Scheduling
+    security: Security
   container:
+    noResourceLimits: There are no resource requirements configured.
     titles:
+      containers: Containers
       ports: Ports
       command: Command
       resources: Resources
@@ -548,7 +554,8 @@ workload:
       workingDir: WorkingDir
       env: Environment Variables
       addFromResource: Add from Resource
-    healthcheck:
+    healthCheck:
+      noHealthCheck: There is not a Readiness Check, Liveness Check or Startup Check configured.
       readinessProbe: Readiness Probe
       livenessProbe: Liveness Probe
       startupProbe: Startup Probe
@@ -585,7 +592,45 @@ workload:
       hostPID: "Use Host PID Namespace"
       hostIPC: "Use Host IPC Namespace"
       sysctls: Sysctls
-      sysctlsKey: "Name"
+      sysctlsKey: 'Name'
+  networking: 
+    networkMode:
+      label: Network Mode
+      placeholder: Select a Mode...
+      options: 
+        normal: Normal
+        hostNetwork: Host Network
+    dnsPolicy: 
+      label: DNS Policy
+      placeholder: Select a Policy...
+      options:
+        default: Default
+        clusterFirst: Cluster First
+        clusterFirstWithHostNet: Cluster First With Host Network
+        none: None
+    hostname:
+      label: Hostname
+      placeholder: e.g. web
+    subdomain: 
+      label: Subdomain
+      placeholder: e.g. web
+    nameservers: 
+      label: DNS Nameservers
+      placeholder: e.g. 1.1.1.1
+      add: Add Nameserver
+    searches: 
+      label: DNS Search Domains
+      placeholder: e.g. mycompany.com
+      add: Add Search Domain
+    resolver: DNS Resolver Options
+    hostAliases: 
+      label: Host Aliases
+      tip: Additional /etc/hosts entries to be injected in the container.
+      keyLabel: IP Address
+      keyPlaceholder: e.g. 1.1.1.1
+      valueLabel: Hostname
+      valuePlaceholder: e.g. foo.com, bar.com
+      add: Add Alias
   scheduling:
     titles:
       tab: Scheduling
@@ -594,6 +639,7 @@ workload:
       tolerations: Tolerations
       priority: Priority
       advanced: Advanced
+      nodeSelector: Nodes with these labels
     activeDeadlineSeconds: Pod Active Deadline
     terminationGracePeriodSeconds: Termination Grace Period
     activeDeadlineSecondsTip: The duration that the pod may be active before the system tries to mark it failed and kill associated containers.
@@ -617,6 +663,11 @@ workload:
         preferNoSchedule: PreferNoSchedule
         noExecute: NoExecute
     affinity:
+      topologyKey:
+        label: Topology Key
+        placeholder:  e.g. failure-domain.beta.kubernetes.io/zone
+      noPodRules: There are no pod scheduling rules configured.
+      nodeName: Node Name
       specificNode: Run pods on specific node(s)
       schedulingRules: Run pods on node(s) matching these scheduling rules
       requireAny: "Require any of:"
@@ -636,7 +687,7 @@ workload:
         operator: Operator
         addRule: Add Rule
         weight: Weight
-        inNamespaces: Pods in these namespaces
+        inNamespaces: 'Pods in these namespaces:'
 
 rioConfig:
   header: Rio

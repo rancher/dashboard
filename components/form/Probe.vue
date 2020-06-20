@@ -156,67 +156,59 @@ export default {
     </div>
     <div class="row mb-0">
       <div class="col span-11-of-23">
-        <div class="row" :class="{'mb-0':!kind||kind==='none'}">
-          <div class="col span-12">
-            <LabeledSelect
-              v-model="kind"
-              :mode="mode"
-              label="Type"
-              :options="kindOptions"
-              placeholder="Select a check type"
-            />
-          </div>
-        </div>
+        <LabeledSelect
+          v-model="kind"
+          :mode="mode"
+          label="Type"
+          :options="kindOptions"
+          placeholder="Select a check type"
+        />
+
+        <div v-if="kind && kind!=='none'" class="spacer" />
 
         <div v-if="kind === 'HTTP' || kind === 'HTTPS'">
-          <div class="row">
-            <div class="col span-12">
-              <LabeledInput
-                v-model.number="httpGet.port"
-                type="number"
-                min="1"
-                max="65535"
-                :mode="mode"
-                :label="t('workload.container.healthcheck.httpGet.port')"
-                placeholder="e.g. 80"
-              />
-            </div>
-          </div>
+          <LabeledInput
+            v-model.number="httpGet.port"
+            type="number"
+            min="1"
+            max="65535"
+            :mode="mode"
+            :label="t('workload.container.healthCheck.httpGet.port')"
+            placeholder="e.g. 80"
+          />
 
-          <div class="row mb-0">
-            <div class="col span-12">
-              <LabeledInput
-                v-model="httpGet.path"
-                :mode="mode"
-                :label="t('workload.container.healthcheck.httpGet.path')"
-                placeholder="e.g. /healthz"
-              />
-            </div>
-          </div>
+          <div class="spacer" />
+
+          <LabeledInput
+            v-model="httpGet.path"
+            :mode="mode"
+            :label="t('workload.container.healthCheck.httpGet.path')"
+            placeholder="e.g. /healthz"
+          />
         </div>
 
-        <div v-if="kind === 'tcp'" class="row">
-          <div class="col span-12">
-            <LabeledInput
-              v-model.number="tcpSocket.port"
-              type="number"
-              min="1"
-              max="65535"
-              :mode="mode"
-              :label="t('workload.container.healthcheck.httpGet.port')"
-              placeholder="e.g. 25"
-            />
-          </div>
+        <div v-if="kind === 'tcp'">
+          <LabeledInput
+            v-model.number="tcpSocket.port"
+            type="number"
+            min="1"
+            max="65535"
+            :mode="mode"
+            :label="t('workload.container.healthCheck.httpGet.port')"
+            placeholder="e.g. 25"
+          />
+          <div class="spacer" />
         </div>
 
-        <div v-if="kind === 'exec'" class="row">
+        <div v-if="kind === 'exec'">
           <div class="col span-12">
             <ShellInput
               v-model="exec.command"
-              :label="t('workload.container.healthcheck.command.command')"
+              :label="t('workload.container.healthCheck.command.command')"
               placeholder="e.g. cat /tmp/health"
             />
           </div>
+          <div class="spacer" />
         </div>
       </div>
 
@@ -230,7 +222,7 @@ export default {
             <UnitInput
               v-model="probe.periodSeconds"
               :mode="mode"
-              :label="t('workload.container.healthcheck.checkInterval')"
+              :label="t('workload.container.healthCheck.checkInterval')"
               min="1"
               suffix="sec"
               placeholder="Default: 10"
@@ -240,7 +232,7 @@ export default {
             <UnitInput
               v-model="probe.initialDelaySeconds"
               :mode="mode"
-              :label="t('workload.container.healthcheck.initialDelay')"
+              :label="t('workload.container.healthCheck.initialDelay')"
               suffix="sec"
               min="0"
               placeholder="Default: 0"
@@ -250,13 +242,16 @@ export default {
             <UnitInput
               v-model="probe.timeoutSeconds"
               :mode="mode"
-              :label="t('workload.container.healthcheck.timeout')"
+              :label="t('workload.container.healthCheck.timeout')"
               suffix="sec"
               min="0"
               placeholder="Default: 3"
             />
           </div>
         </div>
+
+        <div class="spacer" />
+
         <div class="row">
           <div class="col span-6">
             <LabeledInput
@@ -264,7 +259,7 @@ export default {
               type="number"
               min="1"
               :mode="mode"
-              :label="t('workload.container.healthcheck.successThreshold')"
+              :label="t('workload.container.healthCheck.successThreshold')"
               placeholder="Default: 1"
             />
           </div>
@@ -274,11 +269,14 @@ export default {
               type="number"
               min="1"
               :mode="mode"
-              :label="t('workload.container.healthcheck.failureThreshold')"
+              :label="t('workload.container.healthCheck.failureThreshold')"
               placeholder="Default: 3"
             />
           </div>
         </div>
+
+        <div class="spacer" />
+
         <div class="row mb-0">
           <div class="col span-12">
             <KeyValue
@@ -288,13 +286,20 @@ export default {
               :pad-left="false"
               :as-map="false"
               :read-allowed="false"
-              :title="t('workload.container.healthcheck.httpGet.headers')"
+              :title="t('workload.container.healthCheck.httpGet.headers')"
               key-label="Name"
-            />
+            >
+              <template #title>
+                <h4>
+                  {{ t('workload.container.healthCheck.httpGet.headers') }}
+                </h4>
+              </template>
+            </KeyValue>
           </div>
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>
 

@@ -212,9 +212,8 @@ export default {
     <div class="spacer"></div>
 
     <template v-if="isRegistry">
-      <h5>Address:</h5>
       <div id="registry-type" class="row">
-        <RadioGroup :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
+        <RadioGroup label="Address:" :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row">
         <LabeledInput v-model="registryFQDN" :label="t('secret.registry.domainName')" placeholder="e.g. index.docker.io" :mode="mode" />

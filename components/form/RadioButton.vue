@@ -143,7 +143,7 @@ export default {
     border-color: var(--input-disabled-text)
   }
 }
-.radio-label {
-  color:  var( --input-label );
-}
+// .radio-label {
+//   color:  var( --input-label );
+// }
 </style>

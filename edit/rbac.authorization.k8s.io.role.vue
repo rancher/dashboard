@@ -72,10 +72,8 @@ export default {
 
     <section class="row">
       <div class="col span-6">
-        <label>
-          Locked
-        </label>
         <RadioGroup
+          label="Locked"
           :options="radioOptions"
           :selected="value.locked"
           :labels="lockedLabels"
@@ -83,10 +81,8 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <label>
-          New User Default
-        </label>
         <RadioGroup
+          label="New User Default"
           :options="radioOptions"
           :selected="value.newUserDefault"
           :labels="newUserDefault"

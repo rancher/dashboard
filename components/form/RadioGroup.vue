@@ -1,5 +1,6 @@
 <script>
 import RadioButton from '@/components/form/RadioButton';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: { RadioButton },
@@ -29,6 +30,11 @@ export default {
     mode: {
       type:    String,
       default: 'edit'
+    },
+
+    label: {
+      type:    String,
+      default: null
     }
   },
 
@@ -43,6 +49,10 @@ export default {
   },
 
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+
     // show labels if given, otherwise show values
     labelsToUse() {
       if (this.labels) {
@@ -123,35 +133,40 @@ export default {
 </script>
 
 <template>
-  <div
-    v-if="mode!=='view'"
-    ref="radio-group"
-    class="radio-group"
-    tabindex="0"
-    @focus="focusGroup"
-    @blur="blurred"
-    @keyup.39.stop="clickNext(1)"
-    @keyup.37.stop="clickNext(-1)"
-  >
-    <RadioButton
-      v-for="(option, i) in options"
-      :key="option"
-      :ref="`radio-${i}`"
-      :value="statuses[option]"
-      :label="labelsToUse[i]"
-      grouped
-      :class="{focused:focused&&selectedIndex===i}"
-      :disabled="disabled || mode=='view'"
-      @input="select(option)"
+  <div>
+    <div v-if="label" class="radio-group text-label" :class="{'view':isView}">
+      {{ label }}
+    </div>
+    <div
+      v-if="mode!=='view'"
+      ref="radio-group"
+      class="radio-group"
+      tabindex="0"
       @focus="focusGroup"
-    />
-  </div>
-  <div v-else>
-    {{ labelsToUse[selectedIndex] }}
+      @blur="blurred"
+      @keyup.39.stop="clickNext(1)"
+      @keyup.37.stop="clickNext(-1)"
+    >
+      <RadioButton
+        v-for="(option, i) in options"
+        :key="option"
+        :ref="`radio-${i}`"
+        :value="statuses[option]"
+        :label="labelsToUse[i]"
+        grouped
+        :class="{focused:focused&&selectedIndex===i}"
+        :disabled="disabled || mode=='view'"
+        @input="select(option)"
+        @focus="focusGroup"
+      />
+    </div>
+    <div v-else>
+      {{ labelsToUse[selectedIndex] }}
+    </div>
   </div>
 </template>
 
-<style>
+<style lang='scss'>
 .radio-group:focus{
   border:none;
   outline:none;
