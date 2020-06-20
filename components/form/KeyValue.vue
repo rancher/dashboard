@@ -43,11 +43,6 @@ export default {
       default: ''
     },
 
-    titleComponent: {
-      type:    String,
-      default: 'h2'
-    },
-
     protip: {
       type:    [String, Boolean],
       default: 'ProTip: Paste lines of <code>key=value</code> or <code>key: value</code> into any key field for easy bulk entry',
