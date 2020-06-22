@@ -12,14 +12,11 @@ export default {
   },
 
   data() {
-    return {
-      tabs:            [],
-      initialTabOrder: []
-    };
+    return { tabs: [] };
   },
 
   computed: {
-    filteredTabs() {
+    sortedTabs() {
       // keep the tabs list ordered for dynamic tabs
       const { tabs } = this;
 
@@ -31,7 +28,8 @@ export default {
     '$route.hash'() {
       this.hashChange();
     },
-    filteredTabs(tabs) {
+
+    sortedTabs(tabs) {
       const {
         defaultTab,
         $route: { hash }
@@ -74,7 +72,7 @@ export default {
       $children,
       $route: { hash },
       defaultTab,
-      filteredTabs,
+      sortedTabs,
     } = this;
 
     this.tabs = $children;
@@ -91,7 +89,7 @@ export default {
     }
 
     if ( !tab ) {
-      tab = head(filteredTabs);
+      tab = head(sortedTabs);
     }
 
     if ( tab ) {
@@ -105,12 +103,12 @@ export default {
     },
 
     find(name) {
-      return this.filteredTabs.find(x => x.name === name );
+      return this.sortedTabs.find(x => x.name === name );
     },
 
     select(name/* , event */) {
       const {
-        filteredTabs,
+        sortedTabs,
         $router,
         $route: {
           name: routeName,
@@ -128,7 +126,7 @@ export default {
         $router.replace({ name: routeName, hash: hashName });
       }
 
-      for ( const tab of filteredTabs ) {
+      for ( const tab of sortedTabs ) {
         tab.active = (tab.name === selected.name);
       }
 
@@ -136,10 +134,10 @@ export default {
     },
 
     selectNext(direction) {
-      const { filteredTabs } = this;
-      const currentIdx = filteredTabs.findIndex(x => x.active);
-      const nextIdx = getCyclicalIdx(currentIdx, direction, filteredTabs.length);
-      const nextName = filteredTabs[nextIdx].name;
+      const { sortedTabs } = this;
+      const currentIdx = sortedTabs.findIndex(x => x.active);
+      const nextIdx = getCyclicalIdx(currentIdx, direction, sortedTabs.length);
+      const nextName = sortedTabs[nextIdx].name;
 
       this.select(nextName);
 
@@ -174,7 +172,7 @@ export default {
       @keyup.37.stop="selectNext(-1)"
     >
       <li
-        v-for="tab in filteredTabs"
+        v-for="tab in sortedTabs"
         :id="tab.name"
         :key="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled}"
