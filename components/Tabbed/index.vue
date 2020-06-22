@@ -97,6 +97,14 @@ export default {
     }
   },
 
+  mounted() {
+    window.addEventListener('hashchange', this.hashChange);
+  },
+
+  unmounted() {
+    window.removeEventListener('hashchange', this.hashChange);
+  },
+
   methods: {
     hashChange() {
       this.select(this.$route.hash);
@@ -109,12 +117,9 @@ export default {
     select(name/* , event */) {
       const {
         sortedTabs,
-        $router,
-        $route: {
-          name: routeName,
-          hash: routeHash
-        },
+        $route: { hash: routeHash },
       } = this;
+
       const selected = this.find(name);
       const hashName = `#${ name }`;
 
@@ -123,7 +128,7 @@ export default {
       }
 
       if (routeHash !== hashName) {
-        $router.replace({ name: routeName, hash: hashName });
+        window.location.hash = `#${ name }`;
       }
 
       for ( const tab of sortedTabs ) {
