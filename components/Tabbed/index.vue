@@ -1,5 +1,5 @@
 <script>
-import { isEmpty } from 'lodash';
+import { isEmpty, head, sortBy } from 'lodash';
 
 export default {
   name: 'Tabbed',
@@ -12,16 +12,32 @@ export default {
   },
 
   data() {
-    return { tabs: null };
+    return { tabs: [] };
+  },
+
+  computed: {
+    sortedTabs() {
+      // keep the tabs list ordered for dynamic tabs
+      const { tabs } = this;
+
+      return sortBy(tabs, ['weight', 'label', 'name']);
+    }
   },
 
   watch: {
-    tabs(tabs) {
+    '$route.hash'() {
+      this.hashChange();
+    },
+
+    sortedTabs(tabs) {
+      const {
+        defaultTab,
+        $route: { hash }
+      } = this;
       const activeTab = tabs.find(t => t.active);
-      const defaultTab = this.defaultTab;
-      const windowsHash = window.location.hash.slice(1);
-      const windowHashTabMatch = tabs.find(t => t.name === windowsHash && !t.active);
-      const firstTab = tabs.length > 0 ? tabs[0] : null;
+      const windowHash = hash.slice(1);
+      const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
+      const firstTab = head(tabs) || null;
 
       if (isEmpty(activeTab)) {
         if (defaultTab && !isEmpty(tabs.find(t => t.name === defaultTab))) {
@@ -41,7 +57,7 @@ export default {
         }
       }
 
-      if (activeTab.name === windowsHash) {
+      if (activeTab.name === windowHash) {
         this.select(activeTab.name);
       } else if (!isEmpty(windowHashTabMatch)) {
         this.select(windowHashTabMatch.name);
@@ -52,25 +68,28 @@ export default {
   },
 
   created() {
-    this.tabs = this.$children;
-  },
+    const {
+      $children,
+      $route: { hash },
+      defaultTab,
+      sortedTabs,
+    } = this;
 
-  mounted() {
-    window.addEventListener('hashchange', this.hashChange);
+    this.tabs = $children;
 
     let tab;
-    const selected = (window.location.hash || '').replace(/^#/, '');
+    const selected = (hash || '').replace(/^#/, '');
 
     if ( selected ) {
       tab = this.find(selected);
     }
 
     if ( !tab ) {
-      tab = this.find(this.defaultTab);
+      tab = this.find(defaultTab);
     }
 
     if ( !tab ) {
-      tab = this.tabs[0];
+      tab = head(sortedTabs);
     }
 
     if ( tab ) {
@@ -78,29 +97,36 @@ export default {
     }
   },
 
-  unmounted() {
-    window.removeEventListener('hashchange', this.hashChange);
-  },
-
   methods: {
     hashChange() {
-      this.select(window.location.hash);
+      this.select(this.$route.hash);
     },
 
     find(name) {
-      return this.tabs.find(x => x.name === name );
+      return this.sortedTabs.find(x => x.name === name );
     },
 
-    select(name, event) {
+    select(name/* , event */) {
+      const {
+        sortedTabs,
+        $router,
+        $route: {
+          name: routeName,
+          hash: routeHash
+        },
+      } = this;
       const selected = this.find(name);
+      const hashName = `#${ name }`;
 
       if ( !selected || selected.disabled) {
         return;
       }
 
-      window.location.hash = `#${ name }`;
+      if (routeHash !== hashName) {
+        $router.replace({ name: routeName, hash: hashName });
+      }
 
-      for ( const tab of this.tabs ) {
+      for ( const tab of sortedTabs ) {
         tab.active = (tab.name === selected.name);
       }
 
@@ -108,17 +134,28 @@ export default {
     },
 
     selectNext(direction) {
-      const currentIdx = this.tabs.findIndex(x => x.active);
-
-      const nextIdx = currentIdx + direction >= this.tabs.length ? 0 : currentIdx + direction < 0 ? this.tabs.length - 1 : currentIdx + direction;
-
-      const nextName = this.tabs[nextIdx].name;
+      const { sortedTabs } = this;
+      const currentIdx = sortedTabs.findIndex(x => x.active);
+      const nextIdx = getCyclicalIdx(currentIdx, direction, sortedTabs.length);
+      const nextName = sortedTabs[nextIdx].name;
 
       this.select(nextName);
 
       this.$nextTick(() => {
         this.$refs.tablist.focus();
       });
+
+      function getCyclicalIdx(currentIdx, direction, tabsLength) {
+        const nxt = currentIdx + direction;
+
+        if (nxt >= tabsLength) {
+          return 0;
+        } else if (nxt <= 0) {
+          return tabsLength - 1;
+        } else {
+          return nxt;
+        }
+      }
     }
   },
 };
@@ -135,7 +172,8 @@ export default {
       @keyup.37.stop="selectNext(-1)"
     >
       <li
-        v-for="tab in tabs"
+        v-for="tab in sortedTabs"
+        :id="tab.name"
         :key="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled}"
         role="presentation"

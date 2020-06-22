@@ -236,6 +236,7 @@ export default {
           <Tab
             v-if="!checkTypeIs('ExternalName')"
             name="selectors"
+            :weight="1"
             :label="t('servicesPage.selectors.label')"
           >
             <div class="row">
@@ -258,7 +259,11 @@ export default {
               </div>
             </div>
           </Tab>
-          <Tab name="ips" :label="t('servicesPage.ips.label')">
+          <Tab
+            name="ips"
+            :label="t('servicesPage.ips.label')"
+            :weight="2"
+          >
             <div class="row">
               <div class="col span-12">
                 <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
@@ -300,6 +305,7 @@ export default {
             v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
             name="session-affinity"
             :label="t('servicesPage.affinity.label')"
+            :weight="3"
           >
             <div class="col span-12">
               <Banner color="info" :label="t('servicesPage.affinity.helpText')" />

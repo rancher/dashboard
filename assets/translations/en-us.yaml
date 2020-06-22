@@ -509,6 +509,11 @@ resourceList:
     create: Create
     createFromYaml: Create from YAML
 
+resourceTabs:
+  tabs:
+    labels: Labels
+    annotations: Annotations
+
 secret:
   type: Type
   data: Data

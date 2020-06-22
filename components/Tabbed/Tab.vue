@@ -8,6 +8,11 @@ export default {
     name: {
       type:     String,
       required: true,
+    },
+    weight: {
+      type:     Number,
+      default:  0,
+      required: false,
     }
   },
 
