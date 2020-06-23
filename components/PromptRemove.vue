@@ -11,7 +11,7 @@ export default {
   },
   computed:   {
     names() {
-      return this.toRemove.map(obj => obj.nameDisplay);
+      return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
     },
 
     type() {
@@ -57,6 +57,14 @@ export default {
 
     isDeleteDisabled() {
       return !!this.preventDeletionMessage;
+    },
+
+    plusMore() {
+      if (this.toRemove.length > 5) {
+        return `, and ${ this.toRemove.length - 5 } more.`;
+      } else {
+        return null;
+      }
     },
 
     // if the current route ends with the ID of the resource being deleted, whatever page this is wont be valid after successful deletion: navigate away
@@ -158,8 +166,13 @@ export default {
       <div slot="body">
         <div class="mb-10">
           You are attempting to remove the {{ type }} <template v-for="(resource, i) in names">
-            <a :key="resource" :href="selfLinks[i]">{{ resource }}</a><span v-if="i<toRemove.length-1" :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
-          </template>. <span v-if="needsConfirm">Re-enter its name below to confirm:</span>
+            <template v-if="i<5">
+              <a :key="resource" :href="selfLinks[i]">{{ resource }}</a><span v-if="i===toRemove.length-1" :key="resource">.</span>
+              <span v-else-if="plusMore && i===4" :key="resource">{{ plusMore }}</span>
+              <span v-else :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
+            </template>
+          </template>
+          <span v-if="needsConfirm" :key="resource">Re-enter its name below to confirm:</span>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
         <span class="text-warning">{{ preventDeletionMessage }}</span>
