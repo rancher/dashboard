@@ -59,6 +59,43 @@ export default {
       return !!this.preventDeletionMessage;
     },
 
+    // if the current route ends with the ID of the resource being deleted, whatever page this is wont be valid after successful deletion: navigate away
+    doneLocation() {
+      // if deleting more than one resource, this is happening in list view and shouldn't redirect anywhere
+      if (this.toRemove.length > 1) {
+        return null;
+      }
+      const currentRoute = this.toRemove[0].currentRoute();
+      const out = {};
+      const params = { ...currentRoute.params };
+
+      if (params.id === this.toRemove[0]?.metadata?.name || params.id === this.toRemove[0].id) {
+        let { name = '' } = currentRoute;
+
+        name = name.slice(0, name.indexOf('-id'));
+
+        if (params.namespace) {
+          name = name.slice(0, name.indexOf('-namespace'));
+          delete params.namespace;
+        }
+        delete params.id;
+
+        out.params = params;
+        out.name = name;
+      }
+
+      return out;
+    },
+
+    currentRouter() {
+      // ...don't need a router if there's no route to go to
+      if (!this.doneLocation) {
+        return null;
+      } else {
+        return this.toRemove[0].currentRouter();
+      }
+    },
+
     ...mapState('action-menu', ['showPromptRemove', 'toRemove'])
   },
 
@@ -80,8 +117,24 @@ export default {
     remove() {
       if (this.needsConfirm && this.confirmName !== this.names[0]) {
         this.error = 'Resource names do not match';
+        // if doneLocation is defined, redirect after deleting
+      } else if (this.doneLocation) {
+        // doneLocation will recompute to undefined when delete request completes
+        const goTo = { ...this.doneLocation };
+
+        Promise.all(this.toRemove.map(resource => resource.remove())).then((results) => {
+          // remove() calls 'cluster/request' which returns nothing for 204 responses
+          if ((results[0] || {})._status === 200 || !results[0]) {
+            this.confirmName = '';
+            this.currentRouter.push(goTo);
+            this.close();
+          }
+        }).catch((err) => {
+          this.error = err;
+        });
       } else {
         this.toRemove.map(resource => resource.remove());
+
         this.confirmName = '';
         this.close();
       }
