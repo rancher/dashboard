@@ -52,13 +52,14 @@ export default {
 
       registryFQDN = Object.keys(auths)[0];
 
+      if (registryFQDN === 'index.dockerhub.io/v1/') {
+        registryProvider = 'DockerHub';
+      } else if (registryFQDN === 'quay.io') {
+        registryProvider = 'Quay.io';
+      }
+
       username = auths[registryFQDN].username;
       password = auths[registryFQDN].password;
-      registryAddresses.forEach((provider) => {
-        if (provider.toLowerCase() === registryFQDN) {
-          registryProvider = provider;
-        }
-      });
     }
 
     if (this.value._type === TLS) {
