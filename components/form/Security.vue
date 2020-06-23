@@ -3,11 +3,13 @@ import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import { _VIEW } from '@/config/query-params';
 import { mapGetters } from 'vuex';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 export default {
   components: {
     RadioGroup,
     LabeledInput,
+    LabeledSelect
   },
 
   props:      {
@@ -150,38 +152,44 @@ export default {
 
     <div class="row mb-0">
       <div class="col span-6">
-        <label class="text-label"><t k="workload.container.security.addCapabilities" /></label>
         <div v-if="isView">
-          <span v-if="!add.length">n/a</span>
-          <ul v-else>
+          <label class="text-label"><t k="workload.container.security.addCapabilities" /></label>
+          <div v-if="!add.length">
+            n/a
+          </div>
+          <ul v-else class="mt-0 mb-0 pl-15">
             <li v-for="capability in add" :key="capability">
               {{ capability }}
             </li>
           </ul>
         </div>
-        <v-select
+        <LabeledSelect
           v-else
           v-model="add"
-          multiple
+          :multiple="true"
+          :label="t('workload.container.security.addCapabilities')"
           :options="allCapabilities"
           :disabled="mode==='view'"
           @input="update"
         />
       </div>
       <div class="col span-6">
-        <label class="text-label"><t k="workload.container.security.dropCapabilities" /></label>
         <div v-if="isView">
-          <span v-if="!drop.length">n/a</span>
-          <ul v-else>
+          <label class="text-label"><t k="workload.container.security.dropCapabilities" /></label>
+          <div v-if="!drop.length">
+            n/a
+          </div>
+          <ul v-else class="mt-0 mb-0 pl-15">
             <li v-for="capability in drop" :key="capability">
               {{ capability }}
             </li>
           </ul>
         </div>
-        <v-select
+        <LabeledSelect
           v-else
           v-model="drop"
-          multiple
+          :multiple="true"
+
           :options="allCapabilities"
           :disabled="mode==='view'"
           @input="update"

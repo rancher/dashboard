@@ -164,7 +164,7 @@ export default {
       <div v-if="isView" :class="{'no-label':!(label||'').length}" class="selected">
         {{ currentLabel }}&nbsp;
       </div>
-      <div v-else class="selected" :style="{visibility:selectedVisibility}">
+      <div v-else-if="!$attrs.multiple" :class="{'no-label':!(label||'').length}" class="selected" :style="{visibility:selectedVisibility}">
         {{ currentLabel }}&nbsp;
       </div>
     </div>
@@ -173,6 +173,7 @@ export default {
       ref="input"
       :value="value ? value : ' '"
       class="inline"
+      :class="{'no-label':!(label||'').length}"
       :disabled="isView || disabled"
       :options="options"
       :get-option-label="opt=>getOptionLabel(opt)"
@@ -186,7 +187,7 @@ export default {
       @search:blur="onBlur"
       @input="e=>$emit('input', e)"
     >
-      <template v-slot:selected-option-container>
+      <template v-if="!$attrs.multiple" v-slot:selected-option-container>
         <span style="display: none"></span>
       </template>
     </v-select>
@@ -213,12 +214,36 @@ export default {
 
   .selected {
     padding-top: 17px;
-    &.no-label{
-      padding-top:0px;
+  }
+
+  .vs__selected-options {
+    padding: 15px 0 0 0;
+  }
+
+  .selected, .vs__selected-options {
+    .vs__search, .vs__search:hover {
+      background-color: transparent;
+      padding: 2px 0 0 0;
+      flex: 1;
+    }
+  }
+
+  .no-label {
+    &.v-select:not(.vs--single) {
+      min-height: 33px;
+    }
+
+    &.selected {
+      padding-top:8px;
+      padding-bottom: 9px;
       position: relative;
       max-height:2.3em;
       overflow:hidden;
-      }
+    }
+
+    .vs__selected-options {
+      padding:8px 0 7px 0;
+    }
   }
 
   &.focused .vs__dropdown-menu {
@@ -228,26 +253,30 @@ export default {
   }
 
   .v-select.inline {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    position: initial;
 
-    &, .vs__dropdown-toggle, .vs__dropdown-toggle * {
+    &.vs--single {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+
+      .vs__search {
+        background-color: transparent;
+        padding: 17px 10px 0px 10px;
+      }
+    }
+
+    &, .vs__dropdown-toggle, .vs__dropdown-toggle > * {
       background-color: transparent;
       border:transparent;
     }
 
-    .vs__search {
-      background-color: transparent;
-      padding: 17px 10px 0px 10px;
-    }
-
     .vs__dropdown-menu {
-      top: calc(100% - 4px);
-      left: -2px;
-      width: calc(100% + 4px);
+      top: calc(100% - 2px);
+      left: -3px;
+      width: calc(100% + 6px);
     }
 
     .selected{
