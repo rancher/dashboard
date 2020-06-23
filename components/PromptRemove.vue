@@ -145,9 +145,11 @@ export default {
 
 <template>
   <modal
+    class="remove-modal"
     name="promptRemove"
     :width="350"
-    :height="260"
+    height="auto"
+    styles="background-color: var(--nav-bg); border-radius: var(--border-radius); overflow: scroll; max-height: 100vh;"
   >
     <Card :style="{border:'none'}">
       <h4 slot="title" class="text-default-text">
@@ -175,9 +177,17 @@ export default {
   </modal>
 </template>
 
-<style>
+<style lang='scss'>
     #confirm {
         width: 90%;
         margin-left: 3px;
+    }
+    .remove-modal {
+       border-radius: var(--border-radius);
+       overflow: scroll;
+       max-height: 100vh;
+       & ::-webkit-scrollbar-corner {
+         background: rgba(0,0,0,0);
+         }
     }
 </style>
