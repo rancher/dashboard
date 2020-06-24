@@ -366,7 +366,7 @@ export default {
             type="button"
             class="btn bg-primary btn-sm"
             :disabled="!act.enabled"
-            @click="applyTableAction(act)"
+            @click="applyTableAction(act, null, $event)"
           >
             <i v-if="act.icon" :class="act.icon" />
             {{ act.label }}

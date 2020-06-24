@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import { isMore, isRange, suppressContextMenu } from '@/utils/platform';
+import { isMore, isRange, suppressContextMenu, isAlternate } from '@/utils/platform';
 import { get } from '@/utils/object';
 import { randomStr } from '@/utils/string';
 import selectionStore from './selectionStore';
@@ -349,7 +349,10 @@ export default {
       }
     },
 
-    applyTableAction(action, args) {
+    applyTableAction(action, args, event) {
+      if (isAlternate(event)) {
+        args.alt = true;
+      }
       this.$store.dispatch(`${ this.storeName }/executeTable`, { action, args });
     }
   }
