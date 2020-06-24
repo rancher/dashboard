@@ -15,6 +15,16 @@ export default {
     },
 
     type() {
+      const types = new Set(this.toRemove.reduce((array, each) => {
+        array.push(each.type);
+
+        return array;
+      }, []));
+
+      if (types.size > 1) {
+        return this.$store.getters['i18n/t']('generic.resource', { count: this.toRemove.length });
+      }
+
       const schema = this.toRemove[0]?.schema;
 
       if ( !schema ) {
@@ -22,9 +32,9 @@ export default {
       }
 
       if ( this.toRemove.length > 1 ) {
-        return this.$store.getters['type-map/pluralLabelFor'](schema);
+        return this.$store.getters['type-map/pluralLabelFor'](schema).toLowerCase();
       } else {
-        return this.$store.getters['type-map/singularLabelFor'](schema);
+        return this.$store.getters['type-map/singularLabelFor'](schema).toLowerCase();
       }
     },
 
@@ -61,7 +71,9 @@ export default {
 
     plusMore() {
       if (this.toRemove.length > 5) {
-        return `, and ${ this.toRemove.length - 5 } more.`;
+        const remaining = this.toRemove.length - 5;
+
+        return `, and ${ remaining } ${ remaining > 1 ? 'others' : 'other' }.`;
       } else {
         return null;
       }
@@ -168,7 +180,7 @@ export default {
           You are attempting to remove the {{ type }} <template v-for="(resource, i) in names">
             <template v-if="i<5">
               <a :key="resource" :href="selfLinks[i]">{{ resource }}</a><span v-if="i===toRemove.length-1" :key="resource">.</span>
-              <span v-else-if="plusMore && i===4" :key="resource">{{ plusMore }}</span>
+              <span v-else-if="plusMore && i===4" :key="resource+2">{{ plusMore }}</span>
               <span v-else :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
             </template>
           </template>

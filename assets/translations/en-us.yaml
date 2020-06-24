@@ -16,7 +16,12 @@ generic:
   name: Name
   type: Type
   unknown: Unknown
-
+  resource: |
+    {count} {count, plural,
+    one  {resource}
+    other {resources}
+    }
+  
 suffix:
   ib: iB
   cpus: CPUs
