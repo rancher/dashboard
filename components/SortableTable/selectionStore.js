@@ -2,12 +2,13 @@ import { isArray, filterBy, removeObjects, addObjects } from '@/utils/array';
 
 export const state = function() {
   return {
-    show:          false,
-    tableSelected: [],
-    tableAll:      [],
-    resources:     [],
-    elem:          null,
-    event:         null,
+    show:             false,
+    tableSelected:    [],
+    tableAll:         [],
+    resources:        [],
+    elem:             null,
+    event:            null,
+    actionOfInterest: null
   };
 };
 
@@ -70,14 +71,14 @@ export const getters = {
     // so you know what exists, but have them all be disabled since there's nothing to do them on.
     const out = _filter(map, disableAll);
 
-    // Enable actions based on the selection all being enabled.
+    // Enable a bulkaction if some of the selected items can perform the action
     out.forEach((bulkAction) => {
-      const actionEnabledForAllSelected = state.tableSelected.every((node) => {
+      const actionEnabledForSomeSelected = state.tableSelected.some((node) => {
         return node.availableActions
           .some(action => action.action === bulkAction.action && action.enabled);
       });
 
-      bulkAction.enabled = state.tableSelected.length > 0 && actionEnabledForAllSelected;
+      bulkAction.enabled = state.tableSelected.length > 0 && actionEnabledForSomeSelected;
     });
 
     return out;
@@ -111,6 +112,16 @@ export const getters = {
 
   isSelected: (state = stateSchema) => (resource) => {
     return state.tableSelected.includes(resource);
+  },
+
+  canRunBulkActionOfInterest: (state = stateSchema) => (resource) => {
+    if (!state.actionOfInterest) {
+      return false;
+    }
+
+    const matchingResourceAction = resource.availableActions.find(action => action.action === state.actionOfInterest.action);
+
+    return matchingResourceAction?.enabled;
   }
 };
 
@@ -164,11 +175,19 @@ export const mutations = {
     state.resources = null;
     state.elem = null;
   },
+
+  setBulkActionOfInterest(state = stateSchema, action) {
+    if (!action || action.enabled) {
+      state.actionOfInterest = action;
+    }
+  },
 };
 
 export const actions = {
   executeTable({ state }, { action, args }) {
-    return _execute(state.tableSelected, action, args);
+    const executableSelection = state.tableSelected.filter(getters.canRunBulkActionOfInterest(state));
+
+    return _execute(executableSelection, action, args);
   },
 
   execute({ state }, { action, args }) {
