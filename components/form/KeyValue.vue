@@ -499,7 +499,6 @@ export default {
   TABLE.sortable-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: $spacing;
 
     TD, TH {
       padding: 0 $spacing $spacing 0;

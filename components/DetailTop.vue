@@ -37,6 +37,10 @@ export default {
       align-items: center;
       padding: 0 10px;
 
+      &:first-child {
+        padding-left: 0;
+      }
+
       & > label {
         color: var(--input-placeholder);
         display: flex;

@@ -288,7 +288,7 @@ export default {
       :has-detail-or-edit="(hasCustomDetail || hasCustomEdit)"
     />
     <template v-if="asYaml">
-      <div v-if="!isView">
+      <div v-if="!isView" class="text-right pb-20">
         <button class="btn btn-sm role-primary" @click="readFromFile">
           Read from file
         </button>
