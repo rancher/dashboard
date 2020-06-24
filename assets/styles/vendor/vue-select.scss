@@ -23,7 +23,6 @@
   .vs__open-indicator {
     cursor: not-allowed;
     color: var(--dropdown-disabled-text);
-    background-color: var(--dropdown-disabled-bg);
   }
 }
 
@@ -102,7 +101,7 @@
   flex-basis: 100%;
   flex-grow: 1;
   flex-wrap: wrap;
-  padding: 0 2px;
+  padding: 0px 0px 2px 0px;
   position: relative;
 }
 
@@ -206,7 +205,7 @@ $transition-duration: 150ms;
   border: 1px solid var(--primary);
   border-radius: 3px;
   color: var(--link-text);
-  margin: 4px 2px 0px 2px;
+  margin: 4px 4px 0px 0px;
   padding: 0.25em;
 }
 
@@ -227,7 +226,7 @@ $transition-duration: 150ms;
 .v-select.inline {
   background-color: transparent;
 
-  .vs__selected {
+  .vs--single & .vs__selected {
     color: var(--input-text);
     position: absolute;
     top: 0;
@@ -247,7 +246,7 @@ $transition-duration: 150ms;
     border: 1px solid var(--dropdown-border);
   }
 
-  .vs__selected-options {
+  .vs--single & .vs__selected-options {
     display: flex;
     flex-direction: column;
     align-items: center;
