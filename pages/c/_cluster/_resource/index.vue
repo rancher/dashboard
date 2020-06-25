@@ -52,7 +52,7 @@ export default {
   },
 
   data() {
-    const params = { ...this.$route.params };
+    const params = { };
     const resource = params.resource;
 
     const formRoute = { name: `${ this.$route.name }-create`, params };
