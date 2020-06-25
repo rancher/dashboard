@@ -387,7 +387,7 @@ export default {
             :valueName="valueName"
             :isView="isView"
           >
-            <div v-if="isView" class="view">
+            <div v-if="isView" class="view" :class="{'hide-overflow':!valueMultiline}">
               {{ row[keyName] }}
             </div>
             <input
@@ -414,7 +414,7 @@ export default {
             <span v-if="valueBinary || row.binary">
               {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
             </span>
-            <div v-else-if="isView" class="view">
+            <div v-else-if="isView" class="view" :class="{'hide-overflow':!valueMultiline}">
               {{ row[valueName] }}
             </div>
             <TextAreaAutoGrow
@@ -523,10 +523,13 @@ export default {
     .view {
       width: 100%;
       height: 100%;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
       display: inline;
+
+      &.hide-overflow{
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
     }
 
     label {
@@ -539,9 +542,12 @@ export default {
 
     .view {
       width: 100%;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      white-space: nowrap;
+
+      &.hide-overflow{
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
     }
 
     label {

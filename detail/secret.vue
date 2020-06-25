@@ -246,7 +246,7 @@ export default {
     <template v-else>
       <div class="spacer"></div>
       <div>
-        <KeyValue :title="t('secret.data')" :value="dataRows" mode="view" :as-map="false" />
+        <KeyValue :title="t('secret.data')" :value="dataRows" mode="view" :as-map="false" :value-multiline="true" />
       </div>
       <div class="spacer"></div>
     </template>
