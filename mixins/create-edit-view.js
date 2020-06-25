@@ -154,7 +154,6 @@ export default {
       if ( !this.doneRoute ) {
         return;
       }
-
       this.$router.replace({
         name:   this.doneRoute,
         params: this.doneParams || { resource: this.value.type }

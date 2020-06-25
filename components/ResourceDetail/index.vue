@@ -238,7 +238,9 @@ export default {
     },
 
     doneParams() {
-      return this.$route.params;
+      return Object.keys(this.$route.params).filter((param) => {
+        return param !== 'id' && param !== 'namespace';
+      });
     },
 
     showComponent() {
@@ -261,7 +263,7 @@ export default {
   watch: {
     asYamlInit(neu) {
       this.asYaml = neu;
-    }
+    },
   },
 
   methods: {
