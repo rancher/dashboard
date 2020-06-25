@@ -52,7 +52,7 @@ export default {
   },
 
   data() {
-    const params = { };
+    const params = { ...this.$route.params };
     const resource = params.resource;
 
     const formRoute = { name: `${ this.$route.name }-create`, params };
@@ -112,6 +112,7 @@ export default {
       return this.$store.getters['type-map/isCreatable'](this.$route.params.resource);
     }
   },
+
 }; </script>
 
 <template>
