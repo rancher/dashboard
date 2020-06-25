@@ -349,7 +349,7 @@ export default {
       }
     },
 
-    applyTableAction(action, args, event) {
+    applyTableAction(action, args = {}, event) {
       if (isAlternate(event)) {
         args.alt = true;
       }
