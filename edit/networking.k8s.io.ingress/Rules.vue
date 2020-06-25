@@ -1,11 +1,15 @@
 <script>
-import { SERVICE } from '@/config/types';
+import { WORKLOAD_TYPES } from '@/config/types';
+import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { _VIEW } from '@/config/query-params';
+import InfoBox from '@/components/InfoBox';
 import Rule from './Rule';
 
 export default {
-  components: { Rule, SortableTable },
+  components: {
+    InfoBox, Loading, Rule, SortableTable
+  },
 
   props: {
     value: {
@@ -24,11 +28,18 @@ export default {
     }
   },
 
+  async fetch() {
+    await Promise.all(Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })));
+  },
+
   data() {
     return { rules: this.value.spec.rules };
   },
 
   computed: {
+    workloads() {
+      return Object.values(WORKLOAD_TYPES).flatMap(type => this.$store.getters['cluster/all'](type));
+    },
     isView() {
       return this.mode === _VIEW;
     },
@@ -37,8 +48,7 @@ export default {
         {
           name:      'path',
           label:     this.t('ingress.rules.headers.path'),
-          formatter: 'Link',
-          value:     'pathLink'
+          value:     'text'
         },
         {
           name:      'target',
@@ -49,19 +59,12 @@ export default {
         {
           name:  'port',
           label: this.t('ingress.rules.headers.port'),
-          value: 'backend.servicePort'
+          value: 'port'
         }
       ];
     },
     ruleRows() {
-      return this.rules
-        .filter(rule => rule?.http?.paths)
-        .map((rule) => {
-          return {
-            ...rule,
-            http: { paths: this.withUrl(rule.host, rule.http.paths) }
-          };
-        });
+      return this.value.createRulesForDetailPage(this.workloads);
     },
   },
 
@@ -76,55 +79,27 @@ export default {
     updateRule(neu, idx) {
       this.$set(this.rules, idx, neu);
     },
-
-    withUrl(host, paths = []) {
-      const rows = paths.map((path) => {
-        const serviceName = path?.backend?.serviceName;
-        const name = 'c-cluster-resource-namespace-id';
-        const params = {
-          resource:  SERVICE,
-          id:        serviceName,
-          namespace: this.value?.metadata?.namespace
-        };
-
-        const targetUrl = { name, params };
-        const pathUrl = `https://${ host }${ path?.path }`;
-
-        path.targetLink = {
-          url:     targetUrl,
-          text:    path?.backend?.serviceName,
-          options: 'internal'
-        };
-        path.pathLink = {
-          url:     pathUrl,
-          text:    path?.path,
-        };
-
-        return path;
-      });
-
-      return rows;
-    },
   }
 };
 </script>
 
 <template>
-  <div v-if="isView">
-    <div v-for="(rule, i) in ruleRows" :key="i" class="rule mb-20">
+  <Loading v-if="$fetchState.pending" />
+  <div v-else-if="isView">
+    <InfoBox v-for="(rule, i) in ruleRows" :key="i" class="rule mb-20">
       <label>{{ t('ingress.rules.hostname') }}</label>
       <div class="mb-20">
         {{ rule.host }}
       </div>
       <SortableTable
-        :rows="rule.http.paths"
+        :rows="rule.paths"
         :headers="ruleHeaders"
         key-field="_key"
         :search="false"
         :table-actions="false"
         :row-actions="false"
       />
-    </div>
+    </InfoBox>
   </div>
   <div v-else>
     <Rule
