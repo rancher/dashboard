@@ -51,7 +51,7 @@ export default {
       return this.mode === _VIEW;
     },
     serviceTargets() {
-      return this.filterByNamespace(this.allServices)
+      return this.filterByCurrentResourceNamespace(this.allServices)
         .map(service => ({
           label: service.metadata.name,
           value: service.metadata.name,
@@ -75,12 +75,9 @@ export default {
     this.registerBeforeHook(this.willSave, 'willSave');
   },
   methods: {
-    // filter a given list of resources by currently selected namespaces
-    filterByNamespace(list) {
-      const namespaces = this.$store.getters['namespaces']();
-
-      return list.filter((resource) => {
-        return !!namespaces[resource.metadata.namespace];
+    filterByCurrentResourceNamespace(resources) {
+      return resources.filter((resource) => {
+        return resource.metadata.namespace === this.value.metadata.namespace;
       });
     },
     willSave() {
