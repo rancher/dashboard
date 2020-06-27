@@ -16,7 +16,12 @@ generic:
   name: Name
   type: Type
   unknown: Unknown
-
+  resource: |
+    {count, plural,
+    one  {resource}
+    other {resources}
+    }
+  
 suffix:
   ib: iB
   cpus: CPUs
@@ -99,6 +104,16 @@ cluster:
     imported:
       label: Import an existing cluster
       shortLabel: Imported
+
+promptRemove:
+  attemptingToRemove: You are attemping to remove the {type}
+  andOthers: |
+    {count, plural,
+    =0 {.}
+    =1 {, and one other.}
+    other {, and {count} others.}
+    }
+  protip: 'protip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation'
 
 containerResourceLimit:
   label: Container Default Resource Limit

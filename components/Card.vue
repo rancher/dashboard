@@ -51,7 +51,6 @@ export default {
    display: grid;
    padding: 1.25rem;
    grid-gap: .75rem;
-   grid-template-rows: 1fr 2fr 1fr;
    & .card-body {
      overflow: hidden;
    }

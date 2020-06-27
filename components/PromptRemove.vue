@@ -1,8 +1,9 @@
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 import { get } from '@/utils/object';
 import { NAMESPACE, RIO } from '@/config/types';
 import Card from '@/components/Card';
+import { alternateLabel } from '@/utils/platform';
 
 export default {
   components: { Card },
@@ -11,10 +12,20 @@ export default {
   },
   computed:   {
     names() {
-      return this.toRemove.map(obj => obj.nameDisplay);
+      return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
     },
 
     type() {
+      const types = new Set(this.toRemove.reduce((array, each) => {
+        array.push(each.type);
+
+        return array;
+      }, []));
+
+      if (types.size > 1) {
+        return this.t('generic.resource', { count: this.toRemove.length });
+      }
+
       const schema = this.toRemove[0]?.schema;
 
       if ( !schema ) {
@@ -22,9 +33,9 @@ export default {
       }
 
       if ( this.toRemove.length > 1 ) {
-        return this.$store.getters['type-map/pluralLabelFor'](schema);
+        return this.$store.getters['type-map/pluralLabelFor'](schema).toLowerCase();
       } else {
-        return this.$store.getters['type-map/singularLabelFor'](schema);
+        return this.$store.getters['type-map/singularLabelFor'](schema).toLowerCase();
       }
     },
 
@@ -57,6 +68,12 @@ export default {
 
     isDeleteDisabled() {
       return !!this.preventDeletionMessage;
+    },
+
+    plusMore() {
+      const remaining = this.toRemove.length - this.names.length;
+
+      return this.t('promptRemove.andOthers', { count: remaining });
     },
 
     // if the current route ends with the ID of the resource being deleted, whatever page this is wont be valid after successful deletion: navigate away
@@ -96,7 +113,12 @@ export default {
       }
     },
 
-    ...mapState('action-menu', ['showPromptRemove', 'toRemove'])
+    protip() {
+      return this.t('promptRemove.protip', { alternateLabel });
+    },
+
+    ...mapState('action-menu', ['showPromptRemove', 'toRemove']),
+    ...mapGetters({ t: 'i18n/t' })
   },
 
   watch:    {
@@ -145,9 +167,11 @@ export default {
 
 <template>
   <modal
+    class="remove-modal"
     name="promptRemove"
     :width="350"
-    :height="260"
+    height="auto"
+    styles="background-color: var(--nav-bg); border-radius: var(--border-radius); overflow: scroll; max-height: 100vh;"
   >
     <Card :style="{border:'none'}">
       <h4 slot="title" class="text-default-text">
@@ -155,13 +179,17 @@ export default {
       </h4>
       <div slot="body">
         <div class="mb-10">
-          You are attempting to remove the {{ type }} <template v-for="(resource, i) in names">
-            <a :key="resource" :href="selfLinks[i]">{{ resource }}</a><span v-if="i<toRemove.length-1" :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
-          </template>. <span v-if="needsConfirm">Re-enter its name below to confirm:</span>
+          {{ t('promptRemove.attemptingToRemove', {type}) }} <template v-for="(resource, i) in names">
+            <template v-if="i<5">
+              <a :key="resource" :href="selfLinks[i]">{{ resource }}</a><span v-if="i===names.length-1" :key="resource+2">{{ plusMore }}</span><span v-else :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
+            </template>
+          </template>
+          <span v-if="needsConfirm" :key="resource">Re-enter its name below to confirm:</span>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
         <span class="text-warning">{{ preventDeletionMessage }}</span>
         <span class="text-error">{{ error }}</span>
+        <span v-if="!needsConfirm" class="text-info mt-20">{{ protip }}</span>
       </div>
       <template slot="actions">
         <button class="btn role-secondary" @click="close">
@@ -175,9 +203,17 @@ export default {
   </modal>
 </template>
 
-<style>
+<style lang='scss'>
     #confirm {
         width: 90%;
         margin-left: 3px;
+    }
+    .remove-modal {
+       border-radius: var(--border-radius);
+       overflow: scroll;
+       max-height: 100vh;
+       & ::-webkit-scrollbar-corner {
+         background: rgba(0,0,0,0);
+         }
     }
 </style>

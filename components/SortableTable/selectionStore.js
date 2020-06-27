@@ -241,7 +241,13 @@ function _execute(resources, action, args) {
   const promises = [];
 
   for ( const resource of resources ) {
-    const fn = resource[action.action];
+    let fn;
+
+    if (args.alt && action.altAction) {
+      fn = resource[action.altAction];
+    } else {
+      fn = resource[action.action];
+    }
 
     if ( fn ) {
       promises.push(fn.apply(resource, args));
