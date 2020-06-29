@@ -3,11 +3,14 @@ import { debounce } from 'lodash';
 import { typeOf } from '@/utils/sort';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
-import { asciiLike } from '@/utils/string';
+import { asciiLike, escapeHtml } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 import SortableTable from '@/components/SortableTable';
+import ClickExpand from '@/components/formatter/ClickExpand';
+import { get } from '@/utils/object';
+import CodeMirror from '@/components/CodeMirror';
 
 /*
   @TODO
@@ -18,7 +21,12 @@ import SortableTable from '@/components/SortableTable';
 */
 
 export default {
-  components: { SortableTable, TextAreaAutoGrow },
+  components: {
+    SortableTable,
+    TextAreaAutoGrow,
+    ClickExpand,
+    CodeMirror
+  },
 
   props: {
     value: {
@@ -166,7 +174,13 @@ export default {
   data() {
     // @TODO base64 and binary support for as Array (!asMap)
     if ( !this.asMap ) {
-      return { rows: (this.value || []).slice() };
+      const rows = (this.value || []).slice() ;
+
+      rows.map((row) => {
+        row._display = this.displayProps(row[this.valueName]);
+      });
+
+      return { rows };
     }
 
     const input = this.value || {};
@@ -178,13 +192,10 @@ export default {
       if ( this.valueBase64 ) {
         value = base64Decode(value);
       }
-
-      const binary = typeof value === 'string' && !asciiLike(value);
-
       rows.push({
         key,
         value,
-        binary
+        _display: this.displayProps(value)
       });
     });
 
@@ -245,7 +256,7 @@ export default {
       }
 
       return out;
-    }
+    },
   },
 
   created() {
@@ -348,10 +359,33 @@ export default {
             out[key] = value;
           }
         }
+        this.$emit('input', out);
       }
-      this.$emit('input', out);
-    }
-  },
+    },
+
+    displayProps(value) {
+      const binary = typeof value === 'string' && !asciiLike(value);
+      const withBreaks = escapeHtml(value).replace(/(\r\n|\r|\n)/g, '<br/>\n');
+      const byteSize = (new Blob([value])).size;
+      const isOver10kB = byteSize * 0.001 > 10;
+      let parsed;
+
+      try {
+        parsed = JSON.parse(value);
+      } catch {
+
+      }
+
+      return {
+        binary,
+        withBreaks,
+        isOver10kB,
+        parsed,
+        byteSize
+      };
+    },
+    get
+  }
 };
 </script>
 
@@ -387,7 +421,7 @@ export default {
             :valueName="valueName"
             :isView="isView"
           >
-            <div v-if="isView" class="view" :class="{'hide-overflow':!valueMultiline}">
+            <div v-if="isView" class="view force-wrap">
               {{ row[keyName] }}
             </div>
             <input
@@ -411,11 +445,19 @@ export default {
             :isView="isView"
             :queueUpdate="queueUpdate"
           >
-            <span v-if="valueBinary || row.binary">
-              {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
-            </span>
-            <div v-else-if="isView" class="view" :class="{'hide-overflow':!valueMultiline}">
-              {{ row[valueName] }}
+            <div v-if="isView" class="view force-wrap">
+              <span v-if="valueBinary || get(row, '_display.binary')">
+                {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
+              </span>
+              <template v-else-if="get(row, '_display.parsed')">
+                <CodeMirror
+                  :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
+                  :value="row[valueName]"
+                />
+              </template>
+              <ClickExpand v-else-if="get(row, '_display.isOver10kB')" :value="row[valueName]" :size="get(row, '_display.byteSize')" />
+              <span v-else-if="get(row, '_display.withBreaks')" v-html="get(row, '_display.withBreaks')" />
+              <span v-else> {{ row[valueName] }} </span>
             </div>
             <TextAreaAutoGrow
               v-else-if="valueMultiline"
@@ -520,18 +562,6 @@ export default {
   .key {
     vertical-align: middle;
 
-    .view {
-      width: 100%;
-      height: 100%;
-      display: inline;
-
-      &.hide-overflow{
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-    }
-
     label {
       margin: 0;
     }
@@ -539,16 +569,6 @@ export default {
 
   .value {
     vertical-align: middle;
-
-    .view {
-      width: 100%;
-
-      &.hide-overflow{
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-    }
 
     label {
       margin: 0;

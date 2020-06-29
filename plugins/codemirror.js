@@ -9,6 +9,8 @@ import CodeMirror from 'codemirror';
 
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/mode/yaml/yaml.js';
+import 'codemirror/mode/javascript/javascript.js';
+
 // import 'codemirror/mode/dockerfile/dockerfile.js';
 // import 'codemirror/mode/shell/shell.js';
 // import 'codemirror/mode/markdown/markdown.js';

@@ -87,7 +87,7 @@ export default {
     diffMode: mapPref(DIFF),
     showCodeEditor() {
       return [EDITOR_MODES.EDIT_CODE, EDITOR_MODES.VIEW_CODE].includes(this.editorMode);
-    }
+    },
   },
   watch: {
     value(newYaml) {
@@ -199,6 +199,22 @@ export default {
   .fill {
     flex: 1;
   }
+
+  ::v-deep .code-mirror  {
+      position: relative;
+      .CodeMirror {
+        height: initial;
+        position: absolute;
+        top:0;
+        bottom:0;
+        left:0;
+        right:0;
+        background-color: var(--yaml-editor-bg);
+        & .CodeMirror-gutters {
+          background-color: var(--yaml-editor-bg);
+        }
+      }
+    }
 
   .diff-mode {
     background-color: var(--diff-header-bg);
