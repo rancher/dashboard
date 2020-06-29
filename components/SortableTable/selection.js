@@ -354,6 +354,7 @@ export default {
         args.alt = true;
       }
       this.$store.dispatch(`${ this.storeName }/executeTable`, { action, args });
+      this.$store.commit(`${ this.storeName }/setBulkActionOfInterest`, null);
     }
   }
 };

@@ -311,9 +311,34 @@ export default {
       return this.$store.getters[`${ this.storeName }/forTable`];
     },
 
+    actionAvailability() {
+      if (this.tableSelected.length === 0) {
+        return null;
+      }
+
+      const runnableTotal = this.tableSelected.filter(this.canRunBulkActionOfInterest).length;
+      const selectionTotal = this.tableSelected.length;
+      const tableTotal = this.arrangedRows.length;
+      const allOfSelectionIsActionable = runnableTotal === selectionTotal;
+      const useTableTotal = !this.actionOfInterest || allOfSelectionIsActionable;
+
+      const input = {
+        actionable: this.actionOfInterest ? runnableTotal : selectionTotal,
+        total:      useTableTotal ? tableTotal : selectionTotal,
+      };
+
+      const someActionable = this.actionOfInterest && !allOfSelectionIsActionable;
+      const key = someActionable ? 'sortableTable.actionAvailability.some' : 'sortableTable.actionAvailability.selected';
+
+      return this.t(key, input);
+    },
+
     ...mapState({
       tableSelected(state) {
         return state[this.storeName].tableSelected;
+      },
+      actionOfInterest(state) {
+        return state[this.storeName].actionOfInterest;
       }
     }),
 
@@ -350,6 +375,16 @@ export default {
       this.expanded = { ...this.expanded };
 
       return val;
+    },
+
+    setBulkActionOfInterest(action) {
+      this.$store.commit(`${ this.storeName }/setBulkActionOfInterest`, action);
+    },
+
+    canRunBulkActionOfInterest(resource) {
+      const result = this.$store.getters[`${ this.storeName }/canRunBulkActionOfInterest`](resource);
+
+      return result;
     }
   }
 };
@@ -367,10 +402,16 @@ export default {
             class="btn bg-primary btn-sm"
             :disabled="!act.enabled"
             @click="applyTableAction(act, null, $event)"
+            @mouseover="setBulkActionOfInterest(act)"
+            @mouseleave="setBulkActionOfInterest(null)"
           >
             <i v-if="act.icon" :class="act.icon" />
             {{ act.label }}
           </button>
+          <span />
+          <label v-if="actionAvailability" class="action-availability">
+            {{ actionAvailability }}
+          </label>
         </div>
 
         <div class="middle">
@@ -435,7 +476,10 @@ export default {
         </slot>
         <template v-for="row in group.rows">
           <slot name="main-row" :row="row">
-            <tr :key="get(row,keyField)" class="main-row">
+            <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
+            because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
+            the value of :class changes. -->
+            <tr :key="get(row,keyField)" class="main-row" :data-cant-run-bulk-action-of-interest="actionOfInterest && !canRunBulkActionOfInterest(row)">
               <td v-show="tableActions" class="row-check" align="middle">
                 <Checkbox class="selection-checkbox" type="checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
               </td>
@@ -702,6 +746,9 @@ $spacing: 10px;
 
     > TR.row-selected {
       background-color: var(--sortable-table-selected-bg);
+      &[data-cant-run-bulk-action-of-interest] {
+        opacity: 60%;
+      }
     }
 
     > TR.separator-row > TD {

@@ -307,6 +307,9 @@ servicePorts:
       placeholder: e.g. 80
 
 sortableTable:
+  actionAvailability:
+    some: Available for {actionable} of the {total} selected
+    selected: "{actionable} selected"
   noRows: "There are no rows to show."
   noData: "There are no rows which match your search query."
   paging:
