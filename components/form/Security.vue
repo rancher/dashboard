@@ -189,7 +189,7 @@ export default {
           v-else
           v-model="drop"
           :multiple="true"
-
+          :label="t('workload.container.security.dropCapabilities')"
           :options="allCapabilities"
           :disabled="mode==='view'"
           @input="update"
