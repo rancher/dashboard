@@ -238,9 +238,12 @@ export default {
     },
 
     doneParams() {
-      return Object.keys(this.$route.params).filter((param) => {
-        return param !== 'id' && param !== 'namespace';
-      });
+      const out = { ...this.$route.params };
+
+      delete out.namespace;
+      delete out.id;
+
+      return out;
     },
 
     showComponent() {
