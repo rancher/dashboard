@@ -56,6 +56,9 @@ nav:
     namespace: "{name}"
     orphan: "Not in a Project"
 
+wizard:
+  next: Next
+
 cluster:
   nodeDriver:
     displayName:
