@@ -5,7 +5,7 @@ Dashboard UI.  For the other Rancher UI see [rancher/ui](https://github.com/ranc
 
 ## Build Setup
 
-``` bash
+```bash
 # install dependencies
 $ yarn install
 
