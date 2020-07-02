@@ -45,9 +45,13 @@ data:
 
  cd dashboard
  docker build -f Dockerfile.dev -t rancherlabs/dashboard:dev
- docker run -v $(pwd):/src -v dashboard_node:/src/node_modules -p 8005:8005 -e API=http://172.17.0.1:8989 rancherlabs/dashboard:dev
- #
- # The first time will take forever installing node_modules into the volume, it will be faster next time.
+ docker run -v $(pwd):/src \
+   -v dashboard_node:/src/node_modules \
+   -p 8005:8005 \
+   -e API=http://172.17.0.1:8989 \
+   rancherlabs/dashboard:dev
+ 
+ # The first time will take forever installing node_modules into the volume; it will be faster next time.
  #
  # Goto https://localhost:8005
 ```
