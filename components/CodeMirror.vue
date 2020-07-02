@@ -23,7 +23,7 @@ export default {
       const keymap = this.$store.getters['prefs/get'](KEYMAP);
 
       const out = {
-        // codemirror options
+        // codemirror default options
         tabSize:                 2,
         indentWithTabs:          false,
         mode:                    'yaml',
@@ -36,9 +36,9 @@ export default {
         foldGutter:              true,
         styleSelectedText:       true,
         showCursorWhenSelecting: true,
-
-        ...this.options
       };
+
+      Object.assign(out, this.options);
 
       return out;
     },
@@ -85,15 +85,8 @@ export default {
 </template>
 
 <style lang="scss">
-  .code-mirror  {
-    position: relative;
-    .CodeMirror {
-      height: initial;
-      position: absolute;
-      top:0;
-      bottom:0;
-      left:0;
-      right:0;
-    }
+  .code-mirror .vue-codemirror .CodeMirror {
+    height: initial;
+    background: none
   }
 </style>

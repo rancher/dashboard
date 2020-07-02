@@ -9,6 +9,7 @@ buttons:
 generic:
   cancel: Cancel
   close: Close
+  clickToShow: '[Show Value]'
   comingSoon: Coming Soon
   created: Created
   customize: Customize

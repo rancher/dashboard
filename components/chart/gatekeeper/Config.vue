@@ -4,16 +4,16 @@ import AsyncButton from '@/components/AsyncButton';
 import Footer from '@/components/form/Footer';
 import InfoBox from '@/components/InfoBox';
 import { NAMESPACE } from '@/config/types';
-import { _VIEW, _EDIT } from '@/config/query-params';
+import { _EDIT } from '@/config/query-params';
 import { findBy } from '@/utils/array';
-import CodeMirror from '@/components/CodeMirror';
+import YamlEditor from '@/components/YamlEditor';
 
 export default {
   name: 'GatekeeperConfig',
 
   components: {
     AsyncButton,
-    CodeMirror,
+    YamlEditor,
     InfoBox,
     Footer,
   },
@@ -83,25 +83,6 @@ export default {
       const { namespaces } = this;
 
       return namespaces.find(ns => ns.metadata.name === 'gatekeeper-system');
-    },
-
-    cmOptions() {
-      const readOnly = this.mode === _VIEW;
-      const gutters = ['CodeMirror-lint-markers'];
-
-      if ( !readOnly ) {
-        gutters.push('CodeMirror-foldgutter');
-      }
-
-      return {
-        readOnly,
-        gutters,
-        mode:            'yaml',
-        lint:            true,
-        lineNumbers:     !readOnly,
-        extraKeys:       { 'Ctrl-Space': 'autocomplete' },
-        cursorBlinkRate: ( readOnly ? -1 : 530)
-      };
     },
 
     parsedValuesYaml() {
@@ -420,10 +401,9 @@ export default {
       </div>
     </div>
     <section v-if="showYamlEditor">
-      <CodeMirror
-        class="code-mirror"
+      <YamlEditor
+        class="yaml-editor"
         :value="config.spec.valuesYaml"
-        :options="cmOptions"
         @onInput="onInput"
         @onReady="onReady"
         @onChanges="onChanges"
@@ -440,7 +420,7 @@ export default {
 
 <style lang="scss">
 .gatekeeper-config {
-  .code-mirror {
+  .yaml-editor {
     min-height: 200px;
   }
 }

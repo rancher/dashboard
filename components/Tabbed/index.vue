@@ -243,15 +243,4 @@ export default {
     padding: 20px;
     background-color: var(--tabbed-container-bg);
   }
-
-  .contrast{
-    & .tab-container {
-      background-color: var(--tabbed-container-bg-contrast);
-    }
-
-    & .tab.active{
-      background-color: var(--tabbed-container-bg-contrast);
-        border-bottom-color: var(--tabbed-container-bg-contrast);
-    }
-  }
 </style>
