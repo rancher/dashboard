@@ -66,7 +66,8 @@ Steve does not currently create any default user to login to when it is first ru
     - local://admin
   enabled: true
   username: admin
-  password: $2a$10$lQpf/73orx5T3TBzbu.xNOXFgODGsR4wc39vTGc6Hbt8cdQVza.Pq # hash of "admin" , or use e.g. https://bcrypt-generator.com/ to generate your own
+  # bcrypt hash of "admin" , or use e.g. https://bcrypt-generator.com/ to generate your own
+  password: $2a$10$lQpf/73orx5T3TBzbu.xNOXFgODGsR4wc39vTGc6Hbt8cdQVza.Pq
   ---
   apiVersion: rbac.authorization.k8s.io/v1
   kind: ClusterRoleBinding
