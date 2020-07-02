@@ -23,14 +23,14 @@ $ yarn generate
 ## Multiple GitHub auth configs
 Auth supports multiple GitHub auth URLs and using the appropriate one based on the Host header that a request comes in on.  This is particularly useful for development against a server that already has GitHub setup.
 
-In `management.cattle.io.authconfig` `github`, add a `hostnameToClientId` map of Host header value -> GitHub client ID:
+In `management.cattle.io.authconfig`, edit the `github` entry.  Add a `hostnameToClientId` map of Host header value -> GitHub client ID:
 
 ```yaml
 hostnameToClientId:
   "localhost:8005": <your GitHub Client ID for localhost:8005>
 ```
 
-And then in the `secret` in namespace `cattle-global-data` called `githubconfig-clientsecret`, add GitHub client ID -> base64-encoded client secret to the `data` section:
+In the `secret`, namespace `cattle-global-data`, edit `githubconfig-clientsecret`.  Add GitHub client ID -> base64-encoded client secret to the `data` section:
 
 ```yaml
 data:
@@ -50,7 +50,37 @@ data:
  # The first time will take forever installing node_modules into the volume, it will be faster next time.
  #
  # Goto https://localhost:8005
+```
 
+### Creating a Steve user
+
+Steve does not currently create any default user to login to when it is first run.  Use kubectl to apply this to create an `admin`/`admin` user:
+
+```yaml
+  ---
+  apiVersion: management.cattle.io/v3
+  kind: User
+  metadata:
+    name: admin
+  principalIds:
+    - local://admin
+  enabled: true
+  username: admin
+  password: $2a$10$lQpf/73orx5T3TBzbu.xNOXFgODGsR4wc39vTGc6Hbt8cdQVza.Pq # hash of: admin
+  ---
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    name: default-admin
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cluster-admin
+  subjects:
+  - apiGroup: rbac.authorization.k8s.io
+    kind: User
+    name: admin
+```
 
 License
 =======
