@@ -198,6 +198,7 @@ export default {
         :active="tab.id === active"
         :height="reportedHeight"
         v-bind="tab.attrs"
+        @close="close(tab.id)"
       />
     </div>
   </div>

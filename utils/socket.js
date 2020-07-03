@@ -9,17 +9,18 @@ let wasConnected = false;
 const INSECURE = 'ws://';
 const SECURE = 'wss://';
 
-export const EVENT_CONNECTED = 'connected';
-export const EVENT_DISCONNECTED = 'disconnected';
-export const EVENT_MESSAGE = 'message';
-export const EVENT_FRAME_TIMEOUT = 'frame_timeout';
-export const EVENT_CONNECT_ERROR = 'connect_error';
-
 const STATE_DISCONNECTED = 'disconnected';
 const STATE_CONNECTING = 'connecting';
 const STATE_CONNECTED = 'connected';
 const STATE_CLOSING = 'closing';
 const STATE_RECONNECTING = 'reconnecting';
+
+export const EVENT_CONNECTING = STATE_CONNECTING;
+export const EVENT_CONNECTED = STATE_CONNECTED;
+export const EVENT_DISCONNECTED = STATE_DISCONNECTED;
+export const EVENT_MESSAGE = 'message';
+export const EVENT_FRAME_TIMEOUT = 'frame_timeout';
+export const EVENT_CONNECT_ERROR = 'connect_error';
 
 export default class Socket extends EventTarget {
   url;
@@ -92,6 +93,8 @@ export default class Socket extends EventTarget {
 
     this.socket = socket;
     this.state = STATE_CONNECTING;
+
+    this.dispatchEvent(new CustomEvent(EVENT_CONNECTING));
   }
 
   send(data) {
@@ -205,9 +208,7 @@ export default class Socket extends EventTarget {
     this.framesReceived = 0;
     this.disconnectedAt = 0;
 
-    const e = new CustomEvent(EVENT_CONNECTED, { detail: { tries: this.tries, after } });
-
-    this.dispatchEvent(e);
+    this.dispatchEvent(new CustomEvent(EVENT_CONNECTED, { detail: { tries: this.tries, after } }));
     this._resetWatchdog();
     clearTimeout(this.reconnectTimer);
   }
@@ -217,9 +218,7 @@ export default class Socket extends EventTarget {
     this.tries = 0;
     this.framesReceived++;
 
-    const e = new CustomEvent(EVENT_MESSAGE, { detail: event });
-
-    this.dispatchEvent(e);
+    this.dispatchEvent(new CustomEvent(EVENT_MESSAGE, { detail: event }));
   }
 
   _resetWatchdog() {
@@ -231,7 +230,7 @@ export default class Socket extends EventTarget {
       this.frameTimer = setTimeout(() => {
         this._log('Socket watchdog expired after', timeout, 'closing');
         this._close();
-        this.dispatchEvent(new Event(EVENT_FRAME_TIMEOUT));
+        this.dispatchEvent(new CustomEvent(EVENT_FRAME_TIMEOUT));
       }, timeout);
     }
   }
@@ -260,7 +259,6 @@ export default class Socket extends EventTarget {
     }
 
     if ( [STATE_CONNECTED, STATE_CLOSING].includes(this.state) ) {
-      this.dispatchEvent(new Event(EVENT_DISCONNECTED));
       wasConnected = true;
     }
 
@@ -286,6 +284,12 @@ export default class Socket extends EventTarget {
       }, delay);
     } else {
       this.state = STATE_DISCONNECTED;
+    }
+
+    if ( this.state === STATE_DISCONNECTED ) {
+      this.dispatchEvent(new CustomEvent(EVENT_DISCONNECTED));
+    } else if ( this.state === STATE_RECONNECTING ) {
+      this.dispatchEvent(new CustomEvent(EVENT_CONNECTING));
     }
   }
 
