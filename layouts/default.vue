@@ -12,6 +12,7 @@ import Footer from '@/components/nav/Footer';
 import { COUNT, SCHEMA, STEVE } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects } from '@/utils/array';
+import { NAME as EXPLORER } from '@/config/product/explorer';
 
 export default {
 
@@ -107,8 +108,8 @@ export default {
       const out = [];
 
       for ( const mode of [BASIC, FAVORITE, USED] ) {
-        const types = this.$store.getters['type-map/allTypes'](mode) || {};
-        const more = this.$store.getters['type-map/getTree'](mode, types, clusterId, namespaceMode, namespaces, currentType);
+        const types = this.$store.getters['type-map/allTypes'](EXPLORER, mode) || {};
+        const more = this.$store.getters['type-map/getTree'](EXPLORER, mode, types, clusterId, namespaceMode, namespaces, currentType);
 
         addObjects(out, more);
       }

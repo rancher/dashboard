@@ -9,7 +9,7 @@ import {
 } from '@/config/types';
 import { SYSTEM_PROJECT } from '@/config/labels-annotations';
 import { _VIEW, _CREATE, DEMO } from '@/config/query-params';
-import { TEMPLATE_NAME, APP_ID, CONFIG } from '@/config/chart/rio';
+import { TEMPLATE_NAME, APP_ID, CONFIG } from '@/config/product/rio';
 import RioConfig from '@/components/chart/rio/Config';
 import { findBy } from '@/utils/array';
 

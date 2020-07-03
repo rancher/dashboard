@@ -1,4 +1,4 @@
-import { GATEKEEPER_CONSTRAINT_TEMPLATE, SCHEMA } from '@/config/types';
+import { GATEKEEPER, SCHEMA } from '@/config/types';
 
 export async function findAllConstraints(store) {
   const constraintTypes = await findAllConstraintTypes(store);
@@ -14,7 +14,7 @@ export function findAllConstraintTypes(store) {
 }
 
 export function findAllTemplates(store) {
-  return store.dispatch('cluster/findAll', { type: GATEKEEPER_CONSTRAINT_TEMPLATE });
+  return store.dispatch('cluster/findAll', { type: GATEKEEPER.CONSTRAINT_TEMPLATE });
 }
 
 export function findTemplateType(schemas) {

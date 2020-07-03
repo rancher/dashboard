@@ -39,14 +39,14 @@ export default {
 
   autoScaling: {
     title:       'Auto-Scaling',
-    description: 'Demo Coming Soon.',
+    description: '',
     createPath:  null,
     spec:        null,
   },
 
   serviceMesh: {
     title:       'Service Mesh',
-    description: 'Coming Soon.',
+    description: '',
     createPath:  null,
     spec:        null,
   }

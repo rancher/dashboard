@@ -197,7 +197,7 @@ export default {
           </td>
           <td v-if="showRemove" class="remove">
             <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
-              <t k="buttons.remove" />
+              <t k="generic.remove" />
             </button>
           </td>
         </tr>
@@ -205,7 +205,7 @@ export default {
     </table>
     <div v-if="showAdd" class="footer">
       <button type="button" class="btn role-tertiary add" @click="add()">
-        <t k="buttons.add" />
+        <t k="generic.add" />
       </button>
     </div>
   </div>

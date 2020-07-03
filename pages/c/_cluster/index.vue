@@ -1,12 +1,12 @@
 <script>
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import { get } from '@/utils/object';
 import InfoBoxCluster from '@/components/InfoBoxCluster';
 import InfoBox from '@/components/InfoBox';
 import SortableTable from '@/components/SortableTable';
 import DetailTop from '@/components/DetailTop';
 import ClusterDisplayProvider from '@/components/ClusterDisplayProvider';
-import { APP_ID as GATEKEEPER_APP_ID } from '@/config/chart/gatekeeper';
+import { APP_ID as GATEKEEPER_APP_ID } from '@/config/product/gatekeeper';
 import { allHash } from '@/utils/promise';
 import Poller from '@/utils/poller';
 import {

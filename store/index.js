@@ -90,10 +90,23 @@ export const getters = {
   namespaceMode(state) {
     const filters = state.namespaceFilters;
 
+    // Explicitly asking
     if ( filters.includes('namespaced://true') ) {
       return NAMESPACED;
     } else if ( filters.includes('namespaced://false') ) {
       return CLUSTER_LEVEL;
+    }
+
+    const byKind = {};
+
+    for ( const filter of filters ) {
+      const type = filter.split('://', 2)[0];
+
+      byKind[type] = (byKind[type] || 0) + 1;
+    }
+
+    if ( byKind['project'] > 0 || byKind['ns'] > 0 ) {
+      return NAMESPACED;
     }
 
     return BOTH;

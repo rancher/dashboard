@@ -1,0 +1,67 @@
+import { DSL } from '@/store/type-map';
+import { GATEKEEPER } from '@/config/types';
+
+export const NAME = 'gatekeeper';
+export const TEMPLATE_ID = 'cattle-global-data/system-library-rancher-gatekeeper-operator';
+export const APP_ID = 'rancher-gatekeeper-operator';
+export const CONFIG = `---
+replicas: 1
+auditInterval: 300
+constraintViolationsLimit: 20
+auditFromCache: false
+image:
+  repository: rancher/opa-gatekeeper
+  tag: v3.1.0-beta.7
+  pullPolicy: IfNotPresent
+nodeSelector: {"beta.kubernetes.io/os": "linux"}
+tolerations: []
+resources:
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+global:
+  systemDefaultRegistry: ""
+  kubectl:
+    repository: rancher/istio-kubectl
+    tag: 1.4.6
+`;
+
+export function init(store) {
+  const {
+    conditionalProduct,
+    basicType,
+    componentForType,
+    // ignoreGroup,
+    virtualType
+  } = DSL(store, NAME);
+
+  conditionalProduct({ ifGroupExists: /^(.*\.)?fleet\.cattle\.io$/ });
+
+  componentForType(/^constraints\.gatekeeper\.sh\..*$/, 'gatekeeper-constraint');
+
+  basicType([
+    'gatekeeper-constraint',
+    'gatekeeper-template',
+  ]);
+
+  virtualType({
+    label:      'Constraint',
+    namespaced: false,
+    name:       'gatekeeper-constraint',
+    group:      'Cluster::OPA Gatekeeper',
+    route:      { name: 'c-cluster-gatekeeper-constraints' },
+    ifHaveType: GATEKEEPER.CONSTRAINT_TEMPLATE
+  });
+
+  virtualType({
+    label:      'Template',
+    namespaced: false,
+    name:       'gatekeeper-template',
+    group:      'Cluster::OPA Gatekeeper',
+    route:      { name: 'c-cluster-gatekeeper-templates' },
+    ifHaveType: GATEKEEPER.CONSTRAINT_TEMPLATE
+  });
+}

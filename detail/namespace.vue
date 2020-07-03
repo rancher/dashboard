@@ -32,13 +32,14 @@ export default {
     let originalQuotaID = null;
     let description;
 
-    if (!!this.originalValue) {
+    if ( this.originalValue?.metadata?.name ) {
       originalQuotaID = `${ this.originalValue.metadata.name }/default-quota`;
       const originalAnnotations = get(this.originalValue, 'metadata.annotations');
 
       if (originalAnnotations) {
         description = originalAnnotations[DESCRIPTION];
       }
+
       this.value.metadata.annotations = this.originalValue.metadata.annotations ? JSON.parse(JSON.stringify(this.originalValue.metadata.annotations)) : {};
       this.value.metadata.labels = this.originalValue.metadata.labels ? JSON.parse(JSON.stringify(this.originalValue.metadata.labels)) : {};
     }

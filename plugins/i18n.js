@@ -83,9 +83,16 @@ Vue.component('t', {
   render(h) {
     const msg = stringFor(this.$store, this.k, this.$attrs, this.raw);
 
-    return h(
-      this.tag,
-      [msg]
-    );
+    if ( this.raw ) {
+      return h(
+        this.tag,
+        { domProps: { innerHTML: msg } }
+      );
+    } else {
+      return h(
+        this.tag,
+        [msg]
+      );
+    }
   },
 });

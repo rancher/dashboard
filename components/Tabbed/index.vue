@@ -157,8 +157,8 @@ export default {
       role="tablist"
       class="tabs clearfix"
       tabindex="0"
-      @keyup.39.stop="selectNext(1)"
-      @keyup.37.stop="selectNext(-1)"
+      @keydown.right.prevent="selectNext(1)"
+      @keydown.left.prevent="selectNext(-1)"
     >
       <li
         v-for="tab in sortedTabs"

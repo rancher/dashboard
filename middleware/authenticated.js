@@ -3,7 +3,7 @@ import { findBy } from '@/utils/array';
 import { SETUP } from '@/config/query-params';
 import { get } from '@/utils/object';
 import { ClusterNotFoundError } from '@/utils/error';
-import applyTypeConfigs from '@/config/type-config';
+import { applyProducts } from '@/store/type-map';
 
 export default async function({
   route, app, store, redirect, req, isDev
@@ -66,7 +66,7 @@ export default async function({
   }
 
   // Load stuff
-  applyTypeConfigs(store);
+  await applyProducts(store);
 
   try {
     let clusterId = get(route, 'params.cluster');

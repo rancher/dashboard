@@ -7,12 +7,12 @@
 // pluralLabelFor(schema)     Get the plural form of this schema's type
 // groupLabelFor(schema)      Get the label for the API group of this schema's type
 // isIgnored(schema)          Returns true if this type should be hidden from the tree
-// isBasic(schema)            Returns true if this type should be included in basic view
+// isBasic(product, schema)   Returns true if this type should be included in basic view for product
 // typeWeightFor(type)        Get the weight value for a particular type label
 // groupWeightFor(group)      Get the weight value for a particular group
 // headersFor(schema)         Returns the column definitions for a type to give to SortableTable
 //
-// 2) Detecting and usign custom list/detail/edit/header components
+// 2) Detecting and using custom list/detail/edit/header components
 //
 // hasCustomList(type)        Does type have a custom list implementation?
 // hasCustomDetail(type)      Does type have a custom detail implementation?
@@ -20,18 +20,31 @@
 // importList(type)           Returns a promise that resolves to the list component for type
 // importDetail(type)         Returns a promise that resolves to the detail component for type
 // importEdit(type)           Returns a promise that resolves to the edit component for type
-// isCreatable(type)          Checks to see if the type has been marked as uncreatable and returns the response accordingly
-// isEditable(type)           Checks to see if the type has been marked as immutable and returns the response accordingly
+// isCreatable(type)          Is type allowed to be created in the UI? (independent of what RBAC thinks)
+// isEditable(type)           Is type allowed to be edited in the UI? (independent of what RBAC thinks)
 //
 // 3) Changing specialization info about a type
 // For all:
-//   let { thingYouWant } = DSL(instanceOfThestore);
+//   let { thingYouWant } = DSL(instanceOfTheStore, 'product');
 //
+// alwaysProduct({            Add a product that is always installed
+//   ifGroupExists,           -- Show if the given type exists in the store [inStore] 
+//   ifTypeExists,            -- Show if the given type exists in the store [inStore]
+//   inStore                  -- Which store to look at for if* above, defaults to "cluster"
+// })
+// 
+// conditionalProduct(        Add a product that can be optionally installed
+//   ifGroupExists,           -- Show if the given group exists in the store [inStore]
+//   ifTypeExists,            -- Show if the given type exists in the store [inStore]
+//   ifAppExists,             -- Or if an app with the given name is deployed in the store [inStore]
+//   inStore                  -- Which store to look at for if* above, defaults to "cluster"
+// })
+// 
 // virtualType(obj)           Add an item to the tree that goes to a route instead of an actual type.
 //                            --  obj can contain anything in the objects getTree returns.
 //                            --  obj must have a `name` that is unique among all virtual types.
 //                            -- `cluster` is automatically added to route.params if it exists.
-// basicType(type)            Mark type as one shown in basic view
+// basicType(product, type(s)) Mark type(s) as one shown in basic view
 // ignoreType(type)           Never show type
 // weightType(                Set the weight (sorting) order of one or more types
 //   typeOrArrayOfTypes,
@@ -49,20 +62,16 @@
 //   newGroup,                -- Group to move the type into
 //   mapWeight,               -- Priority for apply this mapping (higher numbers applied first)
 // )
-// mapTypeToComponentName( Map matching types to a single component name (this is helpful if multiple types should be rendered by a single component)
-// (
+// componentForType(          Map matching types to a single component name 
+// (                          (this is helpful if multiple types should be rendered by a single component)
 //   matchRegexOrString,      -- Type to match, or regex that matches types
 //   replacementString        -- String to replace the type with
 // )
-// markTypeAsUncreatable( Indicates that the type is uncretable and thus we shouldn't provide options in the UI to create the type (Hide create buttons, hide clone as yaml etc.)
-//  type
-// )
-// markTypeAsImmutable ( Indicates that a type is immutable and thus we should't provide options in the UI to modify the type ( Hide edit as form, edit as yaml etc.)
-//  type
-// )
+// uncreatableType(type)      Disable create (as Form or YAML) buttons for the type, even if the schema says it's creatable
+// immutableType(type)        Disable edit (as form or YAML) action for the type, even if a resource says it's editable
 //
 // ignoreGroup(group):        Never show group or any types in it
-// weightGroup(               Set the weight (sort) order of one or more groups
+// weightGroup(               Set the weight (sorting) of one or more groups
 //   groupOrArrayOfGroups,    -- see weightType...
 //   weight
 // )
@@ -81,6 +90,7 @@ import { SCHEMA, COUNT } from '@/config/types';
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
 import { FAVORITE_TYPES, EXPANDED_GROUPS } from '@/store/prefs';
 import { normalizeType } from '@/plugins/steve/normalize';
+import { NAME as EXPLORER } from '@/config/product/explorer';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -91,10 +101,38 @@ export const BASIC = 'basic';
 export const FAVORITE = 'favorite';
 export const USED = 'used';
 
-export function DSL(store, module = 'type-map') {
+export function DSL(store, product, module = 'type-map') {
+  store.commit(`${ module }/product`, { name: product });
+
   return {
+    // Product-dependent
+    alwaysProduct(opt) {
+      store.commit(`${ module }/product`, { name: product, removable: false, ...opt });
+    },
+
+    conditionalProduct(opt) {
+      store.commit(`${ module }/product`, { name: product, removable: true, ...opt });
+    },
+
     basicType(types) {
-      store.commit(`${ module }/basicType`, types);
+      store.commit(`${ module }/basicType`, {product, types});
+    },
+
+    // Type- and Group-dependent
+    headers(type, headers) {
+      store.commit(`${ module }/headers`, { type, headers });
+    },
+
+    uncreatableType(match) {
+      store.commit(`${ module }/uncreatableType`, { match });
+    },
+
+    componentForType(match, replace) {
+      store.commit(`${ module }/componentForType`, { match, replace });
+    },
+
+    immutableType(match) {
+      store.commit(`${ module }/immutableType`, { match });
     },
 
     ignoreType(regexOrString) {
@@ -103,10 +141,6 @@ export function DSL(store, module = 'type-map') {
 
     ignoreGroup(regexOrString) {
       store.commit(`${ module }/ignoreGroup`, regexOrString);
-    },
-
-    headers(type, headers) {
-      store.commit(`${ module }/headers`, { type, headers });
     },
 
     weightGroup(input, weight) {
@@ -146,23 +180,33 @@ export function DSL(store, module = 'type-map') {
     virtualType(obj) {
       store.commit(`${ module }/virtualType`, obj);
     },
-
-    mapTypeToComponentName(match, replace) {
-      store.commit(`${ module }/mapTypeToComponentName`, { match, replace });
-    },
-
-    markTypeAsUncreatable(match) {
-      store.commit(`${ module }/markTypeAsUncreatable`, { match });
-    },
-
-    markTypeAsImmutable(match) {
-      store.commit(`${ module }/markTypeAsImmutable`, { match });
-    }
   };
+}
+
+let called = false;
+
+export async function applyProducts(store) {
+  if (called) {
+    return;
+  }
+
+  called = true;
+  const ctx = require.context('@/config/product', true, /.*/);
+
+  const products = ctx.keys().filter(path => !path.endsWith('.js')).map(path => path.substr(2));
+
+  for ( const product of products ) {
+    const impl = await import(`@/config/product/${ product }`);
+
+    if ( impl?.init ) {
+      impl.init(store);
+    }
+  }
 }
 
 export const state = function() {
   return {
+    products:                [],
     virtualTypes:            [],
     basicTypes:              {},
     groupIgnore:             [],
@@ -256,8 +300,8 @@ export const getters = {
   },
 
   isBasic(state) {
-    return (schemaId) => {
-      return state.basicTypes[schemaId] || false;
+    return (product, schemaId) => {
+      return state.basicTypes?.[product]?.[schemaId] || false;
     };
   },
 
@@ -304,10 +348,11 @@ export const getters = {
   },
 
   getTree(state, getters, rootState, rootGetters) {
-    return (mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
+    return (product, mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
+      console.log('getTree', product, mode); // eslint-disable-line no-console
       // modes: basic, used, all, favorite
       // namespaceMode: 'namespaced', 'cluster', or 'both'
-      // nsamespaces: null means all, otherwise it will be an array of specific namespaces to include
+      // namespaces: null means all, otherwise it will be an array of specific namespaces to include
 
       let searchRegex;
 
@@ -337,13 +382,14 @@ export const getters = {
         }
 
         const count = _matchingCounts(typeObj, namespaces);
+        const isBasic = getters.isBasic(product, typeObj.name);
 
         if ( typeObj.id === currentType ) {
           // If this is the type currently being shown, always show it
-        } else if ( mode === BASIC && !getters.isBasic(typeObj.name) ) {
+        } else if ( mode === BASIC && !isBasic ) {
           // If we want the basic tree only return basic types;
           continue;
-        } else if ( mode === USED && getters.isBasic(typeObj.name) ) {
+        } else if ( mode === USED && isBasic ) {
           // If we want the used tree ignore basic types;
           continue;
         } else if ( mode === USED && count <= 0 ) {
@@ -475,7 +521,7 @@ export const getters = {
   },
 
   allTypes(state, getters, rootState, rootGetters) {
-    return (mode = ALL) => {
+    return (product, mode = ALL) => {
       const schemas = rootGetters['cluster/all'](SCHEMA);
       const counts = rootGetters['cluster/all'](COUNT)?.[0]?.counts || {};
       const out = {};
@@ -489,7 +535,7 @@ export const getters = {
         if ( !attrs.kind ) {
           // Skip the schemas that aren't top-level types
           continue;
-        } else if ( mode === BASIC && !getters.isBasic(schema.id) ) {
+        } else if ( mode === BASIC && !getters.isBasic(product, schema.id) ) {
           continue;
         } else if ( mode === FAVORITE && !getters.isFavorite(schema.id) ) {
           continue;
@@ -525,7 +571,7 @@ export const getters = {
             continue;
           }
 
-          if ( mode === BASIC && !getters.isBasic(id) ) {
+          if ( mode === BASIC && !getters.isBasic(product, id) ) {
             continue;
           } else if ( mode === FAVORITE && !getters.isFavorite(id) ) {
             continue;
@@ -756,19 +802,41 @@ export const getters = {
 };
 
 export const mutations = {
+  product(state, obj) {
+    const existing = findBy(state.products, 'name', obj.name);
+
+    if ( existing ) {
+      Object.assign(existing, obj);
+    } else {
+      addObject(state.products, obj);
+    }
+  },
+
   virtualType(state, obj) {
-    if ( !findBy(state.virtualTypes, 'name', obj.name) ) {
+    const existing = findBy(state.virtualTypes, 'name', obj.name);
+
+    if ( existing ) {
+      Object.assign(existing, obj);
+    } else {
       addObject(state.virtualTypes, obj);
     }
   },
 
-  basicType(state, types) {
+  basicType(state, {product, types}) {
+    if ( !product ) {
+      product === EXPLORER;
+    }
+
     if ( !isArray(types) ) {
       types = [types];
     }
 
+    if ( !state.basicTypes[product] ) {
+      state.basicTypes[product] = {};
+    }
+
     for ( const t of types ) {
-      state.basicTypes[t] = true;
+      state.basicTypes[product][t] = true;
     }
   },
 
@@ -839,19 +907,19 @@ export const mutations = {
     _addMapping(state.typeMoveMappings, match, group, weight);
   },
 
-  mapTypeToComponentName(state, { match, replace }) {
+  componentForType(state, { match, replace }) {
     match = ensureRegex(match);
     match = regexToString(match);
     state.typeToComponentMappings.push({ match, replace });
   },
 
-  markTypeAsUncreatable(state, { match }) {
+  uncreatableType(state, { match }) {
     match = ensureRegex(match);
     match = regexToString(match);
     state.uncreatable.push(match);
   },
 
-  markTypeAsImmutable(state, { match }) {
+  immutableType(state, { match }) {
     match = ensureRegex(match);
     match = regexToString(match);
     state.immutable.push(match);

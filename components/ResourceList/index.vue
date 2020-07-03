@@ -1,0 +1,149 @@
+<script>
+import ResourceTable from '@/components/ResourceTable';
+import { AS_YAML, _FLAGGED } from '@/config/query-params';
+import Loading from '@/components/Loading';
+import Masthead from './Masthead';
+
+export default {
+  components: {
+    Loading,
+    ResourceTable,
+    Masthead
+  },
+
+  async fetch() {
+    const store = this.$store;
+    const resource = this.resource;
+
+    let hasFetch = false;
+
+    if ( this.hasListComponent ) {
+      // If you provide your own list then call its asyncData
+      const importer = store.getters['type-map/importList'](resource);
+      const component = (await importer())?.default;
+
+      if ( component?.typeDisplay ) {
+        this.customTypeDisplay = component.typeDisplay.apply(this);
+      }
+
+      // If your list page has a fetch then it's responsible for populating rows itself
+      if ( component?.fetch ) {
+        hasFetch = true;
+      }
+    }
+
+    if ( !hasFetch ) {
+      this.rows = await store.dispatch('cluster/findAll', { type: resource });
+    }
+  },
+
+  data() {
+    const g = this.$store.getters;
+    const params = { ...this.$route.params };
+    const resource = params.resource;
+
+    const formRoute = { name: `${ this.$route.name }-create`, params };
+
+    const query = { [AS_YAML]: _FLAGGED };
+
+    const hasListComponent = g['type-map/hasCustomList'](resource);
+    const hasEditComponent = g['type-map/hasCustomEdit'](resource);
+
+    let listComponent;
+
+    if ( hasListComponent ) {
+      listComponent = g['type-map/importList'](resource);
+    }
+
+    const yamlRoute = {
+      name: `${ this.$route.name }-create`,
+      params,
+      query
+    };
+
+    const schema = g['cluster/schemaFor'](resource);
+
+    return {
+      listComponent,
+      formRoute,
+      yamlRoute,
+      schema,
+      hasListComponent,
+      hasEditComponent,
+      resource,
+
+      // Provided by fetch later
+      rows:              null,
+      customTypeDisplay: null,
+    };
+  },
+
+  computed: {
+    headers() {
+      if ( this.hasListComponent || !this.schema ) {
+        // Custom lists figure out their own headers
+        return [];
+      }
+
+      return this.$store.getters['type-map/headersFor'](this.schema);
+    },
+
+    typeDisplay() {
+      if ( this.customTypeDisplay ) {
+        return this.customTypeDisplay;
+      }
+
+      if ( !this.schema ) {
+        return '?';
+      }
+
+      return this.$store.getters['type-map/pluralLabelFor'](this.schema);
+    },
+
+    isCreatable() {
+      if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+        return false;
+      }
+
+      return this.$store.getters['type-map/isCreatable'](this.$route.params.resource);
+    }
+  },
+
+}; </script>
+
+<template>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
+    <Masthead
+      :resource="resource"
+      :type-display="typeDisplay"
+      :is-yaml-creatable="schema && isCreatable"
+      :is-creatable="hasEditComponent && isCreatable"
+      :yaml-create-location="yamlRoute"
+      :create-location="formRoute"
+    />
+
+    <div v-if="hasListComponent">
+      <component
+        :is="listComponent"
+        v-bind="$data"
+      />
+    </div>
+    <ResourceTable v-else :schema="schema" :rows="rows" :headers="headers" />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+  .header {
+    position: relative;
+  }
+  H2 {
+    position: relative;
+    margin: 0 0 20px 0;
+  }
+  .right-action {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+</style>

@@ -106,4 +106,4 @@ export const RIO = {
   SYSTEM_NAMESPACE: 'rio-system',
 };
 
-export const GATEKEEPER_CONSTRAINT_TEMPLATE = 'templates.gatekeeper.sh.constrainttemplate';
+export const GATEKEEPER = { CONSTRAINT_TEMPLATE: 'templates.gatekeeper.sh.constrainttemplate' };

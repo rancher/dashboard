@@ -8,8 +8,8 @@ import {
 } from '@/config/query-params';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
-import Masthead from '@/components/ResourceDetail/Masthead';
-import GenericResourceDetail from '@/components/GenericResourceDetail';
+import GenericResourceDetail from './Generic';
+import Masthead from './Masthead';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.

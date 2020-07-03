@@ -15,6 +15,10 @@
   box-sizing: border-box;
 }
 
+.vs__dropdown-toggle {
+  cursor: pointer;
+}
+
 .vs--disabled {
   .vs__dropdown-toggle,
   .vs__clear,
@@ -77,6 +81,11 @@
     &:hover {
       color: var(--body-text);
     }
+  }
+
+  &.vs__dropdown-option--disabled {
+  color: var(--dropdown-disabled-text);
+  cursor: not-allowed;
   }
 }
 

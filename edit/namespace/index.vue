@@ -25,7 +25,7 @@ export default {
   data() {
     let originalQuotaId = null;
 
-    if (!!this.originalValue) {
+    if ( this.originalValue?.metadata?.name ) {
       originalQuotaId = `${ this.originalValue.metadata.name }/default-quota`;
     }
 

@@ -1,10 +1,11 @@
 import Identicon from 'identicon.js';
 import { md5 } from '@/utils/crypto';
+import { addParam } from '@/utils/url';
 
 export default {
   avatarSrc() {
     if ( this.provider === 'github' ) {
-      return this.profilePicture;
+      return addParam(this.profilePicture, 's', 80); // Double the size it will be rendered, for @2x displays
     } else {
       let id = this.id || 'Unknown';
 
