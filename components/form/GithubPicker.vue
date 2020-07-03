@@ -1,6 +1,6 @@
 <script>
 import { mapState } from 'vuex';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { findBy } from '@/utils/array';
 import { EXTENDED_SCOPES } from '@/store/github';
 

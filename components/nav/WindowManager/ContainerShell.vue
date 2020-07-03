@@ -95,13 +95,13 @@ export default {
   methods: {
     async setupTerminal() {
       const docStyle = getComputedStyle(document.querySelector('body'));
-      const xterm = await import('xterm');
+      const xterm = await import(/* webpackChunkName: "xterm" */ 'xterm');
 
       const addons = await allHash({
-        fit:      import('xterm-addon-fit'),
-        webgl:    import('xterm-addon-webgl'),
-        weblinks: import('xterm-addon-web-links'),
-        search:   import('xterm-addon-search'),
+        fit:      import(/* webpackChunkName: "xterm" */ 'xterm-addon-fit'),
+        webgl:    import(/* webpackChunkName: "xterm" */ 'xterm-addon-webgl'),
+        weblinks: import(/* webpackChunkName: "xterm" */ 'xterm-addon-web-links'),
+        search:   import(/* webpackChunkName: "xterm" */ 'xterm-addon-search'),
       });
 
       const terminal = new xterm.Terminal({

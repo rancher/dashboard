@@ -104,7 +104,21 @@ module.exports = {
   },
 
   build: {
-    publicPath: resourceBase,
+    publicPath:   resourceBase,
+    filenames:    { chunk: ({ isDev }) => isDev ? '[name].js' : '[id].[contenthash].js' },
+    // @TODO figure out how to split chunks up better, by product
+    // optimization: {
+    //   splitChunks: {
+    //     cacheGroups: {
+    //       styles: {
+    //         name:    'styles',
+    //         test:    /\.(css|vue)$/,
+    //         chunks:  'all',
+    //         enforce: true
+    //       },
+    //     }
+    //   }
+    // },
     extend(config, { isClient, isDev }) {
       config.devtool = isClient ? 'source-map' : 'inline-source-map';
 

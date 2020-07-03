@@ -1,5 +1,5 @@
 <script>
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import { cleanUp } from '@/utils/object';
 import { randomStr } from '@/utils/string';
 import Match from '@/edit/rio.cattle.io.router/Match';

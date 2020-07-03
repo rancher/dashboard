@@ -1,4 +1,4 @@
-import { xor } from 'lodash';
+import xor from 'lodash/xor';
 import { get } from '@/utils/object';
 
 export function removeObject(ary, obj) {

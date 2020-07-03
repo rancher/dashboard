@@ -45,7 +45,7 @@ export default {
   },
 
   mounted() {
-    import('@/plugins/codemirror').then(() => {
+    import(/* webpackChunkName: "codemirror" */ '@/plugins/codemirror').then(() => {
       this.loaded = true;
     });
   },

@@ -1,5 +1,5 @@
 <script>
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { mapState } from 'vuex';
 import { mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';

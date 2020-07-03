@@ -1,5 +1,6 @@
 <script>
-import { capitalize, words } from 'lodash';
+import capitalize from 'lodash/capitalize';
+import words from 'lodash/words';
 import ConsumptionGauge from '@/components/ConsumptionGauge';
 import DetailTop from '@/components/DetailTop';
 import HStack from '@/components/Layout/Stack/HStack';

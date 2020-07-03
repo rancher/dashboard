@@ -1,4 +1,7 @@
-import { cloneDeep, flattenDeep, compact, pick } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import flattenDeep from 'lodash/flattenDeep';
+import compact from 'lodash/compact';
+import pick from 'lodash/pick';
 import jsonpath from 'jsonpath';
 import { typeOf } from './sort';
 

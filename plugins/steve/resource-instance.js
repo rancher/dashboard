@@ -1,12 +1,10 @@
 import Vue from 'vue';
 import jsyaml from 'js-yaml';
-import {
-  compact,
-  uniq,
-  isEmpty,
-  isFunction,
-  isString
-} from 'lodash';
+import compact from 'lodash/compact';
+import uniq from 'lodash/uniq';
+import isEmpty from 'lodash/isEmpty';
+import isFunction from 'lodash/isFunction';
+import isString from 'lodash/isString';
 import {
   displayKeyFor,
   validateLength,

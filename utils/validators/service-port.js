@@ -1,4 +1,4 @@
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import { validateDnsLabel } from '@/utils/validators';
 
 export function servicePort(ports, getters, errors, validatorArgs) {

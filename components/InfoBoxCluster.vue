@@ -1,5 +1,5 @@
 <script>
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import InfoBox from '@/components/InfoBox';
 import PercentageBar from '@/components/PercentageBar';
 import { parseSi, formatSi, exponentNeeded } from '@/utils/units';

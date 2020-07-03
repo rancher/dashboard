@@ -1,4 +1,6 @@
-import { omitBy, pickBy, isArray } from 'lodash';
+import omitBy from 'lodash/omitBy';
+import pickBy from 'lodash/pickBy';
+import isArray from 'lodash/isArray';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
 import { LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';

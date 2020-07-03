@@ -1,5 +1,7 @@
 <script>
-import { isEmpty, head, sortBy } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import head from 'lodash/head';
+import sortBy from 'lodash/sortBy';
 
 export default {
   name: 'Tabbed',

@@ -1,5 +1,5 @@
 <script>
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { typeOf } from '@/utils/sort';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
