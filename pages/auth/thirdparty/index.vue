@@ -1,43 +1,56 @@
 <script>
 import Wizard from '@/components/Wizard';
-import Step from '@/components/Wizard/Step';
 
 export default {
-  components: {
-    Wizard,
-    Step
-  }
+  components: { Wizard },
+
+  data() {
+    const steps = [
+      {
+        name:   'step1',
+        active: false,
+        label:  'one',
+        ready:  true,
+      },
+      {
+        name:   'step2',
+        active: false,
+        label:  'two',
+        ready:  true,
+      },
+      {
+        name:   'step3',
+        active: false,
+        label:  'three',
+      },
+      {
+        name:   'step4',
+        active: false,
+        label:  'four',
+        ready:  true
+      }
+    ];
+
+    return { steps };
+  },
 
 };
 </script>
 
 <template>
   <div>
-    <Wizard>
-      <Step>
+    <Wizard :steps="steps">
+      <template #step1>
         step 1
-      </Step>
-      <Step>
-        step 2
-      </Step>
-      <Step>
-        step 3
-      </Step>
-      <Step>
-        step 4
-      </Step>
-      <Step>
-        step 5
-      </Step>
+      </template>
+      <template #step2="stepProps">
+        {{ stepProps }}
+      </template>
+      <template #step3>
+        <button class="btn role-secondary" @click="$set(steps[2], 'ready', true)">
+          ready!
+        </button>
+      </template>
     </Wizard>
-    <div class="spacer" />
-    <div class="text-center">
-      <button type="button" class="btn role-secondary">
-        <t k="generic.cancel" />
-      </button>
-      <button type="button" class="btn role-primary" @click="nextStep(1)">
-        <t k="wizard.next" />
-      </button>
-    </div>
   </div>
 </template>

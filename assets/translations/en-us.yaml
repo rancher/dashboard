@@ -58,6 +58,7 @@ nav:
 
 wizard:
   next: Next
+  finish: Finish
 
 cluster:
   nodeDriver:
