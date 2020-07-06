@@ -25,10 +25,6 @@ export default {
   },
 
   watch: {
-    '$route.hash'() {
-      this.hashChange();
-    },
-
     sortedTabs(tabs) {
       const {
         defaultTab,
@@ -53,38 +49,38 @@ export default {
     },
   },
 
-  created() {
-    const {
-      $children,
-      $route: { hash },
-      defaultTab,
-      sortedTabs,
-    } = this;
-
-    this.tabs = $children;
-
-    let tab;
-    const selected = (hash || '').replace(/^#/, '');
-
-    if ( selected ) {
-      tab = this.find(selected);
-    }
-
-    if ( !tab ) {
-      tab = this.find(defaultTab);
-    }
-
-    if ( !tab ) {
-      tab = head(sortedTabs);
-    }
-
-    if ( tab ) {
-      this.select(tab.name);
-    }
-  },
-
   mounted() {
     window.addEventListener('hashchange', this.hashChange);
+
+    this.$nextTick(() => {
+      const {
+        $children,
+        $route: { hash },
+        defaultTab,
+        sortedTabs,
+      } = this;
+
+      this.tabs = $children;
+
+      let tab;
+      const selected = (hash || '').replace(/^#/, '');
+
+      if ( selected ) {
+        tab = this.find(selected);
+      }
+
+      if ( !tab ) {
+        tab = this.find(defaultTab);
+      }
+
+      if ( !tab ) {
+        tab = head(sortedTabs);
+      }
+
+      if ( tab ) {
+        this.select(tab.name);
+      }
+    });
   },
 
   unmounted() {
