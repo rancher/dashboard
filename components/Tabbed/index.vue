@@ -40,29 +40,15 @@ export default {
       const firstTab = head(tabs) || null;
 
       if (isEmpty(activeTab)) {
-        if (defaultTab && !isEmpty(tabs.find(t => t.name === defaultTab))) {
+        if (!isEmpty(windowHashTabMatch)) {
+          this.select(windowHashTabMatch.name);
+        } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find(t => t.name === defaultTab))) {
           this.select(defaultTab);
-        } else {
-          if (!isEmpty(windowHashTabMatch)) {
-            this.select(windowHashTabMatch.name);
-
-            return;
-          }
-
-          if (firstTab) {
-            this.select(firstTab.name);
-
-            return;
-          }
+        } else if (firstTab?.name) {
+          this.select(firstTab.name);
         }
-      }
-
-      if (activeTab.name === windowHash) {
+      } else if (activeTab?.name === windowHash) {
         this.select(activeTab.name);
-      } else if (!isEmpty(windowHashTabMatch)) {
-        this.select(windowHashTabMatch.name);
-      } else {
-        this.select(firstTab.name);
       }
     },
   },
