@@ -96,7 +96,7 @@ export default {
       this.$emit('finish');
     },
 
-    // a step is not available if ready=false for this step or any previous steps
+    // a step is not available if ready=false for any previous steps
     isAvailable(step) {
       if (!step) {
         return false;
@@ -132,17 +132,15 @@ export default {
           :class="{step: true, active: step.active, disabled: !isAvailable(step) || idx===0}"
           role="presentation"
         >
-          <span class="controls" @click.prevent="goToStep(idx+1, $event)">
+          <span
+            :aria-controls="'step' + idx+1"
+            :aria-selected="step.active"
+            role="tab"
+            class="controls"
+            @click.prevent="goToStep(idx+1, $event)"
+          >
             <span class="icon icon-lg" :class="{'icon-dot': !step.active, 'icon-dot-open':step.active}" />
-            <a
-              v-if="step.ready && idx!==0"
-              :aria-controls="'#' + idx+1"
-              :aria-selected="step.active"
-              role="tab"
-            >
-              {{ step.label }}
-            </a>
-            <span v-else>
+            <span>
               {{ step.label }}
             </span>
           </span>
@@ -168,7 +166,7 @@ export default {
         </button>
       </slot>
       <slot v-if="activeStepIndex === steps.length-1" name="finish" :finish="finish">
-        <button type="button" class="btn role-primary" @click="finish">
+        <button :disabled="!activeStep.ready" type="button" class="btn role-primary" @click="finish">
           <t k="wizard.finish" />
         </button>
       </slot>
