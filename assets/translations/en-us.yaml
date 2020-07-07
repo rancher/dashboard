@@ -15,6 +15,7 @@ generic:
   remove: Remove
   cancel: Cancel
   close: Close
+  save: Save
   clickToShow: '[Show Value]'
   comingSoon: Coming Soon
   created: Created
@@ -28,11 +29,14 @@ generic:
     one  {resource}
     other {resources}
     }
-
+  readFromFile: Read from File
+  
+  
 suffix:
   ib: iB
   cpus: CPUs
   seconds: Seconds
+  milliseconds: Milliseconds
 
 header:
   backToRancher: "← Back to Rancher"
@@ -59,6 +63,72 @@ nav:
 wizard:
   next: Next
   finish: Finish
+  step: 'Step {number}:'
+
+auth:
+  chooseProvider: Select a Provider
+  username: Username
+  password: Password
+  testEnable: Test and Enable
+  edit: Edit
+  disable: Disable
+  siteAccess: 
+    title: Site Access
+    restricted: 'Restricted: Allow members of Clusters and Projects, plus Authorized Users and Organizations'
+    unrestricted: 'Unrestricted: Allow any valid users '
+    required: 'Required: Only allow Authorized Users and Organizations'
+    authorizedUsers: Authorized Users
+    principals: Principals
+  LDAP:
+    schema:
+      titles:
+        users: Users
+        groups: Groups
+      useGeneric: Use standard {provider} schema
+      customize: Customize Configuration
+      objectClass: Object Class
+      username: User Name Attribute
+      login: Login Attribute
+      userMember: User Member Attribute
+      search: Search Attribute
+      searchFilter: Search Filter
+      userEnabled: User Enabled Attribute
+      disabledStatus: Disabled Status Bitmask
+      name: Name Attribute
+      groupMember: Group Member User Attribute
+      groupMemberMapping: Group Member Mapping Attribute
+      groupDN: Group DN Attribute
+      nestedGroup: 
+        label: Nested Group Membership
+        options:
+          onlyDirect: Search only direct group memberships
+          nested: Search direct and nested group memberships
+    steps:
+      config: Configure Provider
+      schema: Customize Schema
+      test: Test & Enable
+      access: Site Access
+    hostname: Hostname/IP
+    connectionTimeout: Server Connection Timeout
+    port: Port
+    tls: 
+      label: TLS
+      options:
+        'true': TLS
+        'false': 'Insecure'
+    caCertificate: CA crt
+    serviceAccountUsername: Service Account Distinguished Name
+    serviceAccountPassword: Service Account Password
+    defaultLoginDomain: 
+      label: Default Login Domain
+      tip: This domain will be used if a user does not specify one
+    userSearchBase: 
+      label: User Search Base
+      tip: Only users below this base will be read
+    groupSearchBase: 
+      label: Group Search Base
+      tip: If set, groups will be searched for under this base instead of the User Search Base
+    configBanner: 'Rancher needs a service account that has (read-only) access to all of the domains that will be able to login, so that we can determine what groups a user is a member of when they make a request with an API key.'
 
 cluster:
   nodeDriver:

@@ -27,6 +27,11 @@ export default {
     placeholder: {
       type:    String,
       default: ''
+    },
+
+    protip: {
+      type:    String,
+      default: null
     }
 
   },
@@ -34,6 +39,9 @@ export default {
   computed: {
     isViewing() {
       return this.mode === _VIEW;
+    },
+    hasLabel() {
+      return (this.label || '').length || !!this.$slots.label;
     }
   },
 
@@ -73,11 +81,14 @@ export default {
         <span v-if="required && !value" class="required">*</span>
       </label>
     </slot>
-    <label v-if="!!(this.$slots.corner || [])[0]" class="corner">
+    <label v-if="!!(this.$slots.corner || [])[0] || protip" class="corner">
+      <span v-if="protip" v-tooltip="protip">
+        <i class="icon icon-info" style="font-size: 14px" />
+      </span>
       <slot name="corner" />
     </label>
     <slot name="prefix" />
-    <div :class="{'no-label':!(label||'').length}">
+    <div :class="{'no-label':!hasLabel}">
       <span v-if="value">
         {{ value }}
         <slot name="suffix" />
@@ -94,7 +105,10 @@ export default {
         <span v-if="required && !value" class="required">*</span>
       </label>
     </slot>
-    <label v-if="!!(this.$slots.corner || [])[0]" class="corner">
+    <label v-if="!!(this.$slots.corner || [])[0] || protip" class="corner">
+      <span v-if="protip" v-tooltip="protip">
+        <i class="icon icon-info" style="font-size: 14px" />
+      </span>
       <slot name="corner" />
     </label>
     <slot name="prefix" />

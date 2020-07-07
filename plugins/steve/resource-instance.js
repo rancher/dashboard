@@ -618,7 +618,6 @@ export default {
       if ( !opt.url ) {
         opt.url = this.actionLinkFor(actionName);
       }
-
       opt.method = 'post';
       opt.data = body;
 
@@ -647,12 +646,12 @@ export default {
     return async(opt = {}) => {
       delete this.__rehydrate;
       const forNew = !this.id;
-      const errors = await this.validationErrors(this);
+
+      const errors = opt.validate !== false ? await this.validationErrors(this) : [];
 
       if (!isEmpty(errors)) {
         return Promise.reject(errors);
       }
-
       if ( !opt.url ) {
         if ( forNew ) {
           const schema = this.$getters['schemaFor'](this.type);

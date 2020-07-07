@@ -8,6 +8,7 @@ import {
 } from '@/config/query-params';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
+import ReadFile from '@/components/form/ReadFile';
 import GenericResourceDetail from './Generic';
 import Masthead from './Masthead';
 
@@ -149,7 +150,7 @@ export const watchQuery = [MODE, AS_YAML];
 
 export default {
   components: {
-    ResourceYaml, Masthead, GenericResourceDetail
+    ResourceYaml, Masthead, GenericResourceDetail, ReadFile
   },
   mixins: { CreateEditView },
 
@@ -190,14 +191,10 @@ export default {
 
   data() {
     // asYamlInit is taken from route query and passed as prop from _id page; asYaml is saved in local data to be manipulated by Masthead
-    const {
-      asYamlInit: asYaml,
-      value: currentValue,
-    } = this;
+    const { asYamlInit: asYaml } = this;
 
     return {
       asYaml,
-      currentValue,
       detailComponent:         this.$store.getters['type-map/importDetail'](this.resource),
       editComponent:           this.$store.getters['type-map/importEdit'](this.resource),
     };
@@ -271,11 +268,11 @@ export default {
 
   methods: {
     // reading yamls from files is most easily tracked when done down in the component that handles other yaml-editing input, YamlEditor, but visually the button to upload lives up here
-    readFromFile() {
+    readFromFile(e) {
       const component = this.$refs.resourceyaml;
 
       if (component) {
-        component.readFromFile();
+        component.onInput(e.value);
       }
     },
   }
@@ -294,9 +291,7 @@ export default {
     >
       <template v-if="!isView && asYaml" #right>
         <div class="text-right">
-          <button class="btn btn-sm role-primary" @click="readFromFile">
-            Read from File
-          </button>
+          <ReadFile :multiple="false" @input="readFromFile" />
         </div>
       </template>
     </Masthead>

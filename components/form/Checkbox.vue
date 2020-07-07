@@ -23,7 +23,13 @@ export default {
     mode: {
       type:    String,
       default: 'edit'
+    },
+
+    labelTop: {
+      type:    Boolean,
+      default: false
     }
+
   },
   computed: {
     isDisabled() {
@@ -49,11 +55,11 @@ export default {
 </script>
 
 <template>
-  <label
+  <div
     v-if="mode!=='view' || !!value"
     class="checkbox-container"
   >
-    <label class="checkbox-box">
+    <span class="checkbox-box">
       <input
         :checked="value"
         :v-model="value"
@@ -71,29 +77,37 @@ export default {
         @keyup.16="clicked($event)"
         @click.stop="clicked($event)"
       ></span>
-    </label>
+    </span>
     <span
       v-if="label"
       class="checkbox-label"
+      :class="{'label-top':labelTop}"
       @click.stop="clicked($event)"
     >
       <slot name="label">  {{ label }}</slot>
     </span>
-  </label>
+  </div>
 </template>
 
 <style lang='scss'>
 .checkbox-container {
   display: inline-flex;
   align-items: center;
+  position: relative;
 }
 .checkbox-label {
   color: var(--input-label);
   margin: 3px 10px 3px 0;
+  position: absolute;
+  left: 18px;
+  &.label-top{
+    right: 18px;
+    top: 0px;
+  }
 }
 .checkbox-box {
     display: inline-block;
-    position: relative;
+    position: absolute  ;
     cursor: pointer;
     font-size: 18px;
     line-height: 24px;

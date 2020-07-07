@@ -1,0 +1,10 @@
+export default {
+
+  authCategory() {
+    return 'SAML';
+  },
+
+  nameDisplay() {
+    return 'Keycloak';
+  }
+};

@@ -2,9 +2,17 @@
 import labeledFormElement from '@/mixins/labeled-form-element';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import { _VIEW } from '@/config/query-params';
+import UnitInput from '@/components/form/UnitInput';
 export default {
-  components: { LabeledInput, LabeledSelect },
-  mixins:     [labeledFormElement],
+  components: {
+    LabeledInput,
+    LabeledSelect,
+    UnitInput
+  },
+
+  mixins: [labeledFormElement],
+
   props:      {
     disabled: {
       type:    Boolean,
@@ -15,18 +23,22 @@ export default {
       type:    String,
       default: ''
     },
+
     selectValue: {
       type:    String,
       default: null
     },
+
     optionLabel: {
       type:    String,
       default: 'label'
     },
+
     options: {
       type:     Array,
       required: true
     },
+
     selectBeforeText: {
       type:    Boolean,
       default: true,
@@ -36,14 +48,17 @@ export default {
       type:    String,
       default: ''
     },
+
     textRequired: {
       type:    Boolean,
       default: false
     },
+
     textValue: {
       type:    String,
-      default: ''
+      default: null
     },
+
     placeholder: {
       type:    String,
       default: ''
@@ -52,6 +67,12 @@ export default {
 
   data() {
     return { selected: this.selectValue || this.options[0], string: this.textValue };
+  },
+
+  computed: {
+    isView() {
+      return this.mode === _VIEW;
+    }
   },
 
   methods: {
@@ -71,10 +92,20 @@ export default {
 </script>
 
 <template>
-  <div class="input-container row" @input="change">
+  <div v-if="isView">
+    <template v-if="!selectBeforeText">
+      <UnitInput :label="textLabel" mode="view" :value="string" :suffix="selected">
+        <template #label>
+          <slot name="label" />
+        </template>
+      </UnitInput>
+    </template>
+  </div>
+  <div v-else :class="{'select-after':!selectBeforeText}" class="input-container row" @input="change">
     <LabeledSelect
       v-model="selected"
       :label="selectLabel"
+      :class="{ 'suffix': !selectBeforeText}"
       class="in-input"
       :options="options"
       :searchable="false"
@@ -86,25 +117,20 @@ export default {
       @input="change"
     />
     <LabeledInput
-      v-if="textLabel"
       ref="text"
       v-model="string"
       class="input-string col span-8"
+      :class="{ 'suffix': !selectBeforeText }"
       :label="textLabel"
       :placeholder="placeholder"
       :disabled="disabled"
       :required="textRequired"
       :mode="mode"
-    />
-    <input
-      v-else
-      ref="text"
-      v-model="string"
-      class="input-string"
-      :disabled="isView"
-      :placeholder="placeholder"
-      autocomplete="off"
-    />
+    >
+      <template #label>
+        <slot name="label" />
+      </template>
+    </LabeledInput>
   </div>
 </template>
 
@@ -125,11 +151,23 @@ export default {
       border-radius: 0 calc(var(--border-radius) * 2) calc(var(--border-radius) * 2) 0;
       border-left: 0;
       margin-left: -1px;
+
+      &.suffix{
+        border-radius:  calc(var(--border-radius) * 2) 0 0 calc(var(--border-radius) * 2);
+        border: 1px solid var(--border);
+        border-right: 0;
+        margin-left:0;
+        margin-right: 0;
+      }
     }
 
     .in-input {
-      margin-right: 0;
       border-radius: calc(var(--border-radius) * 2) 0 0 calc(var(--border-radius) * 2);
+      margin-right: 0;
+
+      &.suffix {
+        border-radius: 0 calc(var(--border-radius) * 2) calc(var(--border-radius) * 2) 0;
+      }
 
       &.labeled-select {
         display: block;
@@ -139,6 +177,31 @@ export default {
         background-color: var(--accent-btn);
         border-color: var(--primary);
         border-right-width: 2px;
+
+        &.suffix {
+          border-right-width: 1px;
+          border-color: var(--border);
+          background-color: var(--input-bg);
+          width: 20%;
+
+          .vs__selected {
+            color: var(--input-text)
+          }
+
+          .vs__dropdown-menu {
+           left: 0px;
+           border: 1px solid var(--border);
+          }
+
+          .vs__dropdown-toggle {
+            color: var(--input-label) !important;
+            border-radius: 0 var(--border-radius) var(--border-radius) 0;
+          }
+
+          .vs__open-indicator {
+            fill: var(--input-label);
+          }
+        }
 
         .vs__selected {
           margin: 0;

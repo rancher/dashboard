@@ -11,6 +11,7 @@ import SortableTable from '@/components/SortableTable';
 import ClickExpand from '@/components/formatter/ClickExpand';
 import { get } from '@/utils/object';
 import CodeMirror from '@/components/CodeMirror';
+import ReadFile from '@/components/form/ReadFile';
 
 const LARGE_LIMIT = 2 * 1024;
 
@@ -27,7 +28,8 @@ export default {
     SortableTable,
     TextAreaAutoGrow,
     ClickExpand,
-    CodeMirror
+    CodeMirror,
+    ReadFile
   },
 
   props: {
@@ -291,36 +293,10 @@ export default {
 
       this.$set(this, 'rows', cleaned);
     },
-    readFromFile() {
-      this.$refs.uploader.click();
-    },
 
-    fileChange(event) {
-      const input = event.target;
-      const handles = input.files;
-      const names = [];
-
+    addFromFile(e) {
       this.removeEmptyRows();
-      if ( handles ) {
-        for ( let i = 0 ; i < handles.length ; i++ ) {
-          const reader = new FileReader();
-
-          reader.onload = (loaded) => {
-            const value = loaded.target.result;
-
-            this.add(names[i], value, !asciiLike(value));
-          };
-
-          reader.onerror = (err) => {
-            this.$dispatch('growl/fromError', { title: 'Error reading file', err }, { root: true });
-          };
-
-          names[i] = handles[i].name;
-          reader.readAsText(handles[i]);
-        }
-
-        input.value = '';
-      }
+      this.add(e.name, e.value, !e.asciiLike);
     },
 
     download(row) {
@@ -505,19 +481,10 @@ export default {
         </button>
         <slot name="moreAdd" :rows="rows" />
       </slot>
-      <button v-if="showRead" type="button" class="btn role-tertiary read-from-file" @click="readFromFile">
+      <ReadFile v-if="showRead" :accept="readAccept" :multiple="true" role="tertiary" @input="addFromFile">
         {{ readLabel }}
-      </button>
+      </ReadFile>
     </div>
-
-    <input
-      ref="uploader"
-      type="file"
-      :accept="readAccept"
-      :multiple="readMultiple"
-      class="hide"
-      @change="fileChange"
-    />
   </div>
 </template>
 

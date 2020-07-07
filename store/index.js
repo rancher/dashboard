@@ -265,7 +265,10 @@ export const actions = {
     console.log('Loading management...'); // eslint-disable-line no-console
 
     try {
-      await dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: 'principals' } });
+      await Promise.all([
+        dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: 'principals' } }),
+        dispatch('rancher/loadSchemas')
+      ]);
     } catch (e) {
       // Maybe not Rancher
     }
@@ -278,7 +281,7 @@ export const actions = {
       ]),
     });
 
-    await dispatch('management/findAll', { type: COUNT, opt: { url: 'counts' } });
+    // await dispatch('management/findAll', { type: COUNT, opt: { url: 'counts' } });
 
     let isRancher = false;
     let isMultiCluster = false;

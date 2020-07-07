@@ -13,7 +13,7 @@ export const EDITOR_MODES = {
 export default {
   components: {
     CodeMirror,
-    FileDiff
+    FileDiff,
   },
   props: {
     value: {
@@ -97,11 +97,7 @@ export default {
         this.$emit('newObject', parsed);
       } catch (ex) {}
     },
-    showUploadPrompt(neu) {
-      if (neu) {
-        this.$refs.yamluploader.click();
-      }
-    }
+
   },
   methods: {
     onInput() {
@@ -115,31 +111,6 @@ export default {
 
     onChanges() {
       this.$emit('onChanges', ...arguments);
-    },
-
-    readFromFile() {
-      this.$refs.yamluploader.click();
-    },
-
-    fileChange(event) {
-      const input = event.target;
-      const handle = input.files[0];
-
-      if ( handle ) {
-        const reader = new FileReader();
-
-        reader.onload = (loaded) => {
-          const value = loaded.target.result;
-
-          this.value = value;
-        };
-
-        reader.onerror = (err) => {
-          this.$dispatch('growl/fromError', { title: 'Error reading file', err }, { root: true });
-        };
-        reader.readAsText(handle);
-        input.value = '';
-      }
     },
   }
 };
@@ -179,14 +150,6 @@ export default {
       :side-by-side="diffMode === 'split'"
       :orig="original"
       :neu="value"
-    />
-
-    <input
-      ref="yamluploader"
-      type="file"
-      class="hide"
-      :multiple="false"
-      @change="fileChange"
     />
   </div>
 </template>

@@ -176,10 +176,6 @@ export default {
       }
     },
 
-    readFromFile() {
-      this.$refs.yamleditor.readFromFile();
-    },
-
     preview() {
       this.showPreview = true;
       this.$router.applyQuery({ [PREVIEW]: _FLAGGED });
@@ -257,7 +253,6 @@ export default {
 <template>
   <div class="root resource-yaml">
     <YamlEditor
-      ref="yamleditor"
       v-model="currentYaml"
       class="yaml-editor"
       :editor-mode="editorMode"

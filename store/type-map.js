@@ -371,7 +371,6 @@ export const getters = {
       // modes: basic, used, all, favorite
       // namespaceMode: 'namespaced', 'cluster', or 'both'
       // namespaces: null means all, otherwise it will be an array of specific namespaces to include
-
       let searchRegex;
 
       if ( search ) {
@@ -432,7 +431,6 @@ export const getters = {
         } else {
           group = _ensureGroup(root, typeObj.schema || typeObj.group || 'Root');
         }
-
         let route = typeObj.route;
 
         // Make the default route if one isn't set
@@ -471,14 +469,12 @@ export const getters = {
 
       // Recursively sort the groups
       _sortGroup(root, mode);
-
       return root.children;
 
       // ----------------------
 
       function _ensureGroup(tree, schemaOrName, isRoot=false) {
         let name = getters.groupLabelFor(schemaOrName);
-
         if ( name === 'Root' || name.startsWith('Root::') ) {
           isRoot = true;
         }
@@ -580,7 +576,6 @@ export const getters = {
       // Add virtual types
       if ( mode !== USED ) {
         const isRancher = rootGetters.isRancher;
-
         const virtualTypes = state.virtualTypes[product] || [];
 
         for ( const vt of virtualTypes ) {
