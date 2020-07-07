@@ -40,6 +40,10 @@ export default {
       type:    Boolean,
       default: false
     },
+    status: {
+      type:      String,
+      default:   null
+    },
     reduce: {
       type:     Function,
       default: (e) => {
@@ -152,7 +156,7 @@ export default {
 </script>
 
 <template>
-  <div class="labeled-select labeled-input" :class="{disabled, focused, [mode]: true}">
+  <div class="labeled-select labeled-input" :class="{disabled, focused, [mode]: true, [status]: status }">
     <div :class="{'labeled-container': true, raised, empty, [mode]: true}" :style="{border:'none'}">
       <label v-if="label">
         {{ label }}

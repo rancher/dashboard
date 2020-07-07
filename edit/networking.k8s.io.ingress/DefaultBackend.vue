@@ -36,6 +36,11 @@ export default {
       const service = this.serviceTargets.find(s => s.label === this.serviceName);
 
       return service?.ports || [];
+    },
+    serviceTargetStatus() {
+      const isValueAnOption = !this.serviceName || this.serviceTargets.find(target => this.serviceName === target.value);
+
+      return isValueAnOption ? null : 'warning';
     }
   },
   methods: {
@@ -54,10 +59,12 @@ export default {
       <div class="col span-4">
         <LabeledSelect
           v-model="serviceName"
+          :taggable="true"
           :mode="mode"
           :label="t('ingress.defaultBackend.targetService.label')"
           :options="serviceTargets"
           option-label="label"
+          :status="serviceTargetStatus"
           @input="update(); servicePort = ''"
         />
       </div>

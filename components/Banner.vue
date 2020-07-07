@@ -67,7 +67,7 @@ export default {
 
     &.error {
       background: var(--error-banner-bg);
-      border: solid 1px (--error);
+      border: solid 1px var(--error);
       color: var(--error);
     }
   }

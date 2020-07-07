@@ -23,6 +23,20 @@ TEXTAREA,
   border: solid $outline-width var(--input-border);
   color: var(--input-text);
 
+  &:not(.focused) {
+    &.success {
+      border: solid 1px var(--success);
+    }
+  
+    &.warning {
+      border: solid 1px var(--warning);
+    }
+  
+    &.error {
+      border: solid 1px var(--error);
+    }
+  }
+
   &:not(.view) {
     background-color: var(--input-bg);
 
