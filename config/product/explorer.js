@@ -1,12 +1,12 @@
 import {
   CONFIG_MAP,
-  NAMESPACE, NODE, SECRET, RBAC, INGRESS,
-  WORKLOAD, WORKLOAD_TYPES
+  NAMESPACE, NODE, SECRET, INGRESS,
+  WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD
 } from '@/config/types';
 
 import {
   STATE, NAME as NAME_COL, NAMESPACE_NAME, AGE, KEYS,
-  BUILT_IN, CLUSTER_CREATOR_DEFAULT, INGRESS_TARGET, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM
+  INGRESS_TARGET, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM
 } from '@/config/table-headers';
 
 import { DSL } from '@/store/type-map';
@@ -19,10 +19,9 @@ export function init(store) {
     basicType,
     ignoreType,
     mapType,
-    moveType,
-    // weightType,
     mapGroup,
     weightGroup,
+    moveType,
     headers,
     virtualType,
     componentForType,
@@ -34,10 +33,43 @@ export function init(store) {
 
   basicType([
     'cluster-overview',
+
     NAMESPACE,
     NODE,
+
+    SERVICE,
+    INGRESS,
+    HPA,
+    NETWORK_POLICY,
+
+    PV,
+    PVC,
+    STORAGE_CLASS,
+
     WORKLOAD,
+    WORKLOAD_TYPES.DEPLOYMENT,
+    WORKLOAD_TYPES.STATEFUL_SET,
+    WORKLOAD_TYPES.JOB,
+    POD,
   ]);
+
+  // Move some core things into Cluster
+  moveType(NAMESPACE, 'Cluster');
+  moveType(NODE, 'Cluster');
+
+  moveType(SERVICE, 'Service Discovery');
+  moveType(INGRESS, 'Service Discovery');
+  moveType(HPA, 'Service Discovery');
+  moveType(NETWORK_POLICY, 'Service Discovery');
+
+  moveType(PV, 'Storage');
+  moveType(PVC, 'Storage');
+  moveType(STORAGE_CLASS, 'Storage');
+
+  moveType(WORKLOAD_TYPES.DEPLOYMENT, 'Workload');
+  moveType(WORKLOAD_TYPES.STATEFUL_SET, 'Workload');
+  moveType(WORKLOAD_TYPES.JOB, 'Workload');
+  moveType(POD, 'Workload');
 
   for (const key in WORKLOAD_TYPES) {
     componentForType(WORKLOAD_TYPES[key], WORKLOAD);
@@ -48,14 +80,8 @@ export function init(store) {
 
   mapType('endpoints', 'Endpoint'); // Bad plural
 
-  // Move some core things into Cluster
-  moveType(/^(namespace|node)$/, 'Cluster');
-
-  weightGroup('Cluster', 99);
-  weightGroup('Core', 98);
-
-  mapGroup(/^(core)?$/, 'Core', 99);
-  mapGroup('apps', 'Apps', 98);
+  mapGroup(/^(core)?$/, 'Core');
+  mapGroup('apps', 'Apps');
   mapGroup('batch', 'Batch');
   mapGroup('autoscaling', 'Autoscaling');
   mapGroup('policy', 'Policy');
@@ -103,39 +129,42 @@ export function init(store) {
   headers(INGRESS, [STATE, NAMESPACE_NAME, INGRESS_TARGET, AGE]);
   headers(NODE, [STATE, NAME_COL, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM]);
 
-  headers(RBAC.ROLE, [
-    STATE,
-    NAME_COL,
-    BUILT_IN,
-    AGE
-  ]);
+  // These look to be for [Cluster]RoleTemplate, not [Cluster]Role.
+  // headers(RBAC.ROLE, [
+  //   STATE,
+  //   NAME_COL,
+  //   BUILT_IN,
+  //   AGE
+  // ]);
 
-  headers(RBAC.CLUSTER_ROLE, [
-    STATE,
-    NAME_COL,
-    BUILT_IN,
-    CLUSTER_CREATOR_DEFAULT,
-    AGE
-  ]);
+  // headers(RBAC.CLUSTER_ROLE, [
+  //   STATE,
+  //   NAME_COL,
+  //   BUILT_IN,
+  //   CLUSTER_CREATOR_DEFAULT,
+  //   AGE
+  // ]);
+
+  weightGroup('Root', 100);
 
   virtualType({
     label:       'Overview',
+    group:      'Root',
     namespaced:  false,
     name:        'cluster-overview',
-    group:       'Cluster',
-    weight:      11,
+    weight:      100,
     route:       { name: 'c-cluster' },
     exact:       true,
   });
 
   virtualType({
-    label:      'Workload',
+    label:      'Overview',
+    group:      'Workload',
     namespaced: true,
     name:       'workload',
-    group:      'Cluster',
-    weight:     10,
+    weight:     99,
     route:      {
-      name:     'c-cluster-resource',
+      name:     'c-cluster-product-resource',
       params:   { resource: WORKLOAD }
     },
   });

@@ -40,16 +40,14 @@ export function init(store) {
   const {
     conditionalProduct,
     basicType,
-    moveType,
     mapGroup,
     headers,
-    virtualType,
+    // virtualType,
   } = DSL(store, NAME);
 
   conditionalProduct({ ifGroupExists: 'rio.cattle.io' });
 
   basicType([
-    'rio',
     RIO.SERVICE,
     RIO.ROUTER,
     RIO.PUBLIC_DOMAIN,
@@ -58,21 +56,6 @@ export function init(store) {
   ]);
 
   mapGroup(/^(.*\.)?(rio|gitwatcher)\.cattle\.io$/, 'Rio');
-
-  virtualType({
-    label:       'Rio',
-    namespaced:  false,
-    name:        'rio',
-    group:       'Cluster',
-    route:       { name: 'c-cluster-rio' },
-    ifIsRancher: true,
-  });
-
-  moveType(RIO.SERVICE, 'Cluster::Rio::Service');
-  moveType(RIO.ROUTER, 'Cluster::Rio::Router');
-  moveType(RIO.PUBLIC_DOMAIN, 'Cluster::Rio::Public Domain');
-  moveType(RIO.EXTERNAL_SERVICE, 'Cluster::Rio::External Service');
-  moveType(RIO.STACK, 'Cluster::Rio::Stack');
 
   headers(RIO.EXTERNAL_SERVICE, [STATE, NAMESPACE_NAME, TARGET_KIND, TARGET, AGE]);
   headers(RIO.PUBLIC_DOMAIN, [

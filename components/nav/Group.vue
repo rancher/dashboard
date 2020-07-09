@@ -35,6 +35,11 @@ export default {
     canCollapse: {
       type:    Boolean,
       default: true,
+    },
+
+    showLabel: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -58,6 +63,7 @@ export default {
     :key="group.label"
     :depth="depth"
     :label="group.label"
+    :show-header="showLabel"
     :expanded="isExpanded"
     :can-collapse="canCollapse"
     :has-children="group.children && group.children.length > 0"
@@ -96,6 +102,7 @@ export default {
         <Type
           v-else
           :key="child.name"
+          :is-root="depth == 0 && !showLabel"
           :type="child"
         />
       </template>

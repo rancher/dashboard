@@ -3,7 +3,6 @@ import debounce from 'lodash/debounce';
 import Group from '@/components/nav/Group';
 import { isMac } from '@/utils/platform';
 import { BOTH, ALL } from '@/store/type-map';
-import { NAME as EXPLORER } from '@/config/product/explorer';
 
 export default {
   components: { Group },
@@ -71,6 +70,7 @@ export default {
     updateMatches() {
       const clusterId = this.$store.getters['clusterId'];
       const isAllNamespaces = this.$store.getters['isAllNamespaces'];
+      const product = this.$store.getters['currentProduct'];
 
       let namespaces = null;
 
@@ -78,8 +78,8 @@ export default {
         namespaces = Object.keys(this.$store.getters['namespaces']());
       }
 
-      const allTypes = this.$store.getters['type-map/allTypes'](EXPLORER) || {};
-      const out = this.$store.getters['type-map/getTree'](EXPLORER, ALL, allTypes, clusterId, BOTH, namespaces, null, this.value);
+      const allTypes = this.$store.getters['type-map/allTypes'](product) || {};
+      const out = this.$store.getters['type-map/getTree'](product, ALL, allTypes, clusterId, BOTH, namespaces, null, this.value);
 
       this.groups = out;
     },

@@ -1,43 +1,41 @@
 <script>
-import { mapState } from 'vuex';
+import { mapGetters } from 'vuex';
 
 export default {
   computed: {
-    ...mapState(['isRancher']),
+    ...mapGetters(['isRancher', 'clusterId']),
 
     value: {
       get() {
-        return 'explorer';
+        return this.$store.getters['currentProduct'];
       },
 
-      set(neu) {
-        debugger;
-        // this.$router.push({ name: 'c-cluster', params: { cluster: neu.id } });
+      set(product) {
+        // Try product-specific index first
+        const opt = {
+          name:   `c-cluster-${ product }`,
+          params: { cluster: this.clusterId, product }
+        };
+
+        if ( !this.$router.getMatchedComponents(opt).length ) {
+          opt.name = 'c-cluster-product';
+        }
+
+        this.$router.push(opt);
       }
     },
 
     options() {
-      return ['explorer', 'apps', 'auth'];
+      const t = this.$store.getters['i18n/t'];
+
+      return ['explorer', 'apps', 'access', 'gatekeeper', 'rio'].map((name) => {
+        return {
+          label: t(`product.${ name }`),
+          value: name
+        };
+      });
     },
 
-    backToRancherLink() {
-      if ( !this.isRancher ) {
-        return;
-      }
-
-      const cluster = this.$store.getters['currentCluster'];
-      let link = '/';
-
-      if ( cluster ) {
-        link = `/c/${ escape(cluster.id) }`;
-      }
-
-      if ( process.env.dev ) {
-        link = `https://localhost:8000${ link }`;
-      }
-
-      return link;
-    },
   },
 
   methods: {
@@ -57,6 +55,7 @@ export default {
       v-model="value"
       :clearable="false"
       :options="options"
+      :reduce="opt=>opt.value"
       label="label"
     >
     </v-select>

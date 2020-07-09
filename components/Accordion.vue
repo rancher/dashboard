@@ -8,6 +8,11 @@ export default {
       required: true
     },
 
+    showHeader: {
+      type:    Boolean,
+      default: true,
+    },
+
     label: {
       type:     String,
       required: true,
@@ -68,7 +73,7 @@ export default {
 
 <template>
   <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}">
-    <div class="header" @click="toggle($event)">
+    <div v-if="showHeader" class="header" @click="toggle($event)">
       <slot name="header">
         {{ label }}
       </slot>
@@ -106,8 +111,7 @@ export default {
   .accordion {
     &.depth-0 {
       > .header {
-        padding: 10px 0;
-        border-top: solid thin var(--border);
+        padding: 5px 0;
 
         > H6 {
           font-size: 14px;
@@ -118,7 +122,7 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 14px 2px 14px 0;
+          padding: 7px 2px 11px 0;
         }
       }
 

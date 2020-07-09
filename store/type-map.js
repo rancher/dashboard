@@ -178,7 +178,7 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     virtualType(obj) {
-      store.commit(`${ module }/virtualType`, obj);
+      store.commit(`${ module }/virtualType`, {product, obj});
     },
   };
 }
@@ -207,7 +207,7 @@ export async function applyProducts(store) {
 export const state = function() {
   return {
     products:                [],
-    virtualTypes:            [],
+    virtualTypes:            {},
     basicTypes:              {},
     groupIgnore:             [],
     groupWeights:            {},
@@ -283,6 +283,10 @@ export const getters = {
         if ( !moved ) {
           group = group.attributes.group;
         }
+      }
+
+      if ( typeof group !== 'string' ) {
+        return null;
       }
 
       const out = _applyMapping(group, state.groupMappings, null, state.cache.groupLabel, (group) => {
@@ -399,7 +403,7 @@ export const getters = {
         }
 
         const label = typeObj.label;
-        const labelDisplay = highlightLabel(label, namespaced);
+        const labelDisplay = highlightLabel(label, namespaced, typeObj.exact);
 
         if ( !labelDisplay ) {
           // Search happens in highlight and retuns null if not found
@@ -411,19 +415,19 @@ export const getters = {
         if ( mode === BASIC ) {
           const mappedGroup = getters.groupLabelFor(typeObj.schema);
 
-          if ( mappedGroup && mappedGroup.startsWith('Cluster::') ) {
+          if ( mappedGroup ) {
             group = _ensureGroup(root, mappedGroup);
-          } else if ( typeObj.group && typeObj.group.includes('::') ) {
+          } else if ( typeObj.group ) {
             group = _ensureGroup(root, typeObj.group);
           } else {
-            group = _ensureGroup(root, 'Cluster');
+            group = _ensureGroup(root, 'Root');
           }
         } else if ( mode === FAVORITE ) {
           group = _ensureGroup(root, 'Starred');
         } else if ( mode === USED ) {
           group = _ensureGroup(root, `In-Use::${ getters.groupLabelFor(typeObj.schema) }`);
         } else {
-          group = _ensureGroup(root, typeObj.schema || typeObj.group );
+          group = _ensureGroup(root, typeObj.schema || typeObj.group || 'Root');
         }
 
         let route = typeObj.route;
@@ -431,8 +435,9 @@ export const getters = {
         // Make the default route if one isn't set
         if (!route ) {
           route = {
-            name:   'c-cluster-resource',
+            name:   'c-cluster-product-resource',
             params: {
+              product,
               cluster:  clusterId,
               resource: typeObj.name,
             }
@@ -441,10 +446,11 @@ export const getters = {
           typeObj.route = route;
         }
 
-        // Cluster ID should always be set
+        // Cluster ID and Product should always be set
         if ( route && typeof route === 'object' ) {
           route.params = route.params || {};
           route.params.cluster = clusterId;
+          route.params.product = product;
         }
 
         group.children.push({
@@ -467,8 +473,12 @@ export const getters = {
 
       // ----------------------
 
-      function _ensureGroup(tree, schemaOrLabel, route) {
+      function _ensureGroup(tree, schemaOrLabel, isRoot=false) {
         let label = getters.groupLabelFor(schemaOrLabel);
+
+        if ( label === 'Root' || label.startsWith('Root::') ) {
+          isRoot = true;
+        }
 
         if ( label && label.includes('::') ) {
           let parent;
@@ -486,11 +496,11 @@ export const getters = {
             weight:   getters.groupWeightFor(label),
           };
 
-          if ( route ) {
-            group.route = route;
-          }
-
           tree.children.push(group);
+        }
+
+        if ( isRoot ) {
+          group.isRoot = true;
         }
 
         if ( !group.children ) {
@@ -500,7 +510,7 @@ export const getters = {
         return group;
       }
 
-      function highlightLabel(original, namespaced) {
+      function highlightLabel(original, namespaced, exact) {
         let label = escapeHtml(original);
 
         if ( searchRegex ) {
@@ -513,7 +523,9 @@ export const getters = {
           }
         }
 
-        label = `<i class="icon icon-fw icon-${ namespaced ? 'folder' : 'globe' }"></i>${ label }`;
+        if ( exact !== true ) {
+          label = `<i class="icon icon-fw icon-${ namespaced ? 'folder' : 'globe' }"></i>${ label }`;
+        }
 
         return label;
       }
@@ -558,7 +570,9 @@ export const getters = {
       if ( mode !== USED ) {
         const isRancher = rootGetters.isRancher;
 
-        for ( const vt of state.virtualTypes ) {
+        const virtualTypes = state.virtualTypes[product] || [];
+
+        for ( const vt of virtualTypes ) {
           const item = clone(vt);
           const id = item.name;
           const weight = vt.weight || getters.typeWeightFor(item.label);
@@ -812,13 +826,17 @@ export const mutations = {
     }
   },
 
-  virtualType(state, obj) {
-    const existing = findBy(state.virtualTypes, 'name', obj.name);
+  virtualType(state, {product, obj}) {
+    if ( !state.virtualTypes[product] ) {
+      state.virtualTypes[product] = [];
+    }
+
+    const existing = findBy(state.virtualTypes[product], 'name', obj.name);
 
     if ( existing ) {
       Object.assign(existing, obj);
     } else {
-      addObject(state.virtualTypes, obj);
+      addObject(state.virtualTypes[product], obj);
     }
   },
 
@@ -932,7 +950,6 @@ export const mutations = {
 
 export const actions = {
   addFavorite({ dispatch, rootGetters }, type) {
-    console.log('addFavorite', type); // eslint-disable-line no-console
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
     addObject(types, type);
@@ -941,7 +958,6 @@ export const actions = {
   },
 
   removeFavorite({ dispatch, rootGetters }, type) {
-    console.log('removeFavorite', type); // eslint-disable-line no-console
     const types = rootGetters['prefs/get'](FAVORITE_TYPES) || [];
 
     removeObject(types, type);

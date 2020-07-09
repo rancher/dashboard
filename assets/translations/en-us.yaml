@@ -5,7 +5,9 @@ locale:
 product:
   explorer: Cluster Explorer
   apps: Manage Applications
-  auth: Manage Access
+  access: Manage Access
+  gatekeeper: OPA Gatekeeper
+  rio: Rio
 
 generic:
   add: Add

@@ -35,23 +35,33 @@ export function init(store) {
     basicType,
     componentForType,
     // ignoreGroup,
+    mapGroup,
     virtualType
   } = DSL(store, NAME);
 
-  conditionalProduct({ ifGroupExists: /^(.*\.)?fleet\.cattle\.io$/ });
+  conditionalProduct({ ifGroupExists: /^(.*\.)?gatekeeper\.sh$/ });
+
+  mapGroup(/^(.*\.)?gatekeeper\.sh$/, 'OPA Gatekeeper');
 
   componentForType(/^constraints\.gatekeeper\.sh\..*$/, 'gatekeeper-constraint');
 
   basicType([
+    'getkeeper-overview',
     'gatekeeper-constraint',
     'gatekeeper-template',
   ]);
 
   virtualType({
+    label:      'Overview',
+    namespaced: false,
+    name:       'gatekeeper-overview',
+    route:      { name: 'c-cluster-gatekeeper' },
+  });
+
+  virtualType({
     label:      'Constraint',
     namespaced: false,
     name:       'gatekeeper-constraint',
-    group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-constraints' },
     ifHaveType: GATEKEEPER.CONSTRAINT_TEMPLATE
   });
@@ -60,7 +70,6 @@ export function init(store) {
     label:      'Template',
     namespaced: false,
     name:       'gatekeeper-template',
-    group:      'Cluster::OPA Gatekeeper',
     route:      { name: 'c-cluster-gatekeeper-templates' },
     ifHaveType: GATEKEEPER.CONSTRAINT_TEMPLATE
   });

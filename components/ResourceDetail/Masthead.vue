@@ -149,16 +149,18 @@ export default {
         <span v-if="value.description">{{ value.description }}</span>
       </div>
     </div>
-    <div v-if="mode==='view'" class="actions">
-      <div v-if="hasDetailOrEdit">
-        <ButtonGroup :labels-are-translations="true" :value="asYaml" :options="[{label: 'resourceDetail.masthead.overview', value: false},{label:'resourceDetail.masthead.yaml', value: true }]" @input="toggleYaml" />
+    <slot name="right">
+      <div v-if="mode==='view'" class="actions">
+        <div v-if="hasDetailOrEdit">
+          <ButtonGroup :labels-are-translations="true" :value="asYaml" :options="[{label: 'resourceDetail.masthead.overview', value: false},{label:'resourceDetail.masthead.yaml', value: true }]" @input="toggleYaml" />
+        </div>
+        <button ref="actions" aria-haspopup="true" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
+          <i class="icon icon-actions" />
+        </button>
       </div>
-      <button ref="actions" aria-haspopup="true" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
-        <i class="icon icon-actions" />
-      </button>
-    </div>
-    <div class="state-banner">
-      <Banner v-if="banner" class="state-banner" :color="banner.color" :label="banner.message" />
+    </slot>
+    <div v-if="banner" class="state-banner">
+      <Banner class="state-banner" :color="banner.color" :label="banner.message" />
     </div>
   </header>
 </template>

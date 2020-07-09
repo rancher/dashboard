@@ -6,7 +6,7 @@ export default {
     const id = store.getters['defaultClusterId'];
 
     if ( id ) {
-      redirect(`/c/${ escape(id) }`);
+      redirect({ name: 'c-cluster', params: { cluster: id } });
     }
   }
 };

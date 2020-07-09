@@ -742,8 +742,9 @@ export default {
     const schema = this.$getters['schemaFor'](this.type);
 
     return {
-      name:   `c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+      name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
       params: {
+        product:   this.$rootGetters['currentProduct'],
         resource:  this.type,
         namespace: this.metadata && this.metadata.namespace,
         id:        this.metadata.name
@@ -875,7 +876,6 @@ export default {
 
   applyDefaults() {
     return () => {
-      return this;
     };
   },
 

@@ -291,13 +291,16 @@ export default {
       :real-mode="realMode"
       :as-yaml.sync="asYaml"
       :has-detail-or-edit="(hasCustomDetail || hasCustomEdit)"
-    />
+    >
+      <template v-if="!isView && asYaml" #right>
+        <div class="text-right">
+          <button class="btn btn-sm role-primary" @click="readFromFile">
+            Read from File
+          </button>
+        </div>
+      </template>
+    </Masthead>
     <template v-if="asYaml">
-      <div v-if="!isView" class="text-right pb-20">
-        <button class="btn btn-sm role-primary" @click="readFromFile">
-          Read from file
-        </button>
-      </div>
       <ResourceYaml
         ref="resourceyaml"
         :value="model"
