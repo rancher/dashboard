@@ -2,13 +2,11 @@
 import capitalize from 'lodash/capitalize';
 import words from 'lodash/words';
 import ConsumptionGauge from '@/components/ConsumptionGauge';
-import DetailTop from '@/components/DetailTop';
 import HStack from '@/components/Layout/Stack/HStack';
 import VStack from '@/components/Layout/Stack/VStack';
 import Alert from '@/components/Alert';
 import SortableTable from '@/components/SortableTable';
 import Tab from '@/components/Tabbed/Tab';
-import BadgeState from '@/components/BadgeState';
 import {
   ADDRESS,
   EFFECT,
@@ -23,7 +21,6 @@ import Poller from '@/utils/poller';
 import { METRIC } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
-import CopyToClipboardText from '@/components/CopyToClipboardText';
 import Conditions from '@/components/form/Conditions';
 
 const METRICS_POLL_RATE_MS = 30000;
@@ -34,10 +31,7 @@ export default {
 
   components: {
     Alert,
-    BadgeState,
     ConsumptionGauge,
-    CopyToClipboardText,
-    DetailTop,
     HStack,
     VStack,
     ResourceTabs,
@@ -131,27 +125,6 @@ export default {
     taintTableRows() {
       return this.value.spec.taints || [];
     },
-
-    detailTopColumns() {
-      return [
-        {
-          title:   this.t('node.detail.detailTop.ipAddress'),
-          name:    'ip-address'
-        },
-        {
-          title:   this.t('node.detail.detailTop.version'),
-          content:  this.value.version
-        },
-        {
-          title:   this.t('node.detail.detailTop.os'),
-          content:  this.value.status.nodeInfo.osImage
-        },
-        {
-          title:   this.t('node.detail.detailTop.containerRuntime'),
-          name:    'container-runtime'
-        },
-      ];
-    }
   },
 
   mounted() {
@@ -195,17 +168,6 @@ export default {
 
 <template>
   <VStack class="node">
-    <DetailTop :columns="detailTopColumns">
-      <template v-slot:ip-address>
-        <CopyToClipboardText :text="value.internalIp" />
-      </template>
-      <template v-slot:state>
-        <BadgeState v-if="value.showDetailStateBadge" :value="value" />
-      </template>
-      <template v-slot:container-runtime>
-        <span><span v-if="value.containerRuntimeIcon" class="icon" :class="value.containerRuntimeIcon" /> {{ value.containerRuntimeVersion }}</span>
-      </template>
-    </DetailTop>
     <HStack class="glance" :show-dividers="true">
       <VStack class="alerts" :show-dividers="true" vertical-align="space-evenly">
         <Alert :status="pidPressureStatus" :message="t('node.detail.glance.pidPressure')" />

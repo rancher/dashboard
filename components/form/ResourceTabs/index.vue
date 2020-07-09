@@ -31,14 +31,20 @@ export default {
       type:    String,
       default: 'create'
     }
+  },
+  computed: {
+    hasCustomTabs() {
+      return !!this.$slots['before'];
+    }
   }
 };
 </script>
 
 <template>
-  <Tabbed v-bind="$attrs">
+  <Tabbed v-if="!isView || hasCustomTabs" v-bind="$attrs">
     <slot name="before" />
     <Tab
+      v-if="!isView"
       name="labels"
       :weight="4"
       :label="t('resourceTabs.tabs.labels')"
@@ -54,6 +60,7 @@ export default {
       />
     </Tab>
     <Tab
+      v-if="!isView"
       name="annotations"
       :weight="5"
       :label="t('resourceTabs.tabs.annotations')"

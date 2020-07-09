@@ -206,15 +206,26 @@ export default {
     return this.metadata?.state?.name || 'unknown';
   },
 
-  highlightBadge() {
-    if ( this.isCordoned ) {
-      return {
-        stateBackground: this.stateBackground,
-        stateDisplay:    this.stateDisplay
-      };
-    }
-
-    return false;
+  details() {
+    return [{
+      label:     this.t('node.detail.detailTop.ipAddress'),
+      formatter: 'CopyToClipboardText',
+      content:   this.internalIp
+    },
+    {
+      label:    this.t('node.detail.detailTop.version'),
+      content:  this.version
+    },
+    {
+      label:    this.t('node.detail.detailTop.os'),
+      content:  this.status.nodeInfo.osImage
+    },
+    {
+      label:         this.t('node.detail.detailTop.containerRuntime'),
+      formatter:     'IconText',
+      formatterOpts: { iconClass: this.containerRuntimeIcon },
+      content:       this.containerRuntimeVersion
+    }];
   }
 };
 

@@ -498,4 +498,17 @@ export default {
 
     return out;
   },
+
+  details() {
+    return [
+      {
+        label:   'Image',
+        content: get(this.value, 'spec.image')
+      },
+      {
+        label:   'Scale',
+        content: get(this.value, 'status.scaleStatus.available')
+      },
+    ];
+  }
 };

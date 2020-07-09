@@ -82,7 +82,6 @@ export default {
 
 <template>
   <VStack class="config-map">
-    <div class="spacer"></div>
     <KeyValue
       key="data"
       v-model="value.data"

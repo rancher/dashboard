@@ -1,9 +1,8 @@
 <script>
 import Favorite from '@/components/nav/Favorite';
-import BreadCrumbs from '@/components/BreadCrumbs';
 
 export default {
-  components: { BreadCrumbs, Favorite },
+  components: { Favorite },
   props:      {
     resource: {
       type:     String,
@@ -38,8 +37,6 @@ export default {
 
 <template>
   <header>
-    <BreadCrumbs class="breadcrumbs" :route="$route" />
-
     <h1>
       {{ typeDisplay }} <Favorite :resource="resource" />
     </h1>

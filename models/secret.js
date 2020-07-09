@@ -1,5 +1,5 @@
 import r from 'jsrsasign';
-import { KUBERNETES } from '@/config/labels-annotations';
+import { CERTMANAGER, KUBERNETES } from '@/config/labels-annotations';
 import { base64Decode } from '@/utils/crypto';
 import { removeObjects } from '@/utils/array';
 export const OPAQUE = 'Opaque';
@@ -25,6 +25,105 @@ const DISPLAY_TYPES = {
 };
 
 export default {
+  isCertificate() {
+    return this._type === TLS;
+  },
+
+  isRegistry() {
+    return this._type === DOCKER_JSON;
+  },
+  dockerJSON() {
+    return DOCKER_JSON;
+  },
+
+  issuer() {
+    const { metadata:{ annotations = {} } } = this;
+
+    if (annotations[CERTMANAGER.ISSUER]) {
+      return annotations[CERTMANAGER.ISSUER];
+    } else if (this.isCertificate) {
+      return this.certInfo?.issuer;
+    } else {
+      return null;
+    }
+  },
+
+  notAfter() {
+    if (this.isCertificate) {
+      return this.certInfo?.notAfter;
+    } else {
+      return null;
+    }
+  },
+
+  cn() {
+    if (this.isCertificate) {
+      return this.certInfo?.cn;
+    }
+
+    return null;
+  },
+
+  // show plus n more for cert names
+  plusMoreNames() {
+    if (this.isCertificate) {
+      return this.unrepeatedSans.length;
+    }
+
+    return null;
+  },
+
+  // use text-warning' or 'text-error' if cert is expiring within 8 days or is expired
+  dateClass() {
+    if (this.isCertificate) {
+      const eightDays = 691200000;
+
+      if (this.timeTilExpiration > eightDays ) {
+        return '';
+      } else if (this.timeTilExpiration > 0) {
+        return 'text-warning';
+      } else {
+        return 'text-error';
+      }
+    }
+
+    return null;
+  },
+
+  details() {
+    const columns = [
+      {
+        label:   this.t('secret.type'),
+        content: this.typeDisplay
+      }
+    ];
+
+    if (this.cn) {
+      columns.push({
+        label:   this.t('secret.certificate.cn'),
+        content: this.plusMoreNames ? `${ this.cn } ${ this.t('secret.certificate.plusMore', { n: this.plusMoreNames }) }` : this.cn
+      });
+    }
+
+    if (this.issuer) {
+      columns.push({
+        label:   this.t('secret.certificate.issuer'),
+        content: this.issuer
+      });
+    }
+
+    if (this.notAfter) {
+      columns.push({
+        label:         'Expires',
+        formatter:     'Date',
+        formatterOpts: { class: this.dateClass },
+        content:       this.notAfter
+      });
+    }
+
+    return columns;
+  },
+
   canUpdate() {
     return this.hasLink('update') && this.$rootGetters['type-map/isEditable'](this.type) && this.secretType !== SERVICE_ACCT;
   },
@@ -149,8 +248,8 @@ export default {
   // use for + n more name display
   unrepeatedSans() {
     if (this._type === TLS ) {
-      const commonBases = this.certInfo.sans.filter(name => name.indexOf('*.') === 0 || name.indexOf('www.') === 0).map(name => name.substr(name.indexOf('.')));
-      const displaySans = removeObjects(this.certInfo.sans, commonBases);
+      const commonBases = this.certInfo?.sans.filter(name => name.indexOf('*.') === 0 || name.indexOf('www.') === 0).map(name => name.substr(name.indexOf('.')));
+      const displaySans = removeObjects(this.certInfo?.sans, commonBases);
 
       return displaySans;
     }

@@ -4,10 +4,11 @@ import merge from 'lodash/merge';
 import jsyaml from 'js-yaml';
 import { ucFirst } from '@/utils/string';
 import { isSimpleKeyValue } from '@/utils/object';
-import { _VIEW, _CREATE } from '@/config/query-params';
+import { _VIEW } from '@/config/query-params';
 import { SCHEMA, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import Footer from '@/components/form/Footer';
+import Masthead from '@/components/ResourceDetail/Masthead';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import MatchKinds from '@/components/form/MatchKinds';
@@ -42,6 +43,7 @@ export default {
     GatekeeperViolationsTable,
     KeyValue,
     LabeledSelect,
+    Masthead,
     MatchKinds,
     NameNsDescription,
     NamespaceList,
@@ -93,12 +95,6 @@ export default {
         };
       });
     },
-    isView() {
-      return this.mode === _VIEW;
-    },
-    isCreate() {
-      return this.mode === _CREATE;
-    },
     editorMode() {
       if ( this.mode === _VIEW ) {
         return EDITOR_MODES.VIEW_CODE;
@@ -132,6 +128,13 @@ export default {
     },
     isTemplateSelectorDisabled() {
       return !this.isCreate;
+    },
+    parentOverride() {
+      const schema = this.$store.getters['cluster/schemaFor'](this.value.type);
+      const displayName = this.$store.getters['type-map/singularLabelFor'](schema);
+      const location = { name: 'c-cluster-gatekeeper-constraints' };
+
+      return { displayName, location };
     }
   },
 
@@ -202,12 +205,18 @@ export default {
 <template>
   <div v-if="value.save" class="gatekeeper-constraint">
     <div>
+      <Masthead
+        v-if="isCreate"
+        :value="value"
+        :mode="mode"
+        :parent-override="parentOverride"
+      />
       <NameNsDescription
+        v-if="!isView"
         :value="value"
         :mode="mode"
         :namespaced="false"
         :extra-columns="['template']"
-        :detail-top-columns="detailTopColumns"
       >
         <template v-slot:template>
           <LabeledSelect
@@ -266,7 +275,7 @@ export default {
     <div class="spacer"></div>
     <div class="match">
       <h2>{{ t('gatekeeperConstraint.match.title') }}</h2>
-      <ResourceTabs v-model="value" :mode="mode" default-tab="labels">
+      <ResourceTabs v-model="value" :mode="mode">
         <template #before>
           <Tab name="namespaces" :label="t('gatekeeperConstraint.tab.namespaces.title')">
             <div class="row">

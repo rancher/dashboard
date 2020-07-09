@@ -14,7 +14,9 @@ import {
 import CustomValidators from '@/utils/custom-validators';
 import { sortableNumericSuffix } from '@/utils/sort';
 import { generateZip, downloadFile } from '@/utils/download';
-import { escapeHtml, ucFirst, coerceStringTypeToScalarType } from '@/utils/string';
+import {
+  escapeHtml, ucFirst, coerceStringTypeToScalarType, matchesSomePrefix, containsSomeString
+} from '@/utils/string';
 import { get } from '@/utils/object';
 import { eachLimit } from '@/utils/promise';
 import {
@@ -23,7 +25,8 @@ import {
 } from '@/config/query-params';
 import { findBy } from '@/utils/array';
 import { DEV } from '@/store/prefs';
-import { DESCRIPTION } from '@/config/labels-annotations';
+import { DESCRIPTION, LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';
+import omitBy from 'lodash/omitBy';
 import { normalizeType, cleanForNew } from './normalize';
 
 const STRING_LIKE_TYPES = [
@@ -154,6 +157,26 @@ export default {
     };
   },
 
+  description() {
+    return this.metadata?.annotations?.[DESCRIPTION];
+  },
+
+  labels() {
+    const all = this.metadata?.labels || {};
+
+    return omitBy(all, (value, key) => {
+      return matchesSomePrefix(key, LABEL_PREFIX_TO_IGNORE);
+    });
+  },
+
+  annotations() {
+    const all = this.metadata?.annotations || {};
+
+    return omitBy(all, (value, key) => {
+      return (matchesSomePrefix(key, ANNOTATIONS_TO_IGNORE_PREFIX) || containsSomeString(key, ANNOTATIONS_TO_IGNORE_CONTAINS));
+    });
+  },
+
   typeDisplay() {
     const schema = this.schema;
 
@@ -208,10 +231,6 @@ export default {
     return out;
   },
 
-  description() {
-    return this.metadata?.annotations?.[DESCRIPTION];
-  },
-
   setLabel() {
     return (key, val) => {
       if ( val ) {
@@ -248,10 +267,6 @@ export default {
         delete this.metadata.annotations[key];
       }
     };
-  },
-
-  highlightBadge() {
-    return false;
   },
 
   // You can override the state by providing your own state (and possibly reading metadata.state)
@@ -1087,5 +1102,75 @@ export default {
 
       return uniq(errors);
     };
+  },
+
+  ownersByType() {
+    const { metadata:{ ownerReferences = [] } } = this;
+    const ownersByType = {};
+
+    ownerReferences.forEach((owner) => {
+      if (!ownersByType[owner.kind]) {
+        ownersByType[owner.kind] = [owner];
+      } else {
+        ownersByType[owner.kind].push(owner);
+      }
+    });
+
+    return ownersByType;
+  },
+
+  owners() {
+    const owners = [];
+
+    for ( const kind in this.ownersByType) {
+      const schema = this.$rootGetters['cluster/schema'](kind);
+
+      if (schema) {
+        const type = schema.id;
+        const allOfResourceType = this.$rootGetters['cluster/all']( type );
+
+        this.ownersByType[kind].forEach((resource, idx) => {
+          const resourceInstance = allOfResourceType.find(resource => resource?.metdata?.uid === resource.uid);
+
+          if (resourceInstance) {
+            owners.push(resourceInstance);
+          }
+        });
+      }
+    }
+
+    return owners;
+  },
+
+  details() {
+    const details = [];
+
+    if (this.owners?.length > 0) {
+      details.push({
+        label:     this.t('resourceDetail.detailTop.ownerReferences'),
+        formatter: 'ListLinkDetail',
+        content:   this.owners.map(owner => ({
+          key:   owner.id,
+          row:   owner,
+          col:   {},
+          value: owner.metadata.name
+        }))
+      });
+    }
+
+    if (get(this, 'metadata.deletionTimestamp')) {
+      details.push({
+        label:         this.t('resourceDetail.detailTop.deleted'),
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true },
+        content:       get(this, 'metadata.deletionTimestamp')
+      });
+    }
+
+    return details;
+  },
+
+  t() {
+    return this.$rootGetters['i18n/t'];
   },
 };

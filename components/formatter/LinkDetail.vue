@@ -19,7 +19,7 @@ export default {
 
   computed: {
     to() {
-      if ( this.opts?.reference ) {
+      if ( this.row && this.opts?.reference ) {
         return get(this.row, this.opts.reference);
       }
 
@@ -31,7 +31,7 @@ export default {
 
 <template>
   <span>
-    <n-link :to="to">
+    <n-link v-if="to" :to="to">
       {{ value }}
     </n-link>
   </span>

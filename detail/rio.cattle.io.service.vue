@@ -68,9 +68,6 @@ export default {
     version() {
       return get(this.value, 'status.computedVersion');
     },
-    scaleAvailable() {
-      return get(this.value, 'status.scaleStatus.available');
-    },
     creationTimestamp() {
       const date = new Date(get(this.value, 'metadata.creationTimestamp'));
 
@@ -82,22 +79,6 @@ export default {
     ports() {
       return get(this.value, 'spec.ports') || [];
     },
-    detailTopColumns() {
-      return [
-        {
-          title:   'Image',
-          content: get(this.value, 'spec.image')
-        },
-        {
-          title:   'Scale',
-          content: this.scaleAvailable
-        },
-        {
-          title:   'Created',
-          content: this.creationTimestamp
-        }
-      ];
-    }
   },
   mounted() {
     this.findPods();
@@ -165,7 +146,6 @@ export default {
 
 <template>
   <div class="service-detail">
-    <DetailTop :columns="detailTopColumns" />
     <div>
       <h4>Pods</h4>
       <ResourceTable

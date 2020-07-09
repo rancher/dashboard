@@ -1,82 +1,106 @@
 .tooltip {
+  $triangle-size: 5px;
+  $triangle-inner-size: $triangle-size - 1px;
+  $center: calc(50% - #{$triangle-size});
+
   display: block !important;
   z-index: 10000;
 
   .tooltip-inner {
     background: var(--tooltip-bg);
     color: var(--tooltip-text);
-    border-radius: 6px;
-    padding: 20px;
-    box-shadow: black 0 0 8px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--tooltip-border);
+    padding: 4px 8px;
   }
 
   .tooltip-arrow {
     width: 0;
     height: 0;
-    border-style: solid;
+    border: $triangle-size solid transparent;
     position: absolute;
-    margin: 5px;
-    border-color: var(--tooltip-bg);
     z-index: 1;
-  }
 
-  &[x-placement^="top"] {
-    margin-bottom: 5px;
-
-    .tooltip-arrow {
-      border-width: 5px 5px 0 5px;
-      border-left-color: transparent !important;
-      border-right-color: transparent !important;
-      border-bottom-color: transparent !important;
-      bottom: -5px;
-      left: calc(50% - 5px);
-      margin-top: 0;
-      margin-bottom: 0;
+    &:after {
+      position: absolute;
+      border: $triangle-inner-size solid transparent;
+      content: '';
     }
   }
 
-  &[x-placement^="bottom"] {
-    margin-top: 5px;
+  &[x-placement^="top"] {
+    margin-bottom: $triangle-size;
 
     .tooltip-arrow {
-      border-width: 0 5px 5px 5px;
-      border-left-color: transparent !important;
-      border-right-color: transparent !important;
-      border-top-color: transparent !important;
-      top: -5px;
-      left: calc(50% - 5px);
-      margin-top: 0;
-      margin-bottom: 0;
+      border-width: 5px 5px 0 5px;
+      bottom: -4px;
+    }
+
+    margin-bottom: $triangle-size;
+
+    .tooltip-arrow {
+      border-bottom-width: 0;
+      border-top-color: var(--tooltip-border);
+      bottom: -$triangle-inner-size;
+      
+      &:after {
+        border-bottom-width: 0;
+        border-top-color: var(--tooltip-bg);
+        bottom: 1px;
+        left: -$triangle-inner-size;
+      }
+    }
+  }
+  
+
+  &[x-placement^="bottom"] {
+    margin-top: $triangle-size;
+
+    .tooltip-arrow {
+      border-top-width: 0;
+      border-bottom-color: var(--tooltip-border);
+      top: -$triangle-inner-size;
+      
+      &:after {
+        border-top-width: 0;
+        border-bottom-color: var(--tooltip-bg);
+        top: 1px;
+        left: -$triangle-inner-size;
+      }
     }
   }
 
   &[x-placement^="right"] {
-    margin-left: 5px;
+    margin-left: $triangle-size;
 
     .tooltip-arrow {
-      border-width: 5px 5px 5px 0;
-      border-left-color: transparent !important;
-      border-top-color: transparent !important;
-      border-bottom-color: transparent !important;
-      left: -5px;
-      top: calc(50% - 5px);
-      margin-left: 0;
-      margin-right: 0;
+      border-left-width: 0;
+      border-right-color: var(--tooltip-border);
+      left: -$triangle-inner-size;
+      
+      &:after {
+        border-left-width: 0;
+        border-right-color: var(--tooltip-bg);
+        left: 1px;
+        top: -$triangle-inner-size;
+      }
     }
   }
 
   &[x-placement^="left"] {
-    margin-right: 5px;
+    margin-right: $triangle-size;
 
     .tooltip-arrow {
-      border-width: 5px 0 5px 5px;
-      border-top-color: transparent !important;
-      border-right-color: transparent !important;
-      border-bottom-color: transparent !important;
-      right: -5px;
-      top: calc(50% - 5px);
-      margin-left: 0;
-      margin-right: 0;
+      border-right-width: 0;
+      border-left-color: var(--tooltip-border);
+      right: -$triangle-inner-size;
+      
+      &:after {
+        border-right-width: 0;
+        border-left-color: var(--tooltip-bg);
+        right: 1px;
+        top: -$triangle-inner-size;
+      }
     }
   }
 }

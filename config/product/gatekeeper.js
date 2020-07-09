@@ -36,6 +36,7 @@ export function init(store) {
     componentForType,
     // ignoreGroup,
     mapGroup,
+    mapType,
     virtualType
   } = DSL(store, NAME);
 
@@ -44,6 +45,7 @@ export function init(store) {
   mapGroup(/^(.*\.)?gatekeeper\.sh$/, 'OPA Gatekeeper');
 
   componentForType(/^constraints\.gatekeeper\.sh\..*$/, 'gatekeeper-constraint');
+  mapType(/^constraints.gatekeeper.sh.*$/, 'Constraint');
 
   basicType([
     'getkeeper-overview',
