@@ -276,6 +276,9 @@ resourceDetail:
     project: "Project"
     yaml: "YAML"
     overview: "Overview"
+    defaultBannerMessage:
+      error: "This resource is currently in error but there isn't a detailed message available."
+      transitioning: "This resource is currently transitioning but there isn't a detailed message available."
   detailTop:
     created: Created
     deleted: Deleted

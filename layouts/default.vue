@@ -269,7 +269,8 @@ export default {
     HEADER {
       display: grid;
       grid-template-areas:  "breadcrumbs breadcrumbs"
-                            "title actions";
+                            "title actions"
+                            "state-banner state-banner";
       grid-template-columns: "auto min-content";
       margin-bottom: 20px;
 
@@ -281,6 +282,10 @@ export default {
         .nuxt-link-active {
           padding-right: 10px;
         }
+      }
+
+      .state-banner {
+        grid-area: state-banner;
       }
 
       .actions {

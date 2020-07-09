@@ -4,10 +4,11 @@ import BreadCrumbs from '@/components/BreadCrumbs';
 import { NAMESPACE, EXTERNAL } from '@/config/types';
 import ButtonGroup from '@/components/ButtonGroup';
 import BadgeState from '@/components/BadgeState';
+import Banner from '@/components/Banner';
 
 export default {
   components: {
-    BadgeState, BreadCrumbs, ButtonGroup
+    BadgeState, Banner, BreadCrumbs, ButtonGroup
   },
   props:      {
     value: {
@@ -92,6 +93,28 @@ export default {
       } else {
         return null;
       }
+    },
+
+    banner() {
+      if (this.value?.metadata?.state?.error) {
+        const defaultErrorMessage = this.t('resourceDetail.masthead.defaultBannerMessage.error', undefined, true);
+
+        return {
+          color:   'error',
+          message: this.value.metadata.state.message || defaultErrorMessage
+        };
+      }
+
+      if (this.value?.metadata?.state?.transitioning) {
+        const defaultTransitioningMessage = this.t('resourceDetail.masthead.defaultBannerMessage.transitioning', undefined, true);
+
+        return {
+          color:   'info',
+          message: this.value.metadata.state.message || defaultTransitioningMessage
+        };
+      }
+
+      return null;
     }
   },
   methods: {
@@ -134,6 +157,9 @@ export default {
         <i class="icon icon-actions" />
       </button>
     </div>
+    <div class="state-banner">
+      <Banner v-if="banner" class="state-banner" :color="banner.color" :label="banner.message" />
+    </div>
   </header>
 </template>
 
@@ -171,6 +197,10 @@ export default {
       & .btn-group {
         margin-right: 5px;
       }
+    }
+
+    .state-banner {
+      margin: 3px 0 0 0;
     }
   }
 
