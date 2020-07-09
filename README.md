@@ -10,7 +10,8 @@ Dashboard UI.  For the other Rancher UI see [rancher/ui](https://github.com/ranc
 $ yarn install
 
 # serve with hot reload at https://localhost:8005
-$ API=http://localhost:8005 yarn dev
+# using the endpoint for your Steve (or Rancher) API
+$ API=http://localhost:8989 yarn devx
 
 # build for production and launch server
 $ yarn build
