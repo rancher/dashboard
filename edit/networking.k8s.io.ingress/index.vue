@@ -10,6 +10,7 @@ import { _VIEW } from '@/config/query-params';
 import DefaultBackend from './DefaultBackend';
 import Certificates from './Certificates';
 import Rules from './Rules';
+
 export default {
   name:       'CRUIngress',
   components: {
