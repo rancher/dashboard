@@ -1,5 +1,5 @@
-export const platform = (typeof window !== 'undefined' && window.navigator && window.navigator.platform ? window.navigator.platform.toLowerCase() : 'server');
-export const userAgent = (typeof window !== 'undefined' && window.navigator && window.navigator.userAgent ? window.navigator.userAgent : 'server');
+export const platform = ( typeof window === 'undefined' ? 'server' : window.navigator.platform.toLowerCase() );
+export const userAgent = ( typeof window === 'undefined' ? 'server' : window.navigator.userAgent );
 
 export const isLinuxy = platform.includes('linux') || platform.includes('unix');
 export const isMac = platform.includes('mac');

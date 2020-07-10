@@ -2,6 +2,7 @@
 import { STATE, AGE, NAMESPACE_NAME, TYPE } from '@/config/table-headers';
 import ResourceTable from '@/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA } from '@/config/types';
+import Loading from '@/components/Loading';
 
 const schema = {
   id:         'workload',
@@ -15,29 +16,25 @@ const schema = {
 
 export default {
   name:       'ListWorkload',
-  components: { ResourceTable },
+  components: { Loading, ResourceTable },
 
-  props: {
-    // The things out of asyncData come in as props
-    resources: {
-      type:    Array,
-      default: null,
-    },
-  },
-
-  async asyncData({ store }) {
+  async fetch() {
     const types = Object.values(WORKLOAD_TYPES);
 
     const resources = await Promise.all(types.map((type) => {
       // You may not have RBAC to see some of the types
-      if ( !store.getters['cluster/schemaFor'](type) ) {
+      if ( !this.$store.getters['cluster/schemaFor'](type) ) {
         return null;
       }
 
-      return store.dispatch('cluster/findAll', { type });
+      return this.$store.dispatch('cluster/findAll', { type });
     }));
 
-    return { resources };
+    this.resources = resources;
+  },
+
+  data() {
+    return { resources: [] };
   },
 
   computed: {
@@ -79,12 +76,13 @@ export default {
     }
   },
 
-  typeDisplay({ store }) {
-    return store.getters['type-map/pluralLabelFor'](schema);
+  typeDisplay() {
+    return this.$store.getters['type-map/pluralLabelFor'](schema);
   },
 };
 </script>
 
 <template>
-  <ResourceTable :schema="schema" :rows="rows" :headers="headers" />
+  <Loading v-if="$fetchState.pending" />
+  <ResourceTable v-else :schema="schema" :rows="rows" :headers="headers" />
 </template>

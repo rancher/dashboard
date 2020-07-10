@@ -9,7 +9,8 @@ import { sortBy } from '@/utils/sort';
 import { filterBy } from '@/utils/array';
 import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
 
-// disables stict mode for all store instances to prevent mutation errors
+// Disables strict mode for all store instances to prevent warning about changing state outside of mutations
+// becaues it's more efficient to do that sometimes.
 export const strict = false;
 
 export const plugins = [
@@ -27,6 +28,7 @@ export const state = () => {
     namespaceFilters: [],
     allNamespaces:    null,
     clusterId:        null,
+    product:          null,
     error:            null,
     cameFromError:    false,
   };
@@ -43,6 +45,10 @@ export const getters = {
 
   clusterId(state) {
     return state.clusterId;
+  },
+
+  currentProduct(state, getters) {
+    return state.product;
   },
 
   currentCluster(state, getters) {
@@ -90,10 +96,23 @@ export const getters = {
   namespaceMode(state) {
     const filters = state.namespaceFilters;
 
+    // Explicitly asking
     if ( filters.includes('namespaced://true') ) {
       return NAMESPACED;
     } else if ( filters.includes('namespaced://false') ) {
       return CLUSTER_LEVEL;
+    }
+
+    const byKind = {};
+
+    for ( const filter of filters ) {
+      const type = filter.split('://', 2)[0];
+
+      byKind[type] = (byKind[type] || 0) + 1;
+    }
+
+    if ( byKind['project'] > 0 || byKind['ns'] > 0 ) {
+      return NAMESPACED;
     }
 
     return BOTH;
@@ -210,6 +229,10 @@ export const mutations = {
 
   setCluster(state, neu) {
     state.clusterId = neu;
+  },
+
+  setProduct(state, neu) {
+    state.product = neu;
   },
 
   setError(state, obj) {
@@ -428,14 +451,16 @@ export const actions = {
     commit('rancher/forgetAll');
   },
 
-  nuxtServerInit(ctx, nuxt) {
+  nuxtServerInit({ dispatch, rootState }, nuxt) {
     // Models in SSR server mode have no way to get to the route or router, so hack one in...
-    Object.defineProperty(ctx.rootState, '$router', { value: nuxt.app.router });
-    Object.defineProperty(ctx.rootState, '$route', { value: nuxt.route });
-    ctx.dispatch('prefs/loadCookies');
+    Object.defineProperty(rootState, '$router', { value: nuxt.app.router });
+    Object.defineProperty(rootState, '$route', { value: nuxt.route });
+    dispatch('prefs/loadCookies');
   },
 
-  nuxtClientInit({ dispatch }) {
+  nuxtClientInit({ dispatch, rootState }, nuxt) {
+    Object.defineProperty(rootState, '$router', { value: nuxt.app.router });
+    Object.defineProperty(rootState, '$route', { value: nuxt.route });
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
     dispatch('prefs/loadCookies');

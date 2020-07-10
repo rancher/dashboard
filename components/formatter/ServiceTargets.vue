@@ -1,5 +1,5 @@
 <script>
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 
 export default {
   props: {

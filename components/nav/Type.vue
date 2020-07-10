@@ -12,6 +12,11 @@ export default {
       type:     Object,
       required: true
     },
+
+    isRoot: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   data() {
@@ -53,6 +58,7 @@ export default {
     :to="type.route"
     tag="li"
     class="child"
+    :class="{'root': isRoot}"
     :exact="type.exact"
   >
     <a
@@ -121,6 +127,12 @@ export default {
       font-size: 12px;
       text-align: right;
       justify-items: center;
+    }
+  }
+
+  .root.child {
+    A {
+      padding-left: 0;
     }
   }
 </style>

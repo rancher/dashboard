@@ -5,7 +5,7 @@ import {
   EXTERNAL,
 } from '@/config/types';
 import { SYSTEM_PROJECT } from '@/config/labels-annotations';
-import { TEMPLATE_ID, APP_ID, CONFIG } from '@/config/chart/gatekeeper';
+import { TEMPLATE_ID, APP_ID, CONFIG } from '@/config/product/gatekeeper';
 import GatekeeperConfig from '@/components/chart/gatekeeper/Config';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import InfoBox from '@/components/InfoBox';

@@ -1,5 +1,5 @@
 <script>
-import { find } from 'lodash';
+import find from 'lodash/find';
 import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
 import DetailTop from '@/components/DetailTop';

@@ -28,8 +28,9 @@ export function lookup(type, appSpecializationName) {
     const base = require(`@/models/${ type }`);
     const model = { ...base.default };
 
+    // @TODO this doesn't work at all, types are cached by only the type name, and the name of apps is `project.cattle.io.app`.
     if (type === 'app' && appSpecializationName) {
-      const loaded = require(`@/models/apps/${ appSpecializationName }`);
+      const loaded = require(`@/models/app/${ appSpecializationName }`);
 
       if ( loaded?.default ) {
         Object.assign(model, loaded.default);

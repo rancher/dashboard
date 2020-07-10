@@ -8,8 +8,8 @@ import {
 } from '@/config/query-params';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
-import Masthead from '@/components/ResourceDetail/Masthead';
-import GenericResourceDetail from '@/components/GenericResourceDetail';
+import GenericResourceDetail from './Generic';
+import Masthead from './Masthead';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.
@@ -291,13 +291,16 @@ export default {
       :real-mode="realMode"
       :as-yaml.sync="asYaml"
       :has-detail-or-edit="(hasCustomDetail || hasCustomEdit)"
-    />
+    >
+      <template v-if="!isView && asYaml" #right>
+        <div class="text-right">
+          <button class="btn btn-sm role-primary" @click="readFromFile">
+            Read from File
+          </button>
+        </div>
+      </template>
+    </Masthead>
     <template v-if="asYaml">
-      <div v-if="!isView" class="text-right pb-20">
-        <button class="btn btn-sm role-primary" @click="readFromFile">
-          Read from file
-        </button>
-      </div>
       <ResourceYaml
         ref="resourceyaml"
         :value="model"

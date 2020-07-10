@@ -1,5 +1,5 @@
 <script>
-import { GATEKEEPER_CONSTRAINT_TEMPLATE } from '@/config/types';
+import { GATEKEEPER } from '@/config/types';
 import { AGE, NAME, STATE } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 import Masthead from '@/components/ResourceList/Masthead';
@@ -9,12 +9,12 @@ export default {
   components: { Masthead, SortableTable },
 
   async asyncData({ store }) {
-    return { templates: await store.dispatch('cluster/findAll', { type: GATEKEEPER_CONSTRAINT_TEMPLATE }) };
+    return { templates: await store.dispatch('cluster/findAll', { type: GATEKEEPER.CONSTRAINT_TEMPLATE }) };
   },
   data(ctx) {
     const params = {
       ...this.$route.params,
-      resource: GATEKEEPER_CONSTRAINT_TEMPLATE
+      resource: GATEKEEPER.CONSTRAINT_TEMPLATE
     };
 
     const createLocation = {

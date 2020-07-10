@@ -1,6 +1,5 @@
 <script>
 import { TLS } from '@/models/secret';
-import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Footer from '@/components/form/Footer';
@@ -24,7 +23,6 @@ export default {
 
   components: {
     Target,
-    Loading,
     NameNsDescription,
     Footer,
   },
@@ -147,50 +145,47 @@ export default {
 
 <template>
   <form>
-    <Loading v-if="$fetchState.pending" />
-    <template v-else>
-      <NameNsDescription
-        v-model="value"
-        :namespaced="false"
-        :mode="mode"
-        name-label="Name"
+    <NameNsDescription
+      v-model="value"
+      :namespaced="false"
+      :mode="mode"
+      name-label="Name"
+    />
+
+    <div class="spacer"></div>
+
+    <Target v-model="value.spec" />
+
+    <div class="title clearfix mt-20">
+      <h4>Certificate</h4>
+    </div>
+
+    <div v-if="mode === 'view'">
+      {{ secretKindLabels[kind] }}
+    </div>
+    <div v-else class="row">
+      <div v-for="opt in secretKindOptions" :key="opt.value" class="col">
+        <label class="radio">
+          <input v-model="secretKind" type="radio" :value="opt.value" />
+          {{ opt.label }}
+        </label>
+      </div>
+    </div>
+
+    <div v-if="secretKind === 'secret'" class="mt-20">
+      <v-select
+        v-model="secret"
+        :options="secretOptions"
+        placeholder="Select a Certificate Secret..."
+        :reduce="opt=>opt.value"
+        :clearable="false"
+        class="inline"
+
+        @input="update"
       />
+    </div>
 
-      <div class="spacer"></div>
-
-      <Target v-model="value.spec" />
-
-      <div class="title clearfix mt-20">
-        <h4>Certificate</h4>
-      </div>
-
-      <div v-if="mode === 'view'">
-        {{ secretKindLabels[kind] }}
-      </div>
-      <div v-else class="row">
-        <div v-for="opt in secretKindOptions" :key="opt.value" class="col">
-          <label class="radio">
-            <input v-model="secretKind" type="radio" :value="opt.value" />
-            {{ opt.label }}
-          </label>
-        </div>
-      </div>
-
-      <div v-if="secretKind === 'secret'" class="mt-20">
-        <v-select
-          v-model="secret"
-          :options="secretOptions"
-          placeholder="Select a Certificate Secret..."
-          :reduce="opt=>opt.value"
-          :clearable="false"
-          class="inline"
-
-          @input="update"
-        />
-      </div>
-
-      <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
-    </template>
+    <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </form>
 </template>
 

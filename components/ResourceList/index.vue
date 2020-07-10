@@ -1,57 +1,44 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import { AS_YAML, _FLAGGED } from '@/config/query-params';
-import Masthead from '@/components/ResourceList/Masthead';
+import Loading from '@/components/Loading';
+import Masthead from './Masthead';
 
 export default {
   components: {
+    Loading,
     ResourceTable,
     Masthead
   },
 
-  async asyncData(ctx) {
-    const { params, store } = ctx;
-    const resource = params.resource;
-    const hasListComponent = store.getters['type-map/hasCustomList'](resource);
-    const hasEditComponent = store.getters['type-map/hasCustomEdit'](resource);
-    const schema = store.getters['cluster/schemaFor'](resource);
+  async fetch() {
+    const store = this.$store;
+    const resource = this.resource;
 
-    let foundData = false;
-    let rows;
-    let more = {};
-    let customTypeDisplay;
+    let hasFetch = false;
 
-    if ( hasListComponent ) {
+    if ( this.hasListComponent ) {
       // If you provide your own list then call its asyncData
       const importer = store.getters['type-map/importList'](resource);
       const component = (await importer())?.default;
 
-      if ( component?.asyncData ) {
-        more = await component.asyncData(ctx);
-        foundData = true;
-      }
-
       if ( component?.typeDisplay ) {
-        customTypeDisplay = component.typeDisplay(ctx);
+        this.customTypeDisplay = component.typeDisplay.apply(this);
+      }
+
+      // If your list page has a fetch then it's responsible for populating rows itself
+      if ( component?.fetch ) {
+        hasFetch = true;
       }
     }
 
-    if ( !foundData ) {
-      rows = await store.dispatch('cluster/findAll', { type: resource });
+    if ( !hasFetch ) {
+      this.rows = await store.dispatch('cluster/findAll', { type: resource });
     }
-
-    return {
-      schema,
-      hasListComponent,
-      hasEditComponent,
-      resource,
-      rows,
-      customTypeDisplay,
-      ...more
-    };
   },
 
   data() {
+    const g = this.$store.getters;
     const params = { ...this.$route.params };
     const resource = params.resource;
 
@@ -59,12 +46,8 @@ export default {
 
     const query = { [AS_YAML]: _FLAGGED };
 
-    const hasListComponent = this.$store.getters['type-map/hasCustomList'](resource);
-    let listComponent;
-
-    if ( hasListComponent ) {
-      listComponent = this.$store.getters['type-map/importList'](resource);
-    }
+    const hasListComponent = g['type-map/hasCustomList'](resource);
+    const hasEditComponent = g['type-map/hasCustomEdit'](resource);
 
     const yamlRoute = {
       name: `${ this.$route.name }-create`,
@@ -72,17 +55,23 @@ export default {
       query
     };
 
+    const schema = g['cluster/schemaFor'](resource);
+
     return {
-      route:   this.$route,
-      listComponent,
       formRoute,
       yamlRoute,
-      AS_YAML,
-      FLAGGED: _FLAGGED
+      schema,
+      hasListComponent,
+      hasEditComponent,
+      resource,
+
+      // Provided by fetch later
+      rows:              null,
+      customTypeDisplay: null,
     };
   },
 
-  computed:   {
+  computed: {
     headers() {
       if ( this.hasListComponent || !this.schema ) {
         // Custom lists figure out their own headers
@@ -113,10 +102,24 @@ export default {
     }
   },
 
+  created() {
+    let listComponent = false;
+
+    const resource = this.$route.params.resource;
+    const hasListComponent = this.$store.getters['type-map/hasCustomList'](resource);
+
+    if ( hasListComponent ) {
+      listComponent = this.$store.getters['type-map/importList'](resource);
+    }
+
+    this.listComponent = listComponent;
+  },
+
 }; </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <Masthead
       :resource="resource"
       :type-display="typeDisplay"

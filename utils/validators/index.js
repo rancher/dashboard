@@ -1,4 +1,5 @@
-import { isEmpty, uniq } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import uniq from 'lodash/uniq';
 import { get } from '@/utils/object';
 import { camelToTitle } from '@/utils/string';
 

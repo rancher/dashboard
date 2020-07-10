@@ -27,9 +27,11 @@ export const API_GROUP = 'apiGroups';
 export const CONFIG_MAP = 'configmap';
 export const COUNT = 'count';
 export const EVENT = 'event';
+export const HPA = 'autoscaling.horizontalpodautoscaler';
 export const INGRESS = 'networking.k8s.io.ingress';
 export const NAMESPACE = 'namespace';
 export const NODE = 'node';
+export const NETWORK_POLICY = 'networking.k8s.io.networkpolicy';
 export const POD = 'pod';
 export const PV = 'persistentvolume';
 export const PVC = 'persistentvolumeclaim';
@@ -38,6 +40,7 @@ export const SCHEMA = 'schema';
 export const SERVICE = 'service';
 export const SECRET = 'secret';
 export const SERVICE_ACCOUNT = 'serviceaccount';
+export const STORAGE_CLASS = 'storage.k8s.io.storageclass';
 
 export const RBAC = {
   ROLE:                 'rbac.authorization.k8s.io.role',
@@ -106,4 +109,4 @@ export const RIO = {
   SYSTEM_NAMESPACE: 'rio-system',
 };
 
-export const GATEKEEPER_CONSTRAINT_TEMPLATE = 'templates.gatekeeper.sh.constrainttemplate';
+export const GATEKEEPER = { CONSTRAINT_TEMPLATE: 'templates.gatekeeper.sh.constrainttemplate' };

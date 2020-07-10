@@ -1,5 +1,5 @@
 import https from 'https';
-import { cloneDeep } from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import { SCHEMA } from '@/config/types';
 import { normalizeType } from './normalize';
 import { proxyFor, SELF } from './resource-proxy';

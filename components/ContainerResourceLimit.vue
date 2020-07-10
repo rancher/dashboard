@@ -1,5 +1,5 @@
 <script>
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import UnitInput from '@/components/form/UnitInput';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT } from '@/config/labels-annotations';
 import { _VIEW } from '@/config/query-params';

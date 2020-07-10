@@ -3,7 +3,7 @@ import { NAMESPACE_FILTERS } from '@/store/prefs';
 import { NAMESPACE, EXTERNAL } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { isArray, addObjects, findBy } from '@/utils/array';
-import { BOTH } from '../../store/type-map';
+import { BOTH, CLUSTER_LEVEL } from '@/store/type-map';
 
 export default {
   computed: {
@@ -36,13 +36,13 @@ export default {
           id:       'all',
           kind:     'special',
           label:    t('nav.ns.all'),
-          disabled: this.$store.getters['isAllNamespaces'],
+          disabled: this.$store.getters['isAllNamespaces'] || this.$store.getters['namespaceMode'] === CLUSTER_LEVEL,
         },
         {
           id:       'all://system',
           kind:     'special',
           label:    t('nav.ns.system'),
-          disabled: this.$store.getters['isAllNamespaces'],
+          disabled: this.$store.getters['isAllNamespaces'] || this.$store.getters['namespaceMode'] === CLUSTER_LEVEL,
         },
       ];
 

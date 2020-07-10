@@ -1,12 +1,10 @@
 import Vue from 'vue';
 import jsyaml from 'js-yaml';
-import {
-  compact,
-  uniq,
-  isEmpty,
-  isFunction,
-  isString
-} from 'lodash';
+import compact from 'lodash/compact';
+import uniq from 'lodash/uniq';
+import isEmpty from 'lodash/isEmpty';
+import isFunction from 'lodash/isFunction';
+import isString from 'lodash/isString';
 import {
   displayKeyFor,
   validateLength,
@@ -744,8 +742,9 @@ export default {
     const schema = this.$getters['schemaFor'](this.type);
 
     return {
-      name:   `c-cluster-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+      name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
       params: {
+        product:   this.$rootGetters['currentProduct'],
         resource:  this.type,
         namespace: this.metadata && this.metadata.namespace,
         id:        this.metadata.name
@@ -877,7 +876,6 @@ export default {
 
   applyDefaults() {
     return () => {
-      return this;
     };
   },
 

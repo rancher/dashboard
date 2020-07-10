@@ -1,6 +1,6 @@
 <script>
-import { debounce } from 'lodash';
-import { mapState } from 'vuex';
+import debounce from 'lodash/debounce';
+import { mapState, mapGetters } from 'vuex';
 import { mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
@@ -11,7 +11,9 @@ import Header from '@/components/nav/Header';
 import Footer from '@/components/nav/Footer';
 import { COUNT, SCHEMA, STEVE } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
-import { addObjects } from '@/utils/array';
+import { addObjects, replaceWith, clear } from '@/utils/array';
+import { NAME as EXPLORER } from '@/config/product/explorer';
+import isEqual from 'lodash/isEqual';
 
 export default {
 
@@ -32,7 +34,8 @@ export default {
   middleware: ['authenticated'],
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady', 'isRancher', 'currentCluster']),
+    ...mapState(['managementReady', 'clusterReady', 'isRancher']),
+    ...mapGetters(['currentProduct']),
 
     namespaces() {
       return this.$store.getters['namespaces']();
@@ -56,6 +59,10 @@ export default {
 
       return {};
     },
+
+    showJump() {
+      return this.currentProduct === EXPLORER;
+    },
   },
 
   watch: {
@@ -71,31 +78,53 @@ export default {
       this.queueUpdate();
     },
 
-    namespaces() {
-      // Immediately update because you'll see it come in later
-      this.getGroups();
+    currentProduct(a, b) {
+      if ( !isEqual(a, b) ) {
+        // Immediately update because you'll see it come in later
+        this.getGroups();
+      }
     },
 
-    clusterReady() {
-      // Immediately update because you'll see it come in later
-      this.getGroups();
-    }
+    namespaces(a, b) {
+      if ( !isEqual(a, b) ) {
+        // Immediately update because you'll see it come in later
+        this.getGroups();
+      }
+    },
+
+    clusterReady(a, b) {
+      if ( !isEqual(a, b) ) {
+        // Immediately update because you'll see it come in later
+        this.getGroups();
+      }
+    },
+
+    product(a, b) {
+      if ( !isEqual(a, b) ) {
+        // Immediately update because you'll see it come in later
+        this.getGroups();
+      }
+    },
   },
 
   created() {
     this.queueUpdate = debounce(this.getGroups, 500);
-    this.getGroups();
+
+    if ( process.server ) {
+      this.getGroups();
+    }
   },
 
   methods: {
     getGroups() {
       if ( !this.clusterReady ) {
-        this.groups = [];
+        clear(this.groups);
 
         return;
       }
 
       const clusterId = this.$store.getters['clusterId'];
+      const product = this.$store.getters['currentProduct'];
       const currentType = this.$route.params.resource || '';
       let namespaces = null;
 
@@ -105,18 +134,24 @@ export default {
 
       const namespaceMode = this.$store.getters['namespaceMode'];
       const out = [];
+      const modes = [BASIC];
 
-      for ( const mode of [BASIC, FAVORITE, USED] ) {
-        const types = this.$store.getters['type-map/allTypes'](mode) || {};
-        const more = this.$store.getters['type-map/getTree'](mode, types, clusterId, namespaceMode, namespaces, currentType);
+      if ( product === EXPLORER ) {
+        modes.push(FAVORITE);
+        modes.push(USED);
+      }
+
+      for ( const mode of modes ) {
+        const types = this.$store.getters['type-map/allTypes'](product, mode) || {};
+        const more = this.$store.getters['type-map/getTree'](product, mode, types, clusterId, namespaceMode, namespaces, currentType);
 
         addObjects(out, more);
       }
 
-      this.groups = out;
+      replaceWith(this.groups, ...out);
     },
 
-    isExpanded(name) {
+    expanded(name) {
       const currentType = this.$route.params.resource || '';
 
       return this.expandedGroups.includes(name) || name === currentType;
@@ -173,22 +208,22 @@ export default {
     <Header />
 
     <nav v-if="clusterReady">
-      <Jump class="mt-10 mb-10" />
-
-      <div v-for="g in groups" :key="g.name" class="package">
+      <Jump v-if="showJump" class="mt-10 mb-10" />
+      <template v-for="(g, idx) in groups">
         <Group
-          :key="g.name"
+          :key="idx"
           id-prefix=""
-          :is-expanded="isExpanded"
+          class="package"
+          :expanded="expanded"
           :group="g"
-          :custom-header="true"
-          :can-collapse="true"
+          :can-collapse="!g.isRoot"
+          :show-header="!g.isRoot"
         >
-          <template slot="accordion">
+          <template #header>
             <h6>{{ g.label }}</h6>
           </template>
         </Group>
-      </div>
+      </template>
     </nav>
 
     <main v-if="clusterReady">
@@ -234,17 +269,20 @@ export default {
       overflow-y: auto;
 
       .package .depth-0.expanded > .body {
-        margin-bottom: 20px;
+        margin-bottom: 5px;
       }
 
       .header {
         background: transparent;
       }
 
-      H6 {
+      H6, .root.child .label {
+        font-size: 14px;
         margin: 0;
         letter-spacing: 0.1em;
         line-height: initial;
+
+        A { padding-left: 0; }
       }
     }
   }

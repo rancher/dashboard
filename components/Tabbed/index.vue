@@ -1,5 +1,6 @@
 <script>
-import { isEmpty, head, sortBy } from 'lodash';
+import head from 'lodash/head';
+import sortBy from 'lodash/sortBy';
 
 export default {
   name: 'Tabbed',
@@ -25,62 +26,66 @@ export default {
   },
 
   watch: {
+    '$route.hash'() {
+      this.hashChange();
+    },
+
     sortedTabs(tabs) {
       const {
         defaultTab,
         $route: { hash }
       } = this;
+
       const activeTab = tabs.find(t => t.active);
+      const defaultTabMatch = defaultTab && tabs.find(t => t.name === defaultTab && !t.active);
       const windowHash = hash.slice(1);
       const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
       const firstTab = head(tabs) || null;
 
-      if (isEmpty(activeTab)) {
-        if (!isEmpty(windowHashTabMatch)) {
-          this.select(windowHashTabMatch.name);
-        } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find(t => t.name === defaultTab))) {
-          this.select(defaultTab);
-        } else if (firstTab?.name) {
-          this.select(firstTab.name);
-        }
-      } else if (activeTab?.name === windowHash) {
+      if (activeTab?.name === windowHash) {
         this.select(activeTab.name);
+      } else if ( defaultTab & defaultTabMatch ) {
+        this.select(defaultTabMatch.name);
+      } else if ( windowHash && windowHashTabMatch ) {
+        this.select(windowHashTabMatch.name);
+      } else {
+        this.select(firstTab.name);
       }
     },
   },
 
+  created() {
+    const {
+      $children,
+      $route: { hash },
+      defaultTab,
+      sortedTabs,
+    } = this;
+
+    this.tabs = $children;
+
+    let tab;
+    const selected = (hash || '').replace(/^#/, '');
+
+    if ( selected ) {
+      tab = this.find(selected);
+    }
+
+    if ( !tab ) {
+      tab = this.find(defaultTab);
+    }
+
+    if ( !tab ) {
+      tab = head(sortedTabs);
+    }
+
+    if ( tab ) {
+      this.select(tab.name);
+    }
+  },
+
   mounted() {
     window.addEventListener('hashchange', this.hashChange);
-
-    this.$nextTick(() => {
-      const {
-        $children,
-        $route: { hash },
-        defaultTab,
-        sortedTabs,
-      } = this;
-
-      this.tabs = $children;
-
-      let tab;
-      const selected = (hash || '').replace(/^#/, '');
-
-      if ( selected ) {
-        tab = this.find(selected);
-      }
-
-      if ( !tab ) {
-        tab = this.find(defaultTab);
-      }
-
-      if ( !tab ) {
-        tab = head(sortedTabs);
-      }
-
-      if ( tab ) {
-        this.select(tab.name);
-      }
-    });
   },
 
   unmounted() {
@@ -155,8 +160,8 @@ export default {
       role="tablist"
       class="tabs clearfix"
       tabindex="0"
-      @keyup.39.stop="selectNext(1)"
-      @keyup.37.stop="selectNext(-1)"
+      @keydown.right.prevent="selectNext(1)"
+      @keydown.left.prevent="selectNext(-1)"
     >
       <li
         v-for="tab in sortedTabs"

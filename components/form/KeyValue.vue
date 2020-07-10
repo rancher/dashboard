@@ -1,5 +1,5 @@
 <script>
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 import { typeOf } from '@/utils/sort';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
@@ -11,6 +11,8 @@ import SortableTable from '@/components/SortableTable';
 import ClickExpand from '@/components/formatter/ClickExpand';
 import { get } from '@/utils/object';
 import CodeMirror from '@/components/CodeMirror';
+
+const LARGE_LIMIT = 2 * 1024;
 
 /*
   @TODO
@@ -346,10 +348,10 @@ export default {
         let value = (row[valueName] || '');
         const key = (row[keyName] || '').trim();
 
-        if (typeOf(value) === 'object') {
+        if (value && typeOf(value) === 'object') {
           out[key] = JSON.parse(JSON.stringify(value));
         } else {
-          value = value.trim();
+          value = (value || '').trim();
 
           if ( value && this.valueBase64 ) {
             value = base64Encode(value);
@@ -365,21 +367,22 @@ export default {
 
     displayProps(value) {
       const binary = typeof value === 'string' && !asciiLike(value);
-      const withBreaks = escapeHtml(value).replace(/(\r\n|\r|\n)/g, '<br/>\n');
-      const byteSize = (new Blob([value])).size;
-      const isOver10kB = byteSize * 0.001 > 10;
+      const withBreaks = escapeHtml(value || '').replace(/(\r\n|\r|\n)/g, '<br/>\n');
+      const byteSize = withBreaks.length || 0; // Blobs don't exist in node/ssr
+      const isLarge = byteSize > LARGE_LIMIT;
       let parsed;
 
-      try {
-        parsed = JSON.parse(value);
-      } catch {
-
+      if ( value && ( value.startsWith('{') || value.startsWith('[') ) ) {
+        try {
+          parsed = JSON.parse(value);
+        } catch {
+        }
       }
 
       return {
         binary,
         withBreaks,
-        isOver10kB,
+        isLarge,
         parsed,
         byteSize
       };
@@ -455,9 +458,9 @@ export default {
                   :value="row[valueName]"
                 />
               </template>
-              <ClickExpand v-else-if="get(row, '_display.isOver10kB')" :value="row[valueName]" :size="get(row, '_display.byteSize')" />
+              <ClickExpand v-else-if="get(row, '_display.isLarge')" :value="row[valueName]" :size="get(row, '_display.byteSize')" />
               <span v-else-if="get(row, '_display.withBreaks')" v-html="get(row, '_display.withBreaks')" />
-              <span v-else> {{ row[valueName] }} </span>
+              <span v-else class="text-muted">&mdash;</span>
             </div>
             <TextAreaAutoGrow
               v-else-if="valueMultiline"

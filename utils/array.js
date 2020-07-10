@@ -1,4 +1,4 @@
-import { xor } from 'lodash';
+import xor from 'lodash/xor';
 import { get } from '@/utils/object';
 
 export function removeObject(ary, obj) {
@@ -101,6 +101,10 @@ export function removeAt(ary, idx, len = 1) {
 
 export function clear(ary) {
   ary.splice(0, ary.length);
+}
+
+export function replaceWith(ary, ...objs) {
+  ary.splice(0, ary.length, ...objs);
 }
 
 function findOrFilterBy(method, ary, keyOrObj, val) {

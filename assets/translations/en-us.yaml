@@ -2,11 +2,16 @@ locale:
   none: (None)
   en-us: English
 
-buttons:
-  add: Add
-  remove: Remove
+product:
+  explorer: Cluster Explorer
+  apps: Manage Applications
+  access: Manage Access
+  gatekeeper: OPA Gatekeeper
+  rio: Rio
 
 generic:
+  add: Add
+  remove: Remove
   cancel: Cancel
   close: Close
   clickToShow: '[Show Value]'
@@ -22,7 +27,7 @@ generic:
     one  {resource}
     other {resources}
     }
-  
+
 suffix:
   ib: iB
   cpus: CPUs
@@ -32,12 +37,20 @@ header:
   backToRancher: "← Back to Rancher"
 
 nav:
+  group:
+    cluster: Cluster
+    storage: Storage
+    serviceDiscovery: Service Discovery
+    workload: Workload
+    inUse: More Resources
+    starred: Starred
+    # For languages other than English you can add more entries here to translate API groups, engishGroup: localizedGroup
   ns:
     all: All Namespaces
     user: All User Namespaces
     system: All System Namespaces
-    clusterLevel: Cluster-Level Resources
-    namespaced: Namespaced Resources
+    clusterLevel: Only Cluster Resources
+    namespaced: Only Namespaced Resources
     project: "Project: {name}"
     namespace: "{name}"
     orphan: "Not in a Project"
@@ -344,6 +357,7 @@ configmapPage:
 wm:
   connection:
     connected: Connected
+    connecting: Connecting&hellip;
     disconnected: Disconnected
     error: Error
   containerShell:

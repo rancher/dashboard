@@ -1,11 +1,13 @@
 <script>
 import { mapState } from 'vuex';
 import { NORMAN } from '@/config/types';
+import ProductSwitcher from './ProductSwitcher';
 import ClusterSwitcher from './ClusterSwitcher';
 import NamespaceFilter from './NamespaceFilter';
 
 export default {
   components: {
+    ProductSwitcher,
     ClusterSwitcher,
     NamespaceFilter,
   },
@@ -20,43 +22,23 @@ export default {
     principal() {
       return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
-
-    backToRancherLink() {
-      if ( !this.isRancher ) {
-        return;
-      }
-
-      const cluster = this.$store.getters['currentCluster'];
-      let link = '/';
-
-      if ( cluster ) {
-        link = `/c/${ escape(cluster.id) }`;
-      }
-
-      if ( process.env.dev ) {
-        link = `https://localhost:8000${ link }`;
-      }
-
-      return link;
-    },
-
   },
 };
 </script>
 
 <template>
-  <header :class="{'back-to-rancher': backToRancherLink}">
-    <div class="cluster">
+  <header :class="{'multi-cluster': isMultiCluster}">
+    <div class="product">
+      <ProductSwitcher />
       <div class="logo" alt="Logo" />
-      <ClusterSwitcher v-if="isMultiCluster" />
+    </div>
+
+    <div v-if="isMultiCluster" class="cluster">
+      <ClusterSwitcher />
     </div>
 
     <div class="top">
       <NamespaceFilter v-if="clusterReady" />
-    </div>
-
-    <div v-if="backToRancherLink" class="back">
-      <a v-t="'header.backToRancher'" :href="backToRancherLink" />
     </div>
 
     <div class="user">
@@ -68,8 +50,8 @@ export default {
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >
         <div class="text-right">
-          <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" width="40" height="40" />
-          <i v-else class="icon icon-user icon-3x" />
+          <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.provider === 'github'}" width="40" height="40" />
+          <i v-else class="icon icon-user icon-3x avatar" />
         </div>
 
         <template slot="popover">
@@ -98,16 +80,16 @@ export default {
     display: grid;
     height: 100vh;
 
-    grid-template-areas:  "cluster  top   back user";
-    grid-template-columns: var(--nav-width) auto 0px var(--header-height);
+    grid-template-areas:  "product top cluster user";
+    grid-template-columns: var(--nav-width) auto 0 var(--header-height);
     grid-template-rows:    var(--header-height);
 
-    &.back-to-rancher {
-      grid-template-columns: var(--nav-width) auto 150px var(--header-height);
+    &.multi-cluster {
+      grid-template-columns: var(--nav-width) auto min-content var(--header-height);
     }
 
-    > .cluster {
-      grid-area: cluster;
+    > .product {
+      grid-area: product;
       background-color: var(--header-dropdown);
       position: relative;
 
@@ -123,10 +105,16 @@ export default {
       }
     }
 
+    > .cluster {
+      grid-area: cluster;
+      background-color: var(--header-bg);
+      position: relative;
+    }
+
     > .top {
       grid-area: top;
       background-color: var(--header-bg);
-      padding-top: 8px;
+      padding-top: 6px;
 
       INPUT[type='search']::placeholder,
       .vs__open-indicator,
@@ -176,6 +164,11 @@ export default {
       grid-area: user;
       background-color: var(--header-bg);
       padding: 5px;
+
+      .avatar-round {
+        border: 0;
+        border-radius: 50%;
+      }
     }
   }
 </style>

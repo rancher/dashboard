@@ -1,6 +1,6 @@
 <script>
 import Vue from 'vue';
-import { merge } from 'lodash';
+import merge from 'lodash/merge';
 import jsyaml from 'js-yaml';
 import { ucFirst } from '@/utils/string';
 import { isSimpleKeyValue } from '@/utils/object';

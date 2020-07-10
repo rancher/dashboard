@@ -284,7 +284,7 @@ export default {
             :disabled="mode==='view'"
             @click="removeRule(row)"
           >
-            <t k="buttons.remove" />
+            <t k="generic.remove" />
           </button>
         </td>
       </template>

@@ -1,6 +1,6 @@
 <script>
 import $ from 'jquery';
-import { debounce } from 'lodash';
+import debounce from 'lodash/debounce';
 
 export default {
   inheritAttrs: false,

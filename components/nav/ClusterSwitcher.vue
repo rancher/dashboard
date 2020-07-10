@@ -67,6 +67,11 @@ export default {
       :options="options"
       label="label"
     >
+      <template #selected-option="opt">
+        <i class="icon icon-copy icon-lg pr-5" />
+        {{ opt.label }}
+      </template>
+
       <template #no-options="{ search, searching }">
         <template v-if="searching">
           No clusters found for <em>{{ search }}</em>.
@@ -97,7 +102,6 @@ export default {
 
     .vs__dropdown-toggle {
       height: var(--header-height);
-      margin-left: 35px;
       background-color: transparent;
       border: 0;
 

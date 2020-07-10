@@ -15,7 +15,7 @@ import DetailTop from '@/components/DetailTop';
 import LinkDetail from '@/components/formatter/LinkDetail';
 import LiveDate from '@/components/formatter/LiveDate';
 import ResourceYaml from '@/components/ResourceYaml';
-import { get } from '../utils/object';
+import { get } from '@/utils/object';
 
 export default {
   components: {

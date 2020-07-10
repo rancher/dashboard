@@ -3,11 +3,45 @@ import { findBy } from '@/utils/array';
 import { SETUP } from '@/config/query-params';
 import { get } from '@/utils/object';
 import { ClusterNotFoundError } from '@/utils/error';
-import applyTypeConfigs from '@/config/type-config';
+import { applyProducts } from '@/store/type-map';
+import { NAME as EXPLORER } from '@/config/product/explorer';
+
+let beforeEachSetup = false;
+
+function setProduct(store, to) {
+  let product = to.params?.product;
+
+  if ( !product ) {
+    const match = to.name.match(/^c-cluster-([^-]+)/);
+
+    if ( match ) {
+      product = match[1];
+    }
+  }
+
+  if ( !product ) {
+    product = EXPLORER;
+  }
+
+  store.commit('setProduct', product);
+}
 
 export default async function({
   route, app, store, redirect, req, isDev
 }) {
+  // Setup a beforeEach hook once to keep track of the current product
+  if ( !beforeEachSetup ) {
+    beforeEachSetup = true;
+
+    store.app.router.beforeEach((to, from, next) => {
+      setProduct(store, to);
+      next();
+    });
+
+    // Call it for the initial pageload
+    setProduct(store, route);
+  }
+
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
     if ( route.path.startsWith('/__webpack_hmr/') ) {
@@ -66,7 +100,7 @@ export default async function({
   }
 
   // Load stuff
-  applyTypeConfigs(store);
+  await applyProducts(store);
 
   try {
     let clusterId = get(route, 'params.cluster');

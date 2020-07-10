@@ -4,7 +4,7 @@ import { NODE_ROLES, RKE } from '@/config/labels-annotations.js';
 import { METRIC } from '@/config/types';
 import { parseSi } from '@/utils/units';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
-import { findLast } from 'lodash';
+import findLast from 'lodash/findLast';
 
 export default {
   availableActions() {

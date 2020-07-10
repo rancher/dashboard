@@ -1,7 +1,7 @@
 <script>
 import pullAt from 'lodash/pullAt';
 import pickBy from 'lodash/pickBy';
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import findIndex from 'lodash/findIndex';
 import { typeOf } from '@/utils/sort';
 import KeyValue from '@/components/form/KeyValue';
