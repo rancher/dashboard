@@ -113,7 +113,7 @@ $selected: rgba($primary, .5);
   --progress-divider           : #{$medium};
 
   --sortable-table-bg          : transparent;
-  --sortable-table-header-bg   : transparent;
+  --sortable-table-header-bg   : #{rgba($primary, 0.2)};
   --sortable-table-accent-bg   : #{$lighter};
   --sortable-table-accent-alt  : #{$lightest};
   --sortable-table-top-divider : var(--border);

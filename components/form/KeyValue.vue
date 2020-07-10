@@ -52,7 +52,6 @@ export default {
       type:    String,
       default: ''
     },
-
     protip: {
       type:    [String, Boolean],
       default: 'ProTip: Paste lines of <code>key=value</code> or <code>key: value</code> into any key field for easy bulk entry',
@@ -98,10 +97,6 @@ export default {
     valueCanBeEmpty: {
       type:    Boolean,
       default: false,
-    },
-    downloadLabel: {
-      type:    String,
-      default: 'Download'
     },
     valueBinary: {
       type:    Boolean,
@@ -156,7 +151,7 @@ export default {
 
     removeLabel: {
       type:    String,
-      default: 'Remove',
+      default: '',
     },
     removeIcon: {
       type:    String,
@@ -201,7 +196,7 @@ export default {
       });
     });
 
-    if ( !rows.length && this.initialEmptyRow && this.mode !== _VIEW) {
+    if ( !rows.length && this.initialEmptyRow ) {
       rows.push({ [this.keyName]: '', [this.valueName]: '' });
     }
 
@@ -274,13 +269,13 @@ export default {
       });
       this.queueUpdate();
       this.$nextTick(() => {
-        this.$refs.key.focus();
+        const inputs = this.$refs.key;
+
+        inputs[inputs.length - 1].focus();
       });
     },
 
-    remove(row) {
-      const idx = this.rows.indexOf(row);
-
+    remove(idx) {
       removeAt(this.rows, idx);
       this.queueUpdate();
     },
@@ -323,7 +318,8 @@ export default {
       }
     },
 
-    download(row) {
+    download(idx) {
+      const row = this.rows[idx];
       const name = row[this.keyName];
       const value = row[this.valueName];
 
@@ -522,11 +518,9 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
-.key-value {
+<style lang="scss" scoped>
   $separator: 20;
   $remove: 75;
-  $spacing: 10px;
 
   .title {
     margin-bottom: 10px;
@@ -536,46 +530,46 @@ export default {
     }
   }
 
-  &.edit, &.create, &.clone {
-    TABLE.sortable-table THEAD TR TH {
-      border-color: transparent;
-    }
+  TABLE {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 5px 10px;
   }
 
-  TABLE.sortable-table {
-    width: 100%;
-    border-collapse: collapse;
+  TH {
+    text-align: left;
+    font-size: 10px;
+    font-weight: normal;
+    color: var(--input-label);
+  }
 
-    TD, TH {
-      padding: 0 $spacing $spacing 0;
-    }
-
-    TR:last-of-type TD {
-      padding-bottom: 0;
-    }
+  TD {
+    padding-bottom: 10px;
   }
 
   .left {
     width: #{$remove}px;
   }
 
-  input {
-    height: 50px;
-  }
-
   .key {
     vertical-align: middle;
 
     label {
-      margin: 0;
+      margin-bottom: 0!important;
     }
+  }
+
+  .separator {
+    width: #{$separator}px;
+    vertical-align: top;
+    text-align: center;
   }
 
   .value {
     vertical-align: middle;
 
     label {
-      margin: 0;
+      margin-bottom: 0!important;
     }
 
     select {
@@ -596,15 +590,13 @@ export default {
   }
 
   .footer {
-    .add {
-      margin-left: 1px;
-    }
 
     .protip {
       float: right;
       padding: 5px 0;
     }
   }
+<<<<<<< HEAD
 
   .download {
     text-align: right;
@@ -635,4 +627,6 @@ export default {
   color: var(--disabled-bg);
   text-align: center;
 }
+=======
+>>>>>>> WIP table and polish
 </style>

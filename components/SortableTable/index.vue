@@ -591,85 +591,253 @@ $separator: 20;
 $remove: 75;
 $spacing: 10px;
 
+// .sortable-table {
+//   position: relative;
+//   table-layout: fixed;
+//   border-spacing: 0;
+//   width: 100%;
+
+//   &.top-divider > THEAD > TR > TH {
+//     border-width: 0 0 $divider-height 0;
+//   }
+
+//   > THEAD > TR > TH,
+//   > TBODY > TR > TD {
+//     padding: 0;
+//     transition: none;
+//     word-wrap: break-word;
+
+//     &:last-child {
+//       height: 0;
+//     }
+//   }
+
+//   > THEAD {
+//     background: var(--sortable-table-header-bg);
+
+//     > TR {
+//       width: 100%;
+//       box-sizing: border-box;
+//       outline: none;
+//       transition: none;
+
+//       > TH {
+//         border-width: 0;
+//         border-style: solid;
+//         border-color: var(--sortable-table-top-divider);
+//         border-radius: 0;
+//         outline: none;
+//         transition: none;
+//         color: var(--secondary);
+
+//         &.sortable a {
+//           color: var(--secondary);
+//         }
+//         font-weight: normal;
+
+//         &.sortable {
+//           cursor: pointer;
+
+//           .text-right A {
+//             position: relative;
+//             left: -15px;
+//           }
+//         }
+
+//         &.check {
+//           position: relative;
+//           padding-left: 11px;
+//           cursor: pointer;
+//           user-select: none;
+//         }
+
+//         I.icon-sort, I[class*="icon-sort-"]{
+//           width: 15px;
+
+//           &.faded {
+//             opacity: .3;
+//           }
+//         }
+//       }
+//     }
+//   }
+
+//   &.emphasized-body > TBODY > TR > TD {
+//     color: var(--body-text);
+//   }
+
+//   &.body-dividers > TBODY > TR > TD {
+//     border-bottom: 1px solid var(--sortable-table-body-divider);
+//   }
+
+//   > TBODY {
+//     border: none;
+
+//     &.group {
+//       &:before {
+//         content: "";
+//         display: block;
+//         height: 20px;
+//         background-color: var(--body-bg);
+//       }
+
+//       &:first-of-type:before {
+//         height: 0;
+//       }
+
+//       background: var(--sortable-table-accent-bg);
+
+//       .group-row {
+//         background-color: var(--body-bg);
+
+//         :first-child {
+//           margin-top: 20px;
+//         }
+//       }
+
+//       .group-tab {
+//         @include clearfix;
+//         height: $group-row-height;
+//         line-height: $group-row-height;
+//         padding: 0 10px;
+//         border-radius: 4px 4px 0px 0px;
+//         background-color: var(--sortable-table-accent-bg);
+//         position: relative;
+//         top: 0;
+//         display: inline-block;
+//         z-index: z-index('tableGroup');
+//         min-width: $group-row-height * 1.8;
+
+//         > SPAN {
+//           color: var(--sortable-table-group-label);
+//         }
+//       }
+
+//       .group-tab:after {
+//         height: $group-row-height;
+//         width: 70px;
+//         border-radius: 5px 5px 0px 0px;
+//         background-color: var(--sortable-table-accent-bg);
+//         content: "";
+//         position: absolute;
+//         right: -15px;
+//         top: 0px;
+//         transform: skewX(40deg);
+//         z-index: -1;
+//       }
+//     }
+
+//     > TR > TD {
+//       height: $group-row-height;
+//       vertical-align: middle;
+//       color: var(--muted);
+
+//       &.clip {
+//         padding-right: 25px;
+//       }
+
+//       &.row-expand, &.row-check {
+//         cursor: pointer;
+//       }
+
+//       .actions {
+//         padding: 5px;
+//       }
+//     }
+
+//     > TR.auto-height > TD,
+//     > TR.auto-height > TH {
+//       height: auto;
+//     }
+
+//     > TR.row-selected {
+//       background-color: var(--sortable-table-selected-bg);
+//     }
+
+//     > TR.separator-row > TD {
+//       background: var(--sortable-table-bg);
+//     }
+
+//     > TR.group-row > TD,
+//     > TR.total > TD {
+//       height: $group-row-height;
+//     }
+
+//     > TR.total > TD {
+//       background: var(--sortable-table-accent-bg);
+//     }
+
+//     > TR > TD.no-results {
+//       padding: 20px;
+//       color: var(--muted);
+//     }
+//   }
+
+//   .fixed-header-widthinator {
+//     visibility: hidden;
+//     height: 0 !important;
+
+//     TH {
+//       border: 0 !important;
+//       padding: 0 !important;
+//       height: 0 !important;
+//     }
+//   }
+
+//   .double-rows > TBODY {
+//     > TR.main-row > TD {
+//       padding-bottom: 0;
+//       line-height: 15px;
+
+//       &.top-half {
+//         border-bottom: 1px solid transparent;
+//       }
+//     }
+
+//     > TR.sub-row > TD {
+//       padding-top: 0;
+//       border-bottom: solid thin var(--border);
+//     }
+//   }
+
+//   .no-rows {
+//     padding: $group-row-height;
+//     color: var(--disabled-bg) !important;
+//     text-align: center;
+//   }
+
+//   TH[align=left], TD[align=left] { text-align: left; }
+//   TH[align=center], TD[align=center] { text-align: center; }
+//   TH[align=right], TD[align=right] { text-align: right; }
+// }
+
 .sortable-table {
-  position: relative;
-  table-layout: fixed;
-  border-spacing: 0;
-  width: 100%;
+  border-collapse: collapse;
+  margin: 25px 0;
+  font-size: 0.9em;
+  min-width: 400px;
+  border-radius: 5px 5px 0 0;
+  overflow: hidden;
+  box-shadow: 0 0 20px var(--shadow);
 
-  &.top-divider > THEAD > TR > TH {
-    border-width: 0 0 $divider-height 0;
-  }
-
-  > THEAD > TR > TH,
-  > TBODY > TR > TD {
-    padding: 0;
-    transition: none;
-    word-wrap: break-word;
-
-    &:last-child {
-      height: 0;
+  thead {
+    tr {
+      background-color: var(--sortable-table-header-bg);
+      color: #ffffff;
+      text-align: left;
     }
   }
 
-  > THEAD {
-    background: var(--sortable-table-header-bg);
-
-    > TR {
-      width: 100%;
-      box-sizing: border-box;
-      outline: none;
-      transition: none;
-
-      > TH {
-        border-width: 0;
-        border-style: solid;
-        border-color: var(--sortable-table-top-divider);
-        border-radius: 0;
-        outline: none;
-        transition: none;
-        color: var(--secondary);
-
-        &.sortable a {
-          color: var(--secondary);
-        }
-        font-weight: normal;
-
-        &.sortable {
-          cursor: pointer;
-
-          .text-right A {
-            position: relative;
-            left: -15px;
-          }
-        }
-
-        &.check {
-          position: relative;
-          padding-left: 11px;
-          cursor: pointer;
-          user-select: none;
-        }
-
-        I.icon-sort, I[class*="icon-sort-"]{
-          width: 15px;
-
-          &.faded {
-            opacity: .3;
-          }
-        }
-      }
-    }
+  th {
+    padding: 12px 15px;
+    font-weight: normal;
   }
 
-  &.emphasized-body > TBODY > TR > TD {
-    color: var(--body-text);
+  td {
+    padding: 12px 15px;
   }
 
-  &.body-dividers > TBODY > TR > TD {
-    border-bottom: 1px solid var(--sortable-table-body-divider);
-  }
-
+<<<<<<< HEAD
   > TBODY {
     border: none;
 
@@ -705,106 +873,25 @@ $spacing: 10px;
           color: var(--sortable-table-group-label);
         }
       }
+=======
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--sortable-table-top-divider);
+>>>>>>> WIP table and polish
 
-      .group-tab:after {
-        height: $group-row-height;
-        width: 70px;
-        border-radius: 5px 5px 0px 0px;
+      &:nth-of-type(even) {
         background-color: var(--sortable-table-accent-bg);
-        content: "";
-        position: absolute;
-        right: -15px;
-        top: 0px;
-        transform: skewX(40deg);
-        z-index: -1;
+      }
+
+      &:last-of-type {
+        border-bottom: 2px solid var(--sortable-table-top-divider);
       }
     }
 
-    > TR > TD {
-      height: $group-row-height;
-      vertical-align: middle;
-      color: var(--muted);
-
-      &.clip {
-        padding-right: 25px;
-      }
-
-      &.row-expand, &.row-check {
-        cursor: pointer;
-      }
-
-      .actions {
-        padding: 5px;
-      }
-    }
-
-    > TR.auto-height > TD,
-    > TR.auto-height > TH {
-      height: auto;
-    }
-
-    > TR.row-selected {
-      background-color: var(--sortable-table-selected-bg);
-      &[data-cant-run-bulk-action-of-interest] {
-        opacity: 60%;
-      }
-    }
-
-    > TR.separator-row > TD {
-      background: var(--sortable-table-bg);
-    }
-
-    > TR.group-row > TD,
-    > TR.total > TD {
-      height: $group-row-height;
-    }
-
-    > TR.total > TD {
-      background: var(--sortable-table-accent-bg);
-    }
-
-    > TR > TD.no-results {
-      padding: 20px;
-      color: var(--muted);
+    tr.active-row {
+      color: var(--sortable-table-header-bg);
     }
   }
-
-  .fixed-header-widthinator {
-    visibility: hidden;
-    height: 0 !important;
-
-    TH {
-      border: 0 !important;
-      padding: 0 !important;
-      height: 0 !important;
-    }
-  }
-
-  .double-rows > TBODY {
-    > TR.main-row > TD {
-      padding-bottom: 0;
-      line-height: 15px;
-
-      &.top-half {
-        border-bottom: 1px solid transparent;
-      }
-    }
-
-    > TR.sub-row > TD {
-      padding-top: 0;
-      border-bottom: solid thin var(--border);
-    }
-  }
-
-  .no-rows {
-    padding: $group-row-height;
-    color: var(--disabled-bg) !important;
-    text-align: center;
-  }
-
-  TH[align=left], TD[align=left] { text-align: left; }
-  TH[align=center], TD[align=center] { text-align: center; }
-  TH[align=right], TD[align=right] { text-align: right; }
 }
 
  .for-inputs{
@@ -847,7 +934,11 @@ $spacing: 10px;
   padding: 0 0 20px 0;
   width: 100%;
   z-index: z-index('fixedTableHeader');
+<<<<<<< HEAD
   // background: var(--sortable-table-header-bg);
+=======
+  background: transparent;
+>>>>>>> WIP table and polish
   display: grid;
   grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px) [end] min-content;
   grid-column-gap: 10px;
