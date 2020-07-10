@@ -37,6 +37,14 @@ header:
   backToRancher: "← Back to Rancher"
 
 nav:
+  group:
+    cluster: Cluster
+    storage: Storage
+    serviceDiscovery: Service Discovery
+    workload: Workload
+    inUse: More Resources
+    starred: Starred
+    # For languages other than English you can add more entries here to translate API groups, engishGroup: localizedGroup
   ns:
     all: All Namespaces
     user: All User Namespaces

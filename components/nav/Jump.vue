@@ -104,7 +104,6 @@ export default {
           :key="g.name"
           id-prefix=""
           :group="g"
-          :custom-header="true"
           :can-collapse="false"
           :is-expanded="true"
         >

@@ -49,12 +49,6 @@ export default {
     const hasListComponent = g['type-map/hasCustomList'](resource);
     const hasEditComponent = g['type-map/hasCustomEdit'](resource);
 
-    let listComponent;
-
-    if ( hasListComponent ) {
-      listComponent = g['type-map/importList'](resource);
-    }
-
     const yamlRoute = {
       name: `${ this.$route.name }-create`,
       params,
@@ -64,7 +58,6 @@ export default {
     const schema = g['cluster/schemaFor'](resource);
 
     return {
-      listComponent,
       formRoute,
       yamlRoute,
       schema,
@@ -107,6 +100,19 @@ export default {
 
       return this.$store.getters['type-map/isCreatable'](this.$route.params.resource);
     }
+  },
+
+  created() {
+    let listComponent = false;
+
+    const resource = this.$route.params.resource;
+    const hasListComponent = this.$store.getters['type-map/hasCustomList'](resource);
+
+    if ( hasListComponent ) {
+      listComponent = this.$store.getters['type-map/importList'](resource);
+    }
+
+    this.listComponent = listComponent;
   },
 
 }; </script>

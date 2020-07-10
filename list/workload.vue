@@ -33,6 +33,10 @@ export default {
     this.resources = resources;
   },
 
+  data() {
+    return { resources: [] };
+  },
+
   computed: {
     schema() {
       return schema;

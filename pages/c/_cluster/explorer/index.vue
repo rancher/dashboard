@@ -362,9 +362,7 @@ export default {
                 type="button"
                 class="btn role-link"
               >
-                <a>
-                  <t k="clusterIndexPage.sections.gatekeeper.buttonText" />
-                </a>
+                <t k="clusterIndexPage.sections.gatekeeper.buttonText" />
               </n-link>
             </div>
           </div>

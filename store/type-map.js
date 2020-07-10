@@ -7,7 +7,7 @@
 // pluralLabelFor(schema)     Get the plural form of this schema's type
 // groupLabelFor(schema)      Get the label for the API group of this schema's type
 // isIgnored(schema)          Returns true if this type should be hidden from the tree
-// isBasic(product, schema)   Returns true if this type should be included in basic view for product
+// basicGroup(schema)         Returns the group a type should be shown in basic view, or false-y if it shouldn't be shown.
 // typeWeightFor(type)        Get the weight value for a particular type label
 // groupWeightFor(group)      Get the weight value for a particular group
 // headersFor(schema)         Returns the column definitions for a type to give to SortableTable
@@ -44,7 +44,10 @@
 //                            --  obj can contain anything in the objects getTree returns.
 //                            --  obj must have a `name` that is unique among all virtual types.
 //                            -- `cluster` is automatically added to route.params if it exists.
-// basicType(product, type(s)) Mark type(s) as one shown in basic view
+// basicType(                 Mark type(s) as always shown in the top of the nav
+//   type(s),                 -- Type name or arrry of type names
+//   group                    -- Group to show the type(s) under; false-y for top-level.
+// )
 // ignoreType(type)           Never show type
 // weightType(                Set the weight (sorting) order of one or more types
 //   typeOrArrayOfTypes,
@@ -114,8 +117,8 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/product`, { name: product, removable: true, ...opt });
     },
 
-    basicType(types) {
-      store.commit(`${ module }/basicType`, {product, types});
+    basicType(types, group) {
+      store.commit(`${ module }/basicType`, {product, types, group});
     },
 
     // Type- and Group-dependent
@@ -303,9 +306,9 @@ export const getters = {
     };
   },
 
-  isBasic(state) {
+  basicGroup(state) {
     return (product, schemaId) => {
-      return state.basicTypes?.[product]?.[schemaId] || false;
+      return state.basicTypes?.[product]?.[schemaId];
     };
   },
 
@@ -352,6 +355,8 @@ export const getters = {
   },
 
   getTree(state, getters, rootState, rootGetters) {
+    const t = rootGetters['i18n/t'];
+
     return (product, mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
       console.log('getTree', product, mode); // eslint-disable-line no-console
       // modes: basic, used, all, favorite
@@ -386,15 +391,12 @@ export const getters = {
         }
 
         const count = _matchingCounts(typeObj, namespaces);
-        const isBasic = getters.isBasic(product, typeObj.name);
+        const basicGroup = getters.basicGroup(product, typeObj.name);
 
         if ( typeObj.id === currentType ) {
           // If this is the type currently being shown, always show it
-        } else if ( mode === BASIC && !isBasic ) {
+        } else if ( mode === BASIC && !basicGroup ) {
           // If we want the basic tree only return basic types;
-          continue;
-        } else if ( mode === USED && isBasic ) {
-          // If we want the used tree ignore basic types;
           continue;
         } else if ( mode === USED && count <= 0 ) {
           // If there's none of this type, ignore this entry when viewing only in-use types
@@ -413,19 +415,11 @@ export const getters = {
         let group;
 
         if ( mode === BASIC ) {
-          const mappedGroup = getters.groupLabelFor(typeObj.schema);
-
-          if ( mappedGroup ) {
-            group = _ensureGroup(root, mappedGroup);
-          } else if ( typeObj.group ) {
-            group = _ensureGroup(root, typeObj.group);
-          } else {
-            group = _ensureGroup(root, 'Root');
-          }
+          group = _ensureGroup(root, basicGroup);
         } else if ( mode === FAVORITE ) {
-          group = _ensureGroup(root, 'Starred');
+          group = _ensureGroup(root, 'starred');
         } else if ( mode === USED ) {
-          group = _ensureGroup(root, `In-Use::${ getters.groupLabelFor(typeObj.schema) }`);
+          group = _ensureGroup(root, `inUse::${ getters.groupLabelFor(typeObj.schema) }`);
         } else {
           group = _ensureGroup(root, typeObj.schema || typeObj.group || 'Root');
         }
@@ -473,27 +467,35 @@ export const getters = {
 
       // ----------------------
 
-      function _ensureGroup(tree, schemaOrLabel, isRoot=false) {
-        let label = getters.groupLabelFor(schemaOrLabel);
+      function _ensureGroup(tree, schemaOrName, isRoot=false) {
+        let name = getters.groupLabelFor(schemaOrName);
 
-        if ( label === 'Root' || label.startsWith('Root::') ) {
+        if ( name === 'Root' || name.startsWith('Root::') ) {
           isRoot = true;
         }
 
-        if ( label && label.includes('::') ) {
+        if ( name && name.includes('::') ) {
           let parent;
 
-          [parent, label] = label.split('::', 2);
+          [parent, name] = name.split('::', 2);
           tree = _ensureGroup(tree, parent);
         }
 
-        let group = findBy(tree.children, 'label', label);
+        // Translate if an entry exists
+        let label = name;
+        const key = `nav.group."${name}"`;
+
+        if ( rootGetters['i18n/exists'](key) ) {
+          label = rootGetters['i18n/t'](key);
+        }
+
+        let group = findBy(tree.children, 'name', name);
 
         if ( !group ) {
           group = {
-            name:   label,
+            name,
             label,
-            weight:   getters.groupWeightFor(label),
+            weight: getters.groupWeightFor(name),
           };
 
           tree.children.push(group);
@@ -547,7 +549,7 @@ export const getters = {
         if ( !attrs.kind ) {
           // Skip the schemas that aren't top-level types
           continue;
-        } else if ( mode === BASIC && !getters.isBasic(product, schema.id) ) {
+        } else if ( mode === BASIC && !getters.basicGroup(product, schema.id) ) {
           continue;
         } else if ( mode === FAVORITE && !getters.isFavorite(schema.id) ) {
           continue;
@@ -585,7 +587,7 @@ export const getters = {
             continue;
           }
 
-          if ( mode === BASIC && !getters.isBasic(product, id) ) {
+          if ( mode === BASIC && !getters.basicGroup(product, id) ) {
             continue;
           } else if ( mode === FAVORITE && !getters.isFavorite(id) ) {
             continue;
@@ -840,9 +842,13 @@ export const mutations = {
     }
   },
 
-  basicType(state, {product, types}) {
+  basicType(state, {product, group, types}) {
     if ( !product ) {
       product === EXPLORER;
+    }
+
+    if ( !group ) {
+      group = 'Root';
     }
 
     if ( !isArray(types) ) {
@@ -854,7 +860,7 @@ export const mutations = {
     }
 
     for ( const t of types ) {
-      state.basicTypes[product][t] = true;
+      state.basicTypes[product][t] = group;
     }
   },
 

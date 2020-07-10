@@ -11,7 +11,7 @@ import Header from '@/components/nav/Header';
 import Footer from '@/components/nav/Footer';
 import { COUNT, SCHEMA, STEVE } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
-import { addObjects } from '@/utils/array';
+import { addObjects, replaceWith, clear } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isEqual from 'lodash/isEqual';
 
@@ -118,7 +118,7 @@ export default {
   methods: {
     getGroups() {
       if ( !this.clusterReady ) {
-        this.groups = [];
+        clear(this.groups);
 
         return;
       }
@@ -148,10 +148,10 @@ export default {
         addObjects(out, more);
       }
 
-      this.groups = out;
+      replaceWith(this.groups, ...out);
     },
 
-    isExpanded(name) {
+    expanded(name) {
       const currentType = this.$route.params.resource || '';
 
       return this.expandedGroups.includes(name) || name === currentType;
@@ -209,22 +209,21 @@ export default {
 
     <nav v-if="clusterReady">
       <Jump v-if="showJump" class="mt-10 mb-10" />
-
-      <div v-for="g in groups" :key="g.name" class="package">
+      <template v-for="(g, idx) in groups">
         <Group
-          :key="g.name"
+          :key="idx"
           id-prefix=""
-          :is-expanded="isExpanded"
+          class="package"
+          :expanded="expanded"
           :group="g"
-          :custom-header="true"
           :can-collapse="!g.isRoot"
-          :show-label="!g.isRoot"
+          :show-header="!g.isRoot"
         >
-          <template slot="accordion">
+          <template #header>
             <h6>{{ g.label }}</h6>
           </template>
         </Group>
-      </div>
+      </template>
     </nav>
 
     <main v-if="clusterReady">

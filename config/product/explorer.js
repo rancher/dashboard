@@ -21,7 +21,6 @@ export function init(store) {
     mapType,
     mapGroup,
     weightGroup,
-    moveType,
     headers,
     virtualType,
     componentForType,
@@ -31,45 +30,29 @@ export function init(store) {
 
   alwaysProduct();
 
+  basicType('cluster-overview');
   basicType([
-    'cluster-overview',
-
     NAMESPACE,
     NODE,
-
+  ], 'cluster');
+  basicType([
     SERVICE,
     INGRESS,
     HPA,
     NETWORK_POLICY,
-
+  ], 'serviceDiscovery');
+  basicType([
     PV,
     PVC,
     STORAGE_CLASS,
-
+  ], 'storage');
+  basicType([
     WORKLOAD,
     WORKLOAD_TYPES.DEPLOYMENT,
     WORKLOAD_TYPES.STATEFUL_SET,
     WORKLOAD_TYPES.JOB,
     POD,
-  ]);
-
-  // Move some core things into Cluster
-  moveType(NAMESPACE, 'Cluster');
-  moveType(NODE, 'Cluster');
-
-  moveType(SERVICE, 'Service Discovery');
-  moveType(INGRESS, 'Service Discovery');
-  moveType(HPA, 'Service Discovery');
-  moveType(NETWORK_POLICY, 'Service Discovery');
-
-  moveType(PV, 'Storage');
-  moveType(PVC, 'Storage');
-  moveType(STORAGE_CLASS, 'Storage');
-
-  moveType(WORKLOAD_TYPES.DEPLOYMENT, 'Workload');
-  moveType(WORKLOAD_TYPES.STATEFUL_SET, 'Workload');
-  moveType(WORKLOAD_TYPES.JOB, 'Workload');
-  moveType(POD, 'Workload');
+  ], 'workload');
 
   for (const key in WORKLOAD_TYPES) {
     componentForType(WORKLOAD_TYPES[key], WORKLOAD);
@@ -91,7 +74,7 @@ export function init(store) {
   mapGroup('admissionregistration.k8s.io', 'Admission');
   mapGroup('crd.projectcalico.org', 'Calico');
   mapGroup(/^(.+\.)?cert-manager\.(k8s\.)?io$/, 'Cert Manager');
-  mapGroup(/^(gateway|gloo)\.solo\.io$/, 'Gloo');
+  mapGroup(/^(.+\.)?(gateway|gloo)\.solo\.io$/, 'Gloo');
   mapGroup(/^(.*\.)?monitoring\.coreos\.com$/, 'Monitoring');
   mapGroup(/^(.*\.)?tekton\.dev$/, 'Tekton');
   mapGroup(/^(.*\.)?longhorn(\.rancher)?\.io$/, 'Longhorn');
@@ -100,7 +83,7 @@ export function init(store) {
   mapGroup(/^(project|management)\.cattle\.io$/, 'Rancher');
   mapGroup(/^(.*\.)?istio\.io$/, 'Istio');
   mapGroup('split.smi-spec.io', 'SMI');
-  mapGroup(/^(.*\.)?knative\.io$/, 'Knative');
+  mapGroup(/^(.*\.)*knative\.(io|dev)$/, 'Knative');
   mapGroup('argoproj.io', 'Argo');
 
   uncreatableType(NODE);

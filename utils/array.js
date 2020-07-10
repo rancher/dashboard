@@ -103,6 +103,10 @@ export function clear(ary) {
   ary.splice(0, ary.length);
 }
 
+export function replaceWith(ary, ...objs) {
+  ary.splice(0, ary.length, ...objs);
+}
+
 function findOrFilterBy(method, ary, keyOrObj, val) {
   ary = ary || [];
 

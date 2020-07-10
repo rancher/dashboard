@@ -1,10 +1,11 @@
 <script>
-import Accordion from '@/components/Accordion';
 import Type from '@/components/nav/Type';
+import $ from 'jquery';
+
 export default {
   name: 'Group',
 
-  components: { Accordion, Type },
+  components: { Type },
 
   props: {
     depth: {
@@ -12,18 +13,18 @@ export default {
       default: 0,
     },
 
-    group: {
-      type:     Object,
-      required: true,
-    },
-
     idPrefix: {
       type:     String,
       required: true,
     },
 
-    isExpanded: {
-      type:     [Function, Boolean],
+    group: {
+      type:     Object,
+      required: true,
+    },
+
+    expanded: {
+      type:     Function,
       required: true,
     },
 
@@ -37,75 +38,158 @@ export default {
       default: true,
     },
 
-    showLabel: {
+    showHeader: {
       type:    Boolean,
       default: true,
     }
   },
 
-  computed: {
-    id() {
-      return (this.idPrefix || '') + this.group.label;
+  data() {
+    const id = (this.idPrefix || '') + this.group.name;
+    let isExpanded = false;
+
+    if ( !this.canCollapse ) {
+      isExpanded = true;
+    } else if ( typeof this.expanded === 'function' ) {
+      isExpanded = this.expanded(id);
+    } else {
+      isExpanded = this.expanded === true;
     }
+
+    return { id, isExpanded };
+  },
+
+  computed: {
+    hasChildren() {
+      return this.group.children?.length > 0;
+    },
   },
 
   methods: {
-    toggleGroup(group, expanded) {
-      this.$store.dispatch('type-map/toggleGroup', { group, expanded });
+    toggle(event) {
+      const $tgt = $(event.target);
+
+      if ( $tgt.closest('a').length && !$tgt.hasClass('toggle') ) {
+        // Ignore clicks on groups that are also types, unless you click the actual toggle icon
+        return;
+      }
+
+      if ( this.canCollapse ) {
+        this.isExpanded = !this.isExpanded;
+        this.$emit('on-toggle', this.id, this.isExpanded);
+        this.$store.dispatch('type-map/toggleGroup', {
+          group:    this.id,
+          expanded: this.isExpanded
+        });
+      }
     }
   }
 };
 </script>
 
 <template>
-  <Accordion
-    :id="id"
-    :key="group.label"
-    :depth="depth"
-    :label="group.label"
-    :show-header="showLabel"
-    :expanded="isExpanded"
-    :can-collapse="canCollapse"
-    :has-children="group.children && group.children.length > 0"
-    class="group"
-    @on-toggle="toggleGroup"
-  >
-    <template #header>
-      <slot name="accordion">
-        <Type
-          v-if="group.route"
-          :key="group.name"
-          :type="group"
-        />
-        <span v-else v-html="group.labelDisplay || group.label" />
+  <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}">
+    <div v-if="showHeader" class="header" @click="toggle($event)">
+      <slot name="header">
+        <span v-html="group.labelDisplay || group.label" />
       </slot>
-    </template>
-
-    <ul class="list-unstyled">
+      <i v-if="canCollapse" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" />
+    </div>
+    <ul v-if="isExpanded" class="list-unstyled body" v-bind="$attrs">
       <template v-for="(child, idx) in group[childrenKey]">
         <li v-if="child.divider" :key="idx">
           <hr />
         </li>
         <li v-else-if="child[childrenKey]" :key="child.name">
-          <ul class="list-unstyled m-0">
-            <Group
-              :key="child.name"
-              :depth="depth + 1"
-              :is-expanded="isExpanded"
-              :children-key="childrenKey"
-              :can-collapse="canCollapse"
-              :id-prefix="id+'_'"
-              :group="child"
-            />
-          </ul>
+          <Group
+            :key="id+'_'+child.name+'_children'"
+            :id-prefix="id+'_'"
+            :depth="depth + 1"
+            :children-key="childrenKey"
+            :can-collapse="canCollapse"
+            :group="child"
+            :expanded="expanded"
+          />
         </li>
         <Type
           v-else
-          :key="child.name"
-          :is-root="depth == 0 && !showLabel"
+          :key="id+'_' + child.name + '_type'"
+          :is-root="depth == 0 && !showHeader"
           :type="child"
         />
       </template>
     </ul>
-  </Accordion>
+  </div>
 </template>
+
+<style lang="scss" scoped>
+  .header {
+    font-size: 12px;
+    position: relative;
+    cursor: pointer;
+    color: var(--input-label);
+
+    > H6 {
+      color: var(--body-text);
+    }
+
+    > A {
+      display: block;
+    }
+  }
+
+  .body {
+    margin-left: 10px;
+  }
+
+  .accordion {
+    &.depth-0 {
+      > .header {
+        padding: 5px 0;
+
+        > H6 {
+          font-size: 14px;
+          text-transform: none;
+        }
+
+        > I {
+          position: absolute;
+          right: 0;
+          top: 0;
+          padding: 7px 2px 11px 0;
+        }
+      }
+
+      > .body {
+        margin-left: 0;
+      }
+    }
+
+    &:not(.depth-0) {
+      > .header {
+        > SPAN {
+          // Child groups that aren't linked themselves
+          display: inline-block;
+          padding: 5px 0 5px 5px;
+        }
+
+        > I {
+          position: absolute;
+          right: 0;
+          top: 0;
+          padding: 6px 2px 6px 0;
+        }
+      }
+    }
+  }
+
+ .body ::v-deep > .child.nuxt-link-active,
+ .header ::v-deep > .child.nuxt-link-exact-active {
+    background-color: var(--nav-active);
+    padding: 0;
+
+    A, A I {
+      color: var(--body-text);
+    }
+  }
+</style>
