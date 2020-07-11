@@ -62,30 +62,30 @@ data:
 Steve does not currently create any default user to login to when it is first run.  Use kubectl to apply this to create an `admin`/`admin` user:
 
 ```yaml
-  ---
-  apiVersion: management.cattle.io/v3
+---
+apiVersion: management.cattle.io/v3
+kind: User
+metadata:
+  name: admin
+principalIds:
+  - local://admin
+enabled: true
+username: admin
+# bcrypt hash of "admin" , or use e.g. https://bcrypt-generator.com/ to generate your own
+password: $2a$10$lQpf/73orx5T3TBzbu.xNOXFgODGsR4wc39vTGc6Hbt8cdQVza.Pq
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: default-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
   kind: User
-  metadata:
-    name: admin
-  principalIds:
-    - local://admin
-  enabled: true
-  username: admin
-  # bcrypt hash of "admin" , or use e.g. https://bcrypt-generator.com/ to generate your own
-  password: $2a$10$lQpf/73orx5T3TBzbu.xNOXFgODGsR4wc39vTGc6Hbt8cdQVza.Pq
-  ---
-  apiVersion: rbac.authorization.k8s.io/v1
-  kind: ClusterRoleBinding
-  metadata:
-    name: default-admin
-  roleRef:
-    apiGroup: rbac.authorization.k8s.io
-    kind: ClusterRole
-    name: cluster-admin
-  subjects:
-  - apiGroup: rbac.authorization.k8s.io
-    kind: User
-    name: admin
+  name: admin
 ```
 
 License
