@@ -1,5 +1,5 @@
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 import { NORMAN } from '@/config/types';
 import ProductSwitcher from './ProductSwitcher';
 import ClusterSwitcher from './ClusterSwitcher';
@@ -13,7 +13,8 @@ export default {
   },
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady', 'isRancher', 'isMultiCluster', 'currentCluster']),
+    ...mapState(['managementReady', 'clusterReady', 'isRancher', 'isMultiCluster']),
+    ...mapGetters(['currentCluster', 'currentProduct']),
 
     authEnabled() {
       return this.$store.getters['auth/enabled'];
@@ -27,14 +28,20 @@ export default {
 </script>
 
 <template>
-  <header :class="{'multi-cluster': isMultiCluster}">
+  <header>
     <div class="product">
       <ProductSwitcher />
       <div class="logo" alt="Logo" />
     </div>
 
-    <div v-if="isMultiCluster" class="cluster">
-      <ClusterSwitcher />
+    <div class="kubectl">
+      <button v-if="currentCluster" type="button" class="btn btn-sm role-tertiary" @click="currentCluster.openShell()">
+        <i class="icon icon-terminal" />
+      </button>
+    </div>
+
+    <div class="cluster">
+      <ClusterSwitcher v-if="isMultiCluster" />
     </div>
 
     <div class="top">
@@ -80,13 +87,9 @@ export default {
     display: grid;
     height: 100vh;
 
-    grid-template-areas:  "product top cluster user";
-    grid-template-columns: var(--nav-width) auto 0 var(--header-height);
+    grid-template-areas:  "product top kubectl cluster user";
+    grid-template-columns: var(--nav-width) auto 50px min-content var(--header-height);
     grid-template-rows:    var(--header-height);
-
-    &.multi-cluster {
-      grid-template-columns: var(--nav-width) auto min-content var(--header-height);
-    }
 
     > .product {
       grid-area: product;
@@ -102,6 +105,16 @@ export default {
         top: 9px;
         left: -30px;
         z-index: 2;
+      }
+    }
+
+    > .kubectl {
+      grid-area: kubectl;
+      background-color: var(--header-bg);
+
+      .btn {
+        border: 1px solid white;
+        margin: 11px 0 0 0;
       }
     }
 

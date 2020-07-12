@@ -104,8 +104,24 @@ module.exports = {
   },
 
   build: {
-    publicPath:   resourceBase,
-    filenames:    { chunk: ({ isDev }) => isDev ? '[name].js' : '[id].[contenthash].js' },
+    publicPath: resourceBase,
+    // parallel:   false,
+    cache:      true,
+    // hardSource: true,
+
+    'html.minify': {
+      collapseBooleanAttributes:  !dev,
+      decodeEntities:             !dev,
+      minifyCSS:                  !dev,
+      minifyJS:                   !dev,
+      processConditionalComments: !dev,
+      removeEmptyAttributes:      !dev,
+      removeRedundantAttributes:  !dev,
+      trimCustomFragments:        !dev,
+      useShortDoctype:            !dev
+    },
+
+    filenames: { chunk: ({ isDev }) => isDev ? '[name].js' : '[name].[contenthash].js' },
     // @TODO figure out how to split chunks up better, by product
     // optimization: {
     //   splitChunks: {

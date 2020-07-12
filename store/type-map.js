@@ -358,7 +358,6 @@ export const getters = {
     const t = rootGetters['i18n/t'];
 
     return (product, mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
-      console.log('getTree', product, mode); // eslint-disable-line no-console
       // modes: basic, used, all, favorite
       // namespaceMode: 'namespaced', 'cluster', or 'both'
       // namespaces: null means all, otherwise it will be an array of specific namespaces to include

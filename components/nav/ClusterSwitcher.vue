@@ -95,13 +95,20 @@ export default {
   .filter ::v-deep .v-select {
     max-width: 100%;
     display: inline-block;
+    margin: 11px 0;
+    border: 1px solid white;
+    border-radius: var(--border-radius);
 
     &.vs--disabled .vs__actions {
       display: none;
     }
 
+    .vs__open-indicator {
+      fill: white;
+    }
+
     .vs__dropdown-toggle {
-      height: var(--header-height);
+      height: calc(var(--header-height) - 23px);
       background-color: transparent;
       border: 0;
 
@@ -115,7 +122,7 @@ export default {
       user-select: none;
       cursor: default;
       color: white;
-      line-height: calc(var(--header-height) - 10px);
+      line-height: calc(var(--header-height) - 36px);
     }
   }
 

@@ -1,9 +1,13 @@
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
+import findIndex from 'lodash/findIndex';
+import { insertAt } from '@/utils/array';
+import { sortBy } from '@/utils/sort';
 
 export default {
   computed: {
     ...mapGetters(['isRancher', 'clusterId']),
+    ...mapState('type-map', ['products']),
 
     value: {
       get() {
@@ -27,15 +31,26 @@ export default {
 
     options() {
       const t = this.$store.getters['i18n/t'];
-
-      return ['explorer', 'apps', 'access', 'gatekeeper', 'rio'].map((name) => {
+      const entries = this.products.map((p) => {
         return {
-          label: t(`product.${ name }`),
-          value: name
+          label:     t(`product.${ p.name }`),
+          value:     p.name,
+          removable: p.removable
         };
       });
-    },
+      const out = sortBy(entries, ['removable', 'label']);
 
+      const idx = findIndex(out, x => x.removable);
+
+      if ( idx > 0 && (idx + 1 < out.length ) ) {
+        insertAt(out, idx, {
+          kind:     'divider',
+          disabled: true
+        });
+      }
+
+      return out;
+    },
   },
 
   methods: {
@@ -58,6 +73,14 @@ export default {
       :reduce="opt=>opt.value"
       label="label"
     >
+      <template v-slot:option="opt">
+        <template v-if="opt.kind === 'divider'">
+          <hr />
+        </template>
+        <template v-else>
+          {{ opt.label }}
+        </template>
+      </template>
     </v-select>
     <button v-shortkey.once="['p']" class="hide" @shortkey="focus()" />
   </div>
@@ -70,6 +93,10 @@ export default {
 
     &.vs--disabled .vs__actions {
       display: none;
+    }
+
+    .vs__open-indicator {
+      fill: white;
     }
 
     .vs__dropdown-toggle {
