@@ -4,7 +4,7 @@ locale:
 
 product:
   explorer: Cluster Explorer
-  apps: Manage Applications
+  app: Manage Applications
   access: Manage Access
   gatekeeper: OPA Gatekeeper
   rio: Rio

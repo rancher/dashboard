@@ -28,7 +28,7 @@ export const state = () => {
     namespaceFilters: [],
     allNamespaces:    null,
     clusterId:        null,
-    product:          null,
+    currentProduct:   null,
     error:            null,
     cameFromError:    false,
   };
@@ -48,7 +48,7 @@ export const getters = {
   },
 
   currentProduct(state, getters) {
-    return state.product;
+    return state.currentProduct;
   },
 
   currentCluster(state, getters) {
@@ -232,7 +232,7 @@ export const mutations = {
   },
 
   setProduct(state, neu) {
-    state.product = neu;
+    state.currentProduct = neu;
   },
 
   setError(state, obj) {
