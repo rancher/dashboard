@@ -58,6 +58,7 @@ $selected: rgba($primary, .5);
   ), true);
 
   --body-bg                    : #{$lightest};
+  --body-gradient              : linear-gradient(180deg, #{$lightest} 0%, #{$lighter} 100%);
   --body-text                  : #{$darkest};
   --scrollbar-thumb            : #{$dark};
   --scrollbar-thumb-dropdown   : #{$lighter};

@@ -180,6 +180,7 @@
 
 
   --body-bg                    : #{$darker};
+  --body-gradient              : linear-gradient(180deg, #{$dark} 0%, #{$darkest} 100%);
   --body-text                  : #{$lightest};
   --scrollbar-thumb            : #{$medium};
   --scrollbar-thumb-dropdown   : #{$darker};

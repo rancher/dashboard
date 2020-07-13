@@ -819,6 +819,7 @@ $spacing: 10px;
   border-radius: 5px 5px 0 0;
   overflow: hidden;
   box-shadow: 0 0 20px var(--shadow);
+  background: var(--body-bg);
 
   thead {
     tr {

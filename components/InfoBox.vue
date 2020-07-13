@@ -11,7 +11,8 @@ export default {};
 <style lang="scss" scoped>
   .info-box {
     background-color: var(--tabbed-container-bg);
-    border: 1px solid var(--tabbed-border);
+    border: .5px solid var(--tabbed-border);
+    box-shadow: 0 0 10px var(--shadow);
     padding: 20px;
     margin-bottom: 20px;
     border-radius: var(--border-radius);
