@@ -892,6 +892,56 @@ $spacing: 10px;
     tr.active-row {
       color: var(--sortable-table-header-bg);
     }
+
+    &.group {
+      &:before {
+        content: "";
+        display: block;
+        height: 20px;
+        background-color: var(--body-bg);
+      }
+    }
+
+    tr.group-row {
+      &:not(:first-child) {
+        margin-top: 20px;
+      }
+
+      td {
+        padding: 0;
+      }
+
+      .group-tab {
+        @include clearfix;
+        height: $group-row-height;
+        line-height: $group-row-height;
+        padding: 0 10px;
+        border-radius: 4px 4px 0px 0px;
+        background-color: var(--sortable-table-accent-bg);
+        position: relative;
+        top: 0;
+        display: inline-block;
+        z-index: z-index('tableGroup');
+        min-width: $group-row-height * 1.8;
+
+        > SPAN {
+          color: var(--sortable-table-group-label);
+        }
+      }
+
+      .group-tab:after {
+        height: $group-row-height;
+        width: 70px;
+        border-radius: 5px 5px 0px 0px;
+        background-color: var(--sortable-table-accent-bg);
+        content: "";
+        position: absolute;
+        right: -15px;
+        top: 0px;
+        transform: skewX(40deg);
+        z-index: -1;
+      }
+    }
   }
 }
 

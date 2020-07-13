@@ -1,87 +1,3 @@
-// table {
-//   border-collapse: collapse;
-//   margin: 25px 0;
-//   font-size: 0.9em;
-//   min-width: 400px;
-//   border-radius: 5px 5px 0 0;
-//   overflow: hidden;
-//   box-shadow: 0 0 20px var(--shadow);
-
-//   thead {
-//     // tr {
-//     //   background-color: var(--sortable-table-header-bg);
-//     //   color: #ffffff;
-//     //   text-align: left;
-//     // }
-//   }
-
-//   th {
-//     padding: 12px 15px;
-//     font-weight: normal;
-//   }
-
-//   td {
-//     padding: 12px 15px;
-//   }
-
-//   tbody {
-//     tr {
-//       border-bottom: 1px solid var(--sortable-table-top-divider);
-
-//       // &:nth-of-type(even) {
-//       //   background-color: var(--sortable-table-accent-bg);
-//       // }
-
-//       &:last-of-type {
-//         border-bottom: 2px solid var(--sortable-table-top-divider);
-//       }
-//     }
-
-//     tr.active-row {
-//       color: var(--sortable-table-header-bg);
-//     }
-//   }
-// }
-
-//  .for-inputs{
-//    & TABLE.sortable-table {
-//     width: 100%;
-//     border-collapse: collapse;
-//     margin-bottom: $spacing;
-
-//     >TBODY>TR>TD, >THEAD>TR>TH {
-//       padding-right: $spacing;
-//       padding-bottom: $spacing;
-
-//       &:last-of-type {
-//         padding-right: 0;
-//       }
-//     }
-
-//     >TBODY>TR:first-of-type>TD {
-//       padding-top: $spacing;
-//     }
-
-//     >TBODY>TR:last-of-type>TD {
-//       padding-bottom: 0;
-//     }
-//   }
-
-//     &.edit, &.create, &.clone {
-//      TABLE.sortable-table>THEAD>TR>TH {
-//       border-color: transparent;
-//       }
-//     }
-//   }
-
-$group-row-height: 40px;
-$group-separation: 40px;
-$divider-height: 1px;
-
-$separator: 20;
-$remove: 75;
-$spacing: 10px;
-
 table {
   border-collapse: collapse;
   margin: 25px 0;
@@ -90,7 +6,6 @@ table {
   border-radius: 5px 5px 0 0;
   overflow: hidden;
   box-shadow: 0 0 20px var(--shadow);
-  background: var(--body-bg);
 
   thead {
     tr {
@@ -125,36 +40,36 @@ table {
     tr.active-row {
       color: var(--sortable-table-header-bg);
     }
+  }
+}
 
-    .group-tab {
-      @include clearfix;
-      height: $group-row-height;
-      line-height: $group-row-height;
-      padding: 0 10px;
-      border-radius: 4px 4px 0px 0px;
-      background-color: var(--sortable-table-accent-bg);
-      position: relative;
-      top: 0;
-      display: inline-block;
-      z-index: z-index('tableGroup');
-      min-width: $group-row-height * 1.8;
+ .for-inputs{
+   & TABLE.sortable-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: $spacing;
 
-      > SPAN {
-        color: var(--sortable-table-group-label);
+    >TBODY>TR>TD, >THEAD>TR>TH {
+      padding-right: $spacing;
+      padding-bottom: $spacing;
+
+      &:last-of-type {
+        padding-right: 0;
       }
     }
 
-    .group-tab:after {
-      height: $group-row-height;
-      width: 70px;
-      border-radius: 5px 5px 0px 0px;
-      background-color: var(--sortable-table-accent-bg);
-      content: "";
-      position: absolute;
-      right: -15px;
-      top: 0px;
-      transform: skewX(40deg);
-      z-index: -1;
+    >TBODY>TR:first-of-type>TD {
+      padding-top: $spacing;
+    }
+
+    >TBODY>TR:last-of-type>TD {
+      padding-bottom: 0;
     }
   }
-}
+
+    &.edit, &.create, &.clone {
+     TABLE.sortable-table>THEAD>TR>TH {
+      border-color: transparent;
+      }
+    }
+  }
