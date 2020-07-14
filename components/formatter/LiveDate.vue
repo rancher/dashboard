@@ -24,6 +24,10 @@ export default {
     tooltipPlacement: {
       type:    String,
       default: 'auto'
+    },
+    showTooltip: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -53,7 +57,7 @@ export default {
       }
 
       return out;
-    },
+    }
   },
 
   watch: {
@@ -123,7 +127,10 @@ export default {
 </script>
 
 <template>
-  <span v-tooltip="{content: title, placement: tooltipPlacement}">
+  <span v-if="showTooltip" v-tooltip="{content: title, placement: tooltipPlacement}" class="live-date">
+    {{ suffixedLabel }}
+  </span>
+  <span v-else class="live-date">
     {{ suffixedLabel }}
   </span>
 </template>

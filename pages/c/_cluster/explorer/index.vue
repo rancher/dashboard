@@ -1,12 +1,12 @@
 <script>
+import capitalize from 'lodash/capitalize';
 import isEmpty from 'lodash/isEmpty';
 import { get } from '@/utils/object';
-import InfoBoxCluster from '@/components/InfoBoxCluster';
-import InfoBox from '@/components/InfoBox';
 import SortableTable from '@/components/SortableTable';
 import { APP_ID as GATEKEEPER_APP_ID } from '@/config/product/gatekeeper';
 import { allHash } from '@/utils/promise';
 import Poller from '@/utils/poller';
+import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import {
   MESSAGE,
   NAME,
@@ -14,24 +14,53 @@ import {
   ROLES,
   STATE,
 } from '@/config/table-headers';
-import { DESCRIPTION, SYSTEM_PROJECT } from '@/config/labels-annotations';
-import { findAllConstraints } from '@/utils/gatekeeper/util';
+import { SYSTEM_PROJECT } from '@/config/labels-annotations';
 import {
+  NAMESPACE,
+  INGRESS,
   EXTERNAL,
   EVENT,
   MANAGEMENT,
   METRIC,
   NODE,
+  SERVICE,
   STEVE,
+  PV,
+  WORKLOAD_TYPES
 } from '@/config/types';
+import { NAME as EXPLORER } from '@/config/product/explorer';
+import SimpleBox from '@/components/SimpleBox';
+import Glance from './Glance';
+import ResourceGauge from './ResourceGauge';
+import HardwareResourceGauge from './HardwareResourceGauge';
+
+const PARSE_RULES = {
+  memory: {
+    format: {
+      addSuffix:        true,
+      firstSuffix:      'B',
+      increment:        1024,
+      maxExponent:      99,
+      maxPrecision:     2,
+      minExponent:      0,
+      startingExponent: 0,
+      suffix:           'iB',
+    }
+  }
+};
 
 const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;
 
+const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
+const RESOURCES_PER_ROW = 5;
+
 export default {
   components: {
-    InfoBox,
-    InfoBoxCluster,
+    Glance,
+    HardwareResourceGauge,
+    ResourceGauge,
+    SimpleBox,
     SortableTable
   },
 
@@ -73,6 +102,18 @@ export default {
       cluster = await store.dispatch('management/find', { type: STEVE.CLUSTER, id });
     }
 
+    const resources = RESOURCES.map((resource) => {
+      const schema = store.getters['cluster/schemaFor'](resource);
+
+      if (schema) {
+        store.dispatch('cluster/findAll', { type: resource });
+      }
+
+      return Promise.resolve();
+    });
+
+    Promise.all(resources);
+
     return {
       constraints:       [],
       events:            [],
@@ -89,18 +130,6 @@ export default {
   },
 
   data() {
-    const constraintHeaders = [
-      NAME,
-      {
-        name:  'violations',
-        label: 'Violations',
-        value: 'status.totalViolations',
-        sort:  'status.totalViolations',
-        width: 65
-      },
-      STATE,
-    ];
-
     const reason = { ...REASON, ...{ canBeVariable: true } };
     const message = { ...MESSAGE, ...{ canBeVariable: true } };
     const eventHeaders = [
@@ -135,24 +164,151 @@ export default {
     return {
       metricPoller:      new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
       gatekeeperEnabled: false,
-      constraintHeaders,
       eventHeaders,
       nodeHeaders,
     };
   },
 
   computed: {
-    filteredNodes() {
-      const allNodes = this.nodes || [];
+    displayProvider() {
+      const cluster = this.cluster;
+      const driver = cluster.status?.driver.toLowerCase();
+      const customShortLabel = this.$store.getters['i18n/t']('cluster.provider.rancherkubernetesengine.shortLabel');
 
-      return allNodes.filter(node => !node.state.includes('healthy') && !node.state.includes('active'));
+      if (driver && this.$store.getters['i18n/exists'](`cluster.provider.${ driver }.shortLabel`)) {
+        if (driver === 'rancherkubernetesengine') {
+          const pools = this.nodePools;
+          const firstNodePool = pools.find(pool => pool.spec.clusterName === cluster.id);
+
+          if (firstNodePool) {
+            const nodeTemplateId = firstNodePool?.spec?.nodeTemplateName;
+            const normalizedId = nodeTemplateId.split(':').join('/');
+            const nodeTemplate = this.nodeTemplates.find(nt => nt.id === normalizedId);
+            const nodeDriver = nodeTemplate?.spec?.driver || null;
+
+            if (nodeDriver) {
+              if (this.$store.getters['i18n/exists'](`cluster.nodeDriver.displayName.${ nodeDriver.toLowerCase() }`)) {
+                return this.$store.getters['i18n/t'](`cluster.nodeDriver.displayName.${ nodeDriver.toLowerCase() }`);
+              } else if (nodeTemplate?.spec?.diver) {
+                return capitalize( nodeTemplate.spec.driver );
+              }
+
+              return customShortLabel;
+            } else {
+              // things are not good if we get here
+              return customShortLabel;
+            }
+          }
+        }
+
+        return this.$store.getters['i18n/t'](`cluster.provider.${ driver }.shortLabel`);
+      } else if (driver) {
+        return capitalize(driver);
+      } else {
+        return this.$store.getters['i18n/t']('cluster.provider.imported.shortLabel');
+      }
     },
 
-    filteredConstraints() {
-      const allConstraints = this.constraints || [];
+    resourceGauges() {
+      const gauges = RESOURCES.map((resource, i) => {
+        const schema = this.$store.getters['cluster/schemaFor'](resource);
 
-      return allConstraints.filter(constraint => constraint?.status?.totalViolations > 0);
+        if (!schema) {
+          return null;
+        }
+        const name = this.$store.getters['type-map/pluralLabelFor'](schema);
+        const location = {
+          name:     'c-cluster-product-resource',
+          params:   { product: EXPLORER, resource }
+        };
+        const all = this.$store.getters['cluster/all'](resource);
+
+        return {
+          name,
+          location,
+          primaryColorVar: `--sizzle-${ i }`,
+          ...this.createResourceCounts(all)
+        };
+      }).filter(r => r);
+
+      const total = gauges.reduce((agg, gauge) => {
+        agg.total += gauge.total;
+        agg.useful += gauge.useful;
+        agg.warningCount += gauge.warningCount;
+        agg.errorCount += gauge.errorCount;
+
+        return agg;
+      }, {
+        name:            this.t('clusterIndexPage.resourceGauge.totalResources'),
+        location:        null,
+        primaryColorVar: '--sizzle-8',
+        total:           0,
+        useful:          0,
+        warningCount:    0,
+        errorCount:      0
+      });
+
+      return [total, ...gauges];
     },
+
+    resourceGaugesFiller() {
+      const lastRowCount = this.resourceGauges.length % RESOURCES_PER_ROW;
+
+      if (lastRowCount === 0) {
+        return 0;
+      }
+
+      return [...Array( RESOURCES_PER_ROW - lastRowCount)];
+    },
+
+    cpuReserved() {
+      return {
+        total:  parseSi(this.cluster?.status?.allocatable?.cpu),
+        useful: parseSi(this.cluster?.status?.requested?.cpu)
+      };
+    },
+
+    podsReserved() {
+      return {
+        total:  parseSi(this.cluster?.status?.allocatable?.pods || '0'),
+        useful: parseSi(this.cluster?.status?.requested?.pods || '0')
+      };
+    },
+
+    ramReserved() {
+      return this.createMemoryValues(this.cluster?.status?.allocatable?.memory, this.cluster?.status?.requested?.memory);
+    },
+
+    metricAggregations() {
+      const nodes = this.nodes;
+      const metrics = this.nodeMetrics.filter(n => nodes.find(nd => nd.id === n.id && nd.isWorker));
+      const initialAggregation = {
+        cpu:    0,
+        memory: 0
+      };
+
+      if (isEmpty(metrics)) {
+        return initialAggregation;
+      }
+
+      return metrics.reduce((agg, metric) => {
+        agg.cpu += parseSi(metric.usage.cpu);
+        agg.memory += parseSi(metric.usage.memory);
+
+        return agg;
+      }, initialAggregation);
+    },
+
+    cpuUsed() {
+      return {
+        total:  parseSi(this.cluster?.status?.capacity?.cpu),
+        useful: this.metricAggregations.cpu
+      };
+    },
+
+    ramUsed() {
+      return this.createMemoryValues(this.cluster?.status?.capacity?.memory, this.metricAggregations.memory);
+    }
   },
 
   mounted() {
@@ -161,9 +317,8 @@ export default {
 
   async created() {
     const hash = {
-      nodes:         this.fetchClusterResources(NODE),
-      events:        this.fetchClusterResources(EVENT),
-      constraints:   this.fetchConstraints(),
+      nodes:       this.fetchClusterResources(NODE),
+      events:      this.fetchClusterResources(EVENT),
     };
 
     if ( this.haveNodeTemplates ) {
@@ -182,29 +337,53 @@ export default {
   },
 
   methods: {
+    createMemoryValues(total, useful) {
+      const parsedTotal = parseSi((total || '0').toString());
+      const parsedUseful = parseSi((useful || '0').toString());
+      const format = this.createMemoryFormat(parsedTotal);
+      const formattedTotal = formatSi(parsedTotal, format);
+      const formattedUseful = formatSi(parsedUseful, format);
+
+      return {
+        total:  Number.parseFloat(formattedTotal),
+        useful: Number.parseFloat(formattedUseful),
+        units:  this.createMemoryUnits(parsedTotal)
+      };
+    },
+
+    createMemoryFormat(n) {
+      const exponent = exponentNeeded(n, PARSE_RULES.memory.format.increment);
+
+      return {
+        ...PARSE_RULES.memory.format,
+        maxExponent: exponent,
+        minExponent: exponent,
+      };
+    },
+
+    createMemoryUnits(n) {
+      const exponent = exponentNeeded(n, PARSE_RULES.memory.format.increment);
+
+      return `${ UNITS[exponent] }${ PARSE_RULES.memory.format.suffix }`;
+    },
+
+    createResourceCounts(resources) {
+      const errorCount = resources.filter(resource => resource.stateBackground === 'bg-error').length;
+      const notSuccessCount = resources.filter(resource => resource.stateBackground !== 'bg-success').length;
+      const warningCount = notSuccessCount - errorCount;
+
+      return {
+        total:        resources.length,
+        useful:       resources.length - notSuccessCount,
+        warningCount,
+        errorCount
+      };
+    },
     showActions() {
       this.$store.commit('action-menu/show', {
         resources: this.cluster,
         elem:      this.$refs['cluster-actions'],
       });
-    },
-
-    async fetchConstraints() {
-      try {
-        const rawConstraints = await findAllConstraints(this.$store);
-
-        return rawConstraints
-          .flat()
-          .map((constraint) => {
-            constraint.description = constraint.metadata.annotations[DESCRIPTION];
-
-            return constraint;
-          });
-      } catch (err) {
-        console.error(`Failed to fetch constraints:`, err); // eslint-disable-line no-console
-
-        return [];
-      }
     },
 
     async fetchClusterResources(type, opt = {}) {
@@ -242,118 +421,86 @@ export default {
     <header class="row">
       <div class="span-11">
         <h1>
-          <t k="clusterIndexPage.header" :name="cluster.nameDisplay" />
+          <t k="clusterIndexPage.header" />
         </h1>
         <div>
           <span v-if="cluster.spec.description">{{ cluster.spec.description }}</span>
         </div>
       </div>
-      <div class="span-1 actions-span">
-        <div class="actions">
-          <button
-            ref="cluster-actions"
-            type="button"
-            class="btn btn-sm role-multi-action actions"
-            aria-haspopup="true"
-            aria-expanded="false"
-            @click="showActions"
-          >
-            <i class="icon icon-actions" />
-          </button>
-        </div>
-      </div>
     </header>
-    <InfoBoxCluster
-      v-if="nodes.length"
-      :cluster="cluster"
-      :metrics="nodeMetrics"
-      :nodes="nodes"
-      :node-templates="nodeTemplates"
-      :node-pools="nodePools"
-    />
-    <div class="row">
-      <div class="col span-6 equal-height">
-        <InfoBox>
-          <h5>
-            <t k="clusterIndexPage.sections.nodes.label" />
-          </h5>
-          <div class="row mt-10">
-            <SortableTable
-              :rows="filteredNodes"
-              :headers="nodeHeaders"
-              :search="false"
-              :table-actions="false"
-              :row-actions="false"
-              no-rows-key="clusterIndexPage.sections.nodes.noRows"
-              key-field="id"
-            />
-          </div>
-        </InfoBox>
-      </div>
-      <div class="col span-6 equal-height">
-        <InfoBox>
-          <h5>
-            <t k="clusterIndexPage.sections.gatekeeper.label" />
-          </h5>
-          <div v-if="gatekeeperEnabled">
-            <div class="row mt-10">
-              <SortableTable
-                :rows="filteredConstraints"
-                :headers="constraintHeaders"
-                :search="false"
-                :table-actions="false"
-                :row-actions="false"
-                key-field="id"
-                no-rows-key="clusterIndexPage.sections.gatekeeper.noRows"
-              />
-            </div>
-          </div>
-          <div v-else>
-            <hr class="mt-35 mb-10" />
-            <div class="mt-35 mb-35 text-center">
-              <div>
-                <t k="clusterIndexPage.sections.gatekeeper.disabled" />
-              </div>
-              <n-link
-                :to="{ name: 'c-cluster-gatekeeper' }"
-                role="link"
-                type="button"
-                class="btn role-link"
-              >
-                <t k="clusterIndexPage.sections.gatekeeper.buttonText" />
-              </n-link>
-            </div>
-          </div>
-        </InfoBox>
-      </div>
+    <Glance :provider="displayProvider" :kubernetes-version="cluster.kubernetesVersion" :total-nodes="(nodes || []).length" :created="cluster.metadata.creationTimestamp" />
+    <div class="resource-gauges">
+      <ResourceGauge v-for="resourceGauge in resourceGauges" :key="resourceGauge.name" v-bind="resourceGauge" />
+      <div v-for="(filler, i) in resourceGaugesFiller" :key="i" class="filler" />
     </div>
-    <div class="row">
-      <div class="col span-12">
-        <InfoBox>
-          <h5>
-            <t k="clusterIndexPage.sections.events.label" />
-          </h5>
-          <div class="row mt-10">
-            <SortableTable
-              :rows="events"
-              :headers="eventHeaders"
-              key-field="id"
-              :search="false"
-              :table-actions="false"
-              :row-actions="false"
-              :paging="true"
-              :rows-per-page="10"
-              default-sort-by="date"
-            />
-          </div>
-        </InfoBox>
-      </div>
+    <div v-if="nodeMetrics.length > 0" class="hardware-resource-gauges">
+      <HardwareResourceGauge name="Pods Reserved" :total="podsReserved.total" :useful="podsReserved.useful" :suffix="t('clusterIndexPage.hardwareResourceGauge.podsReserved')" />
+      <HardwareResourceGauge name="Cores Reserved" :total="cpuReserved.total" :useful="cpuReserved.useful" :suffix="t('clusterIndexPage.hardwareResourceGauge.coresReserved')" />
+      <HardwareResourceGauge name="Ram Reserved" :total="ramReserved.total" :useful="ramReserved.useful" :units="ramReserved.units" :suffix="t('clusterIndexPage.hardwareResourceGauge.ramReserved')" />
     </div>
+    <div v-if="nodeMetrics.length > 0" class="hardware-resource-gauges live">
+      <HardwareResourceGauge name="Cores Used" :total="cpuUsed.total" :useful="cpuUsed.useful" :suffix="t('clusterIndexPage.hardwareResourceGauge.coresUsed')" />
+      <HardwareResourceGauge name="Ram Used" :total="ramUsed.total" :useful="ramUsed.useful" :units="ramUsed.units" :suffix="t('clusterIndexPage.hardwareResourceGauge.ramUsed')" />
+    </div>
+    <SimpleBox class="events" :title="t('clusterIndexPage.sections.events.label')">
+      <SortableTable
+        :rows="events"
+        :headers="eventHeaders"
+        key-field="id"
+        :search="false"
+        :table-actions="false"
+        :row-actions="false"
+        :paging="true"
+        :rows-per-page="10"
+        default-sort-by="date"
+      />
+    </SimpleBox>
   </section>
 </template>
 
 <style lang="scss" scoped>
+  section {
+    min-width: 1140px;
+  }
+
   .actions-span {
     align-self: center;
+  }
+
+  .resource-gauges {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+
+    & > * {
+      min-width: 210px;
+      max-width: calc(20% - 10px);
+      width: 100%;
+      margin: 10px 0 0 0;
+    }
+  }
+
+  .hardware-resource-gauges {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 50px;
+
+    & > * {
+      min-width: 352px;
+      width: calc(33.333% - 10px);
+    }
+
+    &.live {
+      margin-top: 30px;
+      & > * {
+        width: calc(50% - 8px);
+      }
+    }
+  }
+
+  .events {
+    margin-top: 30px;
   }
 </style>

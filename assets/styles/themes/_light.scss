@@ -163,6 +163,16 @@ $selected: rgba($primary, .5);
   --wm-border                  : var(--border);
   --wm-tab-height              : 25px;
 
+  --glance-bg-rgb              : 61, 152, 211;
+  --glance-divider             : #{rgba($primary, 0.5)};
+
+  --resource-gauge-back-circle : 255, 255, 255, 0.15;
+
+  --simple-box-bg              : #{$lightest};
+  --simple-box-border          : #{$medium};
+  --simple-box-divider         : #{$medium};
+  --simple-box-shadow          : rgba(0, 0, 0, 0.2);
+
   --terminal-bg                : var(--body-bg);
   --terminal-cursor            : var(--warning);
   --terminal-text              : var(--body-text);
@@ -171,4 +181,22 @@ $selected: rgba($primary, .5);
   --logs-highlight             : var(--wm-body-bg);
   --logs-highlight-bg          : var(--warning);
   --logs-text                  : var(--body-text);
+
+  --gauge-divider              : rgba(255, 255, 255, .3);
+  --gauge-success-primary      : 75, 95, 64;
+  --gauge-success-secondary    : 150, 189, 127;
+  --gauge-warning-primary      : 218, 195, 66;
+  --gauge-warning-secondary    : 109, 98, 33;
+  --gauge-error-primary        : 239, 90, 83;
+  --gauge-error-secondary      : 120, 45, 42;
+
+  --sizzle-0                   : 180, 210, 30;
+  --sizzle-1                   : 225, 45, 74;
+  --sizzle-2                   : 212, 66, 148;
+  --sizzle-3                   : 0, 169, 217;
+  --sizzle-4                   : 244, 136, 68;
+  --sizzle-5                   : 0, 147, 128;
+  --sizzle-6                   : 136, 81, 165;
+  --sizzle-7                   : 45, 47, 149;
+  --sizzle-8                   : 255, 235, 0;
 }
