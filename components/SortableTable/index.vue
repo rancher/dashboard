@@ -820,6 +820,7 @@ $spacing: 10px;
   overflow: hidden;
   box-shadow: 0 0 20px var(--shadow);
   background: var(--body-bg);
+  table-layout: fixed;
 
   thead {
     tr {
@@ -832,10 +833,12 @@ $spacing: 10px;
   th {
     padding: 12px 15px;
     font-weight: normal;
+    border: 0;
   }
 
   td {
     padding: 12px 15px;
+    border: 0;
   }
 
 <<<<<<< HEAD

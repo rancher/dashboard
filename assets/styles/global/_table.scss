@@ -1,4 +1,32 @@
 table {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 1rem;
+  // background-color: white;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 12px;
+    vertical-align: top;
+    border-top: 1px solid var(--sortable-table-body-divider);
+  }
+
+  thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid var(--sortable-table-body-divider);
+  }
+
+  tbody + tbody {
+    border-top: 2px solid var(--sortable-table-body-divider);
+  }
+
+  table {
+    // background-color: white;
+  }
+}
+
+.nice-table {
   border-collapse: collapse;
   margin: 25px 0;
   font-size: 0.9em;
@@ -18,10 +46,12 @@ table {
   th {
     padding: 12px 15px;
     font-weight: normal;
+    border: 0;
   }
 
   td {
     padding: 12px 15px;
+    border: 0;
   }
 
   tbody {

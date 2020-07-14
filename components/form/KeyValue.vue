@@ -532,7 +532,7 @@ export default {
 
   TABLE {
     width: 100%;
-    border-collapse: separate;
+    // border-collapse: separate;
     border-spacing: 5px 10px;
   }
 

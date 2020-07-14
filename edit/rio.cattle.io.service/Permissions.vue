@@ -126,7 +126,7 @@ export default {
       <h4>{{ label }}</h4>
     </div>
 
-    <table v-if="rows.length" class="fixed">
+    <table v-if="rows.length" class="fixed nice-table">
       <thead>
         <tr>
           <th v-if="padLeft" class="left"></th>
