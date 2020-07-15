@@ -100,7 +100,7 @@ export default {
       </tr>
     </table>
 
-    <button :disabled="!enabled" type="button" :class="{disabled: !enabled}" class="btn role-tertiary add" @click="addRule">
+    <button :disabled="!enabled" type="button" :class="{disabled: !enabled}" class="btn role-tertiary add mt-10" @click="addRule">
       Add Header Operation
     </button>
   </div>

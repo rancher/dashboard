@@ -110,7 +110,7 @@ export default {
       @remove="e=>removeRule(i)"
       @input="e=>updateRule(e,i)"
     />
-    <button class="btn role-tertiary add mt-10 " type="button" @click="addRule">
+    <button class="btn role-tertiary add mt-10" type="button" @click="addRule">
       {{ t('ingress.rules.addRule') }}
     </button>
   </div>

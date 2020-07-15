@@ -216,10 +216,10 @@ export default {
       <div id="registry-type" class="row">
         <RadioGroup label="Address:" :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
-      <div v-if="needsDockerServer" class="row">
+      <div v-if="needsDockerServer" class="row mb-20">
         <LabeledInput v-model="registryFQDN" :label="t('secret.registry.domainName')" placeholder="e.g. index.docker.io" :mode="mode" />
       </div>
-      <div class="row">
+      <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput v-model="username" :label="t('secret.registry.username')" :mode="mode" />
         </div>
@@ -229,7 +229,7 @@ export default {
       </div>
     </template>
 
-    <div v-else-if="isCertificate" class="row">
+    <div v-else-if="isCertificate" class="row mb-20">
       <div class="col span-6">
         <LabeledInput
           v-model="key"

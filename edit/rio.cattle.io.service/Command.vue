@@ -191,10 +191,10 @@ export default {
         </span>
       </template>
       <template #moreAdd="{rows}">
-        <button type="button" class="btn role-tertiary add" @click="addSecret(rows)">
+        <button type="button" class="btn role-tertiary add mt-10" @click="addSecret(rows)">
           From Secret
         </button>
-        <button type="button" class="btn role-tertiary add" @click="addConfigMap(rows)">
+        <button type="button" class="btn role-tertiary add mt-10" @click="addConfigMap(rows)">
           From ConfigMap
         </button>
       </template>

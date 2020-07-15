@@ -498,7 +498,7 @@ export default {
       </template>
     </SortableTable>
 
-    <div v-if="showAdd || showRead" class="footer">
+    <div v-if="showAdd || showRead" class="footer mt-10">
       <slot v-if="showAdd" name="add">
         <button type="button" class="btn role-tertiary add" @click="add()">
           {{ addLabel }}

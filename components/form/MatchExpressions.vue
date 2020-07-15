@@ -289,7 +289,7 @@ export default {
         </td>
       </template>
     </SortableTable>
-    <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addRule">
+    <button v-if="!isView" type="button" class="btn role-tertiary add mt-10" @click="addRule">
       <t k="workload.scheduling.affinity.matchExpressions.addRule" />
     </button>
   </div>
