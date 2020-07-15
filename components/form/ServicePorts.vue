@@ -3,12 +3,10 @@ import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
 import { clone } from '@/utils/object';
-  import LabeledSelect from '@/components/form/LabeledSelect';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 export default {
-    components: {
-      LabeledSelect
-    },
+  components: { LabeledSelect },
   props:      {
     value: {
       type:    Array,
