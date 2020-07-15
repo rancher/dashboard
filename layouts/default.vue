@@ -35,7 +35,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady', 'isRancher']),
-    ...mapGetters(['currentProduct']),
+    ...mapGetters(['productId']),
 
     namespaces() {
       return this.$store.getters['namespaces']();
@@ -61,7 +61,7 @@ export default {
     },
 
     showJump() {
-      return this.currentProduct === EXPLORER;
+      return this.productId === EXPLORER;
     },
   },
 
@@ -78,7 +78,7 @@ export default {
       this.queueUpdate();
     },
 
-    currentProduct(a, b) {
+    productId(a, b) {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();
@@ -124,7 +124,7 @@ export default {
       }
 
       const clusterId = this.$store.getters['clusterId'];
-      const product = this.$store.getters['currentProduct'];
+      const productId = this.$store.getters['productId'];
       const currentType = this.$route.params.resource || '';
       let namespaces = null;
 
@@ -136,14 +136,14 @@ export default {
       const out = [];
       const modes = [BASIC];
 
-      if ( product === EXPLORER ) {
+      if ( productId === EXPLORER ) {
         modes.push(FAVORITE);
         modes.push(USED);
       }
 
       for ( const mode of modes ) {
-        const types = this.$store.getters['type-map/allTypes'](product, mode) || {};
-        const more = this.$store.getters['type-map/getTree'](product, mode, types, clusterId, namespaceMode, namespaces, currentType);
+        const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
+        const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
 
         addObjects(out, more);
       }

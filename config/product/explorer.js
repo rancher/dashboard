@@ -15,7 +15,7 @@ export const NAME = 'explorer';
 
 export function init(store) {
   const {
-    alwaysProduct,
+    product,
     basicType,
     ignoreType,
     mapType,
@@ -28,7 +28,10 @@ export function init(store) {
     immutableType
   } = DSL(store, NAME);
 
-  alwaysProduct();
+  product({
+    removable:           false,
+    showNamespaceFilter: true
+  });
 
   basicType('cluster-overview');
   basicType([

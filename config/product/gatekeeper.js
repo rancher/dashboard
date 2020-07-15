@@ -31,7 +31,7 @@ global:
 
 export function init(store) {
   const {
-    conditionalProduct,
+    product,
     basicType,
     componentForType,
     // ignoreGroup,
@@ -39,7 +39,7 @@ export function init(store) {
     virtualType
   } = DSL(store, NAME);
 
-  conditionalProduct({ ifGroupExists: /^(.*\.)?gatekeeper\.sh$/ });
+  product({ ifHaveGroup: /^(.*\.)?gatekeeper\.sh$/ });
 
   mapGroup(/^(.*\.)?gatekeeper\.sh$/, 'OPA Gatekeeper');
 

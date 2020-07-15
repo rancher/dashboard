@@ -38,14 +38,14 @@ addRemoteAddressFilter: false
 
 export function init(store) {
   const {
-    conditionalProduct,
+    product,
     basicType,
     mapGroup,
     headers,
     // virtualType,
   } = DSL(store, NAME);
 
-  conditionalProduct({ ifGroupExists: 'rio.cattle.io' });
+  product({ ifHaveGroup: 'rio.cattle.io' });
 
   basicType([
     RIO.SERVICE,

@@ -6,7 +6,7 @@ import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE } from '@/st
 import { allHash } from '@/utils/promise';
 import { ClusterNotFoundError, ApiError } from '@/utils/error';
 import { sortBy } from '@/utils/sort';
-import { filterBy } from '@/utils/array';
+import { filterBy, findBy } from '@/utils/array';
 import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
@@ -28,7 +28,7 @@ export const state = () => {
     namespaceFilters: [],
     allNamespaces:    null,
     clusterId:        null,
-    currentProduct:   null,
+    productId:        null,
     error:            null,
     cameFromError:    false,
   };
@@ -47,13 +47,17 @@ export const getters = {
     return state.clusterId;
   },
 
-  currentProduct(state, getters) {
-    return state.currentProduct;
+  productId(state, getters) {
+    return state.productId;
   },
 
   currentCluster(state, getters) {
     return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId) ||
       getters['management/byId'](STEVE.CLUSTER, state.clusterId);
+  },
+
+  currentProduct(state, getters) {
+    return findBy(getters['type-map/activeProducts'], 'name', state.productId);
   },
 
   defaultClusterId(state, getters) {
@@ -232,7 +236,7 @@ export const mutations = {
   },
 
   setProduct(state, neu) {
-    state.currentProduct = neu;
+    state.productId = neu;
   },
 
   setError(state, obj) {
@@ -273,6 +277,8 @@ export const actions = {
         dispatch('management/loadSchemas', true),
       ]),
     });
+
+    await dispatch('management/findAll', { type: COUNT, opt: { url: 'counts' } });
 
     let isRancher = false;
     let isMultiCluster = false;

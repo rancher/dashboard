@@ -80,6 +80,7 @@ export default {
 
     res.forEach((schema) => {
       schema._id = normalizeType(schema.id);
+      schema._group = normalizeType(schema.attributes?.group);
     });
 
     commit('loadAll', {

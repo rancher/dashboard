@@ -88,6 +88,7 @@ export default {
     };
   },
 
+  // @TODO resolve difference between this and schemaFor and have only one of them.
   schema: (state, getters) => (type) => {
     type = getters.normalizeType(type);
     const schemas = state.types[SCHEMA];
