@@ -1,5 +1,5 @@
 <script>
-import find from 'lodash/find';
+import { isEmpty, find, isNaN } from 'lodash';
 import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
 import DetailTop from '@/components/DetailTop';
@@ -163,6 +163,20 @@ export default {
 
       return false;
     },
+
+    updateServicePorts(servicePorts) {
+      servicePorts.forEach((sp) => {
+        if ( !isEmpty(sp?.targetPort) ) {
+          const tpCoerced = parseInt(sp.targetPort, 10);
+
+          if (!isNaN(tpCoerced)) {
+            sp.targetPort = tpCoerced;
+          }
+        }
+      });
+
+      this.$set(this.value.spec, 'ports', servicePorts);
+    }
   },
 };
 </script>
@@ -226,7 +240,7 @@ export default {
         class="col span-12"
         :mode="mode"
         :spec-type="serviceType"
-        @input="e=>$set(value.spec, 'ports', e)"
+        @input="updateServicePorts"
       />
 
       <div class="spacer"></div>
