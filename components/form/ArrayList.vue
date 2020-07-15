@@ -255,7 +255,7 @@ export default {
     </div>
     <div v-if="showAdd || showRead" class="footer">
       <slot v-if="showAdd" name="add">
-        <button type="button" class="btn role-tertiary add" @click="add()">
+        <button type="button" class="btn role-tertiary add mt-10" @click="add()">
           {{ addLabel }}
         </button>
         <slot name="moreAdd" :rows="rows" />

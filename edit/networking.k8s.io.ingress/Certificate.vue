@@ -101,7 +101,4 @@ export default {
     margin-bottom:30px;
     border-bottom: 1px solid var(--border);
   }
-  button {
-    line-height: 40px;
-  }
 </style>

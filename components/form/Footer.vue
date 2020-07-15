@@ -47,7 +47,7 @@ export default {
         {{ err }}
       </div>
     </div>
-    <div class="text-center">
+    <div class="cancel-create">
       <slot name="left" />
       <slot name="cancel">
         <button type="button" class="btn role-secondary" @click="done">
@@ -66,3 +66,13 @@ export default {
     </div>
   </div>
 </template>
+
+<style lang='scss'>
+  .cancel-create {
+    text-align: center;
+
+    > * {
+      margin: 0 1.75% 0 0;
+    }
+  }
+</style>

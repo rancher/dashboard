@@ -387,7 +387,6 @@ export default {
             :mode="mode"
           />
         </div>
-        <div class="col span-4" />
         <template v-if="isCronJob">
           <div class="col span-4">
             <LabeledInput v-model="spec.schedule" label="cron Schedule" />

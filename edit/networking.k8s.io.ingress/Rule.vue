@@ -56,7 +56,7 @@ export default {
 <template>
   <div class="rule" @input="update">
     <div class="row mb-20">
-      <div id="host" class="col span-11">
+      <div id="host" class="col span-12">
         <LabeledInput v-model="host" :label="t('ingress.rules.requestHost.label')" :placeholder="t('ingress.rules.requestHost.placeholder')" />
       </div>
       <div class="col span-1">
@@ -99,7 +99,7 @@ export default {
     background: var(--tabbed-container-bg);
     border: 1px solid var(--tabbed-border);
     border-radius: var(--border-radius);
-    padding: 40px;
+    padding: 20px;
   }
   #host {
     align-self: center
@@ -108,7 +108,7 @@ export default {
     float:right;
     padding: 0px;
     position: relative;
-    top: -25px;
-    right: -25px;
+    top: -20px;
+    right: -20px;
   }
 </style>

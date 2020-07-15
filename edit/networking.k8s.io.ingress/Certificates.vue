@@ -111,7 +111,7 @@ export default {
       @input="e=>$set(tls, i, e)"
       @remove="e=>removeCert(i)"
     />
-    <button class="btn role-tertiary add" type="button" @click="addCert">
+    <button class="btn role-tertiary add mt-10" type="button" @click="addCert">
       {{ t('ingress.certificates.addCertificate') }}
     </button>
   </div>
