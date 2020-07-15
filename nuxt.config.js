@@ -111,7 +111,7 @@ module.exports = {
 
     uglify: {
       uglifyOptions: { compress: !dev },
-      cache:         './node_modules/.cache/cache'
+      cache:         './node_modules/.cache/uglify'
     },
 
     'html.minify': {
