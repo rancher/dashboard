@@ -75,26 +75,30 @@ export default (config = {}) => {
     });
 
     // Turn all the objects in the store from the server into proxies
-    const state = fromServer.state[namespace];
+    const state = fromServer?.state?.[namespace];
 
-    Object.keys(state.types).forEach((type) => {
-      const keyField = keyFieldFor(type);
-      const cache = state.types[type];
-      const map = new Map();
+    if ( state ) {
+      Object.keys(state.types).forEach((type) => {
+        const keyField = keyFieldFor(type);
+        const cache = state.types[type];
+        const map = new Map();
 
-      for ( let i = 0 ; i < cache.list.length ; i++ ) {
-        const proxy = proxyFor(ctx, cache.list[i]);
+        for ( let i = 0 ; i < cache.list.length ; i++ ) {
+          const proxy = proxyFor(ctx, cache.list[i]);
 
-        cache.list[i] = proxy;
-        map.set(proxy[keyField], proxy);
-      }
+          cache.list[i] = proxy;
+          map.set(proxy[keyField], proxy);
+        }
 
-      Vue.set(cache, 'map', map);
-      Vue.set(state.types, type, state.types[type]);
-    });
+        Vue.set(cache, 'map', map);
+        Vue.set(state.types, type, state.types[type]);
+      });
+    }
 
     // Turn all the objects in data from the server into the object from the store;
-    fromServer.data = recurse(fromServer.data);
+    if ( state && fromServer?.data ) {
+      fromServer.data = recurse(fromServer.data);
+    }
 
     function recurse(obj, parent, key) {
       if ( isArray(obj) ) {
