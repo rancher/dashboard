@@ -820,7 +820,6 @@ $spacing: 10px;
   overflow: hidden;
   box-shadow: 0 0 20px var(--shadow);
   background: var(--body-bg);
-  table-layout: fixed;
 
   thead {
     tr {
@@ -906,6 +905,10 @@ $spacing: 10px;
     }
 
     tr.group-row {
+      &:first-child {
+        border-bottom: 0;
+      }
+
       &:not(:first-child) {
         margin-top: 20px;
       }
