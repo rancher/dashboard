@@ -1,6 +1,7 @@
 export const DESCRIPTION = 'cattle.io/description';
 export const HOSTNAME = 'kubernetes.io/hostname';
 export const TIMESTAMP = 'cattle.io/timestamp';
+export const SYSTEM_NAMESPACE = 'cattle.io/system';
 export const PROJECT = 'field.cattle.io/projectId';
 export const SYSTEM_PROJECT = 'authz.management.cattle.io/system-project';
 export const CONTAINER_DEFAULT_RESOURCE_LIMIT = 'field.cattle.io/containerDefaultResourceLimit';

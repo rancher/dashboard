@@ -1,15 +1,22 @@
 import { DSL } from '@/store/type-map';
+import { MANAGEMENT, RBAC } from '@/config/types';
 
 export const NAME = 'access';
 
 export function init(store) {
   const {
-    alwaysProduct,
-    // basicType,
+    product,
+    basicType,
   } = DSL(store, NAME);
 
-  alwaysProduct();
+  product({ inStore: 'management' });
 
-  // basicType([
-  // ]);
+  basicType([
+    MANAGEMENT.USER,
+    MANAGEMENT.GROUP,
+    RBAC.CLUSTER_ROLE,
+    RBAC.ROLE,
+    RBAC.CLUSTER_ROLE_BINDING,
+    RBAC.ROLE_BINDING,
+  ]);
 }

@@ -70,7 +70,7 @@ export default {
     updateMatches() {
       const clusterId = this.$store.getters['clusterId'];
       const isAllNamespaces = this.$store.getters['isAllNamespaces'];
-      const product = this.$store.getters['currentProduct'];
+      const product = this.$store.getters['productId'];
 
       let namespaces = null;
 

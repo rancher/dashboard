@@ -3,10 +3,11 @@ locale:
   en-us: English
 
 product:
-  explorer: Cluster Explorer
-  app: Manage Applications
+  apps: Manage Applications
   access: Manage Access
+  explorer: Cluster Explorer
   gatekeeper: OPA Gatekeeper
+  mcm: Multi-Cluster Manager
   rio: Rio
 
 generic:
@@ -47,8 +48,8 @@ nav:
     # For languages other than English you can add more entries here to translate API groups, engishGroup: localizedGroup
   ns:
     all: All Namespaces
-    user: All User Namespaces
-    system: All System Namespaces
+    user: Only User Namespaces
+    system: Only System Namespaces
     clusterLevel: Only Cluster Resources
     namespaced: Only Namespaced Resources
     project: "Project: {name}"

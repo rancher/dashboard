@@ -105,9 +105,14 @@ module.exports = {
 
   build: {
     publicPath: resourceBase,
-    // parallel:   false,
+    parallel:   true,
     cache:      true,
-    // hardSource: true,
+    hardSource: true,
+
+    uglify: {
+      uglifyOptions: { compress: !dev },
+      cache:         './node_modules/.cache/cache'
+    },
 
     'html.minify': {
       collapseBooleanAttributes:  !dev,
@@ -166,8 +171,10 @@ module.exports = {
           [
             require.resolve('@nuxt/babel-preset-app'),
             {
-              buildTarget: isServer ? 'server' : 'client',
-              corejs:      { version: 3 }
+              // buildTarget: isServer ? 'server' : 'client',
+              corejs:      { version: 3 },
+              targets:     isServer ? { node: 'current' } : {},
+              modern:      !isServer
             }
           ]
         ];
@@ -185,7 +192,7 @@ module.exports = {
     }
   },
 
-  modern: true,
+  // modern: true, -- now part of preset above
 
   generate: { dir: outputDir },
 
@@ -217,6 +224,7 @@ module.exports = {
     '@nuxtjs/proxy',
     '@nuxtjs/axios',
     '@nuxtjs/eslint-module',
+    '@nuxtjs/webpack-profile',
     'cookie-universal-nuxt',
     'portal-vue/nuxt',
     '~/plugins/steve/rehydrate-all',
@@ -247,8 +255,8 @@ module.exports = {
   // Proxy: https://github.com/nuxt-community/proxy-module#options
   proxy: {
     '/k8s':       proxyWsOpts(api), // Straight to a remote cluster (/k8s/clusters/<id>/)
-    '/api':       proxyWsOpts(api), // Managment k8s API
-    '/apis':      proxyWsOpts(api), // Managment k8s API
+    '/api':       proxyWsOpts(api), // Management k8s API
+    '/apis':      proxyWsOpts(api), // Management k8s API
     '/v1':        proxyWsOpts(api), // Management Steve API
     '/v3':        proxyWsOpts(api), // Rancher API
     '/v3-public': proxyOpts(api), // Rancher Unauthed API
@@ -271,7 +279,7 @@ module.exports = {
   ],
 
   // Eslint module options
-  eslint: { cache: '.eslintcache' },
+  eslint: { cache: './node_modules/.cache/eslint' },
 };
 
 function proxyOpts(target) {

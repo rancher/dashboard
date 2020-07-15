@@ -1,10 +1,14 @@
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
-import { PROJECT } from '@/config/labels-annotations';
+import { PROJECT, SYSTEM_NAMESPACE } from '@/config/labels-annotations';
 import { EXTERNAL } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
 
 export default {
   isSystem() {
+    if ( !!this.metadata?.labels?.[SYSTEM_NAMESPACE] ) {
+      return true;
+    }
+
     if ( SYSTEM_NAMESPACES.includes(this.metadata.name) ) {
       return true;
     }

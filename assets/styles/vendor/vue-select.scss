@@ -84,8 +84,12 @@
   }
 
   &.vs__dropdown-option--disabled {
-  color: var(--dropdown-disabled-text);
-  cursor: not-allowed;
+    color: var(--dropdown-disabled-text);
+    cursor: not-allowed;
+
+    HR {
+      cursor: default
+    }
   }
 }
 

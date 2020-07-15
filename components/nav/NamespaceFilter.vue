@@ -173,6 +173,7 @@ export default {
 
 <style type="scss" scoped>
   .filter ::v-deep .v-select {
+    min-width: 220px;
     max-width: 100%;
     display: inline-block;
   }
@@ -199,7 +200,7 @@ export default {
       ref="select"
       v-model="value"
       multiple
-      placeholder="All User Namespaces"
+      :placeholder="t('nav.ns.user')"
       :selectable="option => !option.disabled && option.id"
       :options="options"
       label="label"

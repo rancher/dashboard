@@ -12,7 +12,7 @@ function setProduct(store, to) {
   let product = to.params?.product;
 
   if ( !product ) {
-    const match = to.name.match(/^c-cluster-([^-]+)/);
+    const match = to.name?.match(/^c-cluster-([^-]+)/);
 
     if ( match ) {
       product = match[1];

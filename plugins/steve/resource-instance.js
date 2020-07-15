@@ -173,7 +173,7 @@ export default {
   },
 
   namespacedName() {
-    const namespace = this.metadata.namespace;
+    const namespace = this.metadata?.namespace;
     const name = this.metadata.name || this.id;
 
     if ( namespace ) {
@@ -744,7 +744,7 @@ export default {
     return {
       name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
       params: {
-        product:   this.$rootGetters['currentProduct'],
+        product:   this.$rootGetters['productId'],
         resource:  this.type,
         namespace: this.metadata && this.metadata.namespace,
         id:        this.metadata.name

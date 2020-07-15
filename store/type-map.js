@@ -11,6 +11,7 @@
 // typeWeightFor(type)        Get the weight value for a particular type label
 // groupWeightFor(group)      Get the weight value for a particular group
 // headersFor(schema)         Returns the column definitions for a type to give to SortableTable
+// activeProducts()           Returns the list of products that are installed and should be shown
 //
 // 2) Detecting and using custom list/detail/edit/header components
 //
@@ -27,19 +28,17 @@
 // For all:
 //   let { thingYouWant } = DSL(instanceOfTheStore, 'product');
 //
-// alwaysProduct({            Add a product that is always installed
-//   ifGroupExists,           -- Show if the given type exists in the store [inStore] 
-//   ifTypeExists,            -- Show if the given type exists in the store [inStore]
-//   inStore                  -- Which store to look at for if* above, defaults to "cluster"
+// product(                   Add a product into the nav
+//   removable,               -- Is the product removable (true) or built-in (false).  Determines which section of nav it goes in.
+//   showNamespaceFilter,     -- If true, show the namespace filter in the header
+//   ifHaveGroup,             -- Show if the given group exists in the store [inStore]
+//   ifHaveType,              -- Show if the given type exists in the store [inStore]
+//   ifHaveApp,               -- Or if an app with the given name is deployed in the store [inStore]
+//   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
 // })
-// 
-// conditionalProduct(        Add a product that can be optionally installed
-//   ifGroupExists,           -- Show if the given group exists in the store [inStore]
-//   ifTypeExists,            -- Show if the given type exists in the store [inStore]
-//   ifAppExists,             -- Or if an app with the given name is deployed in the store [inStore]
-//   inStore                  -- Which store to look at for if* above, defaults to "cluster"
-// })
-// 
+//
+// externalLink(stringOrFn)  The product has an external page (function gets context object
+//
 // virtualType(obj)           Add an item to the tree that goes to a route instead of an actual type.
 //                            --  obj can contain anything in the objects getTree returns.
 //                            --  obj must have a `name` that is unique among all virtual types.
@@ -105,16 +104,25 @@ export const FAVORITE = 'favorite';
 export const USED = 'used';
 
 export function DSL(store, product, module = 'type-map') {
-  store.commit(`${ module }/product`, { name: product });
+  // store.commit(`${ module }/product`, { name: product });
 
   return {
-    // Product-dependent
-    alwaysProduct(opt) {
-      store.commit(`${ module }/product`, { name: product, removable: false, ...opt });
-    },
+    product(inOpt) {
+      const opt = {
+        name: product,
+        removable: true,
+        inStore: 'cluster',
+        showNamespaceFilter: false,
+        ...inOpt
+      };
 
-    conditionalProduct(opt) {
-      store.commit(`${ module }/product`, { name: product, removable: true, ...opt });
+      for ( const k of ['ifHaveGroup','ifHaveType','ifHaveApp'] ) {
+        if ( opt[k] ) {
+          opt[k] = regexToString(ensureRegex(opt[k]));
+        }
+      }
+
+      store.commit(`${ module }/product`, opt);
     },
 
     basicType(types, group) {
@@ -242,6 +250,7 @@ export const getters = {
   // 1 ) Getting info
   // ----------------------------------------------------------------------------
   // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
+  // @TODO use translations instead
   singularLabelFor(state) {
     return (schema) => {
       return _applyMapping(schema, state.typeMappings, 'id', state.cache.typeLabel, () => {
@@ -250,6 +259,7 @@ export const getters = {
     };
   },
 
+  // @TODO use translations instead
   pluralLabelFor(state, getters) {
     return (schema) => {
       if ( state.pluralLabels[schema.id] ) {
@@ -534,9 +544,9 @@ export const getters = {
   },
 
   allTypes(state, getters, rootState, rootGetters) {
-    return (product, mode = ALL) => {
-      const schemas = rootGetters['cluster/all'](SCHEMA);
-      const counts = rootGetters['cluster/all'](COUNT)?.[0]?.counts || {};
+    return (product, mode = ALL, module='cluster') => {
+      const schemas = rootGetters[`${module}/all`](SCHEMA);
+      const counts = rootGetters[`${module}/all`](COUNT)?.[0]?.counts || {};
       const out = {};
 
       for ( const schema of schemas ) {
@@ -814,6 +824,44 @@ export const getters = {
       return out;
     };
   },
+
+  activeProducts(state, getters, rootState, rootGetters) {
+    const knownTypes = {};
+    const knownGroups = {};
+
+    return state.products.filter((p) => {
+      const module = p.inStore;
+      if ( !knownTypes[module] ) {
+        const schemas = rootGetters[`${module}/all`](SCHEMA);
+
+        knownTypes[module] = [];
+        knownGroups[module] = [];
+
+        for ( const s of schemas ) {
+          knownTypes[module].push(s._id);
+
+          if ( s._group ) {
+            addObject(knownGroups[module], s._group);
+          }
+        }
+      }
+
+      if ( p.ifHaveType && !knownTypes[module].find((t) => t.match(stringToRegex(p.ifHaveType)) ) ) {
+        return false;
+      }
+
+      if ( p.ifHaveGroup && !knownGroups[module].find((t) => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
+        return false;
+      }
+
+      if ( p.ifHaveApp && false ) {
+        // @TODO know what apps are installed somehow
+        return false;
+      }
+
+      return true;
+    });
+  }
 };
 
 export const mutations = {
