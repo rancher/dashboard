@@ -1,4 +1,5 @@
 <script>
+import { STEP } from '@/config/query-params';
 /*
 Wizard accepts an array of steps (see props), and creates named slots for each step.
 It also contains slots for buttons:
@@ -23,7 +24,7 @@ export default {
   steps need: {
     name: String - this will be the slot name
     label: String - this will appear in the top nav bar below circles
-    subText: String (optional) - If defined, appears in the Step {number}: banner. If blank, label is used
+    subtext: String (optional) - If defined, appears below the step number in the banner. If blank, label is used
     ready: Boolean - whether or not the step is completed/wizard is able to go to next step
       if a step has ready=true, the wizard also allows navigation *back* to it
   }
@@ -44,17 +45,27 @@ export default {
     editFirstStep: {
       type:    Boolean,
       default: false
+    },
+
+    // place the same title (e.g. the type of thing being created by wizard) on every page
+    bannerTitle: {
+      type:    String,
+      default: null
+    },
+
+    // circular image left of banner title
+    bannerImage: {
+      type:    String,
+      default: null
     }
   },
 
-  asyncData(ctx) {
-    const { route:{ query } } = ctx;
-
-    return { queryStep: query.step };
-  },
-
   data() {
-    return { activeStep: this.queryStep || this.steps[this.initStepIdx] };
+    const queryStep = this.$route.query[STEP];
+
+    const activeStep = this.steps[queryStep - 1] || this.steps[this.initStepIdx];
+
+    return { activeStep };
   },
 
   computed: {
@@ -74,27 +85,18 @@ export default {
 
   watch: {
     '$route.query'(neu = {}) {
-      this.goToStep(neu.step);
+      this.goToStep(neu[STEP]);
     },
-  },
-
-  created() {
-    const { $route: { query = {} } } = this;
-
-    // if any step has active===true, load that step. Otherwise, load step defined in query param. Otherwise, load first step.
-    const stepNumber = this.activeStep ? this.steps.indexOf(this.activeStep) + 1 : query.step || 1;
-
-    const step = this.steps[stepNumber - 1] || this.steps[0];
-
-    if ( step ) {
-      this.goToStep(stepNumber);
-    }
   },
 
   methods: {
     goToStep(number, fromNav) {
+      if (number < 1) {
+        return;
+      }
+
       // if editFirstStep is false, do not allow returning to step 1 (restarting wizard) from top nav
-      if (!this.editFirstStep && (number < 1 || (number === 1 && fromNav))) {
+      if (!this.editFirstStep && (number === 1 && fromNav)) {
         return;
       }
 
@@ -110,7 +112,7 @@ export default {
       }
 
       if (queryStep !== number) {
-        this.$router.push({ ...this.$route, query: { ...this.$route.query, step: number } });
+        this.$router.applyQuery({ [STEP]: number });
       }
 
       this.activeStep = selected;
@@ -129,6 +131,10 @@ export default {
 
     next() {
       this.goToStep(this.activeStepIndex + 2);
+    },
+
+    back() {
+      this.goToStep(this.activeStepIndex);
     },
 
     // a step is not available if ready=false for any previous steps OR if the editFirstStep=false and it is the first step
@@ -150,7 +156,7 @@ export default {
       }
 
       return true;
-    }
+    },
   }
 };
 </script>
@@ -168,17 +174,17 @@ export default {
 
           :id="step.name"
           :key="step.name+'li'"
-          :class="{step: true, active: step.active, disabled: !isAvailable(step)}"
+          :class="{step: true, active: step === activeStep, disabled: !isAvailable(step)}"
           role="presentation"
         >
           <span
             :aria-controls="'step' + idx+1"
-            :aria-selected="step.active"
+            :aria-selected="step === activeStep"
             role="tab"
             class="controls"
             @click.prevent="goToStep(idx+1, true)"
           >
-            <span class="icon icon-lg" :class="{'icon-dot': !step.active, 'icon-dot-open':step.active}" />
+            <span class="icon icon-lg" :class="{'icon-dot': step !== activeStep, 'icon-dot-open':step === activeStep}" />
             <span>
               {{ step.label }}
             </span>
@@ -190,9 +196,19 @@ export default {
 
     <div class="spacer" />
 
-    <div class="step-banner btn-tab">
-      <h2> {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
-      <span>{{ activeStep.subText || activeStep.label }}</span>
+    <div class="top choice-banner">
+      <div v-if="bannerTitle || bannerImage" class="title">
+        <div v-if="bannerImage" class="round-image">
+          <img :src="bannerImage" />
+        </div>
+        <h2 v-if="bannerTitle">
+          {{ bannerTitle }}
+        </h2>
+      </div>
+      <div class="subtitle">
+        <h2> {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
+        <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+      </div>
     </div>
 
     <div class="spacer" />
@@ -207,41 +223,85 @@ export default {
 
     <div class="spacer" />
 
-    <div class="text-center">
+    <div class="controls-row">
       <slot name="cancel" :cancel="cancel">
         <button v-if="activeStepIndex" type="button" class="btn role-secondary" @click="cancel">
           <t k="generic.cancel" />
         </button>
       </slot>
-      <slot v-if="activeStepIndex === steps.length-1" name="finish" :finish="finish">
-        <button :disabled="!activeStep.ready" type="button" class="btn role-primary" @click="finish">
-          <t k="wizard.finish" />
-        </button>
-      </slot>
-      <slot v-else name="next" :next="next">
-        <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
-          <t k="wizard.next" />
-        </button>
-      </slot>
+
+      <div>
+        <slot v-if="activeStepIndex!==0" name="back" :back="back">
+          <button :disabled="!editFirstStep && activeStepIndex===1" type="button" class="btn role-secondary" @click="back()">
+            <t k="wizard.back" />
+          </button>
+        </slot>
+        <slot v-if="activeStepIndex === steps.length-1" name="finish" :finish="finish">
+          <button :disabled="!activeStep.ready" type="button" class="btn role-primary" @click="finish">
+            <t k="wizard.finish" />
+          </button>
+        </slot>
+        <slot v-else name="next" :next="next">
+          <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
+            <t k="wizard.next" />
+          </button>
+        </slot>
+      </div>
     </div>
   </div>
 </template>
 
 <style lang='scss'>
 
-.btn-tab {
+.choice-banner {
+  padding: 10px;
+  margin: 10px;
+  flex-basis: 20%;
   border-radius: var(--border-radius);
   border-left: 5px solid var(--primary);
-  padding: 40px 10px 40px 10px;
-  flex-direction: column;
-  justify-content: center;
-}
+  display: flex;
 
-.step-banner{
-  background-image: linear-gradient(-90deg, var(--body-bg) , var(--accent-btn));
+  &.top {
+    background-image: linear-gradient(-90deg, var(--body-bg) , var(--accent-btn));
 
-  & SPAN {
-    color: var(--input-label);
+    H2 {
+      margin: 0px;
+    }
+
+    .title{
+      flex-basis: 10%;
+      border-right: 1px solid var(--primary);
+      margin-right: 20px;
+      padding-right: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+    }
+
+    .subtitle{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      & .subtext {
+        color: var(--input-label);
+      }
+    }
+
+  }
+
+  &:not(.top){
+    box-shadow: 0px 0px 12px 3px var(--box-bg);
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+  }
+
+  & .round-image {
+    width: 50px;
+    height: 50px;
+    margin: 10px;
+    border-radius: 50%;
+    overflow: hidden;
   }
 }
 
@@ -304,5 +364,10 @@ export default {
       position: relative;
       top: 5px;
     }
+}
+
+.controls-row {
+  display: flex;
+  justify-content: space-between;
 }
 </style>
