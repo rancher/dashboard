@@ -278,7 +278,9 @@ export const actions = {
       ]),
     });
 
-    await dispatch('management/findAll', { type: COUNT, opt: { url: 'counts' } });
+    if ( getters['management/schemaFor'](COUNT) ) {
+      await dispatch('management/findAll', { type: COUNT, opt: { url: 'counts' } });
+    }
 
     let isRancher = false;
     let isMultiCluster = false;
