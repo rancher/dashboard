@@ -56,8 +56,10 @@ export default {
 <template>
   <div class="rule" @input="update">
     <div class="row mb-20">
-      <div id="host" class="col span-12">
+      <div id="host" class="col span-6">
         <LabeledInput v-model="host" :label="t('ingress.rules.requestHost.label')" :placeholder="t('ingress.rules.requestHost.placeholder')" />
+      </div>
+      <div id="host" class="col span-5">
       </div>
       <div class="col span-1">
         <button class="btn role-link close" @click="removeRule">
