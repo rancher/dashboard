@@ -90,7 +90,7 @@ export default {
     });
 
     if ( watch !== false ) {
-      dispatch('watchType', { type: SCHEMA });
+      dispatch('watch', { type: SCHEMA });
     }
 
     const all = getters.all(SCHEMA);
@@ -129,7 +129,54 @@ export default {
     });
 
     if ( opt.watch !== false ) {
-      dispatch('watchType', { type });
+      dispatch('watch', { type });
+    }
+
+    const all = getters.all(type);
+
+    return all;
+  },
+
+  async findMatching(ctx, { type, selector, opt }) {
+    const { getters, commit, dispatch } = ctx;
+
+    opt = opt || {};
+    console.log('Find Matching', type, selector); // eslint-disable-line no-console
+    type = getters.normalizeType(type);
+
+    if ( !getters.typeRegistered(type) ) {
+      commit('registerType', type);
+    }
+
+    if ( opt.force !== true && getters['haveSelector'](type, selector) ) {
+      return getters.matching({ type, selector });
+    }
+
+    opt = opt || {};
+
+    opt.filter = opt.filter || {};
+    opt.filter['labelSelector'] = selector;
+
+    opt.url = getters.urlFor(type, null, opt);
+
+    const res = await dispatch('request', opt);
+
+    if ( opt.load === false ) {
+      return res.data;
+    }
+
+    commit('loadAll', {
+      ctx,
+      type,
+      data: res.data
+    });
+
+    if ( opt.watch !== false ) {
+      dispatch('watch', {
+        type,
+        selector,
+        revision: res.revision
+      });
     }
 
     const all = getters.all(type);
@@ -169,8 +216,12 @@ export default {
 
     await dispatch('load', { data: res });
 
-    if ( opt.watch ) {
-      dispatch('watchType', { type });
+    if ( opt.watch !== false ) {
+      dispatch('watch', {
+        type,
+        id,
+        revision: res?.metadata?.resourceVersion
+      });
     }
 
     out = getters.byId(type, id);

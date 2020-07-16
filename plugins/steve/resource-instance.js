@@ -23,7 +23,7 @@ import {
   MODE, _EDIT, _CLONE,
   AS_YAML, _FLAGGED, _VIEW
 } from '@/config/query-params';
-import { findBy } from '@/utils/array';
+import { findBy, addObjects, addObject } from '@/utils/array';
 import { DEV } from '@/store/prefs';
 import { DESCRIPTION, LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';
 import omitBy from 'lodash/omitBy';
@@ -1172,5 +1172,63 @@ export default {
 
   t() {
     return this.$rootGetters['i18n/t'];
+  },
+
+  getOwners() {
+    return () => {
+      return this._getRelationship('owner', 'from');
+    };
+  },
+
+  getOwned() {
+    return () => {
+      return this._getRelationship('owner', 'to');
+    };
+  },
+
+  _getRelationship() {
+    return async(rel, direction) => {
+      const out = [];
+
+      if ( !rel ) {
+        throw new Error('Must provide rel');
+      }
+
+      if ( !this.metadata?.relationships?.length ) {
+        return out;
+      }
+
+      for ( const r of this.metadata.relationships ) {
+        if ( rel !== 'any' && r.rel !== rel ) {
+          continue;
+        }
+
+        if ( !r[`${ direction }Type`] ) {
+          continue;
+        }
+
+        if ( r.selector ) {
+          const matching = await this.$dispatch('findMatching', {
+            type:      r.toType,
+            namespace: r.toNamespace,
+            selector:  r.selector
+          });
+
+          addObjects(out, matching.data);
+        } else {
+          const type = r[`${ direction }Type`];
+          const ns = r[`${ direction }Namespace`];
+          const id = (ns ? `${ ns }/` : '') + r[`${ direction }Id`];
+
+          const matching = await this.$dispatch('find', { type, id });
+
+          if ( matching ) {
+            addObject(out, matching);
+          }
+        }
+      }
+
+      return out;
+    };
   },
 };
