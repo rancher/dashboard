@@ -7,10 +7,7 @@ import { asciiLike, escapeHtml } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
-import SortableTable from '@/components/SortableTable';
-import ClickExpand from '@/components/formatter/ClickExpand';
 import { get } from '@/utils/object';
-import CodeMirror from '@/components/CodeMirror';
 
 const LARGE_LIMIT = 2 * 1024;
 
@@ -23,12 +20,7 @@ const LARGE_LIMIT = 2 * 1024;
 */
 
 export default {
-  components: {
-    SortableTable,
-    TextAreaAutoGrow,
-    ClickExpand,
-    CodeMirror
-  },
+  components: { TextAreaAutoGrow },
 
   props: {
     value: {
@@ -400,7 +392,6 @@ export default {
         <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" />
       </div>
     </template>
-
     <SortableTable
       v-show="rows.length || isView"
       :headers="headers"

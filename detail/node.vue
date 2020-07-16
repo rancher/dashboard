@@ -186,7 +186,7 @@ export default {
         <Tab name="conditions" :label="t('node.detail.tab.conditions')">
           <Conditions :value="value" />
         </Tab>
-        <Tab name="info" :label="t('node.detail.tab.info')">
+        <Tab name="info" :label="t('node.detail.tab.info')" class="bordered-table">
           <SortableTable
             key-field="_key"
             :headers="infoTableHeaders"

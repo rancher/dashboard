@@ -1,32 +1,34 @@
-table {
+//bordered table
+.bordered-table {
   width: 100%;
   max-width: 100%;
   margin-bottom: 1rem;
-  // background-color: white;
+  // background-color: var(--body-bg);
   border-collapse: collapse;
 
   th,
   td {
     padding: 12px;
-    // vertical-align: top;
-    border-top: 1px solid var(--sortable-table-body-divider);
+    border-top: 1px solid var(--border);
   }
 
   thead th {
     vertical-align: bottom;
-    border-bottom: 2px solid var(--sortable-table-body-divider);
+    border-bottom: 2px solid var(--border);
   }
 
   tbody + tbody {
-    border-top: 2px solid var(--sortable-table-body-divider);
+    border-top: 2px solid var(--border);
   }
 
   table {
-    // background-color: white;
+    // background-color: var(--body-bg);
   }
 }
 
-.nice-table {
+
+//zebra table
+.zebra-table {
   border-collapse: collapse;
   margin: 25px 0;
   font-size: 0.9em;

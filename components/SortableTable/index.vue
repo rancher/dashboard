@@ -820,11 +820,12 @@ $spacing: 10px;
   overflow: hidden;
   box-shadow: 0 0 20px var(--shadow);
   background: var(--body-bg);
+  border-radius: 4px;
 
   thead {
     tr {
       background-color: var(--sortable-table-header-bg);
-      color: #ffffff;
+      color: var(--body-text);
       text-align: left;
     }
   }
@@ -887,7 +888,7 @@ $spacing: 10px;
       }
 
       &:last-of-type {
-        border-bottom: 2px solid var(--sortable-table-top-divider);
+        border-bottom: 0;
       }
     }
 

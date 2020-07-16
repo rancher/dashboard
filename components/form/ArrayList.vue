@@ -185,7 +185,7 @@ export default {
       <label :style="{'color': 'var(--input-label)', 'font-size':'14px'}">{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" /></label>
     </div>
 
-    <table v-if="rows.length" class="fixed nice-table">
+    <table v-if="rows.length" class="fixed zebra-table">
       <thead v-if="showHeader">
         <tr>
           <th v-if="padLeft" class="left"></th>
