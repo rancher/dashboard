@@ -1,7 +1,8 @@
 import {
   CONFIG_MAP,
   NAMESPACE, NODE, SECRET, INGRESS,
-  WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD
+  WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
+  RBAC,
 } from '@/config/types';
 
 import {
@@ -56,6 +57,12 @@ export function init(store) {
     WORKLOAD_TYPES.JOB,
     POD,
   ], 'workload');
+  basicType([
+    RBAC.ROLE,
+    RBAC.CLUSTER_ROLE,
+    RBAC.ROLE_BINDING,
+    RBAC.CLUSTER_ROLE_BINDING,
+  ], 'rbac');
 
   for (const key in WORKLOAD_TYPES) {
     componentForType(WORKLOAD_TYPES[key], WORKLOAD);
