@@ -40,7 +40,7 @@ export default {
 
     let username;
     let password;
-    let registryFQDN;
+    let registryURL;
     let registryProvider = 'Custom';
     let key;
     let crt;
@@ -50,16 +50,18 @@ export default {
 
       const { auths } = JSON.parse(json);
 
-      registryFQDN = Object.keys(auths)[0];
+      registryURL = Object.keys(auths)[0];
 
-      if (registryFQDN === 'index.dockerhub.io/v1/') {
+      if (registryURL === 'index.dockerhub.io/v1/') {
         registryProvider = 'DockerHub';
-      } else if (registryFQDN === 'quay.io') {
+      } else if (registryURL === 'quay.io') {
         registryProvider = 'Quay.io';
+      } else if (registryURL.includes('artifactory')) {
+        registryProvider = 'Artifactory';
       }
 
-      username = auths[registryFQDN].username;
-      password = auths[registryFQDN].password;
+      username = auths[registryURL].username;
+      password = auths[registryURL].password;
     }
 
     if (this.value._type === TLS) {
@@ -81,7 +83,7 @@ export default {
       registryProvider,
       username,
       password,
-      registryFQDN,
+      registryURL,
       toUpload:         null,
       key,
       crt,
@@ -93,7 +95,7 @@ export default {
       let dockerServer = this.registryProvider === 'DockerHub' ? 'index.dockerhub.io/v1/' : 'quay.io';
 
       if (this.needsDockerServer) {
-        dockerServer = this.registryFQDN;
+        dockerServer = this.registryURL;
       }
 
       if (this.isRegistry && dockerServer) {
@@ -217,7 +219,7 @@ export default {
         <RadioGroup label="Address:" :mode="mode" :options="registryAddresses" :value="registryProvider" @input="e=>registryProvider = e" />
       </div>
       <div v-if="needsDockerServer" class="row mb-20">
-        <LabeledInput v-model="registryFQDN" :label="t('secret.registry.domainName')" placeholder="e.g. index.docker.io" :mode="mode" />
+        <LabeledInput v-model="registryURL" :label="t('secret.registry.domainName')" placeholder="e.g. index.docker.io" :mode="mode" />
       </div>
       <div class="row mb-20">
         <div class="col span-6">
