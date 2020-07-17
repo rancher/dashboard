@@ -4,7 +4,6 @@ locale:
 
 product:
   apps: Manage Applications
-  access: Manage Access
   explorer: Cluster Explorer
   gatekeeper: OPA Gatekeeper
   mcm: Multi-Cluster Manager
@@ -40,6 +39,7 @@ header:
 nav:
   group:
     cluster: Cluster
+    rbac: RBAC
     storage: Storage
     serviceDiscovery: Service Discovery
     workload: Workload

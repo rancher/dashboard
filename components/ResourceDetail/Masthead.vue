@@ -73,9 +73,10 @@ export default {
     namespaceLocation() {
       if (!this.isNamespace) {
         return {
-          name:   'c-cluster-resource-id',
+          name:   'c-cluster-product-resource-id',
           params: {
             cluster:  this.$route.params.cluster,
+            product:  this.$store.getters['productId'],
             resource: NAMESPACE,
             id:       this.$route.params.namespace
           }

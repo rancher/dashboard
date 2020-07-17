@@ -67,7 +67,7 @@ export const actions = {
 
     state.queue = [];
 
-    // console.log('### Subscribe Flush', queue.length);
+    // console.debug('### Subscribe Flush', queue.length);
 
     for ( const { action, event, body } of queue ) {
       if ( action === 'dispatch' && event === 'load' ) {
@@ -102,27 +102,52 @@ export const actions = {
     }
   },
 
-  watchType({ dispatch, getters }, { type, revision }) {
+  watch({ dispatch, getters }, {
+    type, selector, id, revision
+  }) {
     type = getters.normalizeType(type);
 
-    if ( !getters.canWatch(type) || getters.watchStarted(type) ) {
+    if ( !getters.canWatch(type) ) {
+      return;
+    }
+
+    if ( getters.watchStarted({
+      type, id, selector
+    }) ) {
       return;
     }
 
     if ( typeof revision === 'undefined' ) {
-      revision = getters.nextResourceVersion(type);
+      revision = getters.nextResourceVersion(type, id);
     }
 
-    return dispatch('send', { resourceType: type, revision });
+    const msg = {
+      resourceType: type,
+      revision
+    };
+
+    if ( id ) {
+      msg.id = id;
+    }
+
+    if ( selector ) {
+      msg.selector = selector;
+    }
+
+    return dispatch('send', msg);
   },
 
-  watchHaveAllTypes({ state, dispatch }) {
+  reconnectWatches({
+    state, getters, commit, dispatch
+  }) {
     const promises = [];
-    const cache = state.types;
 
-    for ( const type in cache ) {
-      if ( cache[type].haveAll ) {
-        promises.push(dispatch('watchType', { type }));
+    for ( const entry of state.started.slice() ) {
+      console.info('Reconnect', entry.type, entry.id, entry.selector); // eslint-disable-line no-console
+      if ( getters.schemaFor(entry.type) ) {
+        commit('setWatchStopped', entry);
+        delete entry.revision;
+        promises.push(dispatch('watch', entry));
       }
     }
 
@@ -130,7 +155,7 @@ export const actions = {
   },
 
   async opened({ commit, dispatch, state }, event) {
-    console.log('WebSocket Opened'); // eslint-disable-line no-console
+    console.info('WebSocket Opened'); // eslint-disable-line no-console
     const socket = event.currentTarget;
 
     this.$socket = socket;
@@ -146,8 +171,7 @@ export const actions = {
     }
 
     if ( socket.hasReconnected ) {
-      console.log('Reconnect, re-watching types'); // eslint-disable-line no-console
-      await dispatch('watchHaveAllTypes');
+      await dispatch('reconnectWatches');
     }
 
     // Try resending any frames that were attempted to be sent while the socket was down, once.
@@ -160,12 +184,12 @@ export const actions = {
   },
 
   closed({ state }, event) {
-    console.log('WebSocket Closed'); // eslint-disable-line no-console
+    console.warn('WebSocket Closed'); // eslint-disable-line no-console
     clearInterval(state.queueTimer);
   },
 
   error({ state }, event) {
-    console.log('WebSocket Error', event); // eslint-disable-line no-console
+    console.error('WebSocket Error', event); // eslint-disable-line no-console
     clearInterval(state.queueTimer);
   },
 
@@ -184,16 +208,20 @@ export const actions = {
   },
 
   'ws.ping'() {
-    // console.log('WebSocket Ping');
+    // console.info('WebSocket Ping');
   },
 
   'ws.resource.start'({ commit }, msg) {
-    console.log('Resource start:', msg.resourceType); // eslint-disable-line no-console
-    commit('setWatchStarted', msg.resourceType);
+    console.info('Resource start:', msg.resourceType, msg.id, msg.selector); // eslint-disable-line no-console
+    commit('setWatchStarted', {
+      type:     msg.resourceType,
+      id:       msg.id,
+      selector: msg.selector
+    });
   },
 
   'ws.resource.error'({ commit }, msg) {
-    console.log('Resource error for', msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
+    console.info('Resource error for', msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
     const err = msg.data?.error?.toLowerCase();
 
     if ( err.includes('watch not allowed') ) {
@@ -205,22 +233,29 @@ export const actions = {
 
   'ws.resource.stop'({ getters, commit, dispatch }, msg) {
     const type = msg.resourceType;
+    const obj = {
+      type:     msg.resourceType,
+      id:       msg.id,
+      selector: msg.selector
+    };
 
-    console.log('Resource stop:', type); // eslint-disable-line no-console
+    console.warn('Resource stop:', type, msg.id, msg.selector); // eslint-disable-line no-console
 
-    if ( getters['schemaFor'](type) && getters['watchStarted'](type) ) {
+    if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
       // Try reconnecting once
-      commit('setWatchStopped', type);
+
+      commit('setWatchStopped', obj);
+
       setTimeout(() => {
         // Delay a bit so that immediate start/stop/error causes
         // only a slow infinite loop instead of a tight one.
-        dispatch('watchType', { type });
+        dispatch('watch', obj);
       }, 1000);
     }
   },
 
   'ws.resource.create'({ state }, { data }) {
-    // console.log('### Create Event', data.type, data.id);
+    // console.debug('### Create Event', data.type, data.id);
     state.queue.push({
       action: 'dispatch',
       event:  'load',
@@ -229,7 +264,7 @@ export const actions = {
   },
 
   'ws.resource.change'({ state }, { data }) {
-    // console.log('### Change Event', data.type, data.id);
+    // console.debug('### Change Event', data.type, data.id);
     state.queue.push({
       action: 'dispatch',
       event:  'load',
@@ -244,7 +279,7 @@ export const actions = {
       return;
     }
 
-    // console.log('### Remove Event', data.type, data.id);
+    // console.debug('### Remove Event', data.type, data.id);
     const obj = getters.byId(data.type, data.id);
 
     if ( obj ) {

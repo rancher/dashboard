@@ -88,6 +88,18 @@ export default {
     }
   },
 
+  loadSelector(state, {
+    type, entries, ctx, selector
+  }) {
+    const cache = registerType(state, type);
+
+    for ( const data of entries ) {
+      load(state, { data, ctx });
+    }
+
+    cache.haveSelector[selector] = true;
+  },
+
   loadAll(state, { type, data, ctx }) {
     if (!data) {
       return;
@@ -166,15 +178,41 @@ export default {
     removeObject(state.pendingSends, obj);
   },
 
-  setWatchStarted(state, type) {
-    addObject(state.started, type);
+  setWatchStarted(state, obj) {
+    const existing = state.started.find(entry => equivalentWatch(obj, entry));
+
+    if ( !existing ) {
+      addObject(state.started, obj);
+    }
   },
 
-  setWatchStopped(state, type) {
-    removeObject(state.started, type);
+  setWatchStopped(state, obj) {
+    const existing = state.started.find(entry => equivalentWatch(obj, entry));
+
+    if ( existing ) {
+      removeObject(state.started, existing);
+    } else {
+      console.warn("Tried to remove a watch that doesn't exist", obj); // eslint-disable-line no-console
+    }
   },
 
   addNoWatch(state, type) {
     state.noWatch.push(type);
   }
 };
+
+export function equivalentWatch(a, b) {
+  if ( a.type !== b.type ) {
+    return false;
+  }
+
+  if ( a.id !== b.id && (a.id || b.id) ) {
+    return false;
+  }
+
+  if ( a.selector !== b.selector && (a.selector || b.selector) ) {
+    return false;
+  }
+
+  return true;
+}

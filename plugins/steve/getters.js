@@ -1,8 +1,9 @@
 import { SCHEMA } from '@/config/types';
 import { COLLECTION_TYPES, PRIMITIVE_TYPES } from '@/config/schema';
+import { matches } from '@/utils/selector';
 import { normalizeType, keyFieldFor, KEY_FIELD_FOR } from './normalize';
 import urlOptions from './urloptions';
-import mutations from './mutations';
+import mutations, { equivalentWatch } from './mutations';
 
 export default {
   all: (state, getters) => (type) => {
@@ -16,6 +17,14 @@ export default {
     }
 
     return state.types[type].list;
+  },
+
+  matching: (state, getters) => (type, selector) => {
+    const all = getters['all'](type);
+
+    return all.filter((obj) => {
+      return matches(obj, selector);
+    });
   },
 
   byId: (state, getters) => (type, id) => {
@@ -153,7 +162,18 @@ export default {
     const entry = state.types[type];
 
     if ( entry ) {
-      return entry.haveAll;
+      return entry.haveAll || false;
+    }
+
+    return false;
+  },
+
+  haveSelector: (state, getters) => (type, selector) => {
+    type = getters.normalizeType(type);
+    const entry = state.types[type];
+
+    if ( entry ) {
+      return entry.haveSelector[selector] || false;
     }
 
     return false;
@@ -192,17 +212,25 @@ export default {
     return url;
   },
 
-  nextResourceVersion: (state, getters) => (type) => {
+  nextResourceVersion: (state, getters) => (type, id) => {
     type = normalizeType(type);
-
-    const cache = state.types[type];
     let revision = 0;
 
-    for ( const obj of cache.list ) {
-      if ( obj && obj.metadata ) {
-        const neu = parseInt(obj.metadata.resourceVersion, 10);
+    if ( id ) {
+      const existing = getters['byId'](type, id);
 
-        revision = Math.max(revision, neu);
+      revision = parseInt(existing?.metadata?.resourceVersion, 10);
+    }
+
+    if ( !revision ) {
+      const cache = state.types[type];
+
+      for ( const obj of cache.list ) {
+        if ( obj && obj.metadata ) {
+          const neu = parseInt(obj.metadata.resourceVersion, 10);
+
+          revision = Math.max(revision, neu);
+        }
       }
     }
 
@@ -217,7 +245,7 @@ export default {
     return !state.noWatch.includes(type);
   },
 
-  watchStarted: state => (type) => {
-    return state.started.includes(type);
+  watchStarted: state => (obj) => {
+    return !!state.started.find(entry => equivalentWatch(obj, entry));
   }
 };
