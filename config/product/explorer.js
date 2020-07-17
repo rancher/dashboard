@@ -49,6 +49,8 @@ export function init(store) {
     PV,
     PVC,
     STORAGE_CLASS,
+    SECRET,
+    CONFIG_MAP
   ], 'storage');
   basicType([
     WORKLOAD,
