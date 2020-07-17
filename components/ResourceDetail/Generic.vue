@@ -11,9 +11,6 @@
 import ResourceTabs from '@/components/form/ResourceTabs';
 import Tab from '@/components/Tabbed/Tab';
 import Conditions from '@/components/form/Conditions';
-import DetailTop from '@/components/DetailTop';
-import LinkDetail from '@/components/formatter/LinkDetail';
-import LiveDate from '@/components/formatter/LiveDate';
 import ResourceYaml from '@/components/ResourceYaml';
 import { get } from '@/utils/object';
 
@@ -22,9 +19,6 @@ export default {
     ResourceTabs,
     Tab,
     Conditions,
-    DetailTop,
-    LinkDetail,
-    LiveDate,
     ResourceYaml
   },
 
@@ -38,52 +32,7 @@ export default {
   },
 
   data() {
-    const { metadata:{ ownerReferences = [] } } = this.value;
-
-    const ownersByType = {};
-
-    // gather ownerrefs by 'kind' field
-    ownerReferences.forEach((owner) => {
-      if (!ownersByType[owner.kind]) {
-        ownersByType[owner.kind] = [owner];
-      } else {
-        ownersByType[owner.kind].push(owner);
-      }
-    });
-
-    return {
-      ownersByType, owners: [], yaml: ''
-    };
-  },
-
-  computed: {
-    detailTopColumns() {
-      const t = this.$store.getters['i18n/t'];
-
-      const out = [
-        {
-          title:   t('resourceDetail.detailTop.created'),
-          content: get(this.value, 'metadata.creationTimestamp'),
-          name:    'created'
-        }];
-
-      if (get(this.value, 'metadata.deletionTimestamp')) {
-        out.push( {
-          title:   t('resourceDetail.detailTop.deleted'),
-          content: get(this.value, 'metadata.deletionTimestamp'),
-          name:    'deleted'
-        });
-      }
-
-      if (this.owners.length) {
-        out.unshift({
-          title: t('resourceDetail.detailTop.ownerReferences'),
-          name:  'ownerReferences'
-        });
-      }
-
-      return out;
-    },
+    return { owners: [], yaml: '' };
   },
   mounted() {
     this.findOwners();
@@ -96,14 +45,14 @@ export default {
         all we have is api version, kind, and uid, but we can't query by uid :(
         find all of each kind of ownerref present, then find each specific ownerref by metadata.uid
       */
-      for ( const kind in this.ownersByType) {
+      for ( const kind in this.value.ownersByType) {
         const schema = this.$store.getters['cluster/schema'](kind);
 
         if (schema) {
           const type = schema.id;
           const allOfResourceType = await this.$store.dispatch('cluster/findAll', { type });
 
-          this.ownersByType[kind].forEach((resource, idx) => {
+          this.value.ownersByType[kind].forEach((resource, idx) => {
             const resourceInstance = allOfResourceType.filter(resource => resource?.metdata?.uid === resource.uid)[0];
 
             this.owners.push(resourceInstance);
@@ -126,17 +75,6 @@ export default {
 </script>
 <template>
   <div id="generic-container">
-    <DetailTop :columns="detailTopColumns">
-      <template #ownerReferences>
-        <LinkDetail v-for="owner in owners" :key="owner.id" :row="owner" :col="{}" :value="value.metadata.name" />
-      </template>
-      <template #created>
-        <LiveDate :value="get(value, 'metadata.creationTimestamp')" :add-suffix="true" />
-      </template>
-      <template #deleted>
-        <LiveDate :value="get(value, 'metadata.deletionTimestamp')" :add-suffix="true" />
-      </template>
-    </DetailTop>
     <div class="spacer"></div>
     <div id="yaml-container">
       <h2>

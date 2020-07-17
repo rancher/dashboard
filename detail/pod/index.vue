@@ -1,10 +1,7 @@
 <script>
 import { NODE } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
-import DetailTop from '@/components/DetailTop';
 import ResourceTabs from '@/components/form/ResourceTabs';
-import LinkDetail from '@/components/formatter/LinkDetail';
-import LiveDate from '@/components/formatter/LiveDate';
 import SortableTable from '@/components/SortableTable';
 import Networking from '@/components/form/Networking';
 import Tab from '@/components/Tabbed/Tab';
@@ -17,10 +14,8 @@ export default {
 
   name:       'PodDetail',
   components: {
-    DetailTop,
+
     ResourceTabs,
-    LinkDetail,
-    LiveDate,
     SortableTable,
     Tab,
     Networking,
@@ -44,31 +39,6 @@ export default {
   },
 
   computed:   {
-    detailTopColumns() {
-      return [
-        {
-          title:   'Workload',
-          name:  'workload'
-        },
-        {
-          title:   'Pod IP',
-          content: this.value.status.podIP
-        },
-        {
-          title: 'Node',
-          name:  'node'
-        },
-        {
-          title:   'Pod Restarts',
-          content: (this.value?.status?.containerStatuses || [])[0]?.restartCount
-        },
-        {
-          title:   'Created',
-          name:  'created'
-        }
-      ];
-    },
-
     containerHeaders() {
       return [
         {
@@ -151,18 +121,6 @@ export default {
   <Loading v-if="$fetchState.pending" />
 
   <div v-else>
-    <DetailTop :columns="detailTopColumns">
-      <template #node>
-        <LinkDetail v-if="node" :row="node" :value="node.metadata.name" />
-      </template>
-      <template #workload>
-        <LinkDetail v-if="workload" :row="workload" :value="workload.metadata.name" />
-      </template>
-      <template #created>
-        <LiveDate :value="value.metadata.creationTimestamp" :add-suffix="true" />
-      </template>
-    </DetailTop>
-
     <div class="spacer" />
 
     <div>

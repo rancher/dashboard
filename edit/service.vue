@@ -2,19 +2,17 @@
 import { isEmpty, find, isNaN } from 'lodash';
 import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
-import DetailTop from '@/components/DetailTop';
 import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import LiveDate from '@/components/formatter/LiveDate';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import ServicePorts from '@/components/form/ServicePorts';
 import Tab from '@/components/Tabbed/Tab';
 import UnitInput from '@/components/form/UnitInput';
-import { DEFAULT_SERVICE_TYPES } from '@/models/service';
+import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service';
 import { ucFirst } from '@/utils/string';
 import Banner from '@/components/Banner';
 
@@ -30,18 +28,6 @@ const SESSION_AFFINITY_ACTION_LABELS = {
 
 const SESSION_STICKY_TIME_DEFAULT = 10800;
 
-const HEADLESS = (() => {
-  const headless = find(DEFAULT_SERVICE_TYPES, ['id', 'Headless']);
-
-  return headless.id;
-})();
-
-const CLUSTERIP = (() => {
-  const clusterIp = find(DEFAULT_SERVICE_TYPES, ['id', 'ClusterIP']);
-
-  return clusterIp.id;
-})();
-
 export default {
   // Props are found in CreateEditView
   // props: {},
@@ -49,12 +35,10 @@ export default {
   components: {
     ArrayList,
     Banner,
-    DetailTop,
     Footer,
     KeyValue,
     LabeledInput,
     LabeledSelect,
-    LiveDate,
     NameNsDescription,
     RadioGroup,
     ResourceTabs,
@@ -90,20 +74,6 @@ export default {
   computed: {
     extraColumns() {
       return ['type-col'];
-    },
-
-    detailTopColumns() {
-      return [
-        {
-          title:   this.$store.getters['i18n/t']('generic.type'),
-          content: this.serviceType,
-          name:    'type',
-        },
-        {
-          title: this.$store.getters['i18n/t']('generic.created'),
-          name:  'created'
-        },
-      ];
     },
 
     serviceType: {
@@ -183,14 +153,6 @@ export default {
 
 <template>
   <div>
-    <DetailTop v-if="isView" :columns="detailTopColumns">
-      <template v-slot:created>
-        <LiveDate
-          :value="value.metadata.creationTimestamp"
-          :add-suffix="true"
-        />
-      </template>
-    </DetailTop>
     <form>
       <NameNsDescription
         v-if="!isView"

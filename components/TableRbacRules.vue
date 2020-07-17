@@ -28,7 +28,7 @@ export default {
      * Returns mutated rows with human readable values for resources, apiGroups and nonResourceURLs
      */
     filteredRows() {
-      const { rules } = this.role;
+      const rules = this.role?.rules || [];
 
       return rules.map((rule) => {
         const parsedVerbs = parseVerbs(rule.verbs || []);

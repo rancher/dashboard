@@ -291,6 +291,7 @@ resourceDetail:
     clone: "Clone from {type}: {name}"
     stage: "Stage from {type}: {name}"
   masthead:
+    age: "Age"
     namespace: "Namespace"
     project: "Project"
     yaml: "YAML"
@@ -302,6 +303,13 @@ resourceDetail:
     created: Created
     deleted: Deleted
     ownerReferences: Owner References
+    description: Description
+    labels: Labels
+    annotations: Annotations
+    showAnnotations: |
+      {annotations, plural,
+      =1 {Show annotation}
+      other {Show {annotations} annotations}}
 
 resourceTable:
   groupLabel:
@@ -574,6 +582,11 @@ secret:
     domainName: Registry Domain Name
 
 workload:
+  detailTop:
+    workload: Workload
+    podIP: Pod IP
+    node: Node
+    podRestarts: Pod Restarts
   tabs:
     networking: Networking
     scheduling: Scheduling

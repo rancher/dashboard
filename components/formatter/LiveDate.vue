@@ -21,6 +21,10 @@ export default {
       type:    String,
       default: 'ago',
     },
+    tooltipPlacement: {
+      type:    String,
+      default: 'auto'
+    }
   },
 
   data() {
@@ -119,7 +123,7 @@ export default {
 </script>
 
 <template>
-  <span v-tooltip="title">
+  <span v-tooltip="{content: title, placement: tooltipPlacement}">
     {{ suffixedLabel }}
   </span>
 </template>

@@ -5,12 +5,9 @@ import { DESCRIPTION } from '@/config/labels-annotations';
 import { _VIEW, _EDIT } from '@/config/query-params';
 import LabeledInput from '@/components/form/LabeledInput';
 import InputWithSelect from '@/components/form/InputWithSelect';
-import DetailTop from '@/components/DetailTop';
 
 export default {
-  components:   {
-    DetailTop, LabeledInput, InputWithSelect
-  },
+  components: { LabeledInput, InputWithSelect },
 
   props: {
     value: {
@@ -26,10 +23,6 @@ export default {
       default: true,
     },
     extraColumns: {
-      type:    Array,
-      default: () => []
-    },
-    detailTopColumns: {
       type:    Array,
       default: () => []
     },
@@ -134,8 +127,7 @@ export default {
 
 <template>
   <div>
-    <DetailTop v-if="isView" :columns="detailTopColumns" />
-    <div v-else class="row mb-20">
+    <div class="row mb-20">
       <div :class="{col: true, [colSpan]: true}">
         <slot name="namespace">
           <InputWithSelect

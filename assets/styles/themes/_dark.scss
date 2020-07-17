@@ -99,12 +99,15 @@
   --sortable-table-selected-bg : #{$selected};
   --sortable-table-group-label : #{$lighter};
 
+  --tag-primary                : #{$primary};
+  --tag-bg                     : #{darken($primary, 35%)};
+
   --popover-bg                 : var(--body-bg);
   --popover-border             : var(--border);
   --popover-text               : var(--body-text);
-  --tooltip-bg                 : #{$primary};
-  --tooltip-border             : var(--border);
-  --tooltip-text               : var(--body-text);
+  --tooltip-bg                 : var(--tag-bg);
+  --tooltip-border             : var(--tag-primary);
+  --tooltip-text               : var(--tag-primary);
 
   --tabbed-border              : #{$medium};
   --tabbed-container-bg        : #{$darkest};

@@ -306,8 +306,7 @@ export default {
 
     HEADER {
       display: grid;
-      grid-template-areas:  "breadcrumbs breadcrumbs"
-                            "title actions"
+      grid-template-areas:  "title actions"
                             "state-banner state-banner";
       grid-template-columns: "auto min-content";
       margin-bottom: 20px;

@@ -4,8 +4,6 @@ import { get } from '@/utils/object';
 import InfoBoxCluster from '@/components/InfoBoxCluster';
 import InfoBox from '@/components/InfoBox';
 import SortableTable from '@/components/SortableTable';
-import DetailTop from '@/components/DetailTop';
-import ClusterDisplayProvider from '@/components/ClusterDisplayProvider';
 import { APP_ID as GATEKEEPER_APP_ID } from '@/config/product/gatekeeper';
 import { allHash } from '@/utils/promise';
 import Poller from '@/utils/poller';
@@ -32,8 +30,6 @@ const MAX_FAILURES = 2;
 
 export default {
   components: {
-    DetailTop,
-    ClusterDisplayProvider,
     InfoBox,
     InfoBoxCluster,
     SortableTable
@@ -146,36 +142,6 @@ export default {
   },
 
   computed: {
-    detailTopColumns() {
-      const out = [];
-
-      if ( this.haveNodeTemplates && this.haveNodePools ) {
-        out.push({
-          title:   this.$store.getters['i18n/t']('infoBoxCluster.provider'),
-          name:    'cluster-provider',
-        });
-      }
-
-      out.push({
-        title:   this.$store.getters['i18n/t']('infoBoxCluster.version'),
-        content: this.cluster.kubernetesVersion
-      });
-
-      if ( this.haveNodes ) {
-        out.push({
-          title:   this.$store.getters['i18n/t']('infoBoxCluster.nodes.total.label'),
-          content: ( this.nodes || [] ).length
-        });
-      }
-
-      out.push({
-        title:   this.$store.getters['i18n/t']('infoBoxCluster.created'),
-        name:    'live-date',
-      });
-
-      return out;
-    },
-
     filteredNodes() {
       const allNodes = this.nodes || [];
 
@@ -297,14 +263,6 @@ export default {
         </div>
       </div>
     </header>
-    <DetailTop :columns="detailTopColumns" class="mb-20">
-      <template v-slot:cluster-provider>
-        <ClusterDisplayProvider :cluster="cluster" :node-templates="nodeTemplates" :node-pools="nodePools" />
-      </template>
-      <template v-slot:live-date>
-        <LiveDate :value="cluster.metadata.creationTimestamp" :add-suffix="true" />
-      </template>
-    </DetailTop>
     <InfoBoxCluster
       v-if="nodes.length"
       :cluster="cluster"

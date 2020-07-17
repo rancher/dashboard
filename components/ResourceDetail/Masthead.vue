@@ -1,14 +1,14 @@
 <script>
 import { PROJECT } from '@/config/labels-annotations';
-import BreadCrumbs from '@/components/BreadCrumbs';
 import { NAMESPACE, EXTERNAL } from '@/config/types';
 import ButtonGroup from '@/components/ButtonGroup';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
+import { get } from '@/utils/object';
 
 export default {
   components: {
-    BadgeState, Banner, BreadCrumbs, ButtonGroup
+    BadgeState, Banner, ButtonGroup
   },
   props:      {
     value: {
@@ -28,11 +28,6 @@ export default {
       default: 'create'
     },
 
-    doneRoute: {
-      type:    String,
-      default: ''
-    },
-
     asYaml: {
       type:    Boolean,
       default: false
@@ -41,6 +36,11 @@ export default {
     hasDetailOrEdit: {
       type:    Boolean,
       default: false
+    },
+
+    parentOverride: {
+      type:    Object,
+      default: null
     }
   },
 
@@ -115,9 +115,24 @@ export default {
       }
 
       return null;
+    },
+    parent() {
+      if (this.parentOverride) {
+        return this.parentOverride;
+      }
+
+      const schema = this.$store.getters['cluster/schemaFor'](this.value.type);
+      const displayName = this.$store.getters['type-map/singularLabelFor'](schema);
+      const location = {
+        name:   'c-cluster-product-resource',
+        params: { resource: this.value.type }
+      };
+
+      return { displayName, location };
     }
   },
   methods: {
+    get,
     showActions() {
       this.$store.commit('action-menu/show', {
         resources: this.value,
@@ -136,17 +151,21 @@ export default {
 
 <template>
   <header class="masthead">
-    <BreadCrumbs class="breadcrumbs" />
     <div>
       <div class="primaryheader">
-        <h1 v-html="h1" />
-        <BadgeState v-if="value.highlightBadge" class="highlight-badge" :value="value.highlightBadge" />
+        <h1>
+          <nuxt-link :to="parent.location">
+            {{ parent.displayName }}:
+          </nuxt-link>
+          <span class="title" v-html="h1" />
+        </h1>
+        <BadgeState v-if="mode==='view'" :value="value" />
       </div>
       <!-- //TODO use  nuxt-link for an internal project detail page once it exists -->
       <div v-if="mode==='view'" class="subheader">
-        <span v-if="isNamespace && project"><t k="resourceDetail.masthead.project" />: {{ project.nameDisplay }}</span>
-        <span v-else-if="namespace"><t k="resourceDetail.masthead.namespace" />: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
-        <span v-if="value.description">{{ value.description }}</span>
+        <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: {{ project.nameDisplay }}</span>
+        <span v-else-if="namespace">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
+        <span>{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="get(value, 'metadata.creationTimestamp')" /></span>
       </div>
     </div>
     <slot name="right">
@@ -174,21 +193,28 @@ export default {
 
       h1 {
         margin-right: 8px;
+        .title {
+          margin-left: -10px;
+        }
       }
 
-      .highlight-badge {
-        margin-top: 2px;
-        padding: 5px 8px 3px 8px;
-        font-size: 12px;
+      .badge-state {
+        margin-top: 4px;
+        padding: 2px 14px 1px 14px;
+        font-size: 10px;
       }
     }
 
     .subheader{
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       color: var(--input-label);
       & > * {
-        margin: 5px 5px 5px 0px;
+        margin: 5px 20px 5px 0px;
+      }
+
+      .live-date {
+        color: var(--body-text)
       }
     }
 

@@ -8,8 +8,9 @@ import {
 } from '@/config/query-params';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
+import Masthead from '@/components/ResourceDetail/Masthead';
+import DetailTop from '@/components/DetailTop';
 import GenericResourceDetail from './Generic';
-import Masthead from './Masthead';
 
 // Components can't have asyncData, only pages.
 // So you have to call this in the page and pass it in as a prop.
@@ -137,6 +138,7 @@ export async function defaultAsyncData(ctx, resource) {
     originalModel,
     mode,
     realMode,
+    value: model
   };
   /*******
    * Important: these need to be declared below as props too if you want to use them
@@ -149,9 +151,9 @@ export const watchQuery = [MODE, AS_YAML];
 
 export default {
   components: {
-    ResourceYaml, Masthead, GenericResourceDetail
+    DetailTop, ResourceYaml, Masthead, GenericResourceDetail
   },
-  mixins: { CreateEditView },
+  mixins: [CreateEditView],
 
   props: {
     hasCustomDetail: {
@@ -225,27 +227,6 @@ export default {
       return [_EDIT, _CLONE, _STAGE].includes(this.mode);
     },
 
-    doneRoute() {
-      let name = this.$route.name;
-
-      if ( name.endsWith('-id') ) {
-        name = name.replace(/(-namespace)?-id$/, '');
-      } else if ( name.endsWith('-create') ) {
-        name = name.replace(/-create$/, '');
-      }
-
-      return name;
-    },
-
-    doneParams() {
-      const out = { ...this.$route.params };
-
-      delete out.namespace;
-      delete out.id;
-
-      return out;
-    },
-
     showComponent() {
       if ( this.isView ) {
         if (this.hasCustomDetail) {
@@ -260,7 +241,7 @@ export default {
       }
 
       return null;
-    },
+    }
   },
 
   watch: {
@@ -287,7 +268,6 @@ export default {
     <Masthead
       :value="originalModel"
       :mode="mode"
-      :done-route="doneRoute"
       :real-mode="realMode"
       :as-yaml.sync="asYaml"
       :has-detail-or-edit="(hasCustomDetail || hasCustomEdit)"
@@ -300,6 +280,7 @@ export default {
         </div>
       </template>
     </Masthead>
+    <DetailTop v-if="isView" :details="originalModel.details" :description="originalModel.description" :labels="originalModel.labels" :annotations="originalModel.annotations" />
     <template v-if="asYaml">
       <ResourceYaml
         ref="resourceyaml"

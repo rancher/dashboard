@@ -1,34 +1,10 @@
-import omitBy from 'lodash/omitBy';
 import pickBy from 'lodash/pickBy';
 import isArray from 'lodash/isArray';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
 import { LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';
+import { matchesSomePrefix, containsSomeString } from '@/utils/string';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
-
-// return true if the string starts with one of the values in prefixes array
-const matchesSomePrefix = (string, prefixes) => {
-  for (const prefix of prefixes) {
-    const regex = new RegExp(`^${ prefix }`);
-
-    if (string.match(regex)) {
-      return true;
-    }
-  }
-
-  return false;
-};
-
-// return true if string includes at least one of the strings in matchStrings array
-const containsSomeString = (string, matchStrings) => {
-  for (const matchString of matchStrings) {
-    if (string.includes(matchString)) {
-      return true;
-    }
-  }
-
-  return false;
-};
 
 export default {
   mixins: [ChildHook],
@@ -46,15 +22,6 @@ export default {
 
     originalValue: {
       type:     Object,
-      default: null,
-    },
-
-    doneRoute: {
-      type:    String,
-      default: null
-    },
-    doneParams: {
-      type:    Object,
       default: null,
     },
   },
@@ -109,11 +76,7 @@ export default {
 
     labels: {
       get() {
-        const all = this.value?.metadata?.labels || {};
-
-        return omitBy(all, (value, key) => {
-          return matchesSomePrefix(key, this.labelPrefixToIgnore);
-        });
+        return this.value?.labels;
       },
       set(neu) {
         const all = this.value?.metadata?.labels || {};
@@ -128,11 +91,7 @@ export default {
 
     annotations: {
       get() {
-        const all = this.value?.metadata?.annotations || {};
-
-        return omitBy(all, (value, key) => {
-          return (matchesSomePrefix(key, this.annotationsToIgnorePrefix) || containsSomeString(key, this.annotationsToIgnoreContains));
-        });
+        return this.value?.annotations;
       },
       set(neu) {
         const all = this.value?.metadata?.annotations || {};
@@ -143,19 +102,41 @@ export default {
 
         this.$set(this.value.metadata, 'annotations', { ...neu, ...wasIgnored });
       }
-    }
+    },
+
+    doneRoute() {
+      let name = this.$route.name;
+
+      if ( name.endsWith('-id') ) {
+        name = name.replace(/(-namespace)?-id$/, '');
+      } else if ( name.endsWith('-create') ) {
+        name = name.replace(/-create$/, '');
+      }
+
+      return name;
+    },
+
+    doneParams() {
+      const out = { ...this.$route.params };
+
+      delete out.namespace;
+      delete out.id;
+
+      return out;
+    },
 
   },
 
   methods: {
-    change(value) {
-      this.$emit('input', value);
-    },
-
     done() {
+      if ( this.doneLocationOverride) {
+        return this.$router.replace(this.doneLocationOverride);
+      }
+
       if ( !this.doneRoute ) {
         return;
       }
+
       this.$router.replace({
         name:   this.doneRoute,
         params: this.doneParams || { resource: this.value.type }

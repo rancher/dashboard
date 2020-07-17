@@ -91,7 +91,7 @@ export default {
 </script>
 <template>
   <form>
-    <NameNsDescription :value="value" :mode="mode" />
+    <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
     <div class="spacer"></div>
     <div class="row">
       <div class="col span-12">

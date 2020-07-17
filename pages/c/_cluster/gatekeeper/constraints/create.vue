@@ -81,9 +81,6 @@ export default {
 
 <template>
   <div>
-    <header>
-      <h1>Constraint</h1>
-    </header>
     <div
       v-if="editAsYaml"
     >

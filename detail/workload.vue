@@ -1,22 +1,20 @@
 <script>
+import createEditView from '@/mixins/create-edit-view';
 import { get } from '@/utils/object';
 import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
 import { POD, WORKLOAD_TYPES } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
-import DetailTop from '@/components/DetailTop';
 import CRUWorkload from '@/edit/workload';
-import Date from '@/components/formatter/Date';
 import { allHash } from '@/utils/promise';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
 
 export default {
   components: {
     CRUWorkload,
-    DetailTop,
-    Date,
     ResourceTable,
     WorkloadPorts,
   },
+  mixins: [createEditView],
   props:      {
     value: {
       type:    Object,
@@ -150,39 +148,6 @@ export default {
       }, 0);
     },
 
-    detailTopColumns() {
-      return [
-        {
-          title:   'Image',
-          content: this.container.image
-        },
-        {
-          title:   'Type',
-          content:  this.value._type ? this.value._type : this.value.type
-        },
-        {
-          title:    'Config Scale',
-          content:  get(this.value, 'spec.replicas'),
-          fallback: 0
-
-        },
-        {
-          title:    'Ready Scale',
-          content:  get(this.value, 'status.readyReplicas'),
-          fallback: 0
-        },
-        {
-          title:    'Pod Restarts',
-          content:  this.podRestarts,
-          fallback: 0
-        },
-        {
-          title:   'Created',
-          name:  'created'
-        },
-      ];
-    },
-
     podTemplateSpec() {
       return get(this.value, 'spec.template.spec') || {};
     },
@@ -232,11 +197,6 @@ export default {
 <template>
   <CRUWorkload :value="value" :mode="mode">
     <template v-if="mode==='view'" #top>
-      <DetailTop :columns="detailTopColumns">
-        <template v-slot:created>
-          <Date :value="value.metadata.creationTimestamp" />
-        </template>
-      </DetailTop>
       <div class="row mt-20">
         <WorkloadPorts :value="container.ports" mode="view" />
       </div>
