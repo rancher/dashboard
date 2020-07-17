@@ -351,6 +351,9 @@ export default {
 
     applyTableAction(action, args = {}, event) {
       if (isAlternate(event)) {
+        if (!args) {
+          args = {};
+        }
         args.alt = true;
       }
       this.$store.dispatch(`${ this.storeName }/executeTable`, { action, args });
