@@ -720,14 +720,20 @@ export default {
   },
 
   remove() {
-    return (opt = {}) => {
+    return async(opt = {}) => {
       if ( !opt.url ) {
         opt.url = (this.links || {})['self'];
       }
 
       opt.method = 'delete';
 
-      return this.$dispatch('request', opt);
+      const res = await this.$dispatch('request', opt);
+
+      if ( res?._status === 204 ) {
+        // If there's no body, assume the resource was immediately deleted
+        // and drop it from the store as if a remove event happened.
+        this.$dispatch('ws.resource.remove', { data: this });
+      }
     };
   },
 
