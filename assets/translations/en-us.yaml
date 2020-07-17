@@ -557,6 +557,7 @@ resourceYaml:
 resourceList:
   head:
     create: Create
+    createResource: Create {resourceName}
     createFromYaml: Create from YAML
 
 resourceTabs:
@@ -653,14 +654,14 @@ workload:
       hostIPC: "Use Host IPC Namespace"
       sysctls: Sysctls
       sysctlsKey: 'Name'
-  networking: 
+  networking:
     networkMode:
       label: Network Mode
       placeholder: Select a Mode...
-      options: 
+      options:
         normal: Normal
         hostNetwork: Host Network
-    dnsPolicy: 
+    dnsPolicy:
       label: DNS Policy
       placeholder: Select a Policy...
       options:
@@ -671,19 +672,19 @@ workload:
     hostname:
       label: Hostname
       placeholder: e.g. web
-    subdomain: 
+    subdomain:
       label: Subdomain
       placeholder: e.g. web
-    nameservers: 
+    nameservers:
       label: DNS Nameservers
       placeholder: e.g. 1.1.1.1
       add: Add Nameserver
-    searches: 
+    searches:
       label: DNS Search Domains
       placeholder: e.g. mycompany.com
       add: Add Search Domain
     resolver: DNS Resolver Options
-    hostAliases: 
+    hostAliases:
       label: Host Aliases
       tip: Additional /etc/hosts entries to be injected in the container.
       keyLabel: IP Address
