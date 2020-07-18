@@ -51,7 +51,7 @@ export default {
 
     h1() {
       const out = this.$store.getters['i18n/t'](`resourceDetail.header.${ this.realMode }`, {
-        type: this.$store.getters['type-map/singularLabelFor'](this.schema),
+        type: this.$store.getters['type-map/labelFor'](this.schema),
         name: this.value.nameDisplay,
       });
 
@@ -123,7 +123,7 @@ export default {
       }
 
       const schema = this.$store.getters['cluster/schemaFor'](this.value.type);
-      const displayName = this.$store.getters['type-map/singularLabelFor'](schema);
+      const displayName = this.$store.getters['type-map/labelFor'](schema);
       const location = {
         name:   'c-cluster-product-resource',
         params: { resource: this.value.type }

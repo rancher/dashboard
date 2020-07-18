@@ -90,7 +90,7 @@ export default {
         return '?';
       }
 
-      return this.$store.getters['type-map/pluralLabelFor'](this.schema);
+      return this.$store.getters['type-map/labelFor'](this.schema, 99);
     },
 
     isCreatable() {

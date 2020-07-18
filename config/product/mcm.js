@@ -16,10 +16,9 @@ export function init(store) {
     externalLink = `https://localhost:8000${ externalLink }`;
   }
 
-  if ( store.getters['isRancher'] ) {
-    product({
-      removable: false,
-      externalLink
-    });
-  }
+  product({
+    ifGetter:  'isRancher',
+    removable: false,
+    externalLink,
+  });
 }

@@ -181,7 +181,7 @@ export default {
     const schema = this.schema;
 
     if ( schema ) {
-      return this.$rootGetters['type-map/singularLabelFor'](schema);
+      return this.$rootGetters['type-map/labelFor'](schema);
     }
 
     return '?';
@@ -767,8 +767,8 @@ export default {
       params: {
         product:   this.$rootGetters['productId'],
         resource:  this.type,
-        namespace: this.metadata && this.metadata.namespace,
-        id:        this.metadata.name
+        namespace: this.metadata?.namespace,
+        id:        this.id
       }
     };
   },

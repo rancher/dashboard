@@ -68,13 +68,6 @@ export default {
         { value: 'namespace', icon: 'icon-list-grouped' }
       ];
     },
-
-    pagingParams() {
-      return {
-        singularLabel: this.$store.getters['type-map/singularLabelFor'](this.schema),
-        pluralLabel:   this.$store.getters['type-map/pluralLabelFor'](this.schema),
-      };
-    },
   },
 };
 </script>
@@ -86,7 +79,6 @@ export default {
     :rows="rows"
     :group-by="groupBy"
     :paging="true"
-    :paging-params="pagingParams"
     paging-label="sortableTable.paging.resource"
     key-field="_key"
     v-on="$listeners"

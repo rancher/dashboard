@@ -19,7 +19,6 @@ export function init(store) {
     product,
     basicType,
     ignoreType,
-    mapType,
     mapGroup,
     weightGroup,
     headers,
@@ -73,8 +72,6 @@ export function init(store) {
   ignoreType('events.k8s.io.event'); // Old, moved into core
   ignoreType('extensions.ingress'); // Old, moved into networking
 
-  mapType('endpoints', 'Endpoint'); // Bad plural
-
   mapGroup(/^(core)?$/, 'Core');
   mapGroup('apps', 'Apps');
   mapGroup('batch', 'Batch');
@@ -92,7 +89,7 @@ export function init(store) {
   mapGroup(/^(.*\.)?longhorn(\.rancher)?\.io$/, 'Longhorn');
   mapGroup(/^(.*\.)?fleet\.cattle\.io$/, 'Fleet');
   mapGroup(/^(.*\.)?(helm|upgrade|k3s)\.cattle\.io$/, 'k3s');
-  mapGroup(/^(project|management)\.cattle\.io$/, 'Rancher');
+  mapGroup(/^(catalog|project|management)\.cattle\.io$/, 'Rancher');
   mapGroup(/^(.*\.)?istio\.io$/, 'Istio');
   mapGroup('split.smi-spec.io', 'SMI');
   mapGroup(/^(.*\.)*knative\.(io|dev)$/, 'Knative');

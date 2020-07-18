@@ -261,6 +261,7 @@ module.exports = {
     '/v3':        proxyWsOpts(api), // Rancher API
     '/v3-public': proxyOpts(api), // Rancher Unauthed API
     '/api-ui':    proxyOpts(api), // Browser API UI
+    '/meta':      proxyOpts(api), // Browser API UI
   },
 
   // Nuxt server

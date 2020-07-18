@@ -33,9 +33,6 @@ suffix:
   cpus: CPUs
   seconds: Seconds
 
-header:
-  backToRancher: "← Back to Rancher"
-
 nav:
   group:
     cluster: Cluster
@@ -355,11 +352,6 @@ sortableTable:
       =0 {No {pluralLabel}}
       =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
       other {{from} - {to} of {count} {pluralLabel}}}
-    workload: |
-      {pages, plural,
-      =0 {No Workloads}
-      =1 {{count} {count, plural, =1 {Workload} other {Workloads}}}
-      other {{from} - {to} of {count} Workloads}}
 
 configmapPage:
   data:
@@ -882,3 +874,15 @@ model:
     displayKind:
       generic: Service
       loadBalancer: L4 Balancer
+
+typeLabel:
+  helmrelease: |
+    {count, plural,
+      one { Application }
+      other { Applications }
+    }
+  endpoints: |
+    {count, plural,
+      one { Endpoint }
+      other { Endpoints }
+    }

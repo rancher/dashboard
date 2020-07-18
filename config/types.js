@@ -67,7 +67,12 @@ export const METRIC = {
   POD:  'metrics.k8s.io.podmetrics',
 };
 
-export const HELM = { RELEASE: 'helmrelease' };
+export const CATALOG = {
+  RELEASE:      'helmrelease',
+  CLUSTER_REPO: 'catalog.cattle.io.clusterrepo',
+  REPO:         'catalog.cattle.io.repo',
+  OPERATION:    'catalog.cattle.io.operation',
+};
 
 // --------------------------------------
 // 2. Only if Rancher is installed

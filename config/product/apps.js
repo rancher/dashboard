@@ -1,5 +1,5 @@
 import { DSL } from '@/store/type-map';
-import { HELM } from '@/config/types';
+import { CATALOG } from '@/config/types';
 
 export const NAME = 'apps';
 
@@ -10,11 +10,10 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    removable:  false,
-    ifHaveType: HELM.RELEASE,
+    removable:           false,
+    showNamespaceFilter: true,
+    ifHaveGroup:         'catalog.cattle.io'
   });
 
-  basicType([
-    HELM.RELEASE
-  ]);
+  basicType(CATALOG);
 }

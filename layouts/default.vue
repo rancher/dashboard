@@ -110,9 +110,7 @@ export default {
   created() {
     this.queueUpdate = debounce(this.getGroups, 500);
 
-    if ( process.server ) {
-      this.getGroups();
-    }
+    this.getGroups();
   },
 
   methods: {

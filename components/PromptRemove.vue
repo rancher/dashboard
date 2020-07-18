@@ -32,11 +32,7 @@ export default {
         return `resource${ this.toRemove.length === 1 ? '' : 's' }`;
       }
 
-      if ( this.toRemove.length > 1 ) {
-        return this.$store.getters['type-map/pluralLabelFor'](schema).toLowerCase();
-      } else {
-        return this.$store.getters['type-map/singularLabelFor'](schema).toLowerCase();
-      }
+      return this.$store.getters['type-map/labelFor'](schema, this.toRemove.length);
     },
 
     selfLinks() {

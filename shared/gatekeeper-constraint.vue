@@ -131,7 +131,7 @@ export default {
     },
     parentOverride() {
       const schema = this.$store.getters['cluster/schemaFor'](this.value.type);
-      const displayName = this.$store.getters['type-map/singularLabelFor'](schema);
+      const displayName = this.$store.getters['type-map/labelFor'](schema);
       const location = { name: 'c-cluster-gatekeeper-constraints' };
 
       return { displayName, location };
