@@ -762,13 +762,15 @@ export default {
   detailLocation() {
     const schema = this.$getters['schemaFor'](this.type);
 
+    const id = this.id.replace(/.*\//, '');
+
     return {
       name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
       params: {
         product:   this.$rootGetters['productId'],
         resource:  this.type,
         namespace: this.metadata?.namespace,
-        id:        this.id
+        id,
       }
     };
   },
