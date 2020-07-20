@@ -33,3 +33,8 @@ export const ANNOTATIONS_TO_IGNORE_CONTAINS = [
 export const ANNOTATIONS_TO_IGNORE_PREFIX = [
   DESCRIPTION
 ];
+
+export const ANNOTATIONS_TO_FOLD = [
+  /^kubectl\.kubernetes\.io\/.*$/,
+  /^objectset\.rio\.cattle\.io\/.*$/,
+];

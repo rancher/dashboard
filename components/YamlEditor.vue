@@ -75,6 +75,14 @@ export default {
             cm.indentSelection('subtract');
           }
         },
+        // @TODO find a better way to display the outline
+        // foldOptions: {
+        //   widget: (from, to) => {
+        //     const count = to.line - from.line;
+
+        //     return count ? `\u21A4${ count }\u21A6` : '\u2194';
+        //   }
+        // }
       };
     },
     isPreview() {

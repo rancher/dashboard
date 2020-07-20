@@ -86,7 +86,7 @@
 import { sortBy } from '@/utils/sort';
 import { get, clone } from '@/utils/object';
 import { isArray, findBy, addObject, removeObject, insertAt } from '@/utils/array';
-import { escapeRegex, ucFirst, escapeHtml } from '@/utils/string';
+import { escapeRegex, ucFirst, escapeHtml, ensureRegex } from '@/utils/string';
 import { SCHEMA, COUNT } from '@/config/types';
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
 import { FAVORITE_TYPES, EXPANDED_GROUPS } from '@/store/prefs';
@@ -1139,14 +1139,6 @@ function _addMapping(mappings, match, replace, weight, continueOnMatch) {
 
 // Regexes can't be represented in state because they don't serialize to JSON..
 const regexCache = {};
-
-function ensureRegex(strOrRegex) {
-  if ( typeof strOrRegex === 'string' ) {
-    return new RegExp(`^${ escapeRegex(strOrRegex) }$`, 'i');
-  }
-
-  return strOrRegex;
-}
 
 function regexToString(regex) {
   return regex.source;
