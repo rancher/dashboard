@@ -1,4 +1,6 @@
 <script>
+import jsyaml from 'js-yaml';
+import merge from 'lodash/merge';
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -8,6 +10,10 @@ import { CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { sortBy } from '@/utils/sort';
 import { defaultAsyncData } from '@/components/ResourceDetail';
+import { CLUSTER_REPO, REPO, CHART, VERSION } from '@/config/query-params';
+import { findBy } from '@/utils/array';
+import { addParams } from '@/utils/url';
+import YamlEditor from '@/components/YamlEditor';
 
 export default {
   name: 'EditRelease',
@@ -15,6 +21,7 @@ export default {
   components: {
     NameNsDescription,
     LabeledSelect,
+    YamlEditor,
     Loading,
     Footer,
   },
@@ -22,52 +29,45 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    let promises = {
-      clusterRepos: this.$store.dispatch('cluster/findAll', { type: CATALOG.CLUSTER_REPO }),
-      repos:        this.$store.dispatch('cluster/findAll', { type: CATALOG.REPO }),
-    };
+    const query = this.$route.query;
 
-    if ( this.value.id ) {
-      // @TODO load something for edit...
+    if ( !this.clusterRepos ) {
+      await this.loadReposAndCharts();
     }
 
-    const hash = await allHash(promises);
+    let repoKey;
+    let repoName;
+    let repoType;
 
-    this.repos = [...hash.clusterRepos, ...hash.repos];
-
-    promises = [];
-    for ( const repo of this.repos ) {
-      promises.push(repo.followLink('index'));
+    if ( query[CLUSTER_REPO] ) {
+      repoKey = CLUSTER_REPO;
+      repoName = query[CLUSTER_REPO];
+      repoType = CATALOG.CLUSTER_REPO;
+    } else if ( query[REPO] ) {
+      repoKey = REPO;
+      repoName = query[REPO];
+      repoType = CATALOG.REPO;
     }
 
-    const indexes = await Promise.all(promises);
-    const charts = {};
+    this.repo = findBy(this.repos, { type: repoType, 'metadata.name': repoName });
 
-    for ( let i = 0 ; i < indexes.length ; i++ ) {
-      const obj = indexes[i];
-      const repo = this.repos[i];
+    const chartName = query[CHART];
+    const versionName = query[VERSION];
 
-      for ( const k in obj.entries ) {
-        for ( const entry of obj.entries[k] ) {
-          addChart(entry, repo);
-        }
-      }
+    if ( this.repo && chartName ) {
+      this.chart = findBy(this.charts, { [repoKey]: repoName, name: chartName });
     }
 
-    this.charts = sortBy(Object.values(charts), ['repo.name', 'name']);
+    let version;
 
-    function addChart(chart, repo) {
-      const existing = charts[chart.name];
+    if ( this.chart && versionName ) {
+      version = findBy(this.chart.versions, 'version', versionName);
+    }
 
-      if ( existing ) {
-        existing.versions.push(chart);
-      } else {
-        charts[chart.name] = {
-          name:     chart.name,
-          repo,
-          versions: [chart],
-        };
-      }
+    if ( version ) {
+      this.versionInfo = await this.repo.followLink('info', { url: addParams(this.repo.links.info, { chartName, version: versionName }) });
+      this.mergeValues(this.versionInfo.values);
+      this.valuesYaml = jsyaml.safeDump(this.value.values);
     }
   },
 
@@ -77,23 +77,130 @@ export default {
 
   data() {
     return {
-      repos:   null,
-      charts:  [],
-      chart:   null,
-      version: null,
+      clusterRepos:    null,
+      namespacedRepos: null,
+
+      charts:      null,
+      chart:       null,
+
+      versionInfo: null,
+      valuesYaml:  null,
     };
   },
 
+  computed: {
+    repos() {
+      const clustered = this.clusterRepos || [];
+      const namespaced = this.namespacedRepos || [];
+
+      return [...clustered, ...namespaced];
+    }
+  },
+
+  watch: { '$route.query': '$fetch' },
+
+  created() {
+    this.registerBeforeHook(this.updateBeforeSave);
+  },
+
   methods: {
+    async loadReposAndCharts() {
+      let promises = {
+        clusterRepos:    this.$store.dispatch('cluster/findAll', { type: CATALOG.CLUSTER_REPO }),
+        namespacedRepos: this.$store.dispatch('cluster/findAll', { type: CATALOG.REPO }),
+      };
+
+      const hash = await allHash(promises);
+
+      this.clusterRepos = hash.clusterRepos;
+      this.namespacedRepos = hash.namespacedRepos;
+
+      promises = [];
+      for ( const repo of this.repos ) {
+        promises.push(repo.followLink('index'));
+      }
+
+      const indexes = await Promise.all(promises);
+
+      const charts = {};
+
+      for ( let i = 0 ; i < indexes.length ; i++ ) {
+        const obj = indexes[i];
+        const repo = this.repos[i];
+
+        for ( const k in obj.entries ) {
+          for ( const entry of obj.entries[k] ) {
+            addChart(entry, repo);
+          }
+        }
+      }
+
+      this.charts = sortBy(Object.values(charts), ['key']);
+
+      function addChart(chart, repo) {
+        const key = `${ repo.type }/${ repo.metadata.name }/${ chart.name }`;
+
+        const existing = charts[key];
+
+        if ( existing ) {
+          existing.versions.push(chart);
+        } else {
+          const obj = {
+            key,
+            name:     chart.name,
+            versions: [chart],
+          };
+
+          if ( repo.type === CATALOG.CLUSTER_REPO ) {
+            obj.clusterRepo = repo.metadata.name;
+          } else {
+            obj.repo = repo.metadata.name;
+          }
+
+          charts[key] = obj;
+        }
+      }
+    },
+
     selectChart(chart) {
       this.chart = chart;
-      this.value.chartName = chart.name;
-      this.value.version = chart.versions[0].version;
+
+      this.$router.applyQuery({
+        [CLUSTER_REPO]: chart.clusterRepo,
+        [CHART]:        chart.name,
+        [REPO]:         chart.repo,
+        [VERSION]:      chart.versions[0].version,
+      });
+    },
+
+    selectVersion(version) {
+      this.$router.applyQuery({ [VERSION]: version });
+    },
+
+    mergeValues(neu) {
+      this.value.values = merge({}, neu, this.value.values || {});
+    },
+
+    valuesChanged(value) {
+      try {
+        jsyaml.safeLoad(value);
+
+        this.valuesYaml = value;
+      } catch (e) {
+      }
+    },
+
+    updateBeforeSave() {
+      this.value.chartName = this.chart.name;
+      this.value.version = this.$route.query.version;
+
+      // @TODO only save values that differ from defaults?
+      this.value.values = jsyaml.safeLoad(this.valuesYaml);
     },
 
     async actuallySave() {
       if ( this.isCreate ) {
-        await this.chart.repo.doAction('install', this.value);
+        await this.repo.doAction('install', this.value);
       }
     },
   }
@@ -104,14 +211,15 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <form v-else-if="chart">
     <div class="mb-20">
-      {{ value.chartName }}
+      {{ chart.name }}
 
       <LabeledSelect
-        v-model="value.version"
+        :value="$route.query.version"
         option-label="version"
         option-key="version"
         :reduce="opt=>opt.version"
         :options="chart.versions"
+        @input="selectVersion($event)"
       />
     </div>
 
@@ -124,14 +232,28 @@ export default {
       description-key="description"
     />
 
+    <YamlEditor
+      v-if="versionInfo"
+      class="yaml-editor"
+      :value="valuesYaml"
+      @onInput="valuesChanged"
+    />
+
     <div class="spacer"></div>
 
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
   </form>
   <div v-else>
-    <div v-for="c in charts" :key="c.name">
-      <a @click="selectChart(c)">{{ c.repo.name }}/{{ c.name }} ({{ c.versions.length }})
+    <div v-for="c in charts" :key="c.key">
+      <a @click="selectChart(c)">{{ c.key.substr(c.key.indexOf('/')+1) }} ({{ c.versions.length }})
       </a>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+  .yaml-editor {
+    flex: 1;
+    min-height: 400px;
+  }
+</style>

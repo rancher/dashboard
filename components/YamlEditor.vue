@@ -20,10 +20,6 @@ export default {
       type:     String,
       required:  true,
     },
-    schema: {
-      type:    Object,
-      default: null,
-    },
     editorMode: {
       type:      String,
       default:  EDITOR_MODES.EDIT_CODE,
