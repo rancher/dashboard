@@ -259,7 +259,7 @@ export default {
       </div>
     </div>
 
-    <div v-if="showBanner" class="spacer" />
+    <div v-if="showBanner" class="spacer-bordered" />
 
     <div class="step-container">
       <div v-for="step in steps" :key="step.name">
@@ -269,7 +269,7 @@ export default {
       </div>
     </div>
 
-    <div class="spacer" />
+    <div class="spacer-bordered" />
 
     <div v-for="(err,idx) in errors" :key="idx">
       <Banner color="error" :label="err" />
@@ -323,30 +323,30 @@ export default {
   &.top {
     background-image: linear-gradient(-90deg, var(--body-bg) , var(--accent-btn));
 
-    H2 {
-      margin: 0px;
-    }
-
-    .title{
-      flex-basis: 10%;
-      border-right: 1px solid var(--primary);
-      margin-right: 20px;
-      padding-right: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-evenly;
-    }
-
-    .subtitle{
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      & .subtext {
-        color: var(--input-label);
+      H2 {
+        margin: 0px;
       }
-    }
 
-  }
+      .title{
+        flex-basis: 10%;
+        border-right: 1px solid var(--primary);
+        margin-right: 20px;
+        padding-right: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+      }
+
+      .subtitle{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        & .subtext {
+          color: var(--input-label);
+        }
+      }
+
+    }
 
   &:not(.top){
     box-shadow: 0px 0px 12px 3px var(--box-bg);
@@ -366,9 +366,8 @@ export default {
     border-radius: 50%;
     overflow: hidden;
   }
-}
 
-.steps {
+  .steps {
     margin: 0 20% 0 20%;;
     display:flex;
     justify-content: space-between;
@@ -376,8 +375,8 @@ export default {
     padding: 0;
 
     &:focus{
-        outline:none;
-        box-shadow: none;
+      outline:none;
+      box-shadow: none;
     }
 
     & li.step{
@@ -408,8 +407,8 @@ export default {
 
       &:not(.disabled){
         & .controls:hover>*{
-            color: var(--primary) !important;
-            cursor: pointer;
+          color: var(--primary) !important;
+          cursor: pointer;
         }
       }
 
@@ -427,10 +426,11 @@ export default {
       position: relative;
       top: 5px;
     }
-}
 
-.controls-row {
-  display: flex;
-  justify-content: space-between;
-}
+  }
+
+  .controls-row {
+    display: flex;
+    justify-content: space-between;
+  }
 </style>

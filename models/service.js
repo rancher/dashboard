@@ -46,13 +46,13 @@ export default {
         translationKey: 'generic.name',
         type:           'dnsLabel',
       },
-      {
-        nullable:       false,
-        path:           'spec.ports',
-        required:       true,
-        type:           'array',
-        validators:     ['servicePort'],
-      }
+      // {
+      //   nullable:       false,
+      //   path:           'spec.ports',
+      //   required:       true,
+      //   type:           'array',
+      //   validators:     ['servicePort'],
+      // }
     ];
   },
 
