@@ -270,7 +270,7 @@ export default {
       this.rows.push({
         [this.keyName]:   key,
         [this.valueName]: value,
-        binary,
+        // binary,
       });
       this.queueUpdate();
       this.$nextTick(() => {
@@ -406,6 +406,7 @@ export default {
     </template>
 
     <SortableTable
+      v-show="rows.length || isView"
       :headers="headers"
       :rows="rows"
       :search="false"
@@ -499,7 +500,7 @@ export default {
     </SortableTable>
 
     <div v-if="showAdd || showRead" class="footer mt-10">
-      <slot v-if="showAdd" name="add">
+      <slot v-if="showAdd" name="add" :add="add">
         <button type="button" class="btn role-tertiary add" @click="add()">
           {{ addLabel }}
         </button>
@@ -630,7 +631,7 @@ export default {
 }
 
 .key-value TR:first-of-type TD.no-rows {
-  padding: 40px;
+  // padding: 40px;
   color: var(--disabled-bg);
   text-align: center;
 }

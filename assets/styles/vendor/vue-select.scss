@@ -239,12 +239,13 @@ $transition-duration: 150ms;
 .v-select.inline {
   background-color: transparent;
 
-  .vs--single & .vs__selected {
+  &.vs--single .vs__selected {
     color: var(--input-text);
     position: absolute;
     top: 0;
     bottom:0;
     align-self: start;
+    margin: 4px;
   }
 
   .vs__dropdown-menu {
@@ -259,7 +260,7 @@ $transition-duration: 150ms;
     border: 1px solid var(--dropdown-border);
   }
 
-  .vs--single & .vs__selected-options {
+  &.vs--single .vs__selected-options {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -267,8 +268,10 @@ $transition-duration: 150ms;
   }
   .vs__search {
     background-color: var(--input-bg);
-    // border: 1px dashed blue;
     width: 100%;
+    &:hover{
+      background-color: var(--input-bg);
+    }
   }
   .vs__open-indicator{
     fill: var(--input-label);

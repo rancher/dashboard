@@ -3,6 +3,8 @@
 ##############################
 generic:
   add: Add
+  remove: Remove
+  create: Create
   cancel: Cancel
   clickToShow: '[Show Value]'
   close: Close
@@ -673,13 +675,54 @@ wm:
     title: 'Kubectl: {name}'
 
 workload:
+  detailTop:
+    workload: Workload
+    podIP: Pod IP
+    node: Node
+    podRestarts: Pod Restarts
+  wizard:
+    titles:
+      selectType: Select a Workload Type
+      defineContainer: Define Container
+      storage: Storage
+      advanced: Advanced
+      review: Review
+      scaling: Scaling/Upgrade Policy
   container:
+    noResourceLimits: There are no resource requirements configured.
+    titles:
+      image: Image
+      containers: Containers
+      ports: Ports
+      command: Command
+      resources: Resources
+      healthCheck: Health Check
+      securityContext: Security Context
+      networking: Networking
+    name: Container Name
+    image: Container Image
+    imagePullPolicy: Image Pull Policy
+    ports:
+      containerPort: Private Container Port
+      hostPort: Public Host Port
+      protocol: Protocol
+      name: Name
     command:
       addFromResource: Add from Resource
       args: Arguments
       command: Entrypoint
       env: Environment Variables
-      workingDir: WorkingDir
+      addFromResource: Add from Resource
+      as: as
+      fromResource:
+        type: Type
+        source: 
+          label: Source
+          placeholder: e.g. my-container
+        key: 
+          label: Key
+          placeholder: e.g. requests.cpu
+        prefix: Prefix or Alias
     healthCheck:
       checkInterval: Check Interval
       command:
@@ -782,6 +825,17 @@ workload:
     activeDeadlineSeconds: Pod Active Deadline
     activeDeadlineSecondsTip: The duration that the pod may be active before the system tries to mark it failed and kill associated containers.
     affinity:
+      addNodeSelector: Add Node Selector
+      topologyKey:
+        label: Topology Key
+        placeholder:  e.g. failure-domain.beta.kubernetes.io/zone
+      noPodRules: There are no pod scheduling rules configured.
+      nodeName: Node Name
+      specificNode: Run pods on specific node(s)
+      schedulingRules: Run pods on node(s) matching these scheduling rules
+      requireAny: "Require any of:"
+      preferAny: "Prefer any of:"
+      thisPodNamespace: This pod's namespace
       affinityTitle: Run pods on nodes with pods matching these selectors
       antiAffinityTitle: Run pods on nodes without pods matching these selectors
       matchExpressions:
@@ -797,48 +851,140 @@ workload:
         operator: Operator
         value: Value
         weight: Weight
-      noPodRules: There are no pod scheduling rules configured.
-      nodeName: Node Name
-      preferAny: 'Prefer any of:'
-      requireAny: 'Require any of:'
-      schedulingRules: Run pods on node(s) matching these scheduling rules
-      specificNode: Run pods on specific node(s)
-      thisPodNamespace: This pod's namespace
-      topologyKey:
-        label: Topology Key
-        placeholder: e.g. failure-domain.beta.kubernetes.io/zone
-    priority:
-      className: Priority Class Name
-      priority: Priority
-    terminationGracePeriodSeconds: Termination Grace Period
-    terminationGracePeriodSecondsTip: The duration that the pod needs to terminate gracefully.
-    titles:
-      advanced: Advanced
-      nodeScheduling: Node Scheduling
-      nodeSelector: Nodes with these labels
-      podScheduling: Pod Scheduling
-      priority: Priority
-      tab: Scheduling
-      tolerations: Tolerations
-    tolerations:
-      addToleration: Add Toleration
-      effect: Effect
-      effectOptions:
-        all: All
-        noExecute: NoExecute
-        noSchedule: 'NoSchedule,'
-        preferNoSchedule: PreferNoSchedule
-      labelKey: Label Key
-      operator: Operator
-      operatorOptions:
-        equal: =
-        exists: Exists
-      tolerationSeconds: Toleration Seconds
-      value: Value
-  tabs:
-    networking: Networking
-    scheduling: Scheduling
-    security: Security
+        inNamespaces: 'Pods in these namespaces:'
+  upgrading:
+    title: upgrading
+    strategies:
+      labels:
+        recreate: 'Recreate: Kill ALL pods, then start new pods.'
+        rollingUpdate: "Rolling Update: Create new pods, until max surge is reached, before deleting old pods. Don't stop more pods than max unavailable."
+        delete: 'On Delete: New pods are only created when old pods are manually deleted.'
+    activeDeadlineSeconds: 
+      label: Pod Active Deadline
+      tip: The duration the pod may be active before the system will try to mark it failed and kill associated containers.
+    terminationGracePeriodSeconds:
+      label: Termination Grace Period
+      tip: The duration the pod needs to terminate successfully.
+    minReadySeconds:
+      label: Minimum Ready
+      tip: The minimum duration a pod should be ready without containers crashing for it to be considered available.
+    progressDeadlineSeconds:
+      label: Progress Deadline
+      tip: The minimum duration to wait for a deployment to progress before marking it failed.
+    revisionHistoryLimit:
+      label: Revision History Limit
+      tip: The number of old ReplicaSets to retain for rollback.
+    maxSurge:
+      label: Max Surge
+      tip: The maximum number of pods allowed beyond the desired scale at any given time.
+    maxUnavailable:
+      label: Max Unavailable
+      tip: The maximum number of pods which can be unavailable at any given time.
+    partition:
+      label: Partition
+  job:
+    completions: 
+      label: Completions
+      tip: The number of successfully finished pods the job should be run with.
+    parallelism:
+      label: Parallelism
+      tip: The maximum number of pods the job should run at any given time.
+    backOffLimit:
+      label: Back Off Limit
+      tip: The number of retries before marking this job failed.
+    activeDeadlineSeconds:
+      label: Active Deadline
+      tip: The duration that the job may be active before the system tries to terminate it.
+    successfulJobsHistoryLimit:
+      label: Successful Job History Limit
+      tip: The number of successful finished jobs to retain.
+    failedJobsHistoryLimit:
+      label: Failed Job History Limit
+      tip: The number of failed finished jobs to retain.
+  replicas: Replicas
+  cronSchedule: Schedule
+  serviceName: Service Name
+
+rioConfig:
+  header: Rio
+  configure:
+    description: Description
+    helpText:
+      listItem1: The application deployment engine for Kubernetes.
+      listItem2: Rio makes it faster and easier for DevOps to build, test, deploy, scale and version stateless applications
+    requirements:
+      header: Requirements
+      helpText:
+        listItem1: 1 CPU Core
+        listItem2: 2 GiB of Memory
+  yaml:
+    buttonText: Customize
+
+validation:
+  custom:
+    missing: "No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?"
+  noType: No type to validate
+  noSchema: No schema found to validate
+  required: '"{key}" is required'
+  requiredOrOverride: '"{key}" is required or must allow override'
+  arrayLength:
+    exactly: '"{key}" should contain {count, plural, =1 {# item} other {# items}}'
+    between: '"{key}" should contain between {min} and {max} {max, plural, =1 {item} other {items}}'
+    min: '"{key}" should contain at least {count} {count, plural, =1 {item} other {items}}'
+    max: '"{key}" should contain at most {count} {count, plural, =1 {item} other {items}}'
+  stringLength:
+    exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
+    between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
+    min: '"{key}" should be at least {count} {count, plural, =1 {character} other {characters}}'
+    max: '"{key}" should be at most {count} {count, plural, =1 {character} other {characters}}'
+  number:
+    exactly: '"{key}" should be exactly {val}'
+    between: '"{key}" should be between {min} and {max}'
+    min: '"{key}" should be at least {val}'
+    max: '"{key}" should be at most {val}'
+  chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
+  dns:
+    doubleHyphen: '"{key}" Cannot contain two or more consecutive hyphens'
+    hostname:
+      startDot: '"{key}" cannot start with a dot'
+      endDot: '"{key}" cannot end with a dot'
+      empty: '"{key}" must be at least one character'
+      tooLong: '"{key}" cannot be longer than {max} characters'
+      startNumber: '"{key}" cannot start with a number'
+      startHyphen: '"{key}" cannot start with a hyphen'
+      endHyphen: '"{key}" cannot end with a hyphen'
+      emptyLabel: '"{key}" cannot contain two consecutive dots'
+      tooLongLabel: '"{key}" cannot contain a section longer than {max} characters'
+    label:
+      startNumber: '"{key}" cannot start with a number'
+      startHyphen: '"{key}" cannot start with a hyphen'
+      endHyphen: '"{key}" cannot end with a hyphen'
+      emptyLabel: '"{key}" cannot be empty'
+      tooLongLabel: '"{key}" cannot be more than {max} characters'
+  k8s:
+    identifier:
+      startLetter: '"{key}" must start with a letter or number'
+      endLetter: '"{key}" must end with a letter or number'
+      emptyPrefix: '"{key}" cannot have an empty prefix'
+      tooLongPrefix: '"{key}" cannot have a prefix longer than {max} characters'
+      emptyLabel: '"{key}" cannot have an empty key'
+      tooLongKey: '"{key}" cannot have a key longer than {max} characters'
+  targets:
+    missingProjectId: A target must have a project selected.
+  service:
+    ports:
+      name:
+        required: "Port Rule [{position}] - Name is required."
+      nodePort:
+        requriedInt: "Port Rule [{position}] - Node Port must be interger values if included."
+      port:
+        requriedInt: "Port Rule [{position}] - Port must be interger values if included."
+        required: "Port Rule [{position}] - Port is required."
+      targetPort:
+        between: "Port Rule [{position}] - Target Port must be between 1 and 65535"
+        iana: "Port Rule [{position}] - Target Port must be an IANA Service Name or Integer"
+        ianaAt: "Port Rule [{position}] - Target Port "
+        required: "Port Rule [{position}] - Target Port is required"
 
 ##############################
 # Model Properties

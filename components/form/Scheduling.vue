@@ -9,7 +9,6 @@ import { isEmpty, cleanUp, get } from '@/utils/object';
 import { NODE, POD } from '@/config/types';
 import Tolerations from '@/components/form/Tolerations';
 import LabeledInput from '@/components/form/LabeledInput';
-import UnitInput from '@/components/form/UnitInput';
 import { _VIEW } from '@/config/query-params';
 
 export default {
@@ -21,8 +20,8 @@ export default {
     KeyValue,
     Tolerations,
     LabeledInput,
-    UnitInput
   },
+
   props:      {
     value: {
       type:     Object,
@@ -37,7 +36,7 @@ export default {
 
   data() {
     const {
-      affinity = {}, nodeName = '', nodeSelector = {}, tolerations
+      affinity = {}, nodeName = '', nodeSelector = {}, tolerations = []
     } = this.value;
     const { nodeAffinity = {}, podAffinity = {}, podAntiAffinity = {} } = affinity;
 
@@ -124,7 +123,7 @@ export default {
 
 <template>
   <div @input="update">
-    <div>
+    <div class="bordered-section">
       <h3><t k="workload.scheduling.titles.nodeScheduling" /></h3>
       <h4 v-if="isView" class="mt-10 mb-10">
         {{ selectNode ? t('workload.scheduling.affinity.specificNode') : t('workload.scheduling.affinity.schedulingRules') }}
@@ -172,9 +171,7 @@ export default {
       </template>
     </div>
 
-    <div class="spacer" />
-
-    <div>
+    <div class="bordered-section">
       <h3 class="mb-10">
         <t k="workload.scheduling.titles.podScheduling" />
       </h3>
@@ -204,18 +201,14 @@ export default {
       </template>
     </div>
 
-    <div class="spacer" />
-
-    <div>
+    <div class="bordered-section">
       <h3 class="mb-10">
         <t k="workload.scheduling.titles.tolerations" />
       </h3>
       <div class="row">
-        <Tolerations :value="value.tolerations" :mode="mode" />
+        <Tolerations v-model="tolerations" :mode="mode" />
       </div>
     </div>
-
-    <div class="spacer" />
 
     <div>
       <h3 class="mb-10">
@@ -227,36 +220,6 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledInput v-model="value.priorityClassname" :mode="mode" :label="t('workload.scheduling.priority.className')" />
-        </div>
-      </div>
-    </div>
-
-    <div class="spacer" />
-
-    <div>
-      <h3 class="mb-10">
-        <t k="workload.scheduling.titles.advanced" />
-      </h3>
-      <div class="row">
-        <div class="col span-6">
-          <UnitInput v-model.number="value.activeDeadlineSeconds" :label="t('workload.scheduling.activeDeadlineSeconds')" :mode="mode" suffix="Seconds">
-            <template #label>
-              <label v-tooltip="t('workload.scheduling.activeDeadlineSecondsTip')" class="label-tip">
-                <t k="workload.scheduling.activeDeadlineSeconds" />
-                <i class="icon icon-info" style="font-size: 12px" />
-              </label>
-            </template>
-          </UnitInput>
-        </div>
-        <div class="col span-6">
-          <UnitInput v-model="value.terminationGracePeriodSeconds" :mode="mode" suffix="Seconds" :label="t('workload.scheduling.terminationGracePeriodSeconds')">
-            <template #label>
-              <label v-tooltip="t('workload.scheduling.terminationGracePeriodSecondsTip')" class="label-tip">
-                <t k="workload.scheduling.terminationGracePeriodSeconds" />
-                <i class="icon icon-info" style="font-size: 12px" />
-              </label>
-            </template>
-          </UnitInput>
         </div>
       </div>
     </div>

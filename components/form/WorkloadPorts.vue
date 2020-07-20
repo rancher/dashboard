@@ -175,6 +175,7 @@ export default {
               class="inline"
               :options="['TCP', 'UDP', 'SCTP']"
               :searchable="false"
+              :multiple="false"
               @input="queueUpdate"
             />
           </td>

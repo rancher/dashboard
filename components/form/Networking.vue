@@ -25,6 +25,7 @@ export default {
   },
 
   data() {
+    const t = this.$store.getters['i18n/t'];
     const hostAliases = (this.value.hostAliases || []).map((entry) => {
       return {
         ip:        entry.ip,
@@ -36,7 +37,7 @@ export default {
 
     const out = {
       dnsPolicy:   this.value.dnsPolicy || 'Default',
-      networkMode: this.value.hostNetwork ? 'host' : 'normal',
+      networkMode: this.value.hostNetwork ? { label: t('workload.networking.networkMode.options.normal'), value: false } : { label: t('workload.networking.networkMode.options.hostNetwork'), value: true },
       hostAliases,
       nameservers,
       searches,
@@ -148,7 +149,7 @@ export default {
         hostname:    this.hostname,
         hostAliases: this.hostAliases,
         subdomain:   this.subdomain,
-        hostNetwork: this.networkMode
+        hostNetwork: this.networkMode.value
       };
 
       this.$emit('input', out);
@@ -158,7 +159,7 @@ export default {
 </script>
 <template>
   <div>
-    <div class="row">
+    <div class="row mb-20">
       <div class="col span-6">
         <LabeledSelect
           v-model="networkMode"
@@ -182,9 +183,7 @@ export default {
       </div>
     </div>
 
-    <div class="spacer" />
-
-    <div class="row">
+    <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput
           v-model="hostname"
@@ -205,9 +204,7 @@ export default {
       </div>
     </div>
 
-    <div class="spacer" />
-
-    <div class="row">
+    <div class="row mb-20">
       <div class="col span-6">
         <ArrayList
           key="dnsNameservers"
@@ -238,15 +235,16 @@ export default {
       </div>
     </div>
 
-    <div class="spacer" />
-
-    <div class="row">
+    <div class="row mb-20">
       <KeyValue
         v-model="options"
         key-label="Name"
+        key-name="name"
         :mode="mode"
         :title="t('workload.networking.resolver')"
         :read-allowed="false"
+        :as-map="false"
+        @input="update"
       >
         <template #title>
           <h3>{{ t('workload.networking.resolver') }}</h3>
