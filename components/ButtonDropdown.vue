@@ -11,7 +11,13 @@ export default {
   <div class="dropdown-button-group">
     <div class="dropdown-button btn bg-primary">
       <slot name="button-content">
-        <button class="btn bg-transparent"></button>
+        <button
+          class="btn bg-transparent create-button"
+          disabled="true"
+          @click.prevent.self
+        >
+          Button
+        </button>
       </slot>
 
       <v-popover

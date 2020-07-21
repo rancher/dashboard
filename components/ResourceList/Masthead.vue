@@ -67,6 +67,15 @@ export default {
           >
             {{ t("resourceList.head.createFromYaml") }}
           </nuxt-link>
+          <a
+            v-else
+            href="#"
+            class="btn bg-transparent create-button"
+            disabled="true"
+            @click.prevent.self
+          >
+            {{ t("resourceList.head.create") }}
+          </a>
         </template>
         <template
           v-if="isCreatable && isYamlCreatable"
