@@ -357,6 +357,14 @@ export default {
     return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ this.stateDisplay }`;
   },
 
+  showMessage() {
+    const trans = this.metadata?.state?.transitioning || false;
+    const error = this.metadata?.state?.error || false;
+    const message = this.metadata?.state?.message;
+
+    return (trans || error) && message && message.toLowerCase() !== this.stateDisplay.toLowerCase();
+  },
+
   // ------------------------------------------------------------------
 
   waitForTestFn() {

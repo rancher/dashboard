@@ -195,6 +195,10 @@ export default {
       type:    String,
       default: null
     },
+    parentOverride: {
+      type:    Object,
+      default: null
+    }
   },
 
   data() {
@@ -277,6 +281,7 @@ export default {
       :mode="mode"
       :real-mode="realMode"
       :as-yaml.sync="asYaml"
+      :parent-override="parentOverride"
       :has-detail-or-edit="(hasCustomDetail || hasCustomEdit)"
     >
       <template v-if="!isView && asYaml" #right>

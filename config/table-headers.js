@@ -30,7 +30,6 @@ export const NAME = {
   value:         'nameDisplay',
   sort:          ['nameSort'],
   formatter:     'LinkDetail',
-  width:         200,
   canBeVariable: true,
 };
 
@@ -465,4 +464,19 @@ export const SELECTOR = {
   labelKey:  'tableHeaders.selector',
   value:     `$['spec']['selector']`,
   sort:      `$['spec']['selector']`,
+};
+
+export const CHART = {
+  name:     'chart',
+  labelKey: 'tableHeaders.chart',
+  value:    'chartDisplay',
+  sort:     'chartDisplay'
+};
+
+export const RESOURCES = {
+  name:     'resources',
+  labelKey: 'tableHeaders.resources',
+  value:    'spec.resources.length',
+  sort:     'spec.resources.length',
+  width:    100,
 };

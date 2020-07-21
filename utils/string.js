@@ -250,9 +250,13 @@ export function containsSomeString(string, matchStrings) {
   return false;
 }
 
-export function ensureRegex(strOrRegex) {
+export function ensureRegex(strOrRegex, exact = true) {
   if ( typeof strOrRegex === 'string' ) {
-    return new RegExp(`^${ escapeRegex(strOrRegex) }$`, 'i');
+    if ( exact ) {
+      return new RegExp(`^${ escapeRegex(strOrRegex) }$`, 'i');
+    } else {
+      return new RegExp(`${ escapeRegex(strOrRegex) }`, 'i');
+    }
   }
 
   return strOrRegex;

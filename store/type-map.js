@@ -151,6 +151,10 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/immutableType`, { match });
     },
 
+    formOnlyType(match) {
+      store.commit(`${ module }/formOnlyType`, { match });
+    },
+
     ignoreType(regexOrString) {
       store.commit(`${ module }/ignoreType`, regexOrString);
     },
@@ -229,6 +233,7 @@ export const state = function() {
     groupWeights:            {},
     groupMappings:           [],
     immutable:               [],
+    formOnly:                [],
     typeIgnore:              [],
     typeWeights:             {},
     typeMappings:            [],
@@ -260,7 +265,7 @@ export const getters = {
         const key = `typeLabel."${ schema.id }"`;
 
         if ( rootGetters['i18n/exists'](key) ) {
-          return rootGetters['i18n/t'](key, {count});
+          return rootGetters['i18n/t'](key, {count}).trim();
         }
 
         let out = schema?.attributes?.kind || schema.id || '?';
@@ -336,6 +341,18 @@ export const getters = {
       });
 
       return !found;
+    };
+  },
+
+  isFormOnly(state) {
+    return (type) => {
+      const found = state.formOnly.find((formOnlyType) => {
+        const re = stringToRegex(formOnlyType);
+
+        return re.test(type);
+      });
+
+      return !!found;
     };
   },
 
@@ -1006,6 +1023,12 @@ export const mutations = {
     match = ensureRegex(match);
     match = regexToString(match);
     state.immutable.push(match);
+  },
+
+  formOnlyType(state, { match }) {
+    match = ensureRegex(match);
+    match = regexToString(match);
+    state.formOnly.push(match);
   },
 };
 

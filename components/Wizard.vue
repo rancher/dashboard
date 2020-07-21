@@ -47,6 +47,11 @@ export default {
       default: false
     },
 
+    showBanner: {
+      type:    Boolean,
+      default: true,
+    },
+
     // place the same title (e.g. the type of thing being created by wizard) on every page
     bannerTitle: {
       type:    String,
@@ -196,7 +201,7 @@ export default {
 
     <div class="spacer" />
 
-    <div class="top choice-banner">
+    <div v-if="showBanner" class="top choice-banner">
       <div v-if="bannerTitle || bannerImage" class="title">
         <div v-if="bannerImage" class="round-image">
           <img :src="bannerImage" />
@@ -211,7 +216,7 @@ export default {
       </div>
     </div>
 
-    <div class="spacer" />
+    <div v-if="showBanner" class="spacer" />
 
     <div class="step-container">
       <div v-for="step in steps" :key="step.name">

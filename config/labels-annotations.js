@@ -21,6 +21,12 @@ export const NODE_ROLES = {
   ETCD:          'node-role.kubernetes.io/etcd',
 };
 
+export const CATALOG = {
+  CERTIFIED: 'io.rancher.certified',
+  _RANCHER:  'rancher',
+  _PARTNER:  'partner',
+};
+
 export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
 
 // TODO consult w/ backend about what labels & annotations to hide from editing

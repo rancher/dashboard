@@ -54,6 +54,7 @@ nav:
     orphan: "Not in a Project"
 
 wizard:
+  back: Back
   next: Next
   finish: Finish
   step: 'Step {number}:'
@@ -284,7 +285,7 @@ glance:
 resourceDetail:
   header:
     view: "{name}"
-    create: "Create {type}"
+    create: "Create"
     edit: "Edit {type}: {name}"
     clone: "Clone from {type}: {name}"
     stage: "Stage from {type}: {name}"
@@ -453,6 +454,8 @@ tableHeaders:
   resource: Resource
   apiGroup: API Groups
   ingressTarget: Target
+  chart: Chart
+  resources: Resources
   rbac:
     create: Create
     delete: Delete
@@ -876,10 +879,20 @@ model:
       loadBalancer: L4 Balancer
 
 typeLabel:
-  helmrelease: |
+  catalog.cattle.io.release: |
     {count, plural,
-      one { Application }
-      other { Applications }
+      one { App }
+      other { Apps }
+    }
+  chartInstallAction: |
+    {count, plural,
+      one { App }
+      other { Apps }
+    }
+  chartUpgradeAction: |
+    {count, plural,
+      one { App }
+      other { Apps }
     }
   endpoints: |
     {count, plural,

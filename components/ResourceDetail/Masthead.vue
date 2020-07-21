@@ -155,7 +155,7 @@ export default {
     <div>
       <div class="primaryheader">
         <h1>
-          <nuxt-link :to="parent.location">
+          <nuxt-link v-trim-whitespace :to="parent.location">
             {{ parent.displayName }}:
           </nuxt-link>
           <span class="title" v-html="h1" />
@@ -194,9 +194,6 @@ export default {
 
       h1 {
         margin-right: 8px;
-        .title {
-          margin-left: -10px;
-        }
       }
 
       .badge-state {

@@ -199,4 +199,15 @@ $selected: rgba($primary, .5);
   --sizzle-6                   : 136, 81, 165;
   --sizzle-7                   : 45, 47, 149;
   --sizzle-8                   : 255, 235, 0;
+
+  $angle: 135deg;
+  $start: 0.35;
+  $end: 0.125;
+
+  --app-rancher-accent: #3D97D2;
+  --app-rancher-bg: transparent linear-gradient(#{$angle}, rgba(  0, 169, 217, #{$start}) 0%, rgba(  0, 169, 217, #{$end}) 100%) 0% 0% no-repeat padding-box;
+  --app-partner-accent: #B5D21E;
+  --app-partner-bg: transparent linear-gradient(#{$angle}, rgba(255, 235,   0, #{$start}) 0%, rgba(255, 235,   0, #{$end}) 100%) 0% 0% no-repeat padding-box;
+  --app-other-accent: #D44294;
+  --app-other-bg:    transparent linear-gradient(#{$angle}, rgba(212,  66, 148, #{$start}) 0%, rgba(212,  66, 148, #{$end}) 100%) 0% 0% no-repeat padding-box;
 }

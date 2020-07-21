@@ -65,6 +65,10 @@ export default {
       this.$refs.select.$refs.search.focus();
     },
 
+    switchToExplorer() {
+      this.change('explorer');
+    },
+
     change(product) {
       const entry = findBy(this.options, 'value', product);
 
@@ -124,6 +128,7 @@ export default {
       </template>
     </v-select>
     <button v-shortkey.once="['p']" class="hide" @shortkey="focus()" />
+    <button v-shortkey.once="['e']" class="hide" @shortkey="switchToExplorer()" />
   </div>
 </template>
 
