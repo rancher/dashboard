@@ -42,7 +42,7 @@
       border-bottom-width: 0;
       border-top-color: var(--tooltip-border);
       bottom: -$triangle-inner-size;
-      
+
       &:after {
         border-bottom-width: 0;
         border-top-color: var(--tooltip-bg);
@@ -51,7 +51,7 @@
       }
     }
   }
-  
+
 
   &[x-placement^="bottom"] {
     margin-top: $triangle-size;
@@ -60,7 +60,7 @@
       border-top-width: 0;
       border-bottom-color: var(--tooltip-border);
       top: -$triangle-inner-size;
-      
+
       &:after {
         border-top-width: 0;
         border-bottom-color: var(--tooltip-bg);
@@ -77,7 +77,7 @@
       border-left-width: 0;
       border-right-color: var(--tooltip-border);
       left: -$triangle-inner-size;
-      
+
       &:after {
         border-left-width: 0;
         border-right-color: var(--tooltip-bg);
@@ -94,7 +94,7 @@
       border-right-width: 0;
       border-left-color: var(--tooltip-border);
       right: -$triangle-inner-size;
-      
+
       &:after {
         border-right-width: 0;
         border-left-color: var(--tooltip-bg);
@@ -134,6 +134,7 @@
 .tooltip, .popover {
   &[aria-hidden='true'] {
     visibility: hidden;
+    display: none !important;
     opacity: 0;
     transition: opacity .15s, visibility .15s;
   }
@@ -142,5 +143,82 @@
     visibility: visible;
     opacity: 1;
     transition: opacity .15s;
+  }
+}
+
+// load here instead of component so SSR render isn't all wonky
+.dropdown-button-group {
+  .v-popover {
+    .text-right {
+      margin-top: 5px;
+    }
+    .trigger {
+      height: 100%;
+      .icon-container {
+        height: 100%;
+        padding: 15px 10px 10px 10px;
+      }
+    }
+  }
+  .dropdown-button {
+    background: var(--accent-btn);
+    border: solid thin var(--link-text);
+    color: var(--link-text);
+    padding: 0;
+
+    .create-button {
+      &:not(:only-child) {
+        border-right: 1px solid var(--link-text);
+      }
+
+      &:focus {
+        outline: none;
+      }
+    }
+  }
+  .popover {
+    border: none;
+  }
+  .tooltip {
+    &[x-placement^="bottom"] {
+      .tooltip-arrow {
+        border-bottom-color: var(--dropdown-border);
+
+        &:after {
+          border-bottom-color: var(--dropdown-bg);
+        }
+      }
+    }
+
+    .tooltip-inner {
+      color: var(--dropdown-text);
+      background-color: var(--dropdown-bg);
+      border: 1px solid var(--dropdown-border);
+      padding: 0px;
+      text-align: left;
+
+      LI {
+        padding: 10px 50px 10px 20px;
+
+        &.divider {
+          padding-top: 0px;
+          padding-bottom: 0px;
+
+          > .divider-inner {
+            padding: 0;
+            border-bottom: 1px solid var(--dropdown-divider);
+            width: 125%;
+            margin: 0 auto;
+          }
+        }
+
+        &:not(.divider):hover {
+          background-color: var(--dropdown-hover-bg);
+          color: var(--dropdown-hover-text);
+          cursor: pointer;
+        }
+      }
+
+    }
   }
 }
