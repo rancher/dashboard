@@ -50,23 +50,35 @@ export default {
     </h1>
     <div class="actions">
       <ButtonDropdown
-        :resource="resource"
+        v-if="isCreatable || isYamlCreatable"
       >
-        <template slot="button-content">
+        <template #button-content="slotProps">
           <nuxt-link
             v-if="isCreatable"
             :to="createLocation"
-            class="btn bg-transparent create-button"
+            class="btn bg-transparent"
+            :class="slotProps.buttonSize"
           >
             {{ t("resourceList.head.create") }}
           </nuxt-link>
           <nuxt-link
             v-else-if="!isCreatable && isYamlCreatable"
             :to="yamlCreateLocation"
-            class="btn bg-transparent create-button"
+            class="btn bg-transparent"
+            :class="slotProps.buttonSize"
           >
             {{ t("resourceList.head.createFromYaml") }}
           </nuxt-link>
+          <a
+            v-else
+            href="#"
+            class="btn bg-transparent"
+            :class="slotProps.buttonSize"
+            disabled="true"
+            @click.prevent.self
+          >
+            {{ t("resourceList.head.create") }}
+          </a>
         </template>
         <template
           v-if="isCreatable && isYamlCreatable"
