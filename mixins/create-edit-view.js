@@ -1,9 +1,9 @@
 import pickBy from 'lodash/pickBy';
-import isArray from 'lodash/isArray';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
 import { LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';
 import { matchesSomePrefix, containsSomeString } from '@/utils/string';
+import { exceptionToErrorsArray } from '@/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
 
 export default {
@@ -32,6 +32,7 @@ export default {
     // For easy access debugging...
     if ( typeof window !== 'undefined' ) {
       window.v = v;
+      window.c = this;
     }
 
     // Ensure labels & annotations exists, since lots of things need them
@@ -159,43 +160,34 @@ export default {
         }
 
         if ( this.isCreate ) {
-          url = url || this.schema.linkFor('collection');
-
           if ( this.value?.metadata?.namespace ) {
             this.value.$dispatch('prefs/set', { key: LAST_NAMESPACE, value: this.value.metadata.namespace }, { root: true });
           }
-
-          const res = await this.value.save({ url });
-
-          if (res) {
-            Object.assign(this.value, res);
-          }
-        } else {
-          await this.value.save();
         }
+
+        await this.actuallySave(url);
 
         await this.applyHooks(AFTER_SAVE_HOOKS);
         buttonDone(true);
         this.done();
       } catch (err) {
-        if ( err && err.response && err.response.data ) {
-          const body = err.response.data;
-
-          if ( body && body.message ) {
-            this.errors = [body.message];
-          } else {
-            this.errors = [err];
-          }
-        } else if (err.status && err.message) {
-          this.errors = [err.message];
-        } else if (isArray(err)) {
-          this.errors = err;
-        } else {
-          this.errors = [err];
-        }
-
+        this.errors = exceptionToErrorsArray(err);
         buttonDone(false);
       }
     },
+
+    async actuallySave(url) {
+      if ( this.isCreate ) {
+        url = url || this.schema.linkFor('collection');
+
+        const res = await this.value.save({ url });
+
+        if (res) {
+          Object.assign(this.value, res);
+        }
+      } else {
+        await this.value.save();
+      }
+    }
   },
 };

@@ -64,7 +64,7 @@ export default {
         const schema = this.$store.getters['cluster/schemaFor'](resourceType);
 
         if (schema) {
-          return this.$store.getters['type-map/pluralLabelFor'](schema);
+          return this.$store.getters['type-map/labelFor'](schema, 99);
         }
       } else if (lastPiece === 'cluster') {
         return this.cluster.nameDisplay;

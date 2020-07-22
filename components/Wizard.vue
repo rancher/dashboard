@@ -1,5 +1,8 @@
 <script>
 import { STEP } from '@/config/query-params';
+import AsyncButton from '@/components/AsyncButton';
+import Banner from '@/components/Banner';
+
 /*
 Wizard accepts an array of steps (see props), and creates named slots for each step.
 It also contains slots for buttons:
@@ -14,6 +17,11 @@ Wizard will emit these events:
 */
 
 export default {
+  components: {
+    AsyncButton,
+    Banner
+  },
+
   props:      {
     mode: {
       type:    String,
@@ -47,6 +55,11 @@ export default {
       default: false
     },
 
+    showBanner: {
+      type:    Boolean,
+      default: true,
+    },
+
     // place the same title (e.g. the type of thing being created by wizard) on every page
     bannerTitle: {
       type:    String,
@@ -57,6 +70,18 @@ export default {
     bannerImage: {
       type:    String,
       default: null
+    },
+
+    // The set of labels to display for the finish AsyncButton
+    finishMode: {
+      type:    String,
+      default: 'finish'
+    },
+
+    // Errors to display above the buttons
+    errors: {
+      type:    Array,
+      default: null,
     }
   },
 
@@ -125,8 +150,8 @@ export default {
       this.$emit('cancel');
     },
 
-    finish() {
-      this.$emit('finish');
+    finish(cb) {
+      this.$emit('finish', cb);
     },
 
     next() {
@@ -150,7 +175,7 @@ export default {
       }
 
       for (let i = 0; i < idx; i++) {
-        if (!this.steps[i].ready) {
+        if ( this.steps[i].ready === false ) {
           return false;
         }
       }
@@ -196,7 +221,7 @@ export default {
 
     <div class="spacer" />
 
-    <div class="top choice-banner">
+    <div v-if="showBanner" class="top choice-banner">
       <div v-if="bannerTitle || bannerImage" class="title">
         <div v-if="bannerImage" class="round-image">
           <img :src="bannerImage" />
@@ -211,7 +236,7 @@ export default {
       </div>
     </div>
 
-    <div class="spacer" />
+    <div v-if="showBanner" class="spacer" />
 
     <div class="step-container">
       <div v-for="step in steps" :key="step.name">
@@ -222,6 +247,10 @@ export default {
     </div>
 
     <div class="spacer" />
+
+    <div v-for="(err,idx) in errors" :key="idx">
+      <Banner color="error" :label="err" />
+    </div>
 
     <div class="controls-row">
       <slot name="cancel" :cancel="cancel">
@@ -237,9 +266,11 @@ export default {
           </button>
         </slot>
         <slot v-if="activeStepIndex === steps.length-1" name="finish" :finish="finish">
-          <button :disabled="!activeStep.ready" type="button" class="btn role-primary" @click="finish">
-            <t k="wizard.finish" />
-          </button>
+          <AsyncButton
+            :disabled="!activeStep.ready"
+            :mode="finishMode"
+            @click="finish"
+          />
         </slot>
         <slot v-else name="next" :next="next">
           <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">

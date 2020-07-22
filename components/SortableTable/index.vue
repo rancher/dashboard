@@ -385,6 +385,11 @@ export default {
       const result = this.$store.getters[`${ this.storeName }/canRunBulkActionOfInterest`](resource);
 
       return result;
+    },
+
+    focusSearch() {
+      this.$refs.searchQuery.focus();
+      this.$refs.searchQuery.select();
     }
   }
 };
@@ -419,7 +424,7 @@ export default {
         </div>
 
         <div v-if="search" class="search">
-          <input v-model="searchQuery" type="search" class="input-sm" placeholder="Filter">
+          <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" placeholder="Filter">
         </div>
 
         <div class="end">
@@ -568,6 +573,7 @@ export default {
         <i class="icon icon-chevron-end" />
       </button>
     </div>
+    <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
   </div>
 </template>
 

@@ -3,8 +3,7 @@
 //
 // 1) Getting info about types
 //
-// singularLabelFor(schema)   Get the singular form of this schema's type
-// pluralLabelFor(schema)     Get the plural form of this schema's type
+// labelFor(schema, count)    Get the display label for a schema.  Count is (in English)  or not-1 for pluralizing
 // groupLabelFor(schema)      Get the label for the API group of this schema's type
 // isIgnored(schema)          Returns true if this type should be hidden from the tree
 // basicGroup(schema)         Returns the group a type should be shown in basic view, or false-y if it shouldn't be shown.
@@ -86,13 +85,14 @@
 
 import { sortBy } from '@/utils/sort';
 import { get, clone } from '@/utils/object';
-import { isArray, findBy, addObject, removeObject } from '@/utils/array';
-import { escapeRegex, ucFirst, escapeHtml } from '@/utils/string';
+import { isArray, findBy, addObject, removeObject, insertAt } from '@/utils/array';
+import { escapeRegex, ucFirst, escapeHtml, ensureRegex } from '@/utils/string';
 import { SCHEMA, COUNT } from '@/config/types';
 import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
 import { FAVORITE_TYPES, EXPANDED_GROUPS } from '@/store/prefs';
 import { normalizeType } from '@/plugins/steve/normalize';
 import { NAME as EXPLORER } from '@/config/product/explorer';
+import isObject from 'lodash/isObject';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -126,6 +126,11 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     basicType(types, group) {
+      // Support passing in a map of types and using just the values
+      if ( !isArray(types) && types && isObject(types) ) {
+        types = Object.values(types);
+      }
+
       store.commit(`${ module }/basicType`, {product, types, group});
     },
 
@@ -144,6 +149,10 @@ export function DSL(store, product, module = 'type-map') {
 
     immutableType(match) {
       store.commit(`${ module }/immutableType`, { match });
+    },
+
+    formOnlyType(match) {
+      store.commit(`${ module }/formOnlyType`, { match });
     },
 
     ignoreType(regexOrString) {
@@ -224,16 +233,15 @@ export const state = function() {
     groupWeights:            {},
     groupMappings:           [],
     immutable:               [],
+    formOnly:                [],
     typeIgnore:              [],
     typeWeights:             {},
     typeMappings:            [],
     typeMoveMappings:        [],
     typeToComponentMappings: [],
     uncreatable:             [],
-    pluralLabels:            {},
     headers:                 {},
     cache:                   {
-      typeLabel:    {},
       typeMove:     {},
       groupLabel:   {},
       ignore:       {},
@@ -251,28 +259,30 @@ export const getters = {
   // ----------------------------------------------------------------------------
   // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
   // @TODO use translations instead
-  singularLabelFor(state) {
-    return (schema) => {
-      return _applyMapping(schema, state.typeMappings, 'id', state.cache.typeLabel, () => {
-        return schema?.attributes?.kind || '?';
+  labelFor(state, getters, rootState, rootGetters) {
+    return (schema, count=1) => {
+      return _applyMapping(schema, state.typeMappings, 'id', false, () => {
+        const key = `typeLabel."${ schema.id }"`;
+
+        if ( rootGetters['i18n/exists'](key) ) {
+          return rootGetters['i18n/t'](key, {count}).trim();
+        }
+
+        let out = schema?.attributes?.kind || schema.id || '?';
+
+        out = ucFirst(out.replace(/([a-z])([A-Z])/g,'$1 $2'));
+
+        // This works for most things... if you don't like it, put in a typeLabel translation.
+        if ( count > 1 ) {
+          if ( out.endsWith('s') ) {
+            return `${out}es`;
+          } else {
+            return `${out}s`;
+          }
+        }
+
+        return out;
       });
-    };
-  },
-
-  // @TODO use translations instead
-  pluralLabelFor(state, getters) {
-    return (schema) => {
-      if ( state.pluralLabels[schema.id] ) {
-        return state.pluralLabels[schema.id];
-      }
-
-      const singular = getters.singularLabelFor(schema);
-
-      if ( singular.endsWith('s') ) {
-        return `${ singular }es`;
-      }
-
-      return `${ singular }s`;
     };
   },
 
@@ -331,6 +341,18 @@ export const getters = {
       });
 
       return !found;
+    };
+  },
+
+  isFormOnly(state) {
+    return (type) => {
+      const found = state.formOnly.find((formOnlyType) => {
+        const re = stringToRegex(formOnlyType);
+
+        return re.test(type);
+      });
+
+      return !!found;
     };
   },
 
@@ -552,15 +574,18 @@ export const getters = {
       for ( const schema of schemas ) {
         const attrs = schema.attributes || {};
         const count = counts[schema.id];
-        const label = getters.singularLabelFor(schema);
+        const label = getters.labelFor(schema);
         const weight = getters.typeWeightFor(label);
 
-        if ( !attrs.kind ) {
-          // Skip the schemas that aren't top-level types
-          continue;
-        } else if ( mode === BASIC && !getters.basicGroup(product, schema.id) ) {
-          continue;
+        if ( mode === BASIC ) {
+          // These are separate ifs so that things with no kind can still be basic
+          if ( !getters.basicGroup(product, schema.id) ) {
+            continue;
+          }
         } else if ( mode === FAVORITE && !getters.isFavorite(schema.id) ) {
+          continue;
+        } else if ( !attrs.kind ) {
+          // Skip the schemas that aren't top-level types
           continue;
         }
 
@@ -662,7 +687,7 @@ export const getters = {
         }
 
         if ( !hasName ) {
-          out.unshift(namespaced ? NAMESPACE_NAME : NAME);
+          insertAt(out, 1, (namespaced ? NAMESPACE_NAME : NAME));
         }
 
         // Age always goes last
@@ -859,6 +884,10 @@ export const getters = {
         return false;
       }
 
+      if ( p.ifGetter && !rootGetters[p.ifGetter] ) {
+        return false;
+      }
+
       return true;
     });
   }
@@ -996,8 +1025,10 @@ export const mutations = {
     state.immutable.push(match);
   },
 
-  pluralizeType(type, plural) {
-    state.pluralLabels[type] = plural;
+  formOnlyType(state, { match }) {
+    match = ensureRegex(match);
+    match = regexToString(match);
+    state.formOnly.push(match);
   },
 };
 
@@ -1075,7 +1106,7 @@ function _applyMapping(objOrValue, mappings, keyField, cache, defaultFn) {
     }
   }
 
-  if ( key && cache[key] ) {
+  if ( key && cache && cache[key] ) {
     return cache[key];
   }
 
@@ -1099,7 +1130,9 @@ function _applyMapping(objOrValue, mappings, keyField, cache, defaultFn) {
     out = defaultFn(out, objOrValue);
   }
 
-  cache[key] = out;
+  if ( cache ) {
+    cache[key] = out;
+  }
 
   return out;
 }
@@ -1129,14 +1162,6 @@ function _addMapping(mappings, match, replace, weight, continueOnMatch) {
 
 // Regexes can't be represented in state because they don't serialize to JSON..
 const regexCache = {};
-
-function ensureRegex(strOrRegex) {
-  if ( typeof strOrRegex === 'string' ) {
-    return new RegExp(`^${ escapeRegex(strOrRegex) }$`, 'i');
-  }
-
-  return strOrRegex;
-}
 
 function regexToString(regex) {
   return regex.source;

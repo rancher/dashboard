@@ -3,9 +3,14 @@ import flattenDeep from 'lodash/flattenDeep';
 import compact from 'lodash/compact';
 import pick from 'lodash/pick';
 import jsonpath from 'jsonpath';
+import Vue from 'vue';
 import { typeOf } from './sort';
 
 const quotedKey = /['"]/;
+
+export function set(obj, path, value) {
+  Vue.set(obj, path, value);
+}
 
 export function get(obj, path) {
   if ( path.startsWith('$') ) {

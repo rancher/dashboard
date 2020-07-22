@@ -51,58 +51,65 @@ const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TMIMEOUT = 30000;
 
 const STATES = {
-  unknown:        { color: 'warning', icon: 'x' },
-  aborted:        { color: 'warning', icon: 'error' },
-  activating:     { color: 'info', icon: 'tag' },
-  active:         { color: 'success', icon: 'dot-open' },
-  available:      { color: 'success', icon: 'dot-open' },
-  backedup:       { color: 'success', icon: 'backup' },
-  bound:          { color: 'success', icon: 'dot' },
-  building:       { color: 'success', icon: 'dot-open' },
-  cordoned:       { color: 'info', icon: 'tag' },
-  created:        { color: 'info', icon: 'tag' },
-  creating:       { color: 'info', icon: 'tag' },
-  deactivating:   { color: 'info', icon: 'adjust' },
-  degraded:       { color: 'warning', icon: 'error' },
-  denied:         { color: 'error', icon: 'adjust' },
-  disabled:       { color: 'warning', icon: 'error' },
-  disconnected:   { color: 'warning', icon: 'error' },
-  error:          { color: 'error', icon: 'error' },
-  erroring:       { color: 'error', icon: 'error' },
-  expired:        { color: 'warning', icon: 'error' },
-  failed:         { color: 'error', icon: 'error' },
-  healthy:        { color: 'success', icon: 'dot-open' },
-  inactive:       { color: 'error', icon: 'dot' },
-  initializing:   { color: 'warning', icon: 'error' },
-  locked:         { color: 'warning', icon: 'adjust' },
-  migrating:      { color: 'info', icon: 'info' },
-  paused:         { color: 'info', icon: 'info' },
-  pending:        { color: 'info', icon: 'tag' },
-  provisioning:   { color: 'info', icon: 'dot' },
-  purged:         { color: 'error', icon: 'purged' },
-  purging:        { color: 'info', icon: 'purged' },
-  reconnecting:   { color: 'error', icon: 'error' },
-  registering:    { color: 'info', icon: 'tag' },
-  reinitializing: { color: 'warning', icon: 'error' },
-  released:       { color: 'warning', icon: 'error' },
-  removed:        { color: 'error', icon: 'trash' },
-  removing:       { color: 'info', icon: 'trash' },
-  requested:      { color: 'info', icon: 'tag' },
-  restarting:     { color: 'info', icon: 'adjust' },
-  restoring:      { color: 'info', icon: 'medicalcross' },
-  running:        { color: 'success', icon: 'dot-open' },
-  skipped:        { color: 'info', icon: 'dot-open' },
-  starting:       { color: 'info', icon: 'adjust' },
-  stopped:        { color: 'error', icon: 'dot' },
-  stopping:       { color: 'info', icon: 'adjust' },
-  succeeded:      { color: 'success', icon: 'dot-dotfill' },
-  success:        { color: 'success', icon: 'dot-open' },
-  suspended:      { color: 'info', icon: 'pause' },
-  unavailable:    { color: 'error', icon: 'error' },
-  unhealthy:      { color: 'error', icon: 'error' },
-  untriggered:    { color: 'success', icon: 'tag' },
-  updating:       { color: 'warning', icon: 'tag' },
-  waiting:        { color: 'info', icon: 'tag' },
+  'in-progress':      { color: 'info', icon: 'tag' },
+  'pending-rollback': { color: 'info', icon: 'dot-half' },
+  'pending-upgrade':  { color: 'info', icon: 'dot-half' },
+  aborted:            { color: 'warning', icon: 'error' },
+  activating:         { color: 'info', icon: 'tag' },
+  active:             { color: 'success', icon: 'dot-open' },
+  available:          { color: 'success', icon: 'dot-open' },
+  backedup:           { color: 'success', icon: 'backup' },
+  bound:              { color: 'success', icon: 'dot' },
+  building:           { color: 'success', icon: 'dot-open' },
+  cordoned:           { color: 'info', icon: 'tag' },
+  created:            { color: 'info', icon: 'tag' },
+  creating:           { color: 'info', icon: 'tag' },
+  deactivating:       { color: 'info', icon: 'adjust' },
+  degraded:           { color: 'warning', icon: 'error' },
+  denied:             { color: 'error', icon: 'adjust' },
+  deployed:           { color: 'success', icon: 'dot-open' },
+  disabled:           { color: 'warning', icon: 'error' },
+  disconnected:       { color: 'warning', icon: 'error' },
+  error:              { color: 'error', icon: 'error' },
+  erroring:           { color: 'error', icon: 'error' },
+  expired:            { color: 'warning', icon: 'error' },
+  failed:             { color: 'error', icon: 'error' },
+  healthy:            { color: 'success', icon: 'dot-open' },
+  inactive:           { color: 'error', icon: 'dot' },
+  initializing:       { color: 'warning', icon: 'error' },
+  locked:             { color: 'warning', icon: 'adjust' },
+  migrating:          { color: 'info', icon: 'info' },
+  paused:             { color: 'info', icon: 'info' },
+  pending:            { color: 'info', icon: 'tag' },
+  provisioning:       { color: 'info', icon: 'dot' },
+  purged:             { color: 'error', icon: 'purged' },
+  purging:            { color: 'info', icon: 'purged' },
+  reconnecting:       { color: 'error', icon: 'error' },
+  registering:        { color: 'info', icon: 'tag' },
+  reinitializing:     { color: 'warning', icon: 'error' },
+  released:           { color: 'warning', icon: 'error' },
+  removed:            { color: 'error', icon: 'trash' },
+  removing:           { color: 'info', icon: 'trash' },
+  requested:          { color: 'info', icon: 'tag' },
+  restarting:         { color: 'info', icon: 'adjust' },
+  restoring:          { color: 'info', icon: 'medicalcross' },
+  running:            { color: 'success', icon: 'dot-open' },
+  skipped:            { color: 'info', icon: 'dot-open' },
+  starting:           { color: 'info', icon: 'adjust' },
+  stopped:            { color: 'error', icon: 'dot' },
+  stopping:           { color: 'info', icon: 'adjust' },
+  succeeded:          { color: 'success', icon: 'dot-dotfill' },
+  success:            { color: 'success', icon: 'dot-open' },
+  superseded:         { color: 'info', icon: 'dot-open' },
+  suspended:          { color: 'info', icon: 'pause' },
+  unavailable:        { color: 'error', icon: 'error' },
+  unhealthy:          { color: 'error', icon: 'error' },
+  uninstalled:        { color: 'info', icon: 'trash' },
+  uninstalling:       { color: 'info', icon: 'trash' },
+  unknown:            { color: 'warning', icon: 'x' },
+  untriggered:        { color: 'success', icon: 'tag' },
+  updating:           { color: 'warning', icon: 'tag' },
+  waiting:            { color: 'info', icon: 'tag' },
 };
 
 const SORT_ORDER = {
@@ -181,7 +188,7 @@ export default {
     const schema = this.schema;
 
     if ( schema ) {
-      return this.$rootGetters['type-map/singularLabelFor'](schema);
+      return this.$rootGetters['type-map/labelFor'](schema);
     }
 
     return '?';
@@ -197,7 +204,7 @@ export default {
 
   namespacedName() {
     const namespace = this.metadata?.namespace;
-    const name = this.metadata.name || this.id;
+    const name = this.nameDisplay;
 
     if ( namespace ) {
       return `${ namespace }:${ name }`;
@@ -351,6 +358,14 @@ export default {
     return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ this.stateDisplay }`;
   },
 
+  showMessage() {
+    const trans = this.metadata?.state?.transitioning || false;
+    const error = this.metadata?.state?.error || false;
+    const message = this.metadata?.state?.message;
+
+    return (trans || error) && message && message.toLowerCase() !== this.stateDisplay.toLowerCase();
+  },
+
   // ------------------------------------------------------------------
 
   waitForTestFn() {
@@ -414,6 +429,14 @@ export default {
       return this.waitForTestFn(() => {
         return this.hasAction(name);
       }, `action=${ name }`);
+    };
+  },
+
+  waitForLink() {
+    return (name) => {
+      return this.waitForTestFn(() => {
+        return this.hasLink(name);
+      }, `link=${ name }`);
     };
   },
 
@@ -720,14 +743,20 @@ export default {
   },
 
   remove() {
-    return (opt = {}) => {
+    return async(opt = {}) => {
       if ( !opt.url ) {
         opt.url = (this.links || {})['self'];
       }
 
       opt.method = 'delete';
 
-      return this.$dispatch('request', opt);
+      const res = await this.$dispatch('request', opt);
+
+      if ( res?._status === 204 ) {
+        // If there's no body, assume the resource was immediately deleted
+        // and drop it from the store as if a remove event happened.
+        this.$dispatch('ws.resource.remove', { data: this });
+      }
     };
   },
 
@@ -753,16 +782,30 @@ export default {
     };
   },
 
+  listLocation() {
+    return {
+      name:   `c-cluster-product-resource`,
+      params: {
+        product:   this.$rootGetters['productId'],
+        cluster:   this.$rootGetters['clusterId'],
+        resource:  this.type,
+      }
+    };
+  },
+
   detailLocation() {
     const schema = this.$getters['schemaFor'](this.type);
+
+    const id = this.id.replace(/.*\//, '');
 
     return {
       name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
       params: {
         product:   this.$rootGetters['productId'],
+        cluster:   this.$rootGetters['clusterId'],
         resource:  this.type,
-        namespace: this.metadata && this.metadata.namespace,
-        id:        this.metadata.name
+        namespace: this.metadata?.namespace,
+        id,
       }
     };
   },

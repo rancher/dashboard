@@ -77,7 +77,7 @@ export default {
   },
 
   typeDisplay() {
-    return this.$store.getters['type-map/pluralLabelFor'](schema);
+    return this.$store.getters['type-map/labelFor'](schema, 99);
   },
 };
 </script>

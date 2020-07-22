@@ -67,7 +67,12 @@ export const METRIC = {
   POD:  'metrics.k8s.io.podmetrics',
 };
 
-export const HELM = { RELEASE: 'helmrelease' };
+export const CATALOG = {
+  RELEASE:      'catalog.cattle.io.release',
+  CLUSTER_REPO: 'catalog.cattle.io.clusterrepo',
+  REPO:         'catalog.cattle.io.repo',
+  OPERATION:    'catalog.cattle.io.operation',
+};
 
 // --------------------------------------
 // 2. Only if Rancher is installed
@@ -80,7 +85,7 @@ export const MANAGEMENT = {
   CATALOG_TEMPLATE: 'management.cattle.io.catalogtemplate',
   CLUSTER:          'management.cattle.io.cluster',
   USER:             'management.cattle.io.user',
-  GROUP:             'management.cattle.io.group',
+  GROUP:            'management.cattle.io.group',
   NODE_POOL:        'management.cattle.io.nodepool',
   NODE_TEMPLATE:    'management.cattle.io.nodetemplate',
 };

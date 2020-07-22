@@ -45,7 +45,7 @@ export default {
     </div>
 
     <div class="top">
-      <NamespaceFilter v-if="clusterReady && currentProduct.showNamespaceFilter" />
+      <NamespaceFilter v-if="clusterReady && currentProduct && currentProduct.showNamespaceFilter" />
     </div>
 
     <div class="user">

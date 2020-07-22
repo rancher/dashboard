@@ -212,7 +212,7 @@ export const actions = {
   },
 
   'ws.resource.start'({ commit }, msg) {
-    console.info('Resource start:', msg.resourceType, msg.id, msg.selector); // eslint-disable-line no-console
+    // console.info('Resource start:', msg.resourceType, msg.id, msg.selector); // eslint-disable-line no-console
     commit('setWatchStarted', {
       type:     msg.resourceType,
       id:       msg.id,

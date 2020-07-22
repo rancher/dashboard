@@ -1,6 +1,9 @@
 <script>
+import jsyaml from 'js-yaml';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import Footer from '@/components/form/Footer';
+import { ANNOTATIONS_TO_FOLD } from '@/config/labels-annotations';
+import { ensureRegex } from '@/utils/string';
 
 import {
   _CREATE,
@@ -120,6 +123,31 @@ export default {
       } else if ( this.isEdit ) {
         cm.foldLinesMatching(/^status:\s*$/);
       }
+
+      try {
+        const parsed = jsyaml.safeLoad(this.currentYaml);
+        const annotations = Object.keys(parsed?.metadata?.annotations || {});
+        const regexes = ANNOTATIONS_TO_FOLD.map(x => ensureRegex(x));
+
+        let foldAnnotations = false;
+
+        for ( const k of annotations ) {
+          if ( foldAnnotations ) {
+            break;
+          }
+
+          for ( const regex of regexes ) {
+            if ( k.match(regex) ) {
+              foldAnnotations = true;
+              break;
+            }
+          }
+        }
+
+        if ( foldAnnotations ) {
+          cm.foldLinesMatching(/^\s+annotations:\s*$/);
+        }
+      } catch (e) {}
 
       cm.foldLinesMatching(/^\s+managedFields:\s*$/);
     },

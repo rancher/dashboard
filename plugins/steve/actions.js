@@ -13,12 +13,8 @@ export default {
     opt.httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
     return this.$axios(opt).then((res) => {
-      if ( res.status === 204 ) {
-        return;
-      }
-
       if ( opt.depaginate ) {
-        // @TODO
+        // @TODO but API never sends it
         /*
         return new Promise((resolve, reject) => {
           const next = res.pagination.next;

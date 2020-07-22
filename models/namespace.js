@@ -13,6 +13,10 @@ export default {
       return true;
     }
 
+    if ( this.metadata.name.endsWith('-system') ) {
+      return true;
+    }
+
     if ( this.$rootGetters['isRancher'] ) {
       const project = this.project;
 

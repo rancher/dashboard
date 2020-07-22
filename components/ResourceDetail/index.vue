@@ -82,7 +82,7 @@ export async function defaultAsyncData(ctx, resource) {
 
     const data = { type: resource };
 
-    if ( schema.attributes.namespaced ) {
+    if ( schema.attributes?.namespaced ) {
       data.metadata = { namespace };
     }
 
@@ -93,21 +93,28 @@ export async function defaultAsyncData(ctx, resource) {
   } else {
     let fqid = id;
 
-    if ( schema.attributes.namespaced && namespace ) {
+    if ( schema.attributes?.namespaced && namespace ) {
       fqid = `${ namespace }/${ fqid }`;
     }
 
     originalModel = await store.dispatch('cluster/find', {
-      type: resource, id: fqid, opt: { watch: true }
+      type: resource,
+      id:   fqid,
+      opt:  { watch: true }
     });
     if (realMode === _VIEW) {
       model = originalModel;
     } else {
       model = await store.dispatch('cluster/clone', { resource: originalModel });
     }
-    const link = originalModel.hasLink('rioview') ? 'rioview' : 'view';
 
-    yaml = (await originalModel.followLink(link, { headers: { accept: 'application/yaml' } })).data;
+    const yamlOpt = { headers: { accept: 'application/yaml' } };
+
+    if ( originalModel.hasLink('rioview') ) {
+      yaml = (await originalModel.followLink('rioview', yamlOpt)).data;
+    } else if ( originalModel.hasLink('view') ) {
+      yaml = (await originalModel.followLink('view', yamlOpt)).data;
+    }
 
     if ( realMode === _CLONE || realMode === _STAGE ) {
       cleanForNew(model);
@@ -188,6 +195,10 @@ export default {
       type:    String,
       default: null
     },
+    parentOverride: {
+      type:    Object,
+      default: null
+    }
   },
 
   data() {
@@ -270,6 +281,7 @@ export default {
       :mode="mode"
       :real-mode="realMode"
       :as-yaml.sync="asYaml"
+      :parent-override="parentOverride"
       :has-detail-or-edit="(hasCustomDetail || hasCustomEdit)"
     >
       <template v-if="!isView && asYaml" #right>

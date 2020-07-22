@@ -1,6 +1,6 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
-import { get } from '@/utils/object';
+import { get, isEmpty } from '@/utils/object';
 import { NAMESPACE, RIO } from '@/config/types';
 import Card from '@/components/Card';
 import { alternateLabel } from '@/utils/platform';
@@ -32,11 +32,7 @@ export default {
         return `resource${ this.toRemove.length === 1 ? '' : 's' }`;
       }
 
-      if ( this.toRemove.length > 1 ) {
-        return this.$store.getters['type-map/pluralLabelFor'](schema).toLowerCase();
-      } else {
-        return this.$store.getters['type-map/singularLabelFor'](schema).toLowerCase();
-      }
+      return this.$store.getters['type-map/labelFor'](schema, this.toRemove.length);
     },
 
     selfLinks() {
@@ -133,6 +129,7 @@ export default {
 
   methods: {
     close() {
+      this.confirmName = '';
       this.$store.commit('action-menu/togglePromptRemove');
     },
 
@@ -140,25 +137,23 @@ export default {
       if (this.needsConfirm && this.confirmName !== this.names[0]) {
         this.error = 'Resource names do not match';
         // if doneLocation is defined, redirect after deleting
-      } else if (this.doneLocation) {
-        // doneLocation will recompute to undefined when delete request completes
-        const goTo = { ...this.doneLocation };
+      } else {
+        let goTo;
+
+        if (this.doneLocation) {
+          // doneLocation will recompute to undefined when delete request completes
+          goTo = { ...this.doneLocation };
+        }
 
         Promise.all(this.toRemove.map(resource => resource.remove())).then((results) => {
-          // remove() calls 'cluster/request' which returns nothing for 204 responses
-          if ((results[0] || {})._status === 200 || !results[0]) {
-            this.confirmName = '';
+          if ( !isEmpty(goTo) ) {
             this.currentRouter.push(goTo);
-            this.close();
           }
+
+          this.close();
         }).catch((err) => {
           this.error = err;
         });
-      } else {
-        this.toRemove.map(resource => resource.remove());
-
-        this.confirmName = '';
-        this.close();
       }
     }
   }

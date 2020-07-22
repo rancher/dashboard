@@ -1,3 +1,5 @@
+import { isArray } from '@/utils/array';
+
 export class ClusterNotFoundError extends Error {
   constructor(message) {
     super(message);
@@ -45,4 +47,22 @@ export function stringify(err) {
   }
 
   return str;
+}
+
+export function exceptionToErrorsArray(err) {
+  if ( err?.response?.data ) {
+    const body = err.response.data;
+
+    if ( body && body.message ) {
+      return [body.message];
+    } else {
+      return [err];
+    }
+  } else if (err.status && err.message) {
+    return [err.message];
+  } else if ( isArray(err) ) {
+    return err;
+  } else {
+    return [err];
+  }
 }

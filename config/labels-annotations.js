@@ -21,6 +21,16 @@ export const NODE_ROLES = {
   ETCD:          'node-role.kubernetes.io/etcd',
 };
 
+export const CATALOG = {
+  CERTIFIED:     'catalog.rancher.io/certified',
+  _RANCHER:      'rancher',
+  _PARTNER:      'partner',
+  _OTHER:         'other',
+  EXPERIMENTAL:  'catalog.rancher.io/experimental',
+  NAMESPACE:     'catalog.rancher.io/namespace',
+  RELEASE_NAME:  'catalog.rancher.io/release-name',
+};
+
 export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
 
 // TODO consult w/ backend about what labels & annotations to hide from editing
@@ -32,4 +42,9 @@ export const ANNOTATIONS_TO_IGNORE_CONTAINS = [
 
 export const ANNOTATIONS_TO_IGNORE_PREFIX = [
   DESCRIPTION
+];
+
+export const ANNOTATIONS_TO_FOLD = [
+  /^kubectl\.kubernetes\.io\/.*$/,
+  /^objectset\.rio\.cattle\.io\/.*$/,
 ];

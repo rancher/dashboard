@@ -249,3 +249,15 @@ export function containsSomeString(string, matchStrings) {
 
   return false;
 }
+
+export function ensureRegex(strOrRegex, exact = true) {
+  if ( typeof strOrRegex === 'string' ) {
+    if ( exact ) {
+      return new RegExp(`^${ escapeRegex(strOrRegex) }$`, 'i');
+    } else {
+      return new RegExp(`${ escapeRegex(strOrRegex) }`, 'i');
+    }
+  }
+
+  return strOrRegex;
+}

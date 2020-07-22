@@ -1,9 +1,13 @@
 <script>
 import { _VIEW } from '@/config/query-params';
 import AsyncButton from '@/components/AsyncButton';
+import Banner from '@/components/Banner';
 
 export default {
-  components: { AsyncButton },
+  components: {
+    AsyncButton,
+    Banner,
+  },
 
   props: {
     /**
@@ -43,9 +47,7 @@ export default {
     <div class="spacer"></div>
 
     <div v-for="(err,idx) in errors" :key="idx">
-      <div class="text-error">
-        {{ err }}
-      </div>
+      <Banner color="error" :label="err" />
     </div>
     <div class="cancel-create">
       <slot name="left" />

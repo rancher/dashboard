@@ -90,7 +90,11 @@ export default {
         return '?';
       }
 
-      return this.$store.getters['type-map/pluralLabelFor'](this.schema);
+      return this.$store.getters['type-map/labelFor'](this.schema, 99);
+    },
+
+    isYamlCreateable() {
+      return !this.$store.getters['type-map/isFormOnly'](this.$route.params.resource);
     },
 
     isCreatable() {
@@ -123,7 +127,7 @@ export default {
     <Masthead
       :resource="resource"
       :type-display="typeDisplay"
-      :is-yaml-creatable="schema && isCreatable"
+      :is-yaml-creatable="schema && isCreatable && isYamlCreateable"
       :is-creatable="hasEditComponent && isCreatable"
       :yaml-create-location="yamlRoute"
       :create-location="formRoute"

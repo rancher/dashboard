@@ -77,7 +77,7 @@ export default {
         return {
           schema,
           id:      key,
-          label:   this.$store.getters['type-map/pluralLabelFor'](schema),
+          label:   this.$store.getters['type-map/labelFor'](schema, 99),
           headers: this.$store.getters['type-map/headersFor'](schema),
           rows:    map[key],
         };

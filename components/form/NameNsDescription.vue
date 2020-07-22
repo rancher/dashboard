@@ -1,4 +1,5 @@
 <script>
+import { get, set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import { NAMESPACE } from '@/config/types';
 import { DESCRIPTION } from '@/config/labels-annotations';
@@ -22,6 +23,14 @@ export default {
       type:    Boolean,
       default: true,
     },
+    allowNewNamespace: {
+      type:    Boolean,
+      default: false,
+    },
+    namespaceDisabled: {
+      type:    Boolean,
+      default: false,
+    },
     extraColumns: {
       type:    Array,
       default: () => []
@@ -38,35 +47,73 @@ export default {
       type:    String,
       default: ''
     },
+    nameDisabled: {
+      type:    Boolean,
+      default: false,
+    },
     descriptionPlaceholder: {
       type:    String,
       default: 'Any text you want that better describes this resource'
     },
+
+    // Use specific fields on the value instead of the normal metadata locations
+    nameKey: {
+      type:    String,
+      default: null,
+    },
+    namespaceKey: {
+      type:    String,
+      default: null,
+    },
+    descriptionKey: {
+      type:    String,
+      default: null,
+    },
   },
 
   data() {
-    let metadata = this.value.metadata;
+    const v = this.value;
+    const metadata = v.metadata;
+    let namespace, name, description;
 
-    if ( !metadata ) {
-      metadata = {};
-      this.value.metadata = metadata;
+    if (this.nameKey ) {
+      name = get(v, this.nameKey);
+    } else {
+      name = metadata.name;
     }
 
-    if ( this.namespaced && !metadata.namespace ) {
-      metadata.namespace = this.$store.getters['defaultNamespace'];
+    if ( this.namespaced ) {
+      if ( this.namespaceKey ) {
+        namespace = get(v, this.namespaceKey);
+      } else {
+        namespace = metadata?.namespace;
+      }
+
+      if ( !namespace ) {
+        namespace = this.$store.getters['defaultNamespace'];
+      }
     }
-    const description = metadata.annotations?.[DESCRIPTION];
+
+    if ( this.descriptionKey ) {
+      description = get(v, this.descriptionKey);
+    } else {
+      description = metadata?.annotations?.[DESCRIPTION];
+    }
 
     return {
-      namespace: metadata.namespace,
-      name:      metadata.name,
-      description,
+      namespace,
+      name,
+      description
     };
   },
 
   computed: {
-    nameDisabled() {
-      return this.mode === _EDIT && !this.nameEditable;
+    namespaceReallyDisabled() {
+      return this.namespaceDisabled || this.mode === _EDIT; // namespace is never editable
+    },
+
+    nameReallyDisabled() {
+      return this.nameDisabled || ( this.mode === _EDIT && !this.nameEditable);
     },
 
     namespaces() {
@@ -96,15 +143,27 @@ export default {
 
   watch: {
     name(val) {
-      this.value.metadata.name = val;
+      if ( this.nameKey ) {
+        set(this.value, this.nameKey, val);
+      } else {
+        this.value.metadata.name = val;
+      }
     },
 
     namespace(val) {
-      this.value.metadata.namespace = val;
+      if ( this.namespaceKey ) {
+        set(this.value, this.namespaceKey, val);
+      } else {
+        this.value.metadata.namespace = val;
+      }
     },
 
     description(val) {
-      this.value.setAnnotation(DESCRIPTION, val);
+      if ( this.descriptionKey ) {
+        set(this.value, this.descriptionKey, val);
+      } else {
+        this.value.setAnnotation(DESCRIPTION, val);
+      }
     },
   },
 
@@ -139,8 +198,10 @@ export default {
             :text-value="name"
             :text-required="true"
             :select-value="namespace"
+            :searchable="true"
+            :taggable="allowNewNamespace"
             :mode="mode"
-            :disabled="nameDisabled"
+            :disabled="namespaceReallyDisabled"
             @input="changeNameAndNamespace($event)"
           />
           <LabeledInput
@@ -149,7 +210,7 @@ export default {
             key="name"
             v-model="name"
             label="Name"
-            :disabled="nameDisabled"
+            :disabled="nameReallyDisabled"
             :mode="mode"
             :min-height="30"
           />

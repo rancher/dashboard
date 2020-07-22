@@ -110,9 +110,7 @@ export default {
   created() {
     this.queueUpdate = debounce(this.getGroups, 500);
 
-    if ( process.server ) {
-      this.getGroups();
-    }
+    this.getGroups();
   },
 
   methods: {
@@ -209,6 +207,7 @@ export default {
 
     <nav v-if="clusterReady">
       <Jump v-if="showJump" class="mt-10 mb-10" />
+      <div v-else class="mb-20" />
       <template v-for="(g, idx) in groups">
         <Group
           :key="idx"

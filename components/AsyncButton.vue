@@ -4,6 +4,7 @@ const WAITING = 'waiting';
 const SUCCESS = 'success';
 const ERROR = 'error';
 
+// @TODO move to translations
 const LABEL = {
   create: {
     action:  'Create',
@@ -51,6 +52,12 @@ const LABEL = {
     action:  'Download',
     waiting: 'Downloading&hellip;',
     success: 'Saving',
+    error:   'Error',
+  },
+  finish: {
+    action:  'Finish',
+    waiting: 'Finishing&hellip;',
+    success: 'Finished',
     error:   'Error',
   }
 };

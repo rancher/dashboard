@@ -122,8 +122,8 @@ export default {
 
     pagingParams() {
       return {
-        singularLabel: this.$store.getters['type-map/singularLabelFor'](this.schema),
-        pluralLabel:   this.$store.getters['type-map/pluralLabelFor'](this.schema),
+        singularLabel: this.$store.getters['type-map/labelFor'](this.schema),
+        pluralLabel:   this.$store.getters['type-map/labelFor'](this.schema, 99),
       };
     },
   },
