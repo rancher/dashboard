@@ -1,5 +1,5 @@
 import {
-  CONFIG_MAP,
+  CONFIG_MAP, HELM_RELEASE,
   NAMESPACE, NODE, SECRET, INGRESS,
   WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
   RBAC,
@@ -34,7 +34,7 @@ export function init(store) {
     showNamespaceFilter: true
   });
 
-  basicType('cluster-overview');
+  basicType(['cluster-overview', HELM_RELEASE]);
   basicType([
     NAMESPACE,
     NODE,

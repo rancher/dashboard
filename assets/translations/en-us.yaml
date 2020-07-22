@@ -191,7 +191,17 @@ servicesPage:
       placeholder: e.g. 10800
 
 clusterIndexPage:
-  header: "Cluster: {name}"
+  header: "Overview"
+  resourceGauge:
+    totalResources: "TotalResources"
+  hardwareResourceGauge:
+    consumption: "{useful} of {total} {units} {suffix}"
+    podsReserved: "Pods Reserved"
+    coresReserved: "Cores Reserved"
+    ramReserved: "Ram Reserved"
+    coresUsed: "Cores Used"
+    ramUsed: "Ram Used"
+
   sections:
     nodes:
       label: Unhealthy Nodes
@@ -263,25 +273,16 @@ gatekeeperConstraint:
     kinds:
       title: Kinds
 
-infoBoxCluster:
+glance:
   cpu: CPU Usage
   created: Created
   memory: Memory
   pods: Pods
   provider: Provider
-  reserved: "{numerator} of {denominator} reserved"
-  used: "{numerator} of {denominator} used"
   version: Kubernetes Version
   nodes:
-    label: Nodes
     total:
       label: Total Nodes
-    worker:
-      label: Worker
-    etcd:
-      label: Etcd
-    controlPlane:
-      label: Control Plane
 
 resourceDetail:
   header:

@@ -20,22 +20,30 @@ export default {
         return value >= 0 && value <= 1;
       }
     },
-    /**
-     * A number representing the lower bound the `value` can be before it ends up in a **warning** state. *Must be a value between 0 and 1*.
-     */
-    lowerWarningBound: { type: Number, default: undefined },
-    /**
-     * A number representing the upper bound the `value` can be before it ends up in a **warning** state. *Must be a value between 0 and 1*.
-     */
-    upperWarningBound: { type: Number, default: undefined },
-    /**
-     * A number representing the lower bound the `value` can be before it ends up in an **error** state. *Must be a value between 0 and 1*.
-     */
-    lowerErrorBound:   { type: Number, default: undefined },
-    /**
-     * A number representing the upper bound the `value` can be before it ends up in an **error** state. *Must be a value between 0 and 1*.
-     */
-    upperErrorBound:   { type: Number, default: undefined }
+
+    type: {
+      type:      String,
+      required:  true,
+      validator: (value) => {
+        return ['full', 'half'].includes(value);
+      }
+    },
+
+    primaryColor: {
+      type:     String,
+      required: true
+    },
+
+    secondaryColor: {
+      type:     String,
+      required: true
+    },
+
+    barWidth: {
+      type:     Number,
+      required: true
+    }
+
   },
 
   computed: {
