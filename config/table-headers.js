@@ -5,7 +5,7 @@ export const STATE = {
   labelKey:  'tableHeaders.state',
   sort:      ['stateSort', 'nameSort'],
   value:     'stateDisplay',
-  width:     75,
+  width:     85,
   default:   'unknown',
   formatter: 'BadgeStateFormatter',
 };
@@ -479,4 +479,11 @@ export const RESOURCES = {
   value:    'spec.resources.length',
   sort:     'spec.resources.length',
   width:    100,
+};
+
+export const URL = {
+  name:     'url',
+  labelKey: 'tableHeaders.url',
+  value:    'spec.url',
+  sort:     'spec.url',
 };

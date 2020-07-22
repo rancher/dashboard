@@ -51,6 +51,7 @@ const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TMIMEOUT = 30000;
 
 const STATES = {
+  'in-progress':      { color: 'info', icon: 'tag' },
   'pending-rollback': { color: 'info', icon: 'dot-half' },
   'pending-upgrade':  { color: 'info', icon: 'dot-half' },
   aborted:            { color: 'warning', icon: 'error' },

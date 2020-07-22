@@ -1,5 +1,5 @@
 <script>
-import Loading from '@/components/loading';
+import Loading from '@/components/Loading';
 
 export default {
   components: { Loading },
@@ -21,7 +21,10 @@ export default {
 
   computed: {
     html() {
-      return this.marked(this.value, { breaks: true });
+      return this.marked(this.value, {
+        renderer: this.markedRenderer,
+        breaks:   true
+      });
     },
 
     sanitized() {
@@ -30,8 +33,23 @@ export default {
   },
 
   async mounted() {
-    this.marked = (await import(/* webpackChunkName: "markdown" */ 'marked')).default;
-    this.dompurify = (await import(/* webpackChunkName: "markdown" */ 'dompurify')).default;
+    const marked = (await import(/* webpackChunkName: "markdown" */ 'marked')).default;
+    const dompurify = (await import(/* webpackChunkName: "markdown" */ 'dompurify')).default;
+
+    const renderer = new marked.Renderer();
+    const linkRenderer = renderer.link;
+
+    renderer.link = function() {
+      const orig = linkRenderer.apply(this, arguments);
+
+      return orig.replace(/^<a /, '<a target="_blank" rel="nofollow noopener noreferrer" ');
+    };
+
+    dompurify.setConfig({ ADD_ATTR: ['target'] });
+
+    this.marked = marked;
+    this.markedRenderer = renderer;
+    this.dompurify = dompurify;
     this.loaded = true;
   }
 };

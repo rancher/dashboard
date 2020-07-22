@@ -8,6 +8,7 @@ import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import LazyImage from '@/components/LazyImage';
 import Markdown from '@/components/Markdown';
 import { CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
@@ -24,9 +25,10 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { ensureRegex } from '@/utils/string';
 
 const CERTIFIED_SORTS = {
-  [CATALOG_ANNOTATIONS._RANCHER]: 1,
-  [CATALOG_ANNOTATIONS._PARTNER]: 2,
-  other:                          3,
+  [CATALOG_ANNOTATIONS._RANCHER]:      1,
+  [CATALOG_ANNOTATIONS._EXPERIMENTAL]: 1,
+  [CATALOG_ANNOTATIONS._PARTNER]:      2,
+  other:                               3,
 };
 
 export default {
@@ -38,6 +40,7 @@ export default {
     ButtonGroup,
     Checkbox,
     LabeledSelect,
+    LazyImage,
     Loading,
     Markdown,
     NameNsDescription,
@@ -90,6 +93,20 @@ export default {
 
     if ( this.repo && chartName ) {
       this.chart = findBy(this.allCharts, { [repoKey]: repoName, name: chartName });
+
+      if ( this.chart.targetNamespace ) {
+        this.namespace = this.chart.targetNamespace;
+        this.namespaceDisabled = true;
+      } else {
+        this.namespaceDisabled = false;
+      }
+
+      if ( this.chart.targetName ) {
+        this.releaseName = this.chart.targetName;
+        this.nameDisabled = true;
+      } else {
+        this.nameDisabled = false;
+      }
     }
 
     let version;
@@ -98,7 +115,7 @@ export default {
       version = findBy(this.chart.versions, 'version', versionName);
     }
 
-    if ( version ) {
+    if ( version && !this.versionInfo ) {
       this.versionInfo = await this.repo.followLink('info', { url: addParams(this.repo.links.info, { chartName, version: versionName }) });
       this.mergeValues(this.versionInfo.values);
       this.valuesYaml = jsyaml.safeDump(this.value.values);
@@ -119,6 +136,12 @@ export default {
 
       versionInfo: null,
       valuesYaml:  null,
+
+      releaseName:       null,
+      namespace:         null,
+      description:       null,
+      nameDisabled:      false,
+      namespaceDisabled: false,
 
       searchQuery:    '',
       sortField:      'certifiedSort',
@@ -241,15 +264,29 @@ export default {
 
       function addChart(chart, repo) {
         const key = `${ repo.type }/${ repo.metadata.name }/${ chart.name }`;
+        const certifiedAnnotation = chart.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED];
 
-        let certified = 'other';
+        let certified = CATALOG_ANNOTATIONS._OTHER;
+        let sideLabel = null;
 
+        // @TODO remove fake hackery
         if ( repo.name === 'dev-charts' ) {
           certified = CATALOG_ANNOTATIONS._RANCHER;
-        } else if ( repo.name.startsWith('f') ) {
+        } else if ( chart.name.startsWith('f') ) {
           certified = CATALOG_ANNOTATIONS._PARTNER;
         } else if ( repo.isRancher ) {
-          certified = chart.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED] || certified;
+          // Only charts from a rancher repo can actually set the certified flag
+          certified = certifiedAnnotation || certified;
+        }
+
+        // @TODO remove fake hackery
+        if ( chart.name.includes('b') ) {
+          sideLabel = 'Experimental';
+        } else if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
+          sideLabel = 'Experimental';
+        } else if ( !repo.isRancher && certifiedAnnotation && certified === CATALOG_ANNOTATIONS._OTHER) {
+          // But anybody can set the side label
+          sideLabel = certifiedAnnotation;
         }
 
         let icon = chart.icon;
@@ -263,14 +300,17 @@ export default {
         if ( !obj ) {
           obj = {
             key,
-            certified,
-            certifiedSort: CERTIFIED_SORTS[certified] || 99,
             icon,
-            name:          chart.name,
-            description:   chart.description,
-            repoName:      repo.name,
-            versions:      [],
-            deprecated:    !!chart.deprecated,
+            certified,
+            sideLabel,
+            certifiedSort:   CERTIFIED_SORTS[certified] || 99,
+            name:            chart.name,
+            description:     chart.description,
+            repoName:        repo.name,
+            versions:        [],
+            deprecated:      !!chart.deprecated,
+            targetNamespace: chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
+            targetName:      chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
           };
 
           if ( repo.type === CATALOG.CLUSTER_REPO ) {
@@ -334,6 +374,9 @@ export default {
     updateBeforeSave() {
       this.value.chartName = this.chart.name;
       this.value.version = this.$route.query.version;
+      this.value.releaseName = this.releaseName;
+      this.value.namespace = this.namespace;
+      this.value.description = this.description;
 
       // @TODO only save values that differ from defaults?
       this.value.values = jsyaml.safeLoad(this.valuesYaml);
@@ -367,9 +410,9 @@ export default {
     <template #chart>
       <div class="clearfix">
         <div class="pull-left">
-          <Checkbox v-model="showRancher" label="Rancher" />
-          <Checkbox v-model="showPartner" label="Partner" />
-          <Checkbox v-model="showOther" label="Other" />
+          <Checkbox v-model="showRancher" label="Rancher" class="check-rancher" />
+          <Checkbox v-model="showPartner" label="Partner" class="check-partner" />
+          <Checkbox v-model="showOther" label="Other" class="check-other" />
         </div>
         <div class="pull-right">
           <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" placeholder="Filter">
@@ -381,9 +424,11 @@ export default {
       </div>
       <div class="charts">
         <div v-for="c in arrangedCharts" :key="c.key" class="chart" :class="{[c.certified]: true}" @click="selectChart(c)">
+          <div class="side-label">
+            <label v-if="c.sideLabel">{{ c.sideLabel }}</label>
+          </div>
           <div class="logo">
-            <img v-if="c.icon" :src="c.icon" />
-            <i v-else class="icon icon-file icon-3x" style="position: relative; top: 5px;" />
+            <LazyImage :src="c.icon" />
           </div>
           <h4 class="name">
             {{ c.name }}
@@ -396,19 +441,22 @@ export default {
     </template>
 
     <template v-if="chart" #helm>
-      <div class="row">
+      <div v-if="versionInfo.readme" class="row">
         <div class="col span-12">
           <Markdown v-model="versionInfo.readme" class="readme" />
         </div>
       </div>
 
       <NameNsDescription
+        v-model="_data"
         :mode="mode"
-        :value="value"
         :direct="true"
         name-key="releaseName"
         namespace-key="namespace"
         description-key="description"
+        :name-disabled="nameDisabled"
+        :namespace-disabled="namespaceDisabled"
+        :allow-new-namespace="true"
       />
 
       <div class="row">
@@ -455,12 +503,32 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  $chart: 110px;
+  $side: 15px;
   $margin: 10px;
-  $logo: 50px;
+  $logo: 60px;
 
   .yaml-editor {
     flex: 1;
     min-height: 400px;
+  }
+
+  .check-rancher, .check-partner, .check-other {
+    border-radius: var(--border-radius);
+    padding: 3px 0 3px 8px;
+    margin-right: 5px;
+  }
+  .check-rancher {
+    background: var(--app-rancher-bg);
+    border: 1px solid var(--app-rancher-accent);
+  }
+  .check-partner {
+    background: var(--app-partner-bg);
+    border: 1px solid var(--app-partner-accent);
+  }
+  .check-other {
+    background: var(--app-other-bg);
+    border: 1px solid var(--app-other-accent);
   }
 
   .charts {
@@ -491,7 +559,7 @@ export default {
     }
 
     .chart {
-      height: 110px;
+      height: $chart;
       margin: $margin;
       padding: $margin;
       position: relative;
@@ -504,61 +572,80 @@ export default {
         cursor: pointer;
       }
 
+      .side-label {
+        transform: rotate(180deg);
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        min-width: calc(3 * var(--border-radius));
+        width: $side;
+        border-top-right-radius: calc( 3 * var(--border-radius));
+        border-bottom-right-radius: calc( 3 * var(--border-radius));
+
+        label {
+          text-align: center;
+          writing-mode: tb;
+          height: 100%;
+          padding: 0 1px;
+          display: block;
+          white-space: no-wrap;
+          text-overflow: ellipsis;
+        }
+      }
+
       .logo {
         text-align: center;
         position: absolute;
-        left: 10px;
-        top: 10px;
+        left: $side+$margin;
+        top: ($chart - $logo)/2;
         width: $logo;
         height: $logo;
-        border-radius: 50%;
+        border-radius: calc(5 * var(--border-radius));
         overflow: hidden;
 
         img {
-          width: $logo;
-          height: $logo;
+          width: $logo - 4px;
+          height: $logo - 4px;
           object-fit: contain;
+          position: relative;
+          top: 2px;
         }
       }
 
       &.rancher {
         background: var(--app-rancher-bg);
-        border-left-color: var(--app-rancher-accent);
 
-        .logo {
-          background-color: var(--app-rancher-accent);
-        }
+        .logo { background-color: var(--app-rancher-accent); }
+        .side-label { background-color: var(--app-rancher-accent); color: var(--app-rancher-accent-text); }
       }
 
       &.partner {
         background: var(--app-partner-bg);
-        border-left-color: var(--app-partner-accent);
 
-        .logo {
-          background-color: var(--app-partner-accent);
-        }
+        .logo { background-color: var(--app-partner-accent); }
+        .side-label { background-color: var(--app-partner-accent); color: var(--app-partner-accent-text); }
       }
 
       &.other {
         background: var(--app-other-bg);
-        border-left-color: var(--app-other-accent);
 
-        .logo {
-          background-color: var(--app-other-accent);
-        }
+        .logo { background-color: white; }
+        .side-label { background-color: var(--app-other-accent); color: var(--app-other-accent-text); }
       }
 
       .name {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin-top: 10px;
-        margin-left: $logo+10px;
+        margin-top: $margin;
+        margin-left: $side+$logo+$margin;
       }
 
       .description {
-        margin-top: 10px;
-        margin-left: $logo+10px;
+        margin-top: $margin;
+        margin-left: $side+$logo+$margin;
+        margin-right: $margin;
         display: -webkit-box;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 3;

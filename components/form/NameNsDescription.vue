@@ -23,6 +23,14 @@ export default {
       type:    Boolean,
       default: true,
     },
+    allowNewNamespace: {
+      type:    Boolean,
+      default: false,
+    },
+    namespaceDisabled: {
+      type:    Boolean,
+      default: false,
+    },
     extraColumns: {
       type:    Array,
       default: () => []
@@ -38,6 +46,10 @@ export default {
     namePlaceholder: {
       type:    String,
       default: ''
+    },
+    nameDisabled: {
+      type:    Boolean,
+      default: false,
     },
     descriptionPlaceholder: {
       type:    String,
@@ -96,8 +108,12 @@ export default {
   },
 
   computed: {
-    nameDisabled() {
-      return this.mode === _EDIT && !this.nameEditable;
+    namespaceReallyDisabled() {
+      return this.namespaceDisabled || this.mode === _EDIT; // namespace is never editable
+    },
+
+    nameReallyDisabled() {
+      return this.nameDisabled || ( this.mode === _EDIT && !this.nameEditable);
     },
 
     namespaces() {
@@ -182,8 +198,10 @@ export default {
             :text-value="name"
             :text-required="true"
             :select-value="namespace"
+            :searchable="true"
+            :taggable="allowNewNamespace"
             :mode="mode"
-            :disabled="nameDisabled"
+            :disabled="namespaceReallyDisabled"
             @input="changeNameAndNamespace($event)"
           />
           <LabeledInput
@@ -192,7 +210,7 @@ export default {
             key="name"
             v-model="name"
             label="Name"
-            :disabled="nameDisabled"
+            :disabled="nameReallyDisabled"
             :mode="mode"
             :min-height="30"
           />

@@ -10,6 +10,14 @@ export default {
       type:    Boolean,
       default: false,
     },
+    searchable: {
+      type:    Boolean,
+      default: true,
+    },
+    taggable: {
+      type:    Boolean,
+      default: false,
+    },
 
     selectLabel: {
       type:    String,
@@ -77,10 +85,11 @@ export default {
       :label="selectLabel"
       class="in-input"
       :options="options"
-      :searchable="false"
+      :searchable="searchable"
       :disbaled="isView"
       :clearable="false"
       :disabled="disabled"
+      :taggable="taggable"
       :mode="mode"
       :option-label="optionLabel"
       @input="change"

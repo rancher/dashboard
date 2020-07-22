@@ -6,7 +6,7 @@ product:
   apps: Manage Applications
   explorer: Cluster Explorer
   gatekeeper: OPA Gatekeeper
-  mcm: Multi-Cluster Manager
+  mcm: Enterprise Cluster Manager
   rio: Rio
 
 generic:
@@ -401,61 +401,36 @@ wm:
     title: "Kubectl: {name}"
 
 tableHeaders:
-  state: State
+  address: Address
+  age: Age
+  apiGroup: API Groups
+  builtIn: Built In
+  chart: Chart
+  clusterCreatorDefault: Cluster Creator Default
+  cpu: CPU
+  destination: Target
   download: Download
-  internalExternalIp: "Internal/External IP"
-  name: Name
-  simpleName: Name
   effect: Effect
-  nameUnlinked: Name
-  namespaceNameUnlinked: Name
+  endpoints: Endpoint
+  image: Image
+  imageSize: Size
+  ingressTarget: Target
+  internalExternalIp: "Internal/External IP"
+  key: Key
+  keys: Data
+  lastHeartbeatTime: Last update
+  matches: Matches
+  message: Message
+  name: Name
   namespaceName: Name
+  namespaceNameUnlinked: Name
+  nameUnlinked: Name
   node: Node
   nodeName: Name
-  roles: Roles
-  version: Version
-  cpu: CPU
-  ram: RAM
-  pods: Pods
-  age: Age
-  image: Image
-  rioImage: Image
-  podImages: Image
-  endpoints: Endpoint
-  scale: Scale
-  simpleScale: Scale
-  weight: Weight
-  success: Success
-  reqRate: Req Rate
   p95: 95%tile
-  keys: Data
-  targetKind: Target Type
-  target: Target
-  matches: Matches
-  destination: Target
-  username: Username
-  userDisplayName: Display Name
-  userId: ID
-  userStatus: Status
-  address: Address
-  simpleType: Type
-  imageSize: Size
-  type: Type
-  targetPort: Target
-  selector: Selector
-  status: Status
-  lastHeartbeatTime: Last update
-  reason: Reason
-  message: Message
-  key: Key
-  value: Value
-  builtIn: Built In
-  clusterCreatorDefault: Cluster Creator Default
-  resource: Resource
-  apiGroup: API Groups
-  ingressTarget: Target
-  chart: Chart
-  resources: Resources
+  podImages: Image
+  pods: Pods
+  ram: RAM
   rbac:
     create: Create
     delete: Delete
@@ -464,6 +439,32 @@ tableHeaders:
     patch: Patch
     update: Update
     watch: Watch
+  reason: Reason
+  reqRate: Req Rate
+  resource: Resource
+  resources: Resources
+  rioImage: Image
+  roles: Roles
+  scale: Scale
+  selector: Selector
+  simpleName: Name
+  simpleScale: Scale
+  simpleType: Type
+  state: State
+  status: Status
+  success: Success
+  target: Target
+  targetKind: Target Type
+  targetPort: Target
+  type: Type
+  url: URL
+  userDisplayName: Display Name
+  userId: ID
+  username: Username
+  userStatus: Status
+  value: Value
+  version: Version
+  weight: Weight
 
 node:
   detail:

@@ -201,13 +201,38 @@ $selected: rgba($primary, .5);
   --sizzle-8                   : 255, 235, 0;
 
   $angle: 135deg;
-  $start: 0.35;
-  $end: 0.125;
+  $startPos: 0%;
+  $start: 0.3;
+  $middlePos: 110px;
+  $middle: 0.1;
+  $endPos: 100%;
+  $end: 0;
 
-  --app-rancher-accent: #3D97D2;
-  --app-rancher-bg: transparent linear-gradient(#{$angle}, rgba(  0, 169, 217, #{$start}) 0%, rgba(  0, 169, 217, #{$end}) 100%) 0% 0% no-repeat padding-box;
-  --app-partner-accent: #B5D21E;
-  --app-partner-bg: transparent linear-gradient(#{$angle}, rgba(255, 235,   0, #{$start}) 0%, rgba(255, 235,   0, #{$end}) 100%) 0% 0% no-repeat padding-box;
-  --app-other-accent: #D44294;
-  --app-other-bg:    transparent linear-gradient(#{$angle}, rgba(212,  66, 148, #{$start}) 0%, rgba(212,  66, 148, #{$end}) 100%) 0% 0% no-repeat padding-box;
+  $rancher: #3D97D2;
+  $partner: #B5D21E;
+  $other: #D44294;
+
+  --app-rancher-accent: #{$rancher};
+  --app-rancher-accent-text: white;
+  --app-rancher-bg: transparent linear-gradient(#{$angle},
+      #{rgba($rancher, $start)} #{$startPos},
+      #{rgba($rancher, $middle)} #{$middlePos},
+      #{rgba($rancher, $end)} #{$endPos}
+  ) 0% 0% no-repeat padding-box;
+
+  --app-partner-accent: #{$partner};
+  --app-partner-accent-text: black;
+  --app-partner-bg: transparent linear-gradient(#{$angle},
+      #{rgba($partner, $start)} #{$startPos},
+      #{rgba($partner, $middle)} #{$middlePos},
+      #{rgba($partner, $end)} #{$endPos}
+  ) 0% 0% no-repeat padding-box;
+
+  --app-other-accent: #{$other};
+  --app-other-accent-text: white;
+  --app-other-bg: transparent linear-gradient(#{$angle},
+      #{rgba($other, $start)} #{$startPos},
+      #{rgba($other, $middle)} #{$middlePos},
+      #{rgba($other, $end)} #{$endPos}
+  ) 0% 0% no-repeat padding-box;
 }
