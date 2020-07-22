@@ -12,13 +12,15 @@ export default {
     <div class="dropdown-button btn bg-primary">
       <slot name="button-content">
         <button
-          class="btn bg-transparent create-button"
+          class="btn bg-transparent"
           disabled="true"
-          @click.prevent.self
+          type="button"
         >
           Button
         </button>
       </slot>
+
+      <div class="button-divider"></div>
 
       <v-popover
         v-if="hasSlot('popover-content')"
@@ -28,7 +30,10 @@ export default {
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >
         <slot name="button-toggle-content">
-          <button class="icon-container btn bg-transparent">
+          <button
+            class="icon-container btn bg-transparent"
+            type="button"
+          >
             <i class="icon icon-chevron-down" />
           </button>
         </slot>
