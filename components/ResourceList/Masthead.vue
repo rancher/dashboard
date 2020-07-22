@@ -49,14 +49,13 @@ export default {
       {{ typeDisplay }} <Favorite :resource="resource" />
     </h1>
     <div class="actions">
-      <ButtonDropdown
-        :resource="resource"
-      >
-        <template slot="button-content">
+      <ButtonDropdown>
+        <template #button-content="slotProps">
           <nuxt-link
             v-if="isCreatable"
             :to="createLocation"
             class="btn bg-transparent"
+            :class="slotProps.buttonSize"
           >
             {{ t("resourceList.head.create") }}
           </nuxt-link>
@@ -64,6 +63,7 @@ export default {
             v-else-if="!isCreatable && isYamlCreatable"
             :to="yamlCreateLocation"
             class="btn bg-transparent"
+            :class="slotProps.buttonSize"
           >
             {{ t("resourceList.head.createFromYaml") }}
           </nuxt-link>
@@ -71,6 +71,7 @@ export default {
             v-else
             href="#"
             class="btn bg-transparent"
+            :class="slotProps.buttonSize"
             disabled="true"
             @click.prevent.self
           >

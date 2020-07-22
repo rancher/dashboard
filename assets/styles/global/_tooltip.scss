@@ -152,6 +152,9 @@
   $button-top-bottom-padding: 15px;
   $btn-padding: $button-top-bottom-padding 20px;
   $trigger-padding: $button-top-bottom-padding 10px 10px 10px;
+  $xs-trigger-padding: 2px 4px 4px 4px;
+  $sm-trigger-padding: 8px 10px 10px 10px;
+  $lg-trigger-padding: 18px 10px 10px 10px;
 
   .v-popover {
     .text-right {
@@ -162,6 +165,15 @@
       .icon-container {
         height: 100%;
         padding: $trigger-padding;
+        &.btn-xs {
+          padding: $xs-trigger-padding;
+        }
+        &.btn-sm {
+          padding: $sm-trigger-padding;
+        }
+        &.btn-lg {
+          padding: $lg-trigger-padding;
+        }
       }
     }
   }
@@ -174,6 +186,12 @@
     .button-divider {
       border-right: 1px solid var(--link-text);
       margin: 10px 0;
+    }
+
+    &.btn-xs {
+      .button-divider {
+        margin: 1px 0;
+      }
     }
   }
   .popover {
