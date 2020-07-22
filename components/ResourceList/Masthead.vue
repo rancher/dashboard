@@ -49,7 +49,9 @@ export default {
       {{ typeDisplay }} <Favorite :resource="resource" />
     </h1>
     <div class="actions">
-      <ButtonDropdown>
+      <ButtonDropdown
+        v-if="isCreatable || isYamlCreatable"
+      >
         <template #button-content="slotProps">
           <nuxt-link
             v-if="isCreatable"
