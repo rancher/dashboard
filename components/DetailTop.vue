@@ -51,7 +51,8 @@ export default {
     }
   },
   methods: {
-    showAnnotations() {
+    showAnnotations(ev) {
+      ev.preventDefault();
       this.annotationsVisible = true;
     }
   }
