@@ -56,21 +56,21 @@ export default {
           <nuxt-link
             v-if="isCreatable"
             :to="createLocation"
-            class="btn bg-transparent create-button"
+            class="btn bg-transparent"
           >
             {{ t("resourceList.head.create") }}
           </nuxt-link>
           <nuxt-link
             v-else-if="!isCreatable && isYamlCreatable"
             :to="yamlCreateLocation"
-            class="btn bg-transparent create-button"
+            class="btn bg-transparent"
           >
             {{ t("resourceList.head.createFromYaml") }}
           </nuxt-link>
           <a
             v-else
             href="#"
-            class="btn bg-transparent create-button"
+            class="btn bg-transparent"
             disabled="true"
             @click.prevent.self
           >

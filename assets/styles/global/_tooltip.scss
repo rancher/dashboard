@@ -148,6 +148,11 @@
 
 // load here instead of component so SSR render isn't all wonky
 .dropdown-button-group {
+  // this matches the top/bottom padding of the default button
+  $button-top-bottom-padding: 15px;
+  $btn-padding: $button-top-bottom-padding 20px;
+  $trigger-padding: $button-top-bottom-padding 10px 10px 10px;
+
   .v-popover {
     .text-right {
       margin-top: 5px;
@@ -156,7 +161,7 @@
       height: 100%;
       .icon-container {
         height: 100%;
-        padding: 15px 10px 10px 10px;
+        padding: $trigger-padding;
       }
     }
   }
@@ -166,14 +171,9 @@
     color: var(--link-text);
     padding: 0;
 
-    .create-button {
-      &:not(:only-child) {
-        border-right: 1px solid var(--link-text);
-      }
-
-      &:focus {
-        outline: none;
-      }
+    .button-divider {
+      border-right: 1px solid var(--link-text);
+      margin: 10px 0;
     }
   }
   .popover {
