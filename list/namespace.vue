@@ -50,7 +50,7 @@ export default {
     group: mapPref(GROUP_RESOURCES),
 
     groupable() {
-      return this.$store.getters['isRancher'];
+      return this.$store.getters['isMultiCluster'];
     },
 
     groupBy() {

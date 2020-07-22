@@ -13,7 +13,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady', 'isRancher', 'isMultiCluster']),
+    ...mapState(['managementReady', 'clusterReady', 'isMultiCluster']),
     ...mapGetters(['currentCluster', 'currentProduct']),
 
     authEnabled() {
@@ -23,6 +23,10 @@ export default {
     principal() {
       return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
+
+    showShell() {
+      return !!this.currentCluster?.links?.shell;
+    }
   },
 };
 </script>
@@ -35,7 +39,7 @@ export default {
     </div>
 
     <div class="kubectl">
-      <button v-if="currentCluster" type="button" class="btn btn-sm role-tertiary" @click="currentCluster.openShell()">
+      <button :disabled="!showShell" type="button" class="btn btn-sm role-tertiary" @click="currentCluster.openShell()">
         <i class="icon icon-terminal" />
       </button>
     </div>

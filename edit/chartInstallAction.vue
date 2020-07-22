@@ -476,6 +476,10 @@ export default {
         @onInput="valuesChanged"
       />
     </template>
+
+    <template v-if="!chart" #next>
+      &nbsp;
+    </template>
   </Wizard>
 </template>
 

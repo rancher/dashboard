@@ -94,6 +94,7 @@ export function init(store) {
   mapGroup('split.smi-spec.io', 'SMI');
   mapGroup(/^(.*\.)*knative\.(io|dev)$/, 'Knative');
   mapGroup('argoproj.io', 'Argo');
+  mapGroup('logging.banzaicloud.io', 'Logging');
 
   uncreatableType(NODE);
   immutableType(NODE);
@@ -145,7 +146,7 @@ export function init(store) {
     namespaced:  false,
     name:        'cluster-overview',
     weight:      100,
-    route:       { name: 'c-cluster' },
+    route:       { name: 'c-cluster-explorer' },
     exact:       true,
   });
 

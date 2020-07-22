@@ -6,7 +6,7 @@
 // labelFor(schema, count)    Get the display label for a schema.  Count is (in English)  or not-1 for pluralizing
 // groupLabelFor(schema)      Get the label for the API group of this schema's type
 // isIgnored(schema)          Returns true if this type should be hidden from the tree
-// basicGroup(schema)         Returns the group a type should be shown in basic view, or false-y if it shouldn't be shown.
+// groupForBasicType(schema)  Returns the group a type should be shown in basic view, or false-y if it shouldn't be shown.
 // typeWeightFor(type)        Get the weight value for a particular type label
 // groupWeightFor(group)      Get the weight value for a particular group
 // headersFor(schema)         Returns the column definitions for a type to give to SortableTable
@@ -42,9 +42,14 @@
 //                            --  obj can contain anything in the objects getTree returns.
 //                            --  obj must have a `name` that is unique among all virtual types.
 //                            -- `cluster` is automatically added to route.params if it exists.
+//
 // basicType(                 Mark type(s) as always shown in the top of the nav
 //   type(s),                 -- Type name or arrry of type names
 //   group                    -- Group to show the type(s) under; false-y for top-level.
+// )
+// basicType(                 Mark all types in group as always shown in the top of the nav
+//   group,                   -- Group to show
+//   asLabel                  -- Label to display the group as; false-y for top-level.
 // )
 // ignoreType(type)           Never show type
 // weightType(                Set the weight (sorting) order of one or more types
@@ -326,7 +331,7 @@ export const getters = {
     };
   },
 
-  basicGroup(state) {
+  groupForBasicType(state) {
     return (product, schemaId) => {
       return state.basicTypes?.[product]?.[schemaId];
     };
@@ -422,11 +427,11 @@ export const getters = {
         }
 
         const count = _matchingCounts(typeObj, namespaces);
-        const basicGroup = getters.basicGroup(product, typeObj.name);
+        const groupForBasicType = getters.groupForBasicType(product, typeObj.name);
 
         if ( typeObj.id === currentType ) {
           // If this is the type currently being shown, always show it
-        } else if ( mode === BASIC && !basicGroup ) {
+        } else if ( mode === BASIC && !groupForBasicType ) {
           // If we want the basic tree only return basic types;
           continue;
         } else if ( mode === USED && count <= 0 ) {
@@ -446,7 +451,7 @@ export const getters = {
         let group;
 
         if ( mode === BASIC ) {
-          group = _ensureGroup(root, basicGroup);
+          group = _ensureGroup(root, groupForBasicType);
         } else if ( mode === FAVORITE ) {
           group = _ensureGroup(root, 'starred');
         } else if ( mode === USED ) {
@@ -579,7 +584,7 @@ export const getters = {
 
         if ( mode === BASIC ) {
           // These are separate ifs so that things with no kind can still be basic
-          if ( !getters.basicGroup(product, schema.id) ) {
+          if ( !getters.groupForBasicType(product, schema.id) ) {
             continue;
           }
         } else if ( mode === FAVORITE && !getters.isFavorite(schema.id) ) {
@@ -604,8 +609,6 @@ export const getters = {
 
       // Add virtual types
       if ( mode !== USED ) {
-        const isRancher = rootGetters.isRancher;
-
         const virtualTypes = state.virtualTypes[product] || [];
 
         for ( const vt of virtualTypes ) {
@@ -613,15 +616,11 @@ export const getters = {
           const id = item.name;
           const weight = vt.weight || getters.typeWeightFor(item.label);
 
-          if ( item.ifIsRancher && !isRancher ) {
-            continue;
-          }
-
           if ( item.ifHaveType && !findBy(schemas, 'id', normalizeType(item.ifHaveType)) ) {
             continue;
           }
 
-          if ( mode === BASIC && !getters.basicGroup(product, id) ) {
+          if ( mode === BASIC && !getters.groupForBasicType(product, id) ) {
             continue;
           } else if ( mode === FAVORITE && !getters.isFavorite(id) ) {
             continue;

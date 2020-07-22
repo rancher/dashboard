@@ -34,7 +34,7 @@ export default {
   middleware: ['authenticated'],
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady', 'isRancher']),
+    ...mapState(['managementReady', 'clusterReady']),
     ...mapGetters(['productId']),
 
     namespaces() {

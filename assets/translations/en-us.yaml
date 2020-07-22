@@ -6,7 +6,9 @@ product:
   apps: Manage Applications
   explorer: Cluster Explorer
   gatekeeper: OPA Gatekeeper
-  mcm: Enterprise Cluster Manager
+  istio: Istio
+  logging: Logging
+  ecm: Enterprise Cluster Manager
   rio: Rio
 
 generic:

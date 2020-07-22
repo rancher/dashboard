@@ -68,10 +68,10 @@ export const METRIC = {
 };
 
 export const CATALOG = {
-  RELEASE:      'catalog.cattle.io.release',
   CLUSTER_REPO: 'catalog.cattle.io.clusterrepo',
-  REPO:         'catalog.cattle.io.repo',
   OPERATION:    'catalog.cattle.io.operation',
+  RELEASE:      'catalog.cattle.io.release',
+  REPO:         'catalog.cattle.io.repo',
 };
 
 // --------------------------------------
@@ -81,13 +81,14 @@ export const CATALOG = {
 // Rancher Management API (via Steve)
 // Base: /v1
 export const MANAGEMENT = {
-  CATALOG:          'management.cattle.io.catalog',
   CATALOG_TEMPLATE: 'management.cattle.io.catalogtemplate',
+  CATALOG:          'management.cattle.io.catalog',
   CLUSTER:          'management.cattle.io.cluster',
-  USER:             'management.cattle.io.user',
   GROUP:            'management.cattle.io.group',
   NODE_POOL:        'management.cattle.io.nodepool',
   NODE_TEMPLATE:    'management.cattle.io.nodetemplate',
+  PROJECT:          'management.cattle.io.project',
+  USER:             'management.cattle.io.user',
 };
 
 // Rancher cluster-scoped things that actually live in management plane

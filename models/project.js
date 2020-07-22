@@ -12,7 +12,7 @@ export default {
 
   namespaces() {
     // I don't know how you'd end up with a project outside of rancher, but just in case...
-    if ( !this.$rootGetters['isRancher'] ) {
+    if ( !this.$rootGetters['isMultiCluster'] ) {
       return [];
     }
 

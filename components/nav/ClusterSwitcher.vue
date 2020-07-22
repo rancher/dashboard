@@ -6,7 +6,7 @@ import { mapState } from 'vuex';
 
 export default {
   computed: {
-    ...mapState(['isRancher']),
+    ...mapState(['isMultiCluster']),
 
     value: {
       get() {
@@ -28,7 +28,7 @@ export default {
     options() {
       let all;
 
-      if ( this.isRancher ) {
+      if ( this.isMultiCluster ) {
         all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
       } else {
         all = this.$store.getters['management/all'](STEVE.CLUSTER);
@@ -61,7 +61,6 @@ export default {
       ref="select"
       key="cluster"
       v-model="value"
-      :disabled="!isRancher"
       :selectable="option => option.ready"
       :clearable="false"
       :options="options"

@@ -1,5 +1,4 @@
 <script>
-import { mapState } from 'vuex';
 import Header from '@/components/nav/Header';
 import Footer from '@/components/nav/Footer';
 
@@ -11,8 +10,6 @@ export default {
   },
 
   middleware: ['authenticated'],
-
-  computed: { ...mapState(['managementReady', 'isRancher']) },
 
   head() {
     const theme = this.$store.getters['prefs/theme'];
