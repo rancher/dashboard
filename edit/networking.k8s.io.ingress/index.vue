@@ -70,7 +70,7 @@ export default {
     if (!this.value.spec.backend) {
       this.value.spec.backend = { };
     }
-    if (!this.value.spec.tls || Object.keys(this.value.spec.tls[0]).length === 0) {
+    if (!this.value.spec.tls || Object.keys(this.value.spec.tls[0] || {}).length === 0) {
       this.value.spec.tls = [];
     }
     this.registerBeforeHook(this.willSave, 'willSave');
