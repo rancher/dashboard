@@ -63,7 +63,7 @@ export default {
   data() {
     const queryStep = this.$route.query[STEP];
 
-    const activeStep = this.steps[queryStep - 1] || this.steps[this.initStepIdx];
+    const activeStep = queryStep ? this.steps[queryStep - 1] : this.steps[this.initStepIdx];
 
     return { activeStep };
   },
@@ -107,7 +107,7 @@ export default {
 
       const selected = steps[number - 1];
 
-      if ( !selected || !this.isAvailable(selected)) {
+      if ( !selected || (!this.isAvailable(selected) && number !== 1)) {
         return;
       }
 
@@ -121,7 +121,7 @@ export default {
     },
 
     cancel() {
-      this.goToStep(1);
+      this.$router.applyQuery({ [STEP]: 1 });
       this.$emit('cancel');
     },
 
