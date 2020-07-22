@@ -216,7 +216,7 @@ export default {
         if (!schema) {
           return null;
         }
-        const name = this.$store.getters['type-map/pluralLabelFor'](schema);
+        const name = this.$store.getters['type-map/labelFor'](schema, 99);
         const location = {
           name:     'c-cluster-product-resource',
           params:   { product: EXPLORER, resource }

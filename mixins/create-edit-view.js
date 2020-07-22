@@ -1,9 +1,9 @@
 import pickBy from 'lodash/pickBy';
-import isArray from 'lodash/isArray';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
 import { LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';
 import { matchesSomePrefix, containsSomeString } from '@/utils/string';
+import { exceptionToErrorsArray } from '@/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
 
 export default {
@@ -171,22 +171,7 @@ export default {
         buttonDone(true);
         this.done();
       } catch (err) {
-        if ( err && err.response && err.response.data ) {
-          const body = err.response.data;
-
-          if ( body && body.message ) {
-            this.errors = [body.message];
-          } else {
-            this.errors = [err];
-          }
-        } else if (err.status && err.message) {
-          this.errors = [err.message];
-        } else if (isArray(err)) {
-          this.errors = err;
-        } else {
-          this.errors = [err];
-        }
-
+        this.errors = exceptionToErrorsArray(err);
         buttonDone(false);
       }
     },

@@ -54,6 +54,11 @@ export default {
       required: true,
     },
 
+    url: {
+      type:    String,
+      default: null,
+    },
+
     // The container in the pod to initially show
     initialContainer: {
       type:    String,
@@ -63,7 +68,7 @@ export default {
 
   data() {
     return {
-      container:   this.initialContainer || this.pod.defaultContainerName,
+      container:   this.initialContainer || this.pod?.defaultContainerName,
       socket:      null,
       isOpen:      false,
       isFollowing: true,
@@ -79,7 +84,7 @@ export default {
 
   computed: {
     containerChoices() {
-      return this.pod.spec.containers.map(x => x.name);
+      return this.pod?.spec?.containers?.map(x => x.name) || [];
     },
 
     rangeOptions() {
@@ -241,7 +246,9 @@ export default {
         params.tailLines = 100;
       }
 
-      const url = addParams(`${ this.pod.links.view.replace(/^http/, 'ws') }/log`, params);
+      let url = this.url || `${ this.pod.links.view }/log`;
+
+      url = addParams(url.replace(/^http/, 'ws'), params);
 
       this.socket = new Socket(url, false, 0, 'base64.binary.k8s.io');
       this.socket.addEventListener(EVENT_CONNECTED, (e) => {
@@ -302,7 +309,7 @@ export default {
     updateFollowing() {
       const el = this.$refs.body;
 
-      this.isFollowing = el.scrollTop + el.clientHeight + 20 >= el.scrollHeight;
+      this.isFollowing = el.scrollTop + el.clientHeight + 2 >= el.scrollHeight;
     },
 
     parseRange(range) {
@@ -346,11 +353,16 @@ export default {
     },
 
     async download(btnCb) {
-      const url = addParams(`${ this.pod.links.view }/log`, {
-        container:  this.container,
+      let url = this.url || `${ this.pod.links.view }/log`;
+
+      if ( this.container ) {
+        url = addParams(url, { container: this.container });
+      }
+
+      url = addParams(url, {
         previous:   this.previous,
         pretty:     true,
-        limitBytes: 750 * 1024 * 1024 * 1024,
+        limitBytes: 750 * 1024 * 1024,
       });
 
       try {
@@ -405,8 +417,9 @@ export default {
   <Window :active="active">
     <template #title>
       <Select
+        v-if="!containerChoices.length"
         v-model="container"
-        :disabled="containerChoices.length <= 1"
+        :disabled="containerChoices.length === 1"
         class="auto-width inline mini"
         :options="containerChoices"
         :searchable="false"
@@ -425,7 +438,7 @@ export default {
       </button>
       <AsyncButton class="btn-sm" mode="download" @click="download" />
 
-      <div class="pull-right text-center ml-5" style="min-width: 80px">
+      <div class="pull-right text-center ml-5 pr-10 pl-5" style="min-width: 80px; line-height: 28px;">
         <t :class="{'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
       </div>
       <div class="pull-right ml-5">
@@ -524,15 +537,3 @@ export default {
     }
   }
 </style>
-
-<!--
-    download() {
-      const blob = new Blob(this.backlog, { type: 'text/plain;charset=utf-8' });
-      const fileName = `${ this.$store.state.shell.container.name }.log`;
-
-      saveAs(blob, fileName);
-    }
-  }
-};
-</script>
--->

@@ -432,6 +432,14 @@ export default {
     };
   },
 
+  waitForLink() {
+    return (name) => {
+      return this.waitForTestFn(() => {
+        return this.hasLink(name);
+      }, `link=${ name }`);
+    };
+  },
+
   hasCondition() {
     return (condition, withStatus = 'True') => {
       if ( !this.status || !this.status.conditions ) {
@@ -774,6 +782,17 @@ export default {
     };
   },
 
+  listLocation() {
+    return {
+      name:   `c-cluster-product-resource`,
+      params: {
+        product:   this.$rootGetters['productId'],
+        cluster:   this.$rootGetters['clusterId'],
+        resource:  this.type,
+      }
+    };
+  },
+
   detailLocation() {
     const schema = this.$getters['schemaFor'](this.type);
 
@@ -783,6 +802,7 @@ export default {
       name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
       params: {
         product:   this.$rootGetters['productId'],
+        cluster:   this.$rootGetters['clusterId'],
         resource:  this.type,
         namespace: this.metadata?.namespace,
         id,

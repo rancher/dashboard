@@ -880,6 +880,11 @@ model:
       loadBalancer: L4 Balancer
 
 typeLabel:
+  catalog.cattle.io.operation: |
+    {count, plural,
+      one { Helm Operation }
+      other { Helm Operations }
+    }
   catalog.cattle.io.release: |
     {count, plural,
       one { App }

@@ -3,8 +3,6 @@ import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import Loading from '@/components/Loading';
 import ButtonGroup from '@/components/ButtonGroup';
-import BadgeState from '@/components/BadgeState';
-import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -23,6 +21,7 @@ import YamlEditor from '@/components/YamlEditor';
 import Wizard from '@/components/Wizard';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { ensureRegex } from '@/utils/string';
+import { exceptionToErrorsArray } from '@/utils/error';
 
 const CERTIFIED_SORTS = {
   [CATALOG_ANNOTATIONS._RANCHER]:      1,
@@ -35,8 +34,6 @@ export default {
   name: 'ChartInstall',
 
   components: {
-    BadgeState,
-    Banner,
     ButtonGroup,
     Checkbox,
     LabeledSelect,
@@ -150,9 +147,7 @@ export default {
       showPartner:    true,
       showOther:      true,
 
-      deployed:  false,
-      res:       null,
-      operation: null,
+      errors: null,
     };
   },
 
@@ -162,22 +157,16 @@ export default {
         {
           name:  'chart',
           label: 'Select Chart',
-          ready: !this.deployed,
         },
         {
           name:  'helm',
           label: 'Helm Options',
-          ready: !this.deployed && !!this.chart,
+          ready: !!this.chart,
         },
         {
           name:  'values',
           label: 'Chart Options',
-          ready: !this.deployed && !!this.versionInfo,
-        },
-        {
-          name:  'deploy',
-          label: 'Deploy',
-          ready: !!this.versionInfo
+          ready: !!this.versionInfo,
         },
       ];
     },
@@ -221,12 +210,7 @@ export default {
     },
   },
 
-  watch: {
-    '$route.query':                           '$fetch',
-    'operation.metadata.state.transitioning': 'operationChanged',
-    'operation.metadata.state.error':         'operationChanged',
-    'operation.links.logs':                   'operationChanged',
-  },
+  watch: { '$route.query': '$fetch' },
 
   methods: {
     async loadReposAndCharts() {
@@ -355,19 +339,37 @@ export default {
       }
     },
 
-    async onNext({ step }) {
-      if ( step.name === 'deploy' ) {
+    async finish(btnCb) {
+      try {
+        this.errors = null;
         this.updateBeforeSave();
-        const res = await this.actuallySave();
-
-        this.res = res;
+        const res = await this.repo.doAction('install', this.value);
 
         this.operation = await this.$store.dispatch('cluster/find', {
           type: CATALOG.OPERATION,
           id:   `${ res.operationNamespace }/${ res.operationName }`
         });
 
-        this.deployed = true;
+        try {
+          await this.operation.waitForLink('logs');
+          this.operation.openLogs();
+        } catch (e) {
+          // The wait times out eventually, move on...
+        }
+
+        btnCb(true);
+
+        this.$router.replace({
+          name:   `c-cluster-product-resource`,
+          params: {
+            product:   this.$store.getters['productId'],
+            cluster:   this.$store.getters['clusterId'],
+            resource:  CATALOG.RELEASE,
+          }
+        });
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
+        btnCb(false);
       }
     },
 
@@ -380,15 +382,6 @@ export default {
 
       // @TODO only save values that differ from defaults?
       this.value.values = jsyaml.safeLoad(this.valuesYaml);
-    },
-
-    actuallySave() {
-      return this.repo.doAction('install', this.value);
-    },
-
-    operationChanged() {
-      // eslint-disable-next-line no-console
-      console.log('Operation changed');
     },
 
     focusSearch() {
@@ -405,7 +398,8 @@ export default {
     v-else
     :steps="steps"
     :show-banner="false"
-    @next="onNext($event)"
+    :errors="errors"
+    @finish="finish($event)"
   >
     <template #chart>
       <div class="clearfix">
@@ -482,23 +476,6 @@ export default {
         @onInput="valuesChanged"
       />
     </template>
-
-    <template v-if="operation" #deploy>
-      <BadgeState :value="operation" />
-      <Banner
-        v-if="operation.showMessage"
-        class="state-banner"
-        :color="operation.stateColor"
-        :label="operation.metadata.state.message"
-      />
-      <div>
-        Logs........
-      </div>
-    </template>
-
-    <template v-if="!chart" #next>
-      &nbsp;
-    </template>
   </Wizard>
 </template>
 
@@ -564,7 +541,6 @@ export default {
       padding: $margin;
       position: relative;
       border-radius: calc( 3 * var(--border-radius));
-      border-left: calc( 3 * var(--border-radius)) solid transparent;
 
       &:hover {
         box-shadow: 0 0 0 2px var(--body-text);
