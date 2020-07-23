@@ -77,17 +77,17 @@ export default {
       steps:                        [
         {
           name:  'select-service',
-          label: 'Select Service Type',
+          label: this.$store.getters['i18n/t']('servicesPage.steps.select'),
           ready: true,
         },
         {
           name:  'define-service',
-          label: 'Define Service Options',
+          label: this.$store.getters['i18n/t']('servicesPage.steps.define'),
           ready: false,
         },
         {
           name:  'advanced-config-serivce',
-          label: 'Advanced configuration options',
+          label: this.$store.getters['i18n/t']('servicesPage.steps.advanced'),
           ready: true,
         },
       ]
@@ -277,7 +277,7 @@ export default {
         <div class="row">
           <div class="clearfix">
             <h2>
-              Selectors
+              <t k="servicesPage.selectors.label" />
             </h2>
           </div>
         </div>
@@ -320,7 +320,7 @@ export default {
         <div class="row">
           <div class="col span-12">
             <h4>
-              Cluster IPs
+              <t k="servicesPage.ips.label" />
             </h4>
             <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
             <Banner
@@ -361,7 +361,7 @@ export default {
         <div class="spacer-bordered"></div>
         <div class="col span-12">
           <h4>
-            Session Affinity
+            <t k="servicesPage.affinity.label" />
           </h4>
           <Banner color="info" :label="t('servicesPage.affinity.helpText')" />
         </div>
