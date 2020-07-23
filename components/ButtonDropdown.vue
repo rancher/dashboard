@@ -54,7 +54,7 @@ export default {
         </button>
       </slot>
 
-      <div class="button-divider"></div>
+      <div v-if="hasSlot('popover-content')" class="button-divider"></div>
 
       <v-popover
         v-if="hasSlot('popover-content')"
