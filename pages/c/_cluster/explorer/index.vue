@@ -281,14 +281,19 @@ export default {
 
     metricAggregations() {
       const nodes = this.nodes;
-      const metrics = this.nodeMetrics.filter(n => nodes.find(nd => nd.id === n.id && nd.isWorker));
+      const someNonWorkerRoles = this.nodes.some(node => node.hasARole && !node.isWorker);
+      const metrics = this.nodeMetrics.filter((nodeMetrics) => {
+        const node = nodes.find(nd => nd.id === nodeMetrics.id);
+
+        return node && (!someNonWorkerRoles || node.isWorker);
+      });
       const initialAggregation = {
         cpu:    0,
         memory: 0
       };
 
       if (isEmpty(metrics)) {
-        return initialAggregation;
+        return null;
       }
 
       return metrics.reduce((agg, metric) => {
@@ -308,6 +313,19 @@ export default {
 
     ramUsed() {
       return this.createMemoryValues(this.cluster?.status?.capacity?.memory, this.metricAggregations.memory);
+    },
+
+    showReservedMetrics() {
+      // As long as we have at least one reserved value > 0 we should show these metrics
+      const reservedSum = [this.cpuReserved, this.podsReserved, this.ramReserved].reduce((agg, cur) => {
+        return agg + (cur.total || 0) + (cur.useful || 0);
+      }, 0);
+
+      return reservedSum > 0;
+    },
+
+    showLiveMetrics() {
+      return !!this.metricAggregations;
     }
   },
 
@@ -433,12 +451,12 @@ export default {
       <ResourceGauge v-for="resourceGauge in resourceGauges" :key="resourceGauge.name" v-bind="resourceGauge" />
       <div v-for="(filler, i) in resourceGaugesFiller" :key="i" class="filler" />
     </div>
-    <div v-if="nodeMetrics.length > 0" class="hardware-resource-gauges">
+    <div v-if="showReservedMetrics" class="hardware-resource-gauges">
       <HardwareResourceGauge name="Pods Reserved" :total="podsReserved.total" :useful="podsReserved.useful" :suffix="t('clusterIndexPage.hardwareResourceGauge.podsReserved')" />
       <HardwareResourceGauge name="Cores Reserved" :total="cpuReserved.total" :useful="cpuReserved.useful" :suffix="t('clusterIndexPage.hardwareResourceGauge.coresReserved')" />
       <HardwareResourceGauge name="Ram Reserved" :total="ramReserved.total" :useful="ramReserved.useful" :units="ramReserved.units" :suffix="t('clusterIndexPage.hardwareResourceGauge.ramReserved')" />
     </div>
-    <div v-if="nodeMetrics.length > 0" class="hardware-resource-gauges live">
+    <div v-if="showLiveMetrics" class="hardware-resource-gauges live">
       <HardwareResourceGauge name="Cores Used" :total="cpuUsed.total" :useful="cpuUsed.useful" :suffix="t('clusterIndexPage.hardwareResourceGauge.coresUsed')" />
       <HardwareResourceGauge name="Ram Used" :total="ramUsed.total" :useful="ramUsed.useful" :units="ramUsed.units" :suffix="t('clusterIndexPage.hardwareResourceGauge.ramUsed')" />
     </div>

@@ -77,6 +77,18 @@ export default {
     return `${ this.labels[etcd] }` === 'true';
   },
 
+  hasARole() {
+    const roleLabelKeys = Object.values(NODE_ROLES);
+
+    return Object.keys(this.labels)
+      .some((labelKey) => {
+        const hasRoleLabel = roleLabelKeys.includes(labelKey);
+        const isExpectedValue = `${ this.labels[labelKey] }` === 'true';
+
+        return hasRoleLabel && isExpectedValue;
+      });
+  },
+
   roles() {
     const { isControlPlane, isWorker, isEtcd } = this;
 
