@@ -65,6 +65,12 @@ export function init(store) {
     RBAC.CLUSTER_ROLE_BINDING,
   ], 'rbac');
 
+  weightGroup('cluster', 99, true);
+  weightGroup('workload', 98, true);
+  weightGroup('serviceDiscovery', 97, true);
+  weightGroup('storage', 96, true);
+  weightGroup('rbac', 95, true);
+
   for (const key in WORKLOAD_TYPES) {
     componentForType(WORKLOAD_TYPES[key], WORKLOAD);
   }
@@ -137,8 +143,6 @@ export function init(store) {
   //   CLUSTER_CREATOR_DEFAULT,
   //   AGE
   // ]);
-
-  weightGroup('Root', 100);
 
   virtualType({
     label:       'Overview',

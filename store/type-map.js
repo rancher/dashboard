@@ -8,7 +8,7 @@
 // isIgnored(schema)          Returns true if this type should be hidden from the tree
 // groupForBasicType(schema)  Returns the group a type should be shown in basic view, or false-y if it shouldn't be shown.
 // typeWeightFor(type)        Get the weight value for a particular type label
-// groupWeightFor(group)      Get the weight value for a particular group
+// groupWeightFor(group, forBasic) Get the weight value for a particular group
 // headersFor(schema)         Returns the column definitions for a type to give to SortableTable
 // activeProducts()           Returns the list of products that are installed and should be shown
 //
@@ -108,6 +108,8 @@ export const BASIC = 'basic';
 export const FAVORITE = 'favorite';
 export const USED = 'used';
 
+export const ROOT = 'root';
+
 export function DSL(store, product, module = 'type-map') {
   // store.commit(`${ module }/product`, { name: product });
 
@@ -168,11 +170,11 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/ignoreGroup`, regexOrString);
     },
 
-    weightGroup(input, weight) {
+    weightGroup(input, weight, forBasic) {
       if ( isArray(input) ) {
-        store.commit(`${ module }/weightGroup`, { groups: input, weight });
+        store.commit(`${ module }/weightGroup`, { groups: input, weight, forBasic });
       } else {
-        store.commit(`${ module }/weightGroup`, { group: input, weight });
+        store.commit(`${ module }/weightGroup`, { group: input, weight, forBasic });
       }
     },
 
@@ -236,6 +238,7 @@ export const state = function() {
     basicTypes:              {},
     groupIgnore:             [],
     groupWeights:            {},
+    basicGroupWeights:       {[ROOT]: 1000},
     groupMappings:           [],
     immutable:               [],
     formOnly:                [],
@@ -386,8 +389,14 @@ export const getters = {
   },
 
   groupWeightFor(state) {
-    return (group) => {
-      return state.groupWeights[group.toLowerCase()] || 0;
+    return (group, forBasic) => {
+      group = group.toLowerCase();
+
+      if ( forBasic ) {
+        return state.basicGroupWeights[group] || 0;
+      } else {
+        return state.groupWeights[group] || 0;
+      }
     };
   },
 
@@ -451,13 +460,13 @@ export const getters = {
         let group;
 
         if ( mode === BASIC ) {
-          group = _ensureGroup(root, groupForBasicType);
+          group = _ensureGroup(root, groupForBasicType, true);
         } else if ( mode === FAVORITE ) {
           group = _ensureGroup(root, 'starred');
         } else if ( mode === USED ) {
           group = _ensureGroup(root, `inUse::${ getters.groupLabelFor(typeObj.schema) }`);
         } else {
-          group = _ensureGroup(root, typeObj.schema || typeObj.group || 'Root');
+          group = _ensureGroup(root, typeObj.schema || typeObj.group || ROOT);
         }
 
         let route = typeObj.route;
@@ -503,12 +512,9 @@ export const getters = {
 
       // ----------------------
 
-      function _ensureGroup(tree, schemaOrName, isRoot=false) {
+      function _ensureGroup(tree, schemaOrName, forBasic=false) {
         let name = getters.groupLabelFor(schemaOrName);
-
-        if ( name === 'Root' || name.startsWith('Root::') ) {
-          isRoot = true;
-        }
+        const isRoot = ( name === ROOT || name.startsWith(`${ROOT}::`) );
 
         if ( name && name.includes('::') ) {
           let parent;
@@ -531,7 +537,7 @@ export const getters = {
           group = {
             name,
             label,
-            weight: getters.groupWeightFor(name),
+            weight: getters.groupWeightFor(name, forBasic),
           };
 
           tree.children.push(group);
@@ -923,7 +929,7 @@ export const mutations = {
     }
 
     if ( !group ) {
-      group = 'Root';
+      group = ROOT;
     }
 
     if ( !isArray(types) ) {
@@ -954,9 +960,9 @@ export const mutations = {
     state.headers[type] = headers;
   },
 
-  // weightGroup('core' 99); -- higher groups are shown first
-  // These operate on *displayed* group names, after mapping
-  weightGroup(state, { group, groups, weight }) {
+  // weightGroup({group: 'core', weight: 99}); -- higher groups are shown first
+  // These operate on group names *after* mapping but *before* translation
+  weightGroup(state, { group, groups, weight, forBasic }) {
     if ( !groups ) {
       groups = [];
     }
@@ -965,8 +971,10 @@ export const mutations = {
       groups.push(group);
     }
 
+    const map = forBasic ? state.basicGroupWeights : state.groupWeights;
+
     for ( const g of groups ) {
-      state.groupWeights[g.toLowerCase()] = weight;
+      map[g.toLowerCase()] = weight;
     }
   },
 

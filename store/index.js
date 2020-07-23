@@ -86,6 +86,10 @@ export const getters = {
   isMultipleNamespaces(state, getters) {
     const filters = state.namespaceFilters;
 
+    if ( getters.isAllNamespaces ) {
+      return true;
+    }
+
     if ( filters.length !== 1 ) {
       return true;
     }
