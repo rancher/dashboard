@@ -375,6 +375,8 @@ export default {
     installInput() {
       const out = JSON.parse(JSON.stringify(this.value));
 
+      out.chartName = this.chart.name;
+      out.version = this.$route.query.version;
       out.releaseName = out.metadata.name;
       out.namespace = out.metadata.namespace;
       out.description = out.metadata?.[DESCRIPTION];

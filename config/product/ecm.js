@@ -17,8 +17,7 @@ export function init(store) {
   }
 
   product({
-    ifGetter:  'isMultiCluster',
-    removable: false,
+    ifGetter: 'isMultiCluster',
     externalLink,
   });
 }

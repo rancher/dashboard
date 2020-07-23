@@ -45,7 +45,7 @@ export default {
         return out;
       });
 
-      const out = sortBy(entries, ['removable', 'label']);
+      const out = sortBy(entries, ['removable', 'weight:desc', 'label']);
       const idx = findIndex(out, x => x.removable);
 
       if ( idx > 0 ) {

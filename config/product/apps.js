@@ -15,8 +15,9 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    removable:           false,
-    ifHaveGroup:         'catalog.cattle.io'
+    removable:   false,
+    ifHaveGroup: 'catalog.cattle.io',
+    weight:      1000,
   });
 
   basicType([

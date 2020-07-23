@@ -3,7 +3,7 @@ locale:
   en-us: English
 
 product:
-  apps: Manage Applications
+  apps: App Marketplace
   explorer: Cluster Explorer
   gatekeeper: OPA Gatekeeper
   istio: Istio

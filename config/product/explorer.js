@@ -7,7 +7,8 @@ import {
 
 import {
   STATE, NAME as NAME_COL, NAMESPACE_NAME, AGE, KEYS,
-  INGRESS_TARGET, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM
+  INGRESS_TARGET, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM,
+  SPEC_TYPE, TARGET_PORT, SELECTOR
 } from '@/config/table-headers';
 
 import { DSL } from '@/store/type-map';
@@ -126,7 +127,8 @@ export function init(store) {
     AGE
   ]);
   headers(INGRESS, [STATE, NAMESPACE_NAME, INGRESS_TARGET, AGE]);
-  headers(NODE, [STATE, NAME_COL, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM]);
+  headers(NODE, [STATE, NAME_COL, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM, AGE]);
+  headers(SERVICE, [STATE, NAME_COL, SPEC_TYPE, TARGET_PORT, SELECTOR, AGE]);
 
   // These look to be for [Cluster]RoleTemplate, not [Cluster]Role.
   // headers(RBAC.ROLE, [

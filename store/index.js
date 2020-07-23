@@ -8,6 +8,7 @@ import { ClusterNotFoundError, ApiError } from '@/utils/error';
 import { sortBy } from '@/utils/sort';
 import { filterBy, findBy } from '@/utils/array';
 import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
+import { NAME as EXPLORER } from '@/config/product/explorer';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -54,6 +55,10 @@ export const getters = {
 
   currentProduct(state, getters) {
     return findBy(getters['type-map/activeProducts'], 'name', state.productId);
+  },
+
+  isExplorer(state, getters) {
+    return getters.currentProduct === EXPLORER;
   },
 
   defaultClusterId(state, getters) {
