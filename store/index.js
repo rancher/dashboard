@@ -77,8 +77,10 @@ export const getters = {
     return null;
   },
 
-  isAllNamespaces(state) {
-    return state.namespaceFilters.includes('all');
+  isAllNamespaces(state, getters) {
+    const product = getters['currentProduct'];
+
+    return !product || !product.showNamespaceFilter || state.namespaceFilters.includes('all');
   },
 
   isMultipleNamespaces(state, getters) {
@@ -118,15 +120,10 @@ export const getters = {
 
   namespaces(state, getters) {
     return () => {
-      const product = getters['currentProduct'];
       const namespaces = getters['cluster/all'](NAMESPACE);
 
-      if ( !product || !product.showNamespaceFilter ) {
-        return namespaces;
-      }
-
       const filters = state.namespaceFilters.filter(x => !x.startsWith('namespaced://'));
-      const includeAll = filters.includes('all');
+      const includeAll = getters.isAllNamespaces;
       const includeSystem = filters.includes('all://system');
       const includeUser = filters.includes('all://user') || filters.length === 0;
       const includeOrphans = filters.includes('all://orphans');
