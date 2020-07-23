@@ -366,71 +366,72 @@ export default {
     border-radius: 50%;
     overflow: hidden;
   }
+}
 
-  .steps {
-    margin: 0 20% 0 20%;;
-    display:flex;
-    justify-content: space-between;
-    list-style-type:none;
-    padding: 0;
+.steps {
+  margin: 0 20% 0 20%;;
+  display:flex;
+  justify-content: space-between;
+  list-style-type:none;
+  padding: 0;
 
-    &:focus{
-      outline:none;
-      box-shadow: none;
-    }
-
-    & li.step{
-      display: flex;
-      flex-direction: row;
-      flex-grow: 1;
-      align-items: center;
-
-      &:last-of-type{
-        flex-grow: 0;
-      }
-
-      & .controls {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 40px;
-        overflow: visible;
-        & > span {
-          padding-bottom: 10px;
-          white-space: nowrap;
-        }
-      }
-
-      &.active .controls{
-        color: var(--primary);
-      }
-
-      &:not(.disabled){
-        & .controls:hover>*{
-          color: var(--primary) !important;
-          cursor: pointer;
-        }
-      }
-
-      &:not(.active) {
-        & .controls>*{
-          color: var(--input-disabled-text);
-          text-decoration: none;
-        }
-      }
-    }
-
-    & .divider {
-      flex-basis: 100%;
-      border-top: 1px solid var(--border);
-      position: relative;
-      top: 5px;
-    }
-
+  &:focus{
+    outline:none;
+    box-shadow: none;
   }
 
-  .controls-row {
+  & li.step{
     display: flex;
-    justify-content: space-between;
+    flex-direction: row;
+    flex-grow: 1;
+    align-items: center;
+
+    &:last-of-type{
+      flex-grow: 0;
+    }
+
+    & .controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 40px;
+      overflow: visible;
+      & > span {
+        padding-bottom: 10px;
+        white-space: nowrap;
+      }
+    }
+
+    &.active .controls{
+      color: var(--primary);
+    }
+
+    &:not(.disabled){
+      & .controls:hover>*{
+        color: var(--primary) !important;
+        cursor: pointer;
+      }
+    }
+
+    &:not(.active) {
+      & .controls>*{
+        color: var(--input-disabled-text);
+        text-decoration: none;
+      }
+    }
   }
+
+  & .divider {
+    flex-basis: 100%;
+    border-top: 1px solid var(--border);
+    position: relative;
+    top: 5px;
+  }
+
+}
+
+.controls-row {
+  display: flex;
+  justify-content: space-between;
+}
 </style>

@@ -1,4 +1,5 @@
 import find from 'lodash/find';
+import { MODE, _EDIT, _CLONE } from '@/config/query-params';
 
 export const DEFAULT_SERVICE_TYPES = [
   {
@@ -77,5 +78,38 @@ export default {
     }
 
     return defaultService;
-  }
+  },
+
+  goToClone() {
+    return (moreQuery = {}) => {
+      const location = this.detailLocation;
+
+      moreQuery['step'] = 2;
+
+      location.query = {
+        ...location.query,
+        [MODE]: _CLONE,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
+    };
+  },
+
+  goToEdit() {
+    return (moreQuery = {}) => {
+      const location = this.detailLocation;
+
+      moreQuery['step'] = 2;
+
+      location.query = {
+        ...location.query,
+        [MODE]: _EDIT,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
+    };
+  },
+
 };

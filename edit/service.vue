@@ -1,6 +1,7 @@
 <script>
 import { isEmpty, find, isNaN } from 'lodash';
 import { findBy } from '@/utils/array';
+import { _CLONE } from '@/config/query-params';
 import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
 import KeyValue from '@/components/form/KeyValue';
@@ -62,6 +63,10 @@ export default {
 
         this.serviceType = defaultService.id;
       }
+    }
+
+    if (this.mode === _CLONE) {
+      this.$set(this.value.spec, 'clusterIP', null);
     }
 
     return {
@@ -154,6 +159,9 @@ export default {
   },
 
   methods: {
+    cancelEdit() {
+      this.done();
+    },
     setServiceType(type) {
       this.serviceType = type;
     },
@@ -179,7 +187,20 @@ export default {
       });
 
       this.$set(this.value.spec, 'ports', servicePorts);
-    }
+    },
+
+    showCustomCancel() {
+      const {
+        isEdit,
+        $route,
+      } = this;
+
+      if (!isEdit && ( $route.query.step <= 1 || !$route.query.step)) {
+        return true;
+      }
+
+      return false;
+    },
   },
 };
 </script>
@@ -187,7 +208,7 @@ export default {
 <template>
   <Wizard
     :steps="steps"
-    :edit-first-step="true"
+    :edit-first-step="isCreate ? true : false"
     :errors="errors"
     @finish="save"
   >
@@ -210,6 +231,7 @@ export default {
         </div>
       </div>
     </template>
+
     <template slot="define-service">
       <NameNsDescription
         v-if="!isView"
@@ -292,6 +314,7 @@ export default {
         />
       </div>
     </template>
+
     <template slot="advanced-config-serivce">
       <section>
         <div class="row">
@@ -364,6 +387,12 @@ export default {
           </div>
         </div>
       </section>
+    </template>
+
+    <template v-if="showCustomCancel" slot="cancel">
+      <button type="button" class="btn role-secondary" @click="cancelEdit">
+        <t k="generic.cancel" />
+      </button>
     </template>
   </Wizard>
 </template>
