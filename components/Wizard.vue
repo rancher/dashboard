@@ -104,8 +104,11 @@ export default {
 
     readySteps() {
       return this.steps.filter(step => step.ready);
-    }
+    },
 
+    showSteps() {
+      return this.activeStep.showSteps !== false;
+    }
   },
 
   watch: {
@@ -189,6 +192,7 @@ export default {
 <template>
   <div>
     <ul
+      v-if="showSteps"
       class="steps"
       tabindex="0"
       @keyup.right.stop="selectNext(1)"
@@ -219,7 +223,7 @@ export default {
       </template>
     </ul>
 
-    <div class="spacer" />
+    <div v-if="showSteps" class="spacer" />
 
     <div v-if="showBanner" class="top choice-banner">
       <div v-if="bannerTitle || bannerImage" class="title">

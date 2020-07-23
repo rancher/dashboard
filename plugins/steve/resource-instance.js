@@ -221,8 +221,16 @@ export default {
     return this.metadata?.name;
   },
 
-  namespace() {
-    return this.metadata?.namespace;
+  namespace: {
+    get() {
+      return this.metadata?.namespace;
+    },
+
+    set(val) {
+      if ( this.metadata ) {
+        this.metadata.namespace = val;
+      }
+    }
   },
 
   groupByLabel() {

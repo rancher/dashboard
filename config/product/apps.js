@@ -16,7 +16,6 @@ export function init(store) {
 
   product({
     removable:           false,
-    showNamespaceFilter: true,
     ifHaveGroup:         'catalog.cattle.io'
   });
 

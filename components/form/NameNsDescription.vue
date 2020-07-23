@@ -69,6 +69,10 @@ export default {
       type:    String,
       default: null,
     },
+    forceNamespace: {
+      type:    String,
+      default: null,
+    },
   },
 
   data() {
@@ -83,7 +87,10 @@ export default {
     }
 
     if ( this.namespaced ) {
-      if ( this.namespaceKey ) {
+      if ( this.forceNamespace ) {
+        namespace = this.forceNamespace;
+        this.updateNamespace(namespace);
+      } else if ( this.namespaceKey ) {
         namespace = get(v, this.namespaceKey);
       } else {
         namespace = metadata?.namespace;
@@ -109,7 +116,7 @@ export default {
 
   computed: {
     namespaceReallyDisabled() {
-      return this.namespaceDisabled || this.mode === _EDIT; // namespace is never editable
+      return !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT; // namespace is never editable
     },
 
     nameReallyDisabled() {
@@ -125,6 +132,13 @@ export default {
           value: obj.id,
         };
       }), 'label');
+
+      if ( this.forceNamespace ) {
+        out.unshift({
+          label: this.forceNamespace,
+          value: this.forceNamespace
+        });
+      }
 
       return out;
     },
@@ -151,11 +165,7 @@ export default {
     },
 
     namespace(val) {
-      if ( this.namespaceKey ) {
-        set(this.value, this.namespaceKey, val);
-      } else {
-        this.value.metadata.namespace = val;
-      }
+      this.upateNamespace(val);
     },
 
     description(val) {
@@ -176,6 +186,18 @@ export default {
   },
 
   methods: {
+    updateNamespace(val) {
+      if ( this.forceNamespace ) {
+        val = this.forceNamespace;
+      }
+
+      if ( this.namespaceKey ) {
+        set(this.value, this.namespaceKey, val);
+      } else {
+        this.value.metadata.namespace = val;
+      }
+    },
+
     changeNameAndNamespace(e) {
       this.name = (e.text || '').toLowerCase();
       this.namespace = e.selected;
@@ -199,7 +221,6 @@ export default {
             :text-required="true"
             :select-value="namespace"
             :searchable="true"
-            :taggable="allowNewNamespace"
             :mode="mode"
             :disabled="namespaceReallyDisabled"
             @input="changeNameAndNamespace($event)"

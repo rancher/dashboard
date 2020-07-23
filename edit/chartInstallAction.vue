@@ -19,7 +19,7 @@ import { findBy } from '@/utils/array';
 import { addParams } from '@/utils/url';
 import YamlEditor from '@/components/YamlEditor';
 import Wizard from '@/components/Wizard';
-import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
+import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION } from '@/config/labels-annotations';
 import { ensureRegex } from '@/utils/string';
 import { exceptionToErrorsArray } from '@/utils/error';
 
@@ -92,14 +92,13 @@ export default {
       this.chart = findBy(this.allCharts, { [repoKey]: repoName, name: chartName });
 
       if ( this.chart.targetNamespace ) {
-        this.namespace = this.chart.targetNamespace;
-        this.namespaceDisabled = true;
+        this.forceNamespace = this.chart.targetNamespace;
       } else {
-        this.namespaceDisabled = false;
+        this.forceNamespace = null;
       }
 
       if ( this.chart.targetName ) {
-        this.releaseName = this.chart.targetName;
+        this.value.metadata.name = this.chart.targetName;
         this.nameDisabled = true;
       } else {
         this.nameDisabled = false;
@@ -134,11 +133,10 @@ export default {
       versionInfo: null,
       valuesYaml:  null,
 
-      releaseName:       null,
       namespace:         null,
       description:       null,
+      forceNamespace:    null,
       nameDisabled:      false,
-      namespaceDisabled: false,
 
       searchQuery:    '',
       sortField:      'certifiedSort',
@@ -155,8 +153,9 @@ export default {
     steps() {
       return [
         {
-          name:  'chart',
-          label: 'Select Chart',
+          name:      'chart',
+          label:     'Select Chart',
+          showSteps: false,
         },
         {
           name:  'helm',
@@ -342,8 +341,8 @@ export default {
     async finish(btnCb) {
       try {
         this.errors = null;
-        this.updateBeforeSave();
-        const res = await this.repo.doAction('install', this.value);
+        const obj = this.installInput();
+        const res = await this.repo.doAction('install', obj);
 
         this.operation = await this.$store.dispatch('cluster/find', {
           type: CATALOG.OPERATION,
@@ -373,15 +372,18 @@ export default {
       }
     },
 
-    updateBeforeSave() {
-      this.value.chartName = this.chart.name;
-      this.value.version = this.$route.query.version;
-      this.value.releaseName = this.releaseName;
-      this.value.namespace = this.namespace;
-      this.value.description = this.description;
+    installInput() {
+      const out = JSON.parse(JSON.stringify(this.value));
+
+      out.releaseName = out.metadata.name;
+      out.namespace = out.metadata.namespace;
+      out.description = out.metadata?.[DESCRIPTION];
+      delete out.metadata;
 
       // @TODO only save values that differ from defaults?
-      this.value.values = jsyaml.safeLoad(this.valuesYaml);
+      out.values = jsyaml.safeLoad(this.valuesYaml);
+
+      return out;
     },
 
     focusSearch() {
@@ -442,15 +444,11 @@ export default {
       </div>
 
       <NameNsDescription
-        v-model="_data"
+        v-model="value"
         :mode="mode"
         :direct="true"
-        name-key="releaseName"
-        namespace-key="namespace"
-        description-key="description"
         :name-disabled="nameDisabled"
-        :namespace-disabled="namespaceDisabled"
-        :allow-new-namespace="true"
+        :force-namespace="forceNamespace"
       />
 
       <div class="row">
@@ -583,6 +581,7 @@ export default {
         height: $logo;
         border-radius: calc(5 * var(--border-radius));
         overflow: hidden;
+        background-color: white;
 
         img {
           width: $logo - 4px;
@@ -595,23 +594,26 @@ export default {
 
       &.rancher {
         background: var(--app-rancher-bg);
-
-        .logo { background-color: var(--app-rancher-accent); }
-        .side-label { background-color: var(--app-rancher-accent); color: var(--app-rancher-accent-text); }
+        .side-label {
+          background-color: var(--app-rancher-accent);
+          color: var(--app-rancher-accent-text);
+        }
       }
 
       &.partner {
         background: var(--app-partner-bg);
-
-        .logo { background-color: var(--app-partner-accent); }
-        .side-label { background-color: var(--app-partner-accent); color: var(--app-partner-accent-text); }
+        .side-label {
+          background-color: var(--app-partner-accent);
+          color: var(--app-partner-accent-text);
+        }
       }
 
       &.other {
         background: var(--app-other-bg);
-
-        .logo { background-color: white; }
-        .side-label { background-color: var(--app-other-accent); color: var(--app-other-accent-text); }
+        .side-label {
+          background-color: var(--app-other-accent);
+          color: var(--app-other-accent-text);
+        }
       }
 
       .name {
