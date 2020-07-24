@@ -4,23 +4,28 @@ import { MODE, _EDIT, _CLONE } from '@/config/query-params';
 export const DEFAULT_SERVICE_TYPES = [
   {
     id:               'ClusterIP',
-    translationLabel: 'serviceTypes.clusterip'
+    translationLabel: 'serviceTypes.clusterip',
+    bannerAbbrv:      'IP'
   },
   {
     id:               'ExternalName',
-    translationLabel: 'serviceTypes.externalname'
+    translationLabel: 'serviceTypes.externalname',
+    bannerAbbrv:      'EN'
   },
   {
     id:               'Headless',
-    translationLabel: 'serviceTypes.headless'
+    translationLabel: 'serviceTypes.headless',
+    bannerAbbrv:      'H'
   },
   {
     id:               'LoadBalancer',
-    translationLabel: 'serviceTypes.loadbalancer'
+    translationLabel: 'serviceTypes.loadbalancer',
+    bannerAbbrv:      'LB'
   },
   {
     id:               'NodePort',
-    translationLabel: 'serviceTypes.nodeport'
+    translationLabel: 'serviceTypes.nodeport',
+    bannerAbbrv:      'NP'
   },
 ];
 

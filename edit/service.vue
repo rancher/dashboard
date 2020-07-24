@@ -95,6 +95,21 @@ export default {
   },
 
   computed: {
+    bannerServiceType() {
+      const {
+        serviceType = 'ClusterIP',
+        defaultServiceTypes = [],
+      } = this;
+      const match = findBy(defaultServiceTypes, 'id', serviceType);
+      let abbvr = 'IP';
+
+      if (match) {
+        abbvr = match.bannerAbbrv;
+      }
+
+      return abbvr;
+    },
+
     extraColumns() {
       return ['type-col'];
     },
@@ -210,6 +225,7 @@ export default {
     :steps="steps"
     :edit-first-step="isCreate ? true : false"
     :errors="errors"
+    :banner-image="$route.query.step >= 2 && bannerServiceType ? '2' : null"
     @finish="save"
   >
     <template slot="select-service">
@@ -219,13 +235,18 @@ export default {
           :key="type.id"
           class="choice-banner col span-3 hand"
           :class="{active: type.id === serviceType}"
+          @click="setServiceType(type.id)"
         >
-          <button
-            class="bg-transparent"
-            @click="setServiceType(type.id)"
-          >
+          <div v-if="type.bannerAbbrv" class="round-image">
+            <div class="banner-text-service">
+              {{ type.bannerAbbrv }}
+            </div>
+          </div>
+          <button class="bg-transparent pl-0" type="button">
             <div class="title">
-              <h2>{{ t(type.translationLabel) }}</h2>
+              <h2 class="mb-0">
+                {{ t(type.translationLabel) }}
+              </h2>
             </div>
           </button>
         </div>
@@ -357,6 +378,7 @@ export default {
           </div>
         </div>
       </section>
+
       <section v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName') && !checkTypeIs('Headless')">
         <div class="spacer-bordered"></div>
         <div class="col span-12">
@@ -394,6 +416,12 @@ export default {
         <t k="generic.cancel" />
       </button>
     </template>
+
+    <template #banner-content>
+      <div class="banner-text-service">
+        {{ bannerServiceType }}
+      </div>
+    </template>
   </Wizard>
 </template>
 
@@ -407,6 +435,21 @@ export default {
   .labels-row {
     .row:first-child {
       margin-bottom: 40px;
+    }
+  }
+  .round-image {
+    .banner-text-service {
+      font-size: 30px;
+      line-height: 50px;
+      height: max-content;
+      width: max-content;
+      margin: 0 auto;
+    }
+  }
+  .choice-banner {
+    min-height: 90px; // ssr jumpy
+    .round-image {
+      background-color: var(--primary);
     }
   }
 </style>
