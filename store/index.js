@@ -62,14 +62,7 @@ export const getters = {
   },
 
   defaultClusterId(state, getters) {
-    let all;
-
-    if ( state.isMultiCluster ) {
-      all = getters['management/all'](MANAGEMENT.CLUSTER);
-    } else {
-      return null;
-    }
-
+    const all = getters['management/all'](MANAGEMENT.CLUSTER);
     const clusters = sortBy(filterBy(all, 'isReady'), 'nameDisplay');
     const desired = getters['prefs/get'](CLUSTER_PREF);
 
@@ -288,22 +281,14 @@ export const actions = {
     let isMultiCluster = false;
     const promises = [];
 
-    if ( getters['management/schemaFor'](STEVE.CLUSTER) ) {
-      isMultiCluster = true;
-      promises.push(dispatch('management/findAll', {
-        type: STEVE.CLUSTER,
-        opt:  { url: `${ STEVE.CLUSTER }s` }
-      }));
-    }
-
     if ( getters['management/schemaFor'](MANAGEMENT.PROJECT) ) {
       isMultiCluster = true;
-
-      promises.push(dispatch('management/findAll', {
-        type: MANAGEMENT.CLUSTER,
-        opt:  { url: `${ MANAGEMENT.CLUSTER }s` }
-      }));
     }
+
+    promises.push(dispatch('management/findAll', {
+      type: MANAGEMENT.CLUSTER,
+      opt:  { url: `${ MANAGEMENT.CLUSTER }s` }
+    }));
 
     await Promise.all(promises);
 

@@ -3,7 +3,7 @@ locale:
   en-us: English
 
 product:
-  apps: App Marketplace
+  apps: Apps & Marketplace
   explorer: Cluster Explorer
   gatekeeper: OPA Gatekeeper
   istio: Istio
@@ -889,7 +889,7 @@ typeLabel:
     }
   catalog.cattle.io.release: |
     {count, plural,
-      one { App }
+      one { Apps }
       other { Apps }
     }
   chartInstallAction: |

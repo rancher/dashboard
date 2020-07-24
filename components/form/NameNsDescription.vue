@@ -98,6 +98,9 @@ export default {
 
       if ( !namespace ) {
         namespace = this.$store.getters['defaultNamespace'];
+        if ( metadata ) {
+          metadata.namespace = namespace;
+        }
       }
     }
 

@@ -249,6 +249,7 @@ export const state = function() {
     typeToComponentMappings: [],
     uncreatable:             [],
     headers:                 {},
+    schemaGeneration:        1,
     cache:                   {
       typeMove:     {},
       groupLabel:   {},
@@ -859,6 +860,13 @@ export const getters = {
     const knownTypes = {};
     const knownGroups = {};
 
+    if ( state.schemaGeneration < 0 ) {
+      // This does nothing, but makes activeProducts depend on schemaGeneration
+      // so that it can be used to update the product list on schema change.
+      return;
+    }
+
+
     return state.products.filter((p) => {
       const module = p.inStore;
       if ( !knownTypes[module] ) {
@@ -899,6 +907,10 @@ export const getters = {
 };
 
 export const mutations = {
+  schemaChanged(state) {
+    state.schemaGeneration = state.schemaGeneration + 1;
+  },
+
   product(state, obj) {
     const existing = findBy(state.products, 'name', obj.name);
 

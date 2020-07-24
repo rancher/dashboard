@@ -102,7 +102,7 @@ export const actions = {
     }
   },
 
-  watch({ dispatch, getters }, {
+  watch({ state, dispatch, getters }, {
     type, selector, id, revision
   }) {
     type = getters.normalizeType(type);

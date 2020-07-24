@@ -1,6 +1,5 @@
 <script>
 import { NAME as LOGGING } from '@/config/product/logging';
-import { CATALOG } from '@/config/types';
 
 export default {
   layout: 'plain',

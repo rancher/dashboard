@@ -45,7 +45,7 @@ export const ADD_SIDECAR = 'add-sidecar';
 export const EDIT_CONTAINER = 'container';
 
 // App launch
-export const CLUSTER_REPO = 'cluster-repo';
+export const REPO_TYPE = 'repo-type';
 export const REPO = 'repo';
 export const CHART = 'chart';
 export const VERSION = 'version';
