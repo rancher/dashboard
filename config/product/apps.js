@@ -23,7 +23,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:       'Launch',
+    label:       'Charts',
     group:      'Root',
     namespaced:  false,
     name:        'launch',
