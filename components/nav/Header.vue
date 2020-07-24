@@ -49,6 +49,9 @@ export default {
     </div>
 
     <div class="top">
+      <nuxt-link v-if="currentProduct.name === 'explorer'" :to="{name: 'c-cluster-apps'}" class="btn role-tertiary apps-button">
+        <i class="icon icon-lg icon-marketplace pr-5" /> Apps
+      </nuxt-link>
       <NamespaceFilter v-if="clusterReady && currentProduct && currentProduct.showNamespaceFilter" />
     </div>
 
@@ -90,6 +93,11 @@ export default {
   HEADER {
     display: grid;
     height: 100vh;
+
+    .apps-button {
+      border: 1px solid white;
+      margin-left: 10px;
+    }
 
     grid-template-areas:  "product top kubectl cluster user";
     grid-template-columns: var(--nav-width) auto 50px min-content var(--header-height);
@@ -153,6 +161,7 @@ export default {
 
       .filter {
         margin-left: 10px;
+        display: inline-block;
 
         .vs__dropdown-toggle {
           background: var(--header-dropdown);

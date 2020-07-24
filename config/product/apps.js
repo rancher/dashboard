@@ -18,11 +18,12 @@ export function init(store) {
   product({
     removable:   false,
     ifHaveGroup: 'catalog.cattle.io',
+    icon:        'marketplace',
     weight:      1000,
   });
 
   virtualType({
-    label:       'Launch',
+    label:       'Charts',
     group:      'Root',
     namespaced:  false,
     name:        'launch',

@@ -4,8 +4,13 @@ import findIndex from 'lodash/findIndex';
 import { insertAt, findBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
+import { createPopper } from '@popperjs/core';
 
 export default {
+  data() {
+    return { previous: null };
+  },
+
   computed: {
     ...mapGetters(['clusterId']),
     ...mapGetters('type-map', ['activeProducts']),
@@ -30,6 +35,7 @@ export default {
 
         const out = {
           label,
+          icon:      `icon-${ p.icon || 'copy' }`,
           value:     p.name,
           removable: p.removable !== false,
         };
@@ -37,7 +43,6 @@ export default {
         if ( p.externalLink ) {
           out.kind = 'external';
           out.link = p.externalLink;
-          out.disabled = true;
         } else {
           out.kind = 'internal';
         }
@@ -81,9 +86,12 @@ export default {
         }
 
         window.open(entry.link, windowName);
+        this.value = this.previous;
 
         return;
       }
+
+      this.previous = this.value;
 
       // Try product-specific index first
       const opt = {
@@ -96,7 +104,26 @@ export default {
       }
 
       this.$router.push(opt);
-    }
+    },
+
+    withPopper(dropdownList, component, { width }) {
+      dropdownList.className += ' product-menu';
+
+      const popper = createPopper(component.$refs.toggle, dropdownList, {
+        strategy:  'fixed',
+        modifiers: [
+          {
+            name:    'toggleClass',
+            enabled: true,
+            phase:   'write',
+            fn({ state }) {
+              component.$el.setAttribute('x-placement', state.placement);
+            },
+          }]
+      });
+
+      return () => popper.destroy();
+    },
   },
 };
 
@@ -112,6 +139,9 @@ export default {
       :selectable="option => !option.disabled"
       :options="options"
       :reduce="opt=>opt.value"
+      :calculate-position="withPopper"
+      :append-to-body="true"
+
       label="label"
       @input="change"
     >
@@ -119,11 +149,10 @@ export default {
         <template v-if="opt.kind === 'divider'">
           <hr />
         </template>
-        <template v-else-if="opt.kind === 'external'">
-          <a :href="opt.link" target="_blank">{{ opt.label }} <i class="icon icon-external-link" /></a>
-        </template>
         <template v-else>
+          <i class="product-icon icon icon-lg icon-fw" :class="{[opt.icon]: true}" />
           {{ opt.label }}
+          <i v-if="opt.kind === 'external'" class="icon icon-external-link ml-10" />
         </template>
       </template>
     </v-select>
@@ -174,4 +203,42 @@ export default {
     background-color: transparent;
   }
 
+</style>
+
+<style lang="scss">
+  .product-menu {
+    width: 300px;
+
+    .vs__dropdown-option {
+      font-size: 16px;
+      padding: 10px;
+      text-decoration: none;
+
+      &.vs__dropdown-option--disabled {
+        // The dividers
+        padding: 0;
+      }
+
+      .product-icon {
+        color: var(--product-icon);
+        margin-right: 5px;
+      }
+
+      UL {
+        margin: 0;
+      }
+    }
+
+    .vs__dropdown-option--selected {
+      color: var(--body-text);
+
+      .product-icon {
+        color: var(--product-icon-active);
+      }
+
+      A, A:hover, A:focus {
+        color: var(--body-text);
+      }
+    }
+  }
 </style>

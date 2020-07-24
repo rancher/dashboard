@@ -9,7 +9,10 @@ export function init(store) {
     virtualType,
   } = DSL(store, NAME);
 
-  product({ ifHaveGroup: /^(.*\.)*istio\.io$/ });
+  product({
+    ifHaveGroup: /^(.*\.)*istio\.io$/,
+    icon:        'istio',
+  });
 
   virtualType({
     label:       'Overview',

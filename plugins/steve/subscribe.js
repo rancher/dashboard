@@ -197,7 +197,7 @@ export const actions = {
   send({ state, commit }, obj) {
     if ( state.socket ) {
       return state.socket.send(JSON.stringify(obj));
-    } else if ( state.wantSocket ) {
+    } else {
       commit('enqueuePending', obj);
     }
   },

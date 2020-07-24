@@ -105,9 +105,9 @@ module.exports = {
 
   build: {
     publicPath: resourceBase,
-    parallel:   true,
-    cache:      true,
-    hardSource: true,
+    // parallel:   true,
+    // cache:      true,
+    // hardSource: true,
 
     uglify: {
       uglifyOptions: { compress: !dev },

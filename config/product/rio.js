@@ -45,7 +45,10 @@ export function init(store) {
     // virtualType,
   } = DSL(store, NAME);
 
-  product({ ifHaveGroup: 'rio.cattle.io' });
+  product({
+    ifHaveGroup: 'rio.cattle.io',
+    icon:        'rio',
+  });
 
   basicType([
     RIO.SERVICE,

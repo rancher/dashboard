@@ -235,4 +235,8 @@ $selected: rgba($primary, .5);
       #{rgba($other, $middle)} #{$middlePos},
       #{rgba($other, $end)} #{$endPos}
   ) 0% 0% no-repeat padding-box;
+
+  --product-icon: #{$darker};
+  --product-icon-active: #{$darkest};
 }
+

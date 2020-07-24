@@ -889,7 +889,7 @@ typeLabel:
     }
   catalog.cattle.io.release: |
     {count, plural,
-      one { Apps }
+      one { App }
       other { Apps }
     }
   chartInstallAction: |
