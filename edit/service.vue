@@ -1,7 +1,7 @@
 <script>
 import { isEmpty, find, isNaN } from 'lodash';
 import { findBy } from '@/utils/array';
-import { _CLONE } from '@/config/query-params';
+import { _EDIT, _CLONE } from '@/config/query-params';
 import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
 import KeyValue from '@/components/form/KeyValue';
@@ -83,7 +83,7 @@ export default {
         {
           name:  'define-service',
           label: this.$store.getters['i18n/t']('servicesPage.steps.define'),
-          ready: false,
+          ready: this.$route.query?.mode && this.$route.query.mode === _EDIT,
         },
         {
           name:  'advanced-config-serivce',
