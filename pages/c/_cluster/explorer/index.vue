@@ -71,7 +71,7 @@ export default {
     let gatekeeperEnabled = false;
     let cluster = null;
 
-    if ( store.getters['isRancher'] ) {
+    if ( store.getters['isMultiCluster'] ) {
       const projects = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT });
       const targetSystemProject = projects.find(( proj ) => {
         const labels = proj.metadata?.labels || {};

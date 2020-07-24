@@ -34,8 +34,9 @@ export default {
   middleware: ['authenticated'],
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady', 'isRancher']),
+    ...mapState(['managementReady', 'clusterReady']),
     ...mapGetters(['productId']),
+    ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
 
     namespaces() {
       return this.$store.getters['namespaces']();
@@ -76,6 +77,12 @@ export default {
 
     favoriteTypes() {
       this.queueUpdate();
+    },
+
+    locale(a, b) {
+      if ( !isEqual(a, b) ) {
+        this.getGroups();
+      }
     },
 
     productId(a, b) {
@@ -267,8 +274,14 @@ export default {
       padding: 0 10px;
       overflow-y: auto;
 
-      .package .depth-0.expanded > .body {
-        margin-bottom: 5px;
+      .package.depth-0 {
+        .root .label {
+          padding-left: 5px;
+        }
+
+        &.expanded > .body {
+          margin-bottom: 5px;
+        }
       }
 
       .header {

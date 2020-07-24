@@ -7,7 +7,8 @@ import {
 
 import {
   STATE, NAME as NAME_COL, NAMESPACE_NAME, AGE, KEYS,
-  INGRESS_TARGET, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM
+  INGRESS_TARGET, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM,
+  SPEC_TYPE, TARGET_PORT, SELECTOR
 } from '@/config/table-headers';
 
 import { DSL } from '@/store/type-map';
@@ -65,6 +66,12 @@ export function init(store) {
     RBAC.CLUSTER_ROLE_BINDING,
   ], 'rbac');
 
+  weightGroup('cluster', 99, true);
+  weightGroup('workload', 98, true);
+  weightGroup('serviceDiscovery', 97, true);
+  weightGroup('storage', 96, true);
+  weightGroup('rbac', 95, true);
+
   for (const key in WORKLOAD_TYPES) {
     componentForType(WORKLOAD_TYPES[key], WORKLOAD);
   }
@@ -94,6 +101,7 @@ export function init(store) {
   mapGroup('split.smi-spec.io', 'SMI');
   mapGroup(/^(.*\.)*knative\.(io|dev)$/, 'Knative');
   mapGroup('argoproj.io', 'Argo');
+  mapGroup('logging.banzaicloud.io', 'Logging');
 
   uncreatableType(NODE);
   immutableType(NODE);
@@ -119,7 +127,8 @@ export function init(store) {
     AGE
   ]);
   headers(INGRESS, [STATE, NAMESPACE_NAME, INGRESS_TARGET, AGE]);
-  headers(NODE, [STATE, NAME_COL, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM]);
+  headers(NODE, [STATE, NAME_COL, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM, AGE]);
+  headers(SERVICE, [STATE, NAME_COL, SPEC_TYPE, TARGET_PORT, SELECTOR, AGE]);
 
   // These look to be for [Cluster]RoleTemplate, not [Cluster]Role.
   // headers(RBAC.ROLE, [
@@ -137,15 +146,13 @@ export function init(store) {
   //   AGE
   // ]);
 
-  weightGroup('Root', 100);
-
   virtualType({
     label:       'Overview',
     group:      'Root',
     namespaced:  false,
     name:        'cluster-overview',
     weight:      100,
-    route:       { name: 'c-cluster' },
+    route:       { name: 'c-cluster-explorer' },
     exact:       true,
   });
 

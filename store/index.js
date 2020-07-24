@@ -8,6 +8,7 @@ import { ClusterNotFoundError, ApiError } from '@/utils/error';
 import { sortBy } from '@/utils/sort';
 import { filterBy, findBy } from '@/utils/array';
 import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
+import { NAME as EXPLORER } from '@/config/product/explorer';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -24,7 +25,7 @@ export const state = () => {
   return {
     managementReady:  false,
     clusterReady:     false,
-    isRancher:        false,
+    isMultiCluster:   false,
     namespaceFilters: [],
     allNamespaces:    null,
     clusterId:        null,
@@ -35,10 +36,6 @@ export const state = () => {
 };
 
 export const getters = {
-  isRancher(state) {
-    return state.isRancher === true;
-  },
-
   isMultiCluster(state) {
     return state.isMultiCluster === true;
   },
@@ -60,17 +57,12 @@ export const getters = {
     return findBy(getters['type-map/activeProducts'], 'name', state.productId);
   },
 
+  isExplorer(state, getters) {
+    return getters.currentProduct === EXPLORER;
+  },
+
   defaultClusterId(state, getters) {
-    let all;
-
-    if ( state.isRancher ) {
-      all = getters['management/all'](MANAGEMENT.CLUSTER);
-    } else if ( state.isMultiCluster ) {
-      all = getters['management/all'](STEVE.CLUSTER);
-    } else {
-      return null;
-    }
-
+    const all = getters['management/all'](MANAGEMENT.CLUSTER);
     const clusters = sortBy(filterBy(all, 'isReady'), 'nameDisplay');
     const desired = getters['prefs/get'](CLUSTER_PREF);
 
@@ -83,12 +75,18 @@ export const getters = {
     return null;
   },
 
-  isAllNamespaces(state) {
-    return state.namespaceFilters.includes('all');
+  isAllNamespaces(state, getters) {
+    const product = getters['currentProduct'];
+
+    return !product || !product.showNamespaceFilter || state.namespaceFilters.includes('all');
   },
 
   isMultipleNamespaces(state, getters) {
     const filters = state.namespaceFilters;
+
+    if ( getters.isAllNamespaces ) {
+      return true;
+    }
 
     if ( filters.length !== 1 ) {
       return true;
@@ -124,11 +122,10 @@ export const getters = {
 
   namespaces(state, getters) {
     return () => {
-      const filters = state.namespaceFilters.filter(x => !x.startsWith('namespaced://'));
-
       const namespaces = getters['cluster/all'](NAMESPACE);
 
-      const includeAll = filters.includes('all');
+      const filters = state.namespaceFilters.filter(x => !x.startsWith('namespaced://'));
+      const includeAll = getters.isAllNamespaces;
       const includeSystem = filters.includes('all://system');
       const includeUser = filters.includes('all://user') || filters.length === 0;
       const includeOrphans = filters.includes('all://orphans');
@@ -213,9 +210,8 @@ export const getters = {
 };
 
 export const mutations = {
-  managementChanged(state, { ready, isRancher, isMultiCluster }) {
+  managementChanged(state, { ready, isMultiCluster }) {
     state.managementReady = ready;
-    state.isRancher = isRancher;
     state.isMultiCluster = isMultiCluster;
   },
 
@@ -282,44 +278,31 @@ export const actions = {
       await dispatch('management/findAll', { type: COUNT, opt: { url: 'counts' } });
     }
 
-    let isRancher = false;
     let isMultiCluster = false;
     const promises = [];
 
-    if ( getters['management/schemaFor'](STEVE.CLUSTER) ) {
+    if ( getters['management/schemaFor'](MANAGEMENT.PROJECT) ) {
       isMultiCluster = true;
-      promises.push(dispatch('management/findAll', {
-        type: STEVE.CLUSTER,
-        opt:  { url: `${ STEVE.CLUSTER }s` }
-      }));
     }
 
-    if ( getters['management/schemaFor'](MANAGEMENT.CLUSTER) ) {
-      isRancher = true;
-      isMultiCluster = true;
-
-      promises.push(dispatch('management/findAll', {
-        type: MANAGEMENT.CLUSTER,
-        opt:  { url: `${ MANAGEMENT.CLUSTER }s` }
-      }));
-    }
+    promises.push(dispatch('management/findAll', {
+      type: MANAGEMENT.CLUSTER,
+      opt:  { url: `${ MANAGEMENT.CLUSTER }s` }
+    }));
 
     await Promise.all(promises);
 
     commit('managementChanged', {
       ready: true,
-      isRancher,
       isMultiCluster
     });
 
-    console.log(`Done loading management; isRancher=${ isRancher }, isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
+    console.log(`Done loading management; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },
 
   async loadCluster({
     state, commit, dispatch, getters
   }, id) {
-    let cluster, clusterBase, externalBase;
-    const isRancher = getters['isRancher'];
     const isMultiCluster = getters['isMultiCluster'];
 
     if ( state.clusterReady && state.clusterId && state.clusterId === id ) {
@@ -342,67 +325,22 @@ export const actions = {
       // Remember the new one
       dispatch('prefs/set', { key: CLUSTER_PREF, value: id });
       commit('setCluster', id);
-    } else if ( isRancher ) {
+    } else if ( isMultiCluster ) {
       // Switching to a global page with no cluster id, keep it the same.
       return;
     }
 
-    console.log(`Loading ${ isRancher ? 'Rancher ' : '' }cluster...`); // eslint-disable-line no-console
+    console.log(`Loading ${ isMultiCluster ? 'ECM ' : '' }cluster...`); // eslint-disable-line no-console
 
-    if ( isRancher ) {
-      // See if it really exists
-      cluster = await dispatch('management/find', {
-        type: MANAGEMENT.CLUSTER,
-        id,
-        opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
-      });
+    // See if it really exists
+    const cluster = await dispatch('management/find', {
+      type: MANAGEMENT.CLUSTER,
+      id,
+      opt:  { url: `${ MANAGEMENT.CLUSTER }s/${ escape(id) }` }
+    });
 
-      clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
-      externalBase = `/v1/management.cattle.io.clusters/${ escape(id) }`;
-    } else if ( isMultiCluster ) {
-      // See if it really exists
-      cluster = await dispatch('management/find', {
-        type: STEVE.CLUSTER,
-        id,
-        opt:  { url: `${ STEVE.CLUSTER }s/${ escape(id) }` }
-      });
-
-      clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
-      externalBase = null;
-    } else {
-      cluster = getters['management/byId'](MANAGEMENT.CLUSTER, 'local');
-
-      if ( !cluster ) {
-        // Make a fake cluster schema and push it into the store
-        await dispatch('management/load', {
-          data: {
-            id:   STEVE.CLUSTER,
-            type: 'schema',
-          }
-        });
-
-        // Make a fake cluster and push it into the store
-        cluster = await dispatch('management/load', {
-          data: {
-            id:         'local',
-            type:       STEVE.CLUSTER,
-            links:      { self: '' },
-            metadata:   { name: 'local' },
-            status:   {
-              conditions: [{
-                type:   'Ready',
-                status: 'True'
-              }],
-            }
-          }
-        });
-      }
-
-      commit('setCluster', cluster.id);
-
-      clusterBase = '/v1';
-      externalBase = null;
-    }
+    const clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
+    const externalBase = `/v1/management.cattle.io.clusters/${ escape(id) }`;
 
     if ( !cluster ) {
       commit('setCluster', null);
@@ -413,18 +351,18 @@ export const actions = {
 
     // Update the Steve client URLs
     commit('cluster/applyConfig', { baseUrl: clusterBase });
-    isRancher && commit('clusterExternal/applyConfig', { baseUrl: externalBase });
+    isMultiCluster && commit('clusterExternal/applyConfig', { baseUrl: externalBase });
 
     await Promise.all([
       dispatch('cluster/loadSchemas', true),
-      isRancher && dispatch('clusterExternal/loadSchemas', false),
+      isMultiCluster && dispatch('clusterExternal/loadSchemas', false),
     ]);
 
     dispatch('cluster/subscribe');
-    isRancher && dispatch('clusterExternal/subscribe');
+    isMultiCluster && dispatch('clusterExternal/subscribe');
 
     const res = await allHash({
-      projects:   isRancher && dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT, opt: { url: 'projects' } }),
+      projects:   isMultiCluster && dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT, opt: { url: 'projects' } }),
       counts:     dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
       namespaces: dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })
     });

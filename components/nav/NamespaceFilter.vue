@@ -66,7 +66,7 @@ export default {
 
       const namespaces = sortBy(this.$store.getters['cluster/all'](NAMESPACE), ['nameDisplay']);
 
-      if ( this.$store.getters['isRancher'] ) {
+      if ( this.$store.getters['isMultiCluster'] ) {
         const projects = sortBy(this.$store.getters['clusterExternal/all'](EXTERNAL.PROJECT), ['nameDisplay']);
         const projectsById = {};
         const namespacesByProject = {};

@@ -208,12 +208,15 @@ export default {
       }
 
       const params = {
-        container:  this.container,
         previous:   this.previous,
         follow:     true,
         timestamps: true,
         pretty:     true,
       };
+
+      if ( this.container ) {
+        params.container = this.container;
+      }
 
       const range = `${ this.range }`.trim().toLowerCase();
       const match = range.match(/^(\d+)?\s*(.*?)s?$/);

@@ -17,12 +17,8 @@ export default {
       return true;
     }
 
-    if ( this.$rootGetters['isRancher'] ) {
-      const project = this.project;
-
-      if ( project ) {
-        return project.isSystem;
-      }
+    if ( this.project ) {
+      return this.project.isSystem;
     }
 
     return false;
@@ -33,7 +29,7 @@ export default {
   },
 
   project() {
-    if ( !this.projectId || !this.$rootGetters['isRancher'] ) {
+    if ( !this.projectId || !this.$rootGetters['isMultiCluster'] ) {
       return null;
     }
 

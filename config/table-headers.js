@@ -5,7 +5,7 @@ export const STATE = {
   labelKey:  'tableHeaders.state',
   sort:      ['stateSort', 'nameSort'],
   value:     'stateDisplay',
-  width:     85,
+  width:     100,
   default:   'unknown',
   formatter: 'BadgeStateFormatter',
 };
@@ -108,7 +108,8 @@ export const CPU = {
   labelKey:  'tableHeaders.cpu',
   sort:      'cpu',
   value:     'cpuUsagePercentage',
-  formatter: 'PercentageBar'
+  formatter: 'PercentageBar',
+  width:     120,
 };
 
 export const RAM = {
@@ -116,7 +117,8 @@ export const RAM = {
   labelKey:  'tableHeaders.ram',
   sort:      'ram',
   value:     'ramUsagePercentage',
-  formatter: 'PercentageBar'
+  formatter: 'PercentageBar',
+  width:     102,
 };
 
 export const PODS = {

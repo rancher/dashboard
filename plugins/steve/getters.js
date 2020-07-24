@@ -235,7 +235,7 @@ export default {
     }
 
     if ( revision ) {
-      return revision + 1;
+      return revision;
     }
 
     return null;

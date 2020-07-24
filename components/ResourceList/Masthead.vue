@@ -1,4 +1,5 @@
 <script>
+import { mapGetters } from 'vuex';
 import capitalize from 'lodash/capitalize';
 import Favorite from '@/components/nav/Favorite';
 import ButtonDropdown from '@/components/ButtonDropdown';
@@ -36,6 +37,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['isExplorer']),
+
     resourceName() {
       return this.resource.includes('.') ? this.resource : capitalize(this.resource);
     },
@@ -46,7 +49,7 @@ export default {
 <template>
   <header>
     <h1>
-      {{ typeDisplay }} <Favorite :resource="resource" />
+      {{ typeDisplay }} <Favorite v-if="isExplorer" :resource="resource" />
     </h1>
     <div class="actions">
       <ButtonDropdown

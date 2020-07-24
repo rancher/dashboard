@@ -11,23 +11,36 @@ export function init(store) {
     product,
     basicType,
     headers,
-    formOnlyType
+    virtualType,
+    uncreatableType,
   } = DSL(store, NAME);
 
   product({
-    removable:           false,
-    showNamespaceFilter: true,
-    ifHaveGroup:         'catalog.cattle.io'
+    removable:   false,
+    ifHaveGroup: 'catalog.cattle.io',
+    weight:      1000,
+  });
+
+  virtualType({
+    label:       'Launch',
+    group:      'Root',
+    namespaced:  false,
+    name:        'launch',
+    weight:      100,
+    route:       { name: 'c-cluster-apps' },
+    exact:       true,
   });
 
   basicType([
+    'launch',
     CATALOG.REPO,
     CATALOG.CLUSTER_REPO,
     CATALOG.RELEASE,
     CATALOG.OPERATION,
   ]);
 
-  formOnlyType(CATALOG.RELEASE);
+  uncreatableType(CATALOG.RELEASE);
+  uncreatableType(CATALOG.OPERATION);
 
   headers(CATALOG.RELEASE, [STATE, NAMESPACE_NAME, CHART, RESOURCES, AGE]);
   headers(CATALOG.REPO, [NAMESPACE_NAME, URL, AGE]);

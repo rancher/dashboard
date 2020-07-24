@@ -10,7 +10,7 @@ export default {
 </script>
 
 <template>
-  <div class="simple-box">
+  <div class="simple-box" v-on="$listeners">
     <h2 v-if="title">
       {{ title }}
     </h2>

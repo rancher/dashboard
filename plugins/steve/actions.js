@@ -256,6 +256,10 @@ export default {
       existing
     });
 
+    if ( type === SCHEMA ) {
+      commit('type-map/schemaChanged', null, { root: true });
+    }
+
     return getters['byId'](type, id);
   },
 

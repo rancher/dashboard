@@ -7,7 +7,7 @@ import { ucFirst } from '@/utils/string';
 
 export default {
   computed: {
-    ...mapGetters(['isRancher', 'clusterId']),
+    ...mapGetters(['clusterId']),
     ...mapGetters('type-map', ['activeProducts']),
 
     value: {
@@ -31,7 +31,7 @@ export default {
         const out = {
           label,
           value:     p.name,
-          removable: p.removable,
+          removable: p.removable !== false,
         };
 
         if ( p.externalLink ) {
@@ -45,10 +45,10 @@ export default {
         return out;
       });
 
-      const out = sortBy(entries, ['removable', 'label']);
+      const out = sortBy(entries, ['removable', 'weight:desc', 'label']);
       const idx = findIndex(out, x => x.removable);
 
-      if ( idx > 0 && (idx + 1 < out.length ) ) {
+      if ( idx > 0 ) {
         insertAt(out, idx, {
           label:    'The great divide',
           kind:     'divider',

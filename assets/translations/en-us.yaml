@@ -3,10 +3,12 @@ locale:
   en-us: English
 
 product:
-  apps: Manage Applications
+  apps: Apps & Marketplace
   explorer: Cluster Explorer
   gatekeeper: OPA Gatekeeper
-  mcm: Enterprise Cluster Manager
+  istio: Istio
+  logging: Logging
+  ecm: Enterprise Cluster Manager
   rio: Rio
 
 generic:
@@ -887,7 +889,7 @@ typeLabel:
     }
   catalog.cattle.io.release: |
     {count, plural,
-      one { App }
+      one { Apps }
       other { Apps }
     }
   chartInstallAction: |
