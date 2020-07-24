@@ -121,10 +121,11 @@ export const actions = {
       revision = getters.nextResourceVersion(type, id);
     }
 
-    const msg = {
-      resourceType: type,
-      revision
-    };
+    const msg = { resourceType: type };
+
+    if ( revision ) {
+      msg.resourceVersion = `${ revision }`;
+    }
 
     if ( id ) {
       msg.id = id;
