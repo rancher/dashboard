@@ -18,6 +18,7 @@ export function init(store) {
 
   product({
     ifGetter: 'isMultiCluster',
+    icon:     'cluster',
     externalLink,
   });
 }

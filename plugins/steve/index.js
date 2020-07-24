@@ -21,7 +21,7 @@ function SteveFactory(namespace, baseUrl) {
         },
         types:        {},
         socket:       null,
-        wantSocket:   true,
+        wantSocket:   false,
         pendingSends: [],
         started:      [],
         noWatch:      [],

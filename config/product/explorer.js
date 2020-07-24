@@ -31,7 +31,8 @@ export function init(store) {
 
   product({
     removable:           false,
-    showNamespaceFilter: true
+    showNamespaceFilter: true,
+    icon:                'compass'
   });
 
   basicType(['cluster-overview', HELM_RELEASE]);
