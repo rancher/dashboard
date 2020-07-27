@@ -1,3 +1,5 @@
+import { insertAt } from '@/utils/array';
+import { TIMESTAMP } from '@/config/labels-annotations';
 import { WORKLOAD_TYPES } from '@/config/types';
 
 export default {
@@ -5,18 +7,19 @@ export default {
   _availableActions() {
     let out = this._standardActions;
 
+    insertAt(out, 0, {
+      action:     'redeploy',
+      label:      'Redeploy',
+      icon:       'icon icon-spinner',
+      enabled:    !!this.links.update,
+    });
+
     const toFilter = ['cloneYaml'];
 
     out = out.filter((action) => {
       if (!toFilter.includes(action.action)) {
         return action;
       }
-    }).map((action) => {
-      if (action.action === 'viewEditYaml') {
-        action.label = 'View as YAML';
-      }
-
-      return action;
     });
 
     return out;
@@ -63,4 +66,11 @@ export default {
        */
     ];
   },
+
+  redeploy() {
+    const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
+
+    this.setAnnotation(TIMESTAMP, now);
+    this.save();
+  }
 };
