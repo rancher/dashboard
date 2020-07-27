@@ -216,18 +216,19 @@ export default {
         if (!schema) {
           return null;
         }
-        const name = this.$store.getters['type-map/labelFor'](schema, 99);
+        const all = this.$store.getters['cluster/all'](resource);
+        const resourceCounts = this.createResourceCounts(all);
+        const name = this.$store.getters['type-map/labelFor'](schema, resourceCounts.useful);
         const location = {
           name:     'c-cluster-product-resource',
           params:   { product: EXPLORER, resource }
         };
-        const all = this.$store.getters['cluster/all'](resource);
 
         return {
           name,
           location,
           primaryColorVar: `--sizzle-${ i }`,
-          ...this.createResourceCounts(all)
+          ...resourceCounts
         };
       }).filter(r => r);
 

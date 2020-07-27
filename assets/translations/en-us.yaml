@@ -193,7 +193,7 @@ servicesPage:
 clusterIndexPage:
   header: "Overview"
   resourceGauge:
-    totalResources: "TotalResources"
+    totalResources: "Total Resources"
   hardwareResourceGauge:
     consumption: "{useful} of {total} {units} {suffix}"
     podsReserved: "Pods Reserved"
