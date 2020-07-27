@@ -452,13 +452,13 @@ export default {
       <div v-for="(filler, i) in resourceGaugesFiller" :key="i" class="filler" />
     </div>
     <div v-if="showReservedMetrics" class="hardware-resource-gauges">
-      <HardwareResourceGauge name="Pods Reserved" :total="podsReserved.total" :useful="podsReserved.useful" :suffix="t('clusterIndexPage.hardwareResourceGauge.podsReserved')" />
-      <HardwareResourceGauge name="Cores Reserved" :total="cpuReserved.total" :useful="cpuReserved.useful" :suffix="t('clusterIndexPage.hardwareResourceGauge.coresReserved')" />
-      <HardwareResourceGauge name="Ram Reserved" :total="ramReserved.total" :useful="ramReserved.useful" :units="ramReserved.units" :suffix="t('clusterIndexPage.hardwareResourceGauge.ramReserved')" />
+      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.podsReserved')" :total="podsReserved.total" :useful="podsReserved.useful" />
+      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.coresReserved')" :total="cpuReserved.total" :useful="cpuReserved.useful" />
+      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.ramReserved')" :total="ramReserved.total" :useful="ramReserved.useful" :units="ramReserved.units" />
     </div>
     <div v-if="showLiveMetrics" class="hardware-resource-gauges live">
-      <HardwareResourceGauge name="Cores Used" :total="cpuUsed.total" :useful="cpuUsed.useful" :suffix="t('clusterIndexPage.hardwareResourceGauge.coresUsed')" />
-      <HardwareResourceGauge name="Ram Used" :total="ramUsed.total" :useful="ramUsed.useful" :units="ramUsed.units" :suffix="t('clusterIndexPage.hardwareResourceGauge.ramUsed')" />
+      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.coresUsed')" :total="cpuUsed.total" :useful="cpuUsed.useful" />
+      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.ramUsed')" :total="ramUsed.total" :useful="ramUsed.useful" :units="ramUsed.units" />
     </div>
     <SimpleBox class="events" :title="t('clusterIndexPage.sections.events.label')">
       <SortableTable

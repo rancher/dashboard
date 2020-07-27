@@ -198,9 +198,9 @@ clusterIndexPage:
     consumption: "{useful} of {total} {units} {suffix}"
     podsReserved: "Pods Reserved"
     coresReserved: "Cores Reserved"
-    ramReserved: "Ram Reserved"
+    ramReserved: "Memory Reserved"
     coresUsed: "Cores Used"
-    ramUsed: "Ram Used"
+    ramUsed: "Memory Used"
 
   sections:
     nodes:

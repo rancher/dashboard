@@ -20,10 +20,6 @@ export default {
     units: {
       type:    String,
       default: ''
-    },
-    suffix: {
-      type:    String,
-      default: ''
     }
   },
   computed: {
@@ -89,7 +85,7 @@ export default {
       </div>
     </div>
     <div class="of">
-      {{ t('clusterIndexPage.hardwareResourceGauge.consumption', {useful: maxDecimalPlaces(useful), total: maxDecimalPlaces(total), units, suffix }) }}
+      {{ t('clusterIndexPage.hardwareResourceGauge.consumption', {useful: maxDecimalPlaces(useful), total: maxDecimalPlaces(total), units, suffix: name }) }}
     </div>
   </SimpleBox>
 </template>
