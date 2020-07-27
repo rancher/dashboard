@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { AUTO, CENTER, fitOnScreen } from '@/utils/position';
+import { isAlternate } from '@/utils/platform';
 
 const HIDDEN = 'hide';
 const CALC = 'calculate';
@@ -73,7 +74,13 @@ export default {
       }
     },
 
-    execute(action, args) {
+    execute(action, event, args) {
+      if (isAlternate(event)) {
+        if (!args) {
+          args = {};
+        }
+        args.alt = true;
+      }
       this.$store.dispatch('action-menu/execute', { action, args });
       this.hide();
     }
@@ -85,7 +92,7 @@ export default {
   <div v-if="showing">
     <div class="background" @click="hide" @contextmenu.prevent></div>
     <ul class="list-unstyled menu" :style="style">
-      <li v-for="opt in options" :key="opt.action" :class="{divider: opt.divider}" @click="execute(opt)">
+      <li v-for="opt in options" :key="opt.action" :class="{divider: opt.divider}" @click="execute(opt, $event)">
         <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />
         {{ opt.label }}
       </li>

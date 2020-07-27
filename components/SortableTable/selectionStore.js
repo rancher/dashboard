@@ -248,12 +248,12 @@ function _filter(map, disableAll = false) {
 }
 
 function _execute(resources, action, args) {
-  args = args || [];
-  if ( resources.length > 1 && action.bulkAction ) {
+  args = args || {};
+  if ( resources.length > 1 && action.bulkAction && !args.alt ) {
     const fn = resources[0][action.bulkAction];
 
     if ( fn ) {
-      return fn.call(resources[0], resources, ...args);
+      return fn.call(resources[0], resources, args);
     }
   }
 

@@ -390,7 +390,7 @@ export default {
     focusSearch() {
       this.$refs.searchQuery.focus();
       this.$refs.searchQuery.select();
-    }
+    },
   }
 };
 </script>
