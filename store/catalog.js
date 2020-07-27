@@ -4,13 +4,14 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { findBy } from '@/utils/array';
 import { clone } from '@/utils/object';
 import { addParams } from '@/utils/url';
+import { stringify } from '@/utils/error';
 
 export const state = function() {
   const out = {
     loaded:          false,
-    clusterRepos:    null,
-    namespacedRepos: null,
-    charts:          null,
+    clusterRepos:    [],
+    namespacedRepos: [],
+    charts:          [],
     versionInfos:    {},
   };
 
@@ -67,7 +68,11 @@ export const getters = {
         return clone(version);
       }
     };
-  }
+  },
+
+  errors(state) {
+    return state.errors || [];
+  },
 };
 
 export const mutations = {
@@ -76,8 +81,9 @@ export const mutations = {
     state.namespacedRepos = namespaced;
   },
 
-  setCharts(state, charts) {
+  setCharts(state, { charts, errors }) {
     state.charts = charts;
+    state.errors = errors;
   },
 
   cacheVersion(state, { key, info }) {
@@ -107,22 +113,31 @@ export const actions = {
       promises.push(repo.followLink('index'));
     }
 
-    const indexes = await Promise.all(promises);
+    const res = await Promise.allSettled(promises);
 
     const charts = {};
+    const errors = [];
 
-    for ( let i = 0 ; i < indexes.length ; i++ ) {
-      const obj = indexes[i];
+    for ( let i = 0 ; i < res.length ; i++ ) {
+      const obj = res[i];
       const repo = repos[i];
 
-      for ( const k in obj.entries ) {
-        for ( const entry of obj.entries[k] ) {
+      if ( obj.status === 'rejected' ) {
+        errors.push(stringify(obj.reason));
+        continue;
+      }
+
+      for ( const k in obj.value.entries ) {
+        for ( const entry of obj.value.entries[k] ) {
           addChart(charts, entry, repo);
         }
       }
     }
 
-    commit('setCharts', Object.values(charts));
+    commit('setCharts', {
+      charts: Object.values(charts),
+      errors,
+    });
   },
 
   async getVersionInfo({ state, getters, commit }, {
@@ -161,22 +176,14 @@ function addChart(list, chart, repo) {
   let certified = CATALOG_ANNOTATIONS._OTHER;
   let sideLabel = null;
 
-  // @TODO remove fake hackery
-  if ( repo.name === 'dev-charts' ) {
-    certified = CATALOG_ANNOTATIONS._RANCHER;
-  } else if ( chart.name.startsWith('f') ) {
-    certified = CATALOG_ANNOTATIONS._PARTNER;
-  } else if ( repo.isRancher ) {
+  if ( repo.isRancher ) {
     // Only charts from a rancher repo can actually set the certified flag
     certified = certifiedAnnotation || certified;
   }
 
-  // @TODO remove fake hackery
-  if ( chart.name.includes('b') ) {
+  if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
     sideLabel = 'Experimental';
-  } else if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
-    sideLabel = 'Experimental';
-  } else if ( !repo.isRancher && certifiedAnnotation && certified === CATALOG_ANNOTATIONS._OTHER) {
+  } else if ( !repo.isRancher && certifiedAnnotation && certified === CATALOG_ANNOTATIONS._OTHER ) {
     // But anybody can set the side label
     sideLabel = certifiedAnnotation;
   }

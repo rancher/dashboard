@@ -1,6 +1,3 @@
-import day from 'dayjs';
-import { escapeHtml } from '@/utils/string';
-import { DATE_FORMAT } from '@/store/prefs';
 import { insertAt } from '@/utils/array';
 
 export default {
@@ -34,7 +31,7 @@ export default {
   },
 
   isReady() {
-    return this.hasCondition('Ready') || this.type === 'cluster'; // @TODO no conditions on steve clusters yet
+    return this.hasCondition('Ready');
   },
 
   configName() {
@@ -50,12 +47,6 @@ export default {
     } else {
       return this.$rootGetters['i18n/t']('generic.unknown');
     }
-  },
-
-  createdDisplay() {
-    const dateFormat = escapeHtml( this.$rootGetters['prefs/get'](DATE_FORMAT));
-
-    return day(this.metadata.creationTimestamp).format(`${ dateFormat }`);
   },
 
   canDelete() {

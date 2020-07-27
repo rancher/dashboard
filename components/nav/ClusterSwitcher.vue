@@ -1,5 +1,5 @@
 <script>
-import { MANAGEMENT, STEVE } from '@/config/types';
+import { MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { findBy } from '@/utils/array';
 import { mapState } from 'vuex';
@@ -26,13 +26,7 @@ export default {
     },
 
     options() {
-      let all;
-
-      if ( this.isMultiCluster ) {
-        all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      } else {
-        all = this.$store.getters['management/all'](STEVE.CLUSTER);
-      }
+      const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
 
       const out = all.map((x) => {
         return {

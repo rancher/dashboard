@@ -22,13 +22,13 @@ export const NODE_ROLES = {
 };
 
 export const CATALOG = {
-  CERTIFIED:     'catalog.rancher.io/certified',
+  CERTIFIED:     'catalog.cattle.io/certified',
   _RANCHER:      'rancher',
   _PARTNER:      'partner',
   _OTHER:         'other',
-  EXPERIMENTAL:  'catalog.rancher.io/experimental',
-  NAMESPACE:     'catalog.rancher.io/namespace',
-  RELEASE_NAME:  'catalog.rancher.io/release-name',
+  EXPERIMENTAL:  'catalog.cattle.io/experimental',
+  NAMESPACE:     'catalog.cattle.io/namespace',
+  RELEASE_NAME:  'catalog.cattle.io/release-name',
 };
 
 export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };

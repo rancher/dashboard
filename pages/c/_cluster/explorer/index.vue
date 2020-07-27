@@ -1,9 +1,9 @@
 <script>
+import Loading from '@/components/Loading';
+import { mapGetters } from 'vuex';
 import capitalize from 'lodash/capitalize';
 import isEmpty from 'lodash/isEmpty';
-import { get } from '@/utils/object';
 import SortableTable from '@/components/SortableTable';
-import { APP_ID as GATEKEEPER_APP_ID } from '@/config/product/gatekeeper';
 import { allHash } from '@/utils/promise';
 import Poller from '@/utils/poller';
 import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
@@ -14,17 +14,14 @@ import {
   ROLES,
   STATE,
 } from '@/config/table-headers';
-import { SYSTEM_PROJECT } from '@/config/labels-annotations';
 import {
   NAMESPACE,
   INGRESS,
-  EXTERNAL,
   EVENT,
   MANAGEMENT,
   METRIC,
   NODE,
   SERVICE,
-  STEVE,
   PV,
   WORKLOAD_TYPES
 } from '@/config/types';
@@ -57,6 +54,7 @@ const RESOURCES_PER_ROW = 5;
 
 export default {
   components: {
+    Loading,
     Glance,
     HardwareResourceGauge,
     ResourceGauge,
@@ -64,69 +62,39 @@ export default {
     SortableTable
   },
 
-  async asyncData(ctx) {
-    const { route, store } = ctx;
-    const id = get(route, 'params.cluster');
-    let gatekeeper = null;
-    let gatekeeperEnabled = false;
-    let cluster = null;
+  async fetch() {
+    // @TODO stop loading these, use counts. --v
+    const resources = [];
 
-    if ( store.getters['isMultiCluster'] ) {
-      const projects = await store.dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT });
-      const targetSystemProject = projects.find(( proj ) => {
-        const labels = proj.metadata?.labels || {};
-
-        if ( labels[SYSTEM_PROJECT] === 'true' ) {
-          return true;
-        }
-      });
-
-      if (!isEmpty(targetSystemProject)) {
-        const systemNamespace = targetSystemProject.metadata.name;
-
-        try {
-          gatekeeper = await store.dispatch('clusterExternal/find', {
-            type: EXTERNAL.APP,
-            id:   `${ systemNamespace }/${ GATEKEEPER_APP_ID }`,
-          });
-          if (!isEmpty(gatekeeper)) {
-            gatekeeperEnabled = true;
-          }
-        } catch (err) {
-          gatekeeperEnabled = false;
-        }
-      }
-
-      cluster = await store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id });
-    } else {
-      cluster = await store.dispatch('management/find', { type: STEVE.CLUSTER, id });
-    }
-
-    const resources = RESOURCES.map((resource) => {
-      const schema = store.getters['cluster/schemaFor'](resource);
+    for ( const resource of RESOURCES ) {
+      const schema = this.$store.getters['cluster/schemaFor'](resource);
 
       if (schema) {
-        store.dispatch('cluster/findAll', { type: resource });
+        resources.push(this.$store.dispatch('cluster/findAll', { type: resource }));
       }
+    }
 
-      return Promise.resolve();
-    });
+    await Promise.all(resources);
+    // --^
 
-    Promise.all(resources);
-
-    return {
-      constraints:       [],
-      events:            [],
-      nodeMetrics:       [],
-      haveNodes:         !!store.getters['cluster/schemaFor'](NODE),
-      haveNodeTemplates: !!store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE),
-      haveNodePools:     !!store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL),
-      nodePools:         [],
-      nodeTemplates:     [],
-      nodes:             [],
-      cluster,
-      gatekeeperEnabled,
+    const hash = {
+      nodes:       this.fetchClusterResources(NODE),
+      events:      this.fetchClusterResources(EVENT),
     };
+
+    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_TEMPLATE) ) {
+      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
+    }
+
+    if ( this.$store.getters['management/schemaFor'](MANAGEMENT.NODE_POOL) ) {
+      hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
+    }
+
+    const res = await allHash(hash);
+
+    for ( const k in res ) {
+      this[k] = res[k];
+    }
   },
 
   data() {
@@ -162,16 +130,23 @@ export default {
     ];
 
     return {
-      metricPoller:      new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
-      gatekeeperEnabled: false,
+      metricPoller:  null,
       eventHeaders,
       nodeHeaders,
+      constraints:       [],
+      events:            [],
+      nodeMetrics:       [],
+      nodePools:         [],
+      nodeTemplates:     [],
+      nodes:             [],
     };
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+
     displayProvider() {
-      const cluster = this.cluster;
+      const cluster = this.currentCluster;
       const driver = cluster.status?.driver.toLowerCase();
       const customShortLabel = this.$store.getters['i18n/t']('cluster.provider.rancherkubernetesengine.shortLabel');
 
@@ -331,28 +306,8 @@ export default {
   },
 
   mounted() {
+    this.metricPoller = new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES);
     this.metricPoller.start();
-  },
-
-  async created() {
-    const hash = {
-      nodes:       this.fetchClusterResources(NODE),
-      events:      this.fetchClusterResources(EVENT),
-    };
-
-    if ( this.haveNodeTemplates ) {
-      hash.nodeTemplates = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_TEMPLATE });
-    }
-
-    if ( this.haveNodePools ) {
-      hash.nodePools = this.$store.dispatch('management/findAll', { type: MANAGEMENT.NODE_POOL });
-    }
-
-    const res = await allHash(hash);
-
-    for ( const k in res ) {
-      this[k] = res[k];
-    }
   },
 
   methods: {
@@ -436,18 +391,24 @@ export default {
 </script>
 
 <template>
-  <section>
+  <Loading v-if="$fetchState.pending" />
+  <section v-else>
     <header class="row">
       <div class="span-11">
         <h1>
           <t k="clusterIndexPage.header" />
         </h1>
         <div>
-          <span v-if="cluster.spec.description">{{ cluster.spec.description }}</span>
+          <span v-if="currentCluster.spec.description">{{ currentCluster.spec.description }}</span>
         </div>
       </div>
     </header>
-    <Glance :provider="displayProvider" :kubernetes-version="cluster.kubernetesVersion" :total-nodes="(nodes || []).length" :created="cluster.metadata.creationTimestamp" />
+    <Glance
+      :provider="displayProvider"
+      :kubernetes-version="currentCluster.kubernetesVersion"
+      :total-nodes="(nodes || []).length"
+      :created="currentCluster.metadata.creationTimestamp"
+    />
     <div class="resource-gauges">
       <ResourceGauge v-for="resourceGauge in resourceGauges" :key="resourceGauge.name" v-bind="resourceGauge" />
       <div v-for="(filler, i) in resourceGaugesFiller" :key="i" class="filler" />
