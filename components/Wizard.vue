@@ -295,7 +295,7 @@ export default {
             @click="finish"
           />
         </slot>
-        <slot v-else name="next" :next="next">
+        <slot v-else name="next" :next="next" :canNext="canNext">
           <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
             <t k="wizard.next" />
           </button>

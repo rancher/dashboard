@@ -1,4 +1,5 @@
 <script>
+import { ApiError } from '@/utils/error';
 import jsyaml from 'js-yaml';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import Footer from '@/components/form/Footer';
@@ -252,7 +253,9 @@ export default {
         buttonDone(true);
         this.done();
       } catch (err) {
-        if ( err && err.response && err.response.data ) {
+        if (err && err.type && err.status && err.message) {
+          this.errors = [new ApiError(err).toString()];
+        } else if ( err && err.response && err.response.data ) {
           const body = err.response.data;
 
           if ( body && body.message ) {
@@ -295,6 +298,7 @@ export default {
     />
     <Footer
       v-if="showFooter"
+      class="footer-resource-yaml"
       :mode="mode"
       :errors="errors"
       @save="save"
@@ -332,10 +336,6 @@ export default {
   .yaml-editor {
     flex: 1;
     min-height: 200px;
-  }
-
-  footer .actions {
-    text-align: center;
   }
 }
 </style>

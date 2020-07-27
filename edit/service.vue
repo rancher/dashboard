@@ -2,18 +2,22 @@
 import { isEmpty, find, isNaN } from 'lodash';
 import { findBy } from '@/utils/array';
 import { _EDIT, _CLONE } from '@/config/query-params';
-import ArrayList from '@/components/form/ArrayList';
+import { SCHEMA } from '@/config/types';
+import { createYaml } from '@/utils/create-yaml';
+import { ucFirst } from '@/utils/string';
+import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service';
 import CreateEditView from '@/mixins/create-edit-view';
+import ArrayList from '@/components/form/ArrayList';
+import Banner from '@/components/Banner';
+import ButtonDropdown from '@/components/ButtonDropdown';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
+import Labels from '@/components/form/Labels';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
+import ResourceYaml from '@/components/ResourceYaml';
 import ServicePorts from '@/components/form/ServicePorts';
-import Labels from '@/components/form/Labels';
 import UnitInput from '@/components/form/UnitInput';
-import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service';
-import { ucFirst } from '@/utils/string';
-import Banner from '@/components/Banner';
 import Wizard from '@/components/Wizard';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
@@ -35,11 +39,13 @@ export default {
   components: {
     ArrayList,
     Banner,
+    ButtonDropdown,
     KeyValue,
     LabeledInput,
-    NameNsDescription,
     Labels,
+    NameNsDescription,
     RadioGroup,
+    ResourceYaml,
     ServicePorts,
     UnitInput,
     Wizard
@@ -74,6 +80,8 @@ export default {
       saving:                       false,
       sessionAffinityActionLabels:  Object.values(SESSION_AFFINITY_ACTION_LABELS).map(v => this.$store.getters['i18n/t'](v)).map(ucFirst),
       sessionAffinityActionOptions: Object.values(SESSION_AFFINITY_ACTION_VALUES),
+      showpreviewYamlWarning:       false,
+      serviceYaml:                  '',
       steps:                        [
         {
           name:  'select-service',
@@ -149,6 +157,10 @@ export default {
   },
 
   watch: {
+    // TODO - reset config if we go back to step 1
+    // '$route.query.step'(val) {
+    //   console.log('Router step: ', val);
+    // },
     'value.metadata.name': {
       handler(val, oldVal) {
         const defineServiceStep = findBy(( this?.steps || []), 'name', 'define-service');
@@ -161,6 +173,7 @@ export default {
       },
       deep: true
     },
+
     'value.spec.sessionAffinity'(val) {
       if (val === CLUSTERIP) {
         this.value.spec.sessionAffinityConfig = { clientIP: { timeoutSeconds: null } };
@@ -174,12 +187,37 @@ export default {
   },
 
   methods: {
+    showPreviewYaml(show) {
+      const schemas = this.$store.getters['cluster/all'](SCHEMA);
+      const data = this.value;
+
+      this.serviceYaml = createYaml(schemas, data.type, data);
+
+      this.$nextTick(() => {
+        this.$modal.toggle('previewYaml');
+      });
+    },
+
     cancelEdit() {
       this.done();
     },
+
+    cancelYamlPreview(cb) {
+      const { showpreviewYamlWarning } = this;
+
+      if (showpreviewYamlWarning) {
+        this.serviceYaml = null;
+        this.showpreviewYamlWarning = false;
+        this.$modal.hide('previewYaml');
+      } else {
+        this.showpreviewYamlWarning = true;
+      }
+    },
+
     setServiceType(type) {
       this.serviceType = type;
     },
+
     checkTypeIs(typeIn) {
       const { serviceType } = this;
 
@@ -221,208 +259,268 @@ export default {
 </script>
 
 <template>
-  <Wizard
-    :steps="steps"
-    :edit-first-step="isCreate ? true : false"
-    :errors="errors"
-    :banner-image="$route.query.step >= 2 && bannerServiceType ? '2' : null"
-    @finish="save"
-  >
-    <template slot="select-service">
-      <div class="row select-service-row">
-        <div
-          v-for="type in defaultServiceTypes"
-          :key="type.id"
-          class="choice-banner col span-3 hand"
-          :class="{active: type.id === serviceType}"
-          @click="setServiceType(type.id)"
-        >
-          <div v-if="type.bannerAbbrv" class="round-image">
-            <div class="banner-text-service">
-              {{ type.bannerAbbrv }}
+  <section>
+    <Wizard
+      :steps="steps"
+      :edit-first-step="isCreate ? true : false"
+      :errors="errors"
+      :banner-image="$route.query.step >= 2 && bannerServiceType ? '2' : null"
+      @finish="save"
+    >
+      <template slot="select-service">
+        <div class="row select-service-row">
+          <div
+            v-for="type in defaultServiceTypes"
+            :key="type.id"
+            class="choice-banner col span-3 hand"
+            :class="{active: type.id === serviceType}"
+            @click="setServiceType(type.id)"
+          >
+            <div v-if="type.bannerAbbrv" class="round-image">
+              <div class="banner-text-service">
+                {{ type.bannerAbbrv }}
+              </div>
+            </div>
+            <button class="bg-transparent pl-0" type="button">
+              <div class="title">
+                <h2 class="mb-0">
+                  {{ t(type.translationLabel) }}
+                </h2>
+              </div>
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <template slot="define-service">
+        <NameNsDescription
+          v-if="!isView"
+          :value="value"
+          :mode="mode"
+        />
+
+        <div class="spacer-bordered"></div>
+
+        <div v-if="checkTypeIs('ExternalName')">
+          <div class="clearfix">
+            <h4>
+              <t k="servicesPage.externalName.label" />
+            </h4>
+            <Banner color="info" :label="t('servicesPage.externalName.helpText')" />
+          </div>
+          <div class="row mt-10">
+            <div class="col span-6">
+              <span v-if="isView">{{ value.spec.externalName }}</span>
+              <input
+                v-else
+                ref="external-name"
+                v-model.number="value.spec.externalName"
+                type="text"
+                :placeholder="t('servicesPage.externalName.placeholder')"
+              />
             </div>
           </div>
-          <button class="bg-transparent pl-0" type="button">
-            <div class="title">
-              <h2 class="mb-0">
-                {{ t(type.translationLabel) }}
+        </div>
+
+        <ServicePorts
+          v-else
+          v-model="value.spec.ports"
+          class="col span-12"
+          :mode="mode"
+          :spec-type="serviceType"
+          @input="updateServicePorts"
+        />
+
+        <div class="spacer-bordered"></div>
+
+        <section v-if="!checkTypeIs('ExternalName')">
+          <div class="row">
+            <div class="clearfix">
+              <h2>
+                <t k="servicesPage.selectors.label" />
               </h2>
             </div>
-          </button>
-        </div>
-      </div>
-    </template>
-
-    <template slot="define-service">
-      <NameNsDescription
-        v-if="!isView"
-        :value="value"
-        :mode="mode"
-      />
-
-      <div class="spacer-bordered"></div>
-
-      <div v-if="checkTypeIs('ExternalName')">
-        <div class="clearfix">
-          <h4>
-            <t k="servicesPage.externalName.label" />
-          </h4>
-          <Banner color="info" :label="t('servicesPage.externalName.helpText')" />
-        </div>
-        <div class="row mt-10">
-          <div class="col span-6">
-            <span v-if="isView">{{ value.spec.externalName }}</span>
-            <input
-              v-else
-              ref="external-name"
-              v-model.number="value.spec.externalName"
-              type="text"
-              :placeholder="t('servicesPage.externalName.placeholder')"
-            />
           </div>
-        </div>
-      </div>
 
-      <ServicePorts
-        v-else
-        v-model="value.spec.ports"
-        class="col span-12"
-        :mode="mode"
-        :spec-type="serviceType"
-        @input="updateServicePorts"
-      />
-
-      <div class="spacer-bordered"></div>
-
-      <section v-if="!checkTypeIs('ExternalName')">
-        <div class="row">
-          <div class="clearfix">
-            <h2>
-              <t k="servicesPage.selectors.label" />
-            </h2>
+          <div class="row">
+            <div class="col span-12">
+              <Banner color="info" :label="t('servicesPage.selectors.helpText')" />
+            </div>
           </div>
-        </div>
 
-        <div class="row">
-          <div class="col span-12">
-            <Banner color="info" :label="t('servicesPage.selectors.helpText')" />
+          <div class="row">
+            <div class="col span-12">
+              <KeyValue
+                key="selectors"
+                v-model="value.spec.selector"
+                :mode="mode"
+                :initial-empty-row="true"
+                :pad-left="false"
+                :read-allowed="false"
+                :protip="false"
+                @input="e=>$set(value.spec, 'selector', e)"
+              />
+            </div>
           </div>
-        </div>
 
-        <div class="row">
-          <div class="col span-12">
-            <KeyValue
-              key="selectors"
-              v-model="value.spec.selector"
-              :mode="mode"
-              :initial-empty-row="true"
-              :pad-left="false"
-              :read-allowed="false"
-              :protip="false"
-              @input="e=>$set(value.spec, 'selector', e)"
-            />
+          <div class="spacer-bordered"></div>
+        </section>
+
+        <div class="row labels-row">
+          <Labels
+            :spec="value.spec"
+            :mode="mode"
+            :display-side-by-side="true"
+          />
+        </div>
+      </template>
+
+      <template slot="advanced-config-serivce">
+        <section>
+          <div class="row">
+            <div class="col span-12">
+              <h4>
+                <t k="servicesPage.ips.label" />
+              </h4>
+              <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
+              <Banner
+                v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
+                color="info"
+                :label="t('servicesPage.ips.clusterIpHelpText')"
+              />
+            </div>
           </div>
-        </div>
+          <div v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')" class="row mb-20">
+            <div class="col span-6">
+              <LabeledInput
+                v-model="value.spec.clusterIP"
+                :mode="mode"
+                :label="t('servicesPage.ips.input.label')"
+                :placeholder="t('servicesPage.ips.input.placeholder')"
+                @input="e=>$set(value.spec, 'clusterIP', e)"
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-7">
+              <ArrayList
+                key="clusterExternalIpAddresses"
+                v-model="value.spec.externalIPs"
+                :title="t('servicesPage.ips.external.label')"
+                :value-placeholder="t('servicesPage.ips.external.placeholder')"
+                :value-multiline="false"
+                :mode="mode"
+                :pad-left="false"
+                :protip="t('servicesPage.ips.external.protip')"
+                @input="e=>$set(value.spec, 'externalIPs', e)"
+              />
+            </div>
+          </div>
+        </section>
 
-        <div class="spacer-bordered"></div>
-      </section>
-
-      <div class="row labels-row">
-        <Labels
-          :spec="value.spec"
-          :mode="mode"
-          :display-side-by-side="true"
-        />
-      </div>
-    </template>
-
-    <template slot="advanced-config-serivce">
-      <section>
-        <div class="row">
+        <section v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName') && !checkTypeIs('Headless')">
+          <div class="spacer-bordered"></div>
           <div class="col span-12">
             <h4>
-              <t k="servicesPage.ips.label" />
+              <t k="servicesPage.affinity.label" />
             </h4>
-            <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
-            <Banner
-              v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
-              color="info"
-              :label="t('servicesPage.ips.clusterIpHelpText')"
-            />
+            <Banner color="info" :label="t('servicesPage.affinity.helpText')" />
           </div>
-        </div>
-        <div v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')" class="row mb-20">
-          <div class="col span-6">
-            <LabeledInput
-              v-model="value.spec.clusterIP"
-              :mode="mode"
-              :label="t('servicesPage.ips.input.label')"
-              :placeholder="t('servicesPage.ips.input.placeholder')"
-              @input="e=>$set(value.spec, 'clusterIP', e)"
-            />
+          <div class="row session-affinity">
+            <div class="col span-6">
+              <RadioGroup
+                v-model="value.spec.sessionAffinity"
+                class="enforcement-action"
+                :options="sessionAffinityActionOptions"
+                :labels="sessionAffinityActionLabels"
+                :mode="mode"
+                @input="e=>value.spec.sessionAffinity = e"
+              />
+            </div>
+            <div v-if="value.spec.sessionAffinity === 'ClusterIP'" class="col span-6">
+              <UnitInput
+                v-model="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
+                :suffix="t('suffix.seconds')"
+                :label="t('servicesPage.affinity.timeout.label')"
+                :placeholder="t('servicesPage.affinity.timeout.placeholder')"
+                @input="e=>$set(value.spec.sessionAffinityConfig.clientIP, 'timeoutSeconds', e)"
+              />
+            </div>
           </div>
-        </div>
-        <div class="row">
-          <div class="col span-7">
-            <ArrayList
-              key="clusterExternalIpAddresses"
-              v-model="value.spec.externalIPs"
-              :title="t('servicesPage.ips.external.label')"
-              :value-placeholder="t('servicesPage.ips.external.placeholder')"
-              :value-multiline="false"
-              :mode="mode"
-              :pad-left="false"
-              :protip="t('servicesPage.ips.external.protip')"
-              @input="e=>$set(value.spec, 'externalIPs', e)"
-            />
-          </div>
-        </div>
-      </section>
+        </section>
+      </template>
 
-      <section v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName') && !checkTypeIs('Headless')">
-        <div class="spacer-bordered"></div>
-        <div class="col span-12">
-          <h4>
-            <t k="servicesPage.affinity.label" />
-          </h4>
-          <Banner color="info" :label="t('servicesPage.affinity.helpText')" />
-        </div>
-        <div class="row session-affinity">
-          <div class="col span-6">
-            <RadioGroup
-              v-model="value.spec.sessionAffinity"
-              class="enforcement-action"
-              :options="sessionAffinityActionOptions"
-              :labels="sessionAffinityActionLabels"
-              :mode="mode"
-              @input="e=>value.spec.sessionAffinity = e"
-            />
-          </div>
-          <div v-if="value.spec.sessionAffinity === 'ClusterIP'" class="col span-6">
-            <UnitInput
-              v-model="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
-              :suffix="t('suffix.seconds')"
-              :label="t('servicesPage.affinity.timeout.label')"
-              :placeholder="t('servicesPage.affinity.timeout.placeholder')"
-              @input="e=>$set(value.spec.sessionAffinityConfig.clientIP, 'timeoutSeconds', e)"
-            />
-          </div>
-        </div>
-      </section>
-    </template>
+      <template v-if="showCustomCancel" slot="cancel">
+        <button type="button" class="btn role-secondary" @click="cancelEdit">
+          <t k="generic.cancel" />
+        </button>
+      </template>
 
-    <template v-if="showCustomCancel" slot="cancel">
-      <button type="button" class="btn role-secondary" @click="cancelEdit">
-        <t k="generic.cancel" />
-      </button>
-    </template>
+      <template #banner-content>
+        <div class="banner-text-service">
+          {{ bannerServiceType }}
+        </div>
+      </template>
 
-    <template #banner-content>
-      <div class="banner-text-service">
-        {{ bannerServiceType }}
-      </div>
-    </template>
-  </Wizard>
+      <template #next="{canNext,next}">
+        <ButtonDropdown
+          class="inline-block"
+          :auto-hide="false"
+        >
+          <template #button-content="{ buttonSize }">
+            <button
+              type="button"
+              class="btn bg-transparent"
+              :class="buttonSize"
+              :disabled="!canNext"
+              @click="next()"
+            >
+              <t k="wizard.next" />
+            </button>
+          </template>
+
+          <template #popover-content="{buttonSize}">
+            <ul class="list-unstyled menu" style="margin: -1px;">
+              <li
+                class="hand"
+                @click="showPreviewYaml"
+              >
+                <button
+                  type="button"
+                  class="bg-transparent p-0"
+                  :class="buttonSize"
+                >
+                  <t k="servicesPage.preview.label" />
+                </button>
+              </li>
+            </ul>
+          </template>
+        </ButtonDropdown>
+      </template>
+    </Wizard>
+
+    <modal
+      class="preview-resource-creation-modal"
+      name="previewYaml"
+      height="auto"
+      :click-to-close="false"
+    >
+      <Banner
+        v-if="showpreviewYamlWarning"
+        color="warning"
+        :label="t('servicesPage.preview.cancel')"
+      />
+      <ResourceYaml
+        ref="serviceyaml"
+        :value="value"
+        :mode="mode"
+        :yaml="serviceYaml"
+        :offer-preview="false"
+        :done-route="doneRoute"
+        :done-override="cancelYamlPreview"
+      />
+    </modal>
+  </section>
 </template>
 
 <style lang="scss">
@@ -450,6 +548,21 @@ export default {
     min-height: 90px; // ssr jumpy
     .round-image {
       background-color: var(--primary);
+    }
+  }
+  .preview-resource-creation-modal {
+    .resource-yaml {
+      .yaml-editor {
+        min-height: 600px;
+      }
+      .footer-resource-yaml {
+        .spacer {
+          padding: 20px 0 0 0;
+        }
+      }
+    }
+    .v--modal {
+      background-color: transparent;
     }
   }
 </style>

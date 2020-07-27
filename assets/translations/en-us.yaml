@@ -458,6 +458,9 @@ servicesPage:
     timeout:
       label: Session Sticky Time
       placeholder: e.g. 10800
+  preview:
+    label: Preview Yaml
+    cancel: Any changes made to the Service Yaml will be discarded unless saved. Cancel again to proceed.
 
 sortableTable:
   actionAvailability:

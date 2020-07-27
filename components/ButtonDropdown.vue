@@ -4,6 +4,10 @@ export default {
     size: {
       type:    String,
       default: '' // possible values are xs, sm, lg. empty is default .btn
+    },
+    popoverPlacement: {
+      type:    String,
+      default: 'bottom'
     }
   },
 
@@ -60,14 +64,14 @@ export default {
 
       <v-popover
         v-if="hasSlot('popover-content')"
-        placement="bottom"
+        :placement="popoverPlacement"
         container=".dropdown-button-group"
         offset="10"
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >
         <slot name="button-toggle-content" :buttonSize="buttonSize">
           <button
-            class="icon-container bg-transparent"
+            class="icon-container bg-transparent tooltip-target"
             :class="buttonSize"
             type="button"
           >
@@ -76,7 +80,7 @@ export default {
         </slot>
 
         <template slot="popover">
-          <slot name="popover-content" />
+          <slot name="popover-content" :buttonSize="buttonSize" />
         </template>
       </v-popover>
     </div>
