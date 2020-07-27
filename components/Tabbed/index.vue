@@ -207,7 +207,7 @@ export default {
     .tab {
       position: relative;
       top: 1px;
-      // float: left;
+      float: left;
       border-radius: 3px 3px 0 0;
       margin: 0 8px 0 0;
       cursor: pointer;

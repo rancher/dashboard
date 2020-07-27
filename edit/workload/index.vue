@@ -503,7 +503,7 @@ export default {
       @finish="saveWorkload"
       @cancel="cancel"
     >
-      <template v-if="$route.query.step > 0" #bannerTitleImage>
+      <template v-if="$route.query.step > 0 || mode !=='create'" #bannerTitleImage>
         <span class="type-placeholder"> {{ initialDisplayFor(type) }} </span>
       </template>
       <template #type>
