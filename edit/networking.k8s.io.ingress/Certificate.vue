@@ -75,7 +75,7 @@ export default {
       </div>
       <div class="col span-5">
         <div v-for="(host, i) in hosts" :key="i" class="row mb-10">
-          <div :style="{ 'margin-right': '0px' }" class="col span-11">
+          <div :style="{ 'margin-right': '0px' }" class="col span-12">
             <LabeledInput
               :value="host"
               :label="t('ingress.certificates.host.label')"
