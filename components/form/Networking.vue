@@ -36,7 +36,7 @@ export default {
     const { nameservers, searches, options } = dnsConfig;
 
     const out = {
-      dnsPolicy:   this.value.dnsPolicy || 'Default',
+      dnsPolicy:   this.value.dnsPolicy || 'ClusterFirst',
       networkMode: this.value.hostNetwork ? { label: t('workload.networking.networkMode.options.normal'), value: false } : { label: t('workload.networking.networkMode.options.hostNetwork'), value: true },
       hostAliases,
       nameservers,
@@ -106,22 +106,6 @@ export default {
         this.value.dnsPolicy = neu;
       }
     }
-  },
-
-  created() {
-    // const spec = this.spec;
-
-    // if ( !spec.dnsNameservers ) {
-    //   spec.dnsNameservers = [];
-    // }
-
-    // if ( !spec.searches ) {
-    //   spec.searches = [];
-    // }
-
-    // if ( !spec.dnsPolicy ) {
-    //   spec.dnsPolicy = 'Default';
-    // }
   },
 
   methods: {

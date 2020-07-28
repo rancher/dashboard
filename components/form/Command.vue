@@ -1,17 +1,20 @@
 <script>
+import { cleanUp } from '@/utils/object';
+import LabeledInput from '@/components/form/LabeledInput';
 import ShellInput from '@/components/form/ShellInput';
 import KeyValue from '@/components/form/KeyValue';
 import ValueFromResource from '@/components/form/ValueFromResource';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
-import ButtonDropdown from '@/components/ButtonDropdown';
 
 export default {
   components: {
+    LabeledInput,
     ShellInput,
     KeyValue,
     ValueFromResource,
-    Checkbox,
-    ButtonDropdown
+    LabeledSelect,
+    Checkbox
   },
 
   props: {
@@ -37,7 +40,9 @@ export default {
   },
 
   data() {
-    const { env = [], envFrom = [] } = this.value;
+    const {
+      env = [], envFrom = [], command, args, workingDir, stdin = false, stdinOnce = false, tty = false
+    } = this.value;
 
     // UI has two groups: from resource (referencedValues), not from resource (unreferencedValues)
     // api spec has two different groups: key ref (env) or entire-resource's-key ref (envFrom)
@@ -52,14 +57,46 @@ export default {
     });
 
     return {
-      env, envFrom, referencedValues, unreferencedValues
+      env, envFrom, referencedValues, unreferencedValues, command, args, workingDir, stdin, stdinOnce, tty
     };
   },
 
-  watch: {
-    'value.tty'(neu) {
-      if (neu) {
-        this.$set(this.value, 'stdin', true);
+  computed: {
+    stdinSelect: {
+      get() {
+        if (this.stdin) {
+          if (this.stdinOnce) {
+            return 'Once';
+          }
+
+          return 'Yes';
+        }
+        if (this.stdinOnce) {
+          return null;
+        }
+
+        return 'No';
+      },
+      set(neu) {
+        switch (neu) {
+        case 'Yes':
+          this.stdin = true;
+          this.stdinOnce = false;
+          break;
+        case 'Once':
+          this.stdin = true;
+          this.stdinOnce = true;
+          break;
+        case 'No':
+          this.stdin = false;
+          this.stdinOnce = false;
+          this.tty = false;
+          break;
+        default:
+          this.stdin = false;
+          this.stdinOnce = true;
+          this.tty = false;
+        }
       }
     }
   },
@@ -70,7 +107,21 @@ export default {
       const env = [...this.unreferencedValues, ...this.referencedValues.filter(val => !!val.valueFrom)];
       const envFrom = this.referencedValues.filter(val => !!val.configmapRef || !!val.secretRef);
 
-      Object.assign(this.value, { env, envFrom });
+      const out = {
+        ...this.value,
+        ...cleanUp({
+          stdin:      this.stdin,
+          stdinOnce:  this.stdinOnce,
+          command:    this.command,
+          args:       this.args,
+          workingDir: this.workingDir,
+          tty:        this.tty,
+          env,
+          envFrom
+        })
+      };
+
+      this.$emit('input', out );
     },
 
     updateRow(idx, neu, old) {
@@ -88,40 +139,62 @@ export default {
     addFromReference() {
       this.referencedValues.push({ name: '', valueFrom: {} });
     },
+
   },
 };
 </script>
 <template>
-  <div :style="{'width':'100%'}" @input="update">
-    <div class="row mb-20">
-      <div class="col span-5">
+  <div @input="update">
+    <div class="row">
+      <div class="col span-6">
         <slot name="entrypoint">
           <ShellInput
-            v-model="value.command"
+            v-model="command"
             :mode="mode"
             :label="t('workload.container.command.command')"
             placeholder="e.g. /bin/sh"
           />
         </slot>
       </div>
-      <div class="col span-5">
+      <div class="col span-6">
         <slot name="command">
           <ShellInput
-            v-model="value.args"
+            v-model="args"
             :mode="mode"
             :label="t('workload.container.command.args')"
             placeholder="e.g. /usr/sbin/httpd -f httpd.conf"
           />
         </slot>
       </div>
-      <div class="col span-2">
-        <Checkbox v-model="value.tty" label="TTY" :mode="mode" />
+    </div>
+
+    <div class="spacer" />
+
+    <div class="row">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="workingDir"
+          :mode="mode"
+          :label="t('workload.container.command.workingDir')"
+          placeholder="e.g. /myapp"
+        />
+      </div>
+      <div class="col span-6">
+        <div class="row">
+          <div class="col span-6">
+            <LabeledSelect v-model="stdinSelect" label="Stdin" :options="[, 'No', 'Once', 'Yes']" :mode="mode" />
+          </div>
+          <div class="col span-6">
+            <Checkbox v-model="tty" :disabled="!stdin" label="TTY" />
+          </div>
+        </div>
       </div>
     </div>
 
+    <div class="spacer" />
+
     <KeyValue
       key="env"
-      ref="unreferencedKV"
       v-model="unreferencedValues"
       key-name="name"
       :mode="mode"
@@ -165,61 +238,46 @@ export default {
           </select>
         </span>
       </template>
-      <template #add>
-        <span />
-      </template>
     </KeyValue>
-    <div v-if="referencedValues.length" class="value-from-headers row">
-      <div class="col span-5-of-23">
-        {{ t('workload.container.command.fromResource.type') }}
-      </div>
-      <div class="col span-5-of-23">
-        {{ t('workload.container.command.fromResource.source.label') }}
-      </div>
-      <div class="col span-5-of-23">
-        {{ t('workload.container.command.fromResource.key.label') }}
-      </div>
-      <div class="col span-1-of-23">
-      </div>
-      <div class="col span-5-of-23">
-        {{ t('workload.container.command.fromResource.prefix') }}
-      </div>
+    <div v-if="referencedValues.length" class="value-from headers">
+      <span>Type</span>
+      <span>Source</span>
+      <span>Key</span>
+      <span />
+      <span>Prefix or Alias</span>
     </div>
     <ValueFromResource
       v-for="(val,i) in referencedValues"
+      ref="referenced"
       :key="`${i}`"
-      class="mb-10 value-from"
+      class="mb-10"
       :row="val"
       :all-secrets="secrets"
       :all-config-maps="configMaps"
       :mode="mode"
       @input="e=>updateRow(i, e.value, e.old)"
     />
-    <ButtonDropdown ref="buttonDropdown">
-      <template #button-content>
-        <button v-if="mode!=='view'" type="button" class="btn text-primary bg-transparent" @click="$refs.unreferencedKV.add()">
-          <t k="generic.add" />
-        </button>
-      </template>
-      <template #popover-content>
-        <ul class="list-unstyled menu">
-          <li v-close-popover.all @click="addFromReference">
-            <t k="workload.container.command.addFromResource" />
-          </li>
-        </ul>
-      </template>
-    </ButtonDropdown>
+    <button v-show="mode!=='view'" type="button" class="btn role-tertiary add mt-10" @click="addFromReference">
+      <t k="workload.container.command.addFromResource" />
+    </button>
   </div>
 </template>
 
 <style lang='scss'>
-.value-from  INPUT {
-  height: 50px;
-}
-  .value-from-headers {
+  .value-from {
+    display:grid;
+    grid-template-columns: 20% 25% 25% 5% 15% auto;
+    grid-column-gap:10px;
     margin-bottom:10px;
-    color: var(--input-label);
-    padding-left: 10px;
+
+    &.headers>* {
+      padding:0px 10px 0px 10px;
+      color: var(--input-label);
+      align-self: end;
+    }
+    & :not(.headers){
+      align-self:center;
+    }
 
     & .labeled-input.create INPUT[type='text']{
       padding: 9px 0px 9px 0px !important

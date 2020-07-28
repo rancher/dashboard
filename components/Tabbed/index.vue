@@ -241,6 +241,7 @@ export default {
       min-width: 200px;
 
       & .tab {
+        width: 100%;
 
         A {
           color: var(--input-label);

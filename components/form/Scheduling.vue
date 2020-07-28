@@ -1,25 +1,18 @@
 <script>
-import RadioGroup from '@/components/form/RadioGroup';
-import LabeledSelect from '@/components/form/LabeledSelect';
-import NodeAffinity from '@/components/form/NodeAffinity';
-import PodAffinity from '@/components/form/PodAffinity';
-import KeyValue from '@/components/form/KeyValue';
 import { mapGetters } from 'vuex';
-import { isEmpty, cleanUp, get } from '@/utils/object';
-import { NODE, POD } from '@/config/types';
+import { isEmpty, get } from '@/utils/object';
 import Tolerations from '@/components/form/Tolerations';
 import LabeledInput from '@/components/form/LabeledInput';
 import { _VIEW } from '@/config/query-params';
+import PodScheduling from '@/components/form/PodScheduling';
+import NodeScheduling from '@/components/form/NodeScheduling';
 
 export default {
   components: {
-    RadioGroup,
-    LabeledSelect,
-    NodeAffinity,
-    PodAffinity,
-    KeyValue,
     Tolerations,
     LabeledInput,
+    PodScheduling,
+    NodeScheduling
   },
 
   props:      {
@@ -34,39 +27,7 @@ export default {
     mode: { type: String, default: 'edit' },
   },
 
-  data() {
-    const {
-      affinity = {}, nodeName = '', nodeSelector = {}, tolerations = []
-    } = this.value;
-    const { nodeAffinity = {}, podAffinity = {}, podAntiAffinity = {} } = affinity;
-
-    let selectNode = false;
-
-    if (!this.value.affinity) {
-      selectNode = true;
-    }
-
-    if (!nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution) {
-      this.$set(nodeAffinity, 'requiredDuringSchedulingIgnoredDuringExecution', { nodeSelectorTerms: [] } );
-    }
-    if (!nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution) {
-      this.$set(nodeAffinity, 'preferredDuringSchedulingIgnoredDuringExecution', []);
-    }
-
-    return {
-      selectNode, nodeName, nodeAffinity, podAffinity, podAntiAffinity, nodeSelector, tolerations
-    };
-  },
-
   computed: {
-    node() {
-      return NODE;
-    },
-
-    pod() {
-      return POD;
-    },
-
     isView() {
       return this.mode === _VIEW;
     },
@@ -93,83 +54,14 @@ export default {
     ...mapGetters({ t: 'i18n/t' })
   },
 
-  methods: {
-    update() {
-      const out = {
-        ...this.value,
-        tolerations: this.tolerations,
-        affinity:    {
-          nodeAffinity:    this.nodeAffinity,
-          podAffinity:     this.podAffinity,
-          podAntiAffinity: this.podAntiAffinity
-        }
-      };
-
-      if (this.selectNode) {
-        this.$set(out, 'nodeName', this.nodeName);
-        this.$set(out, 'nodeSelector', this.nodeSelector);
-      } else {
-        delete out.nodeName;
-        delete out.nodeSelector;
-      }
-
-      this.$emit('input', cleanUp(out));
-    },
-    isEmpty
-  },
+  methods: { isEmpty },
 };
 
 </script>
 
 <template>
-  <div @input="update">
-    <div class="bordered-section">
-      <h3><t k="workload.scheduling.titles.nodeScheduling" /></h3>
-      <h4 v-if="isView" class="mt-10 mb-10">
-        {{ selectNode ? t('workload.scheduling.affinity.specificNode') : t('workload.scheduling.affinity.schedulingRules') }}
-      </h4>
-      <div v-else class="row">
-        <RadioGroup
-          v-model="selectNode"
-          :options="[true,false]"
-          :labels="[t('workload.scheduling.affinity.specificNode'), t('workload.scheduling.affinity.schedulingRules')]"
-          :mode="mode"
-        />
-      </div>
-      <template v-if="selectNode">
-        <div class="row">
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="nodeName"
-              :label="t('workload.scheduling.affinity.nodeName')"
-              :options="nodes"
-              :mode="mode"
-              option-label="id"
-              :reduce="opt=>opt.id"
-            />
-          </div>
-        </div>
-
-        <div class="spacer" />
-
-        <div v-if="mode!=='view' || !isEmpty(nodeSelector)" class="row">
-          <KeyValue
-            title="Nodes with these labels"
-            :value="nodeSelector"
-            :mode="mode"
-            :initial-empty-row="true"
-            :pro-tip="false"
-          >
-            <template #title>
-              <h4>{{ t('workload.scheduling.titles.nodeSelector') }}</h4>
-            </template>
-          </KeyValue>
-        </div>
-      </template>
-      <template v-else>
-        <NodeAffinity v-model="nodeAffinity" :type="node" :mode="mode" @input="update" />
-      </template>
-    </div>
+  <div>
+    <NodeScheduling :value="value" :mode="mode" :nodes="nodes" />
 
     <div class="bordered-section">
       <h3 class="mb-10">
@@ -177,21 +69,7 @@ export default {
       </h3>
 
       <template v-if="!isView || hasPodScheduling">
-        <template v-if="!isView || hasPodAffinity">
-          <h4 class="mb-10">
-            <t k="workload.scheduling.affinity.affinityTitle" />
-          </h4>
-          <PodAffinity v-model="podAffinity" :type="pod" :mode="mode" />
-        </template>
-
-        <div class="spacer" />
-
-        <template v-if="!isView || hasPodAntiAffinity">
-          <h4 class="mb-10">
-            <t k="workload.scheduling.affinity.antiAffinityTitle" />
-          </h4>
-          <PodAffinity v-model="podAntiAffinity" :type="pod" :mode="mode" />
-        </template>
+        <PodScheduling :value="value" :mode="mode" />
       </template>
 
       <template v-else>
@@ -206,7 +84,7 @@ export default {
         <t k="workload.scheduling.titles.tolerations" />
       </h3>
       <div class="row">
-        <Tolerations v-model="tolerations" :mode="mode" />
+        <Tolerations v-model="value.tolerations" :mode="mode" />
       </div>
     </div>
 

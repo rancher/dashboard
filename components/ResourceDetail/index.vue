@@ -10,6 +10,7 @@ import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
+import isFunction from 'lodash/isFunction';
 import GenericResourceDetail from './Generic';
 
 // Components can't have asyncData, only pages.
@@ -251,6 +252,14 @@ export default {
       }
 
       return null;
+    },
+
+    showMasthead() {
+      if (isFunction(this.currentValue.showMasthead)) {
+        return this.currentValue.showMasthead(this.mode);
+      } else {
+        return true;
+      }
     }
   },
 
@@ -276,6 +285,7 @@ export default {
 <template>
   <div>
     <Masthead
+      v-if="showMasthead"
       :value="originalModel"
       :mode="mode"
       :real-mode="realMode"

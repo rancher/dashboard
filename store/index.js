@@ -291,7 +291,7 @@ export const actions = {
     });
 
     if ( getters['management/schemaFor'](COUNT) ) {
-      // await dispatch('management/findAll', { type: COUNT, opt: { url: 'counts' } });
+      await dispatch('management/findAll', { type: COUNT, opt: { url: 'counts' } });
     }
 
     let isMultiCluster = false;

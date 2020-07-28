@@ -132,7 +132,7 @@ export default {
   <div @input="update">
     <!--workload  spec.upgradeStrategy -->
     <div v-if="strategyOptions" class="row mb-20">
-      <div class="col span-6">
+      <div class="col">
         <RadioGroup
           v-model="strategy"
           :options="strategyOptions.options"

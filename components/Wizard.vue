@@ -90,7 +90,6 @@ export default {
       default: null,
     }
   },
-
   data() {
     const queryStep = this.$route.query[STEP];
 
@@ -121,6 +120,9 @@ export default {
     '$route.query'(neu = {}) {
       this.goToStep(neu[STEP]);
     },
+  },
+  created() {
+    this.goToStep(this.activeStepIndex + 1);
   },
 
   methods: {
@@ -251,7 +253,9 @@ export default {
       </div>
       <div class="subtitle">
         <h2> {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
-        <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+        <slot name="bannerSubtext">
+          <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+        </slot>
       </div>
     </div>
 
@@ -272,11 +276,12 @@ export default {
     </div>
 
     <div class="controls-row">
-      <slot name="cancel" :cancel="cancel">
-        <button v-if="activeStepIndex" type="button" class="btn role-secondary" @click="cancel">
+      <slot v-if="activeStepIndex" name="cancel" :cancel="cancel">
+        <button type="button" class="btn role-secondary" @click="cancel">
           <t k="generic.cancel" />
         </button>
       </slot>
+      <div v-else />
 
       <div>
         <slot v-if="activeStepIndex!==0" name="back" :back="back">
@@ -307,7 +312,7 @@ export default {
   padding: 10px;
   margin: 10px;
   min-height: 100px;
-  flex-basis: 25%;
+  flex-basis: 40%;
   border-radius: var(--border-radius);
   border-left: 5px solid var(--primary);
   display: flex;
@@ -349,6 +354,10 @@ export default {
     flex-direction: row;
     align-items: center;
     justify-content: start;
+    &:hover{
+      outline: var(--outline-width) solid var(--outline);
+      cursor: pointer;
+    }
   }
 
   & .round-image {

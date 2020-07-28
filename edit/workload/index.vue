@@ -1,4 +1,5 @@
 <script>
+import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@/utils/object';
 import cronstrue from 'cronstrue';
 import {
@@ -11,9 +12,8 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
 import HealthCheck from '@/components/form/HealthCheck';
-import Command from '@/components/form/Command';
+import EnvVars from '@/components/form/EnvVars';
 import Security from '@/components/form/Security';
-import Scheduling from '@/components/form/Scheduling';
 import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/components/form/Networking';
 import Job from '@/edit/workload/Job';
@@ -26,14 +26,11 @@ import KeyValue from '@/components/form/KeyValue';
 import Tabbed from '@/components/Tabbed';
 import { mapGetters } from 'vuex';
 import ButtonDropdown from '@/components/ButtonDropdown';
-
-const workloadTypeOptions = [
-  { value: WORKLOAD_TYPES.DEPLOYMENT, label: 'Deployment' },
-  { value: WORKLOAD_TYPES.DAEMON_SET, label: 'Daemon Set' },
-  { value: WORKLOAD_TYPES.STATEFUL_SET, label: 'Stateful Set' },
-  { value: WORKLOAD_TYPES.JOB, label: 'Job' },
-  { value: WORKLOAD_TYPES.CRON_JOB, label: 'Cron Job' }
-];
+import ShellInput from '@/components/form/ShellInput';
+import Checkbox from '@/components/form/Checkbox';
+import NodeScheduling from '@/components/form/NodeScheduling';
+import PodScheduling from '@/components/form/PodScheduling';
+import Tolerations from '@/components/form/Tolerations';
 
 export default {
   name:       'CruWorkload',
@@ -42,19 +39,23 @@ export default {
     NameNsDescription,
     LabeledSelect,
     LabeledInput,
+    ShellInput,
+    Checkbox,
     KeyValue,
     Tabbed,
     Tab,
-    Scheduling,
     Upgrading,
     Networking,
     Job,
     HealthCheck,
-    Command,
+    EnvVars,
     Security,
     WorkloadPorts,
     ContainerResourceLimit,
     ButtonDropdown,
+    PodScheduling,
+    NodeScheduling,
+    Tolerations
   },
 
   mixins: [CreateEditView],
@@ -115,24 +116,28 @@ export default {
 
     const steps = [
       {
-        name:  'type',
-        label: t('workload.wizard.titles.selectType'),
-        ready: !!type
+        name:    'type',
+        label:   t('workload.wizard.titles.selectType.title'),
+        subtext: 'workload.wizard.titles.selectType.subtitle',
+        ready:   !!type,
       },
       {
-        name:  'container',
-        label: t('workload.wizard.titles.defineContainer'),
-        ready: false
+        name:    'container',
+        label:   t('workload.wizard.titles.defineContainer.title'),
+        subtext: 'workload.wizard.titles.defineContainer.subtitle',
+        ready:   false
       },
       {
-        name:  'storage',
-        label: t('workload.wizard.titles.storage'),
-        ready: true
+        name:    'storage',
+        label:   t('workload.wizard.titles.storage.title'),
+        subtext: 'workload.wizard.titles.storage.subtitle',
+        ready:   true
       },
       {
-        name:  'advanced',
-        label: t('workload.wizard.titles.advanced'),
-        ready: true
+        name:    'advanced',
+        label:   t('workload.wizard.titles.advanced.title'),
+        subtext: 'workload.wizard.titles.advanced.subtitle',
+        ready:   true
       }
     ];
 
@@ -141,7 +146,6 @@ export default {
       steps,
       spec,
       type,
-      workloadTypeOptions,
       allConfigMaps:    [],
       allSecrets:       [],
       headlessServices: [],
@@ -151,6 +155,19 @@ export default {
   },
 
   computed: {
+    // start wizard at step 2 if type selection isn't relevant  (navigating from type-specific page, or editing/cloning)
+    initStepIndex() {
+      if (this.doneParams?.resource !== 'workload' || this.mode !== _CREATE) {
+        return 1;
+      } else {
+        return 0;
+      }
+    },
+
+    currentStepIndex() {
+      return this.$route.query?.step;
+    },
+
     isEdit() {
       return this.mode === _EDIT;
     },
@@ -344,7 +361,9 @@ export default {
     },
 
     workloadTypes() {
-      return WORKLOAD_TYPES;
+      return omitBy(WORKLOAD_TYPES, (type) => {
+        return type === WORKLOAD_TYPES.REPLICA_SET || type === WORKLOAD_TYPES.REPLICATION_CONTROLLER;
+      } );
     },
 
     ...mapGetters({ t: 'i18n/t' })
@@ -411,19 +430,8 @@ export default {
       }, '');
     },
 
-    // revert any spec configuration when the wizard is cancelled
     cancel() {
-      if (this.mode === _CREATE) {
-        this.type = WORKLOAD_TYPES.DEPLOYMENT;
-        this.value.metadata.annotations = {};
-        this.value.metadata.labels = {};
-        this.spec = {
-          replicas: 1,
-          template: { spec: { restartPolicy: this.isJob ? 'Never' : 'Always' } }
-        };
-      } else {
-        this.done();
-      }
+      this.done();
     },
 
     toggleTabs() {
@@ -495,7 +503,7 @@ export default {
       v-if="mode"
       :errors="errors"
       :finish-mode="mode"
-      :init-step-index="mode === 'create' ? 0 : 1"
+      :init-step-index="initStepIndex"
       :steps="steps"
       :initial-title="false"
       :banner-title="nameDisplayFor(type)"
@@ -503,8 +511,11 @@ export default {
       @finish="saveWorkload"
       @cancel="cancel"
     >
-      <template v-if="$route.query.step > 0 || mode !=='create'" #bannerTitleImage>
+      <template v-if="currentStepIndex > 1 || mode !=='create'" #bannerTitleImage>
         <span class="type-placeholder"> {{ initialDisplayFor(type) }} </span>
+      </template>
+      <template v-if="steps[currentStepIndex-1]" #bannerSubtext>
+        <t :k="steps[currentStepIndex-1].subtext" :raw="true" />
       </template>
       <template #type>
         <div class="types-container">
@@ -518,14 +529,38 @@ export default {
             <div :style="{ 'background-color': 'var(--primary)' }" class="round-image">
               <span class="type-placeholder">{{ initialDisplayFor(workloadType) }}</span>
             </div>
-            {{ nameDisplayFor(workloadType) }}
+            <div>
+              <h5>  {{ nameDisplayFor(workloadType) }}</h5>
+              <t class="type-description" :k="`workload.wizard.descriptions.'${workloadType}'`" :raw="true" />
+            </div>
           </div>
         </div>
       </template>
       <template #container>
-        <div class="row bordered-section">
-          <div class="col span-12">
-            <NameNsDescription :value="value" :mode="mode" />
+        <div class="bordered-section">
+          <div class="row">
+            <div class="col span-12">
+              <NameNsDescription :value="value" :mode="mode" />
+            </div>
+          </div>
+          <div v-if="isCronJob || isReplicable" class="row">
+            <div v-if="isCronJob" class="col span-6">
+              <LabeledInput v-model="spec.schedule" :mode="mode" :label="t('workload.cronSchedule')" />
+              <span class="cron-hint text-small">{{ cronLabel }}</span>
+            </div>
+            <div v-if="isReplicable" class="col span-6">
+              <LabeledInput v-model.number="spec.replicas" required :mode="mode" :label="t('workload.replicas')" />
+            </div>
+            <div v-if="isStatefulSet" class="col span-6">
+              <LabeledSelect
+                v-model="spec.serviceName"
+                option-label="metadata.name"
+                :reduce="service=>service.metadata.name"
+                :mode="mode"
+                :label="t('workload.serviceName')"
+                :options="headlessServices"
+              />
+            </div>
           </div>
         </div>
 
@@ -549,25 +584,6 @@ export default {
               />
             </div>
           </div>
-          <div v-if="isCronJob || isReplicable" class="row mb-20">
-            <div v-if="isCronJob" class="col span-6">
-              <LabeledInput v-model="spec.schedule" :mode="mode" :label="t('workload.cronSchedule')" />
-              <span class="cron-hint text-small">{{ cronLabel }}</span>
-            </div>
-            <div v-if="isReplicable" class="col span-6">
-              <LabeledInput v-model.number="spec.replicas" required :mode="mode" :label="t('workload.replicas')" />
-            </div>
-            <div v-if="isStatefulSet" class="col span-6">
-              <LabeledSelect
-                v-model="spec.serviceName"
-                option-label="metadata.name"
-                :reduce="service=>service.metadata.name"
-                :mode="mode"
-                :label="t('workload.serviceName')"
-                :options="headlessServices"
-              />
-            </div>
-          </div>
         </div>
 
         <div class="bordered-section">
@@ -580,7 +596,36 @@ export default {
         <div class="bordered-section">
           <h3>{{ t('workload.container.titles.command') }}</h3>
           <div class="row">
-            <Command v-model="container" :mode="mode" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" />
+            <div class="col span-5">
+              <slot name="entrypoint">
+                <ShellInput
+                  v-model="value.command"
+                  :mode="mode"
+                  :label="t('workload.container.command.command')"
+                  placeholder="e.g. /bin/sh"
+                />
+              </slot>
+            </div>
+            <div class="col span-5">
+              <slot name="command">
+                <ShellInput
+                  v-model="value.args"
+                  :mode="mode"
+                  :label="t('workload.container.command.args')"
+                  placeholder="e.g. /usr/sbin/httpd -f httpd.conf"
+                />
+              </slot>
+            </div>
+            <div class="col span-2">
+              <Checkbox v-model="value.tty" label="TTY" :mode="mode" />
+            </div>
+          </div>
+        </div>
+
+        <div class="bordered-section">
+          <h3>{{ t('workload.container.titles.env') }}</h3>
+          <div class="row">
+            <EnvVars v-model="container" :mode="mode" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" />
           </div>
         </div>
 
@@ -591,7 +636,6 @@ export default {
               key="labels"
               v-model="value.metadata.labels"
               :mode="mode"
-              :initial-empty-row="true"
               :pad-left="false"
               :read-allowed="false"
               :protip="false"
@@ -606,7 +650,6 @@ export default {
               key="annotations"
               v-model="value.metadata.annotations"
               :mode="mode"
-              :initial-empty-row="true"
               :pad-left="false"
               :read-allowed="false"
               :protip="false"
@@ -614,7 +657,9 @@ export default {
           </div>
         </div>
       </template>
-      <template #storage></template>
+      <template #storage>
+        <t k="generic.comingSoon" />
+      </template>
       <template #advanced>
         <div class="row mb-20">
           <div class="col span-6">
@@ -632,7 +677,34 @@ export default {
         <Tabbed :side-tabs="true">
           <Tab :label="t('workload.container.titles.resources')" name="resources">
             <ContainerResourceLimit v-model="flatResources" class="bordered-section" :mode="mode" :show-tip="false" />
-            <Scheduling v-model="podTemplateSpec" :mode="mode" :show-pod="false" />
+            <div class="bordered-section">
+              <h3 class="mb-10">
+                <t k="workload.scheduling.titles.tolerations" />
+              </h3>
+              <div class="row">
+                <Tolerations v-model="podTemplateSpec.tolerations" :mode="mode" />
+              </div>
+            </div>
+
+            <div>
+              <h3 class="mb-10">
+                <t k="workload.scheduling.titles.priority" />
+              </h3>
+              <div class="row">
+                <div class="col span-6">
+                  <LabeledInput v-model.number="podTemplateSpec.priority" :mode="mode" :label="t('workload.scheduling.priority.priority')" />
+                </div>
+                <div class="col span-6">
+                  <LabeledInput v-model="podTemplateSpec.priorityClassname" :mode="mode" :label="t('workload.scheduling.priority.className')" />
+                </div>
+              </div>
+            </div>
+          </Tab>
+          <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
+            <PodScheduling :mode="mode" :value="podTemplateSpec" />
+          </Tab>
+          <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
+            <NodeScheduling :mode="mode" :value="podTemplateSpec" />
           </Tab>
           <Tab label="Scaling/Upgrade Policy" name="upgrading">
             <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
@@ -649,10 +721,15 @@ export default {
           </Tab>
         </tabbed>
       </template>
+      <template #cancel>
+        <button type="button" class="btn role-secondary" @click="cancel">
+          <t k="generic.cancel" />
+        </button>
+      </template>
       <template #next="{next}">
-        <ButtonDropdown class="next-dropdown">
+        <ButtonDropdown :disabled="!(steps[currentStepIndex-1]||{}).ready" class="next-dropdown">
           <template #button-content>
-            <button type="button" class="btn text-primary bg-transparent" @click="next">
+            <button :disabled="!(steps[currentStepIndex-1]||{}).ready" type="button" :class="{'text-primary': !!(steps[currentStepIndex-1]||{}).ready}" class="btn bg-transparent" @click="next">
               {{ t('wizard.next') }}
             </button>
           </template>
@@ -685,6 +762,10 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.type-description{
+  color: var(--input-label)
 }
 
 .bordered-section {

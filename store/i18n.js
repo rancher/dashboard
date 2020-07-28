@@ -70,7 +70,7 @@ export const getters = {
         return undefined;
       }
 
-      if ( msg.includes('{') ) {
+      if ( msg.includes('{')) {
         formatter = new IntlMessageFormat(msg, state.selected);
       } else {
         formatter = msg;

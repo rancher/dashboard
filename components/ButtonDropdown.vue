@@ -4,7 +4,7 @@ export default {
     size: {
       type:    String,
       default: '' // possible values are xs, sm, lg. empty is default .btn
-    },
+    }
   },
 
   computed: {
