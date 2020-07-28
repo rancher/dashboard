@@ -1,8 +1,14 @@
-import { DSL } from '@/store/type-map';
-import { CATALOG } from '@/config/types';
 import {
-  STATE, NAMESPACE_NAME, CHART, RESOURCES, URL, AGE
+  AGE,
+  CHART,
+  NAMESPACE_NAME,
+  RESOURCES,
+  STATE,
+  URL
 } from '@/config/table-headers';
+
+import { CATALOG } from '@/config/types';
+import { DSL } from '@/store/type-map';
 
 export const NAME = 'apps';
 
@@ -12,6 +18,7 @@ export function init(store) {
     basicType,
     headers,
     virtualType,
+    weightType,
     uncreatableType,
   } = DSL(store, NAME);
 
@@ -24,6 +31,7 @@ export function init(store) {
 
   virtualType({
     label:       'Charts',
+    icon:       'compass',
     group:      'Root',
     namespaced:  false,
     name:        'launch',
@@ -32,13 +40,18 @@ export function init(store) {
     exact:       true,
   });
 
+  weightType(CATALOG.RELEASE, 200);
+
   basicType([
     'launch',
-    CATALOG.REPO,
-    CATALOG.CLUSTER_REPO,
     CATALOG.RELEASE,
     CATALOG.OPERATION,
   ]);
+
+  basicType([
+    CATALOG.REPO,
+    CATALOG.CLUSTER_REPO,
+  ], 'Repostories');
 
   uncreatableType(CATALOG.RELEASE);
   uncreatableType(CATALOG.OPERATION);

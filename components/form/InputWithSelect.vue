@@ -83,7 +83,7 @@ export default {
     <LabeledSelect
       v-model="selected"
       :label="selectLabel"
-      class="in-input"
+      :class="{'in-input': !isView}"
       :options="options"
       :searchable="searchable"
       :disbaled="isView"

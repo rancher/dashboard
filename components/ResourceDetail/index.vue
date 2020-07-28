@@ -120,10 +120,6 @@ export async function defaultAsyncData(ctx, resource) {
       cleanForNew(model);
       yaml = model.cleanYaml(yaml, realMode);
     }
-
-    if ( model.applyDefaults ) {
-      model.applyDefaults(ctx, realMode);
-    }
   }
 
   let mode = realMode;
@@ -202,6 +198,10 @@ export default {
   },
 
   data() {
+    if ( this.mode === _CREATE && this.value.applyDefaults ) {
+      this.value.applyDefaults(this, this.realMode);
+    }
+
     // asYamlInit is taken from route query and passed as prop from _id page; asYaml is saved in local data to be manipulated by Masthead
     const {
       asYamlInit: asYaml,
