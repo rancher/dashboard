@@ -9,7 +9,7 @@ import PromptRemove from '@/components/PromptRemove';
 import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
 import Footer from '@/components/nav/Footer';
-import { COUNT, SCHEMA, STEVE } from '@/config/types';
+import { COUNT, SCHEMA, MANAGEMENT } from '@/config/types';
 import { BASIC, FAVORITE, USED } from '@/store/type-map';
 import { addObjects, replaceWith, clear } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
@@ -184,7 +184,7 @@ export default {
       }
 
       const cluster = await this.$store.dispatch('management/find', {
-        type: STEVE.CLUSTER,
+        type: MANAGEMENT.CLUSTER,
         id:   clusterId,
       });
 
@@ -327,10 +327,6 @@ export default {
         grid-area: title;
         margin: 0;
         padding-top: 4px;
-
-        .nuxt-link-active {
-          padding-right: 10px;
-        }
       }
 
       .state-banner {

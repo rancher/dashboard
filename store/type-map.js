@@ -88,16 +88,17 @@
 //   continueOnMatch
 // )
 
-import { sortBy } from '@/utils/sort';
-import { get, clone } from '@/utils/object';
-import { isArray, findBy, addObject, removeObject, insertAt } from '@/utils/array';
-import { escapeRegex, ucFirst, escapeHtml, ensureRegex } from '@/utils/string';
-import { SCHEMA, COUNT } from '@/config/types';
-import { STATE, NAMESPACE_NAME, NAME, AGE } from '@/config/table-headers';
-import { FAVORITE_TYPES, EXPANDED_GROUPS } from '@/store/prefs';
-import { normalizeType } from '@/plugins/steve/normalize';
+import { AGE, NAME, NAMESPACE_NAME, STATE } from '@/config/table-headers';
+import { COUNT, SCHEMA } from '@/config/types';
+import { EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
+import { addObject, findBy, insertAt, isArray, removeObject } from '@/utils/array';
+import { clone, get } from '@/utils/object';
+import { ensureRegex, escapeHtml, escapeRegex, ucFirst } from '@/utils/string';
+
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isObject from 'lodash/isObject';
+import { normalizeType } from '@/plugins/steve/normalize';
+import { sortBy } from '@/utils/sort';
 
 export const NAMESPACED = 'namespaced';
 export const CLUSTER_LEVEL = 'cluster';
@@ -451,7 +452,18 @@ export const getters = {
         }
 
         const label = typeObj.label;
-        const labelDisplay = highlightLabel(label, namespaced, typeObj.exact);
+        const virtual = !!typeObj.virtual;
+        let icon = typeObj.icon;
+
+        if ( !virtual && !icon ) {
+          if ( namespaced ) {
+            icon = 'folder';
+          } else {
+            icon = 'globe';
+          }
+        }
+
+        const labelDisplay = highlightLabel(label, icon);
 
         if ( !labelDisplay ) {
           // Search happens in highlight and retuns null if not found
@@ -555,7 +567,7 @@ export const getters = {
         return group;
       }
 
-      function highlightLabel(original, namespaced, exact) {
+      function highlightLabel(original, icon) {
         let label = escapeHtml(original);
 
         if ( searchRegex ) {
@@ -568,8 +580,8 @@ export const getters = {
           }
         }
 
-        if ( exact !== true ) {
-          label = `<i class="icon icon-fw icon-${ namespaced ? 'folder' : 'globe' }"></i>${ label }`;
+        if ( icon ) {
+          label = `<i class="icon icon-fw icon-${ icon }"></i>${ label }`;
         }
 
         return label;
@@ -926,12 +938,16 @@ export const mutations = {
       state.virtualTypes[product] = [];
     }
 
-    const existing = findBy(state.virtualTypes[product], 'name', obj.name);
+    const copy = clone(obj);
+
+    copy.virtual = true;
+
+    const existing = findBy(state.virtualTypes[product], 'name', copy.name);
 
     if ( existing ) {
-      Object.assign(existing, obj);
+      Object.assign(existing, copy);
     } else {
-      addObject(state.virtualTypes[product], obj);
+      addObject(state.virtualTypes[product], copy);
     }
   },
 

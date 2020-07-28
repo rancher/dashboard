@@ -36,6 +36,10 @@ export const state = () => {
 };
 
 export const getters = {
+  clusterReady(state) {
+    return state.clusterReady === true;
+  },
+
   isMultiCluster(state) {
     return state.isMultiCluster === true;
   },
@@ -54,11 +58,23 @@ export const getters = {
   },
 
   currentProduct(state, getters) {
-    return findBy(getters['type-map/activeProducts'], 'name', state.productId);
+    const active = getters['type-map/activeProducts'];
+
+    let out = findBy(active, 'name', state.productId);
+
+    if ( !out ) {
+      out = findBy(active, 'name', EXPLORER);
+    }
+
+    if ( !out ) {
+      out = active[0];
+    }
+
+    return out;
   },
 
   isExplorer(state, getters) {
-    return getters.currentProduct === EXPLORER;
+    return getters.currentProduct?.name === EXPLORER;
   },
 
   defaultClusterId(state, getters) {

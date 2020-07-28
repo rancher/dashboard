@@ -1,5 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
+import Banner from '@/components/Banner';
 import { CATALOG } from '@/config/types';
 import {
   REPO_TYPE, REPO, CHART, VERSION, STEP
@@ -7,12 +8,14 @@ import {
 import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { ensureRegex } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
+import { mapGetters } from 'vuex';
 import ButtonGroup from '@/components/ButtonGroup';
 import Checkbox from '@/components/form/Checkbox';
 import LazyImage from '@/components/LazyImage';
 
 export default {
   components: {
+    Banner,
     Loading,
     ButtonGroup,
     Checkbox,
@@ -22,13 +25,10 @@ export default {
 
   async fetch() {
     await this.$store.dispatch('catalog/load');
-    this.allCharts = this.$store.getters['catalog/charts'];
   },
 
   data() {
     return {
-      allCharts: null,
-
       searchQuery:    '',
       sortField:      'certifiedSort',
       showDeprecated: false,
@@ -39,6 +39,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
+
     filteredCharts() {
       return (this.allCharts || []).filter((c) => {
         if ( c.deprecated && !this.showDeprecated ) {
@@ -100,39 +102,43 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <div v-else-if="!allCharts.length" class="m-50 text-center">
-    <h1>There are no charts available, have you added any repos?</h1>
-  </div>
   <div v-else>
-    <div class="clearfix">
-      <div class="pull-left">
-        <Checkbox v-model="showRancher" label="Rancher" class="check-rancher" />
-        <Checkbox v-model="showPartner" label="Partner" class="check-partner" />
-        <Checkbox v-model="showOther" label="Other" class="check-other" />
+    <Banner v-for="err in errors" :key="err" color="error" :label="err" />
+
+    <div v-if="allCharts.length">
+      <div class="clearfix">
+        <div class="pull-left">
+          <Checkbox v-model="showRancher" label="Rancher" class="check-rancher" />
+          <Checkbox v-model="showPartner" label="Partner" class="check-partner" />
+          <Checkbox v-model="showOther" label="Other" class="check-other" />
+        </div>
+        <div class="pull-right">
+          <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" placeholder="Filter">
+          <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+        </div>
+        <div class="pull-right pt-5 pr-10">
+          <ButtonGroup v-model="sortField" :options="[{label: 'By Name', value: 'name'}, {label: 'By Kind', value: 'certifiedSort'}]" />
+        </div>
       </div>
-      <div class="pull-right">
-        <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" placeholder="Filter">
-        <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-      </div>
-      <div class="pull-right pt-5 pr-10">
-        <ButtonGroup v-model="sortField" :options="[{label: 'By Name', value: 'name'}, {label: 'By Kind', value: 'certifiedSort'}]" />
+      <div class="charts">
+        <div v-for="c in arrangedCharts" :key="c.key" class="chart" :class="{[c.certified]: true}" @click="selectChart(c)">
+          <div class="side-label">
+            <label v-if="c.sideLabel">{{ c.sideLabel }}</label>
+          </div>
+          <div class="logo">
+            <LazyImage :src="c.icon" />
+          </div>
+          <h4 class="name">
+            {{ c.chartName }}
+          </h4>
+          <div class="description">
+            {{ c.description }}
+          </div>
+        </div>
       </div>
     </div>
-    <div class="charts">
-      <div v-for="c in arrangedCharts" :key="c.key" class="chart" :class="{[c.certified]: true}" @click="selectChart(c)">
-        <div class="side-label">
-          <label v-if="c.sideLabel">{{ c.sideLabel }}</label>
-        </div>
-        <div class="logo">
-          <LazyImage :src="c.icon" />
-        </div>
-        <h4 class="name">
-          {{ c.chartName }}
-        </h4>
-        <div class="description">
-          {{ c.description }}
-        </div>
-      </div>
+    <div v-else class="m-50 text-center">
+      <h1>There are no charts available, have you added any repos?</h1>
     </div>
   </div>
 </template>

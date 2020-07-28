@@ -98,7 +98,6 @@ export default {
     const { getters, commit, dispatch } = ctx;
 
     opt = opt || {};
-    console.log('Find All', type); // eslint-disable-line no-console
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -108,6 +107,8 @@ export default {
     if ( opt.force !== true && getters['haveAll'](type) ) {
       return getters.all(type);
     }
+
+    console.log('Find All', type); // eslint-disable-line no-console
 
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);

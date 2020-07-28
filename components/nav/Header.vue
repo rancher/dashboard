@@ -1,5 +1,5 @@
 <script>
-import { mapState, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 import { NORMAN } from '@/config/types';
 import ProductSwitcher from './ProductSwitcher';
 import ClusterSwitcher from './ClusterSwitcher';
@@ -13,8 +13,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['managementReady', 'clusterReady', 'isMultiCluster']),
-    ...mapGetters(['currentCluster', 'currentProduct']),
+    ...mapGetters(['clusterReady', 'isMultiCluster', 'currentCluster', 'currentProduct', 'isExplorer']),
 
     authEnabled() {
       return this.$store.getters['auth/enabled'];
@@ -49,10 +48,10 @@ export default {
     </div>
 
     <div class="top">
-      <nuxt-link v-if="currentProduct.name === 'explorer'" :to="{name: 'c-cluster-apps'}" class="btn role-tertiary apps-button">
+      <nuxt-link v-if="isExplorer" :to="{name: 'c-cluster-apps'}" class="btn role-tertiary apps-button">
         <i class="icon icon-lg icon-marketplace pr-5" /> Apps
       </nuxt-link>
-      <NamespaceFilter v-if="clusterReady && currentProduct && currentProduct.showNamespaceFilter" />
+      <NamespaceFilter v-if="clusterReady && currentProduct.showNamespaceFilter" />
     </div>
 
     <div class="user">

@@ -10,6 +10,7 @@
     "node": ">=10"
   },
   "scripts": {
+    "clean": "./scripts/clean",
     "lint": "./node_modules/.bin/eslint --max-warnings 0 --ext .js,.vue .",
     "test": "./node_modules/.bin/nyc ava --serial --verbose",
     "nuxt": "./node_modules/.bin/nuxt",

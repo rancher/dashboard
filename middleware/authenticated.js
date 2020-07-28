@@ -29,19 +29,6 @@ function setProduct(store, to) {
 export default async function({
   route, app, store, redirect, req, isDev
 }) {
-  // Setup a beforeEach hook once to keep track of the current product
-  if ( !beforeEachSetup ) {
-    beforeEachSetup = true;
-
-    store.app.router.beforeEach((to, from, next) => {
-      setProduct(store, to);
-      next();
-    });
-
-    // Call it for the initial pageload
-    setProduct(store, route);
-  }
-
   if ( route.path && typeof route.path === 'string') {
     // Ignore webpack hot module reload requests
     if ( route.path.startsWith('/__webpack_hmr/') ) {
@@ -101,6 +88,19 @@ export default async function({
 
   // Load stuff
   await applyProducts(store);
+
+  // Setup a beforeEach hook once to keep track of the current product
+  if ( !beforeEachSetup ) {
+    beforeEachSetup = true;
+
+    store.app.router.beforeEach((to, from, next) => {
+      setProduct(store, to);
+      next();
+    });
+
+    // Call it for the initial pageload
+    setProduct(store, route);
+  }
 
   try {
     let clusterId = get(route, 'params.cluster');

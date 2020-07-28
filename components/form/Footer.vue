@@ -43,7 +43,7 @@ export default {
 };
 </script>
 <template>
-  <div>
+  <div v-if="!isView">
     <div class="spacer"></div>
 
     <div v-for="(err,idx) in errors" :key="idx">
