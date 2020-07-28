@@ -1,4 +1,4 @@
-export const DESCRIPTION = 'cattle.io/description';
+export const DESCRIPTION = 'field.cattle.io/description';
 export const HOSTNAME = 'kubernetes.io/hostname';
 export const TIMESTAMP = 'cattle.io/timestamp';
 export const SYSTEM_NAMESPACE = 'cattle.io/system';
