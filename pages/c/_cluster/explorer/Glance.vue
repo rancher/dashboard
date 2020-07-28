@@ -46,37 +46,49 @@ export default {
 </template>
 
 <style lang="scss">
-    .glance {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-evenly;
-        padding: 11px;
+  .glance {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-evenly;
+      padding: 11px;
 
-        .tile {
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-            align-items: flex-start;
-            padding: 9px 0 3px 0;
+      .tile {
+          display: flex;
+          flex: 1;
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 9px 0 3px 0;
 
-            &:not(:last-of-type) {
-                border-right: 1px solid;
-                border-color: var(--glance-divider);
-            }
+          &:not(:last-of-type) {
+              border-right: 1px solid;
+              border-color: var(--glance-divider);
+          }
 
-            &:not(:first-of-type) {
-                padding-left: 20px;
-            }
-        }
+          &:not(:first-of-type) {
+              padding-left: 20px;
+          }
+      }
+      h1 {
+        font-size: 15px;
+        line-height: 3px;
+      }
 
+      @media only screen and (min-width: map-get($breakpoints, '--viewport-9')) {
         h1 {
-            font-size: 30px;
-            line-height: 28px;
+          font-size: 25px;
+          line-height: 14px;
         }
+      }
+      @media only screen and (min-width: map-get($breakpoints, '--viewport-12')) {
+        h1 {
+          font-size: 30px;
+          line-height: 28px;
+        }
+      }
 
-        label {
-            font-size: 12px;
-            opacity: 0.7;
-        }
-    }
+      label {
+          font-size: 12px;
+          opacity: 0.7;
+      }
+  }
 </style>

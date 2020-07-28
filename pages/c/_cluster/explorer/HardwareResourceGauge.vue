@@ -103,7 +103,7 @@ export default {
             position: relative;
             margin: $large-spacing auto 0 auto;
             padding-bottom: $large-spacing;
-            width: 245px;
+            max-width: 245px;
             height: 122.5px + $large-spacing;
             border-bottom: 2px solid var(--simple-box-divider);
 

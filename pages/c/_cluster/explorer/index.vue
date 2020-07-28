@@ -50,7 +50,6 @@ const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;
 
 const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
-const RESOURCES_PER_ROW = 5;
 
 export default {
   components: {
@@ -227,16 +226,6 @@ export default {
       return [total, ...gauges];
     },
 
-    resourceGaugesFiller() {
-      const lastRowCount = this.resourceGauges.length % RESOURCES_PER_ROW;
-
-      if (lastRowCount === 0) {
-        return 0;
-      }
-
-      return [...Array( RESOURCES_PER_ROW - lastRowCount)];
-    },
-
     cpuReserved() {
       return {
         total:  parseSi(this.cluster?.status?.allocatable?.cpu),
@@ -411,7 +400,6 @@ export default {
     />
     <div class="resource-gauges">
       <ResourceGauge v-for="resourceGauge in resourceGauges" :key="resourceGauge.name" v-bind="resourceGauge" />
-      <div v-for="(filler, i) in resourceGaugesFiller" :key="i" class="filler" />
     </div>
     <div v-if="showReservedMetrics" class="hardware-resource-gauges">
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.podsReserved')" :total="podsReserved.total" :useful="podsReserved.useful" />
@@ -439,44 +427,62 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  section {
-    min-width: 1140px;
-  }
-
   .actions-span {
     align-self: center;
   }
 
+  @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
+    .resource-gauges {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .hardware-resource-gauges {
+      &, &.live {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+  @media only screen and (min-width: map-get($breakpoints, '--viewport-9')) {
+    .resource-gauges {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .hardware-resource-gauges {
+      grid-template-columns: 1fr 1fr 1fr;
+
+      &.live {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  }
+  @media only screen and (min-width: map-get($breakpoints, '--viewport-12')) {
+    .resource-gauges {
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    }
+  }
+
   .resource-gauges {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    display: grid;
+    grid-column-gap: 10px;
+    grid-row-gap: 15px;
+    margin-top: 25px;
 
     & > * {
-      min-width: 210px;
-      max-width: calc(20% - 10px);
       width: 100%;
-      margin: 10px 0 0 0;
     }
   }
 
   .hardware-resource-gauges {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    margin-top: 50px;
-
-    & > * {
-      min-width: 352px;
-      width: calc(33.333% - 10px);
+    display: grid;
+    grid-column-gap: 15px;
+    grid-row-gap: 20px;
+    margin-top: 30px;
+    &:first-of-type {
+      margin-top: 35px;
     }
 
-    &.live {
-      margin-top: 30px;
-      & > * {
-        width: calc(50% - 8px);
-      }
+    & > * {
+      width: 100%;
     }
   }
 
