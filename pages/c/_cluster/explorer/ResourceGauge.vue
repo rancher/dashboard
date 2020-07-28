@@ -111,10 +111,17 @@ export default {
         }
 
         h1 {
-          font-size: 40px;
-          line-height: 36px;
+          font-size: 28px;
+          line-height: 28px;
           border-bottom: 2px solid var(--gauge-divider);
           padding-bottom: $padding / 2;
+        }
+
+        @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
+          h1 {
+            font-size: 40px;
+            line-height: 36px;
+          }
         }
 
         .alerts {
