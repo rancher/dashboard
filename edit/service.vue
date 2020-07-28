@@ -464,6 +464,7 @@ export default {
 
       <template #next="{canNext,next}">
         <ButtonDropdown
+          :key="!serviceYaml"
           class="inline-block"
           :auto-hide="false"
         >
