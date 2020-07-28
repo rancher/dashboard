@@ -1,27 +1,29 @@
 <script>
-import RulePath from '@/edit/networking.k8s.io.ingress/RulePath';
-import LabeledInput from '@/components/form/LabeledInput';
-import { random32 } from '../../utils/string';
+import RulePath from "@/edit/networking.k8s.io.ingress/RulePath";
+import LabeledInput from "@/components/form/LabeledInput";
+import { random32 } from "../../utils/string";
 export default {
   components: { RulePath, LabeledInput },
-  props:      {
+  props: {
     value: {
-      type:    Object,
+      type: Object,
       default: () => {
         return {};
-      }
+      },
     },
     serviceTargets: {
-      type:    Array,
-      default: () => []
-    }
+      type: Array,
+      default: () => [],
+    },
   },
   data() {
-    const { host = '', http = {} } = this.value;
+    const { host = "", http = {} } = this.value;
     const { paths = [{ id: random32(1) }] } = http;
 
     return {
-      host, paths, ruleMode: this.value.asDefault ? 'asDefault' : 'setHost'
+      host,
+      paths,
+      ruleMode: this.value.asDefault ? "asDefault" : "setHost",
     };
   },
   methods: {
@@ -34,7 +36,7 @@ export default {
       } else {
         delete out.host;
       }
-      this.$emit('input', out);
+      this.$emit("input", out);
     },
     addPath(ev) {
       ev.preventDefault();
@@ -47,9 +49,9 @@ export default {
       this.paths = neu;
     },
     removeRule() {
-      this.$emit('remove');
-    }
-  }
+      this.$emit("remove");
+    },
+  },
 };
 </script>
 
@@ -57,10 +59,13 @@ export default {
   <div class="rule" @input="update">
     <div class="row mb-20">
       <div id="host" class="col span-6">
-        <LabeledInput v-model="host" :label="t('ingress.rules.requestHost.label')" :placeholder="t('ingress.rules.requestHost.placeholder')" />
+        <LabeledInput
+          v-model="host"
+          :label="t('ingress.rules.requestHost.label')"
+          :placeholder="t('ingress.rules.requestHost.placeholder')"
+        />
       </div>
-      <div id="host" class="col span-5">
-      </div>
+      <div id="host" class="col span-5"></div>
       <div class="col span-1">
         <button class="btn role-link close" @click="removeRule">
           <i class="icon icon-2x icon-x" />
@@ -69,13 +74,13 @@ export default {
     </div>
     <div class="rule-path-headings row mb-0">
       <div class="col span-4">
-        {{ t('ingress.rules.path.label') }}
+        <label>{{ t("ingress.rules.path.label") }}</label>
       </div>
       <div class="col span-4">
-        {{ t('ingress.rules.target.label') }}
+        <label>{{ t("ingress.rules.target.label") }}</label>
       </div>
-      <div class="col span-3" :style="{'margin-right': '0px'}">
-        {{ t('ingress.rules.port.label') }}
+      <div class="col span-3" :style="{ 'margin-right': '0px' }">
+        <label>{{ t("ingress.rules.port.label") }}</label>
       </div>
       <div class="col" />
     </div>
@@ -86,31 +91,37 @@ export default {
         :value="path"
         :rule-mode="ruleMode"
         :service-targets="serviceTargets"
-        @input="e=>$set(paths, i, e)"
-        @remove="e=>removePath(i)"
+        @input="(e) => $set(paths, i, e)"
+        @remove="(e) => removePath(i)"
       />
     </template>
-    <button v-if="ruleMode === 'setHost'" :style="{'padding':'0px 0px 0px 5px'}" class="btn btn-sm role-link" @click="addPath">
-      {{ t('ingress.rules.addPath') }}
+    <button
+      v-if="ruleMode === 'setHost'"
+      :style="{ padding: '0px 0px 0px 5px' }"
+      class="btn btn-sm role-link"
+      @click="addPath"
+    >
+      {{ t("ingress.rules.addPath") }}
     </button>
   </div>
 </template>
 
-<style lang='scss' scoped>
-  .rule {
-    background: var(--tabbed-container-bg);
-    border: 1px solid var(--tabbed-border);
-    border-radius: var(--border-radius);
-    padding: 20px;
-  }
-  #host {
-    align-self: center
-  }
-  .close{
-    float:right;
-    padding: 0px;
-    position: relative;
-    top: -20px;
-    right: -20px;
-  }
+<style lang="scss" scoped>
+.rule {
+  background: var(--tabbed-container-bg);
+  border: 1px solid var(--tabbed-border);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  margin-top: 20px;
+}
+#host {
+  align-self: center;
+}
+.close {
+  float: right;
+  padding: 0px;
+  position: relative;
+  top: -10px;
+  right: -10px;
+}
 </style>
