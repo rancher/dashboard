@@ -82,7 +82,7 @@ export default {
   asyncData(ctx) {
     let resource;
 
-    if ( !ctx.params.id ) {
+    if ( ctx.params.resource === 'workload') {
       resource = WORKLOAD_TYPES.DEPLOYMENT;
     }
 
