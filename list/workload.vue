@@ -20,15 +20,25 @@ export default {
 
   async fetch() {
     const types = Object.values(WORKLOAD_TYPES);
+    const { params:{ resource:type } } = this.$route;
+    let resources;
 
-    const resources = await Promise.all(types.map((type) => {
-      // You may not have RBAC to see some of the types
-      if ( !this.$store.getters['cluster/schemaFor'](type) ) {
-        return null;
+    if (type !== schema.id) {
+      if ( this.$store.getters['cluster/schemaFor'](type) ) {
+        const resource = await this.$store.dispatch('cluster/findAll', { type });
+
+        resources = [resource];
       }
+    } else {
+      resources = await Promise.all(types.map((type) => {
+      // You may not have RBAC to see some of the types
+        if ( !this.$store.getters['cluster/schemaFor'](type) ) {
+          return null;
+        }
 
-      return this.$store.dispatch('cluster/findAll', { type });
-    }));
+        return this.$store.dispatch('cluster/findAll', { type });
+      }));
+    }
 
     this.resources = resources;
   },
@@ -39,6 +49,12 @@ export default {
 
   computed: {
     schema() {
+      const { params:{ resource:type } } = this.$route;
+
+      if (type !== schema.id) {
+        return this.$store.getters['cluster/schemaFor'](type);
+      }
+
       return schema;
     },
 
@@ -77,7 +93,14 @@ export default {
   },
 
   typeDisplay() {
-    return this.$store.getters['type-map/labelFor'](schema, 99);
+    const { params:{ resource:type } } = this.$route;
+    let paramSchema = schema;
+
+    if (type !== schema.id) {
+      paramSchema = this.$store.getters['cluster/schemaFor'](type);
+    }
+
+    return this.$store.getters['type-map/labelFor'](paramSchema, 99);
   },
 };
 </script>

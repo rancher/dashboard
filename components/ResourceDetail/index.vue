@@ -88,7 +88,6 @@ export async function defaultAsyncData(ctx, resource) {
 
     originalModel = await store.dispatch('cluster/create', data);
     model = originalModel;
-
     yaml = createYaml(schemas, resource, data);
   } else {
     let fqid = id;
