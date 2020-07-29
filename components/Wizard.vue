@@ -100,6 +100,11 @@ export default {
       required: true,
     },
 
+    canCreateImmediately: {
+      type:    Boolean,
+      default: false,
+    },
+
     // Errors to display above the buttons
     errors: {
       type:    Array,
@@ -113,6 +118,7 @@ export default {
 
     return {
       activeStep,
+      previewModalOpen:       false,
       resourceYaml:           '',
       showpreviewYamlWarning: false,
     };
@@ -192,6 +198,21 @@ export default {
       this.$emit('finish', cb);
     },
 
+    finishImmediately() {
+      const { canCreateImmediately } = this;
+
+      if (canCreateImmediately) {
+        this.$emit('finish', (success) => {
+          if (success) {
+            this.$router.replace({
+              name:   this.doneRoute,
+              params: { resource: this.resource.type }
+            });
+          }
+        });
+      }
+    },
+
     next() {
       this.goToStep(this.activeStepIndex + 2);
     },
@@ -223,9 +244,13 @@ export default {
 
     showPreviewYaml(show) {
       const schemas = this.$store.getters['cluster/all'](SCHEMA);
-      const resource = this.resource;
+      const { resource } = this;
+
+      this.$emit('clearErrors');
 
       this.resourceYaml = createYaml(schemas, resource.type, resource);
+
+      this.previewModalOpen = true;
 
       this.$nextTick(() => {
         this.$modal.toggle('previewYaml');
@@ -238,6 +263,7 @@ export default {
       if (showpreviewYamlWarning) {
         this.resourceYaml = null;
         this.showpreviewYamlWarning = false;
+        this.previewModalOpen = false;
         this.$modal.hide('previewYaml');
       } else {
         this.showpreviewYamlWarning = true;
@@ -314,8 +340,10 @@ export default {
 
     <div class="spacer-bordered" />
 
-    <div v-for="(err,idx) in errors" :key="idx">
-      <Banner color="error" :label="err" />
+    <div v-if="!previewModalOpen">
+      <div v-for="(err,idx) in errors" :key="idx">
+        <Banner color="error" :label="err" />
+      </div>
     </div>
 
     <div class="controls-row">
@@ -342,7 +370,6 @@ export default {
           <ButtonDropdown
             :key="!resourceYaml"
             class="inline-block"
-            :auto-hide="false"
           >
             <template #button-content="{ buttonSize }">
               <button
@@ -358,6 +385,19 @@ export default {
 
             <template #popover-content="{buttonSize}">
               <ul class="list-unstyled menu" style="margin: -1px;">
+                <li
+                  :class="{ hand: canCreateImmediately, 'no-select bg-disabled': !canCreateImmediately }"
+                  @click="finishImmediately"
+                >
+                  <button
+                    type="button"
+                    class="bg-transparent p-0"
+                    :class="buttonSize"
+                    :disabled="!canCreateImmediately"
+                  >
+                    <t k="wizard.create" />
+                  </button>
+                </li>
                 <li
                   class="hand"
                   @click="showPreviewYaml"
@@ -383,12 +423,6 @@ export default {
       height="auto"
       :click-to-close="false"
     >
-      <Banner
-        v-if="showpreviewYamlWarning"
-        color="warning"
-        :label="t('wizard.preview.cancel')"
-      />
-
       <ResourceYaml
         ref="serviceyaml"
         :value="resource"
@@ -398,6 +432,14 @@ export default {
         :done-route="doneRoute"
         :done-override="cancelYamlPreview"
       />
+      <Banner
+        v-if="showpreviewYamlWarning"
+        color="warning"
+        :label="t('wizard.preview.cancel')"
+      />
+      <div v-for="(err,idx) in errors" :key="idx">
+        <Banner color="error" :label="err" />
+      </div>
     </modal>
   </div>
 </template>

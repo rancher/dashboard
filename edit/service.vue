@@ -2,8 +2,6 @@
 import { isEmpty, find, isNaN } from 'lodash';
 import { findBy } from '@/utils/array';
 import { _EDIT, _CLONE } from '@/config/query-params';
-import { SCHEMA } from '@/config/types';
-import { createYaml } from '@/utils/create-yaml';
 import { ucFirst } from '@/utils/string';
 import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -240,7 +238,9 @@ export default {
       :steps="steps"
       :resource="value"
       :done-route="doneRoute"
+      :can-create-immediately="true"
       @finish="save"
+      @clearErrors="clearErrors"
     >
       <template slot="select-service">
         <div class="row select-service-row">

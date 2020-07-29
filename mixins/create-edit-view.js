@@ -1,10 +1,10 @@
-import pickBy from 'lodash/pickBy';
+import { ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX, LABEL_PREFIX_TO_IGNORE } from '@/config/labels-annotations';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
-import { LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';
-import { matchesSomePrefix, containsSomeString } from '@/utils/string';
 import { exceptionToErrorsArray } from '@/utils/error';
-import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
+import { containsSomeString, matchesSomePrefix } from '@/utils/string';
+import pickBy from 'lodash/pickBy';
+import ChildHook, { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from './child-hook';
 
 export default {
   mixins: [ChildHook],
@@ -129,6 +129,9 @@ export default {
   },
 
   methods: {
+    clearErrors() {
+      this.errors = null;
+    },
     done() {
       if ( this.doneLocationOverride) {
         return this.$router.replace(this.doneLocationOverride);
@@ -145,7 +148,7 @@ export default {
     },
 
     async save(buttonDone, url) {
-      this.errors = null;
+      this.clearErrors();
       try {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
 
