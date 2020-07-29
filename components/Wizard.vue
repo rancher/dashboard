@@ -323,7 +323,11 @@ export default {
       <div class="subtitle">
         <h2> {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
         <slot name="bannerSubtext">
-          <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+          <span
+            class="subtext"
+            v-html="activeStep.subtext || activeStep.label"
+          >
+          </span>
         </slot>
       </div>
     </div>

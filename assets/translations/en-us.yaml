@@ -419,48 +419,61 @@ serviceTypes:
   nodeport: Node Port
 
 servicesPage:
-  steps:
-    select: Select Service Type
-    define: Define Service
-    advanced: Advanced
-  typeOpts:
-    label: Service Type
+  affinity:
+    actionLabels:
+      clusterIp: ClusterIP
+      none: There is no session affinity configured.
+    helpText: Map connections to a consistent target based on their source IP.
+    label: Session Affinity
+    timeout:
+      label: Session Sticky Time
+      placeholder: e.g. 10800
+  externalName:
+    helpText: 'External Name is intended to specify a canonical DNS name. To hardcode an IP address, use a Headless service.'
+    label: External Name
+    placeholder: e.g. my.database.example.com
+  ips:
+    clusterIpHelpText: The Cluster IP address must be within the CIDR range configured for the API server.
+    external:
+      label: External IPs
+      placeholder: e.g. 1.1.1.1
+      protip: List of IP addresses for which nodes in the cluster will also accept traffic for this service.
+    helpText: 'Warning: Configuring additional listener IPs is an advanced use case.'
+    input:
+      label: Cluster IP
+      placeholder: e.g. 10.0.171.239
+    label: Cluster IPs
+  preview:
+    cancel: Any changes made to the Service Yaml will be discarded unless saved. Cancel again to proceed.
+    label: Preview Yaml
+  selectors:
+    helpText: 'If no selector is created, manual endpoints must be made.'
+    label: Selectors
   serviceTypes:
     clusterIp: Cluster IP
     externalName: External Name
     headless: Headless
     loadBalancer: Load Balancer
     nodePort: Node Port
-  externalName:
-    label: External Name
-    helpText: External Name is intended to specify a canonical DNS name. To hardcode an IP address, use a Headless service.
-    placeholder: e.g. my.database.example.com
-  selectors:
-    label: Selectors
-    helpText: If no selector is created, manual endpoints must be made.
-  ips:
-    label: Cluster IPs
-    helpText: "Warning: Configuring additional listener IPs is an advanced use case."
-    clusterIpHelpText: The Cluster IP address must be within the CIDR range configured for the API server.
-    input:
-      label: Cluster IP
-      placeholder: e.g. 10.0.171.239
-    external:
-      label: External IPs
-      placeholder: e.g. 1.1.1.1
-      protip: List of IP addresses for which nodes in the cluster will also accept traffic for this service.
-  affinity:
-    label: Session Affinity
-    helpText: Map connections to a consistent target based on their source IP.
-    actionLabels:
-      none: There is no session affinity configured.
-      clusterIp: ClusterIP
-    timeout:
-      label: Session Sticky Time
-      placeholder: e.g. 10800
-  preview:
-    label: Preview Yaml
-    cancel: Any changes made to the Service Yaml will be discarded unless saved. Cancel again to proceed.
+  steps:
+    advanced:
+      label: Advanced
+      subtext: 'Define the advanced options. Rancher recommends reading more about these fields before attempting to configure them. In most use cases, these options will not need to be modified.'
+    define:
+      label: Define Service
+      subtext: 'Define the <a href="https://kubernetes.io/docs/concepts/services-networking/service/" target="_blank" rel="noopener nofollow" >Service</a>. Define how to access the pods, which pods to target and how to identify your service.'
+    select:
+      label: Select Service Type
+      subtext: 'Select the type of <a href="https://kubernetes.io/docs/concepts/services-networking/service/" target="_blank" rel="noopener nofollow" >Service</a>. A service defines how to access a set of pods and the policy to access them. A service typically targets pods by a selector.'
+  typeOpts:
+    label: Service Type
+  wizard:
+    types:
+      ClusterIP: Exposes the service on a cluster-internal IP. Choosing this value makes the service only reachable from within the cluster. This is the default type.
+      ExternalName: 'Maps the service to the contents of the `externalName` field (e.g. foo.bar.example.com), by returning a CNAME record with its value. No proxying of any kind is set up.'
+      Headless: Neither a cluster IP or load balancer is defined. These are used to interface with other service discovery mechanisms outside of Kubernetes implementation. A cluster IP is not allocated and kube-proxy does not handle these services.
+      LoadBalancer: Exposes the service externally using a cloud provider's load balancer.
+      NodePort: 'Exposes the service on each node''s IP at a static port (the `NodePort`). You''ll be able to contact this type of service, from outside the cluster, by requesting `<NodeIP>:<NodePort>`.'
 
 sortableTable:
   actionAvailability:

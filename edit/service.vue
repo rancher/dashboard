@@ -78,19 +78,22 @@ export default {
       serviceYaml:                  '',
       steps:                        [
         {
-          name:  'select-service',
-          label: this.$store.getters['i18n/t']('servicesPage.steps.select'),
-          ready: true,
+          label:   this.t('servicesPage.steps.select.label'),
+          name:    'select-service',
+          ready:   true,
+          subtext: this.t('servicesPage.steps.define.subtext', {}, true),
         },
         {
-          name:  'define-service',
-          label: this.$store.getters['i18n/t']('servicesPage.steps.define'),
-          ready: this.$route.query?.mode && this.$route.query.mode === _EDIT,
+          label:   this.t('servicesPage.steps.define.label'),
+          name:    'define-service',
+          ready:   this.$route.query?.mode && this.$route.query.mode === _EDIT,
+          subtext: this.t('servicesPage.steps.define.subtext'),
         },
         {
-          name:  'advanced-config-serivce',
-          label: this.$store.getters['i18n/t']('servicesPage.steps.advanced'),
-          ready: true,
+          label:   this.t('servicesPage.steps.advanced.label'),
+          name:    'advanced-config-serivce',
+          ready:   true,
+          subtext: this.t('servicesPage.steps.advanced.subtext'),
         },
       ]
     };
@@ -247,7 +250,7 @@ export default {
           <div
             v-for="type in defaultServiceTypes"
             :key="type.id"
-            class="choice-banner col span-3 hand"
+            class="choice-banner hand"
             :class="{active: type.id === serviceType}"
             @click="setServiceType(type.id)"
           >
@@ -256,13 +259,16 @@ export default {
                 {{ type.bannerAbbrv }}
               </div>
             </div>
-            <button class="bg-transparent pl-0" type="button">
-              <div class="title">
-                <h2 class="mb-0">
-                  {{ t(type.translationLabel) }}
-                </h2>
-              </div>
-            </button>
+            <div>
+              <h5 class="mb-0">
+                {{ t(type.translationLabel) }}
+              </h5>
+              <span
+                class="type-description"
+                v-html="t(`servicesPage.wizard.types.${ type.id }`)"
+              >
+              </span>
+            </div>
           </div>
         </div>
       </template>
