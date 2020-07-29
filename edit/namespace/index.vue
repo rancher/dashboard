@@ -63,11 +63,19 @@ export default {
     },
   },
 
-  watch: {
-    project(val) {
-      this.value.setLabel(PROJECT, val);
-    },
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
   },
+
+  methods: {
+    willSave() {
+      const cluster = this.$store.getters['currentCluster'];
+      const annotation = this.project ? `${ cluster.id }:${ this.project }` : null;
+
+      this.value.setLabel(PROJECT, this.project);
+      this.value.setAnnotation(PROJECT, annotation);
+    }
+  }
 
 };
 </script>
