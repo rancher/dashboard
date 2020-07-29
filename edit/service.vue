@@ -87,7 +87,7 @@ export default {
           label:   this.t('servicesPage.steps.define.label'),
           name:    'define-service',
           ready:   this.$route.query?.mode && this.$route.query.mode === _EDIT,
-          subtext: this.t('servicesPage.steps.define.subtext'),
+          subtext: this.t('servicesPage.steps.define.subtext', {}, true),
         },
         {
           label:   this.t('servicesPage.steps.advanced.label'),
@@ -284,10 +284,14 @@ export default {
 
         <div v-if="checkTypeIs('ExternalName')">
           <div class="clearfix">
-            <h4>
+            <h4 class="inline-block">
               <t k="servicesPage.externalName.label" />
+              <i
+                v-tooltip="t('servicesPage.externalName.helpText')"
+                class="icon icon-info"
+                style="font-size: 12px"
+              />
             </h4>
-            <Banner color="info" :label="t('servicesPage.externalName.helpText')" />
           </div>
           <div class="row mt-10">
             <div class="col span-6">
@@ -317,15 +321,14 @@ export default {
         <section v-if="!checkTypeIs('ExternalName')">
           <div class="row">
             <div class="clearfix">
-              <h2>
+              <h2 class="inline-block">
                 <t k="servicesPage.selectors.label" />
+                <i
+                  v-tooltip="t('servicesPage.selectors.helpText')"
+                  class="icon icon-info"
+                  style="font-size: 12px"
+                />
               </h2>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col span-12">
-              <Banner color="info" :label="t('servicesPage.selectors.helpText')" />
             </div>
           </div>
 
@@ -360,14 +363,19 @@ export default {
         <section>
           <div class="row">
             <div class="col span-12">
-              <h4>
+              <h4 class="inline-block">
                 <t k="servicesPage.ips.label" />
+                <i
+                  v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
+                  v-tooltip="t('servicesPage.ips.clusterIpHelpText')"
+                  class="icon icon-info"
+                  style="font-size: 12px"
+                />
               </h4>
-              <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
               <Banner
                 v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
-                color="info"
-                :label="t('servicesPage.ips.clusterIpHelpText')"
+                color="warning"
+                :label="t('servicesPage.ips.helpText')"
               />
             </div>
           </div>
@@ -402,10 +410,14 @@ export default {
         <section v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName') && !checkTypeIs('Headless')">
           <div class="spacer-bordered"></div>
           <div class="col span-12">
-            <h4>
+            <h4 class="inline-block">
               <t k="servicesPage.affinity.label" />
+              <i
+                v-tooltip="t('servicesPage.affinity.helpText')"
+                class="icon icon-info"
+                style="font-size: 12px"
+              />
             </h4>
-            <Banner color="info" :label="t('servicesPage.affinity.helpText')" />
           </div>
           <div class="row session-affinity">
             <div class="col span-6">
