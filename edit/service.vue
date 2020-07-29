@@ -9,13 +9,11 @@ import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service';
 import CreateEditView from '@/mixins/create-edit-view';
 import ArrayList from '@/components/form/ArrayList';
 import Banner from '@/components/Banner';
-import ButtonDropdown from '@/components/ButtonDropdown';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import Labels from '@/components/form/Labels';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
-import ResourceYaml from '@/components/ResourceYaml';
 import ServicePorts from '@/components/form/ServicePorts';
 import UnitInput from '@/components/form/UnitInput';
 import Wizard from '@/components/Wizard';
@@ -39,13 +37,11 @@ export default {
   components: {
     ArrayList,
     Banner,
-    ButtonDropdown,
     KeyValue,
     LabeledInput,
     Labels,
     NameNsDescription,
     RadioGroup,
-    ResourceYaml,
     ServicePorts,
     UnitInput,
     Wizard
@@ -187,31 +183,8 @@ export default {
   },
 
   methods: {
-    showPreviewYaml(show) {
-      const schemas = this.$store.getters['cluster/all'](SCHEMA);
-      const data = this.value;
-
-      this.serviceYaml = createYaml(schemas, data.type, data);
-
-      this.$nextTick(() => {
-        this.$modal.toggle('previewYaml');
-      });
-    },
-
     cancelEdit() {
       this.done();
-    },
-
-    cancelYamlPreview(cb) {
-      const { showpreviewYamlWarning } = this;
-
-      if (showpreviewYamlWarning) {
-        this.serviceYaml = null;
-        this.showpreviewYamlWarning = false;
-        this.$modal.hide('previewYaml');
-      } else {
-        this.showpreviewYamlWarning = true;
-      }
     },
 
     setServiceType(type) {
@@ -261,10 +234,12 @@ export default {
 <template>
   <section>
     <Wizard
-      :steps="steps"
+      :banner-image="$route.query.step >= 2 && bannerServiceType ? '2' : null"
       :edit-first-step="isCreate ? true : false"
       :errors="errors"
-      :banner-image="$route.query.step >= 2 && bannerServiceType ? '2' : null"
+      :steps="steps"
+      :resource="value"
+      :done-route="doneRoute"
       @finish="save"
     >
       <template slot="select-service">
@@ -461,66 +436,7 @@ export default {
           {{ bannerServiceType }}
         </div>
       </template>
-
-      <template #next="{canNext,next}">
-        <ButtonDropdown
-          :key="!serviceYaml"
-          class="inline-block"
-          :auto-hide="false"
-        >
-          <template #button-content="{ buttonSize }">
-            <button
-              type="button"
-              class="btn bg-transparent"
-              :class="buttonSize"
-              :disabled="!canNext"
-              @click="next()"
-            >
-              <t k="wizard.next" />
-            </button>
-          </template>
-
-          <template #popover-content="{buttonSize}">
-            <ul class="list-unstyled menu" style="margin: -1px;">
-              <li
-                class="hand"
-                @click="showPreviewYaml"
-              >
-                <button
-                  type="button"
-                  class="bg-transparent p-0"
-                  :class="buttonSize"
-                >
-                  <t k="servicesPage.preview.label" />
-                </button>
-              </li>
-            </ul>
-          </template>
-        </ButtonDropdown>
-      </template>
     </Wizard>
-
-    <modal
-      class="preview-resource-creation-modal"
-      name="previewYaml"
-      height="auto"
-      :click-to-close="false"
-    >
-      <Banner
-        v-if="showpreviewYamlWarning"
-        color="warning"
-        :label="t('servicesPage.preview.cancel')"
-      />
-      <ResourceYaml
-        ref="serviceyaml"
-        :value="value"
-        :mode="mode"
-        :yaml="serviceYaml"
-        :offer-preview="false"
-        :done-route="doneRoute"
-        :done-override="cancelYamlPreview"
-      />
-    </modal>
   </section>
 </template>
 
@@ -549,21 +465,6 @@ export default {
     min-height: 90px; // ssr jumpy
     .round-image {
       background-color: var(--primary);
-    }
-  }
-  .preview-resource-creation-modal {
-    .resource-yaml {
-      .yaml-editor {
-        min-height: 600px;
-      }
-      .footer-resource-yaml {
-        .spacer {
-          padding: 20px 0 0 0;
-        }
-      }
-    }
-    .v--modal {
-      background-color: transparent;
     }
   }
 </style>

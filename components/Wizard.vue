@@ -1,7 +1,11 @@
 <script>
 import { STEP } from '@/config/query-params';
+import { SCHEMA } from '@/config/types';
+import { createYaml } from '@/utils/create-yaml';
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
+import ButtonDropdown from '@/components/ButtonDropdown';
+import ResourceYaml from '@/components/ResourceYaml';
 
 /*
 Wizard accepts an array of steps (see props), and creates named slots for each step.
@@ -19,7 +23,9 @@ Wizard will emit these events:
 export default {
   components: {
     AsyncButton,
-    Banner
+    ButtonDropdown,
+    Banner,
+    ResourceYaml
   },
 
   props:      {
@@ -84,6 +90,16 @@ export default {
       default: 'finish'
     },
 
+    doneRoute: {
+      type:     String,
+      required: true
+    },
+
+    resource: {
+      type:     Object,
+      required: true,
+    },
+
     // Errors to display above the buttons
     errors: {
       type:    Array,
@@ -95,7 +111,11 @@ export default {
 
     const activeStep = queryStep ? this.steps[queryStep - 1] : this.steps[this.initStepIndex];
 
-    return { activeStep };
+    return {
+      activeStep,
+      resourceYaml:           '',
+      showpreviewYamlWarning: false,
+    };
   },
 
   computed: {
@@ -200,6 +220,29 @@ export default {
 
       return true;
     },
+
+    showPreviewYaml(show) {
+      const schemas = this.$store.getters['cluster/all'](SCHEMA);
+      const resource = this.resource;
+
+      this.resourceYaml = createYaml(schemas, resource.type, resource);
+
+      this.$nextTick(() => {
+        this.$modal.toggle('previewYaml');
+      });
+    },
+
+    cancelYamlPreview(cb) {
+      const { showpreviewYamlWarning } = this;
+
+      if (showpreviewYamlWarning) {
+        this.resourceYaml = null;
+        this.showpreviewYamlWarning = false;
+        this.$modal.hide('previewYaml');
+      } else {
+        this.showpreviewYamlWarning = true;
+      }
+    },
   }
 };
 </script>
@@ -296,12 +339,66 @@ export default {
           />
         </slot>
         <slot v-else name="next" :next="next" :canNext="canNext">
-          <button :disabled="!canNext" type="button" class="btn role-primary" @click="next()">
-            <t k="wizard.next" />
-          </button>
+          <ButtonDropdown
+            :key="!resourceYaml"
+            class="inline-block"
+            :auto-hide="false"
+          >
+            <template #button-content="{ buttonSize }">
+              <button
+                type="button"
+                class="btn bg-transparent"
+                :class="buttonSize"
+                :disabled="!canNext"
+                @click="next()"
+              >
+                <t k="wizard.next" />
+              </button>
+            </template>
+
+            <template #popover-content="{buttonSize}">
+              <ul class="list-unstyled menu" style="margin: -1px;">
+                <li
+                  class="hand"
+                  @click="showPreviewYaml"
+                >
+                  <button
+                    type="button"
+                    class="bg-transparent p-0"
+                    :class="buttonSize"
+                  >
+                    <t k="wizard.preview.label" />
+                  </button>
+                </li>
+              </ul>
+            </template>
+          </ButtonDropdown>
         </slot>
       </div>
     </div>
+
+    <modal
+      class="preview-resource-creation-modal"
+      name="previewYaml"
+      height="auto"
+      :click-to-close="false"
+    >
+      <Banner
+        v-if="showpreviewYamlWarning"
+        color="warning"
+        :label="t('wizard.preview.cancel')"
+      />
+
+      <ResourceYaml
+        ref="serviceyaml"
+        :value="resource"
+        :mode="mode"
+        :yaml="resourceYaml"
+        :offer-preview="false"
+        :done-route="doneRoute"
+        :done-override="cancelYamlPreview"
+      />
+    </modal>
   </div>
 </template>
 
@@ -433,5 +530,21 @@ export default {
 .controls-row {
   display: flex;
   justify-content: space-between;
+}
+
+.preview-resource-creation-modal {
+  .resource-yaml {
+    .yaml-editor {
+      min-height: 600px;
+    }
+    .footer-resource-yaml {
+      .spacer {
+        padding: 20px 0 0 0;
+      }
+    }
+  }
+  .v--modal {
+    background-color: transparent;
+  }
 }
 </style>

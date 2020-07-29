@@ -617,6 +617,9 @@ wizard:
   finish: Finish
   next: Next
   step: 'Step {number}:'
+  preview:
+    label: 'Preview Yaml'
+    cancel: Any changes made to the resource yaml will be discarded unless saved. Cancel again to proceed.
 
 wm:
   connection:
