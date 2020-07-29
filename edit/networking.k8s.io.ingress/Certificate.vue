@@ -1,26 +1,26 @@
 <script>
-import LabeledInput from "@/components/form/LabeledInput";
-import LabeledSelect from "@/components/form/LabeledSelect";
+import LabeledInput from '@/components/form/LabeledInput';
+import LabeledSelect from '@/components/form/LabeledSelect';
 export default {
   components: { LabeledInput, LabeledSelect },
-  props: {
+  props:      {
     value: {
-      type: Object,
+      type:    Object,
       default: () => {
         return {};
       },
     },
     certs: {
-      type: Array,
+      type:    Array,
       default: () => [],
     },
   },
   data() {
     const defaultCert = {
-      label: this.t("ingress.certificates.defaultCertLabel"),
+      label: this.t('ingress.certificates.defaultCertLabel'),
       value: null,
     };
-    const { hosts = [""], secretName = defaultCert.value } = this.value;
+    const { hosts = [''], secretName = defaultCert.value } = this.value;
 
     return {
       defaultCert,
@@ -36,7 +36,7 @@ export default {
   methods: {
     addHost(ev) {
       ev.preventDefault();
-      this.hosts.push("");
+      this.hosts.push('');
       this.update();
     },
     remove(ev, idx) {
@@ -50,7 +50,7 @@ export default {
       if (this.secretName !== this.defaultCert) {
         out.secretName = this.secretName;
       }
-      this.$emit("input", out);
+      this.$emit('input', out);
     },
   },
 };
@@ -85,8 +85,8 @@ export default {
           </div>
           <button
             class="btn btn-sm role-link col"
-            @click="(e) => remove(e, i)"
             style="line-height: 40px;"
+            @click="(e) => remove(e, i)"
           >
             {{ t("ingress.certificates.removeHost") }}
           </button>

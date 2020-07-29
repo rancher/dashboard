@@ -1,29 +1,29 @@
 <script>
-import RulePath from "@/edit/networking.k8s.io.ingress/RulePath";
-import LabeledInput from "@/components/form/LabeledInput";
-import { random32 } from "../../utils/string";
+import RulePath from '@/edit/networking.k8s.io.ingress/RulePath';
+import LabeledInput from '@/components/form/LabeledInput';
+import { random32 } from '../../utils/string';
 export default {
   components: { RulePath, LabeledInput },
-  props: {
+  props:      {
     value: {
-      type: Object,
+      type:    Object,
       default: () => {
         return {};
       },
     },
     serviceTargets: {
-      type: Array,
+      type:    Array,
       default: () => [],
     },
   },
   data() {
-    const { host = "", http = {} } = this.value;
+    const { host = '', http = {} } = this.value;
     const { paths = [{ id: random32(1) }] } = http;
 
     return {
       host,
       paths,
-      ruleMode: this.value.asDefault ? "asDefault" : "setHost",
+      ruleMode: this.value.asDefault ? 'asDefault' : 'setHost',
     };
   },
   methods: {
@@ -36,7 +36,7 @@ export default {
       } else {
         delete out.host;
       }
-      this.$emit("input", out);
+      this.$emit('input', out);
     },
     addPath(ev) {
       ev.preventDefault();
@@ -49,7 +49,7 @@ export default {
       this.paths = neu;
     },
     removeRule() {
-      this.$emit("remove");
+      this.$emit('remove');
     },
   },
 };
