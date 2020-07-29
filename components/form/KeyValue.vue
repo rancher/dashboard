@@ -314,6 +314,9 @@ export default {
       const keyName = this.keyName;
       const valueName = this.valueName;
 
+      if (!this.rows.length) {
+        this.$emit('input', out);
+      }
       for ( const row of this.rows ) {
         let value = (row[valueName] || '');
         const key = (row[keyName] || '').trim();
@@ -458,7 +461,7 @@ export default {
 
       <div v-if="showRemove" class="col remove">
         <slot name="removeButton" :remove="remove" :row="row">
-          <button type="button" class="btn bg-transparent role-link" @click="remove(row)">
+          <button type="button" class="btn bg-transparent role-link" @click="remove(i)">
             {{ removeLabel || t('generic.remove') }}
           </button>
         </slot>
