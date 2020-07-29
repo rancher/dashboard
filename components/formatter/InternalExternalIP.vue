@@ -10,6 +10,11 @@ export default {
       required: true
     },
   },
+  computed: {
+    showBoth() {
+      return this.row.internalIp !== this.row.externalIp;
+    }
+  },
   methods: {
     isIp(ip) {
       return ip && (isV4Format(ip) || isV6Format(ip));
@@ -20,8 +25,9 @@ export default {
 
 <template>
   <span>
-    <CopyToClipboardText v-if="isIp(row.internalIp)" :text="row.internalIp" /><span v-else>{{ t('internalExternalIP.none') }}</span>
-    <span>/</span>
     <CopyToClipboardText v-if="isIp(row.externalIp)" :text="row.externalIp" /><span v-else>{{ t('internalExternalIP.none') }}</span>
+    <span v-if="showBoth">
+      / <CopyToClipboardText v-if="isIp(row.internalIp)" :text="row.internalIp" /><span v-else>{{ t('internalExternalIP.none') }}</span>
+    </span>
   </span>
 </template>
