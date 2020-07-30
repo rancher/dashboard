@@ -8,7 +8,7 @@ export default {
 
     inactiveClass: {
       type:    String,
-      default: 'bg-default',
+      default: 'bg-disabled',
     },
 
     activeClass: {

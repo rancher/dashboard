@@ -94,4 +94,7 @@ export default {
     .breadcrumbs .divider {
         margin: 0px 5px 0px 5px
     }
+    .breadcrumbs {
+      display: none;
+    }
 </style>

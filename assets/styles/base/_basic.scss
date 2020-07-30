@@ -25,7 +25,8 @@ BODY {
 .dashboard-body {
   // this was moved to its own class because the background color prop conflicts with storybookjs addon "backgrounds".
   // decoupling this style allows us to preview components in both light and dark themes
-  background-color: var(--body-bg);
+  background: var(--body-bg);
+  background: var(--body-gradient);
 }
 
 ::-webkit-scrollbar {

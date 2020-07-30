@@ -58,6 +58,7 @@ $selected: rgba($primary, .5);
   ), true);
 
   --body-bg                    : #{$lightest};
+  --body-gradient              : linear-gradient(180deg, #{$lightest} 0%, #{$lighter} 100%);
   --body-text                  : #{$darkest};
   --scrollbar-thumb            : #{$dark};
   --scrollbar-thumb-dropdown   : #{$lighter};
@@ -82,7 +83,7 @@ $selected: rgba($primary, .5);
 
   --accent-btn                 : #{rgba($primary, 0.2)};
   --overlay-bg                 : #{rgba($lighter, 0.75)};
-  --shadow                     : #{rgba($dark, 0.75)};
+  --shadow                     : #{rgba($medium, 0.75)};
 
 
   --dropdown-bg                : #{$lighter};
@@ -113,11 +114,11 @@ $selected: rgba($primary, .5);
   --progress-divider           : #{$medium};
 
   --sortable-table-bg          : transparent;
-  --sortable-table-header-bg   : transparent;
+  --sortable-table-header-bg   : #{rgba($primary, 0.2)};
   --sortable-table-accent-bg   : #{$lighter};
   --sortable-table-accent-alt  : #{$lightest};
   --sortable-table-top-divider : var(--border);
-  --sortable-table-body-divider : #{$darker};
+  --sortable-table-body-divider : #{$medium};
   --sortable-table-selected-bg : #{$light};
   --sortable-table-group-label : #{$secondary};
 
@@ -133,7 +134,7 @@ $selected: rgba($primary, .5);
   --tooltip-text               : var(--tag-primary);
 
   --tabbed-border              : #{$medium};
-  --tabbed-container-bg        : #{$lighter};
+  --tabbed-container-bg        : #{$light};
 
   --yaml-editor-bg             : #{$lighter};
 

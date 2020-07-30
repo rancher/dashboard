@@ -122,6 +122,10 @@ export default {
         color: var(--dropdown-hover-text);
         cursor: pointer;
       }
+
+      .icon {
+        display: unset;
+      }
     }
   }
 
