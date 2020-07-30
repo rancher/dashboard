@@ -1,5 +1,5 @@
 <script>
-import { STEP } from '@/config/query-params';
+import { STEP, _VIEW } from '@/config/query-params';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import AsyncButton from '@/components/AsyncButton';
@@ -121,6 +121,7 @@ export default {
       previewModalOpen:       false,
       resourceYaml:           '',
       showpreviewYamlWarning: false,
+      viewMode:               _VIEW,
     };
   },
 
@@ -426,12 +427,12 @@ export default {
       class="preview-resource-creation-modal"
       name="previewYaml"
       height="auto"
-      :click-to-close="false"
+      :click-to-close="true"
     >
       <ResourceYaml
         ref="serviceyaml"
         :value="resource"
-        :mode="mode"
+        :mode="viewMode"
         :yaml="resourceYaml"
         :offer-preview="false"
         :done-route="doneRoute"

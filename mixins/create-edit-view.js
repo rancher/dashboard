@@ -129,6 +129,25 @@ export default {
   },
 
   methods: {
+    nameDisplayFor(type) {
+      const schema = this.$store.getters['cluster/schemaFor'](type);
+
+      return this.$store.getters['type-map/labelFor'](schema) || '';
+    },
+
+    // TODO better images for workload types?
+    // show initials of workload type in blue circles for now
+    initialDisplayFor(type) {
+      const typeDisplay = this.nameDisplayFor(type);
+      const eachWord = typeDisplay.split(' ');
+
+      return eachWord.reduce((total, word) => {
+        total += word[0];
+
+        return total;
+      }, '');
+    },
+
     clearErrors() {
       this.errors = null;
     },

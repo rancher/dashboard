@@ -411,25 +411,6 @@ export default {
   },
 
   methods: {
-    nameDisplayFor(type) {
-      const schema = this.$store.getters['cluster/schemaFor'](type);
-
-      return this.$store.getters['type-map/labelFor'](schema) || '';
-    },
-
-    // TODO better images for workload types?
-    // show initials of workload type in blue circles for now
-    initialDisplayFor(type) {
-      const typeDisplay = this.nameDisplayFor(type);
-      const eachWord = typeDisplay.split(' ');
-
-      return eachWord.reduce((total, word) => {
-        total += word[0];
-
-        return total;
-      }, '');
-    },
-
     cancel() {
       this.done();
     },
@@ -508,6 +489,8 @@ export default {
       :initial-title="false"
       :banner-title="nameDisplayFor(type)"
       :banner-image="initialDisplayFor(type)"
+      :resource="value"
+      :done-route="doneRoute"
       @finish="saveWorkload"
       @cancel="cancel"
     >

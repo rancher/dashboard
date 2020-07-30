@@ -117,4 +117,15 @@ export default {
     };
   },
 
+  // Hide resource detail masthead in create/edit/clone because it's redundant with the wizard
+  // TODO this breaks ssr
+/*   showMasthead() {
+    return (mode) => {
+      if (mode !== _VIEW) {
+        return false;
+      } else {
+        return true;
+      }
+    };
+  } */
 };

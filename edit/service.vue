@@ -48,6 +48,8 @@ export default {
   mixins: [CreateEditView],
 
   data() {
+    const bannerServiceType = this.value._type || this.value.type;
+
     if (!this?.value?.metadata?.name) {
       this.$set(this.value.metadata, 'name', '');
     }
@@ -70,12 +72,13 @@ export default {
     }
 
     return {
+      bannerServiceType,
       defaultServiceTypes:          DEFAULT_SERVICE_TYPES,
       saving:                       false,
+      serviceYaml:                  '',
       sessionAffinityActionLabels:  Object.values(SESSION_AFFINITY_ACTION_LABELS).map(v => this.$store.getters['i18n/t'](v)).map(ucFirst),
       sessionAffinityActionOptions: Object.values(SESSION_AFFINITY_ACTION_VALUES),
       showpreviewYamlWarning:       false,
-      serviceYaml:                  '',
       steps:                        [
         {
           label:   this.t('servicesPage.steps.select.label'),
@@ -86,7 +89,7 @@ export default {
         {
           label:   this.t('servicesPage.steps.define.label'),
           name:    'define-service',
-          ready:   this.$route.query?.mode && this.$route.query.mode === _EDIT,
+          ready:   true, // this.$route.query?.mode && this.$route.query.mode === _EDIT,
           subtext: this.t('servicesPage.steps.define.subtext', {}, true),
         },
         {
@@ -100,21 +103,6 @@ export default {
   },
 
   computed: {
-    bannerServiceType() {
-      const {
-        serviceType = 'ClusterIP',
-        defaultServiceTypes = [],
-      } = this;
-      const match = findBy(defaultServiceTypes, 'id', serviceType);
-      let abbvr = 'IP';
-
-      if (match) {
-        abbvr = match.bannerAbbrv;
-      }
-
-      return abbvr;
-    },
-
     extraColumns() {
       return ['type-col'];
     },
@@ -233,18 +221,30 @@ export default {
 </script>
 
 <template>
-  <section>
+  <form>
     <Wizard
-      :banner-image="$route.query.step >= 2 && bannerServiceType ? '2' : null"
+      :banner-image="initialDisplayFor(bannerServiceType)"
+      :banner-title="nameDisplayFor(bannerServiceType)"
+      :can-create-immediately="true"
+      :done-route="doneRoute"
       :edit-first-step="isCreate ? true : false"
       :errors="errors"
-      :steps="steps"
+      :initial-title="false"
       :resource="value"
-      :done-route="doneRoute"
-      :can-create-immediately="true"
+      :steps="steps"
       @finish="save"
       @clearErrors="clearErrors"
     >
+      <template v-if="showCustomCancel" slot="cancel">
+        <button type="button" class="btn role-secondary" @click="cancelEdit">
+          <t k="generic.cancel" />
+        </button>
+      </template>
+
+      <template v-if="$route.query.step > 1 || mode !=='create'" #bannerTitleImage>
+        <span class="banner-text-service"> {{ initialDisplayFor(bannerServiceType) }} </span>
+      </template>
+
       <template slot="select-service">
         <div class="row select-service-row">
           <div
@@ -354,7 +354,7 @@ export default {
           <Labels
             :spec="value.spec"
             :mode="mode"
-            :display-side-by-side="true"
+            :display-side-by-side="false"
           />
         </div>
       </template>
@@ -442,20 +442,8 @@ export default {
           </div>
         </section>
       </template>
-
-      <template v-if="showCustomCancel" slot="cancel">
-        <button type="button" class="btn role-secondary" @click="cancelEdit">
-          <t k="generic.cancel" />
-        </button>
-      </template>
-
-      <template #banner-content>
-        <div class="banner-text-service">
-          {{ bannerServiceType }}
-        </div>
-      </template>
     </Wizard>
-  </section>
+  </form>
 </template>
 
 <style lang="scss">
@@ -472,11 +460,14 @@ export default {
   }
   .round-image {
     .banner-text-service {
-      font-size: 30px;
-      line-height: 50px;
-      height: max-content;
-      width: max-content;
-      margin: 0 auto;
+      color: white;
+      font-size: 2.5em;
+      height: 100%;
+      width: 100%;
+      background-color: var(--primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
   .choice-banner {
