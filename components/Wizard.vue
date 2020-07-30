@@ -121,6 +121,7 @@ export default {
       this.goToStep(neu[STEP]);
     },
   },
+
   created() {
     this.goToStep(this.activeStepIndex + 1);
   },
@@ -148,12 +149,12 @@ export default {
       }
 
       if (queryStep !== number) {
-        this.$router.replace({ query: { [STEP]: number } }).catch((e) => {
+        this.$router.replace({ query: { ...this.$route.query, [STEP]: number } }).catch((e) => {
           if (e?.name === 'NavigationDuplicated') {
             // ignore this
           } else if (e.message.includes('with a new navigation')) {
             // route changed by tabs; retry
-            this.$router.applyQuery({ [STEP]: number });
+            this.$router.applyQuery({ ...this.$route.query, [STEP]: number });
           }
         });
       }
