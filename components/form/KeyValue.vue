@@ -468,10 +468,10 @@ export default {
     <div v-if="showAdd || showRead" class="footer mt-10">
       <ButtonDropdown size="sm">
         <template #button-content>
-          <button v-if="showAdd" type="button" class="btn btn-sm bg-transparent text-primary add" @click="add()">
+          <button v-if="showAdd" type="button" class="btn btn-sm add" @click="add()">
             {{ addLabel }}
           </button>
-          <button v-else type="button" class="btn btn-sm bg-transparent text-primary" @click="readFromFile">
+          <button v-else type="button" class="btn btn-sm" @click="readFromFile">
             {{ readLabel }}
           </button>
         </template>

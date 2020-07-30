@@ -163,6 +163,9 @@
       .icon-container {
         height: 100%;
         padding: $trigger-padding;
+        i {
+          transform: scale(1.5);
+        }
         &.btn-xs {
           padding: $xs-trigger-padding;
         }
@@ -180,6 +183,11 @@
     border: solid thin var(--link-text);
     color: var(--link-text);
     padding: 0;
+
+    &>*, .icon-chevron-down {
+      color: var(--primary);
+      background-color: rgba(0,0,0,0);
+    }
 
     .button-divider {
       border-right: 1px solid var(--link-text);
