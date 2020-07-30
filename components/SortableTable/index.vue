@@ -610,14 +610,14 @@ $spacing: 10px;
   }
 
   th {
-    padding: 5px 15px;
+    padding: 12px 5px;
     font-weight: normal;
     border: 0;
     color: var(--link-text);
   }
 
   td {
-    padding: 12px 15px;
+    padding: 12px 5px;
     border: 0;
   }
 
