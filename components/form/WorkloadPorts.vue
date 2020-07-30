@@ -115,7 +115,7 @@ export default {
           </th>
           <th class="port">
             <t k="workload.container.ports.containerPort" />
-            <span v-if="!isView" class="toggle-host-ports" @click="()=>showHostPorts=!showHostPorts">{{ showHostPorts ? 'Hide Host Ports' : 'Show Host Ports' }}</span>
+            <span v-if="!isView" class="toggle-host-ports hand" @click="()=>showHostPorts=!showHostPorts">{{ showHostPorts ? 'Hide Host Ports' : 'Show Host Ports' }}</span>
           </th>
           <th v-if="showHostPorts" class="targetPort">
             <t k="workload.container.ports.hostPort" />
@@ -175,6 +175,7 @@ export default {
               class="inline"
               :options="['TCP', 'UDP', 'SCTP']"
               :searchable="false"
+              :multiple="false"
               @input="queueUpdate"
             />
           </td>

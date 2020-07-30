@@ -43,7 +43,7 @@ export default {
     },
 
     // Initial step to show when Wizard loads. This is overruled by the 'step' query param, if available
-    initStepIdx: {
+    initStepIndex: {
       type:    Number,
       default: 0
     },
@@ -58,6 +58,12 @@ export default {
     showBanner: {
       type:    Boolean,
       default: true,
+    },
+
+    // whether or not to show the overall title/image on left of banner header in first step
+    initialTitle: {
+      type:    Boolean,
+      default: true
     },
 
     // place the same title (e.g. the type of thing being created by wizard) on every page
@@ -84,11 +90,10 @@ export default {
       default: null,
     }
   },
-
   data() {
     const queryStep = this.$route.query[STEP];
 
-    const activeStep = queryStep ? this.steps[queryStep - 1] : this.steps[this.initStepIdx];
+    const activeStep = queryStep ? this.steps[queryStep - 1] : this.steps[this.initStepIndex];
 
     return { activeStep };
   },
@@ -116,6 +121,9 @@ export default {
       this.goToStep(neu[STEP]);
     },
   },
+  created() {
+    this.goToStep(this.activeStepIndex + 1);
+  },
 
   methods: {
     goToStep(number, fromNav) {
@@ -140,7 +148,14 @@ export default {
       }
 
       if (queryStep !== number) {
-        this.$router.applyQuery({ [STEP]: number });
+        this.$router.replace({ query: { [STEP]: number } }).catch((e) => {
+          if (e?.name === 'NavigationDuplicated') {
+            // ignore this
+          } else if (e.message.includes('with a new navigation')) {
+            // route changed by tabs; retry
+            this.$router.applyQuery({ [STEP]: number });
+          }
+        });
       }
 
       this.activeStep = selected;
@@ -226,9 +241,11 @@ export default {
     <div v-if="showSteps" class="spacer" />
 
     <div v-if="showBanner" class="top choice-banner">
-      <div v-if="bannerTitle || bannerImage" class="title">
-        <div v-if="bannerImage" class="round-image">
-          <img :src="bannerImage" />
+      <div v-show="initialTitle || activeStepIndex > 0" class="title">
+        <div class="round-image">
+          <slot name="bannerTitleImage">
+            <img :src="bannerImage" />
+          </slot>
         </div>
         <h2 v-if="bannerTitle">
           {{ bannerTitle }}
@@ -236,7 +253,9 @@ export default {
       </div>
       <div class="subtitle">
         <h2> {{ t('wizard.step', {number:activeStepIndex+1}) }}</h2>
-        <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+        <slot name="bannerSubtext">
+          <span class="subtext">{{ activeStep.subtext || activeStep.label }}</span>
+        </slot>
       </div>
     </div>
 
@@ -291,10 +310,15 @@ export default {
 .choice-banner {
   padding: 10px;
   margin: 10px;
-  flex-basis: 20%;
+  min-height: 100px;
+  flex-basis: 40%;
   border-radius: var(--border-radius);
   border-left: 5px solid var(--primary);
   display: flex;
+
+  &.selected{
+    background-color: var(--accent-btn);
+  }
 
   &.top {
     background-image: linear-gradient(-90deg, var(--body-bg) , var(--accent-btn));
@@ -329,10 +353,14 @@ export default {
     flex-direction: row;
     align-items: center;
     justify-content: start;
+    &:hover{
+      outline: var(--outline-width) solid var(--outline);
+      cursor: pointer;
+    }
   }
 
   & .round-image {
-    width: 50px;
+    min-width: 50px;
     height: 50px;
     margin: 10px;
     border-radius: 50%;

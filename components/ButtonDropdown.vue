@@ -6,6 +6,7 @@ export default {
       default: '' // possible values are xs, sm, lg. empty is default .btn
     }
   },
+
   computed: {
     buttonSize() {
       const { size } = this;
@@ -30,10 +31,11 @@ export default {
       return out;
     },
   },
+
   methods: {
     hasSlot(name = 'default') {
       return !!this.$slots[name] || !!this.$scopedSlots[name];
-    }
+    },
   }
 };
 </script>

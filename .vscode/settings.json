@@ -16,5 +16,7 @@
     "babel.config.js": true,
     "jsconfig.json": true,
     "yarn-error.log": true
-  }
+  },
+  "eslint.format.enable": true,
+  "eslint.run": "onSave"
 }

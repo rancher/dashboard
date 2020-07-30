@@ -1,14 +1,10 @@
 <script>
 import { CONFIG_MAP, SECRET, NAMESPACE } from '@/config/types';
 import { get } from '@/utils/object';
-import LabeledSelect from '@/components/form/LabeledSelect';
-import LabeledInput from '@/components/form/LabeledInput';
+import { mapGetters } from 'vuex';
 
 export default {
-  components: {
-    LabeledSelect,
-    LabeledInput
-  },
+
   props:      {
     mode: {
       type:    String,
@@ -37,7 +33,7 @@ export default {
   data() {
     const typeOpts = [
       { value: 'resourceFieldRef', label: 'Resource' },
-      { value: 'configMapKeyRef', label: 'ConfigMap' },
+      { value: 'configMapKeyRef', label: 'ConfigMap Key' },
       { value: 'secretKeyRef', label: 'Secret key' },
       { value: 'fieldRef', label: 'Field' },
       { value: 'secretRef', label: 'Secret' }];
@@ -108,6 +104,7 @@ export default {
         return [];
       }
     },
+    ...mapGetters({ t: 'i18n/t' })
   },
 
   watch: {
@@ -126,14 +123,6 @@ export default {
         this.refName = neu?.metadata?.name;
       }
     },
-  },
-
-  mounted() {
-    const typeSelect = this.$refs.typeSelect;
-
-    if (typeSelect && this.mode === 'create') {
-      typeSelect.open();
-    }
   },
 
   methods: {
@@ -159,7 +148,7 @@ export default {
       case 'resourceFieldRef':
         out.valueFrom = {
           [this.type]: {
-            containerName: this.refName, divisor: 0, resource: this.key
+            containerName: this.refName, divisor: 1, resource: this.key
           }
         };
         break;
@@ -181,71 +170,72 @@ export default {
 <template>
   <div class="row" @input="updateRow">
     <div class="col span-5-of-23">
-      <LabeledSelect
-        ref="typeSelect"
+      <v-select
         v-model="type"
         :multiple="false"
         :options="typeOpts"
-        label="Type"
         :mode="mode"
         option-label="label"
+        class="inline"
+        :searchable="false"
+        :reduce="e=>e.value"
         @input="updateRow"
       />
     </div>
     <template v-if="type === 'configMapKeyRef' || type === 'secretRef' || type === 'secretKeyRef'">
       <div class="col span-5-of-23">
-        <LabeledSelect
+        <v-select
           v-model="referenced"
           :options="sourceOptions"
           :multiple="false"
-          label="Source"
-          option-label="metadata.name"
-          option-key
+          :get-option-label="opt=>opt.metadata.name"
           :mode="mode"
+          class="inline"
           @input="updateRow"
         />
       </div>
       <div class="col span-5-of-23">
-        <LabeledSelect
-          ref="typeSelect"
-          v-model="type"
+        <v-select
+          v-model="key"
+          :disabled="type==='secretRef'"
           :multiple="false"
-          :options="typeOpts"
+          :options="keys"
           :mode="mode"
           option-label="label"
+          class="inline"
           @input="updateRow"
         />
       </div>
     </template>
     <template v-else-if="type==='resourceFieldRef'">
       <div class="col span-5-of-23">
-        <LabeledInput v-model="refName" label="Source" placeholder="e.g. my-container" :mode="mode" />
+        <input v-model="refName" :placeholder="t('workload.container.command.fromResource.source.placeholder')" :mode="mode" />
       </div>
 
       <div class="col span-5-of-23">
-        <LabeledInput v-model="key" label="Key" placeholder="e.g. requests.cpu" :mode="mode" />
+        <input v-model="key" :placeholder="t('workload.container.command.fromResource.key.placeholder')" :mode="mode" />
       </div>
     </template>
     <template v-else>
       <div class="col span-5-of-23">
-        <LabeledInput v-model="fieldPath" label="Source" placeholder="e.g. requests.cpu" :mode="mode" />
+        <input v-model="fieldPath" :placeholder="t('workload.container.command.fromResource.key.placeholder')" :mode="mode" />
       </div>
 
       <div class="col span-5-of-23">
-        <LabeledInput value="n/a" label="Key" placeholder="e.g. requests.cpu" disabled :mode="mode" />
+        <input value="n/a" :placeholder="t('workload.container.command.fromResource.key.placeholder')" disabled :mode="mode" />
       </div>
     </template>
     <div class="col span-1-of-23">
-      <div id="as">
-        as
+      <div class="as">
+        <t k="workload.container.command.as" />
       </div>
     </div>
     <div class="col span-5-of-23">
-      <LabeledInput v-model="name" label="Prefix or Alias" :mode="mode" />
+      <input v-model="name" :mode="mode" />
     </div>
     <div class="col span-2-of-23">
-      <button v-if="mode!=='view'" id="remove" type="button" class="btn btn-sm role-link" @click="$emit('input', { value:null })">
-        remove
+      <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link remove" @click="$emit('input', { value:null })">
+        <t k="generic.remove" />
       </button>
     </div>
   </div>
@@ -257,10 +247,11 @@ export default {
     align-items: center;
   }
 
-  #as {
+  .as {
     text-align:center;
+    color: var(--input-label);
   }
-  #remove{
+  .remove{
     padding: 0px;
   }
 

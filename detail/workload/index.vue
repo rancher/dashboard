@@ -4,13 +4,13 @@ import { get } from '@/utils/object';
 import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
 import { POD, WORKLOAD_TYPES } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
-import CRUWorkload from '@/edit/workload';
 import { allHash } from '@/utils/promise';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
+import OldCRU from '@/detail/workload/OldCRU';
 
 export default {
   components: {
-    CRUWorkload,
+    OldCRU,
     ResourceTable,
     WorkloadPorts,
   },
@@ -195,7 +195,7 @@ export default {
 </script>
 
 <template>
-  <CRUWorkload :value="value" :mode="mode">
+  <OldCRU :value="value" :mode="mode">
     <template v-if="mode==='view'" #top>
       <div class="row mt-20">
         <WorkloadPorts :value="container.ports" mode="view" />
@@ -217,5 +217,5 @@ export default {
         </div>
       </div>
     </template>
-  </CRUWorkload>
+  </OldCRU>
 </template>

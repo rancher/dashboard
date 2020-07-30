@@ -118,7 +118,7 @@ export default {
         </div>
       </template>
       <button v-if="!isView" type="button" class="btn btn-sm role-primary" @click="e=>$set(selectorMap, Math.random(), {matchExpressions:[]})">
-        Add Node Selector
+        <t k="workload.scheduling.affinity.addNodeSelector" />
       </button>
     </div>
 
@@ -150,7 +150,7 @@ export default {
         </div>
       </template>
       <button v-if="!isView" type="button" class="btn btn-sm role-primary" @click="e=>$set(weightedSelectorMap, Math.random(), {preference:{matchExpressions:[]}, weight:defaultWeight})">
-        Add Node Selector
+        <t k="workload.scheduling.affinity.addNodeSelector" />
       </button>
     </div>
   </div>

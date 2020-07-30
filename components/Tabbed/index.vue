@@ -10,6 +10,10 @@ export default {
     defaultTab: {
       type:    String,
       default: null,
+    },
+    sideTabs: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -151,11 +155,12 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div :class="{'side-tabs':!!sideTabs}">
     <ul
       ref="tablist"
       role="tablist"
-      class="tabs clearfix"
+      class="tabs"
+      :class="{'clearfix':!sideTabs}"
       tabindex="0"
       @keydown.right.prevent="selectNext(1)"
       @keydown.left.prevent="selectNext(-1)"
@@ -226,5 +231,37 @@ export default {
   .tab-container {
     padding: 20px;
     background-color: var(--tabbed-container-bg);
+  }
+
+  .side-tabs{
+    display: flex;
+
+    & .tabs {
+      width: 200px;
+      min-width: 200px;
+
+      & .tab {
+        width: 100%;
+
+        A {
+          color: var(--input-label);
+        }
+
+        &.active {
+          background-color: var(--body-bg);
+          border-bottom-color: var(--body-bg);
+          & A{
+            color: var(--primary);
+          }
+        }
+      }
+
+    }
+
+    & .tab-container{
+      flex-grow: 1;
+      border-left: 1px solid var(--border);
+      background-color: var(--body-bg);
+    }
   }
 </style>

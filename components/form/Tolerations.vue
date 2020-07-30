@@ -2,15 +2,15 @@
 import { mapGetters } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import SortableTable from '@/components/SortableTable';
 import UnitInput from '@/components/form/UnitInput';
 import { _VIEW } from '@/config/query-params';
+import { random32 } from '@/utils/string';
 
 export default {
   components: {
     LabeledInput,
     LabeledSelect,
-    SortableTable,
+    // SortableTable,
     UnitInput
   },
   props: {
@@ -27,7 +27,7 @@ export default {
   },
 
   data() {
-    return { rules: this.value };
+    return { rules: [...this.value] };
   },
 
   computed: {
@@ -116,7 +116,7 @@ export default {
     },
 
     addToleration() {
-      this.rules.push({});
+      this.rules.push({ vKey: random32() });
     }
   }
 
@@ -124,77 +124,85 @@ export default {
 </script>
 
 <template>
-  <div>
-    <SortableTable
-      :class="mode"
-      class="for-inputs"
-      :headers="tableHeaders"
-      :rows="rules"
-      :search="false"
-      :table-actions="false"
-      :row-actions="false"
-      :show-no-rows="isView"
-      key-field="id"
-    >
-      <template #col:key="{row}">
-        <td class="key">
-          <LabeledInput v-model="row.key" :mode="mode" />
-        </td>
+  <div class="tolerations">
+    <div class="toleration-headers">
+      <span>{{ t('workload.scheduling.tolerations.labelKey') }}</span>
+      <span>{{ t('workload.scheduling.tolerations.operator') }}</span>
+      <span>{{ t('workload.scheduling.tolerations.value') }}</span>
+      <span>{{ t('workload.scheduling.tolerations.effect') }}</span>
+      <span>{{ t('workload.scheduling.tolerations.tolerationSeconds') }}</span>
+      <span />
+    </div>
+    <div v-for="rule in rules" :key="rule.vKey" class="rule">
+      <div class="col  ">
+        <LabeledInput v-model="rule.key" :mode="mode" />
+      </div>
+      <div class="col  ">
+        <LabeledSelect
+          id="operator"
+          v-model="rule.operator"
+          :options="operatorOpts"
+          :mode="mode"
+          @input="update"
+        />
+      </div>
+      <template v-if="rule.operator==='Exists'">
+        <div class="col  ">
+          n/a
+        </div>
       </template>
-      <template #col:operator="{row}">
-        <td>
-          <LabeledSelect
-            id="operator"
-            v-model="row.operator"
-            :options="operatorOpts"
-            :mode="mode"
-            @input="update"
-          />
-        </td>
+      <template v-else>
+        <div class="col  ">
+          <LabeledInput v-model="rule.value" :mode="mode" />
+        </div>
       </template>
-      <template #col:value="{row}">
-        <td v-if="row.operator==='Exists'">
-          <div>
-            n/a
-          </div>
-        </td>
-        <td v-else>
-          <LabeledInput v-model="row.value" :mode="mode" />
-        </td>
-      </template>
-      <template #col:effect="{row}">
-        <td>
-          <LabeledSelect
-            v-model="row.effect"
-            :options="effectOpts"
-            :mode="mode"
-            @input="update"
-          />
-        </td>
-      </template>
-      <template #col:seconds="{row}">
-        <td>
-          <UnitInput v-model="row.tolerationSeconds" :mode="mode" suffix="Seconds" />
-        </td>
-      </template>
-      <template #col:remove="{row}">
-        <td>
-          <button
-            v-if="!isView"
-            type="button"
-            class="btn btn-sm role-link col remove-rule-button"
-            :style="{padding:'0px'}"
-
-            :disabled="mode==='view'"
-            @click="remove(row)"
-          >
-            <t k="generic.remove" />
-          </button>
-        </td>
-      </template>
-    </SortableTable>
-    <button v-if="!isView" class="btn role-primary" @click="addToleration">
+      <div class="col  ">
+        <LabeledSelect
+          v-model="rule.effect"
+          :options="effectOpts"
+          :mode="mode"
+          @input="update"
+        />
+      </div>
+      <div class="col  ">
+        <UnitInput v-model="rule.tolerationSeconds" :mode="mode" suffix="Seconds" />
+      </div>
+      <button
+        v-if="!isView"
+        type="button"
+        class="btn btn-sm role-link col remove-rule-button"
+        :style="{padding:'0px'}"
+        :disabled="mode==='view'"
+        @click="remove(rule)"
+      >
+        <t k="generic.remove" />
+      </button>
+    </div>
+    <button v-if="!isView" type="button" class="btn role-primary" @click="addToleration">
       <t k="workload.scheduling.tolerations.addToleration" />
     </button>
   </div>
 </template>
+
+<style lang='scss' scoped>
+  .tolerations{
+    width: 100%;
+  }
+
+  .rule, .toleration-headers{
+    display: grid;
+    grid-template-columns: 17% 17% 17% 17% 17% 15%;
+    grid-gap: 1.75%;
+    align-items: center;
+  }
+
+  .rule {
+    margin-bottom: 20px;
+  }
+
+  .toleration-headers SPAN {
+    color: var(--input-label);
+    margin-bottom: 10px;
+  }
+
+</style>

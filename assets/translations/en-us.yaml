@@ -7,6 +7,7 @@ generic:
   clickToShow: '[Show Value]'
   close: Close
   comingSoon: Coming Soon
+  create: Create
   created: Created
   customize: Customize
   na: n/a
@@ -653,8 +654,18 @@ workload:
     command:
       addFromResource: Add from Resource
       args: Arguments
+      as: as
       command: Entrypoint
       env: Environment Variables
+      fromResource:
+        key:
+          label: Key
+          placeholder: e.g. requests.cpu
+        prefix: Prefix or Alias
+        source:
+          label: Source
+          placeholder: e.g. my-container
+        type: Type
       workingDir: WorkingDir
     healthCheck:
       checkInterval: Check Interval
@@ -707,15 +718,40 @@ workload:
     titles:
       command: Command
       containers: Containers
+      env: Environment Variables
       healthCheck: Health Check
+      image: Image
+      networking: Networking
+      podScheduling: Pod Scheduling
+      nodeScheduling: Node Scheduling
       ports: Ports
       resources: Resources
       securityContext: Security Context
+  cronSchedule: Schedule
   detailTop:
     node: Node
     podIP: Pod IP
     podRestarts: Pod Restarts
     workload: Workload
+  job:
+    activeDeadlineSeconds:
+      label: Active Deadline
+      tip: The duration that the job may be active before the system tries to terminate it.
+    backOffLimit:
+      label: Back Off Limit
+      tip: The number of retries before marking this job failed.
+    completions:
+      label: Completions
+      tip: The number of successfully finished pods the job should be run with.
+    failedJobsHistoryLimit:
+      label: Failed Job History Limit
+      tip: The number of failed finished jobs to retain.
+    parallelism:
+      label: Parallelism
+      tip: The maximum number of pods the job should run at any given time.
+    successfulJobsHistoryLimit:
+      label: Successful Job History Limit
+      tip: The number of successful finished jobs to retain.
   networking:
     dnsPolicy:
       label: DNS Policy
@@ -754,10 +790,12 @@ workload:
     subdomain:
       label: Subdomain
       placeholder: e.g. web
+  replicas: Replicas
   scheduling:
     activeDeadlineSeconds: Pod Active Deadline
     activeDeadlineSecondsTip: The duration that the pod may be active before the system tries to mark it failed and kill associated containers.
     affinity:
+      addNodeSelector: Add Node Selector
       affinityTitle: Run pods on nodes with pods matching these selectors
       antiAffinityTitle: Run pods on nodes without pods matching these selectors
       matchExpressions:
@@ -811,10 +849,61 @@ workload:
         exists: Exists
       tolerationSeconds: Toleration Seconds
       value: Value
-  tabs:
-    networking: Networking
-    scheduling: Scheduling
-    security: Security
+  serviceName: Service Name
+  upgrading:
+    activeDeadlineSeconds:
+      label: Pod Active Deadline
+      tip: The duration the pod may be active before the system will try to mark it failed and kill associated containers.
+    maxSurge:
+      label: Max Surge
+      tip: The maximum number of pods allowed beyond the desired scale at any given time.
+    maxUnavailable:
+      label: Max Unavailable
+      tip: The maximum number of pods which can be unavailable at any given time.
+    minReadySeconds:
+      label: Minimum Ready
+      tip: The minimum duration a pod should be ready without containers crashing for it to be considered available.
+    partition:
+      label: Partition
+    progressDeadlineSeconds:
+      label: Progress Deadline
+      tip: The minimum duration to wait for a deployment to progress before marking it failed.
+    revisionHistoryLimit:
+      label: Revision History Limit
+      tip: The number of old ReplicaSets to retain for rollback.
+    strategies:
+      labels:
+        delete: 'On Delete: New pods are only created when old pods are manually deleted.'
+        recreate: 'Recreate: Kill ALL pods, then start new pods.'
+        rollingUpdate: 'Rolling Update: Create new pods, until max surge is reached, before deleting old pods. Don''t stop more pods than max unavailable.'
+    terminationGracePeriodSeconds:
+      label: Termination Grace Period
+      tip: The duration the pod needs to terminate successfully.
+    title: upgrading
+  wizard:
+    descriptions:
+      apps.daemonset: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/" target="_blank" rel="noopener nofollow" >DaemonSets</a> run exactly one pod on every eligible node. When new nodes are added to the cluster, DaemonSets automatically deploy to them. Recommended for system-wide or vertically-scalable workloads that never need more than one pod per node.
+      apps.deployment: '<a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/" target="_blank" rel="noopener nofollow" >Deployments</a> run a scalable number of replicas of a pod distributed among the eligible nodes. Changes are rolled out incrementally and can be rolled back to the previous revision when needed. Recommended for stateless & horizontally-scalable workloads.'
+      apps.statefulset: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/" target="_blank" rel="noopener nofollow" >StatefulSets</a> manage stateful applications and provide guarantees about the ordering and uniqueness of the pods created. Recommended for workloads with persistent storage or strict identity, quorum, or upgrade order requirements.
+      batch.cronjob: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/" target="_blank" rel="noopener nofollow" >CronJobs</a> create Jobs, which then run Pods, on a repeating schedule. The schedule is expressed in standard Unix <a href="https://en.wikipedia.org/wiki/Cron">cron</a> format, and uses the timezone of the Kubernetes control plane (typically UTC).
+      batch.job: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/job/" target="_blank" rel="noopener nofollow" >Jobs</a> create one or more pods to reliably perform a one-time task by running a pod until it exits successfully. Failed pods are automatically replaced until the specified number of completed runs has been reached. Jobs can also run multiple pods in parallel or function as a batch work queue.
+    titles:
+      advanced: 
+        title: Advanced
+        subtitle: Define the advanced options. Each pod has additional options that can be defined as part of the container, part of the pod and part of the workload type. We recommends reading the detailed Kubernetes documentation before attempting to configure these.
+      defineContainer: 
+        title: Define Container
+        subtitle: Define the container of the pod. Each workload type ultimately deploys pods, which are the smallest unit of compute managed by Kubernetes. The main definition of the pod is the container. These are the basic fields defined on a container, but there are more fields that can be defined in the Advanced step or in the raw yaml.
+      scaling: Scaling/Upgrade Policy
+      selectType: 
+        title: Select a Workload Type
+        subtitle: Select the type of <a href="https://kubernetes.io/docs/concepts/workloads/" target="_blank" rel="noopener nofollow">workload</a> to create. Each type has unique properties that define where the pods will be run, how they will be maintained or scaled, and what happens when they fail.
+      storage: 
+        title: Storage
+        subtitle: Pods only have their own local ephemeral storage by default, which will be wiped out when the pod dies. To persist data that survives beyond the life of a single pod, you can attach external <a href='https://kubernetes.io/docs/concepts/storage/' target="_blank" rel="noopener nofollow">storage</a> (e.g. block devices or NFS shares) from a provider and make it available to the pod.
+    
+
+
 
 ##############################
 # Model Properties
