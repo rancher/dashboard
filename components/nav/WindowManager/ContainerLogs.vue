@@ -420,7 +420,7 @@ export default {
   <Window :active="active">
     <template #title>
       <Select
-        v-if="!containerChoices.length"
+        v-if="containerChoices.length > 0"
         v-model="container"
         :disabled="containerChoices.length === 1"
         class="auto-width inline mini"

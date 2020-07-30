@@ -258,7 +258,7 @@ export default {
 
     <div class="controls-row">
       <slot name="cancel" :cancel="cancel">
-        <button v-if="activeStepIndex" type="button" class="btn role-secondary" @click="cancel">
+        <button type="button" class="btn role-secondary" @click="cancel">
           <t k="generic.cancel" />
         </button>
       </slot>

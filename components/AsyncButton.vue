@@ -59,7 +59,13 @@ const LABEL = {
     waiting: 'Finishing&hellip;',
     success: 'Finished',
     error:   'Error',
-  }
+  },
+  refresh: {
+    actionIcon:  'refresh',
+    waitingIcon: 'refresh',
+    successIcon: 'checkmark',
+    errorIcon:   'error'
+  },
 };
 
 export default {
@@ -157,7 +163,23 @@ export default {
       return out;
     },
 
-    label() {
+    displayIcon() {
+      const phaseIcon = LABEL[this.mode][`${ this.phase }Icon`];
+
+      if ( this.icon ) {
+        if ( this.isSpinning ) {
+          return 'icon-spinner';
+        } else {
+          return this.icon;
+        }
+      } else if ( phaseIcon ) {
+        return `icon-${ phaseIcon }`;
+      } else {
+        return '';
+      }
+    },
+
+    displayLabel() {
       const override = this[`${ this.phase }Label`];
 
       if ( override ) {
@@ -219,8 +241,7 @@ export default {
     :tab-index="tabIndex"
     @click="clicked"
   >
-    <i v-if="isSpinning" class="icon icon-spinner icon-spin mr-5" />
-    <i v-else-if="icon" :class="{icon: true, [icon]: true}" />
-    <span v-show="showLabel" v-html="label" />
+    <i v-if="displayIcon" :class="{icon: true, 'icon-lg': true, 'icon-spin': isSpinning, [displayIcon]: true, 'pr-5': showLabel && displayLabel}" />
+    <span v-if="showLabel" v-html="displayLabel" />
   </button>
 </template>

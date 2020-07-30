@@ -11,5 +11,5 @@ export default {
 </script>
 
 <template>
-  <div>Release Detail</div>
+  <div>Release</div>
 </template>

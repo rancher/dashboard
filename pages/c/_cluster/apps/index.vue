@@ -1,10 +1,9 @@
 <script>
+import AsyncButton from '@/components/AsyncButton';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import { CATALOG } from '@/config/types';
-import {
-  REPO_TYPE, REPO, CHART, VERSION, STEP
-} from '@/config/query-params';
+import { REPO_TYPE, REPO, CHART, VERSION } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { ensureRegex } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
@@ -15,6 +14,7 @@ import LazyImage from '@/components/LazyImage';
 
 export default {
   components: {
+    AsyncButton,
     Banner,
     Loading,
     ButtonGroup,
@@ -87,7 +87,6 @@ export default {
           [REPO]:      chart.repoName,
           [CHART]:     chart.chartName,
           [VERSION]:   chart.versions[0].version,
-          [STEP]:      2
         }
       });
     },
@@ -95,7 +94,17 @@ export default {
     focusSearch() {
       this.$refs.searchQuery.focus();
       this.$refs.searchQuery.select();
-    }
+    },
+
+    async refresh(btnCb) {
+      try {
+        await this.$store.dispatch('catalog/refresh');
+        btnCb(true);
+      } catch (e) {
+        this.$store.dispatch('growl/fromError', e);
+        btnCb(false);
+      }
+    },
   },
 };
 </script>
@@ -103,7 +112,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <Banner v-for="err in errors" :key="err" color="error" :label="err" />
+    <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
 
     <div v-if="allCharts.length">
       <div class="clearfix">
@@ -117,7 +126,8 @@ export default {
           <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
         </div>
         <div class="pull-right pt-5 pr-10">
-          <ButtonGroup v-model="sortField" :options="[{label: 'By Name', value: 'name'}, {label: 'By Kind', value: 'certifiedSort'}]" />
+          <AsyncButton mode="refresh" class="btn-sm mr-10" @click="refresh" />
+          <ButtonGroup v-if="false" v-model="sortField" :options="[{label: 'By Name', value: 'name'}, {label: 'By Kind', value: 'certifiedSort'}]" />
         </div>
       </div>
       <div class="charts">
