@@ -613,6 +613,7 @@ $spacing: 10px;
     padding: 12px 15px;
     font-weight: normal;
     border: 0;
+    color: var(--link-text);
   }
 
   td {
