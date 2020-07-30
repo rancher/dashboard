@@ -74,7 +74,7 @@ export default {
     text-align: center;
 
     > * {
-      margin: 0 1.75% 0 0;
+      margin: 0 $column-gutter 0 0;
     }
   }
 </style>

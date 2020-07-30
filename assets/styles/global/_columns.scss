@@ -1,8 +1,9 @@
 @import "~assets/styles/base/functions";
+@import "~assets/styles/base/_variables";
+
 
 $COLUMNS: 6 11 12 23 24;
 $DEFAULT_COLUMNS: 12;
-$GUTTER: 1.75%;
 
 /* SECTIONS */
 .section {
@@ -14,7 +15,7 @@ $GUTTER: 1.75%;
 /* COLUMN SETUP */
 .col {
   flex: 0 0 auto;
-  margin: 0 $GUTTER 0 0;
+  margin: 0 $column-gutter 0 0;
 
   &:last-child {
     margin-right: 0;
@@ -52,14 +53,14 @@ $GUTTER: 1.75%;
 
   @while $span > 0 {
     // Normal column with a gutter
-    .span-#{$span}#{$suffix} { width: decimal-round( (((100 - ($GUTTER * ($cols - 1))) / $cols) * $span) + (($span - 1) * $GUTTER) , 3, 'floor'); }
+    .span-#{$span}#{$suffix} { width: decimal-round( (((100 - ($column-gutter * ($cols - 1))) / $cols) * $span) + (($span - 1) * $column-gutter) , 3, 'floor'); }
 
     // Gutterless column
     .gutless .span-#{$span}#{$suffix} { margin-right: 0; width: decimal-round( $span / $cols * 100%, 3, 'floor'); }
 
     // Offsets
     .offset-#{$span}#{$suffix} {
-      margin-left: decimal-round( ($span/$cols*100%) + $span*($GUTTER/$cols), 3, 'floor' );
+      margin-left: decimal-round( ($span/$cols*100%) + $span*($column-gutter/$cols), 3, 'floor' );
     }
 
     // Gutterless offset
