@@ -111,15 +111,9 @@ export default {
         }
 
         h1 {
-<<<<<<< HEAD
-          font-size: 28px;
-          line-height: 28px;
-          border-bottom: 2px solid var(--gauge-divider);
-=======
           font-size: 40px;
           line-height: 36px;
           border-bottom: 1px solid var(--gauge-divider);
->>>>>>> fix side scroll on dashboard
           padding-bottom: $padding / 2;
         }
 

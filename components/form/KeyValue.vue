@@ -587,37 +587,4 @@ export default {
       padding: 5px 0;
     }
   }
-<<<<<<< HEAD
-
-  .download {
-    text-align: right;
-  }
-
-  .empty {
-    text-align: center;
-  }
-
-  .create {
-  }
-
-  .view {
-    TABLE.sortable-table {
-        TD, TH {
-          padding: $spacing 0;
-        }
-      }
-    }
-
-    TR:first-of-type TD {
-      padding-top: 0;
-    }
-}
-
-.key-value TR:first-of-type TD.no-rows {
-  // padding: 40px;
-  color: var(--disabled-bg);
-  text-align: center;
-}
-=======
->>>>>>> WIP table and polish
 </style>

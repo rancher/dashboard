@@ -841,47 +841,9 @@ $spacing: 10px;
     border: 0;
   }
 
-<<<<<<< HEAD
-  > TBODY {
-    border: none;
-
-    &.group {
-      &:first-of-type:before {
-        height: 0;
-      }
-
-      background: var(--sortable-table-accent-bg);
-
-      .group-row {
-        background-color: var(--body-bg);
-
-        :first-child {
-          margin-top: 20px;
-        }
-      }
-
-      .group-tab {
-        @include clearfix;
-        height: $group-row-height;
-        line-height: $group-row-height;
-        padding: 0 10px;
-        border-radius: 4px 4px 0px 0px;
-        background-color: var(--sortable-table-accent-bg);
-        position: relative;
-        top: 0;
-        display: inline-block;
-        z-index: z-index('tableGroup');
-        min-width: $group-row-height * 1.8;
-
-        > SPAN {
-          color: var(--sortable-table-group-label);
-        }
-      }
-=======
   tbody {
     tr {
       border-bottom: 1px solid var(--sortable-table-top-divider);
->>>>>>> WIP table and polish
 
       &:nth-of-type(even) {
         background-color: var(--sortable-table-accent-bg);
@@ -992,11 +954,7 @@ $spacing: 10px;
   padding: 0 0 20px 0;
   width: 100%;
   z-index: z-index('fixedTableHeader');
-<<<<<<< HEAD
-  // background: var(--sortable-table-header-bg);
-=======
   background: transparent;
->>>>>>> WIP table and polish
   display: grid;
   grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px) [end] min-content;
   grid-column-gap: 10px;
