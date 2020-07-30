@@ -374,6 +374,7 @@ export default {
           <ButtonDropdown
             :key="!resourceYaml"
             class="inline-block"
+            popover-placement="auto"
           >
             <template #button-content="{ buttonSize }">
               <button
