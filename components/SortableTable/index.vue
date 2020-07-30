@@ -610,7 +610,7 @@ $spacing: 10px;
   }
 
   th {
-    padding: 12px 15px;
+    padding: 5px 15px;
     font-weight: normal;
     border: 0;
     color: var(--link-text);
