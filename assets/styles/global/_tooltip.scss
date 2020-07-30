@@ -24,7 +24,7 @@
     &:after {
       position: absolute;
       border: $triangle-inner-size solid transparent;
-      content: '';
+      content: "";
     }
   }
 
@@ -51,7 +51,6 @@
       }
     }
   }
-
 
   &[x-placement^="bottom"] {
     margin-top: $triangle-size;
@@ -115,7 +114,7 @@
     color: var(--popover-text);
     padding: 10px;
     border-radius: 5px;
-    box-shadow: 0 5px 30px var(--overlay-bg);
+    box-shadow: 0 5px 20px var(--shadow);
 
     a {
       color: var(--popover-text);
@@ -131,18 +130,19 @@
   display: inline;
 }
 
-.tooltip, .popover {
-  &[aria-hidden='true'] {
+.tooltip,
+.popover {
+  &[aria-hidden="true"] {
     visibility: hidden;
     display: none !important;
     opacity: 0;
-    transition: opacity .15s, visibility .15s;
+    transition: opacity 0.15s, visibility 0.15s;
   }
 
-  &[aria-hidden='false'] {
+  &[aria-hidden="false"] {
     visibility: visible;
     opacity: 1;
-    transition: opacity .15s;
+    transition: opacity 0.15s;
   }
 }
 
@@ -213,7 +213,7 @@
       padding: 0px;
       text-align: left;
 
-      LI {
+      li {
         padding: 10px 50px 10px 20px;
 
         &.divider {
@@ -234,7 +234,6 @@
           cursor: pointer;
         }
       }
-
     }
   }
 }
