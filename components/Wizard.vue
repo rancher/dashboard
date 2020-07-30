@@ -281,7 +281,6 @@ export default {
           <t k="generic.cancel" />
         </button>
       </slot>
-      <div v-else />
 
       <div>
         <slot v-if="activeStepIndex!==0" name="back" :back="back">
