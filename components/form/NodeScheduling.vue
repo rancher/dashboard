@@ -4,6 +4,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import KeyValue from '@/components/form/KeyValue';
 import NodeAffinity from '@/components/form/NodeAffinity';
 import { _VIEW } from '@/config/query-params';
+import { isEmpty } from '@/utils/object';
 
 export default {
   components: {
@@ -75,6 +76,7 @@ export default {
         delete this.value.nodeSelector;
       }
     },
+    isEmpty
   }
 };
 </script>

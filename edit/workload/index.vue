@@ -150,7 +150,7 @@ export default {
       allSecrets:       [],
       headlessServices: [],
       allNodes:         null,
-      showTabs:         false
+      showTabs:         false,
     };
   },
 
@@ -195,7 +195,15 @@ export default {
 
     // TODO better validation
     containerIsReady() {
-      return (!!this.container.image && !!this.container.imagePullPolicy && !!this.value.metadata.name);
+      const required = [this.container.image, this.container.imagePullPolicy];
+
+      if (this.isReplicable) {
+        required.push(this.spec.replicas);
+      } else if (this.isCronJob) {
+        required.push(this.spec.schedule);
+      }
+
+      return required.filter(prop => !!prop).length === required.length;
     },
 
     // if this is a cronjob, grab pod spec from within job template spec
@@ -401,7 +409,8 @@ export default {
 
     containerIsReady(neu) {
       this.steps[1].ready = neu;
-    }
+    },
+
   },
 
   created() {
