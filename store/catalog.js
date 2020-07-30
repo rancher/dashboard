@@ -1,26 +1,26 @@
 import { CATALOG } from '@/config/types';
-import { allHash } from '@/utils/promise';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
-import { findBy } from '@/utils/array';
-import { clone } from '@/utils/object';
 import { addParams } from '@/utils/url';
+import { allHash } from '@/utils/promise';
+import { clone } from '@/utils/object';
+import { findBy } from '@/utils/array';
 import { stringify } from '@/utils/error';
 
 export const state = function() {
-  const out = {
-    loaded:          false,
+  return {
+    loaded:          {},
     clusterRepos:    [],
     namespacedRepos: [],
-    charts:          [],
+    charts:          {},
     versionInfos:    {},
   };
-
-  return out;
 };
 
 export const getters = {
   isLoaded(state) {
-    return state.loaded;
+    return (repo) => {
+      return !!state.loaded[repo._key];
+    };
   },
 
   repos(state) {
@@ -38,13 +38,15 @@ export const getters = {
     };
   },
 
-  charts(state) {
-    return state.charts.slice();
+  charts(state, getters) {
+    const repoKeys = getters.repos.map(x => x._key);
+
+    return Object.values(state.charts).filter(x => repoKeys.includes(x.repoKey));
   },
 
-  chart(state) {
+  chart(state, getters) {
     return ({ repoType, repoName, chartName }) => {
-      const chart = findBy(state.charts, {
+      const chart = findBy(getters.charts, {
         repoType, repoName, chartName
       });
 
@@ -76,14 +78,24 @@ export const getters = {
 };
 
 export const mutations = {
+  reset(currentState) {
+    const newState = state();
+
+    Object.assign(currentState, newState);
+  },
+
   setRepos(state, { cluster, namespaced }) {
     state.clusterRepos = cluster;
     state.namespacedRepos = namespaced;
   },
 
-  setCharts(state, { charts, errors }) {
+  setCharts(state, { charts, errors, loaded }) {
     state.charts = charts;
     state.errors = errors;
+
+    for ( const repo of loaded ) {
+      state.loaded[repo._key] = true;
+    }
   },
 
   cacheVersion(state, { key, info }) {
@@ -92,30 +104,30 @@ export const mutations = {
 };
 
 export const actions = {
-  async load({ getters, commit, dispatch }, { force } = {}) {
-    if ( getters.isLoaded && force !== true ) {
-      return;
-    }
-
-    let promises = {
+  async load({
+    state, getters, commit, dispatch
+  }, { force, reset } = {}) {
+    const hash = await allHash({
       cluster:    dispatch('cluster/findAll', { type: CATALOG.CLUSTER_REPO }, { root: true }),
       namespaced: dispatch('cluster/findAll', { type: CATALOG.REPO }, { root: true }),
-    };
-
-    const hash = await allHash(promises);
+    });
 
     commit('setRepos', hash);
 
     const repos = getters['repos'];
+    const loaded = [];
+    const promises = [];
 
-    promises = [];
     for ( const repo of repos ) {
-      promises.push(repo.followLink('index'));
+      if ( force === true || !getters.isLoaded(repo) ) {
+        console.info('Loading index for', repo._key); // eslint-disable-line no-console
+        promises.push(repo.followLink('index'));
+      }
     }
 
     const res = await Promise.allSettled(promises);
 
-    const charts = {};
+    const charts = reset ? {} : state.charts;
     const errors = [];
 
     for ( let i = 0 ; i < res.length ; i++ ) {
@@ -132,12 +144,19 @@ export const actions = {
           addChart(charts, entry, repo);
         }
       }
+
+      loaded.push(repo);
     }
 
     commit('setCharts', {
-      charts: Object.values(charts),
+      charts,
       errors,
+      loaded,
     });
+  },
+
+  refresh({ commit, dispatch }) {
+    return dispatch('load', { force: true, reset: true });
   },
 
   async getVersionInfo({ state, getters, commit }, {
@@ -169,8 +188,9 @@ const CERTIFIED_SORTS = {
   other:                               3,
 };
 
-function addChart(list, chart, repo) {
+function addChart(map, chart, repo) {
   const key = `${ repo.type }/${ repo.metadata.name }/${ chart.name }`;
+  let obj = map[key];
   const certifiedAnnotation = chart.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED];
 
   let certified = CATALOG_ANNOTATIONS._OTHER;
@@ -183,7 +203,12 @@ function addChart(list, chart, repo) {
 
   if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
     sideLabel = 'Experimental';
-  } else if ( !repo.isRancher && certifiedAnnotation && certified === CATALOG_ANNOTATIONS._OTHER ) {
+  } else if (
+    !repo.isRancher &&
+    certifiedAnnotation &&
+    certifiedAnnotation !== CATALOG_ANNOTATIONS._RANCHER &&
+    certified === CATALOG_ANNOTATIONS._OTHER
+  ) {
     // But anybody can set the side label
     sideLabel = certifiedAnnotation;
   }
@@ -194,8 +219,6 @@ function addChart(list, chart, repo) {
     icon = icon.replace(/^(https?:\/\/github.com\/[^/]+\/[^/]+)\/blob/, '$1/raw');
   }
 
-  let obj = list[key];
-
   if ( !obj ) {
     obj = {
       key,
@@ -205,6 +228,7 @@ function addChart(list, chart, repo) {
       certifiedSort:   CERTIFIED_SORTS[certified] || 99,
       chartName:       chart.name,
       description:     chart.description,
+      repoKey:         repo._key,
       repoName:        repo.name,
       versions:        [],
       deprecated:      !!chart.deprecated,
@@ -220,7 +244,7 @@ function addChart(list, chart, repo) {
 
     obj.repoName = repo.metadata.name;
 
-    list[key] = obj;
+    map[key] = obj;
   }
 
   obj.versions.push(chart);

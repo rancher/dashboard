@@ -56,6 +56,16 @@ export default {
 </script>
 
 <template>
-  <div v-if="loaded" v-html="sanitized" />
+  <div v-if="loaded" class="markdown" v-html="sanitized" />
   <Loading v-else />
 </template>
+
+<style lang="scss" scoped>
+  ::v-deep P {
+    font-size: initial;
+    line-height: initial;
+    font-weight: initial;
+    letter-spacing: initial;
+    font-style: normal;
+  }
+</style>

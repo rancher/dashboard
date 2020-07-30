@@ -50,9 +50,9 @@ export default {
     },
 
     suffixedLabel() {
-      let out = `${ this.label }`;
+      let out = this.label || '';
 
-      if (this.addSuffix) {
+      if (out && this.addSuffix) {
         out = `${ out } ${ this.suffix }`;
       }
 
@@ -73,7 +73,7 @@ export default {
   methods: {
     update() {
       if ( !this.value ) {
-        this.label = 'n/a';
+        this.label = null;
 
         return this.label;
       }
@@ -127,7 +127,10 @@ export default {
 </script>
 
 <template>
-  <span v-if="showTooltip" v-tooltip="{content: title, placement: tooltipPlacement}" class="live-date">
+  <span v-if="!suffixedLabel" class="text-muted">
+    &mdash;
+  </span>
+  <span v-else-if="showTooltip" v-tooltip="{content: title, placement: tooltipPlacement}" class="live-date">
     {{ suffixedLabel }}
   </span>
   <span v-else class="live-date">

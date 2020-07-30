@@ -1,7 +1,11 @@
+import Vue from 'vue';
+
 export default {
   applyDefaults() {
     return () => {
-      this.spec = { url: '' };
+      if ( !this.spec ) {
+        Vue.set(this, 'spec', { url: '' });
+      }
     };
   },
 

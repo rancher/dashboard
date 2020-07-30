@@ -7,10 +7,12 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import Markdown from '@/components/Markdown';
 import { CATALOG } from '@/config/types';
 import { defaultAsyncData } from '@/components/ResourceDetail';
-import { REPO_TYPE, REPO, CHART, VERSION } from '@/config/query-params';
+import {
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, STEP
+} from '@/config/query-params';
 import Wizard from '@/components/Wizard';
 import YamlEditor from '@/components/YamlEditor';
-import { DESCRIPTION } from '@/config/labels-annotations';
+import { DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
 
 export default {
@@ -67,6 +69,8 @@ export default {
 
     if ( this.chart.targetNamespace ) {
       this.forceNamespace = this.chart.targetNamespace;
+    } else if ( query[NAMESPACE] ) {
+      this.forceNamespace = query[NAMESPACE];
     } else {
       this.forceNamespace = null;
     }
@@ -74,8 +78,14 @@ export default {
     if ( this.chart.targetName ) {
       this.value.metadata.name = this.chart.targetName;
       this.nameDisabled = true;
+    } else if ( query[NAME] ) {
+      this.value.metadata.name = query[name];
     } else {
       this.nameDisabled = false;
+    }
+
+    if ( query[DESCRIPTION_QUERY] ) {
+      this.value.setAnnotation(DESCRIPTION_ANNOTATION, query[DESCRIPTION_QUERY]);
     }
 
     if ( version ) {
@@ -111,16 +121,23 @@ export default {
   },
 
   computed: {
+    showReadme() {
+      return !!this.versionInfo?.readme;
+    },
+
+    showNameEditor() {
+      return !this.nameDisabled || !this.forceNamespace;
+    },
+
+    showVersions() {
+      return this.chart?.versions.length > 1;
+    },
+
     steps() {
       return [
         {
-          name:      'chart',
-          label:     'Select Chart',
-          showSteps: false,
-        },
-        {
-          name:  'helm',
-          label: 'Helm Options',
+          name:  'name',
+          label: 'Name & Version',
           ready: !!this.chart,
         },
         {
@@ -128,11 +145,28 @@ export default {
           label: 'Chart Options',
           ready: !!this.versionInfo,
         },
+        {
+          name:  'advanced',
+          label: 'Advanced Options',
+          ready: !!this.versionInfo,
+        },
       ];
     },
   },
 
   watch: { '$route.query': '$fetch' },
+
+  mounted() {
+    const query = this.$route.query;
+
+    if ( query[STEP] >= 2 && !this.value.metadata?.name ) {
+      // If you reload the page, go back to 1 because the name and other stuff has been lost...
+      this.$router.applyQuery({ [STEP]: 1 });
+    } else if ( ( !query[STEP] || query[STEP] === 1 ) && !this.showReadme && !this.showNameEditor && !this.showVersions ) {
+      // If there's nothing on page 1, go to page 2
+      this.$router.applyQuery({ [STEP]: 2 });
+    }
+  },
 
   methods: {
     selectVersion(version) {
@@ -193,7 +227,8 @@ export default {
       out.version = this.$route.query.version;
       out.releaseName = out.metadata.name;
       out.namespace = out.metadata.namespace;
-      out.description = out.metadata?.[DESCRIPTION];
+      out.description = out.metadata?.annotations?.[DESCRIPTION_ANNOTATION];
+
       delete out.metadata;
 
       // @TODO only save values that differ from defaults?
@@ -208,27 +243,29 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <Wizard
-    v-else
+    v-else-if="chart"
     :steps="steps"
     :show-banner="false"
+    :edit-first-step="true"
     :errors="errors"
     @finish="finish($event)"
   >
-    <template #helm>
-      <div v-if="versionInfo.readme" class="row">
+    <template #name>
+      <div v-if="showReadme" class="row">
         <div class="col span-12">
           <Markdown v-model="versionInfo.readme" class="readme" />
         </div>
       </div>
 
       <NameNsDescription
+        v-if="showNameEditor"
         v-model="value"
         :mode="mode"
         :name-disabled="nameDisabled"
         :force-namespace="forceNamespace"
       />
 
-      <div class="row">
+      <div v-if="showVersions" class="row">
         <div class="col span-6">
           <LabeledSelect
             label="Chart Version"
@@ -252,8 +289,8 @@ export default {
       />
     </template>
 
-    <template v-if="!chart" #next>
-      &nbsp;
+    <template #advanced>
+      Advanced helm options coming soon..
     </template>
   </Wizard>
 </template>

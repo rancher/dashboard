@@ -168,7 +168,7 @@ export default {
     },
 
     namespace(val) {
-      this.upateNamespace(val);
+      this.updateNamespace(val);
     },
 
     description(val) {

@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'icons';
   src:
-    url('fonts/icons.ttf?axcony') format('truetype'),
-    url('fonts/icons.woff?axcony') format('woff'),
-    url('fonts/icons.svg?axcony#icons') format('svg');
+    url('fonts/icons.ttf?7yy17b') format('truetype'),
+    url('fonts/icons.woff?7yy17b') format('woff'),
+    url('fonts/icons.svg?7yy17b#icons') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -110,6 +110,15 @@
 }
 .icon-gear:before {
   content: "\e910";
+}
+.icon-snapshot:before {
+  content: "\e931";
+}
+.icon-refresh:before {
+  content: "\e932";
+}
+.icon-backup:before {
+  content: "\e933";
 }
 .icon-globe:before {
   content: "\e924";
