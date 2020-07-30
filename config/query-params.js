@@ -49,3 +49,6 @@ export const REPO_TYPE = 'repo-type';
 export const REPO = 'repo';
 export const CHART = 'chart';
 export const VERSION = 'version';
+export const NAME = 'name';
+export const NAMESPACE = 'namespace';
+export const DESCRIPTION = 'description';

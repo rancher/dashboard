@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
-import { directiveSsr as t } from './plugins/i18n';
 import { STANDARD } from './config/private-label';
+import { directiveSsr as t } from './plugins/i18n';
+import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
 
 require('dotenv').config();
 
@@ -105,9 +105,9 @@ module.exports = {
 
   build: {
     publicPath: resourceBase,
-    // parallel:   true,
-    // cache:      true,
-    // hardSource: true,
+    parallel:   true,
+    cache:      true,
+    hardSource: true,
 
     uglify: {
       uglifyOptions: { compress: !dev },
@@ -141,7 +141,11 @@ module.exports = {
     //   }
     // },
     extend(config, { isClient, isDev }) {
-      config.devtool = isClient ? 'source-map' : 'inline-source-map';
+      if ( isDev ) {
+        config.devtool = 'eval-source-map';
+      } else {
+        config.devtool = 'source-map';
+      }
 
       if ( resourceBase ) {
         config.output.publicPath = resourceBase;

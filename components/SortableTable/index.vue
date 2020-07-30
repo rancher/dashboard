@@ -674,13 +674,6 @@ $spacing: 10px;
     border: none;
 
     &.group {
-      &:before {
-        content: "";
-        display: block;
-        height: 20px;
-        background-color: var(--body-bg);
-      }
-
       &:first-of-type:before {
         height: 0;
       }
@@ -854,7 +847,7 @@ $spacing: 10px;
   padding: 0 0 20px 0;
   width: 100%;
   z-index: z-index('fixedTableHeader');
-  background: var(--sortable-table-header-bg);
+  // background: var(--sortable-table-header-bg);
   display: grid;
   grid-template-columns: [bulk] auto [middle] min-content [search] minmax(min-content, 200px) [end] min-content;
   grid-column-gap: 10px;

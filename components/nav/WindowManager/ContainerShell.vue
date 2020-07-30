@@ -74,7 +74,7 @@ export default {
     },
 
     containerChoices() {
-      return this.pod?.spec?.containers?.map(x => x.name);
+      return this.pod?.spec?.containers?.map(x => x.name) || [];
     },
   },
 
@@ -263,9 +263,9 @@ export default {
   <Window :active="active">
     <template #title>
       <Select
-        v-if="containerChoices"
+        v-if="containerChoices.length > 0"
         v-model="container"
-        :disabled="containerChoices.length <= 1"
+        :disabled="containerChoices.length === 1"
         class="auto-width inline mini"
         :options="containerChoices"
         :searchable="false"

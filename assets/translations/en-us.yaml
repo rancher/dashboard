@@ -180,30 +180,6 @@ footer:
   issue: File an Issue
   slack: Slack
 
-gatekeeperConfig:
-  configure:
-    description: Description
-    helpText:
-      listItem1: OPA Gatekeeper provides first-class integration between OPA (Open Policy Agent) and Kubernetes.
-      listItem2: You can customize Gatekeeper’s yaml configuration or Enable Gatekeeper with defaults.
-      listItem3: 'For more information, visit the '
-      listItem4: OPA Documentation.
-    requirements:
-      header: Requirements
-      helpText:
-        listItem1: 0.1 CPU Cores
-        listItem2: 256 MiB of Memory
-  header: OPA Gatekeeper
-  infoBox:
-    auditFromCache: Audit From Cache
-    auditInterval: Audit Interval
-    constraintViolationsLimit: Constraint Violation Limit
-    imageRepository: Image
-    imageTag: Version
-    replicas: Replicas
-  yaml:
-    buttonText: Customize
-
 gatekeeperConstraint:
   enforcementAction:
     title: Enforcement Action
@@ -941,6 +917,9 @@ model:
       registeredAgent: Registered Agent
       service: Service
       user: User
+  'catalog.cattle.io.release':
+    firstDeployed: First Deployed
+    lastDeployed: Last Deployed
   cluster:
     name: Cluster Name
   identity:
@@ -979,11 +958,12 @@ model:
     displayKind:
       generic: Service
       loadBalancer: L4 Balancer
+
 typeLabel:
   catalog.cattle.io.operation: |
     {count, plural,
-      one { Helm Operation }
-      other { Helm Operations }
+      one { Recent Operations }
+      other { Recent Operations }
     }
   catalog.cattle.io.release: |
     {count, plural,

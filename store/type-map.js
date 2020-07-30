@@ -32,7 +32,6 @@
 //   showNamespaceFilter,     -- If true, show the namespace filter in the header
 //   ifHaveGroup,             -- Show if the given group exists in the store [inStore]
 //   ifHaveType,              -- Show if the given type exists in the store [inStore]
-//   ifHaveApp,               -- Or if an app with the given name is deployed in the store [inStore]
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
 // })
 //
@@ -90,7 +89,7 @@
 
 import { AGE, NAME, NAMESPACE_NAME, STATE } from '@/config/table-headers';
 import { COUNT, SCHEMA } from '@/config/types';
-import { EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
+import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import { addObject, findBy, insertAt, isArray, removeObject } from '@/utils/array';
 import { clone, get } from '@/utils/object';
 import { ensureRegex, escapeHtml, escapeRegex, ucFirst } from '@/utils/string';
@@ -124,7 +123,7 @@ export function DSL(store, product, module = 'type-map') {
         ...inOpt
       };
 
-      for ( const k of ['ifHaveGroup','ifHaveType','ifHaveApp'] ) {
+      for ( const k of ['ifHaveGroup','ifHaveType'] ) {
         if ( opt[k] ) {
           opt[k] = regexToString(ensureRegex(opt[k]));
         }
@@ -593,6 +592,8 @@ export const getters = {
     return (product, mode = ALL, module='cluster') => {
       const schemas = rootGetters[`${module}/all`](SCHEMA);
       const counts = rootGetters[`${module}/all`](COUNT)?.[0]?.counts || {};
+      const isDev = rootGetters['prefs/get'](DEV);
+
       const out = {};
 
       for ( const schema of schemas ) {
@@ -634,6 +635,10 @@ export const getters = {
           const item = clone(vt);
           const id = item.name;
           const weight = vt.weight || getters.typeWeightFor(item.label);
+
+          if ( item.ifDev && !isDev ) {
+            continue;
+          }
 
           if ( item.ifHaveType && !findBy(schemas, 'id', normalizeType(item.ifHaveType)) ) {
             continue;
@@ -901,11 +906,6 @@ export const getters = {
       }
 
       if ( p.ifHaveGroup && !knownGroups[module].find((t) => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
-        return false;
-      }
-
-      if ( p.ifHaveApp && false ) {
-        // @TODO know what apps are installed somehow
         return false;
       }
 

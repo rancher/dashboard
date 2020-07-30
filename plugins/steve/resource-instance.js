@@ -1,33 +1,39 @@
-import Vue from 'vue';
-import jsyaml from 'js-yaml';
 import compact from 'lodash/compact';
-import uniq from 'lodash/uniq';
 import isEmpty from 'lodash/isEmpty';
 import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
+import jsyaml from 'js-yaml';
+import omitBy from 'lodash/omitBy';
+import uniq from 'lodash/uniq';
+import Vue from 'vue';
+
+import { addObject, addObjects, findBy } from '@/utils/array';
+import CustomValidators from '@/utils/custom-validators';
+import { downloadFile, generateZip } from '@/utils/download';
+import { eachLimit } from '@/utils/promise';
+import { get } from '@/utils/object';
+import { DEV } from '@/store/prefs';
+import { sortableNumericSuffix } from '@/utils/sort';
+import {
+  coerceStringTypeToScalarType,
+  containsSomeString,
+  escapeHtml,
+  matchesSomePrefix,
+  ucFirst
+} from '@/utils/string';
 import {
   displayKeyFor,
-  validateLength,
   validateChars,
   validateDnsLikeTypes,
+  validateLength,
 } from '@/utils/validators';
-import CustomValidators from '@/utils/custom-validators';
-import { sortableNumericSuffix } from '@/utils/sort';
-import { generateZip, downloadFile } from '@/utils/download';
+
+import { ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX, DESCRIPTION, LABEL_PREFIX_TO_IGNORE } from '@/config/labels-annotations';
 import {
-  escapeHtml, ucFirst, coerceStringTypeToScalarType, matchesSomePrefix, containsSomeString
-} from '@/utils/string';
-import { get } from '@/utils/object';
-import { eachLimit } from '@/utils/promise';
-import {
-  MODE, _EDIT, _CLONE,
-  AS_YAML, _FLAGGED, _VIEW
+  AS_YAML, MODE, _CLONE, _EDIT, _FLAGGED, _VIEW
 } from '@/config/query-params';
-import { findBy, addObjects, addObject } from '@/utils/array';
-import { DEV } from '@/store/prefs';
-import { DESCRIPTION, LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';
-import omitBy from 'lodash/omitBy';
-import { normalizeType, cleanForNew } from './normalize';
+
+import { cleanForNew, normalizeType } from './normalize';
 
 const STRING_LIKE_TYPES = [
   'string',
@@ -148,10 +154,20 @@ export default {
     const m = this.metadata;
 
     if ( m ) {
-      return m.uid || `${ m.namespace ? `${ m.namespace }:` : '' }${ m.name }`;
+      if ( m.uid ) {
+        return m.uid;
+      }
+
+      if ( m.namespace ) {
+        return `${ this.type }/${ m.namespace }/${ m.name }`;
+      }
     }
 
-    return this.id || Math.random();
+    if ( this.id ) {
+      return `${ this.type }/${ this.id }`;
+    }
+
+    return `${ this.type }/${ Math.random() }`;
   },
 
   schema() {
@@ -221,16 +237,8 @@ export default {
     return this.metadata?.name;
   },
 
-  namespace: {
-    get() {
-      return this.metadata?.namespace;
-    },
-
-    set(val) {
-      if ( this.metadata ) {
-        this.metadata.namespace = val;
-      }
-    }
+  namespace() {
+    return this.metadata?.namespace;
   },
 
   groupByLabel() {
@@ -943,6 +951,36 @@ export default {
   applyDefaults() {
     return () => {
     };
+    /*
+    return () => {
+      debugger;
+      const schemas = this.$getters['all'](SCHEMA);
+      const str = createYaml(schemas, this.type, this);
+      const parsed = jsyaml.safeLoad(str);
+
+      merge(this, parsed);
+
+      if ( !this.metadata ) {
+        Vue.set(this, 'metadata', {});
+      }
+
+      if ( !this.metadata.namespace ) {
+        Vue.set(this.metadata, 'namespace', this.$getters['defaultNamespace']);
+      }
+
+      function merge(a, b) {
+        for ( const k of Object.keys(b) ) {
+          const v = b[k];
+
+          if ( v && typeof v === 'object' ) {
+            Vue.set(a, k, merge(a[k], b[k]));
+          } else {
+            Vue.set(a, k, b[k]);
+          }
+        }
+      }
+    };
+    */
   },
 
   urlFromAttrs() {

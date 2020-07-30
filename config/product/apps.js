@@ -20,6 +20,7 @@ export function init(store) {
     virtualType,
     weightType,
     uncreatableType,
+    immutableType,
   } = DSL(store, NAME);
 
   product({
@@ -55,6 +56,8 @@ export function init(store) {
 
   uncreatableType(CATALOG.RELEASE);
   uncreatableType(CATALOG.OPERATION);
+  immutableType(CATALOG.RELEASE);
+  immutableType(CATALOG.OPERATION);
 
   headers(CATALOG.RELEASE, [STATE, NAMESPACE_NAME, CHART, RESOURCES, AGE]);
   headers(CATALOG.REPO, [NAMESPACE_NAME, URL, AGE]);
