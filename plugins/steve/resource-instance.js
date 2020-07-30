@@ -57,73 +57,73 @@ const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TMIMEOUT = 30000;
 
 const STATES = {
-  'in-progress':      { color: 'info', icon: 'tag' },
+  'in-progress': { color: 'info', icon: 'tag' },
   'pending-rollback': { color: 'info', icon: 'dot-half' },
-  'pending-upgrade':  { color: 'info', icon: 'dot-half' },
-  aborted:            { color: 'warning', icon: 'error' },
-  activating:         { color: 'info', icon: 'tag' },
-  active:             { color: 'success', icon: 'dot-open' },
-  available:          { color: 'success', icon: 'dot-open' },
-  backedup:           { color: 'success', icon: 'backup' },
-  bound:              { color: 'success', icon: 'dot' },
-  building:           { color: 'success', icon: 'dot-open' },
-  cordoned:           { color: 'info', icon: 'tag' },
-  created:            { color: 'info', icon: 'tag' },
-  creating:           { color: 'info', icon: 'tag' },
-  deactivating:       { color: 'info', icon: 'adjust' },
-  degraded:           { color: 'warning', icon: 'error' },
-  denied:             { color: 'error', icon: 'adjust' },
-  deployed:           { color: 'success', icon: 'dot-open' },
-  disabled:           { color: 'warning', icon: 'error' },
-  disconnected:       { color: 'warning', icon: 'error' },
-  error:              { color: 'error', icon: 'error' },
-  erroring:           { color: 'error', icon: 'error' },
-  expired:            { color: 'warning', icon: 'error' },
-  failed:             { color: 'error', icon: 'error' },
-  healthy:            { color: 'success', icon: 'dot-open' },
-  inactive:           { color: 'error', icon: 'dot' },
-  initializing:       { color: 'warning', icon: 'error' },
-  locked:             { color: 'warning', icon: 'adjust' },
-  migrating:          { color: 'info', icon: 'info' },
-  paused:             { color: 'info', icon: 'info' },
-  pending:            { color: 'info', icon: 'tag' },
-  provisioning:       { color: 'info', icon: 'dot' },
-  purged:             { color: 'error', icon: 'purged' },
-  purging:            { color: 'info', icon: 'purged' },
-  reconnecting:       { color: 'error', icon: 'error' },
-  registering:        { color: 'info', icon: 'tag' },
-  reinitializing:     { color: 'warning', icon: 'error' },
-  released:           { color: 'warning', icon: 'error' },
-  removed:            { color: 'error', icon: 'trash' },
-  removing:           { color: 'info', icon: 'trash' },
-  requested:          { color: 'info', icon: 'tag' },
-  restarting:         { color: 'info', icon: 'adjust' },
-  restoring:          { color: 'info', icon: 'medicalcross' },
-  running:            { color: 'success', icon: 'dot-open' },
-  skipped:            { color: 'info', icon: 'dot-open' },
-  starting:           { color: 'info', icon: 'adjust' },
-  stopped:            { color: 'error', icon: 'dot' },
-  stopping:           { color: 'info', icon: 'adjust' },
-  succeeded:          { color: 'success', icon: 'dot-dotfill' },
-  success:            { color: 'success', icon: 'dot-open' },
-  superseded:         { color: 'info', icon: 'dot-open' },
-  suspended:          { color: 'info', icon: 'pause' },
-  unavailable:        { color: 'error', icon: 'error' },
-  unhealthy:          { color: 'error', icon: 'error' },
-  uninstalled:        { color: 'info', icon: 'trash' },
-  uninstalling:       { color: 'info', icon: 'trash' },
-  unknown:            { color: 'warning', icon: 'x' },
-  untriggered:        { color: 'success', icon: 'tag' },
-  updating:           { color: 'warning', icon: 'tag' },
-  waiting:            { color: 'info', icon: 'tag' },
+  'pending-upgrade': { color: 'info', icon: 'dot-half' },
+  aborted: { color: 'warning', icon: 'error' },
+  activating: { color: 'info', icon: 'tag' },
+  active: { color: 'success', icon: 'dot-open' },
+  available: { color: 'success', icon: 'dot-open' },
+  backedup: { color: 'success', icon: 'backup' },
+  bound: { color: 'success', icon: 'dot' },
+  building: { color: 'success', icon: 'dot-open' },
+  cordoned: { color: 'info', icon: 'tag' },
+  created: { color: 'info', icon: 'tag' },
+  creating: { color: 'info', icon: 'tag' },
+  deactivating: { color: 'info', icon: 'adjust' },
+  degraded: { color: 'warning', icon: 'error' },
+  denied: { color: 'error', icon: 'adjust' },
+  deployed: { color: 'success', icon: 'dot-open' },
+  disabled: { color: 'warning', icon: 'error' },
+  disconnected: { color: 'warning', icon: 'error' },
+  error: { color: 'error', icon: 'error' },
+  erroring: { color: 'error', icon: 'error' },
+  expired: { color: 'warning', icon: 'error' },
+  failed: { color: 'error', icon: 'error' },
+  healthy: { color: 'success', icon: 'dot-open' },
+  inactive: { color: 'error', icon: 'dot' },
+  initializing: { color: 'warning', icon: 'error' },
+  locked: { color: 'warning', icon: 'adjust' },
+  migrating: { color: 'info', icon: 'info' },
+  paused: { color: 'info', icon: 'info' },
+  pending: { color: 'info', icon: 'tag' },
+  provisioning: { color: 'info', icon: 'dot' },
+  purged: { color: 'error', icon: 'purged' },
+  purging: { color: 'info', icon: 'purged' },
+  reconnecting: { color: 'error', icon: 'error' },
+  registering: { color: 'info', icon: 'tag' },
+  reinitializing: { color: 'warning', icon: 'error' },
+  released: { color: 'warning', icon: 'error' },
+  removed: { color: 'error', icon: 'trash' },
+  removing: { color: 'info', icon: 'trash' },
+  requested: { color: 'info', icon: 'tag' },
+  restarting: { color: 'info', icon: 'adjust' },
+  restoring: { color: 'info', icon: 'medicalcross' },
+  running: { color: 'success', icon: 'dot-open' },
+  skipped: { color: 'info', icon: 'dot-open' },
+  starting: { color: 'info', icon: 'adjust' },
+  stopped: { color: 'error', icon: 'dot' },
+  stopping: { color: 'info', icon: 'adjust' },
+  succeeded: { color: 'success', icon: 'dot-dotfill' },
+  success: { color: 'success', icon: 'dot-open' },
+  superseded: { color: 'info', icon: 'dot-open' },
+  suspended: { color: 'info', icon: 'pause' },
+  unavailable: { color: 'error', icon: 'error' },
+  unhealthy: { color: 'error', icon: 'error' },
+  uninstalled: { color: 'info', icon: 'trash' },
+  uninstalling: { color: 'info', icon: 'trash' },
+  unknown: { color: 'warning', icon: 'x' },
+  untriggered: { color: 'success', icon: 'tag' },
+  updating: { color: 'warning', icon: 'tag' },
+  waiting: { color: 'info', icon: 'tag' },
 };
 
 const SORT_ORDER = {
-  error:   1,
+  error: 1,
   warning: 2,
-  info:    3,
+  info: 3,
   success: 4,
-  other:   5,
+  other: 5,
 };
 
 export default {
@@ -153,21 +153,21 @@ export default {
   _key() {
     const m = this.metadata;
 
-    if ( m ) {
-      if ( m.uid ) {
+    if (m) {
+      if (m.uid) {
         return m.uid;
       }
 
-      if ( m.namespace ) {
-        return `${ this.type }/${ m.namespace }/${ m.name }`;
+      if (m.namespace) {
+        return `${this.type}/${m.namespace}/${m.name}`;
       }
     }
 
-    if ( this.id ) {
-      return `${ this.type }/${ this.id }`;
+    if (this.id) {
+      return `${this.type}/${this.id}`;
     }
 
-    return `${ this.type }/${ Math.random() }`;
+    return `${this.type}/${Math.random()}`;
   },
 
   schema() {
@@ -176,7 +176,7 @@ export default {
 
   toString() {
     return () => {
-      return `[${ this.type }: ${ this.id }]`;
+      return `[${this.type}: ${this.id}]`;
     };
   },
 
@@ -203,7 +203,7 @@ export default {
   typeDisplay() {
     const schema = this.schema;
 
-    if ( schema ) {
+    if (schema) {
       return this.$rootGetters['type-map/labelFor'](schema);
     }
 
@@ -222,8 +222,8 @@ export default {
     const namespace = this.metadata?.namespace;
     const name = this.nameDisplay;
 
-    if ( namespace ) {
-      return `${ namespace }:${ name }`;
+    if (namespace) {
+      return `${namespace}:${name}`;
     }
 
     return name;
@@ -245,7 +245,7 @@ export default {
     const name = this.metadata?.namespace;
     let out;
 
-    if ( name ) {
+    if (name) {
       out = this.$rootGetters['i18n/t']('resourceTable.groupLabel.namespace', { name: escapeHtml(name) });
     } else {
       out = this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInANamespace');
@@ -256,17 +256,17 @@ export default {
 
   setLabel() {
     return (key, val) => {
-      if ( val ) {
-        if ( !this.metadata ) {
+      if (val) {
+        if (!this.metadata) {
           this.metadata = {};
         }
 
-        if ( !this.metadata.labels ) {
+        if (!this.metadata.labels) {
           this.metadata.labels = {};
         }
 
         Vue.set(this.metadata.labels, key, val);
-      } else if ( this.metadata?.labels ) {
+      } else if (this.metadata?.labels) {
         Vue.set(this.metadata.labels, key, undefined);
         delete this.metadata.labels[key];
       }
@@ -275,17 +275,17 @@ export default {
 
   setAnnotation() {
     return (key, val) => {
-      if ( val ) {
-        if ( !this.metadata ) {
+      if (val) {
+        if (!this.metadata) {
           this.metadata = {};
         }
 
-        if ( !this.metadata.annotations ) {
+        if (!this.metadata.annotations) {
           this.metadata.annotations = {};
         }
 
         Vue.set(this.metadata.annotations, key, val);
-      } else if ( this.metadata?.annotations ) {
+      } else if (this.metadata?.annotations) {
         Vue.set(this.metadata.annotations, key, undefined);
         delete this.metadata.annotations[key];
       }
@@ -304,7 +304,7 @@ export default {
 
   _stateDisplay() {
     return (state) => {
-      if ( REMAP_STATE[state] ) {
+      if (REMAP_STATE[state]) {
         return REMAP_STATE[state];
       }
 
@@ -314,22 +314,22 @@ export default {
 
   stateColor() {
     return (state) => {
-      if ( state?.error ) {
+      if (state?.error) {
         return 'text-error';
       }
 
       const key = (state || '').toLowerCase();
       let color;
 
-      if ( STATES[key] && STATES[key].color ) {
+      if (STATES[key] && STATES[key].color) {
         color = this.maybeFn(STATES[key].color);
       }
 
-      if ( !color ) {
+      if (!color) {
         color = DEFAULT_COLOR;
       }
 
-      return `text-${ color }`;
+      return `text-${color}`;
     };
   },
 
@@ -341,37 +341,37 @@ export default {
     let trans = false;
     let error = false;
 
-    if ( this.metadata && this.metadata.state ) {
+    if (this.metadata && this.metadata.state) {
       trans = this.metadata.state.transitioning;
       error = this.metadata.state.error;
     }
 
-    if ( trans ) {
+    if (trans) {
       return 'icon icon-spinner icon-spin';
     }
 
-    if ( error ) {
+    if (error) {
       return 'icon icon-error';
     }
 
     const key = (this.state || '').toLowerCase();
     let icon;
 
-    if ( STATES[key] && STATES[key].icon ) {
+    if (STATES[key] && STATES[key].icon) {
       icon = this.maybeFn(STATES[key].icon);
     }
 
-    if ( !icon ) {
+    if (!icon) {
       icon = DEFAULT_ICON;
     }
 
-    return `icon icon-${ icon }`;
+    return `icon icon-${icon}`;
   },
 
   stateSort() {
     const color = this.stateColor.replace('text-', '');
 
-    return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ this.stateDisplay }`;
+    return `${SORT_ORDER[color] || SORT_ORDER['other']} ${this.stateDisplay}`;
   },
 
   showMessage() {
@@ -388,17 +388,17 @@ export default {
     return (fn, msg, timeoutMs, intervalMs) => {
       console.log('Starting wait for', msg); // eslint-disable-line no-console
 
-      if ( !timeoutMs ) {
+      if (!timeoutMs) {
         timeoutMs = DEFAULT_WAIT_TMIMEOUT;
       }
 
-      if ( !intervalMs ) {
+      if (!intervalMs) {
         intervalMs = DEFAULT_WAIT_INTERVAL;
       }
 
       return new Promise((resolve, reject) => {
         // Do a first check immediately
-        if ( fn.apply(this) ) {
+        if (fn.apply(this)) {
           console.log('Wait for', msg, 'done immediately'); // eslint-disable-line no-console
           resolve(this);
         }
@@ -407,11 +407,11 @@ export default {
           console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
           clearInterval(interval);
           clearTimeout(timeout);
-          reject(new Error(`Failed while: ${ msg }`));
+          reject(new Error(`Failed while: ${msg}`));
         }, timeoutMs);
 
         const interval = setInterval(() => {
-          if ( fn.apply(this) ) {
+          if (fn.apply(this)) {
             console.log('Wait for', msg, 'done'); // eslint-disable-line no-console
             clearInterval(interval);
             clearTimeout(timeout);
@@ -428,7 +428,7 @@ export default {
     return (state, timeout, interval) => {
       return this.waitForTestFn(() => {
         return (this.state || '').toLowerCase() === state.toLowerCase();
-      }, `state=${ state }`, timeout, interval);
+      }, `state=${state}`, timeout, interval);
     };
   },
 
@@ -444,7 +444,7 @@ export default {
     return (name) => {
       return this.waitForTestFn(() => {
         return this.hasAction(name);
-      }, `action=${ name }`);
+      }, `action=${name}`);
     };
   },
 
@@ -452,27 +452,27 @@ export default {
     return (name) => {
       return this.waitForTestFn(() => {
         return this.hasLink(name);
-      }, `link=${ name }`);
+      }, `link=${name}`);
     };
   },
 
   hasCondition() {
     return (condition, withStatus = 'True') => {
-      if ( !this.status || !this.status.conditions ) {
+      if (!this.status || !this.status.conditions) {
         return false;
       }
 
       const entry = findBy((this.status.conditions || []), 'type', condition);
 
-      if ( !entry ) {
+      if (!entry) {
         return false;
       }
 
-      if ( !withStatus ) {
+      if (!withStatus) {
         return true;
       }
 
-      return (entry.status || '').toLowerCase() === `${ withStatus }`.toLowerCase();
+      return (entry.status || '').toLowerCase() === `${withStatus}`.toLowerCase();
     };
   },
 
@@ -480,7 +480,7 @@ export default {
     return (name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) => {
       return this.waitForTestFn(() => {
         return this.hasCondition(name, withStatus);
-      }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
+      }, `condition ${name}=${withStatus}`, timeoutMs, intervalMs);
     };
   },
 
@@ -492,7 +492,7 @@ export default {
     // Remove disabled items and consecutive dividers
     let last = null;
     const out = all.filter((item) => {
-      if ( item.enabled === false ) {
+      if (item.enabled === false) {
         return false;
       }
 
@@ -505,12 +505,12 @@ export default {
     });
 
     // Remove dividers at the beginning
-    while ( out.length && out[0].divider ) {
+    while (out.length && out[0].divider) {
       out.shift();
     }
 
     // Remove dividers at the end
-    while ( out.length && out[out.length - 1].divider ) {
+    while (out.length && out[out.length - 1].divider) {
       out.pop();
     }
 
@@ -525,60 +525,60 @@ export default {
   _standardActions() {
     const all = [
       {
-        action:  'goToEdit',
-        label:   'Edit as Form',
-        icon:    'icon icon-fw icon-edit',
-        enabled:  this.canUpdate && this.canCustomEdit,
+        action: 'goToEdit',
+        label: 'Edit as Form',
+        icon: 'icon icon-edit',
+        enabled: this.canUpdate && this.canCustomEdit,
       },
       {
-        action:  'goToClone',
-        label:   'Clone as Form',
-        icon:    'icon icon-fw icon-copy',
-        enabled:  this.canCreate && this.canCustomEdit,
+        action: 'goToClone',
+        label: 'Clone as Form',
+        icon: 'icon icon-copy',
+        enabled: this.canCreate && this.canCustomEdit,
       },
       { divider: true },
       {
-        action:  'goToEditYaml',
-        label:   'Edit as YAML',
-        icon:    'icon icon-file',
+        action: 'goToEditYaml',
+        label: 'Edit as YAML',
+        icon: 'icon icon-file',
         enabled: this.canUpdate && this.canYaml,
       },
       {
-        action:  'goToViewYaml',
-        label:   'View as YAML',
-        icon:    'icon icon-file',
+        action: 'goToViewYaml',
+        label: 'View as YAML',
+        icon: 'icon icon-file',
         enabled: !this.canUpdate && this.canYaml
       },
       {
-        action:  'cloneYaml',
-        label:   'Clone as YAML',
-        icon:    'icon icon-fw icon-copy',
-        enabled:  this.canCreate && this.canYaml,
+        action: 'cloneYaml',
+        label: 'Clone as YAML',
+        icon: 'icon icon-copy',
+        enabled: this.canCreate && this.canYaml,
       },
       {
-        action:     'download',
-        label:      'Download YAML',
-        icon:       'icon icon-fw icon-download',
-        bulkable:   true,
+        action: 'download',
+        label: 'Download YAML',
+        icon: 'icon icon-download',
+        bulkable: true,
         bulkAction: 'downloadBulk',
-        enabled:    this.canYaml
+        enabled: this.canYaml
       },
       { divider: true },
       {
-        action:     'promptRemove',
-        altAction:  'remove',
-        label:      'Delete',
-        icon:       'icon icon-fw icon-trash',
-        bulkable:   true,
-        enabled:    this.canDelete,
+        action: 'promptRemove',
+        altAction: 'remove',
+        label: 'Delete',
+        icon: 'icon icon-trash',
+        bulkable: true,
+        enabled: this.canDelete,
         bulkAction: 'promptRemove',
       },
       { divider: true },
       {
-        action:  'viewInApi',
-        label:   'View in API',
-        icon:    'icon icon-fw icon-external-link',
-        enabled:  this.canViewInApi,
+        action: 'viewInApi',
+        label: 'View in API',
+        icon: 'icon icon-external-link',
+        enabled: this.canViewInApi,
       }
     ];
 
@@ -587,7 +587,7 @@ export default {
 
   maybeFn() {
     return (val) => {
-      if ( isFunction(val) ) {
+      if (isFunction(val)) {
         return val(this);
       }
 
@@ -637,16 +637,16 @@ export default {
 
   followLink() {
     return (linkName, opt = {}) => {
-      if ( !opt.url ) {
+      if (!opt.url) {
         opt.url = (this.links || {})[linkName];
       }
 
-      if ( opt.urlSuffix ) {
+      if (opt.urlSuffix) {
         opt.url += opt.urlSuffix;
       }
 
-      if ( !opt.url ) {
-        throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
+      if (!opt.url) {
+        throw new Error(`Unknown link ${linkName} on ${this.type} ${this.id}`);
       }
 
       return this.$dispatch('request', opt);
@@ -669,7 +669,7 @@ export default {
 
   doAction() {
     return (actionName, body, opt = {}) => {
-      if ( !opt.url ) {
+      if (!opt.url) {
         opt.url = this.actionLinkFor(actionName);
       }
 
@@ -684,7 +684,7 @@ export default {
 
   patch() {
     return (data, opt = {}) => {
-      if ( !opt.url ) {
+      if (!opt.url) {
         opt.url = this.linkFor('self');
       }
 
@@ -698,7 +698,7 @@ export default {
   },
 
   save() {
-    return async(opt = {}) => {
+    return async (opt = {}) => {
       delete this.__rehydrate;
       const forNew = !this.id;
       const errors = await this.validationErrors(this);
@@ -707,13 +707,13 @@ export default {
         return Promise.reject(errors);
       }
 
-      if ( !opt.url ) {
-        if ( forNew ) {
+      if (!opt.url) {
+        if (forNew) {
           const schema = this.$getters['schemaFor'](this.type);
           let url = schema.linkFor('collection');
 
-          if ( schema.attributes && schema.attributes.namespaced ) {
-            url += `/${ this.metadata.namespace }`;
+          if (schema.attributes && schema.attributes.namespaced) {
+            url += `/${this.metadata.namespace}`;
           }
 
           opt.url = url;
@@ -722,19 +722,19 @@ export default {
         }
       }
 
-      if ( !opt.method ) {
-        opt.method = ( forNew ? 'post' : 'put' );
+      if (!opt.method) {
+        opt.method = (forNew ? 'post' : 'put');
       }
 
-      if ( !opt.headers ) {
+      if (!opt.headers) {
         opt.headers = {};
       }
 
-      if ( !opt.headers['content-type'] ) {
+      if (!opt.headers['content-type']) {
         opt.headers['content-type'] = 'application/json';
       }
 
-      if ( !opt.headers['accept'] ) {
+      if (!opt.headers['accept']) {
         opt.headers['accept'] = 'application/json';
       }
 
@@ -750,8 +750,8 @@ export default {
       // console.log('### Resource Save', this.type, this.id);
 
       // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
-      if ( res && res.kind !== 'Table') {
-        await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
+      if (res && res.kind !== 'Table') {
+        await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined) });
       }
 
       return this;
@@ -759,8 +759,8 @@ export default {
   },
 
   remove() {
-    return async(opt = {}) => {
-      if ( !opt.url ) {
+    return async (opt = {}) => {
+      if (!opt.url) {
         opt.url = (this.links || {})['self'];
       }
 
@@ -768,7 +768,7 @@ export default {
 
       const res = await this.$dispatch('request', opt);
 
-      if ( res?._status === 204 ) {
+      if (res?._status === 204) {
         // If there's no body, assume the resource was immediately deleted
         // and drop it from the store as if a remove event happened.
         this.$dispatch('ws.resource.remove', { data: this });
@@ -780,7 +780,7 @@ export default {
 
   currentRoute() {
     return () => {
-      if ( process.server ) {
+      if (process.server) {
         return this.$rootState.$route;
       } else {
         return window.$nuxt.$route;
@@ -790,7 +790,7 @@ export default {
 
   currentRouter() {
     return () => {
-      if ( process.server ) {
+      if (process.server) {
         return this.$rootState.$router;
       } else {
         return window.$nuxt.$router;
@@ -800,11 +800,11 @@ export default {
 
   listLocation() {
     return {
-      name:   `c-cluster-product-resource`,
+      name: `c-cluster-product-resource`,
       params: {
-        product:   this.$rootGetters['productId'],
-        cluster:   this.$rootGetters['clusterId'],
-        resource:  this.type,
+        product: this.$rootGetters['productId'],
+        cluster: this.$rootGetters['clusterId'],
+        resource: this.type,
       }
     };
   },
@@ -815,11 +815,11 @@ export default {
     const id = this.id.replace(/.*\//, '');
 
     return {
-      name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
+      name: `c-cluster-product-resource${schema?.attributes?.namespaced ? '-namespace' : ''}-id`,
       params: {
-        product:   this.$rootGetters['productId'],
-        cluster:   this.$rootGetters['clusterId'],
-        resource:  this.type,
+        product: this.$rootGetters['productId'],
+        cluster: this.$rootGetters['clusterId'],
+        resource: this.type,
         namespace: this.metadata?.namespace,
         id,
       }
@@ -860,7 +860,7 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]:      _EDIT,
+        [MODE]: _EDIT,
         [AS_YAML]: _FLAGGED
       };
 
@@ -874,7 +874,7 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]:      _VIEW,
+        [MODE]: _VIEW,
         [AS_YAML]: _FLAGGED
       };
 
@@ -888,7 +888,7 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]:      _CLONE,
+        [MODE]: _CLONE,
         [AS_YAML]: _FLAGGED,
         ...moreQuery
       };
@@ -898,25 +898,25 @@ export default {
   },
 
   download() {
-    return async() => {
+    return async () => {
       const link = this.hasLink('rioview') ? 'rioview' : 'view';
       const value = await this.followLink(link, { headers: { accept: 'application/yaml' } });
 
-      downloadFile(`${ this.nameDisplay }.yaml`, value.data, 'application/yaml');
+      downloadFile(`${this.nameDisplay}.yaml`, value.data, 'application/yaml');
     };
   },
 
   downloadBulk() {
-    return async(items) => {
+    return async (items) => {
       const files = {};
       const names = [];
 
-      for ( const item of items ) {
-        let name = `${ item.nameDisplay }.yaml`;
+      for (const item of items) {
+        let name = `${item.nameDisplay}.yaml`;
         const i = 2;
 
-        while ( names.includes(name) ) {
-          name = `${ item.nameDisplay }_${ i }.yaml`;
+        while (names.includes(name)) {
+          name = `${item.nameDisplay}_${i}.yaml`;
         }
 
         names.push(name);
@@ -925,8 +925,8 @@ export default {
       await eachLimit(items, 10, (item, idx) => {
         const link = item.hasLink('rioview') ? 'rioview' : 'view';
 
-        return item.followLink(link, { headers: { accept: 'application/yaml' } } ).then((data) => {
-          files[`resources/${ names[idx] }`] = data;
+        return item.followLink(link, { headers: { accept: 'application/yaml' } }).then((data) => {
+          files[`resources/${names[idx]}`] = data;
         });
       });
 
@@ -985,7 +985,7 @@ export default {
 
   urlFromAttrs() {
     const schema = this.$getters['schemaFor'](this.type);
-    const { metadata:{ namespace = 'default' } } = this;
+    const { metadata: { namespace = 'default' } } = this;
     let url = schema.links.collection;
 
     const attributes = schema?.attributes;
@@ -995,7 +995,7 @@ export default {
     }
     const { group, resource } = attributes;
 
-    url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/namespaces/${ namespace }/${ resource }`;
+    url = `${url.slice(0, url.indexOf('/v1'))}/apis/${group}/namespaces/${namespace}/${resource}`;
 
     return url;
   },
@@ -1051,14 +1051,14 @@ export default {
       } = data;
       const type = normalizeType(originalType);
 
-      if ( !originalType ) {
+      if (!originalType) {
         // eslint-disable-next-line
         console.warn(this.$rootGetters['i18n/t']('validation.noType'), data);
 
         return errors;
       }
 
-      if ( !schema ) {
+      if (!schema) {
         // eslint-disable-next-line
         console.warn(this.$rootGetters['i18n/t']('validation.noSchema'), originalType, data);
 
@@ -1069,7 +1069,7 @@ export default {
       const keys = Object.keys(fields);
       let field, key, val, displayKey;
 
-      for ( let i = 0 ; i < keys.length ; i++ ) {
+      for (let i = 0; i < keys.length; i++) {
         key = keys[i];
         field = fields[key];
         val = get(data, key);
@@ -1078,11 +1078,11 @@ export default {
         const fieldType = field?.type ? normalizeType(field.type) : null;
         const valIsString = isString(val);
 
-        if ( ignoreFields && ignoreFields.includes(key) ) {
+        if (ignoreFields && ignoreFields.includes(key)) {
           continue;
         }
 
-        if ( val === undefined ) {
+        if (val === undefined) {
           val = null;
         }
 
@@ -1092,7 +1092,7 @@ export default {
           }
 
           // Empty strings on nullable string fields -> null
-          if ( field.nullable && val.length === 0 && STRING_LIKE_TYPES.includes(fieldType)) {
+          if (field.nullable && val.length === 0 && STRING_LIKE_TYPES.includes(fieldType)) {
             val = null;
 
             Vue.set(data, key, val);
@@ -1109,11 +1109,11 @@ export default {
         }
 
         // IDs claim to be these but are lies...
-        if ( key !== 'id' && !isEmpty(val) && DNS_LIKE_TYPES.includes(fieldType) ) {
+        if (key !== 'id' && !isEmpty(val) && DNS_LIKE_TYPES.includes(fieldType)) {
           // DNS types should be lowercase
           const tolower = (val || '').toLowerCase();
 
-          if ( tolower !== val ) {
+          if (tolower !== val) {
             val = tolower;
 
             Vue.set(data, key, val);
@@ -1160,11 +1160,11 @@ export default {
           validateLength(pathValue, rule, displayKey, this.$rootGetters, errors);
           validateChars(pathValue, rule, displayKey, this.$rootGetters, errors);
 
-          if ( !isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType) ) {
+          if (!isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType)) {
             // DNS types should be lowercase
             const tolower = (pathValue || '').toLowerCase();
 
-            if ( tolower !== pathValue ) {
+            if (tolower !== pathValue) {
               pathValue = tolower;
 
               Vue.set(data, path, pathValue);
@@ -1194,7 +1194,7 @@ export default {
   },
 
   ownersByType() {
-    const { metadata:{ ownerReferences = [] } } = this;
+    const { metadata: { ownerReferences = [] } } = this;
     const ownersByType = {};
 
     ownerReferences.forEach((owner) => {
@@ -1211,12 +1211,12 @@ export default {
   owners() {
     const owners = [];
 
-    for ( const kind in this.ownersByType) {
+    for (const kind in this.ownersByType) {
       const schema = this.$rootGetters['cluster/schema'](kind);
 
       if (schema) {
         const type = schema.id;
-        const allOfResourceType = this.$rootGetters['cluster/all']( type );
+        const allOfResourceType = this.$rootGetters['cluster/all'](type);
 
         this.ownersByType[kind].forEach((resource, idx) => {
           const resourceInstance = allOfResourceType.find(resource => resource?.metdata?.uid === resource.uid);
@@ -1236,12 +1236,12 @@ export default {
 
     if (this.owners?.length > 0) {
       details.push({
-        label:     this.t('resourceDetail.detailTop.ownerReferences'),
+        label: this.t('resourceDetail.detailTop.ownerReferences'),
         formatter: 'ListLinkDetail',
-        content:   this.owners.map(owner => ({
-          key:   owner.id,
-          row:   owner,
-          col:   {},
+        content: this.owners.map(owner => ({
+          key: owner.id,
+          row: owner,
+          col: {},
           value: owner.metadata.name
         }))
       });
@@ -1249,10 +1249,10 @@ export default {
 
     if (get(this, 'metadata.deletionTimestamp')) {
       details.push({
-        label:         this.t('resourceDetail.detailTop.deleted'),
-        formatter:     'LiveDate',
+        label: this.t('resourceDetail.detailTop.deleted'),
+        formatter: 'LiveDate',
         formatterOpts: { addSuffix: true },
-        content:       get(this, 'metadata.deletionTimestamp')
+        content: get(this, 'metadata.deletionTimestamp')
       });
     }
 
@@ -1276,42 +1276,42 @@ export default {
   },
 
   _getRelationship() {
-    return async(rel, direction) => {
+    return async (rel, direction) => {
       const out = [];
 
-      if ( !rel ) {
+      if (!rel) {
         throw new Error('Must provide rel');
       }
 
-      if ( !this.metadata?.relationships?.length ) {
+      if (!this.metadata?.relationships?.length) {
         return out;
       }
 
-      for ( const r of this.metadata.relationships ) {
-        if ( rel !== 'any' && r.rel !== rel ) {
+      for (const r of this.metadata.relationships) {
+        if (rel !== 'any' && r.rel !== rel) {
           continue;
         }
 
-        if ( !r[`${ direction }Type`] ) {
+        if (!r[`${direction}Type`]) {
           continue;
         }
 
-        if ( r.selector ) {
+        if (r.selector) {
           const matching = await this.$dispatch('findMatching', {
-            type:      r.toType,
+            type: r.toType,
             namespace: r.toNamespace,
-            selector:  r.selector
+            selector: r.selector
           });
 
           addObjects(out, matching.data);
         } else {
-          const type = r[`${ direction }Type`];
-          const ns = r[`${ direction }Namespace`];
-          const id = (ns ? `${ ns }/` : '') + r[`${ direction }Id`];
+          const type = r[`${direction}Type`];
+          const ns = r[`${direction}Namespace`];
+          const id = (ns ? `${ns}/` : '') + r[`${direction}Id`];
 
           const matching = await this.$dispatch('find', { type, id });
 
-          if ( matching ) {
+          if (matching) {
             addObject(out, matching);
           }
         }
