@@ -66,28 +66,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="isViewing" :class="{'labeled-input': true, [mode]: true, disabled}">
-    <slot name="label">
-      <label>
-        {{ label }}
-        <span v-if="required && !value" class="required">*</span>
-      </label>
-    </slot>
-    <label v-if="!!(this.$slots.corner || [])[0]" class="corner">
-      <slot name="corner" />
-    </label>
-    <slot name="prefix" />
-    <div :class="{'no-label':!(label||'').length}">
-      <span v-if="value">
-        {{ value }}
-        <slot name="suffix" />
-      </span>
-      <span v-else>
-        <t k="generic.na" :raw="true" />
-      </span>
-    </div>
-  </div>
-  <div v-else :class="{'labeled-input': true, raised, focused, [mode]: true, disabled}">
+  <div :class="{'labeled-input': true, raised, focused, [mode]: true, disabled}">
     <slot name="label">
       <label>
         {{ label }}

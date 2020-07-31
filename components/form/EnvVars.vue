@@ -98,6 +98,7 @@ export default {
       :pad-left="false"
       :as-map="false"
       :read-allowed="false"
+      :add-allowed="false"
       class="mb-10"
     >
       <template #key="{row}">

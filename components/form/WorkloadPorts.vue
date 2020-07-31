@@ -67,7 +67,7 @@ export default {
         expose:        true,
         protocol:      'TCP',
         containerPort: null,
-        hostPort:      false
+        hostPort:      null
       });
 
       this.queueUpdate();
@@ -94,7 +94,7 @@ export default {
       for ( const row of this.rows ) {
         const value = clone(row);
 
-        if ( value.hostPort ) {
+        if ( value.containerPort ) {
           out.push(value);
         }
       }
@@ -173,7 +173,7 @@ export default {
               v-model="row.protocol"
               :style="{'height':'50px'}"
               class="inline"
-              :options="['TCP', 'UDP', 'SCTP']"
+              :options="['TCP', 'UDP']"
               :searchable="false"
               :multiple="false"
               @input="queueUpdate"

@@ -466,23 +466,25 @@ export default {
     </div>
 
     <div v-if="showAdd || showRead" class="footer mt-10">
-      <ButtonDropdown size="sm">
-        <template #button-content>
-          <button v-if="showAdd" type="button" class="btn btn-sm add" @click="add()">
-            {{ addLabel }}
-          </button>
-          <button v-else type="button" class="btn btn-sm" @click="readFromFile">
-            {{ readLabel }}
-          </button>
-        </template>
-        <template v-if="showRead && showAdd" #popover-content>
-          <ul class="list-unstyled">
-            <li @click="readFromFile">
+      <slot name="add">
+        <ButtonDropdown size="sm">
+          <template #button-content>
+            <button v-if="showAdd" type="button" class="btn btn-sm add" @click="add()">
+              {{ addLabel }}
+            </button>
+            <button v-else type="button" class="btn btn-sm" @click="readFromFile">
               {{ readLabel }}
-            </li>
-          </ul>
-        </template>
-      </ButtonDropdown>
+            </button>
+          </template>
+          <template v-if="showRead && showAdd" #popover-content>
+            <ul class="list-unstyled">
+              <li @click="readFromFile">
+                {{ readLabel }}
+              </li>
+            </ul>
+          </template>
+        </ButtonDropdown>
+      </slot>
     </div>
 
     <input

@@ -8,7 +8,7 @@ export default {
   components: { MatchExpressions },
 
   props:      {
-    // value should be PodAffinity
+    // value should be PodAffinity / PodAntiAffinity
     value: {
       type:    Object,
       default: () => {
