@@ -75,13 +75,11 @@ export default {
     },
 
     execute(action, event, args) {
-      if (isAlternate(event)) {
-        if (!args) {
-          args = {};
-        }
-        args.alt = true;
-      }
-      this.$store.dispatch('action-menu/execute', { action, args });
+      const opts = { alt: isAlternate(event) };
+
+      this.$store.dispatch('action-menu/execute', {
+        action, args, opts
+      });
       this.hide();
     }
   },

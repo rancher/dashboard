@@ -349,14 +349,12 @@ export default {
       }
     },
 
-    applyTableAction(action, args = {}, event) {
-      if (isAlternate(event)) {
-        if (!args) {
-          args = {};
-        }
-        args.alt = true;
-      }
-      this.$store.dispatch(`${ this.storeName }/executeTable`, { action, args });
+    applyTableAction(action, args, event) {
+      const opts = { alt: isAlternate(event) };
+
+      this.$store.dispatch(`${ this.storeName }/executeTable`, {
+        action, args, opts
+      });
       this.$store.commit(`${ this.storeName }/setBulkActionOfInterest`, null);
     }
   }
