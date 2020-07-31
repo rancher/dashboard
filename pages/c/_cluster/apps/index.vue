@@ -212,7 +212,7 @@ export default {
       border-radius: calc( 3 * var(--border-radius));
 
       &:hover {
-        box-shadow: 0 0 0 2px var(--body-text);
+        box-shadow: 0 0 30px var(--shadow);
         transition: box-shadow 0.1s ease-in-out;
         cursor: pointer;
       }
