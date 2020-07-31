@@ -7,7 +7,11 @@ import { asciiLike, escapeHtml } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
+import ClickExpand from '@/components/formatter/ClickExpand';
 import { get } from '@/utils/object';
+import CodeMirror from '@/components/CodeMirror';
+import { mapGetters } from 'vuex';
+import ButtonDropdown from '@/components/ButtonDropdown';
 
 const LARGE_LIMIT = 2 * 1024;
 
@@ -20,7 +24,12 @@ const LARGE_LIMIT = 2 * 1024;
 */
 
 export default {
-  components: { TextAreaAutoGrow },
+  components: {
+    TextAreaAutoGrow,
+    ClickExpand,
+    CodeMirror,
+    ButtonDropdown
+  },
 
   props: {
     value: {
@@ -211,41 +220,11 @@ export default {
       return !this.isView && this.removeAllowed;
     },
 
-    headers() {
-      const out = [
-        {
-          name:  'key',
-          label: 'Key',
-          value: this.keyName,
-        },
-        {
-          name:  'value',
-          label: 'Value',
-          value: this.valueName,
-        }
-      ];
-
-      if ( this.showRemove ) {
-        out.push({
-          name:  'remove',
-          label: '',
-          value: '',
-          align: 'right',
-          width: 100
-        });
-      }
-
-      if ( this.valueBinary && this.isView ) {
-        out.push({
-          name:  'download',
-          label: 'Download',
-          value: '',
-          align: 'right'
-        });
-      }
-
-      return out;
+    threeColumns() {
+      return (this.valueBinary && this.isView) || this.showRemove;
     },
+
+    ...mapGetters({ t: 'i18n/t' })
   },
 
   created() {
@@ -261,9 +240,10 @@ export default {
       });
       this.queueUpdate();
       this.$nextTick(() => {
-        const inputs = this.$refs.key;
+        const keys = this.$refs.key;
+        const lastKey = keys[keys.length - 1];
 
-        inputs[inputs.length - 1].focus();
+        lastKey.focus();
       });
     },
 
@@ -271,6 +251,7 @@ export default {
       removeAt(this.rows, idx);
       this.queueUpdate();
     },
+
     removeEmptyRows() {
       const cleaned = this.rows.filter((row) => {
         return (row.value.length || row.key.length);
@@ -278,6 +259,7 @@ export default {
 
       this.$set(this, 'rows', cleaned);
     },
+
     readFromFile() {
       this.$refs.uploader.click();
     },
@@ -392,110 +374,115 @@ export default {
         <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" />
       </div>
     </template>
-    <SortableTable
-      v-show="rows.length || isView"
-      :headers="headers"
-      :rows="rows"
-      :search="false"
-      :table-actions="false"
-      :row-actions="false"
-      :show-no-rows="isView"
-      key-field="id"
-    >
-      <template #col:key="{row}">
-        <td class="key">
-          <slot
-            name="key"
-            :row="row"
-            :mode="mode"
-            :keyName="keyName"
-            :valueName="valueName"
-            :isView="isView"
-          >
-            <div v-if="isView" class="view force-wrap">
-              {{ row[keyName] }}
-            </div>
-            <input
-              v-else
-              ref="key"
-              v-model="row[keyName]"
-              :placeholder="keyPlaceholder"
-              @input="queueUpdate"
-            />
-          </slot>
-        </td>
-      </template>
-      <template #col:value="{row}">
-        <td class="value">
-          <slot
-            name="value"
-            :row="row"
-            :mode="mode"
-            :keyName="keyName"
-            :valueName="valueName"
-            :isView="isView"
-            :queueUpdate="queueUpdate"
-          >
-            <div v-if="isView" class="view force-wrap">
-              <span v-if="valueBinary || get(row, '_display.binary')">
-                {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
-              </span>
-              <template v-else-if="get(row, '_display.parsed')">
-                <CodeMirror
-                  :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
-                  :value="row[valueName]"
-                />
-              </template>
-              <ClickExpand v-else-if="get(row, '_display.isLarge')" :value="row[valueName]" :size="get(row, '_display.byteSize')" />
-              <span v-else-if="get(row, '_display.withBreaks')" v-html="get(row, '_display.withBreaks')" />
-              <span v-else class="text-muted">&mdash;</span>
-            </div>
-            <TextAreaAutoGrow
-              v-else-if="valueMultiline"
-              v-model="row[valueName]"
-              :placeholder="valuePlaceholder"
-              :min-height="50"
-              :spellcheck="false"
-              @input="queueUpdate"
-            />
-            <input
-              v-else
-              v-model="row[valueName]"
-              :placeholder="valuePlaceholder"
-              autocorrect="off"
-              autocapitalize="off"
-              spellcheck="false"
-              @input="queueUpdate"
-            />
-          </slot>
-        </td>
-      </template>
-      <template v-if="valueBinary" #col:download="{row}">
-        <td class="download" :data-title="valueLabel">
-          <a href="#" @click="download(row)">Download</a>
-        </td>
-      </template>
-      <template #col:remove="{row}">
-        <td class="remove">
-          <slot name="removeButton" :remove="remove" :row="row">
-            <button type="button" class="btn bg-transparent role-link" @click="remove(row)">
-              {{ removeLabel }}
-            </button>
-          </slot>
-        </td>
-      </template>
-    </SortableTable>
+
+    <div v-if="rows.length || isView" :class="{'extra-column':threeColumns}" class="kv-row headers">
+      <span>{{ keyLabel }}</span>
+      <span>{{ valueLabel }}</span>
+      <span v-if="threeColumns" />
+    </div>
+
+    <div v-if="isView && !rows.length" class="no-rows">
+      {{ t('sortableTable.noRows') }}
+    </div>
+
+    <div v-for="(row,i) in rows" :key="i" :class="{'extra-column':threeColumns, 'last':i===rows.length-1}" class="kv-row">
+      <div class="col">
+        <slot
+          name="key"
+          :row="row"
+          :mode="mode"
+          :keyName="keyName"
+          :valueName="valueName"
+          :isView="isView"
+        >
+          <div v-if="isView" class="view force-wrap">
+            {{ row[keyName] }}
+          </div>
+          <input
+            v-else
+            ref="key"
+            v-model="row[keyName]"
+            :placeholder="keyPlaceholder"
+            @input="queueUpdate"
+          />
+        </slot>
+      </div>
+
+      <div class="col">
+        <slot
+          name="value"
+          :row="row"
+          :mode="mode"
+          :keyName="keyName"
+          :valueName="valueName"
+          :isView="isView"
+          :queueUpdate="queueUpdate"
+        >
+          <div v-if="isView" class="view force-wrap">
+            <span v-if="valueBinary || get(row, '_display.binary')">
+              {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
+            </span>
+            <template v-else-if="get(row, '_display.parsed')">
+              <CodeMirror
+                :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
+                :value="row[valueName]"
+              />
+            </template>
+            <ClickExpand v-else-if="get(row, '_display.isLarge')" :value="row[valueName]" :size="get(row, '_display.byteSize')" />
+            <span v-else-if="get(row, '_display.withBreaks')" v-html="get(row, '_display.withBreaks')" />
+            <span v-else class="text-muted">&mdash;</span>
+          </div>
+          <TextAreaAutoGrow
+            v-else-if="valueMultiline"
+            v-model="row[valueName]"
+            :placeholder="valuePlaceholder"
+            :min-height="50"
+            :spellcheck="false"
+            @input="queueUpdate"
+          />
+          <input
+            v-else
+            v-model="row[valueName]"
+            :placeholder="valuePlaceholder"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            @input="queueUpdate"
+          />
+        </slot>
+      </div>
+
+      <div v-if="valueBinary && isView" class="col">
+        <a href="#" @click="download(row)">Download</a>
+      </div>
+
+      <div v-if="showRemove" class="col remove">
+        <slot name="removeButton" :remove="remove" :row="row">
+          <button type="button" class="btn bg-transparent role-link" @click="remove(row)">
+            {{ removeLabel || t('generic.remove') }}
+          </button>
+        </slot>
+      </div>
+    </div>
 
     <div v-if="showAdd || showRead" class="footer mt-10">
-      <slot v-if="showAdd" name="add" :add="add">
-        <button type="button" class="btn role-tertiary add" @click="add()">
-          {{ addLabel }}
-        </button>
-        <slot name="moreAdd" :rows="rows" />
-      </slot>
-      <button v-if="showRead" type="button" class="btn role-tertiary read-from-file" @click="readFromFile">
-        {{ readLabel }}
-      </button>
+      <ButtonDropdown size="sm">
+        <template #button-content>
+          <button v-if="showAdd" type="button" class="btn btn-sm add" @click="add()">
+            {{ addLabel }}
+          </button>
+          <button v-else type="button" class="btn btn-sm" @click="readFromFile">
+            {{ readLabel }}
+          </button>
+        </template>
+        <template v-if="showRead && showAdd" #popover-content>
+          <ul class="list-unstyled">
+            <li @click="readFromFile">
+              {{ readLabel }}
+            </li>
+          </ul>
+        </template>
+      </ButtonDropdown>
     </div>
 
     <input
@@ -509,9 +496,44 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
-  $separator: 20;
-  $remove: 75;
+<style lang="scss">
+
+.key-value {
+  width: 100%;
+
+  .kv-row{
+    display: grid;
+    align-items: center;
+    // this value keeps right-side padding consistent with row/col classed inputs
+    grid-template-columns: 49.15% 49.15%;
+    column-gap: $column-gutter;
+
+    &.extra-column {
+      grid-template-columns: 45% 45% auto;
+    }
+
+    & > .col {
+      width: 100%;
+    }
+
+    &:not(.headers):not(.last){
+      margin-bottom: 20px;
+    }
+
+    &.headers SPAN {
+      color: var(--input-label);
+      margin-bottom:10px;
+    }
+  }
+
+  .no-rows {
+    text-align: center;
+    color: var(--disabled-bg);
+  }
+
+  .remove BUTTON{
+    padding: 0px;
+  }
 
   .title {
     margin-bottom: 10px;
@@ -521,63 +543,8 @@ export default {
     }
   }
 
-  TABLE {
-    width: 100%;
-    // border-collapse: separate;
-    border-spacing: 5px 10px;
-  }
-
-  TH {
-    text-align: left;
-    font-size: 10px;
-    font-weight: normal;
-    color: var(--input-label);
-  }
-
-  TD {
-    padding-bottom: 10px;
-  }
-
-  .left {
-    width: #{$remove}px;
-  }
-
-  .key {
-    vertical-align: middle;
-
-    label {
-      margin-bottom: 0!important;
-    }
-  }
-
-  .separator {
-    width: #{$separator}px;
-    vertical-align: top;
-    text-align: center;
-  }
-
-  .value {
-    vertical-align: middle;
-
-    label {
-      margin-bottom: 0!important;
-    }
-
-    select {
-      -webkit-appearance: none;
-      border-radius: 2px;
-    }
-
-    textarea::placeholder {
-      padding-top: 0px;
-      color: var(--input-placeholder);
-    }
-  }
-
-  .remove {
-    vertical-align: middle;
-    text-align: right;
-    width: #{$remove}px;
+  input {
+    height: 50px;
   }
 
   .footer {
@@ -587,4 +554,13 @@ export default {
       padding: 5px 0;
     }
   }
+
+  .download {
+    text-align: right;
+  }
+
+  .empty {
+    text-align: center;
+  }
+}
 </style>

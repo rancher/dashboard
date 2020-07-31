@@ -192,7 +192,7 @@ export default {
   .rule, .toleration-headers{
     display: grid;
     grid-template-columns: 17% 17% 17% 17% 17% 15%;
-    grid-gap: 1.75%;
+    grid-gap: $column-gutter;
     align-items: center;
   }
 
