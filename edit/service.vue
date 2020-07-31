@@ -1,20 +1,21 @@
 <script>
 import { isEmpty, find, isNaN } from 'lodash';
-import ArrayList from '@/components/form/ArrayList';
+// import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
-import Footer from '@/components/form/Footer';
-import KeyValue from '@/components/form/KeyValue';
-import LabeledInput from '@/components/form/LabeledInput';
-import LabeledSelect from '@/components/form/LabeledSelect';
-import NameNsDescription from '@/components/form/NameNsDescription';
-import RadioGroup from '@/components/form/RadioGroup';
-import ResourceTabs from '@/components/form/ResourceTabs';
-import ServicePorts from '@/components/form/ServicePorts';
-import Tab from '@/components/Tabbed/Tab';
-import UnitInput from '@/components/form/UnitInput';
+// import Footer from '@/components/form/Footer';
+// import KeyValue from '@/components/form/KeyValue';
+// import LabeledInput from '@/components/form/LabeledInput';
+// import LabeledSelect from '@/components/form/LabeledSelect';
+// import NameNsDescription from '@/components/form/NameNsDescription';
+// import RadioGroup from '@/components/form/RadioGroup';
+// import ResourceTabs from '@/components/form/ResourceTabs';
+// import ServicePorts from '@/components/form/ServicePorts';
+// import Tab from '@/components/Tabbed/Tab';
+// import UnitInput from '@/components/form/UnitInput';
 import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service';
 import { ucFirst } from '@/utils/string';
-import Banner from '@/components/Banner';
+// import Banner from '@/components/Banner';
+import CruResource from '@/components/CruResource';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:      'None',
@@ -33,18 +34,19 @@ export default {
   // props: {},
 
   components: {
-    ArrayList,
-    Banner,
-    Footer,
-    KeyValue,
-    LabeledInput,
-    LabeledSelect,
-    NameNsDescription,
-    RadioGroup,
-    ResourceTabs,
-    ServicePorts,
-    Tab,
-    UnitInput,
+    // ArrayList,
+    // Banner,
+    CruResource,
+    // Footer,
+    // KeyValue,
+    // LabeledInput,
+    // LabeledSelect,
+    // NameNsDescription,
+    // RadioGroup,
+    // ResourceTabs,
+    // ServicePorts,
+    // Tab,
+    // UnitInput,
   },
 
   mixins: [CreateEditView],
@@ -152,7 +154,14 @@ export default {
 </script>
 
 <template>
-  <div>
+  <CruResource
+    :resource="value"
+    :subtypes="defaultServiceTypes"
+    :selected-subtype="serviceType"
+    @selectType="serviceType"
+  >
+  </CruResource>
+  <!-- <div>
     <form>
       <NameNsDescription
         v-if="!isView"
@@ -319,5 +328,5 @@ export default {
         @done="done"
       />
     </form>
-  </div>
+  </div> -->
 </template>

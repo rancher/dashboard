@@ -2,24 +2,34 @@ import find from 'lodash/find';
 
 export const DEFAULT_SERVICE_TYPES = [
   {
-    id:               'ClusterIP',
-    translationLabel: 'serviceTypes.clusterip'
+    id:          'ClusterIP',
+    label:       'servicesPage.serviceTypes.clusterIp.label',
+    description: 'servicesPage.serviceTypes.clusterIp.description',
+    bannerAbbrv: 'servicesPage.serviceTypes.clusterIp.abbrv',
   },
   {
-    id:               'ExternalName',
-    translationLabel: 'serviceTypes.externalname'
+    id:          'ExternalName',
+    label:       'servicesPage.serviceTypes.externalName.label',
+    description: 'servicesPage.serviceTypes.externalName.description',
+    bannerAbbrv: 'servicesPage.serviceTypes.externalName.abbrv',
   },
   {
-    id:               'Headless',
-    translationLabel: 'serviceTypes.headless'
+    id:          'Headless',
+    label:       'servicesPage.serviceTypes.headless.label',
+    description: 'servicesPage.serviceTypes.headless.description',
+    bannerAbbrv: 'servicesPage.serviceTypes.headless.abbrv',
   },
   {
-    id:               'LoadBalancer',
-    translationLabel: 'serviceTypes.loadbalancer'
+    id:          'LoadBalancer',
+    label:       'servicesPage.serviceTypes.loadBalancer.label',
+    description: 'servicesPage.serviceTypes.loadBalancer.description',
+    bannerAbbrv: 'servicesPage.serviceTypes.loadBalancer.abbrv',
   },
   {
-    id:               'NodePort',
-    translationLabel: 'serviceTypes.nodeport'
+    id:          'NodePort',
+    label:       'servicesPage.serviceTypes.nodePort.label',
+    description: 'servicesPage.serviceTypes.nodePort.description',
+    bannerAbbrv: 'servicesPage.serviceTypes.nodePort.abbrv',
   },
 ];
 
