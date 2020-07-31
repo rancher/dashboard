@@ -81,8 +81,8 @@ export const actions = {
     return _execute(state.tableSelected, action, args);
   },
 
-  execute({ state }, { action, args }) {
-    return _execute(state.resources, action, args);
+  execute({ state }, { action, args, opts }) {
+    return _execute(state.resources, action, args, opts);
   },
 };
 
@@ -134,9 +134,9 @@ function _filter(map, disableAll = false) {
   return out;
 }
 
-function _execute(resources, action, args) {
+function _execute(resources, action, args, opts = {}) {
   args = args || [];
-  if ( resources.length > 1 && action.bulkAction ) {
+  if ( resources.length > 1 && action.bulkAction && !opts.alt ) {
     const fn = resources[0][action.bulkAction];
 
     if ( fn ) {
@@ -149,7 +149,7 @@ function _execute(resources, action, args) {
   for ( const resource of resources ) {
     let fn;
 
-    if (args.alt && action.altAction) {
+    if (opts.alt && action.altAction) {
       fn = resource[action.altAction];
     } else {
       fn = resource[action.action];

@@ -146,7 +146,7 @@ export default {
         }
 
         Promise.all(this.toRemove.map(resource => resource.remove())).then((results) => {
-          if ( !isEmpty(goTo) ) {
+          if ( goTo && !isEmpty(goTo) ) {
             this.currentRouter.push(goTo);
           }
 
