@@ -57,73 +57,73 @@ const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TMIMEOUT = 30000;
 
 const STATES = {
-  'in-progress': { color: 'info', icon: 'tag' },
+  'in-progress':      { color: 'info', icon: 'tag' },
   'pending-rollback': { color: 'info', icon: 'dot-half' },
-  'pending-upgrade': { color: 'info', icon: 'dot-half' },
-  aborted: { color: 'warning', icon: 'error' },
-  activating: { color: 'info', icon: 'tag' },
-  active: { color: 'success', icon: 'dot-open' },
-  available: { color: 'success', icon: 'dot-open' },
-  backedup: { color: 'success', icon: 'backup' },
-  bound: { color: 'success', icon: 'dot' },
-  building: { color: 'success', icon: 'dot-open' },
-  cordoned: { color: 'info', icon: 'tag' },
-  created: { color: 'info', icon: 'tag' },
-  creating: { color: 'info', icon: 'tag' },
-  deactivating: { color: 'info', icon: 'adjust' },
-  degraded: { color: 'warning', icon: 'error' },
-  denied: { color: 'error', icon: 'adjust' },
-  deployed: { color: 'success', icon: 'dot-open' },
-  disabled: { color: 'warning', icon: 'error' },
-  disconnected: { color: 'warning', icon: 'error' },
-  error: { color: 'error', icon: 'error' },
-  erroring: { color: 'error', icon: 'error' },
-  expired: { color: 'warning', icon: 'error' },
-  failed: { color: 'error', icon: 'error' },
-  healthy: { color: 'success', icon: 'dot-open' },
-  inactive: { color: 'error', icon: 'dot' },
-  initializing: { color: 'warning', icon: 'error' },
-  locked: { color: 'warning', icon: 'adjust' },
-  migrating: { color: 'info', icon: 'info' },
-  paused: { color: 'info', icon: 'info' },
-  pending: { color: 'info', icon: 'tag' },
-  provisioning: { color: 'info', icon: 'dot' },
-  purged: { color: 'error', icon: 'purged' },
-  purging: { color: 'info', icon: 'purged' },
-  reconnecting: { color: 'error', icon: 'error' },
-  registering: { color: 'info', icon: 'tag' },
-  reinitializing: { color: 'warning', icon: 'error' },
-  released: { color: 'warning', icon: 'error' },
-  removed: { color: 'error', icon: 'trash' },
-  removing: { color: 'info', icon: 'trash' },
-  requested: { color: 'info', icon: 'tag' },
-  restarting: { color: 'info', icon: 'adjust' },
-  restoring: { color: 'info', icon: 'medicalcross' },
-  running: { color: 'success', icon: 'dot-open' },
-  skipped: { color: 'info', icon: 'dot-open' },
-  starting: { color: 'info', icon: 'adjust' },
-  stopped: { color: 'error', icon: 'dot' },
-  stopping: { color: 'info', icon: 'adjust' },
-  succeeded: { color: 'success', icon: 'dot-dotfill' },
-  success: { color: 'success', icon: 'dot-open' },
-  superseded: { color: 'info', icon: 'dot-open' },
-  suspended: { color: 'info', icon: 'pause' },
-  unavailable: { color: 'error', icon: 'error' },
-  unhealthy: { color: 'error', icon: 'error' },
-  uninstalled: { color: 'info', icon: 'trash' },
-  uninstalling: { color: 'info', icon: 'trash' },
-  unknown: { color: 'warning', icon: 'x' },
-  untriggered: { color: 'success', icon: 'tag' },
-  updating: { color: 'warning', icon: 'tag' },
-  waiting: { color: 'info', icon: 'tag' },
+  'pending-upgrade':  { color: 'info', icon: 'dot-half' },
+  aborted:            { color: 'warning', icon: 'error' },
+  activating:         { color: 'info', icon: 'tag' },
+  active:             { color: 'success', icon: 'dot-open' },
+  available:          { color: 'success', icon: 'dot-open' },
+  backedup:           { color: 'success', icon: 'backup' },
+  bound:              { color: 'success', icon: 'dot' },
+  building:           { color: 'success', icon: 'dot-open' },
+  cordoned:           { color: 'info', icon: 'tag' },
+  created:            { color: 'info', icon: 'tag' },
+  creating:           { color: 'info', icon: 'tag' },
+  deactivating:       { color: 'info', icon: 'adjust' },
+  degraded:           { color: 'warning', icon: 'error' },
+  denied:             { color: 'error', icon: 'adjust' },
+  deployed:           { color: 'success', icon: 'dot-open' },
+  disabled:           { color: 'warning', icon: 'error' },
+  disconnected:       { color: 'warning', icon: 'error' },
+  error:              { color: 'error', icon: 'error' },
+  erroring:           { color: 'error', icon: 'error' },
+  expired:            { color: 'warning', icon: 'error' },
+  failed:             { color: 'error', icon: 'error' },
+  healthy:            { color: 'success', icon: 'dot-open' },
+  inactive:           { color: 'error', icon: 'dot' },
+  initializing:       { color: 'warning', icon: 'error' },
+  locked:             { color: 'warning', icon: 'adjust' },
+  migrating:          { color: 'info', icon: 'info' },
+  paused:             { color: 'info', icon: 'info' },
+  pending:            { color: 'info', icon: 'tag' },
+  provisioning:       { color: 'info', icon: 'dot' },
+  purged:             { color: 'error', icon: 'purged' },
+  purging:            { color: 'info', icon: 'purged' },
+  reconnecting:       { color: 'error', icon: 'error' },
+  registering:        { color: 'info', icon: 'tag' },
+  reinitializing:     { color: 'warning', icon: 'error' },
+  released:           { color: 'warning', icon: 'error' },
+  removed:            { color: 'error', icon: 'trash' },
+  removing:           { color: 'info', icon: 'trash' },
+  requested:          { color: 'info', icon: 'tag' },
+  restarting:         { color: 'info', icon: 'adjust' },
+  restoring:          { color: 'info', icon: 'medicalcross' },
+  running:            { color: 'success', icon: 'dot-open' },
+  skipped:            { color: 'info', icon: 'dot-open' },
+  starting:           { color: 'info', icon: 'adjust' },
+  stopped:            { color: 'error', icon: 'dot' },
+  stopping:           { color: 'info', icon: 'adjust' },
+  succeeded:          { color: 'success', icon: 'dot-dotfill' },
+  success:            { color: 'success', icon: 'dot-open' },
+  superseded:         { color: 'info', icon: 'dot-open' },
+  suspended:          { color: 'info', icon: 'pause' },
+  unavailable:        { color: 'error', icon: 'error' },
+  unhealthy:          { color: 'error', icon: 'error' },
+  uninstalled:        { color: 'info', icon: 'trash' },
+  uninstalling:       { color: 'info', icon: 'trash' },
+  unknown:            { color: 'warning', icon: 'x' },
+  untriggered:        { color: 'success', icon: 'tag' },
+  updating:           { color: 'warning', icon: 'tag' },
+  waiting:            { color: 'info', icon: 'tag' },
 };
 
 const SORT_ORDER = {
-  error: 1,
+  error:   1,
   warning: 2,
-  info: 3,
+  info:    3,
   success: 4,
-  other: 5,
+  other:   5,
 };
 
 export default {
@@ -159,15 +159,15 @@ export default {
       }
 
       if (m.namespace) {
-        return `${this.type}/${m.namespace}/${m.name}`;
+        return `${ this.type }/${ m.namespace }/${ m.name }`;
       }
     }
 
     if (this.id) {
-      return `${this.type}/${this.id}`;
+      return `${ this.type }/${ this.id }`;
     }
 
-    return `${this.type}/${Math.random()}`;
+    return `${ this.type }/${ Math.random() }`;
   },
 
   schema() {
@@ -176,7 +176,7 @@ export default {
 
   toString() {
     return () => {
-      return `[${this.type}: ${this.id}]`;
+      return `[${ this.type }: ${ this.id }]`;
     };
   },
 
@@ -223,7 +223,7 @@ export default {
     const name = this.nameDisplay;
 
     if (namespace) {
-      return `${namespace}:${name}`;
+      return `${ namespace }:${ name }`;
     }
 
     return name;
@@ -329,7 +329,7 @@ export default {
         color = DEFAULT_COLOR;
       }
 
-      return `text-${color}`;
+      return `text-${ color }`;
     };
   },
 
@@ -365,13 +365,13 @@ export default {
       icon = DEFAULT_ICON;
     }
 
-    return `icon icon-${icon}`;
+    return `icon icon-${ icon }`;
   },
 
   stateSort() {
     const color = this.stateColor.replace('text-', '');
 
-    return `${SORT_ORDER[color] || SORT_ORDER['other']} ${this.stateDisplay}`;
+    return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ this.stateDisplay }`;
   },
 
   showMessage() {
@@ -407,7 +407,7 @@ export default {
           console.log('Wait for', msg, 'timed out'); // eslint-disable-line no-console
           clearInterval(interval);
           clearTimeout(timeout);
-          reject(new Error(`Failed while: ${msg}`));
+          reject(new Error(`Failed while: ${ msg }`));
         }, timeoutMs);
 
         const interval = setInterval(() => {
@@ -428,7 +428,7 @@ export default {
     return (state, timeout, interval) => {
       return this.waitForTestFn(() => {
         return (this.state || '').toLowerCase() === state.toLowerCase();
-      }, `state=${state}`, timeout, interval);
+      }, `state=${ state }`, timeout, interval);
     };
   },
 
@@ -444,7 +444,7 @@ export default {
     return (name) => {
       return this.waitForTestFn(() => {
         return this.hasAction(name);
-      }, `action=${name}`);
+      }, `action=${ name }`);
     };
   },
 
@@ -452,7 +452,7 @@ export default {
     return (name) => {
       return this.waitForTestFn(() => {
         return this.hasLink(name);
-      }, `link=${name}`);
+      }, `link=${ name }`);
     };
   },
 
@@ -472,7 +472,7 @@ export default {
         return true;
       }
 
-      return (entry.status || '').toLowerCase() === `${withStatus}`.toLowerCase();
+      return (entry.status || '').toLowerCase() === `${ withStatus }`.toLowerCase();
     };
   },
 
@@ -480,7 +480,7 @@ export default {
     return (name, withStatus = 'True', timeoutMs = DEFAULT_WAIT_TMIMEOUT, intervalMs = DEFAULT_WAIT_INTERVAL) => {
       return this.waitForTestFn(() => {
         return this.hasCondition(name, withStatus);
-      }, `condition ${name}=${withStatus}`, timeoutMs, intervalMs);
+      }, `condition ${ name }=${ withStatus }`, timeoutMs, intervalMs);
     };
   },
 
@@ -525,59 +525,59 @@ export default {
   _standardActions() {
     const all = [
       {
-        action: 'goToEdit',
-        label: 'Edit as Form',
-        icon: 'icon icon-edit',
+        action:  'goToEdit',
+        label:   'Edit as Form',
+        icon:    'icon icon-edit',
         enabled: this.canUpdate && this.canCustomEdit,
       },
       {
-        action: 'goToClone',
-        label: 'Clone as Form',
-        icon: 'icon icon-copy',
+        action:  'goToClone',
+        label:   'Clone as Form',
+        icon:    'icon icon-copy',
         enabled: this.canCreate && this.canCustomEdit,
       },
       { divider: true },
       {
-        action: 'goToEditYaml',
-        label: 'Edit as YAML',
-        icon: 'icon icon-file',
+        action:  'goToEditYaml',
+        label:   'Edit as YAML',
+        icon:    'icon icon-file',
         enabled: this.canUpdate && this.canYaml,
       },
       {
-        action: 'goToViewYaml',
-        label: 'View as YAML',
-        icon: 'icon icon-file',
+        action:  'goToViewYaml',
+        label:   'View as YAML',
+        icon:    'icon icon-file',
         enabled: !this.canUpdate && this.canYaml
       },
       {
-        action: 'cloneYaml',
-        label: 'Clone as YAML',
-        icon: 'icon icon-copy',
+        action:  'cloneYaml',
+        label:   'Clone as YAML',
+        icon:    'icon icon-copy',
         enabled: this.canCreate && this.canYaml,
       },
       {
-        action: 'download',
-        label: 'Download YAML',
-        icon: 'icon icon-download',
-        bulkable: true,
+        action:     'download',
+        label:      'Download YAML',
+        icon:       'icon icon-download',
+        bulkable:   true,
         bulkAction: 'downloadBulk',
-        enabled: this.canYaml
+        enabled:    this.canYaml
       },
       { divider: true },
       {
-        action: 'promptRemove',
-        altAction: 'remove',
-        label: 'Delete',
-        icon: 'icon icon-trash',
-        bulkable: true,
-        enabled: this.canDelete,
+        action:     'promptRemove',
+        altAction:  'remove',
+        label:      'Delete',
+        icon:       'icon icon-trash',
+        bulkable:   true,
+        enabled:    this.canDelete,
         bulkAction: 'promptRemove',
       },
       { divider: true },
       {
-        action: 'viewInApi',
-        label: 'View in API',
-        icon: 'icon icon-external-link',
+        action:  'viewInApi',
+        label:   'View in API',
+        icon:    'icon icon-external-link',
         enabled: this.canViewInApi,
       }
     ];
@@ -646,7 +646,7 @@ export default {
       }
 
       if (!opt.url) {
-        throw new Error(`Unknown link ${linkName} on ${this.type} ${this.id}`);
+        throw new Error(`Unknown link ${ linkName } on ${ this.type } ${ this.id }`);
       }
 
       return this.$dispatch('request', opt);
@@ -698,7 +698,7 @@ export default {
   },
 
   save() {
-    return async (opt = {}) => {
+    return async(opt = {}) => {
       delete this.__rehydrate;
       const forNew = !this.id;
       const errors = await this.validationErrors(this);
@@ -713,7 +713,7 @@ export default {
           let url = schema.linkFor('collection');
 
           if (schema.attributes && schema.attributes.namespaced) {
-            url += `/${this.metadata.namespace}`;
+            url += `/${ this.metadata.namespace }`;
           }
 
           opt.url = url;
@@ -759,7 +759,7 @@ export default {
   },
 
   remove() {
-    return async (opt = {}) => {
+    return async(opt = {}) => {
       if (!opt.url) {
         opt.url = (this.links || {})['self'];
       }
@@ -800,10 +800,10 @@ export default {
 
   listLocation() {
     return {
-      name: `c-cluster-product-resource`,
+      name:   `c-cluster-product-resource`,
       params: {
-        product: this.$rootGetters['productId'],
-        cluster: this.$rootGetters['clusterId'],
+        product:  this.$rootGetters['productId'],
+        cluster:  this.$rootGetters['clusterId'],
         resource: this.type,
       }
     };
@@ -815,11 +815,11 @@ export default {
     const id = this.id.replace(/.*\//, '');
 
     return {
-      name: `c-cluster-product-resource${schema?.attributes?.namespaced ? '-namespace' : ''}-id`,
+      name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,
       params: {
-        product: this.$rootGetters['productId'],
-        cluster: this.$rootGetters['clusterId'],
-        resource: this.type,
+        product:   this.$rootGetters['productId'],
+        cluster:   this.$rootGetters['clusterId'],
+        resource:  this.type,
         namespace: this.metadata?.namespace,
         id,
       }
@@ -860,7 +860,7 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]: _EDIT,
+        [MODE]:    _EDIT,
         [AS_YAML]: _FLAGGED
       };
 
@@ -874,7 +874,7 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]: _VIEW,
+        [MODE]:    _VIEW,
         [AS_YAML]: _FLAGGED
       };
 
@@ -888,7 +888,7 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]: _CLONE,
+        [MODE]:    _CLONE,
         [AS_YAML]: _FLAGGED,
         ...moreQuery
       };
@@ -898,25 +898,25 @@ export default {
   },
 
   download() {
-    return async () => {
+    return async() => {
       const link = this.hasLink('rioview') ? 'rioview' : 'view';
       const value = await this.followLink(link, { headers: { accept: 'application/yaml' } });
 
-      downloadFile(`${this.nameDisplay}.yaml`, value.data, 'application/yaml');
+      downloadFile(`${ this.nameDisplay }.yaml`, value.data, 'application/yaml');
     };
   },
 
   downloadBulk() {
-    return async (items) => {
+    return async(items) => {
       const files = {};
       const names = [];
 
       for (const item of items) {
-        let name = `${item.nameDisplay}.yaml`;
+        let name = `${ item.nameDisplay }.yaml`;
         const i = 2;
 
         while (names.includes(name)) {
-          name = `${item.nameDisplay}_${i}.yaml`;
+          name = `${ item.nameDisplay }_${ i }.yaml`;
         }
 
         names.push(name);
@@ -926,7 +926,7 @@ export default {
         const link = item.hasLink('rioview') ? 'rioview' : 'view';
 
         return item.followLink(link, { headers: { accept: 'application/yaml' } }).then((data) => {
-          files[`resources/${names[idx]}`] = data;
+          files[`resources/${ names[idx] }`] = data;
         });
       });
 
@@ -995,7 +995,7 @@ export default {
     }
     const { group, resource } = attributes;
 
-    url = `${url.slice(0, url.indexOf('/v1'))}/apis/${group}/namespaces/${namespace}/${resource}`;
+    url = `${ url.slice(0, url.indexOf('/v1')) }/apis/${ group }/namespaces/${ namespace }/${ resource }`;
 
     return url;
   },
@@ -1236,12 +1236,12 @@ export default {
 
     if (this.owners?.length > 0) {
       details.push({
-        label: this.t('resourceDetail.detailTop.ownerReferences'),
+        label:     this.t('resourceDetail.detailTop.ownerReferences'),
         formatter: 'ListLinkDetail',
-        content: this.owners.map(owner => ({
-          key: owner.id,
-          row: owner,
-          col: {},
+        content:   this.owners.map(owner => ({
+          key:   owner.id,
+          row:   owner,
+          col:   {},
           value: owner.metadata.name
         }))
       });
@@ -1249,10 +1249,10 @@ export default {
 
     if (get(this, 'metadata.deletionTimestamp')) {
       details.push({
-        label: this.t('resourceDetail.detailTop.deleted'),
-        formatter: 'LiveDate',
+        label:         this.t('resourceDetail.detailTop.deleted'),
+        formatter:     'LiveDate',
         formatterOpts: { addSuffix: true },
-        content: get(this, 'metadata.deletionTimestamp')
+        content:       get(this, 'metadata.deletionTimestamp')
       });
     }
 
@@ -1276,7 +1276,7 @@ export default {
   },
 
   _getRelationship() {
-    return async (rel, direction) => {
+    return async(rel, direction) => {
       const out = [];
 
       if (!rel) {
@@ -1292,22 +1292,22 @@ export default {
           continue;
         }
 
-        if (!r[`${direction}Type`]) {
+        if (!r[`${ direction }Type`]) {
           continue;
         }
 
         if (r.selector) {
           const matching = await this.$dispatch('findMatching', {
-            type: r.toType,
+            type:      r.toType,
             namespace: r.toNamespace,
-            selector: r.selector
+            selector:  r.selector
           });
 
           addObjects(out, matching.data);
         } else {
-          const type = r[`${direction}Type`];
-          const ns = r[`${direction}Namespace`];
-          const id = (ns ? `${ns}/` : '') + r[`${direction}Id`];
+          const type = r[`${ direction }Type`];
+          const ns = r[`${ direction }Namespace`];
+          const id = (ns ? `${ ns }/` : '') + r[`${ direction }Id`];
 
           const matching = await this.$dispatch('find', { type, id });
 
