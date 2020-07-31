@@ -9,10 +9,15 @@ export default {
     subtypes: {
       type:    Array,
       default: null
+    },
+
+    selectedSubtype: {
+      type:    String,
+      default: null
     }
   },
   data() {
-    return { selectedSubtype: '' };
+    return {};
   },
   methods: {}
 };
@@ -21,13 +26,13 @@ export default {
 <template>
   <form>
     <div class="subtypes-container">
-      <slot v-if="subtypes.length" name="subtypes">
+      <slot v-if="subtypes.length && !selectedSubtype" name="subtypes">
         <div
           v-for="subtype in subtypes"
           :key="subtype.id"
           class="subtype-banner"
-          :class="{ seclectd: subtype === selectedSubtype }"
-          @click="$emit('selectType', subtype)"
+          :class="{ selected: subtype.id === selectedSubtype }"
+          @click="$emit('selectType', subtype.id)"
         >
           <slot name="subtype-logo">
             <div class="subtype-logo round-image">
@@ -39,9 +44,7 @@ export default {
               <div v-else-if="subtype.bannerAbbrv" class="banner-abbrv">
                 <span
                   v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)"
-                >
-                  {{ t(subtype.bannerAbbrv) }}
-                </span>
+                >{{ t(subtype.bannerAbbrv) }}</span>
                 <span v-else>{{ subtype.bannerAbbrv.slice(0, 1).toUpperCase() }}</span>
               </div>
               <div v-else>
@@ -73,7 +76,7 @@ export default {
       </slot>
     </div>
 
-    <slot name="define" class="resource-container"></slot>
+    <slot v-if="selectedSubtype || !subtypes.length" name="define" class="resource-container"></slot>
   </form>
 </template>
 

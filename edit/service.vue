@@ -1,20 +1,19 @@
 <script>
-import { isEmpty, find, isNaN } from 'lodash';
-// import ArrayList from '@/components/form/ArrayList';
+import { isEmpty, isNaN } from 'lodash';
+import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
-// import Footer from '@/components/form/Footer';
-// import KeyValue from '@/components/form/KeyValue';
-// import LabeledInput from '@/components/form/LabeledInput';
-// import LabeledSelect from '@/components/form/LabeledSelect';
-// import NameNsDescription from '@/components/form/NameNsDescription';
-// import RadioGroup from '@/components/form/RadioGroup';
-// import ResourceTabs from '@/components/form/ResourceTabs';
-// import ServicePorts from '@/components/form/ServicePorts';
-// import Tab from '@/components/Tabbed/Tab';
-// import UnitInput from '@/components/form/UnitInput';
+import Footer from '@/components/form/Footer';
+import KeyValue from '@/components/form/KeyValue';
+import LabeledInput from '@/components/form/LabeledInput';
+import NameNsDescription from '@/components/form/NameNsDescription';
+import RadioGroup from '@/components/form/RadioGroup';
+import ResourceTabs from '@/components/form/ResourceTabs';
+import ServicePorts from '@/components/form/ServicePorts';
+import Tab from '@/components/Tabbed/Tab';
+import UnitInput from '@/components/form/UnitInput';
 import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service';
 import { ucFirst } from '@/utils/string';
-// import Banner from '@/components/Banner';
+import Banner from '@/components/Banner';
 import CruResource from '@/components/CruResource';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
@@ -34,19 +33,18 @@ export default {
   // props: {},
 
   components: {
-    // ArrayList,
-    // Banner,
+    ArrayList,
+    Banner,
     CruResource,
-    // Footer,
-    // KeyValue,
-    // LabeledInput,
-    // LabeledSelect,
-    // NameNsDescription,
-    // RadioGroup,
-    // ResourceTabs,
-    // ServicePorts,
-    // Tab,
-    // UnitInput,
+    Footer,
+    KeyValue,
+    LabeledInput,
+    NameNsDescription,
+    RadioGroup,
+    ResourceTabs,
+    ServicePorts,
+    Tab,
+    UnitInput,
   },
 
   mixins: [CreateEditView],
@@ -54,14 +52,14 @@ export default {
   data() {
     if (!this?.value?.spec?.type) {
       if (!this.value?.spec) {
-        const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
+        // const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
 
         this.$set(this.value, 'spec', {
           ports:           [],
           sessionAffinity: 'None',
         });
 
-        this.serviceType = defaultService.id;
+        // this.serviceType = defaultService.id;
       }
     }
 
@@ -82,7 +80,7 @@ export default {
       get() {
         const serviceType = this.value?.spec?.type;
         const clusterIp = this.value?.spec?.clusterIP;
-        const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
+        // const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
 
         if (serviceType) {
           if (serviceType === CLUSTERIP && clusterIp === 'None') {
@@ -92,7 +90,7 @@ export default {
           }
         }
 
-        return defaultService;
+        return serviceType;
       },
 
       set(serviceType) {
@@ -158,30 +156,15 @@ export default {
     :resource="value"
     :subtypes="defaultServiceTypes"
     :selected-subtype="serviceType"
-    @selectType="serviceType"
+    @selectType="(st) => serviceType = st"
   >
-  </CruResource>
-  <!-- <div>
-    <form>
+    <template #define>
       <NameNsDescription
         v-if="!isView"
         :value="value"
         :mode="mode"
         :extra-columns="extraColumns"
-      >
-        <template #type-col>
-          <LabeledSelect
-            option-key="id"
-            option-label="translationLabel"
-            :label="t('servicesPage.typeOpts.label')"
-            :localized-label="true"
-            :mode="mode"
-            :options="defaultServiceTypes"
-            :value="serviceType"
-            @input="e=>serviceType = e.id"
-          />
-        </template>
-      </NameNsDescription>
+      />
 
       <div class="spacer"></div>
 
@@ -327,6 +310,11 @@ export default {
         @save="save"
         @done="done"
       />
+      </namensdescription>
+    </template>
+  </CruResource>
+  <!-- <div>
+    <form>
     </form>
   </div> -->
 </template>
