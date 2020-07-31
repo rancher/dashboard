@@ -1,205 +1,208 @@
 // Local variables for reused colors
 //light main text
-$darkest   : #141419;
+$darkest: #141419;
 
 //light secondary
-$darker    : #6C6C76;
+$darker: #6c6c76;
 
-//light disabled
-$dark      : #B6B6C2;
+//light disabled text
+$dark: #b6b6c2;
 
 //light border and buttons
-$medium    : #DCDEE7;
+$medium: #dcdee7;
 
-//light inputs 
-$light     : #EEEFF4;
+//light inputs
+$light: #eeeff4;
 
 //light sidebar and box
-$lighter   : #F4F5FA;
+$lighter: #f4f5fa;
 
 //light body bg
-$lightest  : #FFFFFF;
+$lightest: #ffffff;
 
-$primary         : #3D98D3;
-$secondary       : $darker;
-$link            : $primary;
-$disabled        : $dark;
-$success         : #5D995D;
-$warning         : #DAC342;
-$error           : #F64747;
-$info            : #213444;
+$primary: #3d98d3;
+$secondary: $darker;
+$link: $primary;
+$disabled: $medium;
+$success: #5d995d;
+$warning: #dac342;
+$error: #f64747;
+$info: #213444;
 
 $contrasted-dark: $darkest !default;
 $contrasted-light: $lightest !default;
 
-$selected: rgba($primary, .5);
+$selected: rgba($primary, 0.5);
 
 :root {
   // Colors that will have text- and bg- helper classes created
   // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
-  @include color-variables((
-    default:    $light,
-    muted:      $disabled,
-    link:       (
-      default-text: $link,
-      hover-text:   lighten($link, 30%),
-      active-text:  darken($link, 25%),
-      default:      transparent,
-      hover-bg:     transparent,
-      active-bg:    transparent,
+  @include color-variables(
+    (
+      default: $light,
+      muted: $disabled,
+      link: (
+        default-text: $link,
+        hover-text: lighten($link, 30%),
+        active-text: darken($link, 25%),
+        default: transparent,
+        hover-bg: transparent,
+        active-bg: transparent,
+      ),
+      primary: $primary,
+      secondary: $secondary,
+      success: $success,
+      info: $info,
+      warning: $warning,
+      error: $error,
+      darker: $darker,
     ),
-    primary:    $primary,
-    secondary:  $secondary,
-    success:    $success,
-    info:       $info,
-    warning:    $warning,
-    error:      $error,
-    darker:     $darker
-  ), true);
+    true
+  );
 
-  --body-bg                    : #{$lightest};
-  --body-gradient              : linear-gradient(180deg, #{$lightest} 0%, #{$lighter} 100%);
-  --body-text                  : #{$darkest};
-  --scrollbar-thumb            : #{$dark};
-  --scrollbar-thumb-dropdown   : #{$lighter};
-  --scrollbar-track            : transparent;
+  --body-bg: #{$lightest};
+  --body-gradient: linear-gradient(180deg, #{$lightest} 0%, #{$lighter} 100%);
+  --body-text: #{$darkest};
+  --scrollbar-thumb: #{$dark};
+  --scrollbar-thumb-dropdown: #{$lighter};
+  --scrollbar-track: transparent;
 
-  --header-bg                  : #3797D5;
-  --header-logo                : #{$lightest};
-  --header-dropdown            : #317DB0;
-  --header-height              : 50px;
-  --nav-width                  : 220px;
-  --nav-bg                     : #{$lighter};
-  --nav-active                 : var(--primary);
-  --footer-bg                  : transparent;
-  --footer-height              : 50px;
+  --header-bg: #3797d5;
+  --header-logo: #{$lightest};
+  --header-dropdown: #317db0;
+  --header-height: 50px;
+  --nav-width: 220px;
+  --nav-bg: #{$lighter};
+  --nav-active: var(--primary);
+  --footer-bg: transparent;
+  --footer-height: 50px;
 
-  --disabled-bg                : #{$disabled};
-  --box-bg                     : #{$lighter};
-  --border                     : #{$medium};
-  --border-radius              : 2px;
-  --outline                    : rgba(244,245,250,0.75);
-  --outline-width              : 2px;
+  --disabled-bg: #{$disabled};
+  --disabled-text: #{$dark};
+  --box-bg: #{$lighter};
+  --border: #{$medium};
+  --border-radius: 2px;
+  --outline: rgba(244, 245, 250, 0.75);
+  --outline-width: 2px;
 
-  --accent-btn                 : #{rgba($primary, 0.2)};
-  --overlay-bg                 : #{rgba($lighter, 0.75)};
-  --shadow                     : #{rgba($medium, 0.75)};
+  --accent-btn: #{rgba($primary, 0.2)};
+  --overlay-bg: #{rgba($lighter, 0.75)};
+  --shadow: #{rgba($medium, 0.75)};
 
+  --dropdown-bg: #{$lighter};
+  --dropdown-border: #{$medium};
+  --dropdown-divider: #{$medium};
+  --dropdown-text: #{$link};
+  --dropdown-hover-text: darken($link, 1%);
+  --dropdown-hover-bg: #{$selected};
+  --dropdown-active-text: var(--active-text);
+  --dropdown-active-bg: var(--active-bg);
+  --dropdown-disabled-text: var(--muted);
+  --dropdown-disabled-bg: #{$disabled};
 
-  --dropdown-bg                : #{$lighter};
-  --dropdown-border            : #{$medium};
-  --dropdown-divider           : #{$medium};
-  --dropdown-text              : #{$link};
-  --dropdown-hover-text        : darken($link, 1%);
-  --dropdown-hover-bg          : #{$selected};
-  --dropdown-active-text       : var(--active-text);
-  --dropdown-active-bg         : var(--active-bg);
-  --dropdown-disabled-text     : var(--muted);
-  --dropdown-disabled-bg       : #{$disabled};
+  --input-text: #{$darkest};
+  --input-label: #{$secondary};
+  --input-placeholder: #{$disabled};
+  --input-border: var(--border);
+  --input-bg: #{$light};
+  --input-hover-bg: var(--body-bg);
+  --input-focus-bg: #{$lightest};
+  --input-disabled-text: #{$dark};
+  --input-disabled-bg: #{$light};
+  --input-disabled-border: #{$medium};
+  --input-disabled-placeholder: darken($medium, 10%);
+  --input-addon-bg: #{$medium};
 
-  --input-text                 : #{$darkest};
-  --input-label                : #{$secondary};
-  --input-placeholder          : #{$disabled};
-  --input-border               : var(--border);
-  --input-bg                   : #{$light};
-  --input-hover-bg             : var(--body-bg);
-  --input-focus-bg             : #{$lightest};
-  --input-disabled-text        : #{$dark};
-  --input-disabled-bg          : #{$light};
-  --input-disabled-border      : #{$medium};
-  --input-disabled-placeholder : darken($medium, 10%);
-  --input-addon-bg             : #{$medium};
+  --progress-bg: #{$medium};
+  --progress-divider: #{$medium};
 
-  --progress-bg                : #{$medium};
-  --progress-divider           : #{$medium};
+  --sortable-table-bg: transparent;
+  --sortable-table-header-bg: #{rgba($primary, 0.2)};
+  --sortable-table-accent-bg: #{$lighter};
+  --sortable-table-accent-alt: #{$lightest};
+  --sortable-table-top-divider: var(--border);
+  --sortable-table-body-divider: #{$medium};
+  --sortable-table-selected-bg: #{$light};
+  --sortable-table-group-label: #{$secondary};
 
-  --sortable-table-bg          : transparent;
-  --sortable-table-header-bg   : #{rgba($primary, 0.2)};
-  --sortable-table-accent-bg   : #{$lighter};
-  --sortable-table-accent-alt  : #{$lightest};
-  --sortable-table-top-divider : var(--border);
-  --sortable-table-body-divider : #{$medium};
-  --sortable-table-selected-bg : #{$light};
-  --sortable-table-group-label : #{$secondary};
+  --tag-primary: #{$primary};
+  --tag-bg: #{ligten($primary, 35%)};
 
-  --tag-primary                : #{$primary};
-  --tag-bg                     : #{ligten($primary, 35%)};
+  --popover-bg: var(--body-bg);
+  --popover-border: var(--border);
+  --popover-text: var(--body-text);
+  --popover-border-radius: var(--border-radius);
+  --tooltip-bg: var(--tag-bg);
+  --tooltip-border: var(--tag-primary);
+  --tooltip-text: var(--tag-primary);
 
-  --popover-bg                 : var(--body-bg);
-  --popover-border             : var(--border);
-  --popover-text               : var(--body-text);
-  --popover-border-radius      : var(--border-radius);
-  --tooltip-bg                 : var(--tag-bg);
-  --tooltip-border             : var(--tag-primary);
-  --tooltip-text               : var(--tag-primary);
+  --tabbed-border: #{$medium};
+  --tabbed-container-bg: #{$light};
 
-  --tabbed-border              : #{$medium};
-  --tabbed-container-bg        : #{$light};
+  --yaml-editor-bg: #{$lighter};
 
-  --yaml-editor-bg             : #{$lighter};
+  --diff-border: var(--border);
+  --diff-header-bg: var(--nav-bg);
+  --diff-header-border: var(--border);
+  --diff-header: #{rgba($darkest, 0.3)};
+  --diff-linenum-bg: var(--nav-bg);
+  --diff-linenum: var(--muted);
+  --diff-linenum-border: var(--border);
+  --diff-line-ins-bg: $success;
+  --diff-line-del-bg: #{rgba($error, 0.75)};
+  --diff-del-bg: #{rgba($error, 0.3)};
+  --diff-del-border: #{$error};
+  --diff-ins-bg: #{rgba($success, 0.3)};
+  --diff-ins-border: #{rgba($success, 0.5)};
+  --diff-chg-ins: #{rgba($success, 0.25)};
+  --diff-chg-del: #{rgba($warning, 0.5)};
 
-  --diff-border                : var(--border);
-  --diff-header-bg             : var(--nav-bg);
-  --diff-header-border         : var(--border);
-  --diff-header                : #{rgba($darkest, 0.3)};
-  --diff-linenum-bg            : var(--nav-bg);
-  --diff-linenum               : var(--muted);
-  --diff-linenum-border        : var(--border);
-  --diff-line-ins-bg           : $success;
-  --diff-line-del-bg           : #{rgba($error, 0.75)};
-  --diff-del-bg                : #{rgba($error, 0.3)};
-  --diff-del-border            : #{$error};
-  --diff-ins-bg                : #{rgba($success, 0.3)};
-  --diff-ins-border            : #{rgba($success, 0.5)};
-  --diff-chg-ins               : #{rgba($success, 0.25)};
-  --diff-chg-del               : #{rgba($warning, 0.5)};
+  --wm-tabs-bg: #{$medium};
+  --wm-tab-bg: #{$light};
+  --wm-closer-hover-bg: #{$lighter};
+  --wm-tab-active-bg: #{$lighter};
+  --wm-title-bg: #{$lightest};
+  --wm-title-border: #{$medium};
+  --wm-body-bg: #{$lighter};
+  --wm-border: var(--border);
+  --wm-tab-height: 25px;
 
-  --wm-tabs-bg                 : #{$medium};
-  --wm-tab-bg                  : #{$light};
-  --wm-closer-hover-bg         : #{$lighter};
-  --wm-tab-active-bg           : #{$lighter};
-  --wm-title-bg                : #{$lightest};
-  --wm-title-border            : #{$medium};
-  --wm-body-bg                 : #{$lighter};
-  --wm-border                  : var(--border);
-  --wm-tab-height              : 25px;
+  --glance-bg-rgb: 61, 152, 211;
+  --glance-divider: #{rgba($primary, 0.5)};
 
-  --glance-bg-rgb              : 61, 152, 211;
-  --glance-divider             : #{rgba($primary, 0.5)};
+  --resource-gauge-back-circle: 255, 255, 255, 0.15;
 
-  --resource-gauge-back-circle : 255, 255, 255, 0.15;
+  --simple-box-bg: #{$lightest};
+  --simple-box-border: #{$medium};
+  --simple-box-divider: #{$medium};
+  --simple-box-shadow: rgba(0, 0, 0, 0.15);
 
-  --simple-box-bg              : #{$lightest};
-  --simple-box-border          : #{$medium};
-  --simple-box-divider         : #{$medium};
-  --simple-box-shadow          : rgba(0, 0, 0, 0.15);
+  --terminal-bg: var(--body-bg);
+  --terminal-cursor: var(--warning);
+  --terminal-text: var(--body-text);
 
-  --terminal-bg                : var(--body-bg);
-  --terminal-cursor            : var(--warning);
-  --terminal-text              : var(--body-text);
+  --logs-bg: var(--wm-body-bg);
+  --logs-highlight: var(--wm-body-bg);
+  --logs-highlight-bg: var(--warning);
+  --logs-text: var(--body-text);
 
-  --logs-bg                    : var(--wm-body-bg);
-  --logs-highlight             : var(--wm-body-bg);
-  --logs-highlight-bg          : var(--warning);
-  --logs-text                  : var(--body-text);
+  --gauge-divider: rgba(255, 255, 255, 0.3);
+  --gauge-success-primary: 75, 95, 64;
+  --gauge-success-secondary: 150, 189, 127;
+  --gauge-warning-primary: 218, 195, 66;
+  --gauge-warning-secondary: 109, 98, 33;
+  --gauge-error-primary: 239, 90, 83;
+  --gauge-error-secondary: 120, 45, 42;
 
-  --gauge-divider              : rgba(255, 255, 255, .3);
-  --gauge-success-primary      : 75, 95, 64;
-  --gauge-success-secondary    : 150, 189, 127;
-  --gauge-warning-primary      : 218, 195, 66;
-  --gauge-warning-secondary    : 109, 98, 33;
-  --gauge-error-primary        : 239, 90, 83;
-  --gauge-error-secondary      : 120, 45, 42;
-
-  --sizzle-0                   : 180, 210, 30;
-  --sizzle-1                   : 225, 45, 74;
-  --sizzle-2                   : 212, 66, 148;
-  --sizzle-3                   : 0, 169, 217;
-  --sizzle-4                   : 244, 136, 68;
-  --sizzle-5                   : 0, 147, 128;
-  --sizzle-6                   : 136, 81, 165;
-  --sizzle-7                   : 45, 47, 149;
-  --sizzle-8                   : 255, 235, 0;
+  --sizzle-0: 180, 210, 30;
+  --sizzle-1: 225, 45, 74;
+  --sizzle-2: 212, 66, 148;
+  --sizzle-3: 0, 169, 217;
+  --sizzle-4: 244, 136, 68;
+  --sizzle-5: 0, 147, 128;
+  --sizzle-6: 136, 81, 165;
+  --sizzle-7: 45, 47, 149;
+  --sizzle-8: 255, 235, 0;
 
   $angle: 135deg;
   $startPos: 0%;
@@ -209,35 +212,43 @@ $selected: rgba($primary, .5);
   $endPos: 100%;
   $end: 0;
 
-  $rancher: #3D97D2;
-  $partner: #B5D21E;
-  $other: #D44294;
+  $rancher: #3d97d2;
+  $partner: #b5d21e;
+  $other: #d44294;
 
   --app-rancher-accent: #{$rancher};
   --app-rancher-accent-text: white;
-  --app-rancher-bg: transparent linear-gradient(#{$angle},
+  --app-rancher-bg: transparent
+    linear-gradient(
+      #{$angle},
       #{rgba($rancher, $start)} #{$startPos},
       #{rgba($rancher, $middle)} #{$middlePos},
       #{rgba($rancher, $end)} #{$endPos}
-  ) 0% 0% no-repeat padding-box;
+    )
+    0% 0% no-repeat padding-box;
 
   --app-partner-accent: #{$partner};
   --app-partner-accent-text: black;
-  --app-partner-bg: transparent linear-gradient(#{$angle},
+  --app-partner-bg: transparent
+    linear-gradient(
+      #{$angle},
       #{rgba($partner, $start)} #{$startPos},
       #{rgba($partner, $middle)} #{$middlePos},
       #{rgba($partner, $end)} #{$endPos}
-  ) 0% 0% no-repeat padding-box;
+    )
+    0% 0% no-repeat padding-box;
 
   --app-other-accent: #{$other};
   --app-other-accent-text: white;
-  --app-other-bg: transparent linear-gradient(#{$angle},
+  --app-other-bg: transparent
+    linear-gradient(
+      #{$angle},
       #{rgba($other, $start)} #{$startPos},
       #{rgba($other, $middle)} #{$middlePos},
       #{rgba($other, $end)} #{$endPos}
-  ) 0% 0% no-repeat padding-box;
+    )
+    0% 0% no-repeat padding-box;
 
   --product-icon: #{$darker};
   --product-icon-active: #{$darkest};
 }
-
