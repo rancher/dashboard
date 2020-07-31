@@ -459,7 +459,7 @@ export default {
       <div v-if="showRemove" class="col remove">
         <slot name="removeButton" :remove="remove" :row="row">
           <button type="button" class="btn bg-transparent role-link" @click="remove(row)">
-            {{ removeLabel }}
+            {{ removeLabel || t('generic.remove') }}
           </button>
         </slot>
       </div>
