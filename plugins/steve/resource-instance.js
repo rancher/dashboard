@@ -527,13 +527,13 @@ export default {
       {
         action:  'goToEdit',
         label:   'Edit as Form',
-        icon:    'icon icon-fw icon-edit',
+        icon:    'icon icon-edit',
         enabled:  this.canUpdate && this.canCustomEdit,
       },
       {
         action:  'goToClone',
         label:   'Clone as Form',
-        icon:    'icon icon-fw icon-copy',
+        icon:    'icon icon-copy',
         enabled:  this.canCreate && this.canCustomEdit,
       },
       { divider: true },
@@ -552,13 +552,13 @@ export default {
       {
         action:  'cloneYaml',
         label:   'Clone as YAML',
-        icon:    'icon icon-fw icon-copy',
+        icon:    'icon icon-copy',
         enabled:  this.canCreate && this.canYaml,
       },
       {
         action:     'download',
         label:      'Download YAML',
-        icon:       'icon icon-fw icon-download',
+        icon:       'icon icon-download',
         bulkable:   true,
         bulkAction: 'downloadBulk',
         enabled:    this.canYaml
@@ -568,7 +568,7 @@ export default {
         action:     'promptRemove',
         altAction:  'remove',
         label:      'Delete',
-        icon:       'icon icon-fw icon-trash',
+        icon:       'icon icon-trash',
         bulkable:   true,
         enabled:    this.canDelete,
         bulkAction: 'promptRemove',
@@ -577,7 +577,7 @@ export default {
       {
         action:  'viewInApi',
         label:   'View in API',
-        icon:    'icon icon-fw icon-external-link',
+        icon:    'icon icon-external-link',
         enabled:  this.canViewInApi,
       }
     ];
