@@ -75,6 +75,23 @@ export const getters = {
   errors(state) {
     return state.errors || [];
   },
+
+  haveComponent(state, getters) {
+    return (name) => {
+      try {
+        require.resolve(`@/chart/${ name }`);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+  },
+
+  importComponent(state, getters) {
+    return (name) => {
+      return () => import(`@/chart/${ name }`);
+    };
+  },
 };
 
 export const mutations = {

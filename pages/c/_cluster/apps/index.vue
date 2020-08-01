@@ -3,7 +3,9 @@ import AsyncButton from '@/components/AsyncButton';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import { CATALOG } from '@/config/types';
-import { REPO_TYPE, REPO, CHART, VERSION } from '@/config/query-params';
+import {
+  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, _UNFLAG
+} from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { ensureRegex } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
@@ -28,13 +30,25 @@ export default {
   },
 
   data() {
+    const query = this.$route.query;
+
+    let showRancher = query['rancher'] === _FLAGGED;
+    let showPartner = query['partner'] === _FLAGGED;
+    let showOther = query['other'] === _FLAGGED;
+
+    if ( !showRancher && !showPartner && !showOther ) {
+      showRancher = true;
+      showPartner = true;
+      showOther = true;
+    }
+
     return {
-      searchQuery:    '',
+      searchQuery:    query[SEARCH_QUERY] || '',
       sortField:      'certifiedSort',
       showDeprecated: false,
-      showRancher:    true,
-      showPartner:    true,
-      showOther:      true,
+      showRancher,
+      showPartner,
+      showOther,
     };
   },
 
@@ -73,7 +87,34 @@ export default {
     },
   },
 
+  watch: {
+    searchQuery(q) {
+      this.$router.applyQuery({ [SEARCH_QUERY]: q || undefined });
+    },
+
+    showRancher: 'updateShowFlags',
+    showPartner: 'updateShowFlags',
+    showOther:   'updateShowFlags',
+  },
+
   methods: {
+    updateShowFlags() {
+      if ( (!this.showRancher && !this.showPartner && !this.showOther) ||
+           ( this.showRancher && this.showPartner && this.showOther) ) {
+        this.$router.applyQuery({
+          rancher: _UNFLAG,
+          partner: _UNFLAG,
+          other:   _UNFLAG,
+        });
+      } else {
+        this.$router.applyQuery({
+          rancher: this.showRancher ? _FLAGGED : _UNFLAG,
+          partner: this.showPartner ? _FLAGGED : _UNFLAG,
+          other:   this.showOther ? _FLAGGED : _UNFLAG,
+        });
+      }
+    },
+
     selectChart(chart) {
       this.$router.push({
         name:   'c-cluster-product-resource-create',
