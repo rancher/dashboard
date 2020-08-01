@@ -96,8 +96,23 @@ export default {
       this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
         repoType, repoName, chartName, version
       });
-      this.mergeValues(this.versionInfo.values);
-      this.valuesYaml = jsyaml.safeDump(this.value.values);
+
+      const component = this.version?.annotations?.[CATALOG.COMPONENT];
+
+      if ( component ) {
+        if ( this.$store.getters['catalog/haveComponent'](component) ) {
+          this.valuesComponent = this.$store.getters['catalog/importComponent'](component);
+        } else {
+          this.valuesComponent = null;
+        }
+      } else {
+        this.valuesComponent = null;
+      }
+
+      if ( !this.value.values ) {
+        this.mergeValues(this.versionInfo.values);
+        this.valuesYaml = jsyaml.safeDump(this.value.values);
+      }
     }
   },
 
@@ -116,7 +131,8 @@ export default {
       forceNamespace:    null,
       nameDisabled:      false,
 
-      errors: null,
+      errors:          null,
+      valuesComponent: null,
     };
   },
 
@@ -166,6 +182,12 @@ export default {
       // If there's nothing on page 1, go to page 2
       this.$router.applyQuery({ [STEP]: 2 });
     }
+
+    // For easy access debugging...
+    if ( typeof window !== 'undefined' ) {
+      window.v = this.value;
+      window.c = this;
+    }
   },
 
   methods: {
@@ -177,7 +199,7 @@ export default {
       this.value.values = merge({}, neu, this.value.values || {});
     },
 
-    valuesChanged(value) {
+    yamlChanged(value) {
       try {
         jsyaml.safeLoad(value);
 
@@ -281,11 +303,19 @@ export default {
     </template>
 
     <template v-if="versionInfo" #values>
+      <component
+        :is="valuesComponent"
+        v-if="valuesComponent"
+        v-model="value.values"
+        :chart="chart"
+        :version="version"
+        :version-inforsion-info="versionInfo"
+      />
       <YamlEditor
-        v-if="versionInfo"
+        v-else
         class="yaml-editor"
         :value="valuesYaml"
-        @onInput="valuesChanged"
+        @onInput="yamlChanged"
       />
     </template>
 

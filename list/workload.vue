@@ -1,5 +1,4 @@
 <script>
-import { STATE, AGE, NAMESPACE_NAME, TYPE } from '@/config/table-headers';
 import ResourceTable from '@/components/ResourceTable';
 import { WORKLOAD_TYPES, SCHEMA } from '@/config/types';
 import Loading from '@/components/Loading';
@@ -58,21 +57,6 @@ export default {
       return schema;
     },
 
-    headers() {
-      return [
-        STATE,
-        TYPE,
-        NAMESPACE_NAME,
-        {
-          name:      'endpoints',
-          label:     'Endpoints',
-          formatter: 'Endpoints',
-          value:     "$['metadata']['annotations']['field.cattle.io/publicEndpoints']"
-        },
-        AGE,
-      ];
-    },
-
     rows() {
       const out = [];
 
@@ -107,5 +91,5 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else :schema="schema" :rows="rows" :headers="headers" />
+  <ResourceTable v-else :schema="schema" :rows="rows" />
 </template>

@@ -140,6 +140,7 @@ module.exports = {
     //     }
     //   }
     // },
+
     extend(config, { isClient, isDev }) {
       if ( isDev ) {
         config.devtool = 'eval-source-map';
@@ -167,7 +168,8 @@ module.exports = {
         });
       }
     },
-    //    extractCSS: true,
+
+    // extractCSS:   true,
     cssSourceMap: true,
     babel:        {
       presets({ isServer }) {

@@ -75,6 +75,23 @@ export const getters = {
   errors(state) {
     return state.errors || [];
   },
+
+  haveComponent(state, getters) {
+    return (name) => {
+      try {
+        require.resolve(`@/chart/${ name }`);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+  },
+
+  importComponent(state, getters) {
+    return (name) => {
+      return () => import(`@/chart/${ name }`);
+    };
+  },
 };
 
 export const mutations = {
@@ -232,6 +249,7 @@ function addChart(map, chart, repo) {
       repoName:        repo.name,
       versions:        [],
       deprecated:      !!chart.deprecated,
+      hidden:          !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
       targetNamespace: chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
       targetName:      chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
     };

@@ -1,6 +1,6 @@
 <script>
 import InfoBox from '@/components/InfoBox';
-import GatekeeperViolationsTable from '@/components/chart/gatekeeper/ViolationsTable';
+import GatekeeperViolationsTable from '@/components/gatekeeper/ViolationsTable';
 
 export default {
   components: {

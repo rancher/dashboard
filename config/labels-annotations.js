@@ -29,6 +29,13 @@ export const CATALOG = {
   EXPERIMENTAL:  'catalog.cattle.io/experimental',
   NAMESPACE:     'catalog.cattle.io/namespace',
   RELEASE_NAME:  'catalog.cattle.io/release-name',
+
+  REQUIRES:      'catalog.cattle.io/requires-gvr',
+  PROVIDES:      'catalog.cattle.io/provides-gvr',
+  AUTO_INSTALL:  'catalog.cattle.io/auto-install-gvr',
+  HIDDEN:        'catalog.cattle.io/hidden',
+
+  COMPONENT: 'catalog.cattle.io/ui-component',
 };
 
 export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
