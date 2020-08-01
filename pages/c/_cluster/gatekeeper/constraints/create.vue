@@ -1,6 +1,6 @@
 <script>
 import jsyaml from 'js-yaml';
-import GatekeeperConstraint from '@/shared/gatekeeper-constraint';
+import GatekeeperConstraint from '@/edit/gatekeeper-constraint';
 import { AS_YAML, _FLAGGED } from '@/config/query-params';
 import ResourceYaml from '@/components/ResourceYaml';
 
