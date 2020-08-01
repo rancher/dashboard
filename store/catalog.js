@@ -249,6 +249,7 @@ function addChart(map, chart, repo) {
       repoName:        repo.name,
       versions:        [],
       deprecated:      !!chart.deprecated,
+      hidden:          !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
       targetNamespace: chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
       targetName:      chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
     };

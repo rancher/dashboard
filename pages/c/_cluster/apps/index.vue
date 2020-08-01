@@ -45,7 +45,8 @@ export default {
     return {
       searchQuery:    query[SEARCH_QUERY] || '',
       sortField:      'certifiedSort',
-      showDeprecated: false,
+      showDeprecated: query['deprecated'] === _FLAGGED,
+      showHidden:     query['hidden'] === _FLAGGED,
       showRancher,
       showPartner,
       showOther,
@@ -58,6 +59,10 @@ export default {
     filteredCharts() {
       return (this.allCharts || []).filter((c) => {
         if ( c.deprecated && !this.showDeprecated ) {
+          return false;
+        }
+
+        if ( c.hidden && !this.showHidden ) {
           return false;
         }
 

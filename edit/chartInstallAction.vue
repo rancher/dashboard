@@ -185,7 +185,7 @@ export default {
 
     // For easy access debugging...
     if ( typeof window !== 'undefined' ) {
-      window.v = v;
+      window.v = this.value;
       window.c = this;
     }
   },
@@ -307,6 +307,9 @@ export default {
         :is="valuesComponent"
         v-if="valuesComponent"
         v-model="value.values"
+        :chart="chart"
+        :version="version"
+        :version-inforsion-info="versionInfo"
       />
       <YamlEditor
         v-else
