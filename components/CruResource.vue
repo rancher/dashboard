@@ -1,4 +1,6 @@
 <script>
+import { SCHEMA } from '@/config/types';
+
 export default {
   props: {
     resource: {
@@ -14,19 +16,31 @@ export default {
     selectedSubtype: {
       type:    String,
       default: null
+    },
+
+    canCreate: {
+      type:    Boolean,
+      default: false
     }
   },
   data() {
     return {};
   },
-  methods: {}
+  methods: {
+    showPreviewYaml() {
+      // const schemas = this.$store.getters['cluster/all'](SCHEMA);
+      // const { resource } = this;
+
+      // const resourceYaml = createYaml(schemas, resource.type, resource);
+    }
+  }
 };
 </script>
 
 <template>
-  <form>
-    <div class="subtypes-container">
-      <slot v-if="subtypes.length && !selectedSubtype" name="subtypes">
+  <form class="create-resource-container">
+    <div v-if="subtypes.length && !selectedSubtype" class="subtypes-container">
+      <slot name="subtypes">
         <div
           v-for="subtype in subtypes"
           :key="subtype.id"
@@ -76,7 +90,35 @@ export default {
       </slot>
     </div>
 
-    <slot v-if="selectedSubtype || !subtypes.length" name="define" class="resource-container"></slot>
+    <div v-if="selectedSubtype || !subtypes.length" class="resource-container">
+      <slot name="define" />
+    </div>
+
+    <div class="controls-row">
+      <slot name="footer">
+        <slot name="left-controls">
+          <button type="button" class="btn role-secondary" @click="$emit('cancel')">
+            <t k="generic.cancel" />
+          </button>
+        </slot>
+
+        <div>
+          <slot v-if="selectedSubtype || !subtypes.length" name="right-controls">
+            <button type="button" class="btn role-secondary" @click="showPreviewYaml">
+              <t k="wizard.back" />
+            </button>
+            <button
+              :disabled="!canCreate"
+              type="button"
+              class="btn role-primary"
+              @click="$emit('finish')"
+            >
+              <t k="generic.create" />
+            </button>
+          </slot>
+        </div>
+      </slot>
+    </div>
   </form>
 </template>
 
@@ -163,5 +205,11 @@ export default {
     justify-content: center;
     width: 100%;
   }
+}
+
+.controls-row {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
 }
 </style>
