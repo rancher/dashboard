@@ -279,7 +279,7 @@ export const getters = {
 
         let out = schema?.attributes?.kind || schema.id || '?';
 
-        out = ucFirst(out.replace(/([a-z])([A-Z])/g,'$1 $2'));
+        // out = ucFirst(out.replace(/([a-z])([A-Z])/g,'$1 $2'));
 
         // This works for most things... if you don't like it, put in a typeLabel translation.
         if ( count > 1 ) {
@@ -664,63 +664,74 @@ export const getters = {
 
   headersFor(state) {
     return (schema) => {
-      let out;
+      const attributes = schema.attributes || {};
+      const columns = attributes.columns || [];
 
       // A specific list has been provided
       if ( state.headers[schema.id] ) {
-        out = state.headers[schema.id];
-      } else {
-        // Make one up from schema
-        out = [STATE]; // Everybody gets a state
-
-        const attributes = schema.attributes || {};
-        const columns = attributes.columns || [];
-        const namespaced = attributes.namespaced || false;
-
-        let hasName = false;
-
-        for ( const col of columns ) {
-          if ( col.format === 'name' ) {
-            hasName = true;
-            out.push(namespaced ? NAMESPACE_NAME : NAME);
+        return state.headers[schema.id].map((entry) => {
+          if ( typeof entry === 'string' ) {
+            const col = findBy(columns, 'name', entry);
+            if ( col ) {
+              return fromSchema(col);
+            } else {
+              return null;
+            }
           } else {
-            let formatter, width, formatterOpts;
-
-            if ( col.format === '' && col.name === 'Age' ) {
-              out.push(AGE);
-              continue;
-            }
-
-            if ( col.format === 'date' || col.type === 'date' ) {
-              formatter = 'Date';
-              width = 120;
-              formatterOpts = { multiline: true };
-            }
-
-            out.push({
-              name:  col.name.toLowerCase(),
-              label: col.name,
-              value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
-              sort:  [col.field],
-              formatter,
-              formatterOpts,
-              width,
-            });
+            return entry;
           }
-        }
+        }).filter(col => !!col);
+      }
 
-        if ( !hasName ) {
-          insertAt(out, 1, (namespaced ? NAMESPACE_NAME : NAME));
-        }
+      // Otherwise make one up from schema
+      const out = [STATE]; // Everybody gets a state
+      const namespaced = attributes.namespaced || false;
+      let hasName = false;
 
-        // Age always goes last
-        if ( out.includes(AGE) ) {
-          removeObject(out, AGE);
-          out.push(AGE);
+      for ( const col of columns ) {
+        if ( col.format === 'name' ) {
+          hasName = true;
+          out.push(namespaced ? NAMESPACE_NAME : NAME);
+        } else {
+          out.push(fromSchema(col));
         }
       }
 
+      if ( !hasName ) {
+        insertAt(out, 1, (namespaced ? NAMESPACE_NAME : NAME));
+      }
+
+      // Age always goes last
+      if ( out.includes(AGE) ) {
+        removeObject(out, AGE);
+        out.push(AGE);
+      }
+
       return out;
+
+      function fromSchema(col) {
+        let formatter, width, formatterOpts;
+
+        if ( col.format === '' && col.name === 'Age' ) {
+          return AGE;
+        }
+
+        if ( col.format === 'date' || col.type === 'date' ) {
+          formatter = 'Date';
+          width = 120;
+          formatterOpts = { multiline: true };
+        }
+
+        return {
+          name:  col.name.toLowerCase(),
+          label: col.name,
+          value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
+          sort:  [col.field],
+          formatter,
+          formatterOpts,
+          width,
+        };
+      }
     };
   },
 

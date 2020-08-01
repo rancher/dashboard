@@ -8,7 +8,7 @@ import {
 import {
   STATE, NAME as NAME_COL, NAMESPACE_NAME, AGE, KEYS,
   INGRESS_TARGET, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM,
-  SPEC_TYPE, TARGET_PORT, SELECTOR
+  SPEC_TYPE, TARGET_PORT, SELECTOR, NODE as NODE_COL, TYPE
 } from '@/config/table-headers';
 
 import { DSL } from '@/store/type-map';
@@ -130,6 +130,16 @@ export function init(store) {
   headers(INGRESS, [STATE, NAMESPACE_NAME, INGRESS_TARGET, AGE]);
   headers(NODE, [STATE, NAME_COL, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM, AGE]);
   headers(SERVICE, [STATE, NAME_COL, SPEC_TYPE, TARGET_PORT, SELECTOR, AGE]);
+
+  headers(WORKLOAD, [STATE, NAMESPACE_NAME, TYPE, 'Ready', AGE]);
+  headers(WORKLOAD_TYPES.DEPLOYMENT, [STATE, NAMESPACE_NAME, 'Ready', 'Up-to-date', 'Available', AGE]);
+  headers(WORKLOAD_TYPES.DAEMON_SET, [STATE, NAMESPACE_NAME, 'Ready', 'Current', 'Desired', AGE]);
+  headers(WORKLOAD_TYPES.REPLICA_SET, [STATE, NAMESPACE_NAME, 'Ready', 'Current', 'Desired', AGE]);
+  headers(WORKLOAD_TYPES.STATEFUL_SET, [STATE, NAMESPACE_NAME, 'Ready', AGE]);
+  headers(WORKLOAD_TYPES.JOB, [STATE, NAMESPACE_NAME, 'Completions', 'Duration', AGE]);
+  headers(WORKLOAD_TYPES.CRON_JOB, [STATE, NAMESPACE_NAME, 'Schedule', 'Last Schedule', AGE]);
+  headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAMESPACE_NAME, 'Ready', 'Current', 'Desired', AGE]);
+  headers(POD, [STATE, NAMESPACE_NAME, 'Ready', 'Restarts', 'IP', NODE_COL, AGE]);
 
   // These look to be for [Cluster]RoleTemplate, not [Cluster]Role.
   // headers(RBAC.ROLE, [

@@ -146,3 +146,13 @@ export default {
     </tr>
   </thead>
 </template>
+
+<style lang="scss" scoped>
+  .sortable > A {
+    display: inline-block;
+  }
+
+  .icon-stack {
+    width: 12px;
+  }
+</style>
