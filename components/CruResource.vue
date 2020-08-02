@@ -40,7 +40,7 @@ export default {
     return {
       isCancelModal: false,
       showAsForm:    true,
-      resourceYaml:   '',
+      resourceYaml:  ''
     };
   },
   methods: {
@@ -48,12 +48,17 @@ export default {
       if (isCancel) {
         // this.$modal.show('cancel') pass translation options
         this.isCancelModal = true;
+      } else {
+        this.isCancelModal = false;
       }
 
       this.$modal.show('cancel-modal');
     },
     confirmCancel(isCancel) {
+      this.$modal.hide('cancel-modal');
+
       if (isCancel) {
+        this.isCancelModal = false;
         this.$router.replace({
           name:   this.doneRoute,
           params: { resource: this.resource.type }
@@ -78,157 +83,152 @@ export default {
 </script>
 
 <template>
-  <form
-    v-if="showAsForm"
-    class="create-resource-container"
-  >
-    <div v-if="subtypes.length && !selectedSubtype" class="subtypes-container">
-      <slot name="subtypes">
-        <div
-          v-for="subtype in subtypes"
-          :key="subtype.id"
-          class="subtype-banner"
-          :class="{ selected: subtype.id === selectedSubtype }"
-          @click="$emit('selectType', subtype.id)"
-        >
-          <slot name="subtype-logo">
-            <div class="subtype-logo round-image">
-              <img
-                v-if="subtype.bannerImage"
-                src="subtype.bannerImage"
-                alt="${ resource.type }: ${ subtype.label }"
-              />
-              <div v-else-if="subtype.bannerAbbrv" class="banner-abbrv">
-                <span
-                  v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)"
-                >{{ t(subtype.bannerAbbrv) }}</span>
-                <span v-else>{{ subtype.bannerAbbrv.slice(0, 1).toUpperCase() }}</span>
-              </div>
-              <div v-else>
-                {{ subtype.id.slice(0, 1).toUpperCase() }}
-              </div>
-            </div>
-          </slot>
-          <slot name="subtype-content">
-            <div class="subtype-content">
-              <div class="title">
-                <h5>
-                  <span
-                    v-if="$store.getters['i18n/exists'](subtype.label)"
-                    v-html="t(subtype.label)"
-                  ></span>
-                  <span v-else>{{ subtype.label }}</span>
-                </h5>
-              </div>
-              <div class="description">
-                <span
-                  v-if="$store.getters['i18n/exists'](subtype.description)"
-                  v-html="t(subtype.description)"
-                ></span>
-                <span v-else>{{ subtype.description }}</span>
-              </div>
-            </div>
-          </slot>
-        </div>
-      </slot>
-    </div>
-
-    <div v-if="selectedSubtype || !subtypes.length" class="resource-container">
-      <slot name="define" />
-    </div>
-
-    <div class="controls-row">
-      <slot name="form-footer">
-        <button type="button" class="btn role-secondary" @click="$emit('cancel')">
-          <t k="generic.cancel" />
-        </button>
-
-        <div>
-          <button v-if="selectedSubtype || !subtypes.length" type="button" class="btn role-secondary" @click="showPreviewYaml">
-            Preview Yaml
-          </button>
-          <button
-            :disabled="!canCreate"
-            type="button"
-            class="btn role-primary"
-            @click="$emit('finish')"
+  <section>
+    <form v-if="showAsForm" class="create-resource-container">
+      <div v-if="subtypes.length && !selectedSubtype" class="subtypes-container">
+        <slot name="subtypes">
+          <div
+            v-for="subtype in subtypes"
+            :key="subtype.id"
+            class="subtype-banner"
+            :class="{ selected: subtype.id === selectedSubtype }"
+            @click="$emit('selectType', subtype.id)"
           >
-            <t k="generic.create" />
+            <slot name="subtype-logo">
+              <div class="subtype-logo round-image">
+                <img
+                  v-if="subtype.bannerImage"
+                  src="subtype.bannerImage"
+                  alt="${ resource.type }: ${ subtype.label }"
+                />
+                <div v-else-if="subtype.bannerAbbrv" class="banner-abbrv">
+                  <span
+                    v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)"
+                  >{{ t(subtype.bannerAbbrv) }}</span>
+                  <span v-else>{{ subtype.bannerAbbrv.slice(0, 1).toUpperCase() }}</span>
+                </div>
+                <div v-else>
+                  {{ subtype.id.slice(0, 1).toUpperCase() }}
+                </div>
+              </div>
+            </slot>
+            <slot name="subtype-content">
+              <div class="subtype-content">
+                <div class="title">
+                  <h5>
+                    <span
+                      v-if="$store.getters['i18n/exists'](subtype.label)"
+                      v-html="t(subtype.label)"
+                    ></span>
+                    <span v-else>{{ subtype.label }}</span>
+                  </h5>
+                </div>
+                <div class="description">
+                  <span
+                    v-if="$store.getters['i18n/exists'](subtype.description)"
+                    v-html="t(subtype.description)"
+                  ></span>
+                  <span v-else>{{ subtype.description }}</span>
+                </div>
+              </div>
+            </slot>
+          </div>
+        </slot>
+      </div>
+
+      <div v-if="selectedSubtype || !subtypes.length" class="resource-container">
+        <slot name="define" />
+      </div>
+
+      <div class="controls-row">
+        <slot name="form-footer">
+          <button type="button" class="btn role-secondary" @click="$emit('cancel')">
+            <t k="generic.cancel" />
           </button>
-        </div>
-      </slot>
-    </div>
-  </form>
 
-  <section v-else>
-    <ResourceYaml
-      ref="resourceyaml"
-      :value="resource"
-      :mode="mode"
-      :yaml="resourceYaml"
-      :offer-preview="false"
-      :done-route="doneRoute"
-      :done-override="resource.doneOverride"
-    >
-      <template #yamlFooter="{yamlSave}">
-        <div class="controls-row">
-          <slot name="cru-yaml-footer">
-            <button type="button" class="btn role-secondary" @click="checkCancel(true)">
-              <t k="generic.cancel" />
+          <div>
+            <button
+              v-if="selectedSubtype || !subtypes.length"
+              type="button"
+              class="btn role-secondary"
+              @click="showPreviewYaml"
+            >
+              <t k="cruResource.previewYaml" />
             </button>
+            <button
+              :disabled="!canCreate"
+              type="button"
+              class="btn role-primary"
+              @click="$emit('finish')"
+            >
+              <t k="generic.create" />
+            </button>
+          </div>
+        </slot>
+      </div>
+    </form>
 
-            <div v-if="selectedSubtype || !subtypes.length">
-              <button type="button" class="btn role-secondary" @click="checkCancel(false)">
-                <t k="generic.back" />
+    <section v-else>
+      <ResourceYaml
+        ref="resourceyaml"
+        :value="resource"
+        :mode="mode"
+        :yaml="resourceYaml"
+        :offer-preview="false"
+        :done-route="doneRoute"
+        :done-override="resource.doneOverride"
+      >
+        <template #yamlFooter="{yamlSave}">
+          <div class="controls-row">
+            <slot name="cru-yaml-footer">
+              <button type="button" class="btn role-secondary" @click="checkCancel(true)">
+                <t k="generic.cancel" />
               </button>
-              <button
-                type="button"
-                class="btn role-primary"
-                @click="yamlSave"
-              >
-                <t k="generic.create" />
-              </button>
-            </div>
-          </slot>
-        </div>
-      </template>
-    </ResourceYaml>
+
+              <div v-if="selectedSubtype || !subtypes.length">
+                <button type="button" class="btn role-secondary" @click="checkCancel(false)">
+                  <t k="generic.back" />
+                </button>
+                <button type="button" class="btn role-primary" @click="yamlSave">
+                  <t k="generic.create" />
+                </button>
+              </div>
+            </slot>
+          </div>
+        </template>
+      </ResourceYaml>
+    </section>
 
     <modal
       class="confirm-modal"
       name="cancel-modal"
-      :width="350"
+      :width="400"
       height="auto"
-      styles="background-color: var(--nav-bg); border-radius: var(--border-radius); overflow: scroll; max-height: 100vh;"
     >
       <div class="header">
         <h4 class="text-default-text">
-          Go Back To Form
+          <t k="cruResource.backToForm" />
         </h4>
       </div>
       <div class="body">
         <p v-if="isCancelModal">
-          Cancelling will destroy your changes.
+          <t k="cruResource.cancel" />
         </p>
         <p v-else>
-          Going back will destroy your changes.
+          <t k="cruResource.back" />
         </p>
       </div>
       <div class="footer">
-        <button type="button" class="btn role-secondary" @click="$modal.hide('cancel-modal')">
-          No, Review Yaml
-        </button>
         <button
           type="button"
-          class="btn role-primary"
-          @click="confirmCancel(isCancelModal)"
+          class="btn role-secondary"
+          @click="$modal.hide('cancel-modal')"
         >
-          <span v-if="isCancelModal">
-            Yes, Cancel.
-          </span>
-          <span v-else>
-            Yes, go back.
-          </span>
+          <t k="cruResource.confirmYaml" />
+        </button>
+        <button type="button" class="btn role-primary" @click="confirmCancel(isCancelModal)">
+          <span v-if="isCancelModal"><t k="cruResource.confirmCancel" /></span>
+          <span v-else><t k="cruResource.confirmBack" /></span>
         </button>
       </div>
     </modal>
@@ -236,6 +236,33 @@ export default {
 </template>
 
 <style lang='scss'>
+.confirm-modal {
+  .v--modal-box {
+    background-color: var(--default);
+    box-shadow: none;
+    min-height: 200px;
+    .body {
+      min-height: 75px;
+      padding: 10px 0 0 15px;
+      p {
+        margin-top: 10px;
+      }
+    }
+    .header {
+      background-color: #4F3335;
+      padding: 15px 0 0 15px;
+    }
+    .header,
+    .footer {
+      height: 50px;
+    }
+    .footer {
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 10px 0 0 15px;
+    }
+  }
+}
 .subtypes-container {
   display: flex;
   flex-wrap: wrap;
