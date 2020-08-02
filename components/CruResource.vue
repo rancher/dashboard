@@ -1,10 +1,12 @@
 <script>
 import { createYaml } from '@/utils/create-yaml';
+import { clone } from '@/utils/object';
 import { SCHEMA } from '@/config/types';
 import ResourceYaml from '@/components/ResourceYaml';
+import Banner from '@/components/Banner';
 
 export default {
-  components: { ResourceYaml },
+  components: { Banner, ResourceYaml },
   props:      {
     doneRoute: {
       type:     String,
@@ -34,13 +36,14 @@ export default {
     canCreate: {
       type:    Boolean,
       default: false
-    }
+    },
   },
   data() {
     return {
       isCancelModal: false,
       showAsForm:    true,
-      resourceYaml:  ''
+      resourceYaml:  '',
+      errors:        [],
     };
   },
   methods: {
@@ -55,6 +58,7 @@ export default {
       this.$modal.show('cancel-modal');
     },
     confirmCancel(isCancel) {
+      this.errors = [];
       this.$modal.hide('cancel-modal');
 
       if (isCancel) {
@@ -72,12 +76,25 @@ export default {
     showPreviewYaml() {
       const schemas = this.$store.getters['cluster/all'](SCHEMA);
       const { resource } = this;
+      const clonedResource = clone(resource);
 
-      const resourceYaml = createYaml(schemas, resource.type, resource);
+      const resourceYaml = createYaml(schemas, resource.type, clonedResource);
 
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
-    }
+    },
+    yamlCb(success, errors) {
+      success ? this.done() : this.errors = errors;
+    },
+    done() {
+      if ( !this.doneRoute ) {
+        return;
+      }
+      this.$router.replace({
+        name:   this.doneRoute,
+        params: { resource: this.value.type }
+      });
+    },
   }
 };
 </script>
@@ -189,7 +206,7 @@ export default {
                 <button type="button" class="btn role-secondary" @click="checkCancel(false)">
                   <t k="generic.back" />
                 </button>
-                <button type="button" class="btn role-primary" @click="yamlSave">
+                <button type="button" class="btn role-primary" @click="yamlSave(yamlCb)">
                   <t k="generic.create" />
                 </button>
               </div>
@@ -198,6 +215,9 @@ export default {
         </template>
       </ResourceYaml>
     </section>
+    <div v-for="(err, idx) in errors" :key="idx">
+      <Banner color="error" :label="err" />
+    </div>
 
     <modal
       class="confirm-modal"
@@ -232,6 +252,7 @@ export default {
         </button>
       </div>
     </modal>
+  </section>
   </section>
 </template>
 

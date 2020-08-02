@@ -263,7 +263,7 @@ export default {
         } else {
           this.errors = [err];
         }
-        buttonDone(false);
+        buttonDone(false, this.errors);
       }
     },
     done() {
