@@ -3,6 +3,7 @@
 ##############################
 generic:
   add: Add
+  back: Back
   cancel: Cancel
   clickToShow: "[Show Value]"
   close: Close

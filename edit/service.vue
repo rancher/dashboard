@@ -145,6 +145,8 @@ export default {
     :resource="value"
     :subtypes="defaultServiceTypes"
     :selected-subtype="serviceType"
+    :done-route="doneRoute"
+    :mode="mode"
     @selectType="(st) => serviceType = st"
   >
     <template #define>

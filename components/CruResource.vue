@@ -1,8 +1,21 @@
 <script>
+import { createYaml } from '@/utils/create-yaml';
 import { SCHEMA } from '@/config/types';
+import ResourceYaml from '@/components/ResourceYaml';
 
 export default {
-  props: {
+  components: { ResourceYaml },
+  props:      {
+    doneRoute: {
+      type:     String,
+      required: true
+    },
+
+    mode: {
+      type:     String,
+      required: true
+    },
+
     resource: {
       type:     Object,
       required: true
@@ -24,21 +37,51 @@ export default {
     }
   },
   data() {
-    return {};
+    return {
+      isCancelModal: false,
+      showAsForm:    true,
+      resourceYaml:   '',
+    };
   },
   methods: {
-    showPreviewYaml() {
-      // const schemas = this.$store.getters['cluster/all'](SCHEMA);
-      // const { resource } = this;
+    checkCancel(isCancel) {
+      if (isCancel) {
+        // this.$modal.show('cancel') pass translation options
+        this.isCancelModal = true;
+      }
 
-      // const resourceYaml = createYaml(schemas, resource.type, resource);
+      this.$modal.show('cancel-modal');
+    },
+    confirmCancel(isCancel) {
+      if (isCancel) {
+        this.$router.replace({
+          name:   this.doneRoute,
+          params: { resource: this.resource.type }
+        });
+      } else {
+        this.isCancelModal = false;
+        this.resourceYaml = null;
+        this.showAsForm = true;
+      }
+    },
+    showPreviewYaml() {
+      const schemas = this.$store.getters['cluster/all'](SCHEMA);
+      const { resource } = this;
+
+      const resourceYaml = createYaml(schemas, resource.type, resource);
+
+      this.resourceYaml = resourceYaml;
+      this.showAsForm = false;
     }
   }
 };
 </script>
 
 <template>
-  <form class="create-resource-container">
+  <form
+    v-if="showAsForm"
+    class="create-resource-container"
+  >
     <div v-if="subtypes.length && !selectedSubtype" class="subtypes-container">
       <slot name="subtypes">
         <div
@@ -95,31 +138,101 @@ export default {
     </div>
 
     <div class="controls-row">
-      <slot name="footer">
-        <slot name="left-controls">
-          <button type="button" class="btn role-secondary" @click="$emit('cancel')">
-            <t k="generic.cancel" />
-          </button>
-        </slot>
+      <slot name="form-footer">
+        <button type="button" class="btn role-secondary" @click="$emit('cancel')">
+          <t k="generic.cancel" />
+        </button>
 
         <div>
-          <slot v-if="selectedSubtype || !subtypes.length" name="right-controls">
-            <button type="button" class="btn role-secondary" @click="showPreviewYaml">
-              <t k="wizard.back" />
-            </button>
-            <button
-              :disabled="!canCreate"
-              type="button"
-              class="btn role-primary"
-              @click="$emit('finish')"
-            >
-              <t k="generic.create" />
-            </button>
-          </slot>
+          <button v-if="selectedSubtype || !subtypes.length" type="button" class="btn role-secondary" @click="showPreviewYaml">
+            Preview Yaml
+          </button>
+          <button
+            :disabled="!canCreate"
+            type="button"
+            class="btn role-primary"
+            @click="$emit('finish')"
+          >
+            <t k="generic.create" />
+          </button>
         </div>
       </slot>
     </div>
   </form>
+
+  <section v-else>
+    <ResourceYaml
+      ref="resourceyaml"
+      :value="resource"
+      :mode="mode"
+      :yaml="resourceYaml"
+      :offer-preview="false"
+      :done-route="doneRoute"
+      :done-override="resource.doneOverride"
+    >
+      <template #yamlFooter="{yamlSave}">
+        <div class="controls-row">
+          <slot name="cru-yaml-footer">
+            <button type="button" class="btn role-secondary" @click="checkCancel(true)">
+              <t k="generic.cancel" />
+            </button>
+
+            <div v-if="selectedSubtype || !subtypes.length">
+              <button type="button" class="btn role-secondary" @click="checkCancel(false)">
+                <t k="generic.back" />
+              </button>
+              <button
+                type="button"
+                class="btn role-primary"
+                @click="yamlSave"
+              >
+                <t k="generic.create" />
+              </button>
+            </div>
+          </slot>
+        </div>
+      </template>
+    </ResourceYaml>
+
+    <modal
+      class="confirm-modal"
+      name="cancel-modal"
+      :width="350"
+      height="auto"
+      styles="background-color: var(--nav-bg); border-radius: var(--border-radius); overflow: scroll; max-height: 100vh;"
+    >
+      <div class="header">
+        <h4 class="text-default-text">
+          Go Back To Form
+        </h4>
+      </div>
+      <div class="body">
+        <p v-if="isCancelModal">
+          Cancelling will destroy your changes.
+        </p>
+        <p v-else>
+          Going back will destroy your changes.
+        </p>
+      </div>
+      <div class="footer">
+        <button type="button" class="btn role-secondary" @click="$modal.hide('cancel-modal')">
+          No, Review Yaml
+        </button>
+        <button
+          type="button"
+          class="btn role-primary"
+          @click="confirmCancel(isCancelModal)"
+        >
+          <span v-if="isCancelModal">
+            Yes, Cancel.
+          </span>
+          <span v-else>
+            Yes, go back.
+          </span>
+        </button>
+      </div>
+    </modal>
+  </section>
 </template>
 
 <style lang='scss'>
