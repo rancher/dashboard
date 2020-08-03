@@ -1,12 +1,17 @@
 <script>
+import isEmpty from 'lodash/isEmpty';
 import { createYaml } from '@/utils/create-yaml';
 import { clone } from '@/utils/object';
 import { SCHEMA } from '@/config/types';
 import ResourceYaml from '@/components/ResourceYaml';
 import Banner from '@/components/Banner';
+import AsyncButton from '@/components/AsyncButton';
 
 export default {
-  components: { Banner, ResourceYaml },
+  components: {
+    Banner, ResourceYaml, AsyncButton
+  },
+
   props:      {
     doneRoute: {
       type:     String,
@@ -38,6 +43,7 @@ export default {
       default: false
     },
   },
+
   data() {
     return {
       isCancelModal: false,
@@ -46,10 +52,26 @@ export default {
       errors:        [],
     };
   },
+
+  computed: {
+    showSubtypeSelection() {
+      const { selectedSubtype, subtypes } = this;
+
+      if (isEmpty(subtypes)) {
+        return false;
+      }
+
+      if (!selectedSubtype) {
+        return true;
+      }
+
+      return false;
+    },
+  },
+
   methods: {
     checkCancel(isCancel) {
       if (isCancel) {
-        // this.$modal.show('cancel') pass translation options
         this.isCancelModal = true;
       } else {
         this.isCancelModal = false;
@@ -57,6 +79,7 @@ export default {
 
       this.$modal.show('cancel-modal');
     },
+
     confirmCancel(isCancel) {
       this.errors = [];
       this.$modal.hide('cancel-modal');
@@ -73,6 +96,7 @@ export default {
         this.showAsForm = true;
       }
     },
+
     showPreviewYaml() {
       const schemas = this.$store.getters['cluster/all'](SCHEMA);
       const { resource } = this;
@@ -83,16 +107,18 @@ export default {
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
     },
+
     yamlCb(success, errors) {
       success ? this.done() : this.errors = errors;
     },
+
     done() {
       if ( !this.doneRoute ) {
         return;
       }
       this.$router.replace({
         name:   this.doneRoute,
-        params: { resource: this.value.type }
+        params: { resource: this.resource.type }
       });
     },
   }
@@ -102,7 +128,7 @@ export default {
 <template>
   <section>
     <form v-if="showAsForm" class="create-resource-container">
-      <div v-if="subtypes.length && !selectedSubtype" class="subtypes-container">
+      <div v-if="showSubtypeSelection" class="subtypes-container">
         <slot name="subtypes">
           <div
             v-for="subtype in subtypes"
@@ -172,14 +198,12 @@ export default {
             >
               <t k="cruResource.previewYaml" />
             </button>
-            <button
+            <AsyncButton
+              v-if="!showSubtypeSelection"
               :disabled="!canCreate"
-              type="button"
-              class="btn role-primary"
-              @click="$emit('finish')"
-            >
-              <t k="generic.create" />
-            </button>
+              :action-label="t('generic.create')"
+              @click="$emit('finish', done)"
+            />
           </div>
         </slot>
       </div>
