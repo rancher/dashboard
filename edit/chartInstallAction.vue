@@ -97,7 +97,10 @@ export default {
         repoType, repoName, chartName, version
       });
 
-      const component = this.version?.annotations?.[CATALOG.COMPONENT];
+      // TODO: Remove
+      // This is only in place until logging changes the component annotation to component-ui
+      const stopGapComponentKey = 'catalog.cattle.io/component';
+      const component = this.version?.annotations?.[CATALOG.COMPONENT] || this.version?.annotations?.[stopGapComponentKey];
 
       if ( component ) {
         if ( this.$store.getters['catalog/haveComponent'](component) ) {

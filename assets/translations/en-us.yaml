@@ -291,6 +291,23 @@ istio:
     customAnswers: Custom Answers
     advanced: Advanced Settings
 
+logging:
+  provider: Provider
+  elasticsearch:
+    host: Host
+    scheme: Scheme
+    port: Port
+    clusterName: Cluster Name
+    user: User
+    password: Password
+    clientCert: 
+      label: Client Cert
+      placeholder: Paste in the CA certificate
+    clientKey: 
+      label: Client Key
+      placeholder: Paste in the client key
+    clientKeyPass: Client Key Pass
+
 
 node:
   detail:
