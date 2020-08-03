@@ -9,10 +9,12 @@ import AsyncButton from '@/components/AsyncButton';
 
 export default {
   components: {
-    Banner, ResourceYaml, AsyncButton
+    Banner,
+    ResourceYaml,
+    AsyncButton
   },
 
-  props:      {
+  props: {
     doneRoute: {
       type:     String,
       required: true
@@ -41,7 +43,7 @@ export default {
     canCreate: {
       type:    Boolean,
       default: false
-    },
+    }
   },
 
   data() {
@@ -49,7 +51,7 @@ export default {
       isCancelModal: false,
       showAsForm:    true,
       resourceYaml:  '',
-      errors:        [],
+      errors:        []
     };
   },
 
@@ -66,7 +68,7 @@ export default {
       }
 
       return false;
-    },
+    }
   },
 
   methods: {
@@ -109,18 +111,18 @@ export default {
     },
 
     yamlCb(success, errors) {
-      success ? this.done() : this.errors = errors;
+      success ? this.done() : (this.errors = errors);
     },
 
     done() {
-      if ( !this.doneRoute ) {
+      if (!this.doneRoute) {
         return;
       }
       this.$router.replace({
         name:   this.doneRoute,
         params: { resource: this.resource.type }
       });
-    },
+    }
   }
 };
 </script>
@@ -243,12 +245,7 @@ export default {
       <Banner color="error" :label="err" />
     </div>
 
-    <modal
-      class="confirm-modal"
-      name="cancel-modal"
-      :width="400"
-      height="auto"
-    >
+    <modal class="confirm-modal" name="cancel-modal" :width="400" height="auto">
       <div class="header">
         <h4 class="text-default-text">
           <t k="cruResource.backToForm" />
@@ -263,20 +260,19 @@ export default {
         </p>
       </div>
       <div class="footer">
-        <button
-          type="button"
-          class="btn role-secondary"
-          @click="$modal.hide('cancel-modal')"
-        >
+        <button type="button" class="btn role-secondary" @click="$modal.hide('cancel-modal')">
           <t k="cruResource.confirmYaml" />
         </button>
         <button type="button" class="btn role-primary" @click="confirmCancel(isCancelModal)">
-          <span v-if="isCancelModal"><t k="cruResource.confirmCancel" /></span>
-          <span v-else><t k="cruResource.confirmBack" /></span>
+          <span v-if="isCancelModal">
+            <t k="cruResource.confirmCancel" />
+          </span>
+          <span v-else>
+            <t k="cruResource.confirmBack" />
+          </span>
         </button>
       </div>
     </modal>
-  </section>
   </section>
 </template>
 
@@ -294,7 +290,7 @@ export default {
       }
     }
     .header {
-      background-color: #4F3335;
+      background-color: #4f3335;
       padding: 15px 0 0 15px;
     }
     .header,
