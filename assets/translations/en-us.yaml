@@ -3,8 +3,9 @@
 ##############################
 generic:
   add: Add
+  back: Back
   cancel: Cancel
-  clickToShow: '[Show Value]'
+  clickToShow: "[Show Value]"
   close: Close
   comingSoon: Coming Soon
   create: Create
@@ -18,6 +19,7 @@ generic:
     one  {resource}
     other {resources}
     }
+  save: Save
   type: Type
   unknown: Unknown
 
@@ -37,10 +39,10 @@ nav:
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
-    namespace: '{name}'
+    namespace: "{name}"
     namespaced: Only Namespaced Resources
     orphan: Not in a Project
-    project: 'Project: {name}'
+    project: "Project: {name}"
     system: Only System Namespaces
     user: Only User Namespaces
 
@@ -133,7 +135,7 @@ cluster:
 
 clusterIndexPage:
   hardwareResourceGauge:
-    consumption: '{useful} of {total} {units} {suffix}'
+    consumption: "{useful} of {total} {units} {suffix}"
     coresReserved: Cores Reserved
     coresUsed: Cores Used
     podsReserved: Pods Reserved
@@ -172,6 +174,15 @@ containerResourceLimit:
   memPlaceholder: e.g. 128
   requestsCpu: CPU Reservation
   requestsMemory: Memory Reservation
+
+cruResource:
+  previewYaml: Preview Yaml
+  cancel: Cancelling will destroy your changes.
+  back: Going back will destroy your changes.
+  confirmYaml: "No, Review Yaml"
+  backToForm: Go Back To Form
+  confirmCancel: "Yes, Cancel"
+  confirmBack: "Yes, Go Back"
 
 footer:
   docs: Docs
@@ -249,7 +260,7 @@ ingress:
       placeholder: e.g. 80 or http
     targetService:
       label: Target Service
-    warning: 'Warning: Default backend is used globally for the entire cluster.'
+    warning: "Warning: Default backend is used globally for the entire cluster."
   rules:
     addPath: Add Path
     addRule: Add Rule
@@ -301,7 +312,7 @@ node:
       version: Version
     glance:
       consumptionGauge:
-        amount: '{used} of {total} {unit} used'
+        amount: "{used} of {total} {unit} used"
         cpu: CPU
         memory: MEMORY
         pods: PODS
@@ -323,8 +334,8 @@ promptRemove:
     =1 {, and one other.}
     other {, and {count} others.}
     }
-  attemptingToRemove: 'You are attemping to remove the {type}'
-  protip: 'protip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation'
+  attemptingToRemove: "You are attemping to remove the {type}"
+  protip: "protip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
 
 resourceDetail:
   detailTop:
@@ -339,11 +350,11 @@ resourceDetail:
       =1 {Show annotation}
       other {Show {annotations} annotations}}
   header:
-    clone: 'Clone from {type}: {name}'
+    clone: "Clone from {type}: {name}"
     create: Create
-    edit: 'Edit {type}: {name}'
-    stage: 'Stage from {type}: {name}'
-    view: '{name}'
+    edit: "Edit {type}: {name}"
+    stage: "Stage from {type}: {name}"
+    view: "{name}"
   masthead:
     age: Age
     defaultBannerMessage:
@@ -358,14 +369,14 @@ resourceList:
   head:
     create: Create
     createFromYaml: Create from YAML
-    createResource: 'Create {resourceName}'
+    createResource: "Create {resourceName}"
 
 resourceTable:
   groupLabel:
-    namespace: '<span>Namespace:</span> {name}'
+    namespace: "<span>Namespace:</span> {name}"
     notInANamespace: Not Namespaced
     notInAProject: Not in a Project
-    project: '<span>Project:</span> {name}'
+    project: "<span>Project:</span> {name}"
 
 resourceTabs:
   tabs:
@@ -382,7 +393,7 @@ rioConfig:
     description: Description
     helpText:
       listItem1: The application deployment engine for Kubernetes.
-      listItem2: 'Rio makes it faster and easier for DevOps to build, test, deploy, scale and version stateless applications'
+      listItem2: "Rio makes it faster and easier for DevOps to build, test, deploy, scale and version stateless applications"
     requirements:
       header: Requirements
       helpText:
@@ -398,7 +409,7 @@ secret:
     cn: Domain Name
     expires: Expires
     issuer: Issuer
-    plusMore: '+ {n} more'
+    plusMore: "+ {n} more"
     privateKey: Private Key
     readFromFile: Read from File
   data: Data
@@ -436,6 +447,8 @@ serviceTypes:
   nodeport: Node Port
 
 servicesPage:
+  labelsAnnotations:
+    label: Labels & Annotations
   affinity:
     actionLabels:
       clusterIp: ClusterIP
@@ -446,36 +459,53 @@ servicesPage:
       label: Session Sticky Time
       placeholder: e.g. 10800
   externalName:
-    helpText: 'External Name is intended to specify a canonical DNS name. To hardcode an IP address, use a Headless service.'
+    define: Define External Name
+    helpText: "External Name is intended to specify a canonical DNS name. To hardcode an IP address, use a Headless service."
     label: External Name
     placeholder: e.g. my.database.example.com
   ips:
+    define: Define Service Ports
     clusterIpHelpText: The Cluster IP address must be within the CIDR range configured for the API server.
     external:
       label: External IPs
       placeholder: e.g. 1.1.1.1
       protip: List of IP addresses for which nodes in the cluster will also accept traffic for this service.
-    helpText: 'Warning: Configuring additional listener IPs is an advanced use case.'
+    helpText: "Warning: Configuring additional listener IPs is an advanced use case."
     input:
       label: Cluster IP
       placeholder: e.g. 10.0.171.239
     label: Listener IPs
   selectors:
-    helpText: 'If no selector is created, manual endpoints must be made.'
+    helpText: "If no selector is created, manual endpoints must be made."
     label: Selectors
   serviceTypes:
-    clusterIp: Cluster IP
-    externalName: External Name
-    headless: Headless
-    loadBalancer: Load Balancer
-    nodePort: Node Port
+    clusterIp:
+      abbrv: IP
+      description: Exposes the service on a cluster-internal IP. Choosing this value makes the service only reachable from within the cluster. This is the default type.
+      label: Cluster IP
+    externalName:
+      abbrv: EN
+      description: "Maps the service to the contents of the `externalName` field (e.g. foo.bar.example.com), by returning a CNAME record with its value. No proxying of any kind is set up."
+      label: External Name
+    headless:
+      abbrv: H
+      description: Neither a cluster IP or load balancer is defined. These are used to interface with other service discovery mechanisms outside of Kubernetes implementation. A cluster IP is not allocated and kube-proxy does not handle these services.
+      label: Headless
+    loadBalancer:
+      abbrv: LB
+      description: Exposes the service externally using a cloud provider's load balancer.
+      label: Load Balancer
+    nodePort:
+      abbrv: NP
+      description: "Exposes the service on each node's IP at a static port (the `NodePort`). You'll be able to contact this type of service, from outside the cluster, by requesting `<NodeIP>:<NodePort>`."
+      label: Node Port
   typeOpts:
     label: Service Type
 
 sortableTable:
   actionAvailability:
-    selected: '{actionable} selected'
-    some: 'Available for {actionable} of the {total} selected'
+    selected: "{actionable} selected"
+    some: "Available for {actionable} of the {total} selected"
   noData: There are no rows which match your search query.
   noRows: There are no rows to show.
   paging:
@@ -564,7 +594,7 @@ validation:
     min: '"{key}" should contain at least {count} {count, plural, =1 {item} other {items}}'
   chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
   custom:
-    missing: 'No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?'
+    missing: "No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?"
   dns:
     doubleHyphen: '"{key}" Cannot contain two or more consecutive hyphens'
     hostname:
@@ -603,17 +633,17 @@ validation:
   service:
     ports:
       name:
-        required: 'Port Rule [{position}] - Name is required.'
+        required: "Port Rule [{position}] - Name is required."
       nodePort:
-        requriedInt: 'Port Rule [{position}] - Node Port must be interger values if included.'
+        requriedInt: "Port Rule [{position}] - Node Port must be interger values if included."
       port:
-        required: 'Port Rule [{position}] - Port is required.'
-        requriedInt: 'Port Rule [{position}] - Port must be interger values if included.'
+        required: "Port Rule [{position}] - Port is required."
+        requriedInt: "Port Rule [{position}] - Port must be interger values if included."
       targetPort:
-        between: 'Port Rule [{position}] - Target Port must be between 1 and 65535'
-        iana: 'Port Rule [{position}] - Target Port must be an IANA Service Name or Integer'
-        ianaAt: 'Port Rule [{position}] - Target Port '
-        required: 'Port Rule [{position}] - Target Port is required'
+        between: "Port Rule [{position}] - Target Port must be between 1 and 65535"
+        iana: "Port Rule [{position}] - Target Port must be an IANA Service Name or Integer"
+        ianaAt: "Port Rule [{position}] - Target Port "
+        required: "Port Rule [{position}] - Target Port is required"
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
@@ -626,7 +656,7 @@ wizard:
   back: Back
   finish: Finish
   next: Next
-  step: 'Step {number}:'
+  step: "Step {number}:"
 
 wm:
   connection:
@@ -636,7 +666,7 @@ wm:
     error: Error
   containerLogs:
     clear: Clear
-    containerName: 'Container: {label}'
+    containerName: "Container: {label}"
     download: Download
     follow: Follow
     noData: There are no log entries to show in the current range.
@@ -651,7 +681,7 @@ wm:
         other {Hours}
         }
       label: Show the last
-      lines: '{value, number} Lines'
+      lines: "{value, number} Lines"
       minutes: |
         {value, number} {value, plural,
         =1 {Minute}
@@ -662,9 +692,9 @@ wm:
     wrap: Wrap Lines
   containerShell:
     clear: Clear
-    containerName: 'Container: {label}'
+    containerName: "Container: {label}"
   kubectlShell:
-    title: 'Kubectl: {name}'
+    title: "Kubectl: {name}"
 
 workload:
   container:
@@ -696,7 +726,7 @@ workload:
       initialDelay: Initial Delay
       livenessProbe: Liveness Probe
       livenessTip: Containers will be restarted when this check is failing.  Not recommended for most uses.
-      noHealthCheck: 'There is not a Readiness Check, Liveness Check or Startup Check configured.'
+      noHealthCheck: "There is not a Readiness Check, Liveness Check or Startup Check configured."
       readinessProbe: Readiness Probe
       readinessTip: Containers will be removed from service endpoints when this check is failing.  Recommended.
       startupProbe: Startup Probe
@@ -725,8 +755,8 @@ workload:
       runAsGroup: Run as Group ID
       runAsNonRoot: Run as Non-Root
       runAsNonRootOptions:
-        noOption: 'No'
-        yesOption: 'Yes: containers must run as non-root-user'
+        noOption: "No"
+        yesOption: "Yes: containers must run as non-root-user"
       runAsUser: Run as User ID
       shareProcessNamespace: Share single process namespace
       supplementalGroups: Additional Group IDs
@@ -785,7 +815,7 @@ workload:
       label: Host Aliases
       tip: Additional /etc/hosts entries to be injected in the container.
       valueLabel: Hostname
-      valuePlaceholder: 'e.g. foo.com, bar.com'
+      valuePlaceholder: "e.g. foo.com, bar.com"
     hostname:
       label: Hostname
       placeholder: e.g. web
@@ -819,9 +849,9 @@ workload:
         addRule: Add Rule
         doesNotExist: Does Not Exist
         exists: Exists
-        greaterThan: '>'
+        greaterThan: ">"
         in: =
-        inNamespaces: 'Pods in these namespaces:'
+        inNamespaces: "Pods in these namespaces:"
         key: Key
         lessThan: <
         notIn: ≠
@@ -830,8 +860,8 @@ workload:
         weight: Weight
       noPodRules: There are no pod scheduling rules configured.
       nodeName: Node Name
-      preferAny: 'Prefer any of:'
-      requireAny: 'Require any of:'
+      preferAny: "Prefer any of:"
+      requireAny: "Require any of:"
       schedulingRules: Run pods on node(s) matching these scheduling rules
       specificNode: Run pods on specific node(s)
       thisPodNamespace: This pod's namespace
@@ -857,7 +887,7 @@ workload:
       effectOptions:
         all: All
         noExecute: NoExecute
-        noSchedule: 'NoSchedule,'
+        noSchedule: "NoSchedule,"
         preferNoSchedule: PreferNoSchedule
       labelKey: Label Key
       operator: Operator
@@ -890,9 +920,9 @@ workload:
       tip: The number of old ReplicaSets to retain for rollback.
     strategies:
       labels:
-        delete: 'On Delete: New pods are only created when old pods are manually deleted.'
-        recreate: 'Recreate: Kill ALL pods, then start new pods.'
-        rollingUpdate: 'Rolling Update: Create new pods, until max surge is reached, before deleting old pods. Don''t stop more pods than max unavailable.'
+        delete: "On Delete: New pods are only created when old pods are manually deleted."
+        recreate: "Recreate: Kill ALL pods, then start new pods."
+        rollingUpdate: "Rolling Update: Create new pods, until max surge is reached, before deleting old pods. Don't stop more pods than max unavailable."
     terminationGracePeriodSeconds:
       label: Termination Grace Period
       tip: The duration the pod needs to terminate successfully.
@@ -905,22 +935,19 @@ workload:
       batch.cronjob: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/" target="_blank" rel="noopener nofollow" >CronJobs</a> create Jobs, which then run Pods, on a repeating schedule. The schedule is expressed in standard Unix <a href="https://en.wikipedia.org/wiki/Cron" target="_blank" rel="noopener nofollow">cron</a> format, and uses the timezone of the Kubernetes control plane (typically UTC).
       batch.job: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/job/" target="_blank" rel="noopener nofollow" >Jobs</a> create one or more pods to reliably perform a one-time task by running a pod until it exits successfully. Failed pods are automatically replaced until the specified number of completed runs has been reached. Jobs can also run multiple pods in parallel or function as a batch work queue.
     titles:
-      advanced: 
+      advanced:
         title: Advanced
         subtitle: Define the advanced options. Each pod has additional options that can be defined as part of the container, part of the pod and part of the workload type. We recommends reading the detailed Kubernetes documentation before attempting to configure these.
-      defineContainer: 
+      defineContainer:
         title: Define Container
         subtitle: Define the container of the pod. Each workload type ultimately deploys pods, which are the smallest unit of compute managed by Kubernetes. The main definition of the pod is the container. These are the basic fields defined on a container, but there are more fields that can be defined in the Advanced step or in the raw yaml.
       scaling: Scaling/Upgrade Policy
-      selectType: 
+      selectType:
         title: Select a Workload Type
         subtitle: Select the type of <a href="https://kubernetes.io/docs/concepts/workloads/" target="_blank" rel="noopener nofollow">workload</a> to create. Each type has unique properties that define where the pods will be run, how they will be maintained or scaled, and what happens when they fail.
-      storage: 
+      storage:
         title: Storage
         subtitle: Pods only have their own local ephemeral storage by default, which will be wiped out when the pod dies. To persist data that survives beyond the life of a single pod, you can attach external <a href='https://kubernetes.io/docs/concepts/storage/' target="_blank" rel="noopener nofollow">storage</a> (e.g. block devices or NFS shares) from a provider and make it available to the pod.
-    
-
-
 
 ##############################
 # Model Properties
@@ -934,7 +961,7 @@ model:
       registeredAgent: Registered Agent
       service: Service
       user: User
-  'catalog.cattle.io.release':
+  "catalog.cattle.io.release":
     firstDeployed: First Deployed
     lastDeployed: Last Deployed
   cluster:
@@ -945,7 +972,7 @@ model:
       localUser: Local User
       org: Organization
       team: Team
-      unknown: '{type}?'
+      unknown: "{type}?"
       user: User
   ingress:
     displayKind: L7 Ingress
@@ -958,7 +985,7 @@ model:
     domain:
       help: Only users below this base will be used.
       label: User Search Base
-      placeholder: 'e.g. ou=Users,dc=mycompany,dc=com'
+      placeholder: "e.g. ou=Users,dc=mycompany,dc=com"
     server:
       label: Hostname or IP Address
     serviceAccountPassword:

@@ -263,7 +263,7 @@ export default {
         } else {
           this.errors = [err];
         }
-        buttonDone(false);
+        buttonDone(false, this.errors);
       }
     },
     done() {
@@ -293,33 +293,35 @@ export default {
       @onReady="onReady"
       @onChanges="onChanges"
     />
-    <Footer
-      v-if="showFooter"
-      :mode="mode"
-      :errors="errors"
-      @save="save"
-      @done="done"
-    >
-      <template v-if="!isView" #middle>
-        <button
-          v-if="showPreview"
-          type="button"
-          class="btn role-secondary"
-          @click="unpreview"
-        >
-          <t k="resourceYaml.buttons.continue" />
-        </button>
-        <button
-          v-else-if="offerPreview"
-          :disabled="yaml === currentYaml"
-          type="button"
-          class="btn role-secondary"
-          @click="preview"
-        >
-          <t k="resourceYaml.buttons.diff" />
-        </button>
-      </template>
-    </Footer>
+    <slot name="yamlFooter" :yamlSave="save" :yamlDone="done">
+      <Footer
+        v-if="showFooter"
+        :mode="mode"
+        :errors="errors"
+        @save="save"
+        @done="done"
+      >
+        <template v-if="!isView" #middle>
+          <button
+            v-if="showPreview"
+            type="button"
+            class="btn role-secondary"
+            @click="unpreview"
+          >
+            <t k="resourceYaml.buttons.continue" />
+          </button>
+          <button
+            v-else-if="offerPreview"
+            :disabled="yaml === currentYaml"
+            type="button"
+            class="btn role-secondary"
+            @click="preview"
+          >
+            <t k="resourceYaml.buttons.diff" />
+          </button>
+        </template>
+      </Footer>
+    </slot>
   </div>
 </template>
 

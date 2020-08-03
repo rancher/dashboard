@@ -1,20 +1,21 @@
 <script>
-import { isEmpty, find, isNaN } from 'lodash';
+import { isEmpty, isNaN } from 'lodash';
 import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
-import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
-import LabeledSelect from '@/components/form/LabeledSelect';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import RadioGroup from '@/components/form/RadioGroup';
-import ResourceTabs from '@/components/form/ResourceTabs';
 import ServicePorts from '@/components/form/ServicePorts';
 import Tab from '@/components/Tabbed/Tab';
+import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
 import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service';
 import { ucFirst } from '@/utils/string';
+import CruResource from '@/components/CruResource';
+import InfoBox from '@/components/InfoBox';
 import Banner from '@/components/Banner';
+import Labels from '@/components/form/Labels';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:      'None',
@@ -35,16 +36,17 @@ export default {
   components: {
     ArrayList,
     Banner,
-    Footer,
+    CruResource,
+    InfoBox,
     KeyValue,
+    Labels,
     LabeledInput,
-    LabeledSelect,
     NameNsDescription,
     RadioGroup,
-    ResourceTabs,
     ServicePorts,
     Tab,
-    UnitInput,
+    Tabbed,
+    UnitInput
   },
 
   mixins: [CreateEditView],
@@ -52,35 +54,30 @@ export default {
   data() {
     if (!this?.value?.spec?.type) {
       if (!this.value?.spec) {
-        const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
-
         this.$set(this.value, 'spec', {
           ports:           [],
-          sessionAffinity: 'None',
+          sessionAffinity: 'None'
         });
-
-        this.serviceType = defaultService.id;
       }
     }
 
     return {
-      defaultServiceTypes:          DEFAULT_SERVICE_TYPES,
-      saving:                       false,
-      sessionAffinityActionLabels:  Object.values(SESSION_AFFINITY_ACTION_LABELS).map(v => this.$store.getters['i18n/t'](v)).map(ucFirst),
-      sessionAffinityActionOptions: Object.values(SESSION_AFFINITY_ACTION_VALUES),
+      defaultServiceTypes:         DEFAULT_SERVICE_TYPES,
+      saving:                      false,
+      sessionAffinityActionLabels: Object.values(SESSION_AFFINITY_ACTION_LABELS)
+        .map(v => this.$store.getters['i18n/t'](v))
+        .map(ucFirst),
+      sessionAffinityActionOptions: Object.values(
+        SESSION_AFFINITY_ACTION_VALUES
+      )
     };
   },
 
   computed: {
-    extraColumns() {
-      return ['type-col'];
-    },
-
     serviceType: {
       get() {
         const serviceType = this.value?.spec?.type;
         const clusterIp = this.value?.spec?.clusterIP;
-        const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
 
         if (serviceType) {
           if (serviceType === CLUSTERIP && clusterIp === 'None') {
@@ -90,7 +87,7 @@ export default {
           }
         }
 
-        return defaultService;
+        return serviceType;
       },
 
       set(serviceType) {
@@ -98,7 +95,10 @@ export default {
           this.$set(this.value.spec, 'type', CLUSTERIP);
           this.$set(this.value.spec, 'clusterIP', 'None');
         } else {
-          if (serviceType !== HEADLESS && this.value?.spec?.clusterIP === 'None') {
+          if (
+            serviceType !== HEADLESS &&
+            this.value?.spec?.clusterIP === 'None'
+          ) {
             this.$set(this.value.spec, 'clusterIP', null);
           } else if (serviceType === 'ExternalName') {
             this.$set(this.value.spec, 'ports', null);
@@ -106,8 +106,8 @@ export default {
 
           this.$set(this.value.spec, 'type', serviceType);
         }
-      },
-    },
+      }
+    }
   },
 
   watch: {
@@ -116,8 +116,14 @@ export default {
         this.value.spec.sessionAffinityConfig = { clientIP: { timeoutSeconds: null } };
 
         // set it null and then set it with vue to make reactive.
-        this.$set(this.value.spec.sessionAffinityConfig.clientIP, 'timeoutSeconds', SESSION_STICKY_TIME_DEFAULT);
-      } else if (this.value?.spec?.sessionAffinityConfig?.clientIP?.timeoutSeconds) {
+        this.$set(
+          this.value.spec.sessionAffinityConfig.clientIP,
+          'timeoutSeconds',
+          SESSION_STICKY_TIME_DEFAULT
+        );
+      } else if (
+        this.value?.spec?.sessionAffinityConfig?.clientIP?.timeoutSeconds
+      ) {
         delete this.value.spec.sessionAffinityConfig.clientIP.timeoutSeconds;
       }
     }
@@ -136,7 +142,7 @@ export default {
 
     updateServicePorts(servicePorts) {
       servicePorts.forEach((sp) => {
-        if ( !isEmpty(sp?.targetPort) ) {
+        if (!isEmpty(sp?.targetPort)) {
           const tpCoerced = parseInt(sp.targetPort, 10);
 
           if (!isNaN(tpCoerced)) {
@@ -147,177 +153,192 @@ export default {
 
       this.$set(this.value.spec, 'ports', servicePorts);
     }
-  },
+  }
 };
 </script>
 
 <template>
-  <div>
-    <form>
-      <NameNsDescription
-        v-if="!isView"
-        :value="value"
-        :mode="mode"
-        :extra-columns="extraColumns"
-      >
-        <template #type-col>
-          <LabeledSelect
-            option-key="id"
-            option-label="translationLabel"
-            :label="t('servicesPage.typeOpts.label')"
-            :localized-label="true"
-            :mode="mode"
-            :options="defaultServiceTypes"
-            :value="serviceType"
-            @input="e=>serviceType = e.id"
-          />
-        </template>
-      </NameNsDescription>
+  <CruResource
+    :can-create="true"
+    :done-route="doneRoute"
+    :mode="mode"
+    :resource="value"
+    :selected-subtype="serviceType"
+    :subtypes="defaultServiceTypes"
+    @finish="save"
+    @cancel="done"
+    @selectType="(st) => serviceType = st"
+  >
+    <template #define>
+      <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
 
       <div class="spacer"></div>
 
-      <div v-if="checkTypeIs('ExternalName')">
-        <div class="clearfix">
-          <h4>
-            <t k="servicesPage.externalName.label" />
-          </h4>
-          <Banner color="info" :label="t('servicesPage.externalName.helpText')" />
-        </div>
-        <div class="row mt-10">
-          <div class="col span-6">
-            <span v-if="isView">{{ value.spec.externalName }}</span>
-            <input
-              v-else
-              ref="external-name"
-              v-model.number="value.spec.externalName"
-              type="text"
-              :placeholder="t('servicesPage.externalName.placeholder')"
+      <Tabbed :side-tabs="true">
+        <Tab
+          v-if="checkTypeIs('ExternalName')"
+          name="define-external-name"
+          :label="t('servicesPage.selectors.define')"
+        >
+          <div class="clearfix">
+            <h4>
+              <t k="servicesPage.externalName.label" />
+            </h4>
+            <InfoBox>
+              <div>{{ t('servicesPage.externalName.helpText') }}</div>
+            </InfoBox>
+          </div>
+          <div class="row mt-10">
+            <div class="col span-6">
+              <span v-if="isView">{{ value.spec.externalName }}</span>
+              <input
+                v-else
+                ref="external-name"
+                v-model.number="value.spec.externalName"
+                type="text"
+                :placeholder="t('servicesPage.externalName.placeholder')"
+              />
+            </div>
+          </div>
+        </Tab>
+        <Tab v-else name="define-external-name" :label="t('servicesPage.ips.define')">
+          <ServicePorts
+            v-model="value.spec.ports"
+            class="col span-12"
+            :mode="mode"
+            :spec-type="serviceType"
+            @input="updateServicePorts"
+          />
+        </Tab>
+        <Tab
+          v-if="!checkTypeIs('ExternalName')"
+          name="selectors"
+          :label="t('servicesPage.selectors.label')"
+        >
+          <div class="row">
+            <div class="col span-12">
+              <InfoBox>
+                <div>{{ t('servicesPage.selectors.helpText') }}</div>
+              </InfoBox>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-12">
+              <KeyValue
+                key="selectors"
+                v-model="value.spec.selector"
+                :mode="mode"
+                :initial-empty-row="true"
+                :pad-left="false"
+                :read-allowed="false"
+                :protip="false"
+                @input="e=>$set(value.spec, 'selector', e)"
+              />
+            </div>
+          </div>
+        </Tab>
+        <Tab name="ips" :label="t('servicesPage.ips.label')">
+          <div class="row">
+            <div class="col span-12">
+              <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
+            </div>
+          </div>
+          <div
+            v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
+            class="row mb-20"
+          >
+            <div class="col span-6">
+              <LabeledInput
+                v-model="value.spec.clusterIP"
+                :mode="mode"
+                :label="t('servicesPage.ips.input.label')"
+                :placeholder="t('servicesPage.ips.input.placeholder')"
+                @input="e=>$set(value.spec, 'clusterIP', e)"
+              >
+                <template #corner>
+                  <i
+                    v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
+                    v-tooltip="t('servicesPage.ips.clusterIpHelpText')"
+                    class="icon icon-info"
+                    style="font-size: 12px"
+                  />
+                </template>
+              </LabeledInput>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-7">
+              <ArrayList
+                key="clusterExternalIpAddresses"
+                v-model="value.spec.externalIPs"
+                :title="t('servicesPage.ips.external.label')"
+                :value-placeholder="t('servicesPage.ips.external.placeholder')"
+                :value-multiline="false"
+                :mode="mode"
+                :pad-left="false"
+                :protip="t('servicesPage.ips.external.protip')"
+                @input="e=>$set(value.spec, 'externalIPs', e)"
+              />
+            </div>
+          </div>
+        </Tab>
+        <Tab
+          v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
+          name="session-affinity"
+          :label="t('servicesPage.affinity.label')"
+        >
+          <div class="col span-12">
+            <InfoBox>
+              <div>{{ t('servicesPage.affinity.helpText') }}</div>
+            </InfoBox>
+          </div>
+          <div class="row session-affinity">
+            <div class="col span-6">
+              <RadioGroup
+                v-model="value.spec.sessionAffinity"
+                class="enforcement-action"
+                :options="sessionAffinityActionOptions"
+                :labels="sessionAffinityActionLabels"
+                :mode="mode"
+                @input="e=>value.spec.sessionAffinity = e"
+              />
+            </div>
+            <div v-if="value.spec.sessionAffinity === 'ClusterIP'" class="col span-6">
+              <UnitInput
+                v-model="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
+                :suffix="t('suffix.seconds')"
+                :label="t('servicesPage.affinity.timeout.label')"
+                :placeholder="t('servicesPage.affinity.timeout.placeholder')"
+                @input="e=>$set(value.spec.sessionAffinityConfig.clientIP, 'timeoutSeconds', e)"
+              />
+            </div>
+          </div>
+        </Tab>
+        <Tab
+          name="labels-and-annotations"
+          :label="t('servicesPage.labelsAnnotations.label', {}, true)"
+          :weight="1000"
+        >
+          <div class="row labels-row">
+            <Labels
+              :default-container-class="'labels-and-annotations-container'"
+              :spec="value.spec"
+              :mode="mode"
+              :display-side-by-side="false"
             />
           </div>
-        </div>
-      </div>
-      <ServicePorts
-        v-else
-        v-model="value.spec.ports"
-        class="col span-12"
-        :mode="mode"
-        :spec-type="serviceType"
-        @input="updateServicePorts"
-      />
-
-      <div class="spacer"></div>
-
-      <ResourceTabs v-model="value" :mode="mode">
-        <template #before>
-          <Tab
-            v-if="!checkTypeIs('ExternalName')"
-            name="selectors"
-            :weight="1"
-            :label="t('servicesPage.selectors.label')"
-          >
-            <div class="row">
-              <div class="col span-12">
-                <Banner color="info" :label="t('servicesPage.selectors.helpText')" />
-              </div>
-            </div>
-            <div class="row">
-              <div class="col span-12">
-                <KeyValue
-                  key="selectors"
-                  v-model="value.spec.selector"
-                  :mode="mode"
-                  :initial-empty-row="true"
-                  :pad-left="false"
-                  :read-allowed="false"
-                  :protip="false"
-                  @input="e=>$set(value.spec, 'selector', e)"
-                />
-              </div>
-            </div>
-          </Tab>
-          <Tab
-            name="ips"
-            :label="t('servicesPage.ips.label')"
-            :weight="2"
-          >
-            <div class="row">
-              <div class="col span-12">
-                <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
-                <Banner
-                  v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
-                  color="info"
-                  :label="t('servicesPage.ips.clusterIpHelpText')"
-                />
-              </div>
-            </div>
-            <div v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')" class="row mb-20">
-              <div class="col span-6">
-                <LabeledInput
-                  v-model="value.spec.clusterIP"
-                  :mode="mode"
-                  :label="t('servicesPage.ips.input.label')"
-                  :placeholder="t('servicesPage.ips.input.placeholder')"
-                  @input="e=>$set(value.spec, 'clusterIP', e)"
-                />
-              </div>
-            </div>
-            <div class="row">
-              <div class="col span-7">
-                <ArrayList
-                  key="clusterExternalIpAddresses"
-                  v-model="value.spec.externalIPs"
-                  :title="t('servicesPage.ips.external.label')"
-                  :value-placeholder="t('servicesPage.ips.external.placeholder')"
-                  :value-multiline="false"
-                  :mode="mode"
-                  :pad-left="false"
-                  :protip="t('servicesPage.ips.external.protip')"
-                  @input="e=>$set(value.spec, 'externalIPs', e)"
-                />
-              </div>
-            </div>
-          </Tab>
-          <Tab
-            v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
-            name="session-affinity"
-            :label="t('servicesPage.affinity.label')"
-            :weight="3"
-          >
-            <div class="col span-12">
-              <Banner color="info" :label="t('servicesPage.affinity.helpText')" />
-            </div>
-            <div class="row session-affinity">
-              <div class="col span-6">
-                <RadioGroup
-                  v-model="value.spec.sessionAffinity"
-                  class="enforcement-action"
-                  :options="sessionAffinityActionOptions"
-                  :labels="sessionAffinityActionLabels"
-                  :mode="mode"
-                  @input="e=>value.spec.sessionAffinity = e"
-                />
-              </div>
-              <div v-if="value.spec.sessionAffinity === 'ClusterIP'" class="col span-6">
-                <UnitInput
-                  v-model="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
-                  :suffix="t('suffix.seconds')"
-                  :label="t('servicesPage.affinity.timeout.label')"
-                  :placeholder="t('servicesPage.affinity.timeout.placeholder')"
-                  @input="e=>$set(value.spec.sessionAffinityConfig.clientIP, 'timeoutSeconds', e)"
-                />
-              </div>
-            </div>
-          </Tab>
-        </template>
-      </ResourceTabs>
-
-      <Footer
-        v-if="!isView"
-        :mode="mode"
-        :errors="errors"
-        @save="save"
-        @done="done"
-      />
-    </form>
-  </div>
+        </Tab>
+      </Tabbed>
+    </template>
+  </CruResource>
 </template>
+
+<style lang="scss">
+.labels-and-annotations-container {
+  > div:last-child {
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+    padding-top: 20px;
+  }
+}
+</style>

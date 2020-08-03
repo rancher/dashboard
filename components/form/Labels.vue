@@ -16,12 +16,18 @@ export default {
     displaySideBySide: {
       type:    Boolean,
       default: false,
+    },
+    defaultContainerClass: {
+      type:    String,
+      default: '',
     }
   },
 
   computed: {
     containerClass() {
-      return this.displaySideBySide ? 'row' : '';
+      const { defaultContainerClass } = this;
+
+      return this.displaySideBySide ? `row ${ defaultContainerClass }` : `${ defaultContainerClass }`;
     },
 
     sectionClass() {
