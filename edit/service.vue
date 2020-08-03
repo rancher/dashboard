@@ -15,6 +15,7 @@ import { ucFirst } from '@/utils/string';
 import CruResource from '@/components/CruResource';
 import InfoBox from '@/components/InfoBox';
 import Banner from '@/components/Banner';
+import Labels from '@/components/form/Labels';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:      'None',
@@ -38,6 +39,7 @@ export default {
     CruResource,
     InfoBox,
     KeyValue,
+    Labels,
     LabeledInput,
     NameNsDescription,
     RadioGroup,
@@ -310,6 +312,19 @@ export default {
                 @input="e=>$set(value.spec.sessionAffinityConfig.clientIP, 'timeoutSeconds', e)"
               />
             </div>
+          </div>
+        </Tab>
+        <Tab
+          name="labels-and-annotations"
+          :label="t('servicesPage.labelsAnnotations.label', {}, true)"
+          :weight="1000"
+        >
+          <div class="row labels-row">
+            <Labels
+              :spec="value.spec"
+              :mode="mode"
+              :display-side-by-side="false"
+            />
           </div>
         </Tab>
       </Tabbed>
