@@ -142,7 +142,7 @@ export default {
   methods: {
     add() {
       this.rows.push({ value: this.defaultAddValue });
-      this.queueUpdate();
+      // this.queueUpdate();
 
       this.$nextTick(() => {
         const inputs = this.$refs.value;

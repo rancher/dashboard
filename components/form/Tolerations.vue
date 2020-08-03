@@ -117,6 +117,12 @@ export default {
 
     addToleration() {
       this.rules.push({ vKey: random32() });
+    },
+
+    updateEffect(neu, rule) {
+      if (neu !== 'NoExecute' && rule.tolerationSeconds) {
+        delete rule.tolerationSeconds;
+      }
     }
   }
 
@@ -161,11 +167,11 @@ export default {
           v-model="rule.effect"
           :options="effectOpts"
           :mode="mode"
-          @input="update"
+          @input="e=>updateEffect(e, rule)"
         />
       </div>
       <div class="col  ">
-        <UnitInput v-model="rule.tolerationSeconds" :mode="mode" suffix="Seconds" />
+        <UnitInput v-model="rule.tolerationSeconds" :disabled="rule.effect !== 'NoExecute'" :mode="mode" suffix="Seconds" />
       </div>
       <button
         v-if="!isView"

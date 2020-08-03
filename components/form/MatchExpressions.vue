@@ -165,6 +165,7 @@ export default {
       const idx = this.rules.indexOf(row);
 
       this.rules.splice(idx, 1);
+      this.update();
     },
 
     addRule() {
@@ -216,7 +217,7 @@ export default {
                 :options="allNamespaces"
                 :label="!isView ? 'Namespaces' :''"
                 :multiple="false"
-                @input="props.queueUpdate"
+                @input="e=> e ? props.queueUpdate : null"
               />
             </template>
           </ArrayList>

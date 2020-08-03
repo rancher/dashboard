@@ -30,6 +30,7 @@ export default {
       default: true
     }
   },
+
   data() {
     const typeOpts = [
       { value: 'resourceFieldRef', label: 'Resource' },
@@ -59,6 +60,9 @@ export default {
       type = Object.keys(this.row.valueFrom)[0];
       key = this.row.valueFrom[type].key || '';
       refName = this.row.valueFrom[type].name;
+      referenced = this.allConfigMaps.filter((resource) => {
+        return resource.metadata.name === name;
+      })[0];
       break;
     case 'secretRef':
       name = this.row.prefix;
@@ -70,6 +74,9 @@ export default {
       type = Object.keys(this.row.valueFrom)[0];
       key = this.row.valueFrom[type].key || '';
       refName = this.row.valueFrom[type].name;
+      referenced = this.allSecrets.filter((resource) => {
+        return resource.metadata.name === name;
+      })[0];
       break;
     case 'fieldRef':
       fieldPath = get(this.row.valueFrom, `${ type }.fieldPath`) || '';
@@ -117,7 +124,7 @@ export default {
         this.key = '';
       }
       if (neu) {
-        if (neu.type === SECRET || neu.type === CONFIG_MAP) {
+        if ((neu.type === SECRET || neu.type === CONFIG_MAP) && neu.data) {
           this.keys = Object.keys(neu.data);
         }
         this.refName = neu?.metadata?.name;
@@ -126,11 +133,6 @@ export default {
   },
 
   methods: {
-    async  getReferenced(name, type) {
-      const resource = await this.$store.dispatch('cluster/find', { id: name, type });
-
-      this.referenced = resource;
-    },
 
     updateRow() {
       const out = { name: this.name || this.refName };
@@ -162,7 +164,7 @@ export default {
       }
       this.$emit('input', { value: out, old });
     },
-
+    get
   }
 };
 </script>
@@ -188,7 +190,8 @@ export default {
           v-model="referenced"
           :options="sourceOptions"
           :multiple="false"
-          :get-option-label="opt=>opt.metadata.name"
+          :get-option-label="opt=>get(opt, 'metadata.name') || opt"
+          :get-option-key="opt=>opt.id|| opt"
           :mode="mode"
           class="inline"
           @input="updateRow"

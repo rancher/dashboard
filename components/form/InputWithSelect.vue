@@ -10,10 +10,12 @@ export default {
       type:    Boolean,
       default: false,
     },
+
     searchable: {
       type:    Boolean,
       default: true,
     },
+
     taggable: {
       type:    Boolean,
       default: false,
@@ -23,18 +25,22 @@ export default {
       type:    String,
       default: ''
     },
+
     selectValue: {
       type:    String,
       default: null
     },
+
     optionLabel: {
       type:    String,
       default: 'label'
     },
+
     options: {
       type:     Array,
       required: true
     },
+
     selectBeforeText: {
       type:    Boolean,
       default: true,
@@ -44,14 +50,17 @@ export default {
       type:    String,
       default: ''
     },
+
     textRequired: {
       type:    Boolean,
       default: false
     },
+
     textValue: {
-      type:    String,
+      type:    [String, Number],
       default: ''
     },
+
     placeholder: {
       type:    String,
       default: ''
@@ -79,7 +88,7 @@ export default {
 </script>
 
 <template>
-  <div class="input-container row" @input="change">
+  <div :class="{'select-after':!selectBeforeText}" class="input-container row" @input="change">
     <LabeledSelect
       v-model="selected"
       :label="selectLabel"
@@ -90,8 +99,10 @@ export default {
       :clearable="false"
       :disabled="disabled"
       :taggable="taggable"
+      :multiple="false"
       :mode="mode"
       :option-label="optionLabel"
+      :v-bind="$attrs"
       @input="change"
     />
     <LabeledInput
@@ -104,7 +115,15 @@ export default {
       :disabled="disabled"
       :required="textRequired"
       :mode="mode"
-    />
+      v-bind="$attrs"
+    >
+      <template #label>
+        <slot name="label" />
+      </template>
+      <template #suffix>
+        <slot name="suffix" />
+      </template>
+    </LabeledInput>
     <input
       v-else
       ref="text"
@@ -124,16 +143,38 @@ export default {
 
     &.select-after {
       flex-direction: row-reverse;
-    }
 
+      & .input-string {
+        border-radius: calc(var(--border-radius) * 2) 0 0  calc(var(--border-radius) * 2);
+        border-right: 0;
+        border-left: 1px solid var(--border);
+      }
+
+      & .in-input {
+        border-radius: 0 calc(var(--border-radius) * 2) calc(var(--border-radius) * 2) 0;
+        border-left: 0;
+        border-right: 1px solid var(--border);
+
+        &.labeled-select {
+          width: 20%;
+
+          .selected{
+            color: var(--input-text);
+            text-align: center;
+            margin-right: 1em;
+          }
+        }
+      }
+    }
     & .input-string {
       padding-right: 0;
-      height: 50px;
+      height: 100%;
       width:60%;
       flex-grow: 1;
       border-radius: 0 calc(var(--border-radius) * 2) calc(var(--border-radius) * 2) 0;
       border-left: 0;
       margin-left: -1px;
+      display: initial;
     }
 
     .in-input {

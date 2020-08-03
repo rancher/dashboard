@@ -275,31 +275,32 @@ export default {
           </div>
         </div>
 
-        <div class="spacer" />
+        <template v-if="kind === 'HTTP' || kind === 'HTTPS'">
+          <div class="spacer" />
 
-        <div class="row mb-0">
-          <div class="col span-12">
-            <KeyValue
-              v-model="httpGet.headers"
-              key-name="name"
-              :mode="mode"
-              :pad-left="false"
-              :as-map="false"
-              :read-allowed="false"
-              :title="t('workload.container.healthCheck.httpGet.headers')"
-              key-label="Name"
-            >
-              <template #title>
-                <h4>
-                  {{ t('workload.container.healthCheck.httpGet.headers') }}
-                </h4>
-              </template>
-            </KeyValue>
+          <div class="row mb-0">
+            <div class="col span-12">
+              <KeyValue
+                v-model="httpGet.httpHeaders"
+                key-name="name"
+                :mode="mode"
+                :pad-left="false"
+                :as-map="false"
+                :read-allowed="false"
+                :title="t('workload.container.healthCheck.httpGet.headers')"
+                key-label="Name"
+              >
+                <template #title>
+                  <h4>
+                    {{ t('workload.container.healthCheck.httpGet.headers') }}
+                  </h4>
+                </template>
+              </KeyValue>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
     </div>
-  </div>
   </div>
 </template>
 

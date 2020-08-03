@@ -463,9 +463,26 @@ export default {
       if (!template.metadata && this.type !== WORKLOAD_TYPES.JOB) {
         template.metadata = { labels: this.workloadSelector };
       }
-
-      // matchExpressions 'values' are formatted incorrectly; fix them before sending to API
       const nodeAffinity = template?.spec?.affinity?.nodeAffinity || {};
+      const podAffinity = template?.spec?.affinity?.podAffinity || {};
+      const podAntiAffinity = template?.spec?.affinity?.podAntiAffinity || {};
+
+      this.fixNodeAffinity(nodeAffinity);
+      this.fixPodAffinity(podAffinity);
+      this.fixPodAffinity(podAntiAffinity);
+
+      delete this.value.kind;
+
+      if (!this.container.name) {
+        this.$set(this.container, 'name', this.value.metadata.name);
+      }
+
+      Object.assign(this.value, { spec: this.spec });
+      this.save(cb);
+    },
+
+    // node and pod affinity are formatted incorrectly from API; fix before saving
+    fixNodeAffinity(nodeAffinity) {
       const preferredDuringSchedulingIgnoredDuringExecution =
         nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution || [];
       const requiredDuringSchedulingIgnoredDuringExecution =
@@ -492,15 +509,35 @@ export default {
           }
         });
       });
+    },
 
-      delete this.value.kind;
+    fixPodAffinity(podAffinity) {
+      const preferredDuringSchedulingIgnoredDuringExecution =
+        podAffinity.preferredDuringSchedulingIgnoredDuringExecution || [];
+      const requiredDuringSchedulingIgnoredDuringExecution =
+        podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [];
 
-      if (!this.container.name) {
-        this.$set(this.container, 'name', this.value.metadata.name);
-      }
+      preferredDuringSchedulingIgnoredDuringExecution.forEach((term) => {
+        const matchExpressions = term?.podAffinityTerm?.labelSelector?.matchExpressions || [];
 
-      Object.assign(this.value, { spec: this.spec });
-      this.save(cb);
+        matchExpressions.forEach((expression) => {
+          if (expression.values) {
+            expression.values = typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+          }
+        });
+      });
+
+      requiredDuringSchedulingIgnoredDuringExecution.forEach((term) => {
+        const matchExpressions = term?.labelSelector?.matchExpressions || [];
+
+        matchExpressions.forEach((expression) => {
+          if (expression.values) {
+            expression.values = typeof expression.values === 'string' ? [expression.values] : [...expression.values];
+          }
+        });
+      });
+
+      return podAffinity;
     }
   }
 };
@@ -608,7 +645,7 @@ export default {
             <div class="col span-5">
               <slot name="entrypoint">
                 <ShellInput
-                  v-model="value.command"
+                  v-model="container.command"
                   :mode="mode"
                   :label="t('workload.container.command.command')"
                   placeholder="e.g. /bin/sh"
@@ -618,7 +655,7 @@ export default {
             <div class="col span-5">
               <slot name="command">
                 <ShellInput
-                  v-model="value.args"
+                  v-model="container.args"
                   :mode="mode"
                   :label="t('workload.container.command.args')"
                   placeholder="e.g. /usr/sbin/httpd -f httpd.conf"
@@ -626,7 +663,7 @@ export default {
               </slot>
             </div>
             <div class="col span-2">
-              <Checkbox v-model="value.tty" label="TTY" :mode="mode" />
+              <Checkbox v-model="container.tty" label="TTY" :mode="mode" />
             </div>
           </div>
         </div>

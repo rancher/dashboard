@@ -15,9 +15,26 @@ export default {
     },
   },
 
+  data() {
+    const { readinessProbe, livenessProbe, startupProbe } = this.value;
+
+    return {
+      readinessProbe, livenessProbe, startupProbe
+    };
+  },
+
   computed: {
     isView() {
       return this.mode === _VIEW;
+    }
+  },
+  methods: {
+    update() {
+      const { readinessProbe, livenessProbe, startupProbe } = this;
+
+      this.$emit('input', {
+        readinessProbe, livenessProbe, startupProbe
+      } );
     }
   }
 };
@@ -27,11 +44,12 @@ export default {
   <div>
     <div class="row">
       <Probe
-        v-model="value.readinessProbe"
+        v-model="readinessProbe"
         class="col span-12"
         :mode="mode"
         label="Readiness Check"
         :description="t('workload.container.healthCheck.readinessTip')"
+        @input="update"
       />
     </div>
 
@@ -40,11 +58,12 @@ export default {
 
     <div class="row">
       <Probe
-        v-model="value.livenessProbe"
+        v-model="livenessProbe"
         class="col span-12"
         :mode="mode"
         label="Liveness Check"
         :description="t('workload.container.healthCheck.livenessTip')"
+        @input="update"
       />
     </div>
 
@@ -53,11 +72,12 @@ export default {
 
     <div class="row">
       <Probe
-        v-model="value.startupProbe"
+        v-model="startupProbe"
         class="col span-12"
         :mode="mode"
         label="Startup Check"
         :description="t('workload.container.healthCheck.startupTip')"
+        @input="update"
       />
     </div>
   </div>
