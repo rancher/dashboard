@@ -112,9 +112,11 @@ export default {
         this.valuesComponent = null;
       }
 
-      if ( !this.value.values ) {
+      this.chartInstall = this.value.charts[0];
+
+      if ( !this.chartInstall.values ) {
         this.mergeValues(this.versionInfo.values);
-        this.valuesYaml = jsyaml.safeDump(this.value.values);
+        this.valuesYaml = jsyaml.safeDump(this.chartInstall.values);
       }
     }
   },
@@ -136,6 +138,7 @@ export default {
 
       errors:          null,
       valuesComponent: null,
+      chartInstall:    null,
     };
   },
 
@@ -195,11 +198,12 @@ export default {
 
   methods: {
     selectVersion(version) {
+      delete this.chartInstall.values;
       this.$router.applyQuery({ [VERSION]: version });
     },
 
     mergeValues(neu) {
-      this.value.values = merge({}, neu, this.value.values || {});
+      this.chartInstall.values = merge({}, neu || {}, this.chartInstall.values || {});
     },
 
     yamlChanged(value) {
@@ -246,20 +250,21 @@ export default {
     },
 
     installInput() {
-      const out = JSON.parse(JSON.stringify(this.value));
+      const install = JSON.parse(JSON.stringify(this.value));
+      const chart = install.charts[0];
 
-      out.chartName = this.chart.chartName;
-      out.version = this.$route.query.version;
-      out.releaseName = out.metadata.name;
-      out.namespace = out.metadata.namespace;
-      out.description = out.metadata?.annotations?.[DESCRIPTION_ANNOTATION];
+      chart.chartName = this.chart.chartName;
+      chart.version = this.$route.query.version;
+      chart.releaseName = install.metadata.name;
+      chart.namespace = install.metadata.namespace;
+      chart.description = install.metadata?.annotations?.[DESCRIPTION_ANNOTATION];
 
-      delete out.metadata;
+      delete install.metadata;
 
       // @TODO only save values that differ from defaults?
-      out.values = jsyaml.safeLoad(this.valuesYaml);
+      chart.values = jsyaml.safeLoad(this.valuesYaml);
 
-      return out;
+      return install;
     },
   }
 };
@@ -309,7 +314,7 @@ export default {
       <component
         :is="valuesComponent"
         v-if="valuesComponent"
-        v-model="value.values"
+        v-model="chartInstall.values"
         :chart="chart"
         :version="version"
         :version-inforsion-info="versionInfo"

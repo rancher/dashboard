@@ -67,6 +67,7 @@ const STATES = {
   backedup:           { color: 'success', icon: 'backup' },
   bound:              { color: 'success', icon: 'dot' },
   building:           { color: 'success', icon: 'dot-open' },
+  completed:          { color: 'success', icon: 'dot' },
   cordoned:           { color: 'info', icon: 'tag' },
   created:            { color: 'info', icon: 'tag' },
   creating:           { color: 'info', icon: 'tag' },
@@ -953,7 +954,6 @@ export default {
     };
     /*
     return () => {
-      debugger;
       const schemas = this.$getters['all'](SCHEMA);
       const str = createYaml(schemas, this.type, this);
       const parsed = jsyaml.safeLoad(str);
