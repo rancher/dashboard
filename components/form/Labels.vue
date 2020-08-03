@@ -27,8 +27,6 @@ export default {
     containerClass() {
       const { defaultContainerClass } = this;
 
-      debugger;
-
       return this.displaySideBySide ? `row ${ defaultContainerClass }` : `${ defaultContainerClass }`;
     },
 
