@@ -321,6 +321,7 @@ export default {
         >
           <div class="row labels-row">
             <Labels
+              :default-container-class="'labels-and-annotations-container'"
               :spec="value.spec"
               :mode="mode"
               :display-side-by-side="false"
@@ -331,3 +332,13 @@ export default {
     </template>
   </CruResource>
 </template>
+
+<style lang="scss">
+.labels-and-annotations-container {
+  > div:last-child {
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+    padding-top: 20px;
+  }
+}
+</style>
