@@ -94,7 +94,8 @@ export default {
     height: 100vh;
 
     .apps-button {
-      border: 1px solid white;
+      border: 1px solid var(--header-dropdown);
+      background: rgba(0,0,0,.05);
       margin-left: 10px;
     }
 
