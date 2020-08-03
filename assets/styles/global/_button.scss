@@ -129,11 +129,11 @@ fieldset[disabled] .btn {
 
 .btn-group {
   position: relative;
-  display: inline-block;
+  // display: inline-block;
   vertical-align: middle;
   text-align: center;
   padding: 0;
-  background: var(--input-bg);
+  // background: var(--input-bg);
   border-radius: var(--border-radius);
 
   .btn {
