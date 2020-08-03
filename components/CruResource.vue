@@ -203,7 +203,7 @@ export default {
             <AsyncButton
               v-if="!showSubtypeSelection"
               :disabled="!canCreate"
-              :action-label="t('generic.create')"
+              :action-label="mode==='edit' ? t('generic.save') : t('generic.create')"
               @click="$emit('finish', done)"
             />
           </div>
@@ -211,7 +211,7 @@ export default {
       </div>
     </form>
 
-    <section v-else>
+    <section v-else class="cru-resource-yaml-container">
       <ResourceYaml
         ref="resourceyaml"
         :value="resource"
@@ -248,7 +248,8 @@ export default {
     <modal class="confirm-modal" name="cancel-modal" :width="400" height="auto">
       <div class="header">
         <h4 class="text-default-text">
-          <t k="cruResource.backToForm" />
+          <t v-if="isCancelModal" k="generic.cancel" />
+          <t v-else k="cruResource.backToForm" />
         </h4>
       </div>
       <div class="body">
@@ -277,6 +278,13 @@ export default {
 </template>
 
 <style lang='scss'>
+.cru-resource-yaml-container {
+  .resource-yaml {
+    .yaml-editor {
+      min-height: 400px;
+    }
+  }
+}
 .confirm-modal {
   .v--modal-box {
     background-color: var(--default);

@@ -12,8 +12,9 @@ import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
 import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service';
 import { ucFirst } from '@/utils/string';
-import Banner from '@/components/Banner';
 import CruResource from '@/components/CruResource';
+import InfoBox from '@/components/InfoBox';
+import Banner from '@/components/Banner';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:      'None',
@@ -35,6 +36,7 @@ export default {
     ArrayList,
     Banner,
     CruResource,
+    InfoBox,
     KeyValue,
     LabeledInput,
     NameNsDescription,
@@ -42,7 +44,7 @@ export default {
     ServicePorts,
     Tab,
     Tabbed,
-    UnitInput,
+    UnitInput
   },
 
   mixins: [CreateEditView],
@@ -52,16 +54,20 @@ export default {
       if (!this.value?.spec) {
         this.$set(this.value, 'spec', {
           ports:           [],
-          sessionAffinity: 'None',
+          sessionAffinity: 'None'
         });
       }
     }
 
     return {
-      defaultServiceTypes:          DEFAULT_SERVICE_TYPES,
-      saving:                       false,
-      sessionAffinityActionLabels:  Object.values(SESSION_AFFINITY_ACTION_LABELS).map(v => this.$store.getters['i18n/t'](v)).map(ucFirst),
-      sessionAffinityActionOptions: Object.values(SESSION_AFFINITY_ACTION_VALUES),
+      defaultServiceTypes:         DEFAULT_SERVICE_TYPES,
+      saving:                      false,
+      sessionAffinityActionLabels: Object.values(SESSION_AFFINITY_ACTION_LABELS)
+        .map(v => this.$store.getters['i18n/t'](v))
+        .map(ucFirst),
+      sessionAffinityActionOptions: Object.values(
+        SESSION_AFFINITY_ACTION_VALUES
+      )
     };
   },
 
@@ -87,7 +93,10 @@ export default {
           this.$set(this.value.spec, 'type', CLUSTERIP);
           this.$set(this.value.spec, 'clusterIP', 'None');
         } else {
-          if (serviceType !== HEADLESS && this.value?.spec?.clusterIP === 'None') {
+          if (
+            serviceType !== HEADLESS &&
+            this.value?.spec?.clusterIP === 'None'
+          ) {
             this.$set(this.value.spec, 'clusterIP', null);
           } else if (serviceType === 'ExternalName') {
             this.$set(this.value.spec, 'ports', null);
@@ -95,8 +104,8 @@ export default {
 
           this.$set(this.value.spec, 'type', serviceType);
         }
-      },
-    },
+      }
+    }
   },
 
   watch: {
@@ -105,8 +114,14 @@ export default {
         this.value.spec.sessionAffinityConfig = { clientIP: { timeoutSeconds: null } };
 
         // set it null and then set it with vue to make reactive.
-        this.$set(this.value.spec.sessionAffinityConfig.clientIP, 'timeoutSeconds', SESSION_STICKY_TIME_DEFAULT);
-      } else if (this.value?.spec?.sessionAffinityConfig?.clientIP?.timeoutSeconds) {
+        this.$set(
+          this.value.spec.sessionAffinityConfig.clientIP,
+          'timeoutSeconds',
+          SESSION_STICKY_TIME_DEFAULT
+        );
+      } else if (
+        this.value?.spec?.sessionAffinityConfig?.clientIP?.timeoutSeconds
+      ) {
         delete this.value.spec.sessionAffinityConfig.clientIP.timeoutSeconds;
       }
     }
@@ -125,7 +140,7 @@ export default {
 
     updateServicePorts(servicePorts) {
       servicePorts.forEach((sp) => {
-        if ( !isEmpty(sp?.targetPort) ) {
+        if (!isEmpty(sp?.targetPort)) {
           const tpCoerced = parseInt(sp.targetPort, 10);
 
           if (!isNaN(tpCoerced)) {
@@ -136,7 +151,7 @@ export default {
 
       this.$set(this.value.spec, 'ports', servicePorts);
     }
-  },
+  }
 };
 </script>
 
@@ -153,11 +168,7 @@ export default {
     @selectType="(st) => serviceType = st"
   >
     <template #define>
-      <NameNsDescription
-        v-if="!isView"
-        :value="value"
-        :mode="mode"
-      />
+      <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
 
       <div class="spacer"></div>
 
@@ -171,7 +182,9 @@ export default {
             <h4>
               <t k="servicesPage.externalName.label" />
             </h4>
-            <Banner color="info" :label="t('servicesPage.externalName.helpText')" />
+            <InfoBox>
+              <div>{{ t('servicesPage.externalName.helpText') }}</div>
+            </InfoBox>
           </div>
           <div class="row mt-10">
             <div class="col span-6">
@@ -186,11 +199,7 @@ export default {
             </div>
           </div>
         </Tab>
-        <Tab
-          v-else
-          name="define-external-name"
-          :label="t('servicesPage.ips.define')"
-        >
+        <Tab v-else name="define-external-name" :label="t('servicesPage.ips.define')">
           <ServicePorts
             v-model="value.spec.ports"
             class="col span-12"
@@ -206,7 +215,9 @@ export default {
         >
           <div class="row">
             <div class="col span-12">
-              <Banner color="info" :label="t('servicesPage.selectors.helpText')" />
+              <InfoBox>
+                <div>{{ t('servicesPage.selectors.helpText') }}</div>
+              </InfoBox>
             </div>
           </div>
           <div class="row">
@@ -224,21 +235,16 @@ export default {
             </div>
           </div>
         </Tab>
-        <Tab
-          name="ips"
-          :label="t('servicesPage.ips.label')"
-        >
+        <Tab name="ips" :label="t('servicesPage.ips.label')">
           <div class="row">
             <div class="col span-12">
               <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
-              <Banner
-                v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
-                color="info"
-                :label="t('servicesPage.ips.clusterIpHelpText')"
-              />
             </div>
           </div>
-          <div v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')" class="row mb-20">
+          <div
+            v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
+            class="row mb-20"
+          >
             <div class="col span-6">
               <LabeledInput
                 v-model="value.spec.clusterIP"
@@ -246,7 +252,16 @@ export default {
                 :label="t('servicesPage.ips.input.label')"
                 :placeholder="t('servicesPage.ips.input.placeholder')"
                 @input="e=>$set(value.spec, 'clusterIP', e)"
-              />
+              >
+                <template #corner>
+                  <i
+                    v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
+                    v-tooltip="t('servicesPage.ips.clusterIpHelpText')"
+                    class="icon icon-info"
+                    style="font-size: 12px"
+                  />
+                </template>
+              </LabeledInput>
             </div>
           </div>
           <div class="row">
@@ -271,7 +286,9 @@ export default {
           :label="t('servicesPage.affinity.label')"
         >
           <div class="col span-12">
-            <Banner color="info" :label="t('servicesPage.affinity.helpText')" />
+            <InfoBox>
+              <div>{{ t('servicesPage.affinity.helpText') }}</div>
+            </InfoBox>
           </div>
           <div class="row session-affinity">
             <div class="col span-6">

@@ -5,7 +5,7 @@ generic:
   add: Add
   back: Back
   cancel: Cancel
-  clickToShow: "[Show Value]"
+  clickToShow: '[Show Value]'
   close: Close
   comingSoon: Coming Soon
   create: Create
@@ -19,6 +19,7 @@ generic:
     one  {resource}
     other {resources}
     }
+  save: Save
   type: Type
   unknown: Unknown
 
@@ -38,10 +39,10 @@ nav:
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
-    namespace: "{name}"
+    namespace: '{name}'
     namespaced: Only Namespaced Resources
     orphan: Not in a Project
-    project: "Project: {name}"
+    project: 'Project: {name}'
     system: Only System Namespaces
     user: Only User Namespaces
 
@@ -134,7 +135,7 @@ cluster:
 
 clusterIndexPage:
   hardwareResourceGauge:
-    consumption: "{useful} of {total} {units} {suffix}"
+    consumption: '{useful} of {total} {units} {suffix}'
     coresReserved: Cores Reserved
     coresUsed: Cores Used
     podsReserved: Pods Reserved
@@ -178,10 +179,10 @@ cruResource:
   previewYaml: Preview Yaml
   cancel: Cancelling will destroy your changes.
   back: Going back will destroy your changes.
-  confirmYaml: "No, Review Yaml"
+  confirmYaml: 'No, Review Yaml'
   backToForm: Go Back To Form
-  confirmCancel: "Yes, Cancel"
-  confirmBack: "Yes, Go Back"
+  confirmCancel: 'Yes, Cancel'
+  confirmBack: 'Yes, Go Back'
 
 footer:
   docs: Docs
@@ -259,7 +260,7 @@ ingress:
       placeholder: e.g. 80 or http
     targetService:
       label: Target Service
-    warning: "Warning: Default backend is used globally for the entire cluster."
+    warning: 'Warning: Default backend is used globally for the entire cluster.'
   rules:
     addPath: Add Path
     addRule: Add Rule
@@ -294,7 +295,7 @@ node:
       version: Version
     glance:
       consumptionGauge:
-        amount: "{used} of {total} {unit} used"
+        amount: '{used} of {total} {unit} used'
         cpu: CPU
         memory: MEMORY
         pods: PODS
@@ -316,8 +317,8 @@ promptRemove:
     =1 {, and one other.}
     other {, and {count} others.}
     }
-  attemptingToRemove: "You are attemping to remove the {type}"
-  protip: "protip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
+  attemptingToRemove: 'You are attemping to remove the {type}'
+  protip: 'protip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation'
 
 resourceDetail:
   detailTop:
@@ -332,11 +333,11 @@ resourceDetail:
       =1 {Show annotation}
       other {Show {annotations} annotations}}
   header:
-    clone: "Clone from {type}: {name}"
+    clone: 'Clone from {type}: {name}'
     create: Create
-    edit: "Edit {type}: {name}"
-    stage: "Stage from {type}: {name}"
-    view: "{name}"
+    edit: 'Edit {type}: {name}'
+    stage: 'Stage from {type}: {name}'
+    view: '{name}'
   masthead:
     age: Age
     defaultBannerMessage:
@@ -351,14 +352,14 @@ resourceList:
   head:
     create: Create
     createFromYaml: Create from YAML
-    createResource: "Create {resourceName}"
+    createResource: 'Create {resourceName}'
 
 resourceTable:
   groupLabel:
-    namespace: "<span>Namespace:</span> {name}"
+    namespace: '<span>Namespace:</span> {name}'
     notInANamespace: Not Namespaced
     notInAProject: Not in a Project
-    project: "<span>Project:</span> {name}"
+    project: '<span>Project:</span> {name}'
 
 resourceTabs:
   tabs:
@@ -375,7 +376,7 @@ rioConfig:
     description: Description
     helpText:
       listItem1: The application deployment engine for Kubernetes.
-      listItem2: "Rio makes it faster and easier for DevOps to build, test, deploy, scale and version stateless applications"
+      listItem2: 'Rio makes it faster and easier for DevOps to build, test, deploy, scale and version stateless applications'
     requirements:
       header: Requirements
       helpText:
@@ -391,7 +392,7 @@ secret:
     cn: Domain Name
     expires: Expires
     issuer: Issuer
-    plusMore: "+ {n} more"
+    plusMore: '+ {n} more'
     privateKey: Private Key
     readFromFile: Read from File
   data: Data
@@ -440,7 +441,7 @@ servicesPage:
       placeholder: e.g. 10800
   externalName:
     define: Define External Name
-    helpText: "External Name is intended to specify a canonical DNS name. To hardcode an IP address, use a Headless service."
+    helpText: 'External Name is intended to specify a canonical DNS name. To hardcode an IP address, use a Headless service.'
     label: External Name
     placeholder: e.g. my.database.example.com
   ips:
@@ -450,13 +451,13 @@ servicesPage:
       label: External IPs
       placeholder: e.g. 1.1.1.1
       protip: List of IP addresses for which nodes in the cluster will also accept traffic for this service.
-    helpText: "Warning: Configuring additional listener IPs is an advanced use case."
+    helpText: 'Warning: Configuring additional listener IPs is an advanced use case.'
     input:
       label: Cluster IP
       placeholder: e.g. 10.0.171.239
     label: Listener IPs
   selectors:
-    helpText: "If no selector is created, manual endpoints must be made."
+    helpText: 'If no selector is created, manual endpoints must be made.'
     label: Selectors
   serviceTypes:
     clusterIp:
@@ -465,7 +466,7 @@ servicesPage:
       label: Cluster IP
     externalName:
       abbrv: EN
-      description: "Maps the service to the contents of the `externalName` field (e.g. foo.bar.example.com), by returning a CNAME record with its value. No proxying of any kind is set up."
+      description: 'Maps the service to the contents of the `externalName` field (e.g. foo.bar.example.com), by returning a CNAME record with its value. No proxying of any kind is set up.'
       label: External Name
     headless:
       abbrv: H
@@ -484,8 +485,8 @@ servicesPage:
 
 sortableTable:
   actionAvailability:
-    selected: "{actionable} selected"
-    some: "Available for {actionable} of the {total} selected"
+    selected: '{actionable} selected'
+    some: 'Available for {actionable} of the {total} selected'
   noData: There are no rows which match your search query.
   noRows: There are no rows to show.
   paging:
@@ -574,7 +575,7 @@ validation:
     min: '"{key}" should contain at least {count} {count, plural, =1 {item} other {items}}'
   chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
   custom:
-    missing: "No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?"
+    missing: 'No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?'
   dns:
     doubleHyphen: '"{key}" Cannot contain two or more consecutive hyphens'
     hostname:
@@ -613,17 +614,17 @@ validation:
   service:
     ports:
       name:
-        required: "Port Rule [{position}] - Name is required."
+        required: 'Port Rule [{position}] - Name is required.'
       nodePort:
-        requriedInt: "Port Rule [{position}] - Node Port must be interger values if included."
+        requriedInt: 'Port Rule [{position}] - Node Port must be interger values if included.'
       port:
-        required: "Port Rule [{position}] - Port is required."
-        requriedInt: "Port Rule [{position}] - Port must be interger values if included."
+        required: 'Port Rule [{position}] - Port is required.'
+        requriedInt: 'Port Rule [{position}] - Port must be interger values if included.'
       targetPort:
-        between: "Port Rule [{position}] - Target Port must be between 1 and 65535"
-        iana: "Port Rule [{position}] - Target Port must be an IANA Service Name or Integer"
-        ianaAt: "Port Rule [{position}] - Target Port "
-        required: "Port Rule [{position}] - Target Port is required"
+        between: 'Port Rule [{position}] - Target Port must be between 1 and 65535'
+        iana: 'Port Rule [{position}] - Target Port must be an IANA Service Name or Integer'
+        ianaAt: 'Port Rule [{position}] - Target Port '
+        required: 'Port Rule [{position}] - Target Port is required'
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
@@ -636,7 +637,7 @@ wizard:
   back: Back
   finish: Finish
   next: Next
-  step: "Step {number}:"
+  step: 'Step {number}:'
 
 wm:
   connection:
@@ -646,7 +647,7 @@ wm:
     error: Error
   containerLogs:
     clear: Clear
-    containerName: "Container: {label}"
+    containerName: 'Container: {label}'
     download: Download
     follow: Follow
     noData: There are no log entries to show in the current range.
@@ -661,7 +662,7 @@ wm:
         other {Hours}
         }
       label: Show the last
-      lines: "{value, number} Lines"
+      lines: '{value, number} Lines'
       minutes: |
         {value, number} {value, plural,
         =1 {Minute}
@@ -672,9 +673,9 @@ wm:
     wrap: Wrap Lines
   containerShell:
     clear: Clear
-    containerName: "Container: {label}"
+    containerName: 'Container: {label}'
   kubectlShell:
-    title: "Kubectl: {name}"
+    title: 'Kubectl: {name}'
 
 workload:
   container:
@@ -706,7 +707,7 @@ workload:
       initialDelay: Initial Delay
       livenessProbe: Liveness Probe
       livenessTip: Containers will be restarted when this check is failing.  Not recommended for most uses.
-      noHealthCheck: "There is not a Readiness Check, Liveness Check or Startup Check configured."
+      noHealthCheck: 'There is not a Readiness Check, Liveness Check or Startup Check configured.'
       readinessProbe: Readiness Probe
       readinessTip: Containers will be removed from service endpoints when this check is failing.  Recommended.
       startupProbe: Startup Probe
@@ -735,8 +736,8 @@ workload:
       runAsGroup: Run as Group ID
       runAsNonRoot: Run as Non-Root
       runAsNonRootOptions:
-        noOption: "No"
-        yesOption: "Yes: containers must run as non-root-user"
+        noOption: 'No'
+        yesOption: 'Yes: containers must run as non-root-user'
       runAsUser: Run as User ID
       shareProcessNamespace: Share single process namespace
       supplementalGroups: Additional Group IDs
@@ -795,7 +796,7 @@ workload:
       label: Host Aliases
       tip: Additional /etc/hosts entries to be injected in the container.
       valueLabel: Hostname
-      valuePlaceholder: "e.g. foo.com, bar.com"
+      valuePlaceholder: 'e.g. foo.com, bar.com'
     hostname:
       label: Hostname
       placeholder: e.g. web
@@ -829,9 +830,9 @@ workload:
         addRule: Add Rule
         doesNotExist: Does Not Exist
         exists: Exists
-        greaterThan: ">"
+        greaterThan: '>'
         in: =
-        inNamespaces: "Pods in these namespaces:"
+        inNamespaces: 'Pods in these namespaces:'
         key: Key
         lessThan: <
         notIn: ≠
@@ -840,8 +841,8 @@ workload:
         weight: Weight
       noPodRules: There are no pod scheduling rules configured.
       nodeName: Node Name
-      preferAny: "Prefer any of:"
-      requireAny: "Require any of:"
+      preferAny: 'Prefer any of:'
+      requireAny: 'Require any of:'
       schedulingRules: Run pods on node(s) matching these scheduling rules
       specificNode: Run pods on specific node(s)
       thisPodNamespace: This pod's namespace
@@ -867,7 +868,7 @@ workload:
       effectOptions:
         all: All
         noExecute: NoExecute
-        noSchedule: "NoSchedule,"
+        noSchedule: 'NoSchedule,'
         preferNoSchedule: PreferNoSchedule
       labelKey: Label Key
       operator: Operator
@@ -900,8 +901,8 @@ workload:
       tip: The number of old ReplicaSets to retain for rollback.
     strategies:
       labels:
-        delete: "On Delete: New pods are only created when old pods are manually deleted."
-        recreate: "Recreate: Kill ALL pods, then start new pods."
+        delete: 'On Delete: New pods are only created when old pods are manually deleted.'
+        recreate: 'Recreate: Kill ALL pods, then start new pods.'
         rollingUpdate: "Rolling Update: Create new pods, until max surge is reached, before deleting old pods. Don't stop more pods than max unavailable."
     terminationGracePeriodSeconds:
       label: Termination Grace Period
@@ -941,7 +942,7 @@ model:
       registeredAgent: Registered Agent
       service: Service
       user: User
-  "catalog.cattle.io.release":
+  'catalog.cattle.io.release':
     firstDeployed: First Deployed
     lastDeployed: Last Deployed
   cluster:
@@ -952,7 +953,7 @@ model:
       localUser: Local User
       org: Organization
       team: Team
-      unknown: "{type}?"
+      unknown: '{type}?'
       user: User
   ingress:
     displayKind: L7 Ingress
@@ -965,7 +966,7 @@ model:
     domain:
       help: Only users below this base will be used.
       label: User Search Base
-      placeholder: "e.g. ou=Users,dc=mycompany,dc=com"
+      placeholder: 'e.g. ou=Users,dc=mycompany,dc=com'
     server:
       label: Hostname or IP Address
     serviceAccountPassword:
