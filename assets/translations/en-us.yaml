@@ -275,6 +275,23 @@ ingress:
 internalExternalIP:
   none: None
 
+istio: 
+  cni: Enabled CNI
+  customOverlayFile:
+    label: Custom Overlay File
+    tip: Provide an IstioOperator yaml with additional components and configuration that is not available with the default installtion.
+  egressGateway: Enabled Egress Gateway
+  ingressGateway: Enabled Ingress Gateway
+  istiodRemote: Enabled istiodRemote
+  pilot: Enabled Pilot
+  policy: Enabled Policy
+  telemetry: Enabled Telemetry
+  titles:
+    components: Components
+    customAnswers: Custom Answers
+    advanced: Advanced Settings
+
+
 node:
   detail:
     detailTop:

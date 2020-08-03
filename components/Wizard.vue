@@ -117,8 +117,10 @@ export default {
   },
 
   watch: {
-    '$route.query'(neu = {}) {
-      this.goToStep(neu[STEP]);
+    '$route.query'(neu = {}, old) {
+      if (neu.step !== old.step) {
+        this.goToStep(neu[STEP]);
+      }
     },
   },
 
