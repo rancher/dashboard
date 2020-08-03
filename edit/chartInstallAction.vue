@@ -14,6 +14,7 @@ import Wizard from '@/components/Wizard';
 import YamlEditor from '@/components/YamlEditor';
 import { DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
+import { diff } from '@/utils/object';
 
 export default {
   name: 'ChartInstall',
@@ -261,8 +262,10 @@ export default {
 
       delete install.metadata;
 
-      // @TODO only save values that differ from defaults?
-      chart.values = jsyaml.safeLoad(this.valuesYaml);
+      const fromChart = this.versionInfo.values || {};
+      const fromUser = jsyaml.safeLoad(this.valuesYaml);
+
+      chart.values = diff(fromChart, fromUser);
 
       return install;
     },

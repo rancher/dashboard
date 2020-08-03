@@ -4,12 +4,43 @@ import compact from 'lodash/compact';
 import pick from 'lodash/pick';
 import jsonpath from 'jsonpath';
 import Vue from 'vue';
-import { typeOf } from './sort';
+import transform from 'lodash/transform';
+import isObject from 'lodash/isObject';
+import isEqual from 'lodash/isEqual';
+import difference from 'lodash/difference';
 
 const quotedKey = /['"]/;
 
 export function set(obj, path, value) {
-  Vue.set(obj, path, value);
+  let ptr = obj;
+  let parts;
+
+  if (!ptr) {
+    return;
+  }
+
+  if ( path.match(quotedKey) ) {
+    // Path with quoted section
+    parts = path.match(/[^."']+|"([^"]*)"|'([^']*)'/g).map(x => x.replace(/['"]/g, ''));
+  } else {
+    // Regular path
+    parts = path.split('.');
+  }
+
+  for (let i = 0; i < parts.length; i++) {
+    const key = parts[i];
+
+    if ( i === parts.length - 1 ) {
+      Vue.set(ptr, key, value);
+    } else if ( !ptr[key] ) {
+      // Make sure parent keys exist
+      Vue.set(ptr, key, {});
+    }
+
+    ptr = ptr[key];
+  }
+
+  return obj;
 }
 
 export function get(obj, path) {
@@ -78,27 +109,94 @@ returns an object with no key/value pairs (including nested) where the value is:
   undefined
 */
 export function cleanUp(obj) {
-  return pick(obj, definedValueKeys(obj));
+  return pick(obj, nonEmptyValueKeys(obj));
 }
 
-function definedValueKeys(obj) {
+function nonEmptyValueKeys(obj) {
   const validKeys = Object.keys(obj).map((key) => {
-    if (typeOf(obj[key]) === 'object') {
-      const recursed = definedValueKeys(obj[key]);
+    const val = obj[key];
+
+    if ( isObject(val) ) {
+      const recursed = nonEmptyValueKeys(val);
 
       if (recursed) {
         return recursed.map((subkey) => {
-          return `${ key }.${ subkey }`;
+          return `"${ key }"."${ subkey }"`;
         });
       }
-    } else if (typeOf(obj[key]) === 'array') {
-      if (compact(obj[key]).length) {
+    } else if ( Array.isArray(val) ) {
+      if (compact(val).length) {
         return key;
       }
-    } else if (!!obj[key] || obj[key] === 0) {
+    } else if (!!val || val === false || val === 0) {
       return key;
     }
   });
 
   return compact(flattenDeep(validKeys));
+}
+
+export function definedKeys(obj) {
+  const keys = Object.keys(obj).map((key) => {
+    const val = obj[key];
+
+    if ( Array.isArray(val) ) {
+      return key;
+    } else if ( isObject(val) ) {
+      return ( definedKeys(val) || [] ).map(subkey => `${ key }.${ subkey }`);
+    } else {
+      return key;
+    }
+  });
+
+  return compact(flattenDeep(keys));
+}
+
+export function diff(from, to) {
+  // Copy values in 'to' that are different than from
+  const out = transform(to, (res, toVal, k) => {
+    const fromVal = from[k];
+
+    if ( isEqual(toVal, fromVal) ) {
+      return;
+    }
+
+    if ( Array.isArray(toVal) || Array.isArray(fromVal) ) {
+      // Don't diff arrays, just use the whole value
+      res[k] = toVal;
+    } else if ( isObject(toVal) && isObject(from[k]) ) {
+      res[k] = diff(fromVal, toVal);
+    } else {
+      res[k] = toVal;
+    }
+  });
+
+  const fromKeys = definedKeys(from);
+  const toKeys = definedKeys(to);
+  const missing = difference(fromKeys, toKeys);
+
+  for ( const k of missing ) {
+    set(out, k, null);
+  }
+
+  // Remove values in 'from' that are missing in 'to';
+  /*
+  out = transform(from, (res, fromVal, k ) => {
+    const toVal = to[k];
+
+    if ( isEqual(toVal, fromVal) ) {
+      return;
+    }
+
+    if ( typeof toVal === 'undefined' && isObject(from[k]) ) {
+      res[k] = null;
+    } else if ( isObject(toVal) && isObject(from[k]) ) {
+      res[k] = diff(fromVal, toVal);
+    } else {
+      res[k] = toVal;
+    }
+  });
+  */
+
+  return out;
 }
