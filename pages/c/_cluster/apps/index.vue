@@ -311,6 +311,9 @@ export default {
           background-color: var(--app-rancher-accent);
           color: var(--app-rancher-accent-text);
         }
+        &:hover {
+          background: var(--app-rancher-accent);
+        }
       }
 
       &.partner {
@@ -319,6 +322,9 @@ export default {
           background-color: var(--app-partner-accent);
           color: var(--app-partner-accent-text);
         }
+        &:hover {
+          background: var(--app-partner-accent);
+        }
       }
 
       &.other {
@@ -326,6 +332,17 @@ export default {
         .side-label {
           background-color: var(--app-other-accent);
           color: var(--app-other-accent-text);
+        }
+        &:hover {
+          background: var(--app-other-accent);
+        }
+      }
+
+      &.rancher,
+      &.partner,
+      &.other {
+        &:hover {
+          background-position: right center;
         }
       }
 
