@@ -11,6 +11,8 @@ generic:
   create: Create
   created: Created
   customize: Customize
+  disabled: Disabled
+  enabled: Enabled
   na: n/a
   name: Name
   remove: Remove
@@ -64,7 +66,7 @@ suffix:
 # Components & Pages
 ##############################
 asyncButton:
-  default: 
+  default:
     action: Action
     waiting: Waiting
     success: Success
@@ -376,7 +378,7 @@ ingress:
 internalExternalIP:
   none: None
 
-istio: 
+istio:
   cni: Enabled CNI
   customOverlayFile:
     label: Custom Overlay File
@@ -401,14 +403,72 @@ logging:
     clusterName: Cluster Name
     user: User
     password: Password
-    clientCert: 
+    clientCert:
       label: Client Cert
       placeholder: Paste in the CA certificate
-    clientKey: 
+    clientKey:
       label: Client Key
       placeholder: Paste in the client key
     clientKeyPass: Client Key Pass
 
+monitoring:
+  accessModes:
+    many: ReadWriteMany
+    once: ReadWriteOnce
+    readOnlyMany: ReadOnlyMany
+  clusterType:
+    k3s: 'K3s,'
+    kubeAdmin: KubeADM
+    label: Cluster Type
+    managed: 'Managed Cluster (EKS, GKE, AKS, etc.)'
+    other: Other
+    placeholder: Select cluster type
+    rke: RKE
+  grafana:
+    storage:
+      annotations: PVC Annotations
+      className: Storage Class Name
+      existingClaim: Use Existing Claim
+      finalizers: PVC Finalizers
+      label: Persistent Storage for Grafana
+      mode: Access Mode
+      selector: Selector
+      size: Size
+      subpath: Use Subpath
+      type: Persistent Storage Types
+      types:
+        existing: Enable With Existing PVC
+        statefulset: Enable with StatefulSet Template
+        template: Enable with PVC Template
+      volumeMode: Volume Mode
+      volumeName: Volume Name
+    title: Grafana Config
+  prometheus:
+    config:
+      adminApi: Admin API
+      evaluation: Evaluation Interval
+      limits:
+        cpu: CPU Limit
+        memory: Memory Limit
+      requests:
+        cpu: Requested CPU
+        memory: Requested Memory
+      retention: Retention
+      retentionSize: Retention Size
+      scrape: Scrape Interval
+    storage:
+      className: Storage Class Name
+      label: Persistent Storage for Prometheus
+      mode: Access Mode
+      selector: Selector
+      size: Size
+      volumeMode: Volume Mode
+      volumeName: Volume Name
+    title: Prometheus Config
+  volume:
+    modes:
+      block: Block
+      file: Filesystem
 
 node:
   detail:
