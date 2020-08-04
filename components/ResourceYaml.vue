@@ -293,7 +293,14 @@ export default {
       @onReady="onReady"
       @onChanges="onChanges"
     />
-    <slot name="yamlFooter" :yamlSave="save" :yamlDone="done">
+    <slot
+      name="yamlFooter"
+      :currentYaml="currentYaml"
+      :showPreview="showPreview"
+      :yamlPreview="preview"
+      :yamlSave="save"
+      :yamlUnpreview="unpreview"
+    >
       <Footer
         v-if="showFooter"
         :mode="mode"

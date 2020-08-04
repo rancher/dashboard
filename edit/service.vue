@@ -159,12 +159,12 @@ export default {
 
 <template>
   <CruResource
-    :can-create="true"
     :done-route="doneRoute"
     :mode="mode"
     :resource="value"
     :selected-subtype="serviceType"
     :subtypes="defaultServiceTypes"
+    :validation-passed="true"
     @finish="save"
     @cancel="done"
     @selectType="(st) => serviceType = st"
