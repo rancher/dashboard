@@ -18,24 +18,22 @@ import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/components/form/Networking';
 import Job from '@/edit/workload/Job';
 import { defaultAsyncData } from '@/components/ResourceDetail';
-import { _EDIT, _CREATE } from '@/config/query-params';
+import { _EDIT } from '@/config/query-params';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
-import Wizard from '@/components/Wizard';
 import KeyValue from '@/components/form/KeyValue';
 import Tabbed from '@/components/Tabbed';
 import { mapGetters } from 'vuex';
-import ButtonDropdown from '@/components/ButtonDropdown';
 import ShellInput from '@/components/form/ShellInput';
 import Checkbox from '@/components/form/Checkbox';
 import NodeScheduling from '@/components/form/NodeScheduling';
 import PodScheduling from '@/components/form/PodScheduling';
 import Tolerations from '@/components/form/Tolerations';
+import CruResource from '@/components/CruResource';
 
 export default {
   name:       'CruWorkload',
   components: {
-    Wizard,
     NameNsDescription,
     LabeledSelect,
     LabeledInput,
@@ -52,10 +50,10 @@ export default {
     Security,
     WorkloadPorts,
     ContainerResourceLimit,
-    ButtonDropdown,
     PodScheduling,
     NodeScheduling,
-    Tolerations
+    Tolerations,
+    CruResource
   },
 
   mixins: [CreateEditView],
@@ -88,23 +86,34 @@ export default {
 
   asyncData(ctx) {
     let resource;
+    let parentOverride;
 
     if ( ctx.params.resource === 'workload') {
+      parentOverride = {
+        displayName: 'Workload',
+        location:    {
+          name:    'c-cluster-product-resource',
+          params:  { resource: 'workload' },
+        }
+      };
       resource = WORKLOAD_TYPES.DEPLOYMENT;
     }
 
-    return defaultAsyncData(ctx, resource);
+    return defaultAsyncData(ctx, resource, parentOverride);
   },
 
   data() {
-    const t = this.$store.getters['i18n/t'];
-    let type = this.value._type || this.value.type;
+    let type = this.$route.params.resource;
 
     if (type === 'workload') {
-      type = WORKLOAD_TYPES.DEPLOYMENT;
+      type = null;
     }
-    // track spec separately from resource instance so it can be trashed when the wizard is cancelled
-    const spec = { ...this.value.spec };
+
+    if (!this.value.spec) {
+      this.value.spec = {};
+    }
+
+    const spec = this.value.spec;
 
     if (!spec.replicas) {
       spec.replicas = 1;
@@ -114,36 +123,7 @@ export default {
       spec.template = { spec: { restartPolicy: this.isJob ? 'Never' : 'Always' } };
     }
 
-    const steps = [
-      {
-        name:    'type',
-        label:   t('workload.wizard.titles.selectType.title'),
-        subtext: 'workload.wizard.titles.selectType.subtitle',
-        ready:   !!type,
-      },
-      {
-        name:    'container',
-        label:   t('workload.wizard.titles.defineContainer.title'),
-        subtext: 'workload.wizard.titles.defineContainer.subtitle',
-        ready:   false
-      },
-      {
-        name:    'storage',
-        label:   t('workload.wizard.titles.storage.title'),
-        subtext: 'workload.wizard.titles.storage.subtitle',
-        ready:   true
-      },
-      {
-        name:    'advanced',
-        label:   t('workload.wizard.titles.advanced.title'),
-        subtext: 'workload.wizard.titles.advanced.subtitle',
-        ready:   true
-      }
-    ];
-
     return {
-      showBannerTitle:  this.mode !== _CREATE,
-      steps,
       spec,
       type,
       allConfigMaps:    [],
@@ -155,19 +135,6 @@ export default {
   },
 
   computed: {
-    // start wizard at step 2 if type selection isn't relevant  (navigating from type-specific page, or editing/cloning)
-    initStepIndex() {
-      if (this.doneParams?.resource !== 'workload' || this.mode !== _CREATE) {
-        return 1;
-      } else {
-        return 0;
-      }
-    },
-
-    currentStepIndex() {
-      return this.$route.query?.step;
-    },
-
     isEdit() {
       return this.mode === _EDIT;
     },
@@ -374,6 +341,25 @@ export default {
       } );
     },
 
+    // array of id, label, description, initials for type selection step
+    workloadSubTypes() {
+      const out = [];
+
+      for (const prop in this.workloadTypes) {
+        const type = this.workloadTypes[prop];
+        const subtype = {
+          id:          type,
+          description: `workload.typeDescriptions.'${ type }'`,
+          label:       this.nameDisplayFor(type),
+          bannerAbbrv: this.initialDisplayFor(type)
+        };
+
+        out.push(subtype);
+      }
+
+      return out;
+    },
+
     ...mapGetters({ t: 'i18n/t' })
   },
 
@@ -406,17 +392,6 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     },
-
-    containerIsReady(neu) {
-      this.steps[1].ready = neu;
-    },
-
-  },
-
-  created() {
-    if (this.containerIsReady) {
-      this.steps[1].ready = true;
-    }
   },
 
   methods: {
@@ -430,21 +405,12 @@ export default {
     // show initials of workload type in blue circles for now
     initialDisplayFor(type) {
       const typeDisplay = this.nameDisplayFor(type);
-      const eachWord = typeDisplay.split(' ');
 
-      return eachWord.reduce((total, word) => {
-        total += word[0];
-
-        return total;
-      }, '');
+      return typeDisplay.split('').filter(letter => letter.match(/[A-Z]/)).join('');
     },
 
     cancel() {
       this.done();
-    },
-
-    toggleTabs() {
-      this.showTabs = !this.showTabs;
     },
 
     saveWorkload(cb) {
@@ -538,190 +504,152 @@ export default {
       });
 
       return podAffinity;
-    }
+    },
   }
 };
 </script>
 
 <template>
   <form>
-    <Wizard
-      v-if="mode"
+    <CruResource
+      :validation-passed="containerIsReady"
+      :selected-subtype="type"
+      :resource="value"
+      :mode="mode"
       :errors="errors"
-      :finish-mode="mode"
-      :init-step-index="initStepIndex"
-      :steps="steps"
-      :initial-title="false"
-      :banner-title="nameDisplayFor(type)"
-      :banner-image="initialDisplayFor(type)"
-      @finish="saveWorkload"
-      @cancel="cancel"
+      :done-route="doneRoute"
+      :subtypes="workloadSubTypes"
+      @finish="cb=>saveWorkload(cb)"
+      @select-type="e=>type=e"
+      @error="e=>errors = e"
     >
-      <template v-if="currentStepIndex > 1 || mode !=='create'" #bannerTitleImage>
-        <span class="type-placeholder"> {{ initialDisplayFor(type) }} </span>
-      </template>
-      <template v-if="steps[currentStepIndex-1]" #bannerSubtext>
-        <t :k="steps[currentStepIndex-1].subtext" :raw="true" />
-      </template>
-      <template #type>
-        <div class="types-container">
-          <div
-            v-for="workloadType in workloadTypes"
-            :key="workloadType"
-            class="choice-banner"
-            :class="{ selected: type === workloadType }"
-            @click="type = workloadType"
-          >
-            <div :style="{ 'background-color': 'var(--primary)' }" class="round-image">
-              <span class="type-placeholder">{{ initialDisplayFor(workloadType) }}</span>
+      <template #define>
+        <Tabbed :show-more-label="t('workload.showTabs')" :hide-more-label="t('workload.hideTabs')" :side-tabs="true">
+          <Tab :label="t('workload.container.titles.container')" name="container">
+            <div class="bordered-section">
+              <div class="row">
+                <div class="col span-12">
+                  <NameNsDescription :value="value" :mode="mode" />
+                </div>
+              </div>
+              <div v-if="isCronJob || isReplicable" class="row">
+                <div v-if="isCronJob" class="col span-6">
+                  <LabeledInput v-model="spec.schedule" :mode="mode" :label="t('workload.cronSchedule')" />
+                  <span class="cron-hint text-small">{{ cronLabel }}</span>
+                </div>
+                <div v-if="isReplicable" class="col span-6">
+                  <LabeledInput v-model.number="spec.replicas" required :mode="mode" :label="t('workload.replicas')" />
+                </div>
+                <div v-if="isStatefulSet" class="col span-6">
+                  <LabeledSelect
+                    v-model="spec.serviceName"
+                    option-label="metadata.name"
+                    :reduce="service=>service.metadata.name"
+                    :mode="mode"
+                    :label="t('workload.serviceName')"
+                    :options="headlessServices"
+                  />
+                </div>
+              </div>
             </div>
+
+            <div class="bordered-section">
+              <h3>{{ t('workload.container.titles.image') }}</h3>
+              <div class="row mb-20">
+                <div class="col span-6">
+                  <LabeledInput
+                    v-model="container.image"
+                    :label="t('workload.container.image')"
+                    placeholder="eg nginx:latest"
+                    required
+                  />
+                </div>
+                <div class="col span-6">
+                  <LabeledSelect
+                    v-model="container.imagePullPolicy"
+                    :label="t('workload.container.imagePullPolicy')"
+                    :options="['Always', 'IfNotPresent', 'Never']"
+                    :mode="mode"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="bordered-section">
+              <h3>{{ t('workload.container.titles.ports') }}</h3>
+              <div class="row">
+                <WorkloadPorts v-model="container.ports" :mode="mode" />
+              </div>
+            </div>
+
+            <div class="bordered-section">
+              <h3>{{ t('workload.container.titles.command') }}</h3>
+              <div class="row">
+                <div class="col span-5">
+                  <slot name="entrypoint">
+                    <ShellInput
+                      v-model="container.command"
+                      :mode="mode"
+                      :label="t('workload.container.command.command')"
+                      placeholder="e.g. /bin/sh"
+                    />
+                  </slot>
+                </div>
+                <div class="col span-5">
+                  <slot name="command">
+                    <ShellInput
+                      v-model="container.args"
+                      :mode="mode"
+                      :label="t('workload.container.command.args')"
+                      placeholder="e.g. /usr/sbin/httpd -f httpd.conf"
+                    />
+                  </slot>
+                </div>
+                <div class="col span-2">
+                  <Checkbox v-model="container.tty" label="TTY" :mode="mode" />
+                </div>
+              </div>
+            </div>
+
+            <div class="bordered-section">
+              <h3>{{ t('workload.container.titles.env') }}</h3>
+              <div class="row">
+                <EnvVars v-model="container" :mode="mode" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" />
+              </div>
+            </div>
+
+            <div class="bordered-section">
+              <h3>{{ t('resourceDetail.detailTop.labels') }}</h3>
+              <div class="row">
+                <KeyValue
+                  key="labels"
+                  v-model="value.metadata.labels"
+                  :mode="mode"
+                  :pad-left="false"
+                  :read-allowed="false"
+                  :protip="false"
+                />
+              </div>
+            </div>
+
             <div>
-              <h5>  {{ nameDisplayFor(workloadType) }}</h5>
-              <t class="type-description" :k="`workload.wizard.descriptions.'${workloadType}'`" :raw="true" />
-            </div>
-          </div>
-        </div>
-      </template>
-      <template #container>
-        <div class="bordered-section">
-          <div class="row">
-            <div class="col span-12">
-              <NameNsDescription :value="value" :mode="mode" />
-            </div>
-          </div>
-          <div v-if="isCronJob || isReplicable" class="row">
-            <div v-if="isCronJob" class="col span-6">
-              <LabeledInput v-model="spec.schedule" :mode="mode" :label="t('workload.cronSchedule')" />
-              <span class="cron-hint text-small">{{ cronLabel }}</span>
-            </div>
-            <div v-if="isReplicable" class="col span-6">
-              <LabeledInput v-model.number="spec.replicas" required :mode="mode" :label="t('workload.replicas')" />
-            </div>
-            <div v-if="isStatefulSet" class="col span-6">
-              <LabeledSelect
-                v-model="spec.serviceName"
-                option-label="metadata.name"
-                :reduce="service=>service.metadata.name"
-                :mode="mode"
-                :label="t('workload.serviceName')"
-                :options="headlessServices"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="bordered-section">
-          <h3>{{ t('workload.container.titles.image') }}</h3>
-          <div class="row mb-20">
-            <div class="col span-6">
-              <LabeledInput
-                v-model="container.image"
-                :label="t('workload.container.image')"
-                placeholder="eg nginx:latest"
-                required
-              />
-            </div>
-            <div class="col span-6">
-              <LabeledSelect
-                v-model="container.imagePullPolicy"
-                :label="t('workload.container.imagePullPolicy')"
-                :options="['Always', 'IfNotPresent', 'Never']"
-                :mode="mode"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div class="bordered-section">
-          <h3>{{ t('workload.container.titles.ports') }}</h3>
-          <div class="row">
-            <WorkloadPorts v-model="container.ports" :mode="mode" />
-          </div>
-        </div>
-
-        <div class="bordered-section">
-          <h3>{{ t('workload.container.titles.command') }}</h3>
-          <div class="row">
-            <div class="col span-5">
-              <slot name="entrypoint">
-                <ShellInput
-                  v-model="container.command"
+              <h3>{{ t('resourceDetail.detailTop.annotations') }}</h3>
+              <div class="row">
+                <KeyValue
+                  key="annotations"
+                  v-model="value.metadata.annotations"
                   :mode="mode"
-                  :label="t('workload.container.command.command')"
-                  placeholder="e.g. /bin/sh"
+                  :pad-left="false"
+                  :read-allowed="false"
+                  :protip="false"
                 />
-              </slot>
+              </div>
             </div>
-            <div class="col span-5">
-              <slot name="command">
-                <ShellInput
-                  v-model="container.args"
-                  :mode="mode"
-                  :label="t('workload.container.command.args')"
-                  placeholder="e.g. /usr/sbin/httpd -f httpd.conf"
-                />
-              </slot>
-            </div>
-            <div class="col span-2">
-              <Checkbox v-model="container.tty" label="TTY" :mode="mode" />
-            </div>
-          </div>
-        </div>
-
-        <div class="bordered-section">
-          <h3>{{ t('workload.container.titles.env') }}</h3>
-          <div class="row">
-            <EnvVars v-model="container" :mode="mode" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" />
-          </div>
-        </div>
-
-        <div class="bordered-section">
-          <h3>{{ t('resourceDetail.detailTop.labels') }}</h3>
-          <div class="row">
-            <KeyValue
-              key="labels"
-              v-model="value.metadata.labels"
-              :mode="mode"
-              :pad-left="false"
-              :read-allowed="false"
-              :protip="false"
-            />
-          </div>
-        </div>
-
-        <div>
-          <h3>{{ t('resourceDetail.detailTop.annotations') }}</h3>
-          <div class="row">
-            <KeyValue
-              key="annotations"
-              v-model="value.metadata.annotations"
-              :mode="mode"
-              :pad-left="false"
-              :read-allowed="false"
-              :protip="false"
-            />
-          </div>
-        </div>
-      </template>
-      <template #storage>
-        <t k="generic.comingSoon" />
-      </template>
-      <template #advanced>
-        <div class="row mb-20">
-          <div class="col span-6">
-            <LabeledInput
-              v-model="container.workingDir"
-              :mode="mode"
-              :label="t('workload.container.command.workingDir')"
-              placeholder="e.g. /myapp"
-            />
-          </div>
-          <div class="col span-6">
-            <LabeledSelect v-model="stdinSelect" label="Stdin" :options="container.tty ? ['Yes', 'Once'] : ['Yes', 'Once', 'No']" :mode="mode" />
-          </div>
-        </div>
-        <Tabbed :side-tabs="true">
-          <Tab :label="t('workload.container.titles.resources')" name="resources">
+          </Tab>
+          <Tab :label="t('workload.storage.title')" name="storage">
+            <t k="generic.comingSoon" />
+          </Tab>
+          <Tab :can-toggle="true" :label="t('workload.container.titles.resources')" name="resources">
             <ContainerResourceLimit v-model="flatResources" class="bordered-section" :mode="mode" :show-tip="false" />
             <div class="bordered-section">
               <h3 class="mb-10">
@@ -746,49 +674,28 @@ export default {
               </div>
             </div>
           </Tab>
-          <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
+          <Tab :can-toggle="true" :label="t('workload.container.titles.podScheduling')" name="podScheduling">
             <PodScheduling :mode="mode" :value="podTemplateSpec" />
           </Tab>
-          <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
+          <Tab :can-toggle="true" :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
             <NodeScheduling :mode="mode" :value="podTemplateSpec" />
           </Tab>
-          <Tab label="Scaling/Upgrade Policy" name="upgrading">
+          <Tab :can-toggle="true" label="Scaling/Upgrade Policy" name="upgrading">
             <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
             <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
           </Tab>
-          <Tab :label="t('workload.container.titles.healthCheck')" name="healthCheck">
+          <Tab :can-toggle="true" :label="t('workload.container.titles.healthCheck')" name="healthCheck">
             <HealthCheck v-model="healthCheck" :mode="mode" />
           </Tab>
-          <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
+          <Tab :can-toggle="true" :label="t('workload.container.titles.securityContext')" name="securityContext">
             <Security v-model="container.securityContext" :mode="mode" />
           </Tab>
-          <Tab :label="t('workload.container.titles.networking')" name="networking">
+          <Tab :can-toggle="true" :label="t('workload.container.titles.networking')" name="networking">
             <Networking v-model="podTemplateSpec" :mode="mode" />
           </Tab>
-        </tabbed>
+        </Tabbed>
       </template>
-      <template #cancel>
-        <button type="button" class="btn role-secondary" @click="cancel">
-          <t k="generic.cancel" />
-        </button>
-      </template>
-      <template #next="{next}">
-        <ButtonDropdown :disabled="!(steps[currentStepIndex-1]||{}).ready" class="next-dropdown">
-          <template #button-content>
-            <button :disabled="!(steps[currentStepIndex-1]||{}).ready" type="button" :class="{'text-primary': !!(steps[currentStepIndex-1]||{}).ready}" class="btn bg-transparent" @click="next">
-              {{ t('wizard.next') }}
-            </button>
-          </template>
-          <template v-if="containerIsReady" #popover-content>
-            <ul class="list-unstyled menu">
-              <li v-close-popover.all @click="()=>saveWorkload(()=>{})">
-                {{ t("generic.create") }}
-              </li>
-            </ul>
-          </template>
-        </ButtonDropdown>
-      </template>
-    </Wizard>
+    </CruResource>
   </form>
 </template>
 

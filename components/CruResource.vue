@@ -6,6 +6,7 @@ import { SCHEMA } from '@/config/types';
 import ResourceYaml from '@/components/ResourceYaml';
 import Banner from '@/components/Banner';
 import AsyncButton from '@/components/AsyncButton';
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
@@ -43,6 +44,11 @@ export default {
     validationPassed: {
       type:    Boolean,
       default: true
+    },
+
+    errors: {
+      type:    Array,
+      default: () => []
     }
   },
 
@@ -51,7 +57,6 @@ export default {
       isCancelModal: false,
       showAsForm:    true,
       resourceYaml:  '',
-      errors:        []
     };
   },
 
@@ -68,7 +73,8 @@ export default {
       }
 
       return false;
-    }
+    },
+    ...mapGetters({ t: 'i18n/t' })
   },
 
   methods: {
@@ -110,19 +116,6 @@ export default {
       this.showAsForm = false;
     },
 
-    yamlCb(success, errors) {
-      success ? this.done() : (this.errors = errors);
-    },
-
-    done() {
-      if (!this.doneRoute) {
-        return;
-      }
-      this.$router.replace({
-        name:   this.doneRoute,
-        params: { resource: this.resource.type }
-      });
-    }
   }
 };
 </script>
@@ -137,7 +130,7 @@ export default {
             :key="subtype.id"
             class="subtype-banner"
             :class="{ selected: subtype.id === selectedSubtype }"
-            @click="$emit('selectType', subtype.id)"
+            @click="$emit('select-type', subtype.id)"
           >
             <slot name="subtype-logo">
               <div class="subtype-logo round-image">
@@ -150,7 +143,7 @@ export default {
                   <span
                     v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)"
                   >{{ t(subtype.bannerAbbrv) }}</span>
-                  <span v-else>{{ subtype.bannerAbbrv.slice(0, 1).toUpperCase() }}</span>
+                  <span v-else>{{ subtype.bannerAbbrv }}</span>
                 </div>
                 <div v-else>
                   {{ subtype.id.slice(0, 1).toUpperCase() }}
@@ -171,7 +164,7 @@ export default {
                 <div class="description">
                   <span
                     v-if="$store.getters['i18n/exists'](subtype.description)"
-                    v-html="t(subtype.description)"
+                    v-html="t(subtype.description, {}, true)"
                   ></span>
                   <span v-else>{{ subtype.description }}</span>
                 </div>
@@ -186,7 +179,7 @@ export default {
         </div>
         <div class="controls-row">
           <slot name="form-footer">
-            <button type="button" class="btn role-secondary" @click="$emit('cancel')">
+            <button type="button" class="btn role-secondary" @click="checkCancel(true)">
               <t k="generic.cancel" />
             </button>
             <div>
@@ -202,7 +195,7 @@ export default {
                 v-if="!showSubtypeSelection"
                 :disabled="!validationPassed"
                 :action-label="mode==='edit' ? t('generic.save') : t('generic.create')"
-                @click="$emit('finish', done)"
+                @click="cb=>$emit('finish', cb)"
               />
             </div>
           </slot>
@@ -218,8 +211,9 @@ export default {
           :offer-preview="mode==='edit'"
           :done-route="doneRoute"
           :done-override="resource.doneOverride"
+          @error="e=>$emit('error', e)"
         >
-          <template #yamlFooter="{currentYaml, showPreview, yamlSave, yamlPreview, yamlUnpreview}">
+          <template #yamlFooter="{currentYaml, yamlSave, showPreview, yamlPreview, yamlUnpreview}">
             <div class="controls-row">
               <slot name="cru-yaml-footer">
                 <div class="controls-right">
@@ -237,6 +231,7 @@ export default {
                     <t k="resourceYaml.buttons.continue" />
                   </button>
                   <button
+                    v-if="!showPreview"
                     :disabled="resourceYaml === currentYaml"
                     type="button"
                     class="btn role-secondary"
@@ -249,9 +244,12 @@ export default {
                   <button type="button" class="btn role-secondary" @click="checkCancel(false)">
                     <t k="generic.back" />
                   </button>
-                  <button type="button" class="btn role-primary" @click="yamlSave(yamlCb)">
-                    <t k="generic.create" />
-                  </button>
+                  <AsyncButton
+                    v-if="!showSubtypeSelection"
+                    :disabled="!validationPassed"
+                    :action-label="mode==='edit' ? t('generic.save') : t('generic.create')"
+                    @click="cb=>yamlSave(cb)"
+                  />
                 </div>
               </slot>
             </div>
@@ -268,7 +266,9 @@ export default {
       <div class="header">
         <h4 class="text-default-text">
           <t v-if="isCancelModal" k="generic.cancel" />
-          <t v-else k="cruResource.backToForm" />
+          <span v-else>
+            {{ t("cruResource.backToForm") }}
+          </span>
         </h4>
       </div>
       <div class="body">
@@ -281,14 +281,14 @@ export default {
       </div>
       <div class="footer">
         <button type="button" class="btn role-secondary" @click="$modal.hide('cancel-modal')">
-          <t k="cruResource.confirmYaml" />
+          {{ showAsForm ? t("cruResource.reviewForm") : t("cruResource.reviewYaml") }}
         </button>
         <button type="button" class="btn role-primary" @click="confirmCancel(isCancelModal)">
           <span v-if="isCancelModal">
-            <t k="cruResource.confirmCancel" />
+            {{ t("cruResource.confirmCancel") }}
           </span>
           <span v-else>
-            <t k="cruResource.confirmBack" />
+            {{ t("cruResource.confirmBack") }}
           </span>
         </button>
       </div>

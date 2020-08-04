@@ -50,7 +50,7 @@ export default {
 
     // keep label and annotation filters in data so each resource CRUD page can alter individiaully
     return {
-      errors:                      null,
+      errors:                      [],
       labelPrefixToIgnore:         LABEL_PREFIX_TO_IGNORE,
       annotationsToIgnoreContains: ANNOTATIONS_TO_IGNORE_CONTAINS,
       annotationsToIgnorePrefix:   ANNOTATIONS_TO_IGNORE_PREFIX
