@@ -2,6 +2,7 @@
 import { STEP } from '@/config/query-params';
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
+import { stringify } from '@/utils/error';
 
 /*
 Wizard accepts an array of steps (see props), and creates named slots for each step.
@@ -99,6 +100,10 @@ export default {
   },
 
   computed: {
+    errorStrings() {
+      return ( this.errors || [] ).map(x => stringify(x));
+    },
+
     activeStepIndex() {
       return this.steps.indexOf(this.activeStep);
     },
@@ -274,7 +279,7 @@ export default {
 
     <div class="spacer" />
 
-    <div v-for="(err,idx) in errors" :key="idx">
+    <div v-for="(err,idx) in errorStrings" :key="idx">
       <Banner color="error" :label="err" />
     </div>
 

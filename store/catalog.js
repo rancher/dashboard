@@ -137,7 +137,7 @@ export const actions = {
 
     for ( const repo of repos ) {
       if ( force === true || !getters.isLoaded(repo) ) {
-        console.info('Loading index for', repo._key); // eslint-disable-line no-console
+        console.info('Loading index for repo', repo.name, `(${repo._key})`); // eslint-disable-line no-console
         promises.push(repo.followLink('index'));
       }
     }
@@ -264,6 +264,8 @@ function addChart(map, chart, repo) {
 
     map[key] = obj;
   }
+
+  chart.key = `${key}/${chart.version}`;
 
   obj.versions.push(chart);
 }

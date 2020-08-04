@@ -14,6 +14,7 @@ import Wizard from '@/components/Wizard';
 import YamlEditor from '@/components/YamlEditor';
 import { DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
+import { diff } from '@/utils/object';
 
 export default {
   name: 'ChartInstall',
@@ -45,6 +46,8 @@ export default {
   },
 
   async fetch() {
+    this.errors = [];
+
     const query = this.$route.query;
 
     await this.$store.dispatch('catalog/load');
@@ -55,7 +58,7 @@ export default {
     this.repo = this.$store.getters['catalog/repo']({ repoType, repoName });
 
     const chartName = query[CHART];
-    const version = query[VERSION];
+    const versionName = query[VERSION];
 
     if ( this.repo && !this.chart && chartName ) {
       this.chart = this.$store.getters['catalog/chart']({
@@ -88,13 +91,13 @@ export default {
       this.value.setAnnotation(DESCRIPTION_ANNOTATION, query[DESCRIPTION_QUERY]);
     }
 
-    if ( version ) {
+    if ( versionName ) {
       this.version = this.$store.getters['catalog/version']({
-        repoType, repoName, chartName, version
+        repoType, repoName, chartName, version: versionName
       });
 
       this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
-        repoType, repoName, chartName, version
+        repoType, repoName, chartName, version: versionName
       });
 
       // TODO: Remove
@@ -112,9 +115,11 @@ export default {
         this.valuesComponent = null;
       }
 
-      if ( !this.value.values ) {
-        this.mergeValues(this.versionInfo.values);
-        this.valuesYaml = jsyaml.safeDump(this.value.values);
+      if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
+        // If the chart/version changes, replace the values with the new one
+        this.chartValues = merge({}, this.versionInfo.values);
+        this.loadedVersion = this.version.key;
+        this.valuesYaml = jsyaml.safeDump(this.chartValues);
       }
     }
   },
@@ -131,11 +136,13 @@ export default {
       versionInfo: null,
       valuesYaml:  null,
 
-      forceNamespace:    null,
-      nameDisabled:      false,
+      forceNamespace: null,
+      nameDisabled:   false,
 
       errors:          null,
       valuesComponent: null,
+      chartValues:     null,
+      loadedVersion:   null,
     };
   },
 
@@ -198,16 +205,13 @@ export default {
       this.$router.applyQuery({ [VERSION]: version });
     },
 
-    mergeValues(neu) {
-      this.value.values = merge({}, neu, this.value.values || {});
-    },
-
-    yamlChanged(value) {
+    yamlChanged(str) {
       try {
-        jsyaml.safeLoad(value);
+        jsyaml.safeLoad(str);
 
-        this.valuesYaml = value;
-      } catch (e) {
+        this.valuesYaml = str;
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
       }
     },
 
@@ -246,20 +250,29 @@ export default {
     },
 
     installInput() {
-      const out = JSON.parse(JSON.stringify(this.value));
+      const install = JSON.parse(JSON.stringify(this.value));
+      const chart = install.charts[0];
 
-      out.chartName = this.chart.chartName;
-      out.version = this.$route.query.version;
-      out.releaseName = out.metadata.name;
-      out.namespace = out.metadata.namespace;
-      out.description = out.metadata?.annotations?.[DESCRIPTION_ANNOTATION];
+      chart.chartName = this.chart.chartName;
+      chart.version = this.version.version;
+      chart.releaseName = install.metadata.name;
+      chart.namespace = install.metadata.namespace;
+      chart.description = install.metadata?.annotations?.[DESCRIPTION_ANNOTATION];
 
-      delete out.metadata;
+      delete install.metadata;
 
-      // @TODO only save values that differ from defaults?
-      out.values = jsyaml.safeLoad(this.valuesYaml);
+      if ( !this.valuesComponent ) {
+        const fromYaml = jsyaml.safeLoad(this.valuesYaml);
 
-      return out;
+        this.chartValues = fromYaml;
+      }
+
+      const fromChart = this.versionInfo.values || {};
+
+      // Only save the values that differ from the chart's standard values.yaml
+      chart.values = diff(fromChart, this.chartValues);
+
+      return install;
     },
   }
 };
@@ -309,10 +322,10 @@ export default {
       <component
         :is="valuesComponent"
         v-if="valuesComponent"
-        v-model="value.values"
+        v-model="chartValues"
         :chart="chart"
         :version="version"
-        :version-inforsion-info="versionInfo"
+        :version-info="versionInfo"
       />
       <YamlEditor
         v-else
