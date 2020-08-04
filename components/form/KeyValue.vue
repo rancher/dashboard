@@ -379,8 +379,8 @@ export default {
     </template>
 
     <div v-if="rows.length || isView" :class="{'extra-column':threeColumns}" class="kv-row headers">
-      <span>{{ keyLabel }}</span>
-      <span>{{ valueLabel }}</span>
+      <label>{{ keyLabel }}</label>
+      <label>{{ valueLabel }}</label>
       <span v-if="threeColumns" />
     </div>
 
