@@ -40,9 +40,9 @@ export default {
       default: null
     },
 
-    canCreate: {
+    validationPassed: {
       type:    Boolean,
-      default: false
+      default: true
     }
   },
 
@@ -129,7 +129,7 @@ export default {
 
 <template>
   <section>
-    <form v-if="showAsForm" class="create-resource-container">
+    <form class="create-resource-container">
       <div v-if="showSubtypeSelection" class="subtypes-container">
         <slot name="subtypes">
           <div
@@ -180,70 +180,89 @@ export default {
           </div>
         </slot>
       </div>
-
-      <div v-if="selectedSubtype || !subtypes.length" class="resource-container">
-        <slot name="define" />
-      </div>
-
-      <div class="controls-row">
-        <slot name="form-footer">
-          <button type="button" class="btn role-secondary" @click="$emit('cancel')">
-            <t k="generic.cancel" />
-          </button>
-
-          <div>
-            <button
-              v-if="selectedSubtype || !subtypes.length"
-              type="button"
-              class="btn role-secondary"
-              @click="showPreviewYaml"
-            >
-              <t k="cruResource.previewYaml" />
+      <template v-if="showAsForm">
+        <div v-if="selectedSubtype || !subtypes.length" class="resource-container">
+          <slot name="define" />
+        </div>
+        <div class="controls-row">
+          <slot name="form-footer">
+            <button type="button" class="btn role-secondary" @click="$emit('cancel')">
+              <t k="generic.cancel" />
             </button>
-            <AsyncButton
-              v-if="!showSubtypeSelection"
-              :disabled="!canCreate"
-              :action-label="mode==='edit' ? t('generic.save') : t('generic.create')"
-              @click="$emit('finish', done)"
-            />
-          </div>
-        </slot>
+            <div>
+              <button
+                v-if="selectedSubtype || !subtypes.length"
+                type="button"
+                class="btn role-secondary"
+                @click="showPreviewYaml"
+              >
+                <t k="cruResource.previewYaml" />
+              </button>
+              <AsyncButton
+                v-if="!showSubtypeSelection"
+                :disabled="!validationPassed"
+                :action-label="mode==='edit' ? t('generic.save') : t('generic.create')"
+                @click="$emit('finish', done)"
+              />
+            </div>
+          </slot>
+        </div>
+      </template>
+
+      <section v-else class="cru-resource-yaml-container">
+        <ResourceYaml
+          ref="resourceyaml"
+          :value="resource"
+          :mode="mode"
+          :yaml="resourceYaml"
+          :offer-preview="mode==='edit'"
+          :done-route="doneRoute"
+          :done-override="resource.doneOverride"
+        >
+          <template #yamlFooter="{currentYaml, showPreview, yamlSave, yamlPreview, yamlUnpreview}">
+            <div class="controls-row">
+              <slot name="cru-yaml-footer">
+                <div class="controls-right">
+                  <button type="button" class="btn role-secondary" @click="checkCancel(true)">
+                    <t k="generic.cancel" />
+                  </button>
+                </div>
+                <div class="controls-middle">
+                  <button
+                    v-if="showPreview"
+                    type="button"
+                    class="btn role-secondary"
+                    @click="yamlUnpreview"
+                  >
+                    <t k="resourceYaml.buttons.continue" />
+                  </button>
+                  <button
+                    :disabled="resourceYaml === currentYaml"
+                    type="button"
+                    class="btn role-secondary"
+                    @click="yamlPreview"
+                  >
+                    <t k="resourceYaml.buttons.diff" />
+                  </button>
+                </div>
+                <div v-if="selectedSubtype || !subtypes.length" class="controls-right">
+                  <button type="button" class="btn role-secondary" @click="checkCancel(false)">
+                    <t k="generic.back" />
+                  </button>
+                  <button type="button" class="btn role-primary" @click="yamlSave(yamlCb)">
+                    <t k="generic.create" />
+                  </button>
+                </div>
+              </slot>
+            </div>
+          </template>
+        </ResourceYaml>
+      </section>
+
+      <div v-for="(err, idx) in errors" :key="idx">
+        <Banner color="error" :label="err" />
       </div>
     </form>
-
-    <section v-else class="cru-resource-yaml-container">
-      <ResourceYaml
-        ref="resourceyaml"
-        :value="resource"
-        :mode="mode"
-        :yaml="resourceYaml"
-        :offer-preview="false"
-        :done-route="doneRoute"
-        :done-override="resource.doneOverride"
-      >
-        <template #yamlFooter="{yamlSave}">
-          <div class="controls-row">
-            <slot name="cru-yaml-footer">
-              <button type="button" class="btn role-secondary" @click="checkCancel(true)">
-                <t k="generic.cancel" />
-              </button>
-
-              <div v-if="selectedSubtype || !subtypes.length">
-                <button type="button" class="btn role-secondary" @click="checkCancel(false)">
-                  <t k="generic.back" />
-                </button>
-                <button type="button" class="btn role-primary" @click="yamlSave(yamlCb)">
-                  <t k="generic.create" />
-                </button>
-              </div>
-            </slot>
-          </div>
-        </template>
-      </ResourceYaml>
-    </section>
-    <div v-for="(err, idx) in errors" :key="idx">
-      <Banner color="error" :label="err" />
-    </div>
 
     <modal class="confirm-modal" name="cancel-modal" :width="400" height="auto">
       <div class="header">
