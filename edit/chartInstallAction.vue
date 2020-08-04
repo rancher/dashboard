@@ -46,6 +46,8 @@ export default {
   },
 
   async fetch() {
+    this.errors = [];
+
     const query = this.$route.query;
 
     await this.$store.dispatch('catalog/load');
@@ -56,7 +58,7 @@ export default {
     this.repo = this.$store.getters['catalog/repo']({ repoType, repoName });
 
     const chartName = query[CHART];
-    const version = query[VERSION];
+    const versionName = query[VERSION];
 
     if ( this.repo && !this.chart && chartName ) {
       this.chart = this.$store.getters['catalog/chart']({
@@ -89,13 +91,13 @@ export default {
       this.value.setAnnotation(DESCRIPTION_ANNOTATION, query[DESCRIPTION_QUERY]);
     }
 
-    if ( version ) {
+    if ( versionName ) {
       this.version = this.$store.getters['catalog/version']({
-        repoType, repoName, chartName, version
+        repoType, repoName, chartName, version: versionName
       });
 
       this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
-        repoType, repoName, chartName, version
+        repoType, repoName, chartName, version: versionName
       });
 
       // TODO: Remove
@@ -113,11 +115,11 @@ export default {
         this.valuesComponent = null;
       }
 
-      this.chartInstall = this.value.charts[0];
-
-      if ( !this.chartInstall.values ) {
-        this.mergeValues(this.versionInfo.values);
-        this.valuesYaml = jsyaml.safeDump(this.chartInstall.values);
+      if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
+        // If the chart/version changes, replace the values with the new one
+        this.chartValues = merge({}, this.versionInfo.values);
+        this.loadedVersion = this.version.key;
+        this.valuesYaml = jsyaml.safeDump(this.chartValues);
       }
     }
   },
@@ -134,12 +136,13 @@ export default {
       versionInfo: null,
       valuesYaml:  null,
 
-      forceNamespace:    null,
-      nameDisabled:      false,
+      forceNamespace: null,
+      nameDisabled:   false,
 
       errors:          null,
       valuesComponent: null,
-      chartInstall:    null,
+      chartValues:     null,
+      loadedVersion:   null,
     };
   },
 
@@ -199,20 +202,16 @@ export default {
 
   methods: {
     selectVersion(version) {
-      delete this.chartInstall.values;
       this.$router.applyQuery({ [VERSION]: version });
     },
 
-    mergeValues(neu) {
-      this.chartInstall.values = merge({}, neu || {}, this.chartInstall.values || {});
-    },
-
-    yamlChanged(value) {
+    yamlChanged(str) {
       try {
-        jsyaml.safeLoad(value);
+        jsyaml.safeLoad(str);
 
-        this.valuesYaml = value;
-      } catch (e) {
+        this.valuesYaml = str;
+      } catch (err) {
+        this.errors = exceptionToErrorsArray(err);
       }
     },
 
@@ -255,17 +254,23 @@ export default {
       const chart = install.charts[0];
 
       chart.chartName = this.chart.chartName;
-      chart.version = this.$route.query.version;
+      chart.version = this.version.version;
       chart.releaseName = install.metadata.name;
       chart.namespace = install.metadata.namespace;
       chart.description = install.metadata?.annotations?.[DESCRIPTION_ANNOTATION];
 
       delete install.metadata;
 
-      const fromChart = this.versionInfo.values || {};
-      const fromUser = jsyaml.safeLoad(this.valuesYaml);
+      if ( !this.valuesComponent ) {
+        const fromYaml = jsyaml.safeLoad(this.valuesYaml);
 
-      chart.values = diff(fromChart, fromUser);
+        this.chartValues = fromYaml;
+      }
+
+      const fromChart = this.versionInfo.values || {};
+
+      // Only save the values that differ from the chart's standard values.yaml
+      chart.values = diff(fromChart, this.chartValues);
 
       return install;
     },
@@ -317,10 +322,10 @@ export default {
       <component
         :is="valuesComponent"
         v-if="valuesComponent"
-        v-model="chartInstall.values"
+        v-model="chartValues"
         :chart="chart"
         :version="version"
-        :version-inforsion-info="versionInfo"
+        :version-info="versionInfo"
       />
       <YamlEditor
         v-else
