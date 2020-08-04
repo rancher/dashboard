@@ -36,7 +36,7 @@ export default {
 <style lang="scss" scoped>
   .favorite {
     position: relative;
-    top: -5px;
+    top: -3px;
     cursor: pointer;
     font-size: 20px;
     transform: ease-in-out-all 1s;

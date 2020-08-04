@@ -322,11 +322,11 @@ export default {
                             "state-banner state-banner";
       grid-template-columns: "auto min-content";
       margin-bottom: 20px;
+      align-items: center;
 
       H1 {
         grid-area: title;
         margin: 0;
-        padding-top: 4px;
       }
 
       .state-banner {

@@ -756,6 +756,11 @@ $spacing: 10px;
 
   .search {
     grid-area: search;
+
+    INPUT[type='search'] {
+      font-size: 12px;
+      padding: 7px;
+    }
   }
 
   .end {
