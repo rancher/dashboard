@@ -27,7 +27,7 @@ export default {
         return Object.values(EDITOR_MODES).includes(value);
       }
     },
-    autoResize: {
+    scrolling: {
       type:    Boolean,
       default: true,
     },
@@ -85,15 +85,19 @@ export default {
         // }
       };
     },
+
     isPreview() {
       return this.editorMode === EDITOR_MODES.DIFF_CODE;
     },
+
     diffMode: mapPref(DIFF),
+
     showCodeEditor() {
       return [EDITOR_MODES.EDIT_CODE, EDITOR_MODES.VIEW_CODE].includes(this.editorMode);
     },
   },
   watch: {
+
     value(newYaml) {
       try {
         const parsed = jsyaml.safeLoad(newYaml);
@@ -107,7 +111,20 @@ export default {
       }
     }
   },
+
   methods: {
+    focus() {
+      if ( this.$refs.cm ) {
+        this.$refs.cm.focus();
+      }
+    },
+
+    refresh() {
+      if ( this.$refs.cm ) {
+        this.$refs.cm.refresh();
+      }
+    },
+
     onInput() {
       this.$emit('input', ...arguments);
       this.$emit('onInput', ...arguments);
@@ -169,7 +186,8 @@ export default {
     </div>
     <CodeMirror
       v-if="showCodeEditor"
-      class="fill"
+      ref="cm"
+      :class="{fill: true, scrolling: scrolling}"
       :value="value"
       :options="cmOptions"
       @onInput="onInput"
@@ -178,7 +196,7 @@ export default {
     />
     <FileDiff
       v-else
-      class="fill"
+      :class="{fill: true, scrolling: scrolling}"
       :filename="'.yaml'"
       :side-by-side="diffMode === 'split'"
       :orig="original"
@@ -205,20 +223,24 @@ export default {
   }
 
   ::v-deep .code-mirror  {
-      position: relative;
-      .CodeMirror {
-        height: initial;
-        position: absolute;
-        top:0;
-        bottom:0;
-        left:0;
-        right:0;
+    position: relative;
+
+    .CodeMirror {
+      background-color: var(--yaml-editor-bg);
+      & .CodeMirror-gutters {
         background-color: var(--yaml-editor-bg);
-        & .CodeMirror-gutters {
-          background-color: var(--yaml-editor-bg);
-        }
       }
     }
+  }
+
+  .scrolling ::v-deep .code-mirror {
+    height: initial;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
 
   .diff-mode {
     background-color: var(--diff-header-bg);

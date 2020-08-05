@@ -49,6 +49,11 @@ export default {
     errors: {
       type:    Array,
       default: () => []
+    },
+
+    canYaml: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -184,7 +189,7 @@ export default {
             </button>
             <div>
               <button
-                v-if="selectedSubtype || !subtypes.length"
+                v-if="canYaml && (selectedSubtype || !subtypes.length)"
                 type="button"
                 class="btn role-secondary"
                 @click="showPreviewYaml"

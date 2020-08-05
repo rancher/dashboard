@@ -3,28 +3,39 @@ import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
+import UnitInput from '@/components/form/UnitInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import LazyImage from '@/components/LazyImage';
 import Markdown from '@/components/Markdown';
 import { CATALOG } from '@/config/types';
 import { defaultAsyncData } from '@/components/ResourceDetail';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, STEP
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY,
 } from '@/config/query-params';
-import Wizard from '@/components/Wizard';
+import CruResource from '@/components/CruResource';
+import Tab from '@/components/Tabbed/Tab';
+import Tabbed from '@/components/Tabbed';
 import YamlEditor from '@/components/YamlEditor';
+import Checkbox from '@/components/form/Checkbox';
 import { DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { diff } from '@/utils/object';
+import isEqual from 'lodash/isEqual';
 
 export default {
   name: 'ChartInstall',
 
   components: {
+    Checkbox,
+    UnitInput,
     LabeledSelect,
+    LazyImage,
     Loading,
     Markdown,
     NameNsDescription,
-    Wizard,
+    CruResource,
+    Tabbed,
+    Tab,
     YamlEditor,
   },
 
@@ -143,6 +154,10 @@ export default {
       valuesComponent: null,
       chartValues:     null,
       loadedVersion:   null,
+
+      openApi: true,
+      hooks:   true,
+      crds:    true,
     };
   },
 
@@ -158,40 +173,18 @@ export default {
     showVersions() {
       return this.chart?.versions.length > 1;
     },
-
-    steps() {
-      return [
-        {
-          name:  'name',
-          label: 'Name & Version',
-          ready: !!this.chart,
-        },
-        {
-          name:  'values',
-          label: 'Chart Options',
-          ready: !!this.versionInfo,
-        },
-        {
-          name:  'advanced',
-          label: 'Advanced Options',
-          ready: !!this.versionInfo,
-        },
-      ];
-    },
   },
 
-  watch: { '$route.query': '$fetch' },
+  watch: {
+    '$route.query'(neu, old) {
+      if ( !isEqual(neu, old) ) {
+        this.$fetch();
+      }
+    }
+  },
 
   mounted() {
-    const query = this.$route.query;
-
-    if ( query[STEP] >= 2 && !this.value.metadata?.name ) {
-      // If you reload the page, go back to 1 because the name and other stuff has been lost...
-      this.$router.applyQuery({ [STEP]: 1 });
-    } else if ( ( !query[STEP] || query[STEP] === 1 ) && !this.showReadme && !this.showNameEditor && !this.showVersions ) {
-      // If there's nothing on page 1, go to page 2
-      this.$router.applyQuery({ [STEP]: 2 });
-    }
+    window.scrollTop = 0;
 
     // For easy access debugging...
     if ( typeof window !== 'undefined' ) {
@@ -213,6 +206,10 @@ export default {
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
       }
+    },
+
+    cancel() {
+      this.$router.replace({ name: 'c-cluster-apps' });
     },
 
     async finish(btnCb) {
@@ -253,6 +250,10 @@ export default {
       const install = JSON.parse(JSON.stringify(this.value));
       const chart = install.charts[0];
 
+      install.disableOpenAPIValidation = this.openApi === false;
+      install.noHooks = this.hooks === false;
+      install.skipCRDs = this.crds === false;
+
       chart.chartName = this.chart.chartName;
       chart.version = this.version.version;
       chart.releaseName = install.metadata.name;
@@ -274,24 +275,49 @@ export default {
 
       return install;
     },
+
+    tabChanged({ tab }) {
+      window.scrollTop = 0;
+
+      if ( tab.name === 'values-yaml' ) {
+        this.$nextTick(() => {
+          if ( this.$refs.yaml ) {
+            this.$refs.yaml.refresh();
+            this.$refs.yaml.focus();
+          }
+        });
+      }
+    },
   }
 };
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <Wizard
-    v-else-if="chart"
-    :steps="steps"
-    :show-banner="false"
-    :edit-first-step="true"
-    :errors="errors"
+  <CruResource
+    v-else
+    :can-create="true"
+    :can-yaml="false"
+    done-route="c-cluster-apps"
+    :mode="mode"
+    :resource="value"
+    :subtypes="[]"
     @finish="finish($event)"
+    @cancel="cancel"
   >
-    <template #name>
-      <div v-if="showReadme" class="row">
-        <div class="col span-12">
-          <Markdown v-model="versionInfo.readme" class="readme" />
+    <template #define>
+      <div class="row mb-20">
+        <div class="col span-3 text-center">
+          <LazyImage :src="chart.icon" class="logo" />
+        </div>
+        <div class="col span-9 description">
+          <h2 class="name">
+            {{ chart.name }}
+          </h2>
+          <Markdown v-if="versionInfo && versionInfo.appReadme" v-model="versionInfo.appReadme" class="readme" />
+          <p v-else-if="chart.description">
+            {{ chart.description }}
+          </p>
         </div>
       </div>
 
@@ -301,10 +327,9 @@ export default {
         :mode="mode"
         :name-disabled="nameDisabled"
         :force-namespace="forceNamespace"
-      />
-
-      <div v-if="showVersions" class="row">
-        <div class="col span-6">
+        :extra-columns="showVersions ? ['versions'] : []"
+      >
+        <template v-if="showVersions" #versions>
           <LabeledSelect
             label="Chart Version"
             :value="$route.query.version"
@@ -314,42 +339,68 @@ export default {
             :options="chart.versions"
             @input="selectVersion($event)"
           />
-        </div>
-      </div>
-    </template>
+        </template>
+      </NameNsDescription>
 
-    <template v-if="versionInfo" #values>
-      <component
-        :is="valuesComponent"
-        v-if="valuesComponent"
-        v-model="chartValues"
-        :chart="chart"
-        :version="version"
-        :version-info="versionInfo"
-      />
-      <YamlEditor
-        v-else
-        class="yaml-editor"
-        :value="valuesYaml"
-        @onInput="yamlChanged"
-      />
-    </template>
+      <Tabbed :side-tabs="true" @changed="tabChanged($event)">
+        <Tab v-if="showReadme" name="readme" label="Read Me" :weight="1">
+          <Markdown v-if="showReadme" ref="readme" v-model="versionInfo.readme" class="readme" />
+        </Tab>
 
-    <template #advanced>
-      Advanced helm options coming soon..
+        <Tab v-if="valuesComponent" name="values-form" label="Chart Options" :weight="2">
+          <component
+            :is="valuesComponent"
+            v-if="valuesComponent"
+            v-model="chartValues"
+            :chart="chart"
+            :version="version"
+            :version-info="versionInfo"
+          />
+        </Tab>
+
+        <Tab v-else name="values-yaml" label="Values YAML" :weight="2">
+          <YamlEditor
+            ref="yaml"
+            :scrolling="false"
+            :value="valuesYaml"
+            @onInput="yamlChanged"
+          />
+        </Tab>
+
+        <Tab name="advanced" label="Advanced" :weight="3">
+          <p><Checkbox v-model="openapi" :label="t('catalog.chart.advanced.openapi')" /></p>
+          <p><Checkbox v-model="hooks" :label="t('catalog.chart.advanced.hooks')" /></p>
+          <p><Checkbox v-model="crds" :label="t('catalog.chart.advanced.crds')" /></p>
+          <p style="display: inline-block; width 400px;">
+            <UnitInput
+              v-model="value.timeout"
+              :label="t('catalog.chart.advanced.timeout.label')"
+              :suffix="t('catalog.chart.advanced.timeout.unit')"
+            />
+          </p>
+        </Tab>
+      </Tabbed>
     </template>
-  </Wizard>
+  </cruresource>
 </template>
 
 <style lang="scss" scoped>
-  .yaml-editor {
-    flex: 1;
-    min-height: 400px;
+  $desc-height: 150px;
+  $padding: 5px;
+
+  .logo {
+    max-height: $desc-height - 2 * $padding;
+    max-width: calc(100% - #{2 * $padding});
+    background-color: white;
+    border: $padding solid white;
+    border-radius: $padding;
   }
 
-  .readme {
-    max-height: calc(100vh - 520px);
-    margin-bottom: 20px;
-    overflow: auto;
+  .name {
+    margin: #{-1 * $padding} 0 0 0;
+  }
+
+  .description {
+    min-height: $padding;
   }
 </style>

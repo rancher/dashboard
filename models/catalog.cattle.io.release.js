@@ -1,19 +1,45 @@
+import { MODE, _STAGE } from '@/config/query-params';
+import Vue from 'vue';
+
 export default {
-  // availableActions() {
-  //   const out = this._standardActions;
+  applyDefaults() {
+    return () => {
+      Vue.set(this, 'disableOpenApiValidation', false);
+      Vue.set(this, 'noHooks', false);
+      Vue.set(this, 'skipCRDs', false);
+      Vue.set(this, 'timeout', 300);
+      Vue.set(this, 'wait', true);
+    };
+  },
 
-  //   const upgrade = {
-  //     action:     'upgrade',
-  //     enabled:    true,
-  //     icon:       'icon icon-fw icon-edit',
-  //     label:      'Upgrade',
-  //     total:      1,
-  //   };
+  availableActions() {
+    const out = this._standardActions;
 
-  //   out.unshift(upgrade);
+    const upgrade = {
+      action:     'goToUpgrade',
+      enabled:    true,
+      icon:       'icon icon-fw icon-edit',
+      label:      'Upgrade',
+    };
 
-  //   return out;
-  // },
+    out.unshift(upgrade);
+
+    return out;
+  },
+
+  goToUpgrade() {
+    return (moreQuery = {}) => {
+      const location = this.detailLocation;
+
+      location.query = {
+        ...location.query,
+        [MODE]: _STAGE,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
+    };
+  },
 
   details() {
     const t = this.$rootGetters['i18n/t'];

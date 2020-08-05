@@ -68,6 +68,14 @@ catalog:
     url:
       label: URL
       placeholder: e.g. https://charts.rancher.io
+  chart:
+    advanced:
+      openapi: Validate OpenAPI schema
+      hooks: Execute chart hooks
+      crds: Apply custom resource definitions
+      timeout:
+        label: Timeout
+        unit: sec
 
 cluster:
   nodeDriver:

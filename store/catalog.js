@@ -230,19 +230,13 @@ function addChart(map, chart, repo) {
     sideLabel = certifiedAnnotation;
   }
 
-  let icon = chart.icon;
-
-  if ( icon ) {
-    icon = icon.replace(/^(https?:\/\/github.com\/[^/]+\/[^/]+)\/blob/, '$1/raw');
-  }
-
   if ( !obj ) {
     obj = {
       key,
-      icon,
       certified,
       sideLabel,
       certifiedSort:   CERTIFIED_SORTS[certified] || 99,
+      icon:            chart.icon,
       chartName:       chart.name,
       description:     chart.description,
       repoKey:         repo._key,
