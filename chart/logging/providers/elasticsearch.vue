@@ -1,10 +1,13 @@
 <script>
+import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
 export default {
   name:       'ElasticsearchProvider',
-  components: { LabeledInput, LabeledSelect },
+  components: {
+    FileSelector, LabeledInput, LabeledSelect
+  },
   props:      {
     value: {
       type:    Object,
@@ -16,9 +19,7 @@ export default {
 
   data() {
     return {
-
       schemes:       ['http', 'https'],
-      toUpload:      '',
       values:   { ...this.value.elasticsearch }
     };
   },
@@ -33,37 +34,8 @@ export default {
   },
 
   methods: {
-    fileUpload(field) {
-      this.toUpload = field;
-      this.$refs.uploader.click();
-    },
-
-    fileChange(event) {
-      const input = event.target;
-      const handles = input.files;
-      const names = [];
-
-      if ( handles ) {
-        for ( let i = 0 ; i < handles.length ; i++ ) {
-          const reader = new FileReader();
-
-          reader.onload = (loaded) => {
-            const value = loaded.target.result;
-
-            this.values[this.toUpload] = value;
-          };
-
-          reader.onerror = (err) => {
-            this.$dispatch('growl/fromError', { title: 'Error reading file', err }, { root: true });
-          };
-
-          names[i] = handles[i].name;
-          reader.readAsText(handles[i]);
-        }
-
-        input.value = '';
-      }
-    },
+    onCertSelected: createOnSelected('values.client_cert'),
+    onKeySelected:  createOnSelected('values.client_key')
   },
 };
 </script>
@@ -79,24 +51,14 @@ export default {
     <div class="cert row">
       <div class="col span-6">
         <LabeledInput v-model="values.client_cert" type="multiline" :label="t('logging.elasticsearch.clientCert.label')" :placeholder="t('logging.elasticsearch.clientCert.placeholder')" />
-        <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('client_cert')">
-          {{ t('secret.certificate.readFromFile') }}
-        </button>
+        <FileSelector class="btn-sm bg-primary mt-10" :label="t('secret.certificate.readFromFile')" @selected="onCertSelected" />
       </div>
       <div class="col span-6">
         <LabeledInput v-model="values.client_key" type="multiline" :label="t('logging.elasticsearch.clientKey.label')" :placeholder="t('logging.elasticsearch.clientKey.placeholder')" />
-        <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('client_key')">
-          {{ t('secret.certificate.readFromFile') }}
-        </button>
+        <FileSelector class="btn-sm bg-primary mt-10" :label="t('secret.certificate.readFromFile')" @selected="onKeySelected" />
       </div>
     </div>
     <LabeledInput v-model="values.client_key_pass" :label="t('logging.elasticsearch.clientKeyPass')" type="password" />
-    <input
-      ref="uploader"
-      type="file"
-      class="hide"
-      @change="fileChange"
-    />
   </div>
 </template>
 
