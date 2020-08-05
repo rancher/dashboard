@@ -175,6 +175,11 @@
         &.btn-lg {
           padding: $lg-trigger-padding;
         }
+        &:focus {
+          outline-style: none;
+          box-shadow: none;
+          border-color: transparent;
+        }
       }
     }
   }
@@ -198,6 +203,9 @@
       .button-divider {
         margin: 1px 0;
       }
+    }
+    &.bg-primary:hover {
+      background: var(--accent-btn-hover);
     }
   }
   .popover {
