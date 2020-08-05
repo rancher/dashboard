@@ -594,7 +594,7 @@ $spacing: 10px;
   border-radius: 5px 5px 0 0;
   overflow: hidden;
   box-shadow: 0 0 20px var(--shadow);
-  background: var(--body-bg);
+  background: var(--sortable-table-accent-bg);
   border-radius: 4px;
 
   thead {
@@ -618,11 +618,15 @@ $spacing: 10px;
   }
 
   tbody {
+    border-left: 40px solid transparent;
+    border-right: 40px solid transparent;
+    border-bottom: 2px solid var(--border);
+
     tr {
       border-bottom: 1px solid var(--sortable-table-top-divider);
 
       &:nth-of-type(even) {
-        background-color: var(--sortable-table-accent-bg);
+        background-color: var(--body-bg);
       }
 
       &:last-of-type {
@@ -639,7 +643,7 @@ $spacing: 10px;
         content: "";
         display: block;
         height: 20px;
-        background-color: var(--body-bg);
+        background-color: var(--sortable-table-accent-bg);
       }
     }
 
@@ -662,7 +666,7 @@ $spacing: 10px;
         line-height: $group-row-height;
         padding: 0 10px;
         border-radius: 4px 4px 0px 0px;
-        background-color: var(--sortable-table-accent-bg);
+        background-color: var(--body-bg);
         position: relative;
         top: 0;
         display: inline-block;
@@ -678,7 +682,7 @@ $spacing: 10px;
         height: $group-row-height;
         width: 70px;
         border-radius: 5px 5px 0px 0px;
-        background-color: var(--sortable-table-accent-bg);
+        background-color: var(--body-bg);
         content: "";
         position: absolute;
         right: -15px;
