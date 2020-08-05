@@ -156,4 +156,10 @@ export default {
   .icon-stack {
     width: 12px;
   }
+
+  .icon-sort {
+    &.faded {
+      opacity: .3;
+    }
+  }
 </style>
