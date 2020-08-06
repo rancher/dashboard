@@ -61,11 +61,17 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  ::v-deep P {
-    font-size: initial;
-    line-height: initial;
-    font-weight: initial;
-    letter-spacing: initial;
-    font-style: normal;
+  ::v-deep {
+    P {
+      font-size: initial;
+      line-height: initial;
+      font-weight: initial;
+      letter-spacing: initial;
+      font-style: normal;
+    }
+
+    TH {
+      text-align: left;
+    }
   }
 </style>

@@ -307,11 +307,9 @@ export default {
   .side-tabs{
     display: flex;
 
-    $side: 200px;
-
     & .tabs {
-      width: $side;
-      min-width: $side;
+      width: $sideways-tabs-width;
+      min-width: $sideways-tabs-width;
 
       & .tab {
         width: 100%;
@@ -340,7 +338,7 @@ export default {
     }
 
     & .tab-container{
-      width: calc(100% - #{$side});
+      width: calc(100% - #{$sideways-tabs-width});
       flex-grow: 1;
       border-left: 1px solid var(--border);
       background-color: var(--body-bg);

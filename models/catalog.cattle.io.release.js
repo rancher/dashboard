@@ -1,9 +1,13 @@
 import Vue from 'vue';
-import { _FLAGGED, _VIEW } from '@/config/query-params';
+import {
+  NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW
+} from '@/config/query-params';
 
 export default {
-  showMasthead(mode) {
-    return mode === _VIEW;
+  showMasthead() {
+    return (mode) => {
+      return mode === _VIEW;
+    };
   },
 
   applyDefaults() {
@@ -31,17 +35,37 @@ export default {
     return out;
   },
 
+  matchingChart() {
+    const chartName = this.spec?.chart?.metadata?.name;
+    const match = this.$rootGetters['catalog/chart']({ chartName });
+
+    return match;
+  },
+
   goToUpgrade() {
     return (moreQuery = {}) => {
-      const location = this.detailLocation;
-
-      location.query = {
-        ...location.query,
-        upgrade: _FLAGGED,
-        ...moreQuery
+      const match = this.matchingChart;
+      const versionName = this.spec?.chart?.metadata?.version;
+      const query = {
+        [NAMESPACE]: this.metadata.namespace,
+        [NAME]:      this.metadata.name,
+        [VERSION]:   versionName,
       };
 
-      this.currentRouter().push(location);
+      if ( match ) {
+        query[REPO] = match.repoName;
+        query[REPO_TYPE] = match.repoType;
+        query[CHART] = match.chartName;
+      }
+
+      this.currentRouter().push({
+        name:   'c-cluster-apps-install',
+        params: {
+          product:   this.$rootGetters['productId'],
+          cluster:   this.$rootGetters['clusterId'],
+        },
+        query,
+      });
     };
   },
 

@@ -54,6 +54,12 @@ export default {
     canYaml: {
       type:    Boolean,
       default: true,
+    },
+
+    // Override the set of labels shown on the button from teh default save/create.
+    finishButtonMode: {
+      type:    String,
+      default: null,
     }
   },
 
@@ -198,12 +204,8 @@ export default {
               <AsyncButton
                 v-if="!showSubtypeSelection"
                 :disabled="!validationPassed"
-                :action-label="mode==='edit' ? t('generic.save') : t('generic.create')"
-<<<<<<< HEAD
-                @click="cb=>$emit('finish', cb)"
-=======
+                :mode="finishButtonMode || mode"
                 @click="finish($event)"
->>>>>>> 554ac05... Fix create
               />
             </div>
           </slot>
