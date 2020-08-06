@@ -1,7 +1,11 @@
-import { MODE, _STAGE } from '@/config/query-params';
 import Vue from 'vue';
+import { _FLAGGED, _VIEW } from '@/config/query-params';
 
 export default {
+  showMasthead(mode) {
+    return mode === _VIEW;
+  },
+
   applyDefaults() {
     return () => {
       Vue.set(this, 'disableOpenApiValidation', false);
@@ -33,7 +37,7 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]: _STAGE,
+        upgrade: _FLAGGED,
         ...moreQuery
       };
 

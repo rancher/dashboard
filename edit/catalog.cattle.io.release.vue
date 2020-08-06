@@ -1,7 +1,7 @@
 <script>
 import { defaultAsyncData } from '@/components/ResourceDetail';
-import { CATALOG } from '../config/types';
-import { _CREATE, _STAGE } from '../config/query-params';
+import { CATALOG } from '@/config/types';
+import { _CREATE, _STAGE } from '@/config/query-params';
 
 export default {
   name: 'EditRelease',
@@ -36,10 +36,12 @@ export default {
     const out = {
       resource,
       model,
-      originalModel: model,
-      mode:          _CREATE,
-      realMode:      _STAGE,
-      value:         model
+      hasCustomDetail: true,
+      hasCustomEdit:   true,
+      originalModel:   model,
+      mode:            _CREATE,
+      realMode:        _STAGE,
+      value:           model
     };
 
     return out;

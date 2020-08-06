@@ -1,27 +1,29 @@
 <script>
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
+import isEqual from 'lodash/isEqual';
+
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LazyImage from '@/components/LazyImage';
 import Markdown from '@/components/Markdown';
-import { CATALOG } from '@/config/types';
 import { defaultAsyncData } from '@/components/ResourceDetail';
-import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY,
-} from '@/config/query-params';
 import CruResource from '@/components/CruResource';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import YamlEditor from '@/components/YamlEditor';
 import Checkbox from '@/components/form/Checkbox';
+
+import { CATALOG } from '@/config/types';
+import {
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY,
+} from '@/config/query-params';
 import { DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { diff } from '@/utils/object';
-import isEqual from 'lodash/isEqual';
-import { clear } from '@/utils/array';
+import { clear, findBy } from '@/utils/array';
 
 export default {
   name: 'ChartInstall',
@@ -61,6 +63,7 @@ export default {
     this.errors = [];
 
     const query = this.$route.query;
+    const params = this.$route.params;
 
     await this.$store.dispatch('catalog/load');
 
@@ -69,17 +72,20 @@ export default {
     const chartName = query[CHART];
     const versionName = query[VERSION];
 
-    if ( this.repo && !this.chart && chartName ) {
+    if ( params.namespace && params.id ) {
+      this.existing = await this.$store.dispatch('cluster/find', {
+        type: CATALOG.RELEASE,
+        id:   `${ params.namespace }/${ params.id }`
+      });
+    }
+
+    if ( this.repo && chartName ) {
       this.chart = this.$store.getters['catalog/chart']({
         repoType, repoName, chartName
       });
     }
 
-    if ( !this.chart ) {
-      throw new Error('Chart not found');
-    }
-
-    if ( this.chart.targetNamespace ) {
+    if ( this.chart?.targetNamespace ) {
       this.forceNamespace = this.chart.targetNamespace;
     } else if ( query[NAMESPACE] ) {
       this.forceNamespace = query[NAMESPACE];
@@ -87,7 +93,7 @@ export default {
       this.forceNamespace = null;
     }
 
-    if ( this.chart.targetName ) {
+    if ( this.chart?.targetName ) {
       this.value.metadata.name = this.chart.targetName;
       this.nameDisabled = true;
     } else if ( query[NAME] ) {
@@ -124,7 +130,13 @@ export default {
         this.valuesComponent = null;
       }
 
-      if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
+      if ( this.existing ) {
+        if ( !this.chartValues ) {
+          this.chartValues = merge({}, this.existing.spec.values || {});
+          this.loadedVersion = this.version.key;
+          this.valuesYaml = jsyaml.safeDump(this.chartValues);
+        }
+      } else if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
         // If the chart/version changes, replace the values with the new one
         this.chartValues = merge({}, this.versionInfo.values);
         this.loadedVersion = this.version.key;
@@ -139,6 +151,7 @@ export default {
 
   data() {
     return {
+      existing:    null,
       chart:       null,
       version:     null,
       versionInfo: null,
@@ -159,6 +172,10 @@ export default {
   },
 
   computed: {
+    charts() {
+      return this.$store.getters['catalog/charts'];
+    },
+
     repo() {
       const query = this.$route.query;
       const repoType = query[REPO_TYPE];
@@ -199,6 +216,17 @@ export default {
   },
 
   methods: {
+    selectChart(key, version) {
+      const chart = findBy(this.charts, 'key', key);
+
+      this.$router.applyQuery({
+        [REPO]:      chart.repoName,
+        [REPO_TYPE]: chart.repoType,
+        [CHART]:     chart.chartName,
+        [VERSION]:   version || chart.versions[0].version
+      });
+    },
+
     selectVersion(version) {
       this.$router.applyQuery({ [VERSION]: version });
     },
@@ -219,8 +247,17 @@ export default {
 
     async finish({ btnCb, errors }) {
       try {
-        const obj = this.installInput();
-        const res = await this.repo.doAction('install', obj);
+        let res;
+
+        if ( this.existing ) {
+          const upgrade = this.upgradeInput();
+
+          res = await this.repo.doAction('upgrade', upgrade);
+        } else {
+          const create = this.createInput();
+
+          res = await this.repo.doAction('install', create);
+        }
 
         this.operation = await this.$store.dispatch('cluster/find', {
           type: CATALOG.OPERATION,
@@ -251,7 +288,7 @@ export default {
       }
     },
 
-    installInput() {
+    createInput() {
       const install = JSON.parse(JSON.stringify(this.value));
       const chart = install.charts[0];
 
@@ -277,6 +314,31 @@ export default {
 
       // Only save the values that differ from the chart's standard values.yaml
       chart.values = diff(fromChart, this.chartValues);
+
+      return install;
+    },
+
+    upgradeInput() {
+      const install = JSON.parse(JSON.stringify(this.value));
+
+      install.disableOpenAPIValidation = this.openApi === false;
+      install.noHooks = this.hooks === false;
+      install.skipCRDs = this.crds === false;
+
+      install.chartName = this.chart.chartName;
+      install.version = this.version.version;
+      install.releaseName = install.metadata.name;
+
+      if ( !this.valuesComponent ) {
+        const fromYaml = jsyaml.safeLoad(this.valuesYaml);
+
+        this.chartValues = fromYaml;
+      }
+
+      const fromChart = this.versionInfo.values || {};
+
+      // Only save the values that differ from the chart's standard values.yaml
+      install.values = diff(fromChart, this.chartValues);
 
       return install;
     },
@@ -311,7 +373,7 @@ export default {
     @cancel="cancel"
   >
     <template #define>
-      <div class="row mb-20">
+      <div v-if="chart" class="row mb-20">
         <div class="col span-3 text-center">
           <LazyImage :src="chart.icon" class="logo" />
         </div>
@@ -326,7 +388,32 @@ export default {
         </div>
       </div>
 
+      <div v-if="existing && chart" class="row mb-20">
+        <div class="col span-6">
+          <LabeledSelect
+            label="Chart"
+            :value="$route.query.chart"
+            option-label="chartName"
+            option-key="key"
+            :reduce="opt=>opt.key"
+            :options="charts"
+            @input="selectChart($event)"
+          />
+        </div>
+        <div v-if="chart" class="col span-6">
+          <LabeledSelect
+            label="Version"
+            :value="$route.query.version"
+            option-label="version"
+            option-key="version"
+            :reduce="opt=>opt.version"
+            :options="chart.versions"
+            @input="selectVersion($event)"
+          />
+        </div>
+      </div>
       <NameNsDescription
+        v-else
         v-show="showNameEditor"
         v-model="value"
         :mode="mode"
@@ -373,16 +460,16 @@ export default {
         </Tab>
 
         <Tab name="advanced" label="Advanced" :weight="3">
-          <p><Checkbox v-model="openApi" :label="t('catalog.chart.advanced.openapi')" /></p>
-          <p><Checkbox v-model="hooks" :label="t('catalog.chart.advanced.hooks')" /></p>
-          <p><Checkbox v-model="crds" :label="t('catalog.chart.advanced.crds')" /></p>
-          <p style="display: inline-block; width 400px;">
+          <div><Checkbox v-model="openApi" :label="t('catalog.chart.advanced.openapi')" /></div>
+          <div><Checkbox v-model="hooks" :label="t('catalog.chart.advanced.hooks')" /></div>
+          <div><Checkbox v-model="crds" :label="t('catalog.chart.advanced.crds')" /></div>
+          <div style="display: inline-block; max-width: 400px;">
             <UnitInput
               v-model="value.timeout"
               :label="t('catalog.chart.advanced.timeout.label')"
               :suffix="t('catalog.chart.advanced.timeout.unit')"
             />
-          </p>
+          </div>
         </Tab>
       </Tabbed>
     </template>

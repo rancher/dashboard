@@ -41,6 +41,8 @@ export const getters = {
   charts(state, getters) {
     const repoKeys = getters.repos.map(x => x._key);
 
+    // Filter out charts for repos that are no longer in the store, rather
+    // than trying to clear them when a repo is removed.
     return Object.values(state.charts).filter(x => repoKeys.includes(x.repoKey));
   },
 
