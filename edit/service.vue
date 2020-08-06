@@ -165,9 +165,11 @@ export default {
     :selected-subtype="serviceType"
     :subtypes="defaultServiceTypes"
     :validation-passed="true"
+    :errors="errors"
+    @error="e=>errors = e"
     @finish="save"
     @cancel="done"
-    @selectType="(st) => serviceType = st"
+    @select-type="(st) => serviceType = st"
   >
     <template #define>
       <NameNsDescription v-if="!isView" :value="value" :mode="mode" />

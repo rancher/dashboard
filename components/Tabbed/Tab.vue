@@ -13,6 +13,10 @@ export default {
       type:     Number,
       default:  0,
       required: false,
+    },
+    canToggle: {
+      type:    Boolean,
+      default: false
     }
   },
 

@@ -10,7 +10,6 @@ import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
-import isFunction from 'lodash/isFunction';
 import GenericResourceDetail from './Generic';
 
 // Components can't have asyncData, only pages.
@@ -53,7 +52,7 @@ function realModeFor(query, id) {
 
 // You can pass in a resource from a edit/someType.vue to use this but with a different type
 // e.g. for workload to create a deployment
-export async function defaultAsyncData(ctx, resource) {
+export async function defaultAsyncData(ctx, resource, parentOverride) {
   const { store, params, route } = ctx;
 
   // eslint-disable-next-line prefer-const
@@ -132,6 +131,7 @@ export async function defaultAsyncData(ctx, resource) {
    * Important: these need to be declared below as props too if you want to use them
    *******/
   const out = {
+    parentOverride,
     hasCustomDetail,
     hasCustomEdit,
     resource,
@@ -253,14 +253,6 @@ export default {
 
       return null;
     },
-
-    showMasthead() {
-      if (isFunction(this.currentValue.showMasthead)) {
-        return this.currentValue.showMasthead(this.mode);
-      } else {
-        return true;
-      }
-    }
   },
 
   watch: {
@@ -285,7 +277,6 @@ export default {
 <template>
   <div>
     <Masthead
-      v-if="showMasthead"
       :value="originalModel"
       :mode="mode"
       :real-mode="realMode"

@@ -11,22 +11,52 @@ export default {
       type:    String,
       default: null,
     },
+
     sideTabs: {
+      type:    Boolean,
+      default: false
+    },
+
+    // tabs with canToggle will be hidden by default and revealed by clicking this link
+    showMoreLabel: {
+      type:    String,
+      default: 'Show Extra'
+    },
+
+    hideMoreLabel: {
+      type:    String,
+      default: 'Hide Extra'
+    },
+
+    // whether or not to scroll to the top of the new tab on tab change. This is particularly ugly with side tabs
+    scrollOnChange: {
       type:    Boolean,
       default: false
     }
   },
 
   data() {
-    return { tabs: [] };
+    return { tabs: [], showHiddenTabs: false };
   },
 
   computed: {
-    sortedTabs() {
-      // keep the tabs list ordered for dynamic tabs
+    // keep the tabs list ordered for dynamic tabs
+    sortedShownTabs() {
       const { tabs } = this;
+      const shownTabs = tabs.filter(tab => !tab.canToggle);
 
-      return sortBy(tabs, ['weight', 'label', 'name']);
+      return sortBy(shownTabs, ['weight', 'label', 'name']);
+    },
+
+    sortedHiddenTabs() {
+      const { tabs } = this;
+      const hiddenTabs = tabs.filter(tab => tab.canToggle);
+
+      return sortBy(hiddenTabs, ['weight', 'label', 'name']);
+    },
+
+    sortedTabs() {
+      return [...this.sortedShownTabs, ...this.sortedHiddenTabs];
     }
   },
 
@@ -37,6 +67,11 @@ export default {
         $route: { hash }
       } = this;
       const activeTab = tabs.find(t => t.active);
+
+      if (activeTab && activeTab.canToggle) {
+        this.showHiddenTabs = true;
+      }
+
       const windowHash = hash.slice(1);
       const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
       const firstTab = head(tabs) || null;
@@ -95,6 +130,13 @@ export default {
 
   methods: {
     hashChange() {
+      if (!this.scrollOnChange) {
+        const scrollable = document.getElementsByTagName('main')[0];
+
+        if (scrollable) {
+          scrollable.scrollTop = 0;
+        }
+      }
       this.select(this.$route.hash);
     },
 
@@ -113,6 +155,10 @@ export default {
 
       if ( !selected || selected.disabled) {
         return;
+      }
+
+      if (selected.canToggle) {
+        this.showHiddenTabs = true;
       }
 
       if (routeHash !== hashName) {
@@ -166,7 +212,7 @@ export default {
       @keydown.left.prevent="selectNext(-1)"
     >
       <li
-        v-for="tab in sortedTabs"
+        v-for="tab in sortedShownTabs"
         :id="tab.name"
         :key="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled}"
@@ -181,6 +227,31 @@ export default {
           {{ tab.label }}
         </a>
       </li>
+      <li class="tab toggle">
+        <a @click.prevent="showHiddenTabs = !showHiddenTabs">
+          <i class="icon icon-sm" :class="{'icon-plus': !showHiddenTabs, 'icon-minus':showHiddenTabs}" />
+          {{ showHiddenTabs ? hideMoreLabel : showMoreLabel }}
+        </a>
+      </li>
+      <template v-if="showHiddenTabs">
+        <li
+          v-for="tab in sortedHiddenTabs"
+          :id="tab.name"
+          :key="tab.name"
+          class="can-toggle"
+          :class="{tab: true, active: tab.active, disabled: tab.disabled}"
+          role="presentation"
+        >
+          <a
+            :aria-controls="'#' + tab.name"
+            :aria-selected="tab.active"
+            role="tab"
+            @click.prevent="select(tab.name, $event)"
+          >
+            {{ tab.label }}
+          </a>
+        </li>
+      </template>
     </ul>
     <div class="tab-container">
       <slot />
@@ -242,6 +313,14 @@ export default {
 
       & .tab {
         width: 100%;
+
+        &.toggle A {
+          color: var(--primary);
+        }
+
+        &.can-toggle {
+          margin-left: 20px;
+        }
 
         A {
           color: var(--input-label);

@@ -1,7 +1,6 @@
 import { insertAt } from '@/utils/array';
 import { TIMESTAMP } from '@/config/labels-annotations';
 import { WORKLOAD_TYPES } from '@/config/types';
-import { _VIEW } from '@/config/query-params';
 
 export default {
   // remove clone as yaml/edit as yaml until API supported
@@ -74,15 +73,4 @@ export default {
     this.setAnnotation(TIMESTAMP, now);
     this.save();
   },
-
-  // Hide resource detail masthead in create/edit/clone because it's redundant with the wizard
-  showMasthead() {
-    return (mode) => {
-      if (mode !== _VIEW) {
-        return false;
-      } else {
-        return true;
-      }
-    };
-  }
 };

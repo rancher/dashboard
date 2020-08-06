@@ -13,6 +13,7 @@ import {
   _UNFLAG,
   _EDIT,
 } from '@/config/query-params';
+import { exceptionToErrorsArray } from '../utils/error';
 
 export default {
   components: {
@@ -263,7 +264,9 @@ export default {
         } else {
           this.errors = [err];
         }
-        buttonDone(false, this.errors);
+        buttonDone(false);
+
+        this.$emit('error', exceptionToErrorsArray(err));
       }
     },
     done() {
