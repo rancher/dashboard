@@ -21,6 +21,7 @@ import { DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotatio
 import { exceptionToErrorsArray } from '@/utils/error';
 import { diff } from '@/utils/object';
 import isEqual from 'lodash/isEqual';
+import { clear } from '@/utils/array';
 
 export default {
   name: 'ChartInstall',
@@ -65,9 +66,6 @@ export default {
 
     const repoType = query[REPO_TYPE];
     const repoName = query[REPO];
-
-    this.repo = this.$store.getters['catalog/repo']({ repoType, repoName });
-
     const chartName = query[CHART];
     const versionName = query[VERSION];
 
@@ -141,7 +139,6 @@ export default {
 
   data() {
     return {
-      repo:        null,
       chart:       null,
       version:     null,
       versionInfo: null,
@@ -162,6 +159,14 @@ export default {
   },
 
   computed: {
+    repo() {
+      const query = this.$route.query;
+      const repoType = query[REPO_TYPE];
+      const repoName = query[REPO];
+
+      return this.$store.getters['catalog/repo']({ repoType, repoName });
+    },
+
     showReadme() {
       return !!this.versionInfo?.readme;
     },
@@ -212,9 +217,8 @@ export default {
       this.$router.replace({ name: 'c-cluster-apps' });
     },
 
-    async finish(btnCb) {
+    async finish({ btnCb, errors }) {
       try {
-        this.errors = null;
         const obj = this.installInput();
         const res = await this.repo.doAction('install', obj);
 
@@ -241,7 +245,8 @@ export default {
           }
         });
       } catch (err) {
-        this.errors = exceptionToErrorsArray(err);
+        clear(errors);
+        errors.push(...exceptionToErrorsArray(err));
         btnCb(false);
       }
     },
@@ -322,7 +327,7 @@ export default {
       </div>
 
       <NameNsDescription
-        v-if="showNameEditor"
+        v-show="showNameEditor"
         v-model="value"
         :mode="mode"
         :name-disabled="nameDisabled"
@@ -368,7 +373,7 @@ export default {
         </Tab>
 
         <Tab name="advanced" label="Advanced" :weight="3">
-          <p><Checkbox v-model="openapi" :label="t('catalog.chart.advanced.openapi')" /></p>
+          <p><Checkbox v-model="openApi" :label="t('catalog.chart.advanced.openapi')" /></p>
           <p><Checkbox v-model="hooks" :label="t('catalog.chart.advanced.hooks')" /></p>
           <p><Checkbox v-model="crds" :label="t('catalog.chart.advanced.crds')" /></p>
           <p style="display: inline-block; width 400px;">
@@ -387,6 +392,27 @@ export default {
 <style lang="scss" scoped>
   $desc-height: 150px;
   $padding: 5px;
+
+  .readme {
+    overflow-wrap: break-word;
+    max-width: 100%;
+
+    ::v-deep {
+      * + H1,
+      * + H2,
+      * + H3,
+      * + H4,
+      * + H5,
+      * + H6 {
+        margin-top: 20px;
+      }
+
+      CODE, PRE {
+        overflow-wrap: break-word;
+        white-space: initial;
+      }
+    }
+  }
 
   .logo {
     max-height: $desc-height - 2 * $padding;

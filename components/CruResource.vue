@@ -120,7 +120,6 @@ export default {
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
     },
-
   }
 };
 </script>
@@ -200,7 +199,11 @@ export default {
                 v-if="!showSubtypeSelection"
                 :disabled="!validationPassed"
                 :action-label="mode==='edit' ? t('generic.save') : t('generic.create')"
+<<<<<<< HEAD
                 @click="cb=>$emit('finish', cb)"
+=======
+                @click="finish($event)"
+>>>>>>> 554ac05... Fix create
               />
             </div>
           </slot>
