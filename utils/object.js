@@ -1,7 +1,6 @@
 import cloneDeep from 'lodash/cloneDeep';
 import flattenDeep from 'lodash/flattenDeep';
 import compact from 'lodash/compact';
-import pick from 'lodash/pick';
 import jsonpath from 'jsonpath';
 import Vue from 'vue';
 import transform from 'lodash/transform';
@@ -109,31 +108,31 @@ returns an object with no key/value pairs (including nested) where the value is:
   undefined
 */
 export function cleanUp(obj) {
-  return pick(obj, nonEmptyValueKeys(obj));
-}
-
-function nonEmptyValueKeys(obj) {
-  const validKeys = Object.keys(obj).map((key) => {
+  Object.keys(obj).map((key) => {
     const val = obj[key];
 
-    if ( isObject(val) ) {
-      const recursed = nonEmptyValueKeys(val);
+    if ( Array.isArray(val) ) {
+      obj[key] = compact(val.map((each) => {
+        const cleaned = cleanUp(each);
 
-      if (recursed) {
-        return recursed.map((subkey) => {
-          return `"${ key }"."${ subkey }"`;
-        });
+        if (!isEmpty(cleaned)) {
+          return cleaned;
+        }
+      }));
+      if (compact(obj[key]).length === 0) {
+        delete obj[key];
       }
-    } else if ( Array.isArray(val) ) {
-      if (compact(val).length) {
-        return key;
+    } else if (typeof val === 'undefined' || val === null) {
+      delete obj[key];
+    } else if ( isObject(val) ) {
+      if (isEmpty(val)) {
+        delete obj[key];
       }
-    } else if (!!val || val === false || val === 0) {
-      return key;
+      obj[key] = cleanUp(val);
     }
   });
 
-  return compact(flattenDeep(validKeys));
+  return obj;
 }
 
 export function definedKeys(obj) {
