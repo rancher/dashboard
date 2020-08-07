@@ -4,86 +4,10 @@ const WAITING = 'waiting';
 const SUCCESS = 'success';
 const ERROR = 'error';
 
-// @TODO move to translations
-const LABEL = {
-  create: {
-    action:  'Create',
-    waiting: 'Creating&hellip;',
-    success: 'Created',
-    error:   'Error',
-  },
-  apply: {
-    action:  'Apply',
-    waiting: 'Applying&hellip;',
-    success: 'Applied',
-    error:   'Error',
-  },
-  edit: {
-    action:  'Save',
-    waiting: 'Saving&hellip;',
-    success: 'Saved',
-    error:   'Error',
-  },
-  delete: {
-    action:  'Delete',
-    waiting: 'Deleting&hellip;',
-    success: 'Deleted',
-    error:   'Error',
-  },
-  continue: {
-    action:  'Continue',
-    waiting: 'Saving&hellip;',
-    success: 'Saved',
-    error:   'Error',
-  },
-  done: {
-    action:  'Done',
-    waiting: 'Saving&hellip;',
-    success: 'Saved',
-    error:   'Error',
-  },
-  enable: {
-    action:  'Enable',
-    waiting: 'Enabling&hellip;',
-    success: 'Enabled',
-    error:   'Error',
-  },
-  download: {
-    action:  'Download',
-    waiting: 'Downloading&hellip;',
-    success: 'Saving',
-    error:   'Error',
-  },
-  finish: {
-    action:  'Finish',
-    waiting: 'Finishing&hellip;',
-    success: 'Finished',
-    error:   'Error',
-  },
-  install: {
-    action:  'Install',
-    waiting: 'Starting&hellip;',
-    success: 'Installing',
-    error:   'Error',
-  },
-  upgrade: {
-    action:  'Upgrade',
-    waiting: 'Starting&hellip;',
-    success: 'Upgrading',
-    error:   'Error',
-  },
-  refresh: {
-    actionIcon:  'refresh',
-    waitingIcon: 'refresh',
-    successIcon: 'checkmark',
-    errorIcon:   'error'
-  },
-};
-
 export default {
   props: {
     /**
-     * Mode maps to key in LABEL map for phase labels of button
+     * Mode maps to keys in asyncButton.* translations
      */
     mode: {
       type:    String,
@@ -176,16 +100,19 @@ export default {
     },
 
     displayIcon() {
-      const phaseIcon = LABEL[this.mode][`${ this.phase }Icon`];
+      const exists = this.$store.getters['i18n/exists'];
+      const t = this.$store.getters['i18n/t'];
+      const key = `asyncButton.${ this.mode }.${ this.phase }Icon`;
+      const defaultKey = `asyncButton.default.${ this.phase }Icon`;
 
       if ( this.icon ) {
-        if ( this.isSpinning ) {
-          return 'icon-spinner';
-        } else {
-          return this.icon;
-        }
-      } else if ( phaseIcon ) {
-        return `icon-${ phaseIcon }`;
+        return this.icon;
+      } else if ( exists(key) ) {
+        return `icon-${ t(key) }`;
+      } else if ( exists(defaultKey) ) {
+        return `icon-${ t(defaultKey) }`;
+      } else if ( this.isSpinning ) {
+        return 'icon-spinner icon-spin';
       } else {
         return '';
       }
@@ -193,12 +120,20 @@ export default {
 
     displayLabel() {
       const override = this[`${ this.phase }Label`];
+      const exists = this.$store.getters['i18n/exists'];
+      const t = this.$store.getters['i18n/t'];
+      const key = `asyncButton.${ this.mode }.${ this.phase }`;
+      const defaultKey = `asyncButton.default.${ this.phase }`;
 
       if ( override ) {
         return override;
+      } else if ( exists(key) ) {
+        return t(key);
+      } else if ( exists(defaultKey) ) {
+        return t(defaultKey);
+      } else {
+        return '';
       }
-
-      return LABEL[this.mode][this.phase];
     },
 
     isSpinning() {
@@ -253,7 +188,7 @@ export default {
     :tab-index="tabIndex"
     @click="clicked"
   >
-    <i v-if="displayIcon" :class="{icon: true, 'icon-lg': true, 'icon-spin': isSpinning, [displayIcon]: true, 'pr-5': showLabel && displayLabel}" />
+    <i v-if="displayIcon" :class="{icon: true, 'icon-lg': true, [displayIcon]: true, 'pr-5': showLabel && displayLabel}" />
     <span v-if="showLabel" v-html="displayLabel" />
   </button>
 </template>

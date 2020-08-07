@@ -7,6 +7,7 @@ import ResourceYaml from '@/components/ResourceYaml';
 import Banner from '@/components/Banner';
 import AsyncButton from '@/components/AsyncButton';
 import { mapGetters } from 'vuex';
+import { stringify } from '@/utils/error';
 
 export default {
   components: {
@@ -89,6 +90,8 @@ export default {
   },
 
   methods: {
+    stringify,
+
     checkCancel(isCancel) {
       if (isCancel) {
         this.isCancelModal = true;
@@ -100,7 +103,6 @@ export default {
     },
 
     confirmCancel(isCancel) {
-      this.errors = [];
       this.$modal.hide('cancel-modal');
 
       if (isCancel) {
@@ -205,7 +207,7 @@ export default {
                 v-if="!showSubtypeSelection"
                 :disabled="!validationPassed"
                 :mode="finishButtonMode || mode"
-                @click="finish($event)"
+                @click="$emit('finish', $event)"
               />
             </div>
           </slot>
@@ -268,7 +270,7 @@ export default {
       </section>
 
       <div v-for="(err, idx) in errors" :key="idx">
-        <Banner color="error" :label="err" />
+        <Banner color="error" :label="stringify(err)" />
       </div>
     </form>
 

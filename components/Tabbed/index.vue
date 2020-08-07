@@ -227,7 +227,7 @@ export default {
           {{ tab.label }}
         </a>
       </li>
-      <li class="tab toggle">
+      <li v-if="sortedHiddenTabs.length" class="tab toggle">
         <a @click.prevent="showHiddenTabs = !showHiddenTabs">
           <i class="icon icon-sm" :class="{'icon-plus': !showHiddenTabs, 'icon-minus':showHiddenTabs}" />
           {{ showHiddenTabs ? hideMoreLabel : showMoreLabel }}
