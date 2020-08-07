@@ -22,6 +22,11 @@ export default {
       required: true
     },
 
+    cancelEvent: {
+      type:    Boolean,
+      default: false,
+    },
+
     mode: {
       type:     String,
       required: true
@@ -107,10 +112,14 @@ export default {
 
       if (isCancel) {
         this.isCancelModal = false;
-        this.$router.replace({
-          name:   this.doneRoute,
-          params: { resource: this.resource.type }
-        });
+        if ( this.cancelEvent ) {
+          this.$emit('cancel');
+        } else {
+          this.$router.replace({
+            name:   this.doneRoute,
+            params: { resource: this.resource.type }
+          });
+        }
       } else {
         this.isCancelModal = false;
         this.resourceYaml = null;
