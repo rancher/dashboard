@@ -28,6 +28,11 @@ export default {
       default: 'Hide Extra'
     },
 
+    hideAllowed: {
+      type:    Boolean,
+      default: false
+    },
+
     // whether or not to scroll to the top of the new tab on tab change. This is particularly ugly with side tabs
     scrollOnChange: {
       type:    Boolean,
@@ -57,6 +62,9 @@ export default {
 
     sortedTabs() {
       return [...this.sortedShownTabs, ...this.sortedHiddenTabs];
+    },
+    showTabToggle() {
+      return this.sortedHiddenTabs.length && (this.hideAllowed || !this.showHiddenTabs);
     }
   },
 
@@ -227,7 +235,7 @@ export default {
           {{ tab.label }}
         </a>
       </li>
-      <li v-if="sortedHiddenTabs.length" class="tab toggle">
+      <li v-if="showTabToggle" class="tab toggle">
         <a @click.prevent="showHiddenTabs = !showHiddenTabs">
           <i class="icon icon-sm" :class="{'icon-plus': !showHiddenTabs, 'icon-minus':showHiddenTabs}" />
           {{ showHiddenTabs ? hideMoreLabel : showMoreLabel }}

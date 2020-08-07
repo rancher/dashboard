@@ -134,35 +134,35 @@ export default {
         <span />
       </template>
     </KeyValue>
-    <div v-if="referencedValues.length" class="value-from-headers row">
-      <div class="col span-5-of-23">
+    <div v-if="referencedValues.length" class="value-from-headers">
+      <span>
         {{ t('workload.container.command.fromResource.type') }}
-      </div>
-      <div class="col span-5-of-23">
+      </span>
+      <span>
         {{ t('workload.container.command.fromResource.source.label') }}
-      </div>
-      <div class="col span-5-of-23">
+      </span>
+      <span>
         {{ t('workload.container.command.fromResource.key.label') }}
-      </div>
-      <div class="col span-1-of-23">
-      </div>
-      <div class="col span-5-of-23">
+      </span>
+      <span />
+      <span>
         {{ t('workload.container.command.fromResource.prefix') }}
-      </div>
+      </span>
+      <span />
     </div>
     <ValueFromResource
       v-for="(val,i) in referencedValues"
       :key="`${i}`"
-      class="mb-10 value-from"
+      class="value-from"
       :row="val"
       :all-secrets="secrets"
       :all-config-maps="configMaps"
       :mode="mode"
       @input="e=>updateRow(i, e.value, e.old)"
     />
-    <ButtonDropdown ref="buttonDropdown">
+    <ButtonDropdown ref="buttonDropdown" size="sm">
       <template #button-content>
-        <button v-if="mode!=='view'" type="button" class="btn text-primary bg-transparent" @click="$refs.unreferencedKV.add()">
+        <button v-if="mode!=='view'" type="button" class="btn btn-sm text-primary bg-transparent" @click="$refs.unreferencedKV.add()">
           <t k="generic.add" />
         </button>
       </template>
@@ -178,20 +178,18 @@ export default {
 </template>
 
 <style lang='scss'>
-.value-from  INPUT {
+.value-from  INPUT, .value-from .v-select {
   height: 50px;
 }
+.value-from, .value-from-headers {
+  display: grid;
+  grid-template-columns: 20% 20% 20% 5% 20% auto;
+  grid-gap: $column-gutter;
+  align-items: center;
+  margin-bottom: 10px;
+}
   .value-from-headers {
-    margin-bottom:10px;
+    margin: 10px 0px 10px 0px;
     color: var(--input-label);
-    padding-left: 10px;
-
-    & .labeled-input.create INPUT[type='text']{
-      padding: 9px 0px 9px 0px !important
     }
-
-    & BUTTON{
-      padding:0px;
-    }
-  }
 </style>

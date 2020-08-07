@@ -2,7 +2,6 @@
 import { NODE, POD, NAMESPACE } from '@/config/types';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import SortableTable from '@/components/SortableTable';
 import { sortBy } from '@/utils/sort';
 import ArrayList from '@/components/form/ArrayList';
 import { mapGetters } from 'vuex';
@@ -11,7 +10,6 @@ export default {
   components: {
     LabeledInput,
     LabeledSelect,
-    SortableTable,
     ArrayList
   },
   props:      {
@@ -238,58 +236,56 @@ export default {
 
     <div class="spacer" />
 
-    <SortableTable
-      v-if="rules.length"
-      class="match-expressions"
-      :class="mode"
-      :headers="tableHeaders"
-      :rows="rules"
-      :search="false"
-      :table-actions="false"
-      :row-actions="false"
-      :show-no-rows="isView"
-      key-field="id"
+    <div v-if="rules.length" class="match-expression-header">
+      <span>
+        {{ t('workload.scheduling.affinity.matchExpressions.key') }}
+      </span>
+      <span>
+        {{ t('workload.scheduling.affinity.matchExpressions.operator') }}
+      </span>
+      <span>
+        {{ t('workload.scheduling.affinity.matchExpressions.value') }}
+      </span>
+      <span />
+    </div>
+    <div
+      v-for="row in rules"
+      :key="row.id"
+      class="match-expression-row"
     >
-      <template #col:key="{row}">
-        <td class="key">
-          <LabeledInput v-model="row.key" :mode="mode" />
-        </td>
-      </template>
-      <template #col:operator="{row}">
-        <td>
-          <LabeledSelect
-            id="operator"
-            v-model="row.operator"
-            :options="ops"
-            :mode="mode"
-            @input="update"
-          />
-        </td>
-      </template>
-      <template #col:value="{row}">
-        <td v-if="row.operator==='Exists' || row.operator==='DoesNotExist'" class="no-value">
-          <label>n/a</label>
-        </td>
-        <td v-else>
-          <LabeledInput v-model="row.values" :mode="mode" :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'" />
-        </td>
-      </template>
-      <template #col:remove="{row}">
-        <td>
-          <button
-            v-if="!isView"
-            type="button"
-            class="btn btn-sm role-link col remove-rule-button"
-            :style="{padding:'0px'}"
+      <div>
+        <LabeledInput v-model="row.key" :mode="mode" />
+      </div>
+      <div>
+        <LabeledSelect
+          id="operator"
+          v-model="row.operator"
+          :options="ops"
+          :mode="mode"
+          @input="update"
+        />
+      </div>
 
-            :disabled="mode==='view'"
-            @click="removeRule(row)"
-          >
-            <t k="generic.remove" />
-          </button>
-        </td>
-      </template>
-    </SortableTable>
+      <div v-if="row.operator==='Exists' || row.operator==='DoesNotExist'" class="no-value">
+        <label>n/a</label>
+      </div>
+      <div v-else>
+        <LabeledInput v-model="row.values" :mode="mode" :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'" />
+      </div>
+      <div>
+        <button
+          v-if="!isView"
+          type="button"
+          class="btn btn-sm role-link col remove-rule-button"
+          :style="{padding:'0px'}"
+
+          :disabled="mode==='view'"
+          @click="removeRule(row)"
+        >
+          <t k="generic.remove" />
+        </button>
+      </div>
+    </div>
     <button v-if="!isView" type="button" class="btn role-tertiary add mt-10" @click="addRule">
       <t k="workload.scheduling.affinity.matchExpressions.addRule" />
     </button>
@@ -324,40 +320,15 @@ export default {
     color: var(--input-label)
   }
 
-  .match-expressions {
-    & TABLE.sortable-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: $spacing;
-
-    TD, TH {
-      padding-right: $spacing;
-      padding-bottom: $spacing;
-
-      &:last-of-type {
-        padding-right: 0;
-      }
-    }
-
-    TR:first-of-type TD {
-      padding-top: $spacing;
-    }
-
-    TR:last-of-type TD {
-      padding-bottom: 0;
-    }
-
-    & .remove-rule-button{
-      padding-left:0px;
-        vertical-align: middle;
-        text-align: right;
-        width: #{$remove}px;
-      }
-    }
-    &.edit, &.create, &.clone {
-      TABLE.sortable-table THEAD TR TH {
-        border-color: transparent;
-      }
-    }
+  .match-expression-row, .match-expression-header {
+  display: grid;
+  grid-template-columns: 27% 27% 27% auto;
+  grid-gap: $column-gutter;
+  align-items: center;
+  margin-bottom: 10px;
+  }
+  .match-expression-header{
+    color: var(--input-label);
+    margin: 10px 0px 10px 0px;
   }
 </style>

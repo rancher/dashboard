@@ -100,6 +100,7 @@ export default {
       <input
         v-else
         ref="value"
+        :class="{'no-label':!label}"
         v-bind="$attrs"
         :disabled="disabled"
         :type="type"

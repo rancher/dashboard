@@ -39,7 +39,7 @@ export default {
 
     let selectNode = false;
 
-    if (!this.value.affinity) {
+    if (this.value.nodeName) {
       selectNode = true;
     }
 
@@ -64,16 +64,16 @@ export default {
     update() {
       const { nodeName, nodeSelector, nodeAffinity } = this;
 
-      if (!this.value.affinity) {
-        Object.assign(this.value, { affinity: nodeAffinity });
-      } else {
-        Object.assign(this.value.affinity, { nodeAffinity });
-      }
       if (this.selectNode) {
         Object.assign(this.value, { nodeSelector, nodeName });
       } else {
         delete this.value.nodeName;
         delete this.value.nodeSelector;
+        if (!this.value.affinity) {
+          Object.assign(this.value, { affinity: nodeAffinity });
+        } else {
+          Object.assign(this.value.affinity, { nodeAffinity });
+        }
       }
     },
     isEmpty
@@ -101,10 +101,10 @@ export default {
           <LabeledSelect
             v-model="nodeName"
             :label="t('workload.scheduling.affinity.nodeName')"
-            :options="nodes"
+            :options="nodes || []"
             :mode="mode"
-            option-label="id"
-            :reduce="opt=>opt.id"
+            :multiple="false"
+            @input="update"
           />
         </div>
       </div>
