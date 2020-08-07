@@ -7,14 +7,17 @@ export default {
       type:    Boolean,
       default: false
     },
+
     label: {
       type:    [String, Boolean],
       default: false
     },
+
     disabled: {
       type:    Boolean,
       default: false
     },
+
     indeterminate: {
       type:    Boolean,
       default: false
@@ -25,11 +28,13 @@ export default {
       default: 'edit'
     }
   },
+
   computed: {
     isDisabled() {
       return (this.disabled || this.mode === 'view' );
     }
   },
+
   methods: {
     clicked(event) {
       if (!this.isDisabled) {
@@ -86,7 +91,9 @@ export default {
 .checkbox-container {
   display: inline-flex;
   align-items: center;
+  margin: 0;
 }
+
 .checkbox-label {
   color: var(--input-label);
   margin: 3px 10px 3px 0;

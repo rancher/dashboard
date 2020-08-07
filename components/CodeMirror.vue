@@ -44,14 +44,31 @@ export default {
     },
   },
 
-  mounted() {
-    import(/* webpackChunkName: "codemirror" */ '@/plugins/codemirror').then(() => {
-      this.loaded = true;
-    });
+  created() {
+    if ( process.client ) {
+      import(/* webpackChunkName: "codemirror" */ '@/plugins/codemirror').then(() => {
+        this.loaded = true;
+      });
+    }
   },
 
   methods: {
+    focus() {
+      if ( this.$refs.cm ) {
+        this.$refs.cm.codemirror.focus();
+      }
+    },
+
+    refresh() {
+      if ( this.$refs.cm ) {
+        this.$refs.cm.refresh();
+      }
+    },
+
     onReady(cm) {
+      this.$nextTick(() => {
+        cm.refresh();
+      });
       this.$emit('onReady', cm);
     },
 
@@ -71,6 +88,7 @@ export default {
     <div class="code-mirror">
       <codemirror
         v-if="loaded"
+        ref="cm"
         :value="value"
         :options="combinedOptions"
         @ready="onReady"

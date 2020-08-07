@@ -179,7 +179,7 @@ module.exports = {
             {
               // buildTarget: isServer ? 'server' : 'client',
               corejs:      { version: 3 },
-              targets:     isServer ? { node: 'current' } : {},
+              targets:     isServer ? { node: 'current' } : { browsers: ['last 2 versions'] },
               modern:      !isServer
             }
           ]

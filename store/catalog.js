@@ -41,6 +41,8 @@ export const getters = {
   charts(state, getters) {
     const repoKeys = getters.repos.map(x => x._key);
 
+    // Filter out charts for repos that are no longer in the store, rather
+    // than trying to clear them when a repo is removed.
     return Object.values(state.charts).filter(x => repoKeys.includes(x.repoKey));
   },
 
@@ -177,9 +179,9 @@ export const actions = {
   },
 
   async getVersionInfo({ state, getters, commit }, {
-    repoType, repoName, chartName, version
+    repoType, repoName, chartName, versionName
   }) {
-    const key = `${ repoType }/${ repoName }/${ chartName }/${ version }`;
+    const key = `${ repoType }/${ repoName }/${ chartName }/${ versionName }`;
     let info = state.versionInfos[key];
 
     if ( !info ) {
@@ -189,7 +191,12 @@ export const actions = {
         throw new Error('Repo not found');
       }
 
-      info = await repo.followLink('info', { url: addParams(repo.links.info, { chartName, version }) });
+      info = await repo.followLink('info', {
+        url: addParams(repo.links.info, {
+          chartName,
+          version: versionName
+        })
+      });
 
       commit('cacheVersion', { key, info });
     }
@@ -230,19 +237,13 @@ function addChart(map, chart, repo) {
     sideLabel = certifiedAnnotation;
   }
 
-  let icon = chart.icon;
-
-  if ( icon ) {
-    icon = icon.replace(/^(https?:\/\/github.com\/[^/]+\/[^/]+)\/blob/, '$1/raw');
-  }
-
   if ( !obj ) {
     obj = {
       key,
-      icon,
       certified,
       sideLabel,
       certifiedSort:   CERTIFIED_SORTS[certified] || 99,
+      icon:            chart.icon,
       chartName:       chart.name,
       description:     chart.description,
       repoKey:         repo._key,

@@ -49,6 +49,17 @@ export default {
     errors: {
       type:    Array,
       default: () => []
+    },
+
+    canYaml: {
+      type:    Boolean,
+      default: true,
+    },
+
+    // Override the set of labels shown on the button from teh default save/create.
+    finishButtonMode: {
+      type:    String,
+      default: null,
     }
   },
 
@@ -115,7 +126,6 @@ export default {
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
     },
-
   }
 };
 </script>
@@ -184,7 +194,7 @@ export default {
             </button>
             <div>
               <button
-                v-if="selectedSubtype || !subtypes.length"
+                v-if="canYaml && (selectedSubtype || !subtypes.length)"
                 type="button"
                 class="btn role-secondary"
                 @click="showPreviewYaml"
@@ -194,8 +204,8 @@ export default {
               <AsyncButton
                 v-if="!showSubtypeSelection"
                 :disabled="!validationPassed"
-                :action-label="mode==='edit' ? t('generic.save') : t('generic.create')"
-                @click="cb=>$emit('finish', cb)"
+                :mode="finishButtonMode || mode"
+                @click="finish($event)"
               />
             </div>
           </slot>

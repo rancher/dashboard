@@ -60,6 +60,18 @@ const LABEL = {
     success: 'Finished',
     error:   'Error',
   },
+  install: {
+    action:  'Install',
+    waiting: 'Starting&hellip;',
+    success: 'Installing',
+    error:   'Error',
+  },
+  upgrade: {
+    action:  'Upgrade',
+    waiting: 'Starting&hellip;',
+    success: 'Upgrading',
+    error:   'Error',
+  },
   refresh: {
     actionIcon:  'refresh',
     waitingIcon: 'refresh',

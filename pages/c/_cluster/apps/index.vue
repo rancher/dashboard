@@ -2,7 +2,6 @@
 import AsyncButton from '@/components/AsyncButton';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
-import { CATALOG } from '@/config/types';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, _UNFLAG
 } from '@/config/query-params';
@@ -122,11 +121,10 @@ export default {
 
     selectChart(chart) {
       this.$router.push({
-        name:   'c-cluster-product-resource-create',
+        name:   'c-cluster-apps-install',
         params: {
           cluster:  this.$route.params.cluster,
           product:  this.$store.getters['productId'],
-          resource: CATALOG.RELEASE,
         },
         query: {
           [REPO_TYPE]: chart.repoType,

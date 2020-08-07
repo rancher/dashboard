@@ -277,11 +277,11 @@ export default {
       </div>
     </div>
 
-    <div class="spacer" />
-
     <div v-for="(err,idx) in errorStrings" :key="idx">
       <Banner color="error" :label="err" />
     </div>
+
+    <div class="spacer" />
 
     <div class="controls-row">
       <slot name="cancel" :cancel="cancel">
