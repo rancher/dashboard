@@ -19,10 +19,10 @@ import { CATALOG } from '@/config/types';
 import {
   REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT,
 } from '@/config/query-params';
-import { DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
+import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { diff } from '@/utils/object';
-import { clear, findBy } from '@/utils/array';
+import { findBy } from '@/utils/array';
 
 export default {
   name: 'Install',
@@ -258,18 +258,20 @@ export default {
       });
     },
 
-    async finish({ btnCb, errors }) {
+    async finish(btnCb) {
       try {
         let res;
+
+        this.errors = [];
 
         if ( this.existing ) {
           const upgrade = this.upgradeInput();
 
           res = await this.repo.doAction('upgrade', upgrade);
         } else {
-          const create = this.createInput();
+          const install = this.installInput();
 
-          res = await this.repo.doAction('install', create);
+          res = await this.repo.doAction('install', install);
         }
 
         this.operation = await this.$store.dispatch('cluster/find', {
@@ -287,13 +289,12 @@ export default {
         btnCb(true);
         this.done();
       } catch (err) {
-        clear(errors);
-        errors.push(...exceptionToErrorsArray(err));
+        this.errors = exceptionToErrorsArray(err);
         btnCb(false);
       }
     },
 
-    createInput() {
+    installInput() {
       const install = JSON.parse(JSON.stringify(this.value));
 
       install.disableOpenAPIValidation = this.openApi === false;
@@ -323,9 +324,28 @@ export default {
       // Only save the values that differ from the chart's standard values.yaml
       chart.values = diff(fromChart, this.chartValues);
 
-      install.charts = [chart];
+      install.charts = [];
 
-      // @TODO crd charts
+      const auto = (this.version.annotations?.[CATALOG_ANNOTATIONS.AUTO_INSTALL] || '').split(/\s*,\s*/).filter(x => !!x);
+
+      for ( const gvr of auto ) {
+        const provider = this.$store.getters['catalog/versionProviding']({
+          gvr,
+          repoName: this.chart.repoName,
+          repoType: this.chart.repoType
+        });
+
+        if ( provider ) {
+          install.charts.unshift({
+            chartName:   provider.name,
+            version:     provider.version,
+            releaseName: provider.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || provider.name,
+            namespace:   provider.annotations[CATALOG_ANNOTATIONS.NAMESPACE] || chart.namespace,
+          });
+        }
+      }
+
+      install.charts.push(chart);
 
       return install;
     },
@@ -383,13 +403,13 @@ export default {
 <template>
   <div>
     <h1 v-if="existing">
-      Upgrade {{ existing.nameDisplay }}
+      <t k="catalog.install.header.upgrade" :name="existing.nameDisplay" />
     </h1>
     <h1 v-else-if="chart">
-      Install {{ chart.chartName }}
+      <t k="catalog.install.header.install" :name="chart.chartName" />
     </h1>
     <h1 v-else>
-      Install Chart
+      <t k="catalog.install.header.installGeneric" />
     </h1>
 
     <Loading v-if="$fetchState.pending" />
@@ -402,6 +422,8 @@ export default {
       :resource="value"
       :subtypes="[]"
       :finish-button-mode="(existing ? 'upgrade' : 'install')"
+      :errors="errors"
+      @error="e=>errors = e"
       @finish="finish($event)"
       @cancel="cancel"
     >
@@ -471,11 +493,11 @@ export default {
           :class="{'with-name': showNameEditor}"
           @changed="tabChanged($event)"
         >
-          <Tab v-if="showReadme" name="readme" label="Read Me" :weight="1">
+          <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="1">
             <Markdown v-if="showReadme" ref="readme" v-model="versionInfo.readme" class="md readme" />
           </Tab>
 
-          <Tab v-if="valuesComponent" name="values-form" label="Chart Options" :weight="2">
+          <Tab v-if="valuesComponent" name="values-form" :label="t('catalog.install.section.chartOptions')" :weight="2">
             <component
               :is="valuesComponent"
               v-if="valuesComponent"
@@ -486,7 +508,7 @@ export default {
             />
           </Tab>
 
-          <Tab v-else name="values-yaml" label="Values YAML" :weight="2">
+          <Tab v-else name="values-yaml" :label="t('catalog.install.section.valuesYaml')" :weight="2">
             <YamlEditor
               ref="yaml"
               :scrolling="false"
@@ -495,41 +517,41 @@ export default {
             />
           </Tab>
 
-          <Tab name="advanced" label="Advanced" :weight="3">
+          <Tab name="advanced" :label="t('catalog.install.section.advanced')" :weight="3">
             <div v-if="existing">
-              <div><Checkbox v-model="atomic" :label="t('catalog.chart.advanced.atomic')" /></div>
-              <div><Checkbox v-model="cleanupOnFail" :label="t('catalog.chart.advanced.cleanupOnFail')" /></div>
-              <div><Checkbox v-model="dryRun" :label="t('catalog.chart.advanced.dryRun')" /></div>
-              <div><Checkbox v-model="force" :label="t('catalog.chart.advanced.force')" /></div>
-              <div><Checkbox v-model="hooks" :label="t('catalog.chart.advanced.hooks')" /></div>
-              <div><Checkbox v-model="resetValues" :label="t('catalog.chart.advanced.resetValues')" /></div>
-              <div><Checkbox v-model="reuseValues" :label="t('catalog.chart.advanced.reuseValues')" /></div>
-              <div><Checkbox v-model="wait" :label="t('catalog.chart.advanced.wait')" /></div>
+              <div><Checkbox v-model="atomic" :label="t('catalog.install.advanced.atomic')" /></div>
+              <div><Checkbox v-model="cleanupOnFail" :label="t('catalog.advanced.advanced.cleanupOnFail')" /></div>
+              <div><Checkbox v-model="dryRun" :label="t('catalog.advanced.advanced.dryRun')" /></div>
+              <div><Checkbox v-model="force" :label="t('catalog.advanced.advanced.force')" /></div>
+              <div><Checkbox v-model="hooks" :label="t('catalog.advanced.advanced.hooks')" /></div>
+              <div><Checkbox v-model="resetValues" :label="t('catalog.advanced.advanced.resetValues')" /></div>
+              <div><Checkbox v-model="reuseValues" :label="t('catalog.advanced.advanced.reuseValues')" /></div>
+              <div><Checkbox v-model="wait" :label="t('catalog.advanced.advanced.wait')" /></div>
               <div style="display: inline-block; max-width: 400px;">
                 <UnitInput
                   v-model.number="historyMax"
-                  :label="t('catalog.chart.advanced.historyMax.label')"
-                  :suffix="t('catalog.chart.advanced.historyMax.unit')"
+                  :label="t('catalog.advanced.advanced.historyMax.label')"
+                  :suffix="t('catalog.advanced.advanced.historyMax.unit')"
                 />
               </div>
               <div style="display: inline-block; max-width: 400px;">
                 <UnitInput
                   v-model.number="timeout"
-                  :label="t('catalog.chart.advanced.timeout.label')"
-                  :suffix="t('catalog.chart.advanced.timeout.unit')"
+                  :label="t('catalog.advanced.advanced.timeout.label')"
+                  :suffix="t('catalog.advanced.advanced.timeout.unit')"
                 />
               </div>
             </div>
             <div v-else>
-              <div><Checkbox v-model="openApi" :label="t('catalog.chart.advanced.openapi')" /></div>
-              <div><Checkbox v-model="hooks" :label="t('catalog.chart.advanced.hooks')" /></div>
-              <div><Checkbox v-model="crds" :label="t('catalog.chart.advanced.crds')" /></div>
-              <div><Checkbox v-model="wait" :label="t('catalog.chart.advanced.wait')" /></div>
+              <div><Checkbox v-model="openApi" :label="t('catalog.advanced.advanced.openapi')" /></div>
+              <div><Checkbox v-model="hooks" :label="t('catalog.advanced.advanced.hooks')" /></div>
+              <div><Checkbox v-model="crds" :label="t('catalog.advanced.advanced.crds')" /></div>
+              <div><Checkbox v-model="wait" :label="t('catalog.advanced.advanced.wait')" /></div>
               <div style="display: inline-block; max-width: 400px;">
                 <UnitInput
                   v-model.number="timeout"
-                  :label="t('catalog.chart.advanced.timeout.label')"
-                  :suffix="t('catalog.chart.advanced.timeout.unit')"
+                  :label="t('catalog.advanced.advanced.timeout.label')"
+                  :suffix="t('catalog.advanced.advanced.timeout.unit')"
                 />
               </div>
             </div>

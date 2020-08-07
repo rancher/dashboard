@@ -3,7 +3,7 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { addParams } from '@/utils/url';
 import { allHash } from '@/utils/promise';
 import { clone } from '@/utils/object';
-import { findBy } from '@/utils/array';
+import { findBy, addObject } from '@/utils/array';
 import { stringify } from '@/utils/error';
 
 export const state = function() {
@@ -54,6 +54,37 @@ export const getters = {
 
       if ( chart ) {
         return clone(chart);
+      }
+    };
+  },
+
+  versionProviding(state, getters) {
+    return ({ repoType, repoName, gvr }) => {
+      const matching = getters.charts.filter((chart) => chart.provides.includes(gvr) )
+
+      if ( repoType && repoName ) {
+        matching.sort((a, b) => {
+          const aSameRepo = a.repoType === repoType && a.repoName === repoName ? 1 : 0;
+          const bSameRepo = b.repoType === repoType && b.repoName === repoName ? 1 : 0;
+
+          if ( aSameRepo && !bSameRepo )  {
+            return -1;
+          } else if ( !aSameRepo && bSameRepo ) {
+            return 1;
+          }
+
+          return 0;
+        });
+      }
+
+      if ( !matching  && !matching.length ) {
+        return;
+      }
+
+      const version = matching[0].versions.find((version) => version.annotations?.[CATALOG_ANNOTATIONS.PROVIDES] === gvr);
+
+      if ( version ) {
+        return clone(version);
       }
     };
   },
@@ -237,36 +268,40 @@ function addChart(map, chart, repo) {
     sideLabel = certifiedAnnotation;
   }
 
+  const repoType = (repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace');
+  const repoName = repo.metadata.name;
+
   if ( !obj ) {
     obj = {
       key,
       certified,
       sideLabel,
+      repoType,
+      repoName,
       certifiedSort:   CERTIFIED_SORTS[certified] || 99,
       icon:            chart.icon,
       chartName:       chart.name,
       description:     chart.description,
       repoKey:         repo._key,
-      repoName:        repo.name,
       versions:        [],
       deprecated:      !!chart.deprecated,
       hidden:          !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
       targetNamespace: chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
       targetName:      chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
+      provides:        [],
     };
-
-    if ( repo.type === CATALOG.CLUSTER_REPO ) {
-      obj.repoType = 'cluster';
-    } else {
-      obj.repoType = 'namespace';
-    }
-
-    obj.repoName = repo.metadata.name;
 
     map[key] = obj;
   }
 
   chart.key = `${key}/${chart.version}`;
+  chart.repoType = repoType;
+  chart.repoName = repoName;
+
+  const provides = chart.annotations?.[CATALOG_ANNOTATIONS.PROVIDES];
+  if ( provides ) {
+    addObject(obj.provides, provides);
+  }
 
   obj.versions.push(chart);
 }

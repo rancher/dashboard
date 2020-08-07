@@ -1,8 +1,8 @@
 <script>
+import Loading from '@/components/Loading';
+import Markdown from '@/components/Markdown';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import Markdown from '@/components/Markdown';
-import Loading from '@/components/Loading';
 
 export default {
   name: 'DetailRelease',

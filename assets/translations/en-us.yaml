@@ -63,19 +63,100 @@ suffix:
 ##############################
 # Components & Pages
 ##############################
+asyncButton:
+  default: 
+    action: Action
+    waiting: Waiting
+    success: Success
+    error: Error
+  create:
+    action:  'Create'
+    waiting: 'Creating&hellip;'
+    success: 'Created'
+  apply:
+    action:  'Apply'
+    waiting: 'Applying&hellip;'
+    success: 'Applied'
+  edit:
+    action:  'Save'
+    waiting: 'Saving&hellip;'
+    success: 'Saved'
+  delete:
+    action:  'Delete'
+    waiting: 'Deleting&hellip;'
+    success: 'Deleted'
+  continue:
+    action:  'Continue'
+    waiting: 'Saving&hellip;'
+    success: 'Saved'
+  done:
+    action:  'Done'
+    waiting: 'Saving&hellip;'
+    success: 'Saved'
+  enable:
+    action:  'Enable'
+    waiting: 'Enabling&hellip;'
+    success: 'Enabled'
+  download:
+    action:  'Download'
+    waiting: 'Downloading&hellip;'
+    success: 'Saving'
+  finish:
+    action:  'Finish'
+    waiting: 'Finishing&hellip;'
+    success: 'Finished'
+  install:
+    action:  'Install'
+    waiting: 'Starting&hellip;'
+    success: 'Installing'
+  upgrade:
+    action:  'Upgrade'
+    waiting: 'Starting&hellip;'
+    success: 'Upgrading'
+  refresh:
+    actionIcon:  'refresh'
+    waitingIcon: 'refresh'
+    successIcon: 'checkmark'
+    errorIcon:   'error'
+
 catalog:
   repo:
     url:
       label: URL
       placeholder: e.g. https://charts.rancher.io
-  chart:
+  charts:
+    certified:
+      rancher: Rancher
+      partner: Partner
+      other: Other
+    search: Filter
+  install:
+    header:
+      upgrade: Upgrade {name}
+      install: Install {name}
+      installGeneric: Install Chart
+    section:
+      readme: Chart ReadMe
+      chartOptions: Chart Options
+      valuesYaml: Values YAML
+      advanced: Advanced
     advanced:
-      openapi: Validate OpenAPI schema
-      hooks: Execute chart hooks
+      atomic: Atomic
+      cleanupOnFail: Cleanup on Failure
       crds: Apply custom resource definitions
+      dryRun: Dry Run
+      force: Force
+      historyMax:
+        label: Keep last
+        unit: revisions
+      hooks: Execute chart hooks
+      openapi: Validate OpenAPI schema
+      resereuseValues: Reuse Values
+      resetValues: Reset Values
       timeout:
         label: Timeout
         unit: sec
+      wait: Wait
 
 cluster:
   nodeDriver:

@@ -35,16 +35,15 @@ export function init(store) {
     icon:       'compass',
     group:      'Root',
     namespaced:  false,
-    name:        'launch',
+    name:        'charts',
     weight:      100,
-    route:       { name: 'c-cluster-apps' },
-    exact:       true,
+    route:       { name: 'c-cluster-apps-charts' },
   });
 
   weightType(CATALOG.RELEASE, 200);
 
   basicType([
-    'launch',
+    'charts',
     CATALOG.RELEASE,
     CATALOG.OPERATION,
   ]);
