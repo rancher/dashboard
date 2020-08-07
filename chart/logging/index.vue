@@ -15,12 +15,12 @@ export default {
   data() {
     const providers = [
       {
-        label: 'Kafka',
-        value: 'kafka'
-      },
-      {
         label: 'Elasticsearch',
         value: 'elasticsearch'
+      },
+      {
+        label: 'Kafka',
+        value: 'kafka'
       },
       {
         label: 'Splunk',
@@ -33,6 +33,7 @@ export default {
     ];
     const provider = providers[0].value;
 
+    this.value[this.providerKey(provider)] = this.value[this.providerKey(provider)] || {};
     this.value[this.providerKey(provider)].enabled = true;
 
     return {
@@ -49,6 +50,7 @@ export default {
 
   watch: {
     provider(newValue, oldValue) {
+      this.value[this.providerKey(newValue)] = this.value[this.providerKey(newValue)] || {};
       this.value[this.providerKey(newValue)].enabled = true;
       this.value[this.providerKey(oldValue)].enabled = false;
     }
