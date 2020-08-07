@@ -424,6 +424,30 @@ logging:
       label: Client Key
       placeholder: Paste in the client key
     clientKeyPass: Client Key Pass
+  kafka:
+    brokers: Brokers
+    defaultTopic: Default Topic
+    sasslOverSsl: SASL Over SSL
+    scramMechanism: Scram Mechanism
+    username: Username
+    password: Password
+    sslCaCert: SSL CA Cert
+    sslClientCert: SSL Client Cert
+    sslClientCertChain: SSL Client Cert Chain
+    sslClientCertKey: SSL Client Cert Key
+  splunk:
+    host: Host
+    port: Port
+    protocol: Protocol
+    index: Index
+    token: Token
+    clientCert: Client Cert
+    clientKey: Client Key
+    insecureSsl: Insecure SSL
+  syslog:
+    address: Address
+    cluster: Cluster
+    rootCa: Root CA
 
 monitoring:
   accessModes:

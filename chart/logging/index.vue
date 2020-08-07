@@ -13,10 +13,24 @@ export default {
   },
 
   data() {
-    const providers = [{
-      label: 'Elasticsearch',
-      value: 'elasticsearch'
-    }];
+    const providers = [
+      {
+        label: 'Kafka',
+        value: 'kafka'
+      },
+      {
+        label: 'Elasticsearch',
+        value: 'elasticsearch'
+      },
+      {
+        label: 'Splunk',
+        value: 'splunk'
+      },
+      {
+        label: 'Syslog',
+        value: 'syslog'
+      }
+    ];
     const provider = providers[0].value;
 
     this.value[this.providerKey(provider)].enabled = true;
