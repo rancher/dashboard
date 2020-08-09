@@ -423,6 +423,7 @@ export default {
       :subtypes="[]"
       :finish-button-mode="(existing ? 'upgrade' : 'install')"
       :errors="errors"
+      :cancel-event="true"
       @error="e=>errors = e"
       @finish="finish($event)"
       @cancel="cancel"
