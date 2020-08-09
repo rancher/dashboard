@@ -4,7 +4,8 @@ import {
   removeObject, removeObjects, removeAt, clear,
   isArray,
   filterBy, findBy,
-  sameContents, uniq
+  sameContents, uniq,
+  replaceWith,
 } from '@/utils/array';
 
 const obj1 = { foo: 'bar' };
@@ -126,7 +127,7 @@ test('clear', (t) => {
 
   clear(ary);
   t.is(ary.length, 0, "It's empty now");
-  t.is(ary, copy, "It's still the same aray");
+  t.is(ary, copy, "It's still the same array");
 });
 
 test('filterBy', (t) => {
@@ -219,4 +220,14 @@ test('uniq', (t) => {
 
   t.not(a, b, 'Returns a new array');
   t.deepEqual(b, [obj1, obj2], 'Removes duplicates');
+});
+
+test('replaceWith', (t) => {
+  const a = [1, 2, 3];
+  const b = a;
+  const c = [4, 5, 6];
+
+  replaceWith(a, ...c);
+  t.is(a, b, "It's still the same array");
+  t.true(sameContents(a, c), 'Contains the new stuff');
 });

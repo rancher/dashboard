@@ -21,6 +21,10 @@ test('getter', (t) => {
   g = getter('baz.bat');
 
   t.deepEqual( g(obj), obj.baz.bat, 'Gets nested keys');
+
+  g = getter('baz."with.dots"');
+
+  t.deepEqual( g(obj), obj.baz['with.dots'], 'Gets dotted keys');
 });
 
 test('clone', (t) => {
