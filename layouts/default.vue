@@ -276,7 +276,6 @@ export default {
 
       .package.depth-0 {
         .root .label {
-          padding-left: 5px;
         }
 
         &.expanded > .body {
@@ -289,7 +288,6 @@ export default {
       }
 
       H6, .root.child .label {
-        font-size: 14px;
         margin: 0;
         letter-spacing: 0.1em;
         line-height: initial;
