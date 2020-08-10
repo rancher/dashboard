@@ -39,8 +39,8 @@ export default {
       <label>{{ t('glance.nodes.total.label') }}</label>
     </div>
     <div class="tile">
-      <h1><LiveDate :value="created" :add-suffix="true" :show-tooltip="false" /></h1>
-      <label>{{ t('glance.created') }}</label>
+      <h1><LiveDate :value="created" :add-suffix="true" :show-tooltip="true" /></h1>
+      <label>{{ t('glance.age') }}</label>
     </div>
   </GradientBox>
 </template>

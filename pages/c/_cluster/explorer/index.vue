@@ -97,7 +97,11 @@ export default {
   },
 
   data() {
-    const reason = { ...REASON, ...{ canBeVariable: true } };
+    const reason = {
+      ...REASON,
+      ...{ canBeVariable: true },
+      width: 100
+    };
     const message = { ...MESSAGE, ...{ canBeVariable: true } };
     const eventHeaders = [
       reason,
@@ -108,6 +112,7 @@ export default {
         sort:          ['involvedObject.kind', 'involvedObject.name'],
         canBeVariable: true,
         formatter:     'LinkDetail',
+        width:         200
       },
       message,
       {

@@ -45,6 +45,11 @@ export default {
     },
     clickable() {
       return !!this.location;
+    },
+    showAlerts() {
+      const total = this.warningCount + this.errorCount;
+
+      return total > 0;
     }
   },
   methods: {
@@ -67,7 +72,7 @@ export default {
     <div class="data">
       <h1>{{ useful }}</h1>
       <label>{{ name }}</label>
-      <div class="alerts">
+      <div v-if="showAlerts" class="alerts">
         <span class="text-warning">
           <i class="icon icon-warning" /><span class="count">{{ warningCount }}</span>
         </span>
@@ -128,6 +133,7 @@ export default {
             position: absolute;
             right: $padding;
             top: $padding / 2;
+            font-size: 15px;
 
             .text-error {
               margin-left: 5px;

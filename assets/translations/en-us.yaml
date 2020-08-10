@@ -319,8 +319,8 @@ gatekeeperIndex:
   violations: Violations
 
 glance:
+  age: Age
   cpu: CPU Usage
-  created: Created
   memory: Memory
   nodes:
     total:
