@@ -210,7 +210,6 @@ export default {
     width: 300px;
 
     .vs__dropdown-option {
-      font-size: 16px;
       padding: 10px;
       text-decoration: none;
 
