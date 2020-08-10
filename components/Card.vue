@@ -45,30 +45,33 @@ export default {
 
 <style lang='scss'>
  .card-container {
-   padding: 10px;
    border: 1px solid  var(--border);
    background: var(--nav-bg);
    display: grid;
-   padding: 1.25rem;
-   grid-gap: .75rem;
    & .card-body {
      overflow: hidden;
+     padding: 20px;
    }
    & .card-actions {
      align-self: end;
      display: flex;
      justify-content: center;
+     padding: 20px;
 
      button {
        margin: 0 5px;
      }
    }
    & .card-title {
+     padding: 20px;
      display: flex;
      justify-content: space-between;
      align-items: center;
-     padding-bottom: 0.5rem;
-     border-bottom: 1px solid var(--border);
+     background: var(--card-header);
+
+     h4 {
+       margin: 0;
+     }
    }
  }
 </style>
