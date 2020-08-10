@@ -12,7 +12,6 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
 import HealthCheck from '@/components/form/HealthCheck';
-import EnvVars from '@/components/form/EnvVars';
 import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/components/form/Networking';
@@ -24,12 +23,11 @@ import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 import KeyValue from '@/components/form/KeyValue';
 import Tabbed from '@/components/Tabbed';
 import { mapGetters } from 'vuex';
-import ShellInput from '@/components/form/ShellInput';
-import Checkbox from '@/components/form/Checkbox';
 import NodeScheduling from '@/components/form/NodeScheduling';
 import PodScheduling from '@/components/form/PodScheduling';
 import Tolerations from '@/components/form/Tolerations';
 import CruResource from '@/components/CruResource';
+import Command from '@/components/form/Command';
 
 export default {
   name:       'CruWorkload',
@@ -37,8 +35,6 @@ export default {
     NameNsDescription,
     LabeledSelect,
     LabeledInput,
-    ShellInput,
-    Checkbox,
     KeyValue,
     Tabbed,
     Tab,
@@ -46,14 +42,14 @@ export default {
     Networking,
     Job,
     HealthCheck,
-    EnvVars,
     Security,
     WorkloadPorts,
     ContainerResourceLimit,
     PodScheduling,
     NodeScheduling,
     Tolerations,
-    CruResource
+    CruResource,
+    Command
   },
 
   mixins: [CreateEditView],
@@ -524,14 +520,14 @@ export default {
       @error="e=>errors = e"
     >
       <template #define>
+        <div class="row">
+          <div class="col span-12">
+            <NameNsDescription :value="value" :mode="mode" />
+          </div>
+        </div>
         <Tabbed :show-more-label="t('workload.showTabs')" :hide-more-label="t('workload.hideTabs')" :side-tabs="true">
           <Tab :label="t('workload.container.titles.container')" name="container">
             <div class="bordered-section">
-              <div class="row">
-                <div class="col span-12">
-                  <NameNsDescription :value="value" :mode="mode" />
-                </div>
-              </div>
               <div v-if="isCronJob || isReplicable" class="row">
                 <div v-if="isCronJob" class="col span-6">
                   <LabeledInput v-model="spec.schedule" :mode="mode" :label="t('workload.cronSchedule')" />
@@ -584,38 +580,7 @@ export default {
 
             <div class="bordered-section">
               <h3>{{ t('workload.container.titles.command') }}</h3>
-              <div class="row">
-                <div class="col span-5">
-                  <slot name="entrypoint">
-                    <ShellInput
-                      v-model="container.command"
-                      :mode="mode"
-                      :label="t('workload.container.command.command')"
-                      placeholder="e.g. /bin/sh"
-                    />
-                  </slot>
-                </div>
-                <div class="col span-5">
-                  <slot name="command">
-                    <ShellInput
-                      v-model="container.args"
-                      :mode="mode"
-                      :label="t('workload.container.command.args')"
-                      placeholder="e.g. /usr/sbin/httpd -f httpd.conf"
-                    />
-                  </slot>
-                </div>
-                <div class="col span-2">
-                  <Checkbox v-model="container.tty" label="TTY" :mode="mode" />
-                </div>
-              </div>
-            </div>
-
-            <div class="bordered-section">
-              <h3>{{ t('workload.container.titles.env') }}</h3>
-              <div class="row">
-                <EnvVars v-model="container" :mode="mode" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" />
-              </div>
+              <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
             </div>
 
             <div class="bordered-section">
@@ -678,7 +643,7 @@ export default {
             <PodScheduling :mode="mode" :value="podTemplateSpec" />
           </Tab>
           <Tab :can-toggle="true" :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
-            <NodeScheduling :mode="mode" :value="podTemplateSpec" />
+            <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
           </Tab>
           <Tab :can-toggle="true" label="Scaling/Upgrade Policy" name="upgrading">
             <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />

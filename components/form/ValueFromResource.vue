@@ -170,8 +170,8 @@ export default {
 </script>
 
 <template>
-  <div class="row" @input="updateRow">
-    <div class="col span-5-of-23">
+  <div @input="updateRow">
+    <div>
       <v-select
         v-model="type"
         :multiple="false"
@@ -185,7 +185,7 @@ export default {
       />
     </div>
     <template v-if="type === 'configMapKeyRef' || type === 'secretRef' || type === 'secretKeyRef'">
-      <div class="col span-5-of-23">
+      <div>
         <v-select
           v-model="referenced"
           :options="sourceOptions"
@@ -197,7 +197,7 @@ export default {
           @input="updateRow"
         />
       </div>
-      <div class="col span-5-of-23">
+      <div>
         <v-select
           v-model="key"
           :disabled="type==='secretRef'"
@@ -211,32 +211,32 @@ export default {
       </div>
     </template>
     <template v-else-if="type==='resourceFieldRef'">
-      <div class="col span-5-of-23">
+      <div>
         <input v-model="refName" :placeholder="t('workload.container.command.fromResource.source.placeholder')" :mode="mode" />
       </div>
 
-      <div class="col span-5-of-23">
+      <div>
         <input v-model="key" :placeholder="t('workload.container.command.fromResource.key.placeholder')" :mode="mode" />
       </div>
     </template>
     <template v-else>
-      <div class="col span-5-of-23">
+      <div>
         <input v-model="fieldPath" :placeholder="t('workload.container.command.fromResource.key.placeholder')" :mode="mode" />
       </div>
 
-      <div class="col span-5-of-23">
+      <div>
         <input value="n/a" :placeholder="t('workload.container.command.fromResource.key.placeholder')" disabled :mode="mode" />
       </div>
     </template>
-    <div class="col span-1-of-23">
+    <div>
       <div class="as">
         <t k="workload.container.command.as" />
       </div>
     </div>
-    <div class="col span-5-of-23">
+    <div>
       <input v-model="name" :mode="mode" />
     </div>
-    <div class="col span-2-of-23">
+    <div>
       <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link remove" @click="$emit('input', { value:null })">
         <t k="generic.remove" />
       </button>
@@ -245,11 +245,6 @@ export default {
 </template>
 
 <style lang ="scss" scoped>
-  .row{
-    display: flex;
-    align-items: center;
-  }
-
   .as {
     text-align:center;
     color: var(--input-label);

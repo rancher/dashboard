@@ -189,71 +189,64 @@ export default {
       <label :style="{'color': 'var(--input-label)', 'font-size':'14px'}">{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" /></label>
     </div>
 
-    <table v-if="rows.length" :class="tableClass">
-      <thead v-if="showHeader">
-        <tr>
-          <th v-if="padLeft" class="left"></th>
-          <slot name="thead-columns">
-            <th class="value">
-              {{ valueLabel }}
-            </th>
-          </slot>
-          <th v-if="showRemove" class="remove"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(row, idx) in rows"
-          :key="idx"
-          class="box"
+    <template v-if="rows.length">
+      <div v-if="showHeader">
+        <slot name="column-headers">
+          <span class="value">
+            {{ valueLabel }}
+          </span>
+        </slot>
+      </div>
+      <div
+        v-for="(row, idx) in rows"
+        :key="idx"
+        class="box"
+      >
+        <slot
+          name="columns"
+          :queueUpdate="queueUpdate"
+          :i="idx"
+          :rows="rows"
+          :row="row"
+          :mode="mode"
+          :isView="isView"
         >
-          <td v-if="padLeft" class="left"></td>
-          <slot
-            name="columns"
-            :queueUpdate="queueUpdate"
-            :i="idx"
-            :rows="rows"
-            :row="row"
-            :mode="mode"
-            :isView="isView"
-          >
-            <td class="value">
-              <slot
-                name="value"
-                :row="row"
-                :mode="mode"
-                :isView="isView"
-                :queue-update="queueUpdate"
-              >
-                <span v-if="isView">{{ row.value }}</span>
-                <TextAreaAutoGrow
-                  v-else-if="valueMultiline"
-                  ref="value"
-                  v-model="row.value"
-                  :placeholder="valuePlaceholder"
-                  @input="queueUpdate"
-                />
-                <input
-                  v-else
-                  ref="value"
-                  v-model="row.value"
-                  :placeholder="valuePlaceholder"
-                  @input="queueUpdate"
-                />
-              </slot>
-            </td>
-          </slot>
-          <td v-if="showRemove" class="remove">
-            <slot name="remove-button" :remove="() => remove(idx)">
-              <button type="button" class="btn role-link" @click="remove(idx)">
-                Remove
-                {{ removeLabel }}
-              </button>
+          <div class="value">
+            <slot
+              name="value"
+              :row="row"
+              :mode="mode"
+              :isView="isView"
+              :queue-update="queueUpdate"
+            >
+              <span v-if="isView">{{ row.value }}</span>
+              <TextAreaAutoGrow
+                v-else-if="valueMultiline"
+                ref="value"
+                v-model="row.value"
+                :placeholder="valuePlaceholder"
+                @input="queueUpdate"
+              />
+              <input
+                v-else
+                ref="value"
+                v-model="row.value"
+                :placeholder="valuePlaceholder"
+                @input="queueUpdate"
+              />
             </slot>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </div>
+        </slot>
+        <div v-if="showRemove" class="remove">
+          <slot name="remove-button" :remove="() => remove(idx)">
+            <button type="button" class="btn role-link" @click="remove(idx)">
+              Remove
+              {{ removeLabel }}
+            </button>
+          </slot>
+        </div>
+      </div>
+    </template>
     <div v-else-if="mode==='view'">
       n/a
     </div>
@@ -274,37 +267,18 @@ export default {
   .title {
     margin-bottom: 10px;
 
-    .read-from-file {
-      float: right;
-    }
-  }
-
-  TABLE {
-    width: 100%;
-    border-spacing: 0;
-  }
-
-  TH {
-    text-align: left;
-    font-size: 12px;
-    font-weight: normal;
-    color: var(--input-label);
   }
 
   .box {
-    border-radius: var(--border-radius);
-  }
-
-  .api-groups, .kinds {
-    padding: 40px 20px 20px 20px;
-  }
-
-  .left {
-    width: #{$remove}px;
-  }
-
-  .value {
-    vertical-align: top;
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    .value {
+      flex: 1;
+      INPUT {
+        height: 50px;
+      }
+    }
   }
 
   .remove {
@@ -314,8 +288,6 @@ export default {
   }
 
   .footer {
-    margin-top: 10px;
-
     .protip {
       float: right;
       padding: 5px 0;
