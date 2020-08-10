@@ -10,6 +10,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import ResourceTabs from '@/components/form/ResourceTabs';
+import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
 
 const types = [
   { label: 'Certificate', value: TLS },
@@ -25,6 +26,7 @@ export default {
 
   components: {
     KeyValue,
+    FileSelector,
     Footer,
     LabeledInput,
     LabeledSelect,
@@ -160,38 +162,8 @@ export default {
       }
       this.save(buttonCb);
     },
-
-    fileUpload(field) {
-      this.toUpload = field;
-      this.$refs.uploader.click();
-    },
-
-    fileChange(event) {
-      const input = event.target;
-      const handles = input.files;
-      const names = [];
-
-      if ( handles ) {
-        for ( let i = 0 ; i < handles.length ; i++ ) {
-          const reader = new FileReader();
-
-          reader.onload = (loaded) => {
-            const value = loaded.target.result;
-
-            this[this.toUpload] = value;
-          };
-
-          reader.onerror = (err) => {
-            this.$dispatch('growl/fromError', { title: 'Error reading file', err }, { root: true });
-          };
-
-          names[i] = handles[i].name;
-          reader.readAsText(handles[i]);
-        }
-
-        input.value = '';
-      }
-    },
+    onKeySelected: createOnSelected('key'),
+    onCrtSelected: createOnSelected('crt'),
   }
 };
 </script>
@@ -240,15 +212,11 @@ export default {
           :mode="mode"
           placeholder="Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
         />
-        <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('key')">
-          <t k="secret.certificate.readFromFile" />
-        </button>
+        <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onKeySelected" />
       </div>
       <div class="col span-6">
         <LabeledInput v-model="crt" type="multiline" :label="t('secret.certificate.caCertificate')" :mode="mode" placeholder="Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----" />
-        <button type="button" class="btn btn-sm bg-primary mt-10" @click="fileUpload('crt')">
-          <t k="secret.certificate.readFromFile" />
-        </button>
+        <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCrtSelected" />
       </div>
     </div>
 
@@ -266,13 +234,6 @@ export default {
     </div>
     <div class="spacer"></div>
     <ResourceTabs v-model="value" :mode="mode" />
-
-    <input
-      ref="uploader"
-      type="file"
-      class="hide"
-      @change="fileChange"
-    />
 
     <Footer :mode="mode" :errors="errors" @save="saveSecret" @done="done" />
   </form>

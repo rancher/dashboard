@@ -5,10 +5,12 @@ import Checkbox from '@/components/form/Checkbox';
 import KeyValue from '@/components/form/KeyValue';
 import YamlEditor from '@/components/YamlEditor';
 import { mapGetters } from 'vuex';
+import FileSelector from '@/components/form/FileSelector';
 
 export default {
   components: {
     Checkbox,
+    FileSelector,
     KeyValue,
     YamlEditor,
   },
@@ -63,6 +65,10 @@ export default {
       }
       this.customAnswers = e;
       Object.assign(this.value, e);
+    },
+
+    onFileSelected(value) {
+      this.$refs['yaml-editor'].updateValue(value);
     }
   }
 };
@@ -112,9 +118,7 @@ export default {
         :value="value.overlayFile"
         @onInput="valuesChanged"
       />
-      <button class="btn role-primary  btn-sm" type="button" @click="$refs['yaml-editor'].readFromFile()">
-        Read From File
-      </button>
+      <FileSelector class="role-primary  btn-sm" :label="t('generic.readFromFile')" @selected="onFileSelected" />
     </div>
   </div>
 </template>

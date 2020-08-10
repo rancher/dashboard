@@ -25,6 +25,11 @@ export default {
       default: false,
     },
 
+    includeFileName: {
+      type:    Boolean,
+      default: false,
+    },
+
     showGrowlError: {
       type:    Boolean,
       default: true
@@ -71,8 +76,10 @@ export default {
 
         reader.onload = (ev) => {
           const value = ev.target.result;
+          const name = file.name;
+          const fileContents = this.includeFileName ? { value, name } : value;
 
-          resolve(value);
+          resolve(fileContents);
         };
 
         reader.onerror = (err) => {

@@ -12,6 +12,7 @@ import { get } from '@/utils/object';
 import CodeMirror from '@/components/CodeMirror';
 import { mapGetters } from 'vuex';
 import ButtonDropdown from '@/components/ButtonDropdown';
+import FileSelector from '@/components/form/FileSelector';
 
 const LARGE_LIMIT = 2 * 1024;
 
@@ -28,7 +29,8 @@ export default {
     TextAreaAutoGrow,
     ClickExpand,
     CodeMirror,
-    ButtonDropdown
+    ButtonDropdown,
+    FileSelector
   },
 
   props: {
@@ -260,36 +262,8 @@ export default {
       this.$set(this, 'rows', cleaned);
     },
 
-    readFromFile() {
-      this.$refs.uploader.click();
-    },
-
-    fileChange(event) {
-      const input = event.target;
-      const handles = input.files;
-      const names = [];
-
-      this.removeEmptyRows();
-      if ( handles ) {
-        for ( let i = 0 ; i < handles.length ; i++ ) {
-          const reader = new FileReader();
-
-          reader.onload = (loaded) => {
-            const value = loaded.target.result;
-
-            this.add(names[i], value, !asciiLike(value));
-          };
-
-          reader.onerror = (err) => {
-            this.$dispatch('growl/fromError', { title: 'Error reading file', err }, { root: true });
-          };
-
-          names[i] = handles[i].name;
-          reader.readAsText(handles[i]);
-        }
-
-        input.value = '';
-      }
+    onFileSelected(fileContents) {
+      this.add(fileContents.name, fileContents.value, !asciiLike(fileContents.value));
     },
 
     download(idx) {
@@ -475,29 +449,18 @@ export default {
             <button v-if="showAdd" type="button" class="btn btn-sm add" @click="add()">
               {{ addLabel }}
             </button>
-            <button v-else type="button" class="btn btn-sm" @click="readFromFile">
-              {{ readLabel }}
-            </button>
+            <FileSelector v-else class="btn-sm" :label="t('generic.readFromFile')" @selected="onFileSelected" />
           </template>
           <template v-if="showRead && showAdd" #popover-content>
             <ul class="list-unstyled">
-              <li @click="readFromFile">
-                {{ readLabel }}
+              <li>
+                <FileSelector class="btn-sm role-link" :label="readLabel" :include-file-name="true" @selected="onFileSelected" />
               </li>
             </ul>
           </template>
         </ButtonDropdown>
       </slot>
     </div>
-
-    <input
-      ref="uploader"
-      type="file"
-      :accept="readAccept"
-      :multiple="readMultiple"
-      class="hide"
-      @change="fileChange"
-    />
   </div>
 </template>
 
@@ -505,6 +468,11 @@ export default {
 
 .key-value {
   width: 100%;
+
+  .file-selector.role-link {
+    text-transform: initial;
+    padding: 0;
+  }
 
   .kv-row{
     display: grid;

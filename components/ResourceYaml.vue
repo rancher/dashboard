@@ -205,8 +205,8 @@ export default {
       }
     },
 
-    readFromFile() {
-      this.$refs.yamleditor.readFromFile();
+    updateValue(value) {
+      this.$refs.yamleditor.updateValue(value);
     },
 
     preview() {
