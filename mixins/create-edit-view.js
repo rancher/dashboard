@@ -75,6 +75,10 @@ export default {
       return this.$store.getters['cluster/schemaFor'](this.value.type);
     },
 
+    isNamespaced() {
+      return this.schema?.attributes?.namespaced || false;
+    },
+
     labels: {
       get() {
         return this.value?.labels;

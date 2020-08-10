@@ -155,21 +155,28 @@ export const mutations = {
 
 export const actions = {
   async load({
-    state, getters, commit, dispatch
+    state, getters, rootGetters, commit, dispatch
   }, { force, reset } = {}) {
-    const hash = await allHash({
-      cluster:    dispatch('cluster/findAll', { type: CATALOG.CLUSTER_REPO }, { root: true }),
-      namespaced: dispatch('cluster/findAll', { type: CATALOG.REPO }, { root: true }),
-    });
+
+    let promises = {};
+    if ( rootGetters['cluster/schemaFor'](CATALOG.CLUSTER_REPO) ) {
+      promises.cluster = dispatch('cluster/findAll', { type: CATALOG.CLUSTER_REPO }, { root: true });
+    }
+
+    if ( rootGetters['cluster/schemaFor'](CATALOG.REPO) ) {
+      promise.namespaced = dispatch('cluster/findAll', { type: CATALOG.REPO }, { root: true });
+    }
+
+    const hash = await allHash(promises);
 
     commit('setRepos', hash);
 
     const repos = getters['repos'];
     const loaded = [];
-    const promises = [];
+    promises = [];
 
     for ( const repo of repos ) {
-      if ( force === true || !getters.isLoaded(repo) ) {
+      if ( (force === true || !getters.isLoaded(repo)) && repo.canLoad ) {
         console.info('Loading index for repo', repo.name, `(${repo._key})`); // eslint-disable-line no-console
         promises.push(repo.followLink('index'));
       }

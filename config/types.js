@@ -68,11 +68,11 @@ export const METRIC = {
 };
 
 export const CATALOG = {
-  CLUSTER_REPO: 'catalog.cattle.io.clusterrepo',
-  OPERATION:    'catalog.cattle.io.operation',
-  RELEASE:      'catalog.cattle.io.release',
-  REPO:         'catalog.cattle.io.repo',
-  COMPONENT:    'catalog.cattle.io/ui-component'
+  CLUSTER_REPO:   'catalog.cattle.io.clusterrepo',
+  OPERATION:      'catalog.cattle.io.operation',
+  RELEASE:        'catalog.cattle.io.release',
+  REPO:           'catalog.cattle.io.repo',
+  COMBINED_REPOS: 'catalog-repo',
 };
 
 // --------------------------------------

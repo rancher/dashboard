@@ -109,7 +109,7 @@ export default {
         repoType, repoName, chartName, versionName
       });
 
-      const component = this.version?.annotations?.[CATALOG.COMPONENT];
+      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
 
       if ( component ) {
         if ( this.$store.getters['catalog/haveComponent'](component) ) {

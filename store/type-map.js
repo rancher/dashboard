@@ -267,8 +267,8 @@ export const getters = {
   // 1 ) Getting info
   // ----------------------------------------------------------------------------
   // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
-  // @TODO use translations instead
   labelFor(state, getters, rootState, rootGetters) {
+    // Special -1 count is used for the label on the nav if present, instead of the plural (99)
     return (schema, count=1) => {
       return _applyMapping(schema, state.typeMappings, 'id', false, () => {
         const key = `typeLabel."${ schema.id }"`;
@@ -599,7 +599,7 @@ export const getters = {
       for ( const schema of schemas ) {
         const attrs = schema.attributes || {};
         const count = counts[schema.id];
-        const label = getters.labelFor(schema);
+        const label = getters.labelFor(schema, -1);
         const weight = getters.typeWeightFor(label);
 
         if ( mode === BASIC ) {
