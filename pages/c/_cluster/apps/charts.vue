@@ -276,7 +276,7 @@ export default {
           text-align: center;
           writing-mode: tb;
           height: 100%;
-          padding: 0 1px;
+          padding: 0 2px;
           display: block;
           white-space: no-wrap;
           text-overflow: ellipsis;
@@ -308,6 +308,7 @@ export default {
         .side-label {
           background-color: var(--app-rancher-accent);
           color: var(--app-rancher-accent-text);
+          font-size: 10px;;
         }
         &:hover {
           background: var(--app-rancher-accent);

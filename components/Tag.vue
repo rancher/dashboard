@@ -15,5 +15,6 @@ export default {};
     color: var(--tag-primary);
     background-color: var(--tag-bg);
     padding: 2px 6px;
+    font-size: 10px;
   }
 </style>

@@ -101,7 +101,7 @@
   --sortable-table-group-label: #{$lighter};
 
   --tag-primary: #{$primary};
-  --tag-bg: #{darken($primary, 35%)};
+  --tag-bg: #{rgba($primary, 0.2)};
 
   --popover-bg: var(--body-bg);
   --popover-border: var(--border);
