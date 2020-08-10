@@ -15,6 +15,7 @@ generic:
   enabled: Enabled
   na: n/a
   name: Name
+  readFromFile: Read from File
   remove: Remove
   resource: |
     {count, plural,
@@ -578,7 +579,6 @@ secret:
     issuer: Issuer
     plusMore: "+ {n} more"
     privateKey: Private Key
-    readFromFile: Read from File
   data: Data
   registry:
     address: Address

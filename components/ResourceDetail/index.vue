@@ -10,6 +10,7 @@ import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
+import FileSelector from '@/components/form/FileSelector';
 import GenericResourceDetail from './Generic';
 
 // Components can't have asyncData, only pages.
@@ -154,7 +155,7 @@ export const watchQuery = [MODE, AS_YAML];
 
 export default {
   components: {
-    DetailTop, ResourceYaml, Masthead, GenericResourceDetail
+    DetailTop, FileSelector, ResourceYaml, Masthead, GenericResourceDetail
   },
   mixins: [CreateEditView],
 
@@ -263,13 +264,13 @@ export default {
 
   methods: {
     // reading yamls from files is most easily tracked when done down in the component that handles other yaml-editing input, YamlEditor, but visually the button to upload lives up here
-    readFromFile() {
+    onFileSelected(value) {
       const component = this.$refs.resourceyaml;
 
       if (component) {
-        component.readFromFile();
+        component.updateValue(value);
       }
-    },
+    }
   }
 };
 </script>
@@ -286,9 +287,7 @@ export default {
     >
       <template v-if="!isView && asYaml" #right>
         <div class="text-right">
-          <button class="btn btn-sm role-primary" @click="readFromFile">
-            Read from File
-          </button>
+          <FileSelector ref="fileSelector" class="btn btn-sm role-primary" :label="t('generic.readFromFile')" @selected="onFileSelected" />
         </div>
       </template>
     </Masthead>
