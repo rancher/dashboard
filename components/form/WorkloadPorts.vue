@@ -105,88 +105,86 @@ export default {
 </script>
 
 <template>
-  <div>
-    <table v-if="rows.length" class="fixed">
-      <thead>
-        <tr>
-          <th v-if="padLeft" class="left"></th>
-          <th class="portName">
-            <t k="workload.container.ports.name" />
-          </th>
-          <th class="port">
-            <t k="workload.container.ports.containerPort" />
-            <span v-if="!isView" class="toggle-host-ports hand" @click="()=>showHostPorts=!showHostPorts">{{ showHostPorts ? 'Hide Host Ports' : 'Show Host Ports' }}</span>
-          </th>
-          <th v-if="showHostPorts" class="targetPort">
-            <t k="workload.container.ports.hostPort" />
-          </th>
-          <th class="protocol">
-            <t k="workload.container.ports.protocol" />
-          </th>
-          <th v-if="showRemove" class="remove"></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="(row, idx) in rows"
-          :key="idx"
-        >
-          <td v-if="padLeft" class="left"></td>
-          <td class="portName">
-            <span v-if="isView">{{ row.name }}</span>
-            <input
-              v-else
-              ref="name"
-              v-model="row.name"
-              @input="queueUpdate"
-            />
-          </td>
-          <td class="port">
-            <span v-if="isView">{{ row.containerPort }}</span>
-            <input
-              v-else
-              v-model.number="row.containerPort"
-              type="number"
-              min="1"
-              max="65535"
-              placeholder="e.g. 8080"
-              @input="queueUpdate"
-            />
-          </td>
-          <td v-if="showHostPorts" class="targetPort">
-            <span v-if="isView">{{ row.hostPort }}</span>
-            <input
-              v-else
-              ref="port"
-              v-model.number="row.hostPort"
-              type="number"
-              min="1"
-              max="65535"
-              placeholder="e.g. 80"
-              @input="queueUpdate"
-            />
-          </td>
-          <td class="protocol">
-            <span v-if="isView">{{ row.protocol }}</span>
-            <v-select
-              v-else
-              v-model="row.protocol"
-              :style="{'height':'50px'}"
-              class="inline"
-              :options="['TCP', 'UDP']"
-              :searchable="false"
-              :multiple="false"
-              @input="queueUpdate"
-            />
-          </td>
-          <td v-if="showRemove" class="remove">
-            <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
-              Remove
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div :style="{'width':'100%'}">
+    <div v-if="rows.length">
+      <div class="ports-headers" :class="{'show-host':showHostPorts}">
+        <span v-if="padLeft" class="left"></span>
+        <span class="portName">
+          <t k="workload.container.ports.name" />
+        </span>
+        <span class="port">
+          <t k="workload.container.ports.containerPort" />
+          <span v-if="!isView" class="toggle-host-ports hand" @click="()=>showHostPorts=!showHostPorts">{{ showHostPorts ? 'Hide Host Ports' : 'Show Host Ports' }}</span>
+        </span>
+        <span v-if="showHostPorts" class="targetPort">
+          <t k="workload.container.ports.hostPort" />
+        </span>
+        <span class="protocol">
+          <t k="workload.container.ports.protocol" />
+        </span>
+        <span v-if="showRemove" class="remove"></span>
+      </div>
+      <div
+        v-for="(row, idx) in rows"
+        :key="idx"
+        class="ports-row"
+        :class="{'show-host':showHostPorts}"
+      >
+        <div v-if="padLeft" class="left"></div>
+        <div class="portName">
+          <span v-if="isView">{{ row.name }}</span>
+          <input
+            v-else
+            ref="name"
+            v-model="row.name"
+            @input="queueUpdate"
+          />
+        </div>
+        <div class="port">
+          <span v-if="isView">{{ row.containerPort }}</span>
+          <input
+            v-else
+            v-model.number="row.containerPort"
+            type="number"
+            min="1"
+            max="65535"
+            placeholder="e.g. 8080"
+            @input="queueUpdate"
+          />
+        </div>
+        <div v-if="showHostPorts" class="targetPort">
+          <span v-if="isView">{{ row.hostPort }}</span>
+          <input
+            v-else
+            ref="port"
+            v-model.number="row.hostPort"
+            type="number"
+            min="1"
+            max="65535"
+            placeholder="e.g. 80"
+            @input="queueUpdate"
+          />
+        </div>
+        <div class="protocol">
+          <span v-if="isView">{{ row.protocol }}</span>
+          <v-select
+            v-else
+            v-model="row.protocol"
+            :style="{'height':'50px'}"
+            class="inline"
+            :options="['TCP', 'UDP']"
+            :searchable="false"
+            :multiple="false"
+            @input="queueUpdate"
+          />
+        </div>
+        <div v-if="showRemove" class="remove">
+          <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
     <div v-if="showAdd" class="footer">
       <button type="button" class="btn role-tertiary add mt-10" @click="add()">
         Add Port
@@ -207,58 +205,36 @@ export default {
     }
   }
 
-  TABLE {
-    width: 100%;
-        border-collapse: separate;
-    border-spacing: 5px 10px;
-  }
-
-  TH {
-    text-align: left;
-    font-size: 12px;
-    font-weight: normal;
-    color: var(--input-label);
-
-    &.port {
+  .ports-headers, .ports-row{
+    display: grid;
+    grid-template-columns: 38.87% 38.87% 10% 10%;
+    grid-column-gap: $column-gutter;
+    margin-bottom: 10px;
+    align-items: center;
+    & .port{
       display: flex;
       justify-content: space-between;
+    }
 
-      & .toggle-host-ports{
-        padding-right: 5px;
-        color: var(--primary)
-      }
+    &.show-host{
+      grid-template-columns: 33% 33% 10% 10% 10%;
     }
   }
 
-   TD {
-    padding-bottom: 10px;
+  .ports-headers {
+    color: var(--input-label);
   }
 
-  .left {
-    width: #{$remove}px;
+  .toggle-host-ports {
+    color: var(--primary);
   }
 
-  .protocol {
-    width: 100px;
+  .remove BUTTON {
+    padding: 0px;
   }
 
-  .hostPort, .expose {
-    width: #{$checkbox}px;
-    text-align: center;
-  }
-
-  .targetPort{
-    width: 100px;
-  }
-
-  .value {
-    vertical-align: top;
-  }
-
-  .remove {
-    vertical-align: middle;
-    text-align: right;
-    width: #{$remove}px;
+  .ports-row INPUT {
+    height: 50px;
   }
 
   .footer {
