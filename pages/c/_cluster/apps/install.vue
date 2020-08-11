@@ -109,24 +109,13 @@ export default {
         repoType, repoName, chartName, versionName
       });
 
-      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
-
-      if ( component ) {
-        if ( this.$store.getters['catalog/haveComponent'](component) ) {
-          this.valuesComponent = this.$store.getters['catalog/importComponent'](component);
-          const loaded = await this.valuesComponent();
-
-          this.valuesTabs = loaded?.default?.hasTabs || false;
-        } else {
-          this.valuesComponent = null;
-        }
-      } else {
-        this.valuesComponent = null;
+      if ( this.version && process.client ) {
+        await this.loadValuesComponent();
       }
 
       if ( this.existing ) {
         if ( !this.chartValues ) {
-          this.chartValues = merge({}, this.existing.spec.values || {});
+          this.chartValues = merge({}, this.existing.spec?.values || {});
           this.loadedVersion = this.version.key;
           this.valuesYaml = jsyaml.safeDump(this.chartValues);
         }
@@ -204,7 +193,7 @@ export default {
       if ( !isEqual(neu, old) ) {
         this.$fetch();
       }
-    }
+    },
   },
 
   mounted() {
@@ -217,7 +206,31 @@ export default {
     }
   },
 
+  created() {
+    this.loadValuesComponent();
+  },
+
   methods: {
+    async loadValuesComponent() {
+      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
+
+      if ( component ) {
+        if ( this.$store.getters['catalog/haveComponent'](component) ) {
+          this.valuesComponent = this.$store.getters['catalog/importComponent'](component);
+
+          const loaded = await this.valuesComponent();
+
+          this.valuesTabs = loaded?.default?.hasTabs || false;
+        } else {
+          this.valuesComponent = null;
+          this.valuesTabs = false;
+        }
+      } else {
+        this.valuesComponent = null;
+        this.valuesTabs = false;
+      }
+    },
+
     selectChart(key, version) {
       const chart = findBy(this.charts, 'key', key);
 
