@@ -111,7 +111,7 @@ export default {
       },
       message,
       {
-        align:         'center',
+        align:         'right',
         name:          'date',
         label:         'Date',
         value:         'lastTimestamp',
@@ -272,7 +272,7 @@ export default {
     cpuUsed() {
       return {
         total:  parseSi(this.cluster?.status?.capacity?.cpu),
-        useful: this.metricAggregations.cpu
+        useful: this.metricAggregations?.cpu
       };
     },
 

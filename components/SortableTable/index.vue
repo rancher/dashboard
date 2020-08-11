@@ -481,7 +481,7 @@ export default {
             because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
             the value of :class changes. -->
             <tr :key="get(row,keyField)" class="main-row" :data-cant-run-bulk-action-of-interest="actionOfInterest && !canRunBulkActionOfInterest(row)">
-              <td v-show="tableActions" class="row-check" align="middle">
+              <td v-if="tableActions" class="row-check" align="middle">
                 <Checkbox class="selection-checkbox" type="checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
               </td>
               <td v-if="subExpandColumn" class="row-expand" align="middle">
