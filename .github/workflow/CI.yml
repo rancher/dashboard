@@ -12,15 +12,6 @@ jobs:
       with:
         node-version: '10.x'
 
-    - name: Cache multipe paths
-      uses: actions/cache@v2
-      with:
-        path: |
-          ~/cache
-          !~/cache/exclude
-          **/node_modules
-        key: ${{ runner.os }} -${{ hashFiles('**/lockfiles') }}
-
     - name: Install Dependen
       run: npm install
 
