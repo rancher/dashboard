@@ -133,8 +133,10 @@
 
 .tooltip, .popover {
   &[aria-hidden='true'] {
+    // This removes it from the layout of ButtondropDown (so it doesn't render huge for SSR) but 
+    // still allows it to maintain it's dimensions for v-tooltip to calculate the appropriate position.
+    position: absolute;
     visibility: hidden;
-    display: none !important;
     opacity: 0;
     transition: opacity .15s, visibility .15s;
   }
