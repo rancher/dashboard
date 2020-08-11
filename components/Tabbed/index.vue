@@ -339,10 +339,6 @@ export default {
           color: var(--primary);
         }
 
-        &.can-toggle {
-          margin-left: 20px;
-        }
-
         A {
           color: var(--input-label);
         }
