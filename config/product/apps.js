@@ -39,7 +39,7 @@ export function init(store) {
     route:       { name: 'c-cluster-apps-charts' },
   });
 
-  weightType(CATALOG.RELEASE, 200);
+  weightType(CATALOG.RELEASE, 99, true);
 
   basicType([
     'charts',
