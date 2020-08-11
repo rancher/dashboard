@@ -1,0 +1,28 @@
+name: CI
+
+on:[push, pull_request]
+
+jobs:
+  Lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Node
+      uses: actions/steps-node@v1
+      with:
+        node-version: '10.x'
+
+    - name: Cache multipe paths
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/cache
+          !~/cache/exclude
+          **/node_modules
+        key: ${{ runner.os }} -${{ hashFiles('**/lockfiles') }}
+
+    - name: Install Dependen
+      run: npm install
+
+    - name: Lint Code
+      run: npm lint
