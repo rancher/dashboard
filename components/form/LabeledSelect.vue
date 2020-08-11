@@ -88,6 +88,9 @@ export default {
     },
 
     getOptionLabel(option) {
+      if (this.$attrs['get-option-label']) {
+        return this.$attrs['get-option-label'](option);
+      }
       if (get(option, this.optionLabel)) {
         if (this.localizedLabel) {
           return this.$store.getters['i18n/t'](get(option, this.optionLabel));

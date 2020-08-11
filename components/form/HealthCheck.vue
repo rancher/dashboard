@@ -1,6 +1,6 @@
 <script>
 import Probe from '@/components/form/Probe';
-import { _VIEW } from '../../config/query-params';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: { Probe },
