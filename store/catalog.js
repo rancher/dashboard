@@ -164,7 +164,7 @@ export const actions = {
     }
 
     if ( rootGetters['cluster/schemaFor'](CATALOG.REPO) ) {
-      promise.namespaced = dispatch('cluster/findAll', { type: CATALOG.REPO }, { root: true });
+      promises.namespaced = dispatch('cluster/findAll', { type: CATALOG.REPO }, { root: true });
     }
 
     const hash = await allHash(promises);

@@ -23,6 +23,10 @@ export default {
 
     this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
   },
+
+  data() {
+    return { rows: null };
+  },
 };
 </script>
 
