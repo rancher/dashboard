@@ -114,6 +114,9 @@ export default {
       if ( component ) {
         if ( this.$store.getters['catalog/haveComponent'](component) ) {
           this.valuesComponent = this.$store.getters['catalog/importComponent'](component);
+          const loaded = await this.valuesComponent();
+
+          this.valuesTabs = loaded?.default?.hasTabs || false;
         } else {
           this.valuesComponent = null;
         }
@@ -151,6 +154,7 @@ export default {
 
       errors:          null,
       valuesComponent: null,
+      valuesTabs:      false,
       chartValues:     null,
       loadedVersion:   null,
 
@@ -494,22 +498,36 @@ export default {
           :class="{'with-name': showNameEditor}"
           @changed="tabChanged($event)"
         >
-          <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="1">
+          <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="-1">
+            <!-- Negative weight makes it go before any valuesComponent tabs with no weight set -->
             <Markdown v-if="showReadme" ref="readme" v-model="versionInfo.readme" class="md readme" />
           </Tab>
 
-          <Tab v-if="valuesComponent" name="values-form" :label="t('catalog.install.section.chartOptions')" :weight="2">
+          <template v-if="valuesComponent">
             <component
               :is="valuesComponent"
-              v-if="valuesComponent"
+              v-if="valuesTabs"
               v-model="chartValues"
               :chart="chart"
               :version="version"
               :version-info="versionInfo"
             />
-          </Tab>
-
-          <Tab v-else name="values-yaml" :label="t('catalog.install.section.valuesYaml')" :weight="2">
+            <Tab
+              v-else
+              name="values-form"
+              :label="t('catalog.install.section.chartOptions')"
+            >
+              <component
+                :is="valuesComponent"
+                v-if="valuesComponent"
+                v-model="chartValues"
+                :chart="chart"
+                :version="version"
+                :version-info="versionInfo"
+              />
+            </Tab>
+          </template>
+          <Tab v-else name="values-yaml" :label="t('catalog.install.section.valuesYaml')">
             <YamlEditor
               ref="yaml"
               :scrolling="false"
@@ -518,41 +536,41 @@ export default {
             />
           </Tab>
 
-          <Tab name="advanced" :label="t('catalog.install.section.advanced')" :weight="3">
+          <Tab name="advanced" :label="t('catalog.install.section.advanced')" :weight="100">
             <div v-if="existing">
               <div><Checkbox v-model="atomic" :label="t('catalog.install.advanced.atomic')" /></div>
-              <div><Checkbox v-model="cleanupOnFail" :label="t('catalog.advanced.advanced.cleanupOnFail')" /></div>
-              <div><Checkbox v-model="dryRun" :label="t('catalog.advanced.advanced.dryRun')" /></div>
-              <div><Checkbox v-model="force" :label="t('catalog.advanced.advanced.force')" /></div>
-              <div><Checkbox v-model="hooks" :label="t('catalog.advanced.advanced.hooks')" /></div>
-              <div><Checkbox v-model="resetValues" :label="t('catalog.advanced.advanced.resetValues')" /></div>
-              <div><Checkbox v-model="reuseValues" :label="t('catalog.advanced.advanced.reuseValues')" /></div>
-              <div><Checkbox v-model="wait" :label="t('catalog.advanced.advanced.wait')" /></div>
+              <div><Checkbox v-model="cleanupOnFail" :label="t('catalog.install.advanced.cleanupOnFail')" /></div>
+              <div><Checkbox v-model="dryRun" :label="t('catalog.install.advanced.dryRun')" /></div>
+              <div><Checkbox v-model="force" :label="t('catalog.install.advanced.force')" /></div>
+              <div><Checkbox v-model="hooks" :label="t('catalog.install.advanced.hooks')" /></div>
+              <div><Checkbox v-model="resetValues" :label="t('catalog.install.advanced.resetValues')" /></div>
+              <div><Checkbox v-model="reuseValues" :label="t('catalog.install.advanced.reuseValues')" /></div>
+              <div><Checkbox v-model="wait" :label="t('catalog.install.advanced.wait')" /></div>
               <div style="display: inline-block; max-width: 400px;">
                 <UnitInput
                   v-model.number="historyMax"
-                  :label="t('catalog.advanced.advanced.historyMax.label')"
-                  :suffix="t('catalog.advanced.advanced.historyMax.unit')"
+                  :label="t('catalog.install.advanced.historyMax.label')"
+                  :suffix="t('catalog.install.advanced.historyMax.unit')"
                 />
               </div>
               <div style="display: inline-block; max-width: 400px;">
                 <UnitInput
                   v-model.number="timeout"
-                  :label="t('catalog.advanced.advanced.timeout.label')"
-                  :suffix="t('catalog.advanced.advanced.timeout.unit')"
+                  :label="t('catalog.install.advanced.timeout.label')"
+                  :suffix="t('catalog.install.advanced.timeout.unit')"
                 />
               </div>
             </div>
             <div v-else>
-              <div><Checkbox v-model="openApi" :label="t('catalog.advanced.advanced.openapi')" /></div>
-              <div><Checkbox v-model="hooks" :label="t('catalog.advanced.advanced.hooks')" /></div>
-              <div><Checkbox v-model="crds" :label="t('catalog.advanced.advanced.crds')" /></div>
-              <div><Checkbox v-model="wait" :label="t('catalog.advanced.advanced.wait')" /></div>
+              <div><Checkbox v-model="openApi" :label="t('catalog.install.advanced.openapi')" /></div>
+              <div><Checkbox v-model="hooks" :label="t('catalog.install.advanced.hooks')" /></div>
+              <div><Checkbox v-model="crds" :label="t('catalog.install.advanced.crds')" /></div>
+              <div><Checkbox v-model="wait" :label="t('catalog.install.advanced.wait')" /></div>
               <div style="display: inline-block; max-width: 400px;">
                 <UnitInput
                   v-model.number="timeout"
-                  :label="t('catalog.advanced.advanced.timeout.label')"
-                  :suffix="t('catalog.advanced.advanced.timeout.unit')"
+                  :label="t('catalog.install.advanced.timeout.label')"
+                  :suffix="t('catalog.install.advanced.timeout.unit')"
                 />
               </div>
             </div>

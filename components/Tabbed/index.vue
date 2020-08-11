@@ -2,6 +2,7 @@
 import head from 'lodash/head';
 import sortBy from 'lodash/sortBy';
 import isEmpty from 'lodash/isEmpty';
+import { addObject, removeObject } from '@/utils/array';
 
 export default {
   name: 'Tabbed',
@@ -40,6 +41,20 @@ export default {
     }
   },
 
+  provide() {
+    const tabs = this.tabs;
+
+    return {
+      addTab(tab) {
+        addObject(tabs, tab);
+      },
+
+      removeTab(tab) {
+        removeObject(tabs, tab);
+      }
+    };
+  },
+
   data() {
     return { tabs: [], showHiddenTabs: false };
   },
@@ -63,6 +78,7 @@ export default {
     sortedTabs() {
       return [...this.sortedShownTabs, ...this.sortedHiddenTabs];
     },
+
     showTabToggle() {
       return this.sortedHiddenTabs.length && (this.hideAllowed || !this.showHiddenTabs);
     }
@@ -103,13 +119,10 @@ export default {
 
     this.$nextTick(() => {
       const {
-        $children,
         $route: { hash },
         defaultTab,
         sortedTabs,
       } = this;
-
-      this.tabs = $children;
 
       let tab;
       const selected = (hash || '').replace(/^#/, '');
