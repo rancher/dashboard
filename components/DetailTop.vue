@@ -64,13 +64,12 @@ export default {
     <div v-if="hasDetails" class="col left span-2">
       <div v-for="detail in details" :key="detail.label || detail.slotName">
         <label>{{ detail.label }}:</label>
-        <span v-if="detail.formatter">
-          <component
-            :is="detail.formatter"
-            :value="detail.content"
-            v-bind="detail.formatterOpts"
-          />
-        </span>
+        <component
+          :is="detail.formatter"
+          v-if="detail.formatter"
+          :value="detail.content"
+          v-bind="detail.formatterOpts"
+        />
         <span v-else>{{ detail.content }}</span>
       </div>
     </div>

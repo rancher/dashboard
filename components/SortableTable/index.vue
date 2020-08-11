@@ -358,7 +358,7 @@ export default {
     valueFor(row, col) {
       const expr = col.value || col.name;
 
-      return get(row, expr);
+      return get(row, expr) || '';
     },
 
     isExpanded(row) {
@@ -506,8 +506,11 @@ export default {
                         :col="col"
                         v-bind="col.formatterOpts"
                       />
-                      <template v-else>
+                      <template v-else-if="valueFor(row,col) !== ''">
                         {{ valueFor(row,col) }}
+                      </template>
+                      <template v-else-if="col.dashIfEmpty">
+                        <span class="text-muted">&mdash;</span>
                       </template>
                     </slot>
                   </td>

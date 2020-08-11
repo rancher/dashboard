@@ -1,5 +1,7 @@
 <script>
 export default {
+  inject: ['addTab', 'removeTab'],
+
   props: {
     label: {
       type:     String,
@@ -22,8 +24,15 @@ export default {
 
   data() {
     return { active: null };
-  }
+  },
 
+  created() {
+    this.addTab(this);
+  },
+
+  beforeDestroy() {
+    this.removeTab(this);
+  }
 };
 </script>
 

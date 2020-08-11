@@ -1,15 +1,3 @@
-import Vue from 'vue';
+import ClusterRepo from './catalog.cattle.io.clusterrepo';
 
-export default {
-  applyDefaults() {
-    return () => {
-      if ( !this.spec ) {
-        Vue.set(this, 'spec', { url: '' });
-      }
-    };
-  },
-
-  isRancher() {
-    return !!(this.spec?.url || '').match(/^https?:\/\/[^\/]*\.rancher\.io(\/|$)/);
-  },
-};
+export default ClusterRepo;

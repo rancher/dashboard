@@ -1,6 +1,5 @@
 <script>
 import { mapGetters } from 'vuex';
-import capitalize from 'lodash/capitalize';
 import Favorite from '@/components/nav/Favorite';
 import ButtonDropdown from '@/components/ButtonDropdown';
 
@@ -13,6 +12,10 @@ export default {
     resource: {
       type:     String,
       required: true
+    },
+    schema: {
+      type:    Object,
+      default: null
     },
     typeDisplay: {
       type:    String,
@@ -40,7 +43,11 @@ export default {
     ...mapGetters(['isExplorer']),
 
     resourceName() {
-      return this.resource.includes('.') ? this.resource : capitalize(this.resource);
+      if ( this.schema ) {
+        return this.$store.getters['type-map/labelFor'](this.schema);
+      }
+
+      return this.resource;
     },
   },
 };

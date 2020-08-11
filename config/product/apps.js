@@ -1,10 +1,10 @@
 import {
   AGE,
+  STATE,
   CHART,
   NAMESPACE_NAME,
+  NAME as NAME_COL,
   RESOURCES,
-  STATE,
-  URL
 } from '@/config/table-headers';
 
 import { CATALOG } from '@/config/types';
@@ -33,25 +33,21 @@ export function init(store) {
   virtualType({
     label:       'Charts',
     icon:       'compass',
-    group:      'Root',
     namespaced:  false,
     name:        'charts',
     weight:      100,
     route:       { name: 'c-cluster-apps-charts' },
   });
 
-  weightType(CATALOG.RELEASE, 200);
+  weightType(CATALOG.RELEASE, 99, true);
 
   basicType([
     'charts',
     CATALOG.RELEASE,
     CATALOG.OPERATION,
-  ]);
-
-  basicType([
-    CATALOG.REPO,
     CATALOG.CLUSTER_REPO,
-  ], 'Repostories');
+    CATALOG.REPO,
+  ]);
 
   uncreatableType(CATALOG.RELEASE);
   uncreatableType(CATALOG.OPERATION);
@@ -59,8 +55,32 @@ export function init(store) {
   immutableType(CATALOG.OPERATION);
 
   headers(CATALOG.RELEASE, [STATE, NAMESPACE_NAME, CHART, RESOURCES, AGE]);
-  headers(CATALOG.REPO, [NAMESPACE_NAME, URL, AGE]);
-  headers(CATALOG.CLUSTER_REPO, [NAMESPACE_NAME, URL, AGE]);
+
+  const repoType = {
+    name:     'type',
+    labelKey: 'tableHeaders.type',
+    sort:     'displayType',
+    value:    'displayType'
+  };
+
+  const repoUrl = {
+    name:     'url',
+    labelKey: 'tableHeaders.url',
+    sort:     'displayUrl',
+    value:    'displayUrl'
+  };
+
+  const repoBranch = {
+    name:        'branch',
+    labelKey:    'tableHeaders.branch',
+    sort:        'spec.gitBranch',
+    value:       'spec.gitBranch',
+    dashIfEmpty: true,
+  };
+
+  headers(CATALOG.REPO, [STATE, NAMESPACE_NAME, repoType, repoUrl, repoBranch, AGE]);
+  headers(CATALOG.CLUSTER_REPO, [STATE, NAME_COL, repoType, repoUrl, repoBranch, AGE]);
+
   headers(CATALOG.OPERATION, [
     STATE,
     NAMESPACE_NAME,

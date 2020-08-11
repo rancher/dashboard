@@ -7,7 +7,7 @@
 // groupLabelFor(schema)      Get the label for the API group of this schema's type
 // isIgnored(schema)          Returns true if this type should be hidden from the tree
 // groupForBasicType(schema)  Returns the group a type should be shown in basic view, or false-y if it shouldn't be shown.
-// typeWeightFor(type)        Get the weight value for a particular type label
+// typeWeightFor(type, forBasic)   Get the weight value for a particular type label
 // groupWeightFor(group, forBasic) Get the weight value for a particular group
 // headersFor(schema)         Returns the column definitions for a type to give to SortableTable
 // activeProducts()           Returns the list of products that are installed and should be shown
@@ -178,11 +178,11 @@ export function DSL(store, product, module = 'type-map') {
       }
     },
 
-    weightType(input, weight) {
+    weightType(input, weight, forBasic) {
       if ( isArray(input) ) {
-        store.commit(`${ module }/weightType`, { types: input, weight });
+        store.commit(`${ module }/weightType`, { types: input, weight, forBasic });
       } else {
-        store.commit(`${ module }/weightType`, { type: input, weight });
+        store.commit(`${ module }/weightType`, { type: input, weight, forBasic });
       }
     },
 
@@ -243,6 +243,7 @@ export const state = function() {
     immutable:               [],
     formOnly:                [],
     typeIgnore:              [],
+    basicTypeWeights:        {},
     typeWeights:             {},
     typeMappings:            [],
     typeMoveMappings:        [],
@@ -267,8 +268,8 @@ export const getters = {
   // 1 ) Getting info
   // ----------------------------------------------------------------------------
   // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
-  // @TODO use translations instead
   labelFor(state, getters, rootState, rootGetters) {
+    // Special -1 count is used for the label on the nav if present, instead of the plural (99)
     return (schema, count=1) => {
       return _applyMapping(schema, state.typeMappings, 'id', false, () => {
         const key = `typeLabel."${ schema.id }"`;
@@ -384,8 +385,14 @@ export const getters = {
   },
 
   typeWeightFor(state) {
-    return (type) => {
-      return state.typeWeights[type.toLowerCase()] || 0;
+    return (type, forBasic) => {
+      type = type.toLowerCase();
+
+      if ( forBasic ) {
+        return state.basicTypeWeights[type] || 0;
+      } else {
+        return state.typeWeights[type] || 0;
+      }
     };
   },
 
@@ -408,6 +415,7 @@ export const getters = {
       // modes: basic, used, all, favorite
       // namespaceMode: 'namespaced', 'cluster', or 'both'
       // namespaces: null means all, otherwise it will be an array of specific namespaces to include
+      const isBasic = mode === BASIC;
 
       let searchRegex;
 
@@ -441,7 +449,7 @@ export const getters = {
 
         if ( typeObj.id === currentType ) {
           // If this is the type currently being shown, always show it
-        } else if ( mode === BASIC && !groupForBasicType ) {
+        } else if ( isBasic && !groupForBasicType ) {
           // If we want the basic tree only return basic types;
           continue;
         } else if ( mode === USED && count <= 0 ) {
@@ -471,7 +479,7 @@ export const getters = {
 
         let group;
 
-        if ( mode === BASIC ) {
+        if ( isBasic ) {
           group = _ensureGroup(root, groupForBasicType, true);
         } else if ( mode === FAVORITE ) {
           group = _ensureGroup(root, 'starred');
@@ -513,7 +521,7 @@ export const getters = {
           namespaced,
           route,
           name:   typeObj.name,
-          weight: typeObj.weight || getters.typeWeightFor(label),
+          weight: typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
         });
       }
 
@@ -593,16 +601,17 @@ export const getters = {
       const schemas = rootGetters[`${module}/all`](SCHEMA);
       const counts = rootGetters[`${module}/all`](COUNT)?.[0]?.counts || {};
       const isDev = rootGetters['prefs/get'](DEV);
+      const isBasic = mode === BASIC;
 
       const out = {};
 
       for ( const schema of schemas ) {
         const attrs = schema.attributes || {};
         const count = counts[schema.id];
-        const label = getters.labelFor(schema);
-        const weight = getters.typeWeightFor(label);
+        const label = getters.labelFor(schema, -1);
+        const weight = getters.typeWeightFor(schema?.id || label, isBasic);
 
-        if ( mode === BASIC ) {
+        if ( isBasic ) {
           // These are separate ifs so that things with no kind can still be basic
           if ( !getters.groupForBasicType(product, schema.id) ) {
             continue;
@@ -634,7 +643,7 @@ export const getters = {
         for ( const vt of virtualTypes ) {
           const item = clone(vt);
           const id = item.name;
-          const weight = vt.weight || getters.typeWeightFor(item.label);
+          const weight = vt.weight || getters.typeWeightFor(item.label, isBasic);
 
           if ( item.ifDev && !isDev ) {
             continue;
@@ -644,7 +653,7 @@ export const getters = {
             continue;
           }
 
-          if ( mode === BASIC && !getters.groupForBasicType(product, id) ) {
+          if ( isBasic && !getters.groupForBasicType(product, id) ) {
             continue;
           } else if ( mode === FAVORITE && !getters.isFavorite(id) ) {
             continue;
@@ -1019,8 +1028,8 @@ export const mutations = {
   },
 
   // weightType('Cluster' 99); -- higher groups are shown first
-  // These operate on *displayed* type names, after mapping
-  weightType(state, { type, types, weight }) {
+  // These operate on *schema* type names, before mapping
+  weightType(state, { type, types, weight, forBasic }) {
     if ( !types ) {
       types = [];
     }
@@ -1029,8 +1038,10 @@ export const mutations = {
       types.push(type);
     }
 
+    const map = forBasic ? state.basicTypeWeights : state.typeWeights;
+
     for ( const t of types ) {
-      state.typeWeights[t.toLowerCase()] = weight;
+      map[t.toLowerCase()] = weight;
     }
   },
 
@@ -1110,7 +1121,7 @@ export const actions = {
 };
 
 function _sortGroup(tree, mode) {
-  const by = ['namespaced', 'weight:desc', 'label'];
+  const by = ['weight:desc', 'namespaced', 'label'];
 
   tree.children = sortBy(tree.children, by);
 

@@ -482,10 +482,3 @@ export const RESOURCES = {
   sort:     'spec.resources.length',
   width:    100,
 };
-
-export const URL = {
-  name:     'url',
-  labelKey: 'tableHeaders.url',
-  value:    'spec.url',
-  sort:     'spec.url',
-};

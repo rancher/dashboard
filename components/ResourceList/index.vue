@@ -125,6 +125,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <Masthead
+      :schema="schema"
       :resource="resource"
       :type-display="typeDisplay"
       :is-yaml-creatable="schema && isCreatable && isYamlCreateable"
