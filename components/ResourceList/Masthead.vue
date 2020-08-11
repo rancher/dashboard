@@ -14,8 +14,8 @@ export default {
       required: true
     },
     schema: {
-      type:     Object,
-      required: true
+      type:    Object,
+      default: null
     },
     typeDisplay: {
       type:    String,
@@ -43,7 +43,11 @@ export default {
     ...mapGetters(['isExplorer']),
 
     resourceName() {
-      return this.$store.getters['type-map/labelFor'](this.schema);
+      if ( this.schema ) {
+        return this.$store.getters['type-map/labelFor'](this.schema);
+      }
+
+      return this.resource;
     },
   },
 };

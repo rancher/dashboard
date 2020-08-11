@@ -101,7 +101,7 @@ export const getters = {
       msg = get(state.translations[state.selected], key);
     }
 
-    if ( msg ) {
+    if ( msg !== undefined ) {
       return true;
     }
 

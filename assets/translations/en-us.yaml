@@ -117,9 +117,13 @@ asyncButton:
     waiting: 'Starting&hellip;'
     success: 'Upgrading'
   refresh:
+    action: ''
     actionIcon:  'refresh'
+    waiting: ''
     waitingIcon: 'refresh'
+    success: ''
     successIcon: 'checkmark'
+    error: ''
     errorIcon:   'error'
 
 catalog:
