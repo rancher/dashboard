@@ -72,7 +72,6 @@ export const CATALOG = {
   OPERATION:      'catalog.cattle.io.operation',
   RELEASE:        'catalog.cattle.io.release',
   REPO:           'catalog.cattle.io.repo',
-  COMBINED_REPOS: 'catalog-repo',
 };
 
 // --------------------------------------

@@ -1236,7 +1236,7 @@ export default {
 
     if (this.owners?.length > 0) {
       details.push({
-        label:     this.t('resourceDetail.detailTop.ownerReferences'),
+        label:     this.t('resourceDetail.detailTop.ownerReferences', { count: this.owners.length }),
         formatter: 'ListLinkDetail',
         content:   this.owners.map(owner => ({
           key:   owner.id,

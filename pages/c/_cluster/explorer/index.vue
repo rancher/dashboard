@@ -290,7 +290,7 @@ export default {
     },
 
     showLiveMetrics() {
-      return !!this.metricAggregations;
+      return this.cpuUsed.useful > 0 && this.cpuUsed.total > 0;
     }
   },
 

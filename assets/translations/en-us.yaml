@@ -17,7 +17,7 @@ generic:
   name: Name
   readFromFile: Read from File
   remove: Remove
-  resource: |
+  resource: |-
     {count, plural,
     one  {resource}
     other {resources}
@@ -505,7 +505,7 @@ node:
       taints: Taints
 
 promptRemove:
-  andOthers: |
+  andOthers: |-
     {count, plural,
     =0 {.}
     =1 {, and one other.}
@@ -521,8 +521,11 @@ resourceDetail:
     deleted: Deleted
     description: Description
     labels: Labels
-    ownerReferences: Owner References
-    showAnnotations: |
+    ownerReferences: |-
+      {count, plural,
+      =1 {Owner}
+      other {Owners}}
+    showAnnotations: |-
       {annotations, plural,
       =1 {Show annotation}
       other {Show {annotations} annotations}}
@@ -685,12 +688,12 @@ sortableTable:
   noData: There are no rows which match your search query.
   noRows: There are no rows to show.
   paging:
-    generic: |
+    generic: |-
       {pages, plural,
       =0 {No Items}
       =1 {{count} {count, plural, =1 {Item} other {Items}}}
       other {{from} - {to} of {count} Items}}
-    resource: |
+    resource: |-
       {pages, plural,
       =0 {No {pluralLabel}}
       =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
@@ -851,7 +854,7 @@ wm:
     previous: Use Previous Container
     range:
       all: Everything
-      hours: |
+      hours: |-
         {value, number}
         {value, plural,
         =1 {Hour}
@@ -859,7 +862,7 @@ wm:
         }
       label: Show the last
       lines: "{value, number} Lines"
-      minutes: |
+      minutes: |-
         {value, number} {value, plural,
         =1 {Minute}
         other {Minutes}
@@ -1172,38 +1175,38 @@ model:
       loadBalancer: L4 Balancer
 
 typeLabel:
-  catalog.cattle.io.operation: |
+  catalog.cattle.io.operation: |-
     {count, plural,
       one { Recent Operations }
       other { Recent Operations }
     }
-  catalog.cattle.io.release: |
+  catalog.cattle.io.release: |-
     {count, plural,
       one { Installed Apps }
       other { Installed Apps }
     }
-  catalog.cattle.io.clusterrepo: |
+  catalog.cattle.io.clusterrepo: |-
     {count, plural,
       =-1 { Repositories }
       one { Repository }
       other { Repositories }
     }
-  catalog.cattle.io.repo: |
+  catalog.cattle.io.repo: |-
     {count, plural,
       one { Namespaced Repo }
       other { Namespaced Repos }
     }
-  chartInstallAction: |
+  chartInstallAction: |-
     {count, plural,
       one { App }
       other { Apps }
     }
-  chartUpgradeAction: |
+  chartUpgradeAction: |-
     {count, plural,
       one { App }
       other { Apps }
     }
-  endpoints: |
+  endpoints: |-
     {count, plural,
       one { Endpoint }
       other { Endpoints }
