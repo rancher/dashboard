@@ -222,7 +222,7 @@ export default {
     return [{
       label:     this.t('node.detail.detailTop.ipAddress'),
       formatter: 'CopyToClipboardText',
-      content:   this.internalIp
+      content:   this.externalIp || this.internalIp
     },
     {
       label:    this.t('node.detail.detailTop.version'),

@@ -118,7 +118,7 @@ export const RAM = {
   sort:      'ram',
   value:     'ramUsagePercentage',
   formatter: 'PercentageBar',
-  width:     102,
+  width:     120,
 };
 
 export const PODS = {
