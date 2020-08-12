@@ -262,11 +262,11 @@ clusterIndexPage:
       label: Unhealthy Nodes
       noRows: There are no unhealthy nodes to show.
 
-configmapPage:
-  data:
-    protip: Use this area for anything that's UTF-8 text data
-    title: Data
+configmap:
   tabs:
+    data:
+      label: Data
+      protip: Use this area for anything that's UTF-8 text data
     binaryData:
       label: Binary Data
 
