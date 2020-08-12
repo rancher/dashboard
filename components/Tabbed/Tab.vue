@@ -26,6 +26,14 @@ export default {
     return { active: null };
   },
 
+  watch: {
+    active(neu) {
+      if (neu) {
+        this.$emit('active');
+      }
+    }
+  },
+
   created() {
     this.addTab(this);
   },

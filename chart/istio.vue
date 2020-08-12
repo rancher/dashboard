@@ -1,20 +1,25 @@
 <script>
-import pickBy from 'lodash/pickBy';
+import debounce from 'lodash/debounce';
 import jsyaml from 'js-yaml';
 import Checkbox from '@/components/form/Checkbox';
-import KeyValue from '@/components/form/KeyValue';
 import YamlEditor from '@/components/YamlEditor';
 import { mapGetters } from 'vuex';
 import FileSelector from '@/components/form/FileSelector';
+import Tab from '@/components/Tabbed/Tab';
+
+const defaultOverlayFile = '#apiVersion: install.istio.io/v1alpha1\n#kind: IstioOperator\n#spec:\n#  components:\n#    ingressGateways:\n#    - enabled: true\n#      name: istio-ingressgateway\n#    - enabled: true\n#      k8s:\n#        resources:\n#          requests:\n#            cpu: 200m\n#        service:\n#          ports:\n#          - name: tcp-citadel-grpc-tls\n#            port: 8060\n#            targetPort: 8060\n#          - name: tcp-dns\n#            port: 5353\n#        serviceAnnotations:\n#          cloud.google.com/load-balancer-type: internal\n#      name: ilb-gateway\n#      namespace: user-ingressgateway-ns\n#    - enabled: true\n#      k8s:\n#        resources:\n#          requests:\n#            cpu: 200m\n#        service:\n#          ports:\n#          - name: tcp-citadel-grpc-tls\n#            port: 8060\n#            targetPort: 8060\n#          - name: tcp-dns\n#            port: 5353\n#        serviceAnnotations:\n#          cloud.google.com/load-balancer-type: internal\n#      name: other-gateway\n#      namespace: istio-system';
 
 export default {
   components: {
     Checkbox,
     FileSelector,
-    KeyValue,
     YamlEditor,
+    Tab
   },
-  props: {
+
+  hasTabs: true,
+
+  props:   {
     value: {
       type:    Object,
       default: () => {
@@ -24,47 +29,55 @@ export default {
   },
 
   data() {
-    const {
-      cni, ingressGateways, egressGateways, istiodRemote, pilot, policy, telemetry,
-    } = this.value;
+    let overlayFile = this.value.overlayFile;
 
-    const initialValues = { ...this.value };
+    if (!overlayFile.length) {
+      overlayFile = defaultOverlayFile;
+    }
 
-    return {
-      cni, ingressGateways, egressGateways, istiodRemote, pilot, policy, telemetry, customAnswers: {}, initialValues
-    };
+    return { overlayFile };
   },
 
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  computed: {
+    valuesYaml: {
+      get() {
+        try {
+          const yaml = jsyaml.safeDump(this.value);
 
-  watch: {
-    customAnswers(neu, old) {
-      this.updateCustomAnswers(neu, old);
+          return yaml;
+        } catch (e) {
+          return null;
+        }
+      },
+      set: debounce(function(neu) {
+        try {
+          const obj = jsyaml.safeLoad(neu);
+
+          Object.assign(this.value, obj);
+        } catch (e) {
+
+        }
+      }, 500)
     },
+    ...mapGetters({ t: 'i18n/t' })
   },
 
   methods: {
+    update() {
+      this.$emit('input', this.value);
+    },
+
     valuesChanged(value) {
       try {
         jsyaml.safeLoad(value);
-
+        if (value === defaultOverlayFile) {
+          value = '';
+        } else {
+          this.overlayFile = value;
+        }
         this.value.overlayFile = value;
       } catch (e) {
       }
-    },
-
-    updateCustomAnswers(e) {
-      const toReplace = pickBy(this.value, (val, key) => {
-        return !this.initialValues[key];
-      });
-
-      Object.assign(toReplace, e);
-
-      for (const prop in toReplace) {
-        delete this.value[prop];
-      }
-      this.customAnswers = e;
-      Object.assign(this.value, e);
     },
 
     onFileSelected(value) {
@@ -76,50 +89,52 @@ export default {
 
 <template>
   <div>
-    <h2>{{ t('istio.titles.components') }}</h2>
-    <div class="row">
-      <div class="col span-4">
-        <Checkbox v-model="cni.enabled" :label="t('istio.cni')" />
+    <Tab name="components" :label="t('istio.titles.components') ">
+      <div class="row">
+        <div class="col span-4">
+          <Checkbox v-model="value.cni.enabled" :label="t('istio.cni')" @input="update" />
+        </div>
+        <div class="col span-4">
+          <Checkbox v-model="value.ingressGateways.enabled" :label="t('istio.ingressGateway')" />
+        </div>
+        <div class="col span-4">
+          <Checkbox v-model="value.egressGateways.enabled" :label="t('istio.egressGateway')" />
+        </div>
       </div>
-      <div class="col span-4">
-        <Checkbox v-model="ingressGateways.enabled" :label="t('istio.ingressGateway')" />
+      <div class="row">
+        <div class="col span-4">
+          <Checkbox v-model="value.pilot.enabled" :label="t('istio.pilot')" />
+        </div>
+        <div class="col span-4">
+          <Checkbox v-model="value.policy.enabled" :label="t('istio.policy')" />
+        </div>
+        <div class="col span-4">
+          <Checkbox v-model="value.telemetry.enabled" :label="t('istio.telemetry')" />
+        </div>
       </div>
-      <div class="col span-4">
-        <Checkbox v-model="egressGateways.enabled" :label="t('istio.egressGateway')" />
-      </div>
-    </div>
-    <div class="row">
-      <div class="col span-4">
-        <Checkbox v-model="pilot.enabled" :label="t('istio.pilot')" />
-      </div>
-      <div class="col span-4">
-        <Checkbox v-model="policy.enabled" :label="t('istio.policy')" />
-      </div>
-      <div class="col span-4">
-        <Checkbox v-model="telemetry.enabled" :label="t('istio.telemetry')" />
-      </div>
-    </div>
+    </Tab>
 
-    <div class="spacer" />
-    <h2>{{ t('istio.titles.customAnswers') }}</h2>
-    <div class="row">
-      <KeyValue :value="customAnswers" mode="create" :as-map="true" @input="updateCustomAnswers" />
-    </div>
-
-    <div class="spacer" />
-    <h2>{{ t('istio.titles.advanced') }}</h2>
-    <div class="custom-overlay">
-      <div>
-        <span>{{ t('istio.customOverlayFile.label') }}</span><i v-tooltip="t('istio.customOverlayFile.tip')" class="icon icon-info" />
+    <Tab :label="t('istio.customOverlayFile.label')" name="overlay" @active="$refs['yaml-editor'].refresh()">
+      <div class="custom-overlay">
+        <div>
+          <span>{{ t('istio.customOverlayFile.label') }}</span><i v-tooltip="t('istio.customOverlayFile.tip')" class="icon icon-info" />
+        </div>
+        <YamlEditor
+          ref="yaml-editor"
+          class="yaml-editor mb-10"
+          :value="overlayFile"
+          @onInput="valuesChanged"
+        />
+        <FileSelector class="role-primary  btn-sm" :label="t('generic.readFromFile')" @selected="onFileSelected" />
       </div>
+    </Tab>
+    <Tab name="values-yaml" :label="t('catalog.install.section.valuesYaml')" @active="$refs.yaml.refresh()">
       <YamlEditor
-        ref="yaml-editor"
-        class="yaml-editor mb-10"
-        :value="value.overlayFile"
-        @onInput="valuesChanged"
+        ref="yaml"
+        v-model="valuesYaml"
+        :scrolling="false"
       />
-      <FileSelector class="role-primary  btn-sm" :label="t('generic.readFromFile')" @selected="onFileSelected" />
-    </div>
+    </Tab>
   </div>
 </template>
 
