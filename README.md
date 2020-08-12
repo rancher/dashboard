@@ -11,7 +11,7 @@ $ yarn install
 
 # serve with hot reload at https://localhost:8005
 # using the endpoint for your Steve (or Rancher) API
-$ API=http://localhost:8989 yarn devx
+$ API=http://localhost:8989 yarn dev
 
 # build for production and launch server
 $ yarn build
@@ -51,7 +51,7 @@ data:
    -p 8005:8005 \
    -e API=http://172.17.0.1:8989 \
    rancherlabs/dashboard:dev
- 
+
  # The first time will take forever installing node_modules into the volume; it will be faster next time.
  #
  # Goto https://localhost:8005
