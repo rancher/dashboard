@@ -18,53 +18,53 @@ export default {
 
   props: {
     doneRoute: {
-      type: String,
+      type:     String,
       required: true
     },
 
     cancelEvent: {
-      type: Boolean,
+      type:    Boolean,
       default: false,
     },
 
     mode: {
-      type: String,
+      type:     String,
       required: true
     },
 
     resource: {
-      type: Object,
+      type:     Object,
       required: true
     },
 
     subtypes: {
-      type: Array,
+      type:    Array,
       default: null
     },
 
     selectedSubtype: {
-      type: String,
+      type:    String,
       default: null
     },
 
     validationPassed: {
-      type: Boolean,
+      type:    Boolean,
       default: true
     },
 
     errors: {
-      type: Array,
+      type:    Array,
       default: () => []
     },
 
     canYaml: {
-      type: Boolean,
+      type:    Boolean,
       default: true,
     },
 
     // Override the set of labels shown on the button from teh default save/create.
     finishButtonMode: {
-      type: String,
+      type:    String,
       default: null,
     }
   },
@@ -72,8 +72,8 @@ export default {
   data() {
     return {
       isCancelModal: false,
-      showAsForm: true,
-      resourceYaml: '',
+      showAsForm:    true,
+      resourceYaml:  '',
     };
   },
 
@@ -116,7 +116,7 @@ export default {
           this.$emit('cancel');
         } else {
           this.$router.replace({
-            name: this.doneRoute,
+            name:   this.doneRoute,
             params: { resource: this.resource.type }
           });
         }
