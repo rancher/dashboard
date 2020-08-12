@@ -112,7 +112,16 @@ export default {
     },
 
     addressTableRows() {
-      return this.value.status.addresses;
+      const addresses = [...this.value.status.addresses];
+
+      if (this.value.externalIp) {
+        addresses.push({
+          type:    this.t('node.detail.tab.address.externalIp'),
+          address: this.value.externalIp
+        });
+      }
+
+      return addresses;
     },
 
     imageTableRows() {
@@ -197,7 +206,7 @@ export default {
             :search="false"
           />
         </Tab>
-        <Tab name="address" :label="t('node.detail.tab.address')">
+        <Tab name="address" :label="t('node.detail.tab.address.label')">
           <SortableTable
             key-field="_key"
             :headers="addressTableHeaders"

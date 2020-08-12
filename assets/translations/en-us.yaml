@@ -502,7 +502,9 @@ node:
       memoryPressure: Memory Pressure
       pidPressure: PID Pressure
     tab:
-      address: Address
+      address: 
+        label: Address
+        externalIp: ExternalIP
       conditions: Conditions
       images: images
       info: Info
@@ -719,7 +721,7 @@ tableHeaders:
   image: Image
   imageSize: Size
   ingressTarget: Target
-  internalExternalIp: Internal/External IP
+  internalExternalIp: External/Internal IP
   key: Key
   keys: Data
   lastHeartbeatTime: Last update
