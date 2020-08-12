@@ -414,7 +414,7 @@ logging:
     host: Host
     scheme: Scheme
     port: Port
-    clusterName: Cluster Name
+    indexName: Index Name
     user: User
     password: Password
     clientCert:
@@ -424,6 +424,38 @@ logging:
       label: Client Key
       placeholder: Paste in the client key
     clientKeyPass: Client Key Pass
+  kafka:
+    brokers: Brokers
+    defaultTopic: Default Topic
+    saslOverSsl: SASL Over SSL
+    scramMechanism: Scram Mechanism
+    username: Username
+    password: Password
+    sslCaCert: 
+      label: SSL CA Cert
+      placeholder: Paste in the CA certificate
+    sslClientCert: 
+      label: SSL Client Cert
+      placeholder: Paste in the client cert
+    sslClientCertChain: 
+      label: SSL Client Cert Chain
+      placeholder: Paste in the client cert chain
+    sslClientCertKey: SSL Client Cert Key
+  splunk:
+    host: Host
+    port: Port
+    protocol: Protocol
+    index: Index
+    token: Token
+    clientCert: Client Cert
+    clientKey: Client Key
+    insecureSsl: Insecure SSL
+  syslog:
+    address: Address
+    cluster: Cluster
+    rootCa: 
+      label: Root CA
+      placeholder: Paste in the Root CA
 
 monitoring:
   accessModes:
