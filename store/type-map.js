@@ -283,7 +283,7 @@ export const getters = {
         // out = ucFirst(out.replace(/([a-z])([A-Z])/g,'$1 $2'));
 
         // This works for most things... if you don't like it, put in a typeLabel translation.
-        if ( count > 1 ) {
+        if ( count !== 1 ) {
           if ( out.endsWith('s') ) {
             return `${out}es`;
           } else {
