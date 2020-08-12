@@ -5,7 +5,7 @@ export default {
   components: { KeyValue },
 
   props: {
-    spec: {
+    value: {
       type:     Object,
       required: true,
     },
@@ -36,12 +36,12 @@ export default {
   },
 
   created() {
-    if ( !this.spec.metadata ) {
-      this.$set(this.spec, 'metadata', {});
+    if ( !this.value.metadata ) {
+      this.$set(this.value, 'metadata', {});
     }
 
-    if ( !this.spec.annotations ) {
-      this.$set(this.spec, 'annotations', {});
+    if ( !this.value.annotations ) {
+      this.$set(this.value, 'annotations', {});
     }
   },
 };
@@ -51,7 +51,7 @@ export default {
     <div :class="sectionClass">
       <KeyValue
         key="labels"
-        v-model="spec.metadata.labels"
+        v-model="value.metadata.labels"
         :mode="mode"
         title="Labels"
         :initial-empty-row="true"
@@ -62,7 +62,7 @@ export default {
     <div :class="sectionClass">
       <KeyValue
         key="annotations"
-        v-model="spec.metadata.annotations"
+        v-model="value.metadata.annotations"
         :mode="mode"
         title="Annotations"
         :initial-empty-row="true"

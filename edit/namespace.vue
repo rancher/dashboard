@@ -2,22 +2,24 @@
 
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
-import Footer from '@/components/form/Footer';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { EXTERNAL } from '@/config/types';
 import { PROJECT } from '@/config/labels-annotations';
-import ResourceTabs from '@/components/form/ResourceTabs';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
+import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import CruResource from '@/components/CruResource';
+import Labels from '@/components/form/Labels';
 
 export default {
   components: {
     ContainerResourceLimit,
-    Footer,
+    CruResource,
     LabeledSelect,
+    Labels,
     NameNsDescription,
-    ResourceTabs,
-    Tab
+    Tab,
+    Tabbed
   },
 
   mixins: [CreateEditView],
@@ -81,9 +83,20 @@ export default {
 </script>
 
 <template>
-  <div>
-    <form>
+  <CruResource
+    :done-route="doneRoute"
+    :mode="mode"
+    :resource="value"
+    :subtypes="[]"
+    :validation-passed="true"
+    :errors="errors"
+    @error="e=>errors = e"
+    @finish="save"
+    @cancel="done"
+  >
+    <template #define>
       <NameNsDescription
+        v-if="!isView"
         :value="value"
         :namespaced="false"
         :mode="mode"
@@ -94,21 +107,28 @@ export default {
         </template>
       </NameNsDescription>
 
-      <div class="spacer"></div>
-
-      <ResourceTabs v-model="value" :mode="mode">
-        <template #before>
-          <Tab name="container-resource-limit" label="Container Default Resource Limit">
-            <ContainerResourceLimit
-              :mode="mode"
-              :namespace="value"
-              :register-before-hook="registerBeforeHook"
-            />
-          </Tab>
-        </template>
-      </ResourceTabs>
-
-      <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
-    </form>
-  </div>
+      <Tabbed :side-tabs="true">
+        <Tab name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
+          <ContainerResourceLimit
+            :mode="mode"
+            :namespace="value"
+            :register-before-hook="registerBeforeHook"
+          />
+        </Tab>
+        <Tab
+          v-if="!isView"
+          name="labels-and-annotations"
+          :label="t('generic.labelsAndAnnotations')"
+          :weight="1000"
+        >
+          <Labels
+            default-container-class="labels-and-annotations-container"
+            :value="value"
+            :mode="mode"
+            :display-side-by-side="false"
+          />
+        </Tab>
+      </Tabbed>
+    </template>
+  </CruResource>
 </template>
