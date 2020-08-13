@@ -453,11 +453,13 @@ logging:
   syslog:
     address: Address
     cluster: Cluster
-    rootCa: 
+    rootCa:
       label: Root CA
       placeholder: Paste in the Root CA
 
 monitoring:
+  createDefaultRoles: Create Default Monitoring Cluster Roles
+  aggrigateDefaultRoles: Aggregate to Default Kubernetes Roles
   accessModes:
     many: ReadWriteMany
     once: ReadWriteOnce

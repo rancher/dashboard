@@ -209,6 +209,34 @@ export default {
             />
           </div>
         </div>
+        <div class="mt-20">
+          <div class="mb-5 mt-5">
+            <label class="text-label mb-10">{{ t('monitoring.grafana.storage.annotations') }}</label>
+          </div>
+          <div class="row">
+            <div class="col span-12">
+              <KeyValue
+                v-model="value.grafana.persistence.annotations"
+                :mode="mode"
+                :pad-left="false"
+                :protip="true"
+                :read-allowed="false"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="row mt-20">
+          <div class="col span-12">
+            <ArrayList
+              v-model="value.grafana.persistence.finalizers"
+              table-class="fixed"
+              :mode="mode"
+              :pad-left="false"
+              :protip="true"
+              :title="t('monitoring.grafana.storage.finalizers')"
+            />
+          </div>
+        </div>
       </template>
       <template v-else-if="persistentStorageType === 'statefulset'">
         <div class="row">
@@ -245,34 +273,6 @@ export default {
               v-model="value.grafana.persistence.subPath"
               :label="t('monitoring.grafana.storage.subpath')"
               :mode="mode"
-            />
-          </div>
-        </div>
-        <div class="mt-20">
-          <div class="mb-5 mt-5">
-            <label class="text-label mb-10">{{ t('monitoring.grafana.storage.annotations') }}</label>
-          </div>
-          <div class="row">
-            <div class="col span-12">
-              <KeyValue
-                v-model="value.grafana.persistence.annotations"
-                :mode="mode"
-                :pad-left="false"
-                :protip="true"
-                :read-allowed="false"
-              />
-            </div>
-          </div>
-        </div>
-        <div class="row mt-20">
-          <div class="col span-12">
-            <ArrayList
-              v-model="value.grafana.persistence.finalizers"
-              table-class="fixed"
-              :mode="mode"
-              :pad-left="false"
-              :protip="true"
-              :title="t('monitoring.grafana.storage.finalizers')"
             />
           </div>
         </div>
