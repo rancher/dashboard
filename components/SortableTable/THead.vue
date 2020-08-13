@@ -150,6 +150,7 @@ export default {
 <style lang="scss" scoped>
   .sortable > A {
     display: inline-block;
+    color: var(--body-text);
   }
 
   .icon-stack {

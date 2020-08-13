@@ -78,7 +78,7 @@ $selected: rgba($primary, .5);
   --box-bg                     : #{$lighter};
   --border                     : #{$medium};
   --border-radius              : 2px;
-  --outline                    : rgba(244,245,250,0.75);
+  --outline                    : #{rgba($medium, 0.75)};
   --outline-width              : 2px;
 
   --accent-btn                 : #{rgba($primary, 0.2)};
