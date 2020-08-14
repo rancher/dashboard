@@ -300,13 +300,13 @@ export default {
       position: relative;
       top: 1px;
       float: left;
-      border-radius: 3px 3px 0 0;
       margin: 0 8px 0 0;
       cursor: pointer;
+      border-left: solid 5px transparent;
 
       A {
         display: block;
-        padding: 10px 15px;
+        padding: 20px 15px;
       }
 
       &:last-child {
@@ -315,7 +315,7 @@ export default {
 
       &.active {
         background-color: var(--tabbed-container-bg);
-        border-bottom-color: var(--tabbed-container-bg);
+        border-left: solid 5px var(--primary);
       }
     }
   }
@@ -327,6 +327,8 @@ export default {
 
   .side-tabs{
     display: flex;
+    box-shadow: 0 0 20px var(--shadow);
+    border-radius: calc(var(--border-radius) * 2);
 
     & .tabs {
       width: $sideways-tabs-width;
@@ -357,7 +359,6 @@ export default {
     & .tab-container{
       width: calc(100% - #{$sideways-tabs-width});
       flex-grow: 1;
-      border-left: 1px solid var(--border);
       background-color: var(--body-bg);
     }
   }

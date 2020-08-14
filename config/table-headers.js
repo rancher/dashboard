@@ -34,18 +34,18 @@ export const NAME = {
 };
 
 export const SIMPLE_NAME = {
-  name:          'name',
-  labelKey:      'tableHeaders.simpleName',
-  value:         'name',
-  sort:          ['name'],
-  width:         200
+  name:     'name',
+  labelKey: 'tableHeaders.simpleName',
+  value:    'name',
+  sort:     ['name'],
+  width:    200
 };
 
 export const EFFECT = {
-  name:          'effect',
-  labelKey:      'tableHeaders.effect',
-  value:         'effect',
-  sort:          ['effect'],
+  name:     'effect',
+  labelKey: 'tableHeaders.effect',
+  value:    'effect',
+  sort:     ['effect'],
 };
 
 export const NAME_UNLINKED = {
@@ -90,10 +90,10 @@ export const NODE_NAME = {
 };
 
 export const ROLES = {
-  name:      'roles',
-  labelKey:  'tableHeaders.roles',
-  sort:      'roles',
-  value:     'roles'
+  name:     'roles',
+  labelKey: 'tableHeaders.roles',
+  sort:     'roles',
+  value:    'roles'
 };
 
 export const VERSION = {
@@ -130,13 +130,13 @@ export const PODS = {
 };
 
 export const AGE = {
-  name:       'age',
-  labelKey:   'tableHeaders.age',
-  value:      'metadata.creationTimestamp',
-  sort:       'metadata.creationTimestamp',
-  search:     false,
-  formatter:  'LiveDate',
-  width:      75,
+  name:      'age',
+  labelKey:  'tableHeaders.age',
+  value:     'metadata.creationTimestamp',
+  sort:      'metadata.creationTimestamp',
+  search:    false,
+  formatter: 'LiveDate',
+  width:     75,
   align:     'right'
 };
 
@@ -166,7 +166,7 @@ export const ENDPOINTS = {
   labelKey:  'tableHeaders.endpoints',
   value:     'status.endpoints',
   formatter: 'Endpoints',
-  width:      60,
+  width:     60,
   align:     'center',
 };
 
@@ -181,10 +181,10 @@ export const SCALE = {
 };
 
 export const SIMPLE_SCALE = {
-  name:      'simple-scale',
-  labelKey:  'tableHeaders.simpleScale',
-  value:     'scale',
-  sort:      ['scale']
+  name:     'simple-scale',
+  labelKey: 'tableHeaders.simpleScale',
+  value:    'scale',
+  sort:     ['scale']
 };
 
 export const WEIGHT = {
@@ -222,10 +222,10 @@ export const P95 = {
 };
 
 export const KEYS = {
-  name:      'keys',
-  labelKey:  'tableHeaders.keys',
-  sort:      false,
-  value:     'keysDisplay',
+  name:     'keys',
+  labelKey: 'tableHeaders.keys',
+  sort:     false,
+  value:    'keysDisplay',
 };
 
 export const TARGET_KIND = {
@@ -345,10 +345,10 @@ export const KEY = {
   sort:     ['key']
 };
 export const VALUE = {
-  name:      'value',
-  labelKey:  'tableHeaders.value',
-  value:     'value',
-  sort:      ['value'],
+  name:     'value',
+  labelKey: 'tableHeaders.value',
+  value:    'value',
+  sort:     ['value'],
 };
 
 export const BUILT_IN = {
@@ -481,4 +481,11 @@ export const RESOURCES = {
   value:    'spec.resources.length',
   sort:     'spec.resources.length',
   width:    100,
+};
+
+export const URL = {
+  name:     'url',
+  labelKey: 'tableHeaders.url',
+  value:    'spec.url',
+  sort:     'spec.url',
 };

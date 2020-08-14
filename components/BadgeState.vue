@@ -37,8 +37,8 @@ export default {
     // Successful states are de-emphasized by using [text-]color instead of background-color
     &.bg-success {
       color: var(--success);
-      border-color: var(--success);
       background: transparent;
+      border: 0;
     }
   }
 

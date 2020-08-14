@@ -98,6 +98,8 @@ $selected: rgba($primary, .5);
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
 
+  --card-header                : #{rgba($primary, 0.2)};
+
   --input-text                 : #{$darkest};
   --input-label                : #{$secondary};
   --input-placeholder          : #{$disabled};
@@ -124,7 +126,7 @@ $selected: rgba($primary, .5);
   --sortable-table-group-label : #{$secondary};
 
   --tag-primary                : #{$primary};
-  --tag-bg                     : #{ligten($primary, 35%)};
+  --tag-bg                     : #{rgba($primary, 0.2)};
 
   --popover-bg                 : var(--body-bg);
   --popover-border             : var(--border);
@@ -212,10 +214,10 @@ $selected: rgba($primary, .5);
 
   $rancher: #3D97D2;
   $partner: #B5D21E;
-  $other: #D44294;
+  $other: #924BE4;
 
   --app-rancher-accent: #{$rancher};
-  --app-rancher-accent-text: white;
+  --app-rancher-accent-text: #{$darkest};
   --app-rancher-bg: transparent linear-gradient(#{$angle},
       #{rgba($rancher, $start)} #{$startPos},
       #{rgba($rancher, $middle)} #{$middlePos},

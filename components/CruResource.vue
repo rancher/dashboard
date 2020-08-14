@@ -112,7 +112,7 @@ export default {
 
       if (isCancel) {
         this.isCancelModal = false;
-        if ( this.cancelEvent ) {
+        if (this.cancelEvent) {
           this.$emit('cancel');
         } else {
           this.$router.replace({
@@ -144,7 +144,10 @@ export default {
 <template>
   <section>
     <form class="create-resource-container">
-      <div v-if="showSubtypeSelection" class="subtypes-container">
+      <div
+        v-if="showSubtypeSelection"
+        class="subtypes-container"
+      >
         <slot name="subtypes">
           <div
             v-for="subtype in subtypes"
@@ -160,10 +163,11 @@ export default {
                   src="subtype.bannerImage"
                   alt="${ resource.type }: ${ subtype.label }"
                 />
-                <div v-else-if="subtype.bannerAbbrv" class="banner-abbrv">
-                  <span
-                    v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)"
-                  >{{ t(subtype.bannerAbbrv) }}</span>
+                <div
+                  v-else-if="subtype.bannerAbbrv"
+                  class="banner-abbrv"
+                >
+                  <span v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
                   <span v-else>{{ subtype.bannerAbbrv }}</span>
                 </div>
                 <div v-else>
@@ -195,12 +199,19 @@ export default {
         </slot>
       </div>
       <template v-if="showAsForm">
-        <div v-if="selectedSubtype || !subtypes.length" class="resource-container">
+        <div
+          v-if="selectedSubtype || !subtypes.length"
+          class="resource-container"
+        >
           <slot name="define" />
         </div>
         <div class="controls-row">
           <slot name="form-footer">
-            <button type="button" class="btn role-secondary" @click="checkCancel(true)">
+            <button
+              type="button"
+              class="btn role-secondary"
+              @click="checkCancel(true)"
+            >
               <t k="generic.cancel" />
             </button>
             <div>
@@ -223,7 +234,10 @@ export default {
         </div>
       </template>
 
-      <section v-else class="cru-resource-yaml-container">
+      <section
+        v-else
+        class="cru-resource-yaml-container"
+      >
         <ResourceYaml
           ref="resourceyaml"
           :value="resource"
@@ -238,7 +252,11 @@ export default {
             <div class="controls-row">
               <slot name="cru-yaml-footer">
                 <div class="controls-right">
-                  <button type="button" class="btn role-secondary" @click="checkCancel(true)">
+                  <button
+                    type="button"
+                    class="btn role-secondary"
+                    @click="checkCancel(true)"
+                  >
                     <t k="generic.cancel" />
                   </button>
                 </div>
@@ -261,8 +279,15 @@ export default {
                     <t k="resourceYaml.buttons.diff" />
                   </button>
                 </div>
-                <div v-if="selectedSubtype || !subtypes.length" class="controls-right">
-                  <button type="button" class="btn role-secondary" @click="checkCancel(false)">
+                <div
+                  v-if="selectedSubtype || !subtypes.length"
+                  class="controls-right"
+                >
+                  <button
+                    type="button"
+                    class="btn role-secondary"
+                    @click="checkCancel(false)"
+                  >
                     <t k="generic.back" />
                   </button>
                   <AsyncButton
@@ -278,15 +303,29 @@ export default {
         </ResourceYaml>
       </section>
 
-      <div v-for="(err, idx) in errors" :key="idx">
-        <Banner color="error" :label="stringify(err)" />
+      <div
+        v-for="(err, idx) in errors"
+        :key="idx"
+      >
+        <Banner
+          color="error"
+          :label="stringify(err)"
+        />
       </div>
     </form>
 
-    <modal class="confirm-modal" name="cancel-modal" :width="400" height="auto">
+    <modal
+      class="confirm-modal"
+      name="cancel-modal"
+      :width="400"
+      height="auto"
+    >
       <div class="header">
         <h4 class="text-default-text">
-          <t v-if="isCancelModal" k="generic.cancel" />
+          <t
+            v-if="isCancelModal"
+            k="generic.cancel"
+          />
           <span v-else>
             {{ t("cruResource.backToForm") }}
           </span>
@@ -301,10 +340,18 @@ export default {
         </p>
       </div>
       <div class="footer">
-        <button type="button" class="btn role-secondary" @click="$modal.hide('cancel-modal')">
+        <button
+          type="button"
+          class="btn role-secondary"
+          @click="$modal.hide('cancel-modal')"
+        >
           {{ showAsForm ? t("cruResource.reviewForm") : t("cruResource.reviewYaml") }}
         </button>
-        <button type="button" class="btn role-primary" @click="confirmCancel(isCancelModal)">
+        <button
+          type="button"
+          class="btn role-primary"
+          @click="confirmCancel(isCancelModal)"
+        >
           <span v-if="isCancelModal">
             {{ t("cruResource.confirmCancel") }}
           </span>
@@ -366,6 +413,7 @@ export default {
   margin: 10px;
   min-height: 100px;
   padding: 10px;
+  box-shadow: 0 0 20px var(--shadow);
 
   &.selected {
     background-color: var(--accent-btn);
