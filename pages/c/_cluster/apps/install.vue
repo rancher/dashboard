@@ -14,6 +14,7 @@ import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import YamlEditor from '@/components/YamlEditor';
 import Checkbox from '@/components/form/Checkbox';
+import Questions from '@/components/Questions';
 
 import { CATALOG } from '@/config/types';
 import {
@@ -39,6 +40,7 @@ export default {
     Tabbed,
     Tab,
     YamlEditor,
+    Questions,
   },
 
   async fetch() {
@@ -540,6 +542,13 @@ export default {
               />
             </Tab>
           </template>
+          <Questions
+            v-else-if="versionInfo.questions"
+            v-model="chartValues"
+            :chart="chart"
+            :version="version"
+            :version-info="versionInfo"
+          />
           <Tab v-else name="values-yaml" :label="t('catalog.install.section.valuesYaml')">
             <YamlEditor
               ref="yaml"

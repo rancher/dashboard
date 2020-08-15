@@ -9562,6 +9562,11 @@ jest-worker@^26.0.0, jest-worker@^26.1.0:
     merge-stream "^2.0.0"
     supports-color "^7.0.0"
 
+jexl@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/jexl/-/jexl-2.2.2.tgz#eb06cd84684a52b6408be94604c5529f416ccd2f"
+  integrity sha512-HYDGbiZtGLbaxp1b0S7Nqbtegu5zhxaUBzsrMIpoEJDNr1M8lSuowpO7ziXldc/+wGGvwkZYQSS8mW2cPpiGgA==
+
 jiti@^0.1.11:
   version "0.1.11"
   resolved "https://registry.yarnpkg.com/jiti/-/jiti-0.1.11.tgz#8b27b92e4c0866b3c8c91945c55a99a1db17a782"
