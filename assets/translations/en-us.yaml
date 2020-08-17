@@ -13,6 +13,7 @@ generic:
   customize: Customize
   disabled: Disabled
   enabled: Enabled
+  labelsAndAnnotations: Labels and Annotations
   na: n/a
   name: Name
   readFromFile: Read from File
@@ -515,6 +516,9 @@ monitoring:
     modes:
       block: Block
       file: Filesystem
+
+namespace:
+  containerResourceLimit: Container Resource Limit
 
 node:
   detail:

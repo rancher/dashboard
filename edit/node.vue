@@ -41,7 +41,7 @@ export default {
       name-label="Name"
     />
     <div class="row">
-      <Labels :spec="value" :mode="mode" :display-side-by-side="true" />
+      <Labels :value="value" :mode="mode" :display-side-by-side="true" />
     </div>
     <div class="row">
       <Taints v-model="value.spec.taints" :mode="mode" />

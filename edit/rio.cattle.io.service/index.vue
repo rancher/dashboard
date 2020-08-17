@@ -236,7 +236,7 @@ function matchingNamespaceGroupedByKey(ary, namespace) {
           <HealthCheck :spec="spec" :mode="mode" />
         </Tab>
         <Tab v-if="!isSidecar" name="labels" label="Labels">
-          <Labels :spec="value" :mode="mode" />
+          <Labels :value="value" :mode="mode" />
         </Tab>
         <Tab name="security" label="Security">
           <Security :spec="spec" :mode="mode" />
