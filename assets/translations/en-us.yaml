@@ -477,7 +477,7 @@ monitoring:
     once: ReadWriteOnce
     readOnlyMany: ReadOnlyMany
   clusterType:
-    k3s: 'K3s,'
+    k3s: 'K3s'
     kubeAdmin: KubeADM
     label: Cluster Type
     managed: 'Managed Cluster (EKS, GKE, AKS, etc.)'

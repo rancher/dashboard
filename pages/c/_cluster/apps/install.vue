@@ -2,23 +2,25 @@
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import isEqual from 'lodash/isEqual';
+import has from 'lodash/has';
 
+import AsyncButton from '@/components/AsyncButton';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import UnitInput from '@/components/form/UnitInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LazyImage from '@/components/LazyImage';
 import Markdown from '@/components/Markdown';
-import CruResource from '@/components/CruResource';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
-import YamlEditor from '@/components/YamlEditor';
+import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import Checkbox from '@/components/form/Checkbox';
 import Questions from '@/components/Questions';
+import CruResourceFooter from '@/components/CruResourceFooter';
 
 import { CATALOG } from '@/config/types';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT,
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, PREVIEW, _UNFLAG, _FLAGGED
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
@@ -29,16 +31,17 @@ export default {
   name: 'Install',
 
   components: {
+    AsyncButton,
     Checkbox,
-    UnitInput,
+    CruResourceFooter,
     LabeledSelect,
     LazyImage,
     Loading,
     Markdown,
     NameNsDescription,
-    CruResource,
-    Tabbed,
     Tab,
+    Tabbed,
+    UnitInput,
     YamlEditor,
     Questions,
   },
@@ -137,22 +140,25 @@ export default {
 
   data() {
     return {
-      mode:        null,
-      value:       null,
-      existing:    null,
-      chart:       null,
-      version:     null,
-      versionInfo: null,
-      valuesYaml:  null,
+      mode:            null,
+      value:           null,
+      existing:        null,
+      chart:           null,
+      version:         null,
+      versionInfo:     null,
+      valuesYaml:      null,
+      cleanValuesYaml: null,
 
       forceNamespace: null,
       nameDisabled:   false,
 
-      errors:          null,
-      valuesComponent: null,
-      valuesTabs:      false,
-      chartValues:     null,
-      loadedVersion:   null,
+      errors:              null,
+      valuesComponent:     null,
+      showValuesComponent: false,
+      valuesTabs:          false,
+      chartValues:         null,
+      loadedVersion:       null,
+      showPreview:         false,
 
       openApi:       true,
       hooks:         true,
@@ -202,12 +208,20 @@ export default {
       }
 
       return 'default';
-    }
+    },
+
+    editorMode() {
+      if ( this.showPreview ) {
+        return EDITOR_MODES.DIFF_CODE;
+      }
+
+      return EDITOR_MODES.EDIT_CODE;
+    },
   },
 
   watch: {
     '$route.query'(neu, old) {
-      if ( !isEqual(neu, old) ) {
+      if ( !isEqual(neu, old) && !has(neu, 'preview') ) {
         this.$fetch();
       }
     },
@@ -237,14 +251,17 @@ export default {
 
           const loaded = await this.valuesComponent();
 
+          this.showValuesComponent = true;
           this.valuesTabs = loaded?.default?.hasTabs || false;
         } else {
           this.valuesComponent = null;
           this.valuesTabs = false;
+          this.showValuesComponent = false;
         }
       } else {
         this.valuesComponent = null;
         this.valuesTabs = false;
+        this.showValuesComponent = false;
       }
     },
 
@@ -263,6 +280,35 @@ export default {
       this.$router.applyQuery({ [VERSION]: version });
     },
 
+    showPreviewYaml() {
+      const { valuesComponent, showValuesComponent } = this;
+
+      if (!!valuesComponent) {
+        if (!this.cleanValuesYaml) {
+          // seed the yaml with any entered info
+          this.valuesYaml = jsyaml.safeDump(this.chartValues);
+          this.cleanValuesYaml = this.valuesYaml;
+        }
+
+        if (showValuesComponent) {
+          this.showValuesComponent = false;
+        } else {
+          this.showValuesComponent = true;
+          this.cleanValuesYaml = null;
+        }
+      }
+    },
+
+    preview() {
+      this.showPreview = true;
+      this.$router.applyQuery({ [PREVIEW]: _FLAGGED });
+    },
+
+    unpreview() {
+      this.showPreview = false;
+      this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
+    },
+
     yamlChanged(str) {
       try {
         jsyaml.safeLoad(str);
@@ -273,12 +319,23 @@ export default {
       }
     },
 
-    cancel() {
+    cancel(reallyCancel) {
+      if (!reallyCancel && !this.showValuesComponent) {
+        return this.resetFromBack();
+      }
+
       if ( this.existing ) {
         this.done();
       } else {
         this.$router.replace({ name: 'c-cluster-apps' });
       }
+    },
+
+    resetFromBack() {
+      this.showValuesComponent = true;
+      this.valuesYaml = this.cleanValuesYaml;
+      this.cleanValuesYaml = null;
+      window.location.hash = `#values-form`;
     },
 
     done() {
@@ -447,96 +504,95 @@ export default {
     </h1>
 
     <Loading v-if="$fetchState.pending" />
-    <CruResource
-      v-else
-      :can-create="true"
-      :can-yaml="false"
-      done-route="c-cluster-apps"
-      :mode="mode"
-      :resource="value"
-      :subtypes="[]"
-      :finish-button-mode="(existing ? 'upgrade' : 'install')"
-      :errors="errors"
-      :cancel-event="true"
-      @error="e=>errors = e"
-      @finish="finish($event)"
-      @cancel="cancel"
-    >
-      <template #define>
-        <div v-if="chart" class="chart-info mb-20">
-          <div class="logo-container">
-            <div class="logo-bg">
-              <LazyImage :src="chart.icon" class="logo" />
-            </div>
-          </div>
-          <div class="description">
-            <Markdown v-if="versionInfo && versionInfo.appReadme" v-model="versionInfo.appReadme" class="md md-desc" />
-            <p v-else-if="chart.description">
-              {{ chart.description }}
-            </p>
+
+    <template v-else>
+      <div v-if="chart" class="chart-info mb-20">
+        <div class="logo-container">
+          <div class="logo-bg">
+            <LazyImage :src="chart.icon" class="logo" />
           </div>
         </div>
-
-        <div v-if="existing && chart" class="row mb-20">
-          <div class="col span-6">
-            <LabeledSelect
-              label="Chart"
-              :value="$route.query.chart"
-              option-label="chartName"
-              option-key="key"
-              :reduce="opt=>opt.key"
-              :options="charts"
-              @input="selectChart($event)"
-            />
-          </div>
-          <div v-if="chart" class="col span-6">
-            <LabeledSelect
-              label="Version"
-              :value="$route.query.version"
-              option-label="version"
-              option-key="version"
-              :reduce="opt=>opt.version"
-              :options="chart.versions"
-              @input="selectVersion($event)"
-            />
-          </div>
+        <div class="description">
+          <Markdown v-if="versionInfo && versionInfo.appReadme" v-model="versionInfo.appReadme" class="md md-desc" />
+          <p v-else-if="chart.description">
+            {{ chart.description }}
+          </p>
         </div>
-        <NameNsDescription
-          v-else
-          v-show="showNameEditor"
-          v-model="value"
-          :mode="mode"
-          :name-disabled="nameDisabled"
-          :force-namespace="forceNamespace"
-          :extra-columns="showVersions ? ['versions'] : []"
-        >
-          <template v-if="showVersions" #versions>
-            <LabeledSelect
-              label="Chart Version"
-              :value="$route.query.version"
-              option-label="version"
-              option-key="version"
-              :reduce="opt=>opt.version"
-              :options="chart.versions"
-              @input="selectVersion($event)"
-            />
-          </template>
-        </NameNsDescription>
+      </div>
 
-        <Tabbed
-          :side-tabs="true"
-          :class="{'with-name': showNameEditor}"
-          @changed="tabChanged($event)"
-        >
-          <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="-1">
-            <!-- Negative weight makes it go before any valuesComponent tabs with no weight set -->
-            <Markdown v-if="showReadme" ref="readme" v-model="versionInfo.readme" class="md readme" />
-          </Tab>
+      <div v-if="existing && chart" class="row mb-20">
+        <div class="col span-6">
+          <LabeledSelect
+            label="Chart"
+            :value="$route.query.chart"
+            option-label="chartName"
+            option-key="key"
+            :reduce="opt=>opt.key"
+            :options="charts"
+            @input="selectChart($event)"
+          />
+        </div>
+        <div v-if="chart" class="col span-6">
+          <LabeledSelect
+            label="Version"
+            :value="$route.query.version"
+            option-label="version"
+            option-key="version"
+            :reduce="opt=>opt.version"
+            :options="chart.versions"
+            @input="selectVersion($event)"
+          />
+        </div>
+      </div>
+      <NameNsDescription
+        v-else
+        v-show="showNameEditor"
+        v-model="value"
+        :mode="mode"
+        :name-disabled="nameDisabled"
+        :force-namespace="forceNamespace"
+        :extra-columns="showVersions ? ['versions'] : []"
+      >
+        <template v-if="showVersions" #versions>
+          <LabeledSelect
+            label="Chart Version"
+            :value="$route.query.version"
+            option-label="version"
+            option-key="version"
+            :reduce="opt=>opt.version"
+            :options="chart.versions"
+            @input="selectVersion($event)"
+          />
+        </template>
+      </NameNsDescription>
 
-          <template v-if="valuesComponent">
+      <Tabbed
+        :side-tabs="true"
+        :class="{'with-name': showNameEditor}"
+        @changed="tabChanged($event)"
+      >
+        <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="-1">
+          <!-- Negative weight makes it go before any valuesComponent tabs with no weight set -->
+          <Markdown v-if="showReadme" ref="readme" v-model="versionInfo.readme" class="md readme" />
+        </Tab>
+
+        <template v-if="valuesComponent && showValuesComponent">
+          <component
+            :is="valuesComponent"
+            v-if="valuesTabs"
+            v-model="chartValues"
+            :chart="chart"
+            :version="version"
+            :version-info="versionInfo"
+          />
+          <Tab
+            v-else
+            name="values-form"
+            :label="t('catalog.install.section.chartOptions')"
+          >
             <component
               :is="valuesComponent"
-              v-if="valuesTabs"
+              v-if="valuesComponent"
               v-model="chartValues"
               :chart="chart"
               :version="version"
@@ -556,66 +612,124 @@ export default {
                 :version-info="versionInfo"
               />
             </Tab>
-          </template>
-          <Questions
-            v-else-if="versionInfo && versionInfo.questions"
-            v-model="chartValues"
-            :chart="chart"
-            :version="version"
-            :version-info="versionInfo"
-            :target-namespace="targetNamespace"
+          </tab>
+        </template>
+        <Questions
+          v-else-if="versionInfo && versionInfo.questions"
+          v-model="chartValues"
+          :chart="chart"
+          :version="version"
+          :version-info="versionInfo"
+          :target-namespace="targetNamespace"
+        />
+        <Tab v-else name="values-yaml" :label="t('catalog.install.section.valuesYaml')">
+          <YamlEditor
+            ref="yaml"
+            :scrolling="false"
+            :value="valuesYaml"
+            :editor-mode="editorMode"
+            @onInput="yamlChanged"
           />
-          <Tab v-else name="values-yaml" :label="t('catalog.install.section.valuesYaml')">
-            <YamlEditor
-              ref="yaml"
-              :scrolling="false"
-              :value="valuesYaml"
-              @onInput="yamlChanged"
-            />
-          </Tab>
+        </Tab>
 
-          <Tab name="helm" :label="t('catalog.install.section.helm')" :weight="100">
-            <div v-if="existing">
-              <div><Checkbox v-model="atomic" :label="t('catalog.install.helm.atomic')" /></div>
-              <div><Checkbox v-model="cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
-              <div><Checkbox v-model="dryRun" :label="t('catalog.install.helm.dryRun')" /></div>
-              <div><Checkbox v-model="force" :label="t('catalog.install.helm.force')" /></div>
-              <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
-              <div><Checkbox v-model="resetValues" :label="t('catalog.install.helm.resetValues')" /></div>
-              <div><Checkbox v-model="reuseValues" :label="t('catalog.install.helm.reuseValues')" /></div>
-              <div><Checkbox v-model="wait" :label="t('catalog.install.helm.wait')" /></div>
-              <div style="display: inline-block; max-width: 400px;">
-                <UnitInput
-                  v-model.number="historyMax"
-                  :label="t('catalog.install.helm.historyMax.label')"
-                  :suffix="t('catalog.install.helm.historyMax.unit')"
-                />
-              </div>
-              <div style="display: inline-block; max-width: 400px;">
-                <UnitInput
-                  v-model.number="timeout"
-                  :label="t('catalog.install.helm.timeout.label')"
-                  :suffix="t('catalog.install.helm.timeout.unit')"
-                />
-              </div>
+        <Tab name="helm" :label="t('catalog.install.section.helm')" :weight="100">
+          <div v-if="existing">
+            <div><Checkbox v-model="atomic" :label="t('catalog.install.helm.atomic')" /></div>
+            <div><Checkbox v-model="cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
+            <div><Checkbox v-model="dryRun" :label="t('catalog.install.helm.dryRun')" /></div>
+            <div><Checkbox v-model="force" :label="t('catalog.install.helm.force')" /></div>
+            <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
+            <div><Checkbox v-model="resetValues" :label="t('catalog.install.helm.resetValues')" /></div>
+            <div><Checkbox v-model="reuseValues" :label="t('catalog.install.helm.reuseValues')" /></div>
+            <div><Checkbox v-model="wait" :label="t('catalog.install.helm.wait')" /></div>
+            <div style="display: inline-block; max-width: 400px;">
+              <UnitInput
+                v-model.number="historyMax"
+                :label="t('catalog.install.helm.historyMax.label')"
+                :suffix="t('catalog.install.helm.historyMax.unit')"
+              />
             </div>
-            <div v-else>
-              <div><Checkbox v-model="openApi" :label="t('catalog.install.helm.openapi')" /></div>
-              <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
-              <div><Checkbox v-model="crds" :label="t('catalog.install.helm.crds')" /></div>
-              <div><Checkbox v-model="wait" :label="t('catalog.install.helm.wait')" /></div>
-              <div style="display: inline-block; max-width: 400px;">
-                <UnitInput
-                  v-model.number="timeout"
-                  :label="t('catalog.install.helm.timeout.label')"
-                  :suffix="t('catalog.install.helm.timeout.unit')"
-                />
-              </div>
+            <div style="display: inline-block; max-width: 400px;">
+              <UnitInput
+                v-model.number="timeout"
+                :label="t('catalog.install.helm.timeout.label')"
+                :suffix="t('catalog.install.helm.timeout.unit')"
+              />
             </div>
-          </Tab>
-        </Tabbed>
+          </div>
+          <div v-else>
+            <div><Checkbox v-model="openApi" :label="t('catalog.install.helm.openapi')" /></div>
+            <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
+            <div><Checkbox v-model="crds" :label="t('catalog.install.helm.crds')" /></div>
+            <div><Checkbox v-model="wait" :label="t('catalog.install.helm.wait')" /></div>
+            <div style="display: inline-block; max-width: 400px;">
+              <UnitInput
+                v-model.number="timeout"
+                :label="t('catalog.install.helm.timeout.label')"
+                :suffix="t('catalog.install.helm.timeout.unit')"
+              />
+            </div>
+          </div>
+        </Tab>
+      </Tabbed>
+    </template>
+
+    <CruResourceFooter
+      done-route="c-cluster-apps"
+      :mode="mode"
+      :finish-button-mode="(existing ? 'upgrade' : 'install')"
+      :is-form="!!showValuesComponent"
+      @cancelConfirmed="cancel"
+    >
+      <template #default="{checkCancel}">
+        <template v-if="!showValuesComponent">
+          <button
+            v-if="showPreview"
+            type="button"
+            class="btn role-secondary"
+            @click="unpreview"
+          >
+            <t k="resourceYaml.buttons.continue" />
+          </button>
+
+          <button
+            v-else
+            :disabled="valuesYaml === cleanValuesYaml"
+            type="button"
+            class="btn role-secondary"
+            @click="preview"
+          >
+            <t k="resourceYaml.buttons.diff" />
+          </button>
+        </template>
+
+        <button
+          v-if="$route.hash === '#values-form' && showValuesComponent"
+          type="button"
+          class="btn role-secondary"
+          @click="showPreviewYaml"
+        >
+          {{ t("cruResource.previewYaml") }}
+        </button>
+
+        <div>
+          <button
+            v-if="!showValuesComponent"
+            type="button"
+            class="btn role-secondary"
+            @click="valuesYaml === cleanValuesYaml ? resetFromBack() : checkCancel(false)"
+          >
+            <t k="generic.back" />
+          </button>
+
+          <AsyncButton
+            :disabled="false"
+            :mode="(existing ? 'upgrade' : 'install') || mode"
+            @click="finish"
+          />
+        </div>
       </template>
-    </CruResource>
+    </CruResourceFooter>
   </div>
 </template>
 

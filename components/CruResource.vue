@@ -8,12 +8,14 @@ import Banner from '@/components/Banner';
 import AsyncButton from '@/components/AsyncButton';
 import { mapGetters } from 'vuex';
 import { stringify } from '@/utils/error';
+import CruResourceFooter from '@/components/CruResourceFooter';
 
 export default {
   components: {
+    AsyncButton,
     Banner,
+    CruResourceFooter,
     ResourceYaml,
-    AsyncButton
   },
 
   props: {
@@ -71,7 +73,6 @@ export default {
 
   data() {
     return {
-      isCancelModal: false,
       showAsForm:    true,
       resourceYaml:  '',
     };
@@ -97,22 +98,9 @@ export default {
   methods: {
     stringify,
 
-    checkCancel(isCancel) {
-      if (isCancel) {
-        this.isCancelModal = true;
-      } else {
-        this.isCancelModal = false;
-      }
-
-      this.$modal.show('cancel-modal');
-    },
-
     confirmCancel(isCancel) {
-      this.$modal.hide('cancel-modal');
-
       if (isCancel) {
-        this.isCancelModal = false;
-        if (this.cancelEvent) {
+        if ( this.cancelEvent ) {
           this.$emit('cancel');
         } else {
           this.$router.replace({
@@ -121,7 +109,6 @@ export default {
           });
         }
       } else {
-        this.isCancelModal = false;
         this.resourceYaml = null;
         this.showAsForm = true;
       }
@@ -208,29 +195,31 @@ export default {
         </div>
         <div class="controls-row">
           <slot name="form-footer">
-            <button
-              type="button"
-              class="btn role-secondary"
-              @click="checkCancel(true)"
+            <CruResourceFooter
+              :done-route="doneRoute"
+              :mode="mode"
+              :is-form="showAsForm"
+              @cancelConfirmed="confirmCancel"
             >
-              <t k="generic.cancel" />
-            </button>
-            <div>
-              <button
-                v-if="canYaml && (selectedSubtype || !subtypes.length)"
-                type="button"
-                class="btn role-secondary"
-                @click="showPreviewYaml"
-              >
-                <t k="cruResource.previewYaml" />
-              </button>
-              <AsyncButton
-                v-if="!showSubtypeSelection"
-                :disabled="!validationPassed"
-                :mode="finishButtonMode || mode"
-                @click="$emit('finish', $event)"
-              />
-            </div>
+              <template #default>
+                <div>
+                  <button
+                    v-if="canYaml && (selectedSubtype || !subtypes.length)"
+                    type="button"
+                    class="btn role-secondary"
+                    @click="showPreviewYaml"
+                  >
+                    <t k="cruResource.previewYaml" />
+                  </button>
+                  <AsyncButton
+                    v-if="!showSubtypeSelection"
+                    :disabled="!validationPassed"
+                    :mode="finishButtonMode || mode"
+                    @click="$emit('finish', $event)"
+                  />
+                </div>
+              </template>
+            </CruResourceFooter>
           </slot>
         </div>
       </template>
@@ -252,52 +241,45 @@ export default {
           <template #yamlFooter="{currentYaml, yamlSave, showPreview, yamlPreview, yamlUnpreview}">
             <div class="controls-row">
               <slot name="cru-yaml-footer">
-                <div class="controls-right">
-                  <button
-                    type="button"
-                    class="btn role-secondary"
-                    @click="checkCancel(true)"
-                  >
-                    <t k="generic.cancel" />
-                  </button>
-                </div>
-                <div class="controls-middle">
-                  <button
-                    v-if="showPreview"
-                    type="button"
-                    class="btn role-secondary"
-                    @click="yamlUnpreview"
-                  >
-                    <t k="resourceYaml.buttons.continue" />
-                  </button>
-                  <button
-                    v-if="!showPreview"
-                    :disabled="resourceYaml === currentYaml"
-                    type="button"
-                    class="btn role-secondary"
-                    @click="yamlPreview"
-                  >
-                    <t k="resourceYaml.buttons.diff" />
-                  </button>
-                </div>
-                <div
-                  v-if="selectedSubtype || !subtypes.length"
-                  class="controls-right"
+                <CruResourceFooter
+                  :done-route="doneRoute"
+                  :mode="mode"
+                  :is-form="showAsForm"
+                  @cancelConfirmed="confirmCancel"
                 >
-                  <button
-                    type="button"
-                    class="btn role-secondary"
-                    @click="checkCancel(false)"
-                  >
-                    <t k="generic.back" />
-                  </button>
-                  <AsyncButton
-                    v-if="!showSubtypeSelection"
-                    :disabled="!validationPassed"
-                    :action-label="mode==='edit' ? t('generic.save') : t('generic.create')"
-                    @click="cb=>yamlSave(cb)"
-                  />
-                </div>
+                  <template #default="{checkCancel}">
+                    <div class="controls-middle">
+                      <button
+                        v-if="showPreview"
+                        type="button"
+                        class="btn role-secondary"
+                        @click="yamlUnpreview"
+                      >
+                        <t k="resourceYaml.buttons.continue" />
+                      </button>
+                      <button
+                        v-if="!showPreview"
+                        :disabled="resourceYaml === currentYaml"
+                        type="button"
+                        class="btn role-secondary"
+                        @click="yamlPreview"
+                      >
+                        <t k="resourceYaml.buttons.diff" />
+                      </button>
+                    </div>
+                    <div v-if="selectedSubtype || !subtypes.length" class="controls-right">
+                      <button type="button" class="btn role-secondary" @click="checkCancel(false)">
+                        <t k="generic.back" />
+                      </button>
+                      <AsyncButton
+                        v-if="!showSubtypeSelection"
+                        :disabled="!validationPassed"
+                        :action-label="mode==='edit' ? t('generic.save') : t('generic.create')"
+                        @click="cb=>yamlSave(cb)"
+                      />
+                    </div>
+                  </template>
+                </CruResourceFooter>
               </slot>
             </div>
           </template>
@@ -314,54 +296,6 @@ export default {
         />
       </div>
     </form>
-
-    <modal
-      class="confirm-modal"
-      name="cancel-modal"
-      :width="400"
-      height="auto"
-    >
-      <div class="header">
-        <h4 class="text-default-text">
-          <t
-            v-if="isCancelModal"
-            k="generic.cancel"
-          />
-          <span v-else>
-            {{ t("cruResource.backToForm") }}
-          </span>
-        </h4>
-      </div>
-      <div class="body">
-        <p v-if="isCancelModal">
-          <t k="cruResource.cancel" />
-        </p>
-        <p v-else>
-          <t k="cruResource.back" />
-        </p>
-      </div>
-      <div class="footer">
-        <button
-          type="button"
-          class="btn role-secondary"
-          @click="$modal.hide('cancel-modal')"
-        >
-          {{ showAsForm ? t("cruResource.reviewForm") : t("cruResource.reviewYaml") }}
-        </button>
-        <button
-          type="button"
-          class="btn role-primary"
-          @click="confirmCancel(isCancelModal)"
-        >
-          <span v-if="isCancelModal">
-            {{ t("cruResource.confirmCancel") }}
-          </span>
-          <span v-else>
-            {{ t("cruResource.confirmBack") }}
-          </span>
-        </button>
-      </div>
-    </modal>
   </section>
 </template>
 
@@ -370,33 +304,6 @@ export default {
   .resource-yaml {
     .yaml-editor {
       min-height: 400px;
-    }
-  }
-}
-.confirm-modal {
-  .v--modal-box {
-    background-color: var(--default);
-    box-shadow: none;
-    min-height: 200px;
-    .body {
-      min-height: 75px;
-      padding: 10px 0 0 15px;
-      p {
-        margin-top: 10px;
-      }
-    }
-    .header {
-      background-color: #4f3335;
-      padding: 15px 0 0 15px;
-    }
-    .header,
-    .footer {
-      height: 50px;
-    }
-    .footer {
-      border-top: 1px solid var(--border);
-      text-align: center;
-      padding: 10px 0 0 15px;
     }
   }
 }
@@ -483,11 +390,5 @@ export default {
     justify-content: center;
     width: 100%;
   }
-}
-
-.controls-row {
-  margin-top: 20px;
-  display: flex;
-  justify-content: space-between;
 }
 </style>
