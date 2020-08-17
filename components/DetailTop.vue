@@ -1,9 +1,11 @@
 <script>
 import Tag from '@/components/Tag';
 import { isEmpty } from 'lodash';
+import KeyValue from '@/components/form/KeyValue';
+import { _VIEW } from '@/config/query-params';
 
 export default {
-  components: { Tag },
+  components: { KeyValue, Tag },
   props:      {
     description: {
       type:    String,
@@ -23,7 +25,7 @@ export default {
     }
   },
   data() {
-    return { annotationsVisible: false };
+    return { annotationsVisible: false, view: _VIEW };
   },
   computed: {
     hasDetails() {
@@ -88,18 +90,7 @@ export default {
       <div v-if="hasAnnotations" class="annotations">
         <label>{{ t('resourceDetail.detailTop.annotations') }}:</label>
         <a v-if="!annotationsVisible" href="#" @click="showAnnotations">{{ t('resourceDetail.detailTop.showAnnotations', {annotations: annotationCount}) }}</a>
-        <table v-else>
-          <tbody>
-            <tr v-for="(value, key) in annotations" :key="key + value">
-              <td>
-                {{ key }}
-              </td>
-              <td>
-                {{ value }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <KeyValue v-else :value="annotations" :mode="view" />
       </div>
     </div>
   </div>
@@ -147,6 +138,10 @@ export default {
 
     table tr td:first-of-type {
       padding-right: 60px;
+    }
+
+    .key-value .kv-row {
+      grid-template-columns: 33.333% 1fr;
     }
   }
 </style>
