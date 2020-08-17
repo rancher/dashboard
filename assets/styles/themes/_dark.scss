@@ -57,7 +57,7 @@
   --scrollbar-thumb-dropdown: #{$darker};
 
   --nav-bg: #{$darkest};
-  --nav-active: var(--primary);
+  --nav-active: #{rgba($primary, 0.3)};
 
   --disabled-bg: #{$disabled};
   --disabled-text: #{$secondary};

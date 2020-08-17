@@ -271,7 +271,6 @@ export default {
       grid-area: nav;
       position: relative;
       background-color: var(--nav-bg);
-      padding: 0 10px;
       overflow-y: auto;
 
       .package.depth-0 {
@@ -285,8 +284,13 @@ export default {
 
       .header {
         background: transparent;
+        padding-left: 10px;
       }
 
+      .list-unstyled {
+        padding-left: 10px;
+      }
+s
       H6, .root.child .label {
         margin: 0;
         letter-spacing: 0.1em;

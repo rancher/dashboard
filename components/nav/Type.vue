@@ -105,6 +105,7 @@ export default {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      border-radius: 0 90px 90px 0;
 
       &:hover {
         background: var(--dropdown-hover-bg);
