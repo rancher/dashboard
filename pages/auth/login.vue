@@ -118,8 +118,11 @@ export default {
   <main class="login">
     <div class="row mb-20">
       <div class="col span-6">
+        <p class="text-center">
+          Howdy!
+        </p>
         <h1 class="text-center">
-          {{ vendor }} {{ product }}
+          Welcome to {{ vendor }}
         </h1>
         <h4 v-if="err" class="text-error text-center">
           An error occurred logging in.  Please try again.
@@ -143,8 +146,8 @@ export default {
         </div>
 
         <form v-if="hasLocal && showLocal" class="mt-50">
-          <div class="row mb-20">
-            <div class="col span-4 offset-4">
+          <div class="span-6 offset-3">
+            <div class="mb-20">
               <LabeledInput
                 ref="username"
                 v-model="username"
@@ -152,9 +155,7 @@ export default {
                 autocomplete="username"
               />
             </div>
-          </div>
-          <div class="row mb-20">
-            <div class="col span-4 offset-4">
+            <div class="">
               <LabeledInput
                 ref="password"
                 v-model="password"
@@ -164,8 +165,8 @@ export default {
               />
             </div>
           </div>
-          <div class="row mb-20">
-            <div class="col span-4 offset-4 text-center">
+          <div class="mt-20">
+            <div class="col span-12 text-center">
               <AsyncButton
                 type="submit"
                 action-label="Log In with Local User"
