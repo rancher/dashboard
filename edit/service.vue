@@ -170,6 +170,7 @@ export default {
     @finish="save"
     @cancel="done"
     @select-type="(st) => serviceType = st"
+    @apply-hooks="() => applyHooks('_beforeSaveHooks')"
   >
     <template #define>
       <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
@@ -180,7 +181,7 @@ export default {
         <Tab
           v-if="checkTypeIs('ExternalName')"
           name="define-external-name"
-          :label="t('servicesPage.selectors.define')"
+          :label="t('servicesPage.externalName.define')"
         >
           <div class="clearfix">
             <h4>

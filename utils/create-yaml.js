@@ -1,5 +1,6 @@
 import { indent as _indent } from '@/utils/string';
 import { addObject, removeObject, removeObjects } from '@/utils/array';
+import jsyaml from 'js-yaml';
 
 const SIMPLE_TYPES = [
   'string',
@@ -169,6 +170,15 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
     }
 
     if ( mapOf ) {
+      if (data[key]) {
+        try {
+          const parsedData = jsyaml.safeDump(data[key]);
+
+          out += `\n${ indent(parsedData.trim()) }`;
+        } catch (e) {
+        }
+      }
+
       if ( SIMPLE_TYPES.includes(mapOf) ) {
         out += `\n#  key: ${ mapOf }`;
       } else {
@@ -184,6 +194,15 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
     }
 
     if ( arrayOf ) {
+      if (data[key]) {
+        try {
+          const parsedData = jsyaml.safeDump(data[key]);
+
+          out += `\n${ indent(parsedData.trim()) }`;
+        } catch (e) {
+        }
+      }
+
       if ( SIMPLE_TYPES.includes(arrayOf) ) {
         out += `\n#  - ${ arrayOf }`;
       } else {
@@ -205,7 +224,9 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
     }
 
     if ( SIMPLE_TYPES.includes(type) ) {
-      if ( typeof data[key] === 'undefined' ) {
+      if (key === '_type' && typeof data[key] === 'undefined' && typeof data['type'] !== 'undefined') {
+        out += ` ${ data['type'] }`;
+      } else if ( typeof data[key] === 'undefined' ) {
         out += ` #${ type }`;
       } else {
         out += ` ${ data[key] }`;

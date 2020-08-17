@@ -127,11 +127,12 @@ export default {
       }
     },
 
-    showPreviewYaml() {
+    async showPreviewYaml() {
+      await this.$emit('apply-hooks');
+
       const schemas = this.$store.getters['cluster/all'](SCHEMA);
       const { resource } = this;
       const clonedResource = clone(resource);
-
       const resourceYaml = createYaml(schemas, resource.type, clonedResource);
 
       this.resourceYaml = resourceYaml;

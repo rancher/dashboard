@@ -199,3 +199,27 @@ export function diff(from, to) {
 
   return out;
 }
+
+export function nonEmptyValueKeys(obj) {
+  const validKeys = Object.keys(obj).map((key) => {
+    const val = obj[key];
+
+    if ( isObject(val) ) {
+      const recursed = nonEmptyValueKeys(val);
+
+      if (recursed) {
+        return recursed.map((subkey) => {
+          return `"${ key }"."${ subkey }"`;
+        });
+      }
+    } else if ( Array.isArray(val) ) {
+      if (compact(val).length) {
+        return key;
+      }
+    } else if (!!val || val === false || val === 0) {
+      return key;
+    }
+  });
+
+  return compact(flattenDeep(validKeys));
+}
