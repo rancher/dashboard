@@ -113,6 +113,8 @@ export default {
     color: var(--dropdown-text);
     background-color: var(--dropdown-bg);
     border: 1px solid var(--dropdown-border);
+    border-radius: 5px;
+    box-shadow: 0 5px 20px var(--shadow);
 
     LI {
       padding: 10px;

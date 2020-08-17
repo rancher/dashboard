@@ -124,15 +124,17 @@ export default {
 
   .results {
     position: absolute;
-    top: 44px;
+    top: 45px;
     left: 10px;
     right: 10px;
     bottom: 10px;
     overflow-y: auto;
     z-index: 1;
-    background: var(--box-bg);
-    border: solid var(--border) thin;
     padding: 0 10px;
-    box-shadow: 0px 8px 16px 0px var(--shadow);
+    color: var(--dropdown-text);
+    background-color: var(--dropdown-bg);
+    border: 1px solid var(--dropdown-border);
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 5px 20px var(--shadow);
   }
 </style>

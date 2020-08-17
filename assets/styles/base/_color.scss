@@ -12,7 +12,7 @@
     $hover-bg:     get-or-def($color, "hover-bg",     darken($default, 10%));
     $active-bg:    get-or-def($color, "active-bg",    darken($default, 25%));
     $default-text: get-or-def($color, "default-text", contrast-color($default));
-    $hover-text:   get-or-def($color, "hover-text",   saturate($link, 20%));
+    $hover-text:   get-or-def($color, "hover-text",   saturate($lightest, 20%));
     $active-text:  get-or-def($color, "active-text",  contrast-color($active-bg));
     $border:       get-or-def($color, "border",       $color);
     $banner-bg:    get-or-def($color, "banner",      rgba($default, 0.15));

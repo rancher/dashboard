@@ -122,7 +122,17 @@
   display: flex;
   align-items: center;
   pointer-events: none;
-  padding-right: 10px;
+
+  svg {
+    display: none;
+  }
+
+  &:after {
+    content: $icon-chevron-down;
+    font-family: 'icons';
+    font-size: 2rem;
+    color: var(--secondary);
+  }
 }
 
 .vs--searchable .vs__dropdown-toggle {
@@ -212,6 +222,7 @@ $transition-duration: 150ms;
 }
 
 .vs__selected {
+  @extend .text-small;
   display: flex;
   align-items: center;
   background-color: var(--accent-btn);
@@ -231,7 +242,16 @@ $transition-duration: 150ms;
   cursor: pointer;
   background: none;
   fill: var(--primary);
-  text-shadow: 0 1px 0 #fff
+
+  svg {
+    display: none;
+  }
+
+  &:after {
+    content: $icon-close;
+    font-family: 'icons';
+    color: var(--link-text);
+  }
 }
 
 /*inline single-option select*/
