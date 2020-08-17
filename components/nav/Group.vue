@@ -150,6 +150,7 @@ export default {
         > H6 {
           font-size: 14px;
           text-transform: none;
+          padding-left: 10px;
         }
 
         > I {

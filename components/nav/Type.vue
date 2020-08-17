@@ -101,7 +101,7 @@ export default {
       grid-template-columns: auto auto;
       grid-column-gap: 5px;
       font-size: 13px;
-      padding: 7.5px 5px;
+      padding: 7.5px 5px 7.5px 10px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
