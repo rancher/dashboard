@@ -130,10 +130,4 @@ export default {
       justify-items: center;
     }
   }
-
-  .root.child {
-    A {
-      padding-left: 0;
-    }
-  }
 </style>
