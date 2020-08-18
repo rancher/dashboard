@@ -106,7 +106,7 @@ export default {
   <div :style="{'width':'100%'}" class="row" @input="update">
     <div class="col span-6">
       <div v-if="!isView || Object.values(selectorMap).length " class="mb-10">
-        <t k="workload.scheduling.affinity.requireAny" />
+        <label><t k="workload.scheduling.affinity.requireAny" /></label>
       </div>
       <template v-for="(nodeSelectorTerm, key) in selectorMap">
         <div :key="key">
@@ -123,14 +123,14 @@ export default {
           />
         </div>
       </template>
-      <button v-if="!isView && isEmpty(selectorMap)" type="button" class="btn btn-sm role-primary" @click="addSelector">
+      <button v-if="!isView && isEmpty(selectorMap)" type="button" class="btn role-tertiary" @click="addSelector">
         Add Pod Selector
       </button>
     </div>
 
     <div class="col span-6">
       <div v-if="!isView || Object.values(weightedSelectorMap).length " class="mb-10">
-        <t k="workload.scheduling.affinity.preferAny" />
+        <label><t k="workload.scheduling.affinity.preferAny" /></label>
       </div>
       <template v-for="(nodeSelectorTerm, key) in weightedSelectorMap">
         <div :key="key">
@@ -149,7 +149,7 @@ export default {
           <div class="spacer" />
         </div>
       </template>
-      <button v-if="!isView" type="button" class="btn btn-sm role-primary" @click="addWeightedSelector">
+      <button v-if="!isView" type="button" class="btn role-tertiary" @click="addWeightedSelector">
         Add Pod Selector
       </button>
     </div>

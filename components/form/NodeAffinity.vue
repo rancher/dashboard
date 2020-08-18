@@ -93,7 +93,7 @@ export default {
   <div class="row" @input="update">
     <div :class="{'col span-6':hasWeighted, 'col span-12':!hasWeighted}">
       <div class="mb-10">
-        <t k="workload.scheduling.affinity.requireAny" />
+        <label><t k="workload.scheduling.affinity.requireAny" /></label>
       </div>
       <div v-if="isView && isEmpty(selectorMap)">
         <MatchExpressions
@@ -117,14 +117,14 @@ export default {
           <div class="spacer" />
         </div>
       </template>
-      <button v-if="!isView" type="button" class="btn btn-sm role-primary" @click="e=>$set(selectorMap, Math.random(), {matchExpressions:[]})">
+      <button v-if="!isView" type="button" class="btn role-tertiary" @click="e=>$set(selectorMap, Math.random(), {matchExpressions:[]})">
         <t k="workload.scheduling.affinity.addNodeSelector" />
       </button>
     </div>
 
     <div v-if="hasWeighted" class="col span-6">
       <div class="mb-10">
-        <t k="workload.scheduling.affinity.preferAny" />
+        <label><t k="workload.scheduling.affinity.preferAny" /></label>
       </div>
       <div v-if="isView && isEmpty(selectorMap)">
         <MatchExpressions
@@ -149,7 +149,7 @@ export default {
           <div class="spacer" />
         </div>
       </template>
-      <button v-if="!isView" type="button" class="btn btn-sm role-primary" @click="e=>$set(weightedSelectorMap, Math.random(), {preference:{matchExpressions:[]}, weight:defaultWeight})">
+      <button v-if="!isView" type="button" class="btn role-tertiary" @click="e=>$set(weightedSelectorMap, Math.random(), {preference:{matchExpressions:[]}, weight:defaultWeight})">
         <t k="workload.scheduling.affinity.addNodeSelector" />
       </button>
     </div>

@@ -143,97 +143,104 @@ export default {
 </script>
 <template>
   <div>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabeledSelect
-          v-model="networkMode"
-          :mode="mode"
-          :options="networkModeChoices"
-          :label="t('workload.networking.networkMode.label')"
-          :placeholder="t('workload.networking.networkMode.placeholder')"
-          @input="update"
-        />
+    <div class="bordered-section">
+      <div class="row mb-20">
+        <div class="col span-6">
+          <LabeledSelect
+            v-model="networkMode"
+            :mode="mode"
+            :options="networkModeChoices"
+            :label="t('workload.networking.networkMode.label')"
+            :placeholder="t('workload.networking.networkMode.placeholder')"
+            @input="update"
+          />
+        </div>
+
+        <div class="col span-6">
+          <LabeledSelect
+            v-model="dnsPolicy"
+            :mode="mode"
+            :options="dnsPolicyChoices"
+            :label="t('workload.networking.dnsPolicy.label')"
+            :placeholder="t('workload.networking.dnsPolicy.placeholder')"
+            @input="update"
+          />
+        </div>
       </div>
 
-      <div class="col span-6">
-        <LabeledSelect
-          v-model="dnsPolicy"
-          :mode="mode"
-          :options="dnsPolicyChoices"
-          :label="t('workload.networking.dnsPolicy.label')"
-          :placeholder="t('workload.networking.dnsPolicy.placeholder')"
-          @input="update"
-        />
+      <div class="row">
+        <div class="col span-6">
+          <LabeledInput
+            v-model="hostname"
+            :mode="mode"
+            :label="t('workload.networking.hostname.label')"
+            :placeholder="t('workload.networking.hostname.placeholder')"
+            @input="update"
+          />
+        </div>
+        <div class="col span-6">
+          <LabeledInput
+            v-model="subdomain"
+            :mode="mode"
+            :label="t('workload.networking.subdomain.label')"
+            :placeholder="t('workload.networking.subdomain.placeholder')"
+            @input="update"
+          />
+        </div>
       </div>
     </div>
 
-    <div class="row mb-20">
-      <div class="col span-6">
-        <LabeledInput
-          v-model="hostname"
-          :mode="mode"
-          :label="t('workload.networking.hostname.label')"
-          :placeholder="t('workload.networking.hostname.placeholder')"
-          @input="update"
-        />
-      </div>
-      <div class="col span-6">
-        <LabeledInput
-          v-model="subdomain"
-          :mode="mode"
-          :label="t('workload.networking.subdomain.label')"
-          :placeholder="t('workload.networking.subdomain.placeholder')"
-          @input="update"
-        />
-      </div>
-    </div>
-
-    <div class="row mb-20">
-      <div class="col span-6">
-        <ArrayList
-          key="dnsNameservers"
-          v-model="nameservers"
-          :title="t('workload.networking.nameservers.label')"
-          :value-placeholder="t('workload.networking.nameservers.placeholder')"
-          :add-label="t('workload.networking.nameservers.add')"
-          :value-multiline="false"
-          :mode="mode"
-          :pad-left="false"
-          :protip="false"
-          @input="update"
-        />
-      </div>
-      <div class="col span-6">
-        <ArrayList
-          key="dnsSearches"
-          v-model="searches"
-          :title="t('workload.networking.searches.label')"
-          :value-placeholder="t('workload.networking.searches.placeholder')"
-          :add-label="t('workload.networking.searches.add')"
-          :value-multiline="false"
-          :mode="mode"
-          :pad-left="false"
-          :protip="false"
-          @input="update"
-        />
+    <div class="bordered-section">
+      <h3>{{ t('workload.networking.dns') }}</h3>
+      <div class="row">
+        <div class="col span-6">
+          <ArrayList
+            key="dnsNameservers"
+            v-model="nameservers"
+            :title="t('workload.networking.nameservers.label')"
+            :value-placeholder="t('workload.networking.nameservers.placeholder')"
+            :add-label="t('workload.networking.nameservers.add')"
+            :value-multiline="false"
+            :mode="mode"
+            :pad-left="false"
+            :protip="false"
+            @input="update"
+          />
+        </div>
+        <div class="col span-6">
+          <ArrayList
+            key="dnsSearches"
+            v-model="searches"
+            :title="t('workload.networking.searches.label')"
+            :value-placeholder="t('workload.networking.searches.placeholder')"
+            :add-label="t('workload.networking.searches.add')"
+            :value-multiline="false"
+            :mode="mode"
+            :pad-left="false"
+            :protip="false"
+            @input="update"
+          />
+        </div>
       </div>
     </div>
 
-    <div class="row mb-20">
-      <KeyValue
-        v-model="options"
-        key-label="Name"
-        key-name="name"
-        :mode="mode"
-        :title="t('workload.networking.resolver')"
-        :read-allowed="false"
-        :as-map="false"
-        @input="update"
-      >
-        <template #title>
-          <h3>{{ t('workload.networking.resolver') }}</h3>
-        </template>
-      </KeyValue>
+    <div class="bordered-section">
+      <div class="row">
+        <KeyValue
+          v-model="options"
+          key-label="Name"
+          key-name="name"
+          :mode="mode"
+          :title="t('workload.networking.resolver')"
+          :read-allowed="false"
+          :as-map="false"
+          @input="update"
+        >
+          <template #title>
+            <h3>{{ t('workload.networking.resolver') }}</h3>
+          </template>
+        </KeyValue>
+      </div>
     </div>
 
     <div class="row">

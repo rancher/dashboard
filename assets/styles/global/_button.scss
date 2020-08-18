@@ -92,8 +92,10 @@ button,
 }
 
 .role-tertiary {
-  background: var(--link-text);
-  padding: $sm-padding;
+  background: var(--accent-btn);
+  border: solid thin var(--link-text);
+  color: var(--link-text);
+  @extend .btn-sm;
 }
 
 .role-link {

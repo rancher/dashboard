@@ -42,33 +42,31 @@ export default {
 
 <template>
   <div>
-    <div class="row">
-      <Probe
-        v-model="readinessProbe"
-        class="col span-12"
-        :mode="mode"
-        label="Readiness Check"
-        :description="t('workload.container.healthCheck.readinessTip')"
-        @input="update"
-      />
+    <div class="bordered-section">
+      <div class="row">
+        <Probe
+          v-model="readinessProbe"
+          class="col span-12"
+          :mode="mode"
+          label="Readiness Check"
+          :description="t('workload.container.healthCheck.readinessTip')"
+          @input="update"
+        />
+      </div>
     </div>
 
-    <hr v-if="!isView" class="mt-40 mb-40" />
-    <div v-else class="spacer" />
-
-    <div class="row">
-      <Probe
-        v-model="livenessProbe"
-        class="col span-12"
-        :mode="mode"
-        label="Liveness Check"
-        :description="t('workload.container.healthCheck.livenessTip')"
-        @input="update"
-      />
+    <div class="bordered-section">
+      <div class="row">
+        <Probe
+          v-model="livenessProbe"
+          class="col span-12"
+          :mode="mode"
+          label="Liveness Check"
+          :description="t('workload.container.healthCheck.livenessTip')"
+          @input="update"
+        />
+      </div>
     </div>
-
-    <hr v-if="!isView" class="mt-40 mb-40" />
-    <div v-else class="spacer" />
 
     <div class="row">
       <Probe

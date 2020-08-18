@@ -72,7 +72,7 @@ export default {
         </button>
       </div>
     </div>
-    <div class="rule-path-headings row mb-0">
+    <div class="rule-path-headings row">
       <div class="col span-4">
         <label>{{ t("ingress.rules.path.label") }}</label>
       </div>

@@ -38,7 +38,7 @@ export default {
     </div>
 
     <div class="kubectl">
-      <button :disabled="!showShell" type="button" class="btn btn-sm role-tertiary" @click="currentCluster.openShell()">
+      <button :disabled="!showShell" type="button" class="btn role-tertiary" @click="currentCluster.openShell()">
         <i class="icon icon-terminal" />
       </button>
     </div>

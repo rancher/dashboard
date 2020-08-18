@@ -154,7 +154,7 @@ export default {
         <i v-if="description" v-tooltip="description" class="icon icon-info" style="font-size: 12px" />
       </h4>
     </div>
-    <div class="row mb-0">
+    <div class="row">
       <div class="col span-11-of-23">
         <LabeledSelect
           v-model="kind"
@@ -278,7 +278,7 @@ export default {
         <template v-if="kind === 'HTTP' || kind === 'HTTPS'">
           <div class="spacer" />
 
-          <div class="row mb-0">
+          <div class="row">
             <div class="col span-12">
               <KeyValue
                 v-model="httpGet.httpHeaders"

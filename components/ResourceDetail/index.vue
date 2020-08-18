@@ -287,7 +287,7 @@ export default {
     >
       <template v-if="!isView && asYaml" #right>
         <div class="text-right">
-          <FileSelector ref="fileSelector" class="btn btn-sm role-primary" :label="t('generic.readFromFile')" @selected="onFileSelected" />
+          <FileSelector ref="fileSelector" class="btn role-tertiary" :label="t('generic.readFromFile')" @selected="onFileSelected" />
         </div>
       </template>
     </Masthead>

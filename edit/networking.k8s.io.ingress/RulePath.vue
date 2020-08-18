@@ -41,7 +41,7 @@ export default {
 };
 </script>
 <template>
-  <div class="rule-path row mb-0">
+  <div class="rule-path row">
     <div class="col span-4">
       <input v-model="path" :placeholder="t('ingress.rules.path.placeholder', undefined, true)" @input="update" />
     </div>
