@@ -19,7 +19,7 @@ import Labels from '@/components/form/Labels';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:      'None',
-  CLUSTERIP: 'ClusterIP'
+  CLUSTERIP: 'ClientIP'
 };
 
 const SESSION_AFFINITY_ACTION_LABELS = {
@@ -286,7 +286,7 @@ export default {
           </div>
         </Tab>
         <Tab
-          v-if="!checkTypeIs('NodePort') && !checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
+          v-if="!checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
           name="session-affinity"
           :label="t('servicesPage.affinity.label')"
         >
@@ -306,7 +306,7 @@ export default {
                 @input="e=>value.spec.sessionAffinity = e"
               />
             </div>
-            <div v-if="value.spec.sessionAffinity === 'ClusterIP'" class="col span-6">
+            <div v-if="value.spec.sessionAffinity === 'ClientIP'" class="col span-6">
               <UnitInput
                 v-model="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
                 :suffix="t('suffix.seconds')"
