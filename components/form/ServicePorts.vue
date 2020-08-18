@@ -125,7 +125,7 @@ export default {
           <th v-if="specType !== 'NodePort'" class="port-protocol">
             <t k="servicePorts.rules.protocol.label" />
           </th>
-          <th v-if="specType !== 'Headless'" class="target-port">
+          <th class="target-port">
             <t k="servicePorts.rules.target.label" />
           </th>
           <th v-if="specType === 'NodePort' || specType === 'LoadBalancer'" class="node-port">
@@ -173,7 +173,7 @@ export default {
               @input="queueUpdate"
             />
           </td>
-          <td v-if="specType !== 'Headless'" class="target-port">
+          <td class="target-port">
             <span v-if="isView">{{ row.targetPort }}</span>
             <input
               v-else
