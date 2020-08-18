@@ -204,7 +204,7 @@ export default {
             </div>
           </div>
         </Tab>
-        <Tab v-else name="define-external-name" :label="t('servicesPage.ips.define')">
+        <Tab v-else name="define-service-ports" :label="t('servicesPage.ips.define')">
           <ServicePorts
             v-model="value.spec.ports"
             class="col span-12"
