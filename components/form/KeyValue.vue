@@ -234,6 +234,7 @@ export default {
   },
 
   methods: {
+    asciiLike,
     add(key = '', value = '', binary = false) {
       this.rows.push({
         [this.keyName]:   key,
@@ -361,7 +362,6 @@ export default {
     <div v-if="isView && !rows.length" class="no-rows">
       {{ t('sortableTable.noRows') }}
     </div>
-
     <div v-for="(row,i) in rows" :key="i" :class="{'extra-column':threeColumns, 'last':i===rows.length-1}" class="kv-row">
       <div class="col">
         <slot
@@ -395,11 +395,11 @@ export default {
           :isView="isView"
           :queueUpdate="queueUpdate"
         >
-          <div v-if="isView" class="view force-wrap">
-            <span v-if="valueBinary || get(row, '_display.binary')">
-              {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
-            </span>
-            <template v-else-if="get(row, '_display.parsed')">
+          <span v-if="(valueBinary || get(row, '_display.binary')) && !asciiLike(row[valueName])">
+            {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
+          </span>
+          <div v-else-if="isView" class="view force-wrap">
+            <template v-if="get(row, '_display.parsed')">
               <CodeMirror
                 :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
                 :value="row[valueName]"
@@ -449,7 +449,7 @@ export default {
             <button v-if="showAdd" type="button" class="btn btn-sm add" @click="add()">
               {{ addLabel }}
             </button>
-            <FileSelector v-else class="btn-sm" :label="t('generic.readFromFile')" @selected="onFileSelected" />
+            <FileSelector v-else class="btn-sm" :label="t('generic.readFromFile')" :include-file-name="true" @selected="onFileSelected" />
           </template>
           <template v-if="showRead && showAdd" #popover-content>
             <ul class="list-unstyled">

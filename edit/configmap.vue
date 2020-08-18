@@ -1,20 +1,22 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
+import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import Footer from '@/components/form/Footer';
 import KeyValue from '@/components/form/KeyValue';
-import ResourceTabs from '@/components/form/ResourceTabs';
+import Labels from '@/components/form/Labels';
 import Tab from '@/components/Tabbed/Tab';
+import Tabbed from '@/components/Tabbed';
 
 export default {
   name: 'CruConfigMap',
 
   components: {
+    CruResource,
     NameNsDescription,
     KeyValue,
-    Footer,
-    ResourceTabs,
+    Labels,
     Tab,
+    Tabbed
   },
 
   mixins: [CreateEditView],
@@ -22,32 +24,39 @@ export default {
 </script>
 
 <template>
-  <form>
-    <NameNsDescription
-      :value="value"
-      :mode="mode"
-      name-label="Name"
-      :register-before-hook="registerBeforeHook"
-    />
-
-    <div class="spacer"></div>
-
-    <div v-if="!isView || Object.keys(value.data||{}).length" class="row">
-      <KeyValue
-        key="data"
-        v-model="value.data"
+  <CruResource
+    :done-route="doneRoute"
+    :mode="mode"
+    :resource="value"
+    :subtypes="[]"
+    :validation-passed="true"
+    :errors="errors"
+    @error="e=>errors = e"
+    @finish="save"
+    @cancel="done"
+  >
+    <template #define>
+      <NameNsDescription
+        v-if="!isView"
+        :value="value"
         :mode="mode"
-        :title="t('configmapPage.data.title')"
-        :protip="t('configmapPage.data.protip')"
-        :initial-empty-row="true"
+        name-label="Name"
+        :register-before-hook="registerBeforeHook"
       />
-    </div>
 
-    <div class="spacer"></div>
+      <div class="spacer"></div>
 
-    <ResourceTabs v-model="value" :mode="mode">
-      <template #before>
-        <Tab :label="t('configmapPage.tabs.binaryData.label')" name="binary-data">
+      <Tabbed :side-tabs="true">
+        <Tab name="data" :label="t('configmap.tabs.data.label')" :weight="1">
+          <KeyValue
+            key="data"
+            v-model="value.data"
+            :mode="mode"
+            :protip="t('configmapPage.data.protip')"
+            :initial-empty-row="true"
+          />
+        </Tab>
+        <Tab name="binary-data" :label="t('configmap.tabs.binaryData.label')" :weight="2">
           <KeyValue
             key="binaryData"
             v-model="value.binaryData"
@@ -59,12 +68,22 @@ export default {
             :value-binary="true"
             :value-base64="true"
             :value-can-be-empty="true"
-            :initial-empty-row="false"
+            :initial-empty-row="true"
           />
         </Tab>
-      </template>
-    </ResourceTabs>
-
-    <Footer :mode="mode" :errors="errors" @save="save" @done="done" />
-  </form>
+        <Tab
+          name="labels-and-annotations"
+          :label="t('generic.labelsAndAnnotations')"
+          :weight="1000"
+        >
+          <Labels
+            default-container-class="labels-and-annotations-container"
+            :value="value"
+            :mode="mode"
+            :display-side-by-side="false"
+          />
+        </Tab>
+      </Tabbed>
+    </template>
+  </CruResource>
 </template>
