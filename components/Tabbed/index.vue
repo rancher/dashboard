@@ -38,6 +38,11 @@ export default {
     scrollOnChange: {
       type:    Boolean,
       default: false
+    },
+
+    tabsUseHistoryReplace: {
+      type:    Boolean,
+      default: true,
     }
   },
 
@@ -168,7 +173,11 @@ export default {
     select(name/* , event */) {
       const {
         sortedTabs,
-        $route: { hash: routeHash },
+        tabsUseHistoryReplace,
+        $route: {
+          hash: routeHash,
+          fullPath
+        },
       } = this;
 
       const selected = this.find(name);
@@ -183,7 +192,13 @@ export default {
       }
 
       if (routeHash !== hashName) {
-        window.location.hash = `#${ name }`;
+        if (tabsUseHistoryReplace) {
+          const fullPathWOHash = fullPath.includes('#') ? fullPath.split('#')[0] : fullPath;
+
+          window.history.replaceState(null, '', `${ fullPathWOHash }#${ name }`);
+        } else {
+          window.location.hash = `#${ name }`;
+        }
       }
 
       for ( const tab of sortedTabs ) {
