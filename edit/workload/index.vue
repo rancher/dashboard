@@ -551,7 +551,7 @@ export default {
 
             <div class="bordered-section">
               <h3>{{ t('workload.container.titles.image') }}</h3>
-              <div class="row mb-20">
+              <div class="row">
                 <div class="col span-6">
                   <LabeledInput
                     v-model="container.image"
@@ -688,8 +688,8 @@ export default {
 
 .bordered-section {
   border-bottom: 1px solid var(--border);
-  margin-bottom: 40px;
-  padding-bottom: 20px;
+  margin-bottom: 25px;
+  padding-bottom: 25px;
 }
 
 .cron-hint {
