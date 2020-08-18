@@ -18,19 +18,7 @@ export default {
   },
 
   data() {
-    return {
-      enabledDisabledOptions: enabledDisabled(this.t.bind(this)),
-      values:                 { ...this.value.syslog }
-    };
-  },
-
-  watch: {
-    values: {
-      deep: true,
-      handler() {
-        Object.assign(this.value.syslog, this.values);
-      }
-    }
+    return { enabledDisabledOptions: enabledDisabled(this.t.bind(this)) };
   },
 
   methods: { onRootCaSelected: createOnSelected('values.root_ca') },
@@ -38,11 +26,11 @@ export default {
 </script>
 
 <template>
-  <div class="syslog">
-    <LabeledInput v-model="values.address" :label="t('logging.syslog.address')" />
-    <LabeledSelect v-model="values.cluster" :options="enabledDisabledOptions" :label="t('logging.syslog.cluster')" />
+  <div v-if="value.syslog.enabled" class="syslog">
+    <LabeledInput v-model="value.syslog.address" :label="t('logging.syslog.address')" />
+    <LabeledSelect v-model="value.syslog.cluster" :options="enabledDisabledOptions" :label="t('logging.syslog.cluster')" />
     <div>
-      <LabeledInput v-model="values.root_ca" type="multiline" :label="t('logging.syslog.rootCa.label')" :placeholder="t('logging.syslog.rootCa.placeholder')" />
+      <LabeledInput v-model="value.syslog.root_ca" type="multiline" :label="t('logging.syslog.rootCa.label')" :placeholder="t('logging.syslog.rootCa.placeholder')" />
       <FileSelector class="btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onRootCaSelected" />
     </div>
   </div>

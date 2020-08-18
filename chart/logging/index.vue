@@ -1,8 +1,10 @@
 <script>
 import LabeledSelect from '@/components/form/LabeledSelect';
+import Tab from '@/components/Tabbed/Tab';
+import { enabledDisabled } from './providers/options';
 
 export default {
-  components: { LabeledSelect },
+  components: { LabeledSelect, Tab },
   props:      {
     value: {
       type:    Object,
@@ -11,6 +13,8 @@ export default {
       }
     }
   },
+
+  hasTabs: true,
 
   data() {
     const providers = [
@@ -31,34 +35,16 @@ export default {
         value: 'syslog'
       }
     ];
-    const provider = providers[0].value;
-
-    this.value[this.providerKey(provider)] = this.value[this.providerKey(provider)] || {};
-    this.value[this.providerKey(provider)].enabled = true;
 
     return {
-      provider,
+      enabledDisabledOptions: enabledDisabled(this.t.bind(this)),
       providers
     };
   },
 
-  computed: {
-    component() {
-      return require(`./providers/${ this.provider }`).default;
-    }
-  },
-
-  watch: {
-    provider(newValue, oldValue) {
-      this.value[this.providerKey(newValue)] = this.value[this.providerKey(newValue)] || {};
-      this.value[this.providerKey(newValue)].enabled = true;
-      this.value[this.providerKey(oldValue)].enabled = false;
-    }
-  },
-
   methods: {
-    providerKey(provider) {
-      return provider.toLowerCase();
+    getProviderComponent(provider) {
+      return require(`./providers/${ provider.value }`).default;
     }
   }
 };
@@ -66,8 +52,10 @@ export default {
 
 <template>
   <div class="logging">
-    <LabeledSelect v-model="provider" class="provider" :label="t('logging.provider')" :options="providers" />
-    <component :is="component" v-model="value" />
+    <Tab v-for="(provider, index) in providers" :key="provider.value" :name="provider.value" :label="provider.label" :weight="index">
+      <LabeledSelect v-model="value[provider.value].enabled" :options="enabledDisabledOptions" :label="provider.label" />
+      <component :is="getProviderComponent(provider)" v-model="value" />
+    </Tab>
   </div>
 </template>
 
