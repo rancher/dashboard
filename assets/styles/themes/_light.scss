@@ -70,7 +70,7 @@ $selected: rgba($primary, .5);
   --header-height              : 50px;
   --nav-width                  : 220px;
   --nav-bg                     : #{$lighter};
-  --nav-active                 : var(--primary);
+  --nav-active                 : #{rgba($primary, 0.3)};
   --footer-bg                  : transparent;
   --footer-height              : 50px;
 

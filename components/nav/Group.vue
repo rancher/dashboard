@@ -150,6 +150,7 @@ export default {
         > H6 {
           font-size: 14px;
           text-transform: none;
+          padding-left: 10px;
         }
 
         > I {
@@ -187,6 +188,7 @@ export default {
  .header ::v-deep > .child.nuxt-link-exact-active {
     background-color: var(--nav-active);
     padding: 0;
+    border-radius: 0 90px 90px 0;
 
     A, A I {
       color: var(--body-text);

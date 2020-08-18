@@ -101,10 +101,11 @@ export default {
       grid-template-columns: auto auto;
       grid-column-gap: 5px;
       font-size: 13px;
-      padding: 7.5px 5px;
+      padding: 7.5px 5px 7.5px 10px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      border-radius: 0 90px 90px 0;
 
       &:hover {
         background: var(--dropdown-hover-bg);
@@ -127,12 +128,6 @@ export default {
       font-size: 12px;
       text-align: right;
       justify-items: center;
-    }
-  }
-
-  .root.child {
-    A {
-      padding-left: 0;
     }
   }
 </style>
