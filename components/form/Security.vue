@@ -106,41 +106,41 @@ export default {
 
 <template>
   <div @input="update">
-    <div class="row">
-      <div class="col span-6">
-        <RadioGroup v-model="privileged" :label="t('workload.container.security.privileged')" :options="[false,true]" :labels="['No', 'Yes: container has full access to the host']" :mode="mode" />
-      </div>
-      <div class="col span-6">
-        <RadioGroup
-          v-model="allowPrivilegeEscalation"
-          :label="t('workload.container.security.allowPrivilegeEscalation')"
-          :disabled="privileged"
-          :options="[false,true]"
-          :labels="['No', 'Yes: container can gain more privileges than its parent process']"
-          :mode="mode"
-        />
-      </div>
-    </div>
-
-    <div class="spacer" />
-
-    <div class="row">
-      <div class="col span-6">
-        <RadioGroup
-          :label="t('workload.container.security.runAsNonRoot')"
-          :value="!runAsRoot"
-          :options="[false, true]"
-          :labels="['No', 'Yes: container must run as a non-root user']"
-          :mode="mode"
-          @input="e=>runAsRoot = !e"
-        />
-      </div>
-      <div class="col span-6">
-        <RadioGroup v-model="readOnlyRootFilesystem" :label="t('workload.container.security.readOnlyRootFilesystem')" :options="[false, true]" :labels="['No', 'Yes: container has a read-only root filesystem']" :mode="mode" />
+    <div class="bordered-section">
+      <div class="row">
+        <div class="col span-6">
+          <RadioGroup v-model="privileged" :label="t('workload.container.security.privileged')" :options="[false,true]" :labels="['No', 'Yes: container has full access to the host']" :mode="mode" />
+        </div>
+        <div class="col span-6">
+          <RadioGroup
+            v-model="allowPrivilegeEscalation"
+            :label="t('workload.container.security.allowPrivilegeEscalation')"
+            :disabled="privileged"
+            :options="[false,true]"
+            :labels="['No', 'Yes: container can gain more privileges than its parent process']"
+            :mode="mode"
+          />
+        </div>
       </div>
     </div>
 
-    <div class="spacer" />
+    <div class="bordered-section">
+      <div class="row">
+        <div class="col span-6">
+          <RadioGroup
+            :label="t('workload.container.security.runAsNonRoot')"
+            :value="!runAsRoot"
+            :options="[false, true]"
+            :labels="['No', 'Yes: container must run as a non-root user']"
+            :mode="mode"
+            @input="e=>runAsRoot = !e"
+          />
+        </div>
+        <div class="col span-6">
+          <RadioGroup v-model="readOnlyRootFilesystem" :label="t('workload.container.security.readOnlyRootFilesystem')" :options="[false, true]" :labels="['No', 'Yes: container has a read-only root filesystem']" :mode="mode" />
+        </div>
+      </div>
+    </div>
 
     <div class="row">
       <div class="col span-6">
@@ -150,7 +150,7 @@ export default {
 
     <div class="spacer" />
 
-    <div class="row mb-0">
+    <div class="row">
       <div class="col span-6">
         <div v-if="isView">
           <label class="text-label"><t k="workload.container.security.addCapabilities" /></label>

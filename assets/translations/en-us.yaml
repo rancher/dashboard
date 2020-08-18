@@ -1055,6 +1055,7 @@ workload:
         hostNetwork: Host Network
         normal: Normal
       placeholder: Select a Mode...
+    dns: DNS Nameservers and Search Domains
     resolver: DNS Resolver Options
     searches:
       add: Add Search Domain

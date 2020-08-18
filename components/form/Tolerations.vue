@@ -184,7 +184,7 @@ export default {
         <t k="generic.remove" />
       </button>
     </div>
-    <button v-if="!isView" type="button" class="btn role-primary" @click="addToleration">
+    <button v-if="!isView" type="button" class="btn role-tertiary" @click="addToleration">
       <t k="workload.scheduling.tolerations.addToleration" />
     </button>
   </div>

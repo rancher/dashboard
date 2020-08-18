@@ -134,7 +134,7 @@ export default {
 
 <template>
   <div>
-    <div v-if="label" class="radio-group text-label" :class="{'view':isView}">
+    <div v-if="label" class="radio-group" :class="{'view':isView}">
       {{ label }}
     </div>
     <div
