@@ -325,7 +325,7 @@ export default {
           <div class="row labels-row">
             <Labels
               :default-container-class="'labels-and-annotations-container'"
-              :value="value.spec"
+              :value="value"
               :mode="mode"
               :display-side-by-side="false"
             />
