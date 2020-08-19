@@ -26,8 +26,9 @@ export default {
 
   border-radius: 6px;
   background: var(--simple-box-bg) 0% 0% no-repeat padding-box;
-  box-shadow: 0px 0px 20px var(--simple-box-shadow);
+  box-shadow: 0px 0px 10px var(--simple-box-shadow);
   border: 1px solid var(--simple-box-border);
+  padding: $padding;
 
   h2 {
     line-height: 24px;
@@ -38,6 +39,11 @@ export default {
 
   .content {
     padding: $padding;
+  }
+
+  .sortable-table {
+    border: solid thin var(--border);
+    box-shadow: none;
   }
 }
 </style>

@@ -164,7 +164,7 @@ export default {
           placeholder="Select a check type"
         />
 
-        <div v-if="kind && kind!=='none'" class="spacer" />
+        <div v-if="kind && kind!=='none'" class="spacer-small" />
 
         <div v-if="kind === 'HTTP' || kind === 'HTTPS'">
           <LabeledInput
@@ -177,7 +177,7 @@ export default {
             placeholder="e.g. 80"
           />
 
-          <div class="spacer" />
+          <div class="spacer-small" />
 
           <LabeledInput
             v-model="httpGet.path"
@@ -197,7 +197,7 @@ export default {
             :label="t('workload.container.healthCheck.httpGet.port')"
             placeholder="e.g. 25"
           />
-          <div class="spacer" />
+          <div class="spacer-small" />
         </div>
 
         <div v-if="kind === 'exec'">
@@ -208,7 +208,7 @@ export default {
               placeholder="e.g. cat /tmp/health"
             />
           </div>
-          <div class="spacer" />
+          <div class="spacer-small" />
         </div>
       </div>
 
@@ -250,7 +250,7 @@ export default {
           </div>
         </div>
 
-        <div class="spacer" />
+        <div class="spacer-small" />
 
         <div class="row">
           <div class="col span-6">
@@ -276,7 +276,7 @@ export default {
         </div>
 
         <template v-if="kind === 'HTTP' || kind === 'HTTPS'">
-          <div class="spacer" />
+          <div class="spacer-small" />
 
           <div class="row">
             <div class="col span-12">

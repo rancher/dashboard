@@ -97,6 +97,11 @@ export default {
       border: 1px solid var(--header-dropdown);
       background: rgba(0,0,0,.05);
       margin-left: 10px;
+      color: white;
+    }
+
+    .vs__actions:after {
+      color: pink!important;
     }
 
     grid-template-areas:  "product top kubectl cluster user";
@@ -153,10 +158,6 @@ export default {
       }
       .vs__deselect {
         fill: white;
-      }
-
-      .vs__actions {
-        background: red!important;
       }
 
       .filter {

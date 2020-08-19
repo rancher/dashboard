@@ -234,8 +234,6 @@ export default {
       />
     </template>
 
-    <div class="spacer" />
-
     <div v-if="rules.length" class="match-expression-header">
       <span>
         {{ t('workload.scheduling.affinity.matchExpressions.key') }}

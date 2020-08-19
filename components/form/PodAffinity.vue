@@ -113,7 +113,7 @@ export default {
           <MatchExpressions
             :key="key"
             :mode="mode"
-            class="node-selector col span-12"
+            class="node-selector simple-box col span-12 mb-20"
             :type="pod"
             :namespaces.sync="nodeSelectorTerm.namespaces"
             :topology-key.sync="nodeSelectorTerm.topologyKey"
@@ -137,7 +137,7 @@ export default {
           <MatchExpressions
             :key="key"
             :mode="mode"
-            class="node-selector col span-12"
+            class="node-selector simple-box col span-12 mb-20"
             :type="pod"
             :namespaces.sync="nodeSelectorTerm.podAffinityTerm.namespaces"
             :topology-key.sync="nodeSelectorTerm.podAffinityTerm.topologyKey"
@@ -146,7 +146,6 @@ export default {
             @remove="$delete(weightedSelectorMap, key)"
             @input="e=>$set(weightedSelectorMap[key].podAffinityTerm, 'labelSelector', {matchExpressions:e})"
           />
-          <div class="spacer" />
         </div>
       </template>
       <button v-if="!isView" type="button" class="btn role-tertiary" @click="addWeightedSelector">
@@ -157,7 +156,7 @@ export default {
 </template>
 
 <style>
-  .node-selector {
+  .node-selector simple-box {
     padding: 10px;
     background-color: var(--body-bg);
   }
