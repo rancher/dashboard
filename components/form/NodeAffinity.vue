@@ -98,7 +98,7 @@ export default {
       <div v-if="isView && isEmpty(selectorMap)">
         <MatchExpressions
           :mode="mode"
-          class="node-selector col span-12"
+          class="node-selector simple-box col span-12 mb-20"
           :type="node"
         />
       </div>
@@ -108,13 +108,12 @@ export default {
             :key="key"
             :initial-empty-row="!isView"
             :mode="mode"
-            class="node-selector col span-12"
+            class="node-selector simple-box col span-12 mb-20"
             :type="node"
             :value="nodeSelectorTerm.matchExpressions"
             @remove="$delete(selectorMap, key)"
             @input="e=>updateSelector(selectorMap, key, {matchExpressions:e})"
           />
-          <div class="spacer" />
         </div>
       </template>
       <button v-if="!isView" type="button" class="btn role-tertiary" @click="e=>$set(selectorMap, Math.random(), {matchExpressions:[]})">
@@ -129,7 +128,7 @@ export default {
       <div v-if="isView && isEmpty(selectorMap)">
         <MatchExpressions
           :mode="mode"
-          class="node-selector col span-12"
+          class="node-selector simple-box col span-12 mb-20"
           :type="node"
         />
       </div>
@@ -138,7 +137,7 @@ export default {
           <MatchExpressions
             :key="key"
             :mode="mode"
-            class="node-selector col span-12"
+            class="node-selector simple-box col span-12 mb-20"
             :initial-empty-row="!isView"
             :type="node"
             :value="get(nodeSelectorTerm, 'preference.matchExpressions')"
@@ -146,7 +145,6 @@ export default {
             @remove="$delete(weightedSelectorMap, key)"
             @input="e=>updateSelector(weightedSelectorMap, key, {preference:{matchExpressions:e}, weight:defaultWeight})"
           />
-          <div class="spacer" />
         </div>
       </template>
       <button v-if="!isView" type="button" class="btn role-tertiary" @click="e=>$set(weightedSelectorMap, Math.random(), {preference:{matchExpressions:[]}, weight:defaultWeight})">
@@ -157,7 +155,7 @@ export default {
 </template>
 
 <style>
-  .node-selector {
+  .node-selector simple-box {
     padding: 10px;
     background-color: var(--body-bg);
   }

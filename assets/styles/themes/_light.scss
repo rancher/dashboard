@@ -137,6 +137,7 @@ $selected: rgba($primary, .5);
   --tooltip-text               : var(--tag-primary);
 
   --tabbed-border              : #{$medium};
+  --tabbed-sidebar-bg          : #{$lighter};
   --tabbed-container-bg        : #{$light};
 
   --yaml-editor-bg             : #{$lighter};

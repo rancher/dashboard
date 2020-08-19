@@ -187,8 +187,7 @@ export default {
         width: 40%;
         height: 100%;
         background-color: var(--accent-btn);
-        border-color: var(--primary);
-        border-right-width: 2px;
+        border: solid 1px var(--primary);
 
         .vs__selected {
           margin: 0;

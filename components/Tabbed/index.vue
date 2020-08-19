@@ -344,7 +344,11 @@ export default {
     display: flex;
     box-shadow: 0 0 20px var(--shadow);
     border-radius: calc(var(--border-radius) * 2);
+<<<<<<< HEAD
     background: var(--box-bg);
+=======
+    background-color: var(--tabbed-sidebar-bg);
+>>>>>>> more workload changes
 
     & .tabs {
       width: $sideways-tabs-width;
