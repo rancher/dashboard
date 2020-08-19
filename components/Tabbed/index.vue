@@ -317,7 +317,6 @@ export default {
       float: left;
       margin: 0 8px 0 0;
       cursor: pointer;
-      border-left: solid 5px transparent;
 
       A {
         display: block;
@@ -330,7 +329,6 @@ export default {
 
       &.active {
         background-color: var(--tabbed-container-bg);
-        border-left: solid 5px var(--primary);
       }
     }
   }
@@ -344,11 +342,7 @@ export default {
     display: flex;
     box-shadow: 0 0 20px var(--shadow);
     border-radius: calc(var(--border-radius) * 2);
-<<<<<<< HEAD
-    background: var(--box-bg);
-=======
     background-color: var(--tabbed-sidebar-bg);
->>>>>>> more workload changes
 
     & .tabs {
       width: $sideways-tabs-width;
@@ -356,6 +350,7 @@ export default {
 
       & .tab {
         width: 100%;
+        border-left: solid 5px transparent;
 
         &.toggle A {
           color: var(--primary);
@@ -366,8 +361,9 @@ export default {
         }
 
         &.active {
-          background-color: var(--body-bg);
-          border-bottom-color: var(--body-bg);
+          background-color: var(--tabbed-container-bg);
+          border-left: solid 5px var(--primary);
+
           & A{
             color: var(--primary);
           }
