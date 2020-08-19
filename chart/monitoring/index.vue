@@ -65,7 +65,7 @@ export default {
             scrapeInterval:     '1m',
             evaluationInterval: '1m',
             retention:          '10d',
-            retentionSize:      '50Gib',
+            retentionSize:      '50GiB',
             enableAdminAPI:     false,
           }
         }
