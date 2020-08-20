@@ -140,42 +140,54 @@ export default {
 
   data() {
     return {
+      chart:           null,
+      chartValues:     null,
+      cleanValuesYaml: null,
+      errors:          null,
+      existing:        null,
+      forceNamespace:  null,
+      loadedVersion:   null,
       mode:            null,
       value:           null,
-      existing:        null,
-      chart:           null,
+      valuesComponent: null,
+      valuesYaml:      null,
       version:         null,
       versionInfo:     null,
-      valuesYaml:      null,
-      cleanValuesYaml: null,
 
-      forceNamespace: null,
-      nameDisabled:   false,
-
-      errors:              null,
-      valuesComponent:     null,
+      atomic:              false,
+      cleanupOnFail:       false,
+      crds:                true,
+      dryRun:              false,
+      force:               false,
+      hooks:               true,
+      nameDisabled:        false,
+      openApi:             true,
+      resetValues:         false,
+      reuseValues:         false,
+      selectedTabName:     'readme',
+      showPreview:         false,
       showValuesComponent: false,
       valuesTabs:          false,
-      chartValues:         null,
-      loadedVersion:       null,
-      showPreview:         false,
+      wait:                true,
 
-      openApi:       true,
-      hooks:         true,
-      crds:          true,
-      wait:          true,
-      historyMax:    5,
-      timeout:       0,
-      atomic:        false,
-      cleanupOnFail: false,
-      dryRun:        false,
-      force:         false,
-      resetValues:   false,
-      reuseValues:   false,
+      historyMax: 5,
+      timeout:    0,
     };
   },
 
   computed: {
+    isEntryTab() {
+      const { tabName } = this;
+
+      if (tabName === 'values-form' || tabName === 'values-yaml') {
+        return true;
+      }
+
+      return false;
+    },
+    tabName() {
+      return this.selectedTabName;
+    },
     charts() {
       return this.$store.getters['catalog/charts'].filter(x => !x.deprecated);
     },
@@ -478,6 +490,8 @@ export default {
     tabChanged({ tab }) {
       window.scrollTop = 0;
 
+      this.selectedTabName = tab.name;
+
       if ( tab.name === 'values-yaml' ) {
         this.$nextTick(() => {
           if ( this.$refs.yaml ) {
@@ -684,7 +698,7 @@ export default {
       <template #default="{checkCancel}">
         <template v-if="!showValuesComponent">
           <button
-            v-if="showPreview"
+            v-if="showPreview && isEntryTab"
             type="button"
             class="btn role-secondary"
             @click="unpreview"
@@ -693,7 +707,7 @@ export default {
           </button>
 
           <button
-            v-else
+            v-if="isEntryTab && !showPreview"
             :disabled="valuesYaml === cleanValuesYaml"
             type="button"
             class="btn role-secondary"
@@ -704,7 +718,7 @@ export default {
         </template>
 
         <button
-          v-if="$route.hash === '#values-form' && showValuesComponent"
+          v-if="isEntryTab && showValuesComponent"
           type="button"
           class="btn role-secondary"
           @click="showPreviewYaml"
