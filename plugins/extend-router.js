@@ -3,12 +3,13 @@ import isEqual from 'lodash/isEqual';
 
 VueRouter.prototype.applyQuery = function(qp, defaults = {}) {
   const query = queryParamsFor(this.currentRoute.query, qp, defaults);
+  const hash = this.currentRoute.hash || '';
 
   if ( isEqual(query, this.currentRoute.query) ) {
     return;
   }
 
-  this.replace({ query }).catch((err) => {
+  this.replace({ query, hash }).catch((err) => {
     if ( err?.name === 'NavigationDuplicated' ) {
       // Do nothing, this is fine...
       // https://github.com/vuejs/vue-router/issues/2872
