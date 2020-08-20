@@ -38,17 +38,16 @@ export const CATALOG = {
   COMPONENT: 'catalog.cattle.io/ui-component',
 };
 
+const CATTLE_REGEX = /.*\.cattle\.io\//;
+
 export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
 
-// TODO consult w/ backend about what labels & annotations to hide from editing
-export const LABEL_PREFIX_TO_IGNORE = [
+export const LABELS_TO_IGNORE_REGEX = [
+  CATTLE_REGEX
 ];
 
-export const ANNOTATIONS_TO_IGNORE_CONTAINS = [
-];
-
-export const ANNOTATIONS_TO_IGNORE_PREFIX = [
-  DESCRIPTION
+export const ANNOTATIONS_TO_IGNORE_REGEX = [
+  CATTLE_REGEX
 ];
 
 export const ANNOTATIONS_TO_FOLD = [

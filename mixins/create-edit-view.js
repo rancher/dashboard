@@ -1,8 +1,6 @@
-import pickBy from 'lodash/pickBy';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
-import { LABEL_PREFIX_TO_IGNORE, ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX } from '@/config/labels-annotations';
-import { matchesSomePrefix, containsSomeString } from '@/utils/string';
+import { ANNOTATIONS_TO_IGNORE_REGEX, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
 
@@ -50,10 +48,9 @@ export default {
 
     // keep label and annotation filters in data so each resource CRUD page can alter individiaully
     return {
-      errors:                      [],
-      labelPrefixToIgnore:         LABEL_PREFIX_TO_IGNORE,
-      annotationsToIgnoreContains: ANNOTATIONS_TO_IGNORE_CONTAINS,
-      annotationsToIgnorePrefix:   ANNOTATIONS_TO_IGNORE_PREFIX
+      errors:                   [],
+      labelsToIgnoreRegex:      LABELS_TO_IGNORE_REGEX,
+      annotationsToIgnoreRegex: ANNOTATIONS_TO_IGNORE_REGEX
 
     };
   },
@@ -84,13 +81,7 @@ export default {
         return this.value?.labels;
       },
       set(neu) {
-        const all = this.value?.metadata?.labels || {};
-
-        const wasIgnored = pickBy(all, (value, key) => {
-          return matchesSomePrefix(key, this.labelPrefixToIgnore);
-        });
-
-        this.$set(this.value.metadata, 'labels', { ...neu, ...wasIgnored });
+        this.value.setLabels(neu);
       }
     },
 
@@ -99,13 +90,7 @@ export default {
         return this.value?.annotations;
       },
       set(neu) {
-        const all = this.value?.metadata?.annotations || {};
-
-        const wasIgnored = pickBy(all, (value, key) => {
-          return (matchesSomePrefix(key, this.annotationsToIgnorePrefix) || containsSomeString(key, this.annotationsToIgnoreContains));
-        });
-
-        this.$set(this.value.metadata, 'annotations', { ...neu, ...wasIgnored });
+        this.value.setAnnotations(neu);
       }
     },
 

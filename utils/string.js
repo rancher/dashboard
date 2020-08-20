@@ -226,28 +226,13 @@ export function coerceStringTypeToScalarType(val, type) {
   return val;
 }
 
-// return true if the string starts with one of the values in prefixes array
-export function matchesSomePrefix(string, prefixes) {
-  for (const prefix of prefixes) {
-    const regex = new RegExp(`^${ prefix }`);
+export function matchesSomeRegex(stringRaw, regexes = []) {
+  return regexes.some((regexRaw) => {
+    const string = stringRaw || '';
+    const regex = ensureRegex(regexRaw);
 
-    if (string.match(regex)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-// return true if string includes at least one of the strings in matchStrings array
-export function containsSomeString(string, matchStrings) {
-  for (const matchString of matchStrings) {
-    if (string.includes(matchString)) {
-      return true;
-    }
-  }
-
-  return false;
+    return string.match(regex);
+  });
 }
 
 export function ensureRegex(strOrRegex, exact = true) {
