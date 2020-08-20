@@ -113,6 +113,11 @@ export const getters = {
 
   namespaceMode(state) {
     const filters = state.namespaceFilters;
+    const product = getters['currentProduct'];
+
+    if ( !product?.showNamespaceFilter ) {
+      return BOTH;
+    }
 
     // Explicitly asking
     if ( filters.includes('namespaced://true') ) {

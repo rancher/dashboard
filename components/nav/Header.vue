@@ -25,33 +25,56 @@ export default {
 
     showShell() {
       return !!this.currentCluster?.links?.shell;
-    }
+    },
+
+    backToRancherLink() {
+      const cluster = this.$store.getters['currentCluster'];
+      let link = '/';
+
+      if ( cluster ) {
+        link = `/c/${ escape(cluster.id) }`;
+      }
+      if ( process.env.dev ) {
+        link = `https://localhost:8000${ link }`;
+      }
+
+      return link;
+    },
   },
 };
 </script>
 
 <template>
-  <header>
+  <header :class="{[currentProduct.name]: true}">
     <div class="product">
       <ProductSwitcher />
       <div class="logo" alt="Logo" />
     </div>
 
+    <div class="apps">
+      <nuxt-link :to="{name: 'c-cluster-apps'}" class="btn role-tertiary">
+        <i class="icon icon-lg icon-marketplace pr-5" /> Apps
+      </nuxt-link>
+    </div>
+
+    <div class="top">
+      <NamespaceFilter v-if="clusterReady && currentProduct.showNamespaceFilter" />
+    </div>
+
+    <div class="back">
+      <a class="btn role-tertiary" :href="backToRancherLink">
+        {{ t('nav.backToRancher') }}
+      </a>
+    </div>
+
     <div class="kubectl">
       <button :disabled="!showShell" type="button" class="btn role-tertiary" @click="currentCluster.openShell()">
-        <i class="icon icon-terminal" />
+        <i class="icon icon-terminal icon-lg" /> {{ t('nav.shell') }}
       </button>
     </div>
 
     <div class="cluster">
       <ClusterSwitcher v-if="isMultiCluster" />
-    </div>
-
-    <div class="top">
-      <nuxt-link v-if="isExplorer" :to="{name: 'c-cluster-apps'}" class="btn role-tertiary apps-button">
-        <i class="icon icon-lg icon-marketplace pr-5" /> Apps
-      </nuxt-link>
-      <NamespaceFilter v-if="clusterReady && currentProduct.showNamespaceFilter" />
     </div>
 
     <div class="user">
@@ -93,24 +116,33 @@ export default {
     display: grid;
     height: 100vh;
 
-    .apps-button {
-      border: 1px solid var(--header-dropdown);
+    ::v-deep .btn {
+      border: 1px solid var(--header-btn-bg);
       background: rgba(0,0,0,.05);
       margin-left: 10px;
-      color: white;
+      color: var(--header-btn-text);
     }
 
     .vs__actions:after {
       color: pink!important;
     }
 
-    grid-template-areas:  "product top kubectl cluster user";
-    grid-template-columns: var(--nav-width) auto 50px min-content var(--header-height);
+    grid-template-areas:  "product apps top back kubectl cluster user";
+    grid-template-columns: var(--nav-width) 0 auto min-content min-content min-content var(--header-height);
     grid-template-rows:    var(--header-height);
+
+    &.explorer {
+      grid-template-columns: var(--nav-width) min-content auto min-content min-content min-content var(--header-height);
+    }
+
+    > .apps {
+      grid-area: apps;
+      background-color: var(--header-bg);
+    }
 
     > .product {
       grid-area: product;
-      background-color: var(--header-dropdown);
+      background-color: var(--header-btn-bg);
       position: relative;
 
       .logo {
@@ -125,14 +157,30 @@ export default {
       }
     }
 
+    > .back {
+      grid-area: back;
+      background-color: var(--header-bg);
+    }
+
     > .kubectl {
       grid-area: kubectl;
       background-color: var(--header-bg);
+    }
+
+    > .apps,
+    > .back,
+    > .kubectl {
+      text-align: right;
+      padding: 0 5px 0 0;
 
       .btn {
-        border: 1px solid white;
         margin: 11px 0 0 0;
+        text-align: center;
       }
+    }
+
+    > .apps {
+      padding-left: 5px;
     }
 
     > .cluster {
@@ -149,41 +197,23 @@ export default {
       INPUT[type='search']::placeholder,
       .vs__open-indicator,
       .vs__selected {
-        color: white!important;
+        color: var(--header-btn-bg) !important;
       }
 
       .vs__selected {
         background: rgba(255, 255, 255, 0.15);
         border-color: rgba(255, 255, 255, 0.25);
       }
+
       .vs__deselect {
-        fill: white;
+        fill: var(--header-btn-bg);
       }
 
-      .filter {
-        margin-left: 10px;
-        display: inline-block;
-
-        .vs__dropdown-toggle {
-          background: var(--header-dropdown);
-          border-radius: var(--border-radius);
-          border: none;
-          margin: 0 35px 0 25px!important;
-        }
-      }
-    }
-
-    > .back {
-      grid-area: back;
-      background-color: var(--header-bg);
-
-      A {
-        line-height: var(--header-height);
-        display: block;
-        color: white;
-        padding: 0 5px;
-        margin-right: 20px;
-        text-align: right;
+      .filter .vs__dropdown-toggle {
+        background: var(--header-btn-bg);
+        border-radius: var(--border-radius);
+        border: none;
+        margin: 0 35px 0 25px!important;
       }
     }
 
@@ -191,6 +221,10 @@ export default {
       grid-area: user;
       background-color: var(--header-bg);
       padding: 5px;
+
+      IMG {
+        border: 1px solid var(--header-btn-bg);
+      }
 
       .avatar-round {
         border: 0;

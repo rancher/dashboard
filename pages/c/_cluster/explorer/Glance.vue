@@ -36,11 +36,11 @@ export default {
     </div>
     <div class="tile">
       <h1>{{ totalNodes }}</h1>
-      <label>{{ t('glance.nodes.total.label') }}</label>
+      <label>{{ t('glance.nodes.total.label', { count: totalNodes }) }}</label>
     </div>
     <div class="tile">
       <h1><LiveDate :value="created" :add-suffix="true" :show-tooltip="true" /></h1>
-      <label>{{ t('glance.age') }}</label>
+      <label>{{ t('glance.created') }}</label>
     </div>
   </GradientBox>
 </template>

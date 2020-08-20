@@ -89,7 +89,9 @@ export default {
     max-width: 100%;
     display: inline-block;
     margin: 11px 0;
-    border: 1px solid white;
+    border: 1px solid var(--header-btn-bg);
+    color: var(--header-btn-text);
+    background: rgba(0,0,0,.05);
     border-radius: var(--border-radius);
 
     &.vs--disabled .vs__actions {
@@ -101,7 +103,7 @@ export default {
     }
 
     .vs__dropdown-toggle {
-      height: calc(var(--header-height) - 23px);
+      height: calc(var(--header-height) - 22px);
       background-color: transparent;
       border: 0;
 
@@ -115,7 +117,7 @@ export default {
       user-select: none;
       cursor: default;
       color: white;
-      line-height: calc(var(--header-height) - 36px);
+      line-height: calc(var(--header-height) - 33px);
     }
   }
 
