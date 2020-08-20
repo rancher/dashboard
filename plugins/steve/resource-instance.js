@@ -4,6 +4,7 @@ import isFunction from 'lodash/isFunction';
 import isString from 'lodash/isString';
 import jsyaml from 'js-yaml';
 import omitBy from 'lodash/omitBy';
+import pickBy from 'lodash/pickBy';
 import uniq from 'lodash/uniq';
 import Vue from 'vue';
 
@@ -16,9 +17,8 @@ import { DEV } from '@/store/prefs';
 import { sortableNumericSuffix } from '@/utils/sort';
 import {
   coerceStringTypeToScalarType,
-  containsSomeString,
   escapeHtml,
-  matchesSomePrefix,
+  matchesSomeRegex,
   ucFirst
 } from '@/utils/string';
 import {
@@ -28,7 +28,7 @@ import {
   validateLength,
 } from '@/utils/validators';
 
-import { ANNOTATIONS_TO_IGNORE_CONTAINS, ANNOTATIONS_TO_IGNORE_PREFIX, DESCRIPTION, LABEL_PREFIX_TO_IGNORE } from '@/config/labels-annotations';
+import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
 import {
   AS_YAML, MODE, _CLONE, _EDIT, _FLAGGED, _VIEW
 } from '@/config/query-params';
@@ -189,7 +189,7 @@ export default {
     const all = this.metadata?.labels || {};
 
     return omitBy(all, (value, key) => {
-      return matchesSomePrefix(key, LABEL_PREFIX_TO_IGNORE);
+      return matchesSomeRegex(key, this.labelsToIgnoreRegexes);
     });
   },
 
@@ -197,7 +197,7 @@ export default {
     const all = this.metadata?.annotations || {};
 
     return omitBy(all, (value, key) => {
-      return (matchesSomePrefix(key, ANNOTATIONS_TO_IGNORE_PREFIX) || containsSomeString(key, ANNOTATIONS_TO_IGNORE_CONTAINS));
+      return matchesSomeRegex(key, this.annotationsToIgnoreRegexes);
     });
   },
 
@@ -255,6 +255,25 @@ export default {
     return out;
   },
 
+  labelsToIgnoreRegexes() {
+    return LABELS_TO_IGNORE_REGEX;
+  },
+
+  setLabels() {
+    return (val) => {
+      if ( !this.metadata ) {
+        this.metadata = {};
+      }
+
+      const all = this.metadata.labels || {};
+      const wasIgnored = pickBy(all, (value, key) => {
+        return matchesSomeRegex(key, this.labelsToIgnoreRegexes);
+      });
+
+      Vue.set(this.metadata, 'labels', { ...wasIgnored, ...val });
+    };
+  },
+
   setLabel() {
     return (key, val) => {
       if ( val ) {
@@ -271,6 +290,25 @@ export default {
         Vue.set(this.metadata.labels, key, undefined);
         delete this.metadata.labels[key];
       }
+    };
+  },
+
+  annotationsToIgnoreRegexes() {
+    return ANNOTATIONS_TO_IGNORE_REGEX;
+  },
+
+  setAnnotations() {
+    return (val) => {
+      if ( !this.metadata ) {
+        this.metadata = {};
+      }
+
+      const all = this.metadata.annotations || {};
+      const wasIgnored = pickBy(all, (value, key) => {
+        return matchesSomeRegex(key, this.annotationsToIgnoreRegexes);
+      });
+
+      Vue.set(this.metadata, 'annotations', { ...wasIgnored, ...val });
     };
   },
 

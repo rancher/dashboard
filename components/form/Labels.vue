@@ -33,17 +33,7 @@ export default {
     sectionClass() {
       return this.displaySideBySide ? 'col span-6' : 'row';
     }
-  },
-
-  created() {
-    if ( !this.value.metadata ) {
-      this.$set(this.value, 'metadata', {});
-    }
-
-    if ( !this.value.annotations ) {
-      this.$set(this.value, 'annotations', {});
-    }
-  },
+  }
 };
 </script>
 <template>
@@ -51,23 +41,25 @@ export default {
     <div :class="sectionClass">
       <KeyValue
         key="labels"
-        v-model="value.metadata.labels"
+        :value="value.labels"
         :mode="mode"
         title="Labels"
         :initial-empty-row="true"
         :pad-left="false"
         :read-allowed="false"
+        @input="value.setLabels"
       />
     </div>
     <div :class="sectionClass">
       <KeyValue
         key="annotations"
-        v-model="value.metadata.annotations"
+        :value="value.annotations"
         :mode="mode"
         title="Annotations"
         :initial-empty-row="true"
         :pad-left="false"
         :read-allowed="false"
+        @input="value.setAnnotations"
       />
     </div>
   </div>
