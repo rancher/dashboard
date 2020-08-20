@@ -118,12 +118,13 @@ export default {
     },
 
     onReady(cm) {
-      if ( this.isCreate ) {
-        cm.getMode().fold = 'yamlcomments';
-        cm.execCommand('foldAll');
-      } else if ( this.isEdit ) {
+      if ( this.isEdit ) {
         cm.foldLinesMatching(/^status:\s*$/);
       }
+
+      // regardless of edit or create we should probably fold all the comments so they dont get out of hand.
+      cm.getMode().fold = 'yamlcomments';
+      cm.execCommand('foldAll');
 
       try {
         const parsed = jsyaml.safeLoad(this.currentYaml);
