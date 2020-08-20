@@ -24,6 +24,11 @@ export default {
       default: 'create'
     },
 
+    namespace: {
+      type:    String,
+      default: null
+    },
+
     value: {
       type:    Object,
       default: () => {
@@ -44,14 +49,17 @@ export default {
   },
 
   async fetch() {
-    // TODO get namespace for this deployment
-    const namespace = this.$store.getters['defaultNamespace'];
+    const namespace = this.namespace || this.$store.getters['defaultNamespace'];
 
     const data = { type: PVC };
 
     data.metadata = { namespace };
 
-    this.pvc = await this.$store.dispatch('cluster/create', data);
+    const pvc = await this.$store.dispatch('cluster/create', data);
+
+    pvc.applyDefaults();
+
+    this.pvc = pvc;
   },
 
   data() {
@@ -63,7 +71,18 @@ export default {
     createNew() {
       return this.value._type === 'createPVC';
     },
+
     ...mapGetters({ t: 'i18n/t' })
+  },
+
+  watch: {
+    namespace(neu) {
+      this.pvc.metadata.namespace = neu;
+    },
+
+    'pvc.metadata.name'(neu) {
+      this.value.persistentVolumeClaim.claimName = neu;
+    }
   }
 };
 </script>
@@ -88,7 +107,7 @@ export default {
         </div>
       </div>
       <div class="row">
-        <Checkbox v-model="value.persistentVolumeClaim.readyOnly" :label="t('workload.storage.readOnly')" />
+        <Checkbox v-model="value.persistentVolumeClaim.readOnly" :label="t('workload.storage.readOnly')" />
       </div>
     </div>
     <Mount v-model="volumeMounts" :name="value.name" :mode="mode" />

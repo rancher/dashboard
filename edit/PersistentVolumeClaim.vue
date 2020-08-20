@@ -5,7 +5,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import Checkbox from '@/components/form/Checkbox';
 import LabeledInput from '@/components/form/LabeledInput';
 import { mapGetters } from 'vuex';
-import { removeObject } from '@/utils/array';
+import { removeObject, addObject } from '@/utils/array';
 import { STORAGE_CLASS, PV } from '@/config/types';
 import { allHash } from '@/utils/promise';
 export default {
@@ -35,8 +35,8 @@ export default {
       persistentVolumes: this.$store.dispatch('cluster/findAll', { type: PV }),
     });
 
-    this.storageClasses = hash.storageClasses.map(sc => sc.metadata.name);
-    this.persistentVolumes = hash.persistentVolumes.map(pv => pv.metadata.name);
+    this.storageClasses = hash.storageClasses;
+    this.persistentVolumes = hash.persistentVolumes;
   },
 
   data() {
@@ -45,21 +45,28 @@ export default {
     };
   },
 
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  computed: {
+    storageClassNames() {
+      return this.storageClasses.map(sc => sc.metadata.name);
+    },
+
+    persistentVolumeNames() {
+      return this.persistentVolumes.map(pv => pv.metadata.name);
+    },
+
+    ...mapGetters({ t: 'i18n/t' })
+  },
 
   created() {
-    if (!this.value.spec) {
-      this.$set(this.value, 'spec', { accessModes: [], resources: { requests: { storage: null } } });
-    }
     if (this.registerBeforeHook) {
-      this.registerBeforeHook(this.value.save());
+      this.registerBeforeHook(this.value.save);
     }
   },
 
   methods: {
     updateMode(mode, enabled) {
       if (enabled) {
-        this.value.spec.accessModes.push(mode);
+        addObject(this.value.spec.accessModes, mode);
       } else {
         removeObject(this.value.spec.accessModes, mode);
       }
@@ -75,8 +82,8 @@ export default {
     <RadioGroup v-model="createPVC" :row="true" :options="[true, false]" :labels="[t('persistentVolumeClaim.source.options.new'), t('persistentVolumeClaim.source.options.existing')]" :mode="mode" />
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledSelect v-if="createPVC" v-model="value.spec.storageClassName" :mode="mode" :label="t('persistentVolumeClaim.storageClass')" :options="storageClasses" />
-        <LabeledSelect v-else v-model="value.spec.volumeName" :mode="mode" :label="t('persistentVolumeClaim.volumes')" :options="persistentVolumes" />
+        <LabeledSelect v-if="createPVC" v-model="value.spec.storageClassName" :mode="mode" :label="t('persistentVolumeClaim.storageClass')" :options="storageClassNames" />
+        <LabeledSelect v-else v-model="value.spec.volumeName" :mode="mode" :label="t('persistentVolumeClaim.volumes')" :options="persistentVolumeNames" />
       </div>
       <div class="col span-6">
         <UnitInput v-model="value.spec.resources.requests.storage" :mode="mode" :label="t('persistentVolumeClaim.capacity')" suffix="GiB" />

@@ -1,11 +1,8 @@
 <script>
 import { PVC } from '@/config/types';
-// import ButtonDropdown from '@/components/ButtonDropdown';
 import { removeObject } from '@/utils/array.js';
 
 export default {
-  // components: { ButtonDropdown },
-
   props:      {
     mode: {
       type:    String,
@@ -22,7 +19,7 @@ export default {
 
     namespace: {
       type:    String,
-      default: 'default'
+      default: null
     },
 
     // namespaced configmaps and secrets
@@ -44,8 +41,9 @@ export default {
 
   async fetch() {
     const pvcs = await this.$store.dispatch('cluster/findAll', { type: PVC });
+    const namespace = this.namespace || this.$store.getters['defaultNamespace'];
 
-    this.pvcs = pvcs.filter(pvc => pvc.metadata.namespace === this.namespace).map(pvc => pvc.metadata.name);
+    this.pvcs = pvcs.filter(pvc => pvc.metadata.namespace === namespace);
   },
 
   data() {
@@ -55,6 +53,10 @@ export default {
   computed: {
     volumeOpts() {
       return ['secret', 'hostPath', 'certificate', 'configMap', 'persistentVolumeClaim', 'createPersistentVolumeClaim', 'csi', 'nfs'];
+    },
+
+    pvcNames() {
+      return this.pvcs.map(pvc => pvc.metadata.name);
     }
   },
 
@@ -64,13 +66,13 @@ export default {
     if (!container.volumeMounts) {
       this.$set(container, 'volumeMounts', []);
     }
+    if (!this.value.volumes) {
+      this.$set(this.value, 'volumes', []);
+    }
   },
 
   methods: {
     addVolume(type) {
-      if (!this.value.volumes) {
-        this.$set(this.value, 'volumes', []);
-      }
       if (type === 'certificate') {
         this.value.volumes.push({
           _type: 'certificate', secret: {}, name: `vol${ this.value.volumes.length }`
@@ -109,7 +111,7 @@ export default {
       case 'nfs':
         return require(`@/edit/workload/storage/NFS.vue`).default;
       }
-    }
+    },
   }
 };
 </script>
@@ -124,9 +126,10 @@ export default {
         :value="volume"
         :pod-spec="value"
         :mode="mode"
+        :namespace="namespace"
         :secrets="secrets"
         :config-maps="configMaps"
-        :pvcs="pvcs"
+        :pvcs="pvcNames"
         :register-before-hook="registerBeforeHook"
         @remove="removeVolume(volume)"
       />
@@ -144,20 +147,6 @@ export default {
         />
       </div>
     </div>
-    <!-- <ButtonDropdown>
-      <template #button-content>
-        <button type="button" class="btn bg-transparent">
-          <t k="workload.storage.addVolume" />
-        </button>
-      </template>
-      <template v-if="volumeOpts.length" #popover-content>
-        <ul class="list-unstyled">
-          <li v-for="opt in volumeOpts" :key="opt" @click="addVolume(opt)">
-            {{ t(`workload.storage.subtypes.${opt}`) }}
-          </li>
-        </ul>
-      </template>
-    </ButtonDropdown> -->
   </div>
 </template>
 
@@ -173,5 +162,10 @@ export default {
   top: 10px;
   right: 10px;
   padding:0px;
+}
+
+.add-vol:focus{
+  outline: none;
+  box-shadow: none;
 }
 </style>

@@ -614,7 +614,14 @@ export default {
             </div>
           </Tab>
           <Tab :label="t('workload.storage.title')" name="storage">
-            <Storage v-model="podTemplateSpec" :namespace="value.metadata.namespace" :mode="mode" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" />
+            <Storage
+              v-model="podTemplateSpec"
+              :namespace="value.metadata.namespace"
+              :register-before-hook="registerBeforeHook"
+              :mode="mode"
+              :secrets="namespacedSecrets"
+              :config-maps="namespacedConfigMaps"
+            />
           </Tab>
           <Tab :can-toggle="true" :label="t('workload.container.titles.resources')" name="resources">
             <ContainerResourceLimit v-model="flatResources" class="bordered-section" :mode="mode" :show-tip="false" />

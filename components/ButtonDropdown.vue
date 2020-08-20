@@ -29,13 +29,13 @@ export default {
       }
 
       return out;
-    },
+    }
   },
 
   methods: {
     hasSlot(name = 'default') {
       return !!this.$slots[name] || !!this.$scopedSlots[name];
-    },
+    }
   }
 };
 </script>
@@ -61,7 +61,7 @@ export default {
       <v-popover
         v-if="hasSlot('popover-content')"
         placement="bottom"
-        container=".dropdown-button-group"
+        :container="false"
         offset="10"
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >

@@ -6,15 +6,6 @@ import Mount from '@/edit/workload/storage/Mount';
 import VolumeMount from '@/edit/workload/storage/volume-mount.js';
 import { mapGetters } from 'vuex';
 
-const drivers = [
-  'ebs.csi.aws.com',
-  'disk.csi.azure.com',
-  'file.csi.azure.com',
-  'pd.csi.storage.gke.io',
-  'driver.longhorn.io',
-  'csi.vsphere.vmware.com'
-];
-
 export default {
   components: {
     LabeledSelect, LabeledInput, Checkbox, Mount
@@ -35,16 +26,16 @@ export default {
     }
   },
   computed: {
-    driverOpts() {
-      return drivers;
-    },
-
     driverComponent() {
       try {
         return require(`@/edit/workload/storage/ephemeralVolume/${ this.value.csi.driver }`).default;
       } catch {
         return null;
       }
+    },
+
+    driverOpts() {
+      return require.context('@/edit/workload/storage/ephemeralVolume', true, /^.*\.vue$/).keys().map(path => path.replace(/(\.\/)|(.vue)/g, '')).filter(file => file !== 'index');
     },
 
     ...mapGetters({ t: 'i18n/t' })
