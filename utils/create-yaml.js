@@ -1,6 +1,7 @@
 import { indent as _indent } from '@/utils/string';
 import { addObject, removeObject, removeObjects } from '@/utils/array';
 import jsyaml from 'js-yaml';
+import { cleanUp } from '@/utils/object';
 
 const SIMPLE_TYPES = [
   'string',
@@ -172,10 +173,12 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
     if ( mapOf ) {
       if (data[key]) {
         try {
-          const parsedData = jsyaml.safeDump(data[key]);
+          const cleaned = cleanUp(data);
+          const parsedData = jsyaml.safeDump(cleaned[key]);
 
           out += `\n${ indent(parsedData.trim()) }`;
         } catch (e) {
+          console.error(`Error: Unale to parse map data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
         }
       }
 
@@ -196,10 +199,12 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
     if ( arrayOf ) {
       if (data[key]) {
         try {
-          const parsedData = jsyaml.safeDump(data[key]);
+          const cleaned = cleanUp(data);
+          const parsedData = jsyaml.safeDump(cleaned[key]);
 
           out += `\n${ indent(parsedData.trim()) }`;
         } catch (e) {
+          console.error(`Error: Unale to parse array data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
         }
       }
 
