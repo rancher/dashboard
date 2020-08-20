@@ -180,10 +180,8 @@ export default {
       const {
         sortedTabs,
         tabsUseHistoryReplace,
-        $route: {
-          hash: routeHash,
-          fullPath
-        },
+        $route: { hash: routeHash },
+        $router: { currentRoute },
       } = this;
 
       const selected = this.find(name);
@@ -198,12 +196,14 @@ export default {
       }
 
       if (routeHash !== hashName) {
-        if (tabsUseHistoryReplace) {
-          const fullPathWOHash = fullPath.includes('#') ? fullPath.split('#')[0] : fullPath;
+        const kurrentRoute = { ...currentRoute };
 
-          window.history.replaceState(null, '', `${ fullPathWOHash }#${ name }`);
+        kurrentRoute.hash = hashName;
+
+        if (tabsUseHistoryReplace) {
+          this.$router.replace(kurrentRoute);
         } else {
-          window.location.hash = `#${ name }`;
+          this.$router.push(kurrentRoute);
         }
       }
 
