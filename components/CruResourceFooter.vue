@@ -26,6 +26,16 @@ export default {
       type:    String,
       default: null,
     },
+
+    confirmCancelRequired: {
+      type:    Boolean,
+      default: false
+    },
+
+    confirmBackRequired: {
+      type:    Boolean,
+      default: true,
+    }
   },
 
   data() {
@@ -48,7 +58,7 @@ export default {
     confirmCancel(isCancel) {
       this.$modal.hide('cancel-modal');
 
-      this.$emit('cancelConfirmed', isCancel);
+      this.$emit('cancel-confirmed', isCancel);
     },
   },
 };
@@ -57,7 +67,7 @@ export default {
 <template>
   <div class="cru-resource-footer">
     <slot name="cancel">
-      <button type="button" class="btn role-secondary" @click="checkCancel(true)">
+      <button type="button" class="btn role-secondary" @click="confirmCancelRequired ? checkCancel(true) : $emit('cancel-confirmed')">
         <t k="generic.cancel" />
       </button>
     </slot>

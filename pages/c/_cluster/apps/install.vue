@@ -679,7 +679,7 @@ export default {
       :mode="mode"
       :finish-button-mode="(existing ? 'upgrade' : 'install')"
       :is-form="!!showValuesComponent"
-      @cancelConfirmed="cancel"
+      @cancel-confirmed="cancel"
     >
       <template #default="{checkCancel}">
         <template v-if="!showValuesComponent">

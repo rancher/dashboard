@@ -199,7 +199,7 @@ export default {
               :done-route="doneRoute"
               :mode="mode"
               :is-form="showAsForm"
-              @cancelConfirmed="confirmCancel"
+              @cancel-confirmed="confirmCancel"
             >
               <template #default>
                 <div>
@@ -245,7 +245,7 @@ export default {
                   :done-route="doneRoute"
                   :mode="mode"
                   :is-form="showAsForm"
-                  @cancelConfirmed="confirmCancel"
+                  @cancel-confirmed="confirmCancel"
                 >
                   <template #default="{checkCancel}">
                     <div class="controls-middle">
