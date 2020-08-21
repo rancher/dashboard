@@ -4,6 +4,7 @@ import Footer from '@/components/form/Footer';
 import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
+import Labels from '@/components/form/Labels';
 
 export default {
   name: 'CruCatalogRepo',
@@ -13,6 +14,7 @@ export default {
     RadioGroup,
     LabeledInput,
     NameNsDescription,
+    Labels,
   },
 
   mixins: [CreateEditView],
@@ -25,9 +27,12 @@ export default {
 </script>
 
 <template>
-  <form>
+  <div v-if="isView">
+  </div>
+  <form v-else>
     <NameNsDescription v-model="value" :mode="mode" :namespaced="isNamespaced" />
 
+    <h2>{{ t('catalog.repo.target.label') }}</h2>
     <div class="row">
       <div class="col span-6">
         <RadioGroup
@@ -66,6 +71,13 @@ export default {
       :label="t('catalog.repo.url.label')"
       :placeholder="t('catalog.repo.url.placeholder', null, true)"
       :mode="mode"
+    />
+
+    <Labels
+      default-section-class="mt-20"
+      :value="value"
+      :mode="mode"
+      :display-side-by-side="false"
     />
 
     <Footer :mode="mode" :errors="errors" @save="save" @done="done" />

@@ -6,19 +6,20 @@ export function init(store) {
   const { product } = DSL(store, NAME);
 
   const cluster = store.getters['currentCluster'];
-  let externalLink = '/g';
+  let link = '/g';
 
   if ( cluster ) {
-    externalLink = `/c/${ escape(cluster.id) }`;
+    link = `/c/${ escape(cluster.id) }`;
   }
 
   if ( process.env.dev ) {
-    externalLink = `https://localhost:8000${ externalLink }`;
+    link = `https://localhost:8000${ link }`;
   }
 
   product({
-    ifGetter: 'isMultiCluster',
-    icon:     'cluster',
-    externalLink,
+    ifGetter:  'isMultiCluster',
+    icon:      'cluster',
+    removable: false,
+    link,
   });
 }

@@ -4,9 +4,15 @@ import { LOGGED_OUT } from '@/config/query-params';
 export default {
   layout: 'unauthenticated',
 
-  async created() {
-    await this.$store.dispatch('auth/logout', null, { root: true });
-    await this.$router.replace({ path: `/auth/login?${ LOGGED_OUT }` });
+  async asyncData({ redirect, store, router }) {
+    if ( 1 === 2 && process.env.dev ) {
+      await store.dispatch('auth/logout', null, { root: true });
+      redirect(302, `/auth/login?${ LOGGED_OUT }`);
+    } else if ( process.client ) {
+      window.location.href = '/logout';
+    } else {
+      redirect(302, '/logout');
+    }
   }
 };
 </script>

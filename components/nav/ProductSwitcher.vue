@@ -43,6 +43,9 @@ export default {
         if ( p.externalLink ) {
           out.kind = 'external';
           out.link = p.externalLink;
+        } else if ( p.link ) {
+          out.kind = 'internal';
+          out.link = p.link;
         } else {
           out.kind = 'internal';
         }
@@ -78,17 +81,21 @@ export default {
       const entry = findBy(this.options, 'value', product);
 
       if ( entry?.link ) {
-        let windowName = '_blank';
+        if ( entry.kind === 'external' ) {
+          let windowName = '_blank';
 
-        // Non-removable external links (MCM) go to a named window
-        if ( entry.removable === false ) {
-          windowName = `R_${ product }`;
+          // Non-removable external links (MCM) go to a named window
+          if ( entry.removable === false ) {
+            windowName = `R_${ product }`;
+          }
+
+          window.open(entry.link, windowName);
+          this.value = this.previous;
+
+          return;
+        } else {
+          window.location.href = entry.link;
         }
-
-        window.open(entry.link, windowName);
-        this.value = this.previous;
-
-        return;
       }
 
       this.previous = this.value;

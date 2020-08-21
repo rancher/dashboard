@@ -14,6 +14,7 @@ import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import YamlEditor from '@/components/YamlEditor';
 import Checkbox from '@/components/form/Checkbox';
+import Questions from '@/components/Questions';
 
 import { CATALOG } from '@/config/types';
 import {
@@ -39,6 +40,7 @@ export default {
     Tabbed,
     Tab,
     YamlEditor,
+    Questions,
   },
 
   async fetch() {
@@ -186,6 +188,16 @@ export default {
     showVersions() {
       return this.chart?.versions.length > 1;
     },
+
+    targetNamespace() {
+      if ( this.forceNamespace ) {
+        return this.forceNamespace;
+      } else if ( this.value?.metadata.namespace ) {
+        return this.value.metadata.namespace;
+      }
+
+      return 'default';
+    }
   },
 
   watch: {
@@ -540,6 +552,14 @@ export default {
               />
             </Tab>
           </template>
+          <Questions
+            v-else-if="versionInfo.questions"
+            v-model="chartValues"
+            :chart="chart"
+            :version="version"
+            :version-info="versionInfo"
+            :target-namespace="targetNamespace"
+          />
           <Tab v-else name="values-yaml" :label="t('catalog.install.section.valuesYaml')">
             <YamlEditor
               ref="yaml"
@@ -549,41 +569,41 @@ export default {
             />
           </Tab>
 
-          <Tab name="advanced" :label="t('catalog.install.section.advanced')" :weight="100">
+          <Tab name="helm" :label="t('catalog.install.section.helm')" :weight="100">
             <div v-if="existing">
-              <div><Checkbox v-model="atomic" :label="t('catalog.install.advanced.atomic')" /></div>
-              <div><Checkbox v-model="cleanupOnFail" :label="t('catalog.install.advanced.cleanupOnFail')" /></div>
-              <div><Checkbox v-model="dryRun" :label="t('catalog.install.advanced.dryRun')" /></div>
-              <div><Checkbox v-model="force" :label="t('catalog.install.advanced.force')" /></div>
-              <div><Checkbox v-model="hooks" :label="t('catalog.install.advanced.hooks')" /></div>
-              <div><Checkbox v-model="resetValues" :label="t('catalog.install.advanced.resetValues')" /></div>
-              <div><Checkbox v-model="reuseValues" :label="t('catalog.install.advanced.reuseValues')" /></div>
-              <div><Checkbox v-model="wait" :label="t('catalog.install.advanced.wait')" /></div>
+              <div><Checkbox v-model="atomic" :label="t('catalog.install.helm.atomic')" /></div>
+              <div><Checkbox v-model="cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
+              <div><Checkbox v-model="dryRun" :label="t('catalog.install.helm.dryRun')" /></div>
+              <div><Checkbox v-model="force" :label="t('catalog.install.helm.force')" /></div>
+              <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
+              <div><Checkbox v-model="resetValues" :label="t('catalog.install.helm.resetValues')" /></div>
+              <div><Checkbox v-model="reuseValues" :label="t('catalog.install.helm.reuseValues')" /></div>
+              <div><Checkbox v-model="wait" :label="t('catalog.install.helm.wait')" /></div>
               <div style="display: inline-block; max-width: 400px;">
                 <UnitInput
                   v-model.number="historyMax"
-                  :label="t('catalog.install.advanced.historyMax.label')"
-                  :suffix="t('catalog.install.advanced.historyMax.unit')"
+                  :label="t('catalog.install.helm.historyMax.label')"
+                  :suffix="t('catalog.install.helm.historyMax.unit')"
                 />
               </div>
               <div style="display: inline-block; max-width: 400px;">
                 <UnitInput
                   v-model.number="timeout"
-                  :label="t('catalog.install.advanced.timeout.label')"
-                  :suffix="t('catalog.install.advanced.timeout.unit')"
+                  :label="t('catalog.install.helm.timeout.label')"
+                  :suffix="t('catalog.install.helm.timeout.unit')"
                 />
               </div>
             </div>
             <div v-else>
-              <div><Checkbox v-model="openApi" :label="t('catalog.install.advanced.openapi')" /></div>
-              <div><Checkbox v-model="hooks" :label="t('catalog.install.advanced.hooks')" /></div>
-              <div><Checkbox v-model="crds" :label="t('catalog.install.advanced.crds')" /></div>
-              <div><Checkbox v-model="wait" :label="t('catalog.install.advanced.wait')" /></div>
+              <div><Checkbox v-model="openApi" :label="t('catalog.install.helm.openapi')" /></div>
+              <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
+              <div><Checkbox v-model="crds" :label="t('catalog.install.helm.crds')" /></div>
+              <div><Checkbox v-model="wait" :label="t('catalog.install.helm.wait')" /></div>
               <div style="display: inline-block; max-width: 400px;">
                 <UnitInput
                   v-model.number="timeout"
-                  :label="t('catalog.install.advanced.timeout.label')"
-                  :suffix="t('catalog.install.advanced.timeout.unit')"
+                  :label="t('catalog.install.helm.timeout.label')"
+                  :suffix="t('catalog.install.helm.timeout.unit')"
                 />
               </div>
             </div>

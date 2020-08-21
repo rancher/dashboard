@@ -55,6 +55,7 @@ export default {
       type:    String,
       default: ''
     },
+
     protip: {
       type:    [String, Boolean],
       default: 'ProTip: Paste lines of <code>key=value</code> or <code>key: value</code> into any key field for easy bulk entry',
@@ -349,12 +350,14 @@ export default {
             {{ title }}
           </h2>
         </slot>
-        <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" />
       </div>
     </template>
 
     <div v-if="rows.length || isView" :class="{'extra-column':threeColumns}" class="kv-row headers">
-      <label>{{ keyLabel }}</label>
+      <label>
+        {{ keyLabel }}
+        <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" />
+      </label>
       <label>{{ valueLabel }}</label>
       <span v-if="threeColumns" />
     </div>

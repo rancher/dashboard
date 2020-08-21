@@ -75,7 +75,11 @@ export default async function({
         store.commit('auth/hasAuth', true);
 
         if ( status === 401 ) {
-          redirect(302, '/auth/login');
+          if ( process.env.dev ) {
+            redirect(302, '/auth/login');
+          } else {
+            redirect(302, '/login');
+          }
         } else {
           store.commit('setError', e);
           console.log(JSON.stringify(e)); // eslint-disable-line no-console

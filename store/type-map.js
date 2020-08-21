@@ -92,7 +92,7 @@ import { COUNT, SCHEMA } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import { addObject, findBy, insertAt, isArray, removeObject } from '@/utils/array';
 import { clone, get } from '@/utils/object';
-import { ensureRegex, escapeHtml, escapeRegex, ucFirst } from '@/utils/string';
+import { ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize } from '@/utils/string';
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isObject from 'lodash/isObject';
@@ -280,18 +280,15 @@ export const getters = {
 
         let out = schema?.attributes?.kind || schema.id || '?';
 
+        // Add spaces, but breaks typing names into jump menu naturally
         // out = ucFirst(out.replace(/([a-z])([A-Z])/g,'$1 $2'));
 
-        // This works for most things... if you don't like it, put in a typeLabel translation.
-        if ( count !== 1 ) {
-          if ( out.endsWith('s') ) {
-            return `${out}es`;
-          } else {
-            return `${out}s`;
-          }
+        if ( count === 1 ) {
+          return out;
         }
 
-        return out;
+        // This works for most things... if you don't like it, put in a typeLabel translation for above.
+        return pluralize(out);
       });
     };
   },

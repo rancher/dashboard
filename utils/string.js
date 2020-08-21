@@ -132,23 +132,13 @@ export function formatPercent(value, maxPrecision = 2) {
   }
 }
 
-export function pluralize(count, singular, plural) {
-  if (!plural) {
-    if (singular.substr(-1, 1) === 's') {
-      plural = `${ singular }es`;
-    } else {
-      plural = `${ singular }s`;
-    }
-  }
-
-  if (!count) {
-    return plural;
-  }
-
-  if (count === 1) {
-    return `${ count } ${ singular }`;
+export function pluralize(str) {
+  if ( str.endsWith('y') ) {
+    return `${ str.substr(0, str.length - 1) }ies`;
+  } else if ( str.endsWith('s') ) {
+    return `${ str }es`;
   } else {
-    return `${ count } ${ plural }`;
+    return `${ str }s`;
   }
 }
 

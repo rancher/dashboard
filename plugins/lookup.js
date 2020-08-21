@@ -1,4 +1,9 @@
+import { get, set } from '@/utils/object';
+
 export default (context) => {
+  window.get = get;
+  window.set = set;
+
   window.s = context.store;
   window.schemaName = type => context.store.getters['cluster/schemaName'](type);
   window.schemaFor = type => context.store.getters['cluster/schemaFor'](type, true);

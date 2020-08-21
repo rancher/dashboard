@@ -39,10 +39,23 @@ export default {
     const renderer = new marked.Renderer();
     const linkRenderer = renderer.link;
 
-    renderer.link = function() {
-      const orig = linkRenderer.apply(this, arguments);
+    const base = this.$router.resolve(this.$route).href.replace(/#.*$/, '');
 
-      return orig.replace(/^<a /, '<a target="_blank" rel="nofollow noopener noreferrer" ');
+    renderer.link = function(href, title, text) {
+      let external = true;
+
+      if ( href.startsWith('#') ) {
+        href = `${ base }${ href }`;
+        external = false;
+      }
+
+      const rendered = linkRenderer.call(this, href, title, text);
+
+      if ( external ) {
+        return rendered.replace(/^<a /, '<a target="_blank" rel="nofollow noopener noreferrer" ');
+      }
+
+      return rendered;
     };
 
     dompurify.setConfig({ ADD_ATTR: ['target'] });

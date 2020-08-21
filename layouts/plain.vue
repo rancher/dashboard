@@ -16,7 +16,7 @@ export default {
 
     return {
       bodyAttrs: { class: `theme-${ theme } overflow-hidden dashboard-body` },
-      title:     'Dashboard',
+      title:     this.$store.getters['i18n/t']('nav.title'),
     };
   },
 
