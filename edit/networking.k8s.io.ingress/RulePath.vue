@@ -32,6 +32,9 @@ export default {
       const isValueAnOption = !this.serviceName || this.serviceTargets.find(target => this.serviceName === target.value);
 
       return isValueAnOption ? null : 'warning';
+    },
+    serviceTargetTooltip() {
+      return this.serviceTargetStatus === 'warning' ? this.t('ingress.rules.target.doesntExist') : null;
     }
   },
   methods: {
@@ -58,6 +61,7 @@ export default {
         :options="serviceTargets"
         :status="serviceTargetStatus"
         :taggable="true"
+        :tooltip="serviceTargetTooltip"
         @input="update(); servicePort = ''"
       />
     </div>

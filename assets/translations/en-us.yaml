@@ -367,6 +367,7 @@ ingress:
       placeholder: e.g. 80 or http
     targetService:
       label: Target Service
+      doesntExist: The selected service does not exist
     warning: "Warning: Default backend is used globally for the entire cluster."
   rules:
     addPath: Add Path
@@ -388,6 +389,8 @@ ingress:
       placeholder: e.g. example.com
     target:
       label: Target Service
+      doesntExist: The selected service does not exist
+
     title: Rules
 
 internalExternalIP:
