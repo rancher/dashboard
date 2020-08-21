@@ -8,8 +8,9 @@ function registerType(state, type) {
 
   if ( !cache ) {
     cache = {
-      list:    [],
-      haveAll: false,
+      list:         [],
+      haveAll:      false,
+      haveSelector: {}
     };
 
     // Not enumerable so they don't get sent back to the client for SSR

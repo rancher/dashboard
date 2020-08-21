@@ -172,7 +172,7 @@ export default {
     type = getters.normalizeType(type);
     const entry = state.types[type];
 
-    if ( entry && entry.haveSelector ) {
+    if ( entry ) {
       return entry.haveSelector[selector] || false;
     }
 
