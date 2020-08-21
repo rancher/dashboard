@@ -160,7 +160,7 @@ export default {
       :mode="mode"
       @input="e=>updateRow(i, e.value, e.old)"
     />
-    <ButtonDropdown ref="buttonDropdown" size="sm">
+    <ButtonDropdown v-if="mode!=='view'" ref="buttonDropdown" size="sm">
       <template #button-content>
         <button v-if="mode!=='view'" type="button" class="btn btn-sm text-primary bg-transparent" @click="$refs.unreferencedKV.add()">
           <t k="generic.add" />

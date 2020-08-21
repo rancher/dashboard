@@ -157,6 +157,7 @@ export default {
     <div class="row">
       <div class="col span-11-of-23">
         <LabeledSelect
+          v-if="!isView || kind!=='none'"
           v-model="kind"
           :mode="mode"
           label="Type"

@@ -20,6 +20,11 @@ export default {
     type: {
       type:    String,
       default: WORKLOAD_TYPES.JOB
+    },
+
+    mode: {
+      type:    String,
+      default: 'create'
     }
   },
   data() {
@@ -96,7 +101,7 @@ export default {
   <form @input="update">
     <div class="row mb-20">
       <div class="col span-6">
-        <UnitInput v-model="completions" :suffix="completions===1 ? 'Time' : 'Times'">
+        <UnitInput v-model="completions" :mode="mode" :suffix="completions===1 ? 'Time' : 'Times'">
           <template #label>
             <label :style="{'color':'var(--input-label)'}">
               {{ t('workload.job.completions.label') }}
@@ -106,7 +111,7 @@ export default {
         </UnitInput>
       </div>
       <div class="col span-6">
-        <UnitInput v-model="parallelism" class="col span-6" :suffix="parallelism===1 ? 'Time' : 'Times'">
+        <UnitInput v-model="parallelism" :mode="mode" class="col span-6" :suffix="parallelism===1 ? 'Time' : 'Times'">
           <template #label>
             <label :style="{'color':'var(--input-label)'}">
               {{ t('workload.job.completions.label') }}
@@ -118,7 +123,7 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <UnitInput v-model="backOffLimit" :suffix="backOffLimit===1 ? 'Time' : 'Times'">
+        <UnitInput v-model="backOffLimit" :mode="mode" :suffix="backOffLimit===1 ? 'Time' : 'Times'">
           <template #label>
             <label :style="{'color':'var(--input-label)'}">
               {{ t('workload.job.backOffLimit.label') }}
@@ -128,7 +133,7 @@ export default {
         </UnitInput>
       </div>
       <div class="col span-6">
-        <UnitInput v-model="activeDeadlineSeconds" :suffix="activeDeadlineSeconds===1 ? 'Second' : 'Seconds'">
+        <UnitInput v-model="activeDeadlineSeconds" :mode="mode" :suffix="activeDeadlineSeconds===1 ? 'Second' : 'Seconds'">
           <template #label>
             <label :style="{'color':'var(--input-label)'}">
               {{ t('workload.job.activeDeadlineSeconds.label') }}
@@ -141,7 +146,7 @@ export default {
     <template v-if="isCronJob">
       <div class="row mb-20">
         <div class="col span-6">
-          <LabeledInput v-model.number="successfulJobsHistoryLimit">
+          <LabeledInput v-model.number="successfulJobsHistoryLimit" :mode="mode">
             <template #label>
               <label :style="{'color':'var(--input-label)'}">
                 {{ t('workload.job.successfulJobsHistoryLimit.label') }}
@@ -151,7 +156,7 @@ export default {
           </LabeledInput>
         </div>
         <div class="col span-6">
-          <LabeledInput v-model.number="failedJobsHistoryLimit">
+          <LabeledInput v-model.number="failedJobsHistoryLimit" :mode="mode">
             <template #label>
               <label :style="{'color':'var(--input-label)'}">
                 {{ t('workload.job.failedJobsHistoryLimit.label') }}

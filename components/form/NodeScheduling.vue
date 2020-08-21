@@ -58,7 +58,8 @@ export default {
   computed: {
     isView() {
       return this.mode === _VIEW;
-    }
+    },
+
   },
   methods: {
     update() {

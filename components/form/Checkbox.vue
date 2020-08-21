@@ -85,6 +85,14 @@ export default {
       <slot name="label">  {{ label }}</slot>
     </span>
   </label>
+  <span v-else class="checkbox-view">
+    <label>
+      <slot name="label">
+        {{ label }}
+      </slot>
+    </label>
+    <span>{{ value }}</span>
+  </span>
 </template>
 
 <style lang='scss'>
@@ -187,5 +195,13 @@ export default {
   border-width: 0 0 2px 0;
   background-color: transparent;
   border-radius: 0;
+}
+
+.checkbox-view{
+  display: flex;
+  flex-direction: column;
+  LABEL {
+    color: var(--input-label)
+  }
 }
 </style>

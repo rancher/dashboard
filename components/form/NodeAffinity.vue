@@ -92,15 +92,8 @@ export default {
 <template>
   <div class="row" @input="update">
     <div :class="{'col span-6':hasWeighted, 'col span-12':!hasWeighted}">
-      <div class="mb-10">
+      <div v-if="!isView || Object.values(selectorMap).length " class="mb-10">
         <label><t k="workload.scheduling.affinity.requireAny" /></label>
-      </div>
-      <div v-if="isView && isEmpty(selectorMap)">
-        <MatchExpressions
-          :mode="mode"
-          class="node-selector simple-box col span-12 mb-20"
-          :type="node"
-        />
       </div>
       <template v-for="(nodeSelectorTerm, key) in selectorMap">
         <div :key="key">
@@ -122,15 +115,8 @@ export default {
     </div>
 
     <div v-if="hasWeighted" class="col span-6">
-      <div class="mb-10">
+      <div v-if="!isView || Object.values(weightedSelectorMap).length " class="mb-10">
         <label><t k="workload.scheduling.affinity.preferAny" /></label>
-      </div>
-      <div v-if="isView && isEmpty(selectorMap)">
-        <MatchExpressions
-          :mode="mode"
-          class="node-selector simple-box col span-12 mb-20"
-          :type="node"
-        />
       </div>
       <template v-for="(nodeSelectorTerm, key) in weightedSelectorMap">
         <div :key="key">
