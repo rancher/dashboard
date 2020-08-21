@@ -9,6 +9,7 @@ import AsyncButton from '@/components/AsyncButton';
 import { mapGetters } from 'vuex';
 import { stringify } from '@/utils/error';
 import CruResourceFooter from '@/components/CruResourceFooter';
+import { _EDIT } from '@/config/query-params';
 
 export default {
   components: {
@@ -79,6 +80,10 @@ export default {
   },
 
   computed: {
+    isEdit() {
+      return this.mode === _EDIT;
+    },
+
     showSubtypeSelection() {
       const { selectedSubtype, subtypes } = this;
 
@@ -233,7 +238,7 @@ export default {
           :value="resource"
           :mode="mode"
           :yaml="resourceYaml"
-          :offer-preview="mode==='edit'"
+          :offer-preview="isEdit"
           :done-route="doneRoute"
           :done-override="resource.doneOverride"
           @error="e=>$emit('error', e)"
@@ -258,7 +263,7 @@ export default {
                         <t k="resourceYaml.buttons.continue" />
                       </button>
                       <button
-                        v-if="!showPreview"
+                        v-if="!showPreview && isEdit"
                         :disabled="resourceYaml === currentYaml"
                         type="button"
                         class="btn role-secondary"
@@ -274,7 +279,7 @@ export default {
                       <AsyncButton
                         v-if="!showSubtypeSelection"
                         :disabled="!validationPassed"
-                        :action-label="mode==='edit' ? t('generic.save') : t('generic.create')"
+                        :action-label="isEdit ? t('generic.save') : t('generic.create')"
                         @click="cb=>yamlSave(cb)"
                       />
                     </div>
