@@ -149,10 +149,6 @@ export default {
       if ( !tab ) {
         tab = head(sortedTabs);
       }
-
-      if ( tab ) {
-        this.select(tab.name);
-      }
     });
   },
 
