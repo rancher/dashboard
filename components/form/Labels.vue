@@ -9,15 +9,23 @@ export default {
       type:     Object,
       required: true,
     },
+
     mode: {
       type:     String,
       required: true,
     },
+
     displaySideBySide: {
       type:    Boolean,
       default: false,
     },
+
     defaultContainerClass: {
+      type:    String,
+      default: '',
+    },
+
+    defaultSectionClass: {
       type:    String,
       default: '',
     }
@@ -25,13 +33,11 @@ export default {
 
   computed: {
     containerClass() {
-      const { defaultContainerClass } = this;
-
-      return this.displaySideBySide ? `row ${ defaultContainerClass }` : `${ defaultContainerClass }`;
+      return `${ this.displaySideBySide ? 'row' : '' } ${ this.defaultContainerClass }`.trim();
     },
 
     sectionClass() {
-      return this.displaySideBySide ? 'col span-6' : 'row';
+      return `${ this.displaySideBySide ? 'col span-6' : 'row' } ${ this.defaultSectionClass }`.trim();
     }
   }
 };
@@ -44,7 +50,6 @@ export default {
         :value="value.labels"
         :mode="mode"
         title="Labels"
-        :initial-empty-row="true"
         :pad-left="false"
         :read-allowed="false"
         @input="value.setLabels"
@@ -56,7 +61,6 @@ export default {
         :value="value.annotations"
         :mode="mode"
         title="Annotations"
-        :initial-empty-row="true"
         :pad-left="false"
         :read-allowed="false"
         @input="value.setAnnotations"

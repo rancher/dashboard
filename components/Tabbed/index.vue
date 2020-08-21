@@ -2,7 +2,7 @@
 import head from 'lodash/head';
 import sortBy from 'lodash/sortBy';
 import isEmpty from 'lodash/isEmpty';
-import { addObject, removeObject } from '@/utils/array';
+import { addObject, removeObject, findBy } from '@/utils/array';
 
 export default {
   name: 'Tabbed',
@@ -51,6 +51,12 @@ export default {
 
     return {
       addTab(tab) {
+        const existing = findBy(tabs, 'name', tab.name);
+
+        if ( existing ) {
+          removeObject(tabs, existing);
+        }
+
         addObject(tabs, tab);
       },
 
@@ -320,7 +326,7 @@ export default {
 
       A {
         display: block;
-        padding: 20px 15px;
+        padding: 10px 15px;
       }
 
       &:last-child {

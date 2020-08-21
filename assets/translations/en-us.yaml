@@ -32,6 +32,7 @@ locale:
   none: (None)
 
 nav:
+  title: Dashboard
   backToRancher: Cluster Manager
   shell: Shell
   group:
@@ -159,8 +160,8 @@ catalog:
       readme: Chart ReadMe
       chartOptions: Chart Options
       valuesYaml: Values YAML
-      advanced: Advanced
-    advanced:
+      helm: Helm Options
+    helm:
       atomic: Atomic
       cleanupOnFail: Cleanup on Failure
       crds: Apply custom resource definitions
