@@ -209,7 +209,7 @@ export default {
               <template #default>
                 <div>
                   <button
-                    v-if="canYaml && (selectedSubtype || !subtypes.length)"
+                    v-if="!isEdit && canYaml && (selectedSubtype || !subtypes.length)"
                     type="button"
                     class="btn role-secondary"
                     @click="showPreviewYaml"
