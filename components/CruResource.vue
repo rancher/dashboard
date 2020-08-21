@@ -9,7 +9,7 @@ import AsyncButton from '@/components/AsyncButton';
 import { mapGetters } from 'vuex';
 import { stringify } from '@/utils/error';
 import CruResourceFooter from '@/components/CruResourceFooter';
-import { _EDIT } from '@/config/query-params';
+import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   components: {
@@ -80,6 +80,10 @@ export default {
   },
 
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+
     isEdit() {
       return this.mode === _EDIT;
     },
@@ -103,19 +107,23 @@ export default {
   methods: {
     stringify,
 
-    confirmCancel(isCancel) {
-      if (isCancel) {
-        if ( this.cancelEvent ) {
-          this.$emit('cancel');
-        } else {
-          this.$router.replace({
-            name:   this.doneRoute,
-            params: { resource: this.resource.type }
-          });
-        }
-      } else {
+    confirmCancel(isCancelNotBack = true) {
+      if (isCancelNotBack) {
+        this.emitOrRoute();
+      } else if (!this.showAsForm) {
         this.resourceYaml = null;
         this.showAsForm = true;
+      }
+    },
+
+    emitOrRoute() {
+      if ( this.cancelEvent ) {
+        this.$emit('cancel');
+      } else {
+        this.$router.replace({
+          name:   this.doneRoute,
+          params: { resource: this.resource.type }
+        });
       }
     },
 
@@ -207,7 +215,7 @@ export default {
               @cancel-confirmed="confirmCancel"
             >
               <template #default>
-                <div>
+                <div v-if="!isView">
                   <button
                     v-if="!isEdit && canYaml && (selectedSubtype || !subtypes.length)"
                     type="button"

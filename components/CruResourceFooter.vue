@@ -2,6 +2,7 @@
 import { mapGetters } from 'vuex';
 
 import AsyncButton from '@/components/AsyncButton';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: { AsyncButton },
@@ -12,8 +13,8 @@ export default {
     },
 
     mode: {
-      type:     String,
-      default:  'create'
+      type:    String,
+      default: 'create',
     },
 
     isForm: {
@@ -29,20 +30,26 @@ export default {
 
     confirmCancelRequired: {
       type:    Boolean,
-      default: false
+      default: false,
     },
 
     confirmBackRequired: {
       type:    Boolean,
       default: true,
-    }
+    },
   },
 
   data() {
     return { isCancelModal: false };
   },
 
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    isView() {
+      return this.mode === _VIEW;
+    },
+  },
 
   methods: {
     checkCancel(isCancel) {
@@ -67,12 +74,20 @@ export default {
 <template>
   <div class="cru-resource-footer">
     <slot name="cancel">
-      <button type="button" class="btn role-secondary" @click="confirmCancelRequired ? checkCancel(true) : $emit('cancel-confirmed')">
+      <button
+        type="button"
+        class="btn role-secondary"
+        @click="confirmCancelRequired ? checkCancel(true) : $emit('cancel-confirmed', true)"
+      >
         <t k="generic.cancel" />
       </button>
     </slot>
     <slot :checkCancel="checkCancel">
-      <AsyncButton :mode="finishButtonMode || mode" @click="$emit('finish', $event)" />
+      <AsyncButton
+        v-if="!isView"
+        :mode="finishButtonMode || mode"
+        @click="$emit('finish', $event)"
+      />
     </slot>
 
     <modal class="confirm-modal" name="cancel-modal" :width="400" height="auto">
