@@ -733,7 +733,7 @@ export default {
             class="btn role-secondary"
             @click="valuesYaml === cleanValuesYaml ? resetFromBack() : checkCancel(false)"
           >
-            <t k="generic.back" />
+            <t k="cruResource.backToForm" />
           </button>
 
           <AsyncButton

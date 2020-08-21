@@ -99,10 +99,10 @@ export default {
       </div>
       <div class="body">
         <p v-if="isCancelModal">
-          <t k="cruResource.cancel" />
+          <t k="cruResource.cancelBody" />
         </p>
         <p v-else>
-          <t k="cruResource.back" />
+          <t k="cruResource.backBody" />
         </p>
       </div>
       <div class="footer">

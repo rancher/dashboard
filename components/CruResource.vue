@@ -282,7 +282,7 @@ export default {
                     </div>
                     <div v-if="selectedSubtype || !subtypes.length" class="controls-right">
                       <button type="button" class="btn role-secondary" @click="checkCancel(false)">
-                        <t k="generic.back" />
+                        <t k="cruResource.backToForm" />
                       </button>
                       <AsyncButton
                         v-if="!showSubtypeSelection"
