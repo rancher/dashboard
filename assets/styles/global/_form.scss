@@ -13,6 +13,7 @@ SELECT,
 TEXTAREA,
 .labeled-input,
 .labeled-select {
+  position: relative;
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -22,6 +23,41 @@ TEXTAREA,
   border-radius: calc(var(--border-radius) * 2);
   border: solid $outline-width var(--input-border);
   color: var(--input-text);
+
+  &:not(.focused) {
+    &.success {
+      border: solid 1px var(--success);
+      input, .selected { 
+        color: var(--success);
+      }
+
+      .vs__actions:after {
+        color: var(--success);
+      }
+    }
+  
+    &.warning {
+      border: solid 1px var(--warning);
+      input, .selected { 
+        color: var(--warning);
+      }
+
+      .vs__actions:after {
+        color: var(--warning);
+      }
+    }
+  
+    &.error {
+      border: solid 1px var(--error);
+      input, .selected { 
+        color: var(--error);
+      }
+
+      .vs__actions:after {
+        color: var(--error);
+      }
+    }
+  }
 
   &:not(.view) {
     background-color: var(--input-bg);

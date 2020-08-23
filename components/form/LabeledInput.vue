@@ -2,9 +2,10 @@
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 import { _EDIT, _VIEW } from '@/config/query-params';
+import LabeledTooltip from '@/components/form/LabeledTooltip';
 
 export default {
-  components: { TextAreaAutoGrow },
+  components: { LabeledTooltip, TextAreaAutoGrow },
   mixins:     [LabeledFormElement],
 
   props: {
@@ -27,7 +28,17 @@ export default {
     placeholder: {
       type:    String,
       default: ''
-    }
+    },
+
+    status: {
+      type:      String,
+      default:   null
+    },
+
+    tooltip: {
+      type:    String,
+      default: null
+    },
 
   },
 
@@ -66,7 +77,7 @@ export default {
 </script>
 
 <template>
-  <div :class="{'labeled-input': true, raised, focused, [mode]: true, disabled}">
+  <div :class="{'labeled-input': true, raised, focused, [mode]: true, disabled, [status]: status}">
     <slot name="label">
       <label>
         {{ label }}
@@ -113,5 +124,6 @@ export default {
       >
     </slot>
     <slot name="suffix" />
+    <LabeledTooltip v-if="tooltip && !focused" :value="tooltip" :status="status" />
   </div>
 </template>

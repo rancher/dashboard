@@ -3,9 +3,11 @@ import { createPopper } from '@popperjs/core';
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
+import LabeledTooltip from '@/components/form/LabeledTooltip';
 
 export default {
-  mixins: [LabeledFormElement],
+  components: { LabeledTooltip },
+  mixins:     [LabeledFormElement],
 
   props: {
     value: {
@@ -36,9 +38,17 @@ export default {
       type:    String,
       default: null,
     },
+    tooltip: {
+      type:    String,
+      default: null
+    },
     localizedLabel: {
       type:    Boolean,
       default: false
+    },
+    status: {
+      type:      String,
+      default:   null
     },
     reduce: {
       type:     Function,
@@ -152,7 +162,7 @@ export default {
 </script>
 
 <template>
-  <div class="labeled-select labeled-input" :class="{disabled, focused, [mode]: true}">
+  <div class="labeled-select labeled-input" :class="{disabled, focused, [mode]: true, [status]: status }">
     <div :class="{'labeled-container': true, raised, empty, [mode]: true}" :style="{border:'none'}">
       <label v-if="label">
         {{ label }}
@@ -192,13 +202,12 @@ export default {
         <span style="display: none"></span>
       </template>
     </v-select>
+    <LabeledTooltip v-if="tooltip && !focused" :value="tooltip" :status="status" />
   </div>
 </template>
 
 <style lang='scss'>
 .labeled-select {
-  position: relative;
-
   .labeled-container .selected {
     background-color: transparent;
   }
