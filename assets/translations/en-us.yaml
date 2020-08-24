@@ -559,6 +559,18 @@ node:
       info: Info
       taints: Taints
 
+persistentVolumeClaim:
+  accessModes: Access Modes
+  capacity: Capacity
+  storageClass: Storage Class
+  volumes: Persistent Volumes
+  volumeName: Persistent Volume Name
+  source: 
+    label: Source
+    options:
+      new: Use a Storage Class to provision a new Persistent Volume
+      existing: Use an existing Persistent Volume
+
 promptRemove:
   andOthers: |-
     {count, plural,
@@ -1137,7 +1149,75 @@ workload:
       value: Value
   serviceName: Service Name
   storage:
+    subtypes:
+      label: Add Volume
+      secret: Secret
+      configMap: ConfigMap
+      hostPath: Bind-Mount
+      certificate: Certificate
+      persistentVolumeClaim: Persistent Volume Claim
+      createPersistentVolumeClaim: Create Persistent Volume Claim 
+      csi: Ephemeral Volume
+      nfs: NFS
+    addMount: Add Mount
+    addVolume: Add Volume
+    certificate: Certificate
+    csi:
+      diskName: Disk Name
+      diskURI: Disk URI
+      cachingMode: 
+        label: Caching Mode
+        options: 
+          none: None
+          readOnly: Read Only
+          readWrite: Read Write
+      kind: 
+        label: Kind
+        options: 
+          dedicated: Dedicated
+          managed: Managed
+          shared: Shared
+      drivers:
+        ebs.csi.aws.com: Amazon EBS Disk
+        disk.csi.azure.com: Azure Disk
+        file.csi.azure.com: Azure File
+        pd.csi.storage.gke.io: Google Persistent Disk
+        driver.longhorn.io: Longhorn
+        csi.vsphere.vmware.com: VMWare vSphere Volume
+      fsType: Filesystem Type
+      shareName: Share Name
+      secretName: Secret Name
+      volumeID: Volume ID
+      partition: Partition
+      pdName: Persistent Disk Name
+    defaultMode: Default Mode
+    hostPath:
+      label: The Path on the Node must be
+      options: 
+        default: 'Anything: do not check the target path'
+        directoryOrCreate: A directory, or create if it doesn't exist
+        directory: An existing directory
+        fileOrCreate: A file, or create if it doesn't exist
+        file: An existing file
+        socket: An existing socket
+        charDevice: An existing character device
+        blockDevice: An existing block device
+    mountPoint: Mount Point
+    nodePath: Path on Node
+    optional:
+      label: Optional
+      'no': 'No'
+      'yes': 'Yes'
+    path: Path
+    readOnly: Read Only
+    server: Server
+    storagePolicyID: Storage Policy ID
+    storagePolicyName: Storage Policy Name
+    subPath: Sub Path in Volume
     title: 'Storage'
+    volumeName: Volume Name
+    volumePath: Volume Path
+
   typeDescriptions:
     apps.daemonset: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/" target="_blank" rel="noopener nofollow" >DaemonSets</a> run exactly one pod on every eligible node. When new nodes are added to the cluster, DaemonSets automatically deploy to them. Recommended for system-wide or vertically-scalable workloads that never need more than one pod per node.
     apps.deployment: '<a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/" target="_blank" rel="noopener nofollow" >Deployments</a> run a scalable number of replicas of a pod distributed among the eligible nodes. Changes are rolled out incrementally and can be rolled back to the previous revision when needed. Recommended for stateless & horizontally-scalable workloads.'

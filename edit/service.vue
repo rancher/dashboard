@@ -233,7 +233,6 @@ export default {
                 :mode="mode"
                 :initial-empty-row="true"
                 :pad-left="false"
-                :read-allowed="false"
                 :protip="false"
                 @input="e=>$set(value.spec, 'selector', e)"
               />

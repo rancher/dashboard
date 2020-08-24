@@ -35,6 +35,12 @@ export default {
     label: {
       type:    String,
       default: null
+    },
+
+    // show radio buttons in column or row
+    row: {
+      type:    Boolean,
+      default: false
     }
   },
 
@@ -141,6 +147,7 @@ export default {
       v-if="mode!=='view'"
       ref="radio-group"
       class="radio-group"
+      :class="{'row':row}"
       tabindex="0"
       @focus="focusGroup"
       @blur="blurred"
@@ -170,5 +177,11 @@ export default {
 .radio-group:focus{
   border:none;
   outline:none;
+}
+.radio-group.row{
+  display: flex;
+  .radio-container {
+    margin-right: 10px;
+  }
 }
 </style>

@@ -28,6 +28,7 @@ import PodScheduling from '@/components/form/PodScheduling';
 import Tolerations from '@/components/form/Tolerations';
 import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
+import Storage from '@/edit/workload/storage';
 
 export default {
   name:       'CruWorkload',
@@ -49,7 +50,8 @@ export default {
     NodeScheduling,
     Tolerations,
     CruResource,
-    Command
+    Command,
+    Storage
   },
 
   mixins: [CreateEditView],
@@ -612,7 +614,14 @@ export default {
             </div>
           </Tab>
           <Tab :label="t('workload.storage.title')" name="storage">
-            <t k="generic.comingSoon" />
+            <Storage
+              v-model="podTemplateSpec"
+              :namespace="value.metadata.namespace"
+              :register-before-hook="registerBeforeHook"
+              :mode="mode"
+              :secrets="namespacedSecrets"
+              :config-maps="namespacedConfigMaps"
+            />
           </Tab>
           <Tab :can-toggle="true" :label="t('workload.container.titles.resources')" name="resources">
             <ContainerResourceLimit v-model="flatResources" class="bordered-section" :mode="mode" :show-tip="false" />
