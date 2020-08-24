@@ -38,7 +38,7 @@ export const CATALOG = {
   COMPONENT: 'catalog.cattle.io/ui-component',
 };
 
-const CATTLE_REGEX = /.*\.cattle\.io\//;
+const CATTLE_REGEX = /cattle\.io\//;
 
 export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
 
