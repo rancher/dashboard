@@ -4,9 +4,10 @@ import { SECRET, SERVICE } from '@/config/types';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import Tab from '@/components/Tabbed/Tab';
-import Footer from '@/components/form/Footer';
-import ResourceTabs from '@/components/form/ResourceTabs';
 import { _VIEW } from '@/config/query-params';
+import CruResource from '@/components/CruResource';
+import Labels from '@/components/form/Labels';
+import Tabbed from '@/components/Tabbed';
 import DefaultBackend from './DefaultBackend';
 import Certificates from './Certificates';
 import Rules from './Rules';
@@ -14,13 +15,14 @@ import Rules from './Rules';
 export default {
   name:       'CRUIngress',
   components: {
+    Certificates,
+    CruResource,
     DefaultBackend,
+    Labels,
     NameNsDescription,
     Rules,
     Tab,
-    Certificates,
-    Footer,
-    ResourceTabs
+    Tabbed
   },
   mixins: [CreateEditView],
   props:  {
@@ -90,30 +92,51 @@ export default {
 };
 </script>
 <template>
-  <form>
-    <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
-    <div class="spacer"></div>
-    <div class="row">
-      <div class="col span-12">
-        <h2>
-          {{ t('ingress.rules.title') }}
-        </h2>
-        <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" />
-      </div>
-    </div>
-    <div class="spacer"></div>
-    <div>
-      <ResourceTabs v-model="value" :mode="mode">
-        <template #before>
-          <Tab :label="t('ingress.certificates.label')" name="certificates">
-            <Certificates v-model="value" :mode="mode" :secrets="allSecrets" />
-          </Tab>
-          <Tab :label="t('ingress.defaultBackend.label')" name="default-backend">
-            <DefaultBackend v-model="value.spec.backend" :service-targets="serviceTargets" :mode="mode" />
-          </Tab>
-        </template>
-      </ResourceTabs>
-    </div>
-    <Footer :errors="errors" :mode="mode" @save="save" @done="done" />
-  </form>
+  <CruResource
+    :done-route="doneRoute"
+    :mode="mode"
+    :resource="value"
+    :subtypes="[]"
+    :validation-passed="true"
+    :errors="errors"
+    @error="e=>errors = e"
+    @finish="save"
+    @cancel="done"
+  >
+    <template #define>
+      <NameNsDescription
+        v-if="!isView"
+        :value="value"
+        :mode="mode"
+        name-label="Name"
+        :register-before-hook="registerBeforeHook"
+      />
+
+      <div class="spacer"></div>
+
+      <Tabbed :side-tabs="true">
+        <Tab :label="t('ingress.rules.title')" name="rules" :weight="0">
+          <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" />
+        </Tab>
+        <Tab :label="t('ingress.certificates.label')" name="certificates" :weight="1">
+          <Certificates v-model="value" :mode="mode" :secrets="allSecrets" />
+        </Tab>
+        <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="2">
+          <DefaultBackend v-model="value.spec.backend" :service-targets="serviceTargets" :mode="mode" />
+        </Tab>
+        <Tab
+          name="labels-and-annotations"
+          :label="t('generic.labelsAndAnnotations')"
+          :weight="3"
+        >
+          <Labels
+            default-container-class="labels-and-annotations-container"
+            :value="value"
+            :mode="mode"
+            :display-side-by-side="false"
+          />
+        </Tab>
+      </Tabbed>
+    </template>
+  </CruResource>
 </template>
