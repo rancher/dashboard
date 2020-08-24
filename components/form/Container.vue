@@ -136,7 +136,10 @@ export default {
   <div v-if="isView">
     <div>
       <h3><t k="workload.container.titles.ports" /></h3>
-      <WorkloadPorts v-model="ports" :mode="mode" />
+      <WorkloadPorts v-if="ports" v-model="ports" :mode="mode" />
+      <div v-else>
+        <t k="workload.container.noPorts" />
+      </div>
     </div>
 
     <div class="spacer" />

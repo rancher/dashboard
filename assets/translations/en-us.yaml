@@ -775,6 +775,7 @@ tableHeaders:
   chart: Chart
   clusterCreatorDefault: Cluster Creator Default
   cpu: CPU
+  date: Date
   destination: Target
   download: Download
   effect: Effect
@@ -786,6 +787,7 @@ tableHeaders:
   key: Key
   keys: Data
   lastHeartbeatTime: Last update
+  lastUpdated: Last Updated
   matches: Matches
   message: Message
   name: Name
@@ -794,6 +796,7 @@ tableHeaders:
   namespaceNameUnlinked: Name
   node: Node
   nodeName: Name
+  object: Object
   p95: 95%tile
   podImages: Image
   pods: Pods
@@ -984,6 +987,7 @@ workload:
     imagePullPolicy: Image Pull Policy
     name: Container Name
     noResourceLimits: There are no resource requirements configured.
+    noPorts: There are no ports configured.
     ports:
       containerPort: Private Container Port
       hostPort: Public Host Port
@@ -1014,6 +1018,7 @@ workload:
       command: Command
       containers: Containers
       env: Environment Variables
+      events: Events
       healthCheck: Health Check
       image: Image
       networking: Networking
@@ -1022,6 +1027,7 @@ workload:
       ports: Ports
       resources: Resources
       securityContext: Security Context
+      status: Status
   cronSchedule: Schedule
   detailTop:
     node: Node

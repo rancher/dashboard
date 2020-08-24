@@ -140,6 +140,14 @@ export const AGE = {
   align:     'right'
 };
 
+export const CREATION_DATE = {
+  name:      'date',
+  labelKey:  'tableHeaders.date',
+  value:     'metadata.creationTimestamp',
+  sort:      ['date'],
+  formatter: 'Date'
+};
+
 export const IMAGE = {
   name:     'image',
   labelKey: 'tableHeaders.image',
@@ -488,4 +496,13 @@ export const URL = {
   labelKey: 'tableHeaders.url',
   value:    'spec.url',
   sort:     'spec.url',
+};
+
+export const LAST_UPDATED = {
+  name:          'lastUpdated',
+  labelKey:      'tableHeaders.lastUpdated',
+  value:         'lastTransitionTime',
+  formatter:     'LiveDate',
+  formatterOpts: { addSuffix: true },
+  sort:          ['lastTransitionTime']
 };
