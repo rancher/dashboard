@@ -200,7 +200,7 @@ export default {
       });
     });
 
-    if ( !rows.length && this.initialEmptyRow ) {
+    if ( !rows.length && this.initialEmptyRow && this.mode !== _VIEW ) {
       rows.push({ [this.keyName]: '', [this.valueName]: '' });
     }
 
@@ -268,7 +268,7 @@ export default {
       this.add(fileContents.name, fileContents.value, !asciiLike(fileContents.value));
     },
 
-    download(idx) {
+    download(idx, ev) {
       const row = this.rows[idx];
       const name = row[this.keyName];
       const value = row[this.valueName];
@@ -433,7 +433,7 @@ export default {
       </div>
 
       <div v-if="valueBinary && isView" class="col">
-        <a href="#" @click="download(row)">Download</a>
+        <a href="#" @click="download(i, $event)">Download</a>
       </div>
 
       <div v-if="showRemove" class="col remove">
