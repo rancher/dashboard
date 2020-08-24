@@ -128,31 +128,33 @@ export default {
           this.chartValues = merge({}, this.existing.spec?.values || {});
           this.loadedVersion = this.version.key;
           this.valuesYaml = jsyaml.safeDump(this.chartValues);
+          this.originalYamlValues = this.valuesYaml;
         }
       } else if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
         // If the chart/version changes, replace the values with the new one
         this.chartValues = merge({}, this.versionInfo.values);
         this.loadedVersion = this.version.key;
         this.valuesYaml = jsyaml.safeDump(this.chartValues);
+        this.originalYamlValues = this.valuesYaml;
       }
     }
   },
 
   data() {
     return {
-      chart:           null,
-      chartValues:     null,
-      cleanValuesYaml: null,
-      errors:          null,
-      existing:        null,
-      forceNamespace:  null,
-      loadedVersion:   null,
-      mode:            null,
-      value:           null,
-      valuesComponent: null,
-      valuesYaml:      null,
-      version:         null,
-      versionInfo:     null,
+      chart:              null,
+      chartValues:        null,
+      originalYamlValues: null,
+      errors:             null,
+      existing:           null,
+      forceNamespace:     null,
+      loadedVersion:      null,
+      mode:               null,
+      value:              null,
+      valuesComponent:    null,
+      valuesYaml:         null,
+      version:            null,
+      versionInfo:        null,
 
       atomic:              false,
       cleanupOnFail:       false,
@@ -293,32 +295,41 @@ export default {
     },
 
     showPreviewYaml() {
-      const { valuesComponent, showValuesComponent } = this;
+      const {
+        chartValues,
+        originalYamlValues,
+        showValuesComponent,
+        valuesYaml,
+        valuesComponent,
+      } = this;
 
       if (!!valuesComponent) {
-        if (!this.cleanValuesYaml) {
-          // seed the yaml with any entered info
-          this.valuesYaml = jsyaml.safeDump(this.chartValues);
-          this.cleanValuesYaml = this.valuesYaml;
+        if (!originalYamlValues) {
+          this.originalYamlValues = valuesYaml;
         }
+
+        // seed the yaml with any entered info
+        this.valuesYaml = jsyaml.safeDump(chartValues);
 
         if (showValuesComponent) {
           this.showValuesComponent = false;
         } else {
           this.showValuesComponent = true;
-          this.cleanValuesYaml = null;
+          // this.originalYamlValues = null;
         }
       }
     },
 
     preview() {
       this.showPreview = true;
-      this.$router.applyQuery({ [PREVIEW]: _FLAGGED });
+
+      return this.$router.applyQuery({ [PREVIEW]: _FLAGGED });
     },
 
     unpreview() {
       this.showPreview = false;
-      this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
+
+      return this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
     },
 
     yamlChanged(str) {
@@ -343,11 +354,14 @@ export default {
       }
     },
 
-    resetFromBack() {
+    async resetFromBack() {
       this.showValuesComponent = true;
-      this.valuesYaml = this.cleanValuesYaml;
-      this.cleanValuesYaml = null;
-      window.location.hash = `#values-form`;
+
+      if (has(this.$route.query, PREVIEW)) {
+        await this.unpreview();
+      }
+
+      this.valuesYaml = this.originalYamlValues;
     },
 
     done() {
@@ -641,6 +655,7 @@ export default {
             ref="yaml"
             :scrolling="false"
             :value="valuesYaml"
+            :initial-yaml-values="originalYamlValues"
             :editor-mode="editorMode"
             @onInput="yamlChanged"
           />
@@ -708,7 +723,7 @@ export default {
 
           <button
             v-if="isEntryTab && !showPreview"
-            :disabled="valuesYaml === cleanValuesYaml"
+            :disabled="valuesYaml === originalYamlValues"
             type="button"
             class="btn role-secondary"
             @click="preview"
@@ -731,7 +746,7 @@ export default {
             v-if="!showValuesComponent"
             type="button"
             class="btn role-secondary"
-            @click="valuesYaml === cleanValuesYaml ? resetFromBack() : checkCancel(false)"
+            @click="valuesYaml === originalYamlValues ? resetFromBack() : checkCancel(false)"
           >
             <t k="cruResource.backToForm" />
           </button>
