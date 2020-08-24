@@ -80,6 +80,19 @@ export default {
   },
 
   computed: {
+    canSave() {
+      const { validationPassed, showAsForm } = this;
+
+      if (showAsForm) {
+        if (validationPassed) {
+          return true;
+        }
+      } else {
+        return true;
+      }
+
+      return false;
+    },
     isView() {
       return this.mode === _VIEW;
     },
@@ -226,7 +239,7 @@ export default {
                   </button>
                   <AsyncButton
                     v-if="!showSubtypeSelection"
-                    :disabled="!validationPassed"
+                    :disabled="!canSave"
                     :mode="finishButtonMode || mode"
                     @click="$emit('finish', $event)"
                   />
@@ -286,7 +299,7 @@ export default {
                       </button>
                       <AsyncButton
                         v-if="!showSubtypeSelection"
-                        :disabled="!validationPassed"
+                        :disabled="!canSave"
                         :action-label="isEdit ? t('generic.save') : t('generic.create')"
                         @click="cb=>yamlSave(cb)"
                       />

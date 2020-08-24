@@ -2,6 +2,7 @@
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import isEqual from 'lodash/isEqual';
+import isEmpty from 'lodash/isEmpty';
 import has from 'lodash/has';
 
 import AsyncButton from '@/components/AsyncButton';
@@ -187,9 +188,11 @@ export default {
 
       return false;
     },
+
     tabName() {
       return this.selectedTabName;
     },
+
     charts() {
       return this.$store.getters['catalog/charts'].filter(x => !x.deprecated);
     },
@@ -212,6 +215,18 @@ export default {
 
     showVersions() {
       return this.chart?.versions.length > 1;
+    },
+
+    showBackButton() {
+      const { selectedTabName, showValuesComponent, valuesComponent } = this;
+
+      if (isEmpty(valuesComponent)) {
+        return false;
+      } else if (selectedTabName === 'values-yaml' && !showValuesComponent) {
+        return true;
+      }
+
+      return false;
     },
 
     targetNamespace() {
@@ -312,10 +327,11 @@ export default {
         this.valuesYaml = jsyaml.safeDump(chartValues);
 
         if (showValuesComponent) {
+          this.tabChanged({ tab: { name: 'values-yaml' } });
           this.showValuesComponent = false;
         } else {
+          this.tabChanged({ tab: { name: 'values-form' } });
           this.showValuesComponent = true;
-          // this.originalYamlValues = null;
         }
       }
     },
@@ -743,7 +759,7 @@ export default {
 
         <div>
           <button
-            v-if="!showValuesComponent"
+            v-if="showBackButton"
             type="button"
             class="btn role-secondary"
             @click="valuesYaml === originalYamlValues ? resetFromBack() : checkCancel(false)"
