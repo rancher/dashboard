@@ -107,9 +107,14 @@ export default {
         repoType, repoName, chartName, versionName
       });
 
-      this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
-        repoType, repoName, chartName, versionName
-      });
+      try {
+        this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
+          repoType, repoName, chartName, versionName
+        });
+      } catch (e) {
+        console.error(e); // eslint-disable-line no-console
+        throw e;
+      }
 
       if ( this.version && process.client ) {
         await this.loadValuesComponent();
@@ -553,7 +558,7 @@ export default {
             </Tab>
           </template>
           <Questions
-            v-else-if="versionInfo.questions"
+            v-else-if="versionInfo && versionInfo.questions"
             v-model="chartValues"
             :chart="chart"
             :version="version"

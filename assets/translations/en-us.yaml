@@ -157,7 +157,7 @@ catalog:
       install: Install {name}
       installGeneric: Install Chart
     section:
-      readme: Chart ReadMe
+      readme: README
       chartOptions: Chart Options
       valuesYaml: Values YAML
       helm: Helm Options
@@ -567,7 +567,7 @@ promptRemove:
     other {, and {count} others.}
     }
   attemptingToRemove: "You are attemping to remove the {type}"
-  protip: "protip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
+  protip: "Protip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
 
 resourceDetail:
   detailTop:

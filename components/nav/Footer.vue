@@ -58,8 +58,6 @@ export default {
 
     <div class="space" />
 
-    <div><a v-t="'footer.download'" href="https://github.com/rancher/cli/releases/latest" target="_blank" rel="nofollow noopener noreferrer" /></div>
-
     <div v-if="showLocale">
       <v-popover
         placement="top"
