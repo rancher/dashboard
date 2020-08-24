@@ -146,7 +146,7 @@ export default {
       const schemas = this.$store.getters['cluster/all'](SCHEMA);
       const { resource } = this;
       const clonedResource = clone(resource);
-      const resourceYaml = createYaml(schemas, resource.type, clonedResource);
+      const resourceYaml = createYaml(schemas, resource.type, clonedResource, false);
 
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
