@@ -162,10 +162,11 @@ export default {
       return res.data;
     }
 
-    commit('loadAll', {
+    commit('loadSelector', {
       ctx,
       type,
-      data: res.data
+      entries: res.data,
+      selector
     });
 
     if ( opt.watch !== false ) {
