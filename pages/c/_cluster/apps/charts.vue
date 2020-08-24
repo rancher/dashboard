@@ -76,7 +76,7 @@ export default {
           const searchTokens = this.searchQuery.split(/\s*[, ]\s*/).map(x => ensureRegex(x, false));
 
           for ( const token of searchTokens ) {
-            if ( !c.chartName.match(token) && !c.description.match(token) ) {
+            if ( !c.chartName.match(token) && (c.description && !c.description.match(token)) ) {
               return false;
             }
           }

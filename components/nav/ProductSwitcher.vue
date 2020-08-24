@@ -77,8 +77,16 @@ export default {
       this.change('explorer');
     },
 
+    switchToApps() {
+      this.change('apps');
+    },
+
     change(product) {
       const entry = findBy(this.options, 'value', product);
+
+      if ( !entry ) {
+        return;
+      }
 
       if ( entry?.link ) {
         if ( entry.kind === 'external' ) {
@@ -165,6 +173,7 @@ export default {
     </v-select>
     <button v-shortkey.once="['p']" class="hide" @shortkey="focus()" />
     <button v-shortkey.once="['e']" class="hide" @shortkey="switchToExplorer()" />
+    <button v-shortkey.once="['a']" class="hide" @shortkey="switchToApps()" />
   </div>
 </template>
 

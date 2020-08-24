@@ -1,3 +1,7 @@
+import { isArray } from '@/utils/array';
+
+const parseCache = {};
+
 export function parse(labelSelector) {
   // matchLabels:
   // comma-separated list, all rules ANDed together
@@ -20,6 +24,10 @@ export function parse(labelSelector) {
 
   labelSelector = labelSelector.replace(/\+/g, ' ');
 
+  if ( parseCache[labelSelector] ) {
+    return parseCache[labelSelector];
+  }
+
   let match;
   const out = [];
   const parens = [];
@@ -40,23 +48,23 @@ export function parse(labelSelector) {
   for ( let rule of parts ) {
     rule = rule.trim();
 
-    match = rule.match(/^(.*)\s+((not)?in)\s+@(\d+)*$/i);
+    match = rule.match(/^(.*?)\s+((not\s*)?in)\s+@(\d+)*$/i);
 
     if ( match ) {
       out.push({
         key:      match[1].trim(),
-        operator: match[2].toLowerCase().trim() === 'notin' ? 'NotIn' : 'In',
+        operator: match[2].toLowerCase().replace(/\s/g, '') === 'notin' ? 'NotIn' : 'In',
         values:   parens[match[4].trim()],
       });
 
       continue;
     }
 
-    match = rule.match(/^([^!]*)\s*(\!?)\s*=\s*(.*)$/);
+    match = rule.match(/^([^!=]*)\s*(\!=|=|==)\s*([^!=]*)$/);
     if ( match ) {
       out.push({
         key:      match[1].trim(),
-        operator: match[2] === '!' ? 'NotIn' : 'In',
+        operator: match[2] === '!=' ? 'NotIn' : 'In',
         values:   [match[3].trim()],
       });
 
@@ -78,10 +86,50 @@ export function parse(labelSelector) {
     });
   }
 
+  parseCache[labelSelector] = out;
+
   return out;
 }
 
-export function matches(obj, selector) {
-  // @TODO implement me
-  return false;
+export function matching(ary, selector) {
+  if ( !isArray(ary) ) {
+    ary = [ary];
+  }
+
+  return ary.filter(obj => matches(obj, selector));
+}
+
+function matches(obj, selector) {
+  const rules = parse(selector);
+  const labels = obj?.metadata?.labels || {};
+
+  for ( const rule of rules ) {
+    const value = labels[rule.key];
+    const exists = typeof labels[rule.key] !== 'undefined';
+
+    switch ( rule.operator ) {
+    case 'Exists':
+      if ( !exists ) {
+        return false;
+      }
+      break;
+    case 'DoesNotExist':
+      if ( exists ) {
+        return false;
+      }
+      break;
+    case 'In':
+      if ( !value || (rule.values.length && !rule.values.includes(value)) ) {
+        return false;
+      }
+      break;
+    case 'NotIn':
+      if ( rule.values.includes(value) ) {
+        return false;
+      }
+      break;
+    }
+  }
+
+  return true;
 }
