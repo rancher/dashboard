@@ -45,7 +45,7 @@ export default {
 </script>
 
 <template>
-  <header :class="{[currentProduct.name]: true}">
+  <header :class="{explorer: isExplorer}">
     <div class="product">
       <ProductSwitcher />
       <div class="logo" alt="Logo" />
