@@ -317,6 +317,7 @@ export default {
           </div>
         </Tab>
         <Tab
+          v-if="!isView"
           name="labels-and-annotations"
           :label="t('servicesPage.labelsAnnotations.label', {}, true)"
           :weight="1000"

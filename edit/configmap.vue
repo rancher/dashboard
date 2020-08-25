@@ -72,6 +72,7 @@ export default {
           />
         </Tab>
         <Tab
+          v-if="!isView"
           name="labels-and-annotations"
           :label="t('generic.labelsAndAnnotations')"
           :weight="1000"
