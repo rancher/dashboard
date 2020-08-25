@@ -42,11 +42,11 @@ export default {
     } = this.value;
 
     return {
-      limitsCpu,
-      limitsMemory,
-      requestsCpu,
-      requestsMemory,
-      viewMode: _VIEW,
+      limitsCpu:      limitsCpu ? limitsCpu.replace(/([A-Z]|[a-z])/g, '') : null,
+      limitsMemory:   limitsMemory ? limitsMemory.replace(/([A-Z]|[a-z])/g, '') : null,
+      requestsCpu:    requestsCpu ? requestsCpu.replace(/([A-Z]|[a-z])/g, '') : null,
+      requestsMemory: requestsMemory ? requestsMemory.replace(/([A-Z]|[a-z])/g, '') : null,
+      viewMode:       _VIEW,
     };
   },
 
@@ -80,10 +80,10 @@ export default {
         requestsMemory,
       } = this;
       const out = {
-        limitsCpu,
-        limitsMemory,
-        requestsCpu,
-        requestsMemory,
+        limitsCpu:      `${ limitsCpu }m`,
+        limitsMemory:   `${ limitsMemory }Mi`,
+        requestsCpu:    `${ requestsCpu }m`,
+        requestsMemory: `${ requestsMemory }Mi`,
       };
 
       this.$emit('input', out);
@@ -98,10 +98,10 @@ export default {
       } = this;
       const namespace = this.namespace; // no deep copy in destructure proxy yet
       const out = {
-        limitsCpu,
-        limitsMemory,
-        requestsCpu,
-        requestsMemory,
+        limitsCpu:      `${ limitsCpu }m`,
+        limitsMemory:   `${ limitsMemory }Mi`,
+        requestsCpu:    `${ requestsCpu }m`,
+        requestsMemory: `${ requestsMemory }Mi`,
       };
 
       if (namespace) {

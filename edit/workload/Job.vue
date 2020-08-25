@@ -114,8 +114,8 @@ export default {
         <UnitInput v-model="parallelism" :mode="mode" class="col span-6" :suffix="parallelism===1 ? 'Time' : 'Times'">
           <template #label>
             <label :style="{'color':'var(--input-label)'}">
-              {{ t('workload.job.completions.label') }}
-              <i v-tooltip="t('workload.job.completions.tip')" class="icon icon-info" style="font-size: 14px" />
+              {{ t('workload.job.parallelism.label') }}
+              <i v-tooltip="t('workload.job.parallelism.tip')" class="icon icon-info" style="font-size: 14px" />
             </label>
           </template>
         </UnitInput>
