@@ -233,20 +233,20 @@ export default {
 
     cpuReserved() {
       return {
-        total:  parseSi(this.cluster?.status?.allocatable?.cpu),
-        useful: parseSi(this.cluster?.status?.requested?.cpu)
+        total:  parseSi(this.currentCluster?.status?.allocatable?.cpu),
+        useful: parseSi(this.currentCluster?.status?.requested?.cpu)
       };
     },
 
     podsReserved() {
       return {
-        total:  parseSi(this.cluster?.status?.allocatable?.pods || '0'),
-        useful: parseSi(this.cluster?.status?.requested?.pods || '0')
+        total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
+        useful: parseSi(this.currentCluster?.status?.requested?.pods || '0')
       };
     },
 
     ramReserved() {
-      return this.createMemoryValues(this.cluster?.status?.allocatable?.memory, this.cluster?.status?.requested?.memory);
+      return this.createMemoryValues(this.currentCluster?.status?.allocatable?.memory, this.currentCluster?.status?.requested?.memory);
     },
 
     metricAggregations() {
@@ -276,13 +276,13 @@ export default {
 
     cpuUsed() {
       return {
-        total:  parseSi(this.cluster?.status?.capacity?.cpu),
+        total:  parseSi(this.currentCluster?.status?.capacity?.cpu),
         useful: this.metricAggregations?.cpu
       };
     },
 
     ramUsed() {
-      return this.createMemoryValues(this.cluster?.status?.capacity?.memory, this.metricAggregations.memory);
+      return this.createMemoryValues(this.currentCluster?.status?.capacity?.memory, this.metricAggregations.memory);
     },
 
     showReservedMetrics() {
@@ -349,7 +349,7 @@ export default {
     },
     showActions() {
       this.$store.commit('action-menu/show', {
-        resources: this.cluster,
+        resources: this.currentCluster,
         elem:      this.$refs['cluster-actions'],
       });
     },
