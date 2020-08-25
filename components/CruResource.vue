@@ -10,6 +10,7 @@ import { mapGetters } from 'vuex';
 import { stringify } from '@/utils/error';
 import CruResourceFooter from '@/components/CruResourceFooter';
 import { _EDIT, _VIEW } from '@/config/query-params';
+import { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
 
 export default {
   components: {
@@ -141,7 +142,7 @@ export default {
     },
 
     async showPreviewYaml() {
-      await this.$emit('apply-hooks');
+      await this.$emit('apply-hooks', BEFORE_SAVE_HOOKS);
 
       const schemas = this.$store.getters['cluster/all'](SCHEMA);
       const { resource } = this;
@@ -262,6 +263,8 @@ export default {
           :offer-preview="isEdit"
           :done-route="doneRoute"
           :done-override="resource.doneOverride"
+          :errors="errors"
+          @apply-hooks="$emit('apply-hooks', $event)"
           @error="e=>$emit('error', e)"
         >
           <template #yamlFooter="{currentYaml, yamlSave, showPreview, yamlPreview, yamlUnpreview}">
