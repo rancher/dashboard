@@ -25,8 +25,10 @@ export default {
   methods: {
     findNode(id) {
     //   const node = await this.$store.dispatch('cluster/find', { type: NODE, id });
-      const name = 'c-cluster-resource-id';
-      const params = { resource: NODE, id: this.value };
+      const name = 'c-cluster-product-resource-id';
+      const params = {
+        resource: NODE, id: this.value, product: 'explorer'
+      };
 
       this.url = { name, params };
     }
