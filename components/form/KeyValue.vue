@@ -354,16 +354,24 @@ export default {
     </template>
 
     <div v-if="rows.length || isView" :class="{'extra-column':threeColumns}" class="kv-row headers">
-      <label>
+      <label class="text-label" :class="{'view':isView}">
         {{ keyLabel }}
         <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" />
       </label>
-      <label>{{ valueLabel }}</label>
-      <span v-if="threeColumns" />
+      <label class="text-label" :class="{'view':isView}">{{ valueLabel }}</label>
+      <span v-if="threeColumns" :class="{'view':isView}" />
     </div>
 
-    <div v-if="isView && !rows.length" class="no-rows">
-      {{ t('sortableTable.noRows') }}
+    <div v-if="isView && !rows.length" class="kv-row last" :class="{'extra-column':threeColumns}">
+      <div class="text-muted">
+        &mdash;
+      </div>
+      <div class="text-muted">
+        &mdash;
+      </div>
+      <div v-if="threeColumns" class="text-muted">
+        &mdash;
+      </div>
     </div>
     <div v-for="(row,i) in rows" :key="i" :class="{'extra-column':threeColumns, 'last':i===rows.length-1}" class="kv-row">
       <div class="col">
@@ -496,15 +504,12 @@ export default {
       margin-bottom: 20px;
     }
 
-    &.headers SPAN {
+    &.headers SPAN, &.headers LABEL {
       color: var(--input-label);
-      margin-bottom:10px;
+      &:not(.view) {
+       margin-bottom:10px;
+      }
     }
-  }
-
-  .no-rows {
-    text-align: center;
-    color: var(--disabled-bg);
   }
 
   .remove BUTTON{
@@ -535,8 +540,5 @@ export default {
     text-align: right;
   }
 
-  .empty {
-    text-align: center;
-  }
 }
 </style>

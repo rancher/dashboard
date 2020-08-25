@@ -205,7 +205,7 @@ export default {
     </button>
 
     <template v-if="type===pod">
-      <div class="row mt-20">
+      <div class="row mt-20 mb-20">
         <div class="col span-12">
           <ArrayList :protip="false" :title="t('workload.scheduling.affinity.matchExpressions.inNamespaces')" :mode="mode" :value="namespaces" @input="e=>$emit('update:namespaces', e)">
             <template #value="props">
@@ -222,8 +222,6 @@ export default {
         </div>
       </div>
 
-      <div class="spacer" />
-
       <LabeledInput
         :mode="mode"
         :value="topologyKey"
@@ -234,7 +232,7 @@ export default {
       />
     </template>
 
-    <div v-if="rules.length" class="match-expression-header">
+    <div v-if="rules.length" class="match-expression-header" :class="{'view':isView}">
       <span>
         {{ t('workload.scheduling.affinity.matchExpressions.key') }}
       </span>
@@ -252,12 +250,20 @@ export default {
       class="match-expression-row"
     >
       <div>
-        <LabeledInput v-model="row.key" :mode="mode" />
+        <div v-if="isView">
+          {{ row.key }}
+        </div>
+        <input v-else v-model="row.key" :mode="mode" />
       </div>
       <div>
-        <LabeledSelect
+        <div v-if="isView">
+          {{ row.operator }}
+        </div>
+        <v-select
+          v-else
           id="operator"
           v-model="row.operator"
+          class="inline"
           :options="ops"
           :mode="mode"
           @input="update"
@@ -268,7 +274,10 @@ export default {
         <label>n/a</label>
       </div>
       <div v-else>
-        <LabeledInput v-model="row.values" :mode="mode" :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'" />
+        <div v-if="isView">
+          {{ row.values }}
+        </div>
+        <input v-else v-model="row.values" :mode="mode" :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'" />
       </div>
       <div>
         <button
@@ -323,10 +332,18 @@ export default {
   grid-template-columns: 27% 27% 27% auto;
   grid-gap: $column-gutter;
   align-items: center;
-  margin-bottom: 10px;
+  &:not(.view){
+      margin-bottom: 10px;
+    }
+    INPUT {
+      height: 50px;
+    }
   }
   .match-expression-header{
     color: var(--input-label);
-    margin: 10px 0px 10px 0px;
+    margin-top: 20px;
+    &:not(.view){
+        margin: 10px 0px 10px 0px;
+      }
   }
 </style>

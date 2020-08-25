@@ -142,20 +142,18 @@ export default {
       </div>
     </div>
 
-    <div class="row">
+    <div class="row mb-10">
       <div class="col span-6">
         <LabeledInput v-model.number="runAsUser" :label="t('workload.container.security.runAsUser')" :mode="mode" />
       </div>
     </div>
 
-    <div class="spacer" />
-
     <div class="row">
       <div class="col span-6">
         <div v-if="isView">
           <label class="text-label"><t k="workload.container.security.addCapabilities" /></label>
-          <div v-if="!add.length">
-            n/a
+          <div v-if="!add.length" class="text-muted">
+            &mdash;
           </div>
           <ul v-else class="mt-0 mb-0 pl-15">
             <li v-for="capability in add" :key="capability">
@@ -176,8 +174,8 @@ export default {
       <div class="col span-6">
         <div v-if="isView">
           <label class="text-label"><t k="workload.container.security.dropCapabilities" /></label>
-          <div v-if="!drop.length">
-            n/a
+          <div v-if="!drop.length" class="text-muted">
+            &mdash;
           </div>
           <ul v-else class="mt-0 mb-0 pl-15">
             <li v-for="capability in drop" :key="capability">

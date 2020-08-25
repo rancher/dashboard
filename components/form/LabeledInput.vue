@@ -93,6 +93,7 @@ export default {
         <slot name="view">
           {{ value }}
         </slot>
+        <slot name="suffix" />
       </div>
       <div v-else-if="isView" class="text-muted">
         &mdash;
@@ -123,7 +124,7 @@ export default {
         @blur="onBlur"
       >
     </slot>
-    <slot name="suffix" />
+    <slot v-if="!isView" name="suffix" />
     <LabeledTooltip v-if="tooltip && !focused" :value="tooltip" :status="status" />
   </div>
 </template>

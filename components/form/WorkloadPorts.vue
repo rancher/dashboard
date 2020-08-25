@@ -106,7 +106,7 @@ export default {
 
 <template>
   <div :style="{'width':'100%'}">
-    <div v-if="rows.length">
+    <div v-if="rows.length || isView">
       <div class="ports-headers" :class="{'show-host':showHostPorts}">
         <span v-if="padLeft" class="left"></span>
         <span class="portName">
@@ -123,6 +123,11 @@ export default {
           <t k="workload.container.ports.protocol" />
         </span>
         <span v-if="showRemove" class="remove"></span>
+      </div>
+      <div v-if="isView && !rows.length" class="ports-row">
+        <span class="text-muted"> &mdash;</span>
+        <span class="text-muted"> &mdash;</span>
+        <span class="text-muted"> &mdash;</span>
       </div>
       <div
         v-for="(row, idx) in rows"

@@ -247,8 +247,8 @@ export default {
         </div>
       </div>
     </template>
-    <div v-else-if="mode==='view'">
-      n/a
+    <div v-else-if="mode==='view'" class="text-muted">
+      &mdash;
     </div>
     <div v-if="showAdd || showRead" class="footer">
       <slot v-if="showAdd" name="add">

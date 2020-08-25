@@ -2,6 +2,7 @@
 import { CONFIG_MAP, SECRET, NAMESPACE } from '@/config/types';
 import { get } from '@/utils/object';
 import { mapGetters } from 'vuex';
+import { _VIEW } from '@/config/query-params';
 
 export default {
 
@@ -91,6 +92,9 @@ export default {
     };
   },
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
 
     namespaces() {
       if (this.namespaced) {
@@ -172,7 +176,11 @@ export default {
 <template>
   <div @input="updateRow">
     <div>
+      <div v-if="isView">
+        {{ type }}
+      </div>
       <v-select
+        v-else
         v-model="type"
         :multiple="false"
         :options="typeOpts"
@@ -186,7 +194,11 @@ export default {
     </div>
     <template v-if="type === 'configMapKeyRef' || type === 'secretRef' || type === 'secretKeyRef'">
       <div>
+        <div v-if="isView">
+          {{ referenced }}
+        </div>
         <v-select
+          v-else
           v-model="referenced"
           :options="sourceOptions"
           :multiple="false"
@@ -198,7 +210,11 @@ export default {
         />
       </div>
       <div>
+        <div v-if="isView">
+          {{ key }}
+        </div>
         <v-select
+          v-else
           v-model="key"
           :disabled="type==='secretRef'"
           :multiple="false"
@@ -212,20 +228,30 @@ export default {
     </template>
     <template v-else-if="type==='resourceFieldRef'">
       <div>
-        <input v-model="refName" :placeholder="t('workload.container.command.fromResource.source.placeholder')" :mode="mode" />
+        <div v-if="isView">
+          {{ refName }}
+        </div>
+        <input v-else v-model="refName" :placeholder="t('workload.container.command.fromResource.source.placeholder')" :mode="mode" />
       </div>
 
       <div>
-        <input v-model="key" :placeholder="t('workload.container.command.fromResource.key.placeholder')" :mode="mode" />
+        <div v-if="isView">
+          {{ key }}
+        </div>
+
+        <input v-else v-model="key" :placeholder="t('workload.container.command.fromResource.key.placeholder')" :mode="mode" />
       </div>
     </template>
     <template v-else>
       <div>
-        <input v-model="fieldPath" :placeholder="t('workload.container.command.fromResource.key.placeholder')" :mode="mode" />
+        <div v-if="isView">
+          {{ fieldPath }}
+        </div>
+        <input v-else v-model="fieldPath" :placeholder="t('workload.container.command.fromResource.key.placeholder')" :mode="mode" />
       </div>
 
       <div>
-        <input value="n/a" :placeholder="t('workload.container.command.fromResource.key.placeholder')" disabled :mode="mode" />
+        <span class="text-muted">&mdash;</span>
       </div>
     </template>
     <div>
@@ -234,7 +260,10 @@ export default {
       </div>
     </div>
     <div>
-      <input v-model="name" :mode="mode" />
+      <div v-if="isView">
+        {{ name }}
+      </div>
+      <input v-else v-model="name" :mode="mode" />
     </div>
     <div>
       <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link remove" @click="$emit('input', { value:null })">

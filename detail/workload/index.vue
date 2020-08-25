@@ -1,20 +1,40 @@
 <script>
 import createEditView from '@/mixins/create-edit-view';
-import { get } from '@/utils/object';
 import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
 import { POD, WORKLOAD_TYPES } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
-import { allHash } from '@/utils/promise';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
-import OldCRU from '@/detail/workload/OldCRU';
+import Tabbed from '@/components/Tabbed';
+import Tab from '@/components/Tabbed/Tab';
+import Command from '@/components/form/Command';
+import NodeScheduling from '@/components/form/NodeScheduling';
+import PodScheduling from '@/components/form/PodScheduling';
+import HealthCheck from '@/components/form/HealthCheck';
+import Security from '@/components/form/Security';
+import Upgrading from '@/edit/workload/Upgrading';
+import Networking from '@/components/form/Networking';
+import Job from '@/edit/workload/Job';
+
+import { mapGetters } from 'vuex';
 
 export default {
   components: {
-    OldCRU,
     ResourceTable,
     WorkloadPorts,
+    Command,
+    PodScheduling,
+    NodeScheduling,
+    Upgrading,
+    Networking,
+    Security,
+    HealthCheck,
+    Job,
+    Tabbed,
+    Tab
   },
+
   mixins: [createEditView],
+
   props:      {
     value: {
       type:    Object,
@@ -29,109 +49,42 @@ export default {
   },
 
   async fetch() {
-    // find all pods to filter by ownerRef
-    // in case of deployment, pods are owned by related replicaset, so get replicasets
-    // in case of cronjob, pods are owned by job
+    let pods;
+    const { metadata:{ relationships = [] } } = this.value;
+    const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
 
-    if (this.value.type === WORKLOAD_TYPES.DEPLOYMENT) {
-      const hash = await allHash({
-        replicasets: this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.REPLICA_SET }),
-        pods:        this.$store.dispatch('cluster/findAll', { type: POD }),
-      });
-
-      this.allPods = hash.pods;
-      this.allReplicasets = hash.replicasets;
-    } else if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
-      const hash = await allHash({
-        jobs: this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB }),
-        pods:        this.$store.dispatch('cluster/findAll', { type: POD }),
-      });
-
-      this.allPods = hash.pods;
-      this.allJobs = hash.jobs;
-    } else {
-      const pods = await this.$store.dispatch('cluster/findAll', { type: POD });
-
-      this.allPods = pods;
+    if (podRelationship) {
+      pods = await this.$store.dispatch('cluster/findMatching', { type: POD, selector: podRelationship.selector });
     }
+
+    this.pods = pods;
   },
 
   data() {
     const podHeaders = [STATE, NAME, POD_IMAGES, NODE];
 
-    const volumeHeaders = [
-      {
-        name:      'volumeName',
-        label:     'Name',
-        value:     'name',
-      },
-      {
-        name:  'mountPath',
-        label: 'Mount Path',
-        value: '$.mountPaths[0]'
-      },
-      {
-        name:  'secret',
-        label: 'Secret',
-        value: 'secret.secretName'
-      }
-    ];
-    let container;
+    const isCronJob = this.value.type === WORKLOAD_TYPES.CRON_JOB;
 
-    if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
-      // cronjob pod template is nested slightly different than other types
-      const { spec: { jobTemplate: { spec: { template: { spec: { containers } } } } } } = this.value;
+    const podTemplateSpec = isCronJob ? this.value.spec.jobTemplate.spec.template.spec : this.value.spec?.template?.spec;
 
-      container = containers[0];
-    } else {
-      const { spec:{ template:{ spec:{ containers } } } } = this.value;
-
-      container = containers[0];
-    }
+    const container = podTemplateSpec.containers[0];
 
     const name = this.value?.metadata?.name || this.value.id;
 
     const podSchema = this.$store.getters['cluster/schemaFor'](POD);
 
     return {
+      type:           this.value.type,
       podSchema,
       name,
-      volumeHeaders,
       podHeaders,
-      allPods:        [],
-      allReplicasets: [],
-      allJobs:        [],
-      container
+      pods:           [],
+      container,
+      podTemplateSpec
     };
   },
 
   computed:   {
-    pods() {
-      if (this.value.type === WORKLOAD_TYPES.DEPLOYMENT) {
-        const replicaset = this.filterResourcesByOwner(this.allReplicasets, this.name )[0];
-
-        if (replicaset) {
-          const replicaName = replicaset.id.slice(replicaset.id.indexOf('/') + 1);
-
-          return this.filterResourcesByOwner(this.allPods, replicaName);
-        }
-
-        return [];
-      } else if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
-        const job = this.filterResourcesByOwner(this.allJobs, this.name)[0];
-
-        if (job) {
-          const jobName = job.id.slice(job.id.indexOf('/') + 1);
-
-          return this.filterResourcesByOwner(this.allPods, jobName);
-        }
-
-        return [];
-      } else {
-        return this.filterResourcesByOwner(this.allPods, this.name);
-      }
-    },
-
     podRestarts() {
       return this.pods.reduce((total, pod) => {
         const { status:{ containerStatuses = [] } } = pod;
@@ -148,74 +101,71 @@ export default {
       }, 0);
     },
 
-    podTemplateSpec() {
-      return get(this.value, 'spec.template.spec') || {};
+    isJob() {
+      return this.type === WORKLOAD_TYPES.JOB;
     },
 
-    volumes() {
-      let { volumes = [] } = this.podTemplateSpec;
-      const { containers = [] } = this.podTemplateSpec;
-      const map = {};
-
-      volumes.forEach((volume) => {
-        map[volume.name] = { ...volume, mountPaths: [] };
-      });
-
-      containers.forEach((container) => {
-        const { volumeMounts = [] } = container;
-
-        volumeMounts.forEach((volumeMount) => {
-          map[volumeMount.name].mountPaths.push(volumeMount.mountPath);
-        });
-      });
-
-      volumes = [];
-      for (const key in map) {
-        volumes.push({ name: key, ...map[key] });
-      }
-
-      return volumes;
-    }
-  },
-
-  methods: {
-
-    // filter a given list of resrouces by the ownerReference.name prop
-    filterResourcesByOwner(resourceList, ownerId) {
-      return resourceList.filter((resource) => {
-        const { metadata:{ ownerReferences = [] } } = resource;
-
-        return (ownerReferences.filter((owner) => {
-          return owner.name === ownerId;
-        }).length);
-      });
+    isCronJob() {
+      return this.type === WORKLOAD_TYPES.CRON_JOB;
     },
+
+    ...mapGetters({ t: 'i18n/t' })
   },
 };
 </script>
 
 <template>
-  <OldCRU :value="value" :mode="mode">
-    <template v-if="mode==='view'" #top>
-      <div class="row mt-20">
+  <div>
+    <Tabbed :side-tabs="true">
+      <Tab :label="t('workload.container.titles.ports')" name="ports">
         <WorkloadPorts :value="container.ports" mode="view" />
+      </Tab>
+      <Tab :label="t('workload.container.titles.command')" name="command">
+        <Command v-model="container" :mode="mode" />
+      </Tab>
+      <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
+        <PodScheduling :mode="mode" :value="podTemplateSpec" />
+      </Tab>
+      <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
+        <NodeScheduling :mode="mode" :value="podTemplateSpec" />
+      </Tab>
+      <Tab label="Scaling/Upgrade Policy" name="upgrading">
+        <Job v-if="isJob || isCronJob" :value="value.spec" :mode="mode" :type="type" />
+        <Upgrading v-else :value="value.spec" :mode="mode" :type="type" />
+      </Tab>
+      <Tab :label="t('workload.container.titles.healthCheck')" name="healthCheck">
+        <HealthCheck :value="container" :mode="mode" />
+      </Tab>
+      <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
+        <Security v-model="container.securityContext" :mode="mode" />
+      </Tab>
+      <Tab :label="t('workload.container.titles.networking')" name="networking">
+        <Networking v-model="podTemplateSpec" :mode="mode" />
+      </Tab>
+    </Tabbed>
+    <div class="row mt-20">
+      <div class="col span-12">
+        <h3>
+          Pods
+        </h3>
+        <ResourceTable
+          :rows="pods"
+          :headers="podHeaders"
+          key-field="id"
+          :search="false"
+          :table-actions="false"
+          :schema="podSchema"
+          :show-groups="false"
+        />
       </div>
-      <div class="row mt-20">
-        <div class="col span-12">
-          <h3>
-            Pods
-          </h3>
-          <ResourceTable
-            :rows="pods"
-            :headers="podHeaders"
-            key-field="id"
-            :search="false"
-            :table-actions="false"
-            :schema="podSchema"
-            :show-groups="false"
-          />
-        </div>
-      </div>
-    </template>
-  </OldCRU>
+    </div>
+  </div>
 </template>
+
+<style>
+.bordered-section {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 25px;
+  padding-bottom: 25px;
+}
+</style>

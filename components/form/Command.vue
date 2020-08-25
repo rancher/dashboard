@@ -22,11 +22,12 @@ export default {
     },
     configMaps: {
       type:     Array,
-      required: true
+      default: () => []
+
     },
     secrets: {
       type:     Array,
-      required: true
+      default: () => []
     },
     // container spec
     value: {
@@ -147,7 +148,7 @@ export default {
             <LabeledSelect v-model="stdinSelect" label="Stdin" :options="[, 'No', 'Once', 'Yes']" :mode="mode" />
           </div>
           <div class="col span-6">
-            <Checkbox v-model="tty" :disabled="!stdin" label="TTY" @input="update" />
+            <Checkbox v-model="tty" :mode="mode" :disabled="!stdin" label="TTY" @input="update" />
           </div>
         </div>
       </div>
