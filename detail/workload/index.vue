@@ -161,11 +161,3 @@ export default {
     </div>
   </div>
 </template>
-
-<style>
-.bordered-section {
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 25px;
-  padding-bottom: 25px;
-}
-</style>

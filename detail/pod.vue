@@ -1,5 +1,5 @@
 <script>
-import { NODE, EVENT } from '@/config/types';
+import { NODE, EVENT, WORKLOAD_TYPES } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
 import Networking from '@/components/form/Networking';
 import Tab from '@/components/Tabbed/Tab';
@@ -29,10 +29,11 @@ export default {
   mixins: [createEditView],
 
   async fetch() {
-    const { metadata:{ relationships = [] } } = this.value;
-    const owner = relationships.filter(relationship => relationship.rel === 'owner')[0];
+    const owners = await this.value.getOwners() || [];
 
-    this.workload = await this.$store.dispatch('cluster/find', { type: owner.fromType, id: owner.fromId });
+    this.workload = (owners.filter((owner) => {
+      return !!WORKLOAD_TYPES[owner.type];
+    }) || [])[0];
 
     const { nodeName } = this.value.spec;
 
