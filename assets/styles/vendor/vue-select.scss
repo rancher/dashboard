@@ -324,3 +324,7 @@ $transition-duration: 150ms;
   display: inline-block;
   border: 0;
 }
+
+header .vs-select .vs__dropdown-toggle {
+  background: red !important;
+}

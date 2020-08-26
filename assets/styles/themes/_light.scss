@@ -129,7 +129,7 @@ $selected: rgba($primary, .5);
   --tag-primary                : #{$primary};
   --tag-bg                     : #{rgba($primary, 0.2)};
 
-  --popover-bg                 : transparent;
+  --popover-bg                 : var(--body-bg);;
   --popover-border             : var(--border);
   --popover-text               : var(--body-text);
   --popover-border-radius      : var(--border-radius);

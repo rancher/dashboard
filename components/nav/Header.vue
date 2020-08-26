@@ -194,10 +194,18 @@ export default {
       background-color: var(--header-bg);
       padding-top: 6px;
 
+      .vs__dropdown-toggle {
+        background: pink!important;
+      }
+
       INPUT[type='search']::placeholder,
       .vs__open-indicator,
       .vs__selected {
         color: var(--header-btn-bg) !important;
+        background: var(--header-btn-bg);
+        border-radius: var(--border-radius);
+        border: none;
+        margin: 0 35px 0 25px!important;
       }
 
       .vs__selected {
@@ -230,6 +238,10 @@ export default {
         border: 0;
         border-radius: 50%;
       }
+    }
+
+    .vs__dropdown-toggle {
+      background: hotpink!important;
     }
   }
 </style>

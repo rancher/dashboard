@@ -207,6 +207,7 @@ export default {
       cursor: default;
       color: white;
       line-height: calc(var(--header-height) - 10px);
+      font-size: 0.87em;
     }
   }
 
