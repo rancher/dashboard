@@ -61,6 +61,7 @@ export const ROWS_PER_PAGE = create('per-page', 100, { options: [10, 25, 50, 100
 export const LOGS_WRAP = create('logs-wrap', true, { parseJSON });
 export const LOGS_TIME = create('logs-time', true, { parseJSON });
 export const LOGS_RANGE = create('logs-range', '30 minutes', { parseJSON });
+export const LANDING = create('landing', '', { parseJSON, options: ['ember', 'vue'] });
 
 export const DATE_FORMAT = create('date-format', 'ddd, MMM D YYYY', {
   options: [

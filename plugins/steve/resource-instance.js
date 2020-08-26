@@ -1317,10 +1317,6 @@ export default {
     return async(rel, direction) => {
       const out = [];
 
-      if ( !rel ) {
-        throw new Error('Must provide rel');
-      }
-
       if ( !this.metadata?.relationships?.length ) {
         return out;
       }

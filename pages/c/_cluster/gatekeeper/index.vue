@@ -1,12 +1,16 @@
 <script>
 import InfoBox from '@/components/InfoBox';
 import GatekeeperViolationsTable from '@/components/gatekeeper/ViolationsTable';
+import { NAME, CHART_NAME } from '@/config/product/gatekeeper';
+import InstallRedirect from '@/utils/install-redirect';
 
 export default {
   components: {
     GatekeeperViolationsTable,
     InfoBox
   },
+
+  middleware: InstallRedirect(NAME, CHART_NAME),
 };
 </script>
 

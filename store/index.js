@@ -227,7 +227,29 @@ export const getters = {
     }
 
     return all[0];
-  }
+  },
+
+  backToRancherLink(getters) {
+    const cluster = getters['currentCluster'];
+    let link = '/';
+
+    if ( cluster ) {
+      link = `/c/${ escape(cluster.id) }`;
+    }
+    if ( process.env.dev ) {
+      link = `https://localhost:8000${ link }`;
+    }
+
+    return link;
+  },
+
+  rancherLink(getters) {
+    if ( process.env.dev ) {
+      return `https://localhost:8000/`;
+    }
+
+    return '/';
+  },
 };
 
 export const mutations = {
@@ -295,20 +317,21 @@ export const actions = {
       ]),
     });
 
-    if ( getters['management/schemaFor'](COUNT) ) {
-      await dispatch('management/findAll', { type: COUNT, opt: { url: 'counts' } });
-    }
-
-    let isMultiCluster = false;
+    const isMultiCluster = !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
     const promises = [];
 
-    if ( getters['management/schemaFor'](MANAGEMENT.PROJECT) ) {
-      isMultiCluster = true;
+    if ( getters['management/schemaFor'](COUNT) ) {
+      promises.push(dispatch('management/findAll', { type: COUNT }));
     }
 
+    if ( getters['management/schemaFor'](MANAGEMENT.SETTING) ) {
+      promises.push(dispatch('management/findAll', { type: MANAGEMENT.SETTING }));
+    }
+
+    // Clusters is always available
     promises.push(dispatch('management/findAll', {
       type: MANAGEMENT.CLUSTER,
-      opt:  { url: `${ MANAGEMENT.CLUSTER }s` }
+      opt:  { url: MANAGEMENT.CLUSTER }
     }));
 
     await Promise.all(promises);

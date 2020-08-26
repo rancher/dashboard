@@ -13,7 +13,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['clusterReady', 'isMultiCluster', 'currentCluster', 'currentProduct', 'isExplorer']),
+    ...mapGetters(['clusterReady', 'isMultiCluster', 'currentCluster', 'currentProduct', 'isExplorer', 'backToRancherLink']),
 
     authEnabled() {
       return this.$store.getters['auth/enabled'];
@@ -25,20 +25,6 @@ export default {
 
     showShell() {
       return !!this.currentCluster?.links?.shell;
-    },
-
-    backToRancherLink() {
-      const cluster = this.$store.getters['currentCluster'];
-      let link = '/';
-
-      if ( cluster ) {
-        link = `/c/${ escape(cluster.id) }`;
-      }
-      if ( process.env.dev ) {
-        link = `https://localhost:8000${ link }`;
-      }
-
-      return link;
     },
   },
 };
@@ -52,7 +38,7 @@ export default {
     </div>
 
     <div class="apps">
-      <nuxt-link :to="{name: 'c-cluster-apps'}" class="btn role-tertiary">
+      <nuxt-link :to="{name: 'c-cluster-apps', params: { cluster: currentCluster.id }}" class="btn role-tertiary">
         <i class="icon icon-lg icon-marketplace pr-5" /> Apps
       </nuxt-link>
     </div>

@@ -1,6 +1,7 @@
 import { DSL } from '@/store/type-map';
 
 export const NAME = 'fleet';
+export const CHART_NAME = 'fleet';
 
 export function init(store) {
   const {

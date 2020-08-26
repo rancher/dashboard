@@ -2,9 +2,12 @@
 import demos from '@/config/demos';
 import Card from '@/components/Card';
 import { DEMO } from '@/config/query-params';
+import InstallRedirect from '@/utils/install-redirect';
+import { NAME, CHART_NAME } from '@/config/product/rio';
 
 export default {
   components: { Card },
+  middleware: InstallRedirect(NAME, CHART_NAME),
 
   data() {
     return { demos };

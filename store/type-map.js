@@ -933,7 +933,17 @@ export const getters = {
 
       return true;
     });
-  }
+  },
+
+  isProductActive(getters) {
+    return (name) => {
+      if ( findBy(getters['activeProducts'], 'name', name) ) {
+        return true;
+      }
+
+      return false;
+    };
+  },
 };
 
 export const mutations = {

@@ -1,6 +1,7 @@
 import { DSL } from '@/store/type-map';
 
 export const NAME = 'istio';
+export const CHART_NAME = 'rancher-istio';
 
 export function init(store) {
   const {
