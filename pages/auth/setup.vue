@@ -5,7 +5,7 @@ import CopyCode from '@/components/CopyCode';
 import CopyToClipboard from '@/components/CopyToClipboard';
 import AsyncButton from '@/components/AsyncButton';
 import { SETUP, STEP, _UNFLAG } from '@/config/query-params';
-import { NORMAN } from '@/config/types';
+import { NORMAN, MANAGEMENT } from '@/config/types';
 import { open, popupWindowOptions } from '@/utils/window';
 import { findBy, filterBy, addObject, removeObject } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
@@ -22,16 +22,16 @@ export default {
     const current = route.query[SETUP] || '';
     const password = randomStr();
 
-    const firstLoginSetting = await store.dispatch('rancher/find', {
-      type: NORMAN.SETTING,
+    const firstLoginSetting = await store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
       id:   'first-login',
-      opt:  { url: '/v3/settings/first-login' }
+      opt:  { url: `${ MANAGEMENT.SETTING }s/first-login` }
     });
 
-    const telemetrySetting = await store.dispatch('rancher/find', {
-      type: NORMAN.SETTING,
+    const telemetrySetting = await store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
       id:   'telemetry-opt',
-      opt:  { url: '/v3/settings/telemetry-opt' }
+      opt:  { url: `${ MANAGEMENT.SETTING }s/telemetry-opt` }
     });
 
     let githubConfig = await store.dispatch('rancher/find', {

@@ -1,4 +1,4 @@
-import { NORMAN } from '@/config/types';
+import { NORMAN, MANAGEMENT } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { SETUP } from '@/config/query-params';
 import { get } from '@/utils/object';
@@ -136,10 +136,10 @@ export default async function({
 
 async function tryInitialSetup(store, password, isDev) {
   try {
-    const firstLogin = await store.dispatch('rancher/find', {
-      type: NORMAN.SETTING,
+    const firstLogin = await store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
       id:   'first-login',
-      opt:  { url: '/v3/settings/first-login' }
+      opt:  { url: `${ MANAGEMENT.SETTING }s/first-login` }
     });
 
     if ( isDev ) {

@@ -2,15 +2,29 @@
 import { mapGetters } from 'vuex';
 import { options } from '@/config/footer';
 import { mapPref, DEV } from '@/store/prefs';
+import { MANAGEMENT } from '@/config/types';
 
-const VERSION = process.env.VERSION || 'dev';
-const COMMIT = process.env.COMMIT || 'unknown';
+const UNKNOWN = 'unknown';
+const UI_VERSION = process.env.VERSION || UNKNOWN;
+const UI_COMMIT = process.env.COMMIT || UNKNOWN;
 
 export default {
   data() {
+    const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
+    const fullVersion = setting?.value || 'unknown';
+    let displayVersion = fullVersion;
+
+    const match = fullVersion.match(/^(.*)-([0-9a-f]{40})-(.*)$/);
+
+    if ( match ) {
+      displayVersion = match[2].substr(0, 7);
+    }
+
     return {
-      commit:  COMMIT,
-      version: VERSION
+      displayVersion,
+      fullVersion,
+      uiCommit:       UI_COMMIT,
+      uiVersion:      UI_VERSION
     };
   },
 
@@ -34,6 +48,18 @@ export default {
 
     options() {
       return options(this.pl);
+    },
+
+    versionTooltip() {
+      const out = [
+        `Dashboard: ${ this.uiVersion } (${ this.uiCommit })`,
+      ];
+
+      if ( this.fullVersion !== this.displayVersion ) {
+        out.push(`Server: ${ this.fullVersion }`);
+      }
+
+      return out.join('<br/>\n');
     }
   },
 
@@ -48,9 +74,7 @@ export default {
 
 <template>
   <div class="footer">
-    <div v-tooltip="commit">
-      {{ version }}
-    </div>
+    <div v-tooltip="versionTooltip" v-html="displayVersion" />
 
     <div v-for="(value, name) in options" :key="name">
       <a v-t="name" :href="value" target="_blank" />
