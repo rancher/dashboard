@@ -113,12 +113,18 @@ export default {
 
     const spec = this.value.spec;
 
-    if (!spec.replicas) {
-      spec.replicas = 1;
-    }
+    if (type === WORKLOAD_TYPES.CRON_JOB) {
+      if (!spec.jobTemplate) {
+        spec.jobTemplate = { spec: { template: { spec: { restartPolicy: 'Never' } } } };
+      }
+    } else {
+      if (!spec.replicas) {
+        spec.replicas = 1;
+      }
 
-    if (!spec.template) {
-      spec.template = { spec: { restartPolicy: this.isJob ? 'Never' : 'Always' } };
+      if (!spec.template) {
+        spec.template = { spec: { restartPolicy: type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always' } };
+      }
     }
 
     return {
@@ -369,7 +375,14 @@ export default {
       if (!template.spec) {
         template.spec = {};
       }
-      const restartPolicy = this.isJob ? 'Never' : 'Always';
+
+      let restartPolicy;
+
+      if (this.isJob || this.isCronJob) {
+        restartPolicy = 'Never';
+      } else {
+        restartPolicy = 'Always';
+      }
 
       this.$set(template.spec, 'restartPolicy', restartPolicy);
 
