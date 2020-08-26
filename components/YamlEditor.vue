@@ -1,6 +1,7 @@
 <script>
 import jsyaml from 'js-yaml';
 import { mapPref, DIFF } from '@/store/prefs';
+import isEmpty from 'lodash/isEmpty';
 import CodeMirror from './CodeMirror';
 import FileDiff from './FileDiff';
 
@@ -16,10 +17,6 @@ export default {
     FileDiff
   },
   props: {
-    value: {
-      type:     String,
-      required:  true,
-    },
     editorMode: {
       type:      String,
       default:  EDITOR_MODES.EDIT_CODE,
@@ -27,14 +24,28 @@ export default {
         return Object.values(EDITOR_MODES).includes(value);
       }
     },
+
+    initialYamlValues: {
+      type:    String,
+      default: '',
+    },
+
     scrolling: {
       type:    Boolean,
       default: true,
     },
+
+    value: {
+      type:     String,
+      required:  true,
+    },
   },
 
   data() {
-    return { original: this.value };
+    const { initialYamlValues, value } = this;
+    const original = isEmpty(initialYamlValues) ? value : initialYamlValues;
+
+    return { original };
   },
   computed: {
     cmOptions() {

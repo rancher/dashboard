@@ -1,6 +1,7 @@
 import { indent as _indent } from '@/utils/string';
 import { addObject, removeObject, removeObjects } from '@/utils/array';
 import jsyaml from 'js-yaml';
+import { cleanUp } from '@/utils/object';
 
 const SIMPLE_TYPES = [
   'string',
@@ -52,7 +53,7 @@ const NEVER_ADD = [
 
 const INDENT = 2;
 
-export function createYaml(schemas, type, data, populate = true, depth = 0, path = '') {
+export function createYaml(schemas, type, data, processAlwaysAdd = true, depth = 0, path = '') {
   const schema = schemas.find(x => x.id === type);
 
   if ( !schema ) {
@@ -70,27 +71,29 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
 
   const regularFields = [];
 
-  // Add all the parents of each key so that spec.template.foo.blah
-  // causes 'spec', 'template' and 'foo' keys to be created
-  const always = ALWAYS_ADD.slice();
+  if (processAlwaysAdd) {
+    // Add all the parents of each key so that spec.template.foo.blah
+    // causes 'spec', 'template' and 'foo' keys to be created
+    const always = ALWAYS_ADD.slice();
 
-  for ( let i = always.length - 1 ; i >= 0 ; i-- ) {
-    let entry = always[i].split(/\./);
+    for ( let i = always.length - 1 ; i >= 0 ; i-- ) {
+      let entry = always[i].split(/\./);
 
-    while ( entry.length ) {
-      addObject(always, entry.join('.'));
-      entry = entry.slice(0, -1);
+      while ( entry.length ) {
+        addObject(always, entry.join('.'));
+        entry = entry.slice(0, -1);
+      }
     }
-  }
 
-  // Mark always fields as regular so they're not commented out
-  for ( const entry of always ) {
-    const parts = entry.split(/\./);
-    const key = parts[parts.length - 1];
-    const prefix = parts.slice(0, -1).join('.');
+    // Mark always fields as regular so they're not commented out
+    for ( const entry of always ) {
+      const parts = entry.split(/\./);
+      const key = parts[parts.length - 1];
+      const prefix = parts.slice(0, -1).join('.');
 
-    if ( prefix === path && schema.resourceFields && schema.resourceFields[key] ) {
-      addObject(regularFields, key);
+      if ( prefix === path && schema.resourceFields && schema.resourceFields[key] ) {
+        addObject(regularFields, key);
+      }
     }
   }
 
@@ -172,17 +175,19 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
     if ( mapOf ) {
       if (data[key]) {
         try {
-          const parsedData = jsyaml.safeDump(data[key]);
+          const cleaned = cleanUp(data);
+          const parsedData = jsyaml.safeDump(cleaned[key]);
 
           out += `\n${ indent(parsedData.trim()) }`;
         } catch (e) {
+          console.error(`Error: Unale to parse map data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
         }
       }
 
       if ( SIMPLE_TYPES.includes(mapOf) ) {
         out += `\n#  key: ${ mapOf }`;
       } else {
-        const chunk = createYaml(schemas, mapOf, null, populate, depth + 1, (path ? `${ path }.${ key }` : key));
+        const chunk = createYaml(schemas, mapOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key));
         let indented = indent(chunk, 2);
 
         indented = indented.replace(/^(#)?\s\s\s\s/, '$1');
@@ -196,17 +201,19 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
     if ( arrayOf ) {
       if (data[key]) {
         try {
-          const parsedData = jsyaml.safeDump(data[key]);
+          const cleaned = cleanUp(data);
+          const parsedData = jsyaml.safeDump(cleaned[key]);
 
           out += `\n${ indent(parsedData.trim()) }`;
         } catch (e) {
+          console.error(`Error: Unale to parse array data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
         }
       }
 
       if ( SIMPLE_TYPES.includes(arrayOf) ) {
         out += `\n#  - ${ arrayOf }`;
       } else {
-        const chunk = createYaml(schemas, arrayOf, null, populate, depth + 1, (path ? `${ path }.${ key }` : key));
+        const chunk = createYaml(schemas, arrayOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key));
         let indented = indent(chunk, 2);
 
         indented = indented.replace(/^(#)?\s*\s\s([^\s])/, '$1  - $2');
@@ -238,7 +245,7 @@ export function createYaml(schemas, type, data, populate = true, depth = 0, path
     const subDef = schemas.find(x => x.id === type);
 
     if ( subDef ) {
-      const chunk = createYaml(schemas, type, data[key], populate, depth + 1, (path ? `${ path }.${ key }` : key));
+      const chunk = createYaml(schemas, type, data[key], processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key));
 
       out += `\n${ indent(chunk) }`;
     } else {

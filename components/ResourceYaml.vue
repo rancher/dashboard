@@ -13,6 +13,7 @@ import {
   _UNFLAG,
   _EDIT,
 } from '@/config/query-params';
+import { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import { exceptionToErrorsArray } from '../utils/error';
 
 export default {
@@ -118,12 +119,13 @@ export default {
     },
 
     onReady(cm) {
-      if ( this.isCreate ) {
-        cm.getMode().fold = 'yamlcomments';
-        cm.execCommand('foldAll');
-      } else if ( this.isEdit ) {
+      if ( this.isEdit ) {
         cm.foldLinesMatching(/^status:\s*$/);
       }
+
+      // regardless of edit or create we should probably fold all the comments so they dont get out of hand.
+      cm.getMode().fold = 'yamlcomments';
+      cm.execCommand('foldAll');
 
       try {
         const parsed = jsyaml.safeLoad(this.currentYaml);
@@ -224,6 +226,12 @@ export default {
       let res;
 
       try {
+        await this.$emit('apply-hooks', BEFORE_SAVE_HOOKS);
+
+        if (this._isBeingDestroyed || this._isDestroyed) {
+          return;
+        }
+
         if ( this.isCreate ) {
           res = await this.schema.followLink('collection', {
             method:  'POST',
@@ -250,6 +258,7 @@ export default {
           await this.$store.dispatch('cluster/load', { data: res, existing: (this.isCreate ? this.value : undefined) });
         }
 
+        await this.$emit('apply-hooks', AFTER_SAVE_HOOKS);
         buttonDone(true);
         this.done();
       } catch (err) {

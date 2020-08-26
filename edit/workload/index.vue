@@ -405,6 +405,10 @@ export default {
     },
   },
 
+  created() {
+    this.registerBeforeHook(this.saveWorkload, 'willSaveWorkload');
+  },
+
   methods: {
     nameDisplayFor(type) {
       const schema = this.$store.getters['cluster/schemaFor'](type);
@@ -424,7 +428,7 @@ export default {
       this.done();
     },
 
-    saveWorkload(cb) {
+    saveWorkload() {
       if (!this.spec.selector && this.type !== WORKLOAD_TYPES.JOB) {
         this.spec.selector = { matchLabels: this.workloadSelector };
       }
@@ -455,7 +459,6 @@ export default {
       }
 
       Object.assign(this.value, { spec: this.spec });
-      this.save(cb);
     },
 
     // node and pod affinity are formatted incorrectly from API; fix before saving
@@ -530,9 +533,10 @@ export default {
       :errors="errors"
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
-      @finish="cb=>saveWorkload(cb)"
+      @finish="save"
       @select-type="e=>type=e"
       @error="e=>errors = e"
+      @apply-hooks="applyHooks"
     >
       <template #define>
         <div class="row">

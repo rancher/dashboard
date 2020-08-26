@@ -286,9 +286,9 @@ containerResourceLimit:
   requestsMemory: Memory Reservation
 
 cruResource:
-  back: Going back will destroy your changes.
-  backToForm: Go Back To Form
-  cancel: Cancelling will destroy your changes.
+  backBody: Going back will destroy your changes.
+  backToForm: Back To Form
+  cancelBody: Cancelling will destroy your changes.
   confirmBack: "Yes, Go Back"
   confirmCancel: "Yes, Cancel"
   reviewForm: "No, Review Form"
@@ -443,13 +443,13 @@ logging:
     scramMechanism: Scram Mechanism
     username: Username
     password: Password
-    sslCaCert: 
+    sslCaCert:
       label: SSL CA Cert
       placeholder: Paste in the CA certificate
-    sslClientCert: 
+    sslClientCert:
       label: SSL Client Cert
       placeholder: Paste in the client cert
-    sslClientCertChain: 
+    sslClientCertChain:
       label: SSL Client Cert Chain
       placeholder: Paste in the client cert chain
     sslClientCertKey: SSL Client Cert Key
@@ -477,7 +477,7 @@ monitoring:
     once: ReadWriteOnce
     readOnlyMany: ReadOnlyMany
   clusterType:
-    k3s: 'K3s,'
+    k3s: 'K3s'
     kubeAdmin: KubeADM
     label: Cluster Type
     managed: 'Managed Cluster (EKS, GKE, AKS, etc.)'
@@ -551,7 +551,7 @@ node:
       memoryPressure: Memory Pressure
       pidPressure: PID Pressure
     tab:
-      address: 
+      address:
         label: Address
         externalIp: ExternalIP
       conditions: Conditions
