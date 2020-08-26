@@ -3,6 +3,8 @@ import isEmpty from 'lodash/isEmpty';
 import UnitInput from '@/components/form/UnitInput';
 import { CONTAINER_DEFAULT_RESOURCE_LIMIT } from '@/config/labels-annotations';
 import { _VIEW } from '@/config/query-params';
+import { parseSi, formatSi } from '@/utils/units';
+import { cleanUp } from '@/utils/object';
 
 export default {
   components: { UnitInput },
@@ -41,13 +43,35 @@ export default {
       limitsCpu, limitsMemory, requestsCpu, requestsMemory
     } = this.value;
 
-    return {
-      limitsCpu:      limitsCpu ? limitsCpu.replace(/([A-Z]|[a-z])/g, '') : null,
-      limitsMemory:   limitsMemory ? limitsMemory.replace(/([A-Z]|[a-z])/g, '') : null,
-      requestsCpu:    requestsCpu ? requestsCpu.replace(/([A-Z]|[a-z])/g, '') : null,
-      requestsMemory: requestsMemory ? requestsMemory.replace(/([A-Z]|[a-z])/g, '') : null,
+    const parsed = {
+      limitsCpu:      limitsCpu ? parseSi(limitsCpu) : null,
+      limitsMemory:   limitsMemory ? parseSi(limitsMemory) : null,
+      requestsCpu:    requestsCpu ? parseSi(requestsCpu) : null,
+      requestsMemory: requestsMemory ? parseSi(requestsMemory) : null,
       viewMode:       _VIEW,
     };
+
+    const formatted = {
+      limitsCpu:      formatSi(parsed.limitsCpu, {
+        minExponent: 1, maxExponent: 1, addSuffix: false, increment: 1 / 1000
+      }),
+      limitsMemory:   formatSi(parsed.limitsMemory, {
+        minExponent: 2, maxExponent: 2, addSuffix: false, increment: 1024,
+      }),
+      requestsCpu:    formatSi(parsed.requestsCpu, {
+        minExponent: 1, maxExponent: 1, addSuffix: false, increment: 1 / 1000,
+      }),
+      requestsMemory: formatSi(parsed.requestsMemory, {
+        minExponent: 2, maxExponent: 2, addSuffix: false, increment: 1024,
+      }),
+    };
+
+    return { ...formatted };
+    // return { ...formatted };
+
+    // return {
+    //   limitsCpu, limitsMemory, requestsCpu, requestsMemory
+    // };
   },
 
   computed: {
@@ -80,13 +104,13 @@ export default {
         requestsMemory,
       } = this;
       const out = {
-        limitsCpu:      `${ limitsCpu }m`,
-        limitsMemory:   `${ limitsMemory }Mi`,
-        requestsCpu:    `${ requestsCpu }m`,
-        requestsMemory: `${ requestsMemory }Mi`,
+        limitsCpu:      limitsCpu ? `${ limitsCpu }m` : null,
+        limitsMemory:   limitsMemory ? `${ limitsMemory }Mi` : null,
+        requestsCpu:    requestsCpu ? `${ requestsCpu }m` : null,
+        requestsMemory: requestsMemory ? `${ requestsMemory }Mi` : null,
       };
 
-      this.$emit('input', out);
+      this.$emit('input', cleanUp(out));
     },
 
     updateBeforeSave(value) {
