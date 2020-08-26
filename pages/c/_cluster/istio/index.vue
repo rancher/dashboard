@@ -1,9 +1,13 @@
 <script>
 import SimpleBox from '@/components/SimpleBox';
 import { mapGetters } from 'vuex';
+import { NAME, CHART_NAME } from '@/config/product/istio';
+import InstallRedirect from '@/utils/install-redirect';
 
 export default {
   components: { SimpleBox },
+
+  middleware: InstallRedirect(NAME, CHART_NAME),
 
   computed: {
     ...mapGetters({ theme: 'prefs/theme' }),

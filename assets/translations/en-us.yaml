@@ -570,6 +570,34 @@ persistentVolumeClaim:
     options:
       new: Use a Storage Class to provision a new Persistent Volume
       existing: Use an existing Persistent Volume
+prefs:
+  title: Preferences
+  theme:
+    label: Theme
+    light: Light
+    auto: Auto
+    dark: Dark
+  landing:
+    label: Login Landing Page
+    vue: Cluster Explorer
+    ember: Cluster Manager
+  formatting: Formatting
+  dateFormat:
+    label: Date Format
+  timeFormat:
+    label: Time Format
+  perPage:
+    label: Table Rows per Page
+    value: |-
+      {count, number}
+  keymap:
+    label: YAML Editor Key Mapping
+    sublime: 'Normal human'
+    emacs: 'Emacs'
+    vim: 'Vim'
+  advanced: Advanced
+  dev:
+    label: Enable Developer Tools
 
 promptRemove:
   andOthers: |-

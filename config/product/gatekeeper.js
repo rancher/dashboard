@@ -2,6 +2,7 @@ import { DSL } from '@/store/type-map';
 import { GATEKEEPER } from '@/config/types';
 
 export const NAME = 'gatekeeper';
+export const CHART_NAME = 'rancher-gatekeeper';
 
 export function init(store) {
   const {

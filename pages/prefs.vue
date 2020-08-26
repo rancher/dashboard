@@ -2,16 +2,9 @@
 import day from 'dayjs';
 import ButtonGroup from '@/components/ButtonGroup';
 import {
-  mapPref, THEME, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE
+  mapPref, THEME, LANDING, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE
 } from '@/store/prefs';
-import { ucFirst } from '@/utils/string';
 import LabeledSelect from '@/components/form/LabeledSelect';
-
-const KEYMAP_LABELS = {
-  sublime: 'Normal human',
-  emacs:   'Emacs',
-  vim:     'Vim',
-};
 
 export default {
   components: { ButtonGroup, LabeledSelect },
@@ -22,20 +15,36 @@ export default {
     dateFormat: mapPref(DATE_FORMAT),
     timeFormat: mapPref(TIME_FORMAT),
     perPage:    mapPref(ROWS_PER_PAGE),
+    landing:    mapPref(LANDING),
 
     themeOptions() {
+      const t = this.$store.getters['i18n/t'];
+
       return this.$store.getters['prefs/options'](THEME).map((value) => {
         return {
-          label: ucFirst(value),
+          label: t(`prefs.theme.${ value }`),
+          value
+        };
+      });
+    },
+
+    landingOptions() {
+      const t = this.$store.getters['i18n/t'];
+
+      return this.$store.getters['prefs/options'](LANDING).map((value) => {
+        return {
+          label: t(`prefs.landing.${ value }`),
           value
         };
       });
     },
 
     keymapOptions() {
+      const t = this.$store.getters['i18n/t'];
+
       return this.$store.getters['prefs/options'](KEYMAP).map((value) => {
         return {
-          label: KEYMAP_LABELS[value] || ucFirst(value),
+          label: t(`prefs.keymap.${ value }`),
           value
         };
       });
@@ -64,7 +73,9 @@ export default {
     },
 
     perPageOptions() {
-      return this.$store.getters['prefs/options'](ROWS_PER_PAGE);
+      const t = this.$store.getters['i18n/t'];
+
+      return this.$store.getters['prefs/options'](ROWS_PER_PAGE).map(count => t('prefs.perPage.value', { count }));
     },
   },
 };
@@ -72,59 +83,52 @@ export default {
 
 <template>
   <div>
-    <h1>Preferences</h1>
+    <h1 v-t="'prefs.title'" />
 
-    <h4 class="mb-10">
-      Theme
-    </h4>
+    <h4 v-t="'prefs.theme.label'" class="mt-20 mb-10" />
     <ButtonGroup v-model="theme" :options="themeOptions" />
 
-    <h4 class="mb-10">
-      Formatting
-    </h4>
+    <h4 v-t="'prefs.landing.label'" class="mt-20 mb-10" />
+    <ButtonGroup v-model="landing" :options="landingOptions" />
+
+    <h4 v-t="'prefs.formatting'" class="mb-10" />
     <div class="row">
       <div class="col span-3">
         <LabeledSelect
           v-model="dateFormat"
-          label="Date Format"
+          :label="t('prefs.dateFormat.label')"
           :options="dateOptions"
-          placeholder="Select a date format"
         />
       </div>
       <div class="col span-3">
         <LabeledSelect
           v-model="timeFormat"
-          label="Time Format"
+          :label="t('prefs.timeFormat.label')"
           :options="timeOptions"
-          placeholder="Select a time format"
         />
       </div>
     </div>
 
-    <div class="row">
+    <div class="row mt-20">
       <div class="col span-3">
         <LabeledSelect
           v-model.number="perPage"
-          label="Table Rows per Page"
+          :label="t('prefs.perPage.label')"
           :options="perPageOptions"
           placeholder="Select a row count"
         />
       </div>
     </div>
 
-    <h4 class="mb-10">
-      YAML Editor Mode
-    </h4>
+    <h4 v-t="'prefs.keymap.label'" class="mb-10" />
     <ButtonGroup v-model="keymap" :options="keymapOptions" />
 
-    <h4 class="mb-10">
-      Advanced
-    </h4>
+    <h4 v-t="'prefs.advanced'" class="mb-10" />
     <label class="checkbox-container" mode="create" type="checkbox">
       <label class="checkbox-box">
         <input v-model="dev" type="checkbox" tabindex="-1"> <span tabindex="0" aria-label="Interactive" role="checkbox" class="checkbox-custom"></span>
       </label>
-      <span class="checkbox-label">Enable Developer Tools</span>
+      <span v-t="'prefs.dev.label'" class="checkbox-label" />
     </label>
   </div>
 </template>

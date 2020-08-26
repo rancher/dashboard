@@ -5,13 +5,11 @@ export default {
   layout: 'unauthenticated',
 
   async asyncData({ redirect, store, router }) {
-    if ( 1 === 2 && process.env.dev ) {
+    if ( process.env.dev ) {
       await store.dispatch('auth/logout', null, { root: true });
       redirect(302, `/auth/login?${ LOGGED_OUT }`);
-    } else if ( process.client ) {
-      window.location.href = '/logout';
     } else {
-      redirect(302, '/logout');
+      redirect(302, `${ store.getters['rancherLink'] }logout`);
     }
   }
 };

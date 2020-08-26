@@ -10,6 +10,7 @@ import {
 } from '@/config/table-headers';
 
 export const NAME = 'rio';
+export const CHART_NAME = 'rio';
 
 export function init(store) {
   const {

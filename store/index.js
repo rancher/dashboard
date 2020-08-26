@@ -227,7 +227,29 @@ export const getters = {
     }
 
     return all[0];
-  }
+  },
+
+  backToRancherLink(getters) {
+    const cluster = getters['currentCluster'];
+    let link = '/';
+
+    if ( cluster ) {
+      link = `/c/${ escape(cluster.id) }`;
+    }
+    if ( process.env.dev ) {
+      link = `https://localhost:8000${ link }`;
+    }
+
+    return link;
+  },
+
+  rancherLink(getters) {
+    if ( process.env.dev ) {
+      return `https://localhost:8000/`;
+    }
+
+    return '/';
+  },
 };
 
 export const mutations = {

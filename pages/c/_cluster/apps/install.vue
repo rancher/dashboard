@@ -53,7 +53,7 @@ export default {
     const repoType = query[REPO_TYPE];
     const repoName = query[REPO];
     const chartName = query[CHART];
-    const versionName = query[VERSION];
+    let versionName = query[VERSION];
     const releaseNamespace = query[NAMESPACE] || '';
     const releaseName = query[NAME] || '';
 
@@ -100,6 +100,10 @@ export default {
 
     if ( query[DESCRIPTION_QUERY] ) {
       this.value.setAnnotation(DESCRIPTION_ANNOTATION, query[DESCRIPTION_QUERY]);
+    }
+
+    if ( !versionName && this.chart?.versions?.length ) {
+      versionName = this.chart.versions[0].version;
     }
 
     if ( versionName ) {
