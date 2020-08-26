@@ -712,12 +712,6 @@ export default {
   color: var(--input-label)
 }
 
-.bordered-section {
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 25px;
-  padding-bottom: 25px;
-}
-
 .cron-hint {
   color: var(--muted);
   padding: 3px;
