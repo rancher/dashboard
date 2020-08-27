@@ -97,7 +97,7 @@
   --sortable-table-accent-bg: #{rgba($darkest, 0.75)};
   --sortable-table-accent-alt: #{$dark};
   --sortable-table-top-divider: #{$darkest};
-  --sortable-table-selected-bg: #{$selected};
+  --sortable-table-selected-bg: #{rgba($warning, 0.1)};
   --sortable-table-group-label: #{$lighter};
 
   --tag-primary: #{$primary};
