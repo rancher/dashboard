@@ -50,6 +50,7 @@ export default {
 
   async fetch() {
     let pods;
+
     const { metadata:{ relationships = [] } } = this.value;
     const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
 

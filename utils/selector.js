@@ -99,7 +99,7 @@ export function matching(ary, selector) {
   return ary.filter(obj => matches(obj, selector));
 }
 
-function matches(obj, selector) {
+export function matches(obj, selector) {
   const rules = parse(selector);
   const labels = obj?.metadata?.labels || {};
 
