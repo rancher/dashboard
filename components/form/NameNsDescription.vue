@@ -51,6 +51,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    nameNsHidden: {
+      type:    Boolean,
+      default: false,
+    },
     descriptionPlaceholder: {
       type:    String,
       default: 'Any text you want that better describes this resource'
@@ -151,7 +155,7 @@ export default {
     },
 
     colSpan() {
-      const cols = 2 + this.extraColumns.length;
+      const cols = (this.nameNsHidden ? 0 : 1) + 1 + this.extraColumns.length;
       const span = 12 / cols;
 
       return `span-${ span }`;
@@ -212,7 +216,7 @@ export default {
 <template>
   <div>
     <div class="row mb-20">
-      <div :class="{col: true, [colSpan]: true}">
+      <div v-show="!nameNsHidden" :class="{col: true, [colSpan]: true}">
         <slot name="namespace">
           <InputWithSelect
             v-if="namespaced"
