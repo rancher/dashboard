@@ -103,6 +103,7 @@
   --tag-primary: #{$primary};
   --tag-bg: #{rgba($primary, 0.2)};
 
+  --popover-bg                 : var(--body-bg);
   --popover-border: var(--border);
   --popover-text: var(--body-text);
   --tooltip-bg: var(--tag-bg);
