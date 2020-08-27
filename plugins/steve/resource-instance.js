@@ -127,6 +127,29 @@ const SORT_ORDER = {
   other:   5,
 };
 
+export function colorForState(state) {
+  const key = (state || '').toLowerCase();
+  let color;
+
+  if ( STATES[key] && STATES[key].color ) {
+    color = maybeFn.call(this, STATES[key].color);
+  }
+
+  if ( !color ) {
+    color = DEFAULT_COLOR;
+  }
+
+  return `text-${ color }`;
+}
+
+function maybeFn(val) {
+  if ( isFunction(val) ) {
+    return val(this);
+  }
+
+  return val;
+}
+
 export default {
   customValidationRules() {
     return [
@@ -352,28 +375,15 @@ export default {
   },
 
   stateColor() {
-    return (state) => {
-      if ( state?.error ) {
-        return 'text-error';
-      }
+    if ( this.metadata?.state?.error ) {
+      return 'text-error';
+    }
 
-      const key = (state || '').toLowerCase();
-      let color;
-
-      if ( STATES[key] && STATES[key].color ) {
-        color = this.maybeFn(STATES[key].color);
-      }
-
-      if ( !color ) {
-        color = DEFAULT_COLOR;
-      }
-
-      return `text-${ color }`;
-    };
+    return colorForState.call(this, this.state);
   },
 
   stateBackground() {
-    return this.stateColor(this.state).replace('text-', 'bg-');
+    return this.stateColor.replace('text-', 'bg-');
   },
 
   stateIcon() {
@@ -397,7 +407,7 @@ export default {
     let icon;
 
     if ( STATES[key] && STATES[key].icon ) {
-      icon = this.maybeFn(STATES[key].icon);
+      icon = maybeFn.call(this, STATES[key].icon);
     }
 
     if ( !icon ) {
@@ -622,16 +632,6 @@ export default {
     ];
 
     return all;
-  },
-
-  maybeFn() {
-    return (val) => {
-      if ( isFunction(val) ) {
-        return val(this);
-      }
-
-      return val;
-    };
   },
 
   // ------------------------------------------------------------------

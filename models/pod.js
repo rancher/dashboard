@@ -1,5 +1,6 @@
 import { findBy, insertAt } from '@/utils/array';
 import { NODE } from '@/config/types';
+import { colorForState } from '@/plugins/steve/resource-instance';
 
 export default {
   availableActions() {
@@ -87,7 +88,7 @@ export default {
     return (container) => {
       const state = Object.keys(container.state || {})[0];
 
-      return this.stateColor(state);
+      return colorForState(state);
     };
   },
 
