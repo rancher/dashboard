@@ -594,10 +594,10 @@ export default {
       </div>
       <NameNsDescription
         v-else
-        v-show="showNameEditor"
         v-model="value"
         :mode="mode"
         :name-disabled="nameDisabled"
+        :name-ns-hidden="!showNameEditor"
         :force-namespace="forceNamespace"
         :extra-columns="showVersions ? ['versions'] : []"
       >
