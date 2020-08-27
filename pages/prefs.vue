@@ -85,13 +85,13 @@ export default {
   <div>
     <h1 v-t="'prefs.title'" />
 
-    <h4 v-t="'prefs.theme.label'" class="mt-20 mb-10" />
+    <h4 v-t="'prefs.theme.label'" />
     <ButtonGroup v-model="theme" :options="themeOptions" />
     <hr />
-    <h4 v-t="'prefs.landing.label'" class="mt-20 mb-10" />
+    <h4 v-t="'prefs.landing.label'" />
     <ButtonGroup v-model="landing" :options="landingOptions" />
     <hr />
-    <h4 v-t="'prefs.formatting'" class="mb-10" />
+    <h4 v-t="'prefs.formatting'" />
     <div class="row">
       <div class="col span-4">
         <LabeledSelect
@@ -108,41 +108,37 @@ export default {
         />
       </div>
 
-      <div class="row mt-20">
-        <div class="col span-3">
-          <LabeledSelect
-            v-model.number="perPage"
-            :label="t('prefs.perPage.label')"
-            :options="perPageOptions"
-            placeholder="Select a row count"
-          />
-        </div>
+      <div class="col span-4">
+        <LabeledSelect
+          v-model.number="perPage"
+          :label="t('prefs.perPage.label')"
+          :options="perPageOptions"
+          placeholder="Select a row count"
+        />
       </div>
-
-      <h4 v-t="'prefs.keymap.label'" class="mb-10" />
-      <ButtonGroup v-model="keymap" :options="keymapOptions" />
-      <hr />
-      <h4 v-t="'prefs.advanced'" class="mb-10" />
-      <label class="checkbox-container" mode="create" type="checkbox">
-        <label class="checkbox-box">
-          <input v-model="dev" type="checkbox" tabindex="-1"> <span tabindex="0" aria-label="Interactive" role="checkbox" class="checkbox-custom"></span>
-        </label>
-        <span v-t="'prefs.dev.label'" class="checkbox-label" />
-      </label>
     </div>
+    <hr />
+    <div class="row">
+      <div class="col span-4">
+        <h4 v-t="'prefs.keymap.label'" />
+        <ButtonGroup v-model="keymap" :options="keymapOptions" />
+      </div>
+      <div class="col span-4">
+        <h4 v-t="'prefs.advanced'" />
+        <label class="checkbox-container" mode="create" type="checkbox">
+          <label class="checkbox-box">
+            <input v-model="dev" type="checkbox" tabindex="-1"> <span tabindex="0" aria-label="Interactive" role="checkbox" class="checkbox-custom"></span>
+          </label>
+          <span v-t="'prefs.dev.label'" class="checkbox-label" />
+        </label>
+      </div>
+    </div>
+  </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-  h1 {
-    margin: 0;
-  }
-
-  h4 {
-    margin: 20px 0 0 0;
-
-    &:first-of-type {
-      margin-top: 0;
-    }
+  hr {
+    margin: 20px 0;
   }
 </style>
