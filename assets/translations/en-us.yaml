@@ -419,6 +419,7 @@ istio:
     components: Components
     customAnswers: Custom Answers
     advanced: Advanced Settings
+  v1Warning: Please uninstall current istio version in <code>istio-system</code> namespace before attempting to install this version
 
 logging:
   provider: Provider

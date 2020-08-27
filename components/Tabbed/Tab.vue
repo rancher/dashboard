@@ -34,11 +34,7 @@ export default {
     }
   },
 
-<<<<<<< HEAD
   mounted() {
-=======
-  created() {
->>>>>>> istio ui demo feedback
     this.addTab(this);
   },
 
