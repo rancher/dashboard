@@ -160,7 +160,7 @@ export default {
       padding: 0 5px 0 0;
 
       .btn {
-        margin: 11px 0 0 0;
+        margin: 10px 0 0 0;
         text-align: center;
       }
     }
@@ -178,11 +178,7 @@ export default {
     > .top {
       grid-area: top;
       background-color: var(--header-bg);
-      padding-top: 6px;
-
-      .vs__dropdown-toggle {
-        background: pink!important;
-      }
+      padding-top: 10px;
 
       INPUT[type='search']::placeholder,
       .vs__open-indicator,
