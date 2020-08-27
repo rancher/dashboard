@@ -80,11 +80,11 @@ export default {
           <ul class="list-unstyled dropdown" style="margin: -1px;">
             <li v-if="authEnabled">
               <div>{{ principal.loginName }}</div>
-              <div class="text-small pb-10">
+              <div class="text-small pb-5">
                 {{ principal.name }}
               </div>
             </li>
-            <nuxt-link tag="li" :to="{name: 'prefs'}" class="pt-5 pb-5 hand">
+            <nuxt-link tag="li" :to="{name: 'prefs'}" class="hand">
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
             <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="pt-5 pb-5 hand">
@@ -160,7 +160,7 @@ export default {
       padding: 0 5px 0 0;
 
       .btn {
-        margin: 11px 0 0 0;
+        margin: 10px 0 0 0;
         text-align: center;
       }
     }
@@ -178,11 +178,7 @@ export default {
     > .top {
       grid-area: top;
       background-color: var(--header-bg);
-      padding-top: 6px;
-
-      .vs__dropdown-toggle {
-        background: pink!important;
-      }
+      padding-top: 10px;
 
       INPUT[type='search']::placeholder,
       .vs__open-indicator,
@@ -224,10 +220,6 @@ export default {
         border: 0;
         border-radius: 50%;
       }
-    }
-
-    .vs__dropdown-toggle {
-      background: hotpink!important;
     }
   }
 </style>

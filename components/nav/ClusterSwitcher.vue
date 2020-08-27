@@ -88,7 +88,7 @@ export default {
   .filter ::v-deep .v-select {
     max-width: 100%;
     display: inline-block;
-    margin: 11px 0;
+    margin-top: 10px;
     border: 1px solid var(--header-btn-bg);
     color: var(--header-btn-text);
     background: rgba(0,0,0,.05);
@@ -104,7 +104,7 @@ export default {
     }
 
     .vs__dropdown-toggle {
-      height: calc(var(--header-height) - 22px);
+      height: calc(var(--header-height) - 20px);
       background-color: transparent;
       border: 0;
 
@@ -114,7 +114,7 @@ export default {
     }
 
     .vs__selected {
-      margin: 2px;
+      // margin: 2px;
       user-select: none;
       cursor: default;
       color: white;

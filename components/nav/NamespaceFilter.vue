@@ -182,6 +182,10 @@ export default {
     margin: 2px;
     user-select: none;
     cursor: default;
+    background: rgba(255, 255, 255, 0.25);
+    border: solid white thin;
+    color: white;
+    height: calc(var(--header-height) - 25px);
   }
 
   .filter ::v-deep INPUT {
@@ -192,6 +196,24 @@ export default {
   .filter ::v-deep INPUT:hover {
     background-color: transparent;
   }
+
+  .filter ::v-deep .vs__dropdown-toggle {
+    max-width: 100%;
+    border: 1px solid var(--header-btn-bg);
+    color: var(--header-btn-text);
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: var(--border-radius);
+    height: calc(var(--header-height) - 19px);
+  }
+
+  .filter ::v-deep .vs__deselect:after {
+    color: white;
+  }
+
+  .filter ::v-deep .v-select .vs__actions:after {
+    fill: white !important;
+    color: white !important;
+}
 </style>
 
 <template>

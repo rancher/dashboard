@@ -641,6 +641,10 @@ $spacing: 10px;
       color: var(--sortable-table-header-bg);
     }
 
+    tr.row-selected {
+      background: var(--sortable-table-selected-bg);
+    }
+
     &.group {
       &:before {
         content: "";
