@@ -144,9 +144,8 @@ export default {
     if ( !getters.typeRegistered(type) ) {
       commit('registerType', type);
     }
-
     if ( opt.force !== true && getters['haveSelector'](type, selector) ) {
-      return getters.matching({ type, selector });
+      return getters.matching( type, selector );
     }
 
     opt = opt || {};
@@ -177,9 +176,7 @@ export default {
       });
     }
 
-    const all = getters.all(type);
-
-    return all;
+    return getters.matching( type, selector );
   },
 
   // opt:
