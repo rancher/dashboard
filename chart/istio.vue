@@ -6,6 +6,8 @@ import YamlEditor from '@/components/YamlEditor';
 import { mapGetters } from 'vuex';
 import FileSelector from '@/components/form/FileSelector';
 import Tab from '@/components/Tabbed/Tab';
+import Banner from '@/components/Banner';
+import { SERVICE } from '@/config/types';
 
 const defaultOverlayFile = '#apiVersion: install.istio.io/v1alpha1\n#kind: IstioOperator\n#spec:\n#  components:\n#    ingressGateways:\n#    - enabled: true\n#      name: istio-ingressgateway\n#    - enabled: true\n#      k8s:\n#        resources:\n#          requests:\n#            cpu: 200m\n#        service:\n#          ports:\n#          - name: tcp-citadel-grpc-tls\n#            port: 8060\n#            targetPort: 8060\n#          - name: tcp-dns\n#            port: 5353\n#        serviceAnnotations:\n#          cloud.google.com/load-balancer-type: internal\n#      name: ilb-gateway\n#      namespace: user-ingressgateway-ns\n#    - enabled: true\n#      k8s:\n#        resources:\n#          requests:\n#            cpu: 200m\n#        service:\n#          ports:\n#          - name: tcp-citadel-grpc-tls\n#            port: 8060\n#            targetPort: 8060\n#          - name: tcp-dns\n#            port: 5353\n#        serviceAnnotations:\n#          cloud.google.com/load-balancer-type: internal\n#      name: other-gateway\n#      namespace: istio-system';
 
@@ -14,7 +16,8 @@ export default {
     Checkbox,
     FileSelector,
     YamlEditor,
-    Tab
+    Tab,
+    Banner
   },
 
   hasTabs: true,
@@ -28,6 +31,14 @@ export default {
     }
   },
 
+  fetch() {
+    this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/istio-pilot' }).then((svc) => {
+      if (svc) {
+        this.v1Installed = true;
+      }
+    });
+  },
+
   data() {
     let overlayFile = this.value.overlayFile;
 
@@ -35,7 +46,7 @@ export default {
       overlayFile = defaultOverlayFile;
     }
 
-    return { overlayFile };
+    return { overlayFile, v1Installed: false };
   },
 
   computed: {
@@ -59,7 +70,16 @@ export default {
         }
       }, 500)
     },
+
     ...mapGetters({ t: 'i18n/t' })
+  },
+
+  watch: {
+    v1Installed(neu, old) {
+      if (!!neu && !old) {
+        this.$emit('warn', this.t('istio.v1Warning', {}, true));
+      }
+    }
   },
 
   methods: {
@@ -116,9 +136,11 @@ export default {
 
     <Tab :label="t('istio.customOverlayFile.label')" name="overlay" @active="$refs['yaml-editor'].refresh()">
       <div class="custom-overlay">
-        <div>
-          <span>{{ t('istio.customOverlayFile.label') }}</span><i v-tooltip="t('istio.customOverlayFile.tip')" class="icon icon-info" />
-        </div>
+        <Banner color="info">
+          <span
+            v-html="t('istio.customOverlayFile.tip', {}, true)"
+          ></span>
+        </Banner>
         <YamlEditor
           ref="yaml-editor"
           class="yaml-editor mb-10"

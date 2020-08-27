@@ -18,6 +18,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import Checkbox from '@/components/form/Checkbox';
 import Questions from '@/components/Questions';
 import CruResourceFooter from '@/components/CruResourceFooter';
+import Banner from '@/components/Banner';
 
 import { CATALOG } from '@/config/types';
 import {
@@ -45,6 +46,7 @@ export default {
     UnitInput,
     YamlEditor,
     Questions,
+    Banner
   },
 
   async fetch() {
@@ -160,6 +162,7 @@ export default {
       valuesYaml:         null,
       version:            null,
       versionInfo:        null,
+      warnings:           [],
 
       atomic:              false,
       cleanupOnFail:       false,
@@ -568,6 +571,12 @@ export default {
         </div>
       </div>
 
+      <div v-if="chart && warnings.length">
+        <Banner v-for="warning in warnings" :key="warning" color="warning">
+          <span v-html="warning" />
+        </Banner>
+      </div>
+
       <div v-if="existing && chart" class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
@@ -632,6 +641,7 @@ export default {
             :chart="chart"
             :version="version"
             :version-info="versionInfo"
+            @warn="e=>warnings.push(e)"
           />
           <Tab
             v-else
@@ -645,6 +655,7 @@ export default {
               :chart="chart"
               :version="version"
               :version-info="versionInfo"
+              @warn="e=>warnings.push(e)"
             />
             <Tab
               v-else
@@ -658,6 +669,7 @@ export default {
                 :chart="chart"
                 :version="version"
                 :version-info="versionInfo"
+                @warn="e=>warnings.push(e)"
               />
             </Tab>
           </tab>
