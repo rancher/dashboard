@@ -186,8 +186,9 @@ export default {
       display: none;
     }
 
-    .vs__open-indicator {
-      fill: white;
+    .vs__actions:after {
+      fill: white !important;
+      color: white !important;
     }
 
     .vs__dropdown-toggle {
