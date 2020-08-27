@@ -18,18 +18,10 @@ export default {
   components: { Loading, ResourceTable },
 
   async fetch() {
-    const types = Object.values(WORKLOAD_TYPES);
-    const { params:{ resource:type } } = this.$route;
     let resources;
 
-    if (type !== schema.id) {
-      if ( this.$store.getters['cluster/schemaFor'](type) ) {
-        const resource = await this.$store.dispatch('cluster/findAll', { type });
-
-        resources = [resource];
-      }
-    } else {
-      resources = await Promise.all(types.map((type) => {
+    if ( this.allTypes ) {
+      resources = await Promise.all(Object.values(WORKLOAD_TYPES).map((type) => {
       // You may not have RBAC to see some of the types
         if ( !this.$store.getters['cluster/schemaFor'](type) ) {
           return null;
@@ -37,6 +29,14 @@ export default {
 
         return this.$store.dispatch('cluster/findAll', { type });
       }));
+    } else {
+      const type = this.$route.params.resource;
+
+      if ( this.$store.getters['cluster/schemaFor'](type) ) {
+        const resource = await this.$store.dispatch('cluster/findAll', { type });
+
+        resources = [resource];
+      }
     }
 
     this.resources = resources;
@@ -47,6 +47,10 @@ export default {
   },
 
   computed: {
+    allTypes() {
+      return this.$route.params.resource === schema.id;
+    },
+
     schema() {
       const { params:{ resource:type } } = this.$route;
 
@@ -59,6 +63,7 @@ export default {
 
     rows() {
       const out = [];
+      const allTypes = this.allTypes;
 
       for ( const typeRows of this.resources ) {
         if ( !typeRows ) {
@@ -66,7 +71,7 @@ export default {
         }
 
         for ( const row of typeRows ) {
-          if ( !row.metadata?.ownerReferences ) {
+          if ( !allTypes || !row.metadata?.ownerReferences ) {
             out.push(row);
           }
         }
