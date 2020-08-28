@@ -172,12 +172,17 @@ catalog:
         unit: revisions
       hooks: Execute chart hooks
       openapi: Validate OpenAPI schema
-      resereuseValues: Reuse Values
+      reuseValues: Reuse Values
       resetValues: Reset Values
       timeout:
         label: Timeout
         unit: sec
       wait: Wait
+  release:
+    section:
+      readme: Chart README
+      notes: Release Notes
+      values: Values YAML
 
 cluster:
   nodeDriver:

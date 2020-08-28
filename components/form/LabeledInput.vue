@@ -45,7 +45,11 @@ export default {
   computed: {
     isViewing() {
       return this.mode === _VIEW;
-    }
+    },
+
+    hasLabel() {
+      return !!this.label || !!this.$slots.label;
+    },
   },
 
   methods: {
@@ -112,7 +116,7 @@ export default {
       <input
         v-else
         ref="value"
-        :class="{'no-label':!label}"
+        :class="{'no-label':!hasLabel}"
         v-bind="$attrs"
         :disabled="disabled"
         :type="type"
