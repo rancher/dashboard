@@ -35,17 +35,11 @@ export function init(store) {
   immutableType('fleet.cattle.io.cluster');
 
   basicType([
-    'fleet.cattle.io.gitrepo',
-    'fleet.cattle.io.clustergroup',
-    'fleet.cattle.io.cluster',
-    'fleet.cattle.io.clusterregistrationtoken',
-  ]);
-
-  basicType([
     'fleet.cattle.io.bundledeployment',
     'fleet.cattle.io.bundle',
-    'fleet.cattle.io.clusterregistration',
-    'fleet.cattle.io.content',
-    'gitjob.cattle.io.gitjob',
-  ], 'More things of note?');
+    'fleet.cattle.io.cluster',
+    'fleet.cattle.io.clustergroup',
+    'fleet.cattle.io.clusterregistrationtoken',
+    'fleet.cattle.io.gitrepo',
+  ]);
 }

@@ -74,7 +74,7 @@ export default {
     const { getters, dispatch, commit } = ctx;
     const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
 
-    res.forEach((schema) => {
+    res.data.forEach((schema) => {
       schema._id = normalizeType(schema.id);
       schema._group = normalizeType(schema.attributes?.group);
     });
@@ -82,11 +82,14 @@ export default {
     commit('loadAll', {
       ctx,
       type: SCHEMA,
-      data: res
+      data: res.data
     });
 
     if ( watch !== false ) {
-      dispatch('watch', { type: SCHEMA });
+      dispatch('watch', {
+        type:     SCHEMA,
+        revision: res.revision
+      });
     }
 
     const all = getters.all(SCHEMA);
@@ -116,7 +119,7 @@ export default {
     const res = await dispatch('request', opt);
 
     if ( opt.load === false ) {
-      return res.data;
+      return res;
     }
 
     commit('loadAll', {
@@ -126,7 +129,10 @@ export default {
     });
 
     if ( opt.watch !== false ) {
-      dispatch('watch', { type });
+      dispatch('watch', {
+        type,
+        revision: res.revision
+      });
     }
 
     const all = getters.all(type);

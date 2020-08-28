@@ -935,7 +935,7 @@ export const getters = {
     });
   },
 
-  isProductActive(getters) {
+  isProductActive(state, getters) {
     return (name) => {
       if ( findBy(getters['activeProducts'], 'name', name) ) {
         return true;
