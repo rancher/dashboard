@@ -4,21 +4,10 @@ import GradientBox from '@/components/GradientBox';
 export default {
   components: { GradientBox },
   props:      {
-    provider: {
-      type:     String,
-      required: true
-    },
-    kubernetesVersion: {
-      type:     String,
-      required: true
-    },
-    totalNodes: {
-      type:     Number,
-      required: true
-    },
-    created: {
-      type:     String,
-      required: true
+    // array of slot names being used
+    slots: {
+      type:    Array,
+      default: () => []
     }
   }
 };
@@ -26,21 +15,8 @@ export default {
 
 <template>
   <GradientBox class="glance" primary-color-var="--glance-bg-rgb" :show-tab="false">
-    <div class="tile">
-      <h1>{{ provider }}</h1>
-      <label>{{ t('glance.provider') }}</label>
-    </div>
-    <div class="tile">
-      <h1>{{ kubernetesVersion }}</h1>
-      <label>{{ t('glance.version') }}</label>
-    </div>
-    <div class="tile">
-      <h1>{{ totalNodes }}</h1>
-      <label>{{ t('glance.nodes.total.label', { count: totalNodes }) }}</label>
-    </div>
-    <div class="tile">
-      <h1><LiveDate :value="created" :add-suffix="true" :show-tooltip="true" /></h1>
-      <label>{{ t('glance.created') }}</label>
+    <div v-for="slot in slots" :key="slot" class="tile">
+      <slot :name="slot" />
     </div>
   </GradientBox>
 </template>
@@ -52,7 +28,7 @@ export default {
       justify-content: space-evenly;
       padding: 11px;
 
-      .tile {
+    .tile {
           display: flex;
           flex: 1;
           flex-direction: column;

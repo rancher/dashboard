@@ -119,3 +119,9 @@ export const RIO = {
 };
 
 export const GATEKEEPER = { CONSTRAINT_TEMPLATE: 'templates.gatekeeper.sh.constrainttemplate' };
+
+export const ISTIO = {
+  VIRTUAL_SERVICE:  'networking.istio.io.virtualservice',
+  DESTINATION_RULE:  'networking.istio.io.destinationrule',
+  GATEWAY:          'networking.istio.io.gateway'
+};
