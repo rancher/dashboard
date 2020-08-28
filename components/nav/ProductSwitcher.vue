@@ -73,12 +73,16 @@ export default {
       this.$refs.select.$refs.search.focus();
     },
 
+    switchToApps() {
+      this.change('apps');
+    },
+
     switchToExplorer() {
       this.change('explorer');
     },
 
-    switchToApps() {
-      this.change('apps');
+    switchToFleet() {
+      this.change('fleet');
     },
 
     change(product) {
@@ -172,6 +176,7 @@ export default {
       </template>
     </v-select>
     <button v-shortkey.once="['p']" class="hide" @shortkey="focus()" />
+    <button v-shortkey.once="['f']" class="hide" @shortkey="switchToFleet()" />
     <button v-shortkey.once="['e']" class="hide" @shortkey="switchToExplorer()" />
     <button v-shortkey.once="['a']" class="hide" @shortkey="switchToApps()" />
   </div>
