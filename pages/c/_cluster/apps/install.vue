@@ -132,9 +132,14 @@ export default {
 
       if ( this.existing ) {
         if ( !this.chartValues ) {
-          this.chartValues = merge({}, this.existing.spec?.values || {});
+          this.chartValues = this.existing.spec?.chart?.values || {};
           this.loadedVersion = this.version.key;
           this.valuesYaml = jsyaml.safeDump(this.chartValues);
+
+          if ( this.valuesYaml === '{}\n' ) {
+            this.valuesYaml = '';
+          }
+
           this.originalYamlValues = this.valuesYaml;
         }
       } else if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
@@ -142,6 +147,11 @@ export default {
         this.chartValues = merge({}, this.versionInfo.values);
         this.loadedVersion = this.version.key;
         this.valuesYaml = jsyaml.safeDump(this.chartValues);
+
+        if ( this.valuesYaml === '{}\n' ) {
+          this.valuesYaml = '';
+        }
+
         this.originalYamlValues = this.valuesYaml;
       }
     }

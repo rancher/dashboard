@@ -324,6 +324,7 @@ export default {
       if ( value && ( value.startsWith('{') || value.startsWith('[') ) ) {
         try {
           parsed = JSON.parse(value);
+          parsed = JSON.stringify(parsed, null, 2);
         } catch {
         }
       }
@@ -413,7 +414,7 @@ export default {
             <template v-if="get(row, '_display.parsed')">
               <CodeMirror
                 :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
-                :value="row[valueName]"
+                :value="get(row, '_display.parsed')"
               />
             </template>
             <ClickExpand v-else-if="get(row, '_display.isLarge')" :value="row[valueName]" :size="get(row, '_display.byteSize')" />
