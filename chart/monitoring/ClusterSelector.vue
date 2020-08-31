@@ -8,6 +8,10 @@ const CLUSTER_TYPES = [
     label: 'monitoring.clusterType.rke',
   },
   {
+    id:    'RKE2',
+    label: 'monitoring.clusterType.rke2',
+  },
+  {
     id:    'K3s',
     label: 'monitoring.clusterType.k3s',
   },
@@ -27,6 +31,7 @@ const CLUSTER_TYPES = [
 
 const CONFIG_KEYS = {
   rke:     ['rkeControllerManager', 'rkeScheduler', 'rkeProxy', 'rkeEtcd'],
+  rke2:    ['rke2ControllerManager', 'rke2Scheduler', 'rke2Proxy', 'rke2Etcd'],
   k3s:     ['k3sControllerManager', 'k3sScheduler', 'k3sProxy'],
   kubeadm: [
     'kubeAdmControllerManager',
@@ -80,6 +85,9 @@ export default {
       case 'RKE':
         resetOut = [this.configKeys.rke, false];
         break;
+      case 'RKE2':
+        resetOut = [this.configKeys.rke2, false];
+        break;
       case 'K3s':
         resetOut = [this.configKeys.k3s, false];
         break;
@@ -100,6 +108,9 @@ export default {
       switch (clusterType) {
       case 'RKE':
         setNewOut = [this.configKeys.rke, true];
+        break;
+      case 'RKE2':
+        setNewOut = [this.configKeys.rke2, true];
         break;
       case 'K3s':
         setNewOut = [this.configKeys.k3s, true];

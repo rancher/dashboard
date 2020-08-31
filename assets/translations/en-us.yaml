@@ -490,6 +490,7 @@ monitoring:
     other: Other
     placeholder: Select cluster type
     rke: RKE
+    rke2: RKE2
   grafana:
     storage:
       annotations: PVC Annotations
