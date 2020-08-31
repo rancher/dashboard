@@ -198,12 +198,14 @@ export default {
 
     .vs__dropdown-toggle {
       height: var(--header-height);
-      margin-left: 35px;
+      // margin-left: 35px;
       background-color: transparent;
       border: 0;
+      position: relative;
+      // left: 35px;
 
       .vs__actions {
-        margin-left: -10px;
+        // margin-left: -10px;
       }
     }
 
@@ -214,6 +216,8 @@ export default {
       color: white;
       line-height: calc(var(--header-height) - 10px);
       font-size: 0.87em;
+      position: relative;
+      left: 40px;
     }
   }
 

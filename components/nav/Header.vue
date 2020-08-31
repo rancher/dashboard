@@ -34,7 +34,9 @@ export default {
   <header :class="{explorer: isExplorer}">
     <div class="product">
       <ProductSwitcher />
-      <div class="logo" alt="Logo" />
+      <div alt="Logo" class="logo">
+        <img src="~/assets/images/half-logo.svg" />
+      </div>
     </div>
 
     <div class="apps">
@@ -132,14 +134,15 @@ export default {
       position: relative;
 
       .logo {
-        background-color: var(--header-logo);
-        mask: url("~assets/images/logo.svg") no-repeat center;
         height: 30px;
-        width: 64px;
         position: absolute;
         top: 9px;
-        left: -30px;
+        left: 0;
         z-index: 2;
+
+        img {
+          height: 30px;
+        }
       }
     }
 
