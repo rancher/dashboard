@@ -213,7 +213,7 @@ export default {
     <Header />
 
     <nav v-if="clusterReady">
-      <Jump v-if="showJump" class="m-10 mb-10" />
+      <Jump v-if="showJump" class="m-10" />
       <div v-else class="mb-20" />
       <template v-for="(g, idx) in groups">
         <Group
