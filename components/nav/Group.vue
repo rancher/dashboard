@@ -157,7 +157,7 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 7px 2px 11px 0;
+          padding: 7px 8px 11px 0;
         }
       }
 
@@ -188,10 +188,17 @@ export default {
  .header ::v-deep > .child.nuxt-link-exact-active {
     background-color: var(--nav-active);
     padding: 0;
-    border-radius: 0 90px 90px 0;
+    border-radius: 0 99px 99px 0;
 
     A, A I {
       color: var(--body-text);
+    }
+  }
+
+  .body ::v-deep > .child {
+    A:focus {
+      outline: none;
+      box-shadow: 0 0 0 var(--outline-width) var(--outline);
     }
   }
 </style>
