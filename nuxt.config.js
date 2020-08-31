@@ -43,6 +43,10 @@ if ( resourceBase && !resourceBase.endsWith('/') ) {
 
 console.log(`Build: ${ dev ? 'Development' : 'Production' }`); // eslint-disable-line no-console
 
+if ( !dev ) {
+  console.log(`Version: ${ version } (${ commit })`); // eslint-disable-line no-console
+}
+
 if ( resourceBase ) {
   console.log(`Resource Base URL: ${ resourceBase }`); // eslint-disable-line no-console
 }
