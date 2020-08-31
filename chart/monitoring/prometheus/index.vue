@@ -1,16 +1,16 @@
 <script>
+import Checkbox from '@/components/form/Checkbox';
+import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import RadioGroup from '@/components/form/RadioGroup';
-import KeyValue from '@/components/form/KeyValue';
 import StorageClassSelector from '@/chart/monitoring/StorageClassSelector';
 
 export default {
   components: {
+    Checkbox,
     KeyValue,
     LabeledInput,
     LabeledSelect,
-    RadioGroup,
     StorageClassSelector,
   },
   props: {
@@ -81,6 +81,11 @@ export default {
     </div>
     <div class="prometheus-config">
       <div class="row">
+        <div class="col span-6 col-full-height">
+          <Checkbox v-model="value.prometheus.prometheusSpec.enableAdminAPI" :label="t('monitoring.prometheus.config.adminApi')" />
+        </div>
+      </div>
+      <div class="row">
         <div class="col span-6">
           <LabeledInput
             v-model="value.prometheus.prometheusSpec.scrapeInterval"
@@ -131,36 +136,28 @@ export default {
       <div class="row">
         <div class="col span-6">
           <LabeledInput
-            v-model="value.prometheus.prometheusSpec.resources.limits.memory"
-            :label="t('monitoring.prometheus.config.limits.memory')"
-            :mode="mode"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
             v-model="value.prometheus.prometheusSpec.resources.limits.cpu"
             :label="t('monitoring.prometheus.config.limits.cpu')"
             :mode="mode"
           />
         </div>
-      </div>
-      <div class="row pt-10 pb-10">
         <div class="col span-6">
-          <RadioGroup
-            v-model="value.prometheus.prometheusSpec.enableAdminAPI"
-            :label="t('monitoring.prometheus.config.adminApi')"
-            :labels="[t('generic.disabled'), t('generic.enabled')]"
+          <LabeledInput
+            v-model="value.prometheus.prometheusSpec.resources.limits.memory"
+            :label="t('monitoring.prometheus.config.limits.memory')"
             :mode="mode"
-            :options="[false, true]"
           />
         </div>
+      </div>
+      <div class="row row-full-height container-flex-center" style="min-height: 55px;">
         <div class="col span-6">
-          <RadioGroup
-            v-model="enablePersistantStorage"
-            :label="t('monitoring.prometheus.storage.label')"
-            :labels="[t('generic.disabled'), t('generic.enabled')]"
+          <Checkbox v-model="enablePersistantStorage" :label="t('monitoring.prometheus.storage.label')" />
+        </div>
+        <div v-if="enablePersistantStorage" class="col span-6">
+          <LabeledInput
+            v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
+            :label="t('monitoring.prometheus.storage.size')"
             :mode="mode"
-            :options="[false, true]"
           />
         </div>
       </div>
@@ -206,13 +203,6 @@ export default {
           </div>
         </div>
         <div class="row">
-          <div class="col span-6">
-            <LabeledInput
-              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
-              :label="t('monitoring.prometheus.storage.size')"
-              :mode="mode"
-            />
-          </div>
         </div>
         <div class="row">
           <div class="col span-12">

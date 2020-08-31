@@ -1,23 +1,29 @@
 <script>
-import { STORAGE_CLASS, PVC, SECRET, NAMESPACE } from '@/config/types';
-import merge from 'lodash/merge';
-import jsyaml from 'js-yaml';
-import RadioGroup from '@/components/form/RadioGroup';
-import ClusterSelector from '@/chart/monitoring/ClusterSelector';
-import Prometheus from '@/chart/monitoring/prometheus';
-import Grafana from '@/chart/monitoring/grafana';
-import Alerting from '@/chart/monitoring/alerting';
-import isEmpty from 'lodash/isEmpty';
 import has from 'lodash/has';
+import isEmpty from 'lodash/isEmpty';
+import jsyaml from 'js-yaml';
+import merge from 'lodash/merge';
+import cloneDeep from 'lodash/cloneDeep';
+
+import Alerting from '@/chart/monitoring/alerting';
+import Checkbox from '@/components/form/Checkbox';
+import ClusterSelector from '@/chart/monitoring/ClusterSelector';
+import Grafana from '@/chart/monitoring/grafana';
+import Prometheus from '@/chart/monitoring/prometheus';
+
+import { allHash } from '@/utils/promise';
+import { base64Encode } from '@/utils/crypto';
+import { STORAGE_CLASS, PVC, SECRET, NAMESPACE } from '@/config/types';
 
 export default {
   components: {
     Alerting,
+    Checkbox,
     ClusterSelector,
     Grafana,
     Prometheus,
-    RadioGroup,
   },
+
   props: {
     chart: {
       type:    Object,
@@ -53,10 +59,6 @@ export default {
           label: 'monitoring.accessModes.many',
         },
       ],
-      enableDisableLabels: [
-        this.t('generic.disabled'),
-        this.t('generic.enabled'),
-      ],
       newAlertManagerSecret: {},
       pvcs:                  [],
       secrets:               [],
@@ -66,8 +68,8 @@ export default {
   },
 
   created() {
-    [this.createNamespace, this.createDefaultSecret]
-      .forEach((fn, idx) => this.$emit('register-before-hook', fn, idx));
+    this.$emit('register-before-hook', this.createNamespace, 0);
+    this.$emit('register-before-hook', this.createDefaultSecret, 1);
 
     if (this.mode === 'create') {
       const extendedDefaults = {
@@ -125,21 +127,31 @@ export default {
 
     async createDefaultSecret(cb) {
       const { value: model, newAlertManagerSecret } = this;
+      // clone the new secret so we can base64 the content without borking users secret if the save fails
+      const cloned = cloneDeep(newAlertManagerSecret);
 
       if (model.alertmanager.enabled && !model.alertmanager.alertmanagerSpec.useExistingSecret) {
-        if (isEmpty(newAlertManagerSecret)) {
+        if (isEmpty(cloned)) {
           throw new Error('An AlertManager secret is required');
         }
 
-        if (!has(newAlertManagerSecret?.data, 'alertmanager.yaml')) {
+        if (!has(cloned?.data, 'alertmanager.yaml')) {
           throw new Error('The AlertManager config must have a key with alertmanager.yaml');
         }
 
-        try {
-          await newAlertManagerSecret.save();
-          await newAlertManagerSecret.waitForState('active');
+        Object.keys(cloned.data).forEach((keey) => {
+          cloned.data[keey] = base64Encode(newAlertManagerSecret.data[keey]);
+        });
 
-          return newAlertManagerSecret;
+        try {
+          const secret = await this.$store.dispatch('cluster/create', cloned);
+
+          await secret.save();
+          await secret.waitForState('active');
+
+          this.newAlertManagerSecret = secret;
+
+          return secret;
         } catch (error) {
           console.error(error); // eslint-disable-line no-console
           throw error;
@@ -149,34 +161,36 @@ export default {
 
     async fetchDeps() {
       const { $store } = this;
-      const storageClasses = await $store.dispatch('cluster/findAll', { type: STORAGE_CLASS });
-      const pvcs = await $store.dispatch('cluster/findAll', { type: PVC });
-      const secrets = await $store.dispatch('cluster/findAll', { type: SECRET });
-      const namespaces = await $store.getters['namespaces']();
+      const hash = await allHash({
+        storageClasses: $store.dispatch('cluster/findAll', { type: STORAGE_CLASS }),
+        pvcs:           $store.dispatch('cluster/findAll', { type: PVC }),
+        secrets:        $store.dispatch('cluster/findAll', { type: SECRET }),
+        namespaces:     $store.getters['namespaces'](),
+      });
 
-      this.targetNamespace = namespaces[this.chart.targetNamespace] || false;
+      this.targetNamespace = hash.namespaces[this.chart.targetNamespace] || false;
 
-      if (storageClasses) {
-        this.storageClasses = storageClasses;
+      if (!isEmpty(hash.storageClasses)) {
+        this.storageClasses = hash.storageClasses;
       }
 
-      if (pvcs) {
-        this.pvcs = pvcs;
+      if (!isEmpty(hash.pvcs)) {
+        this.pvcs = hash.pvcs;
       }
 
-      if (secrets) {
-        this.secrets = secrets.filter(
-          secret => secret?.metadata?.namespace === 'cattle-monitoring-system'
-        );
+      if (!isEmpty(hash.secrets)) {
+        this.secrets = hash.secrets;
       }
     },
 
     async initSecret() {
       const { value } = this;
       const defData = {
-        type:     SECRET,
-        data:     { 'alertmanager.yaml': '' },
-        metadata: {
+        apiVersion: 'v1',
+        kind:       'Secret',
+        type:       SECRET,
+        data:       { 'alertmanager.yaml': '' },
+        metadata:   {
           labels:    { alertmanager_config: '1' },
           name:      'alertmanager-rancher-monitoring-alertmanager',
           namespace: 'cattle-monitoring-system',
@@ -223,22 +237,10 @@ export default {
       </div>
       <div class="row">
         <div class="col span-6">
-          <RadioGroup
-            v-model="value.global.rbac.userRoles.create"
-            :label="t('monitoring.createDefaultRoles')"
-            :labels="enableDisableLabels"
-            :mode="mode"
-            :options="[false, true]"
-          />
+          <Checkbox v-model="value.global.rbac.userRoles.create" :label="t('monitoring.createDefaultRoles')" />
         </div>
         <div class="col span-6">
-          <RadioGroup
-            v-model="value.global.rbac.userRoles.aggregateToDefaultRoles"
-            :label="t('monitoring.aggrigateDefaultRoles')"
-            :labels="enableDisableLabels"
-            :mode="mode"
-            :options="[false, true]"
-          />
+          <Checkbox v-model="value.global.rbac.userRoles.aggregateToDefaultRoles" :label="t('monitoring.aggregateDefaultRoles')" />
         </div>
       </div>
     </section>
