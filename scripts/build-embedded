@@ -19,7 +19,7 @@ echo "TAG: ${GIT_TAG:-<none>}"
 DIR=${GIT_TAG:-$COMMIT_BRANCH}
 
 echo "Building..."
-COMMMIT=${COMMIT} VERSION=${VERSION} OUTPUT_DIR=dist/${DIR}-embedded ROUTER_BASE='/dashboard' yarn run build --spa
+NUXT_ENV_commit=${COMMIT} NUXT_ENV_version=${VERSION} OUTPUT_DIR=dist/${DIR}-embedded ROUTER_BASE='/dashboard' yarn run build --spa
 
 TARBALL=${DIR}.tar.gz
 echo "Compressing to ${TARBALL}..."
