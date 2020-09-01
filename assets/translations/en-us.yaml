@@ -1073,7 +1073,7 @@ workload:
     activeDeadlineSeconds:
       label: Active Deadline
       tip: The duration that the job may be active before the system tries to terminate it.
-    backOffLimit:
+    backoffLimit:
       label: Back Off Limit
       tip: The number of retries before marking this job failed.
     completions:

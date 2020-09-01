@@ -37,19 +37,19 @@ export default {
         this.$set(this.value, 'jobTemplate', { spec: {} });
       }
       const {
-        completions, parallelism, backOffLimit, activeDeadlineSeconds
+        completions, parallelism, backoffLimit, activeDeadlineSeconds
       } = this.value.jobTemplate.spec;
 
       return {
-        completions, parallelism, backOffLimit, activeDeadlineSeconds, failedJobsHistoryLimit, successfulJobsHistoryLimit, suspend, schedule
+        completions, parallelism, backoffLimit, activeDeadlineSeconds, failedJobsHistoryLimit, successfulJobsHistoryLimit, suspend, schedule
       };
     } else {
       const {
-        completions, parallelism, backOffLimit, activeDeadlineSeconds
+        completions, parallelism, backoffLimit, activeDeadlineSeconds
       } = this.value;
 
       return {
-        completions, parallelism, backOffLimit, activeDeadlineSeconds, failedJobsHistoryLimit, successfulJobsHistoryLimit, suspend, schedule
+        completions, parallelism, backoffLimit, activeDeadlineSeconds, failedJobsHistoryLimit, successfulJobsHistoryLimit, suspend, schedule
       };
     }
   },
@@ -68,7 +68,7 @@ export default {
           schedule:                   this.schedule,
           completions:           this.completions,
           parallelism:           this.parallelism,
-          backOffLimit:          this.backOffLimit,
+          backoffLimit:          this.backoffLimit,
           activeDeadlineSeconds: this.activeDeadlineSeconds,
 
         };
@@ -85,7 +85,7 @@ export default {
             ...this.value.jobTemplate,
             completions:           this.completions,
             parallelism:           this.parallelism,
-            backOffLimit:          this.backOffLimit,
+            backoffLimit:          this.backoffLimit,
             activeDeadlineSeconds: this.activeDeadlineSeconds
           }
         };
@@ -123,11 +123,11 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <UnitInput v-model="backOffLimit" :mode="mode" :suffix="backOffLimit===1 ? 'Time' : 'Times'">
+        <UnitInput v-model="backoffLimit" :mode="mode" :suffix="backoffLimit===1 ? 'Time' : 'Times'">
           <template #label>
             <label :style="{'color':'var(--input-label)'}">
-              {{ t('workload.job.backOffLimit.label') }}
-              <i v-tooltip="t('workload.job.backOffLimit.tip')" class="icon icon-info" style="font-size: 14px" />
+              {{ t('workload.job.backoffLimit.label') }}
+              <i v-tooltip="t('workload.job.backoffLimit.tip')" class="icon icon-info" style="font-size: 14px" />
             </label>
           </template>
         </UnitInput>
