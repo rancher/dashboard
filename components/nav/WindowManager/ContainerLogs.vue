@@ -3,14 +3,16 @@ import { saveAs } from 'file-saver';
 import AnsiUp from 'ansi_up';
 import { addParams } from '@/utils/url';
 import { base64Decode } from '@/utils/crypto';
-import { LOGS_RANGE, LOGS_TIME, LOGS_WRAP } from '@/store/prefs';
-import DateFormatter from '@/components/formatter/Date';
+import {
+  LOGS_RANGE, LOGS_TIME, LOGS_WRAP, DATE_FORMAT, TIME_FORMAT
+} from '@/store/prefs';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
 import AsyncButton from '@/components/AsyncButton';
 import Select from '@/components/form/Select';
+import day from 'dayjs';
 
-import { escapeRegex } from '@/utils/string';
+import { escapeHtml, escapeRegex } from '@/utils/string';
 
 import Socket, {
   EVENT_CONNECTED,
@@ -26,7 +28,7 @@ const ansiup = new AnsiUp();
 
 export default {
   components: {
-    Window, Select, LabeledSelect, Checkbox, DateFormatter, AsyncButton
+    Window, Select, LabeledSelect, Checkbox, AsyncButton
   },
 
   props:      {
@@ -79,6 +81,7 @@ export default {
       search:      '',
       backlog:     [],
       lines:       [],
+      now:         new Date(),
     };
   },
 
@@ -183,6 +186,13 @@ export default {
 
       return out;
     },
+
+    timeFormatStr() {
+      const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
+      const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
+
+      return `${ dateFormat } ${ timeFormat }`;
+    }
   },
 
   beforeDestroy() {
@@ -412,7 +422,15 @@ export default {
       this.$store.dispatch('prefs/set', { key: LOGS_RANGE, value: this.range });
       this.connect();
     },
-  }
+
+    format(time) {
+      if ( !time ) {
+        return '';
+      }
+
+      return day(time).format(this.timeFormatStr);
+    },
+  },
 };
 </script>
 
@@ -445,7 +463,7 @@ export default {
         <t :class="{'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
       </div>
       <div class="pull-right ml-5">
-        <input v-model="search" class="input-sm p-5" type="search" :placeholder="t('wm.containerLogs.search')" />
+        <input v-model="search" class="p-5" syle="margin-top: 3px;" type="search" :placeholder="t('wm.containerLogs.search')" />
       </div>
       <div class="pull-right ml-5">
         <v-popover
@@ -474,22 +492,24 @@ export default {
       </div>
     </template>
     <template #body>
-      <div ref="body" class="logs-container" :class="{'open': isOpen, 'closed': !isOpen}">
-        <div
-          class="logs-body"
-          :class="{'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
-        >
-          <template v-if="filtered.length">
-            <template
-              v-for="line in filtered"
-            >
-              <DateFormatter v-if="timestamps" :key="line.id + '-date'" tag-name="div" class="time" :value="line.time" />
-              <div :key="line.id + '-msg'" class="msg" v-html="line.msg" />
+      <div
+        ref="body"
+        :class="{'logs-container': true, 'open': isOpen, 'closed': !isOpen, 'show-times': timestamps && filtered.length, 'wrap-lines': wrap}"
+      >
+        <table class="fixed" cellpadding="0" cellspacing="0">
+          <tbody class="logs-body">
+            <template v-if="filtered.length">
+              <tr v-for="line in filtered" :key="line.id">
+                <td :key="line.id + '-time'" class="time" v-html="format(line.time)" />
+                <td :key="line.id + '-msg'" class="msg" v-html="line.msg" />
+              </tr>
             </template>
-          </template>
-          <t v-else-if="search" k="wm.containerLogs.noMatch" class="msg text-muted" />
-          <t v-else k="wm.containerLogs.noData" class="msg text-muted" />
-        </div>
+            <tr v-else-if="search">
+              <td v-t="'wm.containerLogs.noMatch'" colspan="2" class="msg text-muted" />
+            </tr>
+            <tr v-else v-t="'wm.containerLogs.noData'" colspan="2" class="msg text-muted" />
+          </tbody>
+        </table>
       </div>
     </template>
   </Window>
@@ -505,25 +525,22 @@ export default {
     background-color: var(--logs-bg);
     font-family: Menlo,Consolas,monospace;
     color: var(--logs-text);
-  }
-
-  .logs-body {
-    display: grid;
-    grid-template-areas: "msg";
-    grid-template-columns: auto;
-    column-gap: 10px;
 
     .closed {
       opacity: 0.25;
     }
 
-    &.show-times {
-      grid-template-areas: "time msg";
-      grid-template-columns: min-content auto;
-    }
-
     .time {
       white-space: nowrap;
+      display: none;
+      width: 0;
+      padding-right: 15px;
+      user-select: none;
+    }
+
+    &.show-times .time {
+      display: initial;
+      width: auto;
     }
 
     .msg {
