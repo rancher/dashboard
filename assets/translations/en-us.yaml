@@ -175,14 +175,21 @@ catalog:
       force: Force
       historyMax:
         label: Keep last
-        unit: revisions
+        unit: |-
+          {value, plural,
+            =1 { revision }
+            other { revisions }
+          }
       hooks: Execute chart hooks
       openapi: Validate OpenAPI schema
-      reuseValues: Reuse Values
       resetValues: Reset Values
       timeout:
         label: Timeout
-        unit: sec
+        unit: |-
+          {value, plural,
+            =1 { second }
+            other { seconds }
+          }
       wait: Wait
   release:
     section:
