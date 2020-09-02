@@ -158,6 +158,13 @@ backupRestoreOperator:
       s3: S3
     credentialSecretName:  Credential Secret
     storageLocation: Storage Location
+<<<<<<< HEAD
+=======
+    encryptionConfigName: Encryption Config Name
+    deleteTimeout: Delete Timeout
+    prune: Prune
+    encryptionConfig: Encryption Config Name 
+>>>>>>> add encryptionconfig to restore crd page
     endpoint: Endpoint
     endpointCA: Endpoint CA
     bucketName: Bucket Name

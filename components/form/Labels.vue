@@ -37,7 +37,7 @@ export default {
     },
 
     sectionClass() {
-      return `${ this.displaySideBySide ? 'col span-6' : 'row' } ${ this.defaultSectionClass }`.trim();
+      return `${ this.displaySideBySide ? 'col span-6' : 'row mb-20' } ${ this.defaultSectionClass }`.trim();
     }
   }
 };

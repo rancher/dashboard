@@ -80,6 +80,7 @@ export default {
         <Tabbed :side-tabs="true">
           <Tab name="storageLocation" :label="t('backupRestoreOperator.restore.titles.location')">
             <div class="bordered-section">
+              <Banner color="warning" :label="t('backupRestoreOperator.restore.credentialSecretName.tip')" />
               <div class="row mb-10">
                 <div class="col span-6">
                   <LabeledInput v-model="value.spec.backupFilename" required :mode="mode" :label="t('backupRestoreOperator.restore.backupFilename')" />
@@ -90,12 +91,15 @@ export default {
               </div>
               <div :style="{'align-items':'center'}" class="row mb-10">
                 <div class="col span-6">
+                  <LabeledSelect v-model="value.spec.encryptionConfigName" :mode="mode" :options="namespacedSecretNames" :label="t('backupRestoreOperator.restore.encryptionConfig')" />
+                </div>
+                <div class="col span-6">
                   <Checkbox v-model="value.spec.prune" :mode="mode" :label="t('backupRestoreOperator.restore.prune')" />
                 </div>
               </div>
             </div>
             <h3>{{ t('backupRestoreOperator.restore.titles.s3') }}</h3>
-            <Banner color="info" :label="t('backupRestoreOperator.restore.credentialSecretName.tip')" />
+
             <div class="row mb-10">
               <div class="col span-6">
                 <LabeledSelect v-model="s3.credentialSecretName" :mode="mode" :options="namespacedSecretNames" :label="t('backupRestoreOperator.restore.credentialSecretName.label')" />
