@@ -490,7 +490,7 @@ monitoring:
     other: Other
     placeholder: Select cluster type
     rke: RKE
-    rke2: RKE2
+    rke2: RKE Federal
   grafana:
     storage:
       annotations: PVC Annotations
@@ -572,7 +572,7 @@ persistentVolumeClaim:
   storageClass: Storage Class
   volumes: Persistent Volumes
   volumeName: Persistent Volume Name
-  source: 
+  source:
     label: Source
     options:
       new: Use a Storage Class to provision a new Persistent Volume
@@ -1197,7 +1197,7 @@ workload:
       hostPath: Bind-Mount
       certificate: Certificate
       persistentVolumeClaim: Persistent Volume Claim
-      createPersistentVolumeClaim: Create Persistent Volume Claim 
+      createPersistentVolumeClaim: Create Persistent Volume Claim
       csi: Ephemeral Volume
       nfs: NFS
     addMount: Add Mount
@@ -1206,15 +1206,15 @@ workload:
     csi:
       diskName: Disk Name
       diskURI: Disk URI
-      cachingMode: 
+      cachingMode:
         label: Caching Mode
-        options: 
+        options:
           none: None
           readOnly: Read Only
           readWrite: Read Write
-      kind: 
+      kind:
         label: Kind
-        options: 
+        options:
           dedicated: Dedicated
           managed: Managed
           shared: Shared
@@ -1234,7 +1234,7 @@ workload:
     defaultMode: Default Mode
     hostPath:
       label: The Path on the Node must be
-      options: 
+      options:
         default: 'Anything: do not check the target path'
         directoryOrCreate: A directory, or create if it doesn't exist
         directory: An existing directory
