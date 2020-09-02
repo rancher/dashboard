@@ -476,14 +476,33 @@ logging:
       placeholder: Paste in the Root CA
 
 monitoring:
-  createDefaultRoles: Create Default Monitoring Cluster Roles
-  aggrigateDefaultRoles: Aggregate to Default Kubernetes Roles
   accessModes:
     many: ReadWriteMany
     once: ReadWriteOnce
     readOnlyMany: ReadOnlyMany
+  aggregateDefaultRoles: Aggregate to Default Kubernetes Roles
+  alerting:
+    config:
+      label: Alert Manager Cofig
+    enable:
+      label: Deploy AlertManager
+    secrets:
+      additional:
+        label: Additional Secrets
+        info: "Secrets should be mounted at <pre class='inline-block m-0'>/etc/alertmanager/secrets/</pre>"
+      existing: Choose an existing config secret
+      info: "Creating the config will result in a new secret named <pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre> in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace. This secret can be edited after the installation of the chart via the UI. <br />Selecting an existing secret will require the secret to exist in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace. The provided secret will also require the label <pre class='inline-block m-0'>alertmanager_config: '1'</pre>. If the namespace does not exist you can not select a existing secret."
+      label: AlertManager Secret
+      new: "Create a default config"
+      radio:
+        label: Config Secret
+    templates:
+      keyLabel: File Name
+      label: Template Files
+      valueLabel: Yaml Template
+    title: Alerting
   clusterType:
-    k3s: 'K3s'
+    k3s: K3s
     kubeAdmin: KubeADM
     label: Cluster Type
     managed: 'Managed Cluster (EKS, GKE, AKS, etc.)'
@@ -491,6 +510,7 @@ monitoring:
     placeholder: Select cluster type
     rke: RKE
     rke2: RKE Federal
+  createDefaultRoles: Create Default Monitoring Cluster Roles
   grafana:
     storage:
       annotations: PVC Annotations

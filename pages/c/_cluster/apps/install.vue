@@ -1,39 +1,41 @@
 <script>
+import has from 'lodash/has';
+import isEmpty from 'lodash/isEmpty';
+import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
-import isEqual from 'lodash/isEqual';
-import isEmpty from 'lodash/isEmpty';
-import has from 'lodash/has';
 
 import AsyncButton from '@/components/AsyncButton';
-import Loading from '@/components/Loading';
-import NameNsDescription from '@/components/form/NameNsDescription';
-import UnitInput from '@/components/form/UnitInput';
+import Banner from '@/components/Banner';
+import Checkbox from '@/components/form/Checkbox';
+import CruResourceFooter from '@/components/CruResourceFooter';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LazyImage from '@/components/LazyImage';
+import Loading from '@/components/Loading';
 import Markdown from '@/components/Markdown';
+import NameNsDescription from '@/components/form/NameNsDescription';
+import Questions from '@/components/Questions';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
+import UnitInput from '@/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
-import Checkbox from '@/components/form/Checkbox';
-import Questions from '@/components/Questions';
-import CruResourceFooter from '@/components/CruResourceFooter';
-import Banner from '@/components/Banner';
 
 import { CATALOG } from '@/config/types';
 import {
   REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, PREVIEW, _UNFLAG, _FLAGGED
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
-import { exceptionToErrorsArray } from '@/utils/error';
+import { exceptionToErrorsArray, stringify } from '@/utils/error';
 import { diff } from '@/utils/object';
 import { findBy } from '@/utils/array';
+import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 
 export default {
   name: 'Install',
 
   components: {
     AsyncButton,
+    Banner,
     Checkbox,
     CruResourceFooter,
     LabeledSelect,
@@ -41,13 +43,14 @@ export default {
     Loading,
     Markdown,
     NameNsDescription,
+    Questions,
     Tab,
     Tabbed,
     UnitInput,
     YamlEditor,
-    Questions,
-    Banner
   },
+
+  mixins: [ChildHook],
 
   async fetch() {
     this.errors = [];
@@ -288,6 +291,8 @@ export default {
   },
 
   methods: {
+    stringify,
+
     async loadValuesComponent() {
       const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
 
@@ -414,6 +419,8 @@ export default {
 
         this.errors = [];
 
+        await this.applyHooks(BEFORE_SAVE_HOOKS);
+
         if ( this.existing ) {
           const upgrade = this.upgradeInput();
 
@@ -435,6 +442,8 @@ export default {
         } catch (e) {
           // The wait times out eventually, move on...
         }
+
+        await this.applyHooks(AFTER_SAVE_HOOKS);
 
         btnCb(true);
         this.done();
@@ -652,6 +661,8 @@ export default {
             :version="version"
             :version-info="versionInfo"
             @warn="e=>warnings.push(e)"
+            @register-before-hook="registerBeforeHook"
+            @register-after-hook="registerAfterHook"
           />
           <Tab
             v-else
@@ -666,6 +677,8 @@ export default {
               :version="version"
               :version-info="versionInfo"
               @warn="e=>warnings.push(e)"
+              @register-before-hook="registerBeforeHook"
+              @register-after-hook="registerAfterHook"
             />
             <Tab
               v-else
@@ -680,6 +693,8 @@ export default {
                 :version="version"
                 :version-info="versionInfo"
                 @warn="e=>warnings.push(e)"
+                @register-before-hook="registerBeforeHook"
+                @register-after-hook="registerAfterHook"
               />
             </Tab>
           </tab>
@@ -744,6 +759,10 @@ export default {
         </Tab>
       </Tabbed>
     </template>
+
+    <div v-for="(err, idx) in errors" :key="idx">
+      <Banner color="error" :label="stringify(err)" />
+    </div>
 
     <CruResourceFooter
       done-route="c-cluster-apps"
