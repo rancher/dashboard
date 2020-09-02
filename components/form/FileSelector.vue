@@ -95,7 +95,7 @@ export default {
 
 <template>
   <button type="button" class="file-selector btn" @click="selectFile">
-    {{ label }}
+    <span>{{ label }}</span>
     <input
       ref="uploader"
       type="file"
