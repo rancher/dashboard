@@ -27,7 +27,7 @@ import {
 } from '@/config/types';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import SimpleBox from '@/components/SimpleBox';
-import Glance from './Glance';
+import Glance from '@/components/Glance';
 import ResourceGauge from './ResourceGauge';
 import HardwareResourceGauge from './HardwareResourceGauge';
 
@@ -398,11 +398,25 @@ export default {
       </div>
     </header>
     <Glance
-      :provider="displayProvider"
-      :kubernetes-version="currentCluster.kubernetesVersion"
-      :total-nodes="(nodes || []).length"
-      :created="currentCluster.metadata.creationTimestamp"
-    />
+      :slots="['displayProvider', 'kubernetesVersion', 'totalNodes', 'created']"
+    >
+      <template #displayProvider>
+        <h1>{{ displayProvider }}</h1>
+        <label>{{ t('glance.provider') }}</label>
+      </template>
+      <template #kubernetesVersion>
+        <h1>{{ currentCluster.kubernetesVersion }}</h1>
+        <label>{{ t('glance.version') }}</label>
+      </template>
+      <template #totalNodes>
+        <h1>{{ (nodes || []).length }}</h1>
+        <label>{{ t('glance.nodes.total.label', { count: totalNodes }) }}</label>
+      </template>
+      <template #created>
+        <h1><LiveDate :value="currentCluster.metadata.creationTimestamp" :add-suffix="true" :show-tooltip="true" /></h1>
+        <label>{{ t('glance.created') }}</label>
+      </template>
+    </Glance>
     <div class="resource-gauges">
       <ResourceGauge v-for="resourceGauge in resourceGauges" :key="resourceGauge.name" v-bind="resourceGauge" />
     </div>
