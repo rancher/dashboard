@@ -158,13 +158,6 @@ backupRestoreOperator:
       s3: S3
     credentialSecretName:  Credential Secret
     storageLocation: Storage Location
-<<<<<<< HEAD
-=======
-    encryptionConfigName: Encryption Config Name
-    deleteTimeout: Delete Timeout
-    prune: Prune
-    encryptionConfig: Encryption Config Name 
->>>>>>> add encryptionconfig to restore crd page
     endpoint: Endpoint
     endpointCA: Endpoint CA
     bucketName: Bucket Name
@@ -176,6 +169,7 @@ backupRestoreOperator:
     configureS3: Use an S3-compatible object store
     useBackup: Use the s3 location specified on the Backup CR
   noResourceSet: 'You must define a ResourceSet in this namespace to create a backup CR.'
+
 
 catalog:
   repo:
