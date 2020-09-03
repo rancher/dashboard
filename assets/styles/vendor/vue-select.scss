@@ -44,7 +44,7 @@
   overflow-y: auto;
   border: 1px solid var(--dropdown-border);
   border-top-style: none;
-  border-radius: 0 0 4px 4px;
+  border-radius: var(--border-radius);
   text-align: left;
   list-style: none;
   background: var(--dropdown-bg);
@@ -105,7 +105,7 @@
   // padding: 0 0 4px 0;
   background: var(--input-bg);
   border: 1px solid var(--dropdown-border);
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   white-space: normal;
 }
 
@@ -114,7 +114,7 @@
   flex-basis: 100%;
   flex-grow: 1;
   flex-wrap: wrap;
-  padding: 0px 0px 2px 0px;
+  padding: 0;
   position: relative;
 }
 
@@ -141,6 +141,15 @@
 
 .vs--unsearchable .vs__dropdown-toggle {
   cursor: pointer;
+}
+
+.vs--unsearchable .vs__search {
+  background-color: var(--default-text);
+  width: 0px;
+  padding: 0;
+  align-self: center;
+  border: 0;
+  display: none;
 }
 
 .vs--open .vs__dropdown-toggle {
@@ -222,15 +231,13 @@ $transition-duration: 150ms;
 }
 
 .vs__selected {
-  @extend .text-small;
   display: flex;
   align-items: center;
   background-color: var(--accent-btn);
   border: 1px solid var(--primary);
   border-radius: 3px;
   color: var(--link-text);
-  margin: 4px 4px 0px 0px;
-  padding: 0.25em;
+  padding: 6px;
 }
 
 .vs__deselect {
@@ -276,7 +283,7 @@ $transition-duration: 150ms;
     border:none;
     height: 100%;
     padding: none;
-    border-radius: calc(var(--border-radius) * 2);
+    border-radius: var(--border-radius);
     border: 1px solid var(--dropdown-border);
   }
 

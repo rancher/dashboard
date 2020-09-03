@@ -203,7 +203,7 @@ export default {
     color: var(--header-btn-text);
     background: rgba(0, 0, 0, 0.05);
     border-radius: var(--border-radius);
-    height: calc(var(--header-height) - 19px);
+    height: calc(var(--header-height) - 18px);
   }
 
   .filter ::v-deep .vs__deselect:after {

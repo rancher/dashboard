@@ -163,7 +163,7 @@ export default {
       padding: 0 5px 0 0;
 
       .btn {
-        margin: 10px 0 0 0;
+        margin: 8px 0 0 0;
         text-align: center;
       }
     }
@@ -181,7 +181,7 @@ export default {
     > .top {
       grid-area: top;
       background-color: var(--header-bg);
-      padding-top: 10px;
+      padding-top: 8px;
 
       INPUT[type='search']::placeholder,
       .vs__open-indicator,

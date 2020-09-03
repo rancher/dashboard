@@ -9,6 +9,7 @@ import { ensureRegex } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
+import Select from '@/components/form/Select';
 import LazyImage from '@/components/LazyImage';
 import { mapPref, HIDE_REPOS } from '@/store/prefs';
 import { removeObject, addObject } from '@/utils/array';
@@ -20,6 +21,7 @@ export default {
     Loading,
     Checkbox,
     LazyImage,
+    Select,
   },
 
   async fetch() {
@@ -145,7 +147,7 @@ export default {
 
       out.unshift({
         label: 'All Categories',
-        value: undefined,
+        value: '',
         count: this.arrangedCharts.length
       });
 
@@ -239,7 +241,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <div class="Clearfix">
+    <div class="clearfix">
       <h1 class="pull-left">
         {{ t('catalog.charts.header') }}
       </h1>
@@ -248,40 +250,43 @@ export default {
         <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
       </div>
       <div class="pull-right pr-10">
-        <v-select
+        <Select
           v-model="category"
           :clearable="false"
+          :searchable="false"
           :options="categories"
           label="label"
+          style="min-width: 200px;"
           :reduce="opt => opt.value"
         >
           <template #option="opt">
             {{ opt.label }} ({{ opt.count }})
           </template>
-        </v-select>
+        </Select>
       </div>
-      <div class="pull-right pt-5 pr-10">
-        <AsyncButton mode="refresh" class="btn-sm mr-10" @click="refresh" />
+      <div class="pull-right pr-10">
+        <AsyncButton mode="refresh" class="btn-sm" @click="refresh" />
+      </div>
+    </div>
+
+    <div class="clearfix mt-5">
+      <Checkbox
+        v-for="r in repoOptions"
+        :key="r.label"
+        v-model="r.enabled"
+        :label="r.label"
+        :class="{'pull-left': true, 'repo': true, [r.color]: true}"
+        @input="toggleRepo(r, $event)"
+      />
+      <div class="pull-left">
+        <a class="hand block" @click="toggleAll(true)">All</a>
+        <a class="hand block" @click="toggleAll(false)">None</a>
       </div>
     </div>
 
     <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
 
     <div v-if="allCharts.length">
-      <div class="clearfix mt-5">
-        <Checkbox
-          v-for="r in repoOptions"
-          :key="r.label"
-          v-model="r.enabled"
-          :label="r.label"
-          :class="{'pull-left': true, 'repo': true, [r.color]: true}"
-          @input="toggleRepo(r, $event)"
-        />
-        <div class="pull-left">
-          <a class="hand block" @click="toggleAll(true)">All</a>
-          <a class="hand block" @click="toggleAll(false)">None</a>
-        </div>
-      </div>
       <div class="charts">
         <div v-for="c in arrangedCharts" :key="c.key" class="chart" :class="{[c.color]: true}" @click="selectChart(c)">
           <div class="side-label">
@@ -368,7 +373,7 @@ export default {
       margin: $margin;
       padding: $margin;
       position: relative;
-      border-radius: calc( 3 * var(--border-radius));
+      border-radius: calc( 1.5 * var(--border-radius));
 
       &:hover {
         box-shadow: 0 0 30px var(--shadow);
@@ -382,10 +387,10 @@ export default {
         top: 0;
         left: 0;
         bottom: 0;
-        min-width: calc(3 * var(--border-radius));
+        min-width: calc(1.5 * var(--border-radius));
         width: $side;
-        border-top-right-radius: calc( 3 * var(--border-radius));
-        border-bottom-right-radius: calc( 3 * var(--border-radius));
+        border-top-right-radius: calc( 1.5 * var(--border-radius));
+        border-bottom-right-radius: calc( 1.5 * var(--border-radius));
 
         label {
           text-align: center;
@@ -405,7 +410,7 @@ export default {
         top: ($chart - $logo)/2;
         width: $logo;
         height: $logo;
-        border-radius: calc(5 * var(--border-radius));
+        border-radius: calc(2 * var(--border-radius));
         overflow: hidden;
         background-color: white;
 

@@ -105,17 +105,25 @@ export default {
       const key = `asyncButton.${ this.mode }.${ this.phase }Icon`;
       const defaultKey = `asyncButton.default.${ this.phase }Icon`;
 
+      let out = '';
+
       if ( this.icon ) {
-        return this.icon;
+        out = this.icon;
       } else if ( exists(key) ) {
-        return `icon-${ t(key) }`;
+        out = `icon-${ t(key) }`;
       } else if ( exists(defaultKey) ) {
-        return `icon-${ t(defaultKey) }`;
-      } else if ( this.isSpinning ) {
-        return 'icon-spinner icon-spin';
-      } else {
-        return '';
+        out = `icon-${ t(defaultKey) }`;
       }
+
+      if ( this.isSpinning ) {
+        if ( !out ) {
+          out = 'icon-spinner';
+        }
+
+        out += ' icon-spin';
+      }
+
+      return out;
     },
 
     displayLabel() {

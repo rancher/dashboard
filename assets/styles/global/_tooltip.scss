@@ -186,11 +186,13 @@
       }
     }
   }
+
   .dropdown-button {
     background: var(--accent-btn);
     border: solid thin var(--link-text);
     color: var(--link-text);
     padding: 0;
+    display: inline-flex;
 
     &>*, .icon-chevron-down {
       color: var(--primary);

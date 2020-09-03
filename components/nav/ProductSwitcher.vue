@@ -227,12 +227,10 @@ export default {
     }
 
     .vs__selected {
-      margin: 2px;
       user-select: none;
       cursor: default;
       color: white;
-      line-height: calc(var(--header-height) - 10px);
-      font-size: 0.87em;
+      line-height: calc(var(--header-height) - 14px);
       position: relative;
       left: 40px;
     }

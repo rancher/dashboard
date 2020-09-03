@@ -178,25 +178,6 @@ export function diff(from, to) {
     set(out, k, null);
   }
 
-  // Remove values in 'from' that are missing in 'to';
-  /*
-  out = transform(from, (res, fromVal, k ) => {
-    const toVal = to[k];
-
-    if ( isEqual(toVal, fromVal) ) {
-      return;
-    }
-
-    if ( typeof toVal === 'undefined' && isObject(from[k]) ) {
-      res[k] = null;
-    } else if ( isObject(toVal) && isObject(from[k]) ) {
-      res[k] = diff(fromVal, toVal);
-    } else {
-      res[k] = toVal;
-    }
-  });
-  */
-
   return out;
 }
 

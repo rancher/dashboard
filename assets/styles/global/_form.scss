@@ -17,10 +17,9 @@ TEXTAREA,
   display: block;
   box-sizing: border-box;
   width: 100%;
-  padding: 10px;
-  font-size: 14px;
+  padding: 8px;
   background-color: var(--input-bg);
-  border-radius: calc(var(--border-radius) * 2);
+  border-radius: var(--border-radius);
   border: solid $outline-width var(--input-border);
   color: var(--input-text);
 

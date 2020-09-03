@@ -134,9 +134,8 @@ catalog:
   repo:
     name:
       'rancher-charts': Rancher
-      'rancher-partner-charts': Partner
+      'rancher-partner-charts': Partners
     all: All
-    partner: Partner
     target:
       label: Target
       git: Git Repository containing Helm chart definitions
