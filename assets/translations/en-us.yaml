@@ -308,16 +308,12 @@ footer:
   slack: Slack
 
 gatekeeperConstraint:
-  enforcementAction:
-    title: Enforcement Action
+
   match:
     title: Match
-  parameters:
-    addParameter: Add Parameter
-    editAsForm: Edit as Form
-    editAsYaml: Edit as YAML
-    title: Parameters
   tab:
+    enforcementAction:
+      title: Enforcement Action
     kinds:
       title: Kinds
     namespaces:
@@ -325,6 +321,11 @@ gatekeeperConstraint:
         excludedNamespaces: Excluded Namespaces
         namespaces: Namespaces
       title: Namespaces
+    parameters:
+      addParameter: Add Parameter
+      editAsForm: Edit as Form
+      editAsYaml: Edit as YAML
+      title: Parameters
     selectors:
       sub:
         labelSelector:

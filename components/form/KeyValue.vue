@@ -455,7 +455,7 @@ export default {
     </div>
 
     <div v-if="showAdd || showRead" class="footer mt-10">
-      <slot name="add">
+      <slot name="add" :add="add">
         <ButtonDropdown size="sm">
           <template #button-content>
             <button v-if="showAdd" type="button" class="btn btn-sm add" @click="add()">

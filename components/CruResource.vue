@@ -9,7 +9,7 @@ import AsyncButton from '@/components/AsyncButton';
 import { mapGetters } from 'vuex';
 import { stringify } from '@/utils/error';
 import CruResourceFooter from '@/components/CruResourceFooter';
-import { _EDIT, _VIEW } from '@/config/query-params';
+import { _EDIT, _VIEW, AS_YAML, _FLAGGED } from '@/config/query-params';
 import { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
 
 export default {
@@ -75,8 +75,9 @@ export default {
 
   data() {
     return {
-      showAsForm:    true,
-      resourceYaml:  '',
+      isCancelModal: false,
+      showAsForm:    this.$route.query[AS_YAML] !== _FLAGGED,
+      resourceYaml:  this.createResourceYaml(this.resource),
     };
   },
 
@@ -141,13 +142,16 @@ export default {
       }
     },
 
+    createResourceYaml(resource) {
+      const schemas = this.$store.getters['cluster/all'](SCHEMA);
+      const clonedResource = clone(resource);
+
+      return createYaml(schemas, resource.type, clonedResource);
+    },
+
     async showPreviewYaml() {
       await this.$emit('apply-hooks', BEFORE_SAVE_HOOKS);
-
-      const schemas = this.$store.getters['cluster/all'](SCHEMA);
-      const { resource } = this;
-      const clonedResource = clone(resource);
-      const resourceYaml = createYaml(schemas, resource.type, clonedResource, false);
+      const resourceYaml = this.createResourceYaml(this.resource);
 
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;

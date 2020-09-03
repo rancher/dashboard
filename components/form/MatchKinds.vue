@@ -46,7 +46,7 @@ export default {
       :default-add-value="defaultAddValue"
     >
       <template v-slot:columns="scope">
-        <td class="api-groups">
+        <div class="api-groups">
           <ArrayList
             v-model="scope.row.value.apiGroups"
             class="api-groups-list"
@@ -57,8 +57,8 @@ export default {
             value-placeholder=""
             :mode="mode"
           />
-        </td>
-        <td class="kinds">
+        </div>
+        <div class="kinds">
           <ArrayList
             v-model="scope.row.value.kinds"
             class="kinds-list"
@@ -69,7 +69,7 @@ export default {
             value-placeholder=""
             :mode="mode"
           />
-        </td>
+        </div>
       </template>
       <template v-slot:remove-button="scope">
         <button class="btn role-link close" @click="scope.remove">
@@ -85,6 +85,7 @@ export default {
   .api-groups,
   .kinds {
     vertical-align: top;
+    flex: 1;
   }
 
   .match-kinds-list > table {

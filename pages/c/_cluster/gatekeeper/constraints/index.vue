@@ -63,8 +63,8 @@ export default {
 <template>
   <div class="gatekeeper-constraints">
     <Masthead
-      resource="gatekeeper-constraint"
-      :type-display="'Constraints'"
+      resource="Constraint"
+      :type-display="'Constraint'"
       :is-yaml-creatable="true"
       :is-creatable="true"
       :yaml-create-location="yamlCreateLocation"

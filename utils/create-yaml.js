@@ -13,7 +13,6 @@ const SIMPLE_TYPES = [
   'date',
   'blob',
   'boolean',
-  'json',
   'version'
 ];
 
@@ -240,6 +239,21 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       }
 
       return out;
+    }
+
+    if ( type === 'json') {
+      try {
+        const parsedData = jsyaml.safeDump(data[key]);
+
+        if (parsedData) {
+          out += `\n${ indent(parsedData.trim()) }`;
+        } else {
+          out += ` #${ type }`;
+        }
+
+        return out;
+      } catch (e) {
+      }
     }
 
     const subDef = schemas.find(x => x.id === type);

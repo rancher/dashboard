@@ -63,18 +63,16 @@ export default {
 <template>
   <ArrayList v-model="localValue" class="namespace-list" :mode="mode" default-add-value="default">
     <template v-slot:columns="scope">
-      <td>
-        <div class="input-container">
-          <LabeledSelect
-            :mode="mode"
-            :value="scope.row.value"
-            :options="namespaceOptions"
-            label="Namespace"
-            add-label="Add Namespace"
-            @input="scope.row.value = $event; scope.queueUpdate()"
-          />
-        </div>
-      </td>
+      <div class="input-container">
+        <LabeledSelect
+          :mode="mode"
+          :value="scope.row.value"
+          :options="namespaceOptions"
+          label="Namespace"
+          add-label="Add Namespace"
+          @input="scope.row.value = $event; scope.queueUpdate()"
+        />
+      </div>
     </template>
   </ArrayList>
 </template>
@@ -85,8 +83,8 @@ export default {
     height: initial;
   }
 
-  tr:not(:last-of-type) td {
-    padding-bottom: 10px;
+  .input-container {
+    flex: 1;
   }
 }
 </style>
