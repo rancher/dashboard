@@ -130,6 +130,42 @@ asyncButton:
     error: ''
     errorIcon:   'error'
 
+backupRestoreOperator:
+  backupFilename: Backup Filename
+  prune: Prune
+  encryptionConfigName: 
+    label: Encryption Config Name
+    tip: If the backup that this Restore references was created with encryption enabled, the same encryptionConfig file must be used here
+  deleteTimeout: Delete Timeout
+  resourceSetName: Resource Set Name
+  schedule: 
+    label: Schedule
+    placeholder: e.g. * * * * ?
+  retentionCount: 
+    label: Retention Count
+    units: |-
+      {count, plural,
+        =1 { File }
+        other { Files }
+      }
+  s3:
+    titles:
+      location: Define Storage Location
+      s3: S3
+    credentialSecretName:  Credential Secret Name
+    storageLocation: Storage Location
+    endpoint: Endpoint
+    endpointCA: Endpoint CA
+    bucketName: Bucket Name
+    region: Region
+    folder: Folder
+    insecureTLSSkipVerify: Insecure TLS Skip Verify
+  storageSource:
+    useDefault: Use the Backup location configured at the operator level.
+    configureS3:  Specify details of the s3 compatible storage provider where the backup file is stored (s3/minio).
+    useBackup: Use the s3 location specified on the Backup CR. 
+  noResourceSet: 'You must define a ResourceSet in this namespace to create a backup CR.'
+
 catalog:
   repo:
     name:

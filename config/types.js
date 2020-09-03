@@ -125,3 +125,9 @@ export const ISTIO = {
   DESTINATION_RULE:  'networking.istio.io.destinationrule',
   GATEWAY:          'networking.istio.io.gateway'
 };
+
+export const BACKUP_RESTORE = {
+  RESOURCE_SET: 'resources.cattle.io.resourceset',
+  BACKUP:       'resources.cattle.io.backup',
+  RESTORE:      'resources.cattle.io.restore',
+};
