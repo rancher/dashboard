@@ -115,17 +115,25 @@ export default {
       :default-add-value="defaultAddValue"
       :mode="mode"
     >
-      <template v-slot:thead-columns>
-        <th>Key</th>
-        <th>Operator</th>
-        <th>Value</th>
-        <th></th>
+      <template v-slot:column-headers>
+        <div class="box">
+          <div>
+            Key
+          </div>
+          <div>
+            Operator
+          </div>
+          <div>
+            Value
+          </div>
+          <div> </div>
+        </div>
       </template>
       <template v-slot:columns="scope">
-        <td class="key">
+        <div class="key">
           <LabeledInput v-model="scope.row.value.key" :mode="mode" @input="scope.queueUpdate" />
-        </td>
-        <td class="operator">
+        </div>
+        <div class="operator">
           <LabeledSelect
             style="height: 100%;"
             :mode="mode"
@@ -133,10 +141,10 @@ export default {
             :options="operatorOptions"
             @input="onOperatorInput(scope, $event)"
           />
-        </td>
-        <td class="value">
+        </div>
+        <div class="value col span-4">
           <LabeledInput :disabled="isValueDisabled(scope)" :value="getValue(scope)" :mode="mode" @input="onValueInput(scope, $event)" />
-        </td>
+        </div>
       </template>
     </ArrayList>
   </div>
@@ -147,7 +155,18 @@ export default {
   &:not(.view) table {
     table-layout: initial;
   }
-  table {
+
+  .box {
+
+    & > * {
+      width: 33.333%;
+      padding-right: 10px;
+
+      &:nth-child(2), &:nth-child(4) {
+        width:16.155%;
+      }
+    }
+
     .key, .value {
       input {
         height: 33px;
@@ -158,7 +177,6 @@ export default {
       .vs__dropdown-toggle {
         height: 59px;
       }
-      width: 100px;
     }
 
     .vs--open {
