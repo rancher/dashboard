@@ -8,11 +8,13 @@ import { allHash } from '@/utils/promise';
 import { AGE, NAME as NAME_HEADER } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 import Glance from '@/components/Glance';
+import Banner from '@/components/Banner';
 export default {
   components: {
     SimpleBox,
     SortableTable,
-    Glance
+    Glance,
+    Banner
   },
 
   middleware: InstallRedirect(NAME, CHART_NAME),
@@ -173,6 +175,9 @@ export default {
       <div class="col span-6">
         <SimpleBox>
           <h3>{{ t('istio.howTo.title') }}</h3>
+          <Banner color="warning">
+            <div :raw="true" v-html="t('istio.howTo.warning')" />
+          </Banner>
           <div :raw="true" v-html="t('istio.howTo.body')" />
         </SimpleBox>
       </div>
