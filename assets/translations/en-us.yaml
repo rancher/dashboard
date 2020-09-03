@@ -426,15 +426,15 @@ istio:
   If you would like to get additional information about Istio, visit <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>'
   egressGateway: Enabled Egress Gateway
   howTo: 
-    body: "There are three different ways to configure Rancher's Istio to ensure your app data is being collected for use with the various Istio integrations:
+    body: "There are three different ways to configure Rancher’s Istio to ensure your service-mesh is available to Prometheus:
       <ol>
       <li>Set <code>Ignore Namespace Selectors</code> to false on your rancher monitoring instance</li>
-      <li>Keep the default setting for <code>Ignore Namespace Selectors</code> and add Service Monitors or Pod Monitors to the namespaces that have sidecar injection enabled</li>
-      <li>Keep the default setting for <code>Ignore Namespace Selectors</code> and add a additionalScrapeConfig to your rancher monitoring instance to scrape all namespaces.</li>
+      <li>Keep the default setting for <code>Ignore Namespace Selectors</code> and add Service Monitors or Pod Monitors in the namespace with the targets you want to scrape./li>
+      <li>Keep the default setting for <code>Ignore Namespace Selectors</code> and add a <code>additionalScrapeConfig</code> to your rancher monitoring instance to scrape all targets in all namespaces.</li>
       </ol>
       "
     title: How to configure Rancher Monitoring integration
-    warning: “If <code>Ignore Namespace Selectors</code> is set to true on your Rancher Monitoring instance, then Prometheus will not be able to scrape service mesh targets outside of Istio's namespace”
+    warning: If <code>Ignore Namespace Selectors</code> is set to true on your Rancher Monitoring instance, then Prometheus will not be able to scrape service mesh targets outside of Istio's namespace
   ingressGateway: Enabled Ingress Gateway
   istiodRemote: Enabled istiodRemote
   pilot: Enabled Pilot
