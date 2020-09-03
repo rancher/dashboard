@@ -221,27 +221,43 @@ $selected: rgba($primary, .5);
 
   --app-rancher-accent: #{$rancher};
   --app-rancher-accent-text: #{$darkest};
-  --app-rancher-bg: transparent linear-gradient(#{$angle},
-      #{rgba($rancher, $start)} #{$startPos},
-      #{rgba($rancher, $middle)} #{$middlePos},
-      #{rgba($rancher, $end)} #{$endPos}
-  ) 0% 0% no-repeat padding-box;
+  --app-rancher-bg: #{sizzle-gradient($rancher)};
 
   --app-partner-accent: #{$partner};
   --app-partner-accent-text: black;
-  --app-partner-bg: transparent linear-gradient(#{$angle},
-      #{rgba($partner, $start)} #{$startPos},
-      #{rgba($partner, $middle)} #{$middlePos},
-      #{rgba($partner, $end)} #{$endPos}
-  ) 0% 0% no-repeat padding-box;
+  --app-partner-bg: #{sizzle-gradient($partner)};
 
-  --app-other-accent: #{$other};
-  --app-other-accent-text: white;
-  --app-other-bg: transparent linear-gradient(#{$angle},
-      #{rgba($other, $start)} #{$startPos},
-      #{rgba($other, $middle)} #{$middlePos},
-      #{rgba($other, $end)} #{$endPos}
-  ) 0% 0% no-repeat padding-box;
+  --app-color1-accent: rgba(var(--sizzle-1), 1);
+  --app-color1-accent-text: white;
+  --app-color1-bg: #{sizzle-gradient(var(--sizzle-1))};
+
+  --app-color2-accent: rgba(var(--sizzle-2), 1);
+  --app-color2-accent-text: white;
+  --app-color2-bg: #{sizzle-gradient(var(--sizzle-2))};
+
+  --app-color3-accent: rgba(var(--sizzle-3), 1);
+  --app-color3-accent-text: white;
+  --app-color3-bg: #{sizzle-gradient(var(--sizzle-3))};
+
+  --app-color4-accent: rgba(var(--sizzle-4), 1);
+  --app-color4-accent-text: white;
+  --app-color4-bg: #{sizzle-gradient(var(--sizzle-4))};
+
+  --app-color5-accent: rgba(var(--sizzle-5), 1);
+  --app-color5-accent-text: white;
+  --app-color5-bg: #{sizzle-gradient(var(--sizzle-5))};
+
+  --app-color6-accent: rgba(var(--sizzle-6), 1);
+  --app-color6-accent-text: white;
+  --app-color6-bg: #{sizzle-gradient(var(--sizzle-6))};
+
+  --app-color7-accent: rgba(var(--sizzle-7), 1);
+  --app-color7-accent-text: white;
+  --app-color7-bg: #{sizzle-gradient(var(--sizzle-7))};
+
+  --app-color8-accent: rgba(var(--sizzle-8), 1);
+  --app-color8-accent-text: white;
+  --app-color8-bg: #{sizzle-gradient(var(--sizzle-8))};
 
   --product-icon: #{$darker};
   --product-icon-active: #{$darkest};

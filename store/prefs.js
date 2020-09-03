@@ -62,6 +62,7 @@ export const LOGS_WRAP = create('logs-wrap', true, { parseJSON });
 export const LOGS_TIME = create('logs-time', true, { parseJSON });
 export const LOGS_RANGE = create('logs-range', '30 minutes', { parseJSON });
 export const LANDING = create('landing', '', { parseJSON, options: ['ember', 'vue'] });
+export const HIDE_REPOS = create('hide-repos', [], { parseJSON });
 
 export const DATE_FORMAT = create('date-format', 'ddd, MMM D YYYY', {
   options: [

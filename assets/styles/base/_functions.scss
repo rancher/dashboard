@@ -114,3 +114,19 @@
 @function decimal-floor ($number, $digits: 0) {
   @return decimal-round($number, $digits, floor);
 }
+
+@function sizzle-gradient($color) {
+  $angle: 135deg;
+  $startPos: 0%;
+  $start: 0.3;
+  $middlePos: 110px;
+  $middle: 0.1;
+  $endPos: 100%;
+  $end: 0;
+
+  @return transparent linear-gradient(#{$angle},
+      #{rgba($color, $start)} #{$startPos},
+      #{rgba($color, $middle)} #{$middlePos},
+      #{rgba($color, $end)} #{$endPos}
+  ) 0% 0% no-repeat padding-box;
+}

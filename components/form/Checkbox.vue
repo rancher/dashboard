@@ -100,6 +100,7 @@ export default {
   display: inline-flex;
   align-items: center;
   margin: 0;
+  cursor: pointer;
 }
 
 .checkbox-label {

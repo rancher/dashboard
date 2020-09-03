@@ -124,7 +124,7 @@ export default {
 
 <style lang="scss" scoped>
   .header {
-    font-size: 12px;
+    font-size: 14px;
     position: relative;
     cursor: pointer;
     color: var(--input-label);
@@ -178,7 +178,7 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 6px 2px 6px 0;
+          padding: 6px 8px 6px 0;
         }
       }
     }

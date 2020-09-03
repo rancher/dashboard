@@ -194,6 +194,8 @@ export default {
         height: 100%;
         background-color: var(--accent-btn);
         border: solid 1px var(--primary);
+        position: relative;
+        z-index: 1;
 
         .vs__selected {
           margin: 0;

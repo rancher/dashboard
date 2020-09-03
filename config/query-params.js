@@ -52,3 +52,4 @@ export const VERSION = 'version';
 export const NAME = 'name';
 export const NAMESPACE = 'namespace';
 export const DESCRIPTION = 'description';
+export const CATEGORY = 'category';

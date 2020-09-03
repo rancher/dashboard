@@ -6,6 +6,18 @@ import { clone } from '@/utils/object';
 import { findBy, addObject } from '@/utils/array';
 import { stringify } from '@/utils/error';
 
+const ALLOWED_CATEGORIES = [
+  'Storage',
+  'Monitoring',
+  'Database',
+  'Repository',
+  'Security',
+  'Networking',
+  'PaaS',
+  'Infrastructure',
+  'Applications',
+];
+
 export const state = function() {
   return {
     loaded:          {},
@@ -258,7 +270,7 @@ function addChart(map, chart, repo) {
   let certified = CATALOG_ANNOTATIONS._OTHER;
   let sideLabel = null;
 
-  if ( repo.isRancher ) {
+  if ( repo.isRancherSource ) {
     // Only charts from a rancher repo can actually set the certified flag
     certified = certifiedAnnotation || certified;
   }
@@ -266,7 +278,7 @@ function addChart(map, chart, repo) {
   if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
     sideLabel = 'Experimental';
   } else if (
-    !repo.isRancher &&
+    !repo.isRancherSource &&
     certifiedAnnotation &&
     certifiedAnnotation !== CATALOG_ANNOTATIONS._RANCHER &&
     certified === CATALOG_ANNOTATIONS._OTHER
@@ -287,10 +299,12 @@ function addChart(map, chart, repo) {
       repoName,
       certifiedSort:   CERTIFIED_SORTS[certified] || 99,
       icon:            chart.icon,
+      color:           repo.color,
       chartName:       chart.name,
       description:     chart.description,
       repoKey:         repo._key,
       versions:        [],
+      categories:      filterCategories(chart.keywords),
       deprecated:      !!chart.deprecated,
       hidden:          !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
       targetNamespace: chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
@@ -311,4 +325,41 @@ function addChart(map, chart, repo) {
   }
 
   obj.versions.push(chart);
+}
+
+function preferSameRepo(matching, repoType, repoName) {
+  matching.sort((a, b) => {
+    const aSameRepo = a.repoType === repoType && a.repoName === repoName ? 1 : 0;
+    const bSameRepo = b.repoType === repoType && b.repoName === repoName ? 1 : 0;
+
+    if ( aSameRepo && !bSameRepo )  {
+      return -1;
+    } else if ( !aSameRepo && bSameRepo ) {
+      return 1;
+    }
+
+    return 0;
+  });
+}
+
+function normalizeVersion(v) {
+  return v.replace(/^v/i, '').toLowerCase().trim();
+}
+
+function filterCategories(categories) {
+  categories = (categories || []).map(x => normalizeCategory(x));
+
+  const out = [];
+
+  for ( const c of ALLOWED_CATEGORIES ) {
+    if ( categories.includes(normalizeCategory(c)) ) {
+      addObject(out, c);
+    }
+  }
+
+  return out;
+}
+
+function normalizeCategory(c) {
+  return c.replace(/\s+/g, '').toLowerCase();
 }

@@ -645,6 +645,11 @@ $spacing: 10px;
       background: var(--sortable-table-selected-bg);
     }
 
+    .no-rows {
+      padding: 30px 0;
+      text-align: center;
+    }
+
     &.group {
       &:before {
         content: "";

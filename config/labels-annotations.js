@@ -35,7 +35,8 @@ export const CATALOG = {
   AUTO_INSTALL:  'catalog.cattle.io/auto-install-gvr',
   HIDDEN:        'catalog.cattle.io/hidden',
 
-  COMPONENT: 'catalog.cattle.io/ui-component',
+  COMPONENT:     'catalog.cattle.io/ui-component',
+  COLOR:        'catalog.cattle.io/ui-color',
 };
 
 const CATTLE_REGEX = /cattle\.io\//;
