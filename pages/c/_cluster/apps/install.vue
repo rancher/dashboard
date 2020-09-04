@@ -230,7 +230,7 @@ export default {
       wait:                true,
 
       historyMax: 5,
-      timeout:    600,
+      timeout:    0,
     };
   },
 
@@ -519,7 +519,7 @@ export default {
       const out = {
         charts:  [chart],
         noHooks: this.hooks === false,
-        timeout: this.timeout > 0 ? this.timeout : null,
+        timeout: this.timeout > 0 ? `${ this.timeout }s` : null,
         wait:    this.wait === true,
       };
 

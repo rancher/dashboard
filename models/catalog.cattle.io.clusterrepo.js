@@ -60,10 +60,10 @@ export default {
     } else if ( this.isPartner ) {
       return 'partner';
     } else {
-      let color = parseInt(this.metadata?.annotations?.[CATALOG.COLOR], 10);
+      const color = parseInt(this.metadata?.annotations?.[CATALOG.COLOR], 10);
 
       if ( isNaN(color) || color <= 0 || color > 8 ) {
-        color = 1;
+        return null;
       }
 
       return `color${ color }`;

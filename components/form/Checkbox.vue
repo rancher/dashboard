@@ -45,7 +45,6 @@ export default {
         click.ctrlKey = event.ctrlKey;
         click.metaKey = event.metaKey;
 
-        $(this.$el).trigger(click);
         this.$emit('input', !this.value);
       }
     }
@@ -65,16 +64,15 @@ export default {
   <label
     v-else
     class="checkbox-container"
-    @keyup.enter="clicked($event)"
-    @keyup.space="clicked($event)"
-    @click.stop="clicked($event)"
+    @keydown.enter.prevent="clicked($event)"
+    @keydown.space.prevent="clicked($event)"
+    @click.stop.prevent="clicked($event)"
   >
     <input
       :checked="value"
       :v-model="value"
       type="checkbox"
       :tabindex="-1"
-      @click.stop.prevent
     />
     <span
       class="checkbox-custom"
@@ -87,7 +85,6 @@ export default {
     <span
       v-if="label"
       class="checkbox-label"
-      @click.stop="clicked($event)"
     >
       <slot name="label">{{ label }}</slot>
     </span>

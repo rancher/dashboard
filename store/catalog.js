@@ -321,12 +321,15 @@ function addChart(map, chart, repo) {
   let obj = map[key];
   const certifiedAnnotation = chart.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED];
 
-  let certified = CATALOG_ANNOTATIONS._OTHER;
+  let certified = null;
   let sideLabel = null;
 
-  if ( repo.isRancherSource ) {
-    // Only charts from a rancher repo can actually set the certified flag
-    certified = certifiedAnnotation || certified;
+  if ( repo.isRancher ) {
+    certified = CATALOG_ANNOTATIONS._RANCHER;
+  } else if ( repo.isPartner ) {
+    certified = CATALOG_ANNOTATIONS._PARTNER;
+  } else {
+    certified = CATALOG_ANNOTATIONS._OTHER;
   }
 
   if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {

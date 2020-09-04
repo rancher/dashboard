@@ -12,7 +12,7 @@ import Checkbox from '@/components/form/Checkbox';
 import Select from '@/components/form/Select';
 import LazyImage from '@/components/LazyImage';
 import { mapPref, HIDE_REPOS } from '@/store/prefs';
-import { removeObject, addObject } from '@/utils/array';
+import { removeObject, addObject, findBy } from '@/utils/array';
 
 export default {
   components: {
@@ -67,8 +67,8 @@ export default {
       out = sortBy(out, ['weight', 'label']);
 
       for ( const entry of out ) {
-        if ( !entry.class ) {
-          entry.class = `color${ nextColor }`;
+        if ( !entry.color ) {
+          entry.color = `color${ nextColor }`;
           if ( nextColor < 8 ) {
             nextColor++;
           }
@@ -172,6 +172,17 @@ export default {
   },
 
   methods: {
+    colorForChart(chart) {
+      const repos = this.repoOptions;
+      const repo = findBy(repos, '_key', chart.repoKey);
+
+      if ( repo ) {
+        return repo.color;
+      }
+
+      return null;
+    },
+
     toggleAll(on) {
       for ( const r of this.repoOptions ) {
         this.toggleRepo(r, on, false);
@@ -183,9 +194,15 @@ export default {
     },
 
     areAllEnabled() {
-      const out = this.repoOptions.filter(x => !x.enabled).length === 0;
+      const all = this.$store.getters['catalog/repos'];
 
-      return out;
+      for ( const r of all ) {
+        if ( this.hideRepos.includes(r._key) ) {
+          return false;
+        }
+      }
+
+      return true;
     },
 
     toggleRepo(repo, on, updateAll = true) {
@@ -255,6 +272,7 @@ export default {
           :clearable="false"
           :searchable="false"
           :options="categories"
+          placement="bottom"
           label="label"
           style="min-width: 200px;"
           :reduce="opt => opt.value"
@@ -271,6 +289,12 @@ export default {
 
     <div class="clearfix mt-5">
       <Checkbox
+        :value="allRepos"
+        label="All"
+        :class="{'pull-left': true, 'repo': true}"
+        @input="toggleAll($event)"
+      />
+      <Checkbox
         v-for="r in repoOptions"
         :key="r.label"
         v-model="r.enabled"
@@ -278,17 +302,13 @@ export default {
         :class="{'pull-left': true, 'repo': true, [r.color]: true}"
         @input="toggleRepo(r, $event)"
       />
-      <div class="pull-left">
-        <a class="hand block" @click="toggleAll(true)">All</a>
-        <a class="hand block" @click="toggleAll(false)">None</a>
-      </div>
     </div>
 
     <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
 
     <div v-if="allCharts.length">
       <div class="charts">
-        <div v-for="c in arrangedCharts" :key="c.key" class="chart" :class="{[c.color]: true}" @click="selectChart(c)">
+        <div v-for="c in arrangedCharts" :key="c.key" class="chart" :class="{[colorForChart(c)]: true}" @click="selectChart(c)">
           <div class="side-label">
             <label v-if="c.sideLabel">{{ c.sideLabel }}</label>
           </div>

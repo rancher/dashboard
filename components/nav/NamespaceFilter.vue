@@ -193,6 +193,10 @@ export default {
     background-color: transparent;
   }
 
+  .filter ::v-deep .vs__search::placeholder {
+    color: white;
+  }
+
   .filter ::v-deep INPUT:hover {
     background-color: transparent;
   }
