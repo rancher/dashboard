@@ -20,7 +20,7 @@ import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
-import { CATALOG } from '@/config/types';
+import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
   REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, PREVIEW, _UNFLAG, _FLAGGED
 } from '@/config/query-params';
@@ -60,6 +60,10 @@ export default {
     const query = this.$route.query;
 
     await this.$store.dispatch('catalog/load');
+    this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
+      type: MANAGEMENT.SETTING,
+      id:   'system-default-registry'
+    });
 
     const repoType = query[REPO_TYPE];
     const repoName = query[REPO];
@@ -171,21 +175,20 @@ export default {
         }
       }
 
-      if ( this.existing ) {
-        if ( !this.chartValues ) {
-          this.chartValues = this.existing.spec?.chart?.values || {};
-          this.loadedVersion = this.version.key;
-          this.valuesYaml = jsyaml.safeDump(this.chartValues);
+      const updateValues = (this.existing && !this.chartValues) ||
+        (!this.existing && (!this.loadedVersion || this.loadedVersion !== this.version.key) );
 
-          if ( this.valuesYaml === '{}\n' ) {
-            this.valuesYaml = '';
-          }
-
-          this.originalYamlValues = this.valuesYaml;
+      if ( updateValues ) {
+        if ( this.existing ) {
+          // For an existing app, use the previous values
+          this.chartValues = merge((merge({}, this.versionInfo.values), this.existing.spec?.values || {}));
+        } else {
+          // If the chart/version changes, replace their values with the new one
+          this.chartValues = merge({}, this.versionInfo.values);
         }
-      } else if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
-        // If the chart/version changes, replace the values with the new one
-        this.chartValues = merge({}, this.versionInfo.values);
+
+        this.removeGlobalValuesFrom(this.chartValues);
+
         this.loadedVersion = this.version.key;
         this.valuesYaml = jsyaml.safeDump(this.chartValues);
 
@@ -200,21 +203,22 @@ export default {
 
   data() {
     return {
-      chart:              null,
-      chartValues:        null,
-      originalYamlValues: null,
-      errors:             null,
-      existing:           null,
-      forceNamespace:     null,
-      loadedVersion:      null,
-      mode:               null,
-      value:              null,
-      valuesComponent:    null,
-      valuesYaml:         null,
-      version:            null,
-      versionInfo:        null,
-      requires:           [],
-      warnings:           [],
+      defaultRegistrySetting: null,
+      chart:                  null,
+      chartValues:            null,
+      originalYamlValues:     null,
+      errors:                 null,
+      existing:               null,
+      forceNamespace:         null,
+      loadedVersion:          null,
+      mode:                   null,
+      value:                  null,
+      valuesComponent:        null,
+      valuesYaml:             null,
+      version:                null,
+      versionInfo:            null,
+      requires:               [],
+      warnings:               [],
 
       crds:                true,
       cleanupOnFail:       false,
@@ -230,7 +234,7 @@ export default {
       wait:                true,
 
       historyMax: 5,
-      timeout:    0,
+      timeout:    600,
     };
   },
 
@@ -490,6 +494,46 @@ export default {
       }
     },
 
+    addGlobalValuesTo(values) {
+      if ( !values.global ) {
+        values.global = {};
+      }
+
+      if ( !values.global.cattle ) {
+        values.global.cattle = {};
+      }
+
+      const cluster = this.$store.getters['currentCluster'];
+
+      values.global.cattle.clusterId = cluster.id;
+      values.global.cattle.clusterName = cluster.nameDisplay;
+      values.global.cattle.systemDefaultRegistry = this.defaultRegistrySetting?.value || '';
+      values.systemDefaultRegistry = this.defaultRegistrySetting?.value || '';
+
+      return values;
+    },
+
+    removeGlobalValuesFrom(values) {
+      if ( !values ) {
+        return;
+      }
+
+      delete values.global?.cattle?.clusterId;
+      delete values.global?.cattle?.clusterName;
+      delete values.global?.cattle?.systemDefaultRegistry;
+      delete values.systemDefaultRegistry;
+
+      if ( !Object.keys(values.global?.cattle || {}).length ) {
+        delete values.global?.cattle;
+      }
+
+      if ( !Object.keys(values.global || {}).length ) {
+        delete values.global;
+      }
+
+      return values;
+    },
+
     actionInput(isUpgrade) {
       const fromChart = this.versionInfo.values || {};
 
@@ -499,6 +543,9 @@ export default {
 
       // Only save the values that differ from the chart's standard values.yaml
       const values = diff(fromChart, this.chartValues);
+
+      // Add our special global values
+      this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
 
@@ -567,12 +614,13 @@ export default {
         }
       }
 
-      for ( const provider of more ) {
+      for ( const dependency of more ) {
         out.charts.unshift({
-          chartName:   provider.name,
-          version:     provider.version,
-          releaseName: provider.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || provider.name,
-          namespace:   provider.annotations[CATALOG_ANNOTATIONS.NAMESPACE] || chart.namespace,
+          chartName:   dependency.name,
+          version:     dependency.version,
+          releaseName: dependency.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || dependency.name,
+          namespace:   dependency.annotations[CATALOG_ANNOTATIONS.NAMESPACE] || chart.namespace,
+          values:      this.addGlobalValuesTo({}),
         });
       }
 
