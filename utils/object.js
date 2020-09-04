@@ -152,6 +152,9 @@ export function definedKeys(obj) {
 }
 
 export function diff(from, to) {
+  from = from || {};
+  to = to || {};
+
   // Copy values in 'to' that are different than from
   const out = transform(to, (res, toVal, k) => {
     const fromVal = from[k];
