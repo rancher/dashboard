@@ -238,3 +238,11 @@ $spacing-property-map: (
 .link[disabled] {
   pointer-events: none;
 }
+
+.subtle-box {
+  border: .5px solid var(--subtle-border);
+  box-shadow: 0 0 10px var(--shadow);
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: var(--border-radius);
+}
