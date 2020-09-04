@@ -1444,3 +1444,8 @@ typeLabel:
       one { Endpoint }
       other { Endpoints }
     }
+  fleet.cattle.io.clustergroup: |-
+    {count, plural,
+      one { Cluster Group }
+      other {Cluster Groups }
+    }

@@ -48,7 +48,10 @@ const STRING_LIKE_TYPES = [
 ];
 const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
-const REMAP_STATE = { disabled: 'inactive' };
+const REMAP_STATE = {
+  disabled:   'inactive',
+  notapplied: 'Not Applied',
+};
 
 const DEFAULT_COLOR = 'warning';
 const DEFAULT_ICON = 'x';
@@ -86,6 +89,7 @@ const STATES = {
   initializing:       { color: 'warning', icon: 'error' },
   locked:             { color: 'warning', icon: 'adjust' },
   migrating:          { color: 'info', icon: 'info' },
+  notapplied:         { color: 'warning', icon: 'tag' },
   paused:             { color: 'info', icon: 'info' },
   pending:            { color: 'info', icon: 'tag' },
   provisioning:       { color: 'info', icon: 'dot' },
@@ -366,6 +370,8 @@ export default {
 
   _stateDisplay() {
     return (state) => {
+      // @TODO use translations
+
       if ( REMAP_STATE[state] ) {
         return REMAP_STATE[state];
       }

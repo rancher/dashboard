@@ -5,6 +5,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import { sortBy } from '@/utils/sort';
 import ArrayList from '@/components/form/ArrayList';
 import { mapGetters } from 'vuex';
+import { removeObject } from '@/utils/array';
 
 export default {
   components: {
@@ -63,34 +64,6 @@ export default {
   data() {
     const t = this.$store.getters['i18n/t'];
 
-    const tableHeaders = [
-      {
-        name:  'key',
-        label: t('workload.scheduling.affinity.matchExpressions.key'),
-        value: 'key'
-      },
-      {
-        name:  'operator',
-        label: t('workload.scheduling.affinity.matchExpressions.operator'),
-        value: 'operator',
-        width: '20%'
-      },
-      {
-        name:  'value',
-        label: t('workload.scheduling.affinity.matchExpressions.value'),
-        value: 'values'
-      },
-    ];
-
-    if (this.showRemove) {
-      tableHeaders.push({
-        name:          'remove',
-        label:         '',
-        value:         '',
-        width:         50
-      });
-    }
-
     const podOptions = [
       { label: t('workload.scheduling.affinity.matchExpressions.exists'), value: 'Exists' },
       { label: t('workload.scheduling.affinity.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
@@ -111,18 +84,22 @@ export default {
 
     rules = rules.map((rule) => {
       if (rule.values && typeof rule.values !== 'string') {
-        rule.values = rule.values.join(',');
+        rule.values = rule.values.join(', ');
       }
 
       return rule;
     });
 
     if (!rules.length && this.initialEmptyRow) {
-      rules.push({ values: '' });
+      rules.push({
+        key: '', operator: 'In', values: ''
+      });
     }
 
     return {
-      ops, rules, custom: [], tableHeaders
+      ops,
+      rules,
+      custom: []
     };
   },
 
@@ -160,35 +137,32 @@ export default {
 
   methods: {
     removeRule(row) {
-      const idx = this.rules.indexOf(row);
-
-      this.rules.splice(idx, 1);
+      removeObject(this.rules, row);
       this.update();
     },
 
     addRule() {
-      this.rules.push({ values: '' });
+      this.rules.push({
+        key:      '',
+        operator: 'In',
+        values:   ''
+      });
     },
 
     update() {
       this.$nextTick(() => {
-        const out = [
-          ...this.rules.map((rule) => {
-            const matchExpression = { key: rule.key };
+        const out = this.rules.map((rule) => {
+          const matchExpression = { key: rule.key, operator: rule.operator };
+          const val = (rule.values || '').trim();
 
-            if (rule.operator) {
-              matchExpression.operator = rule.operator;
-            }
-            if (rule.values) {
-              if ((rule.operator === 'In' || rule.operator === 'NotIn')) {
-                matchExpression.values = (rule.values || []).split(',');
-              } else {
-                matchExpression.values = [rule.values];
-              }
-            }
+          if ( !val ) {
+            return;
+          }
 
-            return matchExpression;
-          })];
+          matchExpression.values = val.split(/\s*,\s*/).filter(x => !!x);
+
+          return matchExpression;
+        }).filter(x => !!x);
 
         this.$emit('input', out);
       });
@@ -265,13 +239,15 @@ export default {
           v-model="row.operator"
           class="inline"
           :options="ops"
+          label="label"
+          :reduce="opt=>opt.value"
           :mode="mode"
           @input="update"
         />
       </div>
 
       <div v-if="row.operator==='Exists' || row.operator==='DoesNotExist'" class="no-value">
-        <label>n/a</label>
+        <label class="text-muted">&hellip;</label>
       </div>
       <div v-else>
         <div v-if="isView">
@@ -279,7 +255,7 @@ export default {
         </div>
         <input v-else v-model="row.values" :mode="mode" :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'" />
       </div>
-      <div>
+      <div class="text-right">
         <button
           v-if="!isView"
           type="button"
@@ -329,7 +305,7 @@ export default {
 
   .match-expression-row, .match-expression-header {
   display: grid;
-  grid-template-columns: 27% 27% 27% auto;
+  grid-template-columns: 1fr 200px 1fr 100px;
   grid-gap: $column-gutter;
   align-items: center;
   &:not(.view){
