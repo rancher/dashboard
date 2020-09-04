@@ -410,7 +410,7 @@ export default {
       </template>
       <template #totalNodes>
         <h1>{{ (nodes || []).length }}</h1>
-        <label>{{ t('glance.nodes.total.label', { count: totalNodes }) }}</label>
+        <label>{{ t('glance.nodes.total.label', { count: (nodes || []).length }) }}</label>
       </template>
       <template #created>
         <h1><LiveDate :value="currentCluster.metadata.creationTimestamp" :add-suffix="true" :show-tooltip="true" /></h1>
