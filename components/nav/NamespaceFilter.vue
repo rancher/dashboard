@@ -218,6 +218,10 @@ export default {
     fill: white !important;
     color: white !important;
 }
+
+  .filter ::v-deep INPUT[type='search'] {
+    padding: 7px;
+  }
 </style>
 
 <template>
