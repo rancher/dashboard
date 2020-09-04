@@ -1,5 +1,5 @@
 import test from 'ava';
-import { parse, matching } from '@/utils/selector';
+import { parse, convert, matching } from '@/utils/selector';
 
 test('Parse equals', (t) => {
   const e1 = {
@@ -264,4 +264,61 @@ test('Match Not In', (t) => {
   check(t, 'b notin (3,4)', [none, a, b]);
 
   check(t, 'c notin (1,2,3,4)', [none, a, b, ab]);
+});
+
+test('Match Gt', (t) => {
+  check(t, 'a > 0', [a, ab]);
+  check(t, 'a > 2', [ab]);
+  check(t, 'a > 4', []);
+});
+
+test('Match Lt', (t) => {
+  check(t, 'a < 0', []);
+  check(t, 'a < 2', [a]);
+  check(t, 'a < 4', [a, ab]);
+});
+
+test('Match matchLabels object', (t) => {
+  check(t, { a: '1' }, [a]);
+});
+
+test('Match matchExpressions array', (t) => {
+  check(t, [{
+    key: 'a', operator: 'In', values: ['1']
+  }], [a]);
+});
+
+test('Handle garbage in', (t) => {
+  check(t, 42, []);
+  check(t, 'a ~ 1', []);
+});
+
+test('Handle resources that have no labels', (t) => {
+  t.deepEqual(matching([a, {}, { metadata: {} }], { a: '1' }), [a]);
+});
+
+test('Convert', (t) => {
+  const matchLabels = {
+    foo: 'bar',
+    baz: 'bat',
+  };
+
+  const expect = [
+    {
+      key:      'foo',
+      operator: 'In',
+      values:   ['bar']
+    },
+    {
+      key:      'baz',
+      operator: 'In',
+      values:   ['bat']
+    },
+  ];
+
+  const actual = convert(matchLabels);
+
+  t.deepEqual(actual, expect);
+
+  t.deepEqual([], convert());
 });

@@ -2,6 +2,14 @@ import { isArray } from '@/utils/array';
 
 const parseCache = {};
 
+const OP_MAP = {
+  '=':  'In',
+  '==': 'In',
+  '!=': 'NotIn',
+  '<':  'Lt',
+  '>':  'Gt',
+};
+
 export function parse(labelSelector) {
   // matchLabels:
   // comma-separated list, all rules ANDed together
@@ -60,11 +68,11 @@ export function parse(labelSelector) {
       continue;
     }
 
-    match = rule.match(/^([^!=]*)\s*(\!=|=|==)\s*([^!=]*)$/);
+    match = rule.match(/^([^!=]*)\s*(\!=|=|==|>|<)\s*([^!=]*)$/);
     if ( match ) {
       out.push({
         key:      match[1].trim(),
-        operator: match[2] === '!=' ? 'NotIn' : 'In',
+        operator: OP_MAP[match[2]],
         values:   [match[3].trim()],
       });
 
@@ -91,20 +99,42 @@ export function parse(labelSelector) {
   return out;
 }
 
-export function matching(ary, selector) {
-  if ( !isArray(ary) ) {
-    ary = [ary];
+export function convert(matchLabelsObj) {
+  const keys = Object.keys(matchLabelsObj || {});
+  const out = [];
+
+  for ( const key of keys ) {
+    out.push({
+      key,
+      operator: 'In',
+      values:   [matchLabelsObj[key]]
+    });
   }
 
-  return ary.filter(obj => matches(obj, selector));
+  return out;
 }
 
 export function matches(obj, selector) {
-  const rules = parse(selector);
+  let rules = [];
+
+  if ( typeof selector === 'string' ) {
+    // labelSelector string
+    rules = parse(selector);
+  } else if ( isArray(selector) ) {
+    // Already matchExpression
+    rules = selector;
+  } else if ( typeof selector === 'object' && selector ) {
+    // matchLabels object
+    rules = convert(selector);
+  } else {
+    return false;
+  }
+
   const labels = obj?.metadata?.labels || {};
 
   for ( const rule of rules ) {
     const value = labels[rule.key];
+    const asInt = parseInt(value, 10);
     const exists = typeof labels[rule.key] !== 'undefined';
 
     switch ( rule.operator ) {
@@ -128,8 +158,22 @@ export function matches(obj, selector) {
         return false;
       }
       break;
+    case 'Lt':
+      if ( isNaN(asInt) || asInt >= Math.min.apply(null, rule.values) ) {
+        return false;
+      }
+      break;
+    case 'Gt':
+      if ( isNaN(asInt) || asInt <= Math.max.apply(null, rule.values) ) {
+        return false;
+      }
+      break;
     }
   }
 
   return true;
+}
+
+export function matching(ary, selector) {
+  return ary.filter(obj => matches(obj, selector));
 }
