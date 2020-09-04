@@ -360,9 +360,10 @@ export const actions = {
       // so that the nav and header stay the same when going to things like prefs
       await dispatch('cluster/unsubscribe');
       await dispatch('clusterExternal/unsubscribe');
-      commit('cluster/forgetAll');
-      commit('clusterExternal/forgetAll');
+      commit('cluster/reset');
+      commit('clusterExternal/reset');
       commit('clusterChanged', false);
+      commit('catalog/reset');
     }
 
     if ( id ) {
@@ -429,16 +430,17 @@ export const actions = {
   async onLogout({ dispatch, commit }) {
     await dispatch('management/unsubscribe');
     commit('managementChanged', { ready: false });
-    commit('management/forgetAll');
+    commit('management/reset');
 
     await dispatch('cluster/unsubscribe');
     commit('clusterChanged', false);
-    commit('cluster/forgetAll');
+    commit('cluster/reset');
 
     await dispatch('clusterExternal/unsubscribe');
-    commit('clusterExternal/forgetAll');
+    commit('clusterExternal/reset');
 
-    commit('rancher/forgetAll');
+    commit('rancher/reset');
+    commit('catalog/reset');
   },
 
   nuxtServerInit({ dispatch, rootState }, nuxt) {

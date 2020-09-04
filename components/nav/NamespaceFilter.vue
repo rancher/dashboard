@@ -179,18 +179,22 @@ export default {
   }
 
   .filter ::v-deep .v-select .vs__selected {
-    margin: 2px;
+    margin: 4px;
     user-select: none;
     cursor: default;
     background: rgba(255, 255, 255, 0.25);
     border: solid white thin;
     color: white;
-    height: calc(var(--header-height) - 25px);
+    height: calc(var(--header-height) - 26px);
   }
 
   .filter ::v-deep INPUT {
     width: auto;
     background-color: transparent;
+  }
+
+  .filter ::v-deep .vs__search::placeholder {
+    color: white;
   }
 
   .filter ::v-deep INPUT:hover {
@@ -203,7 +207,7 @@ export default {
     color: var(--header-btn-text);
     background: rgba(0, 0, 0, 0.05);
     border-radius: var(--border-radius);
-    height: calc(var(--header-height) - 19px);
+    height: calc(var(--header-height) - 16px);
   }
 
   .filter ::v-deep .vs__deselect:after {

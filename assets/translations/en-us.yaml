@@ -132,6 +132,10 @@ asyncButton:
 
 catalog:
   repo:
+    name:
+      'rancher-charts': Rancher
+      'rancher-partner-charts': Partners
+    all: All
     target:
       label: Target
       git: Git Repository containing Helm chart definitions
@@ -146,6 +150,7 @@ catalog:
       label: Git Branch
       placeholder: e.g. dev-v2.5
   charts:
+    header: Deploy Chart
     certified:
       rancher: Rancher
       partner: Partner
@@ -169,14 +174,21 @@ catalog:
       force: Force
       historyMax:
         label: Keep last
-        unit: revisions
+        unit: |-
+          {value, plural,
+            =1 { revision }
+            other { revisions }
+          }
       hooks: Execute chart hooks
       openapi: Validate OpenAPI schema
-      reuseValues: Reuse Values
       resetValues: Reset Values
       timeout:
         label: Timeout
-        unit: sec
+        unit: |-
+          {value, plural,
+            =1 { second }
+            other { seconds }
+          }
       wait: Wait
   release:
     section:
@@ -1366,14 +1378,6 @@ model:
     lastDeployed: Last Deployed
   cluster:
     name: Cluster Name
-  identity:
-    displayType:
-      group: Group
-      localUser: Local User
-      org: Organization
-      team: Team
-      unknown: "{type}?"
-      user: User
   ingress:
     displayKind: L7 Ingress
   machine:
@@ -1439,4 +1443,9 @@ typeLabel:
     {count, plural,
       one { Endpoint }
       other { Endpoints }
+    }
+  fleet.cattle.io.clustergroup: |-
+    {count, plural,
+      one { Cluster Group }
+      other {Cluster Groups }
     }

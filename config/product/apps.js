@@ -59,15 +59,15 @@ export function init(store) {
   const repoType = {
     name:     'type',
     labelKey: 'tableHeaders.type',
-    sort:     'displayType',
-    value:    'displayType'
+    sort:     'typeDisplay',
+    value:    'typeDisplay'
   };
 
   const repoUrl = {
     name:     'url',
     labelKey: 'tableHeaders.url',
-    sort:     'displayUrl',
-    value:    'displayUrl'
+    sort:     'urlDisplay',
+    value:    'urlDisplay'
   };
 
   const repoBranch = {

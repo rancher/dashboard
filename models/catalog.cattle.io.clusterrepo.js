@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import { parse } from '@/utils/url';
+import { CATALOG } from '@/config/labels-annotations';
 
 export default {
   applyDefaults() {
@@ -10,7 +11,11 @@ export default {
     };
   },
 
-  isRancher() {
+  isGit() {
+    return !!this.spec?.gitRepo;
+  },
+
+  isRancherSource() {
     let parsed;
 
     if ( this.spec?.url && this.spec?.gitRepo ) {
@@ -41,11 +46,35 @@ export default {
     }
   },
 
+  isRancher() {
+    return this.isRancherSource && this.metadata.name === 'rancher-charts';
+  },
+
+  isPartner() {
+    return this.isRancherSource && this.metadata.name === 'rancher-partner-charts';
+  },
+
+  color() {
+    if ( this.isRancher ) {
+      return 'rancher';
+    } else if ( this.isPartner ) {
+      return 'partner';
+    } else {
+      const color = parseInt(this.metadata?.annotations?.[CATALOG.COLOR], 10);
+
+      if ( isNaN(color) || color <= 0 || color > 8 ) {
+        return null;
+      }
+
+      return `color${ color }`;
+    }
+  },
+
   canLoad() {
     return this.metadata?.state?.name === 'active';
   },
 
-  displayType() {
+  typeDisplay() {
     if ( this.spec.gitRepo ) {
       return 'git';
     } else if ( this.spec.url ) {
@@ -55,7 +84,31 @@ export default {
     }
   },
 
-  displayUrl() {
+  nameDisplay() {
+    const name = this.metadata?.name;
+    const key = `catalog.repo.name."${ name }"`;
+
+    if ( this.$rootGetters['i18n/exists'](key) ) {
+      return this.$rootGetters['i18n/t'](key);
+    }
+
+    return name;
+  },
+
+  urlDisplay() {
     return this.status?.url || this.spec.gitRepo || this.spec.url;
+  },
+
+  branchDisplay() {
+    return this.spec?.gitBranch || '(default)';
+  },
+
+  details() {
+    return [
+      {
+        label:         'Type',
+        content:       this.typeDisplay
+      },
+    ];
   },
 };

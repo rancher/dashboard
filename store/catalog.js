@@ -6,6 +6,18 @@ import { clone } from '@/utils/object';
 import { findBy, addObject } from '@/utils/array';
 import { stringify } from '@/utils/error';
 
+const ALLOWED_CATEGORIES = [
+  'Storage',
+  'Monitoring',
+  'Database',
+  'Repository',
+  'Security',
+  'Networking',
+  'PaaS',
+  'Infrastructure',
+  'Applications',
+];
+
 export const state = function() {
   return {
     loaded:          {},
@@ -58,27 +70,81 @@ export const getters = {
     };
   },
 
+  isInstalled(state, getters, rootState, rootGetters) {
+    return ({ gvr }) => {
+      let name, version;
+      const idx = gvr.indexOf('/');
+
+      if ( idx > 0 ) {
+        name = gvr.substr(0, idx);
+        version = gvr.substr(idx + 1);
+      } else {
+        name = gvr;
+      }
+
+      const schema = rootGetters['cluster/schemaFor'](name);
+
+      if ( schema && (!version || schema.attributes.version === version) ) {
+        return true;
+      }
+
+      return false;
+    };
+  },
+
+  versionSatisfying(state, getters) {
+    return ({ repoType, repoName, constraint, chartVersion }) => {
+      let name, wantVersion;
+      const idx = constraint.indexOf('=');
+
+      if ( idx > 0 ) {
+        name = constraint.substr(0,idx);
+        wantVersion = normalizeVersion(constraint.substr(idx+1));
+      } else {
+        name = constraint;
+        wantVersion = 'latest';
+      }
+
+      name = name.toLowerCase().trim();
+      chartVersion = normalizeVersion(chartVersion);
+
+      const matching = getters.charts.filter((chart) => chart.chartName.toLowerCase().trim() == name);
+
+      if ( !matching.length ) {
+        return;
+      }
+
+      if ( repoType && repoName ) {
+        preferSameRepo(matching, repoType, repoName);
+      }
+
+      const chart = matching[0];
+      let version;
+
+      if ( wantVersion === 'latest' ) {
+        version = chart.versions[0];
+      } else if ( wantVersion === 'match' || wantVersion === 'matching' ) {
+        version = chart.versions.find((v) => normalizeVersion(v.version) === chartVersion);
+      } else {
+        version = chart.versions.find((v) => normalizeVersion(v.version) === wantVersion);
+      }
+
+      if ( version ) {
+        return clone(version);
+      }
+    };
+  },
+
   versionProviding(state, getters) {
     return ({ repoType, repoName, gvr }) => {
       const matching = getters.charts.filter((chart) => chart.provides.includes(gvr) )
 
-      if ( repoType && repoName ) {
-        matching.sort((a, b) => {
-          const aSameRepo = a.repoType === repoType && a.repoName === repoName ? 1 : 0;
-          const bSameRepo = b.repoType === repoType && b.repoName === repoName ? 1 : 0;
-
-          if ( aSameRepo && !bSameRepo )  {
-            return -1;
-          } else if ( !aSameRepo && bSameRepo ) {
-            return 1;
-          }
-
-          return 0;
-        });
+      if ( !matching.length ) {
+        return;
       }
 
-      if ( !matching  && !matching.length ) {
-        return;
+      if ( repoType && repoName ) {
+        preferSameRepo(matching, repoType, repoName);
       }
 
       const version = matching[0].versions.find((version) => version.annotations?.[CATALOG_ANNOTATIONS.PROVIDES] === gvr);
@@ -255,18 +321,21 @@ function addChart(map, chart, repo) {
   let obj = map[key];
   const certifiedAnnotation = chart.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED];
 
-  let certified = CATALOG_ANNOTATIONS._OTHER;
+  let certified = null;
   let sideLabel = null;
 
   if ( repo.isRancher ) {
-    // Only charts from a rancher repo can actually set the certified flag
-    certified = certifiedAnnotation || certified;
+    certified = CATALOG_ANNOTATIONS._RANCHER;
+  } else if ( repo.isPartner ) {
+    certified = CATALOG_ANNOTATIONS._PARTNER;
+  } else {
+    certified = CATALOG_ANNOTATIONS._OTHER;
   }
 
   if ( chart.annotations?.[CATALOG_ANNOTATIONS.EXPERIMENTAL] ) {
     sideLabel = 'Experimental';
   } else if (
-    !repo.isRancher &&
+    !repo.isRancherSource &&
     certifiedAnnotation &&
     certifiedAnnotation !== CATALOG_ANNOTATIONS._RANCHER &&
     certified === CATALOG_ANNOTATIONS._OTHER
@@ -287,10 +356,12 @@ function addChart(map, chart, repo) {
       repoName,
       certifiedSort:   CERTIFIED_SORTS[certified] || 99,
       icon:            chart.icon,
+      color:           repo.color,
       chartName:       chart.name,
       description:     chart.description,
       repoKey:         repo._key,
       versions:        [],
+      categories:      filterCategories(chart.keywords),
       deprecated:      !!chart.deprecated,
       hidden:          !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
       targetNamespace: chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
@@ -311,4 +382,41 @@ function addChart(map, chart, repo) {
   }
 
   obj.versions.push(chart);
+}
+
+function preferSameRepo(matching, repoType, repoName) {
+  matching.sort((a, b) => {
+    const aSameRepo = a.repoType === repoType && a.repoName === repoName ? 1 : 0;
+    const bSameRepo = b.repoType === repoType && b.repoName === repoName ? 1 : 0;
+
+    if ( aSameRepo && !bSameRepo )  {
+      return -1;
+    } else if ( !aSameRepo && bSameRepo ) {
+      return 1;
+    }
+
+    return 0;
+  });
+}
+
+function normalizeVersion(v) {
+  return v.replace(/^v/i, '').toLowerCase().trim();
+}
+
+function filterCategories(categories) {
+  categories = (categories || []).map(x => normalizeCategory(x));
+
+  const out = [];
+
+  for ( const c of ALLOWED_CATEGORIES ) {
+    if ( categories.includes(normalizeCategory(c)) ) {
+      addObject(out, c);
+    }
+  }
+
+  return out;
+}
+
+function normalizeCategory(c) {
+  return c.replace(/\s+/g, '').toLowerCase();
 }

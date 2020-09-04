@@ -31,12 +31,16 @@ export default {
     }
   },
 
-  fetch() {
-    this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/istio-pilot' }).then((svc) => {
-      if (svc) {
+  async fetch() {
+    try {
+      const svc = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/istio-pilot' });
+
+      if ( svc ) {
         this.v1Installed = true;
       }
-    });
+    } catch (e) {
+      this.v1Installed = false;
+    }
   },
 
   data() {
@@ -46,7 +50,10 @@ export default {
       overlayFile = defaultOverlayFile;
     }
 
-    return { overlayFile, v1Installed: false };
+    return {
+      overlayFile,
+      v1Installed: false
+    };
   },
 
   computed: {

@@ -27,9 +27,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="isView">
-  </div>
-  <form v-else>
+  <form>
     <NameNsDescription v-model="value" :mode="mode" :namespaced="isNamespaced" />
 
     <h2>{{ t('catalog.repo.target.label') }}</h2>

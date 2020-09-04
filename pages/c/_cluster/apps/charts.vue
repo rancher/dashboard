@@ -3,59 +3,82 @@ import AsyncButton from '@/components/AsyncButton';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, _UNFLAG
+  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY
 } from '@/config/query-params';
-import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { ensureRegex } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
-import ButtonGroup from '@/components/ButtonGroup';
 import Checkbox from '@/components/form/Checkbox';
+import Select from '@/components/form/Select';
 import LazyImage from '@/components/LazyImage';
+import { mapPref, HIDE_REPOS } from '@/store/prefs';
+import { removeObject, addObject, findBy } from '@/utils/array';
 
 export default {
   components: {
     AsyncButton,
     Banner,
     Loading,
-    ButtonGroup,
     Checkbox,
     LazyImage,
-
+    Select,
   },
 
   async fetch() {
     await this.$store.dispatch('catalog/load');
+
+    const query = this.$route.query;
+
+    this.searchQuery = query[SEARCH_QUERY] || '';
+    this.showDeprecated = query['deprecated'] === _FLAGGED;
+    this.showHidden = query['hidden'] === _FLAGGED;
+    this.category = query[CATEGORY] || '';
+    this.allRepos = this.areAllEnabled();
   },
 
   data() {
-    const query = this.$route.query;
-
-    let showRancher = query['rancher'] === _FLAGGED;
-    let showPartner = query['partner'] === _FLAGGED;
-    let showOther = query['other'] === _FLAGGED;
-
-    if ( !showRancher && !showPartner && !showOther ) {
-      showRancher = true;
-      showPartner = true;
-      showOther = true;
-    }
-
     return {
-      searchQuery:    query[SEARCH_QUERY] || '',
-      sortField:      'certifiedSort',
-      showDeprecated: query['deprecated'] === _FLAGGED,
-      showHidden:     query['hidden'] === _FLAGGED,
-      showRancher,
-      showPartner,
-      showOther,
+      searchQuery:    null,
+      showDeprecated: null,
+      showHidden:     null,
+      category:       null,
+      allRepos:       null,
     };
   },
 
   computed: {
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
-    filteredCharts() {
+    hideRepos: mapPref(HIDE_REPOS),
+
+    repoOptions() {
+      let nextColor = 1;
+
+      let out = this.$store.getters['catalog/repos'].map((r) => {
+        return {
+          _key:    r._key,
+          label:   r.nameDisplay,
+          color:   r.color,
+          weight:  ( r.isRancher ? 1 : ( r.isPartner ? 2 : 3 ) ),
+          enabled: !this.hideRepos.includes(r._key),
+        };
+      });
+
+      out = sortBy(out, ['weight', 'label']);
+
+      for ( const entry of out ) {
+        if ( !entry.color ) {
+          entry.color = `color${ nextColor }`;
+          if ( nextColor < 8 ) {
+            nextColor++;
+          }
+        }
+      }
+
+      return out;
+    },
+
+    enabledCharts() {
       return (this.allCharts || []).filter((c) => {
         if ( c.deprecated && !this.showDeprecated ) {
           return false;
@@ -65,10 +88,17 @@ export default {
           return false;
         }
 
-        if ( ( c.certified === CATALOG_ANNOTATIONS._RANCHER && !this.showRancher ) ||
-             ( c.certified === CATALOG_ANNOTATIONS._PARTNER && !this.showPartner ) ||
-             ( c.certified !== CATALOG_ANNOTATIONS._RANCHER && c.certified !== CATALOG_ANNOTATIONS._PARTNER && !this.showOther )
-        ) {
+        if ( this.hideRepos.includes(c.repoKey) ) {
+          return false;
+        }
+
+        return true;
+      });
+    },
+
+    filteredCharts() {
+      return (this.enabledCharts || []).filter((c) => {
+        if ( this.category && !c.categories.includes(this.category) ) {
           return false;
         }
 
@@ -87,7 +117,41 @@ export default {
     },
 
     arrangedCharts() {
-      return sortBy(this.filteredCharts, [this.sortField, 'chartName']);
+      return sortBy(this.filteredCharts, ['certifiedSort', 'repoName', 'chartName']);
+    },
+
+    categories() {
+      const map = {};
+
+      for ( const chart of this.enabledCharts ) {
+        for ( const c of chart.categories ) {
+          if ( !map[c] ) {
+            map[c] = {
+              label: c,
+              value: c,
+              count: 0
+            };
+          }
+        }
+      }
+
+      for ( const chart of this.arrangedCharts ) {
+        for ( const c of chart.categories ) {
+          if ( map[c] ) {
+            map[c].count++;
+          }
+        }
+      }
+
+      const out = Object.values(map);
+
+      out.unshift({
+        label: 'All Categories',
+        value: '',
+        count: this.arrangedCharts.length
+      });
+
+      return out;
     },
   },
 
@@ -96,26 +160,64 @@ export default {
       this.$router.applyQuery({ [SEARCH_QUERY]: q || undefined });
     },
 
-    showRancher: 'updateShowFlags',
-    showPartner: 'updateShowFlags',
-    showOther:   'updateShowFlags',
+    category(cat) {
+      this.$router.applyQuery({ [CATEGORY]: cat || undefined });
+    },
+  },
+
+  mounted() {
+    if ( typeof window !== 'undefined' ) {
+      window.c = this;
+    }
   },
 
   methods: {
-    updateShowFlags() {
-      if ( (!this.showRancher && !this.showPartner && !this.showOther) ||
-           ( this.showRancher && this.showPartner && this.showOther) ) {
-        this.$router.applyQuery({
-          rancher: _UNFLAG,
-          partner: _UNFLAG,
-          other:   _UNFLAG,
-        });
+    colorForChart(chart) {
+      const repos = this.repoOptions;
+      const repo = findBy(repos, '_key', chart.repoKey);
+
+      if ( repo ) {
+        return repo.color;
+      }
+
+      return null;
+    },
+
+    toggleAll(on) {
+      for ( const r of this.repoOptions ) {
+        this.toggleRepo(r, on, false);
+      }
+
+      this.$nextTick(() => {
+        this.allRepos = this.areAllEnabled();
+      });
+    },
+
+    areAllEnabled() {
+      const all = this.$store.getters['catalog/repos'];
+
+      for ( const r of all ) {
+        if ( this.hideRepos.includes(r._key) ) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+
+    toggleRepo(repo, on, updateAll = true) {
+      const hidden = this.hideRepos;
+
+      if ( on ) {
+        removeObject(hidden, repo._key);
       } else {
-        this.$router.applyQuery({
-          rancher: this.showRancher ? _FLAGGED : _UNFLAG,
-          partner: this.showPartner ? _FLAGGED : _UNFLAG,
-          other:   this.showOther ? _FLAGGED : _UNFLAG,
-        });
+        addObject(hidden, repo._key);
+      }
+
+      this.hideRepos = hidden;
+
+      if ( updateAll ) {
+        this.allRepos = this.areAllEnabled();
       }
     },
 
@@ -156,26 +258,57 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
+    <div class="clearfix">
+      <h1 class="pull-left">
+        {{ t('catalog.charts.header') }}
+      </h1>
+      <div class="pull-right">
+        <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('catalog.charts.search')">
+        <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+      </div>
+      <div class="pull-right pr-10">
+        <Select
+          v-model="category"
+          :clearable="false"
+          :searchable="false"
+          :options="categories"
+          placement="bottom"
+          label="label"
+          style="min-width: 200px;"
+          :reduce="opt => opt.value"
+        >
+          <template #option="opt">
+            {{ opt.label }} ({{ opt.count }})
+          </template>
+        </Select>
+      </div>
+      <div class="pull-right pr-10">
+        <AsyncButton mode="refresh" class="btn-sm" @click="refresh" />
+      </div>
+    </div>
+
+    <div class="clearfix mt-5">
+      <Checkbox
+        :value="allRepos"
+        label="All"
+        :class="{'pull-left': true, 'repo': true}"
+        @input="toggleAll($event)"
+      />
+      <Checkbox
+        v-for="r in repoOptions"
+        :key="r.label"
+        v-model="r.enabled"
+        :label="r.label"
+        :class="{'pull-left': true, 'repo': true, [r.color]: true}"
+        @input="toggleRepo(r, $event)"
+      />
+    </div>
+
     <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
 
     <div v-if="allCharts.length">
-      <div class="clearfix">
-        <div class="pull-left">
-          <Checkbox v-model="showRancher" :label="t('catalog.charts.certified.rancher')" class="check-rancher" />
-          <Checkbox v-model="showPartner" :label="t('catalog.charts.certified.partner')" class="check-partner" />
-          <Checkbox v-model="showOther" :label="t('catalog.charts.certified.other')" class="check-other" />
-        </div>
-        <div class="pull-right">
-          <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('catalog.charts.search')">
-          <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-        </div>
-        <div class="pull-right pt-5 pr-10">
-          <AsyncButton mode="refresh" class="btn-sm mr-10" @click="refresh" />
-          <ButtonGroup v-if="false" v-model="sortField" :options="[{label: 'By Name', value: 'name'}, {label: 'By Kind', value: 'certifiedSort'}]" />
-        </div>
-      </div>
       <div class="charts">
-        <div v-for="c in arrangedCharts" :key="c.key" class="chart" :class="{[c.certified]: true}" @click="selectChart(c)">
+        <div v-for="c in arrangedCharts" :key="c.key" class="chart" :class="{[colorForChart(c)]: true}" @click="selectChart(c)">
           <div class="side-label">
             <label v-if="c.sideLabel">{{ c.sideLabel }}</label>
           </div>
@@ -203,22 +336,29 @@ export default {
   $margin: 10px;
   $logo: 60px;
 
-  .check-rancher, .check-partner, .check-other {
+  .repo {
     border-radius: var(--border-radius);
     padding: 3px 0 3px 8px;
     margin-right: 5px;
-  }
-  .check-rancher {
-    background: var(--app-rancher-bg);
-    border: 1px solid var(--app-rancher-accent);
-  }
-  .check-partner {
-    background: var(--app-partner-bg);
-    border: 1px solid var(--app-partner-accent);
-  }
-  .check-other {
-    background: var(--app-other-bg);
-    border: 1px solid var(--app-other-accent);
+
+    &.rancher {
+      background: var(--app-rancher-bg);
+      border: 1px solid var(--app-rancher-accent);
+    }
+
+    &.partner {
+      background: var(--app-partner-bg);
+      border: 1px solid var(--app-partner-accent);
+    }
+
+    &.color1 { background: var(--app-color1-bg); border: 1px solid var(--app-color1-accent); }
+    &.color2 { background: var(--app-color2-bg); border: 1px solid var(--app-color2-accent); }
+    &.color3 { background: var(--app-color3-bg); border: 1px solid var(--app-color3-accent); }
+    &.color4 { background: var(--app-color4-bg); border: 1px solid var(--app-color4-accent); }
+    &.color5 { background: var(--app-color5-bg); border: 1px solid var(--app-color5-accent); }
+    &.color6 { background: var(--app-color6-bg); border: 1px solid var(--app-color6-accent); }
+    &.color7 { background: var(--app-color7-bg); border: 1px solid var(--app-color7-accent); }
+    &.color8 { background: var(--app-color8-bg); border: 1px solid var(--app-color8-accent); }
   }
 
   .charts {
@@ -253,7 +393,7 @@ export default {
       margin: $margin;
       padding: $margin;
       position: relative;
-      border-radius: calc( 3 * var(--border-radius));
+      border-radius: calc( 1.5 * var(--border-radius));
 
       &:hover {
         box-shadow: 0 0 30px var(--shadow);
@@ -267,10 +407,10 @@ export default {
         top: 0;
         left: 0;
         bottom: 0;
-        min-width: calc(3 * var(--border-radius));
+        min-width: calc(1.5 * var(--border-radius));
         width: $side;
-        border-top-right-radius: calc( 3 * var(--border-radius));
-        border-bottom-right-radius: calc( 3 * var(--border-radius));
+        border-top-right-radius: calc( 1.5 * var(--border-radius));
+        border-bottom-right-radius: calc( 1.5 * var(--border-radius));
 
         label {
           text-align: center;
@@ -290,7 +430,7 @@ export default {
         top: ($chart - $logo)/2;
         width: $logo;
         height: $logo;
-        border-radius: calc(5 * var(--border-radius));
+        border-radius: calc(2 * var(--border-radius));
         overflow: hidden;
         background-color: white;
 
@@ -303,12 +443,16 @@ export default {
         }
       }
 
+      .side-label {
+        font-size: 10px;
+      }
+
       &.rancher {
         background: var(--app-rancher-bg);
+
         .side-label {
           background-color: var(--app-rancher-accent);
           color: var(--app-rancher-accent-text);
-          font-size: 10px;;
         }
         &:hover {
           background: var(--app-rancher-accent);
@@ -326,23 +470,50 @@ export default {
         }
       }
 
-      &.other {
-        background: var(--app-other-bg);
-        .side-label {
-          background-color: var(--app-other-accent);
-          color: var(--app-other-accent-text);
-        }
-        &:hover {
-          background: var(--app-other-accent);
-        }
+      // @TODO figure out how to templatize these
+      &.color1 {
+        background: var(--app-color1-bg);
+        .side-label { background-color: var(--app-color1-accent); color: var(--app-color1-accent-text); }
+        &:hover { background: var(--app-color1-accent); }
+      }
+      &.color2 {
+        background: var(--app-color2-bg);
+        .side-label { background-color: var(--app-color2-accent); color: var(--app-color2-accent-text); }
+        &:hover { background: var(--app-color2-accent); }
+      }
+      &.color3 {
+        background: var(--app-color3-bg);
+        .side-label { background-color: var(--app-color3-accent); color: var(--app-color3-accent-text); }
+        &:hover { background: var(--app-color3-accent); }
+      }
+      &.color4 {
+        background: var(--app-color4-bg);
+        .side-label { background-color: var(--app-color4-accent); color: var(--app-color4-accent-text); }
+        &:hover { background: var(--app-color4-accent); }
+      }
+      &.color5 {
+        background: var(--app-color5-bg);
+        .side-label { background-color: var(--app-color5-accent); color: var(--app-color5-accent-text); }
+        &:hover { background: var(--app-color5-accent); }
+      }
+      &.color6 {
+        background: var(--app-color6-bg);
+        .side-label { background-color: var(--app-color6-accent); color: var(--app-color6-accent-text); }
+        &:hover { background: var(--app-color6-accent); }
+      }
+      &.color7 {
+        background: var(--app-color7-bg);
+        .side-label { background-color: var(--app-color7-accent); color: var(--app-color7-accent-text); }
+        &:hover { background: var(--app-color7-accent); }
+      }
+      &.color8 {
+        background: var(--app-color8-bg);
+        .side-label { background-color: var(--app-color8-accent); color: var(--app-color8-accent-text); }
+        &:hover { background: var(--app-color8-accent); }
       }
 
-      &.rancher,
-      &.partner,
-      &.other {
-        &:hover {
-          background-position: right center;
-        }
+      &:hover {
+        background-position: right center;
       }
 
       .name {

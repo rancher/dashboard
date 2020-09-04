@@ -30,12 +30,14 @@ export const CATALOG = {
   NAMESPACE:     'catalog.cattle.io/namespace',
   RELEASE_NAME:  'catalog.cattle.io/release-name',
 
-  REQUIRES:      'catalog.cattle.io/requires-gvr',
-  PROVIDES:      'catalog.cattle.io/provides-gvr',
-  AUTO_INSTALL:  'catalog.cattle.io/auto-install-gvr',
-  HIDDEN:        'catalog.cattle.io/hidden',
+  REQUIRES_GVK:     'catalog.cattle.io/requires-gvr',
+  PROVIDES:         'catalog.cattle.io/provides-gvr',
+  AUTO_INSTALL_GVK: 'catalog.cattle.io/auto-install-gvr',
+  AUTO_INSTALL:     'catalog.cattle.io/auto-install',
+  HIDDEN:           'catalog.cattle.io/hidden',
 
-  COMPONENT: 'catalog.cattle.io/ui-component',
+  COMPONENT:     'catalog.cattle.io/ui-component',
+  COLOR:        'catalog.cattle.io/ui-color',
 };
 
 const CATTLE_REGEX = /cattle\.io\//;

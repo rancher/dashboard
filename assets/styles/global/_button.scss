@@ -1,6 +1,6 @@
 $btn-padding: 15px 40px;
 $xs-padding: 2px 3px;
-$sm-padding: 8px 16px;
+$sm-padding: 8px 14px;
 $lg-padding: 18px 30px;
 
 // -----------------------------------------------------------------------------
@@ -18,11 +18,10 @@ button,
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  border: 0 solid transparent;
+  border: 1px solid transparent;
   padding: $btn-padding;
   border-radius: var(--border-radius);
   color: white;
-  display: inline-flex;
 
   &:hover {
       text-decoration: none;
@@ -64,7 +63,6 @@ button,
 .btn-group-sm > .btn,
 .btn-sm .btn-label {
     padding: $sm-padding;
-    font-size: 0.87em;
 
 }
 

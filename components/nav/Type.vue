@@ -102,7 +102,7 @@ export default {
       grid-template-areas: "label count";
       grid-template-columns: auto auto;
       grid-column-gap: 5px;
-      font-size: 13px;
+      font-size: 14px;
       padding: 7.5px 7px 7.5px 10px;
       margin: 0 var(--outline-width);
       overflow: hidden;
@@ -112,6 +112,7 @@ export default {
 
       &:hover {
         background: var(--dropdown-hover-bg);
+        text-decoration: none;
 
         ::v-deep .icon {
           color: var(--body-text);
@@ -131,6 +132,7 @@ export default {
       font-size: 12px;
       text-align: right;
       justify-items: center;
+      line-height: 20px;
     }
   }
 </style>

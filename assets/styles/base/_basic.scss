@@ -68,6 +68,7 @@ INPUT,
 SELECT,
 TEXTAREA,
 BUTTON,
+.btn,
 .labeled-input {
   &:focus, &.focused {
     outline: none;

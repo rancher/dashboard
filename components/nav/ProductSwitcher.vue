@@ -5,6 +5,7 @@ import { insertAt, findBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { createPopper } from '@popperjs/core';
+import $ from 'jquery';
 
 export default {
   data() {
@@ -73,15 +74,31 @@ export default {
       this.$refs.select.$refs.search.focus();
     },
 
+    shortcutsActive() {
+      return $('FORM').length === 0;
+    },
+
     switchToApps() {
+      if ( !this.shortcutsActive() ) {
+        return;
+      }
+
       this.change('apps');
     },
 
     switchToExplorer() {
+      if ( !this.shortcutsActive() ) {
+        return;
+      }
+
       this.change('explorer');
     },
 
     switchToFleet() {
+      if ( !this.shortcutsActive() ) {
+        return;
+      }
+
       this.change('fleet');
     },
 
@@ -178,7 +195,7 @@ export default {
     <button v-shortkey.once="['p']" class="hide" @shortkey="focus()" />
     <button v-shortkey.once="['f']" class="hide" @shortkey="switchToFleet()" />
     <button v-shortkey.once="['e']" class="hide" @shortkey="switchToExplorer()" />
-    <button v-shortkey.once="['a']" class="hide" @shortkey="switchToApps()" />
+    <button v-shortkey.once="['a']" class="hide" @shortkey="switchToApps($event)" />
   </div>
 </template>
 
@@ -210,12 +227,10 @@ export default {
     }
 
     .vs__selected {
-      margin: 2px;
       user-select: none;
       cursor: default;
       color: white;
-      line-height: calc(var(--header-height) - 10px);
-      font-size: 0.87em;
+      line-height: calc(var(--header-height) - 14px);
       position: relative;
       left: 40px;
     }

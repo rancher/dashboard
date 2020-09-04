@@ -145,12 +145,13 @@ export default {
     }
   },
 
-  forgetAll(state) {
+  reset(state) {
     for ( const type of Object.keys(state.types) ) {
       const cache = state.types[type];
 
       if ( cache ) {
         cache.haveAll = false;
+        cache.haveSelector = {};
         clear(cache.list);
         cache.map.clear();
       }
@@ -162,6 +163,7 @@ export default {
 
     if ( cache ) {
       cache.haveAll = false;
+      cache.haveSelector = {};
       clear(cache.list);
       cache.map.clear();
     }

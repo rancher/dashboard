@@ -55,7 +55,7 @@ export default {
 
 <template>
   <div class="window">
-    <div class="clearfix">
+    <div class="title clearfix">
       <slot name="title" />
     </div>
     <div class="body clearfix">
@@ -65,7 +65,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $title-height: 32px;
+  $title-height: 35px;
 
   .window {
     display: grid;
@@ -83,7 +83,7 @@ export default {
     height: 100%;
     vertical-align: middle;
     line-height: $title-height - 4px;
-    padding: 0 10px;
+    padding: 0 5px;
   }
 
   .body {

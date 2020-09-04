@@ -123,10 +123,6 @@ export default {
         cm.foldLinesMatching(/^status:\s*$/);
       }
 
-      // regardless of edit or create we should probably fold all the comments so they dont get out of hand.
-      cm.getMode().fold = 'yamlcomments';
-      cm.execCommand('foldAll');
-
       try {
         const parsed = jsyaml.safeLoad(this.currentYaml);
         const annotations = Object.keys(parsed?.metadata?.annotations || {});
@@ -152,7 +148,14 @@ export default {
         }
       } catch (e) {}
 
-      cm.foldLinesMatching(/^\s+managedFields:\s*$/);
+      cm.foldLinesMatching(/managedFields/);
+
+      // regardless of edit or create we should probably fold all the comments so they dont get out of hand.
+      const saved = cm.getMode().fold;
+
+      cm.getMode().fold = 'yamlcomments';
+      cm.execCommand('foldAll');
+      cm.getMode().fold = saved;
     },
 
     onChanges(cm, changes) {
