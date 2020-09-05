@@ -1,6 +1,8 @@
 import { get, set } from '@/utils/object';
+import $ from 'jquery';
 
 export default (context) => {
+  window.$ = $;
   window.get = get;
   window.set = set;
 

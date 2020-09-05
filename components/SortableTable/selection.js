@@ -132,7 +132,7 @@ export default {
         return;
       }
 
-      const check = tgtRow.find('label[type="checkbox"]');
+      const check = tgtRow.find('label.selection-checkbox');
       const nodeId = check.data('node-id');
 
       if ( !nodeId || !check || !check.length || check[0].disabled ) {

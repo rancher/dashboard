@@ -4,6 +4,8 @@ import { dasherize } from '@/utils/string';
 import { get, clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
+import $ from 'jquery';
+import throttle from 'lodash/throttle';
 import THead from './THead';
 import filtering from './filtering';
 import selection from './selection';
@@ -391,6 +393,40 @@ export default {
       this.$refs.searchQuery.focus();
       this.$refs.searchQuery.select();
     },
+
+    focusAdjacent(next = true) {
+      const all = $('.checkbox-custom', this.$el).toArray();
+      const $cur = $(document.activeElement).closest('tr.main-row').find('.checkbox-custom');
+      let idx = -1;
+
+      if ( $cur.length ) {
+        idx = all.indexOf($cur[0]) + (next ? 1 : -1 );
+      } else if ( next ) {
+        idx = 1;
+      } else {
+        idx = all.length - 1;
+      }
+
+      if ( idx < 1 ) { // Don't go up to the check all button
+        idx = 1;
+      }
+
+      if ( idx >= all.length ) {
+        idx = all.length - 1;
+      }
+
+      if ( all[idx] ) {
+        all[idx].focus();
+      }
+    },
+
+    focusNext: throttle(function() {
+      this.focusAdjacent(true);
+    }, 100),
+
+    focusPrevious: throttle(function() {
+      this.focusAdjacent(false);
+    }, 100),
   }
 };
 </script>
@@ -482,7 +518,7 @@ export default {
             the value of :class changes. -->
             <tr :key="get(row,keyField)" class="main-row" :data-cant-run-bulk-action-of-interest="actionOfInterest && !canRunBulkActionOfInterest(row)">
               <td v-if="tableActions" class="row-check" align="middle">
-                <Checkbox class="selection-checkbox" type="checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
+                <Checkbox class="selection-checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
               </td>
               <td v-if="subExpandColumn" class="row-expand" align="middle">
                 <i data-title="Toggle Expand" :class="{icon: true, 'icon-chevron-right': true, 'icon-chevron-down': !!expanded[get(row, keyField)]}" />
@@ -573,6 +609,8 @@ export default {
       </button>
     </div>
     <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+    <button v-if="tableActions" v-shortkey="['j']" class="hide" @shortkey="focusNext()" />
+    <button v-if="tableActions" v-shortkey="['k']" class="hide" @shortkey="focusPrevious()" />
   </div>
 </template>
 
