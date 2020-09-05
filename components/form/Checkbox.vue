@@ -46,6 +46,7 @@ export default {
         click.metaKey = event.metaKey;
 
         this.$emit('input', !this.value);
+        $(this.$el).trigger(click);
       }
     }
   }
@@ -73,6 +74,7 @@ export default {
       :v-model="value"
       type="checkbox"
       :tabindex="-1"
+      @click.stop.prevent
     />
     <span
       class="checkbox-custom"
@@ -92,6 +94,7 @@ export default {
 </template>
 
 <style lang='scss'>
+// NOTE: SortableTable depends on the names of this class, do not arbitrarily change.
 .checkbox-container {
   position: relative;
   display: inline-flex;
@@ -99,6 +102,7 @@ export default {
   margin: 0;
   cursor: pointer;
   user-select: none;
+  border-radius: var(--border-radius);
 
   .checkbox-label {
     color: var(--input-label);
@@ -109,21 +113,17 @@ export default {
     height: 14px;
     width: 14px;
     background-color: var(--body-bg);
-    border-radius: 2px;
+    border-radius: var(--border-radius);
     transition: all 0.3s ease-out;
     border: 1px solid var(--border);
   }
 
   input {
-    position: absolute;
-    left: 0;
-    opacity: 0;
-    cursor: pointer;
+    display: none;
   }
 
   input:checked ~ .checkbox-custom {
       background-color:var(--dropdown-text);
-      border-radius: 3px;
       -webkit-transform: rotate(0deg) scale(1);
       -ms-transform: rotate(0deg) scale(1);
       transform: rotate(0deg) scale(1);
@@ -142,7 +142,7 @@ export default {
       top: 0px;
       height: 0px;
       width: 0px;
-      border-radius: 3px;
+      border-radius: var(--border-radius);
       border: solid;
       border-color: var(--input-text);
       border-width: 0 3px 3px 0;
@@ -164,7 +164,6 @@ export default {
     border-color: var(--input-text);
     border-width: 0 2px 2px 0;
     background-color: transparent;
-    border-radius: 0;
   }
 
   input:checked ~ .checkbox-custom.indeterminate::after {
@@ -180,7 +179,6 @@ export default {
     border-color: var(--dropdown-text);
     border-width: 0 0 2px 0;
     background-color: transparent;
-    border-radius: 0;
   }
 
   .checkbox-view {

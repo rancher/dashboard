@@ -27,9 +27,14 @@ export default {
 
 <template>
   <i
+    :tabindex="0"
+    :aria-checked="!!isFavorite"
     class="favorite icon"
     :class="{'icon-star-open': !isFavorite, 'icon-star': isFavorite}"
+    aria-role="button"
     @click.stop.prevent="toggle"
+    @keydown.enter.prevent="toggle"
+    @keydown.space.prevent="toggle"
   />
 </template>
 

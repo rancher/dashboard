@@ -118,7 +118,6 @@ export default {
         <Checkbox
           v-model="isAll"
           class="check"
-          type="checkbox"
           :indeterminate="isIndeterminate"
         />
       </th>
