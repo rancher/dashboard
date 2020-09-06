@@ -1,13 +1,16 @@
 <script>
 import day from 'dayjs';
 import ButtonGroup from '@/components/ButtonGroup';
+import Checkbox from '@/components/form/Checkbox';
 import {
   mapPref, THEME, LANDING, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE
 } from '@/store/prefs';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
 export default {
-  components: { ButtonGroup, LabeledSelect },
+  components: {
+    ButtonGroup, LabeledSelect, Checkbox
+  },
   computed:   {
     theme:      mapPref(THEME),
     keymap:     mapPref(KEYMAP),
@@ -61,6 +64,18 @@ export default {
       });
     },
 
+    pm() {
+      const now = day('1982-02-24 06:00:00 PM');
+
+      return now.format(this.timeFormat.replace(/:ss/, ''));
+    },
+
+    am() {
+      const now = day('1982-02-24 06:00:00 AM');
+
+      return now.format(this.timeFormat.replace(/:ss/, ''));
+    },
+
     timeOptions() {
       const now = day();
 
@@ -86,7 +101,12 @@ export default {
     <h1 v-t="'prefs.title'" />
 
     <h4 v-t="'prefs.theme.label'" />
-    <ButtonGroup v-model="theme" :options="themeOptions" />
+    <div>
+      <ButtonGroup v-model="theme" :options="themeOptions" />
+    </div>
+    <div class="mt-10">
+      <t k="prefs.theme.autoDetail" :pm="pm" :am="am" />
+    </div>
     <hr />
     <h4 v-t="'prefs.landing.label'" />
     <ButtonGroup v-model="landing" :options="landingOptions" />
@@ -119,18 +139,13 @@ export default {
     </div>
     <hr />
     <div class="row">
-      <div class="col span-4">
+      <div class="col span-8">
         <h4 v-t="'prefs.keymap.label'" />
         <ButtonGroup v-model="keymap" :options="keymapOptions" />
       </div>
       <div class="col span-4">
         <h4 v-t="'prefs.advanced'" />
-        <label class="checkbox-container" mode="create" type="checkbox">
-          <label class="checkbox-box">
-            <input v-model="dev" type="checkbox" tabindex="-1"> <span tabindex="0" aria-label="Interactive" role="checkbox" class="checkbox-custom"></span>
-          </label>
-          <span v-t="'prefs.dev.label'" class="checkbox-label" />
-        </label>
+        <Checkbox v-model="dev" :label="t('prefs.dev.label')" />
       </div>
     </div>
   </div>
