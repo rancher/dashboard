@@ -1,6 +1,5 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
-import once from 'lodash/once';
 
 import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
@@ -23,11 +22,6 @@ export default {
       default: 'create',
     },
 
-    newAlertManagerSecret: {
-      type:    Object,
-      default: () => ({}),
-    },
-
     secrets: {
       type:    Array,
       default: () => ([]),
@@ -40,11 +34,7 @@ export default {
   },
 
   data() {
-    return {
-      alertmanagerConfigYaml: '',
-      initNewDefaultSecret:   once(this.initSecret),
-      useExistingSecret:      true,
-    };
+    return { useExistingSecret: true };
   },
 
   computed: {
@@ -88,24 +78,6 @@ export default {
       if (isEmpty(newValue)) {
         this.useExistingSecret = false;
       }
-    },
-
-    forceCreateNewSecret(force) {
-      if (force && isEmpty(this.newAlertManagerSecret)) {
-        this.initNewDefaultSecret();
-      }
-    },
-
-    useExistingSecret(useExistingSecret) {
-      if (!useExistingSecret && isEmpty(this.newAlertManagerSecret)) {
-        this.initNewDefaultSecret();
-      }
-    },
-  },
-
-  methods: {
-    initSecret() {
-      this.$emit('init-secret');
     },
   },
 };

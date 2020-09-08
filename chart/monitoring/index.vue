@@ -1,9 +1,6 @@
 <script>
-import has from 'lodash/has';
 import isEmpty from 'lodash/isEmpty';
-import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
-import cloneDeep from 'lodash/cloneDeep';
 
 import Alerting from '@/chart/monitoring/alerting';
 import Checkbox from '@/components/form/Checkbox';
@@ -12,8 +9,7 @@ import Grafana from '@/chart/monitoring/grafana';
 import Prometheus from '@/chart/monitoring/prometheus';
 
 import { allHash } from '@/utils/promise';
-import { base64Encode } from '@/utils/crypto';
-import { STORAGE_CLASS, PVC, SECRET, NAMESPACE } from '@/config/types';
+import { STORAGE_CLASS, PVC, SECRET } from '@/config/types';
 
 export default {
   components: {
@@ -59,7 +55,6 @@ export default {
           label: 'monitoring.accessModes.many',
         },
       ],
-      newAlertManagerSecret: {},
       pvcs:                  [],
       secrets:               [],
       storageClasses:        [],
@@ -68,9 +63,6 @@ export default {
   },
 
   created() {
-    this.$emit('register-before-hook', this.createNamespace, 0);
-    this.$emit('register-before-hook', this.createDefaultSecret, 1);
-
     if (this.mode === 'create') {
       const extendedDefaults = {
         global: {
@@ -101,64 +93,6 @@ export default {
   },
 
   methods: {
-    async createNamespace(cb) {
-      const { value: model, targetNamespace } = this;
-
-      if (model.alertmanager.enabled) {
-        if (targetNamespace) {
-          return targetNamespace;
-        }
-
-        try {
-          const nsData = { type: NAMESPACE, metadata: { name: this.chart.targetNamespace } };
-
-          const neuNS = await this.$store.dispatch('cluster/create', nsData);
-
-          await neuNS.save();
-          await neuNS.waitForState('active');
-
-          return neuNS;
-        } catch (error) {
-          console.error(error); // eslint-disable-line no-console
-          throw error;
-        }
-      }
-    },
-
-    async createDefaultSecret(cb) {
-      const { value: model, newAlertManagerSecret } = this;
-      // clone the new secret so we can base64 the content without borking users secret if the save fails
-      const cloned = cloneDeep(newAlertManagerSecret);
-
-      if (model.alertmanager.enabled && !model.alertmanager.alertmanagerSpec.useExistingSecret) {
-        if (isEmpty(cloned)) {
-          throw new Error('An AlertManager secret is required');
-        }
-
-        if (!has(cloned?.data, 'alertmanager.yaml')) {
-          throw new Error('The AlertManager config must have a key with alertmanager.yaml');
-        }
-
-        Object.keys(cloned.data).forEach((keey) => {
-          cloned.data[keey] = base64Encode(newAlertManagerSecret.data[keey]);
-        });
-
-        try {
-          const secret = await this.$store.dispatch('cluster/create', cloned);
-
-          await secret.save();
-          await secret.waitForState('active');
-
-          this.newAlertManagerSecret = secret;
-
-          return secret;
-        } catch (error) {
-          console.error(error); // eslint-disable-line no-console
-          throw error;
-        }
-      }
-    },
-
     async fetchDeps() {
       const { $store } = this;
       const hash = await allHash({
@@ -180,49 +114,6 @@ export default {
 
       if (!isEmpty(hash.secrets)) {
         this.secrets = hash.secrets;
-      }
-    },
-
-    async initSecret() {
-      const { value } = this;
-      const defData = {
-        apiVersion: 'v1',
-        kind:       'Secret',
-        type:       SECRET,
-        data:       { 'alertmanager.yaml': '' },
-        metadata:   {
-          labels:    { alertmanager_config: '1' },
-          name:      'alertmanager-rancher-monitoring-alertmanager',
-          namespace: 'cattle-monitoring-system',
-        }
-      };
-
-      try {
-        defData.data['alertmanager.yaml'] = jsyaml.safeDump(value.alertmanager.config);
-      } catch (error) {
-        console.error('Unable to parse alertmanager config into yaml! No defaults will be set.', error); // eslint-disable-line no-console
-        throw error;
-      }
-
-      merge(defData.data, value.alertmanager.templateFiles);
-
-      const secret = await this.$store.dispatch('cluster/create', defData);
-
-      this.newAlertManagerSecret = secret;
-    },
-
-    setSecretValues(rows) {
-      const { newAlertManagerSecret: secret } = this;
-
-      this.$set(secret, 'data', rows);
-    },
-
-    setSecretRowYamlValue(str, row) {
-      const { newAlertManagerSecret } = this;
-      const rowName = row.key;
-
-      if (!isEmpty(rowName)) {
-        this.$set(newAlertManagerSecret.data, rowName, str);
       }
     },
   },
@@ -249,10 +140,6 @@ export default {
         v-model="value"
         :mode="mode"
         :secrets="secrets"
-        :new-alert-manager-secret="newAlertManagerSecret.data"
-        @init-secret="initSecret"
-        @set-secret-values="setSecretValues"
-        @secret-yaml-update="setSecretRowYamlValue"
       />
     </section>
     <section class="config-prometheus-container">
