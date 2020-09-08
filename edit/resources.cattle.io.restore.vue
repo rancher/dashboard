@@ -9,10 +9,9 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
 import RadioGroup from '@/components/form/RadioGroup';
 import { mapGetters } from 'vuex';
-import { SECRET, BACKUP_RESTORE, NAMESPACE } from '@/config/types';
+import { SECRET, BACKUP_RESTORE } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { get, isEmpty } from '@/utils/object';
-import { sortBy } from '@/utils/sort';
 export default {
 
   components: {
@@ -25,6 +24,7 @@ export default {
     Banner,
     RadioGroup
   },
+
   mixins: [createEditView],
 
   props: {
@@ -51,11 +51,6 @@ export default {
   },
 
   data() {
-    if (!this.value.metadata) {
-      const namespace = this.$store.getters['defaultNamespace'];
-
-      this.$set(this.value, 'metadata', { namespace });
-    }
     if (!this.value.spec) {
       this.$set(this.value, 'spec', { prune: true, deleteTimeoutSeconds: 10 });
     }
@@ -73,42 +68,35 @@ export default {
   },
 
   computed: {
-    namespacedSecretNames() {
-      return this.allSecrets.filter(secret => secret.namespace === this.value?.metadata?.namespace).map(secret => secret.metadata.name);
+    credentialSecret: {
+      get() {
+        const { credentialSecretName, credentialSecretNamespace } = this.s3;
+
+        return { metadata: { name: credentialSecretName, namespace: credentialSecretNamespace } };
+      },
+
+      set(neu) {
+        const { name, namespace } = neu.metadata;
+
+        this.$set(this.s3, 'credentialSecretName', name);
+        this.$set(this.s3, 'credentialSecretNamespace', namespace);
+      }
+    },
+
+    encryptionSecretNames() {
+      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml']).map(secret => secret.metadata.name);
     },
 
     namespacedBackups() {
       return this.allBackups.filter(backup => backup.namespace === this.value?.metadata?.namespace);
     },
 
-    namespaces() {
-      const choices = this.$store.getters['cluster/all'](NAMESPACE);
-
-      const out = sortBy(choices.map((obj) => {
-        return {
-          label: obj.nameDisplay,
-          value: obj.id,
-        };
-      }), 'label');
-
-      return out;
-    },
-
     showWarning() {
-      if (this.targetBackup) {
-        return this.targetBackup?.spec?.encryptionConfigName && this.targetBackup?.spec?.encryptionConfigName !== this.value.spec.encryptionConfigName;
-      } else {
-        return true;
-      }
+      return this.isEncrypted && !this.value.spec.encryptionConfigName;
     },
 
-    // if there is a target backup selected and it doesn't have encryptionConfigName, assume its not encrypted
-    disableEncryptionInput() {
-      if (this.targetBackup) {
-        return !this.targetBackup?.spec?.encryptionConfigName;
-      }
-
-      return false;
+    isEncrypted() {
+      return !!((this.value.spec.backupFilename || '').match(/.*\.enc$/));
     },
 
     radioOptions() {
@@ -144,11 +132,6 @@ export default {
   <div>
     <CruResource :validation-passed="!!value.spec.backupFilename && !!value.spec.backupFilename.length" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
       <template #define>
-        <div class="row mb-10">
-          <div class="col span-3">
-            <LabeledSelect v-model="value.metadata.namespace" label="Namespace" :options="namespaces" />
-          </div>
-        </div>
         <div class="bordered-section">
           <Banner v-if="showWarning" color="warning" :label="t('backupRestoreOperator.encryptionConfigName.tip')" />
           <div class="row mb-10">
@@ -172,7 +155,7 @@ export default {
               <UnitInput v-model="value.spec.deleteTimeoutSeconds" :suffix="t('suffix.seconds')" :mode="mode" :label="t('backupRestoreOperator.deleteTimeout')" />
             </div>
             <div class="col span-6">
-              <LabeledSelect v-model="value.spec.encryptionConfigName" :disabled="disableEncryptionInput" :mode="mode" :options="namespacedSecretNames" :label="t('backupRestoreOperator.encryptionConfigName.label')" />
+              <LabeledSelect v-model="value.spec.encryptionConfigName" :disabled="!isEncrypted" :mode="mode" :options="encryptionSecretNames" :label="t('backupRestoreOperator.encryptionConfigName.label')" />
             </div>
           </div>
           <div :style="{'align-items':'center'}" class="row">
@@ -187,7 +170,7 @@ export default {
 
         <div class="row mb-10">
           <div class="col span-12">
-            <RadioGroup v-model="storageSource" :options="radioOptions.options" :labels="radioOptions.labels" />
+            <RadioGroup v-model="storageSource" :label="t('backupRestoreOperator.backupSource')" :options="radioOptions.options" :labels="radioOptions.labels" />
           </div>
         </div>
 
@@ -196,7 +179,13 @@ export default {
 
           <div class="row mb-10">
             <div class="col span-6">
-              <LabeledSelect v-model="s3.credentialSecretName" :mode="mode" :options="namespacedSecretNames" :label="t('backupRestoreOperator.s3.credentialSecretName')" />
+              <LabeledSelect
+                v-model="credentialSecret"
+                :get-option-label="opt=>opt.metadata.name || ''"
+                :mode="mode"
+                :options="allSecrets"
+                :label="t('backupRestoreOperator.s3.credentialSecretName')"
+              />
             </div>
             <div class="col span-6">
               <LabeledInput v-model="s3.bucketName" :mode="mode" :label="t('backupRestoreOperator.s3.bucketName')" />
