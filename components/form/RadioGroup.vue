@@ -141,12 +141,12 @@ export default {
 <template>
   <div>
     <div v-if="label" class="radio-group label" :class="{'view':isView}">
-      <label>
+      <span class="text-label">
         {{ label }}
-      </label>
-      <label class="corner">
+      </span>
+      <span class="corner">
         <slot name="corner" />
-      </label>
+      </span>
     </div>
     <div
       v-if="mode!=='view'"

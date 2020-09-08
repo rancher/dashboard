@@ -133,14 +133,18 @@ asyncButton:
 backupRestoreOperator:
   backupFilename: Backup Filename
   prune: Prune
+  encryption: Encryption
   encryptionConfigName: 
-    label: Encryption Config Name
+    label: Encryption Config Secret
     tip: If the backup that this Restore references was created with encryption enabled, the same encryptionConfig file must be used here
+    options:
+      none: Store the contents of the backup unencrypted
+      secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a>
   deleteTimeout: Delete Timeout
-  resourceSetName: Resource Set Name
+  resourceSetName: Resource Set
   schedule: 
     label: Schedule
-    placeholder: e.g. * * * * ?
+    placeholder: e.g. @midnight or 0 0 * * *
   retentionCount: 
     label: Retention Count
     units: |-
@@ -150,20 +154,20 @@ backupRestoreOperator:
       }
   s3:
     titles:
-      location: Define Storage Location
+      location: Storage Location
       s3: S3
-    credentialSecretName:  Credential Secret Name
+    credentialSecretName:  Credential Secret
     storageLocation: Storage Location
     endpoint: Endpoint
     endpointCA: Endpoint CA
     bucketName: Bucket Name
     region: Region
     folder: Folder
-    insecureTLSSkipVerify: Insecure TLS Skip Verify
+    insecureTLSSkipVerify: Skip TLS Verifications
   storageSource:
-    useDefault: Use the Backup location configured at the operator level.
-    configureS3:  Specify details of the s3 compatible storage provider where the backup file is stored (s3/minio).
-    useBackup: Use the s3 location specified on the Backup CR. 
+    useDefault: Use the the default storage target configured during installation
+    configureS3: Use an S3-compatible object store
+    useBackup: Use the s3 location specified on the Backup CR
   noResourceSet: 'You must define a ResourceSet in this namespace to create a backup CR.'
 
 catalog:
