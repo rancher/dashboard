@@ -170,13 +170,11 @@ export default {
 
         <div class="row mb-10">
           <div class="col span-12">
-            <RadioGroup v-model="storageSource" :label="t('backupRestoreOperator.backupSource')" :options="radioOptions.options" :labels="radioOptions.labels" />
+            <RadioGroup v-model="storageSource" :label="t('backupRestoreOperator.s3.titles.location')" :options="radioOptions.options" :labels="radioOptions.labels" />
           </div>
         </div>
 
         <template v-if="storageSource !== 'useDefault'">
-          <h3>{{ t('backupRestoreOperator.s3.titles.s3') }}</h3>
-
           <div class="row mb-10">
             <div class="col span-6">
               <LabeledSelect
@@ -202,7 +200,7 @@ export default {
           <div class="row mb-10">
             <div class="col span-6">
               <LabeledInput v-model="s3.endpoint" :mode="mode" :label="t('backupRestoreOperator.s3.endpoint')" />
-              <Checkbox v-model="s3.insecureTLSSkipVerify" :mode="mode" :label="t('backupRestoreOperator.s3.insecureTLSSkipVerify')" />
+              <Checkbox v-model="s3.insecureTLSSkipVerify" class="mt-10" :mode="mode" :label="t('backupRestoreOperator.s3.insecureTLSSkipVerify')" />
             </div>
             <div class="col span-6">
               <LabeledInput v-model="s3.endpointCA" :mode="mode" type="multiline" :label="t('backupRestoreOperator.s3.endpointCA')" />
