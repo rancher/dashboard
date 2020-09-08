@@ -10,10 +10,11 @@ import Banner from '@/components/Banner';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import { mapGetters } from 'vuex';
-import { SECRET, BACKUP_RESTORE } from '@/config/types';
+import { SECRET, BACKUP_RESTORE, CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { NAMESPACE } from '@/config/query-params';
 import { sortBy } from '@/utils/sort';
+import { get } from '@/utils/object';
 export default {
 
   components: {
@@ -45,11 +46,14 @@ export default {
   async fetch() {
     const hash = await allHash({
       secrets:      this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      resourceSets: this.$store.dispatch('cluster/findAll', { type: BACKUP_RESTORE.RESOURCE_SET })
+      resourceSets: this.$store.dispatch('cluster/findAll', { type: BACKUP_RESTORE.RESOURCE_SET }),
+      releases:     this.$store.dispatch('cluster/findAll', { type: CATALOG.RELEASE })
+
     });
 
     this.allSecrets = hash.secrets;
     this.allResourceSets = hash.resourceSets;
+    this.releases = hash.releases;
   },
 
   data() {
@@ -62,11 +66,17 @@ export default {
     const s3 = this.value.spec.storageLocation.s3;
 
     return {
-      allSecrets: [], allResourceSets: [], s3, storageSource: 'useDefault', useEncryption: false
+      allSecrets: [], allResourceSets: [], s3, storageSource: 'useDefault', useEncryption: false, releases: []
     };
   },
 
   computed: {
+    chartNamespace() {
+      const BRORelease = this.releases.filter(release => get(release, 'spec.name' === 'backup-restore-operator'))[0];
+
+      return BRORelease ? BRORelease.spec.namespace : '';
+    },
+
     credentialSecret: {
       get() {
         const { credentialSecretName, credentialSecretNamespace } = this.s3;
@@ -82,7 +92,7 @@ export default {
     },
 
     encryptionSecretNames() {
-      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml'] && secret.metadata.namespace === 'cattle-resources-system').map(secret => secret.metadata.name);
+      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace).map(secret => secret.metadata.name);
     },
 
     namespacedResourceSetNames() {
