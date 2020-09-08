@@ -9,7 +9,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
 import RadioGroup from '@/components/form/RadioGroup';
 import { mapGetters } from 'vuex';
-import { SECRET, BACKUP_RESTORE } from '@/config/types';
+import { SECRET, BACKUP_RESTORE, CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { get, isEmpty } from '@/utils/object';
 export default {
@@ -41,13 +41,18 @@ export default {
   },
 
   async fetch() {
+    await this.$store.dispatch('catalog/load');
+
+    this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
     const hash = await allHash({
-      secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      backups: this.$store.dispatch('cluster/findAll', { type: BACKUP_RESTORE.BACKUP })
+      secrets:  this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      backups:  this.$store.dispatch('cluster/findAll', { type: BACKUP_RESTORE.BACKUP }),
+      releases: this.$store.dispatch('cluster/findAll', { type: CATALOG.RELEASE })
     });
 
     this.allSecrets = hash.secrets;
     this.allBackups = hash.backups;
+    this.releases = hash.releases;
   },
 
   data() {
@@ -63,11 +68,17 @@ export default {
     const s3 = this.value.spec.storageLocation.s3;
 
     return {
-      allSecrets: [], allBackups: [], s3, targetBackup: null, storageSource: 'useDefault'
+      allSecrets: [], allBackups: [], s3, targetBackup: null, storageSource: 'useDefault', releases: []
     };
   },
 
   computed: {
+    chartNamespace() {
+      const BRORelease = this.releases.filter(release => get(release, 'spec.name' === 'backup-restore-operator'))[0];
+
+      return BRORelease ? BRORelease.spec.namespace : '';
+    },
+
     credentialSecret: {
       get() {
         const { credentialSecretName, credentialSecretNamespace } = this.s3;
@@ -84,7 +95,7 @@ export default {
     },
 
     encryptionSecretNames() {
-      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml'] && secret.metadata.namespace === 'cattle-resources-system').map(secret => secret.metadata.name);
+      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace).map(secret => secret.metadata.name);
     },
 
     namespacedBackups() {
