@@ -84,7 +84,7 @@ export default {
     },
 
     encryptionSecretNames() {
-      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml']).map(secret => secret.metadata.name);
+      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml'] && secret.metadata.namespace === 'cattle-resources-system').map(secret => secret.metadata.name);
     },
 
     namespacedBackups() {
