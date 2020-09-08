@@ -1,31 +1,38 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import { mapGetters } from 'vuex';
 
 const CLUSTER_TYPES = [
   {
-    id:    'RKE',
-    label: 'monitoring.clusterType.rke',
+    id:       'RKE',
+    label:    'monitoring.clusterType.rke',
+    provider: 'rke',
   },
   {
-    id:    'RKE2',
-    label: 'monitoring.clusterType.rke2',
+    id:       'RKE Federal',
+    label:    'monitoring.clusterType.rke2',
+    provider: 'rke2',
   },
   {
-    id:    'K3s',
-    label: 'monitoring.clusterType.k3s',
+    id:       'K3s',
+    label:    'monitoring.clusterType.k3s',
+    provider: 'k3s',
   },
   {
-    id:    'KubeADM',
-    label: 'monitoring.clusterType.kubeAdmin',
+    id:       'KubeADM',
+    label:    'monitoring.clusterType.kubeAdmin',
+    provider: 'kubeadm',
   },
   {
-    id:    'Managed Cluster (EKS, GKE, AKS, etc.)',
-    label: 'monitoring.clusterType.managed',
+    id:       'Managed Cluster (EKS, GKE, AKS, etc.)',
+    label:    'monitoring.clusterType.managed',
+    provider: ['eks', 'gke', 'aks'],
   },
   {
-    id:    'Other',
-    label: 'monitoring.clusterType.other',
+    id:       'Other',
+    label:    'monitoring.clusterType.other',
+    provider: ['docker', 'minikube'],
   },
 ];
 
@@ -67,6 +74,13 @@ export default {
     };
   },
 
+  computed: {
+    ...mapGetters(['currentCluster']),
+    provider() {
+      return this.currentCluster.status.provider.toLowerCase();
+    }
+  },
+
   watch: {
     // This method is not that disimilar to persistentStorageType in Grafan config
     // The reason for the divergence is that Grafna has a subkey on the chart
@@ -85,7 +99,7 @@ export default {
       case 'RKE':
         resetOut = [this.configKeys.rke, false];
         break;
-      case 'RKE2':
+      case 'RKE Federal':
         resetOut = [this.configKeys.rke2, false];
         break;
       case 'K3s':
@@ -98,9 +112,8 @@ export default {
         resetOut = [this.configKeys.managed, false];
         break;
       case 'Other':
-        resetOut = [this.configKeys.other, false];
-        break;
       default:
+        resetOut = [this.configKeys.other, false];
         break;
       }
 
@@ -109,7 +122,7 @@ export default {
       case 'RKE':
         setNewOut = [this.configKeys.rke, true];
         break;
-      case 'RKE2':
+      case 'RKE Federal':
         setNewOut = [this.configKeys.rke2, true];
         break;
       case 'K3s':
@@ -126,9 +139,8 @@ export default {
         );
         break;
       case 'Other':
-        setNewOut = [this.configKeys.other, true];
-        break;
       default:
+        setNewOut = [this.configKeys.other, true];
         break;
       }
 
@@ -136,6 +148,19 @@ export default {
       this.setClusterTypeEnabledValues(setNewOut);
     },
   },
+
+  created() {
+    const { provider, clusterTypes } = this;
+
+    const matchedProvder = clusterTypes.find(ct => ct.provider.includes(provider));
+
+    if (isEmpty(matchedProvder)) {
+      this.clusterType = 'Other';
+    } else {
+      this.clusterType = matchedProvder.id;
+    }
+  },
+
   methods: {
     setClusterTypeEnabledValues([keyNames = [], valueToSet = null]) {
       const { value } = this;
