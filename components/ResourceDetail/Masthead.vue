@@ -141,10 +141,8 @@ export default {
       });
     },
 
-    toggleYaml() {
-      const out = !this.asYaml;
-
-      this.$emit('update:asYaml', out);
+    toggleYaml(val) {
+      this.$emit('update:asYaml', val);
     }
   }
 };
