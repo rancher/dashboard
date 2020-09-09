@@ -27,7 +27,7 @@ $disabled        : $medium;
 $success         : #5D995D;
 $warning         : #DAC342;
 $error           : #F64747;
-$info            : #213444;
+$info            : mix($primary, $secondary, 50%);
 
 $contrasted-dark: $darkest !default;
 $contrasted-light: $lightest !default;
