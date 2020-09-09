@@ -1,18 +1,25 @@
 import Queue from './queue';
 
-export function allHash(hash) {
+async function _hash(hash, fnName) {
   const keys = Object.keys(hash);
   const promises = Object.values(hash);
 
-  return Promise.all(promises).then((res) => {
-    const out = {};
+  const res = await Promise[fnName](promises);
+  const out = {};
 
-    for ( let i = 0 ; i < keys.length ; i++ ) {
-      out[keys[i]] = res[i];
-    }
+  for ( let i = 0 ; i < keys.length ; i++ ) {
+    out[keys[i]] = res[i];
+  }
 
-    return out;
-  });
+  return out;
+}
+
+export function allHash(hash) {
+  return _hash(hash, 'all');
+}
+
+export function allHashSettled(hash) {
+  return _hash(hash, 'allSettled');
 }
 
 export function eachLimit(items, limit, iterator, debug = false) {

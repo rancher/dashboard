@@ -1,7 +1,7 @@
 import { CATALOG } from '@/config/types';
 import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { addParams } from '@/utils/url';
-import { allHash } from '@/utils/promise';
+import { allHash, allHashSettled } from '@/utils/promise';
 import { clone } from '@/utils/object';
 import { findBy, addObject } from '@/utils/array';
 import { stringify } from '@/utils/error';
@@ -239,23 +239,22 @@ export const actions = {
 
     const repos = getters['repos'];
     const loaded = [];
-    promises = [];
+    promises = {};
 
     for ( const repo of repos ) {
       if ( (force === true || !getters.isLoaded(repo)) && repo.canLoad ) {
         console.info('Loading index for repo', repo.name, `(${repo._key})`); // eslint-disable-line no-console
-        promises.push(repo.followLink('index'));
+        promises[repo._key] = repo.followLink('index');
       }
     }
 
-    const res = await Promise.allSettled(promises);
-
+    const res = await allHashSettled(promises);
     const charts = reset ? {} : state.charts;
     const errors = [];
 
-    for ( let i = 0 ; i < res.length ; i++ ) {
-      const obj = res[i];
-      const repo = repos[i];
+    for ( const key of Object.keys(res) ) {
+      const obj = res[key];
+      const repo = findBy(repos, '_key', key);
 
       if ( obj.status === 'rejected' ) {
         errors.push(stringify(obj.reason));
