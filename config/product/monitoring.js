@@ -22,6 +22,16 @@ export function init(store) {
 
   mapGroup(/^(.*\.)?monitoring\.coreos\.com$/, 'Monitoring');
 
+  basicType(['monitoring-overview']);
+
+  basicType([
+    // ALERTMANAGER,
+    // PROMETHEUSE,
+    SERVICEMONITOR,
+    PODMONITOR,
+    PROMETHEUSRULE,
+  ]);
+
   virtualType({
     label:       'Overview',
     namespaced:  false,
@@ -29,13 +39,19 @@ export function init(store) {
     route:      { name: 'c-cluster-monitoring' },
   });
 
-  basicType(['monitoring-overview']);
+  virtualType({
+    label:      'AlertManager',
+    namespaced:  false,
+    name:       'monitoring-alertmanager',
+    route:      { name: 'c-cluster-monitoring-alertmanager' },
+    ifHaveType: ALERTMANAGER
+  });
 
-  basicType([
-    ALERTMANAGER, // remove
-    PROMETHEUSE, // remove
-    SERVICEMONITOR,
-    PODMONITOR,
-    PROMETHEUSRULE,
-  ]);
+  virtualType({
+    label:      'Prometheus',
+    namespaced:  false,
+    name:       'monitoring-prometheus',
+    route:      { name: 'c-cluster-monitoring-prometheus' },
+    ifHaveType: PROMETHEUSE
+  });
 }

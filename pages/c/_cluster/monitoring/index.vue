@@ -18,7 +18,6 @@ export default {
   middleware: InstallRedirect(NAME, CHART_NAME),
 
   async fetch() {
-    // @TODO stop loading these, use counts. --v
     const resources = [];
 
     for ( const resource of this.resources ) {
@@ -30,7 +29,6 @@ export default {
     }
 
     await Promise.all(resources);
-    // --^
   },
 
   data() {
@@ -59,9 +57,10 @@ export default {
             schema,
             resourceCounts.useful
           );
+
           const location = {
-            name:   'c-cluster-monitoring-resource',
-            params: { product: NAME, resource },
+            name:   `c-cluster-monitoring-${ resource.split('.').pop() }`,
+            params: { resource },
           };
 
           return {
