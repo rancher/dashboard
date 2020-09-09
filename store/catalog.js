@@ -277,8 +277,14 @@ export const actions = {
     });
   },
 
-  refresh({ commit, dispatch }) {
-    return dispatch('load', { force: true, reset: true });
+  async refresh({ getters, commit, dispatch }) {
+    const promises = getters.repos.map(x => x.refresh());
+
+    // @TODO wait for repo state to indicate they're done once the API has that
+
+    await Promise.allSettled(promises);
+
+    await dispatch('load', { force: true, reset: true });
   },
 
   async getVersionInfo({ state, getters, commit }, {

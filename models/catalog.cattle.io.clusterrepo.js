@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import { parse } from '@/utils/url';
 import { CATALOG } from '@/config/labels-annotations';
+import { insertAt } from '@/utils/array';
 
 export default {
   applyDefaults() {
@@ -8,6 +9,31 @@ export default {
       if ( !this.spec ) {
         Vue.set(this, 'spec', { url: '' });
       }
+    };
+  },
+
+  // remove clone as yaml/edit as yaml until API supported
+  _availableActions() {
+    const out = this._standardActions;
+
+    insertAt(out, 0, { divider: true });
+
+    insertAt(out, 0, {
+      action:     'refresh',
+      label:      'Refresh',
+      icon:       'icon icon-refresh',
+      enabled:    !!this.links.update,
+    });
+
+    return out;
+  },
+
+  refresh() {
+    return () => {
+      const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
+
+      this.spec.forceUpdate = now;
+      this.save();
     };
   },
 
@@ -106,8 +132,14 @@ export default {
   details() {
     return [
       {
-        label:         'Type',
-        content:       this.typeDisplay
+        label:     'Type',
+        content:   this.typeDisplay,
+      },
+      {
+        label:         'Downloaded',
+        content:       this.status.downloadTime,
+        formatter:     'LiveDate',
+        formatterOpts: { addSuffix: true },
       },
     ];
   },
