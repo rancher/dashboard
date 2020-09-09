@@ -130,3 +130,11 @@ export const RIO = {
 
   SYSTEM_NAMESPACE: 'rio-system',
 };
+
+export const LOGGING = {
+  LOGGINGS:        'logging.banzaicloud.io.logging',
+  CLUSTER_FLOWS:   'logging.banzaicloud.io.clusterflow',
+  CLUSTER_OUTPUTS: 'logging.banzaicloud.io.clusteroutput',
+  FLOWS:           'logging.banzaicloud.io.flow',
+  OUTPUTS:         'logging.banzaicloud.io.output'
+};

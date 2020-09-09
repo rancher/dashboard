@@ -196,6 +196,10 @@ catalog:
       notes: Release Notes
       values: Values YAML
 
+chartHeading:
+  overview: Overview
+  poweredBy: "Powered by:"
+
 cluster:
   nodeDriver:
     displayName:
@@ -479,6 +483,9 @@ logging:
   install:
     deployToControlPlane: Deploy to control plane nodes
     k3sContainerEngine: K3S Container Engine
+  overview:
+    clusterLevel: Cluster-level Logging
+    namespaceLevel: Namespace-level Logging
   provider: Provider
   elasticsearch:
     host: Host
@@ -882,6 +889,9 @@ tableHeaders:
   branch: Branch
   chart: Chart
   clusterCreatorDefault: Cluster Creator Default
+  clusterFlow: Cluster Flow
+  clusterOutput: Cluster Output
+  configuredProviders: Configured Providers
   cpu: CPU
   date: Date
   destination: Target
@@ -893,6 +903,7 @@ tableHeaders:
       one { Host }
       other { Hosts }
     }
+  flow: Flow
   image: Image
   imageSize: Size
   ingressTarget: Target
@@ -904,13 +915,14 @@ tableHeaders:
   matches: Matches
   message: Message
   name: Name
-  namespace: Namespace
   nameUnlinked: Name
+  namespace: Namespace
   namespaceName: Name
   namespaceNameUnlinked: Name
   node: Node
   nodeName: Name
   object: Object
+  output: Output
   p95: 95%tile
   podImages: Image
   pods: Pods

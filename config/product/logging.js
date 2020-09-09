@@ -6,6 +6,7 @@ export function init(store) {
   const {
     product,
     basicType,
+    virtualType
   } = DSL(store, NAME);
 
   product({ ifHaveGroup: /^(.*\.)?logging\.banzaicloud\.io$/ });
@@ -17,4 +18,11 @@ export function init(store) {
     'logging.banzaicloud.io.flow',
     'logging.banzaicloud.io.output',
   ]);
+
+  virtualType({
+    label:      'Overview',
+    namespaced: false,
+    name:       'logging-overview',
+    route:      { name: 'c-cluster-logging' },
+  });
 }

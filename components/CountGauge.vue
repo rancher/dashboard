@@ -65,7 +65,7 @@ export default {
 </script>
 
 <template>
-  <GradientBox class="resource-gauge" :class="{clickable}" :primary-color-var="primaryColorVar" @click.native="visitLocation()">
+  <GradientBox class="count-gauge" :class="{clickable}" :primary-color-var="primaryColorVar" @click.native="visitLocation()">
     <div class="graphical">
       <GraphCircle :primary-stroke-color="`rgba(var(${primaryColorVar}))`" secondary-stroke-color="rgb(var(--resource-gauge-back-circle))" :percentage="percentage" />
     </div>
@@ -85,7 +85,7 @@ export default {
 </template>
 
 <style lang="scss">
-    .resource-gauge {
+    .count-gauge {
         $padding: 10px;
 
         padding: $padding;

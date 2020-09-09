@@ -4,6 +4,7 @@ import Command from '@/components/form/Command';
 import Security from '@/components/form/Security';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
+import LabeledInput from '@/components/form/LabeledInput';
 import { _VIEW } from '@/config/query-params';
 
 export default {
@@ -12,8 +13,10 @@ export default {
     Command,
     Security,
     WorkloadPorts,
-    ContainerResourceLimit
+    ContainerResourceLimit,
+    LabeledInput
   },
+
   props: {
     // container spec
     value: {
@@ -75,6 +78,30 @@ export default {
 
 <template>
   <div v-if="isView">
+    <div class="bordered-section">
+      <div class="row">
+        <div class="col span-4">
+          <LabeledInput :label="t('workload.container.name')" :mode="mode" :value="value.name" />
+        </div>
+
+        <div class="col span-4">
+          <LabeledInput
+            v-model="value.image"
+            :label="t('workload.container.image')"
+            placeholder="eg nginx:latest"
+            required
+            :mode="mode"
+          />
+        </div>
+        <div class="col span-4">
+          <LabeledInput
+            :value="value.imagePullPolicy"
+            :label="t('workload.container.imagePullPolicy')"
+            :mode="mode"
+          />
+        </div>
+      </div>
+    </div>
     <div class="bordered-section">
       <h3><t k="workload.container.titles.ports" /></h3>
       <WorkloadPorts v-if="value.ports" v-model="value.ports" :mode="mode" />

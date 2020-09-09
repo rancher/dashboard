@@ -347,7 +347,7 @@ export default {
     background-color: var(--tabbed-sidebar-bg);
 
     .tab-container {
-      padding: 0 0 0 20px;
+      padding: 20px;
     }
 
     & .tabs {

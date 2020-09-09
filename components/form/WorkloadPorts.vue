@@ -137,7 +137,8 @@ export default {
       >
         <div v-if="padLeft" class="left"></div>
         <div class="portName">
-          <span v-if="isView">{{ row.name }}</span>
+          <span v-if="isView && row.name">{{ row.name }}</span>
+          <span v-else-if="isView" class="text-muted">&mdash;</span>
           <input
             v-else
             ref="name"
@@ -146,7 +147,8 @@ export default {
           />
         </div>
         <div class="port">
-          <span v-if="isView">{{ row.containerPort }}</span>
+          <span v-if="isView && row.containerPort">{{ row.containerPort }}</span>
+          <span v-else-if="isView" class="text-muted">&mdash;</span>
           <input
             v-else
             v-model.number="row.containerPort"
@@ -158,7 +160,8 @@ export default {
           />
         </div>
         <div v-if="showHostPorts" class="targetPort">
-          <span v-if="isView">{{ row.hostPort }}</span>
+          <span v-if="isView && row.hostPort">{{ row.hostPort }}</span>
+          <span v-else-if="isView" class="text-muted">&mdash;</span>
           <input
             v-else
             ref="port"
@@ -171,7 +174,8 @@ export default {
           />
         </div>
         <div class="protocol">
-          <span v-if="isView">{{ row.protocol }}</span>
+          <span v-if="isView && row.protocol">{{ row.protocol }}</span>
+          <span v-else-if="isView" class="text-muted">&mdash;</span>
           <v-select
             v-else
             v-model="row.protocol"
