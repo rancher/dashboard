@@ -1,23 +1,81 @@
 <script>
-import { NAME, CHART_NAME } from '@/config/product/monitoring';
-import InstallRedirect from '@/utils/install-redirect';
-import LazyImage from '@/components/LazyImage';
 import { mapGetters } from 'vuex';
 
+import InstallRedirect from '@/utils/install-redirect';
+
+import { NAME, CHART_NAME } from '@/config/product/monitoring';
+import { MONITORING } from '@/config/types';
+
+import LazyImage from '@/components/LazyImage';
+import ResourceGauge from '@/pages/c/_cluster/explorer/ResourceGauge';
+
 export default {
-  components: { LazyImage },
+  components: {
+    LazyImage,
+    ResourceGauge,
+  },
 
   middleware: InstallRedirect(NAME, CHART_NAME),
+
+  async fetch() {
+    // @TODO stop loading these, use counts. --v
+    const resources = [];
+
+    for ( const resource of this.resources ) {
+      const schema = this.$store.getters['cluster/schemaFor'](resource);
+
+      if (schema) {
+        resources.push(this.$store.dispatch('cluster/findAll', { type: resource }));
+      }
+    }
+
+    await Promise.all(resources);
+    // --^
+  },
 
   data() {
     return {
       externalLinks: [],
       grafanaSrc:    require('~/assets/images/white-grafana.svg'),
       prometheusSrc: require('~/assets/images/white-prometheus.svg'),
+      resources:     [MONITORING.ALERTMANAGER, MONITORING.PROMETHEUSE],
     };
   },
 
-  computed: { ...mapGetters(['currentCluster']) },
+  computed: {
+    ...mapGetters(['currentCluster']),
+
+    resourceGauges() {
+      const gauges = this.resources
+        .map((resource, i) => {
+          const schema = this.$store.getters['cluster/schemaFor'](resource);
+
+          if (!schema) {
+            return null;
+          }
+          const all = this.$store.getters['cluster/all'](resource);
+          const resourceCounts = this.createResourceCounts(all);
+          const name = this.$store.getters['type-map/labelFor'](
+            schema,
+            resourceCounts.useful
+          );
+          const location = {
+            name:   'c-cluster-monitoring-resource',
+            params: { product: NAME, resource },
+          };
+
+          return {
+            name,
+            location,
+            primaryColorVar: `--sizzle-${ i }`,
+            ...resourceCounts,
+          };
+        })
+        .filter(r => r);
+
+      return gauges;
+    },
+  },
 
   mounted() {
     this.externalLinks = [
@@ -53,6 +111,25 @@ export default {
       },
     ];
   },
+
+  methods: {
+    createResourceCounts(resources) {
+      const errorCount = resources.filter(
+        resource => resource.stateBackground === 'bg-error'
+      ).length;
+      const notSuccessCount = resources.filter(
+        resource => resource.stateBackground !== 'bg-success'
+      ).length;
+      const warningCount = notSuccessCount - errorCount;
+
+      return {
+        total:  resources.length,
+        useful: resources.length - notSuccessCount,
+        warningCount,
+        errorCount,
+      };
+    },
+  },
 };
 </script>
 
@@ -80,6 +157,13 @@ export default {
           </div>
         </a>
       </div>
+    </div>
+    <div class="resource-gauges">
+      <ResourceGauge
+        v-for="resourceGauge in resourceGauges"
+        :key="resourceGauge.name"
+        v-bind="resourceGauge"
+      />
     </div>
   </section>
 </template>

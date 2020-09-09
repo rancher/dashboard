@@ -1,4 +1,5 @@
 import { DSL } from '@/store/type-map';
+import { MONITORING } from '@/config/types';
 
 export const NAME = 'monitoring';
 export const CHART_NAME = 'rancher-monitoring';
@@ -10,6 +11,9 @@ export function init(store) {
     mapGroup,
     virtualType
   } = DSL(store, NAME);
+  const {
+    ALERTMANAGER, PROMETHEUSE, SERVICEMONITOR, PODMONITOR, PROMETHEUSRULE
+  } = MONITORING;
 
   product({
     ifHaveGroup: /^(.*\.)?monitoring\.coreos\.com$/,
@@ -28,8 +32,10 @@ export function init(store) {
   basicType(['monitoring-overview']);
 
   basicType([
-    'monitoring.coreos.com.servicemonitor',
-    'monitoring.coreos.com.podmonitor',
-    'monitoring.coreos.com.prometheusrule',
+    ALERTMANAGER, // remove
+    PROMETHEUSE, // remove
+    SERVICEMONITOR,
+    PODMONITOR,
+    PROMETHEUSRULE,
   ]);
 }
