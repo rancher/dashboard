@@ -29,7 +29,7 @@ export default {
     */
 
     filteredRows() {
-      const out = this.rows.slice();
+      const out = (this.rows || []).slice();
       const searchText = (this.searchQuery || '').trim().toLowerCase();
 
       if ( !searchText.length ) {

@@ -1,6 +1,6 @@
 <script>
 import { mapState } from 'vuex';
-import { dasherize } from '@/utils/string';
+import { dasherize, ucFirst } from '@/utils/string';
 import { get, clone } from '@/utils/object';
 import { removeObject } from '@/utils/array';
 import Checkbox from '@/components/form/Checkbox';
@@ -259,7 +259,7 @@ export default {
     },
 
     noRows() {
-      return !this.noResults && this.rows.length === 0;
+      return !this.noResults && (this.rows || []).length === 0;
     },
 
     showHeaderRow() {
@@ -356,6 +356,16 @@ export default {
   methods: {
     get,
     dasherize,
+
+    labelFor(col) {
+      if ( col.labelKey ) {
+        return this.t(col.labelKey, undefined, true);
+      } else if ( col.label ) {
+        return col.label;
+      }
+
+      return ucFirst(col.name);
+    },
 
     valueFor(row, col) {
       const expr = col.value || col.name;
@@ -467,6 +477,7 @@ export default {
     <table class="sortable-table" :class="classObject" width="100%">
       <THead
         v-if="showHeaders"
+        :label-for="labelFor"
         :columns="columns"
         :table-actions="tableActions"
         :row-actions="rowActions"
@@ -498,8 +509,7 @@ export default {
           </tr>
         </slot>
       </tbody>
-
-      <tbody v-for="group in groupedRows" :key="group.key" :class="{ group: groupBy }">
+      <tbody v-for="group in groupedRows" v-else :key="group.key" :class="{ group: groupBy }">
         <slot v-if="groupBy" name="group-row" :group="group" :fullColspan="fullColspan">
           <tr class="group-row">
             <td :colspan="fullColspan">
@@ -532,7 +542,13 @@ export default {
                   :expanded="expanded"
                   :rowKey="get(row,keyField)"
                 >
-                  <td :key="col.name" :data-title="dt[col.name]" :align="col.align || 'left'" :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}" :width="col.width">
+                  <td
+                    :key="col.name"
+                    :data-title="labelFor(col)"
+                    :align="col.align || 'left'"
+                    :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}"
+                    :width="col.width"
+                  >
                     <slot :name="'cell:' + col.name" :row="row" :col="col">
                       <component
                         :is="col.formatter"

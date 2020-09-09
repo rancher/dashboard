@@ -183,7 +183,7 @@ export default {
                 error-label="Error"
                 @click="loginLocal"
               />
-              <div>
+              <div class="mt-20">
                 <Checkbox v-model="remember" label="Remember Username" type="checkbox" />
               </div>
             </div>

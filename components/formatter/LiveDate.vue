@@ -96,7 +96,7 @@ export default {
       } else {
         let i = 0;
 
-        while ( diff > FACTORS[i] && i < FACTORS.length ) {
+        while ( diff >= FACTORS[i] && i < FACTORS.length ) {
           diff /= FACTORS[i];
           next *= Math.floor(FACTORS[i] / 10);
           i++;
