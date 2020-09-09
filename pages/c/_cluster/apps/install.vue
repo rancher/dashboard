@@ -181,7 +181,7 @@ export default {
       if ( updateValues ) {
         if ( this.existing ) {
           // For an existing app, use the previous values
-          this.chartValues = merge((merge({}, this.versionInfo.values), this.existing.spec?.values || {}));
+          this.chartValues = merge(merge({}, this.versionInfo.values), this.existing.spec?.values || {});
         } else {
           // If the chart/version changes, replace their values with the new one
           this.chartValues = merge({}, this.versionInfo.values);
@@ -317,6 +317,8 @@ export default {
   },
 
   mounted() {
+    this.loadValuesComponent();
+
     window.scrollTop = 0;
 
     // For easy access debugging...
@@ -324,10 +326,6 @@ export default {
       window.v = this.value;
       window.c = this;
     }
-  },
-
-  created() {
-    this.loadValuesComponent();
   },
 
   methods: {
@@ -408,16 +406,6 @@ export default {
       this.showPreview = false;
 
       return this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
-    },
-
-    yamlChanged(str) {
-      try {
-        jsyaml.safeLoad(str);
-
-        this.valuesYaml = str;
-      } catch (err) {
-        this.errors = exceptionToErrorsArray(err);
-      }
     },
 
     cancel(reallyCancel) {
@@ -538,7 +526,11 @@ export default {
       const fromChart = this.versionInfo.values || {};
 
       if ( !this.valuesComponent ) {
-        this.chartValues = jsyaml.safeLoad(this.valuesYaml);
+        try {
+          this.chartValues = jsyaml.safeLoad(this.valuesYaml);
+        } catch (err) {
+          return { errors: exceptionToErrorsArray(err) };
+        }
       }
 
       // Only save the values that differ from the chart's standard values.yaml
@@ -805,11 +797,10 @@ export default {
         <Tab v-else name="values-yaml" :label="t('catalog.install.section.valuesYaml')">
           <YamlEditor
             ref="yaml"
+            v-model="valuesYaml"
             :scrolling="false"
-            :value="valuesYaml"
             :initial-yaml-values="originalYamlValues"
             :editor-mode="editorMode"
-            @onInput="yamlChanged"
           />
         </Tab>
 
@@ -905,17 +896,6 @@ export default {
 <style lang="scss" scoped>
   $desc-height: 150px;
   $padding: 5px;
-
-  ::v-deep .tab-container {
-    min-height: calc(100vh - 425px); // @TODO caculate from variables
-    max-height: calc(100vh - 425px); // @TODO caculate from variables
-    overflow: auto;
-  }
-
-  ::v-deep .with-name .tab-container {
-    min-height: calc(100vh - 500px); // @TODO caculate from variables
-    max-height: calc(100vh - 500px); // @TODO caculate from variables
-  }
 
   .md {
     overflow: auto;
