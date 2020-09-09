@@ -48,12 +48,53 @@ export const EFFECT = {
   sort:     ['effect'],
 };
 
+export const FLOW = {
+  name:      'flow',
+  labelKey:  'tableHeaders.flow',
+  value:     'flow',
+  sort:      ['flow.name'],
+  formatter: 'Link'
+};
+
+export const CLUSTER_FLOW = {
+  ...FLOW,
+  labelKey: 'tableHeaders.clusterFlow'
+};
+
+export const OUTPUT = {
+  name:      'output',
+  labelKey:  'tableHeaders.output',
+  value:     'outputs',
+  sort:      'outputs.text',
+  formatter: 'ListLink'
+};
+
+export const CONFIGURED_PROVIDERS = {
+  name:      'configuredProviders',
+  labelKey:  'tableHeaders.configuredProviders',
+  value:     'providers',
+  sort:      'providers',
+  formatter: 'List'
+};
+
+export const CLUSTER_OUTPUT = {
+  ...OUTPUT,
+  labelKey: 'tableHeaders.clusterOutput',
+};
+
 export const NAME_UNLINKED = {
   name:          'name',
   labelKey:      'tableHeaders.nameUnlinked',
   value:         'nameDisplay',
   sort:          ['nameSort'],
   canBeVariable: true,
+};
+
+export const NAMESPACE = {
+  name:     'namespace',
+  labelKey: 'tableHeaders.namespace',
+  value:    'metadata.namespace',
+  sort:     'namespace',
 };
 
 export const NAMESPACE_NAME_UNLINKED = {

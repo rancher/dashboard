@@ -25,10 +25,10 @@ import {
   PV,
   WORKLOAD_TYPES
 } from '@/config/types';
-import { NAME as EXPLORER } from '@/config/product/explorer';
 import SimpleBox from '@/components/SimpleBox';
+import ResourceGauge, { resourceCounts } from '@/components/ResourceGauge';
+import CountGauge from '@/components/CountGauge';
 import Glance from '@/components/Glance';
-import ResourceGauge from './ResourceGauge';
 import HardwareResourceGauge from './HardwareResourceGauge';
 
 const PARSE_RULES = {
@@ -53,6 +53,7 @@ const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_T
 
 export default {
   components: {
+    CountGauge,
     Loading,
     Glance,
     HardwareResourceGauge,
@@ -62,20 +63,6 @@ export default {
   },
 
   async fetch() {
-    // @TODO stop loading these, use counts. --v
-    const resources = [];
-
-    for ( const resource of RESOURCES ) {
-      const schema = this.$store.getters['cluster/schemaFor'](resource);
-
-      if (schema) {
-        resources.push(this.$store.dispatch('cluster/findAll', { type: resource }));
-      }
-    }
-
-    await Promise.all(resources);
-    // --^
-
     const hash = {
       nodes:       this.fetchClusterResources(NODE),
       events:      this.fetchClusterResources(EVENT),
@@ -188,47 +175,30 @@ export default {
       }
     },
 
-    resourceGauges() {
-      const gauges = RESOURCES.map((resource, i) => {
-        const schema = this.$store.getters['cluster/schemaFor'](resource);
+    accessibleResources() {
+      return RESOURCES.filter(resource => this.$store.getters['cluster/schemaFor'](resource));
+    },
 
-        if (!schema) {
-          return null;
-        }
-        const all = this.$store.getters['cluster/all'](resource);
-        const resourceCounts = this.createResourceCounts(all);
-        const name = this.$store.getters['type-map/labelFor'](schema, resourceCounts.useful);
-        const location = {
-          name:     'c-cluster-product-resource',
-          params:   { product: EXPLORER, resource }
-        };
-
-        return {
-          name,
-          location,
-          primaryColorVar: `--sizzle-${ i }`,
-          ...resourceCounts
-        };
-      }).filter(r => r);
-
-      const total = gauges.reduce((agg, gauge) => {
-        agg.total += gauge.total;
-        agg.useful += gauge.useful;
-        agg.warningCount += gauge.warningCount;
-        agg.errorCount += gauge.errorCount;
-
-        return agg;
-      }, {
+    totalCountGaugeInput() {
+      const totalInput = {
         name:            this.t('clusterIndexPage.resourceGauge.totalResources'),
         location:        null,
-        primaryColorVar: '--sizzle-8',
+        primaryColorVar: `--sizzle-${ this.accessibleResources.length }`,
         total:           0,
         useful:          0,
         warningCount:    0,
         errorCount:      0
+      };
+
+      this.accessibleResources.forEach((resource) => {
+        const counts = resourceCounts(this.$store, resource);
+
+        Object.entries(counts).forEach((entry) => {
+          totalInput[entry[0]] += entry[1];
+        });
       });
 
-      return [total, ...gauges];
+      return totalInput;
     },
 
     cpuReserved() {
@@ -335,18 +305,6 @@ export default {
       return `${ UNITS[exponent] }${ PARSE_RULES.memory.format.suffix }`;
     },
 
-    createResourceCounts(resources) {
-      const errorCount = resources.filter(resource => resource.stateBackground === 'bg-error').length;
-      const notSuccessCount = resources.filter(resource => resource.stateBackground !== 'bg-success').length;
-      const warningCount = notSuccessCount - errorCount;
-
-      return {
-        total:        resources.length,
-        useful:       resources.length - notSuccessCount,
-        warningCount,
-        errorCount
-      };
-    },
     showActions() {
       this.$store.commit('action-menu/show', {
         resources: this.currentCluster,
@@ -418,7 +376,8 @@ export default {
       </template>
     </Glance>
     <div class="resource-gauges">
-      <ResourceGauge v-for="resourceGauge in resourceGauges" :key="resourceGauge.name" v-bind="resourceGauge" />
+      <CountGauge v-bind="totalCountGaugeInput" />
+      <ResourceGauge v-for="(resource, i) in accessibleResources" :key="resource" :resource="resource" :primary-color-var="`--sizzle-${i}`" />
     </div>
     <div v-if="showReservedMetrics" class="hardware-resource-gauges">
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.podsReserved')" :total="podsReserved.total" :useful="podsReserved.useful" />
