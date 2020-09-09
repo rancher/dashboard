@@ -1,4 +1,4 @@
-import { isArray } from '@/utils/array';
+import { isArray, addObject } from '@/utils/array';
 
 const parseCache = {};
 
@@ -10,6 +10,7 @@ const OP_MAP = {
   '>':  'Gt',
 };
 
+// Parse a labelSelector string
 export function parse(labelSelector) {
   // matchLabels:
   // comma-separated list, all rules ANDed together
@@ -99,6 +100,7 @@ export function parse(labelSelector) {
   return out;
 }
 
+// Convert matchLabels to matchExpressions
 export function convert(matchLabelsObj) {
   const keys = Object.keys(matchLabelsObj || {});
   const out = [];
@@ -112,6 +114,38 @@ export function convert(matchLabelsObj) {
   }
 
   return out;
+}
+
+// Convert matchExpressions to matchLabels when possible
+export function simplify(matchExpressionsInput) {
+  const matchLabels = {};
+  const matchExpressions = [];
+
+  // Look for keys with more than one "In" expression and disqualify them from simplifying
+  const impossible = [];
+  const seen = {};
+
+  for ( const expr of matchExpressionsInput ) {
+    if ( expr.operator !== 'In' ) {
+      continue;
+    }
+
+    if ( seen[expr.key] ) {
+      addObject(impossible, expr.key);
+    } else {
+      seen[expr.key] = true;
+    }
+  }
+
+  for ( const expr of matchExpressionsInput ) {
+    if ( expr.operator === 'In' && expr.values.length === 1 && !impossible.includes(expr.key) ) {
+      matchLabels[expr.key] = expr.values[0];
+    } else {
+      matchExpressions.push(Object.assign({}, expr));
+    }
+  }
+
+  return { matchLabels, matchExpressions };
 }
 
 export function matches(obj, selector) {
