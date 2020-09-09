@@ -2,58 +2,74 @@
 import isEmpty from 'lodash/isEmpty';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { mapGetters } from 'vuex';
+import { findBy } from '@/utils/array';
+import sortBy from 'lodash/sortBy';
+
+const MANAGED_CONFIG_KEYS = [
+  'kubeControllerManager',
+  'kubeScheduler',
+  'kubeEtcd',
+];
+
+const OTHER_CONFIG_KEYS = ['kubeControllerManager', 'kubeScheduler', 'kubeEtcd'];
 
 const CLUSTER_TYPES = [
   {
-    id:       'RKE',
-    label:    'monitoring.clusterType.rke',
-    provider: 'rke',
+    id:         'aks',
+    label:      'monitoring.clusterType.aks',
+    configKeys: MANAGED_CONFIG_KEYS,
   },
   {
-    id:       'RKE Federal',
-    label:    'monitoring.clusterType.rke2',
-    provider: 'rke2',
+    id:         'docker',
+    label:      'monitoring.clusterType.docker',
+    configKeys: OTHER_CONFIG_KEYS,
   },
   {
-    id:       'K3s',
-    label:    'monitoring.clusterType.k3s',
-    provider: 'k3s',
+    id:         'eks',
+    label:      'monitoring.clusterType.eks',
+    configKeys: MANAGED_CONFIG_KEYS,
   },
   {
-    id:       'KubeADM',
-    label:    'monitoring.clusterType.kubeAdmin',
-    provider: 'kubeadm',
+    id:         'gke',
+    label:      'monitoring.clusterType.gke',
+    configKeys: MANAGED_CONFIG_KEYS,
   },
   {
-    id:       'Managed Cluster (EKS, GKE, AKS, etc.)',
-    label:    'monitoring.clusterType.managed',
-    provider: ['eks', 'gke', 'aks'],
+    id:         'k3s',
+    label:      'monitoring.clusterType.k3s',
+    configKeys: ['k3sControllerManager', 'k3sScheduler', 'k3sProxy'],
   },
   {
-    id:       'Other',
-    label:    'monitoring.clusterType.other',
-    provider: ['docker', 'minikube'],
+    id:         'kubeadm',
+    label:      'monitoring.clusterType.kubeAdmin',
+    configKeys: [
+      'kubeAdmControllerManager',
+      'kubeAdmScheduler',
+      'kubeAdmProxy',
+      'kubeAdmEtcd',
+    ],
+  },
+  {
+    id:         'minikube',
+    label:      'monitoring.clusterType.minikube',
+    configKeys: OTHER_CONFIG_KEYS,
+  },
+  {
+    id:         'other',
+    label:      'monitoring.clusterType.other',
+    configKeys: OTHER_CONFIG_KEYS,
+  },
+  {
+    id:         'rke',
+    label:      'monitoring.clusterType.rke',
+    configKeys: ['rkeControllerManager', 'rkeScheduler', 'rkeProxy', 'rkeEtcd'],
+  },
+  {
+    id:         'rke2', // rke federal
+    label:      'monitoring.clusterType.rke2',
+    configKeys: ['rke2ControllerManager', 'rke2Scheduler', 'rke2Proxy', 'rke2Etcd'],
   },
 ];
-
-const CONFIG_KEYS = {
-  rke:     ['rkeControllerManager', 'rkeScheduler', 'rkeProxy', 'rkeEtcd'],
-  rke2:    ['rke2ControllerManager', 'rke2Scheduler', 'rke2Proxy', 'rke2Etcd'],
-  k3s:     ['k3sControllerManager', 'k3sScheduler', 'k3sProxy'],
-  kubeadm: [
-    'kubeAdmControllerManager',
-    'kubeAdmScheduler',
-    'kubeAdmProxy',
-    'kubeAdmEtcd',
-  ],
-  managed: [
-    'kubeControllerManager',
-    'kubeScheduler',
-    'kubeEtcd',
-    'prometheusOperator.hostNetwork',
-  ],
-  other: ['kubeControllerManager', 'kubeScheduler', 'kubeEtcd'],
-};
 
 export default {
   components: { LabeledSelect },
@@ -69,8 +85,7 @@ export default {
   data() {
     return {
       clusterType:  null,
-      clusterTypes: CLUSTER_TYPES,
-      configKeys:   CONFIG_KEYS,
+      clusterTypes: sortBy(CLUSTER_TYPES, 'id'),
     };
   },
 
@@ -91,78 +106,42 @@ export default {
       if (isEmpty(clusterType)) {
         return;
       }
-      let resetOut = [];
-      let setNewOut = [];
 
-      // reset old values
-      switch (oldClusterType) {
-      case 'RKE':
-        resetOut = [this.configKeys.rke, false];
-        break;
-      case 'RKE Federal':
-        resetOut = [this.configKeys.rke2, false];
-        break;
-      case 'K3s':
-        resetOut = [this.configKeys.k3s, false];
-        break;
-      case 'KubeADM':
-        resetOut = [this.configKeys.kubeadm, false];
-        break;
-      case 'Managed Cluster (EKS, GKE, AKS, etc.)':
-        resetOut = [this.configKeys.managed, false];
-        break;
-      case 'Other':
-      default:
-        resetOut = [this.configKeys.other, false];
-        break;
+      const managedKeys = ['aks', 'gke', 'eks'];
+
+      if (!isEmpty(oldClusterType)) {
+        const { configKeys: oldConfigKeys } = findBy(this.clusterTypes, 'id', oldClusterType.id);
+
+        this.setClusterTypeEnabledValues([oldConfigKeys, false]);
+
+        if (managedKeys.includes(oldClusterType.id)) {
+          this.$set(this.value['prometheusOperator'], 'hostNetwork', false);
+        }
       }
 
-      // set new values
-      switch (clusterType) {
-      case 'RKE':
-        setNewOut = [this.configKeys.rke, true];
-        break;
-      case 'RKE Federal':
-        setNewOut = [this.configKeys.rke2, true];
-        break;
-      case 'K3s':
-        setNewOut = [this.configKeys.k3s, true];
-        break;
-      case 'KubeADM':
-        setNewOut = [this.configKeys.kubeadm, true];
-        break;
-      case 'Managed Cluster (EKS, GKE, AKS, etc.)':
-        setNewOut = [this.configKeys.managed, false];
-        this.setClusterTypeEnabledValues(
-          ['prometheusOperator.hostNetwork'],
-          true
-        );
-        break;
-      case 'Other':
-      default:
-        setNewOut = [this.configKeys.other, true];
-        break;
-      }
+      const { configKeys } = findBy(this.clusterTypes, 'id', clusterType.id);
 
-      this.setClusterTypeEnabledValues(resetOut);
-      this.setClusterTypeEnabledValues(setNewOut);
+      this.setClusterTypeEnabledValues([configKeys, true]);
+
+      if (managedKeys.includes(clusterType.id)) {
+        this.$set(this.value['prometheusOperator'], 'hostNetwork', true);
+      }
     },
   },
 
   created() {
     const { provider, clusterTypes } = this;
-
-    const matchedProvder = clusterTypes.find(ct => ct.provider.includes(provider));
+    const matchedProvder = findBy(clusterTypes, 'id', provider);
 
     if (isEmpty(matchedProvder)) {
-      this.clusterType = 'Other';
+      this.clusterType = findBy(this.clusterTypes, 'id', 'other');
     } else {
-      this.clusterType = matchedProvder.id;
+      this.clusterType = matchedProvder;
     }
   },
 
   methods: {
-    setClusterTypeEnabledValues([keyNames = [], valueToSet = null]) {
+    setClusterTypeEnabledValues([keyNames = [], valueToSet = false]) {
       const { value } = this;
 
       keyNames.forEach((kn) => {
@@ -175,11 +154,10 @@ export default {
 
 <template>
   <LabeledSelect
+    v-model="clusterType"
     :label="t('monitoring.clusterType.label')"
     :placeholder="t('monitoring.clusterType.placeholder')"
     :localized-label="true"
     :options="clusterTypes"
-    :value="clusterType"
-    @input="({id}) => clusterType = id"
   />
 </template>
