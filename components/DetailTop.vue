@@ -31,25 +31,51 @@ export default {
     hasDetails() {
       return !isEmpty(this.details);
     },
+
     hasLabels() {
       return !isEmpty(this.labels);
     },
+
     hasAnnotations() {
       return !isEmpty(this.annotations);
     },
+
     hasDescription() {
       return !isEmpty(this.description);
     },
+
     annotationCount() {
       return Object.keys(this.annotations || {}).length;
     },
+
+    hasLeft() {
+      return this.hasDetails;
+    },
+
+    hasRight() {
+      return this.hasLabels || this.hasAnnotations || this.hasDescription;
+    },
+
     isEmpty() {
       const hasAnything = this.hasDetails || this.hasLabels || this.hasAnnotations || this.hasDescription;
 
       return !hasAnything;
     },
-    rightColumnSpan() {
-      return this.hasDetails ? 'span-10' : 'span-12';
+
+    leftSpan() {
+      if ( this.hasRight ) {
+        return 'span-3';
+      }
+
+      return 'span-12';
+    },
+
+    rightSpan() {
+      if ( this.hasLeft ) {
+        return 'span-9';
+      } else {
+        return 'span-12';
+      }
     }
   },
   methods: {
@@ -63,7 +89,7 @@ export default {
 
 <template>
   <div class="detail-top row" :class="{empty: isEmpty}">
-    <div v-if="hasDetails" class="col left span-2">
+    <div v-if="hasLeft" class="col left" :class="leftSpan">
       <div v-for="detail in details" :key="detail.label || detail.slotName">
         <label>{{ detail.label }}:</label>
         <component
@@ -75,7 +101,7 @@ export default {
         <span v-else>{{ detail.content }}</span>
       </div>
     </div>
-    <div class="col right" :class="rightColumnSpan">
+    <div v-if="hasRight" class="col right" :class="rightSpan">
       <div v-if="description" class="description">
         <label>{{ t('resourceDetail.detailTop.description') }}:</label> <span class="content">{{ description }}</span>
       </div>
