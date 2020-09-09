@@ -12,8 +12,6 @@ export function init(store) {
   product({ ifHaveGroup: /^(.*\.)?logging\.banzaicloud\.io$/ });
 
   basicType([
-    'logging-overview',
-    'logging.banzaicloud.io.logging',
     'logging.banzaicloud.io.common',
     'logging.banzaicloud.io.clusterflow',
     'logging.banzaicloud.io.clusteroutput',
