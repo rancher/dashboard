@@ -103,6 +103,19 @@ export const EXTERNAL = {
 // --------------------------------------
 // Base: /k8s/clusters/<id>/v1/
 
+export const FLEET = {
+  CLUSTER:       'fleet.cattle.io.cluster',
+  CLUSTER_GROUP: 'fleet.cattle.io.clustergroup',
+};
+
+export const GATEKEEPER = { CONSTRAINT_TEMPLATE: 'templates.gatekeeper.sh.constrainttemplate' };
+
+export const ISTIO = {
+  VIRTUAL_SERVICE:  'networking.istio.io.virtualservice',
+  DESTINATION_RULE:  'networking.istio.io.destinationrule',
+  GATEWAY:          'networking.istio.io.gateway'
+};
+
 export const RIO = {
   CLUSTER_DOMAIN:   'admin.rio.cattle.io.clusterdomain',
   FEATURE:          'admin.rio.cattle.io.feature',
@@ -116,12 +129,4 @@ export const RIO = {
   SERVICE:          'rio.cattle.io.service',
 
   SYSTEM_NAMESPACE: 'rio-system',
-};
-
-export const GATEKEEPER = { CONSTRAINT_TEMPLATE: 'templates.gatekeeper.sh.constrainttemplate' };
-
-export const ISTIO = {
-  VIRTUAL_SERVICE:  'networking.istio.io.virtualservice',
-  DESTINATION_RULE:  'networking.istio.io.destinationrule',
-  GATEWAY:          'networking.istio.io.gateway'
 };

@@ -2,6 +2,7 @@
 import { NODE, POD, NAMESPACE } from '@/config/types';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+// import Select from '@/components/form/Select';
 import { sortBy } from '@/utils/sort';
 import ArrayList from '@/components/form/ArrayList';
 import { mapGetters } from 'vuex';
@@ -9,9 +10,9 @@ import { removeObject } from '@/utils/array';
 
 export default {
   components: {
+    ArrayList,
     LabeledInput,
     LabeledSelect,
-    ArrayList
   },
   props:      {
     // array of match expressions
@@ -65,18 +66,20 @@ export default {
     const t = this.$store.getters['i18n/t'];
 
     const podOptions = [
+      { label: t('workload.scheduling.affinity.matchExpressions.in'), value: 'In' },
+      { label: t('workload.scheduling.affinity.matchExpressions.notIn'), value: 'NotIn' },
       { label: t('workload.scheduling.affinity.matchExpressions.exists'), value: 'Exists' },
       { label: t('workload.scheduling.affinity.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
-      { label: t('workload.scheduling.affinity.matchExpressions.in'), value: 'In' },
-      { label: t('workload.scheduling.affinity.matchExpressions.notIn'), value: 'NotIn' }];
+    ];
 
     const nodeOptions = [
+      { label: t('workload.scheduling.affinity.matchExpressions.in'), value: 'In' },
+      { label: t('workload.scheduling.affinity.matchExpressions.notIn'), value: 'NotIn' },
       { label: t('workload.scheduling.affinity.matchExpressions.lessThan'), value: 'Lt' },
       { label: t('workload.scheduling.affinity.matchExpressions.greaterThan'), value: 'Gt' },
       { label: t('workload.scheduling.affinity.matchExpressions.exists'), value: 'Exists' },
       { label: t('workload.scheduling.affinity.matchExpressions.doesNotExist'), value: 'DoesNotExist' },
-      { label: t('workload.scheduling.affinity.matchExpressions.in'), value: 'In' },
-      { label: t('workload.scheduling.affinity.matchExpressions.notIn'), value: 'NotIn' }];
+    ];
 
     const ops = this.type === NODE ? nodeOptions : podOptions;
 
@@ -92,7 +95,9 @@ export default {
 
     if (!rules.length && this.initialEmptyRow) {
       rules.push({
-        key: '', operator: 'In', values: ''
+        key:      '',
+        operator: 'In',
+        values:   ''
       });
     }
 
@@ -233,13 +238,12 @@ export default {
         <div v-if="isView">
           {{ row.operator }}
         </div>
-        <v-select
+        <LabeledSelect
           v-else
-          id="operator"
           v-model="row.operator"
-          class="inline"
+          class="operator single"
           :options="ops"
-          label="label"
+          :clearable="false"
           :reduce="opt=>opt.value"
           :mode="mode"
           @input="update"
@@ -280,7 +284,7 @@ export default {
   $remove: 75;
   $spacing: 10px;
 
-  #operator {
+  .operator {
     & .vs__dropdown-option{
       padding: 3px 6px 3px 6px !important
     }

@@ -129,9 +129,9 @@ fieldset[disabled] .btn {
 
 .btn-group {
   position: relative;
+  text-align: initial;
   // display: inline-block;
   vertical-align: middle;
-  text-align: center;
   padding: 0;
   // background: var(--input-bg);
   border-radius: var(--border-radius);
@@ -140,6 +140,7 @@ fieldset[disabled] .btn {
     position: relative;
     display: inline-block;
     border-radius: 0;
+    text-align: center;
 
     &:focus {
       // Move the focused one to the top so that the focus ring is all visible

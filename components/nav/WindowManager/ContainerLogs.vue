@@ -459,11 +459,11 @@ export default {
       </button>
       <AsyncButton class="btn-sm" mode="download" @click="download" />
 
-      <div class="pull-right text-center ml-5 pr-10 pl-5" style="min-width: 80px; line-height: 28px;">
+      <div class="pull-right text-center ml-5 pr-10 pl-5" style="min-width: 80px; line-height: 34px;">
         <t :class="{'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
       </div>
       <div class="pull-right ml-5">
-        <input v-model="search" class="p-5" syle="margin-top: 3px;" type="search" :placeholder="t('wm.containerLogs.search')" />
+        <input v-model="search" class="p-5" style="margin-top: 3px;" type="search" :placeholder="t('wm.containerLogs.search')" />
       </div>
       <div class="pull-right ml-5">
         <v-popover

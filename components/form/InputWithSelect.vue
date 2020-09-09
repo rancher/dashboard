@@ -145,19 +145,19 @@ export default {
 <style lang='scss'>
   .input-container {
     display: flex;
-    height: 55px;
+    height: 52px;
 
     &.select-after {
       flex-direction: row-reverse;
 
       & .input-string {
-        border-radius: calc(var(--border-radius) * 2) 0 0  calc(var(--border-radius) * 2);
+        border-radius: var(--border-radius) 0 0  var(--border-radius);
         border-right: 0;
         border-left: 1px solid var(--border);
       }
 
       & .in-input {
-        border-radius: 0 calc(var(--border-radius) * 2) calc(var(--border-radius) * 2) 0;
+        border-radius: 0 var(--border-radius) var(--border-radius) 0;
         border-left: 0;
         border-right: 1px solid var(--border);
 
@@ -172,12 +172,13 @@ export default {
         }
       }
     }
+
     & .input-string {
       padding-right: 0;
       height: 100%;
       width:60%;
       flex-grow: 1;
-      border-radius: 0 calc(var(--border-radius) * 2) calc(var(--border-radius) * 2) 0;
+      border-radius: 0 var(--border-radius) var(--border-radius) 0;
       border-left: 0;
       margin-left: -1px;
       display: initial;
@@ -185,7 +186,7 @@ export default {
 
     .in-input {
       margin-right: 0;
-      border-radius: calc(var(--border-radius) * 2) 0 0 calc(var(--border-radius) * 2);
+      border-radius: var(--border-radius) 0 0 var(--border-radius);
 
       &.labeled-select {
         display: block;
@@ -218,7 +219,6 @@ export default {
           padding: none;
           display: flex;
           align-items: stretch;
-          padding: 0 8px 0 8px;
           border-radius: var(--border-radius) 0 0 var(--border-radius);
           & * {
             padding: 0
@@ -237,14 +237,6 @@ export default {
 
         .vs__actions {
           padding: 2px;;
-        }
-
-        .vs__search {
-          background-color: var(--default-text);
-          width: 0px;
-          padding: 0;
-          align-self: center;
-          border: 0;
         }
 
         .vs__open-indicator {

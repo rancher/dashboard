@@ -5,7 +5,7 @@ export default {
   props: {
     placement: {
       type:    String,
-      default: 'auto'
+      default: 'bottom'
     },
   },
 
@@ -30,6 +30,10 @@ export default {
       const popper = createPopper(component.$refs.toggle, dropdownList, {
         placement: this.placement,
         modifiers: [
+          {
+            name:    'flip',
+            options: { fallbackPlacements: ['top', 'right', 'left'] },
+          },
           {
             name:    'offset',
             options: { offset: [0, -1] }
@@ -58,7 +62,6 @@ export default {
   <v-select
     v-bind="$attrs"
     append-to-body
-    :calculate-position="withPopper"
     v-on="$listeners"
   >
     <slot />

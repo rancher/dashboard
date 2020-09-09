@@ -346,6 +346,10 @@ export default {
     border-radius: calc(var(--border-radius) * 2);
     background-color: var(--tabbed-sidebar-bg);
 
+    .tab-container {
+      padding: 0 0 0 20px;
+    }
+
     & .tabs {
       width: $sideways-tabs-width;
       min-width: $sideways-tabs-width;

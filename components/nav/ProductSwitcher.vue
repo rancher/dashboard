@@ -75,7 +75,9 @@ export default {
     },
 
     shortcutsActive() {
-      return $('FORM').length === 0;
+      const forms = $('FORM');
+
+      return forms.length === 0;
     },
 
     switchToApps() {

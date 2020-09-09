@@ -9,7 +9,46 @@ import Tab from '@/components/Tabbed/Tab';
 import Banner from '@/components/Banner';
 import { SERVICE } from '@/config/types';
 
-const defaultOverlayFile = '#apiVersion: install.istio.io/v1alpha1\n#kind: IstioOperator\n#spec:\n#  components:\n#    ingressGateways:\n#    - enabled: true\n#      name: istio-ingressgateway\n#    - enabled: true\n#      k8s:\n#        resources:\n#          requests:\n#            cpu: 200m\n#        service:\n#          ports:\n#          - name: tcp-citadel-grpc-tls\n#            port: 8060\n#            targetPort: 8060\n#          - name: tcp-dns\n#            port: 5353\n#        serviceAnnotations:\n#          cloud.google.com/load-balancer-type: internal\n#      name: ilb-gateway\n#      namespace: user-ingressgateway-ns\n#    - enabled: true\n#      k8s:\n#        resources:\n#          requests:\n#            cpu: 200m\n#        service:\n#          ports:\n#          - name: tcp-citadel-grpc-tls\n#            port: 8060\n#            targetPort: 8060\n#          - name: tcp-dns\n#            port: 5353\n#        serviceAnnotations:\n#          cloud.google.com/load-balancer-type: internal\n#      name: other-gateway\n#      namespace: istio-system';
+const defaultOverlayFile = `#apiVersion: install.istio.io/v1alpha1
+#kind: IstioOperator
+#spec:
+#  components:
+#    ingressGateways:
+#    - enabled: true
+#      name: istio-ingressgateway
+#    - enabled: true
+#      k8s:
+#        resources:
+#          requests:
+#            cpu: 200m
+#        service:
+#          ports:
+#          - name: tcp-citadel-grpc-tls
+#            port: 8060
+#            targetPort: 8060
+#          - name: tcp-dns
+#            port: 5353
+#        serviceAnnotations:
+#          cloud.google.com/load-balancer-type: internal
+#      name: ilb-gateway
+#      namespace: user-ingressgateway-ns
+#    - enabled: true
+#      k8s:
+#        resources:
+#          requests:
+#            cpu: 200m
+#        service:
+#          ports:
+#          - name: tcp-citadel-grpc-tls
+#            port: 8060
+#            targetPort: 8060
+#          - name: tcp-dns
+#            port: 5353
+#        serviceAnnotations:
+#          cloud.google.com/load-balancer-type: internal
+#      name: other-gateway
+#      namespace: istio-system
+`;
 
 export default {
   components: {
@@ -46,7 +85,7 @@ export default {
   data() {
     let overlayFile = this.value.overlayFile;
 
-    if (!overlayFile.length) {
+    if (!overlayFile?.length) {
       overlayFile = defaultOverlayFile;
     }
 

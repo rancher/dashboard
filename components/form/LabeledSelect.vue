@@ -229,10 +229,6 @@ export default {
     padding-top: 17px;
   }
 
-  .vs__selected-options {
-    padding: 15px 0 0 0;
-  }
-
   .selected, .vs__selected-options {
     .vs__search, .vs__search:hover {
       background-color: transparent;
@@ -277,7 +273,7 @@ export default {
 
       .vs__search {
         background-color: transparent;
-        padding: 17px 10px 0px 10px;
+        padding: 22px 0 0 10px;
       }
     }
 

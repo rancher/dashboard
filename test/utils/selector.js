@@ -1,5 +1,5 @@
 import test from 'ava';
-import { parse, convert, matching } from '@/utils/selector';
+import { parse, convert, simplify, matching } from '@/utils/selector';
 
 test('Parse equals', (t) => {
   const e1 = {
@@ -297,7 +297,7 @@ test('Handle resources that have no labels', (t) => {
   t.deepEqual(matching([a, {}, { metadata: {} }], { a: '1' }), [a]);
 });
 
-test('Convert', (t) => {
+test('Convert labels to expressions', (t) => {
   const matchLabels = {
     foo: 'bar',
     baz: 'bat',
@@ -321,4 +321,94 @@ test('Convert', (t) => {
   t.deepEqual(actual, expect);
 
   t.deepEqual([], convert());
+});
+
+test('Simplify converts simple expressions to labels', (t) => {
+  const expectLabels = {
+    foo: 'bar',
+    baz: 'bat',
+  };
+
+  const expectExpressions = [];
+
+  const input = [
+    {
+      key:      'foo',
+      operator: 'In',
+      values:   ['bar']
+    },
+    {
+      key:      'baz',
+      operator: 'In',
+      values:   ['bat']
+    },
+  ];
+
+  const { matchLabels, matchExpressions } = simplify(input);
+
+  t.deepEqual(matchLabels, expectLabels);
+  t.deepEqual(matchExpressions, expectExpressions);
+});
+
+test('Simplify preserves complex expressions', (t) => {
+  const expectLabels = { foo: 'bar' };
+
+  const expectExpressions = [
+    {
+      key:      'baz',
+      operator: 'In',
+      values:   ['bat', 'baz']
+    },
+    {
+      key:      'qux',
+      operator: 'Exists'
+    }
+  ];
+
+  const input = [
+    {
+      key:      'foo',
+      operator: 'In',
+      values:   ['bar']
+    },
+    expectExpressions[0],
+    expectExpressions[1],
+  ];
+
+  const { matchLabels, matchExpressions } = simplify(input);
+
+  t.deepEqual(matchLabels, expectLabels);
+  t.deepEqual(matchExpressions, expectExpressions);
+});
+
+test("Simplify doesn't simplify duplicate keys", (t) => {
+  const expectLabels = { foo: 'bar' };
+
+  const expectExpressions = [
+    {
+      key:      'baz',
+      operator: 'In',
+      values:   ['bat']
+    },
+    {
+      key:      'baz',
+      operator: 'In',
+      values:   ['qux']
+    }
+  ];
+
+  const input = [
+    {
+      key:      'foo',
+      operator: 'In',
+      values:   ['bar']
+    },
+    expectExpressions[0],
+    expectExpressions[1],
+  ];
+
+  const { matchLabels, matchExpressions } = simplify(input);
+
+  t.deepEqual(matchLabels, expectLabels);
+  t.deepEqual(matchExpressions, expectExpressions);
 });
