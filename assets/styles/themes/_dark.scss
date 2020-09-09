@@ -106,9 +106,9 @@
   --popover-bg                 : var(--body-bg);
   --popover-border: var(--border);
   --popover-text: var(--body-text);
-  --tooltip-bg: var(--tag-bg);
+  --tooltip-bg: #{$info};
   --tooltip-border: var(--tag-primary);
-  --tooltip-text: var(--tag-primary);
+  --tooltip-text: var(--body-text);
 
   --tabbed-border: #{$medium};
   --tabbed-sidebar-bg: #{$darkest};
