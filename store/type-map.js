@@ -718,7 +718,7 @@ export const getters = {
       function fromSchema(col) {
         let formatter, width, formatterOpts;
 
-        if ( col.format === '' && col.name === 'Age' ) {
+        if ( (col.format === '' || col.format == 'date') && col.name === 'Age' ) {
           return AGE;
         }
 
