@@ -55,11 +55,11 @@ export default {
 
 <template>
   <span v-if="mode === 'view'" class="checkbox-view">
-    <label>
+    <div class="text-label">
       <slot name="label">
         {{ label }}
       </slot>
-    </label>
+    </div>
     <span>{{ value }}</span>
   </span>
   <label

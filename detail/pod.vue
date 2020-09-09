@@ -96,6 +96,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
 
   <div v-else>
+    <div class="spacer" />
     <Tabbed :side-tabs="true">
       <Tab :label="t('workload.container.titles.containers')" name="containers">
         <template v-for="container in containers">
