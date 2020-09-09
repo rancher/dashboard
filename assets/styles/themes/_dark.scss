@@ -69,8 +69,8 @@
   --overlay-bg: #{rgba($darkest, 0.75)};
   --shadow: #{rgba($darkest, 0.9)};
 
-  --dropdown-bg: #{$dark};
-  --dropdown-border: var(--border);
+  --dropdown-bg: #{$medium};
+  --dropdown-border: #{$light};
   --dropdown-divider: #{$light};
   --dropdown-text: #{$link};
   --dropdown-hover-text: #{$lightest};
