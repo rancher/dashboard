@@ -476,6 +476,9 @@ istio:
 
 
 logging:
+  install:
+    deployToControlPlane: Deploy to control plane nodes
+    k3sContainerEngine: K3S Container Engine
   provider: Provider
   elasticsearch:
     host: Host

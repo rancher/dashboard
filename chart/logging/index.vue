@@ -1,8 +1,10 @@
 <script>
-import LabeledSelect from '@/components/form/LabeledSelect';
+import Checkbox from '@/components/form/Checkbox';
+import { mapGetters } from 'vuex';
+import LabeledInput from '@/components/form/LabeledInput';
 
 export default {
-  components: { LabeledSelect },
+  components: { Checkbox, LabeledInput },
   props:      {
     value: {
       type:    Object,
@@ -13,71 +15,65 @@ export default {
   },
 
   data() {
-    const providers = [
-      {
-        label: 'Elasticsearch',
-        value: 'elasticsearch'
-      },
-      {
-        label: 'Kafka',
-        value: 'kafka'
-      },
-      {
-        label: 'Splunk',
-        value: 'splunk'
-      },
-      {
-        label: 'Syslog',
-        value: 'syslog'
-      }
-    ];
-    const provider = providers[0].value;
-
-    this.value[this.providerKey(provider)] = this.value[this.providerKey(provider)] || {};
-    this.value[this.providerKey(provider)].enabled = true;
-
-    return {
-      provider,
-      providers
-    };
+    return { deployToControlPlane: false };
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
     component() {
       return require(`./providers/${ this.provider }`).default;
+    },
+    provider() {
+      return this.currentCluster.status.provider;
     }
   },
 
   watch: {
-    provider(newValue, oldValue) {
-      this.value[this.providerKey(newValue)] = this.value[this.providerKey(newValue)] || {};
-      this.value[this.providerKey(newValue)].enabled = true;
-      this.value[this.providerKey(oldValue)].enabled = false;
+    deployToControlPlane(newValue) {
+      if (!newValue) {
+        if (this.value.tolerations) {
+          this.value.tolerations = [];
+        }
+      } else {
+        this.value.tolerations = [
+          {
+            key:    'node-role.kubernetes.io/controlplane',
+            value:  true,
+            effect: 'NoSchedule',
+          },
+          {
+            key:    'node-role.kubernetes.io/etcd',
+            value:  true,
+            effect: 'NoExecute'
+          }
+        ];
+      }
     }
   },
 
-  methods: {
-    providerKey(provider) {
-      return provider.toLowerCase();
-    }
-  }
+  mounted() {
+    this.value.additionalLoggingSources = this.value.additionalLoggingSources || {};
+    this.value.additionalLoggingSources[this.provider] = this.value.additionalLoggingSources[this.provider] || {};
+
+    this.value.additionalLoggingSources[this.provider].enabled = true;
+  },
 };
 </script>
 
 <template>
   <div class="logging">
-    <LabeledSelect v-model="provider" class="provider" :label="t('logging.provider')" :options="providers" />
-    <component :is="component" v-model="value" />
+    <div class="row">
+      <div class="col span-6">
+        <Checkbox v-model="deployToControlPlane" :label="t('logging.install.deployToControlPlane')" />
+      </div>
+    </div>
+    <div v-if="provider === 'k3s'" class="row mt-10">
+      <div class="col span-6">
+        <LabeledInput v-model="value.additionalLoggingSources.k3s.container_engine" :label="t('logging.install.k3sContainerEngine')" />
+      </div>
+    </div>
   </div>
 </template>
 
 <style lang="scss">
-.logging {
-  width: 60%;
-  margin: 0 auto;
-
-  .provider {
-      margin-bottom: 20px;
-  }
-}
 </style>
