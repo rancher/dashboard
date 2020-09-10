@@ -56,7 +56,7 @@ export default {
       />
       <span class="radio-custom" :class="{indeterminate:indeterminate || disabled}"><span /></span>
     </label>
-    <span class="radio-label" @click.stop="clicked">{{ label }}</span>
+    <span class="radio-label" @click.stop="clicked" v-html="label"></span>
   </label>
 </template>
 

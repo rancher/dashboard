@@ -43,7 +43,7 @@ export default {
 
     subtypes: {
       type:    Array,
-      default: null
+      default: () => []
     },
 
     selectedSubtype: {

@@ -138,3 +138,9 @@ export const LOGGING = {
   FLOWS:           'logging.banzaicloud.io.flow',
   OUTPUTS:         'logging.banzaicloud.io.output'
 };
+
+export const BACKUP_RESTORE = {
+  RESOURCE_SET: 'resources.cattle.io.resourceset',
+  BACKUP:       'resources.cattle.io.backup',
+  RESTORE:      'resources.cattle.io.restore',
+};

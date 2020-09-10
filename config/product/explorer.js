@@ -103,6 +103,7 @@ export function init(store) {
   mapGroup(/^(.*\.)*knative\.(io|dev)$/, 'Knative');
   mapGroup('argoproj.io', 'Argo');
   mapGroup('logging.banzaicloud.io', 'Logging');
+  mapGroup(/.*resources\.cattle\.io.*/, 'Backup-Restore');
 
   uncreatableType(NODE);
   immutableType(NODE);
