@@ -172,167 +172,165 @@ export default {
     @select-type="(st) => serviceType = st"
     @apply-hooks="() => applyHooks('_beforeSaveHooks')"
   >
-    <template #define>
-      <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
+    <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
 
-      <div class="spacer"></div>
+    <div class="spacer"></div>
 
-      <Tabbed :side-tabs="true">
-        <Tab
-          v-if="checkTypeIs('ExternalName')"
-          name="define-external-name"
-          :label="t('servicesPage.externalName.define')"
-        >
-          <div class="clearfix">
-            <h4>
-              <t k="servicesPage.externalName.label" />
-            </h4>
-            <InfoBox>
-              <div>{{ t('servicesPage.externalName.helpText') }}</div>
-            </InfoBox>
-          </div>
-          <div class="row mt-10">
-            <div class="col span-6">
-              <span v-if="isView">{{ value.spec.externalName }}</span>
-              <input
-                v-else
-                ref="external-name"
-                v-model.number="value.spec.externalName"
-                type="text"
-                :placeholder="t('servicesPage.externalName.placeholder')"
-              />
-            </div>
-          </div>
-        </Tab>
-        <Tab v-else name="define-service-ports" :label="t('servicesPage.ips.define')">
-          <ServicePorts
-            v-model="value.spec.ports"
-            class="col span-12"
-            :mode="mode"
-            :spec-type="serviceType"
-            @input="updateServicePorts"
-          />
-        </Tab>
-        <Tab
-          v-if="!checkTypeIs('ExternalName')"
-          name="selectors"
-          :label="t('servicesPage.selectors.label')"
-        >
-          <div class="row">
-            <div class="col span-12">
-              <InfoBox>
-                <div>{{ t('servicesPage.selectors.helpText') }}</div>
-              </InfoBox>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col span-12">
-              <KeyValue
-                key="selectors"
-                v-model="value.spec.selector"
-                :mode="mode"
-                :initial-empty-row="true"
-                :pad-left="false"
-                :protip="false"
-                @input="e=>$set(value.spec, 'selector', e)"
-              />
-            </div>
-          </div>
-        </Tab>
-        <Tab name="ips" :label="t('servicesPage.ips.label')">
-          <div class="row">
-            <div class="col span-12">
-              <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
-            </div>
-          </div>
-          <div
-            v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
-            class="row mb-20"
-          >
-            <div class="col span-6">
-              <LabeledInput
-                v-model="value.spec.clusterIP"
-                :mode="mode"
-                :label="t('servicesPage.ips.input.label')"
-                :placeholder="t('servicesPage.ips.input.placeholder')"
-                @input="e=>$set(value.spec, 'clusterIP', e)"
-              >
-                <template #corner>
-                  <i
-                    v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
-                    v-tooltip="t('servicesPage.ips.clusterIpHelpText')"
-                    class="icon icon-info"
-                    style="font-size: 12px"
-                  />
-                </template>
-              </LabeledInput>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col span-7">
-              <ArrayList
-                key="clusterExternalIpAddresses"
-                v-model="value.spec.externalIPs"
-                :title="t('servicesPage.ips.external.label')"
-                :value-placeholder="t('servicesPage.ips.external.placeholder')"
-                :value-multiline="false"
-                :mode="mode"
-                :pad-left="false"
-                :protip="t('servicesPage.ips.external.protip')"
-                @input="e=>$set(value.spec, 'externalIPs', e)"
-              />
-            </div>
-          </div>
-        </Tab>
-        <Tab
-          v-if="!checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
-          name="session-affinity"
-          :label="t('servicesPage.affinity.label')"
-        >
-          <div class="col span-12">
-            <InfoBox>
-              <div>{{ t('servicesPage.affinity.helpText') }}</div>
-            </InfoBox>
-          </div>
-          <div class="row session-affinity">
-            <div class="col span-6">
-              <RadioGroup
-                v-model="value.spec.sessionAffinity"
-                class="enforcement-action"
-                :options="sessionAffinityActionOptions"
-                :labels="sessionAffinityActionLabels"
-                :mode="mode"
-                @input="e=>value.spec.sessionAffinity = e"
-              />
-            </div>
-            <div v-if="value.spec.sessionAffinity === 'ClientIP'" class="col span-6">
-              <UnitInput
-                v-model="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
-                :suffix="t('suffix.seconds')"
-                :label="t('servicesPage.affinity.timeout.label')"
-                :placeholder="t('servicesPage.affinity.timeout.placeholder')"
-                @input="e=>$set(value.spec.sessionAffinityConfig.clientIP, 'timeoutSeconds', e)"
-              />
-            </div>
-          </div>
-        </Tab>
-        <Tab
-          v-if="!isView"
-          name="labels-and-annotations"
-          :label="t('servicesPage.labelsAnnotations.label', {}, true)"
-          :weight="1000"
-        >
-          <div class="row labels-row">
-            <Labels
-              :default-container-class="'labels-and-annotations-container'"
-              :value="value"
-              :mode="mode"
-              :display-side-by-side="false"
+    <Tabbed :side-tabs="true">
+      <Tab
+        v-if="checkTypeIs('ExternalName')"
+        name="define-external-name"
+        :label="t('servicesPage.externalName.define')"
+      >
+        <div class="clearfix">
+          <h4>
+            <t k="servicesPage.externalName.label" />
+          </h4>
+          <InfoBox>
+            <div>{{ t('servicesPage.externalName.helpText') }}</div>
+          </InfoBox>
+        </div>
+        <div class="row mt-10">
+          <div class="col span-6">
+            <span v-if="isView">{{ value.spec.externalName }}</span>
+            <input
+              v-else
+              ref="external-name"
+              v-model.number="value.spec.externalName"
+              type="text"
+              :placeholder="t('servicesPage.externalName.placeholder')"
             />
           </div>
-        </Tab>
-      </Tabbed>
-    </template>
+        </div>
+      </Tab>
+      <Tab v-else name="define-service-ports" :label="t('servicesPage.ips.define')">
+        <ServicePorts
+          v-model="value.spec.ports"
+          class="col span-12"
+          :mode="mode"
+          :spec-type="serviceType"
+          @input="updateServicePorts"
+        />
+      </Tab>
+      <Tab
+        v-if="!checkTypeIs('ExternalName')"
+        name="selectors"
+        :label="t('servicesPage.selectors.label')"
+      >
+        <div class="row">
+          <div class="col span-12">
+            <InfoBox>
+              <div>{{ t('servicesPage.selectors.helpText') }}</div>
+            </InfoBox>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col span-12">
+            <KeyValue
+              key="selectors"
+              v-model="value.spec.selector"
+              :mode="mode"
+              :initial-empty-row="true"
+              :pad-left="false"
+              :protip="false"
+              @input="e=>$set(value.spec, 'selector', e)"
+            />
+          </div>
+        </div>
+      </Tab>
+      <Tab name="ips" :label="t('servicesPage.ips.label')">
+        <div class="row">
+          <div class="col span-12">
+            <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
+          </div>
+        </div>
+        <div
+          v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
+          class="row mb-20"
+        >
+          <div class="col span-6">
+            <LabeledInput
+              v-model="value.spec.clusterIP"
+              :mode="mode"
+              :label="t('servicesPage.ips.input.label')"
+              :placeholder="t('servicesPage.ips.input.placeholder')"
+              @input="e=>$set(value.spec, 'clusterIP', e)"
+            >
+              <template #corner>
+                <i
+                  v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
+                  v-tooltip="t('servicesPage.ips.clusterIpHelpText')"
+                  class="icon icon-info"
+                  style="font-size: 12px"
+                />
+              </template>
+            </LabeledInput>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col span-7">
+            <ArrayList
+              key="clusterExternalIpAddresses"
+              v-model="value.spec.externalIPs"
+              :title="t('servicesPage.ips.external.label')"
+              :value-placeholder="t('servicesPage.ips.external.placeholder')"
+              :value-multiline="false"
+              :mode="mode"
+              :pad-left="false"
+              :protip="t('servicesPage.ips.external.protip')"
+              @input="e=>$set(value.spec, 'externalIPs', e)"
+            />
+          </div>
+        </div>
+      </Tab>
+      <Tab
+        v-if="!checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
+        name="session-affinity"
+        :label="t('servicesPage.affinity.label')"
+      >
+        <div class="col span-12">
+          <InfoBox>
+            <div>{{ t('servicesPage.affinity.helpText') }}</div>
+          </InfoBox>
+        </div>
+        <div class="row session-affinity">
+          <div class="col span-6">
+            <RadioGroup
+              v-model="value.spec.sessionAffinity"
+              class="enforcement-action"
+              :options="sessionAffinityActionOptions"
+              :labels="sessionAffinityActionLabels"
+              :mode="mode"
+              @input="e=>value.spec.sessionAffinity = e"
+            />
+          </div>
+          <div v-if="value.spec.sessionAffinity === 'ClientIP'" class="col span-6">
+            <UnitInput
+              v-model="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
+              :suffix="t('suffix.seconds')"
+              :label="t('servicesPage.affinity.timeout.label')"
+              :placeholder="t('servicesPage.affinity.timeout.placeholder')"
+              @input="e=>$set(value.spec.sessionAffinityConfig.clientIP, 'timeoutSeconds', e)"
+            />
+          </div>
+        </div>
+      </Tab>
+      <Tab
+        v-if="!isView"
+        name="labels-and-annotations"
+        :label="t('servicesPage.labelsAnnotations.label', {}, true)"
+        :weight="1000"
+      >
+        <div class="row labels-row">
+          <Labels
+            :default-container-class="'labels-and-annotations-container'"
+            :value="value"
+            :mode="mode"
+            :display-side-by-side="false"
+          />
+        </div>
+      </Tab>
+    </Tabbed>
   </CruResource>
 </template>
 

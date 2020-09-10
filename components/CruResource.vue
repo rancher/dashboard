@@ -162,7 +162,7 @@ export default {
 
 <template>
   <section>
-    <form class="create-resource-container">
+    <form :is="(isView? 'div' : 'form')" class="create-resource-container">
       <div
         v-if="showSubtypeSelection"
         class="subtypes-container"
@@ -222,7 +222,7 @@ export default {
           v-if="selectedSubtype || !subtypes.length"
           class="resource-container"
         >
-          <slot name="define" />
+          <slot />
         </div>
         <div class="controls-row">
           <slot name="form-footer">
