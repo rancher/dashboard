@@ -94,43 +94,41 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <template #define>
-      <NameNsDescription
+    <NameNsDescription
+      v-if="!isView"
+      :value="value"
+      :namespaced="false"
+      :mode="mode"
+      :extra-columns="extraColumns"
+    >
+      <template #project-col>
+        <LabeledSelect v-model="project" label="Project" :options="projectOpts" />
+      </template>
+    </NameNsDescription>
+
+    <div class="spacer"></div>
+
+    <Tabbed :side-tabs="true">
+      <Tab name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
+        <ContainerResourceLimit
+          :mode="mode"
+          :namespace="value"
+          :register-before-hook="registerBeforeHook"
+        />
+      </Tab>
+      <Tab
         v-if="!isView"
-        :value="value"
-        :namespaced="false"
-        :mode="mode"
-        :extra-columns="extraColumns"
+        name="labels-and-annotations"
+        :label="t('generic.labelsAndAnnotations')"
+        :weight="1000"
       >
-        <template #project-col>
-          <LabeledSelect v-model="project" label="Project" :options="projectOpts" />
-        </template>
-      </NameNsDescription>
-
-      <div class="spacer"></div>
-
-      <Tabbed :side-tabs="true">
-        <Tab name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
-          <ContainerResourceLimit
-            :mode="mode"
-            :namespace="value"
-            :register-before-hook="registerBeforeHook"
-          />
-        </Tab>
-        <Tab
-          v-if="!isView"
-          name="labels-and-annotations"
-          :label="t('generic.labelsAndAnnotations')"
-          :weight="1000"
-        >
-          <Labels
-            default-container-class="labels-and-annotations-container"
-            :value="value"
-            :mode="mode"
-            :display-side-by-side="false"
-          />
-        </Tab>
-      </Tabbed>
-    </template>
+        <Labels
+          default-container-class="labels-and-annotations-container"
+          :value="value"
+          :mode="mode"
+          :display-side-by-side="false"
+        />
+      </Tab>
+    </Tabbed>
   </CruResource>
 </template>

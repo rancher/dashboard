@@ -20,6 +20,7 @@ export function init(store) {
     ifGetter:  'isMultiCluster',
     icon:      'cluster',
     removable: false,
+    weight:    3,
     link,
   });
 }

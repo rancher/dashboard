@@ -14,20 +14,6 @@ export function init(store) {
     icon:        'backup',
   });
 
-  /*
-  virtualType({
-    label:       'Overview',
-    group:      'Root',
-    namespaced:  false,
-    name:        'backup-overview',
-    weight:      100,
-    route:       { name: 'c-cluster-backup' },
-    exact:       true,
-  });
-*/
-
-  // basicType('backup-overview');
-
   basicType([
     'backups.resources.cattle.io',
     'resourcesets.resources.cattle.io',

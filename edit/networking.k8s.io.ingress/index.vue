@@ -103,40 +103,38 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <template #define>
-      <NameNsDescription
-        v-if="!isView"
-        :value="value"
-        :mode="mode"
-        name-label="Name"
-        :register-before-hook="registerBeforeHook"
-      />
+    <NameNsDescription
+      v-if="!isView"
+      :value="value"
+      :mode="mode"
+      name-label="Name"
+      :register-before-hook="registerBeforeHook"
+    />
 
-      <div class="spacer"></div>
+    <div class="spacer"></div>
 
-      <Tabbed :side-tabs="true">
-        <Tab :label="t('ingress.rules.title')" name="rules" :weight="0">
-          <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" />
-        </Tab>
-        <Tab :label="t('ingress.certificates.label')" name="certificates" :weight="1">
-          <Certificates v-model="value" :mode="mode" :secrets="allSecrets" />
-        </Tab>
-        <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="2">
-          <DefaultBackend v-model="value.spec.backend" :service-targets="serviceTargets" :mode="mode" />
-        </Tab>
-        <Tab
-          name="labels-and-annotations"
-          :label="t('generic.labelsAndAnnotations')"
-          :weight="3"
-        >
-          <Labels
-            default-container-class="labels-and-annotations-container"
-            :value="value"
-            :mode="mode"
-            :display-side-by-side="false"
-          />
-        </Tab>
-      </Tabbed>
-    </template>
+    <Tabbed :side-tabs="true">
+      <Tab :label="t('ingress.rules.title')" name="rules" :weight="0">
+        <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" />
+      </Tab>
+      <Tab :label="t('ingress.certificates.label')" name="certificates" :weight="1">
+        <Certificates v-model="value" :mode="mode" :secrets="allSecrets" />
+      </Tab>
+      <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="2">
+        <DefaultBackend v-model="value.spec.backend" :service-targets="serviceTargets" :mode="mode" />
+      </Tab>
+      <Tab
+        name="labels-and-annotations"
+        :label="t('generic.labelsAndAnnotations')"
+        :weight="3"
+      >
+        <Labels
+          default-container-class="labels-and-annotations-container"
+          :value="value"
+          :mode="mode"
+          :display-side-by-side="false"
+        />
+      </Tab>
+    </Tabbed>
   </CruResource>
 </template>

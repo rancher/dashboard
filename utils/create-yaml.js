@@ -179,7 +179,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
 
           out += `\n${ indent(parsedData.trim()) }`;
         } catch (e) {
-          console.error(`Error: Unale to parse map data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
+          console.error(`Error: Unable to parse map data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
         }
       }
 
@@ -201,9 +201,12 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       if (data[key]) {
         try {
           const cleaned = cleanUp(data);
-          const parsedData = jsyaml.safeDump(cleaned[key]);
 
-          out += `\n${ indent(parsedData.trim()) }`;
+          if ( cleaned?.[key] ) {
+            const parsedData = jsyaml.safeDump(cleaned[key]);
+
+            out += `\n${ indent(parsedData.trim()) }`;
+          }
         } catch (e) {
           console.error(`Error: Unale to parse array data for yaml of type: ${ type }`, e); // eslint-disable-line no-console
         }

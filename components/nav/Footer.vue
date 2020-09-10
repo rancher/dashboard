@@ -52,11 +52,12 @@ export default {
 
     versionTooltip() {
       const out = [
-        `Dashboard: ${ this.uiVersion } (${ this.uiCommit })`,
+        // `Dashboard: ${ this.uiVersion } (${ this.uiCommit })`,
       ];
 
       if ( this.fullVersion !== this.displayVersion ) {
-        out.push(`Server: ${ this.fullVersion }`);
+        // out.push(`Server: ${ this.fullVersion }`);
+        out.push(this.fullVersion);
       }
 
       return out.join('<br/>\n');

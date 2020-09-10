@@ -160,7 +160,7 @@ export default {
           const matchExpression = { key: rule.key, operator: rule.operator };
           const val = (rule.values || '').trim();
 
-          if ( !val ) {
+          if ( !val && rule.operator !== 'Exists' && rule.operator !== 'DoesNotExist') {
             return;
           }
 

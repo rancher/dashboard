@@ -1,6 +1,5 @@
 <script>
 import { mapGetters } from 'vuex';
-import findIndex from 'lodash/findIndex';
 import { insertAt, findBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
@@ -39,6 +38,7 @@ export default {
           icon:      `icon-${ p.icon || 'copy' }`,
           value:     p.name,
           removable: p.removable !== false,
+          weight:    p.weight || 1,
         };
 
         if ( p.externalLink ) {
@@ -54,15 +54,19 @@ export default {
         return out;
       });
 
-      const out = sortBy(entries, ['removable', 'weight:desc', 'label']);
-      const idx = findIndex(out, x => x.removable);
+      const out = sortBy(entries, ['weight:desc', 'label']);
+      let last;
 
-      if ( idx > 0 ) {
-        insertAt(out, idx, {
-          label:    'The great divide',
-          kind:     'divider',
-          disabled: true
-        });
+      for ( let i = out.length - 1 ; i >= 0 ; i-- ) {
+        if ( last && last !== out[i].weight ) {
+          insertAt(out, i + 1, {
+            label:    `The great divide ${ i }`,
+            kind:     'divider',
+            disabled: true
+          });
+        }
+
+        last = out[i].weight;
       }
 
       return out;

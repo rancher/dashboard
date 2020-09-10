@@ -183,7 +183,7 @@ export function matches(obj, selector) {
       }
       break;
     case 'In':
-      if ( !value || (rule.values.length && !rule.values.includes(value)) ) {
+      if ( !value || !rule.values.length || !rule.values.includes(value) ) {
         return false;
       }
       break;

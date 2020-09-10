@@ -33,12 +33,14 @@ export default {
     }
 
     if ( !hasFetch ) {
-      this.rows = await store.dispatch('cluster/findAll', { type: resource });
+      const inStore = store.getters['currentProduct'].inStore;
+
+      this.rows = await store.dispatch(`${ inStore }/findAll`, { type: resource });
     }
   },
 
   data() {
-    const g = this.$store.getters;
+    const getters = this.$store.getters;
     const params = { ...this.$route.params };
     const resource = params.resource;
 
@@ -46,8 +48,8 @@ export default {
 
     const query = { [AS_YAML]: _FLAGGED };
 
-    const hasListComponent = g['type-map/hasCustomList'](resource);
-    const hasEditComponent = g['type-map/hasCustomEdit'](resource);
+    const hasListComponent = getters['type-map/hasCustomList'](resource);
+    const hasEditComponent = getters['type-map/hasCustomEdit'](resource);
 
     const yamlRoute = {
       name: `${ this.$route.name }-create`,
@@ -55,7 +57,8 @@ export default {
       query
     };
 
-    const schema = g['cluster/schemaFor'](resource);
+    const inStore = getters['currentProduct'].inStore;
+    const schema = getters[`${ inStore }/schemaFor`](resource);
 
     return {
       formRoute,

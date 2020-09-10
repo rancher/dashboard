@@ -75,6 +75,7 @@ export default {
   <div class="cru-resource-footer">
     <slot name="cancel">
       <button
+        v-if="!isView"
         type="button"
         class="btn role-secondary"
         @click="confirmCancelRequired ? checkCancel(true) : $emit('cancel-confirmed', true)"
