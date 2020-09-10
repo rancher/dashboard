@@ -11,7 +11,7 @@ export function init(store) {
   const { SERVICEMONITOR, PODMONITOR, PROMETHEUSRULE } = MONITORING;
 
   product({
-    ifHaveGroup: /^(.*\.)?monitoring\.coreos\.com$/,
+    ifHaveType: PODMONITOR,
     icon:        'prometheus'
   });
 
