@@ -56,6 +56,8 @@ function realModeFor(query, id) {
 export async function defaultAsyncData(ctx, resource, parentOverride) {
   const { store, params, route } = ctx;
 
+  const inStore = store.getters['currentProduct'].inStore;
+
   // eslint-disable-next-line prefer-const
   let { namespace, id } = params;
 
@@ -71,8 +73,8 @@ export async function defaultAsyncData(ctx, resource, parentOverride) {
   const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
   const asYamlInit = (route.query[AS_YAML] === _FLAGGED) || (realMode !== _VIEW && !hasCustomEdit);
-  const schema = store.getters['cluster/schemaFor'](resource);
-  const schemas = store.getters['cluster/all'](SCHEMA);
+  const schema = store.getters[`${ inStore }/schemaFor`](resource);
+  const schemas = store.getters[`${ inStore }/all`](SCHEMA);
 
   let originalModel, model, yaml;
 
@@ -87,7 +89,7 @@ export async function defaultAsyncData(ctx, resource, parentOverride) {
       data.metadata = { namespace };
     }
 
-    originalModel = await store.dispatch('cluster/create', data);
+    originalModel = await store.dispatch(`${ inStore }/create`, data);
     model = originalModel;
     yaml = createYaml(schemas, resource, data);
   } else {
@@ -97,7 +99,7 @@ export async function defaultAsyncData(ctx, resource, parentOverride) {
       fqid = `${ namespace }/${ fqid }`;
     }
 
-    originalModel = await store.dispatch('cluster/find', {
+    originalModel = await store.dispatch(`${ inStore }/find`, {
       type: resource,
       id:   fqid,
       opt:  { watch: true }
@@ -105,7 +107,7 @@ export async function defaultAsyncData(ctx, resource, parentOverride) {
     if (realMode === _VIEW) {
       model = originalModel;
     } else {
-      model = await store.dispatch('cluster/clone', { resource: originalModel });
+      model = await store.dispatch(`${ inStore }/clone`, { resource: originalModel });
     }
 
     const yamlOpt = { headers: { accept: 'application/yaml' } };

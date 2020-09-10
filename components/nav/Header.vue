@@ -56,13 +56,13 @@ export default {
     </div>
 
     <div class="kubectl">
-      <button :disabled="!showShell" type="button" class="btn role-tertiary" @click="currentCluster.openShell()">
+      <button v-if="currentProduct.showClusterSwitcher" :disabled="!showShell" type="button" class="btn role-tertiary" @click="currentCluster.openShell()">
         <i class="icon icon-terminal icon-lg" /> {{ t('nav.shell') }}
       </button>
     </div>
 
     <div class="cluster">
-      <ClusterSwitcher v-if="isMultiCluster" />
+      <ClusterSwitcher v-if="isMultiCluster && currentProduct.showClusterSwitcher" />
     </div>
 
     <div class="user">

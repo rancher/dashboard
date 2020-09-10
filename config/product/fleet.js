@@ -9,12 +9,16 @@ export function init(store) {
     basicType,
     // virtualType,
     // uncreatableType,
-    immutableType,
+    // immutableType,
   } = DSL(store, NAME);
 
   product({
-    ifHaveGroup: /^(.*\.)*fleet\.cattle\.io$/,
-    icon:        'compass',
+    ifHaveGroup:         /^(.*\.)*fleet\.cattle\.io$/,
+    icon:                'compass',
+    inStore:             'management',
+    removable:           false,
+    weight:              3,
+    showClusterSwitcher: false,
   });
 
   /*
@@ -32,7 +36,7 @@ export function init(store) {
   // basicType('istio-overview');
 
   // uncreatableType('fleet.cattle.io.cluster');
-  immutableType('fleet.cattle.io.cluster');
+  // immutableType('fleet.cattle.io.cluster');
 
   basicType([
     'fleet.cattle.io.bundledeployment',

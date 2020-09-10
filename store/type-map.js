@@ -28,7 +28,8 @@
 //   let { thingYouWant } = DSL(instanceOfTheStore, 'product');
 //
 // product(                   Add a product into the nav
-//   removable,               -- Is the product removable (true) or built-in (false).  Determines which section of nav it goes in.
+//   removable,               -- Is the product removable (true) or built-in (false).
+//   weight,                  -- Sort order and divider sections in the product menu.  3=global (fleet, ecm), 2=always on (apps, explorer) 1=other
 //   showNamespaceFilter,     -- If true, show the namespace filter in the header
 //   ifHaveGroup,             -- Show if the given group exists in the store [inStore]
 //   ifHaveType,              -- Show if the given type exists in the store [inStore]
@@ -116,10 +117,12 @@ export function DSL(store, product, module = 'type-map') {
   return {
     product(inOpt) {
       const opt = {
-        name: product,
-        removable: true,
-        inStore: 'cluster',
+        name:                product,
+        removable:           true,
+        weight:              1,
+        inStore:             'cluster',
         showNamespaceFilter: false,
+        showClusterSwitcher: true,
         ...inOpt
       };
 
