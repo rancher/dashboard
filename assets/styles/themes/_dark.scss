@@ -70,8 +70,8 @@
   --overlay-bg: #{rgba($darkest, 0.75)};
   --shadow: #{rgba($darkest, 0.9)};
 
-  --dropdown-bg: #{$dark};
-  --dropdown-border: var(--border);
+  --dropdown-bg: #{$medium};
+  --dropdown-border: #{$light};
   --dropdown-divider: #{$light};
   --dropdown-text: #{$link};
   --dropdown-hover-text: #{$lightest};
@@ -107,9 +107,9 @@
   --popover-bg                 : var(--body-bg);
   --popover-border: var(--border);
   --popover-text: var(--body-text);
-  --tooltip-bg: var(--tag-bg);
+  --tooltip-bg: #{$info};
   --tooltip-border: var(--tag-primary);
-  --tooltip-text: var(--tag-primary);
+  --tooltip-text: var(--body-text);
 
   --tabbed-border: #{$medium};
   --tabbed-sidebar-bg: #{$darkest};
