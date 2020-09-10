@@ -6,52 +6,30 @@ export const CHART_NAME = 'rancher-monitoring';
 
 export function init(store) {
   const {
-    product,
-    basicType,
-    mapGroup,
-    virtualType
+    product, basicType, virtualType, weightType
   } = DSL(store, NAME);
-  const {
-    ALERTMANAGER, PROMETHEUSE, SERVICEMONITOR, PODMONITOR, PROMETHEUSRULE
-  } = MONITORING;
+  const { SERVICEMONITOR, PODMONITOR, PROMETHEUSRULE } = MONITORING;
 
   product({
     ifHaveGroup: /^(.*\.)?monitoring\.coreos\.com$/,
-    // icon:        'prometheus',
+    icon:        'prometheus'
   });
 
-  mapGroup(/^(.*\.)?monitoring\.coreos\.com$/, 'Monitoring');
-
-  basicType(['monitoring-overview']);
-
-  basicType([
-    // ALERTMANAGER,
-    // PROMETHEUSE,
-    SERVICEMONITOR,
-    PODMONITOR,
-    PROMETHEUSRULE,
-  ]);
-
   virtualType({
-    label:       'Overview',
-    namespaced:  false,
+    label:      'Overview',
+    group:      'Root',
+    namespaced: false,
     name:       'monitoring-overview',
+    weight:     105,
     route:      { name: 'c-cluster-monitoring' },
+    exact:      true
   });
 
-  virtualType({
-    label:      'AlertManager',
-    namespaced:  false,
-    name:       'monitoring-alertmanager',
-    route:      { name: 'c-cluster-monitoring-alertmanager' },
-    ifHaveType: ALERTMANAGER
-  });
+  basicType('monitoring-overview');
 
-  virtualType({
-    label:      'Prometheus',
-    namespaced:  false,
-    name:       'monitoring-prometheus',
-    route:      { name: 'c-cluster-monitoring-prometheus' },
-    ifHaveType: PROMETHEUSE
-  });
+  basicType([SERVICEMONITOR, PODMONITOR, PROMETHEUSRULE]);
+
+  weightType(SERVICEMONITOR, 104, true);
+  weightType(PODMONITOR, 103, true);
+  weightType(PROMETHEUSRULE, 102, true);
 }

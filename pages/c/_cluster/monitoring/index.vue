@@ -7,7 +7,7 @@ import { NAME, CHART_NAME } from '@/config/product/monitoring';
 import { MONITORING } from '@/config/types';
 
 import LazyImage from '@/components/LazyImage';
-import ResourceGauge from '@/pages/c/_cluster/explorer/ResourceGauge';
+import ResourceGauge from '@/components/ResourceGauge';
 
 export default {
   components: {
@@ -16,20 +16,6 @@ export default {
   },
 
   middleware: InstallRedirect(NAME, CHART_NAME),
-
-  async fetch() {
-    const resources = [];
-
-    for ( const resource of this.resources ) {
-      const schema = this.$store.getters['cluster/schemaFor'](resource);
-
-      if (schema) {
-        resources.push(this.$store.dispatch('cluster/findAll', { type: resource }));
-      }
-    }
-
-    await Promise.all(resources);
-  },
 
   data() {
     return {
@@ -43,36 +29,8 @@ export default {
   computed: {
     ...mapGetters(['currentCluster']),
 
-    resourceGauges() {
-      const gauges = this.resources
-        .map((resource, i) => {
-          const schema = this.$store.getters['cluster/schemaFor'](resource);
-
-          if (!schema) {
-            return null;
-          }
-          const all = this.$store.getters['cluster/all'](resource);
-          const resourceCounts = this.createResourceCounts(all);
-          const name = this.$store.getters['type-map/labelFor'](
-            schema,
-            resourceCounts.useful
-          );
-
-          const location = {
-            name:   `c-cluster-monitoring-${ resource.split('.').pop() }`,
-            params: { resource },
-          };
-
-          return {
-            name,
-            location,
-            primaryColorVar: `--sizzle-${ i }`,
-            ...resourceCounts,
-          };
-        })
-        .filter(r => r);
-
-      return gauges;
+    accessibleResources() {
+      return this.resources.filter(resource => this.$store.getters['cluster/schemaFor'](resource));
     },
   },
 
@@ -110,25 +68,6 @@ export default {
       },
     ];
   },
-
-  methods: {
-    createResourceCounts(resources) {
-      const errorCount = resources.filter(
-        resource => resource.stateBackground === 'bg-error'
-      ).length;
-      const notSuccessCount = resources.filter(
-        resource => resource.stateBackground !== 'bg-success'
-      ).length;
-      const warningCount = notSuccessCount - errorCount;
-
-      return {
-        total:  resources.length,
-        useful: resources.length - notSuccessCount,
-        warningCount,
-        errorCount,
-      };
-    },
-  },
 };
 </script>
 
@@ -158,11 +97,7 @@ export default {
       </div>
     </div>
     <div class="resource-gauges">
-      <ResourceGauge
-        v-for="resourceGauge in resourceGauges"
-        :key="resourceGauge.name"
-        v-bind="resourceGauge"
-      />
+      <ResourceGauge v-for="(resource, i) in accessibleResources" :key="resource" :resource="resource" :primary-color-var="`--sizzle-${i}`" />
     </div>
   </section>
 </template>
