@@ -1,6 +1,5 @@
 <script>
 import { mapGetters } from 'vuex';
-import findIndex from 'lodash/findIndex';
 import { insertAt, findBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
