@@ -601,10 +601,14 @@ monitoring:
       valueLabel: Yaml Template
     title: Alerting
   clusterType:
+    aks: Azure AKS
+    docker: Docker
+    eks: Amazon EKS
+    gke: Google GKE
     k3s: K3s
     kubeAdmin: KubeADM
     label: Cluster Type
-    managed: 'Managed Cluster (EKS, GKE, AKS, etc.)'
+    minikube: Minikube
     other: Other
     placeholder: Select cluster type
     rke: RKE
