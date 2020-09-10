@@ -144,9 +144,3 @@ export const BACKUP_RESTORE = {
   BACKUP:       'resources.cattle.io.backup',
   RESTORE:      'resources.cattle.io.restore',
 };
-
-export const BACKUP_RESTORE = {
-  RESOURCE_SET: 'resources.cattle.io.resourceset',
-  BACKUP:       'resources.cattle.io.backup',
-  RESTORE:      'resources.cattle.io.restore',
-};

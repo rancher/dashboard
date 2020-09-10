@@ -43,7 +43,6 @@ export default {
   async fetch() {
     await this.$store.dispatch('catalog/load');
 
-    this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
     const hash = await allHash({
       secrets:  this.$store.dispatch('cluster/findAll', { type: SECRET }),
       backups:  this.$store.dispatch('cluster/findAll', { type: BACKUP_RESTORE.BACKUP }),
@@ -74,7 +73,7 @@ export default {
 
   computed: {
     chartNamespace() {
-      const BRORelease = this.releases.filter(release => get(release, 'spec.name' === 'backup-restore-operator'))[0];
+      const BRORelease = this.releases.filter(release => get(release, 'spec.name') === 'backup-restore-operator')[0];
 
       return BRORelease ? BRORelease.spec.namespace : '';
     },
@@ -142,7 +141,7 @@ export default {
 <template>
   <div>
     <CruResource :validation-passed="!!value.spec.backupFilename && !!value.spec.backupFilename.length" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
-      <template #define>
+      <template>
         <div class="bordered-section">
           <Banner v-if="showWarning" color="warning" :label="t('backupRestoreOperator.encryptionConfigName.tip')" />
           <div class="row mb-10">
