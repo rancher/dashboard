@@ -55,6 +55,7 @@ nav:
 
 product:
   apps: Apps & Marketplace
+  backup: Backup Restore Operator
   ecm: Cluster Manager
   explorer: Cluster Explorer
   gatekeeper: OPA Gatekeeper
@@ -132,7 +133,9 @@ asyncButton:
 
 backupRestoreOperator:
   backupFilename: Backup Filename
-  prune: Prune
+  prune: 
+    label: Prune
+    tip: Enabling "Prune" will delete only those resources/CRs that are managed by the backed up application, and that were not present on the cluster when backup was performed.
   encryption: Encryption
   encryptionConfigName: 
     label: Encryption Config Secret
@@ -165,10 +168,12 @@ backupRestoreOperator:
     folder: Folder
     insecureTLSSkipVerify: Skip TLS Verifications
   storageSource:
-    useDefault: Use the the default storage target configured during installation
+    useDefault: Use the the default storage location configured during installation
     configureS3: Use an S3-compatible object store
     useBackup: Use the s3 location specified on the Backup CR
+  targetBackup: Target Backup
   noResourceSet: 'You must define a ResourceSet in this namespace to create a backup CR.'
+
 
 catalog:
   repo:

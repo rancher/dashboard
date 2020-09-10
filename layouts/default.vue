@@ -145,7 +145,6 @@ export default {
         modes.push(FAVORITE);
         modes.push(USED);
       }
-
       for ( const mode of modes ) {
         const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
         const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);

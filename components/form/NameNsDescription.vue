@@ -217,7 +217,7 @@ export default {
   <div>
     <div class="row mb-20">
       <div v-show="!nameNsHidden" :class="{col: true, [colSpan]: true}">
-        <slot name="namespace">
+        <slot :namespaces="namespaces" name="namespace">
           <InputWithSelect
             v-if="namespaced"
             ref="name"
