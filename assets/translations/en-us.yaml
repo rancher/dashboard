@@ -359,13 +359,14 @@ cruResource:
 fleet:
   clusterGroup:
     selector:
-      matchesAll: All existing clusters match this selector
-      matchesNone: No existing clusters match this selector
+      label: Cluster Selectors
+      matchesAll: Matches all {total, number} existing clusters
+      matchesNone: Matches no existing clusters
       matchesSome: |-
-        {others, plural,
-          =0 { Selects {sample} and no other clusters }
-          =1 { Selects {sample} and one other cluster }
-          other { Selects {sample} and {count, number} other clusters }
+        {matched, plural,
+          =1 {Matches 1 of {total, number} existing clusters: "{sample}"}
+          other {Matches {matched, number} of {total, number} existing clusters, including "{sample}"}
+        }
 
 footer:
   docs: Docs
