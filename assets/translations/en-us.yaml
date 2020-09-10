@@ -55,6 +55,7 @@ nav:
 
 product:
   apps: Apps & Marketplace
+  backup: Backup Restore Operator
   ecm: Cluster Manager
   explorer: Cluster Explorer
   gatekeeper: OPA Gatekeeper
@@ -167,7 +168,7 @@ backupRestoreOperator:
     folder: Folder
     insecureTLSSkipVerify: Skip TLS Verifications
   storageSource:
-    useDefault: Use the the default storage target configured during installation
+    useDefault: Use the the default storage location configured during installation
     configureS3: Use an S3-compatible object store
     useBackup: Use the s3 location specified on the Backup CR
   targetBackup: Target Backup

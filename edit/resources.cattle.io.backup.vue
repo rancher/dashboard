@@ -138,7 +138,7 @@ export default {
   <div>
     <CruResource :validation-passed="!!value.spec.resourceSetName && !!value.spec.resourceSetName.length" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
       <template>
-        <NameNsDescription :value="value" :namespaced="false" />
+        <NameNsDescription :mode="mode" :value="value" :namespaced="false" />
         <template v-if="resourceSetAvailable">
           <div class="bordered-section">
             <div class="row mb-10">

@@ -604,7 +604,6 @@ export const getters = {
       const isBasic = mode === BASIC;
 
       const out = {};
-
       for ( const schema of schemas ) {
         const attrs = schema.attributes || {};
         const count = counts[schema.id];
@@ -691,7 +690,6 @@ export const getters = {
           }
         }).filter(col => !!col);
       }
-
       // Otherwise make one up from schema
       const out = [STATE]; // Everybody gets a state
       const namespaced = attributes.namespaced || false;
