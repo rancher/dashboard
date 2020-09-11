@@ -42,7 +42,8 @@ export default {
       }
     },
     namespaceOptions() {
-      const choices = this.$store.getters['cluster/all'](NAMESPACE);
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
 
       return sortBy(
         choices

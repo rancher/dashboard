@@ -98,6 +98,7 @@ export function init(store) {
   mapGroup(/^(.*\.)?longhorn(\.rancher)?\.io$/, 'Longhorn');
   mapGroup(/^(.*\.)?fleet\.cattle\.io$/, 'Fleet');
   mapGroup(/^(.*\.)?(helm|upgrade|k3s)\.cattle\.io$/, 'k3s');
+  mapGroup(/^(.*\.)?cis\.cattle\.io$/, 'CIS');
   mapGroup(/^(catalog|project|management)\.cattle\.io$/, 'Rancher');
   mapGroup(/^(.*\.)?istio\.io$/, 'Istio');
   mapGroup('split.smi-spec.io', 'SMI');

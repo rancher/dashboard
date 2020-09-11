@@ -1,6 +1,6 @@
 import SYSTEM_NAMESPACES from '@/config/system-namespaces';
 import { PROJECT, SYSTEM_NAMESPACE } from '@/config/labels-annotations';
-import { EXTERNAL } from '@/config/types';
+import { MANAGEMENT } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
 
 export default {
@@ -33,7 +33,8 @@ export default {
       return null;
     }
 
-    const project = this.$rootGetters['clusterExternal/byId'](EXTERNAL.PROJECT, this.projectId);
+    const clusterId = this.$rootGetters['currentCluster'].id;
+    const project = this.$rootGetters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ this.projectId }`);
 
     return project;
   },

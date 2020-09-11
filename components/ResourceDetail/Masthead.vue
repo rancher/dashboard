@@ -1,6 +1,6 @@
 <script>
 import { PROJECT } from '@/config/labels-annotations';
-import { NAMESPACE, EXTERNAL } from '@/config/types';
+import { NAMESPACE, MANAGEMENT } from '@/config/types';
 import ButtonGroup from '@/components/ButtonGroup';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
@@ -46,7 +46,9 @@ export default {
 
   computed: {
     schema() {
-      return this.$store.getters['cluster/schemaFor']( this.value.type );
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return this.$store.getters[`${ inStore }/schemaFor`]( this.value.type );
     },
 
     h1() {
@@ -89,8 +91,9 @@ export default {
     project() {
       if (this.isNamespace) {
         const id = (this.value?.metadata?.labels || {})[PROJECT];
+        const clusterId = this.$store.getters['currentCluster'].id;
 
-        return this.$store.getters['clusterExternal/byId'](EXTERNAL.PROJECT, id);
+        return this.$store.getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
       } else {
         return null;
       }
@@ -122,8 +125,7 @@ export default {
         return this.parentOverride;
       }
 
-      const schema = this.$store.getters['cluster/schemaFor'](this.value.type);
-      const displayName = this.$store.getters['type-map/labelFor'](schema);
+      const displayName = this.$store.getters['type-map/labelFor'](this.schema);
       const location = {
         name:   'c-cluster-product-resource',
         params: { resource: this.value.type }

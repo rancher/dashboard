@@ -103,7 +103,7 @@ export const actions = {
   },
 
   watch({ state, dispatch, getters }, {
-    type, selector, id, revision
+    type, selector, id, revision, namespace, stop
   }) {
     type = getters.normalizeType(type);
 
@@ -111,8 +111,8 @@ export const actions = {
       return;
     }
 
-    if ( getters.watchStarted({
-      type, id, selector
+    if ( !stop && getters.watchStarted({
+      type, id, selector, namespace
     }) ) {
       return;
     }
@@ -125,6 +125,14 @@ export const actions = {
 
     if ( revision ) {
       msg.resourceVersion = `${ revision }`;
+    }
+
+    if ( namespace ) {
+      msg.namespace = namespace;
+    }
+
+    if ( stop ) {
+      msg.stop = true;
     }
 
     if ( id ) {

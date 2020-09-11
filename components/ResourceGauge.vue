@@ -17,7 +17,8 @@ export function colorToCountName(color) {
 }
 
 export function resourceCounts(store, resource) {
-  const clusterCounts = store.getters['cluster/all'](COUNT)[0].counts;
+  const inStore = this.$store.getters['currentProduct'].inStore;
+  const clusterCounts = store.getters[`${ inStore }/all`](COUNT)[0].counts;
   const summary = clusterCounts[resource].summary;
 
   const counts = {
@@ -64,7 +65,8 @@ export default {
     },
 
     name() {
-      const schema = this.$store.getters['cluster/schemaFor'](this.resource);
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const schema = this.$store.getters[`${ inStore }/schemaFor`](this.resource);
 
       return this.$store.getters['type-map/labelFor'](schema, this.resourceCounts.useful);
     },

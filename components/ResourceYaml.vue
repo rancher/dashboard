@@ -77,7 +77,9 @@ export default {
 
   computed: {
     schema() {
-      return this.$store.getters['cluster/schemaFor'](this.value.type);
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return this.$store.getters[`${ inStore }/schemaFor`]( this.value.type );
     },
 
     isCreate() {
@@ -225,6 +227,7 @@ export default {
     },
 
     async save(buttonDone) {
+      const inStore = this.$store.getters['currentProduct'].inStore;
       const yaml = this.value.yamlForSave(this.currentYaml) || this.currentYaml;
       let res;
 
@@ -258,7 +261,7 @@ export default {
         }
 
         if ( res && res.kind !== 'Table') {
-          await this.$store.dispatch('cluster/load', { data: res, existing: (this.isCreate ? this.value : undefined) });
+          await this.$store.dispatch(`${ inStore }/load`, { data: res, existing: (this.isCreate ? this.value : undefined) });
         }
 
         await this.$emit('apply-hooks', AFTER_SAVE_HOOKS);

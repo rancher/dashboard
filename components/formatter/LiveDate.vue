@@ -72,7 +72,7 @@ export default {
 
   methods: {
     update() {
-      if ( !this.value ) {
+      if ( !this.value || this.value === 'null' ) {
         this.label = null;
 
         return this.label;

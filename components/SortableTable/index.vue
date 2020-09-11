@@ -369,8 +369,13 @@ export default {
 
     valueFor(row, col) {
       const expr = col.value || col.name;
+      const out = get(row, expr);
 
-      return get(row, expr) || '';
+      if ( out === null || out === undefined ) {
+        return '';
+      }
+
+      return out;
     },
 
     isExpanded(row) {

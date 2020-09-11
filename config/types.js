@@ -91,13 +91,6 @@ export const MANAGEMENT = {
   USER:             'management.cattle.io.user',
 };
 
-// Rancher cluster-scoped things that actually live in management plane
-// Base: /v1/management.cattle.io.clusters/<id>/
-export const EXTERNAL = {
-  PROJECT: 'project',
-  APP:     'app',
-};
-
 // --------------------------------------
 // 3. Optional add-on packages in a cluster
 // --------------------------------------
@@ -106,6 +99,7 @@ export const EXTERNAL = {
 export const FLEET = {
   CLUSTER:       'fleet.cattle.io.cluster',
   CLUSTER_GROUP: 'fleet.cattle.io.clustergroup',
+  GIT_REPO:      'fleet.cattle.io.gitrepo',
 };
 
 export const GATEKEEPER = { CONSTRAINT_TEMPLATE: 'templates.gatekeeper.sh.constrainttemplate' };

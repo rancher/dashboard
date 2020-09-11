@@ -379,7 +379,8 @@ export default {
       });
 
       try {
-        const res = await this.$store.dispatch('cluster/request', { url, responseType: 'blob' });
+        const inStore = this.$store.getters['currentProduct'].inStore;
+        const res = await this.$store.dispatch(`${ inStore }/request`, { url, responseType: 'blob' });
         // const blob = new Blob([res], { type: 'text/plain;charset=utf-8' });
         const fileName = `${ this.pod.nameDisplay }_${ this.container }.log`;
 

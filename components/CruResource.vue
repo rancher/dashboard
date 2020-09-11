@@ -143,7 +143,8 @@ export default {
     },
 
     createResourceYaml(resource) {
-      const schemas = this.$store.getters['cluster/all'](SCHEMA);
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
       const clonedResource = clone(resource);
 
       return createYaml(schemas, resource.type, clonedResource);
