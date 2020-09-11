@@ -941,6 +941,7 @@ tableHeaders:
   clusterCreatorDefault: Cluster Creator Default
   clusterFlow: Cluster Flow
   clusterOutput: Cluster Output
+  commit: Commit
   configuredProviders: Configured Providers
   cpu: CPU
   date: Date
@@ -985,7 +986,9 @@ tableHeaders:
     patch: Patch
     update: Update
     watch: Watch
+  ready: Ready
   reason: Reason
+  repo: Repo
   reqRate: Req Rate
   resource: Resource
   resources: Resources

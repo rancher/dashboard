@@ -1,28 +1,127 @@
 <script>
+import { get } from '@/utils/object';
+
+const defaultOptions = {
+  rel:    'nofollow noopener noreferrer',
+  target: '_blank'
+};
+
 export default {
   props: {
-    value: {
+    row: {
       type:     Object,
-      required: true
-    }
-  },
-  data() {
-    const defaultOptions = {
-      rel:    'nofollow noopener noreferrer',
-      target: '_blank'
-    };
+      required: true,
+    },
 
-    return { options: this.value.options || defaultOptions };
+    value: {
+      type:     [Object, String],
+      required: true
+    },
+
+    urlKey: {
+      type:    String,
+      default: null,
+    },
+
+    labelKey: {
+      type:    String,
+      default: null,
+    },
+
+    options: {
+      type:    [Object, String],
+      default: null,
+    },
+
+    beforeIcon: {
+      type:    String,
+      default: null,
+    },
+
+    afterIcon: {
+      type:    String,
+      default: null,
+    },
+
+    beforeIconKey: {
+      type:    String,
+      default: null,
+    },
+
+    afterIconKey: {
+      type:    String,
+      default: null,
+    },
+  },
+
+  computed: {
+    href() {
+      if ( this.urlKey ) {
+        return get(this.row, this.urlKey);
+      }
+
+      return this.value?.url;
+    },
+
+    rel() {
+      if ( this.options && typeof this.options === 'object' ) {
+        return this.options.rel;
+      } else if ( this.value && typeof this.value === 'object' && this.value.rel !== undefined) {
+        return this.value.rel;
+      }
+
+      return defaultOptions.rel;
+    },
+
+    target() {
+      if ( this.options && typeof this.options === 'object' ) {
+        return this.options.target;
+      } else if ( this.value && typeof this.value === 'object' && this.value.target !== undefined) {
+        return this.value.target;
+      }
+
+      return defaultOptions.target;
+    },
+
+    label() {
+      if ( this.labelKey ) {
+        return get(this.row, this.labelKey);
+      } else if ( typeof this.value === 'string' ) {
+        return this.value;
+      }
+
+      return this.value?.text || this.href;
+    },
+
+    beforeIconClass() {
+      if ( this.beforeIconKey ) {
+        return get(this.row, this.beforeIconKey);
+      }
+
+      return this.beforeIcon;
+    },
+
+    afterIconClass() {
+      if ( this.afterIconKey ) {
+        return get(this.row, this.afterIconKey);
+      }
+
+      return this.afterIcon;
+    }
   }
 };
 </script>
 
 <template>
-  <nuxt-link v-if="options === 'internal' && value.url" :to="value.url">
-    {{ value.text || value.url }}
+  <nuxt-link v-if="options === 'internal' && href" :to="href">
+    <i v-if="beforeIconClass" :class="beforeIconClass" />
+    {{ label }}
+    <i v-if="afterIconClass" :class="afterIconClass" />
   </nuxt-link>
-  <a v-else-if="value.url && (options.rel || options.target)" :href="value.url" :rel="options.rel" :target="options.target">
-    {{ value.text || value.url }}
+  <a v-else-if="href" :href="href" :rel="rel" :target="target">
+    <i v-if="beforeIconClass" :class="beforeIconClass" />
+    {{ label }}
+    <i v-if="afterIconClass" :class="afterIconClass" />
   </a>
-  <span v-else>{{ value.text }}</span>
+  <span v-else>{{ label }}</span>
 </template>

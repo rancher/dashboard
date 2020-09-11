@@ -99,6 +99,7 @@ export const MANAGEMENT = {
 export const FLEET = {
   CLUSTER:       'fleet.cattle.io.cluster',
   CLUSTER_GROUP: 'fleet.cattle.io.clustergroup',
+  GIT_REPO:      'fleet.cattle.io.gitrepo',
 };
 
 export const GATEKEEPER = { CONSTRAINT_TEMPLATE: 'templates.gatekeeper.sh.constrainttemplate' };
