@@ -306,6 +306,10 @@ export default {
 
       return EDITOR_MODES.EDIT_CODE;
     },
+
+    hasQuestions() {
+      return this.versionInfo && !!this.versionInfo.questions;
+    }
   },
 
   watch: {
@@ -525,7 +529,7 @@ export default {
     actionInput(isUpgrade) {
       const fromChart = this.versionInfo.values || {};
 
-      if ( !this.valuesComponent ) {
+      if ( !this.valuesComponent && !this.hasQuestions ) {
         try {
           this.chartValues = jsyaml.safeLoad(this.valuesYaml);
         } catch (err) {
@@ -787,7 +791,7 @@ export default {
           </tab>
         </template>
         <Questions
-          v-else-if="versionInfo && versionInfo.questions"
+          v-else-if="hasQuestions"
           v-model="chartValues"
           :chart="chart"
           :version="version"
