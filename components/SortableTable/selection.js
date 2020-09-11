@@ -325,6 +325,10 @@ export default {
           }
         });
       }
+
+      this.$nextTick(() => {
+        this.$emit('selection', this.selectedNodes);
+      });
     },
 
     updateInput(node, on, keyField) {

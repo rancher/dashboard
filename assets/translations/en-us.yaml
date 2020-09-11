@@ -540,13 +540,15 @@ labels:
   addAnnotation: Add Annotation
 
 logging:
+  clusterFlow:
+    noOutputsBanner: There are no cluster outputs in the selected namespace.
+  flow:
+    outputs: Outputs
+    outputsBanner: Select which output(s) you want your logs shipped to.
+    noOutputsBanner: There are no outputs in the selected namespace.
   install:
     deployToControlPlane: Deploy to control plane nodes
     k3sContainerEngine: K3S Container Engine
-  overview:
-    clusterLevel: Cluster-level Logging
-    namespaceLevel: Namespace-level Logging
-  provider: Provider
   elasticsearch:
     host: Host
     scheme: Scheme
@@ -578,6 +580,10 @@ logging:
       label: SSL Client Cert Chain
       placeholder: Paste in the client cert chain
     sslClientCertKey: SSL Client Cert Key
+  overview:
+    clusterLevel: Cluster-level Logging
+    namespaceLevel: Namespace-level Logging
+  provider: Provider
   splunk:
     host: Host
     port: Port
