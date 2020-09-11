@@ -958,10 +958,10 @@ export default {
 
       for ( const item of items ) {
         let name = `${ item.nameDisplay }.yaml`;
-        const i = 2;
+        let i = 2;
 
         while ( names.includes(name) ) {
-          name = `${ item.nameDisplay }_${ i }.yaml`;
+          name = `${ item.nameDisplay }_${ i++ }.yaml`;
         }
 
         names.push(name);
