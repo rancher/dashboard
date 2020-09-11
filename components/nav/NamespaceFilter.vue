@@ -1,6 +1,6 @@
 <script>
 import { NAMESPACE_FILTERS } from '@/store/prefs';
-import { NAMESPACE, EXTERNAL } from '@/config/types';
+import { NAMESPACE, MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { isArray, addObjects, findBy } from '@/utils/array';
 import { BOTH, CLUSTER_LEVEL } from '@/store/type-map';
@@ -67,7 +67,7 @@ export default {
       const namespaces = sortBy(this.$store.getters['cluster/all'](NAMESPACE), ['nameDisplay']);
 
       if ( this.$store.getters['isMultiCluster'] ) {
-        const projects = sortBy(this.$store.getters['clusterExternal/all'](EXTERNAL.PROJECT), ['nameDisplay']);
+        const projects = sortBy(this.$store.getters['management/all'](MANAGEMENT.PROJECT), ['nameDisplay']);
         const projectsById = {};
         const namespacesByProject = {};
         let firstProject = true;
@@ -75,7 +75,7 @@ export default {
         namespacesByProject[null] = []; // For namespaces not in a project
 
         for ( const project of projects ) {
-          projectsById[project.id] = project;
+          projectsById[project.metadata.name] = project;
         }
 
         for (const namespace of namespaces ) {
@@ -97,7 +97,7 @@ export default {
         }
 
         for ( const project of projects ) {
-          const id = project.id;
+          const id = project.metadata.name;
 
           if ( firstProject ) {
             firstProject = false;

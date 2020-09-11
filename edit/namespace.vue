@@ -3,7 +3,7 @@
 import NameNsDescription from '@/components/form/NameNsDescription';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import { EXTERNAL } from '@/config/types';
+import { MANAGEMENT } from '@/config/types';
 import { PROJECT } from '@/config/labels-annotations';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 import Tabbed from '@/components/Tabbed';
@@ -47,12 +47,12 @@ export default {
     },
 
     projectOpts() {
-      const projects = this.$store.getters['clusterExternal/all'](EXTERNAL.PROJECT);
+      const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
       const out = projects.map((project) => {
         return {
           label: project.nameDisplay,
-          value: project.id,
+          value: project.metadata.name,
         };
       });
 

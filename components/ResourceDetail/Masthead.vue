@@ -1,6 +1,6 @@
 <script>
 import { PROJECT } from '@/config/labels-annotations';
-import { NAMESPACE, EXTERNAL } from '@/config/types';
+import { NAMESPACE, MANAGEMENT } from '@/config/types';
 import ButtonGroup from '@/components/ButtonGroup';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
@@ -89,8 +89,9 @@ export default {
     project() {
       if (this.isNamespace) {
         const id = (this.value?.metadata?.labels || {})[PROJECT];
+        const clusterId = this.$store.getters['currentCluster'].id;
 
-        return this.$store.getters['clusterExternal/byId'](EXTERNAL.PROJECT, id);
+        return this.$store.getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
       } else {
         return null;
       }

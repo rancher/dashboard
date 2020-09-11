@@ -1,7 +1,5 @@
 import Steve from '@/plugins/steve';
-import {
-  COUNT, NAMESPACE, NORMAN, EXTERNAL, MANAGEMENT, STEVE
-} from '@/config/types';
+import { COUNT, NAMESPACE, NORMAN, MANAGEMENT } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE } from '@/store/prefs';
 import { allHash } from '@/utils/promise';
 import { ClusterNotFoundError, ApiError } from '@/utils/error';
@@ -15,7 +13,6 @@ import { NAME as EXPLORER } from '@/config/product/explorer';
 export const strict = false;
 
 export const plugins = [
-  Steve({ namespace: 'clusterExternal', baseUrl: '' }), // project scoped cluster stuff, url set later
   Steve({ namespace: 'management', baseUrl: '/v1' }),
   Steve({ namespace: 'cluster', baseUrl: '' }), // url set later
   Steve({ namespace: 'rancher', baseUrl: '/v3' }),
@@ -53,8 +50,7 @@ export const getters = {
   },
 
   currentCluster(state, getters) {
-    return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId) ||
-      getters['management/byId'](STEVE.CLUSTER, state.clusterId);
+    return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId);
   },
 
   currentProduct(state, getters) {
@@ -143,6 +139,7 @@ export const getters = {
 
   namespaces(state, getters) {
     return () => {
+      const clusterId = getters['currentCluster'].id;
       const namespaces = getters['cluster/all'](NAMESPACE);
 
       const filters = state.namespaceFilters.filter(x => !x.startsWith('namespaced://'));
@@ -178,7 +175,7 @@ export const getters = {
           if ( type === 'ns' ) {
             out[id] = true;
           } else if ( type === 'project' ) {
-            const project = getters['clusterExternal/byId'](EXTERNAL.PROJECT, id);
+            const project = getters['management/byId'](MANAGEMENT.PROJECT, `${ clusterId }/${ id }`);
 
             if ( project ) {
               for ( const ns of project.namespaces ) {
@@ -231,11 +228,12 @@ export const getters = {
 
   backToRancherLink(getters) {
     const cluster = getters['currentCluster'];
-    let link = '/';
+    let link = '/g';
 
     if ( cluster ) {
       link = `/c/${ escape(cluster.id) }`;
     }
+
     if ( process.env.dev ) {
       link = `https://localhost:8000${ link }`;
     }
@@ -358,11 +356,18 @@ export const actions = {
       // Clear the old cluster state out if switching to a new one.
       // If there is not an id then stay connected to the old one behind the scenes,
       // so that the nav and header stay the same when going to things like prefs
-      await dispatch('cluster/unsubscribe');
-      await dispatch('clusterExternal/unsubscribe');
-      commit('cluster/reset');
-      commit('clusterExternal/reset');
       commit('clusterChanged', false);
+
+      await dispatch('cluster/unsubscribe');
+      commit('cluster/reset');
+
+      await dispatch('management/watch', {
+        type:      MANAGEMENT.PROJECT,
+        namespace: state.clusterId,
+        stop:      true
+      });
+      commit('management/forgetType', MANAGEMENT.PROJECT);
+
       commit('catalog/reset');
     }
 
@@ -385,29 +390,32 @@ export const actions = {
     });
 
     const clusterBase = `/k8s/clusters/${ escape(id) }/v1`;
-    const externalBase = `/v1/management.cattle.io.clusters/${ escape(id) }`;
 
     if ( !cluster ) {
       commit('setCluster', null);
       commit('cluster/applyConfig', { baseUrl: null });
-      commit('clusterExternal/applyConfig', { baseUrl: null });
       throw new ClusterNotFoundError(id);
     }
 
     // Update the Steve client URLs
     commit('cluster/applyConfig', { baseUrl: clusterBase });
-    isMultiCluster && commit('clusterExternal/applyConfig', { baseUrl: externalBase });
 
     await Promise.all([
       dispatch('cluster/loadSchemas', true),
-      isMultiCluster && dispatch('clusterExternal/loadSchemas', false),
     ]);
 
     dispatch('cluster/subscribe');
-    isMultiCluster && dispatch('clusterExternal/subscribe');
+
+    const projectArgs = {
+      type: MANAGEMENT.PROJECT,
+      opt:  {
+        url:            `${ MANAGEMENT.PROJECT }/${ escape(id) }`,
+        watchNamespace: id
+      }
+    };
 
     const res = await allHash({
-      projects:   isMultiCluster && dispatch('clusterExternal/findAll', { type: EXTERNAL.PROJECT, opt: { url: 'projects' } }),
+      projects:   isMultiCluster && dispatch('management/findAll', projectArgs),
       counts:     dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
       namespaces: dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })
     });
@@ -435,9 +443,6 @@ export const actions = {
     await dispatch('cluster/unsubscribe');
     commit('clusterChanged', false);
     commit('cluster/reset');
-
-    await dispatch('clusterExternal/unsubscribe');
-    commit('clusterExternal/reset');
 
     commit('rancher/reset');
     commit('catalog/reset');

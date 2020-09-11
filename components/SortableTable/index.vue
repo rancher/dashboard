@@ -370,7 +370,7 @@ export default {
     valueFor(row, col) {
       const expr = col.value || col.name;
 
-      return get(row, expr) || '';
+      return `${ get(row, expr) }`;
     },
 
     isExpanded(row) {

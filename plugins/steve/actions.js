@@ -131,7 +131,8 @@ export default {
     if ( opt.watch !== false ) {
       dispatch('watch', {
         type,
-        revision: res.revision
+        revision:  res.revision,
+        namespace: opt.watchNamespace
       });
     }
 
