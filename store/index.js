@@ -139,8 +139,9 @@ export const getters = {
 
   namespaces(state, getters) {
     return () => {
+      const inStore = getters['currentProduct'].inStore;
       const clusterId = getters['currentCluster'].id;
-      const namespaces = getters['cluster/all'](NAMESPACE);
+      const namespaces = getters[`${ inStore }/all`](NAMESPACE);
 
       const filters = state.namespaceFilters.filter(x => !x.startsWith('namespaced://'));
       const includeAll = getters.isAllNamespaces;
@@ -191,9 +192,10 @@ export const getters = {
   },
 
   defaultNamespace(state, getters, rootState, rootGetters) {
+    const inStore = getters['currentProduct'].inStore;
     const filteredMap = getters['namespaces']();
     const isAll = getters['isAllNamespaces'];
-    const all = getters['cluster/all'](NAMESPACE).map(x => x.id);
+    const all = getters[`${ inStore }/all`](NAMESPACE).map(x => x.id);
     let out;
 
     function isOk() {
@@ -325,6 +327,10 @@ export const actions = {
 
     if ( getters['management/schemaFor'](MANAGEMENT.SETTING) ) {
       promises.push(dispatch('management/findAll', { type: MANAGEMENT.SETTING }));
+    }
+
+    if ( getters['management/schemaFor'](NAMESPACE) ) {
+      promises.push(dispatch('management/findAll', { type: NAMESPACE }));
     }
 
     // Clusters is always available

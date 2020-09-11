@@ -47,13 +47,17 @@ export default {
     favoriteTypes:  mapPref(FAVORITE_TYPES),
 
     allSchemas() {
-      return this.$store.getters['cluster/all'](SCHEMA);
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return this.$store.getters[`${ inStore }/all`](SCHEMA);
     },
 
     counts() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
       // So that there's something to watch for updates
-      if ( this.$store.getters['cluster/haveAll'](COUNT) ) {
-        const counts = this.$store.getters['cluster/all'](COUNT)[0].counts;
+      if ( this.$store.getters[`${ inStore }/haveAll`](COUNT) ) {
+        const counts = this.$store.getters[`${ inStore }/all`](COUNT)[0].counts;
 
         return counts;
       }
@@ -333,10 +337,6 @@ export default {
       .actions {
         grid-area: actions;
         text-align: right;
-      }
-
-      .breadcrumbs {
-        grid-area: breadcrumbs;
       }
     }
 

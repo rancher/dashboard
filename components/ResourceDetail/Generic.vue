@@ -34,6 +34,7 @@ export default {
   data() {
     return { owners: [], yaml: '' };
   },
+
   mounted() {
     this.findOwners();
     this.findYaml();
@@ -41,16 +42,18 @@ export default {
 
   methods: {
     async findOwners() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
       /*
         all we have is api version, kind, and uid, but we can't query by uid :(
         find all of each kind of ownerref present, then find each specific ownerref by metadata.uid
       */
       for ( const kind in this.value.ownersByType) {
-        const schema = this.$store.getters['cluster/schema'](kind);
+        const schema = this.$store.getters[`${ inStore }/schema`](kind);
 
         if (schema) {
           const type = schema.id;
-          const allOfResourceType = await this.$store.dispatch('cluster/findAll', { type });
+          const allOfResourceType = await this.$store.dispatch(`${ inStore }/findAll`, { type });
 
           this.value.ownersByType[kind].forEach((resource, idx) => {
             const resourceInstance = allOfResourceType.filter(resource => resource?.metdata?.uid === resource.uid)[0];

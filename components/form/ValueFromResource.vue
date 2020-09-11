@@ -102,7 +102,9 @@ export default {
 
         return Object.keys(map).filter(key => map[key]);
       } else {
-        return this.$store.getters['cluster/findAll'](NAMESPACE);
+        const inStore = this.$store.getters['currentProduct'].inStore;
+
+        return this.$store.getters[`${ inStore }/findAll`](NAMESPACE);
       }
     },
 

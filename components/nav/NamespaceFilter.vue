@@ -64,7 +64,8 @@ export default {
 
       divider();
 
-      const namespaces = sortBy(this.$store.getters['cluster/all'](NAMESPACE), ['nameDisplay']);
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const namespaces = sortBy(this.$store.getters[`${ inStore }/all`](NAMESPACE), ['nameDisplay']);
 
       if ( this.$store.getters['isMultiCluster'] ) {
         const projects = sortBy(this.$store.getters['management/all'](MANAGEMENT.PROJECT), ['nameDisplay']);
