@@ -226,12 +226,13 @@ export const getters = {
     return all[0];
   },
 
-  backToRancherLink(getters) {
-    const cluster = getters['currentCluster'];
+  backToRancherLink(state) {
+    const clusterId = state.clusterId;
+
     let link = '/g';
 
-    if ( cluster ) {
-      link = `/c/${ escape(cluster.id) }`;
+    if ( clusterId ) {
+      link = `/c/${ escape(clusterId) }`;
     }
 
     if ( process.env.dev ) {
