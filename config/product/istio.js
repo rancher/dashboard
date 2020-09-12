@@ -1,4 +1,6 @@
 import { DSL } from '@/store/type-map';
+import { ISTIO } from '@/config/types';
+import { STATE, NAME as NAME_HEADER, AGE } from '@/config/table-headers';
 
 export const NAME = 'istio';
 export const CHART_NAME = 'rancher-istio';
@@ -8,6 +10,7 @@ export function init(store) {
     product,
     basicType,
     virtualType,
+    headers
   } = DSL(store, NAME);
 
   product({
@@ -28,12 +31,15 @@ export function init(store) {
   basicType('istio-overview');
 
   basicType([
-    'networking.istio.io.destinationrule',
-    'networking.istio.io.envoyfilter',
+    'networking.istio.io.virtualservice',
     'networking.istio.io.gateway',
+    'networking.istio.io.destinationrule',
+  ]);
+
+  basicType([
+    'networking.istio.io.envoyfilter',
     'networking.istio.io.serviceentrie',
     'networking.istio.io.sidecar',
-    'networking.istio.io.virtualservice',
     'networking.istio.io.workloadentrie',
   ], 'Networking');
 
@@ -49,4 +55,23 @@ export function init(store) {
     'security.istio.io.peerauthentication',
     'security.istio.io.requestauthentication',
   ], 'Security');
+
+  headers(ISTIO.VIRTUAL_SERVICE, [
+    STATE,
+    NAME_HEADER,
+    {
+      name:      'gateways',
+      label:     'Gateways',
+      value:     'spec',
+      formatter: 'VirtualServiceGateways'
+    },
+    {
+      name:      'hosts',
+      label:     'Hosts',
+      value:     'spec.hosts',
+      sort:      ['spec.hosts'],
+      formatter: 'List'
+    },
+    AGE
+  ]);
 }

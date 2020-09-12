@@ -16,6 +16,7 @@ generic:
   labelsAndAnnotations: Labels and Annotations
   na: n/a
   name: Name
+  plusMore: + {n} more
   readFromFile: Read from File
   remove: Remove
   resource: |-
@@ -484,43 +485,24 @@ internalExternalIP:
   none: None
 
 istio:
-  cni: Enable CNI
-  crdDescription: "In order to expose Istio configuration, the following Custom Resource Definitions (CRDs) have been made available:
-    <ul>
-    <li> <a target='_blank' rel='noopener nofollow' href='https://istio.io/latest/docs/reference/config/networking/virtual-service/'>VirtualService</a></li>
-    <li> <a target='_blank' rel='noopener nofollow' href='https://istio.io/latest/docs/reference/config/networking/destination-rule/'>DestionationRule</a></li>
-    <li> <a target='_blank' rel='noopener nofollow' href='https://istio.io/latest/docs/reference/config/networking/gateway/'>Gateway</a></li>
-    </ul>
-    The VirtualService is used for traffic routing, and can be bound to a Gateway or utilize a DestinationRule to set certain protocols and configuration for traffic."
+  cni: Enabled CNI
   customOverlayFile:
     label: Custom Overlay File
     tip: 'The <a target="_blank" rel="noopener noreferrer nofollow" href="https://istio.io/latest/docs/setup/install/istioctl/#customizing-the-configuration">overlay file</a> allows for additional configuration on top of the base Rancher Istio installation. You can utilize the <a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/" target="_blank" rel="noopener noreferrer nofollow" >IstioOperator API</a> to make changes and additions for all components and apply those changes via this overlay YAML file.'
   description: 'Rancher Istio helm chart installs a minimal Istio configuration for you to get started integrating with your applications. 
   If you would like to get additional information about Istio, visit <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>'
-  egressGateway: Enable Egress Gateway
-  howTo: 
-    body: "There are three different ways to configure Rancher’s Istio to ensure your service-mesh is available to Prometheus:
-      <ol>
-      <li>Set <code>Ignore Namespace Selectors</code> to false on your rancher monitoring instance</li>
-      <li>Keep the default setting for <code>Ignore Namespace Selectors</code> and add Service Monitors or Pod Monitors in the namespace with the targets you want to scrape./li>
-      <li>Keep the default setting for <code>Ignore Namespace Selectors</code> and add a <code>additionalScrapeConfig</code> to your rancher monitoring instance to scrape all targets in all namespaces.</li>
-      </ol>
-      "
-    title: How to configure Rancher Monitoring integration
-    warning: If <code>Ignore Namespace Selectors</code> is set to true on your Rancher Monitoring instance, then Prometheus will not be able to scrape service mesh targets outside of Istio's namespace
-  ingressGateway: Enable Ingress Gateway
-  istiodRemote: Enable istiodRemote
-  pilot: Enable Pilot
-  policy: Enable Policy
-  telemetry: Enable Telemetry
+  egressGateway: Enabled Egress Gateway
+  ingressGateway: Enabled Ingress Gateway
+  istiodRemote: Enabled istiodRemote
+  pilot: Enabled Pilot
+  policy: Enabled Policy
+  poweredBy: Powered by <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a>
+  telemetry: Enabled Telemetry
   titles:
     components: Components
     customAnswers: Custom Answers
     advanced: Advanced Settings
     description: Description
-    destinationRules: Destination Rules
-    gateways: Gateways
-    virtualServices: Virtual Services
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
  
 
