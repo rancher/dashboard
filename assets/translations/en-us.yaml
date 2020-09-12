@@ -621,6 +621,25 @@ monitoring:
       volumeMode: Volume Mode
       volumeName: Volume Name
     title: Grafana Config
+  overview:
+    title: Overview
+    subtitle: "Powered By: <a href='https://github.com/coreos/prometheus-operator' target='_blank' rel='noopener nofollow' >Prometheus</a>"
+    linkedList:
+      alertManager:
+        label: 'AlertManager'
+        tooltip: 'View Active Alerts'
+      grafana:
+        label: 'Grafana'
+        tooltip: 'View Metrics Dashboards'
+      prometheusPromQl:
+        label: 'Prometheus PromQL Graph'
+        tooltip: 'View PromQL Graph'
+      prometheusRules:
+        label: 'Prometheus Rules'
+        tooltip: 'View Configured Rules'
+      prometheusTargets:
+        label: 'Prometheus Targets'
+        tooltip: 'View Configured Targets'
   prometheus:
     config:
       adminApi: Admin API

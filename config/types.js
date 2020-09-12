@@ -73,6 +73,15 @@ export const CATALOG = {
   REPO:           'catalog.cattle.io.repo',
 };
 
+export const MONITORING = {
+  ALERTMANAGER:   'monitoring.coreos.com.alertmanager',
+  PODMONITOR:     'monitoring.coreos.com.podmonitor',
+  PROMETHEUSE:    'monitoring.coreos.com.prometheus',
+  PROMETHEUSRULE: 'monitoring.coreos.com.prometheusrule',
+  SERVICEMONITOR: 'monitoring.coreos.com.servicemonitor',
+  THANOSRULER:    'monitoring.coreos.com.thanosruler',
+};
+
 // --------------------------------------
 // 2. Only if Rancher is installed
 // --------------------------------------
