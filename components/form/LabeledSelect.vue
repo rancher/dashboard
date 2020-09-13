@@ -200,7 +200,7 @@ export default {
       :options="options"
       :placeholder="placeholder"
       :reduce="x => reduce(x)"
-      :value="value ? value : ' '"
+      :value="value ? value : ''"
       @input="e=>$emit('input', e)"
       @search:blur="onBlur"
       @search:focus="onFocus"

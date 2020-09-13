@@ -103,7 +103,7 @@ export default {
 
 <template>
   <div>
-    <div v-if="label" class="radio-group label" :class="{'view':isView}">
+    <div v-if="label" class="radio-group label">
       <span class="text-label">
         {{ label }}
       </span>
@@ -154,7 +154,7 @@ export default {
     margin-right: 10px;
   }
 }
-.radio-group.label.view{
-  color: var(--input-label);
+.radio-group.label{
+  font-size: 1.2em;
 }
 </style>

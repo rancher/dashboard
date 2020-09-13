@@ -137,7 +137,21 @@ asyncButton:
 
 backupRestoreOperator:
   backupFilename: Backup Filename
-  prune: 
+  deployment:
+    image: Operator Image
+    tag: Operator Image Tag
+    rancherNamespace: Rancher ResourceSet Namespace
+    storage:
+      storageClass: Storage Class
+      persistentVolume: Persistent Volume
+      label: Default Storage Location
+      options:
+        s3: Use an S3-compatible object store
+        defaultStorageClass: 'Use the default storage class ({name})'
+        pickSC: Use an existing storage class
+        pickPV: Use an existing persistent volume
+    size: Size
+  prune:
     label: Prune
     tip: Delete all resources that match the ResourceSet used, but are not present in the backup. (Recommended)
   encryption: Encryption
