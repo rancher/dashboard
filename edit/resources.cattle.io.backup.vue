@@ -3,8 +3,6 @@ import CruResource from '@/components/CruResource';
 import createEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
 import UnitInput from '@/components/form/UnitInput';
-import Checkbox from '@/components/form/Checkbox';
-import FileSelector from '@/components/form/FileSelector';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
 import RadioGroup from '@/components/form/RadioGroup';

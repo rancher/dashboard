@@ -80,6 +80,7 @@ export default {
         };
       }), 'label');
     },
+
     defaultStorageClass() {
       return this.storageClasses.filter(sc => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS])[0];
     },
@@ -156,7 +157,7 @@ export default {
         return 's3';
       } if (get(this.value, 'persistence.enabled')) {
         if (this.value.persistence.storageClass) {
-          if (this.value.persistence.storageClass !== this.defaultSC.metadata.name) {
+          if (this.value.persistence.storageClass === this.defaultSC.metadata.name) {
             return 'defaultSC';
           }
 
@@ -174,22 +175,31 @@ export default {
 
 <template>
   <div>
-    <Tab :weight="99" label="Chart Options" name="chartOptions">
-      <div class="row mb-10">
-        <div class="col span-6">
-          <LabeledSelect v-model="value.rancherResourceSetNamespace" :mode="mode" :label="t('backupRestoreOperator.deployment.rancherNamespace')" :options="namespaceOpts" />
+    <Tab label="Chart Options" name="chartOptions">
+      <div class="bordered-section">
+        <div class="row mb-10">
+          <div class="col span-6">
+            <LabeledSelect v-model="value.rancherResourceSetNamespace" :mode="mode" :label="t('backupRestoreOperator.deployment.rancherNamespace')" :options="namespaceOpts" />
+          </div>
+        </div>
+        <div class="row mb-10">
+          <div class="col span-6">
+            <LabeledInput v-model="value.image.repository" :mode="mode" :label="t('backupRestoreOperator.deployment.image')" />
+          </div>
+          <div class="col span-6">
+            <LabeledInput v-model="value.image.tag" :mode="mode" :label="t('backupRestoreOperator.deployment.tag')" />
+          </div>
         </div>
       </div>
-      <div class="row mb-10">
-        <div class="col span-6">
-          <LabeledInput v-model="value.image.repository" :mode="mode" :label="t('backupRestoreOperator.deployment.image')" />
-        </div>
-        <div class="col span-6">
-          <LabeledInput v-model="value.image.tag" :mode="mode" :label="t('backupRestoreOperator.deployment.tag')" />
-        </div>
-      </div>
-      <RadioGroup v-model="storageSource" :label="t('backupRestoreOperator.deployment.storage.label')" class="mb-10" :options="radioOptions.options" :labels="radioOptions.labels" />
-      <S3 v-if="storageSource==='s3'" :placeholders="value.s3" :secrets="secrets" :mode="mode" />
+      <RadioGroup
+        v-model="storageSource"
+        name="storageSource"
+        :label="t('backupRestoreOperator.deployment.storage.label')"
+        class="mb-10"
+        :options="radioOptions.options"
+        :labels="radioOptions.labels"
+      />
+      <S3 v-if="storageSource==='s3'" :value="value.s3" :secrets="secrets" :mode="mode" />
       <template v-else>
         <div class="row">
           <div v-if="storageSource === 'pickSC'" class="col span-6">
