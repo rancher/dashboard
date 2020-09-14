@@ -247,6 +247,12 @@ chartHeading:
   overview: Overview
   poweredBy: "Powered by:"
 
+cis:
+  addTest: Add Test ID
+  benchmarkVersion: Benchmark Version
+  testID: Test ID
+  testsToSkip: Tests to Skip
+
 cluster:
   nodeDriver:
     displayName:
