@@ -70,7 +70,7 @@
   --overlay-bg: #{rgba($darkest, 0.75)};
   --shadow: #{rgba($darkest, 0.9)};
 
-  --dropdown-bg: #{$medium};
+  --dropdown-bg: #{mix($medium, $dark, 10%)};
   --dropdown-border: #{$light};
   --dropdown-divider: #{$light};
   --dropdown-text: #{$link};
