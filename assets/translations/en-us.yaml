@@ -876,6 +876,12 @@ secret:
     domainName: Registry Domain Name
     password: Password
     username: Username
+  basic:
+    password: Password
+    username: Username
+  ssh:
+    public: Public Key
+    private: Private Key
   type: Type
 
 servicePorts:

@@ -11,17 +11,21 @@ export const SSH = 'kubernetes.io/ssh-auth';
 export const TLS = 'kubernetes.io/tls';
 export const BOOTSTRAP = 'bootstrap.kubernetes.io/token';
 export const ISTIO_TLS = 'istio.io/key-and-cert';
+export const HELM_RELEASE = 'helm.sh/release.v1';
+export const FLEET_CLUSTER = 'fleet.cattle.io/cluster-registration-values';
 
 const DISPLAY_TYPES = {
-  [OPAQUE]:       'Opaque',
-  [SERVICE_ACCT]: 'Service Acct Token',
-  [DOCKER]:       'Registry',
-  [DOCKER_JSON]:  'Registry',
-  [BASIC]:        'Basic Auth',
-  [SSH]:          'SSH',
-  [TLS]:          'Certificate',
-  [BOOTSTRAP]:    'Bootstrap Token',
-  [ISTIO_TLS]:    'Certificate (Istio)',
+  [OPAQUE]:        'Opaque',
+  [SERVICE_ACCT]:  'Svc Acct Token',
+  [DOCKER]:        'Registry',
+  [DOCKER_JSON]:   'Registry',
+  [BASIC]:         'Basic Auth',
+  [SSH]:           'SSH',
+  [TLS]:           'Certificate',
+  [BOOTSTRAP]:     'Bootstrap Token',
+  [ISTIO_TLS]:     'Certificate (Istio)',
+  [HELM_RELEASE]:  'Helm Release',
+  [FLEET_CLUSTER]: 'Fleet Cluster'
 };
 
 export default {
@@ -168,8 +172,42 @@ export default {
       }
     } else if (this._type === TLS) {
       return this.certInfo || this.keysDisplay;
+    } else if ( this._type === BASIC ) {
+      return base64Decode(this.data.username);
+    } else if ( this._type === SSH ) {
+      return this.sshUser;
+    } else if ( this._type === SERVICE_ACCT ) {
+      return this.metadata?.annotations?.['kubernetes.io/service-account.name'];
     } else {
       return this.keysDisplay;
+    }
+  },
+
+  sshUser() {
+    if ( this._type !== SSH ) {
+      return;
+    }
+
+    const pub = base64Decode(this.data['ssh-publickey']);
+
+    if ( !pub ) {
+      return;
+    }
+
+    if ( pub.startsWith('----') ) {
+      // PEM format
+      const match = pub.match(/from OpenSSH by ([^"]+)"/);
+
+      if ( match ) {
+        return match[1];
+      }
+    } else if ( pub.startsWith('ssh-') ) {
+      // OpenSSH format
+      const parts = pub.replace(/\n/g, '').split(/\s+/);
+
+      if ( parts && parts.length === 3 ) {
+        return parts[2];
+      }
     }
   },
 

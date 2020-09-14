@@ -1,5 +1,7 @@
 <script>
-import { DOCKER_JSON, OPAQUE, TLS } from '@/models/secret';
+import {
+  BASIC, DOCKER_JSON, OPAQUE, SSH, TLS
+} from '@/models/secret';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -13,9 +15,11 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
 
 const types = [
-  { label: 'Certificate', value: TLS },
-  { label: 'Registry', value: DOCKER_JSON },
   { label: 'Opaque', value: OPAQUE },
+  { label: 'Registry', value: DOCKER_JSON },
+  { label: 'Certificate', value: TLS },
+  { label: 'SSH Key', value: SSH },
+  { label: 'HTTP Basic Auth', value: BASIC },
 ];
 const registryAddresses = [
   'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
@@ -38,8 +42,6 @@ export default {
   mixins: [CreateEditView],
 
   data() {
-    const isNamespaced = !!this.value.metadata.namespace;
-
     let username;
     let password;
     let registryURL;
@@ -73,20 +75,27 @@ export default {
       crt = base64Decode((this.value.data || {})['tls.crt']);
     }
 
+    if ( this.value._type === BASIC ) {
+      username = base64Decode(this.value.data?.username || '');
+      password = base64Decode(this.value.data?.password || '');
+    }
+
+    if ( this.value._type === SSH ) {
+      username = base64Decode(this.value.data?.['ssh-publickey'] || '');
+      password = base64Decode(this.value.data?.['ssh-privatekey'] || '');
+    }
+
     if (!this.value._type) {
       this.$set(this.value, '_type', OPAQUE);
     }
 
     return {
       types,
-      isNamespaced,
       registryAddresses,
-      newNS:            false,
       registryProvider,
       username,
       password,
       registryURL,
-      toUpload:         null,
       key,
       crt,
     };
@@ -126,6 +135,14 @@ export default {
       });
     },
 
+    isSsh() {
+      return this.value._type === SSH;
+    },
+
+    isBasicAuth() {
+      return this.value._type === BASIC;
+    },
+
     isCertificate() {
       return this.value._type === TLS;
     },
@@ -159,11 +176,28 @@ export default {
         const data = { 'tls.crt': base64Encode(this.crt), 'tls.key': keyToSave };
 
         this.$set(this.value, 'data', data);
+      } else if ( this.isBasicAuth ) {
+        const data = {
+          username: base64Encode(this.username),
+          password: base64Encode(this.password),
+        };
+
+        this.$set(this.value, 'data', data);
+      } else if ( this.isSsh ) {
+        const data = {
+          'ssh-publickey':  base64Encode(this.username),
+          'ssh-privatekey':  base64Encode(this.password),
+        };
+
+        this.$set(this.value, 'data', data);
       }
+
       this.save(buttonCb);
     },
-    onKeySelected: createOnSelected('key'),
-    onCrtSelected: createOnSelected('crt'),
+    onKeySelected:      createOnSelected('key'),
+    onCrtSelected:      createOnSelected('crt'),
+    onUsernameSelected: createOnSelected('username'),
+    onPasswordSelected: createOnSelected('password'),
   }
 };
 </script>
@@ -225,6 +259,42 @@ export default {
         <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCrtSelected" />
       </div>
     </div>
+
+    <template v-else-if="isBasicAuth">
+      <div class="row mb-20">
+        <div class="col span-6">
+          <LabeledInput v-model="username" :label="t('secret.basic.username')" :mode="mode" />
+        </div>
+        <div class="col span-6">
+          <LabeledInput v-model="password" :label="t('secret.basic.password')" :mode="mode" type="password" />
+        </div>
+      </div>
+    </template>
+
+    <template v-else-if="isSsh">
+      <div class="row mb-20">
+        <div class="col span-6">
+          <LabeledInput
+            v-model="username"
+            type="multiline"
+            :label="t('secret.ssh.public')"
+            :mode="mode"
+            placeholder="Paste in your public key"
+          />
+          <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onUsernameSelected" />
+        </div>
+        <div class="col span-6">
+          <LabeledInput
+            v-model="password"
+            type="multiline"
+            :label="t('secret.ssh.private')"
+            :mode="mode"
+            placeholder="Paste in your private key"
+          />
+          <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onPasswordSelected" />
+        </div>
+      </div>
+    </template>
 
     <div v-else class="row">
       <KeyValue

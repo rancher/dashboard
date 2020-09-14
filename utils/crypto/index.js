@@ -34,7 +34,7 @@ export function base64DecodeToBuffer(string) {
 }
 
 export function base64Decode(string) {
-  return base64DecodeToBuffer(string).toString();
+  return base64DecodeToBuffer(string || '').toString();
 }
 
 export function md5(data, digest, callback) {
