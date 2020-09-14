@@ -148,3 +148,9 @@ export const BACKUP_RESTORE = {
   BACKUP:       'resources.cattle.io.backup',
   RESTORE:      'resources.cattle.io.restore',
 };
+
+export const CIS = {
+  CLUSTER_SCAN:         'cis.cattle.io.clusterscan',
+  CLUSTER_SCAN_PROFILE: 'cis.cattle.io.clusterscanprofile',
+  BENCHMARK:            'cis.cattle.io.clusterscanbenchmark'
+};

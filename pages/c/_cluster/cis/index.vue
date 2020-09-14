@@ -4,8 +4,6 @@ import { NAME, CHART_NAME } from '@/config/product/backup';
 import { CIS } from '@/config/types';
 
 function redirectToScan({ redirect, route }) {
-  debugger;
-
   return redirect({
     name:   'c-cluster-product-resource',
     params: {
@@ -19,5 +17,5 @@ export default { middleware: [InstallRedirect(NAME, CHART_NAME), redirectToScan]
 </script>
 
 <template>
-  <div>This is backup/restore.</div>
+  <div>This is cis.</div>
 </template>

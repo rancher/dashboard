@@ -57,6 +57,7 @@ nav:
 product:
   apps: Apps & Marketplace
   backup: Backup Restore Operator
+  cis: CIS Benchmark
   ecm: Cluster Manager
   explorer: Cluster Explorer
   gatekeeper: OPA Gatekeeper
