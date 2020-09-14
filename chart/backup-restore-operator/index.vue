@@ -6,10 +6,9 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
 import { get } from '@/utils/object';
 import { allHash } from '@/utils/promise';
-import { STORAGE_CLASS, SECRET, PV, NAMESPACE } from '@/config/types';
+import { STORAGE_CLASS, SECRET, PV } from '@/config/types';
 import { mapGetters } from 'vuex';
 import { STORAGE } from '@/config/labels-annotations';
-import { sortBy } from '@/utils/sort';
 
 export default {
   components: {
@@ -24,13 +23,6 @@ export default {
 
   props: {
     value: {
-      type:    Object,
-      default: () => {
-        return {};
-      }
-    },
-
-    chart: {
       type:    Object,
       default: () => {
         return {};
@@ -57,11 +49,6 @@ export default {
 
   data() {
     const storageSource = this.mode === 'create' ? 's3' : this.getStorageSource(this.value);
-    const chartNamespace = this.chart.targetNamespace;
-
-    if (chartNamespace && !this.value.rancherResourceSetNamespace) {
-      this.value.rancherResourceSetNamespace = chartNamespace;
-    }
 
     return {
       storageSource, secrets: [], storageClasses: [], persistentVolumes: []
@@ -69,18 +56,6 @@ export default {
   },
 
   computed: {
-    namespaceOpts() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-      const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
-
-      return sortBy(choices.map((obj) => {
-        return {
-          label: obj.nameDisplay,
-          value: obj.id,
-        };
-      }), 'label');
-    },
-
     defaultStorageClass() {
       return this.storageClasses.filter(sc => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS])[0];
     },
@@ -177,11 +152,6 @@ export default {
   <div>
     <Tab label="Chart Options" name="chartOptions">
       <div class="bordered-section">
-        <div class="row mb-10">
-          <div class="col span-6">
-            <LabeledSelect v-model="value.rancherResourceSetNamespace" :mode="mode" :label="t('backupRestoreOperator.deployment.rancherNamespace')" :options="namespaceOpts" />
-          </div>
-        </div>
         <div class="row mb-10">
           <div class="col span-6">
             <LabeledInput v-model="value.image.repository" :mode="mode" :label="t('backupRestoreOperator.deployment.image')" />
