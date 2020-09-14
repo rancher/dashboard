@@ -108,6 +108,7 @@ export default {
           <div class="col span-6">
             <RadioGroup
               v-model="useExistingSecret"
+              name="useExistingSecret"
               :disabled="forceCreateNewSecret"
               :label="t('monitoring.alerting.secrets.radio.label')"
               :labels="[t('monitoring.alerting.secrets.new'),t('monitoring.alerting.secrets.existing')]"

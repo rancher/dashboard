@@ -282,6 +282,7 @@ export default {
           <Tab name="enforcement-action" :label="t('gatekeeperConstraint.tab.enforcementAction.title')" :weight="2">
             <RadioGroup
               v-model="value.spec.enforcementAction"
+              name="enforcementAction"
               class="enforcement-action"
               :options="enforcementActionOptions"
               :labels="enforcementActionLabels"

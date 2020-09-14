@@ -167,7 +167,7 @@ export default {
         </div>
       </div>
       <span>Suspend</span>
-      <RadioGroup v-model="suspend" row :options="[true, false]" :labels="['Yes', 'No']" />
+      <RadioGroup v-model="suspend" name="suspend" row :options="[true, false]" :labels="['Yes', 'No']" />
     </template>
   </form>
 </template>

@@ -1,36 +1,58 @@
 <script>
 export default {
   props: {
-    value: {
-      type:    [Boolean, String],
-      default: false
-    },
+    // The name of the input, for grouping
     name: {
       type:    String,
       default: ''
     },
+
+    // The value for this option
+    val: {
+      required:  true,
+      validator: x => true,
+    },
+
+    // The selected value...
+    value: {
+      required:  true,
+      validator: x => true,
+    },
+
+    // The label shown next to the radio
     label: {
       type:    String,
       default: ''
     },
-    grouped: {
-      type:    Boolean,
-      default: false
-    },
+
     disabled: {
       type:    Boolean,
       default: false
     },
-    indeterminate: {
-      type:    Boolean,
-      default: false
+
+    mode: {
+      type:    String,
+      default: 'edit',
+    }
+  },
+
+  data() {
+    return { isChecked: this.value === this.val };
+  },
+
+  watch: {
+    value(neu) {
+      this.isChecked = this.val === neu;
+      if ( this.isChecked ) {
+        this.$refs.custom.focus();
+      }
     }
   },
 
   methods: {
     clicked() {
       if (!this.disabled) {
-        this.$emit('input', this.value);
+        this.$emit('input', this.val);
       }
     },
   }
@@ -38,112 +60,99 @@ export default {
 </script>
 
 <template>
-  <label class="radio-container" :class="{disabled}">
-    <label
-      ref="radio"
-      class="radio-button"
-      :tabindex="grouped ? -1 : 0"
+  <span v-if="mode === 'view'" class="radio-view">
+    <div class="text-label">
+      <slot name="label">
+        {{ label }}
+      </slot>
+    </div>
+    <span>{{ val }}</span>
+  </span>
+  <label
+    v-else
+    class="radio-container"
+    @keydown.enter.prevent="clicked($event)"
+    @keydown.space.prevent="clicked($event)"
+    @click.stop.prevent="clicked($event)"
+  >
+    <input
+      :disabled="disabled"
+      :name="name"
+      :value="''+val"
+      :checked="isChecked"
+      type="radio"
+      :tabindex="-1"
+      @click.stop.prevent
+    />
+    <span
+      ref="custom"
+      class="radio-custom"
+      :tabindex="disabled ? -1 : 0"
+      :aria-label="label"
+      :aria-checked="isChecked"
+      role="radio"
+    />
+    <span
+      v-if="label"
+      class="radio-label"
     >
-      <input
-        :disabled="disabled"
-        :checked="value"
-        type="radio"
-        :name="name"
-        :tabindex="-1"
-        :indeterminate="disabled||indeterminate"
-        @keyup.10="clicked"
-        @click.stop="clicked"
-      />
-      <span class="radio-custom" :class="{indeterminate:indeterminate || disabled}"><span /></span>
-    </label>
-    <span class="radio-label" @click.stop="clicked" v-html="label"></span>
+      <slot name="label">{{ label }}</slot>
+    </span>
   </label>
 </template>
 
 <style lang='scss'>
-.radio-button {
-    display: block;
-    position: relative;
-    cursor: pointer;
-    font-size: 12px;
-    line-height: 18px;
-    height: 12px;
-    width: 12px;
-    clear: both;
+.radio-view {
+  display: flex;
+  flex-direction: column;
+  LABEL {
+    color: var(--input-label)
+  }
 }
 
-.radio-button input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-}
+.radio-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+  border-radius: var(--border-radius);
 
-.radio-button .radio-custom {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    height: 12px;
-    width: 12px;
+  .radio-label {
+    color: var(--input-label);
+    margin: 3px 10px 0px 5px;
+  }
+
+ .radio-custom {
+    height: 14px;
+    width: 14px;
     background-color: var(--body-bg);
     border-radius: 50%;
     transition: all 0.3s ease-out;
     border: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
 
-.radio-button input:checked ~ .radio-custom {
-    background-color: transparent;
-    border-radius: 50%;
-    /* -webkit-transform: rotate(0deg) scale(1);
-    -ms-transform: rotate(0deg) scale(1);
-    transform: rotate(0deg) scale(1); */
-    opacity:1;
-    // border: 2px solid var(--dropdown-text);
-    border:none;
-}
-
-.radio-button .radio-custom > span {
-    content: "";
-    height: 0px;
-    width: 0px;
-    opacity:1;
-}
-
-.radio-button input:checked ~ .radio-custom > span {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--dropdown-text);
-
-}
-
-.radio-button input:checked ~ .radio-custom.indeterminate > span {
-  width:3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--dropdown-text);
-}
-
-.radio-button input:checked ~ .radio-custom.indeterminate  {
-  border: 2px solid var(--dropdown-text);
-
-}
-
-.radio-container{
-  display: flex;
-  align-items: center;
-  & > * {
-    margin: 3px;
+    &:focus {
+      outline: none;
+      border-radius: 50%;
+    }
   }
-  &.disabled * {
-    color: var(--input-disabled-text);
-    border-color: var(--input-disabled-text)
+
+  input {
+    display: none;
+  }
+
+  input:checked ~ .radio-custom {
+      background-color: var(--dropdown-text);
+      -webkit-transform: rotate(0deg) scale(1);
+      -ms-transform: rotate(0deg) scale(1);
+      transform: rotate(0deg) scale(1);
+      opacity:1;
+      border: 1px solid var(--input-label);
+  }
+
+  input:disabled ~ .radio-custom {
+    background-color: var(--disabled-bg)
   }
 }
-// .radio-label {
-//   color:  var( --input-label );
-// }
 </style>

@@ -144,6 +144,7 @@ export default {
         <div class="col span-12 persistent-storage-config">
           <RadioGroup
             v-model="persistentStorageType"
+            name="persistentStorageType"
             :label="t('monitoring.grafana.storage.label')"
             :labels="persistentStorageTypeLabels"
             :mode="mode"

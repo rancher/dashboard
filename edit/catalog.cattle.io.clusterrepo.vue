@@ -35,6 +35,7 @@ export default {
       <div class="col span-6">
         <RadioGroup
           v-model="isGit"
+          name="isGit"
           :options="[false, true]"
           :labels="[t('catalog.repo.target.http'), t('catalog.repo.target.git')]"
           :mode="mode"

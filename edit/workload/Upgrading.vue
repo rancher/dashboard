@@ -201,6 +201,7 @@ export default {
       <div class="col">
         <RadioGroup
           v-model="strategy"
+          name="strategy"
           :options="strategyOptions.options"
           :labels="strategyOptions.labels"
           :mode="mode"

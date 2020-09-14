@@ -62,7 +62,7 @@ export default {
       'WAKE_ALARM'];
 
     const {
-      capabilities = {}, runAsRoot = true, readOnlyRootFilesystem = false, privileged, allowPrivilegeEscalation, runAsUser
+      capabilities = {}, runAsRoot = true, readOnlyRootFilesystem = false, privileged = false, allowPrivilegeEscalation = true, runAsUser
     } = this.value;
     const { add = [], drop = [] } = capabilities;
 
@@ -109,11 +109,19 @@ export default {
     <div class="bordered-section">
       <div class="row">
         <div class="col span-6">
-          <RadioGroup v-model="privileged" :label="t('workload.container.security.privileged')" :options="[false,true]" :labels="['No', 'Yes: container has full access to the host']" :mode="mode" />
+          <RadioGroup
+            v-model="privileged"
+            name="privileged"
+            :label="t('workload.container.security.privileged')"
+            :options="[false,true]"
+            :labels="['No', 'Yes: container has full access to the host']"
+            :mode="mode"
+          />
         </div>
-        <div class="col span-6">
+        <div v-if="!privileged" class="col span-6">
           <RadioGroup
             v-model="allowPrivilegeEscalation"
+            name="allowPrivilegeEscalation"
             :label="t('workload.container.security.allowPrivilegeEscalation')"
             :disabled="privileged"
             :options="[false,true]"
@@ -128,6 +136,7 @@ export default {
       <div class="row">
         <div class="col span-6">
           <RadioGroup
+            name="runasNonRoot"
             :label="t('workload.container.security.runAsNonRoot')"
             :value="!runAsRoot"
             :options="[false, true]"
@@ -137,7 +146,14 @@ export default {
           />
         </div>
         <div class="col span-6">
-          <RadioGroup v-model="readOnlyRootFilesystem" :label="t('workload.container.security.readOnlyRootFilesystem')" :options="[false, true]" :labels="['No', 'Yes: container has a read-only root filesystem']" :mode="mode" />
+          <RadioGroup
+            v-model="readOnlyRootFilesystem"
+            name="readOnlyRootFilesystem"
+            :label="t('workload.container.security.readOnlyRootFilesystem')"
+            :options="[false, true]"
+            :labels="['No', 'Yes: container has a read-only root filesystem']"
+            :mode="mode"
+          />
         </div>
       </div>
     </div>
