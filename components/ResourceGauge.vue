@@ -23,7 +23,7 @@ export function resourceCounts(store, resource) {
 
   const counts = {
     total:        summary.count || 0,
-    useful:       0,
+    useful:       summary.count || 0,
     warningCount: 0,
     errorCount:   0
   };
@@ -33,6 +33,7 @@ export function resourceCounts(store, resource) {
     const count = entry[1];
     const countName = colorToCountName(color);
 
+    counts['useful'] -= count;
     counts[countName] += count;
   });
 

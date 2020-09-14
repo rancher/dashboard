@@ -145,7 +145,25 @@ export default {
 <style lang="scss" scoped>
   .sortable > A {
     display: inline-block;
+  }
+
+  thead {
+    tr {
+      background-color: var(--sortable-table-header-bg);
+      color: var(--body-text);
+      text-align: left;
+    }
+  }
+
+  th {
+    padding: 12px 5px;
+    font-weight: normal;
+    border: 0;
     color: var(--body-text);
+
+    & A {
+      color: var(--body-text);
+    }
   }
 
   .icon-stack {

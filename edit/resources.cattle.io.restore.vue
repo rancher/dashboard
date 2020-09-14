@@ -180,7 +180,13 @@ export default {
 
         <div class="row mb-10">
           <div class="col span-12">
-            <RadioGroup v-model="storageSource" :label="t('backupRestoreOperator.s3.titles.location')" :options="radioOptions.options" :labels="radioOptions.labels" />
+            <RadioGroup
+              v-model="storageSource"
+              name="storageSource"
+              :label="t('backupRestoreOperator.s3.titles.location')"
+              :options="radioOptions.options"
+              :labels="radioOptions.labels"
+            />
           </div>
         </div>
 

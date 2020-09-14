@@ -5,33 +5,41 @@ import { _VIEW } from '@/config/query-params';
 export default {
   components: { RadioButton },
   props:      {
+    // Name for the checkbox grouping, must be unique on page
+    name: {
+      type:     String,
+      required: true,
+    },
+
+    // Options can be an array of {label, value}, or just values
     options: {
       type:     Array,
       required: true
     },
-    // if true, radio group may have no option selected
-    canNone: {
-      type:    Boolean,
-      default: false
+
+    // If options are just values, then labels can be a corresponding display value
+    labels: {
+      type:    Array,
+      default: null,
     },
+
+    // The selected value
     value: {
       type:    [Boolean, String],
       default: null
     },
-    // individiual option labels
-    labels: {
-      type:    Array,
-      default: null
-    },
+
     disabled: {
       type:    Boolean,
       default: false
     },
+
     mode: {
       type:    String,
       default: 'edit'
     },
 
+    // Label for above the radios
     label: {
       type:    String,
       default: null
@@ -44,95 +52,50 @@ export default {
     }
   },
 
-  data() {
-    const statuses = {};
-
-    this.options.forEach((option, index) => {
-      statuses[option] = option === this.value;
-    });
-
-    return { statuses, focused: false };
-  },
-
   computed: {
+    normalizedOptions() {
+      const out = [];
+
+      for ( let i = 0 ; i < this.options.length ; i++ ) {
+        const opt = this.options[i];
+
+        if ( typeof opt === 'object' && opt ) {
+          out.push(opt);
+        } else if ( this.labels ) {
+          out.push({
+            label: this.labels[i],
+            value: opt,
+          });
+        } else {
+          out.push({
+            label: opt,
+            value: opt
+          });
+        }
+      }
+
+      return out;
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
-
-    // show labels if given, otherwise show values
-    labelsToUse() {
-      if (this.labels) {
-        return this.labels;
-      } else {
-        return this.options;
-      }
-    },
-
-    selectedIndex() {
-      const idx = this.options.indexOf(this.value);
-
-      if (idx < 0) {
-        for (const option in this.statuses) {
-          if (this.statuses[option]) {
-            return this.options.indexOf(option);
-          }
-        }
-
-        return 0;
-      }
-
-      return idx;
-    },
-  },
-
-  watch: {
-    // track which radio button(s) is/are selected
-    value() {
-      this.options.forEach((option, index) => {
-        this.statuses[option] = option === this.value;
-      });
-    }
   },
 
   methods: {
-    select(option) {
-      const newStatus = this.canNone ? !this.statuses[option] : true;
-
-      this.clear();
-      this.statuses[option] = newStatus;
-      this.$emit('input', option);
-      this.$refs['radio-group'].focus();
-    },
-
-    // unselect all radio buttons in group
-    clear() {
-      for (const option of this.options) {
-        this.statuses[option] = false;
-      }
-    },
-
-    // track focused bool to apply focus styling to radio buttons when group is focused
-    focusGroup() {
-      this.focused = true;
-    },
-
-    blurred() {
-      this.focused = false;
-    },
-
     // keyboard left/right event listener to select next/previous option
     clickNext(direction) {
-      const newIndex = this.selectedIndex + direction;
+      const opts = this.normalizedOptions;
+      const selected = opts.find(x => x.value === this.value);
+      let newIndex = (selected ? opts.indexOf(selected) : -1 ) + direction;
 
-      if ( newIndex >= this.options.length ) {
-        // if at end of array of options, return start of array
-        this.select(this.options[0]);
+      if ( newIndex >= opts.length ) {
+        newIndex = opts.length - 1;
       } else if ( newIndex < 0 ) {
-        // and vice-versa
-        this.select(this.options[this.options.length - 1]);
-      } else {
-        this.select(this.options[newIndex]);
+        newIndex = 0;
       }
+
+      this.$emit('input', opts[newIndex].value);
     }
   }
 };
@@ -149,31 +112,33 @@ export default {
       </span>
     </div>
     <div
-      v-if="mode!=='view'"
-      ref="radio-group"
+      v-if="isView"
+    >
+      {{ value }}
+    </div>
+    <div
+      v-else
       class="radio-group"
       :class="{'row':row}"
       tabindex="0"
-      @focus="focusGroup"
-      @blur="blurred"
-      @keyup.39.stop="clickNext(1)"
-      @keyup.37.stop="clickNext(-1)"
+      @keyup.down.stop="clickNext(1)"
+      @keyup.up.stop="clickNext(-1)"
     >
-      <RadioButton
-        v-for="(option, i) in options"
-        :key="option"
-        :ref="`radio-${i}`"
-        :value="statuses[option]"
-        :label="labelsToUse[i]"
-        grouped
-        :class="{focused:focused&&selectedIndex===i}"
-        :disabled="disabled || mode=='view'"
-        @input="select(option)"
-        @focus="focusGroup"
-      />
-    </div>
-    <div v-else>
-      {{ labelsToUse[selectedIndex] }}
+      <div
+        v-for="(option, i) in normalizedOptions"
+        :key="name+'-'+i"
+      >
+        <RadioButton
+          :key="name+'-'+i"
+          :name="name"
+          :value="value"
+          :label="option.label"
+          :val="option.value"
+          :disabled="disabled || mode=='view'"
+          :mode="mode"
+          v-on="$listeners"
+        />
+      </div>
     </div>
   </div>
 </template>

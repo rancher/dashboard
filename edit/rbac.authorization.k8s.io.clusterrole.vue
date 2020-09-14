@@ -71,20 +71,20 @@ export default {
     <div class="row">
       <div class="col span-6">
         <RadioGroup
+          v-model="value.locked"
+          name="locked"
           label="Locked"
           :options="radioOptions"
-          :selected="value.locked"
           :labels="lockedLabels"
-          @input="e=>value.locked = e"
         />
       </div>
       <div class="col span-6">
         <RadioGroup
+          v-model="value.clusterCreatorDefault"
           label="Cluster Creator Default"
+          name="clusterCreatorDefault"
           :options="radioOptions"
-          :selected="value.clusterCretorDefault"
           :labels="newUserDefault"
-          @input="e=>value.clusterCretorDefault = e"
         />
       </div>
     </div>

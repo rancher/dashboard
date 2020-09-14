@@ -91,6 +91,7 @@ export default {
     <div v-else class="row">
       <RadioGroup
         v-model="selectNode"
+        name="selectNode"
         :options="[true,false]"
         :labels="[t('workload.scheduling.affinity.specificNode'), t('workload.scheduling.affinity.schedulingRules')]"
         :mode="mode"

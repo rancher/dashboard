@@ -79,7 +79,14 @@ export default {
 
 <template>
   <div>
-    <RadioGroup v-model="createPVC" :row="true" :options="[true, false]" :labels="[t('persistentVolumeClaim.source.options.new'), t('persistentVolumeClaim.source.options.existing')]" :mode="mode" />
+    <RadioGroup
+      v-model="createPVC"
+      name="createPVC"
+      :row="true"
+      :options="[true, false]"
+      :labels="[t('persistentVolumeClaim.source.options.new'), t('persistentVolumeClaim.source.options.existing')]"
+      :mode="mode"
+    />
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect v-if="createPVC" v-model="value.spec.storageClassName" :mode="mode" :label="t('persistentVolumeClaim.storageClass')" :options="storageClassNames" />

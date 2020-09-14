@@ -48,6 +48,7 @@ export default {
       <KeyValue
         key="labels"
         :value="value.labels"
+        :add-label="t('labels.addLabel')"
         :mode="mode"
         title="Labels"
         :pad-left="false"
@@ -59,6 +60,7 @@ export default {
       <KeyValue
         key="annotations"
         :value="value.annotations"
+        :add-label="t('labels.addAnnotation')"
         :mode="mode"
         title="Annotations"
         :pad-left="false"

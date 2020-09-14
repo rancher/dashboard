@@ -19,15 +19,7 @@ export default {
       type:     String,
       required: true,
     },
-    namespaced: {
-      type:    Boolean,
-      default: true,
-    },
-    allowNewNamespace: {
-      type:    Boolean,
-      default: false,
-    },
-    namespaceDisabled: {
+    nameNsHidden: {
       type:    Boolean,
       default: false,
     },
@@ -35,29 +27,48 @@ export default {
       type:    Array,
       default: () => []
     },
+
+    nameLabel: {
+      type:    String,
+      default: 'nameNsDescription.name.label',
+    },
     nameEditable: {
       type:    Boolean,
       default: false,
     },
-    nameLabel: {
-      type:    String,
-      default: 'Name'
-    },
     namePlaceholder: {
       type:    String,
-      default: ''
+      default: 'nameNsDescription.name.placeholder',
     },
     nameDisabled: {
       type:    Boolean,
       default: false,
     },
-    nameNsHidden: {
+
+    namespaced: {
+      type:    Boolean,
+      default: true,
+    },
+    namespaceLabel: {
+      type:    String,
+      default: 'nameNsDescription.namespace.label',
+    },
+    namespacePlaceholder: {
+      type:    String,
+      default: 'nameNsDescription.namespace.placeholder',
+    },
+    namespaceDisabled: {
       type:    Boolean,
       default: false,
     },
+
+    descriptionLabel: {
+      type:    String,
+      default: 'nameNsDescription.description.label',
+    },
     descriptionPlaceholder: {
       type:    String,
-      default: 'Any text you want that better describes this resource'
+      default: 'nameNsDescription.description.placeholder',
     },
 
     // Use specific fields on the value instead of the normal metadata locations
@@ -222,15 +233,17 @@ export default {
           <InputWithSelect
             v-if="namespaced"
             ref="name"
-            :options="namespaces"
-            text-label="Name"
-            select-label="Namespace"
-            :text-value="name"
-            :text-required="true"
-            :select-value="namespace"
-            :searchable="true"
             :mode="mode"
             :disabled="namespaceReallyDisabled"
+            :text-label="t(nameLabel)"
+            :text-placeholder="t(namePlaceholder)"
+            :text-value="name"
+            :text-required="true"
+            :select-label="t(namespaceLabel)"
+            :select-placeholder="t(namespacePlaceholder)"
+            :select-value="namespace"
+            :options="namespaces"
+            :searchable="true"
             @input="changeNameAndNamespace($event)"
           />
           <LabeledInput
@@ -238,7 +251,8 @@ export default {
             ref="name"
             key="name"
             v-model="name"
-            label="Name"
+            :label="t(nameLabel)"
+            :placeholder="t(namePlaceholder)"
             :disabled="nameReallyDisabled"
             :mode="mode"
             :min-height="30"
@@ -249,9 +263,9 @@ export default {
         <LabeledInput
           key="description"
           v-model="description"
-          label="Description"
           :mode="mode"
-          :placeholder="descriptionPlaceholder"
+          :label="t(descriptionLabel)"
+          :placeholder="t(descriptionPlaceholder)"
           :min-height="30"
         />
       </div>

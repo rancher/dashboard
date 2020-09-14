@@ -1,5 +1,5 @@
 <script>
-import SortableTable from '@/components/SortableTable';
+import ResourceTable from '@/components/ResourceTable';
 import Poller from '@/utils/poller';
 import {
   STATE, NAME, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM
@@ -12,7 +12,7 @@ const MAX_FAILURES = 2;
 
 export default {
   name:       'ListNode',
-  components: { SortableTable },
+  components: { ResourceTable },
 
   props: {
     schema: {
@@ -60,12 +60,13 @@ export default {
 </script>
 
 <template>
-  <SortableTable
+  <ResourceTable
     v-bind="$attrs"
+    :schema="schema"
     :headers="headers"
     :rows="[...rows]"
     key-field="_key"
     v-on="$listeners"
   >
-  </SortableTable>
+  </ResourceTable>
 </template>

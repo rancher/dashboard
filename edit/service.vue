@@ -297,11 +297,11 @@ export default {
           <div class="col span-6">
             <RadioGroup
               v-model="value.spec.sessionAffinity"
+              name="sessionAffinity"
               class="enforcement-action"
               :options="sessionAffinityActionOptions"
               :labels="sessionAffinityActionLabels"
               :mode="mode"
-              @input="e=>value.spec.sessionAffinity = e"
             />
           </div>
           <div v-if="value.spec.sessionAffinity === 'ClientIP'" class="col span-6">

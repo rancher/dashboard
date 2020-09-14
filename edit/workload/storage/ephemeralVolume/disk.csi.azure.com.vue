@@ -41,10 +41,21 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <RadioGroup v-model="value.kind" :label="t('workload.storage.csi.kind.label')" :options="['Dedicated', 'Managed', 'Shared']" :labels="[t('workload.storage.csi.kind.options.dedicated'), t('workload.storage.csi.kind.options.managed'), t('workload.storage.csi.kind.options.shared')]" />
+        <RadioGroup
+          v-model="value.kind"
+          name="kind"
+          :label="t('workload.storage.csi.kind.label')"
+          :options="['Dedicated', 'Managed', 'Shared']"
+          :labels="[t('workload.storage.csi.kind.options.dedicated'), t('workload.storage.csi.kind.options.managed'), t('workload.storage.csi.kind.options.shared')]"
+        />
       </div>
       <div class="col span-6">
-        <RadioGroup v-model="value.kicachingModend" :label="t('workload.storage.csi.cachingMode.label')" :options="['None', 'Read Only', 'Read Write']" :labels="[t('workload.storage.csi.cachingMode.options.none'), t('workload.storage.csi.cachingMode.options.readOnly'), t('workload.storage.csi.cachingMode.options.readWrite')]" />
+        <RadioGroup
+          v-model="value.cachingMode"
+          :label="t('workload.storage.csi.cachingMode.label')"
+          :options="['None', 'ReadOnly', 'ReadWrite']"
+          :labels="[t('workload.storage.csi.cachingMode.options.none'), t('workload.storage.csi.cachingMode.options.readOnly'), t('workload.storage.csi.cachingMode.options.readWrite')]"
+        />
       </div>
     </div>
   </div>

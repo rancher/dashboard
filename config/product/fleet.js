@@ -1,11 +1,4 @@
 import { DSL } from '@/store/type-map';
-import { FLEET } from '@/config/types';
-
-import {
-  AGE,
-  STATE,
-  NAME as NAME_COL,
-} from '@/config/table-headers';
 
 export const NAME = 'fleet';
 export const CHART_NAME = 'fleet';
@@ -17,7 +10,6 @@ export function init(store) {
     // virtualType,
     // uncreatableType,
     // immutableType,
-    headers
   } = DSL(store, NAME);
 
   product({
@@ -53,43 +45,5 @@ export function init(store) {
     'fleet.cattle.io.clustergroup',
     'fleet.cattle.io.clusterregistrationtoken',
     'fleet.cattle.io.gitrepo',
-  ]);
-
-  headers(FLEET.GIT_REPO, [
-    STATE,
-    NAME_COL,
-    {
-      name:          'repo',
-      labelKey:      'tableHeaders.repo',
-      value:         'repoDisplay',
-      sort:          'repoDisplay',
-      search:        'spec.repo',
-      formatter:     'Link',
-      formatterOpts: {
-        beforeIconKey: 'repoIcon',
-        urlKey:        'spec.repo',
-      },
-    },
-    {
-      name:          'commit',
-      labelKey:      'tableHeaders.commit',
-      value:         'commitDisplay',
-      sort:          'status.commit',
-      search:        'commitDisplay',
-      formatter:     'Shortened',
-      formatterOpts: { longValueKey: 'status.commit' },
-      width:         75,
-    },
-    {
-      name:          'ready',
-      labelKey:      'tableHeaders.ready',
-      value:         'status.summary',
-      sort:          false,
-      search:        false,
-      formatter:     'FleetSummary',
-      width:         100,
-    },
-    'Status',
-    AGE
   ]);
 }

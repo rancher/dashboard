@@ -54,10 +54,24 @@ export default {
   <div>
     <div class="row">
       <div class="col span-6">
-        <RadioGroup v-model="shareProcessNamespace" :label="t('workload.container.security.shareProcessNamespace')" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
+        <RadioGroup
+          v-model="shareProcessNamespace"
+          name="shareProcessNamespace"
+          :label="t('workload.container.security.shareProcessNamespace')"
+          :labels="['No', 'Yes']"
+          :options="[false, true]"
+          :mode="mode"
+        />
       </div>
       <div class="col span-6">
-        <RadioGroup v-model="runasNonRoot" :label="t('workload.container.security.runAsNonRoot')" :options="[false, true]" :labels="[t('workload.container.security.runAsNonRootOptions.noOption'), t('workload.container.security.runAsNonRootOptions.yesOption')]" :mode="mode" />
+        <RadioGroup
+          v-model="runasNonRoot"
+          name="runasNonRoot"
+          :label="t('workload.container.security.runAsNonRoot')"
+          :options="[false, true]"
+          :labels="[t('workload.container.security.runAsNonRootOptions.noOption'), t('workload.container.security.runAsNonRootOptions.yesOption')]"
+          :mode="mode"
+        />
       </div>
     </div>
 
@@ -95,10 +109,24 @@ export default {
 
     <div class="row">
       <div class="col span-6">
-        <RadioGroup v-model="hostIPC" :label="t('workload.container.security.hostIPC')" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
+        <RadioGroup
+          v-model="hostIPC"
+          name="hostIPC"
+          :label="t('workload.container.security.hostIPC')"
+          :labels="['No', 'Yes']"
+          :options="[false, true]"
+          :mode="mode"
+        />
       </div>
       <div class="col span-6">
-        <RadioGroup v-model="hostPID" :label="t('workload.container.security.hostPID')" :labels="['No', 'Yes']" :options="[false, true]" :mode="mode" />
+        <RadioGroup
+          v-model="hostPID"
+          name="hostPID"
+          :label="t('workload.container.security.hostPID')"
+          :labels="['No', 'Yes']"
+          :options="[false, true]"
+          :mode="mode"
+        />
       </div>
     </div>
 

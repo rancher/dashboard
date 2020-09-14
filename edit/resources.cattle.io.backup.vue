@@ -159,7 +159,13 @@ export default {
           <div class="bordered-section">
             <div class="row">
               <div class="col span-12">
-                <RadioGroup v-model="useEncryption" :label="t('backupRestoreOperator.encryption')" :options="encryptionOptions.options" :labels="encryptionOptions.labels" />
+                <RadioGroup
+                  v-model="useEncryption"
+                  name="useEncryption"
+                  :label="t('backupRestoreOperator.encryption')"
+                  :options="encryptionOptions.options"
+                  :labels="encryptionOptions.labels"
+                />
               </div>
             </div>
             <div v-if="useEncryption" class="row mt-10">
@@ -171,7 +177,13 @@ export default {
 
           <div class="row mb-10">
             <div class="col span-12">
-              <RadioGroup v-model="storageSource" :label="t('backupRestoreOperator.s3.titles.location')" :options="storageOptions.options" :labels="storageOptions.labels" />
+              <RadioGroup
+                v-model="storageSource"
+                name="storageSource"
+                :label="t('backupRestoreOperator.s3.titles.location')"
+                :options="storageOptions.options"
+                :labels="storageOptions.labels"
+              />
             </div>
           </div>
 

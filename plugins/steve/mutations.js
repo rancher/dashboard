@@ -1,5 +1,6 @@
 import Vue from 'vue';
 import { addObject, addObjects, clear, removeObject } from '@/utils/array';
+import { SCHEMA } from '@/config/types';
 import { normalizeType, KEY_FIELD_FOR } from './normalize';
 import { proxyFor } from './resource-proxy';
 
@@ -29,6 +30,12 @@ function registerType(state, type) {
 function load(state, { data, ctx, existing }) {
   let type = normalizeType(data.type);
   const keyField = KEY_FIELD_FOR[type] || KEY_FIELD_FOR['default'];
+
+  // Inject special fields for indexing schemas
+  if ( type === SCHEMA ) {
+    data._id = normalizeType(data.id);
+    data._group = normalizeType(data.attributes?.group);
+  }
 
   const id = data[keyField];
 

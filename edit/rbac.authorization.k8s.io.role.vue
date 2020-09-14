@@ -73,20 +73,20 @@ export default {
     <section class="row">
       <div class="col span-6">
         <RadioGroup
+          v-model="value.locked"
+          name="locked"
           label="Locked"
           :options="radioOptions"
-          :selected="value.locked"
           :labels="lockedLabels"
-          @input="e=>value.locked = e"
         />
       </div>
       <div class="col span-6">
         <RadioGroup
+          v-model="value.newUserDefault"
+          name="newUserDefault"
           label="New User Default"
           :options="radioOptions"
-          :selected="value.newUserDefault"
           :labels="newUserDefault"
-          @input="e=>value.newUserDefault = e"
         />
       </div>
     </section>
