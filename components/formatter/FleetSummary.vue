@@ -1,6 +1,7 @@
 <script>
 import ProgressBarMulti from '@/components/ProgressBarMulti';
 import { removeObject } from '@/utils/array';
+import { ucFirst } from '@/utils/string';
 
 export default {
   components: { ProgressBarMulti },
@@ -14,11 +15,11 @@ export default {
 
   computed: {
     summary() {
-      return this.row.status.summary;
+      return this.row.status?.summary || {};
     },
 
     showHover() {
-      return false;
+      return true;
     },
 
     stateParts() {
@@ -28,7 +29,7 @@ export default {
 
       return keys.map((key) => {
         return {
-          label:     key,
+          label:     ucFirst(key),
           color:     'bg-success',
           textColor: 'text-success',
           value:      this.summary[key]
@@ -40,16 +41,19 @@ export default {
 </script>
 
 <template>
-  <v-popover :class="{'hand': showHover}" placement="top" :open-group="row.id" :trigger="showHover ? 'click' : 'manual'" offset="1">
-    <span>
-      <ProgressBarMulti :values="stateParts" />
-      <span class="scale">
-        {{ summary.ready }}
-        <span v-if="summary.desiredReady != summary.ready">
-          <i class="icon icon-chevron-right" />
-          {{ summary.desired }}
-        </span>
-      </span>
+  <v-popover
+    class="text-center"
+    :class="{'hand': showHover}"
+    placement="top"
+    :open-group="row.id"
+    :trigger="showHover ? 'click' : 'manual'"
+    offset="1"
+  >
+    <ProgressBarMulti :values="stateParts" class="mb-5" />
+    <span>{{ summary.ready }}</span>
+    <span v-if="summary.desiredReady != summary.ready">
+      <i class="icon icon-chevron-right" />
+      {{ summary.desired }}
     </span>
 
     <template #popover>
@@ -83,5 +87,4 @@ export default {
     padding: 0;
     line-height: initial;
   }
-
 </style>

@@ -274,9 +274,9 @@ export default {
     let out;
 
     if ( name ) {
-      out = this.$rootGetters['i18n/t']('resourceTable.groupLabel.namespace', { name: escapeHtml(name) });
+      out = this.t('resourceTable.groupLabel.namespace', { name: escapeHtml(name) });
     } else {
-      out = this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInANamespace');
+      out = this.t('resourceTable.groupLabel.notInANamespace');
     }
 
     return out;
@@ -996,35 +996,6 @@ export default {
   applyDefaults() {
     return () => {
     };
-    /*
-    return () => {
-      const schemas = this.$getters['all'](SCHEMA);
-      const str = createYaml(schemas, this.type, this);
-      const parsed = jsyaml.safeLoad(str);
-
-      merge(this, parsed);
-
-      if ( !this.metadata ) {
-        Vue.set(this, 'metadata', {});
-      }
-
-      if ( !this.metadata.namespace ) {
-        Vue.set(this.metadata, 'namespace', this.$getters['defaultNamespace']);
-      }
-
-      function merge(a, b) {
-        for ( const k of Object.keys(b) ) {
-          const v = b[k];
-
-          if ( v && typeof v === 'object' ) {
-            Vue.set(a, k, merge(a[k], b[k]));
-          } else {
-            Vue.set(a, k, b[k]);
-          }
-        }
-      }
-    };
-    */
   },
 
   urlFromAttrs() {
@@ -1097,14 +1068,14 @@ export default {
 
       if ( !originalType ) {
         // eslint-disable-next-line
-        console.warn(this.$rootGetters['i18n/t']('validation.noType'), data);
+        console.warn(this.t('validation.noType'), data);
 
         return errors;
       }
 
       if ( !schema ) {
         // eslint-disable-next-line
-        console.warn(this.$rootGetters['i18n/t']('validation.noSchema'), originalType, data);
+        console.warn(this.t('validation.noSchema'), originalType, data);
 
         return errors;
       }
@@ -1147,7 +1118,7 @@ export default {
         validateChars(val, field, displayKey, this.$rootGetters, errors);
 
         if (errors.length > 0) {
-          errors.push(this.$rootGetters['i18n/t']('validation.required', { key: displayKey }));
+          errors.push(this.t('validation.required', { key: displayKey }));
 
           continue;
         }
@@ -1186,7 +1157,7 @@ export default {
           let displayKey = path;
 
           if (rule.translationKey && this.$rootGetters['i18n/exists'](rule.translationKey)) {
-            displayKey = this.$rootGetters['i18n/t'](rule.translationKey);
+            displayKey = this.t(rule.translationKey);
           }
 
           if (isString(pathValue)) {
@@ -1197,7 +1168,7 @@ export default {
             const reqIfVal = get(data, requiredIfPath);
 
             if (!isEmpty(reqIfVal) && isEmpty(pathValue)) {
-              errors.push(this.$rootGetters['i18n/t']('validation.required', { key: displayKey }));
+              errors.push(this.t('validation.required', { key: displayKey }));
             }
           }
 
@@ -1227,7 +1198,7 @@ export default {
               CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs);
             } else if (!isEmpty(validatorName) && !validatorExists) {
               // eslint-disable-next-line
-              console.warn(this.$rootGetters['i18n/t']('validation.custom.missing', { validatorName }));
+              console.warn(this.t('validation.custom.missing', { validatorName }));
             }
           });
         });

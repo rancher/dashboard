@@ -117,15 +117,17 @@ function toPercent(value, min, max) {
 </template>
 
 <style lang="scss" scoped>
-  $progress-divider-width              : 1px !default;
-  $progress-border-radius              : 90px !default;
-  $progress-height                     : 10px !default;
+  $progress-divider-width: 1px;
+  $progress-border-radius: 90px;
+  $progress-height:        10px;
+  $progress-width:         100px;
 
   .progress {
     display: block;
     border-radius: $progress-border-radius;
     background-color: var(--progress-bg);
     height: $progress-height;
+    width: $progress-width;
 
     .piece {
       display: inline-block;

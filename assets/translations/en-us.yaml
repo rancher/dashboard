@@ -363,6 +363,36 @@ cruResource:
   previewYaml: Preview Yaml
 
 fleet:
+  gitRepo:
+    auth:
+      label: Authentication
+      none: None
+      basic: HTTP Basic Auth
+      ssh: SSH Key
+      custom: Secret Name
+    bundleDirs:
+      label: Bundle Directories
+      placeholder: e.g. /directory/in/your/repo
+      addLabel: Add Directory
+    repo:
+      label: Repository URL
+      placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
+    ref:
+      label: Watch
+      branch: A Branch
+      revision: A Revision
+      branchLabel: Branch Name
+      branchPlaceholder: e.g. master
+      revisionLabel: Tag or Commit Hash
+      revisionPlaceholder: e.g. v1.0.0
+    target:
+      selectLabel: Target Type
+      advanced: Advanced
+      cluster: Cluster
+      clusterGroup: Cluster Group
+      label: Deploy To
+    workspace:
+      label: Workspace
   clusterGroup:
     selector:
       label: Cluster Selectors
@@ -504,8 +534,10 @@ istio:
     advanced: Advanced Settings
     description: Description
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
- 
 
+labels:
+  addLabel: Add Label
+  addAnnotation: Add Annotation
 
 logging:
   install:
@@ -666,6 +698,20 @@ monitoring:
     modes:
       block: Block
       file: Filesystem
+
+nameNsDescription:
+  name:
+    label: Name
+    placeholder: 'A unique name'
+  namespace:
+    label: Namespace
+    placeholder:
+  workspace:
+    label: Workspace
+    placeholder:
+  description:
+    label: Description
+    placeholder: Any text you want that better describes this resource
 
 namespace:
   containerResourceLimit: Container Resource Limit
@@ -936,8 +982,9 @@ tableHeaders:
   address: Address
   age: Age
   apiGroup: API Groups
-  builtIn: Built In
   branch: Branch
+  builtIn: Built In
+  bundlesReady: Bundles
   chart: Chart
   clusterCreatorDefault: Cluster Creator Default
   clusterFlow: Cluster Flow
@@ -950,12 +997,12 @@ tableHeaders:
   download: Download
   effect: Effect
   endpoints: Endpoint
+  flow: Flow
   host: |-
     {count, plural,
       one { Host }
       other { Hosts }
     }
-  flow: Flow
   image: Image
   imageSize: Size
   ingressTarget: Target
@@ -973,6 +1020,7 @@ tableHeaders:
   namespaceNameUnlinked: Name
   node: Node
   nodeName: Name
+  nodesReady: Clusters
   object: Object
   output: Output
   p95: 95%tile

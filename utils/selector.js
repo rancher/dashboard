@@ -1,4 +1,4 @@
-import { isArray, addObject } from '@/utils/array';
+import { isArray, addObject, findBy } from '@/utils/array';
 
 const parseCache = {};
 
@@ -101,22 +101,31 @@ export function parse(labelSelector) {
 }
 
 // Convert matchLabels to matchExpressions
-export function convert(matchLabelsObj) {
+// Optionally combining with an existing set of matchExpressions
+export function convert(matchLabelsObj, matchExpressions) {
   const keys = Object.keys(matchLabelsObj || {});
-  const out = [];
+  const out = matchExpressions || [];
 
   for ( const key of keys ) {
-    out.push({
-      key,
-      operator: 'In',
-      values:   [matchLabelsObj[key]]
-    });
+    const value = matchLabelsObj[key];
+    const existing = findBy(out, { key, operator: 'In' });
+
+    if ( existing ) {
+      addObject(existing.values, value);
+    } else {
+      out.push({
+        key,
+        operator: 'In',
+        values:   [value],
+      });
+    }
   }
 
   return out;
 }
 
-// Convert matchExpressions to matchLabels when possible
+// Convert matchExpressions to matchLabels when possible,
+// returning the simplest combination of them.
 export function simplify(matchExpressionsInput) {
   const matchLabels = {};
   const matchExpressions = [];

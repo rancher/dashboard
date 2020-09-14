@@ -55,7 +55,7 @@ const entityMap = {
 };
 
 export function escapeHtml(html) {
-  return String(html).replace(/[&<>"'\/]/g, (s) => {
+  return String(html).replace(/[&<>"']/g, (s) => {
     return entityMap[s];
   });
 }
