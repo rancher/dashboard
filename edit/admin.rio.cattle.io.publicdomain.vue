@@ -1,5 +1,5 @@
 <script>
-import { TLS } from '@/models/secret';
+import { TYPES } from '@/models/secret';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Footer from '@/components/form/Footer';
@@ -72,7 +72,7 @@ export default {
     secretOptions() {
       return groupAndFilterOptions(this.allSecrets, {
         'metadata.namespace': RIO.SYSTEM_NAMESPACE,
-        secretType:           TLS,
+        secretType:           TYPES.TLS,
       }, {
         groupBy:      null,
         itemValueKey: 'metadata.name',

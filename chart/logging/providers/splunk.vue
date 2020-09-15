@@ -1,12 +1,13 @@
 <script>
 import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
+import SecretSelector from '@/components/form/SecretSelector';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { protocol, enabledDisabled } from './options';
 
 export default {
   components: {
-    FileSelector, LabeledInput, LabeledSelect
+    FileSelector, LabeledInput, LabeledSelect, SecretSelector
   },
   props:      {
     value: {
@@ -44,7 +45,7 @@ export default {
     <LabeledInput v-model="values.port" :label="t('logging.splunk.port')" />
     <LabeledSelect v-model="values.protocol" :options="protocolOptions" :label="t('logging.splunk.protocol')" />
     <LabeledInput v-model="values.index" :label="t('logging.splunk.index')" />
-    <LabeledInput v-model="values.token" :label="t('logging.splunk.token')" />
+    <SecretSelector v-model="values.token" :label="t('logging.splunk.token')" />
     <div>
       <LabeledInput v-model="values.client_cert" type="multiline" :label="t('logging.splunk.clientCert')" />
       <FileSelector class="btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onSslCaCertSelected" />

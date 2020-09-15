@@ -2,42 +2,45 @@ import r from 'jsrsasign';
 import { CERTMANAGER, KUBERNETES } from '@/config/labels-annotations';
 import { base64Decode } from '@/utils/crypto';
 import { removeObjects } from '@/utils/array';
-export const OPAQUE = 'Opaque';
-export const SERVICE_ACCT = 'kubernetes.io/service-account-token';
-export const DOCKER = 'kubernetes.io/dockercfg';
-export const DOCKER_JSON = 'kubernetes.io/dockerconfigjson';
-export const BASIC = 'kubernetes.io/basic-auth';
-export const SSH = 'kubernetes.io/ssh-auth';
-export const TLS = 'kubernetes.io/tls';
-export const BOOTSTRAP = 'bootstrap.kubernetes.io/token';
-export const ISTIO_TLS = 'istio.io/key-and-cert';
-export const HELM_RELEASE = 'helm.sh/release.v1';
-export const FLEET_CLUSTER = 'fleet.cattle.io/cluster-registration-values';
+
+export const TYPES = {
+  OPAQUE:        'Opaque',
+  SERVICE_ACCT:  'kubernetes.io/service-account-token',
+  DOCKER:        'kubernetes.io/dockercfg',
+  DOCKER_JSON:   'kubernetes.io/dockerconfigjson',
+  BASIC:         'kubernetes.io/basic-auth',
+  SSH:           'kubernetes.io/ssh-auth',
+  TLS:           'kubernetes.io/tls',
+  BOOTSTRAP:     'bootstrap.kubernetes.io/token',
+  ISTIO_TLS:     'istio.io/key-and-cert',
+  HELM_RELEASE:  'helm.sh/release.v1',
+  FLEET_CLUSTER:  'fleet.cattle.io/cluster-registration-values',
+};
 
 const DISPLAY_TYPES = {
-  [OPAQUE]:        'Opaque',
-  [SERVICE_ACCT]:  'Svc Acct Token',
-  [DOCKER]:        'Registry',
-  [DOCKER_JSON]:   'Registry',
-  [BASIC]:         'Basic Auth',
-  [SSH]:           'SSH',
-  [TLS]:           'Certificate',
-  [BOOTSTRAP]:     'Bootstrap Token',
-  [ISTIO_TLS]:     'Certificate (Istio)',
-  [HELM_RELEASE]:  'Helm Release',
-  [FLEET_CLUSTER]: 'Fleet Cluster'
+  [TYPES.OPAQUE]:        'Opaque',
+  [TYPES.SERVICE_ACCT]:  'Svc Acct Token',
+  [TYPES.DOCKER]:        'Registry',
+  [TYPES.DOCKER_JSON]:   'Registry',
+  [TYPES.BASIC]:         'Basic Auth',
+  [TYPES.SSH]:           'SSH',
+  [TYPES.TLS]:           'Certificate',
+  [TYPES.BOOTSTRAP]:     'Bootstrap Token',
+  [TYPES.ISTIO_TLS]:     'Certificate (Istio)',
+  [TYPES.HELM_RELEASE]:  'Helm Release',
+  [TYPES.FLEET_CLUSTER]: 'Fleet Cluster'
 };
 
 export default {
   isCertificate() {
-    return this._type === TLS;
+    return this._type === TYPES.TLS;
   },
 
   isRegistry() {
-    return this._type === DOCKER_JSON;
+    return this._type === TYPES.DOCKER_JSON;
   },
   dockerJSON() {
-    return DOCKER_JSON;
+    return TYPES.DOCKER_JSON;
   },
 
   issuer() {
@@ -129,7 +132,7 @@ export default {
   },
 
   canUpdate() {
-    return this.hasLink('update') && this.$rootGetters['type-map/isEditable'](this.type) && this.secretType !== SERVICE_ACCT;
+    return this.hasLink('update') && this.$rootGetters['type-map/isEditable'](this.type) && this.secretType !== TYPES.SERVICE_ACCT;
   },
 
   keysDisplay() {
@@ -151,7 +154,7 @@ export default {
 
   // decode some secret data to show in list view
   dataPreview() {
-    if (this._type === DOCKER_JSON) {
+    if (this._type === TYPES.DOCKER_JSON) {
       const encodedJSON = this.data['.dockerconfigjson'];
 
       if (encodedJSON) {
@@ -170,13 +173,13 @@ export default {
           return decodedJSON;
         }
       }
-    } else if (this._type === TLS) {
+    } else if (this._type === TYPES.TLS) {
       return this.certInfo || this.keysDisplay;
-    } else if ( this._type === BASIC ) {
+    } else if ( this._type === TYPES.BASIC ) {
       return base64Decode(this.data.username);
-    } else if ( this._type === SSH ) {
+    } else if ( this._type === TYPES.SSH ) {
       return this.sshUser;
-    } else if ( this._type === SERVICE_ACCT ) {
+    } else if ( this._type === TYPES.SERVICE_ACCT ) {
       return this.metadata?.annotations?.['kubernetes.io/service-account.name'];
     } else {
       return this.keysDisplay;
@@ -184,7 +187,7 @@ export default {
   },
 
   sshUser() {
-    if ( this._type !== SSH ) {
+    if ( this._type !== TYPES.SSH ) {
       return;
     }
 
@@ -226,7 +229,7 @@ export default {
   },
 
   tableTypeDisplay() {
-    if (this._type === SERVICE_ACCT) {
+    if (this._type === TYPES.SERVICE_ACCT) {
       return { typeDisplay: this.typeDisplay, serviceAccountID: this.serviceAccountID };
     } else {
       return this.typeDisplay;
@@ -234,7 +237,7 @@ export default {
   },
 
   serviceAccountID() {
-    if (this.secretType === SERVICE_ACCT) {
+    if (this.secretType === TYPES.SERVICE_ACCT) {
       const name = this.metadata.annotations[KUBERNETES.SERVICE_ACCOUNT_NAME];
       const namespace = this.namespace;
       let fqid = name;
@@ -285,7 +288,7 @@ export default {
 
   // use for + n more name display
   unrepeatedSans() {
-    if (this._type === TLS ) {
+    if (this._type === TYPES.TLS ) {
       const commonBases = this.certInfo?.sans.filter(name => name.indexOf('*.') === 0 || name.indexOf('www.') === 0).map(name => name.substr(name.indexOf('.')));
       const displaySans = removeObjects(this.certInfo?.sans, commonBases);
 
@@ -294,7 +297,7 @@ export default {
   },
 
   timeTilExpiration() {
-    if (this._type === TLS) {
+    if (this._type === TYPES.TLS) {
       const expiration = this.certInfo.notAfter;
       const timeThen = expiration.valueOf();
       const timeNow = Date.now();

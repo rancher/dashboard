@@ -1,5 +1,5 @@
 <script>
-import { TLS } from '@/models/secret';
+import { TYPES } from '@/models/secret';
 import { mapGetters } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -46,7 +46,7 @@ export default {
 
   computed: {
     certificates() {
-      return this.secrets.filter(secret => secret._type === TLS).reduce((total, secret) => {
+      return this.secrets.filter(secret => secret._type === TYPES.TLS).reduce((total, secret) => {
         total.push(secret?.metadata?.name);
 
         return total;

@@ -1,7 +1,5 @@
 <script>
-import {
-  BASIC, DOCKER_JSON, OPAQUE, SSH, TLS
-} from '@/models/secret';
+import { TYPES } from '@/models/secret';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -15,11 +13,11 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
 
 const types = [
-  { label: 'Opaque', value: OPAQUE },
-  { label: 'Registry', value: DOCKER_JSON },
-  { label: 'Certificate', value: TLS },
-  { label: 'SSH Key', value: SSH },
-  { label: 'HTTP Basic Auth', value: BASIC },
+  { label: 'Opaque', value: TYPES.OPAQUE },
+  { label: 'Registry', value: TYPES.DOCKER_JSON },
+  { label: 'Certificate', value: TYPES.TLS },
+  { label: 'SSH Key', value: TYPES.SSH },
+  { label: 'HTTP Basic Auth', value: TYPES.BASIC },
 ];
 const registryAddresses = [
   'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
@@ -49,7 +47,7 @@ export default {
     let key;
     let crt;
 
-    if (this.value._type === DOCKER_JSON) {
+    if (this.value._type === TYPES.DOCKER_JSON) {
       const json = base64Decode(this.value.data['.dockerconfigjson']);
 
       const { auths } = JSON.parse(json);
@@ -68,25 +66,25 @@ export default {
       password = auths[registryURL].password;
     }
 
-    if (this.value._type === TLS) {
+    if (this.value._type === TYPES.TLS) {
       // do not show existing key when editing
       key = this.mode === 'edit' ? '' : base64Decode((this.value.data || {})['tls.key']);
 
       crt = base64Decode((this.value.data || {})['tls.crt']);
     }
 
-    if ( this.value._type === BASIC ) {
+    if ( this.value._type === TYPES.BASIC ) {
       username = base64Decode(this.value.data?.username || '');
       password = base64Decode(this.value.data?.password || '');
     }
 
-    if ( this.value._type === SSH ) {
+    if ( this.value._type === TYPES.SSH ) {
       username = base64Decode(this.value.data?.['ssh-publickey'] || '');
       password = base64Decode(this.value.data?.['ssh-privatekey'] || '');
     }
 
     if (!this.value._type) {
-      this.$set(this.value, '_type', OPAQUE);
+      this.$set(this.value, '_type', TYPES.OPAQUE);
     }
 
     return {
@@ -136,19 +134,19 @@ export default {
     },
 
     isSsh() {
-      return this.value._type === SSH;
+      return this.value._type === TYPES.SSH;
     },
 
     isBasicAuth() {
-      return this.value._type === BASIC;
+      return this.value._type === TYPES.BASIC;
     },
 
     isCertificate() {
-      return this.value._type === TLS;
+      return this.value._type === TYPES.TLS;
     },
 
     isRegistry() {
-      return this.value._type === DOCKER_JSON;
+      return this.value._type === TYPES.DOCKER_JSON;
     },
 
     needsDockerServer() {
