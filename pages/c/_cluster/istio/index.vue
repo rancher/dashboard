@@ -16,7 +16,7 @@ export default {
     },
 
     kialiUrl() {
-      return '/api/v1/namespaces/istio-system/services/http:rancher-istio-kiali:20001/proxy/';
+      return '/api/v1/namespaces/istio-system/services/http:kiali:20001/proxy/';
     },
 
     target() {
