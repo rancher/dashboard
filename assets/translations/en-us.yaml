@@ -255,6 +255,16 @@ cis:
   profile: Profile
   testID: Test ID
   testsToSkip: Tests to Skip
+  scan:
+    description: Description
+    failed: Failed
+    lastScanTime: Last Scan Time
+    notApplicable: 'N/A'
+    number: Number
+    passed: Passed
+    scanReport: Scan Report
+    skipped: Skipped
+    total: Total
 
 cluster:
   nodeDriver:

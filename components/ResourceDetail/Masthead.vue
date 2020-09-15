@@ -121,17 +121,19 @@ export default {
       return null;
     },
     parent() {
-      if (this.parentOverride) {
-        return this.parentOverride;
-      }
-
       const displayName = this.$store.getters['type-map/labelFor'](this.schema);
       const location = {
         name:   'c-cluster-product-resource',
         params: { resource: this.value.type }
       };
 
-      return { displayName, location };
+      const out = { displayName, location };
+
+      if (this.parentOverride) {
+        Object.assign(out, this.parentOverride);
+      }
+
+      return out ;
     }
   },
   methods: {
@@ -166,7 +168,7 @@ export default {
       <div v-if="mode==='view'" class="subheader">
         <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: {{ project.nameDisplay }}</span>
         <span v-else-if="namespace">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
-        <span>{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="get(value, 'metadata.creationTimestamp')" /></span>
+        <span v-if="!parent.hideAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="get(value, 'metadata.creationTimestamp')" /></span>
       </div>
     </div>
     <slot name="right">
@@ -179,7 +181,7 @@ export default {
         </button>
       </div>
     </slot>
-    <div v-if="banner" class="state-banner">
+    <div v-if="banner && !parent.hideBanner" class="state-banner">
       <Banner class="state-banner" :color="banner.color" :label="banner.message" />
     </div>
   </header>

@@ -107,7 +107,7 @@ export default {
         </div>
         <div class="row">
           <div class="col span-6">
-            <LabeledSelect v-model="value.spec.benchmarkVersion" :label="t('cis.benchmarkVersion')" :options="compatibleBenchmarkNames" />
+            <LabeledSelect v-model="value.spec.benchmarkVersion" :mode="mode" :label="t('cis.benchmarkVersion')" :options="compatibleBenchmarkNames" />
           </div>
         </div>
         <div class="spacer" />

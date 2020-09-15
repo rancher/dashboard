@@ -1,5 +1,6 @@
 import { CIS } from '@/config/types';
 import { downloadFile } from '@/utils/download';
+import { colorForState } from '@/plugins/steve/resource-instance';
 
 export default {
   availableActions() {
@@ -25,5 +26,15 @@ export default {
 
       downloadFile(`${ reportCRD.id }.json`, JSON, 'application/json');
     };
-  }
+  },
+
+  testState() {
+    return (state) => {
+      const color = colorForState.call(this, this.state);
+
+      const bgColor = this.color.replace('text-', 'bg-');
+
+      return { color, bgColor };
+    };
+  },
 };
