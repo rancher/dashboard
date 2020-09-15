@@ -138,10 +138,9 @@ asyncButton:
 backupRestoreOperator:
   backupFilename: Backup Filename
   deployment:
-    image: Operator Image
-    tag: Operator Image Tag
     rancherNamespace: Rancher ResourceSet Namespace
     storage:
+      tip: Configure a storage location where all backups can be saved by default. You will have the option to override this per backup, but the per backup override is limited to use only S3.
       storageClass: Storage Class
       persistentVolume: Persistent Volume
       label: Default Storage Location

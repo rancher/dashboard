@@ -4,6 +4,7 @@ import S3 from '@/chart/backup-restore-operator/S3';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
+import Banner from '@/components/Banner';
 import { get } from '@/utils/object';
 import { allHash } from '@/utils/promise';
 import { STORAGE_CLASS, SECRET, PV } from '@/config/types';
@@ -16,7 +17,8 @@ export default {
     RadioGroup,
     S3,
     LabeledInput,
-    LabeledSelect
+    LabeledSelect,
+    Banner
   },
 
   hasTabs: true,
@@ -151,16 +153,7 @@ export default {
 <template>
   <div>
     <Tab label="Chart Options" name="chartOptions">
-      <div class="bordered-section">
-        <div class="row mb-10">
-          <div class="col span-6">
-            <LabeledInput v-model="value.image.repository" :mode="mode" :label="t('backupRestoreOperator.deployment.image')" />
-          </div>
-          <div class="col span-6">
-            <LabeledInput v-model="value.image.tag" :mode="mode" :label="t('backupRestoreOperator.deployment.tag')" />
-          </div>
-        </div>
-      </div>
+      <Banner color="info" :label="t('backupRestoreOperator.deployment.storage.tip')" />
       <RadioGroup
         v-model="storageSource"
         name="storageSource"
