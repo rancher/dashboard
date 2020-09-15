@@ -6,6 +6,7 @@ import createEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import { mapGetters } from 'vuex';
 import { CIS } from '@/config/types';
+const semver = require('semver');
 
 export default {
   components: {
@@ -36,6 +37,10 @@ export default {
   },
 
   data() {
+    if (!this.value.spec) {
+      this.$set(this.value, 'spec', {});
+    }
+
     return { allBenchmarks: [], name: this.value.metadata.name };
   },
 
@@ -46,14 +51,9 @@ export default {
       return this.currentCluster.status.provider;
     },
 
-    // filter benchmarks by spec.clusterProvider that match current cluster provider, and include any wih no provider defined
     compatibleBenchmarkNames() {
       return this.allBenchmarks.filter((benchmark) => {
-        if (!!benchmark?.spec?.clusterProvider) {
-          return benchmark?.spec?.clusterProvider === this.provider;
-        }
-
-        return true;
+        return this.validateBenchmark(benchmark);
       }).reduce((names, benchmark) => {
         names.push(benchmark.id);
 
@@ -66,16 +66,39 @@ export default {
   watch: {
     compatibleBenchmarkNames(neu) {
       if (neu.length === 1) {
-        this.value.benchmarkVersion = neu[0];
+        this.value.spec.benchmarkVersion = neu[0];
       }
     },
+  },
+  methods: {
+    // filter benchmarks by spec.clusterProvider and kubernetes min/max version
+    // include benchmarks with no clusterProvider defined
+    validateBenchmark(benchmark) {
+      const clusterVersion = this.currentCluster.kubernetesVersion;
+
+      if (!!benchmark?.spec?.clusterProvider) {
+        return benchmark?.spec?.clusterProvider === this.provider;
+      }
+      if (benchmark?.spec?.minKubernetesVersion) {
+        if (semver.gt(benchmark?.spec?.minKubernetesVersion, clusterVersion)) {
+          return false;
+        }
+      }
+      if (benchmark?.spec?.maxKubernetesVersion) {
+        if (semver.gt(clusterVersion, benchmark?.spec?.maxKubernetesVersion)) {
+          return false;
+        }
+      }
+
+      return true;
+    }
   }
 };
 </script>
 
 <template>
   <div>
-    <CruResource :validation-passed="!!name && !!value.benchmarkVersion" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
+    <CruResource :validation-passed="!!name && !!value.spec.benchmarkVersion" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
       <template>
         <div class="row">
           <div class="col span-12">
@@ -84,7 +107,7 @@ export default {
         </div>
         <div class="row">
           <div class="col span-6">
-            <LabeledSelect v-model="value.benchmarkVersion" :label="t('cis.benchmarkVersion')" :options="compatibleBenchmarkNames" />
+            <LabeledSelect v-model="value.spec.benchmarkVersion" :label="t('cis.benchmarkVersion')" :options="compatibleBenchmarkNames" />
           </div>
         </div>
         <div class="spacer" />

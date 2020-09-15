@@ -11,6 +11,7 @@ generic:
   create: Create
   created: Created
   customize: Customize
+  default: Default
   disabled: Disabled
   enabled: Enabled
   labelsAndAnnotations: Labels and Annotations
@@ -250,6 +251,8 @@ chartHeading:
 cis:
   addTest: Add Test ID
   benchmarkVersion: Benchmark Version
+  noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
+  profile: Profile
   testID: Test ID
   testsToSkip: Tests to Skip
 
