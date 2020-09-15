@@ -142,8 +142,12 @@ export default {
       }
     }
     .header {
-      background-color: #4f3335;
+      background-color: var(--error);
       padding: 15px 0 0 15px;
+
+      h4 {
+        color: white;
+      }
     }
     .header,
     .footer {
