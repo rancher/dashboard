@@ -140,7 +140,7 @@ backupRestoreOperator:
   deployment:
     rancherNamespace: Rancher ResourceSet Namespace
     storage:
-      tip: Configure a storage location where all backups can be saved by default. You will have the option to override this per backup, but the per backup override is limited to use only S3.
+      tip: Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.
       storageClass: Storage Class
       persistentVolume: Persistent Volume
       label: Default Storage Location
