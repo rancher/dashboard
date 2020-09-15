@@ -4,6 +4,7 @@ import { AGE, NAME, STATE } from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { AS_YAML, _FLAGGED } from '@/config/query-params';
+import { NAME as GATEKEEPER_PRODUCT } from '@/config/product/explorer';
 
 export default {
   components: { Masthead, SortableTable },
@@ -12,23 +13,17 @@ export default {
     return { templates: await store.dispatch('cluster/findAll', { type: GATEKEEPER.CONSTRAINT_TEMPLATE }) };
   },
   data(ctx) {
-    const params = {
-      ...this.$route.params,
-      resource: GATEKEEPER.CONSTRAINT_TEMPLATE
-    };
-
-    const createLocation = {
-      name: 'c-cluster-resource-create',
-      params,
-    };
-
     const yamlCreateLocation = {
-      ...createLocation,
+      name:     'c-cluster-product-resource-create',
+      params:   {
+        ...this.$route.params,
+        product:  GATEKEEPER_PRODUCT,
+        resource: GATEKEEPER.CONSTRAINT_TEMPLATE
+      },
       query: { [AS_YAML]: _FLAGGED }
     };
 
     return {
-      createLocation,
       yamlCreateLocation,
       headers: [
         STATE,
@@ -56,7 +51,6 @@ export default {
       :is-yaml-creatable="true"
       :is-creatable="false"
       :yaml-create-location="yamlCreateLocation"
-      :create-location="createLocation"
     />
     <SortableTable
       :headers="headers"
