@@ -42,7 +42,7 @@ export default {
 
   data() {
     if (!this.value.metadata.name) {
-      this.value.metadata.generateName = true;
+      this.value.metadata.generateName = 'scan-';
     }
     if (!this.value.spec) {
       this.value.spec = { scanProfileName: null };
@@ -133,7 +133,7 @@ export default {
 
       <div v-else class="row">
         <div class="col span-6">
-          <LabeledSelect v-model="scanProfileName" :label="t('cis.profile')" :options="validProfiles" @input="value.spec.scanProfileName = $event" />
+          <LabeledSelect v-model="scanProfileName" :mode="mode" :label="t('cis.profile')" :options="validProfiles" @input="value.spec.scanProfileName = $event" />
         </div>
       </div>
     </template>
