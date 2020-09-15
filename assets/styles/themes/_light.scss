@@ -138,6 +138,8 @@ $selected: rgba($primary, .5);
   --tooltip-bg                 : var(--tag-bg);
   --tooltip-border             : var(--tag-primary);
   --tooltip-text               : var(--tag-primary);
+  --tooltip-bg-warning         : #{rgba($warning, 0.8)};
+  --tooltip-text-warning       : var(--body-text);
 
   --tabbed-border              : #{$medium};
   --tabbed-sidebar-bg          : #{$lighter};

@@ -142,15 +142,24 @@ backupRestoreOperator:
   encryption: Encryption
   encryptionConfigName: 
     label: Encryption Config Secret
-    tip: If the backup that this Restore references was created with encryption enabled, the same encryptionConfig file must be used here
+    tip: If the backup that this Restore references was created with encryption enabled, a secret containing the same encryptionConfig file must be used here
     options:
       none: Store the contents of the backup unencrypted
-      secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a>
-  deleteTimeout: Delete Timeout
+      secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
+  deleteTimeout: 
+    label: Delete Timeout
+    tip: Time after which resources will be force-deleted, even if they have finalizers
   resourceSetName: Resource Set
   schedule: 
     label: Schedule
     placeholder: e.g. @midnight or 0 0 * * *
+    options: 
+      disabled: One Time Backup
+      enabled: Schedule Backups
+  restoreFrom:
+    existing: An existing backup config
+    default: The deault storage target
+    s3: An S3-compatible object store
   retentionCount: 
     label: Retention Count
     units: |-
@@ -160,6 +169,7 @@ backupRestoreOperator:
       }
   s3:
     titles:
+      backupLocation: Select Backup Source
       location: Storage Location
       s3: S3
     credentialSecretName:  Credential Secret
@@ -171,7 +181,7 @@ backupRestoreOperator:
     folder: Folder
     insecureTLSSkipVerify: Skip TLS Verifications
   storageSource:
-    useDefault: Use the the default storage location configured during installation
+    useDefault: Use the default storage location configured during installation
     configureS3: Use an S3-compatible object store
     useBackup: Use the s3 location specified on the Backup CR
   targetBackup: Target Backup

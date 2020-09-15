@@ -15,8 +15,8 @@ export default {
 
 <template>
   <div ref="container" class="labeled-tooltip" :class="{[status]: true}">
-    <i class="icon icon-info status-icon" />
-    <div class="tooltip" x-placement="bottom">
+    <i :class="{'hover':!value}" class="icon icon-info status-icon" />
+    <div v-if="value" class="tooltip" x-placement="bottom">
       <div class="tooltip-arrow" />
       <div class="tooltip-inner">
         {{ value }}
@@ -38,6 +38,10 @@ export default {
         right: 26px;
         top: 16px;
         font-size: 20px;
+
+        &.hover{
+          z-index: z-index(hoverOverContent)
+        }
     }
 
     .tooltip {
