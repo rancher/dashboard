@@ -115,7 +115,7 @@ export default {
         break;
       case 'pickPV':
         this.value.persistence.enabled = true;
-        delete this.value.persistence.storageClass;
+        this.value.persistence.storageClass = '-';
         this.value.s3.enabled = false;
         break;
       case 's3':
