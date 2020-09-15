@@ -11,6 +11,7 @@ generic:
   create: Create
   created: Created
   customize: Customize
+  default: Default
   disabled: Disabled
   enabled: Enabled
   labelsAndAnnotations: Labels and Annotations
@@ -57,6 +58,7 @@ nav:
 product:
   apps: Apps & Marketplace
   backup: Backup Restore Operator
+  cis: CIS Benchmark
   ecm: Cluster Manager
   explorer: Cluster Explorer
   gatekeeper: OPA Gatekeeper
@@ -245,6 +247,24 @@ catalog:
 chartHeading:
   overview: Overview
   poweredBy: "Powered by:"
+
+cis:
+  addTest: Add Test ID
+  benchmarkVersion: Benchmark Version
+  noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
+  profile: Profile
+  testID: Test ID
+  testsToSkip: Tests to Skip
+  scan:
+    description: Description
+    failed: Failed
+    lastScanTime: Last Scan Time
+    notApplicable: 'N/A'
+    number: Number
+    passed: Passed
+    scanReport: Scan Report
+    skipped: Skipped
+    total: Total
 
 cluster:
   nodeDriver:

@@ -162,6 +162,10 @@ export default {
       return out;
     },
 
+    hasName() {
+      return !!this.name;
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -179,12 +183,14 @@ export default {
       if ( this.nameKey ) {
         set(this.value, this.nameKey, val);
       } else {
-        this.value.metadata.name = val;
+        this.$set(this.value.metadata, 'name', val);
       }
+      this.$emit('change');
     },
 
     namespace(val) {
       this.updateNamespace(val);
+      this.$emit('change');
     },
 
     description(val) {
@@ -193,6 +199,7 @@ export default {
       } else {
         this.value.setAnnotation(DESCRIPTION, val);
       }
+      this.$emit('change');
     },
   },
 

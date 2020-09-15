@@ -1,6 +1,6 @@
 <script>
 import BadgeState from '@/components/BadgeState';
-
+import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
 export default {
   components: { BadgeState },
   props:      {
@@ -16,10 +16,28 @@ export default {
       type:     Object,
       default: () => {}
     },
+
+    arbitrary: {
+      type:    Boolean,
+      default: false
+    }
   },
+
+  data() {
+    const out = {};
+
+    if (this.arbitrary) {
+      const color = colorForState(this.value);
+
+      out.stateDisplay = stateDisplay(this.value);
+      out.stateBackground = color.replace('text-', 'bg-');
+    }
+
+    return out;
+  }
 };
 </script>
 
 <template>
-  <BadgeState :value="row" />
+  <BadgeState :value="arbitrary ? {stateDisplay, stateBackground} : row" />
 </template>

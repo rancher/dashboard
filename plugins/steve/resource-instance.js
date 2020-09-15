@@ -90,6 +90,7 @@ const STATES = {
   locked:             { color: 'warning', icon: 'adjust' },
   migrating:          { color: 'info', icon: 'info' },
   notapplied:         { color: 'warning', icon: 'tag' },
+  passed:             { color: 'success', icon: 'dot-dotfill' },
   paused:             { color: 'info', icon: 'info' },
   pending:            { color: 'info', icon: 'tag' },
   provisioning:       { color: 'info', icon: 'dot' },
@@ -144,6 +145,16 @@ export function colorForState(state) {
   }
 
   return `text-${ color }`;
+}
+
+export function stateDisplay(state) {
+  // @TODO use translations
+
+  if ( REMAP_STATE[state] ) {
+    return REMAP_STATE[state];
+  }
+
+  return state.split(/-/).map(ucFirst).join('-');
 }
 
 function maybeFn(val) {
