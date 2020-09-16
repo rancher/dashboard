@@ -321,14 +321,12 @@ export default {
         :label="t('servicesPage.labelsAnnotations.label', {}, true)"
         :weight="1000"
       >
-        <div class="row labels-row">
-          <Labels
-            :default-container-class="'labels-and-annotations-container'"
-            :value="value"
-            :mode="mode"
-            :display-side-by-side="false"
-          />
-        </div>
+        <Labels
+          :default-container-class="'labels-and-annotations-container'"
+          :value="value"
+          :mode="mode"
+          :display-side-by-side="false"
+        />
       </Tab>
     </Tabbed>
   </CruResource>

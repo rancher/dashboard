@@ -310,7 +310,7 @@ export default {
 
   .match-expression-row, .match-expression-header {
   display: grid;
-  grid-template-columns: 1fr 200px 1fr 100px;
+  grid-template-columns: 1fr 1fr 1fr;
   grid-gap: $column-gutter;
   align-items: center;
   &:not(.view){
