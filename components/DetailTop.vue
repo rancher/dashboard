@@ -7,6 +7,15 @@ import { _VIEW } from '@/config/query-params';
 export default {
   components: { KeyValue, Tag },
 
+  props: {
+    value: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    }
+  },
+
   data() {
     return { annotationsVisible: false, view: _VIEW };
   },
@@ -88,9 +97,9 @@ export default {
   <div class="detail-top row" :class="{empty: isEmpty}">
     <div v-if="hasLeft" class="col left" :class="leftSpan">
       <div v-for="detail in details" :key="detail.label || detail.slotName">
-        <div class="label">
+        <span class="label">
           {{ detail.label }}:
-        </div>
+        </span>
         <component
           :is="detail.formatter"
           v-if="detail.formatter"

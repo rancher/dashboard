@@ -208,20 +208,21 @@ export default {
         />
       </div>
     </div>
-    <template v-if="strategy === 'RollingUpdate'">
-      <div v-if="isStatefulSet" class="row mb-20">
-        <div class="col span-6">
-          <UnitInput v-model="partition" :suffix="partition == 1 ? 'Pod' : 'Pods'" :label="t('workload.upgrading.partition.label')" :mode="mode">
+    <div v-if="isStatefulSet" class="row mb-20">
+      <div class="col span-6">
+        <RadioGroup v-model="value.podManagementPolicy" :label="t('workload.upgrading.podManagementPolicy.label')" :options="['OrderedReady', 'Parallel']" />
+        <!-- <UnitInput v-model="partition" :suffix="partition == 1 ? 'Pod' : 'Pods'" :label="t('workload.upgrading.partition.label')" :mode="mode">
             <template #label>
               <label :style="{'color':'var(--input-label)'}">
                 {{ t('workload.upgrading.partition.label') }}
                 <i v-tooltip="t('workload.upgrading.partition.tip')" class="icon icon-info" style="font-size: 14px" />
               </label>
             </template>
-          </UnitInput>
-        </div>
+          </UnitInput> -->
       </div>
-      <div v-else-if="isDeployment || isDaemonSet" class="row mb-20">
+    </div>
+    <template v-if="strategy === 'RollingUpdate'">
+      <div v-if="isDeployment || isDaemonSet" class="row mb-20">
         <div v-if="isDeployment" class="col span-6">
           <InputWithSelect
             :text-value="maxSurge"

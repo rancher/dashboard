@@ -1509,8 +1509,8 @@ workload:
     minReadySeconds:
       label: Minimum Ready
       tip: The minimum duration a pod should be ready without containers crashing for it to be considered available.
-    partition:
-      label: Partition
+    podManagementPolicy:
+      label: Pod Management Policy
     progressDeadlineSeconds:
       label: Progress Deadline
       tip: The minimum duration to wait for a deployment to progress before marking it failed.
