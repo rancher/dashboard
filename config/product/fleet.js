@@ -1,4 +1,5 @@
 import { DSL } from '@/store/type-map';
+import { FLEET } from '@/config/types';
 
 export const NAME = 'fleet';
 export const CHART_NAME = 'fleet';
@@ -7,8 +8,10 @@ export function init(store) {
   const {
     product,
     basicType,
+    weightType,
+    uncreatableType,
+    // mapType,
     // virtualType,
-    // uncreatableType,
     // immutableType,
   } = DSL(store, NAME);
 
@@ -39,11 +42,22 @@ export function init(store) {
   // immutableType('fleet.cattle.io.cluster');
 
   basicType([
+    FLEET.CLUSTER,
+    FLEET.CLUSTER_GROUP,
+    FLEET.WORKSPACE,
+    FLEET.GIT_REPO,
+  ]);
+
+  uncreatableType(FLEET.CLUSTER);
+
+  weightType(FLEET.WORKSPACE, 110);
+  weightType(FLEET.CLUSTER, 109);
+  weightType(FLEET.GIT_REPO, 108);
+  weightType(FLEET.CLUSTER_GROUP, 107);
+
+  basicType([
     'fleet.cattle.io.bundledeployment',
     'fleet.cattle.io.bundle',
-    'fleet.cattle.io.cluster',
-    'fleet.cattle.io.clustergroup',
     'fleet.cattle.io.clusterregistrationtoken',
-    'fleet.cattle.io.gitrepo',
-  ]);
+  ], 'Advanced');
 }

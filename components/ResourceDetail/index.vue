@@ -293,7 +293,10 @@ export default {
         </div>
       </template>
     </Masthead>
-    <DetailTop v-if="isView && !asYaml" :details="originalModel.details" :description="originalModel.description" :labels="originalModel.labels" :annotations="originalModel.annotations" />
+    <DetailTop
+      v-if="isView && !asYaml"
+      :value="originalModel"
+    />
     <template v-if="asYaml">
       <ResourceYaml
         ref="resourceyaml"

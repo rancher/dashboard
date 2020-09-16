@@ -3,7 +3,7 @@
 //
 // 1) Getting info about types
 //
-// labelFor(schema, count)    Get the display label for a schema.  Count is (in English)  or not-1 for pluralizing
+// labelFor(schema, count)    Get the display label for a schema.  Count is (in English) 1 or not-1 for pluralizing
 // groupLabelFor(schema)      Get the label for the API group of this schema's type
 // isIgnored(schema)          Returns true if this type should be hidden from the tree
 // groupForBasicType(schema)  Returns the group a type should be shown in basic view, or false-y if it shouldn't be shown.
@@ -54,7 +54,8 @@
 // ignoreType(type)           Never show type
 // weightType(                Set the weight (sorting) order of one or more types
 //   typeOrArrayOfTypes,
-//   weight                   -- Higher numbers are shown first/higher up on the nav tree
+//   weight,                  -- Higher numbers are shown first/higher up on the nav tree
+//   forBasic                 -- Apply to basic type instead of regular type tree
 // )
 // mapType(                   Remap a type id to a display name
 //   matchRegexOrString,      -- Type to match, or regex that matches types
@@ -272,7 +273,6 @@ export const getters = {
   // ----------------------------------------------------------------------------
   // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
   labelFor(state, getters, rootState, rootGetters) {
-    // Special -1 count is used for the label on the nav if present, instead of the plural (99)
     return (schema, count=1) => {
       return _applyMapping(schema, state.typeMappings, 'id', false, () => {
         const key = `typeLabel."${ schema.id }"`;
@@ -608,7 +608,7 @@ export const getters = {
       for ( const schema of schemas ) {
         const attrs = schema.attributes || {};
         const count = counts[schema.id];
-        const label = getters.labelFor(schema, -1);
+        const label = getters.labelFor(schema, count);
         const weight = getters.typeWeightFor(schema?.id || label, isBasic);
 
         if ( isBasic ) {

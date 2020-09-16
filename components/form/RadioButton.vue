@@ -152,7 +152,7 @@ export default {
   }
 
   input:disabled ~ .radio-custom {
-    background-color: var(--disabled-bg)
+    background-color: var(--disabled-bg);
   }
 }
 </style>

@@ -547,3 +547,10 @@ export const LAST_UPDATED = {
   formatterOpts: { addSuffix: true },
   sort:          ['lastTransitionTime']
 };
+
+export const WORKSPACE = {
+  name:  'workspace',
+  label: 'Workspace',
+  value: 'metadata.namespace',
+  sort:  ['metadata.namespace', 'nameSort'],
+};

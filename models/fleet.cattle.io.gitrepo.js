@@ -1,5 +1,6 @@
 import { convert } from '@/utils/selector';
 import jsyaml from 'js-yaml';
+import { escapeHtml } from '@/utils/string';
 
 export default {
   applyDefaults() {
@@ -126,5 +127,15 @@ export default {
       clusterGroup,
       advanced
     };
+  },
+
+  groupByLabel() {
+    const name = this.metadata.namespace;
+
+    if ( name ) {
+      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });
+    } else {
+      return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
+    }
   },
 };

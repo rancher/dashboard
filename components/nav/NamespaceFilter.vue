@@ -46,8 +46,6 @@ export default {
         },
       ];
 
-      divider();
-
       out.push({
         id:       'namespaced://true',
         kind:     'special',
