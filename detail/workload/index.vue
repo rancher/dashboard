@@ -146,15 +146,13 @@ export default {
     </Tabbed>
     <div class="row mt-20">
       <div class="col span-12">
-        <h3>
+        <h3 class="pods-title">
           Pods
         </h3>
         <ResourceTable
           :rows="pods"
           :headers="podHeaders"
           key-field="id"
-          :search="false"
-          :table-actions="false"
           :schema="podSchema"
           :show-groups="false"
         />
@@ -162,3 +160,10 @@ export default {
     </div>
   </div>
 </template>
+
+<style lang='scss' scoped>
+.pods-title{
+position: relative;
+top: 50px;
+}
+</style>
