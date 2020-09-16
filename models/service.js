@@ -87,5 +87,14 @@ export default {
     }
 
     return defaultService;
+  },
+
+  proxyUrl() {
+    return (proto, port) => {
+      const view = this.linkFor('view');
+      const idx = view.lastIndexOf(`/`);
+
+      return `${ view.slice(0, idx) }/${ proto }:${ this.metadata.name }:${ port }/proxy`;
+    };
   }
 };

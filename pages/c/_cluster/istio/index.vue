@@ -2,10 +2,21 @@
 import { mapGetters } from 'vuex';
 import { NAME, CHART_NAME } from '@/config/product/istio';
 import InstallRedirect from '@/utils/install-redirect';
+import { SERVICE } from '@/config/types';
 export default {
   components: {},
 
   middleware: InstallRedirect(NAME, CHART_NAME),
+
+  async fetch() {
+    try {
+      this.kialiService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/kiali' });
+    } catch {}
+  },
+
+  data() {
+    return { kialiService: null };
+  },
 
   computed: {
     ...mapGetters({ theme: 'prefs/theme', t: 'i18n/t' }),
@@ -16,7 +27,7 @@ export default {
     },
 
     kialiUrl() {
-      return '/api/v1/namespaces/istio-system/services/http:rancher-istio-kiali:20001/proxy/';
+      return this.kialiService ? this.kialiService.proxyUrl('http', '20001') : null;
     },
 
     target() {
@@ -41,11 +52,18 @@ export default {
     <h1>Overview</h1>
     <h4 v-html="t('istio.poweredBy', {}, true)" />
     <div class="links">
-      <div class="box link-container" @click="launchKiali">
+      <div :class="{'disabled':!kialiUrl}" class="box link-container" @click="launchKiali">
         <div class="logo-container">
           <img class="logo" :src="kialiLogo" />
         </div>
-        <a ref="kiali" class="link-content pull-right" :href="kialiUrl" :target="target" :rel="rel">
+        <a
+          ref="kiali"
+          :disabled="!kialiUrl"
+          class="link-content pull-right"
+          :href="kialiUrl"
+          :target="target"
+          :rel="rel"
+        >
           <i class="icon icon-2x icon-external-link ml-10 pull-right" />
         </a>
       </div>
@@ -62,6 +80,9 @@ export default {
     height: $logo-height;
     display: flex;
     align-items: center;
+    &.disabled{
+      cursor:   not-allowed;
+    }
   }
 
   .logo-container {

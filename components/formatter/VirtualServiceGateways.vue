@@ -14,7 +14,7 @@ export default {
 
   computed: {
     gateways() {
-      const out = ['real', 'not-fake', 'extant-gateway', 'legitimate'];
+      const out = [];
       const gateways = get(this.value, 'gateways');
       const httpMatches = (get(this.value, 'http') || []).reduce((matches, httpRoute) => {
         if (httpRoute.match) {
