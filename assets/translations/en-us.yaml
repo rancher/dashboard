@@ -142,7 +142,7 @@ backupRestoreOperator:
   encryption: Encryption
   encryptionConfigName: 
     label: Encryption Config Secret
-    tip: If the backup that this Restore references was created with encryption enabled, a secret containing the same encryptionConfig file must be used here
+    tip: If the backup was performed with encryption enabled, a Secret containing the same encryption-provider-config should be used during restore
     options:
       none: Store the contents of the backup unencrypted
       secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
@@ -154,11 +154,11 @@ backupRestoreOperator:
     label: Schedule
     placeholder: e.g. @midnight or 0 0 * * *
     options: 
-      disabled: One Time Backup
-      enabled: Schedule Backups
+      disabled: One-Time Backup
+      enabled: Recurring Backups
   restoreFrom:
     existing: An existing backup config
-    default: The deault storage target
+    default: The default storage target
     s3: An S3-compatible object store
   retentionCount: 
     label: Retention Count
