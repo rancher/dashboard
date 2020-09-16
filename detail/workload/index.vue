@@ -14,6 +14,8 @@ import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/components/form/Networking';
 import Job from '@/edit/workload/Job';
+import ArrayList from '@/components/form/ArrayList';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 import { mapGetters } from 'vuex';
 
@@ -30,7 +32,9 @@ export default {
     HealthCheck,
     Job,
     Tabbed,
-    Tab
+    Tab,
+    ArrayList,
+    LabeledSelect
   },
 
   mixins: [createEditView],
@@ -110,6 +114,10 @@ export default {
       return this.type === WORKLOAD_TYPES.CRON_JOB;
     },
 
+    isStatefulSet() {
+      return this.type === WORKLOAD_TYPES.STATEFUL_SET;
+    },
+
     ...mapGetters({ t: 'i18n/t' })
   },
 };
@@ -142,6 +150,13 @@ export default {
       </Tab>
       <Tab :label="t('workload.container.titles.networking')" name="networking">
         <Networking v-model="podTemplateSpec" :mode="mode" />
+      </Tab>
+      <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
+        <ArrayList v-model="value.spec.volumeClaimTemplates" :mode="mode" :add-label="t('workload.storage.addClaim')" :default-add-value="''">
+          <template #value="{row, queueUpdate}">
+            <LabeledSelect :mode="mode" :label="t('workload.storage.subtypes.persistentVolumeClaim')" :value="row.value" :options="pvcs" @input="queueUpdate" />
+          </template>
+        </ArrayList>
       </Tab>
     </Tabbed>
     <div class="row mt-20">

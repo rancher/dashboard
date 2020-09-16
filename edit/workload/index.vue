@@ -3,7 +3,7 @@ import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@/utils/object';
 import cronstrue from 'cronstrue';
 import {
-  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE
+  CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC
 } from '@/config/types';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -29,6 +29,7 @@ import Tolerations from '@/components/form/Tolerations';
 import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
 import Storage from '@/edit/workload/storage';
+import ArrayList from '@/components/form/ArrayList';
 
 export default {
   name:       'CruWorkload',
@@ -51,7 +52,8 @@ export default {
     Tolerations,
     CruResource,
     Command,
-    Storage
+    Storage,
+    ArrayList
   },
 
   mixins: [CreateEditView],
@@ -73,13 +75,15 @@ export default {
       configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
       secrets:    this.$store.dispatch('cluster/findAll', { type: SECRET }),
       nodes:      this.$store.dispatch('cluster/findAll', { type: NODE }),
-      services:   this.$store.dispatch('cluster/findAll', { type: SERVICE })
+      services:   this.$store.dispatch('cluster/findAll', { type: SERVICE }),
+      pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC })
     });
 
     this.allSecrets = hash.secrets;
     this.allConfigMaps = hash.configMaps;
     this.allNodes = hash.nodes.map(node => node.id);
     this.headlessServices = hash.services.filter(service => service.spec.clusterIP === 'None');
+    this.pvcs = hash.pvcs;
   },
 
   asyncData(ctx) {
@@ -133,6 +137,7 @@ export default {
       allConfigMaps:    [],
       allSecrets:       [],
       headlessServices: [],
+      pvcs:             [],
       allNodes:         null,
       showTabs:         false,
     };
@@ -682,6 +687,13 @@ export default {
         </Tab>
         <Tab :can-toggle="true" :label="t('workload.container.titles.networking')" name="networking">
           <Networking v-model="podTemplateSpec" :mode="mode" />
+        </Tab>
+        <Tab v-if="isStatefulSet" :can-toggle="true" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
+          <ArrayList v-model="spec.volumeClaimTemplates" :mode="mode" :add-label="t('workload.storage.addClaim')" :default-add-value="''">
+            <template #value="{row, queueUpdate}">
+              <LabeledSelect :mode="mode" :label="t('workload.storage.subtypes.persistentVolumeClaim')" :value="row.value" :options="pvcs" @input="queueUpdate" />
+            </template>
+          </ArrayList>
         </Tab>
       </Tabbed>
     </CruResource>
