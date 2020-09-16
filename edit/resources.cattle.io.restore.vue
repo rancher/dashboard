@@ -245,15 +245,6 @@ export default {
           </div>
           <div :style="{'align-items':'center'}" class="row">
             <div class="col span-6">
-              <UnitInput v-model="value.spec.deleteTimeoutSeconds" :suffix="t('suffix.seconds')" :mode="mode" :label="t('backupRestoreOperator.deleteTimeout.label')">
-                <template #label>
-                  <label v-tooltip="t('backupRestoreOperator.deleteTimeout.tip')" class="has-tooltip">
-                    {{ t('backupRestoreOperator.deleteTimeout.label') }} <i class="icon icon-info" />
-                  </label>
-                </template>
-              </UnitInput>
-            </div>
-            <div class="col span-6">
               <Checkbox v-model="value.spec.prune" :label="t('backupRestoreOperator.prune.label')" :mode="mode">
                 <template #label>
                   <span v-tooltip="t('backupRestoreOperator.prune.tip')" class="text-label">
@@ -261,6 +252,15 @@ export default {
                   </span>
                 </template>
               </Checkbox>
+            </div>
+            <div v-if="value.spec.prune" class="col span-6">
+              <UnitInput v-model="value.spec.deleteTimeoutSeconds" :suffix="t('suffix.seconds')" :mode="mode" :label="t('backupRestoreOperator.deleteTimeout.label')">
+                <template #label>
+                  <label v-tooltip="t('backupRestoreOperator.deleteTimeout.tip')" class="has-tooltip">
+                    {{ t('backupRestoreOperator.deleteTimeout.label') }} <i class="icon icon-info" />
+                  </label>
+                </template>
+              </UnitInput>
             </div>
           </div>
         </div>

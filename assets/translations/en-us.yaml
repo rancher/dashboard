@@ -138,17 +138,17 @@ backupRestoreOperator:
   backupFilename: Backup Filename
   prune: 
     label: Prune
-    tip: Enabling "Prune" will delete only those resources/CRs that are managed by the backed up application, and that were not present on the cluster when backup was performed.
+    tip: Delete all resources that are not in the backup, but match the ResourceSet used during backup. (Recommended)
   encryption: Encryption
   encryptionConfigName: 
     label: Encryption Config Secret
-    tip: If the backup was performed with encryption enabled, a Secret containing the same encryption-provider-config should be used during restore
+    tip: If the backup was performed with encryption enabled, a Secret containing the same encryption-provider-config should be used during restore.
     options:
       none: Store the contents of the backup unencrypted
       secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
   deleteTimeout: 
     label: Delete Timeout
-    tip: Time after which resources will be force-deleted, even if they have finalizers
+    tip: Amount of time to wait while deleting a resource before editing the resource to remove finalizers and attempt to delete again.
   resourceSetName: Resource Set
   schedule: 
     label: Schedule
