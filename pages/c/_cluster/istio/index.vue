@@ -9,7 +9,9 @@ export default {
   middleware: InstallRedirect(NAME, CHART_NAME),
 
   async fetch() {
-    this.kialiService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/kiali' });
+    try {
+      this.kialiService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/kiali' });
+    } catch {}
   },
 
   data() {

@@ -92,7 +92,7 @@ export default {
   proxyUrl() {
     return (proto, port) => {
       const view = this.linkFor('view');
-      const idx = view.indexOf(`/${ this.metadata.name }`);
+      const idx = view.lastIndexOf(`/`);
 
       return `${ view.slice(0, idx) }/${ proto }:${ this.metadata.name }:${ port }/proxy`;
     };
