@@ -383,6 +383,15 @@ cruResource:
   previewYaml: Preview Yaml
 
 fleet:
+  cluster:
+    summary: Summary
+    nonReady: Non-Ready Bundles
+  fleetSummary:
+    state:
+      success: 'Ready'
+      info: 'Transitioning'
+      warning: 'Warning'
+      error: 'Error'
   gitRepo:
     auth:
       label: Authentication
@@ -856,6 +865,8 @@ resourceTable:
     notInANamespace: Not Namespaced
     notInAProject: Not in a Project
     project: "<span>Project:</span> {name}"
+    notInAWorkspace: Not in a Workspace
+    workspace: "<span>Workspace:</span> {name}"
 
 resourceTabs:
   tabs:
@@ -1077,6 +1088,7 @@ tableHeaders:
   state: State
   status: Status
   success: Success
+  summary: Summary
   target: Target
   targetKind: Target Type
   targetPort: Target
@@ -1565,17 +1577,16 @@ model:
 typeLabel:
   catalog.cattle.io.operation: |-
     {count, plural,
-      one { Recent Operations }
+      one { Recent Operation }
       other { Recent Operations }
     }
   catalog.cattle.io.release: |-
     {count, plural,
-      one { Installed Apps }
+      one { Installed App }
       other { Installed Apps }
     }
   catalog.cattle.io.clusterrepo: |-
     {count, plural,
-      =-1 { Repositories }
       one { Repository }
       other { Repositories }
     }
@@ -1603,4 +1614,9 @@ typeLabel:
     {count, plural,
       one { Cluster Group }
       other {Cluster Groups }
+    }
+  management.cattle.io.fleetworkspace: |-
+    {count, plural,
+      one { Workspace }
+      other { Workspaces }
     }

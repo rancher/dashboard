@@ -2,6 +2,7 @@
 import ProgressBarMulti from '@/components/ProgressBarMulti';
 import { removeObject } from '@/utils/array';
 import { ucFirst } from '@/utils/string';
+import { colorForState } from '@/plugins/steve/resource-instance';
 
 export default {
   components: { ProgressBarMulti },
@@ -26,13 +27,16 @@ export default {
       const keys = Object.keys(this.summary);
 
       removeObject(keys, 'desiredReady');
+      removeObject(keys, 'nonReadyResources');
 
       return keys.map((key) => {
+        const textColor = colorForState(key);
+
         return {
           label:     ucFirst(key),
-          color:     'bg-success',
-          textColor: 'text-success',
-          value:      this.summary[key]
+          color:     textColor.replace(/text-/, 'bg-'),
+          textColor,
+          value:     this.summary[key]
         };
       });
     }
@@ -53,7 +57,7 @@ export default {
     <span>{{ summary.ready }}</span>
     <span v-if="summary.desiredReady != summary.ready">
       <i class="icon icon-chevron-right" />
-      {{ summary.desired }}
+      {{ summary.desiredReady }}
     </span>
 
     <template #popover>

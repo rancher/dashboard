@@ -208,6 +208,11 @@ $selected: rgba($primary, .5);
   --sizzle-7                   : 45, 47, 149;
   --sizzle-8                   : 255, 235, 0;
 
+  --sizzle-success: #{red($success)}, #{green($success)}, #{blue($success)};
+  --sizzle-info:    #{red($info)},    #{green($info)},    #{blue($info)};
+  --sizzle-warning: #{red($warning)}, #{green($warning)}, #{blue($warning)};
+  --sizzle-error:   #{red($error)},   #{green($error)},   #{blue($error)};
+
   $angle: 135deg;
   $startPos: 0%;
   $start: 0.3;

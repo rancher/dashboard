@@ -54,7 +54,7 @@ export default {
     h1() {
       const out = this.$store.getters['i18n/t'](`resourceDetail.header.${ this.realMode }`, {
         type: this.$store.getters['type-map/labelFor'](this.schema),
-        name: this.value.nameDisplay,
+        name: this.value?.nameDisplay,
       });
 
       return out;
@@ -157,7 +157,7 @@ export default {
     <div>
       <div class="primaryheader">
         <h1>
-          <nuxt-link v-trim-whitespace :to="parent.location">
+          <nuxt-link :to="parent.location">
             {{ parent.displayName }}:
           </nuxt-link>
           <span class="title" v-html="h1" />

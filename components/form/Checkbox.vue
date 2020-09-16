@@ -181,6 +181,10 @@ export default {
     background-color: transparent;
   }
 
+  input:disabled ~ .checkbox-custom {
+    background-color: var(--disabled-bg);
+  }
+
   .checkbox-view {
     display: flex;
     flex-direction: column;

@@ -6,28 +6,25 @@ import { _VIEW } from '@/config/query-params';
 
 export default {
   components: { KeyValue, Tag },
-  props:      {
-    description: {
-      type:    String,
-      default: ''
-    },
-    labels: {
-      type:    Object,
-      default: () => ({})
-    },
-    annotations: {
-      type:    Object,
-      default: () => ({})
-    },
-    details: {
-      type:    Array,
-      default: () => []
-    }
-  },
+
   data() {
     return { annotationsVisible: false, view: _VIEW };
   },
+
   computed: {
+    details() {
+      return this.value?.details;
+    },
+    labels() {
+      return this.value?.metadata.labels || {};
+    },
+    annotations() {
+      return this.value?.metadata.annotations || {};
+    },
+    description() {
+      return this.value?.description;
+    },
+
     hasDetails() {
       return !isEmpty(this.details);
     },
@@ -91,7 +88,9 @@ export default {
   <div class="detail-top row" :class="{empty: isEmpty}">
     <div v-if="hasLeft" class="col left" :class="leftSpan">
       <div v-for="detail in details" :key="detail.label || detail.slotName">
-        <label>{{ detail.label }}:</label>
+        <div class="label">
+          {{ detail.label }}:
+        </div>
         <component
           :is="detail.formatter"
           v-if="detail.formatter"
@@ -103,10 +102,15 @@ export default {
     </div>
     <div v-if="hasRight" class="col right" :class="rightSpan">
       <div v-if="description" class="description">
-        <label>{{ t('resourceDetail.detailTop.description') }}:</label> <span class="content">{{ description }}</span>
+        <span class="label">
+          {{ t('resourceDetail.detailTop.description') }}:
+        </span>
+        <span class="content">{{ description }}</span>
       </div>
       <div v-if="hasLabels" class="labels">
-        <label>{{ t('resourceDetail.detailTop.labels') }}:</label>
+        <span class="label">
+          {{ t('resourceDetail.detailTop.labels') }}:
+        </span>
         <div class="tags">
           <Tag v-for="(value, key) in labels" :key="key + value">
             {{ key }}<span v-if="value">: </span>{{ value }}
@@ -114,7 +118,9 @@ export default {
         </div>
       </div>
       <div v-if="hasAnnotations" class="annotations">
-        <label>{{ t('resourceDetail.detailTop.annotations') }}:</label>
+        <span class="label">
+          {{ t('resourceDetail.detailTop.annotations') }}:
+        </span>
         <a v-if="!annotationsVisible" href="#" @click="showAnnotations">{{ t('resourceDetail.detailTop.showAnnotations', {annotations: annotationCount}) }}</a>
         <KeyValue v-else :value="annotations" :mode="view" />
       </div>
@@ -148,7 +154,7 @@ export default {
       margin-bottom: $right-column-spacing;
     }
 
-    label {
+    .label {
       color: var(--input-label);
       margin: 0 4px 0 0;
     }

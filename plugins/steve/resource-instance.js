@@ -81,6 +81,7 @@ const STATES = {
   disabled:           { color: 'warning', icon: 'error' },
   disconnected:       { color: 'warning', icon: 'error' },
   error:              { color: 'error', icon: 'error' },
+  errapplied:         { color: 'error', icon: 'error' },
   erroring:           { color: 'error', icon: 'error' },
   expired:            { color: 'warning', icon: 'error' },
   failed:             { color: 'error', icon: 'error' },
@@ -89,6 +90,7 @@ const STATES = {
   initializing:       { color: 'warning', icon: 'error' },
   locked:             { color: 'warning', icon: 'adjust' },
   migrating:          { color: 'info', icon: 'info' },
+  modified:           { color: 'warning', icon: 'edit' },
   notapplied:         { color: 'warning', icon: 'tag' },
   passed:             { color: 'success', icon: 'dot-dotfill' },
   paused:             { color: 'info', icon: 'info' },
@@ -96,6 +98,7 @@ const STATES = {
   provisioning:       { color: 'info', icon: 'dot' },
   purged:             { color: 'error', icon: 'purged' },
   purging:            { color: 'info', icon: 'purged' },
+  ready:              { color: 'success', icon: 'dot-open' },
   reconnecting:       { color: 'error', icon: 'error' },
   registering:        { color: 'info', icon: 'tag' },
   reinitializing:     { color: 'warning', icon: 'error' },
@@ -801,13 +804,22 @@ export default {
         opt.data.type = opt.data._type;
       }
 
-      const res = await this.$dispatch('request', opt);
+      try {
+        const res = await this.$dispatch('request', opt);
 
-      // console.log('### Resource Save', this.type, this.id);
+        // console.log('### Resource Save', this.type, this.id);
 
-      // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
-      if ( res && res.kind !== 'Table') {
-        await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
+        // Steve sometimes returns Table responses instead of the resource you just saved.. ignore
+        if ( res && res.kind !== 'Table') {
+          await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
+        }
+      } catch (e) {
+        // Things went poorly, probably a conflict, try to load the new version
+        await this.$dispatch('find', {
+          type: this.type,
+          id:   this.id,
+          opt:  { force: true }
+        });
       }
 
       return this;
