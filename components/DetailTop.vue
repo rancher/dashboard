@@ -27,9 +27,11 @@ export default {
     labels() {
       return this.value?.metadata.labels || {};
     },
+
     annotations() {
       return this.value?.metadata.annotations || {};
     },
+
     description() {
       return this.value?.description;
     },
