@@ -1,5 +1,6 @@
 import { DSL } from '@/store/type-map';
 import { FLEET } from '@/config/types';
+import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
 
 export const NAME = 'fleet';
 export const CHART_NAME = 'fleet';
@@ -10,6 +11,7 @@ export function init(store) {
     basicType,
     weightType,
     uncreatableType,
+    headers,
     // mapType,
     // virtualType,
     // immutableType,
@@ -60,4 +62,31 @@ export function init(store) {
     'fleet.cattle.io.bundle',
     'fleet.cattle.io.clusterregistrationtoken',
   ], 'Advanced');
+
+  headers(FLEET.WORKSPACE, [
+    STATE,
+    NAME_COL,
+    {
+      name:      'gitRepos',
+      labelKey:  'tableHeaders.gitRepos',
+      value:     'counts.gitRepos',
+      sort:      'counts.gitRepos',
+      formatter: 'Number',
+    },
+    {
+      name:      'clusters',
+      labelKey:  'tableHeaders.clusters',
+      value:     'counts.clusters',
+      sort:      'counts.clusters',
+      formatter: 'Number',
+    },
+    {
+      name:      'clusterGroups',
+      labelKey:  'tableHeaders.clusterGroups',
+      value:     'counts.clusterGroups',
+      sort:      'counts.clusterGroups',
+      formatter: 'Number',
+    },
+    AGE
+  ]);
 }
