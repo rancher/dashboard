@@ -17,6 +17,7 @@ generic:
   labelsAndAnnotations: Labels and Annotations
   na: n/a
   name: Name
+  number: '{prefix}{value, number}{suffix}'
   plusMore: + {n} more
   readFromFile: Read from File
   remove: Remove
@@ -1036,6 +1037,8 @@ tableHeaders:
   clusterCreatorDefault: Cluster Creator Default
   clusterFlow: Cluster Flow
   clusterOutput: Cluster Output
+  clusters: Clusters
+  clusterGroups: Cluster Groups
   commit: Commit
   configuredProviders: Configured Providers
   cpu: CPU
@@ -1045,6 +1048,7 @@ tableHeaders:
   effect: Effect
   endpoints: Endpoint
   flow: Flow
+  gitRepos: Git Repos
   host: |-
     {count, plural,
       one { Host }
@@ -1595,6 +1599,13 @@ model:
       generic: Service
       loadBalancer: L4 Balancer
 
+typeDescription:
+  # Map of
+  # type: Description to be shown on the top of list view describing the type.
+  #       Should fit on one line.
+  #       If you link to anything external, it must have 
+  #       target="_blank" rel="noopener noreferrer nofollow"
+
 typeLabel:
   catalog.cattle.io.operation: |-
     {count, plural,
@@ -1635,6 +1646,11 @@ typeLabel:
     {count, plural,
       one { Cluster Group }
       other {Cluster Groups }
+    }
+  fleet.cattle.io.gitrepos: |-
+    {count, plural,
+      one { Git Repo }
+      other {Git Repos }
     }
   management.cattle.io.fleetworkspace: |-
     {count, plural,
