@@ -169,7 +169,7 @@ export default {
 </script>
 
 <template>
-  <div class="labeled-select labeled-input" :class="{disabled, focused, [mode]: true, [status]: status }">
+  <div class="labeled-select labeled-input" :class="{disabled: disabled && !isView, focused, [mode]: true, [status]: status }">
     <div :class="{'labeled-container': true, raised, empty, [mode]: true}" :style="{border:'none'}">
       <label v-if="label">
         {{ label }}
@@ -179,7 +179,7 @@ export default {
         <slot name="corner" />
       </label>
       <div v-if="isView" :class="{'no-label':!(label||'').length}" class="selected">
-        {{ currentLabel }}&nbsp;
+        <span v-if="!currentLabel" class="text-muted">—</span>{{ currentLabel }}&nbsp;
       </div>
       <div v-else-if="!$attrs.multiple" :class="{'no-label':!(label||'').length}" class="selected" :style="{visibility:selectedVisibility}">
         {{ currentLabel }}&nbsp;

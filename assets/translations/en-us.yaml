@@ -599,6 +599,8 @@ logging:
     indexName: Index Name
     user: User
     password: Password
+    caFile: 
+      label: Certificate Authority File
     clientCert:
       label: Client Cert
       placeholder: Paste in the CA certificate
@@ -623,6 +625,13 @@ logging:
       label: SSL Client Cert Chain
       placeholder: Paste in the client cert chain
     sslClientCertKey: SSL Client Cert Key
+  output:
+    selectOutputs: Select Outputs
+    selectBanner: Select to configure an output
+    sections:
+      target: Target
+      access: Access
+      certificate: SSL
   overview:
     clusterLevel: Cluster-level Logging
     namespaceLevel: Namespace-level Logging
@@ -636,12 +645,12 @@ logging:
     clientCert: Client Cert
     clientKey: Client Key
     insecureSsl: Insecure SSL
-  syslog:
-    address: Address
-    cluster: Cluster
-    rootCa:
-      label: Root CA
-      placeholder: Paste in the Root CA
+  forward:
+    host: Host
+    port: Port
+    sharedKey: Shared Key
+    username: Username
+    password: Password
 
 monitoring:
   accessModes:
