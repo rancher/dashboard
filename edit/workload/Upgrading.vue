@@ -200,6 +200,7 @@ export default {
           :options="strategyOptions.options"
           :labels="strategyOptions.labels"
           :mode="mode"
+          @input="update"
         />
       </div>
     </div>

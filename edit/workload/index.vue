@@ -132,6 +132,7 @@ export default {
     }
 
     return {
+      name:             this.value?.metadata?.name || null,
       spec,
       type,
       allConfigMaps:    [],
@@ -171,7 +172,7 @@ export default {
 
     // TODO better validation
     containerIsReady() {
-      const required = [this.container.image, this.container.imagePullPolicy];
+      const required = [this.container.image, this.container.imagePullPolicy, this.name];
 
       if (this.isReplicable) {
         required.push(this.spec.replicas);
@@ -545,7 +546,7 @@ export default {
     >
       <div class="row">
         <div class="col span-12">
-          <NameNsDescription :value="value" :mode="mode" />
+          <NameNsDescription :value="value" :mode="mode" @change="name=value.metadata.name" />
         </div>
       </div>
       <Tabbed :show-more-label="t('workload.showTabs')" :hide-more-label="t('workload.hideTabs')" :side-tabs="true">

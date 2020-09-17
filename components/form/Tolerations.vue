@@ -131,7 +131,7 @@ export default {
 
 <template>
   <div class="tolerations">
-    <div class="toleration-headers">
+    <div v-if="rules.length" class="toleration-headers">
       <span>{{ t('workload.scheduling.tolerations.labelKey') }}</span>
       <span>{{ t('workload.scheduling.tolerations.operator') }}</span>
       <span>{{ t('workload.scheduling.tolerations.value') }}</span>

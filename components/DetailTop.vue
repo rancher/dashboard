@@ -121,8 +121,8 @@ export default {
           {{ t('resourceDetail.detailTop.labels') }}:
         </span>
         <div class="tags">
-          <Tag v-for="(value, key) in labels" :key="key + value">
-            {{ key }}<span v-if="value">: </span>{{ value }}
+          <Tag v-for="(prop, key) in labels" :key="key + prop">
+            {{ key }}<span v-if="prop">: </span>{{ prop }}
           </Tag>
         </div>
       </div>
