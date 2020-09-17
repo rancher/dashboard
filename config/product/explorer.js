@@ -57,8 +57,10 @@ export function init(store) {
   basicType([
     WORKLOAD,
     WORKLOAD_TYPES.DEPLOYMENT,
+    WORKLOAD_TYPES.DAEMON_SET,
     WORKLOAD_TYPES.STATEFUL_SET,
     WORKLOAD_TYPES.JOB,
+    WORKLOAD_TYPES.CRON_JOB,
     POD,
   ], 'workload');
   basicType([
