@@ -8,7 +8,6 @@ import {
   FLOW, CONFIGURED_PROVIDERS, CLUSTER_FLOW, CLUSTER_OUTPUT, OUTPUT, NAMESPACE
 } from '@/config/table-headers';
 import ChartHeading from '@/components/ChartHeading';
-import uniq from 'lodash/uniq';
 
 export default {
   middleware: InstallRedirect(NAME, CHART_NAME),
@@ -23,16 +22,12 @@ export default {
 
     this.clusterFlows = hash.clusterFlows || [];
     this.flows = hash.flows || [];
-    this.clusterOutputs = hash.clusterOutputs || [];
-    this.outputs = hash.outputs || [];
   },
 
   data() {
     return {
       clusterFlows:              [],
       flows:                     [],
-      clusterOutputs:            [],
-      outputs:                   [],
       namespaceFlowTableHeaders: [
         { ...NAMESPACE, value: 'flow.metadata.namespace' },
         FLOW,
@@ -56,19 +51,10 @@ export default {
   },
 
   methods: {
-    mapFlows(flows, outputs) {
+    mapFlows(flows) {
       return flows.map((flow) => {
-        const outputRefs = flow.spec.outputRefs;
-        const linkedOutputs = outputs.filter((output) => {
-          return outputRefs.includes(output.metadata.name);
-        }).map(this.link);
-
-        const providers = linkedOutputs
-          .flatMap(output => Object.keys(output.spec))
-          .filter(provider => provider !== 'loggingRef');
-
         return {
-          flow: this.link(flow), outputs: linkedOutputs, providers: uniq(providers)
+          flow: this.link(flow), outputs: flow.outputs.map(this.link), providers: flow.outputProviders
         };
       });
     },
