@@ -123,7 +123,7 @@ export default {
           />
         </div>
       </template>
-      <button v-if="!isView && isEmpty(selectorMap)" type="button" class="btn role-tertiary" @click="addSelector">
+      <button v-if="!isView" type="button" class="btn role-tertiary" @click="addSelector">
         Add Pod Selector
       </button>
     </div>

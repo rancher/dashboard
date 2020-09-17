@@ -182,7 +182,6 @@ export default {
             :style="{'height':'50px'}"
             class="inline"
             :options="['TCP', 'UDP']"
-            :searchable="false"
             :multiple="false"
             @input="queueUpdate"
           />

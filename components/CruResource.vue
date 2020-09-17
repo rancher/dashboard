@@ -157,6 +157,13 @@ export default {
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
     },
+
+    selectType(id, event) {
+      if (event?.srcElement?.tagName === 'A') {
+        return;
+      }
+      this.$emit('select-type', id);
+    }
   }
 };
 </script>
@@ -174,7 +181,7 @@ export default {
             :key="subtype.id"
             class="subtype-banner"
             :class="{ selected: subtype.id === selectedSubtype }"
-            @click="$emit('select-type', subtype.id)"
+            @click="selectType(subtype.id, $event)"
           >
             <slot name="subtype-logo">
               <div class="subtype-logo round-image">

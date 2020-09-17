@@ -1304,6 +1304,7 @@ workload:
       resources: Resources
       securityContext: Security Context
       status: Status
+      volumeClaimTemplates: Volume Claim Templates
   cronSchedule: Schedule
   detailTop:
     node: Node
@@ -1327,9 +1328,13 @@ workload:
     parallelism:
       label: Parallelism
       tip: The maximum number of pods the job should run at any given time.
+    startingDeadlineSeconds: 
+      label: Starting Deadline Seconds
+      tip: The deadline in seconds for starting the job if it misses scheduled time
     successfulJobsHistoryLimit:
       label: Successful Job History Limit
       tip: The number of successful finished jobs to retain.
+    suspend: Suspend
   networking:
     dnsPolicy:
       label: DNS Policy
@@ -1441,6 +1446,7 @@ workload:
       createPersistentVolumeClaim: Create Persistent Volume Claim
       csi: Ephemeral Volume
       nfs: NFS
+    addClaim: Add Claim
     addMount: Add Mount
     addVolume: Add Volume
     certificate: Certificate
@@ -1499,7 +1505,6 @@ workload:
     title: 'Storage'
     volumeName: Volume Name
     volumePath: Volume Path
-
   typeDescriptions:
     apps.daemonset: <a href="https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/" target="_blank" rel="noopener nofollow" >DaemonSets</a> run exactly one pod on every eligible node. When new nodes are added to the cluster, DaemonSets automatically deploy to them. Recommended for system-wide or vertically-scalable workloads that never need more than one pod per node.
     apps.deployment: '<a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/" target="_blank" rel="noopener nofollow" >Deployments</a> run a scalable number of replicas of a pod distributed among the eligible nodes. Changes are rolled out incrementally and can be rolled back to the previous revision when needed. Recommended for stateless & horizontally-scalable workloads.'
@@ -1510,6 +1515,12 @@ workload:
     activeDeadlineSeconds:
       label: Pod Active Deadline
       tip: The duration the pod may be active before the system will try to mark it failed and kill associated containers.
+    concurrencyPolicy:
+      label: Concurrency
+      options:
+        allow: Allow CronJobs to run concurrently
+        forbid: Skip next run if current run hasn't finished
+        replace: Replace run if current run hasn't finished
     maxSurge:
       label: Max Surge
       tip: The maximum number of pods allowed beyond the desired scale at any given time.
@@ -1519,8 +1530,8 @@ workload:
     minReadySeconds:
       label: Minimum Ready
       tip: The minimum duration a pod should be ready without containers crashing for it to be considered available.
-    partition:
-      label: Partition
+    podManagementPolicy:
+      label: Pod Management Policy
     progressDeadlineSeconds:
       label: Progress Deadline
       tip: The minimum duration to wait for a deployment to progress before marking it failed.

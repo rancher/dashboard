@@ -294,10 +294,10 @@ $transition-duration: 150ms;
     width: 100%;
   }
   .vs__search {
-    background-color: var(--input-bg);
+    background-color: rgba(0,0,0,0);
     width: 100%;
     &:hover{
-      background-color: var(--input-bg);
+      background-color: rgba(0,0,0,0);
     }
   }
   .vs__open-indicator{

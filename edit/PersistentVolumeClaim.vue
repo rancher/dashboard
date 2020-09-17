@@ -50,8 +50,18 @@ export default {
       return this.storageClasses.map(sc => sc.metadata.name);
     },
 
+    unboundPVs() {
+      return this.persistentVolumes.reduce((total, each) => {
+        if (each?.status?.phase !== 'bound') {
+          total.push(each);
+        }
+
+        return total;
+      }, []);
+    },
+
     persistentVolumeNames() {
-      return this.persistentVolumes.map(pv => pv.metadata.name);
+      return this.unboundPVs.map(pv => pv.metadata.name);
     },
 
     ...mapGetters({ t: 'i18n/t' })

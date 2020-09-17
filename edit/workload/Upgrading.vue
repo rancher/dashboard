@@ -29,7 +29,7 @@ export default {
   },
   data() {
     const {
-      strategy:strategyObj = {}, minReadySeconds = 0, progressDeadlineSeconds = 600, revisionHistoryLimit = 10
+      strategy:strategyObj = {}, minReadySeconds = 0, progressDeadlineSeconds = 600, revisionHistoryLimit = 10, podManagementPolicy = 'OrderedReady'
     } = this.value;
     const strategy = strategyObj.type || 'RollingUpdate';
     let maxSurge = '25';
@@ -54,7 +54,6 @@ export default {
         unavaiableUnits = 'Pods';
       }
     }
-    const partition = get(strategyObj, `${ strategy }.partition`) || 0;
 
     const podSpec = get(this.value, 'template.spec');
 
@@ -69,8 +68,8 @@ export default {
       maxSurge,
       maxUnavailable,
       revisionHistoryLimit,
-      partition,
       terminationGracePeriodSeconds,
+      podManagementPolicy
     };
   },
   computed: {
@@ -111,7 +110,7 @@ export default {
     update() {
       const podSpec = this.value?.template?.spec;
       const {
-        minReadySeconds, revisionHistoryLimit, progressDeadlineSeconds, terminationGracePeriodSeconds, partition
+        minReadySeconds, revisionHistoryLimit, progressDeadlineSeconds, terminationGracePeriodSeconds
       } = this;
       let { maxSurge, maxUnavailable } = this;
 
@@ -160,15 +159,11 @@ export default {
         break;
       }
       case WORKLOAD_TYPES.STATEFUL_SET: {
-        let updateStrategy;
+        const updateStrategy = { type: this.strategy };
 
-        if (this.strategy === 'RollingUpdate') {
-          updateStrategy = { rollingUpdate: { partition }, type: this.strategy };
-        } else {
-          updateStrategy = { type: this.strategy };
-        }
-
-        Object.assign(this.value, { updateStrategy, revisionHistoryLimit });
+        Object.assign(this.value, {
+          updateStrategy, revisionHistoryLimit, podManagementPolicy: this.podManagementPolicy
+        });
         break;
       }
       default:
@@ -205,23 +200,24 @@ export default {
           :options="strategyOptions.options"
           :labels="strategyOptions.labels"
           :mode="mode"
+          @input="update"
+        />
+      </div>
+    </div>
+    <div v-if="isStatefulSet" class="row mb-20">
+      <div class="col span-6">
+        <RadioGroup
+          v-model="podManagementPolicy"
+          name="podManagement"
+          :mode="mode"
+          :label="t('workload.upgrading.podManagementPolicy.label')"
+          :options="['OrderedReady', 'Parallel']"
+          @input="update"
         />
       </div>
     </div>
     <template v-if="strategy === 'RollingUpdate'">
-      <div v-if="isStatefulSet" class="row mb-20">
-        <div class="col span-6">
-          <UnitInput v-model="partition" :suffix="partition == 1 ? 'Pod' : 'Pods'" :label="t('workload.upgrading.partition.label')" :mode="mode">
-            <template #label>
-              <label :style="{'color':'var(--input-label)'}">
-                {{ t('workload.upgrading.partition.label') }}
-                <i v-tooltip="t('workload.upgrading.partition.tip')" class="icon icon-info" style="font-size: 14px" />
-              </label>
-            </template>
-          </UnitInput>
-        </div>
-      </div>
-      <div v-else-if="isDeployment || isDaemonSet" class="row mb-20">
+      <div v-if="isDeployment || isDaemonSet" class="row mb-20">
         <div v-if="isDeployment" class="col span-6">
           <InputWithSelect
             :text-value="maxSurge"
@@ -234,7 +230,7 @@ export default {
             @input="e=>updateWithUnits(e, 'maxSurge')"
           >
             <template #label>
-              <label :style="{'color':'var(--input-label)'}">
+              <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.upgrading.maxSurge.label') }}
                 <i v-tooltip="t('workload.upgrading.maxSurge.label')" class="icon icon-info" style="font-size: 14px" />
               </label>
@@ -253,7 +249,7 @@ export default {
             @input="e=>updateWithUnits(e, 'maxUnavailable')"
           >
             <template #label>
-              <label :style="{'color':'var(--input-label)'}">
+              <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.upgrading.maxUnavailable.label') }}
                 <i v-tooltip="t('workload.upgrading.maxUnavailable.label')" class="icon icon-info" style="font-size: 14px" />
               </label>
@@ -268,7 +264,7 @@ export default {
       <div v-if="!isStatefulSet" class="col span-6">
         <UnitInput v-model="minReadySeconds" :suffix="minReadySeconds == 1 ? 'Second' : 'Seconds'" :label="t('workload.upgrading.minReadySeconds.label')" :mode="mode">
           <template #label>
-            <label :style="{'color':'var(--input-label)'}">
+            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.upgrading.minReadySeconds.label') }}
               <i v-tooltip="t('workload.upgrading.minReadySeconds.tip')" class="icon icon-info" style="font-size: 14px" />
             </label>
@@ -278,7 +274,7 @@ export default {
       <div v-if="isDeployment || isStatefulSet || isDaemonSet" class="col span-6">
         <UnitInput v-model="revisionHistoryLimit" :suffix="revisionHistoryLimit == 1 ? 'Set' : 'Sets'" :label="t('workload.upgrading.revisionHistoryLimit.label')" :mode="mode">
           <template #label>
-            <label :style="{'color':'var(--input-label)'}">
+            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.upgrading.revisionHistoryLimit.label') }}
               <i v-tooltip="t('workload.upgrading.revisionHistoryLimit.tip')" class="icon icon-info" style="font-size: 14px" />
             </label>
@@ -290,9 +286,9 @@ export default {
       <div class="col span-6">
         <UnitInput v-model="progressDeadlineSeconds" :suffix="progressDeadlineSeconds == 1 ? 'Second' : 'Seconds'" label="Progress Deadline" :mode="mode">
           <template #label>
-            <label :style="{'color':'var(--input-label)'}">
-              Progress Deadline
-              <i v-tooltip="'How long to wait without seeing progress before marking the deployment as stalled.'" class="icon icon-info" style="font-size: 14px" />
+            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
+              {{ t('workload.upgrading.progressDeadlineSeconds.label') }}
+              <i v-tooltip="t('workload.upgrading.progressDeadlineSeconds.tip')" class="icon icon-info" style="font-size: 14px" />
             </label>
           </template>
         </UnitInput>
