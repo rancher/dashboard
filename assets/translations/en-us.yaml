@@ -138,7 +138,7 @@ backupRestoreOperator:
   backupFilename: Backup Filename
   prune: 
     label: Prune
-    tip: Delete all resources that are not in the backup, but match the ResourceSet used during backup. (Recommended)
+    tip: Delete all resources that match the ResourceSet used, but are not present in the backup. (Recommended)
   encryption: Encryption
   encryptionConfigName: 
     label: Encryption Config Secret
@@ -148,7 +148,7 @@ backupRestoreOperator:
       secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
   deleteTimeout: 
     label: Delete Timeout
-    tip: Amount of time to wait while deleting a resource before editing the resource to remove finalizers and attempt to delete again.
+    tip: Seconds to wait for a resource delete to succeed before removing finalizers to force deletion.
   resourceSetName: Resource Set
   schedule: 
     label: Schedule
