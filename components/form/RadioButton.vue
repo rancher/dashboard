@@ -95,6 +95,7 @@ export default {
     <span
       v-if="label"
       class="radio-label"
+      v-html="label"
     >
       <slot name="label">{{ label }}</slot>
     </span>

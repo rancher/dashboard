@@ -95,6 +95,46 @@
       }
     }
   }
+
+  &.tooltip-warning {
+    .tooltip-inner {
+      background: var(--tooltip-bg-warning);
+      color: var(--tooltip-text-warning);
+    }
+  
+    &[x-placement^="top"] {
+      .tooltip-arrow {
+        &:after {
+          border-top-color: var(--tooltip-bg-warning);
+        }
+      }
+    }
+  
+  
+    &[x-placement^="bottom"] {
+      .tooltip-arrow {
+        &:after {
+          border-bottom-color: var(--body-bg);
+        }
+      }
+    }
+  
+    &[x-placement^="right"] {
+      .tooltip-arrow {
+        &:after {
+          border-right-color: var(--tooltip-bg-warning);
+        }
+      }
+    }
+  
+    &[x-placement^="left"] {
+      .tooltip-arrow {
+        &:after {
+          border-left-color: var(--tooltip-bg-warning);
+        }
+      }
+    }
+  }
 }
 
 .popover {

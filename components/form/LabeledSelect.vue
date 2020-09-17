@@ -42,6 +42,10 @@ export default {
       type:    String,
       default: null
     },
+    hoverTooltip: {
+      type:    Boolean,
+      default: false
+    },
     localizedLabel: {
       type:    Boolean,
       default: false
@@ -205,7 +209,7 @@ export default {
         <span style="display: none"></span>
       </template>
     </v-select>
-    <LabeledTooltip v-if="tooltip && !focused" :value="tooltip" :status="status" />
+    <LabeledTooltip v-if="tooltip && !focused" v-tooltip="hoverTooltip ? {content: tooltip, classes: [`tooltip-${status}`]} : null" :value="hoverTooltip ? null : tooltip" :status="status" />
   </div>
 </template>
 

@@ -9,6 +9,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
+import Loading from '@/components/Loading';
 import { mapGetters } from 'vuex';
 import { SECRET, BACKUP_RESTORE, CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
@@ -26,7 +27,8 @@ export default {
     LabeledSelect,
     RadioGroup,
     NameNsDescription,
-    Banner
+    Banner,
+    Loading
   },
   mixins: [createEditView],
 
@@ -60,19 +62,17 @@ export default {
     if (!this.value.spec) {
       this.$set(this.value, 'spec', { retentionCount: 10 });
     }
-    if (!this.value.spec.storageLocation) {
-      this.$set(this.value.spec, 'storageLocation', { s3: {} });
-    }
-    const s3 = this.value.spec.storageLocation.s3;
+
+    const s3 = {};
 
     return {
-      allSecrets: [], allResourceSets: [], s3, storageSource: 'useDefault', useEncryption: false, releases: []
+      allSecrets: [], allResourceSets: [], s3, storageSource: 'useDefault', useEncryption: false, releases: [], setSchedule: false,
     };
   },
 
   computed: {
     chartNamespace() {
-      const BRORelease = this.releases.filter(release => get(release, 'spec.name' === 'backup-restore-operator'))[0];
+      const BRORelease = this.releases.filter(release => get(release, 'spec.name') === 'backup-restore-operator')[0];
 
       return BRORelease ? BRORelease.spec.namespace : '';
     },
@@ -131,11 +131,35 @@ export default {
 
     ...mapGetters({ t: 'i18n/t' })
   },
+
+  watch: {
+    storageSource(neu) {
+      if (neu === 'useDefault') {
+        delete this.value.spec.storageLocation;
+      } else {
+        this.$set(this.value.spec, 'storageLocation', this.s3);
+      }
+    },
+
+    namespacedResourceSetNames(neu) {
+      if (neu.length === 1) {
+        this.$set(this.value.spec, 'resourceSetName', neu[0]);
+      }
+    },
+
+    setSchedule(neu) {
+      if (!neu) {
+        delete this.value.spec.schedule;
+        delete this.value.spec.retentionCount;
+      }
+    }
+  }
 };
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <CruResource :validation-passed="!!value.spec.resourceSetName && !!value.spec.resourceSetName.length" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
       <template>
         <NameNsDescription :mode="mode" :value="value" :namespaced="false" />
@@ -145,11 +169,21 @@ export default {
               <div class="col span-6">
                 <LabeledSelect v-model="value.spec.resourceSetName" required :mode="mode" :options="namespacedResourceSetNames" :label="t('backupRestoreOperator.resourceSetName')" />
               </div>
-              <div class="col span-6">
-                <LabeledInput v-model="value.spec.schedule" :mode="mode" type="number" :label="t('backupRestoreOperator.schedule.label')" :placeholder="t('backupRestoreOperator.schedule.placeholder')" />
-              </div>
             </div>
-            <div class="row mb-10">
+          </div>
+          <div class="bordered-section">
+            <RadioGroup
+              v-model="setSchedule"
+              :mode="mode"
+              :label="t('backupRestoreOperator.schedule.label')"
+              name="setSchedule"
+              :options="[false, true]"
+              :labels="[t('backupRestoreOperator.schedule.options.disabled'), t('backupRestoreOperator.schedule.options.enabled')]"
+            />
+            <div v-if="setSchedule" class="row mt-10 mb-10">
+              <div class="col span-6">
+                <LabeledInput v-model="value.spec.schedule" :mode="mode" :label="t('backupRestoreOperator.schedule.label')" :placeholder="t('backupRestoreOperator.schedule.placeholder')" />
+              </div>
               <div class="col span-6">
                 <UnitInput v-model="value.spec.retentionCount" :suffix="t('backupRestoreOperator.retentionCount.units', {count: value.spec.retentionCount || 0})" :mode="mode" :label="t('backupRestoreOperator.retentionCount.label')" />
               </div>
@@ -165,6 +199,7 @@ export default {
                   :label="t('backupRestoreOperator.encryption')"
                   :options="encryptionOptions.options"
                   :labels="encryptionOptions.labels"
+                  :mode="mode"
                 />
               </div>
             </div>
@@ -180,9 +215,10 @@ export default {
               <RadioGroup
                 v-model="storageSource"
                 name="storageSource"
-                :label="t('backupRestoreOperator.s3.titles.location')"
+                :label="t('backupRestoreOperator.s3.titles.backupLocation')"
                 :options="storageOptions.options"
                 :labels="storageOptions.labels"
+                :mode="mode"
               />
             </div>
           </div>

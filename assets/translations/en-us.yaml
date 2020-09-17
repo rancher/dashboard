@@ -138,19 +138,28 @@ backupRestoreOperator:
   backupFilename: Backup Filename
   prune: 
     label: Prune
-    tip: Enabling "Prune" will delete only those resources/CRs that are managed by the backed up application, and that were not present on the cluster when backup was performed.
+    tip: Delete all resources that match the ResourceSet used, but are not present in the backup. (Recommended)
   encryption: Encryption
   encryptionConfigName: 
     label: Encryption Config Secret
-    tip: If the backup that this Restore references was created with encryption enabled, the same encryptionConfig file must be used here
+    tip: If the backup was performed with encryption enabled, a Secret containing the same encryption-provider-config should be used during restore.
     options:
       none: Store the contents of the backup unencrypted
-      secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a>
-  deleteTimeout: Delete Timeout
+      secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
+  deleteTimeout: 
+    label: Delete Timeout
+    tip: Seconds to wait for a resource delete to succeed before removing finalizers to force deletion.
   resourceSetName: Resource Set
   schedule: 
     label: Schedule
     placeholder: e.g. @midnight or 0 0 * * *
+    options: 
+      disabled: One-Time Backup
+      enabled: Recurring Backups
+  restoreFrom:
+    existing: An existing backup config
+    default: The default storage target
+    s3: An S3-compatible object store
   retentionCount: 
     label: Retention Count
     units: |-
@@ -160,6 +169,7 @@ backupRestoreOperator:
       }
   s3:
     titles:
+      backupLocation: Select Backup Source
       location: Storage Location
       s3: S3
     credentialSecretName:  Credential Secret
@@ -171,7 +181,7 @@ backupRestoreOperator:
     folder: Folder
     insecureTLSSkipVerify: Skip TLS Verifications
   storageSource:
-    useDefault: Use the the default storage location configured during installation
+    useDefault: Use the default storage location configured during installation
     configureS3: Use an S3-compatible object store
     useBackup: Use the s3 location specified on the Backup CR
   targetBackup: Target Backup
