@@ -353,6 +353,7 @@ export default {
     & .tabs {
       width: $sideways-tabs-width;
       min-width: $sideways-tabs-width;
+      margin: 10px 0;
 
       & .tab {
         width: 100%;
@@ -363,7 +364,7 @@ export default {
         }
 
         A {
-          color: var(--input-label);
+          color: var(--primary);
         }
 
         &.active {
@@ -371,11 +372,10 @@ export default {
           border-left: solid 5px var(--primary);
 
           & A{
-            color: var(--primary);
+            color: var(--input-label);
           }
         }
       }
-
     }
 
     & .tab-container{
