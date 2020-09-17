@@ -224,18 +224,16 @@ export const actions = {
     }
   },
 
-  async logout({ dispatch, commit }, clearToken = true) {
-    if ( clearToken !== false ) {
-      try {
-        await dispatch('rancher/request', {
-          url:           '/v3/tokens?action=logout',
-          method:        'post',
-          data:          {},
-          headers:       { 'Content-Type': 'application/json' },
-          logoutOnError: false,
-        }, { root: true });
-      } catch (e) {
-      }
+  async logout({ dispatch, commit }) {
+    try {
+      await dispatch('rancher/request', {
+        url:                  '/v3/tokens?action=logout',
+        method:               'post',
+        data:                 {},
+        headers:              { 'Content-Type': 'application/json' },
+        redirectUnauthorized: false,
+      }, { root: true });
+    } catch (e) {
     }
 
     commit('loggedOut');

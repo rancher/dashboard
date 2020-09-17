@@ -19,8 +19,11 @@ export const DOWNLOAD = {
 };
 
 export const INTERNAL_EXTERNAL_IP = {
+  // @TODO this is called internal/external but displays external/internal (╯°□°)╯︵ ┻━┻
   name:      'internal-external-ip',
   labelKey:  'tableHeaders.internalExternalIp',
+  search:    ['externalIp', 'internalIp'],
+  sort:      ['externalIp', 'internalIp'],
   formatter: 'InternalExternalIP'
 };
 
@@ -148,6 +151,7 @@ export const CPU = {
   name:      'cpu',
   labelKey:  'tableHeaders.cpu',
   sort:      'cpu',
+  search:    false,
   value:     'cpuUsagePercentage',
   formatter: 'PercentageBar',
   width:     120,
@@ -157,6 +161,7 @@ export const RAM = {
   name:      'ram',
   labelKey:  'tableHeaders.ram',
   sort:      'ram',
+  search:    false,
   value:     'ramUsagePercentage',
   formatter: 'PercentageBar',
   width:     120,

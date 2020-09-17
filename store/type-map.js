@@ -730,6 +730,10 @@ export const getters = {
           formatterOpts = { multiline: true };
         }
 
+        if ( col.type === 'number' || col.type === 'int' ) {
+          formatter = 'Number';
+        }
+
         return {
           name:  col.name.toLowerCase(),
           label: col.name,

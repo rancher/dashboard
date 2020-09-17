@@ -13,17 +13,24 @@ export default {
       type:    String,
       default: null,
     },
+    closable: {
+      type:    Boolean,
+      defualt: false,
+    }
   }
 };
 </script>
 <template>
-  <div class="banner" :class="{[color]: true}">
+  <div class="banner" :class="{[color]: true, closable}">
     <slot>
-      <t v-if="labelKey" :k="labelKey" />
+      <t v-if="labelKey" :k="labelKey" :raw="true" />
       <template v-else>
         {{ label }}
       </template>
     </slot>
+    <div v-if="closable" class="closer" @click="$emit('close')">
+      <i class="icon icon-2x icon-close" />
+    </div>
   </div>
 </template>
 
@@ -34,6 +41,22 @@ export default {
     width: 100%;
     border-radius: var(--border-radius);
     transition: all 0.2s ease;
+    position: relative;
+
+    &.closable {
+      margin-right: 40px;
+    }
+
+    .closer {
+      cursor: pointer;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 40px;
+      line-height: 42px;
+      text-align: center;
+    }
 
     &.primary {
       background: var(--primary);

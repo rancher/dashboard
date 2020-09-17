@@ -549,7 +549,7 @@ export default {
           <NameNsDescription :value="value" :mode="mode" @change="name=value.metadata.name" />
         </div>
       </div>
-      <Tabbed :show-more-label="t('workload.showTabs')" :hide-more-label="t('workload.hideTabs')" :side-tabs="true">
+      <Tabbed :side-tabs="true">
         <Tab :label="t('workload.container.titles.container')" name="container">
           <div class="bordered-section">
             <div v-if="isCronJob || isReplicable" class="row">
@@ -645,7 +645,7 @@ export default {
             :config-maps="namespacedConfigMaps"
           />
         </Tab>
-        <Tab :can-toggle="true" :label="t('workload.container.titles.resources')" name="resources">
+        <Tab :label="t('workload.container.titles.resources')" name="resources">
           <ContainerResourceLimit v-model="flatResources" class="bordered-section" :mode="mode" :show-tip="false" />
           <div class="bordered-section">
             <h3 class="mb-10">
@@ -670,26 +670,26 @@ export default {
             </div>
           </div>
         </Tab>
-        <Tab :can-toggle="true" :label="t('workload.container.titles.podScheduling')" name="podScheduling">
+        <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
           <PodScheduling :mode="mode" :value="podTemplateSpec" />
         </Tab>
-        <Tab :can-toggle="true" :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
+        <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
           <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
         </Tab>
-        <Tab :can-toggle="true" label="Scaling/Upgrade Policy" name="upgrading">
+        <Tab label="Scaling/Upgrade Policy" name="upgrading">
           <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
           <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
         </Tab>
-        <Tab :can-toggle="true" :label="t('workload.container.titles.healthCheck')" name="healthCheck">
+        <Tab :label="t('workload.container.titles.healthCheck')" name="healthCheck">
           <HealthCheck v-model="healthCheck" :mode="mode" />
         </Tab>
-        <Tab :can-toggle="true" :label="t('workload.container.titles.securityContext')" name="securityContext">
+        <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
           <Security v-model="container.securityContext" :mode="mode" />
         </Tab>
-        <Tab :can-toggle="true" :label="t('workload.container.titles.networking')" name="networking">
+        <Tab :label="t('workload.container.titles.networking')" name="networking">
           <Networking v-model="podTemplateSpec" :mode="mode" />
         </Tab>
-        <Tab v-if="isStatefulSet" :can-toggle="true" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
+        <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
           <ArrayList v-model="spec.volumeClaimTemplates" :mode="mode" :add-label="t('workload.storage.addClaim')" :default-add-value="''">
             <template #value="{row, queueUpdate}">
               <LabeledSelect :mode="mode" :label="t('workload.storage.subtypes.persistentVolumeClaim')" :value="row.value" :options="pvcs" @input="queueUpdate" />
