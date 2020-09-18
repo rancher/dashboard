@@ -4,6 +4,8 @@ import SortableTable from '@/components/SortableTable';
 import { defaultAsyncData } from '@/components/ResourceDetail';
 import { CIS } from '@/config/types';
 import { STATE } from '@/config/table-headers';
+import { randomStr } from '@/utils/string';
+import { get } from '@/utils/object';
 
 export default {
   components: {
@@ -21,7 +23,7 @@ export default {
   },
 
   async fetch() {
-    this.owned = await this.value.getOwned();
+    this.clusterReport = await this.value.getReport();
   },
 
   asyncData(ctx) {
@@ -29,50 +31,43 @@ export default {
   },
 
   data() {
-    return { owned: [] };
+    return { clusterReport: null };
   },
 
   computed: {
-    clusterReport() {
-      return this.owned.filter(each => each.type === CIS.REPORT)[0];
-    },
 
     parsedData() {
-      if (!this.clusterReport) {
-        return null;
-      }
-      const { spec:{ reportJSON } } = this.clusterReport;
+      const reportJSON = get(this.clusterReport, 'spec.reportJSON');
 
-      return JSON.parse(reportJSON);
+      return reportJSON ? JSON.parse(reportJSON) : null;
     },
 
     reportNodes() {
-      return this.parsedData ? this.parsedData.nodes : {};
+      // return this.parsedData ? this.parsedData.nodes : {};
+      return { master: ['node1', 'node2'] };
     },
 
     results() {
-      return this.parsedData ? this.parsedData.results.reduce((all, result) => {
-        if (result.checks) {
-          result = result.checks.map((check) => {
-            check.testStateSort = this.testStateSort(check.state);
-            if (!!check.node_type) {
-              check.nodes = check.node_type.reduce((names, type) => {
-                if (this.reportNodes[type]) {
-                  names.push(...this.reportNodes[type]);
-                }
+      if (!this.clusterReport) {
+        return [];
+      }
 
-                return names;
-              }, []);
+      return this.clusterReport.aggregatedTests.map((check) => {
+        check.testStateSort = this.testStateSort(check.state);
+        if (!!check.node_type) {
+          check.nodes = check.node_type.reduce((nodes, type) => {
+            if (this.reportNodes[type]) {
+              this.reportNodes[type].forEach(name => nodes.push({
+                type, name, id: randomStr(4), state: check.state
+              }));
             }
 
-            return check;
-          });
+            return nodes;
+          }, []);
         }
 
-        all.push(...result);
-
-        return all;
-      }, []) : [];
+        return check;
+      });
     },
 
     details() {
@@ -140,14 +135,22 @@ export default {
           name:  'description',
           label: this.t('cis.scan.description'),
           value: 'description'
-        },
+        }
+      ];
+    },
+
+    nodeTableHeaders() {
+      return [
         {
           name:      'node',
-          label:     'Nodes',
-          value:     'nodes',
-          formatter: 'List',
-          sort:      'nodes'
-        }
+          label:     this.t('tableHeaders.name'),
+          value:     'name',
+        },
+        {
+          name:      'type',
+          label:     this.t('tableHeaders.type'),
+          value:     'type',
+        },
 
       ];
     },
@@ -181,7 +184,7 @@ export default {
         <span v-else>{{ item.value }}</span>
       </div>
     </div>
-    <div v-if="parsedData">
+    <div v-if="results">
       <h3>{{ t('cis.scan.scanReport') }}</h3>
       <SortableTable
         default-sort-by="state"
@@ -189,9 +192,28 @@ export default {
         :row-actions="false"
         :table-actions="false"
         :rows="results"
+        :sub-rows="true"
+        :sub-expandable="true"
+        :sub-expand-column="true"
         :headers="reportCheckHeaders"
         key-field="id"
-      />
+      >
+        <template #sub-row="{row, fullColspan}">
+          <tr>
+            <td :colspan="fullColspan">
+              <SortableTable
+                class="sub-table"
+                :rows="row.nodes"
+                :headers="nodeTableHeaders"
+                :search="false"
+                :row-actions="false"
+                :table-actions="false"
+                key-field="id"
+              />
+            </td>
+          </tr>
+        </template>
+      </SortableTable>
     </div>
   </div>
 </template>
@@ -207,5 +229,9 @@ export default {
     & .div {
         padding: 0px 10px 0px 10px;
     }
+}
+
+.sub-table {
+  padding: 0px 40px 0px 40px;
 }
 </style>

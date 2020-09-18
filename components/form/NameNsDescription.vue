@@ -166,10 +166,6 @@ export default {
       return out;
     },
 
-    hasName() {
-      return !!this.name;
-    },
-
     isView() {
       return this.mode === _VIEW;
     },

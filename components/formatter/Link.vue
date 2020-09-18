@@ -18,6 +18,11 @@ export default {
       required: true
     },
 
+    to: {
+      type:    Object,
+      default: null
+    },
+
     urlKey: {
       type:    String,
       default: null,
@@ -58,6 +63,18 @@ export default {
     href() {
       if ( this.urlKey ) {
         return get(this.row, this.urlKey);
+      }
+
+      if ((this.options === 'internal' || this.options?.internal) && this.to) {
+        const defaultParams = this.$route.params;
+        const toParams = this.to.params || {};
+
+        return {
+          ...this.to,
+          params: {
+            id: this.value, ...defaultParams, ...toParams
+          }
+        };
       }
 
       return this.value?.url;

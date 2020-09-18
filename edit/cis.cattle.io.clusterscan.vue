@@ -98,7 +98,7 @@ export default {
       const clusterVersion = currentCluster.kubernetesVersion;
 
       if (!!benchmark?.spec?.clusterProvider) {
-        return benchmark?.spec?.clusterProvider === currentCluster.provider;
+        return benchmark?.spec?.clusterProvider === currentCluster.status.provider;
       }
       if (benchmark?.spec?.minKubernetesVersion) {
         if (semver.gt(benchmark?.spec?.minKubernetesVersion, clusterVersion)) {
