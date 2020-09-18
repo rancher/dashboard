@@ -38,12 +38,12 @@ export default {
         this.value.tolerations = [
           {
             key:    'node-role.kubernetes.io/controlplane',
-            value:  true,
+            value:  'true',
             effect: 'NoSchedule',
           },
           {
             key:    'node-role.kubernetes.io/etcd',
-            value:  true,
+            value:  'true',
             effect: 'NoExecute'
           }
         ];
