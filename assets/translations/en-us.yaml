@@ -225,6 +225,7 @@ catalog:
       chartOptions: Chart Options
       valuesYaml: Values YAML
       helm: Helm Options
+    project: Install into Project
     helm:
       atomic: Atomic
       cleanupOnFail: Cleanup on Failure
@@ -352,7 +353,7 @@ clusterIndexPage:
     podsReserved: Pods Reserved
     ramReserved: Memory Reserved
     ramUsed: Memory Used
-  header: Overview
+  header: Cluster Dashboard
   resourceGauge:
     totalResources: Total Resources
   sections:
@@ -1651,12 +1652,17 @@ typeLabel:
       one { Endpoint }
       other { Endpoints }
     }
+  fleet.cattle.io.cluster: |-
+    {count, plural,
+      =1 { Cluster }
+      other {Clusters }
+    }
   fleet.cattle.io.clustergroup: |-
     {count, plural,
       one { Cluster Group }
       other {Cluster Groups }
     }
-  fleet.cattle.io.gitrepos: |-
+  fleet.cattle.io.gitrepo: |-
     {count, plural,
       one { Git Repo }
       other {Git Repos }

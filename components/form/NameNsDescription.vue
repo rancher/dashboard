@@ -61,6 +61,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    namespaceNewAllowed: {
+      type:    Boolean,
+      default: false,
+    },
 
     descriptionLabel: {
       type:    String,
@@ -251,6 +255,7 @@ export default {
             :select-value="namespace"
             :options="namespaces"
             :searchable="true"
+            :taggable="namespaceNewAllowed"
             @input="changeNameAndNamespace($event)"
           />
           <LabeledInput
