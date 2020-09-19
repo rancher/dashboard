@@ -4,6 +4,7 @@ import isEmpty from 'lodash/isEmpty';
 import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
+import { mapState } from 'vuex';
 
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
@@ -96,108 +97,119 @@ export default {
       });
     }
 
-    if ( this.chart?.targetNamespace ) {
-      this.forceNamespace = this.chart.targetNamespace;
-    } else if ( query[NAMESPACE] ) {
-      this.forceNamespace = query[NAMESPACE];
-    } else {
-      this.forceNamespace = null;
-    }
-
-    if ( this.chart?.targetName ) {
-      this.value.metadata.name = this.chart.targetName;
+    if ( this.existing ) {
+      this.forceNamespace = this.existing.metadata.namespace;
       this.nameDisabled = true;
-    } else if ( query[NAME] ) {
-      this.value.metadata.name = query[name];
     } else {
-      this.nameDisabled = false;
+      if ( this.chart?.targetNamespace ) {
+        this.forceNamespace = this.chart.targetNamespace;
+      } else if ( query[NAMESPACE] ) {
+        this.forceNamespace = query[NAMESPACE];
+      } else {
+        this.forceNamespace = null;
+      }
+
+      if ( this.chart?.targetName ) {
+        this.value.metadata.name = this.chart.targetName;
+        this.nameDisabled = true;
+      } else if ( query[NAME] ) {
+        this.value.metadata.name = query[name];
+      } else {
+        this.nameDisabled = false;
+      }
+
+      if ( query[DESCRIPTION_QUERY] ) {
+        this.value.setAnnotation(DESCRIPTION_ANNOTATION, query[DESCRIPTION_QUERY]);
+      }
     }
 
-    if ( query[DESCRIPTION_QUERY] ) {
-      this.value.setAnnotation(DESCRIPTION_ANNOTATION, query[DESCRIPTION_QUERY]);
+    if ( !this.chart ) {
+      return;
     }
 
-    if ( !versionName && this.chart?.versions?.length ) {
+    if ( !versionName && this.chart.versions?.length ) {
       versionName = this.chart.versions[0].version;
     }
 
-    if ( versionName ) {
-      this.version = this.$store.getters['catalog/version']({
+    if ( !versionName ) {
+      return;
+    }
+
+    this.version = this.$store.getters['catalog/version']({
+      repoType, repoName, chartName, versionName
+    });
+
+    try {
+      this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
         repoType, repoName, chartName, versionName
       });
+    } catch (e) {
+      console.error(e); // eslint-disable-line no-console
+      throw e;
+    }
 
-      try {
-        this.versionInfo = await this.$store.dispatch('catalog/getVersionInfo', {
-          repoType, repoName, chartName, versionName
+    if ( this.version && process.client ) {
+      await this.loadValuesComponent();
+    }
+
+    const required = (this.version.annotations?.[CATALOG_ANNOTATIONS.REQUIRES_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
+
+    if ( required.length ) {
+      for ( const gvr of required ) {
+        if ( this.$store.getters['catalog/isInstalled']({ gvr }) ) {
+          continue;
+        }
+
+        const provider = this.$store.getters['catalog/versionProviding']({
+          gvr,
+          repoName: this.chart.repoName,
+          repoType: this.chart.repoType
         });
-      } catch (e) {
-        console.error(e); // eslint-disable-line no-console
-        throw e;
-      }
 
-      if ( this.version && process.client ) {
-        await this.loadValuesComponent();
-      }
-
-      const required = (this.version.annotations?.[CATALOG_ANNOTATIONS.REQUIRES_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
-
-      if ( required.length ) {
-        for ( const gvr of required ) {
-          if ( this.$store.getters['catalog/isInstalled']({ gvr }) ) {
-            continue;
+        const url = this.$router.resolve({
+          name:   'c-cluster-apps-install',
+          params: {
+            cluster:  this.$route.params.cluster,
+            product:  this.$store.getters['productId'],
+          },
+          query: {
+            [REPO_TYPE]: provider.repoType,
+            [REPO]:      provider.repoName,
+            [CHART]:     provider.name,
+            [VERSION]:   provider.version,
           }
+        }).href;
 
-          const provider = this.$store.getters['catalog/versionProviding']({
-            gvr,
-            repoName: this.chart.repoName,
-            repoType: this.chart.repoType
-          });
-
-          const url = this.$router.resolve({
-            name:   'c-cluster-apps-install',
-            params: {
-              cluster:  this.$route.params.cluster,
-              product:  this.$store.getters['productId'],
-            },
-            query: {
-              [REPO_TYPE]: provider.repoType,
-              [REPO]:      provider.repoName,
-              [CHART]:     provider.name,
-              [VERSION]:   provider.version,
-            }
-          }).href;
-
-          if ( provider ) {
-            this.requires.push(`<a href="${ url }">${ provider.name }</a> must be installed before you can install this chart.`);
-          } else {
-            this.warnings.push(`This chart requires another chart that provides ${ gvr }, but none was was found`);
-          }
-        }
-      }
-
-      const updateValues = (this.existing && !this.chartValues) ||
-        (!this.existing && (!this.loadedVersion || this.loadedVersion !== this.version.key) );
-
-      if ( updateValues ) {
-        if ( this.existing ) {
-          // For an existing app, use the previous values
-          this.chartValues = merge(merge({}, this.versionInfo.values), this.existing.spec?.values || {});
+        if ( provider ) {
+          this.requires.push(`<a href="${ url }">${ provider.name }</a> must be installed before you can install this chart.`);
         } else {
-          // If the chart/version changes, replace their values with the new one
-          this.chartValues = merge({}, this.versionInfo.values);
+          this.warnings.push(`This chart requires another chart that provides ${ gvr }, but none was was found`);
         }
-
-        this.removeGlobalValuesFrom(this.chartValues);
-
-        this.loadedVersion = this.version.key;
-        this.valuesYaml = jsyaml.safeDump(this.chartValues);
-
-        if ( this.valuesYaml === '{}\n' ) {
-          this.valuesYaml = '';
-        }
-
-        this.originalYamlValues = this.valuesYaml;
       }
+    }
+
+    const updateValues = (this.existing && !this.chartValues) ||
+      (!this.existing && (!this.loadedVersion || this.loadedVersion !== this.version.key) );
+
+    if ( updateValues ) {
+      if ( this.existing ) {
+        // For an existing app, use the previous values
+        this.chartValues = merge(merge({}, this.versionInfo.values), this.existing.spec?.values || {});
+      } else {
+        // If the chart/version changes, replace their values with the new one
+        this.chartValues = merge({}, this.versionInfo.values);
+      }
+
+      this.removeGlobalValuesFrom(this.chartValues);
+
+      this.loadedVersion = this.version.key;
+      this.valuesYaml = jsyaml.safeDump(this.chartValues);
+
+      if ( this.valuesYaml === '{}\n' ) {
+        this.valuesYaml = '';
+      }
+
+      this.originalYamlValues = this.valuesYaml;
     }
   },
 
@@ -217,6 +229,7 @@ export default {
       valuesYaml:             null,
       version:                null,
       versionInfo:            null,
+      project:                null,
       requires:               [],
       warnings:               [],
 
@@ -239,6 +252,39 @@ export default {
   },
 
   computed: {
+    ...mapState(['isMultiCluster']),
+
+    namespaceIsNew() {
+      const all = this.$store.getters['cluster/all'](NAMESPACE);
+      const want = this.value.metadata.namespace;
+
+      return !findBy(all, 'id', want);
+    },
+
+    showProject() {
+      return this.isMultiCluster && !this.existing && this.namespaceIsNew;
+    },
+
+    projectOpts() {
+      const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+      const out = projects.map((project) => {
+        return {
+          id:    project.id,
+          label: project.nameDisplay,
+          value: project.metadata.name,
+        };
+      });
+
+      out.unshift({
+        id:    'none',
+        label: '(None)',
+        value: null,
+      });
+
+      return out;
+    },
+
     isEntryTab() {
       const { tabName } = this;
 
@@ -551,6 +597,7 @@ export default {
         releaseName: form.metadata.name,
         namespace:   form.metadata.namespace,
         description: form.metadata?.annotations?.[DESCRIPTION_ANNOTATION],
+        projectId:   this.project,
         values,
       };
 
@@ -584,7 +631,7 @@ export default {
           constraint,
           repoName:     this.chart.repoName,
           repoType:     this.chart.repoType,
-          chartVersion: this.version.version
+          chartVersion: this.version.version,
         });
 
         if ( provider ) {
@@ -616,6 +663,7 @@ export default {
           version:     dependency.version,
           releaseName: dependency.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || dependency.name,
           namespace:   dependency.annotations[CATALOG_ANNOTATIONS.NAMESPACE] || chart.namespace,
+          projectId:   this.project,
           values:      this.addGlobalValuesTo({}),
         });
       }
@@ -644,19 +692,18 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
 
-  <div v-else-if="!chart">
-    Chart Not Found
-  </div>
-
-  <div v-else>
+  <form v-else>
     <h1 v-if="existing">
       <t k="catalog.install.header.upgrade" :name="existing.nameDisplay" />
     </h1>
-    <h1 v-else>
+    <h1 v-else-if="chart">
       <t k="catalog.install.header.install" :name="chart.chartName" />
     </h1>
+    <h1 v-else>
+      <t k="catalog.install.header.installGeneric" />
+    </h1>
 
-    <div class="chart-info mb-20">
+    <div v-if="chart" class="chart-info mb-20">
       <div class="logo-container">
         <div class="logo-bg">
           <LazyImage :src="chart.icon" class="logo" />
@@ -687,7 +734,7 @@ export default {
     </template>
 
     <template v-else>
-      <div v-if="existing" class="row mb-20">
+      <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
             label="Chart"
@@ -699,7 +746,7 @@ export default {
             @input="selectChart($event)"
           />
         </div>
-        <div class="col span-6">
+        <div v-if="chart" class="col span-6">
           <LabeledSelect
             label="Version"
             :value="$route.query.version"
@@ -711,58 +758,35 @@ export default {
           />
         </div>
       </div>
-      <NameNsDescription
-        v-else
-        v-model="value"
-        :mode="mode"
-        :name-disabled="nameDisabled"
-        :name-ns-hidden="!showNameEditor"
-        :force-namespace="forceNamespace"
-        :extra-columns="showVersions ? ['versions'] : []"
-      >
-        <template v-if="showVersions" #versions>
-          <LabeledSelect
-            label="Chart Version"
-            :value="$route.query.version"
-            option-label="version"
-            option-key="version"
-            :reduce="opt=>opt.version"
-            :options="chart.versions"
-            @input="selectVersion($event)"
-          />
-        </template>
-      </NameNsDescription>
+      <div v-if="chart">
+        <NameNsDescription
+          v-model="value"
+          :mode="mode"
+          :name-disabled="nameDisabled"
+          :name-ns-hidden="!showNameEditor"
+          :force-namespace="forceNamespace"
+          :namespace-new-allowed="!existing && !forceNamespace"
+          :extra-columns="showProject ? ['project'] : []"
+        >
+          <template v-if="showProject" #project>
+            <LabeledSelect v-model="project" :label="t('catalog.install.project')" option-key="id" :options="projectOpts" />
+          </template>
+        </NameNsDescription>
 
-      <Tabbed
-        :side-tabs="true"
-        :class="{'with-name': showNameEditor}"
-        @changed="tabChanged($event)"
-      >
-        <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="-1">
-          <!-- Negative weight makes it go before any valuesComponent tabs with no weight set -->
-          <Markdown v-if="showReadme" ref="readme" v-model="versionInfo.readme" class="md readme" />
-        </Tab>
+        <Tabbed
+          :side-tabs="true"
+          :class="{'with-name': showNameEditor}"
+          @changed="tabChanged($event)"
+        >
+          <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="-1">
+            <!-- Negative weight makes it go before any valuesComponent tabs with no weight set -->
+            <Markdown v-if="showReadme" ref="readme" v-model="versionInfo.readme" class="md readme" />
+          </Tab>
 
-        <template v-if="valuesComponent && showValuesComponent">
-          <component
-            :is="valuesComponent"
-            v-if="valuesTabs"
-            v-model="chartValues"
-            :chart="chart"
-            :version="version"
-            :version-info="versionInfo"
-            @warn="e=>warnings.push(e)"
-            @register-before-hook="registerBeforeHook"
-            @register-after-hook="registerAfterHook"
-          />
-          <Tab
-            v-else
-            name="values-form"
-            :label="t('catalog.install.section.chartOptions')"
-          >
+          <template v-if="valuesComponent && showValuesComponent">
             <component
               :is="valuesComponent"
-              v-if="valuesComponent"
+              v-if="valuesTabs"
               v-model="chartValues"
               :chart="chart"
               :version="version"
@@ -787,114 +811,131 @@ export default {
                 @register-before-hook="registerBeforeHook"
                 @register-after-hook="registerAfterHook"
               />
-            </Tab>
-          </tab>
-        </template>
-        <Questions
-          v-else-if="hasQuestions"
-          v-model="chartValues"
-          :chart="chart"
-          :version="version"
-          :version-info="versionInfo"
-          :target-namespace="targetNamespace"
-        />
-        <Tab v-else name="values-yaml" :label="t('catalog.install.section.valuesYaml')">
-          <YamlEditor
-            ref="yaml"
-            v-model="valuesYaml"
-            :scrolling="false"
-            :initial-yaml-values="originalYamlValues"
-            :editor-mode="editorMode"
-          />
-        </Tab>
-
-        <Tab name="helm" :label="t('catalog.install.section.helm')" :weight="100">
-          <div><Checkbox v-if="existing" v-model="cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
-          <div><Checkbox v-if="!existing" v-model="crds" :label="t('catalog.install.helm.crds')" /></div>
-          <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
-          <div><Checkbox v-if="existing" v-model="force" :label="t('catalog.install.helm.force')" /></div>
-          <div><Checkbox v-if="existing" v-model="resetValues" :label="t('catalog.install.helm.resetValues')" /></div>
-          <div><Checkbox v-if="!existing" v-model="openApi" :label="t('catalog.install.helm.openapi')" /></div>
-          <div><Checkbox v-model="wait" :label="t('catalog.install.helm.wait')" /></div>
-          <div style="display: block; max-width: 400px;" class="mt-10">
-            <UnitInput
-              v-model.number="timeout"
-              :label="t('catalog.install.helm.timeout.label')"
-              :suffix="t('catalog.install.helm.timeout.unit', {value: timeout})"
-            />
-          </div>
-          <div style="display: block; max-width: 400px;" class="mt-10">
-            <UnitInput
-              v-if="existing"
-              v-model.number="historyMax"
-              :label="t('catalog.install.helm.historyMax.label')"
-              :suffix="t('catalog.install.helm.historyMax.unit', {value: historyMax})"
-            />
-          </div>
-        </Tab>
-      </Tabbed>
-
-      <div v-for="(err, idx) in errors" :key="idx">
-        <Banner color="error" :label="stringify(err)" />
-      </div>
-
-      <CruResourceFooter
-        done-route="c-cluster-apps"
-        :mode="mode"
-        :finish-button-mode="(existing ? 'upgrade' : 'install')"
-        :is-form="!!showValuesComponent"
-        @cancel-confirmed="cancel"
-      >
-        <template #default="{checkCancel}">
-          <template v-if="!showValuesComponent">
-            <button
-              v-if="showPreview && isEntryTab"
-              type="button"
-              class="btn role-secondary"
-              @click="unpreview"
-            >
-              <t k="resourceYaml.buttons.continue" />
-            </button>
-
-            <button
-              v-if="isEntryTab && !showPreview"
-              :disabled="valuesYaml === originalYamlValues"
-              type="button"
-              class="btn role-secondary"
-              @click="preview"
-            >
-              <t k="resourceYaml.buttons.diff" />
-            </button>
+              <Tab
+                v-else
+                name="values-form"
+                :label="t('catalog.install.section.chartOptions')"
+              >
+                <component
+                  :is="valuesComponent"
+                  v-if="valuesComponent"
+                  v-model="chartValues"
+                  :chart="chart"
+                  :version="version"
+                  :version-info="versionInfo"
+                  @warn="e=>warnings.push(e)"
+                  @register-before-hook="registerBeforeHook"
+                  @register-after-hook="registerAfterHook"
+                />
+              </Tab>
+            </tab>
           </template>
+          <Questions
+            v-else-if="hasQuestions"
+            v-model="chartValues"
+            :chart="chart"
+            :version="version"
+            :version-info="versionInfo"
+            :target-namespace="targetNamespace"
+          />
+          <Tab v-else name="values-yaml" :label="t('catalog.install.section.valuesYaml')">
+            <YamlEditor
+              ref="yaml"
+              v-model="valuesYaml"
+              :scrolling="false"
+              :initial-yaml-values="originalYamlValues"
+              :editor-mode="editorMode"
+            />
+          </Tab>
 
-          <button
-            v-if="isEntryTab && showValuesComponent"
-            type="button"
-            class="btn role-secondary"
-            @click="showPreviewYaml"
-          >
-            {{ t("cruResource.previewYaml") }}
-          </button>
+          <Tab name="helm" :label="t('catalog.install.section.helm')" :weight="100">
+            <div><Checkbox v-if="existing" v-model="cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
+            <div><Checkbox v-if="!existing" v-model="crds" :label="t('catalog.install.helm.crds')" /></div>
+            <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
+            <div><Checkbox v-if="existing" v-model="force" :label="t('catalog.install.helm.force')" /></div>
+            <div><Checkbox v-if="existing" v-model="resetValues" :label="t('catalog.install.helm.resetValues')" /></div>
+            <div><Checkbox v-if="!existing" v-model="openApi" :label="t('catalog.install.helm.openapi')" /></div>
+            <div><Checkbox v-model="wait" :label="t('catalog.install.helm.wait')" /></div>
+            <div style="display: block; max-width: 400px;" class="mt-10">
+              <UnitInput
+                v-model.number="timeout"
+                :label="t('catalog.install.helm.timeout.label')"
+                :suffix="t('catalog.install.helm.timeout.unit', {value: timeout})"
+              />
+            </div>
+            <div style="display: block; max-width: 400px;" class="mt-10">
+              <UnitInput
+                v-if="existing"
+                v-model.number="historyMax"
+                :label="t('catalog.install.helm.historyMax.label')"
+                :suffix="t('catalog.install.helm.historyMax.unit', {value: historyMax})"
+              />
+            </div>
+          </Tab>
+        </Tabbed>
 
-          <div>
+        <div v-for="(err, idx) in errors" :key="idx">
+          <Banner color="error" :label="stringify(err)" />
+        </div>
+
+        <CruResourceFooter
+          done-route="c-cluster-apps"
+          :mode="mode"
+          :finish-button-mode="(existing ? 'upgrade' : 'install')"
+          :is-form="!!showValuesComponent"
+          @cancel-confirmed="cancel"
+        >
+          <template #default="{checkCancel}">
+            <template v-if="!showValuesComponent">
+              <button
+                v-if="showPreview && isEntryTab"
+                type="button"
+                class="btn role-secondary"
+                @click="unpreview"
+              >
+                <t k="resourceYaml.buttons.continue" />
+              </button>
+
+              <button
+                v-if="isEntryTab && !showPreview"
+                :disabled="valuesYaml === originalYamlValues"
+                type="button"
+                class="btn role-secondary"
+                @click="preview"
+              >
+                <t k="resourceYaml.buttons.diff" />
+              </button>
+            </template>
+
             <button
-              v-if="showBackButton"
+              v-if="isEntryTab && showValuesComponent"
               type="button"
               class="btn role-secondary"
-              @click="valuesYaml === originalYamlValues ? resetFromBack() : checkCancel(false)"
+              @click="showPreviewYaml"
             >
-              <t k="cruResource.backToForm" />
+              {{ t("cruResource.previewYaml") }}
             </button>
 
-            <AsyncButton
-              :mode="(existing ? 'upgrade' : 'install')"
-              @click="finish"
-            />
-          </div>
-        </template>
-      </CruResourceFooter>
+            <div>
+              <button
+                v-if="showBackButton"
+                type="button"
+                class="btn role-secondary"
+                @click="valuesYaml === originalYamlValues ? resetFromBack() : checkCancel(false)"
+              >
+                <t k="cruResource.backToForm" />
+              </button>
+
+              <AsyncButton
+                :mode="(existing ? 'upgrade' : 'install')"
+                @click="finish"
+              />
+            </div>
+          </template>
+        </CruResourceFooter>
+      </div>
     </template>
-  </div>
+  </form>
 </template>
 
 <style lang="scss" scoped>

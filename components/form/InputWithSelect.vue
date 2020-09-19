@@ -105,6 +105,7 @@ export default {
       :clearable="false"
       :disabled="disabled"
       :taggable="taggable"
+      :create-option="name => ({ label: name, value: name })"
       :multiple="false"
       :mode="mode"
       :option-label="optionLabel"

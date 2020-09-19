@@ -36,7 +36,7 @@ export function init(store) {
     icon:                'compass'
   });
 
-  basicType(['cluster-overview', HELM_RELEASE]);
+  basicType(['cluster-dashboard', HELM_RELEASE]);
   basicType([
     NAMESPACE,
     NODE,
@@ -163,10 +163,10 @@ export function init(store) {
   // ]);
 
   virtualType({
-    label:       'Overview',
+    label:       'Cluster Dashboard',
     group:      'Root',
     namespaced:  false,
-    name:        'cluster-overview',
+    name:        'cluster-dashboard',
     weight:      100,
     route:       { name: 'c-cluster-explorer' },
     exact:       true,
