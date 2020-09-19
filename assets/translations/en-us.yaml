@@ -1081,7 +1081,7 @@ tableHeaders:
   namespaceNameUnlinked: Name
   node: Node
   nodeName: Name
-  nodesReady: Clusters
+  nodesReady: Nodes
   object: Object
   output: Output
   p95: 95%tile
