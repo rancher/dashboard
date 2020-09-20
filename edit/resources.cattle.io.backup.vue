@@ -7,12 +7,9 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
-<<<<<<< HEAD
 import Loading from '@/components/Loading';
-=======
 import S3 from '@/chart/backup-restore-operator/S3';
 
->>>>>>> deployment original design
 import { mapGetters } from 'vuex';
 import { SECRET, BACKUP_RESTORE, CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
@@ -29,11 +26,8 @@ export default {
     RadioGroup,
     NameNsDescription,
     Banner,
-<<<<<<< HEAD
-    Loading
-=======
+    Loading,
     S3
->>>>>>> deployment original design
   },
   mixins: [createEditView],
 
@@ -128,7 +122,7 @@ export default {
       if (neu === 'useDefault') {
         delete this.value.spec.storageLocation;
       } else {
-        this.$set(this.value.spec, 'storageLocation', this.s3);
+        this.$set(this.value.spec, 'storageLocation', { s3: this.s3 });
       }
     },
 
