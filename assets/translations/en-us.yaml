@@ -1646,6 +1646,21 @@ typeDescription:
   #       target="_blank" rel="noopener noreferrer nofollow"
 
 typeLabel:
+  cis.cattle.io.clusterscan: |-
+    {count, plural,
+      one { Scan }
+      other { Scans }
+    }
+  cis.cattle.io.clusterscanprofile: |-
+    {count, plural,
+      one { Profile }
+      other { Profiles }
+    }
+  cis.cattle.io.clusterscanbenchmark: |-
+    {count, plural,
+      one { Benchmark Version }
+      other { Benchmark Versions }
+    }
   catalog.cattle.io.operation: |-
     {count, plural,
       one { Recent Operation }
