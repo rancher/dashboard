@@ -139,18 +139,7 @@ export default {
     </template>
 
     <template #cell:target="{row}">
-      <template v-if="row.targetInfo.mode === 'cluster'">
-        Cluster: {{ row.targetInfo.cluster }}
-      </template>
-      <template v-else-if="row.targetInfo.mode === 'clusterGroup'">
-        Group: {{ row.targetInfo.clusterGroup }}
-      </template>
-      <template v-else-if="row.targetInfo.mode === 'local'">
-        Local
-      </template>
-      <template v-else>
-        Advanced
-      </template>
+      {{ row.targetInfo.modeDisplay }}
     </template>
   </SortableTable>
 </template>

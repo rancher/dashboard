@@ -51,6 +51,7 @@ const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 const REMAP_STATE = {
   disabled:   'inactive',
   notapplied: 'Not Applied',
+  notready:   'Not Ready',
 };
 
 const DEFAULT_COLOR = 'warning';
@@ -814,12 +815,16 @@ export default {
           await this.$dispatch('load', { data: res, existing: (forNew ? this : undefined ) });
         }
       } catch (e) {
-        // Things went poorly, probably a conflict, try to load the new version
-        await this.$dispatch('find', {
-          type: this.type,
-          id:   this.id,
-          opt:  { force: true }
-        });
+        if ( this.type && this.id && e?._status === 409) {
+          // If there's a conflict, try to load the new version
+          await this.$dispatch('find', {
+            type: this.type,
+            id:   this.id,
+            opt:  { force: true }
+          });
+        }
+
+        return Promise.reject(e);
       }
 
       return this;

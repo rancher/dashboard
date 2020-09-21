@@ -448,6 +448,12 @@ fleet:
       cluster: Cluster
       clusterGroup: Cluster Group
       label: Deploy To
+    targetDisplay:
+      advanced: Advanced
+      cluster: "Cluster: {name}"
+      clusterGroup: "Group: {name}"
+      all: All
+      local: Local
     workspace:
       label: Workspace
   clusterGroup:
@@ -1065,6 +1071,7 @@ tableHeaders:
   branch: Branch
   builtIn: Built In
   bundlesReady: Bundles
+  bundleDeploymentsReady: Deployments
   chart: Chart
   clusterCreatorDefault: Cluster Creator Default
   clusterFlow: Cluster Flow

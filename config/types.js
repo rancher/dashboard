@@ -106,6 +106,7 @@ export const MANAGEMENT = {
 // Base: /k8s/clusters/<id>/v1/
 
 export const FLEET = {
+  BUNDLE:        'fleet.cattle.io.bundle',
   CLUSTER:       'fleet.cattle.io.cluster',
   CLUSTER_GROUP: 'fleet.cattle.io.clustergroup',
   GIT_REPO:      'fleet.cattle.io.gitrepo',

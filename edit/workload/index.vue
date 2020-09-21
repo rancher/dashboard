@@ -71,15 +71,20 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({
+    const requests = {
       configMaps: this.$store.dispatch('cluster/findAll', { type: CONFIG_MAP }),
-      secrets:    this.$store.dispatch('cluster/findAll', { type: SECRET }),
       nodes:      this.$store.dispatch('cluster/findAll', { type: NODE }),
       services:   this.$store.dispatch('cluster/findAll', { type: SERVICE }),
       pvcs:       this.$store.dispatch('cluster/findAll', { type: PVC })
-    });
+    };
 
-    this.allSecrets = hash.secrets;
+    if ( this.$store.getters['cluster/schemaFor'](SECRET) ) {
+      requests.secrets = this.$store.dispatch('cluster/findAll', { type: SECRET });
+    }
+
+    const hash = await allHash(requests);
+
+    this.allSecrets = hash.secrets || [];
     this.allConfigMaps = hash.configMaps;
     this.allNodes = hash.nodes.map(node => node.id);
     this.headlessServices = hash.services.filter(service => service.spec.clusterIP === 'None');

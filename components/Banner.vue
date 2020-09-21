@@ -6,7 +6,7 @@ export default {
       default: 'secondary'
     },
     label: {
-      type:    String,
+      type:    [String, Error],
       default: null,
     },
     labelKey: {

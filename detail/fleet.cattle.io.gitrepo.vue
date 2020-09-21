@@ -5,12 +5,11 @@ import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 import SortableTable from '@/components/SortableTable';
 import FleetSummary from '@/components/FleetSummary';
-import { MANAGEMENT } from '@/config/types';
 import { clone } from '@/utils/object';
 import { colorForState } from '@/plugins/steve/resource-instance';
 
 export default {
-  name: 'DetailCluster',
+  name: 'DetailGitRepo',
 
   components: {
     Loading,
@@ -28,17 +27,6 @@ export default {
     },
   },
 
-  async fetch() {
-    this.rancherCluster = await this.$store.dispatch('management/find', {
-      type: MANAGEMENT.CLUSTER,
-      id:   this.$route.params.id
-    });
-  },
-
-  data() {
-    return { rancherCluster: null };
-  },
-
   computed: {
     unready() {
       let i = 1;
@@ -48,7 +36,7 @@ export default {
         res.stateBackground = colorForState(res.bundleState).replace('text-', 'bg-');
         res.stateDisplay = res.bundleState;
 
-        for ( const stat of res.nonReadyStatus || []) {
+        for ( const stat of res.nonReadyResources || []) {
           stat.id = `row${ i++ }`;
         }
       }
@@ -59,16 +47,9 @@ export default {
     unreadyHeaders() {
       return [
         {
-          name:          'state',
-          value:         'summary.State',
-          label:         'State',
-          formatter:     'BadgeStateFormatter',
-          formatterOpts: { arbitrary: true }
-        },
-        {
-          name:  'kind',
-          value: 'kind',
-          label: 'Resource',
+          name:  'state',
+          value: 'summary.State',
+          label: 'State',
         },
         // {
         //   name:  'apiVersion',
@@ -79,6 +60,11 @@ export default {
           name:  'namespace',
           value: 'namespace',
           label: 'Namespace',
+        },
+        {
+          name:  'kind',
+          value: 'kind',
+          label: 'Resource',
         },
         {
           name:  'name',
@@ -105,7 +91,7 @@ export default {
         <h3 class="inline-block">
           {{ res.name }}
         </h3>
-        <BadgeState class="ml-10" :value="res" />
+        <BadgeState class="pull-right" :value="res" />
       </div>
 
       <Banner
@@ -115,7 +101,7 @@ export default {
       />
 
       <SortableTable
-        :rows="res.nonReadyStatus"
+        :rows="res.modifiedStatus"
         :headers="unreadyHeaders"
         :table-actions="false"
         :row-actions="false"

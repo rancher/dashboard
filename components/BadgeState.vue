@@ -18,7 +18,7 @@ export default {
 
 <style lang="scss">
   .badge-state {
-    padding: 5px 10px;
+    padding: 2px 10px 1px 10px;
     border: 1px solid transparent;
     border-radius: 20px;
 
@@ -47,8 +47,6 @@ export default {
     display: inline-block;
     max-width: 100%;
     position: relative;
-    padding: 2px 10px 1px 10px;
-    font-size: 1em;
     max-width: 110px;
     font-size: .85em;
     vertical-align: middle;

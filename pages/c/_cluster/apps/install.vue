@@ -86,8 +86,8 @@ export default {
     this.value = await this.$store.dispatch('cluster/create', {
       type:     'chartInstallAction',
       metadata: {
-        namespace: releaseNamespace,
-        name:      releaseName
+        namespace: this.existing ? this.existing.spec.namespace : releaseNamespace,
+        name:      this.existing ? this.existing.spec.name : releaseName,
       }
     });
 
@@ -572,7 +572,7 @@ export default {
     },
 
     actionInput(isUpgrade) {
-      const fromChart = this.versionInfo.values || {};
+      const fromChart = this.versionInfo?.values || {};
 
       if ( !this.valuesComponent && !this.hasQuestions ) {
         try {
