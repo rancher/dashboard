@@ -146,21 +146,17 @@ export function init(store) {
   headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAMESPACE_NAME, 'Ready', 'Current', 'Desired', AGE]);
   headers(POD, [STATE, NAMESPACE_NAME, 'Ready', 'Restarts', 'IP', NODE_COL, AGE]);
 
-  // These look to be for [Cluster]RoleTemplate, not [Cluster]Role.
-  // headers(RBAC.ROLE, [
-  //   STATE,
-  //   NAME_COL,
-  //   BUILT_IN,
-  //   AGE
-  // ]);
+  headers(RBAC.ROLE, [
+    STATE,
+    NAMESPACE_NAME,
+    AGE
+  ]);
 
-  // headers(RBAC.CLUSTER_ROLE, [
-  //   STATE,
-  //   NAME_COL,
-  //   BUILT_IN,
-  //   CLUSTER_CREATOR_DEFAULT,
-  //   AGE
-  // ]);
+  headers(RBAC.CLUSTER_ROLE, [
+    STATE,
+    NAME_COL,
+    AGE
+  ]);
 
   virtualType({
     label:       'Cluster Dashboard',
