@@ -28,11 +28,11 @@ export default {
   watch: {
     deployToControlPlane(newValue) {
       if (!newValue) {
-        if (this.value.tolerations) {
-          this.value.tolerations = [];
+        if (this.value.fluentbit_tolerations) {
+          this.value.fluentbit_tolerations = [];
         }
       } else {
-        this.value.tolerations = [
+        this.value.fluentbit_tolerations = [
           {
             key:    'node-role.kubernetes.io/controlplane',
             value:  'true',
