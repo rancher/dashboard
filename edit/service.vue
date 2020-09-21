@@ -18,13 +18,13 @@ import Banner from '@/components/Banner';
 import Labels from '@/components/form/Labels';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
-  NONE:      'None',
-  CLUSTERIP: 'ClientIP'
+  NONE:     'None',
+  CLIENTIP: 'ClientIP'
 };
 
 const SESSION_AFFINITY_ACTION_LABELS = {
-  NONE:      'servicesPage.affinity.actionLabels.none',
-  CLUSTERIP: 'servicesPage.affinity.actionLabels.clusterIp'
+  NONE:     'servicesPage.affinity.actionLabels.none',
+  CLIENTIP: 'servicesPage.affinity.actionLabels.clientIp'
 };
 
 const SESSION_STICKY_TIME_DEFAULT = 10800;
@@ -107,12 +107,15 @@ export default {
           this.$set(this.value.spec, 'type', serviceType);
         }
       }
-    }
+    },
+    showAffinityTimeout() {
+      return this.value.spec.sessionAffinity === 'ClientIP' && !isEmpty(this.value.spec.sessionAffinityConfig);
+    },
   },
 
   watch: {
     'value.spec.sessionAffinity'(val) {
-      if (val === CLUSTERIP) {
+      if (val === 'ClientIP') {
         this.value.spec.sessionAffinityConfig = { clientIP: { timeoutSeconds: null } };
 
         // set it null and then set it with vue to make reactive.
@@ -304,7 +307,7 @@ export default {
               :mode="mode"
             />
           </div>
-          <div v-if="value.spec.sessionAffinity === 'ClientIP'" class="col span-6">
+          <div v-if="showAffinityTimeout" class="col span-6">
             <UnitInput
               v-model="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
               :suffix="t('suffix.seconds')"
