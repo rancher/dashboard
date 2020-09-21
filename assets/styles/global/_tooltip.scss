@@ -183,7 +183,7 @@
 // load here instead of component so SSR render isn't all wonky
 .dropdown-button-group {
   // this matches the top/bottom padding of the default button
-  $trigger-padding: 15px 10px 10px 10px;
+  $trigger-padding: 15px 10px 15px 10px;
   $xs-trigger-padding: 2px 4px 4px 4px;
   $sm-trigger-padding: 8px 10px 10px 10px;
   $lg-trigger-padding: 18px 10px 10px 10px;
