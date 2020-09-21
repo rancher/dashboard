@@ -995,7 +995,7 @@ servicesPage:
     label: Labels & Annotations
   affinity:
     actionLabels:
-      clusterIp: ClusterIP
+      clientIp: ClientIP
       none: There is no session affinity configured.
     helpText: Map connections to a consistent target based on their source IP.
     label: Session Affinity
