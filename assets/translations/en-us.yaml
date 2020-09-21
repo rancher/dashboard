@@ -772,6 +772,9 @@ monitoring:
       volumeMode: Volume Mode
       volumeName: Volume Name
     title: Prometheus Config
+    warningInstalled: |+
+      Warning: Prometheus Operators are currently deployed. Deploying multiple Prometheus Operators onto one cluster is not currently supported. Please remove all other Prometheus Operator deployments from this cluster before trying to install this chart.
+      If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install this chart.
   volume:
     modes:
       block: Block
