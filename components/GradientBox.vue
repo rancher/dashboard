@@ -11,16 +11,24 @@ export default {
     showTab: {
       type:     Boolean,
       default: true,
+    },
+    showSolid: {
+      type:    Boolean,
+      default: false,
+    },
+    backgroundOpacityAdjustment: {
+      type:    Number,
+      default: 1
     }
   },
 
   computed: {
     leftColor() {
-      return this.customizePrimaryColorOpacity(0.25);
+      return this.showSolid ? this.primaryColor : this.customizePrimaryColorOpacity(0.25 * this.backgroundOpacityAdjustment);
     },
 
     rightColor() {
-      return this.customizePrimaryColorOpacity(0.125);
+      return this.showSolid ? this.primaryColor : this.customizePrimaryColorOpacity(0.125 * this.backgroundOpacityAdjustment);
     },
 
     primaryColor() {
@@ -29,10 +37,11 @@ export default {
 
     style() {
       const background = `background: transparent linear-gradient(94deg, ${ this.leftColor } 0%, ${ this.rightColor } 100%) 0% 0% no-repeat padding-box;`;
-      const border = this.showTab ? `border-left: 9px solid ${ this.primaryColor };` : '';
+      const border = this.showBorder ? `border: 1px solid ${ this.primaryColor };` : '';
+      const borderLeft = this.showTab ? `border-left: 9px solid ${ this.primaryColor };` : '';
 
-      return `${ background }${ border }`;
-    }
+      return `${ background }${ border }${ borderLeft }`;
+    },
   },
 
   methods: {
@@ -44,7 +53,7 @@ export default {
 </script>
 
 <template>
-  <div class="gradient-box" :class="{showTab}" :style="style">
+  <div class="gradient-box" :class="{'show-tab': showTab}" :style="style">
     <slot />
   </div>
 </template>

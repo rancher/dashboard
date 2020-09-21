@@ -20,9 +20,6 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
-    component() {
-      return require(`./providers/${ this.provider }`).default;
-    },
     provider() {
       return this.currentCluster.status.provider;
     }

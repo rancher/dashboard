@@ -81,7 +81,7 @@ export default {
 </script>
 
 <template>
-  <div :class="{'labeled-input': true, raised, focused, [mode]: true, disabled, [status]: status}">
+  <div :class="{'labeled-input': true, raised, focused, [mode]: true, disabled: disabled && !isView, [status]: status}">
     <slot name="label">
       <label>
         {{ label }}

@@ -1,7 +1,7 @@
 <script>
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { SECRET } from '@/config/types';
-import { _EDIT } from '@/config/query-params';
+import { _EDIT, _VIEW } from '@/config/query-params';
 import { TYPES } from '@/models/secret';
 
 export default {
@@ -10,11 +10,16 @@ export default {
   props: {
     value: {
       type:     [String, Object],
-      required: true,
+      required: false,
+      default:  undefined
     },
     types: {
       type:    Array,
       default: () => Object.values(TYPES)
+    },
+    disabled: {
+      type:    Boolean,
+      default: false
     },
     nameKey: {
       type:    String,
@@ -41,14 +46,13 @@ export default {
   computed: {
     name: {
       get() {
-        const name = this.showKeySelector ? this.value[this.nameKey] : this.value;
+        const name = this.showKeySelector ? this.value?.valueFrom?.secretKeyRef?.[this.nameKey] : this.value;
 
         return name || '';
       },
       set(name) {
         if (this.showKeySelector) {
-          this.value[this.nameKey] = name;
-          this.$emit('input', this.value);
+          this.$emit('input', { valueFrom: { secretKeyRef: { [this.nameKey]: name, [this.keyKey]: this.key } } });
         } else {
           this.$emit('input', name);
         }
@@ -57,11 +61,10 @@ export default {
 
     key: {
       get() {
-        return this.value[this.keyKey] || '';
+        return this.value?.valueFrom?.secretKeyRef?.[this.keyKey] || '';
       },
       set(key) {
-        this.value[this.keyKey] = key;
-        this.$emit('input', this.value);
+        this.$emit('input', { valueFrom: { secretKeyRef: { [this.nameKey]: this.name, [this.keyKey]: key } } });
       }
     },
     secrets() {
@@ -80,7 +83,10 @@ export default {
     },
     secretNameLabel() {
       return this.showKeySelector ? 'Secret Name' : this.label;
-    }
+    },
+    isView() {
+      return this.mode === _VIEW;
+    },
   },
 
 };
@@ -92,6 +98,7 @@ export default {
     <div class="input-container">
       <LabeledSelect
         v-model="name"
+        :disabled="!isView && disabled"
         :options="secretNames"
         :label="secretNameLabel"
         :mode="mode"
@@ -100,7 +107,7 @@ export default {
         v-if="showKeySelector"
         v-model="key"
         class="col span-6"
-        :disabled="!name"
+        :disabled="!isView && (!name || disabled)"
         :options="keys"
         label="Key"
         :mode="mode"
