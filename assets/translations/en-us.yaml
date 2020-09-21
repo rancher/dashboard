@@ -58,7 +58,7 @@ nav:
 
 product:
   apps: Apps & Marketplace
-  backup: Backup Restore Operator
+  backup: Backup & Restore Operator
   cis: CIS Benchmark
   ecm: Cluster Manager
   explorer: Cluster Explorer
@@ -137,7 +137,20 @@ asyncButton:
 
 backupRestoreOperator:
   backupFilename: Backup Filename
-  prune: 
+  deployment:
+    rancherNamespace: Rancher ResourceSet Namespace
+    storage:
+      tip: Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.
+      storageClass: Storage Class
+      persistentVolume: Persistent Volume
+      label: Default Storage Location
+      options:
+        s3: Use an S3-compatible object store
+        defaultStorageClass: 'Use the default storage class ({name})'
+        pickSC: Use an existing storage class
+        pickPV: Use an existing persistent volume
+    size: Size
+  prune:
     label: Prune
     tip: Delete all resources that match the ResourceSet used, but are not present in the backup. (Recommended)
   encryption: Encryption

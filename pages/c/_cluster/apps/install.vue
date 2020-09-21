@@ -507,7 +507,6 @@ export default {
 
           return;
         }
-
         const res = await this.repo.doAction((isUpgrade ? 'upgrade' : 'install'), input);
 
         this.operation = await this.$store.dispatch('cluster/find', {

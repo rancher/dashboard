@@ -4,10 +4,10 @@ import createEditView from '@/mixins/create-edit-view';
 import LabeledInput from '@/components/form/LabeledInput';
 import UnitInput from '@/components/form/UnitInput';
 import Checkbox from '@/components/form/Checkbox';
-import FileSelector from '@/components/form/FileSelector';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Loading from '@/components/Loading';
 import RadioGroup from '@/components/form/RadioGroup';
+import S3 from '@/chart/backup-restore-operator/S3';
 import { mapGetters } from 'vuex';
 import { SECRET, BACKUP_RESTORE, CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
@@ -19,7 +19,7 @@ export default {
     UnitInput,
     LabeledInput,
     Checkbox,
-    FileSelector,
+    S3,
     LabeledSelect,
     Loading,
     RadioGroup
@@ -77,21 +77,6 @@ export default {
       const BRORelease = this.releases.filter(release => get(release, 'spec.name') === 'backup-restore-operator')[0];
 
       return BRORelease ? BRORelease.spec.namespace : '';
-    },
-
-    credentialSecret: {
-      get() {
-        const { credentialSecretName, credentialSecretNamespace } = this.s3;
-
-        return { metadata: { name: credentialSecretName, namespace: credentialSecretNamespace } };
-      },
-
-      set(neu) {
-        const { name, namespace } = neu.metadata;
-
-        this.$set(this.s3, 'credentialSecretName', name);
-        this.$set(this.s3, 'credentialSecretNamespace', namespace);
-      }
     },
 
     encryptionSecretNames() {
@@ -177,38 +162,7 @@ export default {
             </div>
           </div>
           <template v-if="storageSource === 'configureS3'">
-            <div class="row mb-10">
-              <div class="col span-6">
-                <LabeledSelect
-                  v-model="credentialSecret"
-                  :get-option-label="opt=>opt.metadata.name || ''"
-                  :mode="mode"
-                  :options="allSecrets"
-                  :label="t('backupRestoreOperator.s3.credentialSecretName')"
-                />
-              </div>
-              <div class="col span-6">
-                <LabeledInput v-model="s3.bucketName" :mode="mode" :label="t('backupRestoreOperator.s3.bucketName')" />
-              </div>
-            </div>
-            <div class="row mb-10">
-              <div class="col span-6">
-                <LabeledInput v-model="s3.region" :mode="mode" :label="t('backupRestoreOperator.s3.region')" />
-              </div>
-              <div class="col span-6">
-                <LabeledInput v-model="s3.folder" :mode="mode" :label="t('backupRestoreOperator.s3.folder')" />
-              </div>
-            </div>
-            <div class="row mb-10">
-              <div class="col span-6">
-                <LabeledInput v-model="s3.endpoint" :mode="mode" :label="t('backupRestoreOperator.s3.endpoint')" />
-                <Checkbox v-model="s3.insecureTLSSkipVerify" class="mt-10" :mode="mode" :label="t('backupRestoreOperator.s3.insecureTLSSkipVerify')" />
-              </div>
-              <div class="col span-6">
-                <LabeledInput v-model="s3.endpointCA" :mode="mode" type="multiline" :label="t('backupRestoreOperator.s3.endpointCA')" />
-                <FileSelector v-if="mode!=='view'" class="btn btn-sm role-primary mt-5" :mode="mode" :label="t('generic.readFromFile')" @selected="e=>$set(s3, 'endpointCA', e)" />
-              </div>
-            </div>
+            <S3 v-model="s3" :mode="mode" :secrets="allSecrets" />
           </template>
           <div v-else-if="storageSource==='useBackup'" class="row mb-10">
             <div class="col span-6">
