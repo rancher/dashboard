@@ -353,6 +353,15 @@ export default {
       }
     },
 
+    select(nodes) {
+      nodes.forEach((node) => {
+        const id = get(node, this.keyField);
+        const input = $(`label[data-node-id="${ id }"]`);
+
+        input.trigger('click');
+      });
+    },
+
     applyTableAction(action, args, event) {
       const opts = { alt: isAlternate(event) };
 
