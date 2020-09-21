@@ -263,7 +263,7 @@ catalog:
             other { seconds }
           }
       wait: Wait
-  release:
+  app:
     section:
       readme: Chart README
       notes: Release Notes
@@ -1607,7 +1607,7 @@ model:
       registeredAgent: Registered Agent
       service: Service
       user: User
-  "catalog.cattle.io.release":
+  "catalog.cattle.io.app":
     firstDeployed: First Deployed
     lastDeployed: Last Deployed
   cluster:
@@ -1669,7 +1669,7 @@ typeLabel:
       one { Recent Operation }
       other { Recent Operations }
     }
-  catalog.cattle.io.release: |-
+  catalog.cattle.io.app: |-
     {count, plural,
       one { Installed App }
       other { Installed Apps }

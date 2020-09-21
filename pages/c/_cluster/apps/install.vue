@@ -70,14 +70,14 @@ export default {
     const repoName = query[REPO];
     const chartName = query[CHART];
     let versionName = query[VERSION];
-    const releaseNamespace = query[NAMESPACE] || '';
-    const releaseName = query[NAME] || '';
+    const appNamespace = query[NAMESPACE] || '';
+    const appName = query[NAME] || '';
 
-    if ( releaseNamespace && releaseName ) {
+    if ( appNamespace && appName ) {
       this.mode = _EDIT;
       this.existing = await this.$store.dispatch('cluster/find', {
-        type: CATALOG.RELEASE,
-        id:   `${ releaseNamespace }/${ releaseName }`
+        type: CATALOG.APP,
+        id:   `${ appNamespace }/${ appName }`
       });
     } else {
       this.mode = _CREATE;
@@ -86,8 +86,8 @@ export default {
     this.value = await this.$store.dispatch('cluster/create', {
       type:     'chartInstallAction',
       metadata: {
-        namespace: this.existing ? this.existing.spec.namespace : releaseNamespace,
-        name:      this.existing ? this.existing.spec.name : releaseName,
+        namespace: this.existing ? this.existing.spec.namespace : appNamespace,
+        name:      this.existing ? this.existing.spec.name : appName,
       }
     });
 
@@ -486,7 +486,7 @@ export default {
         params: {
           product:   this.$store.getters['productId'],
           cluster:   this.$store.getters['clusterId'],
-          resource:  CATALOG.RELEASE,
+          resource:  CATALOG.APP,
         }
       });
     },
@@ -594,9 +594,7 @@ export default {
         chartName:   this.chart.chartName,
         version:     this.version.version,
         releaseName: form.metadata.name,
-        namespace:   form.metadata.namespace,
         description: form.metadata?.annotations?.[DESCRIPTION_ANNOTATION],
-        projectId:   this.project,
         values,
       };
 
@@ -606,10 +604,12 @@ export default {
 
       const errors = [];
       const out = {
-        charts:  [chart],
-        noHooks: this.hooks === false,
-        timeout: this.timeout > 0 ? `${ this.timeout }s` : null,
-        wait:    this.wait === true,
+        charts:    [chart],
+        noHooks:   this.hooks === false,
+        timeout:   this.timeout > 0 ? `${ this.timeout }s` : null,
+        wait:      this.wait === true,
+        namespace: form.metadata.namespace,
+        projectId: this.project,
       };
 
       if ( isUpgrade ) {

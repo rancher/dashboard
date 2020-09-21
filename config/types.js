@@ -69,7 +69,7 @@ export const METRIC = {
 export const CATALOG = {
   CLUSTER_REPO:   'catalog.cattle.io.clusterrepo',
   OPERATION:      'catalog.cattle.io.operation',
-  RELEASE:        'catalog.cattle.io.release',
+  APP:            'catalog.cattle.io.app',
   REPO:           'catalog.cattle.io.repo',
 };
 

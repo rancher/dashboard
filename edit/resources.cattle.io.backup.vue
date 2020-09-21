@@ -48,13 +48,13 @@ export default {
     const hash = await allHash({
       secrets:      this.$store.dispatch('cluster/findAll', { type: SECRET }),
       resourceSets: this.$store.dispatch('cluster/findAll', { type: BACKUP_RESTORE.RESOURCE_SET }),
-      releases:     this.$store.dispatch('cluster/findAll', { type: CATALOG.RELEASE })
+      apps:         this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
 
     });
 
     this.allSecrets = hash.secrets;
     this.allResourceSets = hash.resourceSets;
-    this.releases = hash.releases;
+    this.apps = hash.apps;
   },
 
   data() {
@@ -65,13 +65,13 @@ export default {
     const s3 = {};
 
     return {
-      allSecrets: [], allResourceSets: [], s3, storageSource: 'useDefault', useEncryption: false, releases: [], setSchedule: false,
+      allSecrets: [], allResourceSets: [], s3, storageSource: 'useDefault', useEncryption: false, apps: [], setSchedule: false,
     };
   },
 
   computed: {
     chartNamespace() {
-      const BRORelease = this.releases.filter(release => get(release, 'spec.name') === 'backup-restore-operator')[0];
+      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'backup-restore-operator')[0];
 
       return BRORelease ? BRORelease.spec.namespace : '';
     },
