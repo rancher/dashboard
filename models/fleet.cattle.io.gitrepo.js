@@ -23,7 +23,7 @@ export default {
   },
 
   github() {
-    const match = this.spec.repo.match(/^https?:\/\/github\.com\/(.*)(\.git)?$/);
+    const match = this.spec.repo.match(/^https?:\/\/github\.com\/(.*?)(\.git)?\/*$/);
 
     if ( match ) {
       return match[1];
@@ -43,6 +43,7 @@ export default {
 
     repo = repo.replace(/.git$/, '');
     repo = repo.replace(/^https:\/\//, '');
+    repo = repo.replace(/\/+$/, '');
 
     if ( this.github ) {
       return this.github;
@@ -88,7 +89,7 @@ export default {
     if ( this.metadata.namespace === 'fleet-local' ) {
       mode = 'local';
     } else if ( !targets.length ) {
-      mode = 'cluster';
+      mode = 'all';
     } else if ( targets.length === 1) {
       const target = targets[0];
 
@@ -122,7 +123,7 @@ export default {
 
     return {
       mode,
-      modeDisplay: this.t(`fleet.gitRepo.targetMode."${ mode }"`),
+      modeDisplay: this.t(`fleet.gitRepo.targetDisplay."${ mode }"`, { name: cluster || clusterGroup || '?' }),
       cluster,
       clusterGroup,
       advanced

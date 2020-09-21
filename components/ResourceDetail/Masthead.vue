@@ -199,9 +199,8 @@ export default {
       }
 
       .badge-state {
-        margin-top: 4px;
         padding: 2px 14px 1px 14px;
-        font-size: 10px;
+        font-size: 12px;
       }
     }
 

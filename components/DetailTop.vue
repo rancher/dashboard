@@ -25,11 +25,11 @@ export default {
       return this.value?.details;
     },
     labels() {
-      return this.value?.metadata.labels || {};
+      return this.value?.labels || {};
     },
 
     annotations() {
-      return this.value?.metadata.annotations || {};
+      return this.value?.annotations || {};
     },
 
     description() {

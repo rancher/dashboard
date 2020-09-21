@@ -8,7 +8,7 @@ const KEYS = {
   outOfSync:   'warning',
   pending:     'info',
   waitApplied: 'info',
-  reqdy:       'success'
+  ready:       'success'
 };
 
 export default {

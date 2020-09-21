@@ -129,13 +129,17 @@ export default {
   },
 
   // Fuzzy is only for plugins/lookup, do not use in real code
-  schemaFor: (state, getters) => (type, fuzzy = false) => {
+  schemaFor: (state, getters) => (type, fuzzy = false, allowThrow = true) => {
     const schemas = state.types[SCHEMA];
 
     type = normalizeType(type);
 
     if ( !schemas ) {
-      throw new Error("Schemas aren't loaded yet");
+      if ( allowThrow ) {
+        throw new Error("Schemas aren't loaded yet");
+      } else {
+        return null;
+      }
     }
 
     const out = schemas.map.get(type);
@@ -224,6 +228,10 @@ export default {
 
     if ( !revision ) {
       const cache = state.types[type];
+
+      if ( !cache ) {
+        return null;
+      }
 
       for ( const obj of cache.list ) {
         if ( obj && obj.metadata ) {

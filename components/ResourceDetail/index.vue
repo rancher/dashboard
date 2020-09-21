@@ -56,7 +56,7 @@ function realModeFor(query, id) {
 export async function defaultAsyncData(ctx, resource, parentOverride) {
   const { store, params, route } = ctx;
 
-  const inStore = store.getters['currentProduct'].inStore;
+  const inStore = store.getters['currentProduct']?.inStore;
 
   // eslint-disable-next-line prefer-const
   let { namespace, id } = params;

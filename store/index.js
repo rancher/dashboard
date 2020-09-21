@@ -139,16 +139,20 @@ export const getters = {
 
   namespaces(state, getters) {
     return () => {
-      const inStore = getters['currentProduct'].inStore;
-      const clusterId = getters['currentCluster'].id;
-      const namespaces = getters[`${ inStore }/all`](NAMESPACE);
+      const out = {};
+      const inStore = getters['currentProduct']?.inStore;
+      const clusterId = getters['currentCluster']?.id;
 
+      if ( !clusterId || !inStore ) {
+        return out;
+      }
+
+      const namespaces = getters[`${ inStore }/all`](NAMESPACE);
       const filters = state.namespaceFilters.filter(x => !x.startsWith('namespaced://'));
       const includeAll = getters.isAllNamespaces;
       const includeSystem = filters.includes('all://system');
       const includeUser = filters.includes('all://user') || filters.length === 0;
       const includeOrphans = filters.includes('all://orphans');
-      const out = {};
 
       // Special cases to pull in all the user, system, or orphaned namespaces
       if ( includeAll || includeOrphans || includeSystem || includeUser ) {
