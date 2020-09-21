@@ -56,7 +56,8 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   const schema = schemas.find(x => x.id === type);
 
   if ( !schema ) {
-    throw new Error('Unknown schema for', type);
+    return `Error loading schema for ${ type }`;
+    // throw new Error('Unknown schema for', type);
   }
 
   data = data || {};
