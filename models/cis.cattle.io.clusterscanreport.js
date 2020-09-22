@@ -24,7 +24,6 @@ export default {
 
       return parsed;
     } catch (e) {
-      console.error(e);
     }
   }
 };
