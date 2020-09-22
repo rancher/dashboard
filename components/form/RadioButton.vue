@@ -50,8 +50,11 @@ export default {
   },
 
   methods: {
-    clicked() {
+    clicked(e) {
       if (!this.disabled) {
+        if (e.srcElement?.tagName === 'A') {
+          return;
+        }
         this.$emit('input', this.val);
       }
     },
@@ -71,9 +74,9 @@ export default {
   <label
     v-else
     class="radio-container"
-    @keydown.enter.prevent="clicked($event)"
-    @keydown.space.prevent="clicked($event)"
-    @click.stop.prevent="clicked($event)"
+    @keydown.enter="clicked($event)"
+    @keydown.space="clicked($event)"
+    @click.stop="clicked($event)"
   >
     <input
       :disabled="disabled"

@@ -119,8 +119,8 @@ export default {
           Object.assign(this.value.spec.storageLocation.s3, this.targetBackup.spec.storageLocation.s3);
         }
         this.$set(this.value.spec, 'backupFilename', this.targetBackup.status.filename);
-        if (this.targetBackup.spec.encryptionConfigName) {
-          this.$set(this.value.spec, 'encryptionConfigName', this.targetBackup.spec.encryptionConfigName);
+        if (this.targetBackup.spec.encryptionConfigSecretName) {
+          this.$set(this.value.spec, 'encryptionConfigSecretName', this.targetBackup.spec.encryptionConfigSecretName);
         }
       }
     }
@@ -133,8 +133,8 @@ export default {
       }
       this.$set(this.value, 'spec', { ...this.value.spec, backupFilename: neu.status.filename });
 
-      if (neu.spec.encryptionConfigName) {
-        this.$set(this.value, 'spec', { ...this.value.spec, encryptionConfigName: neu.spec.encryptionConfigName });
+      if (neu.spec.encryptionConfigSecretName) {
+        this.$set(this.value, 'spec', { ...this.value.spec, encryptionConfigSecretName: neu.spec.encryptionConfigSecretName });
       }
       this.targetBackup = neu;
     }
@@ -187,7 +187,7 @@ export default {
             <div class="col span-6">
               <LabeledSelect
                 v-if="isEncrypted"
-                v-model="value.spec.encryptionConfigName"
+                v-model="value.spec.encryptionConfigSecretName"
                 status="warning"
                 :tooltip="t('backupRestoreOperator.encryptionConfigName.tip')"
                 :hover-tooltip="true"
