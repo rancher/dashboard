@@ -202,6 +202,31 @@ export default {
       }
     },
 
+    podTemplateMetadata: {
+      get() {
+        if (this.isCronJob) {
+          if (!this.spec.jobTemplate.metadata) {
+            this.$set( this.spec.jobTemplate, 'metadata', {});
+          }
+
+          return this.spec.jobTemplate.metadata;
+        } else {
+          if (!this.spec.template.metadata) {
+            this.$set(this.spec.template, 'metadata', {});
+          }
+
+          return this.spec.template.metadata;
+        }
+      },
+      set(neu) {
+        if (this.isCronJob) {
+          this.$set( this.spec.jobTemplate, 'metadata', neu);
+        } else {
+          this.$set(this.spec.template, 'metadata', neu);
+        }
+      }
+    },
+
     container: {
       get() {
         if (!this.podTemplateSpec.containers) {
@@ -617,7 +642,7 @@ export default {
             <div class="row">
               <KeyValue
                 key="labels"
-                v-model="value.metadata.labels"
+                v-model="podTemplateMetadata.labels"
                 :mode="mode"
                 :pad-left="false"
                 :read-allowed="false"
@@ -631,7 +656,7 @@ export default {
             <div class="row">
               <KeyValue
                 key="annotations"
-                v-model="value.metadata.annotations"
+                v-model="podTemplateMetadata.annotations"
                 :mode="mode"
                 :pad-left="false"
                 :read-allowed="false"
