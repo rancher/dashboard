@@ -1,10 +1,13 @@
 <script>
+import { mapGetters } from 'vuex';
+
 import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import StorageClassSelector from '@/chart/monitoring/StorageClassSelector';
+import { POD } from '@/config/types';
 
 export default {
   components: {
@@ -15,6 +18,7 @@ export default {
     LabeledSelect,
     StorageClassSelector,
   },
+
   props: {
     accessModes: {
       type:     Array,
@@ -26,18 +30,19 @@ export default {
       default: 'create',
     },
 
+    prometheusPods: {
+      type:     Array,
+      default: () => ([]),
+    },
+
     storageClasses: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
+      type:     Array,
+      default: () => ([]),
     },
 
     value: {
-      type:    Object,
-      default: () => {
-        return {};
-      },
+      type:     Object,
+      default: () => ({}),
     },
 
     warnUser: {
@@ -60,6 +65,29 @@ export default {
       ],
       enablePersistantStorage: false,
     };
+  },
+
+  computed: {
+    ...mapGetters(['currentCluster']),
+
+    podsAndNamespaces() {
+      const { prometheusPods } = this;
+      const pods = [];
+
+      prometheusPods.forEach((pod) => {
+        pods.push({
+          label: pod.id,
+          link:  {
+            name:   'c-cluster-product-resource-namespace-id',
+            params: {
+              cluster: this.currentCluster.id, product: 'explorer', resource: POD, namespace: pod.metadata.namespace, id: pod.metadata.name
+            },
+          }
+        });
+      });
+
+      return pods;
+    },
   },
 
   watch: {
@@ -89,6 +117,11 @@ export default {
     <Banner v-if="warnUser" color="warning">
       <template #default>
         <t k="monitoring.prometheus.warningInstalled" :raw="true" />
+        <div v-for="pn in podsAndNamespaces" :key="pn.label" class="mt-10">
+          <nuxt-link :to="pn.link" class="btn role-tertiary">
+            {{ pn.label }}
+          </nuxt-link>
+        </div>
       </template>
     </Banner>
     <div class="prometheus-config">

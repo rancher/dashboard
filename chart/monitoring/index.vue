@@ -56,6 +56,7 @@ export default {
         },
       ],
       pvcs:                    [],
+      prometheusPods:          [],
       secrets:                 [],
       storageClasses:          [],
       targetNamespace:         null,
@@ -125,6 +126,7 @@ export default {
             pod.spec.containers.find(p => p.image.includes('quay.io/coreos/prometheus-operator') || p.image.includes('rancher/coreos-prometheus-operator') )
           ) {
             this.warnPrometheusInstalled = true;
+            this.prometheusPods.push(pod);
           }
         });
       }
@@ -162,6 +164,7 @@ export default {
         :mode="mode"
         :storage-classes="storageClasses"
         :warn-user="warnPrometheusInstalled"
+        :prometheus-pods="prometheusPods"
       />
     </section>
     <section class="config-grafana-container">
