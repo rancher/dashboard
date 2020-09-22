@@ -50,7 +50,14 @@ export default {
   },
 
   data() {
-    const storageSource = this.mode === 'create' ? 's3' : this.getStorageSource(this.value);
+    let storageSource;
+
+    if (this.mode === 'create') {
+      storageSource = 's3';
+      this.value.s3.enabled = true;
+    } else {
+      this.getStorageSource(this.value);
+    }
 
     return {
       storageSource, secrets: [], storageClasses: [], persistentVolumes: []
