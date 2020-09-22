@@ -62,6 +62,7 @@ export default {
         return {
           condition: cond.type || 'Unknown',
           status:    cond.status || 'Unknown',
+          error:     cond.error,
           time:      cond.lastProbeTime || cond.lastUpdateTime || cond.lastTransitionTime,
           message,
         };
@@ -80,5 +81,13 @@ export default {
     :table-actions="false"
     :row-actions="false"
     :search="false"
-  />
+  >
+    <template #cell:condition="{row}">
+      <span :class="{'text-error': row.error}">{{ row.condition }}</span>
+    </template>
+
+    <template #cell:status="{row}">
+      <span :class="{'text-error': row.error}">{{ row.status }}</span>
+    </template>
+  </SortableTable>
 </template>

@@ -430,10 +430,10 @@ fleet:
       basic: HTTP Basic Auth
       ssh: SSH Key
       custom: Secret Name
-    bundleDirs:
-      label: Bundle Directories
+    paths:
+      label: Paths
       placeholder: e.g. /directory/in/your/repo
-      addLabel: Add Directory
+      addLabel: Add Path
     repo:
       label: Repository URL
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
@@ -925,8 +925,8 @@ resourceTable:
 
 resourceTabs:
   tabs:
-    annotations: Annotations
-    labels: Labels
+    conditions: Conditions
+    events: Recent Events
 
 resourceYaml:
   buttons:

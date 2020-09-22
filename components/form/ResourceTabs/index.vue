@@ -32,7 +32,7 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    }
+    },
   },
 
   async fetch() {
@@ -112,11 +112,11 @@ export default {
   <Tabbed v-if="!isView || hasCustomTabs || hasConditions" v-bind="$attrs">
     <slot />
 
-    <Tab v-if="hasConditions" label="Conditions" name="conditions" :weight="11">
+    <Tab v-if="hasConditions" :label="t('resourceTabs.tabs.conditions')" name="conditions" :weight="11">
       <Conditions :value="value" />
     </Tab>
 
-    <Tab v-if="!$fetchState.pending && hasEvents" label="Events" name="events" :weight="10">
+    <Tab v-if="!$fetchState.pending && hasEvents" :label="t('resourceTabs.tabs.events')" name="events" :weight="10">
       <SortableTable
         :rows="events"
         :headers="eventHeaders"

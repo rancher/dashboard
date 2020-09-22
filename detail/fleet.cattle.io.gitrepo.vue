@@ -58,15 +58,22 @@ export default {
       const out = [];
 
       for ( const r of resources ) {
+        let namespacedName = r.name;
+
+        if ( r.namespace ) {
+          namespacedName = `${ r.namespace }:${ r.name }`;
+        }
+
         for ( const c of clusters ) {
           out.push({
-            key:         `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
-            kind:        r.type,
-            id:          r.id,
-            workspaceId: r.namespace,
-            cluster:     c,
-            name:        r.name,
-            state:       r.state, // @TODO pull state from r.perClusterState
+            key:       `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
+            kind:      r.type,
+            id:        r.id,
+            cluster:   c,
+            namespace: r.namespace,
+            name:      r.name,
+            state:     r.state, // @TODO pull state from r.perClusterState
+            namespacedName,
           });
         }
       }
@@ -92,17 +99,12 @@ export default {
         {
           name:  'kind',
           value: 'kind',
+          label: 'Kind',
+        },
+        {
+          name:  'resource',
+          value: 'namespacedName',
           label: 'Resource',
-        },
-        {
-          name:  'workspace',
-          value: 'workspaceId',
-          label: 'Workspace',
-        },
-        {
-          name:  'name',
-          value: 'name',
-          label: 'Name',
         },
       ];
     },
@@ -151,7 +153,7 @@ export default {
     <FleetSummary :value="value.status.summary" />
 
     <ResourceTabs v-model="value" mode="view" class="mt-20">
-      <Tab label="Resources" name="resources" :weight="20">
+      <Tab label="All Resources" name="resources" :weight="20">
         <SortableTable
           :rows="computedResources"
           :headers="resourceHeaders"

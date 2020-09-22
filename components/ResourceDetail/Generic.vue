@@ -73,12 +73,8 @@ export default {
 };
 </script>
 <template>
-  <div id="generic-container">
-    <div class="spacer"></div>
+  <div id="generic-container" class="mt-20">
     <div id="yaml-container">
-      <h2>
-        YAML
-      </h2>
       <ResourceYaml v-if="yaml.length" :value="value" mode="view" :yaml="yaml" :show-footer="false" />
     </div>
     <div class="spacer"></div>

@@ -3,6 +3,7 @@ import jsyaml from 'js-yaml';
 import { escapeHtml } from '@/utils/string';
 import { FLEET } from '@/config/types';
 import { addObjects, findBy } from '@/utils/array';
+import { set } from '@/utils/object';
 
 export default {
   applyDefaults() {
@@ -10,17 +11,17 @@ export default {
       const spec = this.spec || {};
       const meta = this.metadata || {};
 
-      this.spec = spec;
-      this.metadata = meta;
-
       spec.repo = spec.repo || '';
 
       if ( !spec.branch && !spec.revision ) {
         spec.branch = 'master';
       }
 
-      spec.bundleDirs = spec.bundleDirs || [''];
+      spec.paths = spec.paths || [''];
       spec.clientSecretName = spec.clientSecretName || null;
+
+      set(this, 'spec', spec);
+      set(this, 'metadata', meta);
     };
   },
 

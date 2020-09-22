@@ -1,16 +1,17 @@
 import { escapeHtml } from '@/utils/string';
 import { matching, convert } from '@/utils/selector';
 import { FLEET } from '@/config/types';
+import { set } from '@/utils/object';
 
 export default {
   applyDefaults() {
     return () => {
       const spec = this.spec || {};
 
-      this.spec = spec;
-
       spec.selector = spec.selector || {};
       spec.selector.matchExpressions = spec.selector.matchExpressions || [];
+
+      set(this, 'spec', spec);
     };
   },
 

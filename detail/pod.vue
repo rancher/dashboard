@@ -89,7 +89,7 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTabs v-else class="spacer" mode="view" :value="value">
+  <ResourceTabs v-else :side-tabs="true" mode="view" class="mt-20" :value="value">
     <Tab :label="t('workload.container.titles.containers')" name="containers" :weight="3">
       <template v-for="container in containers">
         <Container :key="container.name" :value="container" mode="view" />

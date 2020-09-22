@@ -1,4 +1,5 @@
 import { _VIEW } from '@/config/query-params';
+import { set } from '@/utils/object';
 
 export default {
   showMasthead() {
@@ -10,9 +11,9 @@ export default {
   applyDefaults() {
     return () => {
       if ( !this.charts ) {
-        this.charts = [
+        set(this, 'charts', [
           {}
-        ];
+        ]);
       }
     };
   },

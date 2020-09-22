@@ -179,7 +179,7 @@ export default {
 
     <div class="spacer"></div>
 
-    <Tabbed :side-tabs="true">
+    <Tabbed>
       <Tab
         v-if="checkTypeIs('ExternalName')"
         name="define-external-name"
