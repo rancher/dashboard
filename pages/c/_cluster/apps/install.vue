@@ -266,13 +266,14 @@ export default {
     },
 
     projectOpts() {
+      const cluster = this.$store.getters['currentCluster'];
       const projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
 
-      const out = projects.map((project) => {
+      const out = projects.filter(x => x.spec.clusterName === cluster.id).map((project) => {
         return {
           id:    project.id,
           label: project.nameDisplay,
-          value: project.metadata.name,
+          value: project.id
         };
       });
 
