@@ -357,7 +357,7 @@ export default {
     <div v-if="rows.length || isView" :class="{'extra-column':threeColumns}" class="kv-row headers">
       <label class="text-label" :class="{'view':isView}">
         {{ keyLabel }}
-        <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" style="font-size: 12px" />
+        <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" style="font-size: 14px" />
       </label>
       <label class="text-label" :class="{'view':isView}">{{ valueLabel }}</label>
       <span v-if="threeColumns" :class="{'view':isView}" />

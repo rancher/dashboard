@@ -261,7 +261,7 @@ export default {
                   v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
                   v-tooltip="t('servicesPage.ips.clusterIpHelpText')"
                   class="icon icon-info"
-                  style="font-size: 12px"
+                  style="font-size: 14px"
                 />
               </template>
             </LabeledInput>
