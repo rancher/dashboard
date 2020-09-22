@@ -1,5 +1,5 @@
 import {
-  CONFIG_MAP, HELM_RELEASE,
+  CONFIG_MAP,
   NAMESPACE, NODE, SECRET, INGRESS,
   WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
   RBAC,
@@ -36,7 +36,7 @@ export function init(store) {
     icon:                'compass'
   });
 
-  basicType(['cluster-dashboard', HELM_RELEASE]);
+  basicType(['cluster-dashboard']);
   basicType([
     NAMESPACE,
     NODE,

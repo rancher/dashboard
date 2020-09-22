@@ -60,13 +60,13 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <Tabbed v-else class="mt-20" default-tab="notes" @changed="tabChanged($event)">
-    <Tab v-if="hasNotes" name="notes" :label="t('catalog.release.section.notes')" :weight="1">
+    <Tab v-if="hasNotes" name="notes" :label="t('catalog.app.section.notes')" :weight="1">
       <Markdown v-model="value.spec.info.notes" />
     </Tab>
-    <Tab v-if="hasReadme" name="readme" :label="t('catalog.release.section.readme')" :weight="2">
+    <Tab v-if="hasReadme" name="readme" :label="t('catalog.app.section.readme')" :weight="2">
       <Markdown v-model="value.spec.info.readme" />
     </Tab>
-    <Tab name="values-yaml" :label="t('catalog.release.section.values')" :weight="3">
+    <Tab name="values-yaml" :label="t('catalog.app.section.values')" :weight="3">
       <YamlEditor
         ref="yaml"
         :scrolling="false"

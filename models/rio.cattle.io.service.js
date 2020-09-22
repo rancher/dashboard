@@ -8,13 +8,13 @@ import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import { RIO } from '@/config/types';
 import { formatSi } from '@/utils/units';
-import { get } from '@/utils/object';
+import { get, set } from '@/utils/object';
 
 const EMPTY = {};
 
 export default {
   applyDefaults(par, mode) {
-    const spec = this.spec;
+    const spec = this.spec || {};
 
     if ( mode === _CREATE || mode === _CLONE ) {
       delete spec.app;
@@ -31,6 +31,8 @@ export default {
     } else if ( mode === _STAGE ) {
       spec.weight = 0;
     }
+
+    set(this, 'spec', spec);
   },
 
   app() {

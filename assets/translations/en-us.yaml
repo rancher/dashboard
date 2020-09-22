@@ -263,7 +263,7 @@ catalog:
             other { seconds }
           }
       wait: Wait
-  release:
+  app:
     section:
       readme: Chart README
       notes: Release Notes
@@ -421,16 +421,19 @@ fleet:
       warning: 'Warning'
       error: 'Error'
   gitRepo:
+    tabs:
+      resources: Resources
+      unready: Non-Ready
     auth:
       label: Authentication
       none: None
       basic: HTTP Basic Auth
       ssh: SSH Key
       custom: Secret Name
-    bundleDirs:
-      label: Bundle Directories
+    paths:
+      label: Paths
       placeholder: e.g. /directory/in/your/repo
-      addLabel: Add Directory
+      addLabel: Add Path
     repo:
       label: Repository URL
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
@@ -819,7 +822,7 @@ node:
         label: Address
         externalIp: ExternalIP
       conditions: Conditions
-      images: images
+      images: Images
       info: Info
       taints: Taints
 
@@ -922,8 +925,8 @@ resourceTable:
 
 resourceTabs:
   tabs:
-    annotations: Annotations
-    labels: Labels
+    conditions: Conditions
+    events: Recent Events
 
 resourceYaml:
   buttons:
@@ -1082,6 +1085,7 @@ tableHeaders:
   clusters: Clusters
   clusterGroups: Cluster Groups
   commit: Commit
+  condition: Condition
   configuredProviders: Configured Providers
   cpu: CPU
   date: Date
@@ -1149,6 +1153,7 @@ tableHeaders:
   targetKind: Target Type
   targetPort: Target
   type: Type
+  updated: Updated
   url: URL
   userDisplayName: Display Name
   userId: ID
@@ -1607,7 +1612,7 @@ model:
       registeredAgent: Registered Agent
       service: Service
       user: User
-  "catalog.cattle.io.release":
+  "catalog.cattle.io.app":
     firstDeployed: First Deployed
     lastDeployed: Last Deployed
   cluster:
@@ -1669,7 +1674,7 @@ typeLabel:
       one { Recent Operation }
       other { Recent Operations }
     }
-  catalog.cattle.io.release: |-
+  catalog.cattle.io.app: |-
     {count, plural,
       one { Installed App }
       other { Installed Apps }

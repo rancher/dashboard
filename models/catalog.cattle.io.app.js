@@ -74,12 +74,12 @@ export default {
 
     return [
       {
-        label:     t('model."catalog.cattle.io.release".firstDeployed'),
+        label:     t('model."catalog.cattle.io.app".firstDeployed'),
         formatter: 'LiveDate',
         content:   this.spec?.info?.firstDeployed
       },
       {
-        label:     t('model."catalog.cattle.io.release".lastDeployed'),
+        label:     t('model."catalog.cattle.io.app".lastDeployed'),
         formatter: 'LiveDate',
         content:   this.spec?.info?.lastDeployed
       },

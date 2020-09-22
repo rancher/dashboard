@@ -39,22 +39,22 @@ export function init(store) {
     route:       { name: 'c-cluster-apps-charts' },
   });
 
-  weightType(CATALOG.RELEASE, 99, true);
+  weightType(CATALOG.APP, 99, true);
 
   basicType([
     'charts',
-    CATALOG.RELEASE,
+    CATALOG.APP,
     CATALOG.OPERATION,
     CATALOG.CLUSTER_REPO,
     CATALOG.REPO,
   ]);
 
-  uncreatableType(CATALOG.RELEASE);
+  uncreatableType(CATALOG.APP);
   uncreatableType(CATALOG.OPERATION);
-  immutableType(CATALOG.RELEASE);
+  immutableType(CATALOG.APP);
   immutableType(CATALOG.OPERATION);
 
-  headers(CATALOG.RELEASE, [STATE, NAMESPACE_NAME, CHART, RESOURCES, AGE]);
+  headers(CATALOG.APP, [STATE, NAMESPACE_NAME, CHART, RESOURCES, AGE]);
 
   const repoType = {
     name:     'type',

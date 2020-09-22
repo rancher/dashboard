@@ -144,7 +144,7 @@ export async function defaultAsyncData(ctx, resource, parentOverride) {
     originalModel,
     mode,
     realMode,
-    value: model
+    value: model,
   };
   /*******
    * Important: these need to be declared below as props too if you want to use them
@@ -197,7 +197,7 @@ export default {
     parentOverride: {
       type:    Object,
       default: null
-    }
+    },
   },
 
   data() {
@@ -214,8 +214,8 @@ export default {
     return {
       asYaml,
       currentValue,
-      detailComponent:         this.$store.getters['type-map/importDetail'](this.resource),
-      editComponent:           this.$store.getters['type-map/importEdit'](this.resource),
+      detailComponent: this.$store.getters['type-map/importDetail'](this.resource),
+      editComponent:   this.$store.getters['type-map/importEdit'](this.resource),
     };
   },
 
@@ -296,6 +296,7 @@ export default {
     <DetailTop
       v-if="isView && !asYaml"
       :value="originalModel"
+      :more-details="moreDetails"
     />
     <template v-if="asYaml">
       <ResourceYaml

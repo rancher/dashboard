@@ -1,5 +1,4 @@
 import { findBy, insertAt } from '@/utils/array';
-import { NODE } from '@/config/types';
 import { colorForState } from '@/plugins/steve/resource-instance';
 
 export default {
@@ -92,53 +91,18 @@ export default {
     };
   },
 
-  workload() {
-    const kind = this.metadata.ownerReferences[0].kind;
-    const uid = this.metadata.ownerReferences[0].uid;
-    const schema = this.$rootGetters['cluster/schema'](kind);
-
-    if (schema) {
-      const type = schema.id;
-      const allOfResourceType = this.$rootGetters['cluster/all'](type);
-
-      return allOfResourceType.filter(resource => resource?.metadata?.uid === uid)[0];
-    }
-  },
-
-  nodes() {
-    return this.$rootGetters['cluster/all'](NODE);
-  },
-
-  node() {
-    const { nodeName } = this.spec;
-
-    return this.nodes.filter((node) => {
-      return node?.metadata?.name === nodeName;
-    })[0];
-  },
-
   details() {
-    return [
-      {
-        label:         this.t('workload.detailTop.workload'),
-        formatter:     'LinkDetail',
-        formatterOpts: { row: this.workload },
-        content:       this.workload?.metadata.name
-      },
+    const out = [
       {
         label:   this.t('workload.detailTop.podIP'),
         content: this.status.podIP
-      },
-      {
-        label:         this.t('workload.detailTop.node'),
-        formatter:     'LinkDetail',
-        formatterOpts: { row: this.node },
-        content:       this.node?.metadata.name
       },
       {
         label:   this.t('workload.detailTop.podRestarts'),
         content: (this.status?.containerStatuses || [])[0]?.restartCount
       }
     ];
+
+    return out;
   },
 };

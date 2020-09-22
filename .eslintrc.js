@@ -31,9 +31,10 @@ module.exports = {
     'nuxt/no-cjs-in-config':    'off',
     'semi-spacing':             'off',
     'space-in-parens':          'off',
-    strict:                   'off',
+    strict:                     'off',
     'unicorn/no-new-buffer':    'off',
     'vue/html-self-closing':    'off',
+    'vue/no-unused-components': 'warn',
     'vue/no-v-html':            'off',
     'wrap-iife':                'off',
 

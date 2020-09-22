@@ -1,6 +1,9 @@
-import { convert } from '@/utils/selector';
+import { convert, matching, convertSelectorObj } from '@/utils/selector';
 import jsyaml from 'js-yaml';
 import { escapeHtml } from '@/utils/string';
+import { FLEET } from '@/config/types';
+import { addObjects, findBy } from '@/utils/array';
+import { set } from '@/utils/object';
 
 export default {
   applyDefaults() {
@@ -8,18 +11,64 @@ export default {
       const spec = this.spec || {};
       const meta = this.metadata || {};
 
-      this.spec = spec;
-      this.metadata = meta;
-
       spec.repo = spec.repo || '';
 
       if ( !spec.branch && !spec.revision ) {
         spec.branch = 'master';
       }
 
-      spec.bundleDirs = spec.bundleDirs || [''];
+      spec.paths = spec.paths || [''];
       spec.clientSecretName = spec.clientSecretName || null;
+
+      set(this, 'spec', spec);
+      set(this, 'metadata', meta);
     };
+  },
+
+  targetClusters() {
+    const clusters = this.$getters['all'](FLEET.CLUSTER);
+    const groups = this.$getters['all'](FLEET.CLUSTER_GROUP);
+    const out = [];
+
+    if ( !this.spec.targets ) {
+      const local = findBy(clusters, {
+        'metadata.namespace': 'fleet-local',
+        'metadata.name':      'local'
+      });
+
+      if ( local ) {
+        return [local];
+      }
+
+      return [];
+    }
+
+    for ( const tgt of this.spec.targets ) {
+      if ( tgt.clusterGroup ) {
+        const group = findBy(groups, {
+          'metadata.namespace': this.metadata.namespace,
+          'metadata.name':      tgt.clusterGroup,
+        });
+
+        if ( group ) {
+          addObjects(out, group.targetClusters);
+        }
+      } else if ( tgt.clusterGroupSelector ) {
+        const expressions = convertSelectorObj(tgt.clusterGroupSelector);
+        const matchingGroups = matching(groups, expressions);
+
+        for ( const group of matchingGroups ) {
+          addObjects(out, group.targetClusters);
+        }
+      } else if ( tgt.clusterSelector ) {
+        const expressions = convertSelectorObj(tgt.clusterSelector);
+        const matchingClusters = matching(clusters, expressions);
+
+        addObjects(out, matchingClusters);
+      }
+    }
+
+    return out;
   },
 
   github() {

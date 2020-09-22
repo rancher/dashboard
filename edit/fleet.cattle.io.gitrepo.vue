@@ -321,14 +321,14 @@ export default {
 
     <hr class="mt-20 mb-20" />
 
-    <h2 v-t="'fleet.gitRepo.bundleDirs.label'" />
+    <h2 v-t="'fleet.gitRepo.paths.label'" />
     <ArrayList
-      v-model="value.spec.bundleDirs"
+      v-model="value.spec.paths"
       :mode="mode"
       :initial-empty-row="true"
       :value-multiline="false"
-      :value-placeholder="t('fleet.gitRepo.bundleDirs.placeholder')"
-      :add-label="t('fleet.gitRepo.bundleDirs.addLabel')"
+      :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
+      :add-label="t('fleet.gitRepo.paths.addLabel')"
     />
 
     <hr v-if="!isView" class="mt-20 mb-20" />
