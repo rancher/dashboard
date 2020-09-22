@@ -1,6 +1,7 @@
 import { DSL } from '@/store/type-map';
 
 export const NAME = 'logging';
+export const CHART_NAME = 'rancher-logging';
 
 export function init(store) {
   const {
