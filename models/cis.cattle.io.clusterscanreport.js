@@ -1,6 +1,6 @@
 export default {
   aggregatedTests() {
-    const json = this.reportJSON;
+    const json = this.parsedReport;
     const results = json?.results;
 
     return results ? results.reduce((all, each) => {
@@ -13,10 +13,10 @@ export default {
   },
 
   nodes() {
-    return this.reportJSON ? this.reportJSON.nodes : {};
+    return this.parsedReport ? this.parsedReport.nodes : {};
   },
 
-  reportJSON() {
+  parsedReport() {
     try {
       const json = this.spec?.reportJSON;
 
@@ -24,6 +24,7 @@ export default {
 
       return parsed;
     } catch (e) {
+      console.error(e);
     }
   }
 };

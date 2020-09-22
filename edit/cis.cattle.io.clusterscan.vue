@@ -76,7 +76,7 @@ export default {
     defaultProfile() {
       if (this.defaultConfigMap) {
         const profiles = this.defaultConfigMap.data;
-        const provider = this.currentCluster.provider;
+        const provider = this.currentCluster.status.provider;
 
         return profiles[provider] || profiles.default;
       }
