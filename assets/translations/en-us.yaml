@@ -754,6 +754,7 @@ monitoring:
       prometheusTargets:
         label: 'Prometheus Targets'
         tooltip: 'View Configured Targets'
+    warning: Monitoring V1 is currently deployed. If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install the new Rancher Monitoring chart.
   prometheus:
     config:
       adminApi: Admin API

@@ -8,11 +8,25 @@ export function init(store) {
   const {
     product, basicType, virtualType, weightType
   } = DSL(store, NAME);
-  const { SERVICEMONITOR, PODMONITOR, PROMETHEUSRULE } = MONITORING;
+  const {
+    ALERTMANAGER,
+    SERVICEMONITOR,
+    PODMONITOR,
+    PROMETHEUSRULE,
+    PROMETHEUSE,
+    THANOSRULER,
+  } = MONITORING;
 
   product({
-    ifHaveType: PODMONITOR,
-    icon:        'prometheus'
+    ifHaveType: [
+      ALERTMANAGER,
+      SERVICEMONITOR,
+      PODMONITOR,
+      PROMETHEUSRULE,
+      PROMETHEUSE,
+      THANOSRULER,
+    ],
+    // icon: 'prometheus'
   });
 
   virtualType({
