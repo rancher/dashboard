@@ -31,7 +31,7 @@ export default {
     <NameNsDescription v-model="value" :mode="mode" :namespaced="isNamespaced" />
 
     <h2>{{ t('catalog.repo.target.label') }}</h2>
-    <div class="row">
+    <div class="row mb-10">
       <div class="col span-6">
         <RadioGroup
           v-model="isGit"
@@ -43,7 +43,7 @@ export default {
       </div>
     </div>
 
-    <div v-if="isGit" class="row">
+    <div v-if="isGit" class="row mb-10">
       <div class="col span-6">
         <LabeledInput
           v-model="value.spec.gitRepo"
