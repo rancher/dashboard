@@ -111,6 +111,13 @@ export default {
   }
 }
 
+.radio-group {
+  .text-label {
+    display: block;
+    padding-bottom: 5px;
+  }
+}
+
 .radio-container {
   position: relative;
   display: inline-flex;
@@ -119,6 +126,7 @@ export default {
   cursor: pointer;
   user-select: none;
   border-radius: var(--border-radius);
+  padding-bottom: 5px;
 
   .radio-label {
     color: var(--input-label);
@@ -128,10 +136,10 @@ export default {
  .radio-custom {
     height: 14px;
     width: 14px;
-    background-color: var(--body-bg);
+    background-color: var(--input-bg);
     border-radius: 50%;
     transition: all 0.3s ease-out;
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
 
     &:focus {
       outline: none;
@@ -149,7 +157,7 @@ export default {
       -ms-transform: rotate(0deg) scale(1);
       transform: rotate(0deg) scale(1);
       opacity:1;
-      border: 1px solid var(--input-label);
+      border: 1.5px solid var(--dropdown-text);
   }
 
   input:disabled ~ .radio-custom {
