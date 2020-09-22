@@ -58,7 +58,6 @@ export default {
         iconSrc: this.prometheusSrc,
         label:   'monitoring.overview.linkedList.alertManager.label',
         link:    `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy`,
-        tooltip: 'monitoring.overview.linkedList.alertManager.tooltip',
       },
       {
         enabled: false,
@@ -66,7 +65,6 @@ export default {
         iconSrc: this.grafanaSrc,
         label:   'monitoring.overview.linkedList.grafana.label',
         link:    `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy`,
-        tooltip: 'monitoring.overview.linkedList.grafana.tooltip',
       },
       {
         enabled: false,
@@ -74,7 +72,6 @@ export default {
         iconSrc: this.prometheusSrc,
         label:   'monitoring.overview.linkedList.prometheusPromQl.label',
         link:    `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/graph`,
-        tooltip: 'monitoring.overview.linkedList.prometheusPromQl.tooltip',
       },
       {
         enabled: false,
@@ -82,7 +79,6 @@ export default {
         iconSrc: this.prometheusSrc,
         label:   'monitoring.overview.linkedList.prometheusRules.label',
         link:    `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/rules`,
-        tooltip: 'monitoring.overview.linkedList.prometheusRules.tooltip',
       },
       {
         enabled: false,
@@ -90,7 +86,6 @@ export default {
         iconSrc: this.prometheusSrc,
         label:   'monitoring.overview.linkedList.prometheusTargets.label',
         link:    `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/targets`,
-        tooltip: 'monitoring.overview.linkedList.prometheusTargets.tooltip',
       },
     ];
 
@@ -141,7 +136,7 @@ export default {
     </header>
     <div class="links">
       <div v-for="fel in filteredExternalLinks" :key="fel.label" class="link-container">
-        <a v-tooltip="t(fel.tooltip)" :href="fel.link" target="_blank" rel="noopener noreferrer">
+        <a :href="fel.link" target="_blank" rel="noopener noreferrer">
           <div class="link-logo">
             <LazyImage class="round-image" :src="fel.iconSrc" />
           </div>
