@@ -1,4 +1,6 @@
 import { escapeHtml } from '@/utils/string';
+import { matching, convert } from '@/utils/selector';
+import { FLEET } from '@/config/types';
 
 export default {
   applyDefaults() {
@@ -10,6 +12,14 @@ export default {
       spec.selector = spec.selector || {};
       spec.selector.matchExpressions = spec.selector.matchExpressions || [];
     };
+  },
+
+  targetClusters() {
+    const all = this.$getters['all'](FLEET.CLUSTER);
+    const expressions = convert(this.spec?.matchLabels || {}, this.spec?.matchExpressions || []);
+    const match = matching(all, expressions);
+
+    return match;
   },
 
   groupByLabel() {

@@ -421,6 +421,9 @@ fleet:
       warning: 'Warning'
       error: 'Error'
   gitRepo:
+    tabs:
+      resources: Resources
+      unready: Non-Ready
     auth:
       label: Authentication
       none: None
@@ -819,7 +822,7 @@ node:
         label: Address
         externalIp: ExternalIP
       conditions: Conditions
-      images: images
+      images: Images
       info: Info
       taints: Taints
 
@@ -1082,6 +1085,7 @@ tableHeaders:
   clusters: Clusters
   clusterGroups: Cluster Groups
   commit: Commit
+  condition: Condition
   configuredProviders: Configured Providers
   cpu: CPU
   date: Date
@@ -1149,6 +1153,7 @@ tableHeaders:
   targetKind: Target Type
   targetPort: Target
   type: Type
+  updated: Updated
   url: URL
   userDisplayName: Display Name
   userId: ID

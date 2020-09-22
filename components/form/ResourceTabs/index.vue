@@ -2,18 +2,20 @@
 /*
     Tab component for resource CRU pages featuring:
     Labels and Annotation tabs with content filtered by create-edit-view mixin
-    Slots for more tabs, 'before' and 'after' labels and annotations
 */
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
-import KeyValue from '@/components/form/KeyValue';
+import Conditions from '@/components/form/Conditions';
+import { EVENT } from '@/config/types';
+import SortableTable from '@/components/SortableTable';
 
 export default {
   components: {
     Tabbed,
     Tab,
-    KeyValue
+    Conditions,
+    SortableTable
   },
 
   mixins: [CreateEditView],
@@ -32,47 +34,97 @@ export default {
       default: 'create'
     }
   },
-  computed: {
-    hasCustomTabs() {
-      return !!this.$slots['before'];
+
+  async fetch() {
+    const inStore = this.$store.getters['currentProduct'].inStore;
+
+    if ( this.$store.getters[`${ inStore }/schemaFor`](EVENT) ) {
+      this.hasEvents = true;
+      this.allEvents = await this.$store.dispatch(`${ inStore }/findAll`, { type: EVENT });
     }
-  }
+  },
+
+  data() {
+    return {
+      hasEvents: null,
+      allEvents: []
+    };
+  },
+
+  computed: {
+    hasConditions() {
+      return !!this.value?.status?.conditions;
+    },
+
+    hasCustomTabs() {
+      return !!Object.keys(this.$slots).length;
+    },
+
+    eventHeaders() {
+      return [
+        {
+          name:  'reason',
+          label: 'Reason',
+          value: 'reason',
+          sort:  'reason',
+        },
+        {
+          name:          'date',
+          label:         'Updated',
+          value:         'date',
+          sort:          'date:desc',
+          formatter:     'LiveDate',
+          formatterOpts: { addSuffix: true },
+          width:         125
+        },
+        {
+          name:  'message',
+          label: 'Message',
+          value: 'message',
+          sort:  'message',
+        },
+      ];
+    },
+
+    events() {
+      return this.allEvents.filter((event) => {
+        return event.involvedObject.uid === this.value.metadata.uid;
+      }).map((event) => {
+        return {
+          reason:  (`${ event.reason || 'Unknown' }${ event.count > 1 ? ` (${ event.count })` : '' }`).trim(),
+          message: event.message || 'Unknown',
+          date:    event.lastTimestamp || event.firstTimestamp || event.metadata.creationTimestamp,
+        };
+      });
+    }
+  },
+
+  mounted() {
+    // For easy access debugging...
+    if ( typeof window !== 'undefined' ) {
+      window.v = this.value;
+    }
+  },
 };
 </script>
 
 <template>
-  <Tabbed v-if="!isView || hasCustomTabs" v-bind="$attrs">
-    <slot name="before" />
-    <Tab
-      v-if="!isView"
-      name="labels"
-      :weight="4"
-      :label="t('resourceTabs.tabs.labels')"
-    >
-      <KeyValue
-        key="labels"
-        v-model="labels"
-        :mode="mode"
-        :initial-empty-row="true"
-        :pad-left="false"
-        :read-allowed="false"
-        :protip="false"
-      />
+  <Tabbed v-if="!isView || hasCustomTabs || hasConditions" v-bind="$attrs">
+    <slot />
+
+    <Tab v-if="hasConditions" label="Conditions" name="conditions" :weight="11">
+      <Conditions :value="value" />
     </Tab>
-    <Tab
-      v-if="!isView"
-      name="annotations"
-      :weight="5"
-      :label="t('resourceTabs.tabs.annotations')"
-    >
-      <KeyValue
-        key="annotations"
-        v-model="annotations"
-        :mode="mode"
-        :initial-empty-row="true"
-        :pad-left="false"
-        :read-allowed="false"
-        :protip="false"
+
+    <Tab v-if="!$fetchState.pending && hasEvents" label="Events" name="events" :weight="10">
+      <SortableTable
+        :rows="events"
+        :headers="eventHeaders"
+        key-field="id"
+        :search="false"
+        :table-actions="false"
+        :row-actions="false"
+        default-sort-by="date"
       />
     </Tab>
   </Tabbed>

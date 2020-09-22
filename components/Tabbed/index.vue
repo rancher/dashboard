@@ -1,8 +1,8 @@
 <script>
 import head from 'lodash/head';
-import sortBy from 'lodash/sortBy';
 import isEmpty from 'lodash/isEmpty';
 import { addObject, removeObject, findBy } from '@/utils/array';
+import { sortBy } from '@/utils/sort';
 
 export default {
   name: 'Tabbed',
@@ -76,14 +76,14 @@ export default {
       const { tabs } = this;
       const shownTabs = tabs.filter(tab => !tab.canToggle);
 
-      return sortBy(shownTabs, ['weight', 'label', 'name']);
+      return sortBy(shownTabs, ['weight:desc', 'label', 'name']);
     },
 
     sortedHiddenTabs() {
       const { tabs } = this;
       const hiddenTabs = tabs.filter(tab => tab.canToggle);
 
-      return sortBy(hiddenTabs, ['weight', 'label', 'name']);
+      return sortBy(hiddenTabs, ['weight:desc', 'label', 'name']);
     },
 
     sortedTabs() {

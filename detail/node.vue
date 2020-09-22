@@ -21,7 +21,6 @@ import Poller from '@/utils/poller';
 import { METRIC } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
-import Conditions from '@/components/form/Conditions';
 
 const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;
@@ -37,7 +36,6 @@ export default {
     ResourceTabs,
     Tab,
     SortableTable,
-    Conditions
   },
 
   mixins: [createEditView],
@@ -191,51 +189,46 @@ export default {
       </HStack>
     </HStack>
     <ResourceTabs v-model="value" :mode="mode">
-      <template v-slot:before>
-        <Tab name="conditions" :label="t('node.detail.tab.conditions')">
-          <Conditions :value="value" />
-        </Tab>
-        <Tab name="info" :label="t('node.detail.tab.info')" class="bordered-table">
-          <SortableTable
-            key-field="_key"
-            :headers="infoTableHeaders"
-            :rows="infoTableRows"
-            :row-actions="false"
-            :table-actions="false"
-            :show-headers="false"
-            :search="false"
-          />
-        </Tab>
-        <Tab name="address" :label="t('node.detail.tab.address.label')">
-          <SortableTable
-            key-field="_key"
-            :headers="addressTableHeaders"
-            :rows="addressTableRows"
-            :row-actions="false"
-            :table-actions="false"
-            :search="false"
-          />
-        </Tab>
-        <Tab name="images" :label="t('node.detail.tab.images')">
-          <SortableTable
-            key-field="_key"
-            :headers="imageTableHeaders"
-            :rows="imageTableRows"
-            :row-actions="false"
-            :table-actions="false"
-          />
-        </Tab>
-        <Tab name="taints" :label="t('node.detail.tab.taints')">
-          <SortableTable
-            key-field="_key"
-            :headers="taintTableHeaders"
-            :rows="taintTableRows"
-            :row-actions="false"
-            :table-actions="false"
-            :search="false"
-          />
-        </Tab>
-      </template>
+      <Tab name="info" :label="t('node.detail.tab.info')" class="bordered-table">
+        <SortableTable
+          key-field="_key"
+          :headers="infoTableHeaders"
+          :rows="infoTableRows"
+          :row-actions="false"
+          :table-actions="false"
+          :show-headers="false"
+          :search="false"
+        />
+      </Tab>
+      <Tab name="address" :label="t('node.detail.tab.address.label')">
+        <SortableTable
+          key-field="_key"
+          :headers="addressTableHeaders"
+          :rows="addressTableRows"
+          :row-actions="false"
+          :table-actions="false"
+          :search="false"
+        />
+      </Tab>
+      <Tab name="images" :label="t('node.detail.tab.images')">
+        <SortableTable
+          key-field="_key"
+          :headers="imageTableHeaders"
+          :rows="imageTableRows"
+          :row-actions="false"
+          :table-actions="false"
+        />
+      </Tab>
+      <Tab name="taints" :label="t('node.detail.tab.taints')">
+        <SortableTable
+          key-field="_key"
+          :headers="taintTableHeaders"
+          :rows="taintTableRows"
+          :row-actions="false"
+          :table-actions="false"
+          :search="false"
+        />
+      </Tab>
     </ResourceTabs>
   </VStack>
 </template>

@@ -13,6 +13,12 @@ export default {
       default: () => {
         return {};
       }
+    },
+    moreDetails: {
+      type:    Array,
+      default: () => {
+        return [];
+      }
     }
   },
 
@@ -22,7 +28,10 @@ export default {
 
   computed: {
     details() {
-      return this.value?.details;
+      return [
+        ...(this.moreDetails || []),
+        ...(this.value?.details || []),
+      ];
     },
     labels() {
       return this.value?.labels || {};

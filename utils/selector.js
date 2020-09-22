@@ -100,6 +100,11 @@ export function parse(labelSelector) {
   return out;
 }
 
+// Convert a Selector object to matchExpressions
+export function convertSelectorObj(obj) {
+  return convert(obj.matchLabels || {}, obj.matchExpressions || []);
+}
+
 // Convert matchLabels to matchExpressions
 // Optionally combining with an existing set of matchExpressions
 export function convert(matchLabelsObj, matchExpressions) {

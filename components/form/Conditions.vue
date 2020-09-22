@@ -1,9 +1,4 @@
 <script>
-import {
-  STATUS,
-  REASON,
-  MESSAGE
-} from '@/config/table-headers';
 import SortableTable from '@/components/SortableTable';
 
 export default {
@@ -16,42 +11,74 @@ export default {
       }
     }
   },
-  data() {
-    const statusTableHeaders = [
-      {
-        name:  'type',
-        label: 'Type',
-        value: 'type',
-        sort:  'type',
-        width: 100,
-      },
-      STATUS,
-      {
-        name:          'lastUpdated',
-        label:         'Last Update',
-        value:         'lastTransitionTime',
-        sort:          ['lastTransitionTime'],
-        formatter:     'LiveDate',
-        formatterOpts: { addSuffix: true },
-      },
-      REASON,
-      MESSAGE
-    ];
 
-    return { statusTableHeaders };
+  computed: {
+    headers() {
+      return [
+        {
+          name:        'condition',
+          labelKey:    'tableHeaders.condition',
+          value:       'condition',
+          width:       150,
+          sort:        'condition',
+          dashIfEmpty: true,
+        },
+        {
+          name:        'status',
+          labelKey:    'tableHeaders.status',
+          value:       'status',
+          width:       75,
+          sort:        'status',
+          dashIfEmpty: true,
+        },
+        {
+          name:          'time',
+          labelKey:      'tableHeaders.updated',
+          value:         'time',
+          sort:          'time',
+          formatter:     'LiveDate',
+          formatterOpts: { addSuffix: true },
+          width:         125,
+          dashIfEmpty:   true,
+        },
+        {
+          name:        'message',
+          labelKey:    'tableHeaders.message',
+          value:       'message',
+          sort:        ['message'],
+          dashIfEmpty: true,
+        },
+      ];
+    },
+
+    rows() {
+      return (this.value.status?.conditions || []).map((cond) => {
+        let message = cond.message || '';
+
+        if ( cond.reason ) {
+          message = `[${ cond.reason }] ${ message }`.trim();
+        }
+
+        return {
+          condition: cond.type || 'Unknown',
+          status:    cond.status || 'Unknown',
+          time:      cond.lastProbeTime || cond.lastUpdateTime || cond.lastTransitionTime,
+          message,
+        };
+      });
+    },
   }
 };
 </script>
 
 <template>
-  <div>
-    <SortableTable
-      :headers="statusTableHeaders"
-      :rows="(value.status||{}).conditions || []"
-      key-field="message"
-      :table-actions="false"
-      :row-actions="false"
-      :search="false"
-    />
-  </div>
+  <SortableTable
+    :headers="headers"
+    :rows="rows"
+    key-field="condition"
+    default-sort-by="condition"
+    :table-actions="false"
+    :row-actions="false"
+    :search="false"
+  />
 </template>
