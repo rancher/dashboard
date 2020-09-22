@@ -7,9 +7,19 @@ export default {
   },
 
   outputs() {
-    const outputRefs = this?.spec?.outputRefs || [];
+    const outputRefs = this?.spec?.outputRefs || this?.spec?.localOutputRefs || [];
 
     return this.allOutputs.filter(output => outputRefs.includes(output.name));
+  },
+
+  setOutputRefs() {
+    return (outputRefs) => {
+      this.spec = this.spec || {};
+      this.spec.localOutputRefs = outputRefs;
+
+      // outputRefs is deprecated so we're clearing it.
+      this.spec.outputRefs = undefined;
+    };
   },
 
   outputProviders() {
@@ -23,7 +33,7 @@ export default {
     return [
       {
         nullable:       false,
-        path:           'spec.outputRefs',
+        path:           'spec.localOutputRefs',
         required:       true,
         translationKey: 'logging.flow.outputs',
         type:           'array'

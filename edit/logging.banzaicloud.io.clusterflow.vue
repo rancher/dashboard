@@ -7,7 +7,8 @@ export default {
   extends: Flow,
 
   async fetch() {
-    this.outputs = await this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUTS }) || [];
+    this.allOutputs = await this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUTS }) || [];
+    this.initialSelection = [...this.value.outputs];
   },
 
   data() {
@@ -15,6 +16,7 @@ export default {
     this.value.metadata.namespace = 'cattle-logging-system';
 
     return {
+      outputRefsKey:   'globalOutputRefs',
       noOutputsBanner: this.t('logging.clusterFlow.noOutputsBanner'),
       tableHeaders:      [
         { ...NAME, labelKey: 'tableHeaders.clusterOutput' },

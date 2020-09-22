@@ -74,8 +74,9 @@ export const getters = {
     // Enable a bulkaction if some of the selected items can perform the action
     out.forEach((bulkAction) => {
       const actionEnabledForSomeSelected = state.tableSelected.some((node) => {
-        return node.availableActions
-          .some(action => action.action === bulkAction.action && action.enabled);
+        const availableActions = node.availableActions || [];
+
+        return availableActions.some(action => action.action === bulkAction.action && action.enabled);
       });
 
       bulkAction.enabled = state.tableSelected.length > 0 && actionEnabledForSomeSelected;

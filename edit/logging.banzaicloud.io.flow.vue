@@ -31,8 +31,6 @@ export default {
   },
 
   data() {
-    this.value.metadata.namespace = 'default';
-
     return {
       allOutputs:        [],
       noOutputsBanner:   this.t('logging.flow.noOutputsBanner'),
@@ -60,23 +58,30 @@ export default {
   watch: {
     '$fetchState.pending': {
       handler() {
-        if (!this.$fetchState.pending) {
-          this.$nextTick(() => {
-            this.selectInitial();
-          });
-        }
+        this.selectInitial();
       }
+    },
+    mode() {
+      this.selectInitial();
     }
+  },
+  mounted() {
+    this.selectInitial();
   },
   methods: {
     onSelection(selected) {
       if (!this.isView) {
-        this.value.spec = this.value.spec || {};
-        this.value.spec.outputRefs = selected.map(s => s.name);
+        const outputRefs = selected.map(s => s.name);
+
+        this.value.setOutputRefs(outputRefs);
       }
     },
     selectInitial() {
-      this.$refs.table.update(this.initialSelection, []);
+      if (!this.$fetchState.pending) {
+        this.$nextTick(() => {
+          this.$refs.table.select(this.initialSelection, []);
+        });
+      }
     }
   }
 };
@@ -98,7 +103,6 @@ export default {
     @cancel="done"
   >
     <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="isNamespaced" />
-
     <Tabbed :side-tabs="true">
       <Tab name="outputs" :label="t('logging.flow.outputs')">
         <Banner v-if="!isView" :color="bannerColor">
