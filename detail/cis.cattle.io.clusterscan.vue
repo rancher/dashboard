@@ -5,7 +5,6 @@ import { defaultAsyncData } from '@/components/ResourceDetail';
 import { CIS } from '@/config/types';
 import { STATE } from '@/config/table-headers';
 import { randomStr } from '@/utils/string';
-import { get } from '@/utils/object';
 
 export default {
   components: {
@@ -35,27 +34,25 @@ export default {
   },
 
   computed: {
+    parsedReport() {
+      const report = this.clusterReport?.parsedReport;
 
-    parsedData() {
-      const reportJSON = get(this.clusterReport, 'spec.reportJSON');
-
-      return reportJSON ? JSON.parse(reportJSON) : null;
+      return report;
     },
 
     reportNodes() {
-      // return this.parsedData ? this.parsedData.nodes : {};
-      return { master: ['node1', 'node2'] };
+      return this.clusterReport?.nodes || null;
     },
 
     results() {
-      if (!this.clusterReport) {
+      if (!this.clusterReport || !this.clusterReport.aggregatedTests) {
         return [];
       }
 
       return this.clusterReport.aggregatedTests.map((check) => {
         check.testStateSort = this.testStateSort(check.state);
         if (!!check.node_type) {
-          check.nodes = check.node_type.reduce((nodes, type) => {
+          const nodes = check.node_type.reduce((nodes, type) => {
             if (this.reportNodes[type]) {
               this.reportNodes[type].forEach(name => nodes.push({
                 type, name, id: randomStr(4), state: check.state
@@ -64,6 +61,8 @@ export default {
 
             return nodes;
           }, []);
+
+          check.nodes = nodes;
         }
 
         return check;
@@ -71,7 +70,7 @@ export default {
     },
 
     details() {
-      if (!this.parsedData) {
+      if (!this.parsedReport) {
         return [];
       }
 
@@ -90,23 +89,23 @@ export default {
         },
         {
           label: this.t('cis.scan.total'),
-          value: this.parsedData.total
+          value: this.parsedReport.total
         },
         {
           label: this.t('cis.scan.passed'),
-          value: this.parsedData.pass
+          value: this.parsedReport.pass
         },
         {
           label: this.t('cis.scan.skipped'),
-          value: this.parsedData.skip
+          value: this.parsedReport.skip
         },
         {
           label: this.t('cis.scan.failed'),
-          value: this.parsedData.fail
+          value: this.parsedReport.fail
         },
         {
           label: this.t('cis.scan.notApplicable'),
-          value: this.parsedData.notApplicable
+          value: this.parsedReport.notApplicable
         },
         {
           label:     this.t('cis.scan.lastScanTime'),
@@ -159,10 +158,10 @@ export default {
   methods: {
     testStateSort(state) {
       const SORT_ORDER = {
-        failed:        1,
-        skipped:       2,
+        fail:          1,
+        skip:          2,
         notApplicable:    3,
-        passed:        4,
+        pass:          4,
         other:         5,
       };
 
@@ -199,7 +198,7 @@ export default {
         key-field="id"
       >
         <template #sub-row="{row, fullColspan}">
-          <tr>
+          <tr v-if="row.nodes && row.nodes.length">
             <td :colspan="fullColspan">
               <SortableTable
                 class="sub-table"
