@@ -73,9 +73,9 @@ export default {
           "
         />
       </div>
-      <div class="col span-5">
+      <div class="col span-6">
         <div v-for="(host, i) in hosts" :key="i" class="row mb-10">
-          <div :style="{ 'margin-right': '0px' }" class="col span-12">
+          <div :style="{ 'margin-right': '0px' }" class="col span-10">
             <LabeledInput
               :value="host"
               :label="t('ingress.certificates.host.label')"
@@ -83,13 +83,15 @@ export default {
               @input="(e) => $set(hosts, i, e)"
             />
           </div>
-          <button
-            class="btn btn-sm role-link col"
-            style="line-height: 40px;"
-            @click="(e) => remove(e, i)"
-          >
-            {{ t("ingress.certificates.removeHost") }}
-          </button>
+          <div class="col span-2">
+            <button
+              class="btn btn-sm role-link col"
+              style="line-height: 40px;"
+              @click="(e) => remove(e, i)"
+            >
+              {{ t("ingress.certificates.removeHost") }}
+            </button>
+          </div>
         </div>
         <button
           :style="{ padding: '0px 0px 0px 5px' }"
@@ -99,26 +101,28 @@ export default {
           {{ t("ingress.certificates.addHost") }}
         </button>
       </div>
-      <div class="col span-1">
-        <button class="btn role-link close" @click="$emit('remove')">
-          <i class="icon icon-2x icon-x" />
-        </button>
-      </div>
     </div>
+    <button class="btn role-link close" @click="$emit('remove')">
+      <i class="icon icon-2x icon-x" />
+    </button>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .close {
-  float: right;
-  padding: 0px;
-  position: relative;
-  top: -10px;
-  right: -10px;
+  top: -5px;
+  right: -5px;
+  padding:0;
+  position: absolute;
 }
-.cert:not(:last-of-type) {
+
+.cert {
+  position: relative;
+
+  &:not(:last-of-type) {
   padding-bottom: 10px;
   margin-bottom: 30px;
   border-bottom: 1px solid var(--border);
+}
 }
 </style>

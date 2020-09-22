@@ -107,7 +107,6 @@ export default {
       v-if="!isView"
       :value="value"
       :mode="mode"
-      name-label="Name"
       :register-before-hook="registerBeforeHook"
     />
 

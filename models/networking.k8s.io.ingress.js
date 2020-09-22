@@ -71,6 +71,10 @@ export default {
     return (workloads) => {
       const rules = this.spec.rules || [];
 
+      if (!rules.flatMap) {
+        return [];
+      }
+
       return rules.flatMap((rule) => {
         const paths = rule?.http?.paths || [];
 
