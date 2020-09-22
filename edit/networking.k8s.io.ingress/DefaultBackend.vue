@@ -44,6 +44,16 @@ export default {
     },
     serviceTargetTooltip() {
       return this.serviceTargetStatus === 'warning' ? this.t('ingress.rules.target.doesntExist') : null;
+    },
+    serviceTargetOptions() {
+      return [
+        {
+          label: this.t('generic.none'),
+          value: '',
+          ports: []
+        },
+        ...this.serviceTargets
+      ];
     }
   },
   methods: {
@@ -65,7 +75,7 @@ export default {
           :taggable="true"
           :mode="mode"
           :label="t('ingress.defaultBackend.targetService.label')"
-          :options="serviceTargets"
+          :options="serviceTargetOptions"
           option-label="label"
           :status="serviceTargetStatus"
           :tooltip="serviceTargetTooltip"
