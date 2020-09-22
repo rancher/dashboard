@@ -1,4 +1,5 @@
 <script>
+import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -7,6 +8,7 @@ import StorageClassSelector from '@/chart/monitoring/StorageClassSelector';
 
 export default {
   components: {
+    Banner,
     Checkbox,
     KeyValue,
     LabeledInput,
@@ -37,6 +39,11 @@ export default {
         return {};
       },
     },
+
+    warnUser: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   data() {
@@ -79,6 +86,11 @@ export default {
     <div class="title">
       <h3>{{ t('monitoring.prometheus.title') }}</h3>
     </div>
+    <Banner v-if="warnUser" color="warning">
+      <template #default>
+        <t k="monitoring.prometheus.warningInstalled" :raw="true" />
+      </template>
+    </Banner>
     <div class="prometheus-config">
       <div class="row">
         <div class="col span-6 col-full-height">

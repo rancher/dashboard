@@ -9,7 +9,7 @@ import Grafana from '@/chart/monitoring/grafana';
 import Prometheus from '@/chart/monitoring/prometheus';
 
 import { allHash } from '@/utils/promise';
-import { STORAGE_CLASS, PVC, SECRET } from '@/config/types';
+import { STORAGE_CLASS, PVC, SECRET, POD } from '@/config/types';
 
 export default {
   components: {
@@ -55,10 +55,11 @@ export default {
           label: 'monitoring.accessModes.many',
         },
       ],
-      pvcs:                  [],
-      secrets:               [],
-      storageClasses:        [],
-      targetNamespace:       null,
+      pvcs:                    [],
+      secrets:                 [],
+      storageClasses:          [],
+      targetNamespace:         null,
+      warnPrometheusInstalled: false,
     };
   },
 
@@ -96,10 +97,11 @@ export default {
     async fetchDeps() {
       const { $store } = this;
       const hash = await allHash({
-        storageClasses: $store.dispatch('cluster/findAll', { type: STORAGE_CLASS }),
+        namespaces:     $store.getters['namespaces'](),
+        pods:           $store.dispatch('cluster/findAll', { type: POD }),
         pvcs:           $store.dispatch('cluster/findAll', { type: PVC }),
         secrets:        $store.dispatch('cluster/findAll', { type: SECRET }),
-        namespaces:     $store.getters['namespaces'](),
+        storageClasses: $store.dispatch('cluster/findAll', { type: STORAGE_CLASS }),
       });
 
       this.targetNamespace = hash.namespaces[this.chart.targetNamespace] || false;
@@ -114,6 +116,17 @@ export default {
 
       if (!isEmpty(hash.secrets)) {
         this.secrets = hash.secrets;
+      }
+
+      if (!isEmpty(hash.pods)) {
+        hash.pods.find((pod) => {
+          if (
+            !isEmpty(pod.spec?.containers) &&
+            pod.spec.containers.find(p => p.image.includes('quay.io/coreos/prometheus-operator') || p.image.includes('rancher/coreos-prometheus-operator') )
+          ) {
+            this.warnPrometheusInstalled = true;
+          }
+        });
       }
     },
   },
@@ -148,6 +161,7 @@ export default {
         :access-modes="accessModes"
         :mode="mode"
         :storage-classes="storageClasses"
+        :warn-user="warnPrometheusInstalled"
       />
     </section>
     <section class="config-grafana-container">
