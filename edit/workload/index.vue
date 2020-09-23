@@ -226,7 +226,6 @@ export default {
           this.$set( this.spec.jobTemplate.metadata, 'labels', neu);
         } else {
           this.$set(this.spec.template.metadata, 'labels', neu);
-          this.$set(this.spec.selector, 'matchLabels', neu);
         }
       }
     },
@@ -462,10 +461,7 @@ export default {
 
     saveWorkload() {
       if (this.type !== WORKLOAD_TYPES.JOB) {
-        if (!this.spec.selector) {
-          this.$set(this.spec, 'selector', { matchLabels: {} });
-        }
-        Object.assign(this.spec.selector.matchLabels, this.value.workloadSelector);
+        this.spec.selector = { matchLabels: this.workloadSelector };
       }
 
       let template;
