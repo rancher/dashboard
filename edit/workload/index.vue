@@ -202,6 +202,31 @@ export default {
       }
     },
 
+    podTemplateMetadata: {
+      get() {
+        if (this.isCronJob) {
+          if (!this.spec.jobTemplate.metadata) {
+            this.$set( this.spec.jobTemplate, 'metadata', {});
+          }
+
+          return this.spec.jobTemplate.metadata;
+        } else {
+          if (!this.spec.template.metadata) {
+            this.$set(this.spec.template, 'metadata', {});
+          }
+
+          return this.spec.template.metadata;
+        }
+      },
+      set(neu) {
+        if (this.isCronJob) {
+          this.$set( this.spec.jobTemplate, 'metadata', neu);
+        } else {
+          this.$set(this.spec.template, 'metadata', neu);
+        }
+      }
+    },
+
     container: {
       get() {
         if (!this.podTemplateSpec.containers) {
@@ -611,13 +636,12 @@ export default {
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
-
           <div class="bordered-section">
-            <h3>{{ t('resourceDetail.detailTop.labels') }}</h3>
+            <h3>{{ t('workload.container.titles.podLabels') }}</h3>
             <div class="row">
               <KeyValue
-                key="labels"
-                v-model="value.metadata.labels"
+                key="annotations"
+                v-model="podTemplateMetadata.labels"
                 :mode="mode"
                 :pad-left="false"
                 :read-allowed="false"
@@ -625,13 +649,12 @@ export default {
               />
             </div>
           </div>
-
           <div>
-            <h3>{{ t('resourceDetail.detailTop.annotations') }}</h3>
+            <h3>{{ t('workload.container.titles.podAnnotations') }}</h3>
             <div class="row">
               <KeyValue
                 key="annotations"
-                v-model="value.metadata.annotations"
+                v-model="podTemplateMetadata.annotations"
                 :mode="mode"
                 :pad-left="false"
                 :read-allowed="false"
@@ -700,6 +723,31 @@ export default {
               <LabeledSelect :mode="mode" :label="t('workload.storage.subtypes.persistentVolumeClaim')" :value="row.value" :options="pvcs" @input="queueUpdate" />
             </template>
           </ArrayList>
+        </Tab>
+        <Tab name="labels" :label="t('generic.labelsAndAnnotations')">
+          <h3>{{ t('resourceDetail.detailTop.labels') }}</h3>
+          <div class="row">
+            <KeyValue
+              key="labels"
+              v-model="value.metadata.labels"
+              :mode="mode"
+              :pad-left="false"
+              :read-allowed="false"
+              :protip="false"
+            />
+          </div>
+
+          <h3>{{ t('resourceDetail.detailTop.annotations') }}</h3>
+          <div class="row">
+            <KeyValue
+              key="annotations"
+              v-model="value.metadata.annotations"
+              :mode="mode"
+              :pad-left="false"
+              :read-allowed="false"
+              :protip="false"
+            />
+          </div>
         </Tab>
       </Tabbed>
     </CruResource>

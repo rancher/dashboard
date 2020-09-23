@@ -1350,6 +1350,8 @@ workload:
       healthCheck: Health Check
       image: Image
       networking: Networking
+      podAnnotations: Pod Annotations
+      podLabels: Pod Labels
       podScheduling: Pod Scheduling
       nodeScheduling: Node Scheduling
       ports: Ports
