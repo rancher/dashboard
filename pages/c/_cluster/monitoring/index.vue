@@ -38,17 +38,7 @@ export default {
     };
   },
 
-  computed: {
-    ...mapGetters(['currentCluster']),
-
-    accessibleResources() {
-      return this.resources.filter(resource => this.$store.getters['cluster/schemaFor'](resource));
-    },
-
-    filteredExternalLinks() {
-      return this.externalLinks.filter(el => el.enabled);
-    },
-  },
+  computed: { ...mapGetters(['currentCluster']) },
 
   mounted() {
     this.externalLinks = [
@@ -135,8 +125,17 @@ export default {
       </div>
     </header>
     <div class="links">
-      <div v-for="fel in filteredExternalLinks" :key="fel.label" class="link-container">
-        <a :href="fel.link" target="_blank" rel="noopener noreferrer">
+      <div v-for="fel in externalLinks" :key="fel.label" class="link-container">
+        <a v-if="fel.enabled" :href="fel.link" target="_blank" rel="noopener noreferrer">
+          <div class="link-logo">
+            <LazyImage class="round-image" :src="fel.iconSrc" />
+          </div>
+          <div class="link-content">
+            <t :k="fel.label" />
+            <i class="icon icon-external-link pull-right" />
+          </div>
+        </a>
+        <a v-else v-tooltip="t('monitoring.overview.linkedList.na')" href="javascript:void(0)" :disabled="!fel.enabled">
           <div class="link-logo">
             <LazyImage class="round-image" :src="fel.iconSrc" />
           </div>
@@ -146,16 +145,6 @@ export default {
           </div>
         </a>
       </div>
-    </div>
-    <div class="resource-gauges">
-      <ResourceGauge v-for="(resource, i) in accessibleResources" :key="resource" :resource="resource" :primary-color-var="`--sizzle-${i}`" />
-    </div>
-    <div v-if="filteredExternalLinks.length <= 0 && accessibleResources.length <= 0">
-      <Banner color="warning">
-        <template #default>
-          <t k="monitoring.overview.warning" :raw="true" />
-        </template>
-      </Banner>
     </div>
   </section>
 </template>
@@ -175,6 +164,11 @@ export default {
     margin: 0 10px 10px 0;
     max-width: 325px;
     min-height: 100px;
+
+    a[disabled] {
+      cursor: not-allowed;
+      background-color: var(---disabled-bg);
+    }
 
     &:hover {
       box-shadow: 0px 0px 1px var(--outline-width) var(--outline);

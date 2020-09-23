@@ -743,6 +743,7 @@ monitoring:
         label: 'AlertManager - Active Alerts'
       grafana:
         label: 'Grafana - Metrics Dashboards'
+      na: Resource Unavailable
       prometheusPromQl:
         label: 'Prometheus - PromQL Graph'
       prometheusRules:
