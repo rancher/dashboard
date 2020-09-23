@@ -140,7 +140,7 @@ export default {
     </template>
 
     <template #cell:workspace="{row}">
-      <span v-if="row.mgmt.spec.fleetWorkspaceName">{{ row.mgmt.spec.fleetWorkspaceName }}</span>
+      <span v-if="row.mgmt && row.mgmt.spec.fleetWorkspaceName">{{ row.mgmt.spec.fleetWorkspaceName }}</span>
       <span v-else class="text-muted">&ndash;</span>
     </template>
 

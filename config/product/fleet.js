@@ -52,10 +52,10 @@ export function init(store) {
 
   uncreatableType(FLEET.CLUSTER);
 
-  weightType(FLEET.WORKSPACE, 110);
-  weightType(FLEET.CLUSTER, 109);
-  weightType(FLEET.GIT_REPO, 108);
-  weightType(FLEET.CLUSTER_GROUP, 107);
+  weightType(FLEET.GIT_REPO, 109, true);
+  weightType(FLEET.CLUSTER, 108, true);
+  weightType(FLEET.CLUSTER_GROUP, 107, true);
+  weightType(FLEET.WORKSPACE, 106, true);
 
   basicType([
     'fleet.cattle.io.bundledeployment',
