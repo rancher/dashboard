@@ -9,18 +9,12 @@ import { ENDPOINTS, MONITORING } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { findBy } from '@/utils/array';
 
-import Banner from '@/components/Banner';
 import LazyImage from '@/components/LazyImage';
-import ResourceGauge from '@/components/ResourceGauge';
 
 const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
 
 export default {
-  components: {
-    Banner,
-    LazyImage,
-    ResourceGauge,
-  },
+  components: { LazyImage },
 
   middleware: InstallRedirect(NAME, CHART_NAME),
 
