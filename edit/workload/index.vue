@@ -134,6 +134,9 @@ export default {
       if (!spec.template) {
         spec.template = { spec: { restartPolicy: type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always' } };
       }
+      if (!spec.selector) {
+        spec.selector = {};
+      }
     }
 
     return {
@@ -202,27 +205,28 @@ export default {
       }
     },
 
-    podTemplateMetadata: {
+    podLabels: {
       get() {
         if (this.isCronJob) {
           if (!this.spec.jobTemplate.metadata) {
-            this.$set( this.spec.jobTemplate, 'metadata', {});
+            this.$set( this.spec.jobTemplate, 'metadata', { labels: {} });
           }
 
-          return this.spec.jobTemplate.metadata;
+          return this.spec.jobTemplate.metadata.labels;
         } else {
           if (!this.spec.template.metadata) {
-            this.$set(this.spec.template, 'metadata', {});
+            this.$set(this.spec.template, 'metadata', { labels: {} });
           }
 
-          return this.spec.template.metadata;
+          return this.spec.template.metadata.labels;
         }
       },
       set(neu) {
         if (this.isCronJob) {
-          this.$set( this.spec.jobTemplate, 'metadata', neu);
+          this.$set( this.spec.jobTemplate.metadata, 'labels', neu);
         } else {
-          this.$set(this.spec.template, 'metadata', neu);
+          this.$set(this.spec.template.metadata, 'labels', neu);
+          this.$set(this.spec.selector, 'matchLabels', neu);
         }
       }
     },
@@ -641,20 +645,7 @@ export default {
             <div class="row">
               <KeyValue
                 key="annotations"
-                v-model="podTemplateMetadata.labels"
-                :mode="mode"
-                :pad-left="false"
-                :read-allowed="false"
-                :protip="false"
-              />
-            </div>
-          </div>
-          <div>
-            <h3>{{ t('workload.container.titles.podAnnotations') }}</h3>
-            <div class="row">
-              <KeyValue
-                key="annotations"
-                v-model="podTemplateMetadata.annotations"
+                v-model="podLabels"
                 :mode="mode"
                 :pad-left="false"
                 :read-allowed="false"
