@@ -184,7 +184,7 @@ export default {
           <div v-else-if="storageSource === 'pickPV'" class="col span-6">
             <LabeledSelect
               :key="storageSource"
-              :value="value.persistence.volumeName"
+              v-model="value.persistence.volumeName"
               :label="t('backupRestoreOperator.deployment.storage.persistentVolume')"
               :mode="mode"
               :options="unboundPVs"
