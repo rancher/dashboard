@@ -31,7 +31,7 @@ export function init(store) {
 
   product({
     removable:           false,
-    weight:              2,
+    weight:              3,
     showNamespaceFilter: true,
     icon:                'compass'
   });

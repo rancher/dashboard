@@ -22,7 +22,7 @@ export function init(store) {
     icon:                'compass',
     inStore:             'management',
     removable:           false,
-    weight:              3,
+    weight:              -1,
     showClusterSwitcher: false,
   });
 

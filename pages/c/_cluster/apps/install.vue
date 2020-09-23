@@ -778,8 +778,7 @@ export default {
           :class="{'with-name': showNameEditor}"
           @changed="tabChanged($event)"
         >
-          <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="-1">
-            <!-- Negative weight makes it go before any valuesComponent tabs with no weight set -->
+          <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="100">
             <Markdown v-if="showReadme" ref="readme" v-model="versionInfo.readme" class="md readme" />
           </Tab>
 
@@ -848,7 +847,7 @@ export default {
             />
           </Tab>
 
-          <Tab name="helm" :label="t('catalog.install.section.helm')" :weight="100">
+          <Tab name="helm" :label="t('catalog.install.section.helm')" :weight="-1">
             <div><Checkbox v-if="existing" v-model="cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
             <div><Checkbox v-if="!existing" v-model="crds" :label="t('catalog.install.helm.crds')" /></div>
             <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>

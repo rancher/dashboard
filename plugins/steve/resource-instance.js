@@ -165,6 +165,12 @@ export function stateDisplay(state) {
   return state.split(/-/).map(ucFirst).join('-');
 }
 
+export function stateSort(color, display) {
+  color = color.replace(/^(text|bg)-/, '');
+
+  return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ display }`;
+}
+
 function maybeFn(val) {
   if ( isFunction(val) ) {
     return val(this);
@@ -382,21 +388,9 @@ export default {
     return this.metadata?.state?.name || 'unknown';
   },
 
-  // You can override the displayed by providing your own stateDisplay (and possibly reading _stateDisplay)
+  // You can override the displayed by providing your own stateDisplay (and possibly using the function exported above)
   stateDisplay() {
-    return this._stateDisplay(this.state);
-  },
-
-  _stateDisplay() {
-    return (state) => {
-      // @TODO use translations
-
-      if ( REMAP_STATE[state] ) {
-        return REMAP_STATE[state];
-      }
-
-      return state.split(/-/).map(ucFirst).join('-');
-    };
+    return stateDisplay(this.state);
   },
 
   stateColor() {
@@ -443,9 +437,7 @@ export default {
   },
 
   stateSort() {
-    const color = this.stateColor.replace('text-', '');
-
-    return `${ SORT_ORDER[color] || SORT_ORDER['other'] } ${ this.stateDisplay }`;
+    return stateSort(this.stateSolor, this.stateDisplay);
   },
 
   showMessage() {

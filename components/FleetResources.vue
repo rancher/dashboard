@@ -1,0 +1,107 @@
+<script>
+import { colorForState, stateDisplay, stateSort } from '@/plugins/steve/resource-instance';
+import SortableTable from '@/components/SortableTable';
+
+export default {
+  components: { SortableTable },
+
+  props: {
+    value: {
+      type:     Object,
+      required: true,
+    }
+  },
+
+  computed: {
+    computedResources() {
+      const clusters = this.value.targetClusters || [];
+      const resources = this.value.status?.resources || [];
+      const out = [];
+
+      for ( const r of resources ) {
+        let namespacedName = r.name;
+
+        if ( r.namespace ) {
+          namespacedName = `${ r.namespace }:${ r.name }`;
+        }
+
+        for ( const c of clusters ) {
+          let state = r.state;
+          const perEntry = r.perClusterState?.find(x => x.clusterId === c.id );
+          const tooMany = r.perClusterState?.length >= 10 || false;
+
+          if ( perEntry ) {
+            state = perEntry.state;
+          } else if ( tooMany ) {
+            state = 'Unknown';
+          }
+
+          const color = colorForState(state).replace('text-', 'bg-');
+          const display = stateDisplay(state);
+
+          out.push({
+            key:             `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
+            kind:            r.kind,
+            type:            r.type,
+            id:              r.id,
+            namespace:       r.namespace,
+            name:            r.name,
+            clusterId:       c.id,
+            clusterName:     c.nameDisplay,
+            state,
+            stateBackground: color,
+            stateDisplay:    display,
+            stateSort:       stateSort(color, display),
+            namespacedName,
+          });
+        }
+      }
+
+      return out;
+    },
+
+    resourceHeaders() {
+      return [
+        {
+          name:          'state',
+          value:         'state',
+          label:         'State',
+          sort:          'stateSort',
+          formatter:     'BadgeStateFormatter',
+          width:         100,
+        },
+        {
+          name:  'cluster',
+          value: 'clusterName',
+          sort:  ['clusterName', 'stateSort'],
+          label: 'Cluster',
+        },
+        {
+          name:  'kind',
+          value: 'kind',
+          sort:  'kind',
+          label: 'Kind',
+        },
+        {
+          name:  'resource',
+          value: 'namespacedName',
+          sort:  'namespacedName',
+          label: 'Resource',
+        },
+      ];
+    },
+  }
+};
+</script>
+
+<template>
+  <SortableTable
+    :rows="computedResources"
+    :headers="resourceHeaders"
+    :table-actions="false"
+    :row-actions="false"
+    key-field="key"
+    default-sort-by="state"
+    :paged="true"
+  />
+</template>

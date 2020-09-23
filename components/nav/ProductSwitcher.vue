@@ -38,6 +38,7 @@ export default {
           icon:      `icon-${ p.icon || 'copy' }`,
           value:     p.name,
           removable: p.removable !== false,
+          inStore:   p.inStore || 'cluster',
           weight:    p.weight || 1,
         };
 
@@ -54,11 +55,13 @@ export default {
         return out;
       });
 
-      const out = sortBy(entries, ['weight:desc', 'label']);
+      const out = sortBy(entries, ['inStore', 'removable', 'weight:desc', 'label']);
       let last;
 
       for ( let i = out.length - 1 ; i >= 0 ; i-- ) {
-        if ( last && last !== out[i].weight ) {
+        const entry = out[i];
+
+        if ( last && ( (last.removable !== entry.removable) || (last.inStore !== entry.inStore) ) ) {
           insertAt(out, i + 1, {
             label:    `The great divide ${ i }`,
             kind:     'divider',
@@ -66,7 +69,7 @@ export default {
           });
         }
 
-        last = out[i].weight;
+        last = out[i];
       }
 
       return out;
@@ -226,10 +229,6 @@ export default {
       border: 0;
       position: relative;
       // left: 35px;
-
-      .vs__actions {
-        // margin-left: -10px;
-      }
     }
 
     .vs__selected {

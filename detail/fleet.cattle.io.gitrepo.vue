@@ -5,8 +5,9 @@ import Banner from '@/components/Banner';
 import SortableTable from '@/components/SortableTable';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import FleetSummary from '@/components/FleetSummary';
+import FleetResources from '@/components/FleetResources';
 import { clone } from '@/utils/object';
-import { colorForState } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay, stateSort } from '@/plugins/steve/resource-instance';
 import Tab from '@/components/Tabbed/Tab';
 import { FLEET } from '@/config/types';
 
@@ -16,6 +17,7 @@ export default {
   components: {
     BadgeState,
     Banner,
+    FleetResources,
     FleetSummary,
     SimpleBox,
     SortableTable,
@@ -40,73 +42,22 @@ export default {
       let i = 1;
       const out = clone(this.value.status?.summary?.nonReadyResources || []);
 
-      for ( const res of out ) {
-        res.stateBackground = colorForState(res.bundleState).replace('text-', 'bg-');
-        res.stateDisplay = res.bundleState;
+      for ( const bundle of out ) {
+        bundle.stateBackground = colorForState(bundle.bundleState).replace('text-', 'bg-');
+        bundle.stateDisplay = stateDisplay(bundle.bundleState);
+        bundle.stateSort = stateSort(bundle.stateBackground, bundle.stateDisplay);
 
-        for ( const stat of res.nonReadyStatus || []) {
-          stat.id = `row${ i++ }`;
+        for ( const entry of bundle.nonReadyStatus || []) {
+          const state = entry.summary.state || entry.summary.State;
+
+          entry.id = `row${ i++ }`;
+          entry.stateBackground = colorForState(state).replace('text-', 'bg-');
+          entry.stateDisplay = stateDisplay(state);
+          entry.stateSort = stateSort(entry.stateBackground, entry.stateDisplay);
         }
       }
 
       return out;
-    },
-
-    computedResources() {
-      const clusters = this.value.targetClusters || [];
-      const resources = this.value.status?.resources || [];
-      const out = [];
-
-      for ( const r of resources ) {
-        let namespacedName = r.name;
-
-        if ( r.namespace ) {
-          namespacedName = `${ r.namespace }:${ r.name }`;
-        }
-
-        for ( const c of clusters ) {
-          out.push({
-            key:       `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
-            kind:      r.type,
-            id:        r.id,
-            cluster:   c,
-            namespace: r.namespace,
-            name:      r.name,
-            state:     r.state, // @TODO pull state from r.perClusterState
-            namespacedName,
-          });
-        }
-      }
-
-      return out;
-    },
-
-    resourceHeaders() {
-      return [
-        {
-          name:          'state',
-          value:         'state',
-          label:         'State',
-          formatter:     'BadgeStateFormatter',
-          formatterOpts: { arbitrary: true },
-          width:         100,
-        },
-        {
-          name:  'cluster',
-          value: 'cluster.metadata.name',
-          label: 'Cluster',
-        },
-        {
-          name:  'kind',
-          value: 'kind',
-          label: 'Kind',
-        },
-        {
-          name:  'resource',
-          value: 'namespacedName',
-          label: 'Resource',
-        },
-      ];
     },
 
     unreadyHeaders() {
@@ -154,33 +105,26 @@ export default {
 
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="All Resources" name="resources" :weight="20">
-        <SortableTable
-          :rows="computedResources"
-          :headers="resourceHeaders"
-          :table-actions="false"
-          :row-actions="false"
-          :search="false"
-          key-field="key"
-        />
+        <FleetResources :value="value" />
       </Tab>
 
       <Tab v-if="unready.length" label="Non-Ready" name="unready" :weight="21">
-        <SimpleBox v-for="(res, idx) in unready" :key="idx" :class="{'p-0': true, 'mt-20': idx > 0}">
-          <div class="clearfix">
+        <SimpleBox v-for="(bundle, idx) in unready" :key="idx" :class="{'p-0': true, 'mt-20': idx > 0}">
+          <div>
             <h3 class="inline-block">
-              {{ res.name }}
+              Bundle: {{ bundle.name }}
             </h3>
-            <BadgeState class="pull-right" :value="res" />
+            <BadgeState :value="bundle" />
           </div>
 
           <Banner
-            v-if="res.message"
-            :color="res.stateBackground.replace(/bg-/, '')"
-            :label="res.message"
+            v-if="bundle.message"
+            :color="bundle.stateBackground.replace(/bg-/, '')"
+            :label="bundle.message"
           />
 
           <SortableTable
-            :rows="res.nonReadyStatus"
+            :rows="bundle.nonReadyStatus"
             :headers="unreadyHeaders"
             :table-actions="false"
             :row-actions="false"
