@@ -8,6 +8,7 @@ function redirectToBackup({ redirect, route }) {
     name:   'c-cluster-product-resource',
     params: {
       ...route.params,
+      product:  'backup',
       resource: BACKUP_RESTORE.BACKUP
     },
   });

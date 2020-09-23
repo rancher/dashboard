@@ -45,10 +45,12 @@ export default {
   },
 
   async fetch() {
+    await this.$store.dispatch('catalog/load');
+
     const hash = await allHash({
       secrets:      this.$store.dispatch('cluster/findAll', { type: SECRET }),
       resourceSets: this.$store.dispatch('cluster/findAll', { type: BACKUP_RESTORE.RESOURCE_SET }),
-      apps:         this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
+      apps:         this.$store.dispatch('cluster/findAll', { type: CATALOG.RELEASE })
 
     });
 
