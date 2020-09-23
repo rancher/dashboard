@@ -216,7 +216,7 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       if ( SIMPLE_TYPES.includes(arrayOf) ) {
         out += `\n#  - ${ arrayOf }`;
       } else {
-        const chunk = createYaml(schemas, arrayOf, null, processAlwaysAdd, depth + 1, (path ? `${ path }.${ key }` : key));
+        const chunk = createYaml(schemas, arrayOf, null, false, depth + 1, (path ? `${ path }.${ key }` : key));
         let indented = indent(chunk, 2);
 
         indented = indented.replace(/^(#)?\s*\s\s([^\s])/, '$1  - $2');
