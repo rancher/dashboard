@@ -207,7 +207,7 @@ export default {
     }
 
     .toggle-gradient-box {
-      height: $chart;
+      // height: $chart;
       margin: $margin;
       padding: $margin;
       position: relative;
@@ -271,8 +271,7 @@ export default {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin-top: $margin;
-        margin-left: $side+$logo+$margin;
+        margin-bottom: 0;
         display: inline-block;
         vertical-align: middle;
       }
