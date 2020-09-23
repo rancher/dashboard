@@ -347,14 +347,6 @@ export default {
       }
     },
 
-    workloadSelector() {
-      return {
-        'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${
-          this.value.metadata.namespace
-        }-${ this.value.metadata.name }`
-      };
-    },
-
     namespacedSecrets() {
       const namespace = this.value?.metadata?.namespace;
 
@@ -469,8 +461,11 @@ export default {
     },
 
     saveWorkload() {
-      if (!this.spec.selector && this.type !== WORKLOAD_TYPES.JOB) {
-        this.spec.selector = { matchLabels: this.workloadSelector };
+      if (this.type !== WORKLOAD_TYPES.JOB) {
+        if (!this.spec.selector) {
+          this.$set(this.spec, 'selector', { matchLabels: {} });
+        }
+        Object.assign(this.spec.selector.matchLabels, this.value.workloadSelector);
       }
 
       let template;
@@ -481,9 +476,14 @@ export default {
         template = this.spec.template;
       }
 
-      if (!template.metadata && this.type !== WORKLOAD_TYPES.JOB) {
-        template.metadata = { labels: this.workloadSelector };
+      if (this.type !== WORKLOAD_TYPES.JOB) {
+        if (!template.metadata) {
+          template.metadata = { labels: this.value.workloadSelector };
+        } else {
+          Object.assign(template.metadata.labels, this.value.workloadSelector);
+        }
       }
+
       const nodeAffinity = template?.spec?.affinity?.nodeAffinity || {};
       const podAffinity = template?.spec?.affinity?.podAffinity || {};
       const podAntiAffinity = template?.spec?.affinity?.podAntiAffinity || {};
