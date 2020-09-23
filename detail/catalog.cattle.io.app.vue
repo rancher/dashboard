@@ -5,6 +5,7 @@ import Markdown from '@/components/Markdown';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import jsyaml from 'js-yaml';
+import merge from 'lodash/merge';
 
 export default {
   name: 'DetailRelease',
@@ -34,7 +35,9 @@ export default {
     },
 
     valuesYaml() {
-      return jsyaml.safeDump(this.value?.spec?.chart?.values || {});
+      const combined = merge(merge({}, this.value?.spec?.chart?.values || {}), this.value?.spec?.values || {});
+
+      return jsyaml.safeDump(combined);
     }
   },
 
