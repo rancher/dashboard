@@ -1661,7 +1661,7 @@ typeDescription:
   cis.cattle.io.clusterscanreport: A report is the result of a CIS scan of the cluster.
   resources.cattle.io.backup: A backup is created to perform one-time backups or schedule recurring backups based on a ResourceSet.
   resources.cattle.io.restore: A restore is created to trigger a restore to the cluster based on a backup file.
-  resources.cattle.io.resourceset: A resource set defines which CRDs to store in the backup.
+  resources.cattle.io.resourceset: A resource set defines which CRDs and resources to store in the backup.
 
 typeLabel:
   cis.cattle.io.clusterscan: |-
