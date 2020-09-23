@@ -1653,20 +1653,13 @@ typeDescription:
   #       Should fit on one line.
   #       If you link to anything external, it must have 
   #       target="_blank" rel="noopener noreferrer nofollow"
-  cis.cattle.io.clusterscanbenchmark: |-
-    A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
-  cis.cattle.io.clusterscanprofile: |-
-    A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
-  cis.cattle.io.clusterscan: |-
-    A scan is created to trigger a CIS scan on the cluster based on the defined profile. A report is created after the scan is completed.
-  cis.cattle.io.clusterscanreport: |-
-    A report is the result of a CIS scan of the cluster.
-  resources.cattle.io.backup: |-
-    A backup is created to perform one-time backups or schedule recurring backups based on a ResourceSet.
-  resources.cattle.io.restore: |-
-    A restore is created to trigger a restore to the cluster based on a backup file.
-  resources.cattle.io.resourceset: |-
-    A resource set defines which CRDs to store in the backup.
+  cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
+  cis.cattle.io.clusterscanprofile: A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
+  cis.cattle.io.clusterscan: A scan is created to trigger a CIS scan on the cluster based on the defined profile. A report is created after the scan is completed.
+  cis.cattle.io.clusterscanreport: A report is the result of a CIS scan of the cluster.
+  resources.cattle.io.backup: A backup is created to perform one-time backups or schedule recurring backups based on a ResourceSet.
+  resources.cattle.io.restore: A restore is created to trigger a restore to the cluster based on a backup file.
+  resources.cattle.io.resourceset: A resource set defines which CRDs to store in the backup.
 
 typeLabel:
   cis.cattle.io.clusterscan: |-
