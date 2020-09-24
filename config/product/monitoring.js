@@ -8,11 +8,25 @@ export function init(store) {
   const {
     product, basicType, virtualType, weightType
   } = DSL(store, NAME);
-  const { SERVICEMONITOR, PODMONITOR, PROMETHEUSRULE } = MONITORING;
+  const {
+    ALERTMANAGER,
+    SERVICEMONITOR,
+    PODMONITOR,
+    PROMETHEUSRULE,
+    PROMETHEUSE,
+    THANOSRULER,
+  } = MONITORING;
 
   product({
-    ifHaveType: PODMONITOR,
-    icon:        'prometheus'
+    ifHaveType: [
+      ALERTMANAGER,
+      SERVICEMONITOR,
+      PODMONITOR,
+      PROMETHEUSRULE,
+      PROMETHEUSE,
+      THANOSRULER,
+    ],
+    // icon: 'prometheus'
   });
 
   virtualType({
@@ -27,7 +41,7 @@ export function init(store) {
 
   basicType('monitoring-overview');
 
-  basicType([SERVICEMONITOR, PODMONITOR, PROMETHEUSRULE]);
+  basicType([SERVICEMONITOR, PODMONITOR, PROMETHEUSRULE, ALERTMANAGER, PROMETHEUSE]);
 
   weightType(SERVICEMONITOR, 104, true);
   weightType(PODMONITOR, 103, true);

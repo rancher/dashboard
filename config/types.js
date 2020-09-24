@@ -26,6 +26,7 @@ export const API_GROUP = 'apiGroups';
 export const CONFIG_MAP = 'configmap';
 export const COUNT = 'count';
 export const EVENT = 'event';
+export const ENDPOINTS = 'endpoints';
 export const HPA = 'autoscaling.horizontalpodautoscaler';
 export const INGRESS = 'networking.k8s.io.ingress';
 export const NAMESPACE = 'namespace';

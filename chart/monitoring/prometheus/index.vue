@@ -1,10 +1,14 @@
 <script>
+import isEmpty from 'lodash/isEmpty';
+import { mapGetters } from 'vuex';
+
 import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import StorageClassSelector from '@/chart/monitoring/StorageClassSelector';
+import { POD } from '@/config/types';
 
 export default {
   components: {
@@ -15,6 +19,7 @@ export default {
     LabeledSelect,
     StorageClassSelector,
   },
+
   props: {
     accessModes: {
       type:     Array,
@@ -26,24 +31,25 @@ export default {
       default: 'create',
     },
 
+    prometheusPods: {
+      type:     Array,
+      default: () => ([]),
+    },
+
     storageClasses: {
-      type:    Array,
-      default: () => {
-        return [];
-      },
+      type:     Array,
+      default: () => ([]),
     },
 
     value: {
-      type:    Object,
-      default: () => {
-        return {};
-      },
+      type:     Object,
+      default: () => ({}),
     },
 
-    warnUser: {
-      type:    Boolean,
-      default: false,
-    }
+    workloads: {
+      type:     Array,
+      default: () => ([]),
+    },
   },
 
   data() {
@@ -59,7 +65,65 @@ export default {
         },
       ],
       enablePersistantStorage: false,
+      warnUser:                false,
     };
+  },
+
+  computed: {
+    ...mapGetters(['currentCluster']),
+    filteredWorkloads() {
+      let { workloads } = this;
+
+      workloads = workloads.filter((workload) => {
+        if (
+          !isEmpty(workload?.spec?.template?.spec?.containers) &&
+          (workload.spec.template.spec.containers.find(c => c.image.includes('quay.io/coreos/prometheus-operator') ||
+            c.image.includes('rancher/coreos-prometheus-operator'))
+          )
+        ) {
+          if (!this.warnUser) {
+            this.warnUser = true;
+          }
+
+          return workload;
+        }
+      });
+
+      return workloads.map((wl) => {
+        return {
+          label: wl.id,
+          link:  {
+            name:   'c-cluster-product-resource-namespace-id',
+            params: {
+              cluster:   this.currentCluster.id,
+              product:   'explorer',
+              resource:  wl.type,
+              namespace: wl.metadata.namespace,
+              id:        wl.metadata.name
+            },
+          }
+        };
+      });
+    },
+
+    podsAndNamespaces() {
+      const { prometheusPods } = this;
+      const pods = [];
+
+      prometheusPods.forEach((pod) => {
+        pods.push({
+          label: pod.id,
+          link:  {
+            name:   'c-cluster-product-resource-namespace-id',
+            params: {
+              cluster: this.currentCluster.id, product: 'explorer', resource: POD, namespace: pod.metadata.namespace, id: pod.metadata.name
+            },
+          }
+        });
+      });
+
+      return pods;
+    },
   },
 
   watch: {
@@ -86,9 +150,14 @@ export default {
     <div class="title">
       <h3>{{ t('monitoring.prometheus.title') }}</h3>
     </div>
-    <Banner v-if="warnUser" color="warning">
+    <Banner v-if="filteredWorkloads && warnUser" color="warning">
       <template #default>
         <t k="monitoring.prometheus.warningInstalled" :raw="true" />
+        <div v-for="wl in filteredWorkloads" :key="wl.id" class="mt-10">
+          <nuxt-link :to="wl.link" class="btn role-tertiary">
+            {{ wl.label }}
+          </nuxt-link>
+        </div>
       </template>
     </Banner>
     <div class="prometheus-config">

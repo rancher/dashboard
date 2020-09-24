@@ -155,27 +155,27 @@ backupRestoreOperator:
     label: Prune
     tip: Delete all resources that match the ResourceSet used, but are not present in the backup. (Recommended)
   encryption: Encryption
-  encryptionConfigName: 
+  encryptionConfigName:
     label: Encryption Config Secret
     tip: If the backup was performed with encryption enabled, a Secret containing the same encryption-provider-config should be used during restore.
     options:
       none: Store the contents of the backup unencrypted
       secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
-  deleteTimeout: 
+  deleteTimeout:
     label: Delete Timeout
     tip: Seconds to wait for a resource delete to succeed before removing finalizers to force deletion.
   resourceSetName: Resource Set
-  schedule: 
+  schedule:
     label: Schedule
     placeholder: e.g. @midnight or 0 0 * * *
-    options: 
+    options:
       disabled: One-Time Backup
       enabled: Recurring Backups
   restoreFrom:
     existing: An existing backup config
     default: The default storage target
     s3: An S3-compatible object store
-  retentionCount: 
+  retentionCount:
     label: Retention Count
     units: |-
       {count, plural,
@@ -586,7 +586,7 @@ istio:
   customOverlayFile:
     label: Custom Overlay File
     tip: 'The <a target="_blank" rel="noopener noreferrer nofollow" href="https://istio.io/latest/docs/setup/install/istioctl/#customizing-the-configuration">overlay file</a> allows for additional configuration on top of the base Rancher Istio installation. You can utilize the <a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/" target="_blank" rel="noopener noreferrer nofollow" >IstioOperator API</a> to make changes and additions for all components and apply those changes via this overlay YAML file.'
-  description: 'Rancher Istio helm chart installs a minimal Istio configuration for you to get started integrating with your applications. 
+  description: 'Rancher Istio helm chart installs a minimal Istio configuration for you to get started integrating with your applications.
   If you would like to get additional information about Istio, visit <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>'
   egressGateway: Enabled Egress Gateway
   ingressGateway: Enabled Ingress Gateway
@@ -623,7 +623,7 @@ logging:
     indexName: Index Name
     user: User
     password: Password
-    caFile: 
+    caFile:
       label: Certificate Authority File
     clientCert:
       label: Client Cert
@@ -740,20 +740,17 @@ monitoring:
     subtitle: "Powered By: <a href='https://github.com/coreos/prometheus-operator' target='_blank' rel='noopener nofollow' >Prometheus</a>"
     linkedList:
       alertManager:
-        label: 'AlertManager'
-        tooltip: 'View Active Alerts'
+        label: 'AlertManager - Active Alerts'
       grafana:
-        label: 'Grafana'
-        tooltip: 'View Metrics Dashboards'
+        label: 'Grafana - Metrics Dashboards'
+      na: Resource Unavailable
       prometheusPromQl:
-        label: 'Prometheus PromQL Graph'
-        tooltip: 'View PromQL Graph'
+        label: 'Prometheus - PromQL Graph'
       prometheusRules:
-        label: 'Prometheus Rules'
-        tooltip: 'View Configured Rules'
+        label: 'Prometheus - Configured Rules'
       prometheusTargets:
-        label: 'Prometheus Targets'
-        tooltip: 'View Configured Targets'
+        label: 'Prometheus - Configured Targets'
+    warning: Monitoring V1 is currently deployed. If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install the new Rancher Monitoring chart.
   prometheus:
     config:
       adminApi: Admin API
@@ -1382,7 +1379,7 @@ workload:
     parallelism:
       label: Parallelism
       tip: The maximum number of pods the job should run at any given time.
-    startingDeadlineSeconds: 
+    startingDeadlineSeconds:
       label: Starting Deadline Seconds
       tip: The deadline in seconds for starting the job if it misses scheduled time
     successfulJobsHistoryLimit:
@@ -1560,8 +1557,8 @@ workload:
     volumeName: Volume Name
     volumePath: Volume Path
   typeDescriptions:
-    apps.daemonset: DaemonSets run exactly one pod on every eligible node. When new nodes are added to the cluster, DaemonSets automatically deploy to them. Recommended for system-wide or vertically-scalable workloads that never need more than one pod per node.  <a href="https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/" target="_blank" rel="noopener nofollow">More Info <i class="icon icon-external-link" /></a> 
-    apps.deployment: Deployments run a scalable number of replicas of a pod distributed among the eligible nodes. Changes are rolled out incrementally and can be rolled back to the previous revision when needed. Recommended for stateless & horizontally-scalable workloads.  <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/" target="_blank" rel="noopener nofollow">More Info <i class="icon icon-external-link" /></a> 
+    apps.daemonset: DaemonSets run exactly one pod on every eligible node. When new nodes are added to the cluster, DaemonSets automatically deploy to them. Recommended for system-wide or vertically-scalable workloads that never need more than one pod per node.  <a href="https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/" target="_blank" rel="noopener nofollow">More Info <i class="icon icon-external-link" /></a>
+    apps.deployment: Deployments run a scalable number of replicas of a pod distributed among the eligible nodes. Changes are rolled out incrementally and can be rolled back to the previous revision when needed. Recommended for stateless & horizontally-scalable workloads.  <a href="https://kubernetes.io/docs/concepts/workloads/controllers/deployment/" target="_blank" rel="noopener nofollow">More Info <i class="icon icon-external-link" /></a>
     apps.statefulset: StatefulSets manage stateful applications and provide guarantees about the ordering and uniqueness of the pods created. Recommended for workloads with persistent storage or strict identity, quorum, or upgrade order requirements.  <a href="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/" target="_blank" rel="noopener nofollow">More Info <i class="icon icon-external-link" /></a>
     batch.cronjob: CronJobs create Jobs, which then run Pods, on a repeating schedule. The schedule is expressed in standard Unix cron format, and uses the timezone of the Kubernetes control plane (typically UTC).  <a href="https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/" target="_blank" rel="noopener nofollow">More Info <i class="icon icon-external-link" /></a>
     batch.job: Jobs create one or more pods to reliably perform a one-time task by running a pod until it exits successfully. Failed pods are automatically replaced until the specified number of completed runs has been reached. Jobs can also run multiple pods in parallel or function as a batch work queue.  <a href="https://kubernetes.io/docs/concepts/workloads/controllers/job/" target="_blank" rel="noopener nofollow">More Info <i class="icon icon-external-link" /></a>
@@ -1653,7 +1650,7 @@ typeDescription:
   # Map of
   # type: Description to be shown on the top of list view describing the type.
   #       Should fit on one line.
-  #       If you link to anything external, it must have 
+  #       If you link to anything external, it must have
   #       target="_blank" rel="noopener noreferrer nofollow"
   cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
   cis.cattle.io.clusterscanprofile: A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
