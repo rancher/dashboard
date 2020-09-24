@@ -13,7 +13,7 @@ import S3 from '@/chart/rancher-backup/S3';
 import { mapGetters } from 'vuex';
 import { SECRET, BACKUP_RESTORE, CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
-import { NAMESPACE } from '@/config/query-params';
+import { NAMESPACE, _VIEW } from '@/config/query-params';
 import { sortBy } from '@/utils/sort';
 import { get } from '@/utils/object';
 export default {
@@ -49,13 +49,13 @@ export default {
 
     const hash = await allHash({
       secrets:      this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      resourceSets: this.$store.dispatch('cluster/findAll', { type: BACKUP_RESTORE.RESOURCE_SET }),
+      resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: 'rancher-resource-set' }),
       apps:         this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
 
     });
 
     this.allSecrets = hash.secrets;
-    this.allResourceSets = hash.resourceSets;
+    this.resourceSet = hash.resourceSet;
     this.apps = hash.apps;
   },
 
@@ -63,15 +63,33 @@ export default {
     if (!this.value.spec) {
       this.$set(this.value, 'spec', { retentionCount: 10 });
     }
-
     const s3 = {};
+    let useEncryption = false;
+    let setSchedule = false;
+    let storageSource = 'useDefault';
+
+    if (this.value.spec.encryptionConfigSecretName) {
+      useEncryption = true;
+    }
+
+    if (this.value.spec.schedule) {
+      setSchedule = true;
+    }
+
+    if (this.value?.storageLocation?.s3) {
+      storageSource = 'configureS3';
+    }
 
     return {
-      allSecrets: [], allResourceSets: [], s3, storageSource: 'useDefault', useEncryption: false, apps: [], setSchedule: false,
+      allSecrets: [], resourceSet: null, s3, storageSource, useEncryption, apps: [], setSchedule, name: this.value?.metadata?.name,
     };
   },
 
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+
     chartNamespace() {
       const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'rancher-backup')[0];
 
@@ -80,10 +98,6 @@ export default {
 
     encryptionSecretNames() {
       return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace).map(secret => secret.metadata.name);
-    },
-
-    namespacedResourceSetNames() {
-      return this.allResourceSets.filter(set => set.namespace === this.value?.metadata?.namespace).map(set => set.metadata.name);
     },
 
     storageOptions() {
@@ -112,8 +126,8 @@ export default {
       return out;
     },
 
-    resourceSetAvailable() {
-      return !!this.namespacedResourceSetNames.length;
+    validated() {
+      return !!this.name && (!this.useEncryption || !!this.value?.spec?.encryptionConfigSecretName);
     },
 
     ...mapGetters({ t: 'i18n/t' })
@@ -128,9 +142,9 @@ export default {
       }
     },
 
-    namespacedResourceSetNames(neu) {
-      if (neu.length === 1) {
-        this.$set(this.value.spec, 'resourceSetName', neu[0]);
+    resourceSet(neu) {
+      if (neu?.metadata?.name) {
+        this.$set(this.value.spec, 'resourceSetName', neu?.metadata?.name);
       }
     },
 
@@ -147,19 +161,13 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <CruResource :validation-passed="!!value.spec.resourceSetName && !!value.spec.resourceSetName.length" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
+    <CruResource :validation-passed="validated" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
       <template>
-        <NameNsDescription :mode="mode" :value="value" :namespaced="false" />
-        <template v-if="resourceSetAvailable">
-          <div class="bordered-section">
-            <div class="row mb-10">
-              <div class="col span-6">
-                <LabeledSelect v-model="value.spec.resourceSetName" required :mode="mode" :options="namespacedResourceSetNames" :label="t('backupRestoreOperator.resourceSetName')" />
-              </div>
-            </div>
-          </div>
-          <div class="bordered-section">
+        <NameNsDescription :mode="mode" :value="value" :namespaced="false" @change="name=value.metadata.name" />
+        <template v-if="!!resourceSet">
+          <div v-if="!isView || setSchedule" class="bordered-section">
             <RadioGroup
+              v-if="!isView"
               v-model="setSchedule"
               :mode="mode"
               :label="t('backupRestoreOperator.schedule.label')"
@@ -177,10 +185,11 @@ export default {
             </div>
           </div>
 
-          <div class="bordered-section">
+          <div v-if="!isView || useEncryption" class="bordered-section">
             <div class="row">
               <div class="col span-12">
                 <RadioGroup
+                  v-if="!isView"
                   v-model="useEncryption"
                   name="useEncryption"
                   :label="t('backupRestoreOperator.encryption')"
@@ -204,9 +213,11 @@ export default {
             </div>
           </div>
 
-          <div class="row mb-10">
+          <div class="row">
             <div class="col span-12">
+              <span v-if="isView" class="text-label">{{ t('backupRestoreOperator.s3.titles.backupLocation') }}</span>
               <RadioGroup
+                v-else
                 v-model="storageSource"
                 name="storageSource"
                 :label="t('backupRestoreOperator.s3.titles.backupLocation')"
@@ -218,7 +229,14 @@ export default {
           </div>
 
           <template v-if="storageSource !== 'useDefault'">
-            <S3 :value="s3" :secrets="allSecrets" :mode="mode" />
+            <div class="row mt-10">
+              <div class="col span-12">
+                <S3 :value="s3" :secrets="allSecrets" :mode="mode" />
+              </div>
+            </div>
+          </template>
+          <template v-else-if="isView">
+            <span>{{ t('generic.default') }}</span>
           </template>
         </template>
         <Banner v-else color="error">

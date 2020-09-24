@@ -110,7 +110,6 @@ export default {
 
       this.mode = _CREATE;
     }
-
     this.value = await this.$store.dispatch('cluster/create', {
       type:     'chartInstallAction',
       metadata: {
@@ -752,7 +751,7 @@ export default {
           />
         </div>
       </div>
-      <div v-if="chart">
+      <div v-if="chart && value">
         <NameNsDescription
           v-model="value"
           :mode="mode"

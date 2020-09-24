@@ -49,8 +49,7 @@ export default {
     this.persistentVolumes = hash.persistentVolumes;
 
     if (this.mode === 'create') {
-      this.storageSource = 's3';
-      this.value.s3.enabled = true;
+      this.storageSource = 'none';
     } else {
       this.storageSource = this.getStorageSource(this.value);
     }
@@ -89,8 +88,9 @@ export default {
     },
 
     radioOptions() {
-      const options = ['s3', 'pickSC', 'pickPV'];
+      const options = ['none', 's3', 'pickSC', 'pickPV'];
       const labels = [
+        this.t('backupRestoreOperator.deployment.storage.options.none'),
         this.t('backupRestoreOperator.deployment.storage.options.s3'),
         this.t('backupRestoreOperator.deployment.storage.options.pickSC'),
         this.t('backupRestoreOperator.deployment.storage.options.pickPV'),
@@ -131,6 +131,8 @@ export default {
         this.value.s3.enabled = true;
         break;
       default:
+        this.value.s3.enabled = false;
+        this.value.persistence.enabled = false;
         break;
       }
     }
@@ -152,6 +154,8 @@ export default {
           return 'pickPV';
         }
       }
+
+      return 'none';
     }
   },
 
@@ -191,7 +195,7 @@ export default {
               :options="unboundPVs"
             />
           </div>
-          <div class="col span-6">
+          <div v-if="storageSource!=='none'" class="col span-6">
             <LabeledInput v-model="value.persistence.size" :mode="mode" :label="t('backupRestoreOperator.deployment.size')" />
           </div>
         </div>
