@@ -26,7 +26,6 @@ export default {
       this.value.metadata.namespace = 'default';
     }
 
-    const theme = this.$store.getters['prefs/theme'];
     const providers = [
       {
         name:    'elasticsearch',
