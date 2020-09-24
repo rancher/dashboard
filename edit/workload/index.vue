@@ -461,7 +461,7 @@ export default {
 
     saveWorkload() {
       if (this.type !== WORKLOAD_TYPES.JOB) {
-        this.spec.selector = { matchLabels: this.workloadSelector };
+        this.spec.selector = { matchLabels: this.value.workloadSelector };
       }
 
       let template;
