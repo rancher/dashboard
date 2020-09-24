@@ -46,7 +46,15 @@ export default {
       }
     },
     ...mapGetters({ t: 'i18n/t' })
-  }
+  },
+
+  created() {
+    const { credentialSecretName, credentialSecretNamespace } = this.value;
+
+    if (credentialSecretName && !credentialSecretNamespace) {
+      this.value.credentialSecretName = '';
+    }
+  },
 };
 </script>
 
