@@ -307,9 +307,9 @@ export default {
      outline:none;
 
       & .tab.active {
-          outline-color: var(--outline);
-          outline-style: solid;
-          outline-width: var(--outline-width);
+        outline-color: var(--outline);
+        outline-style: solid;
+        outline-width: var(--outline-width);
       }
     }
 
@@ -331,6 +331,8 @@ export default {
 
       &.active {
         background-color: var(--tabbed-container-bg);
+        // box-shadow: 0 0 20px var(--shadow);
+        // clip-path: polygon(-100% -100%, 100% -100%, 200% 100%, -100% 100%);
       }
     }
   }
@@ -338,6 +340,7 @@ export default {
   .tab-container {
     padding: 20px;
     background-color: var(--tabbed-container-bg);
+    // box-shadow: 0 0 20px var(--shadow);
   }
 
   .side-tabs{
