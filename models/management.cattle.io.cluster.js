@@ -52,4 +52,8 @@ export default {
   canDelete() {
     return this.hasLink('remove') && !this?.spec?.internal;
   },
+
+  groupByLabel() {
+    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
+  },
 };

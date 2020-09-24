@@ -1,10 +1,11 @@
 <script>
 import { PROJECT } from '@/config/labels-annotations';
-import { NAMESPACE, MANAGEMENT } from '@/config/types';
+import { FLEET, NAMESPACE, MANAGEMENT } from '@/config/types';
 import ButtonGroup from '@/components/ButtonGroup';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 import { get } from '@/utils/object';
+import { NAME as FLEET_NAME } from '@/config/product/fleet';
 
 export default {
   components: {
@@ -88,6 +89,22 @@ export default {
       return null;
     },
 
+    isWorkspace() {
+      return this.$store.getters['productId'] === FLEET_NAME && !!this.value?.metadata?.namespace;
+    },
+
+    workspaceLocation() {
+      return {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          cluster:  this.$route.params.cluster,
+          product:  this.$store.getters['productId'],
+          resource: FLEET.WORKSPACE,
+          id:       this.$route.params.namespace
+        }
+      };
+    },
+
     project() {
       if (this.isNamespace) {
         const id = (this.value?.metadata?.labels || {})[PROJECT];
@@ -167,6 +184,7 @@ export default {
       <!-- //TODO use  nuxt-link for an internal project detail page once it exists -->
       <div v-if="mode==='view'" class="subheader">
         <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: {{ project.nameDisplay }}</span>
+        <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
         <span v-else-if="namespace">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
         <span v-if="!parent.hideAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="get(value, 'metadata.creationTimestamp')" /></span>
       </div>

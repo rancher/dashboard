@@ -902,6 +902,7 @@ resourceDetail:
       error: This resource is currently in an error state, but there isn't a detailed message available.
       transitioning: This resource is currently in a transitioning state,but there isn't a detailed message available.
     namespace: Namespace
+    workspace: Workspace
     overview: Overview
     project: Project
     yaml: YAML
@@ -1104,8 +1105,8 @@ tableHeaders:
   internalExternalIp: External/Internal IP
   key: Key
   keys: Data
-  lastHeartbeatTime: Last update
   lastUpdated: Last Updated
+  lastSeen: Last Seen
   matches: Matches
   message: Message
   name: Name

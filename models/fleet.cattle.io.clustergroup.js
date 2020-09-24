@@ -16,9 +16,14 @@ export default {
   },
 
   targetClusters() {
-    const all = this.$getters['all'](FLEET.CLUSTER);
+    const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
     const expressions = convert(this.spec?.matchLabels || {}, this.spec?.matchExpressions || []);
-    const match = matching(all, expressions);
+
+    if ( !expressions.length ) {
+      return workspace.clusters;
+    }
+
+    const match = matching(workspace.clusters, expressions);
 
     return match;
   },

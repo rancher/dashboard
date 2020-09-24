@@ -28,6 +28,7 @@ export default {
 
   async fetch() {
     this.allClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
+    this.allWorkspaces = await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
 
     if ( !this.value.spec?.selector ) {
       this.value.spec = this.value.spec || {};
@@ -43,6 +44,7 @@ export default {
   data() {
     return {
       allClusters:      null,
+      allWorkspaces:    null,
       matchingClusters: null,
       expressions:      [
         ...convert(this.value.spec.selector.matchLabels || {}),
@@ -50,6 +52,20 @@ export default {
       ],
     };
   },
+
+  computed: {
+    FLEET_WORKSPACE() {
+      return FLEET.WORKSPACE;
+    },
+
+    clustersForWorkspace() {
+      const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
+
+      return workspace.clusters;
+    },
+  },
+
+  watch: { 'value.metadata.namespace': 'updateMatchingClusters' },
 
   methods: {
     set,
@@ -65,7 +81,7 @@ export default {
     },
 
     updateMatchingClusters: throttle(function() {
-      const all = this.allClusters;
+      const all = this.clustersForWorkspace;
       const match = matching(all, this.expressions);
       const matched = match.length || 0;
       const sample = match[0]?.nameDisplay;
@@ -78,7 +94,7 @@ export default {
         sample,
       };
     }, 250, { leading: true }),
-  }
+  },
 };
 </script>
 
@@ -96,7 +112,14 @@ export default {
     @finish="save"
     @cancel="done"
   >
-    <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="isNamespaced" />
+    <NameNsDescription
+      v-if="!isView"
+      v-model="value"
+      :mode="mode"
+      :namespaced="true"
+      namespace-label="nameNsDescription.workspace.label"
+      :namespace-type="FLEET_WORKSPACE"
+    />
 
     <hr v-if="!isView" class="mt-20 mb-20" />
 

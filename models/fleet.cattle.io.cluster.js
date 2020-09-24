@@ -1,6 +1,7 @@
 import { MANAGEMENT } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
 import { insertAt } from '@/utils/array';
+import { FLEET as FLEET_LABELS } from '@/config/labels-annotations';
 
 export default {
   _availableActions() {
@@ -49,6 +50,10 @@ export default {
     this.save();
   },
 
+  nameDisplay() {
+    return this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME] || this.metadata?.name || this.id;
+  },
+
   state() {
     if ( this.spec?.paused === true ) {
       return 'paused';
@@ -86,7 +91,7 @@ export default {
   },
 
   groupByLabel() {
-    const name = this.mgmt?.spec?.fleetWorkspaceName;
+    const name = this.metadata.namespace;
 
     if ( name ) {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.workspace', { name: escapeHtml(name) });

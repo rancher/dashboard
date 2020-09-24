@@ -233,8 +233,6 @@ export const getters = {
   },
 
   backToRancherGlobalLink(state) {
-    const clusterId = state.clusterId;
-
     let link = '/g';
 
     if ( process.env.dev ) {

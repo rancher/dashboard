@@ -374,7 +374,7 @@ export const STATUS = {
 };
 export const LAST_HEARTBEAT_TIME = {
   name:      'lastHeartbeatTime',
-  labelKey:  'tableHeaders.lastHeartbeatTime',
+  labelKey:  'tableHeaders.lastSeen',
   value:     'lastHeartbeatTime',
   sort:      ['lastHeartbeatTime'],
   formatter: 'LiveDate',

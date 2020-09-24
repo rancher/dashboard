@@ -309,17 +309,21 @@ export default {
   }
 
   .match-expression-row, .match-expression-header {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-gap: $column-gutter;
-  align-items: center;
-  &:not(.view){
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-gap: $column-gutter;
+    align-items: center;
+
+    &:not(.view){
       margin-bottom: 10px;
+      grid-template-columns: 1fr 1fr 1fr 100px;
     }
+
     INPUT {
       height: 50px;
     }
   }
+
   .match-expression-header{
     color: var(--input-label);
     margin-top: 20px;
