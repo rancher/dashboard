@@ -211,4 +211,12 @@ export default {
     this.setAnnotation(TIMESTAMP, now);
     this.save();
   },
+
+  workloadSelector() {
+    return {
+      'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${
+        this.metadata.namespace
+      }-${ this.metadata.name }`
+    };
+  },
 };

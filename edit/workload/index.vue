@@ -134,6 +134,9 @@ export default {
       if (!spec.template) {
         spec.template = { spec: { restartPolicy: type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always' } };
       }
+      if (!spec.selector) {
+        spec.selector = {};
+      }
     }
 
     return {
@@ -202,27 +205,27 @@ export default {
       }
     },
 
-    podTemplateMetadata: {
+    podLabels: {
       get() {
         if (this.isCronJob) {
           if (!this.spec.jobTemplate.metadata) {
-            this.$set( this.spec.jobTemplate, 'metadata', {});
+            this.$set( this.spec.jobTemplate, 'metadata', { labels: {} });
           }
 
-          return this.spec.jobTemplate.metadata;
+          return this.spec.jobTemplate.metadata.labels;
         } else {
           if (!this.spec.template.metadata) {
-            this.$set(this.spec.template, 'metadata', {});
+            this.$set(this.spec.template, 'metadata', { labels: {} });
           }
 
-          return this.spec.template.metadata;
+          return this.spec.template.metadata.labels;
         }
       },
       set(neu) {
         if (this.isCronJob) {
-          this.$set( this.spec.jobTemplate, 'metadata', neu);
+          this.$set( this.spec.jobTemplate.metadata, 'labels', neu);
         } else {
-          this.$set(this.spec.template, 'metadata', neu);
+          this.$set(this.spec.template.metadata, 'labels', neu);
         }
       }
     },
@@ -343,14 +346,6 @@ export default {
       }
     },
 
-    workloadSelector() {
-      return {
-        'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${
-          this.value.metadata.namespace
-        }-${ this.value.metadata.name }`
-      };
-    },
-
     namespacedSecrets() {
       const namespace = this.value?.metadata?.namespace;
 
@@ -465,7 +460,7 @@ export default {
     },
 
     saveWorkload() {
-      if (!this.spec.selector && this.type !== WORKLOAD_TYPES.JOB) {
+      if (this.type !== WORKLOAD_TYPES.JOB) {
         this.spec.selector = { matchLabels: this.workloadSelector };
       }
 
@@ -477,9 +472,14 @@ export default {
         template = this.spec.template;
       }
 
-      if (!template.metadata && this.type !== WORKLOAD_TYPES.JOB) {
-        template.metadata = { labels: this.workloadSelector };
+      if (this.type !== WORKLOAD_TYPES.JOB) {
+        if (!template.metadata) {
+          template.metadata = { labels: this.value.workloadSelector };
+        } else {
+          Object.assign(template.metadata.labels, this.value.workloadSelector);
+        }
       }
+
       const nodeAffinity = template?.spec?.affinity?.nodeAffinity || {};
       const podAffinity = template?.spec?.affinity?.podAffinity || {};
       const podAntiAffinity = template?.spec?.affinity?.podAntiAffinity || {};
@@ -641,20 +641,7 @@ export default {
             <div class="row">
               <KeyValue
                 key="annotations"
-                v-model="podTemplateMetadata.labels"
-                :mode="mode"
-                :pad-left="false"
-                :read-allowed="false"
-                :protip="false"
-              />
-            </div>
-          </div>
-          <div>
-            <h3>{{ t('workload.container.titles.podAnnotations') }}</h3>
-            <div class="row">
-              <KeyValue
-                key="annotations"
-                v-model="podTemplateMetadata.annotations"
+                v-model="podLabels"
                 :mode="mode"
                 :pad-left="false"
                 :read-allowed="false"
