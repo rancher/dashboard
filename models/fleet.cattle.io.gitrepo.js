@@ -26,8 +26,9 @@ export default {
   },
 
   targetClusters() {
-    const clusters = this.$getters['all'](FLEET.CLUSTER);
-    const groups = this.$getters['all'](FLEET.CLUSTER_GROUP);
+    const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
+    const clusters = workspace.clusters;
+    const groups = workspace.clusterGroups;
     const out = [];
 
     if ( !this.spec.targets ) {

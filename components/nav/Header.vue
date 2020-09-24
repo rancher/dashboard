@@ -13,7 +13,8 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['clusterReady', 'isMultiCluster', 'currentCluster', 'currentProduct', 'isExplorer', 'backToRancherLink']),
+    ...mapGetters(['clusterReady', 'isMultiCluster', 'currentCluster',
+      'currentProduct', 'isExplorer', 'backToRancherLink', 'backToRancherGlobalLink']),
 
     authEnabled() {
       return this.$store.getters['auth/enabled'];
@@ -50,7 +51,7 @@ export default {
     </div>
 
     <div class="back">
-      <a class="btn role-tertiary" :href="backToRancherLink">
+      <a class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
         {{ t('nav.backToRancher') }}
       </a>
     </div>

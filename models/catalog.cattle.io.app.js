@@ -87,13 +87,7 @@ export default {
   },
 
   nameDisplay() {
-    let out = this.spec?.name || this.metadata?.name || this.id || '';
-
-    const version = this.spec?.version;
-
-    if ( version && version !== 1 ) {
-      out += `:v${ version }`;
-    }
+    const out = this.spec?.name || this.metadata?.name || this.id || '';
 
     return out;
   },

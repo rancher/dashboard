@@ -531,7 +531,7 @@ export default {
             <!-- The data-cant-run-bulk-action-of-interest attribute is being used instead of :class because
             because our selection.js invokes toggleClass and :class clobbers what was added by toggleClass if
             the value of :class changes. -->
-            <tr :key="get(row,keyField)" class="main-row" :data-cant-run-bulk-action-of-interest="actionOfInterest && !canRunBulkActionOfInterest(row)">
+            <tr :key="get(row,keyField)" class="main-row" :data-node-id="get(row,keyField)" :data-cant-run-bulk-action-of-interest="actionOfInterest && !canRunBulkActionOfInterest(row)">
               <td v-if="tableActions" class="row-check" align="middle">
                 <Checkbox class="selection-checkbox" :data-node-id="get(row,keyField)" :value="tableSelected.includes(row)" />
               </td>
@@ -665,6 +665,10 @@ $spacing: 10px;
 
     &.row-check {
       padding-top: 16px;
+
+      LABEL {
+        margin-right: 1px; /* to make up for the edge border */
+      }
     }
   }
 
@@ -675,25 +679,25 @@ $spacing: 10px;
 
     tr {
       border-bottom: 1px solid var(--sortable-table-top-divider);
+      background-color: var(--body-bg);
 
       &.main-row + .sub-row {
         border-bottom: 0;
       }
 
-      &:nth-of-type(even) {
-        background-color: var(--body-bg);
+      &:last-of-type {
+        border-bottom: 0;
       }
+    }
 
-      &.sub-row:nth-of-type(even) {
-        background-color: initial;
-      }
-
-      &.sub-row:nth-of-type(odd) {
-        background-color: var(--body-bg);
+    td {
+      &:first-of-type {
+        border-left: 1px solid var(--sortable-table-accent-bg);
       }
 
       &:last-of-type {
-        border-bottom: 0;
+        /* Not sure why 2 but one doesn't show up.. */
+        border-right: 2px solid var(--sortable-table-accent-bg);
       }
     }
 
@@ -715,11 +719,13 @@ $spacing: 10px;
         content: "";
         display: block;
         height: 20px;
-        background-color: var(--sortable-table-accent-bg);
+        background-color: transparent;
       }
     }
 
     tr.group-row {
+      background-color: initial;
+
       &:first-child {
         border-bottom: 0;
       }
@@ -730,6 +736,10 @@ $spacing: 10px;
 
       td {
         padding: 0;
+
+        &:first-of-type {
+          border-left: 1px solid var(--sortable-table-accent-bg);
+        }
       }
 
       .group-tab {

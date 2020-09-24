@@ -1,24 +1,9 @@
 <script>
 import InstallRedirect from '@/utils/install-redirect';
-import { NAME, CHART_NAME } from '@/config/product/rancher-cis-benchmark';
+import { NAME, CHART_NAME } from '@/config/product/cis';
 import { CIS } from '@/config/types';
 
-function redirectToScan({ redirect, route }) {
-  return redirect({
-    name:   'c-cluster-product-resource',
-    params: {
-      ...route.params,
-      product:  'cis',
-      resource: CIS.CLUSTER_SCAN
-    },
-  });
-}
-
-export default {
-  middleware: [InstallRedirect(NAME, CHART_NAME), redirectToScan]
-  // middleware: InstallRedirect(NAME, CHART_NAME),
-
-};
+export default { middleware: [InstallRedirect(NAME, CHART_NAME, CIS.CLUSTER_SCAN)] };
 </script>
 
 <template>

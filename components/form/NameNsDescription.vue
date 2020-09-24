@@ -49,6 +49,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    namespaceType: {
+      type:    String,
+      default: NAMESPACE,
+    },
     namespaceLabel: {
       type:    String,
       default: 'nameNsDescription.namespace.label',
@@ -147,7 +151,7 @@ export default {
 
     namespaces() {
       const inStore = this.$store.getters['currentProduct'].inStore;
-      const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
+      const choices = this.$store.getters[`${ inStore }/all`](this.namespaceType);
 
       const out = sortBy(choices.map((obj) => {
         return {

@@ -3,18 +3,7 @@ import InstallRedirect from '@/utils/install-redirect';
 import { NAME, CHART_NAME } from '@/config/product/backup';
 import { BACKUP_RESTORE } from '@/config/types';
 
-function redirectToBackup({ redirect, route }) {
-  return redirect({
-    name:   'c-cluster-product-resource',
-    params: {
-      ...route.params,
-      product:  'backup',
-      resource: BACKUP_RESTORE.BACKUP
-    },
-  });
-}
-
-export default { middleware: [InstallRedirect(NAME, CHART_NAME), redirectToBackup] };
+export default { middleware: [InstallRedirect(NAME, CHART_NAME, BACKUP_RESTORE.BACKUP)] };
 </script>
 
 <template>

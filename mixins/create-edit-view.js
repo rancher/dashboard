@@ -69,7 +69,9 @@ export default {
     },
 
     schema() {
-      return this.$store.getters['cluster/schemaFor'](this.value.type);
+      const inStore = this.$store.getters['currentProduct'].inStore;
+
+      return this.$store.getters[`${ inStore }/schemaFor`](this.value.type);
     },
 
     isNamespaced() {

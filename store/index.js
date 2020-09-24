@@ -232,6 +232,16 @@ export const getters = {
     return all[0];
   },
 
+  backToRancherGlobalLink(state) {
+    let link = '/g';
+
+    if ( process.env.dev ) {
+      link = `https://localhost:8000${ link }`;
+    }
+
+    return link;
+  },
+
   backToRancherLink(state) {
     const clusterId = state.clusterId;
 
