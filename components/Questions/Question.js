@@ -35,7 +35,13 @@ export default {
 
   created() {
     if ( !this.value && this.question.default !== undefined ) {
-      this.$emit('input', this.question.default);
+      let def = this.question.default;
+
+      if ( this.question.type === 'boolean' && typeof def === 'string' ) {
+        def = def === 'true';
+      }
+
+      this.$emit('input', def);
     }
   },
 };
