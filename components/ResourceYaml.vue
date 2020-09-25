@@ -352,17 +352,12 @@ export default {
 
 <style lang="scss">
 .resource-yaml {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-
   .yaml-editor {
-    flex: 1;
     min-height: 200px;
   }
 
   footer .actions {
-    text-align: center;
+    text-align: right;
   }
 }
 </style>

@@ -91,7 +91,7 @@ export default {
       />
     </slot>
 
-    <modal class="confirm-modal" name="cancel-modal" :width="400" height="auto">
+    <modal class="confirm-modal" name="cancel-modal" :width="440" height="auto">
       <div class="header">
         <h4 class="text-default-text">
           <t v-if="isCancelModal" k="generic.cancel" />
@@ -126,10 +126,18 @@ export default {
 <style lang="scss">
 .cru-resource-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: 20px;
+
+  .btn {
+    margin-left: 20px;
+  }
 }
 .confirm-modal {
+  .btn {
+    margin: 0 10px;
+  }
+
   .v--modal-box {
     background-color: var(--default);
     box-shadow: none;

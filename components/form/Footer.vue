@@ -44,7 +44,7 @@ export default {
 </script>
 <template>
   <div v-if="!isView">
-    <div class="spacer"></div>
+    <div class="spacer-small"></div>
 
     <div v-for="(err,idx) in errors" :key="idx">
       <Banner color="error" :label="err" />
@@ -71,10 +71,10 @@ export default {
 
 <style lang='scss'>
   .cancel-create {
-    text-align: center;
+    text-align: right;
 
     > * {
-      margin: 0 $column-gutter 0 0;
+      margin: 0 0 0 $column-gutter;
     }
   }
 </style>
