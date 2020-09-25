@@ -157,7 +157,8 @@ backupRestoreOperator:
   encryption: Encryption
   encryptionConfigName:
     label: Encryption Config Secret
-    tip: If the backup was performed with encryption enabled, a Secret containing the same encryption-provider-config should be used during restore.
+    backuptip: If the backup was performed with encryption enabled, a secret containing the same encryption-provider-config should be used during restore.
+    restoretip: Any secret that has a encryption-provider-config.yaml key.
     options:
       none: Store the contents of the backup unencrypted
       secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
