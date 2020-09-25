@@ -184,6 +184,8 @@ export default {
 
   watch: {
     name(val) {
+      val = val.toLowerCase();
+
       if ( this.nameKey ) {
         set(this.value, this.nameKey, val);
       } else {

@@ -1,6 +1,4 @@
 <script>
-import has from 'lodash/has';
-import isEmpty from 'lodash/isEmpty';
 import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
@@ -23,7 +21,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
 import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, PREVIEW, _UNFLAG, _FLAGGED
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT,
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
@@ -73,13 +71,37 @@ export default {
     const appNamespace = query[NAMESPACE] || '';
     const appName = query[NAME] || '';
 
+    if ( this.repo && chartName ) {
+      this.chart = this.$store.getters['catalog/chart']({
+        repoType, repoName, chartName
+      });
+    }
+
     if ( appNamespace && appName ) {
+      // Explicitly asking for edit
+
       this.mode = _EDIT;
       this.existing = await this.$store.dispatch('cluster/find', {
         type: CATALOG.APP,
-        id:   `${ appNamespace }/${ appName }`
+        id:   `${ appNamespace }/${ appName }`,
       });
+    } else if ( this.chart?.targetNamespace && this.chart?.targetName ) {
+      // Asking to install a special chart with fixed namespace/name
+      // so edit it if there's an existing install
+
+      this.existing = await this.$store.dispatch('cluster/find', {
+        type: CATALOG.APP,
+        id:   `${ this.chart.targetNamespace }/${ this.chart.targetName }`,
+      });
+
+      if ( this.existing ) {
+        this.mode = _EDIT;
+      } else {
+        this.mode = _CREATE;
+      }
     } else {
+      // Regular create
+
       this.mode = _CREATE;
     }
 
@@ -90,12 +112,6 @@ export default {
         name:      this.existing ? this.existing.spec.name : appName,
       }
     });
-
-    if ( this.repo && chartName ) {
-      this.chart = this.$store.getters['catalog/chart']({
-        repoType, repoName, chartName
-      });
-    }
 
     if ( this.existing ) {
       this.forceNamespace = this.existing.metadata.namespace;
@@ -219,6 +235,7 @@ export default {
       chart:                  null,
       chartValues:            null,
       originalYamlValues:     null,
+      previousYamlValues:     null,
       errors:                 null,
       existing:               null,
       forceNamespace:         null,
@@ -242,8 +259,10 @@ export default {
       resetValues:         false,
       selectedTabName:     'readme',
       showPreview:         false,
-      showValuesComponent: false,
-      valuesTabs:          false,
+      showDiff:            false,
+      showValuesComponent: true,
+      showQuestions:       true,
+      componentHasTabs:    false,
       wait:                true,
 
       historyMax: 5,
@@ -286,18 +305,14 @@ export default {
       return out;
     },
 
-    isEntryTab() {
-      const { tabName } = this;
+    isValuesTab() {
+      const tabName = this.selectedTabName;
 
-      if (tabName === 'values-form' || tabName === 'values-yaml') {
-        return true;
+      if (tabName === 'helm' || tabName === 'readme') {
+        return false;
       }
 
-      return false;
-    },
-
-    tabName() {
-      return this.selectedTabName;
+      return true;
     },
 
     charts() {
@@ -324,18 +339,6 @@ export default {
       return this.chart?.versions.length > 1;
     },
 
-    showBackButton() {
-      const { selectedTabName, showValuesComponent, valuesComponent } = this;
-
-      if (isEmpty(valuesComponent)) {
-        return false;
-      } else if (selectedTabName === 'values-yaml' && !showValuesComponent) {
-        return true;
-      }
-
-      return false;
-    },
-
     targetNamespace() {
       if ( this.forceNamespace ) {
         return this.forceNamespace;
@@ -347,7 +350,7 @@ export default {
     },
 
     editorMode() {
-      if ( this.showPreview ) {
+      if ( this.showDiff ) {
         return EDITOR_MODES.DIFF_CODE;
       }
 
@@ -361,7 +364,7 @@ export default {
 
   watch: {
     '$route.query'(neu, old) {
-      if ( !isEqual(neu, old) && !has(neu, 'preview') ) {
+      if ( !isEqual(neu, old) ) {
         this.$fetch();
       }
     },
@@ -392,15 +395,15 @@ export default {
           const loaded = await this.valuesComponent();
 
           this.showValuesComponent = true;
-          this.valuesTabs = loaded?.default?.hasTabs || false;
+          this.componentHasTabs = loaded?.default?.hasTabs || false;
         } else {
           this.valuesComponent = null;
-          this.valuesTabs = false;
+          this.componentHasTabs = false;
           this.showValuesComponent = false;
         }
       } else {
         this.valuesComponent = null;
-        this.valuesTabs = false;
+        this.componentHasTabs = false;
         this.showValuesComponent = false;
       }
     },
@@ -420,47 +423,41 @@ export default {
       this.$router.applyQuery({ [VERSION]: version });
     },
 
-    showPreviewYaml() {
-      const {
-        chartValues,
-        originalYamlValues,
-        showValuesComponent,
-        valuesYaml,
-        valuesComponent,
-      } = this;
-
-      if (!!valuesComponent) {
-        if (!originalYamlValues) {
-          this.originalYamlValues = valuesYaml;
-        }
-
-        // seed the yaml with any entered info
-        this.valuesYaml = jsyaml.safeDump(chartValues);
-
-        if (showValuesComponent) {
-          this.tabChanged({ tab: { name: 'values-yaml' } });
-          this.showValuesComponent = false;
-        } else {
-          this.tabChanged({ tab: { name: 'values-form' } });
-          this.showValuesComponent = true;
-        }
-      }
-    },
-
     preview() {
-      this.showPreview = true;
+      this.valuesYaml = jsyaml.safeDump(this.chartValues);
+      this.previousYamlValues = this.valuesYaml;
 
-      return this.$router.applyQuery({ [PREVIEW]: _FLAGGED });
+      this.showPreview = true;
+      this.showValuesComponent = false;
+      this.showQuestions = false;
+
+      this.tabChanged({ tab: { name: 'values-yaml' } });
+
+      this.$nextTick(() => {
+        window.location.hash = '#values-yaml';
+        if ( this.$refs.yaml ) {
+          this.$refs.yaml.refresh();
+          this.$refs.yaml.focus();
+        }
+      });
     },
 
     unpreview() {
       this.showPreview = false;
+      this.showValuesComponent = true;
+      this.showQuestions = true;
+    },
 
-      return this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
+    diff() {
+      this.showDiff = true;
+    },
+
+    undiff() {
+      this.showDiff = false;
     },
 
     cancel(reallyCancel) {
-      if (!reallyCancel && !this.showValuesComponent) {
+      if (!reallyCancel && this.showPreview) {
         return this.resetFromBack();
       }
 
@@ -472,13 +469,9 @@ export default {
     },
 
     async resetFromBack() {
-      this.showValuesComponent = true;
-
-      if (has(this.$route.query, PREVIEW)) {
-        await this.unpreview();
-      }
-
-      this.valuesYaml = this.originalYamlValues;
+      await this.unpreview();
+      await this.undiff();
+      this.valuesYaml = this.previousYamlValues;
     },
 
     done() {
@@ -575,7 +568,7 @@ export default {
     actionInput(isUpgrade) {
       const fromChart = this.versionInfo?.values || {};
 
-      if ( !this.valuesComponent && !this.hasQuestions ) {
+      if ( this.showPreview || ( !this.valuesComponent && !this.hasQuestions )) {
         try {
           this.chartValues = jsyaml.safeLoad(this.valuesYaml);
         } catch (err) {
@@ -586,7 +579,7 @@ export default {
       // Only save the values that differ from the chart's standard values.yaml
       const values = diff(fromChart, this.chartValues);
 
-      // Add our special global values
+      // Add our special blend of 11 herbs and global values
       this.addGlobalValuesTo(values);
 
       const form = JSON.parse(JSON.stringify(this.value));
@@ -675,15 +668,6 @@ export default {
       window.scrollTop = 0;
 
       this.selectedTabName = tab.name;
-
-      if ( tab.name === 'values-yaml' ) {
-        this.$nextTick(() => {
-          if ( this.$refs.yaml ) {
-            this.$refs.yaml.refresh();
-            this.$refs.yaml.focus();
-          }
-        });
-      }
     },
   }
 };
@@ -776,6 +760,7 @@ export default {
         <Tabbed
           :side-tabs="true"
           :class="{'with-name': showNameEditor}"
+          :default-tab="selectedTabName"
           @changed="tabChanged($event)"
         >
           <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="100">
@@ -785,8 +770,9 @@ export default {
           <template v-if="valuesComponent && showValuesComponent">
             <component
               :is="valuesComponent"
-              v-if="valuesTabs"
+              v-if="componentHasTabs"
               v-model="chartValues"
+              :mode="mode"
               :chart="chart"
               :version="version"
               :version-info="versionInfo"
@@ -803,6 +789,7 @@ export default {
                 :is="valuesComponent"
                 v-if="valuesComponent"
                 v-model="chartValues"
+                :mode="mode"
                 :chart="chart"
                 :version="version"
                 :version-info="versionInfo"
@@ -819,6 +806,7 @@ export default {
                   :is="valuesComponent"
                   v-if="valuesComponent"
                   v-model="chartValues"
+                  :mode="mode"
                   :chart="chart"
                   :version="version"
                   :version-info="versionInfo"
@@ -830,8 +818,9 @@ export default {
             </tab>
           </template>
           <Questions
-            v-else-if="hasQuestions"
+            v-else-if="hasQuestions && showQuestions"
             v-model="chartValues"
+            :mode="mode"
             :chart="chart"
             :version="version"
             :version-info="versionInfo"
@@ -881,43 +870,42 @@ export default {
           done-route="c-cluster-apps"
           :mode="mode"
           :finish-button-mode="(existing ? 'upgrade' : 'install')"
-          :is-form="!!showValuesComponent"
+          :is-form="true"
           @cancel-confirmed="cancel"
         >
           <template #default="{checkCancel}">
-            <template v-if="!showValuesComponent">
+            <template v-if="(!!valuesComponent || hasQuestions) && !showValuesComponent && !showQuestions">
               <button
-                v-if="showPreview && isEntryTab"
+                v-if="showDiff"
                 type="button"
                 class="btn role-secondary"
-                @click="unpreview"
+                @click="undiff"
               >
                 <t k="resourceYaml.buttons.continue" />
               </button>
-
               <button
-                v-if="isEntryTab && !showPreview"
+                v-else
                 :disabled="valuesYaml === originalYamlValues"
                 type="button"
                 class="btn role-secondary"
-                @click="preview"
+                @click="diff"
               >
                 <t k="resourceYaml.buttons.diff" />
               </button>
             </template>
 
             <button
-              v-if="isEntryTab && showValuesComponent"
+              v-if="(showValuesComponent || hasQuestions) && isValuesTab"
               type="button"
               class="btn role-secondary"
-              @click="showPreviewYaml"
+              @click="preview"
             >
               {{ t("cruResource.previewYaml") }}
             </button>
 
             <div>
               <button
-                v-if="showBackButton"
+                v-if="showPreview && !showDiff"
                 type="button"
                 class="btn role-secondary"
                 @click="valuesYaml === originalYamlValues ? resetFromBack() : checkCancel(false)"
