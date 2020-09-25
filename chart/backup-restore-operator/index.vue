@@ -47,20 +47,21 @@ export default {
     this.secrets = hash.secrets;
     this.storageClasses = hash.storageClasses;
     this.persistentVolumes = hash.persistentVolumes;
+
+    if (this.mode === 'create') {
+      this.storageSource = 's3';
+      this.value.s3.enabled = true;
+    } else {
+      this.storageSource = this.getStorageSource(this.value);
+    }
   },
 
   data() {
-    let storageSource;
-
-    if (this.mode === 'create') {
-      storageSource = 's3';
-      this.value.s3.enabled = true;
-    } else {
-      this.getStorageSource(this.value);
-    }
-
     return {
-      storageSource, secrets: [], storageClasses: [], persistentVolumes: []
+      storageSource:     null,
+      secrets:           [],
+      storageClasses:    [],
+      persistentVolumes: []
     };
   },
 
@@ -141,7 +142,7 @@ export default {
         return 's3';
       } if (get(this.value, 'persistence.enabled')) {
         if (this.value.persistence.storageClass) {
-          if (this.value.persistence.storageClass === this.defaultSC.metadata.name) {
+          if (this.value.persistence.storageClass === this.defaultStorageClass.metadata.name) {
             return 'defaultSC';
           }
 

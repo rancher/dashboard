@@ -1,6 +1,4 @@
 <script>
-import has from 'lodash/has';
-import isEmpty from 'lodash/isEmpty';
 import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
@@ -774,6 +772,7 @@ export default {
               :is="valuesComponent"
               v-if="componentHasTabs"
               v-model="chartValues"
+              :mode="mode"
               :chart="chart"
               :version="version"
               :version-info="versionInfo"
@@ -790,6 +789,7 @@ export default {
                 :is="valuesComponent"
                 v-if="valuesComponent"
                 v-model="chartValues"
+                :mode="mode"
                 :chart="chart"
                 :version="version"
                 :version-info="versionInfo"
@@ -806,6 +806,7 @@ export default {
                   :is="valuesComponent"
                   v-if="valuesComponent"
                   v-model="chartValues"
+                  :mode="mode"
                   :chart="chart"
                   :version="version"
                   :version-info="versionInfo"
@@ -819,6 +820,7 @@ export default {
           <Questions
             v-else-if="hasQuestions && showQuestions"
             v-model="chartValues"
+            :mode="mode"
             :chart="chart"
             :version="version"
             :version-info="versionInfo"
