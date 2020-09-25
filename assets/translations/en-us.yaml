@@ -59,7 +59,7 @@ nav:
 
 product:
   apps: Apps & Marketplace
-  backup: Backup & Restore Operator
+  backup: Rancher Backups
   cis: CIS Benchmark
   ecm: Cluster Manager
   explorer: Cluster Explorer
