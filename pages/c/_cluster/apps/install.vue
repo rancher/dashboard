@@ -80,24 +80,30 @@ export default {
     if ( appNamespace && appName ) {
       // Explicitly asking for edit
 
-      this.mode = _EDIT;
-      this.existing = await this.$store.dispatch('cluster/find', {
-        type: CATALOG.APP,
-        id:   `${ appNamespace }/${ appName }`,
-      });
+      try {
+        this.existing = await this.$store.dispatch('cluster/find', {
+          type: CATALOG.APP,
+          id:   `${ appNamespace }/${ appName }`,
+        });
+
+        this.mode = _EDIT;
+      } catch (e) {
+        this.mode = _CREATE;
+        this.existing = null;
+      }
     } else if ( this.chart?.targetNamespace && this.chart?.targetName ) {
       // Asking to install a special chart with fixed namespace/name
       // so edit it if there's an existing install
 
-      this.existing = await this.$store.dispatch('cluster/find', {
-        type: CATALOG.APP,
-        id:   `${ this.chart.targetNamespace }/${ this.chart.targetName }`,
-      });
-
-      if ( this.existing ) {
+      try {
+        this.existing = await this.$store.dispatch('cluster/find', {
+          type: CATALOG.APP,
+          id:   `${ this.chart.targetNamespace }/${ this.chart.targetName }`,
+        });
         this.mode = _EDIT;
-      } else {
+      } catch (e) {
         this.mode = _CREATE;
+        this.existing = null;
       }
     } else {
       // Regular create
@@ -275,7 +281,11 @@ export default {
 
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
-      const want = this.value.metadata.namespace;
+      const want = this.value?.metadata?.namespace;
+
+      if ( !want ) {
+        return false;
+      }
 
       return !findBy(all, 'id', want);
     },
