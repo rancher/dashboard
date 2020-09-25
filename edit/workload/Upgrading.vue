@@ -232,7 +232,7 @@ export default {
             <template #label>
               <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.upgrading.maxSurge.label') }}
-                <i v-tooltip="t('workload.upgrading.maxSurge.label')" class="icon icon-info" style="font-size: 14px" />
+                <i v-tooltip="t('workload.upgrading.maxSurge.tip')" class="icon icon-info" style="font-size: 14px" />
               </label>
             </template>
           </InputWithSelect>
@@ -251,7 +251,7 @@ export default {
             <template #label>
               <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.upgrading.maxUnavailable.label') }}
-                <i v-tooltip="t('workload.upgrading.maxUnavailable.label')" class="icon icon-info" style="font-size: 14px" />
+                <i v-tooltip="t('workload.upgrading.maxUnavailable.tip')" class="icon icon-info" style="font-size: 14px" />
               </label>
             </template>
           </InputWithSelect>
