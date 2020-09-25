@@ -189,7 +189,7 @@ export default {
                 v-if="isEncrypted"
                 v-model="value.spec.encryptionConfigSecretName"
                 status="warning"
-                :tooltip="t('backupRestoreOperator.encryptionConfigName.tip')"
+                :tooltip="t('backupRestoreOperator.encryptionConfigName.restoretip')"
                 :hover-tooltip="true"
                 :mode="mode"
                 :options="encryptionSecretNames"

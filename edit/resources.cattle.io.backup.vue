@@ -192,7 +192,14 @@ export default {
             </div>
             <div v-if="useEncryption" class="row mt-10">
               <div class="col span-6">
-                <LabeledSelect v-model="value.spec.encryptionConfigSecretName" :mode="mode" :options="encryptionSecretNames" :label="t('backupRestoreOperator.encryptionConfigName.label')" />
+                <LabeledSelect
+                  v-model="value.spec.encryptionConfigSecretName"
+                  :tooltip="t('backupRestoreOperator.encryptionConfigName.backuptip')"
+                  :hover-tooltip="true"
+                  :mode="mode"
+                  :options="encryptionSecretNames"
+                  :label="t('backupRestoreOperator.encryptionConfigName.label')"
+                />
               </div>
             </div>
           </div>
