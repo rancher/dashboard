@@ -54,10 +54,10 @@ export const WORKLOAD = 'workload';
 // The types that are aggregated into a "workload"
 export const WORKLOAD_TYPES = {
   DEPLOYMENT:             'apps.deployment',
-  DAEMON_SET:             'apps.daemonset',
-  STATEFUL_SET:           'apps.statefulset',
   CRON_JOB:               'batch.cronjob',
+  DAEMON_SET:             'apps.daemonset',
   JOB:                    'batch.job',
+  STATEFUL_SET:           'apps.statefulset',
   REPLICA_SET:            'apps.replicaset',
   REPLICATION_CONTROLLER: 'replicationcontroller'
 };
