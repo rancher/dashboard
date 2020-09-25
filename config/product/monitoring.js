@@ -13,20 +13,12 @@ export function init(store) {
     SERVICEMONITOR,
     PODMONITOR,
     PROMETHEUSRULE,
-    PROMETHEUSE,
-    THANOSRULER,
+    PROMETHEUSE
   } = MONITORING;
 
   product({
-    ifHaveType: [
-      ALERTMANAGER,
-      SERVICEMONITOR,
-      PODMONITOR,
-      PROMETHEUSRULE,
-      PROMETHEUSE,
-      THANOSRULER,
-    ],
-    // icon: 'prometheus'
+    ifHaveGroup: 'monitoring.coreos.com',
+    // icon:       'prometheus'
   });
 
   virtualType({
@@ -41,7 +33,13 @@ export function init(store) {
 
   basicType('monitoring-overview');
 
-  basicType([SERVICEMONITOR, PODMONITOR, PROMETHEUSRULE, ALERTMANAGER, PROMETHEUSE]);
+  basicType([
+    SERVICEMONITOR,
+    PODMONITOR,
+    PROMETHEUSRULE,
+    ALERTMANAGER,
+    PROMETHEUSE
+  ]);
 
   weightType(SERVICEMONITOR, 104, true);
   weightType(PODMONITOR, 103, true);
