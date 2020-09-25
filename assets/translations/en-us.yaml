@@ -219,10 +219,10 @@ catalog:
       placeholder: e.g. https://charts.rancher.io
     gitRepo:
       label: Git Repo URL
-      placeholder: e.g. https://github.com/rancher/charts.git
+      placeholder: e.g. https://github.com/your-company/charts.git
     gitBranch:
       label: Git Branch
-      placeholder: e.g. dev-v2.5
+      placeholder: e.g. master
   charts:
     header: Deploy Chart
     certified:

@@ -445,10 +445,6 @@ export default {
 
       this.$nextTick(() => {
         window.location.hash = '#values-yaml';
-        if ( this.$refs.yaml ) {
-          this.$refs.yaml.refresh();
-          this.$refs.yaml.focus();
-        }
       });
     },
 
@@ -678,8 +674,17 @@ export default {
       window.scrollTop = 0;
 
       this.selectedTabName = tab.name;
+
+      if ( tab.name === 'values-yaml' ) {
+        this.$nextTick(() => {
+          if ( this.$refs.yaml ) {
+            this.$refs.yaml.refresh();
+            this.$refs.yaml.focus();
+          }
+        });
+      }
     },
-  }
+  },
 };
 </script>
 
@@ -905,7 +910,7 @@ export default {
             </template>
 
             <button
-              v-if="(showValuesComponent || hasQuestions) && isValuesTab"
+              v-if="(showValuesComponent || hasQuestions) && isValuesTab && !showPreview"
               type="button"
               class="btn role-secondary"
               @click="preview"
