@@ -125,6 +125,11 @@ export default {
   font-size: 13px;
 }
 
+.d2h-emptyplaceholder, .d2h-code-side-emptyplaceholder {
+  border-color: var(--diff-linenum-border);
+  background-color: var(--diff-empty-placeholder);
+}
+
 .d2h-code-linenumber,
 .d2h-code-side-linenumber {
   background-color: var(--diff-linenum-bg);

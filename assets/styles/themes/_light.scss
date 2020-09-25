@@ -162,6 +162,7 @@ $selected: rgba($primary, .5);
   --diff-ins-border            : #{rgba($success, 0.5)};
   --diff-chg-ins               : #{rgba($success, 0.25)};
   --diff-chg-del               : #{rgba($warning, 0.5)};
+  --diff-empty-placeholder     : #{$lightest};
 
   --wm-tabs-bg                 : #{$medium};
   --wm-tab-bg                  : #{$light};
