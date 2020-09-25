@@ -17,7 +17,7 @@ export function init(store) {
   } = MONITORING;
 
   product({
-    ifHaveType: PODMONITOR,
+    ifHaveGroup: 'monitoring.coreos.com',
     // icon:       'prometheus'
   });
 
