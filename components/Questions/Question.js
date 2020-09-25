@@ -34,13 +34,13 @@ export default {
   },
 
   created() {
-    if ( !this.value && this.question.default !== undefined ) {
-      let def = this.question.default;
+    let def = this.question.default;
 
-      if ( this.question.type === 'boolean' && typeof def === 'string' ) {
-        def = def === 'true';
-      }
+    if ( this.question.type === 'boolean' && typeof def === 'string' ) {
+      def = def === 'true';
+    }
 
+    if ( this.value === undefined && def !== undefined ) {
       this.$emit('input', def);
     }
   },
