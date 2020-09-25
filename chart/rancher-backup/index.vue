@@ -1,6 +1,6 @@
 <script>
 import Tab from '@/components/Tabbed/Tab';
-import S3 from '@/chart/backup-restore-operator/S3';
+import S3 from '@/chart/rancher-backup/S3';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';

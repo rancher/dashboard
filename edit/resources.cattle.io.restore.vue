@@ -7,7 +7,7 @@ import Checkbox from '@/components/form/Checkbox';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Loading from '@/components/Loading';
 import RadioGroup from '@/components/form/RadioGroup';
-import S3 from '@/chart/backup-restore-operator/S3';
+import S3 from '@/chart/rancher-backup/S3';
 import { mapGetters } from 'vuex';
 import { SECRET, BACKUP_RESTORE, CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
@@ -74,7 +74,7 @@ export default {
 
   computed: {
     chartNamespace() {
-      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'backup-restore-operator')[0];
+      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'rancher-backup')[0];
 
       return BRORelease ? BRORelease.spec.namespace : '';
     },
