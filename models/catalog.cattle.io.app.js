@@ -113,4 +113,9 @@ export default {
       return this.doAction('uninstall', opt);
     };
   },
+
+  canDelete() {
+    return this.hasAction('uninstall');
+  },
+
 };

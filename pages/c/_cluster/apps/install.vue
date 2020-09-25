@@ -661,7 +661,6 @@ export default {
           chartName:   dependency.name,
           version:     dependency.version,
           releaseName: dependency.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || dependency.name,
-          namespace:   dependency.annotations[CATALOG_ANNOTATIONS.NAMESPACE] || chart.namespace,
           projectId:   this.project,
           values:      this.addGlobalValuesTo({}),
         });
