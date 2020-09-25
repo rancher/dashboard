@@ -742,16 +742,21 @@ monitoring:
     subtitle: "Powered By: <a href='https://github.com/coreos/prometheus-operator' target='_blank' rel='noopener nofollow' >Prometheus</a>"
     linkedList:
       alertManager:
-        label: 'AlertManager - Active Alerts'
+        label: 'AlertManager'
+        description: 'Active Alerts'
       grafana:
-        label: 'Grafana - Metrics Dashboards'
+        label: 'Grafana'
+        description: 'Metrics Dashboards'
       na: Resource Unavailable
       prometheusPromQl:
-        label: 'Prometheus - PromQL Graph'
+        label: 'Prometheus'
+        description: 'PromQL Graph'
       prometheusRules:
-        label: 'Prometheus - Configured Rules'
+        label: 'Prometheus'
+        description: 'Configured Rules'
       prometheusTargets:
-        label: 'Prometheus - Configured Targets'
+        label: 'Prometheus'
+        description: 'Configured Targets'
     warning: Monitoring V1 is currently deployed. If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install the new Rancher Monitoring chart.
   prometheus:
     config:
