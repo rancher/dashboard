@@ -49,7 +49,7 @@ export default {
 
     const hash = await allHash({
       secrets:      this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: 'rancher-resource-set' }),
+      resourceSet: this.$store.dispatch('cluster/find', { type: BACKUP_RESTORE.RESOURCE_SET, id: this.value?.spec?.resourceSetName || 'rancher-resource-set' }),
       apps:         this.$store.dispatch('cluster/findAll', { type: CATALOG.APP })
 
     });
