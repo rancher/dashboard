@@ -73,13 +73,37 @@ export default {
     const appNamespace = query[NAMESPACE] || '';
     const appName = query[NAME] || '';
 
+    if ( this.repo && chartName ) {
+      this.chart = this.$store.getters['catalog/chart']({
+        repoType, repoName, chartName
+      });
+    }
+
     if ( appNamespace && appName ) {
+      // Explicitly asking for edit
+
       this.mode = _EDIT;
       this.existing = await this.$store.dispatch('cluster/find', {
         type: CATALOG.APP,
-        id:   `${ appNamespace }/${ appName }`
+        id:   `${ appNamespace }/${ appName }`,
       });
+    } else if ( this.chart?.targetNamespace && this.chart?.targetName ) {
+      // Asking to install a special chart with fixed namespace/name
+      // so edit it if there's an existing install
+
+      this.existing = await this.$store.dispatch('cluster/find', {
+        type: CATALOG.APP,
+        id:   `${ this.chart.targetNamespace }/${ this.chart.targetName }`,
+      });
+
+      if ( this.existing ) {
+        this.mode = _EDIT;
+      } else {
+        this.mode = _CREATE;
+      }
     } else {
+      // Regular create
+
       this.mode = _CREATE;
     }
 
@@ -90,12 +114,6 @@ export default {
         name:      this.existing ? this.existing.spec.name : appName,
       }
     });
-
-    if ( this.repo && chartName ) {
-      this.chart = this.$store.getters['catalog/chart']({
-        repoType, repoName, chartName
-      });
-    }
 
     if ( this.existing ) {
       this.forceNamespace = this.existing.metadata.namespace;
