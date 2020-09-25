@@ -1,6 +1,7 @@
 <script>
 import Date from '@/components/formatter/Date';
 import SortableTable from '@/components/SortableTable';
+import Banner from '@/components/Banner';
 import { defaultAsyncData } from '@/components/ResourceDetail';
 import { CIS } from '@/config/types';
 import { STATE } from '@/config/table-headers';
@@ -9,7 +10,8 @@ import { randomStr } from '@/utils/string';
 export default {
   components: {
     Date,
-    SortableTable
+    SortableTable,
+    Banner
   },
 
   props: {
@@ -52,17 +54,18 @@ export default {
       return this.clusterReport.aggregatedTests.map((check) => {
         check.testStateSort = this.testStateSort(check.state);
         if (!!check.node_type) {
-          const nodes = check.node_type.reduce((nodes, type) => {
+          const nodeRows = check.node_type.reduce((nodes, type) => {
             if (this.reportNodes[type]) {
               this.reportNodes[type].forEach(name => nodes.push({
-                type, name, id: randomStr(4), state: check.state
-              }));
+                type, name, id: randomStr(4), state: this.nodeState(check, name, check.nodes), testStateSort: this.testStateSort(this.nodeState(check, name, check.nodes))
+              })
+              );
             }
 
             return nodes;
           }, []);
 
-          check.nodes = nodes;
+          check.nodeRows = nodeRows;
         }
 
         return check;
@@ -141,6 +144,12 @@ export default {
     nodeTableHeaders() {
       return [
         {
+          ...STATE,
+          value:         'state',
+          formatterOpts: { arbitrary: true },
+          sort:          'testStateSort'
+        },
+        {
           name:      'node',
           label:     this.t('tableHeaders.name'),
           value:     'name',
@@ -156,6 +165,15 @@ export default {
   },
 
   methods: {
+
+    nodeState(check, node, nodes = []) {
+      if (check.state === 'mixed') {
+        return nodes.includes(node) ? 'fail' : 'pass';
+      }
+
+      return check.state;
+    },
+
     testStateSort(state) {
       const SORT_ORDER = {
         fail:          1,
@@ -183,7 +201,7 @@ export default {
         <span v-else>{{ item.value }}</span>
       </div>
     </div>
-    <div v-if="results">
+    <div v-if="results.length">
       <h3>{{ t('cis.scan.scanReport') }}</h3>
       <SortableTable
         default-sort-by="state"
@@ -198,11 +216,11 @@ export default {
         key-field="id"
       >
         <template #sub-row="{row, fullColspan}">
-          <tr v-if="row.nodes && row.nodes.length">
+          <tr>
             <td :colspan="fullColspan">
               <SortableTable
                 class="sub-table"
-                :rows="row.nodes"
+                :rows="row.nodeRows"
                 :headers="nodeTableHeaders"
                 :search="false"
                 :row-actions="false"
@@ -214,6 +232,7 @@ export default {
         </template>
       </SortableTable>
     </div>
+    <Banner v-else color="error" :label="value.metadata.state.message" />
   </div>
 </template>
 
