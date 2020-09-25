@@ -3,7 +3,7 @@ import { BACKUP_RESTORE } from '@/config/types';
 import { STATE, NAME as NAME_HEADER, AGE } from '@/config/table-headers';
 
 export const NAME = 'backup';
-export const CHART_NAME = 'backup-restore-operator';
+export const CHART_NAME = 'rancher-backup';
 
 export function init(store) {
   const {
