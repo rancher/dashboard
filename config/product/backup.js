@@ -24,20 +24,12 @@ export function init(store) {
   basicType([
     'resources.cattle.io.backup',
     'resources.cattle.io.restore',
-    'resources.cattle.io.resourceset',
   ]);
 
   headers(BACKUP_RESTORE.BACKUP, [
     STATE,
     'Status',
     NAME_HEADER,
-    {
-      name:      'ResourceSet',
-      label:     'Resource Set',
-      value:     'spec.resourceSetName',
-      formatter: 'ResourceSetLink',
-      sort:      ['spec.resourceSetName']
-    },
     'Location',
     'Type',
     'Latest-Backup',

@@ -146,6 +146,7 @@ backupRestoreOperator:
       persistentVolume: Persistent Volume
       label: Default Storage Location
       options:
+        none: No default storage location
         s3: Use an S3-compatible object store
         defaultStorageClass: 'Use the default storage class ({name})'
         pickSC: Use an existing storage class
@@ -185,7 +186,7 @@ backupRestoreOperator:
       }
   s3:
     titles:
-      backupLocation: Select Backup Source
+      backupLocation: Backup Source
       location: Storage Location
       s3: S3
     credentialSecretName:  Credential Secret

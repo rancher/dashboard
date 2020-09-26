@@ -52,10 +52,6 @@ export default {
     this.allSecrets = hash.secrets;
     this.allBackups = hash.backups;
     this.apps = hash.apps;
-
-    if (hash.backups.length) {
-      this.storageSource = 'useBackup';
-    }
   },
 
   data() {
@@ -73,6 +69,10 @@ export default {
   },
 
   computed: {
+    availableBackups() {
+      return this.allBackups.filter(backup => backup.state !== 'error');
+    },
+
     chartNamespace() {
       const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'rancher-backup')[0];
 
@@ -91,7 +91,7 @@ export default {
       const options = ['useDefault', 'configureS3'];
       const labels = [this.t('backupRestoreOperator.restoreFrom.default'), this.t('backupRestoreOperator.restoreFrom.s3')];
 
-      if (this.allBackups.length) {
+      if (this.availableBackups.length) {
         options.unshift('useBackup');
         labels.unshift( this.t('backupRestoreOperator.restoreFrom.existing'));
       }
@@ -106,11 +106,13 @@ export default {
     storageSource(neu, old) {
       if (neu === 'useDefault') {
         delete this.value.spec.storageLocation;
-      } else if (!this.value.spec.storageLocation) {
+      } else if (!this.value.spec.storageLocation && neu === 'configureS3') {
         this.$set(this.value.spec, 'storageLocation', { s3: {} });
         this.s3 = this.value.spec.storageLocation.s3;
       }
       if (neu === 'useBackup') {
+        delete this.value.spec.storageLocation;
+
         if (this.allBackups.length === 1) {
           this.updateTargetBackup(this.allBackups[0]);
         }
@@ -123,6 +125,12 @@ export default {
           this.$set(this.value.spec, 'encryptionConfigSecretName', this.targetBackup.spec.encryptionConfigSecretName);
         }
       }
+    },
+
+    availableBackups(neu, old) {
+      if (neu.length && !old.length) {
+        this.storageSource = 'useBackup';
+      }
     }
   },
 
@@ -131,7 +139,7 @@ export default {
       if (get(neu, 'spec.storageLocation.s3')) {
         Object.assign(this.value.spec.storageLocation.s3, neu.spec.storageLocation.s3);
       }
-      this.$set(this.value, 'spec', { ...this.value.spec, backupFilename: neu.status.filename });
+      this.$set(this.value, 'spec', { ...this.value.spec, backupFilename: neu?.status?.filename });
 
       if (neu.spec.encryptionConfigSecretName) {
         this.$set(this.value, 'spec', { ...this.value.spec, encryptionConfigSecretName: neu.spec.encryptionConfigSecretName });
@@ -158,6 +166,7 @@ export default {
                 :label="t('backupRestoreOperator.s3.titles.backupLocation')"
                 :options="radioOptions.options"
                 :labels="radioOptions.labels"
+                :mode="mode"
               />
             </div>
           </div>
@@ -167,9 +176,9 @@ export default {
           <div v-else-if="storageSource==='useBackup'" class="row mb-10">
             <div class="col span-6">
               <LabeledSelect
-                :disabled="!allBackups.length"
+                :disabled="!availableBackups.length"
                 :value="targetBackup"
-                :options="allBackups"
+                :options="availableBackups"
                 :mode="mode"
                 option-label="metadata.name"
                 :label="t('backupRestoreOperator.targetBackup')"
@@ -199,16 +208,14 @@ export default {
           </div>
           <div :style="{'align-items':'center'}" class="row">
             <div class="col span-6">
-              <Checkbox v-model="value.spec.prune" :label="t('backupRestoreOperator.prune.label')" :mode="mode">
+              <Checkbox v-model="value.spec.prune" class="mb-5" :label="t('backupRestoreOperator.prune.label')" :mode="mode">
                 <template #label>
                   <span v-tooltip="t('backupRestoreOperator.prune.tip')" class="text-label">
                     {{ t('backupRestoreOperator.prune.label') }} <i class="icon icon-info" />
                   </span>
                 </template>
               </Checkbox>
-            </div>
-            <div v-if="value.spec.prune" class="col span-6">
-              <UnitInput v-model="value.spec.deleteTimeoutSeconds" :suffix="t('suffix.seconds')" :mode="mode" :label="t('backupRestoreOperator.deleteTimeout.label')">
+              <UnitInput v-if="value.spec.prune" v-model="value.spec.deleteTimeoutSeconds" :suffix="t('suffix.seconds')" :mode="mode" :label="t('backupRestoreOperator.deleteTimeout.label')">
                 <template #label>
                   <label v-tooltip="t('backupRestoreOperator.deleteTimeout.tip')" class="has-tooltip">
                     {{ t('backupRestoreOperator.deleteTimeout.label') }} <i class="icon icon-info" />
