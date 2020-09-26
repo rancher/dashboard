@@ -211,6 +211,7 @@ export default {
                       v-html="t(subtype.label)"
                     ></span>
                     <span v-else>{{ subtype.label }}</span>
+                    <a href="" target="_blank" rel="noopener nofollow" class="pull-right">More Info <i class="icon icon-external-link" /></a>
                   </h5>
                 </div>
                 <div class="description">
@@ -403,7 +404,6 @@ export default {
 
   &:not(.top) {
     align-items: center;
-    box-shadow: 0px 0px 12px 3px var(--box-bg);
     flex-direction: row;
     justify-content: start;
     &:hover {
