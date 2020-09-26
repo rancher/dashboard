@@ -259,6 +259,7 @@ export default {
     .vs__dropdown-option {
       padding: 10px;
       text-decoration: none;
+      border-left: 5px solid transparent;
 
       &.vs__dropdown-option--disabled {
         // The dividers
@@ -277,13 +278,16 @@ export default {
 
     .vs__dropdown-option--selected {
       color: var(--body-text);
+      // font-weight: bold;
+      background: var(--nav-active);
+      border-left: 5px solid var(--primary);
 
       .product-icon {
         color: var(--product-icon-active);
       }
 
       A, A:hover, A:focus {
-        color: var(--body-text);
+        // color: var(--body-text);
       }
     }
   }

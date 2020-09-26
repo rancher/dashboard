@@ -764,7 +764,7 @@ export default {
 }
 
 .cron-hint {
-  color: var(--muted);
+  color: var(--disabled-text);
   padding: 3px;
 }
 

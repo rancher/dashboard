@@ -26,35 +26,34 @@ export default {
       this.value.metadata.namespace = 'default';
     }
 
-    const theme = this.$store.getters['prefs/theme'];
     const providers = [
       {
         name:    'elasticsearch',
         label:   'Elasticsearch',
         enabled: false,
         default: {},
-        logo:    require(`~/assets/images/logo-${ theme }-elasticsearch.svg`)
+        logo:    require(`~/assets/images/logo-color-elasticsearch.svg`)
       },
       {
         name:    'splunkHec',
         label:   'Splunk',
         enabled: false,
         default: {},
-        logo:    require(`~/assets/images/logo-${ theme }-splunk.svg`)
+        logo:    require(`~/assets/images/logo-color-splunk.svg`)
       },
       {
         name:    'kafka',
         label:   'Kafka',
         enabled: false,
         default: { format: { type: 'json' } },
-        logo:    require(`~/assets/images/logo-${ theme }-kafka.svg`)
+        logo:    require(`~/assets/images/logo-color-kafka.svg`)
       },
       {
         name:    'forward',
         label:   'Fluentd',
         enabled: false,
         default: { servers: [{}] },
-        logo:    require(`~/assets/images/logo-${ theme }-fluentd.svg`)
+        logo:    require(`~/assets/images/logo-color-fluentd.svg`)
       }
     ];
 
@@ -128,11 +127,16 @@ export default {
           <Banner class="mt-0" color="info">
             {{ t('logging.output.selectBanner') }}
           </Banner>
-          <ToggleGradientBox v-for="(provider, i) in providers" :key="i" v-model="provider.enabled" class="mr-20">
-            <div class="logo-container">
-              <img class="logo" :src="provider.logo" /> {{ provider.label }}
-            </div>
-          </ToggleGradientBox>
+          <div class="box-container">
+            <ToggleGradientBox v-for="(provider, i) in providers" :key="i" v-model="provider.enabled">
+              <div class="logo">
+                <img :src="provider.logo" />
+              </div>
+              <h4 class="name">
+                {{ provider.label }}
+              </h4>
+            </ToggleGradientBox>
+          </div>
         </Tab>
         <Tab v-for="(provider, i) in enabledProviders" :key="i" :name="provider.name" :label="provider.label" :weight="i + 1">
           <div class="provider mb-10">
@@ -162,6 +166,11 @@ export default {
 </template>
 
 <style lang="scss">
+  $chart: 110px;
+  $side: 15px;
+  $margin: 10px;
+  $logo: 60px;
+
 .output {
   .provider {
     h1 {
@@ -169,19 +178,115 @@ export default {
     }
   }
 
-  .toggle-gradient-box {
-    display: inline-block;
+  .box-container {
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin: 0 -1*$margin;
 
-    .logo-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      min-width: 160px;
-      padding: 15px 20px;
+    @media only screen and (min-width: map-get($breakpoints, '--viewport-4')) {
+      .toggle-gradient-box {
+        width: 100%;
+      }
+    }
+    @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
+      .toggle-gradient-box {
+        width: calc(50% - 2 * #{$margin});
+      }
+    }
+    @media only screen and (min-width: map-get($breakpoints, '--viewport-9')) {
+      .toggle-gradient-box {
+        width: calc(33.33333% - 2 * #{$margin});
+      }
+    }
+    @media only screen and (min-width: map-get($breakpoints, '--viewport-12')) {
+      .toggle-gradient-box {
+        width: calc(25% - 2 * #{$margin});
+      }
+    }
+
+    .toggle-gradient-box {
+      // height: $chart;
+      margin: $margin;
+      padding: $margin;
+      position: relative;
+      border-radius: calc( 1.5 * var(--border-radius));
+
+      &:hover {
+        box-shadow: 0 0 30px var(--shadow);
+        transition: box-shadow 0.1s ease-in-out;
+        cursor: pointer;
+      }
+
+      .side-label {
+        transform: rotate(180deg);
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        min-width: calc(1.5 * var(--border-radius));
+        width: $side;
+        border-top-right-radius: calc( 1.5 * var(--border-radius));
+        border-bottom-right-radius: calc( 1.5 * var(--border-radius));
+
+        label {
+          text-align: center;
+          writing-mode: tb;
+          height: 100%;
+          padding: 0 2px;
+          display: block;
+          white-space: no-wrap;
+          text-overflow: ellipsis;
+        }
+      }
 
       .logo {
-        height: 50px;
+        text-align: center;
+        // position: absolute;
+        // left: $side+$margin;
+        // top: ($chart - $logo)/2;
+        width: $logo;
+        height: $logo;
+        border-radius: calc(2 * var(--border-radius));
+        overflow: hidden;
+        background-color: white;
+        display: inline-block;
+        vertical-align: middle;
+
+        img {
+          width: $logo - 4px;
+          height: $logo - 4px;
+          object-fit: contain;
+          position: relative;
+          top: 2px;
+        }
       }
+
+      &:hover {
+        background-position: right center;
+      }
+
+      .name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 0;
+        display: inline-block;
+        vertical-align: middle;
+      }
+
+      // .description {
+      //   margin-top: $margin;
+      //   margin-left: $side+$logo+$margin;
+      //   margin-right: $margin;
+      //   display: -webkit-box;
+      //   -webkit-box-orient: vertical;
+      //   -webkit-line-clamp: 3;
+      //   line-clamp: 3;
+      //   overflow: hidden;
+      //   text-overflow: ellipsis;
+      //   color: var(--text-muted);
+      // }
     }
   }
 }
