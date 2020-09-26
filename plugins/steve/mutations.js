@@ -43,11 +43,22 @@ function load(state, { data, ctx, existing }) {
 
   let entry;
 
+  function replace(existing, data) {
+    for ( const k of Object.keys(existing) ) {
+      delete existing[k];
+    }
+
+    for ( const k of Object.keys(data) ) {
+      Vue.set(existing, k, data[k]);
+    }
+
+    return existing;
+  }
+
   if ( existing && !existing.id ) {
     // A specific proxy instance to used was passed in (for create -> save),
     // use it instead of making a new proxy
-    entry = existing;
-    Object.assign(entry, data);
+    entry = replace(existing, data);
     addObject(cache.list, entry);
     cache.map.set(id, entry);
     // console.log('### Mutation added from existing proxy', type, id);
@@ -56,7 +67,7 @@ function load(state, { data, ctx, existing }) {
 
     if ( entry ) {
       // There's already an entry in the store, update it
-      Object.assign(entry, data);
+      replace(entry, data);
       // console.log('### Mutation Updated', type, id);
     } else {
       // There's no entry, make a new proxy
