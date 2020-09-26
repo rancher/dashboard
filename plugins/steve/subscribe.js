@@ -61,7 +61,7 @@ export const actions = {
     }
   },
 
-  flush({ state, commit, dispatch }) {
+  async flush({ state, commit, dispatch }) {
     const queue = state.queue;
     let toLoad = [];
 
@@ -76,12 +76,12 @@ export const actions = {
       } else {
         // When we hit a differet kind of event, process all the previous loads, then the other event.
         if ( toLoad.length ) {
-          dispatch('loadMulti', toLoad);
+          await dispatch('loadMulti', toLoad);
           toLoad = [];
         }
 
         if ( action === 'dispatch' ) {
-          dispatch(event, body);
+          await dispatch(event, body);
         } else if ( action === 'commit' ) {
           commit(event, body);
         } else {
@@ -92,7 +92,7 @@ export const actions = {
 
     // Process any remaining loads
     if ( toLoad.length ) {
-      dispatch('loadMulti', toLoad);
+      await dispatch('loadMulti', toLoad);
     }
   },
 
@@ -172,11 +172,15 @@ export const actions = {
     if ( !state.queue ) {
       state.queue = [];
 
-      state.queueTimer = setInterval(() => {
+      state.flushQueue = async() => {
         if ( state.queue.length ) {
-          dispatch('flush');
+          await dispatch('flush');
         }
-      }, 1000);
+
+        state.queueTimer = setTimeout(state.flushQueue, 1000);
+      };
+
+      state.flushQueue();
     }
 
     if ( socket.hasReconnected ) {
@@ -194,12 +198,12 @@ export const actions = {
 
   closed({ state }, event) {
     console.warn('WebSocket Closed'); // eslint-disable-line no-console
-    clearInterval(state.queueTimer);
+    clearTimeout(state.queueTimer);
   },
 
   error({ state }, event) {
     console.error('WebSocket Error', event); // eslint-disable-line no-console
-    clearInterval(state.queueTimer);
+    clearTimeout(state.queueTimer);
   },
 
   send({ state, commit }, obj) {
