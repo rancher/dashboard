@@ -183,37 +183,38 @@ export default {
             :class="{ selected: subtype.id === selectedSubtype }"
             @click="selectType(subtype.id, $event)"
           >
-            <slot name="subtype-logo">
-              <div class="subtype-logo round-image">
-                <img
-                  v-if="subtype.bannerImage"
-                  src="subtype.bannerImage"
-                  alt="${ resource.type }: ${ subtype.label }"
-                />
-                <div
-                  v-else-if="subtype.bannerAbbrv"
-                  class="banner-abbrv"
-                >
-                  <span v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
-                  <span v-else>{{ subtype.bannerAbbrv }}</span>
-                </div>
-                <div v-else>
-                  {{ subtype.id.slice(0, 1).toUpperCase() }}
-                </div>
-              </div>
-            </slot>
             <slot name="subtype-content">
               <div class="subtype-content">
                 <div class="title">
+                  <slot name="subtype-logo">
+                    <div class="subtype-logo round-image">
+                      <img
+                        v-if="subtype.bannerImage"
+                        src="subtype.bannerImage"
+                        alt="${ resource.type }: ${ subtype.label }"
+                      />
+                      <div
+                        v-else-if="subtype.bannerAbbrv"
+                        class="banner-abbrv"
+                      >
+                        <span v-if="$store.getters['i18n/exists'](subtype.bannerAbbrv)">{{ t(subtype.bannerAbbrv) }}</span>
+                        <span v-else>{{ subtype.bannerAbbrv }}</span>
+                      </div>
+                      <div v-else>
+                        {{ subtype.id.slice(0, 1).toUpperCase() }}
+                      </div>
+                    </div>
+                  </slot>
                   <h5>
                     <span
                       v-if="$store.getters['i18n/exists'](subtype.label)"
                       v-html="t(subtype.label)"
                     ></span>
                     <span v-else>{{ subtype.label }}</span>
-                    <a href="" target="_blank" rel="noopener nofollow" class="pull-right">More Info <i class="icon icon-external-link" /></a>
                   </h5>
+                  <a href="" target="_blank" rel="noopener nofollow" class="flex-right">More Info <i class="icon icon-external-link" /></a>
                 </div>
+                <hr />
                 <div class="description">
                   <span
                     v-if="$store.getters['i18n/exists'](subtype.description)"
@@ -379,23 +380,28 @@ export default {
     H2 {
       margin: 0px;
     }
+  }
 
-    .title {
-      align-items: center;
-      border-right: 1px solid var(--primary);
-      display: flex;
-      flex-basis: 10%;
-      justify-content: space-evenly;
-      margin-right: 20px;
-      padding-right: 20px;
+  .title {
+    align-items: center;
+    display: flex;
+    width: 100%;
+    // flex-basis: 10%;
+
+    h5 {
+      margin: 0;
     }
 
-    .description {
-      color: var(--input-label);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+    .flex-right {
+      margin-left: auto;
     }
+  }
+
+  .description {
+    color: var(--input-label);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .description {
@@ -416,8 +422,8 @@ export default {
     background-color: var(--primary);
     border-radius: 50%;
     height: 50px;
-    margin: 10px;
-    min-width: 50px;
+    margin-right: 10px;
+    width: 50px;
     overflow: hidden;
   }
 
