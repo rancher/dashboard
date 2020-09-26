@@ -1352,7 +1352,11 @@ export default {
           const ns = r[`${ direction }Namespace`];
           const id = (ns ? `${ ns }/` : '') + r[`${ direction }Id`];
 
-          const matching = await this.$dispatch('find', { type, id });
+          let matching = this.$getters['byId'](type, id);
+
+          if ( !matching ) {
+            matching = await this.$dispatch('find', { type, id });
+          }
 
           if ( matching ) {
             addObject(out, matching);
