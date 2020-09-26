@@ -2,17 +2,39 @@
 
 export default {
   props: {
+    // Set either value or color+label
+    // A resource with stateBackground and stateDisplay
     value: {
-      type:     Object,
-      required: true
-    }
+      type:    Object,
+      default: null,
+    },
+
+    color: {
+      type:    String,
+      default: null,
+    },
+
+    label: {
+      type:    String,
+      default: null,
+    },
   },
+
+  computed: {
+    bg() {
+      return this.value?.stateBackground || this.color;
+    },
+
+    msg() {
+      return this.value?.stateDisplay || this.label;
+    }
+  }
 };
 </script>
 
 <template>
-  <span :class="{'badge-state': true, [value.stateBackground]: true}">
-    {{ value.stateDisplay }}
+  <span :class="{'badge-state': true, [bg]: true}">
+    {{ msg }}
   </span>
 </template>
 
