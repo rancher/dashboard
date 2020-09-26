@@ -8,7 +8,7 @@ import pickBy from 'lodash/pickBy';
 import uniq from 'lodash/uniq';
 import Vue from 'vue';
 
-import { addObject, addObjects, findBy } from '@/utils/array';
+import { addObject, addObjects, findBy, removeAt } from '@/utils/array';
 import CustomValidators from '@/utils/custom-validators';
 import { downloadFile, generateZip } from '@/utils/download';
 import { eachLimit } from '@/utils/promise';
@@ -49,9 +49,11 @@ const STRING_LIKE_TYPES = [
 const DNS_LIKE_TYPES = ['dnsLabel', 'dnsLabelRestricted', 'hostname'];
 
 const REMAP_STATE = {
-  disabled:   'inactive',
-  notapplied: 'Not Applied',
-  notready:   'Not Ready',
+  disabled:      'inactive',
+  notapplied:    'Not Applied',
+  notready:      'Not Ready',
+  waitapplied:   'Wait Applied',
+  'in-progress':   'In Progress',
 };
 
 const DEFAULT_COLOR = 'warning';
@@ -90,6 +92,7 @@ const STATES = {
   healthy:            { color: 'success', icon: 'dot-open' },
   inactive:           { color: 'error', icon: 'dot' },
   initializing:       { color: 'warning', icon: 'error' },
+  inprogress:         { color: 'info', icon: 'spinner' },
   locked:             { color: 'warning', icon: 'adjust' },
   migrating:          { color: 'info', icon: 'info' },
   modified:           { color: 'warning', icon: 'edit' },
@@ -130,6 +133,8 @@ const STATES = {
   untriggered:        { color: 'success', icon: 'tag' },
   updating:           { color: 'warning', icon: 'tag' },
   waiting:            { color: 'info', icon: 'tag' },
+  waitapplied:        { color: 'info', icon: 'tag' },
+  notready:           { color: 'warning', icon: 'tag' },
 };
 
 const SORT_ORDER = {
