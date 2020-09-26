@@ -1,10 +1,8 @@
 import { CIS } from '@/config/types';
 import { downloadFile } from '@/utils/download';
-import { colorForState } from '@/plugins/steve/resource-instance';
-import Papa from 'papaparse';
 
 export default {
-  availableActions() {
+  _availableActions() {
     this.getReport();
     let out = this._standardActions;
 
@@ -15,7 +13,8 @@ export default {
         return action;
       }
     });
-    const downloadLogs = {
+
+    const downloadReport = {
       action:     'downloadReport',
       enabled:    this.hasReport,
       icon:       'icon icon-fw icon-chevron-right',
@@ -23,7 +22,8 @@ export default {
       total:      1,
     };
 
-    out.unshift(downloadLogs);
+    out.unshift({ divider: true });
+    out.unshift(downloadReport);
 
     return out;
   },
@@ -44,6 +44,7 @@ export default {
   downloadReport() {
     return async() => {
       const report = await this.getReport();
+      const Papa = await import(/* webpackChunkName: "cis" */'papaparse');
 
       try {
         const testResults = report.aggregatedTests;
@@ -53,16 +54,6 @@ export default {
       } catch (err) {
         this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
       }
-    };
-  },
-
-  testState() {
-    return (state) => {
-      const color = colorForState.call(this, this.state);
-
-      const bgColor = this.color.replace('text-', 'bg-');
-
-      return { color, bgColor };
     };
   },
 };
