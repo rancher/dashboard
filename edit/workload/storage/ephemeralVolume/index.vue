@@ -3,7 +3,6 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
 import Mount from '@/edit/workload/storage/Mount';
-import VolumeMount from '@/edit/workload/storage/volume-mount.js';
 import { mapGetters } from 'vuex';
 
 export default {
@@ -11,9 +10,13 @@ export default {
     LabeledSelect, LabeledInput, Checkbox, Mount
   },
 
-  mixins: [VolumeMount],
-
   props:      {
+    podSpec: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
     value: {
       type:    Object,
       default: () => {
@@ -67,6 +70,6 @@ export default {
         </div>
       </div>
     </div>
-    <Mount v-model="volumeMounts" :name="value.name" :mode="mode" />
+    <Mount :pod-spec="podSpec" :name="value.name" :mode="mode" />
   </div>
 </template>

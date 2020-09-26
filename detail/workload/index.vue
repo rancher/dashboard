@@ -14,8 +14,7 @@ import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/components/form/Networking';
 import Job from '@/edit/workload/Job';
-import ArrayList from '@/components/form/ArrayList';
-import LabeledSelect from '@/components/form/LabeledSelect';
+import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
 
 import { mapGetters } from 'vuex';
 
@@ -33,8 +32,7 @@ export default {
     Job,
     Tabbed,
     Tab,
-    ArrayList,
-    LabeledSelect
+    VolumeClaimTemplate
   },
 
   mixins: [createEditView],
@@ -152,11 +150,7 @@ export default {
         <Networking v-model="podTemplateSpec" :mode="mode" />
       </Tab>
       <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
-        <ArrayList v-model="value.spec.volumeClaimTemplates" :mode="mode" :add-label="t('workload.storage.addClaim')" :default-add-value="''">
-          <template #value="{row, queueUpdate}">
-            <LabeledSelect :mode="mode" :label="t('workload.storage.subtypes.persistentVolumeClaim')" :value="row.value" :options="pvcs" @input="queueUpdate" />
-          </template>
-        </ArrayList>
+        <VolumeClaimTemplate v-model="value.spec" :mode="mode" />
       </Tab>
     </Tabbed>
     <div class="row mt-20">
