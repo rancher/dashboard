@@ -247,7 +247,7 @@ export default {
           <div class="spacer"></div>
         </div>
         <Tabbed :side-tabs="true">
-          <Tab name="parameters" :label="t('gatekeeperConstraint.tab.parameters.title')" :weight="1">
+          <Tab name="parameters" :label="t('gatekeeperConstraint.tab.parameters.title')" :weight="4">
             <div>
               <div v-if="showParametersAsYaml">
                 <YamlEditor
@@ -279,7 +279,8 @@ export default {
               </KeyValue>
             </div>
           </Tab>
-          <Tab name="enforcement-action" :label="t('gatekeeperConstraint.tab.enforcementAction.title')" :weight="2">
+
+          <Tab name="enforcement-action" :label="t('gatekeeperConstraint.tab.enforcementAction.title')" :weight="3">
             <RadioGroup
               v-model="value.spec.enforcementAction"
               name="enforcementAction"
@@ -290,7 +291,8 @@ export default {
               @input="e=>value.spec.enforcementAction = e"
             />
           </Tab>
-          <Tab name="namespaces" :label="t('gatekeeperConstraint.tab.namespaces.title')" :weight="3">
+
+          <Tab name="namespaces" :label="t('gatekeeperConstraint.tab.namespaces.title')" :weight="2">
             <div class="row">
               <div class="col span-6">
                 <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.namespaces') }}</h3>
@@ -302,7 +304,8 @@ export default {
               </div>
             </div>
           </Tab>
-          <Tab name="selectors" :label="t('gatekeeperConstraint.tab.selectors.title')" :weight="4">
+
+          <Tab name="selectors" :label="t('gatekeeperConstraint.tab.selectors.title')" :weight="1">
             <div class="row">
               <div class="col span-6">
                 <h3>{{ t('gatekeeperConstraint.tab.selectors.sub.labelSelector.title') }}</h3>

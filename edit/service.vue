@@ -322,7 +322,7 @@ export default {
         v-if="!isView"
         name="labels-and-annotations"
         :label="t('servicesPage.labelsAnnotations.label', {}, true)"
-        :weight="1000"
+        :weight="-1"
       >
         <Labels
           :default-container-class="'labels-and-annotations-container'"

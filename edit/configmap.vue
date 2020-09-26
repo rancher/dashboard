@@ -46,7 +46,7 @@ export default {
     <div class="spacer"></div>
 
     <Tabbed :side-tabs="true">
-      <Tab name="data" :label="t('configmap.tabs.data.label')" :weight="1">
+      <Tab name="data" :label="t('configmap.tabs.data.label')" :weight="2">
         <KeyValue
           key="data"
           v-model="value.data"
@@ -55,7 +55,7 @@ export default {
           :initial-empty-row="true"
         />
       </Tab>
-      <Tab name="binary-data" :label="t('configmap.tabs.binaryData.label')" :weight="2">
+      <Tab name="binary-data" :label="t('configmap.tabs.binaryData.label')" :weight="1">
         <KeyValue
           key="binaryData"
           v-model="value.binaryData"
@@ -74,7 +74,7 @@ export default {
         v-if="!isView"
         name="labels-and-annotations"
         :label="t('generic.labelsAndAnnotations')"
-        :weight="1000"
+        :weight="-1"
       >
         <Labels
           default-container-class="labels-and-annotations-container"
