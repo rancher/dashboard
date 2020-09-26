@@ -28,6 +28,7 @@ export const CATALOG = {
   _RANCHER:      'rancher',
   _PARTNER:      'partner',
   _OTHER:         'other',
+
   EXPERIMENTAL:  'catalog.cattle.io/experimental',
   NAMESPACE:     'catalog.cattle.io/namespace',
   RELEASE_NAME:  'catalog.cattle.io/release-name',
@@ -37,6 +38,10 @@ export const CATALOG = {
   AUTO_INSTALL_GVK: 'catalog.cattle.io/auto-install-gvr',
   AUTO_INSTALL:     'catalog.cattle.io/auto-install',
   HIDDEN:           'catalog.cattle.io/hidden',
+
+  SCOPE:            'catalog.cattle.io/scope',
+  _MANAGEMENT:      'management',
+  _DOWNSTREAM:      'downstream',
 
   COMPONENT:     'catalog.cattle.io/ui-component',
   COLOR:        'catalog.cattle.io/ui-color',
