@@ -580,6 +580,14 @@ export default {
       out.pop();
     }
 
+    // Remove consecutive dividers in the middle
+    for ( let i = 1 ; i < out.length ; i++ ) {
+      if ( out[i].divider && out[i - 1].divider ) {
+        removeAt(out, i, 1);
+        i--;
+      }
+    }
+
     return out;
   },
 
