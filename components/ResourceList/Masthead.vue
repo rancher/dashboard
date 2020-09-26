@@ -85,6 +85,14 @@ export default {
 
 <template>
   <header>
+    <Banner
+      v-if="typeDescriptionKey"
+      class="type-banner mb-20 mt-0"
+      color="info"
+      :closable="true"
+      :label-key="typeDescriptionKey"
+      @close="hideTypeDescription"
+    />
     <h1>
       {{ typeDisplay }} <Favorite v-if="isExplorer" :resource="resource" />
     </h1>
@@ -148,13 +156,5 @@ export default {
         </template>
       </ButtonDropdown>
     </div>
-    <Banner
-      v-if="typeDescriptionKey"
-      class="state-banner mt-20 mb-0"
-      color="info"
-      :closable="true"
-      :label-key="typeDescriptionKey"
-      @close="hideTypeDescription"
-    />
   </header>
 </template>

@@ -178,7 +178,7 @@ export default {
       const SORT_ORDER = {
         fail:          1,
         skip:          2,
-        notApplicable:    3,
+        notApplicable: 3,
         pass:          4,
         other:         5,
       };

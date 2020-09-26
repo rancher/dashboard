@@ -34,36 +34,36 @@ export default {
 <template>
   <header :class="{explorer: isExplorer}">
     <div class="product">
-      <ProductSwitcher />
+      <ProductSwitcher v-if="currentCluster" />
       <div alt="Logo" class="logo">
         <img src="~/assets/images/half-logo.svg" />
       </div>
     </div>
 
     <div class="apps">
-      <nuxt-link :to="{name: 'c-cluster-apps', params: { cluster: currentCluster.id }}" class="btn role-tertiary">
+      <nuxt-link v-if="currentCluster" :to="{name: 'c-cluster-apps', params: { cluster: currentCluster.id }}" class="btn role-tertiary">
         <i class="icon icon-lg icon-marketplace pr-5" /> Apps
       </nuxt-link>
     </div>
 
     <div class="top">
-      <NamespaceFilter v-if="clusterReady && currentProduct.showNamespaceFilter" />
+      <NamespaceFilter v-if="clusterReady && currentProduct && currentProduct.showNamespaceFilter" />
     </div>
 
     <div class="back">
-      <a class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
+      <a v-if="currentProduct" class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
         {{ t('nav.backToRancher') }}
       </a>
     </div>
 
     <div class="kubectl">
-      <button v-if="currentProduct.showClusterSwitcher" :disabled="!showShell" type="button" class="btn role-tertiary" @click="currentCluster.openShell()">
+      <button v-if="currentProduct && currentProduct.showClusterSwitcher" :disabled="!showShell" type="button" class="btn role-tertiary" @click="currentCluster.openShell()">
         <i class="icon icon-terminal icon-lg" /> {{ t('nav.shell') }}
       </button>
     </div>
 
     <div class="cluster">
-      <ClusterSwitcher v-if="isMultiCluster && currentProduct.showClusterSwitcher" />
+      <ClusterSwitcher v-if="isMultiCluster && currentProduct && currentProduct.showClusterSwitcher" />
     </div>
 
     <div class="user">

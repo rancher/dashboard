@@ -39,5 +39,8 @@ export default {
 </script>
 
 <template>
-  <BadgeState :value="arbitrary ? {stateDisplay, stateBackground} : row" />
+  <div>
+    <BadgeState v-if="arbitrary" :color="stateBackground" :label="stateDisplay" />
+    <BadgeState v-else :value="row" />
+  </div>
 </template>

@@ -43,29 +43,29 @@ export function init(store) {
       sort:          ['status.lastRunScanProfileName'],
     },
     {
-      name:      'total',
+      name:   'total',
       label:  'Total',
-      value:     'status.summary.total',
+      value:  'status.summary.total',
     },
     {
-      name:      'pass',
+      name:   'pass',
       label:  'Pass',
-      value:     'status.summary.pass',
+      value:  'status.summary.pass',
     },
     {
-      name:      'fail',
+      name:   'fail',
       label:  'Fail',
-      value:     'status.summary.fail',
+      value:  'status.summary.fail',
     },
     {
-      name:      'skip',
+      name:   'skip',
       label:  'Skip',
-      value:     'status.summary.skip',
+      value:  'status.summary.skip',
     },
     {
-      name:      'notApplicable',
+      name:   'notApplicable',
       label:  'N/A',
-      value:     'status.summary.notApplicable',
+      value:  'status.summary.notApplicable',
     },
     {
       name:          'lastRunTimestamp',
@@ -73,10 +73,10 @@ export function init(store) {
       value:         'status.lastRunTimestamp',
       formatter:     'LiveDate',
       formatterOpts: { addSuffix: true },
-      sort:          'status.lastRunTimestap',
+      sort:          'status.lastRunTimestamp:desc',
       width:         150,
       align:         'right',
-      defaultSort:   'desc'
+      defaultSort:   true,
     },
   ]);
 }

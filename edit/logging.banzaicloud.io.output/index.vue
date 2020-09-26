@@ -123,7 +123,7 @@ export default {
         :register-before-hook="registerBeforeHook"
       />
       <Tabbed ref="tabbed" :side-tabs="true">
-        <Tab v-if="!isView" name="overview" :label="t('logging.output.selectOutputs')" :weight="0">
+        <Tab v-if="!isView" name="overview" :label="t('logging.output.selectOutputs')" :weight="100">
           <Banner class="mt-0" color="info">
             {{ t('logging.output.selectBanner') }}
           </Banner>
@@ -138,7 +138,7 @@ export default {
             </ToggleGradientBox>
           </div>
         </Tab>
-        <Tab v-for="(provider, i) in enabledProviders" :key="i" :name="provider.name" :label="provider.label" :weight="i + 1">
+        <Tab v-for="(provider, i) in enabledProviders" :key="i" :name="provider.name" :label="provider.label" :weight="enabledProviders.length - i + 1">
           <div class="provider mb-10">
             <h1>
               {{ provider.label }}

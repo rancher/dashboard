@@ -61,7 +61,7 @@ export const actions = {
     }
   },
 
-  flush({ state, commit, dispatch }) {
+  async flush({ state, commit, dispatch }) {
     const queue = state.queue;
     let toLoad = [];
 
@@ -76,12 +76,12 @@ export const actions = {
       } else {
         // When we hit a differet kind of event, process all the previous loads, then the other event.
         if ( toLoad.length ) {
-          dispatch('loadMulti', toLoad);
+          await dispatch('loadMulti', toLoad);
           toLoad = [];
         }
 
         if ( action === 'dispatch' ) {
-          dispatch(event, body);
+          await dispatch(event, body);
         } else if ( action === 'commit' ) {
           commit(event, body);
         } else {
@@ -92,7 +92,7 @@ export const actions = {
 
     // Process any remaining loads
     if ( toLoad.length ) {
-      dispatch('loadMulti', toLoad);
+      await dispatch('loadMulti', toLoad);
     }
   },
 
@@ -152,7 +152,7 @@ export const actions = {
     const promises = [];
 
     for ( const entry of state.started.slice() ) {
-      console.info('Reconnect', entry.type, entry.id, entry.selector); // eslint-disable-line no-console
+      console.info('Reconnect', entry.type, entry.namespace, entry.id, entry.selector); // eslint-disable-line no-console
       if ( getters.schemaFor(entry.type) ) {
         commit('setWatchStopped', entry);
         delete entry.revision;
@@ -172,11 +172,15 @@ export const actions = {
     if ( !state.queue ) {
       state.queue = [];
 
-      state.queueTimer = setInterval(() => {
+      state.flushQueue = async() => {
         if ( state.queue.length ) {
-          dispatch('flush');
+          await dispatch('flush');
         }
-      }, 1000);
+
+        state.queueTimer = setTimeout(state.flushQueue, 1000);
+      };
+
+      state.flushQueue();
     }
 
     if ( socket.hasReconnected ) {
@@ -194,12 +198,12 @@ export const actions = {
 
   closed({ state }, event) {
     console.warn('WebSocket Closed'); // eslint-disable-line no-console
-    clearInterval(state.queueTimer);
+    clearTimeout(state.queueTimer);
   },
 
   error({ state }, event) {
     console.error('WebSocket Error', event); // eslint-disable-line no-console
-    clearInterval(state.queueTimer);
+    clearTimeout(state.queueTimer);
   },
 
   send({ state, commit }, obj) {
@@ -223,9 +227,10 @@ export const actions = {
   'ws.resource.start'({ commit }, msg) {
     // console.info('Resource start:', msg.resourceType, msg.id, msg.selector); // eslint-disable-line no-console
     commit('setWatchStarted', {
-      type:     msg.resourceType,
-      id:       msg.id,
-      selector: msg.selector
+      type:      msg.resourceType,
+      namespace: msg.namespace,
+      id:        msg.id,
+      selector:  msg.selector
     });
   },
 
@@ -243,12 +248,13 @@ export const actions = {
   'ws.resource.stop'({ getters, commit, dispatch }, msg) {
     const type = msg.resourceType;
     const obj = {
-      type:     msg.resourceType,
-      id:       msg.id,
-      selector: msg.selector
+      type,
+      id:        msg.id,
+      namespace: msg.namespace,
+      selector:  msg.selector
     };
 
-    console.warn('Resource stop:', type, msg.id, msg.selector); // eslint-disable-line no-console
+    console.warn('Resource stop:', type, msg.namespace, msg.id, msg.selector); // eslint-disable-line no-console
 
     if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
       // Try reconnecting once

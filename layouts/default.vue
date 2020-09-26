@@ -319,7 +319,8 @@ export default {
 
     HEADER {
       display: grid;
-      grid-template-areas:  "title actions"
+      grid-template-areas:  "type-banner type-banner"
+                            "title actions"
                             "state-banner state-banner";
       grid-template-columns: "auto min-content";
       margin-bottom: 20px;
@@ -328,6 +329,10 @@ export default {
       H1 {
         grid-area: title;
         margin: 0;
+      }
+
+      .type-banner {
+        grid-area: type-banner;
       }
 
       .state-banner {
