@@ -50,12 +50,26 @@ export const getters = {
     };
   },
 
-  charts(state, getters) {
+  charts(state, getters, rootState, rootGetters) {
     const repoKeys = getters.repos.map(x => x._key);
+    const cluster = rootGetters['currentCluster']
 
     // Filter out charts for repos that are no longer in the store, rather
     // than trying to clear them when a repo is removed.
-    return Object.values(state.charts).filter(x => repoKeys.includes(x.repoKey));
+    // And ones that are for the wrong kind of cluster
+    const out = Object.values(state.charts).filter((chart) => {
+       if ( !repoKeys.includes(chart.repoKey) ) {
+         return false;
+       }
+
+       if ( chart.scope && chart.scope !== cluster.scope ) {
+         return false;
+       }
+
+       return true;
+    });
+
+    return out; 
   },
 
   chart(state, getters) {
@@ -371,6 +385,7 @@ function addChart(map, chart, repo) {
       hidden:          !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
       targetNamespace: chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
       targetName:      chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
+      scope:           chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
       provides:        [],
     };
 

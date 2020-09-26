@@ -1,6 +1,10 @@
+import { CATALOG } from '@/config/labels-annotations';
 import { insertAt } from '@/utils/array';
 
 export default {
+  scope() {
+    return this.id === 'local' ? CATALOG._MANAGEMENT : CATALOG._DOWNSTREAM;
+  },
 
   _availableActions() {
     const out = this._standardActions;
