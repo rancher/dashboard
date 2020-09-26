@@ -152,7 +152,7 @@ export const actions = {
     const promises = [];
 
     for ( const entry of state.started.slice() ) {
-      console.info('Reconnect', entry.type, entry.id, entry.selector); // eslint-disable-line no-console
+      console.info('Reconnect', entry.type, entry.namespace, entry.id, entry.selector); // eslint-disable-line no-console
       if ( getters.schemaFor(entry.type) ) {
         commit('setWatchStopped', entry);
         delete entry.revision;
@@ -223,9 +223,10 @@ export const actions = {
   'ws.resource.start'({ commit }, msg) {
     // console.info('Resource start:', msg.resourceType, msg.id, msg.selector); // eslint-disable-line no-console
     commit('setWatchStarted', {
-      type:     msg.resourceType,
-      id:       msg.id,
-      selector: msg.selector
+      type:      msg.resourceType,
+      namespace: msg.namespace,
+      id:        msg.id,
+      selector:  msg.selector
     });
   },
 
@@ -243,12 +244,13 @@ export const actions = {
   'ws.resource.stop'({ getters, commit, dispatch }, msg) {
     const type = msg.resourceType;
     const obj = {
-      type:     msg.resourceType,
-      id:       msg.id,
-      selector: msg.selector
+      type,
+      id:        msg.id,
+      namespace: msg.namespace,
+      selector:  msg.selector
     };
 
-    console.warn('Resource stop:', type, msg.id, msg.selector); // eslint-disable-line no-console
+    console.warn('Resource stop:', type, msg.namespace, msg.id, msg.selector); // eslint-disable-line no-console
 
     if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
       // Try reconnecting once
