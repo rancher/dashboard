@@ -73,10 +73,10 @@ export function init(store) {
       value:         'status.lastRunTimestamp',
       formatter:     'LiveDate',
       formatterOpts: { addSuffix: true },
-      sort:          'status.lastRunTimestamp:desc',
+      sort:          'status.lastRunTimestamp',
       width:         150,
       align:         'right',
-      defaultSort:   true,
+      defaultSort:   true
     },
   ]);
 }

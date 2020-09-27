@@ -39,33 +39,29 @@ export default {
     let sortBy = null;
     let descending = false;
 
-    this._defaultSortBy = this.defaultSortBy;
+    const defaultSortCol = this.headers.find(x => x.defaultSort);
 
-    // Try to find a reasonable default sort
-    if ( !this._defaultSortBy ) {
-      const markedColumn = this.headers.find(x => !!x.defaultSort);
-      const nameColumn = this.headers.find( x => x.name === 'name');
+    if (defaultSortCol) {
+      sortBy = defaultSortCol.name;
+      descending = defaultSortCol.defaultSort;
+      this._defaultSortBy = defaultSortCol.name;
+    } else {
+      this._defaultSortBy = this.defaultSortBy;
 
-      if ( markedColumn ) {
-        this._defaultSortBy = markedColumn.name;
-      } else if ( nameColumn ) {
-        // Use the name column if there is one
-        this._defaultSortBy = nameColumn.name;
-      } else {
-        // The first column that isn't state
-        const first = this.headers.filter( x => x.name !== 'state' )[0];
+      // Try to find a reasonable default sort
+      if ( !this._defaultSortBy ) {
+        const nameColumn = this.headers.find( x => x.name === 'name');
 
-        if ( first ) {
-          this._defaultSortBy = first.name;
+        if ( nameColumn ) {
+          // Use the name column if there is one
+          this._defaultSortBy = nameColumn.name;
         } else {
           // I give up
           this._defaultSortBy = 'id';
         }
       }
     }
-
     sortBy = this.$route.query.sort;
-
     // If the sort column doesn't exist or isn't specified, use default
     if ( !sortBy || !this.headers.find(x => x.name === sortBy ) ) {
       sortBy = this._defaultSortBy;
