@@ -80,7 +80,7 @@
 
   --input-text: #{$lightest};
   --input-label: #{$lighter};
-  --input-placeholder: #{$disabled};
+  --input-placeholder: #{lighten($disabled, 10%)};
   --input-border: var(--border);
   --input-bg: #{$dark};
   --input-hover-bg: var(--body-bg);
