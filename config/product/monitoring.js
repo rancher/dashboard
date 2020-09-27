@@ -17,7 +17,7 @@ export function init(store) {
   } = MONITORING;
 
   product({
-    ifHaveGroup: 'monitoring.coreos.com',
+    ifHaveType: PODMONITOR, // possible RBAC issue here if mon turned on but user doesn't have view/read roles on pod monitors
     // icon:       'prometheus'
   });
 
