@@ -63,8 +63,16 @@ export default {
       this.value.metadata.generateName = 'restore-';
     }
 
+    let s3 = {};
+    let storageSource = 'useDefault';
+
+    if (this.value?.spec?.storageLocation?.s3) {
+      storageSource = 'configureS3';
+      s3 = this.value.spec.storageLocation.s3;
+    }
+
     return {
-      allSecrets: [], allBackups: [], s3: {}, targetBackup: null, storageSource: 'useDefault', apps: []
+      allSecrets: [], allBackups: [], s3, targetBackup: null, storageSource, apps: []
     };
   },
 
@@ -74,7 +82,7 @@ export default {
     },
 
     chartNamespace() {
-      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'rancher-backup')[0];
+      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'backup-restore-operator')[0];
 
       return BRORelease ? BRORelease.spec.namespace : '';
     },
@@ -91,12 +99,23 @@ export default {
       const options = ['useDefault', 'configureS3'];
       const labels = [this.t('backupRestoreOperator.restoreFrom.default'), this.t('backupRestoreOperator.restoreFrom.s3')];
 
-      if (this.availableBackups.length) {
+      if (this.availableBackups.length || this.storageSource === 'useBackup') {
         options.unshift('useBackup');
         labels.unshift( this.t('backupRestoreOperator.restoreFrom.existing'));
       }
 
       return { options, labels };
+    },
+
+    validationPassed() {
+      const hasBackupFile = (!!this.value.spec.backupFilename && !!this.value.spec.backupFilename.length);
+      const hasEncryption = !!this.value.spec.encryptionConfigSecretName;
+
+      if (!hasBackupFile) {
+        return false;
+      }
+
+      return !this.isEncrypted || hasEncryption;
     },
 
     ...mapGetters({ t: 'i18n/t' })
@@ -113,8 +132,8 @@ export default {
       if (neu === 'useBackup') {
         delete this.value.spec.storageLocation;
 
-        if (this.allBackups.length === 1) {
-          this.updateTargetBackup(this.allBackups[0]);
+        if (this.availableBackups.length === 1) {
+          this.updateTargetBackup(this.availableBackups[0]);
         }
       } else if (this.targetBackup) {
         if (get(this.targetBackup, 'spec.storageLocation.s3')) {
@@ -128,7 +147,7 @@ export default {
     },
 
     availableBackups(neu, old) {
-      if (neu.length && !old.length) {
+      if ((neu.length && !old.length) && this.mode === 'create') {
         this.storageSource = 'useBackup';
       }
     }
@@ -136,14 +155,18 @@ export default {
 
   methods: {
     updateTargetBackup(neu) {
-      if (get(neu, 'spec.storageLocation.s3')) {
-        Object.assign(this.value.spec.storageLocation.s3, neu.spec.storageLocation.s3);
-      }
-      this.$set(this.value, 'spec', { ...this.value.spec, backupFilename: neu?.status?.filename });
+      const out = { backupFilename: neu?.status?.filename };
 
-      if (neu.spec.encryptionConfigSecretName) {
-        this.$set(this.value, 'spec', { ...this.value.spec, encryptionConfigSecretName: neu.spec.encryptionConfigSecretName });
+      if (neu?.spec?.storageLocation?.s3) {
+        out.storageLocation = neu.spec.storageLocation;
+      } else {
+        delete this.value.spec.storageLocation;
       }
+      if (neu.spec.encryptionConfigSecretName) {
+        out.encryptionConfigSecretName = neu.spec.encryptionConfigSecretName;
+      }
+      this.$set(this.value, 'spec', { ...this.value.spec, ...out });
+
       this.targetBackup = neu;
     }
   }
@@ -155,7 +178,7 @@ export default {
   <div>
     <Loading v-if="$fetchState.pending" />
 
-    <CruResource :validation-passed="!!value.spec.backupFilename && !!value.spec.backupFilename.length" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
+    <CruResource :validation-passed="validationPassed" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
       <template>
         <div class="bordered-section">
           <div class="row mb-10">

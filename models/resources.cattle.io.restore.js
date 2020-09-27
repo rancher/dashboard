@@ -1,5 +1,5 @@
 export default {
   canUpdate() {
-    return false;
+    return this?.metadata?.state?.error;
   },
 };
