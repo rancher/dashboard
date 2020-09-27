@@ -1,8 +1,12 @@
 <script>
 import { PVC } from '@/config/types';
 import { removeObject } from '@/utils/array.js';
+import ButtonDropdown from '@/components/ButtonDropdown';
+import { _VIEW } from '@/config/query-params';
 
 export default {
+  components: { ButtonDropdown },
+
   props:      {
     mode: {
       type:    String,
@@ -51,6 +55,10 @@ export default {
   },
 
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+
     volumeOpts() {
       return ['secret', 'hostPath', 'certificate', 'configMap', 'persistentVolumeClaim', 'createPersistentVolumeClaim', 'csi', 'nfs'];
     },
@@ -136,15 +144,18 @@ export default {
     </template>
     <div class="row">
       <div class="col span-6">
-        <v-select
-          :searchable="false"
-          :multiple="false"
-          class="inline btn-like"
-          :value="'label'"
-          :options="['secret', 'hostPath', 'certificate', 'configMap', 'persistentVolumeClaim', 'createPersistentVolumeClaim', 'csi', 'nfs']"
-          :get-option-label="opt=>t(`workload.storage.subtypes.${opt}`)"
-          @input="e=>addVolume(e)"
-        />
+        <ButtonDropdown v-if="!isView" :dual-action="false">
+          <template #button-content>
+            <span>{{ t('workload.storage.addVolume') }}</span>
+          </template>
+          <template #popover-content>
+            <ul class="list-unstyled menu">
+              <li v-for="opt in volumeOpts" :key="opt" v-close-popover @click="addVolume(opt)">
+                {{ t(`workload.storage.subtypes.${opt}`) }}
+              </li>
+            </ul>
+          </template>
+        </ButtonDropdown>
       </div>
     </div>
   </div>

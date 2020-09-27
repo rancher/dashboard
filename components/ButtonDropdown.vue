@@ -4,6 +4,11 @@ export default {
     size: {
       type:    String,
       default: '' // possible values are xs, sm, lg. empty is default .btn
+    },
+    // whether this is a button and dropdown (default) or dropdown that looks like a button/dropdown
+    dualAction: {
+      type:    Boolean,
+      default: true
     }
   },
 
@@ -43,9 +48,9 @@ export default {
   <div class="dropdown-button-group">
     <div
       class="dropdown-button bg-primary"
-      :class="buttonSize"
+      :class="{'one-action':!dualAction, [buttonSize]:true}"
     >
-      <slot name="button-content" :buttonSize="buttonSize">
+      <slot v-if="dualAction" name="button-content" :buttonSize="buttonSize">
         <button
           class="bg-transparent"
           :class="buttonSize"
@@ -55,8 +60,14 @@ export default {
           Button
         </button>
       </slot>
-
-      <div v-if="hasSlot('popover-content')" class="button-divider"></div>
+      <div
+        v-else
+        :class="buttonSize"
+        type="button"
+      >
+        <slot name="button-content" />
+      </div>
+      <div v-if="hasSlot('popover-content') && dualAction" class="button-divider"></div>
 
       <v-popover
         v-if="hasSlot('popover-content')"
