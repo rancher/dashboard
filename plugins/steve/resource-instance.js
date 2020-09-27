@@ -30,7 +30,7 @@ import {
 
 import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
 import {
-  AS_YAML, MODE, _CLONE, _EDIT, _FLAGGED, _VIEW
+  AS_YAML, MODE, _CLONE, _EDIT, _FLAGGED, _VIEW, _UNFLAG
 } from '@/config/query-params';
 
 import { cleanForNew, normalizeType } from './normalize';
@@ -928,7 +928,8 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]: _EDIT,
+        [MODE]:    _EDIT,
+        [AS_YAML]: _UNFLAG,
         ...moreQuery
       };
 

@@ -51,16 +51,7 @@ export default {
   },
 
   async fetch() {
-    let pods;
-
-    const { metadata:{ relationships = [] } } = this.value;
-    const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
-
-    if (podRelationship) {
-      pods = await this.$store.dispatch('cluster/findMatching', { type: POD, selector: podRelationship.selector });
-    }
-
-    this.pods = pods;
+    this.pods = await this.value.pods();
   },
 
   data() {
@@ -162,6 +153,7 @@ export default {
           :rows="pods"
           :headers="podHeaders"
           key-field="id"
+          :table-actions="false"
           :schema="podSchema"
           :show-groups="false"
         />

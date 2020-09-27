@@ -1,6 +1,6 @@
 import { insertAt } from '@/utils/array';
 import { TIMESTAMP } from '@/config/labels-annotations';
-import { WORKLOAD_TYPES } from '@/config/types';
+import { WORKLOAD_TYPES, POD } from '@/config/types';
 
 export default {
   // remove clone as yaml/edit as yaml until API supported
@@ -203,6 +203,21 @@ export default {
     }
 
     return out;
+  },
+
+  pods() {
+    const { metadata:{ relationships = [] } } = this;
+
+    return async() => {
+      const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
+      let pods;
+
+      if (podRelationship) {
+        pods = await this.$dispatch('cluster/findMatching', { type: POD, selector: podRelationship.selector }, { root: true });
+      }
+
+      return pods;
+    };
   },
 
   redeploy() {

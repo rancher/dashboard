@@ -30,6 +30,7 @@ import Tolerations from '@/components/form/Tolerations';
 import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
 import Storage from '@/edit/workload/storage';
+import Labels from '@/components/form/Labels';
 
 export default {
   name:       'CruWorkload',
@@ -53,7 +54,8 @@ export default {
     CruResource,
     Command,
     Storage,
-    VolumeClaimTemplate
+    VolumeClaimTemplate,
+    Labels
   },
 
   mixins: [CreateEditView],
@@ -555,6 +557,14 @@ export default {
 
       return podAffinity;
     },
+
+    selectType(type) {
+      if (!this.type && type) {
+        this.$router.replace({ params: { resource: type } });
+      } else {
+        this.type = type;
+      }
+    }
   }
 };
 </script>
@@ -562,7 +572,7 @@ export default {
 <template>
   <form>
     <CruResource
-      :validation-passed="containerIsReady"
+      :validation-passed="true"
       :selected-subtype="type"
       :resource="value"
       :mode="mode"
@@ -570,7 +580,7 @@ export default {
       :done-route="doneRoute"
       :subtypes="workloadSubTypes"
       @finish="save"
-      @select-type="e=>type=e"
+      @select-type="selectType"
       @error="e=>errors = e"
       @apply-hooks="applyHooks"
     >
@@ -708,29 +718,7 @@ export default {
           <VolumeClaimTemplate v-model="spec" :mode="mode" />
         </Tab>
         <Tab name="labels" :label="t('generic.labelsAndAnnotations')">
-          <h3>{{ t('resourceDetail.detailTop.labels') }}</h3>
-          <div class="row">
-            <KeyValue
-              key="labels"
-              v-model="value.metadata.labels"
-              :mode="mode"
-              :pad-left="false"
-              :read-allowed="false"
-              :protip="false"
-            />
-          </div>
-
-          <h3>{{ t('resourceDetail.detailTop.annotations') }}</h3>
-          <div class="row">
-            <KeyValue
-              key="annotations"
-              v-model="value.metadata.annotations"
-              :mode="mode"
-              :pad-left="false"
-              :read-allowed="false"
-              :protip="false"
-            />
-          </div>
+          <Labels v-model="value" :mode="mode" />
         </Tab>
       </Tabbed>
     </CruResource>

@@ -562,3 +562,11 @@ export const WORKSPACE = {
   value: 'metadata.namespace',
   sort:  ['metadata.namespace', 'nameSort'],
 };
+
+export const WORKLOAD_IMAGES = {
+  name:      'workloadImages',
+  label:     'Image',
+  labelKey:  'tableHeaders.image',
+  value:     'pods',
+  formatter: 'WorkloadImages'
+};
