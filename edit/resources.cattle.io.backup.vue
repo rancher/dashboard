@@ -63,7 +63,7 @@ export default {
     if (!this.value.spec) {
       this.$set(this.value, 'spec', { retentionCount: 10 });
     }
-    const s3 = {};
+    let s3 = {};
     let useEncryption = false;
     let setSchedule = false;
     let storageSource = 'useDefault';
@@ -76,8 +76,9 @@ export default {
       setSchedule = true;
     }
 
-    if (this.value?.storageLocation?.s3) {
+    if (this.value?.spec?.storageLocation?.s3) {
       storageSource = 'configureS3';
+      s3 = this.value.spec.storageLocation.s3;
     }
 
     return {
@@ -91,7 +92,7 @@ export default {
     },
 
     chartNamespace() {
-      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'rancher-backup')[0];
+      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'backup-restore-operator')[0];
 
       return BRORelease ? BRORelease.spec.namespace : '';
     },
@@ -203,7 +204,7 @@ export default {
               <div class="col span-6">
                 <LabeledSelect
                   v-model="value.spec.encryptionConfigSecretName"
-                  :tooltip="t('backupRestoreOperator.encryptionConfigName.backuptip')"
+                  :tooltip="t('backupRestoreOperator.encryptionConfigName.backuptip', {}, true)"
                   :hover-tooltip="true"
                   :mode="mode"
                   :options="encryptionSecretNames"
