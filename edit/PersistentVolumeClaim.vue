@@ -82,6 +82,11 @@ export default {
       }
     },
 
+    updatePV(pv) {
+      this.$set(this.value.spec, 'volumeName', pv.metadata.name);
+      this.$set(this.value.spec, 'storageClassName', pv.spec.storageClassName);
+    }
+
   }
 
 };
@@ -97,7 +102,15 @@ export default {
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect v-if="createPVC" v-model="value.spec.storageClassName" :mode="mode" :label="t('persistentVolumeClaim.storageClass')" :options="storageClassNames" />
-        <LabeledSelect v-else v-model="value.spec.volumeName" :mode="mode" :label="t('persistentVolumeClaim.volumes')" :options="persistentVolumeNames" />
+        <LabeledSelect
+          v-else
+          :value="value.spec.volumeName"
+          :get-option-label="opt=> opt.metadata ? opt.metadata.name : opt"
+          :mode="mode"
+          :label="t('persistentVolumeClaim.volumes')"
+          :options="unboundPVs"
+          @input="updatePV"
+        />
       </div>
       <div class="col span-6">
         <RadioGroup
