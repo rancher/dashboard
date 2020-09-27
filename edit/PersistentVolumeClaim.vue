@@ -88,33 +88,39 @@ export default {
 </script>
 
 <template>
-  <div>
-    <RadioGroup
-      v-model="createPVC"
-      name="createPVC"
-      :row="true"
-      :options="[true, false]"
-      :labels="[t('persistentVolumeClaim.source.options.new'), t('persistentVolumeClaim.source.options.existing')]"
-      :mode="mode"
-    />
+  <div @input="$emit('input')">
+    <div class="row mb-10">
+      <div class="col span-6">
+        <LabeledInput v-model="value.metadata.name" :mode="mode" :required="true" :label="t('persistentVolumeClaim.volumeName')" @input="$emit('input')" />
+      </div>
+    </div>
     <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect v-if="createPVC" v-model="value.spec.storageClassName" :mode="mode" :label="t('persistentVolumeClaim.storageClass')" :options="storageClassNames" />
         <LabeledSelect v-else v-model="value.spec.volumeName" :mode="mode" :label="t('persistentVolumeClaim.volumes')" :options="persistentVolumeNames" />
       </div>
       <div class="col span-6">
-        <UnitInput v-model="value.spec.resources.requests.storage" :mode="mode" :label="t('persistentVolumeClaim.capacity')" suffix="GiB" />
+        <RadioGroup
+          v-model="createPVC"
+          name="createPVC"
+          :options="[true, false]"
+          :labels="[t('persistentVolumeClaim.source.options.new'), t('persistentVolumeClaim.source.options.existing')]"
+          :mode="mode"
+        />
       </div>
     </div>
-    <div class="row">
+
+    <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.metadata.name" :label="t('persistentVolumeClaim.volumeName')" />
+        <UnitInput v-model="value.spec.resources.requests.storage" :mode="mode" :label="t('persistentVolumeClaim.capacity')" suffix="GiB" />
       </div>
-      <div class="col span-6 access-modes">
+      <div class="col span-6">
         <t class="text-label" k="persistentVolumeClaim.accessModes" />
-        <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteOnce')" label="Single-Node Read/Write" @input="e=>updateMode('ReadWriteOnce', e)" />
-        <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadMany')" label="Many-Node Read-Only" @input="e=>updateMode('ReadMany', e)" />
-        <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteMany')" label="Many-Node Read/Write" @input="e=>updateMode('ReadWriteMany', e)" />
+        <div class="access-modes">
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteOnce')" label="Single-Node Read/Write" @input="e=>updateMode('ReadWriteOnce', e)" />
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadMany')" label="Many-Node Read-Only" @input="e=>updateMode('ReadMany', e)" />
+          <Checkbox :mode="mode" :value="value.spec.accessModes.includes('ReadWriteMany')" label="Many-Node Read/Write" @input="e=>updateMode('ReadWriteMany', e)" />
+        </div>
       </div>
     </div>
   </div>
@@ -123,6 +129,6 @@ export default {
 <style lang='scss'>
     .access-modes {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
     }
 </style>

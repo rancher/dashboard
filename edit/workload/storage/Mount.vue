@@ -21,13 +21,54 @@ export default {
     name: {
       type:     String,
       default: ''
+    },
+
+    podSpec: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+
+  data() {
+    const container = this.podSpec.containers[0];
+
+    const volumeMounts = container.volumeMounts.filter(mount => mount.name === this.name);
+
+    return { volumeMounts };
+  },
+
+  computed: {
+    type() {
+      return Object.keys(this.value).filter(key => key !== 'name')[0];
+    },
+
+    ...mapGetters({ t: 'i18n/t' })
+  },
+
+  watch: {
+    volumeMounts(neu) {
+      const container = this.podSpec.containers[0];
+
+      container.volumeMounts = container.volumeMounts.filter(mount => mount.name && (mount.name !== this.name));
+      container.volumeMounts.push(...neu);
+    },
+
+    name(neu) {
+      this.updateMountNames(neu);
+    }
+  },
 
   methods: {
     remove(volumeMount) {
-      removeObject(this.value, volumeMount);
+      removeObject(this.volumeMounts, volumeMount);
+    },
+
+    updateMountNames(name) {
+      this.volumeMounts.forEach((mount) => {
+        mount.name = name;
+      });
     }
   }
 };
@@ -35,7 +76,7 @@ export default {
 
 <template>
   <div>
-    <div v-if="value.length" class="mount-headers">
+    <div v-if="volumeMounts.length" class="mount-headers">
       <span>
         {{ t('workload.storage.mountPoint') }}
       </span>
@@ -47,7 +88,7 @@ export default {
       </span>
       <span />
     </div>
-    <div v-for="(volumeMount, i) in value" :key="i" class="mount-rows">
+    <div v-for="(volumeMount, i) in volumeMounts" :key="i" class="mount-rows">
       <div>
         <LabeledInput v-model="volumeMount.mountPath" :mode="mode" />
       </div>
@@ -64,7 +105,7 @@ export default {
       </div>
     </div>
     <div class="row">
-      <button type="button" class="btn btn-sm role-secondary" @click="value.push({name})">
+      <button v-if="mode!=='view'" type="button" class="btn btn-sm role-secondary" @click="volumeMounts.push({name})">
         {{ t('workload.storage.addMount') }}
       </button>
     </div>

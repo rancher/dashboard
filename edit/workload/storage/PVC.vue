@@ -1,5 +1,4 @@
 <script>
-import VolumeMount from '@/edit/workload/storage/volume-mount.js';
 import Mount from '@/edit/workload/storage/Mount';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -16,9 +15,14 @@ export default {
     PersistentVolumeClaim,
     Checkbox
   },
-  mixins: [VolumeMount],
 
   props:      {
+    podSpec: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    },
     mode: {
       type:    String,
       default: 'create'
@@ -110,6 +114,6 @@ export default {
         <Checkbox v-model="value.persistentVolumeClaim.readOnly" :label="t('workload.storage.readOnly')" />
       </div>
     </div>
-    <Mount v-model="volumeMounts" :name="value.name" :mode="mode" />
+    <Mount :pod-spec="podSpec" :name="value.name" :mode="mode" />
   </div>
 </template>
