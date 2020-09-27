@@ -94,10 +94,10 @@ $selected: rgba($primary, .5);
   --dropdown-border            : #{$medium};
   --dropdown-divider           : #{$medium};
   --dropdown-text              : #{$link};
-  --dropdown-hover-text        : darken($link, 1%);
-  --dropdown-hover-bg          : #{$selected};
-  --dropdown-active-text       : var(--active-text);
-  --dropdown-active-bg         : var(--active-bg);
+  --dropdown-active-text       : darken($link, 1%);
+  --dropdown-active-bg         : #{$selected};
+  --dropdown-hover-text        : lighten($link, 1%);
+  --dropdown-hover-bg          : #{rgba($primary, 0.7)};
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
 

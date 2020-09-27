@@ -3,7 +3,7 @@ import uniq from 'lodash/uniq';
 
 export default {
   allOutputs() {
-    return this.$rootGetters['cluster/all'](LOGGING.CLUSTER_OUTPUTS) || [];
+    return this.$rootGetters['cluster/all'](LOGGING.CLUSTER_OUTPUT) || [];
   },
 
   outputs() {

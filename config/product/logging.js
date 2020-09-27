@@ -13,6 +13,7 @@ export function init(store) {
   product({ ifHaveGroup: /^(.*\.)?logging\.banzaicloud\.io$/ });
 
   basicType([
+    'logging-overview',
     'logging.banzaicloud.io.common',
     'logging.banzaicloud.io.clusterflow',
     'logging.banzaicloud.io.clusteroutput',
@@ -25,5 +26,6 @@ export function init(store) {
     namespaced: false,
     name:       'logging-overview',
     route:      { name: 'c-cluster-logging' },
+    exact:       true,
   });
 }

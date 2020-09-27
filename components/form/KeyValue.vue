@@ -55,7 +55,10 @@ export default {
       type:    String,
       default: ''
     },
-
+    titleAdd: {
+      type:    Boolean,
+      default: false,
+    },
     protip: {
       type:    [String, Boolean],
       default: 'ProTip: Paste lines of <code>key=value</code> or <code>key: value</code> into any key field for easy bulk entry',
@@ -345,12 +348,13 @@ export default {
 <template>
   <div class="key-value" :class="mode">
     <template v-if="title || !!$slots.title">
-      <div :style="{'display':'flex'}" class="clearfix">
-        <slot name="title">
-          <h2 :style="{'display':'flex'}">
-            {{ title }}
-          </h2>
-        </slot>
+      <div v-if="title" class="clearfix">
+        <h3>
+          {{ title }}
+          <button v-if="titleAdd && showAdd" type="button" class="btn btn-xs role-tertiary p-5 ml-10" style="position: relative; top: -3px;" @click="add()">
+            <i class="icon icon-plus icon-lg icon-fw" />
+          </button>
+        </h3>
       </div>
     </template>
 
@@ -454,7 +458,7 @@ export default {
       </div>
     </div>
 
-    <div v-if="showAdd || showRead" class="footer mt-10">
+    <div v-if="!titleAdd && (showAdd || showRead)" class="footer mt-10">
       <slot name="add" :add="add">
         <ButtonDropdown size="sm">
           <template #button-content>

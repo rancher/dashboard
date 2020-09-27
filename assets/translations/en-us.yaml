@@ -612,9 +612,14 @@ logging:
   clusterFlow:
     noOutputsBanner: There are no cluster outputs in the selected namespace.
   flow:
-    outputs: Outputs
-    outputsBanner: Select which output(s) you want your logs shipped to.
-    noOutputsBanner: There are no outputs in the selected namespace.
+    matches:
+      label: Matches
+      addSelect: Add Include Rule
+      addExclude: Add Exclude Rule
+    filters:
+      label: Filters
+    outputs:
+      label: Outputs
   install:
     deployToControlPlane: Collect logs on control plane and etcd notes. By default, logs are only collected on worker nodes.
     k3sContainerEngine: K3S Container Engine
@@ -659,8 +664,8 @@ logging:
       access: Access
       certificate: SSL
   overview:
-    clusterLevel: Cluster-level Logging
-    namespaceLevel: Namespace-level Logging
+    clusterLevel: Cluster-Level
+    namespaceLevel: Namespace-Level
   provider: Provider
   splunk:
     host: Host

@@ -86,6 +86,7 @@ export default {
     getComponent(name) {
       return require(`./providers/${ name }`).default;
     },
+
     willSave() {
       this.value.spec = cloneDeep(this.specValue);
 
@@ -151,7 +152,7 @@ export default {
           v-if="!isView"
           name="labels-and-annotations"
           :label="t('generic.labelsAndAnnotations')"
-          :weight="1000"
+          :weight="-1"
         >
           <Labels
             default-container-class="labels-and-annotations-container"

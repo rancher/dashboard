@@ -33,6 +33,10 @@ export default {
       type:    String,
       default: ''
     },
+    titleAdd: {
+      type:    Boolean,
+      default: false,
+    },
     protip: {
       type:    [String, Boolean],
       default: 'ProTip: Paste lines of <code>key=value</code> or <code>key: value</code> into any key field for easy bulk entry',
@@ -186,7 +190,13 @@ export default {
 <template>
   <div>
     <div v-if="title" class="clearfix">
-      <label :style="{'color': 'var(--input-label)', 'font-size':'14px'}">{{ title }} <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 14px" /></label>
+      <h3>
+        {{ title }}
+        <i v-if="protip" v-tooltip="protip" class="icon icon-info" />
+        <button v-if="titleAdd && showAdd" type="button" class="btn btn-xs role-tertiary p-5 ml-10" style="position: relative; top: -3px;" @click="add">
+          <i class="icon icon-plus icon-lg icon-fw" />
+        </button>
+      </h3>
     </div>
 
     <template v-if="rows.length">
@@ -250,7 +260,7 @@ export default {
     <div v-else-if="mode==='view'" class="text-muted">
       &mdash;
     </div>
-    <div v-if="showAdd || showRead" class="footer">
+    <div v-if="!titleAdd && (showAdd || showRead)" class="footer">
       <slot v-if="showAdd" name="add">
         <button type="button" class="btn role-tertiary add mt-10" @click="add()">
           {{ addLabel }}
