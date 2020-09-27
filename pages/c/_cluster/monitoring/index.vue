@@ -21,8 +21,8 @@ export default {
   data() {
     return {
       externalLinks:  [],
-      grafanaSrc:     require('~/assets/images/white-grafana.svg'),
-      prometheusSrc:  require('~/assets/images/white-prometheus.svg'),
+      grafanaSrc:     require('~/assets/images/logo-color-grafana.svg'),
+      prometheusSrc:  require('~/assets/images/logo-color-prometheus.svg'),
       resources:      [MONITORING.ALERTMANAGER, MONITORING.PROMETHEUSE],
       availableLinks: {
         alertmanager: false,
@@ -37,39 +37,44 @@ export default {
   mounted() {
     this.externalLinks = [
       {
-        enabled: false,
-        group:   'alertmanager',
-        iconSrc: this.prometheusSrc,
-        label:   'monitoring.overview.linkedList.alertManager.label',
-        link:    `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy`,
+        enabled:     false,
+        group:       'alertmanager',
+        iconSrc:     this.prometheusSrc,
+        label:       'monitoring.overview.linkedList.alertManager.label',
+        description: 'monitoring.overview.linkedList.alertManager.description',
+        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy`,
       },
       {
-        enabled: false,
-        group:   'grafana',
-        iconSrc: this.grafanaSrc,
-        label:   'monitoring.overview.linkedList.grafana.label',
-        link:    `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy`,
+        enabled:     false,
+        group:       'grafana',
+        iconSrc:     this.grafanaSrc,
+        label:       'monitoring.overview.linkedList.grafana.label',
+        description: 'monitoring.overview.linkedList.grafana.description',
+        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy`,
       },
       {
-        enabled: false,
-        group:   'prometheus',
-        iconSrc: this.prometheusSrc,
-        label:   'monitoring.overview.linkedList.prometheusPromQl.label',
-        link:    `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/graph`,
+        enabled:     false,
+        group:       'prometheus',
+        iconSrc:     this.prometheusSrc,
+        label:       'monitoring.overview.linkedList.prometheusPromQl.label',
+        description: 'monitoring.overview.linkedList.prometheusPromQl.description',
+        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/graph`,
       },
       {
-        enabled: false,
-        group:   'prometheus',
-        iconSrc: this.prometheusSrc,
-        label:   'monitoring.overview.linkedList.prometheusRules.label',
-        link:    `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/rules`,
+        enabled:     false,
+        group:       'prometheus',
+        iconSrc:     this.prometheusSrc,
+        label:       'monitoring.overview.linkedList.prometheusRules.label',
+        description: 'monitoring.overview.linkedList.prometheusRules.description',
+        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/rules`,
       },
       {
-        enabled: false,
-        group:   'prometheus',
-        iconSrc: this.prometheusSrc,
-        label:   'monitoring.overview.linkedList.prometheusTargets.label',
-        link:    `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/targets`,
+        enabled:     false,
+        group:       'prometheus',
+        iconSrc:     this.prometheusSrc,
+        label:       'monitoring.overview.linkedList.prometheusTargets.label',
+        description: 'monitoring.overview.linkedList.prometheusTargets.description',
+        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/targets`,
       },
     ];
 
@@ -122,20 +127,24 @@ export default {
       <div v-for="fel in externalLinks" :key="fel.label" class="link-container">
         <a v-if="fel.enabled" :href="fel.link" target="_blank" rel="noopener noreferrer">
           <div class="link-logo">
-            <LazyImage class="round-image" :src="fel.iconSrc" />
+            <LazyImage :src="fel.iconSrc" />
           </div>
           <div class="link-content">
             <t :k="fel.label" />
             <i class="icon icon-external-link pull-right" />
+            <hr />
+            <div class="description"><t :k="fel.description" /></div>
           </div>
         </a>
         <a v-else v-tooltip="t('monitoring.overview.linkedList.na')" href="javascript:void(0)" :disabled="!fel.enabled">
           <div class="link-logo">
-            <LazyImage class="round-image" :src="fel.iconSrc" />
+            <LazyImage :src="fel.iconSrc" />
           </div>
           <div class="link-content">
             <t :k="fel.label" />
             <i class="icon icon-external-link pull-right" />
+            <hr />
+            <div class="description"><t :k="fel.description" /></div>
           </div>
         </a>
       </div>
@@ -158,6 +167,7 @@ export default {
     margin: 0 10px 10px 0;
     max-width: 325px;
     min-height: 100px;
+    border-left: solid 10px var(--primary);
 
     a[disabled] {
       cursor: not-allowed;
@@ -179,17 +189,40 @@ export default {
         display: inline-block;
       }
 
+      .link-logo {
+        text-align: center;
+        // position: absolute;
+        // left: 25px;
+        // top: 25px;
+        width: 60px;
+        height: 60px;
+        border-radius: calc(2 * var(--border-radius));
+        background-color: white;
+
+        img {
+          width: 56px;
+          height: 56px;
+          -o-object-fit: contain;
+          object-fit: contain;
+          position: relative;
+          top: 2px;
+        }
+      }
+
       .link-content {
         width: 100%;
+        margin-left: 10px;
       }
-    }
 
-    .round-image {
-      border-radius: 50%;
-      height: 50px;
-      margin: 10px;
-      min-width: 50px;
-      overflow: hidden;
+      .description {
+        margin-top: 10px;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        text-overflow: ellipsis;
+        color: var(--secondary);
+      }
     }
   }
 }

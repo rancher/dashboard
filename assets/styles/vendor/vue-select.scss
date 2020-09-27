@@ -96,7 +96,7 @@
 .vs__dropdown-option--highlight {
   color: var(--dropdown-hover-text);
   background: var(--dropdown-hover-bg);
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 .vs__dropdown-toggle {
@@ -122,6 +122,8 @@
   display: flex;
   align-items: center;
   pointer-events: none;
+  position: relative;
+  left: -2px;
 
   svg {
     display: none;
@@ -334,4 +336,8 @@ $transition-duration: 150ms;
 
 header .vs-select .vs__dropdown-toggle {
   background: red !important;
+}
+
+.vs__no-options {
+  padding: 3px 20px;
 }
