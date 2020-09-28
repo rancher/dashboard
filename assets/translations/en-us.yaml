@@ -1505,7 +1505,6 @@ workload:
   serviceName: Service Name
   storage:
     subtypes:
-      label: Add Volume
       secret: Secret
       configMap: ConfigMap
       hostPath: Bind-Mount

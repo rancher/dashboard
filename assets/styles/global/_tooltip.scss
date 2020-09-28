@@ -243,6 +243,23 @@
     &.bg-primary:hover {
       background: var(--accent-btn-hover);
     }
+
+    &.one-action {
+      position: relative;
+      .v-popover{
+        .trigger{
+          position: absolute;
+          top: 0px;
+          right: 0px;
+          left: 0px;
+          bottom: 0px;
+          BUTTON {
+            position: absolute;
+            right: 0px;
+          }
+        }
+      }
+    }
   }
   .popover {
     border: none;
