@@ -55,11 +55,12 @@ export default {
           label: 'monitoring.accessModes.many',
         },
       ],
-      pvcs:                    [],
-      prometheusResources:          [],
-      secrets:                 [],
-      storageClasses:          [],
-      targetNamespace:         null,
+      disableAggregateRoles: false,
+      prometheusResources:   [],
+      pvcs:                  [],
+      secrets:               [],
+      storageClasses:        [],
+      targetNamespace:       null,
     };
   },
 
@@ -67,6 +68,17 @@ export default {
     workloads() {
       return Object.values(WORKLOAD_TYPES).flatMap(type => this.$store.getters['cluster/all'](type));
     },
+  },
+
+  watch: {
+    'value.global.rbac.userRoles.create'(createUserRoles) {
+      if (createUserRoles) {
+        this.disableAggregateRoles = false;
+      } else {
+        this.value.global.rbac.userRoles.aggregateToDefaultRoles = false;
+        this.disableAggregateRoles = true;
+      }
+    }
   },
 
   created() {
@@ -140,7 +152,7 @@ export default {
           <Checkbox v-model="value.global.rbac.userRoles.create" :label="t('monitoring.createDefaultRoles')" />
         </div>
         <div class="col span-6">
-          <Checkbox v-model="value.global.rbac.userRoles.aggregateToDefaultRoles" :label="t('monitoring.aggregateDefaultRoles')" />
+          <Checkbox v-model="value.global.rbac.userRoles.aggregateToDefaultRoles" :label="t('monitoring.aggregateDefaultRoles')" :disabled="disableAggregateRoles" />
         </div>
       </div>
     </section>
