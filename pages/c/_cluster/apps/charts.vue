@@ -238,8 +238,10 @@ export default {
     },
 
     focusSearch() {
-      this.$refs.searchQuery.focus();
-      this.$refs.searchQuery.select();
+      if ( this.$refs.searchQuery ) {
+        this.$refs.searchQuery.focus();
+        this.$refs.searchQuery.select();
+      }
     },
 
     async refresh(btnCb) {

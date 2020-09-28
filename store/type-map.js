@@ -166,6 +166,10 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/formOnlyType`, { match });
     },
 
+    yamlOnlyDetail(match) {
+      store.commit(`${ module }/yamlOnlyDetail`, { match });
+    },
+
     ignoreType(regexOrString) {
       store.commit(`${ module }/ignoreType`, regexOrString);
     },
@@ -246,6 +250,7 @@ export const state = function() {
     groupMappings:           [],
     immutable:               [],
     formOnly:                [],
+    yamlOnlyDetail:          [],
     typeIgnore:              [],
     basicTypeWeights:        {},
     typeWeights:             {},
@@ -375,6 +380,18 @@ export const getters = {
       });
 
       return !found;
+    };
+  },
+
+  isYamlOnlyDetail(state) {
+    return (type) => {
+      const found = state.yamlOnlyDetail.find((yamlOnlyType) => {
+        const re = stringToRegex(yamlOnlyType);
+
+        return re.test(type);
+      });
+
+      return !!found;
     };
   },
 
@@ -1100,6 +1117,12 @@ export const mutations = {
     match = ensureRegex(match);
     match = regexToString(match);
     state.formOnly.push(match);
+  },
+
+  yamlOnlyDetail(state, { match }) {
+    match = ensureRegex(match);
+    match = regexToString(match);
+    state.yamlOnlyDetail.push(match);
   },
 };
 

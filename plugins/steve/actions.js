@@ -219,11 +219,20 @@ export default {
     await dispatch('load', { data: res });
 
     if ( opt.watch !== false ) {
-      dispatch('watch', {
+      const watchMsg = {
         type,
         id,
         revision: res?.metadata?.resourceVersion
-      });
+      };
+
+      const idx = id.indexOf('/');
+
+      if ( idx > 0 ) {
+        watchMsg.namespace = id.substr(0, idx);
+        watchMsg.id = id.substr(idx + 1);
+      }
+
+      dispatch('watch', watchMsg);
     }
 
     out = getters.byId(type, id);

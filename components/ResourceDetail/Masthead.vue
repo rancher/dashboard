@@ -171,13 +171,13 @@ export default {
 
 <template>
   <header class="masthead">
-    <div>
+    <div class="title">
       <div class="primaryheader">
         <h1>
           <nuxt-link :to="parent.location">
             {{ parent.displayName }}:
           </nuxt-link>
-          <span class="title" v-html="h1" />
+          <span v-html="h1" />
         </h1>
         <BadgeState v-if="mode==='view'" :value="value" />
       </div>

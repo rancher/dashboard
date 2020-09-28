@@ -277,9 +277,6 @@ export default {
       overflow-y: auto;
 
       .package.depth-0 {
-        .root .label {
-        }
-
         &.expanded > .body {
           margin-bottom: 5px;
         }
@@ -322,7 +319,7 @@ export default {
       grid-template-areas:  "type-banner type-banner"
                             "title actions"
                             "state-banner state-banner";
-      grid-template-columns: "auto min-content";
+      grid-template-columns: auto min-content;
       margin-bottom: 20px;
       align-items: center;
 
@@ -337,6 +334,10 @@ export default {
 
       .state-banner {
         grid-area: state-banner;
+      }
+
+      .title {
+        grid-area: title;
       }
 
       .actions {

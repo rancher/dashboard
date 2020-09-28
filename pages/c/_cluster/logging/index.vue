@@ -14,10 +14,10 @@ export default {
   components: { ChartHeading, SortableTable },
   async fetch() {
     const hash = await allHash({
-      clusterFlows:   this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_FLOWS }),
-      flows:          this.$store.dispatch('cluster/findAll', { type: LOGGING.FLOWS }),
-      clusterOutputs: this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUTS }),
-      outputs:         this.$store.dispatch('cluster/findAll', { type: LOGGING.OUTPUTS }),
+      clusterFlows:   this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_FLOW }),
+      flows:          this.$store.dispatch('cluster/findAll', { type: LOGGING.FLOW }),
+      clusterOutputs: this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT }),
+      outputs:         this.$store.dispatch('cluster/findAll', { type: LOGGING.OUTPUT }),
     });
 
     this.clusterFlows = hash.clusterFlows || [];

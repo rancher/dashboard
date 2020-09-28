@@ -235,11 +235,7 @@ export default {
           :read-allowed="false"
           :as-map="false"
           @input="update"
-        >
-          <template #title>
-            <h3>{{ t('workload.networking.resolver') }}</h3>
-          </template>
-        </KeyValue>
+        />
       </div>
     </div>
 
