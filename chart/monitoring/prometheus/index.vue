@@ -132,7 +132,13 @@ export default {
         this.$set(
           this.value.prometheus.prometheusSpec.storageSpec,
           'volumeClaimTemplate',
-          { spec: { resources: { requests: { storage: '50Gi' } } } }
+          {
+            spec: {
+              resources:   { requests: { storage: '50Gi' } },
+              volumeMode:  'Filesystem',
+              accessModes: ['ReadWriteOnce'],
+            }
+          }
         );
       } else {
         this.$delete(
@@ -255,12 +261,14 @@ export default {
               :label="t('monitoring.prometheus.storage.mode')"
               :localized-label="true"
               :mode="mode"
+              :multiple="true"
               :options="accessModes"
               :reduce="({id})=> id"
             />
           </div>
           <div class="col span-6">
             <StorageClassSelector
+              :v-if="storageClasses.length > 0"
               :mode="mode"
               :options="storageClasses"
               :value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
@@ -278,13 +286,6 @@ export default {
               :mode="mode"
               :options="volumeModes"
               :reduce="({id})=> id"
-            />
-          </div>
-          <div class="col span-6">
-            <LabeledInput
-              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.volumeName"
-              :label="t('monitoring.prometheus.storage.volumeName')"
-              :mode="mode"
             />
           </div>
         </div>
