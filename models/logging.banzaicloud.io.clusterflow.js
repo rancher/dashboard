@@ -1,7 +1,10 @@
 import { LOGGING } from '@/config/types';
 import uniq from 'lodash/uniq';
+import Flow from './logging.banzaicloud.io.flow';
 
 export default {
+  ...Flow,
+
   allOutputs() {
     return this.$rootGetters['cluster/all'](LOGGING.CLUSTER_OUTPUT) || [];
   },
@@ -10,16 +13,6 @@ export default {
     const outputRefs = this?.spec?.globalOutputRefs || this?.spec?.outputRefs || [];
 
     return this.allOutputs.filter(output => outputRefs.includes(output.name));
-  },
-
-  setOutputRefs() {
-    return (outputRefs) => {
-      this.spec = this.spec || {};
-      this.spec.globalOutputRefs = outputRefs;
-
-      // outputRefs is deprecated so we're clearing it.
-      this.spec.outputRefs = undefined;
-    };
   },
 
   outputProviders() {
@@ -35,7 +28,7 @@ export default {
         nullable:       false,
         path:           'spec.globalOutputRefs',
         required:       true,
-        translationKey: 'logging.flow.outputs',
+        translationKey: 'logging.flow.outputs.label',
         type:           'array'
       },
     ];

@@ -1,3 +1,4 @@
+import { LOGGING } from '@/config/types';
 import { DSL } from '@/store/type-map';
 
 export const NAME = 'logging';
@@ -7,7 +8,8 @@ export function init(store) {
   const {
     product,
     basicType,
-    virtualType
+    virtualType,
+    yamlOnlyDetail,
   } = DSL(store, NAME);
 
   product({ ifHaveGroup: /^(.*\.)?logging\.banzaicloud\.io$/ });
@@ -15,11 +17,14 @@ export function init(store) {
   basicType([
     'logging-overview',
     'logging.banzaicloud.io.common',
-    'logging.banzaicloud.io.clusterflow',
-    'logging.banzaicloud.io.clusteroutput',
-    'logging.banzaicloud.io.flow',
-    'logging.banzaicloud.io.output',
+    LOGGING.CLUSTER_FLOW,
+    LOGGING.CLUSTER_OUTPUT,
+    LOGGING.FLOW,
+    LOGGING.OUTPUT,
   ]);
+
+  yamlOnlyDetail(LOGGING.FLOW);
+  yamlOnlyDetail(LOGGING.CLUSTER_FLOW);
 
   virtualType({
     label:      'Overview',

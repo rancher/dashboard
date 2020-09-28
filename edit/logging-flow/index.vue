@@ -14,7 +14,7 @@ import { allHash } from '@/utils/promise';
 import { isArray, uniq } from '@/utils/array';
 import { matchRuleIsPopulated } from '@/models/logging.banzaicloud.io.flow';
 import Select from '@/components/form/Select';
-import { set } from '@/utils/object';
+import { clone, set } from '@/utils/object';
 import Match from './Match';
 
 function emptyMatch(include = true) {
@@ -45,7 +45,7 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    const outputType = (this.type === LOGGING.CLUSTER_FLOW ? LOGGING.CLUSTER_OUTPUT : LOGGING.OUTPUT);
+    const outputType = (this.value.type === LOGGING.CLUSTER_FLOW ? LOGGING.CLUSTER_OUTPUT : LOGGING.OUTPUT);
 
     const hash = await allHash({
       allOutputs: this.$store.dispatch('cluster/findAll', { type: outputType }),
@@ -66,13 +66,26 @@ export default {
       filtersYaml = jsyaml.safeDump(this.value.spec.filters);
     } else {
       filtersYaml = createYaml(schemas, LOGGING.FLOW, {});
-      filtersYaml = `// @TODO Get the right schema once it exists\n${ filtersYaml }`;
+      filtersYaml = `# @TODO Get the right schema once it exists
+# - stdout:
+#   parser:
+#   tag_normaliser:
+#   dedot:
+#   record_transformer:
+#   record_modifier:
+#   geoip:
+#   concat:
+#   detectExceptions:
+#   grep:
+#   prometheus:
+#   throttl:
+`;
     }
 
     const matches = [];
     let formSupported = !this.value.id || this.value.canCustomEdit;
 
-    if ( this.value.spec?.match ) {
+    if ( this.value.spec?.match?.length ) {
       for ( const match of this.value.spec.match ) {
         if ( matchRuleIsPopulated(match.select) && matchRuleIsPopulated(match.exclude) ) {
           formSupported = false;
@@ -98,7 +111,8 @@ export default {
       formSupported,
       matches,
       allOutputs:         null,
-      allNodes:             null,
+      allNodes:           null,
+      allPods:            null,
       filtersYaml,
       initialFiltersYaml:   filtersYaml,
       outputs,
@@ -153,21 +167,30 @@ export default {
 
   methods: {
     willSave() {
-      this.value.spec.match = this.matches.map((match) => {
+      const matches = this.matches.map((match) => {
+        const copy = clone(match);
+
+        delete copy.exclude;
+        delete copy.select;
+
         if ( match.exclude ) {
-          return { exclude: match };
+          return { exclude: copy };
         } else {
-          return { select: match };
+          return { select: copy };
         }
       });
+
+      set(this.value.spec, 'match', matches);
 
       const filterJson = jsyaml.safeLoad(this.filtersYaml);
 
       if ( isArray(filterJson) ) {
         set(this.value.spec, 'filters', filterJson);
+      } else {
+        set(this.value.spec, 'filters', undefined);
       }
 
-      const outputKey = (this.type === LOGGING.CLUSTER_FLOW ? 'globalOutputRefs' : 'localOutputRefs');
+      const outputKey = (this.value.type === LOGGING.CLUSTER_FLOW ? 'globalOutputRefs' : 'localOutputRefs');
 
       set(this.value.spec, outputKey, this.outputs);
     },
@@ -183,14 +206,6 @@ export default {
     updateMatch(neu, idx) {
       this.$set(this.matches, idx, neu);
     },
-
-    // onSelection(selected) {
-    //   if (!this.isView) {
-    //     const outputRefs = selected.map(s => s.name);
-
-    //     this.value.setOutputRefs(outputRefs);
-    //   }
-    // },
 
     tabChanged({ tab }) {
       if ( tab.name === 'filters' ) {
@@ -271,6 +286,7 @@ export default {
           :taggable="true"
           :clearable="true"
           :close-on-select="false"
+          :reduce="opt=>opt.value"
         />
       </Tab>
     </Tabbed>

@@ -25,22 +25,22 @@ export function matchRuleIsPopulated(rule) {
 export default {
   applyDefaults() {
     return () => {
-      this.spec = this.spec || {};
-      this.spec.match = this.spec.match || [];
-      this.spec.filters = this.spec.filters || [];
-      this.spec.localOutputRefs = this.spec.localOutputRefs || [];
-      this.spec.globalOutputRefs = this.spec.globalOutputRefs || [];
+      set(this, 'spec', this.spec || {});
+      set(this.spec, 'match', this.spec.match || []);
+      set(this.spec, 'filters', this.spec.filters || []);
+      set(this.spec, 'localOutputRefs', this.spec.localOutputRefs || []);
+      set(this.spec, 'globalOutputRefs', this.spec.globalOutputRefs || []);
     };
   },
 
   canCustomEdit() {
-    if ( !this.match?.length ) {
+    if ( !this.spec?.match?.length ) {
       return true;
     }
 
     let out = true;
 
-    for ( const match of this.match ) {
+    for ( const match of this.spec.match ) {
       if ( matchRuleIsPopulated(match.select) && matchRuleIsPopulated(match.exclude) ) {
         out = false;
         break;
@@ -60,16 +60,6 @@ export default {
     return this.allOutputs.filter(output => outputRefs.includes(output.name));
   },
 
-  setOutputRefs() {
-    return (outputRefs) => {
-      this.spec = this.spec || {};
-      this.spec.localOutputRefs = outputRefs;
-
-      // outputRefs is deprecated so we're clearing it.
-      this.spec.outputRefs = undefined;
-    };
-  },
-
   outputProviders() {
     const duplicatedProviders = this.outputs
       .flatMap(output => output.providers);
@@ -83,7 +73,7 @@ export default {
         nullable:       false,
         path:           'spec.localOutputRefs',
         required:       true,
-        translationKey: 'logging.flow.outputs',
+        translationKey: 'logging.flow.outputs.label',
         type:           'array'
       },
     ];

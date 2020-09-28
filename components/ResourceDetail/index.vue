@@ -72,6 +72,7 @@ export async function defaultAsyncData(ctx, resource, parentOverride) {
 
   const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
   const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
+  const yamlOnlyDetail = store.getters['type-map/isYamlOnlyDetail'](resource);
   const asYamlInit = (route.query[AS_YAML] === _FLAGGED) || (realMode !== _VIEW && !hasCustomEdit);
   const schema = store.getters[`${ inStore }/schemaFor`](resource);
   const schemas = store.getters[`${ inStore }/all`](SCHEMA);
@@ -137,6 +138,7 @@ export async function defaultAsyncData(ctx, resource, parentOverride) {
     parentOverride,
     hasCustomDetail,
     hasCustomEdit,
+    yamlOnlyDetail,
     resource,
     model,
     asYamlInit,
@@ -167,6 +169,10 @@ export default {
       default: null,
     },
     hasCustomEdit: {
+      type:    Boolean,
+      default: null,
+    },
+    yamlOnlyDetail: {
       type:    Boolean,
       default: null,
     },
@@ -245,7 +251,7 @@ export default {
       if ( this.isView ) {
         if (this.hasCustomDetail) {
           return this.detailComponent;
-        } else if (this.hasCustomEdit) {
+        } else if (this.hasCustomEdit && !this.yamlOnlyDetail ) {
           return this.editComponent;
         } else {
           return GenericResourceDetail;
@@ -285,7 +291,7 @@ export default {
       :real-mode="realMode"
       :as-yaml.sync="asYaml"
       :parent-override="parentOverride"
-      :has-detail-or-edit="(hasCustomDetail || hasCustomEdit)"
+      :has-detail-or-edit="(hasCustomDetail || (hasCustomEdit && !yamlOnlyDetail))"
     >
       <template v-if="!isView && asYaml" #right>
         <div class="text-right">
