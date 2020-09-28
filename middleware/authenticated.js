@@ -48,9 +48,9 @@ export default async function({
     const ok = await tryInitialSetup(store, initialPass, isDev);
 
     if ( ok ) {
-      redirect(302, `/auth/setup?${ SETUP }=${ escape(initialPass) }`);
+      return redirect(302, `/auth/setup?${ SETUP }=${ escape(initialPass) }`);
     } else {
-      redirect(302, '/auth/login');
+      return redirect(302, '/auth/login');
     }
   }
 
@@ -76,9 +76,9 @@ export default async function({
 
         if ( status === 401 ) {
           if ( process.env.dev ) {
-            redirect(302, '/auth/login');
+            return redirect(302, '/auth/login');
           } else {
-            redirect(302, '/login');
+            return redirect(302, '/login');
           }
         } else {
           store.commit('setError', e);
@@ -126,10 +126,11 @@ export default async function({
     }
   } catch (e) {
     if ( e instanceof ClusterNotFoundError ) {
-      redirect(302, '/clusters');
+      return redirect(302, '/clusters');
     } else {
       store.commit('setError', e);
-      redirect(302, '/fail-whale');
+
+      return redirect(302, '/fail-whale');
     }
   }
 }

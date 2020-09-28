@@ -5,7 +5,10 @@ import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 import SortableTable from '@/components/SortableTable';
 import FleetSummary from '@/components/FleetSummary';
-import { MANAGEMENT } from '@/config/types';
+import FleetRepos from '@/components/FleetRepos';
+import ResourceTabs from '@/components/form/ResourceTabs';
+import Tab from '@/components/Tabbed/Tab';
+import { MANAGEMENT, FLEET } from '@/config/types';
 import { clone } from '@/utils/object';
 import { colorForState } from '@/plugins/steve/resource-instance';
 
@@ -17,6 +20,9 @@ export default {
     BadgeState,
     Banner,
     FleetSummary,
+    FleetRepos,
+    ResourceTabs,
+    Tab,
     SimpleBox,
     SortableTable,
   },
@@ -33,10 +39,14 @@ export default {
       type: MANAGEMENT.CLUSTER,
       id:   this.$route.params.id
     });
+
+    this.allRepos = await this.$store.dispatch('management/findAll', { type: FLEET.GIT_REPO });
+
+    await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
   },
 
   data() {
-    return { rancherCluster: null };
+    return { rancherCluster: null, allRepos: [] };
   },
 
   computed: {
@@ -54,6 +64,12 @@ export default {
       }
 
       return out;
+    },
+
+    repos() {
+      return this.allRepos.filter((x) => {
+        return x.targetClusters.includes(this.value);
+      });
     },
 
     unreadyHeaders() {
@@ -95,33 +111,42 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <h2 v-t="'fleet.cluster.summary'" class="mt-20" />
-    <FleetSummary :value="value.status.summary" />
+    <FleetSummary :value="value.status.resourceCounts" />
 
-    <hr class="mt-20 mb-20" />
+    <ResourceTabs v-model="value" mode="view" class="mt-20">
+      <Tab label="Non-Ready" name="nonReady" :weight="20">
+        <SimpleBox v-for="(res, idx) in unready" :key="idx">
+          <div class="clearfix">
+            <h3 class="inline-block">
+              {{ res.name }}
+            </h3>
+            <BadgeState class="ml-10" :value="res" />
+          </div>
 
-    <h2 v-t="'fleet.cluster.nonReady'" />
-    <SimpleBox v-for="(res, idx) in unready" :key="idx">
-      <div class="clearfix">
-        <h3 class="inline-block">
-          {{ res.name }}
-        </h3>
-        <BadgeState class="ml-10" :value="res" />
-      </div>
+          <Banner
+            v-if="res.message"
+            :color="res.stateBackground.replace(/bg-/, '')"
+            :label="res.message"
+          />
 
-      <Banner
-        v-if="res.message"
-        :color="res.stateBackground.replace(/bg-/, '')"
-        :label="res.message"
-      />
+          <SortableTable
+            :rows="res.nonReadyStatus"
+            :headers="unreadyHeaders"
+            :table-actions="false"
+            :row-actions="false"
+            :search="false"
+            key-field="id"
+          />
+        </SimpleBox>
+      </Tab>
 
-      <SortableTable
-        :rows="res.nonReadyStatus"
-        :headers="unreadyHeaders"
-        :table-actions="false"
-        :row-actions="false"
-        :search="false"
-        key-field="id"
-      />
-    </SimpleBox>
+      <Tab label="Git Repos" name="repos" :weight="19">
+        <FleetRepos
+          :rows="repos"
+          :paging="true"
+          paging-label="sortableTable.paging.resource"
+        />
+      </Tab>
+    </ResourceTabs>
   </div>
 </template>

@@ -404,18 +404,18 @@ containerResourceLimit:
   requestsMemory: Memory Reservation
 
 cruResource:
-  backBody: Going back will destroy your changes.
-  backToForm: Back To Form
-  cancelBody: Cancelling will destroy your changes.
-  confirmBack: "Yes, Go Back"
-  confirmCancel: "Yes, Cancel"
-  reviewForm: "No, Review Form"
-  reviewYaml: "No, Review Yaml"
-  previewYaml: Preview Yaml
+  backToForm: Back to form view?
+  backBody: You will lose any changes made to the YAML.
+  cancelBody: You will lose any changes made to the YAML.
+  confirmBack: "Okay"
+  confirmCancel: "Okay"
+  reviewForm: "Keep editing YAML"
+  reviewYaml: "Keep editing YAML"
+  previewYaml: Edit as YAML
 
 fleet:
   cluster:
-    summary: Summary
+    summary: Resource Summary
     nonReady: Non-Ready Bundles
   fleetSummary:
     state:
@@ -423,6 +423,7 @@ fleet:
       info: 'Transitioning'
       warning: 'Warning'
       error: 'Error'
+      unknown: 'Unknown'
   gitRepo:
     tabs:
       resources: Resources
@@ -716,7 +717,7 @@ monitoring:
     templates:
       keyLabel: File Name
       label: Template Files
-      valueLabel: Yaml Template
+      valueLabel: YAML Template
     title: Alerting
   clusterType:
     aks: Azure AKS
@@ -949,6 +950,8 @@ resourceTabs:
     events: Recent Events
 
 resourceYaml:
+  errors:
+    namespaceRequired: This resource is namespaced, so a namespace must be provided.
   buttons:
     continue: Continue Editing
     diff: Show Diff

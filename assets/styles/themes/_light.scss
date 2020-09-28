@@ -217,6 +217,7 @@ $selected: rgba($primary, .5);
   --sizzle-info:    #{red($info)},    #{green($info)},    #{blue($info)};
   --sizzle-warning: #{red($warning)}, #{green($warning)}, #{blue($warning)};
   --sizzle-error:   #{red($error)},   #{green($error)},   #{blue($error)};
+  --sizzle-unknown: #{red($disabled)},#{green($disabled)},#{blue($disabled)};
 
   $angle: 135deg;
   $startPos: 0%;

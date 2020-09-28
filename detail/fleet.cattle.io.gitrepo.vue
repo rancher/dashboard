@@ -43,12 +43,14 @@ export default {
       const out = clone(this.value.status?.summary?.nonReadyResources || []);
 
       for ( const bundle of out ) {
-        bundle.stateBackground = colorForState(bundle.bundleState).replace('text-', 'bg-');
-        bundle.stateDisplay = stateDisplay(bundle.bundleState);
+        const bundleState = bundle?.bundleState || 'unknown';
+
+        bundle.stateBackground = colorForState(bundleState).replace('text-', 'bg-');
+        bundle.stateDisplay = stateDisplay(bundleState);
         bundle.stateSort = stateSort(bundle.stateBackground, bundle.stateDisplay);
 
         for ( const entry of bundle.nonReadyStatus || []) {
-          const state = entry.summary.state || entry.summary.State;
+          const state = entry.summary?.state || entry.summary?.State || 'unknown';
 
           entry.id = `row${ i++ }`;
           entry.stateBackground = colorForState(state).replace('text-', 'bg-');
@@ -101,7 +103,7 @@ export default {
 
 <template>
   <div class="mt-20">
-    <FleetSummary :value="value.status.summary" />
+    <FleetSummary :value="value.status.resourceCounts" />
 
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="All Resources" name="resources" :weight="20">
