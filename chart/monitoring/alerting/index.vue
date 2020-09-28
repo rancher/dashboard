@@ -32,7 +32,7 @@ export default {
   },
 
   data() {
-    return { useExistingSecret: true };
+    return { };
   },
 
   computed: {
@@ -43,9 +43,13 @@ export default {
     },
 
     canUseExistingSecret() {
-      const { filteredSecrets, useExistingSecret } = this;
+      const { filteredSecrets } = this;
 
-      return filteredSecrets.length > 0 && !!useExistingSecret;
+      return filteredSecrets.length > 0 && !this.value.alertmanager.alertmanagerSpec.useExistingSecret;
+    },
+
+    existingSecret() {
+      return this.secrets.find(sec => sec?.metadata?.name === 'alertmanager-rancher-monitoring-alertmanager' && sec?.metadata?.namespace === DEFAULT_MONITORING_NAMESPACE);
     },
 
     filteredSecrets() {
@@ -74,15 +78,28 @@ export default {
   watch: {
     filteredSecrets(newValue, oldValue) {
       if (isEmpty(newValue)) {
-        this.useExistingSecret = false;
+        this.$set(this.value.alertmanager.alertmanagerSpec, 'useExistingSecret', false);
+      }
+
+      const { existingSecret } = this;
+
+      if (existingSecret) {
+        this.$nextTick(() => {
+          this.$set(this.value.alertmanager.alertmanagerSpec, 'useExistingSecret', true);
+          this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', existingSecret.metadata.name);
+        });
       }
     },
-    useExistingSecret(useExistingSecret) {
+    'value.alertmanager.alertmanagerSpec.useExistingSecret'(useExistingSecret) {
       if (!useExistingSecret) {
         this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', '');
       }
 
-      this.$set(this.value.alertmanager.alertmanagerSpec, 'useExistingSecret', useExistingSecret);
+      const { existingSecret } = this;
+
+      if (existingSecret?.metadata?.name) {
+        this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', existingSecret.metadata.name);
+      }
     }
   },
 };
@@ -103,7 +120,7 @@ export default {
         <div class="row">
           <div class="col span-6">
             <RadioGroup
-              v-model="useExistingSecret"
+              v-model="value.alertmanager.alertmanagerSpec.useExistingSecret"
               name="useExistingSecret"
               :disabled="forceCreateNewSecret"
               :label="t('monitoring.alerting.secrets.radio.label')"
@@ -118,7 +135,7 @@ export default {
           </div>
           <div class="col span-6">
             <LabeledSelect
-              v-if="canUseExistingSecret"
+              v-if="value.alertmanager.alertmanagerSpec.useExistingSecret"
               v-model="value.alertmanager.alertmanagerSpec.configSecret"
               class="provider"
               :label="t('monitoring.alerting.secrets.label')"
