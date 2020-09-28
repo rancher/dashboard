@@ -135,9 +135,11 @@ export default {
       if ( this.cancelEvent ) {
         this.$emit('cancel');
       } else {
+        const { resource = this.resource.type } = this.$route.params;
+
         this.$router.replace({
           name:   this.doneRoute,
-          params: { resource: this.resource.type }
+          params: { resource }
         });
       }
     },

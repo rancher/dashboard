@@ -8,6 +8,7 @@ import { mapGetters } from 'vuex';
 import { removeObject, addObject } from '@/utils/array';
 import { STORAGE_CLASS, PV } from '@/config/types';
 import { allHash } from '@/utils/promise';
+import { get } from '@/utils/object';
 export default {
 
   components: {
@@ -40,8 +41,14 @@ export default {
   },
 
   data() {
+    const spec = this.value.spec;
+
+    if (!this.value.metadata) {
+      this.$set(this.value, 'metadata', {});
+    }
+
     return {
-      storageClasses: [], persistentVolumes: [], createPVC: true
+      storageClasses: [], persistentVolumes: [], createPVC: true, spec
     };
   },
 
@@ -83,8 +90,12 @@ export default {
     },
 
     updatePV(pv) {
-      this.$set(this.value.spec, 'volumeName', pv.metadata.name);
-      this.$set(this.value.spec, 'storageClassName', pv.spec.storageClassName);
+      this.$set(this.spec, 'volumeName', pv.metadata.name);
+      this.$set(this.spec, 'storageClassName', pv.spec.storageClassName);
+    },
+
+    volumeName(vol) {
+      return get(vol, 'metadata.name') || vol;
     }
 
   }
@@ -93,19 +104,19 @@ export default {
 </script>
 
 <template>
-  <div @input="$emit('input')">
+  <div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.metadata.name" :mode="mode" :required="true" :label="t('persistentVolumeClaim.volumeName')" @input="$emit('input')" />
+        <LabeledInput v-model="value.metadata.name" :mode="mode" :required="true" :label="t('persistentVolumeClaim.volumeName')" />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledSelect v-if="createPVC" v-model="value.spec.storageClassName" :mode="mode" :label="t('persistentVolumeClaim.storageClass')" :options="storageClassNames" />
+        <LabeledSelect v-if="createPVC" v-model="spec.storageClassName" :mode="mode" :label="t('persistentVolumeClaim.storageClass')" :options="storageClassNames" />
         <LabeledSelect
           v-else
-          :value="value.spec.volumeName"
-          :get-option-label="opt=> opt.metadata ? opt.metadata.name : opt"
+          :value="spec.volumeName"
+          :get-option-label="volumeName"
           :mode="mode"
           :label="t('persistentVolumeClaim.volumes')"
           :options="unboundPVs"

@@ -8,7 +8,7 @@ import {
 import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, KEYS,
   INGRESS_TARGET, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM,
-  SPEC_TYPE, TARGET_PORT, SELECTOR, NODE as NODE_COL, TYPE, WORKLOAD_IMAGES
+  SPEC_TYPE, TARGET_PORT, SELECTOR, NODE as NODE_COL, TYPE, WORKLOAD_IMAGES, POD_IMAGES
 } from '@/config/table-headers';
 
 import { DSL } from '@/store/type-map';
@@ -145,7 +145,7 @@ export function init(store) {
   headers(WORKLOAD_TYPES.JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, 'Completions', 'Duration', AGE]);
   headers(WORKLOAD_TYPES.CRON_JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, 'Schedule', 'Last Schedule', AGE]);
   headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, 'Ready', 'Current', 'Desired', AGE]);
-  headers(POD, [STATE, NAME_COL, NAMESPACE_COL, 'Ready', 'Restarts', 'IP', NODE_COL, AGE]);
+  headers(POD, [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE]);
 
   headers(RBAC.ROLE, [
     STATE,

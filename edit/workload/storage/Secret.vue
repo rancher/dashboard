@@ -32,7 +32,7 @@ export default {
       default: () => []
     },
 
-    // namespaced configmaps
+    // namespaced configMaps
     configMaps: {
       type:    Array,
       default: () => []
@@ -49,6 +49,10 @@ export default {
   },
 
   computed: {
+    type() {
+      return this.value._type;
+    },
+
     certificates() {
       return this.secrets.filter(secret => secret._type === TYPES.TLS).reduce((total, secret) => {
         total.push(secret?.metadata?.name);
@@ -64,6 +68,7 @@ export default {
         return names;
       }, []);
     },
+
     configMapNames() {
       return this.configMaps.reduce((names, map) => {
         names.push(map?.metadata?.name);
@@ -71,13 +76,46 @@ export default {
         return names;
       }, []);
     },
-    ...mapGetters({ t: 'i18n/t' })
-  },
 
-  created() {
-    if (!this.value.defaultMode) {
-      this.$set(this.value, 'defaultMode', '0644');
-    }
+    defaultMode: {
+      get() {
+        const isconfigMap = this.type === 'configMap';
+
+        if (isconfigMap) {
+          const oct = this.value?.configMap?.defaultMode;
+
+          return oct ? oct.toString(8) : null;
+        } else {
+          const oct = this.value?.secret?.defaultMode;
+
+          return oct ? oct.toString(8) : null;
+        }
+      },
+      set(neu) {
+        const isconfigMap = !!this.value.configMap;
+
+        if (isconfigMap) {
+          this.$set(this.value.configMap, 'defaultMode', parseInt(neu, 8));
+        } else {
+          this.$set(this.value.secret, 'defaultMode', parseInt(neu, 8));
+        }
+      },
+    },
+
+    optional: {
+      get() {
+        return this.type === 'configMap' ? this.value.configMap.optional : this.value.secret.optional;
+      },
+      set(neu) {
+        if (this.type === 'configMap') {
+          this.$set(this.value.configMap, 'optional', neu);
+        } else {
+          this.$set(this.value.secret, 'optional', neu);
+        }
+      }
+    },
+
+    ...mapGetters({ t: 'i18n/t' })
   },
 
 };
@@ -101,17 +139,24 @@ export default {
         </div>
 
         <div class="col span-6">
-          <LabeledInput v-model="value[type].defaultMode" :mode="mode" :label="t('workload.storage.defaultMode')" />
+          <LabeledInput v-model="defaultMode" :mode="mode" :label="t('workload.storage.defaultMode')" />
         </div>
       </div>
       <div class="row">
         <div class="col span-6">
-          <LabeledSelect v-if="value._type==='certificate'" v-model="value[type].secretName" :options="certificates" :mode="mode" :label="t('workload.storage.certificate')" />
+          <LabeledSelect v-if="type==='certificate'" v-model="value.secret.secretName" :options="certificates" :mode="mode" :label="t('workload.storage.certificate')" />
           <LabeledSelect v-else-if="type==='secret'" v-model="value[type].secretName" :options="secretNames" :mode="mode" :label="t('workload.storage.subtypes.secret')" />
           <LabeledSelect v-else-if="type==='configMap'" v-model="value[type].name" :options="configMapNames" :mode="mode" :label="t('workload.storage.subtypes.configMap')" />
         </div>
         <div class="col span-6">
-          <RadioGroup v-model="value[type].optional" :row="true" :label="t('workload.storage.optional.label')" :options="[true, false]" :labels="[t('workload.storage.optional.yes'), t('workload.storage.optional.no')]" />
+          <RadioGroup
+            v-model="optional"
+            name="optional"
+            :row="true"
+            :label="t('workload.storage.optional.label')"
+            :options="[true, false]"
+            :labels="[t('workload.storage.optional.yes'), t('workload.storage.optional.no')]"
+          />
         </div>
       </div>
     </div>

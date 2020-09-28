@@ -90,7 +90,9 @@ export default {
           _type: 'createPVC', persistentVolumeClaim: {}, name: `vol${ this.value.volumes.length }`
         });
       } else {
-        this.value.volumes.push({ [type]: {}, name: `vol${ this.value.volumes.length }` });
+        this.value.volumes.push({
+          _type: type, [type]: {}, name: `vol${ this.value.volumes.length }`
+        });
       }
     },
 

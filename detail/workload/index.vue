@@ -161,6 +161,7 @@ export default {
           Pods
         </h3>
         <ResourceTable
+          v-if="pods"
           :rows="pods"
           :headers="podHeaders"
           key-field="id"

@@ -1,6 +1,7 @@
 import { insertAt } from '@/utils/array';
 import { TIMESTAMP } from '@/config/labels-annotations';
 import { WORKLOAD_TYPES, POD } from '@/config/types';
+import { get } from '@/utils/object';
 
 export default {
   // remove clone as yaml/edit as yaml until API supported
@@ -202,6 +203,12 @@ export default {
       ];
     }
 
+    out.push( {
+      label:     'Image',
+      content:   this.imageNames,
+      formatter: 'PodImages'
+    });
+
     return out;
   },
 
@@ -218,6 +225,26 @@ export default {
 
       return pods;
     };
+  },
+
+  imageNames() {
+    let containers;
+    const images = [];
+
+    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+      containers = get(this, 'spec.jobTemplate.spec.template.spec.containers');
+    } else {
+      containers = get(this, 'spec.template.spec.containers');
+    }
+    if (containers) {
+      containers.forEach((container) => {
+        if (!images.includes(container.image)) {
+          images.push(container.image);
+        }
+      });
+    }
+
+    return images;
   },
 
   redeploy() {

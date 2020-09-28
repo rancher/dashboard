@@ -67,7 +67,7 @@ export default {
   },
 
   data() {
-    return { pvc: {} };
+    return { pvc: null };
   },
 
   computed: {
@@ -99,7 +99,7 @@ export default {
     <div class="bordered-section">
       <h3>{{ createNew ? t('generic.create') : '' }} {{ t('workload.storage.subtypes.persistentVolumeClaim') }}</h3>
       <div v-if="createNew" class="bordered-section">
-        <PersistentVolumeClaim v-if="pvc.metadata" v-model="pvc" :register-before-hook="registerBeforeHook" :mode="mode" />
+        <PersistentVolumeClaim v-if="pvc" v-model="pvc" :register-before-hook="registerBeforeHook" :mode="mode" />
       </div>
       <div class="row mb-10">
         <div class="col span-6">
@@ -107,7 +107,7 @@ export default {
         </div>
         <div class="col span-6">
           <LabeledSelect v-if="!createNew" v-model="value.persistentVolumeClaim.claimName" :label="t('workload.storage.subtypes.persistentVolumeClaim')" :options="pvcs" />
-          <LabeledInput v-else-if="pvc.metadata" disabled :label="t('workload.storage.subtypes.persistentVolumeClaim')" :value="pvc.metadata.name" />
+          <LabeledInput v-else-if="pvc" disabled :label="t('workload.storage.subtypes.persistentVolumeClaim')" :value="pvc.metadata.name" />
         </div>
       </div>
       <div class="row">
