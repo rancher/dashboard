@@ -48,15 +48,23 @@ export default {
     },
   },
   data() {
+    const persistantStorageTypes = ['disabled', 'existing', 'pvc', 'statefulset'];
+    const persistentStorageTypeLabels = [
+      this.t('generic.disabled'),
+      this.t('monitoring.grafana.storage.types.existing'),
+      this.t('monitoring.grafana.storage.types.template'),
+      this.t('monitoring.grafana.storage.types.statefulset'),
+    ];
+
+    if (this.pvcs.length < 1) {
+      persistantStorageTypes.splice(1, 1);
+      persistentStorageTypeLabels.splice(1, 1);
+    }
+
     return {
-      persistantStorageTypes:      ['disabled', 'existing', 'pvc', 'statefulset'],
-      persistentStorageType:       'disabled',
-      persistentStorageTypeLabels: [
-        this.t('generic.disabled'),
-        this.t('monitoring.grafana.storage.types.existing'),
-        this.t('monitoring.grafana.storage.types.template'),
-        this.t('monitoring.grafana.storage.types.statefulset'),
-      ],
+      persistantStorageTypes,
+      persistentStorageTypeLabels,
+      persistentStorageType: 'disabled',
     };
   },
   watch: {
@@ -163,37 +171,9 @@ export default {
               @updateName="(name) => $set(value.grafana.persistence, 'existingClaim', name)"
             />
           </div>
-          <div class="col span-6">
-            <LabeledInput
-              v-model="value.grafana.persistence.subPath"
-              :label="t('monitoring.grafana.storage.subpath')"
-              :mode="mode"
-            />
-          </div>
         </div>
       </template>
       <template v-else-if="persistentStorageType === 'pvc'">
-        <div class="row">
-          <div class="col span-6">
-            <LabeledSelect
-              v-model="value.grafana.persistence.accessModes"
-              :label="t('monitoring.grafana.storage.mode')"
-              :localized-label="true"
-              :mode="mode"
-              :options="accessModes"
-              :reduce="({id})=> id"
-            />
-          </div>
-          <div class="col span-6">
-            <StorageClassSelector
-              :value="value.grafana.persistence.storageClassName"
-              :mode="mode"
-              :options="storageClasses"
-              :label="t('monitoring.prometheus.storage.className')"
-              @updateName="(name) => $set(value.grafana.persistence, 'storageClassName', name)"
-            />
-          </div>
-        </div>
         <div class="row">
           <div class="col span-6">
             <LabeledInput
@@ -203,10 +183,26 @@ export default {
             />
           </div>
           <div class="col span-6">
-            <LabeledInput
-              v-model="value.grafana.persistence.subPath"
-              :label="t('monitoring.grafana.storage.subpath')"
+            <LabeledSelect
+              v-model="value.grafana.persistence.accessModes"
+              :label="t('monitoring.grafana.storage.mode')"
+              :localized-label="true"
               :mode="mode"
+              :multiple="true"
+              :options="accessModes"
+              :reduce="({id})=> id"
+            />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col span-6">
+            <StorageClassSelector
+              v-if="storageClasses.length > 0"
+              :value="value.grafana.persistence.storageClassName"
+              :mode="mode"
+              :options="storageClasses"
+              :label="t('monitoring.prometheus.storage.className')"
+              @updateName="(name) => $set(value.grafana.persistence, 'storageClassName', name)"
             />
           </div>
         </div>
@@ -242,27 +238,6 @@ export default {
       <template v-else-if="persistentStorageType === 'statefulset'">
         <div class="row">
           <div class="col span-6">
-            <LabeledSelect
-              v-model="value.grafana.persistence.accessModes"
-              :label="t('monitoring.grafana.storage.mode')"
-              :localized-label="true"
-              :mode="mode"
-              :options="accessModes"
-              :reduce="({id})=> id"
-            />
-          </div>
-          <div class="col span-6">
-            <StorageClassSelector
-              :value="value.grafana.persistence.storageClassName"
-              :mode="mode"
-              :options="storageClasses"
-              :label="t('monitoring.prometheus.storage.className')"
-              @updateName="(name) => $set(value.grafana.persistence, 'storageClassName', name)"
-            />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col span-6">
             <LabeledInput
               v-model="value.grafana.persistence.size"
               :label="t('monitoring.grafana.storage.size')"
@@ -270,10 +245,26 @@ export default {
             />
           </div>
           <div class="col span-6">
-            <LabeledInput
-              v-model="value.grafana.persistence.subPath"
-              :label="t('monitoring.grafana.storage.subpath')"
+            <LabeledSelect
+              v-model="value.grafana.persistence.accessModes"
+              :label="t('monitoring.grafana.storage.mode')"
+              :localized-label="true"
               :mode="mode"
+              :multiple="true"
+              :options="accessModes"
+              :reduce="({id})=> id"
+            />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col span-6">
+            <StorageClassSelector
+              v-if="storageClasses.length > 0"
+              :value="value.grafana.persistence.storageClassName"
+              :mode="mode"
+              :options="storageClasses"
+              :label="t('monitoring.prometheus.storage.className')"
+              @updateName="(name) => $set(value.grafana.persistence, 'storageClassName', name)"
             />
           </div>
         </div>
