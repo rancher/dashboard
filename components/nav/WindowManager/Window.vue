@@ -72,7 +72,7 @@ export default {
     grid-template-areas:
       "body"
       "title";
-    grid-template-rows: auto $title-height;
+    // grid-template-rows: auto $title-height;
     height: 100%;
   }
 
@@ -82,7 +82,7 @@ export default {
     border-top: 1px solid var(--wm-title-border);
     height: 100%;
     vertical-align: middle;
-    line-height: $title-height - 4px;
+    // line-height: $title-height - 4px;
     padding: 0 5px;
   }
 
