@@ -20,11 +20,6 @@ const CLUSTER_TYPES = [
     configKeys: MANAGED_CONFIG_KEYS,
   },
   {
-    id:         'docker',
-    label:      'monitoring.clusterType.docker',
-    configKeys: OTHER_CONFIG_KEYS,
-  },
-  {
     id:         'eks',
     label:      'monitoring.clusterType.eks',
     configKeys: MANAGED_CONFIG_KEYS,
@@ -48,11 +43,6 @@ const CLUSTER_TYPES = [
       'kubeAdmProxy',
       'kubeAdmEtcd',
     ],
-  },
-  {
-    id:         'minikube',
-    label:      'monitoring.clusterType.minikube',
-    configKeys: OTHER_CONFIG_KEYS,
   },
   {
     id:         'other',
