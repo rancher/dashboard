@@ -70,6 +70,12 @@ export const getters = {
         return undefined;
       }
 
+      if ( typeof msg === 'object' ) {
+        console.error('Translation for', cacheKey, 'is an object'); // eslint-disable-line no-console
+
+        return undefined;
+      }
+
       if ( msg?.includes('{')) {
         formatter = new IntlMessageFormat(msg, state.selected);
       } else {

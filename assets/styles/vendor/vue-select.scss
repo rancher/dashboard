@@ -101,9 +101,13 @@
   }
 
   &.vs__dropdown-option--highlight {
-    color: var(--dropdown-hover-text) !important;
-    background: var(--dropdown-hover-bg) !important;
-    text-decoration: none;
+    color: var(--dropdown-hover-text);
+    background: var(--dropdown-hover-bg);
+
+    A {
+      color: var(--dropdown-hover-text);
+      text-decoration: none;
+    }
   }
 }
 
