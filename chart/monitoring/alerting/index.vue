@@ -77,6 +77,13 @@ export default {
         this.useExistingSecret = false;
       }
     },
+    useExistingSecret(useExistingSecret) {
+      if (!useExistingSecret) {
+        this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', '');
+      }
+
+      this.$set(this.value.alertmanager.alertmanagerSpec, 'useExistingSecret', useExistingSecret);
+    }
   },
 };
 </script>
