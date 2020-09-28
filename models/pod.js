@@ -91,6 +91,14 @@ export default {
     };
   },
 
+  imageNames() {
+    return this.spec.containers.reduce((all, container) => {
+      all.push(container.image);
+
+      return all;
+    }, []);
+  },
+
   details() {
     const out = [
       {

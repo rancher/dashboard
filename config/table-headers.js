@@ -214,7 +214,7 @@ export const RIO_IMAGE = {
 export const POD_IMAGES = {
   name:      'pod_images',
   labelKey:  'tableHeaders.podImages',
-  value:     'status.containerStatuses',
+  value:     'imageNames',
   formatter: 'PodImages'
 };
 
@@ -563,10 +563,4 @@ export const WORKSPACE = {
   sort:  ['metadata.namespace', 'nameSort'],
 };
 
-export const WORKLOAD_IMAGES = {
-  name:      'workloadImages',
-  label:     'Image',
-  labelKey:  'tableHeaders.image',
-  value:     'pods',
-  formatter: 'WorkloadImages'
-};
+export const WORKLOAD_IMAGES = { ...POD_IMAGES, value: '' };

@@ -1,6 +1,6 @@
 <script>
 import createEditView from '@/mixins/create-edit-view';
-import { STATE, NAME, NODE, WORKLOAD_IMAGES } from '@/config/table-headers';
+import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
 import { POD, WORKLOAD_TYPES } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
@@ -13,6 +13,7 @@ import HealthCheck from '@/components/form/HealthCheck';
 import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/components/form/Networking';
+import Loading from '@/components/Loading';
 import Job from '@/edit/workload/Job';
 import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
 
@@ -32,7 +33,8 @@ export default {
     Job,
     Tabbed,
     Tab,
-    VolumeClaimTemplate
+    VolumeClaimTemplate,
+    Loading
   },
 
   mixins: [createEditView],
@@ -51,7 +53,9 @@ export default {
   },
 
   async fetch() {
-    this.pods = await this.value.pods();
+    const pods = await this.value.pods();
+
+    this.pods = pods;
   },
 
   data() {
@@ -93,7 +97,12 @@ export default {
     },
 
     podHeaders() {
-      return [STATE, NAME, NODE, { ...WORKLOAD_IMAGES, formatterOpts: { pods: this.pods } }];
+      return this.pods ? [
+        STATE,
+        NAME,
+        NODE,
+        POD_IMAGES
+      ] : null;
     },
 
     isJob() {
@@ -114,7 +123,8 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <Tabbed :side-tabs="true">
       <Tab :label="t('workload.container.titles.ports')" name="ports">
         <WorkloadPorts :value="container.ports" mode="view" />
@@ -151,7 +161,6 @@ export default {
           Pods
         </h3>
         <ResourceTable
-          v-if="pods"
           :rows="pods"
           :headers="podHeaders"
           key-field="id"
