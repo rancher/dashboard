@@ -718,7 +718,7 @@ monitoring:
       keyLabel: File Name
       label: Template Files
       valueLabel: YAML Template
-    title: Alerting
+    title: Configure Alertmanager
   clusterType:
     aks: Azure AKS
     docker: Docker
@@ -751,7 +751,7 @@ monitoring:
         template: Enable with PVC Template
       volumeMode: Volume Mode
       volumeName: Volume Name
-    title: Grafana Config
+    title: Configure Grafana
   overview:
     title: Overview
     subtitle: "Powered By: <a href='https://github.com/coreos/prometheus-operator' target='_blank' rel='noopener nofollow' >Prometheus</a>"
@@ -794,7 +794,7 @@ monitoring:
       size: Size
       volumeMode: Volume Mode
       volumeName: Volume Name
-    title: Prometheus Config
+    title: Configure Prometheus
     warningInstalled: |+
       Warning: Prometheus Operators are currently deployed. Deploying multiple Prometheus Operators onto one cluster is not currently supported. Please remove all other Prometheus Operator deployments from this cluster before trying to install this chart.
       If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install this chart.

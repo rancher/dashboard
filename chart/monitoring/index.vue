@@ -144,13 +144,6 @@ export default {
         </div>
       </div>
     </section>
-    <section class="config-alerting-container">
-      <Alerting
-        v-model="value"
-        :mode="mode"
-        :secrets="secrets"
-      />
-    </section>
     <section class="config-prometheus-container">
       <Prometheus
         v-model="value"
@@ -159,6 +152,13 @@ export default {
         :storage-classes="storageClasses"
         :prometheus-pods="prometheusResources"
         :workloads="workloads"
+      />
+    </section>
+    <section class="config-alerting-container">
+      <Alerting
+        v-model="value"
+        :mode="mode"
+        :secrets="secrets"
       />
     </section>
     <section class="config-grafana-container">
