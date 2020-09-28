@@ -39,7 +39,7 @@ export default {
     allSecrets() {
       const { secrets } = this;
 
-      return secrets.map(sec => ({ label: sec.metadata.name, value: sec.metadata.name }));
+      return secrets.filter(sec => sec.metadata.namespace === DEFAULT_MONITORING_NAMESPACE).map(sec => ({ label: sec.metadata.name, value: sec.metadata.name }));
     },
 
     canUseExistingSecret() {
@@ -126,7 +126,7 @@ export default {
             />
           </div>
         </div>
-        <div class="row">
+        <div v-if="allSecrets.length > 0" class="row">
           <div class="col span-6">
             <LabeledSelect
               v-model="value.alertmanager.alertmanagerSpec.secrets"
