@@ -52,24 +52,27 @@ export const EFFECT = {
 };
 
 export const FLOW = {
-  name:      'flow',
-  labelKey:  'tableHeaders.flow',
-  value:     'flow',
-  sort:      ['flow.name'],
-  formatter: 'Link'
+  name:          'flow',
+  labelKey:      'tableHeaders.flow',
+  value:         'flow',
+  sort:          ['flow.name'],
+  formatter:     'Link',
+  formatterOpts: { options: 'internal' },
 };
 
 export const CLUSTER_FLOW = {
   ...FLOW,
-  labelKey: 'tableHeaders.clusterFlow'
+  labelKey:      'tableHeaders.clusterFlow',
+  formatterOpts: { options: 'internal' },
 };
 
 export const OUTPUT = {
-  name:      'output',
-  labelKey:  'tableHeaders.output',
-  value:     'outputs',
-  sort:      'outputs.text',
-  formatter: 'ListLink'
+  name:          'output',
+  labelKey:      'tableHeaders.output',
+  value:         'outputs',
+  sort:          'outputs.text',
+  formatter:     'ListLink',
+  formatterOpts: { options: 'internal' },
 };
 
 export const CONFIGURED_PROVIDERS = {
