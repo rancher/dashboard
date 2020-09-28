@@ -1,6 +1,6 @@
 <script>
 import createEditView from '@/mixins/create-edit-view';
-import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
+import { STATE, NAME, NODE, WORKLOAD_IMAGES } from '@/config/table-headers';
 import { POD, WORKLOAD_TYPES } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
@@ -55,8 +55,6 @@ export default {
   },
 
   data() {
-    const podHeaders = [STATE, NAME, POD_IMAGES, NODE];
-
     const isCronJob = this.value.type === WORKLOAD_TYPES.CRON_JOB;
 
     const podTemplateSpec = isCronJob ? this.value.spec.jobTemplate.spec.template.spec : this.value.spec?.template?.spec;
@@ -71,8 +69,7 @@ export default {
       type:           this.value.type,
       podSchema,
       name,
-      podHeaders,
-      pods:           [],
+      pods:           null,
       container,
       podTemplateSpec
     };
@@ -93,6 +90,10 @@ export default {
 
         return total;
       }, 0);
+    },
+
+    podHeaders() {
+      return [STATE, NAME, NODE, { ...WORKLOAD_IMAGES, formatterOpts: { pods: this.pods } }];
     },
 
     isJob() {
@@ -150,6 +151,7 @@ export default {
           Pods
         </h3>
         <ResourceTable
+          v-if="pods"
           :rows="pods"
           :headers="podHeaders"
           key-field="id"

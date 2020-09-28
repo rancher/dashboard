@@ -6,6 +6,11 @@ export default {
       default: () => {}
     },
 
+    pods: {
+      type:    Array,
+      default: null
+    },
+
     row: {
       type:    Object,
       default: () => {
@@ -15,16 +20,20 @@ export default {
   },
 
   async fetch() {
-    this.pods = await this.row.pods();
+    if (!this.pods) {
+      this.workloadPods = await this.row.pods();
+    }
   },
 
   data() {
-    return { pods: [] };
+    return { workloadPods: null };
   },
 
   computed: {
     images() {
-      return this.pods.reduce((images, pod) => {
+      const pods = this.pods ? this.pods : this.workloadPods;
+
+      return (pods || []).reduce((images, pod) => {
         const podImages = pod.spec.containers.reduce((all, container) => {
           all.push(container.image);
 
