@@ -33,6 +33,7 @@ export function init(store) {
     namespaced: false,
     name:       'gatekeeper-overview',
     route:      { name: 'c-cluster-gatekeeper' },
+    weight:     3
   });
 
   virtualType({
@@ -40,7 +41,8 @@ export function init(store) {
     namespaced: false,
     name:       'gatekeeper-constraint',
     route:      { name: 'c-cluster-gatekeeper-constraints' },
-    ifHaveType: GATEKEEPER.CONSTRAINT_TEMPLATE
+    ifHaveType: GATEKEEPER.CONSTRAINT_TEMPLATE,
+    weight:     2
   });
 
   virtualType({
@@ -48,6 +50,7 @@ export function init(store) {
     namespaced: false,
     name:       'gatekeeper-template',
     route:      { name: 'c-cluster-gatekeeper-templates' },
-    ifHaveType: GATEKEEPER.CONSTRAINT_TEMPLATE
+    ifHaveType: GATEKEEPER.CONSTRAINT_TEMPLATE,
+    weight:     1
   });
 }
