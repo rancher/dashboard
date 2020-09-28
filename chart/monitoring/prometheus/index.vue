@@ -199,6 +199,11 @@ export default {
         </div>
       </div>
       <div class="row">
+        <div class="col span-12 mt-5">
+          <label class="text-label mb-0">{{ t('monitoring.prometheus.config.resourceLimits') }}</label>
+        </div>
+      </div>
+      <div class="row">
         <div class="col span-6">
           <LabeledInput
             v-model="value.prometheus.prometheusSpec.resources.requests.cpu"

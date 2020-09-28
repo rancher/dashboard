@@ -785,6 +785,7 @@ monitoring:
         memory: Requested Memory
       retention: Retention
       retentionSize: Retention Size
+      resourceLimits: Resource Limits
       scrape: Scrape Interval
     storage:
       className: Storage Class Name
