@@ -63,7 +63,6 @@ export default {
       return {
         text:    resource.nameDisplay,
         url:     resource.detailLocation,
-        options: 'internal',
         ...resource
       };
     }

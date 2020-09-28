@@ -4,10 +4,18 @@ import Link from './Link';
 export default {
   components: { Link },
   props:      {
+    row: {
+      type:     Object,
+      required: true,
+    },
     value: {
       type:     Array,
       default: () => []
-    }
+    },
+    options: {
+      type:    [Object, String],
+      default: null,
+    },
   },
 };
 </script>
@@ -15,7 +23,7 @@ export default {
 <template>
   <span>
     <span v-for="(el, i) in value" :key="el.key">
-      <Link :value="el" /><span v-if="i != value.length - 1">, </span>
+      <Link :row="row" :value="el" :options="options" /><span v-if="i != value.length - 1">, </span>
     </span>
   </span>
 </template>
