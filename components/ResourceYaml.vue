@@ -229,13 +229,25 @@ export default {
     async save(buttonDone) {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const yaml = this.value.yamlForSave(this.currentYaml) || this.currentYaml;
-      let res;
+      let parsed, res;
 
       try {
         await this.$emit('apply-hooks', BEFORE_SAVE_HOOKS);
 
         if (this._isBeingDestroyed || this._isDestroyed) {
           return;
+        }
+
+        try {
+          parsed = jsyaml.safeLoad(yaml);
+        } catch (err) {
+          return onError.call(this, err);
+        }
+
+        if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
+          const err = this.$store.getters['i18n/t']('resourceYaml.errors.namespaceRequired');
+
+          return onError.call(this, err);
         }
 
         if ( this.isCreate ) {
@@ -268,6 +280,10 @@ export default {
         buttonDone(true);
         this.done();
       } catch (err) {
+        return onError.call(this, err);
+      }
+
+      function onError(err) {
         if ( err && err.response && err.response.data ) {
           const body = err.response.data;
 
@@ -279,11 +295,13 @@ export default {
         } else {
           this.errors = [err];
         }
+
         buttonDone(false);
 
         this.$emit('error', exceptionToErrorsArray(err));
       }
     },
+
     done() {
       if (this.doneOverride) {
         return this.doneOverride();
