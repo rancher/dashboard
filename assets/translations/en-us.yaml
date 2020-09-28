@@ -415,7 +415,7 @@ cruResource:
 
 fleet:
   cluster:
-    summary: Summary
+    summary: Resource Summary
     nonReady: Non-Ready Bundles
   fleetSummary:
     state:
@@ -423,6 +423,7 @@ fleet:
       info: 'Transitioning'
       warning: 'Warning'
       error: 'Error'
+      unknown: 'Unknown'
   gitRepo:
     tabs:
       resources: Resources

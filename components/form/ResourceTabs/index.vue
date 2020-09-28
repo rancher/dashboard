@@ -116,7 +116,7 @@ export default {
       <Conditions :value="value" />
     </Tab>
 
-    <Tab v-if="!$fetchState.pending && hasEvents" :label="t('resourceTabs.tabs.events')" name="events">
+    <Tab v-if="!$fetchState.pending && hasEvents && events.length" :label="t('resourceTabs.tabs.events')" name="events">
       <SortableTable
         :rows="events"
         :headers="eventHeaders"

@@ -34,7 +34,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <FleetSummary :value="value.status.summary" />
+    <FleetSummary :value="value.status.resourceCounts" />
 
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="Clusters" name="clusters">
