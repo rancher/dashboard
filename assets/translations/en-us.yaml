@@ -690,7 +690,8 @@ longhorn:
     subtitle: "Powered By: <a href='https://github.com/longhorn' target='_blank' rel='noopener nofollow' >Longhorn</a>"
     linkedList:
       longhorn:
-        label: 'Longhorn - Manage storage system via UI'
+        label: 'Longhorn'
+        description: 'Manage storage system via UI'
         na: Resource Unavailable
 
 monitoring:

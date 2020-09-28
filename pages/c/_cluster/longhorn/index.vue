@@ -24,10 +24,11 @@ export default {
   mounted() {
     this.externalLinks = [
       {
-        enabled: true,
-        iconSrc: this.longhornImgSrc,
-        label:   'longhorn.overview.linkedList.longhorn.label',
-        link:    `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/`
+        enabled:     true,
+        iconSrc:     this.longhornImgSrc,
+        label:       'longhorn.overview.linkedList.longhorn.label',
+        description:   'longhorn.overview.linkedList.longhorn.description',
+        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/longhorn-system/services/http:longhorn-frontend:80/proxy/`
       },
     ];
   },
@@ -57,6 +58,8 @@ export default {
           <div class="link-content">
             <t :k="fel.label" />
             <i class="icon icon-external-link pull-right" />
+            <hr />
+            <div class="description"><t :k="fel.description" /></div>
           </div>
         </a>
       </div>
@@ -79,6 +82,7 @@ export default {
     margin: 0 10px 10px 0;
     max-width: 325px;
     min-height: 100px;
+    border-left: solid 10px var(--primary);
 
     a[disabled] {
       cursor: not-allowed;
@@ -100,17 +104,40 @@ export default {
         display: inline-block;
       }
 
+      .link-logo {
+        text-align: center;
+        // position: absolute;
+        // left: 25px;
+        // top: 25px;
+        width: 60px;
+        height: 60px;
+        border-radius: calc(2 * var(--border-radius));
+        background-color: white;
+
+        img {
+          width: 56px;
+          height: 56px;
+          -o-object-fit: contain;
+          object-fit: contain;
+          position: relative;
+          top: 2px;
+        }
+      }
+
       .link-content {
         width: 100%;
+        margin-left: 10px;
       }
-    }
 
-    .round-image {
-      border-radius: 50%;
-      height: 50px;
-      margin: 10px;
-      min-width: 50px;
-      overflow: hidden;
+      .description {
+        margin-top: 10px;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        text-overflow: ellipsis;
+        color: var(--secondary);
+      }
     }
   }
 }
