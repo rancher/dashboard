@@ -514,6 +514,7 @@ gatekeeperConstraint:
     title: Violations
 
 gatekeeperIndex:
+  poweredBy: OPA Gatekeeper
   unavailable: OPA + Gatekeeper is not available in the system-charts catalog.
   violations: Violations
 
@@ -665,6 +666,7 @@ logging:
       access: Access
       certificate: SSL
   overview:
+    poweredBy: Banzai Cloud
     clusterLevel: Cluster-Level
     namespaceLevel: Namespace-Level
   provider: Provider
