@@ -89,7 +89,7 @@
 //   continueOnMatch
 // )
 
-import { AGE, NAME, NAMESPACE_NAME, STATE } from '@/config/table-headers';
+import { AGE, NAME, NAMESPACE, STATE } from '@/config/table-headers';
 import { COUNT, SCHEMA } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
 import { addObject, findBy, insertAt, isArray, removeObject } from '@/utils/array';
@@ -716,14 +716,20 @@ export const getters = {
       for ( const col of columns ) {
         if ( col.format === 'name' ) {
           hasName = true;
-          out.push(namespaced ? NAMESPACE_NAME : NAME);
+          out.push(NAME);
+          if ( namespaced ) {
+            out.push(NAMESPACE);
+          }
         } else {
           out.push(fromSchema(col));
         }
       }
 
       if ( !hasName ) {
-        insertAt(out, 1, (namespaced ? NAMESPACE_NAME : NAME));
+        insertAt(out, 1, NAME);
+        if ( namespaced ) {
+          insertAt(out, 2, NAMESPACE);
+        }
       }
 
       // Age always goes last

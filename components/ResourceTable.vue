@@ -3,10 +3,7 @@ import { get } from '@/utils/object';
 import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import ButtonGroup from '@/components/ButtonGroup';
 import SortableTable from '@/components/SortableTable';
-import {
-  NAME, NAME_UNLINKED,
-  NAMESPACE_NAME, NAMESPACE_NAME_UNLINKED,
-} from '@/config/table-headers';
+import { NAMESPACE } from '@/config/table-headers';
 
 export default {
   components: { ButtonGroup, SortableTable },
@@ -65,19 +62,13 @@ export default {
       } else {
         headers = this.$store.getters['type-map/headersFor'](this.schema);
       }
-      // If only one namespace is selected, replace the namespace_name
-      // column with the just name one.
+
+      // If only one namespace is selected, hide the namespace column
       if ( !showNamespace ) {
-        let idx = headers.findIndex(header => header.value === NAMESPACE_NAME.value);
+        const idx = headers.findIndex(header => header.value === NAMESPACE.value);
 
         if ( idx >= 0 ) {
-          headers.splice(idx, 1, NAME);
-        }
-
-        idx = headers.indexOf(NAMESPACE_NAME_UNLINKED);
-
-        if ( idx >= 0 ) {
-          headers.splice(idx, 1, NAME_UNLINKED);
+          headers.splice(idx, 1);
         }
       }
 
