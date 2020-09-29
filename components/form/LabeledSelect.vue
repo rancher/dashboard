@@ -169,7 +169,7 @@ export default {
 </script>
 
 <template>
-  <div class="labeled-select labeled-input" :class="{disabled: disabled && !isView, focused, [mode]: true, [status]: status }">
+  <div class="labeled-select labeled-input" :class="{disabled: disabled && !isView, focused, [mode]: true, [status]: status, taggable: $attrs.taggable }">
     <div :class="{'labeled-container': true, raised, empty, [mode]: true}" :style="{border:'none'}">
       <label v-if="label">
         {{ label }}
@@ -263,6 +263,12 @@ export default {
     outline: none;
     border: var(--outline-width) solid var(--outline);
     border-top: none;
+  }
+
+  &.taggable {
+    .vs__selected-options {
+      margin: 14px 0px 2px 0px;
+    }
   }
 
   .v-select.inline {

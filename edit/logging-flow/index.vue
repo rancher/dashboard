@@ -13,7 +13,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import { allHash } from '@/utils/promise';
 import { isArray, uniq } from '@/utils/array';
 import { matchRuleIsPopulated } from '@/models/logging.banzaicloud.io.flow';
-import Select from '@/components/form/Select';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import { clone, set } from '@/utils/object';
 import Match from './Match';
 
@@ -33,22 +33,25 @@ export default {
   components: {
     Banner,
     CruResource,
+    LabeledSelect,
     Loading,
     NameNsDescription,
     Tab,
     Tabbed,
     YamlEditor,
-    Match,
-    Select,
+    Match
   },
 
   mixins: [CreateEditView],
 
   async fetch() {
-    const outputType = (this.value.type === LOGGING.CLUSTER_FLOW ? LOGGING.CLUSTER_OUTPUT : LOGGING.OUTPUT);
+    const isFlow = this.value.type === LOGGING.FLOW;
+    const allOutputs = isFlow ? this.$store.dispatch('cluster/findAll', { type: LOGGING.OUTPUT }) : Promise.resolve([]);
+    const allClusterOutputs = this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT });
 
     const hash = await allHash({
-      allOutputs: this.$store.dispatch('cluster/findAll', { type: outputType }),
+      allOutputs,
+      allClusterOutputs,
       allNodes:   this.$store.dispatch('cluster/findAll', { type: NODE }),
       allPods:    this.$store.dispatch('cluster/findAll', { type: POD }),
     });
@@ -99,29 +102,30 @@ export default {
       matches.push(emptyMatch(true));
     }
 
-    let outputs;
-
-    if ( this.value.type === LOGGING.CLUSTER_FLOW ) {
-      outputs = this.value.spec?.globalOutputRefs || [];
-    } else {
-      outputs = this.value.spec?.localOutputRefs || [];
-    }
+    const globalOutputRefs = this.value.spec?.globalOutputRefs || [];
+    const localOutputRefs = this.value.spec?.localOutputRefs || [];
 
     return {
       formSupported,
       matches,
       allOutputs:         null,
+      allClusterOutputs:  null,
       allNodes:           null,
       allPods:            null,
       filtersYaml,
       initialFiltersYaml:   filtersYaml,
-      outputs,
+      globalOutputRefs,
+      localOutputRefs
     };
   },
 
   computed: {
     EDITOR_MODES() {
       return EDITOR_MODES;
+    },
+
+    LOGGING() {
+      return LOGGING;
     },
 
     outputChoices() {
@@ -134,6 +138,12 @@ export default {
         return output.namespace === this.value.namespace;
       }).map((x) => {
         return { label: x.metadata.name, value: x.metadata.name };
+      });
+    },
+
+    clusterOutputChoices() {
+      return this.allClusterOutputs.map((clusterOutput) => {
+        return { label: clusterOutput.metadata.name, value: clusterOutput.metadata.name };
       });
     },
 
@@ -190,9 +200,8 @@ export default {
         set(this.value.spec, 'filters', undefined);
       }
 
-      const outputKey = (this.value.type === LOGGING.CLUSTER_FLOW ? 'globalOutputRefs' : 'localOutputRefs');
-
-      set(this.value.spec, outputKey, this.outputs);
+      set(this.value.spec, 'globalOutputRefs', this.globalOutputRefs);
+      set(this.value.spec, 'localOutputRefs', this.localOutputRefs);
     },
 
     addMatch(include) {
@@ -276,12 +285,22 @@ export default {
 
       <Tab name="outputs" :label="t('logging.flow.outputs.label')" :weight="1">
         <Banner color="info" class="mt-0" label="Choose one or more outputs to send the matching logs to" />
-
-        <Select
-          v-model="outputs"
-          class="lg"
+        <LabeledSelect
+          v-model="globalOutputRefs"
+          :label="t('logging.flow.clusterOutputs.label')"
+          :options="clusterOutputChoices"
+          :multiple="true"
+          :taggable="true"
+          :clearable="true"
+          :close-on-select="false"
+          :reduce="opt=>opt.value"
+        />
+        <LabeledSelect
+          v-if="value.type === LOGGING.FLOW"
+          v-model="localOutputRefs"
+          :label="t('logging.flow.outputs.label')"
+          class="mt-10"
           :options="outputChoices"
-          placeholder="Default: Nowhere"
           :multiple="true"
           :taggable="true"
           :clearable="true"
