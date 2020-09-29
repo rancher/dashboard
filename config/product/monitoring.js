@@ -7,7 +7,12 @@ export const CHART_NAME = 'rancher-monitoring';
 
 export function init(store) {
   const {
-    product, basicType, virtualType, weightType, headers
+    basicType,
+    headers,
+    mapType,
+    product,
+    virtualType,
+    weightType,
   } = DSL(store, NAME);
   const {
     ALERTMANAGER,
@@ -41,6 +46,12 @@ export function init(store) {
     ALERTMANAGER,
     PROMETHEUSE
   ]);
+
+  mapType(SERVICEMONITOR, 'Service Monitors');
+  mapType(PODMONITOR, 'Pod Monitors');
+  mapType(PROMETHEUSRULE, 'Prometheus Rules');
+  mapType(ALERTMANAGER, 'Alert Managers');
+  // mapType(PROMETHEUSE, 'Prometheis'); // pruh-mee-thee-eyes https://www.prometheus.io/docs/introduction/faq/#what-is-the-plural-of-prometheus
 
   weightType(SERVICEMONITOR, 104, true);
   weightType(PODMONITOR, 103, true);

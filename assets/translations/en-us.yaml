@@ -1763,3 +1763,8 @@ typeLabel:
       one { Workspace }
       other { Workspaces }
     }
+  monitoring.coreos.com.prometheus: |-
+    {count, plural,
+      one { Prometheus }
+      other { Prometheis }
+    }
