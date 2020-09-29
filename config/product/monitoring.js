@@ -18,7 +18,7 @@ export function init(store) {
 
   product({
     ifHaveType: PODMONITOR, // possible RBAC issue here if mon turned on but user doesn't have view/read roles on pod monitors
-    // icon:       'prometheus'
+    icon:       'monitoring'
   });
 
   virtualType({

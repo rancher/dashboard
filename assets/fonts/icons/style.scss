@@ -3,9 +3,9 @@
 @font-face {
   font-family: '#{$icomoon-font-family}';
   src:
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?yh9v06') format('truetype'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?yh9v06') format('woff'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?yh9v06##{$icomoon-font-family}') format('svg');
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?y4i8o6') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?y4i8o6') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?y4i8o6##{$icomoon-font-family}') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -44,6 +44,11 @@
 .icon-file {
   &:before {
     content: $icon-file; 
+  }
+}
+.icon-monitoring {
+  &:before {
+    content: $icon-monitoring; 
   }
 }
 .icon-logging {
@@ -289,6 +294,11 @@
 .icon-istio {
   &:before {
     content: $icon-istio; 
+  }
+}
+.icon-longhorn {
+  &:before {
+    content: $icon-longhorn; 
   }
 }
 .icon-rio {
