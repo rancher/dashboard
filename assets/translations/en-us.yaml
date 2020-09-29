@@ -613,6 +613,8 @@ logging:
   clusterFlow:
     noOutputsBanner: There are no cluster outputs in the selected namespace.
   flow:
+    clusterOutputs: 
+      label: Cluster Outputs
     matches:
       label: Matches
       addSelect: Add Include Rule
