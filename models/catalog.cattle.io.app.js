@@ -2,6 +2,7 @@ import Vue from 'vue';
 import {
   NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW
 } from '@/config/query-params';
+import { CATALOG } from '@/config/labels-annotations';
 
 export default {
   showMasthead() {
@@ -36,8 +37,18 @@ export default {
   },
 
   matchingChart() {
-    const chartName = this.spec?.chart?.metadata?.name;
-    const match = this.$rootGetters['catalog/chart']({ chartName });
+    const chart = this.spec?.chart;
+
+    if ( !chart ) {
+      return;
+    }
+
+    const chartName = chart.metadata?.name;
+    const preferRepoType = chart.metadata?.annotations?.[CATALOG.SOURCE_REPO_TYPE];
+    const preferRepoName = chart.metadata?.annotations?.[CATALOG.SOURCE_REPO_NAME];
+    const match = this.$rootGetters['catalog/chart']({
+      chartName, preferRepoType, preferRepoName
+    });
 
     return match;
   },

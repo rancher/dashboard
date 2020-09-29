@@ -25,7 +25,7 @@ import {
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
-import { diff } from '@/utils/object';
+import { clone, diff } from '@/utils/object';
 import { findBy } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 
@@ -209,28 +209,45 @@ export default {
       }
     }
 
-    const updateValues = (this.existing && !this.chartValues) ||
-      (!this.existing && (!this.loadedVersion || this.loadedVersion !== this.version.key) );
+    // const updateValues = (this.existing && !this.chartValues) ||
+    // (!this.existing && (!this.loadedVersion || this.loadedVersion !== this.version.key) );
 
-    if ( updateValues ) {
-      if ( this.existing ) {
-        // For an existing app, use the previous values
-        this.chartValues = merge(merge({}, this.versionInfo.values), this.existing.spec?.values || {});
+    if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
+      let userValues;
+
+      if ( this.loadedVersion ) {
+        // If changing charts once the page is loaded, diff from the chart you were
+        // previously on to get the actual customization, then apply onto the new chart values.
+
+        if ( this.showingYaml ) {
+          this.applyYamlToValues();
+        }
+
+        userValues = diff(this.loadedVersionValues, this.chartValues);
+      } else if ( this.existing ) {
+        // For an existing app, use the values from the previous install
+        userValues = clone(this.existing.spec?.values || {});
+        // For an existing app, use the values from the previous install
       } else {
-        // If the chart/version changes, replace their values with the new one
-        this.chartValues = merge({}, this.versionInfo.values);
+        // For an new app, start empty
+        userValues = {};
       }
 
-      this.removeGlobalValuesFrom(this.chartValues);
-
-      this.loadedVersion = this.version.key;
+      this.removeGlobalValuesFrom(userValues);
+      this.chartValues = merge(merge({}, this.versionInfo.values), userValues);
       this.valuesYaml = jsyaml.safeDump(this.chartValues);
 
       if ( this.valuesYaml === '{}\n' ) {
         this.valuesYaml = '';
       }
 
-      this.originalYamlValues = this.valuesYaml;
+      // For YAML diff
+      if ( !this.loadedVersion ) {
+        this.originalYamlValues = this.valuesYaml;
+      }
+
+      this.loadedVersionValues = this.versionInfo.values;
+      this.loadedVersion = this.version.key;
     }
   },
 
@@ -245,6 +262,7 @@ export default {
       existing:               null,
       forceNamespace:         null,
       loadedVersion:          null,
+      loadedVersionValues:    null,
       mode:                   null,
       value:                  null,
       valuesComponent:        null,
@@ -368,7 +386,11 @@ export default {
 
     hasQuestions() {
       return this.versionInfo && !!this.versionInfo.questions;
-    }
+    },
+
+    showingYaml() {
+      return this.showPreview || ( !this.valuesComponent && !this.hasQuestions );
+    },
   },
 
   watch: {
@@ -570,15 +592,19 @@ export default {
       return values;
     },
 
+    applyYamlToValues() {
+      try {
+        this.chartValues = jsyaml.safeLoad(this.valuesYaml);
+      } catch (err) {
+        return { errors: exceptionToErrorsArray(err) };
+      }
+    },
+
     actionInput(isUpgrade) {
       const fromChart = this.versionInfo?.values || {};
 
-      if ( this.showPreview || ( !this.valuesComponent && !this.hasQuestions )) {
-        try {
-          this.chartValues = jsyaml.safeLoad(this.valuesYaml);
-        } catch (err) {
-          return { errors: exceptionToErrorsArray(err) };
-        }
+      if ( this.showingYaml ) {
+        this.applyYamlToValues();
       }
 
       // Only save the values that differ from the chart's standard values.yaml
