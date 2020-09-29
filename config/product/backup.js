@@ -15,7 +15,7 @@ export function init(store) {
 
   product({
     ifHaveGroup: /^(.*\.)*resources\.cattle\.io$/,
-    icon:        'backup',
+    icon:        'backup-restore',
   });
 
   weightType(BACKUP_RESTORE.BACKUP, 99, true);

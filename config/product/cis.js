@@ -16,7 +16,7 @@ export function init(store) {
 
   product({
     ifHaveGroup: /^(.*\.)*cis\.cattle\.io$/,
-    // icon:        'cis',
+    icon:        'cis',
   });
 
   weightType(CIS.CLUSTER_SCAN, 3, true);
