@@ -2,6 +2,20 @@
 import Checkbox from '@/components/form/Checkbox';
 import { mapGetters } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput';
+import { isEqual } from 'lodash';
+
+const TOLERATIONS = [
+  {
+    key:    'node-role.kubernetes.io/controlplane',
+    value:  'true',
+    effect: 'NoSchedule',
+  },
+  {
+    key:    'node-role.kubernetes.io/etcd',
+    value:  'true',
+    effect: 'NoExecute'
+  }
+];
 
 export default {
   components: { Checkbox, LabeledInput },
@@ -15,7 +29,7 @@ export default {
   },
 
   data() {
-    return { deployToControlPlane: false };
+    return { deployToControlPlane: isEqual(this.value.fluentbit_tolerations, TOLERATIONS) };
   },
 
   computed: {
@@ -32,18 +46,7 @@ export default {
           this.value.fluentbit_tolerations = [];
         }
       } else {
-        this.value.fluentbit_tolerations = [
-          {
-            key:    'node-role.kubernetes.io/controlplane',
-            value:  'true',
-            effect: 'NoSchedule',
-          },
-          {
-            key:    'node-role.kubernetes.io/etcd',
-            value:  'true',
-            effect: 'NoExecute'
-          }
-        ];
+        this.value.fluentbit_tolerations = TOLERATIONS;
       }
     }
   },
