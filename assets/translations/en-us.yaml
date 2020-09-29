@@ -734,7 +734,7 @@ monitoring:
     other: Other
     placeholder: Select cluster type
     rke: RKE
-    rke2: RKE Federal
+    rke2: RKE Government
   createDefaultRoles: Create Default Monitoring Cluster Roles
   grafana:
     storage:
