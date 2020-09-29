@@ -33,6 +33,7 @@ export function init(store) {
     namespaced: false,
     name:       'gatekeeper-overview',
     route:      { name: 'c-cluster-gatekeeper' },
+    exact:      true,
     weight:     3
   });
 
