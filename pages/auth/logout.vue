@@ -8,6 +8,8 @@ export default {
     if ( process.env.dev ) {
       await store.dispatch('auth/logout', null, { root: true });
       redirect(302, `/auth/login?${ LOGGED_OUT }`);
+    } else if (process.client) {
+      window.location.replace(`${ store.getters['rancherLink'] }logout`);
     } else {
       redirect(302, `${ store.getters['rancherLink'] }logout`);
     }
