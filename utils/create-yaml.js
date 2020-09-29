@@ -245,7 +245,11 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
       return out;
     }
 
-    if ( type === 'json') {
+    /**
+     * .spec is the type used for the Logging chart Output and ClusterOutput resource spec.
+     * Without this Output and ClusterOutput specs are empty.
+     */
+    if ( type === 'json' || type === '.spec') {
       try {
         const parsedData = jsyaml.safeDump(data[key]);
 
