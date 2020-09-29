@@ -7,7 +7,6 @@ import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import ToggleGradientBox from '@/components/ToggleGradientBox';
 import Labels from '@/components/form/Labels';
-import cloneDeep from 'lodash/cloneDeep';
 import Banner from '@/components/Banner';
 
 export default {
@@ -58,18 +57,20 @@ export default {
     ];
 
     this.value.spec = this.value.spec || {};
-    const specValue = cloneDeep(this.value.spec);
 
     providers.forEach((provider) => {
-      specValue[provider.name] = specValue[provider.name] || provider.default;
-      const specProvider = specValue[provider.name];
+      this.value.spec[provider.name] = this.value.spec[provider.name] || provider.default;
+      const specProvider = this.value.spec[provider.name];
       const correctedSpecProvider = provider.name === 'forward' ? specProvider.servers[0] : specProvider;
       const specProviderKeys = Object.keys(correctedSpecProvider || {}).filter(key => key !== 'format');
 
       provider.enabled = specProviderKeys.length > 0;
+      if (!provider.enabled) {
+        delete this.value.spec[provider.name];
+      }
     });
 
-    return { providers, specValue };
+    return { providers };
   },
 
   computed: {
@@ -77,29 +78,28 @@ export default {
       return this.providers.filter(p => p.enabled);
     }
   },
-
-  mounted() {
-    this.registerBeforeHook(this.willSave, 'willSave');
+  watch: {
+    providers: {
+      handler() {
+        this.providers.forEach((provider) => {
+          if (this.value.spec[provider.name] && !provider.enabled) {
+            delete this.value.spec[provider.name];
+          } else if (provider.enabled) {
+            this.value.spec[provider.name] = this.value.spec[provider.name] || provider.default;
+          }
+        });
+      },
+      deep: true
+    }
   },
-
   methods: {
     getComponent(name) {
       return require(`./providers/${ name }`).default;
     },
-
-    willSave() {
-      this.value.spec = cloneDeep(this.specValue);
-
-      this.providers.forEach((provider) => {
-        if (this.value.spec[provider.name] && !provider.enabled) {
-          delete this.value.spec[provider.name];
-        }
-      });
-    },
     launch(provider) {
       this.$refs.tabbed.select(provider.name);
     }
-  },
+  }
 };
 </script>
 
@@ -146,7 +146,7 @@ export default {
             </h1>
           </div>
 
-          <component :is="getComponent(provider.name)" :value="specValue[provider.name]" :disabled="!provider.enabled" :mode="mode" />
+          <component :is="getComponent(provider.name)" :value="value.spec[provider.name]" :disabled="!provider.enabled" :mode="mode" />
         </Tab>
         <Tab
           v-if="!isView"
@@ -207,7 +207,6 @@ export default {
     }
 
     .toggle-gradient-box {
-      // height: $chart;
       margin: $margin;
       padding: $margin;
       position: relative;
@@ -243,9 +242,6 @@ export default {
 
       .logo {
         text-align: center;
-        // position: absolute;
-        // left: $side+$margin;
-        // top: ($chart - $logo)/2;
         width: $logo;
         height: $logo;
         border-radius: calc(2 * var(--border-radius));
@@ -275,19 +271,6 @@ export default {
         display: inline-block;
         vertical-align: middle;
       }
-
-      // .description {
-      //   margin-top: $margin;
-      //   margin-left: $side+$logo+$margin;
-      //   margin-right: $margin;
-      //   display: -webkit-box;
-      //   -webkit-box-orient: vertical;
-      //   -webkit-line-clamp: 3;
-      //   line-clamp: 3;
-      //   overflow: hidden;
-      //   text-overflow: ellipsis;
-      //   color: var(--text-muted);
-      // }
     }
   }
 }
