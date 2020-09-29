@@ -19,7 +19,7 @@ export function init(store) {
     SERVICEMONITOR,
     PODMONITOR,
     PROMETHEUSRULE,
-    PROMETHEUSE
+    PROMETHEUS
   } = MONITORING;
 
   product({
@@ -44,14 +44,13 @@ export function init(store) {
     PODMONITOR,
     PROMETHEUSRULE,
     ALERTMANAGER,
-    PROMETHEUSE
+    PROMETHEUS
   ]);
 
-  mapType(SERVICEMONITOR, 'Service Monitors');
-  mapType(PODMONITOR, 'Pod Monitors');
-  mapType(PROMETHEUSRULE, 'Prometheus Rules');
-  mapType(ALERTMANAGER, 'Alert Managers');
-  // mapType(PROMETHEUSE, 'Prometheis'); // pruh-mee-thee-eyes https://www.prometheus.io/docs/introduction/faq/#what-is-the-plural-of-prometheus
+  mapType(SERVICEMONITOR, store.getters['i18n/t'](`typeLabel.${ SERVICEMONITOR }`, { count: 2 }));
+  mapType(PODMONITOR, store.getters['i18n/t'](`typeLabel.${ PODMONITOR }`, { count: 2 }));
+  mapType(PROMETHEUSRULE, store.getters['i18n/t'](`typeLabel.${ PROMETHEUSRULE }`, { count: 2 }));
+  mapType(ALERTMANAGER, store.getters['i18n/t'](`typeLabel.${ ALERTMANAGER }`, { count: 2 }));
 
   weightType(SERVICEMONITOR, 104, true);
   weightType(PODMONITOR, 103, true);
@@ -76,7 +75,7 @@ export function init(store) {
     AGE
   ]);
 
-  headers(PROMETHEUSE, [
+  headers(PROMETHEUS, [
     STATE,
     NAME_COL,
     {

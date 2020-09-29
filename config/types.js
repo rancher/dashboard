@@ -77,7 +77,7 @@ export const CATALOG = {
 export const MONITORING = {
   ALERTMANAGER:   'monitoring.coreos.com.alertmanager',
   PODMONITOR:     'monitoring.coreos.com.podmonitor',
-  PROMETHEUSE:    'monitoring.coreos.com.prometheus',
+  PROMETHEUS:     'monitoring.coreos.com.prometheus',
   PROMETHEUSRULE: 'monitoring.coreos.com.prometheusrule',
   SERVICEMONITOR: 'monitoring.coreos.com.servicemonitor',
   THANOSRULER:    'monitoring.coreos.com.thanosruler',

@@ -1763,8 +1763,34 @@ typeLabel:
       one { Workspace }
       other { Workspaces }
     }
+  # pruh-mee-thee-eyes https://www.prometheus.io/docs/introduction/faq/#what-is-the-plural-of-prometheus
   monitoring.coreos.com.prometheus: |-
     {count, plural,
       one { Prometheus }
       other { Prometheis }
+    }
+  monitoring.coreos.com.servicemonitor: |-
+    {count, plural,
+      one { Service Monitor }
+      other { Service Monitors }
+    }
+  monitoring.coreos.com.alertmanager: |-
+    {count, plural,
+      one { Alert Manager }
+      other { Alert Managers }
+    }
+  monitoring.coreos.com.podmonitor: |-
+    {count, plural,
+      one { Pod Monitor }
+      other { Pod Monitors }
+    }
+  monitoring.coreos.com.prometheusrule: |-
+    {count, plural,
+      one { Prometheus Rule }
+      other { Prometheus Rules }
+    }
+  monitoring.coreos.com.thanosruler: |-
+    {count, plural,
+      one { Thanos Rule }
+      other { Thanos Rules }
     }
