@@ -71,7 +71,9 @@ export default {
 
     storageClassNames() {
       return this.storageClasses.reduce((total, each) => {
-        total.push(each.id);
+        if (each.reclaimPolicy === 'Retain') {
+          total.push(each.id);
+        }
 
         return total;
       }, []);
@@ -79,7 +81,7 @@ export default {
 
     unboundPVs() {
       return this.persistentVolumes.reduce((total, each) => {
-        if (each?.status?.phase !== 'bound') {
+        if (each?.status?.phase !== 'bound' && each?.spec?.persistentVolumeReclaimPolicy === 'Retain') {
           total.push(each.id);
         }
 
@@ -181,7 +183,9 @@ export default {
             <LabeledSelect
               :key="storageSource"
               v-model="value.persistence.storageClass"
-              :label="t('backupRestoreOperator.deployment.storage.storageClass')"
+              :label="t('backupRestoreOperator.deployment.storage.storageClass.label')"
+              :hover-tooltip="true"
+              :tooltip="t('backupRestoreOperator.deployment.storage.storageClass.tip')"
               :mode="mode"
               :options="storageClassNames"
             />
@@ -190,7 +194,9 @@ export default {
             <LabeledSelect
               :key="storageSource"
               v-model="value.persistence.volumeName"
-              :label="t('backupRestoreOperator.deployment.storage.persistentVolume')"
+              :label="t('backupRestoreOperator.deployment.storage.persistentVolume.label')"
+              :hover-tooltip="true"
+              :tooltip="t('backupRestoreOperator.deployment.storage.persistentVolume.tip')"
               :mode="mode"
               :options="unboundPVs"
             />

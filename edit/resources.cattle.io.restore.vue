@@ -12,6 +12,7 @@ import { mapGetters } from 'vuex';
 import { SECRET, BACKUP_RESTORE, CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { get } from '@/utils/object';
+import { _CREATE } from '@/config/query-params';
 export default {
 
   components: {
@@ -22,7 +23,7 @@ export default {
     S3,
     LabeledSelect,
     Loading,
-    RadioGroup
+    RadioGroup,
   },
 
   mixins: [createEditView],
@@ -77,18 +78,22 @@ export default {
   },
 
   computed: {
+    isClone() {
+      return this.mode === _CREATE && !!this.originalValue.id;
+    },
+
     availableBackups() {
       return this.allBackups.filter(backup => backup.state !== 'error');
     },
 
     chartNamespace() {
-      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'backup-restore-operator')[0];
+      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'rancher-backup')[0];
 
       return BRORelease ? BRORelease.spec.namespace : '';
     },
 
     encryptionSecretNames() {
-      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace).map(secret => secret.metadata.name);
+      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace && !secret.metadata?.state?.error).map(secret => secret.metadata.name);
     },
 
     isEncrypted() {
@@ -147,7 +152,7 @@ export default {
     },
 
     availableBackups(neu, old) {
-      if ((neu.length && !old.length) && this.mode === 'create') {
+      if ((neu.length && !old.length) && this.isClone) {
         this.storageSource = 'useBackup';
       }
     }
