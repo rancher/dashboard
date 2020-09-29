@@ -9,7 +9,6 @@ import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Loading from '@/components/Loading';
 import S3 from '@/chart/rancher-backup/S3';
-
 import { mapGetters } from 'vuex';
 import { SECRET, BACKUP_RESTORE, CATALOG } from '@/config/types';
 import { allHash } from '@/utils/promise';
@@ -27,7 +26,7 @@ export default {
     NameNsDescription,
     Banner,
     Loading,
-    S3
+    S3,
   },
   mixins: [createEditView],
 
@@ -92,13 +91,13 @@ export default {
     },
 
     chartNamespace() {
-      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'backup-restore-operator')[0];
+      const BRORelease = this.apps.filter(release => get(release, 'spec.name') === 'rancher-backup')[0];
 
       return BRORelease ? BRORelease.spec.namespace : '';
     },
 
     encryptionSecretNames() {
-      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace).map(secret => secret.metadata.name);
+      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace && !secret.metadata?.state?.error).map(secret => secret.metadata.name);
     },
 
     storageOptions() {
@@ -154,6 +153,12 @@ export default {
         delete this.value.spec.schedule;
         delete this.value.spec.retentionCount;
       }
+    },
+
+    useEncryption(neu) {
+      if (!neu) {
+        this.value.spec.encryptionConfigSecretName = '';
+      }
     }
   }
 };
@@ -200,7 +205,7 @@ export default {
                 />
               </div>
             </div>
-            <div v-if="useEncryption" class="row mt-10">
+            <div v-if="useEncryption" :style="{'align-items':'center'}" class="row mt-10">
               <div class="col span-6">
                 <LabeledSelect
                   v-model="value.spec.encryptionConfigSecretName"
