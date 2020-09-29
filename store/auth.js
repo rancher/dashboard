@@ -209,6 +209,7 @@ export const actions = {
 
           opt.encode = x => x;
           opt.sameSite = false;
+          opt.path = '/';
 
           this.$cookies.set(key, value, opt);
         }

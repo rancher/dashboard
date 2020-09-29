@@ -195,7 +195,10 @@ export const actions = {
     commit('load', { key, value });
 
     if ( definition.asCookie ) {
-      const opt = { ...cookieOptions, parseJSON: definition.parseJSON === true };
+      const opt = {
+        ...cookieOptions,
+        parseJSON: definition.parseJSON === true
+      };
 
       this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), value, opt);
     }
