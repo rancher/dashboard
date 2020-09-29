@@ -11,6 +11,8 @@ import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
 import FileSelector from '@/components/form/FileSelector';
+import { KUBERNETES } from '@/config/labels-annotations';
+import Banner from '@/components/Banner';
 import GenericResourceDetail from './Generic';
 
 // Components can't have asyncData, only pages.
@@ -159,7 +161,7 @@ export const watchQuery = [MODE, AS_YAML];
 
 export default {
   components: {
-    DetailTop, FileSelector, ResourceYaml, Masthead, GenericResourceDetail
+    Banner, DetailTop, FileSelector, ResourceYaml, Masthead, GenericResourceDetail
   },
   mixins: [CreateEditView],
 
@@ -262,6 +264,27 @@ export default {
 
       return null;
     },
+
+    showManagedWarning() {
+      const { value: model, mode } = this;
+      const managedLabel = model?.metadata?.labels ? model.metadata.labels[KUBERNETES.MANAGED_BY] : false;
+
+      if (mode === _EDIT && managedLabel && managedLabel.toLowerCase() === 'helm') {
+        return true;
+      }
+
+      return false;
+    },
+
+    managedWarningOptions() {
+      const { value } = this;
+
+      return {
+        type:      value?.kind || '',
+        managedBy: value?.metadata?.labels[KUBERNETES.MANAGED_BY] || '',
+        appName:   value?.metadata?.labels?.release || '',
+      };
+    },
   },
 
   watch: {
@@ -289,6 +312,11 @@ export default {
 
 <template>
   <div>
+    <Banner
+      v-if="showManagedWarning"
+      color="warning"
+      :label="t('resourceDetail.masthead.managedWarning', managedWarningOptions)"
+    />
     <Masthead
       :value="originalModel"
       :mode="mode"

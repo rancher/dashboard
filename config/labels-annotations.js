@@ -8,7 +8,8 @@ export const CONTAINER_DEFAULT_RESOURCE_LIMIT = 'field.cattle.io/containerDefaul
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
-  SERVICE_ACCOUNT_NAME: 'kubernetes.io/service-account.name'
+  SERVICE_ACCOUNT_NAME: 'kubernetes.io/service-account.name',
+  MANAGED_BY:           'app.kubernetes.io/managed-by',
 };
 
 export const RIO = { STACK: 'rio.cattle.io/stack' };

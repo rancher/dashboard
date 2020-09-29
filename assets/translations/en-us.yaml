@@ -940,6 +940,7 @@ resourceDetail:
     overview: Overview
     project: Project
     yaml: YAML
+    managedWarning: This {type} is managed by the {managedBy} app {appName}; changes made here will likely be overwritten the next time the app is changed.
 
 resourceList:
   head:
