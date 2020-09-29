@@ -1,6 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { WORKLOAD_TYPES } from '@/config/types';
+
 export default {
   props: {
     value: {
@@ -18,26 +19,16 @@ export default {
     }
   },
 
-  async fetch() {
-    if (Object.values(WORKLOAD_TYPES).includes(this.row.type)) {
-      const pods = await this.row.pods();
-
-      this.images = pods.reduce((images, pod) => {
-        const podImages = pod.spec.containers.reduce((all, container) => {
-          all.push(container.image);
-
-          return all;
-        }, []);
-
-        images.push(...podImages);
-
-        return images;
-      }, []);
-    }
-  },
-
   data() {
-    return { images: this.value };
+    let images = [];
+
+    if (Object.values(WORKLOAD_TYPES).includes(this.row.type)) {
+      images = this.row.imageNames;
+    } else {
+      images = this.value;
+    }
+
+    return { images };
   },
 
   computed: { ...mapGetters({ t: 'i18n/t' }) }
@@ -48,6 +39,6 @@ export default {
 <template>
   <span>
     <span>{{ images[0] }}</span><br>
-    <span v-if="images.length-1>0" class="plus-more">{{ t('generic.plusMore', {n:images.length-2}) }}</span>
+    <span v-if="images.length-1>0" class="plus-more">{{ t('generic.plusMore', {n:images.length-1}) }}</span>
   </span>
 </template>
