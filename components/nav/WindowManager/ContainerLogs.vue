@@ -442,7 +442,7 @@ export default {
         v-if="containerChoices.length > 0"
         v-model="container"
         :disabled="containerChoices.length === 1"
-        class="auto-width mini"
+        class="auto-width"
         :options="containerChoices"
         :searchable="false"
         :clearable="false"
@@ -460,8 +460,14 @@ export default {
       </button>
       <AsyncButton class="btn-sm" mode="download" @click="download" />
 
-      <div class="pull-right text-center ml-5 pr-10 pl-5" style="min-width: 80px; line-height: 34px;">
-        <t :class="{'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
+      <div
+        class="pull-right text-center ml-5"
+        style="min-width: 80px;>
+        <t :class="
+        {'text-error':
+        !isOpen}"
+        :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'"
+      />
       </div>
       <div class="pull-right ml-5">
         <input v-model="search" class="p-5" style="margin-top: 3px;" type="search" :placeholder="t('wm.containerLogs.search')" />
