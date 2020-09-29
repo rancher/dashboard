@@ -653,7 +653,6 @@ $spacing: 10px;
 
 .sortable-table {
   border-collapse: collapse;
-  font-size: 0.9em;
   min-width: 400px;
   border-radius: 5px 5px 0 0;
   overflow: hidden;
