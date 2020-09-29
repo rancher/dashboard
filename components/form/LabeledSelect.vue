@@ -283,7 +283,7 @@ export default {
 
       .vs__search {
         background-color: transparent;
-        padding: 22px 0 0 10px;
+        padding: 18px 0 0 10px;
       }
     }
 
