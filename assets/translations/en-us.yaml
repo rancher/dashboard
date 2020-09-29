@@ -587,8 +587,8 @@ internalExternalIP:
 
 istio:
   links:
-    label: test label
-    description: test description
+    label: Kiali
+    description: Visualization of services within a service mesh and how they are connected
   cni: Enabled CNI
   customOverlayFile:
     label: Custom Overlay File
