@@ -442,7 +442,7 @@ export default {
         v-if="containerChoices.length > 0"
         v-model="container"
         :disabled="containerChoices.length === 1"
-        class="auto-width inline mini"
+        class="auto-width mini"
         :options="containerChoices"
         :searchable="false"
         :clearable="false"

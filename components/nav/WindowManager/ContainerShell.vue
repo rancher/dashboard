@@ -266,7 +266,7 @@ export default {
         v-if="containerChoices.length > 0"
         v-model="container"
         :disabled="containerChoices.length === 1"
-        class="auto-width inline mini"
+        class="auto-width inline-block mini"
         :options="containerChoices"
         :searchable="false"
         :clearable="false"
@@ -309,5 +309,13 @@ export default {
     & > .terminal.focus {
       outline: var(--outline-width) solid var(--outline);
     }
+  }
+
+  .v-select.mini .vs__dropdown-toggle {
+    padding: 0;
+  }
+
+  .vs__selected {
+    padding: 0 5px;
   }
 </style>
