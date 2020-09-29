@@ -43,8 +43,10 @@ export const CATALOG = {
   _MANAGEMENT:      'management',
   _DOWNSTREAM:      'downstream',
 
-  COMPONENT:     'catalog.cattle.io/ui-component',
-  COLOR:        'catalog.cattle.io/ui-color',
+  COMPONENT:        'catalog.cattle.io/ui-component',
+  SOURCE_REPO_TYPE: 'catalog.cattle.io/ui-source-repo-type',
+  SOURCE_REPO_NAME: 'catalog.cattle.io/ui-source-repo',
+  COLOR:            'catalog.cattle.io/ui-color',
 };
 
 const CATTLE_REGEX = /cattle\.io\//;

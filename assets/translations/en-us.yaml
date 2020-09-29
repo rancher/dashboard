@@ -404,7 +404,7 @@ containerResourceLimit:
   requestsMemory: Memory Reservation
 
 cruResource:
-  backToForm: Back to form view?
+  backToForm: Back to Form
   backBody: You will lose any changes made to the YAML.
   cancelBody: You will lose any changes made to the YAML.
   confirmBack: "Okay"

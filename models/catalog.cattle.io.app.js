@@ -72,18 +72,20 @@ export default {
   details() {
     const t = this.$rootGetters['i18n/t'];
 
-    return [
-      {
-        label:     t('model."catalog.cattle.io.app".firstDeployed'),
-        formatter: 'LiveDate',
-        content:   this.spec?.info?.firstDeployed
-      },
-      {
-        label:     t('model."catalog.cattle.io.app".lastDeployed'),
-        formatter: 'LiveDate',
-        content:   this.spec?.info?.lastDeployed
-      },
-    ];
+    const first = this.spec?.info?.firstDeployed;
+    const last = this.spec?.info?.lastDeployed;
+
+    if ( first && last && first !== last ) {
+      return [
+        {
+          label:     t('model."catalog.cattle.io.app".lastDeployed'),
+          formatter: 'LiveDate',
+          content:   last,
+        },
+      ];
+    }
+
+    return [];
   },
 
   nameDisplay() {

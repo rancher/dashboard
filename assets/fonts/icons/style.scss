@@ -3,9 +3,9 @@
 @font-face {
   font-family: '#{$icomoon-font-family}';
   src:
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?7yy17b') format('truetype'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?7yy17b') format('woff'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?7yy17b##{$icomoon-font-family}') format('svg');
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?yh9v06') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?yh9v06') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?yh9v06##{$icomoon-font-family}') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -274,6 +274,16 @@
 .icon-github {
   &:before {
     content: $icon-github; 
+  }
+}
+.icon-backup-restore {
+  &:before {
+    content: $icon-backup-restore; 
+  }
+}
+.icon-cis {
+  &:before {
+    content: $icon-cis; 
   }
 }
 .icon-istio {

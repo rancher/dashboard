@@ -333,6 +333,11 @@ export default {
         background-color: var(--tabbed-container-bg);
         // box-shadow: 0 0 20px var(--shadow);
         // clip-path: polygon(-100% -100%, 100% -100%, 200% 100%, -100% 100%);
+
+        A {
+          color: var(--body-text);
+          text-decoration: none;
+        }
       }
     }
   }

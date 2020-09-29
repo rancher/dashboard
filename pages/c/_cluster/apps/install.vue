@@ -594,6 +594,10 @@ export default {
         version:     this.version.version,
         releaseName: form.metadata.name,
         description: form.metadata?.annotations?.[DESCRIPTION_ANNOTATION],
+        annotations: {
+          [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: this.chart.repoType,
+          [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: this.chart.repoName
+        },
         values,
       };
 
@@ -662,6 +666,10 @@ export default {
           releaseName: dependency.annotations[CATALOG_ANNOTATIONS.RELEASE_NAME] || dependency.name,
           projectId:   this.project,
           values:      this.addGlobalValuesTo({}),
+          annotations: {
+            [CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE]: dependency.repoType,
+            [CATALOG_ANNOTATIONS.SOURCE_REPO_NAME]: dependency.repoName
+          },
         });
       }
 

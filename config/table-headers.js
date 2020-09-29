@@ -182,7 +182,7 @@ export const AGE = {
   name:      'age',
   labelKey:  'tableHeaders.age',
   value:     'metadata.creationTimestamp',
-  sort:      'metadata.creationTimestamp',
+  sort:      'metadata.creationTimestamp:desc',
   search:    false,
   formatter: 'LiveDate',
   width:     75,
