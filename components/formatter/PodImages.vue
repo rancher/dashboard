@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import { WORKLOAD_TYPES } from '@/config/types';
-import { get } from '@/utils/object';
+
 export default {
   props: {
     value: {
