@@ -324,42 +324,16 @@ cluster:
       vmwarevsphere: vSphere
       zstack: ZStack
   provider:
-    aliyunengine:
-      label: Aliyun Kubernetes Container Service
-      shortLabel: Alibaba ACK
-    amazonelasticcontainerservice:
-      label: Amazon Elastic Container Service for Kubernetes
-      shortLabel: Amazon EKS
-    eks:
-      label: Amazon EKS
-      shortLabel: EKS
-    azurekubernetesservice:
-      label: Azure Container Service
-      shortLabel: Azure AKS
-    custom:
-      label: From existing nodes (Custom)
-      shortLabel: Custom
-    googlekubernetesengine:
-      label: Google Kubernetes Engine
-      shortLabel: Google GKE
-    huaweiengine:
-      label: Huawei Cloud Container Engine
-      shortLabel: Huawei CCE
-    imported:
-      label: Import an existing cluster
-      shortLabel: Imported
-    k3simport:
-      label: Rancher K3S
-      shortLabel: K3S
-    oracleokeengine:
-      label: Oracle Container Engine long
-      shortLabel: Oracle OKE
-    rancherkubernetesengine:
-      label: Rancher Kubernetes Engine
-      shortLabel: Custom
-    tencentengine:
-      label: Tencent Kubernetes Engine
-      shortLabel: Tencent TKE
+    aks: Azure AKS
+    docker: Docker
+    eks: Amazon EKS
+    gke: Google GKE
+    k3s: K3s
+    kubeAdmin: KubeADM
+    minikube: Minikube
+    other: Other
+    rke: RKE
+    rke2: RKE Government
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -731,18 +705,9 @@ monitoring:
       valueLabel: YAML Template
     title: Configure Alertmanager
   clusterType:
-    aks: Azure AKS
-    docker: Docker
-    eks: Amazon EKS
-    gke: Google GKE
-    k3s: K3s
-    kubeAdmin: KubeADM
     label: Cluster Type
-    minikube: Minikube
-    other: Other
     placeholder: Select cluster type
-    rke: RKE
-    rke2: RKE Government
+
   createDefaultRoles: Create Default Monitoring Cluster Roles
   grafana:
     storage:
