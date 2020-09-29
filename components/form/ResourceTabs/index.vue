@@ -52,8 +52,12 @@ export default {
   },
 
   computed: {
-    hasConditions() {
+    showConditions() {
       return !!this.value?.status?.conditions;
+    },
+
+    showEvents() {
+      return !this.$fetchState.pending && this.hasEvents && this.events.length;
     },
 
     hasCustomTabs() {
@@ -109,14 +113,14 @@ export default {
 </script>
 
 <template>
-  <Tabbed v-if="!isView || hasCustomTabs || hasConditions" v-bind="$attrs">
+  <Tabbed v-if="hasCustomTabs || showConditions || showEvents" v-bind="$attrs">
     <slot />
 
     <Tab v-if="hasConditions" :label="t('resourceTabs.tabs.conditions')" name="conditions">
       <Conditions :value="value" />
     </Tab>
 
-    <Tab v-if="!$fetchState.pending && hasEvents && events.length" :label="t('resourceTabs.tabs.events')" name="events">
+    <Tab v-if="showEvents" :label="t('resourceTabs.tabs.events')" name="events">
       <SortableTable
         :rows="events"
         :headers="eventHeaders"

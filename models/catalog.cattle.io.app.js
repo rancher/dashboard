@@ -2,6 +2,7 @@ import Vue from 'vue';
 import {
   NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW
 } from '@/config/query-params';
+import { CATALOG } from '@/config/labels-annotations';
 
 export default {
   showMasthead() {
@@ -36,8 +37,18 @@ export default {
   },
 
   matchingChart() {
-    const chartName = this.spec?.chart?.metadata?.name;
-    const match = this.$rootGetters['catalog/chart']({ chartName });
+    const chart = this.spec?.chart;
+
+    if ( !chart ) {
+      return;
+    }
+
+    const chartName = chart.metadata?.name;
+    const preferRepoType = chart.metadata?.annotations?.[CATALOG.SOURCE_REPO_TYPE];
+    const preferRepoName = chart.metadata?.annotations?.[CATALOG.SOURCE_REPO_NAME];
+    const match = this.$rootGetters['catalog/chart']({
+      chartName, preferRepoType, preferRepoName
+    });
 
     return match;
   },
@@ -72,18 +83,20 @@ export default {
   details() {
     const t = this.$rootGetters['i18n/t'];
 
-    return [
-      {
-        label:     t('model."catalog.cattle.io.app".firstDeployed'),
-        formatter: 'LiveDate',
-        content:   this.spec?.info?.firstDeployed
-      },
-      {
-        label:     t('model."catalog.cattle.io.app".lastDeployed'),
-        formatter: 'LiveDate',
-        content:   this.spec?.info?.lastDeployed
-      },
-    ];
+    const first = this.spec?.info?.firstDeployed;
+    const last = this.spec?.info?.lastDeployed;
+
+    if ( first && last && first !== last ) {
+      return [
+        {
+          label:     t('model."catalog.cattle.io.app".lastDeployed'),
+          formatter: 'LiveDate',
+          content:   last,
+        },
+      ];
+    }
+
+    return [];
   },
 
   nameDisplay() {

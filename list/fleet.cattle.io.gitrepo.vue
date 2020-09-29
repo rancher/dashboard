@@ -134,7 +134,9 @@ export default {
         url-key="spec.repo"
       />
       <template v-if="row.commitDisplay">
-        @ <Shortened long-value-key="status.commit" :row="row" :value="row.commitDisplay" />
+        <div class="text-muted">
+          <Shortened long-value-key="status.commit" :row="row" :value="row.commitDisplay" />
+        </div>
       </template>
     </template>
 

@@ -2,7 +2,7 @@ import {
   AGE,
   STATE,
   CHART,
-  NAMESPACE_NAME,
+  NAMESPACE,
   NAME as NAME_COL,
   RESOURCES,
 } from '@/config/table-headers';
@@ -54,7 +54,7 @@ export function init(store) {
   immutableType(CATALOG.APP);
   immutableType(CATALOG.OPERATION);
 
-  headers(CATALOG.APP, [STATE, NAMESPACE_NAME, CHART, RESOURCES, AGE]);
+  headers(CATALOG.APP, [STATE, NAME, NAMESPACE, CHART, RESOURCES, AGE]);
 
   const repoType = {
     name:     'type',
@@ -78,12 +78,13 @@ export function init(store) {
     dashIfEmpty: true,
   };
 
-  headers(CATALOG.REPO, [STATE, NAMESPACE_NAME, repoType, repoUrl, repoBranch, AGE]);
+  headers(CATALOG.REPO, [STATE, NAME_COL, NAMESPACE, repoType, repoUrl, repoBranch, AGE]);
   headers(CATALOG.CLUSTER_REPO, [STATE, NAME_COL, repoType, repoUrl, repoBranch, AGE]);
 
   headers(CATALOG.OPERATION, [
     STATE,
-    NAMESPACE_NAME,
+    NAME_COL,
+    NAMESPACE,
     {
       name:  'action',
       label: 'Action',

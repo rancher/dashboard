@@ -103,23 +103,6 @@ export const NAMESPACE = {
   sort:     'namespace',
 };
 
-export const NAMESPACE_NAME_UNLINKED = {
-  name:          'name',
-  labelKey:      'tableHeaders.namespaceNameUnlinked',
-  value:         'namespacedName',
-  sort:          ['namespacedNameSort'],
-  canBeVariable: true,
-};
-
-export const NAMESPACE_NAME = {
-  name:          'name',
-  labelKey:      'tableHeaders.namespaceName',
-  value:         'namespacedName',
-  sort:          ['namespacedNameSort'],
-  formatter:     'LinkDetail',
-  canBeVariable: true,
-};
-
 export const NODE = {
   name:      'node',
   labelKey:  'tableHeaders.node',
@@ -182,7 +165,7 @@ export const AGE = {
   name:      'age',
   labelKey:  'tableHeaders.age',
   value:     'metadata.creationTimestamp',
-  sort:      'metadata.creationTimestamp',
+  sort:      'metadata.creationTimestamp:desc',
   search:    false,
   formatter: 'LiveDate',
   width:     75,

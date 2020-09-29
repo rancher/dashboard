@@ -131,14 +131,14 @@ export default {
 
 <template>
   <nuxt-link v-if="options === 'internal' && href" :to="href">
-    <i v-if="beforeIconClass" :class="beforeIconClass" />
+    <i v-if="beforeIconClass" :class="beforeIconClass" style="position: relative; top: -2px;" />
     {{ label }}
-    <i v-if="afterIconClass" :class="afterIconClass" />
+    <i v-if="afterIconClass" :class="afterIconClass" style="position: relative; top: -2px;" />
   </nuxt-link>
   <a v-else-if="href" :href="href" :rel="rel" :target="target">
-    <i v-if="beforeIconClass" :class="beforeIconClass" />
+    <i v-if="beforeIconClass" :class="beforeIconClass" style="position: relative; top: -2px;" />
     {{ label }}
-    <i v-if="afterIconClass" :class="afterIconClass" />
+    <i v-if="afterIconClass" :class="afterIconClass" style="position: relative; top: -2px;" />
   </a>
   <span v-else>{{ label }}</span>
 </template>

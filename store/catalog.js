@@ -3,7 +3,7 @@ import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { addParams } from '@/utils/url';
 import { allHash, allHashSettled } from '@/utils/promise';
 import { clone } from '@/utils/object';
-import { findBy, addObject } from '@/utils/array';
+import { findBy, addObject, filterBy } from '@/utils/array';
 import { stringify } from '@/utils/error';
 
 const ALLOWED_CATEGORIES = [
@@ -73,14 +73,20 @@ export const getters = {
   },
 
   chart(state, getters) {
-    return ({ repoType, repoName, chartName }) => {
-      const chart = findBy(getters.charts, {
+    return ({ repoType, repoName, chartName, preferRepoType, preferRepoName }) => {
+      const matching = filterBy(getters.charts, {
         repoType, repoName, chartName
       });
 
-      if ( chart ) {
-        return clone(chart);
+      if ( !matching.length ) {
+        return;
       }
+
+      if ( preferRepoType && preferRepoName ) {
+        preferSameRepo(matching, preferRepoType, preferRepoName);
+      }
+
+      return clone(matching[0]);
     };
   },
 

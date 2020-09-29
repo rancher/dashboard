@@ -307,7 +307,7 @@ export default {
       />
     </div>
     <div class="spacer"></div>
-    <ResourceTabs v-model="value" :mode="mode" />
+    <ResourceTabs v-if="!isView" v-model="value" :mode="mode" />
 
     <Footer :mode="mode" :errors="errors" @save="saveSecret" @done="done" />
   </form>

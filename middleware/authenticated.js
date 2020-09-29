@@ -59,7 +59,10 @@ export default async function({
     try {
       const principals = await store.dispatch('rancher/findAll', {
         type: NORMAN.PRINCIPAL,
-        opt:  { url: '/v3/principals' }
+        opt:  {
+          url:                  '/v3/principals',
+          redirectUnauthorized: false,
+        }
       });
 
       const me = findBy(principals, 'me', true);
@@ -77,6 +80,8 @@ export default async function({
         if ( status === 401 ) {
           if ( process.env.dev ) {
             return redirect(302, '/auth/login');
+          } else if ( process.client ) {
+            window.location.href = '/login';
           } else {
             return redirect(302, '/login');
           }

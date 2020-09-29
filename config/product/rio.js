@@ -2,7 +2,7 @@ import { DSL } from '@/store/type-map';
 import { RIO } from '@/config/types';
 import {
   STATE,
-  NAME as NAME_COL, NAMESPACE_NAME,
+  NAME as NAME_COL, NAMESPACE,
   AGE, WEIGHT, SCALE,
   ENDPOINTS,
   MATCHES, DESTINATION,
@@ -36,7 +36,7 @@ export function init(store) {
 
   mapGroup(/^(.*\.)?(rio|gitwatcher)\.cattle\.io$/, 'Rio');
 
-  headers(RIO.EXTERNAL_SERVICE, [STATE, NAMESPACE_NAME, TARGET_KIND, TARGET, AGE]);
+  headers(RIO.EXTERNAL_SERVICE, [STATE, NAME_COL, NAMESPACE, TARGET_KIND, TARGET, AGE]);
   headers(RIO.PUBLIC_DOMAIN, [
     STATE,
     NAME_COL,
@@ -86,7 +86,7 @@ export function init(store) {
 
   headers(RIO.STACK, [
     STATE,
-    NAMESPACE_NAME,
+    NAME_COL, NAMESPACE,
     {
       name:  'repo',
       label: 'Repo',
@@ -104,7 +104,7 @@ export function init(store) {
 
   headers(RIO.ROUTER, [
     STATE,
-    NAMESPACE_NAME,
+    NAME_COL, NAMESPACE,
     MATCHES,
     DESTINATION,
     AGE
