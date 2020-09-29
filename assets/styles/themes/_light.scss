@@ -135,7 +135,7 @@ $selected: rgba($primary, .5);
   --popover-border             : var(--border);
   --popover-text               : var(--body-text);
   --popover-border-radius      : var(--border-radius);
-  --tooltip-bg                 : var(--tag-bg);
+  --tooltip-bg                 : #{lighten($primary, 35%)};
   --tooltip-border             : var(--tag-primary);
   --tooltip-text               : var(--tag-primary);
   --tooltip-bg-warning         : #{rgba($warning, 0.8)};
