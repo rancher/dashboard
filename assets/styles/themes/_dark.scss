@@ -109,7 +109,7 @@
   --popover-bg                 : var(--body-bg);
   --popover-border: var(--border);
   --popover-text: var(--body-text);
-  --tooltip-bg: #{$info};
+  --tooltip-bg: #{darken($primary, 30%)};
   --tooltip-border: var(--tag-primary);
   --tooltip-text: var(--body-text);
   --tooltip-text-warning: var(--body-text);

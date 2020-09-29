@@ -12,7 +12,10 @@ export function init(store) {
     yamlOnlyDetail,
   } = DSL(store, NAME);
 
-  product({ ifHaveGroup: /^(.*\.)?logging\.banzaicloud\.io$/ });
+  product({
+    ifHaveGroup: /^(.*\.)?logging\.banzaicloud\.io$/,
+    icon:        'logging',
+  });
 
   basicType([
     'logging-overview',
