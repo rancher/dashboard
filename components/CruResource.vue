@@ -356,6 +356,10 @@ export default {
   width: 100%;
 }
 
+.subtype-content {
+  width: 100%;
+}
+
 .subtype-banner {
   border-left: 5px solid var(--primary);
   border-radius: var(--border-radius);
@@ -409,7 +413,7 @@ export default {
   }
 
   &:not(.top) {
-    align-items: center;
+    align-items: top;
     flex-direction: row;
     justify-content: start;
     &:hover {
