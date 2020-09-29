@@ -1,7 +1,6 @@
 <script>
 import Loading from '@/components/Loading';
 import { mapGetters } from 'vuex';
-import capitalize from 'lodash/capitalize';
 import isEmpty from 'lodash/isEmpty';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
@@ -137,42 +136,14 @@ export default {
     ...mapGetters(['currentCluster']),
 
     displayProvider() {
-      const cluster = this.currentCluster;
-      const driver = cluster.status?.driver.toLowerCase();
-      const customShortLabel = this.$store.getters['i18n/t']('cluster.provider.rancherkubernetesengine.shortLabel');
+      const other = 'other';
+      let provider = this.currentCluster.status.provider || other;
 
-      if (driver && this.$store.getters['i18n/exists'](`cluster.provider.${ driver }.shortLabel`)) {
-        if (driver === 'rancherkubernetesengine') {
-          const pools = this.nodePools;
-          const firstNodePool = pools.find(pool => pool.spec.clusterName === cluster.id);
-
-          if (firstNodePool) {
-            const nodeTemplateId = firstNodePool?.spec?.nodeTemplateName;
-            const normalizedId = nodeTemplateId.split(':').join('/');
-            const nodeTemplate = this.nodeTemplates.find(nt => nt.id === normalizedId);
-            const nodeDriver = nodeTemplate?.spec?.driver || null;
-
-            if (nodeDriver) {
-              if (this.$store.getters['i18n/exists'](`cluster.nodeDriver.displayName.${ nodeDriver.toLowerCase() }`)) {
-                return this.$store.getters['i18n/t'](`cluster.nodeDriver.displayName.${ nodeDriver.toLowerCase() }`);
-              } else if (nodeTemplate?.spec?.diver) {
-                return capitalize( nodeTemplate.spec.driver );
-              }
-
-              return customShortLabel;
-            } else {
-              // things are not good if we get here
-              return customShortLabel;
-            }
-          }
-        }
-
-        return this.$store.getters['i18n/t'](`cluster.provider.${ driver }.shortLabel`);
-      } else if (driver) {
-        return capitalize(driver);
-      } else {
-        return this.$store.getters['i18n/t']('cluster.provider.imported.shortLabel');
+      if (!this.$store.getters['i18n/exists'](`cluster.provider.${ provider }`)) {
+        provider = 'other';
       }
+
+      return this.t(`cluster.provider.${ provider }`);
     },
 
     accessibleResources() {

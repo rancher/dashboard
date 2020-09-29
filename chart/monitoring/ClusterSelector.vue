@@ -23,31 +23,31 @@ const CLUSTER_TYPES = [
   {
     group:      'managed',
     id:         'aks',
-    label:      'monitoring.clusterType.aks',
+    label:      'cluster.provider.aks',
     configKeys: MANAGED_CONFIG_KEYS,
   },
   {
     group:      'managed',
     id:         'eks',
-    label:      'monitoring.clusterType.eks',
+    label:      'cluster.provider.eks',
     configKeys: MANAGED_CONFIG_KEYS,
   },
   {
     group:      'managed',
     id:         'gke',
-    label:      'monitoring.clusterType.gke',
+    label:      'cluster.provider.gke',
     configKeys: MANAGED_CONFIG_KEYS,
   },
   {
     group:      'k3s',
     id:         'k3s',
-    label:      'monitoring.clusterType.k3s',
+    label:      'cluster.provider.k3s',
     configKeys: ['k3sControllerManager', 'k3sScheduler', 'k3sProxy'],
   },
   {
     group:      'kubeadm',
     id:         'kubeadm',
-    label:      'monitoring.clusterType.kubeAdmin',
+    label:      'cluster.provider.kubeAdmin',
     configKeys: [
       'kubeAdmControllerManager',
       'kubeAdmScheduler',
@@ -58,19 +58,19 @@ const CLUSTER_TYPES = [
   {
     group:      'other',
     id:         'other',
-    label:      'monitoring.clusterType.other',
+    label:      'cluster.provider.other',
     configKeys: OTHER_CONFIG_KEYS,
   },
   {
     group:      'rke',
     id:         'rke',
-    label:      'monitoring.clusterType.rke',
+    label:      'cluster.provider.rke',
     configKeys: ['rkeControllerManager', 'rkeScheduler', 'rkeProxy', 'rkeEtcd'],
   },
   {
     group:      'rke',
     id:         'rke2', // rke federal
-    label:      'monitoring.clusterType.rke2',
+    label:      'cluster.provider.rke2',
     configKeys: [
       'rke2ControllerManager',
       'rke2Scheduler',
