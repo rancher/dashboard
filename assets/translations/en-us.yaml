@@ -586,6 +586,9 @@ internalExternalIP:
   none: None
 
 istio:
+  links:
+    label: test label
+    description: test description
   cni: Enabled CNI
   customOverlayFile:
     label: Custom Overlay File
