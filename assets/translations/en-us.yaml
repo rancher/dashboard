@@ -706,22 +706,25 @@ monitoring:
     config:
       label: Alert Manager Cofig
     enable:
-      label: Deploy AlertManager
+      label: Deploy Alertmanager
     secrets:
       additional:
         label: Additional Secrets
         info: "Secrets should be mounted at <pre class='inline-block m-0'>/etc/alertmanager/secrets/</pre>"
       existing: Choose an existing config secret
-      info: "Creating the config will result in a new secret named <pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre> in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace. This secret can be edited after the installation of the chart via the UI. <br />Selecting an existing secret will require the secret to exist in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace. The provided secret will also require the label <pre class='inline-block m-0'>alertmanager_config: '1'</pre>. If the namespace does not exist you can not select a existing secret."
-      label: AlertManager Secret
-      new: "Create a default config"
+      info: |+
+        <span class="text-bold">Create default config</span>: A Secret containing your Alertmanager Config will be created in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace on deploying this chart under the name <pre class='inline-block m-0'>alertmanager-rancher-monitoring-alertmanager</pre>. By default, this Secret will never be modified on an uninstall or upgrade of this chart. <br />
+        Once you have deployed this chart, you should edit the Secret via the UI in order to add your custom notification configurations that will be used by Alertmanager to send alerts. <br /> <br />
+        <span class="text-bold">Choose an existing config secret</span>: You must specify a Secret that exists in the <pre class='inline-block m-0'>cattle-monitoring-system</pre> namespace. If the namespace does not exist, you will not be able to select an existing secret.
+      label: Alertmanager Secret
+      new: Create default config
       radio:
         label: Config Secret
     templates:
       keyLabel: File Name
       label: Template Files
       valueLabel: YAML Template
-    title: Alerting
+    title: Configure Alertmanager
   clusterType:
     aks: Azure AKS
     docker: Docker
@@ -754,13 +757,13 @@ monitoring:
         template: Enable with PVC Template
       volumeMode: Volume Mode
       volumeName: Volume Name
-    title: Grafana Config
+    title: Configure Grafana
   overview:
     title: Overview
     subtitle: "Powered By: <a href='https://github.com/coreos/prometheus-operator' target='_blank' rel='noopener nofollow' >Prometheus</a>"
     linkedList:
       alertManager:
-        label: 'AlertManager'
+        label: 'Alertmanager'
         description: 'Active Alerts'
       grafana:
         label: 'Grafana'
@@ -788,6 +791,7 @@ monitoring:
         memory: Requested Memory
       retention: Retention
       retentionSize: Retention Size
+      resourceLimits: Resource Limits
       scrape: Scrape Interval
     storage:
       className: Storage Class Name
@@ -797,7 +801,7 @@ monitoring:
       size: Size
       volumeMode: Volume Mode
       volumeName: Volume Name
-    title: Prometheus Config
+    title: Configure Prometheus
     warningInstalled: |+
       Warning: Prometheus Operators are currently deployed. Deploying multiple Prometheus Operators onto one cluster is not currently supported. Please remove all other Prometheus Operator deployments from this cluster before trying to install this chart.
       If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install this chart.

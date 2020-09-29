@@ -9,37 +9,43 @@ const MANAGED_CONFIG_KEYS = [
   'kubeControllerManager',
   'kubeScheduler',
   'kubeEtcd',
+  'kubeProxy',
 ];
 
-const OTHER_CONFIG_KEYS = ['kubeControllerManager', 'kubeScheduler', 'kubeEtcd'];
+const OTHER_CONFIG_KEYS = [
+  'kubeControllerManager',
+  'kubeScheduler',
+  'kubeEtcd',
+  'kubeProxy',
+];
 
 const CLUSTER_TYPES = [
   {
+    group:      'managed',
     id:         'aks',
     label:      'monitoring.clusterType.aks',
     configKeys: MANAGED_CONFIG_KEYS,
   },
   {
-    id:         'docker',
-    label:      'monitoring.clusterType.docker',
-    configKeys: OTHER_CONFIG_KEYS,
-  },
-  {
+    group:      'managed',
     id:         'eks',
     label:      'monitoring.clusterType.eks',
     configKeys: MANAGED_CONFIG_KEYS,
   },
   {
+    group:      'managed',
     id:         'gke',
     label:      'monitoring.clusterType.gke',
     configKeys: MANAGED_CONFIG_KEYS,
   },
   {
+    group:      'k3s',
     id:         'k3s',
     label:      'monitoring.clusterType.k3s',
     configKeys: ['k3sControllerManager', 'k3sScheduler', 'k3sProxy'],
   },
   {
+    group:      'kubeadm',
     id:         'kubeadm',
     label:      'monitoring.clusterType.kubeAdmin',
     configKeys: [
@@ -50,24 +56,27 @@ const CLUSTER_TYPES = [
     ],
   },
   {
-    id:         'minikube',
-    label:      'monitoring.clusterType.minikube',
-    configKeys: OTHER_CONFIG_KEYS,
-  },
-  {
+    group:      'other',
     id:         'other',
     label:      'monitoring.clusterType.other',
     configKeys: OTHER_CONFIG_KEYS,
   },
   {
+    group:      'rke',
     id:         'rke',
     label:      'monitoring.clusterType.rke',
     configKeys: ['rkeControllerManager', 'rkeScheduler', 'rkeProxy', 'rkeEtcd'],
   },
   {
+    group:      'rke',
     id:         'rke2', // rke federal
     label:      'monitoring.clusterType.rke2',
-    configKeys: ['rke2ControllerManager', 'rke2Scheduler', 'rke2Proxy', 'rke2Etcd'],
+    configKeys: [
+      'rke2ControllerManager',
+      'rke2Scheduler',
+      'rke2Proxy',
+      'rke2Etcd',
+    ],
   },
 ];
 
@@ -93,7 +102,7 @@ export default {
     ...mapGetters(['currentCluster']),
     provider() {
       return this.currentCluster.status.provider.toLowerCase();
-    }
+    },
   },
 
   watch: {
@@ -107,24 +116,49 @@ export default {
         return;
       }
 
-      const managedKeys = ['aks', 'gke', 'eks'];
-
       if (!isEmpty(oldClusterType)) {
-        const { configKeys: oldConfigKeys } = findBy(this.clusterTypes, 'id', oldClusterType.id);
+        const { configKeys: oldConfigKeys } = findBy(
+          this.clusterTypes,
+          'id',
+          oldClusterType.id
+        );
 
-        this.setClusterTypeEnabledValues([oldConfigKeys, false]);
+        if (oldClusterType.group === 'managed') {
+          if (oldClusterType.id === 'gke') {
+            this.$set(this.value.coreDns, 'enabled', true);
+            this.$set(this.value.kubeDns, 'enabled', false);
+          }
 
-        if (managedKeys.includes(oldClusterType.id)) {
-          this.$set(this.value['prometheusOperator'], 'hostNetwork', false);
+          this.$set(this.value.prometheusOperator, 'hostNetwork', false);
+        } else if (oldClusterType.group !== 'other') { // old cluster type only sets some values to false, if they need to be reset true it will happen below
+          this.setClusterTypeEnabledValues([oldConfigKeys, false]);
+        }
+
+        if (oldClusterType.group === 'k3s') {
+          this.$set(this.value.prometheus.prometheusSpec.resources.limits, 'memory', '1500Mi');
+          this.$set(this.value.prometheus.prometheusSpec.resources.requests, 'memory', '750Mi');
         }
       }
 
       const { configKeys } = findBy(this.clusterTypes, 'id', clusterType.id);
 
-      this.setClusterTypeEnabledValues([configKeys, true]);
+      if (clusterType.group === 'other') {
+        this.setClusterTypeEnabledValues([configKeys, false]);
+      } else if (clusterType.group === 'managed') {
+        this.setClusterTypeEnabledValues([configKeys, false]);
+        this.$set(this.value.prometheusOperator, 'hostNetwork', true);
 
-      if (managedKeys.includes(clusterType.id)) {
-        this.$set(this.value['prometheusOperator'], 'hostNetwork', true);
+        if (clusterType.id === 'gke') {
+          this.$set(this.value.coreDns, 'enabled', false);
+          this.$set(this.value.kubeDns, 'enabled', true);
+        }
+      } else {
+        this.setClusterTypeEnabledValues([configKeys, true]);
+      }
+
+      if (clusterType.group === 'k3s') {
+        this.$set(this.value.prometheus.prometheusSpec.resources.limits, 'memory', '2500Mi');
+        this.$set(this.value.prometheus.prometheusSpec.resources.requests, 'memory', '1750Mi');
       }
     },
   },

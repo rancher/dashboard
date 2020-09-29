@@ -4,19 +4,22 @@ import { mapGetters } from 'vuex';
 
 import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
-import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import MatchExpressions from '@/components/form/MatchExpressions';
 import StorageClassSelector from '@/chart/monitoring/StorageClassSelector';
+
+import { set } from '@/utils/object';
+import { simplify } from '@/utils/selector';
 import { POD } from '@/config/types';
 
 export default {
   components: {
     Banner,
     Checkbox,
-    KeyValue,
     LabeledInput,
     LabeledSelect,
+    MatchExpressions,
     StorageClassSelector,
   },
 
@@ -132,7 +135,14 @@ export default {
         this.$set(
           this.value.prometheus.prometheusSpec.storageSpec,
           'volumeClaimTemplate',
-          { spec: { resources: { requests: { storage: '50Gi' } } } }
+          {
+            spec: {
+              accessModes: ['ReadWriteOnce'],
+              resources:   { requests: { storage: '50Gi' } },
+              selector:    { matchExpressions: [], matchLabels: {} },
+              volumeMode:  'Filesystem',
+            }
+          }
         );
       } else {
         this.$delete(
@@ -140,6 +150,17 @@ export default {
           'volumeClaimTemplate'
         );
       }
+    },
+  },
+
+  methods: {
+    set,
+
+    matchChanged(expressions) {
+      const { matchLabels, matchExpressions } = simplify(expressions);
+
+      this.$set(this.value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.selector, 'matchLabels', matchLabels);
+      this.$set(this.value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.selector, 'matchExpressions', matchExpressions);
     },
   },
 };
@@ -199,6 +220,11 @@ export default {
         </div>
       </div>
       <div class="row">
+        <div class="col span-12 mt-5">
+          <label class="text-label mb-0">{{ t('monitoring.prometheus.config.resourceLimits') }}</label>
+        </div>
+      </div>
+      <div class="row">
         <div class="col span-6">
           <LabeledInput
             v-model="value.prometheus.prometheusSpec.resources.requests.cpu"
@@ -250,12 +276,14 @@ export default {
               :label="t('monitoring.prometheus.storage.mode')"
               :localized-label="true"
               :mode="mode"
+              :multiple="true"
               :options="accessModes"
               :reduce="({id})=> id"
             />
           </div>
           <div class="col span-6">
             <StorageClassSelector
+              :v-if="storageClasses.length > 0"
               :mode="mode"
               :options="storageClasses"
               :value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
@@ -275,27 +303,19 @@ export default {
               :reduce="({id})=> id"
             />
           </div>
-          <div class="col span-6">
-            <LabeledInput
-              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.volumeName"
-              :label="t('monitoring.prometheus.storage.volumeName')"
-              :mode="mode"
-            />
-          </div>
-        </div>
-        <div class="row">
         </div>
         <div class="row">
           <div class="col span-12">
             <div class="mb-5 mt-5">
               <label class="text-label mb-10">{{ t('monitoring.prometheus.storage.selector') }}</label>
             </div>
-            <KeyValue
-              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.selector"
+            <MatchExpressions
+              :initial-empty-row="mode !== 'view'"
               :mode="mode"
-              :pad-left="false"
-              :protip="false"
-              :read-allowed="false"
+              type=""
+              :value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.selector.matchExpressions"
+              :show-remove="false"
+              @input="matchChanged($event)"
             />
           </div>
         </div>

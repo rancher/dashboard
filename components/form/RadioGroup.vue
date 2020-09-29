@@ -104,7 +104,7 @@ export default {
 <template>
   <div>
     <div v-if="label" class="radio-group label">
-      <span class="text-label">
+      <span class="text-label inline-block">
         {{ label }}
       </span>
       <span class="corner">
