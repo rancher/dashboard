@@ -268,6 +268,10 @@ export default {
     asYamlInit(neu) {
       this.asYaml = neu;
     },
+
+    realMode(neu) {
+      this.asYaml = (this.$route.query[AS_YAML] === _FLAGGED) || (neu !== _VIEW && !this.hasCustomEdit);
+    }
   },
 
   methods: {

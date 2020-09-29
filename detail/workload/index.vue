@@ -13,6 +13,7 @@ import HealthCheck from '@/components/form/HealthCheck';
 import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/components/form/Networking';
+import Loading from '@/components/Loading';
 import Job from '@/edit/workload/Job';
 import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
 
@@ -32,7 +33,8 @@ export default {
     Job,
     Tabbed,
     Tab,
-    VolumeClaimTemplate
+    VolumeClaimTemplate,
+    Loading
   },
 
   mixins: [createEditView],
@@ -51,21 +53,12 @@ export default {
   },
 
   async fetch() {
-    let pods;
-
-    const { metadata:{ relationships = [] } } = this.value;
-    const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
-
-    if (podRelationship) {
-      pods = await this.$store.dispatch('cluster/findMatching', { type: POD, selector: podRelationship.selector });
-    }
+    const pods = await this.value.pods();
 
     this.pods = pods;
   },
 
   data() {
-    const podHeaders = [STATE, NAME, POD_IMAGES, NODE];
-
     const isCronJob = this.value.type === WORKLOAD_TYPES.CRON_JOB;
 
     const podTemplateSpec = isCronJob ? this.value.spec.jobTemplate.spec.template.spec : this.value.spec?.template?.spec;
@@ -80,8 +73,7 @@ export default {
       type:           this.value.type,
       podSchema,
       name,
-      podHeaders,
-      pods:           [],
+      pods:           null,
       container,
       podTemplateSpec
     };
@@ -104,6 +96,15 @@ export default {
       }, 0);
     },
 
+    podHeaders() {
+      return this.pods ? [
+        STATE,
+        NAME,
+        NODE,
+        POD_IMAGES
+      ] : null;
+    },
+
     isJob() {
       return this.type === WORKLOAD_TYPES.JOB;
     },
@@ -122,7 +123,8 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <Tabbed :side-tabs="true">
       <Tab :label="t('workload.container.titles.ports')" name="ports">
         <WorkloadPorts :value="container.ports" mode="view" />
@@ -162,6 +164,7 @@ export default {
           :rows="pods"
           :headers="podHeaders"
           key-field="id"
+          :table-actions="false"
           :schema="podSchema"
           :show-groups="false"
         />
