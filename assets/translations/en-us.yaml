@@ -764,7 +764,7 @@ monitoring:
       volumeName: Volume Name
     title: Configure Grafana
   overview:
-    title: Overview
+    title: Dashboard
     subtitle: "Powered By: <a href='https://github.com/coreos/prometheus-operator' target='_blank' rel='noopener nofollow' >Prometheus</a>"
     linkedList:
       alertManager:
@@ -775,13 +775,13 @@ monitoring:
         description: 'Metrics Dashboards'
       na: Resource Unavailable
       prometheusPromQl:
-        label: 'Prometheus'
+        label: 'Prometheus Graph'
         description: 'PromQL Graph'
       prometheusRules:
-        label: 'Prometheus'
+        label: 'Prometheus Rules'
         description: 'Configured Rules'
       prometheusTargets:
-        label: 'Prometheus'
+        label: 'Prometheus Targets'
         description: 'Configured Targets'
     warning: Monitoring V1 is currently deployed. If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install the new Rancher Monitoring chart.
   prometheus:
@@ -1170,6 +1170,7 @@ tableHeaders:
   ready: Ready
   reason: Reason
   repo: Repo
+  replicas: Replicas
   reqRate: Req Rate
   resource: Resource
   resources: Resources
@@ -1766,4 +1767,35 @@ typeLabel:
     {count, plural,
       one { Workspace }
       other { Workspaces }
+    }
+  # pruh-mee-thee-eyes https://www.prometheus.io/docs/introduction/faq/#what-is-the-plural-of-prometheus
+  monitoring.coreos.com.prometheus: |-
+    {count, plural,
+      one { Prometheus }
+      other { Prometheis }
+    }
+  monitoring.coreos.com.servicemonitor: |-
+    {count, plural,
+      one { Service Monitor }
+      other { Service Monitors }
+    }
+  monitoring.coreos.com.alertmanager: |-
+    {count, plural,
+      one { Alert Manager }
+      other { Alert Managers }
+    }
+  monitoring.coreos.com.podmonitor: |-
+    {count, plural,
+      one { Pod Monitor }
+      other { Pod Monitors }
+    }
+  monitoring.coreos.com.prometheusrule: |-
+    {count, plural,
+      one { Prometheus Rule }
+      other { Prometheus Rules }
+    }
+  monitoring.coreos.com.thanosruler: |-
+    {count, plural,
+      one { Thanos Rule }
+      other { Thanos Rules }
     }
