@@ -158,7 +158,7 @@ backupRestoreOperator:
   encryption: Encryption
   encryptionConfigName:
     label: Encryption Config Secret
-    backuptip: Any secret that has an <code>encryption-provider-config.yaml</code> key.
+    backuptip: Any secret in the <code>cattle-resource-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key.
     restoretip: If the backup was performed with encryption enabled, a secret containing the same encryption-provider-config should be used during restore.
     options:
       none: Store the contents of the backup unencrypted
