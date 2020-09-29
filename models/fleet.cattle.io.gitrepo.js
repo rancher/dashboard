@@ -5,6 +5,14 @@ import { FLEET } from '@/config/types';
 import { addObjects, findBy } from '@/utils/array';
 import { set } from '@/utils/object';
 
+function quacksLikeAHash(str) {
+  if ( str.match(/^[a-f0-9]{40,}$/i) ) {
+    return true;
+  }
+
+  return false;
+}
+
 export default {
   applyDefaults() {
     return () => {
@@ -84,7 +92,7 @@ export default {
 
   repoIcon() {
     if ( this.github ) {
-      return 'icon icon-github icon-lg';
+      return 'icon icon-github';
     }
   },
 
@@ -103,7 +111,22 @@ export default {
   },
 
   commitDisplay() {
-    return this.status?.commit?.substr(0, 7);
+    const spec = this.spec;
+    const hash = this.status?.commit?.substr(0, 7);
+
+    if ( !spec || !spec.repo ) {
+      return;
+    }
+
+    if ( spec.revision && quacksLikeAHash(spec.revision) ) {
+      return spec.revision.substr(0, 7);
+    } else if ( spec.revision ) {
+      return spec.revision;
+    } else if ( spec.branch ) {
+      return spec.branch + (hash ? ` @ ${ hash }` : '');
+    }
+
+    return hash;
   },
 
   targetInfo() {
