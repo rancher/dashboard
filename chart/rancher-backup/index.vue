@@ -57,36 +57,25 @@ export default {
 
   data() {
     return {
-      storageSource:     null,
       secrets:           [],
       storageClasses:    [],
-      persistentVolumes: []
+      persistentVolumes: [],
+      storageSource:     null,
+      storageClass:      '',
+      persistentVolume:  '',
+      reclaimWarning:    false
     };
   },
 
   computed: {
     defaultStorageClass() {
-      return this.storageClasses.filter(sc => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS])[0];
-    },
-
-    storageClassNames() {
-      return this.storageClasses.reduce((total, each) => {
-        if (each.reclaimPolicy === 'Retain') {
-          total.push(each.id);
-        }
-
-        return total;
-      }, []);
+      return this.storageClasses.filter(sc => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] && sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] !== 'false' )[0] || '';
     },
 
     unboundPVs() {
-      return this.persistentVolumes.reduce((total, each) => {
-        if (each?.status?.phase !== 'bound' && each?.spec?.persistentVolumeReclaimPolicy === 'Retain') {
-          total.push(each.id);
-        }
-
-        return total;
-      }, []);
+      return this.persistentVolumes.filter((total, each) => {
+        return each?.status?.phase !== 'bound';
+      });
     },
 
     radioOptions() {
@@ -98,11 +87,6 @@ export default {
         this.t('backupRestoreOperator.deployment.storage.options.pickPV'),
       ];
 
-      if (this.defaultStorageClass) {
-        options.splice(1, 0, 'defaultSC');
-        labels.splice(1, 0, this.t('backupRestoreOperator.deployment.storage.options.defaultStorageClass', { name: this.defaultStorageClass.name }));
-      }
-
       return { options, labels };
     },
 
@@ -112,32 +96,50 @@ export default {
 
   watch: {
     storageSource(neu) {
+      this.reclaimWarning = false;
       switch (neu) {
-      case 'defaultSC':
-        this.value.persistence.enabled = true;
-        this.value.s3.enabled = false;
-        this.value.persistence.storageClass = this.defaultStorageClass.id;
-        break;
       case 'pickSC':
         this.value.persistence.enabled = true;
-        delete this.value.persistence.volumeName;
         this.value.s3.enabled = false;
+        if (!this.value.persistence.storageClass || this.value.persistence.storageClass === '-' ) {
+          this.value.persistence.storageClass = this.defaultStorageClass?.id;
+          this.storageClass = this.defaultStorageClass;
+        }
+        delete this.value.persistence.volumeName;
         break;
       case 'pickPV':
         this.value.persistence.enabled = true;
-        this.value.persistence.storageClass = '-';
         this.value.s3.enabled = false;
+        this.value.persistence.storageClass = '-';
         break;
       case 's3':
         this.value.persistence.enabled = false;
         this.value.s3.enabled = true;
         break;
       default:
-        this.value.s3.enabled = false;
         this.value.persistence.enabled = false;
+        this.value.s3.enabled = false;
         break;
       }
-    }
+    },
+
+    storageClass(neu = {}) {
+      this.value.persistence.storageClass = neu.id;
+      if (neu.reclaimPolicy === 'Delete') {
+        this.reclaimWarning = true;
+      } else {
+        this.reclaimWarning = false;
+      }
+    },
+
+    persistentVolume(neu) {
+      this.value.persistence.volumeName = neu.metadata.name;
+      if (neu.spec?.persistentVolumeReclaimPolicy === 'Delete') {
+        this.reclaimWarning = true;
+      } else {
+        this.reclaimWarning = false;
+      }
+    },
   },
 
   methods: {
@@ -146,10 +148,6 @@ export default {
         return 's3';
       } if (get(this.value, 'persistence.enabled')) {
         if (this.value.persistence.storageClass) {
-          if (this.value.persistence.storageClass === this.defaultStorageClass.metadata.name) {
-            return 'defaultSC';
-          }
-
           return 'pickSC';
         }
         if (this.value.persistence.volumeName) {
@@ -160,7 +158,7 @@ export default {
       return 'none';
     }
   },
-
+  get
 };
 </script>
 
@@ -182,23 +180,27 @@ export default {
           <div v-if="storageSource === 'pickSC'" class="col span-6">
             <LabeledSelect
               :key="storageSource"
-              v-model="value.persistence.storageClass"
+              v-model="storageClass"
+              :get-option-label="opt => opt.id || opt"
               :label="t('backupRestoreOperator.deployment.storage.storageClass.label')"
-              :hover-tooltip="true"
-              :tooltip="t('backupRestoreOperator.deployment.storage.storageClass.tip')"
+              :tooltip="reclaimWarning ? t('backupRestoreOperator.deployment.storage.warning', {type: 'Storage Class'}) : null"
               :mode="mode"
-              :options="storageClassNames"
+              :status="reclaimWarning ? 'warning' : null"
+              :options="storageClasses"
+              :hover-tooltip="true"
             />
           </div>
           <div v-else-if="storageSource === 'pickPV'" class="col span-6">
             <LabeledSelect
               :key="storageSource"
-              v-model="value.persistence.volumeName"
+              v-model="persistentVolume"
+              :get-option-label="opt => opt.id || opt"
               :label="t('backupRestoreOperator.deployment.storage.persistentVolume.label')"
-              :hover-tooltip="true"
-              :tooltip="t('backupRestoreOperator.deployment.storage.persistentVolume.tip')"
+              :tooltip="reclaimWarning ? t('backupRestoreOperator.deployment.storage.warning', {type: 'Persistent Volume'}) : null"
               :mode="mode"
+              :status="reclaimWarning ? 'warning' : null"
               :options="unboundPVs"
+              :hover-tooltip="true"
             />
           </div>
           <div v-if="storageSource!=='none'" class="col span-6">

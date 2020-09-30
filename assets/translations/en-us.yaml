@@ -144,10 +144,8 @@ backupRestoreOperator:
       tip: Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.
       storageClass: 
         label: Storage Class
-        tip: Use a storage class with a <code>Retain</code> reclaim polciy to avoid losing backups.
       persistentVolume: 
         label: Persistent Volume
-        tip: Use a persistent volume with a <code>Retain</code> reclaim polciy to avoid losing backups.
       label: Default Storage Location
       options:
         none: No default storage location
@@ -155,6 +153,7 @@ backupRestoreOperator:
         defaultStorageClass: 'Use the default storage class ({name})'
         pickSC: Use an existing storage class
         pickPV: Use an existing persistent volume
+      warning: This {type} does not have its reclaim policy set to "Retain".  Your backups may be lost if the volume is changed or becomes unbound.
     size: Size
   prune:
     label: Prune
@@ -162,7 +161,7 @@ backupRestoreOperator:
   encryption: Encryption
   encryptionConfigName:
     label: Encryption Config Secret
-    backuptip: Any secret in the <code>cattle-resource-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/> <strong>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.</strong>
+    backuptip: Any secret in the <code>cattle-resource-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.
     restoretip: If the backup was performed with encryption enabled, a secret containing the same encryption-provider-config should be used during restore.
     options:
       none: Store the contents of the backup unencrypted
