@@ -67,7 +67,7 @@ export const CLUSTER_FLOW = {
 };
 
 export const OUTPUT = {
-  name:          'output',
+  name:          'localOutputRefs',
   labelKey:      'tableHeaders.output',
   value:         'outputs',
   sort:          'outputs.text',
@@ -85,6 +85,8 @@ export const CONFIGURED_PROVIDERS = {
 
 export const CLUSTER_OUTPUT = {
   ...OUTPUT,
+  name:     'globalOutputRefs',
+  value:    'clusterOutputs',
   labelKey: 'tableHeaders.clusterOutput',
 };
 

@@ -45,19 +45,24 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
+    const hasAccessToClusterOutputs = this.$store.getters[`cluster/schemaFor`](LOGGING.CLUSTER_OUTPUT);
+    const hasAccessToNodes = this.$store.getters[`cluster/schemaFor`](NODE);
+    const hasAccessToPods = this.$store.getters[`cluster/schemaFor`](POD);
     const isFlow = this.value.type === LOGGING.FLOW;
-    const allOutputs = isFlow ? this.$store.dispatch('cluster/findAll', { type: LOGGING.OUTPUT }) : Promise.resolve([]);
-    const allClusterOutputs = this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT });
+
+    const getAllOrDefault = (type, hasAccess) => {
+      return hasAccess ? this.$store.dispatch('cluster/findAll', { type }) : Promise.resolve([]);
+    };
 
     const hash = await allHash({
-      allOutputs,
-      allClusterOutputs,
-      allNodes:   this.$store.dispatch('cluster/findAll', { type: NODE }),
-      allPods:    this.$store.dispatch('cluster/findAll', { type: POD }),
+      allOutputs:        getAllOrDefault(LOGGING.OUTPUT, isFlow),
+      allClusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT, hasAccessToClusterOutputs),
+      allNodes:          getAllOrDefault(NODE, hasAccessToNodes),
+      allPods:           getAllOrDefault(POD, hasAccessToPods),
     });
 
     for ( const k of Object.keys(hash) ) {
-      this[k] = hash[k];
+      this[k] = hash[k] || [];
     }
   },
 
