@@ -15,7 +15,10 @@ export function init(store) {
     virtualType
   } = DSL(store, NAME);
 
-  product({ ifHaveGroup: /^(.*\.)?gatekeeper\.sh$/ });
+  product({
+    ifHaveGroup: /^(.*\.)?gatekeeper\.sh$/,
+    icon:        'gatekeeper',
+  });
 
   mapGroup(/^(.*\.)?gatekeeper\.sh$/, 'OPA Gatekeeper');
 

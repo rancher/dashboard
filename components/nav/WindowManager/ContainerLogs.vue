@@ -442,7 +442,7 @@ export default {
         v-if="containerChoices.length > 0"
         v-model="container"
         :disabled="containerChoices.length === 1"
-        class="auto-width mini"
+        class="auto-width"
         :options="containerChoices"
         :searchable="false"
         :clearable="false"
@@ -521,40 +521,23 @@ export default {
 
   .logs-container {
     height: 100%;
-    overflow: auto;
-    padding: 5px;
-    background-color: var(--logs-bg);
-    font-family: Menlo,Consolas,monospace;
-    color: var(--logs-text);
+    overflow: hidden;
+  }
 
-    .closed {
-      opacity: 0.25;
+  .logs-body {
+    padding: calc( 2 * var(--outline-width) );
+    height: 100%;
+
+    & > .terminal.focus {
+      outline: var(--outline-width) solid var(--outline);
     }
+  }
 
-    .time {
-      white-space: nowrap;
-      display: none;
-      width: 0;
-      padding-right: 15px;
-      user-select: none;
-    }
+  .v-select.mini .vs__dropdown-toggle {
+    padding: 0;
+  }
 
-    &.show-times .time {
-      display: initial;
-      width: auto;
-    }
-
-    .msg {
-      white-space: nowrap;
-
-      .highlight {
-        color: var(--logs-highlight);
-        background-color: var(--logs-highlight-bg);
-      }
-    }
-
-    &.wrap-lines .msg {
-      white-space: normal;
-    }
+  .vs__selected {
+    padding: 0 5px;
   }
 </style>
