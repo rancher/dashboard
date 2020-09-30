@@ -7,7 +7,6 @@ import { allHash } from '@/utils/promise';
 import Poller from '@/utils/poller';
 import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
 import {
-  MESSAGE,
   NAME,
   REASON,
   ROLES,
@@ -88,28 +87,26 @@ export default {
       ...{ canBeVariable: true },
       width: 100
     };
-    const message = { ...MESSAGE, ...{ canBeVariable: true } };
+
     const eventHeaders = [
       reason,
       {
-        name:          'object',
-        label:         'Object',
+        name:          'resource',
+        label:         'Resource',
         value:         'displayInvolvedObject',
         sort:          ['involvedObject.kind', 'involvedObject.name'],
         canBeVariable: true,
-        formatter:     'LinkDetail',
-        width:         200
       },
-      message,
       {
         align:         'right',
         name:          'date',
         label:         'Date',
         value:         'lastTimestamp',
-        sort:          'lastTimestamp',
+        sort:          'lastTimestamp:desc',
         formatter:     'LiveDate',
         formatterOpts: { addSuffix: true },
-        width:         125
+        width:         125,
+        defaultSort:   true,
       },
     ];
 
@@ -370,7 +367,16 @@ export default {
         :paging="true"
         :rows-per-page="10"
         default-sort-by="date"
-      />
+      >
+        <template #cell:resource="{row, value}">
+          <n-link :to="row.detailLocation">
+            {{ value }}
+          </n-link>
+          <div v-if="row.message">
+            {{ row.displayMessage }}
+          </div>
+        </template>
+      </SortableTable>
     </SimpleBox>
   </section>
 </template>
