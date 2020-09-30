@@ -116,7 +116,7 @@ export default {
   <Tabbed v-if="hasCustomTabs || showConditions || showEvents" v-bind="$attrs">
     <slot />
 
-    <Tab v-if="hasConditions" :label="t('resourceTabs.tabs.conditions')" name="conditions">
+    <Tab v-if="showConditions" :label="t('resourceTabs.tabs.conditions')" name="conditions">
       <Conditions :value="value" />
     </Tab>
 
