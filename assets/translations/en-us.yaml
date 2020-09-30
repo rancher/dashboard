@@ -159,6 +159,7 @@ backupRestoreOperator:
       tip: Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.
       storageClass:
         label: Storage Class
+        tip: Use a storage class with a <code>Retain</code> reclaim polciy to avoid losing backups.
       persistentVolume:
         label: Persistent Volume
       label: Default Storage Location
@@ -782,6 +783,11 @@ monitoring:
       retentionSize: Retention Size
       resourceLimits: Resource Limits
       scrape: Scrape Interval
+      ignoreNamespaceSelectors:
+        label: Ignore Namespace Selectors
+        help: |+
+          If true, ServiceMonitors and PodMonitors will only be able to discover resources in the namespace they are deployed into. <br />
+          Disabling Ignore Namespace Selectors may be required to support scrape configurations declared by other charts via ServiceMonitors / PodMonitors if those charts require resources to be monitored across namespaces.
     storage:
       className: Storage Class Name
       label: Persistent Storage for Prometheus
@@ -1214,7 +1220,7 @@ validation:
       startHyphen: '"{key}" cannot start with a hyphen'
       startNumber: '"{key}" cannot start with a number'
       tooLongLabel: '"{key}" cannot be more than {max} characters'
-  flowOutput: 
+  flowOutput:
     global: Requires "Cluster Output" to be selected.
     both: Requires "Output" or "Cluster Output" to be selected.
   k8s:

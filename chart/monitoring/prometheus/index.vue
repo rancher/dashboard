@@ -192,6 +192,14 @@ export default {
         <div class="col span-6 col-full-height">
           <Checkbox v-model="value.prometheus.prometheusSpec.enableAdminAPI" :label="t('monitoring.prometheus.config.adminApi')" />
         </div>
+        <div class="col span-6 col-full-height">
+          <Checkbox v-model="value.prometheus.prometheusSpec.ignoreNamespaceSelectors" :label="t('monitoring.prometheus.config.ignoreNamespaceSelectors.label')">
+            <template #label>
+              <t k="monitoring.prometheus.config.ignoreNamespaceSelectors.label" />
+              <i v-tooltip="t('monitoring.prometheus.config.ignoreNamespaceSelectors.help', {}, true)" class="icon icon-info"></i>
+            </template>
+          </Checkbox>
+        </div>
       </div>
       <div class="row">
         <div class="col span-6">
