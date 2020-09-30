@@ -266,25 +266,14 @@ export default {
         <div class="col span-6">
           <Checkbox v-model="enablePersistantStorage" :label="t('monitoring.prometheus.storage.label')" />
         </div>
-        <div v-if="enablePersistantStorage" class="col span-6">
-          <LabeledInput
-            v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
-            :label="t('monitoring.prometheus.storage.size')"
-            :mode="mode"
-          />
-        </div>
       </div>
       <template v-if="enablePersistantStorage">
         <div class="row">
           <div class="col span-6">
-            <LabeledSelect
-              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.accessModes"
-              :label="t('monitoring.prometheus.storage.mode')"
-              :localized-label="true"
+            <LabeledInput
+              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
+              :label="t('monitoring.prometheus.storage.size')"
               :mode="mode"
-              :multiple="true"
-              :options="accessModes"
-              :reduce="({id})=> id"
             />
           </div>
           <div class="col span-6">
@@ -300,6 +289,17 @@ export default {
           </div>
         </div>
         <div class="row">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.accessModes"
+              :label="t('monitoring.prometheus.storage.mode')"
+              :localized-label="true"
+              :mode="mode"
+              :multiple="true"
+              :options="accessModes"
+              :reduce="({id})=> id"
+            />
+          </div>
           <div class="col span-6">
             <LabeledSelect
               v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.volumeMode"
