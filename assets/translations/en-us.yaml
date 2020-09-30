@@ -63,10 +63,13 @@ product:
   cis: CIS Benchmark
   ecm: Cluster Manager
   explorer: Cluster Explorer
+  fleet: Continuous Delivery
+  longhorn: Longhorn
   gatekeeper: OPA Gatekeeper
   istio: Istio
   logging: Logging
   rio: Rio
+
 
 suffix:
   cpus: CPUs
