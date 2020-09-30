@@ -35,7 +35,7 @@ export default {
 
   computed: {
     ...mapState(['managementReady', 'clusterReady']),
-    ...mapGetters(['productId']),
+    ...mapGetters(['productId', 'namespaceMode']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
 
     namespaces() {
@@ -90,6 +90,13 @@ export default {
     },
 
     productId(a, b) {
+      if ( !isEqual(a, b) ) {
+        // Immediately update because you'll see it come in later
+        this.getGroups();
+      }
+    },
+
+    namespaceMode(a, b) {
       if ( !isEqual(a, b) ) {
         // Immediately update because you'll see it come in later
         this.getGroups();

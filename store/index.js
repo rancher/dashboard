@@ -90,7 +90,7 @@ export const getters = {
   isAllNamespaces(state, getters) {
     const product = getters['currentProduct'];
 
-    return !product || !product.showNamespaceFilter || state.namespaceFilters.includes('all');
+    return !product || !product.showNamespaceFilter || state.namespaceFilters.filter(x => !x.startsWith('namespaced://')).length === 0;
   },
 
   isMultipleNamespaces(state, getters) {
@@ -107,7 +107,7 @@ export const getters = {
     return !filters[0].startsWith('ns://');
   },
 
-  namespaceMode(state) {
+  namespaceMode(state, getters) {
     const filters = state.namespaceFilters;
     const product = getters['currentProduct'];
 
@@ -151,7 +151,7 @@ export const getters = {
       const filters = state.namespaceFilters.filter(x => !x.startsWith('namespaced://'));
       const includeAll = getters.isAllNamespaces;
       const includeSystem = filters.includes('all://system');
-      const includeUser = filters.includes('all://user') || filters.length === 0;
+      const includeUser = filters.includes('all://user');
       const includeOrphans = filters.includes('all://orphans');
 
       // Special cases to pull in all the user, system, or orphaned namespaces
@@ -278,7 +278,7 @@ export const mutations = {
   },
 
   updateNamespaces(state, { filters, all }) {
-    state.namespaceFilters = filters;
+    state.namespaceFilters = filters.slice();
 
     if ( all ) {
       state.allNamespaces = all;
