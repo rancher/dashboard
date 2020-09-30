@@ -171,39 +171,53 @@ export default {
     },
   },
 
-  created() {
-    this.registerBeforeHook(this.willSave, 'willSave');
+  watch: {
+    matches: {
+      deep: true,
+      handler() {
+        const matches = this.matches.map((match) => {
+          const copy = clone(match);
+
+          delete copy.exclude;
+          delete copy.select;
+
+          if ( match.exclude ) {
+            return { exclude: copy };
+          } else {
+            return { select: copy };
+          }
+        });
+
+        set(this.value.spec, 'match', matches);
+      }
+    },
+    filtersYaml: {
+      deep: true,
+      handler() {
+        const filterJson = jsyaml.safeLoad(this.filtersYaml);
+
+        if ( isArray(filterJson) ) {
+          set(this.value.spec, 'filters', filterJson);
+        } else {
+          set(this.value.spec, 'filters', undefined);
+        }
+      }
+    },
+    globalOutputRefs: {
+      deep: true,
+      handler() {
+        set(this.value.spec, 'globalOutputRefs', this.globalOutputRefs);
+      }
+    },
+    localOutputRefs: {
+      deep: true,
+      handler() {
+        set(this.value.spec, 'localOutputRefs', this.localOutputRefs);
+      }
+    }
   },
 
   methods: {
-    willSave() {
-      const matches = this.matches.map((match) => {
-        const copy = clone(match);
-
-        delete copy.exclude;
-        delete copy.select;
-
-        if ( match.exclude ) {
-          return { exclude: copy };
-        } else {
-          return { select: copy };
-        }
-      });
-
-      set(this.value.spec, 'match', matches);
-
-      const filterJson = jsyaml.safeLoad(this.filtersYaml);
-
-      if ( isArray(filterJson) ) {
-        set(this.value.spec, 'filters', filterJson);
-      } else {
-        set(this.value.spec, 'filters', undefined);
-      }
-
-      set(this.value.spec, 'globalOutputRefs', this.globalOutputRefs);
-      set(this.value.spec, 'localOutputRefs', this.localOutputRefs);
-    },
-
     addMatch(include) {
       this.matches.push(emptyMatch(include));
     },
