@@ -4,7 +4,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
 import { mapGetters } from 'vuex';
-import PersistentVolumeClaim from '@/edit/PersistentVolumeClaim';
+import PersistentVolumeClaim from '@/edit/persistentvolumeclaim';
 import { PVC } from '@/config/types';
 
 export default {

@@ -14,7 +14,7 @@ import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/components/form/Networking';
 import Loading from '@/components/Loading';
-import Storage from '@/edit/workload/Storage';
+import Storage from '@/edit/workload/storage';
 import Job from '@/edit/workload/Job';
 import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
 
