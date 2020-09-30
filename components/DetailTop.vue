@@ -164,9 +164,10 @@ export default {
       display: inline-flex;
       flex-direction: row;
       flex-wrap: wrap;
+      margin-top: -5px;
 
       .tag {
-        margin: -3px $right-column-spacing $right-column-spacing 0;
+        margin: $left-column-spacing $left-column-spacing $left-column-spacing 0;
       }
     }
 
