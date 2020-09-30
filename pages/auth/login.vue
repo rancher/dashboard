@@ -106,6 +106,7 @@ export default {
             encode: x => x,
             maxAge: 86400 * 365,
             secure: true,
+            path:   '/',
           });
         } else {
           this.$cookies.remove(USERNAME);

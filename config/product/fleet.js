@@ -18,12 +18,13 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveGroup:         /^(.*\.)*fleet\.cattle\.io$/,
-    icon:                'compass',
-    inStore:             'management',
-    removable:           false,
-    weight:              -1,
-    showClusterSwitcher: false,
+    ifHaveGroup:           /^(.*\.)*fleet\.cattle\.io$/,
+    icon:                  'compass',
+    inStore:               'management',
+    removable:             false,
+    weight:                -1,
+    showClusterSwitcher:   false,
+    showWorkspaceSwitcher: true,
   });
 
   /*
@@ -46,7 +47,6 @@ export function init(store) {
   basicType([
     FLEET.CLUSTER,
     FLEET.CLUSTER_GROUP,
-    FLEET.WORKSPACE,
     FLEET.GIT_REPO,
   ]);
 
@@ -55,12 +55,11 @@ export function init(store) {
   weightType(FLEET.GIT_REPO, 109, true);
   weightType(FLEET.CLUSTER, 108, true);
   weightType(FLEET.CLUSTER_GROUP, 107, true);
-  weightType(FLEET.WORKSPACE, 106, true);
 
   basicType([
-    'fleet.cattle.io.bundledeployment',
-    'fleet.cattle.io.bundle',
-    'fleet.cattle.io.clusterregistrationtoken',
+    FLEET.WORKSPACE,
+    FLEET.BUNDLE,
+    FLEET.TOKEN,
   ], 'Advanced');
 
   headers(FLEET.WORKSPACE, [

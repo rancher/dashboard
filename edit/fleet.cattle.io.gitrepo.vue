@@ -1,7 +1,6 @@
 <script>
 import { exceptionToErrorsArray } from '@/utils/error';
 import { FLEET, SECRET } from '@/config/types';
-import { findBy } from '@/utils/array';
 import { set } from '@/utils/object';
 import ArrayList from '@/components/form/ArrayList';
 import Banner from '@/components/Banner';
@@ -15,7 +14,8 @@ import Labels from '@/components/form/Labels';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import YamlEditor from '@/components/YamlEditor';
-import { BASIC, SSH } from '@/models/secret';
+import { TYPES as SECRET_TYPES } from '@/models/secret';
+import { base64Encode } from '@/utils/crypto';
 
 export default {
   name: 'CruGitRepo',
@@ -36,41 +36,22 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    this.allWorkspaces = await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
     this.allClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
     this.allClusterGroups = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
     this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
 
-    const def = findBy(this.allWorkspaces, 'id', 'fleet-default');
-
-    if ( def ) {
-      this.value.metadata.namespace = def.id;
-    } else {
-      this.value.metadata.namespace = this.allWorkspaces[0]?.id;
-    }
-
-    let authMode = 'none';
+    let authSecret = '_none';
 
     if ( this.value.spec?.clientSecretName ) {
-      const secret = findBy(this.allSecrets, { id: `${ this.value.metadata.namespace }/${ this.value.spec.clientSecretName }` });
-
-      if ( secret ) {
-        if ( secret._type === SSH ) {
-          authMode = 'ssh';
-        } else if ( secret._type === BASIC ) {
-          authMode = 'basic';
-        } else {
-          authMode = 'custom';
-        }
-      }
+      authSecret = this.value.spec.clientSecretName;
     }
 
-    this.authMode = authMode;
+    this.authSecret = authSecret;
   },
 
   data() {
     const targetInfo = this.value.targetInfo;
-    const targetMode = targetInfo.mode;
+    let targetMode = targetInfo.mode;
     const targetCluster = targetInfo.cluster;
     const targetClusterGroup = targetInfo.clusterGroup;
     const targetAdvanced = targetInfo.advanced;
@@ -78,11 +59,21 @@ export default {
     const ref = ( this.value.spec?.revision ? 'revision' : 'branch' );
     const refValue = this.value.spec?.[ref] || '';
 
+    if (!this.value.id ) {
+      targetMode = 'none';
+    }
+
     return {
       allClusters:      null,
       allClusterGroups: null,
       allWorkspaces:    null,
-      authMode:         null,
+      allSecrets:       null,
+
+      authSecret: null,
+      username:   null,
+      password:   null,
+      publicKey:  null,
+      privateKey: null,
 
       ref,
       refValue,
@@ -98,24 +89,59 @@ export default {
   },
 
   computed: {
-    targetOptions() {
-      const keys = ['cluster', 'clusterGroup', 'advanced'];
-
-      return keys.map((k) => {
-        return {
-          label: this.t(`fleet.gitRepo.target.${ k }`),
-          value: k
-        };
-      });
+    isLocal() {
+      return this.value.metadata.namespace === 'fleet-local';
     },
 
-    workspaceOptions() {
-      return (this.allWorkspaces || []).map((obj) => {
-        return {
-          label: obj.nameDisplay,
-          value: obj.id
-        };
+    targetOptions() {
+      const out = [
+        {
+          label: 'None',
+          value: 'none'
+        }
+      ];
+
+      const clusters = this.allClusters
+        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
+        .map((x) => {
+          return { label: x.nameDisplay, value: `cluster://${ x.metadata.name }` };
+        });
+
+      if ( clusters.length ) {
+        out.push({
+          kind:     'title',
+          label:    'A Cluster:',
+          disabled: true,
+        });
+
+        out.push(...clusters);
+      }
+
+      const groups = this.allClusterGroups
+        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
+        .map((x) => {
+          return { label: x.nameDisplay, value: `group://${ x.metadata.name }` };
+        });
+
+      if ( groups.length ) {
+        out.push({
+          kind:     'title',
+          label:    'A Cluste Groups',
+          disabled: true
+        });
+
+        out.push(...groups);
+      }
+
+      out.push({
+        kind:     'title',
+        label:    'Or define target YAML:',
+        disabled: true
       });
+
+      out.push({ label: 'Advanced', value: 'advanced://' });
+
+      return out;
     },
 
     clusterNames() {
@@ -134,33 +160,40 @@ export default {
       return out;
     },
 
-    authModeOptions() {
-      const keys = ['none', 'ssh', 'basic'];
+    secretChoices() {
+      const types = [SECRET_TYPES.SSH, SECRET_TYPES.BASIC];
 
-      if ( this.authMode === 'custom' ) {
-        keys.push('custom');
+      const out = this.allSecrets
+        .filter(x => x.metadata.namespace === this.value.metadata.namespace && types.includes(x._type) )
+        .map((x) => {
+          return {
+            label: `${ x.metadata.name } (${ x._type === SECRET_TYPES.SSH ? 'SSH' : 'HTTP Basic' })`,
+            value: x.metadata.name,
+          };
+        });
+
+      if ( out.length || 1 + 2 === 3 ) {
+        out.unshift({
+          kind:     'title',
+          label:    'Choose an existing secret:',
+          disabled: true
+        });
       }
 
-      return keys.map((k) => {
-        return {
-          label: this.t(`fleet.gitRepo.auth.${ k }`),
-          value: k
-        };
+      out.unshift({
+        label: 'Create a SSH Key Secret',
+        value: '_ssh',
       });
-    },
 
-    sshKeyNames() {
-      const out = this.allSecrets
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace && x._type === SSH)
-        .map(x => x.metadata.name);
+      out.unshift({
+        label: 'Create a HTTP Basic Auth Secret',
+        value: '_basic',
+      });
 
-      return out;
-    },
-
-    basicAuthNames() {
-      const out = this.allSecrets
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace && x._type === BASIC)
-        .map(x => x.metadata.name);
+      out.unshift({
+        label: 'None',
+        value: '_none',
+      });
 
       return out;
     },
@@ -173,50 +206,76 @@ export default {
     targetClusterGroup:         'updateTargets',
     targetAdvanced:             'updateTargets',
 
-    authMode: 'updateAuth',
+    authSecret: 'updateAuth',
+  },
+
+  created() {
+    this.registerBeforeHook(this.createSecret);
   },
 
   methods: {
     set,
 
     updateAuth() {
-      if ( this.authMode === 'none' ) {
-        this.value.spec.clientSecretName = null;
+      const spec = this.value.spec;
+
+      if ( (this.authSecret || '').startsWith('_') ) {
+        spec.clientSecretName = null;
+      } else if ( this.authSecret ) {
+        spec.clientSecretName = this.authSecret;
+      }
+    },
+
+    async createSecret() {
+      if ( this.authSecret === '_ssh' || this.authSecret === '_basic' ) {
+        const secret = await this.$store.dispatch('management/create', {
+          type:     SECRET,
+          metadata: {
+            namespace: this.value.metadata.namespace,
+            name:      this.value.metadata.name
+          },
+        });
+
+        if ( this.authSecret === '_ssh' ) {
+          secret._type = SECRET_TYPES.SSH;
+          secret.data = {
+            'ssh-publickey':  base64Encode(this.publicKey),
+            'ssh-privatekey': base64Encode(this.privateKey),
+          };
+        } else {
+          secret._type = SECRET_TYPES.BASIC;
+          secret.data = {
+            username:  base64Encode(this.username),
+            password: base64Encode(this.password),
+          };
+        }
+
+        await secret.save();
+        this.authSecret = secret.metadata.name;
       }
     },
 
     updateTargets() {
       const spec = this.value.spec;
+      const mode = this.targetMode;
 
-      if ( this.value.metadata.namespace === 'fleet-local' ) {
-        if ( this.targetMode !== 'local' ) {
-          this.targetMode = 'local';
+      let kind, value;
+      const match = mode.match(/([^:]+):\/\/(.*?)$/);
 
-          // You'll be back
-          return;
-        }
-      } else if ( this.targetMode === 'local' ) {
-        this.targetMode = 'cluster';
-
-        // You'll be back
-        return;
+      if ( match ) {
+        kind = match[1];
+        value = match[2];
       }
 
-      switch ( this.targetMode ) {
-      case 'local':
-        spec.targets = [];
-        break;
-      case 'cluster':
+      if ( kind === 'cluster' ) {
         spec.targets = [
-          { clusterSelector: { matchLabels: { name: this.targetCluster } } }
+          { clusterSelector: { matchLabels: { name: value } } }
         ];
-        break;
-      case 'clusterGroup':
+      } else if ( kind === 'clusterGroup' ) {
         spec.targets = [
-          { clusterGroup: this.targetClusterGroup }
+          { clusterGroup: value }
         ];
-        break;
-      case 'advanced':
+      } else if ( kind === 'advanced' ) {
         try {
           const parsed = jsyaml.safeLoad(this.targetAdvanced);
 
@@ -225,7 +284,8 @@ export default {
         } catch (e) {
           this.targetAdvancedErrors = exceptionToErrorsArray(e);
         }
-        break;
+      } else {
+        spec.targets = {};
       }
     },
 
@@ -289,33 +349,47 @@ export default {
     <div class="row mt-20">
       <div class="col span-6">
         <LabeledSelect
-          v-model="authMode"
+          v-model="authSecret"
           :mode="mode"
           :label="t('fleet.gitRepo.auth.label')"
-          :options="authModeOptions"
-        />
+          :options="secretChoices"
+          :selectable="option => !option.disabled"
+        >
+          <template v-slot:option="opt">
+            <template v-if="opt.kind === 'divider'">
+              <hr />
+            </template>
+            <template v-else-if="opt.kind === 'title'">
+              {{ opt.label }}
+            </template>
+            <template v-else>
+              {{ opt.label }}
+            </template>
+          </template>
+        </LabeledSelect>
       </div>
       <div class="col span-6">
-        <LabeledSelect
-          v-if="authMode === 'ssh'"
-          v-model="value.spec.clientSecretName"
-          :mode="mode"
-          :label="t('fleet.gitRepo.auth.custom')"
-          :options="sshKeyNames"
-        />
-        <LabeledSelect
-          v-else-if="authMode === 'basic'"
-          v-model="value.spec.clientSecretName"
-          :mode="mode"
-          :label="t('fleet.gitRepo.auth.custom')"
-          :options="basicAuthNames"
-        />
         <LabeledInput
-          v-else-if="authMode === 'custom'"
-          v-model="value.spec.clientSecretName"
-          :mode="mode"
-          :label="t('fleet.gitRepo.auth.custom')"
+          v-model="value.spec.serviceAccount"
+          label="Service Account Name"
+          placeholder="Optional name of an account in the target clusters"
         />
+      </div>
+    </div>
+    <div v-if="authSecret === '_ssh'" class="row mt-20">
+      <div class="col span-6">
+        <LabeledInput v-model="publicKey" type="multiline" label="Public Key" />
+      </div>
+      <div class="col span-6">
+        <LabeledInput v-model="privateKey" type="multiline" label="Private Key" />
+      </div>
+    </div>
+    <div v-if="authSecret === '_basic'" class="row mt-20">
+      <div class="col span-6">
+        <LabeledInput v-model="username" label="Username" />
+      </div>
+      <div class="col span-6">
+        <LabeledInput v-model="password" type="password" label="Password" />
       </div>
     </div>
 
@@ -325,61 +399,53 @@ export default {
     <ArrayList
       v-model="value.spec.paths"
       :mode="mode"
-      :initial-empty-row="true"
       :value-multiline="false"
+      :initial-empty-row="false"
       :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
       :add-label="t('fleet.gitRepo.paths.addLabel')"
-    />
+    >
+      <template #empty>
+        <Banner label="The root of the repo is used by default.  To use one or more different directories, add them here." />
+      </template>
+    </ArrayList>
 
-    <hr v-if="!isView" class="mt-20 mb-20" />
+    <template v-if="!isLocal">
+      <hr v-if="!isView" class="mt-20 mb-20" />
 
-    <h2 v-t="'fleet.gitRepo.target.label'" />
+      <h2 v-t="'fleet.gitRepo.target.label'" />
 
-    <div class="row">
-      <div class="col span-4">
-        <LabeledSelect
-          v-model="value.metadata.namespace"
-          :mode="mode"
-          :label="t('fleet.gitRepo.workspace.label')"
-          :options="workspaceOptions"
-        />
+      <div class="row">
+        <div class="col span-6">
+          <LabeledSelect
+            v-model="targetMode"
+            :options="targetOptions"
+            :mode="mode"
+            :selectable="option => !option.disabled"
+            :label="t('fleet.gitRepo.target.selectLabel')"
+          >
+            <template v-slot:option="opt">
+              <template v-if="opt.kind === 'divider'">
+                <hr />
+              </template>
+              <template v-else-if="opt.kind === 'title'">
+                {{ opt.label }}
+              </template>
+              <template v-else>
+                {{ opt.label }}
+              </template>
+            </template>
+          </LabeledSelect>
+        </div>
       </div>
 
-      <div class="col span-4">
-        <LabeledSelect
-          v-if="targetMode !== 'local'"
-          v-model="targetMode"
-          :mode="mode"
-          :label="t('fleet.gitRepo.target.selectLabel')"
-          :options="targetOptions"
-        />
+      <div v-if="targetMode === 'advanced'" class="row mt-10">
+        <div class="col span-12">
+          <YamlEditor v-model="targetAdvanced" />
+        </div>
       </div>
 
-      <div class="col span-4">
-        <LabeledSelect
-          v-if="targetMode === 'cluster'"
-          v-model="targetCluster"
-          :mode="mode"
-          :label="t('fleet.gitRepo.target.cluster')"
-          :options="clusterNames"
-        />
-        <LabeledSelect
-          v-else-if="targetMode === 'clusterGroup'"
-          v-model="targetClusterGroup"
-          :mode="mode"
-          :label="t('fleet.gitRepo.target.clusterGroup')"
-          :options="clusterGroupNames"
-        />
-      </div>
-    </div>
-
-    <div v-if="targetMode === 'advanced'" class="row mt-10">
-      <div class="col span-12">
-        <YamlEditor v-model="targetAdvanced" />
-      </div>
-    </div>
-
-    <Banner v-for="(err, i) in targetAdvancedErrors" :key="i" color="error" :label="err" />
+      <Banner v-for="(err, i) in targetAdvancedErrors" :key="i" color="error" :label="err" />
+    </template>
 
     <hr class="mt-20" />
 

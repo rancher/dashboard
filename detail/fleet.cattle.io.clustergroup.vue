@@ -28,17 +28,27 @@ export default {
     await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
     await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
   },
+
+  computed: {
+    clusterSchema() {
+      return this.$store.getters['management/schemaFor'](FLEET.CLUSTER);
+    }
+  }
 };
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
+    <h2 class="mt-20">
+      Resource Summary
+    </h2>
     <FleetSummary :value="value.status.resourceCounts" />
 
     <ResourceTabs v-model="value" mode="view" class="mt-20">
       <Tab label="Clusters" name="clusters">
         <FleetClusters
+          :schema="clusterSchema"
           :rows="value.targetClusters"
           :paging="true"
           :table-actions="false"

@@ -53,6 +53,7 @@ const REMAP_STATE = {
   notapplied:    'Not Applied',
   notready:      'Not Ready',
   waitapplied:   'Wait Applied',
+  outofsync:     'Out of Sync',
   'in-progress':   'In Progress',
 };
 

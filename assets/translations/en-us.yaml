@@ -1089,6 +1089,7 @@ tableHeaders:
   clusterFlow: Cluster Flow
   clusterOutput: Cluster Output
   clusters: Clusters
+  clustersReady: Clusters Ready
   clusterGroups: Cluster Groups
   commit: Commit
   condition: Condition
@@ -1123,7 +1124,7 @@ tableHeaders:
   namespaceNameUnlinked: Name
   node: Node
   nodeName: Name
-  nodesReady: Nodes
+  nodesReady: Nodes Ready
   object: Object
   output: Output
   p95: 95%tile
@@ -1141,6 +1142,7 @@ tableHeaders:
   ready: Ready
   reason: Reason
   repo: Repo
+  reposReady: Repos Ready
   replicas: Replicas
   reqRate: Req Rate
   resource: Resource

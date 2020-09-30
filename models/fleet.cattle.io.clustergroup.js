@@ -37,4 +37,27 @@ export default {
       return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
     }
   },
+
+  clusterInfo() {
+    const total = this.status?.clusterCount || 0;
+    const unready = this.status?.nonReadyClusterCount || 0;
+    const ready = total - unready;
+
+    return {
+      ready,
+      unready,
+      total,
+    };
+  },
+
+  details() {
+    const out = [
+      {
+        label:   'Clusters Ready',
+        content:  `${ this.clusterInfo.ready } of ${ this.clusterInfo.total }`,
+      },
+    ];
+
+    return out;
+  },
 };

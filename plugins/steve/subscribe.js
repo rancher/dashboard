@@ -7,6 +7,10 @@ import Socket, {
   EVENT_CONNECT_ERROR
 } from '@/utils/socket';
 
+export const NO_WATCH = 'NO_WATCH';
+export const TOO_OLD = 'TOO_OLD';
+export const NO_SCHEMA = 'NO_SCHEMA';
+
 export const actions = {
   subscribe(ctx, opt) {
     const { state, commit, dispatch } = ctx;
@@ -102,12 +106,15 @@ export const actions = {
     }
   },
 
-  watch({ state, dispatch, getters }, {
-    type, selector, id, revision, namespace, stop
-  }) {
+  watch({ state, dispatch, getters }, params) {
+    let {
+      // eslint-disable-next-line prefer-const
+      type, selector, id, revision, namespace, stop, force
+    } = params;
+
     type = getters.normalizeType(type);
 
-    if ( !getters.canWatch(type) ) {
+    if ( !stop && !force && !getters.canWatch(params) ) {
       return;
     }
 
@@ -161,6 +168,58 @@ export const actions = {
     }
 
     return Promise.all(promises);
+  },
+
+  async resyncWatch({ getters, dispatch, commit }, params) {
+    const {
+      resourceType, namespace, id, selector
+    } = params;
+
+    console.info('Resource resync for', resourceType, namespace, id, selector); // eslint-disable-line no-console
+
+    const opt = { force: true, forceWatch: true };
+
+    if ( id ) {
+      await dispatch('find', {
+        type: resourceType,
+        id,
+        opt,
+      });
+      commit('clearInError', params);
+
+      return;
+    }
+
+    let have, want;
+
+    if ( selector ) {
+      have = getters['matching'](resourceType, selector).slice();
+      want = await dispatch('findMatching', {
+        type: resourceType,
+        selector,
+        opt,
+      });
+    } else {
+      have = getters['all'](resourceType).slice();
+      want = await dispatch('findAll', {
+        type:           resourceType,
+        watchNamespace: namespace,
+        opt
+      });
+    }
+
+    const wantMap = {};
+
+    for ( const obj of want ) {
+      wantMap[obj.id] = true;
+    }
+
+    for ( const obj of have ) {
+      if ( !wantMap[obj.id] ) {
+        console.info('Resource resync removing stale', resourceType, obj.id); // eslint-disable-line no-console
+        commit('remove', obj);
+      }
+    }
   },
 
   async opened({ commit, dispatch, state }, event) {
@@ -234,14 +293,17 @@ export const actions = {
     });
   },
 
-  'ws.resource.error'({ commit }, msg) {
+  'ws.resource.error'({ commit, dispatch }, msg) {
     console.info('Resource error for', msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
     const err = msg.data?.error?.toLowerCase();
 
     if ( err.includes('watch not allowed') ) {
-      commit('addNoWatch', msg.resourceType);
+      commit('setInError', { type: msg.resourceType, reason: NO_WATCH });
     } else if ( err.includes('failed to find schema') ) {
-      // The reconnect should only happen once, so ignore
+      commit('setInError', { type: msg.resourceType, reason: NO_SCHEMA });
+    } else if ( err.includes('too old') ) {
+      commit('setInError', { type: msg.resourceType, reason: TOO_OLD });
+      dispatch('resyncWatch', msg);
     }
   },
 
@@ -262,10 +324,10 @@ export const actions = {
       commit('setWatchStopped', obj);
 
       setTimeout(() => {
-        // Delay a bit so that immediate start/stop/error causes
+        // Delay a bit so that immediate start/error/stop causes
         // only a slow infinite loop instead of a tight one.
         dispatch('watch', obj);
-      }, 1000);
+      }, 5000);
     }
   },
 

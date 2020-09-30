@@ -222,7 +222,8 @@ export default {
       const watchMsg = {
         type,
         id,
-        revision: res?.metadata?.resourceVersion
+        revision: res?.metadata?.resourceVersion,
+        force:    opt.forceWatch === true,
       };
 
       const idx = id.indexOf('/');

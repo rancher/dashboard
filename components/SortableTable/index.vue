@@ -556,7 +556,7 @@ export default {
                     :class="{['col-'+dasherize(col.formatter||'')]: !!col.formatter}"
                     :width="col.width"
                   >
-                    <slot :name="'cell:' + col.name" :row="row" :col="col">
+                    <slot :name="'cell:' + col.name" :row="row" :col="col" :value="valueFor(row,col)">
                       <component
                         :is="col.formatter"
                         v-if="col.formatter"

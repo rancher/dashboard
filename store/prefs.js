@@ -42,7 +42,8 @@ const asCookie = true; // Store as a cookie so that it's available before auth +
 // Keys must be lowercase and valid dns label (a-z 0-9 -)
 export const CLUSTER = create('cluster', '');
 export const LAST_NAMESPACE = create('last-namespace', '');
-export const NAMESPACE_FILTERS = create('ns', [], { parseJSON });
+export const NAMESPACE_FILTERS = create('ns', ['all://user'], { parseJSON });
+export const WORKSPACE = create('workspace', '');
 export const EXPANDED_GROUPS = create('open-groups', ['cluster', 'rbac', 'serviceDiscovery', 'storage', 'workload'], { parseJSON });
 export const FAVORITE_TYPES = create('fav-type', [], { parseJSON });
 export const GROUP_RESOURCES = create('group-by', 'namespace');
@@ -195,7 +196,10 @@ export const actions = {
     commit('load', { key, value });
 
     if ( definition.asCookie ) {
-      const opt = { ...cookieOptions, parseJSON: definition.parseJSON === true };
+      const opt = {
+        ...cookieOptions,
+        parseJSON: definition.parseJSON === true
+      };
 
       this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), value, opt);
     }

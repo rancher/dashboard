@@ -1,12 +1,10 @@
 <script>
-import ButtonGroup from '@/components/ButtonGroup';
-import SortableTable from '@/components/SortableTable';
-import { removeObject } from '@/utils/array';
-import { STATE, NAME, AGE } from '@/config/table-headers';
+import ResourceTable from '@/components/ResourceTable';
+import { STATE, NAME, AGE, FLEET_SUMMARY } from '@/config/table-headers';
 import { FLEET, MANAGEMENT } from '@/config/types';
 
 export default {
-  components: { ButtonGroup, SortableTable },
+  components: { ResourceTable },
 
   props: {
     rows: {
@@ -14,23 +12,8 @@ export default {
       required: true,
     },
 
-    groupable: {
-      type:    Boolean,
-      default: false,
-    },
-
-    group: {
-      type:    String,
-      default: null,
-    },
-
-    groupBy: {
-      type:    String,
-      default: null,
-    },
-
-    groupOptions: {
-      type:    Array,
+    schema: {
+      type:    Object,
       default: null,
     },
   },
@@ -41,24 +24,9 @@ export default {
     },
 
     headers() {
-      const workspace = {
-        name:  'workspace',
-        label: 'Workspace',
-        value: 'metadata.namespace',
-        sort:  ['metadata.namespace', 'nameSort'],
-      };
-
       const out = [
         STATE,
         NAME,
-        workspace,
-        {
-          name:      'bundlesReady',
-          labelKey:  'tableHeaders.bundlesReady',
-          value:     'status.display.readyBundles',
-          sort:      'status.summary.ready',
-          search:    false,
-        },
         {
           name:      'nodesReady',
           labelKey:  'tableHeaders.nodesReady',
@@ -66,6 +34,14 @@ export default {
           sort:      'status.summary.ready',
           search:    false,
         },
+        {
+          name:      'reposReady',
+          labelKey:  'tableHeaders.reposReady',
+          value:     'status.display.readyBundles',
+          sort:      'status.summary.ready',
+          search:    false,
+        },
+        FLEET_SUMMARY,
         {
           name:          'lastSeen',
           labelKey:      'tableHeaders.lastSeen',
@@ -79,10 +55,6 @@ export default {
         },
         AGE,
       ];
-
-      if ( this.groupBy || !this.groupable ) {
-        removeObject(out, workspace);
-      }
 
       return out;
     },
@@ -101,33 +73,23 @@ export default {
 </script>
 
 <template>
-  <SortableTable
+  <ResourceTable
     v-bind="$attrs"
+    :schema="schema"
     :headers="headers"
     :rows="rows"
-    :group-by="groupBy"
-    :paging-params="pagingParams"
     key-field="_key"
     v-on="$listeners"
   >
-    <template v-if="groupable" #header-middle>
-      <slot name="more-header-middle" />
-      <ButtonGroup :value="group" :options="groupOptions" @input="$emit('set-group', $event)" />
-    </template>
-
-    <template #group-by="{group: thisGroup}">
-      <div class="group-tab" v-html="thisGroup.ref" />
-    </template>
-
     <template #cell:workspace="{row}">
       <span v-if="row.type !== MANAGEMENT_CLUSTER && row.metadata.namespace">{{ row.metadata.namespace }}</span>
       <span v-else class="text-muted">&mdash;</span>
     </template>
 
-    <template #cell:bundlesReady="{row}">
-      <span v-if="!row.bundleInfo" class="text-muted">&mdash;</span>
-      <span v-else-if="row.bundleInfo.unready" class="text-warning">{{ row.bundleInfo.ready }}/{{ row.bundleInfo.total }}</span>
-      <span v-else>{{ row.bundleInfo.total }}</span>
+    <template #cell:reposReady="{row}">
+      <span v-if="!row.repoInfo" class="text-muted">&mdash;</span>
+      <span v-else-if="row.repoInfo.unready" class="text-warning">{{ row.repoInfo.ready }}/{{ row.repoInfo.total }}</span>
+      <span v-else>{{ row.repoInfo.total }}</span>
     </template>
 
     <template #cell:nodesReady="{row}">
@@ -135,5 +97,5 @@ export default {
       <span v-else-if="row.nodeInfo.unready" class="text-warning">{{ row.nodeInfo.ready }}/{{ row.nodeInfo.total }}</span>
       <span v-else :class="{'text-error': !row.nodeInfo.total}">{{ row.nodeInfo.total }}</span>
     </template>
-  </SortableTable>
+  </ResourceTable>
 </template>

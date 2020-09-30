@@ -30,9 +30,11 @@
 // product(                   Add a product into the nav
 //   removable,               -- Is the product removable (true) or built-in (false).
 //   weight,                  -- Sort order and divider sections in the product menu.  3=global (fleet, ecm), 2=always on (apps, explorer) 1=other
-//   showNamespaceFilter,     -- If true, show the namespace filter in the header
-//   ifHaveGroup,             -- Show if the given group exists in the store [inStore]
-//   ifHaveType,              -- Show if the given type exists in the store [inStore]
+//   showClusterSwitcher,     -- Show the cluster switcher in the header (default true)
+//   showNamespaceFilter,     -- show the namespace filter in the header (default false)
+//   showWorkspaceSwitcher,   -- show the workspace switcher in the header (conflicts with namespace) (default false)
+//   ifHaveGroup,             -- Show this product only if the given group exists in the store [inStore]
+//   ifHaveType,              -- Show this product only if the given type exists in the store [inStore]
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
 // })
 //
@@ -119,11 +121,12 @@ export function DSL(store, product, module = 'type-map') {
     product(inOpt) {
       const opt = {
         name:                product,
-        removable:           true,
         weight:              1,
         inStore:             'cluster',
-        showNamespaceFilter: false,
+        removable:           true,
         showClusterSwitcher: true,
+        showNamespaceFilter: false,
+        filterMode:          'namespaces',
         ...inOpt
       };
 

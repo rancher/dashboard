@@ -250,7 +250,7 @@ export default {
   },
 
   canWatch: state => (type) => {
-    return !state.noWatch.includes(type);
+    return !state.inError[type];
   },
 
   watchStarted: state => (obj) => {

@@ -2,8 +2,7 @@
 import { NAMESPACE_FILTERS } from '@/store/prefs';
 import { NAMESPACE, MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
-import { isArray, addObjects, findBy } from '@/utils/array';
-import { BOTH, CLUSTER_LEVEL } from '@/store/type-map';
+import { isArray, addObjects, findBy, filterBy } from '@/utils/array';
 
 export default {
   computed: {
@@ -16,6 +15,7 @@ export default {
           return [];
         }
 
+        // Remove values that are not valid options
         const out = values.map((value) => {
           return findBy(options, 'id', value);
         }).filter(x => !!x);
@@ -24,7 +24,38 @@ export default {
       },
 
       set(neu) {
-        this.$store.dispatch('switchNamespaces', neu.map(x => x.id).filter(x => !!x));
+        const old = (this.value || []).slice();
+
+        neu = neu.filter(x => !!x.id);
+
+        const last = neu[neu.length - 1];
+        const lastIsSpecial = last?.kind === 'special';
+        const hadUser = old.find(x => x.id === 'all://user');
+        const hadAll = old.find(x => x.id === 'all');
+
+        if ( lastIsSpecial ) {
+          neu = [last];
+        }
+
+        if ( neu.length > 1 ) {
+          neu = neu.filter(x => x.kind !== 'special');
+        }
+
+        if ( neu.find(x => x.id === 'all') ) {
+          neu = [];
+        }
+
+        let ids;
+
+        // If there as something selected and you remove it, go back to user by default
+        // Unless it was user or all
+        if (neu.length === 0 && !hadUser && !hadAll ) {
+          ids = ['all://user'];
+        } else {
+          ids = neu.map(x => x.id);
+        }
+
+        this.$store.dispatch('switchNamespaces', ids);
       }
     },
 
@@ -36,29 +67,28 @@ export default {
           id:       'all',
           kind:     'special',
           label:    t('nav.ns.all'),
-          disabled: this.$store.getters['isAllNamespaces'] || this.$store.getters['namespaceMode'] === CLUSTER_LEVEL,
+        },
+        {
+          id:       'all://user',
+          kind:     'special',
+          label:    t('nav.ns.user'),
         },
         {
           id:       'all://system',
           kind:     'special',
           label:    t('nav.ns.system'),
-          disabled: this.$store.getters['isAllNamespaces'] || this.$store.getters['namespaceMode'] === CLUSTER_LEVEL,
         },
+        {
+          id:       'namespaced://true',
+          kind:     'special',
+          label:    t('nav.ns.namespaced'),
+        },
+        {
+          id:       'namespaced://false',
+          kind:     'special',
+          label:    t('nav.ns.clusterLevel'),
+        }
       ];
-
-      out.push({
-        id:       'namespaced://true',
-        kind:     'special',
-        label:    t('nav.ns.namespaced'),
-        disabled: this.$store.getters['namespaceMode'] !== BOTH,
-      });
-
-      out.push({
-        id:       'namespaced://false',
-        kind:     'special',
-        label:    t('nav.ns.clusterLevel'),
-        disabled: this.$store.getters['namespaceMode'] !== BOTH,
-      });
 
       divider();
 
@@ -66,7 +96,10 @@ export default {
       const namespaces = sortBy(this.$store.getters[`${ inStore }/all`](NAMESPACE), ['nameDisplay']);
 
       if ( this.$store.getters['isMultiCluster'] ) {
-        const projects = sortBy(this.$store.getters['management/all'](MANAGEMENT.PROJECT), ['nameDisplay']);
+        const cluster = this.$store.getters['currentCluster'];
+        let projects = this.$store.getters['management/all'](MANAGEMENT.PROJECT);
+
+        projects = sortBy(filterBy(projects, 'spec.clusterName', cluster.id), ['nameDisplay']);
         const projectsById = {};
         const namespacesByProject = {};
         let firstProject = true;
@@ -164,7 +197,7 @@ export default {
   methods: {
     focus() {
       this.$refs.select.$refs.search.focus();
-    }
+    },
   },
 };
 
@@ -225,7 +258,7 @@ export default {
       ref="select"
       v-model="value"
       multiple
-      :placeholder="t('nav.ns.user')"
+      :placeholder="t('nav.ns.all')"
       :selectable="option => !option.disabled && option.id"
       :options="options"
       label="label"

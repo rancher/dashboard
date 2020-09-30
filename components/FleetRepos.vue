@@ -1,46 +1,29 @@
 <script>
-import ButtonGroup from '@/components/ButtonGroup';
-import SortableTable from '@/components/SortableTable';
-import { removeObject } from '@/utils/array';
-import { FLEET } from '@/config/types';
-import Shortened from '@/components/formatter/Shortened';
+import ResourceTable from '@/components/ResourceTable';
 import Link from '@/components/formatter/Link';
+import Shortened from '@/components/formatter/Shortened';
+
 import {
   AGE,
   STATE,
   NAME,
-  WORKSPACE
+  FLEET_SUMMARY
 } from '@/config/table-headers';
 
 export default {
-  components: {
-    ButtonGroup, SortableTable, Shortened, Link
-  },
 
+  components: {
+    ResourceTable, Link, Shortened
+  },
   props: {
     rows: {
       type:     Array,
       required: true,
     },
 
-    groupable: {
-      type:    Boolean,
-      default: false,
-    },
-
-    group: {
-      type:    String,
-      default: null,
-    },
-
-    groupBy: {
-      type:    String,
-      default: null,
-    },
-
-    groupOptions: {
-      type:    Array,
-      default: null,
+    schema: {
+      type:     Object,
+      required: true,
     },
   },
 
@@ -49,7 +32,6 @@ export default {
       const out = [
         STATE,
         NAME,
-        WORKSPACE,
         {
           name:     'repo',
           labelKey: 'tableHeaders.repo',
@@ -64,56 +46,31 @@ export default {
           sort:     ['targetInfo.modeDisplay', 'targetInfo.cluster', 'targetInfo.clusterGroup'],
         },
         {
-          name:      'ready',
-          labelKey:  'tableHeaders.summary',
-          value:     'status.summary',
-          sort:      false,
+          name:      'clustersReady',
+          labelKey:  'tableHeaders.clustersReady',
+          value:     'status.readyClusters',
+          sort:      'status.readyClusters',
           search:    false,
-          formatter: 'FleetSummary',
-          width:     100,
         },
+        FLEET_SUMMARY,
         AGE
       ];
 
-      if ( this.groupBy || !this.groupable ) {
-        removeObject(out, WORKSPACE);
-      }
-
       return out;
     },
-
-    pagingParams() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-      const schema = this.$store.getters[`${ inStore }/schemaFor`](FLEET.CLUSTER);
-
-      return {
-        singularLabel: this.$store.getters['type-map/labelFor'](schema),
-        pluralLabel:   this.$store.getters['type-map/labelFor'](schema, 99),
-      };
-    },
-  }
+  },
 };
 </script>
 
 <template>
-  <SortableTable
+  <ResourceTable
     v-bind="$attrs"
+    :schema="schema"
     :headers="headers"
     :rows="rows"
-    :group-by="groupBy"
-    :paging-params="pagingParams"
     key-field="_key"
     v-on="$listeners"
   >
-    <template v-if="groupable" #header-middle>
-      <slot name="more-header-middle" />
-      <ButtonGroup :value="group" :options="groupOptions" @input="$emit('set-group', $event)" />
-    </template>
-
-    <template #group-by="{group: thisGroup}">
-      <div class="group-tab" v-html="thisGroup.ref" />
-    </template>
-
     <template #cell:repo="{row}">
       <Link
         :row="row"
@@ -123,12 +80,20 @@ export default {
         url-key="spec.repo"
       />
       <template v-if="row.commitDisplay">
-        @ <Shortened long-value-key="status.commit" :row="row" :value="row.commitDisplay" />
+        <div class="text-muted">
+          <Shortened long-value-key="status.commit" :row="row" :value="row.commitDisplay" />
+        </div>
       </template>
+    </template>
+
+    <template #cell:clustersReady="{row}">
+      <span v-if="!row.clusterInfo" class="text-muted">&mdash;</span>
+      <span v-else-if="row.clusterInfo.unready" class="text-warning">{{ row.clusterInfo.ready }}/{{ row.clusterInfo.total }}</span>
+      <span v-else>{{ row.clusterInfo.total }}</span>
     </template>
 
     <template #cell:target="{row}">
       {{ row.targetInfo.modeDisplay }}
     </template>
-  </SortableTable>
+  </ResourceTable>
 </template>

@@ -1,4 +1,5 @@
 import isEmpty from 'lodash/isEmpty';
+import { ucFirst } from '@/utils/string';
 
 export default {
   displayInvolvedObject() {
@@ -8,6 +9,10 @@ export default {
       return 'N/A';
     }
 
-    return `${ involvedObject.kind } - ${ involvedObject.name }`;
+    return `${ involvedObject.kind } ${ involvedObject.name }`;
   },
+
+  displayMessage() {
+    return ucFirst(this.message);
+  }
 };

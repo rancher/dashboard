@@ -255,6 +255,7 @@ export default {
 <style lang="scss">
   .product-menu {
     width: 300px;
+    max-height: 90vh;
 
     .vs__dropdown-option {
       padding: 10px;

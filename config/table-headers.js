@@ -198,6 +198,8 @@ export const POD_IMAGES = {
   name:      'pod_images',
   labelKey:  'tableHeaders.podImages',
   value:     'imageNames',
+  sort:      'imageNames',
+  search:    'imageNames',
   formatter: 'PodImages'
 };
 
@@ -547,3 +549,14 @@ export const WORKSPACE = {
 };
 
 export const WORKLOAD_IMAGES = { ...POD_IMAGES, value: '' };
+
+export const FLEET_SUMMARY = {
+  name:      'summary',
+  labelKey:  'tableHeaders.resources',
+  value:     'status.resourceCounts',
+  sort:      false,
+  search:    false,
+  formatter: 'FleetSummaryGraph',
+  align:     'center',
+  width:     100,
+};

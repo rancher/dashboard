@@ -145,6 +145,7 @@ export default {
 <style lang="scss" scoped>
   .sortable > A {
     display: inline-block;
+    white-space: nowrap;
   }
 
   thead {

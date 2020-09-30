@@ -262,6 +262,9 @@ export default {
     <div v-else-if="mode==='view'" class="text-muted">
       &mdash;
     </div>
+    <div v-else>
+      <slot name="empty" />
+    </div>
     <div v-if="!titleAdd && (showAdd || showRead)" class="footer">
       <slot v-if="showAdd" name="add">
         <button type="button" class="btn role-tertiary add mt-10" @click="add()">

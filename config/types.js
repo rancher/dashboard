@@ -121,6 +121,7 @@ export const FLEET = {
   CLUSTER_GROUP: 'fleet.cattle.io.clustergroup',
   GIT_REPO:      'fleet.cattle.io.gitrepo',
   WORKSPACE:     'management.cattle.io.fleetworkspace',
+  TOKEN:         'fleet.cattle.io.clusterregistrationtoken',
 };
 
 export const GATEKEEPER = { CONSTRAINT_TEMPLATE: 'templates.gatekeeper.sh.constrainttemplate' };
