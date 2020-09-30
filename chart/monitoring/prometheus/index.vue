@@ -127,6 +127,12 @@ export default {
 
       return pods;
     },
+
+    showStorageClasses() {
+      const { storageClasses } = this;
+
+      return (storageClasses || []).length >= 1;
+    },
   },
 
   watch: {
@@ -260,15 +266,28 @@ export default {
         <div class="col span-6">
           <Checkbox v-model="enablePersistantStorage" :label="t('monitoring.prometheus.storage.label')" />
         </div>
-        <div v-if="enablePersistantStorage" class="col span-6">
-          <LabeledInput
-            v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
-            :label="t('monitoring.prometheus.storage.size')"
-            :mode="mode"
-          />
-        </div>
       </div>
       <template v-if="enablePersistantStorage">
+        <div class="row">
+          <div class="col span-6">
+            <LabeledInput
+              v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage"
+              :label="t('monitoring.prometheus.storage.size')"
+              :mode="mode"
+            />
+          </div>
+          <div class="col span-6">
+            <div v-if="showStorageClasses">
+              <StorageClassSelector
+                :mode="mode"
+                :options="storageClasses"
+                :value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
+                :label="t('monitoring.prometheus.storage.className')"
+                @updateName="(name) => $set(value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec, 'storageClassName', name)"
+              />
+            </div>
+          </div>
+        </div>
         <div class="row">
           <div class="col span-6">
             <LabeledSelect
@@ -281,18 +300,6 @@ export default {
               :reduce="({id})=> id"
             />
           </div>
-          <div class="col span-6">
-            <StorageClassSelector
-              :v-if="storageClasses.length > 0"
-              :mode="mode"
-              :options="storageClasses"
-              :value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
-              :label="t('monitoring.prometheus.storage.className')"
-              @updateName="(name) => $set(value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec, 'storageClassName', name)"
-            />
-          </div>
-        </div>
-        <div class="row">
           <div class="col span-6">
             <LabeledSelect
               v-model="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.volumeMode"

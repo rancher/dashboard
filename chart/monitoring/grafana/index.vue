@@ -67,6 +67,13 @@ export default {
       persistentStorageType: 'disabled',
     };
   },
+  computed: {
+    showStorageClasses() {
+      const { storageClasses } = this;
+
+      return (storageClasses || []).length >= 1;
+    },
+  },
   watch: {
     persistentStorageType(newType, oldType) {
       let newValsOut;
@@ -138,7 +145,7 @@ export default {
       this.$set(this.value.grafana, 'persistence', resetValsOut);
       this.$set(this.value.grafana, 'persistence', newValsOut);
     },
-  },
+  }
 };
 </script>
 
@@ -183,6 +190,19 @@ export default {
             />
           </div>
           <div class="col span-6">
+            <div v-if="showStorageClasses">
+              <StorageClassSelector
+                :value="value.grafana.persistence.storageClassName"
+                :mode="mode"
+                :options="storageClasses"
+                :label="t('monitoring.prometheus.storage.className')"
+                @updateName="(name) => $set(value.grafana.persistence, 'storageClassName', name)"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col span-6">
             <LabeledSelect
               v-model="value.grafana.persistence.accessModes"
               :label="t('monitoring.grafana.storage.mode')"
@@ -191,18 +211,6 @@ export default {
               :multiple="true"
               :options="accessModes"
               :reduce="({id})=> id"
-            />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col span-6">
-            <StorageClassSelector
-              v-if="storageClasses.length > 0"
-              :value="value.grafana.persistence.storageClassName"
-              :mode="mode"
-              :options="storageClasses"
-              :label="t('monitoring.prometheus.storage.className')"
-              @updateName="(name) => $set(value.grafana.persistence, 'storageClassName', name)"
             />
           </div>
         </div>
@@ -245,6 +253,19 @@ export default {
             />
           </div>
           <div class="col span-6">
+            <div v-if="showStorageClasses">
+              <StorageClassSelector
+                :value="value.grafana.persistence.storageClassName"
+                :mode="mode"
+                :options="storageClasses"
+                :label="t('monitoring.prometheus.storage.className')"
+                @updateName="(name) => $set(value.grafana.persistence, 'storageClassName', name)"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col span-6">
             <LabeledSelect
               v-model="value.grafana.persistence.accessModes"
               :label="t('monitoring.grafana.storage.mode')"
@@ -253,18 +274,6 @@ export default {
               :multiple="true"
               :options="accessModes"
               :reduce="({id})=> id"
-            />
-          </div>
-        </div>
-        <div class="row">
-          <div class="col span-6">
-            <StorageClassSelector
-              v-if="storageClasses.length > 0"
-              :value="value.grafana.persistence.storageClassName"
-              :mode="mode"
-              :options="storageClasses"
-              :label="t('monitoring.prometheus.storage.className')"
-              @updateName="(name) => $set(value.grafana.persistence, 'storageClassName', name)"
             />
           </div>
         </div>
