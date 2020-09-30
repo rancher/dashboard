@@ -89,7 +89,7 @@ export default {
     />
     <span
       ref="custom"
-      class="radio-custom"
+      :class="[ disabled ? 'text-muted' : '', 'radio-custom']"
       :tabindex="disabled ? -1 : 0"
       :aria-label="label"
       :aria-checked="isChecked"
@@ -97,7 +97,7 @@ export default {
     />
     <span
       v-if="label"
-      class="radio-label"
+      :class="[ disabled ? 'text-muted' : '', 'radio-label']"
       v-html="label"
     >
       <slot name="label">{{ label }}</slot>
@@ -165,6 +165,8 @@ export default {
 
   input:disabled ~ .radio-custom {
     background-color: var(--disabled-bg);
+    border: 0;
   }
 }
+
 </style>
