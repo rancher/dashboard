@@ -127,6 +127,12 @@ export default {
 
       return pods;
     },
+
+    showStorageClasses() {
+      const { storageClasses } = this;
+
+      return (storageClasses || []).length >= 1;
+    },
   },
 
   watch: {
@@ -282,14 +288,15 @@ export default {
             />
           </div>
           <div class="col span-6">
-            <StorageClassSelector
-              :v-if="storageClasses.length > 0"
-              :mode="mode"
-              :options="storageClasses"
-              :value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
-              :label="t('monitoring.prometheus.storage.className')"
-              @updateName="(name) => $set(value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec, 'storageClassName', name)"
-            />
+            <div v-if="showStorageClasses">
+              <StorageClassSelector
+                :mode="mode"
+                :options="storageClasses"
+                :value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.storageClassName"
+                :label="t('monitoring.prometheus.storage.className')"
+                @updateName="(name) => $set(value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec, 'storageClassName', name)"
+              />
+            </div>
           </div>
         </div>
         <div class="row">
