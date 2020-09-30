@@ -100,6 +100,7 @@ export default {
   <div>
     <CruResource :validation-passed="!!name && !!value.spec.benchmarkVersion" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
       <template>
+        <div class="spacer"></div>
         <div class="row">
           <div class="col span-12">
             <NameNsDescription :mode="mode" :value="value" :namespaced="false" @change="name=value.metadata.name" />
@@ -113,8 +114,13 @@ export default {
         <div class="spacer" />
         <div class="row">
           <div class="col span-6">
-            <h3>{{ t('cis.testsToSkip') }}</h3>
-            <ArrayList v-model="value.spec.skipTests" :value-label="t('cis.testID')" :show-header="true" :add-label="t('cis.addTest')" :mode="mode" />
+            <ArrayList
+              v-model="value.spec.skipTests"
+              :title="t('cis.testsToSkip')"
+              :value-placeholder="t('cis.testID')"
+              :show-header="true"
+              :mode="mode"
+            />
           </div>
         </div>
       </template>

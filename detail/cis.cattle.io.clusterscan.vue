@@ -201,6 +201,7 @@ export default {
         <span v-else>{{ item.value }}</span>
       </div>
     </div>
+    <p>test</p>
     <div v-if="results.length">
       <h3>{{ t('cis.scan.scanReport') }}</h3>
       <SortableTable
