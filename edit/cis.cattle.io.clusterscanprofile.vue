@@ -118,7 +118,6 @@ export default {
               v-model="value.spec.skipTests"
               :title="t('cis.testsToSkip')"
               :value-placeholder="t('cis.testID')"
-              :show-header="true"
               :mode="mode"
             />
           </div>
