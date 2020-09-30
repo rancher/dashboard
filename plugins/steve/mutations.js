@@ -217,10 +217,24 @@ export default {
     }
   },
 
-  addNoWatch(state, type) {
-    state.noWatch.push(type);
+  setInError(state, msg) {
+    const key = keyForSubscribe(msg);
+
+    state.inError[key] = msg.reason;
+  },
+
+  clearInError(state, msg) {
+    const key = keyForSubscribe(msg);
+
+    delete state.inError[key];
   }
 };
+
+export function keyForSubscribe({
+  resourceType, namespace, id, selector, reason
+}) {
+  return `${ resourceType || '' }/${ namespace || '' }/${ id || '' }/${ selector || '' }`;
+}
 
 export function equivalentWatch(a, b) {
   if ( a.type !== b.type ) {
@@ -228,6 +242,10 @@ export function equivalentWatch(a, b) {
   }
 
   if ( a.id !== b.id && (a.id || b.id) ) {
+    return false;
+  }
+
+  if ( a.namespace !== b.namespace && (a.namespace || b.namespace) ) {
     return false;
   }
 
