@@ -5,6 +5,7 @@
 
   display: block !important;
   z-index: z-index('tooltip');
+  max-width: 50vw;
 
   .tooltip-inner {
     background: var(--tooltip-bg);
@@ -101,7 +102,7 @@
       background: var(--tooltip-bg-warning);
       color: var(--tooltip-text-warning);
     }
-  
+
     &[x-placement^="top"] {
       .tooltip-arrow {
         &:after {
@@ -109,8 +110,8 @@
         }
       }
     }
-  
-  
+
+
     &[x-placement^="bottom"] {
       .tooltip-arrow {
         &:after {
@@ -118,7 +119,7 @@
         }
       }
     }
-  
+
     &[x-placement^="right"] {
       .tooltip-arrow {
         &:after {
@@ -126,7 +127,7 @@
         }
       }
     }
-  
+
     &[x-placement^="left"] {
       .tooltip-arrow {
         &:after {
@@ -165,7 +166,7 @@
 
 .tooltip, .popover {
   &[aria-hidden='true'] {
-    // This removes it from the layout of ButtondropDown (so it doesn't render huge for SSR) but 
+    // This removes it from the layout of ButtondropDown (so it doesn't render huge for SSR) but
     // still allows it to maintain it's dimensions for v-tooltip to calculate the appropriate position.
     position: absolute;
     visibility: hidden;
