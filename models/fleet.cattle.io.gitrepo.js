@@ -19,13 +19,15 @@ export default {
       const spec = this.spec || {};
       const meta = this.metadata || {};
 
+      meta.namespace = this.$rootGetters['workspace'];
+
       spec.repo = spec.repo || '';
 
       if ( !spec.branch && !spec.revision ) {
         spec.branch = 'master';
       }
 
-      spec.paths = spec.paths || [''];
+      spec.paths = spec.paths || [];
       spec.clientSecretName = spec.clientSecretName || null;
 
       set(this, 'spec', spec);

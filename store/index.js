@@ -53,6 +53,10 @@ export const getters = {
     return state.productId;
   },
 
+  workspace(state, getters) {
+    return state.workspace;
+  },
+
   currentCluster(state, getters) {
     return getters['management/byId'](MANAGEMENT.CLUSTER, state.clusterId);
   },
