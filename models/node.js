@@ -10,7 +10,7 @@ export default {
   availableActions() {
     const cordon = {
       action:     'cordon',
-      enabled:    this.isWorker && !this.isCordoned,
+      enabled:    this.hasLink('update') && this.isWorker && !this.isCordoned,
       icon:       'icon icon-fw icon-pause',
       label:      'Cordon',
       total:      1,
@@ -19,7 +19,7 @@ export default {
 
     const uncordon = {
       action:     'uncordon',
-      enabled:    this.isWorker && this.isCordoned,
+      enabled:    this.hasLink('update') && this.isWorker && this.isCordoned,
       icon:       'icon icon-fw icon-play',
       label:      'Uncordon',
       total:      1,
