@@ -83,7 +83,7 @@ export default {
 </script>
 <template>
   <div>
-    <button type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
+    <button v-if="mode!=='view'" type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
       <i class="icon icon-2x icon-x" />
     </button>
     <div class="bordered-section">
@@ -98,7 +98,7 @@ export default {
           <LabeledInput v-model="value.hostPath.path" :required="true" :mode="mode" :label="t('workload.storage.nodePath')" />
         </div>
         <div class="col span-6">
-          <LabeledSelect v-model="value.hostPath.type" :options="typeOpts" :label="t('workload.storage.hostPath.label')" />
+          <LabeledSelect v-model="value.hostPath.type" :mode="mode" :options="typeOpts" :label="t('workload.storage.hostPath.label')" />
         </div>
       </div>
     </div>

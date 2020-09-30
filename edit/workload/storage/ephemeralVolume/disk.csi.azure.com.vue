@@ -43,6 +43,7 @@ export default {
       <div class="col span-6">
         <RadioGroup
           v-model="value.kind"
+          :mode="mode"
           name="kind"
           :label="t('workload.storage.csi.kind.label')"
           :options="['Dedicated', 'Managed', 'Shared']"
@@ -52,6 +53,7 @@ export default {
       <div class="col span-6">
         <RadioGroup
           v-model="value.cachingMode"
+          :mode="mode"
           :label="t('workload.storage.csi.cachingMode.label')"
           :options="['None', 'ReadOnly', 'ReadWrite']"
           :labels="[t('workload.storage.csi.cachingMode.options.none'), t('workload.storage.csi.cachingMode.options.readOnly'), t('workload.storage.csi.cachingMode.options.readWrite')]"

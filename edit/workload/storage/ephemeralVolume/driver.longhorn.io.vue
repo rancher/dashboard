@@ -35,7 +35,7 @@ export default {
 <template>
   <div class="row">
     <div class="col span-12">
-      <KeyValue v-model="value" :as-map="true" />
+      <KeyValue v-model="value" :mode="mode" :as-map="true" />
     </div>
   </div>
 </template>

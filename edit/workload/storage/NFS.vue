@@ -39,7 +39,7 @@ export default {
 </script>
 <template>
   <div>
-    <button type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
+    <button v-if="mode!=='view'" type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
       <i class="icon icon-2x icon-x" />
     </button>
     <div class="bordered-section">
@@ -49,7 +49,7 @@ export default {
           <LabeledInput v-model="value.name" :required="true" :mode="mode" :label="t('workload.storage.volumeName')" @input="e=>updateMountNames(e)" />
         </div>
         <div class="col span-6">
-          <Checkbox v-model="value.nfs.readOnly" :label="t('workload.storage.readOnly')" />
+          <Checkbox v-model="value.nfs.readOnly" :mode="mode" :label="t('workload.storage.readOnly')" />
         </div>
       </div>
       <div class="row mb-10">
