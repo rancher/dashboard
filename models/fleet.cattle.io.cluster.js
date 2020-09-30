@@ -73,9 +73,9 @@ export default {
     };
   },
 
-  bundleInfo() {
-    const ready = this.status?.summary?.ready || 0;
-    const total = this.status?.summary?.desiredReady || 0;
+  repoInfo() {
+    const ready = this.status?.readyGitRepos || 0;
+    const total = this.status?.desiredReadyGitRepos || 0;
 
     return {
       ready,

@@ -42,6 +42,7 @@ export default {
           out.push({
             key:             `${ r.id }-${ c.id }-${ r.type }-${ r.namespace }-${ r.name }`,
             kind:            r.kind,
+            apiVersion:      r.apiVersion,
             type:            r.type,
             id:              r.id,
             namespace:       r.namespace,
@@ -77,16 +78,28 @@ export default {
           label: 'Cluster',
         },
         {
+          name:  'apiVersion',
+          value: 'apiVersion',
+          sort:  'apiVersion',
+          label: 'API Version',
+        },
+        {
           name:  'kind',
           value: 'kind',
           sort:  'kind',
           label: 'Kind',
         },
         {
-          name:  'resource',
-          value: 'namespacedName',
-          sort:  'namespacedName',
-          label: 'Resource',
+          name:  'name',
+          value: 'name',
+          sort:  'name',
+          label: 'Name',
+        },
+        {
+          name:  'namespace',
+          value: 'namespace',
+          sort:  'namespace',
+          label: 'Namespace',
         },
       ];
     },

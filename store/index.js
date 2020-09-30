@@ -1,6 +1,8 @@
 import Steve from '@/plugins/steve';
-import { COUNT, NAMESPACE, NORMAN, MANAGEMENT } from '@/config/types';
-import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE } from '@/store/prefs';
+import {
+  COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET
+} from '@/config/types';
+import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE, WORKSPACE } from '@/store/prefs';
 import { allHash } from '@/utils/promise';
 import { ClusterNotFoundError, ApiError } from '@/utils/error';
 import { sortBy } from '@/utils/sort';
@@ -25,8 +27,10 @@ export const state = () => {
     isMultiCluster:   false,
     namespaceFilters: [],
     allNamespaces:    null,
+    allWorkspaces:    null,
     clusterId:        null,
     productId:        null,
+    workspace:        null,
     error:            null,
     cameFromError:    false,
   };
@@ -90,15 +94,33 @@ export const getters = {
   isAllNamespaces(state, getters) {
     const product = getters['currentProduct'];
 
-    return !product || !product.showNamespaceFilter || state.namespaceFilters.filter(x => !x.startsWith('namespaced://')).length === 0;
+    if ( !product ) {
+      return true;
+    }
+
+    if ( product.showWorkspaceSwitcher ) {
+      return false;
+    }
+
+    if ( !product.showNamespaceFilter ) {
+      return true;
+    }
+
+    return state.namespaceFilters.filter(x => !x.startsWith('namespaced://')).length === 0;
   },
 
   isMultipleNamespaces(state, getters) {
-    const filters = state.namespaceFilters;
+    const product = getters['currentProduct'];
+
+    if ( product.showWorkspaceSwitcher ) {
+      return false;
+    }
 
     if ( getters.isAllNamespaces ) {
       return true;
     }
+
+    const filters = state.namespaceFilters;
 
     if ( filters.length !== 1 ) {
       return true;
@@ -140,7 +162,14 @@ export const getters = {
   namespaces(state, getters) {
     return () => {
       const out = {};
-      const inStore = getters['currentProduct']?.inStore;
+      const product = getters['currentProduct'];
+      const workspace = state.workspace;
+
+      if ( product.showWorkspaceSwitcher ) {
+        return { [workspace]: true };
+      }
+
+      const inStore = product?.inStore;
       const clusterId = getters['currentCluster']?.id;
 
       if ( !clusterId || !inStore ) {
@@ -285,6 +314,23 @@ export const mutations = {
     }
   },
 
+  updateWorkspace(state, { value, all }) {
+    if ( all ) {
+      state.allWorkspaces = all;
+
+      if ( findBy(all, 'id', value) ) {
+        // The value is a valid option, good
+      } else if ( findBy(all, 'id', 'fleet-default') ) {
+        // How about the default
+        value = 'fleet-default';
+      } else if ( all.length ) {
+        value = all[0].id;
+      }
+    }
+
+    state.workspace = value;
+  },
+
   setCluster(state, neu) {
     state.clusterId = neu;
   },
@@ -333,32 +379,43 @@ export const actions = {
     });
 
     const isMultiCluster = !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
-    const promises = [];
+    const promises = {
+      // Clusters guaranteed always available or your money back
+      clusters: dispatch('management/findAll', {
+        type: MANAGEMENT.CLUSTER,
+        opt:  { url: MANAGEMENT.CLUSTER }
+      }),
+    };
 
     if ( getters['management/schemaFor'](COUNT) ) {
-      promises.push(dispatch('management/findAll', { type: COUNT }));
+      promises['counts'] = dispatch('management/findAll', { type: COUNT });
     }
 
     if ( getters['management/schemaFor'](MANAGEMENT.SETTING) ) {
-      promises.push(dispatch('management/findAll', { type: MANAGEMENT.SETTING }));
+      promises['settings'] = dispatch('management/findAll', { type: MANAGEMENT.SETTING });
     }
 
     if ( getters['management/schemaFor'](NAMESPACE) ) {
-      promises.push(dispatch('management/findAll', { type: NAMESPACE }));
+      promises['namespaces'] = dispatch('management/findAll', { type: NAMESPACE });
     }
 
-    // Clusters is always available
-    promises.push(dispatch('management/findAll', {
-      type: MANAGEMENT.CLUSTER,
-      opt:  { url: MANAGEMENT.CLUSTER }
-    }));
+    if ( getters['management/schemaFor'](FLEET.WORKSPACE) ) {
+      promises['workspaces'] = dispatch('management/findAll', { type: FLEET.WORKSPACE });
+    }
 
-    await Promise.all(promises);
+    const res = await allHash(promises);
 
     commit('managementChanged', {
       ready: true,
       isMultiCluster
     });
+
+    if ( res.workspaces ) {
+      commit('updateWorkspace', {
+        value: getters['prefs/get'](WORKSPACE),
+        all:   res.workspaces,
+      });
+    }
 
     console.log(`Done loading management; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },

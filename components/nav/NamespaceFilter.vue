@@ -3,7 +3,6 @@ import { NAMESPACE_FILTERS } from '@/store/prefs';
 import { NAMESPACE, MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { isArray, addObjects, findBy, filterBy } from '@/utils/array';
-import { BOTH } from '@/store/type-map';
 
 export default {
   computed: {
@@ -25,12 +24,14 @@ export default {
       },
 
       set(neu) {
+        const old = (this.value || []).slice();
+
         neu = neu.filter(x => !!x.id);
 
         const last = neu[neu.length - 1];
         const lastIsSpecial = last?.kind === 'special';
-        const hadUser = neu.find(x => x.id === 'all://user');
-        const hadAll = neu.find(x => x.id === 'all');
+        const hadUser = old.find(x => x.id === 'all://user');
+        const hadAll = old.find(x => x.id === 'all');
 
         if ( lastIsSpecial ) {
           neu = [last];

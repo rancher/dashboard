@@ -4,12 +4,14 @@ import { NORMAN } from '@/config/types';
 import ProductSwitcher from './ProductSwitcher';
 import ClusterSwitcher from './ClusterSwitcher';
 import NamespaceFilter from './NamespaceFilter';
+import WorkspaceSwitcher from './WorkspaceSwitcher';
 
 export default {
   components: {
     ProductSwitcher,
     ClusterSwitcher,
     NamespaceFilter,
+    WorkspaceSwitcher,
   },
 
   computed: {
@@ -48,6 +50,7 @@ export default {
 
     <div class="top">
       <NamespaceFilter v-if="clusterReady && currentProduct && currentProduct.showNamespaceFilter" />
+      <WorkspaceSwitcher v-else-if="clusterReady && currentProduct && currentProduct.showWorkspaceSwitcher" />
     </div>
 
     <div class="back">
@@ -170,7 +173,7 @@ export default {
     }
 
     > .apps {
-      padding-left: 5px;
+      padding: 0 0 0 5px;
     }
 
     > .cluster {
@@ -201,6 +204,10 @@ export default {
 
       .vs__deselect {
         fill: var(--header-btn-bg);
+      }
+
+      .filter {
+        padding-left: 5px;
       }
 
       .filter .vs__dropdown-toggle {

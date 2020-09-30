@@ -1,8 +1,8 @@
 <script>
 import ProgressBarMulti from '@/components/ProgressBarMulti';
-import { removeObject } from '@/utils/array';
 import { ucFirst } from '@/utils/string';
-import { colorForState } from '@/plugins/steve/resource-instance';
+import { colorForState, stateSort } from '@/plugins/steve/resource-instance';
+import { sortBy } from '@/utils/sort';
 
 export default {
   components: { ProgressBarMulti },
@@ -16,55 +16,53 @@ export default {
 
   computed: {
     summary() {
-      return this.row.status?.summary || {};
+      return this.row.status?.resourceCounts || {};
     },
 
-    showHover() {
-      return true;
+    show() {
+      return this.stateParts.length > 0;
     },
 
     stateParts() {
-      const keys = Object.keys(this.summary);
+      const keys = Object.keys(this.summary).filter(x => !x.startsWith('desired'));
 
-      removeObject(keys, 'desiredReady');
-      removeObject(keys, 'nonReadyResources');
-
-      return keys.map((key) => {
+      const out = keys.map((key) => {
         const textColor = colorForState(key);
 
         return {
           label:     ucFirst(key),
           color:     textColor.replace(/text-/, 'bg-'),
           textColor,
-          value:     this.summary[key]
+          value:     this.summary[key],
+          sort:      stateSort(textColor, key),
         };
-      });
-    }
+      }).filter(x => x.value > 0);
+
+      return sortBy(out, 'sort');
+    },
+
   },
 };
 </script>
 
 <template>
   <v-popover
-    class="text-center"
-    :class="{'hand': showHover}"
+    v-if="show"
+    class="text-cente handr"
     placement="top"
     :open-group="row.id"
-    :trigger="showHover ? 'click' : 'manual'"
+    :trigger="show ? 'click' : 'manual'"
     offset="1"
   >
     <ProgressBarMulti :values="stateParts" class="mb-5" />
-    <span>{{ summary.ready }}</span>
-    <span v-if="summary.desiredReady != summary.ready">
-      <i class="icon icon-chevron-right" />
-      {{ summary.desiredReady }}
-    </span>
+    <span v-if="summary.desiredReady === summary.ready">{{ summary.ready }}</span>
+    <span v-else>{{ summary.ready }} of {{ summary.desiredReady }}</span>
 
     <template #popover>
-      <table v-if="showHover" class="fixed">
+      <table v-if="show" class="fixed">
         <tbody>
           <tr v-for="obj in stateParts" :key="obj.label">
-            <td :class="{'text-left': true, [obj.textColor]: true}">
+            <td class="text-left pr-20" :class="{[obj.textColor]: true}">
               {{ obj.label }}
             </td>
             <td class="text-right">
@@ -75,6 +73,9 @@ export default {
       </table>
     </template>
   </v-popover>
+  <div v-else class="text-center text-muted">
+    &mdash;
+  </div>
 </template>
 
 <style lang="scss">

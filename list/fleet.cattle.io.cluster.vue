@@ -1,7 +1,5 @@
 <script>
 import FleetClusters from '@/components/FleetClusters';
-import { get } from '@/utils/object';
-import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import { FLEET, MANAGEMENT } from '@/config/types';
 import Loading from '@/components/Loading';
 
@@ -47,32 +45,6 @@ export default {
 
       return out;
     },
-
-    group: mapPref(GROUP_RESOURCES),
-
-    groupBy() {
-      // The value of the preference is "namespace" but we take that to mean group by workspace here...
-      if ( this.group === 'namespace') {
-        return 'groupByLabel';
-      }
-
-      return null;
-    },
-
-    groupOptions() {
-      return [
-        { value: 'none', icon: 'icon-list-flat' },
-        { value: 'namespace', icon: 'icon-list-grouped' }
-      ];
-    },
-  },
-
-  methods: {
-    get,
-
-    setGroup(group) {
-      this.group = group;
-    }
   },
 };
 </script>
@@ -82,12 +54,6 @@ export default {
   <FleetClusters
     v-else
     :rows="rows"
-    :groupable="true"
-    :group-by="groupBy"
-    :group-options="groupOptions"
-    :group="group"
-    :paging="true"
-    paging-label="sortableTable.paging.resource"
-    @set-group="setGroup"
+    :schema="schema"
   />
 </template>

@@ -102,7 +102,7 @@ export default {
           i++;
         }
 
-        if ( diff < 10 ) {
+        if ( diff < 5 ) {
           label = Math.floor(diff * 10) / 10;
         } else {
           label = Math.floor(diff);

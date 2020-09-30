@@ -129,6 +129,17 @@ export default {
     return hash;
   },
 
+  clusterInfo() {
+    const ready = this.status?.readyClusters || 0;
+    const total = this.status?.desiredReadyClusters || 0;
+
+    return {
+      ready,
+      unready: total - ready,
+      total,
+    };
+  },
+
   targetInfo() {
     let mode = null;
     let cluster = null;
