@@ -198,6 +198,8 @@ export const POD_IMAGES = {
   name:      'pod_images',
   labelKey:  'tableHeaders.podImages',
   value:     'imageNames',
+  sort:      'imageNames',
+  search:    'imageNames',
   formatter: 'PodImages'
 };
 

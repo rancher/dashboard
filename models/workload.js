@@ -244,7 +244,7 @@ export default {
       });
     }
 
-    return images;
+    return images.map(x => x.replace(/^docker.io\/(library\/)?/, '').replace(/:latest$/, '') );
   },
 
   redeploy() {
