@@ -3,9 +3,9 @@
 @font-face {
   font-family: '#{$icomoon-font-family}';
   src:
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?agowr2') format('truetype'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?agowr2') format('woff'),
-    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?agowr2##{$icomoon-font-family}') format('svg');
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.ttf?8pvk2o') format('truetype'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.woff?8pvk2o') format('woff'),
+    url('#{$icomoon-font-path}/#{$icomoon-font-family}.svg?8pvk2o##{$icomoon-font-family}') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -304,6 +304,11 @@
 .icon-longhorn {
   &:before {
     content: $icon-longhorn; 
+  }
+}
+.icon-fleet {
+  &:before {
+    content: $icon-fleet; 
   }
 }
 .icon-rio {

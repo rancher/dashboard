@@ -19,7 +19,7 @@ export function init(store) {
 
   product({
     ifHaveGroup:           /^(.*\.)*fleet\.cattle\.io$/,
-    icon:                  'compass',
+    icon:                  'fleet',
     inStore:               'management',
     removable:             false,
     weight:                -1,

@@ -1,9 +1,9 @@
 @font-face {
   font-family: 'icons';
   src:
-    url('fonts/icons.ttf?agowr2') format('truetype'),
-    url('fonts/icons.woff?agowr2') format('woff'),
-    url('fonts/icons.svg?agowr2#icons') format('svg');
+    url('fonts/icons.ttf?8pvk2o') format('truetype'),
+    url('fonts/icons.woff?8pvk2o') format('woff'),
+    url('fonts/icons.svg?8pvk2o#icons') format('svg');
   font-weight: normal;
   font-style: normal;
   font-display: block;
@@ -191,6 +191,9 @@
 }
 .icon-longhorn:before {
   content: "\e937";
+}
+.icon-fleet:before {
+  content: "\e939";
 }
 .icon-rio:before {
   content: "\e930";
