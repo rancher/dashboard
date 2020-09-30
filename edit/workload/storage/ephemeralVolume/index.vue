@@ -48,7 +48,7 @@ export default {
 
 <template>
   <div>
-    <button type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
+    <button v-if="mode!=='view'" type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
       <i class="icon icon-2x icon-x" />
     </button>
     <div class="bordered-section">
@@ -63,10 +63,10 @@ export default {
       </div>
       <div class="row">
         <div class="col span-6">
-          <LabeledInput v-model="value.csi.fsType" :label="t('workload.storage.csi.fsType')" />
+          <LabeledInput v-model="value.csi.fsType" :mode="mode" :label="t('workload.storage.csi.fsType')" />
         </div>
         <div class="col span-6">
-          <Checkbox v-model="value.csi.readOnly" :label="t('workload.storage.readOnly')" />
+          <Checkbox v-model="value.csi.readOnly" :mode="mode" :label="t('workload.storage.readOnly')" />
         </div>
       </div>
     </div>

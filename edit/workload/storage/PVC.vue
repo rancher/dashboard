@@ -4,7 +4,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
 import { mapGetters } from 'vuex';
-import PersistentVolumeClaim from '@/edit/PersistentVolumeClaim';
+import PersistentVolumeClaim from '@/edit/persistentvolumeclaim';
 import { PVC } from '@/config/types';
 
 export default {
@@ -93,7 +93,7 @@ export default {
 
 <template>
   <div>
-    <button type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
+    <button v-if="mode!=='view'" type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
       <i class="icon icon-2x icon-x" />
     </button>
     <div class="bordered-section">
@@ -106,12 +106,12 @@ export default {
           <LabeledInput v-model="value.name" :required="true" :mode="mode" :label="t('workload.storage.volumeName')" @input="e=>updateMountNames(e)" />
         </div>
         <div class="col span-6">
-          <LabeledSelect v-if="!createNew" v-model="value.persistentVolumeClaim.claimName" :label="t('workload.storage.subtypes.persistentVolumeClaim')" :options="pvcs" />
-          <LabeledInput v-else-if="pvc" disabled :label="t('workload.storage.subtypes.persistentVolumeClaim')" :value="pvc.metadata.name" />
+          <LabeledSelect v-if="!createNew" v-model="value.persistentVolumeClaim.claimName" :mode="mode" :label="t('workload.storage.subtypes.persistentVolumeClaim')" :options="pvcs" />
+          <LabeledInput v-else-if="pvc" :mode="mode" disabled :label="t('workload.storage.subtypes.persistentVolumeClaim')" :value="pvc.metadata.name" />
         </div>
       </div>
       <div class="row">
-        <Checkbox v-model="value.persistentVolumeClaim.readOnly" :label="t('workload.storage.readOnly')" />
+        <Checkbox v-model="value.persistentVolumeClaim.readOnly" :mode="mode" :label="t('workload.storage.readOnly')" />
       </div>
     </div>
     <Mount :pod-spec="podSpec" :name="value.name" :mode="mode" />

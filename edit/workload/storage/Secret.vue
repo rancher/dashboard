@@ -123,7 +123,7 @@ export default {
 
 <template>
   <div>
-    <button type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
+    <button v-if="mode!=='view'" type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
       <i class="icon icon-2x icon-x" />
     </button>
     <div class="bordered-section">
@@ -151,6 +151,7 @@ export default {
         <div class="col span-6">
           <RadioGroup
             v-model="optional"
+            :mode="mode"
             name="optional"
             :row="true"
             :label="t('workload.storage.optional.label')"

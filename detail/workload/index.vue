@@ -14,6 +14,7 @@ import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/components/form/Networking';
 import Loading from '@/components/Loading';
+import Storage from '@/edit/workload/storage';
 import Job from '@/edit/workload/Job';
 import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
 
@@ -34,7 +35,8 @@ export default {
     Tabbed,
     Tab,
     VolumeClaimTemplate,
-    Loading
+    Loading,
+    Storage
   },
 
   mixins: [createEditView],
@@ -150,6 +152,13 @@ export default {
       </Tab>
       <Tab :label="t('workload.container.titles.networking')" name="networking">
         <Networking v-model="podTemplateSpec" :mode="mode" />
+      </Tab>
+      <Tab :label="t('workload.storage.title')" name="storage">
+        <Storage
+          v-model="podTemplateSpec"
+          :namespace="value.metadata.namespace"
+          :mode="mode"
+        />
       </Tab>
       <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
         <VolumeClaimTemplate v-model="value.spec" :mode="mode" />
