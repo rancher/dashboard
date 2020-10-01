@@ -25,7 +25,7 @@ import {
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
-import { clone, diff } from '@/utils/object';
+import { clone, diff, get, set } from '@/utils/object';
 import { findBy } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 
@@ -553,22 +553,35 @@ export default {
     },
 
     addGlobalValuesTo(values) {
-      if ( !values.global ) {
-        values.global = {};
+      let global = values.global;
+
+      if ( !global ) {
+        global = {};
+        set(values, 'global', global);
       }
 
-      if ( !values.global.cattle ) {
-        values.global.cattle = {};
+      let cattle = global.cattle;
+
+      if ( !cattle ) {
+        cattle = {};
+        set(values.global, 'cattle', cattle);
       }
 
       const cluster = this.$store.getters['currentCluster'];
+      const defaultRegistry = this.defaultRegistrySetting?.value || '';
 
-      values.global.cattle.clusterId = cluster.id;
-      values.global.cattle.clusterName = cluster.nameDisplay;
-      values.global.cattle.systemDefaultRegistry = this.defaultRegistrySetting?.value || '';
-      values.systemDefaultRegistry = this.defaultRegistrySetting?.value || '';
+      setIfNotSet(cattle, 'clusterId', cluster.id);
+      setIfNotSet(cattle, 'clusterName', cluster.nameDisplay);
+      setIfNotSet(cattle, 'systemDefaultRegistry', defaultRegistry);
+      setIfNotSet(global, 'systemDefaultRegistry', defaultRegistry);
 
       return values;
+
+      function setIfNotSet(obj, key, val) {
+        if ( typeof get(obj, key) === 'undefined' ) {
+          set(obj, key, val);
+        }
+      }
     },
 
     removeGlobalValuesFrom(values) {
@@ -576,13 +589,19 @@ export default {
         return;
       }
 
-      delete values.global?.cattle?.clusterId;
-      delete values.global?.cattle?.clusterName;
-      delete values.global?.cattle?.systemDefaultRegistry;
-      delete values.systemDefaultRegistry;
+      const cluster = this.$store.getters['currentCluster'];
+      const defaultRegistry = this.defaultRegistrySetting?.value || '';
 
-      if ( !Object.keys(values.global?.cattle || {}).length ) {
-        delete values.global?.cattle;
+      deleteIfEqual(values, 'systemDefaultRegistry', defaultRegistry);
+
+      if ( values.global?.cattle ) {
+        deleteIfEqual(values.global.cattle, 'clusterId', cluster.id);
+        deleteIfEqual(values.global.cattle, 'clusterName', cluster.nameDisplay);
+        deleteIfEqual(values.global.cattle, 'systemDefaultRegistry', defaultRegistry);
+      }
+
+      if ( values.global?.cattle && !Object.keys(values.global.cattle).length ) {
+        delete values.global.cattle;
       }
 
       if ( !Object.keys(values.global || {}).length ) {
@@ -590,6 +609,12 @@ export default {
       }
 
       return values;
+
+      function deleteIfEqual(obj, key, val) {
+        if ( get(obj, key) === val ) {
+          delete obj[key];
+        }
+      }
     },
 
     applyYamlToValues() {
