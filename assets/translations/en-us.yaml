@@ -609,7 +609,6 @@ logging:
     outputs:
       label: Outputs
   install:
-    deployToControlPlane: Collect logs on control plane and etcd notes. By default, logs are only collected on worker nodes.
     k3sContainerEngine: K3S Container Engine
   elasticsearch:
     host: Host
