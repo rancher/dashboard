@@ -429,8 +429,8 @@ export const actions = {
   }, id) {
     const isMultiCluster = getters['isMultiCluster'];
 
-    if ( state.clusterReady && state.clusterId && state.clusterId === id ) {
-      // Do nothing, we're already connected to this cluster
+    if ( state.clusterId && state.clusterId === id ) {
+      // Do nothing, we're already connected/connecting to this cluster
       return;
     }
 

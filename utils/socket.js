@@ -45,6 +45,16 @@ export default class Socket extends EventTarget {
   constructor(url, autoReconnect = true, frameTimeout = null, protocol = null) {
     super();
 
+    this.setUrl(url);
+    this.autoReconnect = autoReconnect;
+    this.protocol = protocol;
+
+    if ( frameTimeout !== null ) {
+      this.frameTimeout = frameTimeout;
+    }
+  }
+
+  setUrl(url) {
     if ( !url.match(/wss?:\/\//) ) {
       url = window.location.origin.replace(/^http/, 'ws') + url;
     }
@@ -54,12 +64,6 @@ export default class Socket extends EventTarget {
     }
 
     this.url = url;
-    this.autoReconnect = autoReconnect;
-    this.protocol = protocol;
-
-    if ( frameTimeout !== null ) {
-      this.frameTimeout = frameTimeout;
-    }
   }
 
   connect(metadata = {}) {
