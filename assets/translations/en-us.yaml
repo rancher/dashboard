@@ -145,14 +145,14 @@ backupRestoreOperator:
     rancherNamespace: Rancher ResourceSet Namespace
     storage:
       tip: Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.
-      storageClass: 
+      storageClass:
         label: Storage Class
-      persistentVolume: 
+      persistentVolume:
         label: Persistent Volume
       label: Default Storage Location
       options:
         none: No default storage location
-        s3: Use an S3-compatible object store 
+        s3: Use an S3-compatible object store
         defaultStorageClass: 'Use the default storage class ({name})'
         pickSC: Use an existing storage class
         pickPV: Use an existing persistent volume
@@ -598,7 +598,7 @@ logging:
   clusterFlow:
     noOutputsBanner: There are no cluster outputs in the selected namespace.
   flow:
-    clusterOutputs: 
+    clusterOutputs:
       label: Cluster Outputs
     matches:
       label: Matches
@@ -713,7 +713,6 @@ monitoring:
   clusterType:
     label: Cluster Type
     placeholder: Select cluster type
-
   createDefaultRoles: Create Default Monitoring Cluster Roles
   grafana:
     storage:
@@ -785,6 +784,7 @@ monitoring:
     modes:
       block: Block
       file: Filesystem
+  v1Warning: Please uninstall Cluster Monitoring in <code>Rancher</code> before attempting to install this version.
 
 nameNsDescription:
   name:
