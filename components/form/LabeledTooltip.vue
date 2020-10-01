@@ -21,7 +21,7 @@ export default {
 </script>
 
 <template>
-  <div ref="container" class="labeled-tooltip" :class="{[status]: true}">
+  <div ref="container" class="labeled-tooltip" :class="{[status]: true, hoverable: hover}">
     <template v-if="hover">
       <i v-tooltip="{content: value, classes: [`tooltip-${status}`]}" :class="{'hover':!value}" class="icon icon-info status-icon" />
     </template>
@@ -45,6 +45,10 @@ export default {
     height: 100%;
     left: 0;
     top: 0;
+
+    &.hoverable {
+      height: 0%;
+    }
 
     .status-icon {
         position:  absolute;
