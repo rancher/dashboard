@@ -52,7 +52,11 @@ export default {
   },
 
   data() {
-    return { templates: this.value.volumeClaimTemplates || [], name: '' };
+    if (!this.value.volumeClaimTemplates) {
+      this.$set(this.value, 'volumeClaimTemplates', []);
+    }
+
+    return { templates: this.value.volumeClaimTemplates, name: '' };
   },
 
   computed: {
@@ -119,7 +123,7 @@ export default {
         <div class="bordered-section">
           <PersistentVolumeClaim v-if="pvc.metadata" :value="pvc" :mode="mode" @input="updatePVC(pvc)" />
         </div>
-        <Mount :pod-spec="value.template.spec" :name="name" :mode="mode" />
+        <Mount :pod-spec="value.template.spec" :name="pvc.metadata.name" :mode="mode" />
       </SimpleBox>
       <button v-if="!isView" type="button" class="btn role-secondary" @click="addPVC">
         Add Claim Template
