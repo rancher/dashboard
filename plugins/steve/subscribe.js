@@ -22,7 +22,11 @@ export const actions = {
       return;
     }
 
-    if ( !socket ) {
+    const url = `${ state.config.baseUrl }/subscribe`;
+
+    if ( socket ) {
+      socket.setUrl(url);
+    } else {
       socket = new Socket(`${ state.config.baseUrl }/subscribe`);
 
       commit('setSocket', socket);
@@ -61,7 +65,7 @@ export const actions = {
     commit('setWantSocket', false);
 
     if ( socket ) {
-      socket.disconnect();
+      return socket.disconnect();
     }
   },
 
@@ -230,7 +234,9 @@ export const actions = {
 
     if ( !state.queue ) {
       state.queue = [];
+    }
 
+    if ( !state.queueTimer ) {
       state.flushQueue = async() => {
         if ( state.queue.length ) {
           await dispatch('flush');
@@ -258,11 +264,13 @@ export const actions = {
   closed({ state }, event) {
     console.warn('WebSocket Closed'); // eslint-disable-line no-console
     clearTimeout(state.queueTimer);
+    state.queueTimer = null;
   },
 
   error({ state }, event) {
     console.error('WebSocket Error', event); // eslint-disable-line no-console
     clearTimeout(state.queueTimer);
+    state.queueTimer = null;
   },
 
   send({ state, commit }, obj) {
@@ -284,7 +292,7 @@ export const actions = {
   },
 
   'ws.resource.start'({ commit }, msg) {
-    // console.info('Resource start:', msg.resourceType, msg.id, msg.selector); // eslint-disable-line no-console
+    console.info('Resource start:', msg.resourceType, msg.id, msg.selector); // eslint-disable-line no-console
     commit('setWatchStarted', {
       type:      msg.resourceType,
       namespace: msg.namespace,
@@ -294,7 +302,7 @@ export const actions = {
   },
 
   'ws.resource.error'({ commit, dispatch }, msg) {
-    console.info('Resource error for', msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
+    console.warn('Resource error for', msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
     const err = msg.data?.error?.toLowerCase();
 
     if ( err.includes('watch not allowed') ) {
