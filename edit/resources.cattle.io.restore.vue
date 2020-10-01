@@ -142,17 +142,17 @@ export default {
         }
       } else if (this.targetBackup) {
         if (get(this.targetBackup, 'spec.storageLocation.s3')) {
-          Object.assign(this.value.spec.storageLocation.s3, this.targetBackup.spec.storageLocation.s3);
+          Object.assign(this.value.spec.storageLocation.s3, this.targetBackup?.spec?.storageLocation?.s3);
         }
-        this.$set(this.value.spec, 'backupFilename', this.targetBackup.status.filename);
-        if (this.targetBackup.spec.encryptionConfigSecretName) {
+        this.$set(this.value.spec, 'backupFilename', this.targetBackup?.status?.filename);
+        if (this.targetBackup?.spec?.encryptionConfigSecretName) {
           this.$set(this.value.spec, 'encryptionConfigSecretName', this.targetBackup.spec.encryptionConfigSecretName);
         }
       }
     },
 
     availableBackups(neu, old) {
-      if ((neu.length && !old.length) && this.isClone) {
+      if ((neu.length && !old.length) && !this.isClone) {
         this.storageSource = 'useBackup';
       }
     }
@@ -167,7 +167,7 @@ export default {
       } else {
         delete this.value.spec.storageLocation;
       }
-      if (neu.spec.encryptionConfigSecretName) {
+      if (neu.spec.encryptionConfigSecretName && this.encryptionSecretNames.includes(neu.spec.encryptionConfigSecretName)) {
         out.encryptionConfigSecretName = neu.spec.encryptionConfigSecretName;
       }
       this.$set(this.value, 'spec', { ...this.value.spec, ...out });

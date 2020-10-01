@@ -169,7 +169,7 @@ export default {
 </script>
 
 <template>
-  <div class="labeled-select labeled-input" :class="{disabled: disabled && !isView, focused, [mode]: true, [status]: status, taggable: $attrs.taggable }">
+  <div class="labeled-select labeled-input" :class="{disabled: disabled && !isView, focused, [mode]: true, [status]: status, taggable: $attrs.taggable, hoverable: hoverTooltip }">
     <div :class="{'labeled-container': true, raised, empty, [mode]: true}" :style="{border:'none'}">
       <label v-if="label">
         {{ label }}
@@ -209,12 +209,15 @@ export default {
         <span style="display: none"></span>
       </template>
     </v-select>
-    <LabeledTooltip v-if="tooltip && !focused" v-tooltip="hoverTooltip ? {content: tooltip, classes: [`tooltip-${status}`]} : null" :value="hoverTooltip ? null : tooltip" :status="status" />
+    <LabeledTooltip v-if="tooltip && !focused" :hover="hoverTooltip" :value="tooltip" :status="status" />
   </div>
 </template>
 
 <style lang='scss'>
 .labeled-select {
+  &.hoverable .v-select *{
+    z-index: z-index('overContent')
+  }
   .labeled-container .selected {
     background-color: transparent;
   }

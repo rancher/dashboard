@@ -5,24 +5,37 @@ export default {
       type:    String,
       default: null
     },
+
     status: {
       type:    String,
       default: 'error'
+    },
+
+    hover: {
+      type:    Boolean,
+      default: false
     }
+
   },
 };
 </script>
 
 <template>
   <div ref="container" class="labeled-tooltip" :class="{[status]: true}">
-    <i :class="{'hover':!value}" class="icon icon-info status-icon" />
-    <div v-if="value" class="tooltip" x-placement="bottom">
-      <div class="tooltip-arrow" />
-      <div class="tooltip-inner">
-        {{ value }}
+    <template v-if="hover">
+      <i v-tooltip="{content: value, classes: [`tooltip-${status}`]}" :class="{'hover':!value}" class="icon icon-info status-icon" />
+    </template>
+    <template v-else>
+      <i :class="{'hover':!value}" class="icon icon-info status-icon" />
+      <div v-if="value" class="tooltip" x-placement="bottom">
+        <div class="tooltip-arrow" />
+        <div class="tooltip-inner">
+          {{ value }}
+        </div>
       </div>
-    </div>
+    </template>
   </div>
+</template>
 </template>
 
 <style lang='scss'>
@@ -38,10 +51,8 @@ export default {
         right: 26px;
         top: 16px;
         font-size: 20px;
+        z-index: z-index(hoverOverContent);
 
-        &.hover{
-          z-index: z-index(hoverOverContent)
-        }
     }
 
     .tooltip {
