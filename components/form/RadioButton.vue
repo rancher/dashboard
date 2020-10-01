@@ -165,7 +165,6 @@ export default {
 
   input:disabled ~ .radio-custom {
     background-color: var(--disabled-bg);
-    border: 0;
   }
 }
 
