@@ -152,7 +152,7 @@ export default {
     },
 
     availableBackups(neu, old) {
-      if ((neu.length && !old.length) && !this.isClone) {
+      if ((neu.length && !old.length) && !this.isClone && this.mode !== 'view') {
         this.storageSource = 'useBackup';
       }
     }
