@@ -91,14 +91,14 @@ export default {
       }
     },
     'value.alertmanager.alertmanagerSpec.useExistingSecret'(useExistingSecret) {
-      if (!useExistingSecret) {
-        this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', '');
-      }
-
       const { existingSecret } = this;
 
-      if (existingSecret?.metadata?.name) {
-        this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', existingSecret.metadata.name);
+      if (useExistingSecret) {
+        if (existingSecret?.metadata?.name) {
+          this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', existingSecret.metadata.name);
+        }
+      } else {
+        this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', '');
       }
     }
   },
