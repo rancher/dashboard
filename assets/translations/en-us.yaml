@@ -753,7 +753,7 @@ monitoring:
       prometheusTargets:
         label: 'Prometheus Targets'
         description: 'Configured Targets'
-    warning: Monitoring V1 is currently deployed. If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install the new Rancher Monitoring chart.
+    v1Warning: Monitoring is currently deployed. If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster in Rancher completely before attempting to use the new Rancher Monitoring chart.
   prometheus:
     config:
       adminApi: Admin API
@@ -784,7 +784,7 @@ monitoring:
     modes:
       block: Block
       file: Filesystem
-  v1Warning: Please uninstall Cluster Monitoring in <code>Rancher</code> before attempting to install this version.
+  v1Warning: Monitoring is currently deployed. If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster in Rancher completely before attempting to install the new Rancher Monitoring chart.
 
 nameNsDescription:
   name:

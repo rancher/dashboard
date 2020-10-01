@@ -9,9 +9,7 @@ import Grafana from '@/chart/monitoring/grafana';
 import Prometheus from '@/chart/monitoring/prometheus';
 
 import { allHash } from '@/utils/promise';
-import {
-  STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES, WORKLOAD
-} from '@/config/types';
+import { STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES } from '@/config/types';
 
 export default {
   components: {
@@ -118,7 +116,7 @@ export default {
     async fetchDeps() {
       const { $store } = this;
 
-      await Promise.all(Object.values(WORKLOAD_TYPES).flatMap(type => this.$store.dispatch('cluster/findAll', { type })));
+      await Promise.all(Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })));
 
       this.workloads.forEach((workload) => {
         if (
