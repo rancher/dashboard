@@ -516,7 +516,7 @@ export default {
   </Window>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   @import '@/node_modules/xterm/css/xterm.css';
 
   .logs-container {
