@@ -13,11 +13,17 @@ export default {
   middleware: InstallRedirect(NAME, CHART_NAME),
   components: { ChartHeading, SortableTable },
   async fetch() {
+    const getAllOrDefault = (type) => {
+      const hasAccess = this.$store.getters[`cluster/schemaFor`](type);
+
+      return hasAccess ? this.$store.dispatch('cluster/findAll', { type }) : Promise.resolve([]);
+    };
+
     const hash = await allHash({
-      clusterFlows:   this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_FLOW }),
-      flows:          this.$store.dispatch('cluster/findAll', { type: LOGGING.FLOW }),
-      clusterOutputs: this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT }),
-      outputs:         this.$store.dispatch('cluster/findAll', { type: LOGGING.OUTPUT }),
+      clusterFlows:   getAllOrDefault(LOGGING.CLUSTER_FLOW),
+      flows:          getAllOrDefault(LOGGING.FLOW),
+      clusterOutputs: getAllOrDefault(LOGGING.CLUSTER_OUTPUT),
+      outputs:        getAllOrDefault(LOGGING.OUTPUT),
     });
 
     this.clusterFlows = hash.clusterFlows || [];
@@ -32,6 +38,7 @@ export default {
         { ...NAMESPACE, value: 'flow.metadata.namespace' },
         FLOW,
         OUTPUT,
+        CLUSTER_OUTPUT,
         CONFIGURED_PROVIDERS
       ],
       clusterFlowTableHeaders: [
@@ -47,6 +54,10 @@ export default {
 
     namespaceLevelLogging() {
       return this.mapFlows(this.flows, this.outputs);
+    },
+
+    hasClusterFlowAccess() {
+      return this.$store.getters[`cluster/schemaFor`](LOGGING.CLUSTER_FLOW);
     }
   },
 
@@ -54,7 +65,10 @@ export default {
     mapFlows(flows) {
       return flows.map((flow) => {
         return {
-          flow: this.link(flow), outputs: flow.outputs.map(this.link), providers: flow.outputProviders
+          flow:           this.link(flow),
+          outputs:        flow.outputs.map(this.link),
+          clusterOutputs: flow.clusterOutputs.map(this.link),
+          providers:      flow.outputProviders
         };
       });
     },
@@ -74,17 +88,19 @@ export default {
   <div class="logging">
     <ChartHeading :label="t('logging.overview.poweredBy')" url="https://github.com/banzaicloud/logging-operator" />
     <div class="spacer" />
-    <h2>{{ t('logging.overview.clusterLevel') }}</h2>
-    <SortableTable
-      class="sortable-table"
-      :headers="clusterFlowTableHeaders"
-      :rows="clusterLevelLogging"
-      :row-actions="false"
-      :search="false"
-      :table-actions="false"
-      key-field="id"
-    />
-    <h2 class="mt-20">
+    <div v-if="hasClusterFlowAccess">
+      <h2>{{ t('logging.overview.clusterLevel') }}</h2>
+      <SortableTable
+        class="sortable-table"
+        :headers="clusterFlowTableHeaders"
+        :rows="clusterLevelLogging"
+        :row-actions="false"
+        :search="false"
+        :table-actions="false"
+        key-field="id"
+      />
+    </div>
+    <h2 :class="{ 'mt-20': hasClusterFlowAccess }">
       {{ t('logging.overview.namespaceLevel') }}
     </h2>
     <SortableTable

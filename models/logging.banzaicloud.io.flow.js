@@ -54,14 +54,25 @@ export default {
     return this.$rootGetters['cluster/all'](LOGGING.OUTPUT) || [];
   },
 
-  outputs() {
-    const outputRefs = this?.spec?.outputRefs || this?.spec?.localOutputRefs || [];
+  allClusterOutputs() {
+    return this.$rootGetters['cluster/all'](LOGGING.CLUSTER_OUTPUT) || [];
+  },
 
-    return this.allOutputs.filter(output => outputRefs.includes(output.name));
+  outputs() {
+    const localOutputRefs = this.spec?.localOutputRefs || [];
+
+    return this.allOutputs.filter(output => localOutputRefs.includes(output.name));
+  },
+
+  clusterOutputs() {
+    const globalOutputRefs = this.spec?.globalOutputRefs || [];
+
+    return this.allClusterOutputs.filter(output => globalOutputRefs.includes(output.name));
   },
 
   outputProviders() {
-    const duplicatedProviders = this.outputs
+    const combinedOutputs = [...this.outputs, ...this.clusterOutputs];
+    const duplicatedProviders = combinedOutputs
       .flatMap(output => output.providers);
 
     return uniq(duplicatedProviders) || [];
