@@ -4,7 +4,7 @@ import merge from 'lodash/merge';
 import jsyaml from 'js-yaml';
 import { ucFirst } from '@/utils/string';
 import { isSimpleKeyValue } from '@/utils/object';
-import { _VIEW } from '@/config/query-params';
+import { _CREATE, _VIEW } from '@/config/query-params';
 import { SCHEMA, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import Masthead from '@/components/ResourceDetail/Masthead';
@@ -20,6 +20,7 @@ import Tabbed from '@/components/Tabbed';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import GatekeeperViolationsTable from '@/components/gatekeeper/ViolationsTable';
 import CruResource from '@/components/CruResource';
+import { ENFORCEMENT_ACTION_VALUES } from '@/models/gatekeeper-constraint';
 
 function findConstraintTypes(schemas) {
   return schemas
@@ -32,10 +33,6 @@ function findConstraintTypesIds(schemas) {
 }
 
 const CONSTRAINT_PREFIX = 'constraints.gatekeeper.sh.';
-const ENFORCEMENT_ACTION_VALUES = {
-  DENY:   'deny',
-  DRYRUN: 'dryrun'
-};
 
 export default {
   components: {
@@ -64,6 +61,10 @@ export default {
   },
 
   data() {
+    if ( this.mode === _CREATE && this.value.applyDefaults ) {
+      this.value.applyDefaults(this, this.mode);
+    }
+
     return {
       parametersYaml:           this.value?.spec?.parameters ? jsyaml.safeDump(this.value.spec.parameters) : '',
       showParametersAsYaml:     !isSimpleKeyValue(this.value?.spec?.parameters),
@@ -197,6 +198,12 @@ export default {
       if (this.showParametersAsYaml) {
         this.parametersYaml = jsyaml.safeDump(this.value.spec.parameters);
       }
+    },
+    onTabChanged({ tab }) {
+      // This is necessary to force the yamlEditor to adjust the size once it has space to fill.
+      if (tab.name === 'parameters') {
+        this.$refs.yamlEditor.refresh();
+      }
     }
   }
 };
@@ -246,11 +253,12 @@ export default {
           <GatekeeperViolationsTable :constraint="value" />
           <div class="spacer"></div>
         </div>
-        <Tabbed :side-tabs="true">
+        <Tabbed :side-tabs="true" @changed="onTabChanged">
           <Tab name="parameters" :label="t('gatekeeperConstraint.tab.parameters.title')" :weight="4">
             <div>
               <div v-if="showParametersAsYaml">
                 <YamlEditor
+                  ref="yamlEditor"
                   v-model="parametersYaml"
                   class="yaml-editor"
                   :editor-mode="editorMode"
