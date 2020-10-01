@@ -144,7 +144,7 @@ export default {
     <div class="links">
       <Banner v-if="v1Installed" color="warning">
         <template #default>
-          <t k="monitoring.overview.v1Warning" :raw="true" />
+          <t k="monitoring.v1Warning" :raw="true" />
         </template>
       </Banner>
       <div v-for="fel in externalLinks" :key="fel.label" class="link-container">
