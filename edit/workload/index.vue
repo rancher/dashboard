@@ -232,6 +232,31 @@ export default {
       }
     },
 
+    podAnnotations: {
+      get() {
+        if (this.isCronJob) {
+          if (!this.spec.jobTemplate.metadata) {
+            this.$set( this.spec.jobTemplate, 'metadata', { annotations: {} });
+          }
+
+          return this.spec.jobTemplate.metadata.annotations;
+        } else {
+          if (!this.spec.template.metadata) {
+            this.$set(this.spec.template, 'metadata', { annotations: {} });
+          }
+
+          return this.spec.template.metadata.annotations;
+        }
+      },
+      set(neu) {
+        if (this.isCronJob) {
+          this.$set( this.spec.jobTemplate.metadata, 'annotations', neu);
+        } else {
+          this.$set(this.spec.template.metadata, 'annotations', neu);
+        }
+      }
+    },
+
     container: {
       get() {
         if (!this.podTemplateSpec.containers) {
@@ -648,10 +673,23 @@ export default {
           </div>
           <div class="bordered-section">
             <h3>{{ t('workload.container.titles.podLabels') }}</h3>
+            <div class="row mb-20">
+              <KeyValue
+                key="labels"
+                v-model="podLabels"
+                :add-label="t('labels.addLabel')"
+                :mode="mode"
+                :pad-left="false"
+                :read-allowed="false"
+                :protip="false"
+              />
+            </div>
+            <h3>{{ t('workload.container.titles.podAnnotations') }}</h3>
             <div class="row">
               <KeyValue
                 key="annotations"
-                v-model="podLabels"
+                v-model="podAnnotations"
+                :add-label="t('labels.addAnnotation')"
                 :mode="mode"
                 :pad-left="false"
                 :read-allowed="false"
