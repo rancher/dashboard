@@ -418,7 +418,7 @@ fleet:
       custom: Secret Name
     paths:
       label: Paths
-      placeholder: e.g. /directory/in/your/repo
+      placeholder: e.g. directory/in/your/repo
       addLabel: Add Path
     repo:
       label: Repository URL
