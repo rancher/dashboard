@@ -222,6 +222,10 @@ export default {
     }
   },
 
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
+  },
+
   methods: {
     addMatch(include) {
       this.matches.push(emptyMatch(include));
@@ -245,6 +249,15 @@ export default {
         });
       }
     },
+    willSave() {
+      if (this.value.spec.filters && this.value.spec.filters.length === 0) {
+        this.$delete(this.value.spec, 'filters');
+      }
+
+      if (this.value.spec.match && this.value.spec.match.length === 0) {
+        this.$delete(this.value.spec, 'match');
+      }
+    }
   }
 };
 </script>
