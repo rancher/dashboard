@@ -103,12 +103,12 @@ export default {
       grid-template-columns: auto auto;
       grid-column-gap: 5px;
       font-size: 14px;
+      line-height: 24px;
       padding: 7.5px 7px 7.5px 10px;
-      margin: 0 var(--outline-width);
+      // margin: 0 var(--outline-width);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      border-radius: 0 90px 90px 0;
 
       &:hover {
         background: var(--dropdown-hover-bg);

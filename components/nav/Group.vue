@@ -188,7 +188,7 @@ export default {
  .header ::v-deep > .child.nuxt-link-exact-active {
     background-color: var(--nav-active);
     padding: 0;
-    border-radius: 0 99px 99px 0;
+    border-left: solid 5px var(--primary);
 
     A, A I {
       color: var(--body-text);
@@ -196,6 +196,11 @@ export default {
   }
 
   .body ::v-deep > .child {
+    A {
+      border-left: solid 5px transparent;
+      transition: ease-in-out all .25s;
+    }
+
     A:focus {
       outline: none;
       box-shadow: 0 0 0 var(--outline-width) var(--outline);
