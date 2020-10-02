@@ -70,7 +70,14 @@ export default {
   .filter ::v-deep .v-select .vs__actions:after {
     fill: white !important;
     color: white !important;
-}
+  }
+
+  .filter ::v-deep .vs__search {
+    width: 0;
+    padding: 0;
+    margin: 0;
+    opacity: 0;
+  }
 </style>
 
 <template>
@@ -80,7 +87,6 @@ export default {
       v-model="value"
       label="label"
       :options="options"
-      :searchable="false"
       :clearable="false"
       :reduce="opt=>opt.value"
     />
