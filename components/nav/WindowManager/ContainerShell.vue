@@ -295,8 +295,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  @import '@/node_modules/xterm/css/xterm.css';
-
   .shell-container {
     height: 100%;
     overflow: hidden;
