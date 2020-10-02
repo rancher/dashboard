@@ -249,8 +249,8 @@ export default {
       }
 
       const message = `4${ base64Encode(JSON.stringify({
-        Width:  cols,
-        Height: rows
+        Width:  Math.floor(cols),
+        Height: Math.floor(rows),
       })) }`;
 
       this.socket.send(message);

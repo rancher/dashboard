@@ -1,6 +1,10 @@
 <script>
+import Banner from '@/components/Banner';
+
 export default {
-  layout: 'blank',
+  layout: 'plain',
+
+  components: { Banner },
 
   fetch({ store, redirect }) {
     const id = store.getters['defaultClusterId'];
@@ -14,6 +18,6 @@ export default {
 
 <template>
   <div>
-    You don't have any clusters...
+    <Banner label="You don't have any clusters..." color="error" />
   </div>
 </template>
