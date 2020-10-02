@@ -99,7 +99,7 @@ export default {
     <div class="bordered-section">
       <h3>{{ createNew ? t('generic.create') : '' }} {{ t('workload.storage.subtypes.persistentVolumeClaim') }}</h3>
       <div v-if="createNew" class="bordered-section">
-        <PersistentVolumeClaim v-if="pvc" v-model="pvc" :register-before-hook="registerBeforeHook" :mode="mode" />
+        <PersistentVolumeClaim v-if="pvc" :value="pvc" :register-before-hook="registerBeforeHook" :mode="mode" />
       </div>
       <div class="row mb-10">
         <div class="col span-6">
