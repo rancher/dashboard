@@ -5,30 +5,32 @@ import isEmpty from 'lodash/isEmpty';
 import InstallRedirect from '@/utils/install-redirect';
 
 import { NAME, CHART_NAME } from '@/config/product/monitoring';
-import { ENDPOINTS, MONITORING } from '@/config/types';
+import { ENDPOINTS, MONITORING, WORKLOAD_TYPES } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { findBy } from '@/utils/array';
 
 import LazyImage from '@/components/LazyImage';
+import Banner from '@/components/Banner';
 
 const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
 
 export default {
-  components: { LazyImage },
+  components: { Banner, LazyImage },
 
   middleware: InstallRedirect(NAME, CHART_NAME),
 
   data() {
     return {
-      externalLinks:  [],
-      grafanaSrc:     require('~/assets/images/logo-color-grafana.svg'),
-      prometheusSrc:  require('~/assets/images/logo-color-prometheus.svg'),
-      resources:      [MONITORING.ALERTMANAGER, MONITORING.PROMETHEUS],
       availableLinks: {
         alertmanager: false,
         grafana:      false,
         prometheus:   false,
-      }
+      },
+      externalLinks: [],
+      grafanaSrc:    require('~/assets/images/logo-color-grafana.svg'),
+      prometheusSrc: require('~/assets/images/logo-color-prometheus.svg'),
+      resources:     [MONITORING.ALERTMANAGER, MONITORING.PROMETHEUS],
+      v1Installed:   false,
     };
   },
 
@@ -84,6 +86,22 @@ export default {
   methods: {
     async fetchDeps() {
       const { $store, externalLinks } = this;
+
+      const workloads = await Promise.all(Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })));
+
+      workloads.flat().forEach((workload) => {
+        if (
+          !isEmpty(workload?.spec?.template?.spec?.containers) &&
+          (workload.spec.template.spec.containers.find(c => c.image.includes('quay.io/coreos/prometheus-operator') ||
+            c.image.includes('rancher/coreos-prometheus-operator'))
+          )
+        ) {
+          if (!this.v1Installed) {
+            this.v1Installed = true;
+          }
+        }
+      });
+
       const hash = await allHash({ endpoints: $store.dispatch('cluster/findAll', { type: ENDPOINTS }) });
 
       if (!isEmpty(hash.endpoints)) {
@@ -124,6 +142,11 @@ export default {
       </div>
     </header>
     <div class="links">
+      <Banner v-if="v1Installed" color="warning">
+        <template #default>
+          <t k="monitoring.v1Warning" :raw="true" />
+        </template>
+      </Banner>
       <div v-for="fel in externalLinks" :key="fel.label" class="link-container">
         <a v-if="fel.enabled" :href="fel.link" target="_blank" rel="noopener noreferrer">
           <div class="link-logo">

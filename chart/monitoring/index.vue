@@ -61,6 +61,7 @@ export default {
       secrets:               [],
       storageClasses:        [],
       targetNamespace:       null,
+      v1Installed:           false,
     };
   },
 
@@ -114,6 +115,28 @@ export default {
   methods: {
     async fetchDeps() {
       const { $store } = this;
+
+      await Promise.all(Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })));
+
+      this.workloads.forEach((workload) => {
+        if (
+          !isEmpty(workload?.spec?.template?.spec?.containers) &&
+          (workload.spec.template.spec.containers.find(c => c.image.includes('quay.io/coreos/prometheus-operator') ||
+            c.image.includes('rancher/coreos-prometheus-operator'))
+          )
+        ) {
+          if (!this.v1Installed) {
+            this.v1Installed = true;
+          }
+        }
+      });
+
+      if (this.v1Installed) {
+        this.$emit('warn', this.t('monitoring.v1Warning', {}, true));
+
+        return;
+      }
+
       const hash = await allHash({
         namespaces:     $store.getters['namespaces'](),
         pvcs:           $store.dispatch('cluster/findAll', { type: PVC }),

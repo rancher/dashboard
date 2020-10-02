@@ -145,14 +145,14 @@ backupRestoreOperator:
     rancherNamespace: Rancher ResourceSet Namespace
     storage:
       tip: Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.
-      storageClass: 
+      storageClass:
         label: Storage Class
-      persistentVolume: 
+      persistentVolume:
         label: Persistent Volume
       label: Default Storage Location
       options:
         none: No default storage location
-        s3: Use an S3-compatible object store 
+        s3: Use an S3-compatible object store
         defaultStorageClass: 'Use the default storage class ({name})'
         pickSC: Use an existing storage class
         pickPV: Use an existing persistent volume
@@ -598,7 +598,7 @@ logging:
   clusterFlow:
     noOutputsBanner: There are no cluster outputs in the selected namespace.
   flow:
-    clusterOutputs: 
+    clusterOutputs:
       label: Cluster Outputs
     matches:
       label: Matches
@@ -713,7 +713,6 @@ monitoring:
   clusterType:
     label: Cluster Type
     placeholder: Select cluster type
-
   createDefaultRoles: Create Default Monitoring Cluster Roles
   grafana:
     storage:
@@ -754,7 +753,7 @@ monitoring:
       prometheusTargets:
         label: 'Prometheus Targets'
         description: 'Configured Targets'
-    warning: Monitoring V1 is currently deployed. If you are migrating from an older version of Rancher with Monitoring enabled, please disable Monitoring on this cluster completely before attempting to install the new Rancher Monitoring chart.
+    v1Warning: Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of Rancher with monitoring enabled, please disable monitoring in Cluster Manager before attempting to use monitoring in Cluster Explorer.
   prometheus:
     config:
       adminApi: Admin API
@@ -785,6 +784,7 @@ monitoring:
     modes:
       block: Block
       file: Filesystem
+  v1Warning: Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of Rancher with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new Rancher Monitoring chart in Cluster Explorer.
 
 nameNsDescription:
   name:
