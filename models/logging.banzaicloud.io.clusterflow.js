@@ -25,11 +25,8 @@ export default {
   customValidationRules() {
     return [
       {
-        nullable:       false,
-        path:           'spec.globalOutputRefs',
-        required:       true,
-        translationKey: 'logging.flow.outputs.label',
-        type:           'array'
+        path:           'spec',
+        validators:     ['flowOutput'],
       },
     ];
   },

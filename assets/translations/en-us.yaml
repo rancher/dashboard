@@ -1213,6 +1213,9 @@ validation:
       startHyphen: '"{key}" cannot start with a hyphen'
       startNumber: '"{key}" cannot start with a number'
       tooLongLabel: '"{key}" cannot be more than {max} characters'
+  flowOutput: 
+    global: Requires "Cluster Output" to be selected.
+    both: Requires "Output" or "Cluster Output" to be selected.
   k8s:
     identifier:
       emptyLabel: '"{key}" cannot have an empty key'
