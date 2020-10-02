@@ -79,6 +79,18 @@ suffix:
 ##############################
 # Components & Pages
 ##############################
+assignTo:
+  title: |-
+    {count, plural,
+      =1 { Assign Cluster To... }
+      other { Assign {count} Clusters To... }
+    }
+  labelsTitle: |-
+    {count, plural,
+      =1 { Assign Cluster To... }
+      other { Assign {count} Clusters To... }
+    }
+
 asyncButton:
   default:
     action: Action
@@ -592,6 +604,7 @@ istio:
 
 labels:
   addLabel: Add Label
+  addSetLabel: Add/Set Label
   addAnnotation: Add Annotation
 
 logging:

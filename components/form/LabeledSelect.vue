@@ -208,6 +208,11 @@ export default {
       <template v-if="!$attrs.multiple" v-slot:selected-option-container>
         <span style="display: none"></span>
       </template>
+
+      <!-- Pass down templates provided by the caller -->
+      <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+        <slot :name="slot" v-bind="scope" />
+      </template>
     </v-select>
     <LabeledTooltip v-if="tooltip && !focused" :hover="hoverTooltip" :value="tooltip" :status="status" />
   </div>

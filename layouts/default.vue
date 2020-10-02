@@ -6,6 +6,7 @@ import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
 import WindowManager from '@/components/nav/WindowManager';
 import PromptRemove from '@/components/PromptRemove';
+import AssignTo from '@/components/AssignTo';
 import Group from '@/components/nav/Group';
 import Header from '@/components/nav/Header';
 import Footer from '@/components/nav/Footer';
@@ -20,6 +21,7 @@ export default {
   components: {
     Jump,
     PromptRemove,
+    AssignTo,
     Header,
     Footer,
     ActionMenu,
@@ -248,6 +250,7 @@ export default {
 
       <ActionMenu />
       <PromptRemove />
+      <AssignTo />
       <button v-if="dev" v-shortkey.once="['shift','l']" class="hide" @shortkey="toggleNoneLocale()" />
       <button v-if="dev" v-shortkey.once="['shift','t']" class="hide" @shortkey="toggleTheme()" />
       <button v-shortkey.once="['f8']" class="hide" @shortkey="wheresMyDebugger()" />

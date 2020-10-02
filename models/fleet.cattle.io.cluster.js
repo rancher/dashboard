@@ -28,7 +28,16 @@ export default {
       enabled:    !!this.links.update
     });
 
-    insertAt(out, 3, { divider: true });
+    insertAt(out, 3, {
+      action:     'assignTo',
+      label:      'Assign to...',
+      icon:       'icon icon-copy',
+      bulkable:   true,
+      bulkAction: 'assignToBulk',
+      enabled:    !!this.links.update && !!this.mgmt,
+    });
+
+    insertAt(out, 4, { divider: true });
 
     return out;
   },
@@ -41,6 +50,18 @@ export default {
   unpause() {
     this.spec.paused = false;
     this.save();
+  },
+
+  assignTo() {
+    return () => {
+      this.$dispatch('assignTo', [this]);
+    };
+  },
+
+  assignToBulk() {
+    return (items) => {
+      this.$dispatch('assignTo', items);
+    };
   },
 
   forceUpdate() {
