@@ -1,7 +1,7 @@
 import { MANAGEMENT } from '@/config/types';
 import { escapeHtml } from '@/utils/string';
 import { insertAt } from '@/utils/array';
-import { FLEET, FLEET as FLEET_LABELS } from '@/config/labels-annotations';
+import { FLEET as FLEET_LABELS } from '@/config/labels-annotations';
 
 export default {
   _availableActions() {

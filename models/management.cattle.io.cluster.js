@@ -64,7 +64,7 @@ export default {
 
   setClusterNameLabel() {
     return (andSave) => {
-      if ( this.ownerReferences?.length ) {
+      if ( this.ownerReferences?.length || this.metadata?.labels?.[FLEET.CLUSTER_NAME] === this.id ) {
         return;
       }
 

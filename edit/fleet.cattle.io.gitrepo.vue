@@ -1,6 +1,8 @@
 <script>
 import { exceptionToErrorsArray } from '@/utils/error';
-import { FLEET, SECRET } from '@/config/types';
+import { mapGetters } from 'vuex';
+import { FLEET, MANAGEMENT, SECRET } from '@/config/types';
+import { FLEET as FLEET_LABELS } from '@/config/labels-annotations';
 import { set } from '@/utils/object';
 import ArrayList from '@/components/form/ArrayList';
 import Banner from '@/components/Banner';
@@ -60,7 +62,7 @@ export default {
     const refValue = this.value.spec?.[ref] || '';
 
     if (!this.value.id ) {
-      targetMode = 'none';
+      targetMode = 'all';
     }
 
     return {
@@ -89,6 +91,8 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['workspace']),
+
     isLocal() {
       return this.value.metadata.namespace === 'fleet-local';
     },
@@ -96,9 +100,18 @@ export default {
     targetOptions() {
       const out = [
         {
-          label: 'None',
+          label: 'No Clusters',
           value: 'none'
-        }
+        },
+        {
+          label: 'All Clusters in the Workspace',
+          value: 'all',
+        },
+        {
+          label: 'Advanced',
+          value: 'advanced'
+        },
+        { kind: 'divider', disabled: true },
       ];
 
       const clusters = this.allClusters
@@ -110,7 +123,7 @@ export default {
       if ( clusters.length ) {
         out.push({
           kind:     'title',
-          label:    'A Cluster:',
+          label:    'Clusters',
           disabled: true,
         });
 
@@ -126,20 +139,12 @@ export default {
       if ( groups.length ) {
         out.push({
           kind:     'title',
-          label:    'A Cluste Groups',
+          label:    'Cluster Groups',
           disabled: true
         });
 
         out.push(...groups);
       }
-
-      out.push({
-        kind:     'title',
-        label:    'Or define target YAML:',
-        disabled: true
-      });
-
-      out.push({ label: 'Advanced', value: 'advanced://' });
 
       return out;
     },
@@ -207,6 +212,12 @@ export default {
     targetAdvanced:             'updateTargets',
 
     authSecret: 'updateAuth',
+
+    workspace(neu) {
+      if ( this.isCreate ) {
+        set(this.value, 'metadata.namespace', neu);
+      }
+    },
   },
 
   created() {
@@ -260,18 +271,28 @@ export default {
       const mode = this.targetMode;
 
       let kind, value;
-      const match = mode.match(/([^:]+):\/\/(.*?)$/);
+      const match = mode.match(/([^:]+)(:\/\/(.*))?$/);
 
       if ( match ) {
         kind = match[1];
-        value = match[2];
+        value = match[3];
       }
 
-      if ( kind === 'cluster' ) {
+      if ( kind === 'all' ) {
+        spec.targets = [{ clusterSelector: {} }];
+      } else if ( kind === 'none' ) {
+        spec.targets = [];
+      } else if ( kind === 'cluster' ) {
+        const mgmt = this.$store.getters['management/byId'](MANAGEMENT.CLUSTER, value);
+
+        if ( mgmt ) {
+          mgmt.setClusterNameLabel(true);
+        }
+
         spec.targets = [
-          { clusterSelector: { matchLabels: { name: value } } }
+          { clusterSelector: { matchLabels: { [FLEET_LABELS.CLUSTER_NAME]: value } } }
         ];
-      } else if ( kind === 'clusterGroup' ) {
+      } else if ( kind === 'group' ) {
         spec.targets = [
           { clusterGroup: value }
         ];
@@ -285,7 +306,7 @@ export default {
           this.targetAdvancedErrors = exceptionToErrorsArray(e);
         }
       } else {
-        spec.targets = {};
+        spec.targets = [];
       }
     },
 
@@ -419,20 +440,19 @@ export default {
           <LabeledSelect
             v-model="targetMode"
             :options="targetOptions"
+            option-key="value"
             :mode="mode"
             :selectable="option => !option.disabled"
             :label="t('fleet.gitRepo.target.selectLabel')"
           >
             <template v-slot:option="opt">
-              <template v-if="opt.kind === 'divider'">
-                <hr />
-              </template>
-              <template v-else-if="opt.kind === 'title'">
+              <hr v-if="opt.kind === 'divider'">
+              <div v-else-if="opt.kind === 'title'">
                 {{ opt.label }}
-              </template>
-              <template v-else>
+              </div>
+              <div v-else>
                 {{ opt.label }}
-              </template>
+              </div>
             </template>
           </LabeledSelect>
         </div>
