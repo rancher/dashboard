@@ -15,6 +15,7 @@ import { isArray, uniq } from '@/utils/array';
 import { matchRuleIsPopulated } from '@/models/logging.banzaicloud.io.flow';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { clone, set } from '@/utils/object';
+import isEmpty from 'lodash/isEmpty';
 import Match from './Match';
 
 function emptyMatch(include = true) {
@@ -249,12 +250,29 @@ export default {
         });
       }
     },
+    isMatchEmpty(matches) {
+      if (isEmpty(matches)) {
+        return true;
+      }
+
+      return matches.every((match) => {
+        if (isEmpty(match.select) && isEmpty(match.exclude)) {
+          return true;
+        }
+
+        const select = match.select || {};
+        const exclude = match.exclude || {};
+        const allValuesAreEmpty = o => Object.values(o).every(isEmpty);
+
+        return allValuesAreEmpty(select) && allValuesAreEmpty(exclude);
+      });
+    },
     willSave() {
-      if (this.value.spec.filters && this.value.spec.filters.length === 0) {
+      if (this.value.spec.filters && isEmpty(this.value.spec.filters)) {
         this.$delete(this.value.spec, 'filters');
       }
 
-      if (this.value.spec.match && this.value.spec.match.length === 0) {
+      if (this.value.spec.match && this.isMatchEmpty(this.value.spec.match)) {
         this.$delete(this.value.spec, 'match');
       }
     }
@@ -276,6 +294,7 @@ export default {
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
+    @apply-hooks="applyHooks"
   >
     <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="isNamespaced" />
 
