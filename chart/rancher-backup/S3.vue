@@ -65,6 +65,7 @@ export default {
         <LabeledSelect
           v-model="credentialSecret"
           :get-option-label="opt=>opt.metadata.name || ''"
+          option-key="id"
           :mode="mode"
           :options="secrets"
           :label="t('backupRestoreOperator.s3.credentialSecretName')"
