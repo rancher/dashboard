@@ -460,8 +460,14 @@ export default {
       </button>
       <AsyncButton class="btn-sm" mode="download" @click="download" />
 
-      <div class="pull-right text-center ml-5 pr-10 pl-5" style="min-width: 80px; line-height: 34px;">
-        <t :class="{'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
+      <div
+        class="pull-right text-center ml-5"
+        style="min-width: 80px;>
+        <t :class="
+        {'text-error':
+        !isOpen}"
+        :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'"
+      />
       </div>
       <div class="pull-right ml-5">
         <input v-model="search" class="p-5" style="margin-top: 3px;" type="search" :placeholder="t('wm.containerLogs.search')" />
@@ -519,23 +525,40 @@ export default {
 <style lang="scss" scoped>
   .logs-container {
     height: 100%;
-    overflow: hidden;
-  }
+    overflow: auto;
+    padding: 5px;
+    background-color: var(--logs-bg);
+    font-family: Menlo,Consolas,monospace;
+    color: var(--logs-text);
 
-  .logs-body {
-    padding: calc( 2 * var(--outline-width) );
-    height: 100%;
-
-    & > .terminal.focus {
-      outline: var(--outline-width) solid var(--outline);
+    .closed {
+      opacity: 0.25;
     }
-  }
 
-  .v-select.mini .vs__dropdown-toggle {
-    padding: 0;
-  }
+    .time {
+      white-space: nowrap;
+      display: none;
+      width: 0;
+      padding-right: 15px;
+      user-select: none;
+    }
 
-  .vs__selected {
-    padding: 0 5px;
+    &.show-times .time {
+      display: initial;
+      width: auto;
+    }
+
+    .msg {
+      white-space: nowrap;
+
+      .highlight {
+        color: var(--logs-highlight);
+        background-color: var(--logs-highlight-bg);
+      }
+    }
+
+    &.wrap-lines .msg {
+      white-space: normal;
+    }
   }
 </style>
