@@ -498,7 +498,7 @@ export default {
     column-gap: $column-gutter;
 
     &.extra-column {
-      grid-template-columns: 45% 45% auto;
+      grid-template-columns: 1fr 1fr min-content;
     }
 
     & > .col {
@@ -517,8 +517,12 @@ export default {
     }
   }
 
-  .remove BUTTON{
-    padding: 0px;
+  .remove {
+    text-align: right;
+
+    BUTTON{
+      padding: 0px;
+    }
   }
 
   .title {

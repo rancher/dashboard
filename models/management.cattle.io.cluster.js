@@ -1,4 +1,5 @@
 import { CATALOG } from '@/config/labels-annotations';
+import { FLEET } from '@/config/types';
 import { insertAt } from '@/utils/array';
 
 export default {
@@ -59,5 +60,21 @@ export default {
 
   groupByLabel() {
     return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
+  },
+
+  setClusterNameLabel() {
+    return (andSave) => {
+      if ( this.ownerReferences?.length ) {
+        return;
+      }
+
+      this.metadata = this.metadata || {};
+      this.metadata.labels = this.metadata.labels || {};
+      this.metadata.labels[FLEET.CLUSTER_NAME] = this.id;
+
+      if ( andSave ) {
+        return this.save();
+      }
+    };
   },
 };

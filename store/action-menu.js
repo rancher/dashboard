@@ -9,7 +9,9 @@ export const state = function() {
     elem:             null,
     event:            null,
     showPromptRemove: false,
-    toRemove:         []
+    showAssignTo:     false,
+    toRemove:         [],
+    toAssign:         []
   };
 };
 
@@ -67,12 +69,23 @@ export const mutations = {
     state.resources = null;
     state.elem = null;
   },
+
   togglePromptRemove(state, resources = []) {
     state.showPromptRemove = !state.showPromptRemove;
     if (!isArray(resources)) {
       resources = [resources];
     }
     state.toRemove = resources;
+  },
+
+  toggleAssignTo(state, resources) {
+    state.showAssignTo = !state.showAssignTo;
+
+    if (!isArray(resources)) {
+      resources = [resources];
+    }
+
+    state.toAssign = resources;
   }
 };
 

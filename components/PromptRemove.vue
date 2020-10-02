@@ -169,7 +169,7 @@ export default {
     height="auto"
     styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
   >
-    <Card :style="{border:'none'}">
+    <Card>
       <h4 slot="title" class="text-default-text">
         Are you sure?
       </h4>

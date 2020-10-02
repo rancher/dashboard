@@ -443,7 +443,7 @@ export default {
   },
 
   stateSort() {
-    return stateSort(this.stateSolor, this.stateDisplay);
+    return stateSort(this.stateColor, this.stateDisplay);
   },
 
   showMessage() {
