@@ -1,18 +1,16 @@
 <script>
 import Mount from '@/edit/workload/storage/Mount';
-import Loading from '@/components/Loading';
 import SimpleBox from '@/components/SimpleBox';
 import { mapGetters } from 'vuex';
 import PersistentVolumeClaim from '@/edit/persistentvolumeclaim';
 import { PVC } from '@/config/types';
 import { removeObject } from '@/utils/array';
-import { _VIEW, _CREATE } from '@/config/query-params';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: {
     Mount,
     PersistentVolumeClaim,
-    Loading,
     SimpleBox
   },
 
@@ -35,27 +33,7 @@ export default {
     },
   },
 
-  async fetch() {
-    if (!this.templates.length && this.mode === _CREATE) {
-      const namespace = this.namespace || this.$store.getters['defaultNamespace'];
-
-      const data = { type: PVC };
-
-      data.metadata = { namespace };
-
-      const pvc = await this.$store.dispatch('cluster/create', data);
-
-      pvc.applyDefaults();
-
-      this.templates.push(pvc);
-    }
-  },
-
   data() {
-    if (!this.value.volumeClaimTemplates) {
-      this.$set(this.value, 'volumeClaimTemplates', []);
-    }
-
     return { templates: this.value.volumeClaimTemplates, name: '' };
   },
 
@@ -91,6 +69,11 @@ export default {
     },
 
     addPVC() {
+      if (!this.value.volumeClaimTemplates) {
+        this.$set(this.value, 'volumeClaimTemplates', []);
+      }
+      this.templates = this.value.volumeClaimTemplates;
+
       const namespace = this.namespace || this.$store.getters['defaultNamespace'];
 
       const data = { type: PVC };
@@ -114,8 +97,7 @@ export default {
 
 <template>
   <div>
-    <Loading v-if="$fetchState.pending" />
-    <div v-else>
+    <div>
       <SimpleBox v-for="(pvc, i) in templates" :key="i" class="mb-20" :style="{'position':'relative'}">
         <button v-if="!isView" type="button" class="role-link btn remove-btn" @click="removePVC(pvc)">
           <i class="icon icon-2x icon-x" />
