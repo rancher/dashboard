@@ -59,9 +59,19 @@ export default {
     },
 
     clustersForWorkspace() {
-      const workspace = this.$getters['byId'](FLEET.WORKSPACE, this.metadata.namespace);
+      const namespace = this.metadata?.namespace;
 
-      return workspace.clusters;
+      if ( !namespace ) {
+        return [];
+      }
+
+      const workspace = this.$store.getters['management/byId'](FLEET.WORKSPACE, this.namespace);
+
+      if ( workspace ) {
+        return workspace.clusters;
+      }
+
+      return [];
     },
   },
 
