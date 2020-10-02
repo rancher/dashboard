@@ -97,8 +97,7 @@ export default {
     </template>
     <button
       v-if="ruleMode === 'setHost'"
-      :style="{ padding: '0px 0px 0px 5px' }"
-      class="btn btn-sm role-link"
+      class="btn role-tertiary add"
       @click="addPath"
     >
       {{ t("ingress.rules.addPath") }}

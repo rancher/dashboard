@@ -58,6 +58,8 @@ export default {
 
 <template>
   <div class="cert" @input="update">
+    <div class="spacer">
+    </div>
     <div class="row">
       <div class="col span-6">
         <LabeledSelect
@@ -94,8 +96,7 @@ export default {
           </div>
         </div>
         <button
-          :style="{ padding: '0px 0px 0px 5px' }"
-          class="bn btn-sm role-link"
+          class="btn role-tertiary add"
           @click="addHost"
         >
           {{ t("ingress.certificates.addHost") }}

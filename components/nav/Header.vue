@@ -83,9 +83,11 @@ export default {
         </div>
 
         <template slot="popover">
-          <ul class="list-unstyled dropdown" style="margin: -1px;">
-            <li v-if="authEnabled">
-              <div>{{ principal.loginName }}</div>
+          <ul class="list-unstyled dropdown">
+            <li v-if="authEnabled" class="user-info">
+              <div class="user-name">
+                <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
+              </div>
               <div class="text-small pb-5">
                 {{ principal.name }}
               </div>
@@ -113,10 +115,6 @@ export default {
       background: rgba(0,0,0,.05);
       margin-left: 10px;
       color: var(--header-btn-text);
-    }
-
-    .vs__actions:after {
-      color: pink!important;
     }
 
     grid-template-areas:  "product apps top back kubectl cluster user";
@@ -232,5 +230,32 @@ export default {
         border-radius: 50%;
       }
     }
+  }
+
+  .list-unstyled {
+    li {
+      a {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+      }
+
+      &.user-info {
+        display: block;
+        margin-bottom: 10px;
+        padding: 15px;
+        border-bottom: solid 1px var(--border);
+        min-width: 200px;
+      }
+    }
+  }
+
+  .popover .popover-inner {
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .user-name {
+    color: var(--secondary);
   }
 </style>

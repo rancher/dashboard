@@ -516,9 +516,7 @@ export default {
   </Window>
 </template>
 
-<style lang="scss">
-  @import '@/node_modules/xterm/css/xterm.css';
-
+<style lang="scss" scoped>
   .logs-container {
     height: 100%;
     overflow: hidden;
