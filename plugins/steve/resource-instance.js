@@ -1229,7 +1229,7 @@ export default {
 
           parsedRules.forEach((validator) => {
             const validatorAndArgs = validator.split(':');
-            const validatorName = validatorAndArgs.slice();
+            const validatorName = validatorAndArgs.slice(0, 1);
             const validatorArgs = validatorAndArgs.slice(1) || null;
             const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
 
