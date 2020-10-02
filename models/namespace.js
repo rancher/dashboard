@@ -5,7 +5,7 @@ import { escapeHtml } from '@/utils/string';
 
 export default {
   isSystem() {
-    if ( !!this.metadata?.labels?.[SYSTEM_NAMESPACE] ) {
+    if ( this.metadata?.annotations?.[SYSTEM_NAMESPACE] === 'true' ) {
       return true;
     }
 
