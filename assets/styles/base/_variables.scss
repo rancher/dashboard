@@ -3,8 +3,6 @@ $min-width: 75% !default;
 
 $column-gutter: 1.75%;
 
-$outline-width: 1px;
-
 $sideways-tabs-width: 200px;
 
 $z-indexes: (
@@ -18,15 +16,14 @@ $z-indexes: (
   modalOverlay: 20,
   modalContent: 21,
 
-  dropdownOverlay: 30,
-  dropdownContent: 31,
+  tooltip: 30,
 
-  loadingOverlay: 40,
-  loadingContent: 41
+  dropdownOverlay: 40,
+  dropdownContent: 41,
+
+  loadingOverlay: 50,
+  loadingContent: 51
 );
-
-$text-light: 300;
-
 
 // Usage Example:
 // @media only screen and (min-width: map-get($breakpoints, '--viewport-*')) {

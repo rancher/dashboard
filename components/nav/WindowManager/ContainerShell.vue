@@ -266,7 +266,7 @@ export default {
         v-if="containerChoices.length > 0"
         v-model="container"
         :disabled="containerChoices.length === 1"
-        class="auto-width inline-block mini"
+        class="containerPicker auto-width"
         :options="containerChoices"
         :searchable="false"
         :clearable="false"
@@ -279,8 +279,8 @@ export default {
       <button class="btn btn-sm bg-primary" @click="clear">
         <t k="wm.containerShell.clear" />
       </button>
-      <div class="pull-right text-center ml-5" style="min-width: 80px">
-        <t v-if="isOpen" k="wm.connection.connected" />
+      <div class="pull-right text-center p-10" style="min-width: 80px;">
+        <t v-if="isOpen" k="wm.connection.connected" class="text-success" />
         <t v-else-if="isOpening" k="wm.connection.connecting" class="text-warning" :raw="true" />
         <t v-else k="wm.connection.disconnected" class="text-error" />
       </div>
@@ -309,11 +309,10 @@ export default {
     }
   }
 
-  .v-select.mini .vs__dropdown-toggle {
+  .containerPicker ::v-deep .vs__search {
+    width: 0;
     padding: 0;
-  }
-
-  .vs__selected {
-    padding: 0 5px;
+    margin: 0;
+    opacity: 0;
   }
 </style>

@@ -107,6 +107,7 @@ export default {
           label: t('wm.containerLogs.range.lines', { value: x }),
           value,
         });
+        updateFound(value);
       }
 
       for ( const x of minutes ) {
@@ -142,7 +143,10 @@ export default {
       return out;
 
       function updateFound(entry) {
-        if ( entry === current || entry === `{ current }s` ) {
+        entry = entry.replace(/[, ]/g, '').replace(/s$/, '');
+        const normalized = current.replace(/[, ]/g, '').replace(/s$/, '');
+
+        if ( entry === normalized) {
           found = true;
         }
       }
@@ -442,10 +446,10 @@ export default {
         v-if="containerChoices.length > 0"
         v-model="container"
         :disabled="containerChoices.length === 1"
-        class="auto-width"
+        class="containerPicker auto-width"
         :options="containerChoices"
-        :searchable="false"
         :clearable="false"
+        placement="top"
         @input="switchTo($event)"
       >
         <template #selected-option="option">
@@ -460,17 +464,11 @@ export default {
       </button>
       <AsyncButton class="btn-sm" mode="download" @click="download" />
 
-      <div
-        class="pull-right text-center ml-5"
-        style="min-width: 80px;>
-        <t :class="
-        {'text-error':
-        !isOpen}"
-        :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'"
-      />
+      <div class="pull-right text-center p-10" style="min-width: 80px;">
+        <t :class="{'text-success': isOpen, 'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
       </div>
       <div class="pull-right ml-5">
-        <input v-model="search" class="p-5" style="margin-top: 3px;" type="search" :placeholder="t('wm.containerLogs.search')" />
+        <input v-model="search" class="input-sm" type="search" :placeholder="t('wm.containerLogs.search')" />
       </div>
       <div class="pull-right ml-5">
         <v-popover
@@ -484,9 +482,9 @@ export default {
           <template slot="popover">
             <LabeledSelect
               v-model="range"
+              class="range"
               :label="t('wm.containerLogs.range.label')"
               :options="rangeOptions"
-              :searchable="false"
               :clearable="false"
               placement="top"
               @input="toggleRange($event)"
@@ -560,5 +558,13 @@ export default {
     &.wrap-lines .msg {
       white-space: normal;
     }
+  }
+
+  .containerPicker ::v-deep .vs__search,
+  .range ::v-deep .vs__search {
+    width: 0;
+    padding: 0;
+    margin: 0;
+    opacity: 0;
   }
 </style>
