@@ -49,6 +49,7 @@ export default {
     }
 
     this.authSecret = authSecret;
+    this.updateTargets();
   },
 
   data() {
