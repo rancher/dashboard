@@ -547,7 +547,6 @@ export const getters = {
 
       // Recursively sort the groups
       _sortGroup(root, mode);
-
       return root.children;
 
       // ----------------------
@@ -671,6 +670,15 @@ export const getters = {
 
           if ( item.ifHaveType && !findBy(schemas, 'id', normalizeType(item.ifHaveType)) ) {
             continue;
+          }
+
+          if ( item.ifHaveSubTypes ) {
+            const hasSome = (item.ifHaveSubTypes||[]).some(type=>{
+              return !!findBy(schemas, 'id', normalizeType(type))
+            })
+            if(!hasSome){
+              continue
+            }
           }
 
           if ( isBasic && !getters.groupForBasicType(product, id) ) {
