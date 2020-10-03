@@ -2,7 +2,7 @@ import { convert, matching, convertSelectorObj } from '@/utils/selector';
 import jsyaml from 'js-yaml';
 import { escapeHtml } from '@/utils/string';
 import { FLEET } from '@/config/types';
-import { addObjects, findBy } from '@/utils/array';
+import { addObjects, findBy, insertAt } from '@/utils/array';
 import { set } from '@/utils/object';
 
 function quacksLikeAHash(str) {
@@ -33,6 +33,63 @@ export default {
       set(this, 'spec', spec);
       set(this, 'metadata', meta);
     };
+  },
+
+  _availableActions() {
+    const out = this._standardActions;
+
+    insertAt(out, 0, {
+      action:     'pause',
+      label:      'Pause',
+      icon:       'icon icon-pause',
+      bulkable:    true,
+      enabled:    !!this.links.update && !this.spec?.paused
+    });
+
+    insertAt(out, 1, {
+      action:     'unpause',
+      label:      'Unpause',
+      icon:       'icon icon-play',
+      bulkable:    true,
+      enabled:    !!this.links.update && this.spec?.paused === true
+    });
+
+    insertAt(out, 2, {
+      action:     'forceUpdate',
+      label:      'Force Update',
+      icon:       'icon icon-refresh',
+      bulkable:    true,
+      enabled:    !!this.links.update
+    });
+
+    insertAt(out, 3, { divider: true });
+
+    return out;
+  },
+
+  pause() {
+    this.spec.paused = true;
+    this.save();
+  },
+
+  unpause() {
+    this.spec.paused = false;
+    this.save();
+  },
+
+  state() {
+    if ( this.spec?.paused === true ) {
+      return 'paused';
+    }
+
+    return this.metadata?.state?.name || 'unknown';
+  },
+
+  forceUpdate() {
+    const now = this.spec.forceSyncGeneration || 1;
+
+    this.spec.forceSyncGeneration = now + 1;
+    this.save();
   },
 
   targetClusters() {

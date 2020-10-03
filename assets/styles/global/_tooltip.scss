@@ -4,7 +4,7 @@
   $center: calc(50% - #{$triangle-size});
 
   display: block !important;
-  z-index: 10000;
+  z-index: z-index('tooltip');
 
   .tooltip-inner {
     background: var(--tooltip-bg);

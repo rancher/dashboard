@@ -54,7 +54,7 @@ export function init(store) {
   immutableType(CATALOG.APP);
   immutableType(CATALOG.OPERATION);
 
-  headers(CATALOG.APP, [STATE, NAME, NAMESPACE, CHART, RESOURCES, AGE]);
+  headers(CATALOG.APP, [STATE, NAME_COL, NAMESPACE, CHART, RESOURCES, AGE]);
 
   const repoType = {
     name:     'type',

@@ -35,7 +35,7 @@
   position: absolute;
   top: calc(100% - 1px);
   left: 0;
-  z-index: 1000;
+  z-index: z-index('dropdownContent');
   padding: 5px 0;
   margin: 0;
   width: 100%;

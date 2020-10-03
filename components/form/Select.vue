@@ -28,12 +28,9 @@ export default {
        * above.
        */
       const popper = createPopper(component.$refs.toggle, dropdownList, {
+
         placement: this.placement,
         modifiers: [
-          {
-            name:    'flip',
-            options: { fallbackPlacements: ['top', 'right', 'left'] },
-          },
           {
             name:    'offset',
             options: { offset: [0, -1] }
@@ -45,7 +42,8 @@ export default {
             fn({ state }) {
               component.$el.setAttribute('x-placement', state.placement);
             },
-          }]
+          },
+        ]
       });
 
       /**
@@ -62,6 +60,7 @@ export default {
   <v-select
     v-bind="$attrs"
     append-to-body
+    :calculate-position="placement ? withPopper : undefined"
     v-on="$listeners"
   >
     <slot />

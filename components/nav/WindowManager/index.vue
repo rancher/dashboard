@@ -175,7 +175,7 @@ export default {
       >
         <i v-if="tab.icon" class="icon" :class="{['icon-'+ tab.icon]: true}" />
         {{ tab.label }}
-        <i class="closer icon icon-x" @click="close(tab.id)" />
+        <i class="closer icon icon-fw icon-x" @click="close(tab.id)" />
       </div>
       <div
         class="resizer"
@@ -230,10 +230,10 @@ export default {
 
       .tab {
         cursor: pointer;
+        user-select: none;
         border-top: 1px solid var(--wm-border);
         border-right: 1px solid var(--wm-border);
-        padding: 0 10px;
-        line-height: var(--wm-tab-height);
+        padding: 5px 10px;
         overflow: hidden;
         text-overflow: ellipsis;
         margin: 0;
@@ -241,8 +241,18 @@ export default {
         &.active {
           position: relative;
           background-color: var(--wm-body-bg);
-          line-height: calc(var(--wm-tab-height) + 1px);
+          outline: 1px solid var(--wm-body-bg);
           z-index: 1;
+        }
+
+        .closer {
+          margin-left: 5px;
+          border: 1px solid var(--body-text);
+          border-radius: var(--border-radius);
+
+          &:hover {
+            background-color: var(--wm-closer-hover-bg);
+          }
         }
       }
 

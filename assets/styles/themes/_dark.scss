@@ -117,7 +117,7 @@
 
   --tabbed-border: #{$medium};
   --tabbed-sidebar-bg: #{$darkest};
-  --tabbed-container-bg: #{$dark};
+  --tabbed-container-bg: #{mix($medium, $dark, 10%)};
 
   --yaml-editor-bg: #{$darkest};
 
@@ -139,7 +139,7 @@
   --diff-empty-placeholder     : #{$darker};
 
 
-  --wm-tabs-bg: #{$darker};
+  --wm-tabs-bg: #{mix($medium, $dark, 10%)};
   --wm-tab-bg: #{$darkest};
   --wm-closer-hover-bg: #{$medium};
   --wm-tab-active-bg: #{$darker};

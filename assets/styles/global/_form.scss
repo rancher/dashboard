@@ -20,7 +20,7 @@ TEXTAREA,
   padding: 8px;
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
-  border: solid $outline-width var(--input-border);
+  border: solid var(--outline-width) var(--input-border);
   color: var(--input-text);
 
   &:not(.focused) {

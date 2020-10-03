@@ -65,14 +65,14 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $title-height: 35px;
+  $title-height: 41px;
 
   .window {
     display: grid;
     grid-template-areas:
       "body"
       "title";
-    // grid-template-rows: auto $title-height;
+    grid-template-rows: auto $title-height;
     height: 100%;
   }
 
@@ -83,7 +83,7 @@ export default {
     height: 100%;
     vertical-align: middle;
     // line-height: $title-height - 4px;
-    padding: 0 5px;
+    padding: 2px 5px;
   }
 
   .body {

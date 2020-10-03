@@ -107,6 +107,7 @@ export default {
           label: t('wm.containerLogs.range.lines', { value: x }),
           value,
         });
+        updateFound(value);
       }
 
       for ( const x of minutes ) {
@@ -142,7 +143,10 @@ export default {
       return out;
 
       function updateFound(entry) {
-        if ( entry === current || entry === `{ current }s` ) {
+        entry = entry.replace(/[, ]/g, '').replace(/s$/, '');
+        const normalized = current.replace(/[, ]/g, '').replace(/s$/, '');
+
+        if ( entry === normalized) {
           found = true;
         }
       }
@@ -442,10 +446,10 @@ export default {
         v-if="containerChoices.length > 0"
         v-model="container"
         :disabled="containerChoices.length === 1"
-        class="auto-width"
+        class="containerPicker auto-width"
         :options="containerChoices"
-        :searchable="false"
         :clearable="false"
+        placement="top"
         @input="switchTo($event)"
       >
         <template #selected-option="option">
@@ -460,11 +464,11 @@ export default {
       </button>
       <AsyncButton class="btn-sm" mode="download" @click="download" />
 
-      <div class="pull-right text-center ml-5 pr-10 pl-5" style="min-width: 80px; line-height: 34px;">
-        <t :class="{'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
+      <div class="pull-right text-center p-10" style="min-width: 80px;">
+        <t :class="{'text-success': isOpen, 'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />
       </div>
       <div class="pull-right ml-5">
-        <input v-model="search" class="p-5" style="margin-top: 3px;" type="search" :placeholder="t('wm.containerLogs.search')" />
+        <input v-model="search" class="input-sm" type="search" :placeholder="t('wm.containerLogs.search')" />
       </div>
       <div class="pull-right ml-5">
         <v-popover
@@ -478,9 +482,9 @@ export default {
           <template slot="popover">
             <LabeledSelect
               v-model="range"
+              class="range"
               :label="t('wm.containerLogs.range.label')"
               :options="rangeOptions"
-              :searchable="false"
               :clearable="false"
               placement="top"
               @input="toggleRange($event)"
@@ -519,23 +523,48 @@ export default {
 <style lang="scss" scoped>
   .logs-container {
     height: 100%;
-    overflow: hidden;
-  }
+    overflow: auto;
+    padding: 5px;
+    background-color: var(--logs-bg);
+    font-family: Menlo,Consolas,monospace;
+    color: var(--logs-text);
 
-  .logs-body {
-    padding: calc( 2 * var(--outline-width) );
-    height: 100%;
+    .closed {
+      opacity: 0.25;
+    }
 
-    & > .terminal.focus {
-      outline: var(--outline-width) solid var(--outline);
+    .time {
+      white-space: nowrap;
+      display: none;
+      width: 0;
+      padding-right: 15px;
+      user-select: none;
+    }
+
+    &.show-times .time {
+      display: initial;
+      width: auto;
+    }
+
+    .msg {
+      white-space: nowrap;
+
+      .highlight {
+        color: var(--logs-highlight);
+        background-color: var(--logs-highlight-bg);
+      }
+    }
+
+    &.wrap-lines .msg {
+      white-space: normal;
     }
   }
 
-  .v-select.mini .vs__dropdown-toggle {
+  .containerPicker ::v-deep .vs__search,
+  .range ::v-deep .vs__search {
+    width: 0;
     padding: 0;
-  }
-
-  .vs__selected {
-    padding: 0 5px;
+    margin: 0;
+    opacity: 0;
   }
 </style>

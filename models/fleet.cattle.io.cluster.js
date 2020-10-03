@@ -11,6 +11,7 @@ export default {
       action:     'pause',
       label:      'Pause',
       icon:       'icon icon-pause',
+      bulkable:    true,
       enabled:    !!this.links.update && !this.spec?.paused
     });
 
@@ -18,6 +19,7 @@ export default {
       action:     'unpause',
       label:      'Unpause',
       icon:       'icon icon-play',
+      bulkable:    true,
       enabled:    !!this.links.update && this.spec?.paused === true
     });
 
@@ -25,6 +27,7 @@ export default {
       action:     'forceUpdate',
       label:      'Force Update',
       icon:       'icon icon-refresh',
+      bulkable:   true,
       enabled:    !!this.links.update
     });
 
@@ -52,6 +55,13 @@ export default {
     this.save();
   },
 
+  forceUpdate() {
+    const now = this.spec.redeployAgentGeneration || 1;
+
+    this.spec.redeployAgentGeneration = now + 1;
+    this.save();
+  },
+
   assignTo() {
     return () => {
       this.$dispatch('assignTo', [this]);
@@ -62,13 +72,6 @@ export default {
     return (items) => {
       this.$dispatch('assignTo', items);
     };
-  },
-
-  forceUpdate() {
-    const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
-
-    this.spec.forceUpdateAgent = now;
-    this.save();
   },
 
   nameDisplay() {
