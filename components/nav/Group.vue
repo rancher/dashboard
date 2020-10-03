@@ -190,6 +190,10 @@ export default {
     padding: 0;
     border-left: solid 5px var(--primary);
 
+    A {
+      padding-left: 5px;
+    }
+
     A, A I {
       color: var(--body-text);
     }
