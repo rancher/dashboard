@@ -672,6 +672,15 @@ export const getters = {
             continue;
           }
 
+          if ( item.ifHaveSubTypes ) {
+            const hasSome = (item.ifHaveSubTypes||[]).some(type=>{
+              return !!findBy(schemas, 'id', normalizeType(type))
+            })
+            if(!hasSome){
+              continue
+            }
+          }
+
           if ( isBasic && !getters.groupForBasicType(product, id) ) {
             continue;
           } else if ( mode === FAVORITE && !getters.isFavorite(id) ) {

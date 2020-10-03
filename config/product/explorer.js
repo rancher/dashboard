@@ -171,13 +171,13 @@ export function init(store) {
   });
 
   virtualType({
-    label:      'Overview',
-    group:      'Workload',
-    namespaced: true,
-    name:       'workload',
-    weight:     99,
-    ifHaveType: WORKLOAD_TYPES.DEPLOYMENT,
-    route:      {
+    label:          'Overview',
+    group:          'Workload',
+    namespaced:     true,
+    name:           'workload',
+    weight:         99,
+    ifHaveSubTypes: Object.values(WORKLOAD_TYPES),
+    route:          {
       name:     'c-cluster-product-resource',
       params:   { resource: WORKLOAD }
     },
