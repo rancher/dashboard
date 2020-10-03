@@ -176,6 +176,7 @@ export function init(store) {
     namespaced: true,
     name:       'workload',
     weight:     99,
+    ifHaveType: WORKLOAD_TYPES.DEPLOYMENT,
     route:      {
       name:     'c-cluster-product-resource',
       params:   { resource: WORKLOAD }

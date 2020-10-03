@@ -547,7 +547,6 @@ export const getters = {
 
       // Recursively sort the groups
       _sortGroup(root, mode);
-
       return root.children;
 
       // ----------------------
