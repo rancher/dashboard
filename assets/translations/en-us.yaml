@@ -172,7 +172,7 @@ backupRestoreOperator:
     size: Size
   prune:
     label: Prune
-    tip: Delete all resources that match the ResourceSet used, but are not present in the backup. (Recommended)
+    tip: Delete the resources managed by Rancher that are not present in the backup. (Recommended)
   encryption: Encryption
   encryptionConfigName:
     label: Encryption Config Secret

@@ -221,12 +221,12 @@ export default {
 
           <div class="row">
             <div class="col span-12">
-              <span v-if="isView" class="text-label">{{ t('backupRestoreOperator.s3.titles.backupLocation') }}</span>
+              <span v-if="isView" class="text-label">{{ t('backupRestoreOperator.s3.titles.location') }}</span>
               <RadioGroup
                 v-else
                 v-model="storageSource"
                 name="storageSource"
-                :label="t('backupRestoreOperator.s3.titles.backupLocation')"
+                :label="t('backupRestoreOperator.s3.titles.location')"
                 :options="storageOptions.options"
                 :labels="storageOptions.labels"
                 :mode="mode"
