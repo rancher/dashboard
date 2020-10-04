@@ -74,6 +74,10 @@ export default {
     };
   },
 
+  canDelete() {
+    return false;
+  },
+
   nameDisplay() {
     return this.metadata?.labels?.[FLEET_LABELS.CLUSTER_DISPLAY_NAME] || this.metadata?.name || this.id;
   },

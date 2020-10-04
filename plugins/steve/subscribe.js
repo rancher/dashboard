@@ -163,7 +163,7 @@ export const actions = {
     const promises = [];
 
     for ( const entry of state.started.slice() ) {
-      console.info('Reconnect', entry.type, entry.namespace, entry.id, entry.selector); // eslint-disable-line no-console
+      console.info('Reconnect', entry); // eslint-disable-line no-console
       if ( getters.schemaFor(entry.type) ) {
         commit('setWatchStopped', entry);
         delete entry.revision;
@@ -179,7 +179,7 @@ export const actions = {
       resourceType, namespace, id, selector
     } = params;
 
-    console.info('Resource resync for', resourceType, namespace, id, selector); // eslint-disable-line no-console
+    console.info('Resource resync for', params); // eslint-disable-line no-console
 
     const opt = { force: true, forceWatch: true };
 
@@ -227,7 +227,7 @@ export const actions = {
   },
 
   async opened({ commit, dispatch, state }, event) {
-    console.info('WebSocket Opened'); // eslint-disable-line no-console
+    // console.info('WebSocket Opened'); // eslint-disable-line no-console
     const socket = event.currentTarget;
 
     this.$socket = socket;
@@ -262,7 +262,7 @@ export const actions = {
   },
 
   closed({ state }, event) {
-    console.warn('WebSocket Closed'); // eslint-disable-line no-console
+    // console.warn('WebSocket Closed'); // eslint-disable-line no-console
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
   },
@@ -292,7 +292,7 @@ export const actions = {
   },
 
   'ws.resource.start'({ commit }, msg) {
-    console.info('Resource start:', msg.resourceType, msg.id, msg.selector); // eslint-disable-line no-console
+    // console.info('Resource start:', msg); // eslint-disable-line no-console
     commit('setWatchStarted', {
       type:      msg.resourceType,
       namespace: msg.namespace,
@@ -302,7 +302,7 @@ export const actions = {
   },
 
   'ws.resource.error'({ commit, dispatch }, msg) {
-    console.warn('Resource error for', msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
+    // console.warn('Resource error for', msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
     const err = msg.data?.error?.toLowerCase();
 
     if ( err.includes('watch not allowed') ) {
@@ -324,7 +324,7 @@ export const actions = {
       selector:  msg.selector
     };
 
-    console.warn('Resource stop:', type, msg.namespace, msg.id, msg.selector); // eslint-disable-line no-console
+    // console.warn('Resource stop:', msg); // eslint-disable-line no-console
 
     if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
       // Try reconnecting once

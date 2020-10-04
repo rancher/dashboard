@@ -840,7 +840,6 @@ export const getters = {
       }
 
       try {
-        console.log('Looking for edit for ', type);
         require.resolve(`@/edit/${ type }`);
         cache[type] = true;
       } catch (e) {
