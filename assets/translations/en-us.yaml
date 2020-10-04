@@ -82,13 +82,13 @@ suffix:
 assignTo:
   title: |-
     {count, plural,
-      =1 { Assign Cluster To... }
-      other { Assign {count} Clusters To... }
+      =1 { Assign Cluster To&hellip; }
+      other { Assign {count} Clusters To&hellip; }
     }
   labelsTitle: |-
     {count, plural,
-      =1 { Assign Cluster To... }
-      other { Assign {count} Clusters To... }
+      =1 { Assign Cluster To&hellip; }
+      other { Assign {count} Clusters To&hellip; }
     }
 
 asyncButton:
@@ -450,8 +450,8 @@ fleet:
       label: Deploy To
     targetDisplay:
       advanced: Advanced
-      cluster: "Cluster: {name}"
-      clusterGroup: "Group: {name}"
+      cluster: "Cluster"
+      clusterGroup: "Group"
       all: All
       local: Local
     workspace:

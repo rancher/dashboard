@@ -498,7 +498,7 @@ export default {
     column-gap: $column-gutter;
 
     &.extra-column {
-      grid-template-columns: 1fr 1fr min-content;
+      grid-template-columns: 1fr 1fr 100px;
     }
 
     & > .col {

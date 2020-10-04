@@ -29,7 +29,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div class="mt-20">
     <div class="row">
       <div class="col span-4">
         <CountBox :count="value.counts.gitRepos" :name="gitRepoLabel" :primary-color-var="'--sizzle-3'" />

@@ -33,6 +33,7 @@ export default {
           value:     'status.display.readyBundles',
           sort:      'status.summary.ready',
           search:    false,
+          align:    'center',
         },
         {
           name:      'reposReady',
@@ -40,6 +41,7 @@ export default {
           value:     'status.display.readyBundles',
           sort:      'status.summary.ready',
           search:    false,
+          align:    'center',
         },
         FLEET_SUMMARY,
         {

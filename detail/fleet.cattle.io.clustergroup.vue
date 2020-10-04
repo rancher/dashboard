@@ -25,7 +25,6 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('management/findAll', { type: FLEET.WORKSPACE });
     await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
   },
 

@@ -464,7 +464,7 @@ export default {
             @mouseleave="setBulkActionOfInterest(null)"
           >
             <i v-if="act.icon" :class="act.icon" />
-            {{ act.label }}
+            <span v-html="act.label" />
           </button>
           <span />
           <label v-if="actionAvailability" class="action-availability">

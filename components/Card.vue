@@ -49,7 +49,7 @@ export default {
    background: var(--nav-bg);
    display: grid;
    & .card-body {
-     overflow: hidden;
+     overflow: auto;
      padding: 20px;
    }
    & .card-actions {

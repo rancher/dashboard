@@ -92,7 +92,7 @@ export default {
     <ul class="list-unstyled menu" :style="style">
       <li v-for="opt in options" :key="opt.action" :class="{divider: opt.divider}" @click="execute(opt, $event)">
         <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />
-        {{ opt.label }}
+        <span v-html="opt.label" />
       </li>
     </ul>
   </div>
