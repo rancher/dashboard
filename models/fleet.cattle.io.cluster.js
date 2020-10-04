@@ -33,7 +33,7 @@ export default {
 
     insertAt(out, 3, {
       action:     'assignTo',
-      label:      'Assign to...',
+      label:      'Assign to&hellip;',
       icon:       'icon icon-copy',
       bulkable:   true,
       bulkAction: 'assignToBulk',
@@ -75,7 +75,7 @@ export default {
   },
 
   nameDisplay() {
-    return this.metadata?.labels?.[FLEET_LABELS.CLUSTER_NAME] || this.metadata?.name || this.id;
+    return this.metadata?.labels?.[FLEET_LABELS.CLUSTER_DISPLAY_NAME] || this.metadata?.name || this.id;
   },
 
   state() {

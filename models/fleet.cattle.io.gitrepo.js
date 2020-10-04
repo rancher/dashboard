@@ -2,6 +2,7 @@ import { convert, matching, convertSelectorObj } from '@/utils/selector';
 import jsyaml from 'js-yaml';
 import { escapeHtml } from '@/utils/string';
 import { FLEET } from '@/config/types';
+import { FLEET as FLEET_ANNOTATIONS } from '@/config/labels-annotations';
 import { addObjects, findBy, insertAt } from '@/utils/array';
 import { set } from '@/utils/object';
 
@@ -245,16 +246,20 @@ export default {
       }
 
       if ( target.clusterSelector ) {
-        const expressions = convert(target.clusterSelector.matchLabels, target.clusterSelector.matchExpressions);
+        if ( Object.keys(target.clusterSelector).length === 0 ) {
+          mode = 'all';
+        } else {
+          const expressions = convert(target.clusterSelector.matchLabels, target.clusterSelector.matchExpressions);
 
-        if ( expressions.length === 1 &&
-             expressions[0].key === 'name' &&
-             expressions[0].operation === 'In' &&
-             expressions[0].values.length === 1
-        ) {
-          cluster = expressions[0].values[0];
-          if ( !mode ) {
-            mode = 'cluster';
+          if ( expressions.length === 1 &&
+              expressions[0].key === FLEET_ANNOTATIONS.CLUSTER_NAME &&
+              expressions[0].operator === 'In' &&
+              expressions[0].values.length === 1
+          ) {
+            cluster = expressions[0].values[0];
+            if ( !mode ) {
+              mode = 'cluster';
+            }
           }
         }
       }
@@ -266,7 +271,7 @@ export default {
 
     return {
       mode,
-      modeDisplay: this.t(`fleet.gitRepo.targetDisplay."${ mode }"`, { name: cluster || clusterGroup || '?' }),
+      modeDisplay: this.t(`fleet.gitRepo.targetDisplay."${ mode }"`),
       cluster,
       clusterGroup,
       advanced

@@ -6,9 +6,8 @@ import {
   AGE,
   STATE,
   NAME,
-  WORKSPACE, FLEET_SUMMARY
+  FLEET_SUMMARY
 } from '@/config/table-headers';
-import { removeObject } from '@/utils/array';
 
 export default {
   name:       'ListClusterGroup',
@@ -31,22 +30,18 @@ export default {
       const out = [
         STATE,
         NAME,
-        WORKSPACE,
         {
           name:     'clusters',
           labelKey: 'tableHeaders.clustersReady',
           value:    'status.display.readyClusters',
           sort:     'status.display.readyClusters',
           search:   ['status.nonReadyClusterCount', 'status.clusterCount'],
+          align:    'center',
           width:    100,
         },
         FLEET_SUMMARY,
         AGE
       ];
-
-      if ( this.groupBy || !this.groupable ) {
-        removeObject(out, WORKSPACE);
-      }
 
       return out;
     },
@@ -62,16 +57,15 @@ export default {
     :schema="schema"
     :headers="headers"
     :rows="rows"
-    :group-by="groupBy"
-    :paging="true"
-    paging-label="sortableTable.paging.resource"
-    :paging-params="pagingParams"
     key-field="_key"
     v-on="$listeners"
   >
     <template #cell:clusters="{row}">
-      <span v-if="row.status.nonReadyClusterCount" class="text-warning">{{ row.status.clusterCount - row.status.nonReadyClusterCount }}/{{ row.status.clusterCount }}</span>
-      <span v-else>{{ row.status.clusterCount }}</span>
+      <template v-if="row.status">
+        <span v-if="row.status.nonReadyClusterCount" class="text-warning">{{ row.status.clusterCount - row.status.nonReadyClusterCount }}/{{ row.status.clusterCount }}</span>
+        <span v-else>{{ row.status.clusterCount }}</span>
+      </template>
+      <span v-else class="text-muted">&mdash;</span>
     </template>
   </ResourceTable>
 </template>

@@ -59,13 +59,13 @@ export default {
     },
 
     clustersForWorkspace() {
-      const namespace = this.metadata?.namespace;
+      const namespace = this.value.metadata?.namespace;
 
       if ( !namespace ) {
         return [];
       }
 
-      const workspace = this.$store.getters['management/byId'](FLEET.WORKSPACE, this.namespace);
+      const workspace = this.$store.getters['management/byId'](FLEET.WORKSPACE, namespace);
 
       if ( workspace ) {
         return workspace.clusters;
@@ -126,7 +126,7 @@ export default {
       v-if="!isView"
       v-model="value"
       :mode="mode"
-      :namespaced="true"
+      :namespaced="false"
       namespace-label="nameNsDescription.workspace.label"
       :namespace-type="FLEET_WORKSPACE"
     />

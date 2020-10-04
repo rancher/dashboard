@@ -115,23 +115,28 @@ export default {
     :scrollable="true"
   >
     <Card v-if="loaded">
-      <h4 slot="title" class="text-default-text">
-        {{ t('assignTo.title', {count: resourceCount}) }}
-      </h4>
+      <h4 slot="title" class="text-default-text" v-html="t('assignTo.title', {count: resourceCount}, true)" />
 
       <div slot="body" class="pl-10 pr-10">
-        <LabeledSelect v-model="moveTo" label="Workspace" :options="workspaceOptions" />
+        <form>
+          <LabeledSelect
+            v-model="moveTo"
+            label="Workspace"
+            :options="workspaceOptions"
+            placement="bottom"
+          />
 
-        <KeyValue
-          key="labels"
-          v-model="labels"
-          class="mt-20"
-          :add-label="t('labels.addSetLabel')"
-          :pad-left="false"
-          :read-allowed="false"
-        />
+          <KeyValue
+            key="labels"
+            v-model="labels"
+            class="mt-20"
+            :add-label="t('labels.addSetLabel')"
+            :pad-left="false"
+            :read-allowed="false"
+          />
 
-        <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+          <Banner v-for="(err, i) in errors" :key="i" color="error" :label="err" />
+        </form>
       </div>
 
       <div slot="actions">
