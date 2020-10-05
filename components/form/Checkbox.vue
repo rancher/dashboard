@@ -57,7 +57,7 @@ export default {
   <span v-if="mode === 'view'" class="checkbox-view">
     <div class="text-label">
       <slot name="label">
-        {{ label }}
+        {{ label ? label : '' }}
       </slot>
     </div>
     <span>{{ value }}</span>

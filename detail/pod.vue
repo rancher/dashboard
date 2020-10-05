@@ -7,6 +7,7 @@ import Container from '@/components/form/Container';
 import Loading from '@/components/Loading';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import NodeScheduling from '@/components/form/NodeScheduling';
+import Storage from '@/edit/workload/storage';
 import { defaultAsyncData } from '@/components/ResourceDetail';
 import { mapGetters } from 'vuex';
 
@@ -20,6 +21,7 @@ export default {
     ResourceTabs,
     Tab,
     Loading,
+    Storage
   },
 
   mixins: [createEditView],
@@ -43,7 +45,6 @@ export default {
     if ( out.value?.spec?.nodeName ) {
       node = await ctx.store.dispatch('cluster/find', { type: NODE, id: out.value.spec.nodeName });
     }
-
     const owners = await out.value.getOwners() || [];
 
     const workload = owners.find((owner) => {
@@ -73,10 +74,6 @@ export default {
     return out;
   },
 
-  data() {
-    return { moreDetails: null };
-  },
-
   computed:   {
     containers() {
       return this.value.spec.containers || [];
@@ -100,6 +97,12 @@ export default {
     </Tab>
     <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="1">
       <NodeScheduling :mode="mode" :value="value.spec" :nodes="[]" />
+    </Tab>
+    <Tab :label="t('workload.storage.title')" name="storage">
+      <Storage
+        v-model="value.spec"
+        :mode="mode"
+      />
     </Tab>
   </ResourceTabs>
 </template>
