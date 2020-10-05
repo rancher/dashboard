@@ -39,9 +39,8 @@ export default {
     },
     protip: {
       type:    [String, Boolean],
-      default: 'ProTip: Paste lines of <code>key=value</code> or <code>key: value</code> into any key field for easy bulk entry',
+      default: 'ProTip: Paste lines into any list field for easy bulk entry',
     },
-
     showHeader: {
       type:    Boolean,
       default: false,
@@ -184,6 +183,15 @@ export default {
       }
 
       this.$emit('input', out);
+    },
+
+    onPaste(index, event) {
+      event.preventDefault();
+      const text = event.clipboardData.getData('text/plain');
+      const split = text.split('\n').map(value => ({ value }));
+
+      this.rows.splice(index, 1, ...split);
+      this.update();
     }
   },
 };
@@ -237,6 +245,7 @@ export default {
                 ref="value"
                 v-model="row.value"
                 :placeholder="valuePlaceholder"
+                @paste="onPaste(idx, $event)"
                 @input="queueUpdate"
               />
               <input
@@ -244,6 +253,7 @@ export default {
                 ref="value"
                 v-model="row.value"
                 :placeholder="valuePlaceholder"
+                @paste="onPaste(idx, $event)"
                 @input="queueUpdate"
               />
             </slot>
