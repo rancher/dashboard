@@ -113,19 +113,19 @@ export default {
     <div class="spacer"></div>
 
     <Tabbed :side-tabs="true">
-      <Tab :label="t('ingress.rules.title')" name="rules" :weight="2">
+      <Tab :label="t('ingress.rules.title')" name="rules" :weight="4">
         <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" />
       </Tab>
-      <Tab :label="t('ingress.certificates.label')" name="certificates" :weight="1">
+      <Tab :label="t('ingress.certificates.label')" name="certificates" :weight="3">
         <Certificates v-model="value" :mode="mode" :secrets="allSecrets" />
       </Tab>
-      <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="0">
+      <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="2">
         <DefaultBackend v-model="value.spec.backend" :service-targets="serviceTargets" :mode="mode" />
       </Tab>
       <Tab
         name="labels-and-annotations"
         :label="t('generic.labelsAndAnnotations')"
-        :weight="3"
+        :weight="1"
       >
         <Labels
           default-container-class="labels-and-annotations-container"
