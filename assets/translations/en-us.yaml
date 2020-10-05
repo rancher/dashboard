@@ -448,6 +448,7 @@ fleet:
       cluster: Cluster
       clusterGroup: Cluster Group
       label: Deploy To
+      labelLocal: Deploy With
     targetDisplay:
       advanced: Advanced
       cluster: "Cluster"

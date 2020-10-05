@@ -178,7 +178,7 @@ export default {
           };
         });
 
-      if ( out.length || 1 + 2 === 3 ) {
+      if ( out.length ) {
         out.unshift({
           kind:     'title',
           label:    'Choose an existing secret:',
@@ -390,13 +390,6 @@ export default {
           </template>
         </LabeledSelect>
       </div>
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.spec.serviceAccount"
-          label="Service Account Name"
-          placeholder="Optional name of an account in the target clusters"
-        />
-      </div>
     </div>
     <div v-if="authSecret === '_ssh'" class="row mt-20">
       <div class="col span-6">
@@ -431,11 +424,11 @@ export default {
       </template>
     </ArrayList>
 
+    <hr v-if="!isView" class="mt-20 mb-20" />
+
+    <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
+
     <template v-if="!isLocal">
-      <hr v-if="!isView" class="mt-20 mb-20" />
-
-      <h2 v-t="'fleet.gitRepo.target.label'" />
-
       <div class="row">
         <div class="col span-6">
           <LabeledSelect
@@ -467,6 +460,23 @@ export default {
 
       <Banner v-for="(err, i) in targetAdvancedErrors" :key="i" color="error" :label="err" />
     </template>
+
+    <div class="row mt-20">
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.serviceAccount"
+          label="Service Account Name"
+          placeholder="Optional: Use a service account in the target clusters"
+        />
+      </div>
+      <div class="col span-6">
+        <LabeledInput
+          v-model="value.spec.targetNamespace"
+          label="Target Namespace"
+          placeholder="Optional: Require all resources to be in this namespace"
+        />
+      </div>
+    </div>
 
     <hr class="mt-20" />
 
