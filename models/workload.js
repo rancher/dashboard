@@ -113,6 +113,10 @@ export default {
           content:  this.status.numberReady
         },
         {
+          label:   'Misscheduled',
+          content:  this.status.numberMisscheduled
+        },
+        {
           label:   'Updated',
           content:  this.status.numberUpdated
         },

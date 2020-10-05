@@ -140,7 +140,7 @@ export default {
           <div class="col span-6">
             <LabeledSelect v-model="stdinSelect" label="Stdin" :options="['No', 'Once', 'Yes']" :mode="mode" />
           </div>
-          <div class="col span-6">
+          <div v-if="stdin" class="col span-6">
             <Checkbox v-model="tty" :mode="mode" label="TTY" @input="update" />
           </div>
         </div>

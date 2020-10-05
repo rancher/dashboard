@@ -583,7 +583,7 @@ export default {
           <div class="bordered-section">
             <div v-if="isCronJob || isReplicable" class="row">
               <div v-if="isCronJob" class="col span-6">
-                <LabeledInput v-model="spec.schedule" :mode="mode" :label="t('workload.cronSchedule')" placeholder="0 * * * *" />
+                <LabeledInput v-model="spec.schedule" required :mode="mode" :label="t('workload.cronSchedule')" placeholder="0 * * * *" />
                 <span class="cron-hint text-small">{{ cronLabel }}</span>
               </div>
               <div v-if="isReplicable" class="col span-6">
