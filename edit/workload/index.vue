@@ -316,42 +316,6 @@ export default {
       }
     },
 
-    stdinSelect: {
-      get() {
-        if (this.container.stdin) {
-          if (this.container.stdinOnce) {
-            return 'Once';
-          }
-
-          return 'Yes';
-        }
-        if (this.container.stdinOnce) {
-          return null;
-        }
-
-        return 'No';
-      },
-      set(neu) {
-        switch (neu) {
-        case 'Yes':
-          this.container.stdin = true;
-          this.container.stdinOnce = false;
-          break;
-        case 'Once':
-          this.container.stdin = true;
-          this.container.stdinOnce = true;
-          break;
-        case 'No':
-          this.container.stdin = false;
-          this.container.stdinOnce = false;
-          break;
-        default:
-          this.container.stdin = false;
-          this.container.stdinOnce = true;
-        }
-      }
-    },
-
     schema() {
       return this.$store.getters['cluster/schemaFor'](this.type);
     },
