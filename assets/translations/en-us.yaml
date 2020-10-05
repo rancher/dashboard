@@ -475,7 +475,6 @@ footer:
   slack: Slack
 
 gatekeeperConstraint:
-
   match:
     title: Match
   tab:
@@ -490,6 +489,7 @@ gatekeeperConstraint:
       title: Namespaces
     parameters:
       addParameter: Add Parameter
+      complexParameters: If your parameters are more complex than key value pairs use Edit as YAML
       editAsForm: Edit as Form
       editAsYaml: Edit as YAML
       title: Parameters

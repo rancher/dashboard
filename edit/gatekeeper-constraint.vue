@@ -20,6 +20,7 @@ import Tabbed from '@/components/Tabbed';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import GatekeeperViolationsTable from '@/components/gatekeeper/ViolationsTable';
 import CruResource from '@/components/CruResource';
+import Banner from '@/components/Banner';
 
 function findConstraintTypes(schemas) {
   return schemas
@@ -39,6 +40,7 @@ const ENFORCEMENT_ACTION_VALUES = {
 
 export default {
   components: {
+    Banner,
     CruResource,
     GatekeeperViolationsTable,
     KeyValue,
@@ -249,6 +251,9 @@ export default {
         <Tabbed :side-tabs="true">
           <Tab name="parameters" :label="t('gatekeeperConstraint.tab.parameters.title')" :weight="4">
             <div>
+              <Banner v-if="!showParametersAsYaml" color="info">
+                {{ t('gatekeeperConstraint.tab.parameters.complexParameters') }}
+              </Banner>
               <div v-if="showParametersAsYaml">
                 <YamlEditor
                   v-model="parametersYaml"
