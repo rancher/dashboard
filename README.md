@@ -6,19 +6,34 @@ Dashboard UI.  For the other Rancher UI see [rancher/ui](https://github.com/ranc
 ## Build Setup
 
 ```bash
-# install dependencies
-$ yarn install
+# Install dependencies
+yarn install
 
-# serve with hot reload at https://localhost:8005
-# using the endpoint for your Steve (or Rancher) API
-$ API=http://localhost:8989 yarn dev
+# For development, serve with hot reload at https://localhost:8005
+# using the endpoint for your Rancher API
+API=https://your-rancher yarn dev
+# Goto https://localhost:8005
 
-# build for production and launch server
-$ yarn build
-$ yarn start
+# Build for use within Rancher
+./scripts/build-embedded # for embedding into rancher builds
+./scripts/build-hosted # for hosting on a static file webserver and pointing Rancher's ui-dashboard-index at it
+# Output in dist/
 
-# generate static project
-$ yarn generate
+# Build for production and launch nodejs server
+# (Rancher does not currently use this mode or server-side rendering)
+yarn build
+yarn start
+
+# Development via Docker instead of local nodejs
+docker build -f Dockerfile.dev -t dashboard:dev
+docker run -v $(pwd):/src \
+  -v dashboard_node:/src/node_modules \
+  -p 8005:8005 \
+  -e API=https://your-rancher \
+  dashboard:dev
+# The first time will take forever installing node_modules into the volume; it will be faster next time.
+# Goto https://localhost:8005
+
 ```
 
 ## Multiple GitHub auth configs
@@ -38,55 +53,6 @@ data:
   clientsecret: <the normal client secret already configured>
   <your client id>: <your base64-encoded client secret for localhost:8005>
  ```
-
- ## Running with standalone Steve on a Mac
- ```bash
- cd steve
- make run-host
-
- cd dashboard
- docker build -f Dockerfile.dev -t rancherlabs/dashboard:dev
- docker run -v $(pwd):/src \
-   -v dashboard_node:/src/node_modules \
-   -p 8005:8005 \
-   -e API=http://172.17.0.1:8989 \
-   rancherlabs/dashboard:dev
-
- # The first time will take forever installing node_modules into the volume; it will be faster next time.
- #
- # Goto https://localhost:8005
-```
-
-### Creating a Steve user
-
-Steve does not currently create any default user to login to when it is first run.  Use kubectl to apply this to create an `admin`/`admin` user:
-
-```yaml
----
-apiVersion: management.cattle.io/v3
-kind: User
-metadata:
-  name: admin
-principalIds:
-  - local://admin
-enabled: true
-username: admin
-# bcrypt hash of "admin" , or use e.g. https://bcrypt-generator.com/ to generate your own
-password: $2a$10$lQpf/73orx5T3TBzbu.xNOXFgODGsR4wc39vTGc6Hbt8cdQVza.Pq
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: default-admin
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
-subjects:
-- apiGroup: rbac.authorization.k8s.io
-  kind: User
-  name: admin
-```
 
 License
 =======
