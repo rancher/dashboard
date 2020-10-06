@@ -6,6 +6,7 @@ import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 import { get } from '@/utils/object';
 import { NAME as FLEET_NAME } from '@/config/product/fleet';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: {
@@ -59,6 +60,10 @@ export default {
       });
 
       return out;
+    },
+
+    isView() {
+      return this.mode === _VIEW;
     },
 
     isNamespace() {
@@ -179,10 +184,10 @@ export default {
           </nuxt-link>
           <span v-html="h1" />
         </h1>
-        <BadgeState v-if="mode==='view'" :value="value" />
+        <BadgeState v-if="isView" :value="value" />
       </div>
       <!-- //TODO use  nuxt-link for an internal project detail page once it exists -->
-      <div v-if="mode==='view'" class="subheader">
+      <div v-if="isView" class="subheader">
         <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: {{ project.nameDisplay }}</span>
         <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
         <span v-else-if="namespace">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
@@ -190,7 +195,7 @@ export default {
       </div>
     </div>
     <slot name="right">
-      <div v-if="mode==='view'" class="actions">
+      <div v-if="isView" class="actions">
         <div v-if="hasDetailOrEdit">
           <ButtonGroup :labels-are-translations="true" :value="asYaml" :options="[{label: 'resourceDetail.masthead.overview', value: false},{label:'resourceDetail.masthead.yaml', value: true }]" @input="toggleYaml" />
         </div>
@@ -199,7 +204,7 @@ export default {
         </button>
       </div>
     </slot>
-    <div v-if="banner && !parent.hideBanner" class="state-banner">
+    <div v-if="banner && isView && !parent.hideBanner" class="state-banner">
       <Banner class="state-banner" :color="banner.color" :label="banner.message" />
     </div>
   </header>

@@ -54,7 +54,6 @@ export default {
 
   data() {
     const targetInfo = this.value.targetInfo;
-    let targetMode = targetInfo.mode;
     const targetCluster = targetInfo.cluster;
     const targetClusterGroup = targetInfo.clusterGroup;
     const targetAdvanced = targetInfo.advanced;
@@ -62,15 +61,21 @@ export default {
     const ref = ( this.value.spec?.revision ? 'revision' : 'branch' );
     const refValue = this.value.spec?.[ref] || '';
 
+    let targetMode = targetInfo.mode;
+
     if (!this.value.id ) {
       targetMode = 'all';
+    } else if ( targetMode === 'cluster' ) {
+      targetMode = `cluster://${ targetCluster }`;
+    } else if ( targetMode === 'clusterGroup' ) {
+      targetMode = `group://${ targetClusterGroup }`;
     }
 
     return {
-      allClusters:      null,
-      allClusterGroups: null,
-      allWorkspaces:    null,
-      allSecrets:       null,
+      allClusters:      [],
+      allClusterGroups: [],
+      allWorkspaces:    [],
+      allSecrets:       [],
 
       authSecret: null,
       username:   null,
