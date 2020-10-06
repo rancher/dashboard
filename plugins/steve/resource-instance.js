@@ -55,6 +55,8 @@ const REMAP_STATE = {
   waitapplied:   'Wait Applied',
   outofsync:     'Out of Sync',
   'in-progress':   'In Progress',
+  gitupdating:   'Git Updating',
+  errapplied:    'Err Applied'
 };
 
 const DEFAULT_COLOR = 'warning';
