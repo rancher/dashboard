@@ -361,7 +361,6 @@ export default {
     & .tabs {
       width: $sideways-tabs-width;
       min-width: $sideways-tabs-width;
-      margin: 10px 0;
 
       & .tab {
         width: 100%;
@@ -376,7 +375,7 @@ export default {
         }
 
         &.active {
-          background-color: var(--tabbed-container-bg);
+          background-color: var(--body-bg);
           border-left: solid 5px var(--primary);
 
           & A{

@@ -189,9 +189,7 @@ export default {
           <h4>
             <t k="servicesPage.externalName.label" />
           </h4>
-          <InfoBox>
-            <div>{{ t('servicesPage.externalName.helpText') }}</div>
-          </InfoBox>
+          <Banner color="info" :label="t('servicesPage.externalName.helpText')" />
         </div>
         <div class="row mt-10">
           <div class="col span-6">
@@ -222,9 +220,7 @@ export default {
       >
         <div class="row">
           <div class="col span-12">
-            <InfoBox>
-              <div>{{ t('servicesPage.selectors.helpText') }}</div>
-            </InfoBox>
+            <Banner color="info" :label="t('servicesPage.selectors.helpText')" />
           </div>
         </div>
         <div class="row">
@@ -292,9 +288,7 @@ export default {
         :label="t('servicesPage.affinity.label')"
       >
         <div class="col span-12">
-          <InfoBox>
-            <div>{{ t('servicesPage.affinity.helpText') }}</div>
-          </InfoBox>
+          <Banner color="info" :label="t('servicesPage.affinity.helpText')" />
         </div>
         <div class="row session-affinity">
           <div class="col span-6">
