@@ -60,26 +60,11 @@ export const EFFECT = {
   sort:     ['effect'],
 };
 
-export const FLOW = {
-  name:          'flow',
-  labelKey:      'tableHeaders.flow',
-  value:         'flow',
-  sort:          ['flow.name'],
-  formatter:     'Link',
-  formatterOpts: { options: 'internal' },
-};
-
-export const CLUSTER_FLOW = {
-  ...FLOW,
-  labelKey:      'tableHeaders.clusterFlow',
-  formatterOpts: { options: 'internal' },
-};
-
 export const OUTPUT = {
   name:          'localOutputRefs',
   labelKey:      'tableHeaders.output',
   value:         'outputs',
-  sort:          'outputs.text',
+  sort:          ['outputsSortable'],
   formatter:     'ListLink',
   formatterOpts: { options: 'internal' },
 };
@@ -87,8 +72,8 @@ export const OUTPUT = {
 export const CONFIGURED_PROVIDERS = {
   name:      'configuredProviders',
   labelKey:  'tableHeaders.configuredProviders',
-  value:     'providers',
-  sort:      'providers',
+  value:     'providersDisplay',
+  sort:      'providersSortable',
   formatter: 'List'
 };
 
@@ -96,6 +81,7 @@ export const CLUSTER_OUTPUT = {
   ...OUTPUT,
   name:     'globalOutputRefs',
   value:    'clusterOutputs',
+  sort:     ['clusterOutputsSortable'],
   labelKey: 'tableHeaders.clusterOutput',
 };
 

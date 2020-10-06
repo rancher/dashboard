@@ -64,16 +64,32 @@ export default {
     return this.allOutputs.filter(output => localOutputRefs.includes(output.name));
   },
 
+  outputsSortable() {
+    const displays = this.outputs.map(o => o.nameDisplay);
+
+    displays.sort();
+
+    return displays.join('');
+  },
+
   clusterOutputs() {
     const globalOutputRefs = this.spec?.globalOutputRefs || [];
 
     return this.allClusterOutputs.filter(output => globalOutputRefs.includes(output.name));
   },
 
-  outputProviders() {
+  clusterOutputsSortable() {
+    const displays = this.clusterOutputs.map(o => o.nameDisplay);
+
+    displays.sort();
+
+    return displays.join('');
+  },
+
+  providersDisplay() {
     const combinedOutputs = [...this.outputs, ...this.clusterOutputs];
     const duplicatedProviders = combinedOutputs
-      .flatMap(output => output.providers);
+      .flatMap(output => output.providersDisplay);
 
     return uniq(duplicatedProviders) || [];
   },
