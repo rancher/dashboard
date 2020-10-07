@@ -60,6 +60,12 @@ export default {
     }
   },
 
+  created() {
+    if (!this.volumeMounts.length) {
+      this.volumeMounts.push({ name: this.name });
+    }
+  },
+
   methods: {
     remove(volumeMount) {
       removeObject(this.volumeMounts, volumeMount);
@@ -78,7 +84,7 @@ export default {
   <div>
     <div v-if="volumeMounts.length" class="mount-headers">
       <span>
-        {{ t('workload.storage.mountPoint') }}
+        {{ t('workload.storage.mountPoint') }}<span class="text-error">*</span>
       </span>
       <span>
         {{ t('workload.storage.subPath') }}

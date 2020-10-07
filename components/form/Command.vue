@@ -58,9 +58,6 @@ export default {
 
           return 'Yes';
         }
-        if (this.stdinOnce) {
-          return null;
-        }
 
         return 'No';
       },
@@ -74,15 +71,11 @@ export default {
           this.stdin = true;
           this.stdinOnce = true;
           break;
-        case 'No':
+        default:
           this.stdin = false;
           this.stdinOnce = false;
           this.tty = false;
           break;
-        default:
-          this.stdin = false;
-          this.stdinOnce = true;
-          this.tty = false;
         }
         this.update();
       }
@@ -143,12 +136,12 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <div class="row">
+        <div :style="{'align-items':'center'}" class="row">
           <div class="col span-6">
-            <LabeledSelect v-model="stdinSelect" label="Stdin" :options="[, 'No', 'Once', 'Yes']" :mode="mode" />
+            <LabeledSelect v-model="stdinSelect" label="Stdin" :options="['No', 'Once', 'Yes']" :mode="mode" />
           </div>
-          <div class="col span-6">
-            <Checkbox v-model="tty" :mode="mode" :disabled="!stdin" label="TTY" @input="update" />
+          <div v-if="stdin" class="col span-6">
+            <Checkbox v-model="tty" :mode="mode" label="TTY" @input="update" />
           </div>
         </div>
       </div>
