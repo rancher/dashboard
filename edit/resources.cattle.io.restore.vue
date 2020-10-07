@@ -185,7 +185,7 @@ export default {
 
     <CruResource :validation-passed="validationPassed" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
       <template>
-        <div class="bordered-section">
+        <div>
           <div class="row mb-10">
             <div class="col span-12">
               <RadioGroup
@@ -215,6 +215,7 @@ export default {
             </div>
           </div>
         </div>
+        <hr class="divider" />
 
         <div>
           <div :style="{'align-items':'center'}" class="row mb-10">

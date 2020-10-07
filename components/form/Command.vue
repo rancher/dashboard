@@ -153,8 +153,7 @@ export default {
         </div>
       </div>
     </div>
-
-    <div class="bordered-section " />
+    <hr class="divider" />
     <h3>{{ t('workload.container.titles.env') }}</h3>
     <EnvVars :mode="mode" :config-maps="configMaps" :secrets="secrets" :value="value" />
   </div>

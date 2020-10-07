@@ -78,10 +78,8 @@ export default {
 
 <template>
   <div v-if="isView">
-    <p>hi</p>
-
-    <div class="bordered-section">
-      <p>hi</p>
+    <hr class="divider" />
+    <div>
       <div class="row">
         <div class="col span-4">
           <LabeledInput :label="t('workload.container.name')" :mode="mode" :value="value.name" />
@@ -104,8 +102,8 @@ export default {
         </div>
       </div>
     </div>
-    <div class="bordered-section">
-      <p>hi</p>
+    <hr class="divider" />
+    <div>
       <h3><t k="workload.container.titles.ports" /></h3>
       <WorkloadPorts v-if="value.ports" v-model="value.ports" :mode="mode" />
       <div v-else>
@@ -113,13 +111,14 @@ export default {
       </div>
     </div>
 
-    <div class="bordered-section">
-      <p>hi</p>
+    <hr class="divider" />
+    <div>
       <h3><t k="workload.container.titles.command" /></h3>
       <Command v-model="value" :mode="mode" :secrets="[]" :config-maps="[]" />
     </div>
 
-    <div class="bordered-section">
+    <hr class="divider" />
+    <div>
       <h3><t k="workload.container.titles.resources" /></h3>
       <ContainerResourceLimit v-if="hasResourceLimits" v-model="flatResources" :mode="mode" :show-tip="false" />
       <div v-else>
@@ -127,8 +126,8 @@ export default {
       </div>
     </div>
 
-    <div class="bordered-section">
-      <p>hi</p>
+    <hr class="divider" />
+    <div>
       <h3><t k="workload.container.titles.healthCheck" /></h3>
       <HealthCheck v-if="hasHealthCheck" v-model="healthCheck" :mode="mode" />
       <div v-else>

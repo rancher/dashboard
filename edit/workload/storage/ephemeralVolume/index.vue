@@ -51,7 +51,7 @@ export default {
     <button v-if="mode!=='view'" type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
       <i class="icon icon-2x icon-x" />
     </button>
-    <div class="bordered-section">
+    <div>
       <h3>{{ t('workload.storage.subtypes.csi') }}</h3>
       <div class="row mb-10">
         <div class="col span-6">
@@ -70,6 +70,7 @@ export default {
         </div>
       </div>
     </div>
+    <hr class="divider" />
     <Mount :pod-spec="podSpec" :name="value.name" :mode="mode" />
   </div>
 </template>
