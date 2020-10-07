@@ -219,11 +219,11 @@ export default {
     <div class="spacer"></div>
 
     <template v-if="isRegistry">
-      <div id="registry-type" class="row">
+      <div id="registry-type" class="row mb-10">
         <RadioGroup
           v-model="registryProvider"
           name="registryProvider"
-          label="Address:"
+          :label="t('secret.registry.address')"
           :mode="mode"
           :options="registryAddresses"
         />

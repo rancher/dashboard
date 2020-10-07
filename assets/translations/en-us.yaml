@@ -979,7 +979,7 @@ secret:
     privateKey: Private Key
   data: Data
   registry:
-    address: Address
+    address: Type Registry
     domainName: Registry Domain Name
     password: Password
     username: Username
