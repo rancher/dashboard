@@ -206,6 +206,10 @@ export default {
       type:    Object,
       default: null
     },
+    moreDetails: {
+      type:    Array,
+      default: null
+    }
   },
 
   data() {
