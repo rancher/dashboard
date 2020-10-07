@@ -2,7 +2,7 @@
 import Mount from '@/edit/workload/storage/Mount';
 import SimpleBox from '@/components/SimpleBox';
 import { mapGetters } from 'vuex';
-import PersistentVolumeClaim from '@/edit/persistentvolumeclaim';
+import PersistentVolumeClaim from '@/edit/workload/storage/persistentvolumeclaim';
 import { PVC } from '@/config/types';
 import { removeObject } from '@/utils/array';
 import { _VIEW } from '@/config/query-params';
