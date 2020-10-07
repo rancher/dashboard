@@ -78,12 +78,14 @@ export default {
 
 <template>
   <div v-if="isView">
+    <p>hi</p>
+
     <div class="bordered-section">
+      <p>hi</p>
       <div class="row">
         <div class="col span-4">
           <LabeledInput :label="t('workload.container.name')" :mode="mode" :value="value.name" />
         </div>
-
         <div class="col span-4">
           <LabeledInput
             v-model="value.image"
@@ -103,6 +105,7 @@ export default {
       </div>
     </div>
     <div class="bordered-section">
+      <p>hi</p>
       <h3><t k="workload.container.titles.ports" /></h3>
       <WorkloadPorts v-if="value.ports" v-model="value.ports" :mode="mode" />
       <div v-else>
@@ -111,6 +114,7 @@ export default {
     </div>
 
     <div class="bordered-section">
+      <p>hi</p>
       <h3><t k="workload.container.titles.command" /></h3>
       <Command v-model="value" :mode="mode" :secrets="[]" :config-maps="[]" />
     </div>
@@ -124,6 +128,7 @@ export default {
     </div>
 
     <div class="bordered-section">
+      <p>hi</p>
       <h3><t k="workload.container.titles.healthCheck" /></h3>
       <HealthCheck v-if="hasHealthCheck" v-model="healthCheck" :mode="mode" />
       <div v-else>

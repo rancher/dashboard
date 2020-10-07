@@ -616,7 +616,7 @@ export default {
       </div>
       <Tabbed :side-tabs="true">
         <Tab :label="t('workload.container.titles.container')" name="container">
-          <div class="bordered-section">
+          <div class="">
             <div v-if="isCronJob || isReplicable" class="row">
               <div v-if="isCronJob" class="col span-6">
                 <LabeledInput v-model="spec.schedule" :mode="mode" :label="t('workload.cronSchedule')" placeholder="0 * * * *" />
