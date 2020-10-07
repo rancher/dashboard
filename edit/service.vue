@@ -36,7 +36,6 @@ export default {
     ArrayList,
     Banner,
     CruResource,
-    InfoBox,
     KeyValue,
     Labels,
     LabeledInput,
