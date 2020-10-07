@@ -40,6 +40,11 @@ export default {
       default: null
     },
 
+    required: {
+      type:    Boolean,
+      default: false,
+    },
+
   },
 
   computed: {

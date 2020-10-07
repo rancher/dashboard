@@ -44,7 +44,10 @@ export default {
       type:    Boolean,
       default: false,
     },
-
+    nameRequired: {
+      type:    Boolean,
+      default: true,
+    },
     namespaced: {
       type:    Boolean,
       default: true,
@@ -251,7 +254,7 @@ export default {
             :text-label="t(nameLabel)"
             :text-placeholder="t(namePlaceholder)"
             :text-value="name"
-            :text-required="true"
+            :text-required="nameRequired"
             :select-label="t(namespaceLabel)"
             :select-placeholder="t(namespacePlaceholder)"
             :select-value="namespace"
@@ -270,6 +273,7 @@ export default {
             :disabled="nameReallyDisabled"
             :mode="mode"
             :min-height="30"
+            :required="nameRequired"
           />
         </slot>
       </div>
