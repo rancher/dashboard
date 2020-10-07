@@ -555,6 +555,7 @@ ingress:
     addPath: Add Path
     addRule: Add Rule
     headers:
+      pathType: Path Type
       path: Path
       port: Port
       target: Target Service

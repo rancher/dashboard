@@ -53,7 +53,7 @@ export default {
 
   createPathForDetailPage() {
     return (workloads, path) => {
-      const text = path.path || this.$rootGetters['i18n/t']('generic.na');
+      const pathPath = path.path || this.$rootGetters['i18n/t']('generic.na');
       const serviceName = path?.backend.serviceName;
       const targetLink = {
         url:  this.targetTo(workloads, serviceName),
@@ -62,7 +62,7 @@ export default {
       const port = path?.backend?.servicePort;
 
       return {
-        text, targetLink, port
+        pathType: path.pathType, path: pathPath, targetLink, port
       };
     };
   },
