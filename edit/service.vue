@@ -13,7 +13,6 @@ import UnitInput from '@/components/form/UnitInput';
 import { DEFAULT_SERVICE_TYPES, HEADLESS, CLUSTERIP } from '@/models/service';
 import { ucFirst } from '@/utils/string';
 import CruResource from '@/components/CruResource';
-import InfoBox from '@/components/InfoBox';
 import Banner from '@/components/Banner';
 import Labels from '@/components/form/Labels';
 
