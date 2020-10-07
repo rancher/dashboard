@@ -1,17 +1,15 @@
 <script>
-import Mount from '@/edit/workload/storage/Mount';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
 import { mapGetters } from 'vuex';
-import PersistentVolumeClaim from '@/edit/persistentvolumeclaim';
+import PersistentVolumeClaim from '@/edit/workload/storage/persistentVolumeClaim/persistentvolumeclaim';
 import { PVC } from '@/config/types';
 
 export default {
   components: {
     LabeledInput,
     LabeledSelect,
-    Mount,
     PersistentVolumeClaim,
     Checkbox
   },
@@ -93,13 +91,9 @@ export default {
 
 <template>
   <div>
-    <button v-if="mode!=='view'" type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
-      <i class="icon icon-2x icon-x" />
-    </button>
-    <div class="bordered-section">
-      <h3>{{ createNew ? t('generic.create') : '' }} {{ t('workload.storage.subtypes.persistentVolumeClaim') }}</h3>
+    <div>
       <div v-if="createNew" class="bordered-section">
-        <PersistentVolumeClaim v-if="pvc" :value="pvc" :register-before-hook="registerBeforeHook" :mode="mode" />
+        <PersistentVolumeClaim v-if="pvc" v-model="pvc" :register-before-hook="registerBeforeHook" :mode="mode" />
       </div>
       <div class="row mb-10">
         <div class="col span-6">
@@ -114,6 +108,5 @@ export default {
         <Checkbox v-model="value.persistentVolumeClaim.readOnly" :mode="mode" :label="t('workload.storage.readOnly')" />
       </div>
     </div>
-    <Mount :pod-spec="podSpec" :name="value.name" :mode="mode" />
   </div>
 </template>

@@ -4,13 +4,11 @@ import { mapGetters } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
-import Mount from '@/edit/workload/storage/Mount';
 export default {
   components: {
     LabeledInput,
     LabeledSelect,
     RadioGroup,
-    Mount,
   },
 
   props:      {
@@ -80,24 +78,30 @@ export default {
     defaultMode: {
       get() {
         const isconfigMap = this.type === 'configMap';
+        let oct;
 
         if (isconfigMap) {
-          const oct = this.value?.configMap?.defaultMode;
-
-          return oct ? oct.toString(8) : null;
+          oct = this.value?.configMap?.defaultMode;
         } else {
-          const oct = this.value?.secret?.defaultMode;
-
-          return oct ? oct.toString(8) : null;
+          oct = this.value?.secret?.defaultMode;
         }
+
+        if (typeof oct === 'number') {
+          const parsed = oct.toString(8);
+
+          return !isNaN(parsed) ? parsed : null;
+        }
+
+        return null;
       },
       set(neu) {
         const isconfigMap = !!this.value.configMap;
+        const dec = parseInt(neu, 8);
 
         if (isconfigMap) {
-          this.$set(this.value.configMap, 'defaultMode', parseInt(neu, 8));
+          this.$set(this.value.configMap, 'defaultMode', dec);
         } else {
-          this.$set(this.value.secret, 'defaultMode', parseInt(neu, 8));
+          this.$set(this.value.secret, 'defaultMode', dec);
         }
       },
     },
@@ -123,16 +127,7 @@ export default {
 
 <template>
   <div>
-    <button v-if="mode!=='view'" type="button" class="role-link btn btn-lg remove-vol" @click="$emit('remove')">
-      <i class="icon icon-2x icon-x" />
-    </button>
-    <div class="bordered-section">
-      <h3 v-if="value._type==='certificate'">
-        {{ t('workload.storage.certificate') }}
-      </h3>
-      <h3 v-else>
-        {{ t(`workload.storage.subtypes.${type}`) }}
-      </h3>
+    <div>
       <div class="row mb-10">
         <div class="col span-6">
           <LabeledInput v-model="value.name" :required="true" :mode="mode" :label="t('workload.storage.volumeName')" @input="e=>updateMountNames(e)" />
@@ -161,6 +156,5 @@ export default {
         </div>
       </div>
     </div>
-    <Mount :pod-spec="podSpec" :name="value.name" :mode="mode" />
   </div>
 </template>

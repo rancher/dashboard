@@ -246,6 +246,9 @@
 
     &.one-action {
       position: relative;
+      &>.btn {
+        padding: 15px 35px 15px 15px;
+      }
       .v-popover{
         .trigger{
           position: absolute;

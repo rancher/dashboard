@@ -33,16 +33,16 @@ export default {
   <div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.volumeID" :mode="mode" :label="t('workload.storage.csi.diskName')" />
+        <LabeledInput v-model="value.azureDisk.diskName" :mode="mode" :label="t('workload.storage.csi.diskName')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model.number="value.partition" :mode="mode" :label="t('workload.storage.csi.diskURI')" />
+        <LabeledInput v-model.number="value.azureDisk.diskURI" :mode="mode" :label="t('workload.storage.csi.diskURI')" />
       </div>
     </div>
     <div class="row">
       <div class="col span-6">
         <RadioGroup
-          v-model="value.kind"
+          v-model="value.azureDisk.kind"
           :mode="mode"
           name="kind"
           :label="t('workload.storage.csi.kind.label')"
@@ -52,7 +52,8 @@ export default {
       </div>
       <div class="col span-6">
         <RadioGroup
-          v-model="value.cachingMode"
+          v-model="value.azureDisk.cachingMode"
+          name="cachingMode"
           :mode="mode"
           :label="t('workload.storage.csi.cachingMode.label')"
           :options="['None', 'ReadOnly', 'ReadWrite']"
