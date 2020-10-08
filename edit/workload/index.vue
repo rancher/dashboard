@@ -725,6 +725,7 @@ export default {
           </div>
 
           <div>
+            <hr class="divider" />
             <h3 class="mb-10">
               <t k="workload.scheduling.titles.priority" />
             </h3>
