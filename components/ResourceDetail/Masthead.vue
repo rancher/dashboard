@@ -43,6 +43,11 @@ export default {
     parentOverride: {
       type:    Object,
       default: null
+    },
+
+    resourceSubtype: {
+      type:    String,
+      default: null,
     }
   },
 
@@ -183,6 +188,7 @@ export default {
             {{ parent.displayName }}:
           </nuxt-link>
           <span v-html="h1" />
+          <span v-if="resourceSubtype" v-html="resourceSubtype" />
         </h1>
         <BadgeState v-if="isView" :value="value" />
       </div>
