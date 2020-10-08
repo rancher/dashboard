@@ -61,7 +61,10 @@ export default {
           value: 'tolerationSeconds',
           width: '20%'
         },
-        { name: 'remove', width: '50' }
+        {
+          name:  'remove',
+          width: '50'
+        }
       ];
     },
     operatorOpts() {
@@ -198,7 +201,7 @@ export default {
 
   .rule, .toleration-headers{
     display: grid;
-    grid-template-columns: 17% 17% 17% 17% 17% 15%;
+    grid-template-columns: 20% 10% 20% 10% 20% 10%;
     grid-gap: $column-gutter;
     align-items: center;
   }
