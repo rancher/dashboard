@@ -3,13 +3,13 @@ export function containerImages(spec, getters, errors) {
 
   if (spec.jobTemplate) {
     // cronjob pod template is nested slightly different than other types
-    const { jobTemplate: { spec: { template: { spec: { containers } } } } } = spec;
+    const { jobTemplate: { spec: { template: { spec: { containers = [] } } } } } = spec;
 
-    container = containers[0];
+    container = containers[0] || {};
   } else {
-    const { template:{ spec:{ containers } } } = spec;
+    const { template:{ spec:{ containers = [] } } } = spec;
 
-    container = containers[0];
+    container = containers[0] || {};
   }
 
   if (!container.image) {

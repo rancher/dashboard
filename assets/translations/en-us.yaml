@@ -1306,6 +1306,7 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
+  invalidCron: Invalid cron schedule
   k8s:
     identifier:
       emptyLabel: '"{key}" cannot have an empty key'
