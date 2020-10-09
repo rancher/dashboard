@@ -226,8 +226,8 @@ export default {
               <LabeledSelect
                 v-if="isEncrypted"
                 v-model="value.spec.encryptionConfigSecretName"
-                status="warning"
-                :tooltip="t('backupRestoreOperator.encryptionConfigName.restoretip')"
+                :status="mode === 'view' ? null : 'warning'"
+                :tooltip="mode === 'view' ? null : t('backupRestoreOperator.encryptionConfigName.restoretip')"
                 :hover-tooltip="true"
                 :mode="mode"
                 :options="encryptionSecretNames"
