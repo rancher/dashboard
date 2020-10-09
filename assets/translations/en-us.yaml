@@ -14,6 +14,8 @@ generic:
   default: Default
   disabled: Disabled
   enabled: Enabled
+  enforced: Enforced
+  ignored: Ignored
   labelsAndAnnotations: Labels and Annotations
   na: n/a
   name: Name
@@ -783,10 +785,11 @@ monitoring:
       resourceLimits: Resource Limits
       scrape: Scrape Interval
       ignoreNamespaceSelectors:
-        label: Ignore Namespace Selectors
-        help: |+
-          If true, ServiceMonitors and PodMonitors will only be able to discover resources in the namespace they are deployed into. <br />
-          Disabling Ignore Namespace Selectors may be required to support scrape configurations declared by other charts via ServiceMonitors / PodMonitors if those charts require resources to be monitored across namespaces.
+        label: Use Namespace Selectors
+        radio:
+          enforced: "Use: Monitors can access resources in the namespace specified in the namespaceSelector field"
+          ignored: "Ignore: Monitors can only access resources in the deployed namespace that they are deployed in"
+        help: Ignoring Namespace Selectors allows Cluster Admins to limit teams from monitoring resources outside of namespaces they have permissions to but can break the functionality of Apps that rely on setting up Monitors that scrape targets across multiple namespaces, such as Istio.
     storage:
       className: Storage Class Name
       label: Persistent Storage for Prometheus

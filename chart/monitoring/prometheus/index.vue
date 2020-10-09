@@ -8,6 +8,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import MatchExpressions from '@/components/form/MatchExpressions';
 import StorageClassSelector from '@/chart/monitoring/StorageClassSelector';
+import RadioGroup from '@/components/form/RadioGroup';
 
 import { set } from '@/utils/object';
 import { simplify } from '@/utils/selector';
@@ -20,6 +21,7 @@ export default {
     LabeledInput,
     LabeledSelect,
     MatchExpressions,
+    RadioGroup,
     StorageClassSelector,
   },
 
@@ -193,12 +195,18 @@ export default {
           <Checkbox v-model="value.prometheus.prometheusSpec.enableAdminAPI" :label="t('monitoring.prometheus.config.adminApi')" />
         </div>
         <div class="col span-6 col-full-height">
-          <Checkbox v-model="value.prometheus.prometheusSpec.ignoreNamespaceSelectors" :label="t('monitoring.prometheus.config.ignoreNamespaceSelectors.label')">
-            <template #label>
-              <t k="monitoring.prometheus.config.ignoreNamespaceSelectors.label" />
-              <i v-tooltip="t('monitoring.prometheus.config.ignoreNamespaceSelectors.help', {}, true)" class="icon icon-info"></i>
+          <RadioGroup
+            v-model="value.prometheus.prometheusSpec.ignoreNamespaceSelectors"
+            name="ignoreNamespaceSelectors"
+            :label="t('monitoring.prometheus.config.ignoreNamespaceSelectors.label')"
+            :labels="[t('monitoring.prometheus.config.ignoreNamespaceSelectors.radio.enforced'),t('monitoring.prometheus.config.ignoreNamespaceSelectors.radio.ignored')]"
+            :mode="mode"
+            :options="[true, false]"
+          >
+            <template #corner>
+              <i v-tooltip="t('monitoring.prometheus.config.ignoreNamespaceSelectors.help', {}, true)" class="icon icon-info" />
             </template>
-          </Checkbox>
+          </RadioGroup>
         </div>
       </div>
       <div class="row">
