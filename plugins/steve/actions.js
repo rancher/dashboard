@@ -1,11 +1,27 @@
 import https from 'https';
 import cloneDeep from 'lodash/cloneDeep';
 import { SCHEMA } from '@/config/types';
+import { createYaml } from '@/utils/create-yaml';
+import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
 import { normalizeType } from './normalize';
 import { proxyFor, SELF } from './resource-proxy';
 
 export default {
-  request({ dispatch }, opt) {
+  async request({ dispatch, rootGetters }, opt) {
+    // Handle spoofed types instead of making an actual request
+    // Spoofing is handled here to ensure it's done for both yaml and form editing.
+    // It became apparent that this was the only place that both intersected
+    if (opt.url.includes(SPOOFED_PREFIX) || opt.url.includes(SPOOFED_API_PREFIX)) {
+      const [empty, scheme, type, id] = opt.url.split('/'); // eslint-disable-line no-unused-vars
+      const isApi = scheme === SPOOFED_API_PREFIX;
+      const typemapGetter = id ? 'getSpoofedInstance' : 'getSpoofedInstances';
+      const schemas = await rootGetters['cluster/all'](SCHEMA);
+      const instance = await rootGetters[`type-map/${ typemapGetter }`](type, id);
+      const data = isApi ? createYaml(schemas, type, instance) : instance;
+
+      return id && !isApi ? data : { data };
+    }
+
     // @TODO queue/defer duplicate requests
     opt.depaginate = opt.depaginate !== false;
     opt.url = opt.url.replace(/\/*$/g, '');
@@ -71,8 +87,13 @@ export default {
   },
 
   async loadSchemas(ctx, watch = true) {
-    const { getters, dispatch, commit } = ctx;
+    const {
+      getters, dispatch, commit, rootGetters
+    } = ctx;
     const res = await dispatch('findAll', { type: SCHEMA, opt: { url: 'schemas', load: false } });
+    const spoofedTypes = rootGetters['type-map/allSpoofedSchemas'] ;
+
+    res.data = res.data.concat(spoofedTypes);
 
     res.data.forEach((schema) => {
       schema._id = normalizeType(schema.id);
@@ -112,7 +133,6 @@ export default {
     }
 
     console.log('Find All', type); // eslint-disable-line no-console
-
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
 
