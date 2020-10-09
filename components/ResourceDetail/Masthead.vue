@@ -6,8 +6,7 @@ import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 import { get } from '@/utils/object';
 import { NAME as FLEET_NAME } from '@/config/product/fleet';
-import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
-import isEmpty from 'lodash/isEmpty';
+import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   components: {
