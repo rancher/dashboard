@@ -6,7 +6,8 @@ import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 import { get } from '@/utils/object';
 import { NAME as FLEET_NAME } from '@/config/product/fleet';
-import { _VIEW } from '@/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
+import isEmpty from 'lodash/isEmpty';
 
 export default {
   components: {
@@ -69,6 +70,10 @@ export default {
 
     isView() {
       return this.mode === _VIEW;
+    },
+
+    isEdit() {
+      return this.mode === _EDIT;
     },
 
     isNamespace() {
@@ -183,7 +188,15 @@ export default {
   <header class="masthead">
     <div class="title">
       <div class="primaryheader">
-        <h1>
+        <h1 v-if="isEdit">
+          <t k="resourceDetail.header.edit" />
+          <span v-if="resourceSubtype" v-html="resourceSubtype" />
+          <nuxt-link :to="parent.location">
+            {{ parent.displayName }}:
+          </nuxt-link>
+          {{ value.nameDisplay }}
+        </h1>
+        <h1 v-else>
           <nuxt-link :to="parent.location">
             {{ parent.displayName }}:
           </nuxt-link>
