@@ -23,7 +23,7 @@
       box-shadow: 0px 0px 1px var(--outline-width) var(--outline);
     }
 
-    > a {
+    > * {
       align-items: center;
       display: flex;
       flex: 1 0;
@@ -63,8 +63,8 @@
         margin-top: 10px;
         display: -webkit-box;
         -webkit-box-orient: vertical;
-        -webkit-line-clamp: 3;
-        line-clamp: 3;
+        // -webkit-line-clamp: 3;
+        // line-clamp: 3;
         text-overflow: ellipsis;
         color: var(--secondary);
       }

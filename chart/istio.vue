@@ -7,7 +7,6 @@ import { mapGetters } from 'vuex';
 import FileSelector from '@/components/form/FileSelector';
 import Tab from '@/components/Tabbed/Tab';
 import Banner from '@/components/Banner';
-import { SERVICE } from '@/config/types';
 
 const defaultOverlayFile = `#apiVersion: install.istio.io/v1alpha1
 #kind: IstioOperator
@@ -70,18 +69,6 @@ export default {
     }
   },
 
-  async fetch() {
-    try {
-      const svc = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/istio-pilot' });
-
-      if ( svc ) {
-        this.v1Installed = true;
-      }
-    } catch (e) {
-      this.v1Installed = false;
-    }
-  },
-
   data() {
     let overlayFile = this.value.overlayFile;
 
@@ -89,10 +76,7 @@ export default {
       overlayFile = defaultOverlayFile;
     }
 
-    return {
-      overlayFile,
-      v1Installed: false
-    };
+    return { overlayFile };
   },
 
   computed: {
@@ -118,14 +102,6 @@ export default {
     },
 
     ...mapGetters({ t: 'i18n/t' })
-  },
-
-  watch: {
-    v1Installed(neu, old) {
-      if (!!neu && !old) {
-        this.$emit('warn', this.t('istio.v1Warning', {}, true));
-      }
-    }
   },
 
   methods: {
