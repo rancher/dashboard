@@ -34,10 +34,12 @@ export function validateLength(val, field, displayKey, getters, errors = []) {
   } = field;
   const len = val ? get(val, 'length') : 0;
 
-  if ( !nullable && required && isEmpty(val) ) {
-    errors.push(getters['i18n/t']('validation.required', { key: displayKey }));
+  if ( !nullable && required) {
+    if ((typeof val === 'object' && isEmpty(val)) || !val) {
+      errors.push(getters['i18n/t']('validation.required', { key: displayKey }));
 
-    return errors;
+      return errors;
+    }
   }
 
   if ( val === null ) {

@@ -26,6 +26,66 @@ export default {
     return out;
   },
 
+  customValidationRules() {
+    const out = [
+      {
+        nullable:       false,
+        path:           'metadata.name',
+        required:       true,
+        translationKey: 'generic.name',
+        type:           'dnsLabel',
+      },
+      {
+        nullable:       false,
+        path:           'spec',
+        required:       true,
+        type:           'object',
+        validators:     ['containerImages'],
+      }
+    ];
+
+    const type = this._type ? this._type : this.type;
+
+    switch (type) {
+    case WORKLOAD_TYPES.DEPLOYMENT:
+    case WORKLOAD_TYPES.REPLICA_SET:
+      out.push( {
+        nullable:       false,
+        path:           'spec.replicas',
+        required:       true,
+        type:           'number',
+        translationKey: 'workload.replicas'
+      });
+      break;
+    case WORKLOAD_TYPES.STATEFUL_SET:
+      out.push({
+        nullable:       false,
+        path:           'spec.replicas',
+        required:       true,
+        type:           'number',
+        translationKey: 'workload.replicas'
+      });
+      out.push({
+        nullable:       false,
+        path:           'spec.serviceName',
+        required:       true,
+        type:           'string',
+        translationKey: 'workload.serviceName'
+      });
+      break;
+    case WORKLOAD_TYPES.CRON_JOB:
+      out.push( {
+        nullable:       false,
+        path:           'spec.schedule',
+        required:       true,
+        type:           'string',
+        validators:     ['cronSchedule'],
+      });
+    }
+
+    return out;
+  },
+
   container() {
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
       // cronjob pod template is nested slightly different than other types
