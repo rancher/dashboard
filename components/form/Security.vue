@@ -106,7 +106,7 @@ export default {
 
 <template>
   <div @input="update">
-    <div class="bordered-section">
+    <div>
       <div class="row">
         <div class="col span-6">
           <RadioGroup
@@ -131,8 +131,9 @@ export default {
         </div>
       </div>
     </div>
+    <hr class="divider" />
 
-    <div class="bordered-section">
+    <div>
       <div class="row">
         <div class="col span-6">
           <RadioGroup
@@ -157,6 +158,7 @@ export default {
         </div>
       </div>
     </div>
+    <hr class="divider" />
 
     <div class="row mb-10">
       <div class="col span-6">

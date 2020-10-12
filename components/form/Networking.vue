@@ -143,7 +143,7 @@ export default {
 </script>
 <template>
   <div>
-    <div class="bordered-section">
+    <div>
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
@@ -189,8 +189,9 @@ export default {
         </div>
       </div>
     </div>
+    <hr class="divider" />
 
-    <div class="bordered-section">
+    <div>
       <h3>{{ t('workload.networking.dns') }}</h3>
       <div class="row">
         <div class="col span-6">
@@ -223,8 +224,9 @@ export default {
         </div>
       </div>
     </div>
+    <hr class="divider" />
 
-    <div class="bordered-section">
+    <div>
       <div class="row">
         <KeyValue
           v-model="options"
@@ -238,6 +240,7 @@ export default {
         />
       </div>
     </div>
+    <hr class="divider" />
 
     <div class="row">
       <div class="col span-12">

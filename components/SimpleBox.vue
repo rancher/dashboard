@@ -34,7 +34,7 @@ export default {
     line-height: 24px;
     font-size: 18px;
     border-bottom: 1px solid var(--simple-box-divider);
-    padding: $padding;
+    padding-bottom: $padding;
   }
 
   .content {

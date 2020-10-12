@@ -63,7 +63,7 @@ export default {
   <div>
     <NodeScheduling :value="value" :mode="mode" :nodes="nodes" />
 
-    <div class="bordered-section">
+    <div>
       <h3 class="mb-10">
         <t k="workload.scheduling.titles.podScheduling" />
       </h3>
@@ -78,8 +78,9 @@ export default {
         </div>
       </template>
     </div>
+    <hr class="divider" />
 
-    <div class="bordered-section">
+    <div>
       <h3 class="mb-10">
         <t k="workload.scheduling.titles.tolerations" />
       </h3>
@@ -87,8 +88,10 @@ export default {
         <Tolerations v-model="value.tolerations" :mode="mode" />
       </div>
     </div>
+    <hr class="divider" />
 
     <div>
+      <hr class="divider" />
       <h3 class="mb-10">
         <t k="workload.scheduling.titles.priority" />
       </h3>
@@ -96,6 +99,7 @@ export default {
         <div class="col span-6">
           <LabeledInput v-model.number="value.priority" :mode="mode" :label="t('workload.scheduling.priority.priority')" />
         </div>
+
         <div class="col span-6">
           <LabeledInput v-model="value.priorityClassname" :mode="mode" :label="t('workload.scheduling.priority.className')" />
         </div>

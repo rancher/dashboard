@@ -42,7 +42,7 @@ export default {
 
 <template>
   <div>
-    <div class="bordered-section">
+    <div>
       <div class="row">
         <Probe
           v-model="readinessProbe"
@@ -54,8 +54,9 @@ export default {
         />
       </div>
     </div>
+    <hr class="divider" />
 
-    <div class="bordered-section">
+    <div>
       <div class="row">
         <Probe
           v-model="livenessProbe"
@@ -67,6 +68,7 @@ export default {
         />
       </div>
     </div>
+    <hr class="divider" />
 
     <div class="row">
       <Probe

@@ -42,7 +42,7 @@ export default {
 
 <template>
   <div class="elasticsearch">
-    <div class="bordered-section">
+    <div>
       <h3>{{ t('logging.output.sections.target') }}</h3>
       <div class="row mb-10">
         <div class="col span-2">
@@ -75,8 +75,9 @@ export default {
         </div>
       </div>
     </div>
+    <hr class="divider" />
 
-    <div class="bordered-section">
+    <div>
       <h3>{{ t('logging.output.sections.access') }}</h3>
       <div class="row">
         <div class="col span-6">
@@ -94,6 +95,7 @@ export default {
         </div>
       </div>
     </div>
+    <hr class="divider" />
 
     <h3>{{ t('logging.output.sections.certificate') }}</h3>
     <div class="row mb-10">

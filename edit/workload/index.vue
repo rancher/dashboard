@@ -580,7 +580,7 @@ export default {
       </div>
       <Tabbed :side-tabs="true">
         <Tab :label="t('workload.container.titles.container')" name="container">
-          <div class="bordered-section">
+          <div>
             <div v-if="isCronJob || isReplicable" class="row">
               <div v-if="isCronJob" class="col span-6">
                 <LabeledInput v-model="spec.schedule" required :mode="mode" :label="t('workload.cronSchedule')" placeholder="0 * * * *" />
@@ -602,7 +602,8 @@ export default {
             </div>
           </div>
 
-          <div class="bordered-section">
+          <hr class="divider" />
+          <div>
             <h3>{{ t('workload.container.titles.image') }}</h3>
             <div class="row">
               <div class="col span-6">
@@ -624,18 +625,21 @@ export default {
             </div>
           </div>
 
-          <div class="bordered-section">
+          <hr class="divider" />
+          <div>
             <h3>{{ t('workload.container.titles.ports') }}</h3>
             <div class="row">
               <WorkloadPorts v-model="container.ports" :mode="mode" />
             </div>
           </div>
 
-          <div class="bordered-section">
+          <hr class="divider" />
+          <div>
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
-          <div class="bordered-section">
+          <hr class="divider" />
+          <div>
             <h3>{{ t('workload.container.titles.podLabels') }}</h3>
             <div class="row mb-20">
               <KeyValue
@@ -673,8 +677,9 @@ export default {
           />
         </Tab>
         <Tab :label="t('workload.container.titles.resources')" name="resources">
-          <ContainerResourceLimit v-model="flatResources" class="bordered-section" :mode="mode" :show-tip="false" />
-          <div class="bordered-section">
+          <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
+          <hr class="divider" />
+          <div>
             <h3 class="mb-10">
               <t k="workload.scheduling.titles.tolerations" />
             </h3>
@@ -684,6 +689,7 @@ export default {
           </div>
 
           <div>
+            <hr class="divider" />
             <h3 class="mb-10">
               <t k="workload.scheduling.titles.priority" />
             </h3>

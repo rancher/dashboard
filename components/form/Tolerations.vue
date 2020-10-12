@@ -61,7 +61,10 @@ export default {
           value: 'tolerationSeconds',
           width: '20%'
         },
-        { name: 'remove', width: '50' }
+        {
+          name:  'remove',
+          width: '50'
+        }
       ];
     },
     operatorOpts() {
@@ -140,10 +143,10 @@ export default {
       <span />
     </div>
     <div v-for="rule in rules" :key="rule.vKey" class="rule">
-      <div class="col  ">
+      <div class="col">
         <LabeledInput v-model="rule.key" :mode="mode" />
       </div>
-      <div class="col  ">
+      <div class="col">
         <LabeledSelect
           id="operator"
           v-model="rule.operator"
@@ -153,16 +156,16 @@ export default {
         />
       </div>
       <template v-if="rule.operator==='Exists'">
-        <div class="col  ">
+        <div class="col">
           n/a
         </div>
       </template>
       <template v-else>
-        <div class="col  ">
+        <div class="col">
           <LabeledInput v-model="rule.value" :mode="mode" />
         </div>
       </template>
-      <div class="col  ">
+      <div class="col">
         <LabeledSelect
           v-model="rule.effect"
           :options="effectOpts"
@@ -170,19 +173,20 @@ export default {
           @input="e=>updateEffect(e, rule)"
         />
       </div>
-      <div class="col  ">
+      <div class="col">
         <UnitInput v-model="rule.tolerationSeconds" :disabled="rule.effect !== 'NoExecute'" :mode="mode" suffix="Seconds" />
       </div>
-      <button
-        v-if="!isView"
-        type="button"
-        class="btn btn-sm role-link col remove-rule-button"
-        :style="{padding:'0px'}"
-        :disabled="mode==='view'"
-        @click="remove(rule)"
-      >
-        <t k="generic.remove" />
-      </button>
+      <div class="col">
+        <button
+          v-if="!isView"
+          type="button"
+          class="btn bg-transparent role-link"
+          :disabled="mode==='view'"
+          @click="remove(rule)"
+        >
+          <t k="generic.remove" />
+        </button>
+      </div>
     </div>
     <button v-if="!isView" type="button" class="btn role-tertiary" @click="addToleration">
       <t k="workload.scheduling.tolerations.addToleration" />
@@ -197,7 +201,7 @@ export default {
 
   .rule, .toleration-headers{
     display: grid;
-    grid-template-columns: 17% 17% 17% 17% 17% 15%;
+    grid-template-columns: 20% 10% 20% 10% 20% 10%;
     grid-gap: $column-gutter;
     align-items: center;
   }
