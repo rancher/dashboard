@@ -5,6 +5,7 @@
 
   display: block !important;
   z-index: z-index('tooltip');
+  max-width: 450px;
 
   .tooltip-inner {
     background: var(--tooltip-bg);
