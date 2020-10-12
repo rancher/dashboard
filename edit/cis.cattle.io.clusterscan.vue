@@ -66,10 +66,6 @@ export default {
         return { label: profile.id, value: profile.id };
       });
 
-      if (profileNames.length !== 1 && this.defaultProfile) {
-        profileNames.unshift({ label: this.t('generic.default'), value: this.defaultProfile });
-      }
-
       return profileNames;
     },
 
@@ -78,7 +74,11 @@ export default {
         const profiles = this.defaultConfigMap.data;
         const provider = this.currentCluster.status.provider;
 
-        return profiles[provider] || profiles.default;
+        const name = profiles[provider] || profiles.default;
+
+        if (name) {
+          return this.allProfiles.find(profile => profile.id === name);
+        }
       }
 
       return null;
@@ -86,9 +86,9 @@ export default {
   },
 
   watch: {
-    validProfiles(neu) {
+    defaultProfile(neu) {
       if (neu && !this.scanProfileName) {
-        this.scanProfileName = neu[0]?.value;
+        this.scanProfileName = neu?.id;
       }
     },
   },
@@ -133,7 +133,13 @@ export default {
 
       <div v-else class="row">
         <div class="col span-6">
-          <LabeledSelect v-model="scanProfileName" :mode="mode" :label="t('cis.profile')" :options="validProfiles" @input="value.spec.scanProfileName = $event" />
+          <LabeledSelect
+            v-model="scanProfileName"
+            :mode="mode"
+            :label="t('cis.profile')"
+            :options="validProfiles"
+            @input="value.spec.scanProfileName = $event"
+          />
         </div>
       </div>
     </template>
