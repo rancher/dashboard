@@ -188,19 +188,19 @@ export default {
     <div class="title">
       <div class="primaryheader">
         <h1 v-if="isEdit">
-          <t k="resourceDetail.header.edit" />
-          <span v-if="resourceSubtype" v-html="resourceSubtype" />
           <nuxt-link :to="parent.location">
             {{ parent.displayName }}:
           </nuxt-link>
+          <t k="resourceDetail.header.edit" />
+          <span v-if="resourceSubtype" v-html="resourceSubtype" />
           {{ value.nameDisplay }}
         </h1>
         <h1 v-else>
           <nuxt-link :to="parent.location">
             {{ parent.displayName }}:
           </nuxt-link>
-          <span v-html="h1" />
           <span v-if="resourceSubtype" v-html="resourceSubtype" />
+          <span v-html="h1" />
         </h1>
         <BadgeState v-if="isView" :value="value" />
       </div>

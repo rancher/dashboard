@@ -15,7 +15,6 @@ import { ucFirst } from '@/utils/string';
 import CruResource from '@/components/CruResource';
 import Banner from '@/components/Banner';
 import Labels from '@/components/form/Labels';
-import { _EDIT } from '@/config/query-params';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -134,11 +133,9 @@ export default {
   },
 
   mounted() {
-    if (this.mode === _EDIT) {
-      const initialType = this.serviceType;
+    const initialType = this.serviceType;
 
-      this.$set(this, 'serviceType', initialType);
-    }
+    this.$set(this, 'serviceType', initialType);
   },
 
   methods: {
