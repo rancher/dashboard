@@ -58,11 +58,25 @@ export default {
       },
       {
         nullable:       false,
-        path:           'spec.ports',
+        path:           'spec',
         required:       true,
         type:           'array',
         validators:     ['servicePort'],
-      }
+      },
+      {
+        nullable:       true,
+        path:           'spec',
+        required:       true,
+        type:           'string',
+        validators:     ['clusterIp'],
+      },
+      {
+        nullable:       true,
+        path:           'spec',
+        required:       true,
+        type:           'array',
+        validators:     ['externalName'],
+      },
     ];
   },
 
