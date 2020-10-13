@@ -11,11 +11,11 @@
     transition-property: transform, font-size;
     transition-duration: 0.1s;
     transition-timing-function: ease-in-out;
-    // z-index: z-index('overContent');
+    z-index: z-index('zero');
     color: var(--input-label);
-    &.has-tooltip{
-      // z-index: z-index('hoverOverContent')
-    }
+    // &.has-tooltip{
+    //   z-index: z-index('hoverOverContent');
+    // }
   }
 
   /*
@@ -63,7 +63,8 @@
     background-color: transparent;
     outline: 0;
     box-shadow: none;
-    padding: 17px 0 0 0;
+    margin: 17px 0 0 0;
+    padding: 0;
     line-height: 1.25rem;
 
     &.no-label {
