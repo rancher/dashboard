@@ -4,9 +4,10 @@ import { get, isEmpty } from '@/utils/object';
 import { NAMESPACE, RIO } from '@/config/types';
 import Card from '@/components/Card';
 import { alternateLabel } from '@/utils/platform';
+import LinkDetail from '@/components/formatter/LinkDetail';
 
 export default {
-  components: { Card },
+  components: { Card, LinkDetail },
   data() {
     return { confirmName: '', error: '' };
   },
@@ -177,7 +178,8 @@ export default {
         <div class="mb-10">
           {{ t('promptRemove.attemptingToRemove', {type}) }} <template v-for="(resource, i) in names">
             <template v-if="i<5">
-              <a :key="resource" :href="selfLinks[i]">{{ resource }}</a><span v-if="i===names.length-1" :key="resource+2">{{ plusMore }}</span><span v-else :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
+              <LinkDetail :key="resource" :value="resource" :row="toRemove[i]" @click.native="close" />
+              <span v-if="i===names.length-1" :key="resource+2">{{ plusMore }}</span><span v-else :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
             </template>
           </template>
           <span v-if="needsConfirm" :key="resource">Re-enter its name below to confirm:</span>
