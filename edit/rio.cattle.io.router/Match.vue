@@ -121,16 +121,18 @@ export default {
 <template>
   <div class="match" @change="matchChange" @input="matchChange">
     <div class="row inputs">
-      <LabeledSelect
-        class="col span-4"
-        multiple
-        :close-on-select="false"
-        :options="httpMethods.filter(opt=>!isSelected(opt))"
-        :value="methods"
-        label="Method"
-        :disabled="isView"
-        @input="e=>{change('methods', e); matchChange()}"
-      />
+      <div class="col span-4">
+        <LabeledSelect
+          multiple
+          :close-on-select="false"
+          :options="httpMethods.filter(opt=>!isSelected(opt))"
+          :value="methods"
+          label="Method"
+          placeholder="Select a Method..."
+          :disabled="isView"
+          @input="e=>{change('methods', e); matchChange()}"
+        />
+      </div>
       <div class="col span-4">
         <LabeledInput v-if="host" v-model="host.value.exact" label="Host header" />
       </div>
@@ -140,7 +142,7 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <h5>Headers</h5>
+        <h4>Headers</h4>
         <KeyValue
           :value="headers"
           key-name="name"
@@ -170,7 +172,7 @@ export default {
         </KeyValue>
       </div>
       <div class="col span-6">
-        <h5>Cookies</h5>
+        <h4>Cookies</h4>
         <KeyValue
           key-name="name"
           :value="cookies"
