@@ -147,7 +147,7 @@ export default {
           REMOVE
         </button>
       </div>
-      <div>
+      <div class="row mt-20">
         <Match
           v-model="match"
           :mode="mode"
@@ -215,15 +215,14 @@ export default {
       </div>
     </div>
     <hr class="divider">
-    <div v-if="action!=='redirect'" class="header">
-      <h4 class="col span-12">
-        Rewrite Request Headers
-      </h4>
+    <h4>
+      Rewrite Request Headers
+    </h4>
+    <div v-if="action!=='redirect'" class="header section">
       <div class="row">
         <Headers class="col span-12" :enabled="action!=='redirect'" :spec="headers" @input="e=>change('headers', e)" />
       </div>
     </div>
-    <hr class="divider">
     <div class="row">
       <Checkbox v-model="shouldMirror" type="checkbox" label="Mirror" />
 
@@ -275,7 +274,7 @@ export default {
         font-weight: normal;
       }
       & td {
-        padding: 0 1.75% 0 0;
+        padding: 0  10px 10px 0;
         vertical-align:middle;
         & > * {
           height: 4em;
