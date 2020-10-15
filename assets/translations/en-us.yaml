@@ -901,6 +901,59 @@ prefs:
   dev:
     label: Enable Developer Tools
 
+prometheusRule:
+  promQL:
+    label: PromQL Expression
+  groups:
+    add: Add Rule Group
+    none: Please add at least one rule group that contains at least one alerting or one recording rule.
+    label: Rule Groups
+    removeGroup: Remove Group
+    name: Group Name
+    groupInterval:
+      label: Override Group Interval
+      placeholder: '60'
+    responseStrategy:
+      label: Partial Response Strategy
+  recordingRules:
+    label: Recording Rules
+    addLabel: Add Record
+    removeRecord: Remove Record
+    name: Time Series Name
+    labels: Labels
+  alertingRules:
+    name: Alert Name
+    for:
+      label: Wait to fire for
+      placeholder: '60'
+    label: Alerting Rules
+    addLabel: Add Alert
+    bannerText: When firing alerts, the annotations and labels will be passed to the configured AlertManagers to allow them to construct the notification that will be sent to any configured Receivers.
+    removeAlert: Remove Alert
+    labels:
+      label: Labels
+      severity:
+        label: Severity
+        choices:
+          label: Severity Label Value
+          critical: critical
+          warning: warning
+          none: none
+    annotations:
+      label: Annotations
+      summary:
+        label: Summary
+        input: Summary Annotation Value
+      message:
+        label: Message
+        input: Message Annotation Value
+      description:
+        label: Description
+        input: Description Annotation Value
+      runbook:
+        label: Runbook URL
+        input: Runbook URL Annotation Value
+
 promptRemove:
   andOthers: |-
     {count, plural,
@@ -1214,7 +1267,7 @@ validation:
     min: '"{key}" should contain at least {count} {count, plural, =1 {item} other {items}}'
   chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
   custom:
-    missing: "No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?"
+    missing: 'No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?'
   dns:
     doubleHyphen: '"{key}" Cannot contain two or more consecutive hyphens'
     hostname:
@@ -1234,8 +1287,8 @@ validation:
       startNumber: '"{key}" cannot start with a number'
       tooLongLabel: '"{key}" cannot be more than {max} characters'
   flowOutput:
-    global: Requires "Cluster Output" to be selected.
     both: Requires "Output" or "Cluster Output" to be selected.
+    global: Requires "Cluster Output" to be selected.
   k8s:
     identifier:
       emptyLabel: '"{key}" cannot have an empty key'
@@ -1251,24 +1304,36 @@ validation:
     exactly: '"{key}" should be exactly {val}'
     max: '"{key}" should be at most {val}'
     min: '"{key}" should be at least {val}'
+  prometheusRule:
+    groups:
+      required: At least one rule group is required.
+      singleAlert: A rule may contain alert rules or recording rules but not both.
+      valid:
+        name: 'Name is required for group {index}.'
+        rule:
+          alertName: 'Rule Group {groupIndex} Rule {ruleIndex} requires a Alert Name.'
+          expr: 'Rule Group {groupIndex} Rule {ruleIndex} requires a PromQL Expression.'
+          labels: 'Rule Group {groupIndex} Rule {ruleIndex} requires at least one label. Severity is recommended.'
+          recordName: 'Rule Group {groupIndex} Rule {ruleIndex} requires a Time Series Name.'
+        singleEntry: 'At least one alert rule or one recording rule is required in rule group {index}.'
   required: '"{key}" is required'
   requiredOrOverride: '"{key}" is required or must allow override'
   service:
     externalName:
-      none: 'External Name is required on an ExternalName Service.'
+      none: External Name is required on an ExternalName Service.
     ports:
       name:
-        required: "Port Rule [{position}] - Name is required."
+        required: 'Port Rule [{position}] - Name is required.'
       nodePort:
-        requriedInt: "Port Rule [{position}] - Node Port must be interger values if included."
+        requriedInt: 'Port Rule [{position}] - Node Port must be interger values if included.'
       port:
-        required: "Port Rule [{position}] - Port is required."
-        requriedInt: "Port Rule [{position}] - Port must be interger values if included."
+        required: 'Port Rule [{position}] - Port is required.'
+        requriedInt: 'Port Rule [{position}] - Port must be interger values if included.'
       targetPort:
-        between: "Port Rule [{position}] - Target Port must be between 1 and 65535"
-        iana: "Port Rule [{position}] - Target Port must be an IANA Service Name or Integer"
-        ianaAt: "Port Rule [{position}] - Target Port "
-        required: "Port Rule [{position}] - Target Port is required"
+        between: 'Port Rule [{position}] - Target Port must be between 1 and 65535'
+        iana: 'Port Rule [{position}] - Target Port must be an IANA Service Name or Integer'
+        ianaAt: 'Port Rule [{position}] - Target Port '
+        required: 'Port Rule [{position}] - Target Port is required'
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'

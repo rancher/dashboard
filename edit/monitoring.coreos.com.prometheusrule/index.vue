@@ -1,0 +1,194 @@
+<script>
+import CreateEditView from '@/mixins/create-edit-view';
+
+import { removeAt } from '@/utils/array';
+
+import Banner from '@/components/Banner';
+import CruResource from '@/components/CruResource';
+import LabeledInput from '@/components/form/LabeledInput';
+import NameNsDescription from '@/components/form/NameNsDescription';
+import Tab from '@/components/Tabbed/Tab';
+import Tabbed from '@/components/Tabbed';
+import UnitInput from '@/components/form/UnitInput';
+import { _CREATE } from '@/config/query-params';
+import GroupRules from './GroupRules';
+
+export default {
+  components: {
+    Banner,
+    CruResource,
+    GroupRules,
+    LabeledInput,
+    NameNsDescription,
+    Tab,
+    Tabbed,
+    UnitInput,
+  },
+
+  mixins: [CreateEditView],
+
+  props: {
+    value: {
+      type:     Object,
+      required: true,
+    },
+
+    mode: {
+      type:    String,
+      default: 'create',
+    },
+  },
+
+  computed: {
+    filteredGroups() {
+      return this.value?.spec?.groups || [];
+    },
+  },
+
+  mounted() {
+    if (this.isCreate) {
+      this.$set(this.value, 'spec', { groups: [] });
+      this.addRuleGroup();
+    }
+  },
+
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
+
+    if (this.mode === _CREATE) {
+      this.$set(this.value.metadata, 'namespace', 'cattle-monitoring-system');
+    }
+  },
+
+  methods: {
+    addRuleGroup() {
+      this.value.spec.groups.push({
+        name:     '',
+        interval: null,
+        rules:    [],
+      });
+    },
+    removeGroupRule(idx) {
+      removeAt(this.value.spec.groups, idx);
+    },
+    willSave() {
+      this.value.spec.groups.forEach((group) => {
+        if (group.interval === null) {
+          delete group.interval;
+        }
+      });
+
+      return true;
+    }
+  },
+};
+</script>
+
+<template>
+  <CruResource
+    :done-route="doneRoute"
+    :errors="errors"
+    :mode="mode"
+    :resource="value"
+    :validation-passed="true"
+    @error="(e) => (errors = e)"
+    @finish="save"
+  >
+    <div class="row">
+      <div class="col span-12">
+        <NameNsDescription
+          v-if="!isView"
+          :value="value"
+          :mode="mode"
+          @change="name = value.metadata.name"
+        />
+      </div>
+    </div>
+    <div>
+      <Tabbed v-if="filteredGroups.length > 0" :side-tabs="true">
+        <Tab
+          v-for="(group, idx) in filteredGroups"
+          :key="'filtered-group-' + idx"
+          :name="'group-' + idx"
+          :label="'Rule Group ' + idx"
+          class="container-group"
+        >
+          <button
+            v-if="!isView"
+            type="button"
+            class="btn btn-sm bg-transparent remove"
+            @click="removeGroupRule(idx)"
+          >
+            <i
+              v-tooltip="t('prometheusRule.groups.removeGroup')"
+              class="icon icon-x icon-2x"
+            />
+          </button>
+          <div class="row">
+            <div class="col span-6">
+              <LabeledInput
+                v-model="group.name"
+                :label="t('prometheusRule.groups.name')"
+                :mode="mode"
+                :required="true"
+              />
+            </div>
+          </div>
+          <div class="row">
+            <div class="col span-6">
+              <UnitInput
+                v-model="group.interval"
+                :suffix="t('suffix.seconds')"
+                :placeholder="t('prometheusRule.groups.groupInterval.placeholder')"
+                :label="t('prometheusRule.groups.groupInterval.label')"
+                :mode="mode"
+                @input="(e) => $set(filteredGroups[idx], 'interval', e)"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput
+                v-model="group.partialResponseStrategy"
+                :label="t('prometheusRule.groups.responseStrategy.label')"
+                :mode="mode"
+              />
+            </div>
+          </div>
+          <GroupRules v-model="group.rules" class="mb-20" :mode="mode" />
+        </Tab>
+      </Tabbed>
+      <Banner
+        v-else
+        color="warning"
+        :label="t('prometheusRule.groups.none')"
+      />
+    </div>
+    <div class="row mt-20">
+      <div class="col span-12">
+        <button
+          v-if="!isView"
+          type="button"
+          class="btn btn-sm role-secondary"
+          @click="addRuleGroup"
+        >
+          <t k="prometheusRule.groups.add" />
+        </button>
+      </div>
+    </div>
+  </CruResource>
+</template>
+
+<style lang="scss" scoped>
+.container-group {
+  position: relative;
+
+  .remove {
+    position: absolute;
+    top: -40px;
+    right: 5px;
+  }
+
+  .row:not(:first-child) {
+    margin-top: 20px;
+  }
+}
+</style>
