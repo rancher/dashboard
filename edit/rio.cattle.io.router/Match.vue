@@ -140,7 +140,7 @@ export default {
         <StringMatch :spec="path" label="Path" @input="e=>changePath(e)" />
       </div>
     </div>
-    <div class="row">
+    <div class="row mt-20">
       <div class="col span-6">
         <h4>Headers</h4>
         <KeyValue

@@ -127,7 +127,7 @@ export default {
 
 <template>
   <div class="route" @input="changeRoute">
-    <div class="section">
+    <div>
       <div class="header">
         <h4>
           Match
@@ -147,7 +147,7 @@ export default {
           REMOVE
         </button>
       </div>
-      <div class="row">
+      <div>
         <Match
           v-model="match"
           :mode="mode"
@@ -156,10 +156,9 @@ export default {
         />
       </div>
     </div>
-    <div class="destination section">
-      <div class="row">
-        <h4>Destination</h4>
-      </div>
+    <hr class="divider">
+    <div class="destination">
+      <h4>Destination</h4>
       <div class="row">
         <div class="col span-12">
           <label class="radio">
@@ -207,24 +206,24 @@ export default {
         </template>
       </div>
       <div v-if="action==='forwardMany'" class="row">
-        <button :disabled="isView" type="button" class="btn btn-sm bg-primary " @click="addDestination">
-          + Add Destination
+        <button :disabled="isView" type="button" class="btn role-tertiary add" @click="addDestination">
+          Add Destination
         </button>
       </div>
       <div v-if="action==='redirect'" class="row">
         <Redirect class="col span-12" :spec="redirect" @input="e=>change('redirect', e)" />
       </div>
     </div>
-    <div v-if="action!=='redirect'" class="header section">
-      <div class="row">
-        <h4 class="col span-12">
-          Rewrite Request Headers
-        </h4>
-      </div>
+    <hr class="divider">
+    <div v-if="action!=='redirect'" class="header">
+      <h4 class="col span-12">
+        Rewrite Request Headers
+      </h4>
       <div class="row">
         <Headers class="col span-12" :enabled="action!=='redirect'" :spec="headers" @input="e=>change('headers', e)" />
       </div>
     </div>
+    <hr class="divider">
     <div class="row">
       <Checkbox v-model="shouldMirror" type="checkbox" label="Mirror" />
 
@@ -276,7 +275,7 @@ export default {
         font-weight: normal;
       }
       & td {
-        padding: 0  10px 10px 0;
+        padding: 0 1.75% 0 0;
         vertical-align:middle;
         & > * {
           height: 4em;
@@ -320,14 +319,6 @@ export default {
         }
       }
     }
-  }
-
-  .section {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-
   }
     .row.inputs > *:not(button) {
       margin-right: 10px;
