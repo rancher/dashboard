@@ -215,9 +215,6 @@ export default {
       </div>
     </div>
     <hr class="divider">
-    <h4>
-      Rewrite Request Headers
-    </h4>
     <div v-if="action!=='redirect'" class="header section">
       <div class="row">
         <Headers class="col span-12" :enabled="action!=='redirect'" :spec="headers" @input="e=>change('headers', e)" />
