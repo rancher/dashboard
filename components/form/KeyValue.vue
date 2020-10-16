@@ -239,11 +239,11 @@ export default {
 
   methods: {
     asciiLike,
-    add(key = '', value = '', binary = false) {
+    add(key = '', value = '') {
       this.rows.push({
         [this.keyName]:   key,
         [this.valueName]: value,
-        // binary,
+        _display:         this.displayProps(value)
       });
       this.queueUpdate();
       this.$nextTick(() => {
