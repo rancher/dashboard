@@ -912,7 +912,7 @@ resourceDetail:
   header:
     clone: "Clone from {type}: {name}"
     create: Create
-    edit: "Edit {type}: {name}"
+    edit: Edit
     stage: "Stage from {type}: {name}"
     view: "{name}"
   masthead:
@@ -1214,7 +1214,7 @@ validation:
       startHyphen: '"{key}" cannot start with a hyphen'
       startNumber: '"{key}" cannot start with a number'
       tooLongLabel: '"{key}" cannot be more than {max} characters'
-  flowOutput: 
+  flowOutput:
     global: Requires "Cluster Output" to be selected.
     both: Requires "Output" or "Cluster Output" to be selected.
   k8s:

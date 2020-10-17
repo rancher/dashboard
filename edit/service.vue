@@ -89,6 +89,8 @@ export default {
       },
 
       set(serviceType) {
+        this.$emit('set-subtype', serviceType);
+
         if (serviceType === HEADLESS) {
           this.$set(this.value.spec, 'type', CLUSTERIP);
           this.$set(this.value.spec, 'clusterIP', 'None');
@@ -128,6 +130,12 @@ export default {
         delete this.value.spec.sessionAffinityConfig.clientIP.timeoutSeconds;
       }
     }
+  },
+
+  mounted() {
+    const initialType = this.serviceType;
+
+    this.$set(this, 'serviceType', initialType);
   },
 
   methods: {

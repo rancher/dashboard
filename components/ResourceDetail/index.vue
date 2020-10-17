@@ -228,6 +228,7 @@ export default {
       currentValue,
       detailComponent: this.$store.getters['type-map/importDetail'](this.resource),
       editComponent:   this.$store.getters['type-map/importEdit'](this.resource),
+      resourceSubtype: null,
     };
   },
 
@@ -309,6 +310,10 @@ export default {
       if (component) {
         component.updateValue(value);
       }
+    },
+
+    setSubtype(subtype) {
+      this.resourceSubtype = subtype;
     }
   }
 };
@@ -328,6 +333,7 @@ export default {
       :as-yaml.sync="asYaml"
       :parent-override="parentOverride"
       :has-detail-or-edit="(hasCustomDetail || (hasCustomEdit && !yamlOnlyDetail))"
+      :resource-subtype="resourceSubtype"
     >
       <template v-if="!isView && asYaml" #right>
         <div class="text-right">
@@ -355,13 +361,14 @@ export default {
       <component
         :is="showComponent"
         v-model="model"
-        :original-value="originalModel"
-        :done-route="doneRoute"
+        v-bind="_data"
         :done-params="doneParams"
+        :done-route="doneRoute"
         :mode="mode"
+        :original-value="originalModel"
         :real-mode="realMode"
         :value="model"
-        v-bind="_data"
+        @set-subtype="setSubtype"
       />
     </template>
   </div>
