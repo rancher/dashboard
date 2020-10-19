@@ -1,9 +1,10 @@
 <script>
 import ArrayList from '@/components/form/ArrayList';
 import { _VIEW } from '@/config/query-params';
+import InfoBox from '@/components/InfoBox';
 
 export default {
-  components: { ArrayList },
+  components: { ArrayList, InfoBox },
 
   props: {
     value: {
@@ -46,33 +47,37 @@ export default {
       :default-add-value="defaultAddValue"
     >
       <template v-slot:columns="scope">
-        <div class="api-groups">
-          <ArrayList
-            v-model="scope.row.value.apiGroups"
-            class="api-groups-list"
-            :protip="false"
-            :show-header="true"
-            value-label="ApiGroups"
-            add-label="Add ApiGroup"
-            value-placeholder=""
-            :mode="mode"
-          />
-        </div>
-        <div class="kinds">
-          <ArrayList
-            v-model="scope.row.value.kinds"
-            class="kinds-list"
-            :protip="false"
-            :show-header="true"
-            value-label="Kinds"
-            add-label="Add Kind"
-            value-placeholder=""
-            :mode="mode"
-          />
-        </div>
+        <InfoBox>
+          <div class="row">
+            <div class="api-groups">
+              <ArrayList
+                v-model="scope.row.value.apiGroups"
+                class="api-groups-list"
+                :protip="false"
+                :show-header="true"
+                value-label="ApiGroups"
+                add-label="Add ApiGroup"
+                value-placeholder=""
+                :mode="mode"
+              />
+            </div>
+            <div class="kinds">
+              <ArrayList
+                v-model="scope.row.value.kinds"
+                class="kinds-list"
+                :protip="false"
+                :show-header="true"
+                value-label="Kinds"
+                add-label="Add Kind"
+                value-placeholder=""
+                :mode="mode"
+              />
+            </div>
+          </div>
+        </InfoBox>
       </template>
       <template v-slot:remove-button="scope">
-        <button class="btn role-link close" @click="scope.remove">
+        <button class="btn role-link close close-kind" @click="scope.remove">
           <i class="icon icon-2x icon-x" />
         </button>
       </template>
@@ -82,33 +87,26 @@ export default {
 
 <style lang="scss">
 .match-kinds {
+
+  .match-kinds-list > .box {
+    position: relative;
+
+    & > .remove {
+      position: absolute;
+      right: -10px;
+      top: 0;
+
+    }
+  }
+
+  .remove {
+    width: initial;
+  }
+
   .api-groups,
   .kinds {
     vertical-align: top;
     flex: 1;
-  }
-
-  .match-kinds-list > table {
-    border-collapse: separate;
-    border-spacing: 0px 15px;
-
-    & > tbody > tr {
-      background: var(--default);
-      border: 1px solid var(--tabbed-border);
-      border-radius: var(--border-radius);
-      padding: 40px;
-
-      &:not(:last-of-type) > td {
-        vertical-align: top;
-        padding-bottom: 10px;
-        border-radius: var(--border-radius);
-        border-bottom: 1px solid var(--border);
-      }
-
-      & > td.remove {
-        vertical-align: top;
-      }
-    }
   }
 }
 </style>

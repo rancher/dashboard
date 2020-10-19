@@ -1,5 +1,6 @@
 import { DSL } from '@/store/type-map';
 import { GATEKEEPER } from '@/config/types';
+import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
 
 export const NAME = 'gatekeeper';
 export const CHART_NAME = 'rancher-gatekeeper';
@@ -9,7 +10,7 @@ export function init(store) {
     product,
     basicType,
     componentForType,
-    // ignoreGroup,
+    headers,
     mapGroup,
     mapType,
     virtualType
@@ -23,12 +24,14 @@ export function init(store) {
   mapGroup(/^(.*\.)?gatekeeper\.sh$/, 'OPA Gatekeeper');
 
   componentForType(/^constraints\.gatekeeper\.sh\..*$/, 'gatekeeper-constraint');
-  mapType(/^constraints\.gatekeeper\.sh\..*$/, 'Constraint');
+  mapType(/^templates\.gatekeeper\.sh\.constrainttemplate$/, 'Template');
+  mapType(/^constraints\.gatekeeper\.sh\..*$/, 'Constraints');
 
   basicType([
     'gatekeeper-overview',
     'gatekeeper-constraint',
     'gatekeeper-template',
+    GATEKEEPER.CONSTRAINT_TEMPLATE
   ]);
 
   virtualType({
@@ -45,16 +48,18 @@ export function init(store) {
     namespaced: false,
     name:       'gatekeeper-constraint',
     route:      { name: 'c-cluster-gatekeeper-constraints' },
-    ifHaveType: GATEKEEPER.CONSTRAINT_TEMPLATE,
     weight:     2
   });
 
-  virtualType({
-    label:      'Template',
-    namespaced: false,
-    name:       'gatekeeper-template',
-    route:      { name: 'c-cluster-gatekeeper-templates' },
-    ifHaveType: GATEKEEPER.CONSTRAINT_TEMPLATE,
-    weight:     1
-  });
+  headers(GATEKEEPER.CONSTRAINT_TEMPLATE, [
+    STATE,
+    NAME_COL,
+    {
+      name:  'Kind',
+      label: 'Kind',
+      value: 'kind',
+      sort:  'kind'
+    },
+    AGE,
+  ]);
 }
