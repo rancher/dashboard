@@ -26,10 +26,10 @@ export default {
   <div>
     <div class="row">
       <div class="col span-6">
-        <LabeledInput v-model="value.volumeID" :mode="mode" :label="t('workload.storage.csi.volumeID')" />
+        <LabeledInput v-model="value.awsElasticBlockStore.volumeID" :mode="mode" :label="t('workload.storage.csi.volumeID')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model.number="value.parition" :mode="mode" :label="t('workload.storage.csi.partition')" />
+        <LabeledInput v-model.number="value.awsElasticBlockStore.parition" :mode="mode" :label="t('workload.storage.csi.partition')" />
       </div>
     </div>
   </div>

@@ -1522,9 +1522,15 @@ workload:
       hostPath: Bind-Mount
       certificate: Certificate
       persistentVolumeClaim: Persistent Volume Claim
-      createPersistentVolumeClaim: Create Persistent Volume Claim
-      csi: Ephemeral Volume
+      createPVC: Create Persistent Volume Claim
+      csi: CSI
       nfs: NFS
+      awsElasticBlockStore: Amazon EBS Disk
+      azureDisk: Azure Disk
+      azureFile: Azure File
+      gcePersistentDisk: Google Persistent Disk
+      driver.longhorn.io: Longhorn
+      vsphereVolume: VMWare vSphere Volume
     addClaim: Add Claim
     addMount: Add Mount
     addVolume: Add Volume
@@ -1545,18 +1551,16 @@ workload:
           managed: Managed
           shared: Shared
       drivers:
-        ebs.csi.aws.com: Amazon EBS Disk
-        disk.csi.azure.com: Azure Disk
-        file.csi.azure.com: Azure File
-        pd.csi.storage.gke.io: Google Persistent Disk
         driver.longhorn.io: Longhorn
-        csi.vsphere.vmware.com: VMWare vSphere Volume
       fsType: Filesystem Type
       shareName: Share Name
       secretName: Secret Name
       volumeID: Volume ID
       partition: Partition
       pdName: Persistent Disk Name
+      storagePolicyID: Storage Policy ID
+      storagePolicyName: Storage Policy Name
+      volumePath: Volume Path
     defaultMode: Default Mode
     hostPath:
       label: The Path on the Node must be
@@ -1578,8 +1582,7 @@ workload:
     path: Path
     readOnly: Read Only
     server: Server
-    storagePolicyID: Storage Policy ID
-    storagePolicyName: Storage Policy Name
+
     subPath: Sub Path in Volume
     title: 'Storage'
     volumeName: Volume Name

@@ -26,10 +26,10 @@ export default {
 <template>
   <div class="row">
     <div class="col span-6">
-      <LabeledInput v-model="value.pdName" :mode="mode" :label="t('workload.storage.csi.pdName')" />
+      <LabeledInput v-model="value.azureFile.shareName" :mode="mode" :label="t('workload.storage.csi.shareName')" />
     </div>
     <div class="col span-6">
-      <LabeledInput v-model.number="value.partition" :mode="mode" :label="t('workload.storage.csi.partition')" />
+      <LabeledInput v-model="value.azureFile.secretName" :mode="mode" :label="t('workload.storage.csi.secretName')" />
     </div>
   </div>
 </template>

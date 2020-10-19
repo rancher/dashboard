@@ -26,10 +26,10 @@ export default {
 <template>
   <div class="row">
     <div class="col span-6">
-      <LabeledInput v-model="value.shareName" :mode="mode" :label="t('workload.storage.csi.shareName')" />
+      <LabeledInput v-model="value.gcePersistentDisk.pdName" :mode="mode" :label="t('workload.storage.csi.pdName')" />
     </div>
     <div class="col span-6">
-      <LabeledInput v-model="value.secretName" :mode="mode" :label="t('workload.storage.csi.secretName')" />
+      <LabeledInput v-model.number="value.gcePersistentDisk.partition" :mode="mode" :label="t('workload.storage.csi.partition')" />
     </div>
   </div>
 </template>

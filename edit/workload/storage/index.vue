@@ -2,10 +2,12 @@
 import { PVC } from '@/config/types';
 import { removeObject } from '@/utils/array.js';
 import ButtonDropdown from '@/components/ButtonDropdown';
+import Mount from '@/edit/workload/storage/Mount';
+
 import { _VIEW } from '@/config/query-params';
 
 export default {
-  components: { ButtonDropdown },
+  components: { ButtonDropdown, Mount },
 
   props:      {
     mode: {
@@ -59,8 +61,16 @@ export default {
       return this.mode === _VIEW;
     },
 
-    volumeOpts() {
-      return ['secret', 'hostPath', 'certificate', 'configMap', 'persistentVolumeClaim', 'createPersistentVolumeClaim', 'csi', 'nfs'];
+    opts() {
+      const hasComponent = require.context('@/edit/workload/storage', false, /^.*\.vue$/).keys()
+        .map(path => path.replace(/(\.\/)|(.vue)/g, ''))
+        .filter(file => file !== 'index' && file !== 'Mount' && file !== 'PVC');
+
+      const out = [...hasComponent, 'csi', 'certificate', 'configMap', 'createPVC', 'persistentVolumeClaim'];
+
+      out.sort();
+
+      return out;
     },
 
     pvcNames() {
@@ -85,9 +95,13 @@ export default {
         this.value.volumes.push({
           _type: 'certificate', secret: {}, name: `vol${ this.value.volumes.length }`
         });
-      } else if (type === 'createPersistentVolumeClaim') {
+      } else if (type === 'createPVC') {
         this.value.volumes.push({
           _type: 'createPVC', persistentVolumeClaim: {}, name: `vol${ this.value.volumes.length }`
+        });
+      } else if ( type === 'csi' ) {
+        this.value.volumes.push({
+          _type: type, csi: { volumeAttributes: {} }, name: `vol${ this.value.volumes.length }`
         });
       } else {
         this.value.volumes.push({
@@ -107,19 +121,16 @@ export default {
     // import component for volume type
     componentFor(type) {
       switch (type) {
-      case 'secret':
       case 'certificate':
       case 'configMap':
-        return require(`@/edit/workload/storage/Secret.vue`).default;
-      case 'hostPath':
-        return require(`@/edit/workload/storage/HostPath.vue`).default;
+        return require(`@/edit/workload/storage/secret.vue`).default;
+      case 'createPVC':
       case 'persistentVolumeClaim':
-      case 'createPersistentVolumeClaim':
-        return require(`@/edit/workload/storage/PVC.vue`).default;
+        return require(`@/edit/workload/storage/persistentVolumeClaim/index.vue`).default;
       case 'csi':
-        return require(`@/edit/workload/storage/ephemeralVolume/index.vue`).default;
-      case 'nfs':
-        return require(`@/edit/workload/storage/NFS.vue`).default;
+        return require(`@/edit/workload/storage/csi/index.vue`).default;
+      default:
+        return require(`@/edit/workload/storage/${ type }.vue`).default;
       }
     },
   }
@@ -128,22 +139,26 @@ export default {
 
 <template>
   <div>
-    <template v-for="(volume, i) in value.volumes">
-      <component
-        :is="componentFor(volumeType(volume))"
-        :key="i"
-        class="volume-source simple-box"
-        :value="volume"
-        :pod-spec="value"
-        :mode="mode"
-        :namespace="namespace"
-        :secrets="secrets"
-        :config-maps="configMaps"
-        :pvcs="pvcNames"
-        :register-before-hook="registerBeforeHook"
-        @remove="removeVolume(volume)"
-      />
-    </template>
+    <div v-for="(volume, i) in value.volumes" :key="i" class=" volume-source simple-box">
+      <button v-if="mode!=='view'" type="button" class="role-link btn btn-lg remove-vol" @click="removeVolume(volume)">
+        <i class="icon icon-2x icon-x" />
+      </button>
+      <h3>{{ t(`workload.storage.subtypes.${volumeType(volume)}`) }}</h3>
+      <div class="bordered-section">
+        <component
+          :is="componentFor(volumeType(volume))"
+          :value="volume"
+          :pod-spec="value"
+          :mode="mode"
+          :namespace="namespace"
+          :secrets="secrets"
+          :config-maps="configMaps"
+          :pvcs="pvcNames"
+          :register-before-hook="registerBeforeHook"
+        />
+      </div>
+      <Mount :pod-spec="value" :name="volume.name" :mode="mode" />
+    </div>
     <div class="row">
       <div class="col span-6">
         <ButtonDropdown v-if="!isView" :dual-action="false">
@@ -152,7 +167,7 @@ export default {
           </template>
           <template #popover-content>
             <ul class="list-unstyled menu">
-              <li v-for="opt in volumeOpts" :key="opt" v-close-popover @click="addVolume(opt)">
+              <li v-for="opt in opts" :key="opt" v-close-popover @click="addVolume(opt)">
                 {{ t(`workload.storage.subtypes.${opt}`) }}
               </li>
             </ul>
