@@ -30,6 +30,10 @@ export default {
       return this.kialiService ? this.kialiService.proxyUrl('http', '20001') : null;
     },
 
+    monitoringUrl() {
+      return this.$route.fullPath.replace('/istio', '/monitoring');
+    },
+
     target() {
       return '_blank';
     },
@@ -40,7 +44,10 @@ export default {
   },
 
   methods: {
-    launchKiali() {
+    launchKiali(e) {
+      if (e.srcElement?.tagName === 'A') {
+        return;
+      }
       this.$refs.kiali.click();
     },
   },
@@ -52,25 +59,31 @@ export default {
     <h1>Overview</h1>
     <h4 v-html="t('istio.poweredBy', {}, true)" />
     <div class="links">
-      <div :class="{'disabled':!kialiUrl}" class="box link-container" @click="launchKiali">
-        <a
-          ref="kiali"
-          :disabled="!kialiUrl"
+      <div :class="{'disabled':!kialiUrl}" class="box link-container">
+        <span
           class="link-content pull-right"
-          :href="kialiUrl"
-          :target="target"
-          :rel="rel"
+          @click="launchKiali"
         >
           <div class="link-logo">
             <img :src="kialiLogo" />
           </div>
           <div class="link-content">
-            <t k="istio.links.label" />
-            <i class="icon icon-external-link pull-right" />
+            <a
+              ref="kiali"
+              :disabled="!kialiUrl"
+              :href="kialiUrl"
+              :target="target"
+              :rel="rel"
+            >
+              <t k="istio.links.label" />
+              <i class="icon icon-external-link pull-right" />
+            </a>
             <hr />
-            <div class="description"><t k="istio.links.description" /></div>
+            <div class="description">
+              <span v-html="t('istio.links.description', {link:monitoringUrl}, true)" />
+            </div>
           </div>
-        </a>
+        </span>
       </div>
     </div>
   </div>
