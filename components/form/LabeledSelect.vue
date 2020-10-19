@@ -11,7 +11,7 @@ export default {
 
   props: {
     value: {
-      type:    [String, Object, Number, Array],
+      type:    [String, Object, Number, Array, Boolean],
       default: null,
     },
     options: {
@@ -200,7 +200,7 @@ export default {
       :options="options"
       :placeholder="placeholder"
       :reduce="x => reduce(x)"
-      :value="value ? value : false"
+      :value="value != null ? value : ''"
       @input="e=>$emit('input', e)"
       @search:blur="onBlur"
       @search:focus="onFocus"
