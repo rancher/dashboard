@@ -53,6 +53,7 @@ export default {
 
       return this.clusterReport.aggregatedTests.map((check) => {
         check.testStateSort = this.testStateSort(check.state);
+        check.testIdSort = this.testIdSort(check);
         if (!!check.node_type) {
           const nodeRows = check.node_type.reduce((nodes, type) => {
             if (this.reportNodes[type]) {
@@ -130,7 +131,7 @@ export default {
           name:  'number',
           label: this.t('cis.scan.number'),
           value: 'id',
-          sort:  ['id'],
+          sort:  'testIdSort',
           width: 100
         },
         {
@@ -184,6 +185,12 @@ export default {
       };
 
       return `${ SORT_ORDER[state] || SORT_ORDER['other'] } ${ state }`;
+    },
+
+    testIdSort(test) {
+      const { id = '' } = test;
+
+      return id.split('.').map(n => +n + 1000).join('.');
     },
   }
 };
