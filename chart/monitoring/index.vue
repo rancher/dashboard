@@ -185,6 +185,7 @@ export default {
     <section class="config-prometheus-container">
       <Prometheus
         v-model="value"
+        v-bind="$attrs"
         :access-modes="accessModes"
         :mode="mode"
         :storage-classes="storageClasses"

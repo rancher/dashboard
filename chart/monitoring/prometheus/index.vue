@@ -76,21 +76,24 @@ export default {
     ...mapGetters(['currentCluster']),
     filteredWorkloads() {
       let { workloads } = this;
+      const { existing = false } = this.$attrs;
 
-      workloads = workloads.filter((workload) => {
-        if (
-          !isEmpty(workload?.spec?.template?.spec?.containers) &&
-          (workload.spec.template.spec.containers.find(c => c.image.includes('quay.io/coreos/prometheus-operator') ||
-            c.image.includes('rancher/coreos-prometheus-operator'))
-          )
-        ) {
-          if (!this.warnUser) {
-            this.warnUser = true;
+      if (!existing) {
+        workloads = workloads.filter((workload) => {
+          if (
+            !isEmpty(workload?.spec?.template?.spec?.containers) &&
+            (workload.spec.template.spec.containers.find(c => c.image.includes('quay.io/coreos/prometheus-operator') ||
+              c.image.includes('rancher/coreos-prometheus-operator'))
+            )
+          ) {
+            if (!this.warnUser) {
+              this.warnUser = true;
+            }
+
+            return workload;
           }
-
-          return workload;
-        }
-      });
+        });
+      }
 
       return workloads.map((wl) => {
         return {
