@@ -154,7 +154,7 @@ export default {
           @input="e=>changeKV('headers', e)"
         >
           <template v-slot:removeButton="buttonProps">
-            <button :disabled="!isView" type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
+            <button :disabled="isView" type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
               REMOVE
             </button>
           </template>
@@ -184,7 +184,7 @@ export default {
           @input="e=>changeKV('cookies', e)"
         >
           <template v-slot:removeButton="buttonProps">
-            <button :disabled="!isView" type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
+            <button :disabled="isView" type="button" class="btn btn-sm role-link" @click="buttonProps.remove(buttonProps.idx)">
               REMOVE
             </button>
           </template>

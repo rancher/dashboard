@@ -120,7 +120,7 @@ export default {
         v-if="!isView"
         :value="value"
         :mode="mode"
-        name-label="generic.name"
+        label="generic.name"
         :register-before-hook="registerBeforeHook"
       />
       <Tabbed ref="tabbed" :side-tabs="true">

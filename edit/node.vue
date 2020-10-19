@@ -38,7 +38,7 @@ export default {
       :value="value"
       :namespaced="false"
       :mode="mode"
-      name-label="Name"
+      label="Name"
     />
     <div class="row">
       <Labels :value="value" :mode="mode" :display-side-by-side="true" />

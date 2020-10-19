@@ -151,7 +151,7 @@ export default {
       v-model="value"
       :namespaced="false"
       :mode="mode"
-      name-label="Name"
+      label="Name"
     />
 
     <Target v-model="value.spec" />
