@@ -168,7 +168,10 @@ export default {
       type:    Boolean,
       default: true,
     },
-
+    fileModifier: {
+      type:    Function,
+      default: (name, value) => ({ name, value })
+    },
     parserSeparators: {
       type:    Array,
       default: () => [': ', '='],
@@ -267,8 +270,10 @@ export default {
       this.$set(this, 'rows', cleaned);
     },
 
-    onFileSelected(fileContents) {
-      this.add(fileContents.name, fileContents.value, !asciiLike(fileContents.value));
+    onFileSelected(file) {
+      const { name, value } = this.fileModifier(file.name, file.value);
+
+      this.add(name, value, !asciiLike(value));
     },
 
     download(idx, ev) {

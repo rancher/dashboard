@@ -23,6 +23,8 @@ const registryAddresses = [
   'DockerHub', 'Quay.io', 'Artifactory', 'Custom'
 ];
 
+const VALID_DATA_KEY = /^[-._a-zA-Z0-9]*$/;
+
 export default {
   name: 'CruSecret',
 
@@ -154,9 +156,17 @@ export default {
     }
   },
 
-  watch: { 'value.data': () => {} },
-
   methods: {
+    fileModifier(name, value) {
+      if (!VALID_DATA_KEY.test(name)) {
+        name = name
+          .split('')
+          .map(c => VALID_DATA_KEY.test(c) ? c : '_')
+          .join('');
+      }
+
+      return { name, value };
+    },
     saveSecret(buttonCb) {
       if (this.isRegistry) {
         const data = { '.dockerconfigjson': base64Encode(this.dockerconfigjson) };
@@ -196,7 +206,7 @@ export default {
     onCrtSelected:      createOnSelected('crt'),
     onUsernameSelected: createOnSelected('username'),
     onPasswordSelected: createOnSelected('password'),
-  }
+  },
 };
 </script>
 
@@ -302,6 +312,7 @@ export default {
         title="Data"
         :initial-empty-row="true"
         :value-base64="true"
+        :file-modifier="fileModifier"
         read-icon=""
         add-icon=""
       />
