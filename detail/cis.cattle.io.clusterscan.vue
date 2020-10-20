@@ -165,6 +165,16 @@ export default {
     },
   },
 
+  watch: {
+    value(neu) {
+      try {
+        neu.getReport().then((report) => {
+          this.clusterReport = report;
+        });
+      } catch {}
+    }
+  },
+
   methods: {
 
     nodeState(check, node, nodes = []) {
