@@ -1455,7 +1455,7 @@ workload:
       placeholder: e.g. web
     nameservers:
       add: Add Nameserver
-      label: DNS Nameservers
+      label: Nameservers
       placeholder: e.g. 1.1.1.1
     networkMode:
       label: Network Mode
@@ -1463,11 +1463,13 @@ workload:
         hostNetwork: Host Network
         normal: Normal
       placeholder: Select a Mode...
-    dns: DNS Nameservers and Search Domains
-    resolver: DNS Resolver Options
+    dns: DNS
+    resolver: 
+      label: Resolver Options
+      add: Add Option
     searches:
       add: Add Search Domain
-      label: DNS Search Domains
+      label: Search Domains
       placeholder: e.g. mycompany.com
     subdomain:
       label: Subdomain
