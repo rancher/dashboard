@@ -1,5 +1,5 @@
 <script>
-import { WORKLOAD_TYPES } from '@/config/types';
+import { WORKLOAD_TYPES, INGRESS } from '@/config/types';
 import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { _VIEW } from '@/config/query-params';
@@ -44,28 +44,52 @@ export default {
       return this.mode === _VIEW;
     },
     ruleHeaders() {
-      return [
+      const headers = [
         {
           name:      'path',
           label:     this.t('ingress.rules.headers.path'),
-          value:     'text'
+          value:     'path',
+          width:     '25%'
         },
         {
           name:      'target',
           label:     this.t('ingress.rules.headers.target'),
           formatter: 'Link',
           value:     'targetLink',
+          width:     '25%'
         },
         {
           name:  'port',
           label: this.t('ingress.rules.headers.port'),
-          value: 'port'
+          value: 'port',
+          width: '25%'
         }
       ];
+
+      if (this.showPathType) {
+        headers.unshift({
+          name:      'pathType',
+          label:     this.t('ingress.rules.headers.pathType'),
+          value:     'pathType',
+          width:     '25%'
+        });
+      }
+
+      return headers;
     },
     ruleRows() {
       return this.value.createRulesForDetailPage(this.workloads);
     },
+    showPathType() {
+      const ingressExpandedSchema = this.$store.getters['cluster/expandedSchema'](INGRESS);
+      const spec = ingressExpandedSchema?.expandedResourceFields?.spec;
+      const rules = spec?.expandedResourceFields?.rules;
+      const http = rules?.expandedSubType?.expandedResourceFields?.http;
+      const paths = http?.expandedResourceFields?.paths;
+      const pathType = paths?.expandedSubType?.expandedResourceFields?.pathType;
+
+      return !!pathType;
+    }
   },
 
   methods: {
@@ -107,6 +131,7 @@ export default {
       :key="i"
       :value="rule"
       :service-targets="serviceTargets"
+      :show-path-type="showPathType"
       @remove="e=>removeRule(i)"
       @input="e=>updateRule(e,i)"
     />

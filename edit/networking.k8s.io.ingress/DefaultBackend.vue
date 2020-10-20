@@ -94,7 +94,9 @@ export default {
         <LabeledSelect
           v-else
           v-model="servicePort"
+          :mode="mode"
           :options="portOptions"
+          :label="t('ingress.defaultBackend.port.label')"
           :placeholder="t('ingress.defaultBackend.port.placeholder')"
           @input="update"
         />
