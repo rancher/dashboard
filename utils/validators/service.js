@@ -107,10 +107,6 @@ export function clusterIp(spec, getters, errors, validatorArgs) {
     return errors;
   }
 
-  if (serviceType === 'Headless' && spec?.clusterIp !== 'None') {
-    errors.push(getters['i18n/t']('validation.service.clusterIp.none'));
-  }
-
   return errors;
 }
 

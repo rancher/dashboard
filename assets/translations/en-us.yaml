@@ -1235,8 +1235,6 @@ validation:
   required: '"{key}" is required'
   requiredOrOverride: '"{key}" is required or must allow override'
   service:
-    clusterIp:
-      none: 'Service Type is Headless which requires Cluster IP to be set to "None"'
     externalName:
       none: 'External Name is required on an ExternalName Service.'
     ports:
