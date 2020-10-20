@@ -58,10 +58,12 @@ export function servicePort(spec, getters, errors, validatorArgs) {
     }
 
     if (targetPort) {
+      const tpIanaDisplayKey = getters['i18n/t']('validation.service.ports.targetPort.ianaAt', { position: idx });
       const tp = parseInt(targetPort, 10);
+      const tpTest = new RegExp('^\\d+$');
+      const targetPortIsNumber = tpTest.test(targetPort);
 
-      if (isNaN(tp)) {
-        const tpIanaDisplayKey = getters['i18n/t']('validation.service.ports.targetPort.ianaAt', { position: idx });
+      if (!targetPortIsNumber) { // not a number
         /* [rfc6335](https://tools.ietf.org/rfc/rfc6335.txt) port name (IANA_SVC_NAME)
           An alphanumeric (a-z, and 0-9) string, with a maximum length of 15 characters,
           with the '-' character allowed anywhere except the first or the last character or adjacent to another '-' character,
@@ -118,16 +120,18 @@ export function externalName(spec, getters, errors, validatorArgs) {
   No proxying will be involved.
   Must be a valid RFC-1123 hostname (https://tools.ietf.org/html/rfc1123) and requires Type to be ExternalName.
   */
-  if (spec?.type !== 'ExternalName' && isEmpty(spec?.externalName)) {
-    errors.push(getters['i18n/t']('validation.service.clusterIp.none'));
-  } else {
-    const hostNameErrors = validateHostname(spec.externalName, 'ExternalName', getters, undefined, errors);
+  if (spec?.type === 'ExternalName') {
+    if (isEmpty(spec?.externalName)) {
+      errors.push(getters['i18n/t']('validation.service.externalName.none'));
+    } else {
+      const hostNameErrors = validateHostname(spec.externalName, 'ExternalName', getters, undefined, errors);
 
-    if (!isEmpty(hostNameErrors)) {
-      if (errors.length && errors.length > 0) {
-        errors = [...errors, ...hostNameErrors];
-      } else {
-        errors = hostNameErrors;
+      if (!isEmpty(hostNameErrors)) {
+        if (errors.length && errors.length > 0) {
+          errors = [...errors, ...hostNameErrors];
+        } else {
+          errors = hostNameErrors;
+        }
       }
     }
   }
