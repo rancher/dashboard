@@ -1,7 +1,7 @@
 <script>
 import createEditView from '@/mixins/create-edit-view';
 import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
-import { POD, WORKLOAD_TYPES } from '@/config/types';
+import { POD, WORKLOAD_TYPES, SECRET } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
 import Tabbed from '@/components/Tabbed';
@@ -19,6 +19,7 @@ import Job from '@/edit/workload/Job';
 import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
 
 import { mapGetters } from 'vuex';
+import { allHash } from '@/utils/promise';
 
 export default {
   components: {
@@ -55,9 +56,13 @@ export default {
   },
 
   async fetch() {
-    const pods = await this.value.pods();
+    const hash = await allHash({
+      pods:    this.value.pods(),
+      secrets: this.$store.dispatch('cluster/findAll', { type: SECRET })
+    });
 
-    this.pods = pods;
+    this.pods = hash.pods;
+    this.secrets = hash.secrets;
   },
 
   data() {
@@ -76,6 +81,7 @@ export default {
       podSchema,
       name,
       pods:           null,
+      secrets: [],
       container,
       podTemplateSpec
     };
@@ -119,6 +125,18 @@ export default {
       return this.type === WORKLOAD_TYPES.STATEFUL_SET;
     },
 
+    namespacedSecrets() {
+      const namespace = this.value?.metadata?.namespace;
+
+      if (namespace) {
+        return this.secrets.filter(
+          secret => secret.metadata.namespace === namespace
+        );
+      } else {
+        return this.secrets;
+      }
+    },
+
     ...mapGetters({ t: 'i18n/t' })
   },
 };
@@ -157,6 +175,7 @@ export default {
         <Storage
           v-model="podTemplateSpec"
           :namespace="value.metadata.namespace"
+          :secrets="namespacedSecrets"
           :mode="mode"
         />
       </Tab>

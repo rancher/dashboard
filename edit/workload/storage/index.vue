@@ -1,10 +1,12 @@
 <script>
+import { TYPES } from '@/models/secret';
 import { PVC } from '@/config/types';
 import { removeObject } from '@/utils/array.js';
 import ButtonDropdown from '@/components/ButtonDropdown';
 import Mount from '@/edit/workload/storage/Mount';
 
 import { _VIEW } from '@/config/query-params';
+import { get } from '@/utils/object';
 
 export default {
   components: { ButtonDropdown, Mount },
@@ -75,7 +77,15 @@ export default {
 
     pvcNames() {
       return this.pvcs.map(pvc => pvc.metadata.name);
-    }
+    },
+
+    certificates() {
+      return this.secrets.filter(secret => secret._type === TYPES.TLS).reduce((total, secret) => {
+        total.push(secret?.metadata?.name);
+
+        return total;
+      }, []);
+    },
   },
 
   created() {
@@ -115,7 +125,15 @@ export default {
     },
 
     volumeType(vol) {
-      return Object.keys(vol).filter(key => typeof vol[key] === 'object')[0];
+      const type = Object.keys(vol).filter(key => typeof vol[key] === 'object')[0];
+
+      if (type === 'secret') {
+        const secretName = get(vol, 'secret.secretName') || '';
+
+        return this.certificates.includes(secretName) ? 'certificate' : 'secret';
+      }
+
+      return type;
     },
 
     // import component for volume type

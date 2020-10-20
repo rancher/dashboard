@@ -4,6 +4,7 @@ import { mapGetters } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
+import { get } from '@/utils/object';
 export default {
   components: {
     LabeledInput,
@@ -48,7 +49,16 @@ export default {
 
   computed: {
     type() {
-      return this.value._type;
+      if (this.value._type) {
+        return this.value._type;
+      }
+      if (!!this.value.secret) {
+        const secretName = get(this.value, 'secret.secretName') || '';
+
+        return this.certificates.includes(secretName) ? 'certificate' : 'secret';
+      }
+
+      return 'configMap';
     },
 
     certificates() {
