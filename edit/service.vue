@@ -1,5 +1,5 @@
 <script>
-import { isEmpty, isNaN } from 'lodash';
+import { isEmpty } from 'lodash';
 import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
 import KeyValue from '@/components/form/KeyValue';
@@ -150,16 +150,6 @@ export default {
     },
 
     updateServicePorts(servicePorts) {
-      servicePorts.forEach((sp) => {
-        if (!isEmpty(sp?.targetPort)) {
-          const tpCoerced = parseInt(sp.targetPort, 10);
-
-          if (!isNaN(tpCoerced)) {
-            sp.targetPort = tpCoerced;
-          }
-        }
-      });
-
       this.$set(this.value.spec, 'ports', servicePorts);
     }
   }

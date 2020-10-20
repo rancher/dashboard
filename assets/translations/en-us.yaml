@@ -1235,6 +1235,8 @@ validation:
   required: '"{key}" is required'
   requiredOrOverride: '"{key}" is required or must allow override'
   service:
+    externalName:
+      none: 'External Name is required on an ExternalName Service.'
     ports:
       name:
         required: "Port Rule [{position}] - Name is required."
