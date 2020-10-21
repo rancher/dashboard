@@ -585,7 +585,7 @@ internalExternalIP:
 istio:
   links:
     label: Kiali
-    description: Visualization of services within a service mesh and how they are connected. For Kiali to display data, you need Prometheus installed. If you need a monitoring solution, install <a rel="noopener noreferrer nofollow" href="{link}"> Rancher's monitoring</a>.
+    description: Visualization of services within a service mesh and how they are connected. For Kiali to display data, you need Prometheus installed. If you need a monitoring solution, install <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's monitoring</a>.
   cni: Enabled CNI
   customOverlayFile:
     label: Custom Overlay File

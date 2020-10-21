@@ -31,7 +31,10 @@ export default {
     },
 
     monitoringUrl() {
-      return this.$route.fullPath.replace('/istio', '/monitoring');
+      return this.$router.resolve({
+        name:   'c-cluster-monitoring',
+        params: { cluster: this.$route.params.cluster }
+      }).href;
     },
 
     target() {
@@ -45,6 +48,7 @@ export default {
 
   methods: {
     launchKiali(e) {
+      // rancher-monitoring link in Kiali description was clicked
       if (e.srcElement?.tagName === 'A') {
         return;
       }
@@ -80,7 +84,7 @@ export default {
             </a>
             <hr />
             <div class="description">
-              <span v-html="t('istio.links.description', {link:monitoringUrl}, true)" />
+              <span v-html="t('istio.links.description', {link: monitoringUrl}, true)" />
             </div>
           </div>
         </span>
