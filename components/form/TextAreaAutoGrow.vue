@@ -103,6 +103,7 @@ export default {
     class="no-resize no-ease"
     v-bind="$attrs"
     :spellcheck="spellcheck"
+    @paste="$emit('paste', $event)"
     @input="onInput($event.target.value)"
     @focus="$emit('focus', $event)"
     @blur="$emit('blur', $event)"
