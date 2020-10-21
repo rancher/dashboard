@@ -3,7 +3,6 @@ import ResourceTable from '@/components/ResourceTable';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
 import { NAME, NAMESPACE, STATE, TYPE } from '@/config/table-headers';
 import { sortableNumericSuffix } from '@/utils/sort';
-import { filterBy } from '@/utils/array';
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import BadgeState from '@/components/BadgeState';
 
@@ -19,6 +18,16 @@ export default {
     rel: {
       type:    String,
       default: null,
+    },
+
+    direction: {
+      type:    String,
+      default: 'to'
+    },
+
+    ignoreTypes: {
+      type:    Array,
+      default: () => []
     }
   },
 
@@ -33,9 +42,19 @@ export default {
       // @TODO probably will need more flexible filtering here for
       // related resources other than helm app resources...
 
-      if ( this.rel ) {
-        all = filterBy(all, 'rel', 'helmresource');
-      }
+      all = all.filter((relationship) => {
+        const type = relationship[`${ this.direction }Type`];
+
+        if (!type || this.ignoreTypes.includes(type)) {
+          return false;
+        }
+
+        if (this.rel && relationship.rel !== this.rel) {
+          return false;
+        }
+
+        return true;
+      });
 
       return all;
     },
@@ -52,10 +71,10 @@ export default {
       return this.filteredRelationships.map((r) => {
         const state = r.state || 'active';
         const stateColor = colorForState(state, r.error, r.transitioning);
-        const type = r.toType;
+        const type = r[`${ this.direction }Type`];
         const schema = this.$store.getters[`${ inStore }/schemaFor`](type);
 
-        let name = r.toId;
+        let name = r[`${ this.direction }Id`];
         let namespace = null;
         const idx = name.indexOf('/');
         const key = `${ type }/${ namespace }/${ name }`;
@@ -78,11 +97,11 @@ export default {
 
         return {
           type,
-          real: this.$store.getters[`${ inStore }/byId`](type, r.toId),
-          id:   r.toId,
+          real:     this.$store.getters[`${ inStore }/byId`](type, r[`${ this.direction }Id`]),
+          id:       r[`${ this.direction }Id`],
           state,
-          namespace,
-          _key: key,
+          metadata: { namespace, name },
+          _key:     key,
 
           name,
           nameDisplay: name,

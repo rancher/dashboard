@@ -1,7 +1,8 @@
 import r from 'jsrsasign';
 import { CERTMANAGER, KUBERNETES } from '@/config/labels-annotations';
 import { base64Decode } from '@/utils/crypto';
-import { removeObjects } from '@/utils/array';
+import { addObjects, removeObjects } from '@/utils/array';
+import { WORKLOAD_TYPES } from '@/config/types';
 
 export const TYPES = {
   OPAQUE:        'Opaque',
@@ -17,7 +18,7 @@ export const TYPES = {
   FLEET_CLUSTER:  'fleet.cattle.io/cluster-registration-values',
 };
 
-const DISPLAY_TYPES = {
+export const DISPLAY_TYPES = {
   [TYPES.OPAQUE]:        'Opaque',
   [TYPES.SERVICE_ACCT]:  'Svc Acct Token',
   [TYPES.DOCKER]:        'Registry',
@@ -39,6 +40,7 @@ export default {
   isRegistry() {
     return this._type === TYPES.DOCKER_JSON;
   },
+
   dockerJSON() {
     return TYPES.DOCKER_JSON;
   },
