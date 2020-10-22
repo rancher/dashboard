@@ -127,7 +127,7 @@ export default {
 
 <template>
   <div class="route" @input="changeRoute">
-    <div class="section">
+    <div>
       <div class="header">
         <h4>
           Match
@@ -147,7 +147,7 @@ export default {
           REMOVE
         </button>
       </div>
-      <div class="row">
+      <div class="row mt-20">
         <Match
           v-model="match"
           :mode="mode"
@@ -156,10 +156,9 @@ export default {
         />
       </div>
     </div>
-    <div class="destination section">
-      <div class="row">
-        <h4>Destination</h4>
-      </div>
+    <hr class="divider">
+    <div class="destination">
+      <h4>Destination</h4>
       <div class="row">
         <div class="col span-12">
           <label class="radio">
@@ -207,20 +206,16 @@ export default {
         </template>
       </div>
       <div v-if="action==='forwardMany'" class="row">
-        <button :disabled="isView" type="button" class="btn btn-sm bg-primary " @click="addDestination">
-          + Add Destination
+        <button :disabled="isView" type="button" class="btn role-tertiary add" @click="addDestination">
+          Add Destination
         </button>
       </div>
       <div v-if="action==='redirect'" class="row">
         <Redirect class="col span-12" :spec="redirect" @input="e=>change('redirect', e)" />
       </div>
     </div>
+    <hr class="divider">
     <div v-if="action!=='redirect'" class="header section">
-      <div class="row">
-        <h4 class="col span-12">
-          Rewrite Request Headers
-        </h4>
-      </div>
       <div class="row">
         <Headers class="col span-12" :enabled="action!=='redirect'" :spec="headers" @input="e=>change('headers', e)" />
       </div>
@@ -320,14 +315,6 @@ export default {
         }
       }
     }
-  }
-
-  .section {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-
   }
     .row.inputs > *:not(button) {
       margin-right: 10px;

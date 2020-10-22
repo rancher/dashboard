@@ -67,7 +67,7 @@ export default {
     <NameNsDescription
       :value="value"
       :mode="mode"
-      name-label="Name"
+      label="Name"
       :register-before-hook="registerBeforeHook"
     />
 

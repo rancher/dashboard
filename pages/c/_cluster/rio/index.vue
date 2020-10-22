@@ -31,7 +31,7 @@ export default {
       Discover Rio
     </h1>
     <div class="row">
-      <div class="col span-6">
+      <div class="col span-8">
         <div class="cards">
           <Card
             v-for="(demo, name) in demos"
@@ -39,8 +39,8 @@ export default {
             :content="demo.description"
           >
             <template v-slot:title>
-              <span class="text-primary">{{ demo.title }}</span>
-              <a v-if="demo.spec" target="_blank" class="icon icon-external-link role-multi-action" :href="demo.spec.build.repo" />
+              <h5><span>{{ demo.title }}</span></h5>
+              <a v-if="demo.spec" target="_blank" class="icon icon-external-link flex-right" :href="demo.spec.build.repo" />
             </template>
             <template v-slot:actions>
               <button class="btn role-primary btn-sm" :disabled="!demo.spec" @click="createDemo(name)">
@@ -50,7 +50,7 @@ export default {
           </Card>
         </div>
       </div>
-      <div class="col span-6">
+      <div class="col span-4">
         <img src="~/assets/images/setup-step-one.svg" alt="landscape" />
       </div>
     </div>
@@ -62,12 +62,9 @@ export default {
         margin-top: 20px;
     }
     .cards {
-         margin-right: 20px;
-        // width: 50%;
-        display: grid;
-        grid-template-columns:  50% 50%;
-        grid-row-gap: 20px;
-        grid-column-gap: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      width: 100%;
         & > * {
             align-content: center;
         }
