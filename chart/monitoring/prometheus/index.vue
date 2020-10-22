@@ -246,7 +246,9 @@ export default {
       </div>
       <div class="row">
         <div class="col span-12 mt-5">
-          <label class="text-label mb-0">{{ t('monitoring.prometheus.config.resourceLimits') }}</label>
+          <h4 class="text-label mb-0">
+            {{ t('monitoring.prometheus.config.resourceLimits') }}
+          </h4>
         </div>
       </div>
       <div class="row">
@@ -333,7 +335,9 @@ export default {
         <div class="row">
           <div class="col span-12">
             <div class="mb-5 mt-5">
-              <label class="text-label mb-10">{{ t('monitoring.prometheus.storage.selector') }}</label>
+              <h4 class="text-label mb-10">
+                {{ t('monitoring.prometheus.storage.selector') }}
+              </h4>
             </div>
             <MatchExpressions
               :initial-empty-row="mode !== 'view'"

@@ -213,15 +213,15 @@ export default {
     </template>
 
     <div v-if="rules.length" class="match-expression-header" :class="{'view':isView}">
-      <span>
+      <label>
         {{ t('workload.scheduling.affinity.matchExpressions.key') }}
-      </span>
-      <span>
+      </label>
+      <label>
         {{ t('workload.scheduling.affinity.matchExpressions.operator') }}
-      </span>
-      <span>
+      </label>
+      <label>
         {{ t('workload.scheduling.affinity.matchExpressions.value') }}
-      </span>
+      </label>
       <span />
     </div>
     <div
@@ -314,21 +314,16 @@ export default {
     grid-gap: $column-gutter;
     align-items: center;
 
+    &>label{
+      margin-left: 8px;
+    }
+
     &:not(.view){
-      margin-bottom: 10px;
       grid-template-columns: 1fr 1fr 1fr 100px;
     }
 
     INPUT {
       height: 50px;
     }
-  }
-
-  .match-expression-header{
-    color: var(--input-label);
-    margin-top: 20px;
-    &:not(.view){
-        margin: 10px 0px 10px 0px;
-      }
   }
 </style>

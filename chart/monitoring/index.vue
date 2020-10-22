@@ -169,20 +169,30 @@ export default {
 
 <template>
   <div class="config-monitoring-container">
-    <section class="config-cluster-general">
+    <section class=" bordered-section config-cluster-general">
       <div class="row mb-20">
         <ClusterSelector :value="value" :mode="mode" />
       </div>
       <div class="row">
         <div class="col span-6">
-          <Checkbox v-model="value.global.rbac.userRoles.create" :label="t('monitoring.createDefaultRoles')" />
+          <Checkbox v-model="value.global.rbac.userRoles.create" :label="t('monitoring.createDefaultRoles.label')">
+            <template #label>
+              <span class="text-label">{{ t('monitoring.createDefaultRoles.label') }}</span>
+              <i v-tooltip="t('monitoring.createDefaultRoles.tip', {}, true)" class="icon icon-info icon-lg" />
+            </template>
+          </Checkbox>
         </div>
         <div class="col span-6">
-          <Checkbox v-model="value.global.rbac.userRoles.aggregateToDefaultRoles" :label="t('monitoring.aggregateDefaultRoles')" :disabled="disableAggregateRoles" />
+          <Checkbox v-model="value.global.rbac.userRoles.aggregateToDefaultRoles" :label="t('monitoring.aggregateDefaultRoles.label')" :disabled="disableAggregateRoles">
+            <template #label>
+              <span class="text-label">{{ t('monitoring.aggregateDefaultRoles.label') }}</span>
+              <i v-tooltip="{content:t('monitoring.aggregateDefaultRoles.tip', {}, true), autoHide: false}" class="icon icon-info icon-lg" />
+            </template>
+          </Checkbox>
         </div>
       </div>
     </section>
-    <section class="config-prometheus-container">
+    <section class=" bordered-section config-prometheus-container">
       <Prometheus
         v-model="value"
         v-bind="$attrs"
@@ -193,14 +203,14 @@ export default {
         :workloads="workloads"
       />
     </section>
-    <section class="config-alerting-container">
+    <section class=" bordered-section config-alerting-container">
       <Alerting
         v-model="value"
         :mode="mode"
         :secrets="secrets"
       />
     </section>
-    <section class="config-grafana-container">
+    <section class="bordered-section config-grafana-container">
       <Grafana
         v-model="value"
         :access-modes="accessModes"
@@ -213,13 +223,9 @@ export default {
 </template>
 
 <style lang="scss">
-.config-monitoring-container {
-  > section {
-    margin-bottom: 20px;
-
-    .title {
-      border-bottom: 1px solid var(--border);
-    }
-  }
-}
+// .config-monitoring-container {
+//   > section {
+//     margin-bottom: 20px;
+//   }
+// }
 </style>

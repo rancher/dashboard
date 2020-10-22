@@ -139,7 +139,6 @@ export default {
           this.$set(this.value.prometheus.prometheusSpec.resources.requests, 'memory', '750Mi');
         }
       }
-
       const { configKeys } = findBy(this.clusterTypes, 'id', clusterType.id);
 
       if (clusterType.group === 'other') {
@@ -179,6 +178,9 @@ export default {
       const { value } = this;
 
       keyNames.forEach((kn) => {
+        if (!value[kn]) {
+          this.$set(value, kn, {});
+        }
         this.$set(value[kn], 'enabled', valueToSet);
       });
     },

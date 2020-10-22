@@ -115,6 +115,7 @@ export default {
           existingClaim: null,
           subPath:       null,
           type:          null,
+          enabled:          true,
         };
         break;
       case 'pvc':
@@ -126,6 +127,7 @@ export default {
           type:             'pvc',
           annotations:      null,
           finalizers:       null,
+          enabled:          true,
         };
         break;
       case 'statefulset':
@@ -135,6 +137,7 @@ export default {
           size:             null,
           subPath:          null,
           type:             'statefulset',
+          enabled:          true,
         };
         break;
       default:

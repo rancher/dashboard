@@ -155,6 +155,6 @@ export default {
   }
 }
 .radio-group.label{
-  font-size: 1.2em;
+  font-size: 14px !important;
 }
 </style>
