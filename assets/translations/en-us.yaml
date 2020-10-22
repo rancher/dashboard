@@ -258,12 +258,12 @@ catalog:
       install: Install {name}
       installGeneric: Install Chart
     section:
-      appReadme: Read Me
+      appReadme: README
       readme: Helm README
       chartOptions: Chart Options
       valuesYaml: Values YAML
-      helm: Helm Options
-    appReadmeGeneric: This chart doesn't have a Rancher-specific readme.  Review the Helm README to learn more about the available configuration options and their usage.
+      helm: Helm Deploy Options
+    appReadmeGeneric: This chart doesn't have a Rancher-specific README.  Review the Helm README to learn more about the available configuration options and their usage.
     project: Install into Project
     helm:
       atomic: Atomic
@@ -1754,8 +1754,8 @@ typeLabel:
     }
   catalog.cattle.io.clusterrepo: |-
     {count, plural,
-      one { Repository }
-      other { Repositories }
+      one { Chart Repository }
+      other { Chart Repositories }
     }
   catalog.cattle.io.repo: |-
     {count, plural,

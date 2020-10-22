@@ -8,10 +8,13 @@ import {
   FLOW, CONFIGURED_PROVIDERS, CLUSTER_FLOW, CLUSTER_OUTPUT, OUTPUT, NAMESPACE
 } from '@/config/table-headers';
 import ChartHeading from '@/components/ChartHeading';
+import TypeDescription from '@/components/TypeDescription';
 
 export default {
   middleware: InstallRedirect(NAME, CHART_NAME),
-  components: { ChartHeading, SortableTable },
+  components: {
+    ChartHeading, SortableTable, TypeDescription
+  },
   async fetch() {
     const getAllOrDefault = (type) => {
       const hasAccess = this.$store.getters[`cluster/schemaFor`](type);
@@ -86,6 +89,7 @@ export default {
 
 <template>
   <div class="logging">
+    <TypeDescription resource="logging" />
     <ChartHeading :label="t('logging.overview.poweredBy')" url="https://github.com/banzaicloud/logging-operator" />
     <div class="spacer" />
     <div v-if="hasClusterFlowAccess">
