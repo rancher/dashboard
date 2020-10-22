@@ -53,11 +53,11 @@ export default {
 
   computed: {
     showConditions() {
-      return !!this.value?.status?.conditions;
+      return this.isView && !!this.value?.status?.conditions;
     },
 
     showEvents() {
-      return !this.$fetchState.pending && this.hasEvents && this.events.length;
+      return this.isView && !this.$fetchState.pending && this.hasEvents && this.events.length;
     },
 
     hasCustomTabs() {
