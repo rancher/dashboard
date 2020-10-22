@@ -3,6 +3,7 @@ import {
   NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW
 } from '@/config/query-params';
 import { CATALOG } from '@/config/labels-annotations';
+import { compare, sortable } from '@/utils/version';
 
 export default {
   showMasthead() {
@@ -28,7 +29,7 @@ export default {
       action:     'goToUpgrade',
       enabled:    true,
       icon:       'icon icon-fw icon-edit',
-      label:      'Upgrade',
+      label:      'Edit/Upgrade',
     };
 
     out.unshift(upgrade);
@@ -53,14 +54,45 @@ export default {
     return match;
   },
 
+  upgradeAvailable() {
+    const chart = this.matchingChart;
+
+    if ( !chart ) {
+      return null;
+    }
+
+    const thisVersion = this.spec?.chart?.metadata?.version;
+    const newestVersion = chart.versions?.[0]?.version;
+
+    if ( !thisVersion || !newestVersion ) {
+      return null;
+    }
+
+    if ( compare(thisVersion, newestVersion) < 0 ) {
+      return cleanupVersion(newestVersion);
+    }
+
+    return null;
+  },
+
+  upgradeAvailableSort() {
+    const version = this.upgradeAvailable;
+
+    if ( !version ) {
+      return '~'; // Tilde sorts after all numbers and letters
+    }
+
+    return sortable(version);
+  },
+
   goToUpgrade() {
-    return (moreQuery = {}) => {
+    return (forceVersion) => {
       const match = this.matchingChart;
       const versionName = this.spec?.chart?.metadata?.version;
       const query = {
         [NAMESPACE]: this.metadata.namespace,
         [NAME]:      this.metadata.name,
-        [VERSION]:   versionName,
+        [VERSION]:   forceVersion || versionName,
       };
 
       if ( match ) {
@@ -106,20 +138,18 @@ export default {
   },
 
   chartDisplay() {
-    const meta = this.spec?.chart?.metadata;
+    const name = this.spec?.chart?.metadata?.name || '?';
 
-    if ( meta ) {
-      return `${ meta.name }:${ meta.version.startsWith('v') ? '' : 'v' }${ meta.version }`;
-    } else {
-      return '?';
-    }
+    return `${ name }:${ this.versionDisplay }`;
   },
 
-  // upgrade() {
-  //   return () => {
-  //     debugger;
-  //   };
-  // },
+  versionDisplay() {
+    return cleanupVersion(this.spec?.chart?.metadata?.version);
+  },
+
+  versionSort() {
+    return sortable(this.versionDisplay);
+  },
 
   remove() {
     return (opt = {}) => {
@@ -132,3 +162,21 @@ export default {
   },
 
 };
+
+function cleanupVersion(version) {
+  if ( !version ) {
+    return '?';
+  }
+
+  if ( version.match(/^v/i) ) {
+    version = version.substr(1);
+  }
+
+  const hash = version.match(/[0-9a-f]{32,}/);
+
+  if ( hash ) {
+    version = version.replace(hash[0], hash[0].substr(0, 7));
+  }
+
+  return version;
+}

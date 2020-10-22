@@ -2,6 +2,7 @@ import {
   AGE,
   STATE,
   CHART,
+  CHART_UPGRADE,
   NAMESPACE,
   NAME as NAME_COL,
   RESOURCES,
@@ -54,8 +55,6 @@ export function init(store) {
   immutableType(CATALOG.APP);
   immutableType(CATALOG.OPERATION);
 
-  headers(CATALOG.APP, [STATE, NAME_COL, NAMESPACE, CHART, RESOURCES, AGE]);
-
   const repoType = {
     name:     'type',
     labelKey: 'tableHeaders.type',
@@ -78,9 +77,9 @@ export function init(store) {
     dashIfEmpty: true,
   };
 
+  headers(CATALOG.APP, [STATE, NAME_COL, NAMESPACE, CHART, CHART_UPGRADE, RESOURCES, AGE]);
   headers(CATALOG.REPO, [STATE, NAME_COL, NAMESPACE, repoType, repoUrl, repoBranch, AGE]);
   headers(CATALOG.CLUSTER_REPO, [STATE, NAME_COL, repoType, repoUrl, repoBranch, AGE]);
-
   headers(CATALOG.OPERATION, [
     STATE,
     NAME_COL,

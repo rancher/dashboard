@@ -1196,6 +1196,7 @@ tableHeaders:
   targetPort: Target
   type: Type
   updated: Updated
+  upgrade: Upgradable
   url: URL
   userDisplayName: Display Name
   userId: ID
