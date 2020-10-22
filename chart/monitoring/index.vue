@@ -210,7 +210,7 @@ export default {
         :secrets="secrets"
       />
     </section>
-    <section class="bordered-section config-grafana-container">
+    <section class="config-grafana-container">
       <Grafana
         v-model="value"
         :access-modes="accessModes"
