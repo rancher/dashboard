@@ -667,6 +667,12 @@ logging:
       target: Target
       access: Access
       certificate: SSL
+  outputProviders:
+    elasticsearch: Elasticsearch
+    splunkHec: Splunk
+    kafka: Kafka
+    forward: Fluentd
+    unknown: Unknown
   overview:
     poweredBy: Banzai Cloud
     clusterLevel: Cluster-Level
@@ -1139,6 +1145,7 @@ tableHeaders:
   keys: Data
   lastUpdated: Last Updated
   lastSeen: Last Seen
+  loggingOutputProviders: Providers
   matches: Matches
   message: Message
   name: Name

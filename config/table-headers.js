@@ -36,6 +36,15 @@ export const NAME = {
   canBeVariable: true,
 };
 
+export const LOGGING_OUTPUT_PROVIDERS = {
+  name:          'logging-output-providers',
+  labelKey:      'tableHeaders.loggingOutputProviders',
+  value:         'providersDisplay',
+  sort:          ['providersSortable'],
+  width:         '75%',
+  formatter:     'List',
+};
+
 export const SIMPLE_NAME = {
   name:     'name',
   labelKey: 'tableHeaders.simpleName',

@@ -28,28 +28,28 @@ export default {
     const providers = [
       {
         name:    'elasticsearch',
-        label:   'Elasticsearch',
+        label:   this.t('logging.outputProviders.elasticsearch'),
         enabled: false,
         default: {},
         logo:    require(`~/assets/images/logo-color-elasticsearch.svg`)
       },
       {
         name:    'splunkHec',
-        label:   'Splunk',
+        label:   this.t('logging.outputProviders.splunkHec'),
         enabled: false,
         default: {},
         logo:    require(`~/assets/images/logo-color-splunk.svg`)
       },
       {
         name:    'kafka',
-        label:   'Kafka',
+        label:   this.t('logging.outputProviders.kafka'),
         enabled: false,
         default: { format: { type: 'json' } },
         logo:    require(`~/assets/images/logo-color-kafka.svg`)
       },
       {
         name:    'forward',
-        label:   'Fluentd',
+        label:   this.t('logging.outputProviders.forward'),
         enabled: false,
         default: { servers: [{}] },
         logo:    require(`~/assets/images/logo-color-fluentd.svg`)
