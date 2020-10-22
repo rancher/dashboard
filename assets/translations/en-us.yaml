@@ -258,10 +258,12 @@ catalog:
       install: Install {name}
       installGeneric: Install Chart
     section:
-      readme: README
+      appReadme: Read Me
+      readme: Helm README
       chartOptions: Chart Options
       valuesYaml: Values YAML
       helm: Helm Options
+    appReadmeGeneric: This chart doesn't have a Rancher-specific readme.  Review the Helm README to learn more about the available configuration options and their usage.
     project: Install into Project
     helm:
       atomic: Atomic
@@ -1722,6 +1724,7 @@ typeDescription:
   logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namepsace that the flow is deployed in.
   logging.banzaicloud.io.clusteroutput: A cluster output defines which logging providers that logs can be sent to and is only effective when deployed in the namespace that the logging operator is in.
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
+  logging: To collect and ship your logs you will need to define a Flow and an Output. A Flow defines which logs to collect, filters, and an output which to send the logs. If you would like to collect all logs in the cluster, you can create a ClusterFlow. Outputs can be defined at the namespace level or defined at the cluster level and used by both Flow types.
 
 typeLabel:
   cis.cattle.io.clusterscan: |-
