@@ -6,6 +6,7 @@ import Footer from '@/components/form/Footer';
 import { RIO, SECRET } from '@/config/types';
 import { groupAndFilterOptions } from '@/utils/group';
 import Target from '@/components/form/Target';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 const KIND_LABELS = {
   router:  'A router',
@@ -25,6 +26,7 @@ export default {
     Target,
     NameNsDescription,
     Footer,
+    LabeledSelect,
   },
   mixins: [CreateEditView],
 
@@ -149,10 +151,8 @@ export default {
       v-model="value"
       :namespaced="false"
       :mode="mode"
-      name-label="Name"
+      label="Name"
     />
-
-    <div class="spacer"></div>
 
     <Target v-model="value.spec" />
 
@@ -172,14 +172,15 @@ export default {
       </div>
     </div>
 
-    <div v-if="secretKind === 'secret'" class="mt-20">
-      <v-select
+    <div v-if="secretKind === 'secret'" class="mt-10">
+      <LabeledSelect
         v-model="secret"
         :options="secretOptions"
         placeholder="Select a Certificate Secret..."
         :reduce="opt=>opt.value"
         :clearable="false"
         class="inline"
+        label="Secret"
 
         @input="update"
       />

@@ -280,7 +280,7 @@ export default {
       nameDisabled:        false,
       openApi:             true,
       resetValues:         false,
-      selectedTabName:     'readme',
+      selectedTabName:     'appReadme',
       showPreview:         false,
       showDiff:            false,
       showValuesComponent: true,
@@ -766,8 +766,7 @@ export default {
         </div>
       </div>
       <div class="description">
-        <Markdown v-if="versionInfo && versionInfo.appReadme" v-model="versionInfo.appReadme" class="md md-desc" />
-        <p v-else-if="chart.description">
+        <p>
           {{ chart.description }}
         </p>
       </div>
@@ -835,8 +834,9 @@ export default {
           :default-tab="selectedTabName"
           @changed="tabChanged($event)"
         >
-          <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="100">
-            <Markdown v-if="showReadme" ref="readme" v-model="versionInfo.readme" class="md readme" />
+          <Tab name="appReadme" :label="t('catalog.install.section.appReadme')" :weight="100">
+            <Markdown v-if="versionInfo && versionInfo.appReadme" v-model="versionInfo.appReadme" class="md md-desc" />
+            <Markdown v-else :value="t('catalog.install.appReadmeGeneric')" class="md md-desc" />
           </Tab>
 
           <template v-if="valuesComponent && showValuesComponent">
@@ -911,7 +911,11 @@ export default {
             />
           </Tab>
 
-          <Tab name="helm" :label="t('catalog.install.section.helm')" :weight="-1">
+          <Tab v-if="showReadme" name="readme" :label="t('catalog.install.section.readme')" :weight="-1">
+            <Markdown v-if="showReadme" ref="readme" v-model="versionInfo.readme" class="md readme" />
+          </Tab>
+
+          <Tab name="helm" :label="t('catalog.install.section.helm')" :weight="-2">
             <div><Checkbox v-if="existing" v-model="cleanupOnFail" :label="t('catalog.install.helm.cleanupOnFail')" /></div>
             <div><Checkbox v-if="!existing" v-model="crds" :label="t('catalog.install.helm.crds')" /></div>
             <div><Checkbox v-model="hooks" :label="t('catalog.install.helm.hooks')" /></div>
@@ -1001,7 +1005,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $desc-height: 150px;
+  $desc-height: 100px;
   $padding: 5px;
 
   .md {
@@ -1031,7 +1035,7 @@ export default {
 
     .logo-container {
       height: $desc-height;
-      width: $sideways-tabs-width;
+      width: $desc-height;
       text-align: center;
     }
 
@@ -1041,7 +1045,6 @@ export default {
       background-color: white;
       border: $padding solid white;
       border-radius: calc( 3 * var(--border-radius));
-      margin: 0 auto;
       position: relative;
     }
 

@@ -23,7 +23,7 @@ export default {
 <template>
   <span>
     <span v-for="(el, i) in value" :key="el.key">
-      <Link :row="row" :value="el" :options="options" /><span v-if="i != value.length - 1">, </span>
+      <Link :row="el" :value="el" :options="options" /><span v-if="i != value.length - 1">, </span>
     </span>
   </span>
 </template>

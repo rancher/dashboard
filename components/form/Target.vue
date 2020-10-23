@@ -7,6 +7,7 @@ import { RIO } from '@/config/types';
 import { groupAndFilterOptions } from '@/utils/group';
 import { allHash } from '@/utils/promise';
 import Checkbox from '@/components/form/Checkbox';
+import LabeledSelect from '@/components/form/LabeledSelect';
 
 const KIND_LABELS = {
   router:  'A router',
@@ -14,7 +15,9 @@ const KIND_LABELS = {
 };
 
 export default {
-  components: { Loading, Checkbox },
+  components: {
+    Loading, Checkbox, LabeledSelect
+  },
   mixins:     [CreateEditView],
   props:      {
     value: {
@@ -196,7 +199,7 @@ export default {
         </div>
         <div class="row">
           <div v-if="kind === 'router'" class="col span-6">
-            <v-select
+            <LabeledSelect
               v-model="targetRouter"
               :disabled="isView"
               :options="routerOptions"
@@ -205,14 +208,14 @@ export default {
               :clearable="false"
               class="inline"
               :reduce="opt=>opt.value"
-              label="value"
+              label="Router"
               @input="update"
             />
           </div>
 
           <template v-if="kind === 'app'">
             <div class="col span-6">
-              <v-select
+              <LabeledSelect
                 v-model="targetApp"
                 :disabled="isView"
                 :mode="mode"
@@ -221,13 +224,13 @@ export default {
                 :reduce="opt=>opt.value"
                 :clearable="false"
                 class="inline"
-                label="value"
+                label="Service"
                 @input="update"
               />
-              <Checkbox v-if="kind==='app'" v-model="pickVersion" label="Target one version" />
+              <Checkbox v-if="kind==='app'" v-model="pickVersion" label="Target one version" class="mt-10" />
             </div>
             <div v-if="pickVersion" class="col span-6">
-              <v-select
+              <LabeledSelect
                 v-model="targetVersion"
                 :disabled="isView"
                 :mode="mode"
@@ -235,7 +238,7 @@ export default {
                 placeholder="Select a version"
                 :clearable="false"
                 class="inline"
-                label="value"
+                label="Version"
                 :reduce="opt=>opt.value"
                 @input="update"
               />

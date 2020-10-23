@@ -1,6 +1,7 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
+import { LOGGING } from '@/config/types';
 
 export default {
   name:       'ListApps',
@@ -19,8 +20,8 @@ export default {
   },
 
   async fetch() {
-    await this.$store.dispatch('catalog/load');
-
+    await this.$store.dispatch('cluster/findAll', { type: LOGGING.OUTPUT });
+    await this.$store.dispatch('cluster/findAll', { type: LOGGING.CLUSTER_OUTPUT });
     this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
   },
 
@@ -32,12 +33,5 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTable v-else :schema="schema" :rows="rows">
-    <template #cell:upgrade="{row}">
-      <span v-if="row.upgradeAvailable" class="badge-state bg-warning hand" @click="row.goToUpgrade(row.upgradeAvailable)">
-        {{ row.upgradeAvailable }}
-        <i classs="icon icon-upload" />
-      </span>
-    </template>
-  </ResourceTable>
+  <ResourceTable v-else :schema="schema" :rows="rows" />
 </template>

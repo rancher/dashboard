@@ -44,7 +44,7 @@ export default {
     position: relative;
 
     &.closable {
-      margin-right: 40px;
+      padding-right: 40px;
     }
 
     .closer {

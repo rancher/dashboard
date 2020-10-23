@@ -252,7 +252,7 @@ export default {
     <NameNsDescription
       :value="value"
       :mode="mode"
-      :name-label="isSidecar ? 'Container Name' : 'Service Name'"
+      :label="isSidecar ? 'Container Name' : 'Service Name'"
       :extra-columns="extraColumns"
       :namespaced="showNamespace"
       :register-before-hook="registerBeforeHook"

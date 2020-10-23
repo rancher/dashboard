@@ -5,13 +5,16 @@ import { LOGGING } from '@/config/types';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
 import {
-  FLOW, CONFIGURED_PROVIDERS, CLUSTER_FLOW, CLUSTER_OUTPUT, OUTPUT, NAMESPACE
+  CONFIGURED_PROVIDERS, CLUSTER_OUTPUT, OUTPUT, NAMESPACE, NAME as NAME_COL
 } from '@/config/table-headers';
 import ChartHeading from '@/components/ChartHeading';
+import TypeDescription from '@/components/TypeDescription';
 
 export default {
   middleware: InstallRedirect(NAME, CHART_NAME),
-  components: { ChartHeading, SortableTable },
+  components: {
+    ChartHeading, SortableTable, TypeDescription
+  },
   async fetch() {
     const getAllOrDefault = (type) => {
       const hasAccess = this.$store.getters[`cluster/schemaFor`](type);
@@ -35,57 +38,29 @@ export default {
       clusterFlows:              [],
       flows:                     [],
       namespaceFlowTableHeaders: [
-        { ...NAMESPACE, value: 'flow.metadata.namespace' },
-        FLOW,
+        NAMESPACE,
+        NAME_COL,
         OUTPUT,
         CLUSTER_OUTPUT,
         CONFIGURED_PROVIDERS
       ],
       clusterFlowTableHeaders: [
-        CLUSTER_FLOW, CLUSTER_OUTPUT, CONFIGURED_PROVIDERS
+        NAME_COL, CLUSTER_OUTPUT, CONFIGURED_PROVIDERS
       ]
     };
   },
 
   computed: {
-    clusterLevelLogging() {
-      return this.mapFlows(this.clusterFlows, this.clusterOutputs);
-    },
-
-    namespaceLevelLogging() {
-      return this.mapFlows(this.flows, this.outputs);
-    },
-
     hasClusterFlowAccess() {
       return this.$store.getters[`cluster/schemaFor`](LOGGING.CLUSTER_FLOW);
     }
   },
-
-  methods: {
-    mapFlows(flows) {
-      return flows.map((flow) => {
-        return {
-          flow:           this.link(flow),
-          outputs:        flow.outputs.map(this.link),
-          clusterOutputs: flow.clusterOutputs.map(this.link),
-          providers:      flow.outputProviders
-        };
-      });
-    },
-
-    link(resource) {
-      return {
-        text:    resource.nameDisplay,
-        url:     resource.detailLocation,
-        ...resource
-      };
-    }
-  }
 };
 </script>
 
 <template>
   <div class="logging">
+    <TypeDescription resource="logging" />
     <ChartHeading :label="t('logging.overview.poweredBy')" url="https://github.com/banzaicloud/logging-operator" />
     <div class="spacer" />
     <div v-if="hasClusterFlowAccess">
@@ -93,7 +68,7 @@ export default {
       <SortableTable
         class="sortable-table"
         :headers="clusterFlowTableHeaders"
-        :rows="clusterLevelLogging"
+        :rows="clusterFlows"
         :row-actions="false"
         :search="false"
         :table-actions="false"
@@ -106,7 +81,7 @@ export default {
     <SortableTable
       class="sortable-table"
       :headers="namespaceFlowTableHeaders"
-      :rows="namespaceLevelLogging"
+      :rows="flows"
       :row-actions="false"
       :search="false"
       :table-actions="false"

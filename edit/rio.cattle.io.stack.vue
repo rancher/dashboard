@@ -92,7 +92,7 @@ export default {
     <NameNsDescription
       :value="value"
       :mode="mode"
-      name-label="Stack Name"
+      label="Stack Name"
       :register-before-hook="registerBeforeHook"
     />
 
