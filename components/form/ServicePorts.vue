@@ -195,8 +195,8 @@ export default {
             v-else
             v-model.number="row.nodePort"
             type="number"
-            min="1"
-            max="65535"
+            min="30000"
+            max="32767"
             :placeholder="t('servicePorts.rules.node.placeholder')"
             @input="queueUpdate"
           />

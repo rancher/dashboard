@@ -15,6 +15,7 @@ import { ucFirst } from '@/utils/string';
 import CruResource from '@/components/CruResource';
 import Banner from '@/components/Banner';
 import Labels from '@/components/form/Labels';
+import { clone } from '@/utils/object';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -132,6 +133,10 @@ export default {
     }
   },
 
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
+  },
+
   mounted() {
     const initialType = this.serviceType;
 
@@ -151,7 +156,33 @@ export default {
 
     updateServicePorts(servicePorts) {
       this.$set(this.value.spec, 'ports', servicePorts);
-    }
+    },
+
+    targetPortsStrOrInt(targetPorts = []) {
+      const neu = clone(targetPorts);
+      const isNumeric = new RegExp('^\\d+$');
+
+      neu.forEach((port, idx) => {
+        if (port?.targetPort && isNumeric.test(port.targetPort)) {
+          try {
+            port.targetPort = parseInt(port.targetPort, 10);
+          } catch (err) {
+            console.warn(`Could not cast target port to int`, port, idx, err); // eslint-disable-line no-console
+          }
+        }
+      });
+
+      return neu;
+    },
+
+    willSave() {
+      const { ports = [] } = this.value.spec;
+
+      if (ports && ports.length > 0) {
+        this.value.spec.ports = this.targetPortsStrOrInt(this.value.spec.ports);
+      }
+    },
+
   }
 };
 </script>
