@@ -200,13 +200,15 @@ export default {
 <template>
   <div>
     <div v-if="title" class="clearfix">
-      <h4>
-        {{ title }}
-        <i v-if="protip" v-tooltip="protip" class="icon icon-info" />
-        <button v-if="titleAdd && showAdd" type="button" class="btn btn-xs role-tertiary p-5 ml-10" style="position: relative; top: -3px;" @click="add">
-          <i class="icon icon-plus icon-lg icon-fw" />
-        </button>
-      </h4>
+      <slot name="title">
+        <h3>
+          {{ title }}
+          <i v-if="protip" v-tooltip="protip" class="icon icon-info" />
+          <button v-if="titleAdd && showAdd" type="button" class="btn btn-xs role-tertiary p-5 ml-10" style="position: relative; top: -3px;" @click="add">
+            <i class="icon icon-plus icon-lg icon-fw" />
+          </button>
+        </h3>
+      </slot>
     </div>
 
     <template v-if="rows.length">

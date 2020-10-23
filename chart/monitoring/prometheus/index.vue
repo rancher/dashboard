@@ -246,7 +246,7 @@ export default {
       </div>
       <div class="row">
         <div class="col span-12 mt-5">
-          <h4 class="text-label mb-0">
+          <h4 class="mb-0">
             {{ t('monitoring.prometheus.config.resourceLimits') }}
           </h4>
         </div>
@@ -335,7 +335,7 @@ export default {
         <div class="row">
           <div class="col span-12">
             <div class="mb-5 mt-5">
-              <h4 class="text-label mb-10">
+              <h4 class=" mb-10">
                 {{ t('monitoring.prometheus.storage.selector') }}
               </h4>
             </div>
