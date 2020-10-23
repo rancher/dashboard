@@ -24,8 +24,8 @@ export async function asyncData(ctx) {
   const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
   const realMode = realModeFor(route.query.mode, params.id);
 
-  if ( hasCustomEdit && [_EDIT, _CREATE, _STAGE].includes(realMode) ) {
-    const importer = store.getters['type-map/importEdit'](resource);
+  if ( hasCustomDetail && realMode === _VIEW ) {
+    const importer = store.getters['type-map/importDetail'](resource);
     const component = (await importer())?.default;
 
     if ( component?.asyncData ) {
@@ -33,8 +33,8 @@ export async function asyncData(ctx) {
     }
   }
 
-  if ( hasCustomDetail && realMode === _VIEW ) {
-    const importer = store.getters['type-map/importDetail'](resource);
+  if ( hasCustomEdit ) {
+    const importer = store.getters['type-map/importEdit'](resource);
     const component = (await importer())?.default;
 
     if ( component?.asyncData ) {
@@ -290,6 +290,10 @@ export default {
         appName:   value?.metadata?.labels?.release || '',
       };
     },
+
+    yamlSave() {
+      return this.parentOverride?.yamlSave;
+    }
   },
 
   watch: {
@@ -355,6 +359,7 @@ export default {
         :offer-preview="offerPreview"
         :done-route="doneRoute"
         :done-override="model.doneOverride"
+        :save-override="yamlSave"
       />
     </template>
     <template v-else>

@@ -81,6 +81,14 @@ export const MONITORING = {
   PROMETHEUSRULE: 'monitoring.coreos.com.prometheusrule',
   SERVICEMONITOR: 'monitoring.coreos.com.servicemonitor',
   THANOSRULER:    'monitoring.coreos.com.thanosruler',
+  SPOOFED:        {
+    RECEIVER:             'monitoring.coreos.com.receiver',
+    RECEIVER_SPEC:        'monitoring.coreos.com.receiver.spec',
+    RECEIVER_EMAIL:       'monitoring.coreos.com.receiver.email',
+    RECEIVER_SLACK:       'monitoring.coreos.com.receiver.slack',
+    RECEIVER_WEBHOOK:     'monitoring.coreos.com.receiver.webhook',
+    RECEIVER_HTTP_CONFIG: 'monitoring.coreos.com.receiver.httpconfig'
+  }
 };
 
 export const LONGHORN = {

@@ -202,7 +202,7 @@ export default {
           <span v-if="resourceSubtype" v-html="resourceSubtype" />
           <span v-html="h1" />
         </h1>
-        <BadgeState v-if="isView" :value="value" />
+        <BadgeState v-if="isView && !parent.hideBadgeState" :value="value" />
       </div>
       <!-- //TODO use  nuxt-link for an internal project detail page once it exists -->
       <div v-if="isView" class="subheader">

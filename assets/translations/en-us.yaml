@@ -21,6 +21,7 @@ generic:
   name: Name
   none: None
   number: '{prefix}{value, number}{suffix}'
+  overview: Overview
   plusMore: + {n} more
   readFromFile: Read from File
   remove: Remove
@@ -1828,4 +1829,9 @@ typeLabel:
     {count, plural,
       one { Thanos Rule }
       other { Thanos Rules }
+    }
+  monitoring.coreos.com.receiver: |-
+    {count, plural,
+      one { Receiver }
+      other { Receivers }
     }

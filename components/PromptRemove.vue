@@ -83,7 +83,7 @@ export default {
       const out = {};
       const params = { ...currentRoute.params };
 
-      if (params.id === this.toRemove[0]?.metadata?.name || params.id === this.toRemove[0].id) {
+      if (params.id && (params.id === this.toRemove[0]?.metadata?.name || params.id === this.toRemove[0].id)) {
         let { name = '' } = currentRoute;
 
         name = name.slice(0, name.indexOf('-id'));
@@ -147,16 +147,42 @@ export default {
           goTo = { ...this.doneLocation };
         }
 
-        Promise.all(this.toRemove.map(resource => resource.remove())).then((results) => {
-          if ( goTo && !isEmpty(goTo) ) {
-            this.currentRouter.push(goTo);
-          }
+        const serialRemove = this.toRemove.some(resource => resource.removeSerially);
 
-          this.close();
-        }).catch((err) => {
-          this.error = err;
-        });
+        if (serialRemove) {
+          this.serialRemove(goTo);
+        } else {
+          this.parallelRemove(goTo);
+        }
       }
+    },
+
+    async serialRemove(goTo) {
+      try {
+        for (const resource of this.toRemove) {
+          await resource.remove();
+        }
+
+        if ( goTo && !isEmpty(goTo) ) {
+          this.currentRouter.push(goTo);
+        }
+
+        this.close();
+      } catch (err) {
+        this.error = err;
+      }
+    },
+
+    parallelRemove(goTo) {
+      Promise.all(this.toRemove.map(resource => resource.remove())).then((results) => {
+        if ( goTo && !isEmpty(goTo) ) {
+          this.currentRouter.push(goTo);
+        }
+
+        this.close();
+      }).catch((err) => {
+        this.error = err;
+      });
     }
   }
 };
