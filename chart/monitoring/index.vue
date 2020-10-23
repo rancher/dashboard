@@ -221,11 +221,3 @@ export default {
     </section>
   </div>
 </template>
-
-<style lang="scss">
-// .config-monitoring-container {
-//   > section {
-//     margin-bottom: 20px;
-//   }
-// }
-</style>

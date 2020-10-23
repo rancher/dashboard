@@ -42,7 +42,7 @@ const CLUSTER_TYPES = [
     group:      'k3s',
     id:         'k3s',
     label:      'cluster.provider.k3s',
-    configKeys: ['k3sControllerManager', 'k3sScheduler', 'k3sProxy'],
+    configKeys: ['k3sControllerManager', 'k3sScheduler', 'k3sProxy', 'k3sServer'],
   },
   {
     group:      'kubeadm',
