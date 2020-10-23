@@ -139,6 +139,8 @@ export default {
  .radio-custom {
     height: 14px;
     width: 14px;
+    min-height: 14px;
+    min-width: 14px;
     background-color: var(--input-bg);
     border-radius: 50%;
     transition: all 0.3s ease-out;
