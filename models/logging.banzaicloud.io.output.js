@@ -21,4 +21,19 @@ export default {
 
     return copy.join('');
   },
+
+  text() {
+    return this.nameDisplay;
+  },
+
+  url() {
+    return {
+      name:   'c-cluster-product-resource-namespace-id',
+      params:   {
+        resource:  this.type,
+        id:        this.name,
+        namespace: this.namespace
+      }
+    };
+  }
 };
