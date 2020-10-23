@@ -902,57 +902,58 @@ prefs:
     label: Enable Developer Tools
 
 prometheusRule:
-  promQL:
-    label: PromQL Expression
-  groups:
-    add: Add Rule Group
-    none: Please add at least one rule group that contains at least one alerting or one recording rule.
-    label: Rule Groups
-    removeGroup: Remove Group
-    name: Group Name
-    groupInterval:
-      label: Override Group Interval
-      placeholder: '60'
-    responseStrategy:
-      label: Partial Response Strategy
-  recordingRules:
-    label: Recording Rules
-    addLabel: Add Record
-    removeRecord: Remove Record
-    name: Time Series Name
-    labels: Labels
   alertingRules:
-    name: Alert Name
+    addLabel: Add Alert
+    annotations:
+      description:
+        input: Description Annotation Value
+        label: Description
+      label: Annotations
+      message:
+        input: Message Annotation Value
+        label: Message
+      runbook:
+        input: Runbook URL Annotation Value
+        label: Runbook URL
+      summary:
+        input: Summary Annotation Value
+        label: Summary
+    bannerText: 'When firing alerts, the annotations and labels will be passed to the configured AlertManagers to allow them to construct the notification that will be sent to any configured Receivers.'
     for:
       label: Wait to fire for
       placeholder: '60'
     label: Alerting Rules
-    addLabel: Add Alert
-    bannerText: When firing alerts, the annotations and labels will be passed to the configured AlertManagers to allow them to construct the notification that will be sent to any configured Receivers.
-    removeAlert: Remove Alert
     labels:
       label: Labels
       severity:
-        label: Severity
         choices:
-          label: Severity Label Value
           critical: critical
-          warning: warning
+          label: Severity Label Value
           none: none
-    annotations:
-      label: Annotations
-      summary:
-        label: Summary
-        input: Summary Annotation Value
-      message:
-        label: Message
-        input: Message Annotation Value
-      description:
-        label: Description
-        input: Description Annotation Value
-      runbook:
-        label: Runbook URL
-        input: Runbook URL Annotation Value
+          warning: warning
+        label: Severity
+    name: Alert Name
+    removeAlert: Remove Alert
+  groups:
+    add: Add Rule Group
+    groupRowLabel: Rule Group {index}
+    groupInterval:
+      label: Override Group Interval
+      placeholder: '60'
+    label: Rule Groups
+    name: Group Name
+    none: Please add at least one rule group that contains at least one alerting or one recording rule.
+    removeGroup: Remove Group
+    responseStrategy:
+      label: Partial Response Strategy
+  promQL:
+    label: PromQL Expression
+  recordingRules:
+    addLabel: Add Record
+    label: Recording Rules
+    labels: Labels
+    name: Time Series Name
+    removeRecord: Remove Record
 
 promptRemove:
   andOthers: |-
@@ -1309,12 +1310,12 @@ validation:
       required: At least one rule group is required.
       singleAlert: A rule may contain alert rules or recording rules but not both.
       valid:
-        name: 'Name is required for group {index}.'
+        name: 'Name is required for rule group {index}.'
         rule:
-          alertName: 'Rule Group {groupIndex} Rule {ruleIndex} requires a Alert Name.'
-          expr: 'Rule Group {groupIndex} Rule {ruleIndex} requires a PromQL Expression.'
-          labels: 'Rule Group {groupIndex} Rule {ruleIndex} requires at least one label. Severity is recommended.'
-          recordName: 'Rule Group {groupIndex} Rule {ruleIndex} requires a Time Series Name.'
+          alertName: 'Rule group {groupIndex} rule {ruleIndex} requires a Alert Name.'
+          expr: 'Rule group {groupIndex} rule {ruleIndex} requires a PromQL Expression.'
+          labels: 'Rule group {groupIndex} rule {ruleIndex} requires at least one label. Severity is recommended.'
+          recordName: 'Rule group {groupIndex} rule {ruleIndex} requires a Time Series Name.'
         singleEntry: 'At least one alert rule or one recording rule is required in rule group {index}.'
   required: '"{key}" is required'
   requiredOrOverride: '"{key}" is required or must allow override'
@@ -1532,7 +1533,7 @@ workload:
         normal: Normal
       placeholder: Select a Mode...
     dns: DNS
-    resolver: 
+    resolver:
       label: Resolver Options
       add: Add Option
     searches:

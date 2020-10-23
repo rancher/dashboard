@@ -71,6 +71,9 @@ export default {
     removeGroupRule(idx) {
       removeAt(this.value.spec.groups, idx);
     },
+    ruleGroupLabel(idx) {
+      return this.t('prometheusRule.groups.groupRowLabel', { index: idx + 1 });
+    },
     willSave() {
       this.value.spec.groups.forEach((group) => {
         if (group.interval === null) {
@@ -110,7 +113,7 @@ export default {
           v-for="(group, idx) in filteredGroups"
           :key="'filtered-group-' + idx"
           :name="'group-' + idx"
-          :label="'Rule Group ' + idx"
+          :label="ruleGroupLabel(idx)"
           class="container-group"
         >
           <button
