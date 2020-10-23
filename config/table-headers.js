@@ -511,7 +511,15 @@ export const CHART = {
   name:     'chart',
   labelKey: 'tableHeaders.chart',
   value:    'chartDisplay',
-  sort:     'chartDisplay'
+  sort:     ['chartDisplay', 'versionSort'],
+};
+
+export const CHART_UPGRADE = {
+  name:        'upgrade',
+  labelKey:    'tableHeaders.upgrade',
+  value:       'upgradeAvailable',
+  sort:        'upgradeAvailableSort:desc',
+  dashIfEmpty: true,
 };
 
 export const RESOURCES = {

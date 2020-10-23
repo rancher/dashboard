@@ -225,25 +225,24 @@ export default {
         </div>
       </div>
     </div>
-    <hr class="divider" />
 
-    <div>
+    <div class="mt-20">
       <div class="row">
         <KeyValue
           v-model="options"
           key-label="Name"
           key-name="name"
           :mode="mode"
-          :title="t('workload.networking.resolver')"
+          :title="t('workload.networking.resolver.label')"
+          :add-label="t('workload.networking.resolver.add')"
           :read-allowed="false"
           :as-map="false"
           @input="update"
         />
       </div>
     </div>
-    <hr class="divider" />
 
-    <div class="row">
+    <div class="row mt-20">
       <div class="col span-12">
         <KeyValue
           key="hostAliases"

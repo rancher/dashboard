@@ -30,7 +30,7 @@ export default {
     return () => {
       this.$dispatch('wm/open', {
         id:        `${ this.id }-logs`,
-        label:     `${ ucFirst(this.status.action) } ${ this.status.namespace }:${ this.status.releaseName }`,
+        label:     `${ ucFirst(this.status.action) } ${ this.status.namespace }:${ this.status?.releaseName || 'chart' }`,
         icon:      'file',
         component: 'ContainerLogs',
         attrs:     {
