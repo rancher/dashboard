@@ -1019,7 +1019,7 @@ export default {
       * + H4,
       * + H5,
       * + H6 {
-        margin-top: 20px;
+        margin-top: 40px;
       }
     }
   }
@@ -1032,6 +1032,7 @@ export default {
     margin-top: 10px;
     display: flex;
     height: $desc-height;
+    align-items: center;
 
     .logo-container {
       height: $desc-height;
@@ -1064,9 +1065,10 @@ export default {
     .description {
       flex-grow: 1;
       padding-left: 20px;
-      width: calc(100% - #{$sideways-tabs-width});
-      height: $desc-height;
+      // width: calc(100% - #{$sideways-tabs-width});
+      // height: $desc-height;
       overflow: auto;
+      color: var(--secondary);
 
       .name {
         margin: #{-1 * $padding} 0 0 0;
