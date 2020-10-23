@@ -54,7 +54,7 @@ export default {
         />
       </div>
     </div>
-    <hr class="divider" />
+    <hr class="section-divider" />
 
     <div>
       <div class="row">
@@ -68,7 +68,7 @@ export default {
         />
       </div>
     </div>
-    <hr class="divider" />
+    <hr class="section-divider" />
 
     <div class="row">
       <Probe

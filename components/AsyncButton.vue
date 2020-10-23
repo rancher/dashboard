@@ -196,7 +196,7 @@ export default {
     :tab-index="tabIndex"
     @click="clicked"
   >
-    <i v-if="displayIcon" :class="{icon: true, 'icon-lg': true, [displayIcon]: true, 'pr-5': showLabel && displayLabel}" />
-    <span v-if="showLabel" v-html="displayLabel" />
+    <i v-if="displayIcon" :class="{icon: true, 'icon-lg': true, [displayIcon]: true}" />
+    <span v-if="showLabel" class="pl-5" v-html="displayLabel" />
   </button>
 </template>
