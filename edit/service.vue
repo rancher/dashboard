@@ -164,11 +164,7 @@ export default {
 
       neu.forEach((port, idx) => {
         if (port?.targetPort && isNumeric.test(port.targetPort)) {
-          try {
-            port.targetPort = parseInt(port.targetPort, 10);
-          } catch (err) {
-            console.warn(`Could not cast target port to int`, port, idx, err); // eslint-disable-line no-console
-          }
+          port.targetPort = parseInt(port.targetPort, 10);
         }
       });
 
