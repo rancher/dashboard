@@ -215,7 +215,7 @@ export default {
             </div>
           </div>
         </div>
-        <hr class="divider" />
+        <hr class="section-divider" />
 
         <div>
           <div :style="{'align-items':'center'}" class="row mb-10">

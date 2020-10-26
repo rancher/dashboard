@@ -70,7 +70,7 @@ export default {
         </div>
       </div>
     </div>
-    <hr class="divider" />
+    <hr class="section-divider" />
     <Mount :pod-spec="podSpec" :name="value.name" :mode="mode" />
   </div>
 </template>

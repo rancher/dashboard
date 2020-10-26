@@ -190,7 +190,7 @@ export default {
         </div>
       </div>
     </div>
-    <hr class="divider" />
+    <hr class="section-divider" />
 
     <div>
       <h3>{{ t('workload.networking.dns') }}</h3>
@@ -225,6 +225,7 @@ export default {
         </div>
       </div>
     </div>
+    <hr class="section-divider" />
 
     <div class="mt-20">
       <div class="row">
@@ -241,6 +242,7 @@ export default {
         />
       </div>
     </div>
+    <hr class="section-divider" />
 
     <div class="row mt-20">
       <div class="col span-12">
