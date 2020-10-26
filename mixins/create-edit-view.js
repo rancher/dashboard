@@ -22,6 +22,11 @@ export default {
       type:     Object,
       default: null,
     },
+
+    moreDetails: {
+      type:    Array,
+      default: null
+    }
   },
 
   data() {
@@ -51,7 +56,6 @@ export default {
       errors:                   [],
       labelsToIgnoreRegex:      LABELS_TO_IGNORE_REGEX,
       annotationsToIgnoreRegex: ANNOTATIONS_TO_IGNORE_REGEX,
-      moreDetails:              null,
     };
   },
 

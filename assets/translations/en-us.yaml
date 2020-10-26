@@ -795,10 +795,10 @@ monitoring:
       resourceLimits: Resource Limits
       scrape: Scrape Interval
       ignoreNamespaceSelectors:
-        label: Use Namespace Selectors
+        label: Namespace Selectors
         radio:
-          enforced: "Use: Monitors can access resources in the namespace specified in the namespaceSelector field"
-          ignored: "Ignore: Monitors can only access resources in the deployed namespace that they are deployed in"
+          enforced: "Use: Monitors can access resources based on namespaces that match the namespace selector field"
+          ignored: "Ignore: Monitors can only access resources in the namespace they are deployed in"
         help: Ignoring Namespace Selectors allows Cluster Admins to limit teams from monitoring resources outside of namespaces they have permissions to but can break the functionality of Apps that rely on setting up Monitors that scrape targets across multiple namespaces, such as Istio.
     storage:
       className: Storage Class Name

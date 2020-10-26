@@ -6,7 +6,7 @@ import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 import { get } from '@/utils/object';
 import { NAME as FLEET_NAME } from '@/config/product/fleet';
-import { _EDIT, _VIEW } from '@/config/query-params';
+import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   components: {
@@ -73,6 +73,10 @@ export default {
 
     isEdit() {
       return this.mode === _EDIT;
+    },
+
+    isCreate() {
+      return this.mode === _CREATE;
     },
 
     isNamespace() {
@@ -187,19 +191,19 @@ export default {
   <header class="masthead">
     <div class="title">
       <div class="primaryheader">
-        <h1 v-if="isEdit">
+        <h1 v-if="isCreate || isEdit || isView">
           <nuxt-link :to="parent.location">
             {{ parent.displayName }}:
           </nuxt-link>
-          <t k="resourceDetail.header.edit" />
+          <t v-if="isCreate" k="resourceDetail.header.create" />
+          <t v-if="isEdit" k="resourceDetail.header.edit" />
           <span v-if="resourceSubtype" v-html="resourceSubtype" />
-          {{ value.nameDisplay }}
+          <span v-if="!isCreate" v-html="value.nameDisplay" />
         </h1>
         <h1 v-else>
           <nuxt-link :to="parent.location">
             {{ parent.displayName }}:
           </nuxt-link>
-          <span v-if="resourceSubtype" v-html="resourceSubtype" />
           <span v-html="h1" />
         </h1>
         <BadgeState v-if="isView && !parent.hideBadgeState" :value="value" />
