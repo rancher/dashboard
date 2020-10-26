@@ -244,7 +244,6 @@ export default {
     </div>
     <hr class="section-divider" />
 
-
     <div class="row mt-20">
       <div class="col span-12">
         <KeyValue
