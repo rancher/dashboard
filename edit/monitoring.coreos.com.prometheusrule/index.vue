@@ -82,7 +82,7 @@ export default {
       });
 
       return true;
-    }
+    },
   },
 };
 </script>
@@ -108,7 +108,13 @@ export default {
       </div>
     </div>
     <div>
-      <Tabbed v-if="filteredGroups.length > 0" :side-tabs="true">
+      <Tabbed
+        v-if="filteredGroups.length > 0"
+        :side-tabs="true"
+        :show-tabs-add-remove="true"
+        @addTab="addRuleGroup"
+        @removeTab="removeGroupRule"
+      >
         <Tab
           v-for="(group, idx) in filteredGroups"
           :key="'filtered-group-' + idx"
@@ -116,17 +122,6 @@ export default {
           :label="ruleGroupLabel(idx)"
           class="container-group"
         >
-          <button
-            v-if="!isView"
-            type="button"
-            class="btn btn-sm bg-transparent remove"
-            @click="removeGroupRule(idx)"
-          >
-            <i
-              v-tooltip="t('prometheusRule.groups.removeGroup')"
-              class="icon icon-x icon-2x"
-            />
-          </button>
           <div class="row">
             <div class="col span-6">
               <LabeledInput
@@ -142,7 +137,9 @@ export default {
               <UnitInput
                 v-model="group.interval"
                 :suffix="t('suffix.seconds')"
-                :placeholder="t('prometheusRule.groups.groupInterval.placeholder')"
+                :placeholder="
+                  t('prometheusRule.groups.groupInterval.placeholder')
+                "
                 :label="t('prometheusRule.groups.groupInterval.label')"
                 :mode="mode"
                 @input="(e) => $set(filteredGroups[idx], 'interval', e)"
@@ -159,23 +156,7 @@ export default {
           <GroupRules v-model="group.rules" class="mb-20" :mode="mode" />
         </Tab>
       </Tabbed>
-      <Banner
-        v-else
-        color="warning"
-        :label="t('prometheusRule.groups.none')"
-      />
-    </div>
-    <div class="row mt-20">
-      <div class="col span-12">
-        <button
-          v-if="!isView"
-          type="button"
-          class="btn btn-sm role-secondary"
-          @click="addRuleGroup"
-        >
-          <t k="prometheusRule.groups.add" />
-        </button>
-      </div>
+      <Banner v-else color="warning" :label="t('prometheusRule.groups.none')" />
     </div>
   </CruResource>
 </template>
