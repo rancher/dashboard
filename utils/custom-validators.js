@@ -1,5 +1,6 @@
 import { flowOutput } from '@/utils/validators/flow-output';
 import { clusterIp, externalName, servicePort } from '@/utils/validators/service';
+import { ruleGroups, groupsAreValid } from '@/utils/validators/prometheusrule';
 
 /**
 * Custom validation functions beyond normal scalr types
@@ -10,5 +11,7 @@ export default {
   clusterIp,
   externalName,
   flowOutput,
+  groupsAreValid,
+  ruleGroups,
   servicePort,
 };
