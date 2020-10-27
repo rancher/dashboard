@@ -153,6 +153,15 @@ module.exports = {
       }
 
       config.module.rules.push({
+        test:    /\/pl\/.*\.(png|jpe?g|gif|svg|webp)$/,
+        loader:  'url-loader',
+        options: {
+          limit: false,
+          name:  'img/pl/[name].[ext]'
+        }
+      });
+
+      config.module.rules.push({
         test:    /\.ya?ml$/i,
         loader:  'js-yaml-loader',
         options: { name: '[path][name].[ext]' },

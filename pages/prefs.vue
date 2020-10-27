@@ -6,7 +6,7 @@ import {
   mapPref, THEME, LANDING, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC
 } from '@/store/prefs';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import { addObject, removeObject } from '@/utils/array';
+import { addObject } from '@/utils/array';
 
 export default {
   components: {
