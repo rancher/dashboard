@@ -2,6 +2,7 @@
 import InputWithSelect from '@/components/form/InputWithSelect';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import { get, set } from '@/utils/object';
 
 export default {
   components: {
@@ -18,9 +19,9 @@ export default {
       type:    Array,
       default: () => []
     },
-    showPathType: {
-      type:    Boolean,
-      default: false
+    ingress: {
+      type:     Object,
+      required: true
     }
   },
   data() {
@@ -30,7 +31,8 @@ export default {
       'ImplementationSpecific'
     ];
     const { backend = {}, path = '', pathType = pathTypes[0] } = this.value;
-    const { serviceName = '', servicePort = '' } = backend;
+    const serviceName = get(backend, this.ingress.serviceNamePath) || '';
+    const servicePort = get(backend, this.ingress.servicePortPath) || '';
 
     return {
       serviceName, servicePort, path, pathType, pathTypes
@@ -38,7 +40,7 @@ export default {
   },
   computed: {
     portOptions() {
-      const service = this.serviceTargets.find(s => s.label === this.value);
+      const service = this.serviceTargets.find(s => s.label === this.serviceName);
 
       return service?.ports || [];
     },
@@ -56,8 +58,11 @@ export default {
       const servicePort = Number.parseInt(this.servicePort) || this.servicePort;
       const serviceName = this.serviceName.label || this.serviceName;
       const out = {
-        backend: { serviceName, servicePort }, path: this.path, pathType: this.pathType
+        backend: {}, path: this.path, pathType: this.pathType
       };
+
+      set(out.backend, this.ingress.serviceNamePath, serviceName);
+      set(out.backend, this.ingress.servicePortPath, servicePort);
 
       this.$emit('input', out);
     },
@@ -71,7 +76,7 @@ export default {
 </script>
 <template>
   <div class="rule-path row">
-    <div v-if="showPathType" class="col span-6">
+    <div v-if="ingress.showPathType" class="col span-6">
       <InputWithSelect
         :options="pathTypes"
         :placeholder="t('ingress.rules.path.placeholder', undefined, true)"
@@ -83,7 +88,7 @@ export default {
     <div v-else class="col span-4">
       <input v-model="path" :placeholder="t('ingress.rules.path.placeholder', undefined, true)" @input="update" />
     </div>
-    <div class="col" :class="{'span-3': showPathType, 'span-4': !showPathType}">
+    <div class="col" :class="{'span-3': ingress.showPathType, 'span-4': !ingress.showPathType}">
       <LabeledSelect
         v-model="serviceName"
         option-label="label"
@@ -95,7 +100,7 @@ export default {
         @input="update(); servicePort = ''"
       />
     </div>
-    <div class="col" :class="{'span-2': showPathType, 'span-3': !showPathType}" :style="{'margin-right': '0px'}">
+    <div class="col" :class="{'span-2': ingress.showPathType, 'span-3': !ingress.showPathType}" :style="{'margin-right': '0px'}">
       <LabeledInput
         v-if="portOptions.length === 0"
         v-model="servicePort"

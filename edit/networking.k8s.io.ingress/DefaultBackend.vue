@@ -3,6 +3,8 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import Banner from '@/components/Banner';
+import { get, set } from '@/utils/object';
+
 export default {
   components: {
     LabeledInput, LabeledSelect, Banner
@@ -24,7 +26,9 @@ export default {
     }
   },
   data() {
-    const { serviceName = '', servicePort = '' } = this.value;
+    const backend = get(this.value.spec, this.value.defaultBackendPath);
+    const serviceName = get(backend, this.value.serviceNamePath) || '';
+    const servicePort = get(backend, this.value.servicePortPath) || '';
 
     return { serviceName, servicePort };
   },
@@ -58,9 +62,13 @@ export default {
   },
   methods: {
     update() {
-      const out = { serviceName: this.serviceName, servicePort: this.servicePort };
+      const backend = get(this.value.spec, this.value.defaultBackendPath) || {};
 
-      this.$emit('input', out);
+      set(backend, this.value.serviceNamePath, this.serviceName);
+      set(backend, this.value.servicePortPath, this.servicePort);
+      set(this.value.spec, this.value.defaultBackendPath, backend);
+
+      this.$emit('input', this.value);
     }
   },
 };
