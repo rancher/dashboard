@@ -38,7 +38,7 @@ export default {
     <div class="product">
       <ProductSwitcher v-if="currentCluster" />
       <div alt="Logo" class="logo">
-        <img src="~/assets/images/half-logo.svg" />
+        <img src="~/assets/images/pl/half-logo.svg" />
       </div>
     </div>
 

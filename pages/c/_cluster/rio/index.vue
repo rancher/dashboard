@@ -51,7 +51,7 @@ export default {
         </div>
       </div>
       <div class="col span-4">
-        <img src="~/assets/images/setup-step-one.svg" alt="landscape" />
+        <img src="~/assets/images/pl/setup-step-one.svg" alt="landscape" />
       </div>
     </div>
   </div>
