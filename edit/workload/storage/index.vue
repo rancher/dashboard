@@ -161,9 +161,11 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <ButtonDropdown v-if="!isView" :dual-action="false">
+        <ButtonDropdown v-if="mode!=='view'" ref="buttonDropdown" size="sm">
           <template #button-content>
-            <span>{{ t('workload.storage.addVolume') }}</span>
+            <button v-if="mode!=='view'" type="button" class="btn btn-sm text-primary bg-transparent" @click="addVolume(opt)">
+              {{ t('workload.storage.addVolume') }}
+            </button>
           </template>
           <template #popover-content>
             <ul class="list-unstyled menu">

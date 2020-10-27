@@ -463,7 +463,7 @@ export default {
       </div>
     </div>
 
-    <div v-if="!titleAdd && (showAdd || showRead)" class="footer mt-10">
+    <div v-if="!titleAdd && (showAdd || showRead)" class="footer">
       <slot name="add" :add="add">
         <ButtonDropdown size="sm">
           <template #button-content>
