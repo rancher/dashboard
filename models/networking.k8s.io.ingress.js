@@ -1,5 +1,6 @@
 import { SERVICE } from '@/config/types';
 import isUrl from 'is-url';
+import { get } from '@/utils/object';
 
 export default {
   tlsHosts() {
@@ -54,12 +55,12 @@ export default {
   createPathForDetailPage() {
     return (workloads, path) => {
       const pathPath = path.path || this.$rootGetters['i18n/t']('generic.na');
-      const serviceName = path?.backend.serviceName;
+      const serviceName = get(path?.backend, this.serviceNamePath);
       const targetLink = {
         url:  this.targetTo(workloads, serviceName),
         text: serviceName
       };
-      const port = path?.backend?.servicePort;
+      const port = get(path?.backend, this.servicePortPath);
 
       return {
         pathType: path.pathType, path: pathPath, targetLink, port
@@ -87,7 +88,7 @@ export default {
     return (workloads, rule, path) => {
       const hostValue = rule.host || '';
       const pathValue = path.path || '';
-      const serviceName = path?.backend?.serviceName;
+      const serviceName = get(path?.backend, this.serviceNamePath);
       let protocol = '';
 
       if (hostValue) {
@@ -109,16 +110,63 @@ export default {
 
   createDefaultService() {
     return (workloads) => {
-      const name = this.spec.backend?.serviceName;
+      const backend = get(this.spec, this.defaultBackendPath);
+      const serviceName = get(backend, this.serviceNamePath);
 
-      if ( !name ) {
+      if ( !serviceName ) {
         return null;
       }
 
       return {
-        name,
-        targetTo: this.targetTo(workloads, name)
+        name:     serviceName,
+        targetTo: this.targetTo(workloads, serviceName)
       };
     };
+  },
+
+  showPathType() {
+    const ingressExpandedSchema = this.$rootGetters['cluster/expandedSchema'](this.type);
+    const spec = ingressExpandedSchema?.expandedResourceFields?.spec;
+    const rules = spec?.expandedResourceFields?.rules;
+    const http = rules?.expandedSubType?.expandedResourceFields?.http;
+    const paths = http?.expandedResourceFields?.paths;
+    const pathType = paths?.expandedSubType?.expandedResourceFields?.pathType;
+
+    return !!pathType;
+  },
+
+  useNestedBackendField() {
+    const ingressExpandedSchema = this.$rootGetters['cluster/expandedSchema'](this.type);
+    const spec = ingressExpandedSchema?.expandedResourceFields?.spec;
+    const rules = spec?.expandedResourceFields?.rules;
+    const http = rules?.expandedSubType?.expandedResourceFields?.http;
+    const paths = http?.expandedResourceFields?.paths;
+    const backend = paths?.expandedSubType?.expandedResourceFields?.backend;
+    const service = backend?.expandedResourceFields?.service;
+    const name = service?.expandedResourceFields?.name;
+
+    return !!name;
+  },
+
+  serviceNamePath() {
+    const nestedPath = 'service.name';
+    const flatPath = 'serviceName';
+
+    return this.useNestedBackendField ? nestedPath : flatPath;
+  },
+
+  servicePortPath() {
+    const nestedPath = 'service.port.number';
+    const flatPath = 'servicePort';
+
+    return this.useNestedBackendField ? nestedPath : flatPath;
+  },
+
+  defaultBackendPath() {
+    const ingressExpandedSchema = this.$rootGetters['cluster/expandedSchema'](this.type);
+    const spec = ingressExpandedSchema?.expandedResourceFields?.spec;
+    const defaultBackend = spec?.expandedResourceFields?.defaultBackend;
+
+    return defaultBackend ? 'defaultBackend' : 'backend';
   }
 };

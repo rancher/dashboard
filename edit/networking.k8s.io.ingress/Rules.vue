@@ -1,5 +1,5 @@
 <script>
-import { WORKLOAD_TYPES, INGRESS } from '@/config/types';
+import { WORKLOAD_TYPES } from '@/config/types';
 import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { _VIEW } from '@/config/query-params';
@@ -66,7 +66,7 @@ export default {
         }
       ];
 
-      if (this.showPathType) {
+      if (this.value.showPathType) {
         headers.unshift({
           name:      'pathType',
           label:     this.t('ingress.rules.headers.pathType'),
@@ -80,16 +80,6 @@ export default {
     ruleRows() {
       return this.value.createRulesForDetailPage(this.workloads);
     },
-    showPathType() {
-      const ingressExpandedSchema = this.$store.getters['cluster/expandedSchema'](INGRESS);
-      const spec = ingressExpandedSchema?.expandedResourceFields?.spec;
-      const rules = spec?.expandedResourceFields?.rules;
-      const http = rules?.expandedSubType?.expandedResourceFields?.http;
-      const paths = http?.expandedResourceFields?.paths;
-      const pathType = paths?.expandedSubType?.expandedResourceFields?.pathType;
-
-      return !!pathType;
-    }
   },
 
   methods: {
@@ -131,7 +121,7 @@ export default {
       :key="i"
       :value="rule"
       :service-targets="serviceTargets"
-      :show-path-type="showPathType"
+      :ingress="value"
       @remove="e=>removeRule(i)"
       @input="e=>updateRule(e,i)"
     />
