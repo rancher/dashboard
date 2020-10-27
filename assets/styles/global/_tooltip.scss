@@ -233,14 +233,8 @@
 
     .button-divider {
       border-right: 1px solid var(--link-text);
-      margin: 10px 0;
     }
-
-    &.btn-xs {
-      .button-divider {
-        margin: 1px 0;
-      }
-    }
+    
     &.bg-primary:hover {
       background: var(--accent-btn-hover);
     }

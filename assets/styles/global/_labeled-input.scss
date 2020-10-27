@@ -11,11 +11,12 @@
     transition-property: transform, font-size;
     transition-duration: 0.1s;
     transition-timing-function: ease-in-out;
-    z-index: z-index('zero');
     color: var(--input-label);
-    // &.has-tooltip{
-    //   z-index: z-index('hoverOverContent');
-    // }
+    pointer-events: none;
+    z-index: z-index('overContent');
+    i {
+      pointer-events: initial;
+    }
   }
 
   /*
