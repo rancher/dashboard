@@ -87,6 +87,11 @@ export default {
       default: true
     },
 
+    mangleActionResources: {
+      type:    Function,
+      default: null,
+    },
+
     rowActionsWidth: {
       // How wide the action dropdown column should be
       type:    Number,
