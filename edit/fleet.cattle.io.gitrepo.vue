@@ -419,7 +419,6 @@ export default {
     <ArrayList
       v-model="value.spec.paths"
       :mode="mode"
-      :value-multiline="false"
       :initial-empty-row="false"
       :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
       :add-label="t('fleet.gitRepo.paths.addLabel')"

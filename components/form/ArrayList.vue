@@ -12,6 +12,8 @@ import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
   - Concealed value
 */
 
+const DEFAULT_PROTIP = 'ProTip: Paste lines into any list field for easy bulk entry';
+
 export default {
   components: { TextAreaAutoGrow },
 
@@ -39,7 +41,7 @@ export default {
     },
     protip: {
       type:    [String, Boolean],
-      default: 'ProTip: Paste lines into any list field for easy bulk entry',
+      default: DEFAULT_PROTIP,
     },
     showHeader: {
       type:    Boolean,
@@ -61,7 +63,7 @@ export default {
     },
     valueMultiline: {
       type:    Boolean,
-      default: true,
+      default: false,
     },
     valueConcealed: {
       type:    Boolean,
@@ -134,6 +136,18 @@ export default {
     showRemove() {
       return !this.isView && this.removeAllowed;
     },
+
+    isDefaultProtip() {
+      return this.protip === DEFAULT_PROTIP;
+    },
+
+    showProtip() {
+      if (this.protip && !this.isDefaultProtip) {
+        return true;
+      }
+
+      return !this.valueMultiline && this.protip;
+    }
   },
 
   watch: {
@@ -175,7 +189,8 @@ export default {
       const out = [];
 
       for ( const row of this.rows ) {
-        const value = (typeof row.value === 'string') ? row.value.trim() : row.value;
+        const trim = !this.valueMultiline && (typeof row.value === 'string');
+        const value = trim ? row.value.trim() : row.value;
 
         if ( typeof value !== 'undefined' ) {
           out.push(value);
@@ -186,6 +201,10 @@ export default {
     },
 
     onPaste(index, event) {
+      if (this.valueMultiline) {
+        return;
+      }
+
       event.preventDefault();
       const text = event.clipboardData.getData('text/plain');
       const split = text.split('\n').map(value => ({ value }));
@@ -202,7 +221,7 @@ export default {
     <div v-if="title" class="clearfix">
       <h4>
         {{ title }}
-        <i v-if="protip" v-tooltip="protip" class="icon icon-info" />
+        <i v-if="showProtip" v-tooltip="protip" class="icon icon-info" />
         <button v-if="titleAdd && showAdd" type="button" class="btn btn-xs role-tertiary p-5 ml-10" style="position: relative; top: -3px;" @click="add">
           <i class="icon icon-plus icon-lg icon-fw" />
         </button>

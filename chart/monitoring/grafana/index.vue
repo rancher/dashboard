@@ -237,7 +237,6 @@ export default {
               table-class="fixed"
               :mode="mode"
               :pad-left="false"
-              :protip="true"
               :title="t('monitoring.grafana.storage.finalizers')"
             />
           </div>

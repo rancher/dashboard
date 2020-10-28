@@ -62,7 +62,7 @@ export default {
 </script>
 
 <template>
-  <ArrayList v-model="localValue" class="namespace-list" :mode="mode" default-add-value="default">
+  <ArrayList v-model="localValue" class="namespace-list" :mode="mode" default-add-value="default" :protip="false">
     <template v-slot:columns="scope">
       <div class="input-container">
         <LabeledSelect
