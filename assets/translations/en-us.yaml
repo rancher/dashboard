@@ -701,7 +701,7 @@ logging:
 longhorn:
   overview:
     title: Overview
-    subtitle: "Powered By: <a href='https://github.com/longhorn' target='_blank' rel='noopener nofollow' >Longhorn</a>"
+    subtitle: "Powered By: <a href='https://github.com/longhorn' target='_blank' rel='noopener nofollow noreferrer' >Longhorn</a>"
     linkedList:
       longhorn:
         label: 'Longhorn'
@@ -713,7 +713,9 @@ monitoring:
     many: ReadWriteMany
     once: ReadWriteOnce
     readOnlyMany: ReadOnlyMany
-  aggregateDefaultRoles: Aggregate to Default Kubernetes Roles
+  aggregateDefaultRoles: 
+    label: Aggregate to Default Kubernetes Roles
+    tip: Adds labels to the ClusterRoles deployed by the Monitoring chart to <a target="_blank" rel="noopener nofollow noreferrer" href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles"> aggregate to the corresponding default k8s admin, edit, and view ClusterRoles.</a>
   alerting:
     config:
       label: Alert Manager Cofig
@@ -740,7 +742,9 @@ monitoring:
   clusterType:
     label: Cluster Type
     placeholder: Select cluster type
-  createDefaultRoles: Create Default Monitoring Cluster Roles
+  createDefaultRoles: 
+    label: Create Default Monitoring Cluster Roles
+    tip: Creates <code>monitoring-admin</code>, <code>monitoring-edit</code>, and <code>monitoring-view</code> ClusterRoles that can be assigned to users to provide permissions to CRDs installed by the Monitoring chart.
   grafana:
     storage:
       annotations: PVC Annotations

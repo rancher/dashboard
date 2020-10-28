@@ -377,16 +377,16 @@ export default {
 
 <template>
   <div class="key-value" :class="mode">
-    <template v-if="title || !!$slots.title">
-      <div v-if="title" class="clearfix">
+    <div v-if="title" class="clearfix">
+      <slot name="title">
         <h3>
           {{ title }}
           <button v-if="titleAdd && showAdd" type="button" class="btn btn-xs role-tertiary p-5 ml-10" style="position: relative; top: -3px;" @click="add()">
             <i class="icon icon-plus icon-lg icon-fw" />
           </button>
         </h3>
-      </div>
-    </template>
+      </slot>
+    </div>
 
     <div v-if="rows.length || isView" :class="{'extra-column':threeColumns}" class="kv-row headers">
       <label class="text-label" :class="{'view':isView}">

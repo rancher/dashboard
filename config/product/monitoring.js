@@ -138,10 +138,13 @@ export function init(store) {
     ROUTE,
     SERVICEMONITOR,
     PODMONITOR,
+  ]);
+
+  basicType([
     PROMETHEUSRULE,
     ALERTMANAGER,
     PROMETHEUS
-  ]);
+  ], 'Advanced');
 
   mapType(SERVICEMONITOR, store.getters['i18n/t'](`typeLabel.${ SERVICEMONITOR }`, { count: 2 }));
   mapType(PODMONITOR, store.getters['i18n/t'](`typeLabel.${ PODMONITOR }`, { count: 2 }));

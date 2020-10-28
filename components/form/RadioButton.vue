@@ -96,13 +96,13 @@ export default {
       :aria-checked="isChecked"
       role="radio"
     />
-    <span
+    <label
       v-if="label"
       :class="[ disabled ? 'text-muted' : '', 'radio-label']"
       v-html="label"
     >
       <slot name="label">{{ label }}</slot>
-    </span>
+    </label>
   </label>
 </template>
 
@@ -133,7 +133,6 @@ export default {
   padding-bottom: 5px;
 
   .radio-label {
-    color: var(--input-label);
     margin: 3px 10px 0px 5px;
   }
 

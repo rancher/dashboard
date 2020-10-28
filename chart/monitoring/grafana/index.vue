@@ -115,6 +115,7 @@ export default {
           existingClaim: null,
           subPath:       null,
           type:          null,
+          enabled:          true,
         };
         break;
       case 'pvc':
@@ -126,6 +127,7 @@ export default {
           type:             'pvc',
           annotations:      null,
           finalizers:       null,
+          enabled:          true,
         };
         break;
       case 'statefulset':
@@ -135,6 +137,7 @@ export default {
           size:             null,
           subPath:          null,
           type:             'statefulset',
+          enabled:          true,
         };
         break;
       default:
@@ -215,9 +218,6 @@ export default {
           </div>
         </div>
         <div class="mt-20">
-          <div class="mb-5 mt-5">
-            <label class="text-label mb-10">{{ t('monitoring.grafana.storage.annotations') }}</label>
-          </div>
           <div class="row">
             <div class="col span-12">
               <KeyValue
@@ -226,7 +226,12 @@ export default {
                 :pad-left="false"
                 :protip="true"
                 :read-allowed="false"
-              />
+                :title="t('monitoring.grafana.storage.annotations')"
+              >
+                <template #title>
+                  <h4>{{ t('monitoring.grafana.storage.annotations') }}</h4>
+                </template>
+              </KeyValue>
             </div>
           </div>
         </div>
@@ -238,7 +243,11 @@ export default {
               :mode="mode"
               :pad-left="false"
               :title="t('monitoring.grafana.storage.finalizers')"
-            />
+            >
+              <template #title>
+                <h4>{{ t('monitoring.grafana.storage.finalizers') }}</h4>
+              </template>
+            </ArrayList>
           </div>
         </div>
       </template>
