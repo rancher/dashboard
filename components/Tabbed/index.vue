@@ -3,6 +3,7 @@ import head from 'lodash/head';
 import isEmpty from 'lodash/isEmpty';
 import { addObject, removeObject, findBy } from '@/utils/array';
 import { sortBy } from '@/utils/sort';
+import findIndex from 'lodash/findIndex';
 
 export default {
   name: 'Tabbed',
@@ -14,6 +15,11 @@ export default {
     },
 
     sideTabs: {
+      type:    Boolean,
+      default: false
+    },
+
+    showTabsAddRemove: {
       type:    Boolean,
       default: false
     },
@@ -233,7 +239,15 @@ export default {
           return nxt;
         }
       }
-    }
+    },
+    tabAddClicked() {
+      this.$emit('addTab');
+    },
+    tabRemoveClicked() {
+      const activeTabIndex = findIndex(this.tabs, tab => tab.active);
+
+      this.$emit('removeTab', activeTabIndex);
+    },
   },
 };
 </script>
@@ -290,6 +304,16 @@ export default {
           </a>
         </li>
       </template>
+      <ul v-if="sideTabs && showTabsAddRemove" class="tab-list-footer">
+        <li>
+          <button type="button" class="btn bg-transparent" @click="tabAddClicked">
+            <i class="icon icon-plus" />
+          </button>
+          <button type="button" class="btn bg-transparent" @click="tabRemoveClicked">
+            <i class="icon icon-minus" />
+          </button>
+        </li>
+      </ul>
     </ul>
     <div class="tab-container">
       <slot />
@@ -361,6 +385,9 @@ export default {
     & .tabs {
       width: $sideways-tabs-width;
       min-width: $sideways-tabs-width;
+      display: flex;
+      flex: 1 0;
+      flex-direction: column;
 
       & .tab {
         width: 100%;
@@ -381,6 +408,31 @@ export default {
           & A{
             color: var(--input-label);
           }
+        }
+      }
+      .tab-list-footer {
+        list-style: none;
+        padding: 0;
+        margin-top: auto;
+
+        li {
+          display: flex;
+          flex: 1;
+
+          .btn {
+            flex: 1 1;
+          }
+
+          button:first-of-type {
+            border-top: solid thin var(--border);
+            border-right: solid thin var(--border);
+            border-top-right-radius: 0;
+          }
+          button:last-of-type {
+            border-top: solid thin var(--border);
+            border-top-left-radius: 0;
+          }
+
         }
       }
     }

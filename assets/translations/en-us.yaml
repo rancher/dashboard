@@ -21,6 +21,7 @@ generic:
   name: Name
   none: None
   number: '{prefix}{value, number}{suffix}'
+  overview: Overview
   plusMore: + {n} more
   readFromFile: Read from File
   remove: Remove
@@ -294,6 +295,7 @@ catalog:
       readme: Chart README
       notes: Release Notes
       values: Values YAML
+      resources: Resources
 
 chartHeading:
   overview: Overview
@@ -798,10 +800,10 @@ monitoring:
       resourceLimits: Resource Limits
       scrape: Scrape Interval
       ignoreNamespaceSelectors:
-        label: Use Namespace Selectors
+        label: Namespace Selectors
         radio:
-          enforced: "Use: Monitors can access resources in the namespace specified in the namespaceSelector field"
-          ignored: "Ignore: Monitors can only access resources in the deployed namespace that they are deployed in"
+          enforced: "Use: Monitors can access resources based on namespaces that match the namespace selector field"
+          ignored: "Ignore: Monitors can only access resources in the namespace they are deployed in"
         help: Ignoring Namespace Selectors allows Cluster Admins to limit teams from monitoring resources outside of namespaces they have permissions to but can break the functionality of Apps that rely on setting up Monitors that scrape targets across multiple namespaces, such as Istio.
     storage:
       className: Storage Class Name
@@ -904,6 +906,62 @@ prefs:
   advanced: Advanced
   dev:
     label: Enable Developer Tools
+  hideDesc:
+    label: Hide All Type Description Boxes
+
+prometheusRule:
+  alertingRules:
+    addLabel: Add Alert
+    annotations:
+      description:
+        input: Description Annotation Value
+        label: Description
+      label: Annotations
+      message:
+        input: Message Annotation Value
+        label: Message
+      runbook:
+        input: Runbook URL Annotation Value
+        label: Runbook URL
+      summary:
+        input: Summary Annotation Value
+        label: Summary
+    bannerText: 'When firing alerts, the annotations and labels will be passed to the configured AlertManagers to allow them to construct the notification that will be sent to any configured Receivers.'
+    for:
+      label: Wait to fire for
+      placeholder: '60'
+    label: Alerting Rules
+    labels:
+      label: Labels
+      severity:
+        choices:
+          critical: critical
+          label: Severity Label Value
+          none: none
+          warning: warning
+        label: Severity
+    name: Alert Name
+    removeAlert: Remove Alert
+  groups:
+    add: Add Rule Group
+    groupRowLabel: Rule Group {index}
+    groupInterval:
+      label: Override Group Interval
+      placeholder: '60'
+    label: Rule Groups
+    name: Group Name
+    none: Please add at least one rule group that contains at least one alerting or one recording rule.
+    removeGroup: Remove Group
+    responseStrategy:
+      label: Partial Response Strategy
+  promQL:
+    label: PromQL Expression
+  recordingRules:
+    addLabel: Add Record
+    label: Recording Rules
+    labels: Labels
+    name: Time Series Name
+    removeRecord: Remove Record
 
 promptRemove:
   andOthers: |-
@@ -1218,7 +1276,7 @@ validation:
     min: '"{key}" should contain at least {count} {count, plural, =1 {item} other {items}}'
   chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
   custom:
-    missing: "No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?"
+    missing: 'No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?'
   dns:
     doubleHyphen: '"{key}" Cannot contain two or more consecutive hyphens'
     hostname:
@@ -1238,8 +1296,8 @@ validation:
       startNumber: '"{key}" cannot start with a number'
       tooLongLabel: '"{key}" cannot be more than {max} characters'
   flowOutput:
-    global: Requires "Cluster Output" to be selected.
     both: Requires "Output" or "Cluster Output" to be selected.
+    global: Requires "Cluster Output" to be selected.
   k8s:
     identifier:
       emptyLabel: '"{key}" cannot have an empty key'
@@ -1255,24 +1313,36 @@ validation:
     exactly: '"{key}" should be exactly {val}'
     max: '"{key}" should be at most {val}'
     min: '"{key}" should be at least {val}'
+  prometheusRule:
+    groups:
+      required: At least one rule group is required.
+      singleAlert: A rule may contain alert rules or recording rules but not both.
+      valid:
+        name: 'Name is required for rule group {index}.'
+        rule:
+          alertName: 'Rule group {groupIndex} rule {ruleIndex} requires a Alert Name.'
+          expr: 'Rule group {groupIndex} rule {ruleIndex} requires a PromQL Expression.'
+          labels: 'Rule group {groupIndex} rule {ruleIndex} requires at least one label. Severity is recommended.'
+          recordName: 'Rule group {groupIndex} rule {ruleIndex} requires a Time Series Name.'
+        singleEntry: 'At least one alert rule or one recording rule is required in rule group {index}.'
   required: '"{key}" is required'
   requiredOrOverride: '"{key}" is required or must allow override'
   service:
     externalName:
-      none: 'External Name is required on an ExternalName Service.'
+      none: External Name is required on an ExternalName Service.
     ports:
       name:
-        required: "Port Rule [{position}] - Name is required."
+        required: 'Port Rule [{position}] - Name is required.'
       nodePort:
-        requriedInt: "Port Rule [{position}] - Node Port must be interger values if included."
+        requriedInt: 'Port Rule [{position}] - Node Port must be interger values if included.'
       port:
-        required: "Port Rule [{position}] - Port is required."
-        requriedInt: "Port Rule [{position}] - Port must be interger values if included."
+        required: 'Port Rule [{position}] - Port is required.'
+        requriedInt: 'Port Rule [{position}] - Port must be interger values if included.'
       targetPort:
-        between: "Port Rule [{position}] - Target Port must be between 1 and 65535"
-        iana: "Port Rule [{position}] - Target Port must be an IANA Service Name or Integer"
-        ianaAt: "Port Rule [{position}] - Target Port "
-        required: "Port Rule [{position}] - Target Port is required"
+        between: 'Port Rule [{position}] - Target Port must be between 1 and 65535'
+        iana: 'Port Rule [{position}] - Target Port must be an IANA Service Name or Integer'
+        ianaAt: 'Port Rule [{position}] - Target Port '
+        required: 'Port Rule [{position}] - Target Port is required'
   stringLength:
     between: '"{key}" should be between {min} and {max} {max, plural, =1 {character} other {characters}}'
     exactly: '"{key}" should be {count, plural, =1 {# character} other {# characters}}'
@@ -1471,7 +1541,7 @@ workload:
         normal: Normal
       placeholder: Select a Mode...
     dns: DNS
-    resolver: 
+    resolver:
       label: Resolver Options
       add: Add Option
     searches:
@@ -1547,7 +1617,6 @@ workload:
       secret: Secret
       configMap: ConfigMap
       hostPath: Bind-Mount
-      certificate: Certificate
       persistentVolumeClaim: Persistent Volume Claim
       createPVC: Create Persistent Volume Claim
       csi: CSI
@@ -1832,4 +1901,9 @@ typeLabel:
     {count, plural,
       one { Thanos Rule }
       other { Thanos Rules }
+    }
+  monitoring.coreos.com.receiver: |-
+    {count, plural,
+      one { Receiver }
+      other { Receivers }
     }

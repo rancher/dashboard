@@ -150,7 +150,7 @@ function toPercent(value, min, max) {
     }
   }
 
-  .multi .piece.bg-success:only-child {
+  .piece.bg-success:only-child {
     opacity: 0.5;
   }
 </style>

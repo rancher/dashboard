@@ -104,7 +104,7 @@ export default {
     }
 
     .vs__dropdown-toggle {
-      height: calc(var(--header-height) - 18px);
+      height: calc(var(--header-height) - 19px);
       background-color: transparent;
       border: 0;
 
@@ -117,6 +117,7 @@ export default {
       user-select: none;
       cursor: default;
       color: white;
+      line-height: calc(var(--header-height) - 32px);
     }
   }
 

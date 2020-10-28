@@ -3,9 +3,10 @@ import day from 'dayjs';
 import ButtonGroup from '@/components/ButtonGroup';
 import Checkbox from '@/components/form/Checkbox';
 import {
-  mapPref, THEME, LANDING, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE
+  mapPref, THEME, LANDING, KEYMAP, DEV, DATE_FORMAT, TIME_FORMAT, ROWS_PER_PAGE, HIDE_DESC
 } from '@/store/prefs';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import { addObject } from '@/utils/array';
 
 export default {
   components: {
@@ -15,10 +16,11 @@ export default {
     theme:      mapPref(THEME),
     keymap:     mapPref(KEYMAP),
     dev:        mapPref(DEV),
+    landing:    mapPref(LANDING),
     dateFormat: mapPref(DATE_FORMAT),
     timeFormat: mapPref(TIME_FORMAT),
     perPage:    mapPref(ROWS_PER_PAGE),
-    landing:    mapPref(LANDING),
+    hideDesc:   mapPref(HIDE_DESC),
 
     themeOptions() {
       const t = this.$store.getters['i18n/t'];
@@ -92,6 +94,26 @@ export default {
 
       return this.$store.getters['prefs/options'](ROWS_PER_PAGE).map(count => t('prefs.perPage.value', { count }));
     },
+
+    hideDescriptions: {
+      get() {
+        return this.hideDesc.includes('ALL');
+      },
+
+      set(neu) {
+        let val;
+
+        if ( neu ) {
+          val = this.hideDesc.slice();
+          addObject(val, 'ALL');
+        } else {
+          // On unset, clear all remembered individual ones too
+          val = [];
+        }
+
+        this.hideDesc = val;
+      }
+    },
   },
 };
 </script>
@@ -146,6 +168,7 @@ export default {
       <div class="col span-4">
         <h4 v-t="'prefs.advanced'" />
         <Checkbox v-model="dev" :label="t('prefs.dev.label')" />
+        <Checkbox v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
       </div>
     </div>
   </div>

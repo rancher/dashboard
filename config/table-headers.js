@@ -94,10 +94,11 @@ export const NAME_UNLINKED = {
 };
 
 export const NAMESPACE = {
-  name:     'namespace',
-  labelKey: 'tableHeaders.namespace',
-  value:    'metadata.namespace',
-  sort:     'namespace',
+  name:        'namespace',
+  labelKey:    'tableHeaders.namespace',
+  value:       'namespace',
+  sort:        'namespace',
+  dashIfEmpty: true,
 };
 
 export const NODE = {
@@ -562,6 +563,17 @@ export const FLEET_SUMMARY = {
   sort:      false,
   search:    false,
   formatter: 'FleetSummaryGraph',
+  align:     'center',
+  width:     100,
+};
+
+export const APP_SUMMARY = {
+  name:      'summary',
+  labelKey:  'tableHeaders.resources',
+  value:     'deployedResources.length',
+  sort:      false,
+  search:    false,
+  formatter: 'AppSummaryGraph',
   align:     'center',
   width:     100,
 };

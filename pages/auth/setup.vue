@@ -391,7 +391,7 @@ export default {
           </div>
         </div>
         <div class="col span-6">
-          <img src="~/assets/images/setup-step-one.svg" />
+          <img src="~/assets/images/pl/setup-step-one.svg" />
         </div>
       </div>
     </form>
@@ -482,7 +482,7 @@ export default {
           </div>
         </div>
         <div class="col span-6">
-          <img src="~/assets/images/setup-step-one.svg" />
+          <img src="~/assets/images/pl/setup-step-one.svg" />
         </div>
       </div>
     </form>
@@ -516,7 +516,7 @@ export default {
           </div>
         </div>
         <div class="col span-6">
-          <img src="~/assets/images/setup-step-one.svg" />
+          <img src="~/assets/images/pl/setup-step-one.svg" />
         </div>
       </div>
     </form>

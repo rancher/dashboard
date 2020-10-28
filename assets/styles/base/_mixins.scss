@@ -58,7 +58,7 @@
   padding-bottom: 20px;
 }
 
-@mixin divider {
+@mixin section-divider {
   margin-bottom: 20px;
   margin-top: 20px;
 }
@@ -72,7 +72,7 @@
 .clip             { @include clip }
 .force-wrap       { @include force-wrap }
 .bordered-section { @include bordered-section }
-.divider          { @include divider }
+.section-divider  { @include section-divider }
 
 /// Sets the specified background color and calculates a dark or light contrasted text color.
 @mixin contrasted($background-color, $dark: $contrasted-dark, $light: $contrasted-light) {

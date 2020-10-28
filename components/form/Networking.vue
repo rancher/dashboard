@@ -190,7 +190,7 @@ export default {
         </div>
       </div>
     </div>
-    <hr class="divider" />
+    <hr class="section-divider" />
 
     <div>
       <h3>{{ t('workload.networking.dns') }}</h3>
@@ -202,7 +202,6 @@ export default {
             :title="t('workload.networking.nameservers.label')"
             :value-placeholder="t('workload.networking.nameservers.placeholder')"
             :add-label="t('workload.networking.nameservers.add')"
-            :value-multiline="false"
             :mode="mode"
             :pad-left="false"
             :protip="false"
@@ -216,7 +215,6 @@ export default {
             :title="t('workload.networking.searches.label')"
             :value-placeholder="t('workload.networking.searches.placeholder')"
             :add-label="t('workload.networking.searches.add')"
-            :value-multiline="false"
             :mode="mode"
             :pad-left="false"
             :protip="false"
@@ -225,6 +223,7 @@ export default {
         </div>
       </div>
     </div>
+    <hr class="section-divider" />
 
     <div class="mt-20">
       <div class="row">
@@ -241,6 +240,7 @@ export default {
         />
       </div>
     </div>
+    <hr class="section-divider" />
 
     <div class="row mt-20">
       <div class="col span-12">

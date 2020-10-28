@@ -131,7 +131,7 @@ export default {
         </div>
       </div>
     </div>
-    <hr class="divider" />
+    <hr class="section-divider" />
 
     <div>
       <div class="row">
@@ -158,7 +158,7 @@ export default {
         </div>
       </div>
     </div>
-    <hr class="divider" />
+    <hr class="section-divider" />
 
     <div class="row mb-10">
       <div class="col span-6">

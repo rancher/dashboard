@@ -79,6 +79,7 @@ export default {
     @click.stop="clicked($event)"
   >
     <input
+      :id="_uid+'-radio'"
       :disabled="disabled"
       :name="name"
       :value="''+val"
@@ -138,6 +139,8 @@ export default {
  .radio-custom {
     height: 14px;
     width: 14px;
+    min-height: 14px;
+    min-width: 14px;
     background-color: var(--input-bg);
     border-radius: 50%;
     transition: all 0.3s ease-out;
@@ -153,13 +156,15 @@ export default {
     display: none;
   }
 
-  input:checked ~ .radio-custom {
+  .radio-custom {
+    &[aria-checked="true"] {
       background-color: var(--dropdown-text);
       -webkit-transform: rotate(0deg) scale(1);
       -ms-transform: rotate(0deg) scale(1);
       transform: rotate(0deg) scale(1);
       opacity:1;
       border: 1.5px solid var(--dropdown-text);
+    }
   }
 
   input:disabled ~ .radio-custom {

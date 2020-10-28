@@ -61,6 +61,11 @@ export default {
     showFooter: {
       type:    Boolean,
       default: true
+    },
+
+    saveOverride: {
+      type:    Function,
+      default: null
     }
   },
 
@@ -244,36 +249,40 @@ export default {
           return onError.call(this, err);
         }
 
-        if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
-          const err = this.$store.getters['i18n/t']('resourceYaml.errors.namespaceRequired');
-
-          return onError.call(this, err);
-        }
-
-        if ( this.isCreate ) {
-          res = await this.schema.followLink('collection', {
-            method:  'POST',
-            headers: {
-              'content-type': 'application/yaml',
-              accept:         'application/json',
-            },
-            data: yaml
-          });
+        if (this.saveOverride) {
+          await this.saveOverride(parsed, this.value);
         } else {
-          const link = this.value.hasLink('rioupdate') ? 'rioupdate' : 'update';
+          if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
+            const err = this.$store.getters['i18n/t']('resourceYaml.errors.namespaceRequired');
 
-          res = await this.value.followLink(link, {
-            method:  'PUT',
-            headers: {
-              'content-type': 'application/yaml',
-              accept:         'application/json',
-            },
-            data: yaml
-          });
-        }
+            return onError.call(this, err);
+          }
 
-        if ( res && res.kind !== 'Table') {
-          await this.$store.dispatch(`${ inStore }/load`, { data: res, existing: (this.isCreate ? this.value : undefined) });
+          if ( this.isCreate ) {
+            res = await this.schema.followLink('collection', {
+              method:  'POST',
+              headers: {
+                'content-type': 'application/yaml',
+                accept:         'application/json',
+              },
+              data: yaml
+            });
+          } else {
+            const link = this.value.hasLink('rioupdate') ? 'rioupdate' : 'update';
+
+            res = await this.value.followLink(link, {
+              method:  'PUT',
+              headers: {
+                'content-type': 'application/yaml',
+                accept:         'application/json',
+              },
+              data: yaml
+            });
+          }
+
+          if ( res && res.kind !== 'Table') {
+            await this.$store.dispatch(`${ inStore }/load`, { data: res, existing: (this.isCreate ? this.value : undefined) });
+          }
         }
 
         await this.$emit('apply-hooks', AFTER_SAVE_HOOKS);

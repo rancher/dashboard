@@ -16,9 +16,9 @@ export default {
       type:    Array,
       default: () => [],
     },
-    showPathType: {
-      type:    Boolean,
-      default: false
+    ingress: {
+      type:     Object,
+      required: true
     }
   },
   data() {
@@ -78,13 +78,13 @@ export default {
       </div>
     </div>
     <div class="rule-path-headings row">
-      <div class="col" :class="{'span-6': showPathType, 'span-4': !showPathType}">
+      <div class="col" :class="{'span-6': ingress.showPathType, 'span-4': !ingress.showPathType}">
         <label>{{ t("ingress.rules.path.label") }}</label>
       </div>
-      <div class="col" :class="{'span-3': showPathType, 'span-4': !showPathType}">
+      <div class="col" :class="{'span-3': ingress.showPathType, 'span-4': !ingress.showPathType}">
         <label>{{ t("ingress.rules.target.label") }}</label>
       </div>
-      <div class="col" :class="{'span-2': showPathType, 'span-3': !showPathType}" :style="{ 'margin-right': '0px' }">
+      <div class="col" :class="{'span-2': ingress.showPathType, 'span-3': !ingress.showPathType}" :style="{ 'margin-right': '0px' }">
         <label>{{ t("ingress.rules.port.label") }}</label>
       </div>
       <div class="col" />
@@ -96,7 +96,7 @@ export default {
         :value="path"
         :rule-mode="ruleMode"
         :service-targets="serviceTargets"
-        :show-path-type="showPathType"
+        :ingress="ingress"
         @input="(e) => $set(paths, i, e)"
         @remove="(e) => removePath(i)"
       />

@@ -38,7 +38,7 @@ export default {
         };
       }).filter(x => x.value > 0);
 
-      return sortBy(out, 'sort');
+      return sortBy(out, 'sort:desc');
     },
 
   },
@@ -48,7 +48,7 @@ export default {
 <template>
   <v-popover
     v-if="show"
-    class="text-cente handr"
+    class="text-center hand"
     placement="top"
     :open-group="row.id"
     :trigger="show ? 'click' : 'manual'"

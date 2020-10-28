@@ -8,6 +8,7 @@ import { _VIEW } from '@/config/query-params';
 import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
 import Tabbed from '@/components/Tabbed';
+import { get, set } from '@/utils/object';
 import DefaultBackend from './DefaultBackend';
 import Certificates from './Certificates';
 import Rules from './Rules';
@@ -84,8 +85,12 @@ export default {
       });
     },
     willSave() {
-      if (this.value?.spec?.backend && (!this.value?.spec?.backend?.serviceName || !this.value?.spec?.backend?.servicePort)) {
-        this.value.spec.backend = null;
+      const backend = get(this.value.spec, this.value.defaultBackendPath);
+      const serviceName = get(backend, this.value.serviceNamePath);
+      const servicePort = get(backend, this.value.servicePortPath);
+
+      if (backend && (!serviceName || !servicePort)) {
+        set(this.value.spec, this.value.defaultbackendPath, null);
       }
     },
   }
@@ -120,7 +125,7 @@ export default {
         <Certificates v-model="value" :mode="mode" :secrets="allSecrets" />
       </Tab>
       <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="1">
-        <DefaultBackend v-model="value.spec.backend" :service-targets="serviceTargets" :mode="mode" />
+        <DefaultBackend v-model="value" :service-targets="serviceTargets" :mode="mode" />
       </Tab>
       <Tab
         name="labels-and-annotations"

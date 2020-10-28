@@ -201,7 +201,7 @@ export default {
     },
     onTabChanged({ tab }) {
       // This is necessary to force the yamlEditor to adjust the size once it has space to fill.
-      if (tab.name === 'parameters') {
+      if (tab.name === 'parameters' & this.$refs.yamlEditor?.refresh) {
         this.$refs.yamlEditor.refresh();
       }
     }
