@@ -83,7 +83,6 @@ export default {
           title="IP Addresses"
           value-placeholder="e.g. 1.1.1.1"
           add-label="Add Address"
-          :value-multiline="false"
           :mode="mode"
           :pad-left="false"
           :protip="false"

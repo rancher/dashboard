@@ -345,6 +345,31 @@ export default {
         byteSize
       };
     },
+    onPaste(index, event, pastedValue) {
+      const text = event.clipboardData.getData('text/plain');
+      const lines = text.split('\n');
+      const splits = lines.map((line) => {
+        if (line.includes(':')) {
+          return line.split(':');
+        }
+
+        return line.split('=');
+      });
+
+      if (splits.length === 0 || (splits.length === 1 && splits[0].length < 2)) {
+        return;
+      }
+      event.preventDefault();
+
+      const keyValues = splits.map(split => ({
+        [this.keyName]:   (split[0] || '').trim(),
+        [this.valueName]: (split[1] || '').trim(),
+        _display:         this.displayProps(split[1])
+      }));
+
+      this.rows.splice(index, 1, ...keyValues);
+      this.queueUpdate();
+    },
     get
   }
 };
@@ -402,6 +427,7 @@ export default {
             v-model="row[keyName]"
             :placeholder="keyPlaceholder"
             @input="queueUpdate"
+            @paste="onPaste(i, $event)"
           />
         </slot>
       </div>

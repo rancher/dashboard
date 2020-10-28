@@ -296,7 +296,6 @@ export default {
               v-model="value.spec.externalIPs"
               :title="t('servicesPage.ips.external.label')"
               :value-placeholder="t('servicesPage.ips.external.placeholder')"
-              :value-multiline="false"
               :mode="mode"
               :pad-left="false"
               :protip="t('servicesPage.ips.external.protip')"
