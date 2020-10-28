@@ -5,6 +5,7 @@ import { sortBy } from '@/utils/sort';
 import { ucFirst } from '@/utils/string';
 import { createPopper } from '@popperjs/core';
 import $ from 'jquery';
+import { CATALOG } from '@/config/types';
 
 export default {
   data() {
@@ -92,7 +93,7 @@ export default {
         return;
       }
 
-      this.change('apps');
+      this.change('apps', 'c-cluster-product-resource', { resource: CATALOG.APP });
     },
 
     switchToExplorer() {
@@ -111,7 +112,7 @@ export default {
       this.change('fleet');
     },
 
-    change(product) {
+    change(product, route = '', moreParams = {}) {
       const entry = findBy(this.options, 'value', product);
 
       if ( !entry ) {
@@ -140,8 +141,12 @@ export default {
 
       // Try product-specific index first
       const opt = {
-        name:   `c-cluster-${ product }`,
-        params: { cluster: this.clusterId, product }
+        name:   route || `c-cluster-${ product }`,
+        params: {
+          cluster: this.clusterId,
+          product,
+          ...moreParams
+        }
       };
 
       if ( !this.$router.getMatchedComponents(opt).length ) {
