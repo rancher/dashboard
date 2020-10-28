@@ -1,8 +1,7 @@
 import r from 'jsrsasign';
 import { CERTMANAGER, KUBERNETES } from '@/config/labels-annotations';
 import { base64Decode } from '@/utils/crypto';
-import { addObjects, removeObjects } from '@/utils/array';
-import { WORKLOAD_TYPES } from '@/config/types';
+import { removeObjects } from '@/utils/array';
 
 export const TYPES = {
   OPAQUE:        'Opaque',
