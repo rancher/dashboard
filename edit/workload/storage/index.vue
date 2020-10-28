@@ -1,5 +1,4 @@
 <script>
-import { TYPES } from '@/models/secret';
 import { PVC } from '@/config/types';
 import { removeObject } from '@/utils/array.js';
 import ButtonDropdown from '@/components/ButtonDropdown';
@@ -131,6 +130,15 @@ export default {
         return require(`@/edit/workload/storage/${ type }.vue`).default;
       }
     },
+
+    openPopover() {
+      const button = this.$refs.buttonDropdown;
+
+      try {
+        button.togglePopover();
+      } catch (e) {
+      }
+    }
   }
 };
 </script>
@@ -161,7 +169,7 @@ export default {
       <div class="col span-6">
         <ButtonDropdown v-if="mode!=='view'" ref="buttonDropdown" size="sm">
           <template #button-content>
-            <button v-if="mode!=='view'" type="button" class="btn btn-sm text-primary bg-transparent" @click="addVolume(opt)">
+            <button v-if="mode!=='view'" type="button" class="btn btn-sm text-primary bg-transparent" @click="openPopover">
               {{ t('workload.storage.addVolume') }}
             </button>
           </template>

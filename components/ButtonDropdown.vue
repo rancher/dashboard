@@ -40,7 +40,12 @@ export default {
   methods: {
     hasSlot(name = 'default') {
       return !!this.$slots[name] || !!this.$scopedSlots[name];
-    }
+    },
+
+    // allows parent components to programmatically open the dropdown
+    togglePopover() {
+      this.$refs.popoverButton.click();
+    },
   }
 };
 </script>
@@ -78,6 +83,7 @@ export default {
       >
         <slot name="button-toggle-content" :buttonSize="buttonSize">
           <button
+            ref="popoverButton"
             class="icon-container bg-transparent"
             :class="buttonSize"
             type="button"
