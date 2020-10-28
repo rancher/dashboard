@@ -3,7 +3,6 @@ import { PVC } from '@/config/types';
 import { removeObject } from '@/utils/array.js';
 import ButtonDropdown from '@/components/ButtonDropdown';
 import Mount from '@/edit/workload/storage/Mount';
-
 import { _VIEW } from '@/config/query-params';
 
 export default {
@@ -66,7 +65,7 @@ export default {
         .map(path => path.replace(/(\.\/)|(.vue)/g, ''))
         .filter(file => file !== 'index' && file !== 'Mount' && file !== 'PVC');
 
-      const out = [...hasComponent, 'csi', 'certificate', 'configMap', 'createPVC', 'persistentVolumeClaim'];
+      const out = [...hasComponent, 'csi', 'configMap', 'createPVC', 'persistentVolumeClaim'];
 
       out.sort();
 
@@ -75,7 +74,8 @@ export default {
 
     pvcNames() {
       return this.pvcs.map(pvc => pvc.metadata.name);
-    }
+    },
+
   },
 
   created() {
@@ -91,11 +91,7 @@ export default {
 
   methods: {
     addVolume(type) {
-      if (type === 'certificate') {
-        this.value.volumes.push({
-          _type: 'certificate', secret: {}, name: `vol${ this.value.volumes.length }`
-        });
-      } else if (type === 'createPVC') {
+      if (type === 'createPVC') {
         this.value.volumes.push({
           _type: 'createPVC', persistentVolumeClaim: {}, name: `vol${ this.value.volumes.length }`
         });
@@ -115,13 +111,14 @@ export default {
     },
 
     volumeType(vol) {
-      return Object.keys(vol).filter(key => typeof vol[key] === 'object')[0];
+      const type = Object.keys(vol).filter(key => typeof vol[key] === 'object')[0];
+
+      return type;
     },
 
     // import component for volume type
     componentFor(type) {
       switch (type) {
-      case 'certificate':
       case 'configMap':
         return require(`@/edit/workload/storage/secret.vue`).default;
       case 'createPVC':
@@ -133,6 +130,15 @@ export default {
         return require(`@/edit/workload/storage/${ type }.vue`).default;
       }
     },
+
+    openPopover() {
+      const button = this.$refs.buttonDropdown;
+
+      try {
+        button.togglePopover();
+      } catch (e) {
+      }
+    }
   }
 };
 </script>
@@ -163,7 +169,7 @@ export default {
       <div class="col span-6">
         <ButtonDropdown v-if="mode!=='view'" ref="buttonDropdown" size="sm">
           <template #button-content>
-            <button v-if="mode!=='view'" type="button" class="btn btn-sm text-primary bg-transparent" @click="addVolume(opt)">
+            <button v-if="mode!=='view'" type="button" class="btn btn-sm text-primary bg-transparent" @click="openPopover">
               {{ t('workload.storage.addVolume') }}
             </button>
           </template>
