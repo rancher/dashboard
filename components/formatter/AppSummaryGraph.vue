@@ -1,7 +1,7 @@
 <script>
 import ProgressBarMulti from '@/components/ProgressBarMulti';
 import { ucFirst } from '@/utils/string';
-import { colorForState, stateSort } from '@/plugins/steve/resource-instance';
+import { colorForState, stateDisplay, stateSort } from '@/plugins/steve/resource-instance';
 import { sortBy } from '@/utils/sort';
 
 export default {
@@ -15,32 +15,34 @@ export default {
   },
 
   computed: {
-    summary() {
-      return this.row.status?.resourceCounts || {};
-    },
-
     show() {
       return this.stateParts.length > 0;
     },
 
     stateParts() {
-      const keys = Object.keys(this.summary).filter(x => !x.startsWith('desired'));
+      const out = {};
 
-      const out = keys.map((key) => {
-        const textColor = colorForState(key);
+      for ( const r of this.row.deployedResources ) {
+        const textColor = colorForState(r.state, r.error, r.transitioning);
+        const state = stateDisplay(r.state);
+        const key = `${ textColor }/${ state }`;
 
-        return {
-          label:     ucFirst(key),
-          color:     textColor.replace(/text-/, 'bg-'),
-          textColor,
-          value:     this.summary[key],
-          sort:      stateSort(textColor, key),
-        };
-      }).filter(x => x.value > 0);
+        if ( out[key] ) {
+          out[key].value = out[key].value + 1;
+        } else {
+          out[key] = {
+            key,
+            label:     state,
+            color:     textColor.replace(/text-/, 'bg-'),
+            textColor,
+            value:     1,
+            sort:      stateSort(textColor, state),
+          };
+        }
+      }
 
-      return sortBy(out, 'sort:desc');
-    },
-
+      return sortBy(Object.values(out), 'sort:desc');
+    }
   },
 };
 </script>
@@ -55,13 +57,12 @@ export default {
     offset="1"
   >
     <ProgressBarMulti :values="stateParts" class="mb-5" />
-    <span v-if="summary.desiredReady === summary.ready">{{ summary.ready }}</span>
-    <span v-else>{{ summary.ready }} of {{ summary.desiredReady }}</span>
+    <span>{{ row.deployedResources.length }}</span>
 
     <template #popover>
       <table v-if="show" class="fixed">
         <tbody>
-          <tr v-for="obj in stateParts" :key="obj.label">
+          <tr v-for="obj in stateParts" :key="obj.key">
             <td class="text-left pr-20" :class="{[obj.textColor]: true}">
               {{ obj.label }}
             </td>

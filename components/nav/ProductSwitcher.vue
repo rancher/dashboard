@@ -291,10 +291,6 @@ export default {
       .product-icon {
         color: var(--product-icon-active);
       }
-
-      A, A:hover, A:focus {
-        // color: var(--body-text);
-      }
     }
   }
 </style>
