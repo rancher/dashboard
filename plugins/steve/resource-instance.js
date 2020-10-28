@@ -1246,7 +1246,7 @@ export default {
             const validatorExists = Object.prototype.hasOwnProperty.call(CustomValidators, validatorName);
 
             if (!isEmpty(validatorName) && validatorExists) {
-              CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs);
+              CustomValidators[validatorName](pathValue, this.$rootGetters, errors, validatorArgs, displayKey);
             } else if (!isEmpty(validatorName) && !validatorExists) {
               // eslint-disable-next-line
               console.warn(this.t('validation.custom.missing', { validatorName }));

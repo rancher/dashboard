@@ -818,6 +818,13 @@ monitoring:
       block: Block
       file: Filesystem
   v1Warning: Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of Rancher with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new Rancher Monitoring chart in Cluster Explorer.
+  route:
+    fields:
+      receiver: Receiver
+      groupBy: Group By
+      groupWait: Group Wait
+      groupInterval: Group Interval
+      repeatInterval: Repeat Interval
 
 nameNsDescription:
   name:
@@ -1346,6 +1353,10 @@ validation:
     min: '"{key}" should be at least {count} {count, plural, =1 {character} other {characters}}'
   targets:
     missingProjectId: A target must have a project selected.
+  monitoring:
+    route:
+      match: At least one Match or Match Regex must be selected
+      interval: '"{key}" must be of a format with digits followed by a unit i.e. 1h, 2m, 30s'
 
 wizard:
   back: Back
@@ -1902,4 +1913,9 @@ typeLabel:
     {count, plural,
       one { Receiver }
       other { Receivers }
+    }
+  monitoring.coreos.com.route: |-
+    {count, plural,
+      one { Route }
+      other { Routes }
     }

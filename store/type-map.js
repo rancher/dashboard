@@ -1219,6 +1219,15 @@ export const mutations = {
     state.uncreatable.push(match);
   },
 
+  removeUncreatableType(state, {match}) {
+    match = ensureRegex(match);
+    match = regexToString(match);
+    const matchingIndex = state.uncreatable.findIndex((regex) => regex === match);
+    if (matchingIndex >= 0) {
+      state.uncreatable.splice(matchingIndex, 1);
+    }
+  },
+
   immutableType(state, { match }) {
     match = ensureRegex(match);
     match = regexToString(match);
@@ -1266,6 +1275,12 @@ export const actions = {
 
     dispatch('prefs/set', { key: EXPANDED_GROUPS, value: groups }, { root: true });
   },
+  uncreatableType({ commit }, match) {
+    commit(`uncreatableType`, match);
+  },
+  removeUncreatableType({ commit }, match) {
+    commit(`removeUncreatableType`, match);
+  }
 };
 
 function _sortGroup(tree, mode) {

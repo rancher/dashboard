@@ -87,7 +87,9 @@ export const MONITORING = {
     RECEIVER_EMAIL:       'monitoring.coreos.com.receiver.email',
     RECEIVER_SLACK:       'monitoring.coreos.com.receiver.slack',
     RECEIVER_WEBHOOK:     'monitoring.coreos.com.receiver.webhook',
-    RECEIVER_HTTP_CONFIG: 'monitoring.coreos.com.receiver.httpconfig'
+    RECEIVER_HTTP_CONFIG: 'monitoring.coreos.com.receiver.httpconfig',
+    ROUTE:                'monitoring.coreos.com.route',
+    ROUTE_SPEC:           'monitoring.coreos.com.route.spec',
   }
 };
 
