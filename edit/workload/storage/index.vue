@@ -4,9 +4,7 @@ import { PVC } from '@/config/types';
 import { removeObject } from '@/utils/array.js';
 import ButtonDropdown from '@/components/ButtonDropdown';
 import Mount from '@/edit/workload/storage/Mount';
-
 import { _VIEW } from '@/config/query-params';
-import { get } from '@/utils/object';
 
 export default {
   components: { ButtonDropdown, Mount },
@@ -68,7 +66,7 @@ export default {
         .map(path => path.replace(/(\.\/)|(.vue)/g, ''))
         .filter(file => file !== 'index' && file !== 'Mount' && file !== 'PVC');
 
-      const out = [...hasComponent, 'csi', 'certificate', 'configMap', 'createPVC', 'persistentVolumeClaim'];
+      const out = [...hasComponent, 'csi', 'configMap', 'createPVC', 'persistentVolumeClaim'];
 
       out.sort();
 
@@ -79,13 +77,6 @@ export default {
       return this.pvcs.map(pvc => pvc.metadata.name);
     },
 
-    certificates() {
-      return this.secrets.filter(secret => secret._type === TYPES.TLS).reduce((total, secret) => {
-        total.push(secret?.metadata?.name);
-
-        return total;
-      }, []);
-    },
   },
 
   created() {
@@ -101,11 +92,7 @@ export default {
 
   methods: {
     addVolume(type) {
-      if (type === 'certificate') {
-        this.value.volumes.push({
-          _type: 'certificate', secret: {}, name: `vol${ this.value.volumes.length }`
-        });
-      } else if (type === 'createPVC') {
+      if (type === 'createPVC') {
         this.value.volumes.push({
           _type: 'createPVC', persistentVolumeClaim: {}, name: `vol${ this.value.volumes.length }`
         });
@@ -127,19 +114,12 @@ export default {
     volumeType(vol) {
       const type = Object.keys(vol).filter(key => typeof vol[key] === 'object')[0];
 
-      if (type === 'secret') {
-        const secretName = get(vol, 'secret.secretName') || '';
-
-        return this.certificates.includes(secretName) ? 'certificate' : 'secret';
-      }
-
       return type;
     },
 
     // import component for volume type
     componentFor(type) {
       switch (type) {
-      case 'certificate':
       case 'configMap':
         return require(`@/edit/workload/storage/secret.vue`).default;
       case 'createPVC':

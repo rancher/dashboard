@@ -1,10 +1,9 @@
 <script>
-import { TYPES } from '@/models/secret';
 import { mapGetters } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
-import { get } from '@/utils/object';
+
 export default {
   components: {
     LabeledInput,
@@ -53,20 +52,10 @@ export default {
         return this.value._type;
       }
       if (!!this.value.secret) {
-        const secretName = get(this.value, 'secret.secretName') || '';
-
-        return this.certificates.includes(secretName) ? 'certificate' : 'secret';
+        return 'secret';
       }
 
       return 'configMap';
-    },
-
-    certificates() {
-      return this.secrets.filter(secret => secret._type === TYPES.TLS).reduce((total, secret) => {
-        total.push(secret?.metadata?.name);
-
-        return total;
-      }, []);
     },
 
     secretNames() {
@@ -149,8 +138,7 @@ export default {
       </div>
       <div class="row">
         <div class="col span-6">
-          <LabeledSelect v-if="type==='certificate'" v-model="value.secret.secretName" :options="certificates" :mode="mode" :label="t('workload.storage.certificate')" />
-          <LabeledSelect v-else-if="type==='secret'" v-model="value[type].secretName" :options="secretNames" :mode="mode" :label="t('workload.storage.subtypes.secret')" />
+          <LabeledSelect v-if="type==='secret'" v-model="value[type].secretName" :options="secretNames" :mode="mode" :label="t('workload.storage.subtypes.secret')" />
           <LabeledSelect v-else-if="type==='configMap'" v-model="value[type].name" :options="configMapNames" :mode="mode" :label="t('workload.storage.subtypes.configMap')" />
         </div>
         <div class="col span-6">

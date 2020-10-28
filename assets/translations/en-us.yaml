@@ -1613,7 +1613,6 @@ workload:
       secret: Secret
       configMap: ConfigMap
       hostPath: Bind-Mount
-      certificate: Certificate
       persistentVolumeClaim: Persistent Volume Claim
       createPVC: Create Persistent Volume Claim
       csi: CSI
