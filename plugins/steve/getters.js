@@ -97,6 +97,29 @@ export default {
     };
   },
 
+  pathExistsInSchema: (state, getters) => (type, path) => {
+    let schema = getters.expandedSchema(type);
+    const splitPath = path.split('.');
+
+    while (splitPath.length > 0) {
+      const pathPart = splitPath.shift();
+
+      if (schema?.expandedResourceFields?.[pathPart]) {
+        schema = schema.expandedResourceFields[pathPart];
+        continue;
+      }
+
+      if (schema.expandedSubType?.expandedResourceFields?.[pathPart]) {
+        schema = schema.expandedSubType.expandedResourceFields[pathPart];
+        continue;
+      }
+
+      return false;
+    }
+
+    return true;
+  },
+
   // @TODO resolve difference between this and schemaFor and have only one of them.
   schema: (state, getters) => (type) => {
     type = getters.normalizeType(type);

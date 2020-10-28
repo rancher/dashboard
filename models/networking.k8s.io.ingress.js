@@ -125,27 +125,11 @@ export default {
   },
 
   showPathType() {
-    const ingressExpandedSchema = this.$rootGetters['cluster/expandedSchema'](this.type);
-    const spec = ingressExpandedSchema?.expandedResourceFields?.spec;
-    const rules = spec?.expandedResourceFields?.rules;
-    const http = rules?.expandedSubType?.expandedResourceFields?.http;
-    const paths = http?.expandedResourceFields?.paths;
-    const pathType = paths?.expandedSubType?.expandedResourceFields?.pathType;
-
-    return !!pathType;
+    return this.$rootGetters['cluster/pathExistsInSchema'](this.type, 'spec.rules.http.paths.pathType');
   },
 
   useNestedBackendField() {
-    const ingressExpandedSchema = this.$rootGetters['cluster/expandedSchema'](this.type);
-    const spec = ingressExpandedSchema?.expandedResourceFields?.spec;
-    const rules = spec?.expandedResourceFields?.rules;
-    const http = rules?.expandedSubType?.expandedResourceFields?.http;
-    const paths = http?.expandedResourceFields?.paths;
-    const backend = paths?.expandedSubType?.expandedResourceFields?.backend;
-    const service = backend?.expandedResourceFields?.service;
-    const name = service?.expandedResourceFields?.name;
-
-    return !!name;
+    return this.$rootGetters['cluster/pathExistsInSchema'](this.type, 'spec.rules.http.paths.backend.service.name');
   },
 
   serviceNamePath() {
@@ -163,9 +147,7 @@ export default {
   },
 
   defaultBackendPath() {
-    const ingressExpandedSchema = this.$rootGetters['cluster/expandedSchema'](this.type);
-    const spec = ingressExpandedSchema?.expandedResourceFields?.spec;
-    const defaultBackend = spec?.expandedResourceFields?.defaultBackend;
+    const defaultBackend = this.$rootGetters['cluster/pathExistsInSchema'](this.type, 'spec.defaultBackend');
 
     return defaultBackend ? 'defaultBackend' : 'backend';
   }
