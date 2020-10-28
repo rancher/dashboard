@@ -4,6 +4,7 @@ import {
 } from '@/config/query-params';
 import { CATALOG } from '@/config/labels-annotations';
 import { compare, sortable } from '@/utils/version';
+import { filterBy } from '@/utils/array';
 
 export default {
   showMasthead() {
@@ -161,6 +162,9 @@ export default {
     return this.hasAction('uninstall');
   },
 
+  deployedResources() {
+    return filterBy(this.metadata?.relationships || [], 'rel', 'helmresource');
+  },
 };
 
 function cleanupVersion(version) {

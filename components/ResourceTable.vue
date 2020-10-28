@@ -10,8 +10,8 @@ export default {
 
   props: {
     schema: {
-      type:     Object,
-      required: true,
+      type:    Object,
+      default: null,
     },
 
     rows: {
@@ -23,10 +23,16 @@ export default {
       type:    Array,
       default: null,
     },
+
     showGroups: {
       type:    Boolean,
-      default: true
+      default: true,
     },
+    forceNamespaced: {
+      type:    Boolean,
+      default: false,
+    },
+
     search: {
       // Show search input to filter rows
       type:    Boolean,
@@ -37,11 +43,16 @@ export default {
       type:    Boolean,
       default: true
     },
+
+    pagingLabel: {
+      type:    String,
+      default: 'sortableTable.paging.resource',
+    },
   },
 
   computed: {
     namespaced() {
-      const namespaced = !!get( this.schema, 'attributes.namespaced');
+      const namespaced = !!get( this.schema, 'attributes.namespaced') || this.forceNamespaced;
 
       return namespaced;
     },
@@ -65,7 +76,7 @@ export default {
 
       // If only one namespace is selected, hide the namespace column
       if ( !showNamespace ) {
-        const idx = headers.findIndex(header => header.value === NAMESPACE.value);
+        const idx = headers.findIndex(header => header.name === NAMESPACE.name);
 
         if ( idx >= 0 ) {
           headers.splice(idx, 1);
@@ -112,6 +123,10 @@ export default {
     },
 
     pagingParams() {
+      if ( !this.schema ) {
+        return {};
+      }
+
       return {
         singularLabel: this.$store.getters['type-map/labelFor'](this.schema),
         pluralLabel:   this.$store.getters['type-map/labelFor'](this.schema, 99),
@@ -130,7 +145,7 @@ export default {
     :search="search"
     :paging="true"
     :paging-params="pagingParams"
-    paging-label="sortableTable.paging.resource"
+    :paging-label="pagingLabel"
     :table-actions="tableActions"
     key-field="_key"
     v-on="$listeners"

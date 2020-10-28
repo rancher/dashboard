@@ -133,7 +133,7 @@ export function formatPercent(value, maxPrecision = 2) {
 }
 
 export function pluralize(str) {
-  if ( str.match(/.*[^aeiou]y$/) ) {
+  if ( str.match(/.*[^aeiou]y$/i) ) {
     return `${ str.substr(0, str.length - 1) }ies`;
   } else if ( str.endsWith('s') ) {
     return `${ str }es`;

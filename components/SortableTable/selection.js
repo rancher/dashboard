@@ -143,7 +143,7 @@ export default {
       return node;
     },
 
-    onRowClick(e) {
+    async onRowClick(e) {
       const node = this.nodeForEvent(e);
       const td = $(e.target).closest('TD');
       const selection = this.selectedNodes;
@@ -164,9 +164,25 @@ export default {
       const actionElement = $(e.target).closest('.actions')[0];
 
       if ( actionElement ) {
+        let resources = [node];
+
+        if ( this.mangleActionResources ) {
+          const i = $('i', actionElement);
+
+          i.removeClass('icon-actions');
+          i.addClass(['icon-spinner', 'icon-spin']);
+
+          try {
+            resources = await this.mangleActionResources(resources);
+          } finally {
+            i.removeClass(['icon-spinner', 'icon-spin']);
+            i.addClass('icon-actions');
+          }
+        }
+
         this.$store.commit(`action-menu/show`, {
-          resources: node,
-          elem:      actionElement
+          resources,
+          elem: actionElement
         });
 
         return;
@@ -199,7 +215,7 @@ export default {
       this.prevNode = node;
     },
 
-    onRowContext(e) {
+    async onRowContext(e) {
       const node = this.nodeForEvent(e);
 
       if ( suppressContextMenu(e) ) {
@@ -220,9 +236,15 @@ export default {
         this.update([node], this.selectedNodes.slice());
       }
 
+      let resources = this.selectedNodes;
+
+      if ( this.mangleActionResources ) {
+        resources = await this.mangleActionResources(resources);
+      }
+
       this.$store.commit(`action-menu/show`, {
-        resources: this.selectedNodes,
-        event:     e.originalEvent,
+        resources,
+        event: e.originalEvent,
       });
     },
 

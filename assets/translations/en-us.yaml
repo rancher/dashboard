@@ -295,6 +295,7 @@ catalog:
       readme: Chart README
       notes: Release Notes
       values: Values YAML
+      resources: Resources
 
 chartHeading:
   overview: Overview

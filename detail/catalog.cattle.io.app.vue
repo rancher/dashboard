@@ -4,6 +4,7 @@ import Loading from '@/components/Loading';
 import Markdown from '@/components/Markdown';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
+import RelatedResources from '@/components/RelatedResources';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 
@@ -11,7 +12,7 @@ export default {
   name: 'DetailRelease',
 
   components: {
-    Markdown, Tabbed, Tab, Loading, YamlEditor
+    Markdown, Tabbed, Tab, Loading, YamlEditor, RelatedResources
   },
 
   props: {
@@ -38,7 +39,7 @@ export default {
       const combined = merge(merge({}, this.value?.spec?.chart?.values || {}), this.value?.spec?.values || {});
 
       return jsyaml.safeDump(combined);
-    }
+    },
   },
 
   methods: {
@@ -62,12 +63,9 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <Tabbed v-else class="mt-20" default-tab="notes" @changed="tabChanged($event)">
-    <Tab v-if="hasNotes" name="notes" :label="t('catalog.app.section.notes')" :weight="1">
-      <Markdown v-model="value.spec.info.notes" />
-    </Tab>
-    <Tab v-if="hasReadme" name="readme" :label="t('catalog.app.section.readme')" :weight="2">
-      <Markdown v-model="value.spec.info.readme" />
+  <Tabbed v-else class="mt-20" default-tab="resources" @changed="tabChanged($event)">
+    <Tab name="resources" :label="t('catalog.app.section.resources')" :weight="4">
+      <RelatedResources :value="value" rel="helmresource" />
     </Tab>
     <Tab name="values-yaml" :label="t('catalog.app.section.values')" :weight="3">
       <YamlEditor
@@ -76,6 +74,12 @@ export default {
         :value="valuesYaml"
         editor-mode="VIEW_CODE"
       />
+    </Tab>
+    <Tab v-if="hasReadme" name="readme" :label="t('catalog.app.section.readme')" :weight="2">
+      <Markdown v-model="value.spec.info.readme" />
+    </Tab>
+    <Tab v-if="hasNotes" name="notes" :label="t('catalog.app.section.notes')" :weight="1">
+      <Markdown v-model="value.spec.info.notes" />
     </Tab>
   </Tabbed>
 </template>

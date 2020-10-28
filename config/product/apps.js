@@ -5,7 +5,7 @@ import {
   CHART_UPGRADE,
   NAMESPACE,
   NAME as NAME_COL,
-  RESOURCES,
+  APP_SUMMARY,
 } from '@/config/table-headers';
 
 import { CATALOG } from '@/config/types';
@@ -77,7 +77,7 @@ export function init(store) {
     dashIfEmpty: true,
   };
 
-  headers(CATALOG.APP, [STATE, NAME_COL, NAMESPACE, CHART, CHART_UPGRADE, RESOURCES, AGE]);
+  headers(CATALOG.APP, [STATE, NAME_COL, NAMESPACE, CHART, CHART_UPGRADE, APP_SUMMARY, AGE]);
   headers(CATALOG.REPO, [STATE, NAME_COL, NAMESPACE, repoType, repoUrl, repoBranch, AGE]);
   headers(CATALOG.CLUSTER_REPO, [STATE, NAME_COL, repoType, repoUrl, repoBranch, AGE]);
   headers(CATALOG.OPERATION, [
