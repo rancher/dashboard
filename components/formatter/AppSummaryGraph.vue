@@ -27,7 +27,7 @@ export default {
         const key = `${ textColor }/${ state }`;
 
         if ( out[key] ) {
-          out[key].value = out[key].value + 1;
+          out[key].value += 1;
         } else {
           out[key] = {
             key,
@@ -36,6 +36,24 @@ export default {
             textColor,
             value:     1,
             sort:      stateSort(textColor, state),
+          };
+        }
+      }
+
+      return sortBy(Object.values(out), 'sort:desc');
+    },
+
+    colorParts() {
+      const out = {};
+
+      for ( const p of this.stateParts ) {
+        if ( out[p.color] ) {
+          out[p.color].value += 1;
+        } else {
+          out[p.color] = {
+            color: p.color,
+            value: p.value,
+            sort:  p.sort,
           };
         }
       }
@@ -55,7 +73,7 @@ export default {
     :trigger="show ? 'click' : 'manual'"
     offset="1"
   >
-    <ProgressBarMulti :values="stateParts" class="mb-5" />
+    <ProgressBarMulti :values="colorParts" class="mb-5" />
     <span>{{ row.deployedResources.length }}</span>
 
     <template #popover>
