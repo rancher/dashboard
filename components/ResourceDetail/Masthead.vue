@@ -242,11 +242,6 @@ export default {
       h1 {
         margin-right: 8px;
       }
-
-      .badge-state {
-        padding: 2px 14px 1px 14px;
-        font-size: 12px;
-      }
     }
 
     .subheader{

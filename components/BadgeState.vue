@@ -40,7 +40,7 @@ export default {
 
 <style lang="scss">
   .badge-state {
-    padding: 2px 10px 1px 10px;
+    padding: 2px 10px;
     border: 1px solid transparent;
     border-radius: 20px;
 
@@ -60,7 +60,7 @@ export default {
     &.bg-success {
       color: var(--success);
       background: transparent;
-      border: 0;
+      border-color: var(--success);
     }
   }
 
