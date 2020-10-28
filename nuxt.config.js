@@ -152,16 +152,29 @@ module.exports = {
         config.output.publicPath = resourceBase;
       }
 
-      config.module.rules.push({
-        test:    /\/pl\/.*\.(png|jpe?g|gif|svg|webp)$/,
-        loader:  'url-loader',
-        options: {
-          limit: false,
-          name:  'img/pl/[name].[ext]'
+      // Remove default image handling rules
+      for ( let i = config.module.rules.length - 1 ; i >= 0 ; i-- ) {
+        if ( /svg/.test(config.module.rules[i].test) ) {
+          config.module.rules.splice(i, 1);
         }
+      }
+
+      // And substitue our own
+      config.module.rules.unshift({
+        test:    /\.(png|jpe?g|gif|svg|webp)$/,
+        use:  [
+          {
+            loader:  'url-loader',
+            options: {
+              name:     '[path][name].[ext]',
+              limit:    1,
+              esModule: false
+            },
+          }
+        ]
       });
 
-      config.module.rules.push({
+      config.module.rules.unshift({
         test:    /\.ya?ml$/i,
         loader:  'js-yaml-loader',
         options: { name: '[path][name].[ext]' },
