@@ -2,9 +2,10 @@ import Vue from 'vue';
 import {
   NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW
 } from '@/config/query-params';
-import { CATALOG } from '@/config/labels-annotations';
+import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
 import { compare, sortable } from '@/utils/version';
 import { filterBy } from '@/utils/array';
+import { CATALOG } from '@/config/types';
 
 export default {
   showMasthead() {
@@ -46,8 +47,8 @@ export default {
     }
 
     const chartName = chart.metadata?.name;
-    const preferRepoType = chart.metadata?.annotations?.[CATALOG.SOURCE_REPO_TYPE];
-    const preferRepoName = chart.metadata?.annotations?.[CATALOG.SOURCE_REPO_NAME];
+    const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE];
+    const preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
     const match = this.$rootGetters['catalog/chart']({
       chartName, preferRepoType, preferRepoName
     });
@@ -153,8 +154,20 @@ export default {
   },
 
   remove() {
-    return (opt = {}) => {
-      return this.doAction('uninstall', opt);
+    return async(opt = {}) => {
+      const res = await this.doAction('uninstall', opt);
+
+      const operation = await this.$dispatch('find', {
+        type: CATALOG.OPERATION,
+        id:   `${ res.operationNamespace }/${ res.operationName }`
+      });
+
+      try {
+        await operation.waitForLink('logs');
+        operation.openLogs();
+      } catch (e) {
+        // The wait times out eventually, move on...
+      }
     };
   },
 
