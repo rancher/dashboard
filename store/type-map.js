@@ -119,6 +119,8 @@ export const ROOT = 'root';
 export const SPOOFED_PREFIX = '__[[spoofed]]__';
 export const SPOOFED_API_PREFIX = '__[[spoofedapi]]__';
 
+const instanceMethods = {};
+
 export function DSL(store, product, module = 'type-map') {
   // store.commit(`${ module }/product`, { name: product });
 
@@ -634,10 +636,9 @@ export const getters = {
 
   getSpoofedInstances(state, getters, rootState, rootGetters) {
     return async (type, product) => {
-      const currentProduct = rootGetters['productId'];
-      const productSpoofedTypes = state.spoofedTypes[product || currentProduct] || [];
-      const matchingType = productSpoofedTypes.find(st => st.type === type);
-      const instances = await matchingType.getInstances();
+      product = product || rootGetters['productId'];
+      const getInstances = instanceMethods[product]?.[type] || (() => []);
+      const instances = await getInstances();
       
       instances.forEach((instance) => {
         const type = instance.type;
@@ -652,7 +653,7 @@ export const getters = {
           view: apiLink,
         };
       });
-      return instances ? instances : [];
+      return instances;
     };
   },
 
@@ -1091,6 +1092,10 @@ export const mutations = {
     }
 
     const copy = clone(obj);
+    
+    instanceMethods[product] = instanceMethods[product] || {};
+    instanceMethods[product][copy.type] = copy.getInstances;
+    delete copy.getInstances;
 
     copy.isSpoofed = true;
     copy.virtual = true;
