@@ -901,6 +901,8 @@ prefs:
   advanced: Advanced
   dev:
     label: Enable Developer Tools
+  hideDesc:
+    label: Hide All Type Description Boxes
 
 prometheusRule:
   alertingRules:
