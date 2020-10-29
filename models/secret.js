@@ -32,6 +32,8 @@ export const DISPLAY_TYPES = {
 };
 
 export default {
+  hasSensitiveData: () => true,
+
   isCertificate() {
     return this._type === TYPES.TLS;
   },

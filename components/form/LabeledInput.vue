@@ -3,6 +3,8 @@ import LabeledFormElement from '@/mixins/labeled-form-element';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
+import { HIDE_SENSITIVE } from '@/store/prefs';
+import { escapeHtml } from '@/utils/string';
 
 export default {
   components: { LabeledTooltip, TextAreaAutoGrow },
@@ -55,6 +57,16 @@ export default {
     hasLabel() {
       return !!this.label || !!this.$slots.label;
     },
+
+    hideValue() {
+      if (this.mode !== _VIEW) {
+        return false;
+      } else {
+        const hideSensitive = this.$store.getters['prefs/get'](HIDE_SENSITIVE);
+
+        return (this.type === 'password' || this.type === 'multiline-password') && hideSensitive;
+      }
+    },
   },
 
   methods: {
@@ -80,7 +92,8 @@ export default {
 
     onBlur() {
       this.onBlurLabeled();
-    }
+    },
+    escapeHtml
   }
 };
 </script>
@@ -100,7 +113,13 @@ export default {
     <slot name="field">
       <div v-if="isView && value">
         <slot name="view">
-          {{ value }}
+          <template v-if="type==='multiline-password' && hideValue">
+            <ClickExpand :max-length="50" :value-concealed="hideValue" :value="value" />
+          </template>
+          <span v-else :class="{'conceal':hideValue}" v-html="escapeHtml(value || '').replace(/(\r\n|\r|\n)/g, '<br />\n')" />
+          <button v-if="hideValue && type!=='multiline-password'" class="btn role-link copy-value" @click="$copyText(value)">
+            <i class="icon icon-copy" />
+          </button>
         </slot>
         <slot name="suffix" />
       </div>
@@ -108,8 +127,9 @@ export default {
         &mdash;
       </div>
       <TextAreaAutoGrow
-        v-else-if="type === 'multiline'"
+        v-else-if="type === 'multiline' || type==='multiline-password'"
         ref="value"
+        :class="{'conceal':hideValue}"
         v-bind="$attrs"
         :disabled="disabled"
         :value="value"
@@ -122,7 +142,7 @@ export default {
       <input
         v-else
         ref="value"
-        :class="{'no-label':!hasLabel}"
+        :class="{'no-label':!hasLabel, 'conceal':hideValue}"
         v-bind="$attrs"
         :disabled="disabled"
         :type="type"

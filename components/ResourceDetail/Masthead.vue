@@ -7,6 +7,7 @@ import Banner from '@/components/Banner';
 import { get } from '@/utils/object';
 import { NAME as FLEET_NAME } from '@/config/product/fleet';
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
+import { HIDE_SENSITIVE } from '@/store/prefs';
 
 export default {
   components: {
@@ -169,7 +170,12 @@ export default {
       }
 
       return out ;
-    }
+    },
+
+    hideSensitiveData() {
+      return this.$store.getters['prefs/get'](HIDE_SENSITIVE);
+    },
+
   },
   methods: {
     get,
@@ -182,6 +188,12 @@ export default {
 
     toggleYaml(val) {
       this.$emit('update:asYaml', val);
+    },
+
+    toggleSensitiveData() {
+      const hideData = this.$store.getters['prefs/get'](HIDE_SENSITIVE);
+
+      this.$store.dispatch('prefs/set', { key: HIDE_SENSITIVE, value: !hideData });
     }
   }
 };
@@ -218,6 +230,11 @@ export default {
     </div>
     <slot name="right">
       <div v-if="isView" class="actions">
+        <template v-if="!!value.hasSensitiveData">
+          <button type="button" class="btn role-link" @click="toggleSensitiveData">
+            {{ hideSensitiveData ? t(`resourceDetail.masthead.show`) : t(`resourceDetail.masthead.hide`) }}
+          </button>
+        </template>
         <div v-if="hasDetailOrEdit">
           <ButtonGroup :labels-are-translations="true" :value="asYaml" :options="[{label: 'resourceDetail.masthead.overview', value: false},{label:'resourceDetail.masthead.yaml', value: true }]" @input="toggleYaml" />
         </div>

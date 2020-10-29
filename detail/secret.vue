@@ -121,7 +121,7 @@ export default {
       const { data = {} } = this.value;
 
       Object.keys(data).forEach((key) => {
-        const value = base64Decode(data[key]).split('').map(x => '*').join('');
+        const value = base64Decode(data[key]);
 
         rows.push({
           key,
@@ -192,7 +192,7 @@ export default {
           <LabeledInput v-model="username" :label="t('secret.registry.username')" :mode="mode" />
         </div>
         <div class="col span-4">
-          <LabeledInput :value="password.split('').map(x => '*').join('')" :label="t('secret.registry.password')" :mode="mode" />
+          <LabeledInput :value="password" type="password" :label="t('secret.registry.password')" :mode="mode" />
         </div>
       </div>
     </template>
@@ -201,7 +201,7 @@ export default {
       <div class="col span-6">
         <LabeledInput
           v-model="key"
-          type="multiline"
+          type="multiline-password"
           :label="t('secret.certificate.privateKey')"
           :mode="mode"
           placeholder="Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
@@ -225,7 +225,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model="password"
-            type="multiline"
+            type="multiline-password"
             :label="t('secret.ssh.private')"
             :mode="mode"
           />
@@ -240,6 +240,7 @@ export default {
       mode="view"
       :as-map="false"
       :value-multiline="true"
+      :value-concealed="true"
     />
 
     <template v-if="hasRelatedWorkloads">

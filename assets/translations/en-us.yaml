@@ -8,6 +8,7 @@ generic:
   clickToShow: "[Show Value]"
   close: Close
   comingSoon: Coming Soon
+  copy: Copy
   create: Create
   created: Created
   customize: Customize
@@ -1013,6 +1014,8 @@ resourceDetail:
     project: Project
     yaml: YAML
     managedWarning: This {type} is managed by the {managedBy} app {appName}; changes made here will likely be overwritten the next time the app is changed.
+    show: Show 
+    hide: Hide
 
 resourceList:
   head:
@@ -1058,7 +1061,7 @@ rioConfig:
 
 secret:
   certificate:
-    caCertificate: CA Certificate
+    caCertificate: Certificate
     cn: Domain Name
     expires: Expires
     issuer: Issuer
