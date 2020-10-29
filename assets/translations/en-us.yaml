@@ -460,6 +460,7 @@ fleet:
       cluster: "Cluster"
       clusterGroup: "Group"
       all: All
+      none: None
       local: Local
     workspace:
       label: Workspace
