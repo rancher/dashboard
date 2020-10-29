@@ -99,14 +99,11 @@ export default {
     const groups = workspace?.clusterGroups || [];
     const out = [];
 
-    if ( !this.spec.targets ) {
-      const local = findBy(clusters, {
-        'metadata.namespace': 'fleet-local',
-        'metadata.name':      'local'
-      });
+    if ( workspace.id === 'fleet-local' ) {
+      const local = findBy(groups, 'id', 'fleet-local/default');
 
       if ( local ) {
-        return [local];
+        return local.targetClusters;
       }
 
       return [];
@@ -233,7 +230,7 @@ export default {
     if ( this.metadata.namespace === 'fleet-local' ) {
       mode = 'local';
     } else if ( !targets.length ) {
-      mode = 'all';
+      mode = 'none';
     } else if ( targets.length === 1) {
       const target = targets[0];
 

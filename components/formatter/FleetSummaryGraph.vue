@@ -20,7 +20,7 @@ export default {
     },
 
     show() {
-      return this.stateParts.length > 0;
+      return this.stateParts.length > 0 && this.row.targetClusters?.length;
     },
 
     stateParts() {
