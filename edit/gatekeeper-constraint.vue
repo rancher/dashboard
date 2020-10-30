@@ -4,7 +4,7 @@ import merge from 'lodash/merge';
 import jsyaml from 'js-yaml';
 import { ucFirst } from '@/utils/string';
 import { isSimpleKeyValue } from '@/utils/object';
-import { _CREATE, _VIEW } from '@/config/query-params';
+import { _VIEW } from '@/config/query-params';
 import { SCHEMA, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import Masthead from '@/components/ResourceDetail/Masthead';
@@ -61,11 +61,22 @@ export default {
   },
 
   data() {
-    if ( this.mode === _CREATE && this.value.applyDefaults ) {
-      this.value.applyDefaults(this, this.mode);
-    }
+    const emptySpec = {
+      enforcementAction: ENFORCEMENT_ACTION_VALUES.DENY,
+      parameters:        {},
+      match:             {
+        kinds:              [{}],
+        namespaces:         [],
+        excludedNamespaces: [],
+        labelSelector:      { matchExpressions: [] },
+        namespaceSelector:  { matchExpressions: [] }
+      }
+    };
+
+    this.value.spec = merge(this.value.spec, emptySpec);
 
     return {
+      emptySpec,
       parametersYaml:           this.value?.spec?.parameters ? jsyaml.safeDump(this.value.spec.parameters) : '',
       showParametersAsYaml:     !isSimpleKeyValue(this.value?.spec?.parameters),
       enforcementActionOptions: Object.values(ENFORCEMENT_ACTION_VALUES),
@@ -117,17 +128,7 @@ export default {
     emptyDefaults() {
       return {
         type:  this.templateOptions[0].value,
-        spec: {
-          enforcementAction: ENFORCEMENT_ACTION_VALUES.DENY,
-          parameters:        {},
-          match:             {
-            kinds:              [{}],
-            namespaces:         [],
-            excludedNamespaces: [],
-            labelSelector:      { matchExpressions: [] },
-            namespaceSelector:  { matchExpressions: [] }
-          }
-        }
+        spec: this.emptySpec
       };
     },
     isTemplateSelectorDisabled() {
@@ -139,7 +140,7 @@ export default {
       const location = { name: 'c-cluster-gatekeeper-constraints' };
 
       return { displayName, location };
-    }
+    },
   },
 
   watch: {
@@ -201,7 +202,7 @@ export default {
     },
     onTabChanged({ tab }) {
       // This is necessary to force the yamlEditor to adjust the size once it has space to fill.
-      if (tab.name === 'parameters' & this.$refs.yamlEditor?.refresh) {
+      if (tab.name === 'parameters' && this.$refs.yamlEditor?.refresh) {
         this.$refs.yamlEditor.refresh();
       }
     }
