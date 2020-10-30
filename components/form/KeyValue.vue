@@ -399,8 +399,7 @@ export default {
       </slot>
     </div>
 
-    <div class="not-table" :class="{'extra-column':threeColumns}">
-      <!-- <div v-if="rows.length || isView" :class="{'extra-column':threeColumns}" class="kv-row headers"> -->
+    <div class="kv-container" :class="{'extra-column':threeColumns}">
       <label class="text-label" :class="{'view':isView}">
         {{ keyLabel }}
         <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" style="font-size: 14px" />
@@ -409,7 +408,6 @@ export default {
         {{ valueLabel }}
       </label>
       <span v-if="threeColumns" :class="{'view':isView}" />
-      <!-- </div> -->
 
       <div v-if="isView && !rows.length" class="kv-row last" :class="{'extra-column':threeColumns}">
         <div class="text-muted">
@@ -545,7 +543,7 @@ export default {
     padding: 0;
   }
 
-  .not-table{
+  .kv-container{
     display: grid;
     align-items: center;
     grid-template-columns: auto 1fr;

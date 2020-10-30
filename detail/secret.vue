@@ -6,6 +6,7 @@ import ResourceTabs from '@/components/form/ResourceTabs';
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import RelatedResources from '@/components/RelatedResources';
+import Tab from '@/components/Tabbed/Tab';
 import { WORKLOAD_TYPES } from '@/config/types';
 
 const types = [
@@ -25,6 +26,7 @@ export default {
     KeyValue,
     LabeledInput,
     RelatedResources,
+    Tab
   },
 
   mixins: [CreateEditView],
@@ -243,14 +245,10 @@ export default {
       :value-concealed="true"
     />
 
-    <template v-if="hasRelatedWorkloads">
-      <div class="spacer"></div>
-      <h3>{{ t('secret.relatedWorkloads') }}</h3>
-      <RelatedResources :ignore-types="['pod']" :value="value" rel="uses" direction="from" />
-    </template>
-
-    <div class="spacer"></div>
-
-    <ResourceTabs v-model="value" :mode="mode" />
+    <ResourceTabs ref="tabs" v-model="value" :side-tabs="true" :mode="mode">
+      <Tab v-if="hasRelatedWorkloads" name="workloads" :label="t('secret.relatedWorkloads')">
+        <RelatedResources :ignore-types="['pod']" :value="value" rel="uses" direction="from" />
+      </Tab>
+    </ResourceTabs>
   </div>
 </template>
