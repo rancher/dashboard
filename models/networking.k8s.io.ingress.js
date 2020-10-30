@@ -1,6 +1,7 @@
 import { SERVICE } from '@/config/types';
 import isUrl from 'is-url';
 import { get } from '@/utils/object';
+import isEmpty from 'lodash/isEmpty';
 
 export default {
   tlsHosts() {
@@ -150,5 +151,9 @@ export default {
     const defaultBackend = this.$rootGetters['cluster/pathExistsInSchema'](this.type, 'spec.defaultBackend');
 
     return defaultBackend ? 'defaultBackend' : 'backend';
+  },
+
+  hasDefaultBackend() {
+    return !isEmpty(this.spec[this.defaultBackendPath]);
   }
 };
