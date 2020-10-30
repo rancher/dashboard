@@ -11,7 +11,7 @@ import StorageClassSelector from '@/chart/monitoring/StorageClassSelector';
 import RadioGroup from '@/components/form/RadioGroup';
 
 import { set } from '@/utils/object';
-import { simplify } from '@/utils/selector';
+import { simplify, convert } from '@/utils/selector';
 import { POD } from '@/config/types';
 
 export default {
@@ -76,6 +76,20 @@ export default {
 
   computed: {
     ...mapGetters(['currentCluster']),
+    matchExpressions: {
+      get() {
+        const selector = this.value?.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec?.selector;
+        let matchExpressions;
+
+        if (selector && selector?.matchExpressions) {
+          matchExpressions = convert((selector?.matchLabels || {}), selector.matchExpressions);
+
+          return matchExpressions;
+        } else {
+          return [];
+        }
+      }
+    },
     filteredWorkloads() {
       let { workloads } = this;
       const { existing = false } = this.$attrs;
@@ -169,9 +183,14 @@ export default {
 
     matchChanged(expressions) {
       const { matchLabels, matchExpressions } = simplify(expressions);
+      const storageSpec = this.value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec;
 
-      this.$set(this.value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.selector, 'matchLabels', matchLabels);
-      this.$set(this.value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.selector, 'matchExpressions', matchExpressions);
+      if (!storageSpec?.selector) {
+        storageSpec['selector'] = { matchExpressions: [], matchLabels: {} };
+      }
+
+      this.$set(storageSpec.selector, 'matchLabels', matchLabels);
+      this.$set(storageSpec.selector, 'matchExpressions', matchExpressions);
     },
   },
 };
@@ -340,10 +359,10 @@ export default {
               </h4>
             </div>
             <MatchExpressions
-              :initial-empty-row="mode !== 'view'"
+              :initial-empty-row="false"
               :mode="mode"
               type=""
-              :value="value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.selector.matchExpressions"
+              :value="matchExpressions"
               :show-remove="false"
               @input="matchChanged($event)"
             />
