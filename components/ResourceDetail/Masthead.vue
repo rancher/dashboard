@@ -232,6 +232,7 @@ export default {
       <div v-if="isView" class="actions">
         <template v-if="!!value.hasSensitiveData">
           <button type="button" class="btn role-link" @click="toggleSensitiveData">
+            <i class="icon" :class="{'icon-show': hideSensitiveData, 'icon-hide': !hideSensitiveData}" />
             {{ hideSensitiveData ? t(`resourceDetail.masthead.show`) : t(`resourceDetail.masthead.hide`) }}
           </button>
         </template>

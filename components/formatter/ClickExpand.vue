@@ -83,10 +83,14 @@ export default {
   border-radius: var(--border-radius);
   padding: 40px 20px 20px 20px;
   position: relative;
+  background-color: var(--input-bg);
+  border-radius: var(--border-radius);
+  border: solid var(--outline-width) var(--input-border);
   >button{
     position: absolute;
-    top: 0;
-    right: 0;
+    top: -1px;
+    right: -1px;
+    border-radius: 0 0 0 var(--border-radius);
   }
 }
 </style>
