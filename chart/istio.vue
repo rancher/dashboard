@@ -172,13 +172,6 @@ export default {
         <FileSelector class="role-primary  btn-sm" :label="t('generic.readFromFile')" @selected="onFileSelected" />
       </div>
     </Tab>
-    <Tab name="values-yaml" :label="t('catalog.install.section.valuesYaml')" @active="$refs.yaml.refresh()">
-      <YamlEditor
-        ref="yaml"
-        v-model="valuesYaml"
-        :scrolling="false"
-      />
-    </Tab>
   </div>
 </template>
 

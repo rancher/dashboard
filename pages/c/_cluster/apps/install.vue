@@ -280,7 +280,7 @@ export default {
       nameDisabled:        false,
       openApi:             true,
       resetValues:         false,
-      selectedTabName:     'appReadme',
+      defaultTab:          'appReadme',
       showPreview:         false,
       showDiff:            false,
       showValuesComponent: true,
@@ -333,13 +333,9 @@ export default {
     },
 
     isValuesTab() {
-      const tabName = this.selectedTabName;
+      const tabName = this.$refs.tabs.activeTabName;
 
-      if (tabName === 'helm' || tabName === 'readme') {
-        return false;
-      }
-
-      return true;
+      return !['appReadme', 'helm', 'readme'].includes(tabName);
     },
 
     charts() {
@@ -462,10 +458,8 @@ export default {
       this.showValuesComponent = false;
       this.showQuestions = false;
 
-      this.tabChanged({ tab: { name: 'values-yaml' } });
-
       this.$nextTick(() => {
-        window.location.hash = '#values-yaml';
+        this.$refs.tabs.select('values-yaml');
       });
     },
 
@@ -730,8 +724,6 @@ export default {
     tabChanged({ tab }) {
       window.scrollTop = 0;
 
-      this.selectedTabName = tab.name;
-
       if ( tab.name === 'values-yaml' ) {
         this.$nextTick(() => {
           if ( this.$refs.yaml ) {
@@ -829,9 +821,10 @@ export default {
         </NameNsDescription>
 
         <Tabbed
+          ref="tabs"
           :side-tabs="true"
           :class="{'with-name': showNameEditor}"
-          :default-tab="selectedTabName"
+          :default-tab="defaultTab"
           @changed="tabChanged($event)"
         >
           <Tab name="appReadme" :label="t('catalog.install.section.appReadme')" :weight="100">
