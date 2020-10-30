@@ -479,7 +479,7 @@ export const INGRESS_DEFAULT_BACKEND = {
   name:      'ingressDefaultBackend',
   labelKey:  'tableHeaders.ingressDefaultBackend',
   value:     'hasDefaultBackend',
-  sort:      ['hasDefaultBackend'],
+  sort:      ['hasDefaultBackend:desc'],
   formatter: 'Checked',
   width:     75,
   align:     'center'
