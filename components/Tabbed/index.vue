@@ -24,22 +24,6 @@ export default {
       default: false
     },
 
-    // tabs with canToggle will be hidden by default and revealed by clicking this link
-    showMoreLabel: {
-      type:    String,
-      default: 'Show Extra'
-    },
-
-    hideMoreLabel: {
-      type:    String,
-      default: 'Hide Extra'
-    },
-
-    hideAllowed: {
-      type:    Boolean,
-      default: false
-    },
-
     // whether or not to scroll to the top of the new tab on tab change. This is particularly ugly with side tabs
     scrollOnChange: {
       type:    Boolean,
@@ -73,32 +57,20 @@ export default {
   },
 
   data() {
-    return { tabs: [], showHiddenTabs: false };
+    return {
+      tabs:          [],
+      activeTabName: null,
+    };
   },
 
   computed: {
     // keep the tabs list ordered for dynamic tabs
-    sortedShownTabs() {
+    sortedTabs() {
       const { tabs } = this;
       const shownTabs = tabs.filter(tab => !tab.canToggle);
 
       return sortBy(shownTabs, ['weight:desc', 'label', 'name']);
     },
-
-    sortedHiddenTabs() {
-      const { tabs } = this;
-      const hiddenTabs = tabs.filter(tab => tab.canToggle);
-
-      return sortBy(hiddenTabs, ['weight:desc', 'label', 'name']);
-    },
-
-    sortedTabs() {
-      return [...this.sortedShownTabs, ...this.sortedHiddenTabs];
-    },
-
-    showTabToggle() {
-      return this.sortedHiddenTabs.length && (this.hideAllowed || !this.showHiddenTabs);
-    }
   },
 
   watch: {
@@ -108,10 +80,6 @@ export default {
         $route: { hash }
       } = this;
       const activeTab = tabs.find(t => t.active);
-
-      if (activeTab && activeTab.canToggle) {
-        this.showHiddenTabs = true;
-      }
 
       const windowHash = hash.slice(1);
       const windowHashTabMatch = tabs.find(t => t.name === windowHash && !t.active);
@@ -171,6 +139,7 @@ export default {
           scrollable.scrollTop = 0;
         }
       }
+
       this.select(this.$route.hash);
     },
 
@@ -193,10 +162,6 @@ export default {
         return;
       }
 
-      if (selected.canToggle) {
-        this.showHiddenTabs = true;
-      }
-
       if (routeHash !== hashName) {
         const kurrentRoute = { ...currentRoute };
 
@@ -214,6 +179,7 @@ export default {
       }
 
       this.$emit('changed', { tab: selected });
+      this.activeTabName = selected.name;
     },
 
     selectNext(direction) {
@@ -240,9 +206,11 @@ export default {
         }
       }
     },
+
     tabAddClicked() {
       this.$emit('addTab');
     },
+
     tabRemoveClicked() {
       const activeTabIndex = findIndex(this.tabs, tab => tab.active);
 
@@ -262,9 +230,11 @@ export default {
       tabindex="0"
       @keydown.right.prevent="selectNext(1)"
       @keydown.left.prevent="selectNext(-1)"
+      @keydown.down.prevent="selectNext(1)"
+      @keydown.up.prevent="selectNext(-1)"
     >
       <li
-        v-for="tab in sortedShownTabs"
+        v-for="tab in sortedTabs"
         :id="tab.name"
         :key="tab.name"
         :class="{tab: true, active: tab.active, disabled: tab.disabled}"
@@ -279,31 +249,6 @@ export default {
           {{ tab.label }}
         </a>
       </li>
-      <li v-if="showTabToggle" class="tab toggle">
-        <a @click.prevent="showHiddenTabs = !showHiddenTabs">
-          <i class="icon icon-sm" :class="{'icon-plus': !showHiddenTabs, 'icon-minus':showHiddenTabs}" />
-          {{ showHiddenTabs ? hideMoreLabel : showMoreLabel }}
-        </a>
-      </li>
-      <template v-if="showHiddenTabs">
-        <li
-          v-for="tab in sortedHiddenTabs"
-          :id="tab.name"
-          :key="tab.name"
-          class="can-toggle"
-          :class="{tab: true, active: tab.active, disabled: tab.disabled}"
-          role="presentation"
-        >
-          <a
-            :aria-controls="'#' + tab.name"
-            :aria-selected="tab.active"
-            role="tab"
-            @click.prevent="select(tab.name, $event)"
-          >
-            {{ tab.label }}
-          </a>
-        </li>
-      </template>
       <ul v-if="sideTabs && showTabsAddRemove" class="tab-list-footer">
         <li>
           <button type="button" class="btn bg-transparent" @click="tabAddClicked">
