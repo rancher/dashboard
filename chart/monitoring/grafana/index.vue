@@ -61,10 +61,24 @@ export default {
       persistentStorageTypeLabels.splice(1, 1);
     }
 
+    const { persistence = {} } = this.value.grafana;
+    let persistentStorageType;
+
+    switch (persistence.type) {
+    case 'pvc':
+      persistentStorageType = 'pvc';
+      break;
+    case 'statefulset':
+      persistentStorageType = 'statefulset';
+      break;
+    default:
+      persistentStorageType = persistence.existingClaim ? 'existing' : 'disabled';
+    }
+
     return {
       persistantStorageTypes,
       persistentStorageTypeLabels,
-      persistentStorageType: 'disabled',
+      persistentStorageType,
     };
   },
   computed: {
