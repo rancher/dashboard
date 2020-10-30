@@ -76,8 +76,10 @@ export default {
     },
     willSave() {
       this.value.spec.groups.forEach((group) => {
-        if (group.interval === null) {
+        if (group.interval === null || group.interval === '') {
           delete group.interval;
+        } else {
+          this.$set(group, 'interval', `${ group.interval }`);
         }
       });
 
@@ -111,7 +113,7 @@ export default {
       <Tabbed
         v-if="filteredGroups.length > 0"
         :side-tabs="true"
-        :show-tabs-add-remove="true"
+        :show-tabs-add-remove="mode !== 'view'"
         @addTab="addRuleGroup"
         @removeTab="removeGroupRule"
       >

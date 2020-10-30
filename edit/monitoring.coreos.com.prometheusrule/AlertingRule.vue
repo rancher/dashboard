@@ -68,9 +68,9 @@ export default {
       set(value) {
         if (value) {
           if (isEmpty(this.value?.labels)) {
-            this.$set(this.value, 'labels', { severity: 'critical' });
+            this.$set(this.value, 'labels', { severity: 'none' });
           } else {
-            this.$set(this.value.labels, 'severity', 'critical');
+            this.$set(this.value.labels, 'severity', 'none');
           }
         } else {
           this.$set(this.value.labels, 'severity', '');

@@ -78,7 +78,7 @@ export default {
           alert:  '',
           expr:   '',
           for:    '0s',
-          labels: { severity: 'critical' },
+          labels: { severity: 'none' },
         });
         break;
       default:
