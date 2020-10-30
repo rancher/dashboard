@@ -481,7 +481,8 @@ export const INGRESS_DEFAULT_BACKEND = {
   value:     'hasDefaultBackend',
   sort:      ['hasDefaultBackend'],
   formatter: 'Checked',
-  width:     '150px'
+  width:     75,
+  align:     'center'
 };
 
 export const INGRESS_TARGET = {
@@ -490,7 +491,6 @@ export const INGRESS_TARGET = {
   value:     "$['spec']",
   formatter: 'IngressTarget',
   sort:      "$['spec']['rules'][0].host",
-  width:     '60%'
 };
 
 export const SPEC_TYPE = {
