@@ -48,10 +48,10 @@ export default {
     </div>
     <div v-if="defaultService" class="target">
       <nuxt-link v-if="defaultService.targetTo" :to="defaultService.targetTo">
-        {{ defaultService.name }}
+        {{ t('ingress.target.default') }} <i class="icon icon-chevron-right" /> {{ defaultService.name }}
       </nuxt-link>
       <span v-else>
-        {{ defaultService.name }}
+        {{ t('ingress.target.default') }} <i class="icon icon-chevron-right" /> {{ defaultService.name }}
       </span>
     </div>
   </div>
@@ -59,8 +59,6 @@ export default {
 
 <style lang="scss" scoped>
 .ingress-target {
-  padding: 15px;
-
   .target:not(:last-child) {
     margin-bottom: 5px;
   }

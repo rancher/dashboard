@@ -581,8 +581,9 @@ ingress:
     target:
       label: Target Service
       doesntExist: The selected service does not exist
-
     title: Rules
+  target:
+    default: Default
 
 internalExternalIP:
   none: None
@@ -1211,6 +1212,7 @@ tableHeaders:
     }
   image: Image
   imageSize: Size
+  ingressDefaultBackend: Default
   ingressTarget: Target
   internalExternalIp: External/Internal IP
   key: Key

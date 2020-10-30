@@ -475,12 +475,22 @@ export const API_GROUP = {
   sort:     ['apiGroups']
 };
 
+export const INGRESS_DEFAULT_BACKEND = {
+  name:      'ingressDefaultBackend',
+  labelKey:  'tableHeaders.ingressDefaultBackend',
+  value:     'hasDefaultBackend',
+  sort:      ['hasDefaultBackend'],
+  formatter: 'Checked',
+  width:     '150px'
+};
+
 export const INGRESS_TARGET = {
   name:      'ingressTarget',
   labelKey:  'tableHeaders.ingressTarget',
   value:     "$['spec']",
   formatter: 'IngressTarget',
   sort:      "$['spec']['rules'][0].host",
+  width:     '60%'
 };
 
 export const SPEC_TYPE = {
