@@ -11,9 +11,7 @@ const ALERTMANAGER_ID = 'cattle-monitoring-system/rancher-monitoring-alertmanage
 export const FILENAME = 'alertmanager.yaml';
 
 export async function getSecretId(dispatch) {
-  const isLocal = dispatch.name === 'boundDispatch';
-  const action = isLocal ? 'cluster/find' : 'find';
-  const alertManager = await dispatch(action, { type: MONITORING.ALERTMANAGER, id: ALERTMANAGER_ID });
+  const alertManager = await dispatch('cluster/find', { type: MONITORING.ALERTMANAGER, id: ALERTMANAGER_ID }, { root: true });
 
   return alertManager?.spec?.configSecret || DEFAULT_SECRET_ID;
 }
@@ -22,13 +20,10 @@ export async function getSecret(dispatch) {
   const secretId = await getSecretId(dispatch, false);
 
   try {
-    const isLocal = dispatch.name === 'boundDispatch';
-    const action = isLocal ? 'cluster/find' : 'find';
-
-    return await dispatch(action, { type: SECRET, id: secretId });
+    return await dispatch('cluster/find', { type: SECRET, id: secretId }, { root: true });
   } catch (ex) {
     const [namespace, name] = secretId.split('/');
-    const secret = await dispatch('create', { type: SECRET });
+    const secret = await dispatch('cluster/create', { type: SECRET }, { root: true });
 
     secret.metadata = {
       namespace,
@@ -86,7 +81,7 @@ export async function updateConfig(dispatch, path, type, updateFn) {
   secret.data[FILENAME] = encodedFile;
   await secret.save();
   // Force a store update
-  await dispatch('findAll', { type, opt: { force: true } });
+  await dispatch('cluster/findAll', { type, opt: { force: true } }, { root: true });
 }
 
 export async function getAllReceivers(dispatch) {
@@ -99,7 +94,7 @@ export async function getAllReceivers(dispatch) {
       spec:  receiver,
       type:  MONITORING.SPOOFED.RECEIVER,
       secret
-    }));
+    }, { root: true }));
 
     return Promise.all(mapped);
   } catch (ex) {
@@ -123,7 +118,7 @@ export async function getAllRoutes(dispatch) {
       spec:  route,
       type:  MONITORING.SPOOFED.ROUTE,
       secret
-    }));
+    }, { root: true }));
 
     return Promise.all(mapped);
   } catch (ex) {
