@@ -715,7 +715,7 @@ monitoring:
     many: ReadWriteMany
     once: ReadWriteOnce
     readOnlyMany: ReadOnlyMany
-  aggregateDefaultRoles: 
+  aggregateDefaultRoles:
     label: Aggregate to Default Kubernetes Roles
     tip: Adds labels to the ClusterRoles deployed by the Monitoring chart to <a target="_blank" rel="noopener nofollow noreferrer" href="https://kubernetes.io/docs/reference/access-authn-authz/rbac/#aggregated-clusterroles"> aggregate to the corresponding default k8s admin, edit, and view ClusterRoles.</a>
   alerting:
@@ -744,7 +744,7 @@ monitoring:
   clusterType:
     label: Cluster Type
     placeholder: Select cluster type
-  createDefaultRoles: 
+  createDefaultRoles:
     label: Create Default Monitoring Cluster Roles
     tip: Creates <code>monitoring-admin</code>, <code>monitoring-edit</code>, and <code>monitoring-view</code> ClusterRoles that can be assigned to users to provide permissions to CRDs installed by the Monitoring chart.
   grafana:
@@ -812,6 +812,7 @@ monitoring:
       label: Persistent Storage for Prometheus
       mode: Access Mode
       selector: Selector
+      selectorWarning: If you are using a dynamic provisioner (e.g. Longhorn), no Selectors should be specified since a PVC with a non-empty selector can't have a PV dynamically provisioned for it.
       size: Size
       volumeMode: Volume Mode
       volumeName: Volume Name

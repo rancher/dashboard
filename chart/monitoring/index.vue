@@ -108,6 +108,8 @@ export default {
 
       merge(this.value, extendedDefaults);
     }
+
+    this.$emit('register-before-hook', this.willSave, 'willSave');
   },
 
   mounted() {
@@ -161,6 +163,15 @@ export default {
 
       if (!isEmpty(hash.secrets)) {
         this.secrets = hash.secrets;
+      }
+    },
+
+    willSave() {
+      const { prometheusSpec } = this.value.prometheus;
+      const selector = prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec?.selector;
+
+      if (selector && isEmpty(selector.matchExpressions) && isEmpty(selector.matchLabels)) {
+        delete this.value.prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.selector;
       }
     },
   },
