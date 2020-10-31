@@ -358,6 +358,7 @@ export default {
                 {{ t('monitoring.prometheus.storage.selector') }}
               </h4>
             </div>
+            <Banner color="warning" :label="t('monitoring.prometheus.storage.selectorWarning')" />
             <MatchExpressions
               :initial-empty-row="false"
               :mode="mode"
@@ -366,6 +367,7 @@ export default {
               :show-remove="false"
               @input="matchChanged($event)"
             />
+            </banner>
           </div>
         </div>
       </template>
