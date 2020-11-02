@@ -69,7 +69,7 @@ export default {
           label: 'monitoring.volume.modes.block',
         },
       ],
-      enablePersistantStorage: false,
+      enablePersistantStorage: !!this.value?.prometheus?.prometheusSpec?.storageSpec?.volumeClaimTemplate?.spec,
       warnUser:                false,
     };
   },
@@ -358,7 +358,7 @@ export default {
                 {{ t('monitoring.prometheus.storage.selector') }}
               </h4>
             </div>
-            <Banner color="warning" :label="t('monitoring.prometheus.storage.selectorWarning')" />
+            <Banner color="warning" :label="t('monitoring.prometheus.storage.selectorWarning', {}, true)" />
             <MatchExpressions
               :initial-empty-row="false"
               :mode="mode"
