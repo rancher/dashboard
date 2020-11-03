@@ -11,6 +11,7 @@ import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
 import { _CREATE } from '@/config/query-params';
+import isString from 'lodash/isString';
 import GroupRules from './GroupRules';
 
 export default {
@@ -79,7 +80,13 @@ export default {
         if (group.interval === null || group.interval === '') {
           delete group.interval;
         } else {
-          this.$set(group, 'interval', `${ group.interval }`);
+          const interval = group.interval;
+
+          if (isString(interval)) {
+            this.$set(group, 'interval', interval.includes('s') ? interval : `${ interval }s`);
+          } else {
+            this.$set(group, 'interval', `${ interval }s`);
+          }
         }
       });
 
@@ -145,13 +152,6 @@ export default {
                 :label="t('prometheusRule.groups.groupInterval.label')"
                 :mode="mode"
                 @input="(e) => $set(filteredGroups[idx], 'interval', e)"
-              />
-            </div>
-            <div class="col span-6">
-              <LabeledInput
-                v-model="group.partialResponseStrategy"
-                :label="t('prometheusRule.groups.responseStrategy.label')"
-                :mode="mode"
               />
             </div>
           </div>
