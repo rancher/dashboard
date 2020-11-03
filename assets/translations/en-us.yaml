@@ -14,7 +14,6 @@ generic:
   default: Default
   disabled: Disabled
   enabled: Enabled
-  enforced: Enforced
   ignored: Ignored
   labelsAndAnnotations: Labels and Annotations
   na: n/a
@@ -36,6 +35,7 @@ generic:
 
 locale:
   en-us: English
+  zh-hans: 简体中文
   none: (None)
 
 nav:
