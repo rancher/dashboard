@@ -1,5 +1,5 @@
 import { isEmpty, set } from '@/utils/object';
-import { areRoutesSupportedFormat, canCreate, updateConfig } from '@/utils/alertmanagerconfig';
+import { areRoutesSupportedFormat, canCreate, createDefaultRouteName, updateConfig } from '@/utils/alertmanagerconfig';
 
 export const ROOT_NAME = 'root';
 
@@ -26,7 +26,9 @@ export default {
   remove() {
     return () => {
       return this.updateRoutes((currentRoutes) => {
-        return currentRoutes.filter(r => r.name !== this.spec?.name);
+        return currentRoutes.filter((route, i) => {
+          return createDefaultRouteName(i) !== this.id;
+        });
       });
     };
   },
@@ -40,7 +42,9 @@ export default {
       }
 
       await this.updateRoutes((currentRoutes) => {
-        const existingRoute = currentRoutes.find(r => r.name === this.spec?.name);
+        const existingRoute = currentRoutes.find((route, i) => {
+          return createDefaultRouteName(i) === this.id;
+        });
 
         if (existingRoute) {
           Object.assign(existingRoute, this.spec);
@@ -83,12 +87,6 @@ export default {
     const rules = [
       {
         nullable:       false,
-        path:           'spec.name',
-        required:       true,
-        translationKey: 'generic.name'
-      },
-      {
-        nullable:       false,
         path:           'spec.receiver',
         required:       true,
         translationKey: 'monitoring.route.fields.receiver'
@@ -126,5 +124,12 @@ export default {
 
   isRoot() {
     return this.id === ROOT_NAME;
+  },
+
+  yamlSaveOverride() {
+    return (value, originalValue) => {
+      Object.assign(originalValue, value);
+      originalValue.save();
+    };
   }
 };
