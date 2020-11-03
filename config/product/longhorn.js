@@ -1,5 +1,5 @@
 import { DSL } from '@/store/type-map';
-import { LONGHORN } from '@/config/types';
+// import { LONGHORN } from '@/config/types';
 
 export const NAME = 'longhorn';
 export const CHART_NAME = 'longhorn';
@@ -7,6 +7,7 @@ export const CHART_NAME = 'longhorn';
 export function init(store) {
   const { product, basicType, virtualType } = DSL(store, NAME);
 
+  /*
   const {
     ENGINES,
     ENGINE_IMAGES,
@@ -15,6 +16,7 @@ export function init(store) {
     SETTINGS,
     VOLUMES,
   } = LONGHORN;
+*/
 
   product({
     ifHaveGroup: 'longhorn.io',
@@ -33,6 +35,7 @@ export function init(store) {
 
   basicType('longhorn-overview');
 
+  /*
   basicType([
     ENGINES,
     ENGINE_IMAGES,
@@ -41,4 +44,5 @@ export function init(store) {
     SETTINGS,
     VOLUMES,
   ]);
+*/
 }
