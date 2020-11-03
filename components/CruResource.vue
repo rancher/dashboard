@@ -279,6 +279,7 @@ export default {
           :offer-preview="isEdit"
           :done-route="doneRoute"
           :done-override="resource.doneOverride"
+          :save-override="resource.yamlSaveOverride"
           :errors="errors"
           @apply-hooks="$emit('apply-hooks', $event)"
           @error="e=>$emit('error', e)"

@@ -43,7 +43,7 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.smartHost" :mode="mode" label="Host" placeholder="e.g. 192.168.1.121:587" />
+        <LabeledInput v-model="value.smarthost" :mode="mode" label="Host" placeholder="e.g. 192.168.1.121:587" />
       </div>
       <div class="col span-6">
         <Checkbox v-model="value.require_tls" :mode="mode" class="mt-20" label="Use TLS" />

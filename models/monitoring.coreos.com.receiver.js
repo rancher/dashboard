@@ -109,5 +109,12 @@ export default {
 
   updateReceivers() {
     return fn => updateConfig(this.$dispatch, 'receivers', this.type, fn);
+  },
+
+  yamlSaveOverride() {
+    return (value, originalValue) => {
+      Object.assign(originalValue, value);
+      originalValue.save();
+    };
   }
 };
