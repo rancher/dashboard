@@ -54,7 +54,8 @@ const CATTLE_REGEX = /cattle\.io\//;
 
 export const FLEET = {
   CLUSTER_DISPLAY_NAME: 'management.cattle.io/cluster-display-name',
-  CLUSTER_NAME:         'management.cattle.io/cluster-name'
+  CLUSTER_NAME:         'management.cattle.io/cluster-name',
+  BUNDLE_ID:            'fleet.cattle.io/bundle-id',
 };
 
 export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
