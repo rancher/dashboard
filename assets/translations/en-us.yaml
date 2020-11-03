@@ -1326,6 +1326,16 @@ validation:
     exactly: '"{key}" should be exactly {val}'
     max: '"{key}" should be at most {val}'
     min: '"{key}" should be at least {val}'
+  podAffinity:
+    affinityTitle: Pod Affinity
+    antiAffinityTitle: Pod Anti-Affinity
+    requiredDuringSchedulingIgnoredDuringExecution: required rules
+    preferredDuringSchedulingIgnoredDuringExecution: preferred rules
+    topologyKey: Rule [{index}] of {group} {rules} - Topology key is required.
+    matchExpressions:
+      operator: Rule [{index}] of {group} {rules} - operator must be one of 'In', 'NotIn', 'Exists', 'DoesNotExist'
+      valueMustBeEmpty: Rule [{index}] of {group} {rules} - value must be empty if operator is 'Exists' or 'DoesNotExist'
+      valuesMustBeDefined: Rule [{index}] of {group} {rules} - value must be defined if operator is 'In' or 'NotIn'
   prometheusRule:
     groups:
       required: At least one rule group is required.
