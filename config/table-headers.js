@@ -66,7 +66,7 @@ export const OUTPUT = {
   value:         'outputs',
   sort:          ['outputsSortable'],
   formatter:     'ListLink',
-  formatterOpts: { options: 'internal' },
+  formatterOpts: { options: { internal: true } },
 };
 
 export const CONFIGURED_PROVIDERS = {

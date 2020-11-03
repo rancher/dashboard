@@ -567,6 +567,7 @@ ingress:
       path: Path
       port: Port
       target: Target Service
+      certificates: Certificates
     hostname: Hostname
     path:
       label: Path
@@ -582,6 +583,9 @@ ingress:
       label: Target Service
       doesntExist: The selected service does not exist
     title: Rules
+  rulesAndCertificates:
+    title: Rules and Certificates
+    defaultCertificate: default
   target:
     default: Default
 

@@ -7,6 +7,12 @@ export default {
     value: {
       type:     Array,
       default: () => []
+    },
+    row: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 };
@@ -14,6 +20,6 @@ export default {
 
 <template>
   <span>
-    <LinkDetail v-for="el in value" :key="el.key" v-bind="el" />
+    <LinkDetail v-for="el in value" :key="el.key" :row="row" v-bind="el" />
   </span>
 </template>
