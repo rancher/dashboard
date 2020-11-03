@@ -25,7 +25,7 @@ export default {
     },
     extraColumns: {
       type:    Array,
-      default: () => []
+      default: () => [],
     },
 
     nameLabel: {
@@ -106,31 +106,31 @@ export default {
     const metadata = v.metadata;
     let namespace, name, description;
 
-    if (this.nameKey ) {
+    if (this.nameKey) {
       name = get(v, this.nameKey);
     } else {
       name = metadata.name;
     }
 
-    if ( this.namespaced ) {
-      if ( this.forceNamespace ) {
+    if (this.namespaced) {
+      if (this.forceNamespace) {
         namespace = this.forceNamespace;
         this.updateNamespace(namespace);
-      } else if ( this.namespaceKey ) {
+      } else if (this.namespaceKey) {
         namespace = get(v, this.namespaceKey);
       } else {
         namespace = metadata?.namespace;
       }
 
-      if ( !namespace ) {
+      if (!namespace) {
         namespace = this.$store.getters['defaultNamespace'];
-        if ( metadata ) {
+        if (metadata) {
           metadata.namespace = namespace;
         }
       }
     }
 
-    if ( this.descriptionKey ) {
+    if (this.descriptionKey) {
       description = get(v, this.descriptionKey);
     } else {
       description = metadata?.annotations?.[DESCRIPTION];
@@ -139,34 +139,39 @@ export default {
     return {
       namespace,
       name,
-      description
+      description,
     };
   },
 
   computed: {
     namespaceReallyDisabled() {
-      return !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT; // namespace is never editable
+      return (
+        !!this.forceNamespace || this.namespaceDisabled || this.mode === _EDIT
+      ); // namespace is never editable
     },
 
     nameReallyDisabled() {
-      return this.nameDisabled || ( this.mode === _EDIT && !this.nameEditable);
+      return this.nameDisabled || (this.mode === _EDIT && !this.nameEditable);
     },
 
     namespaces() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const choices = this.$store.getters[`${ inStore }/all`](this.namespaceType);
 
-      const out = sortBy(choices.map((obj) => {
-        return {
-          label: obj.nameDisplay,
-          value: obj.id,
-        };
-      }), 'label');
+      const out = sortBy(
+        choices.map((obj) => {
+          return {
+            label: obj.nameDisplay,
+            value: obj.id,
+          };
+        }),
+        'label'
+      );
 
-      if ( this.forceNamespace ) {
+      if (this.forceNamespace) {
         out.unshift({
           label: this.forceNamespace,
-          value: this.forceNamespace
+          value: this.forceNamespace,
         });
       }
 
@@ -189,7 +194,7 @@ export default {
     name(val) {
       val = val.toLowerCase();
 
-      if ( this.nameKey ) {
+      if (this.nameKey) {
         set(this.value, this.nameKey, val);
       } else {
         this.$set(this.value.metadata, 'name', val);
@@ -203,7 +208,7 @@ export default {
     },
 
     description(val) {
-      if ( this.descriptionKey ) {
+      if (this.descriptionKey) {
         set(this.value, this.descriptionKey, val);
       } else {
         this.value.setAnnotation(DESCRIPTION, val);
@@ -222,11 +227,11 @@ export default {
 
   methods: {
     updateNamespace(val) {
-      if ( this.forceNamespace ) {
+      if (this.forceNamespace) {
         val = this.forceNamespace;
       }
 
-      if ( this.namespaceKey ) {
+      if (this.namespaceKey) {
         set(this.value, this.namespaceKey, val);
       } else {
         this.value.metadata.namespace = val;
@@ -236,19 +241,20 @@ export default {
     changeNameAndNamespace(e) {
       this.name = (e.text || '').toLowerCase();
       this.namespace = e.selected;
-    }
-  }
+    },
+  },
 };
 </script>
 
 <template>
   <div>
     <div class="row mb-20">
-      <div v-show="!nameNsHidden" :class="{col: true, [colSpan]: true}">
+      <div v-show="!nameNsHidden" :class="{ col: true, [colSpan]: true }">
         <slot :namespaces="namespaces" name="namespace">
           <InputWithSelect
             v-if="namespaced"
             ref="name"
+            class="namespace-select"
             :mode="mode"
             :disabled="namespaceReallyDisabled"
             :text-label="t(nameLabel)"
@@ -277,7 +283,7 @@ export default {
           />
         </slot>
       </div>
-      <div :class="{col: true, [colSpan]: true}">
+      <div :class="{ col: true, [colSpan]: true }">
         <LabeledInput
           key="description"
           v-model="description"
@@ -287,10 +293,24 @@ export default {
           :min-height="30"
         />
       </div>
-      <div v-for="slot in extraColumns" :key="slot" :class="{col: true, [colSpan]: true}">
+      <div
+        v-for="slot in extraColumns"
+        :key="slot"
+        :class="{ col: true, [colSpan]: true }"
+      >
         <slot :name="slot">
         </slot>
       </div>
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.row {
+  .namespace-select ::v-deep {
+    .labeled-select {
+      min-width: 40%;
+    }
+  }
+}
+</style>

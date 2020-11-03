@@ -172,19 +172,20 @@ export default {
     }
 
     > .apps {
-      padding: 0 0 0 5px;
+      padding: 0 5px 0 5px;
     }
 
     > .cluster {
       grid-area: cluster;
       background-color: var(--header-bg);
       position: relative;
+      padding-top: 6px;
     }
 
     > .top {
       grid-area: top;
       background-color: var(--header-bg);
-      padding-top: 8px;
+      padding-top: 6px;
 
       INPUT[type='search']::placeholder,
       .vs__open-indicator,

@@ -258,6 +258,8 @@ export default {
         :mode="mode"
         :multiple="false"
         :options="typeOpts"
+        option-label="label"
+        :searchable="false"
         :reduce="e=>e.value"
         :label="t('workload.container.command.fromResource.type')"
         @input="updateRow"

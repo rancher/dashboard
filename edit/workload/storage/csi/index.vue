@@ -47,7 +47,7 @@ export default {
     <div>
       <div class="row mb-10">
         <div class="col span-6">
-          <LabeledSelect v-model="value.csi.driver" :mode="mode" label="Driver" :options="driverOpts" :get-option-label="opt=>t(`workload.storage.csi.drivers.'${opt}'`)" />
+          <LabeledSelect v-model="value.csi.driver" :mode="mode" :label="t('workload.storage.driver')" :options="driverOpts" :get-option-label="opt=>t(`workload.storage.csi.drivers.'${opt}'`)" />
         </div>
       </div>
       <div v-if="driverComponent" class="mb-10">

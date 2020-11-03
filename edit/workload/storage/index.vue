@@ -13,10 +13,10 @@ export default {
     ButtonDropdown, Mount, CodeMirror, InfoBox
   },
 
-  props:      {
+  props: {
     mode: {
       type:    String,
-      default: 'create'
+      default: 'create',
     },
 
     // pod spec
@@ -24,23 +24,23 @@ export default {
       type:    Object,
       default: () => {
         return {};
-      }
+      },
     },
 
     namespace: {
       type:    String,
-      default: null
+      default: null,
     },
 
     // namespaced configmaps and secrets
     configMaps: {
       type:    Array,
-      default: () => []
+      default: () => [],
     },
 
     secrets: {
       type:    Array,
-      default: () => []
+      default: () => [],
     },
 
     registerBeforeHook: {
@@ -66,15 +66,51 @@ export default {
     },
 
     opts() {
-      const hasComponent = require.context('@/edit/workload/storage', false, /^.*\.vue$/).keys()
+      const hasComponent = require
+        .context('@/edit/workload/storage', false, /^.*\.vue$/)
+        .keys()
         .map(path => path.replace(/(\.\/)|(.vue)/g, ''))
-        .filter(file => file !== 'index' && file !== 'Mount' && file !== 'PVC');
+        .filter(
+          file => file !== 'index' && file !== 'Mount' && file !== 'PVC'
+        );
 
-      const out = [...hasComponent, 'csi', 'configMap', 'createPVC', 'persistentVolumeClaim'];
+      const out = [
+        ...hasComponent,
+        'csi',
+        'configMap',
+        'createPVC',
+        'persistentVolumeClaim',
+      ];
 
       out.sort();
 
       return out;
+    },
+
+    opts2() {
+      const hasComponent = require
+        .context('@/edit/workload/storage', false, /^.*\.vue$/)
+        .keys()
+        .map(path => path.replace(/(\.\/)|(.vue)/g, ''))
+        .filter(
+          file => file !== 'index' && file !== 'Mount' && file !== 'PVC'
+        );
+
+      const out = [
+        ...hasComponent,
+        'csi',
+        'configMap',
+        'createPVC',
+        'persistentVolumeClaim',
+      ];
+
+      out.sort();
+
+      return out.map(opt => ({
+        label:  opt,
+        action: this.addVolume,
+        value:  opt,
+      }));
     },
 
     pvcNames() {
@@ -97,15 +133,21 @@ export default {
     addVolume(type) {
       if (type === 'createPVC') {
         this.value.volumes.push({
-          _type: 'createPVC', persistentVolumeClaim: {}, name: `vol${ this.value.volumes.length }`
+          _type:                 'createPVC',
+          persistentVolumeClaim: {},
+          name:                  `vol${ this.value.volumes.length }`,
         });
-      } else if ( type === 'csi' ) {
+      } else if (type === 'csi') {
         this.value.volumes.push({
-          _type: type, csi: { volumeAttributes: {} }, name: `vol${ this.value.volumes.length }`
+          _type: type,
+          csi:   { volumeAttributes: {} },
+          name:  `vol${ this.value.volumes.length }`,
         });
       } else {
         this.value.volumes.push({
-          _type: type, [type]: {}, name: `vol${ this.value.volumes.length }`
+          _type:  type,
+          [type]: {},
+          name:   `vol${ this.value.volumes.length }`,
         });
       }
     },
@@ -115,7 +157,9 @@ export default {
     },
 
     volumeType(vol) {
-      const type = Object.keys(vol).filter(key => typeof vol[key] === 'object')[0];
+      const type = Object.keys(vol).filter(
+        key => typeof vol[key] === 'object'
+      )[0];
 
       return type;
     },
@@ -127,7 +171,8 @@ export default {
         return require(`@/edit/workload/storage/secret.vue`).default;
       case 'createPVC':
       case 'persistentVolumeClaim':
-        return require(`@/edit/workload/storage/persistentVolumeClaim/index.vue`).default;
+        return require(`@/edit/workload/storage/persistentVolumeClaim/index.vue`)
+          .default;
       case 'csi':
         return require(`@/edit/workload/storage/csi/index.vue`).default;
       default: {
@@ -135,8 +180,7 @@ export default {
 
         try {
           component = require(`@/edit/workload/storage/${ type }.vue`).default;
-        } catch {
-        }
+        } catch {}
 
         return component;
       }
@@ -144,7 +188,9 @@ export default {
     },
 
     headerFor(type) {
-      if (this.$store.getters['i18n/exists'](`workload.storage.subtypes.${ type }`)) {
+      if (
+        this.$store.getters['i18n/exists'](`workload.storage.subtypes.${ type }`)
+      ) {
         return this.t(`workload.storage.subtypes.${ type }`);
       } else {
         return type;
@@ -164,17 +210,16 @@ export default {
 
       try {
         button.togglePopover();
-      } catch (e) {
-      }
+      } catch (e) {}
     },
 
     // codemirror needs to refresh if it is in a tab that wasn't visible on page load
     refresh() {
-      if ( this.$refs.cm ) {
+      if (this.$refs.cm) {
         this.$refs.cm.forEach(component => component.refresh());
       }
     },
-  }
+  },
 };
 </script>
 
@@ -203,7 +248,7 @@ export default {
             <CodeMirror
               ref="cm"
               :value="yamlDisplay(volume)"
-              :options="{readOnly:true, cursorBlinkRate:-1}"
+              :options="{ readOnly: true, cursorBlinkRate: -1 }"
             />
           </div>
         </div>
@@ -212,30 +257,24 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <ButtonDropdown v-if="mode!=='view'" ref="buttonDropdown" size="sm">
-          <template #button-content>
-            <button v-if="mode!=='view'" type="button" class="btn btn-sm text-primary bg-transparent" @click="openPopover">
-              {{ t('workload.storage.addVolume') }}
-            </button>
-          </template>
-          <template #popover-content>
-            <ul class="list-unstyled menu">
-              <li v-for="opt in opts" :key="opt" v-close-popover @click="addVolume(opt)">
-                {{ t(`workload.storage.subtypes.${opt}`) }}
-              </li>
-            </ul>
-          </template>
-        </ButtonDropdown>
+        <ButtonDropdown
+          :button-label="t('workload.storage.addVolume')"
+          :dropdown-options="opts"
+          size="sm"
+          @click-action="addVolume"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <style lang='scss' scoped>
-.volume-source{
+.volume-source {
+  padding: 20px;
+  margin: 20px 0px 20px 0px;
   position: relative;
 
-  ::v-deep .code-mirror  {
+  ::v-deep .code-mirror {
     .CodeMirror {
       background-color: var(--yaml-editor-bg);
       & .CodeMirror-gutters {
@@ -249,12 +288,11 @@ export default {
   position: absolute;
   top: 10px;
   right: 10px;
-  padding:0px;
+  padding: 0px;
 }
 
-.add-vol:focus{
+.add-vol:focus {
   outline: none;
   box-shadow: none;
 }
-
 </style>

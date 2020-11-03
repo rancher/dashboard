@@ -12,7 +12,7 @@ export default {
     ShellInput,
     LabeledSelect,
     Checkbox,
-    EnvVars
+    EnvVars,
   },
 
   props: {
@@ -21,30 +21,40 @@ export default {
       required: true,
     },
     configMaps: {
-      type:     Array,
-      default: () => []
-
+      type:    Array,
+      default: () => [],
     },
     secrets: {
-      type:     Array,
-      default: () => []
+      type:    Array,
+      default: () => [],
     },
     // container spec
     value: {
       type:    Object,
       default: () => {
         return {};
-      }
-    }
+      },
+    },
   },
 
   data() {
     const {
-      command, args, workingDir, stdin = false, stdinOnce = false, tty = false
+      command,
+      args,
+      workingDir,
+      stdin = false,
+      stdinOnce = false,
+      tty = false,
     } = this.value;
 
     return {
-      command, args, workingDir, stdin, stdinOnce, tty
+      args,
+      command,
+      commandOptions: ['No', 'Once', 'Yes'],
+      stdin,
+      stdinOnce,
+      tty,
+      workingDir,
     };
   },
 
@@ -78,8 +88,8 @@ export default {
           break;
         }
         this.update();
-      }
-    }
+      },
+    },
   },
 
   methods: {
@@ -93,10 +103,10 @@ export default {
           args:       this.args,
           workingDir: this.workingDir,
           tty:        this.tty,
-        })
+        }),
       };
 
-      this.$emit('input', out );
+      this.$emit('input', out);
     },
   },
 };
@@ -136,18 +146,33 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <div :style="{'align-items':'center'}" class="row">
+        <div :style="{ 'align-items': 'center' }" class="row">
           <div class="col span-6">
-            <LabeledSelect v-model="stdinSelect" :label="t('workload.container.command.stdin')" :options="['No', 'Once', 'Yes']" :mode="mode" />
+            <LabeledSelect
+              v-model="stdinSelect"
+              :label="t('workload.container.command.stdin')"
+              :options="commandOptions"
+              :mode="mode"
+            />
           </div>
           <div v-if="stdin" class="col span-6">
-            <Checkbox v-model="tty" :mode="mode" label="TTY" @input="update" />
+            <Checkbox
+              v-model="tty"
+              :mode="mode"
+              :label="t('workload.container.command.stdin')"
+              @input="update"
+            />
           </div>
         </div>
       </div>
     </div>
     <div class="spacer"></div>
     <h3>{{ t('workload.container.titles.env') }}</h3>
-    <EnvVars :mode="mode" :config-maps="configMaps" :secrets="secrets" :value="value" />
+    <EnvVars
+      :mode="mode"
+      :config-maps="configMaps"
+      :secrets="secrets"
+      :value="value"
+    />
   </div>
 </template>

@@ -102,7 +102,7 @@ export default {
       :extra-columns="extraColumns"
     >
       <template #project-col>
-        <LabeledSelect v-model="project" label="Project" :options="projectOpts" />
+        <LabeledSelect v-model="project" :label="t('namespace.project.label')" :options="projectOpts" />
       </template>
     </NameNsDescription>
 

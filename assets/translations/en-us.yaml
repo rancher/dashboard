@@ -109,6 +109,7 @@ assignTo:
       =1 { Assign Cluster To&hellip; }
       other { Assign {count} Clusters To&hellip; }
     }
+  workspace: Workspace
 
 asyncButton:
   default:
@@ -871,6 +872,24 @@ monitoring:
     fields:
       name: Name
 
+monitoringRoute:
+  groups:
+    label: Group By
+  info: This is the top-level Route used by Alertmanager as the default destination for any Alerts that do not match any other Routes. This Route must exist and cannot be deleted.
+  interval:
+    label: Group Interval
+  matching:
+    info: The root route has to match everything so matching can't be configured.
+    label: Match
+  receiver:
+    label: Receiver
+  regex:
+    label: Match Regex
+  repeatInterval:
+    label: Repeat Interval
+  wait:
+    label: Group Wait
+
 nameNsDescription:
   name:
     label: Name
@@ -887,6 +906,16 @@ nameNsDescription:
 
 namespace:
   containerResourceLimit: Container Resource Limit
+  project:
+    label: Project
+
+namespaceFilter:
+  selected:
+    label: "{total} items selected"
+
+namespaceList:
+  selectLabel: Namespace
+  addLabel: Add Namespace
 
 node:
   detail:
@@ -956,6 +985,39 @@ prefs:
     label: Enable Developer Tools
   hideDesc:
     label: Hide All Type Description Boxes
+
+probe:
+  checkInterval:
+    label: Check Interval
+    placeholder: 'Default: 10'
+  command:
+    label: Command to run
+    placeholder: e.g. cat /tmp/health
+  failureThreshold:
+    label: Failure Threshold
+    placeholder: 'Default: 3'
+  httpGet:
+    headers:
+      label: Request Headers
+    path:
+      label: Request Path
+      placeholder: e.g. /healthz
+    port:
+      label: Check Port
+      placeholder: e.g. 80
+      placeholderDuex: e.g. 25
+  initialDelay:
+    label: Initial Delay
+    placeholder: 'Default: 0'
+  successThreshold:
+    label: Success Threshold
+    placeholder: 'Default: 1'
+  timeout:
+    label: Timeout
+    placeholder: 'Default: 3'
+  type:
+    label: Type
+    placeholder: Select a check type
 
 prometheusRule:
   alertingRules:
@@ -1053,7 +1115,7 @@ resourceDetail:
     project: Project
     yaml: YAML
     managedWarning: This {type} is managed by the {managedBy} app {appName}; changes made here will likely be overwritten the next time the app is changed.
-    show: Show 
+    show: Show
     hide: Hide
 
 resourceList:
@@ -1321,6 +1383,18 @@ tableHeaders:
   version: Version
   weight: Weight
 
+target:
+  router:
+    label: Router
+    placeholder: Select a router
+  service:
+    label: Service
+    placeholder: Select a service
+  title: Target
+  version:
+    label: Version
+    placeholder: Select a version
+
 validation:
   arrayLength:
     between: '"{key}" should contain between {min} and {max} {max, plural, =1 {item} other {items}}'
@@ -1475,7 +1549,7 @@ workload:
         key:
           label: Key
           placeholder: "e.g. metadata.labels['<KEY>']"
-        name: 
+        name:
           label: Variable Name
           placeholder: "e.g. FOO"
         prefix: Prefix
@@ -1486,9 +1560,10 @@ workload:
         configMap: ConfigMap
         containerName: Container Name
         type: Type
-        value: 
+        value:
           label: Value
           placeholder: e.g. BAR
+      tty: TTY
       workingDir: WorkingDir
       stdin: Stdin
     healthCheck:
@@ -1531,7 +1606,7 @@ workload:
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
-      allowPrivilegeEscalation: 
+      allowPrivilegeEscalation:
         label: Privilege Escalation
         'false': No
         'true': "Yes: container can gain more privileges than its parent process"
@@ -1543,12 +1618,12 @@ workload:
         label: Privileged
         'false': No
         'true': "Yes: container has full access to the host"
-      readOnlyRootFilesystem: 
+      readOnlyRootFilesystem:
         label: Read-Only Root Filesystem
         'false': No
         'true': "Yes: container has a read-only root filesystem"
       runAsGroup: Run as Group ID
-      runAsNonRoot: 
+      runAsNonRoot:
         label: Run as Non-Root
         'false': No
         'true': "Yes: container must run as a non-root user"
@@ -1669,6 +1744,7 @@ workload:
         inNamespaces: "Pods in these namespaces:"
         key: Key
         lessThan: <
+        namespaces: Namespaces
         notIn: ≠
         operator: Operator
         value: Value
@@ -1758,6 +1834,7 @@ workload:
       storagePolicyName: Storage Policy Name
       volumePath: Volume Path
     defaultMode: Default Mode
+    driver: driver
     hostPath:
       label: The Path on the Node must be
       options:

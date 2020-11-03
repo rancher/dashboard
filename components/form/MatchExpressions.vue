@@ -2,6 +2,7 @@
 import { NODE, POD, NAMESPACE } from '@/config/types';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import Select from '@/components/form/Select';
 import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
 import { removeObject } from '@/utils/array';
@@ -10,6 +11,7 @@ export default {
   components: {
     LabeledInput,
     LabeledSelect,
+    Select,
   },
   props:      {
     // array of match expressions
@@ -232,7 +234,7 @@ export default {
         <div v-if="isView">
           {{ row.operator }}
         </div>
-        <LabeledSelect
+        <Select
           v-else
           v-model="row.operator"
           class="operator single"
@@ -253,7 +255,7 @@ export default {
         </div>
         <input v-else v-model="row.values" :mode="mode" :disabled="row.operator==='Exists' || row.operator==='DoesNotExist'" />
       </div>
-      <div class="text-right">
+      <div class="remove-container">
         <button
           v-if="!isView"
           type="button"
@@ -273,7 +275,7 @@ export default {
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
   $separator: 20;
   $remove: 75;
   $spacing: 10px;
@@ -297,6 +299,11 @@ export default {
     font-size:2em;
   }
 
+  .remove-container {
+    display: flex;
+    justify-content: center;
+  }
+
   .selector-weight {
     color: var(--input-label)
   }
@@ -305,7 +312,6 @@ export default {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     grid-gap: $column-gutter;
-    align-items: center;
 
     &>label{
       margin-left: 8px;
@@ -315,7 +321,7 @@ export default {
       grid-template-columns: 1fr 1fr 1fr 100px;
     }
 
-    INPUT {
+    INPUT:not(.vs__search) {
       height: 50px;
     }
   }

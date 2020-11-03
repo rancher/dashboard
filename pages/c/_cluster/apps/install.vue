@@ -803,7 +803,7 @@ export default {
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
-            label="Chart"
+            :label="t('catalog.install.chart')"
             :value="chart"
             :options="charts"
             :get-option-label="opt => getOptionLabel(opt)"
@@ -813,7 +813,7 @@ export default {
         </div>
         <div v-if="chart" class="col span-6">
           <LabeledSelect
-            label="Version"
+            :label="t('catalog.install.version')"
             :value="$route.query.version"
             option-label="version"
             option-key="version"
