@@ -5,6 +5,7 @@ import { get } from '@/utils/object';
 import { ClusterNotFoundError } from '@/utils/error';
 import { applyProducts } from '@/store/type-map';
 import { NAME as EXPLORER } from '@/config/product/explorer';
+import { addParam } from '@/utils/url';
 
 let beforeEachSetup = false;
 
@@ -103,6 +104,13 @@ export default async function({
     beforeEachSetup = true;
 
     store.app.router.beforeEach((to, from, next) => {
+      // If history back leaves the router base, redirect (to ember) instead of letting nuxt try to render it
+      if ( !to.path.startsWith(app.router.options.base) && !to.query.redir ) {
+        window.location.href = addParam(to.fullPath, 'redir', 1);
+
+        return;
+      }
+
       setProduct(store, to);
       next();
     });
