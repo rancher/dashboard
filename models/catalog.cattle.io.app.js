@@ -2,7 +2,7 @@ import Vue from 'vue';
 import {
   NAMESPACE, NAME, REPO, REPO_TYPE, CHART, VERSION, _VIEW
 } from '@/config/query-params';
-import { CATALOG as CATALOG_ANNOTATIONS } from '@/config/labels-annotations';
+import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@/config/labels-annotations';
 import { compare, sortable } from '@/utils/version';
 import { filterBy } from '@/utils/array';
 import { CATALOG } from '@/config/types';
@@ -40,24 +40,38 @@ export default {
   },
 
   matchingChart() {
-    const chart = this.spec?.chart;
+    return (includeHidden) => {
+      const chart = this.spec?.chart;
 
-    if ( !chart ) {
-      return;
-    }
+      if ( !chart ) {
+        return;
+      }
 
-    const chartName = chart.metadata?.name;
-    const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE];
-    const preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
-    const match = this.$rootGetters['catalog/chart']({
-      chartName, preferRepoType, preferRepoName
-    });
+      const chartName = chart.metadata?.name;
+      const preferRepoType = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_TYPE];
+      const preferRepoName = chart.metadata?.annotations?.[CATALOG_ANNOTATIONS.SOURCE_REPO_NAME];
+      const match = this.$rootGetters['catalog/chart']({
+        chartName,
+        preferRepoType,
+        preferRepoName,
+        includeHidden
+      });
 
-    return match;
+      return match;
+    };
   },
 
   upgradeAvailable() {
-    const chart = this.matchingChart;
+    // false = does not apply (managed by fleet)
+    // null = no upgrade found
+    // object = version available to upgrade to
+
+    if ( this.spec?.chart?.metadata?.annotations?.[FLEET.BUNDLE_ID] ) {
+      // Things managed by fleet shouldn't show ugrade available even if there might be.
+      return false;
+    }
+
+    const chart = this.matchingChart(false);
 
     if ( !chart ) {
       return null;
@@ -89,7 +103,7 @@ export default {
 
   goToUpgrade() {
     return (forceVersion) => {
-      const match = this.matchingChart;
+      const match = this.matchingChart(true);
       const versionName = this.spec?.chart?.metadata?.version;
       const query = {
         [NAMESPACE]: this.metadata.namespace,

@@ -59,6 +59,7 @@ export default {
     const query = this.$route.query;
 
     await this.$store.dispatch('catalog/load');
+
     this.defaultRegistrySetting = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
       id:   'system-default-registry'
@@ -73,7 +74,10 @@ export default {
 
     if ( this.repo && chartName ) {
       this.chart = this.$store.getters['catalog/chart']({
-        repoType, repoName, chartName
+        repoType,
+        repoName,
+        chartName,
+        includeHidden: true,
       });
     }
 
@@ -235,7 +239,7 @@ export default {
 
       this.removeGlobalValuesFrom(userValues);
       this.chartValues = merge(merge({}, this.versionInfo.values), userValues);
-      this.valuesYaml = jsyaml.safeDump(this.chartValues);
+      this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
 
       if ( this.valuesYaml === '{}\n' ) {
         this.valuesYaml = '';
@@ -266,7 +270,7 @@ export default {
       mode:                   null,
       value:                  null,
       valuesComponent:        null,
-      valuesYaml:             null,
+      valuesYaml:             '',
       version:                null,
       versionInfo:            null,
       project:                null,
@@ -333,13 +337,21 @@ export default {
     },
 
     isValuesTab() {
-      const tabName = this.$refs.tabs.activeTabName;
+      const tabName = this.$refs.tabs?.activeTabName;
 
-      return !['appReadme', 'helm', 'readme'].includes(tabName);
+      return tabName && !['appReadme', 'helm', 'readme'].includes(tabName);
     },
 
     charts() {
-      return this.$store.getters['catalog/charts'].filter(x => !x.deprecated);
+      const currentKey = this.existing?.matchingChart(true)?.key;
+
+      return this.$store.getters['catalog/charts'].filter((x) => {
+        if ( x.key === currentKey ) {
+          return true;
+        }
+
+        return !x.deprecated && !x.hidden;
+      });
     },
 
     repo() {
@@ -451,7 +463,7 @@ export default {
     },
 
     preview() {
-      this.valuesYaml = jsyaml.safeDump(this.chartValues);
+      this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
       this.previousYamlValues = this.valuesYaml;
 
       this.showPreview = true;

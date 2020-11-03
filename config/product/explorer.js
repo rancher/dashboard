@@ -98,7 +98,7 @@ export function init(store) {
   mapGroup(/^(.*\.)?monitoring\.coreos\.com$/, 'Monitoring');
   mapGroup(/^(.*\.)?tekton\.dev$/, 'Tekton');
   mapGroup(/^(.*\.)?longhorn(\.rancher)?\.io$/, 'Longhorn');
-  mapGroup(/^(.*\.)?fleet\.cattle\.io$/, 'Fleet');
+  mapGroup(/^(.*\.)?(fleet|gitjob)\.cattle\.io$/, 'Fleet');
   mapGroup(/^(.*\.)?(helm|upgrade|k3s)\.cattle\.io$/, 'k3s');
   mapGroup(/^(.*\.)?cis\.cattle\.io$/, 'CIS');
   mapGroup(/^(catalog|project|management)\.cattle\.io$/, 'Rancher');

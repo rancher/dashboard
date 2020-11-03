@@ -291,6 +291,7 @@ catalog:
           }
       wait: Wait
   app:
+    managed: Managed
     section:
       readme: Chart README
       notes: Release Notes

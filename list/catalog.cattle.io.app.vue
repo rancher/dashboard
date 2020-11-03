@@ -38,6 +38,7 @@ export default {
         {{ row.upgradeAvailable }}
         <i classs="icon icon-upload" />
       </span>
+      <span v-else-if="row.upgradeAvailable === false" v-t="'catalog.app.managed'" class="text-muted" />
     </template>
   </ResourceTable>
 </template>

@@ -106,7 +106,7 @@ export default {
           const searchTokens = this.searchQuery.split(/\s*[, ]\s*/).map(x => ensureRegex(x, false));
 
           for ( const token of searchTokens ) {
-            if ( !c.chartName.match(token) && (c.description && !c.description.match(token)) ) {
+            if ( !c.chartName.match(token) && (c.chartDescription && !c.chartDescription.match(token)) ) {
               return false;
             }
           }
@@ -321,7 +321,7 @@ export default {
             {{ c.chartName }}
           </h4>
           <div class="description">
-            {{ c.description }}
+            {{ c.chartDescription }}
           </div>
         </div>
       </div>
