@@ -123,6 +123,7 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
+    :errors="errors"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"

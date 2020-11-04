@@ -833,6 +833,9 @@ monitoring:
       groupWait: Group Wait
       groupInterval: Group Interval
       repeatInterval: Repeat Interval
+  receiver:
+    fields:
+      name: Name
 
 nameNsDescription:
   name:

@@ -1,4 +1,5 @@
 import { canCreate, updateConfig } from '@/utils/alertmanagerconfig';
+import { isEmpty } from '@/utils/object';
 
 export const RECEIVERS_TYPES = [
   {
@@ -46,6 +47,12 @@ export default {
 
   save() {
     return async() => {
+      const errors = await this.validationErrors(this);
+
+      if (!isEmpty(errors)) {
+        return Promise.reject(errors);
+      }
+
       await this.updateReceivers((currentReceivers) => {
         const existingReceiver = currentReceivers.find(r => r.name === this.spec?.name);
 
@@ -116,5 +123,19 @@ export default {
       Object.assign(originalValue, value);
       originalValue.save();
     };
-  }
+  },
+
+  customValidationRules() {
+    const rules = [
+      {
+        nullable:       false,
+        path:           'spec.name',
+        required:       true,
+        translationKey: 'monitoring.receiver.fields.name'
+      },
+    ];
+
+    return rules;
+  },
+
 };
