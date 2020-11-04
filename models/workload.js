@@ -27,6 +27,9 @@ export default {
   },
 
   customValidationRules() {
+    const type = this._type ? this._type : this.type;
+
+    const podSpecPath = type === WORKLOAD_TYPES.CRON_JOB ? 'spec.jobTemplate.spec.template.spec' : 'spec.template.spec';
     const out = [
       {
         nullable:       false,
@@ -41,10 +44,14 @@ export default {
         required:       true,
         type:           'object',
         validators:     ['containerImages'],
+      },
+      {
+        nullable:       true,
+        path:           `${ podSpecPath }.affinity`,
+        type:           'object',
+        validators:     ['podAffinity'],
       }
     ];
-
-    const type = this._type ? this._type : this.type;
 
     switch (type) {
     case WORKLOAD_TYPES.DEPLOYMENT:

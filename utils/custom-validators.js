@@ -4,6 +4,7 @@ import { ruleGroups, groupsAreValid } from '@/utils/validators/prometheusrule';
 import { interval, matching } from '@/utils/validators/monitoring-route';
 import { containerImages } from '@/utils/validators/container-images';
 import { cronSchedule } from '@/utils/validators/cron-schedule';
+import { podAffinity } from '@/utils/validators/pod-affinity';
 
 /**
 * Custom validation functions beyond normal scalr types
@@ -20,5 +21,6 @@ export default {
   servicePort,
   matching,
   containerImages,
-  cronSchedule
+  cronSchedule,
+  podAffinity
 };
