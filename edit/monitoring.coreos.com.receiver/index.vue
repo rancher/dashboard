@@ -22,8 +22,7 @@ export default {
   mixins: [CreateEditView],
   asyncData(ctx) {
     function yamlSave(value, originalValue) {
-      Object.assign(originalValue, value);
-      originalValue.save();
+      originalValue.yamlSaveOverride(value, originalValue);
     }
 
     return defaultAsyncData(ctx, null, {

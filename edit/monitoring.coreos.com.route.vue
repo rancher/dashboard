@@ -10,21 +10,29 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { MONITORING } from '@/config/types';
 import Banner from '@/components/Banner';
+import { createDefaultRouteName } from '@/utils/alertmanagerconfig';
+import Loading from '@/components/Loading';
 
 export default {
   components: {
-    ArrayList, Banner, CruResource, KeyValue, LabeledInput, LabeledSelect, Tab, Tabbed
+    ArrayList, Banner, CruResource, KeyValue, LabeledInput, LabeledSelect, Loading, Tab, Tabbed
   },
   mixins: [CreateEditView],
   async fetch() {
-    const receivers = await this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.RECEIVER });
+    const receivers = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.RECEIVER });
+    const routes = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.ROUTE });
 
-    this.receiverOptions = receivers.map(receiver => receiver.spec.name);
+    this.receiverOptions = (await receivers).map(receiver => receiver.spec.name);
+
+    if (this.isCreate) {
+      const nonRootRoutes = (await routes).filter(route => !route.isRoot);
+
+      this.$set(this.value.spec, 'name', createDefaultRouteName(nonRootRoutes.length));
+    }
   },
   asyncData(ctx) {
     function yamlSave(value, originalValue) {
-      Object.assign(originalValue, value);
-      originalValue.save();
+      originalValue.yamlSaveOverride(value, originalValue);
     }
 
     return defaultAsyncData(ctx, null, {
@@ -32,16 +40,17 @@ export default {
     });
   },
   data() {
+    this.$set(this.value.spec, 'group_by', this.value.spec.group_by || []);
+
     return { receiverOptions: [] };
   },
-  computed: {},
-  watch:    {},
-  methods:  {}
 };
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     class="route"
     :done-route="doneRoute"
     :errors="errors"
@@ -54,7 +63,7 @@ export default {
   >
     <div v-if="!isView" class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.name" :disabled="!isCreate" :label="t('generic.name')" :mode="mode" />
+        <LabeledInput v-model="value.spec.name" :disabled="true" :label="t('generic.name')" :mode="mode" />
       </div>
     </div>
     <Banner v-if="value.isRoot" color="info">

@@ -17,7 +17,6 @@ export default {
   data() {
     this.$set(this.value, 'http_config', this.value.http_config || {});
     this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
-    this.$set(this.value, 'require_tls', this.value.require_tls || false);
 
     return {};
   },

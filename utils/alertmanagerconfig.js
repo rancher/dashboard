@@ -60,6 +60,7 @@ export async function updateConfig(dispatch, path, type, updateFn) {
   const { config, secret } = await loadConfig(dispatch);
 
   set(config, path, get(config, path) || []);
+  setDefaultRouteNames(config.route.routes);
 
   const newValue = updateFn(get(config, path));
 
@@ -67,6 +68,12 @@ export async function updateConfig(dispatch, path, type, updateFn) {
 
   const routes = config.route.routes;
   const rootIndex = routes.findIndex(route => route.name === ROOT_NAME);
+
+  routes.forEach((route) => {
+    if (route.name) {
+      delete route.name;
+    }
+  });
 
   if (rootIndex >= 0) {
     const rootRoute = routes.splice(rootIndex, 1)[0];
@@ -109,11 +116,12 @@ export async function getAllRoutes(dispatch) {
     config.route = config.route || {};
     config.route.name = ROOT_NAME;
     const routes = config.route?.routes || [];
-    const routesWithName = routes.filter(route => route.name);
 
-    routesWithName.push(config.route);
+    setDefaultRouteNames(routes);
 
-    const mapped = routesWithName.map(route => dispatch('cluster/create', {
+    routes.push(config.route);
+
+    const mapped = routes.map(route => dispatch('cluster/create', {
       id:    route.name,
       spec:  route,
       type:  MONITORING.SPOOFED.ROUTE,
@@ -124,6 +132,16 @@ export async function getAllRoutes(dispatch) {
   } catch (ex) {
     return [];
   }
+}
+
+function setDefaultRouteNames(routes) {
+  routes.forEach((route, i) => {
+    route.name = route.name || createDefaultRouteName(i);
+  });
+}
+
+export function createDefaultRouteName(index) {
+  return `route-${ index }`;
 }
 
 export function areRoutesSupportedFormat(secret) {
