@@ -40,6 +40,8 @@ export default {
       { value: 'fieldRef', label: 'Field' },
       { value: 'secretRef', label: 'Secret' }];
 
+    const resourceKeyOpts = ['limits.cpu', 'limits.ephemeral-storage', 'limits.memory', 'requests.cpu', 'requests.ephemeral-storage', 'requests.memory'];
+
     let type = this.row.secretRef ? 'secretRef' : Object.keys((this.row.valueFrom))[0];
 
     let refName;
@@ -88,7 +90,7 @@ export default {
     }
 
     return {
-      typeOpts, type, refName, referenced: refName, secrets: this.allSecrets, keys: [], key, fieldPath, name
+      typeOpts, type, refName, referenced: refName, secrets: this.allSecrets, keys: [], key, fieldPath, name, resourceKeyOpts
     };
   },
   computed: {
@@ -241,9 +243,20 @@ export default {
           {{ key }}
         </div>
 
-        <input v-else v-model="key" :placeholder="t('workload.container.command.fromResource.key.placeholder')" :mode="mode" />
+        <v-select
+          v-else
+          v-model="key"
+          :multiple="false"
+          :options="resourceKeyOpts"
+          :mode="mode"
+          class="inline"
+          :searchable="false"
+          :placeholder="t('workload.container.command.fromResource.key.placeholder')"
+          @input="updateRow"
+        />
       </div>
     </template>
+
     <template v-else>
       <div>
         <div v-if="isView">
