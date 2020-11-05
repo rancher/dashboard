@@ -1096,7 +1096,7 @@ servicePorts:
       placeholder: e.g. myport
     node:
       label: Node Port
-      placeholder: e.g. 80
+      placeholder: e.g. 30000
     protocol:
       label: Protocol
     target:
