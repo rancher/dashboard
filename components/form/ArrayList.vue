@@ -13,7 +13,7 @@ import { clone } from '@/utils/object';
   - Concealed value
 */
 
-const DEFAULT_PROTIP = 'ProTip: Paste lines into any list field for easy bulk entry';
+const DEFAULT_PROTIP = 'Paste lines into any list field for easy bulk entry';
 
 export default {
   components: { TextAreaAutoGrow },
@@ -337,7 +337,7 @@ export default {
     .value {
       flex: 1;
       INPUT {
-        height: 50px;
+        height: $input-height;
       }
     }
   }

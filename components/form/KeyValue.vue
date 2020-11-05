@@ -52,7 +52,7 @@ export default {
     },
     protip: {
       type:    [String, Boolean],
-      default: 'ProTip: Paste lines of <code>key=value</code> or <code>key: value</code> into any key field for easy bulk entry',
+      default: 'Paste lines of <em>key=value</em> or <em>key: value</em> into any key field for easy bulk entry',
     },
 
     padLeft: {
@@ -397,7 +397,7 @@ export default {
   <div class="key-value" :class="mode">
     <div v-if="title" class="clearfix">
       <slot name="title">
-        <h3>
+        <h3 class="mb-0">
           {{ title }}
           <button v-if="titleAdd && showAdd" type="button" class="btn btn-xs role-tertiary p-5 ml-10" style="position: relative; top: -3px;" @click="add()">
             <i class="icon icon-plus icon-lg icon-fw" />
@@ -524,7 +524,7 @@ export default {
       </template>
     </div>
 
-    <div v-if="!titleAdd && (showAdd || showRead)" class="footer">
+    <div v-if="!titleAdd && (showAdd || showRead)" class="footer mt-10">
       <slot name="add" :add="add">
         <button v-if="showAdd" type="button" class="btn btn-sm role-secondary add" @click="add()">
           {{ addLabel }}

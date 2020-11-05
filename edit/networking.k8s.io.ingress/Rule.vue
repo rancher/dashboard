@@ -71,11 +71,6 @@ export default {
         />
       </div>
       <div id="host" class="col span-5"></div>
-      <div class="col span-1">
-        <button class="btn role-link close" @click="removeRule">
-          <i class="icon icon-2x icon-x" />
-        </button>
-      </div>
     </div>
     <div class="rule-path-headings row">
       <div class="col" :class="{'span-6': ingress.showPathType, 'span-4': !ingress.showPathType}">
@@ -111,13 +106,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.rule {
-  background: var(--tabbed-container-bg);
-  border: 1px solid var(--tabbed-border);
-  border-radius: var(--border-radius);
-  padding: 20px;
-  margin-top: 20px;
-}
 #host {
   align-self: center;
 }

@@ -31,12 +31,18 @@ export default {
       'Exact',
       'ImplementationSpecific'
     ];
-    const { backend = {}, path = '', pathType = pathTypes[0] } = this.value;
-    const serviceName = get(backend, this.ingress.serviceNamePath) || '';
-    const servicePort = get(backend, this.ingress.servicePortPath) || '';
+
+    set(this.value, 'backend', this.value.backend || {});
+    set(this.value, 'path', this.value.path || '');
+    set(this.value, 'pathType', this.value.pathType || pathTypes[0]);
+    set(this.value.backend, this.ingress.serviceNamePath, get(this.value.backend, this.ingress.serviceNamePath) || '');
+    set(this.value.backend, this.ingress.servicePortPath, get(this.value.backend, this.ingress.servicePortPath) || '');
+
+    const serviceName = get(this.value.backend, this.ingress.serviceNamePath);
+    const servicePort = get(this.value.backend, this.ingress.servicePortPath);
 
     return {
-      serviceName, servicePort, path, pathType, pathTypes
+      pathTypes, serviceName, servicePort
     };
   },
   computed: {
@@ -46,13 +52,16 @@ export default {
       return service?.ports || [];
     },
     serviceTargetStatus() {
-      const isValueAnOption = !this.serviceName || this.serviceTargets.find(target => this.serviceName === target.value);
+      const serviceName = this.serviceName.label || this.serviceName;
+      const isValueAnOption = !serviceName || this.serviceTargets.find(target => serviceName === target.value);
 
       return isValueAnOption ? null : 'warning';
     },
     serviceTargetTooltip() {
+      console.log('notop', this.serviceTargetStatus);
+
       return this.serviceTargetStatus === 'warning' ? this.t('ingress.rules.target.doesntExist') : null;
-    },
+    }
   },
   created() {
     this.queueUpdate = debounce(this.update, 500);
@@ -83,10 +92,11 @@ export default {
   <div class="rule-path row">
     <div v-if="ingress.showPathType" class="col span-6">
       <InputWithSelect
+        class="path-type"
         :options="pathTypes"
         :placeholder="t('ingress.rules.path.placeholder', undefined, true)"
-        :select-value="pathType"
-        :text-value="path"
+        :select-value="value.pathType"
+        :text-value="value.path"
         :searchable="false"
         @input="queueUpdatePathTypeAndPath"
       />
@@ -102,6 +112,7 @@ export default {
         :options="serviceTargets"
         :status="serviceTargetStatus"
         :taggable="true"
+        :searchable="true"
         :tooltip="serviceTargetTooltip"
         :hover-tooltip="true"
         @input="queueUpdate(); servicePort = ''"
@@ -110,7 +121,7 @@ export default {
     <div class="col" :class="{'span-2': ingress.showPathType, 'span-3': !ingress.showPathType}" :style="{'margin-right': '0px'}">
       <LabeledInput
         v-if="portOptions.length === 0"
-        v-model="servicePort"
+        :v-model="servicePort"
         :placeholder="t('ingress.rules.port.placeholder')"
         @input="queueUpdate"
       />
@@ -129,6 +140,12 @@ export default {
 </template>
 <style lang="scss" scoped>
 .rule-path ::v-deep {
+  .path-type {
+    .unlabeled-select {
+      min-width: 200px;
+    }
+  }
+
   &, .input-container {
     height: $input-height;
   }
