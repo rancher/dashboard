@@ -2,7 +2,7 @@
 import InputWithSelect from '@/components/form/InputWithSelect';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import { get, set } from '@/utils/object';
+import { set } from '@/utils/object';
 
 export default {
   components: {
@@ -30,13 +30,14 @@ export default {
       'Exact',
       'ImplementationSpecific'
     ];
-    const { backend = {}, path = '', pathType = pathTypes[0] } = this.value;
-    const serviceName = get(backend, this.ingress.serviceNamePath) || '';
-    const servicePort = get(backend, this.ingress.servicePortPath) || '';
 
-    return {
-      serviceName, servicePort, path, pathType, pathTypes
-    };
+    set(this.value, 'backend', this.value.backend || {});
+    set(this.value, 'path', this.value.path || '');
+    set(this.value, 'pathType', this.value.pathType || pathTypes[0]);
+    set(this.value.backend, this.ingress.serviceNamePath, this.value.backend[this.ingress.serviceNamePath] || '');
+    set(this.value.backend, this.ingress.servicePortPath, this.value.backend[this.ingress.servicePortPath] || '');
+
+    return { pathTypes };
   },
   computed: {
     portOptions() {
@@ -52,24 +53,30 @@ export default {
     serviceTargetTooltip() {
       return this.serviceTargetStatus === 'warning' ? this.t('ingress.rules.target.doesntExist') : null;
     },
+    serviceName: {
+      get() {
+        return this.value.backend[this.ingress.serviceNamePath];
+      },
+      set(value) {
+        const newValue = value.label ? value.label : value;
+
+        this.value.backend[this.ingress.serviceNamePath] = newValue;
+      }
+    },
+
+    servicePort: {
+      get() {
+        return this.value.backend[this.ingress.servicePortPath];
+      },
+      set(value) {
+        this.value.backend[this.ingress.servicePortPath] = Number.parseInt(value) || value;
+      }
+    }
   },
   methods: {
-    update() {
-      const servicePort = Number.parseInt(this.servicePort) || this.servicePort;
-      const serviceName = this.serviceName.label || this.serviceName;
-      const out = {
-        backend: {}, path: this.path, pathType: this.pathType
-      };
-
-      set(out.backend, this.ingress.serviceNamePath, serviceName);
-      set(out.backend, this.ingress.servicePortPath, servicePort);
-
-      this.$emit('input', out);
-    },
     updatePathTypeAndPath(values) {
-      this.path = values.text;
-      this.pathType = values.selected;
-      this.update();
+      this.value.path = values.text;
+      this.value.pathType = values.selected;
     }
   }
 };
@@ -80,8 +87,8 @@ export default {
       <InputWithSelect
         :options="pathTypes"
         :placeholder="t('ingress.rules.path.placeholder', undefined, true)"
-        :select-value="pathType"
-        :text-value="path"
+        :select-value="value.pathType"
+        :text-value="value.path"
         @input="updatePathTypeAndPath"
       />
     </div>
@@ -98,7 +105,7 @@ export default {
         :taggable="true"
         :tooltip="serviceTargetTooltip"
         :hover-tooltip="true"
-        @input="update(); servicePort = ''"
+        @input="servicePort = ''"
       />
     </div>
     <div class="col" :class="{'span-2': ingress.showPathType, 'span-3': !ingress.showPathType}" :style="{'margin-right': '0px'}">
@@ -106,14 +113,12 @@ export default {
         v-if="portOptions.length === 0"
         v-model="servicePort"
         :placeholder="t('ingress.rules.port.placeholder')"
-        @input="update"
       />
       <LabeledSelect
         v-else
         v-model="servicePort"
         :options="portOptions"
         :placeholder="t('ingress.rules.port.placeholder')"
-        @input="update"
       />
     </div>
     <button class="btn btn-sm role-link col" @click="$emit('remove')">

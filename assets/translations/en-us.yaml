@@ -648,7 +648,7 @@ labels:
   addLabel: Add Label
   addSetLabel: Add/Set Label
   addAnnotation: Add Annotation
-  label:
+  labels:
     title: Labels
   annotations:
     title: Annotations

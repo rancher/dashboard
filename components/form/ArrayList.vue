@@ -12,7 +12,7 @@ import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
   - Concealed value
 */
 
-const DEFAULT_PROTIP = 'ProTip: Paste lines into any list field for easy bulk entry';
+const DEFAULT_PROTIP = 'Paste lines into any list field for easy bulk entry';
 
 export default {
   components: { TextAreaAutoGrow },

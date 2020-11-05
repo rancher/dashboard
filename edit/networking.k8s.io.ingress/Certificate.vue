@@ -1,12 +1,9 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import InfoBox from '@/components/InfoBox';
 
 export default {
-  components: {
-    InfoBox, LabeledInput, LabeledSelect
-  },
+  components: { LabeledInput, LabeledSelect },
   props:      {
     value: {
       type:    Object,
@@ -61,54 +58,49 @@ export default {
 </script>
 
 <template>
-  <InfoBox class="cert" @input="update">
-    <div class="row">
-      <div class="col span-6">
-        <LabeledSelect
-          :value="secretName"
-          :options="certsWithDefault"
-          :label="t('ingress.certificates.certificate.label')"
-          required
-          @input="
-            (e) => {
-              secretName = e;
-              update();
-            }
-          "
-        />
-      </div>
-      <div class="col span-6">
-        <div v-for="(host, i) in hosts" :key="i" class="row mb-10">
-          <div :style="{ 'margin-right': '0px' }" class="col span-10">
-            <LabeledInput
-              :value="host"
-              :label="t('ingress.certificates.host.label')"
-              :placeholder="t('ingress.certificates.host.placeholder')"
-              @input="(e) => $set(hosts, i, e)"
-            />
-          </div>
-          <div class="col span-2">
-            <button
-              class="btn btn-sm role-link col"
-              style="line-height: 40px;"
-              @click="(e) => remove(e, i)"
-            >
-              {{ t("ingress.certificates.removeHost") }}
-            </button>
-          </div>
-        </div>
-        <button
-          class="btn role-tertiary add"
-          @click="addHost"
-        >
-          {{ t("ingress.certificates.addHost") }}
-        </button>
-      </div>
+  <div class="cert row" @input="update">
+    <div class="col span-6">
+      <LabeledSelect
+        :value="secretName"
+        :options="certsWithDefault"
+        :label="t('ingress.certificates.certificate.label')"
+        required
+        @input="
+          (e) => {
+            secretName = e;
+            update();
+          }
+        "
+      />
     </div>
-    <button class="btn role-link close" @click="$emit('remove')">
-      <i class="icon icon-2x icon-x" />
-    </button>
-  </InfoBox>
+    <div class="col span-6">
+      <div v-for="(host, i) in hosts" :key="i" class="row mb-10">
+        <div :style="{ 'margin-right': '0px' }" class="col span-10">
+          <LabeledInput
+            :value="host"
+            :label="t('ingress.certificates.host.label')"
+            :placeholder="t('ingress.certificates.host.placeholder')"
+            @input="(e) => $set(hosts, i, e)"
+          />
+        </div>
+        <div class="col span-2">
+          <button
+            class="btn btn-sm role-link col"
+            style="line-height: 40px;"
+            @click="(e) => remove(e, i)"
+          >
+            {{ t("ingress.certificates.removeHost") }}
+          </button>
+        </div>
+      </div>
+      <button
+        class="btn role-tertiary add"
+        @click="addHost"
+      >
+        {{ t("ingress.certificates.addHost") }}
+      </button>
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>
