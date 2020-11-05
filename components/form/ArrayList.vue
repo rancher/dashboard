@@ -117,7 +117,7 @@ export default {
       rows.push({ value: '' });
     }
 
-    return { rows };
+    return { rows, lastUpdateWasFromValue: false };
   },
 
   computed: {
@@ -152,12 +152,24 @@ export default {
 
   watch: {
     value() {
+      this.lastUpdateWasFromValue = true;
       this.rows = (this.value || []).map(v => ({ value: v }));
+    },
+    rows: {
+      deep: true,
+      handler(newValue, oldValue) {
+        // lastUpdateWasFromValue is used to break a cycle where when rows are updated
+        // this was called which then forced rows to updated again
+        if (!this.lastUpdateWasFromValue) {
+          this.queueUpdate();
+        }
+        this.lastUpdateWasFromValue = false;
+      }
     }
   },
 
   created() {
-    this.queueUpdate = debounce(this.update, 100);
+    this.queueUpdate = debounce(this.update, 50);
   },
 
   methods: {
