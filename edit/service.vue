@@ -267,19 +267,16 @@ export default {
         >
           <div class="col span-6">
             <LabeledInput
-              v-model="value.spec.clusterIP"
+              v-model.number="value.spec.clusterIP"
               :mode="mode"
-              :label="t('servicesPage.ips.input.label')"
               :placeholder="t('servicesPage.ips.input.placeholder')"
               @input="e=>$set(value.spec, 'clusterIP', e)"
             >
-              <template #corner>
-                <i
-                  v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
-                  v-tooltip="t('servicesPage.ips.clusterIpHelpText')"
-                  class="icon icon-info"
-                  style="font-size: 14px"
-                />
+              <template #label>
+                <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
+                  {{ t('servicesPage.ips.input.label') }}
+                  <i v-tooltip="t('servicesPage.ips.clusterIpHelpText')" class="icon icon-info" />
+                </label>
               </template>
             </LabeledInput>
           </div>
