@@ -261,11 +261,6 @@ export default {
         </div>
       </Tab>
       <Tab name="ips" :label="t('servicesPage.ips.label')">
-        <div class="row">
-          <div class="col span-12">
-            <Banner color="warning" :label="t('servicesPage.ips.helpText')" />
-          </div>
-        </div>
         <div
           v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
           class="row mb-20"

@@ -1134,10 +1134,9 @@ servicesPage:
       label: External IPs
       placeholder: e.g. 1.1.1.1
       protip: List of IP addresses for which nodes in the cluster will also accept traffic for this service.
-    helpText: "Warning: Configuring additional listener IPs is an advanced use case."
     input:
       label: Cluster IP
-      placeholder: e.g. 10.0.171.239
+      placeholder: e.g. 10.43.XXX.XXX
     label: Listener IPs
   selectors:
     helpText: "If no selector is created, manual endpoints must be made."

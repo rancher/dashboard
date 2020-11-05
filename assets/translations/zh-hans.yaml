@@ -964,7 +964,7 @@ servicesPage:
     helpText: "警告：配置额外的监听IP是高级选项"
     input:
       label: 集群IP
-      placeholder: 例如：10.0.171.239
+      placeholder: 例如：10.43.XXX.XXX
     label: 监听IP
   selectors:
     helpText: "如果没有创建选择器，则必须手动输入端点。"
