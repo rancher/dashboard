@@ -2,6 +2,9 @@ import { isEmpty } from '@/utils/object';
 
 // spec = podSpec.affinity
 export function podAffinity(spec, getters, errors) {
+  if (!spec) {
+    return;
+  }
   const { podAffinity, podAntiAffinity } = spec;
 
   // pod affinity
