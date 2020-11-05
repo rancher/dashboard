@@ -235,7 +235,11 @@ export default {
     },
 
     threeColumns() {
-      return (this.valueBinary && this.isView) || this.showRemove;
+      return ((this.valueBinary || this.hasSomeBinary) && this.isView) || this.showRemove;
+    },
+
+    hasSomeBinary() {
+      return !!(this.rows.filter(row => !!get(row, '_display.binary')) || []).length;
     },
 
     ...mapGetters({ t: 'i18n/t' })
