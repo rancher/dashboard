@@ -61,7 +61,7 @@ export default {
     },
     protip: {
       type:    [String, Boolean],
-      default: 'ProTip: Paste lines of <code>key=value</code> or <code>key: value</code> into any key field for easy bulk entry',
+      default: 'ProTip: Paste lines of key=value or key: value into any key field for easy bulk entry',
     },
 
     padLeft: {
@@ -391,7 +391,7 @@ export default {
     <div v-if="rows.length || isView" :class="{'extra-column':threeColumns}" class="kv-row headers">
       <label class="text-label" :class="{'view':isView}">
         {{ keyLabel }}
-        <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" style="font-size: 14px" />
+        <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" />
       </label>
       <label class="text-label" :class="{'view':isView}">{{ valueLabel }}</label>
       <span v-if="threeColumns" :class="{'view':isView}" />

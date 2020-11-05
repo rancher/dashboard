@@ -189,7 +189,7 @@ export default {
           <Checkbox v-model="value.global.rbac.userRoles.create" :label="t('monitoring.createDefaultRoles.label')">
             <template #label>
               <span class="text-label">{{ t('monitoring.createDefaultRoles.label') }}</span>
-              <i v-tooltip="t('monitoring.createDefaultRoles.tip', {}, true)" class="icon icon-info icon-lg" />
+              <i v-tooltip="t('monitoring.createDefaultRoles.tip', {}, true)" class="icon icon-info" />
             </template>
           </Checkbox>
         </div>
@@ -197,7 +197,7 @@ export default {
           <Checkbox v-model="value.global.rbac.userRoles.aggregateToDefaultRoles" :label="t('monitoring.aggregateDefaultRoles.label')" :disabled="disableAggregateRoles">
             <template #label>
               <span class="text-label">{{ t('monitoring.aggregateDefaultRoles.label') }}</span>
-              <i v-tooltip="{content:t('monitoring.aggregateDefaultRoles.tip', {}, true), autoHide: false}" class="icon icon-info icon-lg" />
+              <i v-tooltip="{content:t('monitoring.aggregateDefaultRoles.tip', {}, true), autoHide: false}" class="icon icon-info" />
             </template>
           </Checkbox>
         </div>

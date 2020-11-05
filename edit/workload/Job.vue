@@ -106,7 +106,7 @@ export default {
           <template #label>
             <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.job.completions.label') }}
-              <i v-tooltip="t('workload.job.completions.tip')" class="icon icon-info" style="font-size: 14px" />
+              <i v-tooltip="t('workload.job.completions.tip')" class="icon icon-info" />
             </label>
           </template>
         </UnitInput>
@@ -116,7 +116,7 @@ export default {
           <template #label>
             <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.job.parallelism.label') }}
-              <i v-tooltip="t('workload.job.parallelism.tip')" class="icon icon-info" style="font-size: 14px" />
+              <i v-tooltip="t('workload.job.parallelism.tip')" class="icon icon-info" />
             </label>
           </template>
         </UnitInput>
@@ -128,7 +128,7 @@ export default {
           <template #label>
             <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.job.backoffLimit.label') }}
-              <i v-tooltip="t('workload.job.backoffLimit.tip')" class="icon icon-info" style="font-size: 14px" />
+              <i v-tooltip="t('workload.job.backoffLimit.tip')" class="icon icon-info" />
             </label>
           </template>
         </UnitInput>
@@ -138,7 +138,7 @@ export default {
           <template #label>
             <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.job.activeDeadlineSeconds.label') }}
-              <i v-tooltip="t('workload.job.activeDeadlineSeconds.tip')" class="icon icon-info" style="font-size: 14px" />
+              <i v-tooltip="t('workload.job.activeDeadlineSeconds.tip')" class="icon icon-info" />
             </label>
           </template>
         </UnitInput>
@@ -151,7 +151,7 @@ export default {
             <template #label>
               <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.job.successfulJobsHistoryLimit.label') }}
-                <i v-tooltip="t('workload.job.successfulJobsHistoryLimit.tip')" class="icon icon-info" style="font-size: 14px" />
+                <i v-tooltip="t('workload.job.successfulJobsHistoryLimit.tip')" class="icon icon-info" />
               </label>
             </template>
           </LabeledInput>
@@ -161,7 +161,7 @@ export default {
             <template #label>
               <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.job.failedJobsHistoryLimit.label') }}
-                <i v-tooltip="t('workload.job.failedJobsHistoryLimit.tip')" class="icon icon-info" style="font-size: 14px" />
+                <i v-tooltip="t('workload.job.failedJobsHistoryLimit.tip')" class="icon icon-info" />
               </label>
             </template>
           </LabeledInput>
@@ -173,7 +173,7 @@ export default {
             <template #label>
               <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.job.startingDeadlineSeconds.label') }}
-                <i v-tooltip="t('workload.job.startingDeadlineSeconds.tip')" class="icon icon-info" style="font-size: 14px" />
+                <i v-tooltip="t('workload.job.startingDeadlineSeconds.tip')" class="icon icon-info" />
               </label>
             </template>
           </UnitInput>

@@ -232,7 +232,7 @@ export default {
             <template #label>
               <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.upgrading.maxSurge.label') }}
-                <i v-tooltip="t('workload.upgrading.maxSurge.tip')" class="icon icon-info" style="font-size: 14px" />
+                <i v-tooltip="t('workload.upgrading.maxSurge.tip')" class="icon icon-info" />
               </label>
             </template>
           </InputWithSelect>
@@ -251,7 +251,7 @@ export default {
             <template #label>
               <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
                 {{ t('workload.upgrading.maxUnavailable.label') }}
-                <i v-tooltip="t('workload.upgrading.maxUnavailable.tip')" class="icon icon-info" style="font-size: 14px" />
+                <i v-tooltip="t('workload.upgrading.maxUnavailable.tip')" class="icon icon-info" />
               </label>
             </template>
           </InputWithSelect>
@@ -266,7 +266,7 @@ export default {
           <template #label>
             <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.upgrading.minReadySeconds.label') }}
-              <i v-tooltip="t('workload.upgrading.minReadySeconds.tip')" class="icon icon-info" style="font-size: 14px" />
+              <i v-tooltip="t('workload.upgrading.minReadySeconds.tip')" class="icon icon-info" />
             </label>
           </template>
         </UnitInput>
@@ -276,7 +276,7 @@ export default {
           <template #label>
             <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.upgrading.revisionHistoryLimit.label') }}
-              <i v-tooltip="t('workload.upgrading.revisionHistoryLimit.tip')" class="icon icon-info" style="font-size: 14px" />
+              <i v-tooltip="t('workload.upgrading.revisionHistoryLimit.tip')" class="icon icon-info" />
             </label>
           </template>
         </UnitInput>
@@ -288,7 +288,7 @@ export default {
           <template #label>
             <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.upgrading.progressDeadlineSeconds.label') }}
-              <i v-tooltip="t('workload.upgrading.progressDeadlineSeconds.tip')" class="icon icon-info" style="font-size: 14px" />
+              <i v-tooltip="t('workload.upgrading.progressDeadlineSeconds.tip')" class="icon icon-info" />
             </label>
           </template>
         </UnitInput>
@@ -302,7 +302,7 @@ export default {
           <template #label>
             <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
               {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}
-              <i v-tooltip="t('workload.upgrading.terminationGracePeriodSeconds.tip')" class="icon icon-info" style="font-size: 14px" />
+              <i v-tooltip="t('workload.upgrading.terminationGracePeriodSeconds.tip')" class="icon icon-info" />
             </label>
           </template>
         </UnitInput>

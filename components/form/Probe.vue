@@ -149,10 +149,10 @@ export default {
 <template>
   <div @input="update">
     <div class="title clearfix">
-      <h4 :style="{'display':'flex'}">
+      <h3>
         {{ label }}
-        <i v-if="description" v-tooltip="description" class="icon icon-info" style="font-size: 12px" />
-      </h4>
+        <i v-if="description" v-tooltip="description" class="icon icon-info" style="" />
+      </h3>
     </div>
     <div class="row">
       <div class="col span-11-of-23">
