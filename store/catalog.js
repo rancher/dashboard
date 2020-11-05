@@ -6,6 +6,7 @@ import { clone } from '@/utils/object';
 import { findBy, addObject, filterBy } from '@/utils/array';
 import { stringify } from '@/utils/error';
 import { proxyFor } from '@/plugins/steve/resource-proxy';
+import { sortBy } from '@/utils/sort';
 
 const ALLOWED_CATEGORIES = [
   'Storage',
@@ -73,7 +74,7 @@ export const getters = {
        return true;
     });
 
-    return out; 
+    return sortBy(out, ['certifiedSort', 'repoName', 'chartName']);
   },
 
   chart(state, getters) {
@@ -352,10 +353,12 @@ const CERTIFIED_SORTS = {
 };
 
 function addChart(ctx, map, chart, repo) {
-  const key = `${ repo.type }/${ repo.metadata.name }/${ chart.name }`;
+  const repoType = (repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace');
+  const repoName = repo.metadata.name;
+  const key = `${ repoType }/${ repoName }/${ chart.name }`;
   let obj = map[key];
-  const certifiedAnnotation = chart.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED];
 
+  const certifiedAnnotation = chart.annotations?.[CATALOG_ANNOTATIONS.CERTIFIED];
   let certified = null;
   let sideLabel = null;
 
@@ -379,9 +382,6 @@ function addChart(ctx, map, chart, repo) {
     sideLabel = certifiedAnnotation;
   }
 
-  const repoType = (repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace');
-  const repoName = repo.metadata.name;
-
   if ( !obj ) {
     if ( ctx ) { }
     obj = proxyFor(ctx, {
@@ -392,20 +392,21 @@ function addChart(ctx, map, chart, repo) {
       sideLabel,
       repoType,
       repoName,
-      certifiedSort:   CERTIFIED_SORTS[certified] || 99,
-      icon:            chart.icon,
-      color:           repo.color,
-      chartName:       chart.name,
-      chartDescription:chart.description,
-      repoKey:         repo._key,
-      versions:        [],
-      categories:      filterCategories(chart.keywords),
-      deprecated:      !!chart.deprecated,
-      hidden:          !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
-      targetNamespace: chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
-      targetName:      chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
-      scope:           chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
-      provides:        [],
+      certifiedSort:    CERTIFIED_SORTS[certified] || 99,
+      icon:             chart.icon,
+      color:            repo.color,
+      chartName:        chart.name,
+      chartDisplayName: chart.annotations?.[CATALOG_ANNOTATIONS.DISPLAY_NAME] || chart.name,
+      chartDescription: chart.description,
+      repoKey:          repo._key,
+      versions:         [],
+      categories:       filterCategories(chart.keywords),
+      deprecated:       !!chart.deprecated,
+      hidden:           !!chart.annotations?.[CATALOG_ANNOTATIONS.HIDDEN],
+      targetNamespace:  chart.annotations?.[CATALOG_ANNOTATIONS.NAMESPACE],
+      targetName:       chart.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME],
+      scope:            chart.annotations?.[CATALOG_ANNOTATIONS.SCOPE],
+      provides:         [],
     });
 
     map[key] = obj;

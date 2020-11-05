@@ -447,8 +447,10 @@ export default {
       }
     },
 
-    selectChart(key, version) {
-      const chart = findBy(this.charts, 'key', key);
+    selectChart(chart, version) {
+      if ( !chart ) {
+        return;
+      }
 
       this.$router.applyQuery({
         [REPO]:      chart.repoName,
@@ -745,6 +747,10 @@ export default {
         });
       }
     },
+
+    getOptionLabel(opt) {
+      return opt?.chartDisplayName;
+    },
   },
 };
 </script>
@@ -757,7 +763,7 @@ export default {
       <t k="catalog.install.header.upgrade" :name="existing.nameDisplay" />
     </h1>
     <h1 v-else-if="chart">
-      <t k="catalog.install.header.install" :name="chart.chartName" />
+      <t k="catalog.install.header.install" :name="chart.chartDisplayName" />
     </h1>
     <h1 v-else>
       <t k="catalog.install.header.installGeneric" />
@@ -797,11 +803,10 @@ export default {
         <div class="col span-6">
           <LabeledSelect
             label="Chart"
-            :value="$route.query.chart"
-            option-label="chartName"
-            option-key="key"
-            :reduce="opt=>opt.key"
+            :value="chart"
             :options="charts"
+            :get-option-label="opt => getOptionLabel(opt)"
+            option-key="key"
             @input="selectChart($event)"
           />
         </div>

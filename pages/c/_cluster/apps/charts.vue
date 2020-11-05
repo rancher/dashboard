@@ -318,7 +318,7 @@ export default {
             <LazyImage :src="c.icon" />
           </div>
           <h4 class="name">
-            {{ c.chartName }}
+            {{ c.chartDisplayName }}
           </h4>
           <div class="description">
             {{ c.chartDescription }}
