@@ -117,7 +117,7 @@ export default {
     },
 
     arrangedCharts() {
-      return sortBy(this.filteredCharts, ['certifiedSort', 'repoName', 'chartName']);
+      return sortBy(this.filteredCharts, ['certifiedSort', 'repoName', 'chartDisplayName']);
     },
 
     categories() {
