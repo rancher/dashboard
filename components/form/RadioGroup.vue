@@ -4,7 +4,7 @@ import { _VIEW } from '@/config/query-params';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
 
 export default {
-  components: { RadioButton },
+  components: { RadioButton, LabeledTooltip },
   props:      {
     // Name for the checkbox grouping, must be unique on page
     name: {
@@ -112,11 +112,9 @@ export default {
     <div v-if="label" class="radio-group label">
       <h3>
         {{ label }}
+        <LabeledTooltip v-if="tooltip && !focused" :value="tooltip" :status="status" />
         <i v-if="description" v-tooltip="description" class="icon icon-info" />
       </h3>
-      <!-- <span class="corner">
-        <slot name="corner" />
-      </span> -->
     </div>
     <div
       v-if="isView"
