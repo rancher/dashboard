@@ -1,6 +1,7 @@
 <script>
 import RadioButton from '@/components/form/RadioButton';
 import { _VIEW } from '@/config/query-params';
+import LabeledTooltip from '@/components/form/LabeledTooltip';
 
 export default {
   components: { RadioButton },
@@ -37,6 +38,11 @@ export default {
     mode: {
       type:    String,
       default: 'edit'
+    },
+
+    tooltip: {
+      type:    String,
+      default: null
     },
 
     // Label for above the radios
@@ -104,12 +110,13 @@ export default {
 <template>
   <div>
     <div v-if="label" class="radio-group label">
-      <span class="text-label inline-block">
+      <h3>
         {{ label }}
-      </span>
-      <span class="corner">
+        <i v-if="description" v-tooltip="description" class="icon icon-info" />
+      </h3>
+      <!-- <span class="corner">
         <slot name="corner" />
-      </span>
+      </span> -->
     </div>
     <div
       v-if="isView"

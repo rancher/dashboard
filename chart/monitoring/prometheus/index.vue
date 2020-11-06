@@ -222,11 +222,16 @@ export default {
             name="ignoreNamespaceSelectors"
             :label="t('monitoring.prometheus.config.ignoreNamespaceSelectors.label')"
             :labels="[t('monitoring.prometheus.config.ignoreNamespaceSelectors.radio.enforced'),t('monitoring.prometheus.config.ignoreNamespaceSelectors.radio.ignored')]"
+            :protip="t('monitoring.prometheus.config.ignoreNamespaceSelectors.help')"
             :mode="mode"
             :options="[false, true]"
           >
-            <template #corner>
+            <!-- <template #corner>
               <i v-tooltip="t('monitoring.prometheus.config.ignoreNamespaceSelectors.help', {}, true)" class="icon icon-info" />
+            </template> -->
+
+            <template #label>
+              <i v-if="description" v-tooltip="description" class="icon icon-info" />
             </template>
           </RadioGroup>
         </div>
