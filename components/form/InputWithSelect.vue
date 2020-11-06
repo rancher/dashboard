@@ -175,7 +175,7 @@ export default {
     }
 
     & .input-string {
-      padding-right: 0;
+      padding-right: 8px;
       height: 100%;
       width:60%;
       flex-grow: 1;

@@ -12,10 +12,11 @@ export default {
         return {};
       }
     },
+
     mode: {
       type:    String,
       default: 'create'
-    }
+    },
   },
 
   data() {

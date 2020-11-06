@@ -89,7 +89,7 @@ export default {
     this.allSecrets = hash.secrets || [];
     this.allConfigMaps = hash.configMaps;
     this.allNodes = hash.nodes.map(node => node.id);
-    this.headlessServices = hash.services.filter(service => service.spec.clusterIP === 'None');
+    this.allServices = hash.services.filter(service => service.spec.clusterIP === 'None');
     this.pvcs = hash.pvcs;
   },
 
@@ -147,7 +147,7 @@ export default {
       type,
       allConfigMaps:    [],
       allSecrets:       [],
-      headlessServices: [],
+      allServices:   [],
       pvcs:             [],
       allNodes:         null,
       showTabs:         false,
@@ -178,19 +178,6 @@ export default {
 
     isStatefulSet() {
       return this.type === WORKLOAD_TYPES.STATEFUL_SET;
-    },
-
-    // TODO better validation
-    containerIsReady() {
-      const required = [this.container.image, this.container.imagePullPolicy, this.name];
-
-      if (this.isReplicable) {
-        required.push(this.spec.replicas);
-      } else if (this.isCronJob) {
-        required.push(this.spec.schedule);
-      }
-
-      return required.filter(prop => !!prop).length === required.length;
     },
 
     // if this is a cronjob, grab pod spec from within job template spec
@@ -361,6 +348,10 @@ export default {
       }
     },
 
+    headlessServices() {
+      return this.allServices.filter(service => service.spec.clusterIP === 'None' && service.metadata.namespace === this.value.metadata.namespace);
+    },
+
     workloadTypes() {
       return omitBy(WORKLOAD_TYPES, (type) => {
         return type === WORKLOAD_TYPES.REPLICA_SET || type === WORKLOAD_TYPES.REPLICATION_CONTROLLER;
@@ -381,6 +372,22 @@ export default {
         };
 
         out.push(subtype);
+      }
+
+      return out;
+    },
+
+    nameNsColumns() {
+      const out = [];
+
+      if (this.isCronJob) {
+        out.push('schedule');
+      } else if (this.isReplicable) {
+        out.push('replicas');
+
+        if (this.isStatefulSet) {
+          out.push('service');
+        }
       }
 
       return out;
@@ -575,35 +582,29 @@ export default {
     >
       <div class="row">
         <div class="col span-12">
-          <NameNsDescription :value="value" :mode="mode" @change="name=value.metadata.name" />
+          <NameNsDescription :value="value" :extra-columns="nameNsColumns" :mode="mode" @change="name=value.metadata.name">
+            <template #schedule>
+              <LabeledInput v-model="spec.schedule" required :mode="mode" :label="t('workload.cronSchedule')" placeholder="0 * * * *" />
+              <span class="cron-hint text-small">{{ cronLabel }}</span>
+            </template>
+            <template #replicas>
+              <LabeledInput v-model="spec.replicas" type="number" required :mode="mode" :label="t('workload.replicas')" />
+            </template>
+            <template #service>
+              <LabeledSelect
+                v-model="spec.serviceName"
+                option-label="metadata.name"
+                :reduce="service=>service.metadata.name"
+                :mode="mode"
+                :label="t('workload.serviceName')"
+                :options="headlessServices"
+              />
+            </template>
+          </NameNsDescription>
         </div>
       </div>
       <Tabbed :side-tabs="true">
         <Tab :label="t('workload.container.titles.container')" name="container">
-          <div>
-            <h3>{{ t('workload.cronSchedule') }}</h3>
-            <div v-if="isCronJob || isReplicable" class="row">
-              <div v-if="isCronJob" class="col span-6">
-                <LabeledInput v-model="spec.schedule" required :mode="mode" :label="t('workload.cronSchedule')" placeholder="0 * * * *" />
-                <span class="cron-hint text-small">{{ cronLabel }}</span>
-              </div>
-              <div v-if="isReplicable" class="col span-6">
-                <LabeledInput v-model.number="spec.replicas" required :mode="mode" :label="t('workload.replicas')" />
-              </div>
-              <div v-if="isStatefulSet" class="col span-6">
-                <LabeledSelect
-                  v-model="spec.serviceName"
-                  option-label="metadata.name"
-                  :reduce="service=>service.metadata.name"
-                  :mode="mode"
-                  :label="t('workload.serviceName')"
-                  :options="headlessServices"
-                />
-              </div>
-            </div>
-          </div>
-
-          <hr class="section-divider" />
           <div>
             <h3>{{ t('workload.container.titles.image') }}</h3>
             <div class="row">

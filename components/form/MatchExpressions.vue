@@ -2,15 +2,12 @@
 import { NODE, POD, NAMESPACE } from '@/config/types';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-// import Select from '@/components/form/Select';
 import { sortBy } from '@/utils/sort';
-import ArrayList from '@/components/form/ArrayList';
 import { mapGetters } from 'vuex';
 import { removeObject } from '@/utils/array';
 
 export default {
   components: {
-    ArrayList,
     LabeledInput,
     LabeledSelect,
   },
@@ -187,18 +184,14 @@ export default {
     <template v-if="type===pod">
       <div class="row mt-20 mb-20">
         <div class="col span-12">
-          <ArrayList :protip="false" :title="t('workload.scheduling.affinity.matchExpressions.inNamespaces')" :mode="mode" :value="namespaces" @input="e=>$emit('update:namespaces', e)">
-            <template #value="props">
-              <LabeledSelect
-                v-model="props.row.value"
-                :mode="mode"
-                :options="allNamespaces"
-                :label="!isView ? 'Namespaces' :''"
-                :multiple="false"
-                @input="e=> e ? props.queueUpdate : null"
-              />
-            </template>
-          </ArrayList>
+          <LabeledSelect
+            :value="namespaces"
+            :multiple="true"
+            :taggable="true"
+            :options="allNamespaces"
+            :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+            @input="e=>$emit('update:namespaces', e)"
+          />
         </div>
       </div>
 

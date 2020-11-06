@@ -67,6 +67,10 @@ export default {
         return (this.type === 'password' || this.type === 'multiline-password') && hideSensitive;
       }
     },
+
+    hasSuffix() {
+      return !!this.$slots.suffix;
+    },
   },
 
   methods: {
@@ -99,7 +103,7 @@ export default {
 </script>
 
 <template>
-  <div :class="{'labeled-input': true, raised, focused, [mode]: true, disabled: disabled && !isView, [status]: status}">
+  <div :class="{'labeled-input': true, raised, focused, [mode]: true, disabled: disabled && !isView, [status]: status, suffix:hasSuffix}">
     <slot name="label">
       <label>
         {{ label }}

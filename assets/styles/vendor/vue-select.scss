@@ -194,8 +194,16 @@ $transition-duration: 150ms;
   opacity: 0;
 }
 
+/**
+ * Super weird bug... If this declaration is grouped
+ * below, the cancel button will still appear in chrome.
+ * If it's up here on it's own, it'll hide it.
+ */
+ .vs__search::-webkit-search-cancel-button {
+  display: none;
+}
+
 .vs__search::-webkit-search-decoration,
-.vs__search::-webkit-search-cancel-button,
 .vs__search::-webkit-search-results-button,
 .vs__search::-webkit-search-results-decoration,
 .vs__search::-ms-clear {
