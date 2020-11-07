@@ -59,6 +59,7 @@ nav:
     project: "Project: {name}"
     system: Only System Namespaces
     user: Only User Namespaces
+  apps: Apps
 
 product:
   apps: Apps & Marketplace
@@ -375,6 +376,10 @@ clusterIndexPage:
   sections:
     events:
       label: Events
+      resource:
+        label: Resource
+      date:
+        label: Date
     gatekeeper:
       buttonText: Configure Gatekeeper
       disabled: OPA Gatekeeper is not configured.

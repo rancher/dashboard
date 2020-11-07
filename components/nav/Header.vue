@@ -44,7 +44,8 @@ export default {
 
     <div class="apps">
       <nuxt-link v-if="currentCluster" :to="{name: 'c-cluster-apps', params: { cluster: currentCluster.id }}" class="btn role-tertiary">
-        <i class="icon icon-lg icon-marketplace pr-5" /> Apps
+        <i class="icon icon-lg icon-marketplace pr-5" />
+        {{ t('nav.apps') }}
       </nuxt-link>
     </div>
 

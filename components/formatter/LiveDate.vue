@@ -53,7 +53,11 @@ export default {
       let out = this.label || '';
 
       if (out && this.addSuffix) {
-        out = `${ out } ${ this.suffix }`;
+        const exists = this.$store.getters['i18n/exists'];
+        const suffixKey = `suffix.${ this.suffix }`;
+        const suffix = exists(suffixKey) ? this.t(suffixKey) : this.suffix;
+
+        out = `${ out } ${ suffix }`;
       }
 
       return out;

@@ -93,6 +93,7 @@ export default {
       {
         name:          'resource',
         label:         'Resource',
+        labelKey:      'clusterIndexPage.sections.events.resource.label',
         value:         'displayInvolvedObject',
         sort:          ['involvedObject.kind', 'involvedObject.name'],
         canBeVariable: true,
@@ -101,6 +102,7 @@ export default {
         align:         'right',
         name:          'date',
         label:         'Date',
+        labelKey:      'clusterIndexPage.sections.events.date.label',
         value:         'lastTimestamp',
         sort:          'lastTimestamp:desc',
         formatter:     'LiveDate',
