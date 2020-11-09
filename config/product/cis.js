@@ -39,7 +39,7 @@ export function init(store) {
       label:         'Profile',
       value:         'status.lastRunScanProfileName',
       formatter:     'Link',
-      formatterOpts: { options: 'internal', to: { name: 'c-cluster-product-resource-id', params: { resource: CIS.CLUSTER_SCAN_PROFILE } } },
+      formatterOpts: { options: { internal: true }, to: { name: 'c-cluster-product-resource-id', params: { resource: CIS.CLUSTER_SCAN_PROFILE } } },
       sort:          ['status.lastRunScanProfileName'],
     },
     {

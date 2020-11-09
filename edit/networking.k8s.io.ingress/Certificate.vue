@@ -1,8 +1,12 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import InfoBox from '@/components/InfoBox';
+
 export default {
-  components: { LabeledInput, LabeledSelect },
+  components: {
+    InfoBox, LabeledInput, LabeledSelect
+  },
   props:      {
     value: {
       type:    Object,
@@ -57,9 +61,7 @@ export default {
 </script>
 
 <template>
-  <div class="cert" @input="update">
-    <div class="spacer">
-    </div>
+  <InfoBox class="cert" @input="update">
     <div class="row">
       <div class="col span-6">
         <LabeledSelect
@@ -106,13 +108,13 @@ export default {
     <button class="btn role-link close" @click="$emit('remove')">
       <i class="icon icon-2x icon-x" />
     </button>
-  </div>
+  </InfoBox>
 </template>
 
 <style lang="scss" scoped>
 .close {
-  top: -5px;
-  right: -5px;
+  top: 10px;
+  right: 10px;
   padding:0;
   position: absolute;
 }
@@ -121,9 +123,8 @@ export default {
   position: relative;
 
   &:not(:last-of-type) {
-  padding-bottom: 10px;
-  margin-bottom: 30px;
-  border-bottom: 1px solid var(--border);
-}
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+  }
 }
 </style>

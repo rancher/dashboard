@@ -97,6 +97,7 @@ export default {
         :status="serviceTargetStatus"
         :taggable="true"
         :tooltip="serviceTargetTooltip"
+        :hover-tooltip="true"
         @input="update(); servicePort = ''"
       />
     </div>

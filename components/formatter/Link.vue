@@ -65,7 +65,7 @@ export default {
         return get(this.row, this.urlKey);
       }
 
-      if ((this.options === 'internal' || this.options?.internal) && this.to) {
+      if (this.isInternal && this.to) {
         const defaultParams = this.$route.params;
         const toParams = this.to.params || {};
 
@@ -124,21 +124,25 @@ export default {
       }
 
       return this.afterIcon;
+    },
+
+    isInternal() {
+      return this.options?.internal;
     }
   }
 };
 </script>
 
 <template>
-  <nuxt-link v-if="options === 'internal' && href" :to="href">
+  <n-link v-if="isInternal && href" :to="href">
     <i v-if="beforeIconClass" :class="beforeIconClass" style="position: relative; top: -2px;" />
     {{ label }}
     <i v-if="afterIconClass" :class="afterIconClass" style="position: relative; top: -2px;" />
-  </nuxt-link>
+  </n-link>
   <a v-else-if="href" :href="href" :rel="rel" :target="target">
     <i v-if="beforeIconClass" :class="beforeIconClass" style="position: relative; top: -2px;" />
     {{ label }}
     <i v-if="afterIconClass" :class="afterIconClass" style="position: relative; top: -2px;" />
   </a>
-  <span v-else>{{ label }}</span>
+  <span v-else> {{ href }} {{ label }}</span>
 </template>

@@ -3,12 +3,11 @@ import { WORKLOAD_TYPES } from '@/config/types';
 import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { _VIEW } from '@/config/query-params';
-import InfoBox from '@/components/InfoBox';
 import Rule from './Rule';
 
 export default {
   components: {
-    InfoBox, Loading, Rule, SortableTable
+    Loading, Rule, SortableTable
   },
 
   props: {
@@ -46,24 +45,29 @@ export default {
     ruleHeaders() {
       const headers = [
         {
-          name:      'path',
+          name:      'fullPath',
           label:     this.t('ingress.rules.headers.path'),
-          value:     'path',
-          width:     '25%'
+          value:     '',
+          formatter: 'IngressFullPath'
         },
         {
-          name:      'target',
-          label:     this.t('ingress.rules.headers.target'),
-          formatter: 'Link',
-          value:     'targetLink',
-          width:     '25%'
+          name:          'target',
+          label:         this.t('ingress.rules.headers.target'),
+          formatter:     'Link',
+          formatterOpts: { options: { internal: true }, urlKey: 'targetLink.to' },
+          value:         'targetLink',
         },
         {
           name:  'port',
           label: this.t('ingress.rules.headers.port'),
           value: 'port',
-          width: '25%'
-        }
+        },
+        {
+          name:       'certs',
+          label:      this.t('ingress.rules.headers.certificates'),
+          value:      'certs',
+          formatter: 'ListLink',
+        },
       ];
 
       if (this.value.showPathType) {
@@ -71,15 +75,14 @@ export default {
           name:      'pathType',
           label:     this.t('ingress.rules.headers.pathType'),
           value:     'pathType',
-          width:     '25%'
         });
       }
 
       return headers;
     },
-    ruleRows() {
-      return this.value.createRulesForDetailPage(this.workloads);
-    },
+    rows() {
+      return this.value.createRulesForListPage(this.workloads);
+    }
   },
 
   methods: {
@@ -88,11 +91,7 @@ export default {
     },
     removeRule(idx) {
       this.rules.splice(idx, 1);
-    },
-
-    updateRule(neu, idx) {
-      this.$set(this.rules, idx, neu);
-    },
+    }
   }
 };
 </script>
@@ -100,30 +99,23 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else-if="isView">
-    <InfoBox v-for="(rule, i) in ruleRows" :key="i" class="rule mb-20">
-      <label>{{ t('ingress.rules.hostname') }}</label>
-      <div class="mb-20">
-        {{ rule.host }}
-      </div>
-      <SortableTable
-        :rows="rule.paths"
-        :headers="ruleHeaders"
-        key-field="_key"
-        :search="false"
-        :table-actions="false"
-        :row-actions="false"
-      />
-    </InfoBox>
+    <SortableTable
+      :rows="rows"
+      :headers="ruleHeaders"
+      key-field="_key"
+      :search="false"
+      :table-actions="false"
+      :row-actions="false"
+    />
   </div>
   <div v-else>
     <Rule
-      v-for="(rule, i) in rules"
+      v-for="(_, i) in rules"
       :key="i"
-      :value="rule"
+      v-model="rules[i]"
       :service-targets="serviceTargets"
       :ingress="value"
       @remove="e=>removeRule(i)"
-      @input="e=>updateRule(e,i)"
     />
     <button class="btn role-tertiary add mt-10" type="button" @click="addRule">
       {{ t('ingress.rules.addRule') }}

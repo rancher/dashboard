@@ -89,15 +89,14 @@ export default {
       </div>
       <div class="col" />
     </div>
-    <template v-for="(path, i) in paths">
+    <template v-for="(_, i) in paths">
       <RulePath
-        :key="path.id"
+        :key="i"
+        v-model="paths[i]"
         class="row mb-10"
-        :value="path"
         :rule-mode="ruleMode"
         :service-targets="serviceTargets"
         :ingress="ingress"
-        @input="(e) => $set(paths, i, e)"
         @remove="(e) => removePath(i)"
       />
     </template>
