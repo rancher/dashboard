@@ -217,7 +217,7 @@ export default {
                   <a href="" target="_blank" rel="noopener nofollow" class="flex-right">More Info <i class="icon icon-external-link" /></a>
                 </div>
                 <hr />
-                <div class="description">
+                <div v-if="subtype.description" class="description">
                   <span
                     v-if="$store.getters['i18n/exists'](subtype.description)"
                     v-html="t(subtype.description, {}, true)"

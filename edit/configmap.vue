@@ -6,6 +6,8 @@ import KeyValue from '@/components/form/KeyValue';
 import Labels from '@/components/form/Labels';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
+import RelatedResources from '@/components/RelatedResources';
+import { WORKLOAD_TYPES } from '@/config/types';
 
 export default {
   name: 'CruConfigMap',
@@ -16,10 +18,25 @@ export default {
     KeyValue,
     Labels,
     Tab,
-    Tabbed
+    Tabbed,
+    RelatedResources
   },
 
   mixins: [CreateEditView],
+
+  computed: {
+    hasRelatedWorkloads() {
+      const { relationships = [] } = this.value.metadata;
+
+      for (const r in relationships) {
+        if (r.rel === 'owner' && WORKLOAD_TYPES.includes(r.fromType)) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+  },
 };
 </script>
 
@@ -81,6 +98,9 @@ export default {
           :mode="mode"
           :display-side-by-side="false"
         />
+      </Tab>
+      <Tab v-if="hasRelatedWorkloads" name="relatedWorkloads" :label="t('secrest.relatedWorkloads')">
+        <RelatedResources :ignore-types="['pod']" :value="value" rel="uses" direction="from" />
       </Tab>
     </Tabbed>
   </CruResource>

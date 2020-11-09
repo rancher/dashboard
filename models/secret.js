@@ -17,7 +17,7 @@ export const TYPES = {
   FLEET_CLUSTER:  'fleet.cattle.io/cluster-registration-values',
 };
 
-const DISPLAY_TYPES = {
+export const DISPLAY_TYPES = {
   [TYPES.OPAQUE]:        'Opaque',
   [TYPES.SERVICE_ACCT]:  'Svc Acct Token',
   [TYPES.DOCKER]:        'Registry',
@@ -32,6 +32,8 @@ const DISPLAY_TYPES = {
 };
 
 export default {
+  hasSensitiveData: () => true,
+
   isCertificate() {
     return this._type === TYPES.TLS;
   },
@@ -39,6 +41,7 @@ export default {
   isRegistry() {
     return this._type === TYPES.DOCKER_JSON;
   },
+
   dockerJSON() {
     return TYPES.DOCKER_JSON;
   },
