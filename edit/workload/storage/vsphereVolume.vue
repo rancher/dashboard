@@ -37,6 +37,9 @@ export default {
       <div class="col span-6">
         <LabeledInput v-model="value.vsphereVolume.volumePath" :mode="mode" :label="t('workload.storage.csi.volumePath')" />
       </div>
+      <div class="col span-6">
+        <LabeledInput v-model="value.vsphereVolume.fsType" :mode="mode" :label="t('workload.storage.csi.fsType')" />
+      </div>
     </div>
   </div>
 </template>

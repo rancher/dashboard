@@ -39,7 +39,7 @@ export default {
         <LabeledInput v-model.number="value.azureDisk.diskURI" :mode="mode" :label="t('workload.storage.csi.diskURI')" />
       </div>
     </div>
-    <div class="row">
+    <div class="row mb-10">
       <div class="col span-6">
         <RadioGroup
           v-model="value.azureDisk.kind"
@@ -59,6 +59,11 @@ export default {
           :options="['None', 'ReadOnly', 'ReadWrite']"
           :labels="[t('workload.storage.csi.cachingMode.options.none'), t('workload.storage.csi.cachingMode.options.readOnly'), t('workload.storage.csi.cachingMode.options.readWrite')]"
         />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col span-6">
+        <LabeledInput v-model="value.azureDisk.fsType" :mode="mode" :label="t('workload.storage.csi.fsType')" />
       </div>
     </div>
   </div>
