@@ -50,6 +50,7 @@ nav:
     project: "项目名称: {name}" 
     system: 系统命名空间 
     user: 用户命名空间
+  apps: 应用商店
 
 product:
   apps: 应用商店 
@@ -63,6 +64,7 @@ product:
 
 suffix:
   seconds: 秒
+  ago: 前
 
 ##############################
 # Components & Pages
@@ -306,11 +308,12 @@ cluster:
       tencenttke: 腾讯云 TKE
 
 clusterIndexPage:
-  hardwareResourceGauge: ## doublecheck
-    coresReserved: 预留的核心
-    coresUsed: 已使用的核心
-    podsReserved: 预留的Pods
-    ramReserved: 预留的内存
+  hardwareResourceGauge:
+    consumption: "{suffix} {total} {units} 中的 {useful}"
+    coresReserved: 已预留的核心
+    coresUsed: 已使用核心
+    podsReserved: 已预留的Pods
+    ramReserved: 已预留的内存
     ramUsed: 已使用的内存
   header: 集群仪表盘
   resourceGauge:
@@ -318,6 +321,10 @@ clusterIndexPage:
   sections:
     events:
       label: 事件
+      resource:
+        label: 资源和信息
+      date:
+        label: 发生时间
     gatekeeper:
       buttonText: 配置OPA Gatekeeper
       disabled: 未配置OPA Gatekeeper
@@ -464,6 +471,9 @@ glance:
   created: 创建时间
   cpu: CPU 使用量
   memory: 内存
+  nodes:
+    total:
+      label: 节点数量
   provider: 提供商
   version: Kubernetes 版本号
 
@@ -1002,9 +1012,9 @@ sortableTable:
   paging:
     generic: |-
       {pages, plural,
-      =0 {No Items}
-      =1 {{count} {count, plural, =1 {Item} other {Items}}}
-      other {{count}项的{from} - {to}}}
+      =0 {无项目}
+      =1 {{count}项}
+      other {{count}项中的第{from} - {to}项}}
 
 tableHeaders:
   address: 地址
@@ -1630,3 +1640,6 @@ typeLabel:
       one { Thanos 规则 }
       other { Thanos 规则 }
     }
+  namespace: 命名空间
+  persistentvolume: 持久卷
+  service: 服务
