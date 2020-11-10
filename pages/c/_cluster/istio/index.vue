@@ -78,6 +78,7 @@ export default {
               :href="kialiUrl"
               :target="target"
               :rel="rel"
+              @click.stop
             >
               <t k="istio.links.label" />
               <i class="icon icon-external-link pull-right" />
