@@ -112,8 +112,7 @@ export default {
     <div v-if="label" class="radio-group label">
       <h3>
         {{ label }}
-        <LabeledTooltip v-if="tooltip && !focused" :value="tooltip" :status="status" />
-        <i v-if="description" v-tooltip="description" class="icon icon-info" />
+        <LabeledTooltip v-if="tooltip" :value="tooltip" :hover="true" />
       </h3>
     </div>
     <div
@@ -161,5 +160,8 @@ export default {
 }
 .radio-group.label{
   font-size: 14px !important;
+}
+.radio-group h3 {
+  position: relative;
 }
 </style>

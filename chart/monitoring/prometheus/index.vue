@@ -222,7 +222,7 @@ export default {
             name="ignoreNamespaceSelectors"
             :label="t('monitoring.prometheus.config.ignoreNamespaceSelectors.label')"
             :labels="[t('monitoring.prometheus.config.ignoreNamespaceSelectors.radio.enforced'),t('monitoring.prometheus.config.ignoreNamespaceSelectors.radio.ignored')]"
-            :protip="t('monitoring.prometheus.config.ignoreNamespaceSelectors.help')"
+            :tooltip="t('monitoring.prometheus.config.ignoreNamespaceSelectors.help')"
             :mode="mode"
             :options="[false, true]"
           >
