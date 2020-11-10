@@ -404,14 +404,16 @@ export default {
     </div>
 
     <div class="kv-container" :class="{'extra-column':threeColumns}">
-      <label class="text-label" :class="{'view':isView}">
-        {{ keyLabel }}
-        <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" style="font-size: 14px" />
-      </label>
-      <label class="text-label" :class="{'view':isView}">
-        {{ valueLabel }}
-      </label>
-      <span v-if="threeColumns" :class="{'view':isView}" />
+      <template v-if="rows.length || isView">
+        <label class="text-label" :class="{'view':isView}">
+          {{ keyLabel }}
+          <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" style="font-size: 14px" />
+        </label>
+        <label class="text-label" :class="{'view':isView}">
+          {{ valueLabel }}
+        </label>
+        <span v-if="threeColumns" :class="{'view':isView}" />
+      </template>
 
       <div v-if="isView && !rows.length" class="kv-row last" :class="{'extra-column':threeColumns}">
         <div class="text-muted">
@@ -426,7 +428,7 @@ export default {
       </div>
 
       <template v-for="(row,i) in rows">
-        <div :key="i" class="kv-item key">
+        <div :key="i+'key'" class="kv-item key">
           <slot
             name="key"
             :row="row"
@@ -449,7 +451,7 @@ export default {
           </slot>
         </div>
 
-        <div :key="i" class="kv-item value">
+        <div :key="i+'value'" class="kv-item value">
           <slot
             name="value"
             :row="row"
