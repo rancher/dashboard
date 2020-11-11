@@ -109,6 +109,8 @@ export default {
         name = name.replace(/-create$/, '');
       }
 
+      console.log('done', this.$route.name, name);
+
       return name;
     },
 
@@ -162,8 +164,14 @@ export default {
 
         await this.actuallySave(url);
 
+        // If spoofed we need to reload the values as the server can't have watchers for them.
+        if (this.$store.getters['type-map/isSpoofed'](this.value.type)) {
+          await this.$store.dispatch('cluster/findAll', { type: this.value.type, opt: { force: true } }, { root: true });
+        }
+
         await this.applyHooks(AFTER_SAVE_HOOKS);
         buttonDone(true);
+
         this.done();
       } catch (err) {
         this.errors = exceptionToErrorsArray(err);
@@ -174,7 +182,6 @@ export default {
     async actuallySave(url) {
       if ( this.isCreate ) {
         url = url || this.schema.linkFor('collection');
-
         const res = await this.value.save({ url });
 
         if (res) {

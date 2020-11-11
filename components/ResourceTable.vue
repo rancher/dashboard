@@ -24,6 +24,11 @@ export default {
       default: null,
     },
 
+    groupBy: {
+      type:    String,
+      default: null
+    },
+
     showGroups: {
       type:    Boolean,
       default: true,
@@ -107,7 +112,11 @@ export default {
       return this.$store.getters['isMultipleNamespaces'] && this.namespaced;
     },
 
-    groupBy() {
+    computedGroupBy() {
+      if ( this.groupBy ) {
+        return this.groupBy;
+      }
+
       if ( this.group === 'namespace' && this.groupable && this.showGroups) {
         return 'groupByLabel';
       }
@@ -141,7 +150,7 @@ export default {
     v-bind="$attrs"
     :headers="_headers"
     :rows="filteredRows"
-    :group-by="groupBy"
+    :group-by="computedGroupBy"
     :search="search"
     :paging="true"
     :paging-params="pagingParams"

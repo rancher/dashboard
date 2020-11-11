@@ -121,6 +121,8 @@ export default {
   async findAll(ctx, { type, opt }) {
     const { getters, commit, dispatch } = ctx;
 
+    console.log('fa', type, opt);
+
     opt = opt || {};
     type = getters.normalizeType(type);
 

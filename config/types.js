@@ -41,6 +41,7 @@ export const SERVICE = 'service';
 export const SECRET = 'secret';
 export const SERVICE_ACCOUNT = 'serviceaccount';
 export const STORAGE_CLASS = 'storage.k8s.io.storageclass';
+export const OBJECT_META = 'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta';
 
 export const RBAC = {
   ROLE:                 'rbac.authorization.k8s.io.role',
@@ -134,7 +135,10 @@ export const FLEET = {
   TOKEN:         'fleet.cattle.io.clusterregistrationtoken',
 };
 
-export const GATEKEEPER = { CONSTRAINT_TEMPLATE: 'templates.gatekeeper.sh.constrainttemplate' };
+export const GATEKEEPER = {
+  CONSTRAINT_TEMPLATE: 'templates.gatekeeper.sh.constrainttemplate',
+  SPOOFED:             { CONSTRAINT: 'constraints.gatekeeper.sh.constraint' }
+};
 
 export const ISTIO = {
   VIRTUAL_SERVICE:  'networking.istio.io.virtualservice',

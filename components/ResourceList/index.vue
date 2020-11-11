@@ -84,6 +84,10 @@ export default {
       return this.$store.getters['type-map/headersFor'](this.schema);
     },
 
+    groupBy() {
+      return this.$store.getters['type-map/groupByFor'](this.schema);
+    },
+
     typeDisplay() {
       if ( this.customTypeDisplay ) {
         return this.customTypeDisplay;
@@ -143,7 +147,7 @@ export default {
         v-bind="$data"
       />
     </div>
-    <ResourceTable v-else :schema="schema" :rows="rows" :headers="headers" />
+    <ResourceTable v-else :schema="schema" :rows="rows" :headers="headers" :group-by="groupBy" />
   </div>
 </template>
 

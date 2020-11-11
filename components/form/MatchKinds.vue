@@ -1,10 +1,10 @@
 <script>
-import ArrayList from '@/components/form/ArrayList';
 import { _VIEW } from '@/config/query-params';
-import InfoBox from '@/components/InfoBox';
+import ArrayList from '@/components/form/ArrayList';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 
 export default {
-  components: { ArrayList, InfoBox },
+  components: { ArrayList, ArrayListGrouped },
 
   props: {
     value: {
@@ -38,7 +38,7 @@ export default {
 
 <template>
   <div class="match-kinds">
-    <ArrayList
+    <ArrayListGrouped
       v-model="localValue"
       class="match-kinds-list"
       :protip="false"
@@ -46,67 +46,37 @@ export default {
       :mode="mode"
       :default-add-value="defaultAddValue"
     >
-      <template v-slot:columns="scope">
-        <InfoBox>
-          <div class="row">
-            <div class="api-groups">
-              <ArrayList
-                v-model="scope.row.value.apiGroups"
-                class="api-groups-list"
-                :protip="false"
-                :show-header="true"
-                value-label="ApiGroups"
-                add-label="Add ApiGroup"
-                value-placeholder=""
-                :mode="mode"
-              />
-            </div>
-            <div class="kinds">
-              <ArrayList
-                v-model="scope.row.value.kinds"
-                class="kinds-list"
-                :protip="false"
-                :show-header="true"
-                value-label="Kinds"
-                add-label="Add Kind"
-                value-placeholder=""
-                :mode="mode"
-              />
-            </div>
+      <template #default="props">
+        <div class="row">
+          <div class="api-groups col span-6">
+            <ArrayList
+              v-model="props.row.value.apiGroups"
+              :protip="false"
+              :show-header="true"
+              value-label="ApiGroups"
+              add-label="Add ApiGroup"
+              value-placeholder=""
+              :mode="mode"
+            />
           </div>
-        </InfoBox>
+          <div class="kinds col span-6">
+            <ArrayList
+              v-model="props.row.value.kinds"
+              :protip="false"
+              :show-header="true"
+              value-label="Kinds"
+              add-label="Add Kind"
+              value-placeholder=""
+              :mode="mode"
+            />
+          </div>
+        </div>
       </template>
-      <template v-slot:remove-button="scope">
-        <button class="btn role-link close close-kind" @click="scope.remove">
-          <i class="icon icon-2x icon-x" />
-        </button>
-      </template>
-    </ArrayList>
+    </ArrayListGrouped>
   </div>
 </template>
 
 <style lang="scss">
 .match-kinds {
-
-  .match-kinds-list > .box {
-    position: relative;
-
-    & > .remove {
-      position: absolute;
-      right: -10px;
-      top: 0;
-
-    }
-  }
-
-  .remove {
-    width: initial;
-  }
-
-  .api-groups,
-  .kinds {
-    vertical-align: top;
-    flex: 1;
-  }
 }
 </style>

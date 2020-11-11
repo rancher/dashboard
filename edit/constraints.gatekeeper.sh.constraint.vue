@@ -7,9 +7,7 @@ import { isSimpleKeyValue } from '@/utils/object';
 import { _VIEW } from '@/config/query-params';
 import { SCHEMA, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
-import Masthead from '@/components/ResourceDetail/Masthead';
 import KeyValue from '@/components/form/KeyValue';
-import LabeledSelect from '@/components/form/LabeledSelect';
 import MatchKinds from '@/components/form/MatchKinds';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import NamespaceList, { NAMESPACE_FILTERS } from '@/components/form/NamespaceList';
@@ -21,6 +19,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import GatekeeperViolationsTable from '@/components/gatekeeper/ViolationsTable';
 import CruResource from '@/components/CruResource';
 import { ENFORCEMENT_ACTION_VALUES } from '@/models/gatekeeper-constraint';
+import { defaultAsyncData } from '@/components/ResourceDetail';
 
 function findConstraintTypes(schemas) {
   return schemas
@@ -39,8 +38,6 @@ export default {
     CruResource,
     GatekeeperViolationsTable,
     KeyValue,
-    LabeledSelect,
-    Masthead,
     MatchKinds,
     NameNsDescription,
     NamespaceList,
@@ -58,6 +55,14 @@ export default {
       type:     Object,
       required: true
     }
+  },
+
+  asyncData(ctx) {
+    function yamlSave(value, originalValue) {
+      originalValue.yamlSaveOverride(value, originalValue);
+    }
+
+    return defaultAsyncData(ctx, null, { yamlSave });
   },
 
   data() {
@@ -81,22 +86,11 @@ export default {
       showParametersAsYaml:     !isSimpleKeyValue(this.value?.spec?.parameters),
       enforcementActionOptions: Object.values(ENFORCEMENT_ACTION_VALUES),
       enforcementActionLabels:  Object.values(ENFORCEMENT_ACTION_VALUES).map(ucFirst),
-      NAMESPACE_FILTERS
+      NAMESPACE_FILTERS,
     };
   },
 
   computed: {
-    doneRoute() {
-      return 'c-cluster-gatekeeper-constraints';
-    },
-    detailTopColumns() {
-      return [
-        {
-          title:   'Template',
-          content: this.templateOptions.find(o => o.value === this.value.type).label
-        }
-      ];
-    },
     templateOptions() {
       const schemas = this.$store.getters['cluster/all'](SCHEMA);
       const constraintTypes = findConstraintTypesIds(schemas);
@@ -107,6 +101,23 @@ export default {
         return {
           label: type.replace(CONSTRAINT_PREFIX, ''),
           value: type
+        };
+      });
+    },
+    templateSubtypes() {
+      const schemas = this.$store.getters['cluster/all'](SCHEMA);
+      const constraintTypes = findConstraintTypes(schemas);
+
+      constraintTypes.sort();
+
+      return constraintTypes.map((type) => {
+        console.log('ttt', type);
+
+        return {
+          label:       type.id.replace(CONSTRAINT_PREFIX, ''),
+          description: '',
+          id:          type.id,
+          bannerAbbrv: 'CT'
         };
       });
     },
@@ -133,14 +144,7 @@ export default {
     },
     isTemplateSelectorDisabled() {
       return !this.isCreate;
-    },
-    parentOverride() {
-      const schema = this.$store.getters['cluster/schemaFor'](this.value.type);
-      const displayName = this.$store.getters['type-map/labelFor'](schema);
-      const location = { name: 'c-cluster-gatekeeper-constraints' };
-
-      return { displayName, location };
-    },
+    }
   },
 
   watch: {
@@ -154,10 +158,10 @@ export default {
     },
   },
 
-  async created() {
+  created() {
     this.registerBeforeHook(this.willSave, 'willSave');
     if (!this.value.save) {
-      this.$emit('input', merge(await this.createConstraint(), this.value, this.emptyDefaults));
+      this.$emit('input', merge(this.value, this.emptyDefaults));
     }
   },
 
@@ -170,13 +174,6 @@ export default {
           kind.apiGroups = ['*'];
         }
       });
-    },
-    async createConstraint() {
-      const constraint = await this.$store.dispatch('cluster/create', { type: this.templateOptions[0].value });
-
-      constraint.spec = { match: { excludedNamespaces: this.systemNamespaceIds } };
-
-      return constraint;
     },
     /**
      * There's an upstream issue which prevents gatekeeper from processing namespaces with empty lists incorrectly.
@@ -205,27 +202,26 @@ export default {
       if (tab.name === 'parameters' && this.$refs.yamlEditor?.refresh) {
         this.$refs.yamlEditor.refresh();
       }
+    },
+    selectTemplateSubtype(subType) {
+      this.value.kind = subType;
     }
   }
 };
 </script>
 <template>
   <div>
-    <Masthead
-      v-if="isCreate"
-      :value="value"
-      :mode="mode"
-      :parent-override="parentOverride"
-    />
     <CruResource
       :done-route="doneRoute"
       :mode="mode"
       :resource="value"
-      :subtypes="[]"
+      :selected-subtype="value.kind"
+      :subtypes="templateSubtypes"
       :validation-passed="true"
       :errors="errors"
       @error="e=>errors = e"
       @finish="save"
+      @select-type="selectTemplateSubtype"
     >
       <div v-if="value" class="gatekeeper-constraint">
         <div>
@@ -234,19 +230,7 @@ export default {
             :value="value"
             :mode="mode"
             :namespaced="false"
-            :extra-columns="['template']"
-          >
-            <template v-slot:template>
-              <LabeledSelect
-                :mode="mode"
-                :value="value.type"
-                :options="templateOptions"
-                :disabled="isTemplateSelectorDisabled"
-                :label="t('gatekeeperConstraint.template')"
-                @input="updateType"
-              />
-            </template>
-          </NameNsDescription>
+          />
         </div>
         <div class="spacer"></div>
         <div v-if="isView">
