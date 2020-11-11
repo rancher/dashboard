@@ -61,7 +61,7 @@ export default {
     },
     protip: {
       type:    [String, Boolean],
-      default: 'ProTip: Paste lines of key=value or key: value into any key field for easy bulk entry',
+      default: 'Paste lines of key=value or key: value into any key field for easy bulk entry',
     },
 
     padLeft: {
