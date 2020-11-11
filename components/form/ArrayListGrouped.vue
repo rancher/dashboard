@@ -20,21 +20,21 @@ export default { components: { ArrayList, InfoBox } };
 </template>
 <style lang="scss">
 .array-list-grouped {
-    .box {
+    & > .box {
       position: relative;
-    }
 
-    .remove {
-      position: absolute;
+      & > .remove {
+        position: absolute;
 
-      padding: 0px;
+        padding: 0px;
 
-      top: 0;
-      right: 0;
-    }
+        top: 0;
+        right: 0;
+      }
 
-    .info-box {
+      & > .info-box {
         margin-bottom: 0;
+      }
     }
 }
 </style>
