@@ -226,10 +226,6 @@ export default {
             :mode="mode"
             :options="[false, true]"
           >
-            <!-- <template #corner>
-              <i v-tooltip="t('monitoring.prometheus.config.ignoreNamespaceSelectors.help', {}, true)" class="icon icon-info" />
-            </template> -->
-
             <template #label>
               <i v-if="description" v-tooltip="description" class="icon icon-info" />
             </template>
