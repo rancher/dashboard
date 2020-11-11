@@ -245,9 +245,9 @@ export default {
     <template v-if="rows.length">
       <div v-if="showHeader">
         <slot name="column-headers">
-          <span class="value text-label">
+          <label class="value text-label mb-10">
             {{ valueLabel }}
-          </span>
+          </label>
         </slot>
       </div>
       <div

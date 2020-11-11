@@ -109,8 +109,6 @@ export default {
         name = name.replace(/-create$/, '');
       }
 
-      console.log('done', this.$route.name, name);
-
       return name;
     },
 

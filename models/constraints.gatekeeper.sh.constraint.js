@@ -24,7 +24,6 @@ export default {
   yamlSaveOverride() {
     return (value, originalValue) => {
       Object.assign(originalValue, value);
-      console.log('sssssssssssssaaaaaa', originalValue);
       originalValue.save();
     };
   },

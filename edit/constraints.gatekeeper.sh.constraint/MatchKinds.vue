@@ -17,21 +17,13 @@ export default {
     }
   },
 
-  computed: {
-    localValue: {
-      get() {
-        return this.value;
-      },
-      set(localValue) {
-        this.$emit('input', localValue);
-      }
-    },
-    defaultAddValue() {
-      return {
-        apiGroups:      [],
+  data() {
+    return {
+      defaultAddValue: {
+        apiGroups: [],
         kinds:     []
-      };
-    }
+      }
+    };
   }
 };
 </script>
@@ -39,12 +31,13 @@ export default {
 <template>
   <div class="match-kinds">
     <ArrayListGrouped
-      v-model="localValue"
+      :value="value"
       class="match-kinds-list"
       :protip="false"
-      add-label="Add Kind"
+      add-label="Add Rule"
       :mode="mode"
       :default-add-value="defaultAddValue"
+      @input="(e) => $emit('input', e)"
     >
       <template #default="props">
         <div class="row">
@@ -75,8 +68,3 @@ export default {
     </ArrayListGrouped>
   </div>
 </template>
-
-<style lang="scss">
-.match-kinds {
-}
-</style>
