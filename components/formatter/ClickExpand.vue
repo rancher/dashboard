@@ -26,6 +26,16 @@ export default {
     valueConcealed: {
       type:    Boolean,
       default: false
+    },
+
+    valueBinary: {
+      type:    Boolean,
+      default: false
+    },
+
+    showCopy: {
+      type:    Boolean,
+      default: false
     }
   },
   data() {
@@ -35,19 +45,26 @@ export default {
   },
   computed: {
     preview() {
+      if (this.valueBinary) {
+        return `${ this.size } ${ this.units }`;
+      }
+
       if (this.expanded) {
         return this.value;
       } else {
-        if (!!this.size) {
-          return `${ this.size } ${ this.units }`;
-        }
-
         return this.value.slice(0, this.maxLength);
       }
     },
 
-    showCopyButton() {
-      return this.valueConcealed && !this.expanded;
+    plusMore() {
+      if (this.expanded) {
+        return this.t('generic.hide');
+      }
+      if (!!this.size) {
+        return `${ this.t('generic.plusMoreUnits', { n: this.size - this.maxLength * 2, unit: this.units }) }`;
+      } else {
+        return this.t('generic.clickToShow');
+      }
     },
 
     ...mapGetters({ t: 'i18n/t' })
@@ -64,13 +81,12 @@ export default {
 </script>
 
 <template>
-  <div :style="{'display':'inline-block'}" :class="{'with-copy':showCopyButton}" @click.stop="expand">
-    <span :class="{'conceal':valueConcealed && !expanded && !size}" v-html="escapeHtml(preview || '').replace(/(\r\n|\r|\n)/g, '<br/>\n')"></span>
-    <template v-if="!expanded">
-      <span v-if="!size">...</span>
-      <span>  {{ t('generic.clickToShow') }}</span>
+  <div :style="{'display':'inline-block'}" :class="{'with-copy':showCopy}">
+    <span :class="{'conceal':valueConcealed && !valueBinary, 'monospace':!valueBinary && !valueConcealed}" v-html="escapeHtml(preview || '').replace(/(\r\n|\r|\n)/g, '<br/>\n')"></span>
+    <template v-if="!valueBinary && value.length>maxLength">
+      <a @click.stop="expand">{{ plusMore }}</a>
     </template>
-    <button v-if="showCopyButton" class="btn role-tertiary" @click.stop="$copyText(value)">
+    <button v-if="showCopy" class="btn role-tertiary" @click.stop="$copyText(value)">
       <i class="icon icon-copy" />
       {{ t('generic.copy') }}
     </button>
@@ -93,4 +109,9 @@ export default {
     border-radius: 0 0 0 var(--border-radius);
   }
 }
+
+.monospace {
+  font-family: monospace, monospace;
+}
+
 </style>
