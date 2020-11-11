@@ -2,6 +2,7 @@
 import { KEYMAP } from '@/store/prefs';
 
 export default {
+  name:  'CodeMirror',
   props: {
     value: {
       type:     String,

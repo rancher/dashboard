@@ -171,8 +171,9 @@ export default {
       <Tab :label="t('workload.container.titles.networking')" name="networking">
         <Networking v-model="podTemplateSpec" :mode="mode" />
       </Tab>
-      <Tab :label="t('workload.storage.title')" name="storage">
+      <Tab :label="t('workload.storage.title')" name="storage" @active="$refs['storage'].refresh()">
         <Storage
+          ref="storage"
           v-model="podTemplateSpec"
           :namespace="value.metadata.namespace"
           :secrets="namespacedSecrets"
