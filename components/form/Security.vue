@@ -182,6 +182,8 @@ export default {
         <LabeledSelect
           v-else
           v-model="add"
+          :taggable="true"
+          :close-on-select="false"
           :multiple="true"
           :label="t('workload.container.security.addCapabilities')"
           :options="allCapabilities"
@@ -204,6 +206,8 @@ export default {
         <LabeledSelect
           v-else
           v-model="drop"
+          :close-on-select="false"
+          :taggable="true"
           :multiple="true"
           :label="t('workload.container.security.dropCapabilities')"
           :options="allCapabilities"

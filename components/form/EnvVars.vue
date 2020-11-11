@@ -1,13 +1,11 @@
 <script>
 import KeyValue from '@/components/form/KeyValue';
 import ValueFromResource from '@/components/form/ValueFromResource';
-import ButtonDropdown from '@/components/ButtonDropdown';
 
 export default {
   components: {
     KeyValue,
     ValueFromResource,
-    ButtonDropdown
   },
 
   props: {
@@ -160,20 +158,14 @@ export default {
       :mode="mode"
       @input="e=>updateRow(i, e.value, e.old)"
     />
-    <ButtonDropdown v-if="mode!=='view'" ref="buttonDropdown" size="sm">
-      <template #button-content>
-        <button v-if="mode!=='view'" type="button" class="btn btn-sm text-primary bg-transparent" @click="$refs.unreferencedKV.add()">
-          <t k="generic.add" />
-        </button>
-      </template>
-      <template #popover-content>
-        <ul class="list-unstyled menu">
-          <li v-close-popover.all @click="addFromReference">
-            <t k="workload.container.command.addFromResource" />
-          </li>
-        </ul>
-      </template>
-    </ButtonDropdown>
+    <template v-if="mode!=='view'">
+      <button v-if="mode!=='view'" type="button" class="btn btn-sm role-tertiary" @click="$refs.unreferencedKV.add()">
+        <t k="generic.add" />
+      </button>
+      <button class="btn btn-sm role-link" @click="addFromReference">
+        <t k="workload.container.command.addFromResource" />
+      </button>
+    </template>
   </div>
 </template>
 

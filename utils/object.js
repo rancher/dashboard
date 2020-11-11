@@ -113,10 +113,12 @@ export function cleanUp(obj) {
 
     if ( Array.isArray(val) ) {
       obj[key] = compact(val.map((each) => {
-        const cleaned = cleanUp(each);
+        if (each) {
+          const cleaned = cleanUp(each);
 
-        if (!isEmpty(cleaned)) {
-          return cleaned;
+          if (!isEmpty(cleaned)) {
+            return cleaned;
+          }
         }
       }));
       if (compact(obj[key]).length === 0) {

@@ -1482,6 +1482,7 @@ workload:
     noPorts: There are no ports configured.
     ports:
       containerPort: Private Container Port
+      hostIP: Host IP
       hostPort: Public Host Port
       name: Name
       protocol: Protocol

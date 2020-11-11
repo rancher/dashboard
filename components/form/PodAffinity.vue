@@ -19,8 +19,7 @@ export default {
     mode: {
       type:    String,
       default: 'create'
-    },
-
+    }
   },
 
   data() {
@@ -70,7 +69,6 @@ export default {
         if (weightedSelectors.length) {
           out['preferredDuringSchedulingIgnoredDuringExecution'] = weightedSelectors;
         }
-
         this.$emit('input', cleanUp(out));
       });
     },
