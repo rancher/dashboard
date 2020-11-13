@@ -20,7 +20,7 @@ export default {
 
     insertAt(out, 0, {
       action:     'refresh',
-      label:      'Refresh',
+      label:      this.t('action.refresh'),
       icon:       'icon icon-refresh',
       enabled:    !!this.links.update,
     });

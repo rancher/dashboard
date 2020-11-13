@@ -5,7 +5,6 @@ import { escapeHtml } from '@/utils/string';
 
 const FACTORS = [60, 60, 24];
 const LABELS = ['sec', 'min', 'hour', 'day'];
-const PLURALIZE = [false, false, true, true];
 
 export default {
   props: {
@@ -112,7 +111,7 @@ export default {
           label = Math.floor(diff);
         }
 
-        label += ` ${ prefix } ${ LABELS[i] }${ label === 1 || !PLURALIZE[i] ? '' : 's' } ${ suffix }`;
+        label += ` ${ prefix } ${ this.t(`unit.${ LABELS[i] }`, { count: label }) } ${ suffix }`;
         label = label.trim();
       }
 

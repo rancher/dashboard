@@ -31,7 +31,7 @@ export default {
       action:     'goToUpgrade',
       enabled:    true,
       icon:       'icon icon-fw icon-edit',
-      label:      'Edit/Upgrade',
+      label:      this.t('catalog.install.action.goToUpgrade'),
     };
 
     out.unshift(upgrade);

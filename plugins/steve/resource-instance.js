@@ -618,38 +618,38 @@ export default {
     const all = [
       {
         action:  'goToEdit',
-        label:   'Edit as Form',
+        label:   this.t('action.goToEdit'),
         icon:    'icon icon-edit',
         enabled:  this.canUpdate && this.canCustomEdit,
       },
       {
         action:  'goToClone',
-        label:   'Clone as Form',
+        label:   this.t('action.goToClone'),
         icon:    'icon icon-copy',
         enabled:  this.canCreate && this.canCustomEdit,
       },
       { divider: true },
       {
         action:  'goToEditYaml',
-        label:   'Edit as YAML',
+        label:   this.t('action.goToEditYaml'),
         icon:    'icon icon-file',
         enabled: this.canUpdate && this.canYaml,
       },
       {
         action:  'goToViewYaml',
-        label:   'View as YAML',
+        label:   this.t('action.goToViewYaml'),
         icon:    'icon icon-file',
         enabled: !this.canUpdate && this.canYaml
       },
       {
         action:  'cloneYaml',
-        label:   'Clone as YAML',
+        label:   this.t('action.cloneYaml'),
         icon:    'icon icon-copy',
         enabled:  this.canCreate && this.canYaml,
       },
       {
         action:     'download',
-        label:      'Download YAML',
+        label:      this.t('action.download'),
         icon:       'icon icon-download',
         bulkable:   true,
         bulkAction: 'downloadBulk',
@@ -659,7 +659,7 @@ export default {
       {
         action:     'promptRemove',
         altAction:  'remove',
-        label:      'Delete',
+        label:      this.t('action.remove'),
         icon:       'icon icon-trash',
         bulkable:   true,
         enabled:    this.canDelete,
@@ -668,7 +668,7 @@ export default {
       { divider: true },
       {
         action:  'viewInApi',
-        label:   'View in API',
+        label:   this.t('action.viewInApi'),
         icon:    'icon icon-external-link',
         enabled:  this.canViewInApi,
       }
