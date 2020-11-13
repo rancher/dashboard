@@ -482,7 +482,7 @@ export default {
         </div>
 
         <div v-if="search" class="search">
-          <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" placeholder="Filter">
+          <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('sortableTable.search')">
         </div>
       </div>
     </div>

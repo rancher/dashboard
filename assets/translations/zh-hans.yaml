@@ -237,7 +237,16 @@ catalog:
     certified:
       partner: 合作伙伴 ## doublecheck
       other: 其他
-    search: 过滤
+    search: 搜索
+    all: 全部
+    categories:
+      all: 全部
+      storage: 存储
+      infrastructure: 基础服务
+      applications: 应用
+      security: 安全
+      networking: 网络
+      monitoring: 监控
   install:
     header:
       upgrade: 升级 {name}
@@ -262,8 +271,8 @@ catalog:
             =1 { 版本 }
             other { 版本 }
           }
-      hooks: Execute chart hooks ## doublecheck，求解释
-      openapi: 验证OpenAPI模式 ## doublecheck，求解释
+      hooks: Execute chart hooks
+      openapi: 验证OpenAPI模式
       resetValues: 重置值
       timeout:
         label: 超时
@@ -273,10 +282,17 @@ catalog:
             other { 秒 }
           }
       wait: 等待
+    action:
+      goToUpgrade: 编辑/更新
   app:
     section:
       notes: 版本说明
-      values: Values YAML ## doublecheck，求解释
+      values: Values YAML
+  operation:
+    tableHeaders:
+      action: 操作
+      releaseNamespace: 目标命名空间
+      releaseName: 目标版本号
 
 chartHeading:
   overview: 概述
@@ -1015,6 +1031,7 @@ sortableTable:
       =0 {无项目}
       =1 {{count}项}
       other {{count}项中的第{from} - {to}项}}
+  search: 搜索
 
 tableHeaders:
   address: 地址
@@ -1593,53 +1610,38 @@ typeDescription:
   resources.cattle.io.backup: 创建备份是为了基于资源集执行一次性备份或安排重复性备份。
   resources.cattle.io.restore: 创建还原是为了根据备份文件触发对集群的还原。
   resources.cattle.io.resourceset: 资源集定义了要在备份中存储哪些CRD和资源。
+  catalog.cattle.io.app: 应用程序是指通过我们的Chart或通过Helm CLI安装的Helm 3 Chart。
+  catalog.cattle.io.clusterrepo: Chart仓库是一个Helm仓库或Rancher的基于git的应用商店。它提供了集群中可用Chart的列表。
+  catalog.cattle.io.operation: 操作是指最近应用于集群的Helm操作列表。
 
 typeLabel:
-  catalog.cattle.io.app: |-
-    {count, plural,
-      one { 安装应用 }
-      other { 安装应用 }
-    }
-  catalog.cattle.io.clusterrepo: |-
-    {count, plural,
-      one { 仓库 }
-      other { 仓库 }
-    }
-  chartInstallAction: |-
-    {count, plural,
-      one { 应用 }
-      other { 应用 }
-    }
-  chartUpgradeAction: |-
-    {count, plural,
-      one { 应用 }
-      other { 应用 }
-    }
-  endpoints: |-
-    {count, plural,
-      one { 访问地址 }
-      other { 访问地址 }
-    }
-  fleet.cattle.io.cluster: |-
-    {count, plural,
-      =1 { 集群 }
-      other { 集群 }
-    }
-  fleet.cattle.io.gitrepo: |-
-    {count, plural,
-      one { Git 仓库 }
-      other {Git 仓库 }
-    }
-  monitoring.coreos.com.prometheusrule: |-
-    {count, plural,
-      one { Prometheus 规则 }
-      other { Prometheus 规则 }
-    }
-  monitoring.coreos.com.thanosruler: |-
-    {count, plural,
-      one { Thanos 规则 }
-      other { Thanos 规则 }
-    }
+  catalog.cattle.io.app: 安装应用
+  catalog.cattle.io.clusterrepo: 仓库
+  catalog.cattle.io.operation: 最近执行操作
+  chartInstallAction: 应用
+  chartUpgradeAction: 应用
+  endpoints: 访问地址
+  fleet.cattle.io.cluster: 集群
+  fleet.cattle.io.gitrepo: Git 仓库
+  monitoring.coreos.com.prometheusrule: Prometheus 规则
+  monitoring.coreos.com.thanosruler: Thanos 规则
   namespace: 命名空间
   persistentvolume: 持久卷
   service: 服务
+
+action:
+  download: 下载YAML
+  remove: 删除
+  goToViewYaml: 查看YAML
+  refresh: 刷新
+  goToEdit: 以表格的形式编辑
+  goToClone: 以表格的形式复制
+  goToEditYaml: 以YAML的形式编辑
+  cloneYaml: 以YAML的形式复制
+  openLogs: 查看日志
+
+unit:
+  sec: 秒
+  min: 分钟
+  hour: 小时
+  day: 天

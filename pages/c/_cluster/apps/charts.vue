@@ -5,7 +5,7 @@ import Banner from '@/components/Banner';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY
 } from '@/config/query-params';
-import { ensureRegex } from '@/utils/string';
+import { ensureRegex, lcFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
@@ -126,8 +126,11 @@ export default {
       for ( const chart of this.enabledCharts ) {
         for ( const c of chart.categories ) {
           if ( !map[c] ) {
+            const exists = this.$store.getters['i18n/exists'];
+            const labelKey = `catalog.charts.categories.${ lcFirst(c) }`;
+
             map[c] = {
-              label: c,
+              label: exists(labelKey) ? this.t(labelKey) : c,
               value: c,
               count: 0
             };
@@ -146,7 +149,7 @@ export default {
       const out = Object.values(map);
 
       out.unshift({
-        label: 'All Categories',
+        label: this.t('catalog.charts.categories.all'),
         value: '',
         count: this.arrangedCharts.length
       });
@@ -292,7 +295,7 @@ export default {
     <div class="clearfix mt-5">
       <Checkbox
         :value="allRepos"
-        label="All"
+        :label="t('catalog.charts.all')"
         :class="{'pull-left': true, 'repo': true}"
         @input="toggleAll($event)"
       />

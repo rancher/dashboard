@@ -248,6 +248,8 @@ catalog:
     gitBranch:
       label: Git Branch
       placeholder: e.g. master
+    action:
+      refresh: Refresh
   charts:
     header: Deploy Chart
     certified:
@@ -255,6 +257,9 @@ catalog:
       partner: Partner
       other: Other
     search: Filter
+    all: All
+    categories:
+      all: All Categories
   install:
     header:
       upgrade: Upgrade {name}
@@ -292,6 +297,8 @@ catalog:
             other { seconds }
           }
       wait: Wait
+    action:
+      goToUpgrade: Edit/Upgrade
   app:
     managed: Managed
     section:
@@ -1196,6 +1203,7 @@ sortableTable:
       =0 {No {pluralLabel}}
       =1 {{count} {count, plural, =1 {{singularLabel}} other {{pluralLabel}}}}
       other {{from} - {to} of {count} {pluralLabel}}}
+  search: Filter
 
 tableHeaders:
   address: Address
@@ -1956,4 +1964,30 @@ typeLabel:
     {count, plural,
       one { Route }
       other { Routes }
+    }
+
+action:
+  download: Download YAML
+  remove: Delete
+  goToViewYaml: View as YAML
+  refresh: Refresh
+  goToEdit: Edit as Form
+  goToClone: Clone as Form
+  goToEditYaml: Edit as YAML
+  cloneYaml: Clone as YAML
+  viewInApi: View in API
+  openLogs: View Logs
+
+unit:
+  sec: secs
+  min: mins
+  hour: |-
+    {count, plural,
+      one { hour }
+      other { hours }
+    }
+  day: |-
+    {count, plural,
+      one { day }
+      other { days }
     }

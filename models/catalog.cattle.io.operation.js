@@ -16,7 +16,7 @@ export default {
       action:     'openLogs',
       enabled:    true,
       icon:       'icon icon-fw icon-chevron-right',
-      label:      'View Logs',
+      label:      this.t('action.openLogs'),
       total:      1,
     };
 
