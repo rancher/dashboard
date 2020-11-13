@@ -132,22 +132,6 @@ export default {
         <span />
       </template>
     </KeyValue>
-    <div v-if="referencedValues.length" class="value-from-headers">
-      <span>
-        {{ t('workload.container.command.fromResource.type') }}
-      </span>
-      <span>
-        {{ t('workload.container.command.fromResource.source.label') }}
-      </span>
-      <span>
-        {{ t('workload.container.command.fromResource.key.label') }}
-      </span>
-      <span />
-      <span>
-        {{ t('workload.container.command.fromResource.prefix') }}
-      </span>
-      <span />
-    </div>
     <ValueFromResource
       v-for="(val,i) in referencedValues"
       :key="`${i}`"
@@ -159,7 +143,7 @@ export default {
       @input="e=>updateRow(i, e.value, e.old)"
     />
     <template v-if="mode!=='view'">
-      <button v-if="mode!=='view'" type="button" class="btn btn-sm role-tertiary" @click="$refs.unreferencedKV.add()">
+      <button type="button" class="btn btn-sm role-tertiary" @click="$refs.unreferencedKV.add()">
         <t k="generic.add" />
       </button>
       <button class="btn btn-sm role-link" @click="addFromReference">
@@ -170,9 +154,7 @@ export default {
 </template>
 
 <style lang='scss'>
-.value-from  INPUT, .value-from .v-select {
-  height: 50px;
-}
+
 .value-from, .value-from-headers {
   display: grid;
   grid-template-columns: 20% 20% 20% 5% 20% auto;

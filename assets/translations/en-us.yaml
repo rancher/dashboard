@@ -1460,10 +1460,13 @@ workload:
         key:
           label: Key
           placeholder: e.g. requests.cpu
-        prefix: Prefix or Alias
+        prefix: Name
         source:
           label: Source
           placeholder: e.g. my-container
+        secret: Secret
+        configMap: ConfigMap
+        containerName: Container Name
         type: Type
       workingDir: WorkingDir
     healthCheck:

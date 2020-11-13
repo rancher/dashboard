@@ -3,8 +3,14 @@ import { CONFIG_MAP, SECRET, NAMESPACE } from '@/config/types';
 import { get } from '@/utils/object';
 import { mapGetters } from 'vuex';
 import { _VIEW } from '@/config/query-params';
+import LabeledSelect from '@/components/form/LabeledSelect';
+import LabeledInput from '@/components/form/LabeledInput';
 
 export default {
+  components: {
+    LabeledSelect,
+    LabeledInput
+  },
 
   props:      {
     mode: {
@@ -34,11 +40,13 @@ export default {
 
   data() {
     const typeOpts = [
-      { value: 'resourceFieldRef', label: 'Resource' },
+      { value: 'resourceFieldRef', label: 'Container Resource Field' },
       { value: 'configMapKeyRef', label: 'ConfigMap Key' },
       { value: 'secretKeyRef', label: 'Secret key' },
-      { value: 'fieldRef', label: 'Field' },
-      { value: 'secretRef', label: 'Secret' }];
+      { value: 'fieldRef', label: 'Pod Field' },
+      { value: 'secretRef', label: 'Secret' },
+      { value: 'configMapRef', label: 'ConfigMap' }
+    ];
 
     const resourceKeyOpts = ['limits.cpu', 'limits.ephemeral-storage', 'limits.memory', 'requests.cpu', 'requests.ephemeral-storage', 'requests.memory'];
 
@@ -111,13 +119,41 @@ export default {
     },
 
     sourceOptions() {
-      if (this.type === 'configMapKeyRef') {
+      if (this.type === 'configMapKeyRef' || this.type === 'configMapRef') {
         return this.allConfigMaps.filter(map => this.namespaces.includes(map?.metadata?.namespace));
       } else if (this.type === 'secretRef' || this.type === 'secretKeyRef') {
         return this.allSecrets.filter(secret => this.namespaces.includes(secret?.metadata?.namespace));
       } else {
         return [];
       }
+    },
+
+    needsSource() {
+      return this.type !== 'resourceFieldRef' && this.type !== 'fieldRef' && !!this.type;
+    },
+
+    sourceLabel() {
+      let out;
+      const { type } = this;
+
+      if (!type) {
+        return;
+      }
+
+      switch (type) {
+      case 'secretKeyRef':
+      case 'secretRef':
+        out = 'workload.container.command.fromResource.secret';
+        break;
+      case 'configMapKeyRef':
+      case 'configMapRef':
+        out = 'workload.container.command.fromResource.configMap';
+        break;
+      default:
+        out = 'workload.container.command.fromResource.source.label';
+      }
+
+      return this.t(out);
     },
     ...mapGetters({ t: 'i18n/t' })
   },
@@ -178,74 +214,69 @@ export default {
 </script>
 
 <template>
-  <div @input="updateRow">
+  <div>
     <div>
-      <div v-if="isView">
-        {{ type }}
-      </div>
-      <v-select
-        v-else
+      <LabeledSelect
         v-model="type"
+        :mode="mode"
         :multiple="false"
         :options="typeOpts"
-        :mode="mode"
-        option-label="label"
-        class="inline"
-        :searchable="false"
         :reduce="e=>e.value"
+        :label="t('workload.container.command.fromResource.type')"
         @input="updateRow"
       />
     </div>
-    <template v-if="type === 'configMapKeyRef' || type === 'secretRef' || type === 'secretKeyRef'">
+
+    <div>
+      <LabeledInput
+        v-model="name"
+        :label="t('workload.container.command.fromResource.prefix')"
+        :mode="mode"
+        @input="updateRow"
+      />
+    </div>
+
+    <template v-if="needsSource">
       <div>
-        <div v-if="isView">
-          {{ referenced }}
-        </div>
-        <v-select
-          v-else
+        <LabeledSelect
           v-model="referenced"
           :options="sourceOptions"
           :multiple="false"
           :get-option-label="opt=>get(opt, 'metadata.name') || opt"
           :get-option-key="opt=>opt.id|| opt"
           :mode="mode"
-          class="inline"
+          :label="sourceLabel"
           @input="updateRow"
         />
       </div>
-      <div>
-        <div v-if="isView">
-          {{ key }}
-        </div>
-        <v-select
-          v-else
+      <div v-if="type!=='secretRef' && type!== 'configMapRef'">
+        <LabeledSelect
           v-model="key"
-          :disabled="type==='secretRef'"
           :multiple="false"
           :options="keys"
           :mode="mode"
           option-label="label"
-          class="inline"
+          :label="t('workload.container.command.fromResource.key.label')"
           @input="updateRow"
         />
       </div>
+      <span v-else class="text-muted">&mdash;</span>
     </template>
+
     <template v-else-if="type==='resourceFieldRef'">
       <div>
-        <div v-if="isView">
-          {{ refName }}
-        </div>
-        <input v-else v-model="refName" :placeholder="t('workload.container.command.fromResource.source.placeholder')" :mode="mode" />
+        <LabeledInput
+          v-model="refName"
+          :label="t('workload.container.command.fromResource.containerName')"
+          :placeholder="t('workload.container.command.fromResource.source.placeholder')"
+          :mode="mode"
+          @input="updateRow"
+        />
       </div>
-
       <div>
-        <div v-if="isView">
-          {{ key }}
-        </div>
-
-        <v-select
-          v-else
+        <LabeledSelect
           v-model="key"
+          :label="t('workload.container.command.fromResource.key.label')"
           :multiple="false"
           :options="resourceKeyOpts"
           :mode="mode"
@@ -259,27 +290,19 @@ export default {
 
     <template v-else>
       <div>
-        <div v-if="isView">
-          {{ fieldPath }}
-        </div>
-        <input v-else v-model="fieldPath" :placeholder="t('workload.container.command.fromResource.key.placeholder')" :mode="mode" />
+        <LabeledInput
+          v-model="fieldPath"
+          :placeholder="t('workload.container.command.fromResource.key.placeholder')"
+          :label="t('workload.container.command.fromResource.key.label')"
+          :mode="mode"
+          @input="updateRow"
+        />
       </div>
-
       <div>
         <span class="text-muted">&mdash;</span>
       </div>
     </template>
-    <div>
-      <div class="as">
-        <t k="workload.container.command.as" />
-      </div>
-    </div>
-    <div>
-      <div v-if="isView">
-        {{ name }}
-      </div>
-      <input v-else v-model="name" :mode="mode" />
-    </div>
+
     <div>
       <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link remove" @click="$emit('input', { value:null })">
         <t k="generic.remove" />
@@ -287,14 +310,3 @@ export default {
     </div>
   </div>
 </template>
-
-<style lang ="scss" scoped>
-  .as {
-    text-align:center;
-    color: var(--input-label);
-  }
-  .remove{
-    padding: 0px;
-  }
-
-</style>
