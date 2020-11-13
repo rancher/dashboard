@@ -47,6 +47,11 @@ export default {
       default: false,
     },
 
+    copyable: {
+      type:    Boolean,
+      default: false
+    }
+
   },
 
   computed: {
@@ -117,11 +122,11 @@ export default {
     <slot name="field">
       <div v-if="isView && value">
         <slot name="view">
-          <template v-if="type==='multiline-password' && hideValue">
-            <ClickExpand :max-length="50" :value-concealed="hideValue" :value="value" />
+          <template v-if="type==='multiline-password' || type==='multiline'">
+            <ClickExpand :size="value.length*2" :show-copy="copyable" :max-length="1024" :value-concealed="hideValue" :value="value" />
           </template>
           <span v-else :class="{'conceal':hideValue}" v-html="escapeHtml(value || '').replace(/(\r\n|\r|\n)/g, '<br />\n')" />
-          <button v-if="hideValue && type!=='multiline-password'" class="btn role-link copy-value" @click="$copyText(value)">
+          <button v-if="copyable && type!=='multiline-password'" class="btn role-link copy-value" @click="$copyText(value)">
             <i class="icon icon-copy" />
           </button>
         </slot>

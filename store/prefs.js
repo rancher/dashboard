@@ -65,7 +65,7 @@ export const LOGS_RANGE = create('logs-range', '30 minutes', { parseJSON });
 export const LANDING = create('landing', '', { parseJSON, options: ['ember', 'vue'] });
 export const HIDE_REPOS = create('hide-repos', [], { parseJSON });
 export const HIDE_DESC = create('hide-desc', [], { parseJSON });
-export const HIDE_SENSITIVE = create('hide-sensitive', true, { options: [true, false] });
+export const HIDE_SENSITIVE = create('hide-sensitive', true, { options: [true, false], parseJSON });
 
 export const DATE_FORMAT = create('date-format', 'ddd, MMM D YYYY', {
   options: [

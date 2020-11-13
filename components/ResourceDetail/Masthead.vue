@@ -231,10 +231,7 @@ export default {
     <slot name="right">
       <div v-if="isView" class="actions">
         <template v-if="!!value.hasSensitiveData">
-          <button type="button" class="btn role-link" @click="toggleSensitiveData">
-            <i class="icon" :class="{'icon-show': hideSensitiveData, 'icon-hide': !hideSensitiveData}" />
-            {{ hideSensitiveData ? t(`resourceDetail.masthead.show`) : t(`resourceDetail.masthead.hide`) }}
-          </button>
+          <ButtonGroup :labels-are-translations="true" :value="!!hideSensitiveData" :options="[{icon: 'icon-hide', value: true},{icon:'icon-show', value: false }]" @input="toggleSensitiveData" />
         </template>
         <div v-if="hasDetailOrEdit">
           <ButtonGroup :labels-are-translations="true" :value="asYaml" :options="[{label: 'resourceDetail.masthead.overview', value: false},{label:'resourceDetail.masthead.yaml', value: true }]" @input="toggleYaml" />

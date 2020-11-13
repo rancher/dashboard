@@ -15,6 +15,7 @@ generic:
   default: Default
   disabled: Disabled
   enabled: Enabled
+  hide: "[Hide Value]"
   ignored: Ignored
   labelsAndAnnotations: Labels and Annotations
   na: n/a
@@ -23,6 +24,7 @@ generic:
   number: '{prefix}{value, number}{suffix}'
   overview: Overview
   plusMore: + {n} more
+  plusMoreUnits: + {n} {unit}
   readFromFile: Read from File
   remove: Remove
   resource: |-

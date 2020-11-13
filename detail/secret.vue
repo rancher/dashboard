@@ -194,7 +194,7 @@ export default {
           <LabeledInput v-model="username" :label="t('secret.registry.username')" :mode="mode" />
         </div>
         <div class="col span-4">
-          <LabeledInput :value="password" type="password" :label="t('secret.registry.password')" :mode="mode" />
+          <LabeledInput :copyable="true" :value="password" type="password" :label="t('secret.registry.password')" :mode="mode" />
         </div>
       </div>
     </template>
@@ -207,10 +207,18 @@ export default {
           :label="t('secret.certificate.privateKey')"
           :mode="mode"
           placeholder="Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
+          :copyable="true"
         />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="crt" type="multiline" :label="t('secret.certificate.caCertificate')" :mode="mode" placeholder="Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----" />
+        <LabeledInput
+          v-model="crt"
+          :copyable="true"
+          type="multiline"
+          :label="t('secret.certificate.caCertificate')"
+          :mode="mode"
+          placeholder="Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----"
+        />
       </div>
     </div>
 
@@ -219,6 +227,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model="username"
+            :copyable="true"
             type="multiline"
             :label="t('secret.ssh.public')"
             :mode="mode"
@@ -227,6 +236,7 @@ export default {
         <div class="col span-6">
           <LabeledInput
             v-model="password"
+            :copyable="true"
             type="multiline-password"
             :label="t('secret.ssh.private')"
             :mode="mode"

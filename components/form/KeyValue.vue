@@ -17,14 +17,6 @@ import { HIDE_SENSITIVE } from '@/store/prefs';
 
 const LARGE_LIMIT = 2 * 1024;
 
-/*
-  @TODO
-  - Paste
-  - Read from file
-  - Multiline
-  - Concealed value
-*/
-
 export default {
   components: {
     TextAreaAutoGrow,
@@ -235,11 +227,15 @@ export default {
     },
 
     threeColumns() {
-      return ((this.valueBinary || this.hasSomeBinary) && this.isView) || this.showRemove;
+      return this.showRemove;
     },
 
     hasSomeBinary() {
       return !!(this.rows.filter(row => !!get(row, '_display.binary')) || []).length;
+    },
+
+    largeLimit() {
+      return LARGE_LIMIT;
     },
 
     ...mapGetters({ t: 'i18n/t' })
@@ -334,7 +330,7 @@ export default {
     displayProps(value) {
       const binary = typeof value === 'string' && !asciiLike(value);
       const withBreaks = escapeHtml(value || '').replace(/(\r\n|\r|\n)/g, '<br/>\n');
-      const byteSize = withBreaks.length || 0; // Blobs don't exist in node/ssr
+      const byteSize = (withBreaks.length || 0) * 2; // Blobs don't exist in node/ssr
       const isLarge = byteSize > LARGE_LIMIT;
       let parsed;
 
@@ -381,11 +377,8 @@ export default {
       this.queueUpdate();
     },
 
-    useClickExpand(row) {
-      return get(row, '_display.isLarge') || (row[this.valueName].length > 100 && this.valueConcealed && this.hideSensitive);
-    },
+    get,
 
-    get
   }
 };
 </script>
@@ -403,7 +396,7 @@ export default {
       </slot>
     </div>
 
-    <div class="kv-container" :class="{'extra-column':threeColumns}">
+    <div class="kv-container" :class="{'extra-column':threeColumns, 'view':isView}">
       <template v-if="rows.length || isView">
         <label class="text-label" :class="{'view':isView}">
           {{ keyLabel }}
@@ -461,24 +454,32 @@ export default {
             :isView="isView"
             :queueUpdate="queueUpdate"
           >
-            <span v-if="(valueBinary || get(row, '_display.binary')) && !asciiLike(row[valueName])">
-              {{ row[valueName].length }} byte<span v-if="row[valueName].length !== 1">s</span>
-            </span>
-            <div v-else-if="isView" class="view force-wrap">
+            <div v-if="isView" class="view force-wrap">
               <span>
-                <template v-if="get(row, '_display.parsed')">
+                <template v-if="get(row, '_display.parsed') && !hideSensitive">
                   <CodeMirror
                     :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
                     :value="get(row, '_display.parsed')"
                     :class="{'conceal':valueConcealed && hideSensitive}"
                   />
                 </template>
-                <ClickExpand v-else-if="useClickExpand(row)" :value-concealed="valueConcealed && hideSensitive" :value="row[valueName]" :size=" get(row, '_display.isLarge') ? get(row, '_display.byteSize') : null" />
-                <span v-else-if="get(row, '_display.withBreaks')" :class="{'conceal':valueConcealed && hideSensitive}" v-html="get(row, '_display.withBreaks')" />
+                <ClickExpand
+                  v-else-if="row._display.binary || row._display.isLarge"
+                  :value-binary="row._display.binary"
+                  :max-length="largeLimit/2"
+                  :value-concealed="!!valueConcealed && !!hideSensitive"
+                  :value="row[valueName]"
+                  :size="row._display.isLarge ? get(row, '_display.byteSize') : null"
+                />
+                <span v-else-if="get(row, '_display.withBreaks')" class="text-monospace" :class="{'conceal': hideSensitive}" v-html="get(row, '_display.withBreaks')" />
                 <span v-else class="text-muted">&mdash;</span>
               </span>
-              <template v-if="valueConcealed && hideSensitive && !(get(row, '_display.isLarge') || row[valueName].length > 100)">
-                <button class="btn role-link copy-value" @click="$copyText(row[valueName])">
+
+              <template v-if="!!row[valueName]">
+                <span v-if="row._display.binary" class="ml-10">
+                  <a @click="download(i, $event)">Download</a>
+                </span>
+                <button v-else class="btn role-link copy-value" @click="$copyText(row[valueName])">
                   <i class="icon icon-copy" />
                 </button>
               </template>
@@ -501,10 +502,6 @@ export default {
               @input="queueUpdate"
             />
           </slot>
-        </div>
-
-        <div v-if="valueBinary && isView" :key="i" class="kv-item">
-          <a href="#" @click="download(i, $event)">Download</a>
         </div>
 
         <div v-if="showRemove" :key="i" class="kv-item remove">
@@ -555,8 +552,21 @@ export default {
     grid-template-columns: auto 1fr;
     column-gap: $column-gutter;
 
+    .view{
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      -ms-word-break: break-all;
+      word-break: break-word;
+      display:flex;
+      align-items:start;
+    }
+
     &.extra-column {
        grid-template-columns: 1fr 1fr 100px;
+       &.view{
+       grid-template-columns: auto 1fr 100px;
+
+       }
     }
 
     & .kv-item {
@@ -566,7 +576,7 @@ export default {
         align-self: start;
       }
 
-      &.value {
+      .text-monospace:not(.conceal) {
         font-family: monospace, monospace;
       }
     }
