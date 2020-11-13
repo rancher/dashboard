@@ -1476,8 +1476,8 @@ workload:
       successThreshold: Success Threshold
       timeout: Timeout
     image: Container Image
-    imagePullPolicy: Image Pull Policy
-    imagePullSecrets: Image Pull Secrets
+    imagePullPolicy: Pull Policy
+    imagePullSecrets: Pull Secrets
     name: Container Name
     noResourceLimits: There are no resource requirements configured.
     noPorts: There are no ports configured.
