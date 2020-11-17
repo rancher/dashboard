@@ -3,9 +3,10 @@ import { _VIEW } from '@/config/query-params';
 import { get, isEmpty } from '@/utils/object';
 import { NODE } from '@/config/types';
 import MatchExpressions from '@/components/form/MatchExpressions';
+import InfoBox from '@/components/InfoBox';
 
 export default {
-  components: { MatchExpressions },
+  components: { MatchExpressions, InfoBox },
 
   props:      {
     // value should be NodeAffinity or VolumeNodeAffinity
@@ -96,18 +97,18 @@ export default {
         <label><t k="workload.scheduling.affinity.requireAny" /></label>
       </div>
       <template v-for="(nodeSelectorTerm, key) in selectorMap">
-        <div :key="key">
+        <InfoBox :key="key" class="node-selector">
           <MatchExpressions
             :key="key"
             :initial-empty-row="!isView"
             :mode="mode"
-            class="node-selector simple-box col span-12 mb-20"
+            class="col span-12"
             :type="node"
             :value="nodeSelectorTerm.matchExpressions"
             @remove="$delete(selectorMap, key)"
             @input="e=>updateSelector(selectorMap, key, {matchExpressions:e})"
           />
-        </div>
+        </InfoBox>
       </template>
       <button v-if="!isView" type="button" class="btn role-tertiary" @click="e=>$set(selectorMap, Math.random(), {matchExpressions:[]})">
         <t k="workload.scheduling.affinity.addNodeSelector" />
@@ -119,11 +120,11 @@ export default {
         <label><t k="workload.scheduling.affinity.preferAny" /></label>
       </div>
       <template v-for="(nodeSelectorTerm, key) in weightedSelectorMap">
-        <div :key="key">
+        <InfoBox :key="key" class="node-selector">
           <MatchExpressions
             :key="key"
             :mode="mode"
-            class="node-selector simple-box col span-12 mb-20"
+            class="col span-12"
             :initial-empty-row="!isView"
             :type="node"
             :value="get(nodeSelectorTerm, 'preference.matchExpressions')"
@@ -131,7 +132,7 @@ export default {
             @remove="$delete(weightedSelectorMap, key)"
             @input="e=>updateSelector(weightedSelectorMap, key, {preference:{matchExpressions:e}, weight:defaultWeight})"
           />
-        </div>
+        </InfoBox>
       </template>
       <button v-if="!isView" type="button" class="btn role-tertiary" @click="e=>$set(weightedSelectorMap, Math.random(), {preference:{matchExpressions:[]}, weight:defaultWeight})">
         <t k="workload.scheduling.affinity.addNodeSelector" />
@@ -141,8 +142,7 @@ export default {
 </template>
 
 <style>
-  .node-selector simple-box {
-    padding: 10px;
-    background-color: var(--body-bg);
+  .node-selector{
+    position: relative
   }
 </style>

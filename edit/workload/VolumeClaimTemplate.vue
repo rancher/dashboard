@@ -1,6 +1,6 @@
 <script>
 import Mount from '@/edit/workload/storage/Mount';
-import SimpleBox from '@/components/SimpleBox';
+import InfoBox from '@/components/InfoBox';
 import { mapGetters } from 'vuex';
 import PersistentVolumeClaim from '@/edit/workload/storage/persistentVolumeClaim/persistentvolumeclaim.vue';
 import { PVC } from '@/config/types';
@@ -11,7 +11,7 @@ export default {
   components: {
     Mount,
     PersistentVolumeClaim,
-    SimpleBox
+    InfoBox
   },
 
   props:      {
@@ -98,7 +98,7 @@ export default {
 <template>
   <div>
     <div>
-      <SimpleBox v-for="(pvc, i) in templates" :key="i" class="mb-20" :style="{'position':'relative'}">
+      <InfoBox v-for="(pvc, i) in templates" :key="i" class="mb-20" :style="{'position':'relative'}">
         <button v-if="!isView" type="button" class="role-link btn remove-btn" @click="removePVC(pvc)">
           <i class="icon icon-2x icon-x" />
         </button>
@@ -106,7 +106,7 @@ export default {
           <PersistentVolumeClaim v-if="pvc.metadata" :value="pvc" :mode="mode" @input="updatePVC(pvc)" />
         </div>
         <Mount :pod-spec="value.template.spec" :name="pvc.metadata.name" :mode="mode" />
-      </SimpleBox>
+      </InfoBox>
       <button v-if="!isView" type="button" class="btn role-secondary" @click="addPVC">
         Add Claim Template
       </button>

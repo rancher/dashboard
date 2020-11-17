@@ -6,10 +6,11 @@ import Mount from '@/edit/workload/storage/Mount';
 import { _VIEW } from '@/config/query-params';
 import CodeMirror from '@/components/CodeMirror';
 import jsyaml from 'js-yaml';
+import InfoBox from '@/components/InfoBox';
 
 export default {
   components: {
-    ButtonDropdown, Mount, CodeMirror
+    ButtonDropdown, Mount, CodeMirror, InfoBox
   },
 
   props:      {
@@ -180,7 +181,7 @@ export default {
 <template>
   <div>
     <div v-for="(volume, i) in value.volumes" :key="i">
-      <div v-if="componentFor(volumeType(volume)) || isView" class=" volume-source simple-box">
+      <InfoBox v-if="componentFor(volumeType(volume)) || isView" class="volume-source">
         <button v-if="mode!=='view'" type="button" class="role-link btn btn-lg remove-vol" @click="removeVolume(volume)">
           <i class="icon icon-2x icon-x" />
         </button>
@@ -207,7 +208,7 @@ export default {
           </div>
         </div>
         <Mount :pod-spec="value" :name="volume.name" :mode="mode" />
-      </div>
+      </InfoBox>
     </div>
     <div class="row">
       <div class="col span-6">
@@ -232,8 +233,6 @@ export default {
 
 <style lang='scss' scoped>
 .volume-source{
-  padding: 20px;
-  margin: 20px 0px 20px 0px;
   position: relative;
 
   ::v-deep .code-mirror  {
