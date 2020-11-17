@@ -187,11 +187,12 @@ export default {
 
     testStateSort(state) {
       const SORT_ORDER = {
+        other:         6,
+        notApplicable: 5,
+        skip:          4,
+        pass:          3,
+        mixed:         2,
         fail:          1,
-        skip:          2,
-        notApplicable: 3,
-        pass:          4,
-        other:         5,
       };
 
       return `${ SORT_ORDER[state] || SORT_ORDER['other'] } ${ state }`;
