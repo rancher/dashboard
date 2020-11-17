@@ -17,7 +17,7 @@ export default {
       type:    String,
       default: 'create'
     },
-    row: {
+    value: {
       type:    Object,
       default: () => {
         return { valueFrom: {} };
@@ -40,65 +40,81 @@ export default {
 
   data() {
     const typeOpts = [
+      { value: 'simple', label: 'Key/Value Pair' },
       { value: 'resourceFieldRef', label: 'Container Resource Field' },
       { value: 'configMapKeyRef', label: 'ConfigMap Key' },
       { value: 'secretKeyRef', label: 'Secret key' },
       { value: 'fieldRef', label: 'Pod Field' },
       { value: 'secretRef', label: 'Secret' },
-      { value: 'configMapRef', label: 'ConfigMap' }
+      { value: 'configMapRef', label: 'ConfigMap' },
     ];
 
     const resourceKeyOpts = ['limits.cpu', 'limits.ephemeral-storage', 'limits.memory', 'requests.cpu', 'requests.ephemeral-storage', 'requests.memory'];
+    let type;
 
-    let type = this.row.secretRef ? 'secretRef' : Object.keys((this.row.valueFrom))[0];
+    if (this.value.secretRef) {
+      type = 'secretRef';
+    } else if (this.value.configMapRef) {
+      type = 'configMapRef';
+    } else if (this.value.value) {
+      type = 'simple';
+    } else if (this.value.valueFrom) {
+      type = Object.keys((this.value.valueFrom))[0] || 'simple';
+    }
 
     let refName;
     let name;
     let fieldPath;
     let referenced;
     let key;
+    let valStr;
+    const keys = [];
 
     switch (type) {
     case 'resourceFieldRef':
-      name = this.row.name;
-      type = Object.keys(this.row.valueFrom)[0];
-      referenced = this.row.valueFrom[type].containerName;
-      key = this.row.valueFrom[type].resource || '';
-      refName = referenced;
+      name = this.value.name;
+      refName = this.value.valueFrom[type].containerName;
+      key = this.value.valueFrom[type].resource || '';
       break;
     case 'configMapKeyRef':
-      name = this.row.name;
-      type = Object.keys(this.row.valueFrom)[0];
-      key = this.row.valueFrom[type].key || '';
-      refName = this.row.valueFrom[type].name;
+      name = this.value.name;
+      key = this.value.valueFrom[type].key || '';
+      refName = this.value.valueFrom[type].name;
       referenced = this.allConfigMaps.filter((resource) => {
-        return resource.metadata.name === name;
+        return resource.metadata.name === refName;
       })[0];
+      if (referenced) {
+        keys.push(...Object.keys(referenced.data));
+      }
       break;
     case 'secretRef':
-      name = this.row.prefix;
-      type = 'secretRef';
-      refName = this.row[type].name;
+    case 'configMapRef':
+      name = this.value.prefix;
+      refName = this.value[type].name;
       break;
     case 'secretKeyRef':
-      name = this.row.name;
-      type = Object.keys(this.row.valueFrom)[0];
-      key = this.row.valueFrom[type].key || '';
-      refName = this.row.valueFrom[type].name;
+      name = this.value.name;
+      key = this.value.valueFrom[type].key || '';
+      refName = this.value.valueFrom[type].name;
       referenced = this.allSecrets.filter((resource) => {
-        return resource.metadata.name === name;
+        return resource.metadata.name === refName;
       })[0];
+      if (referenced) {
+        keys.push(...Object.keys(referenced.data));
+      }
       break;
     case 'fieldRef':
-      fieldPath = get(this.row.valueFrom, `${ type }.fieldPath`) || '';
-      name = this.row.name;
+      fieldPath = get(this.value.valueFrom, `${ type }.fieldPath`) || '';
+      name = this.value.name;
       break;
     default:
+      name = this.value.name;
+      valStr = this.value.value;
       break;
     }
 
     return {
-      typeOpts, type, refName, referenced: refName, secrets: this.allSecrets, keys: [], key, fieldPath, name, resourceKeyOpts
+      typeOpts, type, refName, referenced: refName, secrets: this.allSecrets, keys, key, fieldPath, name, resourceKeyOpts, valStr
     };
   },
   computed: {
@@ -129,7 +145,7 @@ export default {
     },
 
     needsSource() {
-      return this.type !== 'resourceFieldRef' && this.type !== 'fieldRef' && !!this.type;
+      return this.type !== 'simple' && this.type !== 'resourceFieldRef' && this.type !== 'fieldRef' && !!this.type;
     },
 
     sourceLabel() {
@@ -155,6 +171,15 @@ export default {
 
       return this.t(out);
     },
+
+    nameLabel() {
+      if (this.type === 'configMapRef' || this.type === 'secretRef') {
+        return this.t('workload.container.command.fromResource.prefix');
+      } else {
+        return this.t('workload.container.command.fromResource.name.label');
+      }
+    },
+
     ...mapGetters({ t: 'i18n/t' })
   },
 
@@ -173,14 +198,20 @@ export default {
         }
         this.refName = neu?.metadata?.name;
       }
+      this.updateRow();
     },
   },
 
   methods: {
-
     updateRow() {
-      const out = { name: this.name || this.refName };
-      const old = { ...this.row };
+      if ((!this.name && !this.refName) || (!this.name.length && !this.refName.length)) {
+        if (this.type !== 'fieldRef') {
+          this.$emit('input', null);
+
+          return;
+        }
+      }
+      let out = { name: this.name || this.refName };
 
       switch (this.type) {
       case 'configMapKeyRef':
@@ -199,14 +230,20 @@ export default {
         };
         break;
       case 'fieldRef':
+        if (!this.fieldPath || !this.fieldPath.length) {
+          out = null; break;
+        }
         out.valueFrom = { [this.type]: { apiVersion: 'v1', fieldPath: this.fieldPath } };
+        break;
+      case 'simple':
+        out.value = this.valStr;
         break;
       default:
         delete out.name;
         out.prefix = this.name;
         out[this.type] = { name: this.refName, optional: false };
       }
-      this.$emit('input', { value: out, old });
+      this.$emit('input', out);
     },
     get
   }
@@ -214,8 +251,8 @@ export default {
 </script>
 
 <template>
-  <div>
-    <div>
+  <div class="var-row">
+    <div class="type">
       <LabeledSelect
         v-model="type"
         :mode="mode"
@@ -227,16 +264,27 @@ export default {
       />
     </div>
 
-    <div>
+    <div class="name">
       <LabeledInput
         v-model="name"
-        :label="t('workload.container.command.fromResource.prefix')"
+        :label="nameLabel"
+        :placeholder="t('workload.container.command.fromResource.name.placeholder')"
         :mode="mode"
         @input="updateRow"
       />
     </div>
 
-    <template v-if="needsSource">
+    <div v-if="type==='simple'">
+      <LabeledInput
+        v-model="valStr"
+        :label="t('workload.container.command.fromResource.value.label')"
+        :placeholder="t('workload.container.command.fromResource.value.placeholder')"
+        :mode="mode"
+        @input="updateRow"
+      />
+    </div>
+
+    <template v-else-if="needsSource">
       <div>
         <LabeledSelect
           v-model="referenced"
@@ -246,7 +294,6 @@ export default {
           :get-option-key="opt=>opt.id|| opt"
           :mode="mode"
           :label="sourceLabel"
-          @input="updateRow"
         />
       </div>
       <div v-if="type!=='secretRef' && type!== 'configMapRef'">
@@ -260,7 +307,6 @@ export default {
           @input="updateRow"
         />
       </div>
-      <span v-else class="text-muted">&mdash;</span>
     </template>
 
     <template v-else-if="type==='resourceFieldRef'">
@@ -298,15 +344,29 @@ export default {
           @input="updateRow"
         />
       </div>
-      <div>
-        <span class="text-muted">&mdash;</span>
-      </div>
     </template>
 
-    <div>
-      <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link remove" @click="$emit('input', { value:null })">
-        <t k="generic.remove" />
-      </button>
-    </div>
+    <button v-if="!isView" type="button" class="btn btn-sm role-link" @click.stop="$emit('remove')">
+      {{ t('generic.remove') }}
+    </button>
   </div>
 </template>
+
+<style lang='scss' scoped>
+.var-row{
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+
+  & .type, .name{
+    flex-basis: 20%;
+    flex-grow: 0;
+  }
+
+  &>DIV{
+    flex: 1;
+    margin-right: 1.75%;
+  }
+}
+
+</style>

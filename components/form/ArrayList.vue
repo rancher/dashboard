@@ -197,7 +197,6 @@ export default {
       if ( this.isView ) {
         return;
       }
-
       const out = [];
 
       for ( const row of this.rows ) {

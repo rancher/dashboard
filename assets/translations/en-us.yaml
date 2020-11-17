@@ -1451,7 +1451,7 @@ wm:
 workload:
   container:
     command:
-      addFromResource: Add from Resource
+      addEnvVar: Add Variable
       args: Arguments
       as: as
       command: Command
@@ -1459,8 +1459,11 @@ workload:
       fromResource:
         key:
           label: Key
-          placeholder: e.g. requests.cpu
-        prefix: Name
+          placeholder: "e.g. metadata.labels['<KEY>']"
+        name: 
+          label: Variable Name
+          placeholder: "e.g. FOO"
+        prefix: Prefix
         source:
           label: Source
           placeholder: e.g. my-container
@@ -1468,6 +1471,9 @@ workload:
         configMap: ConfigMap
         containerName: Container Name
         type: Type
+        value: 
+          label: Value
+          placeholder: e.g. BAR
       workingDir: WorkingDir
     healthCheck:
       checkInterval: Check Interval
