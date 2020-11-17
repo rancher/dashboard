@@ -356,7 +356,9 @@ export default {
 .var-row{
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  border-bottom: solid thin var(--border);
+  margin-bottom: 15px;
+  padding-bottom: 15px;
 
   & .type, .name{
     flex-basis: 20%;
