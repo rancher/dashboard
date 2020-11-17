@@ -103,7 +103,7 @@ export default {
           <h4 class="mb-10">
             {{ obj.label }}
           </h4>
-          <ResourceTable :schema="obj.schema" :rows="obj.rows" :headers="obj.headers" :show-groups="false" />
+          <ResourceTable :schema="obj.schema" :rows="obj.rows" :headers="obj.headers" :groupable="false" />
           <hr v-if="idx<childTypes.length" />
         </div>
       </div>

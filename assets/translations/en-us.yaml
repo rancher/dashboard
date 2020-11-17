@@ -1132,14 +1132,14 @@ resourceDetail:
       other {Owners}}
     showAnnotations: |-
       {annotations, plural,
-      =1 {Show annotation}
+      =1 {Show 1 annotation}
       other {Show {annotations} annotations}}
   header:
-    clone: "Clone from {type}: {name}"
-    create: Create
-    edit: Edit
-    stage: "Stage from {type}: {name}"
-    view: "{name}"
+    clone: "Clone from {subtype} {name}"
+    create: Create {subtype}
+    edit: "{subtype} {name}"
+    stage: "Stage from {subtype} {name}"
+    view: "{subtype} {name}"
   masthead:
     age: Age
     defaultBannerMessage:
@@ -1147,12 +1147,14 @@ resourceDetail:
       transitioning: This resource is currently in a transitioning state,but there isn't a detailed message available.
     namespace: Namespace
     workspace: Workspace
-    overview: Overview
     project: Project
+    overview: Detail
+    config: Config
     yaml: YAML
-    managedWarning: This {type} is managed by the {managedBy} app {appName}; changes made here will likely be overwritten the next time the app is changed.
-    show: Show
-    hide: Hide
+    managedWarning: |-
+      This {type} is managed by {hasName, select,
+        no {a {managedBy} app}
+        yes {the {managedBy} app {appName}}}; changes made here will likely be overwritten the next time the app is changed.
 
 resourceList:
   head:
@@ -1161,6 +1163,10 @@ resourceList:
     createResource: "Create {resourceName}"
 
 resourceTable:
+  groupBy:
+    none: Flat List
+    namespace: Group by Namespace
+    project: Group by Project
   groupLabel:
     namespace: "<span>Namespace:</span> {name}"
     notInANamespace: Not Namespaced
@@ -2143,12 +2149,12 @@ typeLabel:
 action:
   download: Download YAML
   remove: Delete
-  goToViewYaml: View as YAML
   refresh: Refresh
-  goToEdit: Edit as Form
-  goToClone: Clone as Form
-  goToEditYaml: Edit as YAML
-  cloneYaml: Clone as YAML
+  view: View Config
+  edit: Edit Config
+  clone: Clone
+  editYaml: Edit YAML
+  viewYaml: View YAML
   viewInApi: View in API
   openLogs: View Logs
 

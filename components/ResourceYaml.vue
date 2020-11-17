@@ -1,6 +1,7 @@
 <script>
 import jsyaml from 'js-yaml';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
+import FileSelector from '@/components/form/FileSelector';
 import Footer from '@/components/form/Footer';
 import { ANNOTATIONS_TO_FOLD } from '@/config/labels-annotations';
 import { ensureRegex } from '@/utils/string';
@@ -19,6 +20,7 @@ import { exceptionToErrorsArray } from '../utils/error';
 export default {
   components: {
     Footer,
+    FileSelector,
     YamlEditor
   },
 
@@ -322,7 +324,16 @@ export default {
         name:   this.doneRoute,
         params: { resource: this.value.type }
       });
-    }
+    },
+
+    onFileSelected(value) {
+      const component = this.$refs.yamleditor;
+
+      if (component) {
+        component.updateValue(value);
+      }
+    },
+
   }
 };
 </script>
@@ -353,6 +364,13 @@ export default {
         @save="save"
         @done="done"
       >
+        <template v-if="!isView" #left>
+          <FileSelector
+            class="btn role-secondary"
+            :label="t('generic.readFromFile')"
+            @selected="onFileSelected"
+          />
+        </template>
         <template v-if="!isView" #middle>
           <button
             v-if="showPreview"

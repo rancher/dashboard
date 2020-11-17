@@ -1690,12 +1690,11 @@ typeLabel:
 action:
   download: 下载YAML
   remove: 删除
-  goToViewYaml: 查看YAML
+  viewYaml: 查看YAML
   refresh: 刷新
-  goToEdit: 以表格的形式编辑
-  goToClone: 以表格的形式复制
-  goToEditYaml: 以YAML的形式编辑
-  cloneYaml: 以YAML的形式复制
+  edit: 以表格的形式编辑
+  clone: 以表格的形式复制
+  editYaml: 以YAML的形式编辑
   openLogs: 查看日志
 
 unit:

@@ -616,36 +616,30 @@ export default {
 
   _standardActions() {
     const all = [
+      { divider: true },
       {
         action:  'goToEdit',
-        label:   this.t('action.goToEdit'),
+        label:   this.t(this.canUpdate ? 'action.edit' : 'action.view'),
         icon:    'icon icon-edit',
-        enabled:  this.canUpdate && this.canCustomEdit,
+        enabled:  this.canCustomEdit,
       },
       {
         action:  'goToClone',
-        label:   this.t('action.goToClone'),
+        label:   this.t('action.clone'),
         icon:    'icon icon-copy',
         enabled:  this.canCreate && this.canCustomEdit,
       },
-      { divider: true },
       {
         action:  'goToEditYaml',
-        label:   this.t('action.goToEditYaml'),
+        label:   this.t(this.canUpdate ? 'action.editYaml' : 'action.viewYaml'),
         icon:    'icon icon-file',
-        enabled: this.canUpdate && this.canYaml,
+        enabled: this.canYaml,
       },
       {
-        action:  'goToViewYaml',
-        label:   this.t('action.goToViewYaml'),
-        icon:    'icon icon-file',
-        enabled: !this.canUpdate && this.canYaml
-      },
-      {
-        action:  'cloneYaml',
-        label:   this.t('action.cloneYaml'),
+        action:  (this.canCustomEdit ? 'goToClone' : 'cloneYaml'),
+        label:   this.t('action.clone'),
         icon:    'icon icon-copy',
-        enabled:  this.canCreate && this.canYaml,
+        enabled:  this.canCreate && (this.canCustomEdit || this.canYaml),
       },
       {
         action:     'download',
@@ -665,7 +659,6 @@ export default {
         enabled:    this.canDelete,
         bulkAction: 'promptRemove',
       },
-      { divider: true },
       {
         action:  'viewInApi',
         label:   this.t('action.viewInApi'),

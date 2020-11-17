@@ -23,7 +23,7 @@ export default {
 
     labelsAreTranslations: {
       type:    Boolean,
-      default: false
+      default: true
     }
   },
 
@@ -66,6 +66,7 @@ export default {
     <button
       v-for="(opt,idx) in optionObjects"
       :key="idx"
+      v-tooltip="opt.tooltip && labelsAreTranslations ? t(opt.tooltip) : opt.tooltip"
       type="button"
       :class="opt.class"
       class="btn-sm"

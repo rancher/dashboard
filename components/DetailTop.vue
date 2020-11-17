@@ -65,35 +65,11 @@ export default {
       return Object.keys(this.annotations || {}).length;
     },
 
-    hasLeft() {
-      return this.hasDetails;
-    },
-
-    hasRight() {
-      return this.hasLabels || this.hasAnnotations || this.hasDescription;
-    },
-
     isEmpty() {
       const hasAnything = this.hasDetails || this.hasLabels || this.hasAnnotations || this.hasDescription;
 
       return !hasAnything;
     },
-
-    leftSpan() {
-      if ( this.hasRight ) {
-        return 'span-3';
-      }
-
-      return 'span-12';
-    },
-
-    rightSpan() {
-      if ( this.hasLeft ) {
-        return 'span-9';
-      } else {
-        return 'span-12';
-      }
-    }
   },
   methods: {
     showAnnotations(ev) {
@@ -105,9 +81,16 @@ export default {
 </script>
 
 <template>
-  <div class="detail-top row" :class="{empty: isEmpty}">
-    <div v-if="hasLeft" class="col left" :class="leftSpan">
-      <div v-for="detail in details" :key="detail.label || detail.slotName">
+  <div class="detail-top" :class="{empty: isEmpty}">
+    <div v-if="description" class="description">
+      <span class="label">
+        {{ t('resourceDetail.detailTop.description') }}:
+      </span>
+      <span class="content">{{ description }}</span>
+    </div>
+
+    <div class="details">
+      <div v-for="detail in details" :key="detail.label || detail.slotName" class="detail">
         <span class="label">
           {{ detail.label }}:
         </span>
@@ -120,30 +103,24 @@ export default {
         <span v-else>{{ detail.content }}</span>
       </div>
     </div>
-    <div v-if="hasRight" class="col right" :class="rightSpan">
-      <div v-if="description" class="description">
-        <span class="label">
-          {{ t('resourceDetail.detailTop.description') }}:
-        </span>
-        <span class="content">{{ description }}</span>
+
+    <div v-if="hasLabels" class="labels">
+      <span class="label">
+        {{ t('resourceDetail.detailTop.labels') }}:
+      </span>
+      <div class="tags">
+        <Tag v-for="(prop, key) in labels" :key="key + prop">
+          {{ key }}<span v-if="prop">: </span>{{ prop }}
+        </Tag>
       </div>
-      <div v-if="hasLabels" class="labels">
-        <span class="label">
-          {{ t('resourceDetail.detailTop.labels') }}:
-        </span>
-        <div class="tags">
-          <Tag v-for="(prop, key) in labels" :key="key + prop">
-            {{ key }}<span v-if="prop">: </span>{{ prop }}
-          </Tag>
-        </div>
-      </div>
-      <div v-if="hasAnnotations" class="annotations">
-        <span class="label">
-          {{ t('resourceDetail.detailTop.annotations') }}:
-        </span>
-        <a v-if="!annotationsVisible" href="#" @click="showAnnotations">{{ t('resourceDetail.detailTop.showAnnotations', {annotations: annotationCount}) }}</a>
-        <KeyValue v-else :value="annotations" :mode="view" />
-      </div>
+    </div>
+
+    <div v-if="hasAnnotations" class="annotations">
+      <span class="label">
+        {{ t('resourceDetail.detailTop.annotations') }}:
+      </span>
+      <a v-if="!annotationsVisible" href="#" @click="showAnnotations">{{ t('resourceDetail.detailTop.showAnnotations', {annotations: annotationCount}) }}</a>
+      <KeyValue v-else :value="annotations" :mode="view" />
     </div>
   </div>
 </template>
@@ -180,21 +157,15 @@ export default {
       margin: 0 4px 0 0;
     }
 
-    .col.right > * {
+    .details {
       display: flex;
       flex-direction: row;
-    }
+      flex-wrap: wrap;
+      margin-bottom: 5px;
 
-    .col.left > *:not(:last-child) {
-      margin-bottom: $left-column-spacing;
-    }
-
-    table tr td:first-of-type {
-      padding-right: 60px;
-    }
-
-    .key-value .kv-row {
-      grid-template-columns: 33.333% 1fr;
+      .detail {
+        margin-right: 20px;
+      }
     }
   }
 </style>

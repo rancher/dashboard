@@ -49,32 +49,52 @@ export default {
     <div v-for="(err,idx) in errors" :key="idx">
       <Banner color="error" :label="err" />
     </div>
-    <div class="cancel-create">
-      <slot name="left" />
-      <slot name="cancel">
-        <button type="button" class="btn role-secondary" @click="done">
-          <t k="generic.cancel" />
-        </button>
-      </slot>
-      <slot name="middle" />
-      <slot name="save">
-        <AsyncButton
-          v-if="!isView"
-          :mode="mode"
-          @click="save"
-        />
-      </slot>
-      <slot name="right" />
+    <div class="buttons">
+      <div class="left">
+        <slot name="left" />
+      </div>
+      <div class="right">
+        <slot name="cancel">
+          <button type="button" class="btn role-secondary" @click="done">
+            <t k="generic.cancel" />
+          </button>
+        </slot>
+        <slot name="middle" />
+        <slot name="save">
+          <AsyncButton
+            v-if="!isView"
+            :mode="mode"
+            @click="save"
+          />
+        </slot>
+        <slot name="right" />
+      </div>
     </div>
   </div>
 </template>
 
 <style lang='scss'>
-  .cancel-create {
-    text-align: right;
+  .buttons {
+    display: grid;
+    grid-template-areas:  "left right";
+    grid-template-columns: "min-content auto";
 
-    > * {
-      margin: 0 0 0 $column-gutter;
+    .left {
+      grid-area: left;
+      text-align: left;
+
+      .btn, button {
+        margin: 0 $column-gutter 0 0;
+      }
+    }
+
+    .right {
+      grid-area: right;
+      text-align: right;
+
+      .btn, button {
+        margin: 0 0 0 $column-gutter;
+      }
     }
   }
 </style>

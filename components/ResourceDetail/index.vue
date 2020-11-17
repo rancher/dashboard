@@ -10,8 +10,6 @@ import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
-import FileSelector from '@/components/form/FileSelector';
-import { KUBERNETES } from '@/config/labels-annotations';
 import Banner from '@/components/Banner';
 import GenericResourceDetail from './Generic';
 
@@ -161,7 +159,7 @@ export const watchQuery = [MODE, AS_YAML];
 
 export default {
   components: {
-    Banner, DetailTop, FileSelector, ResourceYaml, Masthead, GenericResourceDetail
+    Banner, DetailTop, ResourceYaml, Masthead, GenericResourceDetail
   },
   mixins: [CreateEditView],
 
@@ -270,27 +268,6 @@ export default {
       return null;
     },
 
-    showManagedWarning() {
-      const { value: model, mode } = this;
-      const managedLabel = model?.metadata?.labels ? model.metadata.labels[KUBERNETES.MANAGED_BY] : false;
-
-      if (mode === _EDIT && managedLabel && managedLabel.toLowerCase() === 'helm') {
-        return true;
-      }
-
-      return false;
-    },
-
-    managedWarningOptions() {
-      const { value } = this;
-
-      return {
-        type:      value?.kind || '',
-        managedBy: value?.metadata?.labels[KUBERNETES.MANAGED_BY] || '',
-        appName:   value?.metadata?.labels?.release || '',
-      };
-    },
-
     yamlSave() {
       return this.parentOverride?.yamlSave;
     }
@@ -307,15 +284,6 @@ export default {
   },
 
   methods: {
-    // reading yamls from files is most easily tracked when done down in the component that handles other yaml-editing input, YamlEditor, but visually the button to upload lives up here
-    onFileSelected(value) {
-      const component = this.$refs.resourceyaml;
-
-      if (component) {
-        component.updateValue(value);
-      }
-    },
-
     setSubtype(subtype) {
       this.resourceSubtype = subtype;
     }
@@ -325,26 +293,16 @@ export default {
 
 <template>
   <div>
-    <Banner
-      v-if="showManagedWarning"
-      color="warning"
-      :label="t('resourceDetail.masthead.managedWarning', managedWarningOptions)"
-    />
     <Masthead
       :value="originalModel"
       :mode="mode"
       :real-mode="realMode"
       :as-yaml.sync="asYaml"
       :parent-override="parentOverride"
-      :has-detail-or-edit="(hasCustomDetail || (hasCustomEdit && !yamlOnlyDetail))"
+      :has-detail="hasCustomDetail"
+      :has-edit="hasCustomEdit"
       :resource-subtype="resourceSubtype"
-    >
-      <template v-if="!isView && asYaml" #right>
-        <div class="text-right">
-          <FileSelector ref="fileSelector" class="btn role-tertiary" :label="t('generic.readFromFile')" @selected="onFileSelected" />
-        </div>
-      </template>
-    </Masthead>
+    />
     <DetailTop
       v-if="isView && !asYaml"
       :value="originalModel"

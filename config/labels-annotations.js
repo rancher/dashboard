@@ -10,6 +10,8 @@ export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
   SERVICE_ACCOUNT_NAME: 'kubernetes.io/service-account.name',
   MANAGED_BY:           'app.kubernetes.io/managed-by',
+  MANAGED_NAME:         'app.kubernetes.io/name',
+  INSTANCE:             'app.kubernetes.io/instance',
 };
 
 export const RIO = { STACK: 'rio.cattle.io/stack' };

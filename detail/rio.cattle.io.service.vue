@@ -152,7 +152,7 @@ export default {
         :schema="table.schema"
         :rows="table.rows"
         :headers="table.headers"
-        :show-groups="false"
+        :groupable="false"
       />
     </div>
     <div class="row">

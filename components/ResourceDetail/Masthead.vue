@@ -1,13 +1,15 @@
 <script>
-import { PROJECT } from '@/config/labels-annotations';
+import { KUBERNETES, PROJECT } from '@/config/labels-annotations';
 import { FLEET, NAMESPACE, MANAGEMENT } from '@/config/types';
 import ButtonGroup from '@/components/ButtonGroup';
 import BadgeState from '@/components/BadgeState';
 import Banner from '@/components/Banner';
 import { get } from '@/utils/object';
 import { NAME as FLEET_NAME } from '@/config/product/fleet';
-import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { HIDE_SENSITIVE } from '@/store/prefs';
+import {
+  AS_YAML, MODE, _CREATE, _EDIT, _FLAGGED, _UNFLAG, _VIEW
+} from '@/config/query-params';
 
 export default {
   components: {
@@ -36,7 +38,12 @@ export default {
       default: false
     },
 
-    hasDetailOrEdit: {
+    hasDetail: {
+      type:    Boolean,
+      default: false
+    },
+
+    hasEdit: {
       type:    Boolean,
       default: false
     },
@@ -57,15 +64,6 @@ export default {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
       return this.$store.getters[`${ inStore }/schemaFor`]( this.value.type );
-    },
-
-    h1() {
-      const out = this.$store.getters['i18n/t'](`resourceDetail.header.${ this.realMode }`, {
-        type: this.$store.getters['type-map/labelFor'](this.schema),
-        name: this.value?.nameDisplay,
-      });
-
-      return out;
     },
 
     isView() {
@@ -156,6 +154,7 @@ export default {
 
       return null;
     },
+
     parent() {
       const displayName = this.$store.getters['type-map/labelFor'](this.schema);
       const location = {
@@ -176,9 +175,93 @@ export default {
       return this.$store.getters['prefs/get'](HIDE_SENSITIVE);
     },
 
+    viewOptions() {
+      const out = [];
+
+      if ( this.hasDetail || this.hasEdit ) { // @TODO drop hasEdit once all desired custom detail pages exist
+        out.push({
+          label: 'resourceDetail.masthead.overview',
+          value: 'view',
+        });
+      }
+
+      if ( this.hasEdit ) {
+        out.push({
+          label: 'resourceDetail.masthead.config',
+          value: 'edit',
+        });
+      }
+
+      if ( !out.length ) {
+        // If there's only YAML, return nothing and the button group will be hidden entirely
+        return null;
+      }
+
+      out.push({
+        label: 'resourceDetail.masthead.yaml',
+        value: 'yaml',
+      });
+
+      return out;
+    },
+
+    currentView: {
+      get() {
+        if ( this.asYaml ) {
+          return 'yaml';
+        }
+
+        if ( this.isEdit || this.isCreate ) {
+          return 'edit';
+        }
+
+        return 'view';
+      },
+
+      set(val) {
+        switch ( val ) {
+        case 'view':
+          this.$router.applyQuery({
+            [MODE]:    _VIEW,
+            [AS_YAML]: _UNFLAG,
+          });
+          break;
+        case 'edit':
+          this.$router.applyQuery({
+            [MODE]:    this.value.canUpdate ? _EDIT : _VIEW,
+            [AS_YAML]: _UNFLAG,
+          });
+          break;
+        case 'yaml':
+          this.$router.applyQuery({
+            [MODE]:    this.value.canUpdate ? _EDIT : _VIEW,
+            [AS_YAML]: _FLAGGED,
+          });
+          break;
+        }
+      },
+    },
+
+    managedWarning() {
+      const { value } = this;
+      const labels = value?.metadata?.labels || {};
+
+      const managedBy = labels[KUBERNETES.MANAGED_BY] || '';
+      const appName = labels[KUBERNETES.MANAGED_NAME] || labels[KUBERNETES.INSTANCE] || '';
+
+      return {
+        show:    this.mode === _EDIT && managedBy.toLowerCase() === 'helm',
+        type:    value?.kind || '',
+        hasName: appName ? 'yes' : 'no',
+        appName,
+        managedBy,
+      };
+    },
   },
+
   methods: {
     get,
+
     showActions() {
       this.$store.commit('action-menu/show', {
         resources: this.value,
@@ -198,90 +281,92 @@ export default {
 </script>
 
 <template>
-  <header class="masthead">
-    <div class="title">
-      <div class="primaryheader">
-        <h1 v-if="isCreate || isEdit || isView">
-          <nuxt-link :to="parent.location">
-            {{ parent.displayName }}:
-          </nuxt-link>
-          <t v-if="isCreate" k="resourceDetail.header.create" />
-          <t v-if="isEdit" k="resourceDetail.header.edit" />
-          <span v-if="resourceSubtype" v-html="resourceSubtype" />
-          <span v-if="!isCreate" v-html="value.nameDisplay" />
-        </h1>
-        <h1 v-else>
-          <nuxt-link :to="parent.location">
-            {{ parent.displayName }}:
-          </nuxt-link>
-          <span v-html="h1" />
-        </h1>
-        <BadgeState v-if="isView && !parent.hideBadgeState" :value="value" />
-      </div>
-      <!-- //TODO use  nuxt-link for an internal project detail page once it exists -->
-      <div v-if="isView" class="subheader">
-        <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: {{ project.nameDisplay }}</span>
-        <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
-        <span v-else-if="namespace">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
-        <span v-if="!parent.hideAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="get(value, 'metadata.creationTimestamp')" /></span>
-      </div>
-    </div>
-    <slot name="right">
-      <div v-if="isView" class="actions">
-        <template v-if="!!value.hasSensitiveData">
-          <ButtonGroup :labels-are-translations="true" :value="!!hideSensitiveData" :options="[{icon: 'icon-hide', value: true},{icon:'icon-show', value: false }]" @input="toggleSensitiveData" />
-        </template>
-        <div v-if="hasDetailOrEdit">
-          <ButtonGroup :labels-are-translations="true" :value="asYaml" :options="[{label: 'resourceDetail.masthead.overview', value: false},{label:'resourceDetail.masthead.yaml', value: true }]" @input="toggleYaml" />
+  <div>
+    <header>
+      <div class="title">
+        <div class="primaryheader">
+          <h1>
+            <nuxt-link :to="parent.location">
+              {{ parent.displayName }}:
+            </nuxt-link>
+            <t :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="value.nameDisplay" />
+          </h1>
+          <BadgeState v-if="!isCreate && !parent.hideBadgeState" :value="value" />
         </div>
-        <button ref="actions" aria-haspopup="true" type="button" class="btn btn-sm role-multi-action actions" @click="showActions">
-          <i class="icon icon-actions" />
-        </button>
+        <div v-if="!isCreate" class="subheader">
+          <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: {{ project.nameDisplay }}</span>
+          <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
+          <span v-else-if="namespace">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
+          <span v-if="!parent.hideAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="get(value, 'metadata.creationTimestamp')" /></span>
+        </div>
       </div>
-    </slot>
-    <div v-if="banner && isView && !parent.hideBanner" class="state-banner">
-      <Banner class="state-banner" :color="banner.color" :label="banner.message" />
-    </div>
-  </header>
+      <slot name="right">
+        <div v-if="!isCreate" class="actions">
+          <ButtonGroup v-if="!!value.hasSensitiveData" :labels-are-translations="true" :value="!!hideSensitiveData" :options="[{icon: 'icon-hide', value: true},{icon:'icon-show', value: false }]" @input="toggleSensitiveData" />
+
+          <ButtonGroup
+            v-if="viewOptions"
+            v-model="currentView"
+            :options="viewOptions"
+          />
+
+          <button
+            ref="actions"
+            aria-haspopup="true"
+            type="button"
+            class="btn btn-sm role-multi-action actions"
+            @click="showActions"
+          >
+            <i class="icon icon-actions" />
+          </button>
+        </div>
+      </slot>
+    </header>
+
+    <Banner v-if="banner && isView && !parent.hideBanner" class="state-banner" :color="banner.color" :label="banner.message" />
+    <Banner
+      v-if="managedWarning.show"
+      color="warning"
+      :label="t('resourceDetail.masthead.managedWarning', managedWarning)"
+    />
+  </div>
 </template>
 
-<style lang='scss'>
-  .masthead {
-    .primaryheader {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
+<style lang='scss' scoped>
+  .primaryheader {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 
-      h1 {
-        margin-right: 8px;
-      }
+    h1 {
+      margin-right: 8px;
+    }
+  }
+
+  .subheader{
+    display: flex;
+    flex-direction: row;
+    color: var(--input-label);
+    & > * {
+      margin: 5px 20px 5px 0px;
     }
 
-    .subheader{
-      display: flex;
-      flex-direction: row;
-      color: var(--input-label);
-      & > * {
-        margin: 5px 20px 5px 0px;
-      }
-
-      .live-date {
-        color: var(--body-text)
-      }
+    .live-date {
+      color: var(--body-text)
     }
+  }
 
-    .actions {
-      display: flex;
-      justify-content: flex-end;
-      align-items:center;
-      & .btn-group {
-        margin-right: 5px;
-      }
+  .actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items:center;
+    & .btn-group {
+      margin-right: 5px;
     }
+  }
 
-    .state-banner {
-      margin: 3px 0 0 0;
-    }
+  .state-banner {
+    margin: 3px 0 0 0;
   }
 
 </style>
