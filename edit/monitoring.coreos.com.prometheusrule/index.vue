@@ -145,7 +145,7 @@ export default {
             <div class="col span-6">
               <UnitInput
                 v-model="group.interval"
-                :suffix="t('suffix.seconds')"
+                :suffix="t('suffix.seconds', {count: group.interval})"
                 :placeholder="
                   t('prometheusRule.groups.groupInterval.placeholder')
                 "

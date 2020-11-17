@@ -7,13 +7,13 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import ShellInput from '@/components/form/ShellInput';
 import KeyValue from '@/components/form/KeyValue';
 
-const KIND_LABELS = {
-  none:  'None',
-  HTTP:  'HTTP request returns a successful status (200-399)',
-  HTTPS: 'HTTPS request returns a successful status',
-  tcp:   'TCP connection opens successfully',
-  exec:  'Command run inside the container exits with status 0',
-};
+const KINDS = [
+  'none',
+  'HTTP',
+  'HTTPS',
+  'tcp',
+  'exec',
+];
 
 export default {
   components: {
@@ -93,13 +93,9 @@ export default {
       return this.kind === 'none';
     },
 
-    kindLabels() {
-      return KIND_LABELS;
-    },
-
     kindOptions() {
-      return Object.keys(KIND_LABELS).map((k) => {
-        return { label: KIND_LABELS[k], value: k };
+      return KINDS.map((k) => {
+        return { label: this.t(`workload.container.healthCheck.kind.${ k }`), value: k };
       });
     }
   },
@@ -160,7 +156,7 @@ export default {
           v-if="!isView || kind!=='none'"
           v-model="kind"
           :mode="mode"
-          label="Type"
+          :label="t('generic.type')"
           :options="kindOptions"
           placeholder="Select a check type"
         />
@@ -225,7 +221,7 @@ export default {
               :mode="mode"
               :label="t('workload.container.healthCheck.checkInterval')"
               min="1"
-              suffix="sec"
+              :suffix="t('suffix.sec')"
               placeholder="Default: 10"
             />
           </div>
@@ -234,7 +230,7 @@ export default {
               v-model="probe.initialDelaySeconds"
               :mode="mode"
               :label="t('workload.container.healthCheck.initialDelay')"
-              suffix="sec"
+              :suffix="t('suffix.sec')"
               min="0"
               placeholder="Default: 0"
             />
@@ -244,7 +240,7 @@ export default {
               v-model="probe.timeoutSeconds"
               :mode="mode"
               :label="t('workload.container.healthCheck.timeout')"
-              suffix="sec"
+              :suffix="t('suffix.sec')"
               min="0"
               placeholder="Default: 3"
             />
@@ -289,7 +285,9 @@ export default {
                 :as-map="false"
                 :read-allowed="false"
                 :title="t('workload.container.healthCheck.httpGet.headers')"
-                key-label="Name"
+                :key-label="t('generic.name')"
+                :value-label="t('generic.value')"
+                :add-label="t('generic.add')"
               >
                 <template #title>
                   <h4>

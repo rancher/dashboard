@@ -30,6 +30,8 @@ generic:
   save: 保存
   type: 类型
   unknown: 未知
+  key: 键
+  value: 值
 
 nav:
   title: 仪表盘
@@ -65,6 +67,8 @@ product:
 suffix:
   seconds: 秒
   ago: 前
+  sec: 秒
+  times: 次
 
 ##############################
 # Components & Pages
@@ -572,8 +576,12 @@ istio:
 
 labels:
   addLabel: 添加标签
-  addSetLabel: 添加或配置标签 ##doublecheck
-  addAnnotation: 添加备注
+  addSetLabel: 添加或配置标签
+  addAnnotation: 添加注释
+  labels:
+    title: 标签
+  annotations:
+    title: 注释
 
 logging:
   clusterFlow:
@@ -692,7 +700,7 @@ monitoring:
   createDefaultRoles: 创建默认监控集群角色
   grafana:
     storage:
-      annotations: PVC备注
+      annotations: PVC注释
       className: 存储类名称
       existingClaim: 使用已有的Claim
       finalizers: PVC Finalizers ## doublecheck
@@ -853,7 +861,7 @@ promptRemove:
 
 resourceDetail:
   detailTop:
-    annotations: 备注信息
+    annotations: 注释信息
     created: 创建时间
     deleted: 删除时间
     description: 描述
@@ -965,7 +973,7 @@ serviceTypes:
 
 servicesPage:
   labelsAnnotations:
-    label: 标签和备注信息
+    label: 标签和注释信息
   affinity:
     actionLabels:
       clientIp: 客户端IP
@@ -1253,7 +1261,8 @@ workload:
           label: 来源
           placeholder: 例如 my-container
         type: 类型
-      workingDir: WorkingDir
+      workingDir: 工作目录
+      stdin: 标准输入设备
     healthCheck:
       checkInterval: 检查间隔
       command:
@@ -1264,39 +1273,57 @@ workload:
         path: 请求路径
         port: 检查端口
       initialDelay: 初始延迟
-      livenessProbe: 存活探测
+      livenessProbe: 存活检查
       livenessTip: 当该检查失败时，将重新启动容器，不建议用于大多数用途。
       noHealthCheck: "没有给容器配置存活、就绪或启动探测器"
-      readinessProbe: 就绪探测
+      readinessProbe: 就绪检查
       readinessTip: 当该检查失败时，会将容器从服务端点中移除，建议配置该检查。
-      startupProbe: 启动探测
+      startupProbe: 启动检查
       startupTip: 容器在尝试其他健康检查之前，将等待此检查成功。
       successThreshold: 成功阈值
       timeout: 超时时间
+      kind:
+        none:  无
+        HTTP:  HTTP请求返回成功的状态 (200-399)
+        HTTPS: HTTPS请求返回成功的状态
+        tcp:   成功启动TCP连接
+        exec:  容器内运行的命令以0状态退出
     image: 容器镜像
     imagePullPolicy: 拉取镜像策略
     name: 容器名称
     noResourceLimits: 没有配置资源需求
     noPorts: 没有配置端口
     ports:
-      containerPort: 容器端口 ## doublecheck
+      containerPort: 容器端口
       hostPort: 主机端口
       name: 名称
       protocol: 协议
     security:
       addCapabilities: 添加Capabilities
       addGroupIDs: 添加组ID
-      allowPrivilegeEscalation: 允许权限提升
+      allowPrivilegeEscalation: 
+        label: 允许权限提升
+        'false': 否
+        'true': "是，容器可以获得比其父进程更多的权限。"
       dropCapabilities: 弃用 Capabilities
       fsGroup: Filesystem 组
       hostIPC: 使用主机 IPC 命名空间
       hostPID: 只用主机 PID 命名空间
-      privileged: 特权模式 ## doublecheck
-      readOnlyRootFilesystem: 只读 Root Filesystem ## doublecheck
+      privileged:
+        label: 特权模式
+        'false': 否
+        'true': "是，容器拥有访问主机全部权限"
+      readOnlyRootFilesystem: 
+        label: 只读 Root Filesystem
+        'false': 否
+        'true': "是，容器有一个只读的文件系统"
       runAsGroup: 以群组ID运行
-      runAsNonRoot: 以非Root方式运行
+      runAsNonRoot: 
+        label: 以非Root方式运行
+        false: 否
+        true: "是，容器必须以非root用户的身份"
       runAsNonRootOptions:
-        noOption: "不"
+        noOption: "否"
         yesOption: "是：容器必须以非root用户的身份运行。"
       runAsUser: 以用户ID运行
       shareProcessNamespace: 共享单一进程名称空间
@@ -1304,7 +1331,7 @@ workload:
       sysctls: Sysctls
       sysctlsKey: 名称
     titles:
-      container: 定义容器
+      container: 容器配置
       command: 命令
       containers: 容器
       env: 环境变量
@@ -1312,6 +1339,7 @@ workload:
       healthCheck: 健康检查
       image: 镜像
       networking: 网络
+      networkSettings: 网络设置
       podAnnotations: Pod信息
       podLabels: Pod标签
       podScheduling: Pod调度
@@ -1321,6 +1349,7 @@ workload:
       securityContext: 安全性上下文
       status: 状态
       volumeClaimTemplates: 存储声明模板
+      upgrading: 扩缩容/升级策略
   cronSchedule: 调度
   detailTop:
     node: 节点
@@ -1330,17 +1359,16 @@ workload:
   hideTabs: '隐藏高级选项'
   job:
     activeDeadlineSeconds:
-      label: 已激活状态截止日期 ## doublecheck
-      tip: 在系统试图终止该job之前，该job可能处于已激活状态的时间 ## doublecheck
+      tip: 在系统试图终止该job之前，该job可能处于已激活状态的时间
     backoffLimit:
-      label: 重试次数 ## doublecheck
-      tip: 标记该作业失败前的重试次数 ## doublecheck
+      label: 重试次数
+      tip: 标记该作业失败前的重试次数
     completions:
-      label: 完成数 ## doublecheck
-      tip: 应使用成功完成的pod数量 ## doublecheck
+      label: 完成数
+      tip: 应使用成功完成的pod数量
     failedJobsHistoryLimit:
-      label: 历史failed job累计数量 ## doublecheck
-      tip: 保留failed job的数量 ## doublecheck
+      label: 历史failed job累计数量
+      tip: 保留failed job的数量
     parallelism:
       label: 并行数
       tip: 在任何给定时间内，job应运行的最大Pod数量。
@@ -1372,8 +1400,8 @@ workload:
       label: 主机名
       placeholder: 例如：web
     nameservers:
-      add: 添加DNS服务器地
-      label: DNS服务器地
+      add: 添加DNS服务器地址
+      label: DNS服务器地址
       placeholder: 例如：1.1.1.1
     networkMode:
       label: 网络模式
@@ -1382,7 +1410,9 @@ workload:
         normal: 普通
       placeholder: 请选择一个模式
     dns: DNS服务器地址和搜索域
-    resolver: DNS解析选项
+    resolver:
+      label: DNS解析选项
+      add: 添加选项
     searches:
       add: 添加搜索域
       label: DNS 搜索域
@@ -1628,6 +1658,7 @@ typeLabel:
   namespace: 命名空间
   persistentvolume: 持久卷
   service: 服务
+  node: 节点
 
 action:
   download: 下载YAML
@@ -1645,3 +1676,11 @@ unit:
   min: 分钟
   hour: 小时
   day: 天
+
+workloadPorts:
+  addPort: 添加端口
+  remove: 移除
+  addHost: 添加主机
+
+podAffinity:
+  addLabel: 添加 Pod Selector

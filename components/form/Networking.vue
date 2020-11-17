@@ -144,7 +144,7 @@ export default {
 <template>
   <div>
     <div>
-      <h3>Network Settings</h3>
+      <h3>{{ t('workload.container.titles.networkSettings') }}</h3>
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
@@ -229,13 +229,14 @@ export default {
       <div class="row">
         <KeyValue
           v-model="options"
-          key-label="Name"
+          :key-label="t('generic.name')"
           key-name="name"
           :mode="mode"
           :title="t('workload.networking.resolver.label')"
           :add-label="t('workload.networking.resolver.add')"
           :read-allowed="false"
           :as-map="false"
+          :value-label="t('generic.value')"
           @input="update"
         />
       </div>

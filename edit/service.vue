@@ -321,7 +321,7 @@ export default {
           <div v-if="showAffinityTimeout" class="col span-6">
             <UnitInput
               v-model="value.spec.sessionAffinityConfig.clientIP.timeoutSeconds"
-              :suffix="t('suffix.seconds')"
+              :suffix="t('suffix.seconds', {count: value.spec.sessionAffinityConfig.clientIP.timeoutSeconds})"
               :label="t('servicesPage.affinity.timeout.label')"
               :placeholder="t('servicesPage.affinity.timeout.placeholder')"
               @input="e=>$set(value.spec.sessionAffinityConfig.clientIP, 'timeoutSeconds', e)"
