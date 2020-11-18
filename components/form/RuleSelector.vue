@@ -56,7 +56,11 @@ export default {
       optionsWithValueDisabled: [
         OPERATOR_VALUES.IS_SET,
         OPERATOR_VALUES.IS_NOT_SET
-      ]
+      ],
+      defaultAddValue: {
+        key:      '',
+        operator: OPERATOR_VALUES.IS_SET,
+      }
     };
   },
 
@@ -68,12 +72,6 @@ export default {
       set(localValue) {
         this.$emit('input', localValue);
       }
-    },
-    defaultAddValue() {
-      return {
-        key:      '',
-        operator: OPERATOR_VALUES.IS_SET,
-      };
     }
   },
 
@@ -117,13 +115,13 @@ export default {
     >
       <template v-slot:column-headers>
         <div class="box">
-          <div>
+          <div class="key">
             Key
           </div>
-          <div>
+          <div class="operator">
             Operator
           </div>
-          <div>
+          <div class="value">
             Value
           </div>
           <div> </div>
@@ -131,18 +129,17 @@ export default {
       </template>
       <template v-slot:columns="scope">
         <div class="key">
-          <LabeledInput v-model="scope.row.value.key" :mode="mode" @input="scope.queueUpdate" />
+          <LabeledInput v-model="scope.row.value.key" :mode="mode" />
         </div>
         <div class="operator">
           <LabeledSelect
-            style="height: 100%;"
             :mode="mode"
             :value="scope.row.value.operator"
             :options="operatorOptions"
             @input="onOperatorInput(scope, $event)"
           />
         </div>
-        <div class="value col span-4">
+        <div class="value">
           <LabeledInput :disabled="isValueDisabled(scope)" :value="getValue(scope)" :mode="mode" @input="onValueInput(scope, $event)" />
         </div>
       </template>
@@ -152,45 +149,18 @@ export default {
 
 <style lang="scss">
 .rule-selector {
-  &:not(.view) table {
-    table-layout: initial;
-  }
-
   .box {
-
-    & > * {
-      width: 33.333%;
+    & > *:not(:last-child) {
       padding-right: 10px;
-
-      &:nth-child(2), &:nth-child(4) {
-        width:16.155%;
-      }
     }
 
     .key, .value {
-      input {
-        height: 33px;
-      }
+      width: 35%;
+      flex: none;
     }
 
     .operator {
-      .vs__dropdown-toggle {
-        height: 59px;
-      }
-    }
-
-    .vs--open {
-      .vs__dropdown-toggle {
-        padding: 18px 0;
-      }
-
-      .labeled-input {
-        display: none;
-      }
-    }
-
-    .vs__dropdown-toggle {
-      padding: 3px 0;
+      flex: 1;
     }
   }
 }

@@ -4,7 +4,7 @@ import merge from 'lodash/merge';
 import jsyaml from 'js-yaml';
 import { ucFirst } from '@/utils/string';
 import { isSimpleKeyValue } from '@/utils/object';
-import { _VIEW } from '@/config/query-params';
+import { _CREATE, _VIEW } from '@/config/query-params';
 import { SCHEMA, NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
@@ -13,7 +13,6 @@ import RuleSelector from '@/components/form/RuleSelector';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
-import GatekeeperViolationsTable from '@/components/gatekeeper/ViolationsTable';
 import CruResource from '@/components/CruResource';
 import { ENFORCEMENT_ACTION_VALUES } from '@/models/constraints.gatekeeper.sh.constraint';
 import { defaultAsyncData } from '@/components/ResourceDetail';
@@ -36,7 +35,6 @@ const CONSTRAINT_PREFIX = 'constraints.gatekeeper.sh.';
 export default {
   components: {
     CruResource,
-    GatekeeperViolationsTable,
     MatchKinds,
     NameNsDescription,
     NamespaceList,
@@ -78,22 +76,41 @@ export default {
       }
     };
 
-    this.value.spec = merge(this.value.spec, emptySpec);
+    if (this.mode === _CREATE) {
+      this.$set(this.value, 'spec', merge(this.value.spec, emptySpec));
+
+      if (!this.value.spec.match.scope) {
+        this.$set(this.value.spec.match, 'scope', SCOPE_OPTIONS[0]);
+      }
+    } else {
+      this.$set(this.value.spec, 'match', this.value.spec.match || {});
+      this.$set(this.value.spec.match, 'kinds', this.value.spec.match.kinds || [{}]);
+      this.$set(this.value.spec.match, 'labelSelector', this.value.spec.match.labelSelector || {});
+      this.$set(this.value.spec.match.labelSelector, 'matchExpressions', this.value.spec.match.labelSelector.matchExpressions || []);
+      this.$set(this.value.spec.match, 'namespaceSelector', this.value.spec.match.namespaceSelector || {});
+      this.$set(this.value.spec.match.namespaceSelector, 'labelSelector', this.value.spec.match.namespaceSelector.labelSelector || []);
+    }
+
     let parametersYaml = this.value?.spec?.parameters ? jsyaml.safeDump(this.value.spec.parameters) : '';
 
     if (parametersYaml === '{}\n') {
       parametersYaml = '';
     }
 
-    if (!this.value.spec.match.scope) {
-      this.value.spec.match.scope = SCOPE_OPTIONS[0];
-    }
-
     return {
       emptySpec,
       parametersYaml,
-      enforcementActionOptions: Object.values(ENFORCEMENT_ACTION_VALUES),
-      enforcementActionLabels:  Object.values(ENFORCEMENT_ACTION_VALUES).map(ucFirst),
+      enforcementActionOptions: [
+        {
+          label: `${ ENFORCEMENT_ACTION_VALUES.DENY } - deny admission requests with any violation`,
+          value: ENFORCEMENT_ACTION_VALUES.DENY
+        },
+        {
+          label: `${ ENFORCEMENT_ACTION_VALUES.DRYRUN } - enables constraints to be deployed in the cluster without making actual changes`,
+          value: ENFORCEMENT_ACTION_VALUES.DRYRUN
+        }
+      ],
+      enforcementActionLabels: Object.values(ENFORCEMENT_ACTION_VALUES).map(ucFirst),
       NAMESPACE_FILTERS,
     };
   },
@@ -119,10 +136,12 @@ export default {
       constraintTypes.sort();
 
       return constraintTypes.map((type) => {
+        const splitId = type.id.split('.');
+
         return {
           label:       type.id.replace(CONSTRAINT_PREFIX, ''),
           description: '',
-          id:          type.id,
+          id:          splitId[splitId.length - 1],
           bannerAbbrv: 'CT'
         };
       });
@@ -150,6 +169,9 @@ export default {
     },
     isTemplateSelectorDisabled() {
       return !this.isCreate;
+    },
+    areNamespacesDisabled() {
+      return this.value.spec.match.scope !== 'Namespaced';
     }
   },
 
@@ -203,6 +225,12 @@ export default {
     },
     selectTemplateSubtype(subType) {
       this.value.kind = subType;
+    },
+    onScopeChange(newScope) {
+      if (newScope !== 'Namespaced') {
+        this.value.spec.match.namespaces = [];
+        this.value.spec.match.excludedNamespaces = [];
+      }
     }
   }
 };
@@ -241,14 +269,8 @@ export default {
               :options="enforcementActionOptions"
               :labels="enforcementActionLabels"
               :mode="mode"
-              @input="e=>value.spec.enforcementAction = e"
             />
           </div>
-        </div>
-        <div v-if="isView">
-          <h2>{{ t('gatekeeperConstraint.violations.title') }}</h2>
-          <GatekeeperViolationsTable :constraint="value" />
-          <div class="spacer"></div>
         </div>
         <Tabbed :side-tabs="true" @changed="onTabChanged">
           <Tab name="parameters" :label="t('gatekeeperConstraint.tab.parameters.title')" :weight="3">
@@ -281,20 +303,20 @@ export default {
           <Tab name="namespaces" :label="t('gatekeeperConstraint.tab.namespaces.title')" :weight="1">
             <div class="row">
               <div class="col span-6">
-                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.scope.title') }}</h3>
-                <Scope v-model="value.spec.match.scope" :mode="mode" />
+                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.scope.title') }} <i v-tooltip="'Determines if cluster-scoped and/or namesapced-scoped resources are selected.'" class="icon icon-info" /></h3>
+                <Scope v-model="value.spec.match.scope" :mode="mode" @input="onScopeChange($event)" />
               </div>
             </div>
             <div class="row mt-40">
               <div class="col span-12">
-                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.namespaces') }}</h3>
-                <NamespaceList v-model="value.spec.match.namespaces" :mode="mode" :namespace-filter="NAMESPACE_FILTERS.nonSystem" add-label="Add Namespace" />
+                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.namespaces') }} <i v-tooltip="'If defined, a constraint will only apply to resources in a listed namespace.'" class="icon icon-info" /></h3>
+                <NamespaceList v-model="value.spec.match.namespaces" :mode="mode" :namespace-filter="NAMESPACE_FILTERS.nonSystem" :disabled="areNamespacesDisabled" add-label="Add Namespace" />
               </div>
             </div>
             <div class="row mt-40">
               <div class="col span-12">
-                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.excludedNamespaces') }}</h3>
-                <NamespaceList v-model="value.spec.match.excludedNamespaces" :mode="mode" add-label="Add Excluded Namespace" />
+                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.excludedNamespaces') }} <i v-tooltip="'If defined, a constraint will only apply to resources not in a listed namespace.'" class="icon icon-info" /></h3>
+                <NamespaceList v-model="value.spec.match.excludedNamespaces" :mode="mode" :disabled="areNamespacesDisabled" add-label="Add Excluded Namespace" />
               </div>
             </div>
             <div class="row mt-40">
@@ -313,12 +335,3 @@ export default {
     </CruResource>
   </div>
 </template>
-
-<style lang="scss">
-.gatekeeper-constraint {
-  .enforcement-action {
-    max-width: 200px;
-  }
-}
-
-</style>

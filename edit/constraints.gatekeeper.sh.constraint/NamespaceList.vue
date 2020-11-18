@@ -55,6 +55,7 @@ export default {
 
 <template>
   <LabeledSelect
+    v-bind="$attrs"
     :value="value"
     :mode="mode"
     :multiple="true"
