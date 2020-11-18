@@ -1,6 +1,7 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
+import { _CREATE } from '@/config/query-params';
 
 export default {
   components: { Checkbox, LabeledInput },
@@ -17,6 +18,10 @@ export default {
   data() {
     this.$set(this.value, 'http_config', this.value.http_config || {});
     this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
+
+    if (this.mode === _CREATE) {
+      this.$set(this.value, 'text', this.value.text || '{{ template "slack.rancher.text" . }}');
+    }
 
     return {};
   },
