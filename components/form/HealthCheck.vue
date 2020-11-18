@@ -48,7 +48,7 @@ export default {
           v-model="readinessProbe"
           class="col span-12"
           :mode="mode"
-          label="Readiness Check"
+          :label="t('workload.container.healthCheck.readinessProbe')"
           :description="t('workload.container.healthCheck.readinessTip')"
           @input="update"
         />
@@ -62,7 +62,7 @@ export default {
           v-model="livenessProbe"
           class="col span-12"
           :mode="mode"
-          label="Liveness Check"
+          :label="t('workload.container.healthCheck.livenessProbe')"
           :description="t('workload.container.healthCheck.livenessTip')"
           @input="update"
         />
@@ -75,7 +75,7 @@ export default {
         v-model="startupProbe"
         class="col span-12"
         :mode="mode"
-        label="Startup Check"
+        :label="t('workload.container.healthCheck.startupProbe')"
         :description="t('workload.container.healthCheck.startupTip')"
         @input="update"
       />

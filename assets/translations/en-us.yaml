@@ -35,6 +35,8 @@ generic:
   save: Save
   type: Type
   unknown: Unknown
+  key: Key
+  value: Value
 
 locale:
   en-us: English
@@ -81,7 +83,17 @@ product:
 suffix:
   cpus: CPUs
   ib: iB
-  seconds: Seconds
+  seconds: |-
+    {count, plural,
+      =1 { Second }
+      other { Seconds }
+    }
+  sec: Sec
+  times: |-
+    {count, plural,
+      =1 { Time }
+      other { Times }
+    }
 
 ##############################
 # Components & Pages
@@ -636,6 +648,10 @@ labels:
   addLabel: Add Label
   addSetLabel: Add/Set Label
   addAnnotation: Add Annotation
+  label:
+    title: Labels
+  annotations:
+    title: Annotations
 
 logging:
   clusterFlow:
@@ -1466,6 +1482,7 @@ workload:
           placeholder: e.g. my-container
         type: Type
       workingDir: WorkingDir
+      stdin: Stdin
     healthCheck:
       checkInterval: Check Interval
       command:
@@ -1476,15 +1493,21 @@ workload:
         path: Request Path
         port: Check Port
       initialDelay: Initial Delay
-      livenessProbe: Liveness Probe
+      livenessProbe: Liveness Check
       livenessTip: Containers will be restarted when this check is failing.  Not recommended for most uses.
       noHealthCheck: "There is not a Readiness Check, Liveness Check or Startup Check configured."
-      readinessProbe: Readiness Probe
+      readinessProbe: Readiness Check
       readinessTip: Containers will be removed from service endpoints when this check is failing.  Recommended.
-      startupProbe: Startup Probe
+      startupProbe: Startup Check
       startupTip: Containers will wait until this check succeeds before attempting other health checks.
       successThreshold: Success Threshold
       timeout: Timeout
+      kind:
+        none:  None
+        HTTP:  HTTP request returns a successful status (200-399)
+        HTTPS: HTTPS request returns a successful status
+        tcp:   TCP connection opens successfully
+        exec:  Command run inside the container exits with status 0
     image: Container Image
     imagePullPolicy: Pull Policy
     imagePullSecrets: Pull Secrets
@@ -1500,15 +1523,27 @@ workload:
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
-      allowPrivilegeEscalation: Privilege Escalation
+      allowPrivilegeEscalation: 
+        label: Privilege Escalation
+        'false': No
+        'true': "Yes: container can gain more privileges than its parent process"
       dropCapabilities: Drop Capabilities
       fsGroup: Filesystem Group
       hostIPC: Use Host IPC Namespace
       hostPID: Use Host PID Namespace
-      privileged: Privileged
-      readOnlyRootFilesystem: Read-Only Root Filesystem
+      privileged:
+        label: Privileged
+        'false': No
+        'true': "Yes: container has full access to the host"
+      readOnlyRootFilesystem: 
+        label: Read-Only Root Filesystem
+        'false': No
+        'true': "Yes: container has a read-only root filesystem"
       runAsGroup: Run as Group ID
-      runAsNonRoot: Run as Non-Root
+      runAsNonRoot: 
+        label: Run as Non-Root
+        'false': No
+        'true': "Yes: container must run as a non-root user"
       runAsNonRootOptions:
         noOption: "No"
         yesOption: "Yes: containers must run as non-root-user"
@@ -1526,6 +1561,7 @@ workload:
       healthCheck: Health Check
       image: Image
       networking: Networking
+      networkSettings: Network Settings
       podAnnotations: Pod Annotations
       podLabels: Pod Labels
       podScheduling: Pod Scheduling
@@ -1535,6 +1571,7 @@ workload:
       securityContext: Security Context
       status: Status
       volumeClaimTemplates: Volume Claim Templates
+      upgrading: Scaling/Upgrade Policy
   cronSchedule: Schedule
   detailTop:
     node: Node
@@ -1993,3 +2030,11 @@ unit:
       one { day }
       other { days }
     }
+
+workloadPorts:
+  addPort: Add Port
+  remove: Remove
+  addHost: Add Host
+
+podAffinity:
+  addLabel: Add Pod Selector

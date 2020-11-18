@@ -112,9 +112,9 @@ export default {
           <RadioGroup
             v-model="privileged"
             name="privileged"
-            :label="t('workload.container.security.privileged')"
+            :label="t('workload.container.security.privileged.label')"
             :options="[false,true]"
-            :labels="['No', 'Yes: container has full access to the host']"
+            :labels="[t('workload.container.security.privileged.false'), t('workload.container.security.privileged.true')]"
             :mode="mode"
           />
         </div>
@@ -122,10 +122,10 @@ export default {
           <RadioGroup
             v-model="allowPrivilegeEscalation"
             name="allowPrivilegeEscalation"
-            :label="t('workload.container.security.allowPrivilegeEscalation')"
+            :label="t('workload.container.security.allowPrivilegeEscalation.label')"
             :disabled="privileged"
             :options="[false,true]"
-            :labels="['No', 'Yes: container can gain more privileges than its parent process']"
+            :labels="[t('workload.container.security.allowPrivilegeEscalation.false'), t('workload.container.security.allowPrivilegeEscalation.true')]"
             :mode="mode"
           />
         </div>
@@ -138,10 +138,10 @@ export default {
         <div class="col span-6">
           <RadioGroup
             name="runasNonRoot"
-            :label="t('workload.container.security.runAsNonRoot')"
+            :label="t('workload.container.security.runAsNonRoot.label')"
             :value="!runAsRoot"
             :options="[false, true]"
-            :labels="['No', 'Yes: container must run as a non-root user']"
+            :labels="[t('workload.container.security.runAsNonRoot.false'), t('workload.container.security.runAsNonRoot.true')]"
             :mode="mode"
             @input="e=>runAsRoot = !e"
           />
@@ -150,9 +150,9 @@ export default {
           <RadioGroup
             v-model="readOnlyRootFilesystem"
             name="readOnlyRootFilesystem"
-            :label="t('workload.container.security.readOnlyRootFilesystem')"
+            :label="t('workload.container.security.readOnlyRootFilesystem.label')"
             :options="[false, true]"
-            :labels="['No', 'Yes: container has a read-only root filesystem']"
+            :labels="[t('workload.container.security.readOnlyRootFilesystem.false'), t('workload.container.security.readOnlyRootFilesystem.true')]"
             :mode="mode"
           />
         </div>

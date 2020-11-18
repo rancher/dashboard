@@ -68,8 +68,10 @@ export default {
       default: 'key',
     },
     keyLabel: {
-      type:    String,
-      default: 'Key',
+      type: String,
+      default() {
+        return this.$store.getters['i18n/t']('generic.key');
+      },
     },
     keyPlaceholder: {
       type:    String,
@@ -87,8 +89,10 @@ export default {
       default: 'value',
     },
     valueLabel: {
-      type:    String,
-      default: 'Value',
+      type: String,
+      default() {
+        return this.$store.getters['i18n/t']('generic.value');
+      },
     },
     valuePlaceholder: {
       type:    String,
@@ -116,8 +120,10 @@ export default {
     },
 
     addLabel: {
-      type:    String,
-      default: 'Add',
+      type: String,
+      default() {
+        return this.$store.getters['i18n/t']('generic.add');
+      },
     },
     addIcon: {
       type:    String,
@@ -129,8 +135,10 @@ export default {
     },
 
     readLabel: {
-      type:    String,
-      default: 'Read from file'
+      type: String,
+      default() {
+        return this.$store.getters['i18n/t']('generic.readFromFile');
+      },
     },
     readIcon: {
       type:    String,

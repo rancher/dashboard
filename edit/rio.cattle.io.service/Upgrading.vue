@@ -59,7 +59,7 @@ export default {
           v-model.number="spec.rollout.intervalSeconds"
           :mode="mode"
           label="Rollout Interval"
-          suffix="sec"
+          :suffix="t('suffix.sec')"
         />
       </div>
     </div>

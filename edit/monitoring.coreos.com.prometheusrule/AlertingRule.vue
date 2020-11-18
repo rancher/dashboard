@@ -279,7 +279,7 @@ export default {
       <div class="col span-6">
         <UnitInput
           v-model="value.for"
-          :suffix="t('suffix.seconds')"
+          :suffix="t('suffix.seconds', {count: value.for})"
           :placeholder="t('prometheusRule.alertingRules.for.placeholder')"
           :label="t('prometheusRule.alertingRules.for.label')"
           :mode="mode"

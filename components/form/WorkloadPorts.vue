@@ -228,20 +228,20 @@ export default {
 
         <div v-if="!row._showHost && !isView" class="add-host">
           <button type="button" class="btn btn-sm role-secondary" @click="row._showHost = true">
-            Add Host
+            {{ t('workloadPorts.addHost') }}
           </button>
         </div>
 
         <div v-if="showRemove" class="remove">
           <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
-            Remove
+            {{ t('workloadPorts.remove') }}
           </button>
         </div>
       </div>
     </div>
     <div v-if="showAdd" class="footer">
       <button type="button" class="btn role-tertiary add" @click="add()">
-        Add Port
+        {{ t('workloadPorts.addPort') }}
       </button>
     </div>
   </div>

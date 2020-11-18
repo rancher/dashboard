@@ -244,7 +244,7 @@ export default {
                   </span>
                 </template>
               </Checkbox>
-              <UnitInput v-if="value.spec.prune" v-model="value.spec.deleteTimeoutSeconds" :suffix="t('suffix.seconds')" :mode="mode" :label="t('backupRestoreOperator.deleteTimeout.label')">
+              <UnitInput v-if="value.spec.prune" v-model="value.spec.deleteTimeoutSeconds" :suffix="t('suffix.seconds', {count: value.spec.deleteTimeoutSeconds})" :mode="mode" :label="t('backupRestoreOperator.deleteTimeout.label')">
                 <template #label>
                   <label v-tooltip="t('backupRestoreOperator.deleteTimeout.tip')" class="has-tooltip">
                     {{ t('backupRestoreOperator.deleteTimeout.label') }} <i class="icon icon-info" />

@@ -122,7 +122,7 @@ export default {
         </div>
       </template>
       <button v-if="!isView" type="button" class="btn role-tertiary" @click="addSelector">
-        Add Pod Selector
+        {{ t('podAffinity.addLabel') }}
       </button>
     </div>
 
@@ -147,7 +147,7 @@ export default {
         </div>
       </template>
       <button v-if="!isView" type="button" class="btn role-tertiary" @click="addWeightedSelector">
-        Add Pod Selector
+        {{ t('podAffinity.addLabel') }}
       </button>
     </div>
   </div>

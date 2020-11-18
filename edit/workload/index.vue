@@ -743,7 +743,7 @@ export default {
         <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
           <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
         </Tab>
-        <Tab label="Scaling/Upgrade Policy" name="upgrading">
+        <Tab :label="t('workload.container.titles.upgrading')" name="upgrading">
           <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
           <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
         </Tab>
