@@ -23,7 +23,7 @@ export function init(store) {
     PROMETHEUSRULE,
     PROMETHEUS,
     SPOOFED: {
-      RECEIVER, RECEIVER_SPEC, RECEIVER_EMAIL, RECEIVER_SLACK, RECEIVER_WEBHOOK, RECEIVER_HTTP_CONFIG,
+      RECEIVER, RECEIVER_SPEC, RECEIVER_EMAIL, RECEIVER_SLACK, RECEIVER_WEBHOOK, RECEIVER_PAGERDUTY, RECEIVER_OPSGENIE, RECEIVER_HTTP_CONFIG,
       ROUTE, ROUTE_SPEC
     }
   } = MONITORING;
@@ -57,10 +57,12 @@ export function init(store) {
         id:                RECEIVER_SPEC,
         type:              'schema',
         resourceFields:    {
-          name:            { type: 'string' },
-          email_configs:   { type: `array[${ RECEIVER_EMAIL }]` },
-          slack_configs:   { type: `array[${ RECEIVER_SLACK }]` },
-          webhook_configs: { type: `array[${ RECEIVER_WEBHOOK }]` }
+          name:              { type: 'string' },
+          email_configs:     { type: `array[${ RECEIVER_EMAIL }]` },
+          slack_configs:     { type: `array[${ RECEIVER_SLACK }]` },
+          pagerduty_configs: { type: `array[${ RECEIVER_PAGERDUTY }]` },
+          opsgenie_configs:  { type: `array[${ RECEIVER_OPSGENIE }]` },
+          webhook_configs:   { type: `array[${ RECEIVER_WEBHOOK }]` }
         }
       },
       {
@@ -82,6 +84,26 @@ export function init(store) {
         resourceFields:  {
           api_url:       { type: 'string' },
           channel:       { type: 'string' },
+          http_config:   { type: RECEIVER_HTTP_CONFIG },
+          send_resolved: { type: 'boolean' }
+        }
+      },
+      {
+        id:              RECEIVER_PAGERDUTY,
+        type:            'schema',
+        resourceFields:  {
+          routing_key:   { type: 'string' },
+          service_key:   { type: 'string' },
+          http_config:   { type: RECEIVER_HTTP_CONFIG },
+          send_resolved: { type: 'boolean' }
+        }
+      },
+      {
+        id:              RECEIVER_OPSGENIE,
+        type:            'schema',
+        resourceFields:  {
+          api_url:       { type: 'string' },
+          api_key:       { type: 'string' },
           http_config:   { type: RECEIVER_HTTP_CONFIG },
           send_resolved: { type: 'boolean' }
         }

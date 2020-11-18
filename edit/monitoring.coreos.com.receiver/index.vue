@@ -1,6 +1,6 @@
 <script>
 import { MONITORING } from '@/config/types';
-import ArrayList from '@/components/form/ArrayList';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import CruResource from '@/components/CruResource';
@@ -8,7 +8,6 @@ import GradientBox from '@/components/GradientBox';
 import LabeledInput from '@/components/form/LabeledInput';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import InfoBox from '@/components/InfoBox';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import CreateEditView from '@/mixins/create-edit-view';
 import { defaultAsyncData } from '@/components/ResourceDetail';
@@ -17,7 +16,7 @@ import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
 
 export default {
   components: {
-    ArrayList, Banner, CruResource, GradientBox, InfoBox, LabeledInput, Loading, Tabbed, Tab, YamlEditor
+    ArrayListGrouped, Banner, CruResource, GradientBox, LabeledInput, Loading, Tabbed, Tab, YamlEditor
   },
   mixins: [CreateEditView],
   asyncData(ctx) {
@@ -170,7 +169,7 @@ export default {
           :scrolling="false"
           :editor-mode="editorMode"
         />
-        <ArrayList
+        <ArrayListGrouped
           v-else
           v-model="value.spec[receiverType.key]"
           class="namespace-list"
@@ -178,17 +177,12 @@ export default {
           :default-add-value="{}"
           :add-label="'Add ' + receiverType.label"
         >
-          <template v-slot:columns="scope">
-            <InfoBox class="pt-40">
-              <component :is="getComponent(receiverType.name)" :value="scope.row.value" :mode="mode" />
-            </InfoBox>
+          <template #default="props">
+            <div class="pt-30">
+              <component :is="getComponent(receiverType.name)" :value="props.row.value" :mode="mode" />
+            </div>
           </template>
-          <template v-slot:remove-button="scope">
-            <button class="btn role-link close" @click="scope.remove">
-              <i class="icon icon-2x icon-x" />
-            </button>
-          </template>
-        </ArrayList>
+        </ArrayListGrouped>
       </Tab>
     </Tabbed>
   </CruResource>
@@ -256,19 +250,6 @@ export default {
       margin-bottom: 0;
       display: inline-block;
       vertical-align: middle;
-    }
-
-    .box {
-      position: relative;
-    }
-
-    .remove {
-      position: absolute;
-
-      padding: 0px;
-
-      top: 0;
-      right: 0;
     }
   }
 </style>
