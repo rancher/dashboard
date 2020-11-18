@@ -334,14 +334,15 @@ cis:
   testsToSkip: Tests to Skip
   scan:
     description: Description
-    failed: Failed
+    failed: Fail
     lastScanTime: Last Scan Time
     notApplicable: 'N/A'
     number: Number
-    passed: Passed
+    passed: Pass
     scanReport: Scan Report
-    skipped: Skipped
+    skipped: Skip
     total: Total
+    warned: Warn
 
 cluster:
   nodeDriver:

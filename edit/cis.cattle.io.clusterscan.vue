@@ -126,7 +126,9 @@ export default {
     :done-route="doneRoute"
     :resource="value"
     :mode="mode"
+    :errors="errors"
     @finish="save"
+    @error="e=>errors = e"
   >
     <template>
       <Banner v-if="!validProfiles.length" color="warning" :label="t('cis.noProfiles')" />

@@ -100,6 +100,10 @@ export default {
           value: this.parsedReport.pass
         },
         {
+          label: this.t('cis.scan.warned'),
+          value: this.parsedReport.warn
+        },
+        {
           label: this.t('cis.scan.skipped'),
           value: this.parsedReport.skip
         },
@@ -187,10 +191,11 @@ export default {
 
     testStateSort(state) {
       const SORT_ORDER = {
-        other:         6,
-        notApplicable: 5,
-        skip:          4,
-        pass:          3,
+        other:         7,
+        notApplicable: 6,
+        skip:          5,
+        pass:          4,
+        warn:          3,
         mixed:         2,
         fail:          1,
       };
