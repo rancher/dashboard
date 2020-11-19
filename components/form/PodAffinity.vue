@@ -3,9 +3,10 @@ import { _VIEW } from '@/config/query-params';
 import { get, isEmpty, cleanUp } from '@/utils/object';
 import { POD, NODE } from '@/config/types';
 import MatchExpressions from '@/components/form/MatchExpressions';
+import InfoBox from '@/components/InfoBox';
 
 export default {
-  components: { MatchExpressions },
+  components: { MatchExpressions, InfoBox },
 
   props:      {
     // value should be PodAffinity / PodAntiAffinity
@@ -107,11 +108,11 @@ export default {
         <label><t k="workload.scheduling.affinity.requireAny" /></label>
       </div>
       <template v-for="(nodeSelectorTerm, key) in selectorMap">
-        <div :key="key">
+        <InfoBox :key="key" class="node-selector">
           <MatchExpressions
             :key="key"
             :mode="mode"
-            class="node-selector simple-box col span-12 mb-20"
+            class=" col span-12"
             :type="pod"
             :namespaces.sync="nodeSelectorTerm.namespaces"
             :topology-key.sync="nodeSelectorTerm.topologyKey"
@@ -119,7 +120,7 @@ export default {
             @remove="$delete(selectorMap, key)"
             @input="e=>$set(selectorMap[key], 'labelSelector', {matchExpressions:e})"
           />
-        </div>
+        </InfoBox>
       </template>
       <button v-if="!isView" type="button" class="btn role-tertiary" @click="addSelector">
         {{ t('podAffinity.addLabel') }}
@@ -131,11 +132,11 @@ export default {
         <label><t k="workload.scheduling.affinity.preferAny" /></label>
       </div>
       <template v-for="(nodeSelectorTerm, key) in weightedSelectorMap">
-        <div :key="key">
+        <InfoBox :key="key" class="node-selector">
           <MatchExpressions
             :key="key"
             :mode="mode"
-            class="node-selector simple-box col span-12 mb-20"
+            class=" col span-12"
             :type="pod"
             :namespaces.sync="nodeSelectorTerm.podAffinityTerm.namespaces"
             :topology-key.sync="nodeSelectorTerm.podAffinityTerm.topologyKey"
@@ -144,7 +145,7 @@ export default {
             @remove="$delete(weightedSelectorMap, key)"
             @input="e=>$set(weightedSelectorMap[key].podAffinityTerm, 'labelSelector', {matchExpressions:e})"
           />
-        </div>
+        </InfoBox>
       </template>
       <button v-if="!isView" type="button" class="btn role-tertiary" @click="addWeightedSelector">
         {{ t('podAffinity.addLabel') }}
@@ -154,8 +155,7 @@ export default {
 </template>
 
 <style>
-  .node-selector simple-box {
-    padding: 10px;
-    background-color: var(--body-bg);
-  }
+.node-selector{
+  position: relative;
+}
 </style>

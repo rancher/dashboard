@@ -175,7 +175,7 @@ export default {
 </script>
 
 <template>
-  <div :style="{'position':'relative'}" @input="update">
+  <div @input="update">
     <span v-if="weight && isView" class="selector-weight"><t k="workload.scheduling.affinity.matchExpressions.weight" />: {{ weight }}</span>
     <button v-if="showRemove && !isView" id="remove-btn" class="btn role-link" @click="$emit('remove')">
       <i class="icon icon-x" />
@@ -288,7 +288,7 @@ export default {
     padding:  8px;
     position: absolute;
     margin-bottom:10px;
-    right:  0px;
+    right: 0px;
     top: 0px;
     z-index: z-index('overContent');
   }
