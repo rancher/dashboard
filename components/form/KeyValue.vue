@@ -74,8 +74,10 @@ export default {
       },
     },
     keyPlaceholder: {
-      type:    String,
-      default: 'e.g. foo'
+      type: String,
+      default() {
+        return this.$store.getters['i18n/t']('keyValue.valuePlaceholder');
+      },
     },
 
     separatorLabel: {
@@ -95,8 +97,10 @@ export default {
       },
     },
     valuePlaceholder: {
-      type:    String,
-      default: 'e.g. bar'
+      type: String,
+      default() {
+        return this.$store.getters['i18n/t']('keyValue.valuePlaceholder');
+      },
     },
     valueCanBeEmpty: {
       type:    Boolean,
