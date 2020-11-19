@@ -303,19 +303,19 @@ export default {
           <Tab name="namespaces" :label="t('gatekeeperConstraint.tab.namespaces.title')" :weight="1">
             <div class="row">
               <div class="col span-6">
-                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.scope.title') }} <i v-tooltip="'Determines if cluster-scoped and/or namesapced-scoped resources are selected.'" class="icon icon-info" /></h3>
+                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.scope.title') }} <i v-tooltip="'Determines if cluster-scoped and/or namesapced-scoped resources are selected.'" class="icon icon-info" style="font-size:12px;" /></h3>
                 <Scope v-model="value.spec.match.scope" :mode="mode" @input="onScopeChange($event)" />
               </div>
             </div>
             <div class="row mt-40">
               <div class="col span-12">
-                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.namespaces') }} <i v-tooltip="'If defined, a constraint will only apply to resources in a listed namespace.'" class="icon icon-info" /></h3>
+                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.namespaces') }} <i v-tooltip="'If defined, a constraint will only apply to resources in a listed namespace.'" class="icon icon-info" style="font-size:12px;" /></h3>
                 <NamespaceList v-model="value.spec.match.namespaces" :mode="mode" :namespace-filter="NAMESPACE_FILTERS.nonSystem" :disabled="areNamespacesDisabled" add-label="Add Namespace" />
               </div>
             </div>
             <div class="row mt-40">
               <div class="col span-12">
-                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.excludedNamespaces') }} <i v-tooltip="'If defined, a constraint will only apply to resources not in a listed namespace.'" class="icon icon-info" /></h3>
+                <h3>{{ t('gatekeeperConstraint.tab.namespaces.sub.excludedNamespaces') }} <i v-tooltip="'If defined, a constraint will only apply to resources not in a listed namespace.'" class="icon icon-info" style="font-size:12px;" /></h3>
                 <NamespaceList v-model="value.spec.match.excludedNamespaces" :mode="mode" :disabled="areNamespacesDisabled" add-label="Add Excluded Namespace" />
               </div>
             </div>
