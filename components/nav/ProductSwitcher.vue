@@ -271,9 +271,6 @@ export default {
   max-height: 90vh;
   &.vs__dropdown-menu {
     outline: none;
-    // border-top: none;
-    // border-top-left-radius: 0;
-    // border-top-right-radius: 0;
   }
 
   .vs__dropdown-option {

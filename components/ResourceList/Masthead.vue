@@ -52,41 +52,6 @@ export default {
       return this.resource;
     },
   },
-
-  methods: {
-    createButtonOptions() {
-      const { isCreatable, isYamlCreatable } = this;
-
-      if (isCreatable || isYamlCreatable) {
-        if (isCreatable) {
-          return this.t('resourceList.head.create');
-        } else if (!isCreatable && isYamlCreatable) {
-          return this.t('resourceList.head.createFromYaml');
-        } else {
-          return this.t('resourceList.head.create');
-        }
-      }
-    },
-    dropdownOptions() {
-      return [
-        {
-          label:    this.t('resourceList.head.createResource', { resourceName: this.resourceName }),
-          to:       this.createLocation,
-          disabled: !this.isCreatable,
-        },
-        {
-          label:    this.t('resourceList.head.createFromYaml'),
-          to:       this.yamlCreateLocation,
-          disabled: !this.isYamlCreatable,
-        },
-      ];
-    },
-    menuAction(option) {
-      if (!option?.disabled) {
-        this.$router.push(option.to);
-      }
-    },
-  },
 };
 </script>
 

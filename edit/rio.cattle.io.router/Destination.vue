@@ -132,7 +132,7 @@ export default {
         :placeholder="showPlaceholders ? placeholders[0] : null"
         :disabled="isView"
         @input="setApp"
-      ></Select>
+      />
     </td>
     <td v-if="pickVersion">
       <Select

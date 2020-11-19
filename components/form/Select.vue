@@ -1,7 +1,6 @@
 <script>
 import { createPopper } from '@popperjs/core';
 import { get } from '@/utils/object';
-// import { _VIEW } from '@/config/query-params';
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
 

@@ -386,11 +386,6 @@ export default {
   margin: 0;
 }
 
-/* .filter ::v-deep .unlabeled-select .v-select.inline .vs__selected-options {
-  overflow: hidden;
-  flex-wrap: nowrap;
-} */
-
 .filter ::v-deep .unlabeled-select .v-select .vs__selected {
   margin: 4px;
   user-select: none;
@@ -399,16 +394,7 @@ export default {
   border: solid white thin;
   color: white;
   height: calc(var(--header-height) - 26px);
-  /* overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  display: inline-block; */
 }
-
-/* .filter ::v-deep .unlabeled-select INPUT {
-  width: auto;
-  background-color: transparent;
-} */
 
 .filter ::v-deep .unlabeled-select .vs__search::placeholder {
   color: white;
@@ -439,6 +425,5 @@ export default {
 
 .filter ::v-deep .unlabeled-select INPUT[type='search'] {
   padding: 7px;
-  /* width: auto; */
 }
 </style>
