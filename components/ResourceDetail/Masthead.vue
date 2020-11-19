@@ -190,10 +190,8 @@ export default {
       this.$emit('update:asYaml', val);
     },
 
-    toggleSensitiveData() {
-      const hideData = this.$store.getters['prefs/get'](HIDE_SENSITIVE);
-
-      this.$store.dispatch('prefs/set', { key: HIDE_SENSITIVE, value: !hideData });
+    toggleSensitiveData(e) {
+      this.$store.dispatch('prefs/set', { key: HIDE_SENSITIVE, value: !!e });
     }
   }
 };
