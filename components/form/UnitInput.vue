@@ -95,7 +95,7 @@ export default {
     @input="update($event)"
   >
     <template #suffix>
-      <div class="addon">
+      <div v-if="addon" class="addon">
         {{ addon }}
       </div>
     </template>

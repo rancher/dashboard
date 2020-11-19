@@ -87,8 +87,6 @@ export async function updateConfig(dispatch, path, type, updateFn) {
 
   secret.data[FILENAME] = encodedFile;
   await secret.save();
-  // Force a store update
-  await dispatch('cluster/findAll', { type, opt: { force: true } }, { root: true });
 }
 
 export async function getAllReceivers(dispatch) {

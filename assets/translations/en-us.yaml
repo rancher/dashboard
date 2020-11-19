@@ -511,33 +511,32 @@ footer:
   slack: Slack
 
 gatekeeperConstraint:
-
   match:
     title: Match
   tab:
     enforcementAction:
       title: Enforcement Action
-    kinds:
-      title: Kinds
+    rules:
+      title: Rules
+      sub:
+        labelSelector:
+          addLabel: Add Label
+          title: Label Selector
     namespaces:
       sub:
         excludedNamespaces: Excluded Namespaces
         namespaces: Namespaces
+        namespaceSelector:
+          addNamespace: Add Namespace
+          title: Namespace Selector
+        scope:
+          title: Scope
       title: Namespaces
     parameters:
       addParameter: Add Parameter
       editAsForm: Edit as Form
       editAsYaml: Edit as YAML
       title: Parameters
-    selectors:
-      sub:
-        labelSelector:
-          addLabel: Add Label
-          title: Label Selector
-        namespaceSelector:
-          addNamespace: Add Namespace
-          title: Namespace Selector
-      title: Selectors
   template: Template
   violations:
     title: Violations

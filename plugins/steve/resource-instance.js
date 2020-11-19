@@ -866,7 +866,7 @@ export default {
       if ( res?._status === 204 ) {
         // If there's no body, assume the resource was immediately deleted
         // and drop it from the store as if a remove event happened.
-        this.$dispatch('ws.resource.remove', { data: this });
+        await this.$dispatch('ws.resource.remove', { data: this });
       }
     };
   },
@@ -907,7 +907,7 @@ export default {
   detailLocation() {
     const schema = this.$getters['schemaFor'](this.type);
 
-    const id = this.id.replace(/.*\//, '');
+    const id = this.id?.replace(/.*\//, '');
 
     return {
       name:   `c-cluster-product-resource${ schema?.attributes?.namespaced ? '-namespace' : '' }-id`,

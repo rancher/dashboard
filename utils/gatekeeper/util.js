@@ -2,7 +2,7 @@ import { GATEKEEPER, SCHEMA } from '@/config/types';
 
 export async function findAllConstraints(store) {
   const constraintTypes = await findAllConstraintTypes(store);
-  const nestedConstraints = constraintTypes.map(ct => store.dispatch('cluster/findAll', { type: ct }));
+  const nestedConstraints = constraintTypes.map(ct => store.dispatch('cluster/findAll', { type: ct, opt: { force: true } }));
 
   return (await Promise.all(nestedConstraints)).flat();
 }

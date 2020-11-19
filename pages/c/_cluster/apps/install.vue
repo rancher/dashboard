@@ -425,7 +425,8 @@ export default {
     stringify,
 
     async loadValuesComponent() {
-      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT];
+      // TODO: Remove RELEASE_NAME. This is only in until the component annotation is added to the OPA Gatekeeper chart
+      const component = this.version?.annotations?.[CATALOG_ANNOTATIONS.COMPONENT] || this.version?.annotations?.[CATALOG_ANNOTATIONS.RELEASE_NAME];
 
       if ( component ) {
         if ( this.$store.getters['catalog/haveComponent'](component) ) {

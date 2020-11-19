@@ -65,12 +65,13 @@ export default {
         return get(this.row, this.urlKey);
       }
 
-      if (this.isInternal && this.to) {
+      if (this.isInternal && (this.to || this.value.to)) {
+        const to = this.to || this.value.to;
         const defaultParams = this.$route.params;
-        const toParams = this.to.params || {};
+        const toParams = to.params || {};
 
         return {
-          ...this.to,
+          ...to,
           params: {
             id: this.value, ...defaultParams, ...toParams
           }

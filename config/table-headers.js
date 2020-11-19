@@ -587,3 +587,65 @@ export const APP_SUMMARY = {
   align:     'center',
   width:     100,
 };
+
+export const CONSTRAINT_VIOLATION_CONSTRAINT_LINK = {
+  name:          'Constraint',
+  label:         'Constraint',
+  value:         'constraintLink',
+  sort:          `constraintLink.text`,
+  formatter:     'Link',
+  formatterOpts: { options: { internal: true } },
+};
+
+export const CONSTRAINT_VIOLATION_RESOURCE_LINK = {
+  name:          'Name',
+  label:         'Name',
+  value:         'resourceLink',
+  sort:          `resourceLink.text`,
+  formatter:     'Link',
+  formatterOpts: { options: { internal: true } },
+};
+
+export const CONSTRAINT_VIOLATION_TYPE = {
+  name:  'Type',
+  label: 'Type',
+  value: `constraint.kind`,
+  sort:  `constraint.kind`
+};
+
+export const CONSTRAINT_VIOLATION_MESSAGE = {
+  name:  'Message',
+  label: 'Message',
+  value: `message`,
+  sort:  `message`
+};
+
+export const CONSTRAINT_VIOLATION_TEMPLATE_LINK = {
+  name:          'TemplateLink',
+  label:         'Template',
+  value:         `templateLink`,
+  sort:          `templateLink.text`,
+  formatter:     'Link',
+  formatterOpts: { options: { internal: true } },
+};
+
+export const CONSTRAINT_VIOLATION_COUNT = {
+  name:          'Count',
+  label:         'Count',
+  value:         `count`,
+  sort:          `count`,
+  formatter:     'QualityText',
+  formatterOpts: {
+    qualityFn(value) {
+      if (value <= 10) {
+        return 'success';
+      }
+
+      if (value <= 20) {
+        return 'warning';
+      }
+
+      return 'error';
+    }
+  }
+};

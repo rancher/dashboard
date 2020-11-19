@@ -5,6 +5,7 @@ import { NAMESPACE, RIO } from '@/config/types';
 import Card from '@/components/Card';
 import { alternateLabel } from '@/utils/platform';
 import LinkDetail from '@/components/formatter/LinkDetail';
+import { uniq } from '@/utils/array';
 
 export default {
   components: { Card, LinkDetail },
@@ -159,9 +160,13 @@ export default {
 
     async serialRemove(goTo) {
       try {
+        const spoofedTypes = this.getSpoofedTypes(this.toRemove);
+
         for (const resource of this.toRemove) {
           await resource.remove();
         }
+
+        await this.refreshSpoofedTypes(spoofedTypes);
 
         if ( goTo && !isEmpty(goTo) ) {
           this.currentRouter.push(goTo);
@@ -173,16 +178,34 @@ export default {
       }
     },
 
-    parallelRemove(goTo) {
-      Promise.all(this.toRemove.map(resource => resource.remove())).then((results) => {
+    async parallelRemove(goTo) {
+      try {
+        const spoofedTypes = this.getSpoofedTypes(this.toRemove);
+
+        await Promise.all(this.toRemove.map(resource => resource.remove()));
+        await this.refreshSpoofedTypes(spoofedTypes);
+
         if ( goTo && !isEmpty(goTo) ) {
           this.currentRouter.push(goTo);
         }
 
         this.close();
-      }).catch((err) => {
+      } catch (err) {
         this.error = err;
-      });
+      }
+    },
+
+    getSpoofedTypes(resources) {
+      const uniqueResourceTypes = uniq(this.toRemove.map(resource => resource.type));
+
+      return uniqueResourceTypes.filter(this.$store.getters['type-map/isSpoofed']);
+    },
+
+    // If spoofed we need to reload the values as the server can't have watchers for them.
+    refreshSpoofedTypes(types) {
+      const promises = types.map(type => this.$store.dispatch('cluster/findAll', { type, opt: { force: true } }, { root: true }));
+
+      return Promise.all(promises);
     }
   }
 };

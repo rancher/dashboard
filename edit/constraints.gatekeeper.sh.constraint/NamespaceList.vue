@@ -1,5 +1,4 @@
 <script>
-import ArrayList from '@/components/form/ArrayList';
 import { sortBy } from '@/utils/sort';
 import { _EDIT } from '@/config/query-params';
 import { NAMESPACE } from '@/config/types';
@@ -12,10 +11,7 @@ export const NAMESPACE_FILTERS = {
 };
 
 export default {
-  components: {
-    ArrayList,
-    LabeledSelect
-  },
+  components: { LabeledSelect },
 
   props: {
     value: {
@@ -29,18 +25,14 @@ export default {
     namespaceFilter: {
       type:    Function,
       default: namespace => true
+    },
+    addLabel: {
+      type:    String,
+      default: null
     }
   },
 
   computed: {
-    localValue: {
-      get() {
-        return this.value;
-      },
-      set(localValue) {
-        this.$emit('input', localValue);
-      }
-    },
     namespaceOptions() {
       const inStore = this.$store.getters['currentProduct'].inStore;
       const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
@@ -62,30 +54,13 @@ export default {
 </script>
 
 <template>
-  <ArrayList v-model="localValue" class="namespace-list" :mode="mode" default-add-value="default" :protip="false">
-    <template v-slot:columns="scope">
-      <div class="input-container">
-        <LabeledSelect
-          :mode="mode"
-          :value="scope.row.value"
-          :options="namespaceOptions"
-          label="Namespace"
-          add-label="Add Namespace"
-          @input="scope.row.value = $event; scope.queueUpdate()"
-        />
-      </div>
-    </template>
-  </ArrayList>
+  <LabeledSelect
+    v-bind="$attrs"
+    :value="value"
+    :mode="mode"
+    :multiple="true"
+    :options="namespaceOptions"
+    label="Namespace"
+    @input="(e) => $emit('input', e)"
+  />
 </template>
-
-<style lang="scss">
-.namespace-list {
-  .fixed input {
-    height: initial;
-  }
-
-  .input-container {
-    flex: 1;
-  }
-}
-</style>

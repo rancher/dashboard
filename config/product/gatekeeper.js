@@ -1,6 +1,7 @@
 import { DSL } from '@/store/type-map';
-import { GATEKEEPER } from '@/config/types';
+import { GATEKEEPER, OBJECT_META } from '@/config/types';
 import { AGE, NAME as NAME_COL, STATE } from '@/config/table-headers';
+import { findAllConstraints } from '@/utils/gatekeeper/util';
 
 export const NAME = 'gatekeeper';
 export const CHART_NAME = 'rancher-gatekeeper';
@@ -9,10 +10,11 @@ export function init(store) {
   const {
     product,
     basicType,
-    componentForType,
+    groupBy,
     headers,
     mapGroup,
     mapType,
+    spoofedType,
     virtualType
   } = DSL(store, NAME);
 
@@ -22,17 +24,55 @@ export function init(store) {
   });
 
   mapGroup(/^(.*\.)?gatekeeper\.sh$/, 'OPA Gatekeeper');
-
-  componentForType(/^constraints\.gatekeeper\.sh\..*$/, 'gatekeeper-constraint');
   mapType(/^templates\.gatekeeper\.sh\.constrainttemplate$/, 'Template');
-  mapType(/^constraints\.gatekeeper\.sh\..*$/, 'Constraints');
+  mapType(GATEKEEPER.SPOOFED.CONSTRAINT, 'Constraint');
 
   basicType([
     'gatekeeper-overview',
     'gatekeeper-constraint',
     'gatekeeper-template',
+    GATEKEEPER.SPOOFED.CONSTRAINT,
     GATEKEEPER.CONSTRAINT_TEMPLATE
   ]);
+
+  spoofedType({
+    label:             'Constraints',
+    type:              GATEKEEPER.SPOOFED.CONSTRAINT,
+    collectionMethods: ['POST'],
+    schemas:           [
+      {
+        id:                GATEKEEPER.SPOOFED.CONSTRAINT,
+        type:              'schema',
+        collectionMethods: ['POST'],
+        resourceFields:    {
+          metadata: { type: OBJECT_META },
+          spec:     { type: 'json' },
+          kind:     { type: 'string' }
+        }
+      }
+    ],
+    getInstances: async() => {
+      const rawConstraints = await findAllConstraints(store);
+
+      return rawConstraints
+        .flat()
+        .map((constraint) => {
+          return {
+            id:          constraint.id,
+            kind:        constraint.kind,
+            type:        GATEKEEPER.SPOOFED.CONSTRAINT,
+            spec:        constraint.spec,
+            metadata:    constraint.metadata,
+            status:      constraint.status,
+            links:       {
+              self: constraint.links.self,
+              view: constraint.links.view
+            },
+            constraint
+          };
+        });
+    }
+  });
 
   virtualType({
     label:      'Overview',
@@ -41,14 +81,6 @@ export function init(store) {
     route:      { name: 'c-cluster-gatekeeper' },
     exact:      true,
     weight:     3
-  });
-
-  virtualType({
-    label:      'Constraint',
-    namespaced: false,
-    name:       'gatekeeper-constraint',
-    route:      { name: 'c-cluster-gatekeeper-constraints' },
-    weight:     2
   });
 
   headers(GATEKEEPER.CONSTRAINT_TEMPLATE, [
@@ -62,4 +94,25 @@ export function init(store) {
     },
     AGE,
   ]);
+
+  headers(GATEKEEPER.SPOOFED.CONSTRAINT, [
+    STATE,
+    NAME_COL,
+    {
+      name:  'Description',
+      label: 'Description',
+      value: `description`,
+      sort:  `description`
+    },
+    {
+      name:  'Violations',
+      label: 'Violations',
+      value: 'status.totalViolations',
+      sort:  'status.totalViolations',
+      width: 120
+    },
+    AGE,
+  ]);
+
+  groupBy(GATEKEEPER.SPOOFED.CONSTRAINT, 'kind');
 }
