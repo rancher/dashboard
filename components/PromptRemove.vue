@@ -10,7 +10,9 @@ import { uniq } from '@/utils/array';
 export default {
   components: { Card, LinkDetail },
   data() {
-    return { confirmName: '', error: '' };
+    return {
+      confirmName: '', error: '', warning: '', preventDelete: false
+    };
   },
   computed:   {
     names() {
@@ -52,20 +54,6 @@ export default {
       const type = first.type;
 
       return (type === NAMESPACE || type === RIO.STACK) && this.toRemove.length === 1;
-    },
-
-    preventDeletionMessage() {
-      const toRemoveWithWarning = this.toRemove.filter(tr => tr?.preventDeletionMessage);
-
-      if (toRemoveWithWarning.length === 0) {
-        return null;
-      }
-
-      return toRemoveWithWarning[0].preventDeletionMessage;
-    },
-
-    isDeleteDisabled() {
-      return !!this.preventDeletionMessage;
     },
 
     plusMore() {
@@ -125,6 +113,31 @@ export default {
         this.$modal.show('promptRemove');
       } else {
         this.$modal.hide('promptRemove');
+      }
+    },
+
+    // check for any resources with a deletion prevention message,
+    // if none found (delete is allowed), then check for any resources with a warning message
+    toRemove(neu) {
+      let message;
+      const preventDeletionMessages = neu.filter(item => item.preventDeletionMessage);
+
+      if (!!preventDeletionMessages.length) {
+        this.preventDelete = true;
+        message = preventDeletionMessages[0].preventDeletionMessage;
+      } else {
+        const warnDeletionMessages = neu.filter(item => item.warnDeletionMessage);
+
+        if (!!warnDeletionMessages.length) {
+          message = warnDeletionMessages[0].warnDeletionMessage;
+        }
+      }
+      if (typeof message === 'function' ) {
+        this.warning = message(this.toRemove);
+      } else if (!!message) {
+        this.warning = message;
+      } else {
+        this.warning = '';
       }
     }
   },
@@ -231,10 +244,13 @@ export default {
               <span v-if="i===names.length-1" :key="resource+2">{{ plusMore }}</span><span v-else :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
             </template>
           </template>
+          <span class="text-warning">
+            {{ warning }}
+          </span>
           <span v-if="needsConfirm" :key="resource">Re-enter its name below to confirm:</span>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
-        <span class="text-warning">{{ preventDeletionMessage }}</span>
+
         <span class="text-error">{{ error }}</span>
         <span v-if="!needsConfirm" class="text-info mt-20">{{ protip }}</span>
       </div>
@@ -242,7 +258,7 @@ export default {
         <button class="btn role-secondary" @click="close">
           Cancel
         </button>
-        <button class="btn bg-error" :disabled="isDeleteDisabled" @click="remove">
+        <button class="btn bg-error" :disabled="preventDelete" @click="remove">
           Delete
         </button>
       </template>

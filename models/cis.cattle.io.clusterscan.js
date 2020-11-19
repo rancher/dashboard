@@ -1,5 +1,6 @@
 import { CIS } from '@/config/types';
 import { downloadFile } from '@/utils/download';
+import { set } from '@/utils/object';
 
 export default {
   _availableActions() {
@@ -26,6 +27,16 @@ export default {
     out.unshift(downloadReport);
 
     return out;
+  },
+
+  applyDefaults() {
+    return () => {
+      const spec = this.spec || {};
+
+      spec.scanProfileName = null;
+      spec.scanAlertRule = {};
+      set(this, 'spec', spec);
+    };
   },
 
   hasReport: false,
@@ -56,4 +67,5 @@ export default {
       }
     };
   },
+
 };

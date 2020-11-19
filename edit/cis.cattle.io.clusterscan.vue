@@ -7,11 +7,12 @@ import { CIS, CONFIG_MAP } from '@/config/types';
 import { mapGetters } from 'vuex';
 import createEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
+import Checkbox from '@/components/form/Checkbox';
 const semver = require('semver');
 
 export default {
   components: {
-    CruResource, LabeledSelect, Banner, Loading
+    CruResource, LabeledSelect, Banner, Loading, Checkbox
   },
 
   mixins: [createEditView],
@@ -44,12 +45,9 @@ export default {
     if (!this.value.metadata.name) {
       this.value.metadata.generateName = 'scan-';
     }
-    if (!this.value.spec) {
-      this.value.spec = { scanProfileName: null };
-    }
 
     return {
-      allProfiles: [], defaultConfigMap: null, scanProfileName: this.value.spec.scanProfileName
+      allProfiles: [], defaultConfigMap: null, scanProfileName: this.value.spec.scanProfileName, scanAlertRule: this.value.spec.scanAlertRule
     };
   },
 
@@ -133,7 +131,7 @@ export default {
     <template>
       <Banner v-if="!validProfiles.length" color="warning" :label="t('cis.noProfiles')" />
 
-      <div v-else class="row">
+      <div v-else class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
             v-model="scanProfileName"
@@ -142,6 +140,13 @@ export default {
             :options="validProfiles"
             @input="value.spec.scanProfileName = $event"
           />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col span-6">
+          <Checkbox v-model="scanAlertRule.alertOnComplete" :label="t('cis.alertOnComplete')" />
+
+          <Checkbox v-model="scanAlertRule.alertOnFailure" :label="t('cis.alertOnFailure')" />
         </div>
       </div>
     </template>

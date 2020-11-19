@@ -327,7 +327,14 @@ chartHeading:
 
 cis:
   addTest: Add Test ID
+  alertOnComplete: Alert on scan completion
+  alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
+  deleteProfileWarning: |-
+    {count, plural,
+      =1 { Any scheduled scans using this profile will no longer work. }
+      other { Any scheduled scans using either of these profiles will no longer work. }
+    }
   noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
   profile: Profile
   testID: Test ID
