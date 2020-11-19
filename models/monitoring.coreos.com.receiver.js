@@ -17,6 +17,20 @@ export const RECEIVERS_TYPES = [
     logo:  require(`~/assets/images/icon-email.svg`)
   },
   {
+    name:  'pagerduty',
+    label: 'PagerDuty',
+    title: 'PagerDuty Config',
+    key:   'pagerduty_configs',
+    logo:  require(`~/assets/images/icon-email.svg`)
+  },
+  {
+    name:  'opsgenie',
+    label: 'OpsGenie',
+    title: 'OpsGenie Config',
+    key:   'opsgenie_configs',
+    logo:  require(`~/assets/images/icon-email.svg`)
+  },
+  {
     name:  'webhook',
     label: 'Webhook',
     title: 'Webhook Config',
