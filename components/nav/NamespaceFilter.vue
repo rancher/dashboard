@@ -315,6 +315,7 @@ export default {
       :placeholder="t('nav.ns.all')"
       :selectable="(option) => !option.disabled && option.id"
       :options="options"
+      :close-on-select="false"
       @on-blur="focusHandler('selectBlurred')"
     >
       <template v-slot:option="opt">
