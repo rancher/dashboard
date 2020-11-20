@@ -42,7 +42,7 @@ export default {
     const servicePort = get(this.value.backend, this.ingress.servicePortPath);
 
     return {
-      pathTypes, serviceName, servicePort
+      pathTypes, serviceName, servicePort, pathType: this.value.pathType, path: this.value.path
     };
   },
   computed: {
@@ -58,8 +58,6 @@ export default {
       return isValueAnOption ? null : 'warning';
     },
     serviceTargetTooltip() {
-      console.log('notop', this.serviceTargetStatus);
-
       return this.serviceTargetStatus === 'warning' ? this.t('ingress.rules.target.doesntExist') : null;
     }
   },
@@ -75,8 +73,8 @@ export default {
         backend: {}, path: this.path, pathType: this.pathType
       };
 
-      set(out.backend, this.ingress.serviceNamePath, serviceName);
       set(out.backend, this.ingress.servicePortPath, servicePort);
+      set(out.backend, this.ingress.serviceNamePath, serviceName);
 
       this.$emit('input', out);
     },
@@ -121,7 +119,7 @@ export default {
     <div class="col" :class="{'span-2': ingress.showPathType, 'span-3': !ingress.showPathType}" :style="{'margin-right': '0px'}">
       <LabeledInput
         v-if="portOptions.length === 0"
-        :v-model="servicePort"
+        v-model="servicePort"
         :placeholder="t('ingress.rules.port.placeholder')"
         @input="queueUpdate"
       />

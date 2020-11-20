@@ -588,6 +588,7 @@ ingress:
     addHost: Add Host
     certificate:
       label: Certificate - Secret Name
+      doesntExist: The selected certificate does not exist
     defaultCertLabel: Default Ingress Controller Certificate
     headers:
       certificate: Certificate

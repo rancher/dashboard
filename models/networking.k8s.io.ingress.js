@@ -41,19 +41,19 @@ export default {
   },
 
   createRulesForListPage() {
-    return (workloads) => {
+    return (workloads, certificates) => {
       const rules = this.spec.rules || [];
 
       return rules.flatMap((rule) => {
         const paths = rule?.http?.paths || [];
 
-        return paths.map(path => this.createPathForListPage(workloads, rule, path));
+        return paths.map(path => this.createPathForListPage(workloads, rule, path, certificates));
       });
     };
   },
 
   createPathForListPage() {
-    return (workloads, rule, path) => {
+    return (workloads, rule, path, certificates) => {
       const hostValue = rule.host || '';
       const pathValue = path.path || '';
       const serviceName = get(path?.backend, this.serviceNamePath);
@@ -66,7 +66,7 @@ export default {
         fullPath,
         serviceName,
         serviceTargetTo: this.targetTo(workloads, serviceName),
-        certs:           this.certLinks(rule),
+        certs:           this.certLinks(rule, certificates),
         targetLink:      this.targetLink(workloads, serviceName),
         port:            get(path?.backend, this.servicePortPath)
       };
@@ -86,11 +86,11 @@ export default {
   },
 
   certLink() {
-    return (cert) => {
+    return (cert, certificates = []) => {
       const secretName = cert.secretName || this.t('ingress.rulesAndCertificates.defaultCertificate');
       let to;
 
-      if (cert.secretName) {
+      if (cert.secretName && certificates.includes(secretName)) {
         to = {
           name:   'c-cluster-product-resource-namespace-id',
           params: {
@@ -109,7 +109,7 @@ export default {
   },
 
   certLinks() {
-    return (rule) => {
+    return (rule, certificates) => {
       const certs = this.spec.tls || [];
       const matchingCerts = certs.filter((cert) => {
         const hosts = cert.hosts || [];
@@ -117,7 +117,7 @@ export default {
         return hosts.includes(rule.host);
       });
 
-      return matchingCerts.map(this.certLink);
+      return matchingCerts.map(cert => this.certLink(cert, certificates));
     };
   },
 

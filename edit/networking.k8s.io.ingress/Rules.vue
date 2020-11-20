@@ -22,10 +22,15 @@ export default {
       default: 'edit'
     },
 
+    certificates: {
+      type:    Array,
+      default: () => []
+    },
+
     serviceTargets: {
       type:    Array,
       default: () => []
-    }
+    },
   },
 
   async fetch() {
@@ -78,7 +83,7 @@ export default {
       return headers;
     },
     rows() {
-      return this.value.createRulesForListPage(this.workloads);
+      return this.value.createRulesForListPage(this.workloads, this.certificates);
     }
   }
 };

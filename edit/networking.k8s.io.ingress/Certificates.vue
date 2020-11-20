@@ -2,7 +2,6 @@
 import SortableTable from '@/components/SortableTable';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { SECRET } from '@/config/types';
-import { TYPES } from '@/models/secret';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import Certificate from './Certificate';
 
@@ -21,13 +20,18 @@ export default {
       type:    String,
       default: _EDIT
     },
-    secrets: {
+    certificates: {
       type:    Array,
       default: () => []
     }
   },
   data() {
-    return { tls: this.value.spec.tls };
+    return {
+      defaultAddValue: {
+        secretName:  null,
+        hosts:       ['']
+      }
+    };
   },
   computed: {
     isView() {
@@ -68,23 +72,7 @@ export default {
 
         return cert;
       });
-    },
-    certificates() {
-      return this.filterByNamespace(this.secrets.filter(secret => secret._type === TYPES.TLS)).map((secret) => {
-        const { id } = secret;
-
-        return id.slice(id.indexOf('/') + 1);
-      });
-    },
-  },
-  methods: {
-    filterByNamespace(list) {
-      const namespaces = this.$store.getters['namespaces']();
-
-      return list.filter((resource) => {
-        return !!namespaces[resource.metadata.namespace];
-      });
-    },
+    }
   }
 };
 </script>
@@ -99,7 +87,7 @@ export default {
     :row-actions="false"
   />
   <div v-else>
-    <ArrayListGrouped v-model="value.spec.tls" :add-label="t('ingress.certificates.addCertificate')" :default-add-value="{}">
+    <ArrayListGrouped v-model="value.spec.tls" :add-label="t('ingress.certificates.addCertificate')" :default-add-value="defaultAddValue">
       <template #default="props">
         <Certificate
           v-model="props.row.value"

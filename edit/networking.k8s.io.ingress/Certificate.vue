@@ -50,11 +50,6 @@ export default {
       this.hosts.push('');
       this.update();
     },
-    remove(ev, idx) {
-      ev.preventDefault();
-      this.hosts.splice(idx, 1);
-      this.update();
-    },
     update() {
       const out = { hosts: this.hosts };
 
