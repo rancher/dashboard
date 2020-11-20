@@ -592,7 +592,7 @@ export default {
   }
 
   .remove {
-    text-align: right;
+    text-align: center;
 
     BUTTON{
       padding: 0px;

@@ -123,9 +123,6 @@ export default {
 </template>
 <style lang="scss" scoped>
 .rule-path {
-  button {
-    line-height: 40px;
-  }
   input {
     height: 55px;
   }
