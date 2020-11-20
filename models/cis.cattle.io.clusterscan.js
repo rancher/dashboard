@@ -1,10 +1,11 @@
 import { CIS } from '@/config/types';
-import { downloadFile } from '@/utils/download';
-import { set } from '@/utils/object';
+import { downloadFile, generateZip } from '@/utils/download';
+import { isEmpty, set } from '@/utils/object';
+import { sortBy } from '@/utils/sort';
 
 export default {
   _availableActions() {
-    this.getReport();
+    this.getReports();
     let out = this._standardActions;
 
     const toFilter = ['cloneYaml', 'goToEditYaml', 'download'];
@@ -15,15 +16,26 @@ export default {
       }
     });
 
+    const t = this.$rootGetters['i18n/t'];
+
     const downloadReport = {
-      action:     'downloadReport',
+      action:     'downloadLatestReport',
       enabled:    this.hasReport,
-      icon:       'icon icon-fw icon-chevron-right',
-      label:      'Download Report',
+      icon:       'icon icon-fw icon-download',
+      label:      t('cis.downloadLatestReport'),
+      total:      1,
+    };
+
+    const downloadAllReports = {
+      action:     'downloadAllReports',
+      enabled:    this.hasReport,
+      icon:       'icon icon-fw icon-download',
+      label:      t('cis.downloadAllReports'),
       total:      1,
     };
 
     out.unshift({ divider: true });
+    out.unshift(downloadAllReports);
     out.unshift(downloadReport);
 
     return out;
@@ -35,26 +47,28 @@ export default {
 
       spec.scanProfileName = null;
       spec.scanAlertRule = {};
+      spec.scoreWarning = 'pass';
       set(this, 'spec', spec);
     };
   },
 
   hasReport: false,
 
-  getReport() {
+  getReports() {
     return async() => {
       const owned = await this.getOwned();
-      const reportCRD = owned.filter(each => each.type === CIS.REPORT)[0];
+      const reportCRDs = owned.filter(each => each.type === CIS.REPORT);
 
-      this.hasReport = !!reportCRD;
+      this.hasReport = !!reportCRDs.length;
 
-      return reportCRD;
+      return reportCRDs;
     };
   },
 
-  downloadReport() {
+  downloadLatestReport() {
     return async() => {
-      const report = await this.getReport();
+      const reports = await this.getReports() || [];
+      const report = sortBy(reports, 'metadata.creationTimestamp', true)[0];
       const Papa = await import(/* webpackChunkName: "cis" */'papaparse');
 
       try {
@@ -67,5 +81,29 @@ export default {
       }
     };
   },
+
+  downloadAllReports() {
+    return async() => {
+      const toZip = {};
+      const reports = await this.getReports() || [];
+      const Papa = await import(/* webpackChunkName: "cis" */'papaparse');
+
+      reports.forEach((report) => {
+        try {
+          const testResults = report.aggregatedTests;
+          const csv = Papa.unparse(testResults);
+
+          toZip[`${ report.id }.csv`] = csv;
+        } catch (err) {
+          this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
+        }
+      });
+      if (!isEmpty(toZip)) {
+        generateZip(toZip).then((zip) => {
+          downloadFile(`${ this.id }-reports`, zip, 'application/zip');
+        });
+      }
+    };
+  }
 
 };

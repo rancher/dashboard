@@ -340,22 +340,28 @@ cis:
       =1 { Any scheduled scans using this profile will no longer work. }
       other { Any scheduled scans using either of these profiles will no longer work. }
     }
+  downloadAllReports: Download All Saved Reports
+  downloadLatestReport: Download Latest Report
   noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
   profile: Profile
-  retention: Retention
+  retention: Retention Count
   testID: Test ID
   testsToSkip: Tests to Skip
+  testsSkipped: Tests Skipped
   scan:
     description: Description
-    failed: Fail
+    fail: Fail
     lastScanTime: Last Scan Time
     notApplicable: 'N/A'
     number: Number
-    passed: Pass
+    pass: Pass
     scanReport: Scan Report
-    skipped: Skip
+    skip: Skip
     total: Total
-    warned: Warn
+    warn: Warn
+  scoreWarning: 
+    label: Scan state for "warn" results
+    protip: Scans with no failures will be marked "Pass" by default even if some of the tests generate "warn" output. This behavior can be changed by selecting the "fail" option from this section.
 
 cluster:
   nodeDriver:

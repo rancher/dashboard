@@ -2,7 +2,6 @@
 import CruResource from '@/components/CruResource';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
-
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
 import { CIS, CONFIG_MAP, ENDPOINTS } from '@/config/types';
@@ -10,13 +9,14 @@ import { mapGetters } from 'vuex';
 import createEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
 import Checkbox from '@/components/form/Checkbox';
+import RadioGroup from '@/components/form/RadioGroup';
 import cronstrue from 'cronstrue';
 
 const semver = require('semver');
 
 export default {
   components: {
-    CruResource, LabeledSelect, Banner, Loading, Checkbox, LabeledInput
+    CruResource, LabeledSelect, Banner, Loading, Checkbox, LabeledInput, RadioGroup
   },
 
   mixins: [createEditView],
@@ -167,7 +167,7 @@ export default {
       <Banner v-if="!validProfiles.length" color="warning" :label="t('cis.noProfiles')" />
 
       <div v-else class="row mb-20">
-        <div class="col span-4">
+        <div class="col span-6">
           <LabeledSelect
             v-model="value.spec.scanProfileName"
             :mode="mode"
@@ -175,25 +175,34 @@ export default {
             :options="validProfiles"
           />
         </div>
-        <div class="col span-4">
+      </div>
+      <h3>Scheduling</h3>
+      <div class="row mb-20">
+        <div class="col span-6">
           <LabeledInput v-model="value.spec.cronSchedule" :mode="mode" :label="t('cis.cronSchedule.label')" :placeholder="t('cis.cronSchedule.placeholder')" />
           <span class="text-muted">{{ cronLabel }}</span>
         </div>
-        <div class="col span-4">
+        <div class="col span-6">
           <LabeledInput v-model.number="value.spec.retention" type="number" :mode="mode" :label="t('cis.retention')" />
         </div>
       </div>
-      <h4>Alerting</h4>
-      <div class="row">
-        <Banner v-if="scanAlertRule.alertOnComplete || scanAlertRule.alertOnFailure" :color="hasAlertManager ? 'info' : 'warning'">
-          <span v-if="!hasAlertManager" v-html="t('cis.alertNotFound')" />
-          <span v-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
-        </banner>
-      </div>
-      <div class="row">
-        <div class="col span-6">
+      <h3>
+        Alerting
+      </h3>
+      <div class="row mb-20">
+        <div class="col span-12">
+          <Banner v-if="scanAlertRule.alertOnFailure || scanAlertRule.alertOnComplete" class="mt-0" :color="hasAlertManager ? 'info' : 'warning'">
+            <span v-if="!hasAlertManager" v-html="t('cis.alertNotFound')" />
+            <span v-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
+          </banner>
           <Checkbox v-model="scanAlertRule.alertOnComplete" :label="t('cis.alertOnComplete')" />
           <Checkbox v-model="scanAlertRule.alertOnFailure" :label="t('cis.alertOnFailure')" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <span>{{ t('cis.scoreWarning.label') }}</span> <i v-tooltip="t('cis.scoreWarning.protip')" class="icon icon-info" />
+          <RadioGroup v-model="value.spec.scoreWarning" :options="['pass', 'fail']" :labels="[t('cis.scan.pass'), t('cis.scan.fail')]" />
         </div>
       </div>
     </template>

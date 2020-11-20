@@ -50,27 +50,37 @@ export function init(store) {
     {
       name:     'pass',
       value:    'status.summary.pass',
-      labelKey: 'cis.scan.passed',
+      labelKey: 'cis.scan.pass',
     },
     {
       name:     'fail',
-      labelKey: 'cis.scan.failed',
+      labelKey: 'cis.scan.fail',
       value:    'status.summary.fail',
     },
     {
       name:     'warn',
-      labelKey: 'cis.scan.warned',
+      labelKey: 'cis.scan.warn',
       value:    'status.summary.warn',
     },
     {
       name:     'skip',
-      labelKey: 'cis.scan.skipped',
+      labelKey: 'cis.scan.skip',
       value:    'status.summary.skip',
     },
     {
       name:     'notApplicable',
       labelKey: 'cis.scan.notApplicable',
       value:    'status.summary.notApplicable',
+    },
+    {
+      name:          'nextScanAt',
+      label:         'Next Scan',
+      value:         'status.NextScanAt',
+      formatter:     'LiveDate',
+      formatterOpts: { addPrefix: false },
+      sort:          'status.nextScanAt:desc',
+      width:         150,
+      align:         'right',
     },
     {
       name:          'lastRunTimestamp',
@@ -83,5 +93,23 @@ export function init(store) {
       align:         'right',
       defaultSort:   true,
     },
+  ]);
+
+  headers(CIS.CLUSTER_SCAN_PROFILE, [
+    STATE,
+    NAME_HEADER,
+    {
+      name:          'benchmarkVersion',
+      labelKey:      'cis.benchmarkVersion',
+      value:         'spec.benchmarkVersion',
+      formatter:     'Link',
+      formatterOpts: { options: { internal: true }, to: { name: 'c-cluster-product-resource-id', params: { resource: CIS.BENCHMARK } } },
+    },
+    {
+      name:     'skippedTests',
+      labelKey: 'cis.testsSkipped',
+      value:    'numberTestsSkipped',
+      sort:     ['numberTestsSkipped']
+    }
   ]);
 }

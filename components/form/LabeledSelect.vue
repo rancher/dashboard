@@ -102,6 +102,9 @@ export default {
     },
 
     getOptionLabel(option) {
+      if (!option) {
+        return;
+      }
       if (this.$attrs['get-option-label']) {
         return this.$attrs['get-option-label'](option);
       }
