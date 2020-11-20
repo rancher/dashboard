@@ -16,6 +16,7 @@ import { matchRuleIsPopulated } from '@/models/logging.banzaicloud.io.flow';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { clone, set } from '@/utils/object';
 import isEmpty from 'lodash/isEmpty';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import Match from './Match';
 
 function emptyMatch(include = true) {
@@ -40,7 +41,8 @@ export default {
     Tab,
     Tabbed,
     YamlEditor,
-    Match
+    Match,
+    ArrayListGrouped
   },
 
   mixins: [CreateEditView],
@@ -301,17 +303,19 @@ export default {
     <Tabbed :side-tabs="true" @changed="tabChanged($event)">
       <Tab name="match" :label="t('logging.flow.matches.label')" :weight="3">
         <Banner color="info" class="mt-0" label="Configure which container logs will be pulled from" />
-        <Match
-          v-for="(match, i) in matches"
-          :key="i"
-          class="rule mb-20"
-          :value="match"
-          :mode="mode"
-          :nodes="nodeChoices"
-          :containers="containerChoices"
-          @remove="e=>removeMatch(i)"
-          @input="e=>updateMatch(e,i)"
-        />
+        <ArrayListGrouped v-model="matches" :add-label="t('ingress.rules.addRule')" :default-add-value="{}">
+          <template #default="props">
+            <Match
+              class="rule mb-20"
+              :value="props.row.value"
+              :mode="mode"
+              :nodes="nodeChoices"
+              :containers="containerChoices"
+              @remove="e=>removeMatch(props.row.i)"
+              @input="e=>updateMatch(e,props.row.i)"
+            />
+          </template>
+        </ArrayListGrouped>
         <button class="btn role-tertiary add mt-10" type="button" @click="addMatch(true)">
           <i class="icon icon-plus" />
           {{ t('logging.flow.matches.addSelect') }}
