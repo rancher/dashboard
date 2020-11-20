@@ -1,18 +1,22 @@
 <script>
 import CruResource from '@/components/CruResource';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import LabeledInput from '@/components/form/LabeledInput';
+
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
-import { CIS, CONFIG_MAP } from '@/config/types';
+import { CIS, CONFIG_MAP, ENDPOINTS } from '@/config/types';
 import { mapGetters } from 'vuex';
 import createEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
 import Checkbox from '@/components/form/Checkbox';
+import cronstrue from 'cronstrue';
+
 const semver = require('semver');
 
 export default {
   components: {
-    CruResource, LabeledSelect, Banner, Loading, Checkbox
+    CruResource, LabeledSelect, Banner, Loading, Checkbox, LabeledInput
   },
 
   mixins: [createEditView],
@@ -34,8 +38,16 @@ export default {
     const hash = await allHash({
       profiles:         this.$store.dispatch('cluster/findAll', { type: CIS.CLUSTER_SCAN_PROFILE }),
       benchmarks:       this.$store.dispatch('cluster/findAll', { type: CIS.BENCHMARK }),
-      defaultConfigMap: this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'cis-operator-system/default-clusterscanprofiles' })
+      defaultConfigMap: this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'cis-operator-system/default-clusterscanprofiles' }),
     });
+
+    try {
+      await this.$store.dispatch('cluster/find', { type: ENDPOINTS, id: 'cattle-monitoring-system/rancher-monitoring-alertmanager' });
+
+      this.hasAlertManager = true;
+    } catch {
+      this.hasAlertManager = false;
+    }
 
     this.allProfiles = hash.profiles;
     this.defaultConfigMap = hash.defaultConfigMap;
@@ -47,12 +59,28 @@ export default {
     }
 
     return {
-      allProfiles: [], defaultConfigMap: null, scanProfileName: this.value.spec.scanProfileName, scanAlertRule: this.value.spec.scanAlertRule
+      allProfiles: [], defaultConfigMap: null, scanAlertRule: this.value.spec.scanAlertRule, hasAlertManager: false
     };
   },
 
   computed: {
     ...mapGetters({ currentCluster: 'currentCluster', t: 'i18n/t' }),
+
+    cronLabel() {
+      const { cronSchedule } = this.value.spec;
+
+      if (!cronSchedule) {
+        return null;
+      }
+
+      try {
+        const hint = cronstrue.toString(cronSchedule);
+
+        return hint;
+      } catch (e) {
+        return 'invalid cron expression';
+      }
+    },
 
     validProfiles() {
       const profileNames = this.allProfiles.filter((profile) => {
@@ -80,13 +108,20 @@ export default {
       }
 
       return null;
-    }
+    },
+
+    monitoringUrl() {
+      return this.$router.resolve({
+        name:   'c-cluster-monitoring',
+        params: { cluster: this.$route.params.cluster }
+      }).href;
+    },
   },
 
   watch: {
     defaultProfile(neu) {
-      if (neu && !this.scanProfileName) {
-        this.scanProfileName = neu?.id;
+      if (neu && !this.value.spec.scanProfileName) {
+        this.value.spec.scanProfileName = neu?.id;
       }
     },
   },
@@ -120,7 +155,7 @@ export default {
 
   <CruResource
     v-else
-    :validation-passed="!!scanProfileName"
+    :validation-passed="!!value.spec.scanProfileName"
     :done-route="doneRoute"
     :resource="value"
     :mode="mode"
@@ -132,20 +167,32 @@ export default {
       <Banner v-if="!validProfiles.length" color="warning" :label="t('cis.noProfiles')" />
 
       <div v-else class="row mb-20">
-        <div class="col span-6">
+        <div class="col span-4">
           <LabeledSelect
-            v-model="scanProfileName"
+            v-model="value.spec.scanProfileName"
             :mode="mode"
             :label="t('cis.profile')"
             :options="validProfiles"
-            @input="value.spec.scanProfileName = $event"
           />
         </div>
+        <div class="col span-4">
+          <LabeledInput v-model="value.spec.cronSchedule" :mode="mode" :label="t('cis.cronSchedule.label')" :placeholder="t('cis.cronSchedule.placeholder')" />
+          <span class="text-muted">{{ cronLabel }}</span>
+        </div>
+        <div class="col span-4">
+          <LabeledInput v-model.number="value.spec.retention" type="number" :mode="mode" :label="t('cis.retention')" />
+        </div>
+      </div>
+      <h4>Alerting</h4>
+      <div class="row">
+        <Banner v-if="scanAlertRule.alertOnComplete || scanAlertRule.alertOnFailure" :color="hasAlertManager ? 'info' : 'warning'">
+          <span v-if="!hasAlertManager" v-html="t('cis.alertNotFound')" />
+          <span v-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
+        </banner>
       </div>
       <div class="row">
         <div class="col span-6">
           <Checkbox v-model="scanAlertRule.alertOnComplete" :label="t('cis.alertOnComplete')" />
-
           <Checkbox v-model="scanAlertRule.alertOnFailure" :label="t('cis.alertOnFailure')" />
         </div>
       </div>

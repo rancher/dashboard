@@ -327,9 +327,14 @@ chartHeading:
 
 cis:
   addTest: Add Test ID
+  alertNeeded: To receive alerts, please ensure <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
+  alertNotFound: "It looks like alerting isn't configured."
   alertOnComplete: Alert on scan completion
   alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
+  cronSchedule: 
+    label: Schedule
+    placeholder: "e.g. 0 * * * *"
   deleteProfileWarning: |-
     {count, plural,
       =1 { Any scheduled scans using this profile will no longer work. }
@@ -337,6 +342,7 @@ cis:
     }
   noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
   profile: Profile
+  retention: Retention
   testID: Test ID
   testsToSkip: Tests to Skip
   scan:
