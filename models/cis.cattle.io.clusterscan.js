@@ -1,11 +1,11 @@
 import { CIS } from '@/config/types';
+import { findBy } from '@/utils/array';
 import { downloadFile, generateZip } from '@/utils/download';
 import { isEmpty, set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 
 export default {
   _availableActions() {
-    this.getReports();
     let out = this._standardActions;
 
     const toFilter = ['cloneYaml', 'goToEditYaml', 'download'];
@@ -34,9 +34,13 @@ export default {
       total:      1,
     };
 
-    out.unshift({ divider: true });
-    out.unshift(downloadAllReports);
-    out.unshift(downloadReport);
+    if (this.hasReports) {
+      out.unshift({ divider: true });
+      if (this.spec?.cronSchedule) {
+        out.unshift(downloadAllReports);
+      }
+      out.unshift(downloadReport);
+    }
 
     return out;
   },
@@ -52,14 +56,18 @@ export default {
     };
   },
 
-  hasReport: false,
+  hasReports() {
+    const { relationships = [] } = this.metadata;
+
+    const reportRel = findBy(relationships, 'toType', CIS.REPORT);
+
+    return !!reportRel;
+  },
 
   getReports() {
     return async() => {
       const owned = await this.getOwned();
       const reportCRDs = owned.filter(each => each.type === CIS.REPORT);
-
-      this.hasReport = !!reportCRDs.length;
 
       return reportCRDs;
     };

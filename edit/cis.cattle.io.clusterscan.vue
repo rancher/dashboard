@@ -202,7 +202,7 @@ export default {
       <div class="row">
         <div class="col">
           <span>{{ t('cis.scoreWarning.label') }}</span> <i v-tooltip="t('cis.scoreWarning.protip')" class="icon icon-info" />
-          <RadioGroup v-model="value.spec.scoreWarning" :options="['pass', 'fail']" :labels="[t('cis.scan.pass'), t('cis.scan.fail')]" />
+          <RadioGroup v-model="value.spec.scoreWarning" name="scoreWarning" :options="['pass', 'fail']" :labels="[t('cis.scan.pass'), t('cis.scan.fail')]" />
         </div>
       </div>
     </template>
