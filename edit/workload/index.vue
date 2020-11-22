@@ -17,7 +17,6 @@ import Upgrading from '@/edit/workload/Upgrading';
 import Networking from '@/components/form/Networking';
 import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
 import Job from '@/edit/workload/Job';
-import { defaultAsyncData } from '@/components/ResourceDetail';
 import { _EDIT, _CREATE } from '@/config/query-params';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
@@ -95,22 +94,17 @@ export default {
     this.pvcs = hash.pvcs;
   },
 
-  asyncData(ctx) {
-    let resource;
-    let parentOverride;
-
-    if ( ctx.params.resource === 'workload') {
-      parentOverride = {
+  parentOverride() {
+    if ( this.$route.params.resource === 'workload') {
+      return {
         displayName: 'Workload',
         location:    {
           name:    'c-cluster-product-resource',
           params:  { resource: 'workload' },
-        }
+        },
+        resource: WORKLOAD_TYPES.DEPLOYMENT
       };
-      resource = WORKLOAD_TYPES.DEPLOYMENT;
     }
-
-    return defaultAsyncData(ctx, resource, parentOverride);
   },
 
   data() {

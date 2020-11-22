@@ -8,7 +8,7 @@ import { get } from '@/utils/object';
 import { NAME as FLEET_NAME } from '@/config/product/fleet';
 import { HIDE_SENSITIVE } from '@/store/prefs';
 import {
-  AS_YAML, MODE, _CREATE, _EDIT, _FLAGGED, _UNFLAG, _VIEW
+  AS, _DETAIL, _CONFIG, _YAML, MODE, _CREATE, _EDIT, _VIEW, _UNFLAG
 } from '@/config/query-params';
 
 export default {
@@ -33,9 +33,9 @@ export default {
       default: 'create'
     },
 
-    asYaml: {
-      type:    Boolean,
-      default: false
+    as: {
+      type:    String,
+      default: _YAML,
     },
 
     hasDetail: {
@@ -178,17 +178,17 @@ export default {
     viewOptions() {
       const out = [];
 
-      if ( this.hasDetail || this.hasEdit ) { // @TODO drop hasEdit once all desired custom detail pages exist
+      if ( this.hasDetail ) {
         out.push({
-          label: 'resourceDetail.masthead.overview',
-          value: 'view',
+          label: 'resourceDetail.masthead.detail',
+          value: 'detail',
         });
       }
 
       if ( this.hasEdit ) {
         out.push({
           label: 'resourceDetail.masthead.config',
-          value: 'edit',
+          value: 'config',
         });
       }
 
@@ -207,35 +207,27 @@ export default {
 
     currentView: {
       get() {
-        if ( this.asYaml ) {
-          return 'yaml';
-        }
-
-        if ( this.isEdit || this.isCreate ) {
-          return 'edit';
-        }
-
-        return 'view';
+        return this.as;
       },
 
       set(val) {
         switch ( val ) {
-        case 'view':
+        case _DETAIL:
           this.$router.applyQuery({
-            [MODE]:    _VIEW,
-            [AS_YAML]: _UNFLAG,
+            [MODE]: _UNFLAG,
+            [AS]:   _UNFLAG,
           });
           break;
-        case 'edit':
+        case _CONFIG:
           this.$router.applyQuery({
-            [MODE]:    this.value.canUpdate ? _EDIT : _VIEW,
-            [AS_YAML]: _UNFLAG,
+            [MODE]: _UNFLAG,
+            [AS]:   _CONFIG,
           });
           break;
         case 'yaml':
           this.$router.applyQuery({
-            [MODE]:    this.value.canUpdate ? _EDIT : _VIEW,
-            [AS_YAML]: _FLAGGED,
+            [MODE]: _UNFLAG,
+            [AS]:   _YAML,
           });
           break;
         }
@@ -269,10 +261,6 @@ export default {
       });
     },
 
-    toggleYaml(val) {
-      this.$emit('update:asYaml', val);
-    },
-
     toggleSensitiveData(e) {
       this.$store.dispatch('prefs/set', { key: HIDE_SENSITIVE, value: !!e });
     }
@@ -301,8 +289,8 @@ export default {
         </div>
       </div>
       <slot name="right">
-        <div v-if="!isCreate" class="actions">
-          <ButtonGroup v-if="!!value.hasSensitiveData" :labels-are-translations="true" :value="!!hideSensitiveData" :options="[{icon: 'icon-hide', value: true},{icon:'icon-show', value: false }]" @input="toggleSensitiveData" />
+        <div v-if="isView" class="actions">
+          <ButtonGroup v-if="isView && !!value.hasSensitiveData" :labels-are-translations="true" :value="!!hideSensitiveData" :options="[{icon: 'icon-hide', value: true},{icon:'icon-show', value: false }]" @input="toggleSensitiveData" />
 
           <ButtonGroup
             v-if="viewOptions"

@@ -78,7 +78,8 @@ export default {
     return {
       currentYaml:  this.yaml,
       showPreview:  false,
-      errors:       null
+      errors:       null,
+      cm:          null,
     };
   },
 
@@ -113,6 +114,12 @@ export default {
   },
 
   watch: {
+    yaml(neu) {
+      if ( this.mode === _VIEW ) {
+        this.currentYaml = neu;
+      }
+    },
+
     mode(neu, old) {
       // if this component is changing from viewing a resource to 'creating' that resource, it must actually be cloning
       // clean yaml accordingly
@@ -125,9 +132,12 @@ export default {
   methods: {
     onInput(yaml) {
       this.currentYaml = yaml;
+      this.onReady(this.cm);
     },
 
     onReady(cm) {
+      this.cm = cm;
+
       if ( this.isEdit ) {
         cm.foldLinesMatching(/^status:\s*$/);
       }

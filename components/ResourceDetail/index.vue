@@ -1,212 +1,205 @@
 <script>
 import { cleanForNew } from '@/plugins/steve/normalize';
-import CreateEditView from '@/mixins/create-edit-view';
+import CreateEditView from '@/mixins/create-edit-view/impl';
+import Loading from '@/components/Loading';
 import ResourceYaml from '@/components/ResourceYaml';
 import {
-  MODE, _VIEW, _EDIT, _CLONE, _STAGE,
-  AS_YAML, _FLAGGED, _CREATE,
+  _VIEW, _EDIT, _CLONE, _STAGE, _CREATE,
+  AS, _YAML, _DETAIL, _CONFIG,
 } from '@/config/query-params';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
 import Banner from '@/components/Banner';
-import GenericResourceDetail from './Generic';
+import Vue from 'vue';
 
-// Components can't have asyncData, only pages.
-// So you have to call this in the page and pass it in as a prop.
-export async function asyncData(ctx) {
-  const { params, store, route } = ctx;
-  const resource = params.resource;
-  const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
-  const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
-  const realMode = realModeFor(route.query.mode, params.id);
-
-  if ( hasCustomDetail && realMode === _VIEW ) {
-    const importer = store.getters['type-map/importDetail'](resource);
-    const component = (await importer())?.default;
-
-    if ( component?.asyncData ) {
-      return component.asyncData(ctx);
-    }
-  }
-
-  if ( hasCustomEdit ) {
-    const importer = store.getters['type-map/importEdit'](resource);
-    const component = (await importer())?.default;
-
-    if ( component?.asyncData ) {
-      return component.asyncData(ctx);
-    }
-  }
-
-  return defaultAsyncData(ctx);
-}
-
-function realModeFor(query, id) {
-  if ( id ) {
-    return query || _VIEW;
+function modeFor(route) {
+  if ( route.params.id ) {
+    return route.query.mode || _VIEW;
   } else {
     return _CREATE;
   }
 }
 
-// You can pass in a resource from a edit/someType.vue to use this but with a different type
-// e.g. for workload to create a deployment
-export async function defaultAsyncData(ctx, resource, parentOverride) {
-  const { store, params, route } = ctx;
+async function getYaml(model) {
+  let yaml;
+  const opt = { headers: { accept: 'application/yaml' } };
 
-  const inStore = store.getters['currentProduct']?.inStore;
-
-  // eslint-disable-next-line prefer-const
-  let { namespace, id } = params;
-
-  if ( !resource ) {
-    resource = params.resource;
+  if ( model.hasLink('rioview') ) {
+    yaml = (await model.followLink('rioview', opt)).data;
+  } else if ( model.hasLink('view') ) {
+    yaml = (await model.followLink('view', opt)).data;
   }
 
-  // There are 5 "real" modes that you can start in: view, edit, create, stage, clone
-  // These are mapped down to the 3 regular page modes that create-edit-view components
-  //  know about:  view, edit, create (stage and clone become "create")
-  const realMode = realModeFor(route.query.mode, id);
-
-  const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
-  const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
-  const yamlOnlyDetail = store.getters['type-map/isYamlOnlyDetail'](resource);
-  const asYamlInit = (route.query[AS_YAML] === _FLAGGED) || (realMode !== _VIEW && !hasCustomEdit);
-  const schema = store.getters[`${ inStore }/schemaFor`](resource);
-  const schemas = store.getters[`${ inStore }/all`](SCHEMA);
-
-  let originalModel, model, yaml;
-
-  if ( realMode === _CREATE ) {
-    if ( !namespace ) {
-      namespace = store.getters['defaultNamespace'];
-    }
-
-    const data = { type: resource };
-
-    if ( schema.attributes?.namespaced ) {
-      data.metadata = { namespace };
-    }
-
-    originalModel = await store.dispatch(`${ inStore }/create`, data);
-    model = originalModel;
-    yaml = createYaml(schemas, resource, data);
-  } else {
-    let fqid = id;
-
-    if ( schema.attributes?.namespaced && namespace ) {
-      fqid = `${ namespace }/${ fqid }`;
-    }
-
-    originalModel = await store.dispatch(`${ inStore }/find`, {
-      type: resource,
-      id:   fqid,
-      opt:  { watch: true }
-    });
-    if (realMode === _VIEW) {
-      model = originalModel;
-    } else {
-      model = await store.dispatch(`${ inStore }/clone`, { resource: originalModel });
-    }
-
-    const yamlOpt = { headers: { accept: 'application/yaml' } };
-
-    if ( originalModel.hasLink('rioview') ) {
-      yaml = (await originalModel.followLink('rioview', yamlOpt)).data;
-    } else if ( originalModel.hasLink('view') ) {
-      yaml = (await originalModel.followLink('view', yamlOpt)).data;
-    }
-
-    if ( realMode === _CLONE || realMode === _STAGE ) {
-      cleanForNew(model);
-      yaml = model.cleanYaml(yaml, realMode);
-    }
-  }
-
-  let mode = realMode;
-
-  if ( realMode === _STAGE || realMode === _CLONE ) {
-    mode = _CREATE;
-  }
-
-  /*******
-   * Important: these need to be declared below as props too if you want to use them
-   *******/
-  const out = {
-    parentOverride,
-    hasCustomDetail,
-    hasCustomEdit,
-    yamlOnlyDetail,
-    resource,
-    model,
-    asYamlInit,
-    yaml,
-    originalModel,
-    mode,
-    realMode,
-    value: model,
-  };
-  /*******
-   * Important: these need to be declared below as props too if you want to use them
-   *******/
-
-  return out;
+  return yaml;
 }
 
-export const watchQuery = [MODE, AS_YAML];
+// Components can't have asyncData, only pages.
+// So you have to call this in the page and pass it in as a prop.
+export async function asyncData(ctx) {
+  const { params, store } = ctx;
+  const resource = params.resource;
+  const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
+  const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
+  let editComponent, detailComponent;
+
+  if ( hasCustomDetail ) {
+    const importer = store.getters['type-map/importDetail'](resource);
+
+    detailComponent = (await importer())?.default;
+  }
+
+  if ( hasCustomEdit ) {
+    const importer = store.getters['type-map/importEdit'](resource);
+
+    editComponent = (await importer())?.default;
+  }
+
+  return { editComponent, detailComponent };
+}
 
 export default {
   components: {
-    Banner, DetailTop, ResourceYaml, Masthead, GenericResourceDetail
+    Loading,
+    Banner,
+    DetailTop,
+    ResourceYaml,
+    Masthead,
   },
+
   mixins: [CreateEditView],
 
   props: {
-    hasCustomDetail: {
-      type:    Boolean,
-      default: null,
-    },
-    hasCustomEdit: {
-      type:    Boolean,
-      default: null,
-    },
-    yamlOnlyDetail: {
-      type:    Boolean,
-      default: null,
-    },
-    resource: {
-      type:    String,
-      default: null,
-    },
-    model: {
+    // ** NOTE: These are provided by asyncData() above, you must call asyncData page using this
+    // component and then pass the output into this component as props. **
+    detailComponent: {
       type:    Object,
       default: null,
     },
-    asYamlInit: {
-      type:    Boolean,
-      default: null,
-    },
-    yaml: {
-      type:    String,
-      default: null,
-    },
-    originalModel: {
+    editComponent: {
       type:    Object,
       default: null,
-    },
-    mode: {
-      type:    String,
-      default: null
-    },
-    parentOverride: {
-      type:    Object,
-      default: null
-    },
-    moreDetails: {
-      type:    Array,
-      default: null
+    }
+  },
+
+  async fetch() {
+    const store = this.$store;
+    const route = this.$route;
+    const params = route.params;
+    const inStore = store.getters['currentProduct']?.inStore;
+    const realMode = this.realMode;
+
+    // eslint-disable-next-line prefer-const
+    let { namespace, id } = params;
+    let resource = params.resource;
+
+    // There are 5 "real" modes that can be put into the query string
+    // These are mapped down to the 3 regular page "mode"s that create-edit-view components
+    // know about:  view, edit, create (stage and clone become "create")
+    const mode = ((realMode === _STAGE || realMode === _CLONE) ? _CREATE : realMode);
+
+    const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
+    const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
+    const yamlOnlyDetail = store.getters['type-map/isYamlOnlyDetail'](resource);
+    const schemas = store.getters[`${ inStore }/all`](SCHEMA);
+
+    // As determines what component will be rendered
+    const requested = route.query[AS];
+    let as;
+
+    if ( mode === _VIEW && hasCustomDetail && (!requested || requested === _DETAIL) ) {
+      as = _DETAIL;
+    } else if ( hasCustomEdit && (!requested || requested === _CONFIG) ) {
+      as = _CONFIG;
+    } else {
+      as = _YAML;
+    }
+
+    this.as = as;
+
+    const override = this.parentOverride;
+
+    if ( override.resource ) {
+      resource = override.resource;
+    }
+
+    const schema = store.getters[`${ inStore }/schemaFor`](resource);
+    let originalModel, model, yaml;
+
+    if ( realMode === _CREATE ) {
+      if ( !namespace ) {
+        namespace = store.getters['defaultNamespace'];
+      }
+
+      const data = { type: resource };
+
+      if ( schema.attributes?.namespaced ) {
+        data.metadata = { namespace };
+      }
+
+      originalModel = await store.dispatch(`${ inStore }/create`, data);
+      model = originalModel;
+
+      if ( as === _YAML ) {
+        yaml = createYaml(schemas, resource, data);
+      }
+    } else {
+      let fqid = id;
+
+      if ( schema.attributes?.namespaced && namespace ) {
+        fqid = `${ namespace }/${ fqid }`;
+      }
+
+      originalModel = await store.dispatch(`${ inStore }/find`, {
+        type: resource,
+        id:   fqid,
+        opt:  { watch: true }
+      });
+
+      if (realMode === _VIEW) {
+        model = originalModel;
+      } else {
+        model = await store.dispatch(`${ inStore }/clone`, { resource: originalModel });
+      }
+
+      if ( as === _YAML ) {
+        yaml = await getYaml(originalModel);
+
+        if ( realMode === _CLONE || realMode === _STAGE ) {
+          cleanForNew(model);
+          yaml = model.cleanYaml(yaml, realMode);
+        }
+      }
+    }
+
+    // Ensure labels & annotations exists, since lots of things need them
+    if ( !model.metadata ) {
+      Vue.set(model, 'metadata', {});
+    }
+
+    if ( !model.metadata.annotations ) {
+      Vue.set(model, 'metadata.annotations', {});
+    }
+
+    if ( !model.metadata.labels ) {
+      Vue.set(model, 'metadata.labels', {});
+    }
+
+    const out = {
+      hasCustomDetail,
+      hasCustomEdit,
+      yamlOnlyDetail,
+      resource,
+      as,
+      yaml,
+      originalModel,
+      mode,
+      value: model,
+    };
+
+    for ( const key in out ) {
+      this[key] = out[key];
     }
   },
 
@@ -215,27 +208,32 @@ export default {
       this.value.applyDefaults(this, this.mode);
     }
 
-    // asYamlInit is taken from route query and passed as prop from _id page; asYaml is saved in local data to be manipulated by Masthead
-    const {
-      asYamlInit: asYaml,
-      value: currentValue,
-    } = this;
-
     return {
-      asYaml,
-      currentValue,
-      detailComponent: this.$store.getters['type-map/importDetail'](this.resource),
-      editComponent:   this.$store.getters['type-map/importEdit'](this.resource),
       resourceSubtype: null,
+
+      // Set by asyncData & passed in as props
+      // detailComponent: null,
+      // editComponent:   null,
+
+      // Set by fetch
+      hasCustomDetail: null,
+      hasCustomEdit:   null,
+      yamlOnlyDetail:  null,
+      resource:        null,
+      asYaml:          null,
+      yaml:            null,
+      originalModel:   null,
+      mode:            null,
+      as:              null,
+      value:           null,
+      model:           null,
     };
   },
 
   computed: {
     realMode() {
       // There are 5 "real" modes that you can start in: view, edit, create, stage, clone
-      // These are mapped down to the 3 regular page modes that create-edit-view components
-      //  know about:  view, edit, create (stage and clone become "create")
-      const realMode = realModeFor(this.$route.query.mode, this.model?.id);
+      const realMode = modeFor(this.$route);
 
       return realMode;
     },
@@ -244,42 +242,54 @@ export default {
       return this.mode === _VIEW;
     },
 
-    isEdit() {
-      return this.mode === _EDIT;
+    isYaml() {
+      return this.as === _YAML;
+    },
+
+    isDetail() {
+      return this.as === _DETAIL;
     },
 
     offerPreview() {
-      return [_EDIT, _CLONE, _STAGE].includes(this.mode);
+      return this.as === _YAML && [_EDIT, _CLONE, _STAGE].includes(this.mode);
     },
 
     showComponent() {
-      if ( this.isView ) {
-        if (this.hasCustomDetail) {
-          return this.detailComponent;
-        } else if (this.hasCustomEdit && !this.yamlOnlyDetail ) {
-          return this.editComponent;
-        } else {
-          return GenericResourceDetail;
-        }
-      } else if ( this.hasCustomEdit ) {
-        return this.editComponent;
+      switch ( this.as ) {
+      case _DETAIL: return this.detailComponent;
+      case _CONFIG: return this.editComponent;
       }
 
       return null;
     },
 
+    parentOverride() {
+      const over = this.showComponent?.parentOverride;
+
+      if ( !over ) {
+        return {};
+      }
+
+      if ( typeof over === 'function' ) {
+        return over.apply(this) || {};
+      }
+
+      return over || {};
+    },
+
     yamlSave() {
       return this.parentOverride?.yamlSave;
-    }
+    },
   },
 
   watch: {
-    asYamlInit(neu) {
-      this.asYaml = neu;
-    },
+    '$route.query': '$fetch',
 
-    realMode(neu) {
-      this.asYaml = (this.$route.query[AS_YAML] === _FLAGGED) || (neu !== _VIEW && !this.hasCustomEdit);
+    // Auto refresh YAML when the model changes
+    async 'value.metadata.resourceVersion'(a, b) {
+      if ( a && b && a !== b && this.mode === _VIEW && this.as === _YAML ) {
+        this.yaml = await getYaml(this.originalModel);
+      }
     }
   },
 
@@ -292,48 +302,49 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <Masthead
       :value="originalModel"
       :mode="mode"
       :real-mode="realMode"
-      :as-yaml.sync="asYaml"
+      :as="as"
       :parent-override="parentOverride"
       :has-detail="hasCustomDetail"
       :has-edit="hasCustomEdit"
       :resource-subtype="resourceSubtype"
     />
+
     <DetailTop
-      v-if="isView && !asYaml"
+      v-if="isView && isDetail"
       :value="originalModel"
-      :more-details="moreDetails"
     />
-    <template v-if="asYaml">
-      <ResourceYaml
-        ref="resourceyaml"
-        :value="model"
-        :mode="mode"
-        :yaml="yaml"
-        :offer-preview="offerPreview"
-        :done-route="doneRoute"
-        :done-override="model.doneOverride"
-        :save-override="yamlSave"
-      />
-    </template>
-    <template v-else>
-      <component
-        :is="showComponent"
-        v-model="model"
-        v-bind="_data"
-        :done-params="doneParams"
-        :done-route="doneRoute"
-        :mode="mode"
-        :original-value="originalModel"
-        :real-mode="realMode"
-        :value="model"
-        @set-subtype="setSubtype"
-      />
-    </template>
+
+    <ResourceYaml
+      v-if="isYaml"
+      ref="resourceyaml"
+      v-model="value"
+      :mode="mode"
+      :yaml="yaml"
+      :offer-preview="offerPreview"
+      :done-route="doneRoute"
+      :done-override="value.doneOverride"
+      :save-override="yamlSave"
+    />
+
+    <component
+      :is="showComponent"
+      v-else
+      ref="comp"
+      v-model="value"
+      v-bind="_data"
+      :done-params="doneParams"
+      :done-route="doneRoute"
+      :mode="mode"
+      :original-value="originalModel"
+      :real-mode="realMode"
+      @set-subtype="setSubtype"
+    />
   </div>
 </template>
 

@@ -1,3 +1,5 @@
+import { NODE as NODE_TYPE } from '@/config/types';
+
 // Note: 'id' is always the last sort, so you don't have to specify it here.
 
 export const STATE = {
@@ -102,11 +104,12 @@ export const NAMESPACE = {
 };
 
 export const NODE = {
-  name:      'node',
-  labelKey:  'tableHeaders.node',
-  value:     'spec.nodeName',
-  sort:      'spec.nodeName',
-  formatter: 'LinkNode'
+  name:          'node',
+  labelKey:      'tableHeaders.node',
+  value:         'spec.nodeName',
+  sort:          'spec.nodeName',
+  formatter:     'LinkName',
+  formatterOpts: { type: NODE_TYPE },
 };
 
 export const NODE_NAME = {

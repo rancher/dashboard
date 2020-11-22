@@ -1,6 +1,6 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import { AS_YAML, _FLAGGED } from '@/config/query-params';
+import { AS, _YAML } from '@/config/query-params';
 import Loading from '@/components/Loading';
 import Masthead from './Masthead';
 
@@ -46,15 +46,13 @@ export default {
 
     const formRoute = { name: `${ this.$route.name }-create`, params };
 
-    const query = { [AS_YAML]: _FLAGGED };
-
     const hasListComponent = getters['type-map/hasCustomList'](resource);
     const hasEditComponent = getters['type-map/hasCustomEdit'](resource);
 
     const yamlRoute = {
       name: `${ this.$route.name }-create`,
       params,
-      query
+      query: { [AS]: _YAML },
     };
 
     const inStore = getters['currentProduct'].inStore;

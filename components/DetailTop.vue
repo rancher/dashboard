@@ -14,6 +14,7 @@ export default {
         return {};
       }
     },
+
     moreDetails: {
       type:    Array,
       default: () => {
@@ -33,6 +34,7 @@ export default {
         ...(this.value?.details || []),
       ];
     },
+
     labels() {
       return this.value?.labels || {};
     },

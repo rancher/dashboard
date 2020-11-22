@@ -828,6 +828,7 @@ export default {
           v-model="value"
           :mode="mode"
           :name-disabled="nameDisabled"
+          :name-required="false"
           :name-ns-hidden="!showNameEditor"
           :force-namespace="forceNamespace"
           :namespace-new-allowed="!existing && !forceNamespace"

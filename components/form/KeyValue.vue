@@ -556,8 +556,8 @@ export default {
       word-wrap: break-word;
       -ms-word-break: break-all;
       word-break: break-word;
-      display:flex;
-      align-items:flex-start;
+      display: flex;
+      align-items: flex-start;
     }
 
     &.extra-column {

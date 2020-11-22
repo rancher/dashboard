@@ -30,7 +30,7 @@ import {
 
 import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
 import {
-  AS_YAML, MODE, _CLONE, _EDIT, _FLAGGED, _VIEW, _UNFLAG
+  AS, _YAML, MODE, _CLONE, _EDIT, _FLAGGED, _VIEW, _UNFLAG
 } from '@/config/query-params';
 
 import { cleanForNew, normalizeType } from './normalize';
@@ -624,22 +624,10 @@ export default {
         enabled:  this.canCustomEdit,
       },
       {
-        action:  'goToClone',
-        label:   this.t('action.clone'),
-        icon:    'icon icon-copy',
-        enabled:  this.canCreate && this.canCustomEdit,
-      },
-      {
         action:  'goToEditYaml',
         label:   this.t(this.canUpdate ? 'action.editYaml' : 'action.viewYaml'),
         icon:    'icon icon-file',
         enabled: this.canYaml,
-      },
-      {
-        action:  (this.canCustomEdit ? 'goToClone' : 'cloneYaml'),
-        label:   this.t('action.clone'),
-        icon:    'icon icon-copy',
-        enabled:  this.canCreate && (this.canCustomEdit || this.canYaml),
       },
       {
         action:     'download',
@@ -648,6 +636,12 @@ export default {
         bulkable:   true,
         bulkAction: 'downloadBulk',
         enabled:    this.canYaml
+      },
+      {
+        action:  (this.canCustomEdit ? 'goToClone' : 'cloneYaml'),
+        label:   this.t('action.clone'),
+        icon:    'icon icon-copy',
+        enabled:  this.canCreate && (this.canCustomEdit || this.canYaml),
       },
       { divider: true },
       {
@@ -921,6 +915,7 @@ export default {
       location.query = {
         ...location.query,
         [MODE]: _CLONE,
+        [AS]:   _UNFLAG,
         ...moreQuery
       };
 
@@ -934,8 +929,8 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]:    _EDIT,
-        [AS_YAML]: _UNFLAG,
+        [MODE]: _EDIT,
+        [AS]:   _UNFLAG,
         ...moreQuery
       };
 
@@ -949,8 +944,8 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]:      _EDIT,
-        [AS_YAML]: _FLAGGED
+        [MODE]: _EDIT,
+        [AS]:   _YAML
       };
 
       this.currentRouter().push(location);
@@ -963,8 +958,8 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]:      _VIEW,
-        [AS_YAML]: _FLAGGED
+        [MODE]: _VIEW,
+        [AS]:   _YAML
       };
 
       this.currentRouter().push(location);
@@ -977,8 +972,8 @@ export default {
 
       location.query = {
         ...location.query,
-        [MODE]:      _CLONE,
-        [AS_YAML]: _FLAGGED,
+        [MODE]: _CLONE,
+        [AS]:   _YAML,
         ...moreQuery
       };
 
@@ -1323,21 +1318,29 @@ export default {
     return this.$rootGetters['i18n/t'];
   },
 
+  // Returns array of MODELS that own this resource (async, network call)
+  findOwners() {
+    return () => {
+      return this._getRelationship('owner', 'from');
+    };
+  },
+
+  // Returns array of {type, namespace, id} objects that own this resource (sync)
   getOwners() {
     return () => {
       return this._getRelationship('owner', 'from');
     };
   },
 
-  getOwned() {
+  findOwned() {
     return () => {
-      return this._getRelationship('owner', 'to');
+      return this._findRelationship('owner', 'to');
     };
   },
 
-  _getRelationship() {
-    return async(rel, direction) => {
-      const out = [];
+  _relationshipsFor() {
+    return (rel, direction) => {
+      const out = { selectors: [], ids: [] };
 
       if ( !this.metadata?.relationships?.length ) {
         return out;
@@ -1353,27 +1356,72 @@ export default {
         }
 
         if ( r.selector ) {
-          const matching = await this.$dispatch('findMatching', {
+          addObjects(out.selectors, {
             type:      r.toType,
             namespace: r.toNamespace,
             selector:  r.selector
           });
-
-          addObjects(out, matching.data);
         } else {
           const type = r[`${ direction }Type`];
-          const ns = r[`${ direction }Namespace`];
-          const id = (ns ? `${ ns }/` : '') + r[`${ direction }Id`];
+          let namespace = r[`${ direction }Namespace`];
+          let name = r[`${ direction }Id`];
 
-          let matching = this.$getters['byId'](type, id);
+          if ( !namespace && name.includes('/') ) {
+            const idx = name.indexOf('/');
 
-          if ( !matching ) {
-            matching = await this.$dispatch('find', { type, id });
+            namespace = name.substr(0, idx);
+            name = name.substr(idx + 1);
           }
 
-          if ( matching ) {
-            addObject(out, matching);
-          }
+          const id = (namespace ? `${ namespace }/` : '') + name;
+
+          addObject(out.ids, {
+            type,
+            namespace,
+            name,
+            id,
+          });
+        }
+      }
+
+      return out;
+    };
+  },
+
+  _getRelationship() {
+    return (rel, direction) => {
+      const res = this._relationshipsFor(rel, direction);
+
+      if ( res.selectors?.length ) {
+        // eslint-disable-next-line no-console
+        console.warn('Sync request for a relationship that is a selector');
+      }
+
+      return res.ids || [];
+    };
+  },
+
+  _findRelationship() {
+    return async(rel, direction) => {
+      const { selectors, ids } = this._relationshipsFor(rel, direction);
+      const out = [];
+
+      for ( const sel of selectors ) {
+        const matching = await this.$dispatch('findMatching', sel);
+
+        addObjects(out, matching.data);
+      }
+
+      for ( const obj of ids ) {
+        const { type, id } = obj;
+        let matching = this.$getters['byId'](type, id);
+
+        if ( !matching ) {
+          matching = await this.$dispatch('find', { type, id });
+        }
+
+        if ( matching ) {
+          addObject(out, matching);
         }
       }
 

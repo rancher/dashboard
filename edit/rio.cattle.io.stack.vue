@@ -23,6 +23,7 @@ export default {
 
   mixins: [CreateEditView],
 
+  /* @TODO replace with fetch or something
   async asyncData(ctx) {
     const { query } = ctx;
 
@@ -38,6 +39,7 @@ export default {
 
     return out;
   },
+  */
 
   data() {
     let spec = this.value.spec;

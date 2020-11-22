@@ -1148,7 +1148,7 @@ resourceDetail:
     namespace: Namespace
     workspace: Workspace
     project: Project
-    overview: Detail
+    detail: Detail
     config: Config
     yaml: YAML
     managedWarning: |-

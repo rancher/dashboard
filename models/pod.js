@@ -1,5 +1,16 @@
 import { findBy, insertAt } from '@/utils/array';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
+import { NODE, WORKLOAD_TYPES } from '@/config/types';
+
+export const WORKLOAD_PRIORITY = {
+  [WORKLOAD_TYPES.DEPLOYMENT]:             1,
+  [WORKLOAD_TYPES.CRON_JOB]:               2,
+  [WORKLOAD_TYPES.DAEMON_SET]:             3,
+  [WORKLOAD_TYPES.STATEFUL_SET]:           4,
+  [WORKLOAD_TYPES.JOB]:                    5,
+  [WORKLOAD_TYPES.REPLICA_SET]:            6,
+  [WORKLOAD_TYPES.REPLICATION_CONTROLLER]: 7,
+};
 
 export default {
   availableActions() {
@@ -99,6 +110,21 @@ export default {
     }, []);
   },
 
+  workloadRef() {
+    const owners = this.getOwners() || [];
+    const workloads = owners.filter((owner) => {
+      return Object.values(WORKLOAD_TYPES).includes(owner.type);
+    }).sort((a, b) => {
+      // Prioritize types so that deployments come before replicasets and such.
+      const ia = WORKLOAD_PRIORITY[a.type];
+      const ib = WORKLOAD_PRIORITY[b.type];
+
+      return ia - ib;
+    });
+
+    return workloads[0];
+  },
+
   details() {
     const out = [
       {
@@ -106,6 +132,28 @@ export default {
         content: this.status.podIP
       },
     ];
+
+    if ( this.workloadRef ) {
+      out.push({
+        label:         'Workload',
+        formatter:     'LinkName',
+        formatterOpts: {
+          value:     this.workloadRef.name,
+          type:      this.workloadRef.type,
+          namespace: this.workloadRef.namespace
+        },
+        content: this.workloadRef.name
+      });
+    }
+
+    if ( this.spec.nodeName ) {
+      out.push({
+        label:         'Node',
+        formatter:     'LinkName',
+        formatterOpts: { type: NODE, value: this.spec.nodeName },
+        content:       this.spec.nodeName,
+      });
+    }
 
     return out;
   },

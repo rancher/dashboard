@@ -10,27 +10,28 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import CreateEditView from '@/mixins/create-edit-view';
-import { defaultAsyncData } from '@/components/ResourceDetail';
 import jsyaml from 'js-yaml';
 import { RECEIVERS_TYPES } from '@/models/monitoring.coreos.com.receiver';
 
 export default {
   components: {
-    ArrayListGrouped, Banner, CruResource, GradientBox, LabeledInput, Loading, Tabbed, Tab, YamlEditor
+    ArrayListGrouped,
+    Banner,
+    CruResource,
+    GradientBox,
+    LabeledInput,
+    Loading,
+    Tabbed,
+    Tab,
+    YamlEditor
   },
+
   mixins: [CreateEditView],
+
   async fetch() {
     await this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.ROUTE });
   },
-  asyncData(ctx) {
-    function yamlSave(value, originalValue) {
-      originalValue.yamlSaveOverride(value, originalValue);
-    }
 
-    return defaultAsyncData(ctx, null, {
-      hideBanner: true, hideAge: true, hideBadgeState: true, yamlSave
-    });
-  },
   data() {
     this.$set(this.value, 'spec', this.value.spec || {});
 
@@ -65,6 +66,16 @@ export default {
       yamlError:        ''
     };
   },
+
+  parentOverride: {
+    hideBanner:     true,
+    hideAge:        true,
+    hideBadgeState: true,
+    yamlSave(value, original) {
+      original.yamlSaveOverride(value, original);
+    }
+  },
+
   computed: {
     editorMode() {
       if ( this.isView ) {
@@ -74,6 +85,7 @@ export default {
       return EDITOR_MODES.EDIT_CODE;
     },
   },
+
   watch: {
     suffixYaml(value) {
       try {
@@ -132,7 +144,9 @@ export default {
 </script>
 
 <template>
+  <Loading v-if="$fetchState.pending" />
   <CruResource
+    v-else
     class="receiver"
     :done-route="doneRoute"
     :mode="mode"

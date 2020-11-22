@@ -5,7 +5,6 @@ import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import CreateEditView from '@/mixins/create-edit-view';
-import { defaultAsyncData } from '@/components/ResourceDetail';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { MONITORING } from '@/config/types';
@@ -15,9 +14,19 @@ import Loading from '@/components/Loading';
 
 export default {
   components: {
-    ArrayList, Banner, CruResource, KeyValue, LabeledInput, LabeledSelect, Loading, Tab, Tabbed
+    ArrayList,
+    Banner,
+    CruResource,
+    KeyValue,
+    LabeledInput,
+    LabeledSelect,
+    Loading,
+    Tab,
+    Tabbed
   },
+
   mixins: [CreateEditView],
+
   async fetch() {
     const receivers = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.RECEIVER });
     const routes = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.ROUTE });
@@ -30,15 +39,16 @@ export default {
       this.$set(this.value.spec, 'name', createDefaultRouteName(nonRootRoutes.length));
     }
   },
-  asyncData(ctx) {
-    function yamlSave(value, originalValue) {
+
+  parentOverride: {
+    hideBanner:     true,
+    hideAge:        true,
+    hideBadgeState: true,
+    yamlSave(value, originalValue) {
       originalValue.yamlSaveOverride(value, originalValue);
     }
-
-    return defaultAsyncData(ctx, null, {
-      hideBanner: true, hideAge: true, hideBadgeState: true, yamlSave
-    });
   },
+
   data() {
     this.$set(this.value.spec, 'group_by', this.value.spec.group_by || []);
 
