@@ -6,7 +6,7 @@ INPUT[type='password'],
 INPUT[type='number'],
 INPUT[type='date'],
 INPUT[type='email'],
-INPUT[type='search'],
+INPUT[type='search']:not(.vs__search),
 INPUT[type='tel'],
 INPUT[type='url'],
 SELECT,
@@ -26,7 +26,7 @@ TEXTAREA,
   &:not(.focused) {
     &.success {
       border: solid 1px var(--success);
-      input, .selected { 
+      input, .selected {
         color: var(--success);
       }
 
@@ -34,10 +34,10 @@ TEXTAREA,
         color: var(--success);
       }
     }
-  
+
     &.warning {
       border: solid 1px var(--warning);
-      input, .selected { 
+      input, .selected {
         color: var(--warning);
       }
 
@@ -45,10 +45,10 @@ TEXTAREA,
         color: var(--warning);
       }
     }
-  
+
     &.error {
       border: solid 1px var(--error);
-      input, .selected { 
+      input, .selected {
         color: var(--error);
       }
 

@@ -36,7 +36,11 @@ export default {
     // show host port column if existing port data has any host ports defined
     const showHostPorts = !!rows.filter(row => !!row.hostPort).length;
 
-    return { rows, showHostPorts };
+    return {
+      rows,
+      showHostPorts,
+      workloadPortOptions: ['TCP', 'UDP']
+    };
   },
 
   computed: {
@@ -188,9 +192,8 @@ export default {
           <LabeledSelect
             v-else
             v-model="row.protocol"
-            :style="{'height':'50px'}"
             class="inline"
-            :options="['TCP', 'UDP']"
+            :options="workloadPortOptions"
             :multiple="false"
             :label="t('workload.container.ports.protocol')"
             @input="queueUpdate"
@@ -248,58 +251,69 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $remove: 75;
-  $checkbox: 75;
+$remove: 75;
+$checkbox: 75;
 
-  .title {
-    margin-bottom: 10px;
+.title {
+  margin-bottom: 10px;
 
-    .read-from-file {
-      float: right;
-    }
+  .read-from-file {
+    float: right;
   }
+}
 // 1 unit is 8%
-  .ports-headers, .ports-row{
-    display: grid;
-    grid-template-columns: 30% 30% 18% 10% 5%;
-    grid-column-gap: $column-gutter;
-    margin-bottom: 10px;
-    align-items: center;
-    & .port{
-      display: flex;
-      justify-content: space-between;
-    }
-
-    &.show-host{
-      grid-template-columns: 30% 16% 8% 16% 16% 5%;
-    }
-
+.ports-headers, .ports-row{
+  display: grid;
+  grid-template-columns: 30% 30% 18% 10% 5%;
+  grid-column-gap: $column-gutter;
+  margin-bottom: 10px;
+  align-items: center;
+  & .port{
+    display: flex;
+    justify-content: space-between;
   }
 
-  .add-host {
-    justify-self: center;
+  &.show-host{
+    grid-template-columns: 30% 16% 10% 15% 15% 5%;
   }
 
-  .ports-headers {
-    color: var(--input-label);
-  }
+}
 
-  .toggle-host-ports {
-    color: var(--primary);
-  }
+.add-host {
+  justify-self: center;
+}
 
-  .remove BUTTON {
-    padding: 0px;
-  }
+.protocol {
+  height: 100%;
+}
 
-  .ports-row INPUT {
-    height: 50px;
-  }
+.ports-headers {
+  color: var(--input-label);
+}
 
-  .footer {
-    .protip {
-      float: right;
-      padding: 5px 0;
-    }
+.toggle-host-ports {
+  color: var(--primary);
+}
+
+.remove BUTTON {
+  padding: 0px;
+}
+
+.ports-row INPUT {
+  height: 50px;
+}
+
+.footer {
+  .protip {
+    float: right;
+    padding: 5px 0;
   }
+}
+.ports-row .protocol ::v-deep .unlabeled-select,
+.ports-row .protocol ::v-deep .unlabeled-select .v-select {
+  height: 100%;
+}
+.ports-row .protocol ::v-deep .unlabeled-select .vs__dropdown-toggle {
+  padding-top: 12px;
+}
 </style>

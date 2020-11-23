@@ -11,7 +11,6 @@ import ClickExpand from '@/components/formatter/ClickExpand';
 import { get } from '@/utils/object';
 import CodeMirror from '@/components/CodeMirror';
 import { mapGetters } from 'vuex';
-import ButtonDropdown from '@/components/ButtonDropdown';
 import FileSelector from '@/components/form/FileSelector';
 import { HIDE_SENSITIVE } from '@/store/prefs';
 
@@ -22,7 +21,6 @@ export default {
     TextAreaAutoGrow,
     ClickExpand,
     CodeMirror,
-    ButtonDropdown,
     FileSelector
   },
 
@@ -528,21 +526,10 @@ export default {
 
     <div v-if="!titleAdd && (showAdd || showRead)" class="footer">
       <slot name="add" :add="add">
-        <ButtonDropdown size="sm">
-          <template #button-content>
-            <button v-if="showAdd" type="button" class="btn btn-sm add" @click="add()">
-              {{ addLabel }}
-            </button>
-            <FileSelector v-else class="btn-sm" :label="t('generic.readFromFile')" :include-file-name="true" @selected="onFileSelected" />
-          </template>
-          <template v-if="showRead && showAdd" #popover-content>
-            <ul class="list-unstyled">
-              <li>
-                <FileSelector class="btn-sm role-link" :label="readLabel" :include-file-name="true" @selected="onFileSelected" />
-              </li>
-            </ul>
-          </template>
-        </ButtonDropdown>
+        <button v-if="showAdd" type="button" class="btn btn-sm role-secondary add" @click="add()">
+          {{ addLabel }}
+        </button>
+        <FileSelector v-if="showRead" class="btn-sm role-secondary" :label="t('generic.readFromFile')" :include-file-name="true" @selected="onFileSelected" />
       </slot>
     </div>
   </div>
