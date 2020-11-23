@@ -127,6 +127,7 @@ export default {
   </div>
 </template>
 <style lang="scss" scoped>
+<<<<<<< HEAD
 .rule-path ::v-deep {
   button {
     line-height: 40px;
@@ -137,6 +138,11 @@ export default {
   }
   .labeled-input {
     padding-top: 6px;
+=======
+.rule-path {
+  input {
+    height: 55px;
+>>>>>>> e42a6263... 1875
   }
 }
 </style>
