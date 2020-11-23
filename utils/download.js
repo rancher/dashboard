@@ -7,15 +7,13 @@ export async function downloadFile(fileName, content, contentType = 'text/plain;
   return saveAs(blob, fileName);
 }
 
-// [{name: 'file1', file: 'data'}, {name: 'file2', file: 'data2'}]
+// {[fileName1]:data1, [fileName2]:data2}
 export function generateZip(files) {
   // Moving this to a dynamic const JSZip = import('jszip') didn't work... figure out later
   const zip = new JSZip();
 
   for ( const fileName in files) {
-    const file = files[fileName];
-
-    zip.file(fileName, file.data);
+    zip.file(fileName, files[fileName]);
   }
 
   return zip.generateAsync({ type: 'blob' }).then((contents) => {

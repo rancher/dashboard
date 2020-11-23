@@ -142,15 +142,16 @@ export default {
     }
 
     return {
-      name:             this.value?.metadata?.name || null,
+      allConfigMaps:     [],
+      allNodes:          null,
+      allSecrets:        [],
+      allServices:       [],
+      name:              this.value?.metadata?.name || null,
+      pvcs:              [],
+      showTabs:          false,
+      pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      allConfigMaps:    [],
-      allSecrets:       [],
-      allServices:   [],
-      pvcs:             [],
-      allNodes:         null,
-      showTabs:         false,
     };
   },
 
@@ -640,7 +641,7 @@ export default {
                 <LabeledSelect
                   v-model="container.imagePullPolicy"
                   :label="t('workload.container.imagePullPolicy')"
-                  :options="['Always', 'IfNotPresent', 'Never']"
+                  :options="pullPolicyOptions"
                   :mode="mode"
                 />
               </div>

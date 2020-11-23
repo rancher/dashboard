@@ -1,16 +1,88 @@
 <script>
 import { createPopper } from '@popperjs/core';
+import { get } from '@/utils/object';
+import LabeledFormElement from '@/mixins/labeled-form-element';
+import VueSelectOverrides from '@/mixins/vue-select-overrides';
 
 export default {
-  props: {
-    placement: {
+  mixins:     [LabeledFormElement, VueSelectOverrides],
+  props:  {
+    disabled: {
+      default: false,
+      type:    Boolean,
+    },
+    mode: {
+      default: 'edit',
       type:    String,
-      default: 'bottom'
+    },
+    optionKey: {
+      default: null,
+      type:    String,
+    },
+    optionLabel: {
+      default: 'label',
+      type:    String,
+    },
+    options: {
+      default: null,
+      type:    Array,
+    },
+    placement: {
+      default: null,
+      type:    String,
+    },
+    placeholder: {
+      type:    String,
+      default: '',
+    },
+    popperOverride: {
+      type:    Function,
+      default: null,
+    },
+    reduce: {
+      default: (e) => {
+        if (e && typeof e === 'object' && e.value !== undefined) {
+          return e.value;
+        }
+
+        return e;
+      },
+      type: Function,
+    },
+    searchable: {
+      default: false,
+      type:    Boolean,
+    },
+    status: {
+      type:    String,
+      default: null,
+    },
+    value: {
+      default: null,
+      type:    [String, Object, Number, Array, Boolean],
     },
   },
 
   methods: {
+    getOptionLabel(option) {
+      if (this.$attrs['get-option-label']) {
+        return this.$attrs['get-option-label'](option);
+      }
+      if (get(option, this.optionLabel)) {
+        if (this.localizedLabel) {
+          return this.$store.getters['i18n/t'](get(option, this.optionLabel));
+        } else {
+          return get(option, this.optionLabel);
+        }
+      } else {
+        return option;
+      }
+    },
     withPopper(dropdownList, component, { width }) {
+      if (this.popperOverride) {
+        return this.popperOverride(dropdownList, component, { width });
+      }
+
       /**
        * We need to explicitly define the dropdown width since
        * it is usually inherited from the parent with CSS.
@@ -28,12 +100,11 @@ export default {
        * above.
        */
       const popper = createPopper(component.$refs.toggle, dropdownList, {
-
         placement: this.placement,
         modifiers: [
           {
             name:    'offset',
-            options: { offset: [0, -1] }
+            options: { offset: [0, 2] },
           },
           {
             name:    'toggleClass',
@@ -43,7 +114,7 @@ export default {
               component.$el.setAttribute('x-placement', state.placement);
             },
           },
-        ]
+        ],
       });
 
       /**
@@ -52,17 +123,56 @@ export default {
        */
       return () => popper.destroy();
     },
+
+    focusSearch() {
+      this.$nextTick(() => {
+        this.$refs['select-input'].searchEl.focus();
+      });
+    },
+    get,
   },
 };
 </script>
 
 <template>
-  <v-select
-    v-bind="$attrs"
-    append-to-body
-    :calculate-position="placement ? withPopper : undefined"
-    v-on="$listeners"
+  <div
+    class="unlabeled-select"
+    :class="{
+      disabled: disabled && !isView,
+      focused,
+      [mode]: true,
+      [status]: status,
+      taggable: $attrs.taggable,
+    }"
+    @click="focusSearch"
+    @focus="focusSearch"
   >
-    <slot />
-  </v-select>
+    <v-select
+      v-if="!isView"
+      ref="select-input"
+      v-bind="$attrs"
+      class="inline"
+      :autoscroll="true"
+      :append-to-body="!!placement"
+      :calculate-position="placement ? withPopper : undefined"
+      :disabled="isView || disabled"
+      :get-option-key="(opt) => (optionKey ? get(opt, optionKey) : getOptionLabel(opt))"
+      :get-option-label="(opt) => getOptionLabel(opt)"
+      :label="optionLabel"
+      :options="options"
+      :map-keydown="mappedKeys"
+      :placeholder="placeholder"
+      :reduce="(x) => reduce(x)"
+      :searchable="isSearchable"
+      :value="value != null ? value : ''"
+      @input="(e) => $emit('input', e)"
+      @search:blur="onBlur"
+      @search:focus="onFocus"
+    >
+      <!-- Pass down templates provided by the caller -->
+      <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+        <slot :name="slot" v-bind="scope" />
+      </template>
+    </v-select>
+  </div>
 </template>

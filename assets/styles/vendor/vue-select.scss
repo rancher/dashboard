@@ -9,7 +9,6 @@
   }
 }
 
-
 .v-select,
 .v-select * {
   box-sizing: border-box;
@@ -23,7 +22,6 @@
   .vs__dropdown-toggle,
   .vs__clear,
   .vs__search,
-  // .vs__selected,
   .vs__open-indicator {
     cursor: not-allowed;
     color: var(--dropdown-disabled-text);
@@ -33,24 +31,19 @@
 .vs__dropdown-menu {
   display: block;
   position: absolute;
-  top: calc(100% - 1px);
-  left: 0;
+  left: -2px;
   z-index: z-index('dropdownContent');
   padding: 5px 0;
   margin: 0;
-  width: 100%;
+  width: calc(100% + 4px);
   max-height: 350px;
   min-width: 160px;
   overflow-y: auto;
   border: 1px solid var(--dropdown-border);
-  border-top-style: none;
   border-radius: var(--border-radius);
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
   text-align: left;
   list-style: none;
   background: var(--dropdown-bg);
-  box-shadow: 0px 8px 16px 0px var(--shadow);
 
   &::-webkit-scrollbar-thumb {
     background-color: var(--scrollbar-thumb-dropdown) !important;
@@ -60,7 +53,6 @@
   &[data-popper-placement='top'] {
     border-radius: 4px 4px 0 0;
     border-top-style: solid;
-    border-bottom-style: none;
     box-shadow: 0px -8px 16px 0px var(--shadow);
   }
 }
@@ -89,8 +81,8 @@
     color: var(--dropdown-disabled-text);
     cursor: not-allowed;
 
-    HR {
-      cursor: default
+    hr {
+      cursor: default;
     }
   }
 
@@ -104,7 +96,7 @@
     color: var(--dropdown-hover-text);
     background: var(--dropdown-hover-bg);
 
-    A {
+    a {
       color: var(--dropdown-hover-text);
       text-decoration: none;
     }
@@ -114,7 +106,6 @@
 .vs__dropdown-toggle {
   appearance: none;
   display: flex;
-  // padding: 0 0 4px 0;
   background: var(--input-bg);
   border: 1px solid var(--dropdown-border);
   border-radius: var(--border-radius);
@@ -139,7 +130,9 @@
   align-items: center;
   pointer-events: none;
   position: relative;
-  left: -2px;
+  width: 100%;
+  justify-content: flex-end;
+  flex-shrink: 8;
 
   svg {
     display: none;
@@ -161,32 +154,17 @@
   cursor: pointer;
 }
 
-.vs--unsearchable .vs__search {
-  background-color: var(--default-text);
-  width: 0px;
-  padding: 0;
-  align-self: center;
-  border: 0;
-  display: none;
-}
-
-.vs--open .vs__dropdown-toggle {
-  border-bottom-color: transparent;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-$transition-timing-function: cubic-bezier(1.000, -0.115, 0.975, 0.855);
+$transition-timing-function: cubic-bezier(1, -0.115, 0.975, 0.855);
 $transition-duration: 150ms;
 
-.vs__open-indicator {
+.vs__action:after {
   fill: var(--dropdown-disabled-text);
   transform: scale(1);
   transition: transform $transition-duration $transition-timing-function;
   transition-timing-function: $transition-timing-function;
 }
 
-.vs--open .vs__open-indicator {
+.vs--open .vs__actions:after {
   transform: rotate(180deg) scale(1);
 }
 
@@ -199,7 +177,7 @@ $transition-duration: 150ms;
  * below, the cancel button will still appear in chrome.
  * If it's up here on it's own, it'll hide it.
  */
- .vs__search::-webkit-search-cancel-button {
+.vs__search::-webkit-search-cancel-button {
   display: none;
 }
 
@@ -237,11 +215,10 @@ $transition-duration: 150ms;
   }
 }
 .vs--single.vs--searching:not(.vs--open):not(.vs--loading) {
-    .vs__search {
-      opacity: .2;
-    }
+  .vs__search {
+    opacity: 0.2;
+  }
 }
-
 
 /* States */
 
@@ -263,7 +240,7 @@ $transition-duration: 150ms;
   border: 1px solid var(--primary);
   border-radius: 3px;
   color: var(--link-text);
-  padding: 6px;
+  margin-left: 7px;
 
   &:not(:last-of-type) {
     margin-right: 2px;
@@ -296,47 +273,49 @@ $transition-duration: 150ms;
 .v-select.inline {
   background-color: transparent;
 
-  &.vs--single .vs__selected {
-    color: var(--input-text);
-    position: absolute;
-    top: 0;
-    bottom:0;
-    align-self: start;
-    margin: 4px;
+  &.vs--single {
+    min-height: 25px;
+    &.vs--open {
+      .vs__selected {
+        position: absolute;
+        opacity: 0.4;
+      }
+      .vs__search {
+        margin-left: 7px;;
+      }
+    }
+    .vs__selected {
+      color: var(--input-text);
+    }
   }
 
   .vs__dropdown-menu {
-      min-width: 0px;
+    min-width: 0px;
+    margin-top: 2px;
   }
   .vs__dropdown-toggle {
     background-color: var(--input-bg);
-    border:none;
-    height: 100%;
+    border: none;
     padding: none;
     border-radius: var(--border-radius);
     border: 1px solid var(--dropdown-border);
   }
 
   &.vs--single .vs__selected-options {
-    display: flex;
-    flex-direction: column;
     align-items: center;
-    width: 100%;
   }
   .vs__search {
-    background-color: rgba(0,0,0,0);
-    width: 100%;
-    &:hover{
-      background-color: rgba(0,0,0,0);
+    background-color: rgba(0, 0, 0, 0);
+    &:hover {
+      background-color: rgba(0, 0, 0, 0);
     }
   }
-  .vs__open-indicator{
+  .vs__open-indicator {
     fill: var(--input-label);
   }
   .vs__clear {
-    display:none;
+    display: none;
   }
-
 }
 
 .v-select.mini {
@@ -351,15 +330,17 @@ $transition-duration: 150ms;
     margin: 0;
   }
 
-  INPUT {
+  input {
     padding: 0;
   }
 }
 
-.vs__selected-options INPUT {
-  width: auto;
+.vs__selected-options input {
+  width: 0;
   display: inline-block;
   border: 0;
+  background-color: var(--input-bg);
+  color: var(--input-text);
 }
 
 header .vs-select .vs__dropdown-toggle {

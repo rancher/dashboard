@@ -6,8 +6,11 @@ import { ucFirst } from '@/utils/string';
 import { createPopper } from '@popperjs/core';
 import $ from 'jquery';
 import { CATALOG } from '@/config/types';
+import Select from '@/components/form/Select';
 
 export default {
+  components: { Select },
+
   data() {
     return { previous: null };
   },
@@ -163,6 +166,10 @@ export default {
         strategy:  'fixed',
         modifiers: [
           {
+            name:    'offset',
+            options: { offset: [0, -2] },
+          },
+          {
             name:    'toggleClass',
             enabled: true,
             phase:   'write',
@@ -181,18 +188,17 @@ export default {
 
 <template>
   <div class="filter">
-    <v-select
+    <Select
       ref="select"
       key="product"
       :value="value"
-      :clearable="false"
+      :searchable="false"
       :selectable="option => !option.disabled"
       :options="options"
       :reduce="opt=>opt.value"
-      :calculate-position="withPopper"
+      :popper-override="withPopper"
       :append-to-body="true"
-
-      label="label"
+      placement="bottom"
       @input="change"
     >
       <template v-slot:option="opt">
@@ -205,7 +211,7 @@ export default {
           <i v-if="opt.kind === 'external'" class="icon icon-external-link ml-10" />
         </template>
       </template>
-    </v-select>
+    </Select>
     <button v-shortkey.once="['p']" class="hide" @shortkey="focus()" />
     <button v-shortkey.once="['f']" class="hide" @shortkey="switchToFleet()" />
     <button v-shortkey.once="['e']" class="hide" @shortkey="switchToExplorer()" />
@@ -214,83 +220,87 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .filter ::v-deep .v-select {
-    max-width: 100%;
-    display: inline-block;
-
+.filter ::v-deep .unlabeled-select {
+  background-color: transparent;
+  &:not(.focused) {
+    border: var(--outline-width) solid transparent;
+  }
+  .v-select {
     &.vs--disabled .vs__actions {
       display: none;
     }
 
-    .vs__actions:after {
-      fill: white !important;
-      color: white !important;
+    .vs__actions {
+      &:after {
+        fill: white !important;
+        color: white !important;
+      }
     }
 
     .vs__dropdown-toggle {
+      margin-bottom: -4px;
       height: var(--header-height);
-      // margin-left: 35px;
       background-color: transparent;
-      border: 0;
       position: relative;
-      // left: 35px;
+      padding-top: 0;
     }
 
     .vs__selected {
       user-select: none;
       cursor: default;
       color: white;
-      line-height: calc(var(--header-height) - 14px);
+      line-height: calc(var(--header-height) - 7px);
       position: relative;
       left: 40px;
+      align-self: center;
+    }
+    .vs__selected-options {
+      flex-wrap: wrap;
+    }
+    .unlabeled-select INPUT[type='search'] {
+      margin-left: 40px;
     }
   }
-
-  .filter ::v-deep INPUT {
-    width: auto;
-    background-color: transparent;
-  }
-
-  .filter ::v-deep INPUT:hover {
-    background-color: transparent;
-  }
-
+}
 </style>
 
 <style lang="scss">
-  .product-menu {
-    width: 300px;
-    max-height: 90vh;
+// these styles exist because the dd is placed with Popper and is outside the flow of the component, product-menu gets appended to the menu
+.product-menu {
+  width: 300px;
+  max-height: 90vh;
+  &.vs__dropdown-menu {
+    outline: none;
+  }
 
-    .vs__dropdown-option {
-      padding: 10px;
-      text-decoration: none;
-      border-left: 5px solid transparent;
+  .vs__dropdown-option {
+    padding: 10px;
+    text-decoration: none;
+    border-left: 5px solid transparent;
 
-      &.vs__dropdown-option--disabled {
-        // The dividers
-        padding: 0;
-      }
-
-      .product-icon {
-        color: var(--product-icon);
-        margin-right: 5px;
-      }
-
-      UL {
-        margin: 0;
-      }
+    &.vs__dropdown-option--disabled {
+      // The dividers
+      padding: 0;
     }
 
-    .vs__dropdown-option--selected {
-      color: var(--body-text);
-      // font-weight: bold;
-      background: var(--nav-active);
-      border-left: 5px solid var(--primary);
+    .product-icon {
+      color: var(--product-icon);
+      margin-right: 5px;
+    }
 
-      .product-icon {
-        color: var(--product-icon-active);
-      }
+    UL {
+      margin: 0;
     }
   }
+
+  .vs__dropdown-option--selected {
+    color: var(--body-text);
+    background: var(--nav-active);
+    border-left: 5px solid var(--primary);
+
+    .product-icon {
+      color: var(--product-icon-active);
+    }
+  }
+}
 </style>

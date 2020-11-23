@@ -1,12 +1,13 @@
 <script>
 import InputWithSelect from '@/components/form/InputWithSelect';
 import LabeledInput from '@/components/form/LabeledInput';
-import LabeledSelect from '@/components/form/LabeledSelect';
+import Select from '@/components/form/Select';
 import { get, set } from '@/utils/object';
+import debounce from 'lodash/debounce';
 
 export default {
   components: {
-    InputWithSelect, LabeledInput, LabeledSelect
+    InputWithSelect, LabeledInput, Select
   },
   props:      {
     value: {
@@ -53,6 +54,10 @@ export default {
       return this.serviceTargetStatus === 'warning' ? this.t('ingress.rules.target.doesntExist') : null;
     },
   },
+  created() {
+    this.queueUpdate = debounce(this.update, 500);
+    this.queueUpdatePathTypeAndPath = debounce(this.updatePathTypeAndPath, 500);
+  },
   methods: {
     update() {
       const servicePort = Number.parseInt(this.servicePort) || this.servicePort;
@@ -82,14 +87,14 @@ export default {
         :placeholder="t('ingress.rules.path.placeholder', undefined, true)"
         :select-value="pathType"
         :text-value="path"
-        @input="updatePathTypeAndPath"
+        @input="queueUpdatePathTypeAndPath"
       />
     </div>
     <div v-else class="col span-4">
-      <input v-model="path" :placeholder="t('ingress.rules.path.placeholder', undefined, true)" @input="update" />
+      <input v-model="path" :placeholder="t('ingress.rules.path.placeholder', undefined, true)" @input="queueUpdate" />
     </div>
     <div class="col" :class="{'span-3': ingress.showPathType, 'span-4': !ingress.showPathType}">
-      <LabeledSelect
+      <Select
         v-model="serviceName"
         option-label="label"
         option-key="label"
@@ -98,7 +103,7 @@ export default {
         :taggable="true"
         :tooltip="serviceTargetTooltip"
         :hover-tooltip="true"
-        @input="update(); servicePort = ''"
+        @input="queueUpdate(); servicePort = ''"
       />
     </div>
     <div class="col" :class="{'span-2': ingress.showPathType, 'span-3': !ingress.showPathType}" :style="{'margin-right': '0px'}">
@@ -106,14 +111,14 @@ export default {
         v-if="portOptions.length === 0"
         v-model="servicePort"
         :placeholder="t('ingress.rules.port.placeholder')"
-        @input="update"
+        @input="queueUpdate"
       />
-      <LabeledSelect
+      <Select
         v-else
         v-model="servicePort"
         :options="portOptions"
         :placeholder="t('ingress.rules.port.placeholder')"
-        @input="update"
+        @input="queueUpdate"
       />
     </div>
     <button class="btn btn-sm role-link col" @click="$emit('remove')">
@@ -122,9 +127,16 @@ export default {
   </div>
 </template>
 <style lang="scss" scoped>
-.rule-path {
-  input {
-    height: 55px;
+.rule-path ::v-deep {
+  button {
+    line-height: 40px;
+  }
+
+  .v-select INPUT {
+    height: 50px;
+  }
+  .labeled-input {
+    padding-top: 6px;
   }
 }
 </style>

@@ -112,8 +112,16 @@ export default {
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
+.value-from ::v-deep {
+  .v-select {
+    height: 50px;
+  }
 
+  INPUT:not(.vs__search) {
+    height: 50px;
+  }
+}
 .value-from, .value-from-headers {
   display: grid;
   grid-template-columns: 20% 20% 20% 5% 20% auto;

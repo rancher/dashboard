@@ -1,31 +1,30 @@
 <script>
 import { mapGetters } from 'vuex';
 import Favorite from '@/components/nav/Favorite';
-import ButtonDropdown from '@/components/ButtonDropdown';
 import TypeDescription from '@/components/TypeDescription';
+import { get } from '@/utils/object';
 
 export default {
   components: {
-    ButtonDropdown,
     Favorite,
     TypeDescription,
   },
-  props:      {
+  props: {
     resource: {
       type:     String,
-      required: true
+      required: true,
     },
     schema: {
       type:    Object,
-      default: null
+      default: null,
     },
     typeDisplay: {
       type:    String,
-      default: ''
+      default: '',
     },
     isCreatable: {
       type:    Boolean,
-      default: false
+      default: false,
     },
     isYamlCreatable: {
       type:    Boolean,
@@ -33,19 +32,20 @@ export default {
     },
     createLocation: {
       type:    Object,
-      default: null
+      default: null,
     },
     yamlCreateLocation: {
       type:    Object,
-      default: null
-    }
+      default: null,
+    },
   },
 
   computed: {
+    get,
     ...mapGetters(['isExplorer']),
 
     resourceName() {
-      if ( this.schema ) {
+      if (this.schema) {
         return this.$store.getters['type-map/labelFor'](this.schema);
       }
 
@@ -62,64 +62,26 @@ export default {
       {{ typeDisplay }} <Favorite v-if="isExplorer" :resource="resource" />
     </h1>
     <div class="actions">
-      <ButtonDropdown
-        v-if="isCreatable || isYamlCreatable"
+      <nuxt-link
+        v-if="isCreatable"
+        :to="createLocation"
+        class="btn role-primary"
       >
-        <template #button-content="slotProps">
-          <nuxt-link
-            v-if="isCreatable"
-            :to="createLocation"
-            class="btn bg-transparent"
-            :class="slotProps.buttonSize"
-          >
-            {{ t("resourceList.head.create") }}
-          </nuxt-link>
-          <nuxt-link
-            v-else-if="!isCreatable && isYamlCreatable"
-            :to="yamlCreateLocation"
-            class="btn bg-transparent"
-            :class="slotProps.buttonSize"
-          >
-            {{ t("resourceList.head.createFromYaml") }}
-          </nuxt-link>
-          <a
-            v-else
-            href="#"
-            class="btn bg-transparent"
-            :class="slotProps.buttonSize"
-            disabled="true"
-            @click.prevent.self
-          >
-            {{ t("resourceList.head.create") }}
-          </a>
-        </template>
-        <template
-          v-if="isCreatable && isYamlCreatable"
-          slot="popover-content"
-        >
-          <ul class="list-unstyled menu" style="margin: -1px;">
-            <li class="hand">
-              <nuxt-link
-                v-if="isCreatable"
-                :to="createLocation"
-              >
-                {{ t("resourceList.head.createResource", { resourceName }) }}
-              </nuxt-link>
-            </li>
-            <li class="divider">
-              <div class="divider-inner"></div>
-            </li>
-            <li class="hand">
-              <nuxt-link
-                v-if="isYamlCreatable"
-                :to="yamlCreateLocation"
-              >
-                {{ t("resourceList.head.createFromYaml") }}
-              </nuxt-link>
-            </li>
-          </ul>
-        </template>
-      </ButtonDropdown>
+        {{ t('resourceList.head.create') }}
+      </nuxt-link>
+      <nuxt-link
+        v-if="isYamlCreatable"
+        :to="yamlCreateLocation"
+        class="btn role-primary"
+      >
+        {{ t('resourceList.head.createFromYaml') }}
+      </nuxt-link>
     </div>
   </header>
 </template>
+
+<style lang="scss" scoped>
+.actions {
+  grid-column: max-content;
+}
+</style>

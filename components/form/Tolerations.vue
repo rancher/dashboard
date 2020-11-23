@@ -1,7 +1,7 @@
 <script>
 import { mapGetters } from 'vuex';
 import LabeledInput from '@/components/form/LabeledInput';
-import LabeledSelect from '@/components/form/LabeledSelect';
+import Select from '@/components/form/Select';
 import UnitInput from '@/components/form/UnitInput';
 import { _VIEW } from '@/config/query-params';
 import { random32 } from '@/utils/string';
@@ -9,7 +9,7 @@ import { random32 } from '@/utils/string';
 export default {
   components: {
     LabeledInput,
-    LabeledSelect,
+    Select,
     // SortableTable,
     UnitInput
   },
@@ -147,7 +147,7 @@ export default {
         <LabeledInput v-model="rule.key" :mode="mode" />
       </div>
       <div class="col">
-        <LabeledSelect
+        <Select
           id="operator"
           v-model="rule.operator"
           :options="operatorOpts"
@@ -166,7 +166,7 @@ export default {
         </div>
       </template>
       <div class="col">
-        <LabeledSelect
+        <Select
           v-model="rule.effect"
           :options="effectOpts"
           :mode="mode"
@@ -195,24 +195,26 @@ export default {
 </template>
 
 <style lang='scss' scoped>
-  .tolerations{
-    width: 100%;
-  }
+.tolerations{
+  width: 100%;
+}
 
-  .rule, .toleration-headers{
-    display: grid;
-    grid-template-columns: 20% 10% 20% 10% 20% 10%;
-    grid-gap: $column-gutter;
-    align-items: center;
-  }
+.rule, .toleration-headers{
+  display: grid;
+  grid-template-columns: 20% 10% 20% 10% 20% 10%;
+  grid-gap: $column-gutter;
+  align-items: center;
+}
 
-  .rule {
-    margin-bottom: 20px;
+.rule {
+  margin-bottom: 20px;
+  .col {
+    height: 100%;
   }
+}
 
-  .toleration-headers SPAN {
-    color: var(--input-label);
-    margin-bottom: 10px;
-  }
-
+.toleration-headers SPAN {
+  color: var(--input-label);
+  margin-bottom: 10px;
+}
 </style>

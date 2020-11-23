@@ -54,10 +54,23 @@ export default {
     notView() {
       return (this.mode !== _VIEW);
     },
+
+    isSearchable() {
+      const { searchable } = this;
+      const options = ( this.options || [] );
+
+      if (searchable || options.length >= 10) {
+        return true;
+      }
+
+      return false;
+    },
   },
 
   methods: {
     onFocus() {
+      this.$emit('on-focus');
+
       return this.onFocusLabeled();
     },
 
@@ -67,6 +80,8 @@ export default {
     },
 
     onBlur() {
+      this.$emit('on-blur');
+
       return this.onBlurLabeled();
     },
 

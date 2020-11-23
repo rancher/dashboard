@@ -2,13 +2,17 @@
 import labeledFormElement from '@/mixins/labeled-form-element';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import Select from '@/components/form/Select';
 import UnitInput from '@/components/form/UnitInput';
 export default {
   components: {
-    LabeledInput, LabeledSelect, UnitInput
+    LabeledInput,
+    LabeledSelect,
+    UnitInput,
+    Select,
   },
-  mixins:     [labeledFormElement],
-  props:      {
+  mixins: [labeledFormElement],
+  props:  {
     disabled: {
       type:    Boolean,
       default: false,
@@ -26,22 +30,22 @@ export default {
 
     selectLabel: {
       type:    String,
-      default: ''
+      default: '',
     },
 
     selectValue: {
       type:    String,
-      default: null
+      default: null,
     },
 
     optionLabel: {
       type:    String,
-      default: 'label'
+      default: 'label',
     },
 
     options: {
       type:     Array,
-      required: true
+      required: true,
     },
 
     selectBeforeText: {
@@ -51,34 +55,37 @@ export default {
 
     textLabel: {
       type:    String,
-      default: ''
+      default: '',
     },
 
     textRequired: {
       type:    Boolean,
-      default: false
+      default: false,
     },
 
     textValue: {
       type:    [String, Number],
-      default: ''
+      default: '',
     },
 
     placeholder: {
       type:    String,
-      default: ''
+      default: '',
     },
   },
 
   data() {
-    return { selected: this.selectValue || this.options[0], string: this.textValue };
+    return {
+      selected: this.selectValue || this.options[0],
+      string:   this.textValue,
+    };
   },
 
   methods: {
     focus() {
       const comp = this.$refs.text;
 
-      if ( comp ) {
+      if (comp) {
         comp.focus();
       }
     },
@@ -86,29 +93,57 @@ export default {
     change() {
       this.$emit('input', { selected: this.selected, text: this.string });
     },
-  }
+  },
 };
 </script>
 
 <template>
   <div v-if="isView && !selectBeforeText">
-    <UnitInput mode="view" :value="string" :label="textLabel" :suffix="selected" />
+    <UnitInput
+      mode="view"
+      :value="string"
+      :label="textLabel"
+      :suffix="selected"
+    />
   </div>
-  <div v-else :class="{'select-after':!selectBeforeText}" class="input-container row" @input="change">
+  <div
+    v-else
+    :class="{ 'select-after': !selectBeforeText }"
+    class="input-container row"
+    @input="change"
+  >
     <LabeledSelect
+      v-if="selectLabel"
       v-model="selected"
       :label="selectLabel"
-      :class="{'in-input': !isView}"
+      :class="{ 'in-input': !isView }"
       :options="options"
-      :searchable="searchable"
-      :disbaled="isView"
+      :searchable="false"
       :clearable="false"
-      :disabled="disabled"
+      :disabled="disabled || isView"
       :taggable="taggable"
-      :create-option="name => ({ label: name, value: name })"
+      :create-option="(name) => ({ label: name, value: name })"
       :multiple="false"
       :mode="mode"
       :option-label="optionLabel"
+      :placement="$attrs.placement ? $attrs.placement : null"
+      :v-bind="$attrs"
+      @input="change"
+    />
+    <Select
+      v-else
+      v-model="selected"
+      :options="options"
+      :searchable="searchable"
+      :disabled="disabled || isView"
+      :clearable="false"
+      :class="{ 'in-input': !isView }"
+      :taggable="taggable"
+      :create-option="(name) => ({ label: name, value: name })"
+      :multiple="false"
+      :mode="mode"
+      :option-label="optionLabel"
+      :placement="$attrs.placement ? $attrs.placement : null"
       :v-bind="$attrs"
       @input="change"
     />
@@ -143,112 +178,82 @@ export default {
   </div>
 </template>
 
-<style lang='scss'>
-  .input-container {
-    display: flex;
-    height: 52px;
+<style lang='scss' scoped>
+.input-container {
+  display: flex;
+  height: 52px;
 
-    &.select-after {
-      flex-direction: row-reverse;
-
-      & .input-string {
-        border-radius: var(--border-radius) 0 0  var(--border-radius);
-        border-right: 0;
-        border-left: 1px solid var(--border);
-      }
-
-      & .in-input {
-        border-radius: 0 var(--border-radius) var(--border-radius) 0;
-        border-left: 0;
-        border-right: 1px solid var(--border);
-
-        &.labeled-select {
-          width: 20%;
-
-          .selected{
-            color: var(--input-text);
-            text-align: center;
-            margin-right: 1em;
-          }
-        }
-      }
-    }
+  &.select-after {
+    flex-direction: row-reverse;
 
     & .input-string {
-      padding-right: 8px;
-      height: 100%;
-      width:60%;
-      flex-grow: 1;
-      border-radius: 0 var(--border-radius) var(--border-radius) 0;
-      border-left: 0;
-      margin-left: -1px;
-      display: initial;
+      border-radius: var(--border-radius) 0 0 var(--border-radius);
+      border-right: 0;
+      border-left: 1px solid var(--border);
     }
 
-    .in-input {
-      margin-right: 0;
-      border-radius: var(--border-radius) 0 0 var(--border-radius);
+    & .in-input {
+      border-radius: 0 var(--border-radius) var(--border-radius) 0;
+      border-left: 0;
+      border-right: 1px solid var(--border);
 
       &.labeled-select {
-        display: block;
+        .selected {
+          color: var(--input-text);
+          text-align: center;
+          margin-right: 1em;
+        }
+      }
+
+    }
+  }
+
+  & .input-string {
+    padding-right: 0;
+    height: 100%;
+    width: 60%;
+    flex-grow: 1;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    border-left: 0;
+    margin-left: -1px;
+    display: initial;
+  }
+
+  & .in-input {
+    margin-right: 0;
+    border-radius: var(--border-radius) 0 0 var(--border-radius);
+
+    &.labeled-select.focused ::v-deep,
+    &.unlabeled-select.focused ::v-deep {
+      outline: none;
+      border: var(--outline-width) solid var(--outline);
+    }
+
+    &.labeled-select ::v-deep,
+    &.unlabeled-select ::v-deep {
+      box-shadow: none;
+      width: 20%;
+      background-color: var(--accent-btn);
+      z-index: 1;
+      border: solid 1px var(--primary);
+
+      .vs__selected {
+        color: var(--input-text);
+      }
+
+      .vs__dropdown-menu {
         box-shadow: none;
-        width: 40%;
+        .vs__dropdown-option {
+          padding: 3px 5px;
+        }
+      }
+
+      .vs__dropdown-toggle {
+        color: var(--primary) !important;
         height: 100%;
-        background-color: var(--accent-btn);
-        border: solid 1px var(--primary);
-        position: relative;
-        z-index: 1;
-
-        .vs__selected {
-          margin: 0;
-          color: var(--input-text)
-        }
-
-        .vs__dropdown-menu {
-          width: calc(100% + 2px);
-          left: -1px;
-          box-shadow: none;
-          border: 1px solid var(--primary);
-          .vs__dropdown-option {
-            padding: 3px 5px;
-          }
-        }
-
-        .vs__dropdown-toggle {
-          color: var(--primary) !important;
-          height: 100%;
-          padding: none;
-          display: flex;
-          align-items: stretch;
-          border-radius: var(--border-radius) 0 0 var(--border-radius);
-          & * {
-            padding: 0
-          }
-        }
-
-        .vs__selected-options {
-          display: -webkit-box;
-          & .labeled-input {
-            top:10px;
-            & LABEL, .selected {
-                  color: var(--primary);
-            }
-          }
-        }
-
-        .vs__actions {
-          padding: 2px;;
-        }
-
-        .vs__open-indicator {
-          fill: var(--primary);
-          transform: scale(0.75);
-        }
-
-        &.vs--open .vs__open-indicator {
-          transform: rotate(180deg) scale(0.75);
-        }
+        border-radius: var(--border-radius) 0 0 var(--border-radius);
       }
     }
   }
+}
 </style>

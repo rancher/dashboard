@@ -98,7 +98,15 @@ export default {
 
 <template>
   <div>
-    <CruResource :validation-passed="!!name && !!value.spec.benchmarkVersion" :done-route="doneRoute" :resource="value" :mode="mode" @finish="save">
+    <CruResource
+      :validation-passed="!!name && !!value.spec.benchmarkVersion"
+      done-route="doneRoute"
+      :resource="value"
+      :mode="mode"
+      :errors="errors"
+      @finish="save"
+      @error="e=>errors = e"
+    >
       <template>
         <div class="spacer"></div>
         <div class="row">

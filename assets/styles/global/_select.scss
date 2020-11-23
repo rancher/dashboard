@@ -1,0 +1,116 @@
+.labeled-select {
+  cursor: text;
+  padding: 0;
+  width: 100%;
+
+  .selected {
+    padding-top: 17px;
+  }
+}
+
+.labeled-select,
+.unlabeled-select {
+  min-width: 75px;
+  height: 100%;
+
+  .v-select {
+    &.inline {
+      .vs__search {
+        background-color: transparent;
+      }
+
+      .vs__dropdown-toggle,
+      .vs__dropdown-toggle > * {
+        background-color: transparent;
+        border: transparent;
+      }
+
+      .vs__dropdown-menu {
+        outline: none;
+      }
+
+      .selected {
+        position: relative;
+        top: 1.4em;
+      }
+    }
+  }
+  .v-select.inline.vs--single {
+    &.vs--searching .vs__selected {
+      display: none;
+    }
+    &:not(.vs--searching) {
+      .vs__selected-options {
+        overflow: hidden;
+        flex-wrap: nowrap;
+        .vs__selected {
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          display: inline-block;
+        }
+      }
+    }
+  }
+
+  .v-select.inline:not(.vs--single) {
+    margin-bottom: -4px; // targets multi-select tag boxes to make the same size as rows next to it
+    min-height: 30px;
+
+    .vs__selected {
+      min-height: 25px;
+      padding: 0 7px;
+
+      &:not(:only-child) {
+        margin-bottom: 3px;
+      }
+    }
+  }
+
+  &.focused {
+    outline: none;
+    border: var(--outline-width) solid var(--outline);
+    box-shadow: none;
+    .v-select {
+      // Can toggle this to get full width dd - maybe make an option?
+      .vs__dropdown-menu {
+        min-width: max-content;
+      }
+    }
+  }
+}
+
+.unlabeled-select {
+  background-color: var(--input-bg);
+  border-radius: var(--border-radius);
+  border: solid var(--outline-width) var(--input-border);
+  color: var(--input-text);
+
+  .vs--single .vs__selected-options {
+    flex-wrap: nowrap;
+  }
+
+  .v-select {
+    &.inline {
+      height: 100%;
+
+      .vs__dropdown-toggle {
+        height: 100%;
+      }
+      .vs__actions {
+        width: auto;
+      }
+    }
+  }
+
+  &:not(.view) {
+    background-color: var(--input-bg);
+
+    &:hover {
+      &,
+      .vs__dropdown-menu {
+        background: var(--input-hover-bg);
+      }
+    }
+  }
+}

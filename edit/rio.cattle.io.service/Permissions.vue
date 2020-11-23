@@ -3,12 +3,14 @@ import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt, sameContents } from '@/utils/array';
 import { clone } from '@/utils/object';
+import Select from '@/components/form/Select';
 
 const READ_VERBS = ['get', 'list', 'watch'];
 const WRITE_VERBS = ['create', 'delete', 'get', 'list', 'patch', 'update', 'watch'];
 
 export default {
-  props: {
+  components: { Select },
+  props:      {
     value: {
       type:    Array,
       default: null,
@@ -160,7 +162,7 @@ export default {
           <template v-else>
             <td class="verbs">
               <span v-if="isView">{{ row.verbs.join(',') }}</span>
-              <v-select
+              <Select
                 v-else
                 ref="verbs"
                 v-model="row.verbs"
