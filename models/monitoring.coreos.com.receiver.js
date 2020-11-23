@@ -1,5 +1,6 @@
 import { canCreate, updateConfig } from '@/utils/alertmanagerconfig';
 import { isEmpty } from '@/utils/object';
+import { MONITORING } from '@/config/types';
 
 export const RECEIVERS_TYPES = [
   {
@@ -150,6 +151,24 @@ export default {
     ];
 
     return rules;
+  },
+
+  routes() {
+    if (!this.$rootGetters['cluster/haveAll'](MONITORING.SPOOFED.ROUTE)) {
+      throw new Error('The routes have not been loaded');
+    }
+
+    return this.$rootGetters['cluster/all'](MONITORING.SPOOFED.ROUTE);
+  },
+
+  hasDependentRoutes() {
+    return !!this.routes.find(route => route.spec.receiver === this.id);
+  },
+
+  preventDeletionMessage() {
+    if (this.hasDependentRoutes) {
+      return `There are still routes using this receiver. You cannot delete this receiver while it's in use.`;
+    }
   },
 
 };

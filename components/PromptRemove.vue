@@ -2,13 +2,13 @@
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@/utils/object';
 import { NAMESPACE, RIO } from '@/config/types';
-import InfoBox from '@/components/InfoBox';
+import Card from '@/components/Card';
 import { alternateLabel } from '@/utils/platform';
 import LinkDetail from '@/components/formatter/LinkDetail';
 import { uniq } from '@/utils/array';
 
 export default {
-  components: { InfoBox, LinkDetail },
+  components: { Card, LinkDetail },
   data() {
     return {
       confirmName: '', error: '', warning: '', preventDelete: false
@@ -122,6 +122,8 @@ export default {
       let message;
       const preventDeletionMessages = neu.filter(item => item.preventDeletionMessage);
 
+      this.preventDelete = false;
+
       if (!!preventDeletionMessages.length) {
         this.preventDelete = true;
         message = preventDeletionMessages[0].preventDeletionMessage;
@@ -232,11 +234,11 @@ export default {
     height="auto"
     styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
   >
-    <InfoBox class="mb-0">
+    <Card class="prompt-remove" :show-highlight-border="false">
       <h4 slot="title" class="text-default-text">
         Are you sure?
       </h4>
-      <div>
+      <div slot="body">
         <div class="mb-10">
           {{ t('promptRemove.attemptingToRemove', {type}) }} <template v-for="(resource, i) in names">
             <template v-if="i<5">
@@ -244,39 +246,54 @@ export default {
               <span v-if="i===names.length-1" :key="resource+2">{{ plusMore }}</span><span v-else :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
             </template>
           </template>
-          <span class="text-warning">
-            {{ warning }}
-          </span>
           <span v-if="needsConfirm" :key="resource">Re-enter its name below to confirm:</span>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
-
-        <span class="text-error">{{ error }}</span>
-        <span v-if="!needsConfirm" class="text-info mt-20">{{ protip }}</span>
+        <div class="mb-10">
+          {{ warning }}
+        </div>
+        <div class="text-error mb-10">
+          {{ error }}
+        </div>
+        <div v-if="!needsConfirm" class="text-info mt-20">
+          {{ protip }}
+        </div>
       </div>
-      <template>
+      <template #actions>
         <button class="btn role-secondary" @click="close">
           Cancel
         </button>
-        <button class="btn bg-error" :disabled="preventDelete" @click="remove">
+        <button class="btn bg-error ml-10" :disabled="preventDelete" @click="remove">
           Delete
         </button>
       </template>
-    </InfoBox>
+    </Card>
   </modal>
 </template>
 
 <style lang='scss'>
+  .prompt-remove {
     #confirm {
-        width: 90%;
-        margin-left: 3px;
+      width: 90%;
+      margin-left: 3px;
     }
+
     .remove-modal {
-       border-radius: var(--border-radius);
-       overflow: scroll;
-       max-height: 100vh;
-       & ::-webkit-scrollbar-corner {
-         background: rgba(0,0,0,0);
-         }
+        border-radius: var(--border-radius);
+        overflow: scroll;
+        max-height: 100vh;
+        & ::-webkit-scrollbar-corner {
+          background: rgba(0,0,0,0);
+        }
     }
+
+    .actions {
+      text-align: right;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
 </style>
