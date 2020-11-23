@@ -109,7 +109,7 @@ export default {
           The root route has to match everything so matching can't be configured.
         </Banner>
         <div v-else class="row">
-          <div class="col span-6">
+          <div class="col span-12">
             <span class="label">
               Match:
             </span>
@@ -118,14 +118,17 @@ export default {
               v-model="value.spec.match"
               :disabled="value.isRoot"
               :options="receiverOptions"
-              label="Receiver"
               :mode="mode"
+              :read-allowed="false"
+              add-label="Add match"
             />
             <div v-else>
               {{ t('generic.none') }}
             </div>
           </div>
-          <div class="col span-6">
+        </div>
+        <div class="row mt-40">
+          <div class="col span-12">
             <span class="label">
               Match Regex:
             </span>
@@ -134,8 +137,9 @@ export default {
               v-model="value.spec.match_re"
               :disabled="value.isRoot"
               :options="receiverOptions"
-              label="Receiver"
               :mode="mode"
+              :read-allowed="false"
+              add-label="Add match regex"
             />
             <div v-else>
               {{ t('generic.none') }}

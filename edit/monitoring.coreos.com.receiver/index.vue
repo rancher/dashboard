@@ -58,7 +58,8 @@ export default {
       receiver:         {},
       suffixYaml,
       EDITOR_MODES,
-      yamlSaveOverride: this.yamlSaveOverride
+      yamlSaveOverride: this.yamlSaveOverride,
+      yamlError:        ''
     };
   },
   computed: {
@@ -83,7 +84,10 @@ export default {
         const suffix = jsyaml.safeLoad(value);
 
         Object.assign(this.value.spec, suffix);
-      } catch (ex) {}
+        this.yamlError = '';
+      } catch (ex) {
+        this.yamlError = `There was a problem parsing the Custom Config: ${ ex }`;
+      }
     }
   },
   methods: {
@@ -111,6 +115,15 @@ export default {
         });
       }
     },
+    saveOverride(buttonDone) {
+      if (this.yamlError) {
+        this.errors = this.errors || [];
+        this.errors.push(this.yamlError);
+        buttonDone(false);
+      } else {
+        this.save(...arguments);
+      }
+    }
   }
 };
 </script>
@@ -124,7 +137,7 @@ export default {
     :subtypes="[]"
     :errors="errors"
     @error="e=>errors = e"
-    @finish="save"
+    @finish="saveOverride"
     @cancel="done"
   >
     <div v-if="!isView" class="row mb-10">
