@@ -2,13 +2,13 @@
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@/utils/object';
 import { NAMESPACE, RIO } from '@/config/types';
-import Card from '@/components/Card';
+import InfoBox from '@/components/InfoBox';
 import { alternateLabel } from '@/utils/platform';
 import LinkDetail from '@/components/formatter/LinkDetail';
 import { uniq } from '@/utils/array';
 
 export default {
-  components: { Card, LinkDetail },
+  components: { InfoBox, LinkDetail },
   data() {
     return {
       confirmName: '', error: '', warning: '', preventDelete: false
@@ -232,7 +232,7 @@ export default {
     height="auto"
     styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
   >
-    <Card>
+    <InfoBox>
       <h4 slot="title" class="text-default-text">
         Are you sure?
       </h4>
@@ -262,7 +262,7 @@ export default {
           Delete
         </button>
       </template>
-    </Card>
+    </InfoBox>
   </modal>
 </template>
 
