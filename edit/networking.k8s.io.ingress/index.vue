@@ -129,6 +129,7 @@ export default {
         <Certificates v-model="value" :mode="mode" :secrets="allSecrets" />
       </Tab>
       <Tab
+        v-if="!isView"
         name="labels-and-annotations"
         :label="t('generic.labelsAndAnnotations')"
         :weight="0"
