@@ -701,6 +701,14 @@ logging:
       label: SSL Client Cert Chain
       placeholder: Paste in the client cert chain
     sslClientCertKey: SSL Client Cert Key
+  loki:
+    url: URL
+    tenant: Tenant
+    username: User
+    password: Password
+    configureKubernetesLabels: Configure Kubernetes metadata in a Prometheus like format
+    extractKubernetesLabels: Extract Kubernetes labels as Loki labels
+    dropSingleKey: If a record only has 1 key, then just set the log line to the value and discard the key
   output:
     selectOutputs: Select Outputs
     selectBanner: Select to configure an output
@@ -708,11 +716,13 @@ logging:
       target: Target
       access: Access
       certificate: SSL
+      labels: Labels
   outputProviders:
     elasticsearch: Elasticsearch
     splunkHec: Splunk
     kafka: Kafka
     forward: Fluentd
+    loki: Loki
     unknown: Unknown
   overview:
     poweredBy: Banzai Cloud
@@ -1053,7 +1063,7 @@ resourceDetail:
     project: Project
     yaml: YAML
     managedWarning: This {type} is managed by the {managedBy} app {appName}; changes made here will likely be overwritten the next time the app is changed.
-    show: Show 
+    show: Show
     hide: Hide
 
 resourceList:
@@ -1475,7 +1485,7 @@ workload:
         key:
           label: Key
           placeholder: "e.g. metadata.labels['<KEY>']"
-        name: 
+        name:
           label: Variable Name
           placeholder: "e.g. FOO"
         prefix: Prefix
@@ -1486,7 +1496,7 @@ workload:
         configMap: ConfigMap
         containerName: Container Name
         type: Type
-        value: 
+        value:
           label: Value
           placeholder: e.g. BAR
       workingDir: WorkingDir
@@ -1531,7 +1541,7 @@ workload:
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
-      allowPrivilegeEscalation: 
+      allowPrivilegeEscalation:
         label: Privilege Escalation
         'false': No
         'true': "Yes: container can gain more privileges than its parent process"
@@ -1543,12 +1553,12 @@ workload:
         label: Privileged
         'false': No
         'true': "Yes: container has full access to the host"
-      readOnlyRootFilesystem: 
+      readOnlyRootFilesystem:
         label: Read-Only Root Filesystem
         'false': No
         'true': "Yes: container has a read-only root filesystem"
       runAsGroup: Run as Group ID
-      runAsNonRoot: 
+      runAsNonRoot:
         label: Run as Non-Root
         'false': No
         'true': "Yes: container must run as a non-root user"

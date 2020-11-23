@@ -53,6 +53,13 @@ export default {
         enabled: false,
         default: { servers: [{}] },
         logo:    require(`~/assets/images/logo-color-fluentd.svg`)
+      },
+      {
+        name:    'loki',
+        label:   this.t('logging.outputProviders.loki'),
+        enabled: false,
+        default: { configure_kubernetes_labels: true },
+        logo:    require(`~/assets/images/logo-color-loki.svg`)
       }
     ];
 
@@ -62,7 +69,7 @@ export default {
       this.value.spec[provider.name] = this.value.spec[provider.name] || provider.default;
       const specProvider = this.value.spec[provider.name];
       const correctedSpecProvider = provider.name === 'forward' ? specProvider.servers[0] : specProvider;
-      const specProviderKeys = Object.keys(correctedSpecProvider || {}).filter(key => key !== 'format');
+      const specProviderKeys = Object.keys(correctedSpecProvider || {}).filter(key => !['format', 'configure_kubernetes_labels'].includes(key));
 
       provider.enabled = specProviderKeys.length > 0;
       if (!provider.enabled) {
