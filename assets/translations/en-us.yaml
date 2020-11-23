@@ -2066,3 +2066,7 @@ workloadPorts:
 
 podAffinity:
   addLabel: Add Pod Selector
+
+keyValue:
+  keyPlaceholder: e.g. foo
+  valuePlaceholder: e.g. bar

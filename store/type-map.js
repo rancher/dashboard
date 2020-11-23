@@ -779,7 +779,7 @@ export const getters = {
     };
   },
 
-  headersFor(state) {
+  headersFor(state, getters, rootState, rootGetters) {
     return (schema) => {
       const attributes = schema.attributes || {};
       const columns = attributes.columns || [];
@@ -790,7 +790,7 @@ export const getters = {
           if ( typeof entry === 'string' ) {
             const col = findBy(columns, 'name', entry);
             if ( col ) {
-              return fromSchema(col);
+              return fromSchema(col, rootGetters);
             } else {
               return null;
             }
@@ -812,7 +812,7 @@ export const getters = {
             out.push(NAMESPACE);
           }
         } else {
-          out.push(fromSchema(col));
+          out.push(fromSchema(col, rootGetters));
         }
       }
 
@@ -831,7 +831,7 @@ export const getters = {
 
       return out;
 
-      function fromSchema(col) {
+      function fromSchema(col, rootGetters) {
         let formatter, width, formatterOpts;
 
         if ( (col.format === '' || col.format == 'date') && col.name === 'Age' ) {
@@ -848,9 +848,13 @@ export const getters = {
           formatter = 'Number';
         }
 
+        const exists = rootGetters['i18n/exists']
+        const t = rootGetters['i18n/t']
+        const labelKey = `tableHeaders.${col.name}`
+
         return {
           name:  col.name.toLowerCase(),
-          label: col.name,
+          label: exists(labelKey) ? t(labelKey) : col.name,
           value: col.field.startsWith('.') ? `$${ col.field }` : col.field,
           sort:  [col.field],
           formatter,
