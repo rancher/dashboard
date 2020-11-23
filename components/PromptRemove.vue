@@ -2,12 +2,12 @@
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@/utils/object';
 import { NAMESPACE, RIO } from '@/config/types';
-import Card from '@/components/Card';
+import InfoBox from '@/components/InfoBox';
 import { alternateLabel } from '@/utils/platform';
 import LinkDetail from '@/components/formatter/LinkDetail';
 
 export default {
-  components: { Card, LinkDetail },
+  components: { InfoBox, LinkDetail },
   data() {
     return { confirmName: '', error: '' };
   },
