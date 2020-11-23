@@ -327,21 +327,41 @@ chartHeading:
 
 cis:
   addTest: Add Test ID
+  alertNeeded: To receive alerts, please ensure <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
+  alertNotFound: "It looks like alerting isn't configured."
+  alertOnComplete: Alert on scan completion
+  alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
+  cronSchedule: 
+    label: Schedule
+    placeholder: "e.g. 0 * * * *"
+  deleteProfileWarning: |-
+    {count, plural,
+      =1 { Any scheduled scans using this profile will no longer work. }
+      other { Any scheduled scans using either of these profiles will no longer work. }
+    }
+  downloadAllReports: Download All Saved Reports
+  downloadLatestReport: Download Latest Report
   noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
   profile: Profile
+  retention: Retention Count
   testID: Test ID
   testsToSkip: Tests to Skip
+  testsSkipped: Tests Skipped
   scan:
     description: Description
-    failed: Failed
+    fail: Fail
     lastScanTime: Last Scan Time
     notApplicable: 'N/A'
     number: Number
-    passed: Passed
+    pass: Pass
     scanReport: Scan Report
-    skipped: Skipped
+    skip: Skip
     total: Total
+    warn: Warn
+  scoreWarning: 
+    label: Scan state for "warn" results
+    protip: Scans with no failures will be marked "Pass" by default even if some of the tests generate "warn" output. This behavior can be changed by selecting the "fail" option from this section.
 
 cluster:
   nodeDriver:

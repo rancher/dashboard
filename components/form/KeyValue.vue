@@ -566,7 +566,7 @@ export default {
       -ms-word-break: break-all;
       word-break: break-word;
       display:flex;
-      align-items:start;
+      align-items:flex-start;
     }
 
     &.extra-column {
@@ -581,7 +581,7 @@ export default {
       width: 100%;
       margin: 10px 0px 10px 0px;
       &.key {
-        align-self: start;
+        align-self: flex-start;
       }
 
       .text-monospace:not(.conceal) {
