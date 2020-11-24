@@ -16,7 +16,7 @@ BODY {
   margin: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-  
+
   &.overflow-hidden {
     overflow: hidden;
   }
@@ -70,12 +70,14 @@ TEXTAREA,
 BUTTON,
 .btn,
 .labeled-input,
+.labeled-select,
+.unlabeled-select,
 .checkbox-custom,
 .radio-custom {
   &:focus, &.focused {
     outline: none;
     box-shadow: 0 0 0 var(--outline-width) var(--outline);
-  }
+    background: var(--input-focus-bg)  }
 }
 
 A {
