@@ -112,7 +112,7 @@ $selected: rgba($primary, .5);
   --input-focus-bg             : #{darken($light, 5%)};
   --input-disabled-text        : var(--muted);
   --input-disabled-bg          : #{$disabled};
-  --input-disabled-border      : #{$medium};
+  --input-disabled-border      : #{$darkest};
   --input-disabled-placeholder : #{darken($medium, 10%)};
   --input-addon-bg             : #{$medium};
 

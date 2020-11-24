@@ -23,7 +23,7 @@
   $lightest: #ffffff;
 
   $secondary: $lighter;
-  $disabled: $medium;
+  $disabled: $darker;
 
   //Contrast colors
   $contrasted-dark: $lightest !default;
@@ -77,7 +77,7 @@
   --dropdown-active-text: #{$lightest};
   --dropdown-active-bg: #{$selected};
   --dropdown-hover-text: #{$lightest};
-  --dropdown-hover-bg: #3797D5;
+  --dropdown-hover-bg: #{$link};
   --dropdown-disabled-bg: #{$disabled};
 
   --input-text: #{$lightest};
@@ -87,12 +87,12 @@
   --input-bg: #{$dark};
   --input-hover-bg: var(--body-bg);
   --input-focus-bg: #{$darkest};
-  --input-hover-bg             : #{lighten($dark, 5%)};
-  --input-focus-bg             : #{lighten($dark, 5%)};
+  --input-hover-bg: #{lighten($dark, 5%)};
+  --input-focus-bg: #{lighten($dark, 5%)};
   --input-disabled-text: #{$medium};
-  --input-disabled-bg: #{$dark};
-  --input-disabled-border: #{$disabled};
-  --input-disabled-placeholder: darken($disabled, 10%);
+  --input-disabled-bg: #{$disabled};
+  --input-disabled-border: #{$darkest};
+  --input-disabled-placeholder: #{darken($disabled, 10%)};
   --input-addon-bg: #{$darker};
 
   --progress-bg: #{$medium};
@@ -108,7 +108,7 @@
   --tag-primary: #{$primary};
   --tag-bg: #{rgba($primary, 0.2)};
 
-  --popover-bg                 : var(--body-bg);
+  --popover-bg: var(--body-bg);
   --popover-border: var(--border);
   --popover-text: var(--body-text);
   --tooltip-bg: #{darken($primary, 30%)};
