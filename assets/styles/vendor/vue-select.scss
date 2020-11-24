@@ -64,6 +64,7 @@
   clear: both;
   color: var(--dropdown-text);
   white-space: nowrap;
+  z-index: 1000;
 
   &:hover {
     cursor: pointer;

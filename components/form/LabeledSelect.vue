@@ -253,12 +253,6 @@ export default {
 
 <style lang='scss' scoped>
 .labeled-select {
-  &.hoverable ::v-deep {
-    .v-select * {
-      z-index: z-index('overContent');
-    }
-  }
-
   .labeled-container {
     padding: 8px 0 0 8px;
 
