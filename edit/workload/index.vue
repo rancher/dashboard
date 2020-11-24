@@ -609,7 +609,7 @@ export default {
               <span class="cron-hint text-small">{{ cronLabel }}</span>
             </template>
             <template #replicas>
-              <LabeledInput v-model="spec.replicas" type="number" required :mode="mode" :label="t('workload.replicas')" />
+              <LabeledInput v-model.number="spec.replicas" type="number" required :mode="mode" :label="t('workload.replicas')" />
             </template>
             <template #service>
               <LabeledSelect
