@@ -1,5 +1,7 @@
 import { isEmpty, set } from '@/utils/object';
 import { areRoutesSupportedFormat, canCreate, createDefaultRouteName, updateConfig } from '@/utils/alertmanagerconfig';
+import { MONITORING } from '@/config/types';
+import { NAME as MONITORING_PRODUCT } from '@/config/product/monitoring';
 
 export const ROOT_NAME = 'root';
 
@@ -130,6 +132,18 @@ export default {
     return (value, originalValue) => {
       Object.assign(originalValue, value);
       originalValue.save();
+    };
+  },
+
+  receiverLink() {
+    return {
+      text:    this.spec.receiver,
+      to:      {
+        name:   'c-cluster-product-resource-id',
+        params: {
+          resource: MONITORING.SPOOFED.RECEIVER, product: MONITORING_PRODUCT, id: this.spec.receiver
+        }
+      }
     };
   }
 };

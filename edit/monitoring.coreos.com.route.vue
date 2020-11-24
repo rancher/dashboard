@@ -109,7 +109,7 @@ export default {
           {{ t('monitoringRoute.matching.info') }}
         </Banner>
         <div v-else class="row">
-          <div class="col span-6">
+          <div class="col span-12">
             <span class="label">
               {{ t('monitoringRoute.matching.label') }}
             </span>
@@ -120,12 +120,16 @@ export default {
               :options="receiverOptions"
               :label="t('monitoringRoute.receiver.label')"
               :mode="mode"
+              :read-allowed="false"
+              add-label="Add match"
             />
             <div v-else>
               {{ t('generic.none') }}
             </div>
           </div>
-          <div class="col span-6">
+        </div>
+        <div class="row mt-40">
+          <div class="col span-12">
             <span class="label">
               {{ t('monitoringRoute.regex.label') }}:
             </span>
@@ -136,6 +140,8 @@ export default {
               :options="receiverOptions"
               :label="t('monitoringRoute.receiver.label')"
               :mode="mode"
+              :read-allowed="false"
+              add-label="Add match regex"
             />
             <div v-else>
               {{ t('generic.none') }}

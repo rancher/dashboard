@@ -649,3 +649,20 @@ export const CONSTRAINT_VIOLATION_COUNT = {
     }
   }
 };
+
+export const RECEIVER_PROVIDERS = {
+  name:      'receiver-providers',
+  label:     'Configured Providers',
+  value:     'receiverTypes',
+  sort:      'receiverTypes',
+  formatter: 'List',
+};
+
+export const CONFIGURED_RECEIVER = {
+  name:          'receiver',
+  label:         'Configured Receiver',
+  value:         'receiverLink',
+  sort:          'receiverLink.text',
+  formatter:     'Link',
+  formatterOpts: { options: { internal: true } },
+};

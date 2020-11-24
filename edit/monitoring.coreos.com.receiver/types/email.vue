@@ -38,7 +38,7 @@ export default {
     </h2>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.from" :mode="mode" label="Sender" />
+        <LabeledInput v-model="value.from" :mode="mode" label="Sender" placeholder="e.g. admin@example.com" />
       </div>
     </div>
     <div class="row mb-20">
