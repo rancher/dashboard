@@ -1,7 +1,7 @@
 <script>
 import ArrayList from '@/components/form/ArrayList';
 import { _VIEW } from '@/config/query-params';
-import LabeledSelect from '@/components/form/LabeledSelect';
+import Select from '@/components/form/Select';
 
 const EFFECT_VALUES = {
   NO_SCHEDULE:        'NoSchedule',
@@ -10,7 +10,7 @@ const EFFECT_VALUES = {
 };
 
 export default {
-  components: { ArrayList, LabeledSelect },
+  components: { ArrayList, Select },
 
   props: {
     value: {
@@ -89,7 +89,7 @@ export default {
           />
         </td>
         <td class="effect">
-          <LabeledSelect
+          <Select
             v-model="scope.row.value.effect"
             :options="effectOptions"
           />

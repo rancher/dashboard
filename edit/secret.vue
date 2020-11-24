@@ -262,7 +262,7 @@ export default {
 
       <div class="spacer"></div>
       <ResourceTabs v-if="!isView" v-model="value" :side-tabs="true" :mode="mode">
-        <Tab name="data" label="Data">
+        <Tab name="data" :label="t('secret.data')">
           <template v-if="isRegistry">
             <div id="registry-type" class="row mb-10">
               <div class="col span-12">
@@ -348,7 +348,7 @@ export default {
               key="data"
               v-model="value.data"
               :mode="mode"
-              title="Data"
+              :title="t('secret.data')"
               :initial-empty-row="true"
               :value-base64="true"
               :file-modifier="fileModifier"

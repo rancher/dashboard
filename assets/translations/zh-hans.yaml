@@ -962,7 +962,7 @@ servicePorts:
       label: 协议
     target:
       label: 目标端口
-      placeholder: 例如：80 or http
+      placeholder: 例如：80 或 http
 
 serviceTypes:
   clusterip: 集群IP地址
@@ -1130,6 +1130,23 @@ tableHeaders:
   value: 值
   version: 版本号
   weight: 权重 ## doublecheck，这里的权重有什么特殊意义吗？
+  Capacity: 容量
+  'Access Modes': 访问模式
+  'Reclaim Policy': 重声明策略
+  Status: 状态
+  Claim: 声明
+  StorageClass: 存储类
+  Reason: 原因
+  VolumeMode: 存储卷模式
+  Targets: 目标
+  MinPods: 最小Pod数量
+  MaxPods: 最大Pod数量
+  Replicas: 副本数
+  Provisioner: 提供商
+  ReclaimPolicy: 重声明策略
+  Role: 角色
+  Users: 用户
+  Groups: 用户组
 
 validation:
   arrayLength:
@@ -1659,6 +1676,16 @@ typeLabel:
   persistentvolume: 持久卷
   service: 服务
   node: 节点
+  autoscaling.horizontalpodautoscaler: Pod水平自动伸缩
+  networking.k8s.io.ingress: Ingress
+  networking.k8s.io.networkpolicy: 网络策略
+  persistentvolumeclaim: 持久卷声明
+  storage.k8s.io.storageclass: 存储类
+  secret: 密钥
+  rbac.authorization.k8s.io.clusterrolebinding: 集群角色绑定
+  rbac.authorization.k8s.io.clusterrole: 集群角色
+  rbac.authorization.k8s.io.rolebinding: 角色绑定
+  rbac.authorization.k8s.io.role: 角色
 
 action:
   download: 下载YAML
@@ -1684,3 +1711,7 @@ workloadPorts:
 
 podAffinity:
   addLabel: 添加 Pod Selector
+
+keyValue:
+  keyPlaceholder: '例如: foo'
+  valuePlaceholder: '例如: bar'

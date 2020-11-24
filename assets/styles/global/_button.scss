@@ -24,7 +24,7 @@ button,
   color: white;
 
   &:hover {
-      text-decoration: none;
+    text-decoration: none;
   }
 
   &.bg-transparent {
@@ -49,10 +49,11 @@ button,
 //btn sizes
 .btn-xs,
 .btn-group-xs > .btn,
-.btn-xs .btn-label {
-    padding: $xs-padding;
-    font-size: .65em;
-    line-height: 1.5em;
+.btn-xs .btn-label,
+.btn-xs .dd-button > .vs__dropdown-toggle {
+  padding: $xs-padding;
+  font-size: 0.65em;
+  line-height: 1.5em;
 }
 
 .btn-group-xs > .btn {
@@ -62,8 +63,7 @@ button,
 .btn-sm,
 .btn-group-sm > .btn,
 .btn-sm .btn-label {
-    padding: $sm-padding;
-
+  padding: $sm-padding;
 }
 
 .btn-group-sm > .btn {
@@ -74,8 +74,8 @@ button,
 .btn-lg,
 .btn-group-lg > .btn,
 .btn-lg .btn-label {
-    padding: $lg-padding;
-    font-size: 1.2em;
+  padding: $lg-padding;
+  font-size: 1.2em;
 }
 
 //btn roles
@@ -112,7 +112,6 @@ button,
   border-radius: 2px;
   line-height: 0;
 }
-
 
 .icon-group i {
   font-size: 1.5em;

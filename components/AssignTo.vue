@@ -121,7 +121,7 @@ export default {
         <form>
           <LabeledSelect
             v-model="moveTo"
-            label="Workspace"
+            :label="t('assignTo.workspace')"
             :options="workspaceOptions"
             placement="bottom"
           />
@@ -141,7 +141,7 @@ export default {
 
       <div slot="actions">
         <button class="btn role-secondary" @click="close">
-          Cancel
+          {{ t('generic.cancel') }}
         </button>
 
         <AsyncButton

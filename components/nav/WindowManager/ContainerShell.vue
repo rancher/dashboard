@@ -268,8 +268,8 @@ export default {
         :disabled="containerChoices.length === 1"
         class="containerPicker auto-width"
         :options="containerChoices"
-        :searchable="false"
         :clearable="false"
+        placement="top"
         @input="switchTo($event)"
       >
         <template #selected-option="option">
@@ -309,10 +309,10 @@ export default {
     }
   }
 
-  .containerPicker ::v-deep .vs__search {
-    width: 0;
-    padding: 0;
-    margin: 0;
-    opacity: 0;
+  .containerPicker {
+    ::v-deep &.unlabeled-select {
+      display: inline-block;
+      min-width: 200px;
+    }
   }
 </style>

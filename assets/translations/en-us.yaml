@@ -109,6 +109,7 @@ assignTo:
       =1 { Assign Cluster To&hellip; }
       other { Assign {count} Clusters To&hellip; }
     }
+  workspace: Workspace
 
 asyncButton:
   default:
@@ -327,21 +328,41 @@ chartHeading:
 
 cis:
   addTest: Add Test ID
+  alertNeeded: To receive alerts, please ensure <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
+  alertNotFound: "It looks like alerting isn't configured."
+  alertOnComplete: Alert on scan completion
+  alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
+  cronSchedule: 
+    label: Schedule
+    placeholder: "e.g. 0 * * * *"
+  deleteProfileWarning: |-
+    {count, plural,
+      =1 { Any scheduled scans using this profile will no longer work. }
+      other { Any scheduled scans using either of these profiles will no longer work. }
+    }
+  downloadAllReports: Download All Saved Reports
+  downloadLatestReport: Download Latest Report
   noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
   profile: Profile
+  retention: Retention Count
   testID: Test ID
   testsToSkip: Tests to Skip
+  testsSkipped: Tests Skipped
   scan:
     description: Description
-    failed: Failed
+    fail: Fail
     lastScanTime: Last Scan Time
     notApplicable: 'N/A'
     number: Number
-    passed: Passed
+    pass: Pass
     scanReport: Scan Report
-    skipped: Skipped
+    skip: Skip
     total: Total
+    warn: Warn
+  scoreWarning: 
+    label: Scan state for "warn" results
+    protip: Scans with no failures will be marked "Pass" by default even if some of the tests generate "warn" output. This behavior can be changed by selecting the "fail" option from this section.
 
 cluster:
   nodeDriver:
@@ -871,6 +892,24 @@ monitoring:
     fields:
       name: Name
 
+monitoringRoute:
+  groups:
+    label: Group By
+  info: This is the top-level Route used by Alertmanager as the default destination for any Alerts that do not match any other Routes. This Route must exist and cannot be deleted.
+  interval:
+    label: Group Interval
+  matching:
+    info: The root route has to match everything so matching can't be configured.
+    label: Match
+  receiver:
+    label: Receiver
+  regex:
+    label: Match Regex
+  repeatInterval:
+    label: Repeat Interval
+  wait:
+    label: Group Wait
+
 nameNsDescription:
   name:
     label: Name
@@ -887,6 +926,16 @@ nameNsDescription:
 
 namespace:
   containerResourceLimit: Container Resource Limit
+  project:
+    label: Project
+
+namespaceFilter:
+  selected:
+    label: "{total} items selected"
+
+namespaceList:
+  selectLabel: Namespace
+  addLabel: Add Namespace
 
 node:
   detail:
@@ -956,6 +1005,39 @@ prefs:
     label: Enable Developer Tools
   hideDesc:
     label: Hide All Type Description Boxes
+
+probe:
+  checkInterval:
+    label: Check Interval
+    placeholder: 'Default: 10'
+  command:
+    label: Command to run
+    placeholder: e.g. cat /tmp/health
+  failureThreshold:
+    label: Failure Threshold
+    placeholder: 'Default: 3'
+  httpGet:
+    headers:
+      label: Request Headers
+    path:
+      label: Request Path
+      placeholder: e.g. /healthz
+    port:
+      label: Check Port
+      placeholder: e.g. 80
+      placeholderDuex: e.g. 25
+  initialDelay:
+    label: Initial Delay
+    placeholder: 'Default: 0'
+  successThreshold:
+    label: Success Threshold
+    placeholder: 'Default: 1'
+  timeout:
+    label: Timeout
+    placeholder: 'Default: 3'
+  type:
+    label: Type
+    placeholder: Select a check type
 
 prometheusRule:
   alertingRules:
@@ -1053,7 +1135,7 @@ resourceDetail:
     project: Project
     yaml: YAML
     managedWarning: This {type} is managed by the {managedBy} app {appName}; changes made here will likely be overwritten the next time the app is changed.
-    show: Show 
+    show: Show
     hide: Hide
 
 resourceList:
@@ -1321,6 +1403,18 @@ tableHeaders:
   version: Version
   weight: Weight
 
+target:
+  router:
+    label: Router
+    placeholder: Select a router
+  service:
+    label: Service
+    placeholder: Select a service
+  title: Target
+  version:
+    label: Version
+    placeholder: Select a version
+
 validation:
   arrayLength:
     between: '"{key}" should contain between {min} and {max} {max, plural, =1 {item} other {items}}'
@@ -1475,7 +1569,7 @@ workload:
         key:
           label: Key
           placeholder: "e.g. metadata.labels['<KEY>']"
-        name: 
+        name:
           label: Variable Name
           placeholder: "e.g. FOO"
         prefix: Prefix
@@ -1486,9 +1580,10 @@ workload:
         configMap: ConfigMap
         containerName: Container Name
         type: Type
-        value: 
+        value:
           label: Value
           placeholder: e.g. BAR
+      tty: TTY
       workingDir: WorkingDir
       stdin: Stdin
     healthCheck:
@@ -1531,7 +1626,7 @@ workload:
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs
-      allowPrivilegeEscalation: 
+      allowPrivilegeEscalation:
         label: Privilege Escalation
         'false': No
         'true': "Yes: container can gain more privileges than its parent process"
@@ -1543,12 +1638,12 @@ workload:
         label: Privileged
         'false': No
         'true': "Yes: container has full access to the host"
-      readOnlyRootFilesystem: 
+      readOnlyRootFilesystem:
         label: Read-Only Root Filesystem
         'false': No
         'true': "Yes: container has a read-only root filesystem"
       runAsGroup: Run as Group ID
-      runAsNonRoot: 
+      runAsNonRoot:
         label: Run as Non-Root
         'false': No
         'true': "Yes: container must run as a non-root user"
@@ -1669,6 +1764,7 @@ workload:
         inNamespaces: "Pods in these namespaces:"
         key: Key
         lessThan: <
+        namespaces: Namespaces
         notIn: ≠
         operator: Operator
         value: Value
@@ -1758,6 +1854,7 @@ workload:
       storagePolicyName: Storage Policy Name
       volumePath: Volume Path
     defaultMode: Default Mode
+    driver: driver
     hostPath:
       label: The Path on the Node must be
       options:
@@ -2046,3 +2143,7 @@ workloadPorts:
 
 podAffinity:
   addLabel: Add Pod Selector
+
+keyValue:
+  keyPlaceholder: e.g. foo
+  valuePlaceholder: e.g. bar

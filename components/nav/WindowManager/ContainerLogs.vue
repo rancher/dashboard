@@ -446,7 +446,7 @@ export default {
         v-if="containerChoices.length > 0"
         v-model="container"
         :disabled="containerChoices.length === 1"
-        class="containerPicker auto-width"
+        class="containerPicker"
         :options="containerChoices"
         :clearable="false"
         placement="top"
@@ -560,11 +560,11 @@ export default {
     }
   }
 
-  .containerPicker ::v-deep .vs__search,
-  .range ::v-deep .vs__search {
-    width: 0;
-    padding: 0;
-    margin: 0;
-    opacity: 0;
+  .containerPicker {
+    ::v-deep &.unlabeled-select {
+      display: inline-block;
+      min-width: 200px;
+    }
   }
+
 </style>

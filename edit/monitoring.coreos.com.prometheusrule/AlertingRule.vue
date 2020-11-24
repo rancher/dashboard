@@ -50,6 +50,11 @@ export default {
     return {
       selectedSeverityLabel: null,
       ignoredAnnotations:    INGORED_ANNOTATIONS,
+      severityOptions:       [
+        this.t('prometheusRule.alertingRules.labels.severity.choices.critical'),
+        this.t('prometheusRule.alertingRules.labels.severity.choices.warning'),
+        this.t('prometheusRule.alertingRules.labels.severity.choices.none'),
+      ],
     };
   },
 
@@ -336,11 +341,7 @@ export default {
             :mode="mode"
             :label="t('prometheusRule.alertingRules.labels.severity.choices.label')"
             :localized-label="false"
-            :options="[
-              t('prometheusRule.alertingRules.labels.severity.choices.critical'),
-              t('prometheusRule.alertingRules.labels.severity.choices.warning'),
-              t('prometheusRule.alertingRules.labels.severity.choices.none'),
-            ]"
+            :options="severityOptions"
           />
         </div>
       </div>

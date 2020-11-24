@@ -2,7 +2,7 @@
 import { _VIEW } from '@/config/query-params';
 import ArrayList from '@/components/form/ArrayList';
 import LabeledInput from '@/components/form/LabeledInput';
-import LabeledSelect from '@/components/form/LabeledSelect';
+import Select from '@/components/form/Select';
 
 const OPERATOR_VALUES = {
   IS_SET:      'Exists',
@@ -15,7 +15,7 @@ export default {
   components: {
     ArrayList,
     LabeledInput,
-    LabeledSelect
+    Select
   },
 
   props: {
@@ -132,7 +132,7 @@ export default {
           <LabeledInput v-model="scope.row.value.key" :mode="mode" />
         </div>
         <div class="operator">
-          <LabeledSelect
+          <Select
             :mode="mode"
             :value="scope.row.value.operator"
             :options="operatorOptions"
@@ -147,20 +147,23 @@ export default {
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .rule-selector {
-  .box {
-    & > *:not(:last-child) {
-      padding-right: 10px;
-    }
+  &:not(.view) table {
+    table-layout: initial;
+  }
 
-    .key, .value {
-      width: 35%;
-      flex: none;
-    }
+   ::v-deep .box {
+    display: grid;
+    grid-template-columns: 25% 25% 25% 15%;
+    column-gap: 1.75%;
+    align-items: center;
+    margin-bottom: 10px;
 
+    .key,
+    .value,
     .operator {
-      flex: 1;
+      height: 100%;
     }
   }
 }
