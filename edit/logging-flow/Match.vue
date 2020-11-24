@@ -41,13 +41,7 @@ export default {
 </script>
 
 <template>
-  <div class="rule" @input="update">
-    <div class="remove-row clearfix">
-      <button class="btn role-link close" @click="removeRule">
-        <i class="icon icon-x icon-2x" />
-      </button>
-    </div>
-
+  <div>
     <KeyValue
       v-model="value.labels"
       :title="(value.select ? 'Select Pods' : 'Exclude Pods')"
@@ -91,26 +85,3 @@ export default {
     />
   </div>
 </template>
-
-<style lang="scss" scoped>
-.rule {
-  border: 1px solid var(--tabbed-border);
-  border-radius: var(--border-radius);
-  padding: 20px;
-  margin-top: 20px;
-  position: relative;
-}
-
-.remove-row {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: auto;
-}
-
-.close {
-  float: right;
-  padding: 0px;
-}
-</style>
