@@ -232,11 +232,11 @@ export default {
     height="auto"
     styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
   >
-    <InfoBox>
+    <InfoBox class="mb-0">
       <h4 slot="title" class="text-default-text">
         Are you sure?
       </h4>
-      <div slot="body">
+      <div>
         <div class="mb-10">
           {{ t('promptRemove.attemptingToRemove', {type}) }} <template v-for="(resource, i) in names">
             <template v-if="i<5">
@@ -254,7 +254,7 @@ export default {
         <span class="text-error">{{ error }}</span>
         <span v-if="!needsConfirm" class="text-info mt-20">{{ protip }}</span>
       </div>
-      <template slot="actions">
+      <template>
         <button class="btn role-secondary" @click="close">
           Cancel
         </button>
