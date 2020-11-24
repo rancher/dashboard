@@ -26,7 +26,7 @@ export default {
       let out = null;
 
       if ( userValue ) {
-        out = userValue.split(/ /);
+        out = userValue.match(/(\"[^\"]+\")|\S+/g).map(string => string.replace(/^"|"$/g, ''));
       }
 
       this.$emit('input', out);

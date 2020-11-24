@@ -96,17 +96,16 @@ export default {
     update() {
       const out = {
         ...this.value,
-        ...cleanUp({
-          stdin:      this.stdin,
-          stdinOnce:  this.stdinOnce,
-          command:    this.command,
-          args:       this.args,
-          workingDir: this.workingDir,
-          tty:        this.tty,
-        }),
+        stdin:      this.stdin,
+        stdinOnce:  this.stdinOnce,
+        command:    this.command,
+        args:       this.args,
+        workingDir: this.workingDir,
+        tty:        this.tty,
+
       };
 
-      this.$emit('input', out);
+      this.$emit('input', cleanUp(out) );
     },
   },
 };

@@ -18,7 +18,7 @@ import Networking from '@/components/form/Networking';
 import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
 import Job from '@/edit/workload/Job';
 import { defaultAsyncData } from '@/components/ResourceDetail';
-import { _EDIT } from '@/config/query-params';
+import { _EDIT, _CREATE } from '@/config/query-params';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
 import KeyValue from '@/components/form/KeyValue';
@@ -249,7 +249,7 @@ export default {
       get() {
         if (!this.podTemplateSpec.containers) {
           this.$set(this.podTemplateSpec, 'containers', [
-            { name: this.value?.metadata?.name, imagePullPolicy: 'Always' }
+            { imagePullPolicy: 'Always' }
           ]);
         }
 
@@ -507,7 +507,7 @@ export default {
 
       delete this.value.kind;
 
-      if (!this.container.name) {
+      if (!this.container.name || this.mode === _CREATE) {
         this.$set(this.container, 'name', this.value.metadata.name);
       }
 
@@ -609,7 +609,7 @@ export default {
               <span class="cron-hint text-small">{{ cronLabel }}</span>
             </template>
             <template #replicas>
-              <LabeledInput v-model="spec.replicas" type="number" required :mode="mode" :label="t('workload.replicas')" />
+              <LabeledInput v-model.number="spec.replicas" type="number" required :mode="mode" :label="t('workload.replicas')" />
             </template>
             <template #service>
               <LabeledSelect
