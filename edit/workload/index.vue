@@ -661,7 +661,7 @@ export default {
             </div>
           </div>
 
-          <hr class="section-divider" />
+          <div class="spacer"></div>
           <div>
             <h3>{{ t('workload.container.titles.ports') }}</h3>
             <div class="row">
@@ -669,12 +669,12 @@ export default {
             </div>
           </div>
 
-          <hr class="section-divider" />
+          <div class="spacer"></div>
           <div>
             <h3>{{ t('workload.container.titles.command') }}</h3>
             <Command v-model="container" :secrets="namespacedSecrets" :config-maps="namespacedConfigMaps" :mode="mode" />
           </div>
-          <hr class="section-divider" />
+          <div class="spacer"></div>
           <div>
             <h3>{{ t('workload.container.titles.podLabels') }}</h3>
             <div class="row mb-20">
@@ -714,7 +714,7 @@ export default {
         </Tab>
         <Tab :label="t('workload.container.titles.resources')" name="resources">
           <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
-          <hr class="section-divider" />
+          <div class="spacer"></div>
           <div>
             <h3 class="mb-10">
               <t k="workload.scheduling.titles.tolerations" />
@@ -725,7 +725,7 @@ export default {
           </div>
 
           <div>
-            <hr class="section-divider" />
+            <div class="spacer"></div>
             <h3 class="mb-10">
               <t k="workload.scheduling.titles.priority" />
             </h3>

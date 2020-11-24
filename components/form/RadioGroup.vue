@@ -104,9 +104,9 @@ export default {
 <template>
   <div>
     <div v-if="label" class="radio-group label">
-      <span class="text-label inline-block">
+      <h4 class="inline-block">
         {{ label }}
-      </span>
+      </h4>
       <span class="corner">
         <slot name="corner" />
       </span>

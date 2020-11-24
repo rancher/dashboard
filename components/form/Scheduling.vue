@@ -78,7 +78,7 @@ export default {
         </div>
       </template>
     </div>
-    <hr class="section-divider" />
+    <div class="spacer"></div>
 
     <div>
       <h3 class="mb-10">
@@ -88,10 +88,10 @@ export default {
         <Tolerations v-model="value.tolerations" :mode="mode" />
       </div>
     </div>
-    <hr class="section-divider" />
+    <div class="spacer"></div>
 
     <div>
-      <hr class="section-divider" />
+      <div class="spacer"></div>
       <h3 class="mb-10">
         <t k="workload.scheduling.titles.priority" />
       </h3>
