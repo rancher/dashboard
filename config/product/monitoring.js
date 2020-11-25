@@ -25,7 +25,7 @@ export function init(store) {
     PROMETHEUSRULE,
     PROMETHEUS,
     SPOOFED: {
-      RECEIVER, RECEIVER_SPEC, RECEIVER_EMAIL, RECEIVER_SLACK, RECEIVER_WEBHOOK, RECEIVER_PAGERDUTY, RECEIVER_OPSGENIE, RECEIVER_HTTP_CONFIG,
+      RECEIVER, RECEIVER_SPEC, RECEIVER_EMAIL, RECEIVER_SLACK, RECEIVER_WEBHOOK, RECEIVER_PAGERDUTY, RECEIVER_OPSGENIE, RECEIVER_HTTP_CONFIG, RESPONDER,
       ROUTE, ROUTE_SPEC
     }
   } = MONITORING;
@@ -105,10 +105,10 @@ export function init(store) {
         id:              RECEIVER_OPSGENIE,
         type:            'schema',
         resourceFields:  {
-          api_url:       { type: 'string' },
           api_key:       { type: 'string' },
           http_config:   { type: RECEIVER_HTTP_CONFIG },
-          send_resolved: { type: 'boolean' }
+          send_resolved: { type: 'boolean' },
+          responders:    { type: `array[${ RESPONDER }]` }
         }
       },
       {
@@ -125,7 +125,17 @@ export function init(store) {
         type:           'schema',
         resourceFields: { proxy_url: { type: 'string' } }
       },
+      {
+        id:             RESPONDER,
+        type:           'schema',
+        resourceFields: {
+          type:     { type: 'string' },
+          id:       { type: 'string' },
+          name:     { type: 'string' },
+          username: { type: 'string' },
 
+        }
+      }
     ],
     getInstances: () => getAllReceivers(store.dispatch)
   });

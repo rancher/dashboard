@@ -169,7 +169,10 @@ export default {
         <Banner v-if="receiverType.name === 'slack'" color="info">
           Here's how you create <a href="https://rancher.slack.com/apps/A0F7XDUAZ-incoming-webhooks" target="_blank" rel="noopener noreferrer nofollow">Incoming Webhooks</a> for Slack.
         </Banner>
-        <Banner v-if="receiverType.name === 'custom'" color="info" label="The YAML provided here will be directly appended to your receiver within the Alertmanager Config Secret" />
+        <Banner v-if="!isView && receiverType.name === 'custom'" color="info" label="The YAML provided here will be directly appended to your receiver within the Alertmanager Config Secret" />
+        <Banner v-if="!isView && receiverType.name === 'pagerduty'" color="info">
+          Here's how you create an <a href="https://www.pagerduty.com/docs/guides/prometheus-integration-guide/" target="_blank" rel="noopener nofollow" class="flex-right">Integration Key</a> for PagerDuty
+        </Banner>
         <div class="provider mb-10">
           <h1>
             {{ receiverType.title }}
@@ -191,7 +194,7 @@ export default {
           :add-label="'Add ' + receiverType.label"
         >
           <template #default="props">
-            <div class="pt-30">
+            <div :class="{'pt-30': !isView}">
               <component :is="getComponent(receiverType.name)" :value="props.row.value" :mode="mode" />
             </div>
           </template>
