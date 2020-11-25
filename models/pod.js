@@ -105,10 +105,6 @@ export default {
         label:   this.t('workload.detailTop.podIP'),
         content: this.status.podIP
       },
-      {
-        label:   this.t('workload.detailTop.podRestarts'),
-        content: (this.status?.containerStatuses || [])[0]?.restartCount
-      }
     ];
 
     return out;

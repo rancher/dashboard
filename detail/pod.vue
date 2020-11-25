@@ -1,27 +1,24 @@
 <script>
 import { NODE, WORKLOAD_TYPES } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
-import Networking from '@/components/form/Networking';
 import Tab from '@/components/Tabbed/Tab';
-import Container from '@/components/form/Container';
 import Loading from '@/components/Loading';
 import ResourceTabs from '@/components/form/ResourceTabs';
-import NodeScheduling from '@/components/form/NodeScheduling';
-import Storage from '@/edit/workload/storage';
+import SortableTable from '@/components/SortableTable';
 import { defaultAsyncData } from '@/components/ResourceDetail';
 import { mapGetters } from 'vuex';
+import { STATE, SIMPLE_NAME, IMAGE } from '@/config/table-headers';
+import { sortableNumericSuffix } from '@/utils/sort';
+import { findBy } from '@/utils/array';
 
 export default {
   name: 'PodDetail',
 
   components: {
-    Networking,
-    Container,
-    NodeScheduling,
     ResourceTabs,
     Tab,
     Loading,
-    Storage
+    SortableTable
   },
 
   mixins: [createEditView],
@@ -76,7 +73,50 @@ export default {
 
   computed:   {
     containers() {
-      return this.value.spec.containers || [];
+      const { containerStatuses = [] } = this.value.status;
+
+      return (this.value.spec.containers || []).map((container) => {
+        container.status = findBy(containerStatuses, 'name', container.name) || {};
+        container.stateDisplay = this.value.containerStateDisplay(container);
+        container.stateBackground = this.value.containerStateColor(container).replace('text', 'bg');
+        container.nameSort = sortableNumericSuffix(container.name).toLowerCase();
+        container.readyIcon = !container?.status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x ixon-2x text-error ml-5';
+
+        return container;
+      });
+    },
+
+    containerHeaders() {
+      return [
+        STATE,
+        {
+          name:          'ready',
+          labelKey:      'tableHeaders.ready',
+          formatter:     'IconText',
+          formatterOpts: { iconKey: 'readyIcon' },
+          align:         'left',
+        },
+        {
+          ...SIMPLE_NAME,
+          value: 'name'
+        },
+        IMAGE,
+        {
+          name:     'restarts',
+          labelKey: 'tableHeaders.restarts',
+          value:    'status.restartCount'
+        },
+        {
+          name:          'age',
+          labelKey:      'tableHeaders.started',
+          value:         'status.state.running.startedAt',
+          sort:          'status.state.running.startedAt:desc',
+          search:        false,
+          formatter:     'LiveDate',
+          formatterOpts: { addSuffix: true },
+          align:         'right'
+        }
+      ];
     },
 
     ...mapGetters({ t: 'i18n/t' })
@@ -86,22 +126,16 @@ export default {
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <ResourceTabs v-else :side-tabs="true" mode="view" class="mt-20" :value="value">
+  <ResourceTabs v-else mode="view" class="mt-20" :value="value">
     <Tab :label="t('workload.container.titles.containers')" name="containers" :weight="3">
-      <template v-for="container in containers">
-        <Container :key="container.name" :value="container" mode="view" />
-      </template>
-    </Tab>
-    <Tab :label="t('workload.container.titles.networking')" name="networking" :weight="2">
-      <Networking v-model="value.spec" :mode="mode" />
-    </Tab>
-    <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling" :weight="1">
-      <NodeScheduling :mode="mode" :value="value.spec" :nodes="[]" />
-    </Tab>
-    <Tab :label="t('workload.storage.title')" name="storage">
-      <Storage
-        v-model="value.spec"
+      <SortableTable
+        :rows="containers"
+        :headers="containerHeaders"
         :mode="mode"
+        key-field="name"
+        :search="false"
+        :row-actions="false"
+        :table-actions="false"
       />
     </Tab>
   </ResourceTabs>

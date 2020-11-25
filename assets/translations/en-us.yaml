@@ -1377,6 +1377,7 @@ tableHeaders:
   reqRate: Req Rate
   resource: Resource
   resources: Resources
+  restarts: Restarts
   rioImage: Image
   roles: Roles
   scale: Scale
@@ -1384,6 +1385,7 @@ tableHeaders:
   simpleName: Name
   simpleScale: Scale
   simpleType: Type
+  started: Started
   state: State
   status: Status
   success: Success
