@@ -1,101 +1,235 @@
 <script>
+import { get } from '@/utils/object';
+import isString from 'lodash/isString';
+import VueSelectOverrides from '@/mixins/vue-select-overrides';
+
 export default {
-  props: {
-    size: {
+  mixins: [VueSelectOverrides],
+  props:  {
+    buttonLabel: {
+      default: '',
       type:    String,
-      default: '' // possible values are xs, sm, lg. empty is default .btn
     },
-    // whether this is a button and dropdown (default) or dropdown that looks like a button/dropdown
-    dualAction: {
+    closeOnSelect: {
+      default: true,
+      type:    Boolean
+    },
+    disabled: {
+      default: false,
       type:    Boolean,
-      default: true
-    }
+    },
+    // array of option objects containing at least a label and link, but also icon and action are available
+    dropdownOptions: {
+      // required: true,
+      default: () => [],
+      type:    Array,
+    },
+    optionKey: {
+      default: null,
+      type:    String,
+    },
+    optionLabel: {
+      default: 'label',
+      type:    String,
+    },
+    // sm, null(med), lg - no xs...its so small
+    size: {
+      default: null,
+      type:    String,
+    },
+    value: {
+      default: null,
+      type:    String,
+    },
   },
-
-  computed: {
-    buttonSize() {
-      const { size } = this;
-      let out;
-
-      switch (size) {
-      case '':
-      default:
-        out = 'btn';
-        break;
-      case 'xs':
-        out = 'btn btn-xs';
-        break;
-      case 'sm':
-        out = 'btn btn-sm';
-        break;
-      case 'lg':
-        out = 'btn btn-lg';
-        break;
-      }
-
-      return out;
-    }
+  data() {
+    return { focused: false };
   },
 
   methods: {
-    hasSlot(name = 'default') {
-      return !!this.$slots[name] || !!this.$scopedSlots[name];
+    ddButtonAction(option) {
+      this.focusSearch();
+      this.$emit('dd-button-action', option);
+    },
+    getOptionLabel(option) {
+      if (isString(option)) {
+        return option;
+      }
+
+      if (this.$attrs['get-option-label']) {
+        return this.$attrs['get-option-label'](option);
+      }
+
+      if (get(option, this.optionLabel)) {
+        if (this.localizedLabel) {
+          return this.$store.getters['i18n/t'](get(option, this.optionLabel));
+        } else {
+          return get(option, this.optionLabel);
+        }
+      } else {
+        return option;
+      }
     },
 
-    // allows parent components to programmatically open the dropdown
-    togglePopover() {
-      this.$refs.popoverButton.click();
+    onFocus() {
+      return this.onFocusLabeled();
     },
-  }
+
+    onFocusLabeled() {
+      this.focused = true;
+    },
+
+    onBlur() {
+      return this.onBlurLabeled();
+    },
+
+    onBlurLabeled() {
+      this.focused = false;
+    },
+
+    focusSearch() {
+      this.$nextTick(() => {
+        this.$refs['button-dropdown'].searchEl.focus();
+      });
+    },
+    get,
+  },
 };
 </script>
+
 <template>
-  <div class="dropdown-button-group">
-    <div
-      class="dropdown-button bg-primary"
-      :class="{'one-action':!dualAction, [buttonSize]:true}"
-    >
-      <slot v-if="dualAction" name="button-content" :buttonSize="buttonSize">
-        <button
-          class="bg-transparent"
-          :class="buttonSize"
-          disabled="true"
-          type="button"
-        >
-          Button
-        </button>
-      </slot>
-      <div
-        v-else
-        :class="buttonSize"
+  <v-select
+    ref="button-dropdown"
+    class="button-dropdown btn"
+    :class="{
+      disabled,
+      focused,
+      'btn-sm': size === 'sm',
+      'btn-lg': size === 'lg',
+    }"
+    v-bind="$attrs"
+    :searchable="false"
+    :clearable="false"
+    :close-on-select="closeOnSelect"
+    :filterable="false"
+    :value="buttonLabel"
+    :options="dropdownOptions"
+    :map-keydown="mappedKeys"
+    :get-option-key="
+      (opt) => (optionKey ? get(opt, optionKey) : getOptionLabel(opt))
+    "
+    :get-option-label="(opt) => getOptionLabel(opt)"
+    @search:blur="onBlur"
+    @search:focus="onFocus"
+    @input="$emit('click-action', $event)"
+  >
+    <template #selected-option="option">
+      <button
+        tabindex="-1"
         type="button"
+        class="dropdown-button-two btn"
+        :class="{
+          'btn-sm': size === 'sm',
+          'btn-lg': size === 'lg',
+        }"
+        @click="ddButtonAction(option)"
+        @focus="focusSearch"
       >
-        <slot name="button-content" />
-      </div>
-      <div v-if="hasSlot('popover-content') && dualAction" class="button-divider"></div>
-
-      <v-popover
-        v-if="hasSlot('popover-content')"
-        placement="bottom"
-        :container="false"
-        offset="10"
-        :popper-options="{modifiers: { flip: { enabled: false } } }"
-      >
-        <slot name="button-toggle-content" :buttonSize="buttonSize">
-          <button
-            ref="popoverButton"
-            class="icon-container bg-transparent"
-            :class="buttonSize"
-            type="button"
-          >
-            <i class="icon icon-chevron-down" />
-          </button>
-        </slot>
-
-        <template slot="popover">
-          <slot name="popover-content" />
-        </template>
-      </v-popover>
-    </div>
-  </div>
+        {{ option.label }}
+      </button>
+    </template>
+    <!-- Pass down templates provided by the caller -->
+    <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+      <slot v-if="slot !== 'selected-option'" :name="slot" v-bind="scope" />
+    </template>
+  </v-select>
 </template>
+
+<style lang='scss' scoped>
+.button-dropdown.btn-sm {
+  ::v-deep > .vs__dropdown-toggle {
+    .vs__actions {
+      &:after {
+        font-size: 1.6rem;
+      }
+    }
+  }
+}
+.button-dropdown.btn-lg {
+  ::v-deep > .vs__dropdown-toggle {
+    .vs__actions {
+      &:after {
+        font-size: 2.6rem;
+      }
+    }
+  }
+}
+.button-dropdown {
+  background: var(--tooltip-bg);
+  border: solid 1px var(--link-text);
+  color: var(--link-text);
+  padding: 0;
+
+  &.vs--open ::v-deep {
+    outline: none;
+    border: var(--outline-width) solid var(--outline);
+    border-bottom: none;
+    box-shadow: none;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  &:hover {
+    ::v-deep .vs__dropdown-toggle .vs__actions,
+    ::v-deep .vs__selected-options {
+      background: var(--accent-btn-hover);
+    }
+    ::v-deep .vs__selected-options .vs__selected button {
+      background-color: transparent;
+    }
+  }
+
+  ::v-deep > .vs__dropdown-toggle {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 75% 25%;
+    border: none;
+    background: transparent;
+
+    .vs__actions {
+      border-left: solid thin var(--link-text);
+      justify-content: center;
+
+      &:after {
+        color: var(--link-text);
+      }
+    }
+  }
+
+  ::v-deep .vs__selected-options {
+    .vs__selected {
+      margin: unset;
+      border: none;
+
+      button {
+        border: none;
+        background: var(--tooltip-bg);
+        color: var(--link-text);
+      }
+    }
+    .vs__search {
+      // if you need to keep the dd open you can toggle these on and off
+      // display: none;
+      // visibility: hidden;
+      position: absolute;
+      opacity: 0;
+      padding: 0;
+    }
+  }
+
+  ::v-deep .vs__dropdown-menu {
+    min-width: unset;
+    width: fit-content;
+  }
+}
+</style>

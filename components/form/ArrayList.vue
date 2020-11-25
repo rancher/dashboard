@@ -72,8 +72,10 @@ export default {
     },
 
     addLabel: {
-      type:    String,
-      default: 'Add',
+      type: String,
+      default() {
+        return this.$store.getters['i18n/t']('generic.add');
+      },
     },
     addIcon: {
       type:    String,
@@ -85,8 +87,10 @@ export default {
     },
 
     removeLabel: {
-      type:    String,
-      default: '',
+      type: String,
+      default() {
+        return this.$store.getters['i18n/t']('generic.remove');
+      },
     },
     removeIcon: {
       type:    String,
@@ -295,7 +299,6 @@ export default {
         <div v-if="showRemove" class="remove">
           <slot name="remove-button" :remove="() => remove(idx)">
             <button type="button" class="btn role-link" @click="remove(idx)">
-              Remove
               {{ removeLabel }}
             </button>
           </slot>

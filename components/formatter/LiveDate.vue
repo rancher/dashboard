@@ -12,18 +12,27 @@ export default {
       type:     String,
       default: ''
     },
+
     addSuffix: {
       type:    Boolean,
       default: false,
     },
+
+    addPrefix: {
+      type:    Boolean,
+      default: true
+    },
+
     suffix: {
       type:    String,
       default: 'ago',
     },
+
     tooltipPlacement: {
       type:    String,
       default: 'auto'
     },
+
     showTooltip: {
       type:    Boolean,
       default: true
@@ -84,7 +93,7 @@ export default {
       const value = day(this.value);
       const now = day();
       let diff = value.diff(now, 'seconds');
-      const prefix = (diff < 0 ? '' : '-');
+      const prefix = (diff < 0 || !this.addPrefix ? '' : '-');
       const suffix = '';
 
       diff = Math.abs(diff);

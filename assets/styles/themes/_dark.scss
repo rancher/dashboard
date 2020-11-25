@@ -54,7 +54,7 @@
   --body-gradient: linear-gradient(180deg, #{$dark} 0%, #{$darkest} 100%);
   --body-text: #{$lightest};
   --scrollbar-thumb: #{$medium};
-  --scrollbar-thumb-dropdown: #{$darker};
+  --scrollbar-thumb-dropdown: #{$medium};
 
   --nav-bg: #{$darkest};
   --nav-active: #{rgba($primary, 0.3)};

@@ -13,7 +13,6 @@
     transition-timing-function: ease-in-out;
     color: var(--input-label);
     pointer-events: none;
-    z-index: z-index('overContent');
     i {
       pointer-events: initial;
     }

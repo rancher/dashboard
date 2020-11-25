@@ -3,10 +3,10 @@ import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
 import { clone } from '@/utils/object';
-import LabeledSelect from '@/components/form/LabeledSelect';
+import Select from '@/components/form/Select';
 
 export default {
-  components: { LabeledSelect },
+  components: { Select },
   props:      {
     value: {
       type:    Array,
@@ -173,7 +173,7 @@ export default {
         </div>
         <div v-if="showProtocol" class="port-protocol">
           <span v-if="isView">{{ row.protocol }}</span>
-          <LabeledSelect
+          <Select
             v-else
             v-model="row.protocol"
             :options="protocolOptions"
@@ -261,8 +261,20 @@ export default {
     padding: 0px;
   }
 
-  .ports-row INPUT {
-    height: 50px;
+  .ports-row {
+    INPUT {
+      height: 50px;
+    }
+
+    .port-protocol ::v-deep {
+      .unlabeled-select {
+        height: 50px;
+
+        .v-select.inline {
+          margin-top: 2px;
+        }
+      }
+    }
   }
 
   .footer {

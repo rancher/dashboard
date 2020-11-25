@@ -90,7 +90,6 @@ export default {
           <div class="col span-2">
             <button
               class="btn btn-sm role-link col"
-              style="line-height: 40px;"
               @click="(e) => remove(e, i)"
             >
               {{ t("ingress.certificates.removeHost") }}

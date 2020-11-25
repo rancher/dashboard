@@ -2,8 +2,10 @@
 import isEmpty from 'lodash/isEmpty';
 import { RIO } from '@/config/types';
 import { _VIEW } from '@/config/query-params';
+import Select from '@/components/form/Select';
 
 export default {
+  components: { Select },
   props:      {
     mode: {
       type:     String,
@@ -122,7 +124,7 @@ export default {
 <template>
   <tr>
     <td>
-      <v-select
+      <Select
         class="inline"
         :clearable="false"
         :value="app"
@@ -130,10 +132,10 @@ export default {
         :placeholder="showPlaceholders ? placeholders[0] : null"
         :disabled="isView"
         @input="setApp"
-      ></v-select>
+      />
     </td>
     <td v-if="pickVersion">
-      <v-select
+      <Select
         v-model="version"
         class="inline"
         :options="versions"

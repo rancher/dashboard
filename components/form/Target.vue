@@ -204,11 +204,11 @@ export default {
               :disabled="isView"
               :options="routerOptions"
               :mode="mode"
-              placeholder="Select a Router..."
+              :placeholder="t('target.router.placeholder')"
               :clearable="false"
               class="inline"
               :reduce="opt=>opt.value"
-              label="Router"
+              :label="t('target.router.label')"
               @input="update"
             />
           </div>
@@ -220,11 +220,11 @@ export default {
                 :disabled="isView"
                 :mode="mode"
                 :options="appOptions"
-                placeholder="Select a service"
+                :placeholder="t('target.service.placeholder')"
                 :reduce="opt=>opt.value"
                 :clearable="false"
                 class="inline"
-                label="Service"
+                :label="t('target.service.label')"
                 @input="update"
               />
               <Checkbox v-if="kind==='app'" v-model="pickVersion" label="Target one version" class="mt-10" />
@@ -235,10 +235,10 @@ export default {
                 :disabled="isView"
                 :mode="mode"
                 :options="versionOptions"
-                placeholder="Select a version"
+                :placeholder="t('target.version.placeholder')"
                 :clearable="false"
                 class="inline"
-                label="Version"
+                :label="t('target.version.label')"
                 :reduce="opt=>opt.value"
                 @input="update"
               />
