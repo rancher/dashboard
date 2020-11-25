@@ -87,6 +87,7 @@ export default {
         :placeholder="t('ingress.rules.path.placeholder', undefined, true)"
         :select-value="pathType"
         :text-value="path"
+        :searchable="false"
         @input="queueUpdatePathTypeAndPath"
       />
     </div>
@@ -128,6 +129,14 @@ export default {
 </template>
 <style lang="scss" scoped>
 .rule-path ::v-deep {
+  &, .input-container {
+    height: $input-height;
+  }
+
+  .input-container .in-input.unlabeled-select {
+    width: initial;
+  }
+
   button {
     line-height: 40px;
   }

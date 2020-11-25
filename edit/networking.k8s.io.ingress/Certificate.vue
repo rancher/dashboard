@@ -65,6 +65,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <LabeledSelect
+          class="secret-name"
           :value="secretName"
           :options="certsWithDefault"
           :label="t('ingress.certificates.certificate.label')"
@@ -120,6 +121,10 @@ export default {
 
 .cert {
   position: relative;
+
+  .secret-name {
+    height: $input-height;
+  }
 
   &:not(:last-of-type) {
     padding-bottom: 10px;
