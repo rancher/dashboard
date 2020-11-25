@@ -248,7 +248,6 @@ export default {
 
 <template>
   <div>
-
     <div class="row">
       <div v-show="!nameNsHidden" :class="{ col: true, [colSpan]: true }">
         <slot :namespaces="namespaces" name="namespace">
