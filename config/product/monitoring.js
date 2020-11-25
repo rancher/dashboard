@@ -84,6 +84,7 @@ export function init(store) {
         id:              RECEIVER_SLACK,
         type:            'schema',
         resourceFields:  {
+          text:          { type: 'string' },
           api_url:       { type: 'string' },
           channel:       { type: 'string' },
           http_config:   { type: RECEIVER_HTTP_CONFIG },
