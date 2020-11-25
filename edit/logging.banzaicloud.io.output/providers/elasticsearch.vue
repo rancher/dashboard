@@ -75,7 +75,7 @@ export default {
         </div>
       </div>
     </div>
-    <hr class="section-divider" />
+    <div class="spacer"></div>
 
     <div>
       <h3>{{ t('logging.output.sections.access') }}</h3>
@@ -95,7 +95,7 @@ export default {
         </div>
       </div>
     </div>
-    <hr class="section-divider" />
+    <div class="spacer"></div>
 
     <h3>{{ t('logging.output.sections.certificate') }}</h3>
     <div class="row mb-10">

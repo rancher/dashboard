@@ -43,16 +43,16 @@ export default {
 <template>
   <div @input="update">
     <div>
-      <h4 class="mb-10">
+      <h3 class="mb-10">
         <t k="workload.scheduling.affinity.affinityTitle" />
-      </h4>
+      </h3>
       <PodAffinity v-model="podAffinity" :mode="mode" />
     </div>
-    <hr class="section-divider" />
+    <div class="spacer"></div>
 
-    <h4 class="mb-10">
+    <h3 class="mb-10">
       <t k="workload.scheduling.affinity.antiAffinityTitle" />
-    </h4>
+    </h3>
     <PodAffinity v-model="podAntiAffinity" :mode="mode" />
   </div>
 </template>

@@ -60,8 +60,6 @@ TEXTAREA,
   }
 
   &:not(.view) {
-    background-color: var(--input-bg);
-
     &:hover {
       &, .vs__dropdown-menu {
         background: var(--input-hover-bg);
@@ -93,10 +91,6 @@ TEXTAREA,
   LABEL {
     margin: $spacing 0 $spacing 0;
   }
-
-  // &.no-resize::placeholder {
-  //   padding-top: 8px;
-  // }
 }
 
 TEXTAREA {

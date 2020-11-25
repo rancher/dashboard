@@ -248,7 +248,7 @@ export default {
 
 <template>
   <div>
-    <div class="row mb-20">
+    <div class="row">
       <div v-show="!nameNsHidden" :class="{ col: true, [colSpan]: true }">
         <slot :namespaces="namespaces" name="namespace">
           <InputWithSelect
@@ -302,6 +302,7 @@ export default {
         </slot>
       </div>
     </div>
+    <div class="spacer"></div>
   </div>
 </template>
 

@@ -2,7 +2,7 @@
 import { _VIEW } from '@/config/query-params';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
-export const SCOPE_OPTIONS = ['*', 'Cluster', 'Namespaced'];
+export const SCOPE_OPTIONS = ['Cluster & Namespaced', 'Cluster', 'Namespaced'];
 
 export default {
   components: { LabeledSelect },
