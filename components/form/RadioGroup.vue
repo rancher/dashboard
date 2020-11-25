@@ -1,6 +1,7 @@
 <script>
 import RadioButton from '@/components/form/RadioButton';
 import { _VIEW } from '@/config/query-params';
+import { findBy } from '@/utils/array';
 
 export default {
   components: { RadioButton },
@@ -80,6 +81,12 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+
+    displayValue() {
+      const selectedOption = findBy(this.normalizedOptions, 'value', this.value);
+
+      return selectedOption.label;
+    }
   },
 
   methods: {
@@ -114,7 +121,7 @@ export default {
     <div
       v-if="isView"
     >
-      {{ value }}
+      {{ displayValue }}
     </div>
     <div
       v-else
