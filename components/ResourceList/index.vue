@@ -50,7 +50,7 @@ export default {
     const hasEditComponent = getters['type-map/hasCustomEdit'](resource);
 
     const yamlRoute = {
-      name: `${ this.$route.name }-create`,
+      name:  `${ this.$route.name }-create`,
       params,
       query: { [AS]: _YAML },
     };

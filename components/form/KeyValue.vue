@@ -7,7 +7,7 @@ import { asciiLike, escapeHtml } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
-import DetailText from '@/components/DetailText';
+// import DetailText from '@/components/DetailText';
 import { get } from '@/utils/object';
 import { mapGetters } from 'vuex';
 import FileSelector from '@/components/form/FileSelector';
@@ -17,7 +17,7 @@ const LARGE_LIMIT = 2 * 1024;
 export default {
   components: {
     TextAreaAutoGrow,
-    DetailText,
+    // DetailText,
     FileSelector
   },
 

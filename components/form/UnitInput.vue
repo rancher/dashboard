@@ -1,7 +1,6 @@
 <script>
 import { parseSi, UNITS, FRACTIONAL } from '@/utils/units';
 import LabeledInput from '@/components/form/LabeledInput';
-import LabeledFormElement from '@/mixins/labeled-form-element';
 
 export default {
   components: { LabeledInput },
