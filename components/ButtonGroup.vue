@@ -24,6 +24,11 @@ export default {
     labelsAreTranslations: {
       type:    Boolean,
       default: true
+    },
+
+    iconSize: {
+      type:    String,
+      default: null,
     }
   },
 
@@ -73,7 +78,7 @@ export default {
       @click="change(opt.value)"
     >
       <slot name="option" :label="opt.label" :value="opt.value">
-        <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />
+        <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true, [`icon-${iconSize}`]: !!iconSize }" />
         <t v-if="opt.label && labelsAreTranslations" :k="opt.label" />
         <span v-else-if="opt.label">{{ opt.label }}</span>
       </slot>

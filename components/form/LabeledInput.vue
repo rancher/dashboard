@@ -56,10 +56,6 @@ export default {
     hasSuffix() {
       return !!this.$slots.suffix;
     },
-
-    isDisabled() {
-      return this.disabled || this.isView;
-    },
   },
 
   methods: {
@@ -86,6 +82,7 @@ export default {
     onBlur() {
       this.onBlurLabeled();
     },
+
     escapeHtml
   }
 };
