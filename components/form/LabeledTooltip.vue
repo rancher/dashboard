@@ -13,9 +13,8 @@ export default {
 
     hover: {
       type:    Boolean,
-      default: false
+      default: true
     }
-
   },
 };
 </script>
@@ -52,8 +51,8 @@ export default {
 
     .status-icon {
         position:  absolute;
-        right: 26px;
-        top: 16px;
+        right: 15px;
+        top: 14px;
         font-size: 20px;
         z-index: z-index(hoverOverContent);
 

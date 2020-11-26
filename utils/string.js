@@ -236,3 +236,7 @@ export function ensureRegex(strOrRegex, exact = true) {
 
   return strOrRegex;
 }
+
+export function nlToBr(value) {
+  return escapeHtml(value || '').replace(/(\r\n|\r|\n)/g, '<br/>\n');
+}

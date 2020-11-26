@@ -131,7 +131,6 @@ export default {
             v-model="labels"
             class="mt-20"
             :add-label="t('labels.addSetLabel')"
-            :pad-left="false"
             :read-allowed="false"
           />
 

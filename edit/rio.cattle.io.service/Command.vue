@@ -163,7 +163,6 @@ export default {
       v-model="spec.env"
       key-name="name"
       :mode="mode"
-      :pad-left="false"
       :as-map="false"
       :read-allowed="false"
       title="Environment Variables"

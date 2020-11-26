@@ -30,7 +30,7 @@ import {
 
 import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
 import {
-  AS, _YAML, MODE, _CLONE, _EDIT, _FLAGGED, _VIEW, _UNFLAG
+  AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG
 } from '@/config/query-params';
 
 import { cleanForNew, normalizeType } from './normalize';

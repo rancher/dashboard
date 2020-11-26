@@ -75,7 +75,6 @@ export default {
   },
   methods: {
     showAnnotations(ev) {
-      ev.preventDefault();
       this.annotationsVisible = true;
     }
   }
@@ -107,10 +106,10 @@ export default {
     </div>
 
     <div v-if="hasLabels" class="labels">
-      <span class="label">
-        {{ t('resourceDetail.detailTop.labels') }}:
-      </span>
       <div class="tags">
+        <span class="label">
+          {{ t('resourceDetail.detailTop.labels') }}:
+        </span>
         <Tag v-for="(prop, key) in labels" :key="key + prop">
           {{ key }}<span v-if="prop">: </span>{{ prop }}
         </Tag>
@@ -121,37 +120,40 @@ export default {
       <span class="label">
         {{ t('resourceDetail.detailTop.annotations') }}:
       </span>
-      <a v-if="!annotationsVisible" href="#" @click="showAnnotations">{{ t('resourceDetail.detailTop.showAnnotations', {annotations: annotationCount}) }}</a>
-      <KeyValue v-else :value="annotations" :mode="view" />
+      <KeyValue v-if="annotationsVisible" :value="annotations" :mode="view" />
+      <a v-else href="#" @click.prevent="showAnnotations">
+        {{ t('resourceDetail.detailTop.showAnnotations', {annotations: annotationCount}) }}
+      </a>
     </div>
   </div>
 </template>
 
 <style lang="scss">
   .detail-top {
-    $left-column-spacing: 5px;
-    $right-column-spacing: 10px;
-    $border: 1px solid var(--tabbed-border);
-    border-top: $border;
+    $spacing: 5px;
 
     &:not(.empty) {
-      border-bottom: $border;
-      padding: 15px 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 15px;
+      padding-bottom: 15px;
     }
 
     .tags {
       display: inline-flex;
       flex-direction: row;
       flex-wrap: wrap;
-      margin-top: -5px;
+      position: relative;
+      top: $spacing * -1/2;
+
+      .label {
+        position: relative;
+        top: $spacing;
+      }
 
       .tag {
-        margin: $left-column-spacing $left-column-spacing $left-column-spacing 0;
+        margin: $spacing/2 $spacing $spacing $spacing/2;
+        font-size: 12px;
       }
-    }
-
-    .description {
-      margin-bottom: $right-column-spacing;
     }
 
     .label {

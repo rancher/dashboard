@@ -84,7 +84,6 @@ export default {
           value-placeholder="e.g. 1.1.1.1"
           add-label="Add Address"
           :mode="mode"
-          :pad-left="false"
           :protip="false"
           @input="e=>slotProps.update(e)"
         />

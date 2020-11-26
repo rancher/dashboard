@@ -5,7 +5,6 @@ generic:
   add: Add
   back: Back
   cancel: Cancel
-  clickToShow: "[Show Value]"
   close: Close
   comingSoon: Coming Soon
   copy: Copy
@@ -15,7 +14,6 @@ generic:
   default: Default
   disabled: Disabled
   enabled: Enabled
-  hide: "[Hide Value]"
   ignored: Ignored
   labelsAndAnnotations: Labels and Annotations
   na: n/a
@@ -23,8 +21,6 @@ generic:
   none: None
   number: '{prefix}{value, number}{suffix}'
   overview: Overview
-  plusMore: + {n} more
-  plusMoreUnits: + {n} {unit}
   readFromFile: Read from File
   remove: Remove
   resource: |-
@@ -83,6 +79,11 @@ product:
 suffix:
   cpus: CPUs
   ib: iB
+  revisions: |-
+    {count, plural,
+      =1 { Revision }
+      other { Revisions }
+    }
   seconds: |-
     {count, plural,
       =1 { Second }
@@ -462,6 +463,15 @@ cruResource:
   reviewForm: "Keep editing YAML"
   reviewYaml: "Keep editing YAML"
   previewYaml: Edit as YAML
+
+detailText:
+  collapse: Hide
+  binary: '<Binary Data: {n} bytes>'
+  plusMore: |-
+    {n, plural,
+      =1 {+ 1 more char}
+      other {+ {n} more chars}
+    }
 
 fleet:
   cluster:
@@ -1117,7 +1127,7 @@ promptRemove:
     other {, and {count} others.}
     }
   attemptingToRemove: "You are attemping to remove the {type}"
-  protip: "Protip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
+  protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
 
 resourceDetail:
   detailTop:
@@ -1145,6 +1155,9 @@ resourceDetail:
     defaultBannerMessage:
       error: This resource is currently in an error state, but there isn't a detailed message available.
       transitioning: This resource is currently in a transitioning state,but there isn't a detailed message available.
+    sensitive:
+      hide: Hide Sensitive Values
+      show: Show Sensitive Values
     namespace: Namespace
     workspace: Workspace
     project: Project
@@ -1204,7 +1217,7 @@ rioConfig:
 
 secret:
   certificate:
-    caCertificate: Certificate
+    certificate: Certificate
     cn: Domain Name
     expires: Expires
     issuer: Issuer
@@ -1222,6 +1235,9 @@ secret:
   ssh:
     public: Public Key
     private: Private Key
+  serviceAcct:
+    ca: CA Certificate
+    token: Token
   type: Type
   relatedWorkloads: Related Workloads
 
@@ -1278,7 +1294,7 @@ servicesPage:
       protip: List of IP addresses for which nodes in the cluster will also accept traffic for this service.
     input:
       label: Cluster IP
-      placeholder: e.g. 10.43.XXX.XXX
+      placeholder: e.g. 10.43.xxx.xxx
     label: Listener IPs
   selectors:
     helpText: "If no selector is created, manual endpoints must be made."
@@ -1701,6 +1717,9 @@ workload:
       volumeClaimTemplates: Volume Claim Templates
       upgrading: Scaling/Upgrade Policy
   cronSchedule: Schedule
+  detail:
+    pods:
+      title: Pods
   detailTop:
     node: Node
     podIP: Pod IP

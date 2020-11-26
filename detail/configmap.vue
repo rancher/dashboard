@@ -1,0 +1,57 @@
+<script>
+import ResourceTabs from '@/components/form/ResourceTabs';
+import DetailText from '@/components/DetailText';
+import Tab from '@/components/Tabbed/Tab';
+
+export default {
+  components: {
+    ResourceTabs,
+    DetailText,
+    Tab,
+  },
+
+  props: {
+    value: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
+    }
+  },
+
+  computed:   {
+    parsedRows() {
+      const rows = [];
+      const { data = {}, binaryData = {} } = this.value;
+
+      Object.keys(data).forEach((key) => {
+        rows.push({
+          key,
+          value:  data[key],
+          binary: false,
+        });
+      });
+
+      Object.keys(binaryData).forEach((key) => {
+        rows.push({
+          key,
+          value:  binaryData[key],
+          binary: true,
+        });
+      });
+
+      return rows;
+    },
+  },
+};
+</script>
+
+<template>
+  <ResourceTabs v-model="value" :mode="mode">
+    <Tab name="data" label-key="secret.data">
+      <div v-for="(row,idx) in parsedRows" :key="idx" class="mb-20">
+        <DetailText :value="row.value" :label="row.key" :binary="row.binary" />
+      </div>
+    </Tab>
+  </ResourceTabs>
+</template>

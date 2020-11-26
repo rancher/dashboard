@@ -138,14 +138,14 @@ export default {
     groupOptions() {
       return [
         {
-          tooltip: 'resourceTable.groupBy.none',
-          icon:    'icon-list-flat',
-          value:   'none',
+          tooltipKey: 'resourceTable.groupBy.none',
+          icon:       'icon-list-flat',
+          value:      'none',
         },
         {
-          tooltip: this.groupTooltip,
-          icon:    'icon-folder',
-          value:   'namespace',
+          tooltipKey: this.groupTooltip,
+          icon:       'icon-folder',
+          value:      'namespace',
         }
       ];
     },

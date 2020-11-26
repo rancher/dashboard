@@ -110,82 +110,73 @@ export default {
   <form @input="update">
     <div class="row mb-20">
       <div class="col span-6">
-        <UnitInput v-model="completions" :mode="mode" :suffix="t('suffix.times', {count: completions})">
-          <template #label>
-            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-              {{ t('workload.job.completions.label') }}
-              <i v-tooltip="t('workload.job.completions.tip')" class="icon icon-info" style="font-size: 14px" />
-            </label>
-          </template>
-        </UnitInput>
+        <UnitInput
+          v-model="completions"
+          :mode="mode"
+          :suffix="t('suffix.times', {count: completions})"
+          label-key="workload.job.completions.label"
+          tooltip-key="workload.job.completions.tip"
+        />
       </div>
       <div class="col span-6">
-        <UnitInput v-model="parallelism" :mode="mode" class="col span-6" :suffix="t('suffix.times', {count: parallelism})">
-          <template #label>
-            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-              {{ t('workload.job.parallelism.label') }}
-              <i v-tooltip="t('workload.job.parallelism.tip')" class="icon icon-info" style="font-size: 14px" />
-            </label>
-          </template>
-        </UnitInput>
+        <UnitInput
+          v-model="parallelism"
+          :mode="mode"
+          :suffix="t('suffix.times', {count: parallelism})"
+          label-key="workload.job.parallelism.label"
+          tooltip-key="workload.job.parallelism.tip"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <UnitInput v-model="backoffLimit" :mode="mode" :suffix="t('suffix.times', {count: backoffLimit})">
-          <template #label>
-            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-              {{ t('workload.job.backoffLimit.label') }}
-              <i v-tooltip="t('workload.job.backoffLimit.tip')" class="icon icon-info" style="font-size: 14px" />
-            </label>
-          </template>
-        </UnitInput>
+        <UnitInput
+          v-model="backoffLimit"
+          :mode="mode"
+          :suffix="t('suffix.times', {count: backoffLimit})"
+          label-key="workload.job.backoffLimit.label"
+          tooltip-key="workload.job.backoffLimit.tip"
+        />
       </div>
       <div class="col span-6">
-        <UnitInput v-model="activeDeadlineSeconds" :mode="mode" :suffix="t('suffix.seconds', {count: activeDeadlineSeconds})">
-          <template #label>
-            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-              {{ t('workload.job.activeDeadlineSeconds.label') }}
-              <i v-tooltip="t('workload.job.activeDeadlineSeconds.tip')" class="icon icon-info" style="font-size: 14px" />
-            </label>
-          </template>
-        </UnitInput>
+        <UnitInput
+          v-model="activeDeadlineSeconds"
+          :mode="mode"
+          :suffix="t('suffix.seconds', {count: activeDeadlineSeconds})"
+          label-key="workload.job.activeDeadlineSeconds.label"
+          tooltip-key="workload.job.activeDeadlineSeconds.tip"
+        />
       </div>
     </div>
 
     <template v-if="isCronJob">
       <div class="row  mb-20">
         <div class="col span-6">
-          <LabeledInput v-model.number="successfulJobsHistoryLimit" :mode="mode">
-            <template #label>
-              <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-                {{ t('workload.job.successfulJobsHistoryLimit.label') }}
-                <i v-tooltip="t('workload.job.successfulJobsHistoryLimit.tip')" class="icon icon-info" style="font-size: 14px" />
-              </label>
-            </template>
-          </LabeledInput>
+          <LabeledInput
+            v-model.number="successfulJobsHistoryLimit"
+            :mode="mode"
+            label-key="workload.job.successfulJobsHistoryLimit.label"
+            tooltip-key="workload.job.successfulJobsHistoryLimit.tip"
+          />
         </div>
         <div class="col span-6">
-          <LabeledInput v-model.number="failedJobsHistoryLimit" :mode="mode">
-            <template #label>
-              <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-                {{ t('workload.job.failedJobsHistoryLimit.label') }}
-                <i v-tooltip="t('workload.job.failedJobsHistoryLimit.tip')" class="icon icon-info" style="font-size: 14px" />
-              </label>
-            </template>
-          </LabeledInput>
+          <LabeledInput
+            v-model.number="failedJobsHistoryLimit"
+            :mode="mode"
+            label-key="workload.job.failedJobsHistoryLimit.label"
+            tooltip-key="workload.job.failedJobsHistoryLimit.tip"
+          />
         </div>
       </div>
       <div class="row mb-20">
         <div class="col span-6">
-          <UnitInput v-model="startingDeadlineSeconds" :mode="mode" :suffix="t('suffix.seconds', {count: startingDeadlineSeconds})">
-            <template #label>
-              <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-                {{ t('workload.job.startingDeadlineSeconds.label') }}
-                <i v-tooltip="t('workload.job.startingDeadlineSeconds.tip')" class="icon icon-info" style="font-size: 14px" />
-              </label>
-            </template>
-          </UnitInput>
+          <UnitInput
+            v-model="startingDeadlineSeconds"
+            :mode="mode"
+            :suffix="t('suffix.seconds', {count: startingDeadlineSeconds})"
+            label-key="workload.job.startingDeadlineSeconds.label"
+            tooltip-key="workload.job.startingDeadlineSeconds.tip"
+          />
         </div>
         <div class="col span-6">
           <UnitInput v-model="terminationGracePeriodSeconds" :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'" :label="t('workload.upgrading.activeDeadlineSeconds.label')" :mode="mode">

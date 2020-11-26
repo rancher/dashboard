@@ -117,16 +117,17 @@ export default {
 
       if ( startTime ) {
         out.push({
-          label:     'Started',
-          content:   startTime,
-          formatter: 'LiveDate'
+          label:         'Started',
+          content:       startTime,
+          formatter:     'LiveDate',
+          formatterOpts: { addSuffix: true },
         });
       }
 
       if (completionTime && startTime) {
         const end = day(completionTime);
         const start = day(startTime);
-        let diff = end.diff(start);
+        let diff = end.diff(start) / 1000;
 
         let label;
 

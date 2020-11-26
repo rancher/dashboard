@@ -13,7 +13,7 @@ import { clone } from '@/utils/object';
   - Concealed value
 */
 
-const DEFAULT_PROTIP = 'Paste lines into any list field for easy bulk entry';
+const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
   components: { TextAreaAutoGrow },
@@ -36,20 +36,11 @@ export default {
       type:    String,
       default: ''
     },
-    titleAdd: {
-      type:    Boolean,
-      default: false,
-    },
     protip: {
       type:    [String, Boolean],
       default: DEFAULT_PROTIP,
     },
     showHeader: {
-      type:    Boolean,
-      default: false,
-    },
-
-    padLeft: {
       type:    Boolean,
       default: false,
     },
@@ -236,13 +227,10 @@ export default {
   <div>
     <div v-if="title" class="clearfix">
       <slot name="title">
-        <h4>
+        <h3>
           {{ title }}
           <i v-if="showProtip" v-tooltip="protip" class="icon icon-info" />
-          <button v-if="titleAdd && showAdd" type="button" class="btn btn-xs role-tertiary p-5 ml-10" style="position: relative; top: -3px;" @click="add">
-            <i class="icon icon-plus icon-lg icon-fw" />
-          </button>
-        </h4>
+        </h3>
       </slot>
     </div>
 
@@ -282,6 +270,7 @@ export default {
                 ref="value"
                 v-model="row.value"
                 :placeholder="valuePlaceholder"
+                :disabled="isView"
                 @paste="onPaste(idx, $event)"
                 @input="queueUpdate"
               />
@@ -290,6 +279,7 @@ export default {
                 ref="value"
                 v-model="row.value"
                 :placeholder="valuePlaceholder"
+                :disabled="isView"
                 @paste="onPaste(idx, $event)"
                 @input="queueUpdate"
               />
@@ -311,7 +301,7 @@ export default {
     <div v-else>
       <slot name="empty" />
     </div>
-    <div v-if="!titleAdd && (showAdd || showRead)" class="footer">
+    <div v-if="showAdd || showRead" class="footer">
       <slot v-if="showAdd" name="add">
         <button type="button" class="btn role-tertiary add mt-10" @click="add()">
           {{ addLabel }}

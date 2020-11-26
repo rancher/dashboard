@@ -159,20 +159,12 @@ export default {
               v-model="value.alertmanager.alertmanagerSpec.useExistingSecret"
               name="useExistingSecret"
               :disabled="forceCreateNewSecret"
-              :label="t('monitoring.alerting.secrets.radio.label')"
-              :labels="useExistingLabels"
+              label-key="monitoring.alerting.secrets.radio.label"
+              :tooltip="t('monitoring.alerting.secrets.info', {}, raw=true)"
               :mode="mode"
+              :labels="useExistingLabels"
               :options="useExistingOptions"
-            >
-              <template #corner>
-                <i
-                  v-tooltip="
-                    t('monitoring.alerting.secrets.info', {}, (raw = true))
-                  "
-                  class="icon icon-info"
-                />
-              </template>
-            </RadioGroup>
+            />
           </div>
           <div class="col span-6">
             <LabeledSelect

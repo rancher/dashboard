@@ -228,14 +228,7 @@ export default {
             type="number"
             :options="['Pods', '%']"
             @input="e=>updateWithUnits(e, 'maxSurge')"
-          >
-            <template #label>
-              <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-                {{ t('workload.upgrading.maxSurge.label') }}
-                <i v-tooltip="t('workload.upgrading.maxSurge.tip')" class="icon icon-info" style="font-size: 14px" />
-              </label>
-            </template>
-          </InputWithSelect>
+          />
         </div>
         <div class="col span-6">
           <InputWithSelect
@@ -247,14 +240,7 @@ export default {
             type="number"
             :options="['Pods', '%']"
             @input="e=>updateWithUnits(e, 'maxUnavailable')"
-          >
-            <template #label>
-              <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-                {{ t('workload.upgrading.maxUnavailable.label') }}
-                <i v-tooltip="t('workload.upgrading.maxUnavailable.tip')" class="icon icon-info" style="font-size: 14px" />
-              </label>
-            </template>
-          </InputWithSelect>
+          />
         </div>
       </div>
     </template>
@@ -262,50 +248,46 @@ export default {
     <!-- workload spec -->
     <div class="row mb-20">
       <div v-if="!isStatefulSet" class="col span-6">
-        <UnitInput v-model="minReadySeconds" :suffix="minReadySeconds == 1 ? 'Second' : 'Seconds'" :label="t('workload.upgrading.minReadySeconds.label')" :mode="mode">
-          <template #label>
-            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-              {{ t('workload.upgrading.minReadySeconds.label') }}
-              <i v-tooltip="t('workload.upgrading.minReadySeconds.tip')" class="icon icon-info" style="font-size: 14px" />
-            </label>
-          </template>
-        </UnitInput>
+        <UnitInput
+          v-model="minReadySeconds"
+          :suffix="t('suffix.seconds', {count: minReadySeconds})"
+          label-key="workload.upgrading.minReadySeconds.label"
+          tooltip-key="workload.upgrading.minReadySeconds.tip"
+          :mode="mode"
+        />
       </div>
       <div v-if="isDeployment || isStatefulSet || isDaemonSet" class="col span-6">
-        <UnitInput v-model="revisionHistoryLimit" :suffix="revisionHistoryLimit == 1 ? 'Set' : 'Sets'" :label="t('workload.upgrading.revisionHistoryLimit.label')" :mode="mode">
-          <template #label>
-            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-              {{ t('workload.upgrading.revisionHistoryLimit.label') }}
-              <i v-tooltip="t('workload.upgrading.revisionHistoryLimit.tip')" class="icon icon-info" style="font-size: 14px" />
-            </label>
-          </template>
-        </UnitInput>
+        <UnitInput
+          v-model="revisionHistoryLimit"
+          :suffix="t('suffix.revisions', {count: revisionHistoryLimit})"
+          label-key="workload.upgrading.revisionHistoryLimit.label"
+          tooltip-key="workload.upgrading.revisionHistoryLimit.tip"
+          :mode="mode"
+        />
       </div>
     </div>
     <div v-if="isDeployment" class="row mb-20">
       <div class="col span-6">
-        <UnitInput v-model="progressDeadlineSeconds" :suffix="progressDeadlineSeconds == 1 ? 'Second' : 'Seconds'" label="Progress Deadline" :mode="mode">
-          <template #label>
-            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-              {{ t('workload.upgrading.progressDeadlineSeconds.label') }}
-              <i v-tooltip="t('workload.upgrading.progressDeadlineSeconds.tip')" class="icon icon-info" style="font-size: 14px" />
-            </label>
-          </template>
-        </UnitInput>
+        <UnitInput
+          v-model="progressDeadlineSeconds"
+          :suffix="t('suffix.seconds', {count: progressDeadlineSeconds})"
+          label-key="workload.upgrading.progressDeadlineSeconds.label"
+          tooltip-key="workload.upgrading.progressDeadlineSeconds.tip"
+          :mode="mode"
+        />
       </div>
     </div>
 
     <!-- pod spec -->
     <div class="row">
       <div class="col span-6">
-        <UnitInput v-model="terminationGracePeriodSeconds" :suffix="terminationGracePeriodSeconds == 1 ? 'Second' : 'Seconds'" :label="t('workload.upgrading.activeDeadlineSeconds.label')" :mode="mode">
-          <template #label>
-            <label class="has-tooltip" :style="{'color':'var(--input-label)'}">
-              {{ t('workload.upgrading.terminationGracePeriodSeconds.label') }}
-              <i v-tooltip="t('workload.upgrading.terminationGracePeriodSeconds.tip')" class="icon icon-info" style="font-size: 14px" />
-            </label>
-          </template>
-        </UnitInput>
+        <UnitInput
+          v-model="terminationGracePeriodSeconds"
+          :suffix="t('suffix.seconds', {count: terminationGracePeriodSeconds})"
+          label-key="workload.upgrading.terminationGracePeriodSeconds.label"
+          tooltip-key="workload.upgrading.terminationGracePeriodSeconds.tip"
+          :mode="mode"
+        />
       </div>
     </div>
   </div>

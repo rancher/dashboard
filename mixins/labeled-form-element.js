@@ -1,4 +1,4 @@
-import { _VIEW } from '@/config/query-params';
+import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   inheritAttrs: false,
@@ -6,7 +6,7 @@ export default {
   props: {
     mode: {
       type:    String,
-      default: 'edit',
+      default: _EDIT,
     },
 
     label: {
@@ -14,7 +14,27 @@ export default {
       default: null
     },
 
+    labelKey: {
+      type:     String,
+      default: null
+    },
+
+    tooltip: {
+      type:    [String, Object],
+      default: null
+    },
+
+    tooltipKey: {
+      type:     String,
+      default: null
+    },
+
     required: {
+      type:    Boolean,
+      default: false,
+    },
+
+    disabled: {
       type:    Boolean,
       default: false,
     },
@@ -28,11 +48,6 @@ export default {
       type:    [String, Number, Object],
       default: ''
     },
-
-    i18nLabel: {
-      type:    String,
-      default: null
-    }
   },
 
   data() {
@@ -51,8 +66,8 @@ export default {
       return this.mode === _VIEW;
     },
 
-    notView() {
-      return (this.mode !== _VIEW);
+    isDisabled() {
+      return this.disabled || this.isView;
     },
 
     isSearchable() {

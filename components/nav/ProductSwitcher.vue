@@ -82,7 +82,7 @@ export default {
 
   methods: {
     focus() {
-      this.$refs.select.$refs.search.focus();
+      this.$refs.select.focusSearch();
     },
 
     shortcutsActive() {
@@ -192,7 +192,6 @@ export default {
       ref="select"
       key="product"
       :value="value"
-      :searchable="false"
       :selectable="option => !option.disabled"
       :options="options"
       :reduce="opt=>opt.value"

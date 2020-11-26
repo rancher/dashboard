@@ -219,16 +219,13 @@ export default {
         <div class="col span-6 col-full-height">
           <RadioGroup
             v-model="value.prometheus.prometheusSpec.ignoreNamespaceSelectors"
-            name="ignoreNamespaceSelectors"
-            :label="t('monitoring.prometheus.config.ignoreNamespaceSelectors.label')"
-            :labels="[t('monitoring.prometheus.config.ignoreNamespaceSelectors.radio.enforced'),t('monitoring.prometheus.config.ignoreNamespaceSelectors.radio.ignored')]"
             :mode="mode"
+            name="ignoreNamespaceSelectors"
+            label-key="monitoring.prometheus.config.ignoreNamespaceSelectors.label"
+            :tooltip="t('monitoring.prometheus.config.ignoreNamespaceSelectors.help', {}, true)"
+            :labels="[t('monitoring.prometheus.config.ignoreNamespaceSelectors.radio.enforced'),t('monitoring.prometheus.config.ignoreNamespaceSelectors.radio.ignored')]"
             :options="[false, true]"
-          >
-            <template #corner>
-              <i v-tooltip="t('monitoring.prometheus.config.ignoreNamespaceSelectors.help', {}, true)" class="icon icon-info" />
-            </template>
-          </RadioGroup>
+          />
         </div>
       </div>
       <div class="row">
@@ -367,7 +364,6 @@ export default {
               :show-remove="false"
               @input="matchChanged($event)"
             />
-            </banner>
           </div>
         </div>
       </template>

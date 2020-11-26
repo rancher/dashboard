@@ -112,6 +112,10 @@ export default {
     showAffinityTimeout() {
       return this.value.spec.sessionAffinity === 'ClientIP' && !isEmpty(this.value.spec.sessionAffinityConfig);
     },
+
+    hasClusterIp() {
+      return this.checkTypeIs('ClusterIP') || this.checkTypeIs('LoadBalancer') || this.checkTypeIs('NodePort');
+    }
   },
 
   watch: {
@@ -253,7 +257,6 @@ export default {
               v-model="value.spec.selector"
               :mode="mode"
               :initial-empty-row="true"
-              :pad-left="false"
               :protip="false"
               @input="e=>$set(value.spec, 'selector', e)"
             />
@@ -262,7 +265,7 @@ export default {
       </Tab>
       <Tab name="ips" :label="t('servicesPage.ips.label')">
         <div
-          v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
+          v-if="hasClusterIp"
           class="row mb-20"
         >
           <div class="col span-6">
@@ -271,17 +274,10 @@ export default {
               :mode="mode"
               :label="t('servicesPage.ips.input.label')"
               :placeholder="t('servicesPage.ips.input.placeholder')"
+              tooltip="foo"
+              :tooltip-key="hasClusterIp ? 'servicesPage.ips.clusterIpHelpText' : null"
               @input="e=>$set(value.spec, 'clusterIP', e)"
-            >
-              <template #corner>
-                <i
-                  v-if="checkTypeIs('ClusterIP') || checkTypeIs('LoadBalancer') || checkTypeIs('NodePort')"
-                  v-tooltip="t('servicesPage.ips.clusterIpHelpText')"
-                  class="icon icon-info"
-                  style="font-size: 14px"
-                />
-              </template>
-            </LabeledInput>
+            />
           </div>
         </div>
         <div class="row">
@@ -292,7 +288,6 @@ export default {
               :title="t('servicesPage.ips.external.label')"
               :value-placeholder="t('servicesPage.ips.external.placeholder')"
               :mode="mode"
-              :pad-left="false"
               :protip="t('servicesPage.ips.external.protip')"
               @input="e=>$set(value.spec, 'externalIPs', e)"
             />

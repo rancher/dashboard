@@ -417,7 +417,6 @@ export default {
         :name-resource="nameResource"
         :is-sidecar="isSidecar"
         :mode="mode"
-        :pad-left="false"
       />
     </div>
   </div>

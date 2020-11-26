@@ -14,6 +14,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import HealthCheck from '@/components/form/HealthCheck';
 import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
+import Loading from '@/components/Loading';
 import Networking from '@/components/form/Networking';
 import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
 import Job from '@/edit/workload/Job';
@@ -30,11 +31,11 @@ import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
 import Storage from '@/edit/workload/storage';
 import Labels from '@/components/form/Labels';
-import Loading from '@/components/Loading';
 
 export default {
   name:       'CruWorkload',
   components: {
+    Loading,
     NameNsDescription,
     LabeledSelect,
     LabeledInput,
@@ -56,7 +57,6 @@ export default {
     Storage,
     VolumeClaimTemplate,
     Labels,
-    Loading
   },
 
   mixins: [CreateEditView],
@@ -680,7 +680,6 @@ export default {
                 v-model="podLabels"
                 :add-label="t('labels.addLabel')"
                 :mode="mode"
-                :pad-left="false"
                 :read-allowed="false"
                 :protip="false"
               />
@@ -692,7 +691,6 @@ export default {
                 v-model="podAnnotations"
                 :add-label="t('labels.addAnnotation')"
                 :mode="mode"
-                :pad-left="false"
                 :read-allowed="false"
                 :protip="false"
               />

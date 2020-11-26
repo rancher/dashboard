@@ -237,7 +237,6 @@ export default {
               <KeyValue
                 v-model="value.grafana.persistence.annotations"
                 :mode="mode"
-                :pad-left="false"
                 :protip="true"
                 :read-allowed="false"
                 :title="t('monitoring.grafana.storage.annotations')"
@@ -255,7 +254,6 @@ export default {
               v-model="value.grafana.persistence.finalizers"
               table-class="fixed"
               :mode="mode"
-              :pad-left="false"
               :title="t('monitoring.grafana.storage.finalizers')"
             >
               <template #title>

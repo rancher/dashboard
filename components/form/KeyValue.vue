@@ -7,20 +7,17 @@ import { asciiLike, escapeHtml } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
-import ClickExpand from '@/components/formatter/ClickExpand';
+import DetailText from '@/components/DetailText';
 import { get } from '@/utils/object';
-import CodeMirror from '@/components/CodeMirror';
 import { mapGetters } from 'vuex';
 import FileSelector from '@/components/form/FileSelector';
-import { HIDE_SENSITIVE } from '@/store/prefs';
 
 const LARGE_LIMIT = 2 * 1024;
 
 export default {
   components: {
     TextAreaAutoGrow,
-    ClickExpand,
-    CodeMirror,
+    DetailText,
     FileSelector
   },
 
@@ -37,6 +34,7 @@ export default {
       type:    Boolean,
       default: true,
     },
+
     initialEmptyRow: {
       type:    Boolean,
       default: false,
@@ -46,18 +44,9 @@ export default {
       type:    String,
       default: ''
     },
-    titleAdd: {
-      type:    Boolean,
-      default: false,
-    },
     protip: {
       type:    [String, Boolean],
       default: 'Paste lines of <em>key=value</em> or <em>key: value</em> into any key field for easy bulk entry',
-    },
-
-    padLeft: {
-      type:    Boolean,
-      default: false,
     },
 
     // For asMap=false, the name of the field that goes into the row objects
@@ -65,12 +54,14 @@ export default {
       type:    String,
       default: 'key',
     },
+
     keyLabel: {
       type: String,
       default() {
         return this.$store.getters['i18n/t']('generic.key');
       },
     },
+
     keyPlaceholder: {
       type: String,
       default() {
@@ -88,12 +79,14 @@ export default {
       type:    String,
       default: 'value',
     },
+
     valueLabel: {
       type: String,
       default() {
         return this.$store.getters['i18n/t']('generic.value');
       },
     },
+
     valuePlaceholder: {
       type: String,
       default() {
@@ -104,6 +97,7 @@ export default {
       type:    Boolean,
       default: false,
     },
+
     valueBinary: {
       type:    Boolean,
       default: false,
@@ -171,6 +165,7 @@ export default {
       type:    Boolean,
       default: true,
     },
+
     fileModifier: {
       type:    Function,
       default: (name, value) => ({ name, value })
@@ -218,10 +213,6 @@ export default {
   computed: {
     isView() {
       return this.mode === _VIEW;
-    },
-
-    hideSensitive() {
-      return this.$store.getters['prefs/get'](HIDE_SENSITIVE);
     },
 
     showAdd() {
@@ -399,9 +390,6 @@ export default {
       <slot name="title">
         <h3 class="mb-0">
           {{ title }}
-          <button v-if="titleAdd && showAdd" type="button" class="btn btn-xs role-tertiary p-5 ml-10" style="position: relative; top: -3px;" @click="add()">
-            <i class="icon icon-plus icon-lg icon-fw" />
-          </button>
         </h3>
       </slot>
     </div>
@@ -440,13 +428,13 @@ export default {
             :valueName="valueName"
             :isView="isView"
           >
-            <div v-if="isView" class="view force-wrap">
-              {{ row[keyName] }}
-            </div>
+            <span v-if="isView && row[keyName]">{{ row[keyName] }}</span>
+            <span v-else-if="isView">&mdash;</span>
             <input
               v-else
               ref="key"
               v-model="row[keyName]"
+              :disabled="isView"
               :placeholder="keyPlaceholder"
               @input="queueUpdate"
               @paste="onPaste(i, $event)"
@@ -464,39 +452,11 @@ export default {
             :isView="isView"
             :queueUpdate="queueUpdate"
           >
-            <div v-if="isView" class="view force-wrap">
-              <span>
-                <template v-if="get(row, '_display.parsed') && !hideSensitive">
-                  <CodeMirror
-                    :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
-                    :value="get(row, '_display.parsed')"
-                    :class="{'conceal':valueConcealed && hideSensitive}"
-                  />
-                </template>
-                <ClickExpand
-                  v-else-if="row._display.binary || row._display.isLarge"
-                  :value-binary="row._display.binary"
-                  :max-length="largeLimit/2"
-                  :value-concealed="!!valueConcealed && !!hideSensitive"
-                  :value="row[valueName]"
-                  :size="row._display.isLarge ? get(row, '_display.byteSize') : null"
-                />
-                <span v-else-if="get(row, '_display.withBreaks')" class="text-monospace" :class="{'conceal': hideSensitive}" v-html="get(row, '_display.withBreaks')" />
-                <span v-else class="text-muted">&mdash;</span>
-              </span>
-
-              <template v-if="!!row[valueName]">
-                <span v-if="row._display.binary" class="ml-10">
-                  <a @click="download(i, $event)">Download</a>
-                </span>
-                <button v-else class="btn role-link copy-value" @click="$copyText(row[valueName])">
-                  <i class="icon icon-copy" />
-                </button>
-              </template>
-            </div>
+            <span v-if="isView">{{ row[valueName] }}</span>
             <TextAreaAutoGrow
               v-else-if="valueMultiline"
               v-model="row[valueName]"
+              :disabled="isView"
               :placeholder="valuePlaceholder"
               :min-height="50"
               :spellcheck="false"
@@ -505,6 +465,7 @@ export default {
             <input
               v-else
               v-model="row[valueName]"
+              :disabled="isView"
               :placeholder="valuePlaceholder"
               autocorrect="off"
               autocapitalize="off"
@@ -524,7 +485,7 @@ export default {
       </template>
     </div>
 
-    <div v-if="!titleAdd && (showAdd || showRead)" class="footer mt-10">
+    <div v-if="showAdd || showRead" class="footer mt-10">
       <slot name="add" :add="add">
         <button v-if="showAdd" type="button" class="btn btn-sm role-secondary add" @click="add()">
           {{ addLabel }}
@@ -550,15 +511,6 @@ export default {
     align-items: center;
     grid-template-columns: auto 1fr;
     column-gap: $column-gutter;
-
-    .view{
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-      -ms-word-break: break-all;
-      word-break: break-word;
-      display: flex;
-      align-items: flex-start;
-    }
 
     &.extra-column {
        grid-template-columns: 1fr 1fr 100px;

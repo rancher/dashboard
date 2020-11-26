@@ -32,11 +32,12 @@ export default {
   <AsyncButton
     icon="icon-copy"
     :show-label="showLabel"
-    action-label="Copy to Clipboard"
+    action-label="Copy"
     waiting-label="Copying..."
     success-label="Copied!"
     error-label="Error Copying"
     v-bind="$attrs"
+    :delay="2000"
     @click="clicked"
   />
 </template>

@@ -25,7 +25,7 @@ export default {
     themeOptions() {
       return this.$store.getters['prefs/options'](THEME).map((value) => {
         return {
-          label: `prefs.theme.${ value }`,
+          labelKey: `prefs.theme.${ value }`,
           value
         };
       });
@@ -34,7 +34,7 @@ export default {
     landingOptions() {
       return this.$store.getters['prefs/options'](LANDING).map((value) => {
         return {
-          label: `prefs.landing.${ value }`,
+          labelKey: `prefs.landing.${ value }`,
           value
         };
       });
@@ -43,7 +43,7 @@ export default {
     keymapOptions() {
       return this.$store.getters['prefs/options'](KEYMAP).map((value) => {
         return {
-          label: `prefs.keymap.${ value }`,
+          labelKey: `prefs.keymap.${ value }`,
           value
         };
       });

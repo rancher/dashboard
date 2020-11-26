@@ -175,20 +175,35 @@ export default {
       return this.$store.getters['prefs/get'](HIDE_SENSITIVE);
     },
 
+    sensitiveOptions() {
+      return [
+        {
+          tooltipKey: 'resourceDetail.masthead.sensitive.hide',
+          icon:       'icon-hide',
+          value:      true,
+        },
+        {
+          tooltipKey: 'resourceDetail.masthead.sensitive.show',
+          icon:       'icon-show',
+          value:      false
+        }
+      ];
+    },
+
     viewOptions() {
       const out = [];
 
       if ( this.hasDetail ) {
         out.push({
-          label: 'resourceDetail.masthead.detail',
-          value: 'detail',
+          labelKey: 'resourceDetail.masthead.detail',
+          value:    'detail',
         });
       }
 
       if ( this.hasEdit ) {
         out.push({
-          label: 'resourceDetail.masthead.config',
-          value: 'config',
+          labelKey: 'resourceDetail.masthead.config',
+          value:    'config',
         });
       }
 
@@ -198,8 +213,8 @@ export default {
       }
 
       out.push({
-        label: 'resourceDetail.masthead.yaml',
-        value: 'yaml',
+        labelKey: 'resourceDetail.masthead.yaml',
+        value:    'yaml',
       });
 
       return out;
@@ -232,6 +247,10 @@ export default {
           break;
         }
       },
+    },
+
+    isDetail() {
+      return this.currentView === _DETAIL;
     },
 
     managedWarning() {
@@ -269,7 +288,7 @@ export default {
 </script>
 
 <template>
-  <div>
+  <div class="masthead">
     <header>
       <div class="title">
         <div class="primaryheader">
@@ -290,7 +309,14 @@ export default {
       </div>
       <slot name="right">
         <div v-if="isView" class="actions">
-          <ButtonGroup v-if="isView && !!value.hasSensitiveData" :labels-are-translations="true" :value="!!hideSensitiveData" :options="[{icon: 'icon-hide', value: true},{icon:'icon-show', value: false }]" @input="toggleSensitiveData" />
+          <ButtonGroup
+            v-if="isView && isDetail && !!value.hasSensitiveData"
+            :labels-are-translations="true"
+            :value="!!hideSensitiveData"
+            icon-size="lg"
+            :options="sensitiveOptions"
+            @input="toggleSensitiveData"
+          />
 
           <ButtonGroup
             v-if="viewOptions"
@@ -311,16 +337,22 @@ export default {
       </slot>
     </header>
 
-    <Banner v-if="banner && isView && !parent.hideBanner" class="state-banner" :color="banner.color" :label="banner.message" />
+    <Banner v-if="banner && isView && !parent.hideBanner" class="state-banner mb-20" :color="banner.color" :label="banner.message" />
     <Banner
       v-if="managedWarning.show"
       color="warning"
+      class="mb-20"
       :label="t('resourceDetail.masthead.managedWarning', managedWarning)"
     />
   </div>
 </template>
 
 <style lang='scss' scoped>
+  .masthead {
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 15px;
+  }
+
   .primaryheader {
     display: flex;
     flex-direction: row;

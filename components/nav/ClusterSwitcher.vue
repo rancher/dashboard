@@ -48,7 +48,7 @@ export default {
 
   methods: {
     focus() {
-      this.$refs.select.$refs.search.focus();
+      this.$refs.select.focusSearch();
     },
   },
 };
@@ -60,6 +60,7 @@ export default {
       ref="select"
       key="cluster"
       v-model="value"
+      :searchable="true"
       :selectable="(option) => option.ready"
       :clearable="false"
       :options="options"

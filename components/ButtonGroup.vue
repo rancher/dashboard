@@ -71,7 +71,7 @@ export default {
     <button
       v-for="(opt,idx) in optionObjects"
       :key="idx"
-      v-tooltip="opt.tooltip && labelsAreTranslations ? t(opt.tooltip) : opt.tooltip"
+      v-tooltip="opt.tooltipKey ? t(opt.tooltipKey) : opt.tooltip"
       type="button"
       :class="opt.class"
       class="btn-sm"
@@ -79,7 +79,7 @@ export default {
     >
       <slot name="option" :label="opt.label" :value="opt.value">
         <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true, [`icon-${iconSize}`]: !!iconSize }" />
-        <t v-if="opt.label && labelsAreTranslations" :k="opt.label" />
+        <t v-if="opt.labelKey" :k="opt.labelKey" />
         <span v-else-if="opt.label">{{ opt.label }}</span>
       </slot>
     </button>

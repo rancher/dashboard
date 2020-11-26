@@ -9,7 +9,10 @@ function stringFor(store, key, args, raw = false) {
   if ( translation !== undefined ) {
     out = translation;
   } else if ( args && Object.keys(args).length ) {
-    out = `%${ key }(${ JSON.stringify(args) })%`;
+    const argStr = Object.keys(args).map(k => `${ k }: ${ args[k] }`).join(', ');
+
+    out = `%${ key }(${ argStr })%`;
+    raw = true;
   } else {
     out = `%${ key }%`;
   }

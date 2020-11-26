@@ -14,7 +14,7 @@ export default {};
     border-radius: var(--border-radius);
     color: var(--tag-primary);
     background-color: var(--tag-bg);
-    padding: 3px 6px 1px 6px;
-    font-size: 10px;
+    padding: 3px 5px 2px 5px;
+    font-size: 12px;
   }
 </style>

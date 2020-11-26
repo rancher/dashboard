@@ -11,8 +11,8 @@ import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
-import Banner from '@/components/Banner';
 import Vue from 'vue';
+import isEqual from 'lodash/isEqual';
 
 function modeFor(route) {
   if ( route.params.id ) {
@@ -62,7 +62,6 @@ export async function asyncData(ctx) {
 export default {
   components: {
     Loading,
-    Banner,
     DetailTop,
     ResourceYaml,
     Masthead,
@@ -283,11 +282,15 @@ export default {
   },
 
   watch: {
-    '$route.query': '$fetch',
+    '$route.query'(neu, old) {
+      if ( !isEqual(neu, old) ) {
+        this.$fetch();
+      }
+    },
 
     // Auto refresh YAML when the model changes
     async 'value.metadata.resourceVersion'(a, b) {
-      if ( a && b && a !== b && this.mode === _VIEW && this.as === _YAML ) {
+      if ( this.mode === _VIEW && this.as === _YAML && a && b && a !== b) {
         this.yaml = await getYaml(this.originalModel);
       }
     }
