@@ -723,6 +723,14 @@ logging:
       label: SSL Client Cert Chain
       placeholder: Paste in the client cert chain
     sslClientCertKey: SSL Client Cert Key
+  loki:
+    url: URL
+    tenant: Tenant
+    username: User
+    password: Password
+    configureKubernetesLabels: Configure Kubernetes metadata in a Prometheus like format
+    extractKubernetesLabels: Extract Kubernetes labels as Loki labels
+    dropSingleKey: If a record only has 1 key, then just set the log line to the value and discard the key
   output:
     selectOutputs: Select Outputs
     selectBanner: Select to configure an output
@@ -730,11 +738,13 @@ logging:
       target: Target
       access: Access
       certificate: SSL
+      labels: Labels
   outputProviders:
     elasticsearch: Elasticsearch
     splunkHec: Splunk
     kafka: Kafka
     forward: Fluentd
+    loki: Loki
     unknown: Unknown
   overview:
     poweredBy: Banzai Cloud
