@@ -5,14 +5,6 @@ import { removeAt } from '@/utils/array';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 import { clone } from '@/utils/object';
 
-/*
-  @TODO
-  - Paste
-  - Read from file
-  - Multiline
-  - Concealed value
-*/
-
 const DEFAULT_PROTIP = 'Tip: Paste lines into any list field for easy bulk entry';
 
 export default {
@@ -57,10 +49,6 @@ export default {
       type:    Boolean,
       default: false,
     },
-    valueConcealed: {
-      type:    Boolean,
-      default: false,
-    },
 
     addLabel: {
       type: String,
@@ -91,14 +79,11 @@ export default {
       type:    Boolean,
       default: true,
     },
+
     defaultAddValue: {
       type:    [String, Number, Object, Array],
       default: ''
     },
-    tableClass: {
-      type:    [String, Object, Array],
-      default: 'fixed zebra-table'
-    }
   },
 
   data() {
@@ -122,15 +107,11 @@ export default {
     },
 
     showAdd() {
-      return !this.isView && this.addAllowed;
-    },
-
-    showRead() {
-      return !this.isView && this.readAllowed;
+      return this.addAllowed;
     },
 
     showRemove() {
-      return !this.isView && this.removeAllowed;
+      return this.removeAllowed;
     },
 
     isDefaultProtip() {
@@ -193,6 +174,7 @@ export default {
       if ( this.isView ) {
         return;
       }
+
       const out = [];
 
       for ( const row of this.rows ) {
@@ -264,13 +246,12 @@ export default {
               :isView="isView"
               :queue-update="queueUpdate"
             >
-              <span v-if="isView">{{ row.value }}</span>
               <TextAreaAutoGrow
-                v-else-if="valueMultiline"
+                v-if="valueMultiline"
                 ref="value"
                 v-model="row.value"
                 :placeholder="valuePlaceholder"
-                :disabled="isView"
+                :mode="mode"
                 @paste="onPaste(idx, $event)"
                 @input="queueUpdate"
               />
@@ -288,7 +269,7 @@ export default {
         </slot>
         <div v-if="showRemove" class="remove">
           <slot name="remove-button" :remove="() => remove(idx)">
-            <button type="button" class="btn role-link" @click="remove(idx)">
+            <button type="button" :disabled="isView" class="btn role-link" @click="remove(idx)">
               {{ removeLabel }}
             </button>
           </slot>
@@ -301,12 +282,11 @@ export default {
     <div v-else>
       <slot name="empty" />
     </div>
-    <div v-if="showAdd || showRead" class="footer">
+    <div v-if="showAdd" class="footer">
       <slot v-if="showAdd" name="add">
-        <button type="button" class="btn role-tertiary add mt-10" @click="add()">
+        <button type="button" :disabled="isView" class="btn role-tertiary add mt-10" @click="add()">
           {{ addLabel }}
         </button>
-        <slot name="moreAdd" :rows="rows" />
       </slot>
     </div>
   </div>

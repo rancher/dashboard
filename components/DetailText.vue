@@ -73,6 +73,10 @@ export default {
       return this.size > this.maxLength;
     },
 
+    isEmpty() {
+      return this.size === 0;
+    },
+
     body() {
       if (this.isBinary) {
         return this.t('detailText.binary', { n: this.size });
@@ -141,16 +145,19 @@ export default {
       {{ label }}
     </h4>
 
+    <span v-if="isEmpty" v-t="'detailText.empty'" class="text-italic" />
+    <span v-else-if="isBinary" class="text-italic">{{ t('detailText.binary', {n: size}) }}</span>
+
     <CodeMirror
-      v-if="jsonStr"
+      v-else-if="jsonStr"
       :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
       :value="jsonStr"
       :class="{'conceal': concealed}"
     />
 
-    <span v-else :class="{'conceal': concealed, 'monospace': monospace && !isBinary}" v-html="bodyHtml"></span>
+    <span v-else :class="{'conceal': concealed, 'monospace': monospace && !isBinary}" v-html="monospace ? body : bodyHtml" />
 
-    <template v-if="!jsonStr && !isBinary && isLong && !expanded">
+    <template v-if="!isBinary && !jsonStr && isLong && !expanded">
       <a href="#" @click.prevent="expand">{{ plusMore }}</a>
     </template>
 
@@ -167,11 +174,17 @@ export default {
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
   border: solid var(--outline-width) var(--input-border);
-  >button{
+
+  > button {
     position: absolute;
     top: -1px;
     right: -1px;
     border-radius: 0 0 0 var(--border-radius);
   }
+}
+
+.monospace {
+  white-space: pre-wrap;
+  word-wrap: break-all
 }
 </style>

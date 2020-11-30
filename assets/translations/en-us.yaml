@@ -466,11 +466,12 @@ cruResource:
 
 detailText:
   collapse: Hide
-  binary: '<Binary Data: {n} bytes>'
+  binary: '<Binary Data: {n, number} bytes>'
+  empty: '<Empty>'
   plusMore: |-
     {n, plural,
       =1 {+ 1 more char}
-      other {+ {n} more chars}
+      other {+ {n, number} more chars}
     }
 
 fleet:
@@ -1140,6 +1141,10 @@ resourceDetail:
       {count, plural,
       =1 {Owner}
       other {Owners}}
+    hideAnnotations: |-
+      {annotations, plural,
+      =1 {Hide 1 annotation}
+      other {Hide {annotations} annotations}}
     showAnnotations: |-
       {annotations, plural,
       =1 {Show 1 annotation}

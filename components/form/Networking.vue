@@ -18,6 +18,7 @@ export default {
       type:     Object,
       required: true,
     },
+
     mode: {
       type:     String,
       required: true,

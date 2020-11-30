@@ -1,11 +1,11 @@
 <script>
 import Tag from '@/components/Tag';
 import { isEmpty } from 'lodash';
-import KeyValue from '@/components/form/KeyValue';
+import DetailText from '@/components/DetailText';
 import { _VIEW } from '@/config/query-params';
 
 export default {
-  components: { KeyValue, Tag },
+  components: { DetailText, Tag },
 
   props: {
     value: {
@@ -74,8 +74,8 @@ export default {
     },
   },
   methods: {
-    showAnnotations(ev) {
-      this.annotationsVisible = true;
+    toggleAnnotations(ev) {
+      this.annotationsVisible = !this.annotationsVisible;
     }
   }
 };
@@ -120,10 +120,12 @@ export default {
       <span class="label">
         {{ t('resourceDetail.detailTop.annotations') }}:
       </span>
-      <KeyValue v-if="annotationsVisible" :value="annotations" :mode="view" />
-      <a v-else href="#" @click.prevent="showAnnotations">
-        {{ t('resourceDetail.detailTop.showAnnotations', {annotations: annotationCount}) }}
+      <a href="#" @click.prevent="toggleAnnotations">
+        {{ t(`resourceDetail.detailTop.${annotationsVisible? 'hideAnnotations' : 'showAnnotations'}`, {annotations: annotationCount}) }}
       </a>
+      <div v-if="annotationsVisible">
+        <DetailText v-for="(val, key) in annotations" :key="key" class="annotation" :value="val" :label="key" />
+      </div>
     </div>
   </div>
 </template>
@@ -154,6 +156,10 @@ export default {
         margin: $spacing/2 $spacing $spacing $spacing/2;
         font-size: 12px;
       }
+    }
+
+    .annotation {
+      margin-top: 10px;
     }
 
     .label {

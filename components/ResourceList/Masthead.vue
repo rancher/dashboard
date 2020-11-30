@@ -79,9 +79,3 @@ export default {
     </div>
   </header>
 </template>
-
-<style lang="scss" scoped>
-.actions {
-  grid-column: max-content;
-}
-</style>

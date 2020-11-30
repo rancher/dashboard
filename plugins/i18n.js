@@ -31,7 +31,7 @@ Vue.prototype.t = function(key, args, raw) {
 function directive(el, binding, vnode /*, oldVnode */) {
   const { context } = vnode;
   const raw = binding.modifiers && binding.modifiers.raw === true;
-  const str = stringFor(context.$store, binding.value, raw);
+  const str = stringFor(context.$store, binding.value, {}, raw);
 
   if ( binding.arg ) {
     el.setAttribute(binding.arg, str);
@@ -43,7 +43,7 @@ function directive(el, binding, vnode /*, oldVnode */) {
 export function directiveSsr(vnode, binding) {
   const { context } = vnode;
   const raw = binding.modifiers && binding.modifiers.raw === true;
-  const str = stringFor(context.$store, binding.value, raw);
+  const str = stringFor(context.$store, binding.value, {}, raw);
 
   if ( binding.arg ) {
     vnode.data.attrs[binding.arg] = str;

@@ -6,8 +6,6 @@ import KeyValue from '@/components/form/KeyValue';
 import Labels from '@/components/form/Labels';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
-import RelatedResources from '@/components/RelatedResources';
-import { WORKLOAD_TYPES } from '@/config/types';
 import { asciiLike } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 
@@ -21,7 +19,6 @@ export default {
     Labels,
     Tab,
     Tabbed,
-    RelatedResources
   },
 
   mixins: [CreateEditView],
@@ -35,20 +32,6 @@ export default {
     });
 
     return { allData: { ...decodedBinaryData, ...data } };
-  },
-
-  computed: {
-    hasRelatedWorkloads() {
-      const { relationships = [] } = this.value.metadata;
-
-      for (const r in relationships) {
-        if (r.rel === 'owner' && WORKLOAD_TYPES.includes(r.fromType)) {
-          return true;
-        }
-      }
-
-      return false;
-    },
   },
 
   watch: {
@@ -89,7 +72,6 @@ export default {
     @cancel="done"
   >
     <NameNsDescription
-      v-if="!isView"
       :value="value"
       :mode="mode"
       :register-before-hook="registerBeforeHook"
@@ -103,7 +85,7 @@ export default {
           key="data"
           v-model="allData"
           :mode="mode"
-          :protip="t('configmapPage.data.protip')"
+          :protip="t('configmap.tabs.data.protip')"
           :initial-empty-row="true"
           :value-can-be-empty="true"
           :read-multiple="true"
@@ -111,7 +93,6 @@ export default {
         />
       </Tab>
       <Tab
-        v-if="!isView"
         name="labels-and-annotations"
         :label="t('generic.labelsAndAnnotations')"
         :weight="-1"
@@ -122,9 +103,6 @@ export default {
           :mode="mode"
           :display-side-by-side="false"
         />
-      </Tab>
-      <Tab v-if="hasRelatedWorkloads" name="relatedWorkloads" :label="t('secrest.relatedWorkloads')">
-        <RelatedResources :ignore-types="['pod']" :value="value" rel="uses" direction="from" />
       </Tab>
     </Tabbed>
   </CruResource>

@@ -1,23 +1,18 @@
 <script>
 import debounce from 'lodash/debounce';
 import { typeOf } from '@/utils/sort';
-import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
 import { asciiLike, escapeHtml } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
-// import DetailText from '@/components/DetailText';
 import { get } from '@/utils/object';
-import { mapGetters } from 'vuex';
 import FileSelector from '@/components/form/FileSelector';
-
-const LARGE_LIMIT = 2 * 1024;
+import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   components: {
     TextAreaAutoGrow,
-    // DetailText,
     FileSelector
   },
 
@@ -26,10 +21,12 @@ export default {
       type:     [Array, Object],
       default: null,
     },
+
     mode: {
       type:    String,
       default: _EDIT,
     },
+
     asMap: {
       type:    Boolean,
       default: true,
@@ -204,7 +201,7 @@ export default {
       });
     });
 
-    if ( !rows.length && this.initialEmptyRow && this.mode !== _VIEW ) {
+    if ( !rows.length && this.initialEmptyRow ) {
       rows.push({ [this.keyName]: '', [this.valueName]: '' });
     }
 
@@ -215,31 +212,9 @@ export default {
       return this.mode === _VIEW;
     },
 
-    showAdd() {
-      return !this.isView && this.addAllowed;
-    },
-
-    showRead() {
-      return !this.isView && this.readAllowed;
-    },
-
-    showRemove() {
-      return !this.isView && this.removeAllowed;
-    },
-
     threeColumns() {
-      return this.showRemove;
+      return this.removeAllowed;
     },
-
-    hasSomeBinary() {
-      return !!(this.rows.filter(row => !!get(row, '_display.binary')) || []).length;
-    },
-
-    largeLimit() {
-      return LARGE_LIMIT;
-    },
-
-    ...mapGetters({ t: 'i18n/t' })
   },
 
   created() {
@@ -291,15 +266,23 @@ export default {
     },
 
     update() {
-      if ( this.isView ) {
-        return;
-      }
-
       if ( !this.asMap ) {
-        this.$emit('input', this.rows.slice());
+        this.$emit('input', this.rows.map((row) => {
+          let value = row.value;
+
+          if ( this.base64Encode ) {
+            value = base64Encode(value);
+          }
+
+          return {
+            [this.keyName]:   row.key,
+            [this.valueName]: value,
+          };
+        }));
 
         return;
       }
+
       const out = {};
       const keyName = this.keyName;
       const valueName = this.valueName;
@@ -307,6 +290,7 @@ export default {
       if (!this.rows.length) {
         this.$emit('input', out);
       }
+
       for ( const row of this.rows ) {
         let value = (row[valueName] || '');
         const key = (row[keyName] || '').trim();
@@ -332,7 +316,6 @@ export default {
       const binary = typeof value === 'string' && !asciiLike(value);
       const withBreaks = escapeHtml(value || '').replace(/(\r\n|\r|\n)/g, '<br/>\n');
       const byteSize = (withBreaks.length || 0) * 2; // Blobs don't exist in node/ssr
-      const isLarge = byteSize > LARGE_LIMIT;
       let parsed;
 
       if ( value && ( value.startsWith('{') || value.startsWith('[') ) ) {
@@ -346,7 +329,6 @@ export default {
       return {
         binary,
         withBreaks,
-        isLarge,
         parsed,
         byteSize
       };
@@ -385,7 +367,7 @@ export default {
 </script>
 
 <template>
-  <div class="key-value" :class="mode">
+  <div class="key-value">
     <div v-if="title" class="clearfix">
       <slot name="title">
         <h3 class="mb-0">
@@ -394,29 +376,17 @@ export default {
       </slot>
     </div>
 
-    <div class="kv-container" :class="{'extra-column':threeColumns, 'view':isView}">
-      <template v-if="rows.length || isView">
-        <label class="text-label" :class="{'view':isView}">
+    <div class="kv-container" :class="{'extra-column':threeColumns}">
+      <template v-if="rows.length">
+        <label class="text-label">
           {{ keyLabel }}
-          <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" style="font-size: 14px" />
+          <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 14px" />
         </label>
-        <label class="text-label" :class="{'view':isView}">
+        <label class="text-label">
           {{ valueLabel }}
         </label>
-        <span v-if="threeColumns" :class="{'view':isView}" />
+        <span v-if="threeColumns" />
       </template>
-
-      <div v-if="isView && !rows.length" class="kv-row last" :class="{'extra-column':threeColumns}">
-        <div class="text-muted">
-          &mdash;
-        </div>
-        <div class="text-muted">
-          &mdash;
-        </div>
-        <div v-if="threeColumns" class="text-muted">
-          &mdash;
-        </div>
-      </div>
 
       <template v-for="(row,i) in rows">
         <div :key="i+'key'" class="kv-item key">
@@ -426,12 +396,8 @@ export default {
             :mode="mode"
             :keyName="keyName"
             :valueName="valueName"
-            :isView="isView"
           >
-            <span v-if="isView && row[keyName]">{{ row[keyName] }}</span>
-            <span v-else-if="isView">&mdash;</span>
             <input
-              v-else
               ref="key"
               v-model="row[keyName]"
               :disabled="isView"
@@ -449,14 +415,12 @@ export default {
             :mode="mode"
             :keyName="keyName"
             :valueName="valueName"
-            :isView="isView"
             :queueUpdate="queueUpdate"
           >
-            <span v-if="isView">{{ row[valueName] }}</span>
             <TextAreaAutoGrow
-              v-else-if="valueMultiline"
+              v-if="valueMultiline"
               v-model="row[valueName]"
-              :disabled="isView"
+              :mode="mode"
               :placeholder="valuePlaceholder"
               :min-height="50"
               :spellcheck="false"
@@ -475,9 +439,9 @@ export default {
           </slot>
         </div>
 
-        <div v-if="showRemove" :key="i" class="kv-item remove">
+        <div v-if="removeAllowed" :key="i" class="kv-item remove">
           <slot name="removeButton" :remove="remove" :row="row">
-            <button type="button" class="btn bg-transparent role-link" @click="remove(i)">
+            <button type="button" :disabled="isView" class="btn bg-transparent role-link" @click="remove(i)">
               {{ removeLabel || t('generic.remove') }}
             </button>
           </slot>
@@ -485,19 +449,18 @@ export default {
       </template>
     </div>
 
-    <div v-if="showAdd || showRead" class="footer mt-10">
+    <div v-if="addAllowed || readAllowed" class="footer ml-10">
       <slot name="add" :add="add">
-        <button v-if="showAdd" type="button" class="btn btn-sm role-secondary add" @click="add()">
+        <button v-if="addAllowed" :disabled="isView" type="button" class="btn btn-sm role-secondary add" @click="add()">
           {{ addLabel }}
         </button>
-        <FileSelector v-if="showRead" class="btn-sm role-secondary" :label="t('generic.readFromFile')" :include-file-name="true" @selected="onFileSelected" />
+        <FileSelector v-if="readAllowed" class="btn-sm role-secondary" :label="t('generic.readFromFile')" :include-file-name="true" @selected="onFileSelected" />
       </slot>
     </div>
   </div>
 </template>
 
 <style lang="scss">
-
 .key-value {
   width: 100%;
 
@@ -514,10 +477,6 @@ export default {
 
     &.extra-column {
        grid-template-columns: 1fr 1fr 100px;
-       &.view{
-       grid-template-columns: auto 1fr 100px;
-
-       }
     }
 
     & .kv-item {

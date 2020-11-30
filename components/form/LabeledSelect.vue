@@ -98,7 +98,11 @@ export default {
   methods: {
     focusSearch() {
       this.$nextTick(() => {
-        this.$refs.input.searchEl.focus();
+        const el = this.$refs.input?.searchEl;
+
+        if ( el ) {
+          el.focus();
+        }
       });
     },
     onFocus() {

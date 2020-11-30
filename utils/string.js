@@ -186,6 +186,7 @@ export function dasherize(str) {
 
 export function asciiLike(str) {
   str = str || '';
+
   if ( str.match(/[^\r\n\t\x20-\x7F]/) ) {
     return false;
   }

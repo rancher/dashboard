@@ -85,10 +85,7 @@ export default {
 <template>
   <div>
     <h3><t k="workload.scheduling.titles.nodeScheduling" /></h3>
-    <h4 v-if="isView" class="mt-10 mb-10">
-      {{ selectNode ? t('workload.scheduling.affinity.specificNode') : t('workload.scheduling.affinity.schedulingRules') }}
-    </h4>
-    <div v-else class="row">
+    <div class="row">
       <RadioGroup
         v-model="selectNode"
         name="selectNode"
@@ -113,7 +110,7 @@ export default {
 
       <div class="spacer" />
 
-      <div v-if="mode!=='view' || !isEmpty(nodeSelector)" class="row">
+      <div class="row">
         <KeyValue
           title="Nodes with these labels"
           :value="nodeSelector"

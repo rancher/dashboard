@@ -7,7 +7,6 @@ import Tab from '@/components/Tabbed/Tab';
 import Loading from '@/components/Loading';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import CountGauge from '@/components/CountGauge';
-import { mapGetters } from 'vuex';
 import { allHash } from '@/utils/promise';
 
 export default {

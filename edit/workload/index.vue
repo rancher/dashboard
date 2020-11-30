@@ -628,6 +628,7 @@ export default {
               <div class="col span-6">
                 <LabeledInput
                   v-model="container.image"
+                  :mode="mode"
                   :label="t('workload.container.image')"
                   placeholder="eg nginx:latest"
                   required
