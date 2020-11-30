@@ -11,47 +11,42 @@ export default {
   mixins:     [LabeledFormElement],
 
   props: {
-
-    type: {
-      type:    String,
-      default: 'text',
-    },
-
-    mode: {
-      type:    String,
-      default: _EDIT
-    },
-
-    disabled: {
-      type:    Boolean,
-      default: false,
-    },
-
-    placeholder: {
-      type:    String,
-      default: ''
-    },
-
-    status: {
-      type:      String,
-      default:   null
-    },
-
-    tooltip: {
-      type:    String,
-      default: null
-    },
-
-    required: {
-      type:    Boolean,
-      default: false,
-    },
-
     copyable: {
-      type:    Boolean,
-      default: false
+      default: false,
+      type:    Boolean
+    },
+    disabled: {
+      default: false,
+      type:    Boolean
+    },
+    hoverTooltip: {
+      default: false,
+      type:    Boolean
+    },
+    mode: {
+      default: _EDIT,
+      type:    String
+    },
+    placeholder: {
+      default: '',
+      type:    String
+    },
+    required: {
+      default: false,
+      type:    Boolean
+    },
+    status: {
+      default: null,
+      type:    String
+    },
+    tooltip: {
+      default: null,
+      type:    String
+    },
+    type: {
+      default: 'text',
+      type:    String
     }
-
   },
 
   computed: {
@@ -165,6 +160,11 @@ export default {
       >
     </slot>
     <slot v-if="!isView" name="suffix" />
-    <LabeledTooltip v-if="tooltip && !focused" :value="tooltip" :status="status" />
+    <LabeledTooltip
+      v-if="tooltip && !focused"
+      :hover="hoverTooltip"
+      :value="tooltip"
+      :status="status"
+    />
   </div>
 </template>
