@@ -8,6 +8,7 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import ToggleGradientBox from '@/components/ToggleGradientBox';
 import Labels from '@/components/form/Labels';
 import Banner from '@/components/Banner';
+import { PROVIDERS } from '@/models/logging.banzaicloud.io.output';
 
 export default {
   components: {
@@ -25,43 +26,10 @@ export default {
       this.value.metadata.namespace = 'default';
     }
 
-    const providers = [
-      {
-        name:    'elasticsearch',
-        label:   this.t('logging.outputProviders.elasticsearch'),
-        enabled: false,
-        default: {},
-        logo:    require(`~/assets/images/logo-color-elasticsearch.svg`)
-      },
-      {
-        name:    'splunkHec',
-        label:   this.t('logging.outputProviders.splunkHec'),
-        enabled: false,
-        default: {},
-        logo:    require(`~/assets/images/logo-color-splunk.svg`)
-      },
-      {
-        name:    'kafka',
-        label:   this.t('logging.outputProviders.kafka'),
-        enabled: false,
-        default: { format: { type: 'json' } },
-        logo:    require(`~/assets/images/logo-color-kafka.svg`)
-      },
-      {
-        name:    'forward',
-        label:   this.t('logging.outputProviders.forward'),
-        enabled: false,
-        default: { servers: [{}] },
-        logo:    require(`~/assets/images/logo-color-fluentd.svg`)
-      },
-      {
-        name:    'loki',
-        label:   this.t('logging.outputProviders.loki'),
-        enabled: false,
-        default: { configure_kubernetes_labels: true },
-        logo:    require(`~/assets/images/logo-color-loki.svg`)
-      }
-    ];
+    const providers = PROVIDERS.map(provider => ({
+      ...provider,
+      label: this.t(provider.labelKey)
+    }));
 
     this.value.spec = this.value.spec || {};
 
