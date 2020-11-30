@@ -262,14 +262,12 @@ export default {
   }
 
   .ports-row {
-    INPUT {
-      height: 50px;
+    > div {
+      height: 100%;
     }
 
     .port-protocol ::v-deep {
       .unlabeled-select {
-        height: 50px;
-
         .v-select.inline {
           margin-top: 2px;
         }

@@ -10,17 +10,17 @@ export default {
   props: {
     value: {
       type:    String,
-      default: null
+      default: null,
     },
     mode: {
       type:    String,
-      default: _VIEW
-    }
+      default: _VIEW,
+    },
   },
 
   data() {
     return { SCOPE_OPTIONS };
-  }
+  },
 };
 </script>
 

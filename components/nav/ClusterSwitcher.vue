@@ -115,7 +115,6 @@ export default {
     border-radius: var(--border-radius);
     border: 1px solid var(--header-btn-bg);
     color: var(--header-btn-text);
-    height: calc(var(--header-height) - 19px);
     max-width: 100%;
     padding-top: 0;
 
@@ -140,6 +139,7 @@ export default {
 
 .filter ::v-deep .unlabeled-select {
   background-color: transparent;
+  min-height: 34px;
 }
 
 .filter ::v-deep .unlabeled-select:not(.focused) {
@@ -148,9 +148,6 @@ export default {
 
 .filter ::v-deep .unlabeled-select INPUT[type='search'] {
   width: auto;
-}
-.filter ::v-deep .v-select.inline.vs--single.vs--open .vs__search {
-  margin-left: 0;
 }
 
 .filter ::v-deep .unlabeled-select INPUT:hover {

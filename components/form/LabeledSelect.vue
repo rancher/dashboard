@@ -195,6 +195,7 @@ export default {
       [mode]: true,
       [status]: status,
       taggable: $attrs.taggable,
+      taggable: $attrs.multiple,
       hoverable: hoverTooltip,
     }"
     @click="focusSearch"

@@ -320,9 +320,5 @@ export default {
     &:not(.view){
       grid-template-columns: 1fr 1fr 1fr 100px;
     }
-
-    INPUT:not(.vs__search) {
-      height: 50px;
-    }
   }
 </style>

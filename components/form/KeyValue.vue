@@ -422,7 +422,7 @@ export default {
               v-model="row[valueName]"
               :mode="mode"
               :placeholder="valuePlaceholder"
-              :min-height="50"
+              :min-height="54"
               :spellcheck="false"
               @input="queueUpdate"
             />
@@ -510,7 +510,7 @@ export default {
   }
 
   input {
-    height: 50px;
+    height: $input-height;
   }
 
   .footer {
