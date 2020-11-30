@@ -93,6 +93,7 @@ export default {
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
+    @apply-hooks="applyHooks"
   >
     <NameNsDescription
       v-if="!isView"
