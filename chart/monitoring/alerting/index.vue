@@ -22,7 +22,7 @@ export default {
 
     secrets: {
       type:    Array,
-      default: () => ([]),
+      default: () => [],
     },
 
     value: {
@@ -32,24 +32,41 @@ export default {
   },
 
   data() {
-    return { };
+    return {
+      useExistingLabels: [
+        this.t('monitoring.alerting.secrets.new'),
+        this.t('monitoring.alerting.secrets.existing'),
+      ],
+      useExistingOptions: [false, true],
+    };
   },
 
   computed: {
     allSecrets() {
       const { secrets } = this;
 
-      return secrets.filter(sec => sec.metadata.namespace === DEFAULT_MONITORING_NAMESPACE).map(sec => ({ label: sec.metadata.name, value: sec.metadata.name }));
+      return secrets
+        .filter(
+          sec => sec.metadata.namespace === DEFAULT_MONITORING_NAMESPACE
+        )
+        .map(sec => ({ label: sec.metadata.name, value: sec.metadata.name }));
     },
 
     canUseExistingSecret() {
       const { filteredSecrets } = this;
 
-      return filteredSecrets.length > 0 && !this.value.alertmanager.alertmanagerSpec.useExistingSecret;
+      return (
+        filteredSecrets.length > 0 &&
+        !this.value.alertmanager.alertmanagerSpec.useExistingSecret
+      );
     },
 
     existingSecret() {
-      return this.secrets.find(sec => sec?.metadata?.name === 'alertmanager-rancher-monitoring-alertmanager' && sec?.metadata?.namespace === DEFAULT_MONITORING_NAMESPACE);
+      return this.secrets.find(
+        sec => sec?.metadata?.name ===
+            'alertmanager-rancher-monitoring-alertmanager' &&
+          sec?.metadata?.namespace === DEFAULT_MONITORING_NAMESPACE
+      );
     },
 
     filteredSecrets() {
@@ -78,15 +95,27 @@ export default {
   watch: {
     filteredSecrets(newValue, oldValue) {
       if (isEmpty(newValue)) {
-        this.$set(this.value.alertmanager.alertmanagerSpec, 'useExistingSecret', false);
+        this.$set(
+          this.value.alertmanager.alertmanagerSpec,
+          'useExistingSecret',
+          false
+        );
       }
 
       const { existingSecret } = this;
 
       if (existingSecret) {
         this.$nextTick(() => {
-          this.$set(this.value.alertmanager.alertmanagerSpec, 'useExistingSecret', true);
-          this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', existingSecret.metadata.name);
+          this.$set(
+            this.value.alertmanager.alertmanagerSpec,
+            'useExistingSecret',
+            true
+          );
+          this.$set(
+            this.value.alertmanager.alertmanagerSpec,
+            'configSecret',
+            existingSecret.metadata.name
+          );
         });
       }
     },
@@ -95,12 +124,16 @@ export default {
 
       if (useExistingSecret) {
         if (existingSecret?.metadata?.name) {
-          this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', existingSecret.metadata.name);
+          this.$set(
+            this.value.alertmanager.alertmanagerSpec,
+            'configSecret',
+            existingSecret.metadata.name
+          );
         }
       } else {
         this.$set(this.value.alertmanager.alertmanagerSpec, 'configSecret', '');
       }
-    }
+    },
   },
 };
 </script>
@@ -113,7 +146,10 @@ export default {
     <div class="alerting-config">
       <div class="row">
         <div class="col span-6">
-          <Checkbox v-model="value.alertmanager.enabled" :label="t('monitoring.alerting.enable.label')" />
+          <Checkbox
+            v-model="value.alertmanager.enabled"
+            :label="t('monitoring.alerting.enable.label')"
+          />
         </div>
       </div>
       <template v-if="value.alertmanager.enabled">
@@ -124,12 +160,17 @@ export default {
               name="useExistingSecret"
               :disabled="forceCreateNewSecret"
               :label="t('monitoring.alerting.secrets.radio.label')"
-              :labels="[t('monitoring.alerting.secrets.new'),t('monitoring.alerting.secrets.existing')]"
+              :labels="useExistingLabels"
               :mode="mode"
-              :options="[false, true]"
+              :options="useExistingOptions"
             >
               <template #corner>
-                <i v-tooltip="t('monitoring.alerting.secrets.info', {}, raw=true)" class="icon icon-info" />
+                <i
+                  v-tooltip="
+                    t('monitoring.alerting.secrets.info', {}, (raw = true))
+                  "
+                  class="icon icon-info"
+                />
               </template>
             </RadioGroup>
           </div>
