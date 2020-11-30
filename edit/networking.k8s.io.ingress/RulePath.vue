@@ -31,12 +31,18 @@ export default {
       'Exact',
       'ImplementationSpecific'
     ];
-    const { backend = {}, path = '', pathType = pathTypes[0] } = this.value;
-    const serviceName = get(backend, this.ingress.serviceNamePath) || '';
-    const servicePort = get(backend, this.ingress.servicePortPath) || '';
+
+    set(this.value, 'backend', this.value.backend || {});
+    set(this.value, 'path', this.value.path || '');
+    set(this.value, 'pathType', this.value.pathType || pathTypes[0]);
+    set(this.value.backend, this.ingress.serviceNamePath, get(this.value.backend, this.ingress.serviceNamePath) || '');
+    set(this.value.backend, this.ingress.servicePortPath, get(this.value.backend, this.ingress.servicePortPath) || '');
+
+    const serviceName = get(this.value.backend, this.ingress.serviceNamePath);
+    const servicePort = get(this.value.backend, this.ingress.servicePortPath);
 
     return {
-      serviceName, servicePort, path, pathType, pathTypes
+      pathTypes, serviceName, servicePort, pathType: this.value.pathType, path: this.value.path
     };
   },
   computed: {
@@ -46,13 +52,14 @@ export default {
       return service?.ports || [];
     },
     serviceTargetStatus() {
-      const isValueAnOption = !this.serviceName || this.serviceTargets.find(target => this.serviceName === target.value);
+      const serviceName = this.serviceName.label || this.serviceName;
+      const isValueAnOption = !serviceName || this.serviceTargets.find(target => serviceName === target.value);
 
       return isValueAnOption ? null : 'warning';
     },
     serviceTargetTooltip() {
       return this.serviceTargetStatus === 'warning' ? this.t('ingress.rules.target.doesntExist') : null;
-    },
+    }
   },
   created() {
     this.queueUpdate = debounce(this.update, 500);
@@ -66,8 +73,8 @@ export default {
         backend: {}, path: this.path, pathType: this.pathType
       };
 
-      set(out.backend, this.ingress.serviceNamePath, serviceName);
       set(out.backend, this.ingress.servicePortPath, servicePort);
+      set(out.backend, this.ingress.serviceNamePath, serviceName);
 
       this.$emit('input', out);
     },
@@ -83,10 +90,11 @@ export default {
   <div class="rule-path row">
     <div v-if="ingress.showPathType" class="col span-6">
       <InputWithSelect
+        class="path-type"
         :options="pathTypes"
         :placeholder="t('ingress.rules.path.placeholder', undefined, true)"
-        :select-value="pathType"
-        :text-value="path"
+        :select-value="value.pathType"
+        :text-value="value.path"
         :searchable="false"
         @input="queueUpdatePathTypeAndPath"
       />
@@ -102,6 +110,7 @@ export default {
         :options="serviceTargets"
         :status="serviceTargetStatus"
         :taggable="true"
+        :searchable="true"
         :tooltip="serviceTargetTooltip"
         :hover-tooltip="true"
         @input="queueUpdate(); servicePort = ''"
@@ -129,6 +138,12 @@ export default {
 </template>
 <style lang="scss" scoped>
 .rule-path ::v-deep {
+  .path-type {
+    .unlabeled-select {
+      min-width: 200px;
+    }
+  }
+
   &, .input-container {
     height: $input-height;
   }

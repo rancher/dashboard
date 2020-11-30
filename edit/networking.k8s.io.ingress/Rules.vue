@@ -3,11 +3,12 @@ import { WORKLOAD_TYPES } from '@/config/types';
 import Loading from '@/components/Loading';
 import SortableTable from '@/components/SortableTable';
 import { _VIEW } from '@/config/query-params';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import Rule from './Rule';
 
 export default {
   components: {
-    Loading, Rule, SortableTable
+    ArrayListGrouped, Loading, Rule, SortableTable
   },
 
   props: {
@@ -21,18 +22,19 @@ export default {
       default: 'edit'
     },
 
+    certificates: {
+      type:    Array,
+      default: () => []
+    },
+
     serviceTargets: {
       type:    Array,
       default: () => []
-    }
+    },
   },
 
   async fetch() {
     await Promise.all(Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })));
-  },
-
-  data() {
-    return { rules: this.value.spec.rules };
   },
 
   computed: {
@@ -81,16 +83,7 @@ export default {
       return headers;
     },
     rows() {
-      return this.value.createRulesForListPage(this.workloads);
-    }
-  },
-
-  methods: {
-    addRule() {
-      this.rules.push({});
-    },
-    removeRule(idx) {
-      this.rules.splice(idx, 1);
+      return this.value.createRulesForListPage(this.workloads, this.certificates);
     }
   }
 };
@@ -109,16 +102,14 @@ export default {
     />
   </div>
   <div v-else>
-    <Rule
-      v-for="(_, i) in rules"
-      :key="i"
-      v-model="rules[i]"
-      :service-targets="serviceTargets"
-      :ingress="value"
-      @remove="e=>removeRule(i)"
-    />
-    <button class="btn role-tertiary add mt-10" type="button" @click="addRule">
-      {{ t('ingress.rules.addRule') }}
-    </button>
+    <ArrayListGrouped v-model="value.spec.rules" :add-label="t('ingress.rules.addRule')" :default-add-value="{}">
+      <template #default="props">
+        <Rule
+          v-model="props.row.value"
+          :service-targets="serviceTargets"
+          :ingress="value"
+        />
+      </template>
+    </ArrayListGrouped>
   </div>
 </template>

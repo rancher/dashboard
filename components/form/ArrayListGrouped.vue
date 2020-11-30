@@ -7,7 +7,7 @@ export default { components: { ArrayList, InfoBox } };
 <template>
   <ArrayList class="array-list-grouped" v-bind="$attrs" @input="$emit('input', $event)">
     <template v-slot:columns="scope">
-      <InfoBox>
+      <InfoBox class="pt-40">
         <slot v-bind="scope"></slot>
       </InfoBox>
     </template>

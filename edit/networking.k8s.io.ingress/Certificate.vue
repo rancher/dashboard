@@ -1,12 +1,11 @@
 <script>
-import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import InfoBox from '@/components/InfoBox';
+import ArrayList from '@/components/form/ArrayList';
+
+const DEFAULT_CERT_VALUE = '__[[DEFAULT_CERT]]__';
 
 export default {
-  components: {
-    InfoBox, LabeledInput, LabeledSelect
-  },
+  components: { ArrayList, LabeledSelect },
   props:      {
     value: {
       type:    Object,
@@ -22,7 +21,7 @@ export default {
   data() {
     const defaultCert = {
       label: this.t('ingress.certificates.defaultCertLabel'),
-      value: null,
+      value: DEFAULT_CERT_VALUE,
     };
     const { hosts = [''], secretName = defaultCert.value } = this.value;
 
@@ -34,7 +33,15 @@ export default {
   },
   computed: {
     certsWithDefault() {
-      return [this.defaultCert, ...this.certs];
+      return [this.defaultCert, ...this.certs.map(c => ({ label: c, value: c }))];
+    },
+    certificateStatus() {
+      const isValueAnOption = !this.secretName || this.certsWithDefault.find(cert => this.secretName === cert.value);
+
+      return isValueAnOption ? null : 'warning';
+    },
+    certificateTooltip() {
+      return this.certificateStatus === 'warning' ? this.t('ingress.certificates.certificate.doesntExist') : null;
     },
   },
   methods: {
@@ -43,72 +50,50 @@ export default {
       this.hosts.push('');
       this.update();
     },
-    remove(ev, idx) {
-      ev.preventDefault();
-      this.hosts.splice(idx, 1);
-      this.update();
-    },
     update() {
       const out = { hosts: this.hosts };
 
-      if (this.secretName !== this.defaultCert) {
-        out.secretName = this.secretName;
+      out.secretName = this.secretName;
+
+      if (out.secretName === DEFAULT_CERT_VALUE) {
+        out.secretName = null;
       }
+
       this.$emit('input', out);
     },
+    onSecretInput(e) {
+      this.secretName = e && typeof e === 'object' ? e.label : e;
+      this.update();
+    },
+    onHostsInput(e) {
+      this.hosts = e;
+      this.update();
+    }
   },
 };
 </script>
 
 <template>
-  <InfoBox class="cert" @input="update">
-    <div class="row">
-      <div class="col span-6">
-        <LabeledSelect
-          class="secret-name"
-          :value="secretName"
-          :options="certsWithDefault"
-          :label="t('ingress.certificates.certificate.label')"
-          required
-          @input="
-            (e) => {
-              secretName = e;
-              update();
-            }
-          "
-        />
-      </div>
-      <div class="col span-6">
-        <div v-for="(host, i) in hosts" :key="i" class="row mb-10">
-          <div :style="{ 'margin-right': '0px' }" class="col span-10">
-            <LabeledInput
-              :value="host"
-              :label="t('ingress.certificates.host.label')"
-              :placeholder="t('ingress.certificates.host.placeholder')"
-              @input="(e) => $set(hosts, i, e)"
-            />
-          </div>
-          <div class="col span-2">
-            <button
-              class="btn btn-sm role-link col"
-              @click="(e) => remove(e, i)"
-            >
-              {{ t("ingress.certificates.removeHost") }}
-            </button>
-          </div>
-        </div>
-        <button
-          class="btn role-tertiary add"
-          @click="addHost"
-        >
-          {{ t("ingress.certificates.addHost") }}
-        </button>
-      </div>
+  <div class="cert row" @input="update">
+    <div class="col span-6">
+      <LabeledSelect
+        v-model="secretName"
+        class="secret-name"
+        :options="certsWithDefault"
+        :label="t('ingress.certificates.certificate.label')"
+        required
+        :status="certificateStatus"
+        :taggable="true"
+        :tooltip="certificateTooltip"
+        :hover-tooltip="true"
+        :searchable="true"
+        @input="onSecretInput"
+      />
     </div>
-    <button class="btn role-link close" @click="$emit('remove')">
-      <i class="icon icon-2x icon-x" />
-    </button>
-  </InfoBox>
+    <div class="col span-6">
+      <ArrayList :value="hosts" :add-label="t('ingress.certificates.addHost')" @input="onHostsInput" />
+    </div>
+  </div>
 </template>
 
 <style lang="scss" scoped>

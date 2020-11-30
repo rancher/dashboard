@@ -3,10 +3,12 @@ import { createPopper } from '@popperjs/core';
 import { get } from '@/utils/object';
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
+import LabeledTooltip from '@/components/form/LabeledTooltip';
 
 export default {
+  components: { LabeledTooltip },
   mixins:     [LabeledFormElement, VueSelectOverrides],
-  props:  {
+  props:      {
     disabled: {
       default: false,
       type:    Boolean,
@@ -48,6 +50,14 @@ export default {
         return e;
       },
       type: Function,
+    },
+    tooltip: {
+      type:    String,
+      default: null,
+    },
+    hoverTooltip: {
+      type:    Boolean,
+      default: false,
     },
     searchable: {
       default: false,
@@ -174,5 +184,18 @@ export default {
         <slot :name="slot" v-bind="scope" />
       </template>
     </v-select>
+    <LabeledTooltip
+      v-if="tooltip && !focused"
+      :hover="hoverTooltip"
+      :value="tooltip"
+      :status="status"
+    />
   </div>
 </template>
+<style lang="scss" scoped>
+  .unlabeled-select {
+    position: relative;
+
+    @include input-status-color;
+  }
+</style>

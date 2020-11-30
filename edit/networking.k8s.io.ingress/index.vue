@@ -8,6 +8,7 @@ import CruResource from '@/components/CruResource';
 import Labels from '@/components/form/Labels';
 import Tabbed from '@/components/Tabbed';
 import { get, set } from '@/utils/object';
+import { TYPES } from '@/models/secret';
 import DefaultBackend from './DefaultBackend';
 import Certificates from './Certificates';
 import Rules from './Rules';
@@ -61,20 +62,23 @@ export default {
     firstTabLabel() {
       return this.isView ? this.t('ingress.rulesAndCertificates.title') : this.t('ingress.rules.title');
     },
+    certificates() {
+      return this.filterByNamespace(this.allSecrets.filter(secret => secret._type === TYPES.TLS)).map((secret) => {
+        const { id } = secret;
+
+        return id.slice(id.indexOf('/') + 1);
+      });
+    },
   },
   created() {
-    if (!this.value.spec) {
-      this.value.spec = {};
-    }
-    if (!this.value.spec.rules) {
-      this.value.spec.rules = [{}];
-    }
-    if (!this.value.spec.backend) {
-      this.value.spec.backend = { };
-    }
+    this.$set(this.value, 'spec', this.value.spec || {});
+    this.$set(this.value.spec, 'rules', this.value.spec.rules || [{}]);
+    this.$set(this.value.spec, 'backend', this.value.spec.backend || {});
+
     if (!this.value.spec.tls || Object.keys(this.value.spec.tls[0] || {}).length === 0) {
-      this.value.spec.tls = [];
+      this.$set(this.value.spec, 'tls', []);
     }
+
     this.registerBeforeHook(this.willSave, 'willSave');
   },
   methods: {
@@ -93,6 +97,13 @@ export default {
 
         set(this.value.spec, path, null);
       }
+    },
+    filterByNamespace(list) {
+      const namespaces = this.$store.getters['namespaces']();
+
+      return list.filter((resource) => {
+        return !!namespaces[resource.metadata.namespace];
+      });
     },
   }
 };
@@ -120,13 +131,13 @@ export default {
 
     <Tabbed :side-tabs="true">
       <Tab :label="firstTabLabel" name="rules" :weight="3">
-        <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" />
+        <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" :certificates="certificates" />
       </Tab>
       <Tab :label="t('ingress.defaultBackend.label')" name="default-backend" :weight="2">
         <DefaultBackend v-model="value" :service-targets="serviceTargets" :mode="mode" />
       </Tab>
       <Tab v-if="!isView" :label="t('ingress.certificates.label')" name="certificates" :weight="1">
-        <Certificates v-model="value" :mode="mode" :secrets="allSecrets" />
+        <Certificates v-model="value" :mode="mode" :certificates="certificates" />
       </Tab>
       <Tab
         v-if="!isView"
