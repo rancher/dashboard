@@ -25,5 +25,13 @@ export default {
 </script>
 
 <template>
-  <LabeledSelect :value="value" :mode="mode" :options="SCOPE_OPTIONS" @input="e=>$emit('input', e)" />
+  <LabeledSelect
+    :label="t('gatekeeperConstraint.tab.namespaces.sub.scope.title')"
+    :hover-tooltip="true"
+    tooltip="Determines if cluster-scoped and/or namesapced-scoped resources are selected."
+    :value="value"
+    :mode="mode"
+    :options="SCOPE_OPTIONS"
+    @input="e=>$emit('input', e)"
+  />
 </template>

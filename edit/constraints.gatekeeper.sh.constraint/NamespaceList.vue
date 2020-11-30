@@ -29,6 +29,14 @@ export default {
     addLabel: {
       type:    String,
       default: null
+    },
+    label: {
+      type:    String,
+      default: 'Namespace'
+    },
+    tooltip: {
+      type:    String,
+      default: null
     }
   },
 
@@ -60,7 +68,9 @@ export default {
     :mode="mode"
     :multiple="true"
     :options="namespaceOptions"
-    label="Namespace"
+    :label="label"
+    :tooltip="tooltip"
+    :hover-tooltip="!!tooltip"
     @input="(e) => $emit('input', e)"
   />
 </template>
