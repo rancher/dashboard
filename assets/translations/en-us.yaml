@@ -1351,6 +1351,7 @@ tableHeaders:
   ingressDefaultBackend: Default
   ingressTarget: Target
   internalExternalIp: External/Internal IP
+  jobs: Jobs
   key: Key
   keys: Data
   lastUpdated: Last Updated
@@ -1388,6 +1389,7 @@ tableHeaders:
   reqRate: Req Rate
   resource: Resource
   resources: Resources
+  restarts: Restarts
   rioImage: Image
   roles: Roles
   scale: Scale
@@ -1395,6 +1397,7 @@ tableHeaders:
   simpleName: Name
   simpleScale: Scale
   simpleType: Type
+  started: Started
   state: State
   status: Status
   success: Success
@@ -1692,6 +1695,16 @@ workload:
     podIP: Pod IP
     podRestarts: Pod Restarts
     workload: Workload
+    pods: Pods
+    runs: Runs
+  gaugeStates:
+    active: Active
+    transitioning: Transitioning
+    warning: Warning
+    error: Error
+    succeeded: Successful
+    running: Running
+    failed: Failed
   hideTabs: 'Hide Advanced Options'
   job:
     activeDeadlineSeconds:
@@ -1757,6 +1770,7 @@ workload:
     subdomain:
       label: Subdomain
       placeholder: e.g. web
+
   replicas: Replicas
   showTabs: 'Show Advanced Options'
   scheduling:

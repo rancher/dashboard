@@ -2,6 +2,7 @@ import { insertAt } from '@/utils/array';
 import { TIMESTAMP } from '@/config/labels-annotations';
 import { WORKLOAD_TYPES, POD } from '@/config/types';
 import { get } from '@/utils/object';
+import day from 'dayjs';
 
 export default {
   // remove clone as yaml/edit as yaml until API supported
@@ -106,174 +107,40 @@ export default {
   },
 
   details() {
-    let out;
+    const out = [];
     const type = this._type ? this._type : this.type;
 
-    switch (type) {
-    case WORKLOAD_TYPES.DEPLOYMENT:
-      out = [
-        {
-          label:   'Type',
-          content:  this._type ? this._type : this.type
-        },
-        {
-          label:   'Replicas',
-          content:  this?.spec?.replicas
-        },
-        {
-          label:    'Available',
-          content:  this?.status?.availableReplicas,
-        },
-        {
-          label:    'Unavailable',
-          content:  this?.status?.unavailableReplicas,
+    if (type === WORKLOAD_TYPES.JOB) {
+      const { completionTime, startTime } = this.status;
+      const FACTORS = [60, 60, 24];
+      const LABELS = ['sec', 'min', 'hour', 'day'];
 
-        },
-        {
-          label:    'Ready',
-          content:  this?.status?.readyReplicas,
+      if (completionTime && startTime) {
+        const end = day(completionTime);
+        const start = day(startTime);
+        let diff = end.diff(start);
 
-        },
-        {
-          label:    'Updated',
-          content:  this?.status?.updatedReplicas,
+        let label;
 
-        },
-      ];
-      break;
-    case WORKLOAD_TYPES.STATEFUL_SET:
-      out = [
-        {
-          label:   'Type',
-          content:  this._type ? this._type : this.type
-        },
-        {
-          label:   'Replicas',
-          content:  this?.spec?.replicas
-        },
-        {
-          label:   'Services',
-          content:  this?.spec?.serviceName
-        },
-      ];
-      break;
-    case WORKLOAD_TYPES.DAEMON_SET:
-      out = [
-        {
-          label:   'Type',
-          content:  this._type ? this._type : this.type
-        },
-        {
-          label:   'Number',
-          content:  this.status.currentNumberScheduled / this.status.desiredNumberScheduled
-        },
-        {
-          label:   'Available',
-          content:  this.status.numberAvailable
-        },
-        {
-          label:   'Unavailable',
-          content:  this.status.numberUnavailable
-        },
-        {
-          label:   'Ready',
-          content:  this.status.numberReady
-        },
-        {
-          label:   'Misscheduled',
-          content:  this.status.numberMisscheduled
-        },
-        {
-          label:   'Updated',
-          content:  this.status.numberUpdated
-        },
-      ];
-      break;
-    case WORKLOAD_TYPES.REPLICA_SET:
-      out = [
-        {
-          label:   'Type',
-          content:  this._type ? this._type : this.type
-        },
-        {
-          label:    'Available',
-          content:  this?.status?.availableReplicas,
-        },
-        {
-          label:    'Fully Labeled',
-          content:  this?.status?.fullyLabeledReplicas,
-        },
-      ];
-      break;
-    case WORKLOAD_TYPES.JOB:
-      out = [
-        {
-          label:   'Type',
-          content:  this._type ? this._type : this.type
-        },
-        {
-          label:    'Succeeded',
-          content:  this?.status?.succeeded,
-        },
-        {
-          label:    'Failed',
-          content:  this?.status?.failed,
-        },
-        {
-          label:     'Start Time',
-          content:   this?.status?.startTime,
-          formatter: 'LiveDate'
-        },
-        {
-          label:     'Completion Time',
-          content:   this?.status?.completionTime,
-          formatter: 'LiveDate'
-        },
-      ];
-      break;
-    case WORKLOAD_TYPES.CRON_JOB:
-      out = [
-        {
-          label:   'Type',
-          content:  this._type ? this._type : this.type
-        },
-        {
-          label:     'Last Scheduled Time',
-          content:   this?.status?.lastScheduleTime,
-          formatter: 'LiveDate'
-        },
-      ];
-      break;
-    default:
-      out = [
-        {
-          label:   'Image',
-          content: this.container.image
-        },
-        {
-          label:   'Type',
-          content:  this._type ? this._type : this.type
-        },
-        {
-          label:    'Config Scale',
-          content:  this.spec?.replicas,
+        let i = 0;
 
-        },
-        {
-          label:    'Ready Scale',
-          content:  this.status?.readyReplicas,
-        },
-        /**
-         * TODO: Pod Restarts will require more changes to get working but since workloads is being rewritten those
-         * changes can be done at that time if this is still needed.
-         * {
-         *   label:    'Pod Restarts',
-         *   content:  this.podRestarts,
-         * }
-         */
-      ];
+        while ( diff >= FACTORS[i] && i < FACTORS.length ) {
+          diff /= FACTORS[i];
+          i++;
+        }
+
+        if ( diff < 5 ) {
+          label = Math.floor(diff * 10) / 10;
+        } else {
+          label = Math.floor(diff);
+        }
+
+        label += ` ${ this.t(`unit.${ LABELS[i] }`, { count: label }) } `;
+        label = label.trim();
+
+        out.push({ label: 'Duration', content: label });
+      }
     }
-
     out.push( {
       label:     'Image',
       content:   this.imageNames,
@@ -287,6 +154,25 @@ export default {
     const { metadata:{ relationships = [] } } = this;
 
     return async() => {
+      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+        const jobRelationships = relationships.filter(relationship => relationship.toType === WORKLOAD_TYPES.JOB);
+
+        if (jobRelationships) {
+          const jobs = await Promise.all(jobRelationships.map((relationship) => {
+            return this.$dispatch('cluster/find', { type: WORKLOAD_TYPES.JOB, id: relationship.toId }, { root: true });
+          }));
+
+          const jobPods = await Promise.all(jobs.map((job) => {
+            return job.pods();
+          }));
+
+          return jobPods.reduce((all, each) => {
+            all.push(...each);
+
+            return all;
+          }, []);
+        }
+      }
       const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
       let pods;
 

@@ -31,6 +31,7 @@ import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
 import Storage from '@/edit/workload/storage';
 import Labels from '@/components/form/Labels';
+import Loading from '@/components/Loading';
 
 export default {
   name:       'CruWorkload',
@@ -55,7 +56,8 @@ export default {
     Command,
     Storage,
     VolumeClaimTemplate,
-    Labels
+    Labels,
+    Loading
   },
 
   mixins: [CreateEditView],
