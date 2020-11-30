@@ -3,41 +3,20 @@ import createEditView from '@/mixins/create-edit-view';
 import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
 import { POD, WORKLOAD_TYPES, SECRET } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
-import WorkloadPorts from '@/components/form/WorkloadPorts';
-import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
-import Command from '@/components/form/Command';
-import NodeScheduling from '@/components/form/NodeScheduling';
-import PodScheduling from '@/components/form/PodScheduling';
-import HealthCheck from '@/components/form/HealthCheck';
-import Security from '@/components/form/Security';
-import Upgrading from '@/edit/workload/Upgrading';
-import Networking from '@/components/form/Networking';
 import Loading from '@/components/Loading';
-import Storage from '@/edit/workload/storage';
-import Job from '@/edit/workload/Job';
-import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
-
+import ResourceTabs from '@/components/form/ResourceTabs';
+import CountGauge from '@/components/CountGauge';
 import { mapGetters } from 'vuex';
 import { allHash } from '@/utils/promise';
 
 export default {
   components: {
     ResourceTable,
-    WorkloadPorts,
-    Command,
-    PodScheduling,
-    NodeScheduling,
-    Upgrading,
-    Networking,
-    Security,
-    HealthCheck,
-    Job,
-    Tabbed,
     Tab,
-    VolumeClaimTemplate,
     Loading,
-    Storage
+    ResourceTabs,
+    CountGauge
   },
 
   mixins: [createEditView],
@@ -56,13 +35,21 @@ export default {
   },
 
   async fetch() {
+    let jobs = [];
+
+    if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
+      jobs = this.value?.status?.active;
+    }
+
     const hash = await allHash({
       pods:    this.value.pods(),
-      secrets: this.$store.dispatch('cluster/findAll', { type: SECRET })
+      secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }),
+      jobs:     Promise.all(jobs.map(each => this.$store.dispatch('cluster/find', { type: WORKLOAD_TYPES.JOB, id: `${ each.namespace }/${ each.name }` })))
     });
 
     this.pods = hash.pods;
     this.secrets = hash.secrets;
+    this.jobs = hash.jobs;
   },
 
   data() {
@@ -75,19 +62,50 @@ export default {
     const name = this.value?.metadata?.name || this.value.id;
 
     const podSchema = this.$store.getters['cluster/schemaFor'](POD);
+    const jobSchema = this.$store.getters['cluster/schemaFor'](WORKLOAD_TYPES.JOB);
+    const jobHeaders = this.$store.getters['type-map/headersFor'](jobSchema);
 
     return {
       type:           this.value.type,
       podSchema,
+      jobSchema,
+      jobHeaders,
       name,
       pods:           null,
       secrets: [],
       container,
-      podTemplateSpec
+      podTemplateSpec,
+      jobs:    []
     };
   },
 
   computed:   {
+    jobGauges() {
+      const out = {
+        succeeded: { color: 'success', count: 0 }, running: { color: 'info', count: 0 }, failed: { color: 'error', count: 0 }
+      };
+
+      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+        this.jobs.forEach((job) => {
+          const { status = {} } = job;
+
+          out.running.count += status.active || 0;
+          out.succeeded.count += status.succeeded || 0;
+          out.failed.count += status.failed || 0;
+        });
+      } else if (this.type === WORKLOAD_TYPES.JOB) {
+        const { status = {} } = this.value;
+
+        out.running.count = status.active || 0;
+        out.succeeded.count = status.succeeded || 0;
+        out.failed.count = status.failed || 0;
+      } else {
+        return null;
+      }
+
+      return out;
+    },
+
     podRestarts() {
       return this.pods.reduce((total, pod) => {
         const { status:{ containerStatuses = [] } } = pod;
@@ -102,6 +120,38 @@ export default {
 
         return total;
       }, 0);
+    },
+
+    podGauges() {
+      const out = {
+        active: { color: 'success' }, transitioning: { color: 'info' }, warning: { color: 'warning' }, error: { color: 'error' }
+      };
+
+      if (!this.pods) {
+        return out;
+      }
+      this.pods.map((pod) => {
+        const { status:{ phase } } = pod;
+        let group;
+
+        switch (phase) {
+        case 'Running':
+          group = 'active';
+          break;
+        case 'Pending':
+          group = 'transitioning';
+          break;
+        case 'Failed':
+          group = 'error';
+          break;
+        default:
+          group = 'warning';
+        }
+
+        out[group].count ? out[group].count++ : out[group].count = 1;
+      });
+
+      return out;
     },
 
     podHeaders() {
@@ -145,50 +195,43 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <Tabbed :side-tabs="true">
-      <Tab :label="t('workload.container.titles.ports')" name="ports">
-        <WorkloadPorts :value="container.ports" mode="view" />
-      </Tab>
-      <Tab :label="t('workload.container.titles.command')" name="command">
-        <Command v-model="container" :mode="mode" />
-      </Tab>
-      <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
-        <PodScheduling :mode="mode" :value="podTemplateSpec" />
-      </Tab>
-      <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
-        <NodeScheduling :mode="mode" :value="podTemplateSpec" />
-      </Tab>
-      <Tab label="Scaling/Upgrade Policy" name="upgrading">
-        <Job v-if="isJob || isCronJob" :value="value.spec" :mode="mode" :type="type" />
-        <Upgrading v-else :value="value.spec" :mode="mode" :type="type" />
-      </Tab>
-      <Tab :label="t('workload.container.titles.healthCheck')" name="healthCheck">
-        <HealthCheck :value="container" :mode="mode" />
-      </Tab>
-      <Tab :label="t('workload.container.titles.securityContext')" name="securityContext">
-        <Security v-model="container.securityContext" :mode="mode" />
-      </Tab>
-      <Tab :label="t('workload.container.titles.networking')" name="networking">
-        <Networking v-model="podTemplateSpec" :mode="mode" />
-      </Tab>
-      <Tab :label="t('workload.storage.title')" name="storage" @active="$refs['storage'].refresh()">
-        <Storage
-          ref="storage"
-          v-model="podTemplateSpec"
-          :namespace="value.metadata.namespace"
-          :secrets="namespacedSecrets"
-          :mode="mode"
+    <h3 class="mt-20">
+      {{ isJob || isCronJob ? t('workload.detailTop.runs') :t('workload.detailTop.pods') }}
+    </h3>
+    <div v-if="pods" class="gauges mb-20">
+      <template v-if="jobGauges">
+        <CountGauge
+          v-for="(group, key) in jobGauges"
+          :key="key"
+          :total="isCronJob? jobs.length : pods.length"
+          :useful="group.count || 0"
+          :primary-color-var="`--sizzle-${group.color}`"
+          :name="t(`workload.gaugeStates.${key}`)"
+        />
+      </template>
+      <template v-else>
+        <CountGauge
+          v-for="(group, key) in podGauges"
+          :key="key"
+          :total="pods.length"
+          :useful="group.count || 0"
+          :primary-color-var="`--sizzle-${group.color}`"
+          :name="t(`workload.gaugeStates.${key}`)"
+        />
+      </template>
+    </div>
+    <ResourceTabs>
+      <Tab v-if="jobs && jobs.length" name="jobs" :label="t('tableHeaders.jobs')">
+        <ResourceTable
+          :rows="jobs"
+          :headers="jobHeaders"
+          key-field="id"
+          :schema="jobSchema"
+          :show-groups="false"
+          :search="false"
         />
       </Tab>
-      <Tab v-if="isStatefulSet" :label="t('workload.container.titles.volumeClaimTemplates')" name="volumeClaimTemplates">
-        <VolumeClaimTemplate v-model="value.spec" :mode="mode" />
-      </Tab>
-    </Tabbed>
-    <div class="row mt-20">
-      <div class="col span-12">
-        <h3 class="pods-title">
-          Pods
-        </h3>
+      <Tab v-else name="pods" :label="t('tableHeaders.pods')">
         <ResourceTable
           v-if="pods"
           :rows="pods"
@@ -197,15 +240,20 @@ export default {
           :table-actions="false"
           :schema="podSchema"
           :show-groups="false"
+          :search="false"
         />
-      </div>
-    </div>
+      </Tab>
+    </ResourceTabs>
   </div>
 </template>
 
 <style lang='scss' scoped>
-.pods-title{
-position: relative;
-top: 50px;
+.gauges {
+  display: flex;
+  justify-content: space-around;
+  &>*{
+    flex: 1;
+    margin-right: $column-gutter;
+  }
 }
 </style>

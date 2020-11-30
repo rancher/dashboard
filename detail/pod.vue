@@ -80,7 +80,7 @@ export default {
         container.stateDisplay = this.value.containerStateDisplay(container);
         container.stateBackground = this.value.containerStateColor(container).replace('text', 'bg');
         container.nameSort = sortableNumericSuffix(container.name).toLowerCase();
-        container.readyIcon = !container?.status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x ixon-2x text-error ml-5';
+        container.readyIcon = container?.status?.ready ? 'icon-checkmark icon-2x text-success ml-5' : 'icon-x icon-2x text-error ml-5';
 
         return container;
       });
@@ -95,6 +95,7 @@ export default {
           formatter:     'IconText',
           formatterOpts: { iconKey: 'readyIcon' },
           align:         'left',
+          width:         75
         },
         {
           ...SIMPLE_NAME,
@@ -104,7 +105,9 @@ export default {
         {
           name:     'restarts',
           labelKey: 'tableHeaders.restarts',
-          value:    'status.restartCount'
+          value:    'status.restartCount',
+          align:    'right',
+          width:    75
         },
         {
           name:          'age',
