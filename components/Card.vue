@@ -17,12 +17,16 @@ export default {
       type:    String,
       default: 'go'
     },
+    showHighlightBorder: {
+      type:    Boolean,
+      default: true
+    }
   }
 };
 </script>
 
 <template>
-  <div class="card-container">
+  <div class="card-container" :class="{'highlight-border': showHighlightBorder}">
     <div class="card-wrap">
       <div class="card-title">
         <slot name="title">
@@ -48,7 +52,11 @@ export default {
 
 <style lang='scss'>
  .card-container {
-  border-left: 5px solid var(--primary);
+
+  &.highlight-border {
+    border-left: 5px solid var(--primary);
+  }
+
   border-radius: var(--border-radius);
   display: flex;
   flex-basis: 40%;

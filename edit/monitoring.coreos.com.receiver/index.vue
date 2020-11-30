@@ -19,6 +19,9 @@ export default {
     ArrayListGrouped, Banner, CruResource, GradientBox, LabeledInput, Loading, Tabbed, Tab, YamlEditor
   },
   mixins: [CreateEditView],
+  async fetch() {
+    await this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.ROUTE });
+  },
   asyncData(ctx) {
     function yamlSave(value, originalValue) {
       originalValue.yamlSaveOverride(value, originalValue);
