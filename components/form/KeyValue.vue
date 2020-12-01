@@ -451,14 +451,10 @@ export default {
 
     <div v-if="addAllowed || readAllowed" class="footer ml-10">
       <slot name="add" :add="add">
-        <<<<<<< HEAD
         <button v-if="addAllowed" :disabled="isView" type="button" class="btn btn-sm role-secondary add" @click="add()">
-          =======
-          <button v-if="showAdd" type="button" class="btn role-tertiary add" @click="add()">
-            >>>>>>> c3b48be0... tab headers
-            {{ addLabel }}
-          </button>
-          <FileSelector v-if="readAllowed" class="btn-sm role-secondary" :label="t('generic.readFromFile')" :include-file-name="true" @selected="onFileSelected" />
+          {{ addLabel }}
+        </button>
+        <FileSelector v-if="readAllowed" class="btn-sm role-secondary" :label="t('generic.readFromFile')" :include-file-name="true" @selected="onFileSelected" />
         </button>
       </slot>
     </div>
