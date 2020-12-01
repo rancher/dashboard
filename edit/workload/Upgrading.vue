@@ -191,7 +191,7 @@ export default {
 
 <template>
   <div @input="update">
-    <!--workload  spec.upgradeStrategy -->
+    <!--workload spec.upgradeStrategy -->
     <div v-if="strategyOptions" class="row mb-20">
       <div class="col">
         <RadioGroup

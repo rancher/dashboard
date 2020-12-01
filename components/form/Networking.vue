@@ -145,7 +145,7 @@ export default {
 <template>
   <div>
     <div>
-      <h3>{{ t('workload.container.titles.networkSettings') }}</h3>
+      <!-- <h3>{{ t('workload.container.titles.networkSettings') }}</h3> -->
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect

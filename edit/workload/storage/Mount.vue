@@ -111,6 +111,7 @@ export default {
       </div>
     </div>
     <div class="row">
+      <h2>test</h2>
       <button v-if="mode!=='view'" type="button" class="btn btn-sm role-secondary" @click="volumeMounts.push({name})">
         {{ t('workload.storage.addMount') }}
       </button>

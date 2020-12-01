@@ -71,6 +71,7 @@ export default {
     :aria-hidden="!active"
     role="tabpanel"
   >
+    <h2>{{ label }}</h2>
     <slot />
   </section>
 </template>

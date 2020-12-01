@@ -82,7 +82,7 @@ export default {
 
     <div>
       <h3 class="mb-10">
-        <t k="workload.scheduling.titles.tolerations" />
+        <t k="workload.tolerations.tilte" />
       </h3>
       <div class="row">
         <Tolerations v-model="value.tolerations" :mode="mode" />

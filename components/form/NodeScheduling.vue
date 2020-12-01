@@ -84,8 +84,15 @@ export default {
 
 <template>
   <div>
+<<<<<<< HEAD
     <h3><t k="workload.scheduling.titles.nodeScheduling" /></h3>
     <div class="row">
+=======
+    <h4 v-if="isView" class="mt-10 mb-10">
+      {{ selectNode ? t('workload.scheduling.affinity.specificNode') : t('workload.scheduling.affinity.schedulingRules') }}
+    </h4>
+    <div v-else class="row">
+>>>>>>> c3b48be0... tab headers
       <RadioGroup
         v-model="selectNode"
         name="selectNode"

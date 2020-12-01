@@ -92,7 +92,7 @@ export default {
         />
       </div>
     </div>
-    <button :disabled="isView" type="button" class="btn role-tertiary add mt-10" @click="addRouteSpec">
+    <button :disabled="isView" type="button" class="btn role-tertiary add" @click="addRouteSpec">
       Add Rule
     </button>
     <Footer :mode="mode" :errors="errors" @save="saveRouter" @done="done" />
