@@ -1982,7 +1982,7 @@ workload:
     terminationGracePeriodSeconds:
       label: Termination Grace Period
       tip: The duration the pod needs to terminate successfully.
-    title: upgrading
+    title: Upgrading
 
 
 ##############################
