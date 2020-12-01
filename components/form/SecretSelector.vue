@@ -4,6 +4,8 @@ import { SECRET } from '@/config/types';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { TYPES } from '@/models/secret';
 
+const NONE = '__[[NONE]]__';
+
 export default {
   components: { LabeledSelect },
 
@@ -48,13 +50,16 @@ export default {
       get() {
         const name = this.showKeySelector ? this.value?.valueFrom?.secretKeyRef?.[this.nameKey] : this.value;
 
-        return name || '';
+        return name || NONE;
       },
       set(name) {
+        const isNone = name === NONE;
+        const correctedName = isNone ? undefined : name;
+
         if (this.showKeySelector) {
-          this.$emit('input', { valueFrom: { secretKeyRef: { [this.nameKey]: name, [this.keyKey]: this.key } } });
+          this.$emit('input', { valueFrom: { secretKeyRef: { [this.nameKey]: correctedName, [this.keyKey]: '' } } });
         } else {
-          this.$emit('input', name);
+          this.$emit('input', correctedName);
         }
       }
     },
@@ -74,12 +79,20 @@ export default {
         .filter(secret => this.types.includes(secret._type));
     },
     secretNames() {
-      return this.secrets.map(secret => secret.name);
+      const mappedSecrets = this.secrets.map(secret => ({
+        label: secret.name,
+        value: secret.name
+      }));
+
+      return [{ label: 'None', value: NONE }, ...mappedSecrets];
     },
     keys() {
       const secret = this.secrets.find(secret => secret.name === this.name) || {};
 
-      return Object.keys(secret.data || {});
+      return Object.keys(secret.data || {}).map(key => ({
+        label: key,
+        value: key
+      }));
     },
     secretNameLabel() {
       return this.showKeySelector ? 'Secret Name' : this.label;
@@ -87,6 +100,9 @@ export default {
     isView() {
       return this.mode === _VIEW;
     },
+    isKeyDisabled() {
+      return !this.isView && (!this.name || this.name === NONE || this.disabled);
+    }
   },
 
 };
@@ -95,6 +111,7 @@ export default {
 <template>
   <div class="secret-selector" :class="{'show-key-selector': showKeySelector}">
     <label v-if="label && showKeySelector">{{ label }}</label>
+
     <div class="input-container">
       <LabeledSelect
         v-model="name"
@@ -107,7 +124,7 @@ export default {
         v-if="showKeySelector"
         v-model="key"
         class="col span-6"
-        :disabled="!isView && (!name || disabled)"
+        :disabled="isKeyDisabled"
         :options="keys"
         label="Key"
         :mode="mode"
