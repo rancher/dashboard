@@ -26,18 +26,10 @@ TEXTAREA,
 
   @include input-status-color;
 
-  &:not(.view) {
-    &:hover {
-      &, .vs__dropdown-menu {
-        background: var(--input-hover-bg);
-      }
+  &:hover {
+    &, .vs__dropdown-menu {
+      background: var(--input-hover-bg);
     }
-  }
-
-  &.view {
-    border: none;
-    background-color: transparent;
-    padding:0px;
   }
 
   &::placeholder {

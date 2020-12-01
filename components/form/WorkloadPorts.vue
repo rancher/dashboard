@@ -17,6 +17,7 @@ export default {
       type:    Array,
       default: null,
     },
+
     mode: {
       type:    String,
       default: _EDIT,
@@ -121,125 +122,82 @@ export default {
 
 <template>
   <div :style="{'width':'100%'}">
-    <div v-if="rows.length || isView">
-      <div v-if="isView" class="ports-headers" :class="{'show-host':showHostPorts}">
-        <span class="portName">
-          <t k="workload.container.ports.name" />
-        </span>
-
-        <span class="port">
-          <t k="workload.container.ports.containerPort" />
-          <span v-if="!isView" class="toggle-host-ports hand" @click="()=>showHostPorts=!showHostPorts">{{ showHostPorts ? 'Hide Host Ports' : 'Show Host Ports' }}</span>
-        </span>
-
-        <span class="protocol">
-          <t k="workload.container.ports.protocol" />
-        </span>
-
-        <span class="targetPort">
-          <t k="workload.container.ports.hostPort" />
-        </span>
-
-        <span class="targetPort">
-          <t k="workload.container.ports.hostIP" />
-        </span>
-
-        <span v-if="showRemove" class="remove"></span>
+    <div
+      v-for="(row, idx) in rows"
+      :key="idx"
+      class="ports-row"
+      :class="{'show-host':row._showHost}"
+    >
+      <div class="portName">
+        <LabeledInput
+          ref="name"
+          v-model="row.name"
+          :mode="mode"
+          :label="t('workload.container.ports.name')"
+          @input="queueUpdate"
+        />
       </div>
 
-      <div v-if="isView && !rows.length" class="ports-row">
-        <span class="text-muted"> &mdash;</span>
-        <span class="text-muted"> &mdash;</span>
-        <span class="text-muted"> &mdash;</span>
+      <div class="port">
+        <LabeledInput
+          v-model.number="row.containerPort"
+          :mode="mode"
+          type="number"
+          min="1"
+          max="65535"
+          placeholder="e.g. 8080"
+          :label="t('workload.container.ports.containerPort')"
+          @input="queueUpdate"
+        />
       </div>
 
-      <div
-        v-for="(row, idx) in rows"
-        :key="idx"
-        class="ports-row"
-        :class="{'show-host':row._showHost || isView}"
-      >
-        <div class="portName">
-          <span v-if="isView && row.name">{{ row.name }}</span>
-          <span v-else-if="isView" class="text-muted">&mdash;</span>
-          <LabeledInput
-            v-else
-            ref="name"
-            v-model="row.name"
-            :label="t('workload.container.ports.name')"
-            @input="queueUpdate"
-          />
-        </div>
+      <div class="protocol">
+        <LabeledSelect
+          v-model="row.protocol"
+          :mode="mode"
+          class="inline"
+          :options="workloadPortOptions"
+          :multiple="false"
+          :label="t('workload.container.ports.protocol')"
+          @input="queueUpdate"
+        />
+      </div>
 
-        <div class="port">
-          <span v-if="isView && row.containerPort">{{ row.containerPort }}</span>
-          <span v-else-if="isView" class="text-muted">&mdash;</span>
-          <LabeledInput
-            v-else
-            v-model.number="row.containerPort"
-            type="number"
-            min="1"
-            max="65535"
-            placeholder="e.g. 8080"
-            :label="t('workload.container.ports.containerPort')"
-            @input="queueUpdate"
-          />
-        </div>
+      <div v-if="row._showHost" class="targetPort">
+        <LabeledInput
+          ref="port"
+          v-model.number="row.hostPort"
+          :mode="mode"
+          type="number"
+          min="1"
+          max="65535"
+          placeholder="e.g. 80"
+          :label="t('workload.container.ports.hostPort')"
+          @input="queueUpdate"
+        />
+      </div>
 
-        <div class="protocol">
-          <span v-if="isView && row.protocol">{{ row.protocol }}</span>
-          <span v-else-if="isView" class="text-muted">&mdash;</span>
-          <LabeledSelect
-            v-else
-            v-model="row.protocol"
-            class="inline"
-            :options="workloadPortOptions"
-            :multiple="false"
-            :label="t('workload.container.ports.protocol')"
-            @input="queueUpdate"
-          />
-        </div>
+      <div v-if="row._showHost" class="hostip">
+        <LabeledInput
+          ref="port"
+          v-model="row.hostIP"
+          :mode="mode"
+          placeholder="e.g. 1.1.1.1"
+          :label="t('workload.container.ports.hostIP')"
+          @input="queueUpdate"
+        />
+      </div>
 
-        <div v-if="row._showHost || isView" class="targetPort">
-          <span v-if="isView && row.hostPort">{{ row.hostPort }}</span>
-          <span v-else-if="isView" class="text-muted">&mdash;</span>
-          <LabeledInput
-            v-else
-            ref="port"
-            v-model.number="row.hostPort"
-            type="number"
-            min="1"
-            max="65535"
-            placeholder="e.g. 80"
-            :label="t('workload.container.ports.hostPort')"
-            @input="queueUpdate"
-          />
-        </div>
+      <div v-if="!row._showHost" class="add-host">
+        <button type="button" class="btn btn-sm role-secondary" @click="row._showHost = true">
+          {{ t('workloadPorts.addHost') }}
+        </button>
+      </div>
 
-        <div v-if="row._showHost || isView" class="hostip">
-          <span v-if="isView && row.hostIP">{{ row.hostIP }}</span>
-          <span v-else-if="isView" class="text-muted">&mdash;</span>
-          <LabeledInput
-            v-else
-            ref="port"
-            v-model="row.hostIP"
-            placeholder="e.g. 1.1.1.1"
-            :label="t('workload.container.ports.hostIP')"
-            @input="queueUpdate"
-          />
-        </div>
-
-        <div v-if="!row._showHost && !isView" class="add-host">
-          <button type="button" class="btn btn-sm role-secondary" @click="row._showHost = true">
-            {{ t('workloadPorts.addHost') }}
-          </button>
-        </div>
-
-        <div v-if="showRemove" class="remove">
-          <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
-            {{ t('workloadPorts.remove') }}
-          </button>
-        </div>
+      <div v-if="showRemove" class="remove">
+        <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
+          {{ t('workloadPorts.remove') }}
+        </button>
       </div>
     </div>
     <div v-if="showAdd" class="footer">

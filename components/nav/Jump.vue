@@ -105,7 +105,7 @@ export default {
           id-prefix=""
           :group="g"
           :can-collapse="false"
-          :is-expanded="true"
+          :expanded="true"
         >
           <template slot="accordion">
             <h6>{{ g.label }}</h6>

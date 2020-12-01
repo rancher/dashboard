@@ -5,8 +5,14 @@ export default {
   props: {
     label: {
       type:     String,
-      required: true,
+      default: null,
     },
+
+    labelKey: {
+      type:     String,
+      default: null,
+    },
+
     name: {
       type:     String,
       required: true,
@@ -24,6 +30,20 @@ export default {
 
   data() {
     return { active: null };
+  },
+
+  computed: {
+    labelDisplay() {
+      if ( this.labelKey ) {
+        return this.$store.getters['i18n/t'](this.labelKey);
+      }
+
+      if ( this.label ) {
+        return this.label;
+      }
+
+      return this.name;
+    },
   },
 
   watch: {

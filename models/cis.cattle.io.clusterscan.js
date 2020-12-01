@@ -66,10 +66,12 @@ export default {
 
   getReports() {
     return async() => {
-      const owned = await this.getOwned();
-      const reportCRDs = owned.filter(each => each.type === CIS.REPORT);
+      const owned = await this.findOwned();
+      const report = owned.find(obj => obj.type === CIS.REPORT);
 
-      return reportCRDs;
+      this.hasReport = !!report;
+
+      return report;
     };
   },
 

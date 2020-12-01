@@ -18,6 +18,7 @@ export default {
       type:     Object,
       required: true,
     },
+
     mode: {
       type:     String,
       required: true,
@@ -203,7 +204,6 @@ export default {
             :value-placeholder="t('workload.networking.nameservers.placeholder')"
             :add-label="t('workload.networking.nameservers.add')"
             :mode="mode"
-            :pad-left="false"
             :protip="false"
             @input="update"
           />
@@ -216,7 +216,6 @@ export default {
             :value-placeholder="t('workload.networking.searches.placeholder')"
             :add-label="t('workload.networking.searches.add')"
             :mode="mode"
-            :pad-left="false"
             :protip="false"
             @input="update"
           />
@@ -259,7 +258,6 @@ export default {
           value-name="hostnames"
           :value-label="t('workload.networking.hostAliases.valueLabel')"
           :value-placeholder="t('workload.networking.hostAliases.valuePlaceholder')"
-          :pad-left="false"
           :add-label="t('workload.networking.hostAliases.add')"
           @input="updateHostAliases"
         >

@@ -106,9 +106,13 @@ export default {
         @input="updateRow"
       />
     </div>
-    <button v-if="!isView" type="button" class="btn btn-sm role-tertiary add" @click="addFromReference">
-      <t k="workload.container.command.addEnvVar" />
-    </button>
+    <button
+      v-t="'workload.container.command.addEnvVar'"
+      :disabled="isView"
+      type="button"
+      class="btn btn-sm role-tertiary add"
+      @click="addFromReference"
+    />
   </div>
 </template>
 

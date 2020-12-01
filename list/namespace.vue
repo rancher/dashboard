@@ -1,14 +1,11 @@
 <script>
-import SortableTable from '@/components/SortableTable';
-import ButtonGroup from '@/components/ButtonGroup';
+import ResourceTable from '@/components/ResourceTable';
 import { STATE, NAME, AGE } from '@/config/table-headers';
-import { mapPref, GROUP_RESOURCES } from '@/store/prefs';
 import { removeObject } from '@/utils/array';
-import { get } from '@/utils/object';
 
 export default {
   name:       'ListNamespace',
-  components: { ButtonGroup, SortableTable },
+  components: { ResourceTable },
 
   props: {
     schema: {
@@ -23,8 +20,6 @@ export default {
   },
 
   computed: {
-    get,
-
     headers() {
       const project = {
         name:          'project',
@@ -46,63 +41,24 @@ export default {
 
       return out;
     },
-
-    group: mapPref(GROUP_RESOURCES),
-
-    groupable() {
-      return this.$store.getters['isMultiCluster'];
-    },
-
-    groupBy() {
-      // The value of the preference is "namespace" but we take that to mean group by project here...
-      if ( this.groupable && this.group === 'namespace') {
-        return 'groupByLabel';
-      }
-
-      return null;
-    },
-
-    groupOptions() {
-      return [
-        { value: 'none', icon: 'icon-list-flat' },
-        { value: 'namespace', icon: 'icon-list-grouped' }
-      ];
-    },
-
-    pagingParams() {
-      return {
-        singularLabel: this.$store.getters['type-map/labelFor'](this.schema),
-        pluralLabel:   this.$store.getters['type-map/labelFor'](this.schema, 99),
-      };
-    },
   },
 };
 </script>
 
 <template>
-  <SortableTable
+  <ResourceTable
     v-bind="$attrs"
+    :schema="schema"
     :headers="headers"
     :rows="rows"
-    :group-by="groupBy"
-    :paging="true"
-    paging-label="sortableTable.paging.resource"
-    :paging-params="pagingParams"
+    :groupable="true"
+    group-tooltip="resourceTable.groupBy.project"
     key-field="_key"
     v-on="$listeners"
   >
-    <template v-if="groupable" #header-middle>
-      <slot name="more-header-middle" />
-      <ButtonGroup v-model="group" :options="groupOptions" />
-    </template>
-
-    <template #group-by="{group: thisGroup}">
-      <div class="group-tab" v-html="thisGroup.ref" />
-    </template>
-
     <template #cell:project="{row}">
       <span v-if="row.project">{{ row.project.nameDisplay }}</span>
       <span v-else class="text-muted">&ndash;</span>
     </template>
-  </SortableTable>
+  </ResourceTable>
 </template>

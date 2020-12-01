@@ -194,20 +194,19 @@ export default {
       </div>
       <div class="row">
         <div class="col span-6">
-          <Checkbox v-model="value.global.rbac.userRoles.create" :label="t('monitoring.createDefaultRoles.label')">
-            <template #label>
-              <span class="text-label">{{ t('monitoring.createDefaultRoles.label') }}</span>
-              <i v-tooltip="t('monitoring.createDefaultRoles.tip', {}, true)" class="icon icon-info icon-lg" />
-            </template>
-          </Checkbox>
+          <Checkbox
+            v-model="value.global.rbac.userRoles.create"
+            label-key="monitoring.createDefaultRoles.label"
+            :tooltip="t('monitoring.createDefaultRoles.tip', {}, true)"
+          />
         </div>
         <div class="col span-6">
-          <Checkbox v-model="value.global.rbac.userRoles.aggregateToDefaultRoles" :label="t('monitoring.aggregateDefaultRoles.label')" :disabled="disableAggregateRoles">
-            <template #label>
-              <span class="text-label">{{ t('monitoring.aggregateDefaultRoles.label') }}</span>
-              <i v-tooltip="{content:t('monitoring.aggregateDefaultRoles.tip', {}, true), autoHide: false}" class="icon icon-info icon-lg" />
-            </template>
-          </Checkbox>
+          <Checkbox
+            v-model="value.global.rbac.userRoles.aggregateToDefaultRoles"
+            label-key="monitoring.aggregateDefaultRoles.label"
+            :tooltip="{content:t('monitoring.aggregateDefaultRoles.tip', {}, true), autoHide: false}"
+            :disabled="disableAggregateRoles"
+          />
         </div>
       </div>
       <div v-if="provider === 'rke'" class="row mt-20">

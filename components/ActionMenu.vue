@@ -122,6 +122,7 @@ export default {
 
     LI {
       padding: 10px;
+      margin: 0;
 
       &.divider {
         padding: 0;

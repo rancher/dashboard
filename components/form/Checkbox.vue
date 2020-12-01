@@ -1,5 +1,6 @@
 <script>
 import $ from 'jquery';
+import { _EDIT } from '@/config/query-params';
 
 export default {
   props: {
@@ -9,8 +10,13 @@ export default {
     },
 
     label: {
-      type:    [String, Boolean],
-      default: false
+      type:    String,
+      default: null
+    },
+
+    labelKey: {
+      type:    String,
+      default: null
     },
 
     disabled: {
@@ -25,8 +31,18 @@ export default {
 
     mode: {
       type:    String,
-      default: 'edit'
-    }
+      default: _EDIT,
+    },
+
+    tooltip: {
+      type:    String,
+      default: null
+    },
+
+    tooltipKey: {
+      type:    String,
+      default: null
+    },
   },
 
   computed: {
@@ -54,16 +70,7 @@ export default {
 </script>
 
 <template>
-  <span v-if="mode === 'view'" class="checkbox-view">
-    <div class="text-label">
-      <slot name="label">
-        {{ label ? label : '' }}
-      </slot>
-    </div>
-    <span>{{ value }}</span>
-  </span>
   <label
-    v-else
     class="checkbox-container"
     @keydown.enter.prevent="clicked($event)"
     @keydown.space.prevent="clicked($event)"
@@ -85,10 +92,14 @@ export default {
       role="checkbox"
     />
     <span
-      v-if="label"
       class="checkbox-label"
     >
-      <slot name="label">{{ label }}</slot>
+      <slot name="label">
+        <t v-if="labelKey" :k="labelKey" />
+        <template v-else-if="label">{{ label }}</template>
+        <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="icon icon-info icon-lg" />
+        <i v-else-if="tooltip" v-tooltip="tooltip" class="icon icon-info icon-lg" />
+      </slot>
     </span>
   </label>
 </template>

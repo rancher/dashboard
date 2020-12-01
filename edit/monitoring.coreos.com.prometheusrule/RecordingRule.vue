@@ -108,7 +108,6 @@ export default {
           :add-label="t('labels.addLabel')"
           :mode="mode"
           :title="t('prometheusRule.recordingRules.labels')"
-          :pad-left="false"
           :read-allowed="false"
           @input="queueLabelUpdate"
         />

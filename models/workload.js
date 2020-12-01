@@ -115,10 +115,19 @@ export default {
       const FACTORS = [60, 60, 24];
       const LABELS = ['sec', 'min', 'hour', 'day'];
 
+      if ( startTime ) {
+        out.push({
+          label:         'Started',
+          content:       startTime,
+          formatter:     'LiveDate',
+          formatterOpts: { addSuffix: true },
+        });
+      }
+
       if (completionTime && startTime) {
         const end = day(completionTime);
         const start = day(startTime);
-        let diff = end.diff(start);
+        let diff = end.diff(start) / 1000;
 
         let label;
 
@@ -140,7 +149,14 @@ export default {
 
         out.push({ label: 'Duration', content: label });
       }
+    } else if ( type === WORKLOAD_TYPES.CRON_JOB ) {
+      out.push({
+        label:     'Last Scheduled Time',
+        content:   this?.status?.lastScheduleTime,
+        formatter: 'LiveDate'
+      });
     }
+
     out.push( {
       label:     'Image',
       content:   this.imageNames,

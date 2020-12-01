@@ -145,15 +145,14 @@ export default {
 <template>
   <div @input="update">
     <div class="title clearfix">
-      <h3 :style="{'display':'flex'}">
+      <h3>
         {{ label }}
-        <i v-if="description" v-tooltip="description" class="icon icon-info" style="font-size: 12px" />
+        <i v-if="description" v-tooltip="description" class="icon icon-info" />
       </h3>
     </div>
     <div class="row">
       <div class="col span-11-of-23">
         <LabeledSelect
-          v-if="!isView || kind!=='none'"
           v-model="kind"
           :mode="mode"
           :label="t('probe.type.label')"
@@ -281,7 +280,6 @@ export default {
                 v-model="httpGet.httpHeaders"
                 key-name="name"
                 :mode="mode"
-                :pad-left="false"
                 :as-map="false"
                 :read-allowed="false"
                 :title="t('probe.httpGet.headers.label')"

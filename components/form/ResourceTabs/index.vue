@@ -9,6 +9,7 @@ import CreateEditView from '@/mixins/create-edit-view';
 import Conditions from '@/components/form/Conditions';
 import { EVENT } from '@/config/types';
 import SortableTable from '@/components/SortableTable';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: {
@@ -31,7 +32,7 @@ export default {
     // create-edit-view mode
     mode: {
       type:    String,
-      default: 'create'
+      default: _VIEW,
     },
   },
 
@@ -92,7 +93,7 @@ export default {
 
     events() {
       return this.allEvents.filter((event) => {
-        return event.involvedObject.uid === this.value.metadata.uid;
+        return event.involvedObject?.uid === this.value?.metadata?.uid;
       }).map((event) => {
         return {
           reason:  (`${ event.reason || 'Unknown' }${ event.count > 1 ? ` (${ event.count })` : '' }`).trim(),
@@ -116,11 +117,11 @@ export default {
   <Tabbed v-if="hasCustomTabs || showConditions || showEvents" v-bind="$attrs">
     <slot />
 
-    <Tab v-if="showConditions" :label="t('resourceTabs.tabs.conditions')" name="conditions">
+    <Tab v-if="showConditions" :label="t('resourceTabs.tabs.conditions')" name="conditions" :weight="-1">
       <Conditions :value="value" />
     </Tab>
 
-    <Tab v-if="showEvents" :label="t('resourceTabs.tabs.events')" name="events">
+    <Tab v-if="showEvents" :label="t('resourceTabs.tabs.events')" name="events" :weight="-2">
       <SortableTable
         :rows="events"
         :headers="eventHeaders"

@@ -62,26 +62,20 @@ export default {
       {{ typeDisplay }} <Favorite v-if="isExplorer" :resource="resource" />
     </h1>
     <div class="actions">
-      <nuxt-link
+      <n-link
         v-if="isCreatable"
         :to="createLocation"
         class="btn role-primary"
       >
-        {{ t('resourceList.head.create') }}
-      </nuxt-link>
-      <nuxt-link
-        v-if="isYamlCreatable"
+        {{ t("resourceList.head.create") }}
+      </n-link>
+      <n-link
+        v-else-if="isYamlCreatable"
         :to="yamlCreateLocation"
         class="btn role-primary"
       >
-        {{ t('resourceList.head.createFromYaml') }}
-      </nuxt-link>
+        {{ t("resourceList.head.createFromYaml") }}
+      </n-link>
     </div>
   </header>
 </template>
-
-<style lang="scss" scoped>
-.actions {
-  grid-column: max-content;
-}
-</style>

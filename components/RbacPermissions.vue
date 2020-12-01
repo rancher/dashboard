@@ -44,13 +44,6 @@ export default {
       type:    String,
       default: null,
     },
-    /**
-     * Adds pad-left th to row
-     */
-    padLeft: {
-      type:    Boolean,
-      default: false,
-    }
   },
 
   data() {

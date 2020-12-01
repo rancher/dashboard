@@ -9,7 +9,7 @@ import AsyncButton from '@/components/AsyncButton';
 import { mapGetters } from 'vuex';
 import { stringify } from '@/utils/error';
 import CruResourceFooter from '@/components/CruResourceFooter';
-import { _EDIT, _VIEW, AS_YAML, _FLAGGED } from '@/config/query-params';
+import { _EDIT, _VIEW, AS, _YAML } from '@/config/query-params';
 import { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
 
 export default {
@@ -76,7 +76,7 @@ export default {
   data() {
     return {
       isCancelModal: false,
-      showAsForm:    this.$route.query[AS_YAML] !== _FLAGGED,
+      showAsForm:    this.$route.query[AS] !== _YAML,
       resourceYaml:  this.createResourceYaml(this.resource),
     };
   },

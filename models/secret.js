@@ -2,6 +2,7 @@ import r from 'jsrsasign';
 import { CERTMANAGER, KUBERNETES } from '@/config/labels-annotations';
 import { base64Decode } from '@/utils/crypto';
 import { removeObjects } from '@/utils/array';
+import { SERVICE_ACCOUNT } from '@/config/types';
 
 export const TYPES = {
   OPAQUE:        'Opaque',
@@ -101,29 +102,46 @@ export default {
   },
 
   details() {
-    const columns = [
+    const out = [
       {
         label:   this.t('secret.type'),
         content: this.typeDisplay
       }
     ];
 
+    if ( this._type === TYPES.SERVICE_ACCT ) {
+      const name = this.metadata?.annotations?.[KUBERNETES.SERVICE_ACCOUNT_NAME];
+
+      if ( name ) {
+        out.push({
+          label:         'Service Account',
+          formatter:     'LinkName',
+          formatterOpts: {
+            value:     name,
+            type:      SERVICE_ACCOUNT,
+            namespace: this.namespace,
+          },
+          content: name,
+        });
+      }
+    }
+
     if (this.cn) {
-      columns.push({
+      out.push({
         label:   this.t('secret.certificate.cn'),
         content: this.plusMoreNames ? `${ this.cn } ${ this.t('secret.certificate.plusMore', { n: this.plusMoreNames }) }` : this.cn
       });
     }
 
     if (this.issuer) {
-      columns.push({
+      out.push({
         label:   this.t('secret.certificate.issuer'),
         content: this.issuer
       });
     }
 
     if (this.notAfter) {
-      columns.push({
+      out.push({
         label:         'Expires',
         formatter:     'Date',
         formatterOpts: { class: this.dateClass },
@@ -131,7 +149,7 @@ export default {
       });
     }
 
-    return columns;
+    return out;
   },
 
   canUpdate() {
@@ -229,30 +247,6 @@ export default {
     }
 
     return (this._type || '').replace(/^kubernetes.io\//, '');
-  },
-
-  tableTypeDisplay() {
-    if (this._type === TYPES.SERVICE_ACCT) {
-      return { typeDisplay: this.typeDisplay, serviceAccountID: this.serviceAccountID };
-    } else {
-      return this.typeDisplay;
-    }
-  },
-
-  serviceAccountID() {
-    if (this.secretType === TYPES.SERVICE_ACCT) {
-      const name = this.metadata.annotations[KUBERNETES.SERVICE_ACCOUNT_NAME];
-      const namespace = this.namespace;
-      let fqid = name;
-
-      if (namespace ) {
-        fqid = `${ namespace }/${ name }`;
-      }
-
-      return fqid;
-    }
-
-    return null;
   },
 
   // parse TLS certs and return issuer, notAfter, cn, sans

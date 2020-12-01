@@ -89,7 +89,11 @@ export default {
 
     focusSearch() {
       this.$nextTick(() => {
-        this.$refs['button-dropdown'].searchEl.focus();
+        const el = this.$refs['button-dropdown'].searchEl;
+
+        if ( el ) {
+          el.focus();
+        }
       });
     },
     get,

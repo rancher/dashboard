@@ -1,4 +1,5 @@
 <script>
+import { _VIEW } from '@/config/query-params';
 export default {
   props: {
     // The name of the input, for grouping
@@ -40,6 +41,12 @@ export default {
     return { isChecked: this.value === this.val };
   },
 
+  computed: {
+    isDisabled() {
+      return this.mode === _VIEW || this.disabled;
+    },
+  },
+
   watch: {
     value(neu) {
       this.isChecked = this.val === neu;
@@ -51,28 +58,22 @@ export default {
 
   methods: {
     clicked(e) {
-      if (!this.disabled) {
-        if (e.srcElement?.tagName === 'A') {
-          return;
-        }
-        this.$emit('input', this.val);
+      if (this.isDisabled) {
+        return;
       }
+
+      if (e.srcElement?.tagName === 'A') {
+        return;
+      }
+
+      this.$emit('input', this.val);
     },
   }
 };
 </script>
 
 <template>
-  <span v-if="mode === 'view'" class="radio-view">
-    <div class="text-label">
-      <slot name="label">
-        {{ label }}
-      </slot>
-    </div>
-    <span>{{ val }}</span>
-  </span>
   <label
-    v-else
     class="radio-container"
     @keydown.enter="clicked($event)"
     @keydown.space="clicked($event)"
@@ -80,7 +81,7 @@ export default {
   >
     <input
       :id="_uid+'-radio'"
-      :disabled="disabled"
+      :disabled="isDisabled"
       :name="name"
       :value="''+val"
       :checked="isChecked"
@@ -90,15 +91,15 @@ export default {
     />
     <span
       ref="custom"
-      :class="[ disabled ? 'text-muted' : '', 'radio-custom']"
-      :tabindex="disabled ? -1 : 0"
+      :class="[ isDisabled ? 'text-muted' : '', 'radio-custom']"
+      :tabindex="isDisabled ? -1 : 0"
       :aria-label="label"
       :aria-checked="isChecked"
       role="radio"
     />
     <label
       v-if="label"
-      :class="[ disabled ? 'text-muted' : '', 'radio-label']"
+      :class="[ isDisabled ? 'text-muted' : '', 'radio-label']"
       v-html="label"
     >
       <slot name="label">{{ label }}</slot>

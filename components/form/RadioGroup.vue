@@ -1,7 +1,6 @@
 <script>
 import RadioButton from '@/components/form/RadioButton';
 import { _VIEW } from '@/config/query-params';
-import { findBy } from '@/utils/array';
 
 export default {
   components: { RadioButton },
@@ -45,6 +44,20 @@ export default {
       type:    String,
       default: null
     },
+    labelKey: {
+      type:    String,
+      default: null
+    },
+
+    // Label for above the radios
+    tooltip: {
+      type:    [String, Object],
+      default: null
+    },
+    tooltipKey: {
+      type:    String,
+      default: null
+    },
 
     // show radio buttons in column or row
     row: {
@@ -82,10 +95,8 @@ export default {
       return this.mode === _VIEW;
     },
 
-    displayValue() {
-      const selectedOption = findBy(this.normalizedOptions, 'value', this.value);
-
-      return selectedOption.label;
+    isDisabled() {
+      return (this.disabled || this.isView);
     }
   },
 
@@ -110,21 +121,19 @@ export default {
 
 <template>
   <div>
-    <div v-if="label" class="radio-group label">
-      <h4 class="inline-block">
-        {{ label }}
-      </h4>
-      <span class="corner">
-        <slot name="corner" />
-      </span>
+    <div v-if="label || labelKey || tooltip || tooltipKey" class="radio-group label">
+      <slot name="label">
+        <h3>
+          <t v-if="labelKey" :k="labelKey" />
+          <template v-else-if="label">
+            {{ label }}
+          </template>
+          <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="icon icon-info icon-lg" />
+          <i v-else-if="tooltip" v-tooltip="tooltip" class="icon icon-info icon-lg" />
+        </h3>
+      </slot>
     </div>
     <div
-      v-if="isView"
-    >
-      {{ displayValue }}
-    </div>
-    <div
-      v-else
       class="radio-group"
       :class="{'row':row}"
       tabindex="0"
@@ -141,7 +150,7 @@ export default {
           :value="value"
           :label="option.label"
           :val="option.value"
-          :disabled="disabled || mode=='view'"
+          :disabled="isDisabled"
           :mode="mode"
           v-on="$listeners"
         />
@@ -151,17 +160,25 @@ export default {
 </template>
 
 <style lang='scss'>
-.radio-group:focus{
-  border:none;
-  outline:none;
-}
-.radio-group.row{
-  display: flex;
-  .radio-container {
-    margin-right: 10px;
+.radio-group {
+  &:focus {
+    border:none;
+    outline:none;
   }
-}
-.radio-group.label{
-  font-size: 14px !important;
+
+  h3 {
+    position: relative;
+  }
+
+  .row {
+    display: flex;
+    .radio-container {
+      margin-right: 10px;
+    }
+  }
+
+  .label{
+    font-size: 14px !important;
+  }
 }
 </style>

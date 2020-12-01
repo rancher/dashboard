@@ -2,11 +2,9 @@
 import Date from '@/components/formatter/Date';
 import SortableTable from '@/components/SortableTable';
 import Banner from '@/components/Banner';
-import LabeledSelect from '@/components/form/LabeledSelect';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { escapeHtml, randomStr } from '@/utils/string';
-import { defaultAsyncData } from '@/components/ResourceDetail';
 import { CIS } from '@/config/types';
 import { STATE } from '@/config/table-headers';
 
@@ -15,7 +13,6 @@ export default {
     Date,
     SortableTable,
     Banner,
-    LabeledSelect
   },
 
   props: {
@@ -31,8 +28,9 @@ export default {
     this.clusterReports = await this.value.getReports();
   },
 
-  asyncData(ctx) {
-    return defaultAsyncData(ctx, null, { hideBanner: true, hideAge: true });
+  parentOverride: {
+    hideBanner: true,
+    hideAge:    true
   },
 
   data() {

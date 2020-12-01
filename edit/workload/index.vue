@@ -14,10 +14,10 @@ import LabeledInput from '@/components/form/LabeledInput';
 import HealthCheck from '@/components/form/HealthCheck';
 import Security from '@/components/form/Security';
 import Upgrading from '@/edit/workload/Upgrading';
+import Loading from '@/components/Loading';
 import Networking from '@/components/form/Networking';
 import VolumeClaimTemplate from '@/edit/workload/VolumeClaimTemplate';
 import Job from '@/edit/workload/Job';
-import { defaultAsyncData } from '@/components/ResourceDetail';
 import { _EDIT, _CREATE } from '@/config/query-params';
 import WorkloadPorts from '@/components/form/WorkloadPorts';
 import ContainerResourceLimit from '@/components/ContainerResourceLimit';
@@ -31,11 +31,11 @@ import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
 import Storage from '@/edit/workload/storage';
 import Labels from '@/components/form/Labels';
-import Loading from '@/components/Loading';
 
 export default {
   name:       'CruWorkload',
   components: {
+    Loading,
     NameNsDescription,
     LabeledSelect,
     LabeledInput,
@@ -57,7 +57,6 @@ export default {
     Storage,
     VolumeClaimTemplate,
     Labels,
-    Loading
   },
 
   mixins: [CreateEditView],
@@ -95,22 +94,17 @@ export default {
     this.pvcs = hash.pvcs;
   },
 
-  asyncData(ctx) {
-    let resource;
-    let parentOverride;
-
-    if ( ctx.params.resource === 'workload') {
-      parentOverride = {
+  parentOverride() {
+    if ( this.$route.params.resource === 'workload') {
+      return {
         displayName: 'Workload',
         location:    {
           name:    'c-cluster-product-resource',
           params:  { resource: 'workload' },
-        }
+        },
+        resource: WORKLOAD_TYPES.DEPLOYMENT
       };
-      resource = WORKLOAD_TYPES.DEPLOYMENT;
     }
-
-    return defaultAsyncData(ctx, resource, parentOverride);
   },
 
   data() {
@@ -634,6 +628,7 @@ export default {
               <div class="col span-6">
                 <LabeledInput
                   v-model="container.image"
+                  :mode="mode"
                   :label="t('workload.container.image')"
                   placeholder="eg nginx:latest"
                   required
@@ -686,7 +681,6 @@ export default {
                 v-model="podLabels"
                 :add-label="t('labels.addLabel')"
                 :mode="mode"
-                :pad-left="false"
                 :read-allowed="false"
                 :protip="false"
               />
@@ -698,7 +692,6 @@ export default {
                 v-model="podAnnotations"
                 :add-label="t('labels.addAnnotation')"
                 :mode="mode"
-                :pad-left="false"
                 :read-allowed="false"
                 :protip="false"
               />

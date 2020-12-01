@@ -250,7 +250,11 @@ export default {
 
   methods: {
     focus() {
-      this.$refs.select.$refs['select-input'].searchEl.focus();
+      const el = this.$refs.select.$refs['select-input'].searchEl;
+
+      if ( el ) {
+        el.focus();
+      }
     },
     focusHandler(event) {
       if (event === 'selectBlurred') {

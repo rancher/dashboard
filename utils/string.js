@@ -186,6 +186,7 @@ export function dasherize(str) {
 
 export function asciiLike(str) {
   str = str || '';
+
   if ( str.match(/[^\r\n\t\x20-\x7F]/) ) {
     return false;
   }
@@ -235,4 +236,8 @@ export function ensureRegex(strOrRegex, exact = true) {
   }
 
   return strOrRegex;
+}
+
+export function nlToBr(value) {
+  return escapeHtml(value || '').replace(/(\r\n|\r|\n)/g, '<br/>\n');
 }

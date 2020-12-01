@@ -51,7 +51,6 @@ export default {
         :add-label="t('labels.addLabel')"
         :mode="mode"
         :title="t('labels.label.title')"
-        :pad-left="false"
         :read-allowed="false"
         @input="value.setLabels"
       />
@@ -63,7 +62,6 @@ export default {
         :add-label="t('labels.addAnnotation')"
         :mode="mode"
         :title="t('labels.annotations.title')"
-        :pad-left="false"
         :read-allowed="false"
         @input="value.setAnnotations"
       />

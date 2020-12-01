@@ -151,7 +151,6 @@ export default {
           value-placeholder="e.g. 1.1.1.1"
           add-label="Add Nameserver"
           :mode="mode"
-          :pad-left="false"
           :protip="false"
         />
       </div>
@@ -163,7 +162,6 @@ export default {
           value-placeholder="e.g. mycompany.com"
           add-label="Add Search Domain"
           :mode="mode"
-          :pad-left="false"
           :protip="false"
         />
       </div>
@@ -185,7 +183,6 @@ export default {
           value-name="hostnames"
           value-label="Hostname(s)"
           value-placeholder="e.g. foo.com, bar.com"
-          :pad-left="false"
           add-label="Add Alias"
           @input="updateHostAliases"
         />

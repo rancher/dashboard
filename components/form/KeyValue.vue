@@ -1,26 +1,18 @@
 <script>
 import debounce from 'lodash/debounce';
 import { typeOf } from '@/utils/sort';
-import { _EDIT, _VIEW } from '@/config/query-params';
 import { removeAt } from '@/utils/array';
 import { asciiLike, escapeHtml } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
-import ClickExpand from '@/components/formatter/ClickExpand';
 import { get } from '@/utils/object';
-import CodeMirror from '@/components/CodeMirror';
-import { mapGetters } from 'vuex';
 import FileSelector from '@/components/form/FileSelector';
-import { HIDE_SENSITIVE } from '@/store/prefs';
-
-const LARGE_LIMIT = 2 * 1024;
+import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   components: {
     TextAreaAutoGrow,
-    ClickExpand,
-    CodeMirror,
     FileSelector
   },
 
@@ -29,14 +21,17 @@ export default {
       type:     [Array, Object],
       default: null,
     },
+
     mode: {
       type:    String,
       default: _EDIT,
     },
+
     asMap: {
       type:    Boolean,
       default: true,
     },
+
     initialEmptyRow: {
       type:    Boolean,
       default: false,
@@ -46,18 +41,9 @@ export default {
       type:    String,
       default: ''
     },
-    titleAdd: {
-      type:    Boolean,
-      default: false,
-    },
     protip: {
       type:    [String, Boolean],
       default: 'Paste lines of <em>key=value</em> or <em>key: value</em> into any key field for easy bulk entry',
-    },
-
-    padLeft: {
-      type:    Boolean,
-      default: false,
     },
 
     // For asMap=false, the name of the field that goes into the row objects
@@ -65,12 +51,14 @@ export default {
       type:    String,
       default: 'key',
     },
+
     keyLabel: {
       type: String,
       default() {
         return this.$store.getters['i18n/t']('generic.key');
       },
     },
+
     keyPlaceholder: {
       type: String,
       default() {
@@ -88,12 +76,14 @@ export default {
       type:    String,
       default: 'value',
     },
+
     valueLabel: {
       type: String,
       default() {
         return this.$store.getters['i18n/t']('generic.value');
       },
     },
+
     valuePlaceholder: {
       type: String,
       default() {
@@ -104,6 +94,7 @@ export default {
       type:    Boolean,
       default: false,
     },
+
     valueBinary: {
       type:    Boolean,
       default: false,
@@ -171,6 +162,7 @@ export default {
       type:    Boolean,
       default: true,
     },
+
     fileModifier: {
       type:    Function,
       default: (name, value) => ({ name, value })
@@ -209,7 +201,7 @@ export default {
       });
     });
 
-    if ( !rows.length && this.initialEmptyRow && this.mode !== _VIEW ) {
+    if ( !rows.length && this.initialEmptyRow ) {
       rows.push({ [this.keyName]: '', [this.valueName]: '' });
     }
 
@@ -220,35 +212,9 @@ export default {
       return this.mode === _VIEW;
     },
 
-    hideSensitive() {
-      return this.$store.getters['prefs/get'](HIDE_SENSITIVE);
-    },
-
-    showAdd() {
-      return !this.isView && this.addAllowed;
-    },
-
-    showRead() {
-      return !this.isView && this.readAllowed;
-    },
-
-    showRemove() {
-      return !this.isView && this.removeAllowed;
-    },
-
     threeColumns() {
-      return this.showRemove;
+      return this.removeAllowed;
     },
-
-    hasSomeBinary() {
-      return !!(this.rows.filter(row => !!get(row, '_display.binary')) || []).length;
-    },
-
-    largeLimit() {
-      return LARGE_LIMIT;
-    },
-
-    ...mapGetters({ t: 'i18n/t' })
   },
 
   created() {
@@ -300,15 +266,23 @@ export default {
     },
 
     update() {
-      if ( this.isView ) {
-        return;
-      }
-
       if ( !this.asMap ) {
-        this.$emit('input', this.rows.slice());
+        this.$emit('input', this.rows.map((row) => {
+          let value = row.value;
+
+          if ( this.base64Encode ) {
+            value = base64Encode(value);
+          }
+
+          return {
+            [this.keyName]:   row.key,
+            [this.valueName]: value,
+          };
+        }));
 
         return;
       }
+
       const out = {};
       const keyName = this.keyName;
       const valueName = this.valueName;
@@ -316,6 +290,7 @@ export default {
       if (!this.rows.length) {
         this.$emit('input', out);
       }
+
       for ( const row of this.rows ) {
         let value = (row[valueName] || '');
         const key = (row[keyName] || '').trim();
@@ -341,7 +316,6 @@ export default {
       const binary = typeof value === 'string' && !asciiLike(value);
       const withBreaks = escapeHtml(value || '').replace(/(\r\n|\r|\n)/g, '<br/>\n');
       const byteSize = (withBreaks.length || 0) * 2; // Blobs don't exist in node/ssr
-      const isLarge = byteSize > LARGE_LIMIT;
       let parsed;
 
       if ( value && ( value.startsWith('{') || value.startsWith('[') ) ) {
@@ -355,7 +329,6 @@ export default {
       return {
         binary,
         withBreaks,
-        isLarge,
         parsed,
         byteSize
       };
@@ -394,41 +367,26 @@ export default {
 </script>
 
 <template>
-  <div class="key-value" :class="mode">
+  <div class="key-value">
     <div v-if="title" class="clearfix">
       <slot name="title">
         <h3 class="mb-0">
           {{ title }}
-          <button v-if="titleAdd && showAdd" type="button" class="btn btn-xs role-tertiary p-5 ml-10" style="position: relative; top: -3px;" @click="add()">
-            <i class="icon icon-plus icon-lg icon-fw" />
-          </button>
         </h3>
       </slot>
     </div>
 
-    <div class="kv-container" :class="{'extra-column':threeColumns, 'view':isView}">
-      <template v-if="rows.length || isView">
-        <label class="text-label" :class="{'view':isView}">
+    <div class="kv-container" :class="{'extra-column':threeColumns}">
+      <template v-if="rows.length">
+        <label class="text-label">
           {{ keyLabel }}
-          <i v-if="protip && !isView" v-tooltip="protip" class="icon icon-info" style="font-size: 14px" />
+          <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 14px" />
         </label>
-        <label class="text-label" :class="{'view':isView}">
+        <label class="text-label">
           {{ valueLabel }}
         </label>
-        <span v-if="threeColumns" :class="{'view':isView}" />
+        <span v-if="threeColumns" />
       </template>
-
-      <div v-if="isView && !rows.length" class="kv-row last" :class="{'extra-column':threeColumns}">
-        <div class="text-muted">
-          &mdash;
-        </div>
-        <div class="text-muted">
-          &mdash;
-        </div>
-        <div v-if="threeColumns" class="text-muted">
-          &mdash;
-        </div>
-      </div>
 
       <template v-for="(row,i) in rows">
         <div :key="i+'key'" class="kv-item key">
@@ -438,15 +396,11 @@ export default {
             :mode="mode"
             :keyName="keyName"
             :valueName="valueName"
-            :isView="isView"
           >
-            <div v-if="isView" class="view force-wrap">
-              {{ row[keyName] }}
-            </div>
             <input
-              v-else
               ref="key"
               v-model="row[keyName]"
+              :disabled="isView"
               :placeholder="keyPlaceholder"
               @input="queueUpdate"
               @paste="onPaste(i, $event)"
@@ -461,42 +415,12 @@ export default {
             :mode="mode"
             :keyName="keyName"
             :valueName="valueName"
-            :isView="isView"
             :queueUpdate="queueUpdate"
           >
-            <div v-if="isView" class="view force-wrap">
-              <span>
-                <template v-if="get(row, '_display.parsed') && !hideSensitive">
-                  <CodeMirror
-                    :options="{mode:{name:'javascript', json:true}, lineNumbers:false, foldGutter:false, readOnly:true}"
-                    :value="get(row, '_display.parsed')"
-                    :class="{'conceal':valueConcealed && hideSensitive}"
-                  />
-                </template>
-                <ClickExpand
-                  v-else-if="row._display.binary || row._display.isLarge"
-                  :value-binary="row._display.binary"
-                  :max-length="largeLimit/2"
-                  :value-concealed="!!valueConcealed && !!hideSensitive"
-                  :value="row[valueName]"
-                  :size="row._display.isLarge ? get(row, '_display.byteSize') : null"
-                />
-                <span v-else-if="get(row, '_display.withBreaks')" class="text-monospace" :class="{'conceal': hideSensitive}" v-html="get(row, '_display.withBreaks')" />
-                <span v-else class="text-muted">&mdash;</span>
-              </span>
-
-              <template v-if="!!row[valueName]">
-                <span v-if="row._display.binary" class="ml-10">
-                  <a @click="download(i, $event)">Download</a>
-                </span>
-                <button v-else class="btn role-link copy-value" @click="$copyText(row[valueName])">
-                  <i class="icon icon-copy" />
-                </button>
-              </template>
-            </div>
             <TextAreaAutoGrow
-              v-else-if="valueMultiline"
+              v-if="valueMultiline"
               v-model="row[valueName]"
+              :mode="mode"
               :placeholder="valuePlaceholder"
               :min-height="50"
               :spellcheck="false"
@@ -505,6 +429,7 @@ export default {
             <input
               v-else
               v-model="row[valueName]"
+              :disabled="isView"
               :placeholder="valuePlaceholder"
               autocorrect="off"
               autocapitalize="off"
@@ -514,9 +439,9 @@ export default {
           </slot>
         </div>
 
-        <div v-if="showRemove" :key="i" class="kv-item remove">
+        <div v-if="removeAllowed" :key="i" class="kv-item remove">
           <slot name="removeButton" :remove="remove" :row="row">
-            <button type="button" class="btn bg-transparent role-link" @click="remove(i)">
+            <button type="button" :disabled="isView" class="btn bg-transparent role-link" @click="remove(i)">
               {{ removeLabel || t('generic.remove') }}
             </button>
           </slot>
@@ -524,19 +449,18 @@ export default {
       </template>
     </div>
 
-    <div v-if="!titleAdd && (showAdd || showRead)" class="footer mt-10">
+    <div v-if="addAllowed || readAllowed" class="footer ml-10">
       <slot name="add" :add="add">
-        <button v-if="showAdd" type="button" class="btn btn-sm role-secondary add" @click="add()">
+        <button v-if="addAllowed" :disabled="isView" type="button" class="btn btn-sm role-secondary add" @click="add()">
           {{ addLabel }}
         </button>
-        <FileSelector v-if="showRead" class="btn-sm role-secondary" :label="t('generic.readFromFile')" :include-file-name="true" @selected="onFileSelected" />
+        <FileSelector v-if="readAllowed" class="btn-sm role-secondary" :label="t('generic.readFromFile')" :include-file-name="true" @selected="onFileSelected" />
       </slot>
     </div>
   </div>
 </template>
 
 <style lang="scss">
-
 .key-value {
   width: 100%;
 
@@ -551,21 +475,8 @@ export default {
     grid-template-columns: auto 1fr;
     column-gap: $column-gutter;
 
-    .view{
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-      -ms-word-break: break-all;
-      word-break: break-word;
-      display:flex;
-      align-items:flex-start;
-    }
-
     &.extra-column {
        grid-template-columns: 1fr 1fr 100px;
-       &.view{
-       grid-template-columns: auto 1fr 100px;
-
-       }
     }
 
     & .kv-item {

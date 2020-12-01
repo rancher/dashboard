@@ -1,11 +1,17 @@
 <script>
 import $ from 'jquery';
 import debounce from 'lodash/debounce';
+import { _EDIT, _VIEW } from '@/config/query-params';
 
 export default {
   inheritAttrs: false,
 
   props: {
+    mode: {
+      type:    String,
+      default: _EDIT
+    },
+
     minHeight: {
       type:    Number,
       default: 55,
@@ -22,6 +28,7 @@ export default {
       type:    Boolean,
       default: true
     },
+
     disabled: {
       type:    Boolean,
       default: false,
@@ -36,6 +43,10 @@ export default {
   },
 
   computed: {
+    isDisabled() {
+      return this.disabled || this.mode === _VIEW;
+    },
+
     style() {
       // This sets the height to one-line for SSR pageload so that it's already right
       // (unless the input is long)
@@ -97,7 +108,7 @@ export default {
 <template>
   <textarea
     ref="ta"
-    :disabled="disabled"
+    :disabled="isDisabled"
     :style="style"
     :placeholder="placeholder"
     class="no-resize no-ease"

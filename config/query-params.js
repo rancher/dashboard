@@ -16,6 +16,7 @@ export const GITHUB_REDIRECT = 'redirect_uri';
 
 // GENERAL
 export const AS_YAML = 'as-yaml';
+export const AS_FORM = 'as-form';
 export const _FLAGGED = null; // The value for a key-only flag, like `?desc`
 export const _UNFLAG = undefined; // The value to remove a query param
 
@@ -25,13 +26,18 @@ export const SORT_BY = 'sort';
 export const DESCENDING = 'desc';
 export const PAGE = 'page';
 
-// ResourceYaml
+// ResourceDetail/Yaml
 export const MODE = 'mode';
 export const _CREATE = 'create';
 export const _VIEW = 'view';
 export const _EDIT = 'edit';
 export const _CLONE = 'clone';
 export const _STAGE = 'stage';
+
+export const AS = 'as';
+export const _DETAIL = 'detail';
+export const _CONFIG = 'config';
+export const _YAML = 'yaml';
 
 export const PREVIEW = 'preview';
 

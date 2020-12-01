@@ -3,8 +3,7 @@ import { TYPES } from '@/models/secret';
 import { base64Decode } from '@/utils/crypto';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceTabs from '@/components/form/ResourceTabs';
-import KeyValue from '@/components/form/KeyValue';
-import LabeledInput from '@/components/form/LabeledInput';
+import DetailText from '@/components/DetailText';
 import RelatedResources from '@/components/RelatedResources';
 import Tab from '@/components/Tabbed/Tab';
 import { WORKLOAD_TYPES } from '@/config/types';
@@ -23,10 +22,9 @@ const registryAddresses = [
 export default {
   components: {
     ResourceTabs,
-    KeyValue,
-    LabeledInput,
+    DetailText,
     RelatedResources,
-    Tab
+    Tab,
   },
 
   mixins: [CreateEditView],
@@ -67,21 +65,28 @@ export default {
       password = auths[registryURL].password;
     }
 
+    const data = this.value?.data || {};
+
     if (this.value._type === TYPES.TLS) {
       // do not show existing key when editing
-      key = this.mode === 'edit' ? '' : base64Decode((this.value.data || {})['tls.key']);
+      key = this.mode === 'edit' ? '' : base64Decode(data['tls.key']);
 
-      crt = base64Decode((this.value.data || {})['tls.crt']);
+      crt = base64Decode(data['tls.crt']);
+    }
+
+    if (this.value._type === TYPES.SERVICE_ACCT) {
+      key = base64Decode(data['token']);
+      crt = base64Decode(data['ca.crt']);
     }
 
     if ( this.value._type === TYPES.BASIC ) {
-      username = base64Decode(this.value.data?.username || '');
-      password = base64Decode(this.value.data?.password || '');
+      username = base64Decode(data.username || '');
+      password = base64Decode(data.password || '');
     }
 
     if ( this.value._type === TYPES.SSH ) {
-      username = base64Decode(this.value.data?.['ssh-publickey'] || '');
-      password = base64Decode(this.value.data?.['ssh-privatekey'] || '');
+      username = base64Decode(data['ssh-publickey'] || '');
+      password = base64Decode(data['ssh-privatekey'] || '');
     }
 
     if (!this.value._type) {
@@ -104,6 +109,10 @@ export default {
   computed:   {
     isCertificate() {
       return this.value._type === TYPES.TLS;
+    },
+
+    isSvcAcctToken() {
+      return this.value._type === TYPES.SERVICE_ACCT;
     },
 
     isRegistry() {
@@ -134,39 +143,6 @@ export default {
       return rows;
     },
 
-    dockerRows() {
-      const auths = JSON.parse(this.parsedRows[0].value).auths;
-      const rows = [];
-
-      for (const address in auths) {
-        rows.push({
-          address,
-          username: auths[address].username,
-        });
-      }
-
-      return rows;
-    },
-
-    certRows() {
-      let { 'tls.key':key, 'tls.crt': crt } = this.value.data;
-
-      key = base64Decode(key);
-      crt = base64Decode(crt);
-
-      return [{ key, crt }];
-    },
-
-    dataRows() {
-      if (this.value.isRegistry) {
-        return this.dockerRows;
-      } else if (this.value.isCertificate) {
-        return this.certRows;
-      }
-
-      return this.parsedRows;
-    },
-
     hasRelatedWorkloads() {
       const { relationships = [] } = this.value.metadata;
 
@@ -183,82 +159,60 @@ export default {
 </script>
 
 <template>
-  <div>
-    <div class="spacer" />
-    <template v-if="isRegistry || isBasicAuth">
-      <div class="row mb-20">
-        <div v-if="isRegistry" class="col span-4">
-          <LabeledInput v-model="registryURL" :label="t('secret.registry.domainName')" placeholder="e.g. index.docker.io" :mode="mode" />
+  <ResourceTabs v-model="value" :mode="mode">
+    <Tab name="data" label-key="secret.data">
+      <template v-if="isRegistry || isBasicAuth">
+        <div v-if="isRegistry" class="row">
+          <div class="col span-12">
+            <DetailText :value="registryUrl" label-key="secret.registry.domainName">
+            </detailtext>
+          </div>
         </div>
-        <div class="col span-4">
-          <LabeledInput v-model="username" :label="t('secret.registry.username')" :mode="mode" />
+        <div class="row">
+          <div class="col span-6">
+            <DetailText :value="username" label-key="secret.registry.username" />
+          </div>
+          <div class="col span-6">
+            <DetailText :value="password" label-key="secret.registry.password" :conceal="true" />
+          </div>
         </div>
-        <div class="col span-4">
-          <LabeledInput :copyable="true" :value="password" type="password" :label="t('secret.registry.password')" :mode="mode" />
-        </div>
-      </div>
-    </template>
+      </template>
 
-    <div v-else-if="isCertificate" class="row mb-20">
-      <div class="col span-6">
-        <LabeledInput
-          v-model="key"
-          type="multiline-password"
-          :label="t('secret.certificate.privateKey')"
-          :mode="mode"
-          placeholder="Paste in the private key, typically starting with -----BEGIN RSA PRIVATE KEY-----"
-          :copyable="true"
-        />
-      </div>
-      <div class="col span-6">
-        <LabeledInput
-          v-model="crt"
-          :copyable="true"
-          type="multiline"
-          :label="t('secret.certificate.caCertificate')"
-          :mode="mode"
-          placeholder="Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----"
-        />
-      </div>
-    </div>
-
-    <template v-else-if="isSsh">
-      <div class="row mb-20">
+      <div v-else-if="isCertificate" class="row">
         <div class="col span-6">
-          <LabeledInput
-            v-model="username"
-            :copyable="true"
-            type="multiline"
-            :label="t('secret.ssh.public')"
-            :mode="mode"
-          />
+          <DetailText :value="crt" label-key="secret.certificate.certificate" />
         </div>
         <div class="col span-6">
-          <LabeledInput
-            v-model="password"
-            :copyable="true"
-            type="multiline-password"
-            :label="t('secret.ssh.private')"
-            :mode="mode"
-          />
+          <DetailText :value="key" label-key="secret.certificate.privateKey" :conceal="true" />
         </div>
       </div>
-    </template>
 
-    <KeyValue
-      v-else
-      :title="t('secret.data')"
-      :value="parsedRows"
-      mode="view"
-      :as-map="false"
-      :value-multiline="true"
-      :value-concealed="true"
-    />
+      <div v-else-if="isSvcAcctToken" class="row">
+        <div class="col span-6">
+          <DetailText :value="crt" label-key="secret.serviceAcct.ca" />
+        </div>
+        <div class="col span-6">
+          <DetailText :value="key" label-key="secret.serviceAcct.token" :conceal="true" />
+        </div>
+      </div>
 
-    <ResourceTabs ref="tabs" v-model="value" :side-tabs="true" :mode="mode">
-      <Tab v-if="hasRelatedWorkloads" name="workloads" :label="t('secret.relatedWorkloads')">
-        <RelatedResources :ignore-types="['pod']" :value="value" rel="uses" direction="from" />
-      </Tab>
-    </ResourceTabs>
-  </div>
+      <div v-else-if="isSsh" class="row">
+        <div class="col span-6">
+          <DetailText :value="username" label-key="secret.ssh.public" />
+        </div>
+        <div class="col span-6">
+          <DetailText :value="password" label-key="secret.ssh.private" :conceal="true" />
+        </div>
+      </div>
+
+      <div v-else>
+        <div v-for="(row,idx) in parsedRows" :key="idx" class="mb-20">
+          <DetailText :value="row.value" :label="row.key" :conceal="true" />
+        </div>
+      </div>
+    </Tab>
+    <Tab v-if="hasRelatedWorkloads" name="workloads" label-key="secret.relatedWorkloads">
+      <RelatedResources :ignore-types="['pod']" :value="value" rel="uses" direction="from" />
+    </Tab>
+  </ResourceTabs>
 </template>

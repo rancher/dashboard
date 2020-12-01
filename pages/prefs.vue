@@ -23,33 +23,27 @@ export default {
     hideDesc:   mapPref(HIDE_DESC),
 
     themeOptions() {
-      const t = this.$store.getters['i18n/t'];
-
       return this.$store.getters['prefs/options'](THEME).map((value) => {
         return {
-          label: t(`prefs.theme.${ value }`),
+          labelKey: `prefs.theme.${ value }`,
           value
         };
       });
     },
 
     landingOptions() {
-      const t = this.$store.getters['i18n/t'];
-
       return this.$store.getters['prefs/options'](LANDING).map((value) => {
         return {
-          label: t(`prefs.landing.${ value }`),
+          labelKey: `prefs.landing.${ value }`,
           value
         };
       });
     },
 
     keymapOptions() {
-      const t = this.$store.getters['i18n/t'];
-
       return this.$store.getters['prefs/options'](KEYMAP).map((value) => {
         return {
-          label: t(`prefs.keymap.${ value }`),
+          labelKey: `prefs.keymap.${ value }`,
           value
         };
       });

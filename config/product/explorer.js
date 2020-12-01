@@ -120,10 +120,9 @@ export function init(store) {
     {
       name:      'type',
       label:     'Type',
-      value:     'tableTypeDisplay',
+      value:     'typeDisplay',
       sort:      ['typeDisplay', 'nameSort'],
-      width:     100,
-      formatter: 'SecretType'
+      width:     120,
     },
     {
       name:      'data',

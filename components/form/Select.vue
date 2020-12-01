@@ -136,9 +136,14 @@ export default {
 
     focusSearch() {
       this.$nextTick(() => {
-        this.$refs['select-input'].searchEl.focus();
+        const el = this.$refs['select-input'].searchEl;
+
+        if ( el ) {
+          el.focus();
+        }
       });
     },
+
     get,
   },
 };

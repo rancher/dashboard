@@ -1,62 +1,22 @@
 import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
-import { ANNOTATIONS_TO_IGNORE_REGEX, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
 import { exceptionToErrorsArray } from '@/utils/error';
-import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from './child-hook';
+import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 
 export default {
   mixins: [ChildHook],
 
-  props: {
-    mode: {
-      type:     String,
-      required: true,
-    },
-
-    value: {
-      type:     Object,
-      required: true,
-    },
-
-    originalValue: {
-      type:     Object,
-      default: null,
-    },
-
-    moreDetails: {
-      type:    Array,
-      default: null
+  mounted() {
+    // For easy access debugging...
+    if ( typeof window !== 'undefined' ) {
+      window.v = this.value;
+      window.c = this;
     }
   },
 
   data() {
-    const v = this.value;
-
-    // For easy access debugging...
-    if ( typeof window !== 'undefined' ) {
-      window.v = v;
-      window.c = this;
-    }
-
-    // Ensure labels & annotations exists, since lots of things need them
-    if ( !v.metadata ) {
-      v.metadata = {};
-    }
-
-    if ( !v.metadata.annotations ) {
-      v.metadata.annotations = {};
-    }
-
-    if ( !v.metadata.labels ) {
-      v.metadata.labels = {};
-    }
-
-    // keep label and annotation filters in data so each resource CRUD page can alter individiaully
-    return {
-      errors:                   [],
-      labelsToIgnoreRegex:      LABELS_TO_IGNORE_REGEX,
-      annotationsToIgnoreRegex: ANNOTATIONS_TO_IGNORE_REGEX,
-    };
+    // Keep label and annotation filters in data so each resource CRUD page can alter individually
+    return { errors: [] };
   },
 
   computed: {

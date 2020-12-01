@@ -352,7 +352,6 @@ export default {
             :value="filteredLabels"
             :add-label="t('labels.addLabel')"
             :mode="mode"
-            :pad-left="false"
             :read-allowed="false"
             :value-multiline="false"
             @input="queueLabelUpdate"
@@ -481,7 +480,6 @@ export default {
             :value="filteredAnnotations"
             :add-label="t('labels.addAnnotation')"
             :mode="mode"
-            :pad-left="false"
             :read-allowed="false"
             @input="queueAnnotationUpdate"
           />

@@ -168,22 +168,11 @@ export default {
 
     <div class="row">
       <div class="col span-6">
-        <div v-if="isView">
-          <label class="text-label"><t k="workload.container.security.addCapabilities" /></label>
-          <div v-if="!add.length" class="text-muted">
-            &mdash;
-          </div>
-          <ul v-else class="mt-0 mb-0 pl-15">
-            <li v-for="capability in add" :key="capability">
-              {{ capability }}
-            </li>
-          </ul>
-        </div>
         <LabeledSelect
-          v-else
           v-model="add"
           :taggable="true"
           :close-on-select="false"
+          :mode="mode"
           :multiple="true"
           :label="t('workload.container.security.addCapabilities')"
           :options="allCapabilities"
@@ -192,23 +181,12 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <div v-if="isView">
-          <label class="text-label"><t k="workload.container.security.dropCapabilities" /></label>
-          <div v-if="!drop.length" class="text-muted">
-            &mdash;
-          </div>
-          <ul v-else class="mt-0 mb-0 pl-15">
-            <li v-for="capability in drop" :key="capability">
-              {{ capability }}
-            </li>
-          </ul>
-        </div>
         <LabeledSelect
-          v-else
           v-model="drop"
           :close-on-select="false"
           :taggable="true"
           :multiple="true"
+          :mode="mode"
           :label="t('workload.container.security.dropCapabilities')"
           :options="allCapabilities"
           :disabled="mode==='view'"

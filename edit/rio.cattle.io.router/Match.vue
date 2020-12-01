@@ -149,7 +149,6 @@ export default {
           :as-map="false"
           add-label="Add Header Rule"
           :protip="false"
-          :pad-left="false"
           :read-allowed="false"
           @input="e=>changeKV('headers', e)"
         >
@@ -179,7 +178,6 @@ export default {
           :as-map="false"
           add-label="Add Cookie Rule"
           :protip="false"
-          :pad-left="false"
           :read-allowed="false"
           @input="e=>changeKV('cookies', e)"
         >

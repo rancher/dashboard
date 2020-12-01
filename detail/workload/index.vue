@@ -1,13 +1,12 @@
 <script>
-import createEditView from '@/mixins/create-edit-view';
+import CreateEditView from '@/mixins/create-edit-view';
 import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
-import { POD, WORKLOAD_TYPES, SECRET } from '@/config/types';
+import { POD, WORKLOAD_TYPES } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
 import Tab from '@/components/Tabbed/Tab';
 import Loading from '@/components/Loading';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import CountGauge from '@/components/CountGauge';
-import { mapGetters } from 'vuex';
 import { allHash } from '@/utils/promise';
 
 export default {
@@ -19,7 +18,7 @@ export default {
     CountGauge
   },
 
-  mixins: [createEditView],
+  mixins: [CreateEditView],
 
   props:      {
     value: {
@@ -35,57 +34,83 @@ export default {
   },
 
   async fetch() {
-    let jobs = [];
+    const hash = {
+      pods: this.value.pods(),
+      //      secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }),  This doesn't seem to be used for anything?  And isn't always available.
+    };
 
-    if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
-      jobs = this.value?.status?.active;
+    if ( this.value.type === WORKLOAD_TYPES.CRON_JOB ) {
+      hash.allJobs = this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
     }
 
-    const hash = await allHash({
-      pods:    this.value.pods(),
-      secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }),
-      jobs:     Promise.all(jobs.map(each => this.$store.dispatch('cluster/find', { type: WORKLOAD_TYPES.JOB, id: `${ each.namespace }/${ each.name }` })))
-    });
+    const res = await allHash(hash);
 
-    this.pods = hash.pods;
-    this.secrets = hash.secrets;
-    this.jobs = hash.jobs;
+    for ( const k in res ) {
+      this[k] = res[k];
+    }
   },
 
   data() {
-    const isCronJob = this.value.type === WORKLOAD_TYPES.CRON_JOB;
-
-    const podTemplateSpec = isCronJob ? this.value.spec.jobTemplate.spec.template.spec : this.value.spec?.template?.spec;
-
-    const container = podTemplateSpec.containers[0];
-
-    const name = this.value?.metadata?.name || this.value.id;
-
-    const podSchema = this.$store.getters['cluster/schemaFor'](POD);
-    const jobSchema = this.$store.getters['cluster/schemaFor'](WORKLOAD_TYPES.JOB);
-    const jobHeaders = this.$store.getters['type-map/headersFor'](jobSchema);
-
     return {
-      type:           this.value.type,
-      podSchema,
-      jobSchema,
-      jobHeaders,
-      name,
-      pods:           null,
-      secrets: [],
-      container,
-      podTemplateSpec,
-      jobs:    []
+      pods:    null,
+      allJobs: null,
+      //      secrets: null,
     };
   },
 
   computed:   {
+    isJob() {
+      return this.value.type === WORKLOAD_TYPES.JOB;
+    },
+
+    isCronJob() {
+      return this.value.type === WORKLOAD_TYPES.CRON_JOB;
+    },
+
+    podSchema() {
+      return this.$store.getters['cluster/schemaFor'](POD);
+    },
+
+    podTemplateSpec() {
+      const isCronJob = this.value.type === WORKLOAD_TYPES.CRON_JOB;
+
+      if ( isCronJob ) {
+        return this.value.spec.jobTemplate.spec.template.spec;
+      } else {
+        return this.value.spec?.template?.spec;
+      }
+    },
+
+    container() {
+      return this.podTemplateSpec?.containers[0];
+    },
+
+    jobs() {
+      if (this.value.type !== WORKLOAD_TYPES.CRON_JOB) {
+        return;
+      }
+
+      const entries = this.value?.status?.active || [];
+
+      return entries.map((obj) => {
+        return this.$store.getters['cluster/byId'](WORKLOAD_TYPES.JOB, `${ obj.namespace }/${ obj.id }`);
+      }).filter(x => !!x);
+    },
+
+    jobSchema() {
+      return this.$store.getters['cluster/schemaFor'](WORKLOAD_TYPES.JOB);
+    },
+
+    jobHeaders() {
+      return this.$store.getters['type-map/headersFor'](this.jobSchema);
+    },
+
     jobGauges() {
       const out = {
         succeeded: { color: 'success', count: 0 }, running: { color: 'info', count: 0 }, failed: { color: 'error', count: 0 }
       };
 
-      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+      if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
         this.jobs.forEach((job) => {
           const { status = {} } = job;
 
@@ -93,7 +118,7 @@ export default {
           out.succeeded.count += status.succeeded || 0;
           out.failed.count += status.failed || 0;
         });
-      } else if (this.type === WORKLOAD_TYPES.JOB) {
+      } else if (this.value.type === WORKLOAD_TYPES.JOB) {
         const { status = {} } = this.value;
 
         out.running.count = status.active || 0;
@@ -130,6 +155,7 @@ export default {
       if (!this.pods) {
         return out;
       }
+
       this.pods.map((pod) => {
         const { status:{ phase } } = pod;
         let group;
@@ -155,39 +181,13 @@ export default {
     },
 
     podHeaders() {
-      return this.pods ? [
+      return [
         STATE,
         NAME,
         NODE,
         POD_IMAGES
-      ] : null;
+      ];
     },
-
-    isJob() {
-      return this.type === WORKLOAD_TYPES.JOB;
-    },
-
-    isCronJob() {
-      return this.type === WORKLOAD_TYPES.CRON_JOB;
-    },
-
-    isStatefulSet() {
-      return this.type === WORKLOAD_TYPES.STATEFUL_SET;
-    },
-
-    namespacedSecrets() {
-      const namespace = this.value?.metadata?.namespace;
-
-      if (namespace) {
-        return this.secrets.filter(
-          secret => secret.metadata.namespace === namespace
-        );
-      } else {
-        return this.secrets;
-      }
-    },
-
-    ...mapGetters({ t: 'i18n/t' })
   },
 };
 </script>
@@ -239,7 +239,7 @@ export default {
           key-field="id"
           :table-actions="false"
           :schema="podSchema"
-          :show-groups="false"
+          :groupable="false"
           :search="false"
         />
       </Tab>

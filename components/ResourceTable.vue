@@ -29,10 +29,6 @@ export default {
       default: null
     },
 
-    showGroups: {
-      type:    Boolean,
-      default: true,
-    },
     forceNamespaced: {
       type:    Boolean,
       default: false,
@@ -43,6 +39,7 @@ export default {
       type:    Boolean,
       default: true
     },
+
     tableActions: {
       // Show bulk table actions
       type:    Boolean,
@@ -52,6 +49,16 @@ export default {
     pagingLabel: {
       type:    String,
       default: 'sortableTable.paging.resource',
+    },
+
+    groupable: {
+      type:    Boolean,
+      default: null, // Null: auto based on namespaced
+    },
+
+    groupTooltip: {
+      type:    String,
+      default: 'resourceTable.groupBy.namespace',
     },
   },
 
@@ -64,7 +71,7 @@ export default {
 
     showNamespaceColumn() {
       const groupNamespaces = this.group === 'namespace';
-      const out = this.groupable && !groupNamespaces;
+      const out = this.showGrouping && !groupNamespaces;
 
       return out;
     },
@@ -108,8 +115,12 @@ export default {
 
     group: mapPref(GROUP_RESOURCES),
 
-    groupable() {
-      return this.$store.getters['isMultipleNamespaces'] && this.namespaced;
+    showGrouping() {
+      if ( this.groupable === null ) {
+        return this.$store.getters['isMultipleNamespaces'] && this.namespaced;
+      }
+
+      return this.groupable || false;
     },
 
     computedGroupBy() {
@@ -117,7 +128,7 @@ export default {
         return this.groupBy;
       }
 
-      if ( this.group === 'namespace' && this.groupable && this.showGroups) {
+      if ( this.group === 'namespace' && this.showGrouping ) {
         return 'groupByLabel';
       }
 
@@ -126,8 +137,16 @@ export default {
 
     groupOptions() {
       return [
-        { value: 'none', icon: 'icon-list-flat' },
-        { value: 'namespace', icon: 'icon-list-grouped' }
+        {
+          tooltipKey: 'resourceTable.groupBy.none',
+          icon:       'icon-list-flat',
+          value:      'none',
+        },
+        {
+          tooltipKey: this.groupTooltip,
+          icon:       'icon-folder',
+          value:      'namespace',
+        }
       ];
     },
 
@@ -159,7 +178,7 @@ export default {
     key-field="_key"
     v-on="$listeners"
   >
-    <template v-if="groupable && showGroups" #header-middle>
+    <template v-if="showGrouping" #header-middle>
       <slot name="more-header-middle" />
       <ButtonGroup v-model="group" :options="groupOptions" />
     </template>

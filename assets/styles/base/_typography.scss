@@ -43,15 +43,8 @@ P {
   margin: 0;
 }
 
-UL {
-  LI {
-    margin: 10px 0;
-  }
-}
-
-
 //code
-code, samp, kbd {
+code, samp, kbd, .monospace {
   font-family: "Courier New", Courier, monospace, sans-serif;
   text-align: left;
   // color: var(--secondary);
