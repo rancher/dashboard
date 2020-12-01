@@ -2,11 +2,14 @@
 import isEmpty from 'lodash/isEmpty';
 import merge from 'lodash/merge';
 
+import { mapGetters } from 'vuex';
+
 import Alerting from '@/chart/monitoring/alerting';
 import Checkbox from '@/components/form/Checkbox';
 import ClusterSelector from '@/chart/monitoring/ClusterSelector';
 import Grafana from '@/chart/monitoring/grafana';
 import Prometheus from '@/chart/monitoring/prometheus';
+import LabeledInput from '@/components/form/LabeledInput';
 
 import { allHash } from '@/utils/promise';
 import { STORAGE_CLASS, PVC, SECRET, WORKLOAD_TYPES } from '@/config/types';
@@ -19,6 +22,7 @@ export default {
     Checkbox,
     ClusterSelector,
     Grafana,
+    LabeledInput,
     Prometheus,
   },
 
@@ -68,6 +72,10 @@ export default {
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
+    provider() {
+      return this.currentCluster.status.provider.toLowerCase();
+    },
     workloads() {
       return Object.values(WORKLOAD_TYPES).flatMap(type => this.$store.getters['cluster/all'](type));
     },
@@ -200,6 +208,17 @@ export default {
               <i v-tooltip="{content:t('monitoring.aggregateDefaultRoles.tip', {}, true), autoHide: false}" class="icon icon-info icon-lg" />
             </template>
           </Checkbox>
+        </div>
+      </div>
+      <div v-if="provider === 'rke'" class="row mt-20">
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.rkeEtcd.clients.https.certDir"
+            :label="t('monitoring.etcdNodeDirectory.label')"
+            :tooltip="t('monitoring.etcdNodeDirectory.tooltip', {}, true)"
+            :hover-tooltip="true"
+            :mode="mode"
+          />
         </div>
       </div>
     </section>
