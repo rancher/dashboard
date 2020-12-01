@@ -47,7 +47,7 @@ export default {
   <div class="splunk">
     <div class="bordered-section">
       <h3>{{ t('logging.output.sections.target') }}</h3>
-      <div class="row">
+      <div class="row mb-20">
         <div class="col span-2">
           <LabeledSelect v-model="value.protocol" :mode="mode" :disabled="disabled" :options="protocolOptions" :label="t('logging.splunk.protocol')" />
         </div>
@@ -56,6 +56,14 @@ export default {
         </div>
         <div class="col span-2">
           <LabeledInput v-model="port" :mode="mode" :disabled="disabled" type="number" :label="t('logging.splunk.port')" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="col span-6">
+          <LabeledInput v-model="value.index" :mode="mode" :disabled="disabled" :label="t('logging.splunk.indexName')" />
+        </div>
+        <div class="col span-6">
+          <LabeledInput v-model="value.source" :mode="mode" :disabled="disabled" :label="t('logging.splunk.source')" />
         </div>
       </div>
     </div>
