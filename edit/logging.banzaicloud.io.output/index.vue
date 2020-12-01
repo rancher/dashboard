@@ -98,7 +98,10 @@ export default {
         label="generic.name"
         :register-before-hook="registerBeforeHook"
       />
-      <Tabbed ref="tabbed" :side-tabs="true">
+      <Banner v-if="!value.allProvidersSupported" color="info">
+        This output is configured with providers we don't support yet. You can view or edit the YAML.
+      </Banner>
+      <Tabbed v-else ref="tabbed" :side-tabs="true">
         <Tab v-if="!isView" name="overview" :label="t('logging.output.selectOutputs')" :weight="100">
           <Banner class="mt-0" color="info">
             {{ t('logging.output.selectBanner') }}
