@@ -87,7 +87,7 @@ export default {
     :row-actions="false"
   />
   <div v-else>
-<<<<<<< HEAD
+    <<<<<<< HEAD
     <ArrayListGrouped v-model="value.spec.tls" :add-label="t('ingress.certificates.addCertificate')" :default-add-value="defaultAddValue">
       <template #default="props">
         <Certificate
@@ -98,7 +98,7 @@ export default {
         />
       </template>
     </ArrayListGrouped>
-=======
+    =======
     <Certificate
       v-for="(cert,i) in tls"
       :key="i"
@@ -112,6 +112,6 @@ export default {
     <button class="btn role-tertiary add" type="button" @click="addCert">
       {{ t('ingress.certificates.addCertificate') }}
     </button>
->>>>>>> c3b48be0... tab headers
+    >>>>>>> c3b48be0... tab headers
   </div>
 </template>

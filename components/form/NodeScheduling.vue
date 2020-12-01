@@ -84,55 +84,56 @@ export default {
 
 <template>
   <div>
-<<<<<<< HEAD
+    <<<<<<< HEAD
     <h3><t k="workload.scheduling.titles.nodeScheduling" /></h3>
     <div class="row">
-=======
-    <h4 v-if="isView" class="mt-10 mb-10">
-      {{ selectNode ? t('workload.scheduling.affinity.specificNode') : t('workload.scheduling.affinity.schedulingRules') }}
-    </h4>
-    <div v-else class="row">
->>>>>>> c3b48be0... tab headers
-      <RadioGroup
-        v-model="selectNode"
-        name="selectNode"
-        :options="[true,false]"
-        :labels="[t('workload.scheduling.affinity.specificNode'), t('workload.scheduling.affinity.schedulingRules')]"
-        :mode="mode"
-      />
-    </div>
-    <template v-if="selectNode">
-      <div class="row">
-        <div class="col span-6">
-          <LabeledSelect
-            v-model="nodeName"
-            :label="t('workload.scheduling.affinity.nodeName')"
-            :options="nodes || []"
-            :mode="mode"
-            :multiple="false"
-            @input="update"
-          />
-        </div>
-      </div>
-
-      <div class="spacer" />
-
-      <div class="row">
-        <KeyValue
-          title="Nodes with these labels"
-          :value="nodeSelector"
+      =======
+      <h4 v-if="isView" class="mt-10 mb-10">
+        {{ selectNode ? t('workload.scheduling.affinity.specificNode') : t('workload.scheduling.affinity.schedulingRules') }}
+      </h4>
+      <div v-else class="row">
+        >>>>>>> c3b48be0... tab headers
+        <RadioGroup
+          v-model="selectNode"
+          name="selectNode"
+          :options="[true,false]"
+          :labels="[t('workload.scheduling.affinity.specificNode'), t('workload.scheduling.affinity.schedulingRules')]"
           :mode="mode"
-          :initial-empty-row="true"
-          :pro-tip="false"
-        >
-          <template #title>
-            <h4>{{ t('workload.scheduling.titles.nodeSelector') }}</h4>
-          </template>
-        </KeyValue>
+        />
       </div>
-    </template>
-    <template v-else>
-      <NodeAffinity v-model="nodeAffinity" :mode="mode" @input="update" />
-    </template>
+      <template v-if="selectNode">
+        <div class="row">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="nodeName"
+              :label="t('workload.scheduling.affinity.nodeName')"
+              :options="nodes || []"
+              :mode="mode"
+              :multiple="false"
+              @input="update"
+            />
+          </div>
+        </div>
+
+        <div class="spacer" />
+
+        <div class="row">
+          <KeyValue
+            title="Nodes with these labels"
+            :value="nodeSelector"
+            :mode="mode"
+            :initial-empty-row="true"
+            :pro-tip="false"
+          >
+            <template #title>
+              <h4>{{ t('workload.scheduling.titles.nodeSelector') }}</h4>
+            </template>
+          </KeyValue>
+        </div>
+      </template>
+      <template v-else>
+        <NodeAffinity v-model="nodeAffinity" :mode="mode" @input="update" />
+      </template>
+    </div>
   </div>
 </template>

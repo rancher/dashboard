@@ -102,7 +102,7 @@ export default {
     />
   </div>
   <div v-else>
-<<<<<<< HEAD
+    <<<<<<< HEAD
     <ArrayListGrouped v-model="value.spec.rules" :add-label="t('ingress.rules.addRule')" :default-add-value="{}">
       <template #default="props">
         <Rule
@@ -112,7 +112,7 @@ export default {
         />
       </template>
     </ArrayListGrouped>
-=======
+    =======
     <Rule
       v-for="(_, i) in rules"
       :key="i"
@@ -124,6 +124,6 @@ export default {
     <button class="btn role-tertiary add" type="button" @click="addRule">
       {{ t('ingress.rules.addRule') }}
     </button>
->>>>>>> c3b48be0... tab headers
+    >>>>>>> c3b48be0... tab headers
   </div>
 </template>
