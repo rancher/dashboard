@@ -115,7 +115,7 @@ export default {
   receiverTypes() {
     const types = RECEIVERS_TYPES
       .filter(type => type.name !== 'custom' && this.spec[type.key]?.length > 0)
-      .map(type => type.label);
+      .map(type => this.t(type.label));
 
     const expectedKeys = RECEIVERS_TYPES.map(type => type.key).filter(key => key !== 'custom');
 
@@ -125,7 +125,7 @@ export default {
       .filter(key => !expectedKeys.includes(key));
 
     if (customKeys.length > 0) {
-      const customLabel = RECEIVERS_TYPES.find(type => type.name === 'custom').label;
+      const customLabel = this.t(RECEIVERS_TYPES.find(type => type.name === 'custom').label);
 
       types.push(customLabel);
     }

@@ -102,7 +102,11 @@ button,
 .btn.disabled,
 .btn[disabled],
 fieldset[disabled] .btn {
-  @extend .bg-disabled;
+  &:not(.role-link) {
+    @extend .bg-disabled;
+  }
+  
+  @extend .text-disabled;
   cursor: not-allowed;
   border: solid thin var(--input-disabled-border);
 }

@@ -34,6 +34,11 @@ export default {
 
 <template>
   <div>
+    <div class="row">
+      <div class="col span-12">
+        <h3>Target</h3>
+      </div>
+    </div>
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput

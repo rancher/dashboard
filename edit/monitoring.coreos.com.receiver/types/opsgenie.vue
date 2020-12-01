@@ -120,6 +120,11 @@ export default {
 
 <template>
   <div>
+    <div class="row">
+      <div class="col span-12">
+        <h3>Target</h3>
+      </div>
+    </div>
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput v-model="value.api_key" :mode="mode" label="API Key" />
@@ -138,12 +143,14 @@ export default {
         <h3>Responders</h3>
         <ArrayList v-model="responders" :mode="mode" :default-add-value="defaultResponder" :show-header="true">
           <template v-slot:column-headers>
-            <div class="row mb-10">
-              <div class="col span-6">
-                <span class="text-label">Type</span>
-              </div>
-              <div class="col span-6 send-to">
-                <span class="text-label">Send To</span>
+            <div class="responders-heading">
+              <div class="row" :class="{'mb-15': isView, 'mb-10': !isView}">
+                <div class="col span-6">
+                  <span class="text-label">Type</span>
+                </div>
+                <div class="col span-6 send-to">
+                  <span class="text-label">Send To</span>
+                </div>
               </div>
             </div>
           </template>
@@ -151,12 +158,13 @@ export default {
             <div class="row responder">
               <div class="col span-6">
                 <span v-if="isView">{{ typeLabel(scope.row.value.type) }}</span>
-                <Select v-else v-model="scope.row.value.type" :mode="mode" label="Type" :options="TYPES" />
+                <Select v-else v-model="scope.row.value.type" :mode="mode" :options="TYPES" />
               </div>
-              <div class="col-span-6 target">
+              <div class="col-span-6 target-container">
                 <span v-if="isView">{{ targetLabel(scope.row.value.target) }}: {{ scope.row.value.value }}</span>
                 <InputWithSelect
                   v-else
+                  class="target"
                   :mode="mode"
                   :options="TARGETS"
                   :select-value="scope.row.value.target"
@@ -173,26 +181,23 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-.send-to {
-  margin-left: -35px;
-}
-.responder {
-  &, .target {
-    width: 100%;
+  .responders-heading {
+    display: grid;
+    grid-template-columns: auto $array-list-remove-margin;
   }
 
-  .unlabeled-select ::v-deep {
-    height: $input-height;
-  }
-
-  .target ::v-deep {
-    & .input-container {
-      height: $input-height;
+  .responder {
+    &, .target-container {
+      width: 100%;
     }
 
-    & .unlabeled-select {
+    .target-container ::v-deep .unlabeled-select {
       min-width: 35%;
+      height: 100%;
+    }
+
+    .target {
+      height: 100%;
     }
   }
-}
 </style>
