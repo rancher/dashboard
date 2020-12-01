@@ -340,6 +340,7 @@ export default {
 
       .type-banner {
         grid-area: type-banner;
+        grid-column: span 4;
       }
 
       .state-banner {
@@ -352,7 +353,7 @@ export default {
 
       .actions {
         grid-area: actions;
-        text-align: right;
+        margin-left: auto;
       }
     }
 

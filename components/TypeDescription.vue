@@ -47,12 +47,14 @@ export default {
 </script>
 
 <template>
-  <Banner
-    v-if="typeDescriptionKey"
-    class="type-banner mb-20 mt-0"
-    color="info"
-    :closable="true"
-    :label-key="typeDescriptionKey"
-    @close="hideTypeDescription"
-  />
+  <div class="type-banner">
+    <Banner
+      v-if="typeDescriptionKey"
+      class="mb-20 mt-0"
+      color="info"
+      :closable="true"
+      :label-key="typeDescriptionKey"
+      @close="hideTypeDescription"
+    />
+  </div>
 </template>
