@@ -15,7 +15,6 @@ import Tabbed from '@/components/Tabbed';
 import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 import CruResource from '@/components/CruResource';
 import { ENFORCEMENT_ACTION_VALUES } from '@/models/constraints.gatekeeper.sh.constraint';
-import { defaultAsyncData } from '@/components/ResourceDetail';
 import NamespaceList, { NAMESPACE_FILTERS } from './NamespaceList';
 import MatchKinds from './MatchKinds';
 import Scope, { SCOPE_OPTIONS } from './Scope';
@@ -55,12 +54,10 @@ export default {
     }
   },
 
-  asyncData(ctx) {
-    function yamlSave(value, originalValue) {
+  parentOverride: {
+    yamlSave(value, originalValue) {
       originalValue.yamlSaveOverride(value, originalValue);
     }
-
-    return defaultAsyncData(ctx, null, { yamlSave });
   },
 
   data() {
