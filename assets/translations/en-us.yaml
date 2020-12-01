@@ -774,6 +774,8 @@ logging:
     clientCert: Client Cert
     clientKey: Client Key
     insecureSsl: Insecure SSL
+    indexName: Index Name
+    source: Source
   forward:
     host: Host
     port: Port
