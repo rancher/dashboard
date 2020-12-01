@@ -1818,8 +1818,11 @@ workload:
     activeDeadlineSecondsTip: The duration that the pod may be active before the system tries to mark it failed and kill associated containers.
     affinity:
       addNodeSelector: Add Node Selector
+      anyNode: Run pods on any available node
       affinityTitle: Run pods on nodes with pods matching these selectors
       antiAffinityTitle: Run pods on nodes without pods matching these selectors
+      affinityOption: Affinity
+      antiAffinityOption: Anti-Affinity
       matchExpressions:
         addRule: Add Rule
         doesNotExist: Does Not Exist
@@ -1836,14 +1839,18 @@ workload:
         weight: Weight
       noPodRules: There are no pod scheduling rules configured.
       nodeName: Node Name
+      priority: Priority
       preferAny: "Prefer any of:"
+      preferred: Preferred
+      required: Required
       requireAny: "Require any of:"
-      schedulingRules: Run pods on node(s) matching these scheduling rules
+      schedulingRules: Run pods on node(s) matching scheduling rules
       specificNode: Run pods on specific node(s)
       thisPodNamespace: This pod's namespace
       topologyKey:
         label: Topology Key
         placeholder: e.g. failure-domain.beta.kubernetes.io/zone
+      type: Type
     priority:
       className: Priority Class Name
       priority: Priority

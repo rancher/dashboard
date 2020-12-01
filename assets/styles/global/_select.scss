@@ -22,6 +22,7 @@
 
   .v-select {
     &.inline {
+
       .vs__search {
         background-color: transparent;
       }
@@ -43,6 +44,7 @@
     }
   }
   .v-select.inline.vs--single {
+
     &.vs--searching .vs__selected {
       display: none;
     }
@@ -101,8 +103,17 @@
   }
 
   .v-select {
+    
     &.inline {
       height: 100%;
+
+      &.vs--unsearchable {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        bottom: 0;
+      }
 
       .vs__dropdown-toggle {
         height: 100%;

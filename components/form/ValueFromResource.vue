@@ -41,7 +41,7 @@ export default {
   data() {
     const typeOpts = [
       { value: 'simple', label: 'Key/Value Pair' },
-      { value: 'resourceFieldRef', label: 'Container Resource Field' },
+      { value: 'resourceFieldRef', label: 'Resource' },
       { value: 'configMapKeyRef', label: 'ConfigMap Key' },
       { value: 'secretKeyRef', label: 'Secret key' },
       { value: 'fieldRef', label: 'Pod Field' },
@@ -186,12 +186,15 @@ export default {
   watch: {
     type() {
       this.referenced = null;
+      this.key = '';
+      this.refName = '';
+      this.keys = [];
+      this.key = '';
+      this.valStr = '';
+      this.fieldPath = '';
     },
 
     referenced(neu, old) {
-      if (old) {
-        this.key = '';
-      }
       if (neu) {
         if ((neu.type === SECRET || neu.type === CONFIG_MAP) && neu.data) {
           this.keys = Object.keys(neu.data);

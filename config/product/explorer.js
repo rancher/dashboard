@@ -109,6 +109,7 @@ export function init(store) {
   mapGroup(/.*resources\.cattle\.io.*/, 'Backup-Restore');
 
   configureType(NODE, { isCreatable: false, isEditable: false });
+  configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
 
   configureType('workload', {
     displayName: 'Workload',

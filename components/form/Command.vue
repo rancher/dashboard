@@ -158,7 +158,7 @@ export default {
             <Checkbox
               v-model="tty"
               :mode="mode"
-              :label="t('workload.container.command.stdin')"
+              :label="t('workload.container.command.tty')"
               @input="update"
             />
           </div>

@@ -369,7 +369,6 @@ export const getters = {
 
     return (schemaOrType) => {
       const type = (typeof schemaOrType === 'object' ? schemaOrType.id : schemaOrType);
-
       const found = state.typeOptions.find((entry) => {
         const re = stringToRegex(entry.match);
 
@@ -1208,9 +1207,10 @@ export const mutations = {
     const match = regexToString(ensureRegex(options.match));
 
     let idx = state.typeOptions.findIndex((obj) => obj.match === match);
+    let obj = { ...options, match };
 
     if ( idx >= 0 ) {
-      const obj = Object.assign({}, state.typeOptions[idx], options, {match});
+      obj = Object.assign(obj, state.typeOptions[idx]);
       state.typeOptions.splice(idx, 1, obj);
     } else {
       const obj = Object.assign({}, options, {match});

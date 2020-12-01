@@ -1238,7 +1238,7 @@ export default {
             validators = [],
             type: fieldType,
           } = rule;
-          let pathValue = get(data, path) || null;
+          let pathValue = get(data, path);
 
           const parsedRules = compact((validators || []));
           let displayKey = path;
@@ -1250,11 +1250,10 @@ export default {
           if (isString(pathValue)) {
             pathValue = pathValue.trim();
           }
-
           if (requiredIfPath) {
             const reqIfVal = get(data, requiredIfPath);
 
-            if (!isEmpty(reqIfVal) && isEmpty(pathValue)) {
+            if (!isEmpty(reqIfVal) && (isEmpty(pathValue) && pathValue !== 0)) {
               errors.push(this.t('validation.required', { key: displayKey }));
             }
           }
@@ -1262,7 +1261,7 @@ export default {
           validateLength(pathValue, rule, displayKey, this.$rootGetters, errors);
           validateChars(pathValue, rule, displayKey, this.$rootGetters, errors);
 
-          if ( !isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType) ) {
+          if ( isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType) ) {
             // DNS types should be lowercase
             const tolower = (pathValue || '').toLowerCase();
 

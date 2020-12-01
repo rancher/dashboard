@@ -35,7 +35,7 @@ export function validateLength(val, field, displayKey, getters, errors = []) {
   const len = val ? get(val, 'length') : 0;
 
   if ( !nullable && required) {
-    if ((typeof val === 'object' && isEmpty(val)) || !val) {
+    if ((typeof val === 'object' && isEmpty(val)) || (!val && val !== 0)) {
       errors.push(getters['i18n/t']('validation.required', { key: displayKey }));
 
       return errors;

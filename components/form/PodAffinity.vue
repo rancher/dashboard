@@ -1,15 +1,23 @@
 <script>
 import { _VIEW } from '@/config/query-params';
-import { get, isEmpty, cleanUp } from '@/utils/object';
-import { POD, NODE } from '@/config/types';
+import { get, isEmpty, clone } from '@/utils/object';
+import { POD, NODE, NAMESPACE } from '@/config/types';
 import MatchExpressions from '@/components/form/MatchExpressions';
+import LabeledSelect from '@/components/form/LabeledSelect';
+import RadioGroup from '@/components/form/RadioGroup';
 import InfoBox from '@/components/InfoBox';
+import LabeledInput from '@/components/form/LabeledInput';
+import { randomStr } from '@/utils/string';
+import { sortBy } from '@/utils/sort';
+import debounce from 'lodash/debounce';
 
 export default {
-  components: { MatchExpressions, InfoBox },
+  components: {
+    MatchExpressions, InfoBox, LabeledSelect, RadioGroup, LabeledInput
+  },
 
   props:      {
-    // value should be PodAffinity / PodAntiAffinity
+    // pod template spec
     value: {
       type:    Object,
       default: () => {
@@ -24,25 +32,42 @@ export default {
   },
 
   data() {
-    const { preferredDuringSchedulingIgnoredDuringExecution = [], requiredDuringSchedulingIgnoredDuringExecution = [] } = this.value;
+    if (!this.value.affinity) {
+      this.$set(this.value, 'affinity', {});
+    }
+    const { podAffinity = {}, podAntiAffinity = {} } = this.value.affinity;
+    const allAffinityTerms = [...(podAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
+      const out = clone(term);
 
-    const selectorMap = {};
-    const weightedSelectorMap = {};
+      out._id = randomStr(4);
+      out._anti = false;
+      if (term.podAffinityTerm) {
+        Object.assign(out, term.podAffinityTerm);
+        delete out.podAffinityTerm;
+      }
 
-    requiredDuringSchedulingIgnoredDuringExecution.forEach((term, i) => {
-      selectorMap[i] = term;
+      return out;
     });
-    preferredDuringSchedulingIgnoredDuringExecution.forEach((term, i) => {
-      weightedSelectorMap[i] = term;
+    const allAntiTerms = [...(podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution || []), ...(podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution || [])].map((term) => {
+      const out = clone(term);
+
+      out._id = randomStr(4);
+      out._anti = true;
+      if (term.podAffinityTerm) {
+        Object.assign(out, term.podAffinityTerm);
+        delete out.podAffinityTerm;
+      }
+
+      return out;
     });
+
+    const allSelectorTerms = [...allAffinityTerms, ...allAntiTerms];
 
     return {
-      selectorMap,
-      weightedSelectorMap,
+      allSelectorTerms,
       defaultWeight: 1
     };
   },
-
   computed: {
     isView() {
       return this.mode === _VIEW;
@@ -54,46 +79,89 @@ export default {
 
     node() {
       return NODE;
-    }
+    },
+
+    allNamespaces() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const choices = this.$store.getters[`${ inStore }/all`](NAMESPACE);
+      const out = sortBy(choices.map((obj) => {
+        return {
+          label: obj.nameDisplay,
+          value: obj.id,
+        };
+      }), 'label');
+
+      return out;
+    },
+  },
+  created() {
+    this.queueUpdate = debounce(this.update, 500);
   },
 
   methods: {
     update() {
-      this.$nextTick(() => {
-        const out = {};
-        const selectors = Object.values(this.selectorMap) || [];
-        const weightedSelectors = Object.values(this.weightedSelectorMap) || [];
+      const podAffinity = { requiredDuringSchedulingIgnoredDuringExecution: [], preferredDuringSchedulingIgnoredDuringExecution: [] };
+      const podAntiAffinity = { requiredDuringSchedulingIgnoredDuringExecution: [], preferredDuringSchedulingIgnoredDuringExecution: [] };
 
-        if (selectors.length) {
-          out['requiredDuringSchedulingIgnoredDuringExecution'] = selectors;
+      this.allSelectorTerms.forEach((term) => {
+        if (term._anti) {
+          if (term.weight) {
+            const neu = { podAffinityTerm: term, weight: 1 };
+
+            podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution.push(neu);
+          } else {
+            podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.push(term);
+          }
+        } else if (term.weight) {
+          const neu = { podAffinityTerm: term, weight: 1 };
+
+          podAffinity.preferredDuringSchedulingIgnoredDuringExecution.push(neu);
+        } else {
+          podAffinity.requiredDuringSchedulingIgnoredDuringExecution.push(term);
         }
-        if (weightedSelectors.length) {
-          out['preferredDuringSchedulingIgnoredDuringExecution'] = weightedSelectors;
-        }
-        this.$emit('input', cleanUp(out));
       });
+
+      Object.assign(this.value.affinity, { podAffinity, podAntiAffinity });
     },
 
     addSelector() {
       const neu = {
-        namespaces: [], labelSelector: { matchExpressions: [] }, topologyKey: ''
+        namespaces:    null,
+        labelSelector: { matchExpressions: [] },
+        topologyKey:   '',
+        _id:           randomStr(4)
       };
-      const key = Math.random();
 
-      this.$set(this.selectorMap, key, neu);
+      this.allSelectorTerms.push(neu);
     },
 
-    addWeightedSelector() {
-      const neu = {
-        weight:          this.defaultWeight,
-        podAffinityTerm: {
-          namespaces: [], labelSelector: { matchExpressions: [] }, topologyKey: ''
-        }
-      };
-      const key = Math.random();
-
-      this.$set(this.weightedSelectorMap, key, neu);
+    changePriority(term, idx) {
+      if (term.weight) {
+        delete term.weight;
+      } else {
+        term.weight = 1;
+      }
+      this.$set(this.allSelectorTerms, idx, term);
+      this.queueUpdate();
     },
+
+    priorityDisplay(term) {
+      return term.weight ? this.t('workload.scheduling.affinity.preferred') : this.t('workload.scheduling.affinity.required');
+    },
+
+    changeNamespaceMode(term, idx) {
+      if (term.namespaces) {
+        term.namespaces = null;
+      } else {
+        this.$set(term, 'namespaces', []);
+      }
+      this.$set(this.allSelectorTerms, idx, term);
+    },
+
+    updateNamespaces(term, namespaces) {
+      this.$set(term, 'namespaces', namespaces);
+    },
+
     isEmpty,
     get,
   }
@@ -102,52 +170,72 @@ export default {
 </script>
 
 <template>
-  <div :style="{'width':'100%'}" class="row" @input="update">
-    <div class="col span-6">
-      <div v-if="!isView || Object.values(selectorMap).length " class="mb-10">
-        <label><t k="workload.scheduling.affinity.requireAny" /></label>
-      </div>
-      <template v-for="(nodeSelectorTerm, key) in selectorMap">
-        <InfoBox :key="key" class="node-selector">
+  <div :style="{'width':'100%'}" class="row" @input="queueUpdate">
+    <div class="col span-12">
+      <template v-for="(nodeSelectorTerm, idx) in allSelectorTerms">
+        <InfoBox :key="nodeSelectorTerm._id" class="node-selector">
+          <div class="row mt-20 mb-20">
+            <div class="col span-6">
+              <LabeledSelect
+                :mode="mode"
+                :options="[t('workload.scheduling.affinity.affinityOption'),t('workload.scheduling.affinity.antiAffinityOption')]"
+                :value="nodeSelectorTerm._anti ?t('workload.scheduling.affinity.antiAffinityOption') :t('workload.scheduling.affinity.affinityOption') "
+                :label="t('workload.scheduling.affinity.type')"
+                @input="$set(nodeSelectorTerm, '_anti',!nodeSelectorTerm._anti)"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledSelect
+                :mode="mode"
+                :options="[t('workload.scheduling.affinity.preferred'),t('workload.scheduling.affinity.required')]"
+                :value="priorityDisplay(nodeSelectorTerm)"
+                :label="t('workload.scheduling.affinity.priority')"
+                @input="changePriority(nodeSelectorTerm, idx)"
+              />
+            </div>
+          </div>
+          <div class="row mb-20">
+            <RadioGroup
+              :options="[false, true]"
+              :labels="[t('workload.scheduling.affinity.thisPodNamespace'),t('workload.scheduling.affinity.matchExpressions.inNamespaces'),]"
+              :name="`namespaces-${nodeSelectorTerm._id}`"
+              :mode="mode"
+              :value="!!nodeSelectorTerm.namespaces"
+              @input="changeNamespaceMode(nodeSelectorTerm, idx)"
+            />
+          </div>
+          <div v-if="!!nodeSelectorTerm.namespaces || !!get(nodeSelectorTerm, 'podAffinityTerm.namespaces')" class="row mb-20">
+            <LabeledSelect
+              v-model="nodeSelectorTerm.namespaces"
+              :mode="mode"
+              :multiple="true"
+              :taggable="true"
+              :options="allNamespaces"
+              :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
+            />
+          </div>
           <MatchExpressions
-            :key="key"
             :mode="mode"
             class=" col span-12"
             :type="pod"
-            :namespaces.sync="nodeSelectorTerm.namespaces"
-            :topology-key.sync="nodeSelectorTerm.topologyKey"
             :value="get(nodeSelectorTerm, 'labelSelector.matchExpressions')"
-            @remove="$delete(selectorMap, key)"
-            @input="e=>$set(selectorMap[key], 'labelSelector', {matchExpressions:e})"
+            @remove="allSelectorTerms.splice(idx,1)"
+            @input="e=>$set(nodeSelectorTerm.labelSelector, 'matchExpressions', e)"
           />
+          <div class="row mt-20">
+            <div class="col span-12">
+              <LabeledInput
+                v-model="nodeSelectorTerm.topologyKey"
+                :mode="mode"
+                required
+                :label="t('workload.scheduling.affinity.topologyKey.label')"
+                :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
+              />
+            </div>
+          </div>
         </InfoBox>
       </template>
-      <button v-if="!isView" type="button" class="btn role-tertiary" @click="addSelector">
-        {{ t('podAffinity.addLabel') }}
-      </button>
-    </div>
-
-    <div class="col span-6">
-      <div v-if="!isView || Object.values(weightedSelectorMap).length " class="mb-10">
-        <label><t k="workload.scheduling.affinity.preferAny" /></label>
-      </div>
-      <template v-for="(nodeSelectorTerm, key) in weightedSelectorMap">
-        <InfoBox :key="key" class="node-selector">
-          <MatchExpressions
-            :key="key"
-            :mode="mode"
-            class=" col span-12"
-            :type="pod"
-            :namespaces.sync="nodeSelectorTerm.podAffinityTerm.namespaces"
-            :topology-key.sync="nodeSelectorTerm.podAffinityTerm.topologyKey"
-            :value="get(nodeSelectorTerm, 'podAffinityTerm.labelSelector.matchExpressions')"
-            :weight="get(nodeSelectorTerm, 'weight')"
-            @remove="$delete(weightedSelectorMap, key)"
-            @input="e=>$set(weightedSelectorMap[key].podAffinityTerm, 'labelSelector', {matchExpressions:e})"
-          />
-        </InfoBox>
-      </template>
-      <button v-if="!isView" type="button" class="btn role-tertiary" @click="addWeightedSelector">
+      <button :disabled="isView" type="button" class="btn role-tertiary" @click="addSelector">
         {{ t('podAffinity.addLabel') }}
       </button>
     </div>

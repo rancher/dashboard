@@ -8,13 +8,16 @@ export default {
   // remove clone as yaml/edit as yaml until API supported
   _availableActions() {
     let out = this._standardActions;
+    const type = this._type ? this._type : this.type;
 
-    insertAt(out, 0, {
-      action:     'redeploy',
-      label:      'Redeploy',
-      icon:       'icon icon-spinner',
-      enabled:    !!this.links.update,
-    });
+    if (type !== WORKLOAD_TYPES.JOB) {
+      insertAt(out, 0, {
+        action:     'redeploy',
+        label:      'Redeploy',
+        icon:       'icon icon-spinner',
+        enabled:    !!this.links.update,
+      });
+    }
 
     const toFilter = ['cloneYaml'];
 
