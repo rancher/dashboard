@@ -200,13 +200,13 @@ export default {
     for ( const key in out ) {
       this[key] = out[key];
     }
+
+    if ( this.mode === _CREATE ) {
+      this.value.applyDefaults(this, this.mode);
+    }
   },
 
   data() {
-    if ( this.mode === _CREATE && this.value.applyDefaults ) {
-      this.value.applyDefaults(this, this.mode);
-    }
-
     return {
       resourceSubtype: null,
 
