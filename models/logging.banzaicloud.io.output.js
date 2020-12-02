@@ -4,35 +4,30 @@ export const PROVIDERS = [
     labelKey: 'logging.outputProviders.elasticsearch',
     enabled:  false,
     default:  {},
-    logo:     require(`~/assets/images/logo-color-elasticsearch.svg`)
   },
   {
     name:     'splunkHec',
     labelKey: 'logging.outputProviders.splunkHec',
     enabled:  false,
     default:  {},
-    logo:     require(`~/assets/images/logo-color-splunk.svg`)
   },
   {
     name:     'kafka',
     labelKey: 'logging.outputProviders.kafka',
     enabled:  false,
     default:  { format: { type: 'json' } },
-    logo:     require(`~/assets/images/logo-color-kafka.svg`)
   },
   {
     name:     'forward',
     labelKey: 'logging.outputProviders.forward',
     enabled:  false,
     default:  { servers: [{}] },
-    logo:     require(`~/assets/images/logo-color-fluentd.svg`)
   },
   {
     name:     'loki',
     labelKey:   'logging.outputProviders.loki',
     enabled:  false,
     default:  { configure_kubernetes_labels: true },
-    logo:     require(`~/assets/images/logo-color-loki.svg`)
   }
 ];
 

@@ -7,12 +7,13 @@ import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import ToggleGradientBox from '@/components/ToggleGradientBox';
 import Labels from '@/components/form/Labels';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
 import { PROVIDERS } from '@/models/logging.banzaicloud.io.output';
 
 export default {
   components: {
-    Banner, CruResource, Labels, NameNsDescription, Tab, Tabbed, ToggleGradientBox
+    Banner, CruResource, Labels, LabeledSelect, NameNsDescription, Tab, Tabbed, ToggleGradientBox
   },
 
   mixins: [CreateEditView, ToggleGradientBox],
@@ -28,6 +29,7 @@ export default {
 
     const providers = PROVIDERS.map(provider => ({
       ...provider,
+      value: provider.name,
       label: this.t(provider.labelKey)
     }));
 
@@ -35,17 +37,21 @@ export default {
 
     providers.forEach((provider) => {
       this.value.spec[provider.name] = this.value.spec[provider.name] || provider.default;
+    });
+
+    const selectedProviders = providers.filter((provider) => {
       const specProvider = this.value.spec[provider.name];
       const correctedSpecProvider = provider.name === 'forward' ? specProvider.servers[0] : specProvider;
       const specProviderKeys = Object.keys(correctedSpecProvider || {}).filter(key => !['format', 'configure_kubernetes_labels'].includes(key));
 
-      provider.enabled = specProviderKeys.length > 0;
-      if (!provider.enabled) {
-        delete this.value.spec[provider.name];
-      }
+      return specProviderKeys.length > 0;
     });
 
-    return { providers };
+    return {
+      providers,
+      selectedProvider:            selectedProviders?.[0]?.value || providers[0].value,
+      hasMultipleProvdersSelected: selectedProviders.length > 1
+    };
   },
 
   computed: {
@@ -53,19 +59,9 @@ export default {
       return this.providers.filter(p => p.enabled);
     }
   },
-  watch: {
-    providers: {
-      handler() {
-        this.providers.forEach((provider) => {
-          if (this.value.spec[provider.name] && !provider.enabled) {
-            delete this.value.spec[provider.name];
-          } else if (provider.enabled) {
-            this.value.spec[provider.name] = this.value.spec[provider.name] || provider.default;
-          }
-        });
-      },
-      deep: true
-    }
+
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
   },
   methods: {
     getComponent(name) {
@@ -73,6 +69,9 @@ export default {
     },
     launch(provider) {
       this.$refs.tabbed.select(provider.name);
+    },
+    willSave() {
+      this.value.spec = { [this.selectedProvider]: this.value.spec[this.selectedProvider] };
     }
   }
 };
@@ -102,35 +101,20 @@ export default {
         This output is configured with providers we don't support yet. You can view or edit the YAML.
       </Banner>
       <Tabbed v-else ref="tabbed" :side-tabs="true">
-        <Tab v-if="!isView" name="overview" :label="t('logging.output.selectOutputs')" :weight="100">
-          <Banner class="mt-0" color="info">
-            {{ t('logging.output.selectBanner') }}
-          </Banner>
-          <div class="box-container">
-            <ToggleGradientBox v-for="(provider, i) in providers" :key="i" v-model="provider.enabled">
-              <div class="logo">
-                <img :src="provider.logo" />
-              </div>
-              <h4 class="name">
-                {{ provider.label }}
-              </h4>
-            </ToggleGradientBox>
-          </div>
-        </Tab>
-        <Tab v-for="(provider, i) in enabledProviders" :key="i" :name="provider.name" :label="provider.label" :weight="enabledProviders.length - i + 1">
-          <div class="provider mb-10">
-            <h1>
-              {{ provider.label }}
-            </h1>
+        <Tab name="Output" label="Output" :weight="1">
+          <div class="row mb-20">
+            <div class="col span-6">
+              <LabeledSelect v-model="selectedProvider" label="Output" :options="providers" :mode="mode" />
+            </div>
           </div>
 
-          <component :is="getComponent(provider.name)" :value="value.spec[provider.name]" :disabled="!provider.enabled" :mode="mode" />
+          <component :is="getComponent(selectedProvider)" :value="value.spec[selectedProvider]" :mode="mode" />
         </Tab>
         <Tab
           v-if="!isView"
           name="labels-and-annotations"
           :label="t('generic.labelsAndAnnotations')"
-          :weight="-1"
+          :weight="0"
         >
           <Labels
             default-container-class="labels-and-annotations-container"
