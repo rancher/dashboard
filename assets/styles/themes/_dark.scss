@@ -82,17 +82,17 @@
 
   --input-text: #{$lightest};
   --input-label: #{$lighter};
-  --input-placeholder: #{lighten($disabled, 10%)};
+  --input-placeholder: #{lighten($disabled, 50%)};
   --input-border: var(--border);
   --input-bg: #{$dark};
   --input-hover-bg: var(--body-bg);
   --input-focus-bg: #{$darkest};
   --input-hover-bg: #{lighten($dark, 5%)};
   --input-focus-bg: #{lighten($dark, 5%)};
-  --input-disabled-text: #{$medium};
+  --input-disabled-text: #{lighten($disabled, 20%)};
   --input-disabled-bg: #{$disabled};
-  --input-disabled-border: #{$darkest};
-  --input-disabled-placeholder: #{darken($disabled, 10%)};
+  --input-disabled-border: #{darken($disabled, 5%)};
+  --input-disabled-placeholder: #{lighten($disabled, 10%)};
   --input-addon-bg: #{$darker};
 
   --progress-bg: #{$medium};
