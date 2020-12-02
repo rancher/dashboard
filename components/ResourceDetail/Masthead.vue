@@ -48,11 +48,6 @@ export default {
       default: false
     },
 
-    parentOverride: {
-      type:    Object,
-      default: null
-    },
-
     resourceSubtype: {
       type:    String,
       default: null,
@@ -162,13 +157,12 @@ export default {
         params: { resource: this.value.type }
       };
 
-      const out = { displayName, location };
+      const typeOptions = this.$store.getters[`type-map/optionsFor`]( this.value.type );
+      const out = {
+        displayName, location, ...typeOptions
+      };
 
-      if (this.parentOverride) {
-        Object.assign(out, this.parentOverride);
-      }
-
-      return out ;
+      return out;
     },
 
     hideSensitiveData() {
@@ -298,13 +292,13 @@ export default {
             </nuxt-link>
             <t :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="value.nameDisplay" />
           </h1>
-          <BadgeState v-if="!isCreate && !parent.hideBadgeState" :value="value" />
+          <BadgeState v-if="!isCreate && parent.showState" :value="value" />
         </div>
         <div v-if="!isCreate" class="subheader">
           <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: {{ project.nameDisplay }}</span>
           <span v-else-if="isWorkspace">{{ t("resourceDetail.masthead.workspace") }}: <nuxt-link :to="workspaceLocation">{{ namespace }}</nuxt-link></span>
           <span v-else-if="namespace">{{ t("resourceDetail.masthead.namespace") }}: <nuxt-link :to="namespaceLocation">{{ namespace }}</nuxt-link></span>
-          <span v-if="!parent.hideAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="get(value, 'metadata.creationTimestamp')" /></span>
+          <span v-if="parent.showAge">{{ t("resourceDetail.masthead.age") }}: <LiveDate class="live-date" :value="get(value, 'metadata.creationTimestamp')" /></span>
         </div>
       </div>
       <slot name="right">

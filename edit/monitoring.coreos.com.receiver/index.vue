@@ -62,18 +62,8 @@ export default {
       receiver:         {},
       suffixYaml,
       EDITOR_MODES,
-      yamlSaveOverride: this.yamlSaveOverride,
       yamlError:        ''
     };
-  },
-
-  parentOverride: {
-    hideBanner:     true,
-    hideAge:        true,
-    hideBadgeState: true,
-    yamlSave(value, original) {
-      original.yamlSaveOverride(value, original);
-    }
   },
 
   computed: {
@@ -105,6 +95,7 @@ export default {
       }
     }
   },
+
   methods: {
     getComponent(name) {
       return require(`./types/${ name }`).default;
@@ -119,6 +110,7 @@ export default {
 
       return found.length;
     },
+
     tabChanged({ tab }) {
       window.scrollTop = 0;
       if ( tab.name === 'custom' ) {
@@ -130,6 +122,7 @@ export default {
         });
       }
     },
+
     saveOverride(buttonDone) {
       if (this.yamlError) {
         this.errors = this.errors || [];

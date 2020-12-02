@@ -671,7 +671,7 @@ export default {
   },
 
   canUpdate() {
-    return this.hasLink('update') && this.$rootGetters['type-map/isEditable'](this.type);
+    return this.hasLink('update') && this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
   },
 
   canCustomEdit() {
@@ -679,7 +679,11 @@ export default {
   },
 
   canCreate() {
-    return this.$rootGetters['type-map/isCreatable'](this.type);
+    if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
+      return false;
+    }
+
+    return this.$rootGetters['type-map/optionsFor'](this.type).isCreatable;
   },
 
   canViewInApi() {
@@ -1092,6 +1096,49 @@ export default {
         }
       } catch (e) {
         return null;
+      }
+    };
+  },
+
+  saveYaml() {
+    return async(yaml) => {
+      const parsed = jsyaml.safeLoad(yaml); // will throw on invalid yaml
+
+      if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
+        const err = this.$rootGetters['i18n/t']('resourceYaml.errors.namespaceRequired');
+
+        throw err;
+      }
+
+      let res;
+      const isCreate = !this.id;
+      const headers = {
+        'content-type': 'application/yaml',
+        accept:         'application/json',
+      };
+
+      if ( isCreate ) {
+        res = await this.schema.followLink('collection', {
+          method:  'POST',
+          headers,
+          data:   yaml
+        });
+      } else {
+        const link = this.hasLink('rioupdate') ? 'rioupdate' : 'update';
+
+        res = await this.followLink(link, {
+          method:  'PUT',
+          headers,
+          data:   yaml
+        });
+      }
+
+      // Steve used to return tables and still might, maybe?
+      if ( res && res.kind !== 'Table') {
+        await this.$dispatch(`load`, {
+          data:     res,
+          existing: (isCreate ? this : undefined)
+        });
       }
     };
   },

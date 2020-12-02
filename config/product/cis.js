@@ -10,7 +10,7 @@ export function init(store) {
     product,
     basicType,
     weightType,
-    formOnlyType,
+    configureType,
     headers
   } = DSL(store, NAME);
 
@@ -29,7 +29,7 @@ export function init(store) {
     'cis.cattle.io.clusterscanbenchmark',
   ]);
 
-  formOnlyType(CIS.CLUSTER_SCAN);
+  configureType(CIS.CLUSTER_SCAN, { canYaml: false, showAge: false });
 
   headers(CIS.CLUSTER_SCAN, [
     STATE,

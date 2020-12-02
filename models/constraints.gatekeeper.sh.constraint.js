@@ -1,3 +1,5 @@
+import jsyaml from 'js-yaml';
+
 export const ENFORCEMENT_ACTION_VALUES = {
   DENY:   'deny',
   DRYRUN: 'dryrun'
@@ -21,10 +23,13 @@ export default {
     };
   },
 
-  yamlSaveOverride() {
-    return (value, originalValue) => {
-      Object.assign(originalValue, value);
-      originalValue.save();
+  saveYaml() {
+    return (yaml) => {
+      const parsed = jsyaml.safeLoad(yaml);
+
+      Object.assign(this, parsed);
+
+      return this.save();
     };
   },
 

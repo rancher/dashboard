@@ -64,11 +64,6 @@ export default {
       type:    Boolean,
       default: true
     },
-
-    saveOverride: {
-      type:    Function,
-      default: null
-    }
   },
 
   data() {
@@ -244,57 +239,15 @@ export default {
     },
 
     async save(buttonDone) {
-      const inStore = this.$store.getters['currentProduct'].inStore;
       const yaml = this.value.yamlForSave(this.currentYaml) || this.currentYaml;
-      let parsed, res;
 
       try {
         await this.$emit('apply-hooks', BEFORE_SAVE_HOOKS);
 
-        if (this._isBeingDestroyed || this._isDestroyed) {
-          return;
-        }
-
         try {
-          parsed = jsyaml.safeLoad(yaml);
+          this.value.saveYaml(yaml);
         } catch (err) {
           return onError.call(this, err);
-        }
-
-        if (this.saveOverride) {
-          await this.saveOverride(parsed, this.value);
-        } else {
-          if ( this.schema?.attributes?.namespaced && !parsed.metadata.namespace ) {
-            const err = this.$store.getters['i18n/t']('resourceYaml.errors.namespaceRequired');
-
-            return onError.call(this, err);
-          }
-
-          if ( this.isCreate ) {
-            res = await this.schema.followLink('collection', {
-              method:  'POST',
-              headers: {
-                'content-type': 'application/yaml',
-                accept:         'application/json',
-              },
-              data: yaml
-            });
-          } else {
-            const link = this.value.hasLink('rioupdate') ? 'rioupdate' : 'update';
-
-            res = await this.value.followLink(link, {
-              method:  'PUT',
-              headers: {
-                'content-type': 'application/yaml',
-                accept:         'application/json',
-              },
-              data: yaml
-            });
-          }
-
-          if ( res && res.kind !== 'Table') {
-            await this.$store.dispatch(`${ inStore }/load`, { data: res, existing: (this.isCreate ? this.value : undefined) });
-          }
         }
 
         await this.$emit('apply-hooks', AFTER_SAVE_HOOKS);

@@ -1,6 +1,7 @@
 import { canCreate, updateConfig } from '@/utils/alertmanagerconfig';
 import { isEmpty } from '@/utils/object';
 import { MONITORING } from '@/config/types';
+import jsyaml from 'js-yaml';
 
 export const RECEIVERS_TYPES = [
   {
@@ -133,10 +134,13 @@ export default {
     return fn => updateConfig(this.$dispatch, 'receivers', this.type, fn);
   },
 
-  yamlSaveOverride() {
-    return (value, originalValue) => {
-      Object.assign(originalValue, value);
-      originalValue.save();
+  saveYaml() {
+    return (yaml) => {
+      const parsed = jsyaml.safeLoad(yaml);
+
+      Object.assign(this, parsed);
+
+      return this.save();
     };
   },
 

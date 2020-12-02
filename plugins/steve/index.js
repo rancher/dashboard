@@ -100,6 +100,10 @@ export default (config = {}) => {
       fromServer.data = recurse(fromServer.data);
     }
 
+    if ( state && fromServer?.fetch ) {
+      fromServer.fetch = recurse(fromServer.fetch);
+    }
+
     function recurse(obj, parent, key) {
       if ( isArray(obj) ) {
         const rehydrateKey = `__rehydrateAll__${ key }`;

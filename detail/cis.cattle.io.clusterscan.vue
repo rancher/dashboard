@@ -28,11 +28,6 @@ export default {
     this.clusterReports = await this.value.getReports();
   },
 
-  parentOverride: {
-    hideBanner: true,
-    hideAge:    true
-  },
-
   data() {
     return { clusterReports: [], clusterReport: null };
   },
@@ -275,7 +270,6 @@ export default {
         </template>
       </SortableTable>
     </div>
-    <Banner v-else color="error" :label="value.metadata.state.message" />
   </div>
 </template>
 

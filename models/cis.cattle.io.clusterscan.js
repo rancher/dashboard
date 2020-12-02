@@ -71,7 +71,7 @@ export default {
 
       this.hasReport = !!report;
 
-      return report;
+      return report || [];
     };
   },
 

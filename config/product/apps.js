@@ -20,8 +20,7 @@ export function init(store) {
     headers,
     virtualType,
     weightType,
-    uncreatableType,
-    immutableType,
+    configureType,
   } = DSL(store, NAME);
 
   product({
@@ -50,10 +49,8 @@ export function init(store) {
     CATALOG.REPO,
   ]);
 
-  uncreatableType(CATALOG.APP);
-  uncreatableType(CATALOG.OPERATION);
-  immutableType(CATALOG.APP);
-  immutableType(CATALOG.OPERATION);
+  configureType(CATALOG.APP, { isCreatable: false, isEditable: false });
+  configureType(CATALOG.OPERATION, { isCreatable: false, isEditable: false });
 
   const repoType = {
     name:     'type',

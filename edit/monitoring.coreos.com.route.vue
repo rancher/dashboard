@@ -40,15 +40,6 @@ export default {
     }
   },
 
-  parentOverride: {
-    hideBanner:     true,
-    hideAge:        true,
-    hideBadgeState: true,
-    yamlSave(value, originalValue) {
-      originalValue.yamlSaveOverride(value, originalValue);
-    }
-  },
-
   data() {
     this.$set(this.value.spec, 'group_by', this.value.spec.group_by || []);
 

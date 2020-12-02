@@ -10,11 +10,10 @@ export function init(store) {
     product,
     basicType,
     weightType,
-    uncreatableType,
+    configureType,
     headers,
     // mapType,
     // virtualType,
-    // immutableType,
   } = DSL(store, NAME);
 
   product({
@@ -41,16 +40,13 @@ export function init(store) {
 
   // basicType('istio-overview');
 
-  // uncreatableType('fleet.cattle.io.cluster');
-  // immutableType('fleet.cattle.io.cluster');
-
   basicType([
     FLEET.CLUSTER,
     FLEET.CLUSTER_GROUP,
     FLEET.GIT_REPO,
   ]);
 
-  uncreatableType(FLEET.CLUSTER);
+  configureType(FLEET.CLUSTER, { isCreatable: false });
 
   weightType(FLEET.GIT_REPO, 109, true);
   weightType(FLEET.CLUSTER, 108, true);
