@@ -12,10 +12,13 @@ export default {
     try {
       this.kialiService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/kiali' });
     } catch {}
+    try {
+      this.jaegerService = await this.$store.dispatch('cluster/find', { type: SERVICE, id: 'istio-system/tracing' });
+    } catch {}
   },
 
   data() {
-    return { kialiService: null };
+    return { kialiService: null, jaegerService: null };
   },
 
   computed: {
@@ -28,6 +31,14 @@ export default {
 
     kialiUrl() {
       return this.kialiService ? this.kialiService.proxyUrl('http', '20001') : null;
+    },
+
+    jaegerLogo() {
+      return require(`~/assets/images/logo-color-jaeger.svg`);
+    },
+
+    jaegerUrl() {
+      return this.jaegerService ? this.jaegerService.proxyUrl('http', '16686') : null;
     },
 
     monitoringUrl() {
@@ -80,12 +91,39 @@ export default {
               :rel="rel"
               @click.stop
             >
-              <t k="istio.links.label" />
+              <t k="istio.links.kiali.label" />
               <i class="icon icon-external-link pull-right" />
             </a>
             <hr />
             <div class="description">
-              <span v-html="t('istio.links.description', {link: monitoringUrl}, true)" />
+              <span v-html="t('istio.links.kiali.description', {link: monitoringUrl}, true)" />
+            </div>
+          </div>
+        </span>
+      </div>
+      <div :class="{'disabled':!jaegerUrl}" class="box link-container">
+        <span
+          class="link-content pull-right"
+          @click="$refs.jaeger.click()"
+        >
+          <div class="link-logo">
+            <img :src="jaegerLogo" />
+          </div>
+          <div class="link-content">
+            <a
+              ref="jaeger"
+              :disabled="!jaegerUrl"
+              :href="jaegerUrl"
+              :target="target"
+              :rel="rel"
+              @click.stop
+            >
+              <t k="istio.links.jaeger.label" />
+              <i class="icon icon-external-link pull-right" />
+            </a>
+            <hr />
+            <div class="description">
+              <span v-html="t('istio.links.jaeger.description', true)" />
             </div>
           </div>
         </span>

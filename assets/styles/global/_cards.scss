@@ -14,7 +14,7 @@
     min-height: 100px;
     border-left: solid 10px var(--primary);
 
-    a[disabled] {
+    a[disabled], &.disabled {
       cursor: not-allowed;
       background-color: var(---disabled-bg);
     }
@@ -32,6 +32,7 @@
       .link-logo,
       .link-content {
         display: inline-block;
+        height: 100%;
       }
 
       .link-logo {
