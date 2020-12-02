@@ -43,7 +43,6 @@ export const LOGGING_OUTPUT_PROVIDERS = {
   labelKey:      'tableHeaders.loggingOutputProviders',
   value:         'providersDisplay',
   sort:          ['providersSortable'],
-  width:         '75%',
   formatter:     'List',
 };
 
