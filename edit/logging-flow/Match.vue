@@ -51,6 +51,7 @@ export default {
       protip=""
       key-label="Pod Label Key"
       value-label="Pod Label Value"
+      add-label="Add Pod"
     />
 
     <h3 class="mt-20">
