@@ -10,6 +10,7 @@ import Labels from '@/components/form/Labels';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
 import { PROVIDERS } from '@/models/logging.banzaicloud.io.output';
+import { _VIEW } from '@/config/query-params';
 
 export default {
   components: {
@@ -50,13 +51,21 @@ export default {
     return {
       providers,
       selectedProvider:            selectedProviders?.[0]?.value || providers[0].value,
-      hasMultipleProvdersSelected: selectedProviders.length > 1
+      hasMultipleProvdersSelected: selectedProviders.length > 1,
+      selectedProviders
     };
   },
 
   computed: {
     enabledProviders() {
       return this.providers.filter(p => p.enabled);
+    },
+    cruMode() {
+      if (this.selectedProviders.length > 1 || !this.value.allProvidersSupported) {
+        return _VIEW;
+      }
+
+      return this.mode;
     }
   },
 
@@ -81,11 +90,12 @@ export default {
   <div class="output">
     <CruResource
       :done-route="doneRoute"
-      :mode="mode"
+      :mode="cruMode"
       :resource="value"
       :subtypes="[]"
       :validation-passed="true"
       :errors="errors"
+      :can-yaml="true"
       @error="e=>errors = e"
       @finish="save"
       @cancel="done"
@@ -97,7 +107,10 @@ export default {
         label="generic.name"
         :register-before-hook="registerBeforeHook"
       />
-      <Banner v-if="!value.allProvidersSupported" color="info">
+      <Banner v-if="selectedProviders.length > 1" color="info">
+        This output is configured with multiple providers. We currently only support a single provider per output. You can view or edit the YAML.
+      </Banner>
+      <Banner v-else-if="!value.allProvidersSupported" color="info">
         This output is configured with providers we don't support yet. You can view or edit the YAML.
       </Banner>
       <Tabbed v-else ref="tabbed" :side-tabs="true">

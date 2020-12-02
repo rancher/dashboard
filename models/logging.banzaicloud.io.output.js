@@ -25,7 +25,7 @@ export const PROVIDERS = [
   },
   {
     name:     'loki',
-    labelKey:   'logging.outputProviders.loki',
+    labelKey: 'logging.outputProviders.loki',
     enabled:  false,
     default:  { configure_kubernetes_labels: true },
   }
