@@ -653,8 +653,12 @@ internalExternalIP:
 
 istio:
   links:
-    label: Kiali
-    description: Visualization of services within a service mesh and how they are connected. For Kiali to display data, you need Prometheus installed. If you need a monitoring solution, install <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's monitoring</a>.
+    kiali:
+      label: Kiali
+      description: Visualization of services within a service mesh and how they are connected. For Kiali to display data, you need Prometheus installed. If you need a monitoring solution, install <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's monitoring</a>.
+    jaeger:
+      label: Jaeger
+      description: Monitor and Troubleshoot microservices-based distributed systems.
   cni: Enabled CNI
   customOverlayFile:
     label: Custom Overlay File
@@ -664,6 +668,7 @@ istio:
   egressGateway: Enabled Egress Gateway
   ingressGateway: Enabled Ingress Gateway
   istiodRemote: Enabled istiodRemote
+  kiali: Enabled Kiali
   pilot: Enabled Pilot
   policy: Enabled Policy
   poweredBy: Powered by <a target="_blank" rel="noopener noreferrer nofollow" href='https://istio.io/latest/'>Istio</a>
@@ -673,6 +678,7 @@ istio:
     customAnswers: Custom Answers
     advanced: Advanced Settings
     description: Description
+  tracing: Enabled Jaeger Tracing (limited)
   v1Warning: Please uninstall the current Istio version in the <code>istio-system</code> namespace before attempting to install this version.
 
 labels:

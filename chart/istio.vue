@@ -154,6 +154,16 @@ export default {
           <Checkbox v-model="value.telemetry.enabled" :label="t('istio.telemetry')" />
         </div>
       </div>
+      <div class="row">
+        <div class="col span-4">
+          <Checkbox v-model="value.kiali.enabled" :label="t('istio.kiali')" />
+        </div>
+        <div class="col span-4">
+          <Checkbox v-model="value.tracing.enabled" :label="t('istio.tracing')" />
+        </div>
+        <div class="col span-4">
+        </div>
+      </div>
     </Tab>
 
     <Tab :label="t('istio.customOverlayFile.label')" name="overlay" @active="$refs['yaml-editor'].refresh()">
