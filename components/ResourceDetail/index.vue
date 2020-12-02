@@ -35,30 +35,6 @@ async function getYaml(model) {
   return yaml;
 }
 
-// Components can't have asyncData, only pages.
-// So you have to call this in the page and pass it in as a prop.
-export async function asyncData(ctx) {
-  const { params, store } = ctx;
-  const resource = params.resource;
-  const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
-  const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
-  let editComponent, detailComponent;
-
-  if ( hasCustomDetail ) {
-    const importer = store.getters['type-map/importDetail'](resource);
-
-    detailComponent = (await importer())?.default;
-  }
-
-  if ( hasCustomEdit ) {
-    const importer = store.getters['type-map/importEdit'](resource);
-
-    editComponent = (await importer())?.default;
-  }
-
-  return { editComponent, detailComponent };
-}
-
 export default {
   components: {
     Loading,
@@ -68,19 +44,6 @@ export default {
   },
 
   mixins: [CreateEditView],
-
-  props: {
-    // ** NOTE: These are provided by asyncData() above, you must call asyncData page using this
-    // component and then pass the output into this component as props. **
-    detailComponent: {
-      type:    Object,
-      default: null,
-    },
-    editComponent: {
-      type:    Object,
-      default: null,
-    }
-  },
 
   async fetch() {
     const store = this.$store;
@@ -100,7 +63,6 @@ export default {
 
     const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
     const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
-    const yamlOnlyDetail = store.getters['type-map/isYamlOnlyDetail'](resource);
     const schemas = store.getters[`${ inStore }/all`](SCHEMA);
 
     // As determines what component will be rendered
@@ -117,10 +79,10 @@ export default {
 
     this.as = as;
 
-    const override = this.parentOverride;
+    const options = store.getters[`type-map/optionsFor`](resource);
 
-    if ( override.resource ) {
-      resource = override.resource;
+    if ( options.resource ) {
+      resource = options.resource;
     }
 
     const schema = store.getters[`${ inStore }/schemaFor`](resource);
@@ -188,7 +150,6 @@ export default {
     const out = {
       hasCustomDetail,
       hasCustomEdit,
-      yamlOnlyDetail,
       resource,
       as,
       yaml,
@@ -217,7 +178,6 @@ export default {
       // Set by fetch
       hasCustomDetail: null,
       hasCustomEdit:   null,
-      yamlOnlyDetail:  null,
       resource:        null,
       asYaml:          null,
       yaml:            null,
@@ -261,24 +221,6 @@ export default {
 
       return null;
     },
-
-    parentOverride() {
-      const over = this.showComponent?.parentOverride;
-
-      if ( !over ) {
-        return {};
-      }
-
-      if ( typeof over === 'function' ) {
-        return over.apply(this) || {};
-      }
-
-      return over || {};
-    },
-
-    yamlSave() {
-      return this.parentOverride?.yamlSave;
-    },
   },
 
   watch: {
@@ -296,6 +238,18 @@ export default {
     }
   },
 
+  created() {
+    let resource = this.$route.params.resource;
+    const options = this.$store.getters[`type-map/optionsFor`](resource);
+
+    if ( options.resource ) {
+      resource = options.resource;
+    }
+
+    this.detailComponent = this.$store.getters['type-map/importDetail'](resource);
+    this.editComponent = this.$store.getters['type-map/importEdit'](resource);
+  },
+
   methods: {
     setSubtype(subtype) {
       this.resourceSubtype = subtype;
@@ -308,11 +262,11 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <Masthead
+      :resource="resource"
       :value="originalModel"
       :mode="mode"
       :real-mode="realMode"
       :as="as"
-      :parent-override="parentOverride"
       :has-detail="hasCustomDetail"
       :has-edit="hasCustomEdit"
       :resource-subtype="resourceSubtype"
@@ -332,7 +286,6 @@ export default {
       :offer-preview="offerPreview"
       :done-route="doneRoute"
       :done-override="value.doneOverride"
-      :save-override="yamlSave"
     />
 
     <component

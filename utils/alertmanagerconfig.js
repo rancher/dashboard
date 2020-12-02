@@ -154,5 +154,5 @@ export function areRoutesSupportedFormat(secret) {
 }
 
 export function canCreate(rootGetters) {
-  return rootGetters['type-map/isCreatable'](SECRET);
+  return rootGetters['type-map/optionsFor'](SECRET).isCreatable;
 }

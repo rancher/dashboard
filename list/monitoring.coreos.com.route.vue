@@ -22,10 +22,10 @@ export default {
     const areSomeRoutesInvalidFormat = areRoutesSupportedFormat(secret);
 
     if (areSomeRoutesInvalidFormat) {
-      this.$store.dispatch('type-map/removeUncreatableType', { match: MONITORING.SPOOFED.ROUTE });
+      this.$store.dispatch('type-map/configureType', { match: MONITORING.SPOOFED.ROUTE, isCreatable: true });
       this.rows = await routes;
     } else {
-      this.$store.dispatch('type-map/uncreatableType', { match: MONITORING.SPOOFED.ROUTE });
+      this.$store.dispatch('type-map/configureType', { match: MONITORING.SPOOFED.ROUTE, isCreatable: false });
       this.secretTo = { ...secret.detailLocation };
       this.secretTo.query = { [MODE]: _EDIT };
     }

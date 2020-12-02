@@ -100,7 +100,7 @@ export default {
   <div>
     <CruResource
       :validation-passed="!!name && !!value.spec.benchmarkVersion"
-      done-route="doneRoute"
+      :done-route="doneRoute"
       :resource="value"
       :mode="mode"
       :errors="errors"

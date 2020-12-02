@@ -13,7 +13,6 @@ export function init(store) {
     product,
     basicType,
     virtualType,
-    yamlOnlyDetail,
   } = DSL(store, NAME);
 
   product({
@@ -29,9 +28,6 @@ export function init(store) {
     LOGGING.FLOW,
     LOGGING.OUTPUT,
   ]);
-
-  yamlOnlyDetail(LOGGING.FLOW);
-  yamlOnlyDetail(LOGGING.CLUSTER_FLOW);
 
   virtualType({
     label:      'Overview',

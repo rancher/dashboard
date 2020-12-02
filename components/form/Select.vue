@@ -55,10 +55,12 @@ export default {
       type:    String,
       default: null,
     },
+
     hoverTooltip: {
       type:    Boolean,
-      default: false,
+      default: true,
     },
+
     searchable: {
       default: false,
       type:    Boolean,

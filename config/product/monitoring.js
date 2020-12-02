@@ -17,6 +17,7 @@ export function init(store) {
     spoofedType,
     virtualType,
     weightType,
+    configureType,
   } = DSL(store, NAME);
   const {
     ALERTMANAGER,
@@ -166,6 +167,9 @@ export function init(store) {
     ],
     getInstances: () => getAllRoutes(store.dispatch)
   });
+
+  configureType(ROUTE, { showState: false, showAge: false });
+  configureType(RECEIVER, { showState: false, showAge: false });
 
   basicType([
     'monitoring-overview',

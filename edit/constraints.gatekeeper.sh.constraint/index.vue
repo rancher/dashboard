@@ -54,12 +54,6 @@ export default {
     }
   },
 
-  parentOverride: {
-    yamlSave(value, originalValue) {
-      originalValue.yamlSaveOverride(value, originalValue);
-    }
-  },
-
   data() {
     const emptySpec = {
       enforcementAction: ENFORCEMENT_ACTION_VALUES.DENY,

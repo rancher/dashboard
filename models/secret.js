@@ -153,7 +153,15 @@ export default {
   },
 
   canUpdate() {
-    return this.hasLink('update') && this.$rootGetters['type-map/isEditable'](this.type) && this.secretType !== TYPES.SERVICE_ACCT;
+    if ( !this.hasLink('update') ) {
+      return false;
+    }
+
+    if ( this.secretType === TYPES.SERVICE_ACCT ) {
+      return false;
+    }
+
+    return this.$rootGetters['type-map/optionsFor'](this.type).isEditable;
   },
 
   keysDisplay() {

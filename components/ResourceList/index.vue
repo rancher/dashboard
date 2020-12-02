@@ -99,7 +99,7 @@ export default {
     },
 
     isYamlCreateable() {
-      return !this.$store.getters['type-map/isFormOnly'](this.$route.params.resource);
+      return !this.$store.getters['type-map/optionsFor'](this.$route.params.resource).canYaml;
     },
 
     isCreatable() {
@@ -107,7 +107,7 @@ export default {
         return false;
       }
 
-      return this.$store.getters['type-map/isCreatable'](this.$route.params.resource);
+      return this.$store.getters['type-map/optionsFor'](this.$route.params.resource).isCreatable;
     }
   },
 

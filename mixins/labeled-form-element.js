@@ -24,6 +24,11 @@ export default {
       default: null
     },
 
+    hoverTooltip: {
+      type:    Boolean,
+      default: true,
+    },
+
     tooltipKey: {
       type:     String,
       default: null

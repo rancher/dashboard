@@ -25,8 +25,7 @@ export function init(store) {
     headers,
     virtualType,
     componentForType,
-    uncreatableType,
-    immutableType
+    configureType,
   } = DSL(store, NAME);
 
   product({
@@ -109,8 +108,16 @@ export function init(store) {
   mapGroup('logging.banzaicloud.io', 'Logging');
   mapGroup(/.*resources\.cattle\.io.*/, 'Backup-Restore');
 
-  uncreatableType(NODE);
-  immutableType(NODE);
+  configureType(NODE, { isCreatable: false, isEditable: false });
+
+  configureType('workload', {
+    displayName: 'Workload',
+    location:    {
+      name:    'c-cluster-product-resource',
+      params:  { resource: 'workload' },
+    },
+    resource: WORKLOAD_TYPES.DEPLOYMENT
+  });
 
   headers(CONFIG_MAP, [NAME_COL, NAMESPACE_COL, KEYS, AGE]);
   headers(SECRET, [

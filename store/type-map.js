@@ -20,8 +20,7 @@
 // importList(type)           Returns a promise that resolves to the list component for type
 // importDetail(type)         Returns a promise that resolves to the detail component for type
 // importEdit(type)           Returns a promise that resolves to the edit component for type
-// isCreatable(type)          Is type allowed to be created in the UI? (independent of what RBAC thinks)
-// isEditable(type)           Is type allowed to be edited in the UI? (independent of what RBAC thinks)
+// optionsFor(schemaOrType)   Return the configured options for a type (from configureType)
 //
 // 3) Changing specialization info about a type
 // For all:
@@ -78,9 +77,16 @@
 //   matchRegexOrString,      -- Type to match, or regex that matches types
 //   replacementString        -- String to replace the type with
 // )
-// uncreatableType(type)      Disable create (as Form or YAML) buttons for the type, even if the schema says it's creatable
-// immutableType(type)        Disable edit (as form or YAML) action for the type, even if a resource says it's editable
-//
+// configureType(            Display options for a particular type
+//   type,                    -- Type to apply to
+//  options                   -- Object of options.  Defaults/Supported: {
+ //                               isCreatable: true, -- If false, disable create even if schema says it's allowed
+ //                               isEditable: true,  -- Ditto, for edit
+ //                               showState: true,  -- If false, hide state in columns and masthead
+ //                               showAge: true,    -- If false, hide age in columns and masthead
+ //                               canYaml: true,
+ //                           }
+// )
 // ignoreGroup(group):        Never show group or any types in it
 // weightGroup(               Set the weight (sorting) of one or more groups
 //   groupOrArrayOfGroups,    -- see weightType...
@@ -164,24 +170,12 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/headers`, { type, headers });
     },
 
-    uncreatableType(match) {
-      store.commit(`${ module }/uncreatableType`, { match });
+    configureType(match, options) {
+      store.commit(`${ module }/configureType`, {...options, match});
     },
 
     componentForType(match, replace) {
       store.commit(`${ module }/componentForType`, { match, replace });
-    },
-
-    immutableType(match) {
-      store.commit(`${ module }/immutableType`, { match });
-    },
-
-    formOnlyType(match) {
-      store.commit(`${ module }/formOnlyType`, { match });
-    },
-
-    yamlOnlyDetail(match) {
-      store.commit(`${ module }/yamlOnlyDetail`, { match });
     },
 
     ignoreType(regexOrString) {
@@ -267,16 +261,13 @@ export const state = function() {
     groupWeights:            {},
     basicGroupWeights:       {[ROOT]: 1000},
     groupMappings:           [],
-    immutable:               [],
-    formOnly:                [],
-    yamlOnlyDetail:          [],
     typeIgnore:              [],
     basicTypeWeights:        {},
     typeWeights:             {},
     typeMappings:            [],
     typeMoveMappings:        [],
     typeToComponentMappings: [],
-    uncreatable:             [],
+    typeOptions:             [],
     groupBy:                 {},
     headers:                 {},
     schemaGeneration:        1,
@@ -367,51 +358,27 @@ export const getters = {
     };
   },
 
-  isCreatable(state) {
-    return (type) => {
-      const found = state.uncreatable.find((uncreatableType) => {
-        const re = stringToRegex(uncreatableType);
-
-        return re.test(type);
-      });
-
-      return !found;
+  optionsFor(state) {
+    const def = {
+      isCreatable: true,
+      isEditable: true,
+      showState: true,
+      showAge: true,
+      canYaml: true,
     };
-  },
 
-  isFormOnly(state) {
-    return (type) => {
-      const found = state.formOnly.find((formOnlyType) => {
-        const re = stringToRegex(formOnlyType);
+    return (schemaOrType) => {
+      const type = (typeof schemaOrType === 'object' ? schemaOrType.id : schemaOrType);
 
-        return re.test(type);
-      });
-
-      return !!found;
-    };
-  },
-
-  isEditable(state) {
-    return (type) => {
-      const found = state.immutable.find((immutableType) => {
-        const re = stringToRegex(immutableType);
+      const found = state.typeOptions.find((entry) => {
+        const re = stringToRegex(entry.match);
 
         return re.test(type);
       });
 
-      return !found;
-    };
-  },
+      const opts = Object.assign({}, def, found || {});
 
-  isYamlOnlyDetail(state) {
-    return (type) => {
-      const found = state.yamlOnlyDetail.find((yamlOnlyType) => {
-        const re = stringToRegex(yamlOnlyType);
-
-        return re.test(type);
-      });
-
-      return !!found;
+      return opts;
     };
   },
 
@@ -783,6 +750,7 @@ export const getters = {
     return (schema) => {
       const attributes = schema.attributes || {};
       const columns = attributes.columns || [];
+      const typeOptions = getters['optionsFor'](schema);
 
       // A specific list has been provided
       if ( state.headers[schema.id] ) {
@@ -799,8 +767,9 @@ export const getters = {
           }
         }).filter(col => !!col);
       }
+
       // Otherwise make one up from schema
-      const out = [STATE]; // Everybody gets a state
+      const out = typeOptions.showState ? [STATE] : [];
       const namespaced = attributes.namespaced || false;
       let hasName = false;
 
@@ -826,7 +795,9 @@ export const getters = {
       // Age always goes last
       if ( out.includes(AGE) ) {
         removeObject(out, AGE);
-        out.push(AGE);
+        if ( typeOptions.showAge ) {
+          out.push(AGE);
+        }
       }
 
       return out;
@@ -1108,7 +1079,7 @@ export const mutations = {
     }
 
     const copy = clone(obj);
-    
+
     instanceMethods[product] = instanceMethods[product] || {};
     instanceMethods[product][copy.type] = copy.getInstances;
     delete copy.getInstances;
@@ -1233,38 +1204,23 @@ export const mutations = {
     state.typeToComponentMappings.push({ match, replace });
   },
 
-  uncreatableType(state, { match }) {
-    match = ensureRegex(match);
-    match = regexToString(match);
-    state.uncreatable.push(match);
-  },
+  configureType(state, options) {
+    const match = regexToString(ensureRegex(options.match));
+    delete options.match;
 
-  removeUncreatableType(state, {match}) {
-    match = ensureRegex(match);
-    match = regexToString(match);
-    const matchingIndex = state.uncreatable.findIndex((regex) => regex === match);
-    if (matchingIndex >= 0) {
-      state.uncreatable.splice(matchingIndex, 1);
+    let idx = state.typeOptions.findIndex((obj) => obj.match === match);
+    let obj = { match };
+
+    if ( idx >= 0 ) {
+      obj = Object.assign(obj, state.typeOptions[idx], options);
+      state.typeOptions.splice(idx, 1, obj);
+    } else {
+      state.typeOptions.push(obj);
     }
   },
 
-  immutableType(state, { match }) {
-    match = ensureRegex(match);
-    match = regexToString(match);
-    state.immutable.push(match);
-  },
-
-  formOnlyType(state, { match }) {
-    match = ensureRegex(match);
-    match = regexToString(match);
-    state.formOnly.push(match);
-  },
-
-  yamlOnlyDetail(state, { match }) {
-    match = ensureRegex(match);
-    match = regexToString(match);
-    state.yamlOnlyDetail.push(match);
-  },
+  optionsForType(state, schemaOrType) {
+  }
 };
 
 export const actions = {
@@ -1295,11 +1251,9 @@ export const actions = {
 
     dispatch('prefs/set', { key: EXPANDED_GROUPS, value: groups }, { root: true });
   },
-  uncreatableType({ commit }, match) {
-    commit(`uncreatableType`, match);
-  },
-  removeUncreatableType({ commit }, match) {
-    commit(`removeUncreatableType`, match);
+
+  configureType({commit}, options) {
+    commit('configureType', options);
   }
 };
 

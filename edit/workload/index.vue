@@ -94,19 +94,6 @@ export default {
     this.pvcs = hash.pvcs;
   },
 
-  parentOverride() {
-    if ( this.$route.params.resource === 'workload') {
-      return {
-        displayName: 'Workload',
-        location:    {
-          name:    'c-cluster-product-resource',
-          params:  { resource: 'workload' },
-        },
-        resource: WORKLOAD_TYPES.DEPLOYMENT
-      };
-    }
-  },
-
   data() {
     let type = this.$route.params.resource;
 

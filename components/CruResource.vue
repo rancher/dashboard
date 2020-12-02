@@ -247,7 +247,7 @@ export default {
               <template #default>
                 <div v-if="!isView">
                   <button
-                    v-if="!isEdit && canYaml && (selectedSubtype || !subtypes.length)"
+                    v-if="canYaml && (selectedSubtype || !subtypes.length)"
                     type="button"
                     class="btn role-secondary"
                     @click="showPreviewYaml"
@@ -279,7 +279,6 @@ export default {
           :offer-preview="isEdit"
           :done-route="doneRoute"
           :done-override="resource.doneOverride"
-          :save-override="resource.yamlSaveOverride"
           :errors="errors"
           @apply-hooks="$emit('apply-hooks', $event)"
           @error="e=>$emit('error', e)"
