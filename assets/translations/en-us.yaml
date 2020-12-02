@@ -95,7 +95,6 @@ suffix:
       =1 { Time }
       other { Times }
     }
-
 ##############################
 # Components & Pages
 ##############################
@@ -473,7 +472,6 @@ detailText:
       =1 {+ 1 more char}
       other {+ {n, number} more chars}
     }
-
 fleet:
   cluster:
     summary: Resource Summary
@@ -536,7 +534,6 @@ fleet:
           =1 {Matches 1 of {total, number} existing clusters: "{sample}"}
           other {Matches {matched, number} of {total, number} existing clusters, including "{sample}"}
         }
-
 footer:
   docs: Docs
   download: Download CLI
@@ -1176,7 +1173,6 @@ resourceDetail:
       This {type} is managed by {hasName, select,
         no {a {managedBy} app}
         yes {the {managedBy} app {appName}}}; changes made here will likely be overwritten the next time the app is changed.
-
 resourceList:
   head:
     create: Create
@@ -1723,7 +1719,7 @@ workload:
       securityContext: Security Context
       status: Status
       volumeClaimTemplates: Volume Claim Templates
-      upgrading: Scaling/Upgrade Policy
+      upgrading: Scaling and Upgrade Policy
   cronSchedule: Schedule
   detail:
     pods:
@@ -1855,6 +1851,7 @@ workload:
       priority: Priority
       tab: Scheduling
       tolerations: Tolerations
+      limits: Limits and Reservations
     tolerations:
       addToleration: Add Toleration
       effect: Effect
@@ -1984,7 +1981,7 @@ workload:
     terminationGracePeriodSeconds:
       label: Termination Grace Period
       tip: The duration the pod needs to terminate successfully.
-    title: upgrading
+    title: Upgrading
 
 
 ##############################
@@ -2172,7 +2169,6 @@ typeLabel:
       one { Route }
       other { Routes }
     }
-
 action:
   download: Download YAML
   remove: Delete
@@ -2198,7 +2194,6 @@ unit:
       one { day }
       other { days }
     }
-
 workloadPorts:
   addPort: Add Port
   remove: Remove

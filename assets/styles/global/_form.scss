@@ -38,12 +38,17 @@ TEXTAREA,
 
   &.disabled, &.disabled .selected, &[disabled], &[disabled]:hover {
     color: var(--input-disabled-text);
-    background-color: var(--input-disabled-bg, var(--input-bg));
+    background-color: var(--input-disabled-bg);
     outline-width: 0;
-    border-color: var(--input-disabled-border, var(--input-border));
+    border-color: var(--input-disabled-border);
     cursor: not-allowed;
+    label {
+      color: var(--input-disabled-text);
+      display: inline-block;
+      z-index: 1;
+    }
     &::placeholder {
-        color: var(--input-disabled-placeholder, var(--input-placeholder));
+        color: var(--input-disabled-placeholder);
     }
   }
 

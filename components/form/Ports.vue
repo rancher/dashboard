@@ -218,7 +218,7 @@ export default {
       </tbody>
     </table>
     <div v-if="showAdd" class="footer">
-      <button type="button" class="btn role-tertiary add mt-10" @click="add()">
+      <button type="button" class="btn role-tertiary add" @click="add()">
         Add Port
       </button>
     </div>

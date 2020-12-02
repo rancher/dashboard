@@ -316,11 +316,11 @@ export default {
             />
           </template>
         </ArrayListGrouped>
-        <button class="btn role-tertiary add mt-10" type="button" @click="addMatch(true)">
+        <button class="btn role-tertiary add" type="button" @click="addMatch(true)">
           <i class="icon icon-plus" />
           {{ t('logging.flow.matches.addSelect') }}
         </button>
-        <button class="btn role-tertiary add mt-10" type="button" @click="addMatch(false)">
+        <button class="btn role-tertiary add" type="button" @click="addMatch(false)">
           <i class="icon icon-plus" />
           {{ t('logging.flow.matches.addExclude') }}
         </button>

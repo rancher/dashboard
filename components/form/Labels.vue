@@ -50,7 +50,7 @@ export default {
         :value="value.labels"
         :add-label="t('labels.addLabel')"
         :mode="mode"
-        :title="t('labels.label.title')"
+        :title="t('labels.labels.title')"
         :read-allowed="false"
         @input="value.setLabels"
       />

@@ -709,6 +709,9 @@ export default {
           />
         </Tab>
         <Tab :label="t('workload.container.titles.resources')" name="resources">
+          <h3 class="mb-10">
+            <t k="workload.scheduling.titles.limits" />
+          </h3>
           <ContainerResourceLimit v-model="flatResources" :mode="mode" :show-tip="false" />
           <div class="spacer"></div>
           <div>
