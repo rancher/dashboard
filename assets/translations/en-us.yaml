@@ -1705,7 +1705,7 @@ workload:
       sysctls: Sysctls
       sysctlsKey: Name
     titles:
-      container: Define Container
+      container: Container
       command: Command
       containers: Containers
       env: Environment Variables
