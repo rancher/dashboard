@@ -107,7 +107,7 @@ export default {
         </div>
         <Mount :pod-spec="value.template.spec" :name="pvc.metadata.name" :mode="mode" />
       </InfoBox>
-      <button v-if="!isView" type="button" class="btn role-secondary" @click="addPVC">
+      <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addPVC">
         Add Claim Template
       </button>
     </div>
