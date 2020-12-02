@@ -5,7 +5,7 @@ import Select from '@/components/form/Select';
 export default {
   components: { KeyValue, Select },
 
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
@@ -30,8 +30,7 @@ export default {
   },
 
   methods: {
-    update() {
-    },
+    update() {},
 
     removeRule() {
       this.$emit('remove');
@@ -44,7 +43,7 @@ export default {
   <div>
     <KeyValue
       v-model="value.labels"
-      :title="(value.select ? 'Select Pods' : 'Exclude Pods')"
+      :title="value.select ? 'Select Pods' : 'Exclude Pods'"
       :mode="mode"
       :initial-empty-row="true"
       :read-allowed="false"
@@ -57,31 +56,39 @@ export default {
     <h3 class="mt-20">
       Limit to specific nodes
     </h3>
-    <Select
-      v-model="value.hosts"
-      class="lg"
-      :options="nodes"
-      placeholder="Default: Any node"
-      :multiple="true"
-      :searchable="true"
-      :taggable="true"
-      :clearable="true"
-      :close-on-select="false"
-      :reduce="e=>e.value"
-    />
+    <div class="row">
+      <div class="col span-12">
+        <Select
+          v-model="value.hosts"
+          class="lg"
+          :options="nodes"
+          placeholder="Default: Any node"
+          :multiple="true"
+          :searchable="true"
+          :taggable="true"
+          :clearable="true"
+          :close-on-select="false"
+          :reduce="(e) => e.value"
+        />
+      </div>
+    </div>
 
     <h3 class="mt-20">
       Limit to specific container names
     </h3>
-    <Select
-      v-model="value.container_names"
-      class="lg"
-      :options="containers"
-      placeholder="Default: Any container"
-      :multiple="true"
-      :taggable="true"
-      :clearable="true"
-      :close-on-select="false"
-    />
+    <div class="row">
+      <div class="col span-12">
+        <Select
+          v-model="value.container_names"
+          class="lg"
+          :options="containers"
+          placeholder="Default: Any container"
+          :multiple="true"
+          :taggable="true"
+          :clearable="true"
+          :close-on-select="false"
+        />
+      </div>
+    </div>
   </div>
 </template>

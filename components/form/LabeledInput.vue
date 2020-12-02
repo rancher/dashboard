@@ -18,6 +18,16 @@ export default {
       type:      String,
       default:   null
     },
+
+    tooltip: {
+      type:    String,
+      default: null,
+    },
+
+    hoverTooltip: {
+      type:    Boolean,
+      default: true,
+    },
   },
 
   computed: {

@@ -181,9 +181,9 @@ export default {
 <style lang='scss' scoped>
 .input-container {
   display: flex;
-  height: 52px;
 
   &.select-after {
+    height: 100%;
     flex-direction: row-reverse;
 
     & .input-string {
@@ -216,7 +216,9 @@ export default {
     border-radius: 0 var(--border-radius) var(--border-radius) 0;
     border-left: 0;
     margin-left: -1px;
-    display: initial;
+    position: relative;
+    display: table;
+    border-collapse: separate;
   }
 
   & .in-input {
@@ -234,8 +236,8 @@ export default {
       box-shadow: none;
       width: 20%;
       background-color: var(--accent-btn);
-      z-index: 1;
       border: solid 1px var(--primary);
+      margin-right: 1px; // push the input box right so the full focus outline of the select can be seen, z-index borks
 
       .vs__selected {
         color: var(--input-text);

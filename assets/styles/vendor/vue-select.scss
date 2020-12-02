@@ -200,6 +200,7 @@ $transition-duration: 150ms;
   width: 0;
   max-width: 100%;
   flex-grow: 1;
+  margin-left: 7px;
 }
 
 .vs__search::placeholder {
@@ -275,14 +276,14 @@ $transition-duration: 150ms;
   background-color: transparent;
 
   &.vs--single {
-    min-height: 25px;
+    min-height: 26px;
     &.vs--open {
       .vs__selected {
         position: absolute;
         opacity: 0.4;
       }
       .vs__search {
-        margin-left: 7px;;
+        margin-left: 7px;
       }
     }
     .vs__selected {

@@ -248,7 +248,7 @@ export default {
 
 <template>
   <div>
-    <div class="row">
+    <div class="row name-ns-description">
       <div v-show="!nameNsHidden" :class="{ col: true, [colSpan]: true }">
         <slot :namespaces="namespaces" name="namespace">
           <InputWithSelect
@@ -308,9 +308,17 @@ export default {
 
 <style lang="scss" scoped>
 .row {
+  &.name-ns-description {
+    max-height: $input-height;
+  }
   .namespace-select ::v-deep {
     .labeled-select {
       min-width: 40%;
+      .v-select.inline {
+        &.vs--single {
+          padding-bottom: 2px;
+        }
+      }
     }
   }
 }
