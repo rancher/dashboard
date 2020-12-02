@@ -35,19 +35,25 @@ export default {
 
 <template>
   <div class="forward">
-    <div class="bordered-section">
-      <h3>{{ t('logging.output.sections.target') }}</h3>
-      <div class="row">
-        <div class="col span-6">
-          <LabeledInput v-model="value.servers[0].host" :mode="mode" :disabled="disabled" :label="t('logging.forward.host')" />
-        </div>
-        <div class="col span-6">
-          <LabeledInput v-model="port" :mode="mode" :disabled="disabled" type="number" :label="t('logging.forward.port')" />
-        </div>
+    <div class="row">
+      <div class="col span-6">
+        <h3>{{ t('logging.output.sections.target') }}</h3>
       </div>
     </div>
-
-    <h3>{{ t('logging.output.sections.access') }}</h3>
+    <div class="row">
+      <div class="col span-6">
+        <LabeledInput v-model="value.servers[0].host" :mode="mode" :disabled="disabled" :label="t('logging.forward.host')" />
+      </div>
+      <div class="col span-6">
+        <LabeledInput v-model="port" :mode="mode" :disabled="disabled" type="number" :label="t('logging.forward.port')" />
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="row">
+      <div class="col span-6">
+        <h3>{{ t('logging.output.sections.access') }}</h3>
+      </div>
+    </div>
     <div class="row mb-10">
       <div class="col span-6">
         <SecretSelector

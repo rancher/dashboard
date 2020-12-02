@@ -45,7 +45,7 @@ export default {
 
 <template>
   <div class="splunk">
-    <div class="bordered-section">
+    <div>
       <h3>{{ t('logging.output.sections.target') }}</h3>
       <div class="row mb-20">
         <div class="col span-2">
@@ -67,7 +67,8 @@ export default {
         </div>
       </div>
     </div>
-    <div class="bordered-section">
+    <div class="spacer"></div>
+    <div>
       <h3>{{ t('logging.output.sections.access') }}</h3>
       <div class="row">
         <div class="col span-6">
@@ -81,7 +82,7 @@ export default {
         </div>
       </div>
     </div>
-
+    <div class="spacer"></div>
     <h3>{{ t('logging.output.sections.certificate') }}</h3>
     <div class="row">
       <div class="col span-6">
