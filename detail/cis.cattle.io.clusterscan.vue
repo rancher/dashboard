@@ -237,7 +237,7 @@ export default {
     </div>
     <div v-if="clusterReports.length > 1" class="table-header row mb-20">
       <div class="col span-8">
-        <h3 class="mb-0">
+        <h3>
           {{ t('cis.scan.scanReport') }}
         </h3>
       </div>

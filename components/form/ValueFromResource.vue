@@ -356,11 +356,11 @@ export default {
 
 <style lang='scss' scoped>
 .var-row{
-  display: flex;
+  display: grid;
+  grid-template-columns: 30% 30% 18% 10% 5%;
+  grid-column-gap: $column-gutter;
+  margin-bottom: 10px;
   align-items: center;
-  border-bottom: solid thin var(--border);
-  margin-bottom: 15px;
-  padding-bottom: 15px;
 
   & .type, .name{
     flex-basis: 20%;

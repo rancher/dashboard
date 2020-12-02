@@ -189,7 +189,7 @@ export default {
       </div>
 
       <div v-if="!row._showHost" class="add-host">
-        <button type="button" class="btn btn-sm role-secondary" @click="row._showHost = true">
+        <button type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
           {{ t('workloadPorts.addHost') }}
         </button>
       </div>
