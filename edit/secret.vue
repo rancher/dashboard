@@ -7,12 +7,13 @@ import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import ResourceTabs from '@/components/form/ResourceTabs';
 import FileSelector, { createOnSelected } from '@/components/form/FileSelector';
 import CruResource from '@/components/CruResource';
 import { _CREATE } from '@/config/query-params';
+import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import Labels from '@/components/form/Labels';
+import { HIDE_SENSITIVE } from '@/store/prefs';
 
 const types = [
   TYPES.OPAQUE,
@@ -36,8 +37,8 @@ export default {
     LabeledInput,
     RadioGroup,
     NameNsDescription,
-    ResourceTabs,
     CruResource,
+    Tabbed,
     Tab,
     Labels
   },
@@ -174,7 +175,11 @@ export default {
 
     needsDockerServer() {
       return this.registryProvider === 'Artifactory' || this.registryProvider === 'Custom';
-    }
+    },
+
+    hideSensitiveData() {
+      return this.$store.getters['prefs/get'](HIDE_SENSITIVE);
+    },
   },
 
   methods: {
@@ -261,7 +266,7 @@ export default {
       <NameNsDescription v-model="value" :mode="mode" />
 
       <div class="spacer"></div>
-      <ResourceTabs v-if="!isView" v-model="value" :side-tabs="true" :mode="mode">
+      <Tabbed :side-tabs="true" default-tab="data">
         <Tab name="data" :label="t('secret.data')">
           <template v-if="isRegistry">
             <div id="registry-type" class="row mb-10">
@@ -348,9 +353,9 @@ export default {
               key="data"
               v-model="value.data"
               :mode="mode"
-              :title="t('secret.data')"
               :initial-empty-row="true"
               :value-base64="true"
+              :value-concealed="isView && hideSensitiveData"
               :file-modifier="fileModifier"
               read-icon=""
               add-icon=""
@@ -360,7 +365,7 @@ export default {
         <Tab name="labels" :label="t('generic.labelsAndAnnotations')">
           <Labels v-model="value" :mode="mode" />
         </Tab>
-      </ResourceTabs>
+      </Tabbed>
     </CruResource>
   </form>
 </template>

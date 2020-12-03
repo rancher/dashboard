@@ -1206,21 +1206,18 @@ export const mutations = {
 
   configureType(state, options) {
     const match = regexToString(ensureRegex(options.match));
-    delete options.match;
 
     let idx = state.typeOptions.findIndex((obj) => obj.match === match);
-    let obj = { match };
 
     if ( idx >= 0 ) {
-      obj = Object.assign(obj, state.typeOptions[idx], options);
+      const obj = Object.assign({}, state.typeOptions[idx], options, {match});
       state.typeOptions.splice(idx, 1, obj);
     } else {
+      const obj = Object.assign({}, options, {match});
       state.typeOptions.push(obj);
     }
   },
 
-  optionsForType(state, schemaOrType) {
-  }
 };
 
 export const actions = {
