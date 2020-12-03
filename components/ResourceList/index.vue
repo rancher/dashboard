@@ -99,7 +99,7 @@ export default {
     },
 
     isYamlCreateable() {
-      return !this.$store.getters['type-map/optionsFor'](this.$route.params.resource).canYaml;
+      return this.$store.getters['type-map/optionsFor'](this.$route.params.resource).canYaml;
     },
 
     isCreatable() {
