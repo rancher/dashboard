@@ -335,9 +335,11 @@ cis:
   alertOnComplete: Alert on scan completion
   alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
+  clusterProvider: Cluster Provider
   cronSchedule:
     label: Schedule
     placeholder: "e.g. 0 * * * *"
+  customConfigMap: Custom Benchmark ConfigMap
   deleteProfileWarning: |-
     {count, plural,
       =1 { Any scheduled scans using this profile will no longer work. }
@@ -345,6 +347,9 @@ cis:
     }
   downloadAllReports: Download All Saved Reports
   downloadLatestReport: Download Latest Report
+  downloadReport: Download Report
+  maxKubernetesVersion: Maximum allowed Kubernetes version
+  minKubernetesVersion: Minimum required Kubernetes version
   noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
   profile: Profile
   retention: Retention Count
@@ -362,6 +367,9 @@ cis:
     skip: Skip
     total: Total
     warn: Warn
+  scheduling: 
+    enable: Run scan on a schedule
+    disable: Run scan once
   scoreWarning:
     label: Scan state for "warn" results
     protip: Scans with no failures will be marked "Pass" by default even if some of the tests generate "warn" output. This behavior can be changed by selecting the "fail" option from this section.
@@ -1372,6 +1380,7 @@ tableHeaders:
   configuredProviders: Configured Providers
   cpu: CPU
   date: Date
+  default: Default
   destination: Target
   download: Download
   effect: Effect
@@ -1395,7 +1404,9 @@ tableHeaders:
   lastSeen: Last Seen
   loggingOutputProviders: Providers
   matches: Matches
+  maxKubernetesVersion: Max Kubernetes Version
   message: Message
+  minKubernetesVersion: Min Kubernetes Version
   name: Name
   nameUnlinked: Name
   namespace: Namespace

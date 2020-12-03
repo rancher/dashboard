@@ -22,7 +22,7 @@ export default {
       action:     'downloadLatestReport',
       enabled:    this.hasReport,
       icon:       'icon icon-fw icon-download',
-      label:      t('cis.downloadLatestReport'),
+      label:      t('cis.downloadReport'),
       total:      1,
     };
 
@@ -36,8 +36,9 @@ export default {
 
     if (this.hasReports) {
       out.unshift({ divider: true });
-      if (this.spec?.cronSchedule) {
+      if (this.spec?.scheduledScanConfig?.cronSchedule) {
         out.unshift(downloadAllReports);
+        downloadReport.label = t('cis.downloadLatestReport');
       }
       out.unshift(downloadReport);
     }
@@ -50,8 +51,8 @@ export default {
       const spec = this.spec || {};
 
       spec.scanProfileName = null;
-      spec.scanAlertRule = {};
       spec.scoreWarning = 'pass';
+      spec.scheduledScanConfig = { scanAlertRule: {} };
       set(this, 'spec', spec);
     };
   },
@@ -67,11 +68,10 @@ export default {
   getReports() {
     return async() => {
       const owned = await this.findOwned();
-      const report = owned.find(obj => obj.type === CIS.REPORT);
 
-      this.hasReport = !!report;
+      const reports = owned.filter(obj => obj.type === CIS.REPORT);
 
-      return report || [];
+      return reports || [];
     };
   },
 
@@ -83,6 +83,7 @@ export default {
 
       try {
         const testResults = report.aggregatedTests;
+
         const csv = Papa.unparse(testResults);
 
         downloadFile(`${ report.id }.csv`, csv, 'application/csv');
@@ -101,6 +102,7 @@ export default {
       reports.forEach((report) => {
         try {
           const testResults = report.aggregatedTests;
+
           const csv = Papa.unparse(testResults);
 
           toZip[`${ report.id }.csv`] = csv;
