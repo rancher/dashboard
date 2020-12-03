@@ -229,7 +229,7 @@ export default {
 
   workloadSelector() {
     return {
-      'workload.user.cattle.io/workloadselector': `${ 'deployment' }-${
+      'workload.user.cattle.io/workloadselector': `${ this._type ? this._type : this.type }-${
         this.metadata.namespace
       }-${ this.metadata.name }`
     };
