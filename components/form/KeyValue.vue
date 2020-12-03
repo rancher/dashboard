@@ -460,7 +460,7 @@ export default {
         <FileSelector
           v-if="readAllowed"
           :disabled="isView"
-          class="btn-sm role-secondary"
+          class="btn-sm role-tertiary"
           :label="t('generic.readFromFile')"
           :include-file-name="true"
           @selected="onFileSelected"
