@@ -2,7 +2,7 @@
 import debounce from 'lodash/debounce';
 import { typeOf } from '@/utils/sort';
 import { removeAt } from '@/utils/array';
-import { asciiLike, escapeHtml } from '@/utils/string';
+import { asciiLike } from '@/utils/string';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { downloadFile } from '@/utils/download';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
@@ -180,7 +180,7 @@ export default {
       const rows = (this.value || []).slice() ;
 
       rows.map((row) => {
-        row._display = this.displayProps(row[this.valueName]);
+        row.binary = !asciiLike(row[this.valueName]);
       });
 
       return { rows };
@@ -198,7 +198,7 @@ export default {
       rows.push({
         key,
         value,
-        _display: this.displayProps(value)
+        binary: !asciiLike(value),
       });
     });
 
@@ -228,7 +228,7 @@ export default {
       this.rows.push({
         [this.keyName]:   key,
         [this.valueName]: value,
-        _display:         this.displayProps(value)
+        binary:           !asciiLike(value),
       });
       this.queueUpdate();
       this.$nextTick(() => {
@@ -313,28 +313,6 @@ export default {
       }
     },
 
-    displayProps(value) {
-      const binary = typeof value === 'string' && !asciiLike(value);
-      const withBreaks = escapeHtml(value || '').replace(/(\r\n|\r|\n)/g, '<br/>\n');
-      const byteSize = (withBreaks.length || 0) * 2; // Blobs don't exist in node/ssr
-      let parsed;
-
-      if ( value && ( value.startsWith('{') || value.startsWith('[') ) ) {
-        try {
-          parsed = JSON.parse(value);
-          parsed = JSON.stringify(parsed, null, 2);
-        } catch {
-        }
-      }
-
-      return {
-        binary,
-        withBreaks,
-        parsed,
-        byteSize
-      };
-    },
-
     onPaste(index, event, pastedValue) {
       const text = event.clipboardData.getData('text/plain');
       const lines = text.split('\n');
@@ -354,7 +332,7 @@ export default {
       const keyValues = splits.map(split => ({
         [this.keyName]:   (split[0] || '').trim(),
         [this.valueName]: (split[1] || '').trim(),
-        _display:         this.displayProps(split[1])
+        binary:           !asciiLike(split[1])
       }));
 
       this.rows.splice(index, 1, ...keyValues);
@@ -418,8 +396,11 @@ export default {
             :valueName="valueName"
             :queueUpdate="queueUpdate"
           >
+            <div v-if="row.binary">
+              {{ t('detailText.binary', {n: row.value.length || 0}, true) }}
+            </div>
             <TextAreaAutoGrow
-              v-if="valueMultiline"
+              v-else-if="valueMultiline"
               v-model="row[valueName]"
               :class="{'conceal': valueConcealed}"
               :mode="mode"

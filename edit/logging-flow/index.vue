@@ -300,8 +300,7 @@ export default {
 
     <Tabbed :side-tabs="true" @changed="tabChanged($event)">
       <Tab name="match" :label="t('logging.flow.matches.label')" :weight="3">
-        <Banner color="info" class="mt-0" label="Configure which container logs will be pulled from" />
-        <ArrayListGrouped v-model="matches" :add-label="t('ingress.rules.addRule')" :default-add-value="{}">
+        <ArrayListGrouped v-model="matches">
           <template #default="props">
             <Match
               class="rule mb-20"
@@ -313,20 +312,18 @@ export default {
               @input="e=>updateMatch(e,props.row.i)"
             />
           </template>
+          <template #add>
+            <button class="btn role-tertiary add" type="button" @click="addMatch(true)">
+              {{ t('logging.flow.matches.addSelect') }}
+            </button>
+            <button class="btn role-tertiary add" type="button" @click="addMatch(false)">
+              {{ t('logging.flow.matches.addExclude') }}
+            </button>
+          </template>
         </ArrayListGrouped>
-        <button class="btn role-tertiary add" type="button" @click="addMatch(true)">
-          <i class="icon icon-plus" />
-          {{ t('logging.flow.matches.addSelect') }}
-        </button>
-        <button class="btn role-tertiary add" type="button" @click="addMatch(false)">
-          <i class="icon icon-plus" />
-          {{ t('logging.flow.matches.addExclude') }}
-        </button>
       </Tab>
 
       <Tab name="filters" :label="t('logging.flow.filters.label')" :weight="2">
-        <Banner color="info" class="mt-0" label="Filter or modify the data before it is sent to the output" />
-
         <YamlEditor
           ref="yaml"
           v-model="filtersYaml"
@@ -338,7 +335,6 @@ export default {
       </Tab>
 
       <Tab name="outputs" :label="t('logging.flow.outputs.label')" :weight="1">
-        <Banner color="info" class="mt-0" label="Choose one or more outputs to send the matching logs to" />
         <LabeledSelect
           v-model="globalOutputRefs"
           :label="t('logging.flow.clusterOutputs.label')"

@@ -340,7 +340,6 @@ export default {
 
       .type-banner {
         grid-area: type-banner;
-        grid-column: span 4;
       }
 
       .state-banner {

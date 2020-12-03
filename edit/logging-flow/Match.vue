@@ -43,7 +43,7 @@ export default {
   <div>
     <KeyValue
       v-model="value.labels"
-      :title="value.select ? 'Select Pods' : 'Exclude Pods'"
+      :title="value.select ? 'Include Pods' : 'Exclude Pods'"
       :mode="mode"
       :initial-empty-row="true"
       :read-allowed="false"
