@@ -706,7 +706,7 @@ logging:
       label: Outputs
   install:
     k3sContainerEngine: K3S Container Engine
-    enableAdditionalLoggingSources: Enable additional logging sources
+    enableAdditionalLoggingSources: Enable enhanced cloud provider logging
   elasticsearch:
     host: Host
     scheme: Scheme
