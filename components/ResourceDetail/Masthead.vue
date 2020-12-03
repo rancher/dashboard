@@ -343,8 +343,6 @@ export default {
 
 <style lang='scss' scoped>
   .masthead {
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 15px;
   }
 
   .primaryheader {

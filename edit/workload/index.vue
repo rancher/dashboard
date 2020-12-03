@@ -607,6 +607,12 @@ export default {
           </NameNsDescription>
         </div>
       </div>
+
+      <h2>{{ t('workload.container.titles.upgrading') }}</h2>
+      <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
+      <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
+      <div class="spacer"></div>
+
       <Tabbed :side-tabs="true">
         <Tab :label="t('workload.container.titles.container')" name="container">
           <div>
@@ -730,10 +736,6 @@ export default {
         </Tab>
         <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
           <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />
-        </Tab>
-        <Tab :label="t('workload.container.titles.upgrading')" name="upgrading">
-          <Job v-if="isJob || isCronJob" v-model="spec" :mode="mode" :type="type" />
-          <Upgrading v-else v-model="spec" :mode="mode" :type="type" />
         </Tab>
         <Tab :label="t('workload.container.titles.healthCheck')" name="healthCheck">
           <HealthCheck v-model="healthCheck" :mode="mode" />

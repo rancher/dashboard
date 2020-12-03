@@ -318,7 +318,7 @@ export default {
     <div class="suggested-labels">
       <div class="row mb-0 mt-30">
         <div class="col span-12">
-          <h3 class="mb-0">
+          <h3>
             <t k="prometheusRule.alertingRules.labels.label" />
           </h3>
         </div>
@@ -361,7 +361,7 @@ export default {
       <div class="suggested-annotations">
         <div class="row mb-0 mt-30">
           <div class="col span-12">
-            <h3 class="mb-0">
+            <h3>
               <t k="prometheusRule.alertingRules.annotations.label" />
             </h3>
           </div>

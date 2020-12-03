@@ -201,7 +201,6 @@ export default {
     background: transparent;
 
     .vs__actions {
-      border-left: solid thin var(--link-text);
       justify-content: center;
 
       &:after {

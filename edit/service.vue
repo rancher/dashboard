@@ -342,11 +342,4 @@ export default {
 </template>
 
 <style lang="scss">
-.labels-and-annotations-container {
-  > div:last-child {
-    border-top: 1px solid var(--border);
-    margin-top: 20px;
-    padding-top: 20px;
-  }
-}
 </style>

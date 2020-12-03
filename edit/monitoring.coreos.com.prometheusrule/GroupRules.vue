@@ -121,7 +121,7 @@ export default {
         v-if="!isView"
         :disabled="disableAddRecord"
         type="button"
-        class="btn btn-sm role-secondary"
+        class="btn btn-sm role-tertiary"
         @click="addRule('record')"
       >
         <t k="prometheusRule.recordingRules.addLabel" />
@@ -129,7 +129,7 @@ export default {
     </div>
     <div :class="[{ hide: hideAlertingRulesOnView }, 'container-alerting-rules']">
       <div class="mt-20 mb-20">
-        <h3 class="mb-0">
+        <h3>
           <t k="prometheusRule.alertingRules.label" />
           <i
             v-if="disableAddAlert"
@@ -160,7 +160,7 @@ export default {
         v-if="!isView"
         :disabled="disableAddAlert"
         type="button"
-        class="btn btn-sm role-secondary"
+        class="btn btn-sm role-tertiary"
         @click="addRule('alert')"
       >
         <t k="prometheusRule.alertingRules.addLabel" />

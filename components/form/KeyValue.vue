@@ -370,7 +370,7 @@ export default {
   <div class="key-value">
     <div v-if="title" class="clearfix">
       <slot name="title">
-        <h3 class="mb-0">
+        <h3>
           {{ title }}
         </h3>
       </slot>

@@ -84,7 +84,6 @@ export default {
 
 <template>
   <div>
-    <h3><t k="workload.scheduling.titles.nodeScheduling" /></h3>
     <div class="row">
       <RadioGroup
         v-model="selectNode"
