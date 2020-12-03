@@ -1261,7 +1261,7 @@ export default {
           validateLength(pathValue, rule, displayKey, this.$rootGetters, errors);
           validateChars(pathValue, rule, displayKey, this.$rootGetters, errors);
 
-          if ( isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType) ) {
+          if ( !isEmpty(pathValue) && DNS_LIKE_TYPES.includes(fieldType) ) {
             // DNS types should be lowercase
             const tolower = (pathValue || '').toLowerCase();
 
