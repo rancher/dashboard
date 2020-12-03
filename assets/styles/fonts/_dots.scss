@@ -6,8 +6,13 @@
 }
 
 .conceal:not(:invalid):not(:focus) {
-  font-family: 'dotsfont';
+  font-family: 'dotsfont' !important;
   font-size: 6px;
+  }
+
+.conceal PRE {
+  font-family: 'dotsfont' !important;
+  font-size: 10px;
 }
 
 

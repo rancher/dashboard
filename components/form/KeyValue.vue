@@ -90,6 +90,7 @@ export default {
         return this.$store.getters['i18n/t']('keyValue.valuePlaceholder');
       },
     },
+
     valueCanBeEmpty: {
       type:    Boolean,
       default: false,
@@ -420,6 +421,7 @@ export default {
             <TextAreaAutoGrow
               v-if="valueMultiline"
               v-model="row[valueName]"
+              :class="{'conceal': valueConcealed}"
               :mode="mode"
               :placeholder="valuePlaceholder"
               :min-height="54"
@@ -430,6 +432,7 @@ export default {
               v-else
               v-model="row[valueName]"
               :disabled="isView"
+              :type="valueConcealed ? 'password' : 'text'"
               :placeholder="valuePlaceholder"
               autocorrect="off"
               autocapitalize="off"
@@ -454,7 +457,14 @@ export default {
         <button v-if="addAllowed" :disabled="isView" type="button" class="btn btn-sm role-tertiary add" @click="add()">
           {{ addLabel }}
         </button>
-        <FileSelector v-if="readAllowed" class="btn-sm role-secondary" :label="t('generic.readFromFile')" :include-file-name="true" @selected="onFileSelected" />
+        <FileSelector
+          v-if="readAllowed"
+          :disabled="isView"
+          class="btn-sm role-secondary"
+          :label="t('generic.readFromFile')"
+          :include-file-name="true"
+          @selected="onFileSelected"
+        />
       </slot>
     </div>
   </div>

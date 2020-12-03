@@ -243,8 +243,8 @@ export default {
       },
     },
 
-    isDetail() {
-      return this.currentView === _DETAIL;
+    showSensitiveToggle() {
+      return !!this.value.hasSensitiveData && this.mode === _VIEW && this.as !== _YAML;
     },
 
     managedWarning() {
@@ -302,10 +302,9 @@ export default {
         </div>
       </div>
       <slot name="right">
-        <div v-if="isView" class="actions">
+        <div class="actions">
           <ButtonGroup
-            v-if="isView && isDetail && !!value.hasSensitiveData"
-            :labels-are-translations="true"
+            v-if="showSensitiveToggle"
             :value="!!hideSensitiveData"
             icon-size="lg"
             :options="sensitiveOptions"
@@ -313,12 +312,13 @@ export default {
           />
 
           <ButtonGroup
-            v-if="viewOptions"
+            v-if="viewOptions && isView"
             v-model="currentView"
             :options="viewOptions"
           />
 
           <button
+            v-if="isView"
             ref="actions"
             aria-haspopup="true"
             type="button"

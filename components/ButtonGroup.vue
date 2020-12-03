@@ -21,11 +21,6 @@ export default {
       required: true,
     },
 
-    labelsAreTranslations: {
-      type:    Boolean,
-      default: true
-    },
-
     iconSize: {
       type:    String,
       default: null,
