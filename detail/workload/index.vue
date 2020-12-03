@@ -93,7 +93,7 @@ export default {
       const entries = this.value?.status?.active || [];
 
       return entries.map((obj) => {
-        return this.$store.getters['cluster/byId'](WORKLOAD_TYPES.JOB, `${ obj.namespace }/${ obj.id }`);
+        return this.$store.getters['cluster/byId'](WORKLOAD_TYPES.JOB, `${ obj.namespace }/${ obj.name }`);
       }).filter(x => !!x);
     },
 
@@ -231,7 +231,7 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab v-else name="pods" :label="t('tableHeaders.pods')">
+      <Tab v-else-if="pods && pods.length" name="pods" :label="t('tableHeaders.pods')">
         <ResourceTable
           v-if="pods"
           :rows="pods"
