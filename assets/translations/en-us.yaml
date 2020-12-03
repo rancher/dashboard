@@ -353,6 +353,7 @@ cis:
   noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
   profile: Profile
   retention: Retention Count
+  reports: Reports
   testID: Test ID
   testsToSkip: Tests to Skip
   testsSkipped: Tests Skipped

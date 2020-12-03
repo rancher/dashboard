@@ -52,7 +52,7 @@ export default {
 
       spec.scanProfileName = null;
       spec.scoreWarning = 'pass';
-      spec.scheduledScanConfig = { scanAlertRule: {} };
+      spec.scheduledScanConfig = { scanAlertRule: {}, retention: 3 };
       set(this, 'spec', spec);
     };
   },
