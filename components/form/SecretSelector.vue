@@ -150,12 +150,12 @@ export default {
       }
 
       &:first-child {
-          border-radius: calc(var(--border-radius) * 2) 0 0  calc(var(--border-radius) * 2);
+          border-radius: var(--border-radius) 0 0 var(--border-radius);
           margin-right: 0;
       }
 
       &:last-child {
-          border-radius: 0 calc(var(--border-radius) * 2) calc(var(--border-radius) * 2) 0;
+          border-radius: 0 var(--border-radius) var(--border-radius) 0;
           border-left: none;
           float: right;
       }
