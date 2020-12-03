@@ -25,7 +25,7 @@ import KeyValue from '@/components/form/KeyValue';
 import Tabbed from '@/components/Tabbed';
 import { mapGetters } from 'vuex';
 import NodeScheduling from '@/components/form/NodeScheduling';
-import PodScheduling from '@/components/form/PodScheduling';
+import PodAffinity from '@/components/form/PodAffinity';
 import Tolerations from '@/components/form/Tolerations';
 import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
@@ -49,7 +49,7 @@ export default {
     Security,
     WorkloadPorts,
     ContainerResourceLimit,
-    PodScheduling,
+    PodAffinity,
     NodeScheduling,
     Tolerations,
     CruResource,
@@ -727,7 +727,7 @@ export default {
           </div>
         </Tab>
         <Tab :label="t('workload.container.titles.podScheduling')" name="podScheduling">
-          <PodScheduling :mode="mode" :value="podTemplateSpec" />
+          <PodAffinity :mode="mode" :value="podTemplateSpec" />
         </Tab>
         <Tab :label="t('workload.container.titles.nodeScheduling')" name="nodeScheduling">
           <NodeScheduling :mode="mode" :value="podTemplateSpec" :nodes="allNodes" />

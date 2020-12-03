@@ -34,7 +34,7 @@ export default {
   data() {
     const container = this.podSpec.containers[0];
 
-    const volumeMounts = container.volumeMounts.filter(mount => mount.name === this.name);
+    const volumeMounts = (container.volumeMounts || []).filter(mount => mount.name === this.name);
 
     return { volumeMounts };
   },
@@ -51,7 +51,7 @@ export default {
     volumeMounts(neu) {
       const container = this.podSpec.containers[0];
 
-      container.volumeMounts = container.volumeMounts.filter(mount => mount.name && (mount.name !== this.name));
+      container.volumeMounts = (container.volumeMounts || []).filter(mount => mount.name && (mount.name !== this.name));
       container.volumeMounts.push(...neu);
     },
 

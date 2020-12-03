@@ -258,6 +258,7 @@ export default {
     <div class="row">
       <div class="col span-6">
         <ButtonDropdown
+          v-if="!isView"
           :button-label="t('workload.storage.addVolume')"
           :dropdown-options="opts"
           size="sm"

@@ -1,7 +1,6 @@
 <script>
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import KeyValue from '@/components/form/KeyValue';
 import NodeAffinity from '@/components/form/NodeAffinity';
 import { _VIEW } from '@/config/query-params';
 import { isEmpty } from '@/utils/object';
@@ -10,7 +9,6 @@ export default {
   components: {
     RadioGroup,
     LabeledSelect,
-    KeyValue,
     NodeAffinity,
   },
 
@@ -37,10 +35,12 @@ export default {
     const { affinity = {}, nodeName = '', nodeSelector = {} } = this.value;
     const { nodeAffinity = {} } = affinity;
 
-    let selectNode = false;
+    let selectNode = null;
 
     if (this.value.nodeName) {
-      selectNode = true;
+      selectNode = 'nodeSelector';
+    } else if (!isEmpty(nodeAffinity)) {
+      selectNode = 'affinity';
     }
 
     if (!nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution) {
@@ -65,13 +65,13 @@ export default {
     update() {
       const { nodeName, nodeSelector, nodeAffinity } = this;
 
-      if (this.selectNode) {
+      if (this.selectNode === 'nodeSelector') {
         Object.assign(this.value, { nodeSelector, nodeName });
       } else {
         delete this.value.nodeName;
         delete this.value.nodeSelector;
         if (!this.value.affinity) {
-          Object.assign(this.value, { affinity: nodeAffinity });
+          Object.assign(this.value, { affinity: { nodeAffinity } });
         } else {
           Object.assign(this.value.affinity, { nodeAffinity });
         }
@@ -88,12 +88,12 @@ export default {
       <RadioGroup
         v-model="selectNode"
         name="selectNode"
-        :options="[true,false]"
-        :labels="[t('workload.scheduling.affinity.specificNode'), t('workload.scheduling.affinity.schedulingRules')]"
+        :options="[null, 'nodeSelector', 'affinity']"
+        :labels="[ t('workload.scheduling.affinity.anyNode'), t('workload.scheduling.affinity.specificNode'), t('workload.scheduling.affinity.schedulingRules') ]"
         :mode="mode"
       />
     </div>
-    <template v-if="selectNode">
+    <template v-if="selectNode === 'nodeSelector'">
       <div class="row">
         <div class="col span-6">
           <LabeledSelect
@@ -106,24 +106,8 @@ export default {
           />
         </div>
       </div>
-
-      <div class="spacer" />
-
-      <div class="row">
-        <KeyValue
-          title="Nodes with these labels"
-          :value="nodeSelector"
-          :mode="mode"
-          :initial-empty-row="true"
-          :pro-tip="false"
-        >
-          <template #title>
-            <h4>{{ t('workload.scheduling.titles.nodeSelector') }}</h4>
-          </template>
-        </KeyValue>
-      </div>
     </template>
-    <template v-else>
+    <template v-else-if="selectNode === 'affinity'">
       <NodeAffinity v-model="nodeAffinity" :mode="mode" @input="update" />
     </template>
   </div>

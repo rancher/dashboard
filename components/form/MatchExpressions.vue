@@ -1,18 +1,12 @@
 <script>
 import { NODE, POD, NAMESPACE } from '@/config/types';
-import LabeledInput from '@/components/form/LabeledInput';
-import LabeledSelect from '@/components/form/LabeledSelect';
 import Select from '@/components/form/Select';
 import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
 import { removeObject } from '@/utils/array';
 
 export default {
-  components: {
-    LabeledInput,
-    LabeledSelect,
-    Select,
-  },
+  components: { Select },
   props:      {
     // array of match expressions
     value: {
@@ -158,13 +152,15 @@ export default {
       this.$nextTick(() => {
         const out = this.rules.map((rule) => {
           const matchExpression = { key: rule.key, operator: rule.operator };
-          const val = (rule.values || '').trim();
+          let val = (rule.values || '').trim();
 
-          if ( !val && rule.operator !== 'Exists' && rule.operator !== 'DoesNotExist') {
+          if ( rule.operator === 'Exists' || rule.operator === 'DoesNotExist') {
+            val = null;
+          } else if (!val) {
             return;
           }
 
-          matchExpression.values = val.split(/\s*,\s*/).filter(x => !!x);
+          matchExpression.values = val ? val.split(/\s*,\s*/).filter(x => !!x) : null;
 
           return matchExpression;
         }).filter(x => !!x);
@@ -182,30 +178,6 @@ export default {
     <button v-if="showRemove && !isView" id="remove-btn" class="btn role-link" @click="$emit('remove')">
       <i class="icon icon-x" />
     </button>
-
-    <template v-if="type===pod">
-      <div class="row mt-20 mb-20">
-        <div class="col span-12">
-          <LabeledSelect
-            :value="namespaces"
-            :multiple="true"
-            :taggable="true"
-            :options="allNamespaces"
-            :label="t('workload.scheduling.affinity.matchExpressions.inNamespaces')"
-            @input="e=>$emit('update:namespaces', e)"
-          />
-        </div>
-      </div>
-
-      <LabeledInput
-        :mode="mode"
-        :value="topologyKey"
-        required
-        :label="t('workload.scheduling.affinity.topologyKey.label')"
-        :placeholder="t('workload.scheduling.affinity.topologyKey.placeholder')"
-        @input="e=>$emit('update:topologyKey', e)"
-      />
-    </template>
 
     <div v-if="rules.length" class="match-expression-header" :class="{'view':isView}">
       <label>
