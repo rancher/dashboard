@@ -161,8 +161,8 @@ export default {
     isTemplateSelectorDisabled() {
       return !this.isCreate;
     },
-    areNamespacesDisabled() {
-      return this.value.spec.match.scope === 'Cluster';
+    showNamespaceLists() {
+      return this.value.spec.match.scope !== 'Cluster';
     }
   },
 
@@ -215,7 +215,8 @@ export default {
       }
     },
     selectTemplateSubtype(subType) {
-      this.value.kind = subType;
+      this.$set(this.value, 'kind', subType);
+      this.$emit('set-subtype', subType);
     },
     onScopeChange(newScope) {
       if (newScope === 'Cluster') {
@@ -269,7 +270,7 @@ export default {
                 <Scope v-model="value.spec.match.scope" :mode="mode" @input="onScopeChange($event)" />
               </div>
             </div>
-            <div class="row mt-20">
+            <div v-if="showNamespaceLists" class="row mt-20">
               <div class="col span-12">
                 <NamespaceList
                   v-model="value.spec.match.namespaces"
@@ -277,19 +278,17 @@ export default {
                   tooltip="If defined, a constraint will only apply to resources in a listed namespace."
                   :mode="mode"
                   :namespace-filter="NAMESPACE_FILTERS.nonSystem"
-                  :disabled="areNamespacesDisabled"
                   add-label="Add Namespace"
                 />
               </div>
             </div>
-            <div class="row mt-20">
+            <div v-if="showNamespaceLists" class="row mt-20">
               <div class="col span-12">
                 <NamespaceList
                   v-model="value.spec.match.excludedNamespaces"
                   :label="t('gatekeeperConstraint.tab.namespaces.sub.excludedNamespaces')"
                   tooltip="If defined, a constraint will only apply to resources not in a listed namespace."
                   :mode="mode"
-                  :disabled="areNamespacesDisabled"
                   add-label="Add Excluded Namespace"
                 />
               </div>
