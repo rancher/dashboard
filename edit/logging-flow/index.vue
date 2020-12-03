@@ -73,30 +73,23 @@ export default {
     const schemas = this.$store.getters['cluster/all'](SCHEMA);
     let filtersYaml;
 
-    if ( this.value.spec?.filters?.length ) {
+    set(this.value, 'spec', this.value.spec || {});
+
+    if ( this.value.spec.filters?.length ) {
       filtersYaml = jsyaml.safeDump(this.value.spec.filters);
     } else {
-      filtersYaml = createYaml(schemas, LOGGING.FLOW, {});
-      filtersYaml = `# @TODO Get the right schema once it exists
-# - stdout:
-#   parser:
-#   tag_normaliser:
-#   dedot:
-#   record_transformer:
-#   record_modifier:
-#   geoip:
-#   concat:
-#   detectExceptions:
-#   grep:
-#   prometheus:
-#   throttl:
-`;
+      filtersYaml = createYaml(schemas, LOGGING.SPOOFED.FILTERS, []);
+      // createYaml doesn't support passing reference types (array, map) as the first type. As such
+      // I'm manipulating the output since I'm not sure it's something we want to actually support
+      // seeing as it's really createResourceYaml and this here is a gray area between spoofed types
+      // and just a field within a spec.
+      filtersYaml = filtersYaml.substring(filtersYaml.indexOf('\n') + 1).replaceAll('#  ', '#');
     }
 
     const matches = [];
     let formSupported = !this.value.id || this.value.canCustomEdit;
 
-    if ( this.value.spec?.match?.length ) {
+    if ( this.value.spec.match?.length ) {
       for ( const match of this.value.spec.match ) {
         if ( matchRuleIsPopulated(match.select) && matchRuleIsPopulated(match.exclude) ) {
           formSupported = false;
@@ -110,8 +103,8 @@ export default {
       matches.push(emptyMatch(true));
     }
 
-    const globalOutputRefs = this.value.spec?.globalOutputRefs || [];
-    const localOutputRefs = this.value.spec?.localOutputRefs || [];
+    const globalOutputRefs = this.value.spec.globalOutputRefs || [];
+    const localOutputRefs = this.value.spec.localOutputRefs || [];
 
     return {
       formSupported,
@@ -277,7 +270,12 @@ export default {
       if (this.value.spec.match && this.isMatchEmpty(this.value.spec.match)) {
         this.$delete(this.value.spec, 'match');
       }
-    }
+    },
+    onYamlEditorReady(cm) {
+      cm.getMode().fold = 'yamlcomments';
+      cm.execCommand('foldAll');
+      cm.execCommand('unfold');
+    },
   }
 };
 </script>
@@ -335,6 +333,7 @@ export default {
           :scrolling="false"
           :initial-yaml-values="initialFiltersYaml"
           :editor-mode="isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE"
+          @onReady="onYamlEditorReady"
         />
       </Tab>
 

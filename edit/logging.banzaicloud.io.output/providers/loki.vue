@@ -31,45 +31,51 @@ export default {
 
 <template>
   <div class="loki">
-    <div>
-      <h3>{{ t('logging.output.sections.target') }}</h3>
-      <div class="row mb-10">
-        <div class="col span-6">
-          <LabeledInput v-model="value.url" :mode="mode" :disabled="disabled" class="url" :label="t('logging.loki.url')" />
-        </div>
-        <div class="col span-6">
-          <LabeledInput v-model="value.tenant" :mode="mode" :disabled="disabled" :label="t('logging.loki.tenant')" />
-        </div>
+    <div class="row">
+      <div class="col span-6">
+        <h3>{{ t('logging.output.sections.target') }}</h3>
       </div>
     </div>
-    <hr class="section-divider" />
-
-    <div>
-      <h3>{{ t('logging.output.sections.access') }}</h3>
-      <div class="row">
-        <div class="col span-6">
-          <SecretSelector
-            v-model="value.username"
-            :mode="mode"
-            :disabled="disabled"
-            :label="t('logging.loki.username')"
-            :show-key-selector="true"
-          />
-        </div>
-        <div class="col span-6">
-          <SecretSelector
-            v-model="value.password"
-            :mode="mode"
-            :disabled="disabled"
-            :label="t('logging.loki.password')"
-            :show-key-selector="true"
-          />
-        </div>
+    <div class="row mb-10">
+      <div class="col span-6">
+        <LabeledInput v-model="value.url" :mode="mode" :disabled="disabled" class="url" :label="t('logging.loki.url')" />
+      </div>
+      <div class="col span-6">
+        <LabeledInput v-model="value.tenant" :mode="mode" :disabled="disabled" :label="t('logging.loki.tenant')" />
       </div>
     </div>
-    <hr class="section-divider" />
-
-    <h3>{{ t('logging.output.sections.labels') }}</h3>
+    <div class="spacer"></div>
+    <div class="row">
+      <div class="col span-6">
+        <h3>{{ t('logging.output.sections.access') }}</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.username"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.loki.username')"
+          :show-key-selector="true"
+        />
+      </div>
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.password"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.loki.password')"
+          :show-key-selector="true"
+        />
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="row">
+      <div class="col span-6">
+        <h3>{{ t('logging.output.sections.labels') }}</h3>
+      </div>
+    </div>
     <div class="row mb-10">
       <div class="col span-12">
         <Checkbox v-model="value.configure_kubernetes_labels" :mode="mode" :disabled="disabled" :label="t('logging.loki.configureKubernetesLabels')" />
