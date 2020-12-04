@@ -6,9 +6,12 @@ import Card from '@/components/Card';
 import { alternateLabel } from '@/utils/platform';
 import LinkDetail from '@/components/formatter/LinkDetail';
 import { uniq } from '@/utils/array';
+import AsyncButton from '@/components/AsyncButton';
 
 export default {
-  components: { Card, LinkDetail },
+  components: {
+    Card, LinkDetail, AsyncButton
+  },
   data() {
     return {
       confirmName: '', error: '', warning: '', preventDelete: false
@@ -151,7 +154,7 @@ export default {
       this.$store.commit('action-menu/togglePromptRemove');
     },
 
-    remove() {
+    remove(btnCB) {
       if (this.needsConfirm && this.confirmName !== this.names[0]) {
         this.error = 'Resource names do not match';
         // if doneLocation is defined, redirect after deleting
@@ -166,14 +169,14 @@ export default {
         const serialRemove = this.toRemove.some(resource => resource.removeSerially);
 
         if (serialRemove) {
-          this.serialRemove(goTo);
+          this.serialRemove(goTo, btnCB);
         } else {
-          this.parallelRemove(goTo);
+          this.parallelRemove(goTo, btnCB);
         }
       }
     },
 
-    async serialRemove(goTo) {
+    async serialRemove(goTo, btnCB) {
       try {
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
@@ -186,14 +189,15 @@ export default {
         if ( goTo && !isEmpty(goTo) ) {
           this.currentRouter.push(goTo);
         }
-
+        btnCB(true);
         this.close();
       } catch (err) {
         this.error = err;
+        btnCB(false);
       }
     },
 
-    async parallelRemove(goTo) {
+    async parallelRemove(goTo, btnCB) {
       try {
         const spoofedTypes = this.getSpoofedTypes(this.toRemove);
 
@@ -203,10 +207,11 @@ export default {
         if ( goTo && !isEmpty(goTo) ) {
           this.currentRouter.push(goTo);
         }
-
+        btnCB(true);
         this.close();
       } catch (err) {
         this.error = err;
+        btnCB(false);
       }
     },
 
@@ -263,9 +268,7 @@ export default {
         <button class="btn role-secondary" @click="close">
           Cancel
         </button>
-        <button class="btn bg-error ml-10" :disabled="preventDelete" @click="remove">
-          Delete
-        </button>
+        <AsyncButton mode="delete" class="btn bg-error ml-10" :disabled="preventDelete" @click="remove" />
       </template>
     </Card>
   </modal>
