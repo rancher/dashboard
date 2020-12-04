@@ -748,13 +748,71 @@ logging:
     configureKubernetesLabels: Configure Kubernetes metadata in a Prometheus like format
     extractKubernetesLabels: Extract Kubernetes labels as Loki labels
     dropSingleKey: If a record only has 1 key, then just set the log line to the value and discard the key
+    caCert: CA Cert
+    cert: Cert
+    key: Key
+  awsElasticsearch:
+    url: URL
+    keyId: Key Id
+    secretKey: Secret Key
+  azurestorage:
+    storageAccount: Storage Account
+    accessKey:  Access Key
+    container: Container
+    path: Path
+    storeAs: Store As
+  cloudwatch:
+    keyId: Key Id
+    secretKey: Secret Key
+    endpoint: Endpoint
+    region: Region
+  datadog:
+    apiKey: API Key
+    useSSL: Use SSL
+    useCompression: Use Compression
+    host: Host
+  file:
+    path: Path
+  gcs:
+    project: Project
+    credentialsJson: Credentials Json
+    bucket: Bucket
+    path: Path
+    overwriteExistingPath: Overwrite Existing Path
+  kinesisStream:
+    streamName: Stream Name
+    keyId: Key Id
+    secretKey: Secret Key
+  logdna:
+    apiKey: API Key
+    hostname: Hostname
+    app: App
+  logz:
+    url: URL
+    port: Port
+    token: Api Token 
+    enableCompression: Enable Compression
+  newrelic:
+    apiKey: API Key
+    licenseKey: License Key
+    baseURI: Base URI
+  sumologic:
+    endpoint: Endpoint
+    sourceName: Source Name
+  s3:
+    keyId: Key Id
+    secretKey: Secret Key
+    endpoint: Endpoint
+    bucket: Bucket
+    path: Path
+    overwriteExistingPath: Overwrite Existing Path
   output:
     selectOutputs: Select Outputs
     selectBanner: Select to configure an output
     sections:
       target: Target
       access: Access
-      certificate: SSL
+      certificate: Connection
       labels: Labels
   outputProviders:
     elasticsearch: Elasticsearch
@@ -762,6 +820,18 @@ logging:
     kafka: Kafka
     forward: Fluentd
     loki: Loki
+    awsElasticsearch: Amazon Elasticsearch
+    azurestorage: Azure Storage
+    cloudwatch: Cloudwatch
+    datadog: Datadog
+    file: File
+    gcs: GCS
+    kinesisStream: Kinesis Stream
+    logdna: LogDNA
+    logz: LogZ
+    newrelic: New Relic
+    sumologic: SumoLogic
+    s3: S3
     unknown: Unknown
   overview:
     poweredBy: Banzai Cloud
@@ -774,17 +844,22 @@ logging:
     protocol: Protocol
     index: Index
     token: Token
-    clientCert: Client Cert
-    clientKey: Client Key
     insecureSsl: Insecure SSL
     indexName: Index Name
     source: Source
+    caFile: CA File
+    caPath: CA Path
+    clientCert: Client Cert
+    clientKey: Client Key
   forward:
     host: Host
     port: Port
     sharedKey: Shared Key
     username: Username
     password: Password
+    clientCertPath: Client Cert Path
+    clientPrivateKeyPath: Client Private Key Path
+    clientPrivateKeyPassphrase: Client Private Key Passphrase
 
 longhorn:
   overview:

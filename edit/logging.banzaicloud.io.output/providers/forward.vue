@@ -85,5 +85,42 @@ export default {
         />
       </div>
     </div>
+    <div class="spacer"></div>
+    <div class="row">
+      <div class="col span-6">
+        <h3>{{ t('logging.output.sections.certificate') }}</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.tls_client_cert_path"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.forward.clientCertPath')"
+          :show-key-selector="true"
+        />
+      </div>
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.tls_client_private_key_path"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.forward.clientPrivateKeyPath')"
+          :show-key-selector="true"
+        />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.tls_client_private_key_passphrase"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.forward.clientPrivateKeyPassphrase')"
+          :show-key-selector="true"
+        />
+      </div>
+    </div>
   </div>
 </template>
