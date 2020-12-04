@@ -154,13 +154,26 @@ export default {
 
       return false;
     },
+
+    dataLabel() {
+      switch (this.value._type) {
+      case TYPES.TLS:
+        return this.t('secret.certificate.certificate');
+      case TYPES.SSH:
+        return this.t('secret.ssh.keys');
+      case TYPES.BASIC:
+        return this.t('secret.authentication');
+      default:
+        return this.t('secret.data');
+      }
+    }
   },
 };
 </script>
 
 <template>
   <ResourceTabs v-model="value" :mode="mode">
-    <Tab name="data" label-key="secret.data">
+    <Tab name="data" :label="dataLabel">
       <template v-if="isRegistry || isBasicAuth">
         <div v-if="isRegistry" class="row">
           <div class="col span-12">

@@ -1226,6 +1226,7 @@ rioConfig:
     buttonText: Customize
 
 secret:
+  authentication: Authentication
   certificate:
     certificate: Certificate
     cn: Domain Name
@@ -1243,6 +1244,7 @@ secret:
     password: Password
     username: Username
   ssh:
+    keys: Keys
     public: Public Key
     private: Private Key
   serviceAcct:
