@@ -213,9 +213,6 @@ export default {
         :label="t('servicesPage.externalName.define')"
       >
         <div class="clearfix">
-          <h4>
-            <t k="servicesPage.externalName.label" />
-          </h4>
           <Banner color="info" :label="t('servicesPage.externalName.helpText')" />
         </div>
         <div class="row mt-10">

@@ -81,7 +81,8 @@
   }
 
   &.create,
-  &.edit {
+  &.edit,
+  &.view {
     .addon,
     .addon.btn {
       display: table-cell;
@@ -99,12 +100,6 @@
       line-height: 1;
       text-align: center;
       border-left: solid thin #{$secondary};
-    }
-  }
-
-  &.view {
-    .addon {
-      display: inline;
     }
   }
 

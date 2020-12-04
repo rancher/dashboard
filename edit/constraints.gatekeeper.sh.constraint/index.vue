@@ -307,7 +307,6 @@ export default {
           <Tab name="rules" :label="t('gatekeeperConstraint.tab.rules.title')" :weight="2">
             <div class="row">
               <div class="col span-12">
-                <h3>{{ t('gatekeeperConstraint.tab.rules.title') }}</h3>
                 <MatchKinds v-model="value.spec.match.kinds" :mode="mode" />
               </div>
             </div>
@@ -323,7 +322,6 @@ export default {
             </div>
           </Tab>
           <Tab name="parameters" :label="t('gatekeeperConstraint.tab.parameters.title')" :weight="1">
-            <h3>{{ t('gatekeeperConstraint.tab.parameters.title') }}</h3>
             <YamlEditor
               ref="yamlEditor"
               v-model="parametersYaml"

@@ -114,12 +114,6 @@ export default {
 
 <template>
   <div>
-    <div class="clearfix">
-      <h2>
-        <t k="servicePorts.header.label" />
-      </h2>
-    </div>
-
     <div v-if="rows.length">
       <div class="ports-headers" :class="{'show-protocol':showProtocol, 'show-node-port':showNodePort}">
         <span v-if="padLeft" class="left"></span>

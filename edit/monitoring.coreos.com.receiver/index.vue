@@ -183,11 +183,6 @@ export default {
         <Banner v-if="!isView && receiverType.name === 'pagerduty'" color="info">
           Here's how you create an <a href="https://www.pagerduty.com/docs/guides/prometheus-integration-guide/" target="_blank" rel="noopener nofollow" class="flex-right">Integration Key</a> for PagerDuty
         </Banner>
-        <div class="provider mb-10">
-          <h1>
-            {{ receiverType.title }}
-          </h1>
-        </div>
         <YamlEditor
           v-if="receiverType.name === 'custom'"
           ref="customEditor"

@@ -1377,12 +1377,12 @@ servicesPage:
       label: Session Sticky Time
       placeholder: e.g. 10800
   externalName:
-    define: Define External Name
+    define: External Name
     helpText: "External Name is intended to specify a canonical DNS name. To hardcode an IP address, use a Headless service."
     label: External Name
     placeholder: e.g. my.database.example.com
   ips:
-    define: Define Service Ports
+    define: Service Ports
     clusterIpHelpText: The Cluster IP address must be within the CIDR range configured for the API server.
     external:
       label: External IPs
