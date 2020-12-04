@@ -20,16 +20,17 @@ export default {
 
   data() {
     return {
-      mode: 'edit',
-      a:    'a',
-      b:    'b',
-      c:    'c',
-      d:    42,
-      e:    'e',
-      f:    'f',
-      g:    'g',
-      h:    'h',
-      i:    'i',
+      mode:    'edit',
+      tooltip: '',
+      a:       'a',
+      b:       'b',
+      c:       'c',
+      d:       42,
+      e:       'e',
+      f:       'f',
+      g:       'g',
+      h:       'h',
+      i:       'i',
     };
   },
 };
@@ -37,7 +38,8 @@ export default {
 <template>
   <div>
     <div class="m-20">
-      <ButtonGroup v-model="mode" :options="['edit','view']" />
+      <ButtonGroup v-model="mode" :options="[{label: 'Edit', value: 'edit'},{label: 'View', value: 'view'}]" class="mr-20" />
+      <ButtonGroup v-model="tooltip" :options="[{label: 'No Tooltip', value: ''},{label: 'Yes Tooltip', value: 'hello world'}]" />
     </div>
 
     <div class="m-20">
@@ -45,6 +47,7 @@ export default {
         v-model="a"
         label="Labeled Input"
         :mode="mode"
+        :tooltip="tooltip"
       />
     </div>
     <div class="m-20">
@@ -53,6 +56,7 @@ export default {
         label="Multiline"
         type="multiline"
         :mode="mode"
+        :tooltip="tooltip"
       />
     </div>
     <div class="m-20">
@@ -61,12 +65,14 @@ export default {
         label="Labeled Select"
         :options="['foo','bar','baz']"
         :mode="mode"
+        :tooltip="tooltip"
       />
     </div>
     <div class="m-20">
       <UnitInput
         v-model="d"
         :mode="mode"
+        :tooltip="tooltip"
         label="Unit Input"
         suffix="Things"
       />
@@ -76,12 +82,14 @@ export default {
         v-model="e"
         :options="['foo','bar']"
         :mode="mode"
+        :tooltip="tooltip"
       />
     </div>
     <div class="m-20">
       <SecretSelector
         v-model="f"
         :mode="mode"
+        :tooltip="tooltip"
         label="Secret"
         :show-key-selector="false"
       />
@@ -90,6 +98,7 @@ export default {
       <SecretSelector
         v-model="g"
         :mode="mode"
+        :tooltip="tooltip"
         label="Secret+Key"
         :show-key-selector="true"
       />
@@ -98,6 +107,7 @@ export default {
       <InputWithSelect
         v-model="h"
         :select-before-text="false"
+        :tooltip="tooltip"
         text-label="Input With Select"
         :mode="mode"
         :options="['foo','bar']"
@@ -109,6 +119,7 @@ export default {
         :select-before-text="true"
         text-label="Input With Select"
         :mode="mode"
+        :tooltip="tooltip"
         :options="['foo','bar']"
       />
     </div>

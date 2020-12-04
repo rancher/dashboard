@@ -1,11 +1,17 @@
 <script>
 import { parseSi, UNITS, FRACTIONAL } from '@/utils/units';
 import LabeledInput from '@/components/form/LabeledInput';
+import { _EDIT } from '@/config/query-params';
 
 export default {
   components: { LabeledInput },
 
   props: {
+    mode: {
+      type:    String,
+      default: _EDIT
+    },
+
     value: {
       type:    [Number, String],
       default: null

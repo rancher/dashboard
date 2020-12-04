@@ -209,19 +209,8 @@ export default {
         {{ label }}
         <span v-if="required && !value" class="required">*</span>
       </label>
-      <div
-        v-if="isView"
-        :class="{ 'no-label': !(label || '').length }"
-        class="selected"
-      >
-        <span v-if="!currentLabel" class="text-muted">
-          {{ currentLabel }}&nbsp;
-        </span>
-        <span v-else class="text-muted">—</span>
-      </div>
     </div>
     <v-select
-      v-if="!isView"
       ref="input"
       v-bind="$attrs"
       class="inline"
