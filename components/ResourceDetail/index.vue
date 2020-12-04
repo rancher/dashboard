@@ -126,11 +126,11 @@ export default {
 
       if ( as === _YAML ) {
         yaml = await getYaml(originalModel);
+      }
 
-        if ( realMode === _CLONE || realMode === _STAGE ) {
-          cleanForNew(model);
-          yaml = model.cleanYaml(yaml, realMode);
-        }
+      if ( realMode === _CLONE || realMode === _STAGE ) {
+        cleanForNew(model);
+        yaml = model.cleanYaml(yaml, realMode);
       }
     }
 
