@@ -3,12 +3,10 @@ import labeledFormElement from '@/mixins/labeled-form-element';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Select from '@/components/form/Select';
-import UnitInput from '@/components/form/UnitInput';
 export default {
   components: {
     LabeledInput,
     LabeledSelect,
-    UnitInput,
     Select,
   },
   mixins: [labeledFormElement],
@@ -98,16 +96,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="isView && !selectBeforeText">
-    <UnitInput
-      mode="view"
-      :value="string"
-      :label="textLabel"
-      :suffix="selected"
-    />
-  </div>
   <div
-    v-else
     :class="{ 'select-after': !selectBeforeText }"
     class="input-container row"
     @input="change"

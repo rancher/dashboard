@@ -116,6 +116,10 @@ export const getters = {
   isMultipleNamespaces(state, getters) {
     const product = getters['currentProduct'];
 
+    if ( !product ) {
+      return true;
+    }
+
     if ( product.showWorkspaceSwitcher ) {
       return false;
     }
@@ -168,6 +172,10 @@ export const getters = {
       const out = {};
       const product = getters['currentProduct'];
       const workspace = state.workspace;
+
+      if ( !product ) {
+        return out;
+      }
 
       if ( product.showWorkspaceSwitcher ) {
         return { [workspace]: true };
@@ -229,7 +237,13 @@ export const getters = {
   },
 
   defaultNamespace(state, getters, rootState, rootGetters) {
-    const inStore = getters['currentProduct'].inStore;
+    const product = getters['currentProduct'];
+
+    if ( !product ) {
+      return 'default';
+    }
+
+    const inStore = product.inStore;
     const filteredMap = getters['namespaces']();
     const isAll = getters['isAllNamespaces'];
     const all = getters[`${ inStore }/all`](NAMESPACE).map(x => x.id);

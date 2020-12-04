@@ -100,6 +100,7 @@ export default {
     v-bind="$attrs"
     type="number"
     min="0"
+    :mode="mode"
     :label="label"
     :label-key="labelKey"
     :tooltip="tooltip"
