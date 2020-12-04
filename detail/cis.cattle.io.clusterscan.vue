@@ -124,7 +124,7 @@ export default {
           ...STATE,
           value:         'state',
           formatterOpts: { arbitrary: true },
-          sort:          'testStateSort'
+          sort:          ['testStateSort', 'testIdSort']
         },
         {
           name:  'number',

@@ -1,6 +1,6 @@
 import { DSL } from '@/store/type-map';
 import { CIS } from '@/config/types';
-import { STATE, NAME as NAME_HEADER } from '@/config/table-headers';
+import { STATE, NAME as NAME_HEADER, AGE } from '@/config/table-headers';
 
 export const NAME = 'cis';
 export const CHART_NAME = 'rancher-cis-benchmark';
@@ -111,5 +111,35 @@ export function init(store) {
       value:    'numberTestsSkipped',
       sort:     ['numberTestsSkipped']
     }
+  ]);
+
+  headers(CIS.BENCHMARK, [
+    STATE,
+    NAME_HEADER,
+    {
+      name:          'clusterProvider',
+      labelKey:      'cis.clusterProvider',
+      value:         'spec.clusterProvider',
+    },
+    {
+      name:        'minKubernetesVersion',
+      labelKey:    'tableHeaders.minKubernetesVersion',
+      value:       'spec.minKubernetesVersion',
+      dashIfEmpty: true,
+
+    },
+    {
+      name:        'maxKubernetesVersion',
+      labelKey:    'tableHeaders.maxKubernetesVersion',
+      value:       'spec.maxKubernetesVersion',
+      dashIfEmpty: true,
+    },
+    {
+      name:          'isDefault',
+      labelKey:      'tableHeaders.default',
+      formatter:     'IconText',
+      formatterOpts: { getIcon: row => row.spec.customBenchmarkConfigMapName ? 'icon-x icon-2x' : 'icon-checkmark icon-2x' }
+    },
+    AGE
   ]);
 }

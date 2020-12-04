@@ -2,6 +2,8 @@
 import CruResource from '@/components/CruResource';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
+import UnitInput from '@/components/form/UnitInput';
+
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
 import { CIS, CONFIG_MAP, ENDPOINTS } from '@/config/types';
@@ -11,12 +13,13 @@ import { allHash } from '@/utils/promise';
 import Checkbox from '@/components/form/Checkbox';
 import RadioGroup from '@/components/form/RadioGroup';
 import cronstrue from 'cronstrue';
+import { get } from '@/utils/object';
 
 const semver = require('semver');
 
 export default {
   components: {
-    CruResource, LabeledSelect, Banner, Loading, Checkbox, LabeledInput, RadioGroup
+    CruResource, LabeledSelect, Banner, Loading, Checkbox, LabeledInput, RadioGroup, UnitInput
   },
 
   mixins: [createEditView],
@@ -57,9 +60,17 @@ export default {
     if (!this.value.metadata.name) {
       this.value.metadata.generateName = 'scan-';
     }
+    if (!this.value.spec.scheduledScanConfig) {
+      this.$set(this.value.spec, 'scheduledScanConfig', { });
+    }
 
     return {
-      allProfiles: [], defaultConfigMap: null, scanAlertRule: this.value.spec.scanAlertRule, hasAlertManager: false
+      allProfiles:         [],
+      defaultConfigMap:    null,
+      scheduledScanConfig: this.value.spec.scheduledScanConfig,
+      scanAlertRule:       this.value.spec.scheduledScanConfig.scanAlertRule,
+      hasAlertManager:     false,
+      isScheduled:         !!get(this.value, 'scheduledScanConfig.cronSchedule')
     };
   },
 
@@ -116,6 +127,16 @@ export default {
         params: { cluster: this.$route.params.cluster }
       }).href;
     },
+
+    validated() {
+      if (this.isScheduled) {
+        if (!get(this.value, 'spec.scheduledScanConfig.cronSchedule')) {
+          return false;
+        }
+      }
+
+      return !!this.value.spec.scanProfileName;
+    }
   },
 
   watch: {
@@ -155,7 +176,7 @@ export default {
 
   <CruResource
     v-else
-    :validation-passed="!!value.spec.scanProfileName"
+    :validation-passed="validated"
     :done-route="doneRoute"
     :resource="value"
     :mode="mode"
@@ -175,36 +196,41 @@ export default {
             :options="validProfiles"
           />
         </div>
+        <div class="col span-6">
+          <span>{{ t('cis.scoreWarning.label') }}</span> <i v-tooltip="t('cis.scoreWarning.protip')" class="icon icon-info" />
+          <RadioGroup v-model="value.spec.scoreWarning" :mode="mode" name="scoreWarning" :options="['pass', 'fail']" :labels="[t('cis.scan.pass'), t('cis.scan.fail')]" />
+        </div>
       </div>
       <h3>Scheduling</h3>
       <div class="row mb-20">
-        <div class="col span-6">
-          <LabeledInput v-model="value.spec.cronSchedule" :mode="mode" :label="t('cis.cronSchedule.label')" :placeholder="t('cis.cronSchedule.placeholder')" />
-          <span class="text-muted">{{ cronLabel }}</span>
-        </div>
-        <div class="col span-6">
-          <LabeledInput v-model.number="value.spec.retention" type="number" :mode="mode" :label="t('cis.retention')" />
-        </div>
-      </div>
-      <h3>
-        Alerting
-      </h3>
-      <div class="row mb-20">
-        <div class="col span-12">
-          <Banner v-if="scanAlertRule.alertOnFailure || scanAlertRule.alertOnComplete" class="mt-0" :color="hasAlertManager ? 'info' : 'warning'">
-            <span v-if="!hasAlertManager" v-html="t('cis.alertNotFound')" />
-            <span v-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
-          </banner>
-          <Checkbox v-model="scanAlertRule.alertOnComplete" :label="t('cis.alertOnComplete')" />
-          <Checkbox v-model="scanAlertRule.alertOnFailure" :label="t('cis.alertOnFailure')" />
-        </div>
-      </div>
-      <div class="row">
         <div class="col">
-          <span>{{ t('cis.scoreWarning.label') }}</span> <i v-tooltip="t('cis.scoreWarning.protip')" class="icon icon-info" />
-          <RadioGroup v-model="value.spec.scoreWarning" name="scoreWarning" :options="['pass', 'fail']" :labels="[t('cis.scan.pass'), t('cis.scan.fail')]" />
+          <RadioGroup v-model="isScheduled" :mode="mode" name="scheduling" :options="[ {value: false, label: t('cis.scheduling.disable')}, {value: true, label: t('cis.scheduling.enable')}]" />
         </div>
       </div>
+      <template v-if="isScheduled">
+        <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledInput v-model="scheduledScanConfig.cronSchedule" required :mode="mode" :label="t('cis.cronSchedule.label')" :placeholder="t('cis.cronSchedule.placeholder')" />
+            <span class="text-muted">{{ cronLabel }}</span>
+          </div>
+          <div class="col span-6">
+            <UnitInput v-model.number="scheduledScanConfig.retention" :suffix="t('cis.reports')" type="number" :mode="mode" :label="t('cis.retention')" />
+          </div>
+        </div>
+        <h3>
+          Alerting
+        </h3>
+        <div class="row mb-20">
+          <div class="col span-12">
+            <Banner v-if="scanAlertRule.alertOnFailure || scanAlertRule.alertOnComplete" class="mt-0" :color="hasAlertManager ? 'info' : 'warning'">
+              <span v-if="!hasAlertManager" v-html="t('cis.alertNotFound')" />
+              <span v-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
+            </banner>
+            <Checkbox v-model="scanAlertRule.alertOnComplete" :mode="mode" :label="t('cis.alertOnComplete')" />
+            <Checkbox v-model="scanAlertRule.alertOnFailure" :mode="mode" :label="t('cis.alertOnFailure')" />
+          </div>
+        </div>
+      </template>
     </template>
   </CruResource>
 </template>
