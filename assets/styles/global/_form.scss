@@ -43,7 +43,7 @@ TEXTAREA,
     border-color: var(--input-disabled-border);
     cursor: not-allowed;
     label {
-      color: var(--input-disabled-text);
+      color: var(--input-disabled-label);
       display: inline-block;
       z-index: 1;
     }
