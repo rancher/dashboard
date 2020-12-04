@@ -52,7 +52,11 @@ export function exponentNeeded(val, increment = 1000) {
   return exp;
 }
 
-export function parseSi(inValue, { increment = null, allowFractional = true } = {}) {
+export function parseSi(inValue, opt) {
+  opt = opt || {};
+  let increment = opt.increment;
+  const allowFractional = opt.allowFractional !== false;
+
   if ( !inValue || typeof inValue !== 'string' || !inValue.length ) {
     return NaN;
   }
