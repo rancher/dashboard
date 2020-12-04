@@ -73,6 +73,43 @@ export default {
     <div class="spacer"></div>
     <div class="row">
       <div class="col span-6">
+        <h3>{{ t('logging.output.sections.certificate') }}</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.ca_cert"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.loki.caCert')"
+          :show-key-selector="true"
+        />
+      </div>
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.cert"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.loki.cert')"
+          :show-key-selector="true"
+        />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.key"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.loki.key')"
+          :show-key-selector="true"
+        />
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <div class="row">
+      <div class="col span-6">
         <h3>{{ t('logging.output.sections.labels') }}</h3>
       </div>
     </div>

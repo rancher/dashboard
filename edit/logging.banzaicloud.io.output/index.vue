@@ -5,19 +5,21 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import ToggleGradientBox from '@/components/ToggleGradientBox';
 import Labels from '@/components/form/Labels';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Banner from '@/components/Banner';
 import { PROVIDERS } from '@/models/logging.banzaicloud.io.output';
 import { _VIEW } from '@/config/query-params';
+import { clone } from '@/utils/object';
+import isEqual from 'lodash/isEqual';
+import isEmpty from 'lodash/isEmpty';
 
 export default {
   components: {
-    Banner, CruResource, Labels, LabeledSelect, NameNsDescription, Tab, Tabbed, ToggleGradientBox
+    Banner, CruResource, Labels, LabeledSelect, NameNsDescription, Tab, Tabbed
   },
 
-  mixins: [CreateEditView, ToggleGradientBox],
+  mixins: [CreateEditView],
 
   async fetch() {
     await this.$store.dispatch('cluster/findAll', { type: SECRET });
@@ -34,18 +36,19 @@ export default {
       label: this.t(provider.labelKey)
     }));
 
-    this.value.spec = this.value.spec || {};
+    if (this.mode !== _VIEW) {
+      this.$set(this.value, 'spec', this.value.spec || {});
 
-    providers.forEach((provider) => {
-      this.value.spec[provider.name] = this.value.spec[provider.name] || provider.default;
-    });
+      providers.forEach((provider) => {
+        this.$set(this.value.spec, provider.name, this.value.spec[provider.name] || clone(provider.default));
+      });
+    }
 
     const selectedProviders = providers.filter((provider) => {
       const specProvider = this.value.spec[provider.name];
-      const correctedSpecProvider = provider.name === 'forward' ? specProvider.servers[0] : specProvider;
-      const specProviderKeys = Object.keys(correctedSpecProvider || {}).filter(key => !['format', 'configure_kubernetes_labels'].includes(key));
+      const correctedSpecProvider = provider.name === 'forward' ? specProvider?.servers?.[0] || {} : specProvider;
 
-      return specProviderKeys.length > 0;
+      return !isEmpty(correctedSpecProvider) && !isEqual(correctedSpecProvider, provider.default);
     });
 
     return {
@@ -115,12 +118,12 @@ export default {
       </Banner>
       <Tabbed v-else ref="tabbed" :side-tabs="true">
         <Tab name="Output" label="Output" :weight="1">
-          <div class="row mb-20">
+          <div class="row">
             <div class="col span-6">
               <LabeledSelect v-model="selectedProvider" label="Output" :options="providers" :mode="mode" />
             </div>
           </div>
-
+          <div class="spacer"></div>
           <component :is="getComponent(selectedProvider)" :value="value.spec[selectedProvider]" :mode="mode" />
         </Tab>
         <Tab

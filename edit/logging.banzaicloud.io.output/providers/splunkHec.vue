@@ -89,5 +89,45 @@ export default {
         <Checkbox v-model="value.insecure_ssl" :mode="mode" :disabled="disabled" :label="t('logging.splunk.insecureSsl')" />
       </div>
     </div>
+    <div class="row">
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.ca_file"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.splunk.caFile')"
+          :show-key-selector="true"
+        />
+      </div>
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.ca_path"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.splunk.caPath')"
+          :show-key-selector="true"
+        />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.client_cert"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.splunk.clientCert')"
+          :show-key-selector="true"
+        />
+      </div>
+      <div class="col span-6">
+        <SecretSelector
+          v-model="value.client_key"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.splunk.clientKey')"
+          :show-key-selector="true"
+        />
+      </div>
+    </div>
   </div>
 </template>
