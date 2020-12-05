@@ -13,7 +13,11 @@ export const FILENAME = 'alertmanager.yaml';
 export async function getSecretId(dispatch) {
   const alertManager = await dispatch('cluster/find', { type: MONITORING.ALERTMANAGER, id: ALERTMANAGER_ID }, { root: true });
 
-  return alertManager?.spec?.configSecret || DEFAULT_SECRET_ID;
+  if (alertManager?.spec?.configSecret) {
+    return `${ alertManager.namespace }/${ alertManager?.spec?.configSecret }`;
+  }
+
+  return DEFAULT_SECRET_ID;
 }
 
 export async function getSecret(dispatch) {
