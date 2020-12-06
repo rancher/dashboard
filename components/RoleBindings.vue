@@ -219,6 +219,10 @@ export default {
             // The role changed
             const neu = await this.createFrom(row);
 
+            // Make a new binding
+            promises.push(neu.save());
+            console.debug('Create binding from', row.existing.id, 'because role changed');
+
             if ( obj.subjects.length === 1 ) {
               // There's only one subject, remove the whole binding
               promises.push(obj.remove());
@@ -229,10 +233,6 @@ export default {
               promises.push(obj.save());
               console.debug('Update', row.existing.id, 'remove subject', row.existingIdx, 'because role changed');
             }
-
-            // And make a new binding
-            promises.push(neu.save());
-            console.debug('Create binding from', row.existing.id, 'because role changed');
           } else if ( subj.name !== row.subject || subj.kind !== row.subjectKind ) {
             // This subject changed
             subj.kind = row.subjectKind;

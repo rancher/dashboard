@@ -22,6 +22,7 @@ export function init(store) {
     ignoreType,
     mapGroup,
     weightGroup,
+    weightType,
     headers,
     virtualType,
     componentForType,
@@ -74,6 +75,7 @@ export function init(store) {
   weightGroup('serviceDiscovery', 97, true);
   weightGroup('storage', 96, true);
   weightGroup('rbac', 95, true);
+  weightType(POD, -1, true);
 
   for (const key in WORKLOAD_TYPES) {
     componentForType(WORKLOAD_TYPES[key], WORKLOAD);
@@ -183,6 +185,7 @@ export function init(store) {
     namespaced:     true,
     name:           'workload',
     weight:         99,
+    icon:           'folder',
     ifHaveSubTypes: Object.values(WORKLOAD_TYPES),
     route:          {
       name:     'c-cluster-product-resource',
