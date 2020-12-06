@@ -304,6 +304,11 @@ catalog:
       readme: Helm README
       valuesYaml: Values YAML
     version: Version
+  operation:
+    tableHeaders:
+      action: Action
+      releaseNamespace: Release Namespace
+      releaseName: Release Name
   repo:
     action:
       refresh: Refresh
