@@ -206,8 +206,10 @@ export default {
       :style="{ border: 'none' }"
     >
       <label>
-        {{ label }}
-        <span v-if="required && !value" class="required">*</span>
+        <t v-if="labelKey" :k="labelKey" />
+        <template v-else-if="label">{{ label }}</template>
+
+        <span v-if="required" class="required">*</span>
       </label>
     </div>
     <v-select

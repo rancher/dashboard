@@ -98,29 +98,6 @@ export default {
 
   mounted() {
     window.addEventListener('hashchange', this.hashChange);
-
-    this.$nextTick(() => {
-      const {
-        $route: { hash },
-        defaultTab,
-        sortedTabs,
-      } = this;
-
-      let tab;
-      const selected = (hash || '').replace(/^#/, '');
-
-      if ( selected ) {
-        tab = this.find(selected);
-      }
-
-      if ( !tab ) {
-        tab = this.find(defaultTab);
-      }
-
-      if ( !tab ) {
-        tab = head(sortedTabs);
-      }
-    });
   },
 
   unmounted() {

@@ -113,6 +113,19 @@ export const getters = {
 
     return false;
   },
+
+  withFallback: (state, getters) => (key, args, fallback) => {
+    if ( !fallback ) {
+      fallback = args;
+      args = {};
+    }
+
+    if ( getters.exists(key) ) {
+      return getters.t(key, args);
+    } else {
+      return fallback;
+    }
+  }
 };
 
 export const mutations = {

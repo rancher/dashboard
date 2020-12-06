@@ -56,10 +56,6 @@ export default {
         return this.$store.getters['i18n/t']('generic.add');
       },
     },
-    addIcon: {
-      type:    String,
-      default: 'icon-plus',
-    },
     addAllowed: {
       type:    Boolean,
       default: true,
@@ -70,10 +66,6 @@ export default {
       default() {
         return this.$store.getters['i18n/t']('generic.remove');
       },
-    },
-    removeIcon: {
-      type:    String,
-      default: 'icon-minus',
     },
     removeAllowed: {
       type:    Boolean,

@@ -9,6 +9,11 @@ export default {
       required: true,
     },
 
+    as: {
+      type:     String,
+      required: true,
+    },
+
     value: {
       type:     Object,
       required: true,
