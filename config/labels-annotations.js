@@ -53,15 +53,17 @@ export const CATALOG = {
   DISPLAY_NAME:     'catalog.cattle.io/display-name',
 };
 
-const CATTLE_REGEX = /cattle\.io\//;
-
 export const FLEET = {
   CLUSTER_DISPLAY_NAME: 'management.cattle.io/cluster-display-name',
   CLUSTER_NAME:         'management.cattle.io/cluster-name',
   BUNDLE_ID:            'fleet.cattle.io/bundle-id',
 };
 
+export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
+
 export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
+
+const CATTLE_REGEX = /cattle\.io\//;
 
 export const LABELS_TO_IGNORE_REGEX = [
   CATTLE_REGEX

@@ -2,6 +2,7 @@ import { insertAt } from '@/utils/array';
 import { get, clone } from '@/utils/object';
 
 export default {
+
   _availableActions() {
     const out = this._standardActions;
 
@@ -35,6 +36,7 @@ export default {
       }
     };
   },
+
   deactivateBulk() {
     return (items) => {
       items.forEach((item) => {

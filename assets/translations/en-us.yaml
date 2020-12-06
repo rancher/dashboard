@@ -16,6 +16,7 @@ generic:
   enabled: Enabled
   ignored: Ignored
   labelsAndAnnotations: Labels and Annotations
+  members: Members
   na: n/a
   name: Name
   none: None
@@ -303,6 +304,11 @@ catalog:
       readme: Helm README
       valuesYaml: Values YAML
     version: Version
+  operation:
+    tableHeaders:
+      action: Action
+      releaseNamespace: Release Namespace
+      releaseName: Release Name
   repo:
     action:
       refresh: Refresh
@@ -1219,6 +1225,18 @@ promptRemove:
     }
   attemptingToRemove: "You are attemping to remove the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
+
+rbac:
+  roleBinding:
+    user:
+      label: User
+    role:
+      label: Role
+  displayRole:
+    fleetworkspace-admin: Admin
+    fleetworkspace-member: Member
+    fleetworkspace-readonly: Read-Only
+
 
 resourceDetail:
   detailTop:

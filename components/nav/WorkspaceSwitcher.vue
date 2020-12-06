@@ -61,6 +61,33 @@ export default {
   display: inline-block;
 }
 
+.filter.show-masked ::v-deep .unlabeled-select:not(.masked-dropdown) {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.filter:not(.show-masked) ::v-deep .unlabeled-select.masked-dropdown {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.filter ::v-deep .unlabeled-select.has-more .v-select:not(.vs--open) .vs__dropdown-toggle {
+  overflow: hidden;
+}
+
+.filter ::v-deep .unlabeled-select.has-more .v-select.vs--open .vs__dropdown-toggle {
+  height: max-content;
+  background-color: var(--header-bg);
+}
+
 .filter ::v-deep .unlabeled-select {
   background-color: transparent;
 }
@@ -74,12 +101,7 @@ export default {
 }
 
 .filter ::v-deep .unlabeled-select .v-select.inline {
-  margin-top: 0;
-}
-
-.filter ::v-deep .unlabeled-select INPUT {
-  width: auto;
-  background-color: transparent;
+  margin: 0;
 }
 
 .filter ::v-deep .unlabeled-select .vs__search::placeholder {
@@ -111,6 +133,5 @@ export default {
 
 .filter ::v-deep .unlabeled-select INPUT[type='search'] {
   padding: 7px;
-  width: auto;
 }
 </style>
