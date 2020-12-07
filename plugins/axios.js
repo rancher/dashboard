@@ -1,5 +1,4 @@
 import https from 'https';
-import { TIMED_OUT } from '@/config/query-params';
 import pkg from '../package.json';
 
 export default function({

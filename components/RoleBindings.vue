@@ -1,5 +1,5 @@
 <script>
-import { RBAC as RBAC_ANNOTATIONS } from '@/config/labels-annotations';
+import { RBAC as RBAC_LABELS } from '@/config/labels-annotations';
 import { allHash } from '@/utils/promise';
 import { RBAC, MANAGEMENT } from '@/config/types';
 import { _CONFIG, _DETAIL, _EDIT } from '@/config/query-params';
@@ -53,7 +53,7 @@ export default {
 
     filterRoleKey: {
       type:    String,
-      default: RBAC_ANNOTATIONS.PRODUCT
+      default: RBAC_LABELS.PRODUCT
     },
 
     filterRoleValue: {
@@ -133,7 +133,7 @@ export default {
       }
 
       const out = all.filter((role) => {
-        return role.metadata?.annotations?.[this.filterRoleKey] === this.filterRoleValue;
+        return role.metadata?.labels?.[this.filterRoleKey] === this.filterRoleValue;
       });
 
       return out;
