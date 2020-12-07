@@ -163,7 +163,7 @@ export default {
     }
 
     if ( this.mode === _CREATE ) {
-      this.value.applyDefaults(this, this.mode);
+      this.value.applyDefaults(this, realMode);
     }
   },
 

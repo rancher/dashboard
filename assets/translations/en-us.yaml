@@ -351,12 +351,18 @@ cis:
       =1 { Any scheduled scans using this profile will no longer work. }
       other { Any scheduled scans using either of these profiles will no longer work. }
     }
+  deleteBenchmarkWarning: |-
+    {count, plural,
+      =1 { Any profiles using this benchmark version will no longer work. }
+      other { Any profiles using these benchmark versions will no longer work }
+    }
   downloadAllReports: Download All Saved Reports
   downloadLatestReport: Download Latest Report
   downloadReport: Download Report
   maxKubernetesVersion: Maximum allowed Kubernetes version
   minKubernetesVersion: Minimum required Kubernetes version
   noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
+  noReportFound: No scan report found
   profile: Profile
   retention: Retention Count
   reports: Reports

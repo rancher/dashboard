@@ -63,6 +63,7 @@ export default {
     if (!this.value.spec.scheduledScanConfig) {
       this.$set(this.value.spec, 'scheduledScanConfig', { });
     }
+    const isScheduled = !!get(this.value, 'spec.scheduledScanConfig.cronSchedule');
 
     return {
       allProfiles:         [],
@@ -70,7 +71,7 @@ export default {
       scheduledScanConfig: this.value.spec.scheduledScanConfig,
       scanAlertRule:       this.value.spec.scheduledScanConfig.scanAlertRule,
       hasAlertManager:     false,
-      isScheduled:         !!get(this.value, 'scheduledScanConfig.cronSchedule')
+      isScheduled
     };
   },
 
@@ -214,7 +215,7 @@ export default {
             <span class="text-muted">{{ cronLabel }}</span>
           </div>
           <div class="col span-6">
-            <UnitInput v-model.number="scheduledScanConfig.retention" :suffix="t('cis.reports')" type="number" :mode="mode" :label="t('cis.retention')" />
+            <UnitInput v-model.number="scheduledScanConfig.retentionCount" :suffix="t('cis.reports')" type="number" :mode="mode" :label="t('cis.retention')" />
           </div>
         </div>
         <h3>
