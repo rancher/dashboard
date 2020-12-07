@@ -114,7 +114,7 @@ $selected: rgba($primary, .5);
   --input-disabled-label: #{darken($disabled, 30%)};
   --input-disabled-bg: #{$disabled};
   --input-disabled-border: #{darken($medium, 10%)};
-  --input-disabled-placeholder: #{darken($medium, 10%)};
+  --input-disabled-placeholder: #{darken($medium, 15%)};
   --input-addon-bg: #{$darker};
 
   --progress-bg                : #{$medium};
