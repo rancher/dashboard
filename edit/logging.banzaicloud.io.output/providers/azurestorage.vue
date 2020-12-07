@@ -19,6 +19,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   }
 };
 </script>
@@ -54,6 +58,7 @@ export default {
         <SecretSelector
           v-model="value.azure_storage_account"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.azurestorage.storageAccount')"
           :show-key-selector="true"
@@ -63,6 +68,7 @@ export default {
         <SecretSelector
           v-model="value.azure_storage_access_key"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.azurestorage.accessKey')"
           :show-key-selector="true"

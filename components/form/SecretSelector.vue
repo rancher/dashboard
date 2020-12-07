@@ -3,6 +3,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import { SECRET } from '@/config/types';
 import { _EDIT, _VIEW } from '@/config/query-params';
 import { TYPES } from '@/models/secret';
+import sortBy from 'lodash/sortBy';
 
 const NONE = '__[[NONE]]__';
 
@@ -14,6 +15,10 @@ export default {
       type:     [String, Object],
       required: false,
       default:  undefined
+    },
+    namespace: {
+      type:     String,
+      required: true
     },
     types: {
       type:    Array,
@@ -76,15 +81,15 @@ export default {
       const allSecrets = this.$store.getters['cluster/all'](SECRET);
 
       return allSecrets
-        .filter(secret => this.types.includes(secret._type));
+        .filter(secret => this.types.includes(secret._type) && secret.namespace === this.namespace);
     },
     secretNames() {
       const mappedSecrets = this.secrets.map(secret => ({
         label: secret.name,
         value: secret.name
-      }));
+      })).sort();
 
-      return [{ label: 'None', value: NONE }, ...mappedSecrets];
+      return [{ label: 'None', value: NONE }, ...sortBy(mappedSecrets, 'label')];
     },
     keys() {
       const secret = this.secrets.find(secret => secret.name === this.name) || {};

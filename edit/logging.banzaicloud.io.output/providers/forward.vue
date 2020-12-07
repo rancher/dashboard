@@ -19,6 +19,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   },
   computed: {
     port: {
@@ -59,6 +63,7 @@ export default {
         <SecretSelector
           v-model="value.servers[0].username"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.forward.username')"
           :show-key-selector="true"
@@ -68,6 +73,7 @@ export default {
         <SecretSelector
           v-model="value.servers[0].password"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.forward.password')"
           :show-key-selector="true"
@@ -79,6 +85,7 @@ export default {
         <SecretSelector
           v-model="value.servers[0].shared_key"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.forward.sharedKey')"
           :show-key-selector="true"
@@ -96,6 +103,7 @@ export default {
         <SecretSelector
           v-model="value.tls_client_cert_path"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.forward.clientCertPath')"
           :show-key-selector="true"
@@ -105,6 +113,7 @@ export default {
         <SecretSelector
           v-model="value.tls_client_private_key_path"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.forward.clientPrivateKeyPath')"
           :show-key-selector="true"
@@ -116,6 +125,7 @@ export default {
         <SecretSelector
           v-model="value.tls_client_private_key_passphrase"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.forward.clientPrivateKeyPassphrase')"
           :show-key-selector="true"

@@ -18,6 +18,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   }
 };
 </script>

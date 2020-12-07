@@ -19,6 +19,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   }
 };
 </script>
@@ -46,6 +50,7 @@ export default {
         <SecretSelector
           v-model="value.api_key"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.newrelic.apiKey')"
           :show-key-selector="true"
@@ -55,6 +60,7 @@ export default {
         <SecretSelector
           v-model="value.license_key"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.newrelic.licenseKey')"
           :show-key-selector="true"

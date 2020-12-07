@@ -22,6 +22,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   }
 };
 </script>
@@ -60,6 +64,7 @@ export default {
         <SecretSelector
           v-model="value.credentials_json"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.gcs.credentialsJson')"
           :show-key-selector="true"

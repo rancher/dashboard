@@ -23,6 +23,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   },
   data() {
     return { protocolOptions: protocol };
@@ -99,6 +103,7 @@ export default {
         <SecretSelector
           v-model="value.password"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :show-key-selector="true"
         />
@@ -115,6 +120,7 @@ export default {
         <SecretSelector
           v-model="value.ca_file"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.elasticsearch.caFile.label')"
           :show-key-selector="true"
@@ -124,6 +130,7 @@ export default {
         <SecretSelector
           v-model="value.client_cert"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.elasticsearch.clientCert.label')"
           :show-key-selector="true"
@@ -135,6 +142,7 @@ export default {
         <SecretSelector
           v-model="value.client_key"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.elasticsearch.clientKey.label')"
           :show-key-selector="true"
@@ -144,6 +152,7 @@ export default {
         <SecretSelector
           v-model="value.client_key_pass"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.elasticsearch.clientKeyPass')"
           :show-key-selector="true"

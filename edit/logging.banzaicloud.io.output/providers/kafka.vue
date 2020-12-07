@@ -23,6 +23,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   },
 
   data() {
@@ -57,6 +61,7 @@ export default {
         <SecretSelector
           v-model="value.username"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.kafka.username')"
           :show-key-selector="true"
@@ -66,6 +71,7 @@ export default {
         <SecretSelector
           v-model="value.password"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.kafka.password')"
           :show-key-selector="true"
@@ -93,6 +99,7 @@ export default {
         <SecretSelector
           v-model="value.ssl_ca_cert"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.kafka.sslCaCert.label')"
           :show-key-selector="true"
@@ -102,6 +109,7 @@ export default {
         <SecretSelector
           v-model="value.ssl_client_cert"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.kafka.sslClientCert.label')"
           :show-key-selector="true"
@@ -113,6 +121,7 @@ export default {
         <SecretSelector
           v-model="value.ssl_client_cert_chain"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.kafka.sslClientCertChain.label')"
           :show-key-selector="true"
@@ -122,6 +131,7 @@ export default {
         <SecretSelector
           v-model="value.ssl_client_cert_key"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.kafka.sslClientCertKey')"
           :show-key-selector="true"

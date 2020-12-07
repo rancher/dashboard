@@ -24,6 +24,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   },
 
   data() {
@@ -75,6 +79,7 @@ export default {
           <SecretSelector
             v-model="value.hec_token"
             :mode="mode"
+            :namespace="namespace"
             :disabled="disabled"
             :label="t('logging.splunk.token')"
             :show-key-selector="true"
@@ -94,6 +99,7 @@ export default {
         <SecretSelector
           v-model="value.ca_file"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.splunk.caFile')"
           :show-key-selector="true"
@@ -103,6 +109,7 @@ export default {
         <SecretSelector
           v-model="value.ca_path"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.splunk.caPath')"
           :show-key-selector="true"
@@ -114,6 +121,7 @@ export default {
         <SecretSelector
           v-model="value.client_cert"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.splunk.clientCert')"
           :show-key-selector="true"
@@ -123,6 +131,7 @@ export default {
         <SecretSelector
           v-model="value.client_key"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.splunk.clientKey')"
           :show-key-selector="true"

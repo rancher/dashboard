@@ -19,6 +19,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   }
 };
 </script>
@@ -49,6 +53,7 @@ export default {
         <SecretSelector
           v-model="value.aws_key_id"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.cloudwatch.keyId')"
           :show-key-selector="true"
@@ -58,6 +63,7 @@ export default {
         <SecretSelector
           v-model="value.aws_sec_key"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.cloudwatch.secretKey')"
           :show-key-selector="true"
