@@ -190,10 +190,6 @@ export const actions = {
       throw new Error('Use value, not val');
     }
 
-    if ( definition.asUserPreference ) {
-      server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
-    }
-
     commit('load', { key, value });
 
     if ( definition.asCookie ) {
@@ -205,18 +201,26 @@ export const actions = {
       this.$cookies.set(`${ cookiePrefix }${ key }`.toUpperCase(), value, opt);
     }
 
-    if ( definition.asUserPreference && server?.data ) {
-      if ( definition.mangleWrite ) {
-        value = definition.mangleWrite(value);
-      }
+    if ( definition.asUserPreference ) {
+      try {
+        server = await dispatch('loadServer', key); // There's no watch on prefs, so get before set...
 
-      if ( definition.parseJSON ) {
-        Vue.set(server.data, key, JSON.stringify(value));
-      } else {
-        Vue.set(server.data, key, value);
-      }
+        if ( server?.data ) {
+          if ( definition.mangleWrite ) {
+            value = definition.mangleWrite(value);
+          }
 
-      server.save();
+          if ( definition.parseJSON ) {
+            Vue.set(server.data, key, JSON.stringify(value));
+          } else {
+            Vue.set(server.data, key, value);
+          }
+
+          await server.save({ redirectUnauthorized: false });
+        }
+      } catch (e) {
+        // Well it failed, but not much to do about it...
+      }
     }
   },
 
@@ -307,9 +311,10 @@ export const actions = {
       const all = await dispatch('management/findAll', {
         type: STEVE.PREFERENCE,
         opt:  {
-          url:   'userpreferences',
-          force: true,
-          watch: false
+          url:                  'userpreferences',
+          force:                true,
+          watch:                false,
+          redirectUnauthorized: false,
         }
       }, { root: true });
 
