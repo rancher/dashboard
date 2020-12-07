@@ -25,18 +25,6 @@ export default function({
 
     $axios.defaults.httpsAgent = insecureAgent;
     $axios.httpsAgent = insecureAgent;
-
-    $axios.onError((error) => {
-      const code = parseInt(error.response && error.response.status, 10);
-
-      if (code === 401) {
-        if ( route.name === 'index' ) {
-          redirect('/auth/login');
-        } else {
-          redirect(`/auth/login?${ TIMED_OUT }`);
-        }
-      }
-    });
   } else if ( process.server ) {
     // For requests from the server, set the base URL to the URL that the request came in on
     $axios.onRequest((config) => {

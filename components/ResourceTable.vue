@@ -103,7 +103,7 @@ export default {
 
       // If the resources isn't namespaced or we want ALL of them, there's nothing to do.
       if ( !this.namespaced || isAll ) {
-        return this.rows;
+        return this.rows || [];
       }
 
       const includedNamespaces = this.$store.getters['namespaces']();

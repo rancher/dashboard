@@ -1,6 +1,6 @@
 import { NORMAN, MANAGEMENT } from '@/config/types';
 import { findBy } from '@/utils/array';
-import { SETUP } from '@/config/query-params';
+import { SETUP, TIMED_OUT } from '@/config/query-params';
 import { get } from '@/utils/object';
 import { ClusterNotFoundError } from '@/utils/error';
 import { applyProducts } from '@/store/type-map';
@@ -79,7 +79,11 @@ export default async function({
 
         if ( status === 401 ) {
           if ( process.env.dev ) {
-            return redirect(302, '/auth/login');
+            if ( route.name === 'index' ) {
+              return redirect(302, '/auth/login');
+            } else {
+              return redirect(302, `/auth/login?${ TIMED_OUT }`);
+            }
           } else if ( process.client ) {
             window.location.href = '/login';
           } else {
