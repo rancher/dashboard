@@ -1,18 +1,6 @@
 <script>
-import LabeledInput from '@/components/form/LabeledInput';
-import LabeledSelect from '@/components/form/LabeledSelect';
-import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
-import UnitInput from '@/components/form/UnitInput';
-import Select from '@/components/form/Select';
-import SecretSelector from '@/components/form/SecretSelector';
-import InputWithSelect from '@/components/form/InputWithSelect';
 
-export default {
-  layout:     'unauthenticated',
-  components: {
-    LabeledInput, LabeledSelect, TextAreaAutoGrow, UnitInput, Select, SecretSelector, InputWithSelect
-  },
-};
+export default { layout: 'unauthenticated' };
 </script>
 
 <template>
