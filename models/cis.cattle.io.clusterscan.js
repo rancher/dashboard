@@ -1,8 +1,10 @@
+import { _CREATE } from '@/config/query-params';
 import { CIS } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { downloadFile, generateZip } from '@/utils/download';
 import { isEmpty, set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
+import day from 'dayjs';
 
 export default {
   _availableActions() {
@@ -47,13 +49,15 @@ export default {
   },
 
   applyDefaults() {
-    return () => {
-      const spec = this.spec || {};
+    return (vm, mode) => {
+      if (mode === _CREATE) {
+        const spec = this.spec || {};
 
-      spec.scanProfileName = null;
-      spec.scoreWarning = 'pass';
-      spec.scheduledScanConfig = { scanAlertRule: {}, retention: 3 };
-      set(this, 'spec', spec);
+        spec.scanProfileName = null;
+        spec.scoreWarning = 'pass';
+        spec.scheduledScanConfig = { scanAlertRule: {}, retentionCount: 3 };
+        set(this, 'spec', spec);
+      }
     };
   },
 
@@ -86,7 +90,7 @@ export default {
 
         const csv = Papa.unparse(testResults);
 
-        downloadFile(`${ report.id }.csv`, csv, 'application/csv');
+        downloadFile(`${ labelFor(report, this.id) }.csv`, csv, 'application/csv');
       } catch (err) {
         this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
       }
@@ -105,7 +109,7 @@ export default {
 
           const csv = Papa.unparse(testResults);
 
-          toZip[`${ report.id }.csv`] = csv;
+          toZip[`${ labelFor(report, this.id) }.csv`] = csv;
         } catch (err) {
           this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
         }
@@ -118,4 +122,12 @@ export default {
     };
   }
 
+};
+
+const labelFor = (report, id) => {
+  const { creationTimestamp } = report.metadata;
+
+  const date = day(creationTimestamp).format('YYYY-MM-DD-HHMMss');
+
+  return `${ id }-report--${ date }`;
 };

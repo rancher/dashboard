@@ -2,17 +2,20 @@
 import Date from '@/components/formatter/Date';
 import SortableTable from '@/components/SortableTable';
 import Banner from '@/components/Banner';
+import LabeledSelect from '@/components/form/LabeledSelect';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { escapeHtml, randomStr } from '@/utils/string';
 import { CIS } from '@/config/types';
 import { STATE } from '@/config/table-headers';
+import { sortBy } from '@/utils/sort';
 
 export default {
   components: {
     Date,
     SortableTable,
     Banner,
+    LabeledSelect
   },
 
   props: {
@@ -162,6 +165,10 @@ export default {
 
       ];
     },
+
+    sortedReports() {
+      return sortBy(this.clusterReports, 'metadata.creationTimestamp', true);
+    }
   },
 
   watch: {
@@ -173,8 +180,10 @@ export default {
       } catch {}
     },
 
-    clusterReports(neu) {
-      this.clusterReport = neu[0];
+    sortedReports(neu) {
+      if (!this.clusterReport) {
+        this.clusterReport = neu[0];
+      }
     }
   },
 
@@ -237,11 +246,19 @@ export default {
         </h3>
       </div>
       <div class="col span-4">
-        <v-select v-model="clusterReport" class="inline" :options="clusterReports" :get-option-label="reportLabel" :get-option-key="report=>report.id" />
+        <LabeledSelect
+          v-model="clusterReport"
+          :label="t('cis.reports')"
+          class="inline"
+          :options="sortedReports"
+          :get-option-label="reportLabel"
+          :get-option-key="report=>report.id"
+        />
       </div>
     </div>
-    <div v-if="results.length">
+    <div v-if="results && !!value.status.summary">
       <SortableTable
+        no-rows-key="cis.noReportFound"
         default-sort-by="state"
         :search="false"
         :row-actions="false"
