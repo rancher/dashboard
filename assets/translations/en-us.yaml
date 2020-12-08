@@ -814,6 +814,27 @@ logging:
   sumologic:
     endpoint: Endpoint
     sourceName: Source Name
+  syslog:
+    host: Host
+    port: Port
+    transport: Transport
+    insecure: insecure
+    trustedCaPath: Trusted CA Path
+    format:
+      title: Format
+      type: Type
+      addNewLine: Add New Line
+      messageKey: Message Key
+    buffer:
+      title: Buffer
+      tags: Tags
+      chunkLimitSize: Chunk Limit Size
+      chunkLimitRecords: Chunk Limit chunkLimitRecords
+      totalLimitSize: Total Limit Size
+      flushInterval: Flush Interval
+      timekey: Timekey
+      timekeyWait: Timekey Wait
+      timekeyUseUTC: Timekey Use UTC
   s3:
     keyId: Key Id
     secretKey: Secret Key
@@ -846,6 +867,7 @@ logging:
     logz: LogZ
     newrelic: New Relic
     sumologic: SumoLogic
+    syslog: Syslog
     s3: S3
     unknown: Unknown
   overview:

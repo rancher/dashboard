@@ -72,6 +72,7 @@ export default {
 <template>
   <label
     class="checkbox-container"
+    :class="{disabled}"
     @keydown.enter.prevent="clicked($event)"
     @keydown.space.prevent="clicked($event)"
     @click.stop.prevent="clicked($event)"
@@ -192,8 +193,12 @@ export default {
     background-color: transparent;
   }
 
-  input:disabled ~ .checkbox-custom {
+  input:disabled  ~ .checkbox-custom {
     background-color: var(--disabled-bg);
+  }
+
+  &.disabled {
+    cursor: not-allowed;
   }
 
   .checkbox-view {
