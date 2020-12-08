@@ -21,11 +21,14 @@ TEXTAREA,
   padding: 8px;
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
-  border: solid var(--outline-width) var(--input-border);
+  border: solid var(--border-width) var(--input-border);
   color: var(--input-text);
 
   @include input-status-color;
 
+  LABEL {
+    color: var(--input-label);
+  }
   &:hover {
     &, .vs__dropdown-menu {
       background: var(--input-hover-bg);

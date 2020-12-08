@@ -67,23 +67,33 @@ export default {
         :tooltip="tooltip"
       />
     </div>
-    <div class="m-20">
-      <LabeledInput
-        v-model="b"
-        label="Multiline"
-        type="multiline"
-        :mode="mode"
-        :tooltip="tooltip"
-      />
-    </div>
-    <div class="m-20">
-      <LabeledSelect
-        v-model="c"
-        label="Labeled Select"
-        :options="['foo','bar','baz']"
-        :mode="mode"
-        :tooltip="tooltip"
-      />
+    <div class="row m-20" style="background: #333333">
+      <div class="col span-4">
+        <LabeledInput
+          v-model="m"
+          label="Labeled Input"
+          :mode="mode"
+          :tooltip="tooltip"
+        />
+      </div>
+      <div class="col span-4">
+        <LabeledInput
+          v-model="m"
+          label="Multiline"
+          type="multiline"
+          :mode="mode"
+          :tooltip="tooltip"
+        />
+      </div>
+      <div class="col span-4">
+        <LabeledSelect
+          v-model="m"
+          label="Labeled Select"
+          :options="['foo','bar','baz']"
+          :mode="mode"
+          :tooltip="tooltip"
+        />
+      </div>
     </div>
     <div class="m-20">
       <UnitInput

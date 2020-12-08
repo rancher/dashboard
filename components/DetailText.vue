@@ -173,7 +173,7 @@ export default {
   position: relative;
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
-  border: solid var(--outline-width) var(--input-border);
+  border: solid var(--border-width) var(--input-border);
 
   > button {
     position: absolute;
