@@ -2,7 +2,6 @@
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
 import { CATALOG } from '@/config/types';
-import { allHash } from '@/utils/promise';
 import { get } from '@/utils/object';
 const semver = require('semver');
 
@@ -22,16 +21,13 @@ export default {
   },
 
   async fetch() {
-    const hash = await allHash({
-      rows: this.$store.dispatch('cluster/findAll', { type: this.resource }),
-      app:  this.$store.dispatch('cluster/find', {
+    this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
+    try {
+      this.app = await this.$store.dispatch('cluster/find', {
         type: CATALOG.APP,
         id:   `cis-operator-system/rancher-cis-benchmark`,
-      })
-    });
-
-    this.rows = hash.rows;
-    this.app = hash.app;
+      });
+    } catch {}
   },
 
   data() {
@@ -41,7 +37,7 @@ export default {
   computed: {
     hasWarningState() {
       if (!this.app) {
-        return false;
+        return true;
       }
       const version = get(this.app, 'spec.chart.metadata.version');
 

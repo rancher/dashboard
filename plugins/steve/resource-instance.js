@@ -1463,11 +1463,10 @@ export default {
         let matching = this.$getters['byId'](type, id);
 
         if ( !matching ) {
-          matching = await this.$dispatch('find', { type, id });
-        }
-
-        if ( matching ) {
-          addObject(out, matching);
+          try {
+            matching = await this.$dispatch('find', { type, id });
+            addObject(out, matching);
+          } catch {}
         }
       }
 

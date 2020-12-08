@@ -41,7 +41,6 @@ export default {
     const hash = await allHash({
       profiles:         this.$store.dispatch('cluster/findAll', { type: CIS.CLUSTER_SCAN_PROFILE }),
       benchmarks:       this.$store.dispatch('cluster/findAll', { type: CIS.BENCHMARK }),
-      defaultConfigMap: this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'cis-operator-system/default-clusterscanprofiles' }),
     });
 
     try {
@@ -51,6 +50,10 @@ export default {
     } catch {
       this.hasAlertManager = false;
     }
+
+    try {
+      this.defaultConfigMap = await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'cis-operator-system/default-clusterscanprofiles' });
+    } catch {}
 
     this.allProfiles = hash.profiles;
     this.defaultConfigMap = hash.defaultConfigMap;
