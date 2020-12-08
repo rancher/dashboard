@@ -298,28 +298,36 @@ export const DESTINATION = {
 };
 
 export const USERNAME = {
-  name:     'username',
-  labelKey: 'tableHeaders.username',
-  value:    'username'
+  name:        'username',
+  labelKey:    'tableHeaders.username',
+  value:       'username',
+  dashIfEmpty: true,
+  sort:        'username',
 };
 
 export const USER_DISPLAY_NAME = {
-  name:     'display name',
-  labelKey: 'tableHeaders.userDisplayName',
-  value:    'name'
+  name:          'name',
+  labelKey:      'tableHeaders.name',
+  value:         'nameDisplay',
+  sort:          ['nameSort'],
+  dashIfEmpty:   true,
+};
+
+export const USER_PROVIDER = {
+  name:        'provider',
+  labelKey:    'tableHeaders.provider',
+  value:       'providerDisplay',
+  dashIfEmpty: true,
+  sort:        'providerDisplay',
 };
 
 export const USER_ID = {
-  name:     'user-id',
-  labelKey: 'tableHeaders.userId',
-  value:    'id'
-};
-
-export const USER_STATUS = {
-  name:      'user-state',
-  labelKey:  'tableHeaders.userStatus',
-  value:     'stateDisplay',
-  formatter: 'BadgeStateFormatter'
+  name:          'user-id',
+  labelKey:      'tableHeaders.userId',
+  value:         'id',
+  formatter:     'LinkDetail',
+  canBeVariable: true,
+  sort:          'id',
 };
 
 export const ADDRESS = {

@@ -9,6 +9,7 @@ import { sortBy } from '@/utils/sort';
 import { filterBy, findBy } from '@/utils/array';
 import { BOTH, CLUSTER_LEVEL, NAMESPACED } from '@/store/type-map';
 import { NAME as EXPLORER } from '@/config/product/explorer';
+import { TIMED_OUT } from '@/config/query-params';
 
 // Disables strict mode for all store instances to prevent warning about changing state outside of mutations
 // becaues it's more efficient to do that sometimes.
@@ -531,7 +532,7 @@ export const actions = {
     commit('updateNamespaces', { filters: value });
   },
 
-  async onLogout({ dispatch, commit }) {
+  async onLogout({ dispatch, commit, state }) {
     await dispatch('management/unsubscribe');
     commit('managementChanged', { ready: false });
     commit('management/reset');
@@ -542,6 +543,15 @@ export const actions = {
 
     commit('rancher/reset');
     commit('catalog/reset');
+
+    const router = state.$router;
+    const route = router.currentRoute;
+
+    if ( route.name === 'index' ) {
+      router.replace('/auth/login');
+    } else {
+      router.replace(`/auth/login?${ TIMED_OUT }`);
+    }
   },
 
   nuxtServerInit({ dispatch, rootState }, nuxt) {

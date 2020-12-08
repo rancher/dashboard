@@ -1238,10 +1238,28 @@ rbac:
       label: User
     role:
       label: Role
+    add: Add Member
   displayRole:
     fleetworkspace-admin: Admin
     fleetworkspace-member: Member
     fleetworkspace-readonly: Read-Only
+  user:
+    provider:
+      system: System
+      local: Local
+      multiple: Multiple
+      activedirectory: ActiveDirectory
+      azuread: AzureAD
+      github: GitHub
+      keycloak: Keycloak
+      ldap: LDAP
+      openldap: OpenLDAP
+      shibboleth: Shibboleth
+      ping: Ping IDentity
+      adfs: ADFS
+      okta: Okta
+      freeipa: FreeIPA
+      googleoauth: Google
 
 
 resourceDetail:
@@ -1522,6 +1540,7 @@ tableHeaders:
   p95: 95%tile
   podImages: Image
   pods: Pods
+  provider: Provider
   ram: RAM
   rbac:
     create: Create
@@ -1562,7 +1581,7 @@ tableHeaders:
   userDisplayName: Display Name
   userId: ID
   userStatus: Status
-  username: Username
+  username: Local Username
   value: Value
   version: Version
   weight: Weight

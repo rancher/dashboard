@@ -618,7 +618,7 @@ export default {
                   v-model="container.image"
                   :mode="mode"
                   :label="t('workload.container.image')"
-                  placeholder="eg nginx:latest"
+                  placeholder="e.g. nginx:latest"
                   required
                 />
               </div>

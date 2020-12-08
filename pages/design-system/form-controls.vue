@@ -6,6 +6,9 @@ import Select from '@/components/form/Select';
 import SecretSelector from '@/components/form/SecretSelector';
 import InputWithSelect from '@/components/form/InputWithSelect';
 import ButtonGroup from '@/components/ButtonGroup';
+import { mapPref, THEME } from '@/store/prefs';
+import { ucFirst } from '@/utils/string';
+
 export default {
   layout:     'unauthenticated',
   components: {
@@ -33,13 +36,27 @@ export default {
       i:       'i',
     };
   },
+
+  computed: {
+    theme: mapPref(THEME),
+
+    themeOptions() {
+      return this.$store.getters['prefs/options'](THEME).map((value) => {
+        return {
+          label: ucFirst(value),
+          value
+        };
+      });
+    },
+  }
 };
 </script>
 <template>
   <div>
     <div class="m-20">
       <ButtonGroup v-model="mode" :options="[{label: 'Edit', value: 'edit'},{label: 'View', value: 'view'}]" class="mr-20" />
-      <ButtonGroup v-model="tooltip" :options="[{label: 'No Tooltip', value: ''},{label: 'Yes Tooltip', value: 'hello world'}]" />
+      <ButtonGroup v-model="tooltip" :options="[{label: 'No Tooltip', value: ''},{label: 'Yes Tooltip', value: 'hello world'}]" class="mr-20" />
+      <ButtonGroup v-model="theme" :options="themeOptions" />
     </div>
 
     <div class="m-20">
