@@ -19,6 +19,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   }
 };
 </script>
@@ -46,6 +50,7 @@ export default {
         <SecretSelector
           v-model="value.endpoint"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.sumologic.endpoint')"
           :show-key-selector="true"

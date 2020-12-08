@@ -19,6 +19,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   }
 };
 </script>
@@ -42,10 +46,12 @@ export default {
       </div>
     </div>
     <div class="row mb-10">
+      {{ value.namespace }}
       <div class="col span-6">
         <SecretSelector
           v-model="value.endpoint.access_key_id"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.awsElasticsearch.keyId')"
           :show-key-selector="true"
@@ -55,7 +61,9 @@ export default {
         <SecretSelector
           v-model="value.endpoint.secret_access_key"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
+          :label="t('logging.awsElasticsearch.secretKey')"
           :show-key-selector="true"
         />
       </div>

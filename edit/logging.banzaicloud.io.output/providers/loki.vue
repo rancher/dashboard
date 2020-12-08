@@ -22,6 +22,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   },
   data() {
     return {};
@@ -55,6 +59,7 @@ export default {
         <SecretSelector
           v-model="value.username"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.loki.username')"
           :show-key-selector="true"
@@ -64,6 +69,7 @@ export default {
         <SecretSelector
           v-model="value.password"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.loki.password')"
           :show-key-selector="true"
@@ -81,6 +87,7 @@ export default {
         <SecretSelector
           v-model="value.ca_cert"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.loki.caCert')"
           :show-key-selector="true"
@@ -90,6 +97,7 @@ export default {
         <SecretSelector
           v-model="value.cert"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.loki.cert')"
           :show-key-selector="true"
@@ -101,6 +109,7 @@ export default {
         <SecretSelector
           v-model="value.key"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.loki.key')"
           :show-key-selector="true"

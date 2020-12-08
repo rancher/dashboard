@@ -22,6 +22,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   },
   computed: {
     port: {
@@ -62,6 +66,7 @@ export default {
         <SecretSelector
           v-model="value.endpoint.token"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.logz.token')"
           :show-key-selector="true"

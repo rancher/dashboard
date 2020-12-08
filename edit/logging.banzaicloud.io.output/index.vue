@@ -124,7 +124,7 @@ export default {
             </div>
           </div>
           <div class="spacer"></div>
-          <component :is="getComponent(selectedProvider)" :value="value.spec[selectedProvider]" :mode="mode" />
+          <component :is="getComponent(selectedProvider)" :value="value.spec[selectedProvider]" :namespace="value.namespace" :mode="mode" />
         </Tab>
         <Tab
           v-if="!isView"

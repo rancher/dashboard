@@ -89,6 +89,7 @@ export default {
       <SecretSelector
         v-model="f"
         :mode="mode"
+        namespace="default"
         :tooltip="tooltip"
         label="Secret"
         :show-key-selector="false"
@@ -98,6 +99,7 @@ export default {
       <SecretSelector
         v-model="g"
         :mode="mode"
+        namespace="default"
         :tooltip="tooltip"
         label="Secret+Key"
         :show-key-selector="true"

@@ -22,6 +22,10 @@ export default {
       type:     String,
       required: true,
     },
+    namespace: {
+      type:     String,
+      required: true
+    }
   },
   computed: {
     overwrite: {
@@ -70,6 +74,7 @@ export default {
         <SecretSelector
           v-model="value.aws_key_id"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.s3.keyId')"
           :show-key-selector="true"
@@ -79,6 +84,7 @@ export default {
         <SecretSelector
           v-model="value.aws_sec_key"
           :mode="mode"
+          :namespace="namespace"
           :disabled="disabled"
           :label="t('logging.s3.secretKey')"
           :show-key-selector="true"
