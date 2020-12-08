@@ -63,7 +63,7 @@ export default {
   },
 
   async fetch() {
-    const hash = { users: this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER }) };
+    const hash = { allUsers: this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER }) };
 
     if ( this.roleScope === SCOPE_NAMESPACE ) {
       hash.allRoles = this.$store.dispatch('cluster/findAll', { type: RBAC.ROLE });
@@ -102,7 +102,7 @@ export default {
     return {
       allRoles:    null,
       allBindings: null,
-      users:       null,
+      allUsers:    null,
       rows:        null,
     };
   },
@@ -113,9 +113,13 @@ export default {
     },
 
     userOptions() {
-      return this.users.map((x) => {
-        // displayName is a property actually on the user object, different the regular computed nameDisplay
-        return { label: `${ x.displayName } (${ x.id })`, value: x.id };
+      return this.allUsers.filter((x) => {
+        return !x.isSystem;
+      }).map((x) => {
+        return {
+          label: x.labelForSelect,
+          value: x.id,
+        };
       });
     },
 
@@ -316,10 +320,10 @@ export default {
 
     add() {
       this.rows.push({
-        subjectKind:      'User',
-        subject:          '',
-        roleKind:         this.roleScope,
-        role:             '',
+        subjectKind: 'User',
+        subject:     '',
+        roleKind:    this.roleScope,
+        role:        '',
       });
     }
   },
@@ -356,7 +360,7 @@ export default {
       </div>
     </div>
     <div>
-      <button v-t="'generic.add'" type="button" class="btn role-tertiary add" @click="add()" />
+      <button v-t="'rbac.roleBinding.add'" type="button" class="btn role-tertiary add" @click="add()" />
     </div>
   </div>
 </template>
