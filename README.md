@@ -45,6 +45,10 @@ docker run -v $(pwd):/src \
 
 Dashboard is "stateless" client for the Rancher APIs built with [Vue.js](https://vuejs.org/) and [NuxtJS](https://nuxtjs.org/).  It is normally build and packaged as a folder of static HTML/CSS/JS files which are bundled into a Rancher release, with the index.html returned by the API server as the "fallback" case for any request that looks like it came from a browser and does not match an API URL.
 
+Every k8s type, namespace, and operation that the logged in user has been granted access to is shown to them.  The default view for everything is the raw YAML from the k8s API for detail pages, and the `Table` view column data for list pages (i.e. what you get from `kubectl get <type> -o wide`).
+
+From there we can customize anything from what columns are shown and in what format to complete custom forms for graphically editing that resource instead of editing YAML.
+
 ## Directory Structure
 
 The directory structure is mostly flat, with each top level dir being for a different important thing (or just requied by Nuxt to be there).
@@ -61,6 +65,22 @@ detail | Custom components to show as the detail view for a particular resource 
 edit | Custom components to show as the edit (or view config) view for a particular resource instance
 list | Custom components to show as the list view for a resource type
 models | Custom logic extending the standard `resource-instance` "class" for each API type and model returned by the API
+
+There is one `Config` entry for each "product", which are the result of installing one of our helm charts to add a feature into Rancher such as Istio, monitoring, logging, CIS scans, etc.  The config defines things like:
+  - The condition for when that product should appear (usually the presense of a type in a certain k8s API group)
+  - What types should appear in the left nav, how they're labeled, grouped, ordered
+  - Custom table headers for each type
+
+Helm charts have a generic installer control which lets you edit their `values.yaml` by default.  To present a custom form for the user to configure a chart (especially the ones for our products), you create a matching `chart/<name>.vue` component, where the name corresponds to the `catalog.cattle.io/ui-component` annotation's value on the chart.
+
+Similarly, instead of a generic YAML detail or edit screen, you can provide your own component for any type in `detail/<type>.vue` or `edit/<type>.vue`.  Detail components should generally use the `<ResourceTabs>` component to show the standard detail tabs + any specific ones you want to define.  Edit components similarly generally use `<CruResource>`.
+
+To customize the list view for a type, you can either change the header definitions (in `config/`) or provide a `list/<type>.vue` component to use instead of the standard one.
+
+All objects returned from the API have a "base-class" (technically not _really_, but logically) of `resource-instance`.  Every individual type can add additional behavior to its "sub-class" in `models/<type>.js`.
+
+All `<type>`s throughout are the **lowercased** version of the k8s API group and kind, such as `apps.deployment`.  Lowercase won't matter in case-insensitive macOS but will break when built in CI or on Linux.  Use the "Jump" menu in the UI to find the type you want and then copy the string out of the URL.
+
 
 ### Other commonly changed stuff
 
@@ -109,32 +129,33 @@ Endpoint                 | Notes
 `/k8s/clusters/<id>`     | Proxy straight to the native k8s API for the given downstream cluster
 `/k8s/clusters/<id>/v1`  | Steve API for given downstream cluster via the server proxy
 
-## Customizing resource views
-
-@TODO Detail, edit, list, chart components and product config
-
 ## Vuex Stores
 
-@TODO
-action-menu
-auth
-catalog
-github
-growl
-i18n
-index
-prefs
-shell
-type-map
-wm
+There are 3 main stores for communicating with different parts of the Rancher API:
+- `management`: Points at the global-level "steve" API for Rancher as a whole.
+- `cluster`: Points at "steve" for the one currently selected cluster; changes when you change clusters.
+- `rancher`: Points at the "norman" API, primaily for global-level resources, but some cluster-level resources are actually stored here and not physically in the cluster to be available to the `cluster` store.
 
-management
-cluster
-rancher
+And then a bunch of others:
 
-## Steve Client
+Name                 | For
+---------------------|-------
+action-menu | Maintains the current selection for tables and handling bulk operations on them
+auth | Authentication, logging in and out, etc
+catalog | Stores the index data for Helm catalogs and methods to find charts, determine if upgrades are available, etc
+github | Part of authentication, communicating with the GitHub API
+growl | Global "growl" notifications in the corner of the screen
+i18n | Internationalization
+index | The root store, manages things like which cluster you're connected to and what namespaces should be shown
+prefs | User preferences
+type-map | Meta-information about all the k8s types that are available to the current user and how they should be displayed
+wm | "Window manager" at the bottom of the screen for things like contianer shells and logs.
 
-@TODO How types are managed & synched, models, websocket, making API calls
+## Synching state
+
+The high-level way the entire UI works is that API calls are made to load data from the server, and then a "watch" is started to notify us of changes so that information can be kept up to date at all times without polling or refreshing.  You can load a single resource by ID, an entire collection of all those resources, or something in between, and they should still stay up to date.  This works by having an array of a single authorititive copy of all the "known" models saved in the API stores (`management` & `cluster`) and updating the data when an event is received from the "subscribe" websocket.  The update is done on the _existing_ copy, so that anything that refers to it finds out that it changed through Vue's reactivity.  When manipulating models or collections of results from the API, some care is needed to make sure you are keeping that single copy and not making extras or turning a "live" array of models into a "dead" clone of it.
+
+  The most basic operations are `find({type, id})` to load a single resource by ID, `findAll({type})` load all of them.  These (anything starting with `find`) are async calls to the API.  Getters like `all(type)` and `byId(type, id)` are synchronous and return only info that has already been previously loaded.  See `plugins/steve/` for all the available actions and getters.
 
 ## Internationalization (i18n)
 
