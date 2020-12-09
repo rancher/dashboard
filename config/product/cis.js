@@ -138,7 +138,7 @@ export function init(store) {
       name:          'isDefault',
       labelKey:      'tableHeaders.default',
       formatter:     'IconText',
-      formatterOpts: { getIcon: row => row.spec.customBenchmarkConfigMapName ? 'icon-x icon-2x' : 'icon-checkmark icon-2x' }
+      formatterOpts: { getIcon: row => row.isCustom ? 'icon-checkmark icon-2x' : 'icon-x icon-2x' }
     },
     AGE
   ]);

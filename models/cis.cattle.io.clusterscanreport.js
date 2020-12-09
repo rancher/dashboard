@@ -13,10 +13,30 @@ export default {
       return all;
     }, []) : null;
 
-    const withPadding = str => (str || '').split('.').map(n => +n + 1000).join('.');
+    const sortableId = id => (id || '').split('.').map(n => +n + 1000).join('.');
+    const sortableState = (state) => {
+      const SORT_ORDER = {
+        other:         7,
+        notApplicable: 6,
+        skip:          5,
+        pass:          4,
+        warn:          3,
+        mixed:         2,
+        fail:          1,
+      };
+
+      return `${ SORT_ORDER[state] || SORT_ORDER['other'] } ${ state }`;
+    };
 
     const sorted = flattened.slice().sort((a, b) => {
-      return compare(withPadding(a.id), withPadding(b.id));
+      const stateSort = compare(sortableState(a.state), sortableState(b.state));
+      const idSort = compare(sortableId(a.id), sortableId(b.id));
+
+      if (stateSort) {
+        return stateSort;
+      }
+
+      return idSort;
     });
 
     return sorted;
