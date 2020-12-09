@@ -82,6 +82,9 @@ export default {
       this.path = values.text;
       this.pathType = values.selected;
       this.update();
+    },
+    focus() {
+      this.$refs.first.focus();
     }
   }
 };
@@ -90,6 +93,7 @@ export default {
   <div class="rule-path row">
     <div v-if="ingress.showPathType" class="col span-6">
       <InputWithSelect
+        ref="first"
         class="path-type"
         :options="pathTypes"
         :placeholder="t('ingress.rules.path.placeholder', undefined, true)"
@@ -100,7 +104,7 @@ export default {
       />
     </div>
     <div v-else class="col span-4">
-      <input v-model="path" :placeholder="t('ingress.rules.path.placeholder', undefined, true)" @input="queueUpdate" />
+      <input ref="first" v-model="path" :placeholder="t('ingress.rules.path.placeholder', undefined, true)" @input="queueUpdate" />
     </div>
     <div class="col" :class="{'span-3': ingress.showPathType, 'span-4': !ingress.showPathType}">
       <Select

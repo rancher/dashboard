@@ -85,6 +85,13 @@ export default {
     rows() {
       return this.value.createRulesForListPage(this.workloads, this.certificates);
     }
+  },
+  methods: {
+    onAdd() {
+      if (this.$refs.lastRule?.focus) {
+        this.$refs.lastRule.focus();
+      }
+    }
   }
 };
 </script>
@@ -102,9 +109,10 @@ export default {
     />
   </div>
   <div v-else>
-    <ArrayListGrouped v-model="value.spec.rules" :add-label="t('ingress.rules.addRule')" :default-add-value="{}">
+    <ArrayListGrouped v-model="value.spec.rules" :add-label="t('ingress.rules.addRule')" :default-add-value="{}" @add="onAdd">
       <template #default="props">
         <Rule
+          ref="lastRule"
           v-model="props.row.value"
           :service-targets="serviceTargets"
           :ingress="value"
