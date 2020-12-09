@@ -1465,8 +1465,11 @@ export default {
         if ( !matching ) {
           try {
             matching = await this.$dispatch('find', { type, id });
-            addObject(out, matching);
-          } catch {}
+          } catch {
+          }
+        }
+        if (matching) {
+          addObject(out, matching);
         }
       }
 

@@ -56,7 +56,6 @@ export default {
     } catch {}
 
     this.allProfiles = hash.profiles;
-    this.defaultConfigMap = hash.defaultConfigMap;
   },
 
   data() {

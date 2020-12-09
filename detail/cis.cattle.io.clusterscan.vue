@@ -3,6 +3,7 @@ import Date from '@/components/formatter/Date';
 import SortableTable from '@/components/SortableTable';
 import Banner from '@/components/Banner';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import Loading from '@/components/Loading';
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { escapeHtml, randomStr } from '@/utils/string';
@@ -15,7 +16,8 @@ export default {
     Date,
     SortableTable,
     Banner,
-    LabeledSelect
+    LabeledSelect,
+    Loading
   },
 
   props: {
@@ -228,7 +230,8 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
     <div class="detail mb-20">
       <div v-for="item in details" :key="item.label">
         <span class="text-label">{{ item.label }}</span>:
