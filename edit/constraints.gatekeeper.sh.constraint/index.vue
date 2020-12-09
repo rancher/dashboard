@@ -71,7 +71,7 @@ export default {
       this.$set(this.value, 'spec', merge(this.value.spec, emptySpec));
 
       if (!this.value.spec.match.scope) {
-        this.$set(this.value.spec.match, 'scope', SCOPE_OPTIONS[0]);
+        this.$set(this.value.spec.match, 'scope', SCOPE_OPTIONS[0].value);
       }
     } else {
       this.$set(this.value.spec, 'match', this.value.spec.match || {});
