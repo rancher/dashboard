@@ -34,6 +34,9 @@ export default {
       g:       'g',
       h:       'h',
       i:       'i',
+      n:       'n',
+      m:       'm',
+      x:       'x',
     };
   },
 
@@ -67,10 +70,10 @@ export default {
         :tooltip="tooltip"
       />
     </div>
-    <div class="row m-20" style="background: #333333">
+    <div class="row m-20">
       <div class="col span-4">
         <LabeledInput
-          v-model="m"
+          v-model="x"
           label="Labeled Input"
           :mode="mode"
           :tooltip="tooltip"
@@ -78,7 +81,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledInput
-          v-model="m"
+          v-model="x"
           label="Multiline"
           type="multiline"
           :mode="mode"
@@ -87,7 +90,7 @@ export default {
       </div>
       <div class="col span-4">
         <LabeledSelect
-          v-model="m"
+          v-model="x"
           label="Labeled Select"
           :options="['foo','bar','baz']"
           :mode="mode"

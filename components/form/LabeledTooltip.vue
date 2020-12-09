@@ -51,8 +51,8 @@ export default {
 
     .status-icon {
         position:  absolute;
-        right: 15px;
-        top: 14px;
+        right: 30px;
+        top: 16px;
         font-size: 20px;
         z-index: z-index(hoverOverContent);
 
