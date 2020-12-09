@@ -304,7 +304,6 @@ export default {
           if ( value && this.valueBase64 ) {
             value = base64Encode(value);
           }
-
           if ( key && (value || this.valueCanBeEmpty) ) {
             out[key] = value;
           }
