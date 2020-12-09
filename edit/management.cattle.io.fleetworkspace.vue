@@ -74,7 +74,7 @@ export default {
       <Tab name="members" label-key="generic.members" :weight="2">
         <RoleBindings
           ref="rb"
-          :register-before-hook="registerBeforeHook"
+          :register-after-hook="registerAfterHook"
           :role-scope="SCOPE_CLUSTER"
           :binding-scope="SCOPE_NAMESPACE"
           :filter-role-value="FLEET_NAME"

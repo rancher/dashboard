@@ -58,24 +58,28 @@ export default {
 <template>
   <header>
     <TypeDescription :resource="resource" />
-    <h1>
-      {{ typeDisplay }} <Favorite v-if="isExplorer" :resource="resource" />
-    </h1>
-    <div class="actions">
-      <n-link
-        v-if="isCreatable"
-        :to="createLocation"
-        class="btn role-primary"
-      >
-        {{ t("resourceList.head.create") }}
-      </n-link>
-      <n-link
-        v-else-if="isYamlCreatable"
-        :to="yamlCreateLocation"
-        class="btn role-primary"
-      >
-        {{ t("resourceList.head.createFromYaml") }}
-      </n-link>
+    <div class="title">
+      <h1 class="m-0">
+        {{ typeDisplay }} <Favorite v-if="isExplorer" :resource="resource" />
+      </h1>
+    </div>
+    <div class="actions-container">
+      <div class="actions">
+        <n-link
+          v-if="isCreatable"
+          :to="createLocation"
+          class="btn role-primary"
+        >
+          {{ t("resourceList.head.create") }}
+        </n-link>
+        <n-link
+          v-else-if="isYamlCreatable"
+          :to="yamlCreateLocation"
+          class="btn role-primary"
+        >
+          {{ t("resourceList.head.createFromYaml") }}
+        </n-link>
+      </div>
     </div>
   </header>
 </template>

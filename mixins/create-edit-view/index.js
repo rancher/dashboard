@@ -1,3 +1,4 @@
+import { _EDIT, _YAML } from '@/config/query-params';
 import impl from './impl';
 
 export default {
@@ -6,12 +7,12 @@ export default {
   props: {
     mode: {
       type:     String,
-      required: true,
+      default: _EDIT,
     },
 
     as: {
       type:     String,
-      required: true,
+      default: _YAML,
     },
 
     value: {

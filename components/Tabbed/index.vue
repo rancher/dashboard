@@ -40,6 +40,8 @@ export default {
     const tabs = this.tabs;
 
     return {
+      sideTabs: this.sideTabs,
+
       addTab(tab) {
         const existing = findBy(tabs, 'name', tab.name);
 
