@@ -1318,7 +1318,7 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
   groupLabel:
-    namespace: "<span>Namespace:</span> {name/&}"
+    namespace: "<span>Namespace:</span> {name}"
     notInANamespace: Not Namespaced
     notInAProject: Not in a Project
     project: "<span>Project:</span> {name}"
