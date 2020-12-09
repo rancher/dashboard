@@ -1234,6 +1234,7 @@ promptRemove:
 
 rbac:
   roleBinding:
+    noData: There are no members associated with this resource.
     user:
       label: User
     role:
@@ -1317,7 +1318,7 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
   groupLabel:
-    namespace: "<span>Namespace:</span> {name}"
+    namespace: "<span>Namespace:</span> {name/&}"
     notInANamespace: Not Namespaced
     notInAProject: Not in a Project
     project: "<span>Project:</span> {name}"
@@ -1325,9 +1326,15 @@ resourceTable:
     workspace: "<span>Workspace:</span> {name}"
 
 resourceTabs:
-  tabs:
-    conditions: Conditions
-    events: Recent Events
+  conditions:
+    tab: Conditions
+  events:
+    tab: Recent Events
+  related:
+    tab: Related Resources
+    from: Referred To By
+    to: Refers To
+
 
 resourceYaml:
   errors:
@@ -1560,6 +1567,7 @@ tableHeaders:
   resources: Resources
   restarts: Restarts
   rioImage: Image
+  role: Role
   roles: Roles
   scale: Scale
   selector: Selector
@@ -1569,6 +1577,7 @@ tableHeaders:
   started: Started
   state: State
   status: Status
+  subject: Subject
   success: Success
   summary: Summary
   target: Target
@@ -1867,7 +1876,7 @@ workload:
     podIP: Pod IP
     podRestarts: Pod Restarts
     workload: Workload
-    pods: Pods
+    pods: Pods by State
     runs: Runs
   gaugeStates:
     active: Active

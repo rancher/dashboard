@@ -20,19 +20,6 @@ export default {
 
   mixins: [CreateEditView],
 
-  props:      {
-    value: {
-      type:    Object,
-      default: () => {
-        return {};
-      }
-    },
-    mode: {
-      type:    String,
-      default: 'view'
-    }
-  },
-
   async fetch() {
     const hash = {
       pods: this.value.pods(),
@@ -195,7 +182,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <h3 class="mt-20">
+    <h3>
       {{ isJob || isCronJob ? t('workload.detailTop.runs') :t('workload.detailTop.pods') }}
     </h3>
     <div v-if="pods" class="gauges mb-20">
@@ -220,7 +207,7 @@ export default {
         />
       </template>
     </div>
-    <ResourceTabs>
+    <ResourceTabs :value="value">
       <Tab v-if="jobs && jobs.length" name="jobs" :label="t('tableHeaders.jobs')">
         <ResourceTable
           :rows="jobs"
@@ -247,11 +234,11 @@ export default {
   </div>
 </template>
 
-<style lang='scss' scoped>
-.gauges {
-  display: flex;
-  justify-content: space-around;
-  &>*{
+  <style lang='scss' scoped>
+  .gauges {
+    display: flex;
+    justify-content: space-around;
+    &>*{
     flex: 1;
     margin-right: $column-gutter;
   }

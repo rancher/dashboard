@@ -291,8 +291,8 @@ export default {
               {{ parent.displayName }}:
             </nuxt-link>
             <t :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="value.nameDisplay" />
+            <BadgeState v-if="!isCreate && parent.showState" class="masthead-state" :value="value" />
           </h1>
-          <BadgeState v-if="!isCreate && parent.showState" :value="value" />
         </div>
         <div v-if="!isCreate" class="subheader">
           <span v-if="isNamespace && project">{{ t("resourceDetail.masthead.project") }}: {{ project.nameDisplay }}</span>
@@ -302,31 +302,33 @@ export default {
         </div>
       </div>
       <slot name="right">
-        <div class="actions">
-          <ButtonGroup
-            v-if="showSensitiveToggle"
-            :value="!!hideSensitiveData"
-            icon-size="lg"
-            :options="sensitiveOptions"
-            @input="toggleSensitiveData"
-          />
+        <div class="actions-container">
+          <div class="actions">
+            <ButtonGroup
+              v-if="showSensitiveToggle"
+              :value="!!hideSensitiveData"
+              icon-size="lg"
+              :options="sensitiveOptions"
+              @input="toggleSensitiveData"
+            />
 
-          <ButtonGroup
-            v-if="viewOptions && isView"
-            v-model="currentView"
-            :options="viewOptions"
-          />
+            <ButtonGroup
+              v-if="viewOptions && isView"
+              v-model="currentView"
+              :options="viewOptions"
+            />
 
-          <button
-            v-if="isView"
-            ref="actions"
-            aria-haspopup="true"
-            type="button"
-            class="btn btn-sm role-multi-action actions"
-            @click="showActions"
-          >
-            <i class="icon icon-actions" />
-          </button>
+            <button
+              v-if="isView"
+              ref="actions"
+              aria-haspopup="true"
+              type="button"
+              class="btn btn-sm role-multi-action actions"
+              @click="showActions"
+            >
+              <i class="icon icon-actions" />
+            </button>
+          </div>
         </div>
       </slot>
     </header>
@@ -343,6 +345,13 @@ export default {
 
 <style lang='scss' scoped>
   .masthead {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 10px;
+  }
+
+  HEADER {
+    margin: 0;
   }
 
   .primaryheader {
@@ -351,7 +360,7 @@ export default {
     align-items: center;
 
     h1 {
-      margin-right: 8px;
+      margin: 0;
     }
   }
 
@@ -373,7 +382,7 @@ export default {
     justify-content: flex-end;
     align-items:center;
     & .btn-group {
-      margin-right: 5px;
+      margin-right: 10px;
     }
   }
 
@@ -381,4 +390,10 @@ export default {
     margin: 3px 0 0 0;
   }
 
+  .masthead-state {
+    font-size: initial;
+    display: inline-block;
+    position: relative;
+    top: -2px;
+  }
 </style>

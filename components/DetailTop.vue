@@ -135,10 +135,9 @@ export default {
     $spacing: 5px;
 
     &:not(.empty) {
-      border-top: 1px solid var(--border);
+      padding-bottom: 10px;
       border-bottom: 1px solid var(--border);
-      margin: 20px 0;
-      padding: 20px 0;
+      margin-bottom: 10px;
     }
 
     .tags {

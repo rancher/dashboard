@@ -1,6 +1,6 @@
 <script>
 export default {
-  inject: ['addTab', 'removeTab'],
+  inject: ['addTab', 'removeTab', 'sideTabs'],
 
   props: {
     label: {
@@ -71,7 +71,9 @@ export default {
     :aria-hidden="!active"
     role="tabpanel"
   >
-    <h2>{{ label }}</h2>
+    <h2 v-if="sideTabs">
+      {{ label }}
+    </h2>
     <slot />
   </section>
 </template>

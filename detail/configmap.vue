@@ -52,6 +52,9 @@ export default {
       <div v-for="(row,idx) in parsedRows" :key="idx" class="mb-20">
         <DetailText :value="row.value" :label="row.key" :binary="row.binary" />
       </div>
+      <div v-if="!parsedRows.length">
+        <div v-t="'sortableTable.noRows'" class="m-20 text-center" />
+      </div>
     </Tab>
   </ResourceTabs>
 </template>

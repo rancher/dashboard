@@ -104,7 +104,7 @@ $spacing-property-map: (
 }
 
 .text-normal {
-  font-weight: normal;
+  font-size: initial;
 }
 
 .text-italic {
@@ -137,6 +137,10 @@ $spacing-property-map: (
 
 .block {
   display: block !important;
+}
+
+.inline {
+  display: inline !important;
 }
 
 .inline-block {
