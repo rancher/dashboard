@@ -79,7 +79,7 @@ export function parseSi(inValue, opt) {
   const divide = FRACTIONAL.includes(unit);
   const multiply = UNITS.includes(unit.toUpperCase());
 
-  if ( increment === null ) {
+  if ( !increment ) {
     // Automatically handle 1 KB = 1000B, 1 KiB = 1024B if no increment set
     if ( (multiply || divide) && incStr === 'i' ) {
       increment = 1024;
