@@ -155,7 +155,6 @@ export default {
         <LabeledSelect
           v-model="row.protocol"
           :mode="mode"
-          class="inline"
           :options="workloadPortOptions"
           :multiple="false"
           :label="t('workload.container.ports.protocol')"

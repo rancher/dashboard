@@ -266,7 +266,7 @@ export default {
         v-if="containerChoices.length > 0"
         v-model="container"
         :disabled="containerChoices.length === 1"
-        class="containerPicker auto-width"
+        class="containerPicker auto-width pull-left"
         :options="containerChoices"
         :clearable="false"
         placement="top"
@@ -276,9 +276,11 @@ export default {
           <t v-if="option" k="wm.containerShell.containerName" :label="option.label" />
         </template>
       </Select>
-      <button class="btn btn-sm bg-primary" @click="clear">
-        <t k="wm.containerShell.clear" />
-      </button>
+      <div class="pull-left ml-5">
+        <button class="btn btn-sm bg-primary" @click="clear">
+          <t k="wm.containerShell.clear" />
+        </button>
+      </div>
       <div class="pull-right text-center p-10" style="min-width: 80px;">
         <t v-if="isOpen" k="wm.connection.connected" class="text-success" />
         <t v-else-if="isOpening" k="wm.connection.connecting" class="text-warning" :raw="true" />

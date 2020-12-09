@@ -1774,7 +1774,7 @@ workload:
         type: Type
         value:
           label: Value
-          placeholder: e.g. BAR
+          placeholder: e.g. bar
       tty: TTY
       workingDir: WorkingDir
       stdin: Stdin
