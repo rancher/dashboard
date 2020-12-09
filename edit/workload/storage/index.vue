@@ -6,11 +6,11 @@ import Mount from '@/edit/workload/storage/Mount';
 import { _VIEW } from '@/config/query-params';
 import CodeMirror from '@/components/CodeMirror';
 import jsyaml from 'js-yaml';
-import InfoBox from '@/components/InfoBox';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 
 export default {
   components: {
-    ButtonDropdown, Mount, CodeMirror, InfoBox
+    ArrayListGrouped, ButtonDropdown, Mount, CodeMirror
   },
 
   props: {
@@ -225,17 +225,14 @@ export default {
 
 <template>
   <div>
-    <div v-for="(volume, i) in value.volumes" :key="i">
-      <InfoBox v-if="componentFor(volumeType(volume)) || isView" class="volume-source">
-        <button v-if="mode!=='view'" type="button" class="role-link btn btn-lg remove-vol" @click="removeVolume(volume)">
-          <i class="icon icon-2x icon-x" />
-        </button>
-        <h3>{{ headerFor(volumeType(volume)) }}</h3>
+    <ArrayListGrouped v-model="value.volumes">
+      <template #default="props">
+        <h3>{{ headerFor(volumeType(props.row.value)) }}</h3>
         <div class="bordered-section">
           <component
-            :is="componentFor(volumeType(volume))"
-            v-if="componentFor(volumeType(volume))"
-            :value="volume"
+            :is="componentFor(volumeType(props.row.value))"
+            v-if="componentFor(volumeType(props.row.value))"
+            :value="props.row.value"
             :pod-spec="value"
             :mode="mode"
             :namespace="namespace"
@@ -247,16 +244,14 @@ export default {
           <div v-else-if="isView">
             <CodeMirror
               ref="cm"
-              :value="yamlDisplay(volume)"
+              :value="yamlDisplay(props.row.value)"
               :options="{ readOnly: true, cursorBlinkRate: -1 }"
             />
           </div>
         </div>
-        <Mount :pod-spec="value" :name="volume.name" :mode="mode" />
-      </InfoBox>
-    </div>
-    <div class="row">
-      <div class="col span-6">
+        <Mount :pod-spec="value" :name="props.row.value.name" :mode="mode" />
+      </template>
+      <template #add>
         <ButtonDropdown
           v-if="!isView"
           :button-label="t('workload.storage.addVolume')"
@@ -264,8 +259,8 @@ export default {
           size="sm"
           @click-action="addVolume"
         />
-      </div>
-    </div>
+      </template>
+    </ArrayListGrouped>
   </div>
 </template>
 

@@ -39,11 +39,6 @@ export default {
       type:    String,
       default: 'create',
     },
-
-    ruleIndex: {
-      type:    Number,
-      default: 0,
-    },
   },
 
   data() {
@@ -253,25 +248,13 @@ export default {
     },
     updateExpression(value) {
       this.$set(this.value, 'expr', value);
-    },
-    remove() {
-      this.$emit('removeRule', this.ruleIndex);
-    },
+    }
   },
 };
 </script>
 
 <template>
   <div>
-    <button
-      v-if="!isView"
-      v-tooltip="t('prometheusRule.alertingRules.removeAlert')"
-      type="button"
-      class="btn btn-sm bg-transparent remove"
-      @click="remove"
-    >
-      <i class="icon icon-x icon-2x" />
-    </button>
     <div class="row mt-25">
       <div class="col span-6">
         <LabeledInput
