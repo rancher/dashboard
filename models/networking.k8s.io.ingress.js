@@ -147,12 +147,28 @@ export default {
     };
   },
 
+  cache() {
+    if (!this.cacheObject) {
+      this.cacheObject = {};
+    }
+
+    return this.cacheObject;
+  },
+
   showPathType() {
-    return this.$rootGetters['cluster/pathExistsInSchema'](this.type, 'spec.rules.http.paths.pathType');
+    if (!this.cache.showPathType) {
+      this.cache.showPathType = this.$rootGetters['cluster/pathExistsInSchema'](this.type, 'spec.rules.http.paths.pathType');
+    }
+
+    return this.cache.showPathType;
   },
 
   useNestedBackendField() {
-    return this.$rootGetters['cluster/pathExistsInSchema'](this.type, 'spec.rules.http.paths.backend.service.name');
+    if (!this.cache.useNestedBackendField) {
+      this.cache.useNestedBackendField = this.$rootGetters['cluster/pathExistsInSchema'](this.type, 'spec.rules.http.paths.backend.service.name');
+    }
+
+    return this.cache.useNestedBackendField;
   },
 
   serviceNamePath() {

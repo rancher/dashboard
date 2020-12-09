@@ -154,6 +154,8 @@ export default {
         if ( inputs && inputs.length > 0 ) {
           inputs[inputs.length - 1].focus();
         }
+
+        this.$emit('add');
       });
     },
 

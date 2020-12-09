@@ -46,6 +46,13 @@ export default {
     addPath(ev) {
       ev.preventDefault();
       this.paths = [...this.paths, { id: random32(1) }];
+      this.$nextTick(() => {
+        if (this.$refs.paths && this.$refs.paths.length > 0) {
+          const path = this.$refs.paths[this.$refs.paths.length - 1];
+
+          path.focus();
+        }
+      });
     },
     removePath(idx) {
       const neu = [...this.paths];
@@ -56,6 +63,9 @@ export default {
     removeRule() {
       this.$emit('remove');
     },
+    focus() {
+      this.$refs.host.focus();
+    }
   },
 };
 </script>
@@ -65,6 +75,7 @@ export default {
     <div class="row mb-20">
       <div id="host" class="col span-6">
         <LabeledInput
+          ref="host"
           v-model="host"
           :label="t('ingress.rules.requestHost.label')"
           :placeholder="t('ingress.rules.requestHost.placeholder')"
@@ -86,6 +97,7 @@ export default {
     </div>
     <template v-for="(_, i) in paths">
       <RulePath
+        ref="paths"
         :key="i"
         v-model="paths[i]"
         class="row mb-10"
