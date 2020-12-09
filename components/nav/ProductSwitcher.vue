@@ -221,6 +221,8 @@ export default {
 <style lang="scss" scoped>
 .filter ::v-deep .unlabeled-select {
   background-color: transparent;
+  min-height: 50px;
+
   &:not(.focused) {
     border: var(--outline-width) solid transparent;
   }

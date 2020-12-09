@@ -197,6 +197,6 @@ export default {
     @click="clicked"
   >
     <i v-if="displayIcon" :class="{icon: true, 'icon-lg': true, [displayIcon]: true}" />
-    <span v-if="showLabel" class="pl-5" v-html="displayLabel" />
+    <span v-if="showLabel && displayLabel" class="pl-5" v-html="displayLabel" />
   </button>
 </template>

@@ -1,7 +1,6 @@
 <script>
 import { CONFIG_MAP, SECRET, NAMESPACE } from '@/config/types';
 import { get } from '@/utils/object';
-import { mapGetters } from 'vuex';
 import { _VIEW } from '@/config/query-params';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
@@ -180,7 +179,9 @@ export default {
       }
     },
 
-    ...mapGetters({ t: 'i18n/t' })
+    extraColumn() {
+      return ['resourceFieldRef', 'configMapKeyRef', 'secretKeyRef'].includes(this.type);
+    },
   },
 
   watch: {
@@ -279,7 +280,7 @@ export default {
       />
     </div>
 
-    <div v-if="type==='simple'">
+    <div v-if="type==='simple'" class="single-value">
       <LabeledInput
         v-model="valStr"
         :label="t('workload.container.command.fromResource.value.label')"
@@ -290,7 +291,7 @@ export default {
     </div>
 
     <template v-else-if="needsSource">
-      <div>
+      <div :class="{'single-value': type === 'configMapRef' || type === 'secretRef'}">
         <LabeledSelect
           v-model="referenced"
           :options="sourceOptions"
@@ -331,19 +332,18 @@ export default {
           :multiple="false"
           :options="resourceKeyOpts"
           :mode="mode"
-          class="inline"
           :searchable="false"
-          :placeholder="t('workload.container.command.fromResource.key.placeholder')"
+          :placeholder="t('workload.container.command.fromResource.key.placeholder', null, true)"
           @input="updateRow"
         />
       </div>
     </template>
 
     <template v-else>
-      <div>
+      <div class="single-value">
         <LabeledInput
           v-model="fieldPath"
-          :placeholder="t('workload.container.command.fromResource.key.placeholder')"
+          :placeholder="t('workload.container.command.fromResource.key.placeholder', null, true)"
           :label="t('workload.container.command.fromResource.key.label')"
           :mode="mode"
           @input="updateRow"
@@ -356,23 +356,19 @@ export default {
     </button>
   </div>
 </template>
+  </div>
+</template>
 
 <style lang='scss' scoped>
 .var-row{
   display: grid;
-  grid-template-columns: 30% 30% 18% 10% 5%;
-  grid-column-gap: $column-gutter;
+  grid-template-columns: 1fr 1fr 1fr 1fr 100px;
+  grid-column-gap: 20px;
   margin-bottom: 10px;
   align-items: center;
 
-  & .type, .name{
-    flex-basis: 20%;
-    flex-grow: 0;
-  }
-
-  &>DIV{
-    flex: 1;
-    margin-right: 1.75%;
+  .single-value {
+    grid-column: span 2;
   }
 }
 

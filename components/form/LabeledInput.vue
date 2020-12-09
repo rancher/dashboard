@@ -32,7 +32,7 @@ export default {
 
   computed: {
     hasLabel() {
-      return !!this.label || !!this.$slots.label;
+      return !!this.label || !!this.labelKey || !!this.$slots.label;
     },
 
     hasSuffix() {

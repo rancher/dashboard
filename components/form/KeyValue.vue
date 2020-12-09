@@ -464,7 +464,7 @@ export default {
     display: grid;
     align-items: center;
     grid-template-columns: auto 1fr;
-    column-gap: $column-gutter;
+    column-gap: 20px;
 
     &.extra-column {
        grid-template-columns: 1fr 1fr 100px;

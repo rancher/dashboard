@@ -96,7 +96,7 @@
   color: var(--input-text);
 
   // Here to match the min height of the labeled select.
-  min-height: $input-height;
+  min-height: #{$input-height - 20px};
 
   .vs--single .vs__selected-options {
     flex-wrap: nowrap;
