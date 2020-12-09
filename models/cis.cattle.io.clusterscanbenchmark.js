@@ -7,11 +7,11 @@ export default {
     };
   },
 
-  isCustom() {
+  isDefault() {
     const { relationships = [] } = this.metadata;
 
     if (!relationships) {
-      return;
+      return false;
     }
 
     return relationships.filter(rel => rel.fromType === CATALOG.APP ).length > 0;
