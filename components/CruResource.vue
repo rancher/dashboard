@@ -9,7 +9,9 @@ import AsyncButton from '@/components/AsyncButton';
 import { mapGetters } from 'vuex';
 import { stringify } from '@/utils/error';
 import CruResourceFooter from '@/components/CruResourceFooter';
-import { _EDIT, _VIEW, AS, _YAML } from '@/config/query-params';
+import {
+  _EDIT, _VIEW, AS, _YAML, _UNFLAG
+} from '@/config/query-params';
 import { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
 
 export default {
@@ -74,10 +76,13 @@ export default {
   },
 
   data() {
+    const yaml = this.createResourceYaml(this.resource);
+
     return {
       isCancelModal: false,
       showAsForm:    this.$route.query[AS] !== _YAML,
-      resourceYaml:  this.createResourceYaml(this.resource),
+      resourceYaml:  yaml,
+      initialYaml:   yaml,
     };
   },
 
@@ -95,6 +100,11 @@ export default {
 
       return false;
     },
+
+    canDiff() {
+      return this.initialYaml !== this.resourceYaml;
+    },
+
     isView() {
       return this.mode === _VIEW;
     },
@@ -128,6 +138,7 @@ export default {
       } else if (!this.showAsForm) {
         this.resourceYaml = null;
         this.showAsForm = true;
+        this.$router.applyQuery({ [AS]: _UNFLAG });
       }
     },
 
@@ -149,7 +160,9 @@ export default {
       const schemas = this.$store.getters[`${ inStore }/all`](SCHEMA);
       const clonedResource = clone(resource);
 
-      return createYaml(schemas, resource.type, clonedResource);
+      const out = createYaml(schemas, resource.type, clonedResource);
+
+      return out;
     },
 
     async showPreviewYaml() {
@@ -158,6 +171,7 @@ export default {
 
       this.resourceYaml = resourceYaml;
       this.showAsForm = false;
+      this.$router.applyQuery({ [AS]: _YAML });
     },
 
     selectType(id, event) {
@@ -275,6 +289,7 @@ export default {
           ref="resourceyaml"
           :value="resource"
           :mode="mode"
+          :initial-yaml-for-diff="initialYaml"
           :yaml="resourceYaml"
           :offer-preview="isEdit"
           :done-route="doneRoute"
@@ -283,7 +298,7 @@ export default {
           @apply-hooks="$emit('apply-hooks', $event)"
           @error="e=>$emit('error', e)"
         >
-          <template #yamlFooter="{currentYaml, yamlSave, showPreview, yamlPreview, yamlUnpreview}">
+          <template #yamlFooter="{yamlSave, showPreview, yamlPreview, yamlUnpreview}">
             <div class="controls-row">
               <slot name="cru-yaml-footer">
                 <CruResourceFooter
@@ -304,7 +319,7 @@ export default {
                       </button>
                       <button
                         v-if="!showPreview && isEdit"
-                        :disabled="resourceYaml === currentYaml"
+                        :disabled="!canDiff"
                         type="button"
                         class="btn role-secondary"
                         @click="yamlPreview"
@@ -348,7 +363,7 @@ export default {
 .cru-resource-yaml-container {
   .resource-yaml {
     .yaml-editor {
-      min-height: 400px;
+      min-height: 100px;
     }
   }
 }

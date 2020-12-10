@@ -69,7 +69,9 @@ export default {
 
   mounted() {
     $(this.$refs.ta).css('height', `${ this.curHeight }px`);
-    this.autoSize();
+    this.$nextTick(() => {
+      this.autoSize();
+    });
   },
 
   methods: {

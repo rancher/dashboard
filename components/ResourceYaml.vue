@@ -35,6 +35,11 @@ export default {
       required: true,
     },
 
+    initialYamlForDiff: {
+      type:    String,
+      default: null,
+    },
+
     yaml: {
       type:     String,
       required: true,
@@ -71,6 +76,7 @@ export default {
     this.$router.applyQuery({ [PREVIEW]: _UNFLAG });
 
     return {
+      initialYaml: this.initialYamlForDiff || this.yaml,
       currentYaml:  this.yaml,
       showPreview:  false,
       errors:       null,
@@ -105,6 +111,10 @@ export default {
       }
 
       return EDITOR_MODES.EDIT_CODE;
+    },
+
+    canDiff() {
+      return this.initialYaml !== this.currentYaml;
     },
   },
 
@@ -306,6 +316,7 @@ export default {
     <YamlEditor
       ref="yamleditor"
       v-model="currentYaml"
+      :initial-yaml-values="initialYaml"
       class="yaml-editor"
       :editor-mode="editorMode"
       @onInput="onInput"
@@ -345,7 +356,7 @@ export default {
           </button>
           <button
             v-else-if="offerPreview"
-            :disabled="yaml === currentYaml"
+            :disabled="!canDiff"
             type="button"
             class="btn role-secondary"
             @click="preview"

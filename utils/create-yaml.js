@@ -235,11 +235,11 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
 
     if ( SIMPLE_TYPES.includes(type) ) {
       if (key === '_type' && typeof data[key] === 'undefined' && typeof data['type'] !== 'undefined') {
-        out += ` ${ data['type'] }`;
+        out += ` ${ serializeSimpleValue(data['type']) }`;
       } else if ( typeof data[key] === 'undefined' ) {
-        out += ` #${ type }`;
+        out += ` #${ serializeSimpleValue(type) }`;
       } else {
-        out += ` ${ data[key] }`;
+        out += ` ${ serializeSimpleValue(data[key]) }`;
       }
 
       return out;
@@ -284,4 +284,8 @@ function comment(lines) {
 
 function indent(lines, depth = 1) {
   return _indent(lines, depth * INDENT, ' ', /^#/);
+}
+
+function serializeSimpleValue(data) {
+  return jsyaml.safeDump(data).trim();
 }
