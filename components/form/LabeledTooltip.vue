@@ -35,7 +35,6 @@ export default {
     </template>
   </div>
 </template>
-</template>
 
 <style lang='scss'>
 .labeled-tooltip {
@@ -49,14 +48,14 @@ export default {
       height: 0%;
     }
 
-    .status-icon {
-        position:  absolute;
-        right: 30px;
-        top: 16px;
-        font-size: 20px;
-        z-index: z-index(hoverOverContent);
+     .status-icon {
+         position:  absolute;
+         right: 30px;
+         top: 16px;
+         font-size: 20px;
+         z-index: z-index(hoverOverContent);
 
-    }
+     }
 
     .tooltip {
         position: absolute;

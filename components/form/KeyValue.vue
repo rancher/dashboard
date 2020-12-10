@@ -358,7 +358,7 @@ export default {
       <template v-if="rows.length">
         <label class="text-label">
           {{ keyLabel }}
-          <i v-if="protip" v-tooltip="protip" class="icon icon-info" style="font-size: 14px" />
+          <i v-if="protip" v-tooltip="protip" class="icon icon-info" />
         </label>
         <label class="text-label">
           {{ valueLabel }}
