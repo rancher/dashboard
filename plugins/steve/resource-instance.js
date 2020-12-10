@@ -780,6 +780,10 @@ export default {
         return Promise.reject(errors);
       }
 
+      if ( this.metadata?.resourceVersion ) {
+        this.metadata.resourceVersion = `${ this.metadata.resourceVersion }`;
+      }
+
       if ( !opt.url ) {
         if ( forNew ) {
           const schema = this.$getters['schemaFor'](this.type);
