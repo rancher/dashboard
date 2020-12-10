@@ -380,7 +380,7 @@ cis:
     skip: Skip
     total: Total
     warn: Warn
-  scheduling: 
+  scheduling:
     enable: Run scan on a schedule
     disable: Run scan once
   scoreWarning:
@@ -427,6 +427,7 @@ cluster:
     other: Other
     rke: RKE
     rke2: RKE Government
+    rkeWindows: Windows
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -811,7 +812,7 @@ logging:
   logz:
     url: URL
     port: Port
-    token: Api Token 
+    token: Api Token
     enableCompression: Enable Compression
   newrelic:
     apiKey: API Key

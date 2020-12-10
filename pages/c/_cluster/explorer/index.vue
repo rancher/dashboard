@@ -27,6 +27,8 @@ import SimpleBox from '@/components/SimpleBox';
 import ResourceGauge, { resourceCounts } from '@/components/ResourceGauge';
 import CountGauge from '@/components/CountGauge';
 import Glance from '@/components/Glance';
+import LazyImage from '@/components/LazyImage';
+import { findBy } from '@/utils/array';
 import HardwareResourceGauge from './HardwareResourceGauge';
 
 const PARSE_RULES = {
@@ -48,16 +50,27 @@ const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;
 
 const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
+const PROVIDER_OS_OPTIONS = [
+  {
+    id:   'linux',
+    logo:  require(`~/assets/images/logo-linux.svg`)
+  },
+  {
+    id:   'windows',
+    logo:  require(`~/assets/images/logo-windows.svg`)
+  },
+];
 
 export default {
   components: {
     CountGauge,
-    Loading,
     Glance,
     HardwareResourceGauge,
+    LazyImage,
+    Loading,
     ResourceGauge,
     SimpleBox,
-    SortableTable
+    SortableTable,
   },
 
   async fetch() {
@@ -119,7 +132,7 @@ export default {
     ];
 
     return {
-      metricPoller:  null,
+      metricPoller:      null,
       eventHeaders,
       nodeHeaders,
       constraints:       [],
@@ -128,6 +141,7 @@ export default {
       nodePools:         [],
       nodeTemplates:     [],
       nodes:             [],
+      providerOSOptions: PROVIDER_OS_OPTIONS,
     };
   },
 
@@ -138,11 +152,29 @@ export default {
       const other = 'other';
       let provider = this.currentCluster.status.provider || other;
 
+      if (provider === 'rke.windows') {
+        provider = 'rkeWindows';
+      }
+
       if (!this.$store.getters['i18n/exists'](`cluster.provider.${ provider }`)) {
         provider = 'other';
       }
 
       return this.t(`cluster.provider.${ provider }`);
+    },
+
+    providerOSLogo() {
+      const { currentCluster, providerOSOptions } = this;
+      const provider = currentCluster.status.provider || '';
+      let match = findBy(providerOSOptions, 'id', 'linux');
+      let logo = match.logo;
+
+      if (provider === 'rke.windows') {
+        match = findBy(providerOSOptions, 'id', 'windows');
+        logo = match.logo;
+      }
+
+      return logo;
     },
 
     accessibleResources() {
@@ -303,6 +335,7 @@ export default {
     async loadMetrics() {
       this.nodeMetrics = await this.fetchClusterResources(METRIC.NODE, { force: true } );
     },
+    findBy,
   },
 
   beforeRouteLeave(to, from, next) {
@@ -327,10 +360,16 @@ export default {
     </header>
     <Glance
       :slots="['displayProvider', 'kubernetesVersion', 'totalNodes', 'created']"
+      class="cluster-dashboard-glance"
     >
       <template #displayProvider>
-        <h1>{{ displayProvider }}</h1>
-        <label>{{ t('glance.provider') }}</label>
+        <div class="title-content">
+          <h1>{{ displayProvider }}</h1>
+          <label>{{ t('glance.provider') }}</label>
+        </div>
+        <div class="logo">
+          <LazyImage class="os-provider-logo" :initial-src="findBy(providerOSOptions, 'id', 'linux').logo" :src="providerOSLogo" />
+        </div>
       </template>
       <template #kubernetesVersion>
         <h1>{{ currentCluster.kubernetesVersion }}</h1>
@@ -384,11 +423,38 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .actions-span {
-    align-self: center;
-  }
+.glance.cluster-dashboard-glance ::v-deep {
+  .tile:first-child {
+    flex-direction: row;
 
-  .events {
-    margin-top: 30px;
+    .title-content,
+    .logo {
+      flex: 1;
+    }
+
+    .title-content {
+      &:first-child {
+        flex-basis: 75%;
+      }
+    }
+
+    .logo {
+      display: flex;
+      justify-content: flex-end;
+      padding-right: 5px;
+    }
   }
+}
+.actions-span {
+  align-self: center;
+}
+
+.events {
+  margin-top: 30px;
+}
+
+.os-provider-logo {
+  height: 40px;
+  width: 40px;
+}
 </style>
