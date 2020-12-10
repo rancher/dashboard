@@ -120,3 +120,6 @@ export default {
     @blur="$emit('blur', $event)"
   />
 </template>
+
+<style lang='scss' scoped>
+</style>

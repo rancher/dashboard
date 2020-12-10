@@ -101,7 +101,6 @@ export default {
           v-if="disableAddRecord"
           v-tooltip="t('validation.prometheusRule.groups.singleAlert')"
           class="icon icon-info"
-          style="font-size: 14px"
         />
       </h3>
       <div v-if="recordingRules.length > 0" class="rules">
@@ -135,7 +134,6 @@ export default {
             v-if="disableAddAlert"
             v-tooltip="t('validation.prometheusRule.groups.singleAlert')"
             class="icon icon-info"
-            style="font-size: 14px"
           />
         </h3>
         <Banner
