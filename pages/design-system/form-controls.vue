@@ -155,6 +155,26 @@ export default {
         :options="['foo','bar']"
       />
     </div>
+    <div class="m-20">
+      <InputWithSelect
+        v-model="i"
+        select-label="a"
+        :select-before-text="true"
+        text-label="Input With Select"
+        :mode="mode"
+        :tooltip="tooltip"
+        :options="['foo','bar']"
+      />
+    </div>
+    <div class="m-20">
+      <InputWithSelect
+        v-model="i"
+        :select-before-text="true"
+        :mode="mode"
+        :tooltip="tooltip"
+        :options="['foo','bar']"
+      />
+    </div>
   </div>
 </template>
 
