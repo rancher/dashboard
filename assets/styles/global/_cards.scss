@@ -20,8 +20,11 @@
     }
 
     &.disabled{
-      background-color: var(---disabled-bg);
+      background-color: var(--disabled-bg);
       border-left: solid 10px var(--disabled-text);
+      > * {
+        opacity: .3;
+      }
     }
 
     &:hover:not(.disabled) {
@@ -42,9 +45,6 @@
 
       .link-logo {
         text-align: center;
-        // position: absolute;
-        // left: 25px;
-        // top: 25px;
         width: 60px;
         height: 60px;
         border-radius: calc(2 * var(--border-radius));
