@@ -124,7 +124,8 @@ export default {
 
     imageTableRows() {
       return this.value.status.images.map(image => ({
-        name:      image.names[1],
+        // image.names[1] typically has the user friendly name but on occasion there's only one name and we should use that
+        name:      image.names[1] || image.names[0],
         sizeBytes: image.sizeBytes
       }));
     },
