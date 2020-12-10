@@ -33,6 +33,11 @@ export default {
       default: _CONFIG,
     },
 
+    inStore: {
+      type:    String,
+      default: 'cluster',
+    },
+
     roleScope: {
       type:     String,
       required: true,
@@ -67,11 +72,12 @@ export default {
 
   async fetch() {
     const hash = { allUsers: this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER }) };
+    const inStore = this.inStore;
 
     if ( this.roleScope === SCOPE_NAMESPACE ) {
-      hash.allRoles = this.$store.dispatch('cluster/findAll', { type: RBAC.ROLE });
+      hash.allRoles = this.$store.dispatch(`${ inStore }/findAll`, { type: RBAC.ROLE });
     } else if ( this.roleScope === SCOPE_CLUSTER ) {
-      hash.allRoles = this.$store.dispatch('cluster/findAll', { type: RBAC.CLUSTER_ROLE });
+      hash.allRoles = this.$store.dispatch(`${ inStore }/findAll`, { type: RBAC.CLUSTER_ROLE });
     // } else if ( this.roleScope === SCOPE_GLOBAL ) {
     // hash.allRoles = this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE });
     } else {
@@ -79,9 +85,9 @@ export default {
     }
 
     if ( this.bindingScope === SCOPE_NAMESPACE ) {
-      hash.allBindings = this.$store.dispatch('cluster/findAll', { type: RBAC.ROLE_BINDING });
+      hash.allBindings = this.$store.dispatch(`${ inStore }/findAll`, { type: RBAC.ROLE_BINDING });
     } else if ( this.bindingScope === SCOPE_CLUSTER ) {
-      hash.allBindings = this.$store.dispatch('cluster/findAll', { type: RBAC.CLUSTER_ROLE_BINDING });
+      hash.allBindings = this.$store.dispatch(`${ inStore }/findAll`, { type: RBAC.CLUSTER_ROLE_BINDING });
     // } else if ( this.bindingScope === SCOPE_GLOBAL ) {
     // hash.allBindings = this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE_BINDING });
     } else {
@@ -196,7 +202,7 @@ export default {
   },
 
   created() {
-    if ( this.mode === _EDIT ) {
+    if ( this.mode !== _VIEW ) {
       this.registerAfterHook(this.saveRoleBindings, 'saveRoleBindings');
     }
   },
@@ -301,15 +307,14 @@ export default {
     },
 
     createFrom(row) {
-      let type, apiGroup, inStore;
+      let type, apiGroup;
+      const inStore = this.inStore;
 
       if ( this.bindingScope === SCOPE_NAMESPACE ) {
         type = RBAC.ROLE_BINDING;
-        inStore = 'cluster';
         apiGroup = 'rbac.authorization.k8s.io';
       } else if ( this.bindingScope === SCOPE_CLUSTER ) {
         type = RBAC.CLUSTER_ROLE_BINDING;
-        inStore = 'cluster';
         apiGroup = 'rbac.authorization.k8s.io';
       // } else if ( this.bindingScope === SCOPE_GLOBAL ) {
       //   type = RBAC.GLOBAL_ROLE_BINDING;

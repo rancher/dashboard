@@ -80,6 +80,7 @@ export default {
           :filter-role-value="FLEET_NAME"
           :namespace="value.name"
           :mode="mode"
+          in-store="management"
         />
       </Tab>
 

@@ -71,6 +71,7 @@ export default {
             :binding-scope="SCOPE_NAMESPACE"
             :filter-role-value="FLEET_NAME"
             :namespace="value.name"
+            in-store="management"
             mode="view"
             as="detail"
           />
