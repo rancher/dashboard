@@ -71,7 +71,7 @@ export default {
 
     showNamespaceColumn() {
       const groupNamespaces = this.group === 'namespace';
-      const out = this.showGrouping && !groupNamespaces;
+      const out = !this.showGrouping || !groupNamespaces;
 
       return out;
     },

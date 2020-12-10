@@ -170,6 +170,7 @@ export default {
     :force-namespaced="true"
     :mangle-action-resources="getRealResources"
     paging-label="sortableTable.paging.generic"
+    :groupable="false"
   >
     <template #cell:state="{row}">
       <BadgeState v-if="row.real" :value="row.real" />
