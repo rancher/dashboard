@@ -38,7 +38,7 @@ export default {
     },
 
     jaegerUrl() {
-      return this.jaegerService ? this.jaegerService.proxyUrl('http', '16686') : null;
+      return this.jaegerService ? `${ this.jaegerService.proxyUrl('http', '16686') }/jaeger/search` : null;
     },
 
     monitoringUrl() {
