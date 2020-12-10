@@ -3,6 +3,7 @@ import LabeledFormElement from '@/mixins/labeled-form-element';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
 import { escapeHtml } from '@/utils/string';
+import cronstrue from 'cronstrue';
 
 export default {
   components: { LabeledTooltip, TextAreaAutoGrow },
@@ -38,6 +39,19 @@ export default {
     hasSuffix() {
       return !!this.$slots.suffix;
     },
+
+    cronHint() {
+      if (this.type !== 'cron' || !this.value) {
+        return;
+      }
+      try {
+        const hint = cronstrue.toString(this.value);
+
+        return hint;
+      } catch (e) {
+        return this.t('generic.invalidCron');
+      }
+    }
   },
 
   methods: {
@@ -102,7 +116,7 @@ export default {
         :class="{'no-label': !hasLabel}"
         v-bind="$attrs"
         :disabled="isDisabled"
-        :type="type"
+        :type="type === 'cron' ? 'text' : type"
         :value="value"
         :placeholder="placeholder"
         autocomplete="off"
@@ -125,5 +139,6 @@ export default {
       :value="tooltip"
       :status="status"
     />
+    <label v-if="cronHint" class="cron-label">{{ cronHint }}</label>
   </div>
 </template>

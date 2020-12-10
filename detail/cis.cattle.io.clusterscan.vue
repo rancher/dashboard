@@ -9,7 +9,7 @@ import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { escapeHtml, randomStr } from '@/utils/string';
 import { CIS } from '@/config/types';
 import { STATE } from '@/config/table-headers';
-import { sortBy } from '@/utils/sort';
+import { get } from '@/utils/object';
 
 export default {
   components: {
@@ -40,6 +40,10 @@ export default {
   computed: {
     parsedReport() {
       return this.clusterReport?.parsedReport || null;
+    },
+
+    canBeScheduled() {
+      return this.value.canBeScheduled();
     },
 
     reportNodes() {
@@ -78,7 +82,7 @@ export default {
         return [];
       }
 
-      return [
+      const out = [
         {
           label: this.t('cis.profile'),
           value: this.value.status.lastRunScanProfileName,
@@ -116,11 +120,17 @@ export default {
           value: this.parsedReport.notApplicable
         },
         {
-          label:     this.t('cis.scan.lastScanTime'),
+          label:     this.canBeScheduled ? this.t('cis.scan.lastScanTime') : this.t('cis.scan.scanDate'),
           value:     this.value.status.lastRunTimestamp,
           component: 'Date'
         },
       ];
+
+      if (!this.canBeScheduled) {
+        return out.filter(each => each.label !== this.t('cis.scan.warn'));
+      }
+
+      return out;
     },
 
     reportCheckHeaders() {
@@ -167,10 +177,6 @@ export default {
 
       ];
     },
-
-    sortedReports() {
-      return sortBy(this.clusterReports, 'metadata.creationTimestamp', true);
-    }
   },
 
   watch: {
@@ -182,7 +188,7 @@ export default {
       } catch {}
     },
 
-    sortedReports(neu) {
+    clusterReports(neu) {
       if (!this.clusterReport) {
         this.clusterReport = neu[0];
       }
@@ -195,7 +201,9 @@ export default {
       const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));
       const timeFormat = escapeHtml( this.$store.getters['prefs/get'](TIME_FORMAT));
 
-      return day(creationTimestamp).format(`${ dateFormat } ${ timeFormat }`);
+      const name = report.id.replace(/^scan-report-/, '');
+
+      return `${ name } ${ day(creationTimestamp).format(`${ dateFormat } ${ timeFormat }`) }`;
     },
 
     nodeState(check, node, nodes = []) {
@@ -225,6 +233,7 @@ export default {
 
       return id.split('.').map(n => +n + 1000).join('.');
     },
+    get
   }
 };
 </script>
@@ -253,13 +262,13 @@ export default {
           v-model="clusterReport"
           :label="t('cis.reports')"
           class="inline"
-          :options="sortedReports"
+          :options="clusterReports"
           :get-option-label="reportLabel"
           :get-option-key="report=>report.id"
         />
       </div>
     </div>
-    <div v-if="results && !!value.status.summary">
+    <div v-if="results && !!get(value, 'status.summary')">
       <SortableTable
         no-rows-key="cis.noReportFound"
         default-sort-by="state"

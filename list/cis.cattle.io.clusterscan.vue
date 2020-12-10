@@ -1,9 +1,8 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
 import Loading from '@/components/Loading';
-import { CATALOG } from '@/config/types';
 import { get } from '@/utils/object';
-const semver = require('semver');
+import { AGE } from '@/config/table-headers';
 
 export default {
   components: { Loading, ResourceTable },
@@ -22,37 +21,35 @@ export default {
 
   async fetch() {
     this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
-    try {
-      this.app = await this.$store.dispatch('cluster/find', {
-        type: CATALOG.APP,
-        id:   `cis-operator-system/rancher-cis-benchmark`,
-      });
-    } catch {}
   },
 
   data() {
-    return { rows: null, app: null };
+    return { rows: null };
   },
 
   computed: {
+    // warning state and scheduling added in the same version of cis so a check for one is a check for the other
     hasWarningState() {
-      if (!this.app) {
-        return true;
-      }
-      const version = get(this.app, 'spec.chart.metadata.version');
+      const specSchema = this.$store.getters['cluster/schemaFor'](get(this.schema, 'resourceFields.spec.type') || '');
 
-      if (!version) {
-        return;
+      if (!specSchema) {
+        return false;
       }
 
-      return semver.satisfies(version, '>=1.0.300');
+      return !!get(specSchema, 'resourceFields.scheduledScanConfig');
     },
 
     headers() {
       const headersFromSchema = this.$store.getters['type-map/headersFor'](this.schema);
 
       if (!this.hasWarningState) {
-        return headersFromSchema.filter(header => header.name !== 'warn');
+        const toRemove = ['warn', 'nextScanAt', 'lastRunTimestamp'];
+
+        const filtered = headersFromSchema.filter(header => !toRemove.includes(header.name));
+
+        filtered.push(AGE);
+
+        return filtered;
       } else {
         return headersFromSchema;
       }

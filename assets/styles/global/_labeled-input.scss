@@ -106,4 +106,12 @@
   &.suffix INPUT {
     padding-right: 8px;
   }
+
+  .cron-label{
+    position: absolute;
+    top: 100%;
+    padding-top: 5px;
+    left: 0;
+    color: var(--input-label);
+  }
 }
