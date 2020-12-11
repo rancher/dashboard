@@ -1531,7 +1531,6 @@ tableHeaders:
   configuredProviders: Configured Providers
   cpu: CPU
   date: Date
-  default: Default
   destination: Target
   download: Download
   effect: Effect
