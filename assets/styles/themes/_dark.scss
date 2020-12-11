@@ -59,7 +59,7 @@
   --nav-bg: #{$darkest};
   --nav-active: #{rgba($primary, 0.3)};
 
-  --disabled-bg: #{$disabled};
+  --disabled-bg: #{darken($disabled, 10%)};
   --disabled-text: #{$secondary};
   --box-bg: #{$darkest};
   --subtle-border: #{$darkest};
