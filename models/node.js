@@ -152,6 +152,12 @@ export default {
     return ((this.ramUsage * 10000) / this.ramCapacity).toString();
   },
 
+  pods() {
+    const allPods = this.$rootGetters['cluster/all'](POD);
+
+    return allPods.filter(pod => pod.spec.nodeName === this.name);
+  },
+
   podUsage() {
     return calculatePercentage(this.status.allocatable.pods, this.status.capacity.pods);
   },
@@ -252,12 +258,6 @@ export default {
     }
 
     return details;
-  },
-
-  pods() {
-    const allPods = this.$rootGetters['cluster/all'](POD);
-
-    return allPods.filter(pod => pod.spec.nodeName === this.name);
   },
 
   runningPods() {
