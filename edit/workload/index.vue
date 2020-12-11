@@ -1,7 +1,6 @@
 <script>
 import omitBy from 'lodash/omitBy';
 import { cleanUp } from '@/utils/object';
-import cronstrue from 'cronstrue';
 import {
   CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC
 } from '@/config/types';
@@ -309,23 +308,6 @@ export default {
       return this.$store.getters['cluster/schemaFor'](this.type);
     },
 
-    // show cron schedule in human-readable format
-    cronLabel() {
-      const { schedule } = this.spec;
-
-      if (!this.isCronJob || !schedule) {
-        return null;
-      }
-
-      try {
-        const hint = cronstrue.toString(schedule);
-
-        return hint;
-      } catch (e) {
-        return 'invalid cron expression';
-      }
-    },
-
     namespacedSecrets() {
       const namespace = this.value?.metadata?.namespace;
 
@@ -588,8 +570,14 @@ export default {
         <div class="col span-12">
           <NameNsDescription :value="value" :extra-columns="nameNsColumns" :mode="mode" @change="name=value.metadata.name">
             <template #schedule>
-              <LabeledInput v-model="spec.schedule" required :mode="mode" :label="t('workload.cronSchedule')" placeholder="0 * * * *" />
-              <span class="cron-hint text-small">{{ cronLabel }}</span>
+              <LabeledInput
+                v-model="spec.schedule"
+                type="cron"
+                required
+                :mode="mode"
+                :label="t('workload.cronSchedule')"
+                placeholder="0 * * * *"
+              />
             </template>
             <template #replicas>
               <LabeledInput v-model.number="spec.replicas" type="number" required :mode="mode" :label="t('workload.replicas')" />
@@ -776,11 +764,6 @@ export default {
 
 .type-description{
   color: var(--input-label)
-}
-
-.cron-hint {
-  color: var(--disabled-text);
-  padding: 3px;
 }
 
 .next-dropdown{

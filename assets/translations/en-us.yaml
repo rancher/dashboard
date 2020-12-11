@@ -15,6 +15,7 @@ generic:
   disabled: Disabled
   enabled: Enabled
   ignored: Ignored
+  invalidCron: Invalid cron schedule
   labelsAndAnnotations: Labels and Annotations
   members: Members
   na: n/a
@@ -376,6 +377,7 @@ cis:
     notApplicable: 'N/A'
     number: Number
     pass: Pass
+    scanDate: Scan Date
     scanReport: Scan Report
     skip: Skip
     total: Total
@@ -1529,7 +1531,6 @@ tableHeaders:
   configuredProviders: Configured Providers
   cpu: CPU
   date: Date
-  default: Default
   destination: Target
   download: Download
   effect: Effect

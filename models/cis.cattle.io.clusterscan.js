@@ -2,7 +2,7 @@ import { _CREATE } from '@/config/query-params';
 import { CIS } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { downloadFile, generateZip } from '@/utils/download';
-import { isEmpty, set } from '@/utils/object';
+import { get, isEmpty, set } from '@/utils/object';
 import { sortBy } from '@/utils/sort';
 import day from 'dayjs';
 
@@ -51,14 +51,38 @@ export default {
   applyDefaults() {
     return (vm, mode) => {
       if (mode === _CREATE) {
+        const includeScheduling = this.canBeScheduled();
         const spec = this.spec || {};
 
         spec.scanProfileName = null;
-        spec.scoreWarning = 'pass';
-        spec.scheduledScanConfig = { scanAlertRule: {}, retentionCount: 3 };
+        if (includeScheduling) {
+          spec.scoreWarning = 'pass';
+          spec.scheduledScanConfig = { scanAlertRule: {}, retentionCount: 3 };
+        }
         set(this, 'spec', spec);
       }
     };
+  },
+
+  canBeScheduled() {
+    return () => {
+      const schema = this.$getters['schemaFor'](this.type);
+      const specSchema = this.$getters['schemaFor'](get(schema, 'resourceFields.spec.type') || '');
+
+      if (!specSchema) {
+        return false;
+      }
+
+      return !!get(specSchema, 'resourceFields.scheduledScanConfig');
+    };
+  },
+
+  isScheduled() {
+    return !!get(this, 'spec.scheduledScanConfig.cronSchedule');
+  },
+
+  canUpdate() {
+    return this.hasLink('update') && this.isScheduled;
   },
 
   hasReports() {
@@ -73,9 +97,9 @@ export default {
     return async() => {
       const owned = await this.findOwned();
 
-      const reports = owned.filter(obj => obj.type === CIS.REPORT);
+      const reports = owned.filter(obj => obj.type === CIS.REPORT) || [];
 
-      return reports || [];
+      return sortBy(reports, 'metadata.creationTimestamp', true);
     };
   },
 
@@ -90,7 +114,7 @@ export default {
 
         const csv = Papa.unparse(testResults);
 
-        downloadFile(`${ labelFor(report, this.id) }.csv`, csv, 'application/csv');
+        downloadFile(`${ labelFor(report) }.csv`, csv, 'application/csv');
       } catch (err) {
         this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
       }
@@ -101,6 +125,7 @@ export default {
     return async() => {
       const toZip = {};
       const reports = await this.getReports() || [];
+
       const Papa = await import(/* webpackChunkName: "cis" */'papaparse');
 
       reports.forEach((report) => {
@@ -109,7 +134,7 @@ export default {
 
           const csv = Papa.unparse(testResults);
 
-          toZip[`${ labelFor(report, this.id) }.csv`] = csv;
+          toZip[`${ labelFor(report) }.csv`] = csv;
         } catch (err) {
           this.$dispatch('growl/fromError', { title: 'Error downloading file', err }, { root: true });
         }
@@ -124,10 +149,11 @@ export default {
 
 };
 
-const labelFor = (report, id) => {
+const labelFor = (report) => {
   const { creationTimestamp } = report.metadata;
 
-  const date = day(creationTimestamp).format('YYYY-MM-DD-HHMMss');
+  const date = day(creationTimestamp).format('YYYY-MM-DD-HHmmss');
+  const name = report.id.replace(/^scan-report-/, '');
 
-  return `${ id }-report--${ date }`;
+  return `${ name }--${ date }`;
 };

@@ -136,7 +136,7 @@ export function init(store) {
     },
     {
       name:          'isDefault',
-      labelKey:      'tableHeaders.default',
+      labelKey:      'tableHeaders.builtIn',
       formatter:     'Checked',
       value:     'isDefault'
     },
