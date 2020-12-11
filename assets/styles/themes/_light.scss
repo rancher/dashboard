@@ -188,6 +188,7 @@ $selected: rgba($primary, .5);
 
   --terminal-bg                : var(--body-bg);
   --terminal-cursor            : var(--warning);
+  --terminal-selection         : #{$selected};
   --terminal-text              : var(--body-text);
 
   --logs-bg                    : var(--wm-body-bg);

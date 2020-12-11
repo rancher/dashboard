@@ -115,6 +115,7 @@ export default {
         theme: {
           background: docStyle.getPropertyValue('--terminal-bg').trim(),
           cursor:     docStyle.getPropertyValue('--terminal-cursor').trim(),
+          selection:  docStyle.getPropertyValue('--terminal-selection').trim(),
           foreground: docStyle.getPropertyValue('--terminal-text').trim()
         },
         ...this.xtermConfig,

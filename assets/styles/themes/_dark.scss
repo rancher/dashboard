@@ -162,6 +162,7 @@
 
   --terminal-bg: var(--wm-body-bg);
   --terminal-cursor: var(--warning);
+  --terminal-selection: #{$selected};
   --terminal-text: var(--body-text);
 
   --logs-bg: var(--wm-body-bg);
