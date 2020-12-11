@@ -262,6 +262,8 @@ catalog:
       partner: Partner
       rancher: Rancher
     header: Deploy Chart
+    noCharts: 'There are no charts available, have you added any repos?'
+    noWindows: Your catalogs do not contain any charts capable of being deployed on a Windows cluster.
     search: Filter
   install:
     action:
@@ -307,8 +309,8 @@ catalog:
   operation:
     tableHeaders:
       action: Action
-      releaseNamespace: Release Namespace
       releaseName: Release Name
+      releaseNamespace: Release Namespace
   repo:
     action:
       refresh: Refresh

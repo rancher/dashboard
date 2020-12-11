@@ -29,6 +29,7 @@ import CountGauge from '@/components/CountGauge';
 import Glance from '@/components/Glance';
 import LazyImage from '@/components/LazyImage';
 import { findBy } from '@/utils/array';
+import { OS_LOGOS } from '@/models/management.cattle.io.cluster';
 import HardwareResourceGauge from './HardwareResourceGauge';
 
 const PARSE_RULES = {
@@ -50,16 +51,6 @@ const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;
 
 const RESOURCES = [NAMESPACE, INGRESS, PV, WORKLOAD_TYPES.DEPLOYMENT, WORKLOAD_TYPES.STATEFUL_SET, WORKLOAD_TYPES.JOB, WORKLOAD_TYPES.DAEMON_SET, SERVICE];
-const PROVIDER_OS_OPTIONS = [
-  {
-    id:   'linux',
-    logo:  require(`~/assets/images/logo-linux.svg`)
-  },
-  {
-    id:   'windows',
-    logo:  require(`~/assets/images/logo-windows.svg`)
-  },
-];
 
 export default {
   components: {
@@ -141,7 +132,6 @@ export default {
       nodePools:         [],
       nodeTemplates:     [],
       nodes:             [],
-      providerOSOptions: PROVIDER_OS_OPTIONS,
     };
   },
 
@@ -161,20 +151,6 @@ export default {
       }
 
       return this.t(`cluster.provider.${ provider }`);
-    },
-
-    providerOSLogo() {
-      const { currentCluster, providerOSOptions } = this;
-      const provider = currentCluster.status.provider || '';
-      let match = findBy(providerOSOptions, 'id', 'linux');
-      let logo = match.logo;
-
-      if (provider === 'rke.windows') {
-        match = findBy(providerOSOptions, 'id', 'windows');
-        logo = match.logo;
-      }
-
-      return logo;
     },
 
     accessibleResources() {
@@ -368,7 +344,7 @@ export default {
           <label>{{ t('glance.provider') }}</label>
         </div>
         <div class="logo">
-          <LazyImage class="os-provider-logo" :initial-src="findBy(providerOSOptions, 'id', 'linux').logo" :src="providerOSLogo" />
+          <LazyImage class="os-provider-logo" :src="currentCluster.providerOSLogo" />
         </div>
       </template>
       <template #kubernetesVersion>

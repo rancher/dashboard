@@ -52,6 +52,8 @@ export const CATALOG = {
   SOURCE_REPO_NAME: 'catalog.cattle.io/ui-source-repo',
   COLOR:            'catalog.cattle.io/ui-color',
   DISPLAY_NAME:     'catalog.cattle.io/display-name',
+
+  SUPPORTED_OS: 'catalog.cattle.io/os',
 };
 
 export const FLEET = {

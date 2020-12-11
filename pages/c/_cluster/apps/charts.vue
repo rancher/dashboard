@@ -13,6 +13,7 @@ import Select from '@/components/form/Select';
 import LazyImage from '@/components/LazyImage';
 import { mapPref, HIDE_REPOS } from '@/store/prefs';
 import { removeObject, addObject, findBy } from '@/utils/array';
+import { CATALOG } from '@/config/labels-annotations';
 
 export default {
   components: {
@@ -38,18 +39,32 @@ export default {
 
   data() {
     return {
-      searchQuery:    null,
-      showDeprecated: null,
-      showHidden:     null,
-      category:       null,
-      allRepos:       null,
+      allRepos:            null,
+      catalogOSAnnotation: CATALOG.OS,
+      category:            null,
+      searchQuery:         null,
+      showDeprecated:      null,
+      showHidden:          null,
     };
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
     hideRepos: mapPref(HIDE_REPOS),
+
+    showWindowsClusterNoAppsSplash() {
+      const clusterProvider = this.currentCluster.status.provider || 'other';
+      const { filteredCharts } = this;
+      let showSplash = false;
+
+      if (clusterProvider === 'rke.windows' && filteredCharts.length === 0) {
+        showSplash = true;
+      }
+
+      return showSplash;
+    },
 
     repoOptions() {
       let nextColor = 1;
@@ -97,7 +112,15 @@ export default {
     },
 
     filteredCharts() {
+      const clusterProvider = this.currentCluster.status.provider || 'other';
+
       return (this.enabledCharts || []).filter((c) => {
+        const osAnnotation = c.annotations[this.catalogOSAnnotation];
+
+        if (clusterProvider === 'rke.windows' && ((osAnnotation && osAnnotation !== 'windows') || !osAnnotation)) {
+          return false;
+        }
+
         if ( this.category && !c.categories.includes(this.category) ) {
           return false;
         }
@@ -313,7 +336,19 @@ export default {
 
     <div v-if="allCharts.length">
       <div class="charts">
-        <div v-for="c in arrangedCharts" :key="c.key" class="chart" :class="{[colorForChart(c)]: true}" @click="selectChart(c)">
+        <div v-if="arrangedCharts.length === 0 && showWindowsClusterNoAppsSplash" style="width: 100%;">
+          <div class="m-50 text-center">
+            <h1>{{ t('catalog.charts.noWindows') }}</h1>
+          </div>
+        </div>
+        <div
+          v-for="c in arrangedCharts"
+          v-else
+          :key="c.key"
+          class="chart"
+          :class="{[colorForChart(c)]: true}"
+          @click="selectChart(c)"
+        >
           <div class="side-label">
             <label v-if="c.sideLabel">{{ c.sideLabel }}</label>
           </div>
@@ -330,7 +365,7 @@ export default {
       </div>
     </div>
     <div v-else class="m-50 text-center">
-      <h1>There are no charts available, have you added any repos?</h1>
+      <h1>{{ t('catalog.charts.noCharts') }}</h1>
     </div>
   </div>
 </template>
