@@ -117,7 +117,12 @@ export default {
       return (this.enabledCharts || []).filter((c) => {
         const osAnnotation = c.annotations[this.catalogOSAnnotation];
 
-        if (clusterProvider === 'rke.windows' && ((osAnnotation && osAnnotation !== 'windows') || !osAnnotation)) {
+        // if we dont have the annotation the user is on there own as far as compatablility goes...think 3rd party charts that don't know our annotation
+        if (clusterProvider === 'rke.windows' && osAnnotation && osAnnotation !== 'windows') {
+          // windows cluster & has anno !== windows
+          return false;
+        } else if (clusterProvider !== 'rke.windows' && osAnnotation && osAnnotation === 'windows') {
+          // linux cluster & has anno === windows, didn't check specific providers here because we dont want to keep that entire list around
           return false;
         }
 
