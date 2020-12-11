@@ -1,8 +1,8 @@
 <script>
 import CountBox from '@/components/CountBox';
-import RoleBindings from '@/components/RoleBindings';
+// import RoleBindings from '@/components/RoleBindings';
 import ResourceTabs from '@/components/form/ResourceTabs';
-import Tab from '@/components/Tabbed/Tab';
+// import Tab from '@/components/Tabbed/Tab';
 import { SCOPE_NAMESPACE, SCOPE_CLUSTER } from '@/components/RoleBindings.vue';
 import { NAME as FLEET_NAME } from '@/config/product/fleet';
 import { FLEET } from '@/config/types';
@@ -11,7 +11,10 @@ export default {
   name: 'DetailWorkspace',
 
   components: {
-    CountBox, RoleBindings, Tab, ResourceTabs
+    CountBox,
+    // RoleBindings,
+    // Tab,
+    ResourceTabs
   },
 
   props: {
@@ -64,7 +67,7 @@ export default {
     </div>
     <section class="bordered-section">
       <ResourceTabs :value="value" mode="view">
-        <Tab name="members" label="Members">
+        <!-- <Tab name="members" label="Members">
           <RoleBindings
             ref="rb"
             :role-scope="SCOPE_CLUSTER"
@@ -75,7 +78,7 @@ export default {
             mode="view"
             as="detail"
           />
-        </Tab>
+        </Tab> -->
       </ResourceTabs>
     </section>
   </div>
