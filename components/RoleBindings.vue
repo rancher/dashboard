@@ -2,9 +2,10 @@
 import { RBAC as RBAC_LABELS } from '@/config/labels-annotations';
 import { allHash } from '@/utils/promise';
 import { RBAC, MANAGEMENT } from '@/config/types';
-import { _CONFIG, _DETAIL, _EDIT } from '@/config/query-params';
-import { removeAt, removeObject } from '@/utils/array';
+import { _CONFIG, _DETAIL, _EDIT, _VIEW } from '@/config/query-params';
+import { findBy, removeAt, removeObject } from '@/utils/array';
 import Loading from '@/components/Loading';
+import SortableTable from '@/components/SortableTable';
 import LabeledSelect from '@/components/form/LabeledSelect';
 
 export const SCOPE_NAMESPACE = 'Role';
@@ -12,10 +13,12 @@ export const SCOPE_CLUSTER = 'ClusterRole';
 // export const SCOPE_GLOBAL = 'GlobalRole';
 
 export default {
-  components: { Loading, LabeledSelect },
+  components: {
+    Loading, LabeledSelect, SortableTable
+  },
 
   props: {
-    registerBeforeHook: {
+    registerAfterHook: {
       type:    Function,
       default: null,
     },
@@ -28,6 +31,11 @@ export default {
     as: {
       type:    String,
       default: _CONFIG,
+    },
+
+    inStore: {
+      type:    String,
+      default: 'cluster',
     },
 
     roleScope: {
@@ -64,11 +72,12 @@ export default {
 
   async fetch() {
     const hash = { allUsers: this.$store.dispatch('management/findAll', { type: MANAGEMENT.USER }) };
+    const inStore = this.inStore;
 
     if ( this.roleScope === SCOPE_NAMESPACE ) {
-      hash.allRoles = this.$store.dispatch('cluster/findAll', { type: RBAC.ROLE });
+      hash.allRoles = this.$store.dispatch(`${ inStore }/findAll`, { type: RBAC.ROLE });
     } else if ( this.roleScope === SCOPE_CLUSTER ) {
-      hash.allRoles = this.$store.dispatch('cluster/findAll', { type: RBAC.CLUSTER_ROLE });
+      hash.allRoles = this.$store.dispatch(`${ inStore }/findAll`, { type: RBAC.CLUSTER_ROLE });
     // } else if ( this.roleScope === SCOPE_GLOBAL ) {
     // hash.allRoles = this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE });
     } else {
@@ -76,9 +85,9 @@ export default {
     }
 
     if ( this.bindingScope === SCOPE_NAMESPACE ) {
-      hash.allBindings = this.$store.dispatch('cluster/findAll', { type: RBAC.ROLE_BINDING });
+      hash.allBindings = this.$store.dispatch(`${ inStore }/findAll`, { type: RBAC.ROLE_BINDING });
     } else if ( this.bindingScope === SCOPE_CLUSTER ) {
-      hash.allBindings = this.$store.dispatch('cluster/findAll', { type: RBAC.CLUSTER_ROLE_BINDING });
+      hash.allBindings = this.$store.dispatch(`${ inStore }/findAll`, { type: RBAC.CLUSTER_ROLE_BINDING });
     // } else if ( this.bindingScope === SCOPE_GLOBAL ) {
     // hash.allBindings = this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE_BINDING });
     } else {
@@ -91,11 +100,7 @@ export default {
       this[key] = out[key];
     }
 
-    if ( this.mode === _EDIT ) {
-      this.readExistingBindings();
-    } else {
-      this.rows = [];
-    }
+    this.readExistingBindings();
   },
 
   data() {
@@ -108,8 +113,38 @@ export default {
   },
 
   computed: {
+    isView() {
+      return this.mode === _VIEW;
+    },
+
     showDetail() {
       return this.as === _DETAIL;
+    },
+
+    detailHeaders() {
+      return [
+        {
+          name:     'type',
+          labelKey: 'tableHeaders.type',
+          value:    'subjectKind',
+          sort:     'subjectKind',
+          search:   'subjectKind',
+        },
+        {
+          name:      'subject',
+          labelKey:  'tableHeaders.subject',
+          value:     'userObj.labelForSelect',
+          sort:      'userObj.labelForSelect',
+          search:    'userObj.labelForSelect',
+        },
+        {
+          name:      'role',
+          labelKey:  'tableHeaders.role',
+          value:     'roleObj.nameWithinProduct',
+          sort:      'roleObj.nameWithinProduct',
+          search:    'roleObj.nameWithinProduct',
+        },
+      ];
     },
 
     userOptions() {
@@ -167,7 +202,9 @@ export default {
   },
 
   created() {
-    this.registerBeforeHook(this.save, 'syncRoleBindings');
+    if ( this.mode !== _VIEW ) {
+      this.registerAfterHook(this.saveRoleBindings, 'saveRoleBindings');
+    }
   },
 
   methods: {
@@ -184,8 +221,10 @@ export default {
           return {
             subjectKind:      subject.kind,
             subject:          subject.name,
+            userObj:          findBy(this.allUsers, 'id', subject.name),
             roleKind:         binding.roleRef.kind,
             role:             binding.roleRef.name,
+            roleObj:          findBy(this.allRoles, 'id', binding.roleRef.name),
             existing:         binding,
             existingIdx:      i,
             remove:           false,
@@ -194,8 +233,7 @@ export default {
       });
     },
 
-    // eslint-disable-block
-    async save() {
+    async saveRoleBindings() {
       /* eslint-disable no-console */
 
       const promises = [];
@@ -269,15 +307,14 @@ export default {
     },
 
     createFrom(row) {
-      let type, apiGroup, inStore;
+      let type, apiGroup;
+      const inStore = this.inStore;
 
       if ( this.bindingScope === SCOPE_NAMESPACE ) {
         type = RBAC.ROLE_BINDING;
-        inStore = 'cluster';
         apiGroup = 'rbac.authorization.k8s.io';
       } else if ( this.bindingScope === SCOPE_CLUSTER ) {
         type = RBAC.CLUSTER_ROLE_BINDING;
-        inStore = 'cluster';
         apiGroup = 'rbac.authorization.k8s.io';
       // } else if ( this.bindingScope === SCOPE_GLOBAL ) {
       //   type = RBAC.GLOBAL_ROLE_BINDING;
@@ -333,14 +370,23 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else-if="showDetail">
-    Details...
+    <SortableTable
+      :rows="unremovedRows"
+      :headers="detailHeaders"
+      :table-actions="false"
+      :row-actions="false"
+      key-field="existing.id"
+      default-sort-by="subject"
+      :paged="true"
+    />
   </div>
   <div v-else>
-    <div v-for="(row, idx) in unremovedRows" :key="idx" class="role-row">
+    <div v-for="(row, idx) in unremovedRows" :key="idx" class="role-row" :class="{[mode]: true}">
       <div class="subject">
         <LabeledSelect
           v-model="row.subject"
           label-key="rbac.roleBinding.user.label"
+          :mode="mode"
           :searchable="true"
           :taggable="true"
           :options="userOptions"
@@ -350,17 +396,18 @@ export default {
         <LabeledSelect
           v-model="row.role"
           label-key="rbac.roleBinding.role.label"
+          :mode="mode"
           :searchable="true"
           :taggable="true"
           :options="roleOptions"
         />
       </div>
       <div class="remove">
-        <button v-t="'generic.remove'" type="button" class="btn bg-transparent role-link" @click="remove(row)" />
+        <button v-t="'generic.remove'" :disabled="isView" type="button" class="btn bg-transparent role-link" @click="remove(row)" />
       </div>
     </div>
     <div>
-      <button v-t="'rbac.roleBinding.add'" type="button" class="btn role-tertiary add" @click="add()" />
+      <button v-t="'rbac.roleBinding.add'" :disabled="isView" type="button" class="btn role-tertiary add" @click="add()" />
     </div>
   </div>
 </template>
@@ -369,6 +416,7 @@ export default {
 .role-row{
   display: grid;
   grid-template-columns: 45% 45% 10%;
+
   grid-column-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;

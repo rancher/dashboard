@@ -4,9 +4,7 @@ import { base64Decode } from '@/utils/crypto';
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import DetailText from '@/components/DetailText';
-import RelatedResources from '@/components/RelatedResources';
 import Tab from '@/components/Tabbed/Tab';
-import { WORKLOAD_TYPES } from '@/config/types';
 
 const types = [
   TYPES.OPAQUE,
@@ -23,7 +21,6 @@ export default {
   components: {
     ResourceTabs,
     DetailText,
-    RelatedResources,
     Tab,
   },
 
@@ -143,18 +140,6 @@ export default {
       return rows;
     },
 
-    hasRelatedWorkloads() {
-      const { relationships = [] } = this.value.metadata;
-
-      for (const r in relationships) {
-        if (r.rel === 'owner' && WORKLOAD_TYPES.includes(r.fromType)) {
-          return true;
-        }
-      }
-
-      return false;
-    },
-
     dataLabel() {
       switch (this.value._type) {
       case TYPES.TLS:
@@ -219,13 +204,23 @@ export default {
       </div>
 
       <div v-else>
-        <div v-for="(row,idx) in parsedRows" :key="idx" class="mb-20">
+        <div v-for="(row,idx) in parsedRows" :key="idx" class="entry">
           <DetailText :value="row.value" :label="row.key" :conceal="true" />
+        </div>
+        <div v-if="!parsedRows.length">
+          <div v-t="'sortableTable.noRows'" class="m-20 text-center" />
         </div>
       </div>
     </Tab>
-    <Tab v-if="hasRelatedWorkloads" name="workloads" label-key="secret.relatedWorkloads">
-      <RelatedResources :ignore-types="['pod']" :value="value" rel="uses" direction="from" />
-    </Tab>
   </ResourceTabs>
 </template>
+
+<style lang="scss" scoped>
+  .entry {
+    margin-top: 10px;
+
+    &:first-of-type {
+      margin-top: 0;
+    }
+  }
+</style>

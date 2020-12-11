@@ -5,7 +5,7 @@ import InfoBox from '@/components/InfoBox';
 export default { components: { ArrayList, InfoBox } };
 </script>
 <template>
-  <ArrayList class="array-list-grouped" v-bind="$attrs" @input="$emit('input', $event)">
+  <ArrayList class="array-list-grouped" v-bind="$attrs" @input="$emit('input', $event)" @add="$emit('add')">
     <!-- Pass down templates provided by the caller -->
     <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
       <slot :name="slot" v-bind="scope" />

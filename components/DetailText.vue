@@ -140,10 +140,10 @@ export default {
 
 <template>
   <div :class="{'force-wrap': true, 'with-copy':copy}">
-    <h4 v-if="labelKey" v-t="labelKey" />
-    <h4 v-else-if="label">
+    <h5 v-if="labelKey" v-t="labelKey" />
+    <h5 v-else-if="label">
       {{ label }}
-    </h4>
+    </h5>
 
     <span v-if="isEmpty" v-t="'detailText.empty'" class="text-italic" />
     <span v-else-if="isBinary" class="text-italic">{{ t('detailText.binary', {n: size}) }}</span>
@@ -169,7 +169,7 @@ export default {
 .with-copy {
   border: solid thin var(--border);
   border-radius: var(--border-radius);
-  padding: 20px;
+  padding: 10px;
   position: relative;
   background-color: var(--input-bg);
   border-radius: var(--border-radius);

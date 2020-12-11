@@ -446,7 +446,7 @@ export default {
         v-if="containerChoices.length > 0"
         v-model="container"
         :disabled="containerChoices.length === 1"
-        class="containerPicker"
+        class="containerPicker pull-left"
         :options="containerChoices"
         :clearable="false"
         placement="top"
@@ -456,13 +456,15 @@ export default {
           <t v-if="option" k="wm.containerLogs.containerName" :label="option.label" />
         </template>
       </Select>
-      <button class="btn btn-sm bg-primary" :disabled="isFollowing" @click="follow">
-        <t k="wm.containerLogs.follow" />
-      </button>
-      <button class="btn btn-sm bg-primary" @click="clear">
-        <t k="wm.containerLogs.clear" />
-      </button>
-      <AsyncButton class="btn-sm" mode="download" @click="download" />
+      <div class="pull-left ml-5">
+        <button class="btn btn-sm bg-primary" :disabled="isFollowing" @click="follow">
+          <t k="wm.containerLogs.follow" />
+        </button>
+        <button class="btn btn-sm bg-primary" @click="clear">
+          <t k="wm.containerLogs.clear" />
+        </button>
+        <AsyncButton class="btn-sm" mode="download" @click="download" />
+      </div>
 
       <div class="pull-right text-center p-10" style="min-width: 80px;">
         <t :class="{'text-success': isOpen, 'text-error': !isOpen}" :k="isOpen ? 'wm.connection.connected' : 'wm.connection.disconnected'" />

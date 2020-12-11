@@ -52,6 +52,7 @@ export default {
         :mode="mode"
         :title="t('labels.labels.title')"
         :read-allowed="false"
+        :value-can-be-empty="true"
         @input="value.setLabels"
       />
     </div>
@@ -63,6 +64,7 @@ export default {
         :mode="mode"
         :title="t('labels.annotations.title')"
         :read-allowed="false"
+        :value-can-be-empty="true"
         @input="value.setAnnotations"
       />
     </div>

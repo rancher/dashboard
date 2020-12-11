@@ -304,7 +304,6 @@ export default {
           if ( value && this.valueBase64 ) {
             value = base64Encode(value);
           }
-
           if ( key && (value || this.valueCanBeEmpty) ) {
             out[key] = value;
           }
@@ -464,7 +463,7 @@ export default {
     display: grid;
     align-items: center;
     grid-template-columns: auto 1fr;
-    column-gap: $column-gutter;
+    column-gap: 20px;
 
     &.extra-column {
        grid-template-columns: 1fr 1fr 100px;

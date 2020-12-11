@@ -780,6 +780,10 @@ export default {
         return Promise.reject(errors);
       }
 
+      if ( this.metadata?.resourceVersion ) {
+        this.metadata.resourceVersion = `${ this.metadata.resourceVersion }`;
+      }
+
       if ( !opt.url ) {
         if ( forNew ) {
           const schema = this.$getters['schemaFor'](this.type);
@@ -1463,10 +1467,12 @@ export default {
         let matching = this.$getters['byId'](type, id);
 
         if ( !matching ) {
-          matching = await this.$dispatch('find', { type, id });
+          try {
+            matching = await this.$dispatch('find', { type, id });
+          } catch {
+          }
         }
-
-        if ( matching ) {
+        if (matching) {
           addObject(out, matching);
         }
       }

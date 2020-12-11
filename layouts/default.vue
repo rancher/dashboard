@@ -333,11 +333,6 @@ export default {
       margin-bottom: 20px;
       align-items: center;
 
-      H1 {
-        grid-area: title;
-        margin: 0;
-      }
-
       .type-banner {
         grid-area: type-banner;
       }
@@ -350,9 +345,10 @@ export default {
         grid-area: title;
       }
 
-      .actions {
+      .actions-container {
         grid-area: actions;
-        margin-left: auto;
+        height: 100%;
+        margin-left: 8px;
       }
     }
 

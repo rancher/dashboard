@@ -172,7 +172,7 @@ export default {
     }
 
     > .apps {
-      padding: 0 5px 0 5px;
+      padding: 0 3px 0 5px;
     }
 
     > .cluster {
@@ -207,7 +207,7 @@ export default {
       }
 
       .filter {
-        padding-left: 5px;
+        padding-left: 2px;
       }
 
       .filter .vs__dropdown-toggle {

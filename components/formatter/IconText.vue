@@ -27,18 +27,10 @@ export default {
       type:    String,
       default: null,
     },
-
-    getIcon: {
-      type:    Function,
-      default: null
-    }
   },
 
   computed: {
     displayClass() {
-      if (this.getIcon) {
-        return this.getIcon(this.row);
-      }
       if ( this.iconKey ) {
         return get(this.row, this.iconKey);
       }

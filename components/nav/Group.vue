@@ -24,7 +24,7 @@ export default {
     },
 
     expanded: {
-      type:     Function,
+      type:     [Function, Boolean],
       required: true,
     },
 

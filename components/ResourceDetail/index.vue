@@ -5,7 +5,7 @@ import Loading from '@/components/Loading';
 import ResourceYaml from '@/components/ResourceYaml';
 import {
   _VIEW, _EDIT, _CLONE, _STAGE, _CREATE,
-  AS, _YAML, _DETAIL, _CONFIG,
+  AS, _YAML, _DETAIL, _CONFIG, PREVIEW,
 } from '@/config/query-params';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
@@ -13,6 +13,7 @@ import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
 import Vue from 'vue';
 import isEqual from 'lodash/isEqual';
+import { clone } from '@/utils/object';
 
 function modeFor(route) {
   if ( route.params.id ) {
@@ -224,7 +225,18 @@ export default {
   },
 
   watch: {
-    '$route.query'(neu, old) {
+    '$route.query'(inNeu, inOld) {
+      const neu = clone(inNeu);
+      const old = clone(inOld);
+
+      delete neu[PREVIEW];
+      delete old[PREVIEW];
+
+      if ( !this.isView ) {
+        delete neu[AS];
+        delete old[AS];
+      }
+
       if ( !isEqual(neu, old) ) {
         this.$fetch();
       }

@@ -67,14 +67,21 @@ export default {
 
       const cluster = this.$store.getters['clusterId'];
       const inStore = this.$store.getters['currentProduct'].inStore;
+      const out = [];
 
-      return this.filteredRelationships.map((r) => {
+      for ( const r of this.filteredRelationships) {
         const state = r.state || 'active';
         const stateColor = colorForState(state, r.error, r.transitioning);
         const type = r[`${ this.direction }Type`];
         const schema = this.$store.getters[`${ inStore }/schemaFor`](type);
 
         let name = r[`${ this.direction }Id`];
+
+        // Skip things like toType/toNamspace+selector for now
+        if ( !name ) {
+          continue;
+        }
+
         let namespace = null;
         const idx = name.indexOf('/');
         const key = `${ type }/${ namespace }/${ name }`;
@@ -95,7 +102,7 @@ export default {
           }
         };
 
-        return {
+        out.push({
           type,
           real:     this.$store.getters[`${ inStore }/byId`](type, r[`${ this.direction }Id`]),
           id:       r[`${ this.direction }Id`],
@@ -113,16 +120,18 @@ export default {
           stateDisplay:    stateDisplay(state),
           stateBackground: stateColor.replace('text-', 'bg-'),
           groupByLabel:    namespace,
-        };
-      });
+        });
+      }
+
+      return out;
     },
 
     headers() {
       return [
         STATE,
+        TYPE,
         NAME,
         NAMESPACE,
-        TYPE,
       ];
     },
   },
@@ -161,6 +170,7 @@ export default {
     :force-namespaced="true"
     :mangle-action-resources="getRealResources"
     paging-label="sortableTable.paging.generic"
+    :groupable="false"
   >
     <template #cell:state="{row}">
       <BadgeState v-if="row.real" :value="row.real" />

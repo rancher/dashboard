@@ -45,10 +45,10 @@ export default {
       </div>
     </div>
     <div class="row">
-      <div class="col span-6">
+      <div class="col span-10">
         <LabeledInput v-model="value.servers[0].host" :mode="mode" :disabled="disabled" :label="t('logging.forward.host')" />
       </div>
-      <div class="col span-6">
+      <div class="col span-2">
         <LabeledInput v-model="port" :mode="mode" :disabled="disabled" type="number" :label="t('logging.forward.port')" />
       </div>
     </div>

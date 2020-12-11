@@ -15,8 +15,6 @@ export const GITHUB_SCOPE = 'scope';
 export const GITHUB_REDIRECT = 'redirect_uri';
 
 // GENERAL
-export const AS_YAML = 'as-yaml';
-export const AS_FORM = 'as-form';
 export const _FLAGGED = null; // The value for a key-only flag, like `?desc`
 export const _UNFLAG = undefined; // The value to remove a query param
 

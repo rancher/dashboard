@@ -80,6 +80,12 @@ export const PROVIDERS = [
     default:  { },
   },
   {
+    name:     'syslog',
+    labelKey: 'logging.outputProviders.syslog',
+    default:  { },
+  },
+  {
+
     name:     's3',
     labelKey: 'logging.outputProviders.s3',
     default:  { },
