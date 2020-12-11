@@ -29,7 +29,6 @@ import CountGauge from '@/components/CountGauge';
 import Glance from '@/components/Glance';
 import LazyImage from '@/components/LazyImage';
 import { findBy } from '@/utils/array';
-import { OS_LOGOS } from '@/models/management.cattle.io.cluster';
 import HardwareResourceGauge from './HardwareResourceGauge';
 
 const PARSE_RULES = {
