@@ -5,7 +5,7 @@ import Labels from '@/components/form/Labels';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import { FLEET, MANAGEMENT } from '@/config/types';
-import RoleBindings from '@/components/RoleBindings';
+// import RoleBindings from '@/components/RoleBindings';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { SCOPE_NAMESPACE, SCOPE_CLUSTER } from '@/components/RoleBindings.vue';
@@ -19,7 +19,7 @@ export default {
     Labels,
     Loading,
     NameNsDescription,
-    RoleBindings,
+    // RoleBindings,
     Tabbed,
     Tab,
   },
@@ -71,7 +71,7 @@ export default {
     <NameNsDescription v-model="value" :mode="mode" :namespaced="false" />
 
     <Tabbed :side-tabs="true" default-tab="members">
-      <Tab name="members" label-key="generic.members" :weight="2">
+      <!-- <Tab name="members" label-key="generic.members" :weight="2">
         <RoleBindings
           ref="rb"
           :register-after-hook="registerAfterHook"
@@ -82,7 +82,7 @@ export default {
           :mode="mode"
           in-store="management"
         />
-      </Tab>
+      </Tab> -->
 
       <Tab name="labels" label-key="generic.labelsAndAnnotations">
         <Labels v-model="value" :mode="mode" />
