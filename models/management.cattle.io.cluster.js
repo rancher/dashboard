@@ -1,12 +1,19 @@
 import { CATALOG } from '@/config/labels-annotations';
 import { FLEET } from '@/config/types';
-import { insertAt } from '@/utils/array';
+import { insertAt, findBy } from '@/utils/array';
+
+export const OS_LOGOS = [
+  {
+    id:   'linux',
+    logo:  require(`~/assets/images/logo-linux.svg`)
+  },
+  {
+    id:   'windows',
+    logo:  require(`~/assets/images/logo-windows.svg`)
+  },
+];
 
 export default {
-  scope() {
-    return this.id === 'local' ? CATALOG._MANAGEMENT : CATALOG._DOWNSTREAM;
-  },
-
   _availableActions() {
     const out = this._standardActions;
 
@@ -18,6 +25,33 @@ export default {
     });
 
     return out;
+  },
+
+  canDelete() {
+    return this.hasLink('remove') && !this?.spec?.internal;
+  },
+
+  configName() {
+    const allKeys = Object.keys(this.spec);
+    const configKey = allKeys.find( kee => kee.includes('Config'));
+
+    return configKey;
+  },
+
+  groupByLabel() {
+    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
+  },
+
+  isReady() {
+    return this.hasCondition('Ready');
+  },
+
+  kubernetesVersion() {
+    if ( this?.status?.version?.gitVersion ) {
+      return this.status.version.gitVersion;
+    } else {
+      return this.$rootGetters['i18n/t']('generic.unknown');
+    }
   },
 
   openShell() {
@@ -35,31 +69,23 @@ export default {
     };
   },
 
-  isReady() {
-    return this.hasCondition('Ready');
-  },
+  providerOSLogo() {
+    const providerOSOptions = OS_LOGOS;
+    const provider = this.status.provider || '';
+    let match = findBy(providerOSOptions, 'id', 'linux');
+    let { logo } = match;
 
-  configName() {
-    const allKeys = Object.keys(this.spec);
-    const configKey = allKeys.find( kee => kee.includes('Config'));
+    if (provider === 'rke.windows') {
+      match = findBy(providerOSOptions, 'id', 'windows');
 
-    return configKey;
-  },
-
-  kubernetesVersion() {
-    if ( this?.status?.version?.gitVersion ) {
-      return this.status.version.gitVersion;
-    } else {
-      return this.$rootGetters['i18n/t']('generic.unknown');
+      logo = match.logo;
     }
+
+    return logo;
   },
 
-  canDelete() {
-    return this.hasLink('remove') && !this?.spec?.internal;
-  },
-
-  groupByLabel() {
-    return this.$rootGetters['i18n/t']('resourceTable.groupLabel.notInAWorkspace');
+  scope() {
+    return this.id === 'local' ? CATALOG._MANAGEMENT : CATALOG._DOWNSTREAM;
   },
 
   setClusterNameLabel() {

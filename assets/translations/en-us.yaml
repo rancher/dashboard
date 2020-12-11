@@ -263,6 +263,8 @@ catalog:
       partner: Partner
       rancher: Rancher
     header: Deploy Chart
+    noCharts: 'There are no charts available, have you added any repos?'
+    noWindows: Your catalogs do not contain any charts capable of being deployed on a Windows cluster.
     search: Filter
   install:
     action:
@@ -308,8 +310,8 @@ catalog:
   operation:
     tableHeaders:
       action: Action
-      releaseNamespace: Release Namespace
       releaseName: Release Name
+      releaseNamespace: Release Namespace
   repo:
     action:
       refresh: Refresh
@@ -382,7 +384,7 @@ cis:
     skip: Skip
     total: Total
     warn: Warn
-  scheduling: 
+  scheduling:
     enable: Run scan on a schedule
     disable: Run scan once
   scoreWarning:
@@ -429,6 +431,7 @@ cluster:
     other: Other
     rke: RKE
     rke2: RKE Government
+    rkeWindows: Windows
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -813,7 +816,7 @@ logging:
   logz:
     url: URL
     port: Port
-    token: Api Token 
+    token: Api Token
     enableCompression: Enable Compression
   newrelic:
     apiKey: API Key

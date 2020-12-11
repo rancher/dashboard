@@ -2,13 +2,16 @@
 import { MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { findBy } from '@/utils/array';
-import { mapState } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import Select from '@/components/form/Select';
+import LazyImage from '@/components/LazyImage';
 
 export default {
-  components: { Select },
+  components: { LazyImage, Select },
+
   computed:   {
     ...mapState(['isMultiCluster']),
+    ...mapGetters(['currentCluster']),
 
     value: {
       get() {
@@ -36,9 +39,10 @@ export default {
 
       const out = all.map((x) => {
         return {
-          id:    x.id,
-          label: x.nameDisplay,
-          ready: x.isReady,
+          id:     x.id,
+          label:  x.nameDisplay,
+          ready:  x.isReady,
+          osLogo: x.providerOSLogo,
         };
       });
 
@@ -66,8 +70,12 @@ export default {
       :options="options"
     >
       <template #selected-option="opt">
-        <i class="icon icon-copy icon-lg pr-5" />
-        {{ opt.label }}
+        <span class="cluster-label-container">
+          <LazyImage class="cluster-switcher-os-logo" :src="currentCluster.providerOSLogo" />
+          <span class="cluster-label">
+            {{ opt.label }}
+          </span>
+        </span>
       </template>
 
       <template #no-options="{ search, searching }">
@@ -78,15 +86,22 @@ export default {
       </template>
 
       <template #option="opt">
-        <b v-if="opt === value">{{ opt.label }}</b>
-        <nuxt-link
-          v-else-if="opt.ready"
-          class="cluster"
-          :to="{ name: 'c-cluster', params: { cluster: opt.id } }"
-        >
-          {{ opt.label }}
-        </nuxt-link>
-        <span v-else class="text-muted">{{ opt.label }}</span>
+        <span class="dropdown-option">
+          <span class="logo">
+            <img v-if="opt.osLogo" class="cluster-switcher-os-logo" :src="opt.osLogo" />
+          </span>
+          <span class="content">
+            <b v-if="opt === value">{{ opt.label }}</b>
+            <nuxt-link
+              v-else-if="opt.ready"
+              class="cluster"
+              :to="{ name: 'c-cluster', params: { cluster: opt.id } }"
+            >
+              {{ opt.label }}
+            </nuxt-link>
+            <span v-else class="text-muted">{{ opt.label }}</span>
+          </span>
+        </span>
       </template>
     </Select>
     <button v-shortkey.once="['c']" class="hide" @shortkey="focus()" />
@@ -94,12 +109,38 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+.filter {
+  .cluster-label-container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 15% 85%;
+  }
+
+  .cluster-switcher-os-logo {
+    height: 16px;
+  }
+}
+
 .filter ::v-deep .unlabeled-select .v-select {
   background: rgba(0, 0, 0, 0.05);
   border-radius: var(--border-radius);
   color: var(--header-btn-text);
   display: inline-block;
   max-width: 100%;
+
+  .vs__selected {
+    width: 100%;
+  }
+
+  // matches the padding a layout of the option (and logo/content) to the selected option so it doesn't look off
+  .vs__dropdown-option  {
+    padding: 3px 20px 3px 8px;
+    .dropdown-option {
+      display: grid;
+      width: 100%;
+      grid-template-columns: 35% fit-content(100%);
+    }
+  }
 
   &.vs--disabled .vs__actions {
     display: none;
