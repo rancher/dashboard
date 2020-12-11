@@ -30,11 +30,13 @@ export default {
   },
   data() {
     const formatTypeOptions = ['json', 'out_file', 'ltsv', 'csv', 'msgpack', 'hash', 'single_value'];
+    const transportOptions = ['tls', 'udp', 'tcp'];
 
     this.$set(this.value, 'format', this.value.format || { type: formatTypeOptions[0] });
     this.$set(this.value, 'buffer', this.value.buffer || {});
+    this.$set(this.value, 'transport', this.value.transport || transportOptions[0]);
 
-    return { formatTypeOptions };
+    return { formatTypeOptions, transportOptions };
   },
   computed: {
     port: {
@@ -66,7 +68,7 @@ export default {
     </div>
     <div class="row">
       <div class="col span-8">
-        <LabeledInput v-model="value.host" :mode="mode" :disabled="disabled" class="host" :label="t('logging.syslog.host')" />
+        <LabeledInput v-model="value.host" :mode="mode" :disabled="disabled" :label="t('logging.syslog.host')" />
       </div>
       <div class="col span-4">
         <LabeledInput
@@ -87,7 +89,13 @@ export default {
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.transport" :mode="mode" :disabled="disabled" class="host" :label="t('logging.syslog.transport')" />
+        <LabeledSelect
+          v-model="value.transport"
+          :options="transportOptions"
+          :mode="mode"
+          :disabled="disabled"
+          :label="t('logging.syslog.transport')"
+        />
       </div>
       <div class="col span-6 insecure">
         <Checkbox v-model="value.insecure" :mode="mode" :disabled="disabled" :label="t('logging.syslog.insecure')" />
@@ -118,7 +126,6 @@ export default {
           :options="formatTypeOptions"
           :mode="mode"
           :disabled="disabled"
-          class="host"
           :label="t('logging.syslog.format.type')"
         />
       </div>
@@ -131,19 +138,18 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.buffer.tags" :mode="mode" :disabled="disabled" class="host" :label="t('logging.syslog.buffer.tags')" />
+        <LabeledInput v-model="value.buffer.tags" :mode="mode" :disabled="disabled" :label="t('logging.syslog.buffer.tags')" />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.buffer.chunk_limit_size" :mode="mode" :disabled="disabled" class="host" :label="t('logging.syslog.buffer.chunkLimitSize')" />
+        <LabeledInput v-model="value.buffer.chunk_limit_size" :mode="mode" :disabled="disabled" :label="t('logging.syslog.buffer.chunkLimitSize')" />
       </div>
       <div class="col span-6">
         <LabeledInput
           v-model="chunkLimitRecords"
           :mode="mode"
           :disabled="disabled"
-          class="host"
           type="number"
           :label="t('logging.syslog.buffer.chunkLimitRecords')"
         />
@@ -151,20 +157,20 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.buffer.total_limit_size" :mode="mode" :disabled="disabled" class="host" :label="t('logging.syslog.buffer.totalLimitSize')" />
+        <LabeledInput v-model="value.buffer.total_limit_size" :mode="mode" :disabled="disabled" :label="t('logging.syslog.buffer.totalLimitSize')" />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.buffer.flush_interval" :mode="mode" :disabled="disabled" class="host" :label="t('logging.syslog.buffer.flushInterval')" />
+        <LabeledInput v-model="value.buffer.flush_interval" :mode="mode" :disabled="disabled" :label="t('logging.syslog.buffer.flushInterval')" />
       </div>
     </div>
     <div class="row mb-10">
       <div class="col span-6">
-        <LabeledInput v-model="value.buffer.timekey" :mode="mode" :disabled="disabled" class="host" :label="t('logging.syslog.buffer.timekey')" />
+        <LabeledInput v-model="value.buffer.timekey" :mode="mode" :disabled="disabled" :label="t('logging.syslog.buffer.timekey')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.buffer.timekey_wait" :mode="mode" :disabled="disabled" class="host" :label="t('logging.syslog.buffer.timekeyWait')" />
+        <LabeledInput v-model="value.buffer.timekey_wait" :mode="mode" :disabled="disabled" :label="t('logging.syslog.buffer.timekeyWait')" />
       </div>
     </div>
     <div class="row mb-10">
