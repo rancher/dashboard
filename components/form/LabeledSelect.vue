@@ -190,7 +190,7 @@ export default {
   <div
     class="labeled-select"
     :class="{
-      disabled: disabled && !isView,
+      disabled: isView || disabled,
       focused,
       [mode]: true,
       [status]: status,
