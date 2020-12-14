@@ -12,6 +12,7 @@ import { allHash } from '@/utils/promise';
 import Checkbox from '@/components/form/Checkbox';
 import RadioGroup from '@/components/form/RadioGroup';
 import { get } from '@/utils/object';
+import { isValidCron } from 'cron-validator';
 
 const semver = require('semver');
 
@@ -119,8 +120,12 @@ export default {
 
     validated() {
       if (this.isScheduled) {
-        if (!get(this.value, 'spec.scheduledScanConfig.cronSchedule')) {
+        const schedule = get(this.value, 'spec.scheduledScanConfig.cronSchedule');
+
+        if (!schedule) {
           return false;
+        } else {
+          return isValidCron(schedule) && !!this.value.spec.scanProfileName;
         }
       }
 

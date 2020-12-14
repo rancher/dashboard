@@ -4,6 +4,7 @@ import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
 import { escapeHtml } from '@/utils/string';
 import cronstrue from 'cronstrue';
+import { isValidCron } from 'cron-validator';
 
 export default {
   components: { LabeledTooltip, TextAreaAutoGrow },
@@ -43,6 +44,9 @@ export default {
     cronHint() {
       if (this.type !== 'cron' || !this.value) {
         return;
+      }
+      if (!isValidCron(this.value)) {
+        return this.t('generic.invalidCron');
       }
       try {
         const hint = cronstrue.toString(this.value);

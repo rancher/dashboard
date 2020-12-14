@@ -168,7 +168,7 @@ export default {
     }
   }
 
-  input:disabled ~ .radio-custom {
+  input:disabled ~ .radio-custom:not([aria-checked="true"]) {
     background-color: var(--disabled-bg);
     opacity: .25;
   }
