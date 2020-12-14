@@ -12,6 +12,7 @@ import { allHash } from '@/utils/promise';
 import Checkbox from '@/components/form/Checkbox';
 import RadioGroup from '@/components/form/RadioGroup';
 import { get } from '@/utils/object';
+import { _VIEW, _CREATE } from '@/config/query-params';
 import { isValidCron } from 'cron-validator';
 
 const semver = require('semver');
@@ -55,6 +56,17 @@ export default {
     } catch {}
 
     this.allProfiles = hash.profiles;
+    const { scanProfileName } = this.value.spec;
+
+    // if mode is _CREATE and scanProfileName is defined, this is a clone
+    // check if the profile referred to in the original spec still exists
+    if (scanProfileName && this.mode === _CREATE) {
+      const proxyObj = this.allProfiles.filter(profile => profile.id === scanProfileName)[0];
+
+      if (!proxyObj) {
+        this.$set(this.value.spec, 'scanProfileName', '');
+      }
+    }
   },
 
   data() {
@@ -80,6 +92,13 @@ export default {
     ...mapGetters({ currentCluster: 'currentCluster', t: 'i18n/t' }),
 
     canBeScheduled() {
+      // check if scan was created and run with an older cis install that doesn't support scheduling/alerting/warn state
+      if (this.mode === _VIEW) {
+        const warn = get(this.value, 'status.summary.warn');
+
+        return !!warn || warn === 0;
+      }
+
       return this.value.canBeScheduled();
     },
 
@@ -131,11 +150,18 @@ export default {
 
       return !!this.value.spec.scanProfileName;
     }
+
   },
 
   watch: {
     defaultProfile(neu) {
       if (neu && !this.value.spec.scanProfileName) {
+        const benchmarkVersion = neu?.spec?.benchmarkVersion;
+        const benchmark = this.$store.getters['cluster/byId'](CIS.BENCHMARK, benchmarkVersion);
+
+        if (!this.validateBenchmark(benchmark, this.currentCluster)) {
+          return;
+        }
         this.value.spec.scanProfileName = neu?.id;
       }
     },
@@ -146,7 +172,9 @@ export default {
       const clusterVersion = currentCluster.kubernetesVersion;
 
       if (!!benchmark?.spec?.clusterProvider) {
-        return benchmark?.spec?.clusterProvider === currentCluster.status.provider;
+        if ( benchmark?.spec?.clusterProvider !== currentCluster.status.provider) {
+          return false;
+        }
       }
       if (benchmark?.spec?.minKubernetesVersion) {
         if (semver.gt(benchmark?.spec?.minKubernetesVersion, clusterVersion)) {
