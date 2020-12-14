@@ -110,7 +110,11 @@ export default {
       const Papa = await import(/* webpackChunkName: "cis" */'papaparse');
 
       try {
-        const testResults = report.aggregatedTests;
+        const testResults = (report.aggregatedTests || []).map((result) => {
+          delete result.actual_value_per_node;
+
+          return result;
+        });
 
         const csv = Papa.unparse(testResults);
 
@@ -130,7 +134,11 @@ export default {
 
       reports.forEach((report) => {
         try {
-          const testResults = report.aggregatedTests;
+          const testResults = (report.aggregatedTests || []).map((result) => {
+            delete result.actual_value_per_node;
+
+            return result;
+          });
 
           const csv = Papa.unparse(testResults);
 

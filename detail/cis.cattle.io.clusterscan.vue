@@ -261,7 +261,6 @@ export default {
         <LabeledSelect
           v-model="clusterReport"
           :label="t('cis.reports')"
-          class="inline"
           :options="clusterReports"
           :get-option-label="reportLabel"
           :get-option-key="report=>report.id"

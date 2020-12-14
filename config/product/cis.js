@@ -58,9 +58,10 @@ export function init(store) {
       value:    'status.summary.fail',
     },
     {
-      name:     'warn',
-      labelKey: 'cis.scan.warn',
-      value:    'status.summary.warn',
+      name:        'warn',
+      labelKey:    'cis.scan.warn',
+      value:       'status.summary.warn',
+      dashIfEmpty: true
     },
     {
       name:     'skip',
