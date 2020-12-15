@@ -31,7 +31,7 @@ export default {
     return {
       integrationMapping,
       integrationTypeOptions,
-      integrationType: this.value.service_key ? integrationTypeOptions[1] : integrationTypeOptions[0]
+      integrationType: this.value.routing_key ? integrationTypeOptions[0] : integrationTypeOptions[1]
     };
   },
   watch: {
