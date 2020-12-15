@@ -1,8 +1,16 @@
 <script>
 import ArrayList from '@/components/form/ArrayList';
 import InfoBox from '@/components/InfoBox';
+import { _VIEW } from '@/config/query-params';
 
-export default { components: { ArrayList, InfoBox } };
+export default {
+  components: { ArrayList, InfoBox },
+  computed:   {
+    isDisabled() {
+      return this.$attrs.mode === _VIEW;
+    }
+  }
+};
 </script>
 <template>
   <ArrayList class="array-list-grouped" v-bind="$attrs" @input="$emit('input', $event)" @add="$emit('add')">
@@ -16,9 +24,10 @@ export default { components: { ArrayList, InfoBox } };
       </InfoBox>
     </template>
     <template v-slot:remove-button="scope">
-      <button type="button" class="btn role-link close" @click="scope.remove">
+      <button v-if="!isDisabled" type="button" class="btn role-link close" @click="scope.remove">
         <i class="icon icon-2x icon-x" />
       </button>
+      <span v-else></span>
     </template>
   </ArrayList>
 </template>

@@ -196,6 +196,7 @@ export default {
           class="namespace-list"
           :mode="mode"
           :default-add-value="{}"
+          :disabled="disabled"
           :add-label="'Add ' + receiverType.label"
         >
           <template #default="props">
