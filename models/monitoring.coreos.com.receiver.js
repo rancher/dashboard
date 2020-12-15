@@ -27,8 +27,8 @@ export const RECEIVERS_TYPES = [
   },
   {
     name:  'opsgenie',
-    label: 'OpsGenie',
-    title: 'OpsGenie Config',
+    label: 'Opsgenie',
+    title: 'Opsgenie Config',
     key:   'opsgenie_configs',
     logo:  require(`~/assets/images/icon-email.svg`)
   },
