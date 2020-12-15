@@ -40,7 +40,7 @@ export default {
   data() {
     return {
       allRepos:            null,
-      catalogOSAnnotation: CATALOG.OS,
+      catalogOSAnnotation: CATALOG.SUPPORTED_OS,
       category:            null,
       searchQuery:         null,
       showDeprecated:      null,
