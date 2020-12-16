@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+
 import { STANDARD } from './config/private-label';
 import { directiveSsr as t } from './plugins/i18n';
 import { trimWhitespaceSsr as trimWhitespace } from './plugins/trim-whitespace';
@@ -61,6 +62,10 @@ if ( pl !== STANDARD ) {
 
 console.log(`API: ${ api }`); // eslint-disable-line no-console
 
+const nuxtServer = new URL(`https://localhost:${ dev ? 8005 : 80 }`);
+
+console.log(`Nuxt Server: ${ nuxtServer.origin }`); // eslint-disable-line no-console
+
 module.exports = {
   dev,
 
@@ -95,6 +100,7 @@ module.exports = {
     https:          true,
     proxy:          true,
     retry:          { retries: 0 },
+    baseURL:        nuxtServer.origin
     // debug:   true
   },
 
@@ -298,8 +304,8 @@ module.exports = {
       key:  fs.readFileSync(path.resolve(__dirname, 'server/server.key')),
       cert: fs.readFileSync(path.resolve(__dirname, 'server/server.crt'))
     } : null),
-    port:      (dev ? 8005 : 80),
-    host:      '0.0.0.0',
+    port:      nuxtServer.port,
+    host:      nuxtServer.hostname,
   },
 
   // Server middleware
