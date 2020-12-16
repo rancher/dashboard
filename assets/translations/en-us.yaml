@@ -309,8 +309,8 @@ catalog:
     version: Version
     versions:
       current: '{ver} (current)'
-      linux: '{ver} (linux only)'
-      windows: '{ver} (windows only)'
+      linux: '{ver} (Linux-only)'
+      windows: '{ver} (Windows-only)'
   operation:
     tableHeaders:
       action: Action
