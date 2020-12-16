@@ -11,56 +11,39 @@ export default {
   mixins:     [LabeledFormElement, VueSelectOverrides],
 
   props: {
-    value: {
-      type:    [String, Object, Number, Array, Boolean],
-      default: null,
-    },
-    options: {
-      type:    Array,
-      default: null,
+    disabled: {
+      default: false,
+      type:    Boolean
     },
     grouped: {
-      type:    Boolean,
       default: false,
-    },
-    disabled: {
-      type:    Boolean,
-      default: false,
-    },
-    optionKey: {
-      type:    String,
-      default: null,
-    },
-    optionLabel: {
-      type:    String,
-      default: 'label',
-    },
-    placement: {
-      type:    String,
-      default: null,
-    },
-    tooltip: {
-      type:    String,
-      default: null,
+      type:    Boolean
     },
     hoverTooltip: {
-      type:    Boolean,
       default: false,
+      type:    Boolean
     },
     localizedLabel: {
-      type:    Boolean,
       default: false,
+      type:    Boolean
     },
-    searchable: {
-      default: false,
-      type:    Boolean,
-    },
-    status: {
-      type:    String,
+    optionKey: {
       default: null,
+      type:    String
+    },
+    optionLabel: {
+      default: 'label',
+      type:    String
+    },
+    options: {
+      default: null,
+      type:    Array
+    },
+    placement: {
+      default: null,
+      type:    String
     },
     reduce: {
-      type:    Function,
       default: (e) => {
         if (e && typeof e === 'object' && e.value !== undefined) {
           return e.value;
@@ -68,7 +51,28 @@ export default {
 
         return e;
       },
+      type: Function
     },
+    searchable: {
+      default: false,
+      type:    Boolean
+    },
+    selectable: {
+      default: undefined,
+      type:    Function
+    },
+    status: {
+      default: null,
+      type:    String
+    },
+    tooltip: {
+      default: null,
+      type:    String
+    },
+    value: {
+      default: null,
+      type:    [String, Object, Number, Array, Boolean]
+    }
   },
 
   data() {
@@ -228,6 +232,7 @@ export default {
       :placeholder="placeholder"
       :reduce="(x) => reduce(x)"
       :searchable="isSearchable"
+      :selectable="selectable"
       :value="value != null ? value : ''"
       @input="(e) => $emit('input', e)"
       @search:blur="onBlur"

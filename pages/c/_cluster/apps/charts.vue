@@ -15,6 +15,8 @@ import { mapPref, HIDE_REPOS } from '@/store/prefs';
 import { removeObject, addObject, findBy } from '@/utils/array';
 import { CATALOG } from '@/config/labels-annotations';
 
+import filter from 'lodash/filter';
+
 export default {
   components: {
     AsyncButton,
@@ -113,16 +115,16 @@ export default {
 
     filteredCharts() {
       const clusterProvider = this.currentCluster.status.provider || 'other';
+      const enabledCharts = (this.enabledCharts || []); // .slice();
 
-      return (this.enabledCharts || []).filter((c) => {
-        const osAnnotation = c.annotations[this.catalogOSAnnotation];
+      return enabledCharts.filter((c) => {
+        const { versions: chartVersions = [] } = c;
 
-        // if we dont have the annotation the user is on there own as far as compatablility goes...think 3rd party charts that don't know our annotation
-        if (clusterProvider === 'rke.windows' && osAnnotation && osAnnotation !== 'windows') {
-          // windows cluster & has anno !== windows
+        if (clusterProvider === 'rke.windows' && this.getCompatibleVersions(chartVersions, 'windows').length <= 0) {
+          // if we have at least one windows
           return false;
-        } else if (clusterProvider !== 'rke.windows' && osAnnotation && osAnnotation === 'windows') {
-          // linux cluster & has anno === windows, didn't check specific providers here because we dont want to keep that entire list around
+        } else if (clusterProvider !== 'rke.windows' && this.getCompatibleVersions(chartVersions, 'linux').length <= 0) { // linux
+          // if we have at least one linux
           return false;
         }
 
@@ -213,6 +215,19 @@ export default {
 
       return null;
     },
+    getCompatibleVersions(versions, os) {
+      return filter(versions, (ver) => {
+        const osAnnotation = ver.annotations[this.catalogOSAnnotation];
+
+        if (osAnnotation && osAnnotation === os) {
+          return true;
+        } else if (!osAnnotation) {
+          return true;
+        }
+
+        return false;
+      });
+    },
 
     toggleAll(on) {
       for ( const r of this.repoOptions ) {
@@ -253,6 +268,20 @@ export default {
     },
 
     selectChart(chart) {
+      let version;
+      const chartVersions = chart.versions;
+      const clusterProvider = this.currentCluster.status.provider || 'other';
+      const windowsVersions = this.getCompatibleVersions(chartVersions, 'windows');
+      const linuxVersions = this.getCompatibleVersions(chartVersions, 'linux');
+
+      if (clusterProvider === 'rke.windows' && windowsVersions.length > 0) {
+        version = windowsVersions[0].version;
+      } else if (clusterProvider !== 'rke.windows' && linuxVersions.length > 0) {
+        version = linuxVersions[0].version;
+      } else {
+        version = chartVersions[0].version;
+      }
+
       this.$router.push({
         name:   'c-cluster-apps-install',
         params: {
@@ -263,7 +292,7 @@ export default {
           [REPO_TYPE]: chart.repoType,
           [REPO]:      chart.repoName,
           [CHART]:     chart.chartName,
-          [VERSION]:   chart.versions[0].version,
+          [VERSION]:   version,
         }
       });
     },

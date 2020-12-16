@@ -2,7 +2,7 @@
 import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
@@ -28,6 +28,7 @@ import { exceptionToErrorsArray, stringify } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
 import { findBy } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
+import sortBy from 'lodash/sortBy';
 
 export default {
   name: 'Install',
@@ -294,10 +295,13 @@ export default {
 
       historyMax: 5,
       timeout:    600,
+
+      catalogOSAnnotation: CATALOG_ANNOTATIONS.SUPPORTED_OS,
     };
   },
 
   computed: {
+    ...mapGetters(['currentCluster']),
     ...mapState(['isMultiCluster']),
 
     namespaceIsNew() {
@@ -399,6 +403,49 @@ export default {
     showingYaml() {
       return this.showPreview || ( !this.valuesComponent && !this.hasQuestions );
     },
+
+    filteredVersions() {
+      const {
+        currentCluster,
+        catalogOSAnnotation,
+        chart: { versions = [] },
+        version: { version: selectedVersion },
+      } = this;
+      const clusterProvider = currentCluster.status.provider || 'other';
+      const out = [];
+
+      versions.forEach((version) => {
+        const nue = {
+          label:    version.version,
+          id:       version.version,
+          disabled: false,
+        };
+
+        if ( version.annotations[catalogOSAnnotation] === 'windows' ) {
+          nue.label = this.t('catalog.install.versions.windows', { ver: version.version });
+
+          if (clusterProvider !== 'rke.windows') {
+            nue.disabled = true;
+          }
+        } else if ( version.annotations[catalogOSAnnotation] === 'linux' ) {
+          nue.label = this.t('catalog.install.versions.linux', { ver: version.version });
+
+          if (clusterProvider === 'rke.windows') {
+            nue.disabled = true;
+          }
+        }
+
+        out.push(nue);
+      });
+
+      const selectedMatch = out.find(v => v.id === selectedVersion);
+
+      if (!selectedMatch) {
+        out.push({ value: selectedVersion, label: this.t('catalog.install.versions.current', { ver: selectedVersion }) });
+      }
+
+      return sortBy(out, 'id');
+    },
   },
 
   watch: {
@@ -461,7 +508,7 @@ export default {
       });
     },
 
-    selectVersion(version) {
+    selectVersion({ id: version }) {
       this.$router.applyQuery({ [VERSION]: version });
     },
 
@@ -815,11 +862,9 @@ export default {
           <LabeledSelect
             :label="t('catalog.install.version')"
             :value="$route.query.version"
-            option-label="version"
-            option-key="version"
-            :reduce="opt=>opt.version"
-            :options="chart.versions"
-            @input="selectVersion($event)"
+            :options="filteredVersions"
+            :selectable="version => !version.disabled"
+            @input="selectVersion"
           />
         </div>
       </div>

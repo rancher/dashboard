@@ -307,6 +307,10 @@ catalog:
       readme: Helm README
       valuesYaml: Values YAML
     version: Version
+    versions:
+      current: '{ver} (current)'
+      linux: '{ver} (Linux-only)'
+      windows: '{ver} (Windows-only)'
   operation:
     tableHeaders:
       action: Action

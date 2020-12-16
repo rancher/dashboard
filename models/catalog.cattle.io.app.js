@@ -77,10 +77,18 @@ export default {
       return null;
     }
 
+    const clusterProvider = this.$rootGetters['currentCluster'].status.provider || 'other';
     const thisVersion = this.spec?.chart?.metadata?.version;
-    const newestVersion = chart.versions?.[0]?.version;
+    const newestChart = chart.versions?.[0];
+    const newestVersion = newestChart?.version;
 
     if ( !thisVersion || !newestVersion ) {
+      return null;
+    }
+
+    if (clusterProvider === 'rke.windows' && newestChart?.annotations?.['catalog.cattle.io/os'] === 'linux') {
+      return null;
+    } else if (clusterProvider !== 'rke.windows' && newestChart?.annotations?.['catalog.cattle.io/os'] === 'windows') {
       return null;
     }
 
