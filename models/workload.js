@@ -30,6 +30,30 @@ export default {
     return out;
   },
 
+  applyDefaults() {
+    return (vm, mode) => {
+      const spec = {};
+
+      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+        if (!spec.jobTemplate) {
+          spec.jobTemplate = { spec: { template: { spec: { restartPolicy: 'Never' } } } };
+        }
+      } else {
+        if (!spec.replicas && spec.replicas !== 0) {
+          spec.replicas = 1;
+        }
+
+        if (!spec.template) {
+          spec.template = { spec: { restartPolicy: this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always' } };
+        }
+        if (!spec.selector) {
+          spec.selector = {};
+        }
+      }
+      vm.$set(this, 'spec', spec);
+    };
+  },
+
   customValidationRules() {
     const type = this._type ? this._type : this.type;
 

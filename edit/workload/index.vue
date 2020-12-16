@@ -106,23 +106,6 @@ export default {
 
     const spec = this.value.spec;
 
-    if (type === WORKLOAD_TYPES.CRON_JOB) {
-      if (!spec.jobTemplate) {
-        spec.jobTemplate = { spec: { template: { spec: { restartPolicy: 'Never' } } } };
-      }
-    } else {
-      if (!spec.replicas) {
-        spec.replicas = 1;
-      }
-
-      if (!spec.template) {
-        spec.template = { spec: { restartPolicy: type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always' } };
-      }
-      if (!spec.selector) {
-        spec.selector = {};
-      }
-    }
-
     return {
       allConfigMaps:     [],
       allNodes:          null,
