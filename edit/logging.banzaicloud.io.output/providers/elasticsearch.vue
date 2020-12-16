@@ -2,7 +2,7 @@
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import SecretSelector from '@/components/form/SecretSelector';
-import { protocol } from './options';
+import { updatePort, protocol } from './utils';
 
 export default {
   components: {
@@ -37,7 +37,7 @@ export default {
         return this.value.port;
       },
       set(port) {
-        this.$set(this.value, 'port', Number.parseInt(port));
+        updatePort(value => this.$set(this.value, 'port', value), port);
       }
     }
   }
@@ -67,11 +67,13 @@ export default {
       </div>
       <div class="col span-2">
         <LabeledInput
-          v-model="port"
+          v-model.number="port"
           :mode="mode"
           :disabled="disabled"
           class="port"
           type="number"
+          min="1"
+          max="65535"
           :label="t('logging.elasticsearch.port')"
         />
       </div>

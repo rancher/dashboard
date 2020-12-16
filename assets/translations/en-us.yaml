@@ -1663,6 +1663,9 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
+  output:
+    logdna:
+      apiKey: Required an "Api Key" to be set.
   invalidCron: Invalid cron schedule
   k8s:
     identifier:
@@ -1689,6 +1692,7 @@ validation:
       operator: Rule [{index}] of {group} {rules} - operator must be one of 'In', 'NotIn', 'Exists', 'DoesNotExist'
       valueMustBeEmpty: Rule [{index}] of {group} {rules} - value must be empty if operator is 'Exists' or 'DoesNotExist'
       valuesMustBeDefined: Rule [{index}] of {group} {rules} - value must be defined if operator is 'In' or 'NotIn'
+  port: A port must be a number between 0 and 65535.
   prometheusRule:
     groups:
       required: At least one rule group is required.
