@@ -117,7 +117,7 @@ export default {
         :searchable="true"
         :tooltip="serviceTargetTooltip"
         :hover-tooltip="true"
-        @input="queueUpdate(); servicePort = ''"
+        @input="servicePort = ''; queueUpdate();"
       />
     </div>
     <div class="col" :class="{'span-2': ingress.showPathType, 'span-3': !ingress.showPathType}" :style="{'margin-right': '0px'}">
@@ -142,6 +142,14 @@ export default {
 </template>
 <style lang="scss" scoped>
 .rule-path ::v-deep {
+  .col {
+    height: $input-height;
+  }
+
+  .unlabeled-select {
+    height: 100%;
+  }
+
   .path-type {
     .unlabeled-select {
       min-width: 200px;
