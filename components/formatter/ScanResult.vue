@@ -3,7 +3,7 @@ import { get } from '@/utils/object';
 export default {
   props:      {
     value: {
-      type:    String,
+      type:    [String, Number],
       default: null,
     },
     row: {
