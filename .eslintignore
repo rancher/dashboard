@@ -12,3 +12,5 @@ dist
 .DS_Store
 store/type-map.js
 store/catalog.js
+pages/auth/login.vue
+jsconfig.json

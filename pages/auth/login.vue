@@ -1,5 +1,5 @@
 <script>
-import { findBy } from '@/utils/array';
+import { findBy, removeObject } from '@/utils/array';
 import { USERNAME } from '@/config/cookies';
 import LabeledInput from '@/components/form/LabeledInput';
 import AsyncButton from '@/components/AsyncButton';
@@ -8,6 +8,7 @@ import {
 } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
 import { getVendor, getProduct } from '../../config/private-label';
+import { sortBy } from '@/utils/sort';
 
 export default {
   name:       'Login',
@@ -17,10 +18,17 @@ export default {
   },
 
   async asyncData({ route, redirect, store }) {
-    const providers = await store.dispatch('auth/getAuthProviders');
+    const drivers = await store.dispatch('auth/getAuthProviders');
+    const providers = sortBy(drivers.map(x => x.id), ['id']);
 
-    const hasGithub = !!findBy(providers, 'id', 'github');
-    const hasLocal = !!findBy(providers, 'id', 'local');
+
+    const hasLocal = providers.includes('local');
+    const hasOthers = hasLocal && !!providers.find(x => x !== 'local');
+
+    if ( hasLocal ) {
+      // Local is special and handled here so that it can be toggled
+      removeObject(providers, 'local');
+    }
 
     if ( !process.env.dev && !route.query[SPA] ) {
       redirect(302, `${ store.getters['rancherLink'] }login`);
@@ -29,9 +37,10 @@ export default {
     }
 
     return {
-      hasGithub,
+      providers,
+      hasOthers,
       hasLocal,
-      showLocal: !hasGithub || (route.query[LOCAL] === _FLAGGED),
+      showLocal: !hasOthers || (route.query[LOCAL] === _FLAGGED),
     };
   },
 
@@ -49,18 +58,26 @@ export default {
       timedOut:  this.$route.query[TIMED_OUT] === _FLAGGED,
       loggedOut: this.$route.query[LOGGED_OUT] === _FLAGGED,
       err:       this.$route.query.err,
+
+      providers: [],
+      providerComponents: [],
     };
   },
 
-  mounted() {
-    this.focusSomething();
+  created() {
+    this.providerComponents = this.providers.map((name) => {
+      return () => import(/* webpackChunkName: "login" */ `@/components/auth/login/${ name }`);
+    });
   },
 
-  methods: {
-    loginGithub() {
-      this.$store.dispatch('auth/redirectToGithub');
-    },
+  mounted() {
+    this.$nextTick(() => {
+      this.focusSomething();
+    });
+  },
 
+
+  methods: {
     toggleLocal() {
       this.showLocal = true;
       this.$router.applyQuery({ [LOCAL]: _FLAGGED });
@@ -71,17 +88,20 @@ export default {
     },
 
     focusSomething() {
+      if ( !this.showLocal ) {
+        // One of the provider components will handle it
+        return;
+      }
+
       let elem;
 
-      if ( this.hasGithub && !this.showLocal ) {
-        elem = this.$refs.github;
-      } else if ( this.username ) {
+      if ( this.username ) {
         elem = this.$refs.password;
       } else {
         elem = this.$refs.username;
       }
 
-      if ( elem ) {
+      if ( elem?.focus ) {
         elem.focus();
 
         if ( elem.select ) {
@@ -143,57 +163,61 @@ export default {
           Log in again to continue.
         </h4>
 
-        <div v-if="hasGithub" class="text-center mt-50 mb-50">
-          <button ref="github" class="btn bg-primary" style="font-size: 18px;" @click="loginGithub">
-            Log In with GitHub
-          </button>
-          <div v-if="!showLocal" class="mt-20">
+        <div v-if="providers.length" class="text-center mt-50 mb-50">
+          <component
+            v-for="(name, idx) in providers"
+            :is="providerComponents[idx]"
+            :key="name"
+            :focus-on-mount="(idx === 0 && !showLocal)"
+          />
+        </div>
+
+        <template v-if="hasLocal">
+          <form v-if="showLocal" class="mt-50">
+            <div class="span-6 offset-3">
+              <div class="mb-20">
+                <LabeledInput
+                  ref="username"
+                  v-model="username"
+                  label="Username"
+                  autocomplete="username"
+                />
+              </div>
+              <div class="">
+                <LabeledInput
+                  ref="password"
+                  v-model="password"
+                  type="password"
+                  label="Password"
+                  autocomplete="password"
+                />
+              </div>
+            </div>
+            <div class="mt-20">
+              <div class="col span-12 text-center">
+                <AsyncButton
+                  type="submit"
+                  action-label="Log In with Local User"
+                  waiting-label="Logging In..."
+                  success-label="Logged In"
+                  error-label="Error"
+                  @click="loginLocal"
+                />
+                <div class="mt-20">
+                  <Checkbox v-model="remember" label="Remember Username" type="checkbox" />
+                </div>
+              </div>
+            </div>
+          </form>
+          <div v-else class="mt-20 text-center">
             <button type="button" class="btn bg-link" @click="toggleLocal">
               Use a Local User
             </button>
           </div>
-        </div>
+        </template>
+      </div>
 
-        <form v-if="hasLocal && showLocal" class="mt-50">
-          <div class="span-6 offset-3">
-            <div class="mb-20">
-              <LabeledInput
-                ref="username"
-                v-model="username"
-                label="Username"
-                autocomplete="username"
-              />
-            </div>
-            <div class="">
-              <LabeledInput
-                ref="password"
-                v-model="password"
-                type="password"
-                label="Password"
-                autocomplete="password"
-              />
-            </div>
-          </div>
-          <div class="mt-20">
-            <div class="col span-12 text-center">
-              <AsyncButton
-                type="submit"
-                action-label="Log In with Local User"
-                waiting-label="Logging In..."
-                success-label="Logged In"
-                error-label="Error"
-                @click="loginLocal"
-              />
-              <div class="mt-20">
-                <Checkbox v-model="remember" label="Remember Username" type="checkbox" />
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="col span-6 landscape">
-        <!-- <img src="~/assets/images/login-landscape.svg" alt="landscape" /> -->
-      </div>
+      <div class="col span-6 landscape" />
     </div>
   </main>
 </template>

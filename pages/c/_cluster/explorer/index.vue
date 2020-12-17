@@ -27,7 +27,6 @@ import SimpleBox from '@/components/SimpleBox';
 import ResourceGauge, { resourceCounts } from '@/components/ResourceGauge';
 import CountGauge from '@/components/CountGauge';
 import Glance from '@/components/Glance';
-import LazyImage from '@/components/LazyImage';
 import { findBy } from '@/utils/array';
 import HardwareResourceGauge from './HardwareResourceGauge';
 
@@ -56,7 +55,6 @@ export default {
     CountGauge,
     Glance,
     HardwareResourceGauge,
-    LazyImage,
     Loading,
     ResourceGauge,
     SimpleBox,
@@ -343,7 +341,7 @@ export default {
           <label>{{ t('glance.provider') }}</label>
         </div>
         <div class="logo">
-          <LazyImage class="os-provider-logo" :src="currentCluster.providerOSLogo" />
+          <img class="os-provider-logo" :src="currentCluster.providerOsLogo" />
         </div>
       </template>
       <template #kubernetesVersion>

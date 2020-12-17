@@ -129,7 +129,7 @@ export default {
     },
 
     orgs() {
-      const out = filterBy(this.principals, 'principalType', 'org');
+      const out = filterBy(this.principals, 'providerSpecifictype', 'org');
 
       return out;
     }
@@ -202,7 +202,8 @@ export default {
         }, 500);
 
         c.doAction('configureTest', c).then((res) => {
-          this.$store.dispatch('auth/redirectToGithub', {
+          this.$store.dispatch('auth/redirectTo', {
+            provider:    'github',
             redirectUrl: res.redirectUrl,
             test:        true,
             redirect:    false

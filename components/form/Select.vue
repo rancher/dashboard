@@ -183,6 +183,7 @@ export default {
       :reduce="(x) => reduce(x)"
       :searchable="isSearchable"
       :value="value != null ? value : ''"
+      v-on="$listeners"
       @input="(e) => $emit('input', e)"
       @search:blur="onBlur"
       @search:focus="onFocus"

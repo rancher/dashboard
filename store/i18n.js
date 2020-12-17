@@ -2,6 +2,7 @@ import IntlMessageFormat from 'intl-messageformat';
 import { LOCALE } from '@/config/cookies';
 import { get } from '@/utils/object';
 import en from '@/assets/translations/en-us.yaml';
+import { getProduct, getVendor } from '@/config/private-label';
 
 const translationContext = require.context('@/assets/translations', true, /.*/);
 
@@ -88,13 +89,20 @@ export const getters = {
     if ( typeof formatter === 'string' ) {
       return formatter;
     } else if ( formatter && formatter.format ) {
-      return formatter.format(args);
+      // Inject things like appName so they're always available in any translation
+      const moreArgs = {
+        vendor:  getVendor(),
+        appName: getProduct(),
+        ...args
+      };
+
+      return formatter.format(moreArgs);
     } else {
       return '?';
     }
   },
 
-  exists: state => (key, args) => {
+  exists: state => (key) => {
     const cacheKey = `${ state.selected }/${ key }`;
 
     if ( intlCache[cacheKey] ) {

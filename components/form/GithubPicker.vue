@@ -170,9 +170,10 @@ export default {
 
     async expandScope() {
       await this.$store.dispatch('github/forgetCache');
-      this.$store.dispatch('auth/redirectToGithub', {
-        scopes: EXTENDED_SCOPES,
-        backTo: this.$route.fullPath
+      this.$store.dispatch('auth/redirectTo', {
+        provider: 'github',
+        scopes:   EXTENDED_SCOPES,
+        backTo:   this.$route.fullPath
       });
     },
 

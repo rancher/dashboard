@@ -66,6 +66,7 @@ nav:
 
 product:
   apps: Apps & Marketplace
+  auth: Users & Authentication
   backup: Rancher Backups
   cis: CIS Benchmark
   ecm: Cluster Manager
@@ -100,6 +101,54 @@ suffix:
 ##############################
 # Components & Pages
 ##############################
+authConfig:
+  accessMode:
+    label: Configure who should be able to login and use {vendor}
+    unrestricted: "Allow any valid user"
+    restricted: "Allow members of clusters and projects, plus authorized users & groups"
+    required: "Restrict access to only the auhorized users & groups"
+  allowedPrincipalIds:
+    title: Authorized Users & Groups
+  associatedWarning: "Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>)."
+  stateBanner:
+    enabled: "{provider} is currently enabled."
+    disabled: "{provider} is currently disabled."
+  github:
+    target:
+      label: Which version of GitHub do you want to use?
+      public: Public GitHub.com
+      private: A private installation of GitHub Enterprise
+    host:
+      label: GitHub Enterprise Host
+      placeholder: e.g. github.mycompany.example
+    clientId:
+      label: Client ID
+    clientSecret:
+      label: Client Secret
+    form:
+      prefix: |-
+        <li><a href="{baseUrl}/settings/developers" target="_blank" rel="noopener noreferrer nofollow">Click here</a> to go to GitHub application settings in a new window.</li>
+        <li>Click on the "OAuth Apps" tab.</li>
+        <li>Click the "New OAuth App" button.</li>
+      instruction: "Fill in the form with these values:"
+      app:
+        label: Application name
+        value: Anything you like, e.g. My {vendor}
+      homepage:
+        label: Homepage URL
+      description:
+        label: Description
+        value: Optional, can be left blank
+      calllback:
+        label: Authorization callback URL
+      suffix: |-
+        <li>Click "Register application"</li>
+        <li>Copy and paste the Client ID and Client Secret of your newly created OAuth app into the fields below</li>
+
+
+
+
+
 assignTo:
   title: |-
     {count, plural,
@@ -202,7 +251,7 @@ backupRestoreOperator:
     restoretip: If the backup was performed with encryption enabled, a secret containing the same encryption-provider-config should be used during restore.
     options:
       none: Store the contents of the backup unencrypted
-      secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
+      secret: Encrypt backups using an <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
     warning: The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.
   deleteTimeout:
     label: Delete Timeout
@@ -343,7 +392,7 @@ chartHeading:
 
 cis:
   addTest: Add Test ID
-  alertNeeded: Alerting must be enabled within the CIS chart values.yaml. This requires that <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
+  alertNeeded: Alerting must be enabled within the CIS chart values.yaml. This requires that <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
   alertOnComplete: Alert on scan completion
   alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
@@ -708,7 +757,7 @@ istio:
     label: Custom Overlay File
     tip: 'The <a target="_blank" rel="noopener noreferrer nofollow" href="https://istio.io/latest/docs/setup/install/istioctl/#customizing-the-configuration">overlay file</a> allows for additional configuration on top of the base Rancher Istio installation. You can utilize the <a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/" target="_blank" rel="noopener noreferrer nofollow" >IstioOperator API</a> to make changes and additions for all components and apply those changes via this overlay YAML file.'
   description: 'Rancher Istio helm chart installs a minimal Istio configuration for you to get started integrating with your applications.
-  If you would like to get additional information about Istio, visit <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>'
+  If you would like to get additional information about Istio, visit <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener noreferrer nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>'
   egressGateway: Enabled Egress Gateway
   ingressGateway: Enabled Ingress Gateway
   istiodRemote: Enabled istiodRemote
@@ -930,7 +979,7 @@ logging:
 longhorn:
   overview:
     title: Overview
-    subtitle: "Powered By: <a href='https://github.com/longhorn' target='_blank' rel='noopener nofollow noreferrer' >Longhorn</a>"
+    subtitle: "Powered By: <a href='https://github.com/longhorn' target='_blank' rel='noopener nofollow noreferrer'>Longhorn</a>"
     linkedList:
       longhorn:
         label: 'Longhorn'
@@ -975,8 +1024,8 @@ monitoring:
     label: Create Default Monitoring Cluster Roles
     tip: 'Creates <code>monitoring-admin</code>, <code>monitoring-edit</code>, and <code>monitoring-view</code> ClusterRoles that can be assigned to users to provide permissions to CRDs installed by the Monitoring chart.'
   etcdNodeDirectory:
-    label: ETCD Node Certificate Directory
-    tooltip: 'For clusters that use RancherOS for the etcd nodes, this option should be set to <pre class=''inline-block m-0''>/opt/rke/etc/kubernetes/ssl</pre>. Hybrid environments that require specifying multiple certificate directories (e.g. an etcd plane composed of both RancherOS and Ubuntu hosts) is not supported.'
+    label: etcd Node Certificate Directory
+    tooltip: 'For clusters that use RancherOS for the etcd nodes, this option should be set to <pre class=''inline-block m-0''>/opt/rke/etc/kubernetes/ssl</pre>. Hybrid environments that require specifying multiple certificate directories (e.g. an etcd plane composed of both RancherOS and Ubuntu hosts) are not supported.'
   grafana:
     storage:
       annotations: PVC Annotations
@@ -1014,7 +1063,7 @@ monitoring:
       prometheusTargets:
         description: Configured Targets
         label: Prometheus Targets
-    subtitle: 'Powered By: <a href=''https://github.com/coreos/prometheus-operator'' target=''_blank'' rel=''noopener nofollow'' >Prometheus</a>'
+    subtitle: 'Powered By: <a href="https://github.com/coreos/prometheus-operator" target="_blank" rel="noopener noreferrer nofollow">Prometheus</a>'
     title: Dashboard
     v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of Rancher with monitoring enabled, please disable monitoring in Cluster Manager before attempting to use monitoring in Cluster Explorer.'
   prometheus:
@@ -1180,6 +1229,10 @@ prefs:
   hideDesc:
     label: Hide All Type Description Boxes
 
+principal:
+  loading: Loading&hellip;
+  error: Unable to fetch principal info
+
 probe:
   checkInterval:
     label: Check Interval
@@ -1289,24 +1342,6 @@ rbac:
     fleetworkspace-admin: Admin
     fleetworkspace-member: Member
     fleetworkspace-readonly: Read-Only
-  user:
-    provider:
-      system: System
-      local: Local
-      multiple: Multiple
-      activedirectory: ActiveDirectory
-      azuread: AzureAD
-      github: GitHub
-      keycloak: Keycloak
-      ldap: LDAP
-      openldap: OpenLDAP
-      shibboleth: Shibboleth
-      ping: Ping IDentity
-      adfs: ADFS
-      okta: Okta
-      freeipa: FreeIPA
-      googleoauth: Google
-
 
 resourceDetail:
   detailTop:
@@ -2201,6 +2236,24 @@ model:
   "catalog.cattle.io.app":
     firstDeployed: First Deployed
     lastDeployed: Last Deployed
+  authConfig:
+    provider:
+      system: System
+      local: Local
+      multiple: Multiple
+      activedirectory: ActiveDirectory
+      azuread: AzureAD
+      github: GitHub
+      keycloak: Keycloak
+      ldap: LDAP
+      openldap: OpenLDAP
+      shibboleth: Shibboleth
+      ping: Ping Identity
+      adfs: ADFS
+      okta: Okta
+      freeipa: FreeIPA
+      googleoauth: Google
+
   cluster:
     name: Cluster Name
   ingress:
@@ -2236,7 +2289,7 @@ typeDescription:
   # Map of
   # type: Description to be shown on the top of list view describing the type.
   #       Should fit on one line.
-  #       If you link to anything external, it must have
+  #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
   cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
   cis.cattle.io.clusterscanprofile: A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
@@ -2322,6 +2375,11 @@ typeLabel:
     {count, plural,
       one { Git Repo }
       other {Git Repos }
+    }
+  management.cattle.io.authconfig: |-
+    {count, plural,
+      one { Auth Provider }
+      other { Auth Providers }
     }
   management.cattle.io.fleetworkspace: |-
     {count, plural,

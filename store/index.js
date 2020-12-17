@@ -394,6 +394,7 @@ export const actions = {
       schemas: Promise.all([
         dispatch('management/subscribe'),
         dispatch('management/loadSchemas', true),
+        dispatch('rancher/loadSchemas', true),
       ]),
     });
 

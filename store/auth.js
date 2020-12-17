@@ -2,6 +2,7 @@ import { parse as setCookieParser } from 'set-cookie-parser';
 import { randomStr } from '@/utils/string';
 import { parse as parseUrl, removeParam, addParam, addParams } from '@/utils/url';
 import { findBy, addObjects } from '@/utils/array';
+import { open, popupWindowOptions } from '@/utils/window';
 import {
   BACK_TO, SPA, AUTH_TEST, _FLAGGED, GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT
 } from '@/config/query-params';
@@ -87,16 +88,7 @@ export const actions = {
     return findBy(authConfigs, 'id', id);
   },
 
-  async redirectToGithub({ state, commit, dispatch }, opt = {}) {
-    let redirectUrl = opt.redirectUrl;
-    let route = opt.route;
-
-    if ( !redirectUrl ) {
-      const authProvider = await dispatch('getAuthProvider', 'github');
-
-      redirectUrl = authProvider.redirectUrl;
-    }
-
+  setNonce() {
     const nonce = randomStr(16);
 
     this.$cookies.set(KEY, nonce, {
@@ -104,6 +96,22 @@ export const actions = {
       sameSite: false,
       secure:   true,
     });
+
+    return nonce;
+  },
+
+  async redirectTo({ state, commit, dispatch }, opt = {}) {
+    const provider = opt.provider;
+    let redirectUrl = opt.redirectUrl;
+    let route = opt.route;
+
+    if ( !redirectUrl ) {
+      const driver = await dispatch('getAuthProvider', provider);
+
+      redirectUrl = driver.redirectUrl;
+    }
+
+    const nonce = await dispatch('setNonce');
 
     if (!route) {
       route = '/auth/verify';
@@ -170,27 +178,49 @@ export const actions = {
     });
   },
 
-  async testGithub({ dispatch }, { nonce, code, config }) {
-    const expect = this.$cookies.get(KEY, { parseJSON: false });
+  async test({ dispatch }, { provider, body }) {
+    const driver = await dispatch('getAuthConfig', provider);
 
-    if ( !expect || expect !== nonce ) {
-      return ERR_NONCE;
-    }
+    return new Promise((resolve, reject) => {
+      window.onAuthTest = (code) => {
+        resolve(code);
+        delete window.onAuthTest;
+      };
 
-    const authConfig = await dispatch('getAuthConfig', 'github');
+      let popup;
 
-    await authConfig.doAction('testAndApply', {
-      code,
-      enabled:      true,
-      githubConfig: config
+      const timer = setInterval(() => {
+        if ( popup && popup.closed ) {
+          clearInterval(timer);
+
+          return reject(new Error('Access was not authorized'));
+        } else if ( popup === null || popup === undefined ) {
+          clearInterval(timer);
+
+          return reject(new Error('Please disable your popup blocker for this site'));
+        }
+      }, 500);
+
+      driver.doAction('configureTest', body).then((res) => {
+        dispatch('redirectTo', {
+          provider,
+          redirectUrl: res.redirectUrl,
+          test:        true,
+          redirect:    false
+        }).then((url) => {
+          popup = open(url, 'auth-test', popupWindowOptions());
+        }).catch((err) => {
+          reject(err);
+        });
+      });
     });
   },
 
   async login({ dispatch }, { provider, body }) {
-    const authProvider = await dispatch('getAuthProvider', provider);
+    const driver = await dispatch('getAuthProvider', provider);
 
     try {
-      const res = await authProvider.doAction('login', {
+      const res = await driver.doAction('login', {
         description:  'Dashboard UI session',
         responseType: 'cookie',
         ttl:          16 * 60 * 60 * 1000,

@@ -79,7 +79,7 @@ export default {
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >
         <div class="text-right">
-          <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.provider === 'github'}" width="40" height="40" />
+          <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.roundAvatar}" width="40" height="40" />
           <i v-else class="icon icon-user icon-3x avatar" />
         </div>
 

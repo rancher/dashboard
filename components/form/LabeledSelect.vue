@@ -235,11 +235,12 @@ export default {
       :selectable="selectable"
       :value="value != null ? value : ''"
       @input="(e) => $emit('input', e)"
+      v-on="$listeners"
       @search:blur="onBlur"
       @search:focus="onFocus"
     >
       <!-- Pass down templates provided by the caller -->
-      <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+      <template v-for="(_, slot) of $scopedSlots" #[slot]="scope">
         <slot :name="slot" v-bind="scope" />
       </template>
     </v-select>

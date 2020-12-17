@@ -3,6 +3,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
+import { addParam } from '@/utils/url';
 import { normalizeType } from './normalize';
 import { proxyFor, SELF } from './resource-proxy';
 
@@ -334,5 +335,33 @@ export default {
 
   assignTo({ commit, state }, resources = []) {
     commit('action-menu/toggleAssignTo', resources, { root: true });
-  }
+  },
+
+  async collectionAction({ getters, dispatch }, {
+    type, actionName, body, opt
+  }) {
+    opt = opt || {};
+
+    if ( !opt.url ) {
+      // Cheating, but cheaper than loading the whole collection...
+      const schema = getters['schemaFor'](type);
+
+      opt.url = addParam(schema.links.collection, 'action', actionName);
+    }
+
+    opt.method = 'post';
+    opt.data = body;
+
+    const res = await dispatch('request', opt);
+
+    if ( opt.load !== false && res.type === 'collection' ) {
+      await dispatch('loadMulti', res.data);
+
+      return res.data.map(x => getters.byId(x.type, x.id) || x);
+    } else if ( opt.load !== false && res.type && res.id ) {
+      return dispatch('load', { data: res });
+    } else {
+      return res;
+    }
+  },
 };

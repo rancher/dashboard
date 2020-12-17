@@ -1,6 +1,7 @@
 import Identicon from 'identicon.js';
 import { md5 } from '@/utils/crypto';
 import { addParam } from '@/utils/url';
+import { ucFirst } from '@/utils/string';
 
 export default {
   avatarSrc() {
@@ -18,7 +19,11 @@ export default {
     }
   },
 
-  principalType() {
+  roundAvatar() {
+    return this.provider === 'github';
+  },
+
+  providerSpecificType() {
     const parts = this.id.replace(/:.*$/, '').split('_', 2);
 
     if ( parts.length === 2 ) {
@@ -26,5 +31,11 @@ export default {
     }
 
     return null;
-  }
+  },
+
+  displayType() {
+    const provider = this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
+
+    return `${ provider } ${ ucFirst(this.providerSpecificType) }`;
+  },
 };
