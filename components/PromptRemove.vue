@@ -276,6 +276,9 @@ export default {
 
 <style lang='scss'>
   .prompt-remove {
+    &.card-container {
+      box-shadow: none;
+    }
     #confirm {
       width: 90%;
       margin-left: 3px;
@@ -293,7 +296,6 @@ export default {
     .actions {
       text-align: right;
     }
-
     .card-actions {
       display: flex;
       justify-content: flex-end;
