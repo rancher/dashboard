@@ -32,22 +32,24 @@ const ALWAYS_ADD = [
 ];
 
 const NEVER_ADD = [
-  'status',
+  'metadata.clusterName',
   'metadata.clusterName',
   'metadata.creationTimestamp',
-  'metadata.clusterName',
   'metadata.deletionGracePeriodSeconds',
-  'metadata.managedFields',
-  'metadata.generateName',
-  'metadata.generation',
   'metadata.deletionTimestamp',
   'metadata.finalizers',
+  'metadata.generateName',
+  'metadata.generation',
   'metadata.initializers',
+  'metadata.managedFields',
   'metadata.ownerReferences',
   'metadata.resourceVersion',
   'metadata.selfLink',
   'metadata.uid',
-  'stringData'
+  // CRD -> Schema describes the schema used for validation, pruning, and defaulting of this version of the custom resource. If we allow processing we fall into inf loop on openAPIV3Schema.allOf which contains a cyclical ref of allOf props.
+  'spec.versions.schema',
+  'status',
+  'stringData',
 ];
 
 const INDENT = 2;
@@ -57,7 +59,6 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
 
   if ( !schema ) {
     return `Error loading schema for ${ type }`;
-    // throw new Error('Unknown schema for', type);
   }
 
   data = data || {};
