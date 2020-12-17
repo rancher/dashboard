@@ -237,7 +237,7 @@ export default {
     name="promptRemove"
     :width="350"
     height="auto"
-    styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
+    styles="max-height: 100vh;"
   >
     <Card class="prompt-remove" :show-highlight-border="false">
       <h4 slot="title" class="text-default-text">

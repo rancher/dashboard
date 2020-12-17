@@ -4,3 +4,10 @@
   background-color: var(--overlay-bg);
   z-index: z-index('modalOverlay');
 }
+
+.v--modal {
+background-color: transparent;
+}
+.card-container {
+  background-color: var(--modal-bg)!important;
+}
