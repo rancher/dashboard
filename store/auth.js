@@ -1,4 +1,3 @@
-import { parse as setCookieParser } from 'set-cookie-parser';
 import { randomStr } from '@/utils/string';
 import { parse as parseUrl, removeParam, addParam, addParams } from '@/utils/url';
 import { findBy, addObjects } from '@/utils/array';
@@ -220,30 +219,11 @@ export const actions = {
     const driver = await dispatch('getAuthProvider', provider);
 
     try {
-      const res = await driver.doAction('login', {
-        description:  'Dashboard UI session',
+      await driver.doAction('login', {
+        description:  'UI session',
         responseType: 'cookie',
-        ttl:          16 * 60 * 60 * 1000,
         ...body
       }, { redirectUnauthorized: false });
-
-      if ( process.server ) {
-        const parsed = setCookieParser(res._headers['set-cookie'] || []);
-
-        for ( const opt of parsed ) {
-          const key = opt.name;
-          const value = opt.value;
-
-          delete opt.name;
-          delete opt.value;
-
-          opt.encode = x => x;
-          opt.sameSite = false;
-          opt.path = '/';
-
-          this.$cookies.set(key, value, opt);
-        }
-      }
 
       return true;
     } catch (err) {
