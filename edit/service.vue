@@ -204,8 +204,6 @@ export default {
   >
     <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
 
-    <div class="spacer"></div>
-
     <Tabbed :side-tabs="true">
       <Tab
         v-if="checkTypeIs('ExternalName')"
