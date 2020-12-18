@@ -4,3 +4,7 @@
   background-color: var(--overlay-bg);
   z-index: z-index('modalOverlay');
 }
+
+.v--modal {
+background-color: var(--modal-bg)!important;
+}

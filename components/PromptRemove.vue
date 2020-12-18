@@ -237,7 +237,7 @@ export default {
     name="promptRemove"
     :width="350"
     height="auto"
-    styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
+    styles="max-height: 100vh;"
   >
     <Card class="prompt-remove" :show-highlight-border="false">
       <h4 slot="title" class="text-default-text">
@@ -276,6 +276,9 @@ export default {
 
 <style lang='scss'>
   .prompt-remove {
+    &.card-container {
+      box-shadow: none;
+    }
     #confirm {
       width: 90%;
       margin-left: 3px;
@@ -293,7 +296,6 @@ export default {
     .actions {
       text-align: right;
     }
-
     .card-actions {
       display: flex;
       justify-content: flex-end;
