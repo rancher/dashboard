@@ -60,7 +60,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.azurestorage.storageAccount')"
+          :secret-name-label="t('logging.azurestorage.storageAccount')"
           :show-key-selector="true"
         />
       </div>
@@ -70,7 +70,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.azurestorage.accessKey')"
+          :secret-name-label="t('logging.azurestorage.accessKey')"
           :show-key-selector="true"
         />
       </div>

@@ -1054,7 +1054,7 @@ tableHeaders:
   clustersReady: 就绪的集群
   clusterGroups: 集群组
   condition: 状态
-  configuredProviders: 配置提供商
+  providers: 配置提供商
   date: 事情
   destination: 目标
   download: 下载

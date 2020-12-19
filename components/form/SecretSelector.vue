@@ -40,9 +40,13 @@ export default {
       type:    Boolean,
       default: false
     },
-    label: {
+    secretNameLabel: {
       type:    String,
-      default: null
+      default: 'Secret Name'
+    },
+    keyNameLabel: {
+      type:    String,
+      default: 'Key'
     },
     mode: {
       type:     String,
@@ -99,9 +103,6 @@ export default {
         value: key
       }));
     },
-    secretNameLabel() {
-      return this.showKeySelector ? 'Secret Name' : this.label;
-    },
     isView() {
       return this.mode === _VIEW;
     },
@@ -115,8 +116,6 @@ export default {
 
 <template>
   <div class="secret-selector" :class="{'show-key-selector': showKeySelector}">
-    <label v-if="label && showKeySelector">{{ label }}</label>
-
     <div class="input-container">
       <LabeledSelect
         v-model="name"
@@ -131,7 +130,7 @@ export default {
         class="col span-6"
         :disabled="isKeyDisabled"
         :options="keys"
-        label="Key"
+        :label="keyNameLabel"
         :mode="mode"
       />
     </div>

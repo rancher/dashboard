@@ -63,7 +63,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.kafka.username')"
+          :secret-name-label="t('logging.kafka.username')"
           :show-key-selector="true"
         />
       </div>
@@ -73,7 +73,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.kafka.password')"
+          :secret-name-label="t('logging.kafka.password')"
           :show-key-selector="true"
         />
       </div>
@@ -101,7 +101,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.kafka.sslCaCert.label')"
+          :secret-name-label="t('logging.kafka.sslCaCert.label')"
           :show-key-selector="true"
         />
       </div>
@@ -111,7 +111,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.kafka.sslClientCert.label')"
+          :secret-name-label="t('logging.kafka.sslClientCert.label')"
           :show-key-selector="true"
         />
       </div>
@@ -123,7 +123,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.kafka.sslClientCertChain.label')"
+          :secret-name-label="t('logging.kafka.sslClientCertChain.label')"
           :show-key-selector="true"
         />
       </div>
@@ -133,7 +133,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.kafka.sslClientCertKey')"
+          :secret-name-label="t('logging.kafka.sslClientCertKey')"
           :show-key-selector="true"
         />
       </div>

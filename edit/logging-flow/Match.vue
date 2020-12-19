@@ -53,8 +53,8 @@ export default {
       value-label="Pod Label Value"
       add-label="Add Pod"
     />
-
-    <h3 class="mt-20">
+    <div class="spacer"></div>
+    <h3>
       Limit to specific nodes
     </h3>
     <div class="row">
@@ -73,8 +73,8 @@ export default {
         />
       </div>
     </div>
-
-    <h3 class="mt-20">
+    <div class="spacer"></div>
+    <h3>
       Limit to specific container names
     </h3>
     <div class="row">

@@ -741,62 +741,62 @@ logging:
     scheme: Scheme
     port: Port
     indexName: Index Name
-    user: User
-    password: Password
+    user: User 
+    password: Password from Secret
     caFile:
-      label: Certificate Authority File
+      label: CA File from Secret
     clientCert:
-      label: Client Cert
+      label: Client Cert from Secret
       placeholder: Paste in the CA certificate
     clientKey:
-      label: Client Key
+      label: Client Key from Secret
       placeholder: Paste in the client key
-    clientKeyPass: Client Key Pass
+    clientKeyPass: Client Key Pass from Secret
   kafka:
     brokers: Brokers
     defaultTopic: Default Topic
     saslOverSsl: SASL Over SSL
     scramMechanism: Scram Mechanism
-    username: Username
-    password: Password
+    username: Username from Secret
+    password: Password from Secret
     sslCaCert:
-      label: SSL CA Cert
+      label: CA Cert from Secret
       placeholder: Paste in the CA certificate
     sslClientCert:
-      label: SSL Client Cert
+      label: Cert from Secret
       placeholder: Paste in the client cert
     sslClientCertChain:
-      label: SSL Client Cert Chain
+      label: Cert Chain from Secret
       placeholder: Paste in the client cert chain
-    sslClientCertKey: SSL Client Cert Key
+    sslClientCertKey: Cert Key from Secret
   loki:
     url: URL
     tenant: Tenant
-    username: User
-    password: Password
+    username: User from Secret
+    password: Password from Secret
     configureKubernetesLabels: Configure Kubernetes metadata in a Prometheus like format
     extractKubernetesLabels: Extract Kubernetes labels as Loki labels
     dropSingleKey: If a record only has 1 key, then just set the log line to the value and discard the key
-    caCert: CA Cert
-    cert: Cert
-    key: Key
+    caCert: CA Cert from Secret
+    cert: Cert from Secret
+    key: Key from Secret
   awsElasticsearch:
     url: URL
-    keyId: Key Id
-    secretKey: Secret Key
+    keyId: Key Id from Secret
+    secretKey: Secret Key from Secret
   azurestorage:
-    storageAccount: Storage Account
-    accessKey:  Access Key
+    storageAccount: Account from Secret
+    accessKey:  Access Key from Secret
     container: Container
     path: Path
     storeAs: Store As
   cloudwatch:
-    keyId: Key Id
-    secretKey: Secret Key
+    keyId: Key Id from Secret
+    secretKey: Secret Key from Secret
     endpoint: Endpoint
     region: Region
   datadog:
-    apiKey: API Key
+    apiKey: API Key from Secret
     useSSL: Use SSL
     useCompression: Use Compression
     host: Host
@@ -804,14 +804,14 @@ logging:
     path: Path
   gcs:
     project: Project
-    credentialsJson: Credentials Json
+    credentialsJson: Credentials from Secret
     bucket: Bucket
     path: Path
     overwriteExistingPath: Overwrite Existing Path
   kinesisStream:
     streamName: Stream Name
-    keyId: Key Id
-    secretKey: Secret Key
+    keyId: Key Id from Secret
+    secretKey: Secret Key from Secret
   logdna:
     apiKey: API Key
     hostname: Hostname
@@ -819,21 +819,21 @@ logging:
   logz:
     url: URL
     port: Port
-    token: Api Token
+    token: Api Token from Secret
     enableCompression: Enable Compression
   newrelic:
-    apiKey: API Key
-    licenseKey: License Key
+    apiKey: API Key from Secret
+    licenseKey: License Key from Secret
     baseURI: Base URI
   sumologic:
-    endpoint: Endpoint
+    endpoint: Endpoint from Secret
     sourceName: Source Name
   syslog:
     host: Host
     port: Port
     transport: Transport
     insecure: insecure
-    trustedCaPath: Trusted CA Path
+    trustedCaPath: CA Path from Secret
     format:
       title: Format
       type: Type
@@ -850,8 +850,8 @@ logging:
       timekeyWait: Timekey Wait
       timekeyUseUTC: Timekey Use UTC
   s3:
-    keyId: Key Id
-    secretKey: Secret Key
+    keyId: Key Id from Secret
+    secretKey: Secret Key from Secret
     endpoint: Endpoint
     bucket: Bucket
     path: Path
@@ -894,23 +894,23 @@ logging:
     port: Port
     protocol: Protocol
     index: Index
-    token: Token
+    token: Token from Secret
     insecureSsl: Insecure SSL
     indexName: Index Name
     source: Source
-    caFile: CA File
-    caPath: CA Path
-    clientCert: Client Cert
-    clientKey: Client Key
+    caFile: CA File from Secret
+    caPath: CA Path from Secret
+    clientCert: Client Cert from Secret
+    clientKey: Client Key from Secret
   forward:
     host: Host
     port: Port
-    sharedKey: Shared Key
-    username: Username
-    password: Password
-    clientCertPath: Client Cert Path
-    clientPrivateKeyPath: Client Private Key Path
-    clientPrivateKeyPassphrase: Client Private Key Passphrase
+    sharedKey: Shared Key from Secret
+    username: Username from Secret
+    password: Password from Secret
+    clientCertPath: Client Cert Path from Secret
+    clientPrivateKeyPath: Client Private Key Path from Secret
+    clientPrivateKeyPassphrase: Client Private Key Passphrase from Secret
 
 longhorn:
   overview:
@@ -1534,7 +1534,7 @@ tableHeaders:
   clusterGroups: Cluster Groups
   commit: Commit
   condition: Condition
-  configuredProviders: Configured Providers
+  providers: Providers
   cpu: CPU
   date: Date
   destination: Target
@@ -1558,7 +1558,7 @@ tableHeaders:
   keys: Data
   lastUpdated: Last Updated
   lastSeen: Last Seen
-  loggingOutputProviders: Providers
+  loggingOutputProviders: Provider
   matches: Matches
   maxKubernetesVersion: Max Kubernetes Version
   message: Message
@@ -2234,11 +2234,9 @@ typeDescription:
   catalog.cattle.io.clusterrepo: A chart repository is a Helm repository or Rancher's git based application catalog. It provides the list of available charts in the cluster.
   catalog.cattle.io.operation: An operation is the list of recent Helm operations that have been applied to the cluster.
   catalog.cattle.io.app: An installed application is a Helm 3 chart that was installed either via our charts or through the Helm CLI.
-  logging.banzaicloud.io.clusterflow: A cluster flow defines which logs from the entire cluster to collect and filter as well as which output to send the logs. The cluster flow needs to be deployed in the namespace that the logging operator is in.
+  logging.banzaicloud.io.clusterflow: Logs from the cluster will be collected and logged to the selected Cluster Output.
   logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namepsace that the flow is deployed in.
-  logging.banzaicloud.io.clusteroutput: A cluster output defines which logging providers that logs can be sent to and is only effective when deployed in the namespace that the logging operator is in.
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
-  logging: To collect and ship your logs you will need to define a Flow and an Output. A Flow defines which logs to collect, filters, and an output which to send the logs. If you would like to collect all logs in the cluster, you can create a ClusterFlow. Outputs can be defined at the namespace level or defined at the cluster level and used by both Flow types.
 
 typeLabel:
   cis.cattle.io.clusterscan: |-

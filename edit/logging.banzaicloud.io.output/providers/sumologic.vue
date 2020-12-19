@@ -44,15 +44,13 @@ export default {
           :label="t('logging.sumologic.sourceName')"
         />
       </div>
-    </div>
-    <div class="row">
       <div class="col span-6">
         <SecretSelector
           v-model="value.endpoint"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.sumologic.endpoint')"
+          :secret-name-label="t('logging.sumologic.endpoint')"
           :show-key-selector="true"
         />
       </div>
