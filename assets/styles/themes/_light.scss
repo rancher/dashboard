@@ -87,7 +87,7 @@ $selected: rgba($primary, .5);
 
   --accent-btn                 : #{rgba($primary, 0.2)};
   --accent-btn-hover           : #{rgba($primary, 0.5)};
-  --modal-bg:#{$light};
+  --modal-bg                   :#{$light};
   --overlay-bg                 : #{rgba($lighter, 0.75)};
   --shadow                     : #{rgba($medium, 0.85)};
 
@@ -146,7 +146,7 @@ $selected: rgba($primary, .5);
 
   --tabbed-border              : #{$medium};
   --tabbed-sidebar-bg          : #{$lighter};
-  --tabbed-container-bg        : #{$light};
+  --tabbed-container-bg        : #{mix($light, $lighter, 15%)};
 
   --yaml-editor-bg             : #{$lighter};
 

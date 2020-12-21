@@ -194,7 +194,7 @@ export default {
     <div
       v-for="row in rules"
       :key="row.id"
-      class="match-expression-row"
+      class="match-expression-row mb-10"
     >
       <div>
         <div v-if="isView">

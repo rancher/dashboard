@@ -194,7 +194,7 @@ export default {
               />
             </div>
           </div>
-          <div class="row mb-20">
+          <div class="row">
             <RadioGroup
               :options="[false, true]"
               :labels="[t('workload.scheduling.affinity.thisPodNamespace'),t('workload.scheduling.affinity.matchExpressions.inNamespaces'),]"
@@ -204,6 +204,7 @@ export default {
               @input="changeNamespaceMode(nodeSelectorTerm, idx)"
             />
           </div>
+          <div class="spacer"></div>
           <div v-if="!!nodeSelectorTerm.namespaces || !!get(nodeSelectorTerm, 'podAffinityTerm.namespaces')" class="row mb-20">
             <LabeledSelect
               v-model="nodeSelectorTerm.namespaces"
@@ -222,7 +223,8 @@ export default {
             @remove="allSelectorTerms.splice(idx,1)"
             @input="e=>$set(nodeSelectorTerm.labelSelector, 'matchExpressions', e)"
           />
-          <div class="row mt-20">
+          <div class="spacer"></div>
+          <div class="row">
             <div class="col span-12">
               <LabeledInput
                 v-model="nodeSelectorTerm.topologyKey"
