@@ -38,7 +38,7 @@ export default {
 
     const out = {
       dnsPolicy:   this.value.dnsPolicy || 'ClusterFirst',
-      networkMode: this.value.hostNetwork ? { label: t('workload.networking.networkMode.options.normal'), value: false } : { label: t('workload.networking.networkMode.options.hostNetwork'), value: true },
+      networkMode: this.value.hostNetwork ? { label: t('workload.networking.networkMode.options.hostNetwork'), value: true } : { label: t('workload.networking.networkMode.options.normal'), value: false },
       hostAliases,
       nameservers,
       searches,
