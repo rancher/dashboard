@@ -1137,27 +1137,19 @@ export default {
       };
 
       if ( isCreate ) {
-        try {
-          res = await this.schema.followLink('collection', {
-            method:  'POST',
-            headers,
-            data:   yaml
-          });
-        } catch (e) {
-          return Promise.reject(e);
-        }
+        res = await this.schema.followLink('collection', {
+          method:  'POST',
+          headers,
+          data:   yaml
+        });
       } else {
         const link = this.hasLink('rioupdate') ? 'rioupdate' : 'update';
 
-        try {
-          res = await this.followLink(link, {
-            method:  'PUT',
-            headers,
-            data:   yaml
-          });
-        } catch (e) {
-          return Promise.reject(e);
-        }
+        res = await this.followLink(link, {
+          method:  'PUT',
+          headers,
+          data:   yaml
+        });
       }
 
       // Steve used to return tables and still might, maybe?

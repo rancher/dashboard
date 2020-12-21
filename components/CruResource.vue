@@ -335,7 +335,7 @@ export default {
                         v-if="!showSubtypeSelection"
                         :disabled="!canSave"
                         :action-label="isEdit ? t('generic.save') : t('generic.create')"
-                        @click="yamlSave"
+                        @click="cb=>yamlSave(cb)"
                       />
                     </div>
                   </template>
