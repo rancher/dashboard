@@ -255,7 +255,7 @@ export default {
         await this.$emit('apply-hooks', BEFORE_SAVE_HOOKS);
 
         try {
-          this.value.saveYaml(yaml);
+          await this.value.saveYaml(yaml);
         } catch (err) {
           return onError.call(this, err);
         }
