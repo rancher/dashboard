@@ -644,6 +644,7 @@ export default {
                 :protip="false"
               />
             </div>
+            <div class="spacer"></div>
             <h3>{{ t('workload.container.titles.podAnnotations') }}</h3>
             <div class="row">
               <KeyValue
