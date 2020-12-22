@@ -62,8 +62,8 @@ export default {
     // know about:  view, edit, create (stage and clone become "create")
     const mode = ((realMode === _STAGE || realMode === _CLONE) ? _CREATE : realMode);
 
-    const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource);
-    const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource);
+    const hasCustomDetail = store.getters['type-map/hasCustomDetail'](resource, id);
+    const hasCustomEdit = store.getters['type-map/hasCustomEdit'](resource, id);
     const schemas = store.getters[`${ inStore }/all`](SCHEMA);
 
     // As determines what component will be rendered
@@ -251,15 +251,16 @@ export default {
   },
 
   created() {
-    let resource = this.$route.params.resource;
+    // eslint-disable-next-line prefer-const
+    let { resource, id } = this.$route.params;
     const options = this.$store.getters[`type-map/optionsFor`](resource);
 
     if ( options.resource ) {
       resource = options.resource;
     }
 
-    this.detailComponent = this.$store.getters['type-map/importDetail'](resource);
-    this.editComponent = this.$store.getters['type-map/importEdit'](resource);
+    this.detailComponent = this.$store.getters['type-map/importDetail'](resource, id);
+    this.editComponent = this.$store.getters['type-map/importEdit'](resource, id);
   },
 
   methods: {
@@ -315,49 +316,3 @@ export default {
     />
   </div>
 </template>
-
-<style lang='scss' scoped>
-  .actions > * {
-    display: inline-block;
-  }
-
-  .flat {
-    border-collapse: collapse;
-    table-layout: fixed;
-    width: 100%;
-    & th{
-      padding-bottom: 1rem;
-      text-align: left;
-      font-weight: normal;
-      color: var(--secondary);
-    }
-
-    & :not(THEAD) tr{
-      border-bottom: 1px solid var(--border);
-
-      & td {
-        padding: 10px 0 10px 0;
-      }
-    }
-    & tr td:last-child, th:last-child{
-      text-align: right;
-    }
-
-    & tr td:first-child, th:first-child{
-      text-align: left;
-      margin-left: 15px;
-    }
-
-    & .click-row a{
-      color: var(--input-text);
-    }
-
-    & .click-row:hover{
-      @extend .faded;
-    }
-
-    & .faded {
-      opacity: 0.3
-    }
-  }
-</style>

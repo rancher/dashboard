@@ -54,9 +54,10 @@ const REMAP_STATE = {
   notready:      'Not Ready',
   waitapplied:   'Wait Applied',
   outofsync:     'Out of Sync',
-  'in-progress':   'In Progress',
+  'in-progress': 'In Progress',
   gitupdating:   'Git Updating',
-  errapplied:    'Err Applied'
+  errapplied:    'Err Applied',
+  waitcheckin:   'Wait Check-In',
 };
 
 const DEFAULT_COLOR = 'warning';
@@ -137,6 +138,7 @@ const STATES = {
   updating:           { color: 'warning', icon: 'tag' },
   waiting:            { color: 'info', icon: 'tag' },
   waitapplied:        { color: 'info', icon: 'tag' },
+  waitcheckin:        { color: 'warning', icon: 'tag' },
   notready:           { color: 'warning', icon: 'tag' },
 };
 
@@ -304,7 +306,7 @@ export default {
   },
 
   name() {
-    return this.metadata?.name;
+    return this._name || this.metadata?.name;
   },
 
   namespace() {
@@ -667,7 +669,7 @@ export default {
   // ------------------------------------------------------------------
 
   canDelete() {
-    return this.hasLink('remove');
+    return this.hasLink('remove') && this.$rootGetters['type-map/optionsFor'](this.type).isRemovable;
   },
 
   canUpdate() {
@@ -675,7 +677,7 @@ export default {
   },
 
   canCustomEdit() {
-    return this.$rootGetters['type-map/hasCustomEdit'](this.type);
+    return this.$rootGetters['type-map/hasCustomEdit'](this.type, this.id);
   },
 
   canCreate() {
@@ -899,7 +901,7 @@ export default {
     };
   },
 
-  detailLocation() {
+  _detailLocation() {
     const schema = this.$getters['schemaFor'](this.type);
 
     const id = this.id?.replace(/.*\//, '');
@@ -914,6 +916,10 @@ export default {
         id,
       }
     };
+  },
+
+  detailLocation() {
+    return this._detailLocation;
   },
 
   goToClone() {

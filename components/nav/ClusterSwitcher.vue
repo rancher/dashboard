@@ -4,10 +4,9 @@ import { sortBy } from '@/utils/sort';
 import { findBy } from '@/utils/array';
 import { mapGetters, mapState } from 'vuex';
 import Select from '@/components/form/Select';
-import LazyImage from '@/components/LazyImage';
 
 export default {
-  components: { LazyImage, Select },
+  components: { Select },
 
   computed:   {
     ...mapState(['isMultiCluster']),
@@ -42,7 +41,7 @@ export default {
           id:     x.id,
           label:  x.nameDisplay,
           ready:  x.isReady,
-          osLogo: x.providerOSLogo,
+          osLogo: x.providerOsLogo,
         };
       });
 
@@ -71,7 +70,7 @@ export default {
     >
       <template #selected-option="opt">
         <span class="cluster-label-container">
-          <LazyImage class="cluster-switcher-os-logo" :src="currentCluster.providerOSLogo" />
+          <img v-if="currentCluster" class="cluster-switcher-os-logo" :src="currentCluster.providerOsLogo" />
           <span class="cluster-label">
             {{ opt.label }}
           </span>

@@ -14,13 +14,13 @@
 //
 // 2) Detecting and using custom list/detail/edit/header components
 //
-// hasCustomList(type)        Does type have a custom list implementation?
-// hasCustomDetail(type)      Does type have a custom detail implementation?
-// hasCustomEdit(type)        Does type have a custom edit implementation?
-// importList(type)           Returns a promise that resolves to the list component for type
-// importDetail(type)         Returns a promise that resolves to the detail component for type
-// importEdit(type)           Returns a promise that resolves to the edit component for type
-// optionsFor(schemaOrType)   Return the configured options for a type (from configureType)
+// hasCustomList(type)              Does type have a custom list implementation?
+// hasCustomDetail(type[,subType])  Does type have a custom detail implementation?
+// hasCustomEdit(type[,subType])    Does type have a custom edit implementation?
+// importList(type)                 Returns a promise that resolves to the list component for type
+// importDetail(type[,subType])     Returns a promise that resolves to the detail component for type
+// importEdit(type[,subType])       Returns a promise that resolves to the edit component for type
+// optionsFor(schemaOrType)         Return the configured options for a type (from configureType)
 //
 // 3) Changing specialization info about a type
 // For all:
@@ -82,6 +82,7 @@
 //  options                   -- Object of options.  Defaults/Supported: {
  //                               isCreatable: true, -- If false, disable create even if schema says it's allowed
  //                               isEditable: true,  -- Ditto, for edit
+ //                               isRemovable: true,  -- Ditto, for remove/delete
  //                               showState: true,  -- If false, hide state in columns and masthead
  //                               showAge: true,    -- If false, hide age in columns and masthead
  //                               canYaml: true,
@@ -362,6 +363,7 @@ export const getters = {
     const def = {
       isCreatable: true,
       isEditable: true,
+      isRemovable: true,
       showState: true,
       showAge: true,
       canYaml: true,
@@ -864,43 +866,43 @@ export const getters = {
   },
 
   hasCustomDetail(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
       const cache = state.cache.detail;
 
-      if ( cache[type] !== undefined ) {
-        return cache[type];
+      if ( cache[key] !== undefined ) {
+        return cache[key];
       }
 
       try {
-        require.resolve(`@/detail/${ type }`);
-        cache[type] = true;
+        require.resolve(`@/detail/${ key }`);
+        cache[key] = true;
       } catch (e) {
-        cache[type] = false;
+        cache[key] = false;
       }
 
-      return cache[type];
+      return cache[key];
     };
   },
 
   hasCustomEdit(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
 
       const cache = state.cache.edit;
 
-      if ( cache[type] !== undefined ) {
-        return cache[type];
+      if ( cache[key] !== undefined ) {
+        return cache[key];
       }
 
       try {
-        require.resolve(`@/edit/${ type }`);
-        cache[type] = true;
+        require.resolve(`@/edit/${ key }`);
+        cache[key] = true;
       } catch (e) {
-        cache[type] = false;
+        cache[key] = false;
       }
 
-      return cache[type];
+      return cache[key];
     };
   },
 
@@ -913,25 +915,31 @@ export const getters = {
   },
 
   importDetail(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
 
-      return () => import(`@/detail/${ type }`);
+      return () => import(`@/detail/${ key }`);
     };
   },
 
   importEdit(state, getters) {
-    return (rawType) => {
-      const type = getters.componentFor(rawType);
+    return (rawType, subType) => {
+      const key = getters.componentFor(rawType, subType);
 
-      return () => import(`@/edit/${ type }`);
+      return () => import(`@/edit/${ key }`);
     };
   },
 
-  componentFor(state) {
-    return (type) => {
-      if ( state.cache.componentFor[type] !== undefined ) {
-        return state.cache.componentFor[type];
+  componentFor(state, getters) {
+    return (type, subType) => {
+      let key = type;
+
+      if ( subType ) {
+        key = `${type}/${subType}`;
+      }
+
+      if ( state.cache.componentFor[key] !== undefined ) {
+        return state.cache.componentFor[key];
       }
 
       let out = type;
@@ -939,14 +947,17 @@ export const getters = {
       const mapping = state.typeToComponentMappings.find((mapping) => {
         const re = stringToRegex(mapping.match);
 
-        return re.test(type);
+        return re.test(key);
       });
 
       if ( mapping ) {
         out = mapping.replace;
+      } else if ( subType ) {
+        // Try again without the subType
+        out = getters.componentFor(type);
       }
 
-      state.cache.componentFor[type] = out;
+      state.cache.componentFor[key] = out;
 
       return out;
     };

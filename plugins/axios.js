@@ -1,8 +1,9 @@
 import https from 'https';
+import { parse as setCookieParser } from 'set-cookie-parser';
 import pkg from '../package.json';
 
 export default function({
-  $axios, isDev, route, redirect, req
+  $axios, $cookies, isDev, req
 }) {
   $axios.defaults.headers.common['Accept'] = 'application/json';
   $axios.defaults.xsrfCookieName = 'CSRF';
@@ -10,7 +11,27 @@ export default function({
   $axios.defaults.withCredentials = true;
 
   if ( process.server ) {
-    $axios.defaults.headers.common['user-agent'] = `Dashboard v${ pkg.version }`;
+    $axios.defaults.headers.common['user-agent'] = `Dashboard (Mozilla) v${ pkg.version }`;
+    $axios.defaults.headers.common['access-control-expose-headers'] = `set-cookie`;
+
+    $axios.onResponse((res) => {
+      const parsed = setCookieParser(res.headers['set-cookie'] || []);
+
+      for ( const opt of parsed ) {
+        const key = opt.name;
+        const value = opt.value;
+
+        delete opt.name;
+        delete opt.value;
+
+        opt.encode = x => x;
+        opt.sameSite = false;
+        opt.path = '/';
+        opt.secure = true;
+
+        $cookies.set(key, value, opt);
+      }
+    });
   }
 
   if ( isDev ) {

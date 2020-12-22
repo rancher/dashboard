@@ -59,7 +59,7 @@ export default {
       key = provider;
     }
 
-    return this.$rootGetters['i18n/withFallback'](`rbac.user.provider."${ key }"`, null, key);
+    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ key }"`, null, key);
   },
 
   state() {
