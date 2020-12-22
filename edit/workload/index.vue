@@ -4,6 +4,7 @@ import { cleanUp } from '@/utils/object';
 import {
   CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC
 } from '@/config/types';
+import { TARGET_WORKLOADS } from '@/config/labels-annotations.js';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
@@ -89,7 +90,7 @@ export default {
     this.allSecrets = hash.secrets || [];
     this.allConfigMaps = hash.configMaps;
     this.allNodes = hash.nodes.map(node => node.id);
-    this.allServices = hash.services.filter(service => service.spec.clusterIP === 'None');
+    this.allServices = hash.services;
     this.pvcs = hash.pvcs;
   },
 
@@ -117,6 +118,7 @@ export default {
       pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
+      createService:     false
     };
   },
 
@@ -403,6 +405,8 @@ export default {
 
   created() {
     this.registerBeforeHook(this.saveWorkload, 'willSaveWorkload');
+    this.registerBeforeHook(this.saveService, 'saveService');
+    this.registerAfterHook(this.setOwnerRef, 'setOwnerRef');
   },
 
   methods: {
@@ -422,6 +426,66 @@ export default {
 
     cancel() {
       this.done();
+    },
+
+    async saveService() {
+      if (!this.createService ) {
+        return;
+      }
+      const { ports = [] } = this.container;
+
+      const data = {
+        type: SERVICE,
+        spec: {
+          ports: ports.map((port) => {
+            const name = port.name ? `${ port.name }-${ this.value.metadata.name }` : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || '' }`;
+
+            return {
+              name, protocol: port.protocol, port: port.containerPort, targetPort: port.containerPort
+            };
+          }),
+          selector: this.value.workloadSelector,
+          type:     'ClusterIP'
+        },
+        metadata: {
+          name:        this.value.metadata.name,
+          namespace:   this.value.metadata.namespace,
+          annotations: { [TARGET_WORKLOADS]: `[${ this.value.metadata.namespace }/${ this.value.metadata.name }]` }
+        },
+
+      };
+
+      const service = await this.$store.dispatch(`cluster/create`, data);
+
+      return service.save();
+    },
+
+    async setOwnerRef() {
+      if (!this.createService ) {
+        return;
+      }
+
+      const svc = await this.$store.dispatch('cluster/find', {
+        type:     SERVICE,
+        id:   this.value.id
+      });
+
+      if (!svc) {
+        return;
+      }
+
+      const ownerRef = {
+        apiVersion: this.value.apiVersion,
+        controller: true,
+        kind:       this.value.kind,
+        name:       this.value.metadata.name,
+        uid:        this.value.metadata.uid
+      };
+
+      if (!svc.metadata.ownerReferences) {
+        svc.metadata.ownerReferences = [ownerRef];
+        await svc.save();
+      }
     },
 
     saveWorkload() {
@@ -527,7 +591,8 @@ export default {
       } else {
         this.type = type;
       }
-    }
+    },
+
   }
 };
 </script>
@@ -622,7 +687,7 @@ export default {
           <div>
             <h3>{{ t('workload.container.titles.ports') }}</h3>
             <div class="row">
-              <WorkloadPorts v-model="container.ports" :mode="mode" />
+              <WorkloadPorts v-model="container.ports" :create-service.sync="createService" :mode="mode" />
             </div>
           </div>
 

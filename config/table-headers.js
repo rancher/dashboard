@@ -576,6 +576,13 @@ export const WORKSPACE = {
 
 export const WORKLOAD_IMAGES = { ...POD_IMAGES, value: '' };
 
+export const WORKLOAD_ENDPOINTS = {
+  name:      'workloadEndpoints',
+  labelKey:  'tableHeaders.endpoints',
+  value:     'endpoints',
+  formatter: 'WorkloadEndpoints'
+};
+
 export const FLEET_SUMMARY = {
   name:      'summary',
   labelKey:  'tableHeaders.resources',

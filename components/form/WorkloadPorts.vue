@@ -5,11 +5,13 @@ import { removeAt } from '@/utils/array';
 import { clone } from '@/utils/object';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import Checkbox from '@/components/form/Checkbox';
 
 export default {
   components: {
     LabeledInput,
-    LabeledSelect
+    LabeledSelect,
+    Checkbox
   },
 
   props:      {
@@ -22,6 +24,11 @@ export default {
       type:    String,
       default: _EDIT,
     },
+
+    createService: {
+      type:    Boolean,
+      default: false
+    }
   },
 
   data() {
@@ -203,6 +210,7 @@ export default {
       <button type="button" class="btn role-tertiary add" @click="add()">
         {{ t('workloadPorts.addPort') }}
       </button>
+      <Checkbox v-model="createService" label="Create a service to expose ports" @input="$emit('update:create-service', $event)" />
     </div>
   </div>
 </template>

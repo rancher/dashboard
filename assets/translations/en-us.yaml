@@ -1590,7 +1590,7 @@ tableHeaders:
   destination: Target
   download: Download
   effect: Effect
-  endpoints: Endpoint
+  endpoints: Endpoints
   flow: Flow
   gitRepos: Git Repos
   host: |-

@@ -1,6 +1,6 @@
 import { insertAt } from '@/utils/array';
 import { TIMESTAMP } from '@/config/labels-annotations';
-import { WORKLOAD_TYPES, POD } from '@/config/types';
+import { WORKLOAD_TYPES, POD, ENDPOINTS } from '@/config/types';
 import { get } from '@/utils/object';
 import day from 'dayjs';
 
@@ -261,4 +261,12 @@ export default {
       }-${ this.metadata.name }`
     };
   },
+
+  endpoints() {
+    const endpoints = this.$rootGetters['cluster/byId'](ENDPOINTS, this.id);
+
+    if (endpoints) {
+      return endpoints.metadata.fields[1];
+    }
+  }
 };

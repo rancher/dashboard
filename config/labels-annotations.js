@@ -6,6 +6,7 @@ export const PROJECT = 'field.cattle.io/projectId';
 export const SYSTEM_PROJECT = 'authz.management.cattle.io/system-project';
 export const CONTAINER_DEFAULT_RESOURCE_LIMIT = 'field.cattle.io/containerDefaultResourceLimit';
 export const CATTLE_PUBLIC_ENDPOINTS = 'field.cattle.io/publicEndpoints';
+export const TARGET_WORKLOADS = 'field.cattle.io/targetWorkloadIds';
 
 export const KUBERNETES = {
   SERVICE_ACCOUNT_UID:  'kubernetes.io/service-account.uid',
