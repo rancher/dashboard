@@ -37,7 +37,7 @@ export default {
     },
 
     sectionClass() {
-      return `${ this.displaySideBySide ? 'col span-6' : 'row mb-20' } ${ this.defaultSectionClass }`.trim();
+      return `${ this.displaySideBySide ? 'col span-6' : 'row' } ${ this.defaultSectionClass }`.trim();
     }
   }
 };
@@ -56,6 +56,7 @@ export default {
         @input="value.setLabels"
       />
     </div>
+    <div class="spacer"></div>
     <div :class="sectionClass">
       <KeyValue
         key="annotations"
@@ -70,3 +71,7 @@ export default {
     </div>
   </div>
 </template>
+
+<style scoped>
+
+</style>

@@ -332,6 +332,7 @@ export default {
       grid-template-columns: auto min-content;
       margin-bottom: 20px;
       align-items: center;
+      min-height: 48px;
 
       .type-banner {
         grid-area: type-banner;
