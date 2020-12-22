@@ -216,7 +216,7 @@ export default {
           </div>
           <MatchExpressions
             :mode="mode"
-            class=" col span-12"
+            class=" col span-12 mt-20"
             :type="pod"
             :value="get(nodeSelectorTerm, 'labelSelector.matchExpressions')"
             @remove="allSelectorTerms.splice(idx,1)"

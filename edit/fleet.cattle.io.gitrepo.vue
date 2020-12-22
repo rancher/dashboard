@@ -12,12 +12,20 @@ import InputWithSelect from '@/components/form/InputWithSelect';
 import jsyaml from 'js-yaml';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import RadioGroup from '@/components/form/RadioGroup';
 import Labels from '@/components/form/Labels';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import YamlEditor from '@/components/YamlEditor';
 import { TYPES as SECRET_TYPES } from '@/models/secret';
-import { base64Encode } from '@/utils/crypto';
+import { base64Decode, base64Encode } from '@/utils/crypto';
+
+const _NONE = '_none';
+const _BASIC = '_basic';
+const _SSH = '_ssh';
+const _VERIFY = 'verify';
+const _SKIP = 'skip';
+const _SPECIFY = 'specify';
 
 export default {
   name: 'CruGitRepo',
@@ -33,6 +41,7 @@ export default {
     Loading,
     NameNsDescription,
     YamlEditor,
+    RadioGroup,
   },
 
   mixins: [CreateEditView],
@@ -42,14 +51,30 @@ export default {
     this.allClusterGroups = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
     this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
 
-    let authSecret = '_none';
+    let authSecret = _NONE;
+    let tls = _VERIFY;
 
     if ( this.value.spec?.clientSecretName ) {
       authSecret = this.value.spec.clientSecretName;
     }
 
     this.authSecret = authSecret;
+
+    if ( this.value.spec.insecureSkipTLSVerify ) {
+      tls = _SKIP;
+    } else if ( this.value.spec.caBundle ) {
+      try {
+        this.caBundle = base64Decode(this.value.spec.caBundle);
+        tls = _SPECIFY;
+      } catch (e) {
+        // Hmm...
+      }
+    }
+
+    this.tlsMode = tls;
+
     this.updateTargets();
+    this.updateAuth();
   },
 
   data() {
@@ -82,6 +107,8 @@ export default {
       password:   null,
       publicKey:  null,
       privateKey: null,
+      tlsMode:    null,
+      caBundle:   null,
 
       ref,
       refValue,
@@ -99,8 +126,22 @@ export default {
   computed: {
     ...mapGetters(['workspace']),
 
+    _SSH() {
+      return _SSH;
+    },
+    _BASIC() {
+      return _BASIC;
+    },
+    _SPECIFY() {
+      return _SPECIFY;
+    },
+
     isLocal() {
       return this.value.metadata.namespace === 'fleet-local';
+    },
+
+    isTls() {
+      return !(this.value?.spec?.repo || '').startsWith('http://');
     },
 
     targetOptions() {
@@ -198,15 +239,23 @@ export default {
 
       out.unshift({
         label: 'Create a HTTP Basic Auth Secret',
-        value: '_basic',
+        value: _BASIC,
       });
 
       out.unshift({
         label: 'None',
-        value: '_none',
+        value: _NONE,
       });
 
       return out;
+    },
+
+    tlsOptions() {
+      return [
+        { label: this.t('fleet.gitRepo.tls.verify'), value: _VERIFY },
+        { label: this.t('fleet.gitRepo.tls.specify'), value: _SPECIFY },
+        { label: this.t('fleet.gitRepo.tls.skip'), value: _SKIP },
+      ];
     },
   },
 
@@ -218,6 +267,8 @@ export default {
     targetAdvanced:             'updateTargets',
 
     authSecret: 'updateAuth',
+    tlsMode:    'updateTls',
+    caBundle:   'updateTls',
 
     workspace(neu) {
       if ( this.isCreate ) {
@@ -236,15 +287,15 @@ export default {
     updateAuth() {
       const spec = this.value.spec;
 
-      if ( (this.authSecret || '').startsWith('_') ) {
-        spec.clientSecretName = null;
-      } else if ( this.authSecret ) {
+      if ( !this.authSecret || this.authSecret === _SSH || this.authSecret === _BASIC || this.authSecret === _NONE ) {
+        delete spec.clientSecretName;
+      } else {
         spec.clientSecretName = this.authSecret;
       }
     },
 
     async createSecret() {
-      if ( this.authSecret === '_ssh' || this.authSecret === '_basic' ) {
+      if ( this.authSecret === _SSH || this.authSecret === _BASIC ) {
         const secret = await this.$store.dispatch('management/create', {
           type:     SECRET,
           metadata: {
@@ -253,7 +304,7 @@ export default {
           },
         });
 
-        if ( this.authSecret === '_ssh' ) {
+        if ( this.authSecret === _SSH ) {
           secret._type = SECRET_TYPES.SSH;
           secret.data = {
             'ssh-publickey':  base64Encode(this.publicKey),
@@ -328,7 +379,34 @@ export default {
         delete spec.branch;
         spec.revision = text;
       }
-    }
+    },
+
+    updateTls() {
+      const spec = this.value.spec;
+
+      if ( this.tlsMode === _SPECIFY ) {
+        spec.insecureSkipTLSVerify = false;
+        const caBundle = (this.caBundle || '').trim();
+
+        if ( caBundle ) {
+          spec.caBundle = base64Encode(`${ caBundle }\n`);
+        } else {
+          delete spec.caBundle;
+        }
+      } else {
+        if ( this.tlsMode === _SKIP ) {
+          spec.insecureSkipTLSVerify = true;
+        } else {
+          spec.insecureSkipTLSVerify = false;
+        }
+
+        if ( this.originalValue.caBundle ) {
+          spec.caBundle = this.originalValue.caBundle;
+        } else {
+          delete spec.caBundle;
+        }
+      }
+    },
   }
 };
 </script>
@@ -354,7 +432,7 @@ export default {
         <LabeledInput
           v-model="value.spec.repo"
           :mode="mode"
-          :label="t('fleet.gitRepo.repo.label')"
+          label-key="fleet.gitRepo.repo.label"
           :placeholder="t('fleet.gitRepo.repo.placeholder', null, true)"
         />
       </div>
@@ -396,7 +474,7 @@ export default {
         </LabeledSelect>
       </div>
     </div>
-    <div v-if="authSecret === '_ssh'" class="row mt-20">
+    <div v-if="authSecret === _SSH" class="row mt-20">
       <div class="col span-6">
         <LabeledInput v-model="publicKey" type="multiline" label="Public Key" />
       </div>
@@ -404,7 +482,7 @@ export default {
         <LabeledInput v-model="privateKey" type="multiline" label="Private Key" />
       </div>
     </div>
-    <div v-if="authSecret === '_basic'" class="row mt-20">
+    <div v-if="authSecret === _BASIC" class="row mt-20">
       <div class="col span-6">
         <LabeledInput v-model="username" label="Username" />
       </div>
@@ -413,82 +491,108 @@ export default {
       </div>
     </div>
 
-    <hr class="mt-20 mb-20" />
+    <template v-if="isTls">
+      <div class="spacer" />
 
-    <h2 v-t="'fleet.gitRepo.paths.label'" />
-    <ArrayList
-      v-model="value.spec.paths"
-      :mode="mode"
-      :initial-empty-row="false"
-      :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
-      :add-label="t('fleet.gitRepo.paths.addLabel')"
-    >
-      <template #empty>
-        <Banner label="The root of the repo is used by default.  To use one or more different directories, add them here." />
-      </template>
-    </ArrayList>
-
-    <hr v-if="!isView" class="mt-20 mb-20" />
-
-    <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
-
-    <template v-if="!isLocal">
+      <h3 v-t="'fleet.gitRepo.tls.label'" />
       <div class="row">
         <div class="col span-6">
-          <LabeledSelect
-            v-model="targetMode"
-            :options="targetOptions"
-            option-key="value"
+          <RadioGroup
+            v-model="tlsMode"
+            name="tlsMode"
             :mode="mode"
-            :selectable="option => !option.disabled"
-            :label="t('fleet.gitRepo.target.selectLabel')"
-          >
-            <template v-slot:option="opt">
-              <hr v-if="opt.kind === 'divider'">
-              <div v-else-if="opt.kind === 'title'">
-                {{ opt.label }}
-              </div>
-              <div v-else>
-                {{ opt.label }}
-              </div>
-            </template>
-          </LabeledSelect>
+            :options="tlsOptions"
+          />
+        </div>
+        <div v-if="tlsMode === _SPECIFY" class="col span-6">
+          <LabeledInput
+            v-model="caBundle"
+            type="multiline"
+            label-key="fleet.gitRepo.caBundle.label"
+            placeholder-key="fleet.gitRepo.caBundle.placeholder"
+          />
+        </div>
+      </div>
+      </div>
+
+      <div class="spacer" />
+
+      <h2 v-t="'fleet.gitRepo.paths.label'" />
+      <ArrayList
+        v-model="value.spec.paths"
+        :mode="mode"
+        :initial-empty-row="false"
+        :value-placeholder="t('fleet.gitRepo.paths.placeholder')"
+        :add-label="t('fleet.gitRepo.paths.addLabel')"
+      >
+        <template #empty>
+          <Banner label-key="fleet.gitRepo.paths.empty" />
+        </template>
+      </ArrayList>
+
+      <div class="spacer" />
+
+      <h2 v-t="isLocal ? 'fleet.gitRepo.target.labelLocal' : 'fleet.gitRepo.target.label'" />
+
+      <template v-if="!isLocal">
+        <div class="row">
+          <div class="col span-6">
+            <LabeledSelect
+              v-model="targetMode"
+              :options="targetOptions"
+              option-key="value"
+              :mode="mode"
+              :selectable="option => !option.disabled"
+              :label="t('fleet.gitRepo.target.selectLabel')"
+            >
+              <template v-slot:option="opt">
+                <hr v-if="opt.kind === 'divider'">
+                <div v-else-if="opt.kind === 'title'">
+                  {{ opt.label }}
+                </div>
+                <div v-else>
+                  {{ opt.label }}
+                </div>
+              </template>
+            </LabeledSelect>
+          </div>
+        </div>
+
+        <div v-if="targetMode === 'advanced'" class="row mt-10">
+          <div class="col span-12">
+            <YamlEditor v-model="targetAdvanced" />
+          </div>
+        </div>
+
+        <Banner v-for="(err, i) in targetAdvancedErrors" :key="i" color="error" :label="err" />
+      </template>
+
+      <div class="row mt-20">
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.spec.serviceAccount"
+            label-key="fleet.gitRepo.serviceAccount.label"
+            placeholder-key="fleet.gitRepo.serviceAccount.placeholder"
+          />
+        </div>
+        <div class="col span-6">
+          <LabeledInput
+            v-model="value.spec.targetNamespace"
+            label-key="fleet.gitRepo.targetNamespace.label"
+            placeholder-key="fleet.gitRepo.targetNamespace.placeholder"
+            label="Target Namespace"
+            placeholder="Optional: Require all resources to be in this namespace"
+          />
         </div>
       </div>
 
-      <div v-if="targetMode === 'advanced'" class="row mt-10">
-        <div class="col span-12">
-          <YamlEditor v-model="targetAdvanced" />
-        </div>
-      </div>
+      <div class="spacer" />
 
-      <Banner v-for="(err, i) in targetAdvancedErrors" :key="i" color="error" :label="err" />
+      <Labels
+        :value="value"
+        :mode="mode"
+        :display-side-by-side="false"
+      />
     </template>
-
-    <div class="row mt-20">
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.spec.serviceAccount"
-          label="Service Account Name"
-          placeholder="Optional: Use a service account in the target clusters"
-        />
-      </div>
-      <div class="col span-6">
-        <LabeledInput
-          v-model="value.spec.targetNamespace"
-          label="Target Namespace"
-          placeholder="Optional: Require all resources to be in this namespace"
-        />
-      </div>
-    </div>
-
-    <hr class="mt-20" />
-
-    <Labels
-      default-section-class="mt-20"
-      :value="value"
-      :mode="mode"
-      :display-side-by-side="false"
-    />
   </CruResource>
 </template>
