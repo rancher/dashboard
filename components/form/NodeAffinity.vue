@@ -133,7 +133,7 @@ export default {
             v-model="nodeSelectorTerm.matchExpressions"
             :initial-empty-row="!isView"
             :mode="mode"
-            class="col span-12"
+            class="col span-12 mt-20"
             :type="node"
             @remove="allSelectorTerms.splice(idx,1)"
           />
