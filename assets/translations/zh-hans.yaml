@@ -1534,7 +1534,7 @@ tableHeaders:
   clusterGroups: 集群组
   commit: Commit
   condition: 状态
-  configuredProviders: 配置提供商
+  providers: 配置提供商
   cpu: CPU
   date: 事情
   destination: 目标

@@ -108,7 +108,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.syslog.trustedCaPath')"
+          :secret-name-label="t('logging.syslog.trustedCaPath')"
           :show-key-selector="true"
         />
       </div>

@@ -74,7 +74,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.username')"
+          :secret-name-label="t('logging.forward.username')"
           :show-key-selector="true"
         />
       </div>
@@ -84,7 +84,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.password')"
+          :secret-name-label="t('logging.forward.password')"
           :show-key-selector="true"
         />
       </div>
@@ -96,7 +96,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.sharedKey')"
+          :secret-name-label="t('logging.forward.sharedKey')"
           :show-key-selector="true"
         />
       </div>
@@ -114,7 +114,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.clientCertPath')"
+          :secret-name-label="t('logging.forward.clientCertPath')"
           :show-key-selector="true"
         />
       </div>
@@ -124,19 +124,19 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.clientPrivateKeyPath')"
+          :secret-name-label="t('logging.forward.clientPrivateKeyPath')"
           :show-key-selector="true"
         />
       </div>
     </div>
-    <div class="row">
+    <div class="row mt-10">
       <div class="col span-6">
         <SecretSelector
           v-model="value.tls_client_private_key_passphrase"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.clientPrivateKeyPassphrase')"
+          :secret-name-label="t('logging.forward.clientPrivateKeyPassphrase')"
           :show-key-selector="true"
         />
       </div>

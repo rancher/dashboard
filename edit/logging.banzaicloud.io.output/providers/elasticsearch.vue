@@ -91,19 +91,12 @@ export default {
     </div>
     <div class="row">
       <div class="col span-6">
-        <label>{{ t('logging.elasticsearch.user') }}</label>
-      </div>
-      <div class="col span-6">
-        <label>{{ t('logging.elasticsearch.password') }}</label>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col span-6">
-        <LabeledInput v-model="value.user" :mode="mode" :disabled="disabled" />
+        <LabeledInput v-model="value.user" :mode="mode" :disabled="disabled" :label="t('logging.elasticsearch.user')" />
       </div>
       <div class="col span-6">
         <SecretSelector
           v-model="value.password"
+          :secret-name-label="t('logging.elasticsearch.password')"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
@@ -124,7 +117,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.elasticsearch.caFile.label')"
+          :secret-name-label="t('logging.elasticsearch.caFile.label')"
           :show-key-selector="true"
         />
       </div>
@@ -134,7 +127,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.elasticsearch.clientCert.label')"
+          :secret-name-label="t('logging.elasticsearch.clientCert.label')"
           :show-key-selector="true"
         />
       </div>
@@ -146,7 +139,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.elasticsearch.clientKey.label')"
+          :secret-name-label="t('logging.elasticsearch.clientKey.label')"
           :show-key-selector="true"
         />
       </div>
@@ -156,7 +149,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.elasticsearch.clientKeyPass')"
+          :secret-name-label="t('logging.elasticsearch.clientKeyPass')"
           :show-key-selector="true"
         />
       </div>

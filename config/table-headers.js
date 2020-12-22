@@ -71,8 +71,8 @@ export const OUTPUT = {
 };
 
 export const CONFIGURED_PROVIDERS = {
-  name:      'configuredProviders',
-  labelKey:  'tableHeaders.configuredProviders',
+  name:      'providers',
+  labelKey:  'tableHeaders.providers',
   value:     'providersDisplay',
   sort:      'providersSortable',
   formatter: 'List'

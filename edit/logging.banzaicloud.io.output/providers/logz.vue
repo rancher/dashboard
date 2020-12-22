@@ -77,7 +77,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.logz.token')"
+          :secret-name-label="t('logging.logz.token')"
           :show-key-selector="true"
         />
       </div>
