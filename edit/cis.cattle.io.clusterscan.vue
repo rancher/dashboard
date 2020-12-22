@@ -126,12 +126,12 @@ export default {
             return profile;
           }
         }
-        const cis16 = this.validProfiles.find(profile => profile.id === 'cis-1.6-profile');
+        const cis16 = this.validProfiles.find(profile => profile.value === 'cis-1.6-profile');
 
         if (cis16) {
-          return cis16;
+          return this.allProfiles.find(profile => profile.id === 'cis-1.6-profile');
         } else {
-          return this.validProfiles.find(profile => profile.name === 'cis-1.5-profile');
+          return this.allProfiles.find(profile => profile.id === 'cis-1.5-profile');
         }
       }
 
