@@ -123,6 +123,10 @@ export default {
       return !this.isEncrypted || hasEncryption;
     },
 
+    targetBackupFilename() {
+      return get(this.targetBackup, 'status.filename');
+    },
+
     ...mapGetters({ t: 'i18n/t' })
   },
 
@@ -155,6 +159,10 @@ export default {
       if ((neu.length && !old.length) && !this.isClone && this.mode !== 'view') {
         this.storageSource = 'useBackup';
       }
+    },
+
+    targetBackupFilename(neu) {
+      this.value.spec.backupFilename = neu;
     }
   },
 
