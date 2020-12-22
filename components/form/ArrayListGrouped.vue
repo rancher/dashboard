@@ -35,6 +35,7 @@ export default {
 .array-list-grouped {
     & > .box {
       position: relative;
+      display: block;
 
       & > .remove {
         position: absolute;
