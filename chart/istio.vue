@@ -133,32 +133,32 @@ export default {
   <div>
     <Tab name="components" :label="t('istio.titles.components') ">
       <div class="row">
-        <div class="col span-4">
+        <div v-if="value.cni" class="col span-4">
           <Checkbox v-model="value.cni.enabled" :label="t('istio.cni')" @input="update" />
         </div>
-        <div class="col span-4">
+        <div v-if="value.ingressGateways" class="col span-4">
           <Checkbox v-model="value.ingressGateways.enabled" :label="t('istio.ingressGateway')" />
         </div>
-        <div class="col span-4">
+        <div v-if="value.egressGateways" class="col span-4">
           <Checkbox v-model="value.egressGateways.enabled" :label="t('istio.egressGateway')" />
         </div>
       </div>
       <div class="row">
-        <div class="col span-4">
+        <div v-if="value.pilot" class="col span-4">
           <Checkbox v-model="value.pilot.enabled" :label="t('istio.pilot')" />
         </div>
-        <div class="col span-4">
+        <div v-if="value.policy" class="col span-4">
           <Checkbox v-model="value.policy.enabled" :label="t('istio.policy')" />
         </div>
-        <div class="col span-4">
+        <div v-if="value.telemetry" class="col span-4">
           <Checkbox v-model="value.telemetry.enabled" :label="t('istio.telemetry')" />
         </div>
       </div>
       <div class="row">
-        <div class="col span-4">
+        <div v-if="value.kiali" class="col span-4">
           <Checkbox v-model="value.kiali.enabled" :label="t('istio.kiali')" />
         </div>
-        <div class="col span-4">
+        <div v-if="value.tracing" class="col span-4">
           <Checkbox v-model="value.tracing.enabled" :label="t('istio.tracing')" />
         </div>
         <div class="col span-4">

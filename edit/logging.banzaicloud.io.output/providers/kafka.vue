@@ -2,7 +2,7 @@
 import LabeledInput from '@/components/form/LabeledInput';
 import SecretSelector from '@/components/form/SecretSelector';
 import Checkbox from '@/components/form/Checkbox';
-import { protocol } from './options';
+import { protocol } from './utils';
 
 export default {
   components: {

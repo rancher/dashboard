@@ -1,17 +1,16 @@
 <script>
 import Mount from '@/edit/workload/storage/Mount';
-import InfoBox from '@/components/InfoBox';
 import { mapGetters } from 'vuex';
 import PersistentVolumeClaim from '@/edit/workload/storage/persistentVolumeClaim/persistentvolumeclaim.vue';
 import { PVC } from '@/config/types';
-import { removeObject } from '@/utils/array';
 import { _VIEW } from '@/config/query-params';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 
 export default {
   components: {
+    ArrayListGrouped,
     Mount,
-    PersistentVolumeClaim,
-    InfoBox
+    PersistentVolumeClaim
   },
 
   props:      {
@@ -86,11 +85,6 @@ export default {
         this.update();
       });
     },
-
-    removePVC(pvc) {
-      removeObject(this.templates, pvc);
-      this.update();
-    }
   }
 };
 </script>
@@ -98,18 +92,19 @@ export default {
 <template>
   <div>
     <div>
-      <InfoBox v-for="(pvc, i) in templates" :key="i" class="mb-20" :style="{'position':'relative'}">
-        <button v-if="!isView" type="button" class="role-link btn remove-btn" @click="removePVC(pvc)">
-          <i class="icon icon-2x icon-x" />
-        </button>
-        <div class="bordered-section">
-          <PersistentVolumeClaim v-if="pvc.metadata" :value="pvc" :mode="mode" @input="updatePVC(pvc)" />
-        </div>
-        <Mount :pod-spec="value.template.spec" :name="pvc.metadata.name" :mode="mode" />
-      </InfoBox>
-      <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addPVC">
-        Add Claim Template
-      </button>
+      <ArrayListGrouped v-model="templates" class="mb-20" @input="update()">
+        <template #default="props">
+          <div class="bordered-section">
+            <PersistentVolumeClaim v-if="props.row.value.metadata" :value="props.row.value" :mode="mode" @input="updatePVC(props.row.value)" />
+          </div>
+          <Mount :pod-spec="value.template.spec" :name="props.row.value.metadata.name" :mode="mode" />
+        </template>
+        <template #add>
+          <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addPVC">
+            Add Claim Template
+          </button>
+        </template>
+      </ArrayListGrouped>
     </div>
   </div>
 </template>

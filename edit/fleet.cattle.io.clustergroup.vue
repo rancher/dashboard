@@ -131,8 +131,6 @@ export default {
       :namespace-type="FLEET_WORKSPACE"
     />
 
-    <hr v-if="!isView" class="mt-20 mb-20" />
-
     <h2 v-t="'fleet.clusterGroup.selector.label'" />
     <MatchExpressions
       :initial-empty-row="!isView"
@@ -151,7 +149,7 @@ export default {
       />
     </Banner>
 
-    <hr class="mt-20" />
+    <div class="spacer" />
 
     <Labels
       default-section-class="mt-20"

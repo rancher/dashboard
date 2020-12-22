@@ -77,8 +77,6 @@ export default {
       :register-before-hook="registerBeforeHook"
     />
 
-    <div class="spacer"></div>
-
     <Tabbed :side-tabs="true">
       <Tab name="data" :label="t('configmap.tabs.data.label')" :weight="2">
         <KeyValue

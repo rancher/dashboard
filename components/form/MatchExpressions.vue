@@ -194,7 +194,7 @@ export default {
     <div
       v-for="row in rules"
       :key="row.id"
-      class="match-expression-row"
+      class="match-expression-row mb-10"
     >
       <div>
         <div v-if="isView">
@@ -241,9 +241,11 @@ export default {
         </button>
       </div>
     </div>
-    <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addRule">
-      <t k="workload.scheduling.affinity.matchExpressions.addRule" />
-    </button>
+    <div class="mt-20">
+      <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addRule">
+        <t k="workload.scheduling.affinity.matchExpressions.addRule" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -283,10 +285,11 @@ export default {
   .match-expression-row, .match-expression-header {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    grid-gap: $column-gutter;
+    margin: 5px 0;
+    grid-gap: 10px;
 
-    &>label{
-      margin-left: 8px;
+    & > LABEL {
+      margin: 0;
     }
 
     &:not(.view){

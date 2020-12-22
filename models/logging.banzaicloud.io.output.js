@@ -143,5 +143,14 @@ export default {
         namespace: this.namespace
       }
     };
-  }
+  },
+
+  customValidationRules() {
+    return [
+      {
+        path:           'spec.logdna',
+        validators:     ['logdna'],
+      }
+    ];
+  },
 };

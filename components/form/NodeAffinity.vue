@@ -3,13 +3,13 @@ import { _VIEW } from '@/config/query-params';
 import { get, isEmpty, clone } from '@/utils/object';
 import { NODE } from '@/config/types';
 import MatchExpressions from '@/components/form/MatchExpressions';
-import InfoBox from '@/components/InfoBox';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { randomStr } from '@/utils/string';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 
 export default {
   components: {
-    MatchExpressions, InfoBox, LabeledSelect
+    ArrayListGrouped, MatchExpressions, LabeledSelect
   },
 
   props:      {
@@ -116,38 +116,32 @@ export default {
 <template>
   <div class="row" @input="update">
     <div class="col span-12">
-      <template v-for="(nodeSelectorTerm, idx) in allSelectorTerms">
-        <InfoBox :key="nodeSelectorTerm._id" class="node-selector mt-20">
+      <ArrayListGrouped v-model="allSelectorTerms" class="mt-20" :default-add-value="{matchExpressions:[]}" :add-label="t('workload.scheduling.affinity.addNodeSelector')">
+        <template #default="props">
           <div class="row">
             <div class="col span-6">
               <LabeledSelect
                 :options="[t('workload.scheduling.affinity.preferred'),t('workload.scheduling.affinity.required')]"
-                :value="priorityDisplay(nodeSelectorTerm)"
+                :value="priorityDisplay(props.row.value)"
                 :label="t('workload.scheduling.affinity.priority')"
                 :mode="mode"
-                @input="(changePriority(nodeSelectorTerm))"
+                @input="(changePriority(props.row.value))"
               />
             </div>
           </div>
           <MatchExpressions
-            v-model="nodeSelectorTerm.matchExpressions"
+            v-model="props.row.value.matchExpressions"
             :initial-empty-row="!isView"
             :mode="mode"
-            class="col span-12"
+            class="col span-12 mt-20"
             :type="node"
-            @remove="allSelectorTerms.splice(idx,1)"
+            :show-remove="false"
           />
-        </InfoBox>
-      </template>
-      <button v-if="!isView" type="button" class="btn role-tertiary" @click="e=>allSelectorTerms.push({matchExpressions:[]})">
-        <t k="workload.scheduling.affinity.addNodeSelector" />
-      </button>
+        </template>
+      </ArrayListGrouped>
     </div>
   </div>
 </template>
 
 <style>
-  .node-selector{
-    position: relative;
-  }
 </style>

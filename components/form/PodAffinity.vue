@@ -5,15 +5,15 @@ import { POD, NODE, NAMESPACE } from '@/config/types';
 import MatchExpressions from '@/components/form/MatchExpressions';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
-import InfoBox from '@/components/InfoBox';
 import LabeledInput from '@/components/form/LabeledInput';
 import { randomStr } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import debounce from 'lodash/debounce';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 
 export default {
   components: {
-    MatchExpressions, InfoBox, LabeledSelect, RadioGroup, LabeledInput
+    ArrayListGrouped, MatchExpressions, LabeledSelect, RadioGroup, LabeledInput
   },
 
   props:      {
@@ -172,25 +172,25 @@ export default {
 <template>
   <div :style="{'width':'100%'}" class="row" @input="queueUpdate">
     <div class="col span-12">
-      <template v-for="(nodeSelectorTerm, idx) in allSelectorTerms">
-        <InfoBox :key="nodeSelectorTerm._id" class="node-selector">
+      <ArrayListGrouped v-model="allSelectorTerms" class="mt-20" :default-add-value="{matchExpressions:[]}" :add-label="t('workload.scheduling.affinity.addNodeSelector')">
+        <template #default="props">
           <div class="row mt-20 mb-20">
             <div class="col span-6">
               <LabeledSelect
                 :mode="mode"
                 :options="[t('workload.scheduling.affinity.affinityOption'),t('workload.scheduling.affinity.antiAffinityOption')]"
-                :value="nodeSelectorTerm._anti ?t('workload.scheduling.affinity.antiAffinityOption') :t('workload.scheduling.affinity.affinityOption') "
+                :value="props.row.value._anti ?t('workload.scheduling.affinity.antiAffinityOption') :t('workload.scheduling.affinity.affinityOption') "
                 :label="t('workload.scheduling.affinity.type')"
-                @input="$set(nodeSelectorTerm, '_anti',!nodeSelectorTerm._anti)"
+                @input="$set(props.row.value, '_anti',!props.row.value._anti)"
               />
             </div>
             <div class="col span-6">
               <LabeledSelect
                 :mode="mode"
                 :options="[t('workload.scheduling.affinity.preferred'),t('workload.scheduling.affinity.required')]"
-                :value="priorityDisplay(nodeSelectorTerm)"
+                :value="priorityDisplay(props.row.value)"
                 :label="t('workload.scheduling.affinity.priority')"
-                @input="changePriority(nodeSelectorTerm, idx)"
+                @input="changePriority(props.row.value, idx)"
               />
             </div>
           </div>
@@ -198,15 +198,15 @@ export default {
             <RadioGroup
               :options="[false, true]"
               :labels="[t('workload.scheduling.affinity.thisPodNamespace'),t('workload.scheduling.affinity.matchExpressions.inNamespaces'),]"
-              :name="`namespaces-${nodeSelectorTerm._id}`"
+              :name="`namespaces-${props.row.value._id}`"
               :mode="mode"
-              :value="!!nodeSelectorTerm.namespaces"
-              @input="changeNamespaceMode(nodeSelectorTerm, idx)"
+              :value="!!props.row.value.namespaces"
+              @input="changeNamespaceMode(props.row.value, idx)"
             />
           </div>
-          <div v-if="!!nodeSelectorTerm.namespaces || !!get(nodeSelectorTerm, 'podAffinityTerm.namespaces')" class="row mb-20">
+          <div v-if="!!props.row.value.namespaces || !!get(props.row.value, 'podAffinityTerm.namespaces')" class="row mb-20">
             <LabeledSelect
-              v-model="nodeSelectorTerm.namespaces"
+              v-model="props.row.value.namespaces"
               :mode="mode"
               :multiple="true"
               :taggable="true"
@@ -216,16 +216,16 @@ export default {
           </div>
           <MatchExpressions
             :mode="mode"
-            class=" col span-12"
+            class=" col span-12 mt-20"
             :type="pod"
-            :value="get(nodeSelectorTerm, 'labelSelector.matchExpressions')"
-            @remove="allSelectorTerms.splice(idx,1)"
-            @input="e=>$set(nodeSelectorTerm.labelSelector, 'matchExpressions', e)"
+            :value="get(props.row.value, 'labelSelector.matchExpressions')"
+            :show-remove="false"
+            @input="e=>$set(props.row.value.labelSelector, 'matchExpressions', e)"
           />
           <div class="row mt-20">
             <div class="col span-12">
               <LabeledInput
-                v-model="nodeSelectorTerm.topologyKey"
+                v-model="props.row.value.topologyKey"
                 :mode="mode"
                 required
                 :label="t('workload.scheduling.affinity.topologyKey.label')"
@@ -233,11 +233,8 @@ export default {
               />
             </div>
           </div>
-        </InfoBox>
-      </template>
-      <button :disabled="isView" type="button" class="btn role-tertiary" @click="addSelector">
-        {{ t('podAffinity.addLabel') }}
-      </button>
+        </template>
+      </ArrayListGrouped>
     </div>
   </div>
 </template>

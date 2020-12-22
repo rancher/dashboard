@@ -30,7 +30,7 @@ import {
 
 import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
 import {
-  AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG
+  AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
 } from '@/config/query-params';
 
 import { cleanForNew, normalizeType } from './normalize';
@@ -618,13 +618,13 @@ export default {
     const all = [
       { divider: true },
       {
-        action:  'goToEdit',
+        action:  this.canUpdate ? 'goToEdit' : 'goToViewConfig',
         label:   this.t(this.canUpdate ? 'action.edit' : 'action.view'),
         icon:    'icon icon-edit',
         enabled:  this.canCustomEdit,
       },
       {
-        action:  'goToEditYaml',
+        action:  this.canUpdate ? 'goToEditYaml' : 'goToViewYaml',
         label:   this.t(this.canUpdate ? 'action.editYaml' : 'action.viewYaml'),
         icon:    'icon icon-file',
         enabled: this.canYaml,
@@ -939,6 +939,21 @@ export default {
         ...location.query,
         [MODE]: _EDIT,
         [AS]:   _UNFLAG,
+        ...moreQuery
+      };
+
+      this.currentRouter().push(location);
+    };
+  },
+
+  goToViewConfig() {
+    return (moreQuery = {}) => {
+      const location = this.detailLocation;
+
+      location.query = {
+        ...location.query,
+        [MODE]:  _VIEW,
+        [AS]:   _CONFIG,
         ...moreQuery
       };
 

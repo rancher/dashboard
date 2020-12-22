@@ -1,6 +1,7 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import SecretSelector from '@/components/form/SecretSelector';
+import { updatePort } from './utils';
 
 export default {
   components: { LabeledInput, SecretSelector },
@@ -30,7 +31,7 @@ export default {
         return this.value.servers[0].port;
       },
       set(port) {
-        this.$set(this.value.servers[0], 'port', Number.parseInt(port));
+        updatePort(value => this.$set(this.value.servers[0], 'port', value), port);
       }
     }
   }
@@ -49,7 +50,15 @@ export default {
         <LabeledInput v-model="value.servers[0].host" :mode="mode" :disabled="disabled" :label="t('logging.forward.host')" />
       </div>
       <div class="col span-2">
-        <LabeledInput v-model="port" :mode="mode" :disabled="disabled" type="number" :label="t('logging.forward.port')" />
+        <LabeledInput
+          v-model="port"
+          :mode="mode"
+          :disabled="disabled"
+          type="number"
+          min="1"
+          max="65535"
+          :label="t('logging.forward.port')"
+        />
       </div>
     </div>
     <div class="spacer"></div>

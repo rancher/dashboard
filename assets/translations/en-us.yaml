@@ -343,7 +343,7 @@ chartHeading:
 
 cis:
   addTest: Add Test ID
-  alertNeeded: Alerting must be enabled within the CIS chart questions.yaml. This requires that <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
+  alertNeeded: Alerting must be enabled within the CIS chart values.yaml. This requires that <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
   alertOnComplete: Alert on scan completion
   alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
@@ -522,10 +522,14 @@ fleet:
       basic: HTTP Basic Auth
       ssh: SSH Key
       custom: Secret Name
+    caBundle:
+      label: Certificates
+      placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
     paths:
       label: Paths
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
+      empty: The root of the repo is used by default.  To use one or more different directories, add them here.
     repo:
       label: Repository URL
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
@@ -537,6 +541,12 @@ fleet:
       branchPlaceholder: e.g. master
       revisionLabel: Tag or Commit Hash
       revisionPlaceholder: e.g. v1.0.0
+    serviceAccount:
+      label: Service Account Name
+      placeholder: "Optional: Use a service account in the target clusters"
+    targetNamespace:
+      label: Target Namespace
+      placeholder: "Optional: Require all resources to be in this namespace"
     target:
       selectLabel: Target Type
       advanced: Advanced
@@ -551,6 +561,11 @@ fleet:
       all: All
       none: None
       local: Local
+    tls:
+      label: TLS Certificate Verification
+      verify: Require a valid certificate
+      specify: Specify additional certificates to be accepted
+      skip: Accept any certificate (insecure)
     workspace:
       label: Workspace
   clusterGroup:
@@ -1666,6 +1681,9 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
+  output:
+    logdna:
+      apiKey: Required an "Api Key" to be set.
   invalidCron: Invalid cron schedule
   k8s:
     identifier:
@@ -1692,6 +1710,7 @@ validation:
       operator: Rule [{index}] of {group} {rules} - operator must be one of 'In', 'NotIn', 'Exists', 'DoesNotExist'
       valueMustBeEmpty: Rule [{index}] of {group} {rules} - value must be empty if operator is 'Exists' or 'DoesNotExist'
       valuesMustBeDefined: Rule [{index}] of {group} {rules} - value must be defined if operator is 'In' or 'NotIn'
+  port: A port must be a number between 1 and 65535.
   prometheusRule:
     groups:
       required: At least one rule group is required.

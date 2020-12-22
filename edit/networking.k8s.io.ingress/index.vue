@@ -127,8 +127,6 @@ export default {
       :register-before-hook="registerBeforeHook"
     />
 
-    <div class="spacer"></div>
-
     <Tabbed :side-tabs="true">
       <Tab :label="firstTabLabel" name="rules" :weight="3">
         <Rules v-model="value" :mode="mode" :service-targets="serviceTargets" :certificates="certificates" />
