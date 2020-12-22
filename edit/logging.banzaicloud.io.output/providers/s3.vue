@@ -76,7 +76,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.s3.keyId')"
+          :secret-name-label="t('logging.s3.keyId')"
           :show-key-selector="true"
         />
       </div>
@@ -86,7 +86,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.s3.secretKey')"
+          :secret-name-label="t('logging.s3.secretKey')"
           :show-key-selector="true"
         />
       </div>

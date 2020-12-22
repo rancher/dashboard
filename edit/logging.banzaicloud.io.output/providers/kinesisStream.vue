@@ -52,7 +52,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.kinesisStream.keyId')"
+          :secret-name-label="t('logging.kinesisStream.keyId')"
           :show-key-selector="true"
         />
       </div>
@@ -62,7 +62,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.kinesisStream.secretKey')"
+          :secret-name-label="t('logging.kinesisStream.secretKey')"
           :show-key-selector="true"
         />
       </div>

@@ -52,7 +52,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.newrelic.apiKey')"
+          :secret-name-label="t('logging.newrelic.apiKey')"
           :show-key-selector="true"
         />
       </div>
@@ -62,7 +62,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.newrelic.licenseKey')"
+          :secret-name-label="t('logging.newrelic.licenseKey')"
           :show-key-selector="true"
         />
       </div>

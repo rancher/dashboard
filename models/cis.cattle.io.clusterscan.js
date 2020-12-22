@@ -1,4 +1,4 @@
-import { _CREATE } from '@/config/query-params';
+import { _CREATE, _EDIT } from '@/config/query-params';
 import { CIS } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { downloadFile, generateZip } from '@/utils/download';
@@ -50,7 +50,7 @@ export default {
 
   applyDefaults() {
     return (vm, mode) => {
-      if (mode === _CREATE) {
+      if (mode === _CREATE || mode === _EDIT) {
         const includeScheduling = this.canBeScheduled();
         const spec = this.spec || {};
 

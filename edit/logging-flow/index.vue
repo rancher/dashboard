@@ -143,9 +143,13 @@ export default {
     },
 
     clusterOutputChoices() {
-      return this.allClusterOutputs.map((clusterOutput) => {
-        return { label: clusterOutput.metadata.name, value: clusterOutput.metadata.name };
-      });
+      return this.allClusterOutputs
+        .filter((clusterOutput) => {
+          return clusterOutput.namespace === this.value.namespace;
+        })
+        .map((clusterOutput) => {
+          return { label: clusterOutput.metadata.name, value: clusterOutput.metadata.name };
+        });
     },
 
     nodeChoices() {
@@ -296,7 +300,7 @@ export default {
     @cancel="done"
     @apply-hooks="applyHooks"
   >
-    <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="isNamespaced" />
+    <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="value.type !== LOGGING.CLUSTER_FLOW" />
 
     <Tabbed :side-tabs="true" @changed="tabChanged($event)">
       <Tab name="match" :label="t('logging.flow.matches.label')" :weight="3">
@@ -323,18 +327,8 @@ export default {
         </ArrayListGrouped>
       </Tab>
 
-      <Tab name="filters" :label="t('logging.flow.filters.label')" :weight="2">
-        <YamlEditor
-          ref="yaml"
-          v-model="filtersYaml"
-          :scrolling="false"
-          :initial-yaml-values="initialFiltersYaml"
-          :editor-mode="isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE"
-          @onReady="onYamlEditorReady"
-        />
-      </Tab>
-
-      <Tab name="outputs" :label="t('logging.flow.outputs.label')" :weight="1">
+      <Tab name="outputs" :label="t('logging.flow.outputs.label')" :weight="2">
+        <Banner label="Output must reside in same namespace as the flow." color="info" />
         <LabeledSelect
           v-model="globalOutputRefs"
           :label="t('logging.flow.clusterOutputs.label')"
@@ -356,6 +350,17 @@ export default {
           :clearable="true"
           :close-on-select="false"
           :reduce="opt=>opt.value"
+        />
+      </Tab>
+
+      <Tab name="filters" :label="t('logging.flow.filters.label')" :weight="1">
+        <YamlEditor
+          ref="yaml"
+          v-model="filtersYaml"
+          :scrolling="false"
+          :initial-yaml-values="initialFiltersYaml"
+          :editor-mode="isView ? EDITOR_MODES.VIEW_CODE : EDITOR_MODES.EDIT_CODE"
+          @onReady="onYamlEditorReady"
         />
       </Tab>
     </Tabbed>

@@ -55,7 +55,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.cloudwatch.keyId')"
+          :secret-name-label="t('logging.cloudwatch.keyId')"
           :show-key-selector="true"
         />
       </div>
@@ -65,7 +65,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.cloudwatch.secretKey')"
+          :secret-name-label="t('logging.cloudwatch.secretKey')"
           :show-key-selector="true"
         />
       </div>

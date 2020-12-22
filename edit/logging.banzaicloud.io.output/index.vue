@@ -1,6 +1,6 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
-import { SECRET } from '@/config/types';
+import { SECRET, LOGGING } from '@/config/types';
 import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import CruResource from '@/components/CruResource';
@@ -55,7 +55,8 @@ export default {
       providers,
       selectedProvider:            selectedProviders?.[0]?.value || providers[0].value,
       hasMultipleProvdersSelected: selectedProviders.length > 1,
-      selectedProviders
+      selectedProviders,
+      LOGGING
     };
   },
 
@@ -109,6 +110,7 @@ export default {
         :mode="mode"
         label="generic.name"
         :register-before-hook="registerBeforeHook"
+        :namespaced="value.type !== LOGGING.CLUSTER_OUTPUT"
       />
       <Banner v-if="selectedProviders.length > 1" color="info">
         This output is configured with multiple providers. We currently only support a single provider per output. You can view or edit the YAML.

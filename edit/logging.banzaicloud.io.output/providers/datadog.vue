@@ -55,7 +55,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.datadog.apiKey')"
+          :secret-name-label="t('logging.datadog.apiKey')"
           :show-key-selector="true"
         />
       </div>

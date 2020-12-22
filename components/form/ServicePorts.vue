@@ -72,12 +72,13 @@ export default {
     }
 
     if (this.autoAddIfEmpty && this.mode !== _EDIT && this?.rows.length < 1) {
-      this.add();
+      // don't focus on mount because we'll pull focus from name/namespace input
+      this.add(false);
     }
   },
 
   methods: {
-    add() {
+    add(focus = true) {
       this.rows.push({
         name:       '',
         port:       null,
@@ -87,9 +88,9 @@ export default {
 
       this.queueUpdate();
 
-      if (this.rows.length > 1) {
+      if (this.rows.length > 0 && focus) {
         this.$nextTick(() => {
-          const inputs = this.$refs.port;
+          const inputs = this.$refs['port-name'];
 
           inputs[inputs.length - 1].focus();
         });

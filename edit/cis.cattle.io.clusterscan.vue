@@ -5,7 +5,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import UnitInput from '@/components/form/UnitInput';
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
-import { CIS, CONFIG_MAP, ENDPOINTS } from '@/config/types';
+import { CIS, CONFIG_MAP } from '@/config/types';
 import { mapGetters } from 'vuex';
 import createEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
@@ -44,14 +44,6 @@ export default {
     });
 
     try {
-      await this.$store.dispatch('cluster/find', { type: ENDPOINTS, id: 'cattle-monitoring-system/rancher-monitoring-alertmanager' });
-
-      this.hasAlertManager = true;
-    } catch {
-      this.hasAlertManager = false;
-    }
-
-    try {
       this.defaultConfigMap = await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'cis-operator-system/default-clusterscanprofiles' });
     } catch {}
 
@@ -74,7 +66,10 @@ export default {
       this.value.metadata.generateName = 'scan-';
     }
     if (!this.value.spec.scheduledScanConfig) {
-      this.$set(this.value.spec, 'scheduledScanConfig', { });
+      this.$set(this.value.spec, 'scheduledScanConfig', { scanAlertRule: {} });
+    }
+    if (!this.value.spec.scheduledScanConfig.scanAlertRule) {
+      this.$set(this.value.spec.scheduledScanConfig, 'scanAlertRule', { });
     }
     const isScheduled = !!get(this.value, 'spec.scheduledScanConfig.cronSchedule');
 
@@ -123,7 +118,20 @@ export default {
         const name = profiles[provider] || profiles.default;
 
         if (name) {
-          return this.allProfiles.find(profile => profile.id === name);
+          const profile = this.allProfiles.find(profile => profile.id === name);
+          const benchmarkVersion = profile?.spec?.benchmarkVersion;
+          const benchmark = this.$store.getters['cluster/byId'](CIS.BENCHMARK, benchmarkVersion);
+
+          if (this.validateBenchmark(benchmark, this.currentCluster )) {
+            return profile;
+          }
+        }
+        const cis16 = this.validProfiles.find(profile => profile.id === 'cis-1.6-profile');
+
+        if (cis16) {
+          return cis16;
+        } else {
+          return this.validProfiles.find(profile => profile.name === 'cis-1.5-profile');
         }
       }
 
@@ -259,7 +267,6 @@ export default {
           <div class="row mb-20">
             <div class="col span-12">
               <Banner v-if="scanAlertRule.alertOnFailure || scanAlertRule.alertOnComplete" class="mt-0" :color="hasAlertManager ? 'info' : 'warning'">
-                <span v-if="!hasAlertManager" v-html="t('cis.alertNotFound')" />
                 <span v-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
               </banner>
               <Checkbox v-model="scanAlertRule.alertOnComplete" :mode="mode" :label="t('cis.alertOnComplete')" />

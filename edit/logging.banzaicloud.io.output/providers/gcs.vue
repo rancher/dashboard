@@ -66,7 +66,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.gcs.credentialsJson')"
+          :secret-name-label="t('logging.gcs.credentialsJson')"
           :show-key-selector="true"
         />
       </div>
