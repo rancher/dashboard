@@ -3,7 +3,7 @@ import SecretSelector from '@/components/form/SecretSelector';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import Checkbox from '@/components/form/Checkbox';
-import { protocol } from './options';
+import { protocol, updatePort } from './utils';
 
 export default {
   components: {
@@ -40,7 +40,7 @@ export default {
         return this.value.hec_port;
       },
       set(port) {
-        this.$set(this.value, 'hec_port', Number.parseInt(port));
+        updatePort(value => this.$set(this.value, 'hec_port', value), port);
       }
     }
   }
@@ -59,7 +59,15 @@ export default {
           <LabeledInput v-model="value.hec_host" :mode="mode" :disabled="disabled" :label="t('logging.splunk.host')" />
         </div>
         <div class="col span-2">
-          <LabeledInput v-model="port" :mode="mode" :disabled="disabled" type="number" :label="t('logging.splunk.port')" />
+          <LabeledInput
+            v-model="port"
+            :mode="mode"
+            :disabled="disabled"
+            type="number"
+            min="1"
+            max="65535"
+            :label="t('logging.splunk.port')"
+          />
         </div>
       </div>
       <div class="row">
