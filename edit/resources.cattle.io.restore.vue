@@ -93,7 +93,7 @@ export default {
     },
 
     encryptionSecretNames() {
-      return this.allSecrets.filter(secret => !!secret.data['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace && !secret.metadata?.state?.error).map(secret => secret.metadata.name);
+      return this.allSecrets.filter(secret => !!(secret.data || {})['encryption-provider-config.yaml'] && secret.metadata.namespace === this.chartNamespace && !secret.metadata?.state?.error).map(secret => secret.metadata.name);
     },
 
     isEncrypted() {
@@ -134,6 +134,7 @@ export default {
     storageSource(neu, old) {
       if (neu === 'useDefault') {
         delete this.value.spec.storageLocation;
+        delete this.value.spec.backupFilename;
       } else if (!this.value.spec.storageLocation && neu === 'configureS3') {
         this.$set(this.value.spec, 'storageLocation', { s3: {} });
         this.s3 = this.value.spec.storageLocation.s3;
@@ -144,14 +145,9 @@ export default {
         if (this.availableBackups.length === 1) {
           this.updateTargetBackup(this.availableBackups[0]);
         }
-      } else if (this.targetBackup) {
-        if (get(this.targetBackup, 'spec.storageLocation.s3')) {
-          Object.assign(this.value.spec.storageLocation.s3, this.targetBackup?.spec?.storageLocation?.s3);
-        }
-        this.$set(this.value.spec, 'backupFilename', this.targetBackup?.status?.filename);
-        if (this.targetBackup?.spec?.encryptionConfigSecretName) {
-          this.$set(this.value.spec, 'encryptionConfigSecretName', this.targetBackup.spec.encryptionConfigSecretName);
-        }
+      } else {
+        delete this.value.spec.backupFilename;
+        delete this.value.spec.storageLocation;
       }
     },
 
