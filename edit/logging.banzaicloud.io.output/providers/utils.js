@@ -10,7 +10,7 @@ export function updatePort(setter, port) {
 }
 
 export function normalizePort(port) {
-  const portAsInt = Number.parseInt(port);
+  const portAsInt = Number.parseInt(port, 10);
 
   if (portAsInt < 1) {
     return 1;
