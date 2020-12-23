@@ -14,6 +14,13 @@ export default function({
     $axios.defaults.headers.common['user-agent'] = `Dashboard (Mozilla) v${ pkg.version }`;
     $axios.defaults.headers.common['access-control-expose-headers'] = `set-cookie`;
 
+    // For requests from the server, set the base URL to the URL that the request came in on
+    $axios.onRequest((config) => {
+      if ( config.url.startsWith('/') ) {
+        config.baseURL = `${ req.protocol || 'https' }://${ req.headers.host }`;
+      }
+    });
+
     $axios.onResponse((res) => {
       const parsed = setCookieParser(res.headers['set-cookie'] || []);
 
@@ -37,6 +44,7 @@ export default function({
   if ( isDev ) {
     // https://github.com/nuxt-community/axios-module/blob/dev/lib/module.js#L78
     // forces localhost to http, for no obvious reason.
+    // But we never have any reason to talk to anything plaintext.
     if ( $axios.defaults.baseURL.startsWith('http://') ) {
       $axios.defaults.baseURL = $axios.defaults.baseURL.replace(/^http:/, 'https:');
     }
@@ -45,12 +53,5 @@ export default function({
 
     $axios.defaults.httpsAgent = insecureAgent;
     $axios.httpsAgent = insecureAgent;
-  } else if ( process.server ) {
-    // For requests from the server, set the base URL to the URL that the request came in on
-    $axios.onRequest((config) => {
-      if ( process.server && config.url.startsWith('/') ) {
-        config.baseURL = `${ req.protocol }://${ req.headers.host }`;
-      }
-    });
   }
 }
