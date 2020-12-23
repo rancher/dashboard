@@ -1507,7 +1507,7 @@ servicesPage:
       placeholder: e.g. 10800
   externalName:
     define: External Name
-    helpText: "External Name is intended to specify a canonical DNS name. To hardcode an IP address, use a Headless service."
+    helpText: "External Name is intended to specify a canonical DNS name. This is a required field. To hardcode an IP address, use a Headless service."
     label: External Name
     placeholder: e.g. my.database.example.com
   ips:

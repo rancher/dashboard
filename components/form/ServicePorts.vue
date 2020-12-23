@@ -123,12 +123,15 @@ export default {
         </span>
         <span class="port">
           <t k="servicePorts.rules.listening.label" />
+          <span class="text-error">*</span>
         </span>
         <span v-if="showProtocol" class="port-protocol">
           <t k="servicePorts.rules.protocol.label" />
         </span>
         <span class="target-port">
           <t k="servicePorts.rules.target.label" />
+          <span class="text-error">*</span>
+
         </span>
         <span v-if="showNodePort" class="node-port">
           <t k="servicePorts.rules.node.label" />
@@ -228,10 +231,6 @@ export default {
     grid-column-gap: $column-gutter;
     margin-bottom: 10px;
     align-items: center;
-    & .port{
-      display: flex;
-      justify-content: space-between;
-    }
 
     &.show-protocol{
       grid-template-columns: 23% 23% 10% 15% 15% 10%;
