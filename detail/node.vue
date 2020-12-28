@@ -1,6 +1,4 @@
 <script>
-import capitalize from 'lodash/capitalize';
-import words from 'lodash/words';
 import ConsumptionGauge from '@/components/ConsumptionGauge';
 import HStack from '@/components/Layout/Stack/HStack';
 import VStack from '@/components/Layout/Stack/VStack';
@@ -8,12 +6,10 @@ import Alert from '@/components/Alert';
 import SortableTable from '@/components/SortableTable';
 import Tab from '@/components/Tabbed/Tab';
 import {
-  ADDRESS,
   EFFECT,
   IMAGE_SIZE,
   KEY,
   SIMPLE_NAME,
-  SIMPLE_TYPE,
   VALUE,
 } from '@/config/table-headers';
 import ResourceTabs from '@/components/form/ResourceTabs';
@@ -62,10 +58,6 @@ export default {
           label: ''
         }
       ],
-      addressTableHeaders: [
-        SIMPLE_TYPE,
-        ADDRESS
-      ],
       imageTableHeaders: [
         { ...SIMPLE_NAME, width: 400 },
         IMAGE_SIZE
@@ -104,22 +96,9 @@ export default {
     infoTableRows() {
       return Object.keys(this.value.status.nodeInfo)
         .map(key => ({
-          key:   capitalize(words(key).join(' ')),
+          key:   this.t(`node.detail.tab.info.key.${ key }`),
           value: this.value.status.nodeInfo[key]
         }));
-    },
-
-    addressTableRows() {
-      const addresses = [...this.value.status.addresses];
-
-      if (this.value.externalIp) {
-        addresses.push({
-          type:    this.t('node.detail.tab.address.externalIp'),
-          address: this.value.externalIp
-        });
-      }
-
-      return addresses;
     },
 
     imageTableRows() {
@@ -190,7 +169,7 @@ export default {
       </HStack>
     </HStack>
     <ResourceTabs v-model="value" :mode="mode">
-      <Tab name="info" :label="t('node.detail.tab.info')" class="bordered-table">
+      <Tab name="info" :label="t('node.detail.tab.info.label')" class="bordered-table" :weight="3">
         <SortableTable
           key-field="_key"
           :headers="infoTableHeaders"
@@ -201,17 +180,7 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab name="address" :label="t('node.detail.tab.address.label')">
-        <SortableTable
-          key-field="_key"
-          :headers="addressTableHeaders"
-          :rows="addressTableRows"
-          :row-actions="false"
-          :table-actions="false"
-          :search="false"
-        />
-      </Tab>
-      <Tab name="images" :label="t('node.detail.tab.images')">
+      <Tab name="images" :label="t('node.detail.tab.images')" :weight="2">
         <SortableTable
           key-field="_key"
           :headers="imageTableHeaders"
@@ -220,7 +189,7 @@ export default {
           :table-actions="false"
         />
       </Tab>
-      <Tab name="taints" :label="t('node.detail.tab.taints')">
+      <Tab name="taints" :label="t('node.detail.tab.taints')" :weight="1">
         <SortableTable
           key-field="_key"
           :headers="taintTableHeaders"
