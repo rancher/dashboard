@@ -429,7 +429,9 @@ export default {
     },
 
     async saveService() {
-      if (!this.createService ) {
+      const workloadErrors = await this.value.validationErrors(this.value);
+
+      if (!this.createService || workloadErrors.length ) {
         return;
       }
       const { ports = [] } = this.container;
