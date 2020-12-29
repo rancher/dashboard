@@ -10,11 +10,11 @@ import {
   IMAGE_SIZE,
   KEY,
   SIMPLE_NAME,
-  VALUE,
+  VALUE
 } from '@/config/table-headers';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import Poller from '@/utils/poller';
-import { METRIC } from '@/config/types';
+import { METRIC, POD } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
 
@@ -43,7 +43,13 @@ export default {
     },
   },
 
+  fetch() {
+    return this.$store.dispatch('cluster/findAll', { type: POD });
+  },
+
   data() {
+    const podSchema = this.$store.getters['cluster/schemaFor'](POD);
+
     return {
       metricPoller:           new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
       metrics:                { cpu: 0, memory: 0 },
@@ -66,7 +72,8 @@ export default {
         KEY,
         VALUE,
         EFFECT
-      ]
+      ],
+      podTableHeaders: this.$store.getters['type-map/headersFor'](podSchema)
     };
   },
 
@@ -169,7 +176,17 @@ export default {
       </HStack>
     </HStack>
     <ResourceTabs v-model="value" :mode="mode">
-      <Tab name="info" :label="t('node.detail.tab.info.label')" class="bordered-table" :weight="3">
+      <Tab name="pods" :label="t('node.detail.tab.pods')" :weight="3">
+        <SortableTable
+          key-field="_key"
+          :headers="podTableHeaders"
+          :rows="value.pods"
+          :row-actions="false"
+          :table-actions="false"
+          :search="false"
+        />
+      </Tab>
+      <Tab name="info" :label="t('node.detail.tab.info.label')" class="bordered-table" :weight="2">
         <SortableTable
           key-field="_key"
           :headers="infoTableHeaders"
@@ -180,7 +197,7 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab name="images" :label="t('node.detail.tab.images')" :weight="2">
+      <Tab name="images" :label="t('node.detail.tab.images')" :weight="1">
         <SortableTable
           key-field="_key"
           :headers="imageTableHeaders"
@@ -189,7 +206,7 @@ export default {
           :table-actions="false"
         />
       </Tab>
-      <Tab name="taints" :label="t('node.detail.tab.taints')" :weight="1">
+      <Tab name="taints" :label="t('node.detail.tab.taints')" :weight="0">
         <SortableTable
           key-field="_key"
           :headers="taintTableHeaders"

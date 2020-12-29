@@ -1194,7 +1194,7 @@ node:
           operatingSystem: Operating System
           osImage: Image
           systemUUID: System UUID
-
+      pods: Pods
       taints: Taints
 
 persistentVolumeClaim:
