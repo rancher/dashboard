@@ -27,8 +27,8 @@ export default {
         prometheus:   false,
       },
       externalLinks: [],
-      grafanaSrc:    require('~/assets/images/logo-color-grafana.svg'),
-      prometheusSrc: require('~/assets/images/logo-color-prometheus.svg'),
+      grafanaSrc:    require('~/assets/images/vendor/grafana.svg'),
+      prometheusSrc: require('~/assets/images/vendor/prometheus.svg'),
       resources:     [MONITORING.ALERTMANAGER, MONITORING.PROMETHEUS],
       v1Installed:   false,
     };
