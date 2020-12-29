@@ -13,7 +13,7 @@ export function init(store) {
     componentForType,
     // headers,
     // mapType,
-    // virtualType,
+    virtualType,
   } = DSL(store, NAME);
 
   product({
@@ -25,25 +25,26 @@ export function init(store) {
     showClusterSwitcher: false,
   });
 
-  // virtualType({
-  //   label:       'Auth Providers',
-  //   icon:        'lock',
-  //   namespaced:  false,
-  //   name:        'config',
-  //   weight:      100,
-  //   route:       { name: 'c-auth-config' },
-  // });
+  virtualType({
+    label:       'Auth Provider',
+    icon:        'lock',
+    namespaced:  false,
+    name:        'config',
+    weight:      100,
+    route:       { name: 'c-cluster-auth-config' },
+  });
 
   configureType(MANAGEMENT.AUTH_CONFIG, {
     isCreatable: false,
     isRemovable: false,
     showAge:     false,
+    location:    null,
   });
 
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/github`, 'auth/github');
 
   basicType([
-    MANAGEMENT.AUTH_CONFIG,
+    'config',
     MANAGEMENT.USER,
     // MANAGEMENT.GROUP,
   ]);

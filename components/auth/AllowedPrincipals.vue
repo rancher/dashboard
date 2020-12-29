@@ -42,6 +42,12 @@ export default {
     },
   },
 
+  created() {
+    if ( !this.authConfig.accessMode ) {
+      this.$set(this.authConfig, 'accessMode', 'restricted');
+    }
+  },
+
   methods: {
     addPrincipal(id) {
       addObject(this.authConfig.allowedPrincipalIds, id);

@@ -2,6 +2,7 @@
 import AsyncButton from '@/components/AsyncButton';
 import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
+import SelectIconGrid from '@/components/SelectIconGrid';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY
 } from '@/config/query-params';
@@ -10,7 +11,6 @@ import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
 import Select from '@/components/form/Select';
-import LazyImage from '@/components/LazyImage';
 import { mapPref, HIDE_REPOS } from '@/store/prefs';
 import { removeObject, addObject, findBy } from '@/utils/array';
 import { CATALOG } from '@/config/labels-annotations';
@@ -23,8 +23,8 @@ export default {
     Banner,
     Loading,
     Checkbox,
-    LazyImage,
     Select,
+    SelectIconGrid,
   },
 
   async fetch() {
@@ -369,34 +369,19 @@ export default {
     <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
 
     <div v-if="allCharts.length">
-      <div class="charts">
-        <div v-if="arrangedCharts.length === 0 && showWindowsClusterNoAppsSplash" style="width: 100%;">
-          <div class="m-50 text-center">
-            <h1>{{ t('catalog.charts.noWindows') }}</h1>
-          </div>
-        </div>
-        <div
-          v-for="c in arrangedCharts"
-          v-else
-          :key="c.key"
-          class="chart"
-          :class="{[colorForChart(c)]: true}"
-          @click="selectChart(c)"
-        >
-          <div class="side-label">
-            <label v-if="c.sideLabel">{{ c.sideLabel }}</label>
-          </div>
-          <div class="logo">
-            <LazyImage :src="c.icon" />
-          </div>
-          <h4 class="name">
-            {{ c.chartDisplayName }}
-          </h4>
-          <div class="description">
-            {{ c.chartDescription }}
-          </div>
+      <div v-if="arrangedCharts.length === 0 && showWindowsClusterNoAppsSplash" style="width: 100%;">
+        <div class="m-50 text-center">
+          <h1>{{ t('catalog.charts.noWindows') }}</h1>
         </div>
       </div>
+      <SelectIconGrid
+        v-else
+        :rows="arrangedCharts"
+        name-field="chartDisplayName"
+        description-field="chartDescription"
+        :color-for="colorForChart"
+        @clicked="(row) => selectChart(row)"
+      />
     </div>
     <div v-else class="m-50 text-center">
       <h1>{{ t('catalog.charts.noCharts') }}</h1>
@@ -405,11 +390,6 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  $chart: 110px;
-  $side: 15px;
-  $margin: 10px;
-  $logo: 60px;
-
   .repo {
     border-radius: var(--border-radius);
     padding: 3px 0 3px 8px;
@@ -433,184 +413,6 @@ export default {
     &.color6 { background: var(--app-color6-bg); border: 1px solid var(--app-color6-accent); }
     &.color7 { background: var(--app-color7-bg); border: 1px solid var(--app-color7-accent); }
     &.color8 { background: var(--app-color8-bg); border: 1px solid var(--app-color8-accent); }
-  }
-
-  .charts {
-    display: flex;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    margin: 0 -1*$margin;
-
-    @media only screen and (min-width: map-get($breakpoints, '--viewport-4')) {
-      .chart {
-        width: 100%;
-      }
-    }
-    @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
-      .chart {
-        width: calc(50% - 2 * #{$margin});
-      }
-    }
-    @media only screen and (min-width: map-get($breakpoints, '--viewport-9')) {
-      .chart {
-        width: calc(33.33333% - 2 * #{$margin});
-      }
-    }
-    @media only screen and (min-width: map-get($breakpoints, '--viewport-12')) {
-      .chart {
-        width: calc(25% - 2 * #{$margin});
-      }
-    }
-
-    .chart {
-      height: $chart;
-      margin: $margin;
-      padding: $margin;
-      position: relative;
-      border-radius: calc( 1.5 * var(--border-radius));
-
-      &:hover {
-        box-shadow: 0 0 30px var(--shadow);
-        transition: box-shadow 0.1s ease-in-out;
-        cursor: pointer;
-      }
-
-      .side-label {
-        transform: rotate(180deg);
-        position: absolute;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        min-width: calc(1.5 * var(--border-radius));
-        width: $side;
-        border-top-right-radius: calc( 1.5 * var(--border-radius));
-        border-bottom-right-radius: calc( 1.5 * var(--border-radius));
-
-        label {
-          text-align: center;
-          writing-mode: tb;
-          height: 100%;
-          padding: 0 2px;
-          display: block;
-          white-space: no-wrap;
-          text-overflow: ellipsis;
-        }
-      }
-
-      .logo {
-        text-align: center;
-        position: absolute;
-        left: $side+$margin;
-        top: ($chart - $logo)/2;
-        width: $logo;
-        height: $logo;
-        border-radius: calc(2 * var(--border-radius));
-        overflow: hidden;
-        background-color: white;
-
-        img {
-          width: $logo - 4px;
-          height: $logo - 4px;
-          object-fit: contain;
-          position: relative;
-          top: 2px;
-        }
-      }
-
-      .side-label {
-        font-size: 10px;
-      }
-
-      &.rancher {
-        background: var(--app-rancher-bg);
-
-        .side-label {
-          background-color: var(--app-rancher-accent);
-          color: var(--app-rancher-accent-text);
-        }
-        &:hover {
-          background: var(--app-rancher-accent);
-        }
-      }
-
-      &.partner {
-        background: var(--app-partner-bg);
-        .side-label {
-          background-color: var(--app-partner-accent);
-          color: var(--app-partner-accent-text);
-        }
-        &:hover {
-          background: var(--app-partner-accent);
-        }
-      }
-
-      // @TODO figure out how to templatize these
-      &.color1 {
-        background: var(--app-color1-bg);
-        .side-label { background-color: var(--app-color1-accent); color: var(--app-color1-accent-text); }
-        &:hover { background: var(--app-color1-accent); }
-      }
-      &.color2 {
-        background: var(--app-color2-bg);
-        .side-label { background-color: var(--app-color2-accent); color: var(--app-color2-accent-text); }
-        &:hover { background: var(--app-color2-accent); }
-      }
-      &.color3 {
-        background: var(--app-color3-bg);
-        .side-label { background-color: var(--app-color3-accent); color: var(--app-color3-accent-text); }
-        &:hover { background: var(--app-color3-accent); }
-      }
-      &.color4 {
-        background: var(--app-color4-bg);
-        .side-label { background-color: var(--app-color4-accent); color: var(--app-color4-accent-text); }
-        &:hover { background: var(--app-color4-accent); }
-      }
-      &.color5 {
-        background: var(--app-color5-bg);
-        .side-label { background-color: var(--app-color5-accent); color: var(--app-color5-accent-text); }
-        &:hover { background: var(--app-color5-accent); }
-      }
-      &.color6 {
-        background: var(--app-color6-bg);
-        .side-label { background-color: var(--app-color6-accent); color: var(--app-color6-accent-text); }
-        &:hover { background: var(--app-color6-accent); }
-      }
-      &.color7 {
-        background: var(--app-color7-bg);
-        .side-label { background-color: var(--app-color7-accent); color: var(--app-color7-accent-text); }
-        &:hover { background: var(--app-color7-accent); }
-      }
-      &.color8 {
-        background: var(--app-color8-bg);
-        .side-label { background-color: var(--app-color8-accent); color: var(--app-color8-accent-text); }
-        &:hover { background: var(--app-color8-accent); }
-      }
-
-      &:hover {
-        background-position: right center;
-      }
-
-      .name {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        margin-top: $margin;
-        margin-left: $side+$logo+$margin;
-      }
-
-      .description {
-        margin-top: $margin;
-        margin-left: $side+$logo+$margin;
-        margin-right: $margin;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 3;
-        line-clamp: 3;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        color: var(--text-muted);
-      }
-    }
   }
 
 </style>

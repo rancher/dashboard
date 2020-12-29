@@ -73,6 +73,7 @@ export default {
 
 <template>
   <div class="cru-resource-footer">
+    <slot name="prefix" />
     <slot name="cancel">
       <button
         v-if="!isView"

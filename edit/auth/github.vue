@@ -6,6 +6,7 @@ import InfoBox from '@/components/InfoBox';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
+import AsyncButton from '@/components/AsyncButton';
 import CopyToClipboardText from '@/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import { NORMAN, MANAGEMENT } from '@/config/types';
@@ -23,18 +24,13 @@ export default {
     Banner,
     CopyToClipboardText,
     AllowedPrincipals,
+    AsyncButton
   },
 
   mixins: [CreateEditView],
 
   async fetch() {
-    const originalModel = await this.$store.dispatch('rancher/find', {
-      type: NORMAN.AUTH_CONFIG,
-      id:   NAME,
-      opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ NAME }`, force: true }
-    });
-
-    this.model = await this.$store.dispatch(`rancher/clone`, { resource: originalModel });
+    await this.reloadModel();
 
     const serverUrl = await this.$store.dispatch('management/find', {
       type: MANAGEMENT.SETTING,
@@ -117,6 +113,18 @@ export default {
   },
 
   methods: {
+    async reloadModel() {
+      this.originalModel = await this.$store.dispatch('rancher/find', {
+        type: NORMAN.AUTH_CONFIG,
+        id:   NAME,
+        opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ NAME }`, force: true }
+      });
+
+      this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
+
+      return this.model;
+    },
+
     updateHost() {
       const match = this.targetUrl.match(/^(((https?):)?\/\/)?([^/]+)(\/.*)?$/);
 
@@ -155,6 +163,7 @@ export default {
             opt:  { url: '/v3/principals', force: true }
           });
 
+          this.model.accessMode = 'restricted';
           this.model.allowedPrincipalIds = this.model.allowedPrincipalIds || [];
 
           if ( this.me && !this.model.allowedPrincipalIds.includes(this.me.id) ) {
@@ -164,7 +173,7 @@ export default {
 
         await this.model.save();
 
-        // this.$fetch();
+        await this.reloadModel();
 
         btnCb(true);
 
@@ -176,6 +185,20 @@ export default {
         btnCb(false);
       }
     },
+
+    async disable(btnCb) {
+      try {
+        const clone = await this.$store.dispatch(`rancher/clone`, { resource: this.model });
+
+        clone.enabled = false;
+        await clone.save();
+        await this.reloadModel();
+        btnCb(true);
+      } catch (err) {
+        this.errors = [err];
+        btnCb(false);
+      }
+    }
   },
 };
 </script>
@@ -197,7 +220,14 @@ export default {
       @cancel="done"
     >
       <template v-if="model.enabled">
-        <Banner :label="t('authConfig.stateBanner.enabled', tArgs)" color="success" />
+        <Banner color="success clearfix">
+          <div class="pull-left mt-10">
+            {{ t('authConfig.stateBanner.enabled', tArgs) }}
+          </div>
+          <div class="pull-right">
+            <AsyncButton mode="disable" size="sm" action-color="bg-error" @click="disable" />
+          </div>
+        </Banner>
 
         <div>Server: {{ baseUrl }}</div>
         <div>Client ID: {{ value.clientId }}</div>
@@ -266,13 +296,12 @@ export default {
             />
           </div>
         </div>
+        <div v-if="!model.enabled" class="row">
+          <div class="col span-12">
+            <Banner color="info" v-html="t('authConfig.associatedWarning', tArgs, true)" />
+          </div>
+        </div>
       </template>
     </CruResource>
-
-    <div v-if="!model.enabled" class="row">
-      <div class="col span-12">
-        <Banner color="info" v-html="t('authConfig.associatedWarning', tArgs, true)" />
-      </div>
-    </div>
   </div>
 </template>
