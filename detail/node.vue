@@ -158,17 +158,19 @@ export default {
 
 <template>
   <div class="node">
+    <div class="spacer"></div>
     <div class="alerts">
       <Alert class="mr-10" :status="pidPressureStatus" :message="t('node.detail.glance.pidPressure')" />
       <Alert class="mr-10" :status="diskPressureStatus" :message="t('node.detail.glance.diskPressure')" />
       <Alert class="mr-10" :status="memoryPressureStatus" :message="t('node.detail.glance.memoryPressure')" />
       <Alert :status="kubeletStatus" :message="t('node.detail.glance.kubelet')" />
     </div>
-    <div class="resources">
+    <div class="mt-20 resources">
       <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.cpu')" :capacity="value.cpuCapacity" :used="value.cpuUsage" />
       <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.memory')" :capacity="value.ramCapacity" :used="value.ramUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
       <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.pods')" :capacity="value.podCapacity" :used="value.podConsumed" />
     </div>
+    <div class="spacer"></div>
     <ResourceTabs v-model="value" :mode="mode">
       <Tab name="pods" :label="t('node.detail.tab.pods')" :weight="3">
         <SortableTable
@@ -218,5 +220,10 @@ export default {
 .resources {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
+
+  & > * {
+    width: 30%;
+  }
 }
 </style>

@@ -1170,7 +1170,8 @@ node:
       version: Version
     glance:
       consumptionGauge:
-        amount: "{used} of {total} {unit} used"
+        used: Used
+        amount: "{used} of {total} {unit}"
         cpu: CPU
         memory: MEMORY
         pods: PODS
