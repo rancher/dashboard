@@ -161,7 +161,7 @@ export default {
   },
 
   podConsumed() {
-    return Number.parseInt(this.status.capacity.pods) - Number.parseInt(this.status.allocatable.pods);
+    return this.runningPods.length;
   },
 
   isPidPressureOk() {
@@ -258,6 +258,10 @@ export default {
     const allPods = this.$rootGetters['cluster/all'](POD);
 
     return allPods.filter(pod => pod.spec.nodeName === this.name);
+  },
+
+  runningPods() {
+    return this.pods.filter(pod => pod.isRunning);
   }
 };
 
