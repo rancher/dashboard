@@ -747,7 +747,6 @@ export default {
       if ( !opt.url ) {
         opt.url = this.actionLinkFor(actionName);
       }
-
       opt.method = 'post';
       opt.data = body;
 

@@ -103,49 +103,106 @@ suffix:
 ##############################
 authConfig:
   accessMode:
-    label: Configure who should be able to login and use {vendor}
-    unrestricted: "Allow any valid user"
-    restricted: "Allow members of clusters and projects, plus authorized users & groups"
-    required: "Restrict access to only the auhorized users & groups"
+    label: 'Configure who should be able to login and use {vendor}'
+    required: Restrict access to only the auhorized users & groups
+    restricted: 'Allow members of clusters and projects, plus authorized users & groups'
+    unrestricted: Allow any valid user
   allowedPrincipalIds:
     title: Authorized Users & Groups
-  associatedWarning: "Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>)."
-  stateBanner:
-    enabled: "{provider} is currently enabled."
-    disabled: "{provider} is currently disabled."
+  associatedWarning: 'Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>).'
   github:
-    target:
-      label: Which version of GitHub do you want to use?
-      public: Public GitHub.com
-      private: A private installation of GitHub Enterprise
-    host:
-      label: GitHub Enterprise Host
-      placeholder: e.g. github.mycompany.example
     clientId:
       label: Client ID
     clientSecret:
       label: Client Secret
     form:
+      app:
+        label: Application name
+        value: 'Anything you like, e.g. My {vendor}'
+      calllback:
+        label: Authorization callback URL
+      description:
+        label: Description
+        value: 'Optional, can be left blank'
+      homepage:
+        label: Homepage URL
+      instruction: 'Fill in the form with these values:'
       prefix: |-
         <li><a href="{baseUrl}/settings/developers" target="_blank" rel="noopener noreferrer nofollow">Click here</a> to go to GitHub application settings in a new window.</li>
         <li>Click on the "OAuth Apps" tab.</li>
         <li>Click the "New OAuth App" button.</li>
-      instruction: "Fill in the form with these values:"
-      app:
-        label: Application name
-        value: Anything you like, e.g. My {vendor}
-      homepage:
-        label: Homepage URL
-      description:
-        label: Description
-        value: Optional, can be left blank
-      calllback:
-        label: Authorization callback URL
       suffix: |-
         <li>Click "Register application"</li>
         <li>Copy and paste the Client ID and Client Secret of your newly created OAuth app into the fields below</li>
-
-
+    host:
+      label: GitHub Enterprise Host
+      placeholder: e.g. github.mycompany.example
+    target:
+      label: Which version of GitHub do you want to use?
+      private: A private installation of GitHub Enterprise
+      public: Public GitHub.com
+  ldap:
+    freeipa: Configure a FreeIPA server
+    activedirectory: Configure an Active Directory account
+    openldap: Configure an OpenLDAP server
+    cert: Certificate
+    disabledStatusBitmask: Disabled Status Bitmask
+    groupDNAttribute: Group DN Attribute
+    groupMemberMappingAttribute: Group Member Mapping Attribute
+    groupMemberUserAttribute: Group Member User Attribute
+    groupSearchBase:
+      label: Group Search Base
+      placeholder: 'ou=groups,dc=mycompany,dc=com'
+    hostname: Hostname/IP
+    loginAttribute: Login Attribute
+    nameAttribute: Name Attribute
+    nestedGroupMembership:
+      label: Nested Group Membership
+      options:
+        direct: Search only direct group memberships
+        nested: Search direct and nested group memberships
+    objectClass: Object Class
+    password: Password
+    port: Port
+    customizeSchema: Customize Schema
+    users: Users
+    groups: Groups
+    searchAttribute: Search Attribute
+    searchFilter: Search Filter
+    serverConnectionTimeout: Server Connection Timeout
+    serviceAccountDN: Service Account Distinguished Name
+    serviceAccountPassword: Service Account Password
+    serviceAccountInfo: Rancher needs a service account that has read-only access to all of the domains that will be able to login, so that we can determine what groups a user is a member of when they make a request with an API key.
+    starttls: 
+      label: Start TLS
+      tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
+    tls: TLS
+    userEnabledAttribute: User Enabled Attribute
+    userMemberAttribute: User Member Attribute
+    userSearchBase:
+      label: User Search Base
+      placeholder: 'e.g. ou=users,dc=mycompany,dc=com'
+    username: Username
+    usernameAttribute: Username Attribute
+  saml:
+    UID: UID Field
+    adfs: Configure an AD FS account
+    api: Rancher API Host
+    cert: Certificate
+    displayName: Display Name Field
+    groups: Groups Field
+    key: Private Key
+    keycloak: Configure a Keycloak account
+    metadata: Metadata XML
+    okta: Configure an Okta account
+    ping: Configure a Ping account
+    shibboleth: Congiure a Shibboleth account
+    showLdap: Configure an OpenLDAP Server
+    userName: User Name Field
+  stateBanner:
+    disabled: '{provider} is currently disabled.'
+    enabled: '{provider} is currently enabled.'
+  testAndEnable: Test and Enable Authentication
 
 
 
