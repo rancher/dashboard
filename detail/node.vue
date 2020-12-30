@@ -1,7 +1,5 @@
 <script>
 import ConsumptionGauge from '@/components/ConsumptionGauge';
-import HStack from '@/components/Layout/Stack/HStack';
-import VStack from '@/components/Layout/Stack/VStack';
 import Alert from '@/components/Alert';
 import SortableTable from '@/components/SortableTable';
 import Tab from '@/components/Tabbed/Tab';
@@ -27,8 +25,6 @@ export default {
   components: {
     Alert,
     ConsumptionGauge,
-    HStack,
-    VStack,
     ResourceTabs,
     Tab,
     SortableTable,
@@ -161,20 +157,18 @@ export default {
 </script>
 
 <template>
-  <VStack class="node">
-    <HStack class="glance" :show-dividers="true">
-      <VStack class="alerts" :show-dividers="true" vertical-align="space-evenly">
-        <Alert :status="pidPressureStatus" :message="t('node.detail.glance.pidPressure')" />
-        <Alert :status="diskPressureStatus" :message="t('node.detail.glance.diskPressure')" />
-        <Alert :status="memoryPressureStatus" :message="t('node.detail.glance.memoryPressure')" />
-        <Alert :status="kubeletStatus" :message="t('node.detail.glance.kubelet')" />
-      </VStack>
-      <HStack class="cluster" horizontal-align="space-evenly">
-        <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.cpu')" :capacity="value.cpuCapacity" :used="value.cpuUsage" />
-        <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.memory')" :capacity="value.ramCapacity" :used="value.ramUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
-        <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.pods')" :capacity="value.podCapacity" :used="value.podConsumed" />
-      </HStack>
-    </HStack>
+  <div class="node">
+    <div class="alerts">
+      <Alert class="mr-10" :status="pidPressureStatus" :message="t('node.detail.glance.pidPressure')" />
+      <Alert class="mr-10" :status="diskPressureStatus" :message="t('node.detail.glance.diskPressure')" />
+      <Alert class="mr-10" :status="memoryPressureStatus" :message="t('node.detail.glance.memoryPressure')" />
+      <Alert :status="kubeletStatus" :message="t('node.detail.glance.kubelet')" />
+    </div>
+    <div class="resources">
+      <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.cpu')" :capacity="value.cpuCapacity" :used="value.cpuUsage" />
+      <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.memory')" :capacity="value.ramCapacity" :used="value.ramUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
+      <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.pods')" :capacity="value.podCapacity" :used="value.podConsumed" />
+    </div>
     <ResourceTabs v-model="value" :mode="mode">
       <Tab name="pods" :label="t('node.detail.tab.pods')" :weight="3">
         <SortableTable
@@ -217,32 +211,12 @@ export default {
         />
       </Tab>
     </ResourceTabs>
-  </VStack>
+  </div>
 </template>
 
 <style lang="scss" scoped>
-.cluster {
-  flex: 1;
-}
-
-$divider-spacing: 20px;
-
-.glance {
-  margin-top: 20px;
-
-  & > * {
-    padding: 0 $divider-spacing;
-
-    &:first-child {
-      padding-left: 0;
-    }
-  }
-}
-
-.alerts {
-  width: 25%;
-  & > * {
-    flex: 1;
-  }
+.resources {
+  display: flex;
+  flex-direction: row;
 }
 </style>

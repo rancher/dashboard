@@ -14,6 +14,11 @@ export default {
       default: null,
     },
 
+    icon: {
+      type:    String,
+      default: null
+    },
+
     label: {
       type:    String,
       default: null,
@@ -34,7 +39,7 @@ export default {
 
 <template>
   <span :class="{'badge-state': true, [bg]: true}">
-    {{ msg }}
+    <i v-if="icon" class="icon" :class="icon" />{{ msg }}
   </span>
 </template>
 
