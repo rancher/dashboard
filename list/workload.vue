@@ -1,6 +1,6 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import { WORKLOAD_TYPES, SCHEMA } from '@/config/types';
+import { WORKLOAD_TYPES, SCHEMA, ENDPOINTS } from '@/config/types';
 import Loading from '@/components/Loading';
 
 const schema = {
@@ -18,6 +18,8 @@ export default {
   components: { Loading, ResourceTable },
 
   async fetch() {
+    this.$store.dispatch('cluster/findAll', { type: ENDPOINTS });
+
     let resources;
 
     if ( this.allTypes ) {
