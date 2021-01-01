@@ -1164,12 +1164,14 @@ node:
   detail:
     detailTop:
       containerRuntime: Container Runtime
-      ipAddress: IP Address
+      internalIP: Internal IP
+      externalIP: External IP
       os: OS
       version: Version
     glance:
       consumptionGauge:
-        amount: "{used} of {total} {unit} used"
+        used: Used
+        amount: "{used} of {total} {unit}"
         cpu: CPU
         memory: MEMORY
         pods: PODS
@@ -1178,12 +1180,22 @@ node:
       memoryPressure: Memory Pressure
       pidPressure: PID Pressure
     tab:
-      address:
-        label: Address
-        externalIp: ExternalIP
       conditions: Conditions
       images: Images
-      info: Info
+      info: 
+        label: Info
+        key:
+          architecture: Architecture
+          bootID: Boot ID
+          containerRuntimeVersion: Container Runtime Version
+          kernelVersion: Kernel Version
+          kubeProxyVersion: Kube Proxy Version
+          kubeletVersion: Kubelet Version
+          machineID: Machine ID
+          operatingSystem: Operating System
+          osImage: Image
+          systemUUID: System UUID
+      pods: Pods
       taints: Taints
 
 persistentVolumeClaim:

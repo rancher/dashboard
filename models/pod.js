@@ -157,4 +157,8 @@ export default {
 
     return out;
   },
+
+  isRunning() {
+    return this.status.phase === 'Running';
+  }
 };

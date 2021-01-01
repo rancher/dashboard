@@ -1,24 +1,18 @@
 <script>
-import capitalize from 'lodash/capitalize';
-import words from 'lodash/words';
 import ConsumptionGauge from '@/components/ConsumptionGauge';
-import HStack from '@/components/Layout/Stack/HStack';
-import VStack from '@/components/Layout/Stack/VStack';
 import Alert from '@/components/Alert';
 import SortableTable from '@/components/SortableTable';
 import Tab from '@/components/Tabbed/Tab';
 import {
-  ADDRESS,
   EFFECT,
   IMAGE_SIZE,
   KEY,
   SIMPLE_NAME,
-  SIMPLE_TYPE,
-  VALUE,
+  VALUE
 } from '@/config/table-headers';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import Poller from '@/utils/poller';
-import { METRIC } from '@/config/types';
+import { METRIC, POD } from '@/config/types';
 import createEditView from '@/mixins/create-edit-view';
 import { formatSi, exponentNeeded, UNITS } from '@/utils/units';
 
@@ -31,8 +25,6 @@ export default {
   components: {
     Alert,
     ConsumptionGauge,
-    HStack,
-    VStack,
     ResourceTabs,
     Tab,
     SortableTable,
@@ -47,7 +39,13 @@ export default {
     },
   },
 
+  fetch() {
+    return this.$store.dispatch('cluster/findAll', { type: POD });
+  },
+
   data() {
+    const podSchema = this.$store.getters['cluster/schemaFor'](POD);
+
     return {
       metricPoller:           new Poller(this.loadMetrics, METRICS_POLL_RATE_MS, MAX_FAILURES),
       metrics:                { cpu: 0, memory: 0 },
@@ -62,10 +60,6 @@ export default {
           label: ''
         }
       ],
-      addressTableHeaders: [
-        SIMPLE_TYPE,
-        ADDRESS
-      ],
       imageTableHeaders: [
         { ...SIMPLE_NAME, width: 400 },
         IMAGE_SIZE
@@ -74,7 +68,8 @@ export default {
         KEY,
         VALUE,
         EFFECT
-      ]
+      ],
+      podTableHeaders: this.$store.getters['type-map/headersFor'](podSchema)
     };
   },
 
@@ -104,22 +99,9 @@ export default {
     infoTableRows() {
       return Object.keys(this.value.status.nodeInfo)
         .map(key => ({
-          key:   capitalize(words(key).join(' ')),
+          key:   this.t(`node.detail.tab.info.key.${ key }`),
           value: this.value.status.nodeInfo[key]
         }));
-    },
-
-    addressTableRows() {
-      const addresses = [...this.value.status.addresses];
-
-      if (this.value.externalIp) {
-        addresses.push({
-          type:    this.t('node.detail.tab.address.externalIp'),
-          address: this.value.externalIp
-        });
-      }
-
-      return addresses;
     },
 
     imageTableRows() {
@@ -175,22 +157,32 @@ export default {
 </script>
 
 <template>
-  <VStack class="node">
-    <HStack class="glance" :show-dividers="true">
-      <VStack class="alerts" :show-dividers="true" vertical-align="space-evenly">
-        <Alert :status="pidPressureStatus" :message="t('node.detail.glance.pidPressure')" />
-        <Alert :status="diskPressureStatus" :message="t('node.detail.glance.diskPressure')" />
-        <Alert :status="memoryPressureStatus" :message="t('node.detail.glance.memoryPressure')" />
-        <Alert :status="kubeletStatus" :message="t('node.detail.glance.kubelet')" />
-      </VStack>
-      <HStack class="cluster" horizontal-align="space-evenly">
-        <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.cpu')" :capacity="value.cpuCapacity" :used="value.cpuUsage" />
-        <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.memory')" :capacity="value.ramCapacity" :used="value.ramUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
-        <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.pods')" :capacity="value.podCapacity" :used="value.podConsumed" />
-      </HStack>
-    </HStack>
+  <div class="node">
+    <div class="spacer"></div>
+    <div class="alerts">
+      <Alert class="mr-10" :status="pidPressureStatus" :message="t('node.detail.glance.pidPressure')" />
+      <Alert class="mr-10" :status="diskPressureStatus" :message="t('node.detail.glance.diskPressure')" />
+      <Alert class="mr-10" :status="memoryPressureStatus" :message="t('node.detail.glance.memoryPressure')" />
+      <Alert :status="kubeletStatus" :message="t('node.detail.glance.kubelet')" />
+    </div>
+    <div class="mt-20 resources">
+      <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.cpu')" :capacity="value.cpuCapacity" :used="value.cpuUsage" />
+      <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.memory')" :capacity="value.ramCapacity" :used="value.ramUsage" :units="memoryUnits" :number-formatter="memoryFormatter" />
+      <ConsumptionGauge :resource-name="t('node.detail.glance.consumptionGauge.pods')" :capacity="value.podCapacity" :used="value.podConsumed" />
+    </div>
+    <div class="spacer"></div>
     <ResourceTabs v-model="value" :mode="mode">
-      <Tab name="info" :label="t('node.detail.tab.info')" class="bordered-table">
+      <Tab name="pods" :label="t('node.detail.tab.pods')" :weight="3">
+        <SortableTable
+          key-field="_key"
+          :headers="podTableHeaders"
+          :rows="value.pods"
+          :row-actions="false"
+          :table-actions="false"
+          :search="false"
+        />
+      </Tab>
+      <Tab name="info" :label="t('node.detail.tab.info.label')" class="bordered-table" :weight="2">
         <SortableTable
           key-field="_key"
           :headers="infoTableHeaders"
@@ -201,17 +193,7 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab name="address" :label="t('node.detail.tab.address.label')">
-        <SortableTable
-          key-field="_key"
-          :headers="addressTableHeaders"
-          :rows="addressTableRows"
-          :row-actions="false"
-          :table-actions="false"
-          :search="false"
-        />
-      </Tab>
-      <Tab name="images" :label="t('node.detail.tab.images')">
+      <Tab name="images" :label="t('node.detail.tab.images')" :weight="1">
         <SortableTable
           key-field="_key"
           :headers="imageTableHeaders"
@@ -220,7 +202,7 @@ export default {
           :table-actions="false"
         />
       </Tab>
-      <Tab name="taints" :label="t('node.detail.tab.taints')">
+      <Tab name="taints" :label="t('node.detail.tab.taints')" :weight="0">
         <SortableTable
           key-field="_key"
           :headers="taintTableHeaders"
@@ -231,32 +213,17 @@ export default {
         />
       </Tab>
     </ResourceTabs>
-  </VStack>
+  </div>
 </template>
 
 <style lang="scss" scoped>
-.cluster {
-  flex: 1;
-}
-
-$divider-spacing: 20px;
-
-.glance {
-  margin-top: 20px;
+.resources {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 
   & > * {
-    padding: 0 $divider-spacing;
-
-    &:first-child {
-      padding-left: 0;
-    }
-  }
-}
-
-.alerts {
-  width: 25%;
-  & > * {
-    flex: 1;
+    width: 30%;
   }
 }
 </style>

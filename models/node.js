@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import { formatPercent } from '@/utils/string';
 import { NODE_ROLES, RKE } from '@/config/labels-annotations.js';
-import { METRIC } from '@/config/types';
+import { METRIC, POD } from '@/config/types';
 import { parseSi } from '@/utils/units';
 import { PRIVATE } from '@/plugins/steve/resource-proxy';
 import findLast from 'lodash/findLast';
@@ -161,7 +161,7 @@ export default {
   },
 
   podConsumed() {
-    return Number.parseInt(this.status.capacity.pods) - Number.parseInt(this.status.allocatable.pods);
+    return this.runningPods.length;
   },
 
   isPidPressureOk() {
@@ -193,7 +193,7 @@ export default {
       return 'icon-docker';
     }
 
-    return false;
+    return '';
   },
 
   cordon() {
@@ -219,25 +219,49 @@ export default {
   },
 
   details() {
-    return [{
-      label:     this.t('node.detail.detailTop.ipAddress'),
-      formatter: 'CopyToClipboardText',
-      content:   this.externalIp || this.internalIp
-    },
-    {
-      label:    this.t('node.detail.detailTop.version'),
-      content:  this.version
-    },
-    {
-      label:    this.t('node.detail.detailTop.os'),
-      content:  this.status.nodeInfo.osImage
-    },
-    {
-      label:         this.t('node.detail.detailTop.containerRuntime'),
-      formatter:     'IconText',
-      formatterOpts: { iconClass: this.containerRuntimeIcon },
-      content:       this.containerRuntimeVersion
-    }];
+    const details = [
+      {
+        label:    this.t('node.detail.detailTop.version'),
+        content:  this.version
+      },
+      {
+        label:    this.t('node.detail.detailTop.os'),
+        content:  this.status.nodeInfo.osImage
+      },
+      {
+        label:         this.t('node.detail.detailTop.containerRuntime'),
+        formatter:     'IconText',
+        formatterOpts: { iconClass: this.containerRuntimeIcon },
+        content:       this.containerRuntimeVersion
+      }];
+
+    if (this.internalIp) {
+      details.unshift({
+        label:         this.t('node.detail.detailTop.internalIP'),
+        formatter:     'CopyToClipboardText',
+        content:       this.internalIp
+      });
+    }
+
+    if (this.externalIp) {
+      details.unshift({
+        label:         this.t('node.detail.detailTop.externalIP'),
+        formatter:     'CopyToClipboardText',
+        content:       this.externalIp
+      });
+    }
+
+    return details;
+  },
+
+  pods() {
+    const allPods = this.$rootGetters['cluster/all'](POD);
+
+    return allPods.filter(pod => pod.spec.nodeName === this.name);
+  },
+
+  runningPods() {
+    return this.pods.filter(pod => pod.isRunning);
   }
 };
 

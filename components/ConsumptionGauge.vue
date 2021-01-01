@@ -1,16 +1,13 @@
 <script>
 import PercentageBar from '@/components/PercentageBar';
-import VStack from '@/components/Layout/Stack/VStack';
+import { formatPercent } from '@/utils/string';
 
 /**
  * A detailed view of how much a resource is being consumed.
  */
 export default {
-  components: {
-    PercentageBar,
-    VStack
-  },
-  props: {
+  components: { PercentageBar },
+  props:      {
     /**
      * The name of the resource to be displayed.
      */
@@ -68,84 +65,40 @@ export default {
         total: this.numberFormatter(this.capacity || 0),
         unit:  this.displayUnits
       };
+    },
+    formattedPercentage() {
+      return formatPercent(this.percentageBarValue);
     }
   }
 };
 </script>
 
 <template>
-  <VStack class="consumption-gauge" :show-dividers="true">
-    <VStack class="percentage-bar-container" horizontal-align="center" vertical-align="bottom">
+  <div class="consumption-gauge">
+    <h3>
+      {{ resourceName }}
+    </h3>
+    <div class="numbers text-muted">
+      <span>{{ t('node.detail.glance.consumptionGauge.used') }}</span> <span>{{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }} <span class="ml-10 percentage">/&nbsp;{{ formattedPercentage }}</span></span>
+    </div>
+    <div class="mt-10">
       <PercentageBar
         :value="percentageBarValue"
-        :lower-error-bound="0.25"
-        :lower-warning-bound="0.25"
-        :upper-warning-bound="0.7"
-        :upper-error-bound="0.85"
-        :number-of-ticks="13"
       />
-    </VStack>
-    <VStack class="consumption" horizontal-align="center">
-      <div>{{ resourceName }}</div>
-      <div class="amount">
-        {{ t('node.detail.glance.consumptionGauge.amount', amountTemplateValues) }}
-      </div>
-    </VStack>
-  </VStack>
+    </div>
+  </div>
 </template>
 
 <style lang="scss">
 .consumption-gauge {
-  $divider-spacing: 20px;
-  min-height: 300px;
-  width: 100%;
-  padding-right: $divider-spacing;
+  .numbers {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
 
-  &:last-child {
-    padding-right: 0;
-  }
-
-  & > :last-child {
-    padding-top: $divider-spacing;
-    height: 25%;
-  }
-
-  .consumption {
-    margin-bottom: 50px;
-  }
-
-  .amount {
-      color: var(--link-text);
-  }
-
-  .percentage-bar-container {
-    padding-bottom: 8px;
-    height: 75%;
-    text-align: center;
-
-    .percentage-bar {
-      display: inline-grid;
-      grid-template-rows: [one] auto [two] auto;
-
-      .bar {
-        grid-row: one;
-        .tick {
-          margin-right: 5px;
-          width: 4px;
-          font-size: 1.7em;
-        }
-      }
-
-      .percentage {
-        margin-top: 20px;
-        width: 100%;
-        grid-row: two;
-        font-size: 45px;
-        font-weight: 100;
-        text-align: center;
-      }
+    .percentage {
+      font-weight: bold;
     }
   }
-
 }
 </style>

@@ -1,50 +1,62 @@
 <script>
+import Bar from '@/components/graph/Bar';
 import { formatPercent } from '@/utils/string';
+
+export const PreferredDirection = {
+  LESS: 'LESS',
+  MORE: 'MORE'
+};
+
 /**
  * A percentage bar which can be used to display how much a resource is being consumed.
  */
 export default {
-  props: {
+  components: { Bar },
+  props:      {
     /**
      * A value representing the percentage to be displayed. *Must be a value between 0 and 100*.
      */
     value: {
       type:      Number,
       required:  true,
+      validator(value) {
+        return value >= 0 && value <= 100;
+      }
     },
 
     /**
-     * Indicates the number of tick marks that should be displayed.
+     * A value which indicates which direction is better so we can change the color appropriately.
      */
-    ticks: {
-      type:    Number,
-      default: 10,
+    preferredDirection: {
+      type:    String,
+      default: PreferredDirection.LESS
+    },
+
+    /**
+     * Determines whether we display the numerical percentage value to the right of the bar.
+     */
+    showPercentage: {
+      type:    Boolean,
+      default: false
     }
   },
 
   computed: {
-    formattedValue() {
-      return formatPercent(this.value);
+    primaryColor() {
+      const isLess = this.preferredDirection === PreferredDirection.LESS;
+      const threshold = isLess ? 80 : 20;
+
+      const left = isLess ? this.value : threshold;
+      const right = isLess ? threshold : this.value;
+
+      if (left <= right) {
+        return '--primary';
+      }
+
+      return '--error';
     },
-  },
-  methods: {
-    getTickBackgroundClass(i) {
-      const barPercentage = i / this.ticks;
-      const valuePercentage = Math.round(this.value / this.ticks) * this.ticks / 100;
-
-      if (valuePercentage < barPercentage) {
-        return 'bg-muted';
-      }
-
-      if (barPercentage <= 0.6) {
-        return 'bg-success';
-      }
-
-      if (barPercentage <= 0.8) {
-        return 'bg-warning';
-      }
-
-      return 'bg-error';
+    formattedPercentage() {
+      return formatPercent(this.value);
     }
   },
 };
@@ -52,30 +64,14 @@ export default {
 
 <template>
   <span class="percentage-bar">
-    <span class="percentage">{{ formattedValue }}</span>
-    <span class="bar">
-      <span v-for="i in ticks" :key="i" class="tick" :class="getTickBackgroundClass(i)">&nbsp;</span>
-    </span>
+    <Bar :percentage="value" :primary-color="primaryColor" />
+    <span v-if="showPercentage" class="ml-5">{{ formattedPercentage }}</span>
   </span>
 </template>
 
-<style lang='scss'>
-  .percentage-bar {
-    .percentage {
-      vertical-align: middle;
-      width: 32px;
-      display: inline-block;
-    }
-    .bar {
-      margin-left: 3px;
-      .tick {
-        display: inline-block;
-        overflow: hidden;
-        margin-right: 3px;
-        width: 3px;
-        font-size: 1.2em;
-        vertical-align: -5px; // this will align percentage-text in the center without having to change the line height
-      }
-    }
-  }
+<style lang="scss" scoped>
+.percentage-bar {
+  display: flex;
+  flex-direction: row;
+}
 </style>

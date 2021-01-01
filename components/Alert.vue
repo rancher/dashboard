@@ -1,27 +1,27 @@
 <script>
-import VStack from '@/components/Layout/Stack/VStack';
+import BadgeState from '@/components/BadgeState';
 
 const STATUS_CLASS_MAP = {
   success: {
-    container: 'text-success',
-    icon:      'icon-checkmark'
+    color: 'bg-success',
+    icon:  'icon-checkmark'
   },
   warning: {
-    container: 'text-warning',
-    icon:      'icon-x'
+    color: 'bg-warning',
+    icon:  'icon-error'
   },
   info: {
-    container: 'text-info',
-    icon:      'icon-x'
+    color: 'bg-info',
+    icon:  'icon-error'
   },
   error: {
-    container: 'alert-bg-error text-error',
-    icon:      'icon-x'
+    color: 'bg-error',
+    icon:  'icon-error'
   }
 };
 
 export default {
-  components: { VStack },
+  components: { BadgeState },
   props:      {
     status: {
       type: String,
@@ -36,10 +36,10 @@ export default {
     }
   },
   computed: {
-    containerClasses() {
-      return STATUS_CLASS_MAP[this.status].container;
+    color() {
+      return STATUS_CLASS_MAP[this.status].color;
     },
-    iconClasses() {
+    icon() {
       return STATUS_CLASS_MAP[this.status].icon;
     }
   }
@@ -47,13 +47,5 @@ export default {
 </script>
 
 <template>
-  <VStack class="alert" :class="containerClasses" vertical-align="center">
-    <div><i class="icon" :class="iconClasses" /> {{ message }}</div>
-  </VStack>
+  <BadgeState :label="message" :color="color" :icon="icon" />
 </template>
-
-<style lang="scss" scoped>
-.alert-bg-error {
-    background-color: rgba(var(--error), 0.5)
-}
-</style>
