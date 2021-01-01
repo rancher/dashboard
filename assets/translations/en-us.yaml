@@ -196,6 +196,10 @@ asyncButton:
     action:  'Enable'
     waiting: 'Enabling&hellip;'
     success: 'Enabled'
+  disable:
+    action:  'Disable'
+    waiting: 'Disabling&hellip;'
+    success: 'Disabled'
   download:
     action:  'Download'
     waiting: 'Downloading&hellip;'
@@ -2249,6 +2253,10 @@ model:
     firstDeployed: First Deployed
     lastDeployed: Last Deployed
   authConfig:
+    description:
+      ldap: LDAP
+      saml: SAML
+      oauth: OAuth
     provider:
       system: System
       local: Local
@@ -2439,17 +2447,20 @@ typeLabel:
       one { Route }
       other { Routes }
     }
+
 action:
-  download: Download YAML
-  remove: Delete
-  refresh: Refresh
-  view: View Config
-  edit: Edit Config
   clone: Clone
+  disable: Disable
+  download: Download YAML
+  edit: Edit Config
   editYaml: Edit YAML
-  viewYaml: View YAML
-  viewInApi: View in API
+  enable: Enable
   openLogs: View Logs
+  refresh: Refresh
+  remove: Delete
+  view: View Config
+  viewInApi: View in API
+  viewYaml: View YAML
 
 unit:
   sec: secs

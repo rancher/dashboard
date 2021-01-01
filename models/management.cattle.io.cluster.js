@@ -67,7 +67,7 @@ export default {
   },
 
   providerOsLogo() {
-    return require(`~/assets/images/logo-${ this.providerOs }.svg`);
+    return require(`~/assets/images/vendor/${ this.providerOs }.svg`);
   },
 
   scope() {

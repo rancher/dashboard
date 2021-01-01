@@ -1,5 +1,20 @@
 import { insertAt } from '@/utils/array';
 
+const configType = {
+  activedirectory: 'ldap',
+  azuread:         'oauth',
+  openldap:        'ldap',
+  freeipa:         'ldap',
+  ping:            'saml',
+  adfs:            'saml',
+  keycloak:        'saml',
+  okta:            'saml',
+  shibboleth:      'saml',
+  googleoauth:     'oauth',
+  local:           '',
+  github:          'oauth',
+};
+
 export default {
   _availableActions() {
     const out = this._standardActions;
@@ -20,6 +35,18 @@ export default {
     return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.id }"`, null, this.id);
   },
 
+  configType() {
+    return configType[this.id];
+  },
+
+  sideLabel() {
+    return this.$rootGetters['i18n/withFallback'](`model.authConfig.description."${ this.configType }"`, null, this.configType);
+  },
+
+  icon() {
+    return require(`~/assets/images/vendor/${ this.id }.svg`);
+  },
+
   state() {
     if ( this.enabled ) {
       return 'active';
@@ -29,9 +56,10 @@ export default {
   },
 
   disable() {
-    return () => {
+    return async() => {
       this.enabled = false;
-      this.save();
+      await this.save();
+      this.currentRouter().push({ name: 'c-cluster-auth-config' });
     };
   }
 };

@@ -77,6 +77,10 @@ export default {
       type:    Boolean,
       default: true,
     },
+    size: {
+      type:    String,
+      default: '',
+    }
   },
 
   data() {
@@ -95,6 +99,10 @@ export default {
         btn:     true,
         [color]: true,
       };
+
+      if (this.size) {
+        out[`btn-${ this.size }`] = true;
+      }
 
       return out;
     },

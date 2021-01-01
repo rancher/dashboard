@@ -5,12 +5,12 @@ export default {
   props: {
     initialSrc: {
       type:    String,
-      default: require('~/assets/images/generic-catalog-black.svg'),
+      default: require('~/assets/images/generic-catalog.svg'),
     },
 
     errorSrc: {
       type:    String,
-      default: require('~/assets/images/generic-catalog-black.svg'),
+      default: require('~/assets/images/generic-catalog.svg'),
     },
 
     src: {

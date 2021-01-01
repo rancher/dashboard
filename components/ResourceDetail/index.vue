@@ -46,6 +46,13 @@ export default {
 
   mixins: [CreateEditView],
 
+  props: {
+    resourceOverride: {
+      type:    String,
+      default: null,
+    }
+  },
+
   async fetch() {
     const store = this.$store;
     const route = this.$route;
@@ -55,7 +62,7 @@ export default {
 
     // eslint-disable-next-line prefer-const
     let { namespace, id } = params;
-    let resource = params.resource;
+    let resource = this.resourceOverride || params.resource;
 
     // There are 5 "real" modes that can be put into the query string
     // These are mapped down to the 3 regular page "mode"s that create-edit-view components
@@ -172,10 +179,6 @@ export default {
     return {
       resourceSubtype: null,
 
-      // Set by asyncData & passed in as props
-      // detailComponent: null,
-      // editComponent:   null,
-
       // Set by fetch
       hasCustomDetail: null,
       hasCustomEdit:   null,
@@ -252,7 +255,8 @@ export default {
 
   created() {
     // eslint-disable-next-line prefer-const
-    let { resource, id } = this.$route.params;
+    const id = this.$route.params.id;
+    let resource = this.resourceOverride || this.$route.params.resource;
     const options = this.$store.getters[`type-map/optionsFor`](resource);
 
     if ( options.resource ) {
