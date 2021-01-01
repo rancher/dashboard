@@ -115,8 +115,20 @@ export default {
         const profiles = this.defaultConfigMap.data;
         const provider = this.currentCluster.status.provider;
 
-        const name = profiles[provider] || profiles.default;
+        let name = profiles[provider] || profiles.default;
 
+        if (name.includes(':')) {
+          const pairs = name.split('\n');
+          const clusterVersion = this.currentCluster.kubernetesVersion;
+
+          pairs.forEach((pair) => {
+            const version = (pair.match(/[<>=]+[-._a-zA-Z0-9]+/) || [])[0];
+
+            if (semver.satisfies(clusterVersion, version)) {
+              name = pair.replace(/[<>=]+[-._a-zA-Z0-9]+: /, '');
+            }
+          });
+        }
         if (name) {
           const profile = this.allProfiles.find(profile => profile.id === name);
           const benchmarkVersion = profile?.spec?.benchmarkVersion;
