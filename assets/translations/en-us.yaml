@@ -490,7 +490,7 @@ clusterIndexPage:
     consumption: "{useful} of {total} {units} {suffix}"
     coresReserved: Cores Reserved
     coresUsed: Cores Used
-    podsReserved: Pods Reserved
+    podsUsed: Pods Used
     ramReserved: Memory Reserved
     ramUsed: Memory Used
   header: Cluster Dashboard

@@ -183,7 +183,7 @@ export default {
       };
     },
 
-    podsReserved() {
+    podsUsed() {
       return {
         total:  parseSi(this.currentCluster?.status?.allocatable?.pods || '0'),
         useful: parseSi(this.currentCluster?.status?.requested?.pods || '0')
@@ -232,7 +232,7 @@ export default {
 
     showReservedMetrics() {
       // As long as we have at least one reserved value > 0 we should show these metrics
-      const reservedSum = [this.cpuReserved, this.podsReserved, this.ramReserved].reduce((agg, cur) => {
+      const reservedSum = [this.cpuReserved, this.podsUsed, this.ramReserved].reduce((agg, cur) => {
         return agg + (cur.total || 0) + (cur.useful || 0);
       }, 0);
 
@@ -362,7 +362,7 @@ export default {
       <ResourceGauge v-for="(resource, i) in accessibleResources" :key="resource" :resource="resource" :primary-color-var="`--sizzle-${i}`" />
     </div>
     <div v-if="showReservedMetrics" class="hardware-resource-gauges">
-      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.podsReserved')" :total="podsReserved.total" :useful="podsReserved.useful" />
+      <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.podsUsed')" :total="podsUsed.total" :useful="podsUsed.useful" />
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.coresReserved')" :total="cpuReserved.total" :useful="cpuReserved.useful" />
       <HardwareResourceGauge :name="t('clusterIndexPage.hardwareResourceGauge.ramReserved')" :total="ramReserved.total" :useful="ramReserved.useful" :units="ramReserved.units" />
     </div>
