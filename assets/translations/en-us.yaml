@@ -1050,6 +1050,16 @@ monitoring:
       volumeName: Volume Name
     title: Configure Grafana
   overview:
+    alertsList:
+      ends:
+        label: Ends At
+      label: Active Alerts
+      message:
+        label: Message
+      severity:
+        label: Severity
+      start:
+        label: Starts At
     linkedList:
       alertManager:
         description: Active Alerts

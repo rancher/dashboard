@@ -9,18 +9,75 @@ import { ENDPOINTS, MONITORING, WORKLOAD_TYPES } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { findBy } from '@/utils/array';
 
-import LazyImage from '@/components/LazyImage';
 import Banner from '@/components/Banner';
+import LazyImage from '@/components/LazyImage';
+import SimpleBox from '@/components/SimpleBox';
+import SortableTable from '@/components/SortableTable';
 
 const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
 
 export default {
-  components: { Banner, LazyImage },
+  components: {
+    Banner,
+    LazyImage,
+    SimpleBox,
+    SortableTable,
+  },
 
   middleware: InstallRedirect(NAME, CHART_NAME),
 
   data() {
+    const eventHeaders = [
+      {
+        name:     'severity',
+        label:    'Severity',
+        labelKey: 'monitoring.overview.alertsList.severity.label',
+        value:    'labels.severity',
+        sort:     ['labels.severity', 'labels.alertname'],
+        width:    125,
+      },
+      {
+        name:     'name',
+        label:    'Name',
+        labelKey: 'generic.name',
+        value:    'labels.alertname',
+        sort:     ['labels.alertname', 'labels.severity'],
+      },
+      {
+        name:      'message',
+        label:     'message',
+        labelKey:  'monitoring.overview.alertsList.message.label',
+        value:     'annotations',
+        formatter: 'RunBookLink',
+        sort:      ['annotations.message', 'labels.alertname', 'labels.severity'],
+      },
+      // {
+      //   align:         'right',
+      //   name:          'starts-at',
+      //   label:         'Starts At',
+      //   labelKey:      'monitoring.overview.alertsList.start.label',
+      //   value:         'startsAt',
+      //   sort:          'startsAt:desc',
+      //   formatter:     'LiveDate',
+      //   formatterOpts: { addSuffix: true },
+      //   width:         125,
+      // },
+      // {
+      //   align:         'right',
+      //   name:          'ends-at',
+      //   label:         'Ends At',
+      //   labelKey:      'monitoring.overview.alertsList.ends.label',
+      //   value:         'endsAt',
+      //   sort:          'endsAt:desc',
+      //   formatter:     'LiveDate',
+      //   formatterOpts: { addSuffix: true },
+      //   width:         125,
+      // },
+    ];
+
     return {
+      eventHeaders,
+      allAlerts:      [],
       availableLinks: {
         alertmanager: false,
         grafana:      false,
@@ -145,6 +202,18 @@ export default {
             match.enabled = true;
           });
         }
+
+        if (amMatch.enabled) {
+          try {
+            const inStore = this.$store.getters['currentProduct'].inStore;
+            const alertsEvents = await this.$store.dispatch(
+              `${ inStore }/request`,
+              { url: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy/api/v1/alerts` }
+            );
+
+            this.allAlerts = alertsEvents.data;
+          } catch (error) {}
+        }
       }
     },
   },
@@ -174,12 +243,14 @@ export default {
           <a
             v-for="fel in externalLinks"
             :key="fel.label"
-            v-tooltip="!fel.enabled ? t('monitoring.overview.linkedList.na') : undefined"
-            :href="fel.enabled ? fel.link : (void 0)"
+            v-tooltip="
+              !fel.enabled ? t('monitoring.overview.linkedList.na') : undefined
+            "
+            :href="fel.enabled ? fel.link : void 0"
             :disabled="!fel.enabled"
             target="_blank"
             rel="noopener noreferrer"
-            :class="{ 'subtype-banner': true, disabled: !fel.enabled}"
+            :class="{ 'subtype-banner': true, disabled: !fel.enabled }"
           >
             <div class="subtype-content">
               <div class="title">
@@ -205,6 +276,24 @@ export default {
           </a>
         </div>
       </div>
+    </div>
+    <div>
+      <SimpleBox
+        class="mt-30"
+        :title="t('monitoring.overview.alertsList.label')"
+      >
+        <SortableTable
+          :rows="allAlerts"
+          :headers="eventHeaders"
+          :search="false"
+          :table-actions="false"
+          :row-actions="false"
+          :paging="true"
+          :rows-per-page="10"
+          default-sort-by="name"
+          key-field="id"
+        />
+      </SimpleBox>
     </div>
   </section>
 </template>
