@@ -1113,6 +1113,11 @@ monitoring:
       groupWait: Group Wait
       receiver: Receiver
       repeatInterval: Repeat Interval
+  tabs:
+    alerting: Alerting
+    general: General
+    grafana: Grafana
+    prometheus: Promethues
   v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of Rancher with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new Rancher Monitoring chart in Cluster Explorer.'
   volume:
     modes:
