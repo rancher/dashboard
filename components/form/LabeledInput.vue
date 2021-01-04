@@ -22,8 +22,8 @@ export default {
     },
 
     tooltip: {
-      type:    String,
       default: null,
+      type:    [String, Object]
     },
 
     hoverTooltip: {

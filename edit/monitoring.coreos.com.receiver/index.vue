@@ -165,7 +165,7 @@ export default {
                   <img :src="receiverType.logo" />
                 </div>
                 <h4 class="name ml-10">
-                  {{ receiverType.label }}
+                  <t :k="receiverType.label" />
                 </h4>
               </div>
               <div v-if="receiverType.name !== 'custom'" class="right">
@@ -175,14 +175,13 @@ export default {
           </GradientBox>
         </div>
       </Tab>
-      <Tab v-for="(receiverType, i) in receiverTypes" :key="i" :label="receiverType.label" :name="receiverType.name" :weight="receiverTypes.length - i">
-        <Banner v-if="receiverType.name === 'slack'" color="info">
-          Here's how you create <a href="https://rancher.slack.com/apps/A0F7XDUAZ-incoming-webhooks" target="_blank" rel="noopener noreferrer nofollow">Incoming Webhooks</a> for Slack.
-        </Banner>
-        <Banner v-if="!isView && receiverType.name === 'custom'" color="info" label="The YAML provided here will be directly appended to your receiver within the Alertmanager Config Secret" />
-        <Banner v-if="!isView && receiverType.name === 'pagerduty'" color="info">
-          Here's how you create an <a href="https://www.pagerduty.com/docs/guides/prometheus-integration-guide/" target="_blank" rel="noopener nofollow" class="flex-right">Integration Key</a> for PagerDuty
-        </Banner>
+      <Tab
+        v-for="(receiverType, i) in receiverTypes"
+        :key="i"
+        :label="t(receiverType.label)"
+        :name="receiverType.name"
+        :weight="receiverTypes.length - i"
+      >
         <YamlEditor
           v-if="receiverType.name === 'custom'"
           ref="customEditor"
@@ -196,8 +195,7 @@ export default {
           class="namespace-list"
           :mode="mode"
           :default-add-value="{}"
-          :disabled="disabled"
-          :add-label="'Add ' + receiverType.label"
+          :add-label="t('monitoringReceiver.addButton', { type: t(receiverType.label) })"
         >
           <template #default="props">
             <div :class="{'pt-30': !isView}">
