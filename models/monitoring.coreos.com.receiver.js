@@ -101,7 +101,7 @@ export default {
   },
 
   canDelete() {
-    return this.secret.canDelete;
+    return this.id !== 'null' && !this.spec.name !== 'null' && this.secret.canDelete;
   },
 
   canViewInApi() {
