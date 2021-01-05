@@ -123,11 +123,13 @@ export default {
           >
             <t k="prometheusRule.recordingRules.addLabel" />
           </button>
+          <span v-else></span>
         </template>
         <template v-slot:remove-button="props">
-          <button type="button" class="btn role-link close" @click="removeRule(props.i)">
+          <button v-if="!isView" type="button" class="btn role-link close" @click="removeRule(props.i)">
             <i class="icon icon-2x icon-x" />
           </button>
+          <span v-else></span>
         </template>
       </ArrayListGrouped>
     </div>
@@ -165,11 +167,13 @@ export default {
           >
             <t k="prometheusRule.alertingRules.addLabel" />
           </button>
+          <span v-else></span>
         </template>
         <template v-slot:remove-button="props">
-          <button type="button" class="btn role-link close" @click="removeRule(props.i)">
+          <button v-if="!isView" type="button" class="btn role-link close" @click="removeRule(props.i)">
             <i class="icon icon-2x icon-x" />
           </button>
+          <span v-else></span>
         </template>
       </ArrayListGrouped>
     </div>

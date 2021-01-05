@@ -12,6 +12,7 @@ import Tabbed from '@/components/Tabbed';
 import UnitInput from '@/components/form/UnitInput';
 import { _CREATE } from '@/config/query-params';
 import isString from 'lodash/isString';
+import isEmpty from 'lodash/isEmpty';
 import GroupRules from './GroupRules';
 
 export default {
@@ -77,7 +78,7 @@ export default {
     },
     willSave() {
       this.value.spec.groups.forEach((group) => {
-        if (group.interval === null || group.interval === '') {
+        if (isEmpty(group.interval)) {
           delete group.interval;
         } else {
           const interval = group.interval;
