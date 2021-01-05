@@ -76,6 +76,7 @@ export default {
   },
 
   methods: {
+    // resizeHandler = in mixin
     getOptionLabel(option) {
       if (this.$attrs['get-option-label']) {
         return this.$attrs['get-option-label'](option);
@@ -153,6 +154,7 @@ export default {
 
 <template>
   <div
+    ref="select"
     class="unlabeled-select"
     :class="{
       disabled: disabled && !isView,
@@ -187,6 +189,7 @@ export default {
       @input="(e) => $emit('input', e)"
       @search:blur="onBlur"
       @search:focus="onFocus"
+      @open="resizeHandler"
     >
       <!-- Pass down templates provided by the caller -->
       <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">

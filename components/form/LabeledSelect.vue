@@ -100,6 +100,7 @@ export default {
   },
 
   methods: {
+    // resizeHandler = in mixin
     focusSearch() {
       this.$nextTick(() => {
         const el = this.$refs.input?.searchEl;
@@ -178,13 +179,6 @@ export default {
        */
       return () => popper.destroy();
     },
-    open() {
-      const input = this.$refs.input;
-
-      if (input) {
-        input.open = true;
-      }
-    },
     get,
   },
 };
@@ -192,6 +186,7 @@ export default {
 
 <template>
   <div
+    ref="select"
     class="labeled-select"
     :class="{
       disabled: isView || disabled,
@@ -238,6 +233,7 @@ export default {
       v-on="$listeners"
       @search:blur="onBlur"
       @search:focus="onFocus"
+      @open="resizeHandler"
     >
       <!-- Pass down templates provided by the caller -->
       <template v-for="(_, slot) of $scopedSlots" #[slot]="scope">
