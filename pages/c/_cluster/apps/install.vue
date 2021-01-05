@@ -21,12 +21,12 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
 import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT,
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, _FLAGGED,
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
-import { findBy } from '@/utils/array';
+import { findBy, insertAt } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import sortBy from 'lodash/sortBy';
 
@@ -58,6 +58,9 @@ export default {
     this.errors = [];
 
     const query = this.$route.query;
+
+    this.showDeprecated = query['deprecated'] === _FLAGGED;
+    this.showHidden = query['hidden'] === _FLAGGED;
 
     await this.$store.dispatch('catalog/load');
 
@@ -258,6 +261,8 @@ export default {
 
   data() {
     return {
+      showHidden:             false,
+      showDeprecated:         false,
       defaultRegistrySetting: null,
       chart:                  null,
       chartValues:            null,
@@ -347,15 +352,39 @@ export default {
     },
 
     charts() {
-      const currentKey = this.existing?.matchingChart(true)?.key;
+      const current = this.existing?.matchingChart(true);
 
-      return this.$store.getters['catalog/charts'].filter((x) => {
-        if ( x.key === currentKey ) {
+      const out = this.$store.getters['catalog/charts'].filter((x) => {
+        if ( x.key === current?.key || x.chartName === current?.chartName ) {
           return true;
         }
 
-        return !x.deprecated && !x.hidden;
+        if ( x.hidden && !this.showHidden ) {
+          return false;
+        }
+
+        if ( x.deprecated && !this.showDeprecated ) {
+          return false;
+        }
+
+        return true;
       });
+
+      let last = '';
+
+      for ( let i = 0 ; i < out.length ; i++ ) {
+        if ( out[i].repoName !== last ) {
+          last = out[i].repoName;
+          insertAt(out, i, {
+            kind:     'label',
+            label:    out[i].repoNameDisplay,
+            disabled: true
+          });
+          i++;
+        }
+      }
+
+      return out;
     },
 
     repo() {
@@ -853,10 +882,20 @@ export default {
             :label="t('catalog.install.chart')"
             :value="chart"
             :options="charts"
+            :selectable="option => !option.disabled"
             :get-option-label="opt => getOptionLabel(opt)"
             option-key="key"
             @input="selectChart($event)"
-          />
+          >
+            <template v-slot:option="opt">
+              <template v-if="opt.kind === 'divider'">
+                <hr />
+              </template>
+              <template v-else-if="opt.kind === 'label'">
+                <b style="position: relative; left: -10px;">{{ opt.label }}</b>
+              </template>
+            </template>
+          </LabeledSelect>
         </div>
         <div v-if="chart" class="col span-6">
           <LabeledSelect
