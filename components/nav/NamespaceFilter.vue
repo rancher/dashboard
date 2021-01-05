@@ -314,6 +314,7 @@ export default {
     <Select
       ref="select"
       v-model="value"
+      :append-to-body="false"
       :class="{
         'has-more': showGroupedOptions,
       }"

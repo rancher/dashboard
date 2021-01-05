@@ -9,6 +9,10 @@ export default {
   components: { LabeledTooltip },
   mixins:     [LabeledFormElement, VueSelectOverrides],
   props:      {
+    appendToBody: {
+      default: true,
+      type:    Boolean,
+    },
     disabled: {
       default: false,
       type:    Boolean,
@@ -95,12 +99,14 @@ export default {
       if (this.popperOverride) {
         return this.popperOverride(dropdownList, component, { width });
       }
-
       /**
        * We need to explicitly define the dropdown width since
        * it is usually inherited from the parent with CSS.
        */
-      dropdownList.style.width = width;
+      const componentWidth = $(component.$parent.$el).width();
+
+      dropdownList.style['min-width'] = `${ componentWidth }px`;
+      dropdownList.style.width = 'min-content';
 
       /**
        * Here we position the dropdownList relative to the $refs.toggle Element.
@@ -113,7 +119,7 @@ export default {
        * above.
        */
       const popper = createPopper(component.$refs.toggle, dropdownList, {
-        placement: this.placement,
+        placement: this.placement || 'bottom-start',
         modifiers: [
           {
             name:    'offset',
@@ -126,7 +132,7 @@ export default {
             fn({ state }) {
               component.$el.setAttribute('x-placement', state.placement);
             },
-          },
+          }
         ],
       });
 
@@ -173,7 +179,7 @@ export default {
       v-bind="$attrs"
       class="inline"
       :autoscroll="true"
-      :append-to-body="!!placement"
+      :append-to-body="appendToBody"
       :calculate-position="placement ? withPopper : undefined"
       :disabled="isView || disabled"
       :get-option-key="(opt) => (optionKey ? get(opt, optionKey) : getOptionLabel(opt))"

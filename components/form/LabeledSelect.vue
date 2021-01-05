@@ -5,12 +5,17 @@ import { findBy } from '@/utils/array';
 import { get } from '@/utils/object';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
+import $ from 'jquery';
 
 export default {
   components: { LabeledTooltip },
   mixins:     [LabeledFormElement, VueSelectOverrides],
 
   props: {
+    appendToBody: {
+      default: true,
+      type:    Boolean,
+    },
     disabled: {
       default: false,
       type:    Boolean
@@ -105,7 +110,7 @@ export default {
       this.$nextTick(() => {
         const el = this.$refs.input?.searchEl;
 
-        if ( el ) {
+        if (el) {
           el.focus();
         }
       });
@@ -143,7 +148,10 @@ export default {
        * We need to explicitly define the dropdown width since
        * it is usually inherited from the parent with CSS.
        */
-      dropdownList.style.width = width;
+      const componentWidth = $(component.$parent.$el).width();
+
+      dropdownList.style['min-width'] = `${ componentWidth }px`;
+      dropdownList.style.width = 'min-content';
 
       /**
        * Here we position the dropdownList relative to the $refs.toggle Element.
@@ -156,11 +164,19 @@ export default {
        * above.
        */
       const popper = createPopper(component.$refs.toggle, dropdownList, {
-        placement: this.placement,
+        placement: this.placement || 'bottom-start',
         modifiers: [
           {
             name:    'offset',
-            options: { offset: [0, 2] },
+            options: {
+              offset: ({ placement, reference, popper }) => {
+                if (placement.includes('top')) {
+                  return [0, 27];
+                } else {
+                  return [0, 2];
+                }
+              },
+            },
           },
           {
             name:    'toggleClass',
@@ -169,7 +185,7 @@ export default {
             fn({ state }) {
               component.$el.setAttribute('x-placement', state.placement);
             },
-          },
+          }
         ],
       });
 
@@ -215,11 +231,13 @@ export default {
       ref="input"
       v-bind="$attrs"
       class="inline"
-      :append-to-body="!!placement"
-      :calculate-position="placement ? withPopper : undefined"
-      :class="{ 'no-label': !(label || '').length, }"
+      :append-to-body="appendToBody"
+      :calculate-position="withPopper"
+      :class="{ 'no-label': !(label || '').length }"
       :disabled="isView || disabled"
-      :get-option-key="(opt) => (optionKey ? get(opt, optionKey) : getOptionLabel(opt))"
+      :get-option-key="
+        (opt) => (optionKey ? get(opt, optionKey) : getOptionLabel(opt))
+      "
       :get-option-label="(opt) => getOptionLabel(opt)"
       :label="optionLabel"
       :options="options"

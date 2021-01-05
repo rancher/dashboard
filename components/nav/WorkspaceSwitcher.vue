@@ -46,6 +46,7 @@ export default {
       ref="select"
       v-model="value"
       label="label"
+      :append-to-body="false"
       :options="options"
       :clearable="false"
       :reduce="(opt) => opt.value"
