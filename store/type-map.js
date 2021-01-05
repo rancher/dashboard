@@ -30,11 +30,12 @@
 //   removable,               -- Is the product removable (true) or built-in (false).
 //   weight,                  -- Sort order and divider sections in the product menu.  3=global (fleet, ecm), 2=always on (apps, explorer) 1=other
 //   showClusterSwitcher,     -- Show the cluster switcher in the header (default true)
-//   showNamespaceFilter,     -- show the namespace filter in the header (default false)
-//   showWorkspaceSwitcher,   -- show the workspace switcher in the header (conflicts with namespace) (default false)
+//   showNamespaceFilter,     -- Show the namespace filter in the header (default false)
+//   showWorkspaceSwitcher,   -- Show the workspace switcher in the header (conflicts with namespace) (default false)
 //   ifHaveGroup,             -- Show this product only if the given group exists in the store [inStore]
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore]
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
+//   public,                  -- If true, show to all users.  If false, only show when the Devleoper Tools pref is on (default true)
 // })
 //
 // externalLink(stringOrFn)  The product has an external page (function gets context object
@@ -140,6 +141,7 @@ export function DSL(store, product, module = 'type-map') {
         removable:           true,
         showClusterSwitcher: true,
         showNamespaceFilter: false,
+        'public':            true,
         filterMode:          'namespaces',
         ...inOpt
       };
@@ -367,6 +369,7 @@ export const getters = {
       showState: true,
       showAge: true,
       canYaml: true,
+      extraListAction: null,
     };
 
     return (schemaOrType) => {
@@ -701,7 +704,7 @@ export const getters = {
           const id = item.name;
           const weight = vt.weight || getters.typeWeightFor(item.label, isBasic);
 
-          if ( item.ifDev && !isDev ) {
+          if ( item['public'] === false && !isDev ) {
             continue;
           }
 
@@ -998,6 +1001,7 @@ export const getters = {
   activeProducts(state, getters, rootState, rootGetters) {
     const knownTypes = {};
     const knownGroups = {};
+    const isDev = rootGetters['prefs/get'](DEV);
 
     if ( state.schemaGeneration < 0 ) {
       // This does nothing, but makes activeProducts depend on schemaGeneration
@@ -1008,6 +1012,15 @@ export const getters = {
 
     return state.products.filter((p) => {
       const module = p.inStore;
+
+      if ( p['public'] === false && !isDev ) {
+        return false;
+      }
+
+      if ( p.ifGetter && !rootGetters[p.ifGetter] ) {
+        return false;
+      }
+
       if ( !knownTypes[module] ) {
         const schemas = rootGetters[`${module}/all`](SCHEMA);
 
@@ -1028,10 +1041,6 @@ export const getters = {
       }
 
       if ( p.ifHaveGroup && !knownGroups[module].find((t) => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
-        return false;
-      }
-
-      if ( p.ifGetter && !rootGetters[p.ifGetter] ) {
         return false;
       }
 

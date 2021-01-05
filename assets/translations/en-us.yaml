@@ -24,6 +24,7 @@ generic:
   number: '{prefix}{value, number}{suffix}'
   overview: Overview
   readFromFile: Read from File
+  register: Register
   remove: Remove
   resource: |-
     {count, plural,
@@ -73,6 +74,7 @@ product:
   explorer: Cluster Explorer
   fleet: Continuous Delivery
   longhorn: Longhorn
+  manager: Cluster Management
   gatekeeper: OPA Gatekeeper
   istio: Istio
   logging: Logging
@@ -448,46 +450,46 @@ cis:
     protip: Scans with no failures will be marked "Pass" by default even if some of the tests generate "warn" output. This behavior can be changed by selecting the "fail" option from this section.
 
 cluster:
-  nodeDriver:
-    displayName:
-      aliyun: Alibaba ACK
-      aliyunecs: Aliyun ECS
-      amazonec2: Amazon EC2
-      amazoneks: Amazon EKS
-      azure: Azure
-      azureaks: Azure AKS
-      baidu: Baidu CCE
-      cloudca: Cloud.ca
-      digitalocean: DigitalOcean
-      exoscale: Exoscale
-      googlegke: Google GKE
-      huaweicce: Huawei CCE
-      linode: Linode
-      oci: Oracle Cloud Infrastructure
-      openstack: OpenStack
-      oracleoke: Oracle OKE
-      otc: Open Telekom Cloud
-      packet: Packet
-      pinganyunecs: Pinganyun ECS
-      rackspace: RackSpace
-      rancherkubernetesengine: RKE
-      softlayer: SoftLayer
-      tencenttke: Tencent TKE
-      upcloud: UpCloud
-      vmwarevsphere: vSphere
-      zstack: ZStack
   provider:
-    aks: Azure AKS
+    aliyun: Alibaba ACK
+    aliyunecs: Aliyun ECS
+    amazonec2: Amazon EC2
+    amazoneks: Amazon EKS
+    azure: Azure
+    azureaks: Azure AKS
+    baidu: Baidu CCE
+    cloudca: Cloud.ca
+    custom: Custom
+    digitalocean: DigitalOcean
     docker: Docker
-    eks: Amazon EKS
-    gke: Google GKE
+    exoscale: Exoscale
+    googlegke: Google GKE
+    huaweicce: Huawei CCE
     k3s: K3s
     kubeAdmin: KubeADM
+    linode: Linode
     minikube: Minikube
+    oci: Oracle Cloud Infrastructure
+    openstack: OpenStack
+    oracleoke: Oracle OKE
+    otc: Open Telekom Cloud
     other: Other
-    rke: RKE
+    packet: Packet
+    pinganyunecs: Pinganyun ECS
+    rackspace: RackSpace
+    rancherkubernetesengine: RKE
     rke2: RKE Government
+    rke: RKE
     rkeWindows: Windows
+    softlayer: SoftLayer
+    tencenttke: Tencent TKE
+    upcloud: UpCloud
+    vmwarevsphere: vSphere
+    zstack: ZStack
+  credential:
+    label: Cloud Credential
+  kubernetesVersion:
+    label: Kubernetes Version
 
 clusterIndexPage:
   hardwareResourceGauge:

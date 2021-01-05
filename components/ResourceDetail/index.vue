@@ -13,7 +13,7 @@ import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
 import Vue from 'vue';
 import isEqual from 'lodash/isEqual';
-import { clone } from '@/utils/object';
+import { clone, set } from '@/utils/object';
 
 function modeFor(route) {
   if ( route.params.id ) {
@@ -144,15 +144,15 @@ export default {
 
     // Ensure labels & annotations exists, since lots of things need them
     if ( !model.metadata ) {
-      Vue.set(model, 'metadata', {});
+      set(model, 'metadata', {});
     }
 
     if ( !model.metadata.annotations ) {
-      Vue.set(model, 'metadata.annotations', {});
+      set(model, 'metadata.annotations', {});
     }
 
     if ( !model.metadata.labels ) {
-      Vue.set(model, 'metadata.labels', {});
+      set(model, 'metadata.labels', {});
     }
 
     const out = {

@@ -10,7 +10,7 @@ import { mapGetters } from 'vuex';
 import { stringify } from '@/utils/error';
 import CruResourceFooter from '@/components/CruResourceFooter';
 import {
-  _EDIT, _VIEW, AS, _YAML, _UNFLAG
+  _EDIT, _VIEW, AS, _YAML, _UNFLAG, SUB_TYPE
 } from '@/config/query-params';
 import { BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
 
@@ -113,20 +113,32 @@ export default {
       return this.mode === _EDIT;
     },
 
-    showSubtypeSelection() {
-      const { selectedSubtype, subtypes } = this;
+    _selectedSubtype() {
+      if ( this.selectedSubtype ) {
+        return this.selectedSubtype;
+      }
 
-      if (isEmpty(subtypes)) {
+      return this.$route.query[SUB_TYPE];
+    },
+
+    showSubtypeSelection() {
+      if (isEmpty(this.subtypes)) {
         return false;
       }
 
-      if (!selectedSubtype) {
+      if (!this._selectedSubtype) {
         return true;
       }
 
       return false;
     },
     ...mapGetters({ t: 'i18n/t' })
+  },
+
+  created() {
+    if ( this._selectedSubtype ) {
+      this.$emit('select-type', this._selectedSubtype);
+    }
   },
 
   methods: {
@@ -178,6 +190,8 @@ export default {
       if (event?.srcElement?.tagName === 'A') {
         return;
       }
+
+      this.$router.applyQuery({ [SUB_TYPE]: id });
       this.$emit('select-type', id);
     }
   }
@@ -196,7 +210,7 @@ export default {
             v-for="subtype in subtypes"
             :key="subtype.id"
             class="subtype-banner"
-            :class="{ selected: subtype.id === selectedSubtype }"
+            :class="{ selected: subtype.id === _selectedSubtype }"
             @click="selectType(subtype.id, $event)"
           >
             <slot name="subtype-content">
@@ -245,7 +259,7 @@ export default {
       </div>
       <template v-if="showAsForm">
         <div
-          v-if="selectedSubtype || !subtypes.length"
+          v-if="_selectedSubtype || !subtypes.length"
           class="resource-container"
         >
           <slot />
@@ -261,7 +275,7 @@ export default {
               <template #default>
                 <div v-if="!isView">
                   <button
-                    v-if="canYaml && (selectedSubtype || !subtypes.length)"
+                    v-if="canYaml && (_selectedSubtype || !subtypes.length)"
                     type="button"
                     class="btn role-secondary"
                     @click="showPreviewYaml"
@@ -327,7 +341,7 @@ export default {
                         <t k="resourceYaml.buttons.diff" />
                       </button>
                     </div>
-                    <div v-if="selectedSubtype || !subtypes.length" class="controls-right">
+                    <div v-if="_selectedSubtype || !subtypes.length" class="controls-right">
                       <button type="button" class="btn role-secondary" @click="checkCancel(false)">
                         <t k="cruResource.backToForm" />
                       </button>
