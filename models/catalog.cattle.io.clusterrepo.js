@@ -114,11 +114,7 @@ export default {
     const name = this.metadata?.name;
     const key = `catalog.repo.name."${ name }"`;
 
-    if ( this.$rootGetters['i18n/exists'](key) ) {
-      return this.$rootGetters['i18n/t'](key);
-    }
-
-    return name;
+    return this.$rootGetters['i18n/withFallback'](key, null, name);
   },
 
   urlDisplay() {

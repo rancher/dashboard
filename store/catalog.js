@@ -392,6 +392,7 @@ function addChart(ctx, map, chart, repo) {
       sideLabel,
       repoType,
       repoName,
+      repoNameDisplay:  ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${repoName}"`, null, repoName),
       certifiedSort:    CERTIFIED_SORTS[certified] || 99,
       icon:             chart.icon,
       color:            repo.color,
