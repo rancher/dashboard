@@ -442,7 +442,7 @@ clusterIndexPage:
     consumption: "{suffix} {total} {units} 中的 {useful}"
     coresReserved: CPU 预留
     coresUsed: CPU 使用
-    podsReserved: Pods 预留
+    podsUsed: Pods 预留
     ramReserved: Memory 预留
     ramUsed: Memory 使用
   header: 集群仪表盘
