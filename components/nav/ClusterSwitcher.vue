@@ -63,6 +63,7 @@ export default {
       ref="select"
       key="cluster"
       v-model="value"
+      :append-to-body="false"
       :searchable="true"
       :selectable="(option) => option.ready"
       :clearable="false"
@@ -137,7 +138,7 @@ export default {
     .dropdown-option {
       display: grid;
       width: 100%;
-      grid-template-columns: 35% fit-content(100%);
+      grid-template-columns: 25px fit-content(100%);
     }
   }
 
