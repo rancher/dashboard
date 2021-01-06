@@ -16,6 +16,7 @@ import CruResource from '@/components/CruResource';
 import Banner from '@/components/Banner';
 import Labels from '@/components/form/Labels';
 import { clone } from '@/utils/object';
+import RelatedResources from '@/components/RelatedResources';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -42,6 +43,7 @@ export default {
     LabeledInput,
     NameNsDescription,
     RadioGroup,
+    RelatedResources,
     ServicePorts,
     Tab,
     Tabbed,
@@ -73,6 +75,11 @@ export default {
   },
 
   computed: {
+    showSelectorWarning() {
+      const selector = this.value.spec?.selector;
+
+      return !!isEmpty(selector);
+    },
     serviceType: {
       get() {
         const serviceType = this.value?.spec?.type;
@@ -205,23 +212,26 @@ export default {
     <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
 
     <Tabbed :side-tabs="true">
+      <Tab v-if="isView" name="resources" :label="t('catalog.app.section.resources')" :weight="-99">
+        <RelatedResources :value="value" />
+      </Tab>
       <Tab
         v-if="checkTypeIs('ExternalName')"
         name="define-external-name"
         :label="t('servicesPage.externalName.define')"
+        :tooltip="t('servicesPage.externalName.helpText')"
       >
-        <div class="clearfix">
-          <Banner color="info" :label="t('servicesPage.externalName.helpText')" />
-        </div>
         <div class="row mt-10">
           <div class="col span-6">
             <span v-if="isView">{{ value.spec.externalName }}</span>
-            <input
+            <LabeledInput
               v-else
               ref="external-name"
               v-model.number="value.spec.externalName"
-              type="text"
+              :mode="mode"
+              :label="t('servicesPage.externalName.input.label')"
               :placeholder="t('servicesPage.externalName.placeholder')"
+              type="text"
             />
           </div>
         </div>
@@ -242,7 +252,7 @@ export default {
       >
         <div class="row">
           <div class="col span-12">
-            <Banner color="info" :label="t('servicesPage.selectors.helpText')" />
+            <Banner v-if="showSelectorWarning" color="warning" :label="t('servicesPage.selectors.helpText')" />
           </div>
         </div>
         <div class="row">
@@ -258,7 +268,7 @@ export default {
           </div>
         </div>
       </Tab>
-      <Tab name="ips" :label="t('servicesPage.ips.label')">
+      <Tab name="ips" :label="t('servicesPage.ips.label')" :tooltip="t('servicesPage.ips.external.protip')">
         <div
           v-if="hasClusterIp"
           class="row mb-20"
@@ -280,10 +290,10 @@ export default {
             <ArrayList
               key="clusterExternalIpAddresses"
               v-model="value.spec.externalIPs"
-              :title="t('servicesPage.ips.external.label')"
+              :title="hasClusterIp ? t('servicesPage.ips.external.label') : ''"
               :value-placeholder="t('servicesPage.ips.external.placeholder')"
               :mode="mode"
-              :protip="t('servicesPage.ips.external.protip')"
+              :protip="false"
               @input="e=>$set(value.spec, 'externalIPs', e)"
             />
           </div>
@@ -293,10 +303,8 @@ export default {
         v-if="!checkTypeIs('ExternalName') && !checkTypeIs('Headless')"
         name="session-affinity"
         :label="t('servicesPage.affinity.label')"
+        :tooltip="t('servicesPage.affinity.helpText')"
       >
-        <div class="col span-12">
-          <Banner color="info" :label="t('servicesPage.affinity.helpText')" />
-        </div>
         <div class="row session-affinity">
           <div class="col span-6">
             <RadioGroup

@@ -809,7 +809,7 @@ logging:
     scheme: Scheme
     port: Port
     indexName: Index Name
-    user: User 
+    user: User
     password: Password from Secret
     caFile:
       label: CA File from Secret
@@ -1186,7 +1186,7 @@ node:
     tab:
       conditions: Conditions
       images: Images
-      info: 
+      info:
         label: Info
         key:
           architecture: Architecture
@@ -1526,6 +1526,8 @@ servicesPage:
     helpText: "External Name is intended to specify a canonical DNS name. This is a required field. To hardcode an IP address, use a Headless service."
     label: External Name
     placeholder: e.g. my.database.example.com
+    input:
+      label: DNS Name
   ips:
     define: Service Ports
     clusterIpHelpText: The Cluster IP address must be within the CIDR range configured for the API server.
@@ -1536,7 +1538,7 @@ servicesPage:
     input:
       label: Cluster IP
       placeholder: e.g. 10.43.xxx.xxx
-    label: Listener IPs
+    label: IP Addresses
   selectors:
     helpText: "If no selector is created, manual endpoints must be made."
     label: Selectors

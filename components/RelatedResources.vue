@@ -140,6 +140,7 @@ export default {
     async getRealResources(rows) {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
+      debugger;
       const res = await Promise.allSettled(rows.map((row) => {
         return this.$store.dispatch(`${ inStore }/find`, { type: row.type, id: row.id });
       }));
