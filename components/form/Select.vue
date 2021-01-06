@@ -4,6 +4,7 @@ import { get } from '@/utils/object';
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
+import $ from 'jquery';
 
 export default {
   components: { LabeledTooltip },
