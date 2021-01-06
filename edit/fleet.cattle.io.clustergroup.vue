@@ -38,7 +38,12 @@ export default {
       };
     }
 
-    this.updateMatchingClusters();
+    const expressions = convert(
+      this.value.spec.selector.matchLabels || {},
+      this.value.spec.selector.matchExpressions || []
+    );
+
+    this.matchChanged(expressions);
   },
 
   data() {
@@ -46,10 +51,7 @@ export default {
       allClusters:      null,
       allWorkspaces:    null,
       matchingClusters: null,
-      expressions:      [
-        ...convert(this.value.spec.selector.matchLabels || {}),
-        ...(this.value.spec.selector.matchExpressions || []),
-      ],
+      expressions:      null,
     };
   },
 
