@@ -136,7 +136,7 @@ export default {
       :initial-empty-row="!isView"
       :mode="mode"
       type=""
-      :value="value.spec.selector.matchExpressions"
+      :value="expressions"
       :show-remove="false"
       @input="matchChanged($event)"
     />
