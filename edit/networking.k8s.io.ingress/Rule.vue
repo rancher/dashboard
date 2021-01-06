@@ -71,7 +71,7 @@ export default {
 </script>
 
 <template>
-  <div class="rule" @input="update">
+  <div class="rule">
     <div class="row mb-20">
       <div id="host" class="col span-6">
         <LabeledInput
@@ -79,6 +79,7 @@ export default {
           v-model="host"
           :label="t('ingress.rules.requestHost.label')"
           :placeholder="t('ingress.rules.requestHost.placeholder')"
+          @input="update"
         />
       </div>
       <div id="host" class="col span-5"></div>
@@ -105,6 +106,7 @@ export default {
         :service-targets="serviceTargets"
         :ingress="ingress"
         @remove="(e) => removePath(i)"
+        @input="update"
       />
     </template>
     <button

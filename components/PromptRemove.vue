@@ -1,7 +1,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@/utils/object';
-import { NAMESPACE, RIO } from '@/config/types';
+import { NAMESPACE, NODE, RIO } from '@/config/types';
 import Card from '@/components/Card';
 import { alternateLabel } from '@/utils/platform';
 import LinkDetail from '@/components/formatter/LinkDetail';
@@ -56,7 +56,7 @@ export default {
       }
       const type = first.type;
 
-      return (type === NAMESPACE || type === RIO.STACK) && this.toRemove.length === 1;
+      return (type === NAMESPACE || type === NODE || type === RIO.STACK) && this.toRemove.length === 1;
     },
 
     plusMore() {
@@ -237,7 +237,7 @@ export default {
     name="promptRemove"
     :width="350"
     height="auto"
-    styles="background-color: var(--nav-bg); border-radius: var(--border-radius); max-height: 100vh;"
+    styles="max-height: 100vh;"
   >
     <Card class="prompt-remove" :show-highlight-border="false">
       <h4 slot="title" class="text-default-text">
@@ -276,6 +276,9 @@ export default {
 
 <style lang='scss'>
   .prompt-remove {
+    &.card-container {
+      box-shadow: none;
+    }
     #confirm {
       width: 90%;
       margin-left: 3px;
@@ -293,10 +296,9 @@ export default {
     .actions {
       text-align: right;
     }
-
     .card-actions {
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
     }
   }
 </style>

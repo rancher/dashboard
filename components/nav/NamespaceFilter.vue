@@ -204,8 +204,8 @@ export default {
 
         const last = neu[neu.length - 1];
         const lastIsSpecial = last?.kind === 'special';
-        const hadUser = old.find(x => x.id === 'all://user');
-        const hadAll = old.find(x => x.id === 'all');
+        const hadUser = !!old.find(x => x.id === 'all://user');
+        const hadAll = !!old.find(x => x.id === 'all');
 
         if (lastIsSpecial) {
           neu = [last];
@@ -229,7 +229,9 @@ export default {
           ids = neu.map(x => x.id);
         }
 
-        this.$store.dispatch('switchNamespaces', ids);
+        this.$nextTick(() => {
+          this.$store.dispatch('switchNamespaces', ids);
+        });
       },
     },
 

@@ -9,42 +9,42 @@ export const RECEIVERS_TYPES = [
     label: 'Slack',
     title: 'Slack Config',
     key:   'slack_configs',
-    logo:  require(`~/assets/images/icon-slack.svg`)
+    logo:  require(`~/assets/images/vendor/slack.svg`)
   },
   {
     name:  'email',
     label: 'Email',
     title: 'Email Config',
     key:   'email_configs',
-    logo:  require(`~/assets/images/icon-email.svg`)
+    logo:  require(`~/assets/images/vendor/email.svg`)
   },
   {
     name:  'pagerduty',
     label: 'PagerDuty',
     title: 'PagerDuty Config',
     key:   'pagerduty_configs',
-    logo:  require(`~/assets/images/icon-email.svg`)
+    logo:  require(`~/assets/images/vendor/pagerduty.svg`)
   },
   {
     name:  'opsgenie',
-    label: 'OpsGenie',
-    title: 'OpsGenie Config',
+    label: 'Opsgenie',
+    title: 'Opsgenie Config',
     key:   'opsgenie_configs',
-    logo:  require(`~/assets/images/icon-email.svg`)
+    logo:  require(`~/assets/images/vendor/email.svg`)
   },
   {
     name:  'webhook',
     label: 'Webhook',
     title: 'Webhook Config',
     key:   'webhook_configs',
-    logo:  require(`~/assets/images/icon-webhook.svg`)
+    logo:  require(`~/assets/images/vendor/webhook.svg`)
   },
   {
     name:  'custom',
     label: 'Custom',
     title: 'Custom Config',
     key:   'webhook_configs',
-    logo:  require(`~/assets/images/icon-custom.svg`)
+    logo:  require(`~/assets/images/vendor/custom.svg`)
   },
 ];
 

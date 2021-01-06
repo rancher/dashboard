@@ -61,7 +61,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.loki.username')"
+          :secret-name-label="t('logging.loki.username')"
           :show-key-selector="true"
         />
       </div>
@@ -71,7 +71,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.loki.password')"
+          :secret-name-label="t('logging.loki.password')"
           :show-key-selector="true"
         />
       </div>
@@ -89,17 +89,17 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.loki.caCert')"
+          :secret-name-label="t('logging.loki.caCert')"
           :show-key-selector="true"
         />
       </div>
-      <div class="col span-6">
+      <div class="col span-6 mb-10">
         <SecretSelector
           v-model="value.cert"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.loki.cert')"
+          :secret-name-label="t('logging.loki.cert')"
           :show-key-selector="true"
         />
       </div>
@@ -111,7 +111,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.loki.key')"
+          :secret-name-label="t('logging.loki.key')"
           :show-key-selector="true"
         />
       </div>

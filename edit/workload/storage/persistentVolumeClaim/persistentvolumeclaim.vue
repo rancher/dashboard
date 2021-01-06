@@ -50,6 +50,8 @@ export default {
       this.$set(this.value, 'metadata', {});
     }
 
+    this.$set(this.value.spec, 'accessModes', this.value.spec.accessModes || []);
+
     return {
       storageClasses: [], persistentVolumes: [], createPV: true, spec
     };

@@ -5,13 +5,15 @@ import LabeledInput from '@/components/form/LabeledInput';
 import UnitInput from '@/components/form/UnitInput';
 import Banner from '@/components/Banner';
 import Loading from '@/components/Loading';
-import { CIS, CONFIG_MAP, ENDPOINTS } from '@/config/types';
+import { CIS, CONFIG_MAP } from '@/config/types';
 import { mapGetters } from 'vuex';
 import createEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
 import Checkbox from '@/components/form/Checkbox';
 import RadioGroup from '@/components/form/RadioGroup';
 import { get } from '@/utils/object';
+import { _VIEW, _CREATE } from '@/config/query-params';
+import { isValidCron } from 'cron-validator';
 
 const semver = require('semver');
 
@@ -42,18 +44,21 @@ export default {
     });
 
     try {
-      await this.$store.dispatch('cluster/find', { type: ENDPOINTS, id: 'cattle-monitoring-system/rancher-monitoring-alertmanager' });
-
-      this.hasAlertManager = true;
-    } catch {
-      this.hasAlertManager = false;
-    }
-
-    try {
       this.defaultConfigMap = await this.$store.dispatch('cluster/find', { type: CONFIG_MAP, id: 'cis-operator-system/default-clusterscanprofiles' });
     } catch {}
 
     this.allProfiles = hash.profiles;
+    const { scanProfileName } = this.value.spec;
+
+    // if mode is _CREATE and scanProfileName is defined, this is a clone
+    // check if the profile referred to in the original spec still exists
+    if (scanProfileName && this.mode === _CREATE) {
+      const proxyObj = this.allProfiles.filter(profile => profile.id === scanProfileName)[0];
+
+      if (!proxyObj) {
+        this.$set(this.value.spec, 'scanProfileName', '');
+      }
+    }
   },
 
   data() {
@@ -61,7 +66,10 @@ export default {
       this.value.metadata.generateName = 'scan-';
     }
     if (!this.value.spec.scheduledScanConfig) {
-      this.$set(this.value.spec, 'scheduledScanConfig', { });
+      this.$set(this.value.spec, 'scheduledScanConfig', { scanAlertRule: {} });
+    }
+    if (!this.value.spec.scheduledScanConfig.scanAlertRule) {
+      this.$set(this.value.spec.scheduledScanConfig, 'scanAlertRule', { });
     }
     const isScheduled = !!get(this.value, 'spec.scheduledScanConfig.cronSchedule');
 
@@ -79,6 +87,13 @@ export default {
     ...mapGetters({ currentCluster: 'currentCluster', t: 'i18n/t' }),
 
     canBeScheduled() {
+      // check if scan was created and run with an older cis install that doesn't support scheduling/alerting/warn state
+      if (this.mode === _VIEW) {
+        const warn = get(this.value, 'status.summary.warn');
+
+        return !!warn || warn === 0;
+      }
+
       return this.value.canBeScheduled();
     },
 
@@ -100,10 +115,35 @@ export default {
         const profiles = this.defaultConfigMap.data;
         const provider = this.currentCluster.status.provider;
 
-        const name = profiles[provider] || profiles.default;
+        let name = profiles[provider] || profiles.default;
 
+        if (name.includes(':')) {
+          const pairs = name.split('\n');
+          const clusterVersion = this.currentCluster.kubernetesVersion;
+
+          pairs.forEach((pair) => {
+            const version = (pair.match(/[<>=]+[-._a-zA-Z0-9]+/) || [])[0];
+
+            if (semver.satisfies(clusterVersion, version)) {
+              name = pair.replace(/[<>=]+[-._a-zA-Z0-9]+: /, '');
+            }
+          });
+        }
         if (name) {
-          return this.allProfiles.find(profile => profile.id === name);
+          const profile = this.allProfiles.find(profile => profile.id === name);
+          const benchmarkVersion = profile?.spec?.benchmarkVersion;
+          const benchmark = this.$store.getters['cluster/byId'](CIS.BENCHMARK, benchmarkVersion);
+
+          if (this.validateBenchmark(benchmark, this.currentCluster )) {
+            return profile;
+          }
+        }
+        const cis16 = this.validProfiles.find(profile => profile.value === 'cis-1.6-profile');
+
+        if (cis16) {
+          return this.allProfiles.find(profile => profile.id === 'cis-1.6-profile');
+        } else {
+          return this.allProfiles.find(profile => profile.id === 'cis-1.5-profile');
         }
       }
 
@@ -119,18 +159,29 @@ export default {
 
     validated() {
       if (this.isScheduled) {
-        if (!get(this.value, 'spec.scheduledScanConfig.cronSchedule')) {
+        const schedule = get(this.value, 'spec.scheduledScanConfig.cronSchedule');
+
+        if (!schedule) {
           return false;
+        } else {
+          return isValidCron(schedule) && !!this.value.spec.scanProfileName;
         }
       }
 
       return !!this.value.spec.scanProfileName;
     }
+
   },
 
   watch: {
     defaultProfile(neu) {
       if (neu && !this.value.spec.scanProfileName) {
+        const benchmarkVersion = neu?.spec?.benchmarkVersion;
+        const benchmark = this.$store.getters['cluster/byId'](CIS.BENCHMARK, benchmarkVersion);
+
+        if (!this.validateBenchmark(benchmark, this.currentCluster)) {
+          return;
+        }
         this.value.spec.scanProfileName = neu?.id;
       }
     },
@@ -141,7 +192,9 @@ export default {
       const clusterVersion = currentCluster.kubernetesVersion;
 
       if (!!benchmark?.spec?.clusterProvider) {
-        return benchmark?.spec?.clusterProvider === currentCluster.status.provider;
+        if ( benchmark?.spec?.clusterProvider !== currentCluster.status.provider) {
+          return false;
+        }
       }
       if (benchmark?.spec?.minKubernetesVersion) {
         if (semver.gt(benchmark?.spec?.minKubernetesVersion, clusterVersion)) {
@@ -226,7 +279,6 @@ export default {
           <div class="row mb-20">
             <div class="col span-12">
               <Banner v-if="scanAlertRule.alertOnFailure || scanAlertRule.alertOnComplete" class="mt-0" :color="hasAlertManager ? 'info' : 'warning'">
-                <span v-if="!hasAlertManager" v-html="t('cis.alertNotFound')" />
                 <span v-html="t('cis.alertNeeded', {link: monitoringUrl}, true)" />
               </banner>
               <Checkbox v-model="scanAlertRule.alertOnComplete" :mode="mode" :label="t('cis.alertOnComplete')" />

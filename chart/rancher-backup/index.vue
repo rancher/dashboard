@@ -72,9 +72,11 @@ export default {
       return this.storageClasses.filter(sc => sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] && sc.metadata.annotations[STORAGE.DEFAULT_STORAGE_CLASS] !== 'false' )[0] || '';
     },
 
-    unboundPVs() {
+    availablePVs() {
       return this.persistentVolumes.filter((total, each) => {
-        return each?.status?.phase !== 'bound';
+        const rwx = (each?.spec?.accessModes || []).includes('ReadWriteMany');
+
+        return each?.status?.phase !== 'bound' || rwx ;
       });
     },
 
@@ -199,7 +201,7 @@ export default {
               :tooltip="reclaimWarning ? t('backupRestoreOperator.deployment.storage.warning', {type: 'Persistent Volume'}) : null"
               :mode="mode"
               :status="reclaimWarning ? 'warning' : null"
-              :options="unboundPVs"
+              :options="availablePVs"
               :hover-tooltip="true"
             />
           </div>

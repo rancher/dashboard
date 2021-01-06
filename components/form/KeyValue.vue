@@ -465,6 +465,10 @@ export default {
     grid-template-columns: auto 1fr;
     column-gap: 20px;
 
+    label {
+      margin-bottom: 0;
+    }
+
     &.extra-column {
        grid-template-columns: 1fr 1fr 100px;
     }

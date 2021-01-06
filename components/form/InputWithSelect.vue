@@ -229,14 +229,6 @@ export default {
       margin-right: 1px; // push the input box right so the full focus outline of the select can be seen, z-index borks
       // position: relative;
 
-      .v-select {
-        // position: absolute;
-        // top: 0;
-        // right: 0;
-        // left: 0;
-        // bottom: 0;
-      }
-
       .vs__selected {
         color: var(--input-text);
       }

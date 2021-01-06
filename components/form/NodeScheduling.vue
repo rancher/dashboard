@@ -84,7 +84,7 @@ export default {
 
 <template>
   <div>
-    <div class="row">
+    <div class="row mb-20">
       <RadioGroup
         v-model="selectNode"
         name="selectNode"

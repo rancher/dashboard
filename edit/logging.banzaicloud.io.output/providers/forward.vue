@@ -1,6 +1,7 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import SecretSelector from '@/components/form/SecretSelector';
+import { updatePort } from './utils';
 
 export default {
   components: { LabeledInput, SecretSelector },
@@ -30,7 +31,7 @@ export default {
         return this.value.servers[0].port;
       },
       set(port) {
-        this.$set(this.value.servers[0], 'port', Number.parseInt(port));
+        updatePort(value => this.$set(this.value.servers[0], 'port', value), port);
       }
     }
   }
@@ -49,7 +50,15 @@ export default {
         <LabeledInput v-model="value.servers[0].host" :mode="mode" :disabled="disabled" :label="t('logging.forward.host')" />
       </div>
       <div class="col span-2">
-        <LabeledInput v-model="port" :mode="mode" :disabled="disabled" type="number" :label="t('logging.forward.port')" />
+        <LabeledInput
+          v-model="port"
+          :mode="mode"
+          :disabled="disabled"
+          type="number"
+          min="1"
+          max="65535"
+          :label="t('logging.forward.port')"
+        />
       </div>
     </div>
     <div class="spacer"></div>
@@ -65,7 +74,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.username')"
+          :secret-name-label="t('logging.forward.username')"
           :show-key-selector="true"
         />
       </div>
@@ -75,7 +84,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.password')"
+          :secret-name-label="t('logging.forward.password')"
           :show-key-selector="true"
         />
       </div>
@@ -87,7 +96,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.sharedKey')"
+          :secret-name-label="t('logging.forward.sharedKey')"
           :show-key-selector="true"
         />
       </div>
@@ -105,7 +114,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.clientCertPath')"
+          :secret-name-label="t('logging.forward.clientCertPath')"
           :show-key-selector="true"
         />
       </div>
@@ -115,19 +124,19 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.clientPrivateKeyPath')"
+          :secret-name-label="t('logging.forward.clientPrivateKeyPath')"
           :show-key-selector="true"
         />
       </div>
     </div>
-    <div class="row">
+    <div class="row mt-10">
       <div class="col span-6">
         <SecretSelector
           v-model="value.tls_client_private_key_passphrase"
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.forward.clientPrivateKeyPassphrase')"
+          :secret-name-label="t('logging.forward.clientPrivateKeyPassphrase')"
           :show-key-selector="true"
         />
       </div>

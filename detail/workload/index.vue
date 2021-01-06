@@ -8,6 +8,7 @@ import Loading from '@/components/Loading';
 import ResourceTabs from '@/components/form/ResourceTabs';
 import CountGauge from '@/components/CountGauge';
 import { allHash } from '@/utils/promise';
+import { get } from '@/utils/object';
 
 export default {
   components: {
@@ -21,14 +22,7 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    const hash = {
-      pods: this.value.pods(),
-      //      secrets: this.$store.dispatch('cluster/findAll', { type: SECRET }),  This doesn't seem to be used for anything?  And isn't always available.
-    };
-
-    if ( this.value.type === WORKLOAD_TYPES.CRON_JOB ) {
-      hash.allJobs = this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
-    }
+    const hash = { pods: this.value.pods() };
 
     const res = await allHash(hash);
 
@@ -38,11 +32,7 @@ export default {
   },
 
   data() {
-    return {
-      pods:    null,
-      allJobs: null,
-      //      secrets: null,
-    };
+    return { pods: null };
   },
 
   computed:   {
@@ -72,12 +62,20 @@ export default {
       return this.podTemplateSpec?.containers[0];
     },
 
+    jobEntries() {
+      if (this.value.type !== WORKLOAD_TYPES.CRON_JOB) {
+        return;
+      }
+
+      return get(this.value, 'status.active') || [];
+    },
+
     jobs() {
       if (this.value.type !== WORKLOAD_TYPES.CRON_JOB) {
         return;
       }
 
-      const entries = this.value?.status?.active || [];
+      const entries = this.jobEntries;
 
       return entries.map((obj) => {
         return this.$store.getters['cluster/byId'](WORKLOAD_TYPES.JOB, `${ obj.namespace }/${ obj.name }`);
@@ -185,7 +183,7 @@ export default {
     <h3>
       {{ isJob || isCronJob ? t('workload.detailTop.runs') :t('workload.detailTop.pods') }}
     </h3>
-    <div v-if="pods" class="gauges mb-20">
+    <div v-if="pods || jobGauges" class="gauges mb-20">
       <template v-if="jobGauges">
         <CountGauge
           v-for="(group, key) in jobGauges"

@@ -294,7 +294,7 @@ export default {
               </div>
             </div>
             <div v-if="needsDockerServer" class="row mb-20">
-              <LabeledInput v-model="registryURL" :label="t('secret.registry.domainName')" placeholder="e.g. index.docker.io" :mode="mode" />
+              <LabeledInput v-model="registryURL" required :label="t('secret.registry.domainName')" placeholder="e.g. index.docker.io" :mode="mode" />
             </div>
             <div class="row mb-20">
               <div class="col span-6">
@@ -311,6 +311,7 @@ export default {
               <div class="col span-6">
                 <LabeledInput
                   v-model="key"
+                  required
                   type="multiline"
                   :label="t('secret.certificate.privateKey')"
                   :mode="mode"
@@ -319,7 +320,14 @@ export default {
                 <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onKeySelected" />
               </div>
               <div class="col span-6">
-                <LabeledInput v-model="crt" type="multiline" :label="t('secret.certificate.certificate')" :mode="mode" placeholder="Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----" />
+                <LabeledInput
+                  v-model="crt"
+                  required
+                  type="multiline"
+                  :label="t('secret.certificate.certificate')"
+                  :mode="mode"
+                  placeholder="Paste in the CA certificate, starting with -----BEGIN CERTIFICATE----"
+                />
                 <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onCrtSelected" />
               </div>
             </div>
@@ -328,7 +336,7 @@ export default {
           <template v-else-if="isBasicAuth">
             <div class="row mb-20">
               <div class="col span-6">
-                <LabeledInput v-model="username" :label="t('secret.basic.username')" :mode="mode" />
+                <LabeledInput v-model="username" required :label="t('secret.basic.username')" :mode="mode" />
               </div>
               <div class="col span-6">
                 <LabeledInput v-model="password" :label="t('secret.basic.password')" :mode="mode" type="password" />
@@ -344,6 +352,7 @@ export default {
                   type="multiline"
                   :label="t('secret.ssh.public')"
                   :mode="mode"
+                  required
                   placeholder="Paste in your public key"
                 />
                 <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onUsernameSelected" />
@@ -354,6 +363,7 @@ export default {
                   type="multiline"
                   :label="t('secret.ssh.private')"
                   :mode="mode"
+                  required
                   placeholder="Paste in your private key"
                 />
                 <FileSelector class="btn btn-sm bg-primary mt-10" :label="t('generic.readFromFile')" @selected="onPasswordSelected" />

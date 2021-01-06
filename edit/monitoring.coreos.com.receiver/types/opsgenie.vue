@@ -178,8 +178,14 @@ export default {
       width: 100%;
     }
 
-    .target ::v-deep .unlabeled-select {
-      min-width: 35%;
+    .target ::v-deep {
+      & .input-container {
+        height: $input-height;
+      }
+
+      & .unlabeled-select {
+        min-width: 35%;
+      }
     }
   }
 </style>

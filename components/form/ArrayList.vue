@@ -262,7 +262,7 @@ export default {
           </div>
         </slot>
         <div v-if="showRemove" class="remove">
-          <slot name="remove-button" :remove="() => remove(idx)">
+          <slot name="remove-button" :remove="() => remove(idx)" i="idx">
             <button type="button" :disabled="isView" class="btn role-link" @click="remove(idx)">
               {{ removeLabel }}
             </button>
@@ -295,8 +295,10 @@ export default {
   }
 
   .box {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto #{$remove}px;
     align-items: center;
+
     margin-bottom: 10px;
     .value {
       flex: 1;
@@ -307,9 +309,7 @@ export default {
   }
 
   .remove {
-    vertical-align: middle;
     text-align: right;
-    width: #{$remove}px;
   }
 
   .footer {

@@ -27,6 +27,7 @@ export default {
       default: 'create'
     }
   },
+
   data() {
     const {
       failedJobsHistoryLimit, successfulJobsHistoryLimit, suspend = false, schedule,
@@ -57,12 +58,14 @@ export default {
       };
     }
   },
+
   computed: {
     isCronJob() {
       return this.type === WORKLOAD_TYPES.CRON_JOB;
     },
     ...mapGetters({ t: 'i18n/t' })
   },
+
   methods: {
     update() {
       if (this.type === WORKLOAD_TYPES.JOB) {
@@ -87,21 +90,23 @@ export default {
           suspend:                    this.suspend,
           concurrencyPolicy:          this.concurrencyPolicy,
           startingDeadlineSeconds:    this.startingDeadlineSeconds,
-          jobTemplate:                {
-            ...this.value.jobTemplate,
-            completions:           this.completions,
-            parallelism:           this.parallelism,
-            backoffLimit:          this.backoffLimit,
-            activeDeadlineSeconds: this.activeDeadlineSeconds,
-
-          }
+          jobTemplate:                { ...this.value.jobTemplate }
         };
+        const jobSpec = {
+          completions:           this.completions,
+          parallelism:           this.parallelism,
+          backoffLimit:          this.backoffLimit,
+          activeDeadlineSeconds: this.activeDeadlineSeconds
+        };
+
+        Object.assign(spec.jobTemplate.spec, jobSpec );
 
         spec.jobTemplate.spec.template.spec.terminationGracePeriodSeconds = this.terminationGracePeriodSeconds;
 
         this.$emit('input', spec);
       }
-    }
+    },
+
   }
 };
 </script>

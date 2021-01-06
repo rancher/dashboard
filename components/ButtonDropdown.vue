@@ -169,7 +169,7 @@ export default {
   }
 }
 .button-dropdown {
-  background: var(--tooltip-bg);
+  background: var(--accent-btn);
   border: solid 1px var(--link-text);
   color: var(--link-text);
   padding: 0;
@@ -216,7 +216,7 @@ export default {
 
       button {
         border: none;
-        background: var(--tooltip-bg);
+        background: transparent;
         color: var(--link-text);
       }
     }

@@ -30,5 +30,5 @@ export default {
 </script>
 
 <template>
-  <PercentageBarComponent :value="percentage" />
+  <PercentageBarComponent :value="percentage" :show-percentage="true" />
 </template>

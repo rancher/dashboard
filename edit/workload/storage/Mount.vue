@@ -104,7 +104,7 @@ export default {
       <div class="read-only">
         <Checkbox v-model="volumeMount.readOnly" :mode="mode" />
       </div>
-      <div>
+      <div class="remove">
         <button v-if="mode!=='view'" type="button" class="btn btn-sm role-link" @click="remove(volumeMount)">
           {{ t('generic.remove') }}
         </button>
@@ -121,12 +121,13 @@ export default {
 <style lang='scss'>
 .mount-headers, .mount-rows{
     display: grid;
-    grid-template-columns: 40% 40% 8% auto;
+    grid-template-columns: 35% 35% auto auto;
     grid-gap: $column-gutter;
     margin-bottom: 10px;
     align-items: center;
-    .read-only{
-        justify-self: center;
+
+    .remove {
+      text-align: right;
     }
 }
 

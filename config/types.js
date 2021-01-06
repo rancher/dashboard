@@ -115,6 +115,7 @@ export const LONGHORN = {
 // Rancher Management API (via Steve)
 // Base: /v1
 export const MANAGEMENT = {
+  AUTH_CONFIG:      'management.cattle.io.authconfig',
   CATALOG_TEMPLATE: 'management.cattle.io.catalogtemplate',
   CATALOG:          'management.cattle.io.catalog',
   CLUSTER:          'management.cattle.io.cluster',

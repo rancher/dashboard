@@ -71,8 +71,8 @@ export const OUTPUT = {
 };
 
 export const CONFIGURED_PROVIDERS = {
-  name:      'configuredProviders',
-  labelKey:  'tableHeaders.configuredProviders',
+  name:      'providers',
+  labelKey:  'tableHeaders.providers',
   value:     'providersDisplay',
   sort:      'providersSortable',
   formatter: 'List'
@@ -575,6 +575,13 @@ export const WORKSPACE = {
 };
 
 export const WORKLOAD_IMAGES = { ...POD_IMAGES, value: '' };
+
+export const WORKLOAD_ENDPOINTS = {
+  name:      'workloadEndpoints',
+  labelKey:  'tableHeaders.endpoints',
+  value:     'endpoints',
+  formatter: 'WorkloadEndpoints'
+};
 
 export const FLEET_SUMMARY = {
   name:      'summary',

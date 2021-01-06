@@ -1,17 +1,6 @@
 import { CATALOG } from '@/config/labels-annotations';
 import { FLEET } from '@/config/types';
-import { insertAt, findBy } from '@/utils/array';
-
-export const OS_LOGOS = [
-  {
-    id:   'linux',
-    logo:  require(`~/assets/images/logo-linux.svg`)
-  },
-  {
-    id:   'windows',
-    logo:  require(`~/assets/images/logo-windows.svg`)
-  },
-];
+import { insertAt } from '@/utils/array';
 
 export default {
   _availableActions() {
@@ -69,19 +58,16 @@ export default {
     };
   },
 
-  providerOSLogo() {
-    const providerOSOptions = OS_LOGOS;
-    const provider = this.status.provider || '';
-    let match = findBy(providerOSOptions, 'id', 'linux');
-    let { logo } = match;
-
-    if (provider === 'rke.windows') {
-      match = findBy(providerOSOptions, 'id', 'windows');
-
-      logo = match.logo;
+  providerOs() {
+    if ( this.status?.provider === 'rke.windows' ) {
+      return 'windows';
     }
 
-    return logo;
+    return 'linux';
+  },
+
+  providerOsLogo() {
+    return require(`~/assets/images/vendor/${ this.providerOs }.svg`);
   },
 
   scope() {

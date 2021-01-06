@@ -43,34 +43,46 @@ export function init(store) {
       sort:          ['status.lastRunScanProfileName'],
     },
     {
-      name:     'total',
-      labelKey: 'cis.scan.total',
-      value:    'status.summary.total',
+      name:        'total',
+      labelKey:    'cis.scan.total',
+      value:       'status.summary.total',
+      formatter: 'ScanResult'
+
     },
     {
-      name:     'pass',
-      value:    'status.summary.pass',
-      labelKey: 'cis.scan.pass',
+      name:        'pass',
+      value:       'status.summary.pass',
+      labelKey:    'cis.scan.pass',
+      formatter: 'ScanResult'
+
     },
     {
-      name:     'fail',
-      labelKey: 'cis.scan.fail',
-      value:    'status.summary.fail',
+      name:        'fail',
+      labelKey:    'cis.scan.fail',
+      value:       'status.summary.fail',
+      formatter: 'ScanResult'
+
     },
     {
-      name:     'warn',
-      labelKey: 'cis.scan.warn',
-      value:    'status.summary.warn',
+      name:        'warn',
+      labelKey:    'cis.scan.warn',
+      value:       'status.summary.warn',
+      formatter: 'ScanResult'
+
     },
     {
-      name:     'skip',
-      labelKey: 'cis.scan.skip',
-      value:    'status.summary.skip',
+      name:        'skip',
+      labelKey:    'cis.scan.skip',
+      value:       'status.summary.skip',
+      formatter: 'ScanResult'
+
     },
     {
-      name:     'notApplicable',
-      labelKey: 'cis.scan.notApplicable',
-      value:    'status.summary.notApplicable',
+      name:        'notApplicable',
+      labelKey:    'cis.scan.notApplicable',
+      value:       'status.summary.notApplicable',
+      formatter: 'ScanResult'
+
     },
     {
       name:          'nextScanAt',

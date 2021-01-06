@@ -66,6 +66,7 @@ nav:
 
 product:
   apps: Apps & Marketplace
+  auth: Users & Authentication
   backup: Rancher Backups
   cis: CIS Benchmark
   ecm: Cluster Manager
@@ -100,6 +101,54 @@ suffix:
 ##############################
 # Components & Pages
 ##############################
+authConfig:
+  accessMode:
+    label: Configure who should be able to login and use {vendor}
+    unrestricted: "Allow any valid user"
+    restricted: "Allow members of clusters and projects, plus authorized users & groups"
+    required: "Restrict access to only the auhorized users & groups"
+  allowedPrincipalIds:
+    title: Authorized Users & Groups
+  associatedWarning: "Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>)."
+  stateBanner:
+    enabled: "{provider} is currently enabled."
+    disabled: "{provider} is currently disabled."
+  github:
+    target:
+      label: Which version of GitHub do you want to use?
+      public: Public GitHub.com
+      private: A private installation of GitHub Enterprise
+    host:
+      label: GitHub Enterprise Host
+      placeholder: e.g. github.mycompany.example
+    clientId:
+      label: Client ID
+    clientSecret:
+      label: Client Secret
+    form:
+      prefix: |-
+        <li><a href="{baseUrl}/settings/developers" target="_blank" rel="noopener noreferrer nofollow">Click here</a> to go to GitHub application settings in a new window.</li>
+        <li>Click on the "OAuth Apps" tab.</li>
+        <li>Click the "New OAuth App" button.</li>
+      instruction: "Fill in the form with these values:"
+      app:
+        label: Application name
+        value: Anything you like, e.g. My {vendor}
+      homepage:
+        label: Homepage URL
+      description:
+        label: Description
+        value: Optional, can be left blank
+      calllback:
+        label: Authorization callback URL
+      suffix: |-
+        <li>Click "Register application"</li>
+        <li>Copy and paste the Client ID and Client Secret of your newly created OAuth app into the fields below</li>
+
+
+
+
+
 assignTo:
   title: |-
     {count, plural,
@@ -147,6 +196,10 @@ asyncButton:
     action:  'Enable'
     waiting: 'Enabling&hellip;'
     success: 'Enabled'
+  disable:
+    action:  'Disable'
+    waiting: 'Disabling&hellip;'
+    success: 'Disabled'
   download:
     action:  'Download'
     waiting: 'Downloading&hellip;'
@@ -202,7 +255,7 @@ backupRestoreOperator:
     restoretip: If the backup was performed with encryption enabled, a secret containing the same encryption-provider-config should be used during restore.
     options:
       none: Store the contents of the backup unencrypted
-      secret: Encrypt backups using an <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
+      secret: Encrypt backups using an <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
     warning: The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.
   deleteTimeout:
     label: Delete Timeout
@@ -307,6 +360,10 @@ catalog:
       readme: Helm README
       valuesYaml: Values YAML
     version: Version
+    versions:
+      current: '{ver} (current)'
+      linux: '{ver} (Linux-only)'
+      windows: '{ver} (Windows-only)'
   operation:
     tableHeaders:
       action: Action
@@ -339,8 +396,7 @@ chartHeading:
 
 cis:
   addTest: Add Test ID
-  alertNeeded: To receive alerts, please ensure <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
-  alertNotFound: "It looks like alerting isn't configured."
+  alertNeeded: Alerting must be enabled within the CIS chart values.yaml. This requires that <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener noreferrer nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
   alertOnComplete: Alert on scan completion
   alertOnFailure: Alert on scan failure
   benchmarkVersion: Benchmark Version
@@ -438,7 +494,7 @@ clusterIndexPage:
     consumption: "{useful} of {total} {units} {suffix}"
     coresReserved: Cores Reserved
     coresUsed: Cores Used
-    podsReserved: Pods Reserved
+    podsUsed: Pods Used
     ramReserved: Memory Reserved
     ramUsed: Memory Used
   header: Cluster Dashboard
@@ -519,10 +575,14 @@ fleet:
       basic: HTTP Basic Auth
       ssh: SSH Key
       custom: Secret Name
+    caBundle:
+      label: Certificates
+      placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
     paths:
       label: Paths
       placeholder: e.g. /directory/in/your/repo
       addLabel: Add Path
+      empty: The root of the repo is used by default.  To use one or more different directories, add them here.
     repo:
       label: Repository URL
       placeholder: 'e.g. https://github.com/rancher/fleet-examples.git'
@@ -534,6 +594,12 @@ fleet:
       branchPlaceholder: e.g. master
       revisionLabel: Tag or Commit Hash
       revisionPlaceholder: e.g. v1.0.0
+    serviceAccount:
+      label: Service Account Name
+      placeholder: "Optional: Use a service account in the target clusters"
+    targetNamespace:
+      label: Target Namespace
+      placeholder: "Optional: Require all resources to be in this namespace"
     target:
       selectLabel: Target Type
       advanced: Advanced
@@ -548,6 +614,11 @@ fleet:
       all: All
       none: None
       local: Local
+    tls:
+      label: TLS Certificate Verification
+      verify: Require a valid certificate
+      specify: Specify additional certificates to be accepted
+      skip: Accept any certificate (insecure)
     workspace:
       label: Workspace
   clusterGroup:
@@ -690,7 +761,7 @@ istio:
     label: Custom Overlay File
     tip: 'The <a target="_blank" rel="noopener noreferrer nofollow" href="https://istio.io/latest/docs/setup/install/istioctl/#customizing-the-configuration">overlay file</a> allows for additional configuration on top of the base Rancher Istio installation. You can utilize the <a href="https://istio.io/latest/docs/reference/config/istio.operator.v1alpha1/" target="_blank" rel="noopener noreferrer nofollow" >IstioOperator API</a> to make changes and additions for all components and apply those changes via this overlay YAML file.'
   description: 'Rancher Istio helm chart installs a minimal Istio configuration for you to get started integrating with your applications.
-  If you would like to get additional information about Istio, visit <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>'
+  If you would like to get additional information about Istio, visit <a target="_blank" href="https://istio.io/latest/docs/concepts/what-is-istio" rel="noopener noreferrer nofollow">https://istio.io/latest/docs/concepts/what-is-istio/</a>'
   egressGateway: Enabled Egress Gateway
   ingressGateway: Enabled Ingress Gateway
   istiodRemote: Enabled istiodRemote
@@ -738,62 +809,62 @@ logging:
     scheme: Scheme
     port: Port
     indexName: Index Name
-    user: User
-    password: Password
+    user: User 
+    password: Password from Secret
     caFile:
-      label: Certificate Authority File
+      label: CA File from Secret
     clientCert:
-      label: Client Cert
+      label: Client Cert from Secret
       placeholder: Paste in the CA certificate
     clientKey:
-      label: Client Key
+      label: Client Key from Secret
       placeholder: Paste in the client key
-    clientKeyPass: Client Key Pass
+    clientKeyPass: Client Key Pass from Secret
   kafka:
     brokers: Brokers
     defaultTopic: Default Topic
     saslOverSsl: SASL Over SSL
     scramMechanism: Scram Mechanism
-    username: Username
-    password: Password
+    username: Username from Secret
+    password: Password from Secret
     sslCaCert:
-      label: SSL CA Cert
+      label: CA Cert from Secret
       placeholder: Paste in the CA certificate
     sslClientCert:
-      label: SSL Client Cert
+      label: Cert from Secret
       placeholder: Paste in the client cert
     sslClientCertChain:
-      label: SSL Client Cert Chain
+      label: Cert Chain from Secret
       placeholder: Paste in the client cert chain
-    sslClientCertKey: SSL Client Cert Key
+    sslClientCertKey: Cert Key from Secret
   loki:
     url: URL
     tenant: Tenant
-    username: User
-    password: Password
+    username: User from Secret
+    password: Password from Secret
     configureKubernetesLabels: Configure Kubernetes metadata in a Prometheus like format
     extractKubernetesLabels: Extract Kubernetes labels as Loki labels
     dropSingleKey: If a record only has 1 key, then just set the log line to the value and discard the key
-    caCert: CA Cert
-    cert: Cert
-    key: Key
+    caCert: CA Cert from Secret
+    cert: Cert from Secret
+    key: Key from Secret
   awsElasticsearch:
     url: URL
-    keyId: Key Id
-    secretKey: Secret Key
+    keyId: Key Id from Secret
+    secretKey: Secret Key from Secret
   azurestorage:
-    storageAccount: Storage Account
-    accessKey:  Access Key
+    storageAccount: Account from Secret
+    accessKey:  Access Key from Secret
     container: Container
     path: Path
     storeAs: Store As
   cloudwatch:
-    keyId: Key Id
-    secretKey: Secret Key
+    keyId: Key Id from Secret
+    secretKey: Secret Key from Secret
     endpoint: Endpoint
     region: Region
   datadog:
-    apiKey: API Key
+    apiKey: API Key from Secret
     useSSL: Use SSL
     useCompression: Use Compression
     host: Host
@@ -801,14 +872,14 @@ logging:
     path: Path
   gcs:
     project: Project
-    credentialsJson: Credentials Json
+    credentialsJson: Credentials from Secret
     bucket: Bucket
     path: Path
     overwriteExistingPath: Overwrite Existing Path
   kinesisStream:
     streamName: Stream Name
-    keyId: Key Id
-    secretKey: Secret Key
+    keyId: Key Id from Secret
+    secretKey: Secret Key from Secret
   logdna:
     apiKey: API Key
     hostname: Hostname
@@ -816,21 +887,21 @@ logging:
   logz:
     url: URL
     port: Port
-    token: Api Token
+    token: Api Token from Secret
     enableCompression: Enable Compression
   newrelic:
-    apiKey: API Key
-    licenseKey: License Key
+    apiKey: API Key from Secret
+    licenseKey: License Key from Secret
     baseURI: Base URI
   sumologic:
-    endpoint: Endpoint
+    endpoint: Endpoint from Secret
     sourceName: Source Name
   syslog:
     host: Host
     port: Port
     transport: Transport
     insecure: insecure
-    trustedCaPath: Trusted CA Path
+    trustedCaPath: CA Path from Secret
     format:
       title: Format
       type: Type
@@ -847,8 +918,8 @@ logging:
       timekeyWait: Timekey Wait
       timekeyUseUTC: Timekey Use UTC
   s3:
-    keyId: Key Id
-    secretKey: Secret Key
+    keyId: Key Id from Secret
+    secretKey: Secret Key from Secret
     endpoint: Endpoint
     bucket: Bucket
     path: Path
@@ -891,28 +962,28 @@ logging:
     port: Port
     protocol: Protocol
     index: Index
-    token: Token
+    token: Token from Secret
     insecureSsl: Insecure SSL
     indexName: Index Name
     source: Source
-    caFile: CA File
-    caPath: CA Path
-    clientCert: Client Cert
-    clientKey: Client Key
+    caFile: CA File from Secret
+    caPath: CA Path from Secret
+    clientCert: Client Cert from Secret
+    clientKey: Client Key from Secret
   forward:
     host: Host
     port: Port
-    sharedKey: Shared Key
-    username: Username
-    password: Password
-    clientCertPath: Client Cert Path
-    clientPrivateKeyPath: Client Private Key Path
-    clientPrivateKeyPassphrase: Client Private Key Passphrase
+    sharedKey: Shared Key from Secret
+    username: Username from Secret
+    password: Password from Secret
+    clientCertPath: Client Cert Path from Secret
+    clientPrivateKeyPath: Client Private Key Path from Secret
+    clientPrivateKeyPassphrase: Client Private Key Passphrase from Secret
 
 longhorn:
   overview:
     title: Overview
-    subtitle: "Powered By: <a href='https://github.com/longhorn' target='_blank' rel='noopener nofollow noreferrer' >Longhorn</a>"
+    subtitle: "Powered By: <a href='https://github.com/longhorn' target='_blank' rel='noopener nofollow noreferrer'>Longhorn</a>"
     linkedList:
       longhorn:
         label: 'Longhorn'
@@ -957,8 +1028,8 @@ monitoring:
     label: Create Default Monitoring Cluster Roles
     tip: 'Creates <code>monitoring-admin</code>, <code>monitoring-edit</code>, and <code>monitoring-view</code> ClusterRoles that can be assigned to users to provide permissions to CRDs installed by the Monitoring chart.'
   etcdNodeDirectory:
-    label: ETCD Node Certificate Directory
-    tooltip: 'For clusters that use RancherOS for the etcd nodes, this option should be set to <pre class=''inline-block m-0''>/opt/rke/etc/kubernetes/ssl</pre>. Hybrid environments that require specifying multiple certificate directories (e.g. an etcd plane composed of both RancherOS and Ubuntu hosts) is not supported.'
+    label: etcd Node Certificate Directory
+    tooltip: 'For clusters that use RancherOS for the etcd nodes, this option should be set to <pre class=''inline-block m-0''>/opt/rke/etc/kubernetes/ssl</pre>. Hybrid environments that require specifying multiple certificate directories (e.g. an etcd plane composed of both RancherOS and Ubuntu hosts) are not supported.'
   grafana:
     storage:
       annotations: PVC Annotations
@@ -996,7 +1067,7 @@ monitoring:
       prometheusTargets:
         description: Configured Targets
         label: Prometheus Targets
-    subtitle: 'Powered By: <a href=''https://github.com/coreos/prometheus-operator'' target=''_blank'' rel=''noopener nofollow'' >Prometheus</a>'
+    subtitle: 'Powered By: <a href="https://github.com/coreos/prometheus-operator" target="_blank" rel="noopener noreferrer nofollow">Prometheus</a>'
     title: Dashboard
     v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of Rancher with monitoring enabled, please disable monitoring in Cluster Manager before attempting to use monitoring in Cluster Explorer.'
   prometheus:
@@ -1097,12 +1168,14 @@ node:
   detail:
     detailTop:
       containerRuntime: Container Runtime
-      ipAddress: IP Address
+      internalIP: Internal IP
+      externalIP: External IP
       os: OS
       version: Version
     glance:
       consumptionGauge:
-        amount: "{used} of {total} {unit} used"
+        used: Used
+        amount: "{used} of {total} {unit}"
         cpu: CPU
         memory: MEMORY
         pods: PODS
@@ -1111,12 +1184,22 @@ node:
       memoryPressure: Memory Pressure
       pidPressure: PID Pressure
     tab:
-      address:
-        label: Address
-        externalIp: ExternalIP
       conditions: Conditions
       images: Images
-      info: Info
+      info: 
+        label: Info
+        key:
+          architecture: Architecture
+          bootID: Boot ID
+          containerRuntimeVersion: Container Runtime Version
+          kernelVersion: Kernel Version
+          kubeProxyVersion: Kube Proxy Version
+          kubeletVersion: Kubelet Version
+          machineID: Machine ID
+          operatingSystem: Operating System
+          osImage: Image
+          systemUUID: System UUID
+      pods: Pods
       taints: Taints
 
 persistentVolumeClaim:
@@ -1161,6 +1244,10 @@ prefs:
     label: Enable Developer Tools
   hideDesc:
     label: Hide All Type Description Boxes
+
+principal:
+  loading: Loading&hellip;
+  error: Unable to fetch principal info
 
 probe:
   checkInterval:
@@ -1271,24 +1358,6 @@ rbac:
     fleetworkspace-admin: Admin
     fleetworkspace-member: Member
     fleetworkspace-readonly: Read-Only
-  user:
-    provider:
-      system: System
-      local: Local
-      multiple: Multiple
-      activedirectory: ActiveDirectory
-      azuread: AzureAD
-      github: GitHub
-      keycloak: Keycloak
-      ldap: LDAP
-      openldap: OpenLDAP
-      shibboleth: Shibboleth
-      ping: Ping IDentity
-      adfs: ADFS
-      okta: Okta
-      freeipa: FreeIPA
-      googleoauth: Google
-
 
 resourceDetail:
   detailTop:
@@ -1454,7 +1523,7 @@ servicesPage:
       placeholder: e.g. 10800
   externalName:
     define: External Name
-    helpText: "External Name is intended to specify a canonical DNS name. To hardcode an IP address, use a Headless service."
+    helpText: "External Name is intended to specify a canonical DNS name. This is a required field. To hardcode an IP address, use a Headless service."
     label: External Name
     placeholder: e.g. my.database.example.com
   ips:
@@ -1531,13 +1600,13 @@ tableHeaders:
   clusterGroups: Cluster Groups
   commit: Commit
   condition: Condition
-  configuredProviders: Configured Providers
+  providers: Providers
   cpu: CPU
   date: Date
   destination: Target
   download: Download
   effect: Effect
-  endpoints: Endpoint
+  endpoints: Endpoints
   flow: Flow
   gitRepos: Git Repos
   host: |-
@@ -1555,7 +1624,7 @@ tableHeaders:
   keys: Data
   lastUpdated: Last Updated
   lastSeen: Last Seen
-  loggingOutputProviders: Providers
+  loggingOutputProviders: Provider
   matches: Matches
   maxKubernetesVersion: Max Kubernetes Version
   message: Message
@@ -1663,6 +1732,9 @@ validation:
   flowOutput:
     both: Requires "Output" or "Cluster Output" to be selected.
     global: Requires "Cluster Output" to be selected.
+  output:
+    logdna:
+      apiKey: Required an "Api Key" to be set.
   invalidCron: Invalid cron schedule
   k8s:
     identifier:
@@ -1689,6 +1761,7 @@ validation:
       operator: Rule [{index}] of {group} {rules} - operator must be one of 'In', 'NotIn', 'Exists', 'DoesNotExist'
       valueMustBeEmpty: Rule [{index}] of {group} {rules} - value must be empty if operator is 'Exists' or 'DoesNotExist'
       valuesMustBeDefined: Rule [{index}] of {group} {rules} - value must be defined if operator is 'In' or 'NotIn'
+  port: A port must be a number between 1 and 65535.
   prometheusRule:
     groups:
       required: At least one rule group is required.
@@ -2179,6 +2252,28 @@ model:
   "catalog.cattle.io.app":
     firstDeployed: First Deployed
     lastDeployed: Last Deployed
+  authConfig:
+    description:
+      ldap: LDAP
+      saml: SAML
+      oauth: OAuth
+    provider:
+      system: System
+      local: Local
+      multiple: Multiple
+      activedirectory: ActiveDirectory
+      azuread: AzureAD
+      github: GitHub
+      keycloak: Keycloak
+      ldap: LDAP
+      openldap: OpenLDAP
+      shibboleth: Shibboleth
+      ping: Ping Identity
+      adfs: ADFS
+      okta: Okta
+      freeipa: FreeIPA
+      googleoauth: Google
+
   cluster:
     name: Cluster Name
   ingress:
@@ -2214,7 +2309,7 @@ typeDescription:
   # Map of
   # type: Description to be shown on the top of list view describing the type.
   #       Should fit on one line.
-  #       If you link to anything external, it must have
+  #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
   cis.cattle.io.clusterscanbenchmark: A benchmark version is the name of benchmark to run using kube-bench as well as the valid configuration parameters for that benchmark.
   cis.cattle.io.clusterscanprofile: A profile is the configuration for the CIS scan, which is the benchmark versions to use and any specific tests to skip in that benchmark.
@@ -2231,11 +2326,10 @@ typeDescription:
   catalog.cattle.io.clusterrepo: A chart repository is a Helm repository or Rancher's git based application catalog. It provides the list of available charts in the cluster.
   catalog.cattle.io.operation: An operation is the list of recent Helm operations that have been applied to the cluster.
   catalog.cattle.io.app: An installed application is a Helm 3 chart that was installed either via our charts or through the Helm CLI.
-  logging.banzaicloud.io.clusterflow: A cluster flow defines which logs from the entire cluster to collect and filter as well as which output to send the logs. The cluster flow needs to be deployed in the namespace that the logging operator is in.
-  logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namepsace that the flow is deployed in.
+  logging.banzaicloud.io.clusterflow: Logs from the cluster will be collected and logged to the selected Cluster Output.
   logging.banzaicloud.io.clusteroutput: A cluster output defines which logging providers that logs can be sent to and is only effective when deployed in the namespace that the logging operator is in.
+  logging.banzaicloud.io.flow: A flow defines which logs to collect and filter as well as which output to send the logs. The flow is a namespaced resource, which means logs will only be collected from the namepsace that the flow is deployed in.
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
-  logging: To collect and ship your logs you will need to define a Flow and an Output. A Flow defines which logs to collect, filters, and an output which to send the logs. If you would like to collect all logs in the cluster, you can create a ClusterFlow. Outputs can be defined at the namespace level or defined at the cluster level and used by both Flow types.
 
 typeLabel:
   cis.cattle.io.clusterscan: |-
@@ -2303,6 +2397,11 @@ typeLabel:
       one { Git Repo }
       other {Git Repos }
     }
+  management.cattle.io.authconfig: |-
+    {count, plural,
+      one { Auth Provider }
+      other { Auth Providers }
+    }
   management.cattle.io.fleetworkspace: |-
     {count, plural,
       one { Workspace }
@@ -2349,17 +2448,20 @@ typeLabel:
       one { Route }
       other { Routes }
     }
+
 action:
-  download: Download YAML
-  remove: Delete
-  refresh: Refresh
-  view: View Config
-  edit: Edit Config
   clone: Clone
+  disable: Disable
+  download: Download YAML
+  edit: Edit Config
   editYaml: Edit YAML
-  viewYaml: View YAML
-  viewInApi: View in API
+  enable: Enable
   openLogs: View Logs
+  refresh: Refresh
+  remove: Delete
+  view: View Config
+  viewInApi: View in API
+  viewYaml: View YAML
 
 unit:
   sec: secs

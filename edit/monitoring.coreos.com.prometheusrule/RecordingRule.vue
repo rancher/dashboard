@@ -23,11 +23,6 @@ export default {
       type:    String,
       default: 'create',
     },
-
-    ruleIndex: {
-      type:    Number,
-      default: 0,
-    },
   },
 
   computed: {
@@ -51,24 +46,12 @@ export default {
     updateLabels(value) {
       this.$set(this.value, 'labels', value);
     },
-    remove() {
-      this.$emit('removeRule', this.ruleIndex);
-    },
   }
 };
 </script>
 
 <template>
   <div>
-    <button
-      v-if="!isView"
-      v-tooltip="t('prometheusRule.recordingRules.removeRecord')"
-      type="button"
-      class="btn btn-sm bg-transparent remove"
-      @click="remove"
-    >
-      <i class="icon icon-x icon-2x" />
-    </button>
     <div class="row mt-25">
       <div class="col span-6">
         <LabeledInput
@@ -119,10 +102,5 @@ export default {
 <style lang="scss" scoped>
 .row {
   margin: 20px 0;
-}
-.remove {
-  position: absolute;
-  top: 0;
-  right: 5px;
 }
 </style>

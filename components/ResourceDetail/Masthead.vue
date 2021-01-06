@@ -48,6 +48,11 @@ export default {
       default: false
     },
 
+    resource: {
+      type:    String,
+      default: null,
+    },
+
     resourceSubtype: {
       type:    String,
       default: null,
@@ -58,7 +63,7 @@ export default {
     schema() {
       const inStore = this.$store.getters['currentProduct'].inStore;
 
-      return this.$store.getters[`${ inStore }/schemaFor`]( this.value.type );
+      return this.$store.getters[`${ inStore }/schemaFor`]( this.resource );
     },
 
     isView() {
@@ -152,12 +157,17 @@ export default {
 
     parent() {
       const displayName = this.$store.getters['type-map/labelFor'](this.schema);
+      const product = this.$store.getters['currentProduct'].name;
+
       const location = {
         name:   'c-cluster-product-resource',
-        params: { resource: this.value.type }
+        params: {
+          resource: this.resource,
+          product,
+        }
       };
 
-      const typeOptions = this.$store.getters[`type-map/optionsFor`]( this.value.type );
+      const typeOptions = this.$store.getters[`type-map/optionsFor`]( this.resource );
       const out = {
         displayName, location, ...typeOptions
       };
@@ -287,9 +297,10 @@ export default {
       <div class="title">
         <div class="primaryheader">
           <h1>
-            <nuxt-link :to="parent.location">
+            <nuxt-link v-if="parent.location" :to="parent.location">
               {{ parent.displayName }}:
             </nuxt-link>
+            <span v-else>{{ parent.displayName }}:</span>
             <t :k="'resourceDetail.header.' + realMode" :subtype="resourceSubtype" :name="value.nameDisplay" />
             <BadgeState v-if="!isCreate && parent.showState" class="masthead-state" :value="value" />
           </h1>

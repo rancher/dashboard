@@ -39,6 +39,12 @@ export function proxyFor(ctx, obj, isClone = false) {
   const mappedType = ctx.rootGetters['type-map/componentFor'](obj.type);
   const model = lookup(mappedType, obj?.metadata?.name) || ResourceInstance;
 
+  // Hack for now, the resource-instance name() overwrites the model name.
+  if ( obj.name ) {
+    obj._name = obj.name;
+    delete obj.name;
+  }
+
   const proxy = new Proxy(obj, {
     get(target, name) {
       if ( name === ALREADY_A_PROXY ) {

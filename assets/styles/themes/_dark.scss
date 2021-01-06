@@ -67,6 +67,7 @@
 
   --accent-btn: #{rgba($primary, 0.2)};
   --accent-btn-hover: #{rgba($primary, 0.5)};
+  --modal-bg                   :#{$dark};
   --overlay-bg: #{rgba($darkest, 0.75)};
   --shadow: #{rgba($darkest, 0.9)};
 
@@ -79,6 +80,7 @@
   --dropdown-hover-text: #{$lightest};
   --dropdown-hover-bg: #{$link};
   --dropdown-disabled-bg: #{$disabled};
+  --dropdown-disabled-text: #{$disabled};
 
   --input-text: #{$lightest};
   --input-label: #{$lighter};
@@ -120,7 +122,7 @@
 
   --tabbed-border: #{$medium};
   --tabbed-sidebar-bg: #{$darkest};
-  --tabbed-container-bg: #{mix($medium, $dark, 10%)};
+  --tabbed-container-bg: #{mix($medium, $dark, 20%)};
 
   --yaml-editor-bg: #{$darkest};
 

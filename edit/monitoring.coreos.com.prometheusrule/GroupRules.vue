@@ -4,11 +4,13 @@ import has from 'lodash/has';
 import Banner from '@/components/Banner';
 import { removeAt } from '@/utils/array';
 import { _VIEW } from '@/config/query-params';
+import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import AlertingRule from './AlertingRule';
 import RecordingRule from './RecordingRule';
 
 export default {
   components: {
+    ArrayListGrouped,
     AlertingRule,
     Banner,
     RecordingRule,
@@ -103,28 +105,33 @@ export default {
           class="icon icon-info"
         />
       </h3>
-      <div v-if="recordingRules.length > 0" class="rules">
-        <template v-for="(record, idx) in recordingRules">
+      <ArrayListGrouped :value="recordingRules">
+        <template #default="props">
           <RecordingRule
-            :key="'recordind-rule-' + idx"
             class="rule"
-            :value="record"
+            :value="props.row.value"
             :mode="mode"
-            :rule-index="idx"
-            @removeRule="removeRule"
           />
         </template>
-      </div>
-
-      <button
-        v-if="!isView"
-        :disabled="disableAddRecord"
-        type="button"
-        class="btn btn-sm role-tertiary"
-        @click="addRule('record')"
-      >
-        <t k="prometheusRule.recordingRules.addLabel" />
-      </button>
+        <template #add>
+          <button
+            v-if="!isView"
+            :disabled="disableAddRecord"
+            type="button"
+            class="btn btn-sm role-tertiary"
+            @click="addRule('record')"
+          >
+            <t k="prometheusRule.recordingRules.addLabel" />
+          </button>
+          <span v-else></span>
+        </template>
+        <template v-slot:remove-button="props">
+          <button v-if="!isView" type="button" class="btn role-link close" @click="removeRule(props.i)">
+            <i class="icon icon-2x icon-x" />
+          </button>
+          <span v-else></span>
+        </template>
+      </ArrayListGrouped>
     </div>
     <div :class="[{ hide: hideAlertingRulesOnView }, 'container-alerting-rules']">
       <div class="mt-20 mb-20">
@@ -142,27 +149,33 @@ export default {
           :label="t('prometheusRule.alertingRules.bannerText')"
         />
       </div>
-      <div v-if="alertingRules.length > 0" class="rules">
-        <template v-for="(record, idx) in alertingRules">
+      <ArrayListGrouped :value="alertingRules">
+        <template #default="props">
           <AlertingRule
-            :key="'alerting-rule-' + idx"
             class="rule"
-            :value="record"
+            :value="props.row.value"
             :mode="mode"
-            :rule-index="idx"
-            @removeRule="removeRule"
           />
         </template>
-      </div>
-      <button
-        v-if="!isView"
-        :disabled="disableAddAlert"
-        type="button"
-        class="btn btn-sm role-tertiary"
-        @click="addRule('alert')"
-      >
-        <t k="prometheusRule.alertingRules.addLabel" />
-      </button>
+        <template #add>
+          <button
+            v-if="!isView"
+            :disabled="disableAddAlert"
+            type="button"
+            class="btn btn-sm role-tertiary"
+            @click="addRule('alert')"
+          >
+            <t k="prometheusRule.alertingRules.addLabel" />
+          </button>
+          <span v-else></span>
+        </template>
+        <template v-slot:remove-button="props">
+          <button v-if="!isView" type="button" class="btn role-link close" @click="removeRule(props.i)">
+            <i class="icon icon-2x icon-x" />
+          </button>
+          <span v-else></span>
+        </template>
+      </ArrayListGrouped>
     </div>
   </div>
 </template>

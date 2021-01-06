@@ -1,4 +1,4 @@
-import { _CREATE } from '@/config/query-params';
+import { _CREATE, _EDIT } from '@/config/query-params';
 import { CIS } from '@/config/types';
 import { findBy } from '@/utils/array';
 import { downloadFile, generateZip } from '@/utils/download';
@@ -50,7 +50,7 @@ export default {
 
   applyDefaults() {
     return (vm, mode) => {
-      if (mode === _CREATE) {
+      if (mode === _CREATE || mode === _EDIT) {
         const includeScheduling = this.canBeScheduled();
         const spec = this.spec || {};
 
@@ -110,7 +110,11 @@ export default {
       const Papa = await import(/* webpackChunkName: "cis" */'papaparse');
 
       try {
-        const testResults = report.aggregatedTests;
+        const testResults = (report.aggregatedTests || []).map((result) => {
+          delete result.actual_value_per_node;
+
+          return result;
+        });
 
         const csv = Papa.unparse(testResults);
 
@@ -130,7 +134,11 @@ export default {
 
       reports.forEach((report) => {
         try {
-          const testResults = report.aggregatedTests;
+          const testResults = (report.aggregatedTests || []).map((result) => {
+            delete result.actual_value_per_node;
+
+            return result;
+          });
 
           const csv = Papa.unparse(testResults);
 
@@ -145,7 +153,7 @@ export default {
         });
       }
     };
-  }
+  },
 
 };
 

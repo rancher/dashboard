@@ -107,8 +107,6 @@ export default {
       </template>
     </NameNsDescription>
 
-    <div class="spacer"></div>
-
     <Tabbed :side-tabs="true">
       <Tab name="container-resource-limit" :label="t('namespace.containerResourceLimit')">
         <ContainerResourceLimit

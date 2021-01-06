@@ -53,7 +53,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.awsElasticsearch.keyId')"
+          :secret-name-label="t('logging.awsElasticsearch.keyId')"
           :show-key-selector="true"
         />
       </div>
@@ -63,7 +63,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.awsElasticsearch.secretKey')"
+          :secret-name-label="t('logging.awsElasticsearch.secretKey')"
           :show-key-selector="true"
         />
       </div>

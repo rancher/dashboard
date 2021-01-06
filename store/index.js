@@ -111,7 +111,7 @@ export const getters = {
       return true;
     }
 
-    return state.namespaceFilters.filter(x => !x.startsWith('namespaced://')).length === 0;
+    return state.namespaceFilters.filter(x => !`${ x }`.startsWith('namespaced://')).length === 0;
   },
 
   isMultipleNamespaces(state, getters) {
@@ -190,7 +190,7 @@ export const getters = {
       }
 
       const namespaces = getters[`${ inStore }/all`](NAMESPACE);
-      const filters = state.namespaceFilters.filter(x => !x.startsWith('namespaced://'));
+      const filters = state.namespaceFilters.filter(x => !!x && !`${ x }`.startsWith('namespaced://'));
       const includeAll = getters.isAllNamespaces;
       const includeSystem = filters.includes('all://system');
       const includeUser = filters.includes('all://user');
@@ -326,7 +326,7 @@ export const mutations = {
   },
 
   updateNamespaces(state, { filters, all }) {
-    state.namespaceFilters = filters.slice();
+    state.namespaceFilters = filters.filter(x => !!x);
 
     if ( all ) {
       state.allNamespaces = all;
@@ -394,6 +394,7 @@ export const actions = {
       schemas: Promise.all([
         dispatch('management/subscribe'),
         dispatch('management/loadSchemas', true),
+        dispatch('rancher/loadSchemas', true),
       ]),
     });
 

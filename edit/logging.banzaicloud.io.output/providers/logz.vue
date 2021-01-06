@@ -2,6 +2,7 @@
 import Checkbox from '@/components/form/Checkbox';
 import LabeledInput from '@/components/form/LabeledInput';
 import SecretSelector from '@/components/form/SecretSelector';
+import { updatePort } from './utils';
 
 export default {
   components: {
@@ -33,7 +34,7 @@ export default {
         return this.value.endpoint.port;
       },
       set(port) {
-        this.$set(this.value.endpoint, 'port', Number.parseInt(port));
+        updatePort(value => this.$set(this.value.endpoint, 'port', value), port);
       }
     }
   }
@@ -52,7 +53,15 @@ export default {
         <LabeledInput v-model="value.endpoint.url" :mode="mode" :disabled="disabled" :label="t('logging.logz.url')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="port" :mode="mode" :disabled="disabled" type="number" :label="t('logging.logz.port')" />
+        <LabeledInput
+          v-model="port"
+          :mode="mode"
+          :disabled="disabled"
+          type="number"
+          min="1"
+          max="65535"
+          :label="t('logging.logz.port')"
+        />
       </div>
     </div>
     <div class="spacer"></div>
@@ -68,7 +77,7 @@ export default {
           :mode="mode"
           :namespace="namespace"
           :disabled="disabled"
-          :label="t('logging.logz.token')"
+          :secret-name-label="t('logging.logz.token')"
           :show-key-selector="true"
         />
       </div>
