@@ -157,6 +157,7 @@ export default {
     remove(btnCB) {
       if (this.needsConfirm && this.confirmName !== this.names[0]) {
         this.error = 'Resource names do not match';
+        btnCB(false);
         // if doneLocation is defined, redirect after deleting
       } else {
         let goTo;
