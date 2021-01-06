@@ -160,7 +160,9 @@ export default {
             return;
           }
 
-          matchExpression.values = val ? val.split(/\s*,\s*/).filter(x => !!x) : null;
+          if ( val !== null ) {
+            matchExpression.values = val.split(/\s*,\s*/).filter(x => !!x);
+          }
 
           return matchExpression;
         }).filter(x => !!x);
