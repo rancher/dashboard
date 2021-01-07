@@ -231,7 +231,7 @@ export default {
           </div>
         </div>
       </Tab>
-      <Tab v-else name="define-service-ports" :label="t('servicesPage.ips.define')">
+      <Tab v-else name="define-service-ports" :label="t('servicesPage.ips.define')" :weight="10">
         <ServicePorts
           v-model="value.spec.ports"
           class="col span-12"
