@@ -174,7 +174,7 @@ export default {
         @click="switchTo(tab.id)"
       >
         <i v-if="tab.icon" class="icon" :class="{['icon-'+ tab.icon]: true}" />
-        {{ tab.label }}
+        <span class="tab-label"> {{ tab.label }}</span>
         <i class="closer icon icon-fw icon-x" @click="close(tab.id)" />
       </div>
       <div
@@ -237,6 +237,13 @@ export default {
         overflow: hidden;
         text-overflow: ellipsis;
         margin: 0;
+        display: flex;
+        min-width: 0;
+
+        .tab-label{
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
 
         &.active {
           position: relative;
