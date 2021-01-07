@@ -1,19 +1,16 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
-import CruResource from '@/components/CruResource';
 import Loading from '@/components/Loading';
-import NameNsDescription from '@/components/form/NameNsDescription';
+import CruResource from '@/components/CruResource';
 import { PROVIDER, REGISTER, _FLAGGED } from '@/config/query-params';
-import Rke2 from '@/components/cluster/rke2';
+import { CAPI } from '@/config/types';
+import Rke2 from '@/edit/cluster.cattle.io.rkecluster';
 
 export default {
   name: 'CruCluster',
 
   components: {
-    CruResource,
-    Loading,
-    NameNsDescription,
-    Rke2,
+    Rke2, Loading, CruResource
   },
 
   mixins: [CreateEditView],
@@ -25,21 +22,27 @@ export default {
     },
   },
 
-  fetch() {
-    return Promise.resolve();
+  async fetch() {
+    if ( this.subType ) {
+      await this.selectType(this.subType);
+    }
+
+    // @TODO actually pick based on provider type...
+    this.providerCluster = await this.$store.dispatch(`management/create`, {
+      type:     CAPI.RKE_CLUSTER,
+      spec:     {},
+      metadata: {}
+    });
   },
 
   data() {
     const subType = this.$route.query[PROVIDER] || null;
     const isRegister = this.$route.query[REGISTER] === _FLAGGED;
 
-    if ( subType ) {
-      this.selectType(subType);
-    }
-
     return {
       subType,
-      isRegister
+      isRegister,
+      providerCluster: null,
     };
   },
 
@@ -48,7 +51,7 @@ export default {
       const out = [];
 
       // @TODO come from somewhere dynamic...
-      const createTypes = ['amazonec2', 'amazoneks', 'custom'];
+      const createTypes = ['amazonec2', 'amazoneks', 'digitalocean', 'custom'];
       const registerTypes = ['amazoneks', 'googlegke', 'azureaks'];
 
       const types = this.isRegister ? registerTypes : createTypes;
@@ -73,10 +76,7 @@ export default {
     selectType(type) {
       this.subType = type;
       this.$emit('set-subtype', this.$store.getters['i18n/withFallback'](`cluster.provider."${ type }"`, null, type));
-    },
-
-    save() {
-      debugger;
+      this.$fetch();
     },
   },
 };
@@ -97,12 +97,15 @@ export default {
     @select-type="selectType"
     @error="e=>errors = e"
   >
-    <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="isNamespaced" />
-
+    <!-- @TODO load appropriate component for provider -->
     <Rke2
-      v-model="value"
+      v-model="providerCluster"
       :mode="mode"
       :provider="subType"
     />
+
+    <template v-if="subType" #form-footer>
+      <div><!-- Hide the outer footer --></div>
+    </template>
   </CruResource>
 </template>

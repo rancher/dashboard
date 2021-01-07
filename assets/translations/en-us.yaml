@@ -490,6 +490,22 @@ cluster:
     label: Cloud Credential
   kubernetesVersion:
     label: Kubernetes Version
+  nodeConfig:
+    digitalocean:
+      sizeLabel: |-
+        {plan, select,
+          s {Basic: }
+          g {General: }
+          gd {General: }
+          c {CPU: }
+          m {Memory: }
+          so {Storage: }
+          standard {Standard: }
+          other {}
+        }{memoryGb} GB, {vcpus, plural,
+          =1 {# vCPU}
+          other {# vCPUs}
+        }, {disk} GB Disk ({value})
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -2503,6 +2519,21 @@ typeLabel:
     {count, plural,
       one { Route }
       other { Routes }
+    }
+  'management.cattle.io.cluster': |-
+    {count, plural,
+      one { Legacy Cluster }
+      other { Legacy Clusters }
+    }
+  'cluster.x-k8s.io.cluster': |-
+    {count, plural,
+      one { CAPI Cluster }
+      other { CAPI Clusters }
+    }
+  'cluster.cattle.io.rkecluster': |-
+    {count, plural,
+      one { RKE2 Cluster }
+      other { RKE2 Clusters }
     }
 
 action:

@@ -1,4 +1,6 @@
+import { sortBy } from '@/utils/sort';
 import { randomStr } from '@/utils/string';
+import { parseSi } from '@/utils/units';
 import { FetchHttpHandler } from '@aws-sdk/fetch-http-handler';
 
 export const state = () => {
@@ -63,7 +65,7 @@ export const actions = {
     const client = new lib.EC2({
       region,
       credentialDefaultProvider,
-      requestHandler: new Handler(cloudCredentialId),
+      requestHandler: new Handler(cloudCredentialId.replace('/', ':')), // IDs use / but API wants :
     });
 
     return client;
@@ -79,5 +81,16 @@ export const actions = {
     });
 
     return client;
+  },
+
+  async instanceInfo() {
+    const data = (await import(/* webpackChunkName: "aws-data" */'@/assets/ec2instances.csv')).default;
+
+    data.forEach((row) => {
+      row.instanceClass = row['API Name'].split('.')[0].toLowerCase();
+      row.memoryBytes = parseSi(row['Memory']);
+    });
+
+    return sortBy(data, ['instanceClass', 'memoryBytes', 'API Name']);
   },
 };

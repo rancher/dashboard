@@ -11,7 +11,6 @@ import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import Masthead from '@/components/ResourceDetail/Masthead';
 import DetailTop from '@/components/DetailTop';
-import Vue from 'vue';
 import isEqual from 'lodash/isEqual';
 import { clone, set } from '@/utils/object';
 

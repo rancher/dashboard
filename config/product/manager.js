@@ -1,6 +1,6 @@
 import { DSL } from '@/store/type-map';
 // import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
-import { MANAGEMENT } from '@/config/types';
+import { CAPI, MANAGEMENT } from '@/config/types';
 import { REGISTER, _FLAGGED } from '@/config/query-params';
 
 export const NAME = 'manager';
@@ -13,7 +13,7 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveType:          MANAGEMENT.CLUSTER,
+    ifHaveType:          CAPI.RKE_CLUSTER,
     inStore:             'management',
     icon:                'globe',
     weight:              -1,
@@ -22,7 +22,7 @@ export function init(store) {
     showClusterSwitcher: false,
   });
 
-  configureType(MANAGEMENT.CLUSTER, {
+  configureType(CAPI.RKE_CLUSTER, {
     extraListAction: {
       query:    { [REGISTER]: _FLAGGED },
       labelKey: 'generic.register',
@@ -30,11 +30,16 @@ export function init(store) {
   });
 
   basicType([
-    MANAGEMENT.CLUSTER,
+    CAPI.CAPI_CLUSTER,
   ]);
 
   basicType([
-    MANAGEMENT.NODE_POOL,
-    MANAGEMENT.NODE_TEMPLATE,
-  ], 'Other Stuff');
+    CAPI.RKE_CLUSTER,
+    MANAGEMENT.CLUSTER,
+  ], 'Other stuff for now');
+
+  basicType([
+    'node-config.cattle.io.amazonec2config',
+    'node-config.cattle.io.digitaloceanconfig'
+  ], 'Node Configs');
 }
