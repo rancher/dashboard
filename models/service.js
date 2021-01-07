@@ -84,7 +84,7 @@ export default {
   details() {
     const out = [{
       label:   this.t('generic.type'),
-      content: this.serviceType.id,
+      content: this.serviceType?.id || this.serviceType,
     }];
 
     const { clusterIP, externalName, sessionAffinity } = this.spec;
@@ -129,8 +129,8 @@ export default {
   },
 
   serviceType() {
-    const serviceType = this.value?.spec?.type;
-    const clusterIp = this.value?.spec?.clusterIP;
+    const serviceType = this.spec?.type;
+    const clusterIp = this.spec?.clusterIP;
     const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
 
     if (serviceType) {
