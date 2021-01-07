@@ -1,4 +1,5 @@
 import find from 'lodash/find';
+import { POD } from '@/config/types';
 
 export const DEFAULT_SERVICE_TYPES = [
   {
@@ -81,15 +82,55 @@ export default {
   },
 
   details() {
-    return [{
+    const out = [{
       label:   this.t('generic.type'),
-      content: this.serviceType.id,
+      content: this.serviceType?.id || this.serviceType,
     }];
+
+    const { clusterIP, externalName, sessionAffinity } = this.spec;
+
+    if (clusterIP) {
+      out.push({
+        label:   'ClusterIP',
+        content: clusterIP,
+      });
+    }
+
+    if (externalName) {
+      out.push({
+        label:   'External Name',
+        content: externalName,
+      });
+    }
+
+    if (sessionAffinity) {
+      out.push({
+        label:   'Session Affinity',
+        content: sessionAffinity,
+      });
+    }
+
+    return out;
+  },
+
+  pods() {
+    const { metadata:{ relationships = [] } } = this;
+
+    return async() => {
+      const podRelationship = (relationships || []).filter(relationship => relationship.toType === POD)[0];
+      let pods = [];
+
+      if (podRelationship) {
+        pods = await this.$dispatch('cluster/findMatching', { type: POD, selector: podRelationship.selector }, { root: true });
+      }
+
+      return pods;
+    };
   },
 
   serviceType() {
-    const serviceType = this.value?.spec?.type;
-    const clusterIp = this.value?.spec?.clusterIP;
+    const serviceType = this.spec?.type;
+    const clusterIp = this.spec?.clusterIP;
     const defaultService = find(DEFAULT_SERVICE_TYPES, ['id', CLUSTERIP]);
 
     if (serviceType) {
