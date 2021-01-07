@@ -1539,6 +1539,10 @@ servicesPage:
       label: Cluster IP
       placeholder: e.g. 10.43.xxx.xxx
     label: IP Addresses
+  pods:
+    label: Pods
+  ports:
+    label: Ports
   selectors:
     helpText: "If no selector is created, manual endpoints must be made."
     label: Selectors
@@ -1639,12 +1643,16 @@ tableHeaders:
   node: Node
   nodeName: Name
   nodesReady: Nodes Ready
+  nodePort: Node Port
   object: Object
   output: Output
   p95: 95%tile
   podImages: Image
   pods: Pods
+  port: Port
+  protocol: Protocol
   provider: Provider
+  publicPorts: Public Ports
   ram: RAM
   rbac:
     create: Create

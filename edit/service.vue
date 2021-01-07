@@ -16,7 +16,6 @@ import CruResource from '@/components/CruResource';
 import Banner from '@/components/Banner';
 import Labels from '@/components/form/Labels';
 import { clone } from '@/utils/object';
-import RelatedResources from '@/components/RelatedResources';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
   NONE:     'None',
@@ -43,7 +42,6 @@ export default {
     LabeledInput,
     NameNsDescription,
     RadioGroup,
-    RelatedResources,
     ServicePorts,
     Tab,
     Tabbed,
@@ -212,9 +210,6 @@ export default {
     <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
 
     <Tabbed :side-tabs="true">
-      <Tab v-if="isView" name="resources" :label="t('catalog.app.section.resources')" :weight="-99">
-        <RelatedResources :value="value" />
-      </Tab>
       <Tab
         v-if="checkTypeIs('ExternalName')"
         name="define-external-name"
@@ -279,7 +274,6 @@ export default {
               :mode="mode"
               :label="t('servicesPage.ips.input.label')"
               :placeholder="t('servicesPage.ips.input.placeholder')"
-              tooltip="foo"
               :tooltip-key="hasClusterIp ? 'servicesPage.ips.clusterIpHelpText' : null"
               @input="e=>$set(value.spec, 'clusterIP', e)"
             />
