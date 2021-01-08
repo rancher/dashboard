@@ -450,13 +450,13 @@ export default {
           disabled: false,
         };
 
-        if ( version.annotations[catalogOSAnnotation] === 'windows' ) {
+        if ( version?.annotations?.[catalogOSAnnotation] === 'windows' ) {
           nue.label = this.t('catalog.install.versions.windows', { ver: version.version });
 
           if (clusterProvider !== 'rke.windows') {
             nue.disabled = true;
           }
-        } else if ( version.annotations[catalogOSAnnotation] === 'linux' ) {
+        } else if ( version?.annotations?.[catalogOSAnnotation] === 'linux' ) {
           nue.label = this.t('catalog.install.versions.linux', { ver: version.version });
 
           if (clusterProvider === 'rke.windows') {
