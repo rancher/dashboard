@@ -1,7 +1,9 @@
 <script>
+import { createPopper } from '@popperjs/core';
 import { get } from '@/utils/object';
 import isString from 'lodash/isString';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
+import $ from 'jquery';
 
 export default {
   mixins: [VueSelectOverrides],
@@ -41,12 +43,64 @@ export default {
       default: null,
       type:    String,
     },
+    placement: {
+      default: 'bottom-start',
+      type:    String
+    },
   },
   data() {
     return { focused: false };
   },
 
   methods: {
+    withPopper(dropdownList, component, { width }) {
+      /**
+       * We need to explicitly define the dropdown width since
+       * it is usually inherited from the parent with CSS.
+       */
+      const componentWidth = $(component.$refs.search).width();
+      const dropWidth = $(dropdownList).width();
+
+      if (dropWidth < componentWidth) {
+        dropdownList.style.width = `${ componentWidth }px`;
+      } else {
+        dropdownList.style.width = 'min-content';
+      }
+
+      /**
+       * Here we position the dropdownList relative to the $refs.toggle Element.
+       *
+       * The 'offset' modifier aligns the dropdown so that the $refs.toggle and
+       * the dropdownList overlap by 1 pixel.
+       *
+       * The 'toggleClass' modifier adds a 'drop-up' class to the Vue Select
+       * wrapper so that we can set some styles for when the dropdown is placed
+       * above.
+       */
+      const popper = createPopper(component.$refs.toggle, dropdownList, {
+        placement: this.placement || 'bottom-start',
+        modifiers: [
+          {
+            name:    'offset',
+            options: { offset: [-2, 2] },
+          },
+          {
+            name:    'toggleClass',
+            enabled: true,
+            phase:   'write',
+            fn({ state }) {
+              component.$el.setAttribute('x-placement', state.placement);
+            },
+          },
+        ],
+      });
+
+      /**
+       * To prevent memory leaks Popper needs to be destroyed.
+       * If you return function, it will be called just before dropdown is removed from DOM.
+       */
+      return () => popper.destroy();
+    },
     ddButtonAction(option) {
       this.focusSearch();
       this.$emit('dd-button-action', option);
@@ -112,6 +166,8 @@ export default {
       'btn-lg': size === 'lg',
     }"
     v-bind="$attrs"
+    :append-to-body="true"
+    :calculate-position="withPopper"
     :searchable="false"
     :clearable="false"
     :close-on-select="closeOnSelect"
@@ -177,10 +233,10 @@ export default {
   &.vs--open ::v-deep {
     outline: none;
     border: var(--outline-width) solid var(--outline);
-    border-bottom: none;
+    // border-bottom: none;
     box-shadow: none;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    // border-bottom-left-radius: 0;
+    // border-bottom-right-radius: 0;
   }
 
   &:hover {

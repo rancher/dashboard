@@ -3,28 +3,30 @@ export default {
   inject: ['addTab', 'removeTab', 'sideTabs'],
 
   props: {
+    canToggle: {
+      default: false,
+      type:    Boolean
+    },
     label: {
-      type:     String,
       default: null,
+      type:    String
     },
-
     labelKey: {
-      type:     String,
       default: null,
+      type:    String
     },
-
     name: {
-      type:     String,
       required: true,
+      type:     String
+    },
+    tooltip: {
+      default: null,
+      type:    [String, Object]
     },
     weight: {
-      type:     Number,
       default:  0,
       required: false,
-    },
-    canToggle: {
-      type:    Boolean,
-      default: false
+      type:     Number
     }
   },
 
@@ -73,6 +75,7 @@ export default {
   >
     <h2 v-if="sideTabs">
       {{ label }}
+      <i v-if="tooltip" v-tooltip="tooltip" class="icon icon-info icon-lg" />
     </h2>
     <slot />
   </section>

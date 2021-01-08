@@ -36,7 +36,13 @@ export default {
     bestLink() {
       if (this.parsed && this.parsed.length ) {
         if (this.parsed[0].addresses) {
-          return `http://${ this.parsed[0].addresses[0] }:${ this.parsed[0].port }`;
+          let protocol = 'http';
+
+          if (this.parsed[0].port === 443) {
+            protocol = 'https';
+          }
+
+          return `${ protocol }://${ this.parsed[0].addresses[0] }:${ this.parsed[0].port }`;
         }
 
         return this.parsed;

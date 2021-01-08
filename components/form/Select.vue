@@ -4,11 +4,16 @@ import { get } from '@/utils/object';
 import LabeledFormElement from '@/mixins/labeled-form-element';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
+import $ from 'jquery';
 
 export default {
   components: { LabeledTooltip },
   mixins:     [LabeledFormElement, VueSelectOverrides],
   props:      {
+    appendToBody: {
+      default: true,
+      type:    Boolean,
+    },
     disabled: {
       default: false,
       type:    Boolean,
@@ -76,6 +81,7 @@ export default {
   },
 
   methods: {
+    // resizeHandler = in mixin
     getOptionLabel(option) {
       if (this.$attrs['get-option-label']) {
         return this.$attrs['get-option-label'](option);
@@ -94,12 +100,14 @@ export default {
       if (this.popperOverride) {
         return this.popperOverride(dropdownList, component, { width });
       }
-
       /**
        * We need to explicitly define the dropdown width since
        * it is usually inherited from the parent with CSS.
        */
-      dropdownList.style.width = width;
+      const componentWidth = $(component.$parent.$el).width();
+
+      dropdownList.style['min-width'] = `${ componentWidth }px`;
+      dropdownList.style.width = 'min-content';
 
       /**
        * Here we position the dropdownList relative to the $refs.toggle Element.
@@ -112,7 +120,7 @@ export default {
        * above.
        */
       const popper = createPopper(component.$refs.toggle, dropdownList, {
-        placement: this.placement,
+        placement: this.placement || 'bottom-start',
         modifiers: [
           {
             name:    'offset',
@@ -125,7 +133,7 @@ export default {
             fn({ state }) {
               component.$el.setAttribute('x-placement', state.placement);
             },
-          },
+          }
         ],
       });
 
@@ -153,6 +161,7 @@ export default {
 
 <template>
   <div
+    ref="select"
     class="unlabeled-select"
     :class="{
       disabled: disabled && !isView,
@@ -171,7 +180,7 @@ export default {
       v-bind="$attrs"
       class="inline"
       :autoscroll="true"
-      :append-to-body="!!placement"
+      :append-to-body="appendToBody"
       :calculate-position="placement ? withPopper : undefined"
       :disabled="isView || disabled"
       :get-option-key="(opt) => (optionKey ? get(opt, optionKey) : getOptionLabel(opt))"
@@ -187,6 +196,7 @@ export default {
       @input="(e) => $emit('input', e)"
       @search:blur="onBlur"
       @search:focus="onFocus"
+      @open="resizeHandler"
     >
       <!-- Pass down templates provided by the caller -->
       <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
