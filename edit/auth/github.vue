@@ -10,7 +10,7 @@ import AsyncButton from '@/components/AsyncButton';
 import CopyToClipboardText from '@/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import { NORMAN, MANAGEMENT } from '@/config/types';
-import { addObject, findBy } from '@/utils/array';
+import { findBy } from '@/utils/array';
 
 const NAME = 'github';
 
@@ -105,6 +105,14 @@ export default {
     AUTH_CONFIG() {
       return MANAGEMENT.AUTH_CONFIG;
     },
+
+    toSave() {
+      return {
+        enabled:      true,
+        githubConfig: this.model,
+        description:  'Enable GitHub',
+      };
+    }
   },
 
   watch: {
@@ -136,53 +144,6 @@ export default {
         }
 
         this.model.hostname = match[4] || 'github.com';
-      }
-    },
-
-    async save(btnCb) {
-      this.errors = [];
-
-      const wasEnabled = this.model.enabled;
-
-      try {
-        if ( !wasEnabled ) {
-          const code = await this.$store.dispatch('auth/test', { provider: NAME, body: this.model });
-
-          this.model.enabled = true;
-
-          await this.model.doAction('testAndApply', {
-            code,
-            enabled:      true,
-            githubConfig: this.model,
-            description:  'Enable GitHub',
-          });
-
-          // Reload principals to get the new ones from GitHub
-          this.principals = await this.$store.dispatch('rancher/findAll', {
-            type: NORMAN.PRINCIPAL,
-            opt:  { url: '/v3/principals', force: true }
-          });
-
-          this.model.accessMode = 'restricted';
-          this.model.allowedPrincipalIds = this.model.allowedPrincipalIds || [];
-
-          if ( this.me && !this.model.allowedPrincipalIds.includes(this.me.id) ) {
-            addObject(this.model.allowedPrincipalIds, this.me.id);
-          }
-        }
-
-        await this.model.save();
-
-        await this.reloadModel();
-
-        btnCb(true);
-
-        if ( wasEnabled ) {
-          this.done();
-        }
-      } catch (err) {
-        this.errors = [err];
-        btnCb(false);
       }
     },
 

@@ -1,13 +1,12 @@
 <script>
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
+import Auth from '@/mixins/auth';
 import CruResource from '@/components/CruResource';
 import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import config from '@/edit/auth/ldap/config';
-import { NORMAN, MANAGEMENT } from '@/config/types';
-import { addObject, findBy } from '@/utils/array';
 
 const AUTH_TYPE = 'ldap';
 
@@ -21,37 +20,7 @@ export default {
     config
   },
 
-  mixins: [CreateEditView],
-
-  async fetch() {
-    const NAME = this.$route.params.id;
-    const originalModel = await this.$store.dispatch('rancher/find', {
-      type: NORMAN.AUTH_CONFIG,
-      id:   NAME,
-      opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ NAME }`, force: true }
-    });
-
-    this.model = await this.$store.dispatch(`rancher/clone`, { resource: originalModel });
-    if (!this.model.servers) {
-      this.model.servers = [];
-    }
-
-    if (!this.model.accessMode) {
-      this.model.accessMode = 'unrestricted';
-    }
-    const serverUrl = await this.$store.dispatch('management/find', {
-      type: MANAGEMENT.SETTING,
-      id:   'server-url',
-      opt:  { url: `/v1/{ MANAGEMENT.SETTING }/server-url` }
-    });
-
-    if ( serverUrl ) {
-      this.serverSetting = serverUrl.value;
-      if (!this.model.rancherApiHost) {
-        this.model.rancherApiHost = serverUrl.value;
-      }
-    }
-  },
+  mixins: [CreateEditView, Auth],
 
   data() {
     return {
@@ -64,30 +33,6 @@ export default {
   },
 
   computed: {
-    me() {
-      const out = findBy(this.principals, 'me', true);
-
-      return out;
-    },
-
-    serverUrl() {
-      if ( this.serverSetting ) {
-        return this.serverSetting;
-      } else if ( process.client ) {
-        return window.location.origin;
-      }
-
-      return '';
-    },
-
-    principal() {
-      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
-    },
-
-    displayName() {
-      return this.t(`model.authConfig.provider.${ this.NAME }`);
-    },
-
     tArgs() {
       return {
         provider:  this.displayName,
@@ -95,71 +40,31 @@ export default {
       };
     },
 
-    NAME() {
-      return this.$route.params.id;
-    },
-
     AUTH_TYPE() {
       return AUTH_TYPE;
     },
 
-    AUTH_CONFIG() {
-      return MANAGEMENT.AUTH_CONFIG;
-    },
-  },
+    toSave() {
+      let out = {
+        enabled:    true,
+        ldapConfig: this.model,
+        username:   this.username,
+        password:   this.password
+      };
 
-  methods: {
-    async save(btnCb) {
-      this.errors = [];
-
-      const wasEnabled = this.model.enabled;
-
-      try {
-        if ( !wasEnabled ) {
-          this.model.enabled = true;
-          let obj = {
-            enabled:    true,
-            ldapConfig: this.model,
-            username:   this.username,
-            password:   this.password
-          };
-
-          if (this.NAME === 'activedirectory') {
-            obj = {
-              enabled:               true,
-              activeDirectoryConfig: this.model,
-              username:              this.username,
-              password:              this.password
-            };
-          }
-
-          await this.model.doAction('testAndApply', obj);
-
-          // Reload principals to get the new ones from GitHub
-          this.principals = await this.$store.dispatch('rancher/findAll', {
-            type: NORMAN.PRINCIPAL,
-            opt:  { url: '/v3/principals', force: true }
-          });
-
-          this.model.allowedPrincipalIds = this.model.allowedPrincipalIds || [];
-
-          if ( this.me && !this.model.allowedPrincipalIds.includes(this.me.id) ) {
-            addObject(this.model.allowedPrincipalIds, this.me.id);
-          }
-        }
-
-        btnCb(true);
-        if ( wasEnabled ) {
-          this.done();
-        }
-        this.$router.applyQuery( { mode: 'view' } );
-      } catch (err) {
-        this.errors = [err];
-        btnCb(false);
-        this.model.enabled = wasEnabled;
+      if (this.NAME === 'activedirectory') {
+        out = {
+          enabled:               true,
+          activeDirectoryConfig: this.model,
+          username:              this.username,
+          password:              this.password
+        };
       }
-    },
+
+      return out;
+    }
   },
+
 };
 </script>
 

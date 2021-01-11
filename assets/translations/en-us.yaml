@@ -141,6 +141,45 @@ authConfig:
       label: Which version of GitHub do you want to use?
       private: A private installation of GitHub Enterprise
       public: Public GitHub.com
+  googleoauth:
+    adminEmail: Admin Email
+    domain: Domain
+    oauthCredentials: 
+      label: OAuth Credentials
+      tip: The OAuth Credentials JSON can be found in the Google API developers console.
+    serviceAccountCredentials: 
+      label: Service Account Credentials
+      tip: The Service Account Credentials JSON can be found in the service accounts section of the Google API developers console.
+    steps:
+      1: 
+        title: 'Step One: For standard Google, click <a href="https://console.developers.google.com/apis/credentials" target="_blank" rel="noopener noreferrer nofollow">here</a> to go applications settings in a new window'
+        body: |-
+          <ul class="mt-0">
+          <li>Login to your account. Navigate to "APIs & Services" and then select "OAuth consent screen". </li>
+          <li>Authorized domains: Top private domain of {hostname} </li>
+          <li>Application homepage link: {serverUrl}</li>
+          <li>Under Scopes for Google APIs, enable "email", "profile", and "openid". </li>
+          <li>Click on "Save". </li>
+          </ul>
+      2: 
+        title: 'Step Two: Navigate to the "Credentials" tab to create your OAuth client ID'
+        body: |-
+          <ul class="mt-0">
+          <li>Select the "Create Credentials" dropdown, and select "OAuth clientID", then select "Web application".</li>
+          <li>Authorized Javascript origins: {serverUrl}</li>
+          <li>Authorized redirect URIs: {serverUrl}/verify?test </li>
+          <li>Click "Create", and then click on the "Download JSON" button.</li>
+          <li>Upload the downloaded JSON file in the OAuth credentials box.</li>
+          </ul>
+      3: 
+        title: 'Step Three: Create Service Account credentials'
+        body: |-
+          Follow <a href="https://rancher.com/docs/rancher/v2.x/en/admin-settings/authentication/google/#creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:<br/>
+          <ul class="mt-0">
+          <li> Create a service account.</li>
+          <li> Generate a key for the service account.</li>
+          <li> Add the service account as an OAuth client in your google domain.</li>
+          </ul>
   ldap:
     freeipa: Configure a FreeIPA server
     activedirectory: Configure an Active Directory account

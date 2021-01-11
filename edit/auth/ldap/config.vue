@@ -49,6 +49,16 @@ export default {
   watch: {
     hostname(neu, old) {
       this.value.servers[0] = neu;
+    },
+    'model.starttls'(neu) {
+      if (neu) {
+        this.model.tls = false;
+      }
+    },
+    'model.tls'(neu) {
+      if (neu) {
+        this.model.starttls = false;
+      }
     }
   }
 
@@ -70,12 +80,14 @@ export default {
           <Checkbox v-model="model.tls" :mode="mode" class="full-height" :label="t('authConfig.ldap.tls')" />
         </div>
       </div>
-      <div v-if="model.tls" class="row mb-20">
-        <div class="col span-12">
-          <LabeledInput v-model="model.certificate" required type="multiline" :mode="mode" :label="t('authConfig.ldap.cert')" />
-          <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :mode="mode" @selected="$set(model, 'certificate', $event)" />
+      <template v-if="type==='openldap'">
+        <div v-if="model.tls || model.starttls" class="row mb-20">
+          <div class="col span-12">
+            <LabeledInput v-model="model.certificate" required type="multiline" :mode="mode" :label="t('authConfig.ldap.cert')" />
+            <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :mode="mode" @selected="$set(model, 'certificate', $event)" />
+          </div>
         </div>
-      </div>
+      </template>
       <div class="row mb-20">
         <div class="col span-6">
           <UnitInput v-model="model.connectionTimeout" required :mode="mode" :label="t('authConfig.ldap.serverConnectionTimeout')" suffix="milliseconds" />
