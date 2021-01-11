@@ -226,6 +226,7 @@ export default {
               :mode="mode"
               :label="t('servicesPage.externalName.input.label')"
               :placeholder="t('servicesPage.externalName.placeholder')"
+              :required="true"
               type="text"
             />
           </div>
