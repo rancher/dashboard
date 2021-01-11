@@ -1606,8 +1606,15 @@ servicesPage:
   ports:
     label: Ports
   selectors:
-    helpText: "If no selector is created, manual endpoints must be made."
+    helpText: ""
     label: Selectors
+    matchingPods:
+      matchesSome: |-
+        {matched, plural,
+          =0 {Matches 0 of {total, number} pods. If no selector is created, manual endpoints must be made.}
+          =1 {Matches 1 of {total, number} pods: "{sample}"}
+          other {Matches {matched, number} of {total, number} existing pods, including "{sample}"}
+        }
   serviceTypes:
     clusterIp:
       abbrv: IP
