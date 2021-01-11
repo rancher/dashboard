@@ -8,6 +8,7 @@ import { NAME, CHART_NAME } from '@/config/product/monitoring';
 import { ENDPOINTS, MONITORING, WORKLOAD_TYPES } from '@/config/types';
 import { allHash } from '@/utils/promise';
 import { findBy } from '@/utils/array';
+import Poller from '@/utils/poller';
 
 import Banner from '@/components/Banner';
 import LazyImage from '@/components/LazyImage';
@@ -15,6 +16,8 @@ import SimpleBox from '@/components/SimpleBox';
 import SortableTable from '@/components/SortableTable';
 
 const CATTLE_MONITORING_NAMESPACE = 'cattle-monitoring-system';
+const ALERTMANAGER_POLL_RATE_MS = 30000;
+const MAX_FAILURES = 2;
 
 export default {
   components: {
@@ -51,39 +54,21 @@ export default {
         formatter: 'RunBookLink',
         sort:      ['annotations.message', 'labels.alertname', 'labels.severity'],
       },
-      // {
-      //   align:         'right',
-      //   name:          'starts-at',
-      //   label:         'Starts At',
-      //   labelKey:      'monitoring.overview.alertsList.start.label',
-      //   value:         'startsAt',
-      //   sort:          'startsAt:desc',
-      //   formatter:     'LiveDate',
-      //   formatterOpts: { addSuffix: true },
-      //   width:         125,
-      // },
-      // {
-      //   align:         'right',
-      //   name:          'ends-at',
-      //   label:         'Ends At',
-      //   labelKey:      'monitoring.overview.alertsList.ends.label',
-      //   value:         'endsAt',
-      //   sort:          'endsAt:desc',
-      //   formatter:     'LiveDate',
-      //   formatterOpts: { addSuffix: true },
-      //   width:         125,
-      // },
     ];
 
     return {
       eventHeaders,
+      alertManagerPoller: new Poller(
+        this.loadAlertManagerEvents,
+        ALERTMANAGER_POLL_RATE_MS,
+        MAX_FAILURES
+      ),
       allAlerts:      [],
       availableLinks: {
         alertmanager: false,
         grafana:      false,
         prometheus:   false,
       },
-      externalLinks: [],
       grafanaSrc:    require('~/assets/images/vendor/grafana.svg'),
       prometheusSrc: require('~/assets/images/vendor/prometheus.svg'),
       resources:     [MONITORING.ALERTMANAGER, MONITORING.PROMETHEUS],
@@ -91,59 +76,75 @@ export default {
     };
   },
 
-  computed: { ...mapGetters(['currentCluster']) },
+  computed: {
+    ...mapGetters(['currentCluster']),
+    externalLinks() {
+      return [
+        {
+          enabled:     false,
+          group:       'alertmanager',
+          iconSrc:     this.prometheusSrc,
+          label:       'monitoring.overview.linkedList.alertManager.label',
+          description:
+            'monitoring.overview.linkedList.alertManager.description',
+          link: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy`,
+        },
+        {
+          enabled:     false,
+          group:       'grafana',
+          iconSrc:     this.grafanaSrc,
+          label:       'monitoring.overview.linkedList.grafana.label',
+          description: 'monitoring.overview.linkedList.grafana.description',
+          link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy`,
+        },
+        {
+          enabled:     false,
+          group:       'prometheus',
+          iconSrc:     this.prometheusSrc,
+          label:       'monitoring.overview.linkedList.prometheusPromQl.label',
+          description:
+            'monitoring.overview.linkedList.prometheusPromQl.description',
+          link: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/graph`,
+        },
+        {
+          enabled:     false,
+          group:       'prometheus',
+          iconSrc:     this.prometheusSrc,
+          label:       'monitoring.overview.linkedList.prometheusRules.label',
+          description:
+            'monitoring.overview.linkedList.prometheusRules.description',
+          link: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/rules`,
+        },
+        {
+          enabled:     false,
+          group:       'prometheus',
+          iconSrc:     this.prometheusSrc,
+          label:       'monitoring.overview.linkedList.prometheusTargets.label',
+          description:
+            'monitoring.overview.linkedList.prometheusTargets.description',
+          link: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/targets`,
+        },
+      ];
+    },
+  },
 
   mounted() {
-    this.externalLinks = [
-      {
-        enabled:     false,
-        group:       'alertmanager',
-        iconSrc:     this.prometheusSrc,
-        label:       'monitoring.overview.linkedList.alertManager.label',
-        description: 'monitoring.overview.linkedList.alertManager.description',
-        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy`,
-      },
-      {
-        enabled:     false,
-        group:       'grafana',
-        iconSrc:     this.grafanaSrc,
-        label:       'monitoring.overview.linkedList.grafana.label',
-        description: 'monitoring.overview.linkedList.grafana.description',
-        link:        `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-grafana:80/proxy`,
-      },
-      {
-        enabled:     false,
-        group:       'prometheus',
-        iconSrc:     this.prometheusSrc,
-        label:       'monitoring.overview.linkedList.prometheusPromQl.label',
-        description:
-          'monitoring.overview.linkedList.prometheusPromQl.description',
-        link: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/graph`,
-      },
-      {
-        enabled:     false,
-        group:       'prometheus',
-        iconSrc:     this.prometheusSrc,
-        label:       'monitoring.overview.linkedList.prometheusRules.label',
-        description:
-          'monitoring.overview.linkedList.prometheusRules.description',
-        link: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/rules`,
-      },
-      {
-        enabled:     false,
-        group:       'prometheus',
-        iconSrc:     this.prometheusSrc,
-        label:       'monitoring.overview.linkedList.prometheusTargets.label',
-        description:
-          'monitoring.overview.linkedList.prometheusTargets.description',
-        link: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-prometheus:9090/proxy/targets`,
-      },
-    ];
-
     this.fetchDeps();
   },
 
+  beforeDestroy() {
+    this.alertManagerPoller.stop();
+  },
+
   methods: {
+    async loadAlertManagerEvents() {
+      const inStore = this.$store.getters['currentProduct'].inStore;
+      const alertsEvents = await this.$store.dispatch(`${ inStore }/request`, { url: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy/api/v1/alerts` });
+
+      if (alertsEvents.data) {
+        this.allAlerts = alertsEvents.data;
+      }
+    },
     async fetchDeps() {
       const { $store, externalLinks } = this;
 
@@ -204,15 +205,7 @@ export default {
         }
 
         if (amMatch.enabled) {
-          try {
-            const inStore = this.$store.getters['currentProduct'].inStore;
-            const alertsEvents = await this.$store.dispatch(
-              `${ inStore }/request`,
-              { url: `/k8s/clusters/${ this.currentCluster.id }/api/v1/namespaces/cattle-monitoring-system/services/http:rancher-monitoring-alertmanager:9093/proxy/api/v1/alerts` }
-            );
-
-            this.allAlerts = alertsEvents.data;
-          } catch (error) {}
+          this.alertManagerPoller.start();
         }
       }
     },
