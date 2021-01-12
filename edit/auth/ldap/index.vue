@@ -6,6 +6,7 @@ import CruResource from '@/components/CruResource';
 import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
+import AsyncButton from '@/components/AsyncButton';
 import config from '@/edit/auth/ldap/config';
 
 const AUTH_TYPE = 'ldap';
@@ -17,6 +18,7 @@ export default {
     LabeledInput,
     Banner,
     AllowedPrincipals,
+    AsyncButton,
     config
   },
 
@@ -84,9 +86,15 @@ export default {
       @finish="save"
       @cancel="done"
     >
-      <template v-if="model.enabled">
-        <Banner :label="t('authConfig.stateBanner.enabled', tArgs)" color="success" />
-
+      <template v-if="model.enabled && !isSaving">
+        <Banner color="success clearfix">
+          <div class="pull-left mt-10">
+            {{ t('authConfig.stateBanner.enabled', tArgs) }}
+          </div>
+          <div class="pull-right">
+            <AsyncButton mode="disable" size="sm" action-color="bg-error" @click="disable" />
+          </div>
+        </Banner>
         <div>Server: {{ serverUrl }}</div>
         <div>Client ID: {{ model.serviceAccountDistinguishedName || model.serviceAccountUsername }}</div>
 

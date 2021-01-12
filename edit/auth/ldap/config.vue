@@ -80,20 +80,21 @@ export default {
           <Checkbox v-model="model.tls" :mode="mode" class="full-height" :label="t('authConfig.ldap.tls')" />
         </div>
       </div>
-      <template v-if="type==='openldap'">
-        <div v-if="model.tls || model.starttls" class="row mb-20">
-          <div class="col span-12">
-            <LabeledInput v-model="model.certificate" required type="multiline" :mode="mode" :label="t('authConfig.ldap.cert')" />
-            <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :mode="mode" @selected="$set(model, 'certificate', $event)" />
-          </div>
+      <div v-if="model.tls || model.starttls" class="row mb-20">
+        <div class="col span-12">
+          <LabeledInput v-model="model.certificate" required type="multiline" :mode="mode" :label="t('authConfig.ldap.cert')" />
+          <FileSelector class="role-tertiary add mt-5" :label="t('generic.readFromFile')" :mode="mode" @selected="$set(model, 'certificate', $event)" />
         </div>
-      </template>
+      </div>
       <div class="row mb-20">
         <div class="col span-6">
           <UnitInput v-model="model.connectionTimeout" required :mode="mode" :label="t('authConfig.ldap.serverConnectionTimeout')" suffix="milliseconds" />
         </div>
-        <div class="col span-6">
+        <div v-if="type==='openldap'" class="col span-6">
           <Checkbox v-model="model.starttls" :tooltip="t('authConfig.ldap.starttls.tip')" :mode="mode" class="full-height" :label="t('authConfig.ldap.starttls.label')" />
+        </div>
+        <div v-if="type==='activedirectory'" class="col span-6">
+          <LabeledInput v-model="model.defaultLoginDomain" required :mode="mode" :label="t('authConfig.ldap.defaultLoginDomain')" />
         </div>
       </div>
       <Banner color="info" :label="t('authConfig.ldap.serviceAccountInfo')" />

@@ -121,18 +121,6 @@ export default {
   },
 
   methods: {
-    async reloadModel() {
-      this.originalModel = await this.$store.dispatch('rancher/find', {
-        type: NORMAN.AUTH_CONFIG,
-        id:   NAME,
-        opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ NAME }`, force: true }
-      });
-
-      this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
-
-      return this.model;
-    },
-
     updateHost() {
       const match = this.targetUrl.match(/^(((https?):)?\/\/)?([^/]+)(\/.*)?$/);
 
@@ -146,20 +134,6 @@ export default {
         this.model.hostname = match[4] || 'github.com';
       }
     },
-
-    async disable(btnCb) {
-      try {
-        const clone = await this.$store.dispatch(`rancher/clone`, { resource: this.model });
-
-        clone.enabled = false;
-        await clone.save();
-        await this.reloadModel();
-        btnCb(true);
-      } catch (err) {
-        this.errors = [err];
-        btnCb(false);
-      }
-    }
   },
 };
 </script>
@@ -180,7 +154,7 @@ export default {
       @finish="save"
       @cancel="done"
     >
-      <template v-if="model.enabled">
+      <template v-if="model.enabled && !isSaving">
         <Banner color="success clearfix">
           <div class="pull-left mt-10">
             {{ t('authConfig.stateBanner.enabled', tArgs) }}

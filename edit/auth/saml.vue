@@ -7,6 +7,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
 import Banner from '@/components/Banner';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
+import AsyncButton from '@/components/AsyncButton';
 import FileSelector from '@/components/form/FileSelector';
 import config from '@/edit/auth/ldap/config';
 
@@ -21,6 +22,7 @@ export default {
     AllowedPrincipals,
     Checkbox,
     FileSelector,
+    AsyncButton,
     config
   },
 
@@ -74,8 +76,15 @@ export default {
       @finish="save"
       @cancel="done"
     >
-      <template v-if="model.enabled">
-        <Banner :label="t('authConfig.stateBanner.enabled', tArgs)" color="success" />
+      <template v-if="model.enabled && !isSaving">
+        <Banner color="success clearfix">
+          <div class="pull-left mt-10">
+            {{ t('authConfig.stateBanner.enabled', tArgs) }}
+          </div>
+          <div class="pull-right">
+            <AsyncButton mode="disable" size="sm" action-color="bg-error" @click="disable" />
+          </div>
+        </Banner>
 
         <div>Server: {{ baseUrl }}</div>
         <div>Display Name: {{ model.displayNameField }}</div>

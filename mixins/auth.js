@@ -27,6 +27,10 @@ export default {
     }
   },
 
+  data() {
+    return { isSaving: false };
+  },
+
   computed: {
     me() {
       const out = findBy(this.principals, 'me', true);
@@ -63,6 +67,9 @@ export default {
 
   methods: {
     async save(btnCb) {
+      const configType = this.value.configType;
+
+      this.isSaving = true;
       this.errors = [];
       const wasEnabled = this.model.enabled;
       let obj = this.toSave;
@@ -73,16 +80,26 @@ export default {
 
       try {
         if ( !wasEnabled ) {
-          this.model.enabled = true;
-
-          if (this.model.id === 'googleoauth' || this.model.id === 'github') {
+          if (configType === 'oauth') {
             const code = await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
 
             this.model.enabled = true;
             obj.code = code;
           }
-
-          await this.model.doAction('testAndApply', obj);
+          if (configType === 'saml') {
+            this.model.enabled = true;
+            if (!this.model.accessMode) {
+              this.model.accessMode = 'unrestricted';
+            }
+            await this.model.save();
+            await this.model.doAction('testAndEnable', obj);
+          } else {
+            this.model.enabled = true;
+            if (!this.model.accessMode) {
+              this.model.accessMode = 'unrestricted';
+            }
+            await this.model.doAction('testAndApply', obj);
+          }
 
           // Reload principals to get the new ones from the provider
           this.principals = await this.$store.dispatch('rancher/findAll', {
@@ -96,21 +113,53 @@ export default {
           }
         }
 
-        if (this.model.configType === 'oauth') {
+        if (configType === 'oauth') {
           await this.model.save();
           await this.reloadModel();
         }
-
+        this.isSaving = false;
         btnCb(true);
         if ( wasEnabled ) {
           this.done();
         }
-        this.$router.applyQuery( { mode: 'view' } );
+        // this.$router.applyQuery( { mode: 'view' } );
       } catch (err) {
         this.errors = [err];
         btnCb(false);
         this.model.enabled = wasEnabled;
+        this.isSaving = false;
       }
+    },
+
+    async disable(btnCb) {
+      try {
+        if (this.model.hasAction('disable')) {
+          await this.model.doAction('disable');
+        } else {
+          const clone = await this.$store.dispatch(`rancher/clone`, { resource: this.model });
+
+          clone.enabled = false;
+          await clone.save();
+        }
+        await this.reloadModel();
+
+        btnCb(true);
+      } catch (err) {
+        this.errors = [err];
+        btnCb(false);
+      }
+    },
+
+    async reloadModel() {
+      this.originalModel = await this.$store.dispatch('rancher/find', {
+        type: NORMAN.AUTH_CONFIG,
+        id:   this.NAME,
+        opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ this.NAME }`, force: true }
+      });
+
+      this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
+
+      return this.model;
     },
   },
 };

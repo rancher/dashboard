@@ -184,6 +184,7 @@ authConfig:
     freeipa: Configure a FreeIPA server
     activedirectory: Configure an Active Directory account
     openldap: Configure an OpenLDAP server
+    defaultLoginDomain: Default Login Domain
     cert: Certificate
     disabledStatusBitmask: Disabled Status Bitmask
     groupDNAttribute: Group DN Attribute

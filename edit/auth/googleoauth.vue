@@ -113,7 +113,7 @@ export default {
       @finish="save"
       @cancel="done"
     >
-      <template v-if="model.enabled">
+      <template v-if="model.enabled && !isSaving">
         <Banner color="success clearfix">
           <div class="pull-left mt-10">
             {{ t('authConfig.stateBanner.enabled', tArgs) }}

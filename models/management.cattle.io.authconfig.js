@@ -68,8 +68,9 @@ export default {
     return () => {
       switch (this.configType) {
       case 'saml':
+        set(this, 'accessMode', 'unrestricted');
+
         if (this.id === 'shibboleth' && !this.openLdapConfig) {
-          this.openLdapConfig = {};
           set(this, 'openLdapConfig', {});
         }
         break;
