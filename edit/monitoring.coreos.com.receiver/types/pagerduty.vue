@@ -5,17 +5,19 @@ import Checkbox from '@/components/form/Checkbox';
 
 export default {
   components: {
-    Checkbox, LabeledInput, LabeledSelect
+    Checkbox,
+    LabeledInput,
+    LabeledSelect,
   },
-  props:      {
+  props: {
     mode: {
       type:     String,
       required: true,
     },
     value: {
       type:     Object,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     this.$set(this.value, 'http_config', this.value.http_config || {});
@@ -23,7 +25,7 @@ export default {
 
     const integrationMapping = {
       'Events API v2': 'routing_key',
-      Prometheus:      'service_key'
+      Prometheus:      'service_key',
     };
 
     const integrationTypeOptions = Object.keys(integrationMapping);
@@ -39,8 +41,8 @@ export default {
       this.integrationTypeOptions.forEach((option) => {
         this.value[this.integrationMapping[option]] = null;
       });
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -48,19 +50,39 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledSelect v-model="integrationType" :options="integrationTypeOptions" :mode="mode" label="Integration Type" />
+        <LabeledSelect
+          v-model="integrationType"
+          :options="integrationTypeOptions"
+          :mode="mode"
+          :tooltip="{ content: t('monitoringReceiver.pagerduty.info', {}, raw=true), autoHide: false}"
+          :hover-tooltip="true"
+          label="Integration Type"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value[integrationMapping[integrationType]]" :mode="mode" label="Default Integration Key" />
+        <LabeledInput
+          v-model="value[integrationMapping[integrationType]]"
+          :mode="mode"
+          label="Default Integration Key"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.http_config.proxy_url" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
+        <LabeledInput
+          v-model="value.http_config.proxy_url"
+          :mode="mode"
+          label="Proxy URL"
+          placeholder="e.g. http://my-proxy/"
+        />
       </div>
     </div>
     <div class="row">
-      <Checkbox v-model="value.send_resolved" :mode="mode" label="Enable send resolved alerts" />
+      <Checkbox
+        v-model="value.send_resolved"
+        :mode="mode"
+        label="Enable send resolved alerts"
+      />
     </div>
   </div>
 </template>

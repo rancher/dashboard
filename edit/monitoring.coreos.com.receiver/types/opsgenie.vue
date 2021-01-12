@@ -1,7 +1,7 @@
 <script>
 import ArrayList from '@/components/form/ArrayList';
 import LabeledInput from '@/components/form/LabeledInput';
-import LabeledSelect from '@/components/form/LabeledSelect';
+import Select from '@/components/form/Select';
 import Checkbox from '@/components/form/Checkbox';
 import InputWithSelect from '@/components/form/InputWithSelect';
 import { _VIEW } from '@/config/query-params';
@@ -42,7 +42,7 @@ export const TYPES = [
 
 export default {
   components: {
-    ArrayList, Checkbox, InputWithSelect, LabeledInput, LabeledSelect
+    ArrayList, Checkbox, InputWithSelect, LabeledInput, Select
   },
   props:      {
     mode: {
@@ -138,11 +138,11 @@ export default {
         <h3>Responders</h3>
         <ArrayList v-model="responders" :mode="mode" :default-add-value="defaultResponder" :show-header="true">
           <template v-slot:column-headers>
-            <div class="row" :class="{'mb-15': isView}">
+            <div class="row mb-10">
               <div class="col span-6">
                 <span class="text-label">Type</span>
               </div>
-              <div class="col span-6">
+              <div class="col span-6 send-to">
                 <span class="text-label">Send To</span>
               </div>
             </div>
@@ -151,7 +151,7 @@ export default {
             <div class="row responder">
               <div class="col span-6">
                 <span v-if="isView">{{ typeLabel(scope.row.value.type) }}</span>
-                <LabeledSelect v-else v-model="scope.row.value.type" :mode="mode" label="Type" :options="TYPES" />
+                <Select v-else v-model="scope.row.value.type" :mode="mode" label="Type" :options="TYPES" />
               </div>
               <div class="col-span-6 target">
                 <span v-if="isView">{{ targetLabel(scope.row.value.target) }}: {{ scope.row.value.value }}</span>
@@ -176,6 +176,13 @@ export default {
   .responder {
     &, .target {
       width: 100%;
+    }
+    .send-to {
+      margin-left: -35px;
+    }
+
+    .unlabeled-select ::v-deep {
+      height: $input-height;
     }
 
     .target ::v-deep {

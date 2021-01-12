@@ -1050,6 +1050,16 @@ monitoring:
       volumeName: Volume Name
     title: Configure Grafana
   overview:
+    alertsList:
+      ends:
+        label: Ends At
+      label: Active Alerts
+      message:
+        label: Message
+      severity:
+        label: Severity
+      start:
+        label: Starts At
     linkedList:
       alertManager:
         description: Active Alerts
@@ -1113,11 +1123,42 @@ monitoring:
       groupWait: Group Wait
       receiver: Receiver
       repeatInterval: Repeat Interval
+  tabs:
+    alerting: Alerting
+    general: General
+    grafana: Grafana
+    prometheus: Promethues
   v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of Rancher with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new Rancher Monitoring chart in Cluster Explorer.'
   volume:
     modes:
       block: Block
       file: Filesystem
+
+monitoringReceiver:
+  addButton: Add {type}
+  custom:
+    label: Custom
+    title: Custom Config
+    info: The YAML provided here will be directly appended to your receiver within the Alertmanager Config Secret.
+  email:
+    label: Email
+    title: Email Config
+  opsgenie:
+    label: Opsgenie
+    title: Opsgenie Config
+  pagerduty:
+    label: PagerDuty
+    title: PagerDuty Config
+    info: "You can find additional info on creating an Integration Key for PagerDuty <a href='https://www.pagerduty.com/docs/guides/prometheus-integration-guide/' target='_blank' rel='noopener nofollow' class='flex-right'>here</a>."
+  slack:
+    label: Slack
+    title: Slack Config
+    info: "You can find additional info on creating Incoming Webhooks for Slack <a href='https://rancher.slack.com/apps/A0F7XDUAZ-incoming-webhooks' target='_blank' rel='noopener noreferrer nofollow'>here</a> ."
+  webhook:
+    label: Webhook
+    title: Webhook Config
+
+
 
 monitoringRoute:
   groups:
