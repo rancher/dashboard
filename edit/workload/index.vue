@@ -4,7 +4,6 @@ import { cleanUp } from '@/utils/object';
 import {
   CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC
 } from '@/config/types';
-import { TARGET_WORKLOADS } from '@/config/labels-annotations.js';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
@@ -118,7 +117,8 @@ export default {
       pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      createService:     false
+      createService:     false,
+      servicesCreated:   []
     };
   },
 
@@ -401,6 +401,13 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     },
+
+    errors(neu, old) {
+      // svc creation happened before workload, so if something went wrong with workload creation, svc should be deleted
+      if (neu && neu.length && this.createService) {
+        this.cleanUpServices();
+      }
+    }
   },
 
   created() {
@@ -429,50 +436,18 @@ export default {
     },
 
     async saveService() {
-      const workloadErrors = await this.value.validationErrors(this.value);
-
-      if (!this.createService || workloadErrors.length ) {
+      if (!this.createService) {
         return;
       }
-      const { ports = [] } = this.container;
+      const toSave = await this.value.servicesFromContainerPorts();
 
-      const data = {
-        type: SERVICE,
-        spec: {
-          ports: ports.map((port) => {
-            const name = port.name ? `${ port.name }-${ this.value.metadata.name }` : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || '' }`;
+      this.servicesCreated = toSave;
 
-            return {
-              name, protocol: port.protocol, port: port.containerPort, targetPort: port.containerPort
-            };
-          }),
-          selector: this.value.workloadSelector,
-          type:     'ClusterIP'
-        },
-        metadata: {
-          name:        this.value.metadata.name,
-          namespace:   this.value.metadata.namespace,
-          annotations: { [TARGET_WORKLOADS]: `[${ this.value.metadata.namespace }/${ this.value.metadata.name }]` }
-        },
-
-      };
-
-      const service = await this.$store.dispatch(`cluster/create`, data);
-
-      return service.save();
+      return Promise.all(toSave.map(svc => svc.save()));
     },
 
     async setOwnerRef() {
       if (!this.createService ) {
-        return;
-      }
-
-      const svc = await this.$store.dispatch('cluster/find', {
-        type:     SERVICE,
-        id:   this.value.id
-      });
-
-      if (!svc) {
         return;
       }
 
@@ -484,10 +459,37 @@ export default {
         uid:        this.value.metadata.uid
       };
 
-      if (!svc.metadata.ownerReferences) {
-        svc.metadata.ownerReferences = [ownerRef];
-        await svc.save();
-      }
+      try {
+        const clusterIPSvc = await this.$store.dispatch('cluster/find', {
+          type:     SERVICE,
+          id:   this.value.id,
+          opt:  { force: true }
+        });
+
+        if (!clusterIPSvc) {
+          return;
+        }
+
+        const nodePortSvc = await this.$store.dispatch('cluster/find', {
+          type:     SERVICE,
+          id:   `${ this.value.id }-nodeport`,
+          opt:  { force: true }
+        });
+
+        if (!clusterIPSvc.metadata.ownerReferences) {
+          clusterIPSvc.metadata.ownerReferences = [ownerRef];
+        }
+
+        if (nodePortSvc) {
+          if (!nodePortSvc.metadata.ownerReferences) {
+            nodePortSvc.metadata.ownerReferences = [ownerRef];
+          }
+
+          await Promise.all([nodePortSvc.save(), clusterIPSvc.save()]);
+        } else {
+          await clusterIPSvc.save();
+        }
+      } catch {}
     },
 
     saveWorkload() {
@@ -595,6 +597,15 @@ export default {
       }
     },
 
+    cleanUpServices() {
+      (this.servicesCreated || []).forEach((svc) => {
+        try {
+          this.$store.dispatch('cluster/find', { type: SERVICE, id: `${ svc.metadata.namespace }/${ svc.metadata.name }` }).then((svc) => {
+            svc.remove();
+          });
+        } catch {}
+      });
+    }
   }
 };
 </script>

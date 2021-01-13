@@ -1,6 +1,6 @@
 import { insertAt } from '@/utils/array';
-import { TIMESTAMP } from '@/config/labels-annotations';
-import { WORKLOAD_TYPES, POD, ENDPOINTS } from '@/config/types';
+import { TARGET_WORKLOADS, TIMESTAMP } from '@/config/labels-annotations';
+import { WORKLOAD_TYPES, POD, ENDPOINTS, SERVICE } from '@/config/types';
 import { get } from '@/utils/object';
 import day from 'dayjs';
 
@@ -266,7 +266,74 @@ export default {
     const endpoints = this.$rootGetters['cluster/byId'](ENDPOINTS, this.id);
 
     if (endpoints) {
-      return endpoints.metadata.fields[1];
+      const out = endpoints.metadata.fields[1];
+
+      return out;
     }
-  }
+  },
+
+  // create clusterip and nodeport services from container port spec
+  servicesFromContainerPorts() {
+    return async() => {
+      const workloadErrors = await this.validationErrors(this);
+
+      if (workloadErrors.length ) {
+        throw workloadErrors;
+      }
+      const clusterIP = {
+        type: SERVICE,
+        spec: {
+          ports:    [],
+          selector: this.workloadSelector,
+          type:     'ClusterIP'
+        },
+        metadata: {
+          name:        this.metadata.name,
+          namespace:   this.metadata.namespace,
+          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']` },
+        },
+      };
+
+      const nodePort = {
+        type: SERVICE,
+        spec: {
+          ports:    [],
+          selector: this.workloadSelector,
+          type:     'NodePort'
+        },
+        metadata: {
+          name:        `${ this.metadata.name }-nodeport`,
+          namespace:   this.metadata.namespace,
+          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']` },
+
+        },
+      };
+
+      const { ports = [] } = this.container;
+
+      ports.forEach((port) => {
+        const name = port.name ? `${ port.name }-${ this.metadata.name }` : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || '' }`;
+
+        const clusterIPSpec = {
+          name, protocol: port.protocol, port: port.containerPort, targetPort: port.containerPort
+        };
+
+        clusterIP.spec.ports.push(clusterIPSpec);
+
+        if (!port.hostPort && !port.hostIP) {
+          nodePort.spec.ports.push(clusterIPSpec);
+        }
+      });
+
+      const clusterIPSvc = await this.$dispatch(`cluster/create`, clusterIP, { root: true });
+
+      if (nodePort.spec.ports.length > 0) {
+        const nodePortSvc = await this.$dispatch(`cluster/create`, nodePort, { root: true });
+
+        return [clusterIPSvc, nodePortSvc];
+      }
+
+      return [clusterIPSvc];
+    };
+  },
 };
