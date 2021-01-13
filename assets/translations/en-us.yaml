@@ -1196,6 +1196,7 @@ namespace:
   containerResourceLimit: Container Resource Limit
   project:
     label: Project
+  resources: Resources
 
 namespaceFilter:
   selected:
