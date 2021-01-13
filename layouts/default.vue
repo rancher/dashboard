@@ -331,9 +331,6 @@ export default {
                             "state-banner state-banner";
       grid-template-columns: auto min-content;
       margin-bottom: 20px;
-      // align-items: center;
-      // min-height: 48px;
-      // background: orange;
       align-content: center;
       min-height: 48px;
 
