@@ -13,7 +13,7 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveType:          CAPI.RKE_CLUSTER,
+    ifHaveType:          CAPI.CAPI_CLUSTER,
     inStore:             'management',
     icon:                'globe',
     weight:              -1,
@@ -22,7 +22,7 @@ export function init(store) {
     showClusterSwitcher: false,
   });
 
-  configureType(CAPI.RKE_CLUSTER, {
+  configureType(CAPI.CAPI_CLUSTER, {
     extraListAction: {
       query:    { [REGISTER]: _FLAGGED },
       labelKey: 'generic.register',

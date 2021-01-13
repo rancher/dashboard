@@ -22,7 +22,7 @@ if [[ "${DIR}" == "master" ]]; then
   DIR="latest"
 fi
 
-BASE=https://releases.rancher.com/dashboard/${DIR}
+BASE=${BASE:-https://releases.rancher.com/dashboard/${DIR}}
 
 echo "Building for ${BASE}..."
 

@@ -35,7 +35,7 @@
 //   ifHaveGroup,             -- Show this product only if the given group exists in the store [inStore]
 //   ifHaveType,              -- Show this product only if the given type exists in the store [inStore]
 //   inStore,                 -- Which store to look at for if* above and the left-nav, defaults to "cluster"
-//   public,                  -- If true, show to all users.  If false, only show when the Devleoper Tools pref is on (default true)
+//   public,                  -- If true, show to all users.  If false, only show when the Developer Tools pref is on (default true)
 // })
 //
 // externalLink(stringOrFn)  The product has an external page (function gets context object
