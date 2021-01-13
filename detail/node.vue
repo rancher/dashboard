@@ -57,7 +57,8 @@ export default {
         },
         {
           ...VALUE,
-          label: ''
+          label:       '',
+          dashIfEmpty: true,
         }
       ],
       imageTableHeaders: [
