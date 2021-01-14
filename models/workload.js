@@ -309,31 +309,67 @@ export default {
         },
       };
 
+      const loadBalancer = {
+        type: SERVICE,
+        spec: {
+          ports:                 [],
+          selector:              this.workloadSelector,
+          type:                  'LoadBalancer',
+          externalTrafficPolicy: 'Cluster'
+        },
+        metadata: {
+          name:        `${ this.metadata.name }-loadbalancer`,
+          namespace:   this.metadata.namespace,
+          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']` },
+
+        },
+      };
+
       const { ports = [] } = this.container;
 
       ports.forEach((port) => {
         const name = port.name ? `${ port.name }-${ this.metadata.name }` : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || '' }`;
 
-        const clusterIPSpec = {
+        const portSpec = {
           name, protocol: port.protocol, port: port.containerPort, targetPort: port.containerPort
         };
 
-        clusterIP.spec.ports.push(clusterIPSpec);
+        if (port._serviceType && port._serviceType !== '') {
+          clusterIP.spec.ports.push(portSpec);
 
-        if (!port.hostPort && !port.hostIP) {
-          nodePort.spec.ports.push(clusterIPSpec);
+          switch (port._serviceType) {
+          case 'NodePort':
+            nodePort.spec.ports.push(portSpec);
+            break;
+          case 'LoadBalancer':
+            portSpec.port = port._lbPort;
+            loadBalancer.spec.ports.push(portSpec);
+            break;
+          default:
+            break;
+          }
         }
       });
 
+      if (clusterIP.spec.ports.length === 0) {
+        return [];
+      }
+
+      const out = [];
       const clusterIPSvc = await this.$dispatch(`cluster/create`, clusterIP, { root: true });
 
+      out.push(clusterIPSvc);
       if (nodePort.spec.ports.length > 0) {
         const nodePortSvc = await this.$dispatch(`cluster/create`, nodePort, { root: true });
 
-        return [clusterIPSvc, nodePortSvc];
+        out.push(nodePortSvc);
+      } if (loadBalancer.spec.ports.length > 0) {
+        const loadBalancerSvc = await this.$dispatch(`cluster/create`, loadBalancer, { root: true });
+
+        out.push(loadBalancerSvc);
       }
 
-      return [clusterIPSvc];
+      return out;
     };
   },
 };

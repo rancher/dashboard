@@ -117,7 +117,6 @@ export default {
       pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      createService:     false,
       servicesCreated:   []
     };
   },
@@ -436,18 +435,18 @@ export default {
     },
 
     async saveService() {
-      if (!this.createService) {
-        return;
-      }
       const toSave = await this.value.servicesFromContainerPorts();
 
+      if (!toSave.length) {
+        return;
+      }
       this.servicesCreated = toSave;
 
       return Promise.all(toSave.map(svc => svc.save()));
     },
 
-    async setOwnerRef() {
-      if (!this.createService ) {
+    setOwnerRef() {
+      if (!this.servicesCreated.length ) {
         return;
       }
 
@@ -459,37 +458,54 @@ export default {
         uid:        this.value.metadata.uid
       };
 
-      try {
-        const clusterIPSvc = await this.$store.dispatch('cluster/find', {
-          type:     SERVICE,
-          id:   this.value.id,
-          opt:  { force: true }
-        });
+      this.servicesCreated.forEach((svc) => {
+        const id = `${ svc.metadata.namespace }/${ svc.metadata.name }`;
 
-        if (!clusterIPSvc) {
-          return;
-        }
+        try {
+          this.$store.dispatch('cluster/find', {
+            type:     SERVICE,
+            id,
+            opt:  { force: true }
+          }).then((svc) => {
+            if (!svc.metadata.ownerReferences) {
+              svc.metadata.ownerReferences = [ownerRef];
+            }
+            svc.save();
+          });
+        } catch {}
+      });
 
-        const nodePortSvc = await this.$store.dispatch('cluster/find', {
-          type:     SERVICE,
-          id:   `${ this.value.id }-nodeport`,
-          opt:  { force: true }
-        });
+      // try {
+      //   const clusterIPSvc = await this.$store.dispatch('cluster/find', {
+      //     type:     SERVICE,
+      //     id:   this.value.id,
+      //     opt:  { force: true }
+      //   });
 
-        if (!clusterIPSvc.metadata.ownerReferences) {
-          clusterIPSvc.metadata.ownerReferences = [ownerRef];
-        }
+      //   if (!clusterIPSvc) {
+      //     return;
+      //   }
 
-        if (nodePortSvc) {
-          if (!nodePortSvc.metadata.ownerReferences) {
-            nodePortSvc.metadata.ownerReferences = [ownerRef];
-          }
+      //   const nodePortSvc = await this.$store.dispatch('cluster/find', {
+      //     type:     SERVICE,
+      //     id:   `${ this.value.id }-nodeport`,
+      //     opt:  { force: true }
+      //   });
 
-          await Promise.all([nodePortSvc.save(), clusterIPSvc.save()]);
-        } else {
-          await clusterIPSvc.save();
-        }
-      } catch {}
+      //   if (!clusterIPSvc.metadata.ownerReferences) {
+      //     clusterIPSvc.metadata.ownerReferences = [ownerRef];
+      //   }
+
+      //   if (nodePortSvc) {
+      //     if (!nodePortSvc.metadata.ownerReferences) {
+      //       nodePortSvc.metadata.ownerReferences = [ownerRef];
+      //     }
+
+      //     await Promise.all([nodePortSvc.save(), clusterIPSvc.save()]);
+      //   } else {
+      //     await clusterIPSvc.save();
+      //   }
+      // } catch {}
     },
 
     saveWorkload() {
@@ -700,7 +716,7 @@ export default {
           <div>
             <h3>{{ t('workload.container.titles.ports') }}</h3>
             <div class="row">
-              <WorkloadPorts v-model="container.ports" :create-service.sync="createService" :mode="mode" />
+              <WorkloadPorts v-model="container.ports" :mode="mode" />
             </div>
           </div>
 

@@ -11,7 +11,6 @@ export default {
   components: {
     LabeledInput,
     LabeledSelect,
-    Checkbox
   },
 
   props:      {
@@ -32,8 +31,10 @@ export default {
   },
 
   data() {
+    // TODO repopulate the service selector properly on edit
     const rows = clone(this.value || []).map((row) => {
       row._showHost = false;
+      row._serviceType = '' ;
       if (row.hostPort || row.hostIP) {
         row._showHost = true;
       }
@@ -63,24 +64,32 @@ export default {
     showRemove() {
       return !this.isView;
     },
+
+    serviceTypes() {
+      return [
+        {
+          label: this.t('workload.container.ports.noCreateService'),
+          value: ''
+        },
+        {
+          label: this.t('serviceTypes.clusterip'),
+          value: 'ClusterIP'
+        },
+        {
+          label: this.t('serviceTypes.nodeport'),
+          value: 'NodePort'
+        },
+        {
+          label: this.t('serviceTypes.loadbalancer'),
+          value: 'LoadBalancer'
+        },
+      ];
+    }
   },
 
   created() {
     this.queueUpdate = debounce(this.update, 500);
   },
-
-  /*
-    Name string `json:"name,omitempty"`
-     Expose will make the port available outside the cluster. All http/https ports will be set to true by default
-     if Expose is nil.  All other protocols are set to false by default
-    Expose     *bool    `json:"expose,omitempty"`
-    Protocol   Protocol `json:"protocol,omitempty"`
-    Port       int32    `json:"port"`
-    TargetPort int32    `json:"targetPort,omitempty"`
-    HostPort   bool     `json:"hostport,omitempty"`
-
-    [port]/[proto] -> [targetPort] [hostPort] [expose] [name]
-  */
 
   methods: {
     add() {
@@ -135,6 +144,10 @@ export default {
       class="ports-row"
       :class="{'show-host':row._showHost}"
     >
+      <div class="service-type">
+        <LabeledSelect v-model="row._serviceType" :mode="mode" :label="t('workload.container.ports.createService')" :options="serviceTypes" />
+      </div>
+
       <div class="portName">
         <LabeledInput
           ref="name"
@@ -171,6 +184,7 @@ export default {
 
       <div v-if="row._showHost" class="targetPort">
         <LabeledInput
+
           ref="port"
           v-model.number="row.hostPort"
           :mode="mode"
@@ -194,10 +208,22 @@ export default {
         />
       </div>
 
-      <div v-if="!row._showHost" class="add-host">
+      <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer'" class="add-host">
         <button type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
           {{ t('workloadPorts.addHost') }}
         </button>
+      </div>
+
+      <div v-if="row._serviceType === 'LoadBalancer'">
+        <LabeledInput
+          ref="port"
+          v-model.number="row._lbPort"
+          type="number"
+          :mode="mode"
+          :label="t('workload.container.ports.listeningPort')"
+          required
+          @input="queueUpdate"
+        />
       </div>
 
       <div v-if="showRemove" class="remove">
@@ -210,7 +236,6 @@ export default {
       <button type="button" class="btn role-tertiary add" @click="add()">
         {{ t('workloadPorts.addPort') }}
       </button>
-      <Checkbox v-model="createService" label="Create a service to expose ports" @input="$emit('update:create-service', $event)" />
     </div>
   </div>
 </template>
@@ -226,10 +251,10 @@ $checkbox: 75;
     float: right;
   }
 }
-// 1 unit is 8%
 .ports-headers, .ports-row{
   display: grid;
-  grid-template-columns: 30% 30% 18% 10% 5%;
+  // grid-template-columns: 20% 3fr 160px 80px 10% 1fr;
+  grid-template-columns: 20% 3fr 160px 80px 160px 1fr;
   grid-column-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;
@@ -239,7 +264,7 @@ $checkbox: 75;
   }
 
   &.show-host{
-    grid-template-columns: 30% 16% 10% 15% 15% 5%;
+    grid-template-columns: 20% 3fr 160px 80px 160px 10% 1fr
   }
 
 }
