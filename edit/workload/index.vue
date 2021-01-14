@@ -86,6 +86,8 @@ export default {
 
     const hash = await allHash(requests);
 
+    this.servicesOwned = await this.value.getServicesOwned();
+
     this.allSecrets = hash.secrets || [];
     this.allConfigMaps = hash.configMaps;
     this.allNodes = hash.nodes.map(node => node.id);
@@ -117,7 +119,8 @@ export default {
       pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      servicesCreated:   []
+      servicesOwned:     [],
+      servicesToRemove:    []
     };
   },
 
@@ -403,7 +406,7 @@ export default {
 
     errors(neu, old) {
       // svc creation happened before workload, so if something went wrong with workload creation, svc should be deleted
-      if (neu && neu.length && this.createService) {
+      if (neu && neu.length) {
         this.cleanUpServices();
       }
     }
@@ -413,6 +416,7 @@ export default {
     this.registerBeforeHook(this.saveWorkload, 'willSaveWorkload');
     this.registerBeforeHook(this.saveService, 'saveService');
     this.registerAfterHook(this.setOwnerRef, 'setOwnerRef');
+    this.registerAfterHook(this.removeService, 'removeService');
   },
 
   methods: {
@@ -435,18 +439,28 @@ export default {
     },
 
     async saveService() {
-      const toSave = await this.value.servicesFromContainerPorts();
+      const { toSave = [], toRemove = [] } = await this.value.servicesFromContainerPorts(this.mode);
+
+      this.servicesOwned = toSave;
+      this.servicesToRemove = toRemove;
 
       if (!toSave.length) {
         return;
       }
-      this.servicesCreated = toSave;
 
       return Promise.all(toSave.map(svc => svc.save()));
     },
 
+    removeService() {
+      if (!this.servicesToRemove) {
+        return;
+      }
+
+      return Promise.all(this.servicesToRemove.map(svc => svc.remove()));
+    },
+
     setOwnerRef() {
-      if (!this.servicesCreated.length ) {
+      if (!this.servicesOwned.length ) {
         return;
       }
 
@@ -458,7 +472,7 @@ export default {
         uid:        this.value.metadata.uid
       };
 
-      this.servicesCreated.forEach((svc) => {
+      this.servicesOwned.forEach((svc) => {
         const id = `${ svc.metadata.namespace }/${ svc.metadata.name }`;
 
         try {
@@ -474,38 +488,6 @@ export default {
           });
         } catch {}
       });
-
-      // try {
-      //   const clusterIPSvc = await this.$store.dispatch('cluster/find', {
-      //     type:     SERVICE,
-      //     id:   this.value.id,
-      //     opt:  { force: true }
-      //   });
-
-      //   if (!clusterIPSvc) {
-      //     return;
-      //   }
-
-      //   const nodePortSvc = await this.$store.dispatch('cluster/find', {
-      //     type:     SERVICE,
-      //     id:   `${ this.value.id }-nodeport`,
-      //     opt:  { force: true }
-      //   });
-
-      //   if (!clusterIPSvc.metadata.ownerReferences) {
-      //     clusterIPSvc.metadata.ownerReferences = [ownerRef];
-      //   }
-
-      //   if (nodePortSvc) {
-      //     if (!nodePortSvc.metadata.ownerReferences) {
-      //       nodePortSvc.metadata.ownerReferences = [ownerRef];
-      //     }
-
-      //     await Promise.all([nodePortSvc.save(), clusterIPSvc.save()]);
-      //   } else {
-      //     await clusterIPSvc.save();
-      //   }
-      // } catch {}
     },
 
     saveWorkload() {
@@ -537,7 +519,7 @@ export default {
       this.fixPodAffinity(podAffinity);
       this.fixPodAffinity(podAntiAffinity);
 
-      delete this.value.kind;
+      // delete this.value.kind;
 
       if (!this.container.name || this.mode === _CREATE) {
         this.$set(this.container, 'name', this.value.metadata.name);
@@ -614,7 +596,7 @@ export default {
     },
 
     cleanUpServices() {
-      (this.servicesCreated || []).forEach((svc) => {
+      (this.servicesOwned || []).forEach((svc) => {
         try {
           this.$store.dispatch('cluster/find', { type: SERVICE, id: `${ svc.metadata.namespace }/${ svc.metadata.name }` }).then((svc) => {
             svc.remove();
@@ -716,7 +698,7 @@ export default {
           <div>
             <h3>{{ t('workload.container.titles.ports') }}</h3>
             <div class="row">
-              <WorkloadPorts v-model="container.ports" :mode="mode" />
+              <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
             </div>
           </div>
 

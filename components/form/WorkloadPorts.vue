@@ -1,11 +1,10 @@
 <script>
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@/config/query-params';
-import { removeAt } from '@/utils/array';
+import { removeAt, findBy } from '@/utils/array';
 import { clone } from '@/utils/object';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import Checkbox from '@/components/form/Checkbox';
 
 export default {
   components: {
@@ -24,17 +23,24 @@ export default {
       default: _EDIT,
     },
 
-    createService: {
-      type:    Boolean,
-      default: false
+    // array of services auto-created previously (only relevent when mode !== create)
+    services: {
+      type:    Array,
+      default: () => []
+    },
+
+    // workload name
+    name: {
+      type:    String,
+      default: ''
     }
   },
 
   data() {
-    // TODO repopulate the service selector properly on edit
     const rows = clone(this.value || []).map((row) => {
       row._showHost = false;
       row._serviceType = '' ;
+      row._name = row.name ? `${ row.name }` : `${ row.containerPort }${ row.protocol.toLowerCase() }${ row.hostPort || row._lbPort || '' }`;
       if (row.hostPort || row.hostIP) {
         row._showHost = true;
       }
@@ -43,7 +49,7 @@ export default {
     });
 
     // show host port column if existing port data has any host ports defined
-    const showHostPorts = !!rows.filter(row => !!row.hostPort).length;
+    const showHostPorts = !!rows.some(row => !!row.hostPort);
 
     return {
       rows,
@@ -84,11 +90,26 @@ export default {
           value: 'LoadBalancer'
         },
       ];
+    },
+
+    clusterIPServicePorts() {
+      return ((this.services.filter(svc => svc.spec.type === 'ClusterIP') || [])[0] || {})?.spec?.ports;
+    },
+
+    loadBalancerServicePorts() {
+      return ((this.services.filter(svc => svc.spec.type === 'LoadBalancer') || [])[0] || {})?.spec?.ports;
+    },
+
+    nodePortServicePorts() {
+      return ((this.services.filter(svc => svc.spec.type === 'NodePort') || [])[0] || {})?.spec?.ports;
     }
   },
 
   created() {
     this.queueUpdate = debounce(this.update, 500);
+    this.rows.map((row) => {
+      this.setServiceType(row);
+    });
   },
 
   methods: {
@@ -100,7 +121,8 @@ export default {
         containerPort: null,
         hostPort:      null,
         hostIP:        null,
-        _showHost:     false
+        _showHost:     false,
+        _serviceType:  '',
       });
 
       this.queueUpdate();
@@ -131,6 +153,36 @@ export default {
         out.push(value);
       }
       this.$emit('input', out);
+    },
+
+    setServiceType(row) {
+      const { _name } = row;
+
+      if (this.loadBalancerServicePorts) {
+        const portSpec = findBy(this.loadBalancerServicePorts, 'name', _name);
+
+        if (portSpec) {
+          row._lbPort = portSpec.port;
+
+          row._serviceType = 'LoadBalancer';
+
+          return;
+        }
+      } if (this.nodePortServicePorts) {
+        if (findBy(this.nodePortServicePorts, 'name', _name)) {
+          row._serviceType = 'NodePort';
+
+          return;
+        }
+      } if (this.clusterIPServicePorts) {
+        if (findBy(this.clusterIPServicePorts, 'name', _name)) {
+          row._serviceType = 'ClusterIP';
+
+          return;
+        }
+      }
+
+      return '';
     }
   },
 };
@@ -209,7 +261,7 @@ export default {
       </div>
 
       <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer'" class="add-host">
-        <button type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
+        <button :disabled="mode==='view'" type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
           {{ t('workloadPorts.addHost') }}
         </button>
       </div>
