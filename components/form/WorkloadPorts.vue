@@ -305,8 +305,7 @@ $checkbox: 75;
 }
 .ports-headers, .ports-row{
   display: grid;
-  // grid-template-columns: 20% 3fr 160px 80px 10% 1fr;
-  grid-template-columns: 20% 3fr 160px 80px 160px 1fr;
+  grid-template-columns: 20% 3fr 160px 80px 10% 58px;
   grid-column-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;
