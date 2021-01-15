@@ -65,29 +65,7 @@ export default {
       return this.mode === _VIEW;
     },
 
-    opts() {
-      const hasComponent = require
-        .context('@/edit/workload/storage', false, /^.*\.vue$/)
-        .keys()
-        .map(path => path.replace(/(\.\/)|(.vue)/g, ''))
-        .filter(
-          file => file !== 'index' && file !== 'Mount' && file !== 'PVC'
-        );
-
-      const out = [
-        ...hasComponent,
-        'csi',
-        'configMap',
-        'createPVC',
-        'persistentVolumeClaim',
-      ];
-
-      out.sort();
-
-      return out;
-    },
-
-    opts2() {
+    volumeTypeOpts() {
       const hasComponent = require
         .context('@/edit/workload/storage', false, /^.*\.vue$/)
         .keys()
@@ -107,7 +85,7 @@ export default {
       out.sort();
 
       return out.map(opt => ({
-        label:  opt,
+        label:  this.t(`workload.storage.subtypes.${ opt }`),
         action: this.addVolume,
         value:  opt,
       }));
@@ -255,9 +233,9 @@ export default {
         <ButtonDropdown
           v-if="!isView"
           :button-label="t('workload.storage.addVolume')"
-          :dropdown-options="opts"
+          :dropdown-options="volumeTypeOpts"
           size="sm"
-          @click-action="addVolume"
+          @click-action="e=>addVolume(e.value)"
         />
       </template>
     </ArrayListGrouped>
