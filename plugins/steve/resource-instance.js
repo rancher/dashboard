@@ -29,7 +29,7 @@ import {
   validateLength,
 } from '@/utils/validators';
 
-import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
+import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX, NORMAN_NAME } from '@/config/labels-annotations';
 import {
   AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
 } from '@/config/query-params';
@@ -313,7 +313,7 @@ export default {
   },
 
   nameDisplay() {
-    return this.spec?.displayName || this.metadata?.name || this.id;
+    return this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.metadata?.name || this.id;
   },
 
   nameSort() {

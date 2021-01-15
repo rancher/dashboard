@@ -329,7 +329,7 @@ export default {
       grid-template-areas:  "type-banner type-banner"
                             "title actions"
                             "state-banner state-banner";
-      grid-template-columns: auto min-content;
+      grid-template-columns: auto auto;
       margin-bottom: 20px;
       align-content: center;
       min-height: 48px;
@@ -350,8 +350,8 @@ export default {
       .actions-container {
         grid-area: actions;
         margin-left: 8px;
-        // background: red;
         align-self: center;
+        text-align: right;
       }
     }
 
