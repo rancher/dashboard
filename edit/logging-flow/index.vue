@@ -103,8 +103,8 @@ export default {
       matches.push(emptyMatch(true));
     }
 
-    const globalOutputRefs = this.value.spec.globalOutputRefs || [];
-    const localOutputRefs = this.value.spec.localOutputRefs || [];
+    const globalOutputRefs = (this.value.spec.globalOutputRefs || []).map(ref => ({ label: ref, value: ref }));
+    const localOutputRefs = (this.value.spec.localOutputRefs || []).map(ref => ({ label: ref, value: ref }));
 
     return {
       formSupported,
@@ -280,6 +280,9 @@ export default {
       cm.execCommand('foldAll');
       cm.execCommand('unfold');
     },
+    isTag(options, option) {
+      return !options.find(o => o.value === option.value);
+    }
   }
 };
 </script>
@@ -338,7 +341,12 @@ export default {
           :clearable="true"
           :close-on-select="false"
           :reduce="opt=>opt.value"
-        />
+        >
+          <template #selected-option="option">
+            <i v-if="isTag(clusterOutputChoices, option)" v-tooltip="t('logging.flow.clusterOutputs.doesntExistTooltip')" class="icon icon-info status-icon text-warning" />
+            {{ option.label }}
+          </template>
+        </LabeledSelect>
         <LabeledSelect
           v-if="value.type === LOGGING.FLOW"
           v-model="localOutputRefs"
@@ -350,7 +358,12 @@ export default {
           :clearable="true"
           :close-on-select="false"
           :reduce="opt=>opt.value"
-        />
+        >
+          <template #selected-option="option">
+            <i v-if="isTag(outputChoices, option)" v-tooltip="t('logging.flow.outputs.doesntExistTooltip')" class="icon icon-info status-icon text-warning" />
+            {{ option.label }}
+          </template>
+        </LabeledSelect>
       </Tab>
 
       <Tab name="filters" :label="t('logging.flow.filters.label')" :weight="1">
@@ -367,3 +380,12 @@ export default {
   </CruResource>
   <Banner v-else label="This resource contains a match configuration that the form editor does not support.  Please use YAML edit." color="error" />
 </template>
+
+<style lang="scss" scoped>
+::v-deep {
+  .icon-info {
+    margin-top: -3px;
+    margin-right: 4px;
+  }
+}
+</style>

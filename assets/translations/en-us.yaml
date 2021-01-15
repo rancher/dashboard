@@ -792,6 +792,7 @@ logging:
     noOutputsBanner: There are no cluster outputs in the selected namespace.
   flow:
     clusterOutputs:
+      doesntExistTooltip: This cluster output doesn't exist 
       label: Cluster Outputs
     matches:
       label: Matches
@@ -800,6 +801,7 @@ logging:
     filters:
       label: Filters
     outputs:
+      doesntExistTooltip: This output doesn't exist
       label: Outputs
   install:
     k3sContainerEngine: K3S Container Engine
