@@ -116,7 +116,6 @@ export default {
 
   watch: {
     credentialId(val) {
-      console.log('here');
       if ( val ) {
         this.credential = this.$store.getters['management/byId'](SECRET, this.credentialId);
 

@@ -63,7 +63,7 @@ export function parse(labelSelector) {
       out.push({
         key:      match[1].trim(),
         operator: match[2].toLowerCase().replace(/\s/g, '') === 'notin' ? 'NotIn' : 'In',
-        values:   [parens[match[4].trim()]],
+        values:   parens[match[4].trim()],
       });
 
       continue;
