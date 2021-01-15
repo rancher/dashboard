@@ -68,6 +68,8 @@ export const RBAC = { PRODUCT: 'management.cattle.io/ui-product' };
 
 export const RKE = { EXTERNAL_IP: 'rke.cattle.io/external-ip' };
 
+export const ISTIO = { AUTO_INJECTION: 'istio-injection' };
+
 const CATTLE_REGEX = /cattle\.io\//;
 
 export const LABELS_TO_IGNORE_REGEX = [
