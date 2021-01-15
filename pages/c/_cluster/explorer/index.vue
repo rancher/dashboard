@@ -321,8 +321,8 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <section v-else>
-    <header class="row">
-      <div class="span-11">
+    <header>
+      <div class="title">
         <h1>
           <t k="clusterIndexPage.header" />
         </h1>
@@ -418,6 +418,11 @@ export default {
     }
   }
 }
+
+.title h1 {
+  margin: 0;
+}
+
 .actions-span {
   align-self: center;
 }

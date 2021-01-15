@@ -331,7 +331,7 @@ export default {
                             "state-banner state-banner";
       grid-template-columns: auto min-content;
       margin-bottom: 20px;
-      align-items: center;
+      align-content: center;
       min-height: 48px;
 
       .type-banner {
@@ -344,12 +344,14 @@ export default {
 
       .title {
         grid-area: title;
+        align-self: center;
       }
 
       .actions-container {
         grid-area: actions;
-        height: 100%;
         margin-left: 8px;
+        // background: red;
+        align-self: center;
       }
     }
 
