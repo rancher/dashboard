@@ -68,18 +68,6 @@ export default {
   },
 
   methods: {
-    async reloadModel() {
-      this.originalModel = await this.$store.dispatch('rancher/find', {
-        type: NORMAN.AUTH_CONFIG,
-        id:   NAME,
-        opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ NAME }`, force: true }
-      });
-
-      this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
-
-      return this.model;
-    },
-
     async disable(btnCb) {
       try {
         const clone = await this.$store.dispatch(`rancher/clone`, { resource: this.model });
