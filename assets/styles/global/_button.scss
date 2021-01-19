@@ -86,9 +86,10 @@ button,
   background: var(--accent-btn);
   border: solid thin var(--link-text);
   color: var(--link-text);
-  padding: 8px;
   border-radius: 2px;
   line-height: 0;
+  width: $btn-height;
+  padding: 0;
 }
 
 .icon-group i {

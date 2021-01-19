@@ -334,7 +334,7 @@ export default {
               ref="actions"
               aria-haspopup="true"
               type="button"
-              class="btn btn-sm role-multi-action actions"
+              class="btn role-multi-action actions"
               @click="showActions"
             >
               <i class="icon icon-actions" />
