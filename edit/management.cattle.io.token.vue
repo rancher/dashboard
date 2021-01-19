@@ -81,7 +81,7 @@ export default {
         });
 
         this.created = res;
-        this.ttlLimited = res.ttl != this.value.ttl;
+        this.ttlLimited = res.ttl !== this.value.ttl;
         const token = this.created.token.split(':');
 
         this.accessKey = token[0];
@@ -195,11 +195,11 @@ export default {
       </div>
     </Banner>
 
-    <Banner color="warning" class="mt-20" v-if="ttlLimited">
+    <Banner v-if="ttlLimited" color="warning" class="mt-20">
       <div>
         {{ t('account.apiKeys.info.ttlLimitedWarning') }}
       </div>
-    </Banner>    
+    </Banner>
 
     <div class="buttons mt-20">
       <div class="right">
