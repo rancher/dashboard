@@ -18,13 +18,19 @@ export default {
     multiline: {
       type:    Boolean,
       default: false,
+    },
+
+    emptyTextKey: {
+      type:    String,
+      default: ''
     }
   },
 
   computed: {
+
     date() {
       if ( !this.value ) {
-        return '';
+        return this.emptyTextKey ? this.$store.getters['i18n/t'](this.emptyTextKey) : '';
       }
 
       const dateFormat = escapeHtml( this.$store.getters['prefs/get'](DATE_FORMAT));

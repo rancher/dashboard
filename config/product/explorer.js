@@ -1,17 +1,52 @@
 import {
-  CONFIG_MAP,
-  NAMESPACE, NODE, SECRET, INGRESS,
-  WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
-  RBAC,
-  MANAGEMENT,
-} from '@/config/types';
-
-import {
-  STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, KEYS,
-  INGRESS_DEFAULT_BACKEND, INGRESS_TARGET, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM,
-  SPEC_TYPE, TARGET_PORT, SELECTOR, NODE as NODE_COL, TYPE, WORKLOAD_IMAGES, POD_IMAGES, USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, WORKLOAD_ENDPOINTS,
+  ACCESS_KEY,
+  AGE,
+  CPU,
+  CREATED,
+  DESCRIPTION,
+  EXPIRES_AT,
+  INGRESS_DEFAULT_BACKEND,
+  INGRESS_TARGET,
+  INTERNAL_EXTERNAL_IP,
+  KEYS,
+  NAME as NAME_COL,
+  NAMESPACE as NAMESPACE_COL,
+  NODE as NODE_COL,
+  POD_IMAGES,
+  RAM,
+  ROLES,
+  SCOPE,
+  SELECTOR,
+  SPEC_TYPE,
+  STATE,
+  TARGET_PORT,
+  TYPE,
+  USER_DISPLAY_NAME,
+  USER_ID,
+  USER_PROVIDER,
+  USERNAME,
+  VERSION,
+  WORKLOAD_ENDPOINTS,
+  WORKLOAD_IMAGES,
 } from '@/config/table-headers';
-
+import {
+  CONFIG_MAP,
+  HPA,
+  INGRESS,
+  MANAGEMENT,
+  NAMESPACE,
+  NETWORK_POLICY,
+  NODE,
+  POD,
+  PV,
+  PVC,
+  RBAC,
+  SECRET,
+  SERVICE,
+  STORAGE_CLASS,
+  WORKLOAD,
+  WORKLOAD_TYPES,
+} from '@/config/types';
 import { DSL } from '@/store/type-map';
 
 export const NAME = 'explorer';
@@ -179,6 +214,15 @@ export function init(store) {
     AGE
   ]);
 
+  headers(MANAGEMENT.TOKEN, [
+    STATE,
+    ACCESS_KEY,
+    DESCRIPTION,
+    SCOPE,
+    EXPIRES_AT,
+    CREATED
+  ]);
+
   virtualType({
     label:       'Cluster Dashboard',
     group:      'Root',
@@ -202,4 +246,7 @@ export function init(store) {
       params:   { resource: WORKLOAD }
     },
   });
+
+  // Don't show Tokens/API Keys in the side navigation
+  ignoreType(MANAGEMENT.TOKEN);
 }

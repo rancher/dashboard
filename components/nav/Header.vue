@@ -106,6 +106,9 @@ export default {
               </div>
             </li>
             <div @click="showMenu(false)">
+              <nuxt-link tag="li" :to="{name: 'account'}" class="hand">
+                <a>API Keys</a>
+              </nuxt-link>
               <nuxt-link tag="li" :to="{name: 'prefs'}" class="hand">
                 <a>Preferences <i class="icon icon-fw icon-gear" /></a>
               </nuxt-link>

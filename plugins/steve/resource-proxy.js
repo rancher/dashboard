@@ -1,5 +1,5 @@
-import ResourceInstance from './resource-instance';
 import { lookup } from './model-loader';
+import ResourceInstance from './resource-instance';
 
 export const SELF = '__[[SELF]]__';
 export const ALREADY_A_PROXY = '__[[PROXY]]__';
@@ -43,6 +43,13 @@ export function proxyFor(ctx, obj, isClone = false) {
   if ( obj.name ) {
     obj._name = obj.name;
     delete obj.name;
+  }
+
+  // Hack for now, the resource-instance descrption() can overwrite the model descrption.
+  // e.g. on management.cattle.io.token
+  if ( obj.description ) {
+    obj._description = obj.description;
+    delete obj.description;
   }
 
   const proxy = new Proxy(obj, {

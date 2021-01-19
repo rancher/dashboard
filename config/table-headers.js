@@ -180,6 +180,14 @@ export const CREATION_DATE = {
   formatter: 'Date'
 };
 
+export const DESCRIPTION = {
+  name:     'description',
+  labelKey: 'tableHeaders.description',
+  align:    'left',
+  sort:     ['description'],
+  width:    300,
+};
+
 export const IMAGE = {
   name:     'image',
   labelKey: 'tableHeaders.image',
@@ -682,4 +690,41 @@ export const CONFIGURED_RECEIVER = {
   sort:          'receiverLink.text',
   formatter:     'Link',
   formatterOpts: { options: { internal: true } },
+};
+
+export const ACCESS_KEY = {
+  name:     'name',
+  labelKey: 'tableHeaders.accessKey',
+  align:    'left',
+  sort:     ['name'],
+  width:    200,
+};
+
+export const SCOPE = {
+  name:        'scope',
+  value:       'clusterName',
+  labelKey:    'tableHeaders.scope',
+  dashIfEmpty: true,
+  align:       'left',
+  sort:        ['scope'],
+  width:       100,
+};
+
+export const EXPIRES_AT = {
+  name:          'expiresAt',
+  value:         'expiresAt',
+  labelKey:      'tableHeaders.expiresAt',
+  align:         'left',
+  width:         200,
+  formatter:     'Date',
+  formatterOpts: { emptyTextKey: 'generic.never' },
+};
+
+export const CREATED = {
+  value:         'metadata.creationTimestamp',
+  labelKey:      'tableHeaders.created',
+  align:         'left',
+  width:         150,
+  formatter:     'LiveDate',
+  formatterOpts: { addSuffix: true },
 };
