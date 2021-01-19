@@ -2,7 +2,7 @@
 import { mapGetters } from 'vuex';
 import Favorite from '@/components/nav/Favorite';
 import TypeDescription from '@/components/TypeDescription';
-import { get } from '@/utils/object';
+import { clone, get } from '@/utils/object';
 
 export default {
   components: {
@@ -51,6 +51,26 @@ export default {
 
       return this.resource;
     },
+
+    extraAction() {
+      const opt = this.$store.getters[`type-map/optionsFor`](this.resource).extraListAction;
+
+      if ( opt ) {
+        const to = opt.to ? opt.to : clone(this.createLocation);
+
+        if ( opt.query ) {
+          to.query = Object.assign({}, to.query || {}, opt.query);
+        }
+
+        return {
+          to,
+          class: opt.classNames || 'btn role-primary',
+          label: (opt.labelKey ? this.t(opt.labelKey) : opt.label || 'Action?' ),
+        };
+      }
+
+      return null;
+    }
   },
 };
 </script>
@@ -65,6 +85,14 @@ export default {
     </div>
     <div class="actions-container">
       <div class="actions">
+        <n-link
+          v-if="extraAction"
+          :to="extraAction.to"
+          :class="extraAction.class"
+        >
+          {{ extraAction.label }}
+        </n-link>
+
         <n-link
           v-if="isCreatable"
           :to="createLocation"

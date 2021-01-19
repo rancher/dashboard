@@ -324,24 +324,29 @@ export const actions = {
     const key = `${ repoType }/${ repoName }/${ chartName }/${ versionName }`;
     let info = state.versionInfos[key];
 
-    if ( !info ) {
-      const repo = getters['repo']({ repoType, repoName });
+    try {
+      if ( !info ) {
+        const repo = getters['repo']({ repoType, repoName });
 
-      if ( !repo ) {
-        throw new Error('Repo not found');
+        if ( !repo ) {
+          throw new Error('Repo not found');
+        }
+
+        info = await repo.followLink('info', {
+          url: addParams(repo.links.info, {
+            chartName,
+            version: versionName
+          })
+        });
+
+        commit('cacheVersion', { key, info });
       }
 
-      info = await repo.followLink('info', {
-        url: addParams(repo.links.info, {
-          chartName,
-          version: versionName
-        })
-      });
-
-      commit('cacheVersion', { key, info });
+      return info;
+    } catch (e) {
+      console.log(e);
+      debugger;
     }
-
-    return info;
   },
 };
 

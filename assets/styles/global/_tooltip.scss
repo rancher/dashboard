@@ -158,6 +158,15 @@
   .popover-arrow {
     border-color: transparent;
   }
+
+  &[x-placement^="bottom"] {
+    .popover-arrow {
+      &:after {
+        border-bottom-color: var(--popover-bg);
+      }
+    }
+  }
+
 }
 
 .v-popover {

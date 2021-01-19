@@ -107,7 +107,7 @@ export default {
     return async() => {
       const reports = await this.getReports() || [];
       const report = sortBy(reports, 'metadata.creationTimestamp', true)[0];
-      const Papa = await import(/* webpackChunkName: "cis" */'papaparse');
+      const Papa = await import(/* webpackChunkName: "csv" */'papaparse');
 
       try {
         const testResults = (report.aggregatedTests || []).map((result) => {
@@ -130,7 +130,7 @@ export default {
       const toZip = {};
       const reports = await this.getReports() || [];
 
-      const Papa = await import(/* webpackChunkName: "cis" */'papaparse');
+      const Papa = await import(/* webpackChunkName: "csv" */'papaparse');
 
       reports.forEach((report) => {
         try {

@@ -174,14 +174,14 @@ export default {
       });
     } catch (e) {
       console.error(e); // eslint-disable-line no-console
-      throw e;
+      this.versionInfo = null;
     }
 
     if ( this.version && process.client ) {
       await this.loadValuesComponent();
     }
 
-    const required = (this.version.annotations?.[CATALOG_ANNOTATIONS.REQUIRES_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
+    const required = (this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUIRES_GVK] || '').split(/\s*,\s*/).filter(x => !!x).reverse();
 
     if ( required.length ) {
       for ( const gvr of required ) {
@@ -242,7 +242,7 @@ export default {
       }
 
       this.removeGlobalValuesFrom(userValues);
-      this.chartValues = merge(merge({}, this.versionInfo.values), userValues);
+      this.chartValues = merge(merge({}, this.versionInfo?.values || {}), userValues);
       this.valuesYaml = jsyaml.safeDump(this.chartValues || {});
 
       if ( this.valuesYaml === '{}\n' ) {
@@ -254,8 +254,8 @@ export default {
         this.originalYamlValues = this.valuesYaml;
       }
 
-      this.loadedVersionValues = this.versionInfo.values;
-      this.loadedVersion = this.version.key;
+      this.loadedVersionValues = this.versionInfo?.values || {};
+      this.loadedVersion = this.version?.key;
     }
   },
 
@@ -437,9 +437,9 @@ export default {
       const {
         currentCluster,
         catalogOSAnnotation,
-        chart: { versions = [] },
-        version: { version: selectedVersion },
       } = this;
+      const versions = this.chart?.versions || [];
+      const selectedVersion = this.version?.version;
       const clusterProvider = currentCluster.status.provider || 'other';
       const out = [];
 
@@ -450,13 +450,13 @@ export default {
           disabled: false,
         };
 
-        if ( version.annotations[catalogOSAnnotation] === 'windows' ) {
+        if ( version?.annotations?.[catalogOSAnnotation] === 'windows' ) {
           nue.label = this.t('catalog.install.versions.windows', { ver: version.version });
 
           if (clusterProvider !== 'rke.windows') {
             nue.disabled = true;
           }
-        } else if ( version.annotations[catalogOSAnnotation] === 'linux' ) {
+        } else if ( version?.annotations?.[catalogOSAnnotation] === 'linux' ) {
           nue.label = this.t('catalog.install.versions.linux', { ver: version.version });
 
           if (clusterProvider === 'rke.windows') {

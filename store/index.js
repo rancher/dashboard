@@ -571,8 +571,10 @@ export const actions = {
     dispatch('prefs/loadTheme');
   },
 
-  loadingError({ commit, redirect }, err) {
+  loadingError({ commit, state }, err) {
     commit('setError', err);
-    redirect('/fail-whale');
+    const router = state.$router;
+
+    router.replace('/fail-whale');
   }
 };

@@ -7,6 +7,7 @@ import NamespaceFilter from './NamespaceFilter';
 import WorkspaceSwitcher from './WorkspaceSwitcher';
 
 export default {
+
   components: {
     ProductSwitcher,
     ClusterSwitcher,
@@ -30,6 +31,16 @@ export default {
       return !!this.currentCluster?.links?.shell;
     },
   },
+
+  methods: {
+    showMenu(show) {
+      if (show) {
+        this.$refs.popover.show();
+      } else {
+        this.$refs.popover.hide();
+      }
+    }
+  }
 };
 </script>
 
@@ -72,19 +83,20 @@ export default {
 
     <div class="user">
       <v-popover
+        ref="popover"
         placement="bottom"
         offset="-10"
-        trigger="hover"
+        trigger="manual"
         :delay="{show: 0, hide: 200}"
         :popper-options="{modifiers: { flip: { enabled: false } } }"
       >
-        <div class="text-right">
+        <div class="text-right" @mouseover="showMenu(true)" @click="showMenu(true)">
           <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.roundAvatar}" width="40" height="40" />
           <i v-else class="icon icon-user icon-3x avatar" />
         </div>
 
         <template slot="popover">
-          <ul class="list-unstyled dropdown">
+          <ul class="list-unstyled dropdown" @mouseleave="showMenu(false)">
             <li v-if="authEnabled" class="user-info">
               <div class="user-name">
                 <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
@@ -93,12 +105,14 @@ export default {
                 {{ principal.name }}
               </div>
             </li>
-            <nuxt-link tag="li" :to="{name: 'prefs'}" class="hand">
-              <a>Preferences <i class="icon icon-fw icon-gear" /></a>
-            </nuxt-link>
-            <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="pt-5 pb-5 hand">
-              <a>Log Out <i class="icon icon-fw icon-close" /></a>
-            </nuxt-link>
+            <div @click="showMenu(false)">
+              <nuxt-link tag="li" :to="{name: 'prefs'}" class="hand">
+                <a>Preferences <i class="icon icon-fw icon-gear" /></a>
+              </nuxt-link>
+              <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="pt-5 pb-5 hand">
+                <a>Log Out <i class="icon icon-fw icon-close" /></a>
+              </nuxt-link>
+            </div>
           </ul>
         </template>
       </v-popover>

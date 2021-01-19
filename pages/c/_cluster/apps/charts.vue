@@ -217,7 +217,7 @@ export default {
     },
     getCompatibleVersions(versions, os) {
       return filter(versions, (ver) => {
-        const osAnnotation = ver.annotations[this.catalogOSAnnotation];
+        const osAnnotation = ver?.annotations?.[this.catalogOSAnnotation];
 
         if (osAnnotation && osAnnotation === os) {
           return true;

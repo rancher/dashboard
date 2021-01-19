@@ -12,15 +12,19 @@ export default {
     },
     value: {
       type:     Object,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     this.$set(this.value, 'http_config', this.value.http_config || {});
     this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
 
     if (this.mode === _CREATE) {
-      this.$set(this.value, 'text', this.value.text || '{{ template "slack.rancher.text" . }}');
+      this.$set(
+        this.value,
+        'text',
+        this.value.text || '{{ template "slack.rancher.text" . }}'
+      );
     }
 
     return {};
@@ -32,19 +36,39 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-12">
-        <LabeledInput v-model="value.api_url" :mode="mode" label="URL" placeholder="e.g. https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX" />
+        <LabeledInput
+          v-model="value.api_url"
+          :mode="mode"
+          label="Webhook URL"
+          :tooltip="{ content: t('monitoringReceiver.slack.info', {}, raw=true), autoHide: false}"
+          placeholder="e.g. https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+        />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.channel" :mode="mode" label="Default Channel" placeholder="e.g. #example" />
+        <LabeledInput
+          v-model="value.channel"
+          :mode="mode"
+          label="Default Channel"
+          placeholder="e.g. #example"
+        />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.http_config.proxy_url" :mode="mode" label="Proxy URL" placeholder="e.g. http://my-proxy/" />
+        <LabeledInput
+          v-model="value.http_config.proxy_url"
+          :mode="mode"
+          label="Proxy URL"
+          placeholder="e.g. http://my-proxy/"
+        />
       </div>
     </div>
     <div class="row">
-      <Checkbox v-model="value.send_resolved" :mode="mode" label="Enable send resolved alerts" />
+      <Checkbox
+        v-model="value.send_resolved"
+        :mode="mode"
+        label="Enable send resolved alerts"
+      />
     </div>
   </div>
 </template>

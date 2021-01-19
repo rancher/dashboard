@@ -8,7 +8,7 @@ import { MANAGEMENT } from '@/config/types';
 import { _VIEW } from '@/config/query-params';
 
 export default {
-  name: 'CruCluster',
+  name: 'CruFleetCluster',
 
   components: {
     CruResource,
