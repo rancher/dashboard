@@ -18,7 +18,6 @@ import Banner from '@/components/Banner';
 import Labels from '@/components/form/Labels';
 import { clone } from '@/utils/object';
 import { POD } from '@/config/types';
-import Poller from '@/utils/poller';
 import { matching } from '@/utils/selector';
 
 const SESSION_AFFINITY_ACTION_VALUES = {
@@ -32,8 +31,6 @@ const SESSION_AFFINITY_ACTION_LABELS = {
 };
 
 const SESSION_STICKY_TIME_DEFAULT = 10800;
-const POD_POLL_RATE_MS = 30000;
-const MAX_FAILURES = 2;
 
 export default {
   // Props are found in CreateEditView
@@ -55,6 +52,10 @@ export default {
   },
 
   mixins: [CreateEditView],
+
+  fetch() {
+    return this.loadPods();
+  },
 
   data() {
     if (!this?.value?.spec?.type) {
@@ -78,7 +79,6 @@ export default {
       matchingPods,
       allPods:                     [],
       defaultServiceTypes:         DEFAULT_SERVICE_TYPES,
-      podPoller:                   new Poller(this.loadPods, POD_POLL_RATE_MS, MAX_FAILURES),
       saving:                      false,
       sessionAffinityActionLabels: Object.values(SESSION_AFFINITY_ACTION_LABELS)
         .map(v => this.$store.getters['i18n/t'](v))
@@ -148,7 +148,7 @@ export default {
   },
 
   watch: {
-    'value.spec.selector': 'udpateMatchingPods',
+    'value.spec.selector': 'updateMatchingPods',
     'value.spec.sessionAffinity'(val) {
       if (val === 'ClientIP') {
         this.value.spec.sessionAffinityConfig = { clientIP: { timeoutSeconds: null } };
@@ -175,16 +175,10 @@ export default {
     const initialType = this.serviceType;
 
     this.$set(this, 'serviceType', initialType);
-
-    this.podPoller.start();
-  },
-
-  beforeDestroy() {
-    this.podPoller.stop();
   },
 
   methods: {
-    udpateMatchingPods: throttle(function() {
+    updateMatchingPods: throttle(function() {
       const { allPods, value: { spec: { selector = { } } } } = this;
 
       if (isEmpty(selector)) {
