@@ -30,6 +30,7 @@ import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
 import Storage from '@/edit/workload/storage';
 import Labels from '@/components/form/Labels';
+import { UI_MANAGED } from '@/config/labels-annotations';
 
 export default {
   name:       'CruWorkload',
@@ -456,7 +457,13 @@ export default {
         return;
       }
 
-      return Promise.all(this.servicesToRemove.map(svc => svc.remove()));
+      return Promise.all(this.servicesToRemove.map((svc) => {
+        const ui = svc?.metadata?.annotations[UI_MANAGED];
+
+        if (ui) {
+          svc.remove();
+        }
+      }));
     },
 
     setOwnerRef() {
@@ -599,7 +606,11 @@ export default {
       (this.servicesOwned || []).forEach((svc) => {
         try {
           this.$store.dispatch('cluster/find', { type: SERVICE, id: `${ svc.metadata.namespace }/${ svc.metadata.name }` }).then((svc) => {
-            svc.remove();
+            const ui = svc?.metadata?.annotations[UI_MANAGED];
+
+            if (ui) {
+              svc.remove();
+            }
           });
         } catch {}
       });

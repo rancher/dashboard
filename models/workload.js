@@ -1,5 +1,5 @@
 import { insertAt } from '@/utils/array';
-import { TARGET_WORKLOADS, TIMESTAMP } from '@/config/labels-annotations';
+import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotations';
 import { WORKLOAD_TYPES, POD, ENDPOINTS, SERVICE } from '@/config/types';
 import { get } from '@/utils/object';
 import day from 'dayjs';
@@ -236,7 +236,7 @@ export default {
       if (serviceRelationships.length) {
         const svcs = await Promise.all(serviceRelationships.map(rel => this.$dispatch('cluster/find', { type: SERVICE, id: rel.toId }, { root: true })));
 
-        return svcs;
+        return svcs.filter(svc => svc?.metadata?.annotations[UI_MANAGED]);
       }
 
       return [];
@@ -311,7 +311,7 @@ export default {
         metadata: {
           name:        this.metadata.name,
           namespace:   this.metadata.namespace,
-          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']` },
+          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
         },
       };
 
@@ -325,7 +325,7 @@ export default {
         metadata: {
           name:        `${ this.metadata.name }-nodeport`,
           namespace:   this.metadata.namespace,
-          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']` },
+          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
 
         },
       };
@@ -341,7 +341,7 @@ export default {
         metadata: {
           name:        `${ this.metadata.name }-loadbalancer`,
           namespace:   this.metadata.namespace,
-          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']` },
+          annotations:    { [TARGET_WORKLOADS]: `['${ this.metadata.namespace }/${ this.metadata.name }']`, [UI_MANAGED]: 'true' },
 
         },
       };
