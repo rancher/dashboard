@@ -11,8 +11,6 @@ import AsyncButton from '@/components/AsyncButton';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import FileSelector from '@/components/form/FileSelector';
 
-import { NORMAN } from '@/config/types';
-
 const NAME = 'googleoauth';
 
 export default {
@@ -64,22 +62,6 @@ export default {
         googleOauthConfig: this.model,
         description:       'Enable Google OAuth',
       };
-    }
-  },
-
-  methods: {
-    async disable(btnCb) {
-      try {
-        const clone = await this.$store.dispatch(`rancher/clone`, { resource: this.model });
-
-        clone.enabled = false;
-        await clone.save();
-        await this.reloadModel();
-        btnCb(true);
-      } catch (err) {
-        this.errors = [err];
-        btnCb(false);
-      }
     }
   },
 };
