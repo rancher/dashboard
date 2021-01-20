@@ -4,6 +4,7 @@
   width: 100%;
 
   .link-container {
+    position: relative;
     background-color: var(--input-bg);
     border-radius: var(--border-radius);
     border: solid 1px var(--input-border);
@@ -24,6 +25,20 @@
       border-left: solid 10px var(--disabled-text);
       > * {
         opacity: .3;
+      }
+
+     .disabled-msg{
+      position:absolute;
+      color: var(--error);
+      z-index: z-index('hoverOverContent');
+      opacity: 1;
+      top: 0px;
+      bottom: 0px;
+      left: 0px;
+      right: 0px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
       }
     }
 

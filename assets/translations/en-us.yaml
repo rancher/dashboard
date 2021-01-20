@@ -871,6 +871,7 @@ istio:
     jaeger:
       label: Jaeger
       description: Monitor and Troubleshoot microservices-based distributed systems.
+    disabled: '{app} is not installed'
   cni: Enabled CNI
   customOverlayFile:
     label: Custom Overlay File
@@ -1314,6 +1315,8 @@ namespace:
   project:
     label: Project
   resources: Resources
+  enableAutoInjection: Enable Istio Auto Injection
+  disableAutoInjection: Disable Istio Auto Injection
 
 namespaceFilter:
   selected:
