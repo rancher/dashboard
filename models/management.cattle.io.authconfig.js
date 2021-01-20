@@ -1,4 +1,5 @@
 import { insertAt } from '@/utils/array';
+import { set } from '@/utils/object';
 
 const configType = {
   activedirectory: 'ldap',
@@ -60,6 +61,28 @@ export default {
       this.enabled = false;
       await this.save();
       this.currentRouter().push({ name: 'c-cluster-auth-config' });
+    };
+  },
+
+  applyDefaults() {
+    return () => {
+      switch (this.configType) {
+      case 'saml':
+        set(this, 'accessMode', 'unrestricted');
+
+        if (this.id === 'shibboleth' && !this.openLdapConfig) {
+          set(this, 'openLdapConfig', {});
+        }
+        break;
+      case 'ldap':
+        set(this, 'servers', []);
+        set(this, 'accessMode', 'unrestricted');
+        set(this, 'starttls', false);
+
+        break;
+      default:
+        break;
+      }
     };
   }
 };
