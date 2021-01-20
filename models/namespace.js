@@ -96,24 +96,12 @@ export default {
   },
 
   enableAutoInjection() {
-    return (namespaces = this) => {
-      this.toggleAutoInjection(namespaces);
-    };
-  },
-
-  disableAutoInjection() {
-    return (namespaces = this) => {
-      this.toggleAutoInjection(namespaces);
-    };
-  },
-
-  toggleAutoInjection() {
-    return (namespaces = this) => {
+    return (namespaces = this, enable = true) => {
       if (!isArray(namespaces)) {
         namespaces = [namespaces];
       }
       namespaces.forEach((ns) => {
-        if (ns.injectionEnabled) {
+        if (!enable && ns?.metadata?.labels) {
           delete ns.metadata.labels[ISTIO_LABELS.AUTO_INJECTION];
         } else {
           if (!ns.metadata.labels) {
@@ -124,5 +112,11 @@ export default {
         ns.save();
       });
     };
-  }
+  },
+
+  disableAutoInjection() {
+    return (namespaces = this) => {
+      this.enableAutoInjection(namespaces, false);
+    };
+  },
 };
