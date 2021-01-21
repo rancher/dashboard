@@ -146,14 +146,14 @@ authConfig:
   googleoauth:
     adminEmail: Admin Email
     domain: Domain
-    oauthCredentials: 
+    oauthCredentials:
       label: OAuth Credentials
       tip: The OAuth Credentials JSON can be found in the Google API developers console.
-    serviceAccountCredentials: 
+    serviceAccountCredentials:
       label: Service Account Credentials
       tip: The Service Account Credentials JSON can be found in the service accounts section of the Google API developers console.
     steps:
-      1: 
+      1:
         title: 'Step One: For standard Google, click <a href="https://console.developers.google.com/apis/credentials" target="_blank" rel="noopener noreferrer nofollow">here</a> to go applications settings in a new window'
         body: |-
           <ul class="mt-0">
@@ -163,7 +163,7 @@ authConfig:
           <li>Under Scopes for Google APIs, enable "email", "profile", and "openid". </li>
           <li>Click on "Save". </li>
           </ul>
-      2: 
+      2:
         title: 'Step Two: Navigate to the "Credentials" tab to create your OAuth client ID'
         body: |-
           <ul class="mt-0">
@@ -173,7 +173,7 @@ authConfig:
           <li>Click "Create", and then click on the "Download JSON" button.</li>
           <li>Upload the downloaded JSON file in the OAuth credentials box.</li>
           </ul>
-      3: 
+      3:
         title: 'Step Three: Create Service Account credentials'
         body: |-
           Follow <a href="https://rancher.com/docs/rancher/v2.x/en/admin-settings/authentication/google/#creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:<br/>
@@ -215,7 +215,7 @@ authConfig:
     serviceAccountDN: Service Account Distinguished Name
     serviceAccountPassword: Service Account Password
     serviceAccountInfo: Rancher needs a service account that has read-only access to all of the domains that will be able to login, so that we can determine what groups a user is a member of when they make a request with an API key.
-    starttls: 
+    starttls:
       label: Start TLS
       tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
     tls: TLS
@@ -908,7 +908,7 @@ logging:
     noOutputsBanner: There are no cluster outputs in the selected namespace.
   flow:
     clusterOutputs:
-      doesntExistTooltip: This cluster output doesn't exist 
+      doesntExistTooltip: This cluster output doesn't exist
       label: Cluster Outputs
     matches:
       label: Matches
@@ -1154,7 +1154,7 @@ monitoring:
       className: Storage Class Name
       existingClaim: Use Existing Claim
       finalizers: PVC Finalizers
-      label: Persistent Storage for Grafana
+      label: Grafana Storage
       mode: Access Mode
       selector: Selector
       size: Size
