@@ -236,10 +236,6 @@ export default {
         fill: var(--header-btn-bg);
       }
 
-      // .filter {
-      //   padding-left: 20px;
-      // }
-
       .filter .vs__dropdown-toggle {
         background: var(--header-btn-bg);
         border-radius: var(--border-radius);
