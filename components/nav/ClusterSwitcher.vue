@@ -158,6 +158,7 @@ export default {
     color: var(--header-btn-text);
     max-width: 100%;
     padding-top: 0;
+    height: 40px;
 
     .vs__actions {
       margin-left: -10px;
@@ -170,7 +171,7 @@ export default {
     user-select: none;
     cursor: default;
     color: white;
-    line-height: calc(var(--header-height) - 32px);
+    // line-height: calc(var(--header-height) - 32px);
   }
 }
 
@@ -180,11 +181,10 @@ export default {
 
 .filter ::v-deep .unlabeled-select {
   background-color: transparent;
-  min-height: 34px;
 }
 
 .filter ::v-deep .unlabeled-select:not(.focused) {
-  border: var(--outline-width) solid transparent;
+  border: 0 solid transparent;
 }
 
 .filter ::v-deep .unlabeled-select INPUT[type='search'] {

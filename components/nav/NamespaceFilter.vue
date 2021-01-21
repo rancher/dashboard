@@ -383,7 +383,7 @@ export default {
 }
 
 .filter ::v-deep .unlabeled-select:not(.focused) {
-  border: var(--outline-width) solid transparent;
+  border: 0;
 }
 
 .filter ::v-deep .unlabeled-select:not(.view):hover .vs__dropdown-menu {
@@ -417,7 +417,7 @@ export default {
   border-radius: var(--border-radius);
   border: 1px solid var(--header-btn-bg);
   color: var(--header-btn-text);
-  height: calc(var(--header-height) - 16px);
+  height: 40px;
   max-width: 100%;
   padding-top: 0;
 }
