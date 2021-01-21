@@ -3,10 +3,6 @@ export default {
   inject: ['addTab', 'removeTab', 'sideTabs'],
 
   props: {
-    canToggle: {
-      default: false,
-      type:    Boolean
-    },
     label: {
       default: null,
       type:    String

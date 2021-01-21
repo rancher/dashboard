@@ -5,6 +5,7 @@ import isString from 'lodash/isString';
 import jsyaml from 'js-yaml';
 import omitBy from 'lodash/omitBy';
 import pickBy from 'lodash/pickBy';
+import forIn from 'lodash/forIn';
 import uniq from 'lodash/uniq';
 import Vue from 'vue';
 
@@ -28,7 +29,7 @@ import {
   validateLength,
 } from '@/utils/validators';
 
-import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX } from '@/config/labels-annotations';
+import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX, NORMAN_NAME } from '@/config/labels-annotations';
 import {
   AS, _YAML, MODE, _CLONE, _EDIT, _VIEW, _UNFLAG, _CONFIG
 } from '@/config/query-params';
@@ -66,7 +67,7 @@ const DEFAULT_ICON = 'x';
 const DEFAULT_WAIT_INTERVAL = 1000;
 const DEFAULT_WAIT_TMIMEOUT = 30000;
 
-const STATES = {
+export const STATES = {
   'in-progress':      { color: 'info', icon: 'tag' },
   'pending-rollback': { color: 'info', icon: 'dot-half' },
   'pending-upgrade':  { color: 'info', icon: 'dot-half' },
@@ -79,6 +80,7 @@ const STATES = {
   building:           { color: 'success', icon: 'dot-open' },
   completed:          { color: 'success', icon: 'dot' },
   cordoned:           { color: 'info', icon: 'tag' },
+  count:              { color: 'success', icon: 'dot-open' },
   created:            { color: 'info', icon: 'tag' },
   creating:           { color: 'info', icon: 'tag' },
   deactivating:       { color: 'info', icon: 'adjust' },
@@ -87,23 +89,29 @@ const STATES = {
   deployed:           { color: 'success', icon: 'dot-open' },
   disabled:           { color: 'warning', icon: 'error' },
   disconnected:       { color: 'warning', icon: 'error' },
-  error:              { color: 'error', icon: 'error' },
   errapplied:         { color: 'error', icon: 'error' },
+  error:              { color: 'error', icon: 'error' },
   erroring:           { color: 'error', icon: 'error' },
+  errors:             { color: 'error', icon: 'error' },
   expired:            { color: 'warning', icon: 'error' },
-  failed:             { color: 'error', icon: 'error' },
   fail:               { color: 'error', icon: 'error' },
+  failed:             { color: 'error', icon: 'error' },
   healthy:            { color: 'success', icon: 'dot-open' },
   inactive:           { color: 'error', icon: 'dot' },
   initializing:       { color: 'warning', icon: 'error' },
   inprogress:         { color: 'info', icon: 'spinner' },
   locked:             { color: 'warning', icon: 'adjust' },
   migrating:          { color: 'info', icon: 'info' },
+  missing:            { color: 'warning', icon: 'adjust' },
   modified:           { color: 'warning', icon: 'edit' },
+  notApplicable:      { color: 'warning', icon: 'tag' },
   notapplied:         { color: 'warning', icon: 'tag' },
-  notApplicable:         { color: 'warning', icon: 'tag' },
-  passed:             { color: 'success', icon: 'dot-dotfill' },
+  notready:           { color: 'warning', icon: 'tag' },
+  orphaned:           { color: 'warning', icon: 'tag' },
+  other:              { color: 'info', icon: 'info' },
+  outofsync:          { color: 'warning', icon: 'tag' },
   pass:               { color: 'success', icon: 'dot-dotfill' },
+  passed:             { color: 'success', icon: 'dot-dotfill' },
   paused:             { color: 'info', icon: 'info' },
   pending:            { color: 'info', icon: 'tag' },
   provisioning:       { color: 'info', icon: 'dot' },
@@ -120,8 +128,8 @@ const STATES = {
   restarting:         { color: 'info', icon: 'adjust' },
   restoring:          { color: 'info', icon: 'medicalcross' },
   running:            { color: 'success', icon: 'dot-open' },
-  skipped:            { color: 'info', icon: 'dot-open' },
   skip:               { color: 'info', icon: 'dot-open' },
+  skipped:            { color: 'info', icon: 'dot-open' },
   starting:           { color: 'info', icon: 'adjust' },
   stopped:            { color: 'error', icon: 'dot' },
   stopping:           { color: 'info', icon: 'adjust' },
@@ -136,11 +144,33 @@ const STATES = {
   unknown:            { color: 'warning', icon: 'x' },
   untriggered:        { color: 'success', icon: 'tag' },
   updating:           { color: 'warning', icon: 'tag' },
-  waiting:            { color: 'info', icon: 'tag' },
   waitapplied:        { color: 'info', icon: 'tag' },
   waitcheckin:        { color: 'warning', icon: 'tag' },
-  notready:           { color: 'warning', icon: 'tag' },
+  waiting:            { color: 'info', icon: 'tag' },
+  warning:            { color: 'warning', icon: 'error' },
 };
+
+export function getStatesByType(type = 'info') {
+  const out = {
+    info:    [],
+    error:   [],
+    success: [],
+    warning: [],
+    unknown: [],
+  };
+
+  forIn(STATES, (state, stateKey) => {
+    if (state.color) {
+      if (out[state.color]) {
+        out[state.color].push(stateKey);
+      } else {
+        out.unknown.push(stateKey);
+      }
+    }
+  });
+
+  return out;
+}
 
 const SORT_ORDER = {
   error:   1,
@@ -283,7 +313,7 @@ export default {
   },
 
   nameDisplay() {
-    return this.spec?.displayName || this.metadata?.name || this.id;
+    return this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.metadata?.name || this.id;
   },
 
   nameSort() {
@@ -747,7 +777,6 @@ export default {
       if ( !opt.url ) {
         opt.url = this.actionLinkFor(actionName);
       }
-
       opt.method = 'post';
       opt.data = body;
 

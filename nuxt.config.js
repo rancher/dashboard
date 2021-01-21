@@ -180,6 +180,16 @@ module.exports = {
         options: { name: '[path][name].[ext]' },
       });
 
+      config.module.rules.unshift({
+        test:    /\.csv$/i,
+        loader:  'csv-loader',
+        options: {
+          dynamicTyping:  true,
+          header:         true,
+          skipEmptyLines: true
+        },
+      });
+
       // Run ESLint on save
       if (isDev && isClient) {
         config.module.rules.push({

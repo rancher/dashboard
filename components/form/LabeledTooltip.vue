@@ -2,7 +2,7 @@
 export default {
   props: {
     value: {
-      type:    String,
+      type:    [String, Object],
       default: null
     },
 
@@ -22,7 +22,7 @@ export default {
 <template>
   <div ref="container" class="labeled-tooltip" :class="{[status]: true, hoverable: hover}">
     <template v-if="hover">
-      <i v-tooltip="{content: value, classes: [`tooltip-${status}`]}" :class="{'hover':!value}" class="icon icon-info status-icon" />
+      <i v-tooltip="value.content ? { ...{content: value.content, classes: [`tooltip-${status}`]}, ...value } : value" :class="{'hover':!value}" class="icon icon-info status-icon" />
     </template>
     <template v-else>
       <i :class="{'hover':!value}" class="icon icon-info status-icon" />

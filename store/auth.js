@@ -5,7 +5,8 @@ import { open, popupWindowOptions } from '@/utils/window';
 import {
   BACK_TO, SPA, AUTH_TEST, _FLAGGED, GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT
 } from '@/config/query-params';
-import { BASE_SCOPES } from '@/store/github';
+
+export const BASE_SCOPES = { github: ['read:org'], googleoauth: ['email'] };
 
 const KEY = 'rc_nonce';
 
@@ -143,7 +144,7 @@ export const actions = {
     const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
     const scopes = fromQuery.split(/[, ]+/).filter(x => !!x);
 
-    addObjects(scopes, BASE_SCOPES);
+    addObjects(scopes, BASE_SCOPES[provider]);
 
     if ( opt.scopes ) {
       addObjects(scopes, opt.scopes);

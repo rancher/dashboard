@@ -14,7 +14,7 @@ export const GITHUB_NONCE = 'state';
 export const GITHUB_SCOPE = 'scope';
 export const GITHUB_REDIRECT = 'redirect_uri';
 
-// GENERAL
+// General
 export const _FLAGGED = null; // The value for a key-only flag, like `?desc`
 export const _UNFLAG = undefined; // The value to remove a query param
 
@@ -48,6 +48,9 @@ export const DEMO = 'demo';
 export const ADD_SIDECAR = 'add-sidecar';
 export const EDIT_CONTAINER = 'container';
 
+// CruResource
+export const SUB_TYPE = 'type';
+
 // App launch
 export const REPO_TYPE = 'repo-type';
 export const REPO = 'repo';
@@ -57,3 +60,7 @@ export const NAME = 'name';
 export const NAMESPACE = 'namespace';
 export const DESCRIPTION = 'description';
 export const CATEGORY = 'category';
+
+// Cluster provisioning
+export const PROVIDER = 'provider';
+export const REGISTER = 'register';

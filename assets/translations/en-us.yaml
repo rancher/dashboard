@@ -24,6 +24,7 @@ generic:
   number: '{prefix}{value, number}{suffix}'
   overview: Overview
   readFromFile: Read from File
+  register: Register
   remove: Remove
   resource: |-
     {count, plural,
@@ -73,6 +74,7 @@ product:
   explorer: Cluster Explorer
   fleet: Continuous Delivery
   longhorn: Longhorn
+  manager: Cluster Management
   gatekeeper: OPA Gatekeeper
   istio: Istio
   logging: Logging
@@ -103,49 +105,146 @@ suffix:
 ##############################
 authConfig:
   accessMode:
-    label: Configure who should be able to login and use {vendor}
-    unrestricted: "Allow any valid user"
-    restricted: "Allow members of clusters and projects, plus authorized users & groups"
-    required: "Restrict access to only the auhorized users & groups"
+    label: 'Configure who should be able to login and use {vendor}'
+    required: Restrict access to only the auhorized users & groups
+    restricted: 'Allow members of clusters and projects, plus authorized users & groups'
+    unrestricted: Allow any valid user
   allowedPrincipalIds:
     title: Authorized Users & Groups
-  associatedWarning: "Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>)."
-  stateBanner:
-    enabled: "{provider} is currently enabled."
-    disabled: "{provider} is currently disabled."
+  associatedWarning: 'Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>).'
   github:
-    target:
-      label: Which version of GitHub do you want to use?
-      public: Public GitHub.com
-      private: A private installation of GitHub Enterprise
-    host:
-      label: GitHub Enterprise Host
-      placeholder: e.g. github.mycompany.example
     clientId:
       label: Client ID
     clientSecret:
       label: Client Secret
     form:
+      app:
+        label: Application name
+        value: 'Anything you like, e.g. My {vendor}'
+      calllback:
+        label: Authorization callback URL
+      description:
+        label: Description
+        value: 'Optional, can be left blank'
+      homepage:
+        label: Homepage URL
+      instruction: 'Fill in the form with these values:'
       prefix: |-
         <li><a href="{baseUrl}/settings/developers" target="_blank" rel="noopener noreferrer nofollow">Click here</a> to go to GitHub application settings in a new window.</li>
         <li>Click on the "OAuth Apps" tab.</li>
         <li>Click the "New OAuth App" button.</li>
-      instruction: "Fill in the form with these values:"
-      app:
-        label: Application name
-        value: Anything you like, e.g. My {vendor}
-      homepage:
-        label: Homepage URL
-      description:
-        label: Description
-        value: Optional, can be left blank
-      calllback:
-        label: Authorization callback URL
       suffix: |-
         <li>Click "Register application"</li>
         <li>Copy and paste the Client ID and Client Secret of your newly created OAuth app into the fields below</li>
-
-
+    host:
+      label: GitHub Enterprise Host
+      placeholder: e.g. github.mycompany.example
+    target:
+      label: Which version of GitHub do you want to use?
+      private: A private installation of GitHub Enterprise
+      public: Public GitHub.com
+  googleoauth:
+    adminEmail: Admin Email
+    domain: Domain
+    oauthCredentials: 
+      label: OAuth Credentials
+      tip: The OAuth Credentials JSON can be found in the Google API developers console.
+    serviceAccountCredentials: 
+      label: Service Account Credentials
+      tip: The Service Account Credentials JSON can be found in the service accounts section of the Google API developers console.
+    steps:
+      1: 
+        title: 'Step One: For standard Google, click <a href="https://console.developers.google.com/apis/credentials" target="_blank" rel="noopener noreferrer nofollow">here</a> to go applications settings in a new window'
+        body: |-
+          <ul class="mt-0">
+          <li>Login to your account. Navigate to "APIs & Services" and then select "OAuth consent screen". </li>
+          <li>Authorized domains: Top private domain of {hostname} </li>
+          <li>Application homepage link: {serverUrl}</li>
+          <li>Under Scopes for Google APIs, enable "email", "profile", and "openid". </li>
+          <li>Click on "Save". </li>
+          </ul>
+      2: 
+        title: 'Step Two: Navigate to the "Credentials" tab to create your OAuth client ID'
+        body: |-
+          <ul class="mt-0">
+          <li>Select the "Create Credentials" dropdown, and select "OAuth clientID", then select "Web application".</li>
+          <li>Authorized Javascript origins: {serverUrl}</li>
+          <li>Authorized redirect URIs: {serverUrl}/verify?test </li>
+          <li>Click "Create", and then click on the "Download JSON" button.</li>
+          <li>Upload the downloaded JSON file in the OAuth credentials box.</li>
+          </ul>
+      3: 
+        title: 'Step Three: Create Service Account credentials'
+        body: |-
+          Follow <a href="https://rancher.com/docs/rancher/v2.x/en/admin-settings/authentication/google/#creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:<br/>
+          <ul class="mt-0">
+          <li> Create a service account.</li>
+          <li> Generate a key for the service account.</li>
+          <li> Add the service account as an OAuth client in your google domain.</li>
+          </ul>
+  ldap:
+    freeipa: Configure a FreeIPA server
+    activedirectory: Configure an Active Directory account
+    openldap: Configure an OpenLDAP server
+    defaultLoginDomain: Default Login Domain
+    cert: Certificate
+    disabledStatusBitmask: Disabled Status Bitmask
+    groupDNAttribute: Group DN Attribute
+    groupMemberMappingAttribute: Group Member Mapping Attribute
+    groupMemberUserAttribute: Group Member User Attribute
+    groupSearchBase:
+      label: Group Search Base
+      placeholder: 'ou=groups,dc=mycompany,dc=com'
+    hostname: Hostname/IP
+    loginAttribute: Login Attribute
+    nameAttribute: Name Attribute
+    nestedGroupMembership:
+      label: Nested Group Membership
+      options:
+        direct: Search only direct group memberships
+        nested: Search direct and nested group memberships
+    objectClass: Object Class
+    password: Password
+    port: Port
+    customizeSchema: Customize Schema
+    users: Users
+    groups: Groups
+    searchAttribute: Search Attribute
+    searchFilter: Search Filter
+    serverConnectionTimeout: Server Connection Timeout
+    serviceAccountDN: Service Account Distinguished Name
+    serviceAccountPassword: Service Account Password
+    serviceAccountInfo: Rancher needs a service account that has read-only access to all of the domains that will be able to login, so that we can determine what groups a user is a member of when they make a request with an API key.
+    starttls: 
+      label: Start TLS
+      tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
+    tls: TLS
+    userEnabledAttribute: User Enabled Attribute
+    userMemberAttribute: User Member Attribute
+    userSearchBase:
+      label: User Search Base
+      placeholder: 'e.g. ou=users,dc=mycompany,dc=com'
+    username: Username
+    usernameAttribute: Username Attribute
+  saml:
+    UID: UID Field
+    adfs: Configure an AD FS account
+    api: Rancher API Host
+    cert: Certificate
+    displayName: Display Name Field
+    groups: Groups Field
+    key: Private Key
+    keycloak: Configure a Keycloak account
+    metadata: Metadata XML
+    okta: Configure an Okta account
+    ping: Configure a Ping account
+    shibboleth: Congiure a Shibboleth account
+    showLdap: Configure an OpenLDAP Server
+    userName: User Name Field
+  stateBanner:
+    disabled: '{provider} is currently disabled.'
+    enabled: '{provider} is currently enabled.'
+  testAndEnable: Test and Enable Authentication
 
 
 
@@ -448,46 +547,62 @@ cis:
     protip: Scans with no failures will be marked "Pass" by default even if some of the tests generate "warn" output. This behavior can be changed by selecting the "fail" option from this section.
 
 cluster:
-  nodeDriver:
-    displayName:
-      aliyun: Alibaba ACK
-      aliyunecs: Aliyun ECS
-      amazonec2: Amazon EC2
-      amazoneks: Amazon EKS
-      azure: Azure
-      azureaks: Azure AKS
-      baidu: Baidu CCE
-      cloudca: Cloud.ca
-      digitalocean: DigitalOcean
-      exoscale: Exoscale
-      googlegke: Google GKE
-      huaweicce: Huawei CCE
-      linode: Linode
-      oci: Oracle Cloud Infrastructure
-      openstack: OpenStack
-      oracleoke: Oracle OKE
-      otc: Open Telekom Cloud
-      packet: Packet
-      pinganyunecs: Pinganyun ECS
-      rackspace: RackSpace
-      rancherkubernetesengine: RKE
-      softlayer: SoftLayer
-      tencenttke: Tencent TKE
-      upcloud: UpCloud
-      vmwarevsphere: vSphere
-      zstack: ZStack
   provider:
-    aks: Azure AKS
+    aliyun: Alibaba ACK
+    aliyunecs: Aliyun ECS
+    amazonec2: Amazon EC2
+    amazoneks: Amazon EKS
+    azure: Azure
+    azureaks: Azure AKS
+    baidu: Baidu CCE
+    cloudca: Cloud.ca
+    custom: Custom
+    digitalocean: DigitalOcean
     docker: Docker
-    eks: Amazon EKS
-    gke: Google GKE
+    exoscale: Exoscale
+    googlegke: Google GKE
+    huaweicce: Huawei CCE
     k3s: K3s
     kubeAdmin: KubeADM
+    linode: Linode
     minikube: Minikube
+    oci: Oracle Cloud Infrastructure
+    openstack: OpenStack
+    oracleoke: Oracle OKE
+    otc: Open Telekom Cloud
     other: Other
-    rke: RKE
+    packet: Packet
+    pinganyunecs: Pinganyun ECS
+    rackspace: RackSpace
+    rancherkubernetesengine: RKE
     rke2: RKE Government
+    rke: RKE
     rkeWindows: Windows
+    softlayer: SoftLayer
+    tencenttke: Tencent TKE
+    upcloud: UpCloud
+    vmwarevsphere: vSphere
+    zstack: ZStack
+  credential:
+    label: Cloud Credential
+  kubernetesVersion:
+    label: Kubernetes Version
+  nodeConfig:
+    digitalocean:
+      sizeLabel: |-
+        {plan, select,
+          s {Basic: }
+          g {General: }
+          gd {General: }
+          c {CPU: }
+          m {Memory: }
+          so {Storage: }
+          standard {Standard: }
+          other {}
+        }{memoryGb} GB, {vcpus, plural,
+          =1 {# vCPU}
+          other {# vCPUs}
+        }, {disk} GB Disk ({value})
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -756,6 +871,7 @@ istio:
     jaeger:
       label: Jaeger
       description: Monitor and Troubleshoot microservices-based distributed systems.
+    disabled: '{app} is not installed'
   cni: Enabled CNI
   customOverlayFile:
     label: Custom Overlay File
@@ -792,6 +908,7 @@ logging:
     noOutputsBanner: There are no cluster outputs in the selected namespace.
   flow:
     clusterOutputs:
+      doesntExistTooltip: This cluster output doesn't exist 
       label: Cluster Outputs
     matches:
       label: Matches
@@ -800,6 +917,7 @@ logging:
     filters:
       label: Filters
     outputs:
+      doesntExistTooltip: This output doesn't exist
       label: Outputs
   install:
     k3sContainerEngine: K3S Container Engine
@@ -1050,6 +1168,16 @@ monitoring:
       volumeName: Volume Name
     title: Configure Grafana
   overview:
+    alertsList:
+      ends:
+        label: Ends At
+      label: Active Alerts
+      message:
+        label: Message
+      severity:
+        label: Severity
+      start:
+        label: Starts At
     linkedList:
       alertManager:
         description: Active Alerts
@@ -1113,11 +1241,42 @@ monitoring:
       groupWait: Group Wait
       receiver: Receiver
       repeatInterval: Repeat Interval
+  tabs:
+    alerting: Alerting
+    general: General
+    grafana: Grafana
+    prometheus: Promethues
   v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of Rancher with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new Rancher Monitoring chart in Cluster Explorer.'
   volume:
     modes:
       block: Block
       file: Filesystem
+
+monitoringReceiver:
+  addButton: Add {type}
+  custom:
+    label: Custom
+    title: Custom Config
+    info: The YAML provided here will be directly appended to your receiver within the Alertmanager Config Secret.
+  email:
+    label: Email
+    title: Email Config
+  opsgenie:
+    label: Opsgenie
+    title: Opsgenie Config
+  pagerduty:
+    label: PagerDuty
+    title: PagerDuty Config
+    info: "You can find additional info on creating an Integration Key for PagerDuty <a href='https://www.pagerduty.com/docs/guides/prometheus-integration-guide/' target='_blank' rel='noopener nofollow' class='flex-right'>here</a>."
+  slack:
+    label: Slack
+    title: Slack Config
+    info: "You can find additional info on creating Incoming Webhooks for Slack <a href='https://rancher.slack.com/apps/A0F7XDUAZ-incoming-webhooks' target='_blank' rel='noopener noreferrer nofollow'>here</a> ."
+  webhook:
+    label: Webhook
+    title: Webhook Config
+
+
 
 monitoringRoute:
   groups:
@@ -1155,6 +1314,9 @@ namespace:
   containerResourceLimit: Container Resource Limit
   project:
     label: Project
+  resources: Resources
+  enableAutoInjection: Enable Istio Auto Injection
+  disableAutoInjection: Disable Istio Auto Injection
 
 namespaceFilter:
   selected:
@@ -1544,8 +1706,15 @@ servicesPage:
   ports:
     label: Ports
   selectors:
-    helpText: "If no selector is created, manual endpoints must be made."
+    helpText: ""
     label: Selectors
+    matchingPods:
+      matchesSome: |-
+        {matched, plural,
+          =0 {Matches 0 of {total, number} pods. If no selector is created, manual endpoints must be made.}
+          =1 {Matches 1 of {total, number} pods: "{sample}"}
+          other {Matches {matched, number} of {total, number} existing pods, including "{sample}"}
+        }
   serviceTypes:
     clusterIp:
       abbrv: IP
@@ -2457,6 +2626,21 @@ typeLabel:
     {count, plural,
       one { Route }
       other { Routes }
+    }
+  'management.cattle.io.cluster': |-
+    {count, plural,
+      one { Legacy Cluster }
+      other { Legacy Clusters }
+    }
+  'cluster.x-k8s.io.cluster': |-
+    {count, plural,
+      one { CAPI Cluster }
+      other { CAPI Clusters }
+    }
+  'cluster.cattle.io.rkecluster': |-
+    {count, plural,
+      one { RKE2 Cluster }
+      other { RKE2 Clusters }
     }
 
 action:

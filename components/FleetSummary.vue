@@ -1,20 +1,7 @@
 <script>
+import capitalize from 'lodash/capitalize';
 import CountBox from '@/components/CountBox';
-
-const KEYS = {
-  errApplied:    'error',
-  modified:      'warning',
-  notReady:      'warning',
-  outOfSync:     'warning',
-  pending:       'info',
-  waitApplied:   'info',
-  ready:         'success',
-  other:         'unknown',
-  desiredReady:  false,
-  missing:      'warning',
-  orphaned:     'info',
-  unknown:      'unknown',
-};
+import { STATES } from '@/plugins/steve/resource-instance';
 
 export default {
   components: { CountBox },
@@ -23,43 +10,68 @@ export default {
     value: {
       type:     Object,
       required: true,
-    }
+    },
   },
 
   computed: {
     counts() {
       const out = {
-        success: 0,
-        info:    0,
-        warning: 0,
-        error:   0,
-        unknown: 0,
+        success: {
+          count: 0,
+          color: 'success'
+        },
+        info:    {
+          count: 0,
+          color: 'info'
+        },
+        warning: {
+          count: 0,
+          color: 'warning'
+        },
+        error:   {
+          count: 0,
+          color: 'error'
+        },
+        unknown: {
+          count: 0,
+          color: 'warning'
+        },
       };
 
-      for ( const k in this.value ) {
-        if ( k.startsWith('desired') ) {
+      for (const k in this.value) {
+        if (k.startsWith('desired')) {
           continue;
         }
 
-        const mapped = KEYS[k] || KEYS['other'];
+        const mapped = STATES[k] || STATES['other'];
 
-        if ( mapped === false ) {
-          continue;
+        if (out[k]) {
+          out[k].count += this.value[k] || 0;
+          out[k].color = mapped.color;
+        } else {
+          out[k] = {
+            count: this.value[k] || 0,
+            color: mapped.color,
+          };
         }
-
-        out[mapped] += this.value[k] || 0;
       }
 
       return out;
     },
-  }
+  },
+
+  methods: { capitalize },
 };
 </script>
 
 <template>
   <div class="row">
     <div v-for="(v, k) in counts" :key="k" class="col span-2-of-10">
-      <CountBox :count="v" :name="t(`fleet.fleetSummary.state.${k}`)" :primary-color-var="'--sizzle-'+k" />
+      <CountBox
+        :count="v['count']"
+        :name="capitalize(k)"
+        :primary-color-var="'--sizzle-' + v.color"
+      />
     </div>
   </div>
 </template>
