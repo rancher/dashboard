@@ -327,48 +327,45 @@ asyncButton:
 
 backupRestoreOperator:
   backupFilename: Backup Filename
-  deployment:
-    rancherNamespace: Rancher ResourceSet Namespace
-    storage:
-      tip: Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.
-      storageClass:
-        label: Storage Class
-      persistentVolume:
-        label: Persistent Volume
-      label: Default Storage Location
-      options:
-        none: No default storage location
-        s3: Use an S3-compatible object store
-        defaultStorageClass: 'Use the default storage class ({name})'
-        pickSC: Use an existing storage class
-        pickPV: Use an existing persistent volume
-      warning: This {type} does not have its reclaim policy set to "Retain".  Your backups may be lost if the volume is changed or becomes unbound.
-    size: Size
-  prune:
-    label: Prune
-    tip: Delete the resources managed by Rancher that are not present in the backup. (Recommended)
-  encryption: Encryption
-  encryptionConfigName:
-    label: Encryption Config Secret
-    backuptip: Any secret in the <code>cattle-resource-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.
-    restoretip: If the backup was performed with encryption enabled, a secret containing the same encryption-provider-config should be used during restore.
-    options:
-      none: Store the contents of the backup unencrypted
-      secret: Encrypt backups using an <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
-    warning: The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.
   deleteTimeout:
     label: Delete Timeout
     tip: Seconds to wait for a resource delete to succeed before removing finalizers to force deletion.
-  resourceSetName: Resource Set
-  schedule:
-    label: Schedule
-    placeholder: e.g. @midnight or 0 0 * * *
+  deployment:
+    rancherNamespace: Rancher ResourceSet Namespace
+    size: Size
+    storage:
+      label: Default Storage Location
+      options:
+        defaultStorageClass: 'Use the default storage class ({name})'
+        none: No default storage location
+        pickPV: Use an existing persistent volume
+        pickSC: Use an existing storage class
+        s3: Use an S3-compatible object store
+      persistentVolume:
+        label: Persistent Volume
+      storageClass:
+        label: Storage Class
+      tip: 'Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.'
+      warning: 'This {type} does not have its reclaim policy set to "Retain".  Your backups may be lost if the volume is changed or becomes unbound.'
+  encryption: Encryption
+  encryptionConfigName:
+    backuptip: 'Any secret in the <code>cattle-resource-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
+    label: Encryption Config Secret
     options:
-      disabled: One-Time Backup
-      enabled: Recurring Backups
+      none: Store the contents of the backup unencrypted
+      secret: 'Encrypt backups using an <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)'
+    restoretip: 'If the backup was performed with encryption enabled, a secret containing the same encryption-provider-config should be used during restore.'
+    warning: 'The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
+  lastBackup: Last Backup
+  nextBackup: Next Backup
+  noResourceSet: You must define a ResourceSet in this namespace to create a backup CR.
+  prune:
+    label: Prune
+    tip: Delete the resources managed by Rancher that are not present in the backup. (Recommended)
+  resourceSetName: Resource Set
   restoreFrom:
-    existing: An existing backup config
     default: The default storage target
+    existing: An existing backup config
     s3: An S3-compatible object store
   retentionCount:
     label: Retention Count
@@ -378,24 +375,30 @@ backupRestoreOperator:
         other { Files }
       }
   s3:
+    bucketName: Bucket Name
+    credentialSecretName: Credential Secret
+    endpoint: Endpoint
+    endpointCA: Endpoint CA
+    folder: Folder
+    insecureTLSSkipVerify: Skip TLS Verifications
+    region: Region
+    storageLocation: Storage Location
     titles:
       backupLocation: Backup Source
       location: Storage Location
       s3: S3
-    credentialSecretName:  Credential Secret
-    storageLocation: Storage Location
-    endpoint: Endpoint
-    endpointCA: Endpoint CA
-    bucketName: Bucket Name
-    region: Region
-    folder: Folder
-    insecureTLSSkipVerify: Skip TLS Verifications
+  schedule:
+    label: Schedule
+    options:
+      disabled: One-Time Backup
+      enabled: Recurring Backups
+    placeholder: e.g. @midnight or 0 0 * * *
   storageSource:
-    useDefault: Use the default storage location configured during installation
     configureS3: Use an S3-compatible object store
     useBackup: Use the s3 location specified on the Backup CR
+    useDefault: Use the default storage location configured during installation
   targetBackup: Target Backup
-  noResourceSet: 'You must define a ResourceSet in this namespace to create a backup CR.'
+
 
 
 catalog:

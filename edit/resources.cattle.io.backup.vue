@@ -171,9 +171,8 @@ export default {
       <template>
         <NameNsDescription :mode="mode" :value="value" :namespaced="false" @change="name=value.metadata.name" />
         <template v-if="!!resourceSet">
-          <div v-if="!isView || setSchedule" class="bordered-section">
+          <div class="bordered-section">
             <RadioGroup
-              v-if="!isView"
               v-model="setSchedule"
               :mode="mode"
               :label="t('backupRestoreOperator.schedule.label')"
@@ -183,7 +182,7 @@ export default {
             />
             <div v-if="setSchedule" class="row mt-10 mb-10">
               <div class="col span-6">
-                <LabeledInput v-model="value.spec.schedule" :mode="mode" :label="t('backupRestoreOperator.schedule.label')" :placeholder="t('backupRestoreOperator.schedule.placeholder')" />
+                <LabeledInput v-model="value.spec.schedule" type="cron" :mode="mode" :label="t('backupRestoreOperator.schedule.label')" :placeholder="t('backupRestoreOperator.schedule.placeholder')" />
               </div>
               <div class="col span-6">
                 <UnitInput v-model="value.spec.retentionCount" :suffix="t('backupRestoreOperator.retentionCount.units', {count: value.spec.retentionCount || 0})" :mode="mode" :label="t('backupRestoreOperator.retentionCount.label')" />
@@ -191,11 +190,10 @@ export default {
             </div>
           </div>
 
-          <div v-if="!isView || useEncryption" class="bordered-section">
+          <div class="bordered-section">
             <div class="row">
               <div class="col span-12">
                 <RadioGroup
-                  v-if="!isView"
                   v-model="useEncryption"
                   name="useEncryption"
                   :label="t('backupRestoreOperator.encryption')"
