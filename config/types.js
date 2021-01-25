@@ -128,7 +128,6 @@ export const MANAGEMENT = {
   SETTING:          'management.cattle.io.setting',
   TOKEN:            'management.cattle.io.token',
   USER:             'management.cattle.io.user',
-  TOKEN:            'management.cattle.io.token',
 };
 
 export const CAPI = {
