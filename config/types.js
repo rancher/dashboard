@@ -14,6 +14,8 @@ export const STEVE = {
 export const NORMAN = {
   AUTH_CONFIG: 'authconfig',
   PRINCIPAL:   'principal',
+  USER:        'user',
+  TOKEN:        'token',
 };
 
 // Public (via Norman)
@@ -125,6 +127,7 @@ export const MANAGEMENT = {
   PROJECT:          'management.cattle.io.project',
   SETTING:          'management.cattle.io.setting',
   USER:             'management.cattle.io.user',
+  TOKEN:            'management.cattle.io.token',
 };
 
 export const CAPI = {
