@@ -90,7 +90,7 @@ export default {
 
     <h4 v-t="'accountAndKeys.account.title'" />
     <div class="account">
-      <Principal :key="principal.id" :value="principal.id" :use-muted="false" />
+      <Principal :key="principal.id" :value="principal.id" :use-muted="false" :show-labels="true" />
       <button
         v-if="canChangePassword"
         type="button"
@@ -124,6 +124,10 @@ export default {
 <style lang='scss' scoped>
   hr {
     margin: 20px 0;
+  }
+
+  button {
+    max-height: 48px;
   }
 
   .account {

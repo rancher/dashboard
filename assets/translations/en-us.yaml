@@ -1468,6 +1468,9 @@ prefs:
 principal:
   loading: Loading&hellip;
   error: Unable to fetch principal info
+  name: Name
+  loginName: Username
+  type: Type
 
 probe:
   checkInterval:
