@@ -337,6 +337,31 @@ export default {
     commit('action-menu/toggleAssignTo', resources, { root: true });
   },
 
+  async resourceAction({ getters, dispatch }, {
+    resource, actionName, body, opt,
+  }) {
+    opt = opt || {};
+
+    if ( !opt.url ) {
+      opt.url = (resource.actions || {})[actionName];
+    }
+
+    opt.method = 'post';
+    opt.data = body;
+
+    const res = await dispatch('request', opt);
+
+    if ( opt.load !== false && res.type === 'collection' ) {
+      await dispatch('loadMulti', res.data);
+
+      return res.data.map(x => getters.byId(x.type, x.id) || x);
+    } else if ( opt.load !== false && res.type && res.id ) {
+      return dispatch('load', { data: res });
+    } else {
+      return res;
+    }
+  },
+
   async collectionAction({ getters, dispatch }, {
     type, actionName, body, opt
   }) {

@@ -27,6 +27,8 @@ export default {
 
     options() {
       const t = this.$store.getters['i18n/t'];
+      const isMultiCluster = this.$store.getters['isMultiCluster'];
+
       const entries = this.activeProducts.map((p) => {
         let label;
         const key = `product.${ p.name }`;
@@ -61,9 +63,9 @@ export default {
 
       const out = sortBy(entries, ['inStore', 'weight:desc', 'label']);
 
-      if ( out[0].inStore === 'cluster' ) {
+      if ( isMultiCluster && out[0].inStore === 'cluster' ) {
         insertAt(out, 0, {
-          label:    'Cluster Applications',
+          label:    t('product.clusterGroup'),
           disabled: true,
           kind:     'label',
         });
@@ -74,9 +76,9 @@ export default {
       for ( let i = out.length - 1 ; i >= 0 ; i-- ) {
         const entry = out[i];
 
-        if ( last && (last.inStore !== entry.inStore) ) {
+        if ( isMultiCluster && last && (last.inStore !== entry.inStore) ) {
           insertAt(out, i + 1, {
-            label:    'Global Applications',
+            label:    t('product.globalGroup'),
             disabled: true,
             kind:     'label',
           });

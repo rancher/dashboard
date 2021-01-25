@@ -45,7 +45,8 @@ locale:
 nav:
   title: Dashboard
   backToRancher: Cluster Manager
-  shell: Shell
+  shell: Kubectl Shell
+  import: Import YAML
   group:
     cluster: Cluster
     inUse: More Resources
@@ -66,6 +67,8 @@ nav:
   apps: Apps
 
 product:
+  clusterGroup: Cluster Applications
+  globalGroup: Global Applications
   apps: Apps & Marketplace
   auth: Users & Authentication
   backup: Rancher Backups
@@ -324,6 +327,10 @@ asyncButton:
     successIcon: 'checkmark'
     error: ''
     errorIcon:   'error'
+  import:
+    action: 'Import'
+    waiting: 'Importing&hellip;'
+    success:  'Imported'
 
 backupRestoreOperator:
   backupFilename: Backup Filename
@@ -806,6 +813,16 @@ glance:
   pods: Pods
   provider: Provider
   version: Kubernetes Version
+
+import:
+  title: Import YAML
+  defaultNamespace:
+    label: Default Namespace
+  success: |-
+    Applied {count, plural,
+    =1 {1 Resource}
+    other {# Resources}
+    }
 
 ingress:
   certificates:
