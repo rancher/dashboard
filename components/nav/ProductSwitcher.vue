@@ -244,10 +244,8 @@ export default {
 .filter ::v-deep .unlabeled-select {
   background-color: transparent;
   min-height: 50px;
+  border: 0;
 
-  &:not(.focused) {
-    border: var(--outline-width) solid transparent;
-  }
   .v-select {
     &.vs--disabled .vs__actions {
       display: none;
@@ -261,7 +259,7 @@ export default {
     }
 
     .vs__dropdown-toggle {
-      margin-bottom: -4px;
+      // margin-bottom: -4px;
       height: var(--header-height);
       background-color: transparent;
       position: relative;

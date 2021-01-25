@@ -249,7 +249,12 @@ export default {
 
       &:focus {
         .v-popover {
+          line-height: 0;
+
           ::v-deep .trigger {
+            .user-image {
+              max-height: 40px;
+            }
             .user-image > * {
               @include form-focus
             }
