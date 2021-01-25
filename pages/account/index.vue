@@ -1,38 +1,67 @@
 <script>
-import { mapGetters } from 'vuex';
-import { MANAGEMENT } from '@/config/types';
+import PromptChangePassword from '@/components/PromptChangePassword';
+import { NORMAN, MANAGEMENT } from '@/config/types';
 import Loading from '@/components/Loading';
+import { mapGetters } from 'vuex';
+
 import ResourceTable from '@/components/ResourceTable';
 
 export default {
-
   components: {
-    Loading,
-    ResourceTable,
+    PromptChangePassword, Loading, ResourceTable
   },
-
   async fetch() {
-    this.rows = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.TOKEN, opt: { force: true } });
+    this.canChangePassword = await this.calcCanChangePassword();
+    this.apiKeys = await this.fetchApiKeys();
   },
-
   data() {
-    return { rows: null };
+    return {
+      apiKeys:           null,
+      canChangePassword: false
+    };
   },
-
-  computed: {
+  computed:   {
     ...mapGetters({ t: 'i18n/t' }),
 
-    headers() {
-      return this.$store.getters['type-map/headersFor'](this.schema);
+    apiKeyheaders() {
+      return this.$store.getters['type-map/headersFor'](this.apiKeySchema);
     },
 
-    schema() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
-
-      return this.$store.getters[`${ inStore }/schemaFor`](MANAGEMENT.TOKEN);
+    apiKeySchema() {
+      return this.$store.getters[`management/schemaFor`](MANAGEMENT.TOKEN);
     },
 
-    apiKeys() {
+    principal() {
+      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
+    },
+  },
+  methods: {
+    addKey() {
+      this.$router.push({ path: 'account/create-key' });
+    },
+    async calcCanChangePassword() {
+      if (!this.$store.getters['auth/enabled']) {
+        return false;
+      }
+
+      if (this.principal.provider === 'local') {
+        return !!this.principal.loginName;
+      }
+
+      const users = await this.$store.dispatch('rancher/findAll', {
+        type: NORMAN.USER,
+        opt:  { url: '/v3/users', filter: { me: true } }
+      });
+
+      if (users && users.length === 1) {
+        return !!users[0].username;
+      }
+
+      return false;
+    },
+    async fetchApiKeys() {
+      const rows = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.TOKEN, opt: { force: true } });
+
       // Filter out tokens that are not API Keys
       const isApiKey = (key) => {
         const labels = key.metadata?.labels;
@@ -48,48 +77,65 @@ export default {
         return kind !== 'session' && !key.current;
       };
 
-      return !this.rows ? [] : this.rows.filter(isApiKey);
-    },
-  },
-
-  methods: {
-    addKey() {
-      this.$router.push({ path: 'account/create-key' });
-    },
-  },
-
+      return !rows ? [] : rows.filter(isApiKey);
+    }
+  }
 };
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <header>
-      <div class="title">
-        <h1 v-t="'account.apiKeys.title'" class="m-0"></h1>
-      </div>
-      <div class="actions-container">
-        <div class="actions">
-          <button class="btn role-primary" @click="addKey">
-            {{ t('account.apiKeys.add.label') }}
-          </button>
+    <h1 v-t="'accountAndKeys.title'" />
+    <section class="account">
+      <h4 v-t="'accountAndKeys.account.title'" />
+      <div class="content">
+        <div class="col mt-10">
+          <div><t k="accountAndKeys.account.name" />: {{ principal.name }}</div>
+          <div><t k="accountAndKeys.account.username" />: {{ principal.loginName }}</div>
         </div>
+        <button
+          v-if="canChangePassword"
+          type="button"
+          class="btn role-secondary"
+          @click="$refs.promptChangePassword.show(true)"
+        >
+          {{ t("accountAndKeys.account.change") }}
+        </button>
       </div>
-    </header>
-    <ResourceTable
-      :schema="schema"
-      :rows="apiKeys"
-      :headers="headers"
-      key-field="id"
-      :search="false"
-      :row-actions="true"
-      :table-actions="true"
-    />
+      <PromptChangePassword ref="promptChangePassword" />
+    </section>
+
+    <section>
+      <h4 v-t="'accountAndKeys.keys.title'" />
+
+      <!-- account.apiKeys.title -->
+      <!-- account.apiKeys.add.label -->
+      <!--  -->
+      <button class="btn role-primary" @click="addKey">
+        {{ t('account.apiKeys.add.label') }}
+      </button>
+      <ResourceTable
+        :schema="apiKeySchema"
+        :rows="apiKeys"
+        :headers="apiKeyheaders"
+        key-field="id"
+        :search="false"
+        :row-actions="true"
+        :table-actions="true"
+      />
+    </section>
   </div>
 </template>
 
-<style lang="scss" scoped>
-  hr {
-    margin: 20px 0;
+<style lang='scss' scoped>
+  section {
+    margin-bottom: 10px;
+  }
+
+  .account {
+    .content {
+      display: flex;
+    }
   }
 </style>

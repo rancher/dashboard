@@ -81,22 +81,22 @@ export default {
       <ClusterSwitcher v-if="isMultiCluster && currentProduct && currentProduct.showClusterSwitcher" />
     </div>
 
-    <div class="user">
+    <div class="user" tabindex="0" @blur="showMenu(false)" @click="showMenu(true)" @focus.capture="showMenu(true)">
       <v-popover
         ref="popover"
-        placement="bottom"
+        placement="bottom-end"
         offset="-10"
         trigger="manual"
-        :delay="{show: 0, hide: 200}"
+        :delay="{show: 0, hide: 0}"
         :popper-options="{modifiers: { flip: { enabled: false } } }"
+        :container="false"
       >
-        <div class="text-right" @mouseover="showMenu(true)" @click="showMenu(true)">
+        <div class="user-image text-right hand">
           <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.roundAvatar}" width="40" height="40" />
           <i v-else class="icon icon-user icon-3x avatar" />
         </div>
-
         <template slot="popover">
-          <ul class="list-unstyled dropdown" @mouseleave="showMenu(false)">
+          <ul class="list-unstyled dropdown" @click.stop="showMenu(false)">
             <li v-if="authEnabled" class="user-info">
               <div class="user-name">
                 <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
@@ -105,15 +105,15 @@ export default {
                 {{ principal.name }}
               </div>
             </li>
-            <div @click="showMenu(false)">
-              <nuxt-link tag="li" :to="{name: 'account'}" class="hand">
-                <a>API Keys</a>
-              </nuxt-link>
+            <div>
               <nuxt-link tag="li" :to="{name: 'prefs'}" class="hand">
                 <a>Preferences <i class="icon icon-fw icon-gear" /></a>
               </nuxt-link>
+              <nuxt-link tag="li" :to="{name: 'account'}" class="hand">
+                <a>Account &amp; API Keys <i class="icon icon-fw icon-user" /></a>
+              </nuxt-link>
               <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="pt-5 pb-5 hand">
-                <a>Log Out <i class="icon icon-fw icon-close" /></a>
+                <a @blur="showMenu(false)">Log Out <i class="icon icon-fw icon-close" /></a>
               </nuxt-link>
             </div>
           </ul>
@@ -236,6 +236,18 @@ export default {
     }
 
     > .user {
+      outline: none;
+
+      &:focus {
+        .v-popover {
+          ::v-deep .trigger {
+            .user-image > * {
+              @include form-focus
+            }
+          }
+        }
+      }
+
       grid-area: user;
       background-color: var(--header-bg);
       padding: 5px;

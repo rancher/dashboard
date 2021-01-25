@@ -138,49 +138,146 @@ account:
 
 authConfig:
   accessMode:
-    label: Configure who should be able to login and use {vendor}
-    unrestricted: "Allow any valid user"
-    restricted: "Allow members of clusters and projects, plus authorized users & groups"
-    required: "Restrict access to only the auhorized users & groups"
+    label: 'Configure who should be able to login and use {vendor}'
+    required: Restrict access to only the auhorized users & groups
+    restricted: 'Allow members of clusters and projects, plus authorized users & groups'
+    unrestricted: Allow any valid user
   allowedPrincipalIds:
     title: Authorized Users & Groups
-  associatedWarning: "Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>)."
-  stateBanner:
-    enabled: "{provider} is currently enabled."
-    disabled: "{provider} is currently disabled."
+  associatedWarning: 'Note: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>).'
   github:
-    target:
-      label: Which version of GitHub do you want to use?
-      public: Public GitHub.com
-      private: A private installation of GitHub Enterprise
-    host:
-      label: GitHub Enterprise Host
-      placeholder: e.g. github.mycompany.example
     clientId:
       label: Client ID
     clientSecret:
       label: Client Secret
     form:
+      app:
+        label: Application name
+        value: 'Anything you like, e.g. My {vendor}'
+      calllback:
+        label: Authorization callback URL
+      description:
+        label: Description
+        value: 'Optional, can be left blank'
+      homepage:
+        label: Homepage URL
+      instruction: 'Fill in the form with these values:'
       prefix: |-
         <li><a href="{baseUrl}/settings/developers" target="_blank" rel="noopener noreferrer nofollow">Click here</a> to go to GitHub application settings in a new window.</li>
         <li>Click on the "OAuth Apps" tab.</li>
         <li>Click the "New OAuth App" button.</li>
-      instruction: "Fill in the form with these values:"
-      app:
-        label: Application name
-        value: Anything you like, e.g. My {vendor}
-      homepage:
-        label: Homepage URL
-      description:
-        label: Description
-        value: Optional, can be left blank
-      calllback:
-        label: Authorization callback URL
       suffix: |-
         <li>Click "Register application"</li>
         <li>Copy and paste the Client ID and Client Secret of your newly created OAuth app into the fields below</li>
-
-
+    host:
+      label: GitHub Enterprise Host
+      placeholder: e.g. github.mycompany.example
+    target:
+      label: Which version of GitHub do you want to use?
+      private: A private installation of GitHub Enterprise
+      public: Public GitHub.com
+  googleoauth:
+    adminEmail: Admin Email
+    domain: Domain
+    oauthCredentials:
+      label: OAuth Credentials
+      tip: The OAuth Credentials JSON can be found in the Google API developers console.
+    serviceAccountCredentials:
+      label: Service Account Credentials
+      tip: The Service Account Credentials JSON can be found in the service accounts section of the Google API developers console.
+    steps:
+      1:
+        title: 'Step One: For standard Google, click <a href="https://console.developers.google.com/apis/credentials" target="_blank" rel="noopener noreferrer nofollow">here</a> to go applications settings in a new window'
+        body: |-
+          <ul class="mt-0">
+          <li>Login to your account. Navigate to "APIs & Services" and then select "OAuth consent screen". </li>
+          <li>Authorized domains: Top private domain of {hostname} </li>
+          <li>Application homepage link: {serverUrl}</li>
+          <li>Under Scopes for Google APIs, enable "email", "profile", and "openid". </li>
+          <li>Click on "Save". </li>
+          </ul>
+      2:
+        title: 'Step Two: Navigate to the "Credentials" tab to create your OAuth client ID'
+        body: |-
+          <ul class="mt-0">
+          <li>Select the "Create Credentials" dropdown, and select "OAuth clientID", then select "Web application".</li>
+          <li>Authorized Javascript origins: {serverUrl}</li>
+          <li>Authorized redirect URIs: {serverUrl}/verify?test </li>
+          <li>Click "Create", and then click on the "Download JSON" button.</li>
+          <li>Upload the downloaded JSON file in the OAuth credentials box.</li>
+          </ul>
+      3:
+        title: 'Step Three: Create Service Account credentials'
+        body: |-
+          Follow <a href="https://rancher.com/docs/rancher/v2.x/en/admin-settings/authentication/google/#creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">this</a> guide to:<br/>
+          <ul class="mt-0">
+          <li> Create a service account.</li>
+          <li> Generate a key for the service account.</li>
+          <li> Add the service account as an OAuth client in your google domain.</li>
+          </ul>
+  ldap:
+    freeipa: Configure a FreeIPA server
+    activedirectory: Configure an Active Directory account
+    openldap: Configure an OpenLDAP server
+    defaultLoginDomain: Default Login Domain
+    cert: Certificate
+    disabledStatusBitmask: Disabled Status Bitmask
+    groupDNAttribute: Group DN Attribute
+    groupMemberMappingAttribute: Group Member Mapping Attribute
+    groupMemberUserAttribute: Group Member User Attribute
+    groupSearchBase:
+      label: Group Search Base
+      placeholder: 'ou=groups,dc=mycompany,dc=com'
+    hostname: Hostname/IP
+    loginAttribute: Login Attribute
+    nameAttribute: Name Attribute
+    nestedGroupMembership:
+      label: Nested Group Membership
+      options:
+        direct: Search only direct group memberships
+        nested: Search direct and nested group memberships
+    objectClass: Object Class
+    password: Password
+    port: Port
+    customizeSchema: Customize Schema
+    users: Users
+    groups: Groups
+    searchAttribute: Search Attribute
+    searchFilter: Search Filter
+    serverConnectionTimeout: Server Connection Timeout
+    serviceAccountDN: Service Account Distinguished Name
+    serviceAccountPassword: Service Account Password
+    serviceAccountInfo: Rancher needs a service account that has read-only access to all of the domains that will be able to login, so that we can determine what groups a user is a member of when they make a request with an API key.
+    starttls:
+      label: Start TLS
+      tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
+    tls: TLS
+    userEnabledAttribute: User Enabled Attribute
+    userMemberAttribute: User Member Attribute
+    userSearchBase:
+      label: User Search Base
+      placeholder: 'e.g. ou=users,dc=mycompany,dc=com'
+    username: Username
+    usernameAttribute: Username Attribute
+  saml:
+    UID: UID Field
+    adfs: Configure an AD FS account
+    api: Rancher API Host
+    cert: Certificate
+    displayName: Display Name Field
+    groups: Groups Field
+    key: Private Key
+    keycloak: Configure a Keycloak account
+    metadata: Metadata XML
+    okta: Configure an Okta account
+    ping: Configure a Ping account
+    shibboleth: Congiure a Shibboleth account
+    showLdap: Configure an OpenLDAP Server
+    userName: User Name Field
+  stateBanner:
+    disabled: '{provider} is currently disabled.'
+    enabled: '{provider} is currently enabled.'
+  testAndEnable: Test and Enable Authentication
 
 
 
@@ -263,48 +360,45 @@ asyncButton:
 
 backupRestoreOperator:
   backupFilename: Backup Filename
-  deployment:
-    rancherNamespace: Rancher ResourceSet Namespace
-    storage:
-      tip: Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.
-      storageClass:
-        label: Storage Class
-      persistentVolume:
-        label: Persistent Volume
-      label: Default Storage Location
-      options:
-        none: No default storage location
-        s3: Use an S3-compatible object store
-        defaultStorageClass: 'Use the default storage class ({name})'
-        pickSC: Use an existing storage class
-        pickPV: Use an existing persistent volume
-      warning: This {type} does not have its reclaim policy set to "Retain".  Your backups may be lost if the volume is changed or becomes unbound.
-    size: Size
-  prune:
-    label: Prune
-    tip: Delete the resources managed by Rancher that are not present in the backup. (Recommended)
-  encryption: Encryption
-  encryptionConfigName:
-    label: Encryption Config Secret
-    backuptip: Any secret in the <code>cattle-resource-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.
-    restoretip: If the backup was performed with encryption enabled, a secret containing the same encryption-provider-config should be used during restore.
-    options:
-      none: Store the contents of the backup unencrypted
-      secret: Encrypt backups using an <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)
-    warning: The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.
   deleteTimeout:
     label: Delete Timeout
     tip: Seconds to wait for a resource delete to succeed before removing finalizers to force deletion.
-  resourceSetName: Resource Set
-  schedule:
-    label: Schedule
-    placeholder: e.g. @midnight or 0 0 * * *
+  deployment:
+    rancherNamespace: Rancher ResourceSet Namespace
+    size: Size
+    storage:
+      label: Default Storage Location
+      options:
+        defaultStorageClass: 'Use the default storage class ({name})'
+        none: No default storage location
+        pickPV: Use an existing persistent volume
+        pickSC: Use an existing storage class
+        s3: Use an S3-compatible object store
+      persistentVolume:
+        label: Persistent Volume
+      storageClass:
+        label: Storage Class
+      tip: 'Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.'
+      warning: 'This {type} does not have its reclaim policy set to "Retain".  Your backups may be lost if the volume is changed or becomes unbound.'
+  encryption: Encryption
+  encryptionConfigName:
+    backuptip: 'Any secret in the <code>cattle-resource-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
+    label: Encryption Config Secret
     options:
-      disabled: One-Time Backup
-      enabled: Recurring Backups
+      none: Store the contents of the backup unencrypted
+      secret: 'Encrypt backups using an <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)'
+    restoretip: 'If the backup was performed with encryption enabled, a secret containing the same encryption-provider-config should be used during restore.'
+    warning: 'The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
+  lastBackup: Last Backup
+  nextBackup: Next Backup
+  noResourceSet: You must define a ResourceSet in this namespace to create a backup CR.
+  prune:
+    label: Prune
+    tip: Delete the resources managed by Rancher that are not present in the backup. (Recommended)
+  resourceSetName: Resource Set
   restoreFrom:
-    existing: An existing backup config
     default: The default storage target
+    existing: An existing backup config
     s3: An S3-compatible object store
   retentionCount:
     label: Retention Count
@@ -314,24 +408,30 @@ backupRestoreOperator:
         other { Files }
       }
   s3:
+    bucketName: Bucket Name
+    credentialSecretName: Credential Secret
+    endpoint: Endpoint
+    endpointCA: Endpoint CA
+    folder: Folder
+    insecureTLSSkipVerify: Skip TLS Verifications
+    region: Region
+    storageLocation: Storage Location
     titles:
       backupLocation: Backup Source
       location: Storage Location
       s3: S3
-    credentialSecretName:  Credential Secret
-    storageLocation: Storage Location
-    endpoint: Endpoint
-    endpointCA: Endpoint CA
-    bucketName: Bucket Name
-    region: Region
-    folder: Folder
-    insecureTLSSkipVerify: Skip TLS Verifications
+  schedule:
+    label: Schedule
+    options:
+      disabled: One-Time Backup
+      enabled: Recurring Backups
+    placeholder: e.g. @midnight or 0 0 * * *
   storageSource:
-    useDefault: Use the default storage location configured during installation
     configureS3: Use an S3-compatible object store
     useBackup: Use the s3 location specified on the Backup CR
+    useDefault: Use the default storage location configured during installation
   targetBackup: Target Backup
-  noResourceSet: 'You must define a ResourceSet in this namespace to create a backup CR.'
+
 
 
 catalog:
@@ -807,6 +907,7 @@ istio:
     jaeger:
       label: Jaeger
       description: Monitor and Troubleshoot microservices-based distributed systems.
+    disabled: '{app} is not installed'
   cni: Enabled CNI
   customOverlayFile:
     label: Custom Overlay File
@@ -843,7 +944,7 @@ logging:
     noOutputsBanner: There are no cluster outputs in the selected namespace.
   flow:
     clusterOutputs:
-      doesntExistTooltip: This cluster output doesn't exist 
+      doesntExistTooltip: This cluster output doesn't exist
       label: Cluster Outputs
     matches:
       label: Matches
@@ -1089,7 +1190,7 @@ monitoring:
       className: Storage Class Name
       existingClaim: Use Existing Claim
       finalizers: PVC Finalizers
-      label: Persistent Storage for Grafana
+      label: Grafana Storage
       mode: Access Mode
       selector: Selector
       size: Size
@@ -1250,6 +1351,8 @@ namespace:
   project:
     label: Project
   resources: Resources
+  enableAutoInjection: Enable Istio Auto Injection
+  disableAutoInjection: Disable Istio Auto Injection
 
 namespaceFilter:
   selected:
@@ -1339,6 +1442,35 @@ prefs:
     label: Enable Developer Tools
   hideDesc:
     label: Hide All Type Description Boxes
+
+accountAndKeys:
+  title: Account and API Keys
+  account:
+    title: Account
+    name: Name
+    username: Username
+    change: Change Password
+  keys:
+    title: API Keys
+
+changePassword:
+  title: Change Password
+  cancel: Cancel
+  keys: Delete all existing API keys
+  generatePassword: Generate a random password
+  newGeneratedPassword: Suggest a password
+  currentPassword: Current Password
+  userGen:
+    newPassword: New Password
+    confirmPassword: Confirm Password
+  randomGen:
+    copy: Copy to Clipboard
+    generated: Generated Password
+  errors:
+    missmatchedPassword: Passwords do not match
+    failedToChange: Failed to change password
+    failedDeleteKey: Failed to delete key
+    failedDeleteKeys: Failed to delete keys
 
 principal:
   loading: Loading&hellip;
@@ -1639,8 +1771,15 @@ servicesPage:
   ports:
     label: Ports
   selectors:
-    helpText: "If no selector is created, manual endpoints must be made."
+    helpText: ""
     label: Selectors
+    matchingPods:
+      matchesSome: |-
+        {matched, plural,
+          =0 {Matches 0 of {total, number} pods. If no selector is created, manual endpoints must be made.}
+          =1 {Matches 1 of {total, number} pods: "{sample}"}
+          other {Matches {matched, number} of {total, number} existing pods, including "{sample}"}
+        }
   serviceTypes:
     clusterIp:
       abbrv: IP
@@ -2592,6 +2731,9 @@ action:
   view: View Config
   viewInApi: View in API
   viewYaml: View YAML
+  show: Show
+  hide: Hide
+  copy: Copy
 
 unit:
   sec: secs
