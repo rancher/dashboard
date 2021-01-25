@@ -24,6 +24,7 @@ generic:
   number: '{prefix}{value, number}{suffix}'
   overview: 概述
   readFromFile: 从文件读取
+  register: 注册
   remove: 移除
   resource: |-
     {count, plural,
@@ -66,12 +67,14 @@ nav:
 
 product:
   apps: 应用商店
+  auth: 用户和认证
   backup: Rancher 备份
   cis: CIS 基准测试
   ecm: 集群管理员
   explorer: 仪表盘 ##doublecheck
   fleet: 持续交付
   longhorn: Longhorn
+  manager: 集群管理
   gatekeeper: OPA Gatekeeper
   istio: Istio
   logging: Logging
@@ -100,6 +103,151 @@ suffix:
 ##############################
 # Components & Pages
 ##############################
+authConfig:
+  accessMode:
+    label: '配置谁应该能够登录和使用 {vendor}'
+    required: 只允许授权的用户和组访问
+    restricted: '允许集群和项目的成员，以及授权用户和组'
+    unrestricted: 允许任何有效用户
+  allowedPrincipalIds:
+    title: 授权用户和组
+  associatedWarning: '注意: The {provider} user you authenticate as will be associated as an alternate way to login to the {vendor} user you are currently logged in as (<code>{username}</code>).'
+  github:
+    clientId:
+      label: Client ID
+    clientSecret:
+      label: Client Secret
+    form:
+      app:
+        label: 应用名称
+        value: 'Anything you like, e.g. My {vendor}'
+      calllback:
+        label: 授权回调 URL
+      description:
+        label: 描述
+        value: '可选，可留空'
+      homepage:
+        label: 主页 URL
+      instruction: '用这些值填写表单:'
+      prefix: |-
+        <li><a href="{baseUrl}/settings/developers" target="_blank" rel="noopener noreferrer nofollow">点击此处</a> 打开新的窗口调整到 GitHub 应用程序设置页面。</li>
+        <li>点击 "OAuth Apps" 选项卡.</li>
+        <li>点击 "New OAuth App" 按钮.</li>
+      suffix: |-
+        <li>点击 "Register application"</li>
+        <li>将新创建的 OAuth 应用的客户端ID和客户端密文复制并粘贴到下面的字段中</li>
+    host:
+      label: GitHub 企业主机
+      placeholder: e.g. github.mycompany.example
+    target:
+      label: 你想使用哪个版本的 GitHub?
+      private: GitHub Enterprise 私有安装
+      public: 公共 GitHub.com
+  googleoauth:
+    adminEmail: 管理电子邮件
+    domain: 域名
+    oauthCredentials:
+      label: OAuth 凭证
+      tip: OAuth 凭据 JSON 可以在谷歌 API 开发人员控制台找到。
+    serviceAccountCredentials:
+      label: 服务帐户凭据
+      tip: 服务帐户凭证 JSON 可以在谷歌 API 开发人员控制台的服务帐户部分找到。
+    steps:
+      1:
+        title: '第一步: 对于标准谷歌，click <a href="https://console.developers.google.com/apis/credentials" target="_blank" rel="noopener noreferrer nofollow">点击此处</a> 访问谷歌开发者控制台。'
+        body: |-
+          <ul class="mt-0">
+          <li>登录您的帐户，切换到 "APIs 和服务" 并点击 "凭证"。 </li>
+          <li>授权域名: {hostname} </li>
+          <li>应用首页: {serverUrl}</li>
+          <li>在谷歌 api 的作用域下，启用 "email"、"profile" 和 "openid" </li>
+          <li>点击 "Save". </li>
+          </ul>
+      2:
+        title: '第二步: 导航到 “凭据” 标签，创建您的 OAuth 客户端 ID'
+        body: |-
+          <ul class="mt-0">
+          <li>选择 "创建凭据" 下拉框，并选择 "OAuth 客户端 ID"，然后选择 "Web application"。</li>
+          <li>授权 Javascript 来源: {serverUrl}</li>
+          <li>授权重定向 URLs: {serverUrl}/verify?test </li>
+          <li>点击 "创建"，然后点击 "下载 JSON" 按钮</li>
+          <li>将下载的 JSON 文件上传到 OAuth 凭据框中</li>
+          </ul>
+      3:
+        title: '第三步: 创建服务帐户凭证'
+        body: |-
+          根据 <a href="https://rancher.com/docs/rancher/v2.x/en/admin-settings/authentication/google/#creating-service-account-credentials" target="_blank" rel="noopener noreferrer nofollow">操作指南</a> 执行以下步骤:<br/>
+          <ul class="mt-0">
+          <li> 创建服务帐户</li>
+          <li> 生成服务帐户的密钥</li>
+          <li> 在您的谷歌域中添加服务帐户作为 OAuth 客户端。</li>
+          </ul>
+  ldap:
+    freeipa: 配置 FreeIPA
+    activedirectory: 配置 Active Directory
+    openldap: 配置 OpenLDAP
+    defaultLoginDomain: 默认登录域
+    cert: 证书
+    disabledStatusBitmask: Disabled Status Bitmask
+    groupDNAttribute: 组 DN 属性
+    groupMemberMappingAttribute: 组成员映射属性
+    groupMemberUserAttribute: 组成员用户属性
+    groupSearchBase:
+      label: 组搜索起点
+      placeholder: 'ou=groups,dc=mycompany,dc=com'
+    hostname: Hostname/IP
+    loginAttribute: 登录属性
+    nameAttribute: 名称属性
+    nestedGroupMembership:
+      label: 嵌套组成员
+      options:
+        direct: 只搜索直接组成员
+        nested: 搜索直接和嵌套的组成员
+    objectClass: 对象类
+    password: 密码
+    port: 端口
+    customizeSchema: 自定义模式
+    users: 用户
+    groups: 用户组
+    searchAttribute: 搜索属性
+    searchFilter: 搜索过滤器
+    serverConnectionTimeout: 服务器连接超时
+    serviceAccountDN: 服务帐户用户名
+    serviceAccountPassword: 服务帐户密码
+    serviceAccountInfo: Rancher 需要一个服务帐户，该帐户对能够登录的所有域具有只读访问权限，这样我们就可以确定当用户使用API密钥发出请求时，该用户属于哪些组。
+    starttls:
+      label: Start TLS
+      tip: Upgrades non-encrypted connections by wrapping with TLS during the connection process. Can not be used in conjunction with TLS.
+    tls: TLS
+    userEnabledAttribute: 用户启用属性
+    userMemberAttribute: 用户成员属性
+    userSearchBase:
+      label: 用户搜索起点
+      placeholder: 'e.g. ou=users,dc=mycompany,dc=com'
+    username: 用户名
+    usernameAttribute: 用户名属性
+  saml:
+    UID: UID 字段
+    adfs: 配置 AD FS
+    api: Rancher API Host
+    cert: 证书
+    displayName: 显示名称字段
+    groups: Groups 字段
+    key: Private Key
+    keycloak: 配置 Keycloak
+    metadata: XML 元数据
+    okta: 配置 Okta
+    ping: 配置 Ping
+    shibboleth: 配置 Shibboleth
+    showLdap: 配置 OpenLDAP
+    userName: 用户名字段
+  stateBanner:
+    disabled: '{provider} 目前禁用。'
+    enabled: '{provider} 目前启用。'
+  testAndEnable: 测试并启用认证
+
+
+
 assignTo:
   title: |-
     {count, plural,
@@ -147,6 +295,10 @@ asyncButton:
     action:  '启用'
     waiting: '正在启用&hellip;'
     success: '已启用'
+  disable:
+    action:  '禁用'
+    waiting: '正在禁用&hellip;'
+    success: '已禁止'
   download:
     action:  '下载'
     waiting: '正在下载&hellip;'
@@ -175,49 +327,46 @@ asyncButton:
 
 backupRestoreOperator:
   backupFilename: 备份文件名称
-  deployment:
-    rancherNamespace: Rancher 资源集命名空间
-    storage:
-      tip: 配置默认保存所有备份的存储位置。可以选择对每个备份进行覆盖，仅限于使用与 S3 兼容的对象存储。
-      storageClass:
-        label: 存储类
-      persistentVolume:
-        label: 持久存储卷
-      label: 默认存储位置
-      options:
-        none: 没有默认存储位置
-        s3: 使用与 S3 兼容的对象存储服务
-        defaultStorageClass: '使用默认存储类 ({name})'
-        pickSC: 使用已有的存储类
-        pickPV: 使用已有的存储卷
-      warning: 此 {type} 没有将其回收策略设置为 'Retain(保留)'。 如果卷被更改或未绑定，您的备份数据可能会丢失。
-    size: 存储大小
-  prune:
-    label: 修剪
-    tip: 删除备份中不存在的 Rancher 管理的资源。(推荐使用)
-  encryption: 加密
-  encryptionConfigName:
-    label: 加密配置密钥
-    backuptip: <code>cattle-resource-system</code> 命名空间中具有 <code>encryption-provider-config.yaml</code> 密钥的任何秘密。<br/>此文件的内容是从此备份中执行还原所必需的，Rancher 备份不会存储这些内容。
-    restoretip: 如果备份是在启用加密的情况下进行的，则应使用相同的加密密匙来进行备份还原。
-    options:
-      none: 存储未加密的备份内容
-      secret: 使用 <a target="_blank" rel='noopener nofollow' href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">加密配置秘密</a>（推荐）对备份进行加密。
-    warning: 该文件的内容是从该备份中执行还原所必需的，Rancher 备份不会存储这个文件。
   deleteTimeout:
     label: 删除超时
-    tip: 在删除定标器强制删除之前，等待资源删除成功的秒数。
-  resourceSetName: 资源集
-  schedule:
-    label: 定时调度
-    placeholder: 使用 Cron 表达式定义定时调度的时间，例如：0 0 * * *。
+    tip: 在强制删除之前等待资源删除成功的秒数。
+  deployment:
+    rancherNamespace: Rancher 资源集命名空间
+    size: 大小
+    storage:
+      label: 默认存储位置
+      options:
+        defaultStorageClass: '使用默认的存储类 ({name})'
+        none: 无默认存储位置
+        pickPV: 使用现有的持久卷
+        pickSC: 使用现有的存储类
+        s3: 使用s3兼容的对象存储
+      persistentVolume:
+        label: 持久卷
+      storageClass:
+        label: 存储类
+      tip: 'Configure a storage location where all backups are saved by default. You will have the option to override this with each backup, but will be limited to using an S3-compatible object store.'
+      warning: 'This {type} does not have its reclaim policy set to "Retain".  Your backups may be lost if the volume is changed or becomes unbound.'
+  encryption: 加密
+  encryptionConfigName:
+    backuptip: 'Any secret in the <code>cattle-resource-system</code> namespace that has an <code>encryption-provider-config.yaml</code> key. <br/>The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
+    label: 加密配置的密文
     options:
-      disabled: 一次性备份
-      enabled: 定时备份
+      none: 存储未加密的备份内容
+      secret: 'Encrypt backups using an <a target="_blank" rel="noopener noreferrer nofollow" href="https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/#understanding-the-encryption-at-rest-configuration">Encryption Config Secret</a> (Recommended)'
+    restoretip: 'If the backup was performed with encryption enabled, a secret containing the same encryption-provider-config should be used during restore.'
+    warning: 'The contents of this file are necessary to perform a restore from this backup, and are not stored by Rancher Backup.'
+  lastBackup: 最后一次备份
+  nextBackup: 下一次备份
+  noResourceSet: 必须在此命名空间中定义资源集以创建备份 CR。
+  prune:
+    label: Prune
+    tip: 删除备份中不存在的 Rancher 管理的资源。(推荐)
+  resourceSetName: 资源集
   restoreFrom:
-    existing: 使用已有的备份配置恢复
-    default: 使用默认的存储目标恢复
-    s3: 使用一个 S3 兼容的对象存储恢复
+    default: 默认存储目标
+    existing: 已有备份配置
+    s3: s3 兼容的对象存储
   retentionCount:
     label: 备份保留数量
     units: |-
@@ -226,24 +375,30 @@ backupRestoreOperator:
         other { 文件 }
       }
   s3:
-    titles:
-      backupLocation: 备份来源
-      location: 存储位置
-      s3: Amazon S3
-    credentialSecretName: 密钥凭证
-    storageLocation: 存储位置
-    endpoint: 端点
-    endpointCA: 端点 CA
-    bucketName: 桶名称
-    region: 区域
-    folder: 文件夹
+    bucketName: Bucket Name
+    credentialSecretName: Credential Secret
+    endpoint: Endpoint
+    endpointCA: Endpoint CA
+    folder: Folder
     insecureTLSSkipVerify: 跳过 TLS 验证
+    region: Region
+    storageLocation: 存储位置
+    titles:
+      backupLocation: 备份源
+      location: 存储位置
+      s3: S3
+  schedule:
+    label: 调度
+    options:
+      disabled: 一次性备份
+      enabled: 自动备份
+    placeholder: e.g. @midnight or 0 0 * * *
   storageSource:
-    useDefault: 使用安装时配置的默认存储位置
-    configureS3: 使用兼容 S3 的对象存储作为存储位置
-    useBackup: 使用备份 CR 上指定的 S3 位置
+    configureS3: 使用 s3 兼容的对象存储
+    useBackup: 使用在备份 CR 上指定的 s3 位置
+    useDefault: 使用安装期间配置的默认存储位置
   targetBackup: 目标备份
-  noResourceSet: '您必须在此命名空间中定义一个资源集来创建备份 CR。'
+
 
 
 catalog:
@@ -344,9 +499,8 @@ chartHeading:
 cis:
   addTest: 添加测试 ID
   alertNeeded: Alerting must be enabled within the CIS chart questions.yaml. This requires that <a tabindex="0" aria-label="Link to Rancher's Monitoring" href="{link}"> Rancher's Monitoring and Alerting app</a> is installed and the Receivers and Routes are <a target="_blank" rel='noopener nofollow' href='https://rancher.com/docs/rancher/v2.x/en/monitoring-alerting/v2.5/configuration/#alertmanager-config'> configured to send out alerts.</a>
-  alertNotFound: "看起来没有配置告警。"
-  alertOnComplete: 扫描完成告警
-  alertOnFailure: 扫描失败告警
+  alertOnComplete: 扫描完成警告
+  alertOnFailure: 扫描失败警告
   benchmarkVersion: Benchmark 版本
   clusterProvider: Cluster Provider
   cronSchedule:
@@ -396,46 +550,62 @@ cis:
     protip: 没有失败的扫描将被默认标记为 “通过”，即使一些测试生成 “warn” 输出。此行为可以通过从本节中选择 “fail” 选项来更改。
 
 cluster:
-  nodeDriver:
-    displayName:
-      aliyun: Alibaba ACK
-      aliyunecs: Aliyun ECS
-      amazonec2: Amazon EC2
-      amazoneks: Amazon EKS
-      azure: Azure
-      azureaks: Azure AKS
-      baidu: Baidu CCE
-      cloudca: Cloud.ca
-      digitalocean: DigitalOcean
-      exoscale: Exoscale
-      googlegke: Google GKE
-      huaweicce: Huawei CCE
-      linode: Linode
-      oci: Oracle Cloud Infrastructure
-      openstack: OpenStack
-      oracleoke: Oracle OKE
-      otc: Open Telekom Cloud
-      packet: Packet
-      pinganyunecs: Pinganyun ECS
-      rackspace: RackSpace
-      rancherkubernetesengine: RKE
-      softlayer: SoftLayer
-      tencenttke: Tencent TKE
-      upcloud: UpCloud
-      vmwarevsphere: vSphere
-      zstack: ZStack
   provider:
-    aks: Azure AKS
+    aliyun: Alibaba ACK
+    aliyunecs: Aliyun ECS
+    amazonec2: Amazon EC2
+    amazoneks: Amazon EKS
+    azure: Azure
+    azureaks: Azure AKS
+    baidu: Baidu CCE
+    cloudca: Cloud.ca
+    custom: Custom
+    digitalocean: DigitalOcean
     docker: Docker
-    eks: Amazon EKS
-    gke: Google GKE
+    exoscale: Exoscale
+    googlegke: Google GKE
+    huaweicce: Huawei CCE
     k3s: K3s
     kubeAdmin: KubeADM
+    linode: Linode
     minikube: Minikube
+    oci: Oracle Cloud Infrastructure
+    openstack: OpenStack
+    oracleoke: Oracle OKE
+    otc: Open Telekom Cloud
     other: Other
-    rke: RKE
+    packet: Packet
+    pinganyunecs: Pinganyun ECS
+    rackspace: RackSpace
+    rancherkubernetesengine: RKE
     rke2: RKE Government
+    rke: RKE
     rkeWindows: Windows
+    softlayer: SoftLayer
+    tencenttke: Tencent TKE
+    upcloud: UpCloud
+    vmwarevsphere: vSphere
+    zstack: ZStack
+  credential:
+    label: Cloud Credential
+  kubernetesVersion:
+    label: Kubernetes Version
+  nodeConfig:
+    digitalocean:
+      sizeLabel: |-
+        {plan, select,
+          s {Basic: }
+          g {General: }
+          gd {General: }
+          c {CPU: }
+          m {Memory: }
+          so {Storage: }
+          standard {Standard: }
+          other {}
+        }{memoryGb} GB, {vcpus, plural,
+          =1 {# vCPU}
+          other {# vCPUs}
+        }, {disk} GB Disk ({value})
 
 clusterIndexPage:
   hardwareResourceGauge:
@@ -523,10 +693,14 @@ fleet:
       basic: HTTP Basic Auth
       ssh: SSH Key
       custom: Secret Name
+    caBundle:
+      label: 证书
+      placeholder: "粘贴一个或多个证书，以-----BEGIN CERTIFICATE----开始"
     paths:
       label: 路径
       placeholder: 例如：/directory/in/your/repo
       addLabel: 添加路径
+      empty: 默认情况下使用仓库的根目录，要使用一个或多个不同的子目录，请在这里添加它们。
     repo:
       label: 代码库 URL 地址
       placeholder: '例如：https://github.com/rancher/fleet-examples.git'
@@ -538,27 +712,38 @@ fleet:
       branchPlaceholder: 例如：master
       revisionLabel: 标签或 Commit Hash
       revisionPlaceholder: 例如：v1.0.0
+    serviceAccount:
+      label: 服务帐户名称
+      placeholder: "可选: 使用目标集群中的服务帐户"
+    targetNamespace:
+      label: Target 命名空间
+      placeholder: "可选: 要求所有资源都在这个命名空间中"
     target:
       selectLabel: 目标类型
       advanced: 高级选项
       cluster: 集群
       clusterGroup: 集群组
       label: 部署到
-      labelLocal: 部署方式 ##doublecheck，Deploy With
+      labelLocal: 部署方式
     targetDisplay:
       advanced: 高级选项
       cluster: "集群"
       clusterGroup: "组"
       all: 全部
       none: None
-      local: 本地
+      local: Local
+    tls:
+      label: TLS 证书验证
+      verify: 需要有效的证书
+      specify: 指定要接受的其他证书
+      skip: 接受任何证书(不安全)
     workspace:
       label: 工作空间
   clusterGroup:
     selector:
       label: 集群选择器
-      matchesAll: 匹配到 {total, number} 个集群 ##doublecheck
-      matchesNone: 与现有的集群都不匹配 ##doublecheck
+      matchesAll: 匹配到 {total, number} 个集群
+      matchesNone: 与现有的集群都不匹配
       matchesSome: |-
         {matched, plural,
           =1 {与现有 {total, number} 个集群中的 1 个集群 "{sample}" 匹配}
@@ -576,7 +761,7 @@ gatekeeperConstraint:
     title: 匹配
   tab:
     enforcementAction:
-      title: 执行动作 ##doublecheck，Enforcement Action
+      title: 执行动作
     rules:
       title: 规则
       sub:
@@ -600,12 +785,12 @@ gatekeeperConstraint:
       title: 参数
   template: 模板
   violations:
-    title: 违反规定 ##doublecheck，Violations
+    title: 违反规定
 
 gatekeeperIndex:
   poweredBy: OPA Gatekeeper
-  unavailable: OPA Gatekeeper 不在 system-charts 应用商店中 ##doublecheck，OPA + Gatekeeper is not available in the system-charts catalog 
-  violations: 违反规定 ##doublecheck，Violations
+  unavailable: OPA Gatekeeper 不在 system-charts 应用商店中
+  violations: 违反规定
 
 glance:
   created: 创建时间
@@ -645,7 +830,7 @@ ingress:
       label: 端口
       placeholder: 例如 80 或 http
     targetService:
-      label: 目标服务 ##doublecheck，Target Service
+      label: 目标服务
       doesntExist: 您选择的服务不存在
     warning: "警告：默认后端在整个集群中全局使用"
   rules:
@@ -689,6 +874,7 @@ istio:
     jaeger:
       label: Jaeger
       description: 监控并排除基于微服务的分布式系统的故障。
+    disabled: '{app} 未安装'
   cni: Enabled CNI
   customOverlayFile:
     label: 自定义覆盖文件
@@ -725,7 +911,8 @@ logging:
     noOutputsBanner: 在选定的命名空间中没有集群输出 ##doublecheck
   flow:
     clusterOutputs:
-      label: 集群输出 ##doublecheck
+      doesntExistTooltip: This cluster output doesn't exist
+      label: Cluster Outputs
     matches:
       label: 匹配
       addSelect: 添加包含规则 ##doublecheck
@@ -733,7 +920,8 @@ logging:
     filters:
       label: 过滤
     outputs:
-      label: 输出  ##doublecheck，或是改成过滤之后符合条件的结果？
+      doesntExistTooltip: This output doesn't exist
+      label: Outputs
   install:
     k3sContainerEngine: K3S 容器引擎
     enableAdditionalLoggingSources: 启用增强的云日志收集服务
@@ -778,9 +966,9 @@ logging:
     configureKubernetesLabels: 以类似 Prometheus 的格式配置 Kubernetes 元数据
     extractKubernetesLabels: 提取 Kubernetes 标签作为 Loki 标签
     dropSingleKey: 如果一条记录只有 1 个键，那么只需将日志行设置为该值并丢弃该键
-    caCert: CA Cert
-    cert: Cert
-    key: Key
+    caCert: Secret CA Cert
+    cert: Secret Cert
+    key: Secret Key
   awsElasticsearch:
     url: URL
     keyId: Key Id
@@ -916,7 +1104,7 @@ logging:
 longhorn:
   overview:
     title: 概述
-    subtitle: "Powered By: <a href='https://github.com/longhorn' target='_blank' rel='noopener nofollow noreferrer' >Longhorn</a>"
+    subtitle: "Powered By: <a href='https://github.com/longhorn' target='_blank' rel='noopener nofollow noreferrer'>Longhorn</a>"
     linkedList:
       longhorn:
         label: 'Longhorn'
@@ -983,6 +1171,16 @@ monitoring:
       volumeName: 存储卷名称
     title: 配置 Grafana
   overview:
+    alertsList:
+      ends:
+        label: Ends At
+      label: Active Alerts
+      message:
+        label: Message
+      severity:
+        label: Severity
+      start:
+        label: Starts At
     linkedList:
       alertManager:
         description: Active Alerts
@@ -1045,11 +1243,42 @@ monitoring:
       groupWait: 组等待
       receiver: 接收者
       repeatInterval: 重复间隔
+  tabs:
+    alerting: Alerting
+    general: General
+    grafana: Grafana
+    prometheus: Promethues
   v1Warning: '当前监控由 Rancher UI 部署，如果你想在仪表盘中启用新的监控，请先在 Rancher UI 中禁用原来的监控。'
   volume:
     modes:
       block: 块
       file: 文件系统
+
+monitoringReceiver:
+  addButton: 添加 {type}
+  custom:
+    label: Custom
+    title: Custom Config
+    info: 这里通过 YAML 配置的接收者将直接附加到 Alertmanager 配置密文中。
+  email:
+    label: Email
+    title: Email Config
+  opsgenie:
+    label: Opsgenie
+    title: Opsgenie Config
+  pagerduty:
+    label: PagerDuty
+    title: PagerDuty Config
+    info: "You can find additional info on creating an Integration Key for PagerDuty <a href='https://www.pagerduty.com/docs/guides/prometheus-integration-guide/' target='_blank' rel='noopener nofollow' class='flex-right'>here</a>."
+  slack:
+    label: Slack
+    title: Slack Config
+    info: "You can find additional info on creating Incoming Webhooks for Slack <a href='https://rancher.slack.com/apps/A0F7XDUAZ-incoming-webhooks' target='_blank' rel='noopener noreferrer nofollow'>here</a> ."
+  webhook:
+    label: Webhook
+    title: Webhook Config
+
+
 
 monitoringRoute:
   groups:
@@ -1087,6 +1316,9 @@ namespace:
   containerResourceLimit: 容器资源限制
   project:
     label: 项目
+  resources: 资源
+  enableAutoInjection: 启用Istio自动注入
+  disableAutoInjection: 禁用Istio自动注入
 
 namespaceFilter:
   selected:
@@ -1100,11 +1332,13 @@ node:
   detail:
     detailTop:
       containerRuntime: 容器运行时
-      ipAddress: IP 地址
+      internalIP: 内部 IP
+      externalIP: 外部 IP
       os: OS
       version: 版本
     glance:
       consumptionGauge:
+        used: Used
         amount: "{used} of {total} {unit} used"
         cpu: CPU
         memory: 内存
@@ -1114,13 +1348,23 @@ node:
       memoryPressure: 内存压力
       pidPressure: PID 压力
     tab:
-      address:
-        label: 地址
-        externalIp: 外部 IP 地址
-      conditions: 状态
+      conditions: 条件
       images: 镜像
-      info: 信息
-      taints: 污点 (Taints)
+      info:
+        label: Info
+        key:
+          architecture: 架构
+          bootID: Boot ID
+          containerRuntimeVersion: 容器运行时版本
+          kernelVersion: Kernel 版本
+          kubeProxyVersion: Kube Proxy 版本
+          kubeletVersion: Kubelet 版本
+          machineID: Machine ID
+          operatingSystem: 操作系统
+          osImage: Image
+          systemUUID: System UUID
+      pods: Pods
+      taints: Taints
 
 persistentVolumeClaim:
   accessModes: 访问模式
@@ -1143,9 +1387,9 @@ prefs:
     autoDetail: 选择自动设置，将会在晚 6 点到次日早 6 点间自动切换到黑色主题。
   landing:
     label: 默认登录页面
-    vue: 仪表盘 ## doublecheck，cluster explorer
-    ember: Rancher UI ## doublecheck，cluster manager
-  formatting: 格式 ## doublecheck，Formatting
+    vue: 仪表盘
+    ember: Rancher UI
+  formatting: 格式
   dateFormat:
     label: 日期格式
   timeFormat:
@@ -1164,6 +1408,10 @@ prefs:
     label: 启用开发工具
   hideDesc:
     label: 隐藏所有类型说明框
+
+principal:
+  loading: 加载中...&hellip;
+  error: 无法获取主体信息
 
 probe:
   checkInterval:
@@ -1271,27 +1519,9 @@ rbac:
       label: 角色
     add: 添加成员
   displayRole:
-    fleetworkspace-admin: 管理员
-    fleetworkspace-member: 成员
-    fleetworkspace-readonly: 只读用户
-  user:
-    provider:
-      system: System
-      local: Local
-      multiple: Multiple
-      activedirectory: ActiveDirectory
-      azuread: AzureAD
-      github: GitHub
-      keycloak: Keycloak
-      ldap: LDAP
-      openldap: OpenLDAP
-      shibboleth: Shibboleth
-      ping: Ping IDentity
-      adfs: ADFS
-      okta: Okta
-      freeipa: FreeIPA
-      googleoauth: Google
-
+    fleetworkspace-admin: Admin
+    fleetworkspace-member: Member
+    fleetworkspace-readonly: Read-Only
 
 resourceDetail:
   detailTop:
@@ -1399,8 +1629,8 @@ secret:
     privateKey: 私钥
   data: 数据
   registry:
-    address: 仓库类型 ## doublecheck，type registry
-    domainName: 仓库地址
+    address: 仓库地址
+    domainName: 仓库域名
     password: 密码
     username: 用户名
   basic:
@@ -1428,7 +1658,7 @@ servicePorts:
       label: 端口名称
       placeholder: 例如：myport
     node:
-      label: 节点端口 ## doublecheck，node port
+      label: 节点端口
       placeholder: 例如：80
     protocol:
       label: 协议
@@ -1438,10 +1668,10 @@ servicePorts:
 
 serviceTypes:
   clusterip: 集群 IP 地址
-  externalname: 外部 DNS 名称 ## doublecheck，external name 是什么
+  externalname: 外部 DNS 名称
   headless: Headless
   loadbalancer: 负载均衡
-  nodeport: 节点端口 ## doublecheck，node port
+  nodeport: 节点端口
 
 servicesPage:
   labelsAnnotations:
@@ -1460,20 +1690,33 @@ servicesPage:
     helpText: "外部名称的目的是指定一个 DNS 名称。如果要硬编码一个 IP 地址，请使用 headless 服务。"
     label: 外部 DNS 服务名称
     placeholder: 例如：my.database.example.com
+    input:
+      label: DNS Name
   ips:
-    define: 定义服务端口
+    define: 服务端口
     clusterIpHelpText: Cluster IP 地址必须在为 API 服务器配置的 CIDR 范围内。
     external:
       label: 外部 IP
       placeholder: 例如：1.1.1.1
       protip: 集群中哪些节点也将接受该服务的流量的 IP 地址列表
     input:
-      label: 集群 IP
-      placeholder: 例如：10.43.XXX.XXX
-    label: 监听 IP
+      label: Cluster IP
+      placeholder: e.g. 10.43.xxx.xxx
+    label: IP Addresses
+  pods:
+    label: Pods
+  ports:
+    label: Ports
   selectors:
-    helpText: "如果没有创建选择器，则必须手动输入端点。"
-    label: 选择器
+    helpText: ""
+    label: Selectors
+    matchingPods:
+      matchesSome: |-
+        {matched, plural,
+          =0 {Matches 0 of {total, number} pods. If no selector is created, manual endpoints must be made.}
+          =1 {Matches 1 of {total, number} pods: "{sample}"}
+          other {Matches {matched, number} of {total, number} existing pods, including "{sample}"}
+        }
   serviceTypes:
     clusterIp:
       abbrv: IP
@@ -1520,13 +1763,13 @@ sortableTable:
 tableHeaders:
   address: 地址
   age: 存活时间
-  apiGroup: API 分组 ## doublecheck，api group
+  apiGroup: API 组
   branch: 分支
   builtIn: 内置
   bundlesReady: Bundles ## doublecheck，这里是指打包吗？
   bundleDeploymentsReady: 部署
   chart: Chart
-  clusterCreatorDefault: 默认集群创建者 ## doublecheck，Cluster Creator Default
+  clusterCreatorDefault: 默认集群创建者
   clusterFlow: Cluster Flow
   clusterOutput: Cluster Output
   clusters: 集群
@@ -1545,8 +1788,8 @@ tableHeaders:
   gitRepos: Git 代码仓库
   host: |-
     {count, plural,
-      one { 主机 }
-      other { 主机 }
+      one { Host }
+      other { Hosts }
     }
   image: 镜像
   imageSize: 大小
@@ -1558,7 +1801,7 @@ tableHeaders:
   keys: 数据
   lastUpdated: 最后更新时间
   lastSeen: 最后出现
-  loggingOutputProviders: Providers
+  loggingOutputProviders: Provider
   matches: 匹配
   maxKubernetesVersion: 最大 Kubernetes 版本
   message: 信息
@@ -1571,12 +1814,16 @@ tableHeaders:
   node: 节点
   nodeName: 名称
   nodesReady: 就绪节点
+  nodePort: 节点端口
   object: 对象
   output: 输出
   p95: 95 百分位数
   podImages: 镜像
   pods: Pods
+  port: 端口
+  protocol: 协议
   provider: Provider
+  publicPorts: 公共端口
   ram: 内存(RAM)
   rbac:
     create: 创建
@@ -1598,11 +1845,11 @@ tableHeaders:
   rioImage: Rio 镜像
   role: 角色
   roles: 角色
-  scale: 比例 ## doublecheck
+  scale: Scale
   selector: 选择器
   simpleName: 名称
-  simpleScale: 比例 ## doublecheck
-  simpleType: 类型 ## doublecheck
+  simpleScale: Scale
+  simpleType: 类型
   started: 已开始
   state: 状态
   status: 状态
@@ -1622,7 +1869,7 @@ tableHeaders:
   username: 用户名
   value: 值
   version: 版本号
-  weight: 权重 ## doublecheck，这里的权重有什么特殊意义吗？
+  weight: 权重
 
 target:
   router:
@@ -1664,9 +1911,12 @@ validation:
       startNumber: '"{key}" 不能以数字开始'
       tooLongLabel: '"{key}" 的长度不能超过 {max} 个字符数量'
   flowOutput:
-    global: 需要选择 "集群输出"。
-    both: 需要选择 "输出" 或 "集群输出"。
-  invalidCron: 无效 cron 调度
+    both: Requires "Output" or "Cluster Output" to be selected.
+    global: Requires "Cluster Output" to be selected.
+  output:
+    logdna:
+      apiKey: Required an "Api Key" to be set.
+  invalidCron: Invalid cron schedule
   k8s:
     identifier:
       emptyLabel: '"{key}" 不能为空'
@@ -1692,6 +1942,7 @@ validation:
       operator: Rule [{index}] of {group} {rules} - operator must be one of 'In', 'NotIn', 'Exists', 'DoesNotExist'
       valueMustBeEmpty: Rule [{index}] of {group} {rules} - value must be empty if operator is 'Exists' or 'DoesNotExist'
       valuesMustBeDefined: Rule [{index}] of {group} {rules} - value must be defined if operator is 'In' or 'NotIn'
+  port: 端口必须为 1 ~ 65535 之间的数字。
   prometheusRule:
     groups:
       required: 至少需要一个规则组。
@@ -1763,7 +2014,7 @@ wm:
         other {小时}
         }
       label: 显示最后一个
-      lines: "{value, number}行"
+      lines: "{value, number} 行"
       minutes: |-
         {value, number} {value, plural,
         =1 {分}
@@ -1860,7 +2111,7 @@ workload:
         'false': 否
         'true': "是，容器拥有访问主机全部权限"
       readOnlyRootFilesystem:
-        label: 只读 Root Filesystem
+        label: 只读根文件系统
         'false': 否
         'true': "是，容器有一个只读的文件系统"
       runAsGroup: 以群组 ID 运行
@@ -2182,6 +2433,28 @@ model:
   "catalog.cattle.io.app":
     firstDeployed: 首次部署
     lastDeployed: 最后部署
+  authConfig:
+    description:
+      ldap: LDAP
+      saml: SAML
+      oauth: OAuth
+    provider:
+      system: System
+      local: Local
+      multiple: Multiple
+      activedirectory: ActiveDirectory
+      azuread: AzureAD
+      github: GitHub
+      keycloak: Keycloak
+      ldap: LDAP
+      openldap: OpenLDAP
+      shibboleth: Shibboleth
+      ping: Ping Identity
+      adfs: ADFS
+      okta: Okta
+      freeipa: FreeIPA
+      googleoauth: Google
+
   cluster:
     name: 集群名称
   ingress:
@@ -2217,7 +2490,7 @@ typeDescription:
   # Map of
   # type: Description to be shown on the top of list view describing the type.
   #       Should fit on one line.
-  #       If you link to anything external, it must have
+  #       If you link to anything external, it MUST have
   #       target="_blank" rel="noopener noreferrer nofollow"
   cis.cattle.io.clusterscanbenchmark: 基准版本是指使用 kube-bench 运行的基准名称，以及该基准的有效配置参数。
   cis.cattle.io.clusterscanprofile: 配置文件是 CIS 扫描的配置，也就是要使用的基准版本和该基准中要跳过的任何特定测试。
@@ -2302,8 +2575,13 @@ typeLabel:
     }
   fleet.cattle.io.gitrepo: |-
     {count, plural,
-      one { Git 仓库 }
-      other {Git 仓库 }
+      one { Git Repo }
+      other {Git Repos }
+    }
+  management.cattle.io.authconfig: |-
+    {count, plural,
+      one { Auth Provider }
+      other { Auth Providers }
     }
   management.cattle.io.fleetworkspace: |-
     {count, plural,
@@ -2351,17 +2629,35 @@ typeLabel:
       one { 通知 }
       other { 通知 }
     }
+  'management.cattle.io.cluster': |-
+    {count, plural,
+      one { Legacy Cluster }
+      other { Legacy Clusters }
+    }
+  'cluster.x-k8s.io.cluster': |-
+    {count, plural,
+      one { CAPI Cluster }
+      other { CAPI Clusters }
+    }
+  'cluster.cattle.io.rkecluster': |-
+    {count, plural,
+      one { RKE2 Cluster }
+      other { RKE2 Clusters }
+    }
+
 action:
-  download: 下载 YAML
-  remove: 删除
-  refresh: 刷新
-  view: 查看配置
-  edit: 编辑配置
   clone: 克隆
+  disable: 禁用
+  download: 下载 YAML
+  edit: 编辑配置
   editYaml: 编辑 YAML
-  viewYaml: 查看 YAML
-  viewInApi: API 查看
+  enable: 启用
   openLogs: 查看日志
+  refresh: 刷新
+  remove: 删除
+  view: 查看配置
+  viewInApi: 查看 API
+  viewYaml: 查看 YAML
 
 unit:
   sec: secs
