@@ -774,13 +774,12 @@ export default {
 
   doAction() {
     return (actionName, body, opt = {}) => {
-      if ( !opt.url ) {
-        opt.url = this.actionLinkFor(actionName);
-      }
-      opt.method = 'post';
-      opt.data = body;
-
-      return this.$dispatch('request', opt);
+      return this.$dispatch('resourceAction', {
+        resource: this,
+        actionName,
+        body,
+        opt,
+      });
     };
   },
 
