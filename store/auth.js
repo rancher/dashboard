@@ -144,7 +144,9 @@ export const actions = {
     const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
     const scopes = fromQuery.split(/[, ]+/).filter(x => !!x);
 
-    addObjects(scopes, BASE_SCOPES[provider]);
+    if (BASE_SCOPES[provider]) {
+      addObjects(scopes, BASE_SCOPES[provider]);
+    }
 
     if ( opt.scopes ) {
       addObjects(scopes, opt.scopes);
@@ -201,18 +203,27 @@ export const actions = {
         }
       }, 500);
 
-      driver.doAction('configureTest', body).then((res) => {
-        dispatch('redirectTo', {
-          provider,
-          redirectUrl: res.redirectUrl,
-          test:        true,
-          redirect:    false
-        }).then((url) => {
-          popup = open(url, 'auth-test', popupWindowOptions());
-        }).catch((err) => {
-          reject(err);
+      if (!!driver?.actions?.testAndEnable) {
+        driver.doAction('testAndEnable', { finalRedirectUrl: `${ window.location.origin }/auth/verify?config=${ provider }` }).then((res) => {
+          popup = open(res.idpRedirectUrl, 'auth-test', popupWindowOptions());
+        })
+          .catch((err) => {
+            reject(err);
+          });
+      } else {
+        driver.doAction('configureTest', body).then((res) => {
+          dispatch('redirectTo', {
+            provider,
+            redirectUrl: res.redirectUrl,
+            test:        true,
+            redirect:    false
+          }).then((url) => {
+            popup = open(url, 'auth-test', popupWindowOptions());
+          }).catch((err) => {
+            reject(err);
+          });
         });
-      });
+      }
     });
   },
 

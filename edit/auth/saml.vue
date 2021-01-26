@@ -86,12 +86,16 @@ export default {
           </div>
         </Banner>
 
-        <div>Server: {{ baseUrl }}</div>
-        <div>Display Name: {{ model.displayNameField }}</div>
+        <div>{{ t(`authConfig.saml.displayName`) }}: {{ model.displayNameField }}</div>
+        <div>{{ t(`authConfig.saml.userName`) }}:{{ model.userNameField }}</div>
+        <div>{{ t(`authConfig.saml.UID`) }}: {{ model.uidField }}</div>
+        <div>{{ t(`authConfig.saml.entityID`) }}: {{ model.entityID }}</div>
+        <div>{{ t(`authConfig.saml.api`) }}: {{ model.rancherApiHost }}</div>
+        <div>{{ t(`authConfig.saml.groups`) }}: {{ model.groupsField }}</div>
 
         <hr />
 
-        <AllowedPrincipals provider="github" :auth-config="model" :mode="mode" />
+        <AllowedPrincipals :provider="NAME" :auth-config="model" :mode="mode" />
       </template>
 
       <template v-else>
@@ -134,6 +138,14 @@ export default {
           </div>
         </div>
         <div class="row mb-20">
+          <div class="col span-6">
+            <LabeledInput
+              v-model="model.entityID"
+              :label="t(`authConfig.saml.entityID`)"
+              :mode="mode"
+              required
+            />
+          </div>
           <div class="col span-6">
             <LabeledInput
               v-model="model.rancherApiHost"
