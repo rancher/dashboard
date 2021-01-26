@@ -942,6 +942,7 @@ logging:
   install:
     k3sContainerEngine: K3S Container Engine
     enableAdditionalLoggingSources: Enable enhanced cloud provider logging
+    fluentbitMountPath: Fluentbit Mount Path
   elasticsearch:
     host: Host
     scheme: Scheme
@@ -1265,7 +1266,7 @@ monitoring:
     alerting: Alerting
     general: General
     grafana: Grafana
-    prometheus: Promethues
+    prometheus: Prometheus
   v1Warning: 'Monitoring is currently deployed from Cluster Manager. If you are migrating from an older version of Rancher with monitoring enabled, please disable monitoring in Cluster Manager before attempting to install the new Rancher Monitoring chart in Cluster Explorer.'
   volume:
     modes:
