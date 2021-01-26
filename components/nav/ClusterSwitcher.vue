@@ -99,7 +99,7 @@ export default {
             >
               {{ opt.label }}
             </nuxt-link>
-            <span v-else class="text-muted">{{ opt.label }}</span>
+            <span v-else>{{ opt.label }}</span>
           </span>
         </span>
       </template>
@@ -184,7 +184,7 @@ export default {
 }
 
 .filter ::v-deep .unlabeled-select:not(.focused) {
-  border: var(--outline-width) solid transparent;
+  border: 0;
 }
 
 .filter ::v-deep .unlabeled-select INPUT[type='search'] {

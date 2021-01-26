@@ -107,7 +107,6 @@ export default {
         >
           {{ t("resourceList.head.createFromYaml") }}
         </n-link>
-        </n-link>
       </div>
     </div>
   </header>
