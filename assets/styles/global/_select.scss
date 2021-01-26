@@ -11,13 +11,14 @@
 .col {
   > .labeled-select:not(.taggable),
   > .unlabeled-select:not(.taggable) {
-    max-height: $input-height;
+    min-height: $input-height;
   }
 }
 
 .labeled-select,
 .unlabeled-select {
   min-width: 75px;
+  min-height: $input-height;
 
   .v-select {
     &.inline {
