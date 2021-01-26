@@ -18,8 +18,9 @@ export default {
 <template>
   <span>
     <template v-for="endpoint in endpoints">
-      <a :key="endpoint" rel="nofollow noopener noreferrer" target="_blank" :href="`//${endpoint}`">{{ endpoint }}</a>
-      <br :key="endpoint" />
+      <span v-if="endpoint==='<none>'" :key="endpoint">{{ endpoint }}</span>
+      <a v-else :key="endpoint" rel="nofollow noopener noreferrer" target="_blank" :href="`//${endpoint}`">{{ endpoint }}</a>
+      <br :key="endpoint+'br'" />
     </template>
   </span>
 </template>

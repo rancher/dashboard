@@ -2108,11 +2108,14 @@ workload:
     noResourceLimits: There are no resource requirements configured.
     noPorts: There are no ports configured.
     ports:
+      createService: Service Type
+      noCreateService: Do not create a service
       containerPort: Private Container Port
       hostIP: Host IP
       hostPort: Public Host Port
       name: Name
       protocol: Protocol
+      listeningPort: Listening Port
     security:
       addCapabilities: Add Capabilities
       addGroupIDs: Add Group IDs

@@ -4,7 +4,6 @@ import { cleanUp } from '@/utils/object';
 import {
   CONFIG_MAP, SECRET, WORKLOAD_TYPES, NODE, SERVICE, PVC
 } from '@/config/types';
-import { TARGET_WORKLOADS } from '@/config/labels-annotations.js';
 import Tab from '@/components/Tabbed/Tab';
 import CreateEditView from '@/mixins/create-edit-view';
 import { allHash } from '@/utils/promise';
@@ -31,6 +30,7 @@ import CruResource from '@/components/CruResource';
 import Command from '@/components/form/Command';
 import Storage from '@/edit/workload/storage';
 import Labels from '@/components/form/Labels';
+import { UI_MANAGED } from '@/config/labels-annotations';
 
 export default {
   name:       'CruWorkload',
@@ -87,6 +87,8 @@ export default {
 
     const hash = await allHash(requests);
 
+    this.servicesOwned = await this.value.getServicesOwned();
+
     this.allSecrets = hash.secrets || [];
     this.allConfigMaps = hash.configMaps;
     this.allNodes = hash.nodes.map(node => node.id);
@@ -118,7 +120,8 @@ export default {
       pullPolicyOptions: ['Always', 'IfNotPresent', 'Never'],
       spec,
       type,
-      createService:     false
+      servicesOwned:     [],
+      servicesToRemove:    []
     };
   },
 
@@ -401,12 +404,20 @@ export default {
       this.$set(this.value, 'type', neu);
       delete this.value.apiVersion;
     },
+
+    errors(neu, old) {
+      // svc creation happened before workload, so if something went wrong with workload creation, svc should be deleted
+      if (neu && neu.length) {
+        this.cleanUpServices();
+      }
+    }
   },
 
   created() {
     this.registerBeforeHook(this.saveWorkload, 'willSaveWorkload');
     this.registerBeforeHook(this.saveService, 'saveService');
     this.registerAfterHook(this.setOwnerRef, 'setOwnerRef');
+    this.registerAfterHook(this.removeService, 'removeService');
   },
 
   methods: {
@@ -429,50 +440,34 @@ export default {
     },
 
     async saveService() {
-      const workloadErrors = await this.value.validationErrors(this.value);
+      const { toSave = [], toRemove = [] } = await this.value.servicesFromContainerPorts(this.mode);
 
-      if (!this.createService || workloadErrors.length ) {
+      this.servicesOwned = toSave;
+      this.servicesToRemove = toRemove;
+
+      if (!toSave.length) {
         return;
       }
-      const { ports = [] } = this.container;
 
-      const data = {
-        type: SERVICE,
-        spec: {
-          ports: ports.map((port) => {
-            const name = port.name ? `${ port.name }-${ this.value.metadata.name }` : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || '' }`;
-
-            return {
-              name, protocol: port.protocol, port: port.containerPort, targetPort: port.containerPort
-            };
-          }),
-          selector: this.value.workloadSelector,
-          type:     'ClusterIP'
-        },
-        metadata: {
-          name:        this.value.metadata.name,
-          namespace:   this.value.metadata.namespace,
-          annotations: { [TARGET_WORKLOADS]: `[${ this.value.metadata.namespace }/${ this.value.metadata.name }]` }
-        },
-
-      };
-
-      const service = await this.$store.dispatch(`cluster/create`, data);
-
-      return service.save();
+      return Promise.all(toSave.map(svc => svc.save()));
     },
 
-    async setOwnerRef() {
-      if (!this.createService ) {
+    removeService() {
+      if (!this.servicesToRemove) {
         return;
       }
 
-      const svc = await this.$store.dispatch('cluster/find', {
-        type:     SERVICE,
-        id:   this.value.id
-      });
+      return Promise.all(this.servicesToRemove.map((svc) => {
+        const ui = svc?.metadata?.annotations[UI_MANAGED];
 
-      if (!svc) {
+        if (ui) {
+          svc.remove();
+        }
+      }));
+    },
+
+    setOwnerRef() {
+      if (!this.servicesOwned.length ) {
         return;
       }
 
@@ -484,10 +479,22 @@ export default {
         uid:        this.value.metadata.uid
       };
 
-      if (!svc.metadata.ownerReferences) {
-        svc.metadata.ownerReferences = [ownerRef];
-        await svc.save();
-      }
+      this.servicesOwned.forEach((svc) => {
+        const id = `${ svc.metadata.namespace }/${ svc.metadata.name }`;
+
+        try {
+          this.$store.dispatch('cluster/find', {
+            type:     SERVICE,
+            id,
+            opt:  { force: true }
+          }).then((svc) => {
+            if (!svc.metadata.ownerReferences) {
+              svc.metadata.ownerReferences = [ownerRef];
+            }
+            svc.save();
+          });
+        } catch {}
+      });
     },
 
     saveWorkload() {
@@ -519,7 +526,7 @@ export default {
       this.fixPodAffinity(podAffinity);
       this.fixPodAffinity(podAntiAffinity);
 
-      delete this.value.kind;
+      // delete this.value.kind;
 
       if (!this.container.name || this.mode === _CREATE) {
         this.$set(this.container, 'name', this.value.metadata.name);
@@ -595,6 +602,19 @@ export default {
       }
     },
 
+    cleanUpServices() {
+      (this.servicesOwned || []).forEach((svc) => {
+        try {
+          this.$store.dispatch('cluster/find', { type: SERVICE, id: `${ svc.metadata.namespace }/${ svc.metadata.name }` }).then((svc) => {
+            const ui = svc?.metadata?.annotations[UI_MANAGED];
+
+            if (ui) {
+              svc.remove();
+            }
+          });
+        } catch {}
+      });
+    }
   }
 };
 </script>
@@ -689,7 +709,7 @@ export default {
           <div>
             <h3>{{ t('workload.container.titles.ports') }}</h3>
             <div class="row">
-              <WorkloadPorts v-model="container.ports" :create-service.sync="createService" :mode="mode" />
+              <WorkloadPorts v-model="container.ports" :name="value.metadata.name" :services="servicesOwned" :mode="mode" />
             </div>
           </div>
 
