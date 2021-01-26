@@ -12,6 +12,7 @@ export default {
   }
 };
 </script>
+
 <template>
   <ArrayList class="array-list-grouped" v-bind="$attrs" @input="$emit('input', $event)" @add="$emit('add')">
     <template v-slot:columns="scope">
@@ -31,6 +32,7 @@ export default {
     </template>
   </ArrayList>
 </template>
+
 <style lang="scss">
 .array-list-grouped {
     & > .box {

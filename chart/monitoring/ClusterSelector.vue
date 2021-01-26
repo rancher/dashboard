@@ -23,19 +23,19 @@ const CLUSTER_TYPES = [
   {
     group:      'managed',
     id:         'aks',
-    label:      'cluster.provider.aks',
+    label:      'cluster.provider.azureaks',
     configKeys: MANAGED_CONFIG_KEYS,
   },
   {
     group:      'managed',
     id:         'eks',
-    label:      'cluster.provider.eks',
+    label:      'cluster.provider.amazoneks',
     configKeys: MANAGED_CONFIG_KEYS,
   },
   {
     group:      'managed',
     id:         'gke',
-    label:      'cluster.provider.gke',
+    label:      'cluster.provider.googlegke',
     configKeys: MANAGED_CONFIG_KEYS,
   },
   {

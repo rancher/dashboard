@@ -6,21 +6,30 @@ export default function({
   $axios, $cookies, isDev, req
 }) {
   $axios.defaults.headers.common['Accept'] = 'application/json';
-  $axios.defaults.xsrfCookieName = 'CSRF';
-  $axios.defaults.xsrfHeaderName = 'X-Api-Csrf';
   $axios.defaults.withCredentials = true;
 
-  if ( process.server ) {
-    $axios.defaults.headers.common['user-agent'] = `Dashboard (Mozilla) v${ pkg.version }`;
-    $axios.defaults.headers.common['access-control-expose-headers'] = `set-cookie`;
+  $axios.onRequest((config) => {
+    const csrf = $cookies.get('CSRF');
 
-    // For requests from the server, set the base URL to the URL that the request came in on
-    $axios.onRequest((config) => {
+    if ( csrf ) {
+      config.headers['x-api-csrf'] = csrf;
+    }
+
+    if ( process.server ) {
+      config.headers.common['access-control-expose-headers'] = `set-cookie`;
+      config.headers.common['user-agent'] = `Dashboard (Mozilla) v${ pkg.version }`;
+
+      if ( req.headers.cookie ) {
+        config.headers.common['cookies'] = req.headers.cookie;
+      }
+
       if ( config.url.startsWith('/') ) {
         config.baseURL = `${ req.protocol || 'https' }://${ req.headers.host }`;
       }
-    });
+    }
+  });
 
+  if ( process.server ) {
     $axios.onResponse((res) => {
       const parsed = setCookieParser(res.headers['set-cookie'] || []);
 

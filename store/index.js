@@ -394,11 +394,11 @@ export const actions = {
       schemas: Promise.all([
         dispatch('management/subscribe'),
         dispatch('management/loadSchemas', true),
-        dispatch('rancher/loadSchemas', true),
       ]),
     });
 
     const isMultiCluster = !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
+
     const promises = {
       // Clusters guaranteed always available or your money back
       clusters: dispatch('management/findAll', {
@@ -406,6 +406,10 @@ export const actions = {
         opt:  { url: MANAGEMENT.CLUSTER }
       }),
     };
+
+    if ( isMultiCluster ) {
+      promises['rancherSchema'] = dispatch('rancher/loadSchemas', true);
+    }
 
     if ( getters['management/schemaFor'](COUNT) ) {
       promises['counts'] = dispatch('management/findAll', { type: COUNT });
@@ -571,8 +575,10 @@ export const actions = {
     dispatch('prefs/loadTheme');
   },
 
-  loadingError({ commit, redirect }, err) {
+  loadingError({ commit, state }, err) {
     commit('setError', err);
-    redirect('/fail-whale');
+    const router = state.$router;
+
+    router.replace('/fail-whale');
   }
 };

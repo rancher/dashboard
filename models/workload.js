@@ -1,7 +1,7 @@
 import { insertAt } from '@/utils/array';
 import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotations';
 import { WORKLOAD_TYPES, POD, ENDPOINTS, SERVICE } from '@/config/types';
-import { get } from '@/utils/object';
+import { get, set } from '@/utils/object';
 import day from 'dayjs';
 import { _CREATE } from '@/config/query-params';
 
@@ -266,7 +266,15 @@ export default {
   redeploy() {
     const now = (new Date()).toISOString().replace(/\.\d+Z$/, 'Z');
 
-    this.setAnnotation(TIMESTAMP, now);
+    if ( !this.spec.template.metadata ) {
+      set(this.spec.template, 'metadata', {});
+    }
+
+    const annotations = this.spec.template.metadata.annotations || {};
+
+    annotations[TIMESTAMP] = now;
+    set(this.spec.template.metadata, 'annotations', annotations);
+
     this.save();
   },
 

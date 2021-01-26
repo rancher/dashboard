@@ -27,6 +27,8 @@ export default {
 
     options() {
       const t = this.$store.getters['i18n/t'];
+      const isMultiCluster = this.$store.getters['isMultiCluster'];
+
       const entries = this.activeProducts.map((p) => {
         let label;
         const key = `product.${ p.name }`;
@@ -59,18 +61,35 @@ export default {
         return out;
       });
 
-      const out = sortBy(entries, ['inStore', 'removable', 'weight:desc', 'label']);
+      const out = sortBy(entries, ['inStore', 'weight:desc', 'label']);
+
+      if ( isMultiCluster && out[0].inStore === 'cluster' ) {
+        insertAt(out, 0, {
+          label:    t('product.clusterGroup'),
+          disabled: true,
+          kind:     'label',
+        });
+      }
+
       let last;
 
       for ( let i = out.length - 1 ; i >= 0 ; i-- ) {
         const entry = out[i];
 
-        if ( last && ( (last.removable !== entry.removable) || (last.inStore !== entry.inStore) ) ) {
+        if ( isMultiCluster && last && (last.inStore !== entry.inStore) ) {
+          insertAt(out, i + 1, {
+            label:    t('product.globalGroup'),
+            disabled: true,
+            kind:     'label',
+          });
+
           insertAt(out, i + 1, {
             label:    `The great divide ${ i }`,
             kind:     'divider',
             disabled: true
           });
+
+          break;
         }
 
         last = out[i];
@@ -203,6 +222,9 @@ export default {
       <template v-slot:option="opt">
         <template v-if="opt.kind === 'divider'">
           <hr />
+        </template>
+        <template v-else-if="opt.kind === 'label'">
+          <b>{{ opt.label }}</b>
         </template>
         <template v-else>
           <i class="product-icon icon icon-lg icon-fw" :class="{[opt.icon]: true}" />

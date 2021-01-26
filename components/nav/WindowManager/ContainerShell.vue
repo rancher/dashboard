@@ -58,6 +58,7 @@ export default {
       terminal:    null,
       fitAddon:    null,
       searchAddon: null,
+      webglAddon:  null,
       isOpen:      false,
       isOpening:   false,
       backlog:     []
@@ -124,11 +125,21 @@ export default {
       this.fitAddon = new addons.fit.FitAddon();
       this.searchAddon = new addons.search.SearchAddon();
 
+      try {
+        this.webglAddon = new addons.webgl.WebGlAddon();
+      } catch (e) {
+        // Some browsers (Safari) don't support the webgl renderer, so don't use it.
+        this.webglAddon = null;
+      }
+
       terminal.loadAddon(this.fitAddon);
       terminal.loadAddon(this.searchAddon);
       terminal.loadAddon(new addons.weblinks.WebLinksAddon());
       terminal.open(this.$refs.xterm);
-      terminal.loadAddon(new addons.webgl.WebglAddon());
+
+      if ( this.webglAddon ) {
+        terminal.loadAddon(this.webglAddon);
+      }
 
       this.fit();
       this.flush();
@@ -241,6 +252,10 @@ export default {
     },
 
     fit(arg) {
+      if ( !this.fitAddon ) {
+        return;
+      }
+
       this.fitAddon.fit();
 
       const { rows, cols } = this.fitAddon.proposeDimensions();

@@ -192,7 +192,7 @@ export default {
     groups() {
       const map = {};
       const defaultGroup = 'Questions';
-      let weight = 1;
+      let weight = this.shownQuestions.length;
 
       for ( const q of this.shownQuestions ) {
         if ( q.group ) {
@@ -202,7 +202,7 @@ export default {
             map[normalized] = {
               name:      q.group || defaultGroup,
               questions: [],
-              weight:    weight++,
+              weight:    weight--,
             };
           }
 
