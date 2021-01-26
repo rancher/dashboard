@@ -147,10 +147,15 @@ export default {
     display: grid;
     height: 100vh;
 
-    ::v-deep > * > .btn {
+    > * {
+      display: flex;
+      align-items: center;
+      padding: 0 5px;
+    }
+
+    ::v-deep .btn {
       border: 1px solid var(--header-btn-bg);
       background: rgba(0,0,0,.05);
-      margin-left: 10px;
       color: var(--header-btn-text);
     }
 
@@ -162,6 +167,7 @@ export default {
       grid-area: product;
       background-color: var(--header-btn-bg);
       position: relative;
+      display: block;
 
       .logo {
         height: 30px;
@@ -195,10 +201,8 @@ export default {
     > .import,
     > .kubectl {
       text-align: right;
-      padding: 0 5px 0 0;
 
       .btn {
-        margin: 8px 0 0 0;
         text-align: center;
       }
     }
@@ -207,13 +211,11 @@ export default {
       grid-area: cluster;
       background-color: var(--header-bg);
       position: relative;
-      padding-top: 6px;
     }
 
     > .top {
       grid-area: top;
       background-color: var(--header-bg);
-      padding: 6px 5px 0 3px;
 
       INPUT[type='search']::placeholder,
       .vs__open-indicator,
@@ -234,10 +236,6 @@ export default {
         fill: var(--header-btn-bg);
       }
 
-      .filter {
-        padding-left: 2px;
-      }
-
       .filter .vs__dropdown-toggle {
         background: var(--header-btn-bg);
         border-radius: var(--border-radius);
@@ -251,7 +249,12 @@ export default {
 
       &:focus {
         .v-popover {
+          line-height: 0;
+
           ::v-deep .trigger {
+            .user-image {
+              max-height: 40px;
+            }
             .user-image > * {
               @include form-focus
             }
@@ -261,7 +264,6 @@ export default {
 
       grid-area: user;
       background-color: var(--header-bg);
-      padding: 5px;
 
       IMG {
         border: 1px solid var(--header-btn-bg);

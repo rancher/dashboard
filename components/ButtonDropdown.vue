@@ -188,10 +188,6 @@ export default {
         tabindex="-1"
         type="button"
         class="dropdown-button-two btn"
-        :class="{
-          'btn-sm': size === 'sm',
-          'btn-lg': size === 'lg',
-        }"
         @click="ddButtonAction(option)"
         @focus="focusSearch"
       >

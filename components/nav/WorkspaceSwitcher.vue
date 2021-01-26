@@ -118,7 +118,7 @@ export default {
   border-radius: var(--border-radius);
   border: 1px solid var(--header-btn-bg);
   color: var(--header-btn-text);
-  height: calc(var(--header-height) - 16px);
+  height: 40px;
   max-width: 100%;
   padding-top: 0;
 }

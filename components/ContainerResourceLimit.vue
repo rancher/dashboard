@@ -158,7 +158,7 @@ export default {
 
 <template>
   <div>
-    <div class="row mb-5 pl-10">
+    <div class="row">
       <div v-if="showTip" class="col span-12">
         <p class="helper-text mb-10">
           <t v-if="mode === viewMode" k="containerResourceLimit.helpTextDetail" />
