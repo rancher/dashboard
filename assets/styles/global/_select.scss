@@ -11,7 +11,7 @@
 .col {
   > .labeled-select:not(.taggable),
   > .unlabeled-select:not(.taggable) {
-    min-height: $input-height;
+    max-height: $input-height;
   }
 }
 
@@ -19,7 +19,7 @@
 .unlabeled-select {
   min-width: 75px;
   min-height: $input-height;
-
+  
   .v-select {
     &.inline {
 

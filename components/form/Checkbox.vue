@@ -118,7 +118,7 @@ export default {
 
   .checkbox-label {
     color: var(--input-label);
-    margin: 3px 10px 0px 5px;
+    margin: 0px 10px 0px 5px;
   }
 
  .checkbox-custom {

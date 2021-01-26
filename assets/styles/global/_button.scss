@@ -1,5 +1,6 @@
 // $btn-padding: 15px 40px;
 $btn-padding: 0 20px 0 20px;
+$btn-sm-padding: 0 10px 0 10px;
 $btn-height: 40px;
 // $xs-padding: 2px 3px;
 // $sm-padding: 8px 13px;
@@ -53,7 +54,7 @@ button,
 .btn-sm,
 .btn-group-sm > .btn,
 .btn-sm .btn-label {
-  padding: $btn-padding;
+  padding: $btn-sm-padding;
 }
 
 //btn roles
@@ -87,9 +88,9 @@ button,
   border: solid thin var(--link-text);
   color: var(--link-text);
   border-radius: 2px;
-  line-height: 0;
-  width: $btn-height;
-  padding: 0;
+  // line-height: 0;
+  // width: $btn-height;
+  // padding: 0;
 }
 
 .icon-group i {

@@ -462,7 +462,7 @@ export default {
             v-for="act in availableActions"
             :key="act.action"
             type="button"
-            class="btn bg-primary btn-sm"
+            class="btn bg-primary"
             :disabled="!act.enabled"
             @click="applyTableAction(act, null, $event)"
             @mouseover="setBulkActionOfInterest(act)"
@@ -582,7 +582,7 @@ export default {
               </template>
               <td v-if="rowActions" align="middle">
                 <slot name="row-actions" :row="row">
-                  <button aria-haspopup="true" aria-expanded="false" type="button" class="btn role-multi-action actions">
+                  <button aria-haspopup="true" aria-expanded="false" type="button" class="btn btn-sm role-multi-action actions">
                     <i class="icon icon-actions" />
                   </button>
                 </slot>
