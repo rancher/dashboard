@@ -106,6 +106,7 @@ suffix:
 ##############################
 # Components & Pages
 ##############################
+
 authConfig:
   accessMode:
     label: 'Configure who should be able to login and use {vendor}'
@@ -250,7 +251,12 @@ authConfig:
     enabled: '{provider} is currently enabled.'
   testAndEnable: Test and Enable Authentication
 
-
+authGroups:
+  actions:
+    refresh: Refresh Group Memberships
+    assignRoles: Assign Global Roles
+  assignEdit:
+    assignTitle: Assign Global Roles To Group
 
 assignTo:
   title: |-
@@ -290,6 +296,10 @@ asyncButton:
     action:  'Delete'
     waiting: 'Deleting&hellip;'
     success: 'Deleted'
+  remove:
+    action:  'Remove'
+    waiting: 'Removing&hellip;'
+    success: 'Removed'
   continue:
     action:  'Continue'
     waiting: 'Saving&hellip;'
@@ -1614,7 +1624,88 @@ rbac:
         defaultLabel: Project Creator Default
       noContext:
         label: No Context
-
+  globalRoles:
+    types:
+      global:
+        label: Global Permissions
+        detail: |-
+          Controls what access the {isUser, select,
+          true {user}
+          false {group}} has to administer the overall {appName} installation.
+      custom:
+        label: Custom
+        detail: Roles not created by Rancher.
+      builtin:
+        label: Built-in
+        detail: Additional roles to define more fine-grain permissions model.
+    unknownRole:
+        detail: No description provided
+    role:
+      admin:
+        label: Administrator
+        detail: Administrators have full control over the entire installation and all resources in all clusters.
+      restricted-admin:
+        label: Restricted Administrator
+        detail: Restricted Admins have full control over all resources in all downstream clusters but no access to the local cluster.
+      user:
+        label: Standard User
+        detail: Standard Users can create new clusters and manage clusters and projects they have been granted access to.
+      user-base:
+        label: User-Base
+        detail: User-Base users have login-access only.
+      clusters-create:
+        label: Create new Clusters
+        detail: Allows the user to create new clusters and become the owner of them.  Standard Users have this permission by default.
+      clustertemplates-create:
+        label: Create new RKE Cluster Templates
+        detail: Allows the user to create new RKE cluster templates and become the owner of them.
+      authn-manage:
+        label: Configure Authentication
+        detail: Allows the user to enable, configure, and disable all Authentication provider settings.
+      catalogs-manage:
+        label: Configure Catalogs
+        detail: Allows the user to add, edit, and remove Catalogs.
+      clusters-manage:
+        label: Manage all Clusters
+        detail: Allows the user to manage all clusters, including ones they are not a member of.
+      clusterscans-manage:
+        label: Manage CIS Cluster Scans
+        detail: Allows the user to launch new and manage CIS cluster scans.
+      kontainerdrivers-manage:
+        label: Create new Cluster Drivers
+        detail: Allows the user to create new cluster drivers and become the owner of them.
+      features-manage:
+        label: Configure Feature Flags
+        detail: Allows the user to enable and disable custom features via feature flag settings.
+      nodedrivers-manage:
+        label: Configure Node Drivers
+        detail: Allows the user to enable, configure, and remove all Node Driver settings.
+      nodetemplates-manage:
+        label: Manage Node Templates
+        detail: Allows the user to define, edit, and remove Node Templates.
+      podsecuritypolicytemplates-manage:
+        label: Manage Pod Security Policies (PSPs)
+        detail: Allows the user to define, edit, and remove PSPs.
+      roles-manage:
+        label: Manage Roles
+        detail: Allows the user to define, edit, and remove Role definitions.
+      settings-manage:
+        label: Manage Settings
+        detail: Allows the user to manage Rancher Settings.
+      users-manage:
+        label: Manage Users
+        detail: Allows the user to create, remove, and set passwords for all Users.
+      catalogs-use:
+        label: Use Catalogs
+        detail: Allows the user to see and deploy Templates from the Catalog.  Standard Users have this permission by default.
+      nodetemplates-use:
+        label: Use Node Templates
+        detail: Allows the user to deploy new Nodes using any existing Node Templates.
+      view-rancher-metrics:
+        label: View Rancher Metrics
+        detail: Allows the user to view Metrics through the API.
+      base:
+        label: Login Access
 
 resourceDetail:
   detailTop:
@@ -2888,6 +2979,11 @@ typeLabel:
       one { RKE2 Cluster }
       other { RKE2 Clusters }
     }
+  group.principal: |-
+    {count, plural,
+      one { Group }
+      other { Groups }
+    }
 
 action:
   clone: Clone
@@ -2905,6 +3001,7 @@ action:
   show: Show
   hide: Hide
   copy: Copy
+  unassign: 'Unassign'
 
 unit:
   sec: secs

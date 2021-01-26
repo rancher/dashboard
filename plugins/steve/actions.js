@@ -13,7 +13,8 @@ export default {
     // Spoofing is handled here to ensure it's done for both yaml and form editing.
     // It became apparent that this was the only place that both intersected
     if (opt.url.includes(SPOOFED_PREFIX) || opt.url.includes(SPOOFED_API_PREFIX)) {
-      const [empty, scheme, type, id] = opt.url.split('/'); // eslint-disable-line no-unused-vars
+      const [empty, scheme, type, ...rest] = opt.url.split('/'); // eslint-disable-line no-unused-vars
+      const id = rest.join('/'); // Cover case where id contains '/'
       const isApi = scheme === SPOOFED_API_PREFIX;
       const typemapGetter = id ? 'getSpoofedInstance' : 'getSpoofedInstances';
       const schemas = await rootGetters['cluster/all'](SCHEMA);

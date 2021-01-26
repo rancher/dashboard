@@ -704,3 +704,19 @@ export const CONFIGURED_RECEIVER = {
   formatter:     'Link',
   formatterOpts: { options: { internal: true } },
 };
+
+export const GROUP_NAME = {
+  name:      'group-name',
+  label:     'Group Name',
+  value:     'id',
+  sort:      ['name'],
+  search:    ['name'],
+  formatter: 'Principal',
+  width:     350
+};
+export const GROUP_ROLE_NAME = {
+  name:      'group-role-names',
+  label:     'Group Role Names',
+  value:     'id',
+  formatter: 'PrincipalGroupBindings',
+};
