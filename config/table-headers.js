@@ -61,6 +61,13 @@ export const EFFECT = {
   sort:     ['effect'],
 };
 
+export const STORAGE_CLASS_PROVISIONER = {
+  name:     'storage_class_provisioner',
+  labelKey: 'tableHeaders.storage_class_provisioner',
+  value:    'provisionerDisplay',
+  sort:     ['provisioner'],
+};
+
 export const OUTPUT = {
   name:          'localOutputRefs',
   labelKey:      'tableHeaders.output',
