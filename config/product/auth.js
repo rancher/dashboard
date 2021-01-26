@@ -34,6 +34,8 @@ export function init(store) {
     route:       { name: 'c-cluster-auth-config' },
   });
 
+  configureType(MANAGEMENT.USER, { showListMasthead: false });
+
   configureType(MANAGEMENT.AUTH_CONFIG, {
     isCreatable: false,
     isRemovable: false,
