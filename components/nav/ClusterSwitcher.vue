@@ -185,6 +185,7 @@ export default {
 
 .filter ::v-deep .unlabeled-select:not(.focused) {
   border: 0;
+  min-height: 0;
 }
 
 .filter ::v-deep .unlabeled-select INPUT[type='search'] {
