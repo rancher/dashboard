@@ -99,13 +99,14 @@ export default {
           class="btn role-primary"
         >
           {{ t("resourceList.head.create") }}
-        </n-link>
-        <n-link
-          v-else-if="isYamlCreatable"
-          :to="yamlCreateLocation"
-          class="btn role-primary"
-        >
-          {{ t("resourceList.head.createFromYaml") }}
+          </button>
+          <button
+            v-else-if="isYamlCreatable"
+            :to="yamlCreateLocation"
+            class="btn role-primary"
+          >
+            {{ t("resourceList.head.createFromYaml") }}
+          </button>
         </n-link>
       </div>
     </div>
