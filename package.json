@@ -83,11 +83,11 @@
     "vue-select": "^3.11.2",
     "vue-shortkey": "^3.1.7",
     "vue2-transitions": "^0.3.0",
-    "xterm": "^4.7.0",
+    "xterm": "^4.9.0",
     "xterm-addon-fit": "^0.4.0",
     "xterm-addon-search": "^0.7.0",
     "xterm-addon-web-links": "^0.4.0",
-    "xterm-addon-webgl": "^0.8.0"
+    "xterm-addon-webgl": "^0.9.0"
   },
   "devDependencies": {
     "@babel/core": "^7.8.3",

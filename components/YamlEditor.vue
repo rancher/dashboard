@@ -215,15 +215,6 @@ export default {
     }
   }
 
-  .scrolling ::v-deep .code-mirror {
-    height: initial;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-  }
-
   .diff-mode {
     background-color: var(--diff-header-bg);
     padding: 5px 5px;

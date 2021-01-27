@@ -21,10 +21,12 @@ export default {
     }
   },
 
-  mounted() {
+  created() {
     this.value.additionalLoggingSources = this.value.additionalLoggingSources || {};
     this.value.additionalLoggingSources[this.provider] = this.value.additionalLoggingSources[this.provider] || {};
     this.value.additionalLoggingSources[this.provider].enabled = true;
+    this.value.additionalLoggingSources[this.provider].fluentbit = this.value.additionalLoggingSources[this.provider].fluentbit || {};
+    this.value.additionalLoggingSources[this.provider].fluentbit.mountPath = '';
   },
 };
 </script>
@@ -34,6 +36,11 @@ export default {
     <div v-if="provider === 'k3s'" class="row mb-20">
       <div class="col span-6">
         <LabeledInput v-model="value.additionalLoggingSources.k3s.container_engine" :label="t('logging.install.k3sContainerEngine')" />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput v-model="value.additionalLoggingSources[provider].fluentbit.mountPath" :label="t('logging.install.fluentbitMountPath')" />
       </div>
     </div>
     <div class="row">

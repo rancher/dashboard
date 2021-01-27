@@ -1,17 +1,15 @@
 <script>
 import debounce from 'lodash/debounce';
 import { _EDIT, _VIEW } from '@/config/query-params';
-import { removeAt } from '@/utils/array';
+import { removeAt, findBy } from '@/utils/array';
 import { clone } from '@/utils/object';
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import Checkbox from '@/components/form/Checkbox';
 
 export default {
   components: {
     LabeledInput,
     LabeledSelect,
-    Checkbox
   },
 
   props:      {
@@ -25,15 +23,24 @@ export default {
       default: _EDIT,
     },
 
-    createService: {
-      type:    Boolean,
-      default: false
+    // array of services auto-created previously (only relevent when mode !== create)
+    services: {
+      type:    Array,
+      default: () => []
+    },
+
+    // workload name
+    name: {
+      type:    String,
+      default: ''
     }
   },
 
   data() {
     const rows = clone(this.value || []).map((row) => {
       row._showHost = false;
+      row._serviceType = '' ;
+      row._name = row.name ? `${ row.name }` : `${ row.containerPort }${ row.protocol.toLowerCase() }${ row.hostPort || row._lbPort || '' }`;
       if (row.hostPort || row.hostIP) {
         row._showHost = true;
       }
@@ -42,7 +49,7 @@ export default {
     });
 
     // show host port column if existing port data has any host ports defined
-    const showHostPorts = !!rows.filter(row => !!row.hostPort).length;
+    const showHostPorts = !!rows.some(row => !!row.hostPort);
 
     return {
       rows,
@@ -63,24 +70,47 @@ export default {
     showRemove() {
       return !this.isView;
     },
+
+    serviceTypes() {
+      return [
+        {
+          label: this.t('workload.container.ports.noCreateService'),
+          value: ''
+        },
+        {
+          label: this.t('serviceTypes.clusterip'),
+          value: 'ClusterIP'
+        },
+        {
+          label: this.t('serviceTypes.nodeport'),
+          value: 'NodePort'
+        },
+        {
+          label: this.t('serviceTypes.loadbalancer'),
+          value: 'LoadBalancer'
+        },
+      ];
+    },
+
+    clusterIPServicePorts() {
+      return ((this.services.filter(svc => svc.spec.type === 'ClusterIP') || [])[0] || {})?.spec?.ports;
+    },
+
+    loadBalancerServicePorts() {
+      return ((this.services.filter(svc => svc.spec.type === 'LoadBalancer') || [])[0] || {})?.spec?.ports;
+    },
+
+    nodePortServicePorts() {
+      return ((this.services.filter(svc => svc.spec.type === 'NodePort') || [])[0] || {})?.spec?.ports;
+    }
   },
 
   created() {
     this.queueUpdate = debounce(this.update, 500);
+    this.rows.map((row) => {
+      this.setServiceType(row);
+    });
   },
-
-  /*
-    Name string `json:"name,omitempty"`
-     Expose will make the port available outside the cluster. All http/https ports will be set to true by default
-     if Expose is nil.  All other protocols are set to false by default
-    Expose     *bool    `json:"expose,omitempty"`
-    Protocol   Protocol `json:"protocol,omitempty"`
-    Port       int32    `json:"port"`
-    TargetPort int32    `json:"targetPort,omitempty"`
-    HostPort   bool     `json:"hostport,omitempty"`
-
-    [port]/[proto] -> [targetPort] [hostPort] [expose] [name]
-  */
 
   methods: {
     add() {
@@ -91,7 +121,8 @@ export default {
         containerPort: null,
         hostPort:      null,
         hostIP:        null,
-        _showHost:     false
+        _showHost:     false,
+        _serviceType:  '',
       });
 
       this.queueUpdate();
@@ -122,6 +153,36 @@ export default {
         out.push(value);
       }
       this.$emit('input', out);
+    },
+
+    setServiceType(row) {
+      const { _name } = row;
+
+      if (this.loadBalancerServicePorts) {
+        const portSpec = findBy(this.loadBalancerServicePorts, 'name', _name);
+
+        if (portSpec) {
+          row._lbPort = portSpec.port;
+
+          row._serviceType = 'LoadBalancer';
+
+          return;
+        }
+      } if (this.nodePortServicePorts) {
+        if (findBy(this.nodePortServicePorts, 'name', _name)) {
+          row._serviceType = 'NodePort';
+
+          return;
+        }
+      } if (this.clusterIPServicePorts) {
+        if (findBy(this.clusterIPServicePorts, 'name', _name)) {
+          row._serviceType = 'ClusterIP';
+
+          return;
+        }
+      }
+
+      return '';
     }
   },
 };
@@ -135,6 +196,10 @@ export default {
       class="ports-row"
       :class="{'show-host':row._showHost}"
     >
+      <div class="service-type">
+        <LabeledSelect v-model="row._serviceType" :mode="mode" :label="t('workload.container.ports.createService')" :options="serviceTypes" />
+      </div>
+
       <div class="portName">
         <LabeledInput
           ref="name"
@@ -171,6 +236,7 @@ export default {
 
       <div v-if="row._showHost" class="targetPort">
         <LabeledInput
+
           ref="port"
           v-model.number="row.hostPort"
           :mode="mode"
@@ -194,10 +260,22 @@ export default {
         />
       </div>
 
-      <div v-if="!row._showHost" class="add-host">
-        <button type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
+      <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer'" class="add-host">
+        <button :disabled="mode==='view'" type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
           {{ t('workloadPorts.addHost') }}
         </button>
+      </div>
+
+      <div v-if="row._serviceType === 'LoadBalancer'">
+        <LabeledInput
+          ref="port"
+          v-model.number="row._lbPort"
+          type="number"
+          :mode="mode"
+          :label="t('workload.container.ports.listeningPort')"
+          required
+          @input="queueUpdate"
+        />
       </div>
 
       <div v-if="showRemove" class="remove">
@@ -210,7 +288,6 @@ export default {
       <button type="button" class="btn role-tertiary add" @click="add()">
         {{ t('workloadPorts.addPort') }}
       </button>
-      <Checkbox v-model="createService" label="Create a service to expose ports" @input="$emit('update:create-service', $event)" />
     </div>
   </div>
 </template>
@@ -226,10 +303,9 @@ $checkbox: 75;
     float: right;
   }
 }
-// 1 unit is 8%
 .ports-headers, .ports-row{
   display: grid;
-  grid-template-columns: 30% 30% 18% 10% 5%;
+  grid-template-columns: 20% 3fr 160px 80px 10% 58px;
   grid-column-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;
@@ -239,7 +315,7 @@ $checkbox: 75;
   }
 
   &.show-host{
-    grid-template-columns: 30% 16% 10% 15% 15% 5%;
+    grid-template-columns: 20% 3fr 160px 80px 160px 10% 1fr
   }
 
 }
