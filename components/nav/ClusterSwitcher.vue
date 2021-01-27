@@ -171,7 +171,7 @@ export default {
     user-select: none;
     cursor: default;
     color: white;
-    // line-height: calc(var(--header-height) - 32px);
+    line-height: calc(var(--header-height) - 32px);
   }
 }
 

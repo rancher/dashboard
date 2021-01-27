@@ -11,14 +11,14 @@
 .col {
   > .labeled-select:not(.taggable),
   > .unlabeled-select:not(.taggable) {
-    max-height: $input-height;
+    min-height: $input-height;
   }
 }
 
 .labeled-select,
 .unlabeled-select {
   min-width: 75px;
-  min-height: $input-height;
+  // min-height: $input-height;
   
   .v-select {
     &.inline {
@@ -78,7 +78,6 @@
 
   &.focused {
     outline: none;
-    border: var(--outline-width) solid var(--outline);
     box-shadow: none;
     .v-select {
       // Can toggle this to get full width dd - maybe make an option?

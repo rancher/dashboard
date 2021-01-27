@@ -217,7 +217,6 @@ export default {
     &.labeled-select.focused ::v-deep,
     &.unlabeled-select.focused ::v-deep {
       outline: none;
-      border: var(--outline-width) solid var(--outline);
     }
 
     &.labeled-select ::v-deep,
