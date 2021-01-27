@@ -8,5 +8,8 @@ export default {
 </script>
 
 <template>
-  <ResourceDetail resource-override="management.cattle.io.token" />
+  <ResourceDetail
+    resource-override="management.cattle.io.token"
+    parent-route-override="account"
+  />
 </template>

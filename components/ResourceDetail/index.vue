@@ -49,7 +49,12 @@ export default {
     resourceOverride: {
       type:    String,
       default: null,
-    }
+    },
+
+    parentRouteOverride: {
+      type:    String,
+      default: null,
+    },
   },
 
   async fetch() {
@@ -286,6 +291,7 @@ export default {
       :has-detail="hasCustomDetail"
       :has-edit="hasCustomEdit"
       :resource-subtype="resourceSubtype"
+      :parent-route-override="parentRouteOverride"
     />
 
     <DetailTop

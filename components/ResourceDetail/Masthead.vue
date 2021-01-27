@@ -56,6 +56,11 @@ export default {
     resourceSubtype: {
       type:    String,
       default: null,
+    },
+
+    parentRouteOverride: {
+      type:    String,
+      default: null,
     }
   },
 
@@ -166,6 +171,10 @@ export default {
           product,
         }
       };
+
+      if (this.parentRouteOverride) {
+        location.name = this.parentRouteOverride;
+      }
 
       const typeOptions = this.$store.getters[`type-map/optionsFor`]( this.resource );
       const out = {
