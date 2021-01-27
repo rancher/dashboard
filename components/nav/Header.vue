@@ -255,9 +255,8 @@ export default {
 
       &:focus {
         .v-popover {
-          line-height: 0;
-
           ::v-deep .trigger {
+            line-height: 0;
             .user-image {
               max-height: 40px;
             }

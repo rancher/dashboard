@@ -78,7 +78,7 @@
 
   &.focused {
     outline: none;
-    box-shadow: none;
+    box-shadow: 0 0 0 var(--outline-width) var(--outline);
     .v-select {
       // Can toggle this to get full width dd - maybe make an option?
       .vs__dropdown-menu {
@@ -92,11 +92,7 @@
 .unlabeled-select {
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
-  border: solid var(--border-width) var(--input-border);
   color: var(--input-text);
-
-  // Here to match the min height of the labeled select.
-  // min-height: $input-height-small;
 
   .vs--single .vs__selected-options {
     flex-wrap: nowrap;
