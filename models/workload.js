@@ -11,6 +11,12 @@ export default {
     let out = this._standardActions;
     const type = this._type ? this._type : this.type;
 
+    insertAt(out, 0, {
+      action: 'addSidecar',
+      label:  'Add Sidecar',
+      icon:   'icon icon-plus'
+    });
+
     if (type !== WORKLOAD_TYPES.JOB) {
       insertAt(out, 0, {
         action:     'redeploy',
@@ -37,7 +43,7 @@ export default {
 
       if (this.type === WORKLOAD_TYPES.CRON_JOB) {
         if (!spec.jobTemplate) {
-          spec.jobTemplate = { spec: { template: { spec: { restartPolicy: 'Never' } } } };
+          spec.jobTemplate = { spec: { template: { spec: { restartPolicy: 'Never', containers: [{ imagePullPolicy: 'Always' }] } } } };
         }
       } else {
         if (!spec.replicas && spec.replicas !== 0) {
@@ -45,7 +51,7 @@ export default {
         }
 
         if (!spec.template) {
-          spec.template = { spec: { restartPolicy: this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always' } };
+          spec.template = { spec: { restartPolicy: this.type === WORKLOAD_TYPES.JOB ? 'Never' : 'Always', containers: [{ imagePullPolicy: 'Always' }] } };
         }
         if (!spec.selector) {
           spec.selector = {};
@@ -53,6 +59,18 @@ export default {
       }
       vm.$set(this, 'spec', spec);
     };
+  },
+
+  addSidecar() {
+    return this.goToEdit({ sidecar: true });
+  },
+
+  hasSidecars() {
+    const podTemplateSpec = this.type === WORKLOAD_TYPES.CRON_JOB ? this?.spec?.jobTemplate?.spec?.template?.spec : this.spec?.template?.spec;
+
+    const { containers = [], initContainers = [] } = podTemplateSpec;
+
+    return containers.length > 1 || initContainers.length;
   },
 
   customValidationRules() {
@@ -122,16 +140,28 @@ export default {
     return out;
   },
 
-  container() {
+  containers() {
     if (this.type === WORKLOAD_TYPES.CRON_JOB) {
       // cronjob pod template is nested slightly different than other types
       const { spec: { jobTemplate: { spec: { template: { spec: { containers } } } } } } = this;
 
-      return containers[0];
+      return containers;
     }
     const { spec:{ template:{ spec:{ containers } } } } = this;
 
-    return containers[0];
+    return containers;
+  },
+
+  initContainers() {
+    if (this.type === WORKLOAD_TYPES.CRON_JOB) {
+      // cronjob pod template is nested slightly different than other types
+      const { spec: { jobTemplate: { spec: { template: { spec: { initContainers } } } } } } = this;
+
+      return initContainers;
+    }
+    const { spec:{ template:{ spec:{ initContainers } } } } = this;
+
+    return initContainers;
   },
 
   details() {
@@ -259,6 +289,7 @@ export default {
         return;
       }
 
+<<<<<<< HEAD
       const ownerRef = {
         apiVersion: this.apiVersion,
         controller: true,
@@ -266,6 +297,12 @@ export default {
         name:       this.metadata.name,
         uid:        this.metadata.uid
       };
+=======
+      const ports = [];
+
+      this.containers.forEach(container => ports.push(...(container.ports || [])));
+      (this.initContainers || []).forEach(container => ports.push(...(container.ports || [])));
+>>>>>>> create/edit/remove sidecars init container
 
       let clusterIP = {
         type: SERVICE,
@@ -343,7 +380,7 @@ export default {
           name, protocol: port.protocol, port: port.containerPort, targetPort: port.containerPort
         };
 
-        if (port._serviceType && port._serviceType !== '') {
+        if (port._serviceType !== '') {
           clusterIP.spec.ports.push(portSpec);
           switch (port._serviceType) {
           case 'NodePort': {

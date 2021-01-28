@@ -177,8 +177,10 @@ export default {
 
   methods: {
     clicked($event) {
-      $event.stopPropagation();
-      $event.preventDefault();
+      if ($event) {
+        $event.stopPropagation();
+        $event.preventDefault();
+      }
 
       if ( this.isDisabled ) {
         return;
