@@ -414,7 +414,8 @@ export default {
     .logo {
       display: flex;
       justify-content: flex-end;
-      padding-right: 5px;
+      align-self: center;
+      padding-right: 20px;
     }
   }
 }

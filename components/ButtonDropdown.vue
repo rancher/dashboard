@@ -162,8 +162,6 @@ export default {
     :class="{
       disabled,
       focused,
-      'btn-sm': size === 'sm',
-      'btn-lg': size === 'lg',
     }"
     v-bind="$attrs"
     :append-to-body="true"
