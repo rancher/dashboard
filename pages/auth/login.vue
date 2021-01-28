@@ -66,7 +66,7 @@ export default {
 
   created() {
     this.providerComponents = this.providers.map((name) => {
-      return () => import(/* webpackChunkName: "login" */ `@/components/auth/login/${ name }`);
+      return () => {try{import(/* webpackChunkName: "login" */ `@/components/auth/login/${ name }`)}catch{}}
     });
   },
 
