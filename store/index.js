@@ -408,6 +408,7 @@ export const actions = {
     };
 
     if ( isMultiCluster ) {
+      promises['rancherSubscribe'] = dispatch('rancher/subscribe');
       promises['rancherSchema'] = dispatch('rancher/loadSchemas', true);
     }
 
@@ -569,8 +570,13 @@ export const actions = {
   nuxtClientInit({ dispatch, rootState }, nuxt) {
     Object.defineProperty(rootState, '$router', { value: nuxt.app.router });
     Object.defineProperty(rootState, '$route', { value: nuxt.route });
+
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
+    if ( rootState.isMultiCluster ) {
+      dispatch('rancher/rehydrateSubscribe');
+    }
+
     dispatch('prefs/loadCookies');
     dispatch('prefs/loadTheme');
   },

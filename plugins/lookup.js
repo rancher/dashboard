@@ -1,29 +1,37 @@
 import { get, set } from '@/utils/object';
 import $ from 'jquery';
 
+const DEFAULT_NS = 'cluster';
+
 export default (context) => {
   window.$ = $;
   window.get = get;
   window.set = set;
 
   window.s = context.store;
-  window.schemaName = type => context.store.getters['cluster/schemaName'](type);
-  window.schemaFor = type => context.store.getters['cluster/schemaFor'](type, true);
 
-  window.all = (type, namespace = 'cluster') => {
-    const realType = window.schemaName(type);
+  window.schemaName = (type, namespace = DEFAULT_NS) => {
+    return context.store.getters[`${ namespace }/schemaName`](type);
+  };
+
+  window.schemaFor = (type, namespace = DEFAULT_NS) => {
+    return context.store.getters[`${ namespace }/schemaFor`](type, true);
+  };
+
+  window.all = (type, namespace = DEFAULT_NS) => {
+    const realType = window.schemaName(type, namespace);
 
     return context.store.getters[`${ namespace }/all`](realType);
   };
 
-  window.byId = (type, id, namespace = 'cluster') => {
-    const realType = window.schemaName(type);
+  window.byId = (type, id, namespace = DEFAULT_NS) => {
+    const realType = window.schemaName(type, namespace);
 
     return context.store.getters[`${ namespace }/byId`](realType, id);
   };
 
-  window.find = (type, id, namespace = 'cluster') => {
-    const realType = window.schemaName(type);
+  window.find = (type, id, namespace = DEFAULT_NS) => {
+    const realType = window.schemaName(type, namespace);
 
     return context.store.dispatch(`${ namespace }/find`, {
       type: realType,
@@ -31,8 +39,8 @@ export default (context) => {
     });
   };
 
-  window.findAll = (type, namespace = 'cluster') => {
-    const realType = window.schemaName(type);
+  window.findAll = (type, namespace = DEFAULT_NS) => {
+    const realType = window.schemaName(type, namespace);
 
     return context.store.dispatch(`${ namespace }/findAll`, { type: realType });
   };

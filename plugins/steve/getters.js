@@ -278,5 +278,9 @@ export default {
 
   watchStarted: state => (obj) => {
     return !!state.started.find(entry => equivalentWatch(obj, entry));
+  },
+
+  storeName: (state) => {
+    return state.config.namespace;
   }
 };

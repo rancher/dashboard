@@ -11,6 +11,7 @@ import CopyToClipboardText from '@/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import { NORMAN, MANAGEMENT } from '@/config/types';
 import { findBy } from '@/utils/array';
+import Auth from '@/mixins/auth';
 
 const NAME = 'github';
 
@@ -27,7 +28,7 @@ export default {
     AsyncButton
   },
 
-  mixins: [CreateEditView],
+  mixins: [CreateEditView, Auth],
 
   async fetch() {
     await this.reloadModel();
