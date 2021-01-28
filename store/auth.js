@@ -3,7 +3,7 @@ import { parse as parseUrl, removeParam, addParam, addParams } from '@/utils/url
 import { findBy, addObjects } from '@/utils/array';
 import { open, popupWindowOptions } from '@/utils/window';
 import {
-  BACK_TO, SPA, AUTH_TEST, _FLAGGED, GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT
+  BACK_TO, SPA, AUTH_TEST, _FLAGGED, GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT,
 } from '@/config/query-params';
 
 export const BASE_SCOPES = { github: ['read:org'], googleoauth: ['email'] };
@@ -103,7 +103,6 @@ export const actions = {
   async redirectTo({ state, commit, dispatch }, opt = {}) {
     const provider = opt.provider;
     let redirectUrl = opt.redirectUrl;
-    let route = opt.route;
 
     if ( !redirectUrl ) {
       const driver = await dispatch('getAuthProvider', provider);
@@ -113,19 +112,7 @@ export const actions = {
 
     const nonce = await dispatch('setNonce');
 
-    if (!route) {
-      route = '/auth/verify';
-    }
-
-    if ( this.$router.options && this.$router.options.base ) {
-      const routerBase = this.$router.options.base;
-
-      if ( routerBase !== '/' ) {
-        route = `${ routerBase.replace(/\/+$/, '') }/${ route.replace(/^\/+/, '') }`;
-      }
-    }
-
-    let returnToUrl = `${ window.location.origin }${ route }`;
+    let returnToUrl = returnTo(opt, this);
 
     const parsed = parseUrl(window.location.href);
 
@@ -144,7 +131,9 @@ export const actions = {
     const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
     const scopes = fromQuery.split(/[, ]+/).filter(x => !!x);
 
-    addObjects(scopes, BASE_SCOPES[provider]);
+    if (BASE_SCOPES[provider]) {
+      addObjects(scopes, BASE_SCOPES[provider]);
+    }
 
     if ( opt.scopes ) {
       addObjects(scopes, opt.scopes);
@@ -201,18 +190,29 @@ export const actions = {
         }
       }, 500);
 
-      driver.doAction('configureTest', body).then((res) => {
-        dispatch('redirectTo', {
-          provider,
-          redirectUrl: res.redirectUrl,
-          test:        true,
-          redirect:    false
-        }).then((url) => {
-          popup = open(url, 'auth-test', popupWindowOptions());
-        }).catch((err) => {
-          reject(err);
+      if (!!driver?.actions?.testAndEnable) {
+        const finalRedirectUrl = returnTo({ provider }, this);
+
+        driver.doAction('testAndEnable', { finalRedirectUrl }).then((res) => {
+          popup = open(res.idpRedirectUrl, 'auth-test', popupWindowOptions());
+        })
+          .catch((err) => {
+            reject(err);
+          });
+      } else {
+        driver.doAction('configureTest', body).then((res) => {
+          dispatch('redirectTo', {
+            provider,
+            redirectUrl: res.redirectUrl,
+            test:        true,
+            redirect:    false
+          }).then((url) => {
+            popup = open(url, 'auth-test', popupWindowOptions());
+          }).catch((err) => {
+            reject(err);
+          });
         });
-      });
+      }
     });
   },
 
@@ -252,3 +252,37 @@ export const actions = {
     dispatch('onLogout', null, { root: true });
   }
 };
+
+function returnTo(opt, vm) {
+  let { route = `/auth/verify` } = opt;
+
+  if ( vm.$router.options && vm.$router.options.base ) {
+    const routerBase = vm.$router.options.base;
+
+    if ( routerBase !== '/' ) {
+      route = `${ routerBase.replace(/\/+$/, '') }/${ route.replace(/^\/+/, '') }`;
+    }
+  }
+
+  let returnToUrl = `${ window.location.origin }${ route }`;
+
+  const parsed = parseUrl(window.location.href);
+
+  if ( parsed.query.spa !== undefined ) {
+    returnToUrl = addParam(returnToUrl, SPA, _FLAGGED);
+  }
+
+  if ( opt.test ) {
+    returnToUrl = addParam(returnToUrl, AUTH_TEST, _FLAGGED);
+  }
+
+  if ( opt.backTo ) {
+    returnToUrl = addParam(returnToUrl, BACK_TO, opt.backTo);
+  }
+
+  if (opt.provider) {
+    returnToUrl = addParam(returnToUrl, 'config', opt.provider);
+  }
+
+  return returnToUrl;
+}

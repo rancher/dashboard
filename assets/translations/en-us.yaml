@@ -230,6 +230,7 @@ authConfig:
     username: Username
     usernameAttribute: Username Attribute
   saml:
+    entityID: Entity ID Field
     UID: UID Field
     adfs: Configure an AD FS account
     api: Rancher API Host
