@@ -228,11 +228,7 @@ export default {
 
   &.vs--open ::v-deep {
     outline: none;
-    border: var(--outline-width) solid var(--outline);
-    // border-bottom: none;
     box-shadow: none;
-    // border-bottom-left-radius: 0;
-    // border-bottom-right-radius: 0;
   }
 
   &:hover {

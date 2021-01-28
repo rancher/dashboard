@@ -147,6 +147,12 @@ export default {
     display: grid;
     height: 100vh;
 
+    .labeled-select,
+    .unlabeled-select {
+      min-height: 0;
+      height: $input-height;
+    }
+
     > * {
       display: flex;
       align-items: center;
@@ -249,9 +255,8 @@ export default {
 
       &:focus {
         .v-popover {
-          line-height: 0;
-
           ::v-deep .trigger {
+            line-height: 0;
             .user-image {
               max-height: 40px;
             }

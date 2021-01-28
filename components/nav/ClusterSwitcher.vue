@@ -171,7 +171,7 @@ export default {
     user-select: none;
     cursor: default;
     color: white;
-    // line-height: calc(var(--header-height) - 32px);
+    line-height: calc(var(--header-height) - 32px);
   }
 }
 
@@ -185,6 +185,7 @@ export default {
 
 .filter ::v-deep .unlabeled-select:not(.focused) {
   border: 0;
+  min-height: 0;
 }
 
 .filter ::v-deep .unlabeled-select INPUT[type='search'] {
