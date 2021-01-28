@@ -22,11 +22,11 @@ export default {
   },
 
   created() {
-    this.value.additionalLoggingSources = this.value.additionalLoggingSources || {};
-    this.value.additionalLoggingSources[this.provider] = this.value.additionalLoggingSources[this.provider] || {};
-    this.value.additionalLoggingSources[this.provider].enabled = true;
-    this.value.additionalLoggingSources[this.provider].fluentbit = this.value.additionalLoggingSources[this.provider].fluentbit || {};
-    this.value.additionalLoggingSources[this.provider].fluentbit.mountPath = '';
+    this.$set(this.value, 'additionalLoggingSources', this.value.additionalLoggingSources || {});
+    this.$set(this.value.additionalLoggingSources, this.provider, this.value.additionalLoggingSources[this.provider] || {});
+    this.$set(this.value.additionalLoggingSources[this.provider], 'enabled', true);
+    this.$set(this.value.additionalLoggingSources[this.provider], 'fluentbit', this.value.additionalLoggingSources[this.provider].fluentbit || {});
+    this.$set(this.value.additionalLoggingSources[this.provider].fluentbit, 'mountPath', this.value.additionalLoggingSources[this.provider].fluentbit.mountPath || '');
   },
 };
 </script>
