@@ -1,6 +1,7 @@
 <script>
 import $ from 'jquery';
 import { _EDIT, _VIEW } from '@/config/query-params';
+import { addObject, removeObject } from '@/utils/array';
 
 export default {
   props: {
@@ -72,9 +73,9 @@ export default {
         // Flip the value
         if (this.isMulti()) {
           if (this.isChecked) {
-            this.value.splice(this.value.indexOf(this.valueWhenTrue), 1);
+            removeObject(this.value, this.valueWhenTrue);
           } else {
-            this.value.push(this.valueWhenTrue);
+            addObject(this.value, this.valueWhenTrue);
           }
           this.$emit('input', this.value);
         } else {

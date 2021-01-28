@@ -152,6 +152,7 @@ export default {
       await Promise.all(existingBindings.map(existingBinding => existingBinding.remove()));
     },
     async save() {
+      // Ensure roles are added before removed (in case by removing one user is unable to add another)
       await this.saveAddedRoles();
       await this.saveRemovedRoles();
     }

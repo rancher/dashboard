@@ -25,21 +25,20 @@ export default {
   },
   async fetch() {
     this.rows = await this.$store.dispatch('cluster/findAll', { type: NORMAN.SPOOFED.GROUP_PRINCIPAL }, { root: true }); // See PromptRemove.vue
+
+    const principals = await this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
+
+    this.hasGroups = principals.filter(principal => principal.principalType === 'group')?.length;
   },
   data() {
     return {
       rows:           null,
+      hasGroups:      false,
       assignLocation:  {
-        // TODO: Q
         path:   `/c/local/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
         query: { [MODE]: _EDIT }
       }
     };
-  },
-  computed: {
-    hasRows() {
-      return this.rows?.length > 0;
-    }
   },
   methods: {
     async refreshGroupMemberships(buttonDone) {
@@ -88,7 +87,7 @@ export default {
           @click="refreshGroupMemberships"
         />
         <n-link
-          v-if="hasRows"
+          v-if="hasGroups"
           :to="assignLocation"
           class="btn role-primary"
         >
