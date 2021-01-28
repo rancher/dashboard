@@ -93,9 +93,7 @@ export default {
             await this.model.save();
             await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
 
-            this.model.enabled = true;
-
-            await this.model.save();
+            await this.reloadModel();
           } else {
             this.model.enabled = true;
             if (!this.model.accessMode) {
