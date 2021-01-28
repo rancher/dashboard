@@ -63,12 +63,12 @@ export default {
       providerComponents: [],
     };
   },
-
-  created() {
-    this.providerComponents = this.providers.map((name) => {
-      return () => {try{import(/* webpackChunkName: "login" */ `@/components/auth/login/${ name }`)}catch{}}
-    });
-  },
+//TODO uncomment when there are provider components
+  // created() {
+  //   this.providerComponents = this.providers.map((name) => {
+  //     return () => import(/* webpackChunkName: "login" */ `@/components/auth/login/${ name }`);
+  //   });
+  // },
 
   mounted() {
     this.$nextTick(() => {
