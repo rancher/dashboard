@@ -18,14 +18,6 @@
     }
   }
 
-  /*
-  &.raised LABEL, .corner {
-    transform: translate(0, -20px);
-    font-size: 0.75em;
-    color: var(--input-label);
-  }
-  */
-
   .corner {
     top: 5px;
     right: 10px;
@@ -36,6 +28,13 @@
     transform: none !important;
   }
 
+<<<<<<< HEAD
+=======
+  .required {
+    color: var(--error);
+  }
+
+>>>>>>> bb339701... spacer variables
   INPUT, SELECT {
     position: relative;
     font-size: 14px;
@@ -59,17 +58,17 @@
     background-color: transparent;
     outline: 0;
     box-shadow: none;
-    padding: 17px 0 0 0;
+    padding: $spacer1 0 0 0;
     line-height: 1.25;
 
     &.no-label {
-      padding: 8.5px 0px 8.5px 0px;
+      padding: $spacer2 0px $spacer2 0px;
     }
   }
 
   &.view > DIV:not(.addon) {
     font-size: 14px;
-    padding: 17px 0 0 0;
+    padding: $spacer1 0 0 0;
 
     &.no-label {
       padding-top:0px;

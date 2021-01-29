@@ -17,7 +17,7 @@ TEXTAREA,
   display: block;
   box-sizing: border-box;
   width: 100%;
-  padding: 8px;
+  padding: $spacer2;
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
   border: solid var(--border-width) var(--input-border);
@@ -60,7 +60,7 @@ TEXTAREA,
 }
 
 TEXTAREA {
-  padding: 17px 10px 10px 10px;
+  padding: $spacer1 10px 10px 10px;
   line-height: 1.25;
 }
 
