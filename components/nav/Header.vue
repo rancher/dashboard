@@ -163,6 +163,12 @@ export default {
       border: 1px solid var(--header-btn-bg);
       background: rgba(0,0,0,.05);
       color: var(--header-btn-text);
+
+      &[disabled=disabled] {
+        background-color: var(--header-btn-bg) !important;
+        color: var(--header-btn-text) !important;
+        opacity: 0.7;
+      }
     }
 
     grid-template-areas:  "product top back import kubectl cluster user";
