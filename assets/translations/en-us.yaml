@@ -1572,7 +1572,7 @@ promptRemove:
     =1 {, and one other.}
     other {, and {count} others.}
     }
-  attemptingToRemove: "You are attemping to remove the {type}"
+  attemptingToRemove: "You are attempting to remove the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
 
 rbac:
