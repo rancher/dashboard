@@ -179,34 +179,34 @@ export default {
       />
     </div>
     <div class="m-20">
-      <Checkbox 
+      <Checkbox
         v-model="cb"
         label="Test checkbox (toggle-able)"
         :mode="mode"
       />
-      <Checkbox 
+      <Checkbox
         :value="false"
         label="Test checkbox (not checked)"
         :mode="mode"
       />
-      <Checkbox 
+      <Checkbox
         :value="true"
         label="Test checkbox (checked)"
         :mode="mode"
       />
-      <Checkbox 
+      <Checkbox
         :value="false"
         label="Test checkbox (disabled)"
         :disabled="true"
         :mode="mode"
       />
-      <Checkbox 
+      <Checkbox
         :value="true"
         label="Test checkbox (disabled, checked)"
         :disabled="true"
         :mode="mode"
       />
-      <Checkbox 
+      <Checkbox
         :value="true"
         label="Test checkbox with tooltip"
         :disabled="false"
@@ -215,32 +215,32 @@ export default {
       />
     </div>
     <div class="m-20">
-      <Checkbox 
+      <Checkbox
         v-model="cb"
         label="Test checkbox (indeterminate)"
         :mode="mode"
         :indeterminate="true"
       />
-      <Checkbox 
+      <Checkbox
         :value="false"
         label="Test checkbox (indeterminate, not checked)"
         :mode="mode"
         :indeterminate="true"
       />
-      <Checkbox 
+      <Checkbox
         :value="true"
         label="Test checkbox (indeterminate, checked)"
         :mode="mode"
         :indeterminate="true"
       />
-      <Checkbox 
+      <Checkbox
         :value="false"
         label="Test checkbox (indeterminate, not checked, disabled)"
         :mode="mode"
         :disabled="true"
         :indeterminate="true"
       />
-      <Checkbox 
+      <Checkbox
         :value="true"
         label="Test checkbox (indeterminate, checked, disabled)"
         :mode="mode"
