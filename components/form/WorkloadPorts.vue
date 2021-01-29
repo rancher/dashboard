@@ -261,7 +261,7 @@ export default {
       </div>
 
       <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer'" class="add-host">
-        <button :disabled="mode==='view'" type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
+        <button :disabled="mode==='view'" type="button" class="btn role-tertiary" @click="row._showHost = true">
           {{ t('workloadPorts.addHost') }}
         </button>
       </div>
@@ -279,7 +279,7 @@ export default {
       </div>
 
       <div v-if="showRemove" class="remove">
-        <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
+        <button type="button" class="btn role-link" @click="remove(idx)">
           {{ t('workloadPorts.remove') }}
         </button>
       </div>
@@ -305,7 +305,7 @@ $checkbox: 75;
 }
 .ports-headers, .ports-row{
   display: grid;
-  grid-template-columns: 20% 3fr 160px 80px 10% 58px;
+  grid-template-columns: 20% 32% 145px 80px .5fr .5fr;
   grid-column-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;
@@ -315,7 +315,7 @@ $checkbox: 75;
   }
 
   &.show-host{
-    grid-template-columns: 20% 3fr 160px 80px 160px 10% 1fr
+    grid-template-columns: 20% 20% 145px 80px 140px .5fr .5fr;
   }
 
 }

@@ -118,7 +118,7 @@ export default {
             v-if="!isView"
             :disabled="disableAddRecord"
             type="button"
-            class="btn btn-sm role-tertiary"
+            class="btn role-tertiary"
             @click="addRule('record')"
           >
             <t k="prometheusRule.recordingRules.addLabel" />
@@ -162,7 +162,7 @@ export default {
             v-if="!isView"
             :disabled="disableAddAlert"
             type="button"
-            class="btn btn-sm role-tertiary"
+            class="btn role-tertiary"
             @click="addRule('alert')"
           >
             <t k="prometheusRule.alertingRules.addLabel" />

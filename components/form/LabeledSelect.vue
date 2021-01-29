@@ -272,7 +272,7 @@ export default {
 <style lang='scss' scoped>
 .labeled-select {
   .labeled-container {
-    padding: 8px 0 0 8px;
+    padding: 7px 0 1px 8px;
 
     label {
       margin: 0;

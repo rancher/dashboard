@@ -210,7 +210,7 @@ export default {
             />
           </td>
           <td v-if="showRemove" class="remove">
-            <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
+            <button type="button" class="btn role-link" @click="remove(idx)">
               Remove
             </button>
           </td>
