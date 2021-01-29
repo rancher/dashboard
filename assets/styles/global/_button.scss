@@ -1,5 +1,5 @@
 // $btn-padding: 15px 40px;
-$btn-padding: 0 20px 0 20px;
+$btn-padding: 0 21px 0 21px;
 $btn-sm-padding: 0 7px 0 7px;
 $btn-height: 40px;
 $btn-sm-height: 30px;
@@ -22,7 +22,7 @@ button,
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  border: 1px solid transparent;
+  border: 0;
   padding: $btn-padding;
   border-radius: var(--border-radius);
   color: white;
