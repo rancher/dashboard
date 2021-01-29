@@ -98,8 +98,8 @@ export default {
       <slot name="label">
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
-        <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="icon icon-info icon-lg" />
-        <i v-else-if="tooltip" v-tooltip="tooltip" class="icon icon-info icon-lg" />
+        <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="checkbox-info icon icon-info icon-lg" />
+        <i v-else-if="tooltip" v-tooltip="tooltip" class="checkbox-info icon icon-info icon-lg" />
       </slot>
     </span>
   </label>
@@ -118,7 +118,13 @@ export default {
 
   .checkbox-label {
     color: var(--input-label);
+    display: inline-flex;
     margin: 0px 10px 0px 5px;
+  }
+
+  .checkbox-info {
+    line-height: normal;
+    margin-left: 2px;
   }
 
  .checkbox-custom {
@@ -140,13 +146,15 @@ export default {
       -ms-transform: rotate(0deg) scale(1);
       transform: rotate(0deg) scale(1);
       opacity:1;
-      border: 1px solid var(--input-label);
+      border: 1px solid var(--dropdown-text);
+
       &.indeterminate{
         background-color: transparent;
         border: 1px solid var(--border)
       }
   }
 
+  // Custom Checkbox tick
   .checkbox-custom::after {
       position: absolute;
       content: "";
@@ -173,7 +181,7 @@ export default {
     width: 4px;
     height: 10px;
     border: solid;
-    border-color: var(--input-text);
+    border-color: var(--checkbox-tick);
     border-width: 0 2px 2px 0;
     background-color: transparent;
   }
@@ -188,13 +196,24 @@ export default {
     width: 7px;
     height: 5px;
     border: solid;
-    border-color: var(--dropdown-text);
+    border-color: var(--checkbox-ticked-bg);
     border-width: 0 0 2px 0;
     background-color: transparent;
   }
 
-  input:disabled  ~ .checkbox-custom {
-    background-color: var(--disabled-bg);
+  // Disabled styles
+  &.disabled {
+    .checkbox-custom {
+      background-color: var(--checkbox-disabled-bg);
+      border-color: var(--checkbox-disabled-bg);
+    }
+    input:checked ~ .checkbox-custom {
+      background-color: var(--checkbox-disabled-bg);
+      border-color: var(--checkbox-disabled-bg);
+      &::after {
+        border-color: var(--checkbox-tick-disabled);
+      }
+    }
   }
 
   &.disabled {
