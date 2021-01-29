@@ -1429,6 +1429,35 @@ prefs:
   hideDesc:
     label: Hide All Type Description Boxes
 
+accountAndKeys:
+  title: Account and API Keys
+  account:
+    title: Account
+    name: Name
+    username: Username
+    change: Change Password
+  keys:
+    title: API Keys
+
+changePassword:
+  title: Change Password
+  cancel: Cancel
+  keys: Delete all existing API keys
+  generatePassword: Generate a random password
+  newGeneratedPassword: Suggest a password
+  currentPassword: Current Password
+  userGen:
+    newPassword: New Password
+    confirmPassword: Confirm Password
+  randomGen:
+    copy: Copy to Clipboard
+    generated: Generated Password
+  errors:
+    missmatchedPassword: Passwords do not match
+    failedToChange: Failed to change password
+    failedDeleteKey: Failed to delete key
+    failedDeleteKeys: Failed to delete keys
+
 principal:
   loading: Loading&hellip;
   error: Unable to fetch principal info
@@ -2681,6 +2710,9 @@ action:
   view: View Config
   viewInApi: View in API
   viewYaml: View YAML
+  show: Show
+  hide: Hide
+  copy: Copy
 
 unit:
   sec: secs
