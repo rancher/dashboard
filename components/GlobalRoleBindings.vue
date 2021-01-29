@@ -136,7 +136,7 @@ export default {
     async saveAddedRoles() {
       const newBindings = await Promise.all(this.roleChanges.addRoles.map(role => this.$store.dispatch(`management/create`, {
         type:               RBAC.GLOBAL_ROLE_BINDING,
-        metadata:           { generateName: `ui-` },
+        metadata:           { generateName: `grb-` },
         globalRoleName:     role,
         groupPrincipalName: this.principalId,
       })));

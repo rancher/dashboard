@@ -269,7 +269,7 @@ export default {
         <button class="btn role-secondary" @click="close">
           Cancel
         </button>
-        <AsyncButton mode="remove" class="btn bg-error ml-10" :disabled="preventDelete" @click="remove" />
+        <AsyncButton mode="delete" class="btn bg-error ml-10" :disabled="preventDelete" @click="remove" />
       </template>
     </Card>
   </modal>

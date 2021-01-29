@@ -49,9 +49,8 @@ export default {
           data:          { },
         });
 
-        // In SPA this is not needed. In SSR I think this runs client side... where this has not been called (not sure how not...)
-        // If this is not here... when cluster/findAll is dispatched... we fail to find the spoofed type's getInstance fn as it hasn't been
-        // registered yet
+        // This is needed in SSR, but not SPA. If this is not here... when cluster/findAll is dispatched... we fail to find the spoofed
+        // type's `getInstance` fn as it hasn't been registered (`instanceMethods` in type-map file is empty)
         await applyProducts(this.$store);
 
         this.rows = await this.$store.dispatch('cluster/findAll', {
