@@ -1,6 +1,6 @@
 <script>
 import {
-  AUTH_TEST, GITHUB_CODE, GITHUB_NONCE, _FLAGGED, BACK_TO
+  AUTH_TEST, GITHUB_CODE, GITHUB_NONCE, _FLAGGED, BACK_TO, GITHUB_SCOPE
 } from '@/config/query-params';
 import { get } from '@/utils/object';
 const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth'];
@@ -23,10 +23,15 @@ export default {
     if ( route.query[AUTH_TEST] === _FLAGGED ) {
       return;
     }
-    if (route.query[GITHUB_CODE]) {
-      const res = await store.dispatch('auth/verifyGithub', {
-        code:  route.query[GITHUB_CODE],
-        nonce: route.query[GITHUB_NONCE],
+    const code = route.query[GITHUB_CODE];
+    const scope = route.query[GITHUB_SCOPE];
+    const isGoogle = scope.includes('googleapis');
+
+    if (code) {
+      const res = await store.dispatch('auth/verifyOAuth', {
+        code,
+        nonce:    route.query[GITHUB_NONCE],
+        provider: isGoogle ? 'googleoauth' : 'github'
       });
 
       if ( res === true ) {

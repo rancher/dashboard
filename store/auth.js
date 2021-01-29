@@ -154,7 +154,7 @@ export const actions = {
     }
   },
 
-  verifyGithub({ dispatch }, { nonce, code }) {
+  verifyOAuth({ dispatch }, { nonce, code, provider }) {
     const expect = this.$cookies.get(KEY, { parseJSON: false });
 
     if ( !expect || expect !== nonce ) {
@@ -162,8 +162,8 @@ export const actions = {
     }
 
     return dispatch('login', {
-      provider: 'github',
-      body:     { code }
+      provider,
+      body: { code }
     });
   },
 
@@ -171,7 +171,10 @@ export const actions = {
     const driver = await dispatch('getAuthConfig', provider);
 
     return new Promise((resolve, reject) => {
-      window.onAuthTest = (code) => {
+      window.onAuthTest = (err, code) => {
+        if (err) {
+          reject(err);
+        }
         resolve(code);
         delete window.onAuthTest;
       };
@@ -220,13 +223,13 @@ export const actions = {
     const driver = await dispatch('getAuthProvider', provider);
 
     try {
-      await driver.doAction('login', {
+      const res = await driver.doAction('login', {
         description:  'UI session',
         responseType: 'cookie',
         ...body
       }, { redirectUnauthorized: false });
 
-      return true;
+      return res;
     } catch (err) {
       if ( err._status >= 400 && err._status <= 499 ) {
         return Promise.reject(ERR_CLIENT);
@@ -272,17 +275,17 @@ function returnTo(opt, vm) {
     returnToUrl = addParam(returnToUrl, SPA, _FLAGGED);
   }
 
-  if ( opt.test ) {
-    returnToUrl = addParam(returnToUrl, AUTH_TEST, _FLAGGED);
-  }
+  // if ( opt.test ) {
+  //   returnToUrl = addParam(returnToUrl, AUTH_TEST, _FLAGGED);
+  // }
 
-  if ( opt.backTo ) {
-    returnToUrl = addParam(returnToUrl, BACK_TO, opt.backTo);
-  }
+  // if ( opt.backTo ) {
+  //   returnToUrl = addParam(returnToUrl, BACK_TO, opt.backTo);
+  // }
 
-  if (opt.provider) {
-    returnToUrl = addParam(returnToUrl, 'config', opt.provider);
-  }
+  // if (opt.provider) {
+  //   returnToUrl = addParam(returnToUrl, 'config', opt.provider);
+  // }
 
   return returnToUrl;
 }

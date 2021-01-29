@@ -172,7 +172,7 @@ authConfig:
           <ul class="mt-0">
           <li>Select the "Create Credentials" dropdown, and select "OAuth clientID", then select "Web application".</li>
           <li>Authorized Javascript origins: {serverUrl}</li>
-          <li>Authorized redirect URIs: {serverUrl}/verify?test </li>
+          <li>Authorized redirect URIs: {serverUrl}/auth/verify?test </li>
           <li>Click "Create", and then click on the "Download JSON" button.</li>
           <li>Upload the downloaded JSON file in the OAuth credentials box.</li>
           </ul>
@@ -1129,6 +1129,21 @@ longhorn:
         label: 'Longhorn'
         description: 'Manage storage system via UI'
         na: Resource Unavailable
+
+login:
+  howdy: Howdy!
+  welcome: Welcome to {vendor}
+  loggedOut: You have been logged out.
+  loginAgain: Log in again to continue.
+  error: An error occured logging in. Please try again.
+  useLocal: Use a local user
+  loginWithProvider: Log in with {provider}
+  username: Username
+  password: Password
+  loggingIn: Logging in...
+  loggedIn: Logged in
+  loginWithLocal: Log in with Local User
+  useProvider: Use a {provider} user
 
 monitoring:
   accessModes:

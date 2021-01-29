@@ -1,13 +1,13 @@
 <script>
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
-import Auth from '@/mixins/auth';
 import CruResource from '@/components/CruResource';
 import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import AsyncButton from '@/components/AsyncButton';
 import config from '@/edit/auth/ldap/config';
+import AuthConfig from '@/mixins/auth-config';
 
 const AUTH_TYPE = 'ldap';
 
@@ -22,7 +22,7 @@ export default {
     config
   },
 
-  mixins: [CreateEditView, Auth],
+  mixins: [CreateEditView, AuthConfig],
 
   data() {
     return {
