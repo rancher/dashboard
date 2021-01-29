@@ -159,7 +159,7 @@ export default {
       padding: 0 5px;
     }
 
-    ::v-deep .btn {
+    ::v-deep > div > .btn {
       border: 1px solid var(--header-btn-bg);
       background: rgba(0,0,0,.05);
       color: var(--header-btn-text);

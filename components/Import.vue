@@ -99,6 +99,12 @@ export default {
         btnCb(false);
       }
     },
+
+    rowClick(e) {
+      if ( e.target.tagName === 'A' ) {
+        this.close();
+      }
+    },
   },
 };
 </script>
@@ -136,7 +142,6 @@ export default {
     </template>
     <template #body>
       <template v-if="done">
-        <Banner color="success" :label="t('import.success', {count: rows.length})" />
         <div class="results">
           <SortableTable
             :rows="rows"
@@ -147,6 +152,7 @@ export default {
             :paging="true"
             :row-actions="false"
             :table-actions="false"
+            @rowClick="rowClick"
           />
         </div>
       </template>
