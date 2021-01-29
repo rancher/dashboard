@@ -319,7 +319,7 @@ export default {
     a {
       cursor: hand;
       padding: 0px 10px;
-  
+
       &:hover {
         background-color: var(--dropdown-hover-bg);
         color: var(--dropdown-hover-text);
