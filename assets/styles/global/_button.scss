@@ -25,12 +25,13 @@ button,
   border: 0;
   padding: $btn-padding;
   border-radius: var(--border-radius);
-  color: white;
+  color: var(--lightest);
   // height: $btn-height;
   line-height: 38px;
 
   &:hover {
     text-decoration: none;
+    color: var(--lightest);
   }
 
   &.bg-transparent {
@@ -64,6 +65,12 @@ button,
 //btn roles
 .role-primary {
   background: var(--link-text);
+  color: var(--primary-text);
+
+  &:hover {
+    background-color: var(--primary-hover-bg);
+    color: var(--primary-text);
+  }
 }
 
 .role-secondary {

@@ -462,7 +462,7 @@ export default {
             v-for="act in availableActions"
             :key="act.action"
             type="button"
-            class="btn bg-primary"
+            class="btn role-primary"
             :disabled="!act.enabled"
             @click="applyTableAction(act, null, $event)"
             @mouseover="setBulkActionOfInterest(act)"

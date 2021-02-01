@@ -383,7 +383,6 @@ export default {
 }
 
 .filter ::v-deep .unlabeled-select:not(.focused) {
-  border: var(--outline-width) solid transparent;
   min-height: 0;
 }
 
