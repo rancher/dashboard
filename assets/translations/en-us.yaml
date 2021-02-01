@@ -36,6 +36,8 @@ generic:
   unknown: Unknown
   key: Key
   value: Value
+  yes: Yes
+  no: No
 
 locale:
   en-us: English
@@ -1411,6 +1413,126 @@ node:
       pods: Pods
       taints: Taints
 
+persistentVolume:
+  pluginConfiguration:
+    label: Plugin configuration
+  customize:
+    label: Customize
+    affinity:
+      label: Node Selectors
+      addLabel: Add Node Selector
+    assignToStorageClass:
+      label: Assign to Storage Class
+    mountOptions:
+      label: Mount Options
+      addLabel: Add Option
+    accessModes:
+      label: Access Modes
+      readWriteOnce: Single Node Read-Write
+      readOnlyMany: Many Nodes Read-Only
+      readWriteMany: Many Nodes Read-Write
+  shared:
+    partition:
+      label: Partition
+      placeholder: e.g. 1; 0 for entire device
+    readOnly:
+      label: Read Only
+    filesystemType:
+      label: Filesystem Type
+      placeholder: e.g. ext4
+  vsphereVolume:
+    label: 	VMWare vSphere Volume
+    volumePath:
+      label: Volume Path
+      placeholder: e.g. /
+    storagePolicyName:
+      label: Storage Policy Name
+      placeholder: e.g. sp
+    storagePolicyId:
+      label: Storage Policy ID
+      placeholder: e.g. sp1
+  nfs:
+    label: NFS Share
+    path:
+      label: Path
+      placeholder: e.g. /var
+    server:
+      label: Server
+      placeholder: e.g. 10.244.1.4
+  csi:
+    label: Longhorn
+    volumeHandle:
+      label: Volume Handle
+      placeholder: e.g. pvc-xxxx
+    options:
+      label: Options
+      addLabel: Add
+  local:
+    label: Local
+    path:
+      label: Path
+      placeholder: e.g. /mnt/disks/ssd1
+  hostPath:
+    label: HostPath
+    pathOnTheNode:
+      label: Path on the Node
+      placeholder: /mnt/disks/ssd1
+    mustBe:
+      label: The Path on the Node must be
+      anything: 'Anything: do not check the target path'
+      directory: A directory, or create if it does not exist
+      file: A file, or create if it does not exist
+      existingDirectory: An existing directory
+      existingFile: An existing file
+      existingSocket: An existing socket
+      existingCharacter: An existing character device
+      existingBlock: An existing block device
+  gcePersistentDisk:
+    label: Google Persistent Disk
+    persistentDiskName:
+      label: Persistent Disk Name
+      placeholder: e.g. abc
+  awsElasticBlockStore:
+    label: Amazon EBS Disk
+    volumeId:
+      label: Volume ID
+      placeholder: e.g. volume1
+  azureFile:
+    label: Azure Filesystem
+    shareName: 
+      label: Share Name
+      placeholder: e.g. abc
+    secretName:
+      label: Secret Name
+      placeholder: e.g. secret
+    secretNamespace: 
+      label: Secret Namespace
+      placeholder: e.g. default
+  azureDisk:
+    label: Azure Disk
+    diskName:
+      label: Disk Name
+      placeholder: e.g. kubernetes-pvc
+    diskURI:
+      label: Disk URI
+      placeholder: e.g. https://example.com/disk
+    kind:
+      label: Kind
+      dedicated: Dedicated
+      managed: Managed
+      shared: Shared
+    cachingMode:
+      label: Caching Mode
+      none: None
+      readOnly: Read Only
+      readWrite: Read Write
+    filesystemType:
+      label: Filesystem Type
+      placeholder: e.g. ext4
+    readOnly:
+      label: Read Only
+  
+
 persistentVolumeClaim:
   accessModes: Access Modes
   capacity: Capacity
@@ -2149,6 +2271,7 @@ tableHeaders:
   object: Object
   output: Output
   p95: 95%tile
+  persistentVolumeSource: Source
   podImages: Image
   pods: Pods
   port: Port

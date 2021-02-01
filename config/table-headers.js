@@ -69,6 +69,13 @@ export const STORAGE_CLASS_PROVISIONER = {
   sort:     ['provisioner'],
 };
 
+export const PERSISTENT_VOLUME_SOURCE = {
+  name:     'persistent_volume_source',
+  labelKey: 'tableHeaders.persistentVolumeSource',
+  value:    'source',
+  sort:     ['provisioner'],
+};
+
 export const OUTPUT = {
   name:          'localOutputRefs',
   labelKey:      'tableHeaders.output',
