@@ -190,6 +190,10 @@ export default {
       if ( this.phase === SUCCESS || this.phase === ERROR ) {
         this.phase = ACTION;
       }
+    },
+
+    focus() {
+      this.$refs.btn.focus();
     }
   }
 };
@@ -197,6 +201,7 @@ export default {
 
 <template>
   <button
+    ref="btn"
     :class="classes"
     :name="name"
     :type="type"

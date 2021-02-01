@@ -9,6 +9,8 @@ import {
 import Checkbox from '@/components/form/Checkbox';
 import { getVendor, getProduct } from '../../config/private-label';
 import { sortBy } from '@/utils/sort';
+import {configType} from '@/models/management.cattle.io.authconfig'
+import {mapGetters} from 'vuex'
 
 export default {
   name:       'Login',
@@ -63,12 +65,11 @@ export default {
       providerComponents: [],
     };
   },
-//TODO uncomment when there are provider components
-  // created() {
-  //   this.providerComponents = this.providers.map((name) => {
-  //     return () => import(/* webpackChunkName: "login" */ `@/components/auth/login/${ name }`);
-  //   });
-  // },
+  created() {
+    this.providerComponents = this.providers.map((name) => {
+      return () => import(/* webpackChunkName: "login" */ `@/components/auth/login/${ configType[name] }`)
+    });
+  },
 
   mounted() {
     this.$nextTick(() => {
@@ -76,12 +77,17 @@ export default {
     });
   },
 
+  computed:{...mapGetters({t: 'i18n/t'})},
+
 
   methods: {
+    displayName(provider){
+      return this.t(`model.authConfig.provider.${ provider }`);
+    },
+
     toggleLocal() {
       this.showLocal = true;
       this.$router.applyQuery({ [LOCAL]: _FLAGGED });
-
       this.$nextTick(() => {
         this.focusSomething();
       });
@@ -120,7 +126,6 @@ export default {
             password: this.password
           }
         });
-
         if ( this.remember ) {
           this.$cookies.set(USERNAME, this.username, {
             encode: x => x,
@@ -131,7 +136,6 @@ export default {
         } else {
           this.$cookies.remove(USERNAME);
         }
-
         buttonCb(true);
         this.$router.replace('/');
       } catch (err) {
@@ -148,38 +152,38 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <p class="text-center">
-          Howdy!
+          {{t('login.howdy')}}
         </p>
         <h1 class="text-center">
-          Welcome to {{ vendor }}
+          {{t('login.welcome', {vendor})}}
         </h1>
         <h4 v-if="err" class="text-error text-center">
-          An error occurred logging in.  Please try again.
+         {{t('login.error')}}
         </h4>
         <h4 v-else-if="loggedOut" class="text-success text-center">
-          You have been logged out.
+          {{t('login.loggedOut')}}
         </h4>
         <h4 v-else-if="timedOut" class="text-error text-center">
-          Log in again to continue.
+          {{t('login.loginAgain')}}
         </h4>
 
-        <div v-if="providers.length" class="text-center mt-50 mb-50">
+        <div v-if="providers.length" class="mt-50 mb-50">
           <component
             v-for="(name, idx) in providers"
             :is="providerComponents[idx]"
             :key="name"
             :focus-on-mount="(idx === 0 && !showLocal)"
+            :name='name'
           />
         </div>
-
-        <template v-if="hasLocal">
+        <template v-if='hasLocal'>
           <form v-if="showLocal" class="mt-50">
             <div class="span-6 offset-3">
               <div class="mb-20">
                 <LabeledInput
                   ref="username"
                   v-model="username"
-                  label="Username"
+                  :label="t('login.username')"
                   autocomplete="username"
                 />
               </div>
@@ -188,7 +192,7 @@ export default {
                   ref="password"
                   v-model="password"
                   type="password"
-                  label="Password"
+                  :label="t('login.password')"
                   autocomplete="password"
                 />
               </div>
@@ -197,10 +201,10 @@ export default {
               <div class="col span-12 text-center">
                 <AsyncButton
                   type="submit"
-                  action-label="Log In with Local User"
-                  waiting-label="Logging In..."
-                  success-label="Logged In"
-                  error-label="Error"
+                  :action-label="t('login.loginWithLocal')"
+                  :waiting-label="t('login.loggingIn')"
+                  :success-label="t('login.loggedIn')"
+                  :error-label="t('asyncButton.default.error')"
                   @click="loginLocal"
                 />
                 <div class="mt-20">
@@ -209,9 +213,9 @@ export default {
               </div>
             </div>
           </form>
-          <div v-else class="mt-20 text-center">
+          <div v-if='hasLocal' class="mt-20 text-center">
             <button type="button" class="btn bg-link" @click="toggleLocal">
-              Use a Local User
+              {{ t('login.useLocal')}}
             </button>
           </div>
         </template>
