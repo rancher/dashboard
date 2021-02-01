@@ -1,11 +1,7 @@
-// $btn-padding: 15px 40px;
 $btn-padding: 0 21px 0 21px;
 $btn-sm-padding: 0 7px 0 7px;
 $btn-height: 40px;
 $btn-sm-height: 30px;
-// $xs-padding: 2px 3px;
-// $sm-padding: 8px 13px;
-// $lg-padding: 18px 30px;
 
 // -----------------------------------------------------------------------------
 // This file contains all styles related to the button component.
@@ -26,8 +22,8 @@ button,
   padding: $btn-padding;
   border-radius: var(--border-radius);
   color: var(--lightest);
-  // height: $btn-height;
   line-height: 38px;
+  min-height: $btn-height;
 
   &:hover {
     text-decoration: none;
@@ -58,7 +54,7 @@ button,
 .btn-group-sm > .btn,
 .btn-sm .btn-label {
   padding: $btn-sm-padding;
-  height: $btn-sm-height;
+  min-height: $btn-sm-height;
   line-height: 28px;
 }
 

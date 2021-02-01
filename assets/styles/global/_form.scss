@@ -59,6 +59,10 @@ TEXTAREA,
   }
 }
 
+INPUT[type='search']:not(.vs__search) {
+  padding: calc($input-padding-sm + 2px);
+}
+
 TEXTAREA {
   padding: $input-padding-lg 10px 10px 10px;
   line-height: 1.25;

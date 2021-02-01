@@ -272,7 +272,7 @@ export default {
 <style lang='scss' scoped>
 .labeled-select {
   .labeled-container {
-    padding: 7px 0 1px 8px;
+    padding: $input-padding-sm 0 1px $input-padding-sm;
 
     label {
       margin: 0;

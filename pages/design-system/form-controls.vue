@@ -73,7 +73,7 @@ export default {
         :tooltip="tooltip"
       />
     </div>
-    <div class="row m-20" style="background: tomato;">
+    <div class="row m-20" style="background: yellow;">
       <div class="col span-4">
         <LabeledInput
           v-model="x"
