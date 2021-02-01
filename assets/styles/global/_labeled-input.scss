@@ -58,17 +58,17 @@
     background-color: transparent;
     outline: 0;
     box-shadow: none;
-    padding: $spacer1 0 0 0;
+    padding: $input-padding-lg 0 0 0;
     line-height: 1.25;
 
     &.no-label {
-      padding: $spacer2 0px $spacer2 0px;
+      padding: $input-padding-sm 0px $input-padding-sm 0px;
     }
   }
 
   &.view > DIV:not(.addon) {
     font-size: 14px;
-    padding: $spacer1 0 0 0;
+    padding: $input-padding-lg 0 0 0;
 
     &.no-label {
       padding-top:0px;
