@@ -40,6 +40,10 @@ export default {
         };
       });
     },
+
+    accessMode() {
+      return this.authConfig?.accessMode;
+    }
   },
 
   created() {
@@ -71,6 +75,7 @@ export default {
       </div>
       <div class="col span-6">
         <ArrayList
+          v-if="accessMode!=='unrestricted'"
           key="allowedPrincipalIds"
           v-model="authConfig.allowedPrincipalIds"
           title-key="authConfig.allowedPrincipalIds.label"
