@@ -151,7 +151,13 @@ export default {
         {
           name:  'description',
           label: this.t('cis.scan.description'),
-          value: 'description'
+          value: 'description',
+          width: '40%'
+        },
+        {
+          name:  'remediation',
+          label: this.t('cis.scan.remediation'),
+          value: 'remediation',
         }
       ];
     },
@@ -174,7 +180,6 @@ export default {
           label:     this.t('tableHeaders.type'),
           value:     'type',
         },
-
       ];
     },
   },
