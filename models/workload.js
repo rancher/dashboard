@@ -224,7 +224,7 @@ export default {
         pods = await this.$dispatch('cluster/findMatching', { type: POD, selector: podRelationship.selector }, { root: true });
       }
 
-      return pods;
+      return pods.filter(pod => pod.metadata.namespace === this.metadata.namespace);
     };
   },
 
