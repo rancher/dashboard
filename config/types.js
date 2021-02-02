@@ -14,6 +14,8 @@ export const STEVE = {
 export const NORMAN = {
   AUTH_CONFIG: 'authconfig',
   PRINCIPAL:   'principal',
+  USER:        'user',
+  TOKEN:        'token',
 };
 
 // Public (via Norman)

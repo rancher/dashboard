@@ -1,35 +1,39 @@
 <script>
-import { mapGetters } from 'vuex';
-import { MANAGEMENT } from '@/config/types';
+import PromptChangePassword from '@/components/PromptChangePassword';
+import { NORMAN, MANAGEMENT } from '@/config/types';
 import Loading from '@/components/Loading';
+import Principal from '@/components/auth/Principal';
+import { mapGetters } from 'vuex';
+
 import ResourceTable from '@/components/ResourceTable';
 
 export default {
-
   components: {
-    Loading,
-    ResourceTable,
+    PromptChangePassword, Loading, ResourceTable, Principal
   },
-
   async fetch() {
+    this.canChangePassword = await this.calcCanChangePassword();
     this.rows = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.TOKEN, opt: { force: true } });
   },
-
   data() {
-    return { rows: null };
+    return {
+      rows:              null,
+      canChangePassword: false
+    };
   },
-
-  computed: {
+  computed:   {
     ...mapGetters({ t: 'i18n/t' }),
 
-    headers() {
-      return this.$store.getters['type-map/headersFor'](this.schema);
+    apiKeyheaders() {
+      return this.$store.getters['type-map/headersFor'](this.apiKeySchema);
     },
 
-    schema() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
+    apiKeySchema() {
+      return this.$store.getters[`management/schemaFor`](MANAGEMENT.TOKEN);
+    },
 
-      return this.$store.getters[`${ inStore }/schemaFor`](MANAGEMENT.TOKEN);
+    principal() {
+      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
 
     apiKeys() {
@@ -49,47 +53,93 @@ export default {
       };
 
       return !this.rows ? [] : this.rows.filter(isApiKey);
-    },
+    }
   },
-
   methods: {
     addKey() {
       this.$router.push({ path: 'account/create-key' });
     },
-  },
+    async calcCanChangePassword() {
+      if (!this.$store.getters['auth/enabled']) {
+        return false;
+      }
 
+      if (this.principal.provider === 'local') {
+        return !!this.principal.loginName;
+      }
+
+      const users = await this.$store.dispatch('rancher/findAll', {
+        type: NORMAN.USER,
+        opt:  { url: '/v3/users', filter: { me: true } }
+      });
+
+      if (users && users.length === 1) {
+        return !!users[0].username;
+      }
+
+      return false;
+    },
+  }
 };
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <header>
-      <div class="title">
-        <h1 v-t="'account.apiKeys.title'" class="m-0"></h1>
-      </div>
-      <div class="actions-container">
-        <div class="actions">
-          <button class="btn role-primary" @click="addKey">
-            {{ t('account.apiKeys.add.label') }}
-          </button>
-        </div>
-      </div>
-    </header>
-    <ResourceTable
-      :schema="schema"
-      :rows="apiKeys"
-      :headers="headers"
-      key-field="id"
-      :search="false"
-      :row-actions="true"
-      :table-actions="true"
-    />
+    <h1 v-t="'accountAndKeys.title'" />
+
+    <h4 v-t="'accountAndKeys.account.title'" />
+    <div class="account">
+      <Principal :key="principal.id" :value="principal.id" :use-muted="false" :show-labels="true" />
+      <button
+        v-if="canChangePassword"
+        type="button"
+        class="btn role-primary"
+        @click="$refs.promptChangePassword.show(true)"
+      >
+        {{ t("accountAndKeys.account.change") }}
+      </button>
+    </div>
+    <PromptChangePassword ref="promptChangePassword" />
+
+    <hr />
+    <h4 v-t="'accountAndKeys.apiKeys.title'" />
+    <div class="keys">
+      <button class="btn role-primary add" @click="addKey">
+        {{ t('accountAndKeys.apiKeys.add.label') }}
+      </button>
+      <ResourceTable
+        :schema="apiKeySchema"
+        :rows="apiKeys"
+        :headers="apiKeyheaders"
+        key-field="id"
+        :search="false"
+        :row-actions="true"
+        :table-actions="true"
+      />
+    </div>
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style lang='scss' scoped>
   hr {
     margin: 20px 0;
+  }
+
+  button {
+    max-height: 48px;
+  }
+
+  .account {
+    display: flex;
+    justify-content: space-between
+  }
+
+  .keys {
+    display: flex;
+    flex-direction: column;
+    .add {
+      align-self: flex-end;
+    }
   }
 </style>

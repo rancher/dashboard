@@ -80,6 +80,7 @@ export default {
     },
 
     onBlur() {
+      this.$emit('blur');
       this.onBlurLabeled();
     },
 

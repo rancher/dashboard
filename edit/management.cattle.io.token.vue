@@ -47,19 +47,19 @@ export default {
       let out = all.map(opt => ({ value: opt.id, label: opt.metadata.name }));
 
       out = sortBy(out, ['label']);
-      out.unshift( { value: '', label: this.t('account.apiKeys.add.noScope') } );
+      out.unshift( { value: '', label: this.t('accountAndKeys.apiKeys.add.noScope') } );
 
       return out;
     },
     expiryOptions() {
       const options = ['never', 'day', 'month', 'year', 'custom'];
 
-      return options.map(opt => ({ value: opt, label: this.t(`account.apiKeys.add.expiryOptions.${ opt }`) }));
+      return options.map(opt => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.expiryOptions.${ opt }`) }));
     },
     expiryUnitsOptions() {
       const options = ['minute', 'hour', 'day', 'year'];
 
-      return options.map(opt => ({ value: opt, label: this.t(`account.apiKeys.add.customExpiryOptions.${ opt }`) }));
+      return options.map(opt => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.customExpiryOptions.${ opt }`) }));
     },
   },
 
@@ -144,16 +144,16 @@ export default {
       <LabeledInput
         key="description"
         v-model="value._description"
-        :placeholder="t('account.apiKeys.add.descriptionPlaceholder')"
-        :label="t('account.apiKeys.add.description')"
+        :placeholder="t('accountAndKeys.apiKeys.add.descriptionPlaceholder')"
+        :label="t('accountAndKeys.apiKeys.add.description')"
         :mode="'edit'"
         :min-height="30"
       />
 
-      <LabeledSelect v-model="value.clusterId" class="mt-20 scope-select" :label="t('account.apiKeys.add.scope')" :options="scopes" />
+      <LabeledSelect v-model="value.clusterId" class="mt-20 scope-select" :label="t('accountAndKeys.apiKeys.add.scope')" :options="scopes" />
 
       <h5 class="pt-20">
-        {{ t('account.apiKeys.add.expiryLabel') }}
+        {{ t('accountAndKeys.apiKeys.add.expiryLabel') }}
       </h5>
 
       <div class="ml-10">
@@ -178,26 +178,26 @@ export default {
     ></Footer>
   </div>
   <div v-else>
-    <div>{{ t('account.apiKeys.info.keyCreated') }}</div>
+    <div>{{ t('accountAndKeys.apiKeys.info.keyCreated') }}</div>
 
-    <DetailText :value="accessKey" label-key="account.apiKeys.info.accessKey" class="mt-20" />
-    <DetailText :value="secretKey" label-key="account.apiKeys.info.secretKey" class="mt-20" />
+    <DetailText :value="accessKey" label-key="accountAndKeys.apiKeys.info.accessKey" class="mt-20" />
+    <DetailText :value="secretKey" label-key="accountAndKeys.apiKeys.info.secretKey" class="mt-20" />
 
     <p class="mt-20">
-      {{ t('account.apiKeys.info.bearerTokenTip') }}
+      {{ t('accountAndKeys.apiKeys.info.bearerTokenTip') }}
     </p>
 
-    <DetailText :value="created.token" label-key="account.apiKeys.info.bearerToken" class="mt-20" />
+    <DetailText :value="created.token" label-key="accountAndKeys.apiKeys.info.bearerToken" class="mt-20" />
 
     <Banner color="warning" class="mt-20">
       <div>
-        {{ t('account.apiKeys.info.saveWarning') }}
+        {{ t('accountAndKeys.apiKeys.info.saveWarning') }}
       </div>
     </Banner>
 
     <Banner v-if="ttlLimited" color="warning" class="mt-20">
       <div>
-        {{ t('account.apiKeys.info.ttlLimitedWarning') }}
+        {{ t('accountAndKeys.apiKeys.info.ttlLimitedWarning') }}
       </div>
     </Banner>
 
