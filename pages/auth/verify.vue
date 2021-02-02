@@ -19,7 +19,7 @@ export default {
 
   async fetch({ store, route, redirect }) {
     const code = route.query[GITHUB_CODE];
-    const state = route.query[GITHUB_NONCE];
+    const state = route.query[GITHUB_NONCE] || '';
     const isGoogle = state.includes('-googleoauth');
     const isTesting = state.includes('-test');
 
@@ -34,7 +34,7 @@ export default {
         provider: isGoogle ? 'googleoauth' : 'github'
       });
 
-      if ( res === true ) {
+      if ( res._status === 200) {
         const backTo = route.query[BACK_TO] || '/';
 
         redirect(backTo);
@@ -45,7 +45,7 @@ export default {
   },
 
   data() {
-    const state = this.$route.query[GITHUB_NONCE];
+    const state = this.$route.query[GITHUB_NONCE] || '';
 
     const testing = state.includes('-test');
 

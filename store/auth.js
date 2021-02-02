@@ -216,13 +216,13 @@ export const actions = {
     const driver = await dispatch('getAuthProvider', provider);
 
     try {
-      await driver.doAction('login', {
+      const res = await driver.doAction('login', {
         description:  'UI session',
         responseType: 'cookie',
         ...body
       }, { redirectUnauthorized: false });
 
-      return true;
+      return res;
     } catch (err) {
       if ( err._status >= 400 && err._status <= 499 ) {
         return Promise.reject(ERR_CLIENT);

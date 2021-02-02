@@ -1985,6 +1985,7 @@ validation:
     exactly: '"{key}" should contain {count, plural, =1 {# item} other {# items}}'
     max: '"{key}" should contain at most {count} {count, plural, =1 {item} other {items}}'
     min: '"{key}" should contain at least {count} {count, plural, =1 {item} other {items}}'
+  boolean: '"{key}" must be a boolean value.'
   chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
   custom:
     missing: 'No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?'

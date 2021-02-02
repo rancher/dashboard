@@ -5,7 +5,7 @@ export default {
 
   methods: {
     async login() {
-      const res = await this.$store.dispatch('auth/login', { provider: name, body: { finalRedirectUrl: window.location.origin } });
+      const res = await this.$store.dispatch('auth/login', { provider: this.name, body: { finalRedirectUrl: window.location.origin } });
       const { idpRedirectUrl } = res;
 
       window.location.href = idpRedirectUrl;
