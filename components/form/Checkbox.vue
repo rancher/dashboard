@@ -141,35 +141,30 @@ export default {
   }
 
   input:checked ~ .checkbox-custom {
-      background-color:var(--dropdown-text);
-      -webkit-transform: rotate(0deg) scale(1);
-      -ms-transform: rotate(0deg) scale(1);
-      transform: rotate(0deg) scale(1);
-      opacity:1;
-      border: 1px solid var(--dropdown-text);
-
-      &.indeterminate{
-        background-color: transparent;
-        border: 1px solid var(--border)
-      }
+    background-color:var(--dropdown-text);
+    -webkit-transform: rotate(0deg) scale(1);
+    -ms-transform: rotate(0deg) scale(1);
+    transform: rotate(0deg) scale(1);
+    opacity:1;
+    border: 1px solid var(--dropdown-text);
   }
 
   // Custom Checkbox tick
   .checkbox-custom::after {
-      position: absolute;
-      content: "";
-      left: 0px;
-      top: 0px;
-      height: 0px;
-      width: 0px;
-      border-radius: var(--border-radius);
-      border: solid;
-      border-color: var(--input-text);
-      border-width: 0 3px 3px 0;
-      -webkit-transform: rotate(0deg) scale(0);
-      -ms-transform: rotate(0deg) scale(0);
-      transform: rotate(0deg) scale(0);
-      opacity:1;
+    position: absolute;
+    content: "";
+    left: 0px;
+    top: 0px;
+    height: 0px;
+    width: 0px;
+    border-radius: var(--border-radius);
+    border: solid;
+    border-color: var(--input-text);
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(0deg) scale(0);
+    -ms-transform: rotate(0deg) scale(0);
+    transform: rotate(0deg) scale(0);
+    opacity:1;
   }
 
   input:checked ~ .checkbox-custom::after {
@@ -191,12 +186,12 @@ export default {
     -ms-transform:  scale(1);
     transform:  scale(1);
     opacity:1;
-    left: 2px;
+    left: 3px;
     top:2px;
-    width: 7px;
+    width: 6px;
     height: 5px;
     border: solid;
-    border-color: var(--checkbox-ticked-bg);
+    border-color: var(--checkbox-tick);
     border-width: 0 0 2px 0;
     background-color: transparent;
   }
