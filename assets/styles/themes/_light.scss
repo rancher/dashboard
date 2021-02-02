@@ -99,7 +99,7 @@ $selected: rgba($primary, .5);
   --dropdown-active-text       : #{darken($link, 1%)};
   --dropdown-active-bg         : #{$selected};
   --dropdown-hover-text        : #{lighten($link, 1%)};
-  --dropdown-hover-bg          : #{rgba($primary, 0.7)};
+  --dropdown-hover-bg          : #{rgba($primary, 0.2)};
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
 

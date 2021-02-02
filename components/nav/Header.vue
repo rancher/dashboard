@@ -150,16 +150,28 @@ export default {
     display: grid;
     height: 100vh;
 
+    .labeled-select,
+    .unlabeled-select {
+      min-height: 0;
+      height: $input-height;
+    }
+
     > * {
       display: flex;
       align-items: center;
       padding: 0 5px;
     }
 
-    ::v-deep .btn {
+    ::v-deep > div > .btn {
       border: 1px solid var(--header-btn-bg);
       background: rgba(0,0,0,.05);
       color: var(--header-btn-text);
+
+      &[disabled=disabled] {
+        background-color: var(--header-btn-bg) !important;
+        color: var(--header-btn-text) !important;
+        opacity: 0.7;
+      }
     }
 
     grid-template-areas:  "product top back import kubectl cluster user";
@@ -252,9 +264,8 @@ export default {
 
       &:focus {
         .v-popover {
-          line-height: 0;
-
           ::v-deep .trigger {
+            line-height: 0;
             .user-image {
               max-height: 40px;
             }

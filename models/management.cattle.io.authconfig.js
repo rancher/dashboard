@@ -1,7 +1,7 @@
 import { insertAt } from '@/utils/array';
 import { set } from '@/utils/object';
 
-const configType = {
+export const configType = {
   activedirectory: 'ldap',
   azuread:         'oauth',
   openldap:        'ldap',

@@ -87,12 +87,13 @@ export default {
             obj.code = code;
           }
           if (configType === 'saml') {
-            this.model.enabled = true;
             if (!this.model.accessMode) {
               this.model.accessMode = 'unrestricted';
             }
             await this.model.save();
-            await this.model.doAction('testAndEnable', obj);
+            await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
+
+            await this.reloadModel();
           } else {
             this.model.enabled = true;
             if (!this.model.accessMode) {

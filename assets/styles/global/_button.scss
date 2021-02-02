@@ -1,6 +1,8 @@
 // $btn-padding: 15px 40px;
 $btn-padding: 0 20px 0 20px;
+$btn-sm-padding: 0 7px 0 7px;
 $btn-height: 40px;
+$btn-sm-height: 30px;
 // $xs-padding: 2px 3px;
 // $sm-padding: 8px 13px;
 // $lg-padding: 18px 30px;
@@ -24,7 +26,7 @@ button,
   padding: $btn-padding;
   border-radius: var(--border-radius);
   color: white;
-  height: $btn-height;
+  // height: $btn-height;
   line-height: 38px;
 
   &:hover {
@@ -53,7 +55,9 @@ button,
 .btn-sm,
 .btn-group-sm > .btn,
 .btn-sm .btn-label {
-  padding: $btn-padding;
+  padding: $btn-sm-padding;
+  height: $btn-sm-height;
+  line-height: 28px;
 }
 
 //btn roles
@@ -71,7 +75,6 @@ button,
   background: var(--accent-btn);
   border: solid thin var(--link-text);
   color: var(--link-text);
-  @extend .btn-sm;
 }
 
 .role-link {
@@ -87,9 +90,9 @@ button,
   border: solid thin var(--link-text);
   color: var(--link-text);
   border-radius: 2px;
-  line-height: 0;
-  width: $btn-height;
-  padding: 0;
+  // line-height: 0;
+  // width: $btn-height;
+  // padding: 0;
 }
 
 .icon-group i {

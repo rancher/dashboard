@@ -151,6 +151,8 @@ export default {
       const isExpand = td.hasClass('row-expand');
       const content = this.pagedRows;
 
+      this.$emit('rowClick', e);
+
       if ( !node ) {
         return;
       }

@@ -11,14 +11,15 @@
 .col {
   > .labeled-select:not(.taggable),
   > .unlabeled-select:not(.taggable) {
-    max-height: $input-height;
+    min-height: $input-height;
   }
 }
 
 .labeled-select,
 .unlabeled-select {
   min-width: 75px;
-
+  // min-height: $input-height;
+  
   .v-select {
     &.inline {
 
@@ -77,8 +78,7 @@
 
   &.focused {
     outline: none;
-    border: var(--outline-width) solid var(--outline);
-    box-shadow: none;
+    box-shadow: 0 0 0 var(--outline-width) var(--outline);
     .v-select {
       // Can toggle this to get full width dd - maybe make an option?
       .vs__dropdown-menu {
@@ -92,7 +92,6 @@
 .unlabeled-select {
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
-  border: solid var(--border-width) var(--input-border);
   color: var(--input-text);
 
   &.disabled {
@@ -102,9 +101,6 @@
       cursor: not-allowed;
     }
   }
-
-  // Here to match the min height of the labeled select.
-  // min-height: $input-height-small;
 
   .vs--single .vs__selected-options {
     flex-wrap: nowrap;

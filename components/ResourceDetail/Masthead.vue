@@ -397,15 +397,6 @@ export default {
     }
   }
 
-  // .actions {
-  //   display: flex;
-  //   justify-content: flex-end;
-  //   align-items:center;
-  //   & .btn-group {
-  //     margin-right: 10px;
-  //   }
-  // }
-
   .state-banner {
     margin: 3px 0 0 0;
   }
