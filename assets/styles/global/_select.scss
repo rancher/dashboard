@@ -18,7 +18,7 @@
 .labeled-select,
 .unlabeled-select {
   min-width: 75px;
-  // min-height: $input-height;
+  line-height: 1.25;
   
   .v-select {
     &.inline {
@@ -104,11 +104,11 @@
       height: 100%;
 
       &.vs--unsearchable {
-        position: absolute;
-        top: 0;
-        right: 0;
-        left: 0;
-        bottom: 0;
+        // position: absolute;
+        // top: 0;
+        // right: 0;
+        // left: 0;
+        // bottom: 0;
       }
 
       .vs__dropdown-toggle {
@@ -122,6 +122,7 @@
 
   &:not(.view) {
     background-color: var(--input-bg);
+    border: solid var(--border-width) var(--input-border);
 
     &:hover {
       &,
