@@ -1871,6 +1871,7 @@ tableHeaders:
   clusterGroups: Cluster Groups
   commit: Commit
   condition: Condition
+  customVerbs: Custom Verbs
   providers: Providers
   cpu: CPU
   date: Date

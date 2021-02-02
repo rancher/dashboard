@@ -1,84 +1,6 @@
 import { uniq } from '@/utils/array';
 import Vue from 'vue';
-
-export const RESOURCES = [
-  'Apps',
-  'AuspanConfigs',
-  'Catalogs',
-  'ClusterAlerts',
-  'ClusterComposeConfigs',
-  'ClusterEvents',
-  'ClusterLoggings',
-  'ClusterPipelines',
-  'ClusterRegistrationTokens',
-  'ClusterRoleTemplateBindings',
-  'CertificateSigningRequests',
-  'ClusterRoleBindings',
-  'ClusterRoles',
-  'Clusters',
-  'ComponentStatuses',
-  'ConfigMaps',
-  'ControllerRevisions',
-  'CronJobs',
-  'DaemonSets',
-  'Deployments',
-  'Endpoints',
-  'Events',
-  'GlobalComposeConfigs',
-  'GlobalRoleBindings',
-  'GlobalRoles',
-  'GroupMembers',
-  'Groups',
-  'HorizontalPodAutoscalers',
-  'Ingresses',
-  'Jobs',
-  'LimitRanges',
-  'ListenConfigs',
-  'Namespaces',
-  'NetworkPolicies',
-  'NodeDrivers',
-  'NodePools',
-  'NodeTemplates',
-  'Nodes',
-  'Notifiers',
-  'PersistentVolumeClaims',
-  'PersistentVolumes',
-  'PodDisruptionBudgets',
-  'PodPreset',
-  'PodSecurityPolicies',
-  'PodTemplates',
-  'Pods',
-  'PipelineExecutionLogs',
-  'PipelineExecutions',
-  'Pipelines',
-  'PodSecurityPolicyTemplateProjectBindings',
-  'PodSecurityPolicyTemplates',
-  'Preferences',
-  'Principals',
-  'ProjectAlerts',
-  'ProjectLoggings',
-  'ProjectNetworkPolicies',
-  'ProjectRoleTemplateBindings',
-  'Projects',
-  'ReplicaSets',
-  'ReplicationControllers',
-  'ResourceQuotas',
-  'RoleBindings',
-  'Roles',
-  'RoleTemplates',
-  'Secrets',
-  'ServiceAccounts',
-  'Services',
-  'StatefulSets',
-  'StorageClasses',
-  'Settings',
-  'SourceCodeCredentials',
-  'SourceCodeRepositories',
-  'TemplateVersions',
-  'Templates',
-  'Tokens',
-  'Users',
-];
+import { SCHEMA } from '@/config/types';
 
 export const SUBTYPE_MAPPING = {
   GLOBAL:    {
@@ -121,6 +43,8 @@ export const VERBS = [
   'update',
   'watch',
 ];
+
+const GLOBAL_GROUP = '.cattle.io';
 
 export const SUBTYPES = uniq(Object.values(SUBTYPE_MAPPING).map(mapping => mapping.type));
 
@@ -223,6 +147,36 @@ export default {
 
       Vue.set(this, defaultKey, value);
     };
-  }
+  },
 
+  allResources() {
+    return this.$getters['all'](SCHEMA).filter(r => r.attributes?.kind);
+  },
+
+  globalResources() {
+    return this.allResources.filter(r => r.attributes.group.includes(GLOBAL_GROUP));
+  },
+
+  clusterResources() {
+    return this.allResources.filter(r => !r.attributes.namespaced && !r.attributes.group.includes(GLOBAL_GROUP));
+  },
+
+  namespaceResources() {
+    return this.allResources.filter(r => r.attributes.namespaced && !r.attributes.group.includes(GLOBAL_GROUP));
+  },
+
+  subtypeResources() {
+    switch (this.subtype) {
+    case SUBTYPE_MAPPING.CLUSTER.key:
+      return this.clusterResources;
+    case SUBTYPE_MAPPING.NAMESPACE.key:
+      return this.namespaceResources;
+    default:
+      return this.globalResources;
+    }
+  },
+
+  resources() {
+    return uniq(this.subtypeResources.map(r => r.attributes?.kind)).sort();
+  }
 };

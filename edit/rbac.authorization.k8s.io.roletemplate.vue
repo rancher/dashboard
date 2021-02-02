@@ -9,7 +9,7 @@ import ArrayList from '@/components/form/ArrayList';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Tab from '@/components/Tabbed/Tab';
 import Tabbed from '@/components/Tabbed';
-import { RESOURCES, SUBTYPE_MAPPING, VERBS } from '@/models/rbac.authorization.k8s.io.roletemplate';
+import { SUBTYPE_MAPPING, VERBS } from '@/models/rbac.authorization.k8s.io.roletemplate';
 
 export default {
   components: {
@@ -62,10 +62,6 @@ export default {
 
     return {
       subtypes,
-      resourceOptions: RESOURCES.map(resource => ({
-        value: resource.toLowerCase(),
-        label: resource
-      })),
       defaultRule: {
         apiGroups:       [],
         nonResourceURLs: [],
@@ -93,6 +89,12 @@ export default {
           label: this.t('rbac.roletemplate.locked.no')
         }
       ];
+    },
+    resourceOptions() {
+      return this.value.resources.map(resource => ({
+        value: resource.toLowerCase(),
+        label: resource
+      }));
     },
     newUserDefaultOptions() {
       return [
@@ -140,11 +142,18 @@ export default {
         }
       }
     },
-    setRule(key, rule, value) {
+    setRule(key, rule, event) {
+      const value = event.label ? event.label : event;
+
       this.$set(rule, key, [value]);
     },
     getRule(key, rule) {
       return rule[key]?.[0] || null;
+    },
+    updateSelectValue(row, key, event) {
+      const value = event.label ? event.value : event;
+
+      this.$set(row, key, value);
     }
   }
 };
@@ -227,12 +236,13 @@ export default {
             <div class="columns row">
               <div class="col span-3">
                 <Select
-                  v-model="props.row.value.verbs"
+                  :value="props.row.value.verbs"
                   class="lg"
-                  :taggable="false"
+                  :taggable="true"
                   :searchable="true"
                   :options="verbOptions"
                   :multiple="true"
+                  @input="updateSelectValue(props.row.value, 'verbs', $event)"
                 />
               </div>
               <div class="col span-3">
@@ -240,6 +250,7 @@ export default {
                   :value="getRule('resources', props.row.value)"
                   :options="resourceOptions"
                   :searchable="true"
+                  :taggable="true"
                   :mode="mode"
                   @input="setRule('resources', props.row.value, $event)"
                 />

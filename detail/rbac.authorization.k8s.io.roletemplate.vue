@@ -54,6 +54,7 @@ export default {
           const key = this.verbKey(verb);
 
           tableRule[key] = rule.verbs[0] === '*' || rule.verbs.includes(verb);
+          tableRule.hasCustomVerbs = rule.verbs.some(verb => !VERBS.includes(verb));
         });
 
         return tableRule;
@@ -70,6 +71,14 @@ export default {
 
       return [
         ...verbHeaders,
+        {
+          name:      'custom',
+          labelKey:  'tableHeaders.customVerbs',
+          key:       ucFirst('custom'),
+          value:     'hasCustomVerbs',
+          formatter: 'Checked',
+          align:     'center'
+        },
         {
           name:      'resources',
           labelKey:  'tableHeaders.resources',
