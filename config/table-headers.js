@@ -471,6 +471,20 @@ export const RBAC_HEADERS = [
   }
 ];
 
+export const RBAC_DEFAULT = {
+  name:      'default',
+  labelKey:  'tableHeaders.default',
+  value:     'default',
+  formatter: 'Checked'
+};
+
+export const RBAC_BUILTIN = {
+  name:      'builtin',
+  labelKey:  'tableHeaders.builtin',
+  value:     'builtin',
+  formatter: 'Checked'
+};
+
 export const RESOURCE = {
   name:     'resource',
   labelKey: 'tableHeaders.resource',

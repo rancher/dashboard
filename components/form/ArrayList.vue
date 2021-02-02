@@ -87,7 +87,9 @@ export default {
     }
 
     if ( !rows.length && this.initialEmptyRow ) {
-      rows.push({ value: '' });
+      const value = this.defaultAddValue ? clone(this.defaultAddValue) : '';
+
+      rows.push({ value });
     }
 
     return { rows, lastUpdateWasFromValue: false };

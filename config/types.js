@@ -52,6 +52,7 @@ export const RBAC = {
   CLUSTER_ROLE_BINDING: 'rbac.authorization.k8s.io.clusterrolebinding',
   GLOBAL_ROLE:          'management.cattle.io.globalrole',
   GLOBAL_ROLE_BINDING:  'management.cattle.io.globalrolebinding',
+  SPOOFED:              { ROLE_TEMPLATE: 'rbac.authorization.k8s.io.roletemplate' }
 };
 
 export const WORKLOAD = 'workload';
