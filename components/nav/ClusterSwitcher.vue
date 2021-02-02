@@ -115,6 +115,7 @@ export default {
     display: grid;
     grid-template-columns: 15% 85%;
     align-items: center;
+    align-content: center;
   }
 
   .cluster-switcher-os-logo {
@@ -141,6 +142,7 @@ export default {
       width: 100%;
       grid-template-columns: 25px fit-content(100%);
       align-items: center;
+      align-content: center;
     }
   }
 
