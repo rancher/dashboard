@@ -98,8 +98,8 @@ export default {
       <slot name="label">
         <t v-if="labelKey" :k="labelKey" />
         <template v-else-if="label">{{ label }}</template>
-        <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="icon icon-info icon-lg" />
-        <i v-else-if="tooltip" v-tooltip="tooltip" class="icon icon-info icon-lg" />
+        <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="checkbox-info icon icon-info icon-lg" />
+        <i v-else-if="tooltip" v-tooltip="tooltip" class="checkbox-info icon icon-info icon-lg" />
       </slot>
     </span>
   </label>
@@ -118,7 +118,13 @@ export default {
 
   .checkbox-label {
     color: var(--input-label);
+    display: inline-flex;
     margin: 0px 10px 0px 5px;
+  }
+
+  .checkbox-info {
+    line-height: normal;
+    margin-left: 2px;
   }
 
  .checkbox-custom {
@@ -135,33 +141,30 @@ export default {
   }
 
   input:checked ~ .checkbox-custom {
-      background-color:var(--dropdown-text);
-      -webkit-transform: rotate(0deg) scale(1);
-      -ms-transform: rotate(0deg) scale(1);
-      transform: rotate(0deg) scale(1);
-      opacity:1;
-      border: 1px solid var(--input-label);
-      &.indeterminate{
-        background-color: transparent;
-        border: 1px solid var(--border)
-      }
+    background-color:var(--dropdown-text);
+    -webkit-transform: rotate(0deg) scale(1);
+    -ms-transform: rotate(0deg) scale(1);
+    transform: rotate(0deg) scale(1);
+    opacity:1;
+    border: 1px solid var(--dropdown-text);
   }
 
+  // Custom Checkbox tick
   .checkbox-custom::after {
-      position: absolute;
-      content: "";
-      left: 0px;
-      top: 0px;
-      height: 0px;
-      width: 0px;
-      border-radius: var(--border-radius);
-      border: solid;
-      border-color: var(--input-text);
-      border-width: 0 3px 3px 0;
-      -webkit-transform: rotate(0deg) scale(0);
-      -ms-transform: rotate(0deg) scale(0);
-      transform: rotate(0deg) scale(0);
-      opacity:1;
+    position: absolute;
+    content: "";
+    left: 0px;
+    top: 0px;
+    height: 0px;
+    width: 0px;
+    border-radius: var(--border-radius);
+    border: solid;
+    border-color: var(--input-text);
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(0deg) scale(0);
+    -ms-transform: rotate(0deg) scale(0);
+    transform: rotate(0deg) scale(0);
+    opacity:1;
   }
 
   input:checked ~ .checkbox-custom::after {
@@ -173,7 +176,7 @@ export default {
     width: 4px;
     height: 10px;
     border: solid;
-    border-color: var(--input-text);
+    border-color: var(--checkbox-tick);
     border-width: 0 2px 2px 0;
     background-color: transparent;
   }
@@ -183,18 +186,29 @@ export default {
     -ms-transform:  scale(1);
     transform:  scale(1);
     opacity:1;
-    left: 2px;
+    left: 3px;
     top:2px;
-    width: 7px;
+    width: 6px;
     height: 5px;
     border: solid;
-    border-color: var(--dropdown-text);
+    border-color: var(--checkbox-tick);
     border-width: 0 0 2px 0;
     background-color: transparent;
   }
 
-  input:disabled  ~ .checkbox-custom {
-    background-color: var(--disabled-bg);
+  // Disabled styles
+  &.disabled {
+    .checkbox-custom {
+      background-color: var(--checkbox-disabled-bg);
+      border-color: var(--checkbox-disabled-bg);
+    }
+    input:checked ~ .checkbox-custom {
+      background-color: var(--checkbox-disabled-bg);
+      border-color: var(--checkbox-disabled-bg);
+      &::after {
+        border-color: var(--checkbox-tick-disabled);
+      }
+    }
   }
 
   &.disabled {

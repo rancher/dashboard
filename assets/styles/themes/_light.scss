@@ -91,6 +91,11 @@ $selected: rgba($primary, .5);
   --overlay-bg                 : #{rgba($lighter, 0.75)};
   --shadow                     : #{rgba($medium, 0.85)};
 
+  --checkbox-tick              : #{$lightest};
+  --checkbox-border            : #{$medium};
+  --checkbox-tick-disabled     : #{darken($disabled, 20%)};
+  --checkbox-disabled-bg       : #{$disabled};
+  --checkbox-ticked-bg         : #{$link};
 
   --dropdown-bg                : #{$lightest};
   --dropdown-border            : #{$medium};
