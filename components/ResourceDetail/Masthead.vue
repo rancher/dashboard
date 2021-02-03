@@ -398,4 +398,19 @@ export default {
     position: relative;
     top: -2px;
   }
+
+  .left-right-split {
+    display: grid;
+
+    .left-half {
+      background: lavenderblush;
+      grid-column: 1;
+    }
+
+    .right-half {
+      background: darkslateblue;
+      grid-column: 2;
+    }
+  }
+
 </style>
