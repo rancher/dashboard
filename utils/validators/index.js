@@ -256,12 +256,14 @@ export function validateDnsLikeTypes(val, type, displayKey, getters, opts, error
 }
 
 export function validateBoolean(val, field, displayKey, getters, errors = []) {
-  if (!val && val !== false) {
+  const { required } = field;
+
+  if (required && !val && val !== false) {
     errors.push(getters['i18n/t']('validation.required', { key: displayKey }));
 
     return;
   }
-  if (typeof val !== 'boolean') {
+  if (typeof val !== 'boolean' && !!val) {
     errors.push(getters['i18n/t']('validation.boolean', { key: displayKey }));
   }
 }
