@@ -107,7 +107,7 @@ export default {
 }
 
 .filter ::v-deep .unlabeled-select .v-select .vs__selected {
-  margin: 4px;
+  margin: $input-padding-sm;
   user-select: none;
   color: var(--header-btn-text);
 }
