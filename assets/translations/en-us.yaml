@@ -698,10 +698,6 @@ fleet:
       unready: Non-Ready
     auth:
       label: Authentication
-      none: None
-      basic: HTTP Basic Auth
-      ssh: SSH Key
-      custom: Secret Name
     caBundle:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
@@ -1738,8 +1734,37 @@ secret:
     ca: CA Certificate
     token: Token
   type: Type
+  types:
+    'opaque': 'Opaque'
+    'kubernetes.io/service-account-token': 'Svc Acct Token'
+    'kubernetes.io/dockercfg': 'Registry'
+    'kubernetes.io/dockerconfigjson': 'Registry'
+    'kubernetes.io/basic-auth': 'HTTP Basic Auth'
+    'kubernetes.io/ssh-auth': 'SSH Key'
+    'kubernetes.io/tls': 'TLS Certificate'
+    'bootstrap.kubernetes.io/token': 'Bootstrap Token'
+    'istio.io/key-and-cert': 'Istio Certificate'
+    'helm.sh/release.v1': 'Helm Release'
+    'fleet.cattle.io/cluster-registration-values': 'Fleet Cluster'
   relatedWorkloads: Related Workloads
 
+selectOrCreateAuthSecret:
+  label: Authentication
+  options:
+    none: None
+    basic: HTTP Basic Auth
+    ssh: SSH Key
+    custom: Secret Name
+  ssh:
+    publicKey: Public Key
+    privateKey: Private Key
+  basic:
+    username: Username
+    password: Password
+  namespaceGroup: "Namespace: {name}"
+  chooseExisting: "Choose an existing secret:"
+  createSsh: Create a SSH Key Secret
+  createBasic: Create a HTTP Basic Auth Secret
 
 servicePorts:
   header:

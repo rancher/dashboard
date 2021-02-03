@@ -5,6 +5,8 @@ import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Labels from '@/components/form/Labels';
+import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
+import { NAMESPACE } from '@/config/types';
 
 export default {
   name: 'CruCatalogRepo',
@@ -15,12 +17,41 @@ export default {
     LabeledInput,
     NameNsDescription,
     Labels,
+    SelectOrCreateAuthSecret,
   },
 
   mixins: [CreateEditView],
 
   data() {
     return { isGit: !!this.value.spec.gitRepo };
+  },
+
+  computed: {
+    secretNamespace() {
+      const tryNames = ['cattle-system', 'default'];
+
+      for ( const name of tryNames ) {
+        if ( this.$store.getters['cluster/byId'](NAMESPACE, name) ) {
+          return name;
+        }
+      }
+
+      return this.$store.getters['cluster/all'](NAMESPACE)[0]?.id;
+    },
+  },
+
+  methods: {
+    updateAuth() {
+      const spec = this.value.spec;
+
+      if ( !this.authSecret || this.authSecret === _SSH || this.authSecret === _BASIC || this.authSecret === _NONE ) {
+        delete spec.clientSecret;
+      } else {
+        const parts = this.authSecret.split('/');
+
+        spec.clientSecret = { namespace: split[0], name: split[1] };
+      }
+    },
   },
 
 };
@@ -63,6 +94,7 @@ export default {
         />
       </div>
     </div>
+
     <LabeledInput
       v-else
       v-model="value.spec.url"
@@ -70,6 +102,14 @@ export default {
       :label="t('catalog.repo.url.label')"
       :placeholder="t('catalog.repo.url.placeholder', null, true)"
       :mode="mode"
+    />
+
+    <SelectOrCreateAuthSecret
+      v-model="value.spec.clientSecret"
+      :register-before-hook="registerBeforeHook"
+      :namespace="secretNamespace"
+      :limit-to-namespace="false"
+      generate-name="clusterrepo-auth-"
     />
 
     <Labels

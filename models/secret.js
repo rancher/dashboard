@@ -18,20 +18,6 @@ export const TYPES = {
   FLEET_CLUSTER:  'fleet.cattle.io/cluster-registration-values',
 };
 
-export const DISPLAY_TYPES = {
-  [TYPES.OPAQUE]:        'Opaque',
-  [TYPES.SERVICE_ACCT]:  'Svc Acct Token',
-  [TYPES.DOCKER]:        'Registry',
-  [TYPES.DOCKER_JSON]:   'Registry',
-  [TYPES.BASIC]:         'Basic Auth',
-  [TYPES.SSH]:           'SSH',
-  [TYPES.TLS]:           'Certificate',
-  [TYPES.BOOTSTRAP]:     'Bootstrap Token',
-  [TYPES.ISTIO_TLS]:     'Certificate (Istio)',
-  [TYPES.HELM_RELEASE]:  'Helm Release',
-  [TYPES.FLEET_CLUSTER]: 'Fleet Cluster'
-};
-
 export default {
   hasSensitiveData: () => true,
 
@@ -248,13 +234,10 @@ export default {
   },
 
   typeDisplay() {
-    const mapped = DISPLAY_TYPES[this._type];
+    const type = this._type || '';
+    const fallback = type.replace(/^kubernetes.io\//, '');
 
-    if ( mapped ) {
-      return mapped;
-    }
-
-    return (this._type || '').replace(/^kubernetes.io\//, '');
+    return this.$rootGetters['i18n/withFallback'](`secret.types."${ type }"`, null, fallback);
   },
 
   // parse TLS certs and return issuer, notAfter, cn, sans
