@@ -29,11 +29,16 @@ export default {
     const principals = await this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
 
     this.hasGroups = principals.filter(principal => principal.principalType === 'group')?.length;
+
+    const userSchema = this.$store.getters[`rancher/schemaFor`](NORMAN.USER);
+
+    this.canRefresh = !!userSchema.collectionActions?.refreshauthprovideraccess;
   },
   data() {
     return {
       rows:           null,
       hasGroups:      false,
+      canRefresh:     false,
       assignLocation:  {
         path:   `/c/local/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
         query: { [MODE]: _EDIT }
@@ -78,6 +83,7 @@ export default {
     >
       <template slot="extraActions">
         <AsyncButton
+          v-if="canRefresh"
           mode="refresh"
           :action-label="t('authGroups.actions.refresh')"
           :waiting-label="t('authGroups.actions.refresh')"
