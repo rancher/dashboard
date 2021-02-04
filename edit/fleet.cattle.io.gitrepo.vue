@@ -19,6 +19,7 @@ import NameNsDescription from '@/components/form/NameNsDescription';
 import YamlEditor from '@/components/YamlEditor';
 import { base64Decode, base64Encode } from '@/utils/crypto';
 import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
+import { _CREATE } from '@/config/query-params';
 
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
@@ -77,7 +78,7 @@ export default {
 
     let targetMode = targetInfo.mode;
 
-    if (!this.value.id ) {
+    if ( this.realMode === _CREATE ) {
       targetMode = 'all';
     } else if ( targetMode === 'cluster' ) {
       targetMode = `cluster://${ targetCluster }`;
