@@ -34,7 +34,6 @@ export default {
       $padding: 10px;
 
       padding: $padding;
-      margin: 0;
       position: relative;
       display: flex;
       flex-direction: row;
@@ -47,6 +46,7 @@ export default {
 
         label {
           opacity: 0.7;
+          padding-top: $padding / 2;
         }
       }
 
@@ -55,6 +55,7 @@ export default {
         line-height: 36px;
         border-bottom: 1px solid var(--gauge-divider);
         padding-bottom: $padding / 2;
+        margin: 0;
       }
 
       @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {

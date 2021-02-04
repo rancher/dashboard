@@ -105,6 +105,7 @@ export default {
 
           label {
             opacity: 0.7;
+            padding-top: $padding / 2;
           }
         }
 
@@ -120,12 +121,12 @@ export default {
           line-height: 36px;
           border-bottom: 1px solid var(--gauge-divider);
           padding-bottom: $padding / 2;
+          margin: 0;
         }
 
         @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {
           h1 {
-            font-size: 40px;
-            line-height: 36px;
+            margin: 0;
           }
         }
 
