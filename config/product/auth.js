@@ -49,10 +49,22 @@ export function init(store) {
       }
     ],
     getInstances: async() => {
+      const schemaCan = (schema, type, verb) => schema?.[type]?.indexOf(verb) >= 0;
+
+      // Determine if the user can get fetch global roles & global role bindings
+      const canFetchGlobalRoles = schemaCan(store.getters[`management/schemaFor`](RBAC.GLOBAL_ROLE), 'collectionMethods', 'GET' );
+      const canFetchGlobalRoleBindings = schemaCan(store.getters[`management/schemaFor`](RBAC.GLOBAL_ROLE_BINDING), 'collectionMethods', 'GET' );
+
+      if (!canFetchGlobalRoles || !canFetchGlobalRoleBindings) {
+        return [];
+      }
+
+      // Groups are a list of principals filtered via those that have group roles bound to them
       const principals = await store.dispatch('rancher/findAll', {
         type: NORMAN.PRINCIPAL,
         opt:  { url: '/v3/principals' }
       });
+
       const globalRoleBindings = await store.dispatch('management/findAll', {
         type: RBAC.GLOBAL_ROLE_BINDING,
         opt:  { force: true }
