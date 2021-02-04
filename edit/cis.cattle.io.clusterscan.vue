@@ -119,13 +119,17 @@ export default {
 
         if (name.includes(':')) {
           const pairs = name.split('\n');
-          const clusterVersion = this.currentCluster.kubernetesVersion;
+          const clusterVersion = this.currentCluster.kubernetesVersionDisplay;
 
           pairs.forEach((pair) => {
             const version = (pair.match(/[<>=]+[-._a-zA-Z0-9]+/) || [])[0];
 
-            if (semver.satisfies(clusterVersion, version)) {
-              name = pair.replace(/[<>=]+[-._a-zA-Z0-9]+: /, '');
+            try {
+              if (semver.satisfies(clusterVersion, version)) {
+                name = pair.replace(/[<>=]+[-._a-zA-Z0-9]+: /, '');
+              }
+            } catch (e) {
+              // Ignore entries with invalid semver
             }
           });
         }
@@ -189,22 +193,27 @@ export default {
 
   methods: {
     validateBenchmark(benchmark, currentCluster) {
-      const clusterVersion = currentCluster.kubernetesVersion;
-
       if (!!benchmark?.spec?.clusterProvider) {
         if ( benchmark?.spec?.clusterProvider !== currentCluster.status.provider) {
           return false;
         }
       }
-      if (benchmark?.spec?.minKubernetesVersion) {
-        if (semver.gt(benchmark?.spec?.minKubernetesVersion, clusterVersion)) {
-          return false;
+
+      try {
+        const clusterVersion = currentCluster.kubernetesVersionDisplay;
+
+        if (benchmark?.spec?.minKubernetesVersion) {
+          if (semver.gt(benchmark?.spec?.minKubernetesVersion, clusterVersion)) {
+            return false;
+          }
         }
-      }
-      if (benchmark?.spec?.maxKubernetesVersion) {
-        if (semver.gt(clusterVersion, benchmark?.spec?.maxKubernetesVersion)) {
-          return false;
+        if (benchmark?.spec?.maxKubernetesVersion) {
+          if (semver.gt(clusterVersion, benchmark?.spec?.maxKubernetesVersion)) {
+            return false;
+          }
         }
+      } catch (e) {
+        // Ignore error if something is invalid semver
       }
 
       return true;

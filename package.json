@@ -47,7 +47,6 @@
     "event-target-shim": "^5.0.1",
     "express": "^4.17.1",
     "file-saver": "^2.0.2",
-    "gsap": "^2.1.3",
     "identicon.js": "^2.3.3",
     "intl-messageformat": "^7.7.2",
     "jexl": "^2.2.2",

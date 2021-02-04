@@ -4,6 +4,9 @@ const WAITING = 'waiting';
 const SUCCESS = 'success';
 const ERROR = 'error';
 
+const TEXT = 'text';
+const TOOLTIP = 'tooltip';
+
 export default {
   props: {
     /**
@@ -73,9 +76,9 @@ export default {
       type:    String,
       default: null,
     },
-    showLabel: {
-      type:    Boolean,
-      default: true,
+    labelAs: {
+      type:    String,
+      default: TEXT,
     },
     size: {
       type:    String,
@@ -158,6 +161,17 @@ export default {
 
     isDisabled() {
       return this.disabled || this.phase === WAITING;
+    },
+
+    tooltip() {
+      if ( this.labelAs === TOOLTIP ) {
+        return {
+          content:           this.displayLabel,
+          hideOnTargetClick: false
+        };
+      }
+
+      return null;
     }
   },
 
@@ -209,7 +223,16 @@ export default {
     :tab-index="tabIndex"
     @click="clicked"
   >
-    <i v-if="displayIcon" :class="{icon: true, 'icon-lg': true, [displayIcon]: true}" />
-    <span v-if="showLabel && displayLabel" class="pl-5" v-html="displayLabel" />
+    <i
+      v-if="displayIcon"
+      v-tooltip="tooltip"
+      :class="{icon: true, 'icon-lg': true, [displayIcon]: true}"
+    />
+    <span
+      v-if="labelAs === 'text' && displayLabel"
+      v-tooltip="tooltip"
+      class="pl-5"
+      v-html="displayLabel"
+    />
   </button>
 </template>
