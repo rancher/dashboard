@@ -1,7 +1,7 @@
 import { insertAt } from '@/utils/array';
 import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotations';
 import { WORKLOAD_TYPES, POD, ENDPOINTS, SERVICE } from '@/config/types';
-import { get, set } from '@/utils/object';
+import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
 import { _CREATE } from '@/config/query-params';
 
@@ -296,8 +296,6 @@ export default {
     }
   },
 
-  // 30422
-
   // create clusterip, nodeport, loadbalancer services from container port spec
   servicesFromContainerPorts() {
     return async(mode) => {
@@ -391,10 +389,12 @@ export default {
           case 'NodePort':
             nodePort.spec.ports.push(portSpec);
             break;
-          case 'LoadBalancer':
-            portSpec.port = port._lbPort;
-            loadBalancer.spec.ports.push(portSpec);
-            break;
+          case 'LoadBalancer': {
+            const lbPort = clone(portSpec);
+
+            lbPort.port = port._lbPort;
+            loadBalancer.spec.ports.push(lbPort);
+            break; }
           default:
             break;
           }
