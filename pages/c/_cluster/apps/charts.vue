@@ -364,7 +364,7 @@ export default {
       <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('catalog.charts.search')">
 
       <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
-      <AsyncButton mode="refresh" class="btn-sm" @click="refresh" />
+      <AsyncButton mode="refresh" size="sm" @click="refresh" />
       <!-- </div> -->
     </div>
 

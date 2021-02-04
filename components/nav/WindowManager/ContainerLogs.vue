@@ -463,7 +463,7 @@ export default {
         <button class="btn btn-sm bg-primary" @click="clear">
           <t k="wm.containerLogs.clear" />
         </button>
-        <AsyncButton class="btn-sm" mode="download" @click="download" />
+        <AsyncButton size="sm" mode="download" @click="download" />
       </div>
 
       <div class="pull-right text-center p-10" style="min-width: 80px;">
