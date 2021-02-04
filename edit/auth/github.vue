@@ -7,7 +7,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
 import AsyncButton from '@/components/AsyncButton';
-import CopyToClipboardText from '@/components/CopyToClipboardText.vue';
+import CopyToClipboard from '@/components/CopyToClipboard';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import { NORMAN, MANAGEMENT } from '@/config/types';
 import { findBy } from '@/utils/array';
@@ -23,7 +23,7 @@ export default {
     RadioGroup,
     LabeledInput,
     Banner,
-    CopyToClipboardText,
+    CopyToClipboard,
     AllowedPrincipals,
     AsyncButton
   },
@@ -206,9 +206,9 @@ export default {
               {{ t(`authConfig.${NAME}.form.instruction`, tArgs, true) }}
               <ul>
                 <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: <span v-html="t(`authConfig.${NAME}.form.app.value`, tArgs, true)" /></li>
-                <li><b>{{ t(`authConfig.${NAME}.form.homepage.label`) }}</b>: <CopyToClipboardText :text="serverUrl" /></li>
+                <li><b>{{ t(`authConfig.${NAME}.form.homepage.label`) }}</b>: {{ serverUrl }} <CopyToClipboard label-as="tooltip" :text="serverUrl" class="icon-btn" action-color="bg-transparent" /></li>
                 <li><b>{{ t(`authConfig.${NAME}.form.description.label`) }}</b>: <span v-html="t(`authConfig.${NAME}.form.description.value`, tArgs, true)" /></li>
-                <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: <CopyToClipboardText :text="serverUrl" /></li>
+                <li><b>{{ t(`authConfig.${NAME}.form.app.label`) }}</b>: {{ serverUrl }} <CopyToClipboard :text="serverUrl" label-as="tooltip" class="icon-btn" action-color="bg-transparent" /></li>
               </ul>
             </li>
           </ul>

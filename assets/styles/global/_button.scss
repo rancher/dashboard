@@ -38,10 +38,11 @@ button,
   }
 }
 
-
 //icon button
 .icon-btn {
   padding: 0;
+  line-height: initial;
+
   &.btn-sm {
     padding: 0;
   }

@@ -39,21 +39,6 @@ export default {
       return this.$store.getters['cluster/all'](NAMESPACE)[0]?.id;
     },
   },
-
-  methods: {
-    updateAuth() {
-      const spec = this.value.spec;
-
-      if ( !this.authSecret || this.authSecret === _SSH || this.authSecret === _BASIC || this.authSecret === _NONE ) {
-        delete spec.clientSecret;
-      } else {
-        const parts = this.authSecret.split('/');
-
-        spec.clientSecret = { namespace: split[0], name: split[1] };
-      }
-    },
-  },
-
 };
 </script>
 

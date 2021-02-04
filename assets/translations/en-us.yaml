@@ -271,6 +271,9 @@ asyncButton:
     waiting: Waiting
     success: Success
     error: Error
+  copy:
+    action: 'Click to Copy'
+    success: 'Copied!'
   create:
     action:  'Create'
     waiting: 'Creating&hellip;'
