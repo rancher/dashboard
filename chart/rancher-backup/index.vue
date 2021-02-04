@@ -74,9 +74,7 @@ export default {
 
     availablePVs() {
       return this.persistentVolumes.filter((total, each) => {
-        const rwx = (each?.spec?.accessModes || []).includes('ReadWriteMany');
-
-        return each?.status?.phase !== 'bound' || rwx ;
+        return each?.status?.phase !== 'bound';
       });
     },
 
