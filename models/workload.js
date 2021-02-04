@@ -1,6 +1,6 @@
 import { insertAt } from '@/utils/array';
 import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotations';
-import { WORKLOAD_TYPES, POD, ENDPOINTS, SERVICE } from '@/config/types';
+import { WORKLOAD_TYPES, POD, SERVICE } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
 import { _CREATE } from '@/config/query-params';
@@ -284,16 +284,6 @@ export default {
         this.metadata.namespace
       }-${ this.metadata.name }`
     };
-  },
-
-  endpoints() {
-    const endpoints = this.$rootGetters['cluster/byId'](ENDPOINTS, this.id);
-
-    if (endpoints) {
-      const out = endpoints.metadata.fields[1];
-
-      return out;
-    }
   },
 
   // create clusterip, nodeport, loadbalancer services from container port spec
