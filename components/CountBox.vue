@@ -34,6 +34,7 @@ export default {
       $padding: 10px;
 
       padding: $padding;
+      margin: 0;
       position: relative;
       display: flex;
       flex-direction: row;
