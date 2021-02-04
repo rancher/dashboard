@@ -1,5 +1,6 @@
 HTML, BODY {
   font-size: 14px;
+  font-family: $body-font;
 }
 
 H1, H2, H3, H4, H5, H6 {
@@ -8,6 +9,7 @@ H1, H2, H3, H4, H5, H6 {
   font-weight: 400;
   letter-spacing: 0em;
   margin: 0 0 10px 0;
+  font-family: $header-font;
 }
 
 H1 {
@@ -45,9 +47,8 @@ P {
 
 //code
 code, samp, kbd, .monospace {
-  font-family: "Courier New", Courier, monospace, sans-serif;
+  font-family: $mono-font;
   text-align: left;
-  // color: var(--secondary);
 }
 
 pre {
