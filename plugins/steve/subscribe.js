@@ -22,6 +22,8 @@ export const actions = {
       return;
     }
 
+    // console.info(`Subscribe [${ ctx.getters.storeName }]`); // eslint-disable-line no-console
+
     const url = `${ state.config.baseUrl }/subscribe`;
 
     if ( socket ) {
@@ -73,9 +75,13 @@ export const actions = {
     const queue = state.queue;
     let toLoad = [];
 
+    if ( !queue.length ) {
+      return;
+    }
+
     state.queue = [];
 
-    // console.debug('### Subscribe Flush', queue.length);
+    // console.debug(`Subscribe Flush [${state.storeName}]`, queue.length);
 
     for ( const { action, event, body } of queue ) {
       if ( action === 'dispatch' && event === 'load' ) {
@@ -163,7 +169,8 @@ export const actions = {
     const promises = [];
 
     for ( const entry of state.started.slice() ) {
-      console.info('Reconnect', entry); // eslint-disable-line no-console
+      console.info(`Reconnect [${ getters.storeName }]`, entry); // eslint-disable-line no-console
+
       if ( getters.schemaFor(entry.type) ) {
         commit('setWatchStopped', entry);
         delete entry.revision;
@@ -179,7 +186,7 @@ export const actions = {
       resourceType, namespace, id, selector
     } = params;
 
-    console.info('Resource resync for', params); // eslint-disable-line no-console
+    console.info(`Resync [${ getters.storeName }]`, params); // eslint-disable-line no-console
 
     const opt = { force: true, forceWatch: true };
 
@@ -220,14 +227,18 @@ export const actions = {
 
     for ( const obj of have ) {
       if ( !wantMap[obj.id] ) {
-        console.info('Resource resync removing stale', resourceType, obj.id); // eslint-disable-line no-console
+        // console.info(`Remove stale [${ getters.storeName}]`, resourceType, obj.id); // eslint-disable-line no-console
+
         commit('remove', obj);
       }
     }
   },
 
-  async opened({ commit, dispatch, state }, event) {
-    // console.info('WebSocket Opened'); // eslint-disable-line no-console
+  async opened({
+    getters, commit, dispatch, state
+  }, event) {
+    // console.info(`WebSocket Opened [${ getters.storeName }]`); // eslint-disable-line no-console
+
     const socket = event.currentTarget;
 
     this.$socket = socket;
@@ -261,14 +272,14 @@ export const actions = {
     }
   },
 
-  closed({ state }, event) {
-    // console.warn('WebSocket Closed'); // eslint-disable-line no-console
+  closed({ getters, state }) {
+    // console.info(`WebSocket Closed [${ getters.storeName }]`); // eslint-disable-line no-console
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
   },
 
-  error({ state }, event) {
-    console.error('WebSocket Error', event); // eslint-disable-line no-console
+  error({ getters, state }, event) {
+    console.error(`WebSocket Error [${ getters.storeName }]`, event); // eslint-disable-line no-console
     clearTimeout(state.queueTimer);
     state.queueTimer = null;
   },
@@ -285,18 +296,18 @@ export const actions = {
     commit('enqueuePending', obj);
   },
 
-  sendImmediate({ state, commit }, obj) {
+  sendImmediate({ state }, obj) {
     if ( state.socket ) {
       return state.socket.send(JSON.stringify(obj));
     }
   },
 
-  'ws.ping'() {
-    // console.info('WebSocket Ping');
+  'ws.ping'({ getters }) {
+    // console.info(`WebSocket Ping [${ getters.storeName }]`); // eslint-disable-line no-console
   },
 
-  'ws.resource.start'({ commit }, msg) {
-    // console.info('Resource start:', msg); // eslint-disable-line no-console
+  'ws.resource.start'({ getters, commit }, msg) {
+    // console.info(`Resource start: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
     commit('setWatchStarted', {
       type:      msg.resourceType,
       namespace: msg.namespace,
@@ -305,8 +316,9 @@ export const actions = {
     });
   },
 
-  'ws.resource.error'({ commit, dispatch }, msg) {
-    // console.warn('Resource error for', msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
+  'ws.resource.error'({ getters, commit, dispatch }, msg) {
+    // console.warn(`Resource error [${ getters.storeName }]`, msg.resourceType, ':', msg.data.error); // eslint-disable-line no-console
+
     const err = msg.data?.error?.toLowerCase();
 
     if ( err.includes('watch not allowed') ) {
@@ -328,7 +340,7 @@ export const actions = {
       selector:  msg.selector
     };
 
-    // console.warn('Resource stop:', msg); // eslint-disable-line no-console
+    // console.warn(`Resource stop: [${ getters.storeName }]`, msg); // eslint-disable-line no-console
 
     if ( getters['schemaFor'](type) && getters['watchStarted'](obj) ) {
       // Try reconnecting once
@@ -343,8 +355,13 @@ export const actions = {
     }
   },
 
-  'ws.resource.create'({ state }, { data }) {
-    // console.debug('### Create Event', data.type, data.id);
+  'ws.resource.create'({ getters, state }, { data }) {
+    if ( !getters.typeRegistered(getters.normalizeType(data.type)) ) {
+      return;
+    }
+
+    // console.debug(`Create Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
+
     state.queue.push({
       action: 'dispatch',
       event:  'load',
@@ -352,8 +369,13 @@ export const actions = {
     });
   },
 
-  'ws.resource.change'({ state }, { data }) {
-    // console.debug('### Change Event', data.type, data.id);
+  'ws.resource.change'({ getters, state }, { data }) {
+    if ( !getters.typeRegistered(getters.normalizeType(data.type)) ) {
+      return;
+    }
+
+    // console.debug(`Change Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
+
     state.queue.push({
       action: 'dispatch',
       event:  'load',
@@ -368,7 +390,8 @@ export const actions = {
       return;
     }
 
-    // console.debug('### Remove Event', data.type, data.id);
+    // console.debug(`Remove Event [${ state.config.namespace }]`, data.type, data.id); // eslint-disable-line no-console
+
     const obj = getters.byId(data.type, data.id);
 
     if ( obj ) {
@@ -380,7 +403,7 @@ export const actions = {
     }
 
     if ( type === 'schema' ) {
-      // Clear the current records in the store
+      // Clear the current records in the store when a type disappears
       state.queue.push({
         action: 'commit',
         event:  'forgetType',

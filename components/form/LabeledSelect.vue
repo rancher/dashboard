@@ -134,7 +134,9 @@ export default {
       }
       if (get(option, this.optionLabel)) {
         if (this.localizedLabel) {
-          return this.$store.getters['i18n/t'](get(option, this.optionLabel));
+          const label = get(option, this.optionLabel);
+
+          return this.$store.getters['i18n/t'](label) || label;
         } else {
           return get(option, this.optionLabel);
         }

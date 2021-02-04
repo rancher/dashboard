@@ -1,7 +1,7 @@
 <script>
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
-import Auth from '@/mixins/auth';
+import AuthConfig from '@/mixins/auth-config';
 import CruResource from '@/components/CruResource';
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
@@ -26,7 +26,7 @@ export default {
     config
   },
 
-  mixins: [CreateEditView, Auth],
+  mixins: [CreateEditView, AuthConfig],
   data() {
     return {
       model:         null,
@@ -76,7 +76,7 @@ export default {
       @finish="save"
       @cancel="done"
     >
-      <template v-if="model.enabled && !isSaving">
+      <template v-if="model.enabled && !isEnabling">
         <Banner color="success clearfix">
           <div class="pull-left mt-10">
             {{ t('authConfig.stateBanner.enabled', tArgs) }}

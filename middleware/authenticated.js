@@ -53,7 +53,6 @@ export default async function({
       return redirect(302, '/auth/login');
     }
   }
-
   // Make sure you're actually logged in
   if ( store.getters['auth/enabled'] !== false && !store.getters['auth/loggedIn'] ) {
     try {

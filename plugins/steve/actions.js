@@ -133,7 +133,7 @@ export default {
       return getters.all(type);
     }
 
-    console.log('Find All', type); // eslint-disable-line no-console
+    console.log(`Find All: [${ ctx.state.config.namespace }] ${ type }`); // eslint-disable-line no-console
     opt = opt || {};
     opt.url = getters.urlFor(type, null, opt);
 
@@ -166,7 +166,7 @@ export default {
     const { getters, commit, dispatch } = ctx;
 
     opt = opt || {};
-    console.log('Find Matching', type, selector); // eslint-disable-line no-console
+    console.log(`Find Matching: [${ ctx.state.config.namespace }] ${ type }`, selector); // eslint-disable-line no-console
     type = getters.normalizeType(type);
 
     if ( !getters.typeRegistered(type) ) {
@@ -221,7 +221,7 @@ export default {
 
     type = normalizeType(type);
 
-    console.log('Find', type, id); // eslint-disable-line no-console
+    console.log(`Find: [${ ctx.state.config.namespace }] ${ type } ${ id }`); // eslint-disable-line no-console
     let out;
 
     if ( opt.force !== true ) {
@@ -343,7 +343,7 @@ export default {
     opt = opt || {};
 
     if ( !opt.url ) {
-      opt.url = (resource.actions || {})[actionName];
+      opt.url = resource.actionLinkFor(actionName);
     }
 
     opt.method = 'post';

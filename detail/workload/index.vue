@@ -2,7 +2,7 @@
 import CreateEditView from '@/mixins/create-edit-view';
 import { STATE, NAME, NODE, POD_IMAGES } from '@/config/table-headers';
 import { POD, WORKLOAD_TYPES } from '@/config/types';
-import ResourceTable from '@/components/ResourceTable';
+import SortableTable from '@/components/SortableTable';
 import Tab from '@/components/Tabbed/Tab';
 import Loading from '@/components/Loading';
 import ResourceTabs from '@/components/form/ResourceTabs';
@@ -12,11 +12,11 @@ import { get } from '@/utils/object';
 
 export default {
   components: {
-    ResourceTable,
     Tab,
     Loading,
     ResourceTabs,
-    CountGauge
+    CountGauge,
+    SortableTable
   },
 
   mixins: [CreateEditView],
@@ -207,7 +207,7 @@ export default {
     </div>
     <ResourceTabs :value="value">
       <Tab v-if="jobs && jobs.length" name="jobs" :label="t('tableHeaders.jobs')">
-        <ResourceTable
+        <SortableTable
           :rows="jobs"
           :headers="jobHeaders"
           key-field="id"
@@ -217,7 +217,7 @@ export default {
         />
       </Tab>
       <Tab v-else-if="pods && pods.length" name="pods" :label="t('tableHeaders.pods')">
-        <ResourceTable
+        <SortableTable
           v-if="pods"
           :rows="pods"
           :headers="podHeaders"

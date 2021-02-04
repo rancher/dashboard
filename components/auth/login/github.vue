@@ -1,23 +1,10 @@
 <script>
-export default {
-  props: {
-    focusOnMount: {
-      type:     Boolean,
-      required: true,
-    }
-  },
+import Login from '@/mixins/login';
 
-  mounted() {
-    if ( this.focusOnMount ) {
-      this.focus();
-    }
-  },
+export default {
+  mixins: [Login],
 
   methods: {
-    focus() {
-      this.$refs.btn.focus();
-    },
-
     login() {
       this.$store.dispatch('auth/redirectTo', { provider: 'github' });
     },

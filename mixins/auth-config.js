@@ -28,7 +28,7 @@ export default {
   },
 
   data() {
-    return { isSaving: false };
+    return { isEnabling: false };
   },
 
   computed: {
@@ -36,6 +36,13 @@ export default {
       const out = findBy(this.principals, 'me', true);
 
       return out;
+    },
+
+    doneLocationOverride() {
+      return {
+        name:   this.$route.name,
+        params: this.$route.params
+      };
     },
 
     serverUrl() {
@@ -69,9 +76,12 @@ export default {
     async save(btnCb) {
       const configType = this.value.configType;
 
-      this.isSaving = true;
       this.errors = [];
       const wasEnabled = this.model.enabled;
+
+      if (!wasEnabled) {
+        this.isEnabling = true;
+      }
       let obj = this.toSave;
 
       if (!obj) {
@@ -92,10 +102,7 @@ export default {
             }
             await this.model.save();
             await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
-
             this.model.enabled = true;
-
-            await this.model.save();
           } else {
             this.model.enabled = true;
             if (!this.model.accessMode) {
@@ -103,7 +110,6 @@ export default {
             }
             await this.model.doAction('testAndApply', obj);
           }
-
           // Reload principals to get the new ones from the provider
           this.principals = await this.$store.dispatch('rancher/findAll', {
             type: NORMAN.PRINCIPAL,
@@ -115,12 +121,9 @@ export default {
             addObject(this.model.allowedPrincipalIds, this.me.id);
           }
         }
-
-        if (configType === 'oauth') {
-          await this.model.save();
-          await this.reloadModel();
-        }
-        this.isSaving = false;
+        await this.model.save();
+        await this.reloadModel();
+        this.isEnabling = false;
         btnCb(true);
         if ( wasEnabled ) {
           this.done();
@@ -130,7 +133,7 @@ export default {
         this.errors = [err];
         btnCb(false);
         this.model.enabled = wasEnabled;
-        this.isSaving = false;
+        this.isEnabling = false;
       }
     },
 

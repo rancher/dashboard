@@ -10,6 +10,11 @@ export default {
       default: _EDIT,
     },
 
+    realMode: {
+      type:     String,
+      default: _EDIT,
+    },
+
     as: {
       type:     String,
       default: _YAML,
