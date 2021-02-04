@@ -15,7 +15,8 @@ export default {
     if ( enabled.length === 1 ) {
       redirect({
         name:   'c-cluster-auth-config-id',
-        params: { id: enabled[0].id }
+        params: { id: enabled[0].id },
+        query:  { mode: _EDIT }
       });
 
       return { nonLocal };

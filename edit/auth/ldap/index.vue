@@ -86,12 +86,15 @@ export default {
       @finish="save"
       @cancel="done"
     >
-      <template v-if="model.enabled && !isEnabling">
+      <template v-if="model.enabled && !isEnabling && !editConfig">
         <Banner color="success clearfix">
           <div class="pull-left mt-10">
             {{ t('authConfig.stateBanner.enabled', tArgs) }}
           </div>
           <div class="pull-right">
+            <button type="button" class="btn-sm role-primary" @click="goToEdit">
+              {{ t('action.edit') }}
+            </button>
             <AsyncButton mode="disable" size="sm" action-color="bg-error" @click="disable" />
           </div>
         </Banner>
