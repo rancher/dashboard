@@ -293,7 +293,7 @@ export default {
         <template #sub-row="{row, fullColspan}">
           <tr>
             <td :colspan="fullColspan">
-              <Banner v-if="row.remediation" class="sub-banner" :label="remediationDisplay(row)" color="warning" />
+              <Banner v-if="(row.state==='fail' || row.state==='warn')&& row.remediation" class="sub-banner" :label="remediationDisplay(row)" color="warning" />
               <SortableTable
                 class="sub-table"
                 :rows="row.nodeRows"
