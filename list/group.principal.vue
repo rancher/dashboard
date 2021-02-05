@@ -30,9 +30,8 @@ export default {
 
     this.hasGroups = principals.filter(principal => principal.principalType === 'group')?.length;
 
-    const userSchema = this.$store.getters[`rancher/schemaFor`](NORMAN.USER);
-
-    this.canRefresh = !!userSchema.collectionActions?.refreshauthprovideraccess;
+    this.canRefresh = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
+      .then(res => !!res?.actions?.refreshauthprovideraccess);
   },
   data() {
     return {

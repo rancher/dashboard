@@ -49,11 +49,9 @@ export function init(store) {
       }
     ],
     getInstances: async() => {
-      const schemaCan = (schema, type, verb) => schema?.[type]?.indexOf(verb) >= 0;
-
-      // Determine if the user can get fetch global roles & global role bindings
-      const canFetchGlobalRoles = schemaCan(store.getters[`management/schemaFor`](RBAC.GLOBAL_ROLE), 'collectionMethods', 'GET' );
-      const canFetchGlobalRoleBindings = schemaCan(store.getters[`management/schemaFor`](RBAC.GLOBAL_ROLE_BINDING), 'collectionMethods', 'GET' );
+      // Determine if the user can get fetch global roles & global role bindings. If not there's not much point in showing the table
+      const canFetchGlobalRoles = !!store.getters[`management/schemaFor`](RBAC.GLOBAL_ROLE);
+      const canFetchGlobalRoleBindings = !!store.getters[`management/schemaFor`](RBAC.GLOBAL_ROLE_BINDING);
 
       if (!canFetchGlobalRoles || !canFetchGlobalRoleBindings) {
         return [];
