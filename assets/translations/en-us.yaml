@@ -116,21 +116,26 @@ accountAndKeys:
   apiKeys:
     title: API Keys
     add:
-      description: Description
-      descriptionPlaceholder: Optionally enter a description to help you identify this API Key
+      description:
+        label: Description
+        placeholder: Optionally enter a description to help you identify this API Key
       label: Create API Key
-      expiryLabel: Automatically expire
-      expiryOptions:
-        never: Never
-        day: A day from now
-        month: A month from now
-        year: A year from now
-        custom: Custom
-      customExpiryOptions:
-        minute: Minutes
-        hour: Hours
-        day: Days
-        year: Years
+      expiry:
+        label: Automatically expire
+        options:
+          never: Never
+          day: A day from now
+          month: A month from now
+          year: A year from now
+          custom: Custom
+          maximum: "{value} - Maximum allowed"
+      customExpiry:
+        options:
+          minute: Minutes
+          hour: Hours
+          day: Days
+          month: Months
+          year: Years
       scope: Scope
       noScope: No Scope
     info:
@@ -1871,9 +1876,8 @@ tableHeaders:
   clusterGroups: Cluster Groups
   commit: Commit
   condition: Condition
-  created: Created
   description: Description
-  expiresAt: Expires At  
+  expires: Expires
   providers: Providers
   cpu: CPU
   date: Date

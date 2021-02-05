@@ -13,7 +13,7 @@ export default {
   },
   async fetch() {
     this.canChangePassword = await this.calcCanChangePassword();
-    this.rows = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.TOKEN, opt: { force: true } });
+    this.rows = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.TOKEN });
   },
   data() {
     return {
@@ -91,29 +91,33 @@ export default {
     <h4 v-t="'accountAndKeys.account.title'" />
     <div class="account">
       <Principal :key="principal.id" :value="principal.id" :use-muted="false" :show-labels="true" />
-      <button
-        v-if="canChangePassword"
-        type="button"
-        class="btn role-primary"
-        @click="$refs.promptChangePassword.show(true)"
-      >
-        {{ t("accountAndKeys.account.change") }}
-      </button>
+      <div>
+        <button
+          v-if="canChangePassword"
+          type="button"
+          class="btn role-primary"
+          @click="$refs.promptChangePassword.show(true)"
+        >
+          {{ t("accountAndKeys.account.change") }}
+        </button>
+      </div>
     </div>
     <PromptChangePassword ref="promptChangePassword" />
 
     <hr />
-    <h4 v-t="'accountAndKeys.apiKeys.title'" />
-    <div class="keys">
-      <button class="btn role-primary add" @click="addKey">
+    <div class="keys-header">
+      <h4 v-t="'accountAndKeys.apiKeys.title'" />
+      <button class="btn role-primary add mb-20" @click="addKey">
         {{ t('accountAndKeys.apiKeys.add.label') }}
       </button>
+    </div>
+    <div class="keys">
       <ResourceTable
         :schema="apiKeySchema"
         :rows="apiKeys"
         :headers="apiKeyheaders"
         key-field="id"
-        :search="false"
+        :search="true"
         :row-actions="true"
         :table-actions="true"
       />
@@ -126,13 +130,16 @@ export default {
     margin: 20px 0;
   }
 
-  button {
-    max-height: 48px;
-  }
-
   .account {
     display: flex;
     justify-content: space-between
+  }
+
+  .keys-header {
+    display: flex;
+    h4 {
+      flex: 1;
+    }
   }
 
   .keys {

@@ -1,5 +1,6 @@
 <script>
 import { mapGetters } from 'vuex';
+import day from 'dayjs';
 import sortBy from 'lodash/sortBy';
 import { clone } from '@/utils/object';
 import { MANAGEMENT } from '@/config/types';
@@ -11,6 +12,7 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import RadioGroup from '@/components/form/RadioGroup';
 import Select from '@/components/form/Select';
 import CreateEditView from '@/mixins/create-edit-view';
+import { diffFrom } from '@/utils/time';
 
 export default {
   components: {
@@ -26,6 +28,16 @@ export default {
   mixins: [CreateEditView],
 
   data() {
+    // Get the setting that defines the max token TTL allowed (in minutes)
+    const maxTTLSetting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'auth-token-max-ttl-minutes');
+    let maxTTL = 0;
+
+    try {
+      maxTTL = parseInt(maxTTLSetting.value || maxTTLSetting.default, 10);
+    } catch (e) {
+      maxTTL = 0;
+    }
+
     return {
       errors: null,
       form:   {
@@ -37,6 +49,7 @@ export default {
       ttlLimited: false,
       accessKey:  '',
       secretKey:  '',
+      maxTTL,
     };
   },
 
@@ -44,26 +57,62 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
     scopes() {
       const all = this.$store.getters['management/all'](MANAGEMENT.CLUSTER);
-      let out = all.map(opt => ({ value: opt.id, label: opt.metadata.name }));
+      let out = all.map(opt => ({ value: opt.id, label: opt.nameDisplay }));
 
       out = sortBy(out, ['label']);
       out.unshift( { value: '', label: this.t('accountAndKeys.apiKeys.add.noScope') } );
 
       return out;
     },
+
     expiryOptions() {
       const options = ['never', 'day', 'month', 'year', 'custom'];
+      let opts = options.map(opt => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.expiry.options.${ opt }`) }));
 
-      return options.map(opt => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.expiryOptions.${ opt }`) }));
+      // When the TTL is anything other than 0, present only two options
+      // (1) The maximum allowed
+      // (2) Custom
+      if (this.maxTTL !== 0 ) {
+        const now = day();
+        const expiry = now.add(this.maxTTL, 'minute');
+        const max = diffFrom(expiry, now, this.t);
+
+        opts = opts.filter(opt => opt.value === 'custom');
+        opts.unshift({ value: 'max', label: this.t('accountAndKeys.apiKeys.add.expiry.options.maximum', { value: max.string } ) });
+      }
+
+      return opts;
     },
     expiryUnitsOptions() {
-      const options = ['minute', 'hour', 'day', 'year'];
+      const options = ['minute', 'hour', 'day', 'month', 'year'];
+      const filtered = this.filterOptionsForTTL(options);
 
-      return options.map(opt => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.customExpiryOptions.${ opt }`) }));
+      return filtered.map(opt => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.customExpiry.options.${ opt }`) }));
     },
   },
 
+  mounted() {
+    // Auto-select the first option on load
+    this.form.expiryType = this.expiryOptions[0].value;
+  },
+
   methods: {
+    filterOptionsForTTL(opts) {
+      return opts.filter((option) => {
+        if (option === 'never' ) {
+          return this.maxTTL === 0;
+        } else if (option === 'custom') {
+          return true;
+        } else {
+          const now = day();
+          const expiry = day().add(1, option);
+          const ttl = expiry.diff(now) / 60000; // Convert to minutes
+
+          return ttl <= this.maxTTL;
+        }
+      });
+    },
+
     async actuallySave(url) {
       this.updateExpiry();
       if ( this.isCreate ) {
@@ -99,39 +148,23 @@ export default {
     },
 
     doneCreate() {
-      this.$router.push({ path: '/account' });
+      this.$router.push({ name: 'account' });
     },
 
     updateExpiry() {
       const v = this.form.expiryType;
       const increment = (v === 'custom') ? parseInt(this.form.customExpiry) : 1;
       const units = (v === 'custom') ? this.form.customExpiryUnits : v;
-      const now = new Date();
-      let expiry = new Date(now);
+      let ttl = 0;
 
-      switch (units) {
-      case 'never':
-        expiry = null;
-        break;
-      case 'minute':
-        expiry.setTime(expiry.getTime() + increment * 60 * 1000);
-        break;
-      case 'hour':
-        expiry.setTime(expiry.getTime() + increment * 60 * 60 * 1000);
-        break;
-      case 'day':
-        expiry.setDate(expiry.getDate() + increment);
-        break;
-      case 'month':
-        expiry.setMonth(expiry.getMonth() + increment);
-        break;
-      case 'year':
-        expiry.setFullYear(expiry.getFullYear() + increment);
-        break;
+      if (units === 'max') {
+        ttl = this.maxTTL;
+      } else if ( units !== 'never' ) {
+        const now = day();
+        const expiry = day().add(increment, units);
+
+        ttl = expiry.diff(now);
       }
-
-      const ttl = expiry ? Math.abs(expiry - now) : 0;
-
       this.value.ttl = ttl;
     }
   }
@@ -144,16 +177,16 @@ export default {
       <LabeledInput
         key="description"
         v-model="value._description"
-        :placeholder="t('accountAndKeys.apiKeys.add.descriptionPlaceholder')"
-        :label="t('accountAndKeys.apiKeys.add.description')"
-        :mode="'edit'"
+        :placeholder="t('accountAndKeys.apiKeys.add.description.placeholder')"
+        label-key="accountAndKeys.apiKeys.add.description.label"
+        mode="edit"
         :min-height="30"
       />
 
-      <LabeledSelect v-model="value.clusterId" class="mt-20 scope-select" :label="t('accountAndKeys.apiKeys.add.scope')" :options="scopes" />
+      <LabeledSelect v-model="value.clusterId" class="mt-20 scope-select" label-key="accountAndKeys.apiKeys.add.scope" :options="scopes" />
 
       <h5 class="pt-20">
-        {{ t('accountAndKeys.apiKeys.add.expiryLabel') }}
+        {{ t('accountAndKeys.apiKeys.add.expiry.label') }}
       </h5>
 
       <div class="ml-10">

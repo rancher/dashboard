@@ -710,21 +710,12 @@ export const SCOPE = {
   width:       100,
 };
 
-export const EXPIRES_AT = {
-  name:          'expiresAt',
+export const EXPIRES = {
+  name:          'expires',
   value:         'expiresAt',
-  labelKey:      'tableHeaders.expiresAt',
+  labelKey:      'tableHeaders.expires',
   align:         'left',
   width:         200,
-  formatter:     'Date',
-  formatterOpts: { emptyTextKey: 'generic.never' },
-};
-
-export const CREATED = {
-  value:         'metadata.creationTimestamp',
-  labelKey:      'tableHeaders.created',
-  align:         'left',
-  width:         150,
   formatter:     'LiveDate',
-  formatterOpts: { addSuffix: true },
+  formatterOpts: { emptyTextKey: 'generic.never' },
 };

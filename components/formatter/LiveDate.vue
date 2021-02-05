@@ -2,9 +2,7 @@
 import day from 'dayjs';
 import { DATE_FORMAT, TIME_FORMAT } from '@/store/prefs';
 import { escapeHtml } from '@/utils/string';
-
-const FACTORS = [60, 60, 24];
-const LABELS = ['sec', 'min', 'hour', 'day'];
+import { diffFrom } from '@/utils/time';
 
 export default {
   props: {
@@ -90,37 +88,19 @@ export default {
         return this.label;
       }
 
+      clearTimeout(this.timer);
+
       const value = day(this.value);
       const now = day();
-      let diff = value.diff(now, 'seconds');
-      const prefix = (diff < 0 || !this.addPrefix ? '' : '-');
+      const diff = diffFrom(value, now);
+      const prefix = (diff.diff < 0 || !this.addPrefix ? '' : '-');
       const suffix = '';
-
-      diff = Math.abs(diff);
-
-      let next = 1;
-      let label = '?';
-
-      clearTimeout(this.timer);
+      let label = diff.label;
 
       if ( diff === 0 ) {
         label = 'Just now';
       } else {
-        let i = 0;
-
-        while ( diff >= FACTORS[i] && i < FACTORS.length ) {
-          diff /= FACTORS[i];
-          next *= Math.floor(FACTORS[i] / 10);
-          i++;
-        }
-
-        if ( diff < 5 ) {
-          label = Math.floor(diff * 10) / 10;
-        } else {
-          label = Math.floor(diff);
-        }
-
-        label += ` ${ prefix } ${ this.t(`unit.${ LABELS[i] }`, { count: label }) } ${ suffix }`;
+        label += ` ${ prefix } ${ this.t(diff.unitsKey, { count: diff.label }) } ${ suffix }`;
         label = label.trim();
       }
 
@@ -130,7 +110,7 @@ export default {
 
       this.timer = setTimeout(() => {
         this.update();
-      }, 1000 * next);
+      }, 1000 * diff.next);
 
       return this.label;
     }

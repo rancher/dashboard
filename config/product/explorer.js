@@ -2,9 +2,8 @@ import {
   ACCESS_KEY,
   AGE,
   CPU,
-  CREATED,
   DESCRIPTION,
-  EXPIRES_AT,
+  EXPIRES,
   INGRESS_DEFAULT_BACKEND,
   INGRESS_TARGET,
   INTERNAL_EXTERNAL_IP,
@@ -219,8 +218,8 @@ export function init(store) {
     ACCESS_KEY,
     DESCRIPTION,
     SCOPE,
-    EXPIRES_AT,
-    CREATED
+    EXPIRES,
+    AGE
   ]);
 
   virtualType({
