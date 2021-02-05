@@ -60,7 +60,7 @@ TEXTAREA,
 }
 
 INPUT[type='search']:not(.vs__search) {
-  padding: calc($input-padding-sm + 2px);
+  padding: calc(#{$input-padding-sm} + 2px);
 }
 
 TEXTAREA {
