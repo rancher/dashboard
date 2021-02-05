@@ -470,7 +470,7 @@ export const getters = {
         const virtual = !!typeObj.virtual;
         let icon = typeObj.icon;
 
-        if ( !virtual && !icon ) {
+        if ( (!virtual || typeObj.isSpoofed ) && !icon ) {
           if ( namespaced ) {
             icon = 'folder';
           } else {
@@ -695,14 +695,16 @@ export const getters = {
         };
       }
 
-      // Add virtual types and spoofed types
+      // Add virtual and spoofed types
       if ( mode !== USED ) {
         const virtualTypes = state.virtualTypes[product] || [];
+        const spoofedTypes = state.spoofedTypes[product] || [];
+        const allTypes = [...virtualTypes, ...spoofedTypes];
 
-        for ( const vt of virtualTypes ) {
-          const item = clone(vt);
+        for ( const type of allTypes ) {
+          const item = clone(type);
           const id = item.name;
-          const weight = vt.weight || getters.typeWeightFor(item.label, isBasic);
+          const weight = type.weight || getters.typeWeightFor(item.label, isBasic);
 
           if ( item['public'] === false && !isDev ) {
             continue;
@@ -734,11 +736,6 @@ export const getters = {
           out[id] = item;
         }
       }
-
-      const spoofedTypes = state.spoofedTypes[product] || [];
-      spoofedTypes.forEach(type => {
-        out[type.name] = type;
-      });
 
       return out;
     };
@@ -1103,6 +1100,7 @@ export const mutations = {
     instanceMethods[product][copy.type] = copy.getInstances;
     delete copy.getInstances;
 
+    copy.name = copy.type;
     copy.isSpoofed = true;
     copy.virtual = true;
     copy.schemas.forEach(schema => {

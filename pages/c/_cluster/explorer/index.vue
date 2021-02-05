@@ -345,7 +345,7 @@ export default {
         </div>
       </template>
       <template #kubernetesVersion>
-        <h1>{{ currentCluster.kubernetesVersionDisplay }}</h1>
+        <h1>{{ currentCluster.kubernetesVersion }}</h1>
         <label>{{ t('glance.version') }}</label>
       </template>
       <template #totalNodes>

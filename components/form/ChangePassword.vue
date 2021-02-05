@@ -251,7 +251,7 @@ export default {
       display: flex;
       flex-direction: column;
       .fields{
-        height: 215px;
+        height: 225px;
         #username, #password {
           height: 0;
           width: 0;

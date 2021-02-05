@@ -61,6 +61,13 @@ export const EFFECT = {
   sort:     ['effect'],
 };
 
+export const STORAGE_CLASS_PROVISIONER = {
+  name:     'storage_class_provisioner',
+  labelKey: 'tableHeaders.storage_class_provisioner',
+  value:    'provisionerDisplay',
+  sort:     ['provisioner'],
+};
+
 export const OUTPUT = {
   name:          'localOutputRefs',
   labelKey:      'tableHeaders.output',
@@ -478,6 +485,20 @@ export const RBAC_HEADERS = [
     formatter: 'IconIsDefault',
   }
 ];
+
+export const RBAC_DEFAULT = {
+  name:      'default',
+  labelKey:  'tableHeaders.default',
+  value:     'default',
+  formatter: 'Checked'
+};
+
+export const RBAC_BUILTIN = {
+  name:      'builtin',
+  labelKey:  'tableHeaders.builtin',
+  value:     'builtin',
+  formatter: 'Checked'
+};
 
 export const RESOURCE = {
   name:     'resource',

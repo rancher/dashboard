@@ -129,7 +129,7 @@ export default {
       } else {
         const inStore = this.$store.getters['currentProduct'].inStore;
 
-        return this.$store.getters[`${ inStore }/findAll`](NAMESPACE);
+        return this.$store.getters[`${ inStore }/all`](NAMESPACE);
       }
     },
 

@@ -312,6 +312,9 @@ asyncButton:
     waiting: Waiting
     success: Success
     error: Error
+  copy:
+    action: 'Click to Copy'
+    success: 'Copied!'
   create:
     action:  'Create'
     waiting: 'Creating&hellip;'
@@ -575,15 +578,15 @@ cis:
     label: Schedule
     placeholder: "e.g. 0 * * * *"
   customConfigMap: Custom Benchmark ConfigMap
-  deleteProfileWarning: |-
-    {count, plural,
-      =1 { Any scheduled scans using this profile will no longer work. }
-      other { Any scheduled scans using either of these profiles will no longer work. }
-    }
   deleteBenchmarkWarning: |-
     {count, plural,
       =1 { Any profiles using this benchmark version will no longer work. }
       other { Any profiles using these benchmark versions will no longer work }
+    }
+  deleteProfileWarning: |-
+    {count, plural,
+      =1 { Any scheduled scans using this profile will no longer work. }
+      other { Any scheduled scans using either of these profiles will no longer work. }
     }
   downloadAllReports: Download All Saved Reports
   downloadLatestReport: Download Latest Report
@@ -593,29 +596,30 @@ cis:
   noProfiles: There are no valid ClusterScanProfiles for this cluster type to select.
   noReportFound: No scan report found
   profile: Profile
-  retention: Retention Count
   reports: Reports
-  testID: Test ID
-  testsToSkip: Tests to Skip
-  testsSkipped: Tests Skipped
+  retention: Retention Count
   scan:
     description: Description
     fail: Fail
     lastScanTime: Last Scan Time
-    notApplicable: 'N/A'
+    notApplicable: N/A
     number: Number
     pass: Pass
+    remediation: Remediation
     scanDate: Scan Date
     scanReport: Scan Report
     skip: Skip
     total: Total
     warn: Warn
   scheduling:
-    enable: Run scan on a schedule
     disable: Run scan once
+    enable: Run scan on a schedule
   scoreWarning:
     label: Scan state for "warn" results
     protip: Scans with no failures will be marked "Pass" by default even if some of the tests generate "warn" output. This behavior can be changed by selecting the "fail" option from this section.
+  testID: Test ID
+  testsSkipped: Tests Skipped
+  testsToSkip: Tests to Skip
 
 cluster:
   provider:
@@ -757,10 +761,6 @@ fleet:
       unready: Non-Ready
     auth:
       label: Authentication
-      none: None
-      basic: HTTP Basic Auth
-      ssh: SSH Key
-      custom: Secret Name
     caBundle:
       label: Certificates
       placeholder: "Paste in one or more certificates, starting with -----BEGIN CERTIFICATE----"
@@ -1605,7 +1605,7 @@ promptRemove:
     =1 {, and one other.}
     other {, and {count} others.}
     }
-  attemptingToRemove: "You are attemping to remove the {type}"
+  attemptingToRemove: "You are attempting to remove the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
 
 rbac:
@@ -1620,6 +1620,35 @@ rbac:
     fleetworkspace-admin: Admin
     fleetworkspace-member: Member
     fleetworkspace-readonly: Read-Only
+  roletemplate:
+    newUserDefault:
+      no: No
+      tooltip: This does not affect any bindings to the role that already exist.
+    locked:
+      label: Locked
+      yes: 'Yes: New bindings are not allowed to use this role'
+      no: No
+    tabs:
+      resources: Grant Resources
+    subtypes:
+      GLOBAL: 
+        label: Global
+        abbreviation: G
+        yes: "Yes: Default role for new users"
+        defaultLabel: New User Default
+      CLUSTER: 
+        label: Cluster
+        abbreviation: C
+        yes: "Yes: Default role for new cluster creation"
+        defaultLabel: Cluster Creator Default
+      NAMESPACE: 
+        label: Project/Namespace
+        abbreviation: PN
+        yes: "Yes: Default role for new project creation"
+        defaultLabel: Project Creator Default
+      noContext:
+        label: No Context
+
 
 resourceDetail:
   detailTop:
@@ -1742,8 +1771,37 @@ secret:
     ca: CA Certificate
     token: Token
   type: Type
+  types:
+    'opaque': 'Opaque'
+    'kubernetes.io/service-account-token': 'Svc Acct Token'
+    'kubernetes.io/dockercfg': 'Registry'
+    'kubernetes.io/dockerconfigjson': 'Registry'
+    'kubernetes.io/basic-auth': 'HTTP Basic Auth'
+    'kubernetes.io/ssh-auth': 'SSH Key'
+    'kubernetes.io/tls': 'TLS Certificate'
+    'bootstrap.kubernetes.io/token': 'Bootstrap Token'
+    'istio.io/key-and-cert': 'Istio Certificate'
+    'helm.sh/release.v1': 'Helm Release'
+    'fleet.cattle.io/cluster-registration-values': 'Fleet Cluster'
   relatedWorkloads: Related Workloads
 
+selectOrCreateAuthSecret:
+  label: Authentication
+  options:
+    none: None
+    basic: HTTP Basic Auth
+    ssh: SSH Key
+    custom: Secret Name
+  ssh:
+    publicKey: Public Key
+    privateKey: Private Key
+  basic:
+    username: Username
+    password: Password
+  namespaceGroup: "Namespace: {name}"
+  chooseExisting: "Choose an existing secret:"
+  createSsh: Create a SSH Key Secret
+  createBasic: Create a HTTP Basic Auth Secret
 
 servicePorts:
   header:
@@ -1858,6 +1916,120 @@ sortableTable:
       other {{from} - {to} of {count} {pluralLabel}}}
   search: Filter
 
+storageClass:
+  parameters:
+    label: Parameters
+  customize:
+    label: Customize
+    reclaimPolicy:
+      label: Reclaim Policy
+      delete: Delete volumes and underlying device when volume claim is deleted
+      retain: Retain the volume for manual cleanup
+    allowVolumeExpansion:
+      label: Allow Volume Expansion
+      enabled: Enabled
+      disabled: Disabled
+    volumeBindingMode:
+      label: Volume Binding Mode
+      now: Bind and provision a persistent volume once the PersistentVolumeClaim is created
+      later: Bind and provision a persistent volume once a Pod using the PersistentVolumeClaim is created
+    mountOptions:
+      label: Mount Options
+      addlabel: Add Option
+  aws-ebs:
+    title: Amazon EBS Disk
+    volumeType:
+      label: Volume Type
+      gp2: GP2 - General Purpose SSD
+      io1: IO1 - Provisioned IOPS SSD
+      st1: ST1 - Throughput-Optimized HDD
+      sc1: SC1 - Cold-Storage HDD
+      provisionedIops:
+        label: Provisioned IOPS
+        suffix: per second, per GB
+    filesystemType:
+      label: Filesystem Type
+      placeholder: e.g. ext4
+    availabilityZone:
+      label: Availability Zone
+      automatic: 'Automatic: Zones the cluster has a node in'
+      manual: 'Manual: Choose specific zones'
+      placeholder: us-east-1d, us-east-1c
+    encryption:
+      label: Encryption
+      enabled: Enabled
+      disabled: Disabled
+    keyId:
+      label: KMS Key ID for Encryption
+      automatic: 'Automatic: Generate a key'
+      manual: 'Manual: Use a specific key (full ARN)'
+  azure-disk:
+    title: Azure Disk
+    storageAccountType:
+      label: Storage Account Type
+      placeholder: e.g. Standard_LRS
+    kind:
+      label: Kind
+      shared: Shared (unmanaged disk)
+      dedicated: Dedicated (unmanaged disk)
+      managed: Managed
+  azure-file:
+    title: Azure File
+    skuName:
+      label: Sku Name
+      placeholder: e.g. Standard_LRS
+    location:
+      label: Location
+      placeholder: e.g. eastus
+    storageAccount:
+      label: Storage Account
+      placeholder: e.g. azure_storage_account_name
+  gce-pd:
+    title: Google Persistent Disk
+    volumeType:
+      label: Volume Type
+      standard: Standard
+      ssd: SSD
+    filesystemType:
+      label: Filesystem Type
+      placeholder: e.g. ext4
+    availabilityZone:
+      label: Availability Zone
+      automatic: 'Automatic: Zones the cluster has a node in'
+      manual: 'Manual: Choose specific zones'
+      placeholder: us-east-1d, us-east-1c
+    replicationType:
+      label: Replication Type
+      zonal: Zonal
+      regional: Regional
+  longhorn:
+    title: Longhorn
+    addLabel: Add Parameter
+  vsphere-volume:
+    title: VMWare vSphere Volume
+    diskFormat:
+      label: Disk Format
+      thin: Thin
+      zeroedthick: Zeroed Thick
+      eagerzeroedthick: Eager Zeroed Thick
+    storagePolicyName:
+      label: Storage Policy Name
+      placeholder: e.g. gold
+    datastore: 
+      label: Datastore
+      placeholder: e.g. VSANDatastore
+    hostFailuresToTolerate: 
+      label: Host Failures To Tolerate
+      placeholder: e.g. 2
+    cacheReservation:
+      label: Cache Reservation
+      placeholder: e.g. 20
+    filesystemType:
+      label: Filesystem Type
+      placeholder: e.g. ext3
+  custom:
+    addLabel: Add Parameter
+
 tableHeaders:
   accessKey: Access Key
   address: Address
@@ -1867,6 +2039,7 @@ tableHeaders:
   builtIn: Built In
   bundlesReady: Bundles
   bundleDeploymentsReady: Deployments
+  builtin: Built-In
   chart: Chart
   clusterCreatorDefault: Cluster Creator Default
   clusterFlow: Cluster Flow
@@ -1876,11 +2049,13 @@ tableHeaders:
   clusterGroups: Cluster Groups
   commit: Commit
   condition: Condition
+  customVerbs: Custom Verbs
   description: Description
   expires: Expires
   providers: Providers
   cpu: CPU
   date: Date
+  default: Default
   destination: Target
   download: Download
   effect: Effect
@@ -1955,6 +2130,7 @@ tableHeaders:
   started: Started
   state: State
   status: Status
+  storage_class_provisioner: Provisioner
   subject: Subject
   success: Success
   summary: Summary
@@ -1991,6 +2167,7 @@ validation:
     exactly: '"{key}" should contain {count, plural, =1 {# item} other {# items}}'
     max: '"{key}" should contain at most {count} {count, plural, =1 {item} other {items}}'
     min: '"{key}" should contain at least {count} {count, plural, =1 {item} other {items}}'
+  boolean: '"{key}" must be a boolean value.'
   chars: '"{key}" contains {count, plural, =1 {an invalid character} other {# invalid characters}}: {chars}'
   custom:
     missing: 'No validtor exists for { validatorName }! Does the validtor exist in custom-validtors? Is the name spelled correctly?'

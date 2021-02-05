@@ -5,6 +5,7 @@ import UnitInput from '@/components/form/UnitInput';
 import Select from '@/components/form/Select';
 import SecretSelector from '@/components/form/SecretSelector';
 import InputWithSelect from '@/components/form/InputWithSelect';
+import Checkbox from '@/components/form/Checkbox';
 import ButtonGroup from '@/components/ButtonGroup';
 import { mapPref, THEME } from '@/store/prefs';
 import { ucFirst } from '@/utils/string';
@@ -13,6 +14,7 @@ export default {
   layout:     'unauthenticated',
   components: {
     ButtonGroup,
+    Checkbox,
     LabeledInput,
     LabeledSelect,
     UnitInput,
@@ -37,6 +39,7 @@ export default {
       n:       'n',
       m:       'm',
       x:       'x',
+      cb:      false,
     };
   },
 
@@ -173,6 +176,76 @@ export default {
         :mode="mode"
         :tooltip="tooltip"
         :options="['foo','bar']"
+      />
+    </div>
+    <div class="m-20">
+      <Checkbox
+        v-model="cb"
+        label="Test checkbox (toggle-able)"
+        :mode="mode"
+      />
+      <Checkbox
+        :value="false"
+        label="Test checkbox (not checked)"
+        :mode="mode"
+      />
+      <Checkbox
+        :value="true"
+        label="Test checkbox (checked)"
+        :mode="mode"
+      />
+      <Checkbox
+        :value="false"
+        label="Test checkbox (disabled)"
+        :disabled="true"
+        :mode="mode"
+      />
+      <Checkbox
+        :value="true"
+        label="Test checkbox (disabled, checked)"
+        :disabled="true"
+        :mode="mode"
+      />
+      <Checkbox
+        :value="true"
+        label="Test checkbox with tooltip"
+        :disabled="false"
+        :mode="mode"
+        tooltip="Test tooltip for checkbox"
+      />
+    </div>
+    <div class="m-20">
+      <Checkbox
+        v-model="cb"
+        label="Test checkbox (indeterminate)"
+        :mode="mode"
+        :indeterminate="true"
+      />
+      <Checkbox
+        :value="false"
+        label="Test checkbox (indeterminate, not checked)"
+        :mode="mode"
+        :indeterminate="true"
+      />
+      <Checkbox
+        :value="true"
+        label="Test checkbox (indeterminate, checked)"
+        :mode="mode"
+        :indeterminate="true"
+      />
+      <Checkbox
+        :value="false"
+        label="Test checkbox (indeterminate, not checked, disabled)"
+        :mode="mode"
+        :disabled="true"
+        :indeterminate="true"
+      />
+      <Checkbox
+        :value="true"
+        label="Test checkbox (indeterminate, checked, disabled)"
+        :mode="mode"
+        :disabled="true"
+        :indeterminate="true"
       />
     </div>
   </div>

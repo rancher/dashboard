@@ -1,5 +1,4 @@
 <script>
-import { TweenLite } from 'gsap/umd/TweenMax';
 import * as d3 from 'd3';
 export default {
   props: {
@@ -11,10 +10,6 @@ export default {
       type:     Number,
       required: true
     },
-    tween: {
-      type:    Boolean,
-      default: false
-    }
   },
   data() {
     return { tweenedProgress: this.progress };
@@ -63,11 +58,7 @@ export default {
   },
   watch: {
     progress(newProgress, oldProgress) {
-      if (this.tween) {
-        TweenLite.to(this.$data, 0.5, { tweenedProgress: newProgress } );
-      } else {
-        this.tweenedProgress = newProgress;
-      }
+      this.tweenedProgress = newProgress;
     }
   }
 

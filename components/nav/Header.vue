@@ -103,7 +103,7 @@ export default {
       <ClusterSwitcher v-if="isMultiCluster && currentProduct && currentProduct.showClusterSwitcher" />
     </div>
 
-    <div class="user" tabindex="0" @blur="showMenu(false)" @click="showMenu(true)" @focus.capture="showMenu(true)">
+    <div class="user user-menu" tabindex="0" @blur="showMenu(false)" @click="showMenu(true)" @focus.capture="showMenu(true)">
       <v-popover
         ref="popover"
         placement="bottom-end"
@@ -117,27 +117,25 @@ export default {
           <img v-if="principal && principal.avatarSrc" :src="principal.avatarSrc" :class="{'avatar-round': principal.roundAvatar}" width="40" height="40" />
           <i v-else class="icon icon-user icon-3x avatar" />
         </div>
-        <template slot="popover">
+        <template slot="popover" class="user-menu">
           <ul class="list-unstyled dropdown" @click.stop="showMenu(false)">
             <li v-if="authEnabled" class="user-info">
               <div class="user-name">
                 <i class="icon icon-lg icon-user" /> {{ principal.loginName }}
               </div>
-              <div class="text-small pb-5">
+              <div class="text-small pt-5 pb-5">
                 {{ principal.name }}
               </div>
             </li>
-            <div>
-              <nuxt-link tag="li" :to="{name: 'prefs'}" class="hand">
-                <a>Preferences <i class="icon icon-fw icon-gear" /></a>
-              </nuxt-link>
-              <nuxt-link v-if="isMultiCluster" tag="li" :to="{name: 'account'}" class="hand">
-                <a>Account &amp; API Keys <i class="icon icon-fw icon-user" /></a>
-              </nuxt-link>
-              <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="pt-5 pb-5 hand">
-                <a @blur="showMenu(false)">Log Out <i class="icon icon-fw icon-close" /></a>
-              </nuxt-link>
-            </div>
+            <nuxt-link tag="li" :to="{name: 'prefs'}" class="user-menu-item">
+              <a>Preferences <i class="icon icon-fw icon-gear" /></a>
+            </nuxt-link>
+            <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'account'}" class="user-menu-item">
+              <a>Account &amp; API Keys <i class="icon icon-fw icon-user" /></a>
+            </nuxt-link>
+            <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="user-menu-item">
+              <a @blur="showMenu(false)">Log Out <i class="icon icon-fw icon-close" /></a>
+            </nuxt-link>
           </ul>
         </template>
       </v-popover>
@@ -301,7 +299,7 @@ export default {
       &.user-info {
         display: block;
         margin-bottom: 10px;
-        padding: 15px;
+        padding: 10px 20px;
         border-bottom: solid 1px var(--border);
         min-width: 200px;
       }
@@ -315,5 +313,32 @@ export default {
 
   .user-name {
     color: var(--secondary);
+  }
+
+  .user-menu {
+    // Remove the default padding on the popup so that the hover on menu items goes full width of the menu
+    ::v-deep .popover-inner {
+      padding: 10px 0;
+    }
+  }
+
+  .user-menu-item {
+    a {
+      cursor: hand;
+      padding: 0px 10px;
+
+      &:hover {
+        background-color: var(--dropdown-hover-bg);
+        color: var(--dropdown-hover-text);
+        text-decoration: none;
+      }
+
+      // When the menu item is focused, pop the margin and compensate the padding, so that
+      // the focus border appears within the menu
+      &:focus {
+        margin: 0 2px;
+        padding: 10px 8px;
+      }
+    }
   }
 </style>
