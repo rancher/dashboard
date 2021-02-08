@@ -202,4 +202,8 @@ export function init(store) {
       params:   { resource: WORKLOAD }
     },
   });
+
+  // Ignore these types as they are managed through the settings product
+  ignoreType(MANAGEMENT.FEATURE);
+  ignoreType(MANAGEMENT.SETTING);
 }

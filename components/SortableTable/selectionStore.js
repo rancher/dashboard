@@ -82,6 +82,8 @@ export const getters = {
       bulkAction.enabled = state.tableSelected.length > 0 && actionEnabledForSomeSelected;
     });
 
+    console.log(map);
+
     return out;
   },
 

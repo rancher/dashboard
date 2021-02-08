@@ -683,3 +683,31 @@ export const CONFIGURED_RECEIVER = {
   formatter:     'Link',
   formatterOpts: { options: { internal: true } },
 };
+
+export const RESTART = {
+  name:      'restart',
+  label:     'Restart',
+  value:     'restartRequired',
+  sort:      ['restartRequired', 'nameSort'],
+  formatter: 'Checked',
+  width:     75,
+};
+
+export const FEATURE_DESCRIPTION = {
+  name:     'description',
+  labelKey: 'tableHeaders.description',
+  value:    'status.description',
+  align:    'left',
+  sort:     ['status.description'],
+  width:    300,
+};
+
+export const FEATURE_STATE = {
+  name:      'state',
+  labelKey:  'tableHeaders.state',
+  sort:      ['stateSort', 'nameSort'],
+  value:     'stateDisplay',
+  width:     100,
+  default:   'unknown',
+  formatter: 'BadgeStateFormatter',
+};

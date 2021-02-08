@@ -119,6 +119,7 @@ export const MANAGEMENT = {
   CATALOG_TEMPLATE: 'management.cattle.io.catalogtemplate',
   CATALOG:          'management.cattle.io.catalog',
   CLUSTER:          'management.cattle.io.cluster',
+  FEATURE:          'management.cattle.io.feature',
   GROUP:            'management.cattle.io.group',
   NODE_POOL:        'management.cattle.io.nodepool',
   NODE_TEMPLATE:    'management.cattle.io.nodetemplate',

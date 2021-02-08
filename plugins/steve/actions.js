@@ -337,6 +337,10 @@ export default {
     commit('action-menu/toggleAssignTo', resources, { root: true });
   },
 
+  promptUpdate({ commit, state }, resources = []) {
+    commit('action-menu/togglePromptUpdate', resources, { root: true });
+  },
+
   async collectionAction({ getters, dispatch }, {
     type, actionName, body, opt
   }) {

@@ -79,6 +79,7 @@ product:
   istio: Istio
   logging: Logging
   rio: Rio
+  settings: Global Settings
 
 
 suffix:
@@ -202,6 +203,14 @@ asyncButton:
     action:  'Disable'
     waiting: 'Disabling&hellip;'
     success: 'Disabled'
+  activate:
+    action:  'Activate'
+    waiting: 'Activaing&hellip;'
+    success: 'Activated'
+  deactivate:
+    action:  'Deactivate'
+    waiting: 'Deactivating&hellip;'
+    success: 'Deactivated'
   download:
     action:  'Download'
     waiting: 'Downloading&hellip;'
@@ -1668,6 +1677,7 @@ tableHeaders:
   clusterGroups: Cluster Groups
   commit: Commit
   condition: Condition
+  description: Description
   providers: Providers
   cpu: CPU
   date: Date
@@ -2474,6 +2484,16 @@ typeLabel:
       one { Auth Provider }
       other { Auth Providers }
     }
+  management.cattle.io.feature: |-
+    {count, plural,
+      one { Feature Flag }
+      other { Feature Flags }
+    }
+  management.cattle.io.setting: |-
+    {count, plural,
+      one { Advanced Setting }
+      other { Advanced Settings }
+    }
   management.cattle.io.fleetworkspace: |-
     {count, plural,
       one { Workspace }
@@ -2574,3 +2594,62 @@ podAffinity:
 keyValue:
   keyPlaceholder: e.g. foo
   valuePlaceholder: e.g. bar
+
+##############################
+### Advanced Settings
+##############################
+
+advancedSettings:
+  header: Advanced Settings
+  subtext: "Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'."
+  showLabel: "I understand that I can break things by changing advanced settings."
+  show: Show
+  hide: Hide
+  none: None
+  edit:
+    label: Edit Setting
+    changeSetting: "Change Setting:"
+    trueOption: "True"
+    falseOption: "False"
+    value: Value
+    useCustom: Use a custom value
+    useDefault: Use the default value
+    invalidJSON: Invalid JSON - please check and correct your input before saving
+  descriptions:
+    'cacerts': "CA Certificates needed to verify the server's certificate."
+    'cluster-defaults': 'Override RKE Defaults when creating new clusters.'
+    'engine-install-url': 'Default Docker engine installation URL (for most node drivers).'
+    'engine-iso-url': 'Default OS installation URL (for vSphere driver).'
+    'engine-newest-version': 'The newest supported version of Docker at the time of this release.  A Docker version that does not satisfy supported docker range but is newer than this will be marked as untested.'
+    'engine-supported-range': 'Semver range for supported Docker engine versions.  Versions which do not satisfy this range will be marked unsupported in the UI.'
+    'ingress-ip-domain': 'Wildcard DNS domain to use for automatically generated Ingress hostnames. <ingress-name>.<namespace-name>.<ip address of ingress controller> will be added to the domain.'
+    'server-url': 'Default {appName} install url. Must be HTTPS. All nodes in your cluster must be able to reach this.'
+    'system-default-registry': 'Private registry to be used for all system Docker images.'
+    'ui-index': 'HTML index location for the UI.'
+    'ui-pl': 'Private-Label company name.'
+    'ui-issues': "Use a url address to send new 'File an Issue' reports instead of sending users to the Github issues page."
+    'telemetry-opt': 'Telemetry reporting opt-in.'
+    'auth-user-info-max-age-seconds': 'The maximum age of a users auth tokens before an auth provider group membership sync will be performed.'
+    'auth-user-info-resync-cron': 'Default cron schedule for resyncing auth provider group memberships.'
+    'cluster-template-enforcement': 'Non-admins will be restricted to launching clusters via preapproved RKE Templates only.'
+    'auth-user-session-ttl-minutes': 'Custom TTL (in minutes) on a user auth session.'
+    'auth-token-max-ttl-minutes': 'Custom max TTL (in minutes) on an auth token.'
+    'rke-metadata-config': 'Configure RKE metadata refresh parameters.'
+    'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
+    'ui-default-landing': 'The default page users land on after login.'
+  editHelp:
+    'ui-banners': 'This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.'
+  enum:
+    'ui-default-landing':
+      ember: Cluster Manager
+      vue: Cluster Explorer
+    'telemetry-opt':
+      prompt: Prompt
+      in: Opt-in to Telemetry
+      out: Opt-out of Telemetry
+
+featureFlags:
+  warning: "Feature flags allow Rancher to gate certain features behind flags. You should enable these features with caution, and they should be considered beta functionality, which could cause problems for your system. Additionally, some features (non-dynamic) require a restart of the Rancher server to be enabled. Changing non-dynamic features will restart Rancher pods, which will result in a short outage."
+  promptActivate: 'Please confirm that you want to activate the feature flag "{flag}"'
+  promptDeactivate: 'Please confirm that you want to deactivate the feature flag "{flag}"'
+  restartRequired: 'Note: Updating this feature flag requires a restart'
