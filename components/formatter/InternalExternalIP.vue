@@ -1,7 +1,7 @@
 <script>
 import { isV4Format, isV6Format } from 'ip';
 import CopyToClipboard from '@/components/CopyToClipboard';
-
+import { mapGetters } from 'vuex';
 export default {
   components: { CopyToClipboard },
   props:      {
@@ -13,7 +13,8 @@ export default {
   computed: {
     showBoth() {
       return this.row.internalIp !== this.row.externalIp;
-    }
+    },
+    ...mapGetters({ t: 'i18n/t' })
   },
   methods: {
     isIp(ip) {

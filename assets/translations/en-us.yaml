@@ -1796,6 +1796,7 @@ serviceTypes:
   nodeport: Node Port
 
 servicesPage:
+  anyNode: Any Node
   labelsAnnotations:
     label: Labels & Annotations
   affinity:
