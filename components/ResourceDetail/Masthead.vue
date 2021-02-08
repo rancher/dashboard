@@ -401,14 +401,13 @@ export default {
 
   .left-right-split {
     display: grid;
+    align-items: center;
 
     .left-half {
-      background: lavenderblush;
       grid-column: 1;
     }
 
     .right-half {
-      background: darkslateblue;
       grid-column: 2;
     }
   }
