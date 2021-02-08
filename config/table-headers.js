@@ -1,3 +1,4 @@
+import { CATTLE_PUBLIC_ENDPOINTS } from '@/config/labels-annotations';
 import { NODE as NODE_TYPE } from '@/config/types';
 
 // Note: 'id' is always the last sort, so you don't have to specify it here.
@@ -598,10 +599,11 @@ export const WORKSPACE = {
 export const WORKLOAD_IMAGES = { ...POD_IMAGES, value: '' };
 
 export const WORKLOAD_ENDPOINTS = {
-  name:      'workloadEndpoints',
-  labelKey:  'tableHeaders.endpoints',
-  value:     'endpoints',
-  formatter: 'WorkloadEndpoints'
+  name:        'workloadEndpoints',
+  labelKey:    'tableHeaders.endpoints',
+  value:       `$['metadata']['annotations']['${ CATTLE_PUBLIC_ENDPOINTS }']`,
+  formatter:   'Endpoints',
+  dashIfEmpty: true,
 };
 
 export const FLEET_SUMMARY = {
