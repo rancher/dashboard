@@ -120,6 +120,7 @@ export function init(store) {
 
   configureType(NODE, { isCreatable: false, isEditable: false });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
+  configureType(PVC, { isEditable: false });
 
   configureType('workload', {
     displayName: 'Workload',

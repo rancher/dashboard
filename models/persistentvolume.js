@@ -1,3 +1,5 @@
+import { PVC } from '@/config/types';
+
 export const VOLUME_PLUGINS = [
   {
     labelKey: 'persistentVolume.awsElasticBlockStore.label',
@@ -40,5 +42,10 @@ export const VOLUME_PLUGINS = [
 export default {
   source() {
     return this.t(VOLUME_PLUGINS.find(plugin => this.spec[plugin.value]).labelKey);
+  },
+  claim() {
+    const allClaims = this.$rootGetters['cluster/all'](PVC);
+
+    return allClaims.find(claim => claim.spec.volumeName === this.name);
   }
 };
