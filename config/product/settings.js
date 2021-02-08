@@ -1,7 +1,10 @@
 import { DSL } from '@/store/type-map';
 import { MANAGEMENT } from '@/config/types';
 import {
-  STATE, SIMPLE_NAME, FEATURE_DESCRIPTION,RESTART
+  STATE,
+  SIMPLE_NAME,
+  FEATURE_DESCRIPTION,
+  RESTART,
 } from '@/config/table-headers';
 export const NAME = 'settings';
 
@@ -83,5 +86,4 @@ export function init(store) {
   ]);
 
   hideBulkActions(MANAGEMENT.FEATURE, true);
-
 }
