@@ -30,15 +30,15 @@ export default {
 
     this.hasGroups = principals.filter(principal => principal.principalType === 'group')?.length;
 
-    this.canRefresh = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
+    this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
       .then(res => !!res?.actions?.refreshauthprovideraccess);
   },
   data() {
     return {
-      rows:           null,
-      hasGroups:      false,
-      canRefresh:     false,
-      assignLocation:  {
+      rows:             null,
+      hasGroups:        false,
+      canRefreshAccess:     false,
+      assignLocation:   {
         path:   `/c/local/${ NAME }/${ NORMAN.SPOOFED.GROUP_PRINCIPAL }/assign-edit`,
         query: { [MODE]: _EDIT }
       }
@@ -57,6 +57,7 @@ export default {
         // type's `getInstance` fn as it hasn't been registered (`instanceMethods` in type-map file is empty)
         await applyProducts(this.$store);
 
+        // Force spoofed type getInstances to execute again
         this.rows = await this.$store.dispatch('cluster/findAll', {
           type: NORMAN.SPOOFED.GROUP_PRINCIPAL,
           opt:  { force: true }
@@ -82,7 +83,7 @@ export default {
     >
       <template slot="extraActions">
         <AsyncButton
-          v-if="canRefresh"
+          v-if="canRefreshAccess"
           mode="refresh"
           :action-label="t('authGroups.actions.refresh')"
           :waiting-label="t('authGroups.actions.refresh')"

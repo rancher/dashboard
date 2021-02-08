@@ -268,6 +268,15 @@ export default {
     > .user {
       outline: none;
 
+      .v-popover {
+        display: flex;
+        ::v-deep .trigger{
+        .user-image {
+            display: flex;
+          }
+        }
+      }
+
       &:focus {
         .v-popover {
           ::v-deep .trigger {

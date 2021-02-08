@@ -22,7 +22,7 @@ export default {
     },
     async submit(buttonCb) {
       try {
-        await this.$refs.changePassword.submit();
+        await this.$refs.changePassword.save();
         this.show(false);
         buttonCb(true);
       } catch (err) {
@@ -46,7 +46,7 @@ export default {
       </h4>
       <div slot="body">
         <form @submit.prevent>
-          <ChangePassword ref="changePassword" v-model="password" @valid="valid = $event" />
+          <ChangePassword ref="changePassword" @valid="valid = $event" />
         </form>
       </div>
 

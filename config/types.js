@@ -127,18 +127,21 @@ export const LONGHORN = {
 // Rancher Management API (via Steve)
 // Base: /v1
 export const MANAGEMENT = {
-  AUTH_CONFIG:      'management.cattle.io.authconfig',
-  CATALOG_TEMPLATE: 'management.cattle.io.catalogtemplate',
-  CATALOG:          'management.cattle.io.catalog',
-  CLUSTER:          'management.cattle.io.cluster',
-  FEATURE:          'management.cattle.io.feature',
-  GROUP:            'management.cattle.io.group',
-  NODE_POOL:        'management.cattle.io.nodepool',
-  NODE_TEMPLATE:    'management.cattle.io.nodetemplate',
-  PROJECT:          'management.cattle.io.project',
-  SETTING:          'management.cattle.io.setting',
-  TOKEN:            'management.cattle.io.token',
-  USER:             'management.cattle.io.user',
+  AUTH_CONFIG:                   'management.cattle.io.authconfig',
+  CATALOG_TEMPLATE:              'management.cattle.io.catalogtemplate',
+  CATALOG:                       'management.cattle.io.catalog',
+  CLUSTER:                       'management.cattle.io.cluster',
+  CLUSTER_ROLE_TEMPLATE_BINDING: 'management.cattle.io.clusterroletemplatebinding',
+  FEATURE:                       'management.cattle.io.feature',
+  GROUP:                         'management.cattle.io.group',
+  NODE_POOL:                     'management.cattle.io.nodepool',
+  NODE_TEMPLATE:                 'management.cattle.io.nodetemplate',
+  PROJECT:                       'management.cattle.io.project',
+  PROJECT_ROLE_TEMPLATE_BINDING: 'management.cattle.io.projectroletemplatebinding',
+  ROLE_TEMPLATE:                 'management.cattle.io.roletemplate',
+  SETTING:                       'management.cattle.io.setting',
+  USER:                          'management.cattle.io.user',
+  TOKEN:                         'management.cattle.io.token',
 };
 
 export const CAPI = {

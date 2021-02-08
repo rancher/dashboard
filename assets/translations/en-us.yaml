@@ -585,16 +585,23 @@ catalog:
 changePassword:
   title: Change Password
   cancel: Cancel
-  keys: Delete all existing API keys
-  generatePassword: Generate a random password
-  newGeneratedPassword: Suggest a password
-  currentPassword: Current Password
+  deleteKeys:
+    label: Delete all existing API keys
+  changeOnLogin:
+    label: Ask user to change their password on first login
+  generatePassword:
+    label: Generate a random password
+  currentPassword:
+    label: Current Password
   userGen:
-    newPassword: New Password
-    confirmPassword: Confirm Password
+    newPassword:
+      label: New Password
+    confirmPassword:
+      label: Confirm Password
   randomGen:
-    copy: Copy to Clipboard
-    generated: Generated Password
+    generated:
+      label: Generated Password
+  newGeneratedPassword: Suggest a password
   errors:
     missmatchedPassword: Passwords do not match
     failedToChange: Failed to change password
@@ -1835,7 +1842,7 @@ promptRemove:
     =1 {, and one other.}
     other {, and {count} others.}
     }
-  attemptingToRemove: "You are attempting to remove the {type}"
+  attemptingToRemove: "You are attempting to delete the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
 
 rbac:
@@ -1882,82 +1889,82 @@ rbac:
     types:
       global:
         label: Global Permissions
-        detail: |-
+        description: |-
           Controls what access the {isUser, select,
           true {user}
           false {group}} has to administer the overall {appName} installation.
       custom:
         label: Custom
-        detail: Roles not created by Rancher.
+        description: Roles not created by Rancher.
       builtin:
         label: Built-in
-        detail: Additional roles to define more fine-grain permissions model.
+        description: Additional roles to define more fine-grain permissions model.
     unknownRole:
-        detail: No description provided
+        description: No description provided
     role:
       admin:
         label: Administrator
-        detail: Administrators have full control over the entire installation and all resources in all clusters.
+        description: Administrators have full control over the entire installation and all resources in all clusters.
       restricted-admin:
         label: Restricted Administrator
-        detail: Restricted Admins have full control over all resources in all downstream clusters but no access to the local cluster.
+        description: Restricted Admins have full control over all resources in all downstream clusters but no access to the local cluster.
       user:
         label: Standard User
-        detail: Standard Users can create new clusters and manage clusters and projects they have been granted access to.
+        description: Standard Users can create new clusters and manage clusters and projects they have been granted access to.
       user-base:
         label: User-Base
-        detail: User-Base users have login-access only.
+        description: User-Base users have login-access only.
       clusters-create:
         label: Create new Clusters
-        detail: Allows the user to create new clusters and become the owner of them.  Standard Users have this permission by default.
+        description: Allows the user to create new clusters and become the owner of them.  Standard Users have this permission by default.
       clustertemplates-create:
         label: Create new RKE Cluster Templates
-        detail: Allows the user to create new RKE cluster templates and become the owner of them.
+        description: Allows the user to create new RKE cluster templates and become the owner of them.
       authn-manage:
         label: Configure Authentication
-        detail: Allows the user to enable, configure, and disable all Authentication provider settings.
+        description: Allows the user to enable, configure, and disable all Authentication provider settings.
       catalogs-manage:
         label: Configure Catalogs
-        detail: Allows the user to add, edit, and remove Catalogs.
+        description: Allows the user to add, edit, and remove Catalogs.
       clusters-manage:
         label: Manage all Clusters
-        detail: Allows the user to manage all clusters, including ones they are not a member of.
+        description: Allows the user to manage all clusters, including ones they are not a member of.
       clusterscans-manage:
         label: Manage CIS Cluster Scans
-        detail: Allows the user to launch new and manage CIS cluster scans.
+        description: Allows the user to launch new and manage CIS cluster scans.
       kontainerdrivers-manage:
         label: Create new Cluster Drivers
-        detail: Allows the user to create new cluster drivers and become the owner of them.
+        description: Allows the user to create new cluster drivers and become the owner of them.
       features-manage:
         label: Configure Feature Flags
-        detail: Allows the user to enable and disable custom features via feature flag settings.
+        description: Allows the user to enable and disable custom features via feature flag settings.
       nodedrivers-manage:
         label: Configure Node Drivers
-        detail: Allows the user to enable, configure, and remove all Node Driver settings.
+        description: Allows the user to enable, configure, and remove all Node Driver settings.
       nodetemplates-manage:
         label: Manage Node Templates
-        detail: Allows the user to define, edit, and remove Node Templates.
+        description: Allows the user to define, edit, and remove Node Templates.
       podsecuritypolicytemplates-manage:
         label: Manage Pod Security Policies (PSPs)
-        detail: Allows the user to define, edit, and remove PSPs.
+        description: Allows the user to define, edit, and remove PSPs.
       roles-manage:
         label: Manage Roles
-        detail: Allows the user to define, edit, and remove Role definitions.
+        description: Allows the user to define, edit, and remove Role definitions.
       settings-manage:
         label: Manage Settings
-        detail: Allows the user to manage Rancher Settings.
+        description: Allows the user to manage Rancher Settings.
       users-manage:
         label: Manage Users
-        detail: Allows the user to create, remove, and set passwords for all Users.
+        description: Allows the user to create, remove, and set passwords for all Users.
       catalogs-use:
         label: Use Catalogs
-        detail: Allows the user to see and deploy Templates from the Catalog.  Standard Users have this permission by default.
+        description: Allows the user to see and deploy Templates from the Catalog.  Standard Users have this permission by default.
       nodetemplates-use:
         label: Use Node Templates
-        detail: Allows the user to deploy new Nodes using any existing Node Templates.
+        description: Allows the user to deploy new Nodes using any existing Node Templates.
       view-rancher-metrics:
         label: View Rancher Metrics
-        detail: Allows the user to view Metrics through the API.
+        description: Allows the user to view Metrics through the API.
       base:
         label: Login Access
 
@@ -2474,6 +2481,42 @@ target:
     label: Version
     placeholder: Select a version
 
+user:
+  detail:
+    username: Username
+    globalPermissions:
+      label: Global Permissions
+      description: Access to manage resources that affect the entire installation
+      adminMessage: This user is an administrator and has all permissions
+      tableHeaders:
+        permission: Permission
+    clusterRoles:
+      label: Cluster Roles
+      description: Roles granted to this user for individual clusters
+      tableHeaders:
+        cluster: Cluster
+    projectRoles:
+      label: Project Roles
+      description: Roles granted to this user for individual projects
+      tableHeaders:
+        project: Project
+    generic:
+      tableHeaders:
+        role: Role
+        granted: Granted
+  edit:
+    credentials:
+      label: Credentials
+      username:
+        label: Username
+        placeholder: e.g. jsmith
+        exists: 'Username is already in use. Please choose a new username'
+      displayName:
+        label: Display Name
+        placeholder: e.g. John Smith
+      userDescription:
+        label: Description
+        placeholder: e.g. This account is for John Smith
 validation:
   arrayLength:
     between: '"{key}" should contain between {min} and {max} {max, plural, =1 {item} other {items}}'
@@ -3273,6 +3316,8 @@ action:
   view: View Config
   viewInApi: View in API
   viewYaml: View YAML
+  activate: Activate
+  deactivate: Deactivate
   show: Show
   hide: Hide
   copy: Copy

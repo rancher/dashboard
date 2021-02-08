@@ -24,10 +24,12 @@ export default {
       },
     },
 
-    // either 'user' or 'group'
     searchGroupTypes: {
       type:    String,
       default: null,
+      validator(val) {
+        return val === null || val === 'group' || val === 'user';
+      }
     },
 
     retainSelection: {

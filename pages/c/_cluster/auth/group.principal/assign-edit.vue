@@ -44,14 +44,7 @@ export default {
           opt:  { force: true }
         }, { root: true }); // See PromptRemove.vue
 
-        this.$router.replace({
-          name:   `c-cluster-product-resource`,
-          params: {
-            cluster:  'local',
-            product:  NAME,
-            resource: NORMAN.SPOOFED.GROUP_PRINCIPAL,
-          },
-        });
+        this.return();
 
         buttonDone(true);
       } catch (err) {
@@ -59,6 +52,16 @@ export default {
         buttonDone(false);
       }
     },
+    return() {
+      this.$router.replace({
+        name:   `c-cluster-product-resource`,
+        params: {
+          cluster:  'local',
+          product:  NAME,
+          resource: NORMAN.SPOOFED.GROUP_PRINCIPAL,
+        },
+      });
+    }
   }
 };
 
@@ -80,7 +83,7 @@ export default {
       <form>
         <SelectPrincipal :retain-selection="true" class="mb-20" :show-my-group-types="['group']" :search-group-types="'group'" @add="setPrincipal" />
 
-        <GlobalRoleBindings ref="grb" :principal-id="principalId" :mode="mode" />
+        <GlobalRoleBindings ref="grb" :group-principal-id="principalId" :mode="mode" />
 
         <FooterComponent
           :mode="mode"
