@@ -40,9 +40,11 @@ export default {
           v-model="value.api_url"
           :mode="mode"
           label="Webhook URL"
-          :tooltip="{ content: t('monitoringReceiver.slack.info', {}, raw=true), autoHide: false}"
           placeholder="e.g. https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
         />
+        <p class="helper-text mt-10">
+          <t k="monitoringReceiver.slack.info" :raw="true" />
+        </p>
       </div>
     </div>
     <div class="row mb-20">

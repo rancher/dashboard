@@ -54,10 +54,11 @@ export default {
           v-model="integrationType"
           :options="integrationTypeOptions"
           :mode="mode"
-          :tooltip="{ content: t('monitoringReceiver.pagerduty.info', {}, raw=true), autoHide: false}"
-          :hover-tooltip="true"
           label="Integration Type"
         />
+        <p class="helper-text mt-10">
+          <t k="monitoringReceiver.pagerduty.info" :raw="true" />
+        </p>
       </div>
       <div class="col span-6">
         <LabeledInput
