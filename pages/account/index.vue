@@ -1,4 +1,5 @@
 <script>
+import day from 'dayjs';
 import PromptChangePassword from '@/components/PromptChangePassword';
 import { NORMAN, MANAGEMENT } from '@/config/types';
 import Loading from '@/components/Loading';
@@ -37,19 +38,14 @@ export default {
     },
 
     apiKeys() {
-      // Filter out tokens that are not API Keys
+      // Filter out tokens that are not API Keys and are not expired UI Sessions
       const isApiKey = (key) => {
         const labels = key.metadata?.labels;
         const kind = labels ? labels['authn.management.cattle.io/kind'] : '';
+        const expiry = day(key.expiresAt);
+        const expired = expiry.isBefore(day());
 
-        // Note: The ember ui looked for the label 'ui-session' - with Steve, this seems to npw
-        // be the label 'authn.management.cattle.io/kind'' with the value 'session
-
-        // TODO: Don't understand the Ember logic:
-        // return  ( !expired || !labels || !labels['ui-session'] ) && !current;
-        // For the Steve API, current always seems to be false, even for the current UI Session token
-        // Show the Token if is not a session token and its it not current
-        return kind !== 'session' && !key.current;
+        return kind !== 'session' || (kind === 'session' && !expired);
       };
 
       return !this.rows ? [] : this.rows.filter(isApiKey);

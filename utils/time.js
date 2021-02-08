@@ -35,7 +35,7 @@ export function diffFrom(value, from, t) {
     absDiff,
     label,
     unitsKey: `unit.${ LABELS[i] }`,
-    units: LABELS[i],
+    units:    LABELS[i],
     next,
   };
 

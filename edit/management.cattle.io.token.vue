@@ -42,7 +42,7 @@ export default {
       errors: null,
       form:   {
         expiryType:        'never',
-        customExpiry:      0,
+        customExpiry:       0,
         customExpiryUnits: 'minute',
       },
       created:    null,
@@ -78,7 +78,7 @@ export default {
         const max = diffFrom(expiry, now, this.t);
 
         opts = opts.filter(opt => opt.value === 'custom');
-        opts.unshift({ value: 'max', label: this.t('accountAndKeys.apiKeys.add.expiry.options.maximum', { value: max.string } ) });
+        opts.unshift({ value: 'max', label: this.t('accountAndKeys.apiKeys.add.expiry.options.maximum', { value: max.string }) });
       }
 
       return opts;
@@ -158,7 +158,7 @@ export default {
       let ttl = 0;
 
       if (units === 'max') {
-        ttl = this.maxTTL;
+        ttl = this.maxTTL * 60 * 1000;
       } else if ( units !== 'never' ) {
         const now = day();
         const expiry = day().add(increment, units);

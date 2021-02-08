@@ -737,6 +737,6 @@ export const EXPIRES = {
   labelKey:      'tableHeaders.expires',
   align:         'left',
   width:         200,
-  formatter:     'LiveDate',
+  formatter:     'Date',
   formatterOpts: { emptyTextKey: 'generic.never' },
 };
