@@ -30,7 +30,7 @@ export default {
       {{ row.externalIp }} <CopyToClipboard label-as="tooltip" :text="row.externalIp" class="icon-btn" action-color="bg-transparent" />
     </template>
     <template v-else>
-      {{ t('internalExternalIP.none') }}
+      {{ t('generic.none') }}
     </template>
 
     <template v-if="showBoth">
@@ -38,7 +38,7 @@ export default {
         / {{ row.internalIp }} <CopyToClipboard label-as="tooltip" :text="row.internalIp" class="icon-btn" action-color="bg-transparent" />
       </template>
       <template v-else>
-        {{ t('internalExternalIP.none') }}
+        {{ t('generic.none') }}
       </template>
     </template>
   </span>
