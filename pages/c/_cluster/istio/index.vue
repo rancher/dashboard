@@ -100,6 +100,9 @@ export default {
             </div>
           </div>
         </span>
+        <div v-if="!kialiUrl" class="disabled-msg">
+          <span v-html="t('istio.links.disabled', {app: 'Kiali'})" />
+        </div>
       </div>
       <div :class="{'disabled':!jaegerUrl}" class="box link-container">
         <span
@@ -127,6 +130,9 @@ export default {
             </div>
           </div>
         </span>
+        <div v-if="!jaegerUrl" class="disabled-msg">
+          <span v-html="t('istio.links.disabled', {app: 'Jaeger'})" />
+        </div>
       </div>
     </div>
   </div>

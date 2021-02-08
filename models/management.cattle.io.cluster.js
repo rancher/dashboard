@@ -35,7 +35,7 @@ export default {
     return this.hasCondition('Ready');
   },
 
-  kubernetesVersionDisplay() {
+  kubernetesVersion() {
     if ( this?.status?.version?.gitVersion ) {
       return this.status.version.gitVersion;
     } else {

@@ -1,7 +1,7 @@
 <script>
 import { exceptionToErrorsArray } from '@/utils/error';
 import { mapGetters } from 'vuex';
-import { FLEET, SECRET } from '@/config/types';
+import { FLEET } from '@/config/types';
 import { FLEET as FLEET_LABELS } from '@/config/labels-annotations';
 import { set } from '@/utils/object';
 import ArrayList from '@/components/form/ArrayList';
@@ -17,12 +17,10 @@ import Labels from '@/components/form/Labels';
 import Loading from '@/components/Loading';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import YamlEditor from '@/components/YamlEditor';
-import { TYPES as SECRET_TYPES } from '@/models/secret';
 import { base64Decode, base64Encode } from '@/utils/crypto';
+import SelectOrCreateAuthSecret from '@/components/form/SelectOrCreateAuthSecret';
+import { _CREATE } from '@/config/query-params';
 
-const _NONE = '_none';
-const _BASIC = '_basic';
-const _SSH = '_ssh';
 const _VERIFY = 'verify';
 const _SKIP = 'skip';
 const _SPECIFY = 'specify';
@@ -42,6 +40,7 @@ export default {
     NameNsDescription,
     YamlEditor,
     RadioGroup,
+    SelectOrCreateAuthSecret,
   },
 
   mixins: [CreateEditView],
@@ -49,16 +48,8 @@ export default {
   async fetch() {
     this.allClusters = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER });
     this.allClusterGroups = await this.$store.dispatch('management/findAll', { type: FLEET.CLUSTER_GROUP });
-    this.allSecrets = await this.$store.dispatch('management/findAll', { type: SECRET });
 
-    let authSecret = _NONE;
     let tls = _VERIFY;
-
-    if ( this.value.spec?.clientSecretName ) {
-      authSecret = this.value.spec.clientSecretName;
-    }
-
-    this.authSecret = authSecret;
 
     if ( this.value.spec.insecureSkipTLSVerify ) {
       tls = _SKIP;
@@ -74,7 +65,6 @@ export default {
     this.tlsMode = tls;
 
     this.updateTargets();
-    this.updateAuth();
   },
 
   data() {
@@ -88,7 +78,7 @@ export default {
 
     let targetMode = targetInfo.mode;
 
-    if (!this.value.id ) {
+    if ( this.realMode === _CREATE ) {
       targetMode = 'all';
     } else if ( targetMode === 'cluster' ) {
       targetMode = `cluster://${ targetCluster }`;
@@ -100,9 +90,7 @@ export default {
       allClusters:      [],
       allClusterGroups: [],
       allWorkspaces:    [],
-      allSecrets:       [],
 
-      authSecret: null,
       username:   null,
       password:   null,
       publicKey:  null,
@@ -126,12 +114,6 @@ export default {
   computed: {
     ...mapGetters(['workspace']),
 
-    _SSH() {
-      return _SSH;
-    },
-    _BASIC() {
-      return _BASIC;
-    },
     _SPECIFY() {
       return _SPECIFY;
     },
@@ -162,7 +144,9 @@ export default {
       ];
 
       const clusters = this.allClusters
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace)
+        .filter((x) => {
+          return x.metadata.namespace === this.value.metadata.namespace;
+        })
         .map((x) => {
           return { label: x.nameDisplay, value: `cluster://${ x.metadata.name }` };
         });
@@ -212,44 +196,6 @@ export default {
       return out;
     },
 
-    secretChoices() {
-      const types = [SECRET_TYPES.SSH, SECRET_TYPES.BASIC];
-
-      const out = this.allSecrets
-        .filter(x => x.metadata.namespace === this.value.metadata.namespace && types.includes(x._type) )
-        .map((x) => {
-          return {
-            label: `${ x.metadata.name } (${ x._type === SECRET_TYPES.SSH ? 'SSH' : 'HTTP Basic' })`,
-            value: x.metadata.name,
-          };
-        });
-
-      if ( out.length ) {
-        out.unshift({
-          kind:     'title',
-          label:    'Choose an existing secret:',
-          disabled: true
-        });
-      }
-
-      out.unshift({
-        label: 'Create a SSH Key Secret',
-        value: '_ssh',
-      });
-
-      out.unshift({
-        label: 'Create a HTTP Basic Auth Secret',
-        value: _BASIC,
-      });
-
-      out.unshift({
-        label: 'None',
-        value: _NONE,
-      });
-
-      return out;
-    },
-
     tlsOptions() {
       return [
         { label: this.t('fleet.gitRepo.tls.verify'), value: _VERIFY },
@@ -266,7 +212,6 @@ export default {
     targetClusterGroup:         'updateTargets',
     targetAdvanced:             'updateTargets',
 
-    authSecret: 'updateAuth',
     tlsMode:    'updateTls',
     caBundle:   'updateTls',
 
@@ -277,49 +222,16 @@ export default {
     },
   },
 
-  created() {
-    this.registerBeforeHook(this.createSecret);
-  },
-
   methods: {
     set,
 
-    updateAuth() {
+    updateAuth(val) {
       const spec = this.value.spec;
 
-      if ( !this.authSecret || this.authSecret === _SSH || this.authSecret === _BASIC || this.authSecret === _NONE ) {
-        delete spec.clientSecretName;
+      if ( val ) {
+        spec.clientSecretName = val;
       } else {
-        spec.clientSecretName = this.authSecret;
-      }
-    },
-
-    async createSecret() {
-      if ( this.authSecret === _SSH || this.authSecret === _BASIC ) {
-        const secret = await this.$store.dispatch('management/create', {
-          type:     SECRET,
-          metadata: {
-            namespace: this.value.metadata.namespace,
-            name:      this.value.metadata.name
-          },
-        });
-
-        if ( this.authSecret === _SSH ) {
-          secret._type = SECRET_TYPES.SSH;
-          secret.data = {
-            'ssh-publickey':  base64Encode(this.publicKey),
-            'ssh-privatekey': base64Encode(this.privateKey),
-          };
-        } else {
-          secret._type = SECRET_TYPES.BASIC;
-          secret.data = {
-            username:  base64Encode(this.username),
-            password: base64Encode(this.password),
-          };
-        }
-
-        await secret.save();
-        this.authSecret = secret.metadata.name;
+        delete spec.clientSecretName;
       }
     },
 
@@ -451,45 +363,14 @@ export default {
       </div>
     </div>
 
-    <div class="row mt-20">
-      <div class="col span-6">
-        <LabeledSelect
-          v-model="authSecret"
-          :mode="mode"
-          :label="t('fleet.gitRepo.auth.label')"
-          :options="secretChoices"
-          :selectable="option => !option.disabled"
-        >
-          <template v-slot:option="opt">
-            <template v-if="opt.kind === 'divider'">
-              <hr />
-            </template>
-            <template v-else-if="opt.kind === 'title'">
-              {{ opt.label }}
-            </template>
-            <template v-else>
-              {{ opt.label }}
-            </template>
-          </template>
-        </LabeledSelect>
-      </div>
-    </div>
-    <div v-if="authSecret === _SSH" class="row mt-20">
-      <div class="col span-6">
-        <LabeledInput v-model="publicKey" type="multiline" label="Public Key" />
-      </div>
-      <div class="col span-6">
-        <LabeledInput v-model="privateKey" type="multiline" label="Private Key" />
-      </div>
-    </div>
-    <div v-if="authSecret === _BASIC" class="row mt-20">
-      <div class="col span-6">
-        <LabeledInput v-model="username" label="Username" />
-      </div>
-      <div class="col span-6">
-        <LabeledInput v-model="password" type="password" label="Password" />
-      </div>
-    </div>
+    <SelectOrCreateAuthSecret
+      :value="value.spec.clientSecretName"
+      :register-before-hook="registerBeforeHook"
+      :namespace="value.metadata.namespace"
+      in-store="management"
+      generate-name="gitrepo-auth-"
+      @input="updateAuth($event)"
+    />
 
     <template v-if="isTls">
       <div class="spacer" />
@@ -512,7 +393,6 @@ export default {
             placeholder-key="fleet.gitRepo.caBundle.placeholder"
           />
         </div>
-      </div>
       </div>
 
       <div class="spacer" />

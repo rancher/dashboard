@@ -68,7 +68,7 @@ $selected: rgba($primary, .5);
   --header-logo                : #{$lightest};
   --header-btn-bg              : #317DB0;
   --header-btn-text            : white;
-  --header-height              : 50px;
+  --header-height              : 55px;
   --nav-width                  : 250px;
   --nav-bg                     : #{$lighter};
   --nav-active                 : #{rgba($primary, 0.3)};
@@ -91,6 +91,11 @@ $selected: rgba($primary, .5);
   --overlay-bg                 : #{rgba($lighter, 0.75)};
   --shadow                     : #{rgba($medium, 0.85)};
 
+  --checkbox-tick              : #{$lightest};
+  --checkbox-border            : #{$medium};
+  --checkbox-tick-disabled     : #{darken($disabled, 20%)};
+  --checkbox-disabled-bg       : #{$disabled};
+  --checkbox-ticked-bg         : #{$link};
 
   --dropdown-bg                : #{$lightest};
   --dropdown-border            : #{$medium};
@@ -99,7 +104,7 @@ $selected: rgba($primary, .5);
   --dropdown-active-text       : #{darken($link, 1%)};
   --dropdown-active-bg         : #{$selected};
   --dropdown-hover-text        : #{lighten($link, 1%)};
-  --dropdown-hover-bg          : #{rgba($primary, 0.7)};
+  --dropdown-hover-bg          : #{rgba($primary, 0.2)};
   --dropdown-disabled-text     : var(--muted);
   --dropdown-disabled-bg       : #{$disabled};
 

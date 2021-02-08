@@ -1,9 +1,9 @@
 <script>
 import { isV4Format, isV6Format } from 'ip';
-import CopyToClipboardText from '@/components/CopyToClipboardText';
-
+import CopyToClipboard from '@/components/CopyToClipboard';
+import { mapGetters } from 'vuex';
 export default {
-  components: { CopyToClipboardText },
+  components: { CopyToClipboard },
   props:      {
     row: {
       type:     Object,
@@ -13,7 +13,8 @@ export default {
   computed: {
     showBoth() {
       return this.row.internalIp !== this.row.externalIp;
-    }
+    },
+    ...mapGetters({ t: 'i18n/t' })
   },
   methods: {
     isIp(ip) {
@@ -25,9 +26,20 @@ export default {
 
 <template>
   <span>
-    <CopyToClipboardText v-if="isIp(row.externalIp)" :text="row.externalIp" /><span v-else>{{ t('internalExternalIP.none') }}</span>
-    <span v-if="showBoth">
-      / <CopyToClipboardText v-if="isIp(row.internalIp)" :text="row.internalIp" /><span v-else>{{ t('internalExternalIP.none') }}</span>
-    </span>
+    <template v-if="isIp(row.externalIp)">
+      {{ row.externalIp }} <CopyToClipboard label-as="tooltip" :text="row.externalIp" class="icon-btn" action-color="bg-transparent" />
+    </template>
+    <template v-else>
+      {{ t('internalExternalIP.none') }}
+    </template>
+
+    <template v-if="showBoth">
+      <template v-if="isIp(row.internalIp)">
+        / {{ row.internalIp }} <CopyToClipboard label-as="tooltip" :text="row.internalIp" class="icon-btn" action-color="bg-transparent" />
+      </template>
+      <template v-else>
+        {{ t('internalExternalIP.none') }}
+      </template>
+    </template>
   </span>
 </template>

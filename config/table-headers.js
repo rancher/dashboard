@@ -1,3 +1,4 @@
+import { CATTLE_PUBLIC_ENDPOINTS } from '@/config/labels-annotations';
 import { NODE as NODE_TYPE } from '@/config/types';
 
 // Note: 'id' is always the last sort, so you don't have to specify it here.
@@ -59,6 +60,13 @@ export const EFFECT = {
   labelKey: 'tableHeaders.effect',
   value:    'effect',
   sort:     ['effect'],
+};
+
+export const STORAGE_CLASS_PROVISIONER = {
+  name:     'storage_class_provisioner',
+  labelKey: 'tableHeaders.storage_class_provisioner',
+  value:    'provisionerDisplay',
+  sort:     ['provisioner'],
 };
 
 export const OUTPUT = {
@@ -471,6 +479,20 @@ export const RBAC_HEADERS = [
   }
 ];
 
+export const RBAC_DEFAULT = {
+  name:      'default',
+  labelKey:  'tableHeaders.default',
+  value:     'default',
+  formatter: 'Checked'
+};
+
+export const RBAC_BUILTIN = {
+  name:      'builtin',
+  labelKey:  'tableHeaders.builtin',
+  value:     'builtin',
+  formatter: 'Checked'
+};
+
 export const RESOURCE = {
   name:     'resource',
   labelKey: 'tableHeaders.resource',
@@ -577,10 +599,11 @@ export const WORKSPACE = {
 export const WORKLOAD_IMAGES = { ...POD_IMAGES, value: '' };
 
 export const WORKLOAD_ENDPOINTS = {
-  name:      'workloadEndpoints',
-  labelKey:  'tableHeaders.endpoints',
-  value:     'endpoints',
-  formatter: 'WorkloadEndpoints'
+  name:        'workloadEndpoints',
+  labelKey:    'tableHeaders.endpoints',
+  value:       `$['metadata']['annotations']['${ CATTLE_PUBLIC_ENDPOINTS }']`,
+  formatter:   'Endpoints',
+  dashIfEmpty: true,
 };
 
 export const FLEET_SUMMARY = {

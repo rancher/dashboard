@@ -20,7 +20,7 @@ export default {
 
     addPrefix: {
       type:    Boolean,
-      default: true
+      default: false
     },
 
     suffix: {

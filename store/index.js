@@ -394,11 +394,11 @@ export const actions = {
       schemas: Promise.all([
         dispatch('management/subscribe'),
         dispatch('management/loadSchemas', true),
-        dispatch('rancher/loadSchemas', true),
       ]),
     });
 
     const isMultiCluster = !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
+
     const promises = {
       // Clusters guaranteed always available or your money back
       clusters: dispatch('management/findAll', {
@@ -406,6 +406,11 @@ export const actions = {
         opt:  { url: MANAGEMENT.CLUSTER }
       }),
     };
+
+    if ( isMultiCluster ) {
+      promises['rancherSubscribe'] = dispatch('rancher/subscribe');
+      promises['rancherSchema'] = dispatch('rancher/loadSchemas', true);
+    }
 
     if ( getters['management/schemaFor'](COUNT) ) {
       promises['counts'] = dispatch('management/findAll', { type: COUNT });
@@ -565,8 +570,13 @@ export const actions = {
   nuxtClientInit({ dispatch, rootState }, nuxt) {
     Object.defineProperty(rootState, '$router', { value: nuxt.app.router });
     Object.defineProperty(rootState, '$route', { value: nuxt.route });
+
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
+    if ( rootState.isMultiCluster ) {
+      dispatch('rancher/rehydrateSubscribe');
+    }
+
     dispatch('prefs/loadCookies');
     dispatch('prefs/loadTheme');
   },

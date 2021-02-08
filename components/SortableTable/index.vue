@@ -462,7 +462,7 @@ export default {
             v-for="act in availableActions"
             :key="act.action"
             type="button"
-            class="btn bg-primary btn-sm"
+            class="btn bg-primary"
             :disabled="!act.enabled"
             @click="applyTableAction(act, null, $event)"
             @mouseover="setBulkActionOfInterest(act)"
@@ -668,6 +668,7 @@ $spacing: 10px;
   td {
     padding: 12px 5px;
     border: 0;
+    word-break: break-word;
 
     &.row-check {
       padding-top: 16px;

@@ -3,9 +3,10 @@ import { parse as parseUrl, removeParam, addParam, addParams } from '@/utils/url
 import { findBy, addObjects } from '@/utils/array';
 import { open, popupWindowOptions } from '@/utils/window';
 import {
-  BACK_TO, SPA, AUTH_TEST, _FLAGGED, GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT
+  BACK_TO, SPA, _FLAGGED, GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT,
 } from '@/config/query-params';
-import { BASE_SCOPES } from '@/store/github';
+
+export const BASE_SCOPES = { github: ['read:org'], googleoauth: ['openid profile email'] };
 
 const KEY = 'rc_nonce';
 
@@ -87,9 +88,16 @@ export const actions = {
     return findBy(authConfigs, 'id', id);
   },
 
-  setNonce() {
-    const nonce = randomStr(16);
+  setNonce({ dispatch }, opt) {
+    let nonce = randomStr(16);
 
+    if ( opt.test ) {
+      nonce += '-test';
+    }
+
+    if (opt.provider) {
+      nonce += `-${ opt.provider }`;
+    }
     this.$cookies.set(KEY, nonce, {
       path:     '/',
       sameSite: false,
@@ -102,7 +110,6 @@ export const actions = {
   async redirectTo({ state, commit, dispatch }, opt = {}) {
     const provider = opt.provider;
     let redirectUrl = opt.redirectUrl;
-    let route = opt.route;
 
     if ( !redirectUrl ) {
       const driver = await dispatch('getAuthProvider', provider);
@@ -110,40 +117,16 @@ export const actions = {
       redirectUrl = driver.redirectUrl;
     }
 
-    const nonce = await dispatch('setNonce');
+    const nonce = await dispatch('setNonce', opt);
 
-    if (!route) {
-      route = '/auth/verify';
-    }
-
-    if ( this.$router.options && this.$router.options.base ) {
-      const routerBase = this.$router.options.base;
-
-      if ( routerBase !== '/' ) {
-        route = `${ routerBase.replace(/\/+$/, '') }/${ route.replace(/^\/+/, '') }`;
-      }
-    }
-
-    let returnToUrl = `${ window.location.origin }${ route }`;
-
-    const parsed = parseUrl(window.location.href);
-
-    if ( parsed.query.spa !== undefined ) {
-      returnToUrl = addParam(returnToUrl, SPA, _FLAGGED);
-    }
-
-    if ( opt.test ) {
-      returnToUrl = addParam(returnToUrl, AUTH_TEST, _FLAGGED);
-    }
-
-    if ( opt.backTo ) {
-      returnToUrl = addParam(returnToUrl, BACK_TO, opt.backTo);
-    }
+    const returnToUrl = returnTo(opt, this);
 
     const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
     const scopes = fromQuery.split(/[, ]+/).filter(x => !!x);
 
-    addObjects(scopes, BASE_SCOPES);
+    if (BASE_SCOPES[provider]) {
+      addObjects(scopes, BASE_SCOPES[provider]);
+    }
 
     if ( opt.scopes ) {
       addObjects(scopes, opt.scopes);
@@ -164,7 +147,7 @@ export const actions = {
     }
   },
 
-  verifyGithub({ dispatch }, { nonce, code }) {
+  verifyOAuth({ dispatch }, { nonce, code, provider }) {
     const expect = this.$cookies.get(KEY, { parseJSON: false });
 
     if ( !expect || expect !== nonce ) {
@@ -172,8 +155,8 @@ export const actions = {
     }
 
     return dispatch('login', {
-      provider: 'github',
-      body:     { code }
+      provider,
+      body: { code }
     });
   },
 
@@ -181,7 +164,10 @@ export const actions = {
     const driver = await dispatch('getAuthConfig', provider);
 
     return new Promise((resolve, reject) => {
-      window.onAuthTest = (code) => {
+      window.onAuthTest = (err, code) => {
+        if (err) {
+          reject(err);
+        }
         resolve(code);
         delete window.onAuthTest;
       };
@@ -200,18 +186,29 @@ export const actions = {
         }
       }, 500);
 
-      driver.doAction('configureTest', body).then((res) => {
-        dispatch('redirectTo', {
-          provider,
-          redirectUrl: res.redirectUrl,
-          test:        true,
-          redirect:    false
-        }).then((url) => {
-          popup = open(url, 'auth-test', popupWindowOptions());
-        }).catch((err) => {
-          reject(err);
+      if (!!driver?.actions?.testAndEnable) {
+        const finalRedirectUrl = returnTo({ config: provider }, this);
+
+        driver.doAction('testAndEnable', { finalRedirectUrl }).then((res) => {
+          popup = open(res.idpRedirectUrl, 'auth-test', popupWindowOptions());
+        })
+          .catch((err) => {
+            reject(err);
+          });
+      } else {
+        driver.doAction('configureTest', body).then((res) => {
+          dispatch('redirectTo', {
+            provider,
+            redirectUrl: res.redirectUrl,
+            test:        true,
+            redirect:    false
+          }).then((url) => {
+            popup = open(url, 'auth-test', popupWindowOptions());
+          }).catch((err) => {
+            reject(err);
+          });
         });
-      });
+      }
     });
   },
 
@@ -219,13 +216,13 @@ export const actions = {
     const driver = await dispatch('getAuthProvider', provider);
 
     try {
-      await driver.doAction('login', {
+      const res = await driver.doAction('login', {
         description:  'UI session',
         responseType: 'cookie',
         ...body
       }, { redirectUnauthorized: false });
 
-      return true;
+      return res;
     } catch (err) {
       if ( err._status >= 400 && err._status <= 499 ) {
         return Promise.reject(ERR_CLIENT);
@@ -251,3 +248,33 @@ export const actions = {
     dispatch('onLogout', null, { root: true });
   }
 };
+
+function returnTo(opt, vm) {
+  let { route = `/auth/verify` } = opt;
+
+  if ( vm.$router.options && vm.$router.options.base ) {
+    const routerBase = vm.$router.options.base;
+
+    if ( routerBase !== '/' ) {
+      route = `${ routerBase.replace(/\/+$/, '') }/${ route.replace(/^\/+/, '') }`;
+    }
+  }
+
+  let returnToUrl = `${ window.location.origin }${ route }`;
+
+  const parsed = parseUrl(window.location.href);
+
+  if ( parsed.query.spa !== undefined ) {
+    returnToUrl = addParam(returnToUrl, SPA, _FLAGGED);
+  }
+
+  if ( opt.backTo ) {
+    returnToUrl = addParam(returnToUrl, BACK_TO, opt.backTo);
+  }
+
+  if (opt.config) {
+    returnToUrl = addParam(returnToUrl, 'config', opt.config);
+  }
+
+  return returnToUrl;
+}

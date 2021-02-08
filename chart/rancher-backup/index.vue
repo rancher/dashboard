@@ -74,9 +74,7 @@ export default {
 
     availablePVs() {
       return this.persistentVolumes.filter((total, each) => {
-        const rwx = (each?.spec?.accessModes || []).includes('ReadWriteMany');
-
-        return each?.status?.phase !== 'bound' || rwx ;
+        return each?.status?.phase !== 'bound';
       });
     },
 
@@ -98,7 +96,6 @@ export default {
 
   watch: {
     storageSource(neu) {
-      this.reclaimWarning = false;
       switch (neu) {
       case 'pickSC':
         this.value.persistence.enabled = true;
@@ -107,12 +104,16 @@ export default {
           this.value.persistence.storageClass = this.defaultStorageClass?.id;
           this.storageClass = this.defaultStorageClass;
         }
+        if (this.storageClass?.reclaimPolicy === 'Delete') {
+          this.reclaimWarning = true;
+        }
         delete this.value.persistence.volumeName;
         break;
       case 'pickPV':
         this.value.persistence.enabled = true;
         this.value.s3.enabled = false;
         this.value.persistence.storageClass = '-';
+        this.reclaimWarning = false;
         break;
       case 's3':
         this.value.persistence.enabled = false;

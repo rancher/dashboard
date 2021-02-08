@@ -1,8 +1,8 @@
 <script>
 import isEmpty from 'lodash/isEmpty';
 import { CATTLE_PUBLIC_ENDPOINTS } from '@/config/labels-annotations';
-import has from 'lodash/has';
 import Endpoints from '@/components/formatter/Endpoints';
+import has from 'lodash/has';
 
 export default {
   components: { Endpoints },
@@ -31,6 +31,7 @@ export default {
 
       return false;
     },
+
     parsed() {
       const { row, hasPublic } = this;
       const {

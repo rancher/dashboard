@@ -300,6 +300,7 @@ module.exports = {
     '/v3-public': proxyOpts(api), // Rancher Unauthed API
     '/api-ui':    proxyOpts(api), // Browser API UI
     '/meta':      proxyOpts(api), // Browser API UI
+    '/v1-saml':    proxyOpts(api)
   },
 
   // Nuxt server

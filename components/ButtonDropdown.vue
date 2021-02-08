@@ -162,8 +162,6 @@ export default {
     :class="{
       disabled,
       focused,
-      'btn-sm': size === 'sm',
-      'btn-lg': size === 'lg',
     }"
     v-bind="$attrs"
     :append-to-body="true"
@@ -188,10 +186,6 @@ export default {
         tabindex="-1"
         type="button"
         class="dropdown-button-two btn"
-        :class="{
-          'btn-sm': size === 'sm',
-          'btn-lg': size === 'lg',
-        }"
         @click="ddButtonAction(option)"
         @focus="focusSearch"
       >
@@ -232,11 +226,7 @@ export default {
 
   &.vs--open ::v-deep {
     outline: none;
-    border: var(--outline-width) solid var(--outline);
-    // border-bottom: none;
     box-shadow: none;
-    // border-bottom-left-radius: 0;
-    // border-bottom-right-radius: 0;
   }
 
   &:hover {

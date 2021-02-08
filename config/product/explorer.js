@@ -9,8 +9,10 @@ import {
 import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, KEYS,
   INGRESS_DEFAULT_BACKEND, INGRESS_TARGET, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM,
-  SPEC_TYPE, TARGET_PORT, SELECTOR, NODE as NODE_COL, TYPE, WORKLOAD_IMAGES, POD_IMAGES, USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, WORKLOAD_ENDPOINTS,
+  SPEC_TYPE, TARGET_PORT, SELECTOR, NODE as NODE_COL, TYPE, WORKLOAD_IMAGES, POD_IMAGES, USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, WORKLOAD_ENDPOINTS, STORAGE_CLASS_PROVISIONER
 } from '@/config/table-headers';
+
+import { copyResourceValues, SUBTYPES } from '@/models/rbac.authorization.k8s.io.roletemplate';
 
 import { DSL } from '@/store/type-map';
 
@@ -22,12 +24,14 @@ export function init(store) {
     basicType,
     ignoreType,
     mapGroup,
+    mapType,
     weightGroup,
     weightType,
     headers,
     virtualType,
     componentForType,
     configureType,
+    spoofedType
   } = DSL(store, NAME);
 
   product({
@@ -66,9 +70,9 @@ export function init(store) {
   ], 'workload');
   basicType([
     RBAC.ROLE,
-    RBAC.CLUSTER_ROLE,
     RBAC.ROLE_BINDING,
     RBAC.CLUSTER_ROLE_BINDING,
+    RBAC.SPOOFED.ROLE_TEMPLATE
   ], 'rbac');
 
   weightGroup('cluster', 99, true);
@@ -156,6 +160,7 @@ export function init(store) {
   headers(WORKLOAD_TYPES.CRON_JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', AGE]);
   headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', AGE]);
   headers(POD, [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE]);
+  headers(STORAGE_CLASS, [STATE, NAME_COL, STORAGE_CLASS_PROVISIONER, AGE]);
 
   headers(RBAC.ROLE, [
     STATE,
@@ -206,4 +211,44 @@ export function init(store) {
   // Ignore these types as they are managed through the settings product
   ignoreType(MANAGEMENT.FEATURE);
   ignoreType(MANAGEMENT.SETTING);
+
+  spoofedType({
+    label:             'Role Template',
+    type:              RBAC.SPOOFED.ROLE_TEMPLATE,
+    collectionMethods: ['POST'],
+    schemas:           [
+      {
+        id:                RBAC.SPOOFED.ROLE_TEMPLATE,
+        type:              'schema',
+        resourceFields:    { filters: { type: 'string' } },
+        collectionMethods: ['POST'],
+      }
+    ],
+    getInstances: async() => {
+      const allPrmises = SUBTYPES.map(type => store.dispatch('cluster/findAll', { type } ));
+      const all = await Promise.all(allPrmises);
+
+      return all
+        .flat()
+        .map((template) => {
+          const instance = {
+            id:              template.id,
+            kind:            template.kind,
+            type:            RBAC.SPOOFED.ROLE_TEMPLATE,
+            status:          template.status,
+            links:           {
+              self: template.links.self,
+              view: template.links.view
+            },
+            template
+          };
+
+          copyResourceValues(template, instance);
+
+          return instance;
+        });
+    }
+  });
+
+  mapType(RBAC.SPOOFED.ROLE_TEMPLATE, 'Role Template');
 }

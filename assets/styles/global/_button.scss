@@ -1,7 +1,11 @@
-$btn-padding: 15px 40px;
-$xs-padding: 2px 3px;
-$sm-padding: 8px 13px;
-$lg-padding: 18px 30px;
+// $btn-padding: 15px 40px;
+$btn-padding: 0 20px 0 20px;
+$btn-sm-padding: 0 7px 0 7px;
+$btn-height: 40px;
+$btn-sm-height: 30px;
+// $xs-padding: 2px 3px;
+// $sm-padding: 8px 13px;
+// $lg-padding: 18px 30px;
 
 // -----------------------------------------------------------------------------
 // This file contains all styles related to the button component.
@@ -22,6 +26,8 @@ button,
   padding: $btn-padding;
   border-radius: var(--border-radius);
   color: white;
+  // height: $btn-height;
+  line-height: 38px;
 
   &:hover {
     text-decoration: none;
@@ -32,10 +38,11 @@ button,
   }
 }
 
-
 //icon button
 .icon-btn {
   padding: 0;
+  line-height: initial;
+
   &.btn-sm {
     padding: 0;
   }
@@ -46,36 +53,12 @@ button,
   }
 }
 
-//btn sizes
-.btn-xs,
-.btn-group-xs > .btn,
-.btn-xs .btn-label,
-.btn-xs .dd-button > .vs__dropdown-toggle {
-  padding: $xs-padding;
-  font-size: 0.65em;
-  line-height: 1.5em;
-}
-
-.btn-group-xs > .btn {
-  padding: #{$xs-padding - 1};
-}
-
 .btn-sm,
 .btn-group-sm > .btn,
 .btn-sm .btn-label {
-  padding: $sm-padding;
-}
-
-.btn-group-sm > .btn {
-  padding: 4px 9px;
-  margin-left: -3px;
-}
-
-.btn-lg,
-.btn-group-lg > .btn,
-.btn-lg .btn-label {
-  padding: $lg-padding;
-  font-size: 1.2em;
+  padding: $btn-sm-padding;
+  height: $btn-sm-height;
+  line-height: 28px;
 }
 
 //btn roles
@@ -93,13 +76,12 @@ button,
   background: var(--accent-btn);
   border: solid thin var(--link-text);
   color: var(--link-text);
-  @extend .btn-sm;
 }
 
 .role-link {
   background: transparent;
   color: var(--link-text) !important;
-  padding: $sm-padding;
+  padding: $btn-padding;
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -108,9 +90,10 @@ button,
   background: var(--accent-btn);
   border: solid thin var(--link-text);
   color: var(--link-text);
-  padding: 8px;
   border-radius: 2px;
-  line-height: 0;
+  // line-height: 0;
+  // width: $btn-height;
+  // padding: 0;
 }
 
 .icon-group i {
@@ -130,10 +113,8 @@ fieldset[disabled] .btn {
 .btn-group {
   position: relative;
   text-align: initial;
-  // display: inline-block;
   vertical-align: middle;
   padding: 0;
-  // background: var(--input-bg);
   border-radius: var(--border-radius);
 
   .btn {

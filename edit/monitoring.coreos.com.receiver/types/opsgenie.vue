@@ -173,26 +173,26 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .responder {
-    &, .target {
-      width: 100%;
-    }
-    .send-to {
-      margin-left: -35px;
-    }
+.send-to {
+  margin-left: -35px;
+}
+.responder {
+  &, .target {
+    width: 100%;
+  }
 
-    .unlabeled-select ::v-deep {
+  .unlabeled-select ::v-deep {
+    height: $input-height;
+  }
+
+  .target ::v-deep {
+    & .input-container {
       height: $input-height;
     }
 
-    .target ::v-deep {
-      & .input-container {
-        height: $input-height;
-      }
-
-      & .unlabeled-select {
-        min-width: 35%;
-      }
+    & .unlabeled-select {
+      min-width: 35%;
     }
   }
+}
 </style>

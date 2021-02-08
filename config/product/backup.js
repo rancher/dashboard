@@ -27,18 +27,32 @@ export function init(store) {
   ]);
 
   headers(BACKUP_RESTORE.BACKUP, [
-    STATE,
-    'Status',
+    { ...STATE, value: 'Status' },
     NAME_HEADER,
     'Location',
     'Type',
-    'Latest-Backup',
-    AGE,
+    {
+      name:     'backupFilename',
+      labelKey: 'backupRestoreOperator.backupFilename',
+      value:    'status.filename'
+    },
+    {
+      name:      'nextBackup',
+      labelKey:  'backupRestoreOperator.nextBackup',
+      value:     'status.nextSnapshotAt',
+      formatter: 'Date'
+    },
+    {
+      name:      'nextBackup',
+      labelKey:  'backupRestoreOperator.lastBackup',
+      value:     'status.lastSnapshotTs',
+      formatter: 'Date'
+
+    }
   ]);
 
   headers(BACKUP_RESTORE.RESTORE, [
-    STATE,
-    'Status',
+    { ...STATE, value: 'Status' },
     NAME_HEADER,
     'Backup-Source',
     'Backup-File',

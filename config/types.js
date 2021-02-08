@@ -14,6 +14,8 @@ export const STEVE = {
 export const NORMAN = {
   AUTH_CONFIG: 'authconfig',
   PRINCIPAL:   'principal',
+  USER:        'user',
+  TOKEN:        'token',
 };
 
 // Public (via Norman)
@@ -50,6 +52,7 @@ export const RBAC = {
   CLUSTER_ROLE_BINDING: 'rbac.authorization.k8s.io.clusterrolebinding',
   GLOBAL_ROLE:          'management.cattle.io.globalrole',
   GLOBAL_ROLE_BINDING:  'management.cattle.io.globalrolebinding',
+  SPOOFED:              { ROLE_TEMPLATE: 'rbac.authorization.k8s.io.roletemplate' }
 };
 
 export const WORKLOAD = 'workload';
@@ -126,6 +129,7 @@ export const MANAGEMENT = {
   PROJECT:          'management.cattle.io.project',
   SETTING:          'management.cattle.io.setting',
   USER:             'management.cattle.io.user',
+  TOKEN:            'management.cattle.io.token',
 };
 
 export const CAPI = {

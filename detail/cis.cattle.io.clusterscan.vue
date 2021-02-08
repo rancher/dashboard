@@ -17,7 +17,7 @@ export default {
     SortableTable,
     Banner,
     LabeledSelect,
-    Loading
+    Loading,
   },
 
   props: {
@@ -151,7 +151,7 @@ export default {
         {
           name:  'description',
           label: this.t('cis.scan.description'),
-          value: 'description'
+          value: 'description',
         }
       ];
     },
@@ -174,7 +174,6 @@ export default {
           label:     this.t('tableHeaders.type'),
           value:     'type',
         },
-
       ];
     },
   },
@@ -233,6 +232,16 @@ export default {
 
       return id.split('.').map(n => +n + 1000).join('.');
     },
+
+    remediationDisplay(row) {
+      const { remediation } = row;
+
+      if (!remediation) {
+
+      } else {
+        return `${ this.t('cis.scan.remediation') }: ${ remediation }`;
+      }
+    },
     get
   }
 };
@@ -284,6 +293,7 @@ export default {
         <template #sub-row="{row, fullColspan}">
           <tr>
             <td :colspan="fullColspan">
+              <Banner v-if="(row.state==='fail' || row.state==='warn')&& row.remediation" class="sub-banner" :label="remediationDisplay(row)" color="warning" />
               <SortableTable
                 class="sub-table"
                 :rows="row.nodeRows"
@@ -316,6 +326,11 @@ export default {
 
 .sub-table {
   padding: 0px 40px 0px 40px;
+}
+
+.sub-banner{
+  margin: 0px 40px 0px 40px;
+  width: auto;
 }
 
 .table-header {

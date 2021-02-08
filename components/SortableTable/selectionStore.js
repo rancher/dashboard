@@ -82,9 +82,7 @@ export const getters = {
       bulkAction.enabled = state.tableSelected.length > 0 && actionEnabledForSomeSelected;
     });
 
-    console.log(map);
-
-    return out;
+    return out.sort((a, b) => (b.weight || 0) - (a.weight || 0));
   },
 
   options(state = stateSchema) {

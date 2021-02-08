@@ -27,6 +27,7 @@ import {
   validateChars,
   validateDnsLikeTypes,
   validateLength,
+  validateBoolean
 } from '@/utils/validators';
 
 import { ANNOTATIONS_TO_IGNORE_REGEX, DESCRIPTION, LABELS_TO_IGNORE_REGEX, NORMAN_NAME } from '@/config/labels-annotations';
@@ -313,7 +314,7 @@ export default {
   },
 
   nameDisplay() {
-    return this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.metadata?.name || this.id;
+    return this.displayName || this.spec?.displayName || this.metadata?.annotations?.[NORMAN_NAME] || this.metadata?.name || this.id;
   },
 
   nameSort() {
@@ -774,14 +775,12 @@ export default {
 
   doAction() {
     return (actionName, body, opt = {}) => {
-      if ( !opt.url ) {
-        opt.url = this.actionLinkFor(actionName);
-      }
-
-      opt.method = 'post';
-      opt.data = body;
-
-      return this.$dispatch('request', opt);
+      return this.$dispatch('resourceAction', {
+        resource: this,
+        actionName,
+        body,
+        opt,
+      });
     };
   },
 
@@ -806,6 +805,7 @@ export default {
     return async(opt = {}) => {
       delete this.__rehydrate;
       const forNew = !this.id;
+
       const errors = await this.validationErrors(this);
 
       if (!isEmpty(errors)) {
@@ -1254,9 +1254,12 @@ export default {
             Vue.set(data, key, val);
           }
         }
-
-        validateLength(val, field, displayKey, this.$rootGetters, errors);
-        validateChars(val, field, displayKey, this.$rootGetters, errors);
+        if (fieldType === 'boolean') {
+          validateBoolean(val, field, displayKey, this.$rootGetters, errors);
+        } else {
+          validateLength(val, field, displayKey, this.$rootGetters, errors);
+          validateChars(val, field, displayKey, this.$rootGetters, errors);
+        }
 
         if (errors.length > 0) {
           errors.push(this.t('validation.required', { key: displayKey }));

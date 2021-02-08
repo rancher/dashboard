@@ -1,6 +1,5 @@
 <script>
 import ResourceTable from '@/components/ResourceTable';
-import { AS, _YAML } from '@/config/query-params';
 import Loading from '@/components/Loading';
 import Masthead from './Masthead';
 
@@ -51,26 +50,17 @@ export default {
     const params = { ...this.$route.params };
     const resource = params.resource;
 
-    const formRoute = { name: `${ this.$route.name }-create`, params };
-
     const hasListComponent = getters['type-map/hasCustomList'](resource);
-    const hasEditComponent = getters['type-map/hasCustomEdit'](resource);
-
-    const yamlRoute = {
-      name:  `${ this.$route.name }-create`,
-      params,
-      query: { [AS]: _YAML },
-    };
 
     const inStore = getters['currentProduct'].inStore;
     const schema = getters[`${ inStore }/schemaFor`](resource);
 
+    const showMasthead = getters[`type-map/optionsFor`](resource).showListMasthead;
+
     return {
-      formRoute,
-      yamlRoute,
       schema,
       hasListComponent,
-      hasEditComponent,
+      showMasthead: showMasthead === undefined ? true : showMasthead,
       resource,
 
       // Provided by fetch later
@@ -93,29 +83,6 @@ export default {
       return this.$store.getters['type-map/groupByFor'](this.schema);
     },
 
-    typeDisplay() {
-      if ( this.customTypeDisplay ) {
-        return this.customTypeDisplay;
-      }
-
-      if ( !this.schema ) {
-        return '?';
-      }
-
-      return this.$store.getters['type-map/labelFor'](this.schema, 99);
-    },
-
-    isYamlCreateable() {
-      return this.$store.getters['type-map/optionsFor'](this.$route.params.resource).canYaml;
-    },
-
-    isCreatable() {
-      if ( this.schema && !this.schema?.collectionMethods.find(x => x.toLowerCase() === 'post') ) {
-        return false;
-      }
-
-      return this.$store.getters['type-map/optionsFor'](this.$route.params.resource).isCreatable;
-    }
   },
 
   created() {
@@ -137,13 +104,10 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <Masthead
+      v-if="showMasthead"
+      :type-display="customTypeDisplay"
       :schema="schema"
       :resource="resource"
-      :type-display="typeDisplay"
-      :is-yaml-creatable="schema && isCreatable && isYamlCreateable"
-      :is-creatable="hasEditComponent && isCreatable"
-      :yaml-create-location="yamlRoute"
-      :create-location="formRoute"
     />
 
     <div v-if="hasListComponent">

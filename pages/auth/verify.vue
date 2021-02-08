@@ -1,44 +1,77 @@
 <script>
-import {
-  AUTH_TEST, GITHUB_CODE, GITHUB_NONCE, _FLAGGED, BACK_TO
-} from '@/config/query-params';
+import { GITHUB_CODE, GITHUB_NONCE, BACK_TO } from '@/config/query-params';
+import { get } from '@/utils/object';
+const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth'];
+
+function reply(err, code) {
+  try {
+    window.opener.window.onAuthTest(err, code);
+    setTimeout(() => {
+      window.close();
+    }, 250);
+  } catch (e) {
+    window.close();
+  }
+}
 
 export default {
   layout: 'unauthenticated',
 
   async fetch({ store, route, redirect }) {
-    if ( route.query[AUTH_TEST] === _FLAGGED ) {
+    const code = route.query[GITHUB_CODE];
+    const state = route.query[GITHUB_NONCE] || '';
+    const isGoogle = state.includes('-googleoauth');
+    const isTesting = state.includes('-test');
+
+    if (isTesting) {
       return;
     }
 
-    const res = await store.dispatch('auth/verifyGithub', {
-      code:  route.query[GITHUB_CODE],
-      nonce: route.query[GITHUB_NONCE],
-    });
+    if (code) {
+      const res = await store.dispatch('auth/verifyOAuth', {
+        code,
+        nonce:    route.query[GITHUB_NONCE],
+        provider: isGoogle ? 'googleoauth' : 'github'
+      });
 
-    if ( res === true ) {
-      const backTo = route.query[BACK_TO] || '/';
+      if ( res._status === 200) {
+        const backTo = route.query[BACK_TO] || '/';
 
-      redirect(backTo);
-    } else {
-      redirect(`/auth/login?err=${ escape(res) }`);
+        redirect(backTo);
+      } else {
+        redirect(`/auth/login?err=${ escape(res) }`);
+      }
     }
   },
 
   data() {
-    return { testing: this.$route.query[AUTH_TEST] === _FLAGGED };
+    const state = this.$route.query[GITHUB_NONCE] || '';
+
+    const testing = state.includes('-test');
+
+    return { testing };
   },
 
   mounted() {
     if ( this.testing ) {
       try {
-        window.opener.window.onAuthTest(this.$route.query[GITHUB_CODE]);
-
-        setTimeout(() => {
-          window.close();
-        }, 250);
+        reply(null, this.$route.query[GITHUB_CODE] );
       } catch (e) {
         window.close();
+      }
+    } else {
+      const { params, query } = this.$route;
+
+      if ( window.opener && !get(params, 'login') && !get(params, 'errorCode') ) {
+        const configQuery = get(query, 'config');
+
+        if ( samlProviders.includes(configQuery) ) {
+          if ( window.opener.window.onAuthTest ) {
+            reply(null, null);
+          } else {
+            reply({ err: 'failure' });
+          }
+        }
       }
     }
   },
