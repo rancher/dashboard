@@ -23,7 +23,6 @@ export default {
 <template>
   <div class="banner" :class="{[color]: true, closable}">
     <slot>
-      <i class="icon icon-2x icon-close" />
       <t v-if="labelKey" :k="labelKey" :raw="true" />
       <template v-else>
         {{ label }}

@@ -4,8 +4,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import CreateEditView from '@/mixins/create-edit-view';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
-import { MONITORING } from '@/config/types';
-import { createDefaultRouteName } from '@/utils/alertmanagerconfig';
+
 import Loading from '@/components/Loading';
 import { ALLOWED_SETTINGS } from '@/config/settings';
 import RadioButton from '@/components/form/RadioButton';
@@ -24,23 +23,8 @@ export default {
 
   mixins: [CreateEditView],
 
-  // TODO: Think this can go
-  async fetch() {
-    const receivers = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.RECEIVER });
-    const routes = this.$store.dispatch('cluster/findAll', { type: MONITORING.SPOOFED.ROUTE });
-
-    this.receiverOptions = (await receivers).map(receiver => receiver.spec.name);
-
-    if (this.isCreate) {
-      const nonRootRoutes = (await routes).filter(route => !route.isRoot);
-
-      this.$set(this.value.spec, 'name', createDefaultRouteName(nonRootRoutes.length));
-    }
-  },
-
   data() {
     const t = this.$store.getters['i18n/t'];
-    // Map settings from array to object keyed by id
     const setting = ALLOWED_SETTINGS[this.value.id];
 
     let enumOptions = [];
@@ -95,9 +79,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
   <CruResource
-    v-else
     class="route"
     :done-route="'c-cluster-product-resource'"
     :errors="errors"

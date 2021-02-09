@@ -62,7 +62,7 @@ export default {
       this.update = Array.isArray(neu) ? neu[0] : neu;
       if (this.update) {
         this.restart = this.update.restartRequired;
-        // If they value is currently false, then we will be enabling it
+        // If the value is currently false, then we will be enabling it
         this.enabling = !this.update.enabled;
         this.updateMode = this.enabling ? 'activate' : 'deactivate';
       }

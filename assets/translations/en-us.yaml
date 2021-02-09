@@ -319,7 +319,7 @@ asyncButton:
     success: 'Disabled'
   activate:
     action:  'Activate'
-    waiting: 'Activaing&hellip;'
+    waiting: 'Activating&hellip;'
     success: 'Activated'
   deactivate:
     action:  'Deactivate'
