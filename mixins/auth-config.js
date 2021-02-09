@@ -33,7 +33,7 @@ export default {
   },
 
   data() {
-    return { isEnabling: false };
+    return { isEnabling: false, editConfig: false };
   },
 
   computed: {
@@ -177,5 +177,9 @@ export default {
 
       return this.model;
     },
+
+    goToEdit() {
+      this.editConfig = true;
+    }
   },
 };
