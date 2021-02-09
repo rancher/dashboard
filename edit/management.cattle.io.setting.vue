@@ -5,7 +5,6 @@ import LabeledSelect from '@/components/form/LabeledSelect';
 import CreateEditView from '@/mixins/create-edit-view';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 
-import Loading from '@/components/Loading';
 import { ALLOWED_SETTINGS } from '@/config/settings';
 import RadioButton from '@/components/form/RadioButton';
 import RadioGroup from '@/components/form/RadioGroup';
@@ -15,7 +14,6 @@ export default {
     CruResource,
     LabeledInput,
     LabeledSelect,
-    Loading,
     RadioButton,
     RadioGroup,
     TextAreaAutoGrow
