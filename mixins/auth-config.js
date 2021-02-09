@@ -25,6 +25,11 @@ export default {
       this.model.openLdapConfig = {};
       this.showLdap = false;
     }
+    if (this.value.configType === 'saml') {
+      if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
+        this.$set(this.model, 'rancherApiHost', this.serverUrl);
+      }
+    }
   },
 
   data() {
@@ -108,7 +113,7 @@ export default {
             if (!this.model.accessMode) {
               this.model.accessMode = 'unrestricted';
             }
-            await this.model.doAction('testAndApply', obj);
+            await this.model.doAction('testAndApply', obj, { redirectUnauthorized: false });
           }
           // Reload principals to get the new ones from the provider
           this.principals = await this.$store.dispatch('rancher/findAll', {
