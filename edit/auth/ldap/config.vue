@@ -6,6 +6,9 @@ import UnitInput from '@/components/form/UnitInput';
 import Banner from '@/components/Banner';
 import FileSelector from '@/components/form/FileSelector';
 
+const DEFAULT_NON_TLS_PORT = 389;
+const DEFAULT_TLS_PORT = 636;
+
 export default {
   components: {
     RadioGroup,
@@ -58,6 +61,17 @@ export default {
     'model.tls'(neu) {
       if (neu) {
         this.model.starttls = false;
+      }
+
+      const expectedCurrentDefault = neu ? DEFAULT_NON_TLS_PORT : DEFAULT_TLS_PORT;
+      const newDefault = neu ? DEFAULT_TLS_PORT : DEFAULT_NON_TLS_PORT;
+
+      // Note: The defualt port value is a number
+      // If the user edits this value, the type will be a string
+      // Thus, we will only change the value when the user toggles the TLS flag if they have
+      // NOT edited the port value in any way
+      if (this.model.port === expectedCurrentDefault) {
+        this.value.port = newDefault;
       }
     }
   }
