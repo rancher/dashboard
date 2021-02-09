@@ -1,3 +1,4 @@
+import { CATTLE_PUBLIC_ENDPOINTS } from '@/config/labels-annotations';
 import { NODE as NODE_TYPE } from '@/config/types';
 
 // Note: 'id' is always the last sort, so you don't have to specify it here.
@@ -606,10 +607,11 @@ export const WORKSPACE = {
 export const WORKLOAD_IMAGES = { ...POD_IMAGES, value: '' };
 
 export const WORKLOAD_ENDPOINTS = {
-  name:      'workloadEndpoints',
-  labelKey:  'tableHeaders.endpoints',
-  value:     'endpoints',
-  formatter: 'WorkloadEndpoints'
+  name:        'workloadEndpoints',
+  labelKey:    'tableHeaders.endpoints',
+  value:       `$['metadata']['annotations']['${ CATTLE_PUBLIC_ENDPOINTS }']`,
+  formatter:   'Endpoints',
+  dashIfEmpty: true,
 };
 
 export const FLEET_SUMMARY = {
@@ -712,6 +714,21 @@ export const CONFIGURED_RECEIVER = {
   formatter:     'Link',
   formatterOpts: { options: { internal: true } },
 };
+
+export const GROUP_NAME = {
+  name:      'group-name',
+  label:     'Group Name',
+  value:     'id',
+  sort:      ['name'],
+  search:    ['name'],
+  formatter: 'Principal',
+  width:     350
+};
+export const GROUP_ROLE_NAME = {
+  name:      'group-role-names',
+  label:     'Group Role Names',
+  value:     'id',
+  formatter: 'PrincipalGroupBindings',
 
 export const ACCESS_KEY = {
   name:     'name',

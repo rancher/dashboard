@@ -1,11 +1,12 @@
 <script>
 import $ from 'jquery';
-import { _EDIT } from '@/config/query-params';
+import { _EDIT, _VIEW } from '@/config/query-params';
+import { addObject, removeObject } from '@/utils/array';
 
 export default {
   props: {
     value: {
-      type:    Boolean,
+      type:    [Boolean, Array],
       default: false
     },
 
@@ -43,11 +44,19 @@ export default {
       type:    String,
       default: null
     },
+
+    valueWhenTrue: {
+      type:    null,
+      default: true
+    },
   },
 
   computed: {
     isDisabled() {
-      return (this.disabled || this.mode === 'view' );
+      return (this.disabled || this.mode === _VIEW );
+    },
+    isChecked() {
+      return this.isMulti() ? this.value.find(v => v === this.valueWhenTrue) : this.value === this.valueWhenTrue;
     }
   },
 
@@ -61,9 +70,22 @@ export default {
         click.ctrlKey = event.ctrlKey;
         click.metaKey = event.metaKey;
 
-        this.$emit('input', !this.value);
-        $(this.$el).trigger(click);
+        // Flip the value
+        if (this.isMulti()) {
+          if (this.isChecked) {
+            removeObject(this.value, this.valueWhenTrue);
+          } else {
+            addObject(this.value, this.valueWhenTrue);
+          }
+          this.$emit('input', this.value);
+        } else {
+          this.$emit('input', !this.value);
+          $(this.$el).trigger(click);
+        }
       }
+    },
+    isMulti() {
+      return Array.isArray(this.value);
     }
   }
 };
@@ -72,14 +94,15 @@ export default {
 <template>
   <label
     class="checkbox-container"
-    :class="{disabled}"
+    :class="{ 'disabled': isDisabled}"
     @keydown.enter.prevent="clicked($event)"
     @keydown.space.prevent="clicked($event)"
     @click.stop.prevent="clicked($event)"
   >
     <input
-      :checked="value"
-      :v-model="value"
+      v-model="value"
+      :checked="isChecked"
+      :value="valueWhenTrue"
       type="checkbox"
       :tabindex="-1"
       @click.stop.prevent

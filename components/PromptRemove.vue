@@ -106,6 +106,12 @@ export default {
       return this.t('promptRemove.protip', { alternateLabel });
     },
 
+    deleteDisabled() {
+      const confirmFailed = this.needsConfirm && this.confirmName !== this.names[0];
+
+      return this.preventDelete || confirmFailed;
+    },
+
     ...mapState('action-menu', ['showPromptRemove', 'toRemove']),
     ...mapGetters({ t: 'i18n/t' })
   },
@@ -155,25 +161,20 @@ export default {
     },
 
     remove(btnCB) {
-      if (this.needsConfirm && this.confirmName !== this.names[0]) {
-        this.error = 'Resource names do not match';
-        btnCB(false);
-        // if doneLocation is defined, redirect after deleting
+      // if doneLocation is defined, redirect after deleting
+      let goTo;
+
+      if (this.doneLocation) {
+        // doneLocation will recompute to undefined when delete request completes
+        goTo = { ...this.doneLocation };
+      }
+
+      const serialRemove = this.toRemove.some(resource => resource.removeSerially);
+
+      if (serialRemove) {
+        this.serialRemove(goTo, btnCB);
       } else {
-        let goTo;
-
-        if (this.doneLocation) {
-          // doneLocation will recompute to undefined when delete request completes
-          goTo = { ...this.doneLocation };
-        }
-
-        const serialRemove = this.toRemove.some(resource => resource.removeSerially);
-
-        if (serialRemove) {
-          this.serialRemove(goTo, btnCB);
-        } else {
-          this.parallelRemove(goTo, btnCB);
-        }
+        this.parallelRemove(goTo, btnCB);
       }
     },
 
@@ -269,7 +270,7 @@ export default {
         <button class="btn role-secondary" @click="close">
           Cancel
         </button>
-        <AsyncButton mode="delete" class="btn bg-error ml-10" :disabled="preventDelete" @click="remove" />
+        <AsyncButton mode="delete" class="btn bg-error ml-10" :disabled="deleteDisabled" @click="remove" />
       </template>
     </Card>
   </modal>

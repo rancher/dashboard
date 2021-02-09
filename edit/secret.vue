@@ -1,5 +1,5 @@
 <script>
-import { TYPES, DISPLAY_TYPES } from '@/models/secret';
+import { TYPES } from '@/models/secret';
 import { base64Encode, base64Decode } from '@/utils/crypto';
 import { NAMESPACE } from '@/config/types';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -112,9 +112,11 @@ export default {
       const out = [];
 
       this.types.forEach((type) => {
+        const displayType = this.typeDisplay(type);
+
         const subtype = {
           id:          type,
-          label:       DISPLAY_TYPES[type] || '',
+          label:       displayType,
           bannerAbbrv: this.initialDisplayFor(type)
         };
 
@@ -245,12 +247,18 @@ export default {
 
     selectType(type) {
       this.$set(this.value, '_type', type);
-      this.$emit('set-subtype', DISPLAY_TYPES[type]);
+      this.$emit('set-subtype', this.typeDisplay(type));
+    },
+
+    typeDisplay(type) {
+      const fallback = type.replace(/^kubernetes.io\//, '');
+
+      return this.$store.getters['i18n/withFallback'](`secret.types."${ type }"`, null, fallback);
     },
 
     // TODO icons for secret types?
     initialDisplayFor(type) {
-      const typeDisplay = DISPLAY_TYPES[type];
+      const typeDisplay = this.typeDisplay(type);
 
       return typeDisplay.split('').filter(letter => letter.match(/[A-Z]/)).join('');
     },

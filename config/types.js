@@ -15,7 +15,9 @@ export const NORMAN = {
   AUTH_CONFIG: 'authconfig',
   PRINCIPAL:   'principal',
   USER:        'user',
-  TOKEN:        'token',
+  TOKEN:       'token',
+  GROUP:       'group',
+  SPOOFED:     { GROUP_PRINCIPAL: 'group.principal' }
 };
 
 // Public (via Norman)

@@ -60,9 +60,9 @@ export default {
         window.close();
       }
     } else {
-      const { params, query } = this.$route;
+      const { query } = this.$route;
 
-      if ( window.opener && !get(params, 'login') && !get(params, 'errorCode') ) {
+      if ( window.opener ) {
         const configQuery = get(query, 'config');
 
         if ( samlProviders.includes(configQuery) ) {
