@@ -78,7 +78,11 @@ export default {
         set(this, 'servers', []);
         set(this, 'accessMode', 'unrestricted');
         set(this, 'starttls', false);
-
+        if (this.id === 'activedirectory') {
+          set(this, 'disabledStatusBitmask', 1);
+        } else {
+          set(this, 'disabledStatusBitmask', 0);
+        }
         break;
       default:
         break;

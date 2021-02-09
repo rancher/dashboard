@@ -87,7 +87,7 @@ export default {
           <LabeledInput v-model="hostname" required :mode="mode" :label="t('authConfig.ldap.hostname')" />
         </div>
         <div class="col span-5">
-          <LabeledInput v-model="model.port" required :mode="mode" :label="t('authConfig.ldap.port')" />
+          <LabeledInput v-model="model.port" type="number" required :mode="mode" :label="t('authConfig.ldap.port')" />
         </div>
 
         <div class="col span-1">
@@ -128,7 +128,7 @@ export default {
           <LabeledInput v-model="model.userSearchBase" required :mode="mode" :label="t('authConfig.ldap.userSearchBase.label')" :placeholder="t('authConfig.ldap.userSearchBase.placeholder')" />
         </div>
         <div class="col span-6">
-          <LabeledInput v-model="model.groupSearchBase" type="password" :mode="mode" :placeholder="t('authConfig.ldap.groupSearchBase.placeholder')" :label="t('authConfig.ldap.groupSearchBase.label')" />
+          <LabeledInput v-model="model.groupSearchBase" :mode="mode" :placeholder="t('authConfig.ldap.groupSearchBase.placeholder')" :label="t('authConfig.ldap.groupSearchBase.label')" />
         </div>
       </div>
 
