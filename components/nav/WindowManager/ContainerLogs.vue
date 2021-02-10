@@ -457,13 +457,13 @@ export default {
         </template>
       </Select>
       <div class="pull-left ml-5">
-        <button class="btn btn-sm bg-primary" :disabled="isFollowing" @click="follow">
+        <button class="btn bg-primary" :disabled="isFollowing" @click="follow">
           <t k="wm.containerLogs.follow" />
         </button>
-        <button class="btn btn-sm bg-primary" @click="clear">
+        <button class="btn bg-primary" @click="clear">
           <t k="wm.containerLogs.clear" />
         </button>
-        <AsyncButton size="sm" mode="download" @click="download" />
+        <AsyncButton mode="download" @click="download" />
       </div>
 
       <div class="pull-right text-center p-10" style="min-width: 80px;">
@@ -477,7 +477,7 @@ export default {
           trigger="click"
           placement="top"
         >
-          <button class="btn btn-sm bg-primary">
+          <button class="btn bg-primary">
             <i class="icon icon-gear" />
           </button>
 
