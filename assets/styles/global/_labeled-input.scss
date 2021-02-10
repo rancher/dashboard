@@ -28,13 +28,10 @@
     transform: none !important;
   }
 
-<<<<<<< HEAD
-=======
   .required {
     color: var(--error);
   }
 
->>>>>>> bb339701... spacer variables
   INPUT, SELECT {
     position: relative;
     font-size: 14px;
@@ -109,8 +106,4 @@
     left: 0;
     color: var(--input-label);
   }
-}
-
-.required {
-  color: red;
 }
