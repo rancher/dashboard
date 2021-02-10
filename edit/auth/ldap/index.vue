@@ -26,9 +26,6 @@ export default {
 
   data() {
     return {
-      model:         null,
-      serverSetting: null,
-      errors:        null,
       username:      null,
       password:      null
     };
@@ -74,6 +71,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <CruResource
+      :cancel-event="true"
       :done-route="doneRoute"
       :mode="mode"
       :resource="model"
@@ -82,9 +80,10 @@ export default {
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
+      :show-cancel="showCancel"
       @error="e=>errors = e"
       @finish="save"
-      @cancel="done"
+      @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <Banner color="success clearfix">

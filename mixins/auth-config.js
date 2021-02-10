@@ -4,7 +4,8 @@ import { addObject, findBy } from '@/utils/array';
 export default {
   async fetch() {
     const NAME = this.$route.params.id;
-    const originalModel = await this.$store.dispatch('rancher/find', {
+
+    this.originalModel = await this.$store.dispatch('rancher/find', {
       type: NORMAN.AUTH_CONFIG,
       id:   NAME,
       opt:  { url: `/v3/${ NORMAN.AUTH_CONFIG }/${ NAME }`, force: true }
@@ -20,7 +21,7 @@ export default {
       this.serverSetting = serverUrl.value;
     }
 
-    this.model = await this.$store.dispatch(`rancher/clone`, { resource: originalModel });
+    this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
     if (NAME === 'shibboleth' && !this.model.openLdapConfig) {
       this.model.openLdapConfig = {};
       this.showLdap = false;
@@ -33,7 +34,14 @@ export default {
   },
 
   data() {
-    return { isEnabling: false, editConfig: false };
+    return {
+      isEnabling:    false,
+      editConfig:    false,
+      model:         null,
+      serverSetting: null,
+      errors:        null,
+      originalModel: null
+    };
   },
 
   computed: {
@@ -74,6 +82,10 @@ export default {
 
     AUTH_CONFIG() {
       return MANAGEMENT.AUTH_CONFIG;
+    },
+
+    showCancel() {
+      return this.editConfig || !this.model.enabled;
     }
   },
 
@@ -92,13 +104,10 @@ export default {
       if (!obj) {
         obj = this.model;
       }
-
       try {
-        if ( !wasEnabled ) {
-          if (configType === 'oauth') {
-            const code = await this.$store.dispatch('auth/test', {
-              provider: this.model.id, body: obj, editRedirectUrl: obj.editRedirectUrl
-            });
+        if (this.editConfig || !wasEnabled) {
+          if (configType === 'oauth' && !wasEnabled) {
+            const code = await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
 
             this.model.enabled = true;
             obj.code = code;
@@ -135,10 +144,6 @@ export default {
         await this.reloadModel();
         this.isEnabling = false;
         btnCb(true);
-        if ( wasEnabled ) {
-          this.done();
-        }
-        // this.$router.applyQuery( { mode: 'view' } );
       } catch (err) {
         this.errors = Array.isArray(err) ? err : [err];
         btnCb(false);
@@ -180,6 +185,28 @@ export default {
 
     goToEdit() {
       this.editConfig = true;
+    },
+
+    cancel() {
+      // go back to provider selection screen
+      if (!this.model.enabled) {
+        const route = {
+          name:   'c-cluster-auth-config',
+          params: {
+            cluster: this.$route?.params?.cluster,
+            product: 'auth'
+          }
+        };
+
+        this.$router.replace(route);
+      } else {
+        // must be cancelling edit of an enabled config; reset any changes and return to add users/groups view for that config
+        this.$store.dispatch(`rancher/clone`, { resource: this.originalModel }).then((cloned) => {
+          this.model = cloned;
+          this.editConfig = false;
+        });
+      }
     }
+
   },
 };
