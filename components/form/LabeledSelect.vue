@@ -249,7 +249,6 @@ export default {
       :searchable="isSearchable"
       :selectable="selectable"
       :value="value != null ? value : ''"
-      @input="(e) => $emit('input', e)"
       v-on="$listeners"
       @search:blur="onBlur"
       @search:focus="onFocus"
