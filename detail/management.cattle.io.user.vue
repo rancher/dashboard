@@ -33,7 +33,6 @@ export default {
       labelKey: 'user.detail.generic.tableHeaders.role',
       value:    'roleTemplate.displayName',
       sort:     'roleTemplate.displayName',
-      width:    '40%',
     };
     const since = {
       name:      'since',
@@ -72,7 +71,6 @@ export default {
             sort:          'clusterDisplayName',
             formatter:     'LinkDetail',
             formatterOpts: { reference: 'clusterDetailLocation' },
-            width:         '40%'
           }, { ...role },
           { ...since }
         ],
@@ -84,7 +82,13 @@ export default {
             sort:          'projectDisplayName',
             formatter:     'LinkDetail',
             formatterOpts: { reference: 'projectDetailLocation' },
-            width:         '40%'
+          }, {
+            name:          'cluster',
+            labelKey:      'user.detail.clusterRoles.tableHeaders.cluster',
+            value:         'clusterDisplayName',
+            sort:          'clusterDisplayName',
+            formatter:     'LinkDetail',
+            formatterOpts: { reference: 'clusterDetailLocation' },
           }, { ...role },
           { ...since }
         ]
