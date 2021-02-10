@@ -18,7 +18,7 @@
 .labeled-select,
 .unlabeled-select {
   min-width: 75px;
-  // line-height: 1.25;
+  // line-height: $input-line-height;
   
   .v-select {
     &.inline {
@@ -93,7 +93,9 @@
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
   color: var(--input-text);
-  min-height: 40px;
+  // min-height: 40px;
+  // min-height: $input-height;
+  padding: $input-padding-sm 0;
 
   .vs--single .vs__selected-options {
     flex-wrap: nowrap;

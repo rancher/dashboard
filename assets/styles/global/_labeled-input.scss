@@ -59,7 +59,7 @@
     outline: 0;
     box-shadow: none;
     padding: $input-padding-lg 0 0 0;
-    line-height: 1.25;
+    line-height: $input-line-height;
 
     &.no-label {
       padding: $input-padding-sm 0px $input-padding-sm 0px;

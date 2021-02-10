@@ -65,7 +65,7 @@ INPUT[type='search']:not(.vs__search) {
 
 TEXTAREA {
   padding: $input-padding-lg 10px 10px 10px;
-  line-height: 1.25;
+  line-height: $input-line-height;
 }
 
 FORM {
