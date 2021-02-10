@@ -723,9 +723,38 @@ export const GROUP_NAME = {
   formatter: 'Principal',
   width:     350
 };
+
 export const GROUP_ROLE_NAME = {
   name:      'group-role-names',
   label:     'Group Role Names',
   value:     'id',
   formatter: 'PrincipalGroupBindings',
+};
+
+export const HPA_REFERENCE = {
+  name:      'reference',
+  label:     'Workload',
+  value:     'spec.scaleTargetRef.name',
+  sort:      'spec.scaleTargetRef.name',
+};
+
+export const MIN_REPLICA = {
+  name:      'minimum-replica',
+  label:     'Minimum Replicas',
+  value:     'spec.minReplicas',
+  sort:      'spec.minReplicas',
+};
+
+export const MAX_REPLICA = {
+  name:      'maximum-replica',
+  label:     'Maximum Replicas',
+  value:     'spec.maxReplicas',
+  sort:      'spec.maxReplicas',
+};
+
+export const CURRENT_REPLICA = {
+  name:      'current-replica',
+  label:     'Current Replicas',
+  value:     'status.currentReplicas',
+  sort:      'status.currentReplicas',
 };
