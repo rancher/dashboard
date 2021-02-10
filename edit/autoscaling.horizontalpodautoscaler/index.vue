@@ -19,7 +19,8 @@ import find from 'lodash/find';
 import endsWith from 'lodash/endsWith';
 
 const RESOURCE_METRICS_API_GROUP = 'metrics.k8s.io';
-const OBJECT_REFERENCE = 'io.k8s.api.autoscaling.v1.crossversionobjectreference';
+const OBJECT_REFERENCE =
+  'io.k8s.api.autoscaling.v1.crossversionobjectreference';
 
 export default {
   name: 'CruHPA',
@@ -65,9 +66,12 @@ export default {
     allMetrics() {
       return this.value?.spec?.metrics;
     },
-    allWorkloads() {
-      return Object.values(WORKLOAD_TYPES).flatMap(type => this.$store.getters['cluster/all'](type)
-      );
+    allWorkloadsFiltered() {
+      return Object.values(WORKLOAD_TYPES)
+        .flatMap(type => this.$store.getters['cluster/all'](type))
+        .filter(
+          wl => wl.metadata.namespace === this.value.metadata.namespace
+        );
     },
     allServices() {
       return this.$store.getters['cluster/all'](API_SERVICE);
@@ -75,7 +79,13 @@ export default {
     resourceMetricsAvailable() {
       const { allServices } = this;
 
-      return !isEmpty(find(allServices, api => api.name.split('.').length === 4 && endsWith(api.name, RESOURCE_METRICS_API_GROUP)));
+      return !isEmpty(
+        find(
+          allServices,
+          api => api.name.split('.').length === 4 &&
+            endsWith(api.name, RESOURCE_METRICS_API_GROUP)
+        )
+      );
     },
   },
 
@@ -139,7 +149,7 @@ export default {
                 :reduce="(workload) => workload.metadata.name"
                 :mode="mode"
                 :label="t('hpa.workloadTab.target')"
-                :options="allWorkloads"
+                :options="allWorkloadsFiltered"
               />
             </div>
           </div>
@@ -169,7 +179,7 @@ export default {
         <Tab name="metrics" :label="t('hpa.tabs.metrics')">
           <ArrayListGrouped
             v-model="value.spec.metrics"
-            :default-add-value="({ ...defaultResourceMetric })"
+            :default-add-value="{ ...defaultResourceMetric }"
             :mode="mode"
             :initial-empty-row="true"
           >
@@ -182,7 +192,11 @@ export default {
             </template>
           </ArrayListGrouped>
         </Tab>
-        <Tab name="labels-and-annotations" :label="t('hpa.tabs.labels')" :weight="-1">
+        <Tab
+          name="labels-and-annotations"
+          :label="t('hpa.tabs.labels')"
+          :weight="-1"
+        >
           <Labels
             :default-container-class="'labels-and-annotations-container'"
             :value="value"
