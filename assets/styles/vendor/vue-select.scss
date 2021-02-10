@@ -33,7 +33,7 @@
   position: absolute;
   left: -2px;
   z-index: z-index('dropdownContent');
-  padding: 5px 0;
+  padding: $input-padding-sm 0;
   margin: 0;
   width: calc(100% + 4px);
   max-height: 350px;
@@ -60,7 +60,7 @@
 .vs__dropdown-option {
   line-height: 1.42857143; /* Normalize line height */
   display: block;
-  padding: 3px 20px;
+  padding: 0 calc(#{$input-padding-sm}/2);
   clear: both;
   color: var(--dropdown-text);
   white-space: nowrap;

@@ -78,10 +78,6 @@ export default {
       default: null,
       type:    [String, Object, Number, Array, Boolean],
     },
-    size: {
-      type:    String,
-      default: '',
-    }
   },
 
   methods: {

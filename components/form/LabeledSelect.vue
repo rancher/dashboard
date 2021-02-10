@@ -291,7 +291,7 @@ export default {
     }
   }
   ::v-deep .vs__selected-options {
-    margin-top: -4px;
+    margin-top: -5px;
   }
 
   ::v-deep .v-select:not(.vs--single) {
