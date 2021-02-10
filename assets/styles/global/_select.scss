@@ -93,9 +93,7 @@
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
   color: var(--input-text);
-  // min-height: 40px;
-  // min-height: $input-height;
-  padding: $input-padding-sm 0;
+  padding: 3px 0;
 
   .vs--single .vs__selected-options {
     flex-wrap: nowrap;
@@ -116,7 +114,7 @@
 
       .vs__dropdown-toggle {
         height: 100%;
-        line-height: .75;
+        // line-height: .75;
       }
       .vs__actions {
         width: auto;
