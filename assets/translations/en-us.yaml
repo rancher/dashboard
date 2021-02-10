@@ -955,7 +955,7 @@ logging:
   install:
     k3sContainerEngine: K3S Container Engine
     enableAdditionalLoggingSources: Enable enhanced cloud provider logging
-    fluentbitMountPath: Fluentbit Mount Path
+    dockerRootDirectory: Docker Root Directory
   elasticsearch:
     host: Host
     scheme: Scheme
