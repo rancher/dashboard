@@ -21,6 +21,10 @@ DIR=${GIT_TAG:-$COMMIT_BRANCH}
 echo "Building..."
 NUXT_ENV_commit=${COMMIT} NUXT_ENV_version=${VERSION} OUTPUT_DIR=dist/${DIR}-embedded ROUTER_BASE='/dashboard' yarn run build --spa
 
+echo "Destroying..."
+find dist/${DIR}-embedded -name "index.html" -mindepth 2 -exec rm {} \;
+find dist/${DIR}-embedded -type d -empty -depth -exec rmdir {} \;
+
 TARBALL=${DIR}.tar.gz
 echo "Compressing to ${TARBALL}..."
 tar -czf dist/${TARBALL} dist/${DIR}-embedded/
