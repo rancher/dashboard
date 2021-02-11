@@ -729,6 +729,7 @@ export const GROUP_ROLE_NAME = {
   label:     'Group Role Names',
   value:     'id',
   formatter: 'PrincipalGroupBindings',
+};
 
 export const ACCESS_KEY = {
   name:     'name',
