@@ -4,6 +4,14 @@ export default {
     loading: {
       type:    Boolean,
       default: true,
+    },
+    // How to size and position the loading indicator - supports three modes:
+    // 'content' - the content area only (not side nav or header)
+    // 'main' - entire main view excluding the header, but including the side nav
+    // 'full' - entire view including the header and the side nav
+    mode: {
+      type:    String,
+      default: 'content',
     }
   },
 };
@@ -12,7 +20,7 @@ export default {
 <template>
   <div v-if="loading">
     <div class="overlay"></div>
-    <div class="content">
+    <div class="content" v-bind:class="{ 'content-content-mode' : mode === 'content', 'content-main-mode' : mode === 'main' }">
       Loading...
     </div>
   </div>
@@ -24,7 +32,6 @@ export default {
 <style lang="scss" scoped>
   .overlay {
     z-index: z-index('loadingOverlay');
-    background-color: var(--overlay-bg);
     position: fixed;
     top: 0;
     left: 0;
@@ -33,11 +40,25 @@ export default {
   }
 
   .content {
+    align-items: center;
+    background-color: var(--overlay-bg);
+    display: flex;
+    justify-content: center;
     position: absolute;
-    top: 50vh;
+    bottom: 0;
+    top: 0;
     left: 0;
     right: 0;
     text-align: center;
     z-index: z-index('loadingContent');
+
+    &-main-mode {
+      top: var(--header-height);
+    }
+
+    &-content-mode {
+      left: var(--nav-width);
+      top: var(--header-height);
+    }
   }
 </style>
