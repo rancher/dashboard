@@ -15,14 +15,24 @@ export default {
     }
   },
 
+  data() {
+    return { timer: null, showMessage: false };
+  },
+
+  mounted() {
+    this.timer = setTimeout(() => { this.showMessage = true; console.log('ok'); }, 250);
+  },
+
+  beforeDestroy() {
+    clearTimeout(this.timer);
+  }
 };
 </script>
 
 <template>
   <div v-if="loading">
-    <div class="overlay"></div>
-    <div class="content" :class="{ 'content-content-mode' : mode === 'content', 'content-main-mode' : mode === 'main' }">
-      <t k="principal.loading" />
+    <div v-if="showMessage" class="overlay" :class="{ 'overlay-content-mode' : mode === 'content', 'overlay-main-mode' : mode === 'main' }">
+      <t k="generic.loading" :raw="true" />
     </div>
   </div>
   <div v-else>
@@ -32,15 +42,6 @@ export default {
 
 <style lang="scss" scoped>
   .overlay {
-    z-index: z-index('loadingOverlay');
-    position: fixed;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    right: 0;
-  }
-
-  .content {
     align-items: center;
     background-color: var(--overlay-bg);
     display: flex;

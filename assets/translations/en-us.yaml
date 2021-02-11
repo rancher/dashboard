@@ -17,6 +17,7 @@ generic:
   ignored: Ignored
   invalidCron: Invalid cron schedule
   labelsAndAnnotations: Labels and Annotations
+  loading: Loading&hellip;
   members: Members
   na: n/a
   name: Name
@@ -1660,7 +1661,7 @@ changePassword:
     failedDeleteKeys: Failed to delete keys
 
 principal:
-  loading: 'Loading...'
+  loading: Loading&hellip;
   error: Unable to fetch principal info
 
 probe:
