@@ -22,7 +22,7 @@ export default {
   <div v-if="loading">
     <div class="overlay"></div>
     <div class="content" :class="{ 'content-content-mode' : mode === 'content', 'content-main-mode' : mode === 'main' }">
-      Loading...
+      <t k="principal.loading" />
     </div>
   </div>
   <div v-else>

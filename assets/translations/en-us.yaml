@@ -1660,7 +1660,7 @@ changePassword:
     failedDeleteKeys: Failed to delete keys
 
 principal:
-  loading: Loading&hellip;
+  loading: 'Loading...'
   error: Unable to fetch principal info
 
 probe:
