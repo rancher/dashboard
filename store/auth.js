@@ -1,12 +1,14 @@
 import { randomStr } from '@/utils/string';
 import { parse as parseUrl, removeParam, addParam, addParams } from '@/utils/url';
 import { findBy, addObjects } from '@/utils/array';
-import { open, popupWindowOptions } from '@/utils/window';
+import { getAuthCode } from '@/utils/auth';
 import {
   BACK_TO, SPA, _FLAGGED, GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT,
 } from '@/config/query-params';
 
-export const BASE_SCOPES = { github: ['read:org'], googleoauth: ['openid profile email'] };
+export const BASE_SCOPES = {
+  github: ['read:org'], googleoauth: ['openid profile email'], azuread: []
+};
 
 const KEY = 'rc_nonce';
 
@@ -133,12 +135,16 @@ export const actions = {
     }
 
     let url = removeParam(redirectUrl, GITHUB_SCOPE);
-
-    url = addParams(url, {
+    const params = {
       [GITHUB_SCOPE]:    scopes.join(','),
-      [GITHUB_REDIRECT]: returnToUrl,
       [GITHUB_NONCE]:    nonce
-    });
+    };
+
+    if (!url.includes(GITHUB_REDIRECT)) {
+      params[GITHUB_REDIRECT] = returnToUrl;
+    }
+
+    url = addParams(url, params);
 
     if ( opt.redirect === false ) {
       return url;
@@ -160,56 +166,17 @@ export const actions = {
     });
   },
 
-  async test({ dispatch }, { provider, body }) {
+  async test({ dispatch }, { provider, body, editRedirectUrl = url => url }) {
     const driver = await dispatch('getAuthConfig', provider);
-
-    return new Promise((resolve, reject) => {
-      window.onAuthTest = (err, code) => {
-        if (err) {
-          reject(err);
-        }
-        resolve(code);
-        delete window.onAuthTest;
-      };
-
-      let popup;
-
-      const timer = setInterval(() => {
-        if ( popup && popup.closed ) {
-          clearInterval(timer);
-
-          return reject(new Error('Access was not authorized'));
-        } else if ( popup === null || popup === undefined ) {
-          clearInterval(timer);
-
-          return reject(new Error('Please disable your popup blocker for this site'));
-        }
-      }, 500);
-
-      if (!!driver?.actions?.testAndEnable) {
-        const finalRedirectUrl = returnTo({ config: provider }, this);
-
-        driver.doAction('testAndEnable', { finalRedirectUrl }).then((res) => {
-          popup = open(res.idpRedirectUrl, 'auth-test', popupWindowOptions());
-        })
-          .catch((err) => {
-            reject(err);
-          });
-      } else {
-        driver.doAction('configureTest', body).then((res) => {
-          dispatch('redirectTo', {
-            provider,
-            redirectUrl: res.redirectUrl,
-            test:        true,
-            redirect:    false
-          }).then((url) => {
-            popup = open(url, 'auth-test', popupWindowOptions());
-          }).catch((err) => {
-            reject(err);
-          });
-        });
-      }
+    const configureTestResponse = await driver.doAction('configureTest', body);
+    const url = await dispatch('redirectTo', {
+      provider,
+      redirectUrl: editRedirectUrl(configureTestResponse.redirectUrl),
+      test:        true,
+      redirect:    false
     });
+
+    return getAuthCode(url, provider);
   },
 
   async login({ dispatch }, { provider, body }) {

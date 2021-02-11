@@ -25,8 +25,7 @@ export default {
     this.$set(this.value, 'additionalLoggingSources', this.value.additionalLoggingSources || {});
     this.$set(this.value.additionalLoggingSources, this.provider, this.value.additionalLoggingSources[this.provider] || {});
     this.$set(this.value.additionalLoggingSources[this.provider], 'enabled', true);
-    this.$set(this.value.additionalLoggingSources[this.provider], 'fluentbit', this.value.additionalLoggingSources[this.provider].fluentbit || {});
-    this.$set(this.value.additionalLoggingSources[this.provider].fluentbit, 'mountPath', this.value.additionalLoggingSources[this.provider].fluentbit.mountPath || '');
+    this.$set(this.value, 'global', this.value.global || {});
   },
 };
 </script>
@@ -40,7 +39,7 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.additionalLoggingSources[provider].fluentbit.mountPath" :label="t('logging.install.fluentbitMountPath')" />
+        <LabeledInput v-model="value.global.dockerRootDirectory" :label="t('logging.install.dockerRootDirectory')" />
       </div>
     </div>
     <div class="row">

@@ -22,10 +22,8 @@ export function formatSi(inValue, {
 
   let out = '';
 
-  if ( val < 10 && maxPrecision >= 2 ) {
-    out = `${ Math.round(val * 100) / 100 }`;
-  } else if ( val < 100 && maxPrecision >= 1) {
-    out = `${ Math.round(val * 10) / 10 }`;
+  if ( val < 10 && maxPrecision >= 1 ) {
+    out = `${ Math.round(val * (10 ** maxPrecision) ) / (10 ** maxPrecision) }`;
   } else {
     out = `${ Math.round(val) }`;
   }

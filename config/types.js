@@ -27,6 +27,7 @@ export const PUBLIC = { AUTH_PROVIDER: 'authprovider' };
 // Common native k8s types (via Steve)
 // Base: /k8s/clusters/<id>/v1/
 export const API_GROUP = 'apiGroups';
+export const API_SERVICE = 'apiregistration.k8s.io.apiservice';
 export const CONFIG_MAP = 'configmap';
 export const COUNT = 'count';
 export const EVENT = 'event';

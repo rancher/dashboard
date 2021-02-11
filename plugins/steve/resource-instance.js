@@ -769,7 +769,7 @@ export default {
 
   actionLinkFor() {
     return (actionName) => {
-      return (this.actions || {})[actionName];
+      return (this.actions || this.actionLinks || {})[actionName];
     };
   },
 
@@ -1260,6 +1260,9 @@ export default {
           validateLength(val, field, displayKey, this.$rootGetters, errors);
           validateChars(val, field, displayKey, this.$rootGetters, errors);
         }
+
+        validateLength(val, field, displayKey, this.$rootGetters, errors);
+        validateChars(val, field, displayKey, this.$rootGetters, errors);
 
         if (errors.length > 0) {
           errors.push(this.t('validation.required', { key: displayKey }));

@@ -20,3 +20,27 @@ export function popupWindowOptions(width, height) {
 export function open(url, name = '_blank', opt = '') {
   return window.open(url, name, opt);
 }
+
+export class Popup {
+  constructor(onOpen = () => {}, onClose = () => {}) {
+    this.onOpen = onOpen;
+    this.onClose = onClose;
+    this.popup = null;
+  }
+
+  open(url, name, opt) {
+    this.onOpen();
+    this.popup = open(url, name, opt);
+
+    if (!this.popup) {
+      throw new Error('Please disable your popup blocker for this site');
+    }
+
+    const timer = setInterval(() => {
+      if (this.popup.closed) {
+        clearInterval(timer);
+        this.onClose();
+      }
+    }, 500);
+  }
+}

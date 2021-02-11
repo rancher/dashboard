@@ -36,10 +36,6 @@
     transform: none !important;
   }
 
-  .required {
-    color: red;
-  }
-
   INPUT, SELECT {
     position: relative;
     font-size: 14px;
@@ -114,4 +110,8 @@
     left: 0;
     color: var(--input-label);
   }
+}
+
+.required {
+  color: red;
 }

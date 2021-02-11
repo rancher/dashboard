@@ -96,7 +96,9 @@ export default {
       try {
         if ( !wasEnabled ) {
           if (configType === 'oauth') {
-            const code = await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
+            const code = await this.$store.dispatch('auth/test', {
+              provider: this.model.id, body: obj, editRedirectUrl: obj.editRedirectUrl
+            });
 
             this.model.enabled = true;
             obj.code = code;
@@ -113,7 +115,10 @@ export default {
             if (!this.model.accessMode) {
               this.model.accessMode = 'unrestricted';
             }
-            await this.model.doAction('testAndApply', obj, { redirectUnauthorized: false });
+            await this.model.doAction('testAndApply', {
+              code:   obj.code,
+              config: obj
+            }, { redirectUnauthorized: false });
           }
           // Reload principals to get the new ones from the provider
           this.principals = await this.$store.dispatch('rancher/findAll', {
@@ -135,7 +140,7 @@ export default {
         }
         // this.$router.applyQuery( { mode: 'view' } );
       } catch (err) {
-        this.errors = [err];
+        this.errors = Array.isArray(err) ? err : [err];
         btnCb(false);
         this.model.enabled = wasEnabled;
         this.isEnabling = false;

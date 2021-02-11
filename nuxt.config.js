@@ -315,7 +315,7 @@ module.exports = {
 
   // Server middleware
   serverMiddleware: [
-    '~/server/no-ssr'
+    '~/server/server-middleware'
   ],
 
   // Eslint module options
