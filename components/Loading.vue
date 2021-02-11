@@ -14,13 +14,14 @@ export default {
       default: 'content',
     }
   },
+
 };
 </script>
 
 <template>
   <div v-if="loading">
     <div class="overlay"></div>
-    <div class="content" v-bind:class="{ 'content-content-mode' : mode === 'content', 'content-main-mode' : mode === 'main' }">
+    <div class="content" :class="{ 'content-content-mode' : mode === 'content', 'content-main-mode' : mode === 'main' }">
       Loading...
     </div>
   </div>
