@@ -345,6 +345,7 @@ export default {
 
     if ( !opt.url ) {
       opt.url = resource.actionLinkFor(actionName);
+      // opt.url = (resource.actions || resource.actionLinks)[actionName];
     }
 
     opt.method = 'post';

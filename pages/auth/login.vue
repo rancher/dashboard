@@ -127,12 +127,13 @@ export default {
           }
         });
         if ( this.remember ) {
-          this.$cookies.set(USERNAME, this.username, {
+          this.$cookies.set(USERNAME, this.username,{
             encode: x => x,
             maxAge: 86400 * 365,
             secure: true,
             path:   '/',
           });
+          
         } else {
           this.$cookies.remove(USERNAME);
         }

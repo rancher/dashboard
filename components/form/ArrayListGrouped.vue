@@ -16,7 +16,7 @@ export default {
 <template>
   <ArrayList class="array-list-grouped" v-bind="$attrs" @input="$emit('input', $event)" @add="$emit('add')">
     <template v-slot:columns="scope">
-      <InfoBox class="pt-40">
+      <InfoBox :class="{'pt-40': !isDisabled}">
         <slot v-bind="scope"></slot>
       </InfoBox>
     </template>

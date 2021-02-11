@@ -4,6 +4,7 @@ import Select from '@/components/form/Select';
 import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
 import { removeObject } from '@/utils/array';
+import { clone } from '@/utils/object';
 
 export default {
   components: { Select },
@@ -79,11 +80,13 @@ export default {
     let rules = [...this.value];
 
     rules = rules.map((rule) => {
-      if (rule.values && typeof rule.values !== 'string') {
-        rule.values = rule.values.join(', ');
+      const newRule = clone(rule);
+
+      if (newRule.values && typeof newRule.values !== 'string') {
+        newRule.values = newRule.values.join(', ');
       }
 
-      return rule;
+      return newRule;
     });
 
     if (!rules.length && this.initialEmptyRow) {
@@ -194,9 +197,10 @@ export default {
       <span />
     </div>
     <div
-      v-for="row in rules"
+      v-for="(row, index) in rules"
       :key="row.id"
-      class="match-expression-row mb-10"
+      class="match-expression-row"
+      :class="{'view':isView, 'mb-10': index !== rules.length - 1}"
     >
       <div>
         <div v-if="isView">
@@ -243,8 +247,8 @@ export default {
         </button>
       </div>
     </div>
-    <div class="mt-20">
-      <button v-if="!isView" type="button" class="btn role-tertiary add" @click="addRule">
+    <div v-if="!isView" class="mt-20">
+      <button type="button" class="btn role-tertiary add" @click="addRule">
         <t k="workload.scheduling.affinity.matchExpressions.addRule" />
       </button>
     </div>

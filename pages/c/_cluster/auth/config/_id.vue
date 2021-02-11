@@ -10,7 +10,7 @@ export default {
     AUTH_CONFIG() {
       return MANAGEMENT.AUTH_CONFIG;
     }
-  }
+  },
 };
 </script>
 
