@@ -11,7 +11,6 @@ import CopyToClipboardText from '@/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import AuthConfig from '@/mixins/auth-config';
 
-const NAME = 'azuread';
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
 const ENDPOINT_MAPPING = {
@@ -52,14 +51,10 @@ export default {
 
   async fetch() {
     await this.reloadModel();
-
-    this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
   },
 
   data() {
     return {
-      model:             null,
-      errors:            null,
       endpoint:          'standard',
       // Storing the applicationSecret is necessary because norman doesn't support returning secrets and when we
       // override the steve authconfig with a norman config the applicationSecret is lost
@@ -68,10 +63,6 @@ export default {
   },
 
   computed: {
-    baseUrl() {
-      return `${ this.model.tls ? 'https://' : 'http://' }${ this.model.hostname }`;
-    },
-
     tArgs() {
       return {
         baseUrl:   this.baseUrl,
@@ -80,16 +71,14 @@ export default {
       };
     },
 
-    NAME() {
-      return NAME;
-    },
-
     replyUrl() {
       return `${ window.location.origin }/verify-auth-azure/dashboard/auth/verify`;
     },
+
     tenantId() {
       return this.model?.tenantId;
     },
+
     toSave() {
       this.$set(this.model, 'applicationSecret', this.model.applicationSecret || this.applicationSecret);
 
@@ -98,7 +87,6 @@ export default {
         applicationSecret: this.model.applicationSecret || this.applicationSecret,
         enabled:           true,
         description:       'Enable AzureAD',
-        editRedirectUrl:   url => `${ url }&response_type=code&response_mode=query`
       };
     },
   },
@@ -107,9 +95,11 @@ export default {
     endpoint(value) {
       this.setEndpoints(value);
     },
+
     tenantId() {
       this.setEndpoints(this.endpoint);
     },
+
     model: {
       deep: true,
       handler() {

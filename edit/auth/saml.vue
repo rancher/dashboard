@@ -11,8 +11,6 @@ import AsyncButton from '@/components/AsyncButton';
 import FileSelector from '@/components/form/FileSelector';
 import config from '@/edit/auth/ldap/config';
 
-const AUTH_TYPE = 'ldap';
-
 export default {
   components: {
     Loading,
@@ -32,20 +30,12 @@ export default {
   },
 
   computed: {
-    baseUrl() {
-      return `${ this.model.tls ? 'https://' : 'http://' }${ this.model.hostname }`;
-    },
-
     tArgs() {
       return {
         baseUrl:   this.serverSetting,
         provider:  this.displayName,
         username:  this.principal.loginName || this.principal.name,
       };
-    },
-
-    AUTH_TYPE() {
-      return AUTH_TYPE;
     },
 
     toSave() {

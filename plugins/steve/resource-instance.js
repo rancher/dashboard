@@ -1254,15 +1254,13 @@ export default {
             Vue.set(data, key, val);
           }
         }
+
         if (fieldType === 'boolean') {
           validateBoolean(val, field, displayKey, this.$rootGetters, errors);
         } else {
           validateLength(val, field, displayKey, this.$rootGetters, errors);
           validateChars(val, field, displayKey, this.$rootGetters, errors);
         }
-
-        validateLength(val, field, displayKey, this.$rootGetters, errors);
-        validateChars(val, field, displayKey, this.$rootGetters, errors);
 
         if (errors.length > 0) {
           errors.push(this.t('validation.required', { key: displayKey }));

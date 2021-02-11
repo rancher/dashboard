@@ -1,7 +1,16 @@
+import { _EDIT } from '@/config/query-params';
 import { NORMAN, MANAGEMENT } from '@/config/types';
 import { addObject, findBy } from '@/utils/array';
 
 export default {
+  beforeCreate() {
+    const { query } = this.$route;
+
+    if (query.mode !== _EDIT) {
+      this.$router.applyQuery({ mode: _EDIT });
+    }
+  },
+
   async fetch() {
     const NAME = this.$route.params.id;
 
@@ -68,6 +77,10 @@ export default {
       return '';
     },
 
+    baseUrl() {
+      return `${ this.model.tls ? 'https://' : 'http://' }${ this.model.hostname }`;
+    },
+
     principal() {
       return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
@@ -124,10 +137,7 @@ export default {
             if (!this.model.accessMode) {
               this.model.accessMode = 'unrestricted';
             }
-            await this.model.doAction('testAndApply', {
-              code:   obj.code,
-              config: obj
-            }, { redirectUnauthorized: false });
+            await this.model.doAction('testAndApply', obj, { redirectUnauthorized: false });
           }
           // Reload principals to get the new ones from the provider
           this.principals = await this.$store.dispatch('rancher/findAll', {
@@ -143,6 +153,7 @@ export default {
         await this.model.save();
         await this.reloadModel();
         this.isEnabling = false;
+        this.editConfig = false;
         btnCb(true);
       } catch (err) {
         this.errors = Array.isArray(err) ? err : [err];
@@ -190,15 +201,7 @@ export default {
     cancel() {
       // go back to provider selection screen
       if (!this.model.enabled) {
-        const route = {
-          name:   'c-cluster-auth-config',
-          params: {
-            cluster: this.$route?.params?.cluster,
-            product: 'auth'
-          }
-        };
-
-        this.$router.replace(route);
+        this.$router.go(-1);
       } else {
         // must be cancelling edit of an enabled config; reset any changes and return to add users/groups view for that config
         this.$store.dispatch(`rancher/clone`, { resource: this.originalModel }).then((cloned) => {
