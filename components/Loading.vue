@@ -20,7 +20,9 @@ export default {
   },
 
   mounted() {
-    this.timer = setTimeout(() => { this.showMessage = true; }, 250);
+    this.timer = setTimeout(() => {
+      this.showMessage = true;
+    }, 250);
   },
 
   beforeDestroy() {
