@@ -1,6 +1,6 @@
 <script>
 import { _VIEW } from '@/config/query-params';
-import { get, isEmpty, clone } from '@/utils/object';
+import { get, set, isEmpty, clone } from '@/utils/object';
 import { POD, NODE, NAMESPACE } from '@/config/types';
 import MatchExpressions from '@/components/form/MatchExpressions';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -141,7 +141,8 @@ export default {
       } else {
         term.weight = 1;
       }
-      this.$set(this.allSelectorTerms, idx, term);
+
+      this.$set(this.allSelectorTerms, idx, clone(term));
       this.queueUpdate();
     },
 
@@ -164,6 +165,7 @@ export default {
 
     isEmpty,
     get,
+    set
   }
 
 };
@@ -186,11 +188,12 @@ export default {
             </div>
             <div class="col span-6">
               <LabeledSelect
+                :key="priorityDisplay(props.row.value)"
                 :mode="mode"
                 :options="[t('workload.scheduling.affinity.preferred'),t('workload.scheduling.affinity.required')]"
                 :value="priorityDisplay(props.row.value)"
                 :label="t('workload.scheduling.affinity.priority')"
-                @input="changePriority(props.row.value, idx)"
+                @input="changePriority(props.row.value, props.i)"
               />
             </div>
           </div>
@@ -201,7 +204,7 @@ export default {
               :name="`namespaces-${props.row.value._id}`"
               :mode="mode"
               :value="!!props.row.value.namespaces"
-              @input="changeNamespaceMode(props.row.value, idx)"
+              @input="changeNamespaceMode(props.row.value, props.i)"
             />
           </div>
           <div class="spacer"></div>
@@ -221,7 +224,7 @@ export default {
             :type="pod"
             :value="get(props.row.value, 'labelSelector.matchExpressions')"
             :show-remove="false"
-            @input="e=>$set(props.row.value.labelSelector, 'matchExpressions', e)"
+            @input="e=>set(props.row.value, 'labelSelector.matchExpressions', e)"
           />
           <div class="spacer"></div>
           <div class="row">
