@@ -37,7 +37,6 @@ export default {
 
       return;
     }
-
     return {
       providers,
       hasOthers,
@@ -170,6 +169,7 @@ export default {
 
         <div v-if="providers.length" class="mt-50 mb-50">
           <component
+          class='mb-10'
             v-for="(name, idx) in providers"
             :is="providerComponents[idx]"
             :key="name"

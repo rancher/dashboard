@@ -29,7 +29,6 @@ export default {
     if ( serverUrl ) {
       this.serverSetting = serverUrl.value;
     }
-
     this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
     if (NAME === 'shibboleth' && !this.model.openLdapConfig) {
       this.model.openLdapConfig = {};
@@ -119,7 +118,7 @@ export default {
       }
       try {
         if (this.editConfig || !wasEnabled) {
-          if (configType === 'oauth' && !wasEnabled) {
+          if (configType === 'oauth') {
             const code = await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
 
             this.model.enabled = true;

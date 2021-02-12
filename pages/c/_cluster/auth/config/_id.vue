@@ -5,8 +5,7 @@ import { MANAGEMENT } from '@/config/types';
 export default {
   name:        'AuthConfigDetail',
   components:  { ResourceDetail },
-
-  computed: {
+  computed:   {
     AUTH_CONFIG() {
       return MANAGEMENT.AUTH_CONFIG;
     }
