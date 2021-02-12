@@ -116,7 +116,7 @@ $selected: rgba($primary, .5);
   --input-border               : var(--border);
   --input-bg                   : #{$light};
   --input-bg-accent            : #{darken($light, 3%)};
-  --input-border-accent        : #{--dark};
+  --input-border-accent        : #{--darker};
   --input-hover-bg             : #{darken($light, 5%)};
   --input-focus-bg             : #{darken($light, 5%)};
   --input-disabled-text: #{darken($disabled, 60%)};
