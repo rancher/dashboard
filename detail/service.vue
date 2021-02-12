@@ -95,13 +95,9 @@ export default {
       serviceSelectorInfoHeaders: [
         {
           ...KEY,
-          label: '',
           width: 200,
         },
-        {
-          ...VALUE,
-          label: '',
-        },
+        VALUE,
       ],
     };
   },
@@ -192,7 +188,7 @@ export default {
         :rows="selectorTableRows"
         :row-actions="false"
         :table-actions="false"
-        :show-headers="false"
+        :show-headers="true"
         :search="false"
       />
     </Tab>
