@@ -83,10 +83,12 @@ export default {
       this.$set(this.model, 'applicationSecret', this.model.applicationSecret || this.applicationSecret);
 
       return {
-        ...this.model,
-        applicationSecret: this.model.applicationSecret || this.applicationSecret,
-        enabled:           true,
-        description:       'Enable AzureAD',
+        config: {
+          ...this.model,
+          applicationSecret: this.model.applicationSecret || this.applicationSecret,
+          enabled:           true,
+          description:       'Enable AzureAD'
+        }
       };
     },
   },

@@ -121,10 +121,8 @@ export default {
           if (configType === 'oauth') {
             const code = await this.$store.dispatch('auth/test', { provider: this.model.id, body: this.model });
 
-            this.model.enabled = true;
             obj.code = code;
-          }
-          if (configType === 'saml') {
+          } if (configType === 'saml') {
             if (!this.model.accessMode) {
               this.model.accessMode = 'unrestricted';
             }
