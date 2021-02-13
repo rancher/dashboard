@@ -118,10 +118,6 @@ export default {
         // Description is a bit weird, so need to clone and set this
         // rather than use this.value - need to find a way to set this if we ever
         // want to allow edit (which I don't think we do)
-
-        // REMOVE BEFORE PR
-        this.value.ttl = 6000;
-
         const res = await this.$store.dispatch('rancher/request', {
           url:     '/v3/tokens',
           method:  'post',
