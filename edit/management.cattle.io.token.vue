@@ -2,7 +2,6 @@
 import { mapGetters } from 'vuex';
 import day from 'dayjs';
 import sortBy from 'lodash/sortBy';
-import { clone } from '@/utils/object';
 import { MANAGEMENT } from '@/config/types';
 import Banner from '@/components/Banner';
 import DetailText from '@/components/DetailText';
@@ -119,13 +118,14 @@ export default {
         // Description is a bit weird, so need to clone and set this
         // rather than use this.value - need to find a way to set this if we ever
         // want to allow edit (which I don't think we do)
-        const data = clone(this.value);
 
-        data.description = this.value._description;
+        // REMOVE BEFORE PR
+        this.value.ttl = 6000;
+
         const res = await this.$store.dispatch('rancher/request', {
           url:     '/v3/tokens',
           method:  'post',
-          data,
+          data:    this.value,
           headers: { 'Content-Type': 'application/json' },
         });
 
@@ -176,7 +176,7 @@ export default {
     <div class="pl-10 pr-10">
       <LabeledInput
         key="description"
-        v-model="value._description"
+        v-model="value.description"
         :placeholder="t('accountAndKeys.apiKeys.add.description.placeholder')"
         label-key="accountAndKeys.apiKeys.add.description.label"
         mode="edit"

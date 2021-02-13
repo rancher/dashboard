@@ -767,6 +767,12 @@ export const CURRENT_REPLICA = {
   sort:      'status.currentReplicas',
 };
 
+export const EXPIRY_STATE = {
+  ...STATE,
+  value:     '$',
+  formatter: 'LiveExpiryBadgeState',
+};
+
 export const ACCESS_KEY = {
   name:     'name',
   labelKey: 'tableHeaders.accessKey',
@@ -790,7 +796,7 @@ export const EXPIRES = {
   value:         'expiresAt',
   labelKey:      'tableHeaders.expires',
   align:         'left',
+  sort:          ['expiresAt'],
   width:         200,
-  formatter:     'Date',
-  formatterOpts: { emptyTextKey: 'generic.never' },
+  formatter:     'LiveExpiryDate'
 };
