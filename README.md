@@ -58,7 +58,7 @@ docker run -v $(pwd):/src \
 
 # What is it?
 
-Dashboard is "stateless" client for the Rancher APIs built with [Vue.js](https://vuejs.org/) and [NuxtJS](https://nuxtjs.org/).  It is normally build and packaged as a folder of static HTML/CSS/JS files which are bundled into a Rancher release, with the index.html returned by the API server as the "fallback" case for any request that looks like it came from a browser and does not match an API URL.
+Dashboard is "stateless" client for the Rancher APIs built with [Vue.js](https://vuejs.org/) and [NuxtJS](https://nuxtjs.org/).  It is normally built and packaged as a folder of static HTML/CSS/JS files which are bundled into a Rancher release, with the index.html returned by the API server as the "fallback" case for any request that looks like it came from a browser and does not match an API URL.
 
 Every k8s type, namespace, and operation that the logged in user has been granted access to is shown to them.  The default view for everything is the raw YAML from the k8s API for detail pages, and the `Table` view column data for list pages (i.e. what you get from `kubectl get <type> -o wide`).
 
@@ -129,7 +129,7 @@ There are lots of different APIs available in Rancher, but the primary two are [
       - "Watches" to find out when a resource changes are aggregated into a single websocket which keeps track of what's connected and can resume the stream, rather than many independent calls to the native k8s implementation
       - The "counts" resource internally watches everything to keep track of how many of every type of resource there are in every namespace and state, which allows us to show all the types that are "in use" and how many there are in the left nav.
       - Schemas and links on each resource efficiently identify what permissions the user making the request has, so that actions in the UI can be hidden or disabled if not allowed for the current user instead of letting them try and having the server reject it.
-      - Normalizing the differnet and sometimes inconsistent state/status/conditions data from resources into a single logical view of the world the UI can present.
+      - Normalizing the different and sometimes inconsistent state/status/conditions data from resources into a single logical view of the world the UI can present.
       - RPC-style actions to do more complicated workflows on the server side when appropriate
 
 ### Endpoints
@@ -194,24 +194,6 @@ But actually using this mode would require a node.js process (with sometimes con
 We have no concrete plans for this, but can envision several situations where we might want to use SSR in the future, so maintaining the functionality is an engineering priority.  Therefore SSR is on by default for development, and you should keep it that way in general.  It is relatively easy to write something that will break in SSR, and if not exercised we'd end up with many different slightly broken things that add up to a large effort to ever get it running again if needed.
 
 To disable it for the whole server for development, add `--spa`.  To disable it for a single page load, add `?spa` (or `&spa`) to the query string.  It is harder, but possible, to write something that works in SSR but breaks in SPA, so these are good for debugging issues.
-
-### Multiple GitHub auth configs
-The auth system supports multiple GitHub auth URLs and using the appropriate one based on the Host header that a request comes in on.  Configuring this is not exposed in the regular UI, but is particularly useful for development against a server that already has GitHub setup.
-
-In `management.cattle.io.authconfig`, edit the `github` entry.  Add a `hostnameToClientId` map of Host header value -> GitHub client ID:
-
-```yaml
-hostnameToClientId:
-  "localhost:8005": <your GitHub Client ID for localhost:8005>
-```
-
-In the `secret`, namespace `cattle-global-data`, edit `githubconfig-clientsecret`.  Add GitHub client ID -> base64-encoded client secret to the `data` section:
-
-```yaml
-data:
-  clientsecret: <the normal client secret already configured>
-  <your client id>: <your base64-encoded client secret for localhost:8005>
- ```
 
 License
 =======
