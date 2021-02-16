@@ -29,14 +29,6 @@ export default {
 
   mixins: [CreateEditView, AuthConfig],
 
-  data() {
-    return {
-      model:         null,
-      serverSetting: null,
-      errors:        null,
-    };
-  },
-
   computed: {
     tArgs() {
       let hostname = '';
@@ -72,6 +64,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <CruResource
+      :cancel-event="true"
       :done-route="doneRoute"
       :mode="mode"
       :resource="model"
@@ -80,9 +73,10 @@ export default {
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
+      :show-cancel="showCancel"
       @error="e=>errors = e"
       @finish="save"
-      @cancel="done"
+      @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <Banner color="success clearfix">
@@ -106,7 +100,7 @@ export default {
       </template>
 
       <template v-else>
-        <Banner :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
         <div :style="{'align-items':'center'}" class="row mb-20">
           <div class="col span-5">
             <LabeledInput

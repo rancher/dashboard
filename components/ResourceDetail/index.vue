@@ -51,7 +51,6 @@ export default {
       default: null,
     }
   },
-
   async fetch() {
     const store = this.$store;
     const route = this.$route;

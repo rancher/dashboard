@@ -1,10 +1,8 @@
 import { randomStr } from '@/utils/string';
-import { parse as parseUrl, removeParam, addParam, addParams } from '@/utils/url';
+import { parse as parseUrl, removeParam, addParams } from '@/utils/url';
 import { findBy, addObjects } from '@/utils/array';
-import { getAuthCode } from '@/utils/auth';
-import {
-  BACK_TO, SPA, _FLAGGED, GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT,
-} from '@/config/query-params';
+import { openAuthPopup, returnTo } from '@/utils/auth';
+import { GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT } from '@/config/query-params';
 
 export const BASE_SCOPES = {
   github: ['read:org'], googleoauth: ['openid profile email'], azuread: []
@@ -166,17 +164,41 @@ export const actions = {
     });
   },
 
-  async test({ dispatch }, { provider, body, editRedirectUrl = url => url }) {
+  async test({ dispatch }, { provider, body }) {
     const driver = await dispatch('getAuthConfig', provider);
-    const configureTestResponse = await driver.doAction('configureTest', body);
-    const url = await dispatch('redirectTo', {
-      provider,
-      redirectUrl: editRedirectUrl(configureTestResponse.redirectUrl),
-      test:        true,
-      redirect:    false
-    });
 
-    return getAuthCode(url, provider);
+    try {
+      // saml providers
+      if (!!driver?.actions?.testAndEnable) {
+        const finalRedirectUrl = returnTo({ config: provider }, this);
+
+        const res = await driver.doAction('testAndEnable', { finalRedirectUrl });
+
+        const { idpRedirectUrl } = res;
+
+        return openAuthPopup(idpRedirectUrl, provider);
+      } else {
+      // github, google, azuread
+        const res = await driver.doAction('configureTest', body);
+        let { redirectUrl } = res;
+
+        if (provider === 'azuread') {
+          const params = { response_type: 'code', response_mode: 'query' };
+
+          redirectUrl = addParams(redirectUrl, params );
+        }
+        const url = await dispatch('redirectTo', {
+          provider,
+          redirectUrl,
+          test:        true,
+          redirect:    false
+        });
+
+        return openAuthPopup(url, provider);
+      }
+    } catch (err) {
+      return Promise.reject(err);
+    }
   },
 
   async login({ dispatch }, { provider, body }) {
@@ -215,33 +237,3 @@ export const actions = {
     dispatch('onLogout', null, { root: true });
   }
 };
-
-function returnTo(opt, vm) {
-  let { route = `/auth/verify` } = opt;
-
-  if ( vm.$router.options && vm.$router.options.base ) {
-    const routerBase = vm.$router.options.base;
-
-    if ( routerBase !== '/' ) {
-      route = `${ routerBase.replace(/\/+$/, '') }/${ route.replace(/^\/+/, '') }`;
-    }
-  }
-
-  let returnToUrl = `${ window.location.origin }${ route }`;
-
-  const parsed = parseUrl(window.location.href);
-
-  if ( parsed.query.spa !== undefined ) {
-    returnToUrl = addParam(returnToUrl, SPA, _FLAGGED);
-  }
-
-  if ( opt.backTo ) {
-    returnToUrl = addParam(returnToUrl, BACK_TO, opt.backTo);
-  }
-
-  if (opt.config) {
-    returnToUrl = addParam(returnToUrl, 'config', opt.config);
-  }
-
-  return returnToUrl;
-}

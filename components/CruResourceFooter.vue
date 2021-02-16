@@ -37,6 +37,11 @@ export default {
       type:    Boolean,
       default: true,
     },
+
+    showCancel: {
+      type:    Boolean,
+      default: true
+    },
   },
 
   data() {
@@ -76,7 +81,7 @@ export default {
     <slot name="prefix" />
     <slot name="cancel">
       <button
-        v-if="!isView"
+        v-if="!isView && showCancel"
         type="button"
         class="btn role-secondary"
         @click="confirmCancelRequired ? checkCancel(true) : $emit('cancel-confirmed', true)"

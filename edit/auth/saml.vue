@@ -11,8 +11,6 @@ import AsyncButton from '@/components/AsyncButton';
 import FileSelector from '@/components/form/FileSelector';
 import config from '@/edit/auth/ldap/config';
 
-const AUTH_TYPE = 'ldap';
-
 export default {
   components: {
     Loading,
@@ -28,29 +26,16 @@ export default {
 
   mixins: [CreateEditView, AuthConfig],
   data() {
-    return {
-      model:         null,
-      errors:        null,
-      serverSetting: null,
-      showLdap:      false
-    };
+    return { showLdap: false };
   },
 
   computed: {
-    baseUrl() {
-      return `${ this.model.tls ? 'https://' : 'http://' }${ this.model.hostname }`;
-    },
-
     tArgs() {
       return {
         baseUrl:   this.serverSetting,
         provider:  this.displayName,
         username:  this.principal.loginName || this.principal.name,
       };
-    },
-
-    AUTH_TYPE() {
-      return AUTH_TYPE;
     },
 
     toSave() {
@@ -64,6 +49,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <CruResource
+      :cancel-event="true"
       :done-route="doneRoute"
       :mode="mode"
       :resource="model"
@@ -72,9 +58,10 @@ export default {
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
+      :show-cancel="showCancel"
       @error="e=>errors = e"
       @finish="save"
-      @cancel="done"
+      @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
         <Banner color="success clearfix">
@@ -102,6 +89,8 @@ export default {
       </template>
 
       <template v-else>
+        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+
         <h3>{{ t(`authConfig.saml.${NAME}`) }}</h3>
         <div class="row mb-20">
           <div class="col span-6">
