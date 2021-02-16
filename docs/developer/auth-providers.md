@@ -44,5 +44,5 @@ Use the steps below to set up a Keycloak instance for dev environments and confi
    | Rancher API Host | Depending on Rancher API Url. For instance when running Dashboard locally `https://192.168.86.26:8005/`|
    | Private Key | For key and cert files, export the Client in the Keycloak UI via the `Clients` list page and extract & wrap the `saml.signing.certificate` and `saml.signing.private.key` as cert files (see [step 5](https://gist.github.com/PhilipSchmid/506b33cd74ddef4064d30fba50635c5b) for more info). |
    | Certificate | See Private Key section above|
-   | Metadata | For the SAML Metadata, export the Client in the Keycloack UI via the `Installation` tab as `SAML Metadata SPSSODescriptor` and then follow the `NOTE` instructions regarding `EntitiesDescriptor` and `EntityDescriptor`. For a better set of instructions see [step 6](https://gist.github.com/PhilipSchmid/506b33cd74ddef4064d30fba50635c5b)|
+   | Metadata | For the SAML Metadata, download as per Rancher docs. Be sure to follow the `NOTE` instructions regarding `EntitiesDescriptor` and `EntityDescriptor`. For a better set of instructions see [step 6](https://gist.github.com/PhilipSchmid/506b33cd74ddef4064d30fba50635c5b)|
 
