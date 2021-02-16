@@ -105,16 +105,11 @@
       height: 100%;
 
       &.vs--unsearchable {
-        // position: absolute;
-        // top: 0;
-        // right: 0;
-        // left: 0;
-        // bottom: 0;
+
       }
 
       .vs__dropdown-toggle {
         height: 100%;
-        // line-height: .75;
       }
       .vs__actions {
         width: auto;
@@ -132,5 +127,9 @@
         background: var(--input-hover-bg);
       }
     }
+  }
+
+  .labeled-tooltip .status-icon {
+    top: $input-padding-sm;
   }
 }
