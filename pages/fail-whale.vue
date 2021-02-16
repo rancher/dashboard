@@ -31,23 +31,24 @@ export default {
 <template>
   <div v-if="error">
     <main class="error">
-      <div class="row mb-20">
-        <div class="col span-6 p-20">
-          <h1 v-if="error.status">
-            HTTP Error {{ error.status }}: {{ error.statusText }}
-          </h1>
-          <h1 v-else>
-            Error
-          </h1>
-          <h2 v-if="error" class="text-secondary">
-            {{ displayError }}
-          </h2>
-          <p>
-            <a :href="home" class="btn role-primary">Reload</a>
-          </p>
-        </div>
+      <div class="text-center">
+        <!-- <div class="col span-6 p-20"> -->
+        <img src="~/assets/images/pl/error-desert-landscape.svg" width="900" height="300" />
+        <h1 v-if="error.status">
+          HTTP Error {{ error.status }}: {{ error.statusText }}
+        </h1>
+        <h1 v-else>
+          Error
+        </h1>
+        <h2 v-if="error" class="text-secondary">
+          {{ displayError }}
+        </h2>
+        <p>
+          <a :href="home" class="btn role-primary">Reload</a>
+        </p>
+        <!-- </div> -->
 
-        <div class="col span-6 desert-landscape" />
+        <!-- <div class="col span-6 desert-landscape" /></div> -->
       </div>
     </main>
   </div>
@@ -66,11 +67,14 @@ export default {
     }
 
     .desert-landscape {
-      background-image: url('~assets/images/pl/error-desert-landscape.svg');
-      background-repeat: no-repeat;
-      background-size: cover;
-      background-position: center center;
-      height: 75vh;
+      img {
+        max-width: 100%;
+      }
+      // background-image: url('~assets/images/pl/error-desert-landscape.svg');
+      // background-repeat: no-repeat;
+      // background-size: cover;
+      // background-position: center center;
+      // height: 75vh;
     }
   }
 </style>
