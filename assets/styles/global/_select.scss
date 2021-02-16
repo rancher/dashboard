@@ -12,6 +12,7 @@
   > .labeled-select:not(.taggable),
   > .unlabeled-select:not(.taggable) {
     min-height: $input-height;
+    padding-bottom: calc(#{$input-padding-sm}/2);
   }
 }
 
