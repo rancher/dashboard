@@ -346,9 +346,19 @@ $transition-duration: 150ms;
 }
 
 header .vs-select .vs__dropdown-toggle {
-  background: red !important;
+  background: var(--error) !important;
 }
 
 .vs__no-options {
   padding: 3px 20px;
+}
+
+header {
+  .unlabeled-select {
+    padding: 0;
+
+    &.focused {
+      border: 0;
+    }
+  }
 }

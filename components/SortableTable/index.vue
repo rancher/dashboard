@@ -680,9 +680,6 @@ $spacing: 10px;
   }
 
   tbody {
-    // border-left: 40px solid transparent;
-    // border-right: 40px solid transparent;
-    // border-bottom: 2px solid var(--border);
 
     tr {
       border-bottom: 1px solid var(--sortable-table-top-divider);
