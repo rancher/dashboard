@@ -25,7 +25,7 @@ export default {
     }
 
     const match = DEFAULT_SERVICE_TYPES.find(s => s.id.toLowerCase() === cloned);
-    const { translationLabel } = match;
+    const translationLabel = match.label;
     let translated;
 
     if (translationLabel && this.$store.getters['i18n/exists'](translationLabel)) {
