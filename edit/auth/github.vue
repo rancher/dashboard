@@ -176,7 +176,7 @@ export default {
       </template>
 
       <template v-else>
-        <Banner :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
 
         <h3 v-t="`authConfig.${NAME}.target.label`" />
         <RadioGroup

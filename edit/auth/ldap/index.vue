@@ -106,6 +106,8 @@ export default {
       </template>
 
       <template v-else>
+        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+
         <h3>{{ t(`authConfig.ldap.${NAME}`) }}</h3>
         <config v-model="model" :type="NAME" :mode="mode" />
 

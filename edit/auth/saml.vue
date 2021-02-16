@@ -89,6 +89,8 @@ export default {
       </template>
 
       <template v-else>
+        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+
         <h3>{{ t(`authConfig.saml.${NAME}`) }}</h3>
         <div class="row mb-20">
           <div class="col span-6">
