@@ -365,7 +365,7 @@ export default {
       }
 
       ports.forEach((port) => {
-        const name = port.name ? `${ port.name }` : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || port._lbPort || '' }`;
+        const name = port.name ? `${ port.name }` : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || port._listeningPort || '' }`;
 
         port.name = name;
         const portSpec = {
@@ -374,15 +374,21 @@ export default {
 
         if (port._serviceType && port._serviceType !== '') {
           clusterIP.spec.ports.push(portSpec);
-
           switch (port._serviceType) {
-          case 'NodePort':
-            nodePort.spec.ports.push(portSpec);
-            break;
+          case 'NodePort': {
+            const npPort = clone(portSpec);
+
+            if (port._listeningPort) {
+              npPort.nodePort = port._listeningPort;
+            }
+            nodePort.spec.ports.push(npPort);
+            break; }
           case 'LoadBalancer': {
             const lbPort = clone(portSpec);
 
-            lbPort.port = port._lbPort;
+            if (port._listeningPort) {
+              lbPort.port = port._listeningPort;
+            }
             loadBalancer.spec.ports.push(lbPort);
             break; }
           default:

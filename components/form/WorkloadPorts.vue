@@ -40,7 +40,7 @@ export default {
     const rows = clone(this.value || []).map((row) => {
       row._showHost = false;
       row._serviceType = '' ;
-      row._name = row.name ? `${ row.name }` : `${ row.containerPort }${ row.protocol.toLowerCase() }${ row.hostPort || row._lbPort || '' }`;
+      row._name = row.name ? `${ row.name }` : `${ row.containerPort }${ row.protocol.toLowerCase() }${ row.hostPort || row._listeningPort || '' }`;
       if (row.hostPort || row.hostIP) {
         row._showHost = true;
       }
@@ -162,14 +162,18 @@ export default {
         const portSpec = findBy(this.loadBalancerServicePorts, 'name', _name);
 
         if (portSpec) {
-          row._lbPort = portSpec.port;
+          row._listeningPort = portSpec.port;
 
           row._serviceType = 'LoadBalancer';
 
           return;
         }
       } if (this.nodePortServicePorts) {
-        if (findBy(this.nodePortServicePorts, 'name', _name)) {
+        const portSpec = findBy(this.nodePortServicePorts, 'name', _name);
+
+        if (portSpec) {
+          row._listeningPort = portSpec.nodePort;
+
           row._serviceType = 'NodePort';
 
           return;
@@ -260,20 +264,20 @@ export default {
         />
       </div>
 
-      <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer'" class="add-host">
-        <button :disabled="mode==='view'" type="button" class="btn role-tertiary" @click="row._showHost = true">
+      <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer' && row._serviceType !== 'NodePort'" class="add-host">
+        <button :disabled="mode==='view'" type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
           {{ t('workloadPorts.addHost') }}
         </button>
       </div>
 
-      <div v-if="row._serviceType === 'LoadBalancer'">
+      <div v-if="row._serviceType === 'LoadBalancer' || row._serviceType === 'NodePort'">
         <LabeledInput
           ref="port"
-          v-model.number="row._lbPort"
+          v-model.number="row._listeningPort"
           type="number"
           :mode="mode"
           :label="t('workload.container.ports.listeningPort')"
-          required
+          :required="row._serviceType === 'LoadBalancer' "
           @input="queueUpdate"
         />
       </div>
