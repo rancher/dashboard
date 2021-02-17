@@ -3,26 +3,19 @@ import { MANAGEMENT } from '@/config/types';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import { sortBy } from '@/utils/sort';
 import { MODE, _EDIT } from '@/config/query-params';
+import { authProviders } from '@/pages/c/_cluster/auth/config/auth-config-utils';
 
 export default {
   components: { SelectIconGrid },
 
-  async asyncData({ route, redirect, store }) {
-    const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
-    const nonLocal = rows.filter(x => x.name !== 'local');
-    const enabled = nonLocal.filter(x => x.enabled === true );
+  async asyncData({ store, redirect }) {
+    const authProvs = await authProviders(store);
 
-    if ( enabled.length === 1 ) {
-      redirect({
-        name:   'c-cluster-auth-config-id',
-        params: { id: enabled[0].id },
-        query:  { mode: _EDIT }
-      });
-
-      return { nonLocal };
-    } else {
-      return { nonLocal };
+    if (!!authProvs.enabledLocation) {
+      redirect(authProvs.enabledLocation);
     }
+
+    return { nonLocal: authProvs.nonLocal };
   },
 
   data() {
