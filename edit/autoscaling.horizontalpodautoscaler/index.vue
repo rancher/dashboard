@@ -13,7 +13,7 @@ import MetricsRow from '@/edit/autoscaling.horizontalpodautoscaler/metrics-row';
 import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import { DEFAULT_RESOURCE_METRIC } from '@/edit/autoscaling.horizontalpodautoscaler/resource-metric';
 
-import { API_SERVICE, WORKLOAD_TYPES } from '@/config/types';
+import { API_SERVICE, SCALABLE_WORKLOAD_TYPES } from '@/config/types';
 import isEmpty from 'lodash/isEmpty';
 import find from 'lodash/find';
 import endsWith from 'lodash/endsWith';
@@ -67,7 +67,7 @@ export default {
       return this.value?.spec?.metrics;
     },
     allWorkloadsFiltered() {
-      return Object.values(WORKLOAD_TYPES)
+      return Object.values(SCALABLE_WORKLOAD_TYPES)
         .flatMap(type => this.$store.getters['cluster/all'](type))
         .filter(
           wl => wl.metadata.namespace === this.value.metadata.namespace
@@ -113,7 +113,7 @@ export default {
     },
     async loadWorkloads() {
       await Promise.all(
-        Object.values(WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })
+        Object.values(SCALABLE_WORKLOAD_TYPES).map(type => this.$store.dispatch('cluster/findAll', { type })
         )
       );
     },

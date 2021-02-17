@@ -71,6 +71,10 @@ export const WORKLOAD_TYPES = {
   REPLICATION_CONTROLLER: 'replicationcontroller'
 };
 
+const { DAEMON_SET, ...scalableWorkloads } = WORKLOAD_TYPES;
+
+export const SCALABLE_WORKLOAD_TYPES = scalableWorkloads;
+
 export const METRIC = {
   NODE: 'metrics.k8s.io.nodemetrics',
   POD:  'metrics.k8s.io.podmetrics',
