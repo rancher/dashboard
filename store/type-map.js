@@ -374,7 +374,6 @@ export const getters = {
       showState: true,
       showAge: true,
       canYaml: true,
-      extraListAction: null,
     };
 
     return (schemaOrType) => {

@@ -24,8 +24,8 @@ export default {
 
   props: {
     doneRoute: {
-      type:     String,
-      required: true
+      type:    String,
+      default: null
     },
 
     cancelEvent: {
@@ -272,12 +272,16 @@ export default {
         <div class="controls-row">
           <slot name="form-footer">
             <CruResourceFooter
-              :done-route="doneRoute"
               :mode="mode"
               :is-form="showAsForm"
               :show-cancel="showCancel"
               @cancel-confirmed="confirmCancel"
             >
+              <!-- Pass down templates provided by the caller -->
+              <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+                <slot :name="slot" v-bind="scope" />
+              </template>
+
               <template #default>
                 <div v-if="!isView">
                   <button

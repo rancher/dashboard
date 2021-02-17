@@ -4,7 +4,7 @@ import Loading from '@/components/Loading';
 import CruResource from '@/components/CruResource';
 import { PROVIDER, REGISTER, _FLAGGED } from '@/config/query-params';
 import { CAPI } from '@/config/types';
-import Rke2 from '@/edit/cluster.cattle.io.rkecluster';
+import Rke2 from './rke2';
 
 export default {
   name: 'CruCluster',
@@ -20,6 +20,11 @@ export default {
       type:     String,
       required: true,
     },
+
+    doneRoute: {
+      type:    String,
+      default: null,
+    },
   },
 
   async fetch() {
@@ -29,7 +34,7 @@ export default {
 
     // @TODO actually pick based on provider type...
     this.providerCluster = await this.$store.dispatch(`management/create`, {
-      type:     CAPI.RKE_CLUSTER,
+      type:     CAPI.RANCHER_CLUSTER,
       spec:     {},
       metadata: {}
     });

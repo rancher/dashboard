@@ -1,7 +1,6 @@
 import { DSL } from '@/store/type-map';
 // import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
 import { CAPI, MANAGEMENT } from '@/config/types';
-import { REGISTER, _FLAGGED } from '@/config/query-params';
 
 export const NAME = 'manager';
 
@@ -22,24 +21,23 @@ export function init(store) {
     showClusterSwitcher: false,
   });
 
-  configureType(CAPI.CAPI_CLUSTER, {
-    extraListAction: {
-      query:    { [REGISTER]: _FLAGGED },
-      labelKey: 'generic.register',
-    }
-  });
+  configureType(CAPI.RANCHER_CLUSTER, { showListMasthead: false });
 
   basicType([
-    CAPI.CAPI_CLUSTER,
+    CAPI.RANCHER_CLUSTER,
   ]);
 
   basicType([
-    CAPI.RKE_CLUSTER,
+    CAPI.CAPI_CLUSTER,
     MANAGEMENT.CLUSTER,
-  ], 'Other stuff for now');
+    'cluster.x-k8s.io.machinedeployments',
+    'cluster.x-k8s.io.machinehealthchecks',
+    'cluster.x-k8s.io.machines',
+    'cluster.x-k8s.io.machinesets',
+    'cluster.x-k8s.io.clusterctl'
+  ], 'Other things for debugging');
 
   basicType([
-    'node-config.cattle.io.amazonec2config',
-    'node-config.cattle.io.digitaloceanconfig'
+    /^rancher\.cattle\.io\..*configs?$/,
   ], 'Node Configs');
 }

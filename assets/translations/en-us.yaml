@@ -331,87 +331,87 @@ assignTo:
   workspace: Workspace
 
 asyncButton:
+  apply:
+    action: Apply
+    success: Applied
+    waiting: Applying&hellip;
+  continue:
+    action: Continue
+    success: Saved
+    waiting: Saving&hellip;
+  copy:
+    action: Click to Copy
+    success: Copied!
+  create:
+    action: Create
+    success: Created
+    waiting: Creating&hellip;
   default:
     action: Action
-    waiting: Waiting
-    success: Success
     error: Error
-  copy:
-    action: 'Click to Copy'
-    success: 'Copied!'
-  create:
-    action:  'Create'
-    waiting: 'Creating&hellip;'
-    success: 'Created'
-  apply:
-    action:  'Apply'
-    waiting: 'Applying&hellip;'
-    success: 'Applied'
-  edit:
-    action:  'Save'
-    waiting: 'Saving&hellip;'
-    success: 'Saved'
+    success: Success
+    waiting: Waiting
   delete:
-    action:  'Delete'
-    waiting: 'Deleting&hellip;'
-    success: 'Deleted'
-  remove:
-    action:  'Remove'
-    waiting: 'Removing&hellip;'
-    success: 'Removed'
-  continue:
-    action:  'Continue'
-    waiting: 'Saving&hellip;'
-    success: 'Saved'
-  done:
-    action:  'Done'
-    waiting: 'Saving&hellip;'
-    success: 'Saved'
-  enable:
-    action:  'Enable'
-    waiting: 'Enabling&hellip;'
-    success: 'Enabled'
+    action: Delete
+    success: Deleted
+    waiting: Deleting&hellip;
   disable:
-    action:  'Disable'
-    waiting: 'Disabling&hellip;'
-    success: 'Disabled'
+    action: Disable
+    success: Disabled
+    waiting: Disabling&hellip;
   activate:
-    action:  'Activate'
-    waiting: 'Activating&hellip;'
-    success: 'Activated'
+    action:  Activate
+    waiting: Activating&hellip;
+    success: Activated
   deactivate:
-    action:  'Deactivate'
-    waiting: 'Deactivating&hellip;'
-    success: 'Deactivated'
+    action:  Deactivate
+    waiting: Deactivating&hellip;
+    success: Deactivated
+  done:
+    action: Done
+    success: Saved
+    waiting: Saving&hellip;
   download:
-    action:  'Download'
-    waiting: 'Downloading&hellip;'
-    success: 'Saving'
+    action: Download
+    success: Saving
+    waiting: Downloading&hellip;
+  edit:
+    action: Save
+    success: Saved
+    waiting: Saving&hellip;
+  enable:
+    action: Enable
+    success: Enabled
+    waiting: Enabling&hellip;
   finish:
-    action:  'Finish'
-    waiting: 'Finishing&hellip;'
-    success: 'Finished'
+    action: Finish
+    success: Finished
+    waiting: Finishing&hellip;
+  import:
+    action: Import
+    success: Imported
+    waiting: Importing&hellip;
   install:
-    action:  'Install'
-    waiting: 'Starting&hellip;'
-    success: 'Installing'
-  upgrade:
-    action:  'Upgrade'
-    waiting: 'Starting&hellip;'
-    success: 'Upgrading'
+    action: Install
+    success: Installing
+    waiting: Starting&hellip;
   refresh:
     action: ''
-    actionIcon:  'refresh'
-    waiting: ''
-    waitingIcon: 'refresh'
-    success: ''
-    successIcon: 'checkmark'
+    actionIcon: refresh
     error: ''
-    errorIcon:   'error'
-  import:
-    action: 'Import'
-    waiting: 'Importing&hellip;'
-    success:  'Imported'
+    errorIcon: error
+    success: ''
+    successIcon: checkmark
+    waiting: ''
+    waitingIcon: refresh
+  remove:
+    action: Remove
+    success: Removed
+    waiting: Removing&hellip;
+  upgrade:
+    action: Upgrade
+    success: Upgrading
+    waiting: Starting&hellip;
 
 backupRestoreOperator:
   backupFilename: Backup Filename
@@ -708,6 +708,16 @@ cluster:
     zstack: ZStack
   credential:
     label: Cloud Credential
+    name:
+      label: Credential Name
+      placheolder: Optional name for this credential
+    digitalocean:
+      accessToken:
+        label: Access Token
+        placeholder: Your DigitalOcean API Access Token
+        help: Paste in a Personal Access Token from the DigitalOcean <a href="https://cloud.digitalocean.com/settings/api/tokens" target="_blank" rel="noopener noreferrer nofollow">Applications & API</a> screen.
+
+  import: Import Existing
   kubernetesVersion:
     label: Kubernetes Version
   nodeConfig:
@@ -1627,7 +1637,7 @@ persistentVolume:
     monitors:
       add: Add Monitor
   vsphereVolume:
-    label: 	VMWare vSphere Volume
+    label: VMWare vSphere Volume
     volumePath:
       label: Volume Path
       placeholder: e.g. /
@@ -1879,6 +1889,11 @@ persistentVolume:
       none: None
       readOnly: Read Only
       readWrite: Read Write
+    filesystemType:
+      label: Filesystem Type
+      placeholder: e.g. ext4
+    readOnly:
+      label: Read Only
 
 persistentVolumeClaim:
   accessModes: Access Modes
@@ -3673,10 +3688,10 @@ typeLabel:
       one { CAPI Cluster }
       other { CAPI Clusters }
     }
-  'cluster.cattle.io.rkecluster': |-
+  'rancher.cattle.io.cluster': |-
     {count, plural,
-      one { RKE2 Cluster }
-      other { RKE2 Clusters }
+      one { Cluster }
+      other { Clusters }
     }
   group.principal: |-
     {count, plural,
