@@ -22,7 +22,7 @@ button,
   padding: $btn-padding;
   border-radius: var(--border-radius);
   color: var(--lightest);
-  line-height: 38px;
+  line-height: $btn-height;
   min-height: $btn-height;
 
   &:hover {
