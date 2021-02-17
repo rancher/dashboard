@@ -94,7 +94,6 @@
   --input-border: var(--border);
   --input-bg: #{$dark};
   --input-bg-accent            : #{darken($dark, 3%)};
-  --input-border-accent        : #{--darkest};
   --input-hover-bg: var(--body-bg);
   --input-focus-bg: #{$darkest};
   --input-hover-bg: #{lighten($dark, 5%)};
