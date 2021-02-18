@@ -1,4 +1,5 @@
 <script>
+import { mapPref, EXPANDED_GROUPS } from '@/store/prefs';
 import Type from '@/components/nav/Type';
 import $ from 'jquery';
 
@@ -66,7 +67,22 @@ export default {
   },
 
   methods: {
-    toggle(event) {
+    expandCollapse() {
+      if (this.canCollapse) {
+        this.isExpanded = !this.isExpanded;
+        this.$emit('on-toggle', this.id, this.isExpanded);
+        this.$store.dispatch('type-map/toggleGroup', {
+          group:    this.id,
+          expanded: this.isExpanded
+        });
+      }
+    },
+
+    clicked() {
+      this.$emit('on-toggle', this.id, true);
+    },
+
+    toggle(event, skipAutoClose) {
       const $tgt = $(event.target);
 
       if ( $tgt.closest('a').length && !$tgt.hasClass('toggle') ) {
@@ -76,11 +92,25 @@ export default {
 
       if ( this.canCollapse ) {
         this.isExpanded = !this.isExpanded;
-        this.$emit('on-toggle', this.id, this.isExpanded);
+        this.$emit('on-toggle', this.id, this.isExpanded, skipAutoClose);
         this.$store.dispatch('type-map/toggleGroup', {
           group:    this.id,
           expanded: this.isExpanded
         });
+
+        if (this.isExpanded && !skipAutoClose) {
+          const items = this.group[this.childrenKey];
+
+          // Navigate to the first item in the group
+          const route = items[0].route;
+          this.$router.replace(route);
+        }
+      } else {
+        this.$emit('on-toggle', this.id, true);
+      }
+
+      if (skipAutoClose) {
+        event.stopPropagation();
       }
     }
   }
@@ -93,7 +123,7 @@ export default {
       <slot name="header">
         <span v-html="group.labelDisplay || group.label" />
       </slot>
-      <i v-if="canCollapse" class="icon toggle" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" />
+      <i v-if="canCollapse" class="icon toggle" @click="toggle($event, true)" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" />
     </div>
     <ul v-if="isExpanded" class="list-unstyled body" v-bind="$attrs">
       <template v-for="(child, idx) in group[childrenKey]">
@@ -116,6 +146,7 @@ export default {
           :key="id+'_' + child.name + '_type'"
           :is-root="depth == 0 && !showHeader"
           :type="child"
+          @click="clicked"
         />
       </template>
     </ul>
@@ -131,6 +162,7 @@ export default {
 
     > H6 {
       color: var(--body-text);
+      user-select: none;      
     }
 
     > A {
@@ -145,7 +177,7 @@ export default {
   .accordion {
     &.depth-0 {
       > .header {
-        padding: 5px 0;
+        padding: 11px 0;
 
         > H6 {
           font-size: 14px;
@@ -157,7 +189,12 @@ export default {
           position: absolute;
           right: 0;
           top: 0;
-          padding: 7px 8px 11px 0;
+          padding: 12px 8px 12px 8px;
+          user-select: none;
+
+          &:hover {
+            background-color: #d0d0d0;
+          }
         }
       }
 

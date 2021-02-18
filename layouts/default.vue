@@ -183,7 +183,7 @@ export default {
     expanded(name) {
       const currentType = this.$route.params.resource || '';
 
-      return this.expandedGroups.includes(name) || name === currentType;
+      return name === currentType;
     },
 
     toggleNoneLocale() {
@@ -192,6 +192,17 @@ export default {
 
     toggleTheme() {
       this.$store.dispatch('prefs/toggleTheme');
+    },
+
+    toggle(id, expanded, skip) {
+      if (expanded && !skip) {
+        this.$refs.groups.forEach(grp => {
+          if (grp.id !== id && grp.canCollapse) {
+            console.log(grp);
+            grp.isExpanded = false;
+          }
+        });
+      }
     },
 
     wheresMyDebugger() {
@@ -241,6 +252,7 @@ export default {
       <div v-else class="mb-20" />
       <template v-for="(g, idx) in groups">
         <Group
+          ref="groups"
           :key="idx"
           id-prefix=""
           class="package"
@@ -248,6 +260,7 @@ export default {
           :group="g"
           :can-collapse="!g.isRoot"
           :show-header="!g.isRoot"
+          @on-toggle="toggle"
         >
           <template #header>
             <h6>{{ g.label }}</h6>
@@ -307,11 +320,15 @@ export default {
       .header {
         background: transparent;
         padding-left: 10px;
+
+        &:hover {
+          background-color: #e6e6e6;
+        }
       }
 
       H6, .root.child .label {
         margin: 0;
-        letter-spacing: 0.1em;
+        letter-spacing: normal;
         line-height: initial;
 
         A { padding-left: 0; }

@@ -37,6 +37,10 @@ export default {
   },
 
   methods: {
+    click(e) {
+      this.$emit('click')
+    },
+
     setNear(val) {
       this.near = val;
     },
@@ -64,6 +68,7 @@ export default {
     <a
       @mouseenter="setNear(true)"
       @mouseleave="setNear(false)"
+      @click="click"
     >
       <span class="label" v-html="type.labelDisplay || type.label" />
       <span v-if="showFavorite || showCount" class="count">
