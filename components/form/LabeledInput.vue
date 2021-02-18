@@ -111,6 +111,7 @@ export default {
         :value="value"
         :placeholder="placeholder"
         autocapitalize="off"
+        :class="{'conceal':type === 'multiline-password' }"
         @input="$emit('input', $event)"
         @focus="onFocus"
         @blur="onBlur"
