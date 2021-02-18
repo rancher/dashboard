@@ -10,7 +10,5 @@ node_modules/
 .nuxt
 dist
 .DS_Store
-store/type-map.js
-store/catalog.js
-pages/auth/login.vue
+utils/dynamic-importer.js
 jsconfig.json
