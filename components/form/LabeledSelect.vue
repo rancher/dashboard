@@ -271,7 +271,7 @@ export default {
 <style lang='scss' scoped>
 .labeled-select {
   .labeled-container {
-    padding: 8px 0 0 8px;
+    padding: $input-padding-sm 0 1px $input-padding-sm;
 
     label {
       margin: 0;
@@ -290,7 +290,7 @@ export default {
     }
   }
   ::v-deep .vs__selected-options {
-    margin-top: -4px;
+    margin-top: -5px;
   }
 
   ::v-deep .v-select:not(.vs--single) {

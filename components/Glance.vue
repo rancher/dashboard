@@ -27,7 +27,6 @@ export default {
       flex-direction: row;
       justify-content: space-evenly;
       padding: 11px;
-      align-items: center;
 
     .tile {
           display: flex;

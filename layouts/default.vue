@@ -365,6 +365,10 @@ export default {
         align-self: center;
         text-align: right;
       }
+
+      .role-multi-action {
+        padding: 0 $input-padding-sm;
+      }
     }
 
   }

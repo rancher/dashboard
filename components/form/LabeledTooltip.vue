@@ -51,7 +51,7 @@ export default {
      .status-icon {
          position:  absolute;
          right: 30px;
-         top: 16px;
+         top: $input-padding-lg;
          font-size: 20px;
          z-index: z-index(hoverOverContent);
 

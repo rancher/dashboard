@@ -17,7 +17,7 @@ TEXTAREA,
   display: block;
   box-sizing: border-box;
   width: 100%;
-  padding: 10px;
+  padding: $input-padding-sm;
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
   border: solid var(--border-width) var(--input-border);
@@ -59,9 +59,13 @@ TEXTAREA,
   }
 }
 
+INPUT[type='search']:not(.vs__search) {
+  padding: calc(#{$input-padding-sm} + 2px);
+}
+
 TEXTAREA {
-  padding: 17px 10px 10px 10px;
-  line-height: 1.25;
+  padding: $input-padding-lg 10px 10px 10px;
+  line-height: $input-line-height;
 }
 
 FORM {
@@ -118,46 +122,10 @@ INPUT.inline-input {
   margin: 0 10px;
 }
 
-
-/*
-.validated-input {
-  INPUT {
-    outline-width: 2px;
-    outline-offset: -2px;
-  }
-
-  &.has-warning INPUT {
-    border-color: var(--warning);
-  }
-
-  &.has-error INPUT {
-    border-color: var(--error);
-  }
-
-  &.has-success INPUT {
-    border-color: var(--success);
-    padding-right: 32px;
-    background-image: url(../images/field-valid.svg);
-    background-size: 30px;
-    background-position: right;
-    background-repeat: no-repeat;
-  }
-
-  .input-warning-message {
-    color: var(--warning-text);
-  }
-
-  .input-error-message {
-    color: var(--error);
-  }
-}
-*/
-
 .input-title {
     clear: both;
     margin-left: 24px;
     font-size: 12px;
-    // color: rgba(255,255,255,.6);
 }
 
 .fixed select, .fixed.v-select, .fixed input:not(.vs__search){

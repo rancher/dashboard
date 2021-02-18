@@ -424,7 +424,7 @@ export default {
 
         <div v-if="removeAllowed" :key="i" class="kv-item remove">
           <slot name="removeButton" :remove="remove" :row="row">
-            <button type="button" :disabled="isView" class="btn bg-transparent role-link" @click="remove(i)">
+            <button type="button" :disabled="isView" class="btn role-link" @click="remove(i)">
               {{ removeLabel || t('generic.remove') }}
             </button>
           </slot>
@@ -434,13 +434,13 @@ export default {
 
     <div v-if="addAllowed || readAllowed" class="footer">
       <slot name="add" :add="add">
-        <button v-if="addAllowed" :disabled="isView" type="button" class="btn btn-sm role-tertiary add" @click="add()">
+        <button v-if="addAllowed" :disabled="isView" type="button" class="btn role-tertiary add" @click="add()">
           {{ addLabel }}
         </button>
         <FileSelector
           v-if="readAllowed"
           :disabled="isView"
-          class="btn-sm role-tertiary"
+          class="role-tertiary"
           :label="t('generic.readFromFile')"
           :include-file-name="true"
           @selected="onFileSelected"
