@@ -1137,6 +1137,12 @@ export default {
     };
   },
 
+  cleanForNew() {
+    return () => {
+      cleanForNew(this);
+    };
+  },
+
   yamlForSave() {
     return (yaml) => {
       try {

@@ -1,4 +1,5 @@
 import jsyaml from 'js-yaml';
+import { cleanForNew } from '@/plugins/steve/normalize';
 
 export const ENFORCEMENT_ACTION_VALUES = {
   DENY:   'deny',
@@ -20,6 +21,15 @@ export default {
       constraint.metadata = this.metadata;
 
       await constraint.save();
+    };
+  },
+
+  cleanForNew() {
+    return () => {
+      cleanForNew(this);
+      if (this.constraint) {
+        delete this.constraint;
+      }
     };
   },
 
