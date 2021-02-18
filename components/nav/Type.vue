@@ -43,6 +43,10 @@ export default {
   },
 
   methods: {
+    click(e) {
+      this.$emit('click')
+    },
+
     setNear(val) {
       this.near = val;
     },
@@ -71,6 +75,7 @@ export default {
       @click="$emit('selected')"
       @mouseenter="setNear(true)"
       @mouseleave="setNear(false)"
+      @click="click"
     >
       <span v-if="type.labelKey" class="label"><t :k="type.labelKey" /></span>
       <span v-else class="label" v-html="type.labelDisplay || type.label" />
