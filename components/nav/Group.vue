@@ -1,4 +1,5 @@
 <script>
+import { mapPref, EXPANDED_GROUPS } from '@/store/prefs';
 import Type from '@/components/nav/Type';
 import $ from 'jquery';
 
@@ -136,6 +137,7 @@ export default {
 
         if (this.isExpanded && !skipAutoClose) {
           const items = this.group[this.childrenKey];
+
           // Navigate to the first item in the group
           const route = items[0].route;
 
