@@ -146,7 +146,7 @@ export default {
 
     focusSearch() {
       this.$nextTick(() => {
-        const el = this.$refs['select-input'].searchEl;
+        const el = this.$refs['select-input']?.searchEl;
 
         if ( el ) {
           el.focus();

@@ -634,6 +634,7 @@ export const getters = {
           update: instance.links?.update || link,
           view: instance.links?.view || apiLink,
         };
+        instance.isSpoofed = true;
       });
       return instances;
     };
