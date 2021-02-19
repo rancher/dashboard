@@ -893,6 +893,7 @@ hpa:
     labels: Labels
     metrics: Metrics
     workload: Workload
+    target: Target
   types:
     cpu: CPU
     memory: Memory
@@ -901,7 +902,7 @@ hpa:
     last: Last Scale Time
     max: Maximum Replicas
     min: Minimum Replicas
-    target: Target Workload
+    targetReference: Target Reference
 
 import:
   title: Import YAML
@@ -1575,13 +1576,13 @@ persistentVolume:
       placeholder: e.g. volume1
   azureFile:
     label: Azure Filesystem
-    shareName: 
+    shareName:
       label: Share Name
       placeholder: e.g. abc
     secretName:
       label: Secret Name
       placeholder: e.g. secret
-    secretNamespace: 
+    secretNamespace:
       label: Secret Namespace
       placeholder: e.g. default
   azureDisk:
@@ -1607,7 +1608,7 @@ persistentVolume:
       placeholder: e.g. ext4
     readOnly:
       label: Read Only
-  
+
 
 persistentVolumeClaim:
   accessModes: Access Modes
@@ -1822,17 +1823,17 @@ rbac:
     tabs:
       resources: Grant Resources
     subtypes:
-      GLOBAL: 
+      GLOBAL:
         label: Global
         abbreviation: G
         yes: "Yes: Default role for new users"
         defaultLabel: New User Default
-      CLUSTER: 
+      CLUSTER:
         label: Cluster
         abbreviation: C
         yes: "Yes: Default role for new cluster creation"
         defaultLabel: Cluster Creator Default
-      NAMESPACE: 
+      NAMESPACE:
         label: Project/Namespace
         abbreviation: PN
         yes: "Yes: Default role for new project creation"
@@ -2288,10 +2289,10 @@ storageClass:
     storagePolicyName:
       label: Storage Policy Name
       placeholder: e.g. gold
-    datastore: 
+    datastore:
       label: Datastore
       placeholder: e.g. VSANDatastore
-    hostFailuresToTolerate: 
+    hostFailuresToTolerate:
       label: Host Failures To Tolerate
       placeholder: e.g. 2
     cacheReservation:

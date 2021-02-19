@@ -19,8 +19,6 @@ import find from 'lodash/find';
 import endsWith from 'lodash/endsWith';
 
 const RESOURCE_METRICS_API_GROUP = 'metrics.k8s.io';
-const OBJECT_REFERENCE =
-  'io.k8s.api.autoscaling.v1.crossversionobjectreference';
 
 export default {
   name: 'CruHPA',
@@ -98,15 +96,22 @@ export default {
   },
 
   methods: {
+    setTarget(target) {
+      const { apiVersion, kind, name } = target;
+
+      this.value.spec.scaleTargetRef.name = name;
+      this.value.spec.scaleTargetRef.kind = kind;
+      this.value.spec.scaleTargetRef.apiVersion = apiVersion;
+    },
     initSpec() {
       this.$set(this.value, 'spec', {
         type:           'io.k8s.api.autoscaling.v1.horizontalpodautoscalerspec',
         minReplicas:    1,
         maxReplicas:    10,
         scaleTargetRef: {
-          type: OBJECT_REFERENCE,
-          kind: 'workload',
-          name: '',
+          apiVersion: '',
+          kind:       '',
+          name:       '',
         },
         metrics: [{ ...this.defaultResourceMetric }],
       });
@@ -140,16 +145,16 @@ export default {
       <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
 
       <Tabbed :side-tabs="true">
-        <Tab name="workload" :label="t('hpa.tabs.workload')" :weight="10">
+        <Tab name="target" :label="t('hpa.tabs.target')" :weight="10">
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledSelect
-                v-model="value.spec.scaleTargetRef.name"
+                :value="value.spec.scaleTargetRef.name"
                 option-label="metadata.name"
-                :reduce="(workload) => workload.metadata.name"
                 :mode="mode"
-                :label="t('hpa.workloadTab.target')"
+                :label="t('hpa.workloadTab.targetReference')"
                 :options="allWorkloadsFiltered"
+                @input="setTarget"
               />
             </div>
           </div>
