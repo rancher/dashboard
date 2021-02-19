@@ -254,6 +254,13 @@ authConfig:
     shibboleth: Congiure a Shibboleth account
     showLdap: Configure an OpenLDAP Server
     userName: User Name Field
+  azuread:
+    tenantId: Tenant ID
+    applicationId: Application ID
+    endpoint: Endpoint
+    graphEndpoint: Graph Endpoint
+    tokenEndpoint: Token Endpoint
+    authEndpoint: Auth Endpoint
   stateBanner:
     disabled: '{provider} is currently disabled.'
     enabled: '{provider} is currently enabled.'
