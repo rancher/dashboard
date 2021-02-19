@@ -1,5 +1,4 @@
 <script>
-import { cleanForNew } from '@/plugins/steve/normalize';
 import CreateEditView from '@/mixins/create-edit-view/impl';
 import Loading from '@/components/Loading';
 import ResourceYaml from '@/components/ResourceYaml';
@@ -135,7 +134,7 @@ export default {
       }
 
       if ( realMode === _CLONE || realMode === _STAGE ) {
-        cleanForNew(model);
+        model.cleanForNew();
         yaml = model.cleanYaml(yaml, realMode);
       }
     }
