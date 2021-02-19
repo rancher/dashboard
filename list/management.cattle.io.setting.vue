@@ -52,9 +52,7 @@ export default {
     return { settings: null };
   },
 
-  computed: {
-    ...mapGetters({ t: 'i18n/t' }),
-  },
+  computed: { ...mapGetters({ t: 'i18n/t' }) },
 
   methods: {
     showActionMenu(e, setting) {
