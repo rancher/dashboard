@@ -2,8 +2,9 @@
 import CreateEditView from '@/mixins/create-edit-view';
 import Loading from '@/components/Loading';
 import CruResource from '@/components/CruResource';
-import { PROVIDER, REGISTER, _FLAGGED } from '@/config/query-params';
+import { REGISTER, _FLAGGED } from '@/config/query-params';
 import { CAPI } from '@/config/types';
+import { DEFAULT_WORKSPACE } from '@/models/rancher.cattle.io.cluster';
 import Rke2 from './rke2';
 
 export default {
@@ -29,20 +30,22 @@ export default {
 
   async fetch() {
     if ( this.subType ) {
-      await this.selectType(this.subType);
+      await this.selectType(this.subType, false);
     }
 
     // @TODO actually pick based on provider type...
     this.providerCluster = await this.$store.dispatch(`management/create`, {
       type:     CAPI.RANCHER_CLUSTER,
       spec:     {},
-      metadata: {}
+      metadata: { namespace: DEFAULT_WORKSPACE }
     });
   },
 
   data() {
-    const subType = this.$route.query[PROVIDER] || null;
+    const subType = this.$route.query['type'] || null;
     const isRegister = this.$route.query[REGISTER] === _FLAGGED;
+
+    console.log('data, subType', subType);
 
     return {
       subType,
@@ -78,10 +81,13 @@ export default {
   },
 
   methods: {
-    selectType(type) {
+    selectType(type, fetch = true) {
       this.subType = type;
       this.$emit('set-subtype', this.$store.getters['i18n/withFallback'](`cluster.provider."${ type }"`, null, type));
-      this.$fetch();
+
+      if ( fetch ) {
+        this.$fetch();
+      }
     },
   },
 };
@@ -104,6 +110,7 @@ export default {
   >
     <!-- @TODO load appropriate component for provider -->
     <Rke2
+      v-if="subType"
       v-model="providerCluster"
       :mode="mode"
       :provider="subType"

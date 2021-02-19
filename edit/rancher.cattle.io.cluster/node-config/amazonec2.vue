@@ -1,6 +1,5 @@
 <script>
 import Loading from '@/components/Loading';
-import Banner from '@/components/Banner';
 import CreateEditView from '@/mixins/create-edit-view';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import LabeledSelect from '@/components/form/LabeledSelect';
@@ -8,11 +7,10 @@ import Tabbed from '@/components/Tabbed';
 import Tab from '@/components/Tabbed/Tab';
 import { SECRET } from '@/config/types';
 import CruResource from '@/components/CruResource';
-import SelectCredential from '../SelectCredential';
 
 export default {
   components: {
-    Loading, CruResource, Tabbed, Tab, SelectCredential, NameNsDescription, LabeledSelect, Banner,
+    Loading, CruResource, Tabbed, Tab, NameNsDescription, LabeledSelect,
   },
 
   mixins: [CreateEditView],
@@ -94,15 +92,6 @@ export default {
     <NameNsDescription v-model="value" :mode="mode" :namespaced="isNamespaced" />
 
     <Tabbed ref="tabbed" :side-tabs="true" default-tab="credential" class="mt-20">
-      <Tab name="credential" label="Credential" :weight="10">
-        <SelectCredential
-          v-model="value.defaultCredentialId"
-          :mode="mode"
-          provider="amazonec2"
-        />
-        <Banner color="info" label="Note: This is only used for talking to the Amazon API to display this form.  You can choose a different Node Credential to use actually creating a cluster." />
-      </Tab>
-
       <Tab name="basics" label="Basics" :weight="9">
         <template v-if="value.defaultCredentialId">
           <div class="row">

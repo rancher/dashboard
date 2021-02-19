@@ -1,5 +1,5 @@
 import { DSL } from '@/store/type-map';
-// import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
+import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
 import { CAPI, MANAGEMENT } from '@/config/types';
 
 export const NAME = 'manager';
@@ -8,6 +8,7 @@ export function init(store) {
   const {
     product,
     basicType,
+    headers,
     configureType,
   } = DSL(store, NAME);
 
@@ -40,4 +41,17 @@ export function init(store) {
   basicType([
     /^rancher\.cattle\.io\..*configs?$/,
   ], 'Node Configs');
+
+  headers(CAPI.RANCHER_CLUSTER, [
+    STATE,
+    NAME_COL,
+    {
+      name:   'kubernetesVesion',
+      label:  'K8s Version',
+      value:  'spec.kubernetesVersion',
+      sort:   'spec.kubernetesVersion',
+      search: 'spec.kubernetesVersion',
+    },
+    AGE,
+  ]);
 }

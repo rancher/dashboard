@@ -2,170 +2,95 @@
 import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import Checkbox from '@/components/form/Checkbox';
 import { SECRET } from '@/config/types';
-import CruResource from '@/components/CruResource';
-import { addParam, addParams } from '@/utils/url';
-import { exceptionToErrorsArray } from '@/utils/error';
-import { sortBy } from '@/utils/sort';
 
 export default {
   components: {
-    Loading, CruResource, LabeledSelect,
+    Loading, LabeledSelect, Checkbox
   },
 
   mixins: [CreateEditView],
 
+  props: {
+    credentialId: {
+      type:     String,
+      required: true,
+    },
+  },
+
   async fetch() {
-    if ( !this.value.defaultCredentialId ) {
-      return;
+    this.credential = await this.$store.dispatch('management/find', { type: SECRET, id: this.credentialId });
+    this.regionOptions = await this.$store.dispatch('digitalocean/regionOptions', { credentialId: this.credentialId });
+
+    let defaultRegion = 'sfo3';
+
+    if ( !this.regionOptions.find(x => x.value === defaultRegion) ) {
+      defaultRegion = this.regionOptions[0]?.value;
     }
 
-    this.credential = await this.$store.dispatch('management/find', { type: SECRET, id: this.value.defaultCredentialId });
+    const region = this.value.region || this.credential.defaultRegion || defaultRegion;
 
-    const region = this.value.region || this.credential.defaultRegion || 'sfo3';
+    if ( !this.value.region ) {
+      this.value.region = region;
+    }
 
-    try {
-      if ( !this.regions ) {
-        this.regions = await this.request('regions');
+    this.instanceOptions = await this.$store.dispatch('digitalocean/instanceOptions', { credentialId: this.credentialId, region });
+
+    let defaultSize = 's-2vcpu-4gb';
+
+    if ( !this.instanceOptions.find(x => x.value === defaultSize) ) {
+      defaultSize = this.instanceOptions.find(x => x.memoryGb >= 4)?.value;
+
+      if ( !defaultSize ) {
+        defaultSize = this.instanceOptions[0].value;
       }
+    }
 
-      if ( !this.sizes ) {
-        this.sizes = await this.request('sizes');
-      }
+    if ( !this.value.size ) {
+      this.value.size = defaultSize;
+    }
 
-      this.images = await this.request('images', { params: { type: 'distribution' } });
+    this.imageOptions = await this.$store.dispatch('digitalocean/imageOptions', { credentialId: this.credentialId, region });
 
-      if ( !this.value.region ) {
-        this.value.region = region;
-      }
-    } catch (e) {
-      this.errors = exceptionToErrorsArray(e);
+    let defaultImage = 'ubuntu-20-04-x64';
+
+    if ( !this.imageOptions.find(x => x.value === defaultImage) ) {
+      defaultImage = this.imageOptions[0].value;
+    }
+
+    if ( !this.value.image ) {
+      this.value.image = defaultImage;
     }
   },
 
   data() {
     return {
-      errors:     null,
-      credential:   null,
-      regions:    null,
-      images:     null,
-      sizes:      null,
+      credential:      null,
+      regionOptions:   null,
+      imageOptions:    null,
+      instanceOptions: null,
     };
   },
 
-  computed: {
-    instanceOptions() {
-      const planSorts = {
-        s:        1,
-        g:        2,
-        gd:       2,
-        c:        3,
-        m:        4,
-        so:       5,
-        standard: 98,
-        other:    99,
-      };
-
-      const regionInfo = this.regions.regions.find(x => x.slug === this.value.region);
-      const available = this.sizes.sizes.filter(size => regionInfo.sizes.includes(size.slug)).map((size) => {
-        const match = size.slug.match(/^(so|gd|g|c|m|s).*-/);
-        const plan = match ? match[1] : (size.slug.includes('-') ? 'standard' : 'other');
-
-        const out = {
-          plan,
-          planSort: planSorts[plan],
-          memoryGb: size.memory / 1024,
-          disk:     size.disk,
-          vcpus:    size.vcpus,
-          value:    size.slug
-        };
-
-        out.label = this.t('cluster.nodeConfig.digitalocean.sizeLabel', out);
-
-        return out;
-      }).filter(size => size.plan !== 'other');
-
-      return sortBy(available, ['planSort', 'memoryGb', 'vcpus', 'disk']);
-    },
-
-    regionOptions() {
-      const out = this.regions.regions.filter((region) => {
-        return region.available && region.features.includes('metadata');
-      }).map((region) => {
-        return {
-          label: region.name,
-          value: region.slug,
-
-        };
-      });
-
-      return out;
-    },
-  },
-
   watch: {
-    'value.defaultCredentialId'() {
+    'credentialId'() {
       this.$fetch();
-      this.$refs.tabbed.select('basics');
     },
-  },
-
-  methods: {
-    async request(command, opt = {}, out) {
-      let url = '/meta/proxy/';
-
-      opt.redirectUnauthorized = false;
-      opt.headers = opt.headers || {};
-      opt.headers['accept'] = 'application/json';
-      opt.headers['x-api-cattleauth-header'] = `Bearer credID=${ this.credential.id.replace('/', ':') } passwordField=accessToken`;
-
-      if ( opt.url ) {
-        url += opt.url.replace(/^http[s]?\/\//, '');
-      } else {
-        url += `api.digitalocean.com/v2/${ command }`;
-        url = addParam(url, 'per_page', opt.per_page || 100);
-        url = addParams(url, opt.params || {});
-      }
-
-      opt.url = url;
-
-      const res = await this.$store.dispatch('management/request', opt);
-
-      if ( out ) {
-        out[command].pushObjects(res[command]);
-      } else {
-        out = res;
-      }
-
-      // De-paging
-      if ( res && res.links && res.links.pages && res.links.pages.next ) {
-        opt.url = res.links.pages.next;
-
-        await this.request(command, opt, out);
-      }
-
-      return out;
-    }
   },
 };
 </script>
 
 <template>
   <Loading v-if="$fetchState.pending" />
-  <CruResource
-    v-else
-    :resource="value"
-    :mode="mode"
-    :errors="errors"
-    @finish="save"
-    @error="e=>errors = e"
-  >
+  <div v-else>
     <div class="row">
       <div class="col span-6">
         <LabeledSelect
           v-model="value.region"
           :options="regionOptions"
           :searchable="true"
+          :required="true"
           label="Region"
         />
       </div>
@@ -174,9 +99,28 @@ export default {
           v-model="value.size"
           :options="instanceOptions"
           :searchable="true"
+          :required="true"
           label="Size"
         />
       </div>
     </div>
-  </CruResource>
+
+    <div class="row mt-20">
+      <div class="col span-6">
+        <LabeledSelect
+          v-model="value.image"
+          :options="imageOptions"
+          :searchable="true"
+          :required="true"
+          label="OS Image"
+        />
+      </div>
+      <div class="col span-6">
+        <h3>Additional options</h3>
+        <Checkbox v-model="value.monitoring" label="Monitoring" />
+        <Checkbox v-model="value.ipv6" label="IPv6" />
+        <Checkbox v-model="value.privateNetworking" label="Private Networkign" />
+      </div>
+    </div>
+  </div>
 </template>

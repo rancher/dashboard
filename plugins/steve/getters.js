@@ -1,6 +1,7 @@
 import { SCHEMA } from '@/config/types';
 import { COLLECTION_TYPES, PRIMITIVE_TYPES } from '@/config/schema';
 import { matches } from '@/utils/selector';
+import { typeMunge, typeRef, SIMPLE_TYPES } from '@/utils/create-yaml';
 import { normalizeType, keyFieldFor, KEY_FIELD_FOR } from './normalize';
 import urlOptions from './urloptions';
 import mutations, { equivalentWatch } from './mutations';
@@ -172,6 +173,48 @@ export default {
 
       if ( close ) {
         return getters.schemaFor(close);
+      }
+    }
+
+    return out;
+  },
+
+  defaultFor: (state, getters) => (type) => {
+    const schema = getters['schemaFor'](type);
+
+    if ( !schema ) {
+      return null;
+    }
+
+    const out = {};
+
+    for ( const key in schema.resourceFields ) {
+      const field = schema.resourceFields[key];
+
+      if ( !field ) {
+        // Not much to do here...
+        continue;
+      }
+
+      const type = typeMunge(field.type);
+      const mapOf = typeRef('map', type);
+      const arrayOf = typeRef('array', type);
+      const referenceTo = typeRef('reference', type);
+
+      if ( mapOf || type === 'map' || type === 'json' ) {
+        out[key] = getters.defaultFor(type);
+      } else if ( arrayOf || type === 'array' ) {
+        out[key] = [];
+      } else if ( referenceTo ) {
+        out[key] = undefined;
+      } else if ( SIMPLE_TYPES.includes(type) ) {
+        if ( typeof field['default'] === 'undefined' ) {
+          out[key] = undefined;
+        } else {
+          out[key] = field['default'];
+        }
+      } else {
+        out[key] = getters.defaultFor(type);
       }
     }
 

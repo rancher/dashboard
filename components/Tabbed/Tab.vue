@@ -23,6 +23,11 @@ export default {
       default:  0,
       required: false,
       type:     Number
+    },
+
+    showHeader: {
+      type:    Boolean,
+      default: null, // Default true for side-tabs, false for top.
     }
   },
 
@@ -42,6 +47,14 @@ export default {
 
       return this.name;
     },
+
+    shouldShowHeader() {
+      if ( this.showHeader !== null ) {
+        return this.showHeader;
+      }
+
+      return this.sideTabs || false;
+    }
   },
 
   watch: {
@@ -69,7 +82,7 @@ export default {
     :aria-hidden="!active"
     role="tabpanel"
   >
-    <h2 v-if="sideTabs">
+    <h2 v-if="shouldShowHeader">
       {{ label }}
       <i v-if="tooltip" v-tooltip="tooltip" class="icon icon-info icon-lg" />
     </h2>

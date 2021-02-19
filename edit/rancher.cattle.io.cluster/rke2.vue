@@ -4,18 +4,19 @@ import CruResource from '@/components/CruResource';
 import Loading from '@/components/Loading';
 import Tabbed from '@/components/Tabbed';
 import LabeledSelect from '@/components/form/LabeledSelect';
-import LabeledInput from '@/components/form/LabeledInput';
-import ArrayListGrouped from '@/components/form/ArrayListGrouped';
 import NameNsDescription from '@/components/form/NameNsDescription';
-import Checkbox from '@/components/form/Checkbox';
+import BadgeState from '@/components/BadgeState';
 import Tab from '@/components/Tabbed/Tab';
-import { CAPI, MANAGEMENT, SECRET } from '@/config/types';
+import { MANAGEMENT, SECRET } from '@/config/types';
 import { nlToBr } from '@/utils/string';
-import { set } from '@/utils/object';
+import { clone, set } from '@/utils/object';
 import { sortable } from '@/utils/version';
 import { sortBy } from '@/utils/sort';
-import { exceptionToErrorsArray } from '@/utils/error';
+import { DEFAULT_WORKSPACE } from '@/models/rancher.cattle.io.cluster';
+import { _CREATE } from '@/config/query-params';
+import { removeObject } from '@/utils/array';
 import SelectCredential from './SelectCredential';
+import NodePool from './NodePool';
 
 export default {
   components: {
@@ -25,10 +26,9 @@ export default {
     Tabbed,
     Tab,
     SelectCredential,
-    LabeledInput,
     LabeledSelect,
-    Checkbox,
-    ArrayListGrouped,
+    NodePool,
+    BadgeState,
   },
 
   mixins: [CreateEditView],
@@ -45,13 +45,8 @@ export default {
     },
 
     provider: {
-      type:    String,
-      default: null,
-    },
-
-    doneRoute: {
-      type:    String,
-      default: null,
+      type:     String,
+      required: true,
     },
   },
 
@@ -73,46 +68,27 @@ export default {
       set(this.value.spec, 'rkeConfig', {});
     }
 
-    if ( this.value.spec.rkeConfig.nodePools?.length ) {
-      for ( const pool of this.value.spec.rkeConfig.nodePools ) {
-        const config = await this.$store.dispatch('management/find', {
-          type: `rancher.cattle.io.${ pool.nodeConfig.kind.toLowercase() }`,
-          id:   `${ this.value.metadata.namespace }/${ pool.nodeConfig.name }`,
-        });
-
-        pool.obj = config;
-      }
-    } else {
-      // This is two steps because emptyNodePool looks at the size of the array to give the pool a name
-      this.value.spec.nodePools = [];
-      this.value.spec.nodePools.push(this.emptyNodePool());
+    await this.initNodePools(this.value.spec.rkeConfig.nodePools);
+    if ( this.mode === _CREATE && !this.nodePools.length ) {
+      await this.addNodePool();
     }
-
-    // this.allNodeConfigs = await this.$store.dispatch('management/findAll', { type: `node-config.cattle.io.${ this.provider }config` });
-    this.allNodeConfigs = [];
   },
 
   data() {
     return {
+      lastIdx:       0,
       allSecrets:     null,
-      allNodeConfigs: null,
       nodeComponent:  null,
       credentialId:   null,
       credential:     null,
+      nodePools:      null,
     };
   },
 
   computed: {
-    credentialOptions() {
-      // @TODO better thing to filter by, better display name
-      return this.allSecrets.filter((obj) => {
-        return obj.metadata.namespace === this.value.metadata.namespace && obj.metadata.generateName === 'cc-';
-      });
-    },
-
     versionOptions() {
       try {
-        const out = sortBy(this.versions.map((v) => {
+        const out = sortBy((this.versions || []).map((v) => {
           return {
             label: v,
             value: v,
@@ -136,19 +112,73 @@ export default {
       return schema;
     },
 
-    nodeConfigOptions() {
-      return this.allNodeConfigs.map((obj) => {
-        return {
-          label: obj.nameDisplay,
-          value: obj.metadata.name
-        };
-      });
-    },
+    nodeTotals() {
+      const roles = ['etcd', 'controlPlane', 'worker'];
+      const counts = {};
+      const out = {
+        color:   {},
+        label:   {},
+        icon:    {},
+        tooltip: {},
+      };
+
+      for ( const role of roles ) {
+        counts[role] = 0;
+        out.color[role] = 'bg-success';
+        out.icon[role] = 'icon-checkmark';
+      }
+
+      for ( const row of this.nodePools ) {
+        if ( row.remove ) {
+          continue;
+        }
+
+        const qty = parseInt(row.pool.quantity, 10);
+
+        if ( isNaN(qty) ) {
+          continue;
+        }
+
+        for ( const role of roles ) {
+          counts[role] = counts[role] + (row.pool[`${ role }Role`] ? qty : 0);
+        }
+      }
+
+      for ( const role of roles ) {
+        out.label[role] = this.t(`cluster.nodePool.nodeTotals.label.${ role }`, { count: counts[role] });
+        out.tooltip[role] = this.t(`cluster.nodePool.nodeTotals.tooltip.${ role }`, { count: counts[role] });
+      }
+
+      if ( counts.etcd === 0 ) {
+        out.color.etcd = 'bg-error';
+        out.icon.etcd = 'icon-x';
+      } else if ( counts.etcd === 1 || counts.etcd % 2 === 0 || counts.etcd > 7 ) {
+        out.color.etcd = 'bg-warning';
+        out.icon.etcd = 'icon-warning';
+      }
+
+      if ( counts.controlPlane === 0 ) {
+        out.color.controlPlane = 'bg-error';
+        out.icon.controlPlane = 'icon-x';
+      } else if ( counts.controlPlane === 1 ) {
+        out.color.controlPlane = 'bg-warning';
+        out.icon.controlPlane = 'icon-warning';
+      }
+
+      if ( counts.worker === 0 ) {
+        out.color.worker = 'bg-error';
+        out.icon.worker = 'icon-x';
+      } else if ( counts.worker === 1 ) {
+        out.color.worker = 'bg-warning';
+        out.icon.worker = 'icon-warning';
+      }
+
+      return out;
+    }
   },
 
   watch: {
     credentialId(val) {
-      console.log('got credentialid', val);
       if ( val ) {
         this.credential = this.$store.getters['management/byId'](SECRET, this.credentialId);
 
@@ -161,54 +191,128 @@ export default {
     },
   },
 
+  created() {
+    this.registerBeforeHook(this.saveNodePools);
+    this.registerAfterHook(this.cleanupNodePools);
+  },
+
   methods: {
     nlToBr,
 
-    emptyNodePool() {
-      const numCurrentPools = this.value?.spec?.rkeConfig?.nodePools?.length || 0;
+    async initNodePools(existing) {
+      const out = [];
 
-      return {
-        name:             `pool${ numCurrentPools + 1 }`,
-        etcdRole:         numCurrentPools === 0,
-        controlPlaneRole: numCurrentPools === 0,
-        workerRole:       true,
-        hostnamePrefix:   '',
-        labels:           {},
-        quantity:         1,
-        nodeConfig:       {
-          kind:       this.nodeConfigSchema.attributes.kind,
-          name:       null,
-        },
-      };
+      if ( existing?.length ) {
+        for ( const pool of existing ) {
+          const config = await this.$store.dispatch('management/find', {
+            type: `rancher.cattle.io.${ pool.nodeConfig.kind.toLowercase() }`,
+            id:   `${ this.value.metadata.namespace }/${ pool.nodeConfig.name }`,
+          });
+
+          // @TODO what if the pool is missing?
+          const id = `pool${ ++this.lastIdx }`;
+
+          out.push({
+            id,
+            remove: false,
+            create:  false,
+            pool:    clone(pool),
+            config:  await this.$store.dispatch('management/clone', { resource: config }),
+          });
+        }
+      }
+
+      this.nodePools = out;
     },
 
-    async save(btnCb) {
-      try {
-        await this.value.save();
+    async addNodePool() {
+      const numCurrentPools = this.nodePools.length || 0;
 
-        const schema = this.value.schema;
+      const config = await this.$store.dispatch('management/createPopulated', {
+        type:     this.nodeConfigSchema.id,
+        metadata: { namespace: DEFAULT_WORKSPACE }
+      });
 
-        const capiCluster = await this.$store.dispatch(`management/create`, {
-          type:     CAPI.CAPI_CLUSTER,
-          metadata: {
-            name:      this.value.metadata.name,
-            namespace: this.value.metadata.namespace,
+      config.applyDefaults();
+
+      const name = `pool${ ++this.lastIdx }`;
+
+      this.nodePools.push({
+        id:      name,
+        config,
+        remove: false,
+        create:  true,
+        pool:    {
+          name,
+          etcdRole:         numCurrentPools === 0,
+          controlPlaneRole: numCurrentPools === 0,
+          workerRole:       true,
+          hostnamePrefix:   '',
+          labels:           {},
+          quantity:         1,
+          nodeConfig:       {
+            kind:       this.nodeConfigSchema.attributes.kind,
+            name:       null,
           },
-          spec: {
-            infrastructureRef: {
-              apiVersion: `${ schema.attributes.group }/${ schema.attributes.version }`,
-              kind:       schema.attributes.kind,
-              name:       this.value.metadata.name,
-            }
+        },
+      });
+
+      this.$nextTick(() => {
+        if ( this.$refs.pools?.select ) {
+          this.$refs.pools.select(name);
+        }
+      });
+    },
+
+    removeNodePool(idx) {
+      const entry = this.nodePools[idx];
+
+      if ( !entry ) {
+        return;
+      }
+
+      if ( entry.create ) {
+        // If this is a new pool that isn't saved yet, it can just be dropped
+        removeObject(this.nodePools, entry);
+      } else {
+        // Mark for removal on save
+        entry.remove = true;
+      }
+    },
+
+    async saveNodePools() {
+      const finalPools = [];
+
+      for ( const entry of this.nodePools ) {
+        const prefix = `${ this.value.metadata.name }-${ (entry.pool.name || 'pool') }`.substr(0, 50);
+
+        if ( entry.create ) {
+          if ( !entry.config.metadata?.name && !entry.config.metadata?.generateName ) {
+            entry.config.metadata.generateName = `nc-${ prefix }-`;
           }
-        });
+          const neu = await entry.config.save();
 
-        await capiCluster.save();
+          entry.config = neu;
+          entry.pool.nodeConfig.name = neu.metadata.name;
+          entry.create = false;
+        }
 
-        btnCb(true);
-      } catch (e) {
-        this.errors = exceptionToErrorsArray(e);
-        btnCb(false);
+        if ( !entry.pool.hostnamePrefix ) {
+          entry.pool.hostnamePrefix = `${ prefix }-`;
+        }
+
+        finalPools.push(entry.pool);
+      }
+
+      this.value.spec.rkeConfig.nodePools = finalPools;
+    },
+
+    async cleanupNodePools() {
+      for ( const entry of this.nodePools ) {
+        if ( entry.remove ) {
+          await entry.config.remove();
+          entry.remove = false;
+        }
       }
     },
 
@@ -238,71 +342,87 @@ export default {
     @finish="save"
     @error="e=>errors = e"
   >
-    <SelectCredential
-      v-model="credentialId"
-      :mode="mode"
-      :provider="provider"
-      @cancel="cancelCredential"
-    />
+    <div class="row">
+      <div class="col span-6">
+        <SelectCredential
+          v-model="credentialId"
+          :mode="mode"
+          :provider="provider"
+          :cancel="cancelCredential"
+        />
+      </div>
+    </div>
     <div v-if="credentialId" class="mt-20">
-      <NameNsDescription v-if="!isView" v-model="value" :mode="mode" :namespaced="isNamespaced" />
-      <Tabbed :side-tabs="true">
-        <Tab name="pools" label="Node Pools" :weight="9">
-          <ArrayListGrouped
-            v-if="credentialId"
-            v-model="value.spec.nodePools"
-            :default-add-value="emptyNodePool()"
-            add-label="Add Node Pool"
-          >
-            <template #default="{row}">
-              <div class="row">
-                <div class="col span-4">
-                  <LabeledInput v-model="row.value.name" label="Pool Name" />
-                </div>
-                <div class="col span-2">
-                  <LabeledInput v-model="row.value.quantity" label="Node Count" type="number" min="0" />
-                </div>
-                <div class="col span-6 pt-20">
-                  <Checkbox v-model="row.value.etcd" label="etcd" />
-                  <Checkbox v-model="row.value.controlPlane" label="Control Plane" />
-                  <Checkbox v-model="row.value.worker" label="Worker" />
-                </div>
-              </div>
+      <NameNsDescription
+        v-if="!isView"
+        v-model="value"
+        :mode="mode"
+        :namespaced="false"
+        name-label="cluster.name.label"
+        name-placeholder="cluster.name.placeholder"
+        description-label="cluster.description.label"
+        description-placeholder="cluster.description.placeholder"
+      />
 
-              <div class="spacer" />
+      <div class="clearfix">
+        <h2 class="pull-left">
+          Node Pools
+        </h2>
+        <div class="pull-right">
+          <BadgeState
+            v-tooltip="nodeTotals.tooltip.etcd"
+            :color="nodeTotals.color.etcd"
+            :icon="nodeTotals.icon.etcd"
+            :label="nodeTotals.label.etcd"
+            class="mr-10"
+          />
+          <BadgeState
+            v-tooltip="nodeTotals.tooltip.controlPlane"
+            :color="nodeTotals.color.controlPlane"
+            :icon="nodeTotals.icon.controlPlane"
+            :label="nodeTotals.label.controlPlane"
+            class="mr-10"
+          />
+          <BadgeState
+            v-tooltip="nodeTotals.tooltip.worker"
+            :color="nodeTotals.color.worker"
+            :icon="nodeTotals.icon.worker"
+            :label="nodeTotals.label.worker"
+          />
+        </div>
+      </div>
 
-              <div class="row">
-                <div class="col span-6">
-                  <LabeledSelect
-                    v-model="row.value.nodeConfig.name"
-                    :options="nodeConfigOptions"
-                    label="Node Config"
-                  />
-                </div>
-                <div class="col span-6">
-                  <LabeledInput v-model="row.value.hostnamePrefix" label="Node Hostname Prefix" />
-                </div>
-              </div>
-            </template>
-          </ArrayListGrouped>
-          <div v-else>
-            Select a credential first...
-          </div>
+      <Tabbed
+        ref="pools"
+        :side-tabs="true"
+        :show-tabs-add-remove="true"
+        @addTab="addNodePool"
+        @removeTab="removeNodePool($event)"
+      >
+        <Tab v-for="obj in nodePools" :key="obj.id" :name="obj.id" :label="obj.pool.name || '(Not Named)'" :show-header="false">
+          <NodePool
+            :value="obj"
+            :mode="mode"
+            :provider="provider"
+            :credential-id="credentialId"
+          />
         </Tab>
-        <Tab name="cluster" label="Cluster Options" :weight="8">
+      </Tabbed>
+
+      <div class="spacer" />
+
+      <h2>Cluster Configuration</h2>
+      <Tabbed :side-tabs="true">
+        <Tab name="cluster" label="Basics" :weight="10">
           <LabeledSelect
             v-model="value.spec.kubernetesVersion"
             :options="versionOptions"
             label-key="cluster.kubernetesVersion.label"
           />
-
-          Other options... probably more tabs to organize them...
-        </Tab>
-        <Tab name="debug" label="(Debug)">
-          <pre><code v-html="nlToBr(JSON.stringify(value, null, 2))" /></pre>
-        </Tab>
+        </tab>
       </Tabbed>
     </div>
+
     <template v-if="!credentialId" #form-footer>
       <div><!-- Hide the outer footer --></div>
     </template>

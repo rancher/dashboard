@@ -11,4 +11,4 @@ node_modules/
 dist
 .DS_Store
 utils/dynamic-importer.js
-jsconfig.json
+ksconfig.json

@@ -16,11 +16,19 @@ export default {
       type:     Object,
       required: true,
     },
+
+    rows: {
+      type:     Array,
+      required: true,
+    },
   },
 
   computed: {
     importLink() {
-      return { query: { [REGISTER]: _FLAGGED } };
+      return {
+        name:  'c-cluster-product-resource-create',
+        query: { [REGISTER]: _FLAGGED }
+      };
     }
   }
 };
@@ -42,6 +50,6 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="rows" />
+    <ResourceTable :schema="schema" :rows="rows" :namespaced="false" />
   </div>
 </template>
