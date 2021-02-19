@@ -1260,7 +1260,6 @@ export default {
             Vue.set(data, key, val);
           }
         }
-
         if (fieldType === 'boolean') {
           validateBoolean(val, field, displayKey, this.$rootGetters, errors);
         } else {

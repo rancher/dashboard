@@ -57,6 +57,25 @@ export default {
       };
     }
   },
+
+  created() {
+    this.registerBeforeHook(this.addCreds, 'willsave');
+  },
+  methods: {
+    // re-add credentials when adding allowed users/groups to model
+    addCreds() {
+      if (this.model.enabled) {
+        const { oauthCredential, serviceAccountCredential } = this.originalValue;
+
+        if (!this.model.oauthCredential) {
+          this.model.oauthCredential = oauthCredential;
+        }
+        if (!this.model.serviceAccountCredential) {
+          this.model.serviceAccountCredential = serviceAccountCredential;
+        }
+      }
+    }
+  }
 };
 </script>
 
@@ -130,7 +149,7 @@ export default {
                 :label="t(`authConfig.googleoauth.oauthCredentials.label`)"
                 :mode="mode"
                 required
-                type="multiline"
+                type="multiline-password"
                 :tooltip="t(`authConfig.googleoauth.oauthCredentials.tip`)"
                 :hover-tooltip="true"
               />
@@ -150,7 +169,7 @@ export default {
                 :label="t(`authConfig.googleoauth.serviceAccountCredentials.label`)"
                 :mode="mode"
                 required
-                type="multiline"
+                type="multiline-password"
                 :tooltip="t(`authConfig.googleoauth.serviceAccountCredentials.tip`)"
                 :hover-tooltip="true"
               />
