@@ -150,6 +150,9 @@ authConfig:
       label: Which version of GitHub do you want to use?
       private: A private installation of GitHub Enterprise
       public: Public GitHub.com
+    table:
+      server: Server
+      clientId: Client ID
   googleoauth:
     adminEmail: Admin Email
     domain: Domain
@@ -233,6 +236,9 @@ authConfig:
       placeholder: 'e.g. ou=users,dc=mycompany,dc=com'
     username: Username
     usernameAttribute: Username Attribute
+    table:
+      server: Server
+      clientId: Client ID
   saml:
     entityID: Entity ID Field
     UID: UID Field
@@ -249,6 +255,13 @@ authConfig:
     shibboleth: Congiure a Shibboleth account
     showLdap: Configure an OpenLDAP Server
     userName: User Name Field
+  azuread:
+    tenantId: Tenant ID
+    applicationId: Application ID
+    endpoint: Endpoint
+    graphEndpoint: Graph Endpoint
+    tokenEndpoint: Token Endpoint
+    authEndpoint: Auth Endpoint
   stateBanner:
     disabled: '{provider} is currently disabled.'
     enabled: '{provider} is currently enabled.'

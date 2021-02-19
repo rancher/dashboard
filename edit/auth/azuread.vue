@@ -6,7 +6,7 @@ import InfoBox from '@/components/InfoBox';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
-import AsyncButton from '@/components/AsyncButton';
+import AuthBanner from '@/components/auth/AuthBanner';
 import CopyToClipboardText from '@/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import AuthConfig from '@/mixins/auth-config';
@@ -44,7 +44,7 @@ export default {
     Banner,
     CopyToClipboardText,
     AllowedPrincipals,
-    AsyncButton
+    AuthBanner
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -145,21 +145,16 @@ export default {
       @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
-        <Banner color="success clearfix">
-          <div class="pull-left mt-10">
-            {{ t('authConfig.stateBanner.enabled', tArgs) }}
-          </div>
-          <div class="pull-right">
-            <AsyncButton mode="disable" size="sm" action-color="bg-error" @click="disable" />
-          </div>
-        </Banner>
-
-        <div>Tenant ID: {{ model.tenantId }}</div>
-        <div>Application ID: {{ model.applicationId }}</div>
-        <div>Endpoint: {{ model.endpoint }}</div>
-        <div>Graph Endpoint: {{ model.graphEndpoint }}</div>
-        <div>Token Endpoint: {{ model.tokenEndpoint }}</div>
-        <div>Auth Endpoint: {{ model.authEndpoint }}</div>
+        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+          <template slot="rows">
+            <tr><td>{{ t(`authConfig.azuread.tenantId`) }}: </td><td>{{ model.tenantId }}</td></tr>
+            <tr><td>{{ t(`authConfig.azuread.applicationId`) }}: </td><td>{{ model.applicationId }}</td></tr>
+            <tr><td>{{ t(`authConfig.azuread.endpoint`) }}: </td><td>{{ model.endpoint }}</td></tr>
+            <tr><td>{{ t(`authConfig.azuread.graphEndpoint`) }}: </td><td>{{ model.graphEndpoint }}</td></tr>
+            <tr><td>{{ t(`authConfig.azuread.tokenEndpoint`) }}: </td><td>{{ model.tokenEndpoint }}</td></tr>
+            <tr><td>{{ t(`authConfig.azuread.authEndpoint`) }}: </td><td>{{ model.authEndpoint }}</td></tr>
+          </template>
+        </AuthBanner>
 
         <hr />
 
