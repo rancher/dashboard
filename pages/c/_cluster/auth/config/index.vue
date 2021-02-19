@@ -3,13 +3,13 @@ import { MANAGEMENT } from '@/config/types';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import { sortBy } from '@/utils/sort';
 import { MODE, _EDIT } from '@/config/query-params';
-import { authProviders } from '@/pages/c/_cluster/auth/config/auth-config-utils';
+import { authProvidersInfo } from '@/utils/auth';
 
 export default {
   components: { SelectIconGrid },
 
   async asyncData({ store, redirect }) {
-    const authProvs = await authProviders(store);
+    const authProvs = await authProvidersInfo(store);
 
     if (!!authProvs.enabledLocation) {
       redirect(authProvs.enabledLocation);

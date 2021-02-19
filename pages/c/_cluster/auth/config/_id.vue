@@ -1,7 +1,7 @@
 <script>
 import ResourceDetail from '@/components/ResourceDetail';
 import { MANAGEMENT } from '@/config/types';
-import { authProviders } from '@/pages/c/_cluster/auth/config/auth-config-utils';
+import { authProvidersInfo } from '@/utils/auth';
 
 export default {
   name:        'AuthConfigDetail',
@@ -17,7 +17,7 @@ export default {
 
     if (sameRoute) {
       // Ensure we re-evaluate the redirect in case this auth provider has been disabled
-      const authProvs = await authProviders(this.$store);
+      const authProvs = await authProvidersInfo(this.$store);
 
       next(!authProvs.enabledLocation);
     } else {

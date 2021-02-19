@@ -1,6 +1,7 @@
 import { Popup, popupWindowOptions } from '@/utils/window';
 import { parse as parseUrl, addParam } from '@/utils/url';
-import { BACK_TO, SPA, _FLAGGED } from '@/config/query-params';
+import { BACK_TO, SPA, _EDIT, _FLAGGED } from '@/config/query-params';
+import { MANAGEMENT } from '@/config/types';
 
 export function openAuthPopup(url, provider) {
   const popup = new Popup(() => {
@@ -55,3 +56,23 @@ export function returnTo(opt, vm) {
 
   return returnToUrl;
 }
+
+/**
+ * Determines common auth provider info as those that are available (non-local) and the location of the enabled provider
+ */
+export const authProvidersInfo = async(store) => {
+  const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
+  const nonLocal = rows.filter(x => x.name !== 'local');
+  const enabled = nonLocal.filter(x => x.enabled === true );
+
+  const enabledLocation = enabled.length === 1 ? {
+    name:   'c-cluster-auth-config-id',
+    params: { id: enabled[0].id },
+    query:  { mode: _EDIT }
+  } : null;
+
+  return {
+    nonLocal,
+    enabledLocation
+  };
+};
