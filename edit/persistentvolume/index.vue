@@ -12,12 +12,13 @@ import NodeAffinity from '@/components/form/NodeAffinity';
 import Checkbox from '@/components/form/Checkbox';
 import uniq from 'lodash/uniq';
 import UnitInput from '@/components/form/UnitInput';
-import { NODE, STORAGE_CLASS } from '@/config/types';
+import { NODE, PVC, STORAGE_CLASS } from '@/config/types';
 import Loading from '@/components/Loading';
 import { VOLUME_PLUGINS } from '@/models/persistentvolume';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { clone } from '@/utils/object';
 import { parseSi } from '@/utils/units';
+import InfoBox from '@/components/InfoBox';
 
 export default {
   name: 'PersistentVolume',
@@ -27,6 +28,7 @@ export default {
     ArrayListGrouped,
     Checkbox,
     CruResource,
+    InfoBox,
     LabeledSelect,
     Loading,
     MatchExpressions,
@@ -41,12 +43,14 @@ export default {
 
   async fetch() {
     const storageClasses = await this.$store.dispatch('cluster/findAll', { type: STORAGE_CLASS });
+    const pvcPromise = this.$store.dispatch('cluster/findAll', { type: PVC });
 
     this.storageClassOptions = storageClasses.map(s => ({
       label: s.name,
       value: s.name
     }));
     this.storageClassOptions.unshift(this.NONE_OPTION);
+    await pvcPromise;
   },
 
   data() {
@@ -189,6 +193,21 @@ export default {
       :register-before-hook="registerBeforeHook"
       :namespaced="false"
     />
+
+    <InfoBox v-if="value.claim">
+      <div class="row">
+        <div class="col span-6 text-center">
+          <label class="text-muted">Persistent Volume Claim:</label>&nbsp;
+          <n-link :to="value.claim.detailLocation">
+            {{ value.claim.namespacedName }}
+          </n-link>
+        </div>
+        <div class="col span-6 text-center">
+          <label class="text-muted">Age:</label>&nbsp;
+          <LiveDate class="live-date" :value="value.metadata.creationTimestamp" />
+        </div>
+      </div>
+    </InfoBox>
 
     <div class="row mb-20 top-level">
       <div class="col span-6">

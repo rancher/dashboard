@@ -1620,6 +1620,23 @@ persistentVolumeClaim:
     options:
       new: Use a Storage Class to provision a new Persistent Volume
       existing: Use an existing Persistent Volume
+  volumeClaim:
+    label: Volume Claim
+    storageClass: Storage Class
+    requestStorage: Request Storage
+    persistentVolume: Persistent Volume
+  customize:
+    label: Customize
+    accessModes:
+      readWriteOnce: Single Node Read-Write
+      readOnlyMany: Many Nodes Read-Only
+      readWriteMany: Many Nodes Read-Write
+  status:
+    label: Status
+  relatedWorkloads:
+    label: Related Workloads
+  events:
+    label: Events
 prefs:
   title: Preferences
   theme:
