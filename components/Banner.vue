@@ -15,7 +15,7 @@ export default {
     },
     closable: {
       type:    Boolean,
-      defualt: false,
+      default: false,
     }
   }
 };

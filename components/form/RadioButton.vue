@@ -165,6 +165,12 @@ export default {
       transform: rotate(0deg) scale(1);
       opacity:1;
       border: 1.5px solid var(--dropdown-text);
+
+      // Ensure that checked radio buttons are greyed out when not enabled
+      &.text-muted {
+        background-color: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+      }
     }
   }
 

@@ -213,6 +213,10 @@ export function init(store) {
     },
   });
 
+  // Ignore these types as they are managed through the settings product
+  ignoreType(MANAGEMENT.FEATURE);
+  ignoreType(MANAGEMENT.SETTING);
+
   spoofedType({
     label:             'Role Template',
     type:              RBAC.SPOOFED.ROLE_TEMPLATE,
