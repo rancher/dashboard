@@ -3231,9 +3231,8 @@ keyValue:
 ##############################
 
 advancedSettings:
-  header: Advanced Settings
-  subtext: "Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'."
-  showLabel: "I understand that I can break things by changing advanced settings."
+  label: Advanced Settings
+  subtext: Typical users will not need to change these. Proceed with caution, incorrect values can break your {appName} installation. Settings which have been customized from default settings are tagged 'Modified'.
   show: Show
   hide: Hide
   none: None
@@ -3269,7 +3268,7 @@ advancedSettings:
     'ui-banners': 'Classification banner is used to display a custom fixed banner in the header, footer, or both.'
     'ui-default-landing': 'The default page users land on after login.'
   editHelp:
-    'ui-banners': 'This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.'
+    'ui-banners': This setting takes a JSON object containing 3 root parameters; <code>banner</code>, <code>showHeader</code>, <code>showFooter</code>. <code>banner</code> is an object containing; <code>textColor</code>, <code>background</code>, and <code>text</code>, where <code>textColor</code> and <code>background</code> are any valid CSS color value.
   enum:
     'ui-default-landing':
       ember: Cluster Manager
@@ -3280,7 +3279,8 @@ advancedSettings:
       out: Opt-out of Telemetry
 
 featureFlags:
-  warning: "Feature flags allow Rancher to gate certain features behind flags. You should enable these features with caution, and they should be considered beta functionality, which could cause problems for your system. Additionally, some features (non-dynamic) require a restart of the Rancher server to be enabled. Changing non-dynamic features will restart Rancher pods, which will result in a short outage."
-  promptActivate: 'Please confirm that you want to activate the feature flag "{flag}"'
-  promptDeactivate: 'Please confirm that you want to deactivate the feature flag "{flag}"'
-  restartRequired: 'Note: Updating this feature flag requires a restart'
+  label: Feature Flags
+  warning: Feature flags allow Rancher to gate certain features behind flags. You should enable these features with caution, and they should be considered beta functionality, which could cause problems for your system. Additionally, some features (non-dynamic) require a restart of the Rancher server to be enabled. Changing non-dynamic features will restart Rancher pods, which will result in a short outage.
+  promptActivate: Please confirm that you want to activate the feature flag "{flag}"
+  promptDeactivate: Please confirm that you want to deactivate the feature flag "{flag}"
+  restartRequired: "Note: Updating this feature flag requires a restart"

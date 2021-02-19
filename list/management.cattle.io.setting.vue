@@ -3,10 +3,11 @@ import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { ALLOWED_SETTINGS } from '@/config/settings';
 import Banner from '@/components/Banner';
+import Loading from '@/components/Loading';
 import { DEV } from '@/store/prefs';
 
 export default {
-  components: { Banner },
+  components: { Banner, Loading },
 
   async fetch() {
     const isDev = this.$store.getters['prefs/get'](DEV);
@@ -53,10 +54,6 @@ export default {
 
   computed: {
     ...mapGetters({ t: 'i18n/t' }),
-
-    rows() {
-      return this.settings;
-    },
   },
 
   methods: {
@@ -73,13 +70,14 @@ export default {
 </script>
 
 <template>
-  <div>
+  <Loading v-if="!settings" />
+  <div v-else>
     <Banner color="warning" class="settings-banner">
       <div>
         {{ t('advancedSettings.subtext') }}
       </div>
     </Banner>
-    <div v-for="setting in rows" :key="setting.id" class="advanced-setting mb-10">
+    <div v-for="setting in settings" :key="setting.id" class="advanced-setting mb-10">
       <div class="p-10 header">
         <div class="title">
           <h1>{{ setting.id }}<span v-if="setting.customized" class="modified">Modified</span></h1>

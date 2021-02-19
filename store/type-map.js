@@ -471,7 +471,7 @@ export const getters = {
           continue;
         }
 
-        const label = typeObj.label;
+        const label = typeObj.labelKey ? t(typeObj.labelKey) || typeObj.label : typeObj.label;
         const virtual = !!typeObj.virtual;
         let icon = typeObj.icon;
 

@@ -28,7 +28,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Advanced Settings',
+    labelKey:       'advancedSettings.label',
     name:           'settings',
     namespaced:     false,
     weight:         99,
@@ -43,7 +43,7 @@ export function init(store) {
   });
 
   virtualType({
-    label:          'Feature Flags',
+    labelKey:       'featureFlags.label',
     name:           'features',
     namespaced:     false,
     weight:         99,

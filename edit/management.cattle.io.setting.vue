@@ -35,7 +35,7 @@ export default {
     }
 
     const canReset = this.value.default !== null;
-    const isDefault = canReset && !this.value.value && this.value.default;
+    const isDefault = canReset && !this.value.value;
 
     this.value.value = this.value.value || this.value.default;
 
@@ -149,17 +149,14 @@ export default {
   </CruResource>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   .settings-radio {
     display: flex;
-  }
-  .value-label {
-    margin-bottom: 5px;
   }
   .custom-value {
     margin-left: 20px;
   }
-  .edit-help code {
+  ::v-deep .edit-help code {
     padding: 1px 5px;
   }
 </style>

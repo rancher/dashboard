@@ -136,29 +136,13 @@ export default {
   </div>
 </template>
 
-<style lang='scss'>
+<style lang='scss' scoped>
   .prompt-update {
     &.card-container {
       box-shadow: none;
     }
-    #confirm {
-      width: 90%;
-      margin-left: 3px;
-    }
 
-    .update-modal {
-        border-radius: var(--border-radius);
-        overflow: scroll;
-        max-height: 100vh;
-        & ::-webkit-scrollbar-corner {
-          background: rgba(0,0,0,0);
-        }
-    }
-
-    .actions {
-      text-align: right;
-    }
-    .card-actions {
+    ::v-deep .card-actions {
       display: flex;
       justify-content: center;
     }

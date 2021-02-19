@@ -14,9 +14,7 @@ export default {
     }
 
     out = out.filter((action) => {
-      if (!toFilter.includes(action.action)) {
-        return action;
-      }
+      return (!toFilter.includes(action.action));
     });
 
     // Change the label on the first action (edit)
