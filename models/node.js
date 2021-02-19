@@ -238,7 +238,7 @@ export default {
     if (this.internalIp) {
       details.unshift({
         label:         this.t('node.detail.detailTop.internalIP'),
-        formatter:     'CopyToClipboardText',
+        formatter:     'CopyToClipboard',
         content:       this.internalIp
       });
     }
@@ -246,7 +246,7 @@ export default {
     if (this.externalIp) {
       details.unshift({
         label:         this.t('node.detail.detailTop.externalIP'),
-        formatter:     'CopyToClipboardText',
+        formatter:     'CopyToClipboard',
         content:       this.externalIp
       });
     }
