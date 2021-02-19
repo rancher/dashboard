@@ -246,6 +246,10 @@ export default {
   min-height: 50px;
   border: 0;
 
+  &.focused {
+    box-shadow: none;
+  }
+
   .v-select {
     &.vs--disabled .vs__actions {
       display: none;
@@ -268,7 +272,7 @@ export default {
 
     .vs__selected {
       user-select: none;
-      cursor: default;
+      cursor: pointer;
       color: white;
       line-height: calc(var(--header-height) - 7px);
       position: relative;
