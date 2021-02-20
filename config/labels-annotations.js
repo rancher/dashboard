@@ -45,6 +45,8 @@ export const CATALOG = {
   AUTO_INSTALL_GVK: 'catalog.cattle.io/auto-install-gvr',
   AUTO_INSTALL:     'catalog.cattle.io/auto-install',
   HIDDEN:           'catalog.cattle.io/hidden',
+  REQUESTS_CPU:     'catalog.cattle.io/requests-cpu',
+  REQUESTS_MEMORY:  'catalog.cattle.io/requests-memory',
 
   SCOPE:            'catalog.cattle.io/scope',
   _MANAGEMENT:      'management',
