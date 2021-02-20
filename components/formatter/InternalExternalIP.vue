@@ -10,13 +10,8 @@ export default {
       required: true
     },
   },
-  computed: {
-    showBoth() {
-      return this.row.internalIp !== this.row.externalIp;
-    },
-    ...mapGetters({ t: 'i18n/t' })
-  },
-  methods: {
+  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  methods:  {
     isIp(ip) {
       return ip && (isV4Format(ip) || isV6Format(ip));
     }
@@ -33,7 +28,7 @@ export default {
       {{ t('generic.none') }}
     </template>
 
-    <template v-if="showBoth">
+    <template>
       <template v-if="isIp(row.internalIp)">
         / {{ row.internalIp }} <CopyToClipboard label-as="tooltip" :text="row.internalIp" class="icon-btn" action-color="bg-transparent" />
       </template>

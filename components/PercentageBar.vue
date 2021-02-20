@@ -65,7 +65,7 @@ export default {
 <template>
   <span class="percentage-bar">
     <Bar :percentage="value" :primary-color="primaryColor" />
-    <span v-if="showPercentage" class="ml-5">{{ formattedPercentage }}</span>
+    <span v-if="showPercentage" class="ml-5 percentage-label">{{ formattedPercentage }}</span>
   </span>
 </template>
 
@@ -73,5 +73,8 @@ export default {
 .percentage-bar {
   display: flex;
   flex-direction: row;
+}
+.percentage-label {
+  word-break: keep-all;
 }
 </style>
