@@ -71,7 +71,6 @@ export default {
 
     rows() {
       const out = [];
-      const allTypes = this.allTypes;
 
       for ( const typeRows of this.resources ) {
         if ( !typeRows ) {
@@ -79,14 +78,14 @@ export default {
         }
 
         for ( const row of typeRows ) {
-          if ( !allTypes || !row.metadata?.ownerReferences ) {
+          if (row.showAsWorkload) {
             out.push(row);
           }
         }
       }
 
       return out;
-    }
+    },
   },
 
   typeDisplay() {

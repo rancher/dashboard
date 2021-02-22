@@ -436,4 +436,16 @@ export default {
       return { toSave, toRemove };
     };
   },
+
+  showAsWorkload() {
+    let kindCount = 0;
+
+    if (this.metadata?.ownerReferences) {
+      for (const owner of this.metadata.ownerReferences) {
+        kindCount += Object.values(WORKLOAD_TYPES).flatMap(type => type.includes(owner.kind.toLowerCase())).length;
+      }
+    }
+
+    return !!kindCount;
+  },
 };
