@@ -48,14 +48,12 @@ export default {
 
 <template>
   <div>
-    <div class="row mb-20">
+    <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect
           v-model="integrationType"
           :options="integrationTypeOptions"
           :mode="mode"
-          :tooltip="{ content: t('monitoringReceiver.pagerduty.info', {}, raw=true), autoHide: false}"
-          :hover-tooltip="true"
           label="Integration Type"
         />
       </div>
@@ -67,6 +65,9 @@ export default {
         />
       </div>
     </div>
+    <p class="helper-text text-right mb-20">
+      <t k="monitoringReceiver.pagerduty.info" :raw="true" />
+    </p>
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
