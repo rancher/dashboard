@@ -19,8 +19,6 @@ import find from 'lodash/find';
 import endsWith from 'lodash/endsWith';
 
 const RESOURCE_METRICS_API_GROUP = 'metrics.k8s.io';
-const OBJECT_REFERENCE =
-  'io.k8s.api.autoscaling.v1.crossversionobjectreference';
 
 export default {
   name: 'CruHPA',
@@ -67,11 +65,19 @@ export default {
       return this.value?.spec?.metrics;
     },
     allWorkloadsFiltered() {
-      return Object.values(SCALABLE_WORKLOAD_TYPES)
-        .flatMap(type => this.$store.getters['cluster/all'](type))
-        .filter(
-          wl => wl.metadata.namespace === this.value.metadata.namespace
-        );
+      return (
+        Object.values(SCALABLE_WORKLOAD_TYPES)
+          .flatMap(type => this.$store.getters['cluster/all'](type))
+          .filter(
+            wl => wl.metadata.namespace === this.value.metadata.namespace
+          )
+          // Update to type OBJECT_REFERENCE which can be stored directly as scaleTargetRef
+          .map(workload => ({
+            kind:       workload.kind,
+            name:       workload.metadata.name,
+            apiVersion: workload.apiVersion,
+          }))
+      );
     },
     allServices() {
       return this.$store.getters['cluster/all'](API_SERVICE);
@@ -104,9 +110,9 @@ export default {
         minReplicas:    1,
         maxReplicas:    10,
         scaleTargetRef: {
-          type: OBJECT_REFERENCE,
-          kind: 'workload',
-          name: '',
+          apiVersion: '',
+          kind:       '',
+          name:       '',
         },
         metrics: [{ ...this.defaultResourceMetric }],
       });
@@ -140,15 +146,14 @@ export default {
       <NameNsDescription v-if="!isView" :value="value" :mode="mode" />
 
       <Tabbed :side-tabs="true">
-        <Tab name="workload" :label="t('hpa.tabs.workload')" :weight="10">
+        <Tab name="target" :label="t('hpa.tabs.target')" :weight="10">
           <div class="row mb-20">
             <div class="col span-6">
               <LabeledSelect
-                v-model="value.spec.scaleTargetRef.name"
-                option-label="metadata.name"
-                :reduce="(workload) => workload.metadata.name"
+                v-model="value.spec.scaleTargetRef"
+                :get-option-label="(opt) => opt.name"
                 :mode="mode"
-                :label="t('hpa.workloadTab.target')"
+                :label="t('hpa.workloadTab.targetReference')"
                 :options="allWorkloadsFiltered"
               />
             </div>

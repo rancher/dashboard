@@ -5,7 +5,7 @@ import MetricTarget from '@/edit/autoscaling.horizontalpodautoscaler/metric-targ
 export const DEFAULT_RESOURCE_METRIC = {
   type:     'Resource',
   resource: {
-    name:   'CPU',
+    name:   'cpu',
     target: {
       type:               'Utilization',
       averageUtilization: 50,
