@@ -68,6 +68,7 @@ export default {
       :selectable="(option) => option.ready"
       :clearable="false"
       :options="options"
+      :close-on-select="false"
     >
       <template #selected-option="opt">
         <span class="cluster-label-container">
@@ -78,9 +79,9 @@ export default {
         </span>
       </template>
 
-      <template #no-options="{ search, searching }">
+      <template #no-options="{ searching }">
         <template v-if="searching">
-          No clusters found for <em>{{ search }}</em>.
+          No clusters found.
         </template>
         <em v-else class="text-muted">Start typing to search for a cluster.</em>
       </template>

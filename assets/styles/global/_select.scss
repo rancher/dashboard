@@ -20,7 +20,7 @@
 .unlabeled-select {
   min-width: 75px;
   // line-height: $input-line-height;
-  
+
   .v-select {
     &.inline {
 
@@ -112,10 +112,6 @@
 
     &.inline {
       height: 100%;
-
-      &.vs--unsearchable {
-
-      }
 
       .vs__dropdown-toggle {
         height: 100%;
