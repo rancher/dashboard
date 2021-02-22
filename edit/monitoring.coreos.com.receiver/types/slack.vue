@@ -42,7 +42,7 @@ export default {
           label="Webhook URL"
           placeholder="e.g. https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
         />
-        <p class="helper-text mt-10">
+        <p class="helper-text text-right mt-10">
           <t k="monitoringReceiver.slack.info" :raw="true" />
         </p>
       </div>
