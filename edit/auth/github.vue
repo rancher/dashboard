@@ -6,12 +6,12 @@ import InfoBox from '@/components/InfoBox';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
-import AsyncButton from '@/components/AsyncButton';
 import CopyToClipboard from '@/components/CopyToClipboard';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import { NORMAN, MANAGEMENT } from '@/config/types';
 import { findBy } from '@/utils/array';
 import AuthConfig from '@/mixins/auth-config';
+import AuthBanner from '@/components/auth/AuthBanner';
 
 const NAME = 'github';
 
@@ -25,7 +25,7 @@ export default {
     Banner,
     CopyToClipboard,
     AllowedPrincipals,
-    AsyncButton
+    AuthBanner
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -49,11 +49,8 @@ export default {
 
   data() {
     return {
-      model:         null,
       targetType:    'public',
       targetUrl:     null,
-      serverSetting: null,
-      errors:        null,
     };
   },
 
@@ -114,6 +111,7 @@ export default {
         description:  'Enable GitHub',
       };
     }
+
   },
 
   watch: {
@@ -143,6 +141,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <CruResource
+      :cancel-event="true"
       :done-route="doneRoute"
       :mode="mode"
       :resource="model"
@@ -151,25 +150,18 @@ export default {
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
+      :show-cancel="showCancel"
       @error="e=>errors = e"
       @finish="save"
-      @cancel="done"
+      @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
-        <Banner color="success clearfix">
-          <div class="pull-left mt-10">
-            {{ t('authConfig.stateBanner.enabled', tArgs) }}
-          </div>
-          <div class="pull-right">
-            <button type="button" class="btn-sm role-primary" @click="goToEdit">
-              {{ t('action.edit') }}
-            </button>
-            <AsyncButton mode="disable" size="sm" action-color="bg-error" @click="disable" />
-          </div>
-        </Banner>
-
-        <div>Server: {{ baseUrl }}</div>
-        <div>Client ID: {{ value.clientId }}</div>
+        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+          <template slot="rows">
+            <tr><td>{{ t(`authConfig.${ NAME }.table.server`) }}: </td><td>{{ baseUrl }}</td></tr>
+            <tr><td>{{ t(`authConfig.${ NAME }.table.clientId`) }}: </td><td>{{ value.clientId }}</td></tr>
+          </template>
+        </AuthBanner>
 
         <hr />
 
@@ -177,7 +169,7 @@ export default {
       </template>
 
       <template v-else>
-        <Banner :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
 
         <h3 v-t="`authConfig.${NAME}.target.label`" />
         <RadioGroup

@@ -40,7 +40,7 @@ export default {
 
     actionColor: {
       type:    String,
-      default: 'bg-primary',
+      default: 'role-primary',
     },
     waitingColor: {
       type:    String,

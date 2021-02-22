@@ -5,9 +5,9 @@ import CruResource from '@/components/CruResource';
 import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
-import AsyncButton from '@/components/AsyncButton';
 import config from '@/edit/auth/ldap/config';
 import AuthConfig from '@/mixins/auth-config';
+import AuthBanner from '@/components/auth/AuthBanner';
 
 const AUTH_TYPE = 'ldap';
 
@@ -18,17 +18,14 @@ export default {
     LabeledInput,
     Banner,
     AllowedPrincipals,
-    AsyncButton,
-    config
+    config,
+    AuthBanner
   },
 
   mixins: [CreateEditView, AuthConfig],
 
   data() {
     return {
-      model:         null,
-      serverSetting: null,
-      errors:        null,
       username:      null,
       password:      null
     };
@@ -64,7 +61,7 @@ export default {
       }
 
       return out;
-    }
+    },
   },
 
 };
@@ -74,6 +71,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <CruResource
+      :cancel-event="true"
       :done-route="doneRoute"
       :mode="mode"
       :resource="model"
@@ -82,24 +80,18 @@ export default {
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
+      :show-cancel="showCancel"
       @error="e=>errors = e"
       @finish="save"
-      @cancel="done"
+      @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
-        <Banner color="success clearfix">
-          <div class="pull-left mt-10">
-            {{ t('authConfig.stateBanner.enabled', tArgs) }}
-          </div>
-          <div class="pull-right">
-            <button type="button" class="btn-sm role-primary" @click="goToEdit">
-              {{ t('action.edit') }}
-            </button>
-            <AsyncButton mode="disable" size="sm" action-color="bg-error" @click="disable" />
-          </div>
-        </Banner>
-        <div>Server: {{ serverUrl }}</div>
-        <div>Client ID: {{ model.serviceAccountDistinguishedName || model.serviceAccountUsername }}</div>
+        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+          <template slot="rows">
+            <tr><td>{{ t(`authConfig.ldap.table.server`) }}: </td><td>{{ serverUrl }}</td></tr>
+            <tr><td>{{ t(`authConfig.ldap.table.clientId`) }}: </td><td>{{ model.serviceAccountDistinguishedName || model.serviceAccountUsername }}</td></tr>
+          </template>
+        </AuthBanner>
 
         <hr />
 
@@ -107,6 +99,8 @@ export default {
       </template>
 
       <template v-else>
+        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+
         <h3>{{ t(`authConfig.ldap.${NAME}`) }}</h3>
         <config v-model="model" :type="NAME" :mode="mode" />
 

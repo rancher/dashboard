@@ -33,6 +33,11 @@ export default {
       default: false,
     },
 
+    showCancel: {
+      type:    Boolean,
+      default: true
+    },
+
     mode: {
       type:     String,
       required: true
@@ -270,6 +275,7 @@ export default {
               :done-route="doneRoute"
               :mode="mode"
               :is-form="showAsForm"
+              :show-cancel="showCancel"
               @cancel-confirmed="confirmCancel"
             >
               <template #default>

@@ -49,6 +49,8 @@ export default {
   created() {
     if ( !this.authConfig.accessMode ) {
       this.$set(this.authConfig, 'accessMode', 'restricted');
+    } if (!this.authConfig.allowedPrincipalIds) {
+      this.$set(this.authConfig, 'allowedPrincipalIds', []);
     }
   },
 

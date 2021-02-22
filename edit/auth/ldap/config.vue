@@ -75,7 +75,6 @@ export default {
       }
     }
   }
-
 };
 </script>
 
@@ -86,12 +85,22 @@ export default {
         <div class="col span-6">
           <LabeledInput v-model="hostname" required :mode="mode" :label="t('authConfig.ldap.hostname')" />
         </div>
-        <div class="col span-5">
-          <LabeledInput v-model="model.port" required :mode="mode" :label="t('authConfig.ldap.port')" />
+        <div class="col span-4">
+          <LabeledInput
+            :value="model.port"
+            type="number"
+            required
+            :mode="mode"
+            :label="t('authConfig.ldap.port')"
+            @input="e=>model.port = e.replace(/[^0-9]/g, '')"
+          />
         </div>
 
-        <div class="col span-1">
+        <div class="col">
           <Checkbox v-model="model.tls" :mode="mode" class="full-height" :label="t('authConfig.ldap.tls')" />
+        </div>
+        <div class="col span-1">
+          <Checkbox v-model="model.starttls" :tooltip="t('authConfig.ldap.starttls.tip')" :mode="mode" class="full-height" :label="t('authConfig.ldap.starttls.label')" />
         </div>
       </div>
       <div v-if="model.tls || model.starttls" class="row mb-20">
@@ -104,18 +113,13 @@ export default {
         <div class="col span-6">
           <UnitInput v-model="model.connectionTimeout" required :mode="mode" :label="t('authConfig.ldap.serverConnectionTimeout')" suffix="milliseconds" />
         </div>
-        <div v-if="type==='openldap'" class="col span-6">
-          <Checkbox v-model="model.starttls" :tooltip="t('authConfig.ldap.starttls.tip')" :mode="mode" class="full-height" :label="t('authConfig.ldap.starttls.label')" />
-        </div>
-        <div v-if="type==='activedirectory'" class="col span-6">
-          <LabeledInput v-model="model.defaultLoginDomain" required :mode="mode" :label="t('authConfig.ldap.defaultLoginDomain')" />
-        </div>
       </div>
       <Banner color="info" :label="t('authConfig.ldap.serviceAccountInfo')" />
       <div class="row mb-20">
         <div v-if="type==='activedirectory'" class="col span-6">
           <LabeledInput v-model="model.serviceAccountUsername" required :mode="mode" :label="t('authConfig.ldap.serviceAccountDN')" />
         </div>
+
         <div v-else class="col span-6">
           <LabeledInput v-model="model.serviceAccountDistinguishedName" required :mode="mode" :label="t('authConfig.ldap.serviceAccountDN')" />
         </div>
@@ -123,12 +127,17 @@ export default {
           <LabeledInput v-model="model.serviceAccountPassword" required type="password" :mode="mode" :label="t('authConfig.ldap.serviceAccountPassword')" />
         </div>
       </div>
+      <div v-if="type==='activedirectory'" class="row mb-20">
+        <div class="col span-6">
+          <LabeledInput v-model="model.defaultLoginDomain" required :mode="mode" :label="t('authConfig.ldap.defaultLoginDomain')" />
+        </div>
+      </div>
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledInput v-model="model.userSearchBase" required :mode="mode" :label="t('authConfig.ldap.userSearchBase.label')" :placeholder="t('authConfig.ldap.userSearchBase.placeholder')" />
         </div>
         <div class="col span-6">
-          <LabeledInput v-model="model.groupSearchBase" type="password" :mode="mode" :placeholder="t('authConfig.ldap.groupSearchBase.placeholder')" :label="t('authConfig.ldap.groupSearchBase.label')" />
+          <LabeledInput v-model="model.groupSearchBase" :mode="mode" :placeholder="t('authConfig.ldap.groupSearchBase.placeholder')" :label="t('authConfig.ldap.groupSearchBase.label')" />
         </div>
       </div>
 

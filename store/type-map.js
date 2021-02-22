@@ -173,6 +173,10 @@ export function DSL(store, product, module = 'type-map') {
       store.commit(`${ module }/headers`, { type, headers });
     },
 
+    hideBulkActions(type, field) {
+      store.commit(`${module}/hideBulkActions`, { type, field });
+    },
+
     configureType(match, options) {
       store.commit(`${ module }/configureType`, {...options, match});
     },
@@ -273,6 +277,7 @@ export const state = function() {
     typeOptions:             [],
     groupBy:                 {},
     headers:                 {},
+    hideBulkActions:         {},
     schemaGeneration:        1,
     cache:                   {
       typeMove:     {},
@@ -466,7 +471,7 @@ export const getters = {
           continue;
         }
 
-        const label = typeObj.label;
+        const label = typeObj.labelKey ? t(typeObj.labelKey) || typeObj.label : typeObj.label;
         const virtual = !!typeObj.virtual;
         let icon = typeObj.icon;
 
@@ -744,6 +749,12 @@ export const getters = {
   groupByFor(state) {
     return (schema) => {
       return state.groupBy[schema.id];
+    };
+  },
+
+  hideBulkActionsFor(state) {
+    return (schema) => {
+      return state.hideBulkActions[schema.id];
     };
   },
 
@@ -1157,6 +1168,10 @@ export const mutations = {
 
   headers(state, { type, headers }) {
     state.headers[type] = headers;
+  },
+
+  hideBulkActions(state, {type, field}) {
+    state.hideBulkActions[type] = field;
   },
 
   // weightGroup({group: 'core', weight: 99}); -- higher groups are shown first

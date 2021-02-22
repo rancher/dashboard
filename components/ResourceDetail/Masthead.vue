@@ -407,4 +407,18 @@ export default {
     position: relative;
     top: -2px;
   }
+
+  .left-right-split {
+    display: grid;
+    align-items: center;
+
+    .left-half {
+      grid-column: 1;
+    }
+
+    .right-half {
+      grid-column: 2;
+    }
+  }
+
 </style>

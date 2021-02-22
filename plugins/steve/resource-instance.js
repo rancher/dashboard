@@ -1137,6 +1137,12 @@ export default {
     };
   },
 
+  cleanForNew() {
+    return () => {
+      cleanForNew(this);
+    };
+  },
+
   yamlForSave() {
     return (yaml) => {
       try {
@@ -1260,9 +1266,6 @@ export default {
           validateLength(val, field, displayKey, this.$rootGetters, errors);
           validateChars(val, field, displayKey, this.$rootGetters, errors);
         }
-
-        validateLength(val, field, displayKey, this.$rootGetters, errors);
-        validateChars(val, field, displayKey, this.$rootGetters, errors);
 
         if (errors.length > 0) {
           errors.push(this.t('validation.required', { key: displayKey }));

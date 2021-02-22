@@ -42,8 +42,8 @@ export default {
 
     tableActions: {
       // Show bulk table actions
-      type:    Boolean,
-      default: true
+      type:    [Boolean, null],
+      default: null
     },
 
     pagingLabel: {
@@ -74,6 +74,16 @@ export default {
       const out = !this.showGrouping || !groupNamespaces;
 
       return out;
+    },
+
+    _showBulkActions() {
+      if (this.tableActions !== null) {
+        return this.tableActions;
+      } else {
+        const hideTableActions = this.$store.getters['type-map/hideBulkActionsFor'](this.schema);
+
+        return !hideTableActions;
+      }
     },
 
     _headers() {
@@ -174,7 +184,7 @@ export default {
     :paging="true"
     :paging-params="pagingParams"
     :paging-label="pagingLabel"
-    :table-actions="tableActions"
+    :table-actions="_showBulkActions"
     key-field="_key"
     v-on="$listeners"
   >

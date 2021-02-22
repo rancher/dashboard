@@ -1,5 +1,4 @@
 <script>
-import { cleanForNew } from '@/plugins/steve/normalize';
 import CreateEditView from '@/mixins/create-edit-view/impl';
 import Loading from '@/components/Loading';
 import ResourceYaml from '@/components/ResourceYaml';
@@ -56,7 +55,6 @@ export default {
       default: null,
     },
   },
-
   async fetch() {
     const store = this.$store;
     const route = this.$route;
@@ -141,7 +139,7 @@ export default {
       }
 
       if ( realMode === _CLONE || realMode === _STAGE ) {
-        cleanForNew(model);
+        model.cleanForNew();
         yaml = model.cleanYaml(yaml, realMode);
       }
     }

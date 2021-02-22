@@ -15,7 +15,9 @@ export default {
 </script>
 
 <template>
-  <button ref="btn" class="btn bg-primary" style="font-size: 18px;" @click="login">
-    {{ t('login.loginWithProvider', {provider: displayName}) }}
-  </button>
+  <div class="text-center">
+    <button ref="btn" class="btn bg-primary" style="font-size: 18px;" @click="login">
+      {{ t('login.loginWithProvider', {provider: displayName}) }}
+    </button>
+  </div>
 </template>

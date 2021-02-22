@@ -118,7 +118,7 @@ export default {
             v-if="!isView"
             :disabled="disableAddRecord"
             type="button"
-            class="btn btn-sm role-tertiary"
+            class="btn role-tertiary"
             @click="addRule('record')"
           >
             <t k="prometheusRule.recordingRules.addLabel" />
@@ -126,7 +126,7 @@ export default {
           <span v-else></span>
         </template>
         <template v-slot:remove-button="props">
-          <button v-if="!isView" type="button" class="btn role-link close" @click="removeRule(props.i)">
+          <button v-if="!isView" type="button" class="btn role-link close btn-sm" @click="removeRule(props.i)">
             <i class="icon icon-2x icon-x" />
           </button>
           <span v-else></span>
@@ -162,7 +162,7 @@ export default {
             v-if="!isView"
             :disabled="disableAddAlert"
             type="button"
-            class="btn btn-sm role-tertiary"
+            class="btn role-tertiary"
             @click="addRule('alert')"
           >
             <t k="prometheusRule.alertingRules.addLabel" />
@@ -170,7 +170,7 @@ export default {
           <span v-else></span>
         </template>
         <template v-slot:remove-button="props">
-          <button v-if="!isView" type="button" class="btn role-link close" @click="removeRule(props.i)">
+          <button v-if="!isView" type="button" class="btn role-link close btn-sm" @click="removeRule(props.i)">
             <i class="icon icon-2x icon-x" />
           </button>
           <span v-else></span>

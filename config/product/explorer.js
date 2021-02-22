@@ -121,6 +121,7 @@ export function init(store) {
 
   configureType(NODE, { isCreatable: false, isEditable: false });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
+  configureType(PVC, { isEditable: false });
 
   configureType('workload', {
     displayName: 'Workload',
@@ -222,6 +223,10 @@ export function init(store) {
       params:   { resource: WORKLOAD }
     },
   });
+
+  // Ignore these types as they are managed through the settings product
+  ignoreType(MANAGEMENT.FEATURE);
+  ignoreType(MANAGEMENT.SETTING);
 
   // Don't show Tokens/API Keys in the side navigation
   ignoreType(MANAGEMENT.TOKEN);

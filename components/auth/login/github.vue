@@ -13,7 +13,7 @@ export default {
 </script>
 
 <template>
-  <button ref="btn" class="btn bg-primary" style="font-size: 18px;" @click="login">
+  <button ref="btn" class="btn role-primary" @click="login">
     Log In with GitHub
   </button>
 </template>

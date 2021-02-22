@@ -171,7 +171,6 @@ export default {
       taggable: $attrs.taggable,
       taggable: $attrs.multiple,
     }"
-    @click="focusSearch"
     @focus="focusSearch"
   >
     <v-select
@@ -214,6 +213,14 @@ export default {
 <style lang="scss" scoped>
   .unlabeled-select {
     position: relative;
+
+    ::v-deep .vs__selected-options {
+      display: flex;
+
+      .vs__selected {
+          width: 100%;
+      }
+    }
 
     @include input-status-color;
   }

@@ -33,7 +33,7 @@
   position: absolute;
   left: -2px;
   z-index: z-index('dropdownContent');
-  padding: 5px 0;
+  padding: $input-padding-sm 0;
   margin: 0;
   width: calc(100% + 4px);
   max-height: 350px;
@@ -60,7 +60,7 @@
 .vs__dropdown-option {
   line-height: 1.42857143; /* Normalize line height */
   display: block;
-  padding: 3px 20px;
+  padding: 0 calc(#{$input-padding-sm}/2);
   clear: both;
   color: var(--dropdown-text);
   white-space: nowrap;
@@ -200,7 +200,7 @@ $transition-duration: 150ms;
   width: 0;
   max-width: 100%;
   flex-grow: 1;
-  margin-left: 7px;
+  margin-left: $input-padding-sm;
 }
 
 .vs__search::placeholder {
@@ -242,7 +242,7 @@ $transition-duration: 150ms;
   border: 1px solid var(--primary);
   border-radius: 3px;
   color: var(--link-text);
-  margin-left: 7px;
+  margin-left: $input-padding-sm;
 
   &:not(:last-of-type) {
     margin-right: 2px;
@@ -283,7 +283,7 @@ $transition-duration: 150ms;
         opacity: 0.4;
       }
       .vs__search {
-        margin-left: 7px;
+        margin-left: $input-padding-sm;
       }
     }
     .vs__selected {
@@ -346,9 +346,19 @@ $transition-duration: 150ms;
 }
 
 header .vs-select .vs__dropdown-toggle {
-  background: red !important;
+  background: var(--error) !important;
 }
 
 .vs__no-options {
   padding: 3px 20px;
+}
+
+header {
+  .unlabeled-select {
+    padding: 0;
+
+    &.focused {
+      border: 0;
+    }
+  }
 }

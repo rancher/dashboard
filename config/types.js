@@ -71,6 +71,10 @@ export const WORKLOAD_TYPES = {
   REPLICATION_CONTROLLER: 'replicationcontroller'
 };
 
+const { DAEMON_SET, ...scalableWorkloads } = WORKLOAD_TYPES;
+
+export const SCALABLE_WORKLOAD_TYPES = scalableWorkloads;
+
 export const METRIC = {
   NODE: 'metrics.k8s.io.nodemetrics',
   POD:  'metrics.k8s.io.podmetrics',
@@ -125,6 +129,7 @@ export const MANAGEMENT = {
   CATALOG_TEMPLATE: 'management.cattle.io.catalogtemplate',
   CATALOG:          'management.cattle.io.catalog',
   CLUSTER:          'management.cattle.io.cluster',
+  FEATURE:          'management.cattle.io.feature',
   GROUP:            'management.cattle.io.group',
   NODE_POOL:        'management.cattle.io.nodepool',
   NODE_TEMPLATE:    'management.cattle.io.nodetemplate',

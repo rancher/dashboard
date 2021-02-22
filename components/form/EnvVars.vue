@@ -110,7 +110,7 @@ export default {
       v-t="'workload.container.command.addEnvVar'"
       :disabled="isView"
       type="button"
-      class="btn btn-sm role-tertiary add"
+      class="btn role-tertiary add"
       @click="addFromReference"
     />
   </div>

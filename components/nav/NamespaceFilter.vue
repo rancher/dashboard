@@ -380,10 +380,10 @@ export default {
 
 .filter ::v-deep .unlabeled-select {
   background-color: transparent;
+  border: 0;
 }
 
 .filter ::v-deep .unlabeled-select:not(.focused) {
-  border: var(--outline-width) solid transparent;
   min-height: 0;
 }
 
@@ -400,13 +400,13 @@ export default {
   user-select: none;
   cursor: default;
   background: rgba(255, 255, 255, 0.25);
-  border: solid white thin;
-  color: white;
+  border: solid var(--header-btn-text) thin;
+  color: var(--header-btn-text);
   height: calc(var(--header-height) - 26px);
 }
 
 .filter ::v-deep .unlabeled-select .vs__search::placeholder {
-  color: white;
+  color: var(--header-btn-text);
 }
 
 .filter ::v-deep .unlabeled-select INPUT:hover {
@@ -424,12 +424,12 @@ export default {
 }
 
 .filter ::v-deep .unlabeled-select .vs__deselect:after {
-  color: white;
+  color: var(--header-btn-text);
 }
 
 .filter ::v-deep .unlabeled-select .v-select .vs__actions:after {
-  fill: white !important;
-  color: white !important;
+  fill: var(--header-btn-text) !important;
+  color: var(--header-btn-text) !important;
 }
 
 .filter ::v-deep .unlabeled-select INPUT[type='search'] {

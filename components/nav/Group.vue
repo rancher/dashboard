@@ -202,7 +202,6 @@ export default {
   .body ::v-deep > .child {
     A {
       border-left: solid 5px transparent;
-      transition: ease-in-out all .25s;
     }
 
     A:focus {

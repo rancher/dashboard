@@ -320,50 +320,52 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" />
   <div v-else>
-    <div class="clearfix">
-      <h1 class="pull-left">
-        {{ t('catalog.charts.header') }}
-      </h1>
-      <div class="pull-right">
-        <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('catalog.charts.search')">
-        <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+    <header>
+      <div class="title">
+        <h1 class="m-0">
+          {{ t('catalog.charts.header') }}
+        </h1>
       </div>
-      <div class="pull-right pr-10">
-        <Select
-          v-model="category"
-          :clearable="false"
-          :searchable="false"
-          :options="categories"
-          placement="bottom"
-          label="label"
-          style="min-width: 200px;"
-          :reduce="opt => opt.value"
-        >
-          <template #option="opt">
-            {{ opt.label }} ({{ opt.count }})
-          </template>
-        </Select>
-      </div>
-      <div class="pull-right pr-10">
-        <AsyncButton mode="refresh" class="btn-sm" @click="refresh" />
-      </div>
-    </div>
+    </header>
 
-    <div class="clearfix mt-5">
-      <Checkbox
-        :value="allRepos"
-        :label="t('catalog.charts.all')"
-        :class="{'pull-left': true, 'repo': true}"
-        @input="toggleAll($event)"
-      />
-      <Checkbox
-        v-for="r in repoOptions"
-        :key="r.label"
-        v-model="r.enabled"
-        :label="r.label"
-        :class="{'pull-left': true, 'repo': true, [r.color]: true}"
-        @input="toggleRepo(r, $event)"
-      />
+    <div class="left-right-split">
+      <div>
+        <Checkbox
+          :value="allRepos"
+          :label="t('catalog.charts.all')"
+          :class="{'pull-left': true, 'repo': true}"
+          @input="toggleAll($event)"
+        />
+        <Checkbox
+          v-for="r in repoOptions"
+          :key="r.label"
+          v-model="r.enabled"
+          :label="r.label"
+          :class="{'pull-left': true, 'repo': true, [r.color]: true}"
+          @input="toggleRepo(r, $event)"
+        />
+      </div>
+
+      <Select
+        v-model="category"
+        :clearable="false"
+        :searchable="false"
+        :options="categories"
+        placement="bottom"
+        label="label"
+        style="min-width: 200px;"
+        :reduce="opt => opt.value"
+      >
+        <template #option="opt">
+          {{ opt.label }} ({{ opt.count }})
+        </template>
+      </Select>
+
+      <input ref="searchQuery" v-model="searchQuery" type="search" class="input-sm" :placeholder="t('catalog.charts.search')">
+
+      <button v-shortkey.once="['/']" class="hide" @shortkey="focusSearch()" />
+      <AsyncButton mode="refresh" size="sm" @click="refresh" />
+      <!-- </div> -->
     </div>
 
     <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
@@ -413,6 +415,29 @@ export default {
     &.color6 { background: var(--app-color6-bg); border: 1px solid var(--app-color6-accent); }
     &.color7 { background: var(--app-color7-bg); border: 1px solid var(--app-color7-accent); }
     &.color8 { background: var(--app-color8-bg); border: 1px solid var(--app-color8-accent); }
+  }
+
+  .left-right-split {
+      padding: 0 0 20px 0;
+      width: 100%;
+      z-index: z-index('fixedTableHeader');
+      background: transparent;
+      display: grid;
+      grid-template-columns: 50% auto auto 40px;
+      align-content: center;
+      grid-column-gap: 10px;
+
+    // .left-half {
+    //   background: lavenderblush;
+    //   grid-column: 1;
+    //   // grid-area: left;
+    // }
+
+    // .right-half {
+    //   background: darkslateblue;
+    //   grid-column: 2;
+    //   // grid-area: right;
+    // }
   }
 
 </style>

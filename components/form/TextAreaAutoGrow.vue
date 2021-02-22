@@ -14,7 +14,7 @@ export default {
 
     minHeight: {
       type:    Number,
-      default: 33,
+      default: 35,
     },
     maxHeight: {
       type:    Number,

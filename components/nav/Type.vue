@@ -65,7 +65,8 @@ export default {
       @mouseenter="setNear(true)"
       @mouseleave="setNear(false)"
     >
-      <span class="label" v-html="type.labelDisplay || type.label" />
+      <span v-if="type.labelKey" class="label"><t :k="type.labelKey" /></span>
+      <span v-else class="label" v-html="type.labelDisplay || type.label" />
       <span v-if="showFavorite || showCount" class="count">
         <Favorite v-if="showFavorite" :resource="type.name" />
         {{ type.count }}

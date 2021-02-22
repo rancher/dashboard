@@ -6,12 +6,11 @@ import InfoBox from '@/components/InfoBox';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
-import AsyncButton from '@/components/AsyncButton';
+import AuthBanner from '@/components/auth/AuthBanner';
 import CopyToClipboardText from '@/components/CopyToClipboardText.vue';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import AuthConfig from '@/mixins/auth-config';
 
-const NAME = 'azuread';
 const TENANT_ID_TOKEN = '__[[TENANT_ID]]__';
 
 const ENDPOINT_MAPPING = {
@@ -45,21 +44,17 @@ export default {
     Banner,
     CopyToClipboardText,
     AllowedPrincipals,
-    AsyncButton
+    AuthBanner
   },
 
   mixins: [CreateEditView, AuthConfig],
 
   async fetch() {
     await this.reloadModel();
-
-    this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
   },
 
   data() {
     return {
-      model:             null,
-      errors:            null,
       endpoint:          'standard',
       // Storing the applicationSecret is necessary because norman doesn't support returning secrets and when we
       // override the steve authconfig with a norman config the applicationSecret is lost
@@ -68,10 +63,6 @@ export default {
   },
 
   computed: {
-    baseUrl() {
-      return `${ this.model.tls ? 'https://' : 'http://' }${ this.model.hostname }`;
-    },
-
     tArgs() {
       return {
         baseUrl:   this.baseUrl,
@@ -80,25 +71,24 @@ export default {
       };
     },
 
-    NAME() {
-      return NAME;
-    },
-
     replyUrl() {
       return `${ window.location.origin }/verify-auth-azure/dashboard/auth/verify`;
     },
+
     tenantId() {
       return this.model?.tenantId;
     },
+
     toSave() {
       this.$set(this.model, 'applicationSecret', this.model.applicationSecret || this.applicationSecret);
 
       return {
-        ...this.model,
-        applicationSecret: this.model.applicationSecret || this.applicationSecret,
-        enabled:           true,
-        description:       'Enable AzureAD',
-        editRedirectUrl:   url => `${ url }&response_type=code&response_mode=query`
+        config: {
+          ...this.model,
+          applicationSecret: this.model.applicationSecret || this.applicationSecret,
+          enabled:           true,
+          description:       'Enable AzureAD'
+        }
       };
     },
   },
@@ -107,9 +97,11 @@ export default {
     endpoint(value) {
       this.setEndpoints(value);
     },
+
     tenantId() {
       this.setEndpoints(this.endpoint);
     },
+
     model: {
       deep: true,
       handler() {
@@ -146,26 +138,23 @@ export default {
       :finish-button-mode="model.enabled ? 'edit' : 'enable'"
       :can-yaml="false"
       :errors="errors"
+      :show-cancel="showCancel"
+      :cancel-event="true"
       @error="e=>errors = e"
       @finish="save"
-      @cancel="done"
+      @cancel="cancel"
     >
-      <template v-if="model.enabled">
-        <Banner color="success clearfix">
-          <div class="pull-left mt-10">
-            {{ t('authConfig.stateBanner.enabled', tArgs) }}
-          </div>
-          <div class="pull-right">
-            <AsyncButton mode="disable" size="sm" action-color="bg-error" @click="disable" />
-          </div>
-        </Banner>
-
-        <div>Tenant ID: {{ model.tenantId }}</div>
-        <div>Application ID: {{ model.applicationId }}</div>
-        <div>Endpoint: {{ model.endpoint }}</div>
-        <div>Graph Endpoint: {{ model.graphEndpoint }}</div>
-        <div>Token Endpoint: {{ model.tokenEndpoint }}</div>
-        <div>Auth Endpoint: {{ model.authEndpoint }}</div>
+      <template v-if="model.enabled && !isEnabling && !editConfig">
+        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+          <template slot="rows">
+            <tr><td>{{ t(`authConfig.azuread.tenantId`) }}: </td><td>{{ model.tenantId }}</td></tr>
+            <tr><td>{{ t(`authConfig.azuread.applicationId`) }}: </td><td>{{ model.applicationId }}</td></tr>
+            <tr><td>{{ t(`authConfig.azuread.endpoint`) }}: </td><td>{{ model.endpoint }}</td></tr>
+            <tr><td>{{ t(`authConfig.azuread.graphEndpoint`) }}: </td><td>{{ model.graphEndpoint }}</td></tr>
+            <tr><td>{{ t(`authConfig.azuread.tokenEndpoint`) }}: </td><td>{{ model.tokenEndpoint }}</td></tr>
+            <tr><td>{{ t(`authConfig.azuread.authEndpoint`) }}: </td><td>{{ model.authEndpoint }}</td></tr>
+          </template>
+        </AuthBanner>
 
         <hr />
 
@@ -173,7 +162,7 @@ export default {
       </template>
 
       <template v-else>
-        <Banner :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
+        <Banner v-if="!model.enabled" :label="t('authConfig.stateBanner.disabled', tArgs)" color="warning" />
 
         <InfoBox v-if="!model.enabled" class="mt-20 mb-20 p-10">
           Azure AD requires a whitelisted URL for your Rancher server before beginning this setup. Please ensure that the following URL is set in the Reply URL section of your Azure Portal. Please note that is may take up to 5 minutes for the whitelisted URL to propagate.

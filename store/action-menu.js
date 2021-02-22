@@ -10,8 +10,10 @@ export const state = function() {
     event:            null,
     showPromptRemove: false,
     showAssignTo:     false,
+    showPromptUpdate: false,
     toRemove:         [],
-    toAssign:         []
+    toAssign:         [],
+    toUpdate:         [],
   };
 };
 
@@ -86,6 +88,21 @@ export const mutations = {
     }
 
     state.toAssign = resources;
+  },
+
+  togglePromptUpdate(state, resources) {
+    if (!resources) {
+      // Clearing the resources also hides the prompt
+      state.showPromptUpdate = false;
+    } else {
+      state.showPromptUpdate = !state.showPromptUpdate;
+    }
+
+    if (!isArray(resources)) {
+      resources = [resources];
+    }
+
+    state.toUpdate = resources;
   }
 };
 

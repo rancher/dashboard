@@ -203,11 +203,19 @@ export default {
     > .import {
       grid-area: import;
       background-color: var(--header-bg);
+
+      .btn {
+        padding: 0 $input-padding-sm;
+      }
     }
 
     > .kubectl {
       grid-area: kubectl;
       background-color: var(--header-bg);
+
+      .btn {
+        padding: 0 $input-padding-sm;
+      }
     }
 
     > .back,
