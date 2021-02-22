@@ -1,6 +1,7 @@
 import { CATALOG } from '@/config/labels-annotations';
 import { FLEET } from '@/config/types';
 import { insertAt } from '@/utils/array';
+import { parseSi } from '@/utils/units';
 
 export default {
   _availableActions() {
@@ -89,4 +90,26 @@ export default {
       }
     };
   },
+
+  availableCpu() {
+    const reserved = parseSi(this.status.requested?.cpu);
+    const allocatable = parseSi(this.status.allocatable?.cpu);
+
+    if ( allocatable > 0 && reserved >= 0 ) {
+      return Math.max(0, allocatable - reserved);
+    } else {
+      return null;
+    }
+  },
+
+  availableMemory() {
+    const reserved = parseSi(this.status.requested?.memory);
+    const allocatable = parseSi(this.status.allocatable?.memory);
+
+    if ( allocatable > 0 && reserved >= 0 ) {
+      return Math.max(0, allocatable - reserved);
+    } else {
+      return null;
+    }
+  }
 };

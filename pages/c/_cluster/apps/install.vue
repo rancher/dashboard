@@ -29,6 +29,7 @@ import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import sortBy from 'lodash/sortBy';
+import { formatSi, parseSi } from '@/utils/units';
 
 export default {
   name: 'Install',
@@ -210,15 +211,36 @@ export default {
         }).href;
 
         if ( provider ) {
-          this.requires.push(`<a href="${ url }">${ provider.name }</a> must be installed before you can install this chart.`);
+          this.requires.push(this.t('catalog.install.error.requiresFound', {
+            url,
+            name: provider.name
+          }, true));
         } else {
-          this.warnings.push(`This chart requires another chart that provides ${ gvr }, but none was was found`);
+          this.requires.push(this.t('catalog.install.error.requiresMissing', { name: gvr }));
         }
       }
     }
 
-    // const updateValues = (this.existing && !this.chartValues) ||
-    // (!this.existing && (!this.loadedVersion || this.loadedVersion !== this.version.key) );
+    const needCpu = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_CPU] || '0');
+    const needMemory = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_MEMORY] || '0');
+
+    // Note: These are null if unknown
+    const availableCpu = this.currentCluster.availableCpu;
+    const availableMemory = this.currentCluster.availableMemory;
+
+    if ( availableCpu !== null && availableCpu < needCpu ) {
+      this.warnings.push(this.t('catalog.install.error.insufficientCpu', {
+        need: Math.round(needCpu * 100) / 100,
+        have: Math.round(availableCpu * 100) / 100,
+      }));
+    }
+
+    if ( availableMemory !== null && availableMemory < needMemory ) {
+      this.warnings.push(this.t('catalog.install.error.insufficientCpu', {
+        need: formatSi(needMemory, { increment: 1024, suffix: 'B' }),
+        have: formatSi(availableMemory, { increment: 1024, suffix: 'B' }),
+      }));
+    }
 
     if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
       let userValues;
