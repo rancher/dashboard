@@ -155,7 +155,11 @@ export default {
                 :mode="mode"
                 :label="t('hpa.workloadTab.targetReference')"
                 :options="allWorkloadsFiltered"
-              />
+              >
+                <template v-slot:option="option">
+                  {{ option.name }}<span class="pull-right">{{ option.kind }}</span>
+                </template>
+              </LabeledSelect>
             </div>
           </div>
           <div class="row">
