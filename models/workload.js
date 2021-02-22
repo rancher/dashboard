@@ -438,14 +438,18 @@ export default {
   },
 
   showAsWorkload() {
-    let kindCount = 0;
+    const types = Object.values(WORKLOAD_TYPES);
 
     if (this.metadata?.ownerReferences) {
       for (const owner of this.metadata.ownerReferences) {
-        kindCount += Object.values(WORKLOAD_TYPES).flatMap(type => type.includes(owner.kind.toLowerCase())).length;
+        const have = (`${ owner.apiVersion.replace(/\/.*/, '') }.${ owner.kind }`).toLowerCase();
+
+        if ( types.includes(have) ) {
+          return false;
+        }
       }
     }
 
-    return !!kindCount;
+    return true;
   },
 };
