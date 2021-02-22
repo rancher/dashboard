@@ -71,7 +71,9 @@ export const WORKLOAD_TYPES = {
   REPLICATION_CONTROLLER: 'replicationcontroller'
 };
 
-const { DAEMON_SET, ...scalableWorkloads } = WORKLOAD_TYPES;
+const {
+  DAEMON_SET, CRON_JOB, JOB, ...scalableWorkloads
+} = WORKLOAD_TYPES;
 
 export const SCALABLE_WORKLOAD_TYPES = scalableWorkloads;
 
