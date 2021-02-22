@@ -157,7 +157,7 @@ export default {
                 :options="allWorkloadsFiltered"
               >
                 <template v-slot:option="option">
-                  {{ option.name }}<span class="pull-right">{{ option.kind }}</span>
+                  {{ option.metadata.name }}<span class="pull-right">{{ option.kind }}</span>
                 </template>
               </LabeledSelect>
             </div>
