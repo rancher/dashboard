@@ -48,7 +48,7 @@ export default {
 
 <template>
   <div>
-    <div class="row mb-20">
+    <div class="row mb-10">
       <div class="col span-6">
         <LabeledSelect
           v-model="integrationType"
@@ -56,9 +56,6 @@ export default {
           :mode="mode"
           label="Integration Type"
         />
-        <p class="helper-text mt-10">
-          <t k="monitoringReceiver.pagerduty.info" :raw="true" />
-        </p>
       </div>
       <div class="col span-6">
         <LabeledInput
@@ -68,6 +65,9 @@ export default {
         />
       </div>
     </div>
+    <p class="helper-text text-right mb-20">
+      <t k="monitoringReceiver.pagerduty.info" :raw="true" />
+    </p>
     <div class="row mb-20">
       <div class="col span-12">
         <LabeledInput
