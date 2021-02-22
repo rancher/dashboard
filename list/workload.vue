@@ -78,7 +78,7 @@ export default {
         }
 
         for ( const row of typeRows ) {
-          if (row.showAsWorkload) {
+          if (!this.allTypes || row.showAsWorkload) {
             out.push(row);
           }
         }
