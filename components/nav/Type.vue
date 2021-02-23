@@ -133,7 +133,6 @@ export default {
       font-size: 12px;
       text-align: right;
       justify-items: center;
-      line-height: 20px;
     }
   }
 </style>
