@@ -68,7 +68,7 @@ export default {
     this.$set(this.value.spec, 'resources', this.value.spec.resources || {});
     this.$set(this.value.spec.resources, 'requests', this.value.spec.resources.requests || {});
     this.$set(this.value.spec.resources.requests, 'storage', this.value.spec.resources.requests.storage || '10Gi');
-    if (this.mode === _CREATE) {
+    if (this.realMode === _CREATE) {
       this.$set(this.value.spec, 'accessModes', defaultAccessModes);
     }
 
