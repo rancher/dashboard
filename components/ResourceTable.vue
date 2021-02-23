@@ -79,11 +79,13 @@ export default {
     _showBulkActions() {
       if (this.tableActions !== null) {
         return this.tableActions;
-      } else {
+      } else if (this.schema) {
         const hideTableActions = this.$store.getters['type-map/hideBulkActionsFor'](this.schema);
 
         return !hideTableActions;
       }
+
+      return false;
     },
 
     _headers() {

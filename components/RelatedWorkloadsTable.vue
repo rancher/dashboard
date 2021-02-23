@@ -2,7 +2,7 @@
 import {
   STATE, NAME, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, TYPE, AGE
 } from '@/config/table-headers';
-import { WORKLOAD_TYPES, WORKLOAD } from '@/config/types';
+import { WORKLOAD_TYPES } from '@/config/types';
 import ResourceTable from '@/components/ResourceTable';
 
 export default {
@@ -33,7 +33,7 @@ export default {
     return {
       relatedWorkloadRows: [],
       relatedWorkloadHeaders,
-      schema:              this.$store.getters['cluster/schemaFor'](WORKLOAD.DEPLOYMENT)
+      schema:              this.$store.getters['cluster/schemaFor'](WORKLOAD_TYPES.DEPLOYMENT)
     };
   },
 };
