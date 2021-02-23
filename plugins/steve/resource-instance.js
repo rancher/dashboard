@@ -1201,6 +1201,10 @@ export default {
           existing: (isCreate ? this : undefined)
         });
       }
+
+      if (this.isSpoofed) {
+        await this.$dispatch('cluster/findAll', { type: this.type, opt: { force: true } }, { root: true });
+      }
     };
   },
 

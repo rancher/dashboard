@@ -239,7 +239,13 @@ export function init(store) {
       {
         id:                RBAC.SPOOFED.ROLE_TEMPLATE,
         type:              'schema',
-        resourceFields:    { filters: { type: 'string' } },
+        resourceFields:    {
+          apiVersion: { type: 'string' },
+          kind:       { type: 'string' },
+          metadata:   { type: 'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta' },
+          rules:      { type: 'array[rancher.cattle.io.v1.roletemplate.rules]' },
+          status:     { type: 'rancher.cattle.io.v1.roletemplate.status' }
+        },
         collectionMethods: ['POST'],
       }
     ],
@@ -256,8 +262,9 @@ export function init(store) {
             type:            RBAC.SPOOFED.ROLE_TEMPLATE,
             status:          template.status,
             links:           {
-              self: template.links.self,
-              view: template.links.view
+              self:   template.links.self,
+              update: template.links.update,
+              view:   template.links.view
             },
             template
           };

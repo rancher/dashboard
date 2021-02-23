@@ -188,6 +188,7 @@ export default {
           :label="t('rbac.roletemplate.locked.label')"
           class="mb-10"
           :options="lockedOptions"
+          :mode="mode"
         />
       </div>
       <div class="col span-6">
@@ -197,6 +198,7 @@ export default {
           :label="defaultLabel"
           class="mb-10"
           :options="newUserDefaultOptions"
+          :mode="mode"
           @input="value.updateDefault"
         />
       </div>
@@ -215,6 +217,7 @@ export default {
           :initial-empty-row="true"
           :show-header="true"
           add-label="Add Resource"
+          :mode="mode"
         >
           <template #column-headers>
             <div class="column-headers row">
@@ -242,6 +245,7 @@ export default {
                   :searchable="true"
                   :options="verbOptions"
                   :multiple="true"
+                  :mode="mode"
                   @input="updateSelectValue(props.row.value, 'verbs', $event)"
                 />
               </div>
@@ -283,6 +287,7 @@ export default {
           v-model="value.roleTemplateIds"
           label="Resources"
           add-label="Add Resource"
+          :mode="mode"
         >
           <template #columns="props">
             <div class="columns row">
@@ -295,6 +300,7 @@ export default {
                   :options="templateOptions"
                   option-key="value"
                   option-label="label"
+                  :mode="mode"
                 />
               </div>
             </div>
@@ -314,8 +320,11 @@ export default {
     .box {
       align-items: initial;
 
-      .remove button {
-        margin-top: $input-height / 4;
+      .remove {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-end;
       }
     }
 

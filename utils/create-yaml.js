@@ -66,8 +66,9 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   if ( depth === 0 ) {
     const attr = schema.attributes || {};
 
-    data.apiVersion = (attr.group ? `${ attr.group }/${ attr.version }` : attr.version);
-    data.kind = attr.kind;
+    // Default to data.apiVersion/kind to accomadate spoofed types that aggregate multiple types
+    data.apiVersion = (attr.group ? `${ attr.group }/${ attr.version }` : attr.version) || data.apiVersion;
+    data.kind = attr.kind || data.kind;
   }
 
   const regularFields = [];
