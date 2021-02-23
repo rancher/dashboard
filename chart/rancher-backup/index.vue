@@ -178,19 +178,24 @@ export default {
       <S3 v-if="storageSource==='s3'" :value="value.s3" :secrets="secrets" :mode="mode" />
       <template v-else>
         <div class="row">
-          <div v-if="storageSource === 'pickSC'" class="col span-6">
-            <LabeledSelect
-              :key="storageSource"
-              v-model="storageClass"
-              :get-option-label="opt => opt.id || opt"
-              :label="t('backupRestoreOperator.deployment.storage.storageClass.label')"
-              :tooltip="reclaimWarning ? t('backupRestoreOperator.deployment.storage.warning', {type: 'Storage Class'}) : null"
-              :mode="mode"
-              :status="reclaimWarning ? 'warning' : null"
-              :options="storageClasses"
-              :hover-tooltip="true"
-            />
-          </div>
+          <template v-if="storageSource === 'pickSC'">
+            <div class="col span-6">
+              <LabeledSelect
+                :key="storageSource"
+                v-model="storageClass"
+                :get-option-label="opt => opt.id || opt"
+                :label="t('backupRestoreOperator.deployment.storage.storageClass.label')"
+                :tooltip="reclaimWarning ? t('backupRestoreOperator.deployment.storage.warning', {type: 'Storage Class'}) : null"
+                :mode="mode"
+                :status="reclaimWarning ? 'warning' : null"
+                :options="storageClasses"
+                :hover-tooltip="true"
+              />
+            </div>
+            <div class="col span-6">
+              <LabeledInput v-model="value.persistence.size" :mode="mode" :label="t('backupRestoreOperator.deployment.size')" />
+            </div>
+          </template>
           <div v-else-if="storageSource === 'pickPV'" class="col span-6">
             <LabeledSelect
               :key="storageSource"
@@ -203,9 +208,6 @@ export default {
               :options="availablePVs"
               :hover-tooltip="true"
             />
-          </div>
-          <div v-if="storageSource!=='none'" class="col span-6">
-            <LabeledInput v-model="value.persistence.size" :mode="mode" :label="t('backupRestoreOperator.deployment.size')" />
           </div>
         </div>
       </template>
