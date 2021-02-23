@@ -22,8 +22,11 @@ export default {
   mixins: [CreateEditView],
 
   async fetch() {
-    const hash = { pods: this.value.pods() };
+    const hash = { allPods: this.$store.dispatch('cluster/findAll', { type: POD }) };
 
+    if (this.value.type === WORKLOAD_TYPES.CRON_JOB) {
+      hash.allJobs = this.$store.dispatch('cluster/findAll', { type: WORKLOAD_TYPES.JOB });
+    }
     const res = await allHash(hash);
 
     for ( const k in res ) {
@@ -32,10 +35,20 @@ export default {
   },
 
   data() {
-    return { pods: null };
+    return { allPods: null, allJobs: [] };
   },
 
   computed:   {
+    pods() {
+      const relationships = get(this.value, 'metadata.relationships') || [];
+      const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
+
+      if (podRelationship) {
+        return this.$store.getters['cluster/matching'](POD, podRelationship.selector).filter(pod => pod?.metadata?.namespace === this.value.metadata.namespace);
+      } else {
+        return [];
+      }
+    },
     isJob() {
       return this.value.type === WORKLOAD_TYPES.JOB;
     },
@@ -62,23 +75,21 @@ export default {
       return this.podTemplateSpec?.containers[0];
     },
 
-    jobEntries() {
-      if (this.value.type !== WORKLOAD_TYPES.CRON_JOB) {
+    jobRelationships() {
+      if (!this.isCronJob) {
         return;
       }
 
-      return get(this.value, 'status.active') || [];
+      return (get(this.value, 'metadata.relationships') || []).filter(relationship => relationship.toType === WORKLOAD_TYPES.JOB);
     },
 
     jobs() {
-      if (this.value.type !== WORKLOAD_TYPES.CRON_JOB) {
+      if (!this.isCronJob) {
         return;
       }
 
-      const entries = this.jobEntries;
-
-      return entries.map((obj) => {
-        return this.$store.getters['cluster/byId'](WORKLOAD_TYPES.JOB, `${ obj.namespace }/${ obj.name }`);
+      return this.jobRelationships.map((obj) => {
+        return this.$store.getters['cluster/byId'](WORKLOAD_TYPES.JOB, obj.toId );
       }).filter(x => !!x);
     },
 
@@ -114,6 +125,22 @@ export default {
       }
 
       return out;
+    },
+
+    totalRuns() {
+      if (!this.jobs) {
+        return;
+      }
+
+      return this.jobs.reduce((total, job) => {
+        const { status = {} } = job;
+
+        total += (status.active || 0);
+        total += (status.succeeded || 0);
+        total += (status.failed || 0);
+
+        return total;
+      }, 0);
     },
 
     podRestarts() {
@@ -188,7 +215,7 @@ export default {
         <CountGauge
           v-for="(group, key) in jobGauges"
           :key="key"
-          :total="isCronJob? jobs.length : pods.length"
+          :total="isCronJob? totalRuns : pods.length"
           :useful="group.count || 0"
           :primary-color-var="`--sizzle-${group.color}`"
           :name="t(`workload.gaugeStates.${key}`)"
