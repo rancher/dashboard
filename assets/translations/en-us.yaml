@@ -113,7 +113,7 @@ suffix:
 authConfig:
   accessMode:
     label: 'Configure who should be able to login and use {vendor}'
-    required: Restrict access to only the auhorized users & groups
+    required: Restrict access to only the authorized users & groups
     restricted: 'Allow members of clusters and projects, plus authorized users & groups'
     unrestricted: Allow any valid user
   allowedPrincipalIds:
