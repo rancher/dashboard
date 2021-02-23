@@ -48,7 +48,12 @@ export default {
     resourceOverride: {
       type:    String,
       default: null,
-    }
+    },
+
+    parentRouteOverride: {
+      type:    String,
+      default: null,
+    },
   },
   async fetch() {
     const store = this.$store;
@@ -284,6 +289,7 @@ export default {
       :has-detail="hasCustomDetail"
       :has-edit="hasCustomEdit"
       :resource-subtype="resourceSubtype"
+      :parent-route-override="parentRouteOverride"
     />
 
     <DetailTop

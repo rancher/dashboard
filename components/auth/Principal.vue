@@ -11,6 +11,11 @@ export default {
     useMuted: {
       type:    Boolean,
       default: true,
+    },
+
+    showLabels: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -46,7 +51,7 @@ export default {
 </script>
 
 <template>
-  <div class="principal">
+  <div class="principal" :class="{'showLabels': showLabels}">
     <template v-if="!principal && $fetchState.pending">
       <div class="avatar">
         <div class="empty">
@@ -61,21 +66,30 @@ export default {
       <div class="avatar">
         <img :src="principal.avatarSrc" :class="{'round': principal.roundAvatar}" />
       </div>
-      <div class="name">
-        <template v-if="showBoth">
-          {{ principal.name }}
-          <span v-if="principal.loginName" :class="{'text-muted': useMuted}">({{ principal.loginName }})</span>
-        </template>
-        <template v-else-if="principal.name">
-          {{ principal.name }}
-        </template>
-        <template v-else>
-          {{ principal.loginName }}
-        </template>
+      <div v-if="showLabels" class="name">
+        <table>
+          <tr><td>{{ t('principal.name') }}: </td><td>{{ principal.name || principal.loginName }}</td></tr>
+          <tr><td>{{ t('principal.loginName') }}: </td><td>{{ principal.loginName }}</td></tr>
+          <tr><td>{{ t('principal.type') }}: </td><td>{{ principal.displayType }}</td></tr>
+        </table>
       </div>
-      <div class="description" :class="{'text-muted': useMuted}">
-        {{ principal.displayType }}
-      </div>
+      <template v-else>
+        <div class="name">
+          <template v-if="showBoth">
+            {{ principal.name }}
+            <span v-if="principal.loginName" :class="{'text-muted': useMuted}">({{ principal.loginName }})</span>
+          </template>
+          <template v-else-if="principal.name">
+            {{ principal.name }}
+          </template>
+          <template v-else>
+            {{ principal.loginName }}
+          </template>
+        </div>
+        <div class="description" :class="{'text-muted': useMuted}">
+          {{ principal.displayType }}
+        </div>
+      </template>
     </template>
 
     <template v-else>
@@ -103,6 +117,21 @@ export default {
     grid-template-columns: $size auto;
     grid-template-rows: $size/2 $size/2;
     column-gap: 10px;
+
+    &.showLabels {
+      grid-template-areas:
+        "avatar name";
+      grid-template-columns: 60px auto;
+      grid-template-rows: 60px;
+      column-gap: 0;
+      .name {
+        line-height: unset;
+      }
+
+      table tr td:not(:first-of-type) {
+        padding-left: 10px;
+      }
+    }
 
     .avatar {
       grid-area: avatar;

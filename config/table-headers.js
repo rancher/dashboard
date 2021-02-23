@@ -195,6 +195,14 @@ export const CREATION_DATE = {
   formatter: 'Date'
 };
 
+export const DESCRIPTION = {
+  name:     'description',
+  labelKey: 'tableHeaders.description',
+  align:    'left',
+  sort:     ['description'],
+  width:    300,
+};
+
 export const IMAGE = {
   name:     'image',
   labelKey: 'tableHeaders.image',
@@ -757,6 +765,40 @@ export const CURRENT_REPLICA = {
   label:     'Current Replicas',
   value:     'status.currentReplicas',
   sort:      'status.currentReplicas',
+};
+
+export const EXPIRY_STATE = {
+  ...STATE,
+  value:     '$',
+  formatter: 'LiveExpiryBadgeState',
+};
+
+export const ACCESS_KEY = {
+  name:     'name',
+  labelKey: 'tableHeaders.accessKey',
+  align:    'left',
+  sort:     ['name'],
+  width:    200,
+};
+
+export const SCOPE = {
+  name:        'scope',
+  value:       'clusterName',
+  labelKey:    'tableHeaders.scope',
+  dashIfEmpty: true,
+  align:       'left',
+  sort:        ['scope'],
+  width:       100,
+};
+
+export const EXPIRES = {
+  name:          'expires',
+  value:         'expiresAt',
+  labelKey:      'tableHeaders.expires',
+  align:         'left',
+  sort:          ['expiresAt'],
+  width:         200,
+  formatter:     'LiveExpiryDate'
 };
 
 export const RESTART = {

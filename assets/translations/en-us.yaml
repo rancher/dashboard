@@ -13,6 +13,7 @@ generic:
   customize: Customize
   default: Default
   disabled: Disabled
+  done: Done
   enabled: Enabled
   ignored: Ignored
   invalidCron: Invalid cron schedule
@@ -20,6 +21,7 @@ generic:
   members: Members
   na: n/a
   name: Name
+  never: Never
   none: None
   number: '{prefix}{value, number}{suffix}'
   overview: Overview
@@ -109,6 +111,44 @@ suffix:
 ##############################
 # Components & Pages
 ##############################
+accountAndKeys:
+  title: Account and API Keys
+  account:
+    title: Account
+    change: Change Password
+  apiKeys:
+    title: API Keys
+    add:
+      description:
+        label: Description
+        placeholder: Optionally enter a description to help you identify this API Key
+      label: Create API Key
+      expiry:
+        label: Automatically expire
+        options:
+          never: Never
+          day: A day from now
+          month: A month from now
+          year: A year from now
+          custom: Custom
+          maximum: "{value} - Maximum allowed"
+      customExpiry:
+        options:
+          minute: Minutes
+          hour: Hours
+          day: Days
+          month: Months
+          year: Years
+      scope: Scope
+      noScope: No Scope
+    info:
+      accessKey: Access Key
+      secretKey: Secret Key
+      bearerToken: Bearer Token
+      saveWarning: Save the info above! This is the only time you'll be able to see it. If you lose it, you'll need to create a new API key.
+      keyCreated: A new API Key has been created
+      bearerTokenTip: "Access Key and Secret Key can be sent as the username and password for HTTP Basic auth to authorize requests. You can also combine them to use as a Bearer token:"
+      ttlLimitedWarning: The Expiry time for this API Key was reduced due to system configuration
 
 authConfig:
   accessMode:
@@ -541,6 +581,25 @@ catalog:
     url:
       label: Index URL
       placeholder: 'e.g. https://charts.rancher.io'
+
+changePassword:
+  title: Change Password
+  cancel: Cancel
+  keys: Delete all existing API keys
+  generatePassword: Generate a random password
+  newGeneratedPassword: Suggest a password
+  currentPassword: Current Password
+  userGen:
+    newPassword: New Password
+    confirmPassword: Confirm Password
+  randomGen:
+    copy: Copy to Clipboard
+    generated: Generated Password
+  errors:
+    missmatchedPassword: Passwords do not match
+    failedToChange: Failed to change password
+    failedDeleteKey: Failed to delete key
+    failedDeleteKeys: Failed to delete keys
 
 chartHeading:
   overview: Overview
@@ -1675,38 +1734,12 @@ prefs:
   hideDesc:
     label: Hide All Type Description Boxes
 
-accountAndKeys:
-  title: Account and API Keys
-  account:
-    title: Account
-    name: Name
-    username: Username
-    change: Change Password
-  keys:
-    title: API Keys
-
-changePassword:
-  title: Change Password
-  cancel: Cancel
-  keys: Delete all existing API keys
-  generatePassword: Generate a random password
-  newGeneratedPassword: Suggest a password
-  currentPassword: Current Password
-  userGen:
-    newPassword: New Password
-    confirmPassword: Confirm Password
-  randomGen:
-    copy: Copy to Clipboard
-    generated: Generated Password
-  errors:
-    missmatchedPassword: Passwords do not match
-    failedToChange: Failed to change password
-    failedDeleteKey: Failed to delete key
-    failedDeleteKeys: Failed to delete keys
-
 principal:
   loading: Loading&hellip;
   error: Unable to fetch principal info
+  name: Name
+  loginName: Username
+  type: Type
 
 probe:
   checkInterval:
@@ -2310,6 +2343,7 @@ storageClass:
     addLabel: Add Parameter
 
 tableHeaders:
+  accessKey: Access Key
   address: Address
   age: Age
   apiGroup: API Groups
@@ -2329,6 +2363,7 @@ tableHeaders:
   condition: Condition
   customVerbs: Custom Verbs
   description: Description
+  expires: Expires
   providers: Providers
   cpu: CPU
   date: Date
@@ -2400,6 +2435,7 @@ tableHeaders:
   role: Role
   roles: Roles
   scale: Scale
+  scope: Scope
   selector: Selector
   simpleName: Name
   simpleScale: Scale
@@ -3072,6 +3108,11 @@ typeDescription:
   logging.banzaicloud.io.output: An output defines which logging providers that logs can be sent to. The output needs to be in the same namespace as the flow that is using it.
 
 typeLabel:
+  management.cattle.io.token: |-
+    {count, plural,
+      one { API Key }
+      other { API Keys }
+    }
   cis.cattle.io.clusterscan: |-
     {count, plural,
       one { Scan }

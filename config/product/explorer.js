@@ -13,6 +13,7 @@ import {
   USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, WORKLOAD_ENDPOINTS, STORAGE_CLASS_PROVISIONER,
   PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
+  ACCESS_KEY, DESCRIPTION, SCOPE, EXPIRES, EXPIRY_STATE,
 } from '@/config/table-headers';
 
 import { copyResourceValues, SUBTYPES } from '@/models/rbac.authorization.k8s.io.roletemplate';
@@ -190,6 +191,15 @@ export function init(store) {
     AGE
   ]);
 
+  headers(MANAGEMENT.TOKEN, [
+    EXPIRY_STATE,
+    ACCESS_KEY,
+    DESCRIPTION,
+    SCOPE,
+    EXPIRES,
+    AGE
+  ]);
+
   virtualType({
     label:       'Cluster Dashboard',
     group:      'Root',
@@ -217,6 +227,9 @@ export function init(store) {
   // Ignore these types as they are managed through the settings product
   ignoreType(MANAGEMENT.FEATURE);
   ignoreType(MANAGEMENT.SETTING);
+
+  // Don't show Tokens/API Keys in the side navigation
+  ignoreType(MANAGEMENT.TOKEN);
 
   spoofedType({
     label:             'Role Template',
