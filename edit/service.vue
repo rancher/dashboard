@@ -205,7 +205,7 @@ export default {
         const inStore = this.$store.getters['currentProduct'].inStore;
 
         this.allPods = await this.$store.dispatch(`${ inStore }/findAll`, { type: POD });
-        this.matchingPods.total = this.allPods.length;
+        this.updateMatchingPods();
       } catch (e) { }
     },
 
