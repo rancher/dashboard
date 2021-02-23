@@ -311,7 +311,6 @@ export default {
 
       H6, .root.child .label {
         margin: 0;
-        letter-spacing: 0.1em;
 
         A { padding-left: 0; }
       }
