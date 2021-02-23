@@ -85,6 +85,10 @@ export default {
     expiryUnitsOptions() {
       const options = ['minute', 'hour', 'day', 'month', 'year'];
       const filtered = this.filterOptionsForTTL(options);
+      
+      console.log(options);
+      console.log(filtered);
+      console.log(this.maxTTL);
 
       return filtered.map(opt => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.customExpiry.options.${ opt }`) }));
     },
@@ -107,7 +111,7 @@ export default {
           const expiry = day().add(1, option);
           const ttl = expiry.diff(now) / 60000; // Convert to minutes
 
-          return ttl <= this.maxTTL;
+          return this.maxTTL === 0 || ttl <= this.maxTTL;
         }
       });
     },
