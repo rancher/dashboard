@@ -99,7 +99,9 @@ export default {
     },
 
     tenantId() {
-      this.setEndpoints(this.endpoint);
+      if (this.endpoint !== 'custom') {
+        this.setEndpoints(this.endpoint);
+      }
     },
 
     model: {
@@ -107,7 +109,9 @@ export default {
       handler() {
         this.model.accessMode = this.model.accessMode || 'unrestricted';
         this.model.rancherUrl = this.model.rancherUrl || this.replyUrl;
-        this.setEndpoints(this.endpoint);
+        if (this.endpoint !== 'custom') {
+          this.setEndpoints(this.endpoint);
+        }
 
         if (this.model.applicationSecret) {
           this.$set(this, 'applicationSecret', this.model.applicationSecret);
@@ -119,7 +123,7 @@ export default {
   methods: {
     setEndpoints(endpoint) {
       Object.keys(ENDPOINT_MAPPING[endpoint]).forEach((key) => {
-        this.model[key] = ENDPOINT_MAPPING[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId);
+        this.$set(this.model, key, ENDPOINT_MAPPING[endpoint][key].replace(TENANT_ID_TOKEN, this.model.tenantId));
       });
     },
   },
