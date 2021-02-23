@@ -73,9 +73,7 @@ export default {
     },
 
     availablePVs() {
-      return this.persistentVolumes.filter((total, each) => {
-        return each?.status?.phase !== 'bound';
-      });
+      return this.persistentVolumes.filter(pv => pv.status.phase.toLowerCase() !== 'bound');
     },
 
     radioOptions() {
