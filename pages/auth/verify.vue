@@ -20,18 +20,23 @@ export default {
   async fetch({ store, route, redirect }) {
     const code = route.query[GITHUB_CODE];
     const state = route.query[GITHUB_NONCE] || '';
-    const isGoogle = state.includes('-googleoauth');
     const isTesting = state.includes('-test');
 
     if (isTesting) {
       return;
     }
+    let provider = 'github';
 
     if (code) {
+      if (state.includes('-googleoauth')) {
+        provider = 'googleoauth';
+      } else if (state.includes('-azuread')) {
+        provider = 'azuread';
+      }
       const res = await store.dispatch('auth/verifyOAuth', {
         code,
-        nonce:    route.query[GITHUB_NONCE],
-        provider: isGoogle ? 'googleoauth' : 'github'
+        nonce: route.query[GITHUB_NONCE],
+        provider
       });
 
       if ( res._status === 200) {
