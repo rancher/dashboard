@@ -49,7 +49,7 @@ export default {
       const out = this.allNamespaces.map((obj) => {
         return {
           label: obj.name,
-          value: obj.value,
+          value: obj.name,
         };
       });
 
