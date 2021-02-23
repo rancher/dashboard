@@ -76,7 +76,7 @@ export default {
         />
       </div>
       <div class="col span-6">
-        <h4 v-if="accessMode!=='unrestricted'" class="mb-20"><t k="authConfig.allowedPrincipalIds.title" :raw="true" /></h4>
+        <h4 v-if="accessMode!=='unrestricted'"><t k="authConfig.allowedPrincipalIds.title" :raw="true" /></h4>
         <ArrayList
           v-if="accessMode!=='unrestricted'"
           key="allowedPrincipalIds"
