@@ -91,6 +91,12 @@ export default {
             <Principal :key="row.value" :value="row.value" />
           </template>
 
+          <template v-if="authConfig.allowedPrincipalIds.length <= 1" #remove-button>
+            <button type="button" disabled class="btn role-link bg-transparent">
+              {{ t('generic.remove') }}
+            </button>
+          </template>
+
           <template #add>
             <SelectPrincipal :mode="mode" @add="addPrincipal" />
           </template>
