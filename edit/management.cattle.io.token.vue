@@ -85,10 +85,6 @@ export default {
     expiryUnitsOptions() {
       const options = ['minute', 'hour', 'day', 'month', 'year'];
       const filtered = this.filterOptionsForTTL(options);
-      
-      console.log(options);
-      console.log(filtered);
-      console.log(this.maxTTL);
 
       return filtered.map(opt => ({ value: opt, label: this.t(`accountAndKeys.apiKeys.add.customExpiry.options.${ opt }`) }));
     },
