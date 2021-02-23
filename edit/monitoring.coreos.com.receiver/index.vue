@@ -145,6 +145,7 @@ export default {
     :mode="mode"
     :resource="value"
     :subtypes="[]"
+    :can-yaml="false"
     :errors="errors"
     @error="e=>errors = e"
     @finish="saveOverride"
@@ -198,9 +199,7 @@ export default {
           :add-label="t('monitoringReceiver.addButton', { type: t(receiverType.label) })"
         >
           <template #default="props">
-            <div :class="{'pt-30': !isView}">
-              <component :is="getComponent(receiverType.name)" :value="props.row.value" :mode="mode" />
-            </div>
+            <component :is="getComponent(receiverType.name)" :value="props.row.value" :mode="mode" />
           </template>
         </ArrayListGrouped>
       </Tab>

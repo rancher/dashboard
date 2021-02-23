@@ -307,7 +307,8 @@ export default {
 
     <Tabbed :side-tabs="true" @changed="tabChanged($event)">
       <Tab name="match" :label="t('logging.flow.matches.label')" :weight="3">
-        <ArrayListGrouped v-model="matches">
+        <Banner color="info" class="mt-0" label="Configure which container logs will be pulled from" />
+        <ArrayListGrouped v-model="matches" :add-label="t('ingress.rules.addRule')" :default-add-value="{}" :mode="mode">
           <template #default="props">
             <Match
               class="rule mb-20"
