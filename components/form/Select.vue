@@ -174,7 +174,6 @@ export default {
     @focus="focusSearch"
   >
     <v-select
-      v-if="!isView"
       ref="select-input"
       v-bind="$attrs"
       class="inline"

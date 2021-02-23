@@ -12,7 +12,9 @@ INPUT[type='url'],
 SELECT,
 TEXTAREA,
 .labeled-input,
-.labeled-select {
+.labeled-select,
+.unlabeled-input,
+.unlabeled-select {
   position: relative;
   display: block;
   box-sizing: border-box;
@@ -38,7 +40,7 @@ TEXTAREA,
     color: var(--input-placeholder);
   }
 
-  &.disabled, &.disabled .selected, &[disabled], &[disabled]:hover {
+  &.disabled, &.disabled .selected, &[disabled], &[disabled]:hover, &.view {
     color: var(--input-disabled-text);
     background-color: var(--input-disabled-bg);
     outline-width: 0;
