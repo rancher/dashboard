@@ -39,7 +39,7 @@ $selected: rgba($primary, .5);
   // value can also be map of default, default-text, hover-text, hover-bg, active-text,  active-bg)
   @include color-variables((
     default:    $light,
-    muted:      $disabled,
+    muted:      $dark,
     link:       (
       default-text: $link,
       hover-text:   lighten($link, 30%),
@@ -283,10 +283,5 @@ $selected: rgba($primary, .5);
 
   --product-icon: #{$darker};
   --product-icon-active: #{$darkest};
-
-  // Make text muted slightly darker so it is readable
-  .text-muted {
-    color: $dark !important;
-  }
 }
 
