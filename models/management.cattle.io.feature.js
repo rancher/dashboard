@@ -5,7 +5,7 @@ export default {
   },
 
   enabled() {
-    return this.spec.value || this.status.default;
+    return (this.spec.value !== null) ? this.spec.value : this.status.default;
   },
 
   restartRequired() {
