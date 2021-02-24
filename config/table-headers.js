@@ -69,6 +69,14 @@ export const STORAGE_CLASS_PROVISIONER = {
   sort:     ['provisioner'],
 };
 
+export const STORAGE_CLASS_DEFAULT = {
+  name:      'storage_class_default',
+  labelKey:  'tableHeaders.default',
+  value:     'isDefault',
+  sort:      ['isDefault'],
+  formatter: 'Checked',
+};
+
 export const PERSISTENT_VOLUME_SOURCE = {
   name:     'persistent_volume_source',
   labelKey: 'tableHeaders.persistentVolumeSource',

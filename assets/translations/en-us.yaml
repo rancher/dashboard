@@ -2229,6 +2229,9 @@ sortableTable:
   search: Filter
 
 storageClass:
+  actions:
+    setAsDefault: Set as Default
+    resetDefault: Reset Default
   parameters:
     label: Parameters
   customize:

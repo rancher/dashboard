@@ -2,6 +2,7 @@
 import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import UnitInput from '@/components/form/UnitInput';
+import { _CREATE } from '@/config/query-params';
 
 export default {
   components: {
@@ -69,9 +70,11 @@ export default {
       }
     ];
 
-    this.$set(this.value.parameters, 'type', this.value.parameters.type || volumeTypeOptions[0].value);
-    this.$set(this.value.parameters, 'encrypted', this.value.parameters.encrypted || encryptionOptions[0].value);
-    this.$set(this.value.parameters, 'iopsPerGB', this.value.parameters.iopsPerGB || '0');
+    if (this.mode === _CREATE) {
+      this.$set(this.value.parameters, 'type', this.value.parameters.type || volumeTypeOptions[0].value);
+      this.$set(this.value.parameters, 'encrypted', this.value.parameters.encrypted || encryptionOptions[0].value);
+      this.$set(this.value.parameters, 'iopsPerGB', this.value.parameters.iopsPerGB || '0');
+    }
 
     return {
       volumeTypeOptions,

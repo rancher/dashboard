@@ -1,6 +1,7 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import LabeledSelect from '@/components/form/LabeledSelect';
+import { _CREATE } from '@/config/query-params';
 
 export default {
   components: { LabeledInput, LabeledSelect },
@@ -30,7 +31,9 @@ export default {
       },
     ];
 
-    this.$set(this.value.parameters, 'diskformat', this.value.parameters.diskformat || diskFormatOptions[0].value);
+    if (this.mode === _CREATE) {
+      this.$set(this.value.parameters, 'diskformat', this.value.parameters.diskformat || diskFormatOptions[0].value);
+    }
 
     return { diskFormatOptions };
   },
