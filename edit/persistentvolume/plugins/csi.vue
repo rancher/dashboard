@@ -2,6 +2,7 @@
 import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
+import { _CREATE } from '@/config/query-params';
 
 export default {
   components: {
@@ -25,9 +26,12 @@ export default {
       fromBackup:          ''
     };
 
-    this.$set(this.value.spec, 'csi', this.value.spec.csi || {});
-    this.$set(this.value.spec.csi, 'readOnly', this.value.spec.csi.readOnly || false);
-    this.$set(this.value.spec.csi, 'volumeAttributes', this.value.spec.csi.volumeAttributes || defaultVolumeAttributes);
+    if (this.mode === _CREATE) {
+      this.$set(this.value.spec, 'csi', this.value.spec.csi || {});
+      this.$set(this.value.spec.csi, 'driver', 'driver.longhorn.io');
+      this.$set(this.value.spec.csi, 'readOnly', this.value.spec.csi.readOnly || false);
+      this.$set(this.value.spec.csi, 'volumeAttributes', this.value.spec.csi.volumeAttributes || defaultVolumeAttributes);
+    }
 
     const readOnlyOptions = [
       {
@@ -52,7 +56,7 @@ export default {
         <LabeledInput v-model="value.spec.csi.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.volumeHandle" :mode="mode" :label="t('persistentVolume.csi.volumeHandle.label')" :placeholder="t('persistentVolume.csi.volumeHandle.placeholder')" />
+        <LabeledInput v-model="value.spec.csi.volumeHandle" :mode="mode" :label="t('persistentVolume.csi.volumeHandle.label')" :placeholder="t('persistentVolume.csi.volumeHandle.placeholder')" :required="true" />
       </div>
     </div>
     <div class="row mb-20">

@@ -19,10 +19,10 @@ export default {
       this.$set(this.value, 'parameters', {
         numberOfReplicas:    '3',
         staleReplicaTimeout: '2880',
-        fromBackup:          '',
-        diskSelector:        '',
-        nodeSelector:        '',
-        recurringJobs:       '',
+        fromBackup:          null,
+        diskSelector:        null,
+        nodeSelector:        null,
+        recurringJobs:       null,
       });
     }
 

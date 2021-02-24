@@ -88,6 +88,10 @@ export default {
     }
   },
 
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
+  },
+
   methods: {
     getComponent(name) {
       const isCustom = !PROVISIONER_OPTIONS.find(o => o.value === name);
@@ -100,7 +104,15 @@ export default {
       const provisioner = event.labelKey ? event.labelKey : event;
 
       this.$set(this.value, 'provisioner', provisioner);
-    }
+      this.$set(this.value, 'allowVolumeExpansion', provisioner === 'driver.longhorn.io');
+    },
+    willSave() {
+      Object.keys(this.value.parameters).forEach((key) => {
+        if (this.value.parameters[key] === null) {
+          delete this.value.parameters[key];
+        }
+      });
+    },
   }
 };
 </script>
@@ -112,7 +124,7 @@ export default {
     :resource="value"
     :subtypes="[]"
     :validation-passed="true"
-    :errors="[]"
+    :errors="errors"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
@@ -159,7 +171,7 @@ export default {
                   v-model="value.allowVolumeExpansion"
                   name="allowVolumeExpansion"
                   :label="t('storageClass.customize.allowVolumeExpansion.label')"
-                  :mode="modeOverride"
+                  :mode="mode"
                   :options="allowVolumeExpansionOptions"
                 />
               </div>
@@ -169,7 +181,7 @@ export default {
             <h3>Mount Options</h3>
             <ArrayList
               v-model="value.mountOptions"
-              :mode="modeOverride"
+              :mode="mode"
               :label="t('storageClass.customize.mountOptions.label')"
               add-label="Add Option"
             />
