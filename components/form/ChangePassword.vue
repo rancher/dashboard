@@ -366,7 +366,7 @@ export default {
 
     &.change {
       .form .fields {
-        height: 225px;
+        height: 240px;
       }
     }
 
