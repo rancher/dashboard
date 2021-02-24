@@ -12,10 +12,7 @@ export default {
       type:     String,
       required: true
     }
-  },
-  data() {
-    return { parameters: {} };
-  },
+  }
 };
 </script>
 <template>

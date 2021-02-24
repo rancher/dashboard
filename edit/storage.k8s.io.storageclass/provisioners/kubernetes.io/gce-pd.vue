@@ -1,6 +1,7 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
+import { _CREATE } from '@/config/query-params';
 
 export default {
   components: { LabeledInput, RadioGroup },
@@ -47,7 +48,9 @@ export default {
       }
     ];
 
-    this.$set(this.value.parameters, 'type', this.value.parameters.type || volumeTypeOptions[0].value);
+    if (this.mode === _CREATE) {
+      this.$set(this.value.parameters, 'type', this.value.parameters.type || volumeTypeOptions[0].value);
+    }
 
     return {
       volumeTypeOptions,
