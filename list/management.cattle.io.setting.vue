@@ -29,7 +29,7 @@ export default {
         id:          setting,
         description: t(`advancedSettings.descriptions.${ setting }`),
         data:        settingsMap[setting],
-        customized:  !!settingsMap[setting].value && !!settingsMap[setting].default
+        customized:  settingsMap[setting].value && settingsMap[setting].value !== settingsMap[setting].default
       };
 
       s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline');

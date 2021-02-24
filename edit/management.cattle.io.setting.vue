@@ -66,9 +66,10 @@ export default {
         }
       }
 
-      // If we are resetting to the default value, then reset the value
-      if (!this.customize) {
-        this.value.value = '';
+      // If we are resetting to the default value or the value entered is empty, then set the value to the default
+      // This is the behaviour in the Ember UI
+      if (!this.customize || this.value.value.length === 0) {
+        this.value.value = this.value.default;
       }
       this.save(done);
     }
