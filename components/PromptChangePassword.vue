@@ -38,7 +38,7 @@ export default {
     class="change-password-modal"
     name="password-modal"
     :width="500"
-    :height="445"
+    :height="465"
   >
     <Card class="prompt-password" :show-highlight-border="false">
       <h4 slot="title" class="text-default-text">

@@ -21,7 +21,7 @@ export default {
       .then(res => !!res?.actions?.refreshauthprovideraccess);
 
     // Update the list of users
-    // 1) Only show system system users in explorer/users and not in auth/users
+    // 1) Only show system users in explorer/users and not in auth/users
     // 2) Supplement user with info to enable/disable the refresh group membership action (this is not persisted on save)
     const params = { ...this.$route.params };
     const requiredUsers = params.product === NAME ? allUsers.filter(a => !a.isSystem) : allUsers;
@@ -72,7 +72,7 @@ export default {
 
         buttonDone(true);
       } catch (err) {
-        this.$store.dispatch('growl/fromError', { title: 'Error refreshing group memberships', err }, { root: true });
+        this.$store.dispatch('growl/fromError', { title: this.t('user.list.errorRefreshingGroupMemberships'), err }, { root: true });
         buttonDone(false);
       }
     },

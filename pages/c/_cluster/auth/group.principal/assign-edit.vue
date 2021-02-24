@@ -31,7 +31,7 @@ export default {
       return true;
     },
     async cancel() {
-      await this.return();
+      await this.navBack();
     },
     async save(buttonDone) {
       this.errors = [];
@@ -44,7 +44,7 @@ export default {
           opt:  { force: true }
         }, { root: true }); // See PromptRemove.vue
 
-        this.return();
+        this.navBack();
 
         buttonDone(true);
       } catch (err) {
@@ -52,7 +52,7 @@ export default {
         buttonDone(false);
       }
     },
-    return() {
+    navBack() {
       this.$router.replace({
         name:   `c-cluster-product-resource`,
         params: {

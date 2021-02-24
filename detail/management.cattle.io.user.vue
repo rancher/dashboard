@@ -35,13 +35,14 @@ export default {
       sort:     'roleTemplate.displayName',
     };
     const since = {
-      name:      'since',
-      labelKey:  'user.detail.generic.tableHeaders.granted',
-      value:     'metadata.creationTimestamp',
-      sort:      'metadata.creationTimestamp:desc',
-      search:    false,
-      formatter: 'DurationSince',
-      width:     '20%',
+      name:          'since',
+      labelKey:      'user.detail.generic.tableHeaders.granted',
+      value:         'metadata.creationTimestamp',
+      sort:          'metadata.creationTimestamp:desc',
+      search:        false,
+      formatter:     'LiveDate',
+      formatterOpts: { addSuffix: true },
+      width:         '20%',
     };
 
     return {
@@ -246,7 +247,6 @@ export default {
         />
       </Tab>
     </ResourceTabs>
-    <h2></h2>
   </div>
 </template>
 

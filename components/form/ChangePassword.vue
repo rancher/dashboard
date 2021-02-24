@@ -21,8 +21,8 @@ export default {
     },
   },
   async fetch() {
-    if (this.isCreate) {
-      // Fetch the username for hidden input fields
+    if (this.isChange) {
+      // Fetch the username for hidden input fields. The value itself is not needed if create or changing another user's password
       const users = await this.$store.dispatch('rancher/findAll', {
         type: NORMAN.USER,
         opt:  { url: '/v3/users', filter: { me: true } }
@@ -179,7 +179,7 @@ export default {
       return match;
     },
     baseIsUserGenPasswordValid() {
-      return this.passwordsMatch() && !!this.passwordNew && !!this.passwordNew;
+      return this.passwordsMatch() && !!this.passwordNew;
     },
     isValid() {
       if (this.isChange) {
