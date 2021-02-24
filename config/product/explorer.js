@@ -13,7 +13,7 @@ import {
   USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, WORKLOAD_ENDPOINTS, STORAGE_CLASS_DEFAULT,
   STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
-  ACCESS_KEY, DESCRIPTION, SCOPE, EXPIRES, EXPIRY_STATE,
+  ACCESS_KEY, DESCRIPTION, SCOPE, EXPIRES, EXPIRY_STATE, SUB_TYPE,
 } from '@/config/table-headers';
 
 import { copyResourceValues, SUBTYPES } from '@/models/rbac.authorization.k8s.io.roletemplate';
@@ -138,13 +138,7 @@ export function init(store) {
     STATE,
     NAME_COL,
     NAMESPACE_COL,
-    {
-      name:      'type',
-      label:     'Type',
-      value:     'typeDisplay',
-      sort:      ['typeDisplay', 'nameSort'],
-      width:     120,
-    },
+    SUB_TYPE,
     {
       name:      'data',
       label:     'Data',
