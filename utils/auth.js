@@ -62,7 +62,7 @@ export function returnTo(opt, vm) {
  */
 export const authProvidersInfo = async(store) => {
   const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
-  const nonLocal = rows.filter(x => x.name !== 'local');
+  const nonLocal = rows.filter(x => x.name !== 'local' && x.name !== 'azuread');
   const enabled = nonLocal.filter(x => x.enabled === true );
 
   const enabledLocation = enabled.length === 1 ? {
