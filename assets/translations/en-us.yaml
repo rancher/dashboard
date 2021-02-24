@@ -744,6 +744,10 @@ clusterIndexPage:
       label: Unhealthy Nodes
       noRows: There are no unhealthy nodes to show.
 
+clusterSwitcher:
+  noResults: No Clusters found.
+  search: Start typing to search for a cluster.
+
 configmap:
   tabs:
     data:

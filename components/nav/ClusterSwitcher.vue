@@ -10,6 +10,10 @@ import $ from 'jquery';
 export default {
   components: { Select },
 
+  data() {
+    return { popperInstance: null };
+  },
+
   computed: {
     ...mapState(['isMultiCluster']),
     ...mapGetters(['currentCluster']),
@@ -52,30 +56,36 @@ export default {
   },
 
   methods: {
+    filterBy(option, label, search) {
+      return (label || '').toLowerCase().includes(search.toLowerCase());
+    },
+    filter(options, search) {
+      const filtered = options.filter((option) => {
+        let label = this.$refs.select.getOptionLabel(option);
+
+        if (typeof label === 'number') {
+          label = label.toString();
+        }
+
+        return this.filterBy(option, label, search);
+      });
+
+      if (this.popperInstance?.update) {
+        this.popperInstance.update();
+      }
+
+      return filtered;
+    },
     focus() {
       this.$refs.select.focusSearch();
     },
     withPopper(dropdownList, component, { width }) {
-      /**
-       * We need to explicitly define the dropdown width since
-       * it is usually inherited from the parent with CSS.
-       */
       const componentWidth = $(component.$parent.$el).width();
 
       dropdownList.style['min-width'] = `${ componentWidth }px`;
       dropdownList.style.width = 'min-content';
       dropdownList.className += ' cluster-switcher-container';
 
-      /**
-       * Here we position the dropdownList relative to the $refs.toggle Element.
-       *
-       * The 'offset' modifier aligns the dropdown so that the $refs.toggle and
-       * the dropdownList overlap by 1 pixel.
-       *
-       * The 'toggleClass' modifier adds a 'drop-up' class to the Vue Select
-       * wrapper so that we can set some styles for when the dropdown is placed
-       * above.
-       */
       const popper = createPopper(component.$refs.toggle, dropdownList, {
         placement: 'bottom-end',
         modifiers: [
@@ -94,11 +104,17 @@ export default {
         ],
       });
 
+      this.popperInstance = popper;
+
       /**
        * To prevent memory leaks Popper needs to be destroyed.
        * If you return function, it will be called just before dropdown is removed from DOM.
        */
-      return () => popper.destroy();
+      return () => {
+        this.popperInstance = null;
+
+        return popper.destroy();
+      };
     },
   },
 };
@@ -112,11 +128,12 @@ export default {
       v-model="value"
       :append-to-body="true"
       :popper-override="withPopper"
-      placement="bottom"
+      placement="bottom-end"
       :searchable="true"
       :selectable="(option) => option.ready"
       :clearable="false"
       :options="options"
+      :filter="filter"
     >
       <template #selected-option="opt">
         <span class="cluster-label-container">
@@ -133,9 +150,9 @@ export default {
 
       <template #no-options="{ searching }">
         <template v-if="searching">
-          No clusters found.
+          <t k="clusterSwitcher.noResults" />
         </template>
-        <em v-else class="text-muted">Start typing to search for a cluster.</em>
+        <em v-else class="text-muted"><t k="clusterSwitcher.search" /></em>
       </template>
 
       <template #option="opt">
@@ -170,6 +187,7 @@ export default {
 .cluster-switcher-container {
   &.vs__dropdown-menu {
     .vs__dropdown-option {
+      // matches the padding of the option (and logo/content) to the selected option so it doesn't look off
       padding: 3px 20px 3px 8px;
     }
   }
@@ -191,7 +209,6 @@ export default {
     align-content: center;
   }
 
-  // matches the padding a layout of the option (and logo/content) to the selected option so it doesn't look off
   .dropdown-option {
     display: grid;
     width: 100%;
