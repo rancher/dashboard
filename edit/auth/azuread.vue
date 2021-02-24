@@ -72,7 +72,7 @@ export default {
     },
 
     replyUrl() {
-      return `${ window.location.origin }/verify-auth`;
+      return `${ window.location.origin }/verify-auth-azure`;
     },
 
     tenantId() {
