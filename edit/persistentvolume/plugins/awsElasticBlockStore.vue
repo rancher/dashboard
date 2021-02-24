@@ -32,6 +32,16 @@ export default {
 
     return { readOnlyOptions };
   },
+  computed: {
+    parition: {
+      get() {
+        return this.value.spec.awsElasticBlockStore.partition;
+      },
+      set(value) {
+        this.$set(this.value.spec.awsElasticBlockStore, 'partition', Number.parseInt(value, 10));
+      }
+    }
+  }
 };
 </script>
 
@@ -42,7 +52,7 @@ export default {
         <LabeledInput v-model="value.spec.awsElasticBlockStore.volumeID" :mode="mode" :label="t('persistentVolume.awsElasticBlockStore.volumeId.label')" :placeholder="t('persistentVolume.awsElasticBlockStore.volumeId.placeholder')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.awsElasticBlockStore.partition" :mode="mode" :label="t('persistentVolume.shared.partition.label')" :placeholder="t('persistentVolume.shared.partition.placeholder')" type="number" />
+        <LabeledInput v-model="parition" :mode="mode" :label="t('persistentVolume.shared.partition.label')" :placeholder="t('persistentVolume.shared.partition.placeholder')" type="number" />
       </div>
     </div>
     <div class="row mb-20">
