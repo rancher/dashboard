@@ -148,8 +148,8 @@ export default {
       } else {
         const indexOf = this.value.spec.accessModes.indexOf(key);
 
-        if (indexOf) {
-          this.value.spec.accessModes.splice(indexOf);
+        if (indexOf >= 0) {
+          this.value.spec.accessModes.splice(indexOf, 1);
         }
       }
     },
@@ -245,9 +245,9 @@ export default {
         <div class="row mb-20">
           <div class="col span-6">
             <h3>{{ t('persistentVolume.customize.accessModes.label') }}</h3>
-            <div><Checkbox v-model="readWriteOnce" :label="t('persistentVolume.customize.accessModes.readWriteOnce')" /></div>
-            <div><Checkbox v-model="readOnlyMany" :label="t('persistentVolume.customize.accessModes.readOnlyMany')" /></div>
-            <div><Checkbox v-model="readWriteMany" :label="t('persistentVolume.customize.accessModes.readWriteMany')" /></div>
+            <div><Checkbox v-model="readWriteOnce" :label="t('persistentVolume.customize.accessModes.readWriteOnce')" :mode="mode" /></div>
+            <div><Checkbox v-model="readOnlyMany" :label="t('persistentVolume.customize.accessModes.readOnlyMany')" :mode="mode" /></div>
+            <div><Checkbox v-model="readWriteMany" :label="t('persistentVolume.customize.accessModes.readWriteMany')" :mode="mode" /></div>
           </div>
           <div class="col span-6">
             <ArrayList
