@@ -45,6 +45,10 @@ export default {
     isDisabled() {
       return this.mode === _VIEW || this.disabled;
     },
+
+    isViewChecked() {
+      return this.mode === _VIEW && this.isChecked;
+    }
   },
 
   watch: {
@@ -99,7 +103,7 @@ export default {
     />
     <label
       v-if="label"
-      :class="[ isDisabled ? 'text-muted' : '', 'radio-label']"
+      :class="[ !isViewChecked ? 'text-muted' : '', 'radio-label']"
       v-html="label"
     >
       <slot name="label">{{ label }}</slot>
