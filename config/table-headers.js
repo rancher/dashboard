@@ -195,6 +195,12 @@ export const AGE = {
   align:     'right'
 };
 
+export const AGE_NORMAN = {
+  ...AGE,
+  value:     'created',
+  sort:      'created:desc',
+};
+
 export const CREATION_DATE = {
   name:      'date',
   labelKey:  'tableHeaders.date',
@@ -790,7 +796,7 @@ export const EXPIRY_STATE = {
 };
 
 export const ACCESS_KEY = {
-  name:     'name',
+  name:     'id',
   labelKey: 'tableHeaders.accessKey',
   align:    'left',
   sort:     ['name'],
@@ -805,6 +811,12 @@ export const SCOPE = {
   align:       'left',
   sort:        ['scope'],
   width:       100,
+};
+
+export const SCOPE_NORMAN = {
+  ...SCOPE,
+  value:       'clusterId',
+  sort:        ['clusterId'],
 };
 
 export const EXPIRES = {

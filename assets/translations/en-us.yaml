@@ -3261,6 +3261,11 @@ typeLabel:
       one { Group }
       other { Groups }
     }
+  token: |-
+    {count, plural,
+      one { API Key }
+      other { API Keys }
+    }
 
 action:
   clone: Clone

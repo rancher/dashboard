@@ -1,7 +1,6 @@
 <script>
-import day from 'dayjs';
 import PromptChangePassword from '@/components/PromptChangePassword';
-import { NORMAN, MANAGEMENT } from '@/config/types';
+import { NORMAN } from '@/config/types';
 import Loading from '@/components/Loading';
 import Principal from '@/components/auth/Principal';
 import { mapGetters } from 'vuex';
@@ -17,7 +16,7 @@ export default {
     this.canChangePassword = await this.calcCanChangePassword();
 
     if (this.apiKeySchema) {
-      this.rows = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.TOKEN });
+      this.rows = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN });
     }
   },
   data() {
@@ -35,7 +34,7 @@ export default {
 
     apiKeySchema() {
       try {
-        return this.$store.getters[`management/schemaFor`](MANAGEMENT.TOKEN);
+        return this.$store.getters[`rancher/schemaFor`](NORMAN.TOKEN);
       } catch (e) {}
 
       return null;
@@ -48,17 +47,17 @@ export default {
     apiKeys() {
       // Filter out tokens that are not API Keys and are not expired UI Sessions
       const isApiKey = (key) => {
-        const labels = key.metadata?.labels;
-        const kind = labels ? labels['authn.management.cattle.io/kind'] : '';
-        const expiry = day(key.expiresAt);
-        const expired = expiry.isBefore(day());
+        const labels = key.labels;
+        const expired = key.expired;
+        const current = key.current;
 
-        return kind !== 'session' || (kind === 'session' && !expired);
+        return ( !expired || !labels || !labels['ui-session'] ) && !current;
       };
 
       return !this.rows ? [] : this.rows.filter(isApiKey);
     }
   },
+
   methods: {
     addKey() {
       this.$router.push({ path: 'account/create-key' });

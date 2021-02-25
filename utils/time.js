@@ -45,3 +45,12 @@ export function diffFrom(value, from, t) {
 
   return ret;
 }
+
+export function safeSetTimeout(timeout, callback, that) {
+  if (timeout <= 2147483647) {
+    // Max value setTimeout can take is max 32 bit int (about 24.9 days)
+    return setTimeout(() => {
+      callback.apply(that);
+    }, timeout);
+  }
+}
