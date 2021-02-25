@@ -24,12 +24,13 @@ export default {
 
     // Combine the allowed settings with the data from the API
     Object.keys(ALLOWED_SETTINGS).forEach((setting) => {
+      const readonly = !!ALLOWED_SETTINGS[setting].readOnly;
       const s = {
         ...ALLOWED_SETTINGS[setting],
         id:          setting,
         description: t(`advancedSettings.descriptions.${ setting }`),
         data:        settingsMap[setting],
-        customized:  settingsMap[setting].value && settingsMap[setting].value !== settingsMap[setting].default
+        customized:  !readonly && settingsMap[setting].value && settingsMap[setting].value !== settingsMap[setting].default
       };
 
       s.hide = s.canHide = (s.kind === 'json' || s.kind === 'multiline');
