@@ -21,7 +21,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
 import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, _FLAGGED,
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, _FLAGGED, FORCE,
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
@@ -221,25 +221,33 @@ export default {
       }
     }
 
-    const needCpu = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_CPU] || '0');
-    const needMemory = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_MEMORY] || '0');
+    if ( this.existing || query[FORCE] === _FLAGGED ) {
+      // Ignore the limits on upgrade (or if asked by query) and don't show any warnings
+    } else {
+      const needCpu = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_CPU] || '0');
+      const needMemory = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_MEMORY] || '0');
 
-    // Note: These are null if unknown
-    const availableCpu = this.currentCluster.availableCpu;
-    const availableMemory = this.currentCluster.availableMemory;
+      // Note: These are null if unknown
+      const availableCpu = this.currentCluster.availableCpu;
+      const availableMemory = this.currentCluster.availableMemory;
 
-    if ( availableCpu !== null && availableCpu < needCpu ) {
-      this.warnings.push(this.t('catalog.install.error.insufficientCpu', {
-        need: Math.round(needCpu * 100) / 100,
-        have: Math.round(availableCpu * 100) / 100,
-      }));
-    }
+      if ( availableCpu !== null && availableCpu < needCpu ) {
+        this.warnings.push(this.t('catalog.install.error.insufficientCpu', {
+          need: Math.round(needCpu * 100) / 100,
+          have: Math.round(availableCpu * 100) / 100,
+        }));
+      }
 
-    if ( availableMemory !== null && availableMemory < needMemory ) {
-      this.warnings.push(this.t('catalog.install.error.insufficientCpu', {
-        need: formatSi(needMemory, { increment: 1024, suffix: 'B' }),
-        have: formatSi(availableMemory, { increment: 1024, suffix: 'B' }),
-      }));
+      if ( availableMemory !== null && availableMemory < needMemory ) {
+        this.warnings.push(this.t('catalog.install.error.insufficientMemory', {
+          need: formatSi(needMemory, {
+            increment: 1024, suffix: 'iB', firstSuffix: 'B'
+          }),
+          have: formatSi(availableMemory, {
+            increment: 1024, suffix: 'iB', firstSuffix: 'B'
+          }),
+        }));
+      }
     }
 
     if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
