@@ -3,7 +3,7 @@ import { ALLOWED_SETTINGS } from '@/config/settings';
 export default {
 
   _availableActions() {
-    const toFilter = ['cloneYaml', 'download', 'goToEditYaml'];
+    const toFilter = ['cloneYaml', 'download', 'goToEditYaml', 'goToViewYaml', 'goToViewConfig'];
     const settingMetadata = ALLOWED_SETTINGS[this.id];
 
     let out = this._standardActions;
