@@ -4,16 +4,14 @@ import CreateEditView from '@/mixins/create-edit-view';
 import CruResource from '@/components/CruResource';
 import NameNsDescription from '@/components/form/NameNsDescription';
 import Tab from '@/components/Tabbed/Tab';
-import Tabbed from '@/components/Tabbed';
 import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import UnitInput from '@/components/form/UnitInput';
 import uniq from 'lodash/uniq';
 import { _CREATE } from '@/config/query-params';
 import { STORAGE_CLASS, PV } from '@/config/types';
-import EventsTable from '@/components/EventsTable';
-import RelatedWorkloadsTable from '@/components/RelatedWorkloadsTable';
 import StatusTable from '@/components/StatusTable';
+import ResourceTabs from '@/components/form/ResourceTabs';
 
 export default {
   name: 'PersistentVolumClaim',
@@ -21,14 +19,12 @@ export default {
   components: {
     Checkbox,
     CruResource,
-    EventsTable,
     LabeledSelect,
     NameNsDescription,
     RadioGroup,
-    RelatedWorkloadsTable,
+    ResourceTabs,
     StatusTable,
     Tab,
-    Tabbed,
     UnitInput,
   },
 
@@ -143,13 +139,6 @@ export default {
 
       return persistentVolume.status.phase === 'Available';
     },
-    workloadFilter(workload) {
-      if (workload.namespace !== this.value.namespace) {
-        return false;
-      }
-
-      return workload.spec.template.spec.volumes?.find(v => v.persistentVolumeClaim?.claimName === this.value.name);
-    }
   }
 };
 </script>
@@ -173,7 +162,7 @@ export default {
       :namespaced="true"
     />
 
-    <Tabbed :side-tabs="true">
+    <ResourceTabs v-model="value" :mode="mode" :side-tabs="true">
       <Tab name="volumeclaim" :label="t('persistentVolumeClaim.volumeClaim.label')" :weight="4">
         <div class="row">
           <div class="col span-6">
@@ -220,12 +209,6 @@ export default {
       <Tab v-if="isView" name="status" :label="t('persistentVolumeClaim.status.label')" :weight="2">
         <StatusTable :resource="value" />
       </Tab>
-      <Tab v-if="isView" name="related-workloads" :label="t('persistentVolumeClaim.relatedWorkloads.label')" :weight="1">
-        <RelatedWorkloadsTable :filter="workloadFilter" />
-      </Tab>
-      <Tab v-if="isView" name="events" :label="t('persistentVolumeClaim.events.label')" :weight="0">
-        <EventsTable :resource="value" />
-      </Tab>
-    </Tabbed>
+    </ResourceTabs>
   </CruResource>
 </template>
