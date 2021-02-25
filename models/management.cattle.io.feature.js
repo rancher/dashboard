@@ -1,7 +1,7 @@
 export default {
 
   state() {
-    return this.enabled ? 'active' : 'disabled';
+    return this.enabled ? 'active' : 'off';
   },
 
   enabled() {

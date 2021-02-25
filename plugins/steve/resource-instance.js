@@ -60,6 +60,7 @@ const REMAP_STATE = {
   gitupdating:   'Git Updating',
   errapplied:    'Err Applied',
   waitcheckin:   'Wait Check-In',
+  off:           'Disabled',
 };
 
 const DEFAULT_COLOR = 'warning';
@@ -108,6 +109,7 @@ export const STATES = {
   notApplicable:      { color: 'warning', icon: 'tag' },
   notapplied:         { color: 'warning', icon: 'tag' },
   notready:           { color: 'warning', icon: 'tag' },
+  off:                { color: 'darker', icon: 'error' },
   orphaned:           { color: 'warning', icon: 'tag' },
   other:              { color: 'info', icon: 'info' },
   outofsync:          { color: 'warning', icon: 'tag' },
