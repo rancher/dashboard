@@ -40,10 +40,12 @@ export default {
 
   methods: {
     showMenu(show) {
-      if (show) {
-        this.$refs.popover.show();
-      } else {
-        this.$refs.popover.hide();
+      if (this.$refs.popover) {
+        if (show) {
+          this.$refs.popover.show();
+        } else {
+          this.$refs.popover.hide();
+        }
       }
     },
 

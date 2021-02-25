@@ -118,6 +118,7 @@ accountAndKeys:
     change: Change Password
   apiKeys:
     title: API Keys
+    notAllowed: You do not have permission to manage API Keys
     add:
       description:
         label: Description
