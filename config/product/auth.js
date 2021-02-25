@@ -112,7 +112,7 @@ export function init(store) {
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/okta`, 'auth/saml');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/keycloak`, 'auth/saml');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/adfs`, 'auth/saml');
-  componentForType(`${ MANAGEMENT.AUTH_CONFIG }/googleoauth`, 'auth/googleoauth');
+  // componentForType(`${ MANAGEMENT.AUTH_CONFIG }/googleoauth`, 'auth/googleoauth');
   // componentForType(`${ MANAGEMENT.AUTH_CONFIG }/azuread`, 'auth/azuread');
 
   basicType([

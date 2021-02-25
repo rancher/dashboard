@@ -61,8 +61,9 @@ export function returnTo(opt, vm) {
  * Determines common auth provider info as those that are available (non-local) and the location of the enabled provider
  */
 export const authProvidersInfo = async(store) => {
+  const toExclude = ['local', 'azuread', 'googleoauth'];
   const rows = await store.dispatch(`management/findAll`, { type: MANAGEMENT.AUTH_CONFIG });
-  const nonLocal = rows.filter(x => x.name !== 'local' && x.name !== 'azuread');
+  const nonLocal = rows.filter(x => !toExclude.includes(x.name));
   const enabled = nonLocal.filter(x => x.enabled === true );
 
   const enabledLocation = enabled.length === 1 ? {
