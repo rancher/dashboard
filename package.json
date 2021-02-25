@@ -7,7 +7,7 @@
   "author": "Rancher Labs, Inc.",
   "private": true,
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "scripts": {
     "clean": "./scripts/clean",
