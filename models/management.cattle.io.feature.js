@@ -25,7 +25,7 @@ export default {
       action:  'toggleFeatureFlag',
       label:   state ? 'Deactivate' : 'Activate',
       icon:    'icon icon-edit',
-      enabled:  true,
+      enabled: this.canUpdate,
     };
 
     out.unshift(enableAction);

@@ -2215,6 +2215,7 @@ sortableTable:
     some: "Available for {actionable} of the {total} selected"
   noData: There are no rows which match your search query.
   noRows: There are no rows to show.
+  noActions: No actions available
   paging:
     generic: |-
       {pages, plural,
