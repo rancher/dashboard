@@ -6,15 +6,19 @@ import Loading from '@/components/Loading';
 import Principal from '@/components/auth/Principal';
 import { mapGetters } from 'vuex';
 
+import Banner from '@/components/Banner';
 import ResourceTable from '@/components/ResourceTable';
 
 export default {
   components: {
-    PromptChangePassword, Loading, ResourceTable, Principal
+    Banner, PromptChangePassword, Loading, ResourceTable, Principal
   },
   async fetch() {
     this.canChangePassword = await this.calcCanChangePassword();
-    this.rows = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.TOKEN });
+
+    if (this.apiKeySchema) {
+      this.rows = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.TOKEN });
+    }
   },
   data() {
     return {
@@ -26,11 +30,15 @@ export default {
     ...mapGetters({ t: 'i18n/t' }),
 
     apiKeyheaders() {
-      return this.$store.getters['type-map/headersFor'](this.apiKeySchema);
+      return this.apiKeySchema ? this.$store.getters['type-map/headersFor'](this.apiKeySchema) : [];
     },
 
     apiKeySchema() {
-      return this.$store.getters[`management/schemaFor`](MANAGEMENT.TOKEN);
+      try {
+        return this.$store.getters[`management/schemaFor`](MANAGEMENT.TOKEN);
+      } catch (e) {}
+
+      return null;
     },
 
     principal() {
@@ -103,11 +111,11 @@ export default {
     <hr />
     <div class="keys-header">
       <h4 v-t="'accountAndKeys.apiKeys.title'" />
-      <button class="btn role-primary add mb-20" @click="addKey">
+      <button v-if="apiKeySchema" class="btn role-primary add mb-20" @click="addKey">
         {{ t('accountAndKeys.apiKeys.add.label') }}
       </button>
     </div>
-    <div class="keys">
+    <div v-if="apiKeySchema" class="keys">
       <ResourceTable
         :schema="apiKeySchema"
         :rows="apiKeys"
@@ -117,6 +125,9 @@ export default {
         :row-actions="true"
         :table-actions="true"
       />
+    </div>
+    <div v-else>
+      <Banner color="warning" :label="t('accountAndKeys.apiKeys.notAllowed')" />
     </div>
   </div>
 </template>
