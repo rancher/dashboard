@@ -1699,10 +1699,6 @@ persistentVolumeClaim:
       readWriteMany: Many Nodes Read-Write
   status:
     label: Status
-  relatedWorkloads:
-    label: Related Workloads
-  events:
-    label: Events
 prefs:
   title: Preferences
   theme:
