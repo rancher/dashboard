@@ -44,6 +44,10 @@ export default {
     return this.t(VOLUME_PLUGINS.find(plugin => this.spec[plugin.value]).labelKey);
   },
   claim() {
+    if (!this.name) {
+      return null;
+    }
+
     const allClaims = this.$rootGetters['cluster/all'](PVC);
 
     return allClaims.find(claim => claim.spec.volumeName === this.name);
