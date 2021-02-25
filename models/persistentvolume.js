@@ -47,5 +47,8 @@ export default {
     const allClaims = this.$rootGetters['cluster/all'](PVC);
 
     return allClaims.find(claim => claim.spec.volumeName === this.name);
-  }
+  },
+  canDelete() {
+    return this.state !== 'bound';
+  },
 };
