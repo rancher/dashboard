@@ -85,6 +85,10 @@ export default {
         action, args, opts
       });
       this.hide();
+    },
+
+    hasOptions(options) {
+      return options.length !== undefined ? options.length : Object.keys(options).length > 0;
     }
   },
 };
@@ -97,6 +101,9 @@ export default {
       <li v-for="opt in options" :key="opt.action" :class="{divider: opt.divider}" @click="execute(opt, $event)">
         <i v-if="opt.icon" :class="{icon: true, [opt.icon]: true}" />
         <span v-html="opt.label" />
+      </li>
+      <li v-if="!hasOptions(options)" class="no-actions">
+        <span v-t="'sortableTable.noActions'" />
       </li>
     </ul>
   </div>
@@ -137,6 +144,16 @@ export default {
 
       .icon {
         display: unset;
+      }
+
+      &.no-actions {
+        color: var(--disabled-text);
+      }
+
+      &.no-actions:hover {
+        background-color: initial;
+        color: var(--disabled-text);
+        cursor: default;
       }
     }
   }
