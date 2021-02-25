@@ -60,6 +60,9 @@ export const NAME = 'name';
 export const NAMESPACE = 'namespace';
 export const DESCRIPTION = 'description';
 export const CATEGORY = 'category';
+export const DEPRECATED = 'deprecated';
+export const HIDDEN = 'hidden';
+export const FORCE = 'force';
 
 // Cluster provisioning
 export const PROVIDER = 'provider';

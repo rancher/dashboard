@@ -4,7 +4,7 @@ import Loading from '@/components/Loading';
 import Banner from '@/components/Banner';
 import SelectIconGrid from '@/components/SelectIconGrid';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY
+  REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN
 } from '@/config/query-params';
 import { ensureRegex, lcFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
@@ -33,8 +33,8 @@ export default {
     const query = this.$route.query;
 
     this.searchQuery = query[SEARCH_QUERY] || '';
-    this.showDeprecated = query['deprecated'] === _FLAGGED;
-    this.showHidden = query['hidden'] === _FLAGGED;
+    this.showDeprecated = query[DEPRECATED] === _FLAGGED;
+    this.showHidden = query[HIDDEN] === _FLAGGED;
     this.category = query[CATEGORY] || '';
     this.allRepos = this.areAllEnabled();
   },

@@ -515,8 +515,8 @@ catalog:
     error:
       requiresFound: '<a href="{url}">${name}</a> must be installed before you can install this chart.'
       requiresMissing: 'This chart requires another chart that provides {name}, but none was was found.'
-      insufficientCpu: 'This chart requires {need, number} CPU cores, but this cluster only has {have, number} available.'
-      insufficientMemory: 'This chart requires {need} of memory, but this cluster only has {have} available.'
+      insufficientCpu: 'This chart requires {need, number} CPU cores, but the cluster only has {have, number} available.'
+      insufficientMemory: 'This chart requires {need} of memory, but the cluster only has {have} available.'
     header:
       install: 'Install {name}'
       installGeneric: Install Chart
