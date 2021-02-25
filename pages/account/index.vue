@@ -34,13 +34,11 @@ export default {
     },
 
     apiKeySchema() {
-      let schema;
-
       try {
-        schema = this.$store.getters[`management/schemaFor`](MANAGEMENT.TOKEN);
+        return this.$store.getters[`management/schemaFor`](MANAGEMENT.TOKEN);
       } catch (e) {}
 
-      return schema;
+      return null;
     },
 
     principal() {
