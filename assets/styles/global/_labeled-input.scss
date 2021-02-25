@@ -2,7 +2,7 @@
   position: relative;
   display: table;
   border-collapse: separate;
-
+  min-height: $input-height;
 
   LABEL {
     position: absolute;
