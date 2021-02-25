@@ -1,35 +1,28 @@
 <script>
-import ResourceList from '@/components/ResourceList';
 import AsyncButton from '@/components/AsyncButton';
 import { NORMAN } from '@/config/types';
 import { NAME } from '@/config/product/auth';
+import ResourceTable from '@/components/ResourceTable';
+import Loading from '@/components/Loading';
+import Masthead from '@/components/ResourceList/Masthead';
 
 export default {
-  components: { AsyncButton },
-  mixins:     [
-    ResourceList
-  ],
+  components: {
+    AsyncButton,
+    Loading,
+    ResourceTable,
+    Masthead
+  },
   async fetch() {
     const store = this.$store;
     const resource = this.resource;
 
     const inStore = store.getters['currentProduct'].inStore;
 
-    const allUsers = await store.dispatch(`${ inStore }/findAll`, { type: resource });
+    this.allUsers = await store.dispatch(`${ inStore }/findAll`, { type: resource });
 
     this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
       .then(res => !!res?.actions?.refreshauthprovideraccess);
-
-    // Update the list of users
-    // 1) Only show system users in explorer/users and not in auth/users
-    // 2) Supplement user with info to enable/disable the refresh group membership action (this is not persisted on save)
-    const params = { ...this.$route.params };
-    const requiredUsers = params.product === NAME ? allUsers.filter(a => !a.isSystem) : allUsers;
-
-    this.rows = requiredUsers;
-    this.rows.forEach((r) => {
-      r.canRefreshAccess = this.canRefreshAccess;
-    });
   },
 
   data() {
@@ -48,6 +41,8 @@ export default {
       // Provided by fetch later
       rows:             null,
       canRefreshAccess: false,
+
+      allUsers: null,
     };
   },
 
@@ -59,6 +54,20 @@ export default {
     groupBy() {
       return this.$store.getters['type-map/groupByFor'](this.schema);
     },
+
+    users() {
+      // Update the list of users
+      // 1) Only show system users in explorer/users and not in auth/users
+      // 2) Supplement user with info to enable/disable the refresh group membership action (this is not persisted on save)
+      const params = { ...this.$route.params };
+      const requiredUsers = params.product === NAME ? this.allUsers.filter(a => !a.isSystem) : this.allUsers;
+
+      requiredUsers.forEach((r) => {
+        r.canRefreshAccess = this.canRefreshAccess;
+      });
+
+      return requiredUsers;
+    }
 
   },
 
@@ -100,7 +109,7 @@ export default {
       </template>
     </Masthead>
 
-    <ResourceTable :schema="schema" :rows="rows" :group-by="groupBy" />
+    <ResourceTable :schema="schema" :rows="users" :group-by="groupBy" />
   </div>
 </template>
 
