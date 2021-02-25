@@ -143,7 +143,7 @@ export default {
       return false;
     }
 
-    if ( this.secretType === TYPES.SERVICE_ACCT ) {
+    if ( this._type === TYPES.SERVICE_ACCT ) {
       return false;
     }
 
@@ -229,11 +229,7 @@ export default {
     }
   },
 
-  secretType() {
-    return this._type;
-  },
-
-  typeDisplay() {
+  subTypeDisplay() {
     const type = this._type || '';
     const fallback = type.replace(/^kubernetes.io\//, '');
 

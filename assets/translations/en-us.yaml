@@ -2448,6 +2448,7 @@ tableHeaders:
   status: Status
   storage_class_provisioner: Provisioner
   subject: Subject
+  subType: Kind
   success: Success
   summary: Summary
   target: Target

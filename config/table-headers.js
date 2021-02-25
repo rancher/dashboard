@@ -392,6 +392,14 @@ export const TYPE = {
   width:    100,
 };
 
+export const SUB_TYPE = {
+  name:     'subType',
+  labelKey: 'tableHeaders.subType',
+  value:    'subTypeDisplay',
+  sort:     ['subTypeDisplay'],
+  width:    120,
+};
+
 export const STATUS = {
   name:     'status',
   labelKey: 'tableHeaders.status',
