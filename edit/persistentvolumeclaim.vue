@@ -114,10 +114,8 @@ export default {
         return this.value.spec.volumeName;
       },
       set(value) {
-        const persistentVolume = this.persistentVolumes.find(pv => pv.name === value);
-
         this.$set(this.value.spec, 'volumeName', value);
-        this.$set(this.value.spec, 'storageClassName', persistentVolume.spec.storageClassName);
+        this.$set(this.value.spec, 'storageClassName', '');
       }
     }
   },
