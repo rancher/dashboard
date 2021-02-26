@@ -1727,7 +1727,7 @@ prefs:
     vim: 'Vim'
   advanced: Advanced
   dev:
-    label: Enable Developer Tools
+    label: Enable Developer Tools & Features
   hideDesc:
     label: Hide All Type Description Boxes
 

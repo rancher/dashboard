@@ -15,7 +15,7 @@ platform:
 steps:
 - name: test
   pull: default
-  image: node:10
+  image: node:12
   commands:
   - scripts/ci
 

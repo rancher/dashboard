@@ -161,7 +161,7 @@ export default {
       </div>
       <div class="col span-4">
         <h4 v-t="'prefs.advanced'" />
-        <Checkbox v-model="dev" :label="t('prefs.dev.label')" />
+        <Checkbox v-model="dev" :label="t('prefs.dev.label', {}, true)" />
         <Checkbox v-model="hideDescriptions" :label="t('prefs.hideDesc.label')" />
       </div>
     </div>
