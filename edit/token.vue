@@ -118,12 +118,7 @@ export default {
         // Description is a bit weird, so need to clone and set this
         // rather than use this.value - need to find a way to set this if we ever
         // want to allow edit (which I don't think we do)
-        const res = await this.$store.dispatch('rancher/request', {
-          url:     '/v3/tokens',
-          method:  'post',
-          data:    this.value,
-          headers: { 'Content-Type': 'application/json' },
-        });
+        const res = await this.value.save();
 
         this.created = res;
         this.ttlLimited = res.ttl !== this.value.ttl;
@@ -131,6 +126,7 @@ export default {
 
         this.accessKey = token[0];
         this.secretKey = (token.length > 1) ? token[1] : '';
+        this.token = this.created.token;
       } else {
         // Note: update of existing key not supported currently
         await this.value.save();
@@ -216,7 +212,7 @@ export default {
       {{ t('accountAndKeys.apiKeys.info.bearerTokenTip') }}
     </p>
 
-    <DetailText :value="created.token" label-key="accountAndKeys.apiKeys.info.bearerToken" class="mt-20" />
+    <DetailText :value="token" label-key="accountAndKeys.apiKeys.info.bearerToken" class="mt-20" />
 
     <Banner color="warning" class="mt-20">
       <div>

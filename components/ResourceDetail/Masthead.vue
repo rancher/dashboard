@@ -48,6 +48,11 @@ export default {
       default: false
     },
 
+    storeOverride: {
+      type:    String,
+      default: null,
+    },
+
     resource: {
       type:    String,
       default: null,
@@ -66,7 +71,7 @@ export default {
 
   computed: {
     schema() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
+      const inStore = this.storeOverride || this.$store.getters['currentProduct'].inStore;
 
       return this.$store.getters[`${ inStore }/schemaFor`]( this.resource );
     },

@@ -1,5 +1,6 @@
 <script>
 import day from 'dayjs';
+import { safeSetTimeout } from '@/utils/time';
 
 export default {
   props: {
@@ -44,9 +45,7 @@ export default {
         const now = day();
         const timeToExpire = expiry.diff(now);
 
-        this.timer = setTimeout(() => {
-          this.update();
-        }, timeToExpire);
+        this.timer = safeSetTimeout(timeToExpire, this.update, this);
       }
 
       const out = {};

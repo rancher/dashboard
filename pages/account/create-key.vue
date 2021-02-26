@@ -9,7 +9,8 @@ export default {
 
 <template>
   <ResourceDetail
-    resource-override="management.cattle.io.token"
+    store-override="rancher"
+    resource-override="token"
     parent-route-override="account"
   />
 </template>

@@ -45,6 +45,11 @@ export default {
   mixins: [CreateEditView],
 
   props: {
+    storeOverride: {
+      type:    String,
+      default: null,
+    },
+
     resourceOverride: {
       type:    String,
       default: null,
@@ -59,7 +64,7 @@ export default {
     const store = this.$store;
     const route = this.$route;
     const params = route.params;
-    const inStore = store.getters['currentProduct']?.inStore;
+    const inStore = this.storeOverride || store.getters['currentProduct']?.inStore;
     const realMode = this.realMode;
 
     // eslint-disable-next-line prefer-const
@@ -290,6 +295,7 @@ export default {
       :has-edit="hasCustomEdit"
       :resource-subtype="resourceSubtype"
       :parent-route-override="parentRouteOverride"
+      :store-override="storeOverride"
     />
 
     <DetailTop

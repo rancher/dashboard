@@ -2,6 +2,7 @@
 import day from 'dayjs';
 import BadgeState from '@/components/BadgeState';
 import { colorForState, stateDisplay } from '@/plugins/steve/resource-instance';
+import { safeSetTimeout } from '@/utils/time';
 
 export default {
   components: { BadgeState },
@@ -44,9 +45,7 @@ export default {
         const now = day();
         const timeToExpire = expiry.diff(now);
 
-        this.timer = setTimeout(() => {
-          this.update();
-        }, timeToExpire);
+        this.timer = safeSetTimeout(timeToExpire, this.update, this);
       }
 
       const out = {};
