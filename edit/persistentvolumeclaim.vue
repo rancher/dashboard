@@ -13,6 +13,8 @@ import { STORAGE_CLASS, PV } from '@/config/types';
 import StatusTable from '@/components/StatusTable';
 import ResourceTabs from '@/components/form/ResourceTabs';
 
+const DEFAULT_STORAGE = '10Gi';
+
 export default {
   name: 'PersistentVolumClaim',
 
@@ -63,7 +65,7 @@ export default {
     this.$set(this.value, 'spec', this.value.spec || {});
     this.$set(this.value.spec, 'resources', this.value.spec.resources || {});
     this.$set(this.value.spec.resources, 'requests', this.value.spec.resources.requests || {});
-    this.$set(this.value.spec.resources.requests, 'storage', this.value.spec.resources.requests.storage || '10Gi');
+    this.$set(this.value.spec.resources.requests, 'storage', this.value.spec.resources.requests.storage || DEFAULT_STORAGE);
     if (this.realMode === _CREATE) {
       this.$set(this.value.spec, 'accessModes', defaultAccessModes);
     }
@@ -114,6 +116,12 @@ export default {
         return this.value.spec.volumeName;
       },
       set(value) {
+        const persistentVolume = this.persistentVolumes.find(pv => pv.name === value);
+
+        if (persistentVolume) {
+          this.$set(this.value.spec.resources.requests, 'storage', persistentVolume.spec.capacity?.storage);
+        }
+
         this.$set(this.value.spec, 'volumeName', value);
         this.$set(this.value.spec, 'storageClassName', '');
       }
@@ -136,6 +144,13 @@ export default {
       const persistentVolume = this.persistentVolumes.find(pv => pv.name === option.value);
 
       return persistentVolume.status.phase === 'Available';
+    },
+    updateDefaults(source) {
+      if (source === 'new') {
+        this.$set(this.value.spec.resources.requests, 'storage', DEFAULT_STORAGE);
+      }
+
+      this.$set(this, 'persistentVolume', null);
     },
   }
 };
@@ -170,6 +185,7 @@ export default {
               :mode="mode"
               :label="t('persistentVolumeClaim.source.label')"
               :options="sourceOptions"
+              @input="updateDefaults"
             />
           </div>
           <div v-if="source === 'new'" class="col span-6">
@@ -192,7 +208,13 @@ export default {
           <div v-else class="col span-6">
             <div class="row">
               <div class="col span-12">
-                <LabeledSelect v-model="persistentVolume" :options="persistentVolumeOptions" :label="t('persistentVolumeClaim.volumeClaim.persistentVolume')" :selectable="isPersistentVolumeSelectable" :mode="mode" />
+                <LabeledSelect
+                  v-model="persistentVolume"
+                  :options="persistentVolumeOptions"
+                  :label="t('persistentVolumeClaim.volumeClaim.persistentVolume')"
+                  :selectable="isPersistentVolumeSelectable"
+                  :mode="mode"
+                />
               </div>
             </div>
           </div>
