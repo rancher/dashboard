@@ -120,7 +120,7 @@ export default {
 <template>
   <CruResource
     :done-route="doneRoute"
-    :mode="modeOverride"
+    :mode="mode"
     :resource="value"
     :subtypes="[]"
     :validation-passed="true"
