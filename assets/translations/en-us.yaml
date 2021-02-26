@@ -3326,8 +3326,7 @@ advancedSettings:
     trueOption: "True"
     falseOption: "False"
     value: Value
-    useCustom: Use a custom value
-    useDefault: Use the default value
+    useDefault: Copy the default value
     invalidJSON: Invalid JSON - please check and correct your input before saving
   descriptions:
     'cacerts': "CA Certificates needed to verify the server's certificate."

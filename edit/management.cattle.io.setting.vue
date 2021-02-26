@@ -6,7 +6,6 @@ import CreateEditView from '@/mixins/create-edit-view';
 import TextAreaAutoGrow from '@/components/form/TextAreaAutoGrow';
 
 import { ALLOWED_SETTINGS } from '@/config/settings';
-import RadioButton from '@/components/form/RadioButton';
 import RadioGroup from '@/components/form/RadioGroup';
 
 export default {
@@ -14,7 +13,6 @@ export default {
     CruResource,
     LabeledInput,
     LabeledSelect,
-    RadioButton,
     RadioGroup,
     TextAreaAutoGrow
   },
@@ -34,8 +32,7 @@ export default {
       }));
     }
 
-    const canReset = this.value.default !== null;
-    const isDefault = canReset && !this.value.value;
+    const canReset = !!this.value.default;
 
     this.value.value = this.value.value || this.value.default;
 
@@ -44,7 +41,6 @@ export default {
       description: t(`advancedSettings.descriptions.${ this.value.id }`),
       editHelp:    t(`advancedSettings.editHelp.${ this.value.id }`),
       enumOptions,
-      customize:   !isDefault,
       canReset,
       errors:      [],
     };
@@ -66,12 +62,15 @@ export default {
         }
       }
 
-      // If we are resetting to the default value or the value entered is empty, then set the value to the default
-      // This is the behaviour in the Ember UI
-      if (!this.customize || this.value.value.length === 0) {
-        this.value.value = this.value.default;
-      }
       this.save(done);
+    },
+
+    useDefault(ev) {
+      // Lose the focus on the button after click
+      if (ev && ev.srcElement) {
+        ev.srcElement.blur();
+      }
+      this.value.value = this.value.default;
     }
   }
 };
@@ -94,26 +93,14 @@ export default {
 
     <h5 v-if="editHelp" class="edit-help" v-html="editHelp" />
 
-    <h5 v-t="'advancedSettings.edit.changeSetting'" class="mt-20" />
+    <div class="edit-change mt-20">
+      <h5 v-t="'advancedSettings.edit.changeSetting'" />
+      <button :disabled="!canReset" type="button" class="btn role-primary" @click="useDefault">
+        {{ t('advancedSettings.edit.useDefault') }}
+      </button>
+    </div>
 
-    <RadioButton
-      v-model="customize"
-      name="useDefaultValue"
-      :label="t('advancedSettings.edit.useDefault')"
-      :val="false"
-      class="settings-radio mb-10"
-      :disabled="!canReset"
-    />
-
-    <RadioButton
-      v-model="customize"
-      name="useDefaultValue"
-      :label="t('advancedSettings.edit.useCustom')"
-      :val="true"
-      class="settings-radio mb-10"
-    />
-
-    <div class="custom-value">
+    <div class="mt-20">
       <div v-if="setting.kind === 'enum'">
         <LabeledSelect
           v-model="value.value"
@@ -126,7 +113,6 @@ export default {
       <div v-else-if="setting.kind === 'boolean'">
         <RadioGroup
           v-model="value.value"
-          :disabled="!customize"
           name="settings_value"
           :labels="[t('advancedSettings.edit.trueOption'), t('advancedSettings.edit.falseOption')]"
           :options="['true', 'false']"
@@ -135,14 +121,12 @@ export default {
       <div v-else-if="setting.kind === 'multiline' || setting.kind === 'json'">
         <TextAreaAutoGrow
           v-model="value.value"
-          :disabled="!customize"
           :min-height="254"
         />
       </div>
       <div v-else>
         <LabeledInput
           v-model="value.value"
-          :disabled="!customize"
           :label="t('advancedSettings.edit.value')"
         />
       </div>
@@ -151,12 +135,15 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .settings-radio {
+  .edit-change {
+    align-items: center;
     display: flex;
+
+    > h5 {
+      flex: 1;
+    }
   }
-  .custom-value {
-    margin-left: 20px;
-  }
+
   ::v-deep .edit-help code {
     padding: 1px 5px;
   }
