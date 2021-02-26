@@ -930,7 +930,8 @@ glance:
 hpa:
   warnings:
     noMetric: In order to use resource metrics with HPA, you need to deploy the metrics server.
-    external: In order to use custom metrics with HPA, you need to deploy the custom metrics server such as prometheus adapter.
+    external: In order to use external metrics with HPA, you need to deploy the external metrics server such as prometheus adapter.
+    custom: In order to use custom metrics with HPA, you need to deploy the custom metrics server such as prometheus adapter.
   metricIdentifier:
     name:
       label: Metric Name

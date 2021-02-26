@@ -128,12 +128,14 @@ export default {
 
 <template>
   <div class="metric-row">
-    <div v-if="!metricsAvailable && !isExternalMetric">
-      <Banner :label="t('hpa.warnings.noMetric')" color="warning" />
-    </div>
     <Banner
-      v-if="isExternalMetric"
-      :label="t('hpa.warnings.external')"
+      v-if="!metricsAvailable"
+      :label="t('hpa.warnings.noMetric')"
+      color="warning"
+    />
+    <Banner
+      v-if="!isResourceMetric"
+      :label="isExternalMetric ? t('hpa.warnings.external') : t('hpa.warnings.custom')"
       color="warning"
     />
     <div class="row mb-20">
