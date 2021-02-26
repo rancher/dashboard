@@ -24,6 +24,7 @@ export function init(store) {
     icon:                'user',
     removable:           false,
     weight:              50,
+    public:              false, // Hide from regular view during development
     showClusterSwitcher: false,
   });
 
