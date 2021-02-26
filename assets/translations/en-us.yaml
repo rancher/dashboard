@@ -90,6 +90,7 @@ product:
 
 
 suffix:
+  percent: "%"
   cpus: CPUs
   ib: iB
   revisions: |-
