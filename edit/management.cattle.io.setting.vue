@@ -66,7 +66,7 @@ export default {
     },
 
     useDefault(ev) {
-      // Loose the focus on the button after click
+      // Lose the focus on the button after click
       if (ev && ev.srcElement) {
         ev.srcElement.blur();
       }
