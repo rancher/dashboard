@@ -65,6 +65,10 @@ export default {
       return this.isView && !this.$fetchState.pending && this.hasEvents && this.events.length;
     },
 
+    showRelated() {
+      return this.isView && !this.$fetchState.pending;
+    },
+
     eventHeaders() {
       return [
         {
@@ -133,7 +137,7 @@ export default {
       />
     </Tab>
 
-    <Tab name="related" label-key="resourceTabs.related.tab" :weight="-3">
+    <Tab v-if="showRelated" name="related" label-key="resourceTabs.related.tab" :weight="-3">
       <h3 v-t="'resourceTabs.related.from'" />
       <RelatedResources :ignore-types="[value.type]" :value="value" direction="from" />
 
