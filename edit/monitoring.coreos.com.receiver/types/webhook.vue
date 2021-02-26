@@ -1,12 +1,15 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
-import TLS from '../tls';
-import Auth from '../auth';
+// import TLS from '../tls';
+// import Auth from '../auth';
 
 export default {
   components: {
-    Auth, Checkbox, LabeledInput, TLS
+    // Auth,
+    Checkbox,
+    LabeledInput,
+    // TLS
   },
   props:      {
     mode: {
@@ -47,7 +50,7 @@ export default {
     <div class="row mb-20">
       <Checkbox v-model="value.send_resolved" :mode="mode" label="Enable send resolved alerts" />
     </div>
-    <TLS v-model="value.http_config" class="mb-20" :mode="mode" />
-    <Auth v-model="value.http_config" :mode="mode" />
+    <!-- <TLS v-model="value.http_config" class="mb-20" :mode="mode" />
+    <Auth v-model="value.http_config" :mode="mode" /> -->
   </div>
 </template>
