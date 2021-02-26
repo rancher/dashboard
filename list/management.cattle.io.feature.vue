@@ -28,7 +28,7 @@ export default {
   },
 
   async fetch() {
-    this.rows = await this.$store.dispatch('cluster/findAll', { type: this.resource });
+    this.rows = await this.$store.dispatch('management/findAll', { type: this.resource });
   },
 
   data() {
