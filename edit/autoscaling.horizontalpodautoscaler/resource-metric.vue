@@ -8,7 +8,7 @@ export const DEFAULT_RESOURCE_METRIC = {
     name:   'cpu',
     target: {
       type:               'Utilization',
-      averageUtilization: 50,
+      averageUtilization: 80,
     },
   },
 };
@@ -56,7 +56,7 @@ export default {
       </div>
     </div>
     <div class="row">
-      <MetricTarget v-model="value.target" :mode="mode" type="resource" />
+      <MetricTarget v-model="value.target" :mode="mode" metric-resource="resource" :resource-name="value.name" />
     </div>
   </div>
 </template>
