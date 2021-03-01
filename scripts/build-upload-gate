@@ -1,0 +1,43 @@
+!/bin/bash
+set -e
+set -x
+
+BUILD_DEBUG="${BUILD_DEBUG:-}"
+if [[ -n "${BUILD_DEBUG}" ]]; then
+    set -x
+    env
+fi
+
+if [[ -n "$DRONE_TAG" ]]; then
+    echo "Build has been triggered by a tag. Skipping gate"
+    exit 0
+fi 
+
+if [[ -z "$DRONE_BRANCH" ]]; then 
+    echo "No branch detected. Skipping gate"
+    exit 0
+fi
+
+if [[ -z "$DRONE_REPO" ]]; then 
+    echo "No repository detected. Unable to gate"
+    exit 1
+fi
+
+if [[ -z "$DRONE_COMMIT" ]]; then 
+    echo "No commit detected. Unable to gate"
+    exit 1
+fi
+
+echo "Repo: $DRONE_REPO"
+echo "Branch: $DRONE_BRANCH"
+echo "Build Commit: $DRONE_COMMIT"
+
+LATEST_BRANCH_COMMIT=$(curl -s https://api.github.com/repos/$DRONE_REPO/branches/$DRONE_BRANCH | jq -r .commit.sha)
+echo "Latest Branch Commit: $LATEST_BRANCH_COMMIT"
+
+if [ "$LATEST_BRANCH_COMMIT" == "$DRONE_COMMIT" ]; then
+    echo "Build was created from latest commit, passed upload gate"
+else
+    echo "Build was not created from latest commit, aborting upload"
+    exit 1
+fi
