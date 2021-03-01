@@ -35,6 +35,7 @@ export function init(store) {
     name:        'config',
     weight:      100,
     route:       { name: 'c-cluster-auth-config' },
+    ifHaveType: MANAGEMENT.AUTH_CONFIG
   });
 
   spoofedType({
