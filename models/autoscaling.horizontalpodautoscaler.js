@@ -19,7 +19,7 @@ export default {
     const { spec = {}, status } = this;
     const out = [
       {
-        label:     this.t('hpa.tabs.workload'),
+        label:     spec?.scaleTargetRef?.kind ?? this.t('hpa.tabs.workload'),
         content:   spec?.scaleTargetRef?.name,
       },
       {
