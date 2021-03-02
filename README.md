@@ -39,9 +39,24 @@ docker run -v $(pwd):/src \
   dashboard:dev
 # The first time will take *forever* installing node_modules into the volume; it will be faster next time.
 # Goto https://localhost:8005
+
+# Developing against a standalone "Steve" API on a Mac
+git clone https://github.com/rancher/steve.git
+cd steve
+make run-host
+
+cd dashboard
+docker build -f Dockerfile.dev -t rancher/dashboard:dev .
+docker run -v $(pwd):/src \
+  -v dashboard_node:/src/node_modules \
+  -p 8005:8005 \
+  -e API=http://172.17.0.1:8989 \
+  rancher/dashboard:dev
+# The first time will take *forever* installing node_modules into the volume; it will be faster next time.
+# Goto https://localhost:8005
 ```
 
-## What is it?
+# What is it?
 
 Dashboard is "stateless" client for the Rancher APIs built with [Vue.js](https://vuejs.org/) and [NuxtJS](https://nuxtjs.org/).  It is normally build and packaged as a folder of static HTML/CSS/JS files which are bundled into a Rancher release, with the index.html returned by the API server as the "fallback" case for any request that looks like it came from a browser and does not match an API URL.
 
@@ -200,7 +215,7 @@ data:
 
 License
 =======
-Copyright (c) 2014-2020 [Rancher Labs, Inc.](http://rancher.com)
+Copyright (c) 2014-2021 [Rancher Labs, Inc.](http://rancher.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
