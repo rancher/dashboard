@@ -64,6 +64,17 @@ export default {
     hasChildren() {
       return this.group.children?.length > 0;
     },
+
+    isOverview() {
+      if (this.group.children && this.group.children.length > 0) {
+        const overviewRoute = this.group.children[0].route;
+        if (overviewRoute) {
+          const route = this.$router.resolve(overviewRoute || {});
+          return this.$route.fullPath === route.href;
+        }
+      }
+      return false;
+    }
   },
 
   methods: {
@@ -91,7 +102,7 @@ export default {
       }
 
       if ( this.canCollapse ) {
-        this.isExpanded = !this.isExpanded;
+        this.isExpanded = skipAutoClose ? !this.isExpanded : true;
         this.$emit('on-toggle', this.id, this.isExpanded, skipAutoClose);
         this.$store.dispatch('type-map/toggleGroup', {
           group:    this.id,
@@ -100,6 +111,8 @@ export default {
 
         if (this.isExpanded && !skipAutoClose) {
           const items = this.group[this.childrenKey];
+
+          console.log(JSON.parse(JSON.stringify(items[0])));
 
           // Navigate to the first item in the group
           const route = items[0].route;
@@ -119,7 +132,7 @@ export default {
 
 <template>
   <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}">
-    <div v-if="showHeader" class="header" @click="toggle($event)">
+    <div v-if="showHeader" class="header" @click="toggle($event)" :class="{'active': isOverview}">
       <slot name="header">
         <span v-html="group.labelDisplay || group.label" />
       </slot>
@@ -142,7 +155,7 @@ export default {
           />
         </li>
         <Type
-          v-else
+          v-else-if="!child.overview"
           :key="id+'_' + child.name + '_type'"
           :is-root="depth == 0 && !showHeader"
           :type="child"
@@ -167,6 +180,10 @@ export default {
 
     > A {
       display: block;
+    }
+
+    &.active {
+        background-color: var(--nav-active);
     }
   }
 
