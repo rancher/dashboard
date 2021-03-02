@@ -203,7 +203,7 @@ export default {
     async toggleShell() {
       const clusterId = this.$route.params.cluster;
 
-      if ( !clusterId || !this.$store.getters['isMultiCluster'] ) {
+      if ( !clusterId ) {
         return;
       }
 

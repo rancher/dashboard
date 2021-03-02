@@ -39,7 +39,7 @@ export default {
 
   computed: {
     extraColumns() {
-      if ( this.$store.getters['isMultiCluster'] ) {
+      if ( this.$store.getters['isRancher'] ) {
         return ['project-col'];
       }
 

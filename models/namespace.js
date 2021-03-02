@@ -61,7 +61,7 @@ export default {
   },
 
   project() {
-    if ( !this.projectId || !this.$rootGetters['isMultiCluster'] ) {
+    if ( !this.projectId || !this.$rootGetters['isRancher'] ) {
       return null;
     }
 

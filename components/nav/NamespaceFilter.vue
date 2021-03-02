@@ -73,7 +73,7 @@ export default {
         ['nameDisplay']
       );
 
-      if (this.$store.getters['isMultiCluster']) {
+      if (this.$store.getters['isRancher']) {
         const cluster = this.$store.getters['currentCluster'];
         let projects = this.$store.getters['management/all'](
           MANAGEMENT.PROJECT
