@@ -5,7 +5,10 @@ import Sha256 from './browserSha256';
 import Sha1 from './browserSha1';
 
 // lib/util.js
-export function base64Encode(string) {
+const NORMAL = 'normal';
+const URL = 'url';
+
+export function base64Encode(string, alphabet = NORMAL) {
   let buf;
 
   if (string === null || typeof string === 'undefined') {
@@ -16,6 +19,15 @@ export function base64Encode(string) {
     buf = Buffer.from(string);
   } else {
     buf = new Buffer(string);
+  }
+  if (alphabet === URL) {
+    const m = {
+      '+': '-',
+      '/': '_',
+      '=': ''
+    };
+
+    return buf.toString('base64').replace(/[+/]|=$/, char => m[char]);
   }
 
   return buf.toString('base64');
@@ -34,7 +46,7 @@ export function base64DecodeToBuffer(string) {
 }
 
 export function base64Decode(string) {
-  return base64DecodeToBuffer(string || '').toString();
+  return base64DecodeToBuffer(string || '').toString().replace(/[-_]/, char => char === '-' ? '+' : '/');
 }
 
 export function md5(data, digest, callback) {
