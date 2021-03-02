@@ -9,6 +9,13 @@ export default {
       default: () => {
         return {};
       }
+    },
+
+    row: {
+      type:    Object,
+      default: () => {
+        return {};
+      }
     }
   },
 
@@ -61,7 +68,7 @@ export default {
       let namespace;
 
       if (!name.includes('/')) {
-        namespace = 'istio-system';
+        namespace = get(this.row, 'metadata.namespace') || 'istio-system';
       } else {
         [namespace, name] = name.split('/');
       }
