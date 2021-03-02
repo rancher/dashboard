@@ -1467,6 +1467,21 @@ monitoringReceiver:
   webhook:
     label: Webhook
     title: Webhook Config
+  auth:
+    label: Auth
+    authType: Auth Type
+    username: Username
+    password: Password
+    none:
+      label: None
+    bearerToken: 
+      label: Bearer Token
+      placeholder: e.g. secret-token
+    basicAuth: 
+      label: Basic Auth
+    bearerTokenFile: 
+      label: Bearer Token File
+      placeholder: e.g. ./user_token
 
 
 
