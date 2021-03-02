@@ -258,6 +258,7 @@ export default {
     :width="350"
     height="auto"
     styles="max-height: 100vh;"
+    @closed="close"
   >
     <Card class="prompt-remove" :show-highlight-border="false">
       <h4 slot="title" class="text-default-text">
