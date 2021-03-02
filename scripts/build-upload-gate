@@ -32,12 +32,31 @@ echo "Repo: $DRONE_REPO"
 echo "Branch: $DRONE_BRANCH"
 echo "Build Commit: $DRONE_COMMIT"
 
-LATEST_BRANCH_COMMIT=$(curl -s https://api.github.com/repos/$DRONE_REPO/branches/$DRONE_BRANCH | jq -r .commit.sha)
+tmp=$(mktemp -u)
+STATUS_CODE=$(curl -w "%{http_code}" -s -o tmp https://api.github.com/repos/$DRONE_REPO/branches/$DRONE_BRANCH)
+
+if [ "$STATUS_CODE" == "403" ]; then
+    RATE_LIMIT_REMAINING=$(curl -s https://api.github.com/rate_limit | jq -r .rate.remaining)
+    echo "Remaining GITHUB requests available: $RATE_LIMIT_REMAINING"
+    RATE_LIMIT_REMAINING=${RATE_LIMIT_REMAINING:-0}
+    if ((RATE_LIMIT_REMAINING < 1)); then
+        echo "Github Rate Limit has been hit, skipping gate"
+        exit 0
+    fi
+    # Fall through to the normal path like any other failed status code
+fi
+
+LATEST_BRANCH_COMMIT=$(cat tmp | jq -r .commit.sha)
+rm tmp
 echo "Latest Branch Commit: $LATEST_BRANCH_COMMIT"
+if [ -z "$LATEST_BRANCH_COMMIT" ]; then
+    echo "Unable to determine latest commit, failing gate"
+    exit 1
+fi
 
 if [ "$LATEST_BRANCH_COMMIT" == "$DRONE_COMMIT" ]; then
     echo "Build was created from latest commit, passed upload gate"
 else
-    echo "Build was not created from latest commit, aborting upload"
+    echo "Build was not created from latest commit, failing gate"
     exit 1
 fi
