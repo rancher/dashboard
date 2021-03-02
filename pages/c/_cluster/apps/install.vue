@@ -2,7 +2,7 @@
 import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
-import { mapState, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
@@ -336,8 +336,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentCluster']),
-    ...mapState(['isMultiCluster']),
+    ...mapGetters(['currentCluster', 'isRancher']),
 
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
@@ -351,7 +350,7 @@ export default {
     },
 
     showProject() {
-      return this.isMultiCluster && !this.existing && this.namespaceIsNew;
+      return this.isRancher && !this.existing && this.namespaceIsNew;
     },
 
     projectOpts() {

@@ -3,7 +3,7 @@ import {
   COUNT, NAMESPACE, NORMAN, MANAGEMENT, FLEET
 } from '@/config/types';
 import { CLUSTER as CLUSTER_PREF, NAMESPACE_FILTERS, LAST_NAMESPACE, WORKSPACE } from '@/store/prefs';
-import { allHash } from '@/utils/promise';
+import { allHash, allHashSettled } from '@/utils/promise';
 import { ClusterNotFoundError, ApiError } from '@/utils/error';
 import { sortBy } from '@/utils/sort';
 import { filterBy, findBy } from '@/utils/array';
@@ -26,6 +26,7 @@ export const state = () => {
     managementReady:  false,
     clusterReady:     false,
     isMultiCluster:   false,
+    isRancher:        false,
     namespaceFilters: [],
     allNamespaces:    null,
     allWorkspaces:    null,
@@ -44,6 +45,10 @@ export const getters = {
 
   isMultiCluster(state) {
     return state.isMultiCluster === true;
+  },
+
+  isRancher(state) {
+    return state.isRancher === true;
   },
 
   clusterId(state) {
@@ -316,9 +321,10 @@ export const getters = {
 };
 
 export const mutations = {
-  managementChanged(state, { ready, isMultiCluster }) {
+  managementChanged(state, { ready, isMultiCluster, isRancher }) {
     state.managementReady = ready;
     state.isMultiCluster = isMultiCluster;
+    state.isRancher = isRancher;
   },
 
   clusterChanged(state, ready) {
@@ -389,15 +395,11 @@ export const actions = {
       // Maybe not Rancher
     }
 
-    await allHash({
-      prefs:      dispatch('prefs/loadServer'),
-      schemas: Promise.all([
-        dispatch('management/subscribe'),
-        dispatch('management/loadSchemas', true),
-      ]),
+    let res = await allHashSettled({
+      mgmtSubscribe:  dispatch('management/subscribe'),
+      mgmtSchemas:    dispatch('management/loadSchemas', true),
+      rancherSchemas: dispatch('rancher/loadSchemas', true),
     });
-
-    const isMultiCluster = !!getters['management/schemaFor'](MANAGEMENT.PROJECT);
 
     const promises = {
       // Clusters guaranteed always available or your money back
@@ -407,9 +409,11 @@ export const actions = {
       }),
     };
 
-    if ( isMultiCluster ) {
+    const isRancher = res.rancherSchemas.status === 'fulfilled';
+
+    if ( isRancher ) {
+      promises['prefs'] = dispatch('prefs/loadServer');
       promises['rancherSubscribe'] = dispatch('rancher/subscribe');
-      promises['rancherSchema'] = dispatch('rancher/loadSchemas', true);
     }
 
     if ( getters['management/schemaFor'](COUNT) ) {
@@ -428,11 +432,18 @@ export const actions = {
       promises['workspaces'] = dispatch('management/findAll', { type: FLEET.WORKSPACE });
     }
 
-    const res = await allHash(promises);
+    res = await allHash(promises);
+
+    let isMultiCluster = true;
+
+    if ( res.clusters.length === 1 && res.clusters[0].metadata?.name === 'local' ) {
+      isMultiCluster = false;
+    }
 
     commit('managementChanged', {
       ready: true,
-      isMultiCluster
+      isMultiCluster,
+      isRancher,
     });
 
     if ( res.workspaces ) {
@@ -442,13 +453,14 @@ export const actions = {
       });
     }
 
-    console.log(`Done loading management; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
+    console.log(`Done loading management; isRancher=${ isRancher }; isMultiCluster=${ isMultiCluster }`); // eslint-disable-line no-console
   },
 
   async loadCluster({
     state, commit, dispatch, getters
   }, id) {
     const isMultiCluster = getters['isMultiCluster'];
+    const isRancher = getters['isRancher'];
 
     if ( state.clusterId && state.clusterId === id ) {
       // Do nothing, we're already connected/connecting to this cluster
@@ -518,7 +530,7 @@ export const actions = {
     };
 
     const res = await allHash({
-      projects:   isMultiCluster && dispatch('management/findAll', projectArgs),
+      projects:   isRancher && dispatch('management/findAll', projectArgs),
       counts:     dispatch('cluster/findAll', { type: COUNT, opt: { url: 'counts' } }),
       namespaces: dispatch('cluster/findAll', { type: NAMESPACE, opt: { url: 'namespaces' } })
     });
@@ -573,7 +585,8 @@ export const actions = {
 
     dispatch('management/rehydrateSubscribe');
     dispatch('cluster/rehydrateSubscribe');
-    if ( rootState.isMultiCluster ) {
+
+    if ( rootState.isRancher ) {
       dispatch('rancher/rehydrateSubscribe');
     }
 
