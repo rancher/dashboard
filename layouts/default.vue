@@ -174,8 +174,14 @@ export default {
         const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
         const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
 
+        console.log('----');
+        console.log(types);
+        console.log(JSON.parse(JSON.stringify(more)));
+
         addObjects(out, more);
       }
+
+      console.log(out);
 
       replaceWith(this.groups, ...out);
     },
@@ -248,9 +254,8 @@ export default {
     <Header />
 
     <nav v-if="clusterReady">
-      <Jump v-if="showJump" class="m-10" />
-      <div v-else class="mb-20" />
-      <template v-for="(g, idx) in groups">
+      <div class="mb-20" />
+        <template v-for="(g, idx) in groups">
         <Group
           ref="groups"
           :key="idx"
@@ -271,7 +276,6 @@ export default {
 
     <main v-if="clusterReady">
       <nuxt class="outlet" />
-      <Footer />
 
       <ActionMenu />
       <PromptRemove />
