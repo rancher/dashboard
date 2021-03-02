@@ -530,6 +530,7 @@ export const getters = {
           route,
           name:   typeObj.name,
           weight: typeObj.weight || getters.typeWeightFor(typeObj.schema?.id || label, isBasic),
+          overview: !!typeObj.overview,
         });
       }
 
