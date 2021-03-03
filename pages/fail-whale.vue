@@ -32,7 +32,6 @@ export default {
   <div v-if="error">
     <main class="error">
       <div class="text-center">
-        <!-- <div class="col span-6 p-20"> -->
         <img src="~/assets/images/pl/error-desert-landscape.svg" width="900" height="300" />
         <h1 v-if="error.status">
           HTTP Error {{ error.status }}: {{ error.statusText }}
@@ -46,9 +45,6 @@ export default {
         <p>
           <a :href="home" class="btn role-primary">Reload</a>
         </p>
-        <!-- </div> -->
-
-        <!-- <div class="col span-6 desert-landscape" /></div> -->
       </div>
     </main>
   </div>
@@ -70,11 +66,6 @@ export default {
       img {
         max-width: 100%;
       }
-      // background-image: url('~assets/images/pl/error-desert-landscape.svg');
-      // background-repeat: no-repeat;
-      // background-size: cover;
-      // background-position: center center;
-      // height: 75vh;
     }
   }
 </style>
