@@ -9,6 +9,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { PROVISIONER_OPTIONS } from '@/models/storage.k8s.io.storageclass';
+import { fetchFeatureFlag, UNSUPPORTED_STORAGE_DRIVERS } from '@/utils/feature-flag';
 
 export default {
   name: 'StorageClass',
@@ -24,6 +25,11 @@ export default {
   },
 
   mixins: [CreateEditView],
+
+  async fetch() {
+    this.showUnsupportedStorage = await fetchFeatureFlag(this.$store, UNSUPPORTED_STORAGE_DRIVERS);
+  },
+
   data() {
     const reclaimPolicyOptions = [
       {
@@ -67,9 +73,9 @@ export default {
       reclaimPolicyOptions,
       allowVolumeExpansionOptions,
       volumeBindingModeOptions,
-      PROVISIONER_OPTIONS,
-      mountOptions:         [],
-      provisioner:          PROVISIONER_OPTIONS[0].value,
+      mountOptions:           [],
+      provisioner:            PROVISIONER_OPTIONS[0].value,
+      showUnsupportedStorage: false
     };
   },
 
@@ -80,6 +86,9 @@ export default {
     provisionerWatch() {
       return this.value.provisioner;
     },
+    provisioners() {
+      return PROVISIONER_OPTIONS.filter(provisioner => this.showUnsupportedStorage || provisioner.supported);
+    }
   },
 
   watch: {
@@ -112,7 +121,7 @@ export default {
           delete this.value.parameters[key];
         }
       });
-    },
+    }
   }
 };
 </script>
@@ -138,7 +147,7 @@ export default {
     <LabeledSelect
       :value="value.provisioner"
       label="Provisioner"
-      :options="PROVISIONER_OPTIONS"
+      :options="provisioners"
       :localized-label="true"
       option-label="labelKey"
       :mode="modeOverride"

@@ -1605,6 +1605,14 @@ persistentVolume:
     filesystemType:
       label: Filesystem Type
       placeholder: e.g. ext4
+    secretName:
+      label: Secret Name
+      placeholder: e.g. secret
+    secretNamespace:
+      label: Secret Namespace
+      placeholder: e.g. default
+    monitors:
+      add: Add Monitor
   vsphereVolume:
     label: 	VMWare vSphere Volume
     volumePath:
@@ -1616,6 +1624,179 @@ persistentVolume:
     storagePolicyId:
       label: Storage Policy ID
       placeholder: e.g. sp1
+  csi:
+    label: CSI (Unsupported)
+    driver:
+      label: Driver
+      placeholder: e.g. driver.longhorn.io
+    volumeHandle:
+      label: Volume Handle
+      placeholder: e.g. pvc-xxxx
+    volumeAttributes:
+      add: Add Volume Attribute
+    nodePublishSecretName:
+      label: Node Publish Secret Name
+      placeholder: e.g. secret
+    nodePublishSecretNamespace:
+      label: Node Publish Secret Namespace
+      placeholder: e.g. default
+    nodeStageSecretName:
+      label: Node Stage Secret Name
+      placeholder: e.g. secret
+    nodeStageSecretNamespace:
+      label: Node Stage Secret Namespace
+      placeholder: e.g. default
+    controllerExpandSecretName:
+      label: Controller Expand Secret Name
+      placeholder: e.g. secret
+    controllerExpandSecretNamespace:
+      label: Controller Expand Secret Namespace
+      placeholder: e.g. default
+    controllerPublishSecretName:
+      label: Controller Publish Secret Name
+      placeholder: e.g. secret
+    controllerPublishSecretNamespace:
+      label: Controller Publish Secret Namespace
+      placeholder: e.g. default
+  cephfs:
+    label: Ceph Filesystem (Unsupported)
+    path:
+      label: Path
+      placeholder: e.g. /var
+    user:
+      label: User
+      placeholder: e.g. root
+    secretFile:
+      label: Secret File
+      placeholder: e.g. secret
+  rbd:
+    label: Ceph RBD (Unsupported)
+    user:
+      label: User
+      placeholder: e.g. root
+    keyRing:
+      label: Key Ring
+      placeholder: e.g. /etc/ceph/keyring
+    pool:
+      label: Pool
+      placeholder: e.g. rbd
+    image:
+      label: Image
+      placeholder: e.g. image
+  fc:
+    label: Fibre Channel (Unsupported)
+    targetWWNS:
+      add: Add Target WWN
+    wwids:
+      add: Add WWID
+    lun:
+      label: Lun
+      placeholder: e.g. 2
+  flexVolume:
+    label: Flex Volume (Unsupported)
+    driver:
+      label: Driver
+      placeholder: e.g. driver
+    options:
+      add: Add Option
+  flocker:
+    label: Flocker (Unsupported)
+    datasetName:
+      label: Dataset Name
+      placeholder: e.g. dataset
+    datasetUUID: 
+      label: Dataset UUID
+      placeholder: e.g. uuid
+  glusterfs:
+    label: Gluster Volume (Unsupported)
+    endpoints:
+      label: Endpoints
+      placeholder: e.g. glusterfs-cluster
+    path:
+      label: Path
+      placeholder: e.g. kube-vol
+  iscsi:
+    label: iSCSI Target (Unsupported)
+    initiatorName:
+      label: Initiator Name
+      placeholder: iqn.1994-05.com.redhat:1df7a24fcb92
+    iscsiInterface:
+      label: iSCSI Interface
+      placeholder: e.g. interface
+    chapAuthDiscovery:
+      label: Chap Auth Discovery
+    chapAuthSession:
+      label: Chap Auth Session
+    iqn:
+      label: IQN
+      placeholder: iqn.2001-04.com.example:storage.kube.sys1.xyz
+    lun:
+      label: Lun
+      placeholder: e.g. 2
+    targetPortal:
+      label: Target Portal
+      placeholder: e.g. portal
+    portals:
+      add: Add Portal
+  cinder:
+    label: Openstack Cinder Volume (Unsupported)
+    volumeId:
+      label: Volume ID
+      placeholder: e.g. vol
+  quobyte:
+    label: Quobyte Volume (Unsupported)
+    volume:
+      label: Volume
+      placeholder: e.g. vol
+    user:
+      label: User
+      placeholder: e.g. root
+    group:
+      label: Group
+      placeholder: e.g. abc
+    registry:
+      label: Registry
+      placeholder: e.g. abc
+  photonPersistentDisk:
+    label: Photon Volume (Unsupported)
+    pdId:
+      label: PD ID
+      placeholder: e.g. abc
+  portworxVolume:
+    label: Portworx Volume (Unsupported)
+    volumeId:
+      label: Volume ID
+      placeholder: e.g. abc
+  scaleIO:
+    label: ScaleIO Volume (Unsupported)
+    volumeName:
+      label: Volume Name
+      placeholder: e.g. vol-0
+    gateway:
+      label: Gateway
+      placeholder: e.g. https://localhost:443/api
+    protectionDomain:
+      label: Protection Domain
+      placeholder: e.g. pd01
+    storageMode:
+      label: Storage Mode
+      placeholder: e.g. ThinProvisioned
+    storagePool:
+      label: Storage Pool
+      placeholder: e.g. sp01
+    system:
+      label: System
+      placeholder: e.g. scaleio
+    sslEnabled:
+      label: SSL Enabled
+  storageos:
+    label: StorageOS (Unsupported)
+    volumeName: 
+      label: Volume Name
+      placeholder: e.g. vol
+    volumeNamespace: 
+      label: Volume Namespace
+      placeholder: e.g. default
   nfs:
     label: NFS Share
     path:
@@ -1624,7 +1805,7 @@ persistentVolume:
     server:
       label: Server
       placeholder: e.g. 10.244.1.4
-  csi:
+  longhorn:
     label: Longhorn
     volumeHandle:
       label: Volume Handle
@@ -1667,12 +1848,6 @@ persistentVolume:
     shareName:
       label: Share Name
       placeholder: e.g. abc
-    secretName:
-      label: Secret Name
-      placeholder: e.g. secret
-    secretNamespace:
-      label: Secret Namespace
-      placeholder: e.g. default
   azureDisk:
     label: Azure Disk
     diskName:
@@ -1691,12 +1866,6 @@ persistentVolume:
       none: None
       readOnly: Read Only
       readWrite: Read Write
-    filesystemType:
-      label: Filesystem Type
-      placeholder: e.g. ext4
-    readOnly:
-      label: Read Only
-
 
 persistentVolumeClaim:
   accessModes: Access Modes
@@ -2365,6 +2534,175 @@ storageClass:
       placeholder: e.g. ext3
   custom:
     addLabel: Add Parameter
+  glusterfs:
+    title: Gluster Volume (Unsupported)
+    restUrl:
+      label: REST URL
+      placeholder: e.g. http://127.0.0.1:8081
+    restUser:
+      label: REST User
+      placeholder: e.g. admin
+    restUserKey:
+      label: REST User Key
+      placeholder: e.g. password
+    secretNamespace:
+      label: Secret Namespace
+      placeholder: e.g. default
+    secretName:
+      label: Secret Name
+      placeholder: e.g. heketi-secret
+    clusterId:
+      label: Cluster ID
+      placeholder: e.g. 630372ccdc720a92c681fb928f27b53f
+    gidMin:
+      label: GID MIN
+      placeholder: e.g. 40000
+    gidMax:
+      label: GID MAX
+      placeholder: e.g. 50000
+    volumeType:
+      label: Volume Type
+      placeholder: "e.g. replicate:3"
+  cinder:
+    title: Openstack Cinder Volume (Unsupported)
+    volumeType:
+      label: Volume Type
+      placeholder: e.g. fast
+    availabilityZone:
+      label: Availability Zone
+      automatic: "Automatic: Zones the cluster has a node in"
+      manual: 
+        label: "Manual: Choose specific zones"
+        placeholder: e.g. nova
+  rbd:
+    title: Ceph RBD (Unsupported)
+    monitors:
+      label: Monitors
+      placeholder: e.g. 10.16.153.105:6789
+    adminId:
+      label: Admin ID
+      placeholder: e.g. kube
+    adminSecretNamespace:
+      label: Admin Secret Namespace
+      placeholder: e.g. kube-system
+    adminSecret:
+      label: Admin Secret
+      placeholder: e.g. Secret
+    pool:
+      label: Pool
+      placeholder: e.g. kube
+    userId:
+      label: User ID
+      placeholder: e.g. kube
+    userSecretNamespace:
+      label: User Secret Namespace
+      placeholder: e.g. default
+    userSecretName:
+      label: User Secret Name
+      placeholder: e.g. ceph-secret-user
+    filesystemType:
+      label: Filesystem Type
+      placeholder: e.g. ext4
+    imageFormat:
+      label: Image Format
+      placeholder: e.g. 2
+    imageFeatures:
+      label: Image Features
+      placeholder: e.g. layering
+  quobyte:
+    title: Quobyte Volume (Unsupported)
+    quobyteApiServer:
+      label: Quobyte API Server
+      placeholder: "e.g. http://138.68.74.142:7860"
+    registry: 
+      label: Registry
+      placeholder: e.g. 138.68.74.142:7861
+    adminSecretNamespace:
+      label: Admin Secret Namespace
+      placeholder: e.g. kube-system
+    adminSecretName:
+      label: Admin Secret Name
+      placeholder: e.g. quobyte-admin-secret
+    user:
+      label: User
+      placeholder: e.g. root
+    group:
+      label: Group
+      placeholder: e.g. root
+    quobyteConfig:
+      label: Quobyte Config
+      placeholder: e.g. BASE
+    quobyteTenant:
+      label: Quobyte Tenant
+      placeholder: e.g. DEFAULT
+  portworx-volume:
+    title: Portworx Volume (Unsupported)
+    filesystem:
+      label: Filesystem
+      placeholder: e.g. ext4
+    blockSize:
+      label: Block Size
+      placeholder: e.g. 32
+    repl:
+      label: Repl
+      placeholder: e.g.1; 0 for entire device
+    ioPriority:
+      label: I/O Priority
+      placeholder: e.g. low
+    snapshotsInterval:
+      label: Snapshots Interval
+      placeholder: e.g. 70
+    aggregationLevel:
+      label: Aggregation Level
+      placeholder: e.g. 0
+    ephemeral:
+      label: Ephemeral
+      placeholder: e.g. true
+  scaleio:
+    title: ScaleIO Volume (Unsupported)
+    gateway:
+      label: Gateway
+      placeholder: e.g. https://192.168.99.200:443/api
+    system:
+      label: System
+      placeholder: e.g. scaleio
+    protectionDomain:
+      label: Protection Domain
+      placeholder: e.g. pd0
+    storagePool:
+      label: Storage Pool
+      placeholder: e.g. sp1
+    storageMode:
+      label: StorageMode
+      thin: Thin Provisioned
+      thick: Thick Provisioned
+    secretRef:
+      label: Secret Ref
+      placeholder: e.g. sio-secret
+    readOnly:
+      label: Read Only
+    filesystemType:
+      label: Filesystem Type
+      placeholder: e.g. xfs
+  storageos:
+    title: StorageOS (Unsupported)
+    pool:
+      label: Pool
+      placeholder: e.g. default
+    description:
+      label: Description
+      placeholder: e.g. Kubernetes volume
+    filesystemType:
+      label: Filesystem Type
+      placeholder: e.g. ext4
+    adminSecretNamespace:
+      label: Admin Secret Namespace
+      placeholder: e.g. default
+    adminSecretName:
+      label: Admin Secret Name
+      placeholder: e.g. storageos-secret
+  no-provisioner:
+    title: Local Storage (Unsupported)
 
 tableHeaders:
   accessKey: Access Key

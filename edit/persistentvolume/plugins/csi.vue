@@ -1,12 +1,11 @@
 <script>
-import KeyValue from '@/components/form/KeyValue';
 import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
-import { _CREATE } from '@/config/query-params';
+import KeyValue from '@/components/form/KeyValue';
 
 export default {
   components: {
-    LabeledInput, KeyValue, RadioGroup
+    KeyValue, LabeledInput, RadioGroup
   },
   props:      {
     value:      {
@@ -19,20 +18,6 @@ export default {
     },
   },
   data() {
-    const defaultVolumeAttributes = {
-      size:                '2Gi',
-      numberOfReplicas:    '3',
-      staleReplicaTimeout: '20',
-      fromBackup:          ''
-    };
-
-    if (this.mode === _CREATE) {
-      this.$set(this.value.spec, 'csi', this.value.spec.csi || {});
-      this.$set(this.value.spec.csi, 'driver', 'driver.longhorn.io');
-      this.$set(this.value.spec.csi, 'readOnly', this.value.spec.csi.readOnly || false);
-      this.$set(this.value.spec.csi, 'volumeAttributes', this.value.spec.csi.volumeAttributes || defaultVolumeAttributes);
-    }
-
     const readOnlyOptions = [
       {
         label: this.t('generic.yes'),
@@ -44,6 +29,13 @@ export default {
       }
     ];
 
+    this.$set(this.value.spec, 'csi', this.value.spec.csi || {});
+    this.$set(this.value.spec.csi, 'readOnly', this.value.spec.csi.readOnly || false);
+    this.$set(this.value.spec.csi, 'nodePublishSecretRef', this.value.spec.csi.nodePublishSecretRef || {});
+    this.$set(this.value.spec.csi, 'nodeStageSecretRef', this.value.spec.csi.nodeStageSecretRef || {});
+    this.$set(this.value.spec.csi, 'controllerExpandSecretRef', this.value.spec.csi.controllerExpandSecretRef || {});
+    this.$set(this.value.spec.csi, 'controllerPublishSecretRef', this.value.spec.csi.controllerPublishSecretRef || {});
+
     return { readOnlyOptions };
   },
 };
@@ -53,13 +45,16 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
+        <LabeledInput v-model="value.spec.csi.driver" :mode="mode" :label="t('persistentVolume.csi.driver.label')" :placeholder="t('persistentVolume.csi.driver.placeholder')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.csi.volumeHandle" :mode="mode" :label="t('persistentVolume.csi.volumeHandle.label')" :placeholder="t('persistentVolume.csi.volumeHandle.placeholder')" :required="true" />
+        <LabeledInput v-model="value.spec.csi.fsType" :mode="mode" :label="t('persistentVolume.shared.filesystemType.label')" :placeholder="t('persistentVolume.shared.filesystemType.placeholder')" />
       </div>
     </div>
     <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput v-model="value.spec.csi.volumeHandle" :mode="mode" :label="t('persistentVolume.csi.volumeHandle.label')" :placeholder="t('persistentVolume.csi.volumeHandle.placeholder')" />
+      </div>
       <div class="col span-6">
         <RadioGroup
           v-model="value.spec.csi.readOnly"
@@ -73,14 +68,39 @@ export default {
     </div>
     <div class="row mb-20">
       <div class="col span-12">
-        <KeyValue
-          v-model="value.spec.csi.volumeAttributes"
-          :required="true"
-          :mode="mode"
-          :title="t('persistentVolume.csi.options.label')"
-          :add-label="t('persistentVolume.csi.options.addLabel')"
-          :read-allowed="false"
-        />
+        <KeyValue v-model="value.spec.csi.volumeAttributes" :add-label="t('persistentVolume.csi.volumeAttributes.add')" :mode="mode" :read-allowed="false" />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput v-model="value.spec.csi.nodePublishSecretRef.name" :mode="mode" :label="t('persistentVolume.csi.nodePublishSecretName.label')" :placeholder="t('persistentVolume.csi.nodePublishSecretName.placeholder')" />
+      </div>
+      <div class="col span-6">
+        <LabeledInput v-model="value.spec.csi.nodePublishSecretRef.namespace" :mode="mode" :label="t('persistentVolume.csi.nodePublishSecretNamespace.label')" :placeholder="t('persistentVolume.csi.nodePublishSecretNamespace.placeholder')" />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput v-model="value.spec.csi.nodeStageSecretRef.name" :mode="mode" :label="t('persistentVolume.csi.nodeStageSecretName.label')" :placeholder="t('persistentVolume.csi.nodeStageSecretName.placeholder')" />
+      </div>
+      <div class="col span-6">
+        <LabeledInput v-model="value.spec.csi.nodeStageSecretRef.namespace" :mode="mode" :label="t('persistentVolume.csi.nodeStageSecretNamespace.label')" :placeholder="t('persistentVolume.csi.nodeStageSecretNamespace.placeholder')" />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput v-model="value.spec.csi.controllerExpandSecretRef.name" :mode="mode" :label="t('persistentVolume.csi.controllerExpandSecretName.label')" :placeholder="t('persistentVolume.csi.controllerExpandSecretName.placeholder')" />
+      </div>
+      <div class="col span-6">
+        <LabeledInput v-model="value.spec.csi.controllerExpandSecretRef.namespace" :mode="mode" :label="t('persistentVolume.csi.controllerExpandSecretNamespace.label')" :placeholder="t('persistentVolume.csi.controllerExpandSecretNamespace.placeholder')" />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
+        <LabeledInput v-model="value.spec.csi.controllerPublishSecretRef.name" :mode="mode" :label="t('persistentVolume.csi.controllerPublishSecretName.label')" :placeholder="t('persistentVolume.csi.controllerPublishSecretName.placeholder')" />
+      </div>
+      <div class="col span-6">
+        <LabeledInput v-model="value.spec.csi.controllerPublishSecretRef.namespace" :mode="mode" :label="t('persistentVolume.csi.controllerPublishSecretNamespace.label')" :placeholder="t('persistentVolume.csi.controllerPublishSecretNamespace.placeholder')" />
       </div>
     </div>
   </div>
