@@ -30,17 +30,42 @@ export default {
 
 <template>
   <div v-if="error">
-    <h1 v-if="error.status">
-      HTTP Error {{ error.status }}: {{ error.statusText }}
-    </h1>
-    <h1 v-else>
-      Error
-    </h1>
-    <div v-if="error" class="mt-20 mb-20">
-      {{ displayError }}
-    </div>
-    <div>
-      <a :href="home">Reload</a>
-    </div>
+    <main class="error">
+      <div class="text-center">
+        <img src="~/assets/images/pl/error-desert-landscape.svg" width="900" height="300" />
+        <h1 v-if="error.status">
+          HTTP Error {{ error.status }}: {{ error.statusText }}
+        </h1>
+        <h1 v-else>
+          Error
+        </h1>
+        <h2 v-if="error" class="text-secondary">
+          {{ displayError }}
+        </h2>
+        <p>
+          <a :href="home" class="btn role-primary">Reload</a>
+        </p>
+      </div>
+    </main>
   </div>
 </template>
+
+<style lang="scss" scoped>
+  .error {
+    overflow: hidden;
+
+    .row {
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 5rem;
+    }
+
+    .desert-landscape {
+      img {
+        max-width: 100%;
+      }
+    }
+  }
+</style>
