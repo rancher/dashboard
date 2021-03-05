@@ -74,7 +74,8 @@ export default {
         this.value.port = newDefault;
       }
     }
-  }
+  },
+
 };
 </script>
 
@@ -90,9 +91,11 @@ export default {
             :value="model.port"
             type="number"
             required
+            :min="0"
+            :step="1"
             :mode="mode"
             :label="t('authConfig.ldap.port')"
-            @input="e=>model.port = e.replace(/[^0-9]/g, '')"
+            @input="e=>$set(model, 'port', e.replace(/[^0-9]*/g, ''))"
           />
         </div>
 

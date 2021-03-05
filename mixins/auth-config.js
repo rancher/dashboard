@@ -231,7 +231,7 @@ export default {
         set(this.model, 'accessMode', 'unrestricted');
         set(this.model, 'starttls', false);
         if (this.model.id === 'activedirectory') {
-          set(this.model, 'disabledStatusBitmask', 1);
+          set(this.model, 'disabledStatusBitmask', 2);
         } else {
           set(this.model, 'disabledStatusBitmask', 0);
         }
@@ -241,10 +241,10 @@ export default {
           const { oauthCredential, serviceAccountCredential } = this.originalValue;
 
           if (!this.model.oauthCredential) {
-            this.model.oauthCredential = oauthCredential;
+            set(this.model, 'oauthCredential', oauthCredential);
           }
           if (!this.model.serviceAccountCredential) {
-            this.model.serviceAccountCredential = serviceAccountCredential;
+            set(this.model, 'serviceAccountCredential', serviceAccountCredential);
           }
         }
         break;

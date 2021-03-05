@@ -194,7 +194,7 @@ export default {
           </div>
         </div>
 
-        <InfoBox v-if="!model.enabled" class="mt-20 mb-20 p-10">
+        <InfoBox class="mt-20 mb-20 p-10">
           <ul v-html="t(`authConfig.${NAME}.form.prefix`, tArgs, true)" />
           <ul>
             <li>
