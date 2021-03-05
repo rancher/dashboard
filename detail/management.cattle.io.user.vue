@@ -1,0 +1,264 @@
+<script>
+import CreateEditView from '@/mixins/create-edit-view';
+import Tab from '@/components/Tabbed/Tab';
+import ResourceTabs from '@/components/form/ResourceTabs';
+import SortableTable from '@/components/SortableTable';
+import { MANAGEMENT, RBAC } from '@/config/types';
+import Loading from '@/components/Loading';
+import { NAME } from '@/config/table-headers';
+
+export default {
+  components: {
+    Tab,
+    ResourceTabs,
+    SortableTable,
+    Loading
+  },
+  mixins:     [
+    CreateEditView
+  ],
+  async fetch() {
+    // Upfront fetch
+    await this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE });
+
+    this.data.gp = await this.fetchGlobalRoleBindings(this.value.id);
+
+    this.data.cr = await this.fetchClusterRoles(this.value.id);
+
+    this.data.pr = await this.fetchProjectRoles(this.value.id);
+  },
+  data() {
+    const role = {
+      name:     'role',
+      labelKey: 'user.detail.generic.tableHeaders.role',
+      value:    'roleTemplate.displayName',
+      sort:     'roleTemplate.displayName',
+    };
+    const since = {
+      name:          'since',
+      labelKey:      'user.detail.generic.tableHeaders.granted',
+      value:         'metadata.creationTimestamp',
+      sort:          'metadata.creationTimestamp:desc',
+      search:        false,
+      formatter:     'LiveDate',
+      formatterOpts: { addSuffix: true },
+      width:         '20%',
+    };
+
+    return {
+      headers: {
+        gp: [
+          {
+            name:      'permission',
+            labelKey:  'user.detail.globalPermissions.tableHeaders.permission',
+            value:     'hasBound',
+            sort:      ['hasBound:desc'],
+            formatter: 'Checked',
+            width:     75,
+            align:     'center'
+          },
+          NAME,
+          {
+            ...since,
+            value:     'bound',
+            sort:      'bound',
+          }
+        ],
+        cr: [
+          {
+            name:          'cluster',
+            labelKey:      'user.detail.clusterRoles.tableHeaders.cluster',
+            value:         'clusterDisplayName',
+            sort:          'clusterDisplayName',
+            formatter:     'LinkDetail',
+            formatterOpts: { reference: 'clusterDetailLocation' },
+          }, { ...role },
+          { ...since }
+        ],
+        pr: [
+          {
+            name:          'project',
+            labelKey:      'user.detail.projectRoles.tableHeaders.project',
+            value:         'projectDisplayName',
+            sort:          'projectDisplayName',
+            formatter:     'LinkDetail',
+            formatterOpts: { reference: 'projectDetailLocation' },
+          }, {
+            name:          'cluster',
+            labelKey:      'user.detail.clusterRoles.tableHeaders.cluster',
+            value:         'clusterDisplayName',
+            sort:          'clusterDisplayName',
+            formatter:     'LinkDetail',
+            formatterOpts: { reference: 'clusterDetailLocation' },
+          }, { ...role },
+          { ...since }
+        ]
+      },
+      data: {
+        gp: [],
+        cr: [],
+        pr: []
+      },
+      isAdmin: false
+    };
+  },
+  methods: {
+    async fetchGlobalRoleBindings(userId) {
+      try {
+        const roles = await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE });
+        const out = await Promise.all(roles
+          .filter(r => !r.isSpecial)
+          .map(r => this.$store.dispatch(`rancher/clone`, { resource: r }))
+        );
+
+        out.forEach((r) => {
+          r.hasBound = false;
+        });
+
+        const globalRoleBindings = await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE_BINDING });
+
+        globalRoleBindings
+          .filter(binding => binding.userName === userId)
+          .forEach((binding) => {
+            const globalRole = roles.find(r => r.id === binding.globalRoleName);
+
+            if (globalRole.id === 'admin') {
+              this.isAdmin = true;
+            }
+
+            if (globalRole.isSpecial) {
+              this.getEnabledRoles(globalRole, out).forEach((r) => {
+                r.hasBound = true;
+                r.bound = binding?.metadata.creationTimestamp;
+              });
+            } else {
+              const entry = out.find(o => o.id === binding.globalRoleName);
+
+              if (entry) {
+                entry.hasBound = true;
+                entry.bound = binding?.metadata.creationTimestamp;
+              }
+            }
+          });
+
+        return out;
+      } catch {
+        // Swallow the error. It's probably due to the user not having the correct permissions to read global roles
+      }
+    },
+
+    async fetchClusterRoles(userId) {
+      const templateBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.CLUSTER_ROLE_TEMPLATE_BINDING });
+      const userTemplateBindings = templateBindings.filter(binding => binding.userName === userId);
+
+      // Upront load clusters
+      await Promise.all(userTemplateBindings.map(b => this.$store.dispatch('management/find', { type: MANAGEMENT.CLUSTER, id: b.clusterName })));
+
+      return userTemplateBindings;
+    },
+
+    async fetchProjectRoles(userId) {
+      const templateBindings = await this.$store.dispatch('management/findAll', { type: MANAGEMENT.PROJECT_ROLE_TEMPLATE_BINDING });
+      const userTemplateBindings = templateBindings.filter(binding => binding.userName === userId);
+
+      // Upfront load projects
+      await Promise.all(userTemplateBindings.map(b => this.$store.dispatch('management/find', { type: MANAGEMENT.PROJECT, id: b.projectId })));
+
+      return userTemplateBindings;
+    },
+
+    // Global Permisions Helpers (brought over from ember)
+    hasPermission(globalRoleRules, permission) {
+      return globalRoleRules.find((gRule) => {
+        return ((gRule.apiGroups || []).includes('*') || (gRule.apiGroups || []).includes(permission.apiGroup)) &&
+        ((gRule.resources || []).includes('*') || (gRule.resources || []).includes(permission.resource)) &&
+        ((gRule.verbs || []).includes('*') || (gRule.verbs || []).includes(permission.verb));
+      })
+      ;
+    },
+    containsRule(globalRoleRules, rule) {
+      const apiGroups = (rule.apiGroups || []);
+      const resources = (rule.resources || []);
+      const verbs = (rule.verbs || []);
+      const permissions = [];
+
+      apiGroups.forEach(apiGroup => resources.forEach(resource => verbs.forEach(verb => permissions.push({
+        apiGroup,
+        resource,
+        verb
+      }))));
+
+      return permissions.every(permission => this.hasPermission(globalRoleRules, permission));
+    },
+    getEnabledRoles(globalRole, out) {
+      const globalRoleRules = globalRole.rules || [];
+
+      return out.filter(r => (r.rules || []).every(rule => this.containsRule(globalRoleRules, rule)));
+    },
+
+  }
+
+};
+</script>
+
+<template>
+  <Loading v-if="$fetchState.pending" />
+  <div v-else>
+    <ResourceTabs v-model="value" :mode="mode">
+      <Tab label-key="user.detail.globalPermissions.label" name="gp" :weight="3">
+        <div class="subtext">
+          {{ t("user.detail.globalPermissions.description") }}
+        </div>
+        <div v-if="isAdmin" class="admin">
+          {{ t("user.detail.globalPermissions.adminMessage") }}
+        </div>
+        <SortableTable
+          v-else
+          :rows="data.gp"
+          :headers="headers.gp"
+          key-field="id"
+          :table-actions="false"
+          :row-actions="false"
+          :search="false"
+        />
+      </Tab>
+      <Tab label-key="user.detail.clusterRoles.label" name="cr" :weight="2">
+        <div class="subtext">
+          {{ t("user.detail.clusterRoles.description") }}
+        </div>
+        <SortableTable
+          :rows="data.cr"
+          :headers="headers.cr"
+          key-field="id"
+          :table-actions="false"
+          :search="false"
+        />
+      </Tab>
+      <Tab label-key="user.detail.projectRoles.label" name="pr" :weight="1">
+        <div class="subtext">
+          {{ t("user.detail.projectRoles.description") }}
+        </div>
+        <SortableTable
+          :rows="data.pr"
+          :headers="headers.pr"
+          key-field="id"
+          :table-actions="false"
+          :search="false"
+        />
+      </Tab>
+    </ResourceTabs>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.subtext {
+  margin-bottom: 10px;
+  font-style: italic;
+}
+.admin {
+  display: flex;
+  justify-content: center;
+  margin: 30px 0 10px;
+  font-weight: bold;
+}
+</style>

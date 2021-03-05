@@ -2,20 +2,25 @@ import { NORMAN, RBAC } from '@/config/types';
 
 export default {
   nameDisplay() {
-    const roleName = this.$getters['byId'](RBAC.GLOBAL_ROLE, this.globalRoleName);
+    const role = this.$getters['byId'](RBAC.GLOBAL_ROLE, this.globalRoleName);
+
+    if (!role) {
+      return this.globalRoleName;
+    }
 
     const ownersName = this.groupPrincipalName ? this._displayPrincipal : this._displayUser;
 
-    return `${ roleName.displayName } (${ ownersName })` ;
+    return ownersName ? `${ role.displayName } (${ ownersName })` : role.displayName;
   },
 
   _displayPrincipal() {
     const principal = this.$rootGetters['rancher/byId'](NORMAN.PRINCIPAL, this.groupPrincipalName);
 
-    return `${ principal.name } - ${ principal.displayType }`;
+    return principal ? `${ principal.name } - ${ principal.displayType }` : null;
   },
 
   _displayUser() {
     return this.user;
-  }
+  },
+
 };

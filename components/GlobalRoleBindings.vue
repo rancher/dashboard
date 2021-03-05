@@ -3,9 +3,13 @@
 import { mapGetters } from 'vuex';
 import { RBAC } from '@/config/types';
 import Checkbox from '@/components/form/Checkbox';
-import { _VIEW } from '@/config/query-params';
+import { _CREATE, _VIEW } from '@/config/query-params';
 import Loading from '@/components/Loading';
+import { addObjects, isArray } from '@/utils/array';
 
+/**
+ * Display checkboxes for each global role, checked for given user or principal (group). Can save changes.
+ */
 export default {
   components: {
     Checkbox,
@@ -16,10 +20,25 @@ export default {
       type:    String,
       default: _VIEW,
     },
-    principalId: {
+    realMode: {
+      type:    String,
+      default: _VIEW,
+    },
+    type: {
+      type:    String,
+      default: 'group',
+      validator(val) {
+        return val === 'group' || val === 'user';
+      }
+    },
+    groupPrincipalId: {
       type:     String,
       default: ''
     },
+    userId: {
+      type:     String,
+      default: ''
+    }
   },
   async fetch() {
     try {
@@ -33,20 +52,16 @@ export default {
         };
 
         this.allRoles.forEach((role) => {
-          const type = this.getRoleType(role);
+          const roleType = this.getRoleType(role);
 
-          if (type) {
-            this.sortedRoles[type][role.id] = {
-              label:       this.t(`rbac.globalRoles.role.${ role.id }.label`) || role.displayName,
-              description: this.t(`rbac.globalRoles.role.${ role.id }.detail`) || role.description || this.t(`rbac.globalRoles.unknownRole.detail`),
-              id:          role.id,
-              role,
-            };
+          if (roleType) {
+            this.sortedRoles[roleType][role.id] = role;
           }
         });
 
-        // Moving this out into the watch has issues....
-        this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE_BINDING });
+        if (!this.isCreate) {
+          this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE_BINDING });
+        }
 
         this.update();
       }
@@ -60,17 +75,33 @@ export default {
         'user',
         'user-base',
       ],
-      user:               null, // TODO: Populate in edit user mode
-      globalRoleBindings: null,
-      sortedRoles:        null,
-      selectedRoles:      [],
-      roleChanges:        {}
+      globalRoleBindings:    null,
+      sortedRoles:           null,
+      selectedRoles:         [],
+      startingSelectedRoles: [],
+      roleChanges:           {}
     };
   },
-  computed: { ...mapGetters({ t: 'i18n/t' }) },
+  computed: {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    isCreate() {
+      return this.realMode === _CREATE;
+    },
+
+    isUser() {
+      return this.type === 'user';
+    }
+  },
   watch:    {
-    principalId(principalId, oldPrincipalId) {
-      if (principalId === oldPrincipalId) {
+    groupPrincipalId(groupPrincipalId, oldGroupPrincipalId) {
+      if (groupPrincipalId === oldGroupPrincipalId) {
+        return;
+      }
+      this.update();
+    },
+    userId(userId, oldUserId) {
+      if (userId === oldUserId) {
         return;
       }
       this.update();
@@ -80,8 +111,6 @@ export default {
     getRoleType(role) {
       if (this.globalPermissions.find(p => p === role.id)) {
         return 'global';
-      } else if (role.hidden) {
-        return null;
       } else if (role.builtin) {
         return 'builtin';
       } else {
@@ -89,35 +118,47 @@ export default {
       }
     },
     getUnique(...ids) {
-      return `${ this.principalId }-${ ids.join('-') }`;
+      return `${ this.groupPrincipalId || this.userId }-${ ids.join('-') }`;
     },
     update() {
-      if (!this.principalId) {
-        return;
-      }
-
       this.selectedRoles = [];
       this.startingSelectedRoles = [];
-
-      const boundRoles = this.globalRoleBindings.filter(globalRoleBinding => globalRoleBinding.groupPrincipalName === this.principalId);
-
-      Object.entries(this.sortedRoles).forEach(([type, types]) => {
-        Object.entries(types).forEach(([roleId, mappedRole]) => {
-          const boundRole = boundRoles.find(boundRole => boundRole.globalRoleName === roleId);
-
-          if (!!boundRole) {
-            this.selectedRoles.push(roleId);
-            this.startingSelectedRoles.push({
-              roleId,
-              bindingId: boundRole.id
-            });
-          }
+      if (this.isCreate) {
+        // Start with the new user default for each role
+        Object.entries(this.sortedRoles).forEach(([roleType, types]) => {
+          Object.entries(types).forEach(([roleId, mappedRole]) => {
+            if (mappedRole.newUserDefault) {
+              this.selectedRoles.push(roleId);
+            }
+          });
         });
-      });
+      } else {
+        // Start with the principal/user's roles
+        if (!this.groupPrincipalId && !this.userId) {
+          return;
+        }
 
-      // TODO: If in create user mode... apply default selection using role.newUserDefault
-      // TODO: If in create/edit user mode... apply validation as per rancher/ui lib/global-admin/addon/components/form-global-roles/component.js
-      // Should validation come in via validationErrors property on model?
+        const boundRoles = this.globalRoleBindings.filter((grb) => {
+          return this.groupPrincipalId ? grb.groupPrincipalName === this.groupPrincipalId : grb.userName === this.userId;
+        });
+
+        Object.entries(this.sortedRoles).forEach(([roleType, types]) => {
+          Object.entries(types).forEach(([roleId, mappedRole]) => {
+            const boundRole = boundRoles.find(boundRole => boundRole.globalRoleName === roleId);
+
+            if (!!boundRole) {
+              this.selectedRoles.push(roleId);
+              this.startingSelectedRoles.push({
+                roleId,
+                bindingId: boundRole.id
+              });
+            }
+          });
+        });
+      }
+
+      // Force an update to pump out the initial state
+      this.checkboxChanged();
     },
     checkboxChanged() {
       const addRoles = this.selectedRoles
@@ -131,14 +172,25 @@ export default {
         addRoles,
         removeBindings
       };
+
+      this.$emit('hasChanges', !!this.roleChanges.addRoles.length || !!this.roleChanges.removeBindings.length);
+      this.$emit('canLogIn', this.confirmUserCanLogIn());
       this.$emit('changed', this.roleChanges);
     },
-    async saveAddedRoles() {
-      const newBindings = await Promise.all(this.roleChanges.addRoles.map(role => this.$store.dispatch(`management/create`, {
+    async saveAddedRoles(userId) {
+      const requestOptions = {
         type:               RBAC.GLOBAL_ROLE_BINDING,
         metadata:           { generateName: `grb-` },
-        globalRoleName:     role,
-        groupPrincipalName: this.principalId,
+      };
+
+      if (this.groupPrincipalId) {
+        requestOptions.groupPrincipalName = this.groupPrincipalId;
+      } else {
+        requestOptions.userName = userId || this.userId;
+      }
+      const newBindings = await Promise.all(this.roleChanges.addRoles.map(role => this.$store.dispatch(`management/create`, {
+        ...requestOptions,
+        globalRoleName: role,
       })));
 
       await Promise.all(newBindings.map(newBinding => newBinding.save()));
@@ -151,11 +203,63 @@ export default {
 
       await Promise.all(existingBindings.map(existingBinding => existingBinding.remove()));
     },
-    async save() {
+    /**
+     * userId is optional, used when a user has just been created
+     */
+    async save(userId) {
       // Ensure roles are added before removed (in case by removing one user is unable to add another)
-      await this.saveAddedRoles();
+      await this.saveAddedRoles(userId);
       await this.saveRemovedRoles();
-    }
+    },
+    confirmUserCanLogIn() {
+      const allRolesRules = [];
+
+      Object.entries(this.sortedRoles).forEach(([roleType, types]) => {
+        Object.entries(types).forEach(([roleId, mappedRole]) => {
+          if (this.selectedRoles.includes(roleId)) {
+            addObjects(allRolesRules, mappedRole.rules || []);
+          }
+        });
+      });
+
+      return allRolesRules.some(rule => this.isRuleValid(rule));
+    },
+    isRuleValid(rule) {
+      // Brought over from Ember
+
+      if (( rule.resources || [] ).some(resourceValidator) && ( rule.apiGroups || [] ).some(apiGroupValidator) && verbsValidator(( rule.verbs || [] ))) {
+        return true;
+      }
+
+      return false;
+
+      function resourceValidator(resource) {
+        const resourcesRequiredForLogin = ['*', 'preferences', 'settings', 'features'];
+
+        // console.log(`resourceValidator status: `, resourcesRequiredForLogin.includes(resource), resource);
+        return resourcesRequiredForLogin.includes(resource);
+      }
+
+      function apiGroupValidator(apiGroup) {
+        const apiGroupsRequiredForLogin = ['*', 'management.cattle.io'];
+
+        // console.log(`apiGroupsRequiredForLogin status: `, apiGroupsRequiredForLogin.includes(apiGroup), apiGroup);
+        return apiGroupsRequiredForLogin.includes(apiGroup);
+      }
+
+      function verbsValidator(verbs) {
+        const restrictedTarget = ['get', 'list', 'watch'];
+        const verbsRequiredForLogin = ['*', ...restrictedTarget];
+
+        if (isArray(verbs) && verbs.length > 1) {
+          // console.log(`verbsRequiredForLogin status 1: `, restrictedTarget.every(rt => verbs.includes(rt)), verbs);
+          return restrictedTarget.every(rt => verbs.includes(rt));
+        }
+
+        // console.log(`verbsRequiredForLogin status 2: `, verbsRequiredForLogin.includes(verbs[0]), verbsRequiredForLogin, verbs);
+        return verbsRequiredForLogin.includes(verbs[0]);
+      }
+    },
   }
 };
 </script>
@@ -165,19 +269,19 @@ export default {
 
   <div v-else>
     <form v-if="selectedRoles">
-      <div v-for="(sortedRole, type) in sortedRoles" :key="getUnique(type)" class="role-group mb-10">
+      <div v-for="(sortedRole, roleType) in sortedRoles" :key="getUnique(roleType)" class="role-group mb-10">
         <template v-if="Object.keys(sortedRole).length">
-          <h2>{{ t(`rbac.globalRoles.types.${type}.label`) }}</h2>
+          <h2>{{ t(`rbac.globalRoles.types.${roleType}.label`) }}</h2>
           <div class="type-description mb-10">
-            {{ t(`rbac.globalRoles.types.${type}.detail`, { type: 'Application', isUser: !!user }) }}
+            {{ t(`rbac.globalRoles.types.${roleType}.description`, { isUser }) }}
           </div>
-          <div class="checkbox-section" :class="'checkbox-section--' + type">
-            <div v-for="(role, roleId) in sortedRoles[type]" :key="getUnique(type, roleId)" class="checkbox mb-10 mr-10">
+          <div class="checkbox-section" :class="'checkbox-section--' + roleType">
+            <div v-for="(role, roleId) in sortedRoles[roleType]" :key="getUnique(roleType, roleId)" class="checkbox mb-10 mr-10">
               <Checkbox
-                :key="getUnique(type, roleId, 'checkbox')"
+                :key="getUnique(roleType, roleId, 'checkbox')"
                 v-model="selectedRoles"
                 :value-when-true="roleId"
-                :label="role.label"
+                :label="role.nameDisplay"
                 :mode="mode"
                 @input="checkboxChanged"
               />
@@ -213,6 +317,7 @@ export default {
 
         .description {
           font-size: $detailSize;
+          margin-left: 20px;
           margin-top: 5px;
         }
       }

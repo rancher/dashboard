@@ -20,6 +20,11 @@ export default {
       default: null
     },
 
+    placeholderKey: {
+      type:     String,
+      default: null
+    },
+
     tooltip: {
       type:    [String, Object],
       default: null

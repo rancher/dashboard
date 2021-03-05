@@ -36,9 +36,6 @@ export default {
         buttonDone(false);
       }
     },
-    changed(changes) {
-      this.valid = !!changes.addRoles.length || !!changes.removeBindings.length;
-    },
   }
 };
 </script>
@@ -54,7 +51,7 @@ export default {
       :can-yaml="false"
       @finish="save"
     >
-      <GlobalRoleBindings ref="grb" :principal-id="value.id" :mode="mode" @changed="changed" />
+      <GlobalRoleBindings ref="grb" :group-principal-id="value.id" :mode="mode" @canLogIn="valid = $event" />
     </CruResource>
   </div>
 </template>

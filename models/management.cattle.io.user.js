@@ -1,3 +1,5 @@
+import { NORMAN } from '@/config/types';
+
 export default {
   isSystem() {
     for ( const p of this.principalIds || [] ) {
@@ -24,7 +26,7 @@ export default {
     }
   },
 
-  providerDisplay() {
+  provider() {
     const principals = this.principalIds || [];
     let isSystem = false;
     let isLocal = true;
@@ -59,7 +61,11 @@ export default {
       key = provider;
     }
 
-    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ key }"`, null, key);
+    return key;
+  },
+
+  providerDisplay() {
+    return this.$rootGetters['i18n/withFallback'](`model.authConfig.provider."${ this.provider }"`, null, this.provider);
   },
 
   state() {
@@ -68,5 +74,101 @@ export default {
     }
 
     return this.metadata?.state?.name || 'unknown';
+  },
+
+  save() {
+    return async(opt) => {
+      const clone = await this.$dispatch('clone', { resource: this });
+
+      // Remove local properties
+      delete clone.canRefreshAccess;
+
+      return clone._save(opt);
+    };
+  },
+
+  setEnabled() {
+    return async(enabled) => {
+      const clone = await this.$dispatch('clone', { resource: this });
+
+      clone.enabled = enabled;
+      await clone.save();
+    };
+  },
+
+  activate() {
+    return async() => {
+      await this.setEnabled(true);
+    };
+  },
+
+  activateBulk() {
+    return async(items) => {
+      await Promise.all(items.map(item => item.setEnabled(true)));
+    };
+  },
+
+  deactivate() {
+    return async() => {
+      await this.setEnabled(false);
+    };
+  },
+
+  deactivateBulk() {
+    return async(items) => {
+      await Promise.all(items.map(item => item.setEnabled(false)));
+    };
+  },
+
+  refreshGroupMembership() {
+    return async() => {
+      const user = await this.$dispatch('rancher/find', {
+        type:       NORMAN.USER,
+        id:   this.id,
+      }, { root: true });
+
+      await user.doAction('refreshauthprovideraccess');
+    };
+  },
+
+  _availableActions() {
+    return [
+      {
+        action:     'activate',
+        label:      this.t('action.activate'),
+        icon:       'icon icon-play',
+        bulkable:   true,
+        bulkAction: 'activateBulk',
+        enabled:    this.state === 'inactive',
+        weight:     2
+      },
+      {
+        action:     'deactivate',
+        label:      this.t('action.deactivate'),
+        icon:       'icon icon-pause',
+        bulkable:   true,
+        bulkAction: 'deactivateBulk',
+        enabled:    this.state === 'active',
+        weight:     1
+      },
+      {
+        action:     'refreshGroupMembership',
+        label:      this.t('authGroups.actions.refresh'),
+        icon:       'icon icon-refresh',
+        enabled: this.canRefreshAccess
+      },
+      { divider: true },
+      ...this._standardActions,
+    ];
+  },
+
+  details() {
+    return [
+      {
+        label:   this.t('user.detail.username'),
+        content: this.username
+      },
+      ...this._details
+    ];
   }
 };
