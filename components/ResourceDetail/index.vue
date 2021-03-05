@@ -115,7 +115,8 @@ export default {
       }
 
       originalModel = await store.dispatch(`${ inStore }/create`, data);
-      model = originalModel;
+      // Dissassociate the original model & model. This fixes `Create` after refreshing page with SSR on
+      model = await store.dispatch(`${ inStore }/clone`, { resource: originalModel });
 
       if ( as === _YAML ) {
         yaml = createYaml(schemas, resource, data);
