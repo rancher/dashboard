@@ -1,13 +1,11 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
-// import TLS from '../tls';
+import TLS from '../tls';
 
 export default {
   components: {
-    Checkbox,
-    LabeledInput,
-    // TLS
+    Checkbox, LabeledInput, TLS
   },
   props:      {
     mode: {
@@ -20,7 +18,6 @@ export default {
     }
   },
   data() {
-    // this.$set(this.value, 'http_config', this.value.http_config || {});
     this.$set(this.value, 'send_resolved', this.value.send_resolved || false);
     this.$set(this.value, 'require_tls', this.value.require_tls || false);
 
@@ -68,6 +65,6 @@ export default {
         <LabeledInput v-model="value.auth_password" :mode="mode" label="Password" type="password" autocomplete="password" />
       </div>
     </div>
-    <!-- <TLS v-model="value.http_config" class="mb-20" :mode="mode" /> -->
+    <TLS v-model="value" class="mb-20" :mode="mode" />
   </div>
 </template>
