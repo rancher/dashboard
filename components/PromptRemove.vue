@@ -1,7 +1,6 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@/utils/object';
-import { NAMESPACE, NODE, RIO } from '@/config/types';
 import Card from '@/components/Card';
 import { alternateLabel } from '@/utils/platform';
 import LinkDetail from '@/components/formatter/LinkDetail';
@@ -14,12 +13,23 @@ export default {
   },
   data() {
     return {
-      confirmName: '', error: '', warning: '', preventDelete: false
+      randomPosition: Math.random(), confirmName: '', error: '', warning: '', preventDelete: false
     };
   },
   computed:   {
     names() {
       return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
+    },
+
+    nameToMatchPosition() {
+      const visibleNames = Math.min(5, this.names.length);
+      const randomNamePos = Math.floor(this.randomPosition * visibleNames);
+
+      return randomNamePos;
+    },
+
+    nameToMatch() {
+      return this.names[this.nameToMatchPosition];
     },
 
     type() {
@@ -51,12 +61,7 @@ export default {
     needsConfirm() {
       const first = this.toRemove[0];
 
-      if ( !first ) {
-        return false;
-      }
-      const type = first.type;
-
-      return (type === NAMESPACE || type === NODE || type === RIO.STACK) && this.toRemove.length === 1;
+      return first?.confirmRemove;
     },
 
     plusMore() {
@@ -107,7 +112,7 @@ export default {
     },
 
     deleteDisabled() {
-      const confirmFailed = this.needsConfirm && this.confirmName !== this.names[0];
+      const confirmFailed = this.needsConfirm && this.confirmName !== this.nameToMatch;
 
       return this.preventDelete || confirmFailed;
     },
@@ -253,7 +258,20 @@ export default {
               <span v-if="i===names.length-1" :key="resource+2">{{ plusMore }}</span><span v-else :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
             </template>
           </template>
-          <span v-if="needsConfirm" :key="resource">Re-enter its name below to confirm:</span>
+          <div v-if="needsConfirm" class="mt-10">
+            <template v-if="toRemove.length === 1">
+              {{ t('promptRemove.confirmName') }}
+            </template>
+            <template v-else>
+              {{
+                t('promptRemove.confirmNameSpecific',
+                  {
+                    pos: nameToMatchPosition,
+                    resource: t('generic.resource', { count: 1 })
+                  })
+              }}
+            </template>
+          </div>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
         <div class="mb-10">

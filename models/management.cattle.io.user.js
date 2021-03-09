@@ -170,5 +170,9 @@ export default {
       },
       ...this._details
     ];
-  }
+  },
+
+  confirmRemove() {
+    return true;
+  },
 };

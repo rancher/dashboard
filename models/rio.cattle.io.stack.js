@@ -20,4 +20,8 @@ export default {
 
     return branch || 'master';
   },
+
+  confirmRemove() {
+    return true;
+  },
 };

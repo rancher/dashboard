@@ -262,7 +262,11 @@ export default {
 
   runningPods() {
     return this.pods.filter(pod => pod.isRunning);
-  }
+  },
+
+  confirmRemove() {
+    return true;
+  },
 };
 
 function calculatePercentage(allocatable, capacity) {
