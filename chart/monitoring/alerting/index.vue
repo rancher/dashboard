@@ -135,6 +135,14 @@ export default {
       }
     },
   },
+
+  beforeMount() {
+    const amSecrets = this.value?.alertmanager?.alertmanagerSpec?.secrets ?? [];
+
+    if (this.existingSecret && amSecrets.length <= 0) {
+      this.$set(this.value.alertmanager.alertmanagerSpec, 'useExistingSecret', true);
+    }
+  },
 };
 </script>
 
