@@ -3,7 +3,6 @@ import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
 import { mapGetters } from 'vuex';
-
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
@@ -30,6 +29,8 @@ import { findBy, insertAt } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import sortBy from 'lodash/sortBy';
 import { formatSi, parseSi } from '@/utils/units';
+import { SHOW_PRE_RELEASE, mapPref } from '@/store/prefs';
+const semver = require('semver');
 
 export default {
   name: 'Install',
@@ -338,6 +339,8 @@ export default {
   computed: {
     ...mapGetters(['currentCluster', 'isRancher']),
 
+    showPrerelease: mapPref(SHOW_PRE_RELEASE),
+
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
       const want = this.value?.metadata?.namespace;
@@ -492,8 +495,15 @@ export default {
             nue.disabled = true;
           }
         }
+        if (!this.showPrerelease) {
+          const isPre = !!semver.prerelease(version.version) || version.version.includes('-rc');
 
-        out.push(nue);
+          if (!isPre) {
+            out.push(nue);
+          }
+        } else {
+          out.push(nue);
+        }
       });
 
       const selectedMatch = out.find(v => v.id === selectedVersion);
@@ -905,6 +915,11 @@ export default {
     </template>
 
     <template v-else>
+      <div class="row mb-5">
+        <div class="col span-6" />
+
+        <Checkbox v-model="showPrerelease" class="repo mb-5" :label="t('catalog.charts.showPreRelease')" />
+      </div>
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect

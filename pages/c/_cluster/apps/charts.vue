@@ -11,11 +11,12 @@ import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
 import Select from '@/components/form/Select';
-import { mapPref, HIDE_REPOS } from '@/store/prefs';
+import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@/store/prefs';
 import { removeObject, addObject, findBy } from '@/utils/array';
 import { CATALOG } from '@/config/labels-annotations';
 
 import filter from 'lodash/filter';
+const semver = require('semver');
 
 export default {
   components: {
@@ -55,6 +56,8 @@ export default {
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
     hideRepos: mapPref(HIDE_REPOS),
+
+    showPrerelease: mapPref(SHOW_PRE_RELEASE),
 
     showWindowsClusterNoAppsSplash() {
       const clusterProvider = this.currentCluster.status.provider || 'other';
@@ -273,11 +276,22 @@ export default {
       const clusterProvider = this.currentCluster.status.provider || 'other';
       const windowsVersions = this.getCompatibleVersions(chartVersions, 'windows');
       const linuxVersions = this.getCompatibleVersions(chartVersions, 'linux');
+      const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
 
       if (clusterProvider === 'rke.windows' && windowsVersions.length > 0) {
-        version = windowsVersions[0].version;
+        if (!showPrerelease) {
+          version = windowsVersions.filter(version => !this.isPreRelease(version.version))[0].version;
+        } else {
+          version = windowsVersions[0].version;
+        }
       } else if (clusterProvider !== 'rke.windows' && linuxVersions.length > 0) {
-        version = linuxVersions[0].version;
+        if (!showPrerelease) {
+          version = linuxVersions.filter(version => !this.isPreRelease(version.version))[0].version;
+        } else {
+          version = linuxVersions[0].version;
+        }
+      } else if (!showPrerelease) {
+        version = chartVersions.filter(version => !this.isPreRelease(version.version) )[0].version;
       } else {
         version = chartVersions[0].version;
       }
@@ -313,6 +327,10 @@ export default {
         btnCb(false);
       }
     },
+
+    isPreRelease(version = '') {
+      return semver.prerelease(version) || version.includes('-rc');
+    },
   },
 };
 </script>
@@ -344,8 +362,9 @@ export default {
           :class="{'pull-left': true, 'repo': true, [r.color]: true}"
           @input="toggleRepo(r, $event)"
         />
-      </div>
 
+        <Checkbox v-model="showPrerelease" class="repo mt-3" :label="t('catalog.charts.showPreRelease')" />
+      </div>
       <Select
         v-model="category"
         :clearable="false"
