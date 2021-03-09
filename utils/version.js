@@ -1,4 +1,5 @@
 import { sortableNumericSuffix } from '@/utils/sort';
+import semver from 'semver';
 
 export function parse(str) {
   str = `${ str }`;
@@ -60,4 +61,14 @@ function comparePart(in1, in2) {
   }
 
   return in1.localeCompare(in2);
+}
+
+export function isPrerelease(str) {
+  const parsed = semver.parse(str, true);
+
+  if ( parsed?.prerelease?.length > 0 ) {
+    return true;
+  }
+
+  return false;
 }
