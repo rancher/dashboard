@@ -1,14 +1,20 @@
 <script>
+import { createPopper } from '@popperjs/core';
 import { MANAGEMENT } from '@/config/types';
 import { sortBy } from '@/utils/sort';
 import { findBy } from '@/utils/array';
 import { mapGetters, mapState } from 'vuex';
 import Select from '@/components/form/Select';
+import $ from 'jquery';
 
 export default {
   components: { Select },
 
-  computed:   {
+  data() {
+    return { popperInstance: null };
+  },
+
+  computed: {
     ...mapState(['isMultiCluster']),
     ...mapGetters(['currentCluster']),
 
@@ -50,8 +56,65 @@ export default {
   },
 
   methods: {
+    filterBy(option, label, search) {
+      return (label || '').toLowerCase().includes(search.toLowerCase());
+    },
+    filter(options, search) {
+      const filtered = options.filter((option) => {
+        let label = this.$refs.select.getOptionLabel(option);
+
+        if (typeof label === 'number') {
+          label = label.toString();
+        }
+
+        return this.filterBy(option, label, search);
+      });
+
+      if (this.popperInstance?.update) {
+        this.popperInstance.update();
+      }
+
+      return filtered;
+    },
     focus() {
       this.$refs.select.focusSearch();
+    },
+    withPopper(dropdownList, component, { width }) {
+      const componentWidth = $(component.$parent.$el).width();
+
+      dropdownList.style['min-width'] = `${ componentWidth }px`;
+      dropdownList.style.width = 'min-content';
+      dropdownList.className += ' cluster-switcher-container';
+
+      const popper = createPopper(component.$refs.toggle, dropdownList, {
+        placement: 'bottom-end',
+        modifiers: [
+          {
+            name:    'offset',
+            options: { offset: [0, 2] },
+          },
+          {
+            name:    'toggleClass',
+            enabled: true,
+            phase:   'write',
+            fn({ state }) {
+              component.$el.setAttribute('x-placement', state.placement);
+            },
+          },
+        ],
+      });
+
+      this.popperInstance = popper;
+
+      /**
+       * To prevent memory leaks Popper needs to be destroyed.
+       * If you return function, it will be called just before dropdown is removed from DOM.
+       */
+      return () => {
+        this.popperInstance = null;
+
+        return popper.destroy();
+      };
     },
   },
 };
@@ -63,32 +126,43 @@ export default {
       ref="select"
       key="cluster"
       v-model="value"
-      :append-to-body="false"
+      :append-to-body="true"
+      :popper-override="withPopper"
+      placement="bottom-end"
       :searchable="true"
       :selectable="(option) => option.ready"
       :clearable="false"
       :options="options"
+      :filter="filter"
     >
       <template #selected-option="opt">
         <span class="cluster-label-container">
-          <img v-if="currentCluster" class="cluster-switcher-os-logo" :src="currentCluster.providerOsLogo" />
+          <img
+            v-if="currentCluster"
+            class="cluster-switcher-os-logo"
+            :src="currentCluster.providerOsLogo"
+          />
           <span class="cluster-label">
             {{ opt.label }}
           </span>
         </span>
       </template>
 
-      <template #no-options="{ search, searching }">
+      <template #no-options="{ searching }">
         <template v-if="searching">
-          No clusters found for <em>{{ search }}</em>.
+          <t k="clusterSwitcher.noResults" />
         </template>
-        <em v-else class="text-muted">Start typing to search for a cluster.</em>
+        <em v-else class="text-muted"><t k="clusterSwitcher.search" /></em>
       </template>
 
       <template #option="opt">
         <span class="dropdown-option">
           <span class="logo">
-            <img v-if="opt.osLogo" class="cluster-switcher-os-logo" :src="opt.osLogo" />
+            <img
+              v-if="opt.osLogo"
+              class="cluster-switcher-os-logo"
+              :src="opt.osLogo"
+            />
           </span>
           <span class="content">
             <b v-if="opt === value">{{ opt.label }}</b>
@@ -108,8 +182,25 @@ export default {
   </div>
 </template>
 
+<style lang="scss">
+// should be outside scoped css, class is dynamic and added by withPopper so scoped + ::v-deep doesn't work
+.cluster-switcher-container {
+  &.vs__dropdown-menu {
+    .vs__dropdown-option {
+      // matches the padding of the option (and logo/content) to the selected option so it doesn't look off
+      padding: 3px 20px 3px 8px;
+    }
+  }
+}
+</style>
+
 <style lang="scss" scoped>
-.filter {
+.cluster-switcher-os-logo {
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+}
+.cluster-switcher-container {
   .cluster-label-container {
     width: 100%;
     display: grid;
@@ -118,8 +209,12 @@ export default {
     align-content: center;
   }
 
-  .cluster-switcher-os-logo {
-    height: 16px;
+  .dropdown-option {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 25px fit-content(100%);
+    align-items: center;
+    align-content: center;
   }
 }
 
@@ -132,18 +227,6 @@ export default {
 
   .vs__selected {
     width: 100%;
-  }
-
-  // matches the padding a layout of the option (and logo/content) to the selected option so it doesn't look off
-  .vs__dropdown-option  {
-    padding: 3px 20px 3px 8px;
-    .dropdown-option {
-      display: grid;
-      width: 100%;
-      grid-template-columns: 25px fit-content(100%);
-      align-items: center;
-      align-content: center;
-    }
   }
 
   &.vs--disabled .vs__actions {
