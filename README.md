@@ -66,7 +66,7 @@ From there we can customize anything from what columns are shown and in what for
 
 ## Directory Structure
 
-The directory structure is mostly flat, with each top level dir being for a different important thing (or just requied by Nuxt to be there).
+The directory structure is mostly flat, with each top level dir being for a different important thing (or just required by Nuxt to be there).
 
 ### Customizing how k8s resources are presented
 
@@ -82,7 +82,7 @@ list | Custom components to show as the list view for a resource type
 models | Custom logic extending the standard `resource-instance` "class" for each API type and model returned by the API
 
 There is one `Config` entry for each "product", which are the result of installing one of our helm charts to add a feature into Rancher such as Istio, monitoring, logging, CIS scans, etc.  The config defines things like:
-  - The condition for when that product should appear (usually the presense of a type in a certain k8s API group)
+  - The condition for when that product should appear (usually the presence of a type in a certain k8s API group)
   - What types should appear in the left nav, how they're labeled, grouped, ordered
   - Custom table headers for each type
 
@@ -101,7 +101,7 @@ All `<type>`s throughout are the **lowercased** version of the k8s API group and
 
 Path | Used for
 -----|---------
-assets | CSS, fonts, images, translations, etc resoruces which get processed during build
+assets | CSS, fonts, images, translations, etc resources which get processed during build
 components | All general components which don't have a separate special directory elsewhere
 layouts | The outermost components for rendering different kinds of pages (Nuxt)
 store | [Vuex](https://vuex.vuejs.org/) stores which maintain all the state for the life of a page load
@@ -124,7 +124,7 @@ test | Unit tests (or lack thereof)
 ## APIs
 There are lots of different APIs available in Rancher, but the primary two are [Norman](https://github.com/rancher/norman) and [Steve](https://github.com/rancher/steve):
   - Norman is older and mainly used by the [Ember UI](https://github.com/rancher/ui).  It presents an opinionated view of some of the common resources in a Kubernetes cluster, with lots of features to make the client's life easier.  Fields are renamed to be named more consistently, deeply-nested structures are flattened out somewhat, complicated multi-step interactions with the k8s API are orchestrated in the server and hidden from you, etc.  It attempts to bridge the gap from Rancher 1.x's usability, and is quite nice if it does what you need.  But _only_ the types that Norman supports are exposed, and you can _only_ interact with the resources in the namespaces assigned to a Project.  Types Norman doesn't know about and namespaces not assigned to a project are effectively invisible.
-  - Steve is newer, and the primary one used here.  It works in the opposite direction, starting with a completely unopinionated view of every resource available in a cluster, and then adding custom logic only where needed.  Every type and every namespace are directly addressible.  This still adds some critical functionality over directly talking to the k8s API, such as:
+  - Steve is newer, and the primary one used here.  It works in the opposite direction, starting with a completely unopinionated view of every resource available in a cluster, and then adding custom logic only where needed.  Every type and every namespace are directly addressable.  This still adds some critical functionality over directly talking to the k8s API, such as:
       - It's presented following our [api-spec](https://github.com/rancher/api-spec), so the same client libraries work for any of our APIs, including the in-browser generic [api-ui](https://github.com/rancher/api-ui).
       - "Watches" to find out when a resource changes are aggregated into a single websocket which keeps track of what's connected and can resume the stream, rather than many independent calls to the native k8s implementation
       - The "counts" resource internally watches everything to keep track of how many of every type of resource there are in every namespace and state, which allows us to show all the types that are "in use" and how many there are in the left nav.
@@ -149,7 +149,7 @@ Endpoint                 | Notes
 There are 3 main stores for communicating with different parts of the Rancher API:
 - `management`: Points at the global-level "steve" API for Rancher as a whole.
 - `cluster`: Points at "steve" for the one currently selected cluster; changes when you change clusters.
-- `rancher`: Points at the "norman" API, primaily for global-level resources, but some cluster-level resources are actually stored here and not physically in the cluster to be available to the `cluster` store.
+- `rancher`: Points at the "norman" API, primally for global-level resources, but some cluster-level resources are actually stored here and not physically in the cluster to be available to the `cluster` store.
 
 And then a bunch of others:
 
@@ -164,7 +164,7 @@ i18n | Internationalization
 index | The root store, manages things like which cluster you're connected to and what namespaces should be shown
 prefs | User preferences
 type-map | Meta-information about all the k8s types that are available to the current user and how they should be displayed
-wm | "Window manager" at the bottom of the screen for things like contianer shells and logs.
+wm | "Window manager" at the bottom of the screen for things like container shells and logs.
 
 ## Synching state
 
@@ -187,13 +187,18 @@ Translations should be the largest phrase that makes sense as a single key, rath
 
 ## Server-Side-Rendering (SSR)
 
-Nuxt supports server-side-rendering (SSR), where a node.js server runs the UI code on the server-side and responds with the fully-baked HTML of the desired page.  This allows it to make all the necessary API calls directly "to itself", with less latency, versus serving up an empty page which loads all the JS, then starts making API calls accross the slower server<->user connection.
+Nuxt supports server-side-rendering (SSR), where a node.js server runs the UI code on the server-side and responds with the fully-baked HTML of the desired page.  This allows it to make all the necessary API calls directly "to itself", with less latency, versus serving up an empty page which loads all the JS, then starts making API calls across the slower server<->user connection.
 
 But actually using this mode would require a node.js process (with sometimes considerable overhead) running inside of every Rancher container, and coordination with Rancher to proxy requests that should be for the UI to it.  So we don't actually ship anything using this mode, Rancher releases use single-page-app (SPA) mode only.
 
 We have no concrete plans for this, but can envision several situations where we might want to use SSR in the future, so maintaining the functionality is an engineering priority.  Therefore SSR is on by default for development, and you should keep it that way in general.  It is relatively easy to write something that will break in SSR, and if not exercised we'd end up with many different slightly broken things that add up to a large effort to ever get it running again if needed.
 
 To disable it for the whole server for development, add `--spa`.  To disable it for a single page load, add `?spa` (or `&spa`) to the query string.  It is harder, but possible, to write something that works in SSR but breaks in SPA, so these are good for debugging issues.
+
+
+## Contributing
+
+For developers, after reading through the introduction on this page, head over to our [Getting Started](./docs/developer/getting-started/README) guide to learn more.
 
 License
 =======
