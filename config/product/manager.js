@@ -3,6 +3,7 @@ import { STATE, NAME as NAME_COL, AGE } from '@/config/table-headers';
 import { CAPI, MANAGEMENT } from '@/config/types';
 
 export const NAME = 'manager';
+export const CHART_NAME = 'cluster-api';
 
 export function init(store) {
   const {
@@ -10,6 +11,7 @@ export function init(store) {
     basicType,
     headers,
     configureType,
+    weightGroup,
   } = DSL(store, NAME);
 
   product({
@@ -29,18 +31,34 @@ export function init(store) {
   ]);
 
   basicType([
-    CAPI.CAPI_CLUSTER,
-    MANAGEMENT.CLUSTER,
-    'cluster.x-k8s.io.machinedeployments',
-    'cluster.x-k8s.io.machinehealthchecks',
-    'cluster.x-k8s.io.machines',
-    'cluster.x-k8s.io.machinesets',
-    'cluster.x-k8s.io.clusterctl'
-  ], 'Other things for debugging');
+    CAPI.MACHINE_DEPLOYMENT,
+    CAPI.MACHINE,
+  ], 'Advanced');
 
   basicType([
-    /^rancher\.cattle\.io\..*configs?$/,
+    CAPI.CAPI_CLUSTER,
+    MANAGEMENT.CLUSTER,
+    'cluster.x-k8s.io.machinehealthcheck',
+    'cluster.x-k8s.io.machineset',
+    'cluster.x-k8s.io.clusterctl'
+  ], '(Debug)');
+
+  weightGroup('(Debug)', -100, true);
+
+  basicType([
+    /^cluster\.cattle\.io\..*configs?$/,
   ], 'Node Configs');
+
+  const MACHINE_SUMMARY = {
+    name:      'summary',
+    labelKey:  'tableHeaders.machines',
+    value:     'status',
+    sort:      false,
+    search:    false,
+    formatter: 'MachineSummaryGraph',
+    align:     'center',
+    width:     100,
+  };
 
   headers(CAPI.RANCHER_CLUSTER, [
     STATE,
@@ -52,6 +70,14 @@ export function init(store) {
       sort:   'spec.kubernetesVersion',
       search: 'spec.kubernetesVersion',
     },
+    MACHINE_SUMMARY,
     AGE,
+  ]);
+
+  headers('cluster.x-k8s.io.machinedeployment', [
+    STATE,
+    NAME_COL,
+    MACHINE_SUMMARY,
+    AGE
   ]);
 }

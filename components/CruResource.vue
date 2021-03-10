@@ -210,7 +210,7 @@ export default {
         v-if="showSubtypeSelection"
         class="subtypes-container"
       >
-        <slot name="subtypes">
+        <slot name="subtypes" :subtypes="subtypes">
           <div
             v-for="subtype in subtypes"
             :key="subtype.id"

@@ -685,6 +685,7 @@ cluster:
     exoscale: Exoscale
     googlegke: Google GKE
     huaweicce: Huawei CCE
+    import: Import
     k3s: K3s
     kubeAdmin: KubeADM
     linode: Linode
@@ -706,6 +707,13 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: vSphere
     zstack: ZStack
+  providerGroup:
+    create-template: Use a Catalog Template to create a cluster
+    create-kontainer: Create a cluster in a hosted Kuberetes provider
+    create-machine: Provision new nodes and create a cluster using RKE
+    create-custom: Use existing nodes and create a cluster using RKE
+    register-kontainer: Register an existing cluster in a hosted Kubernetes provider
+    register-custom: Import any Kubernetes cluster
   credential:
     label: Cloud Credential
     name:
@@ -2278,7 +2286,9 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
   groupLabel:
+    cluster: "<span>Cluster:</span> {name}"
     namespace: "<span>Namespace:</span> {name}"
+    nodePool: "<span>Node Pool:</span> {name}"
     notInANamespace: Not Namespaced
     notInAProject: Not in a Project
     project: "<span>Project:</span> {name}"
@@ -2825,6 +2835,7 @@ tableHeaders:
   lastUpdated: Last Updated
   lastSeen: Last Seen
   loggingOutputProviders: Provider
+  machines: Machines
   matches: Matches
   maxKubernetesVersion: Max Kubernetes Version
   message: Message

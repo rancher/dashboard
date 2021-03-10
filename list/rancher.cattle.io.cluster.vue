@@ -2,6 +2,8 @@
 import ResourceTable from '@/components/ResourceTable';
 import Masthead from '@/components/ResourceList/Masthead';
 import { REGISTER, _FLAGGED } from '@/config/query-params';
+import { allHash } from '@/utils/promise';
+import { CAPI } from '@/config/types';
 
 export default {
   components: { ResourceTable, Masthead },
@@ -16,11 +18,19 @@ export default {
       type:     Object,
       required: true,
     },
+  },
 
-    rows: {
-      type:     Array,
-      required: true,
-    },
+  async fetch() {
+    const hash = await allHash({
+      clusters:           this.$store.dispatch('management/findAll', { type: CAPI.RANCHER_CLUSTER }),
+      machineDeployments: this.$store.dispatch('management/findAll', { type: CAPI.MACHINE_DEPLOYMENT })
+    });
+
+    this.rows = hash.clusters;
+  },
+
+  data() {
+    return { rows: [] };
   },
 
   computed: {
@@ -30,7 +40,7 @@ export default {
         query: { [REGISTER]: _FLAGGED }
       };
     }
-  }
+  },
 };
 </script>
 

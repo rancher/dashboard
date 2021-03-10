@@ -145,8 +145,10 @@ export const MANAGEMENT = {
 };
 
 export const CAPI = {
-  CAPI_CLUSTER:    'cluster.x-k8s.io.cluster',
-  RANCHER_CLUSTER:  'rancher.cattle.io.cluster',
+  CAPI_CLUSTER:       'cluster.x-k8s.io.cluster',
+  MACHINE_DEPLOYMENT: 'cluster.x-k8s.io.machinedeployment',
+  MACHINE:            'cluster.x-k8s.io.machine',
+  RANCHER_CLUSTER:    'rancher.cattle.io.cluster',
 };
 
 // --------------------------------------

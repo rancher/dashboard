@@ -181,7 +181,7 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     hideBulkActions(type, field) {
-      store.commit(`${module}/hideBulkActions`, { type, field });
+      store.commit(`${ module }/hideBulkActions`, { type, field });
     },
 
     configureType(match, options) {
@@ -483,7 +483,7 @@ export const getters = {
           continue;
         }
 
-        const label = typeObj.labelKey ? t(typeObj.labelKey) || typeObj.label : typeObj.label;
+        const label = typeObj.labelKey ? rootGetters['i18n/t'](typeObj.labelKey) || typeObj.label : typeObj.label;
         const virtual = !!typeObj.virtual;
         let icon = typeObj.icon;
 
@@ -1191,7 +1191,7 @@ export const mutations = {
     state.headers[type] = headers;
   },
 
-  hideBulkActions(state, {type, field}) {
+  hideBulkActions(state, { type, field }) {
     state.hideBulkActions[type] = field;
   },
 
