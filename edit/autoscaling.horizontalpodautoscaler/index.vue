@@ -192,6 +192,17 @@ export default {
             :mode="mode"
             :initial-empty-row="true"
           >
+            <template #remove-button="removeProps">
+              <button
+                v-if="value.spec.metrics.length > 1"
+                type="button"
+                class="btn role-link close btn-sm"
+                @click="removeProps.remove"
+              >
+                <i class="icon icon-2x icon-x" />
+              </button>
+              <span v-else></span>
+            </template>
             <template #default="props">
               <MetricsRow
                 v-model="props.row.value"
