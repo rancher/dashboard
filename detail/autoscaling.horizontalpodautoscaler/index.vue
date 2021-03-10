@@ -1,13 +1,16 @@
 <script>
 import CreateEditView from '@/mixins/create-edit-view';
 import ResourceTabs from '@/components/form/ResourceTabs';
-import SortableTable from '@/components/SortableTable';
 import Tab from '@/components/Tabbed/Tab';
+import InfoBox from '@/components/InfoBox';
+import { camelCase, keys, startCase } from 'lodash';
+import { findBy } from '@/utils/array';
+import { get } from '@/utils/object';
 
 export default {
   components: {
+    InfoBox,
     ResourceTabs,
-    SortableTable,
     Tab,
   },
 
@@ -25,52 +28,57 @@ export default {
   },
 
   data() {
-    return {
-      metricHeaders: [
-        {
-          name:  'metric-source',
-          label: this.t('hpa.metrics.source'),
-          value: 'metricSource',
-          sort:  'metricSource:desc',
-        },
-        {
-          name:  'resource-name',
-          label: this.t('hpa.metrics.headers.resource'),
-          value: 'resourceName',
-          sort:  'resourceName:desc',
-        },
-        {
-          name:  'object-name',
-          label: this.t('hpa.metrics.headers.objectName'),
-          value: 'objectName',
-          sort:  'objectName:desc',
-        },
-        {
-          name:  'object-kind',
-          label: this.t('hpa.metrics.headers.objectKind'),
-          value: 'objectKind',
-          sort:  'objectKind:desc',
-        },
-        {
-          name:  'metric-name',
-          label: this.t('hpa.metrics.headers.metricName'),
-          value: 'metricName',
-          sort:  'metricName:desc',
-        },
-        {
-          name:  'target-name',
-          label: this.t('hpa.metrics.headers.targetName'),
-          value: 'targetName',
-          sort:  'targetName:desc',
-        },
-        {
-          name:  'quantity',
-          label: this.t('hpa.metrics.headers.quantity'),
-          value: 'targetValue',
-          sort:  'targetValue:desc',
-        },
-      ],
-    };
+    return {};
+  },
+
+  computed: {
+    mappedMetrics() {
+      const {
+        spec: { metrics = [] },
+        status: { currentMetrics = [] },
+      } = this.value;
+
+      return metrics.map((metric) => {
+        const metricValue = get(metric, camelCase(metric.type));
+        const targetType = metricValue?.target?.type;
+        const currentMatch = findBy(currentMetrics, 'type', metric.type);
+        const current = currentMatch ? get(currentMatch, `${ camelCase(metric.type) }.current`) : null;
+        const currentMetricsKVs = [];
+
+        if (current) {
+          keys(current).forEach((k) => {
+            currentMetricsKVs.push({
+              targetName:  startCase(k),
+              targetValue: current[k],
+            });
+          });
+        }
+
+        const out = {
+          metricName:    metricValue?.metric?.name ?? null,
+          metricSource:  metric.type,
+          targetName:    targetType ?? null,
+          targetValue:   null,
+          subRowContent: {
+            objectApiVersion: metricValue?.describedObject?.apiVersion ?? null,
+            objectKind:       metricValue?.describedObject?.kind ?? null,
+            objectName:       metricValue?.describedObject?.name ?? null,
+            resourceName:     metricValue?.name ?? null,
+            currentMetrics:   currentMetricsKVs,
+          },
+        };
+
+        if (targetType) {
+          if (targetType === 'Utilization') {
+            out.targetValue = metricValue.target.averageUtilization;
+          } else {
+            out.targetValue = get(metricValue.target, camelCase(targetType));
+          }
+        }
+
+        return out;
+      });
+    },
   },
 };
 </script>
@@ -80,17 +88,108 @@ export default {
     <Tab
       name="metrics"
       :label="t('hpa.tabs.metrics')"
-      class="bordered-table"
+      class="bordered-table hpa-metrics-table"
       :weight="3"
     >
-      <SortableTable
-        key-field="_key"
-        :headers="metricHeaders"
-        :rows="value.mappedMetrics"
-        :row-actions="false"
-        :table-actions="false"
-        :search="false"
-      />
+      <div
+        v-for="(metric, index) in mappedMetrics"
+        :key="`${index}${metric.metricName}`"
+      >
+        <InfoBox>
+          <div class="row info-row">
+            <div class="col span-6 info-column">
+              <h4>
+                <t k="hpa.detail.metricHeader" :source="metric.metricSource" />
+              </h4>
+              <div class="over-hr">
+                <hr />
+              </div>
+              <div v-if="metric.metricName" class="mb-5">
+                <label class="text-label">
+                  <t k="hpa.metrics.headers.metricName" />:
+                </label>
+                <span>{{ metric.metricName }}</span>
+              </div>
+              <div class="mb-5">
+                <label class="text-label">
+                  <t k="hpa.metrics.headers.targetName" />:
+                </label>
+                <span>{{ metric.targetName }}</span>
+              </div>
+              <div class="mb-5">
+                <label class="text-label">
+                  <t k="hpa.metrics.headers.value" />:
+                </label>
+                <span>{{ metric.targetValue }}</span>
+              </div>
+              <div v-if="metric.metricSource === 'Object'">
+                <div class="mb-5">
+                  <label class="text-label">
+                    <t k="hpa.objectReferance.api.label" />:
+                  </label>
+                  <span>{{ metric.subRowContent.objectApiVersion }}</span>
+                </div>
+                <div class="mb-5">
+                  <label class="text-label">
+                    <t k="hpa.objectReferance.kind.label" />:
+                  </label>
+                  <span>{{ metric.subRowContent.objectKind }}</span>
+                </div>
+                <div class="mb-5">
+                  <label class="text-label">
+                    <t k="hpa.objectReferance.name.label" />:
+                  </label>
+                  <span>{{ metric.subRowContent.objectName }}</span>
+                </div>
+              </div>
+              <div v-if="metric.metricSource === 'Resource'">
+                <div class="mb-5">
+                  <label class="text-label">
+                    <t k="hpa.metrics.headers.resource" />:
+                  </label>
+                  <span>{{ metric.subRowContent.resourceName }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col span-6">
+              <h4><t k="hpa.detail.currentMetrics.header" /></h4>
+              <hr />
+              <div
+                v-if="(metric.subRowContent.currentMetrics || []).length > 0"
+              >
+                <div
+                  v-for="(current, currentIndex) in metric.subRowContent
+                    .currentMetrics"
+                  :key="`${currentIndex}${current.targetName}`"
+                >
+                  <div class="mb-5">
+                    <label class="text-label">
+                      {{ current.targetName }}:
+                    </label>
+                    <span>{{ current.targetValue }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-else>
+                <t k="hpa.detail.currentMetrics.noMetrics" />
+              </div>
+            </div>
+          </div>
+        </InfoBox>
+      </div>
     </Tab>
   </ResourceTabs>
 </template>
+
+<style lang="scss" scoped>
+.hpa-metrics-table {
+  .info-box ::v-deep {
+    background-color: var(--simple-box-bg);
+  }
+  .row {
+    .over-hr {
+      padding-right: 30px;
+    }
+  }
+}
+</style>

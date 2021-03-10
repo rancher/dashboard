@@ -928,10 +928,11 @@ glance:
   version: Kubernetes Version
 
 hpa:
-  warnings:
-    noMetric: In order to use resource metrics with HPA, you need to deploy the metrics server.
-    external: In order to use external metrics with HPA, you need to deploy the external metrics server such as prometheus adapter.
-    custom: In order to use custom metrics with HPA, you need to deploy the custom metrics server such as prometheus adapter.
+  detail:
+    currentMetrics:
+      header: Current Metrics
+      noMetrics: No Current Metrics
+    metricHeader: '{source} Metric'
   metricIdentifier:
     name:
       label: Metric Name
@@ -957,6 +958,7 @@ hpa:
       quantity: Quantity
       resource: Resource Name
       targetName: Target Name
+      value: Value
     source: Source
   objectReferance:
     api:
@@ -971,11 +973,15 @@ hpa:
   tabs:
     labels: Labels
     metrics: Metrics
-    workload: Workload
     target: Target
+    workload: Workload
   types:
     cpu: CPU
     memory: Memory
+  warnings:
+    custom: In order to use custom metrics with HPA, you need to deploy the custom metrics server such as prometheus adapter.
+    external: In order to use external metrics with HPA, you need to deploy the external metrics server such as prometheus adapter.
+    noMetric: In order to use resource metrics with HPA, you need to deploy the metrics server.
   workloadTab:
     current: Current Replicas
     last: Last Scale Time
@@ -1487,12 +1493,12 @@ monitoringReceiver:
     password: Password
     none:
       label: None
-    bearerToken: 
+    bearerToken:
       label: Bearer Token
       placeholder: e.g. secret-token
-    basicAuth: 
+    basicAuth:
       label: Basic Auth
-    bearerTokenFile: 
+    bearerTokenFile:
       label: Bearer Token File
       placeholder: e.g. ./user_token
 

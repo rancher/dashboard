@@ -1,6 +1,3 @@
-import { get } from '@/utils/object';
-import { camelCase } from 'lodash';
-
 export default {
   // if not a function it does exist, why?
   customValidationRules() {
@@ -43,34 +40,4 @@ export default {
 
     return out;
   },
-
-  mappedMetrics() {
-    const { spec: { metrics = [] } } = this;
-
-    return metrics.map((metric) => {
-      const metricValue = get(metric, camelCase(metric.type));
-      const targetType = metricValue?.target?.type;
-
-      const out = {
-        metricName:   metricValue?.metric?.name ?? null,
-        metricSource: metric.type,
-        objectKind:   metricValue?.describedObject?.kind ?? null,
-        objectName:   metricValue?.describedObject?.name ?? null,
-        resourceName: metricValue?.name ?? null,
-        targetName:   targetType ?? null,
-        targetValue:  null,
-      };
-
-      if (targetType) {
-        if (targetType === 'Utilization') {
-          out.targetValue = metricValue.target.averageUtilization;
-        } else {
-          out.targetValue = get(metricValue.target, camelCase(targetType));
-        }
-      }
-
-      return out;
-    });
-  },
-
 };
