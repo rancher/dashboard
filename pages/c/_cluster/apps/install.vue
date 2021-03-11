@@ -339,7 +339,7 @@ export default {
   computed: {
     ...mapGetters(['currentCluster', 'isRancher']),
 
-    showPrerelease: mapPref(SHOW_PRE_RELEASE),
+    showPreRelease: mapPref(SHOW_PRE_RELEASE),
 
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
@@ -495,8 +495,11 @@ export default {
             nue.disabled = true;
           }
         }
-        if (!this.showPrerelease) {
-          const isPre = !!semver.prerelease(version.version) || version.version.includes('-rc');
+        if (!semver.valid(version.version)) {
+          version.version = semver.clean(version.version, { loose: true });
+        }
+        if (!this.showPreRelease) {
+          const isPre = !!semver.prerelease(version.version);
 
           if (!isPre) {
             out.push(nue);
@@ -915,11 +918,6 @@ export default {
     </template>
 
     <template v-else>
-      <div class="row mb-5">
-        <div class="col span-6" />
-
-        <Checkbox v-model="showPrerelease" class="repo mb-5" :label="t('catalog.charts.showPreRelease')" />
-      </div>
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect

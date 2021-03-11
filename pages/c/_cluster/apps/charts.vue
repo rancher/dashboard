@@ -14,7 +14,6 @@ import Select from '@/components/form/Select';
 import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@/store/prefs';
 import { removeObject, addObject, findBy } from '@/utils/array';
 import { CATALOG } from '@/config/labels-annotations';
-
 import filter from 'lodash/filter';
 const semver = require('semver');
 
@@ -56,8 +55,6 @@ export default {
     ...mapGetters({ allCharts: 'catalog/charts', loadingErrors: 'catalog/errors' }),
 
     hideRepos: mapPref(HIDE_REPOS),
-
-    showPrerelease: mapPref(SHOW_PRE_RELEASE),
 
     showWindowsClusterNoAppsSplash() {
       const clusterProvider = this.currentCluster.status.provider || 'other';
@@ -329,7 +326,11 @@ export default {
     },
 
     isPreRelease(version = '') {
-      return semver.prerelease(version) || version.includes('-rc');
+      if (!semver.valid(version)) {
+        version = semver.clean(version, { loose: true });
+      }
+
+      return semver.prerelease(version);
     },
   },
 };
@@ -362,8 +363,6 @@ export default {
           :class="{'pull-left': true, 'repo': true, [r.color]: true}"
           @input="toggleRepo(r, $event)"
         />
-
-        <Checkbox v-model="showPrerelease" class="repo mt-3" :label="t('catalog.charts.showPreRelease')" />
       </div>
       <Select
         v-model="category"

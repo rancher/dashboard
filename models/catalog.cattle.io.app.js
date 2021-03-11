@@ -6,6 +6,8 @@ import { CATALOG as CATALOG_ANNOTATIONS, FLEET } from '@/config/labels-annotatio
 import { compare, sortable } from '@/utils/version';
 import { filterBy } from '@/utils/array';
 import { CATALOG } from '@/config/types';
+import { SHOW_PRE_RELEASE } from '@/store/prefs';
+const semver = require('semver');
 
 export default {
   showMasthead() {
@@ -78,8 +80,20 @@ export default {
     }
 
     const clusterProvider = this.$rootGetters['currentCluster'].status.provider || 'other';
+    const showPreRelease = this.$rootGetters['prefs/get'](SHOW_PRE_RELEASE);
     const thisVersion = this.spec?.chart?.metadata?.version;
-    const newestChart = chart.versions?.[0];
+    let versions = chart.versions;
+
+    if (!showPreRelease) {
+      versions = chart.versions.filter((version) => {
+        if (!semver.valid(version)) {
+          version = semver.clean(version, { loose: true });
+        }
+
+        return semver.prerelease(version);
+      } );
+    }
+    const newestChart = versions?.[0];
     const newestVersion = newestChart?.version;
 
     if ( !thisVersion || !newestVersion ) {
