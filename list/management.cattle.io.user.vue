@@ -17,9 +17,7 @@ export default {
     const store = this.$store;
     const resource = this.resource;
 
-    const inStore = store.getters['currentProduct'].inStore;
-
-    this.allUsers = await store.dispatch(`${ inStore }/findAll`, { type: resource });
+    this.allUsers = await store.dispatch(`management/findAll`, { type: resource });
 
     this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
       .then(res => !!res?.actions?.refreshauthprovideraccess);
@@ -31,8 +29,7 @@ export default {
 
     const resource = params.resource;
 
-    const inStore = getters['currentProduct'].inStore;
-    const schema = getters[`${ inStore }/schemaFor`](resource);
+    const schema = getters[`management/schemaFor`](resource);
 
     return {
       schema,
