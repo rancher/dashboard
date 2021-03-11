@@ -514,7 +514,6 @@ catalog:
     noCharts: 'There are no charts available, have you added any repos?'
     noWindows: Your catalogs do not contain any charts capable of being deployed on a Windows cluster.
     search: Filter
-    showPreRelease: Show Pre-Release Chart Versions
   install:
     action:
       goToUpgrade: Edit/Upgrade
@@ -2046,6 +2045,10 @@ prefs:
     label: Enable Developer Tools & Features
   hideDesc:
     label: Hide All Type Description Boxes
+  helm:
+    'true': Include Prerelease Versions
+    'false': Releases Only
+    label: Show Helm Charts
 
 principal:
   loading: Loading&hellip;
