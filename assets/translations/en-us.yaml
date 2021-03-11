@@ -1883,7 +1883,13 @@ rbac:
       yes: 'Yes: New bindings are not allowed to use this role'
       no: No
     tabs:
-      resources: Grant Resources
+      grantResources: 
+        label: Grant Resources
+        tableHeaders:
+          verbs: Verbs
+          resources: Resources
+          nonResourceUrls: Non-Resource URLs
+          apiGroups: API Groups
     subtypes:
       GLOBAL:
         label: Global
@@ -2616,6 +2622,10 @@ validation:
         singleEntry: 'At least one alert rule or one recording rule is required in rule group {index}.'
   required: '"{key}" is required'
   requiredOrOverride: '"{key}" is required or must allow override'
+  roleTemplate:
+    roleTemplateRules: 
+      missingVerb: You must specify at least one verb for each resource grant
+      missingResource: You must specify at least one Resource, Non-Resource URL or API Group for each resource grant
   service:
     externalName:
       none: External Name is required on an ExternalName Service.
