@@ -21,6 +21,10 @@
   min-width: 75px;
   // line-height: $input-line-height;
 
+  .required {
+    color: var(--error);
+  }
+
   .v-select {
     &.inline {
 

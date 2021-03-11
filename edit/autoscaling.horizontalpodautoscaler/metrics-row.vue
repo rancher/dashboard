@@ -27,6 +27,10 @@ export default {
   },
 
   props: {
+    referent: {
+      type:    Object,
+      default: () => ({}),
+    },
     value: {
       type:    Object,
       default: () => ({}),
@@ -63,6 +67,19 @@ export default {
     isExternalMetric() {
       return this.checkSpecType('external');
     },
+    showReferentWarning() {
+      const { referent } = this;
+
+      if (!isEmpty(referent)) {
+        const containerRequests = referent.spec?.containers?.[0]?.resources?.requests;
+
+        if (containerRequests && !containerRequests[this.value.name]) {
+          return false;
+        }
+      }
+
+      return true;
+    }
   },
 
   watch: {
@@ -136,6 +153,11 @@ export default {
     <Banner
       v-if="!isResourceMetric"
       :label="isExternalMetric ? t('hpa.warnings.external') : t('hpa.warnings.custom')"
+      color="warning"
+    />
+    <Banner
+      v-if="showReferentWarning"
+      :label="t('hpa.warnings.resource')"
       color="warning"
     />
     <div class="row mb-20">

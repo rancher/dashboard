@@ -982,6 +982,7 @@ hpa:
     custom: In order to use custom metrics with HPA, you need to deploy the custom metrics server such as prometheus adapter.
     external: In order to use external metrics with HPA, you need to deploy the external metrics server such as prometheus adapter.
     noMetric: In order to use resource metrics with HPA, you need to deploy the metrics server.
+    resource: The selected target reference does not have the correct resource requests on the spec. Without this the HPA metric will have no effect.
   workloadTab:
     current: Current Replicas
     last: Last Scale Time
