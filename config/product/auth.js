@@ -24,7 +24,7 @@ export function init(store) {
     icon:                'user',
     removable:           false,
     weight:              50,
-    public:              false, // Hide from regular view during development
+    public:              true, // Hide from regular view during development
     showClusterSwitcher: false,
   });
 
@@ -115,7 +115,7 @@ export function init(store) {
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/keycloak`, 'auth/saml');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/adfs`, 'auth/saml');
   componentForType(`${ MANAGEMENT.AUTH_CONFIG }/googleoauth`, 'auth/googleoauth');
-  // componentForType(`${ MANAGEMENT.AUTH_CONFIG }/azuread`, 'auth/azuread');
+  componentForType(`${ MANAGEMENT.AUTH_CONFIG }/azuread`, 'auth/azuread');
 
   basicType([
     'config',

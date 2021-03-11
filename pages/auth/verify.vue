@@ -1,6 +1,7 @@
 <script>
 import { GITHUB_CODE, GITHUB_NONCE, BACK_TO } from '@/config/query-params';
 import { get } from '@/utils/object';
+import { base64Decode } from '@/utils/crypto';
 const samlProviders = ['ping', 'adfs', 'keycloak', 'okta', 'shibboleth'];
 
 function reply(err, code) {
@@ -19,42 +20,50 @@ export default {
 
   async fetch({ store, route, redirect }) {
     const code = route.query[GITHUB_CODE];
-    const state = route.query[GITHUB_NONCE] || '';
-    const isTesting = state.includes('-test');
+    const stateStr = route.query[GITHUB_NONCE] || '';
 
-    if (isTesting) {
+    let parsed;
+
+    try {
+      parsed = JSON.parse(base64Decode((stateStr)));
+    } catch {
       return;
     }
-    let provider = 'github';
 
-    if (code) {
-      if (state.includes('-googleoauth')) {
-        provider = 'googleoauth';
-      } else if (state.includes('-azuread')) {
-        provider = 'azuread';
-      }
-      const res = await store.dispatch('auth/verifyOAuth', {
-        code,
-        nonce: route.query[GITHUB_NONCE],
-        provider
-      });
+    const { test, provider, nonce } = parsed;
 
-      if ( res._status === 200) {
-        const backTo = route.query[BACK_TO] || '/';
+    if (test) {
+      return;
+    }
 
-        redirect(backTo);
-      } else {
-        redirect(`/auth/login?err=${ escape(res) }`);
-      }
+    const res = await store.dispatch('auth/verifyOAuth', {
+      code,
+      nonce,
+      provider
+    });
+
+    if ( res._status === 200) {
+      const backTo = route.query[BACK_TO] || '/';
+
+      redirect(backTo);
+    } else {
+      redirect(`/auth/login?err=${ escape(res) }`);
     }
   },
 
   data() {
-    const state = this.$route.query[GITHUB_NONCE] || '';
+    const stateJSON = this.$route.query[GITHUB_NONCE] || '';
 
-    const testing = state.includes('-test');
+    let parsed;
 
-    return { testing };
+    try {
+      parsed = JSON.parse(base64Decode(stateJSON));
+    } catch {
+    }
+
+    const { test } = parsed;
+
+    return { testing: test };
   },
 
   mounted() {

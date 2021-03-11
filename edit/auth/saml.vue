@@ -123,7 +123,7 @@ export default {
           </div>
         </div>
         <div class="row mb-20">
-          <div v-if="NAME !== 'okta'" class="col span-6">
+          <div v-if="NAME === 'keycloak' || NAME === 'ping'" class="col span-6">
             <LabeledInput
               v-model="model.entityID"
               :label="t(`authConfig.saml.entityID`)"
