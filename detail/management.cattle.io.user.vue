@@ -18,14 +18,22 @@ export default {
     CreateEditView
   ],
   async fetch() {
-    // Upfront fetch
-    await this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE });
+    const canSeeGlobalRoles = !!this.$store.getters[`management/schemaFor`](RBAC.GLOBAL_ROLE);
 
-    this.data.gp = await this.fetchGlobalRoleBindings(this.value.id);
+    if (canSeeGlobalRoles) {
+      this.data.gp = await this.fetchGlobalRoleBindings(this.value.id);
+    }
 
-    this.data.cr = await this.fetchClusterRoles(this.value.id);
+    const canSeeRoleTemplates = !!this.$store.getters[`management/schemaFor`](MANAGEMENT.ROLE_TEMPLATE);
 
-    this.data.pr = await this.fetchProjectRoles(this.value.id);
+    if (canSeeRoleTemplates) {
+      // Upfront fetch
+      await this.$store.dispatch('management/findAll', { type: MANAGEMENT.ROLE_TEMPLATE });
+
+      this.data.cr = await this.fetchClusterRoles(this.value.id);
+
+      this.data.pr = await this.fetchProjectRoles(this.value.id);
+    }
   },
   data() {
     const role = {
@@ -95,17 +103,18 @@ export default {
         ]
       },
       data: {
-        gp: [],
-        cr: [],
-        pr: []
+        gp: null,
+        cr: null,
+        pr: null
       },
-      isAdmin: false
+      isAdmin: false,
     };
   },
   methods: {
     async fetchGlobalRoleBindings(userId) {
       try {
         const roles = await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE });
+
         const out = await Promise.all(roles
           .filter(r => !r.isSpecial)
           .map(r => this.$store.dispatch(`rancher/clone`, { resource: r }))
@@ -205,7 +214,7 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <ResourceTabs v-model="value" :mode="mode">
-      <Tab label-key="user.detail.globalPermissions.label" name="gp" :weight="3">
+      <Tab v-if="data.gp" label-key="user.detail.globalPermissions.label" name="gp" :weight="3">
         <div class="subtext">
           {{ t("user.detail.globalPermissions.description") }}
         </div>
@@ -222,7 +231,7 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab label-key="user.detail.clusterRoles.label" name="cr" :weight="2">
+      <Tab v-if="data.cr" label-key="user.detail.clusterRoles.label" name="cr" :weight="2">
         <div class="subtext">
           {{ t("user.detail.clusterRoles.description") }}
         </div>
@@ -234,7 +243,7 @@ export default {
           :search="false"
         />
       </Tab>
-      <Tab label-key="user.detail.projectRoles.label" name="pr" :weight="1">
+      <Tab v-if="data.pr" label-key="user.detail.projectRoles.label" name="pr" :weight="1">
         <div class="subtext">
           {{ t("user.detail.projectRoles.description") }}
         </div>
