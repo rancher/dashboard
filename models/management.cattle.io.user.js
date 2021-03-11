@@ -131,6 +131,15 @@ export default {
     };
   },
 
+  canActivate() {
+    return (state) => {
+      const stateOk = state ? this.state === 'inactive' : this.state === 'active';
+      const schemaOk = !!this.schema?.resourceMethods.find(x => x.toLowerCase() === 'put');
+
+      return stateOk && schemaOk;
+    };
+  },
+
   _availableActions() {
     return [
       {
@@ -139,7 +148,7 @@ export default {
         icon:       'icon icon-play',
         bulkable:   true,
         bulkAction: 'activateBulk',
-        enabled:    this.state === 'inactive',
+        enabled:    this.canActivate(true),
         weight:     2
       },
       {
@@ -148,7 +157,7 @@ export default {
         icon:       'icon icon-pause',
         bulkable:   true,
         bulkAction: 'deactivateBulk',
-        enabled:    this.state === 'active',
+        enabled:    this.canActivate(false),
         weight:     1
       },
       {
