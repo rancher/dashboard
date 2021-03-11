@@ -19,7 +19,7 @@ export function init(store) {
   } = DSL(store, NAME);
 
   product({
-    ifHaveType:          MANAGEMENT.SETTING,
+    ifHaveType:          new RegExp(`${ MANAGEMENT.SETTING }|${ MANAGEMENT.FEATURE }`, 'i'),
     inStore:             'management',
     icon:                'globe',
     weight:              -10,
@@ -28,6 +28,7 @@ export function init(store) {
   });
 
   virtualType({
+    ifHaveType:          MANAGEMENT.SETTING,
     labelKey:       'advancedSettings.label',
     name:           'settings',
     namespaced:     false,
@@ -43,6 +44,7 @@ export function init(store) {
   });
 
   virtualType({
+    ifHaveType:          MANAGEMENT.FEATURE,
     labelKey:       'featureFlags.label',
     name:           'features',
     namespaced:     false,
