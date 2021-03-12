@@ -238,6 +238,9 @@ export default {
     color: white !important;
   }
 
+  .vs__selected-options input {
+    color: var(--header-btn-text);
+  }
   .vs__dropdown-toggle {
     background: rgba(0, 0, 0, 0.05);
     border-radius: var(--border-radius);
