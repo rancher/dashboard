@@ -73,7 +73,7 @@
 
   --checkbox-tick              : #{$lightest};
   --checkbox-border            : #{$medium};
-  --checkbox-tick-disabled     : #{lighten($disabled, 20%)};
+  --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : #{$link};
 
