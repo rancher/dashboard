@@ -134,9 +134,9 @@ export default {
   canActivate() {
     return (state) => {
       const stateOk = state ? this.state === 'inactive' : this.state === 'active';
-      const schemaOk = !!this.schema?.resourceMethods.find(x => x.toLowerCase() === 'put');
+      const permissionOk = this.hasLink('update'); // Not canUpdate, only gate on api not whether editable pages should be visible
 
-      return stateOk && schemaOk;
+      return stateOk && permissionOk;
     };
   },
 

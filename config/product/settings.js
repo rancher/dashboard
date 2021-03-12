@@ -28,7 +28,7 @@ export function init(store) {
   });
 
   virtualType({
-    ifHaveType:          MANAGEMENT.SETTING,
+    ifHaveType:     MANAGEMENT.SETTING,
     labelKey:       'advancedSettings.label',
     name:           'settings',
     namespaced:     false,
@@ -44,7 +44,7 @@ export function init(store) {
   });
 
   virtualType({
-    ifHaveType:          MANAGEMENT.FEATURE,
+    ifHaveType:     MANAGEMENT.FEATURE,
     labelKey:       'featureFlags.label',
     name:           'features',
     namespaced:     false,
