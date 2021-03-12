@@ -184,8 +184,9 @@ export default {
   details() {
     return [
       {
-        label:   this.t('user.detail.username'),
-        content: this.username
+        label:     this.t('user.detail.username'),
+        formatter: 'CopyToClipboard',
+        content:   this.username
       },
       ...this._details
     ];
