@@ -17,6 +17,7 @@ import { API_SERVICE, SCALABLE_WORKLOAD_TYPES } from '@/config/types';
 import isEmpty from 'lodash/isEmpty';
 import find from 'lodash/find';
 import endsWith from 'lodash/endsWith';
+import { findBy } from '@/utils/array';
 
 const RESOURCE_METRICS_API_GROUP = 'metrics.k8s.io';
 
@@ -71,13 +72,16 @@ export default {
           .filter(
             wl => wl.metadata.namespace === this.value.metadata.namespace
           )
-          // Update to type OBJECT_REFERENCE which can be stored directly as scaleTargetRef
-          .map(workload => ({
-            kind:       workload.kind,
-            name:       workload.metadata.name,
-            apiVersion: workload.apiVersion,
-          }))
       );
+    },
+    allWorkloadsMapped() {
+      return this.allWorkloadsFiltered
+      // Update to type OBJECT_REFERENCE which can be stored directly as scaleTargetRef
+        .map(workload => ({
+          kind:       workload.kind,
+          name:       workload.metadata.name,
+          apiVersion: workload.apiVersion,
+        }));
     },
     allServices() {
       return this.$store.getters['cluster/all'](API_SERVICE);
@@ -92,6 +96,13 @@ export default {
             endsWith(api.name, RESOURCE_METRICS_API_GROUP)
         )
       );
+    },
+    selectedTargetRef() {
+      const { scaleTargetRef: { name } } = this.value.spec;
+      const { allWorkloadsFiltered } = this;
+      const match = findBy(allWorkloadsFiltered, 'metadata.name', name);
+
+      return match ?? null;
     },
   },
 
@@ -154,7 +165,8 @@ export default {
                 :get-option-label="(opt) => opt.name"
                 :mode="mode"
                 :label="t('hpa.workloadTab.targetReference')"
-                :options="allWorkloadsFiltered"
+                :options="allWorkloadsMapped"
+                :required="true"
               >
                 <template v-slot:option="option">
                   {{ option.name }}<span class="pull-right">{{ option.kind }}</span>
@@ -192,11 +204,23 @@ export default {
             :mode="mode"
             :initial-empty-row="true"
           >
+            <template #remove-button="removeProps">
+              <button
+                v-if="value.spec.metrics.length > 1"
+                type="button"
+                class="btn role-link close btn-sm"
+                @click="removeProps.remove"
+              >
+                <i class="icon icon-2x icon-x" />
+              </button>
+              <span v-else></span>
+            </template>
             <template #default="props">
               <MetricsRow
                 v-model="props.row.value"
                 :mode="mode"
                 :metrics-available="resourceMetricsAvailable"
+                :referent="selectedTargetRef"
               />
             </template>
           </ArrayListGrouped>
