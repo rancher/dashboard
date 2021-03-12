@@ -39,7 +39,8 @@ export function proxyFor(ctx, obj, isClone = false) {
   }
 
   const mappedType = ctx.rootGetters['type-map/componentFor'](obj.type);
-  const model = lookup(mappedType, obj?.metadata?.name) || ResourceInstance;
+  const customModel = lookup(mappedType, obj?.metadata?.name);
+  const model = customModel || ResourceInstance;
 
   // Hack for now, the resource-instance name() overwrites the model name.
   if ( obj.name ) {
@@ -72,7 +73,7 @@ export function proxyFor(ctx, obj, isClone = false) {
 
       let fn;
 
-      if ( model && Object.prototype.hasOwnProperty.call(model, name) ) {
+      if ( customModel && Object.prototype.hasOwnProperty.call(customModel, name) ) {
         fn = model[name];
       } else if (nativeProperties.includes(name) && obj[name] !== undefined) {
         // If there's not a model specific override for this property check if it exists natively in the object... otherwise fall back on

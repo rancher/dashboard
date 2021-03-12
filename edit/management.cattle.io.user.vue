@@ -110,28 +110,19 @@ export default {
         throw new Error(this.t('user.edit.credentials.username.exists'));
       }
 
-      const user = await this.$store.dispatch('management/create', {
-        type:               MANAGEMENT.USER,
-        metadata:           { generateName: `user-` },
+      const user = await this.$store.dispatch('rancher/create', {
+        type:               NORMAN.USER,
         description:        this.form.description,
-        displayName:        this.form.displayName,
         enabled:            true,
         mustChangePassword: this.form.password.userChangeOnLogin,
-        // password:           this.form.password.password,
-        username:           this.form.username,
+        name:               this.form.displayName,
+        password:           this.form.password.password,
+        username:           this.form.username
       });
 
-      const newSteveUser = await user.save();
+      const newNormanUser = await user.save();
 
-      // Change the password in a separate step... sent via create request just means storeing it in plane text
-      const newNormanUser = await this.$store.dispatch('rancher/find', {
-        type:       NORMAN.USER,
-        id:   newSteveUser.id,
-      });
-
-      this.$refs.changePassword.setPassword(newNormanUser);
-
-      return newSteveUser;
+      return this.$store.dispatch('management/find', { type: MANAGEMENT.USER, id: newNormanUser.id });
     },
     async editUser() {
       if (!this.credentialsChanged) {
