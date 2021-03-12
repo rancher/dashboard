@@ -18,6 +18,7 @@ generic:
   ignored: Ignored
   invalidCron: Invalid cron schedule
   labelsAndAnnotations: Labels and Annotations
+  loading: Loading&hellip;
   members: Members
   na: n/a
   name: Name
