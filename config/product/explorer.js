@@ -228,6 +228,9 @@ export function init(store) {
   ignoreType(MANAGEMENT.TOKEN);
   ignoreType(NORMAN.TOKEN);
 
+  // Ignore these types as they are managed through the auth product
+  ignoreType(MANAGEMENT.USER);
+
   spoofedType({
     label:             'Role Template',
     type:              RBAC.SPOOFED.ROLE_TEMPLATE,
