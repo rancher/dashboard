@@ -252,25 +252,13 @@ export default {
       </h4>
       <div slot="body">
         <div class="mb-10">
-          {{ t('promptRemove.attemptingToRemove', {type}) }} <template v-for="(resource, i) in names">
-            <template v-if="i<5">
-              <LinkDetail :key="resource" :value="resource" :row="toRemove[i]" @click.native="close" />
-              <span v-if="i===names.length-1" :key="resource+2">{{ plusMore }}</span><span v-else :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
-            </template>
-          </template>
+          {{ t('promptRemove.attemptingToRemove', {type}) }} <template v-for="(resource, i) in names"><template v-if="i<5"><b :key="resource+1">{{ toRemove[i].nameDisplay }}</b><template v-if="i===names.length-1">{{ plusMore }}</template><template v-else>{{ i === toRemove.length-2 ? ' and ' : ', ' }}</template></template></template>
           <div v-if="needsConfirm" class="mt-10">
-            <template v-if="toRemove.length === 1">
-              {{ t('promptRemove.confirmName') }}
-            </template>
-            <template v-else>
-              {{
-                t('promptRemove.confirmNameSpecific',
-                  {
-                    pos: nameToMatchPosition,
-                    resource: t('generic.resource', { count: 1 })
-                  })
-              }}
-            </template>
+            <tempate
+              v-html="t('promptRemove.confirmName', {
+                nameToMatch
+              }, true)"
+            />
           </div>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
