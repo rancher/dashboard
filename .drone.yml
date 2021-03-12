@@ -39,7 +39,7 @@ platform:
   arch: amd64
 
 steps:
-- name: build
+- name: gate
   pull: default
   image: node:12
   commands:
@@ -107,7 +107,7 @@ steps:
   commands:
   - ./scripts/build-hosted
 
-- name: build
+- name: upload-gate
   pull: default
   image: node:12
   commands:
@@ -220,7 +220,7 @@ steps:
   commands:
   - ./scripts/build-embedded
 
-- name: build
+- name: upload-gate
   pull: default
   image: node:12
   commands:
