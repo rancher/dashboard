@@ -90,12 +90,6 @@ export default {
   methods: {
     setPage(num) {
       this.page = num;
-
-      if ( num === 1 ) {
-        this.$router.applyQuery({ [PAGE]: undefined });
-      } else {
-        this.$router.applyQuery({ [PAGE]: num });
-      }
     },
 
     goToPage(which) {

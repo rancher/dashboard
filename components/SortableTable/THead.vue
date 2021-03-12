@@ -1,6 +1,4 @@
 <script>
-import { queryParamsFor } from '@/plugins/extend-router';
-import { SORT_BY, DESCENDING } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
 import { SOME, NONE } from './selection';
 
@@ -92,17 +90,6 @@ export default {
       return col.name === this.sortBy;
     },
 
-    queryFor(col) {
-      const query = queryParamsFor(this.$route.query, {
-        [SORT_BY]:    col.name,
-        [DESCENDING]: this.isCurrent(col) && !this.descending,
-      }, {
-        [SORT_BY]:    this.defaultSortBy,
-        [DESCENDING]: false,
-      });
-
-      return query;
-    },
   }
 };
 </script>
@@ -126,14 +113,14 @@ export default {
         :class="{ sortable: col.sort }"
         @click.prevent="changeSort($event, col)"
       >
-        <nuxt-link v-if="col.sort" :to="{query: queryFor(col)}">
+        <span v-if="col.sort">
           <span v-html="labelFor(col)" />
           <span class="icon-stack">
             <i class="icon icon-sort icon-stack-1x faded" />
             <i v-if="isCurrent(col) && !descending" class="icon icon-sort-down icon-stack-1x" />
             <i v-if="isCurrent(col) && descending" class="icon icon-sort-up icon-stack-1x" />
           </span>
-        </nuxt-link>
+        </span>
         <span v-else>{{ labelFor(col) }}</span>
       </th>
       <th v-if="rowActions" :width="rowActionsWidth">
@@ -143,9 +130,14 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .sortable > A {
+  .sortable > SPAN {
     display: inline-block;
     white-space: nowrap;
+    &:hover,
+    &:active {
+      text-decoration: underline;
+      color: var(--body-text);
+    }
   }
 
   thead {
