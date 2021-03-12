@@ -252,7 +252,15 @@ export default {
       </h4>
       <div slot="body">
         <div class="mb-10">
-          {{ t('promptRemove.attemptingToRemove', {type}) }} <template v-for="(resource, i) in names"><template v-if="i<5"><b :key="resource+1">{{ toRemove[i].nameDisplay }}</b><template v-if="i===names.length-1">{{ plusMore }}</template><template v-else>{{ i === toRemove.length-2 ? ' and ' : ', ' }}</template></template></template>
+          {{ t('promptRemove.attemptingToRemove', {type}) }} <template v-for="(resource, i) in names">
+            <template v-if="i<5">
+              <b :key="resource+1">{{ toRemove[i].nameDisplay }}</b><template v-if="i===names.length-1">
+                {{ plusMore }}
+              </template><template v-else>
+                {{ i === toRemove.length-2 ? ' and ' : ', ' }}
+              </template>
+            </template>
+          </template>
           <div v-if="needsConfirm" class="mt-10">
             <tempate
               v-html="t('promptRemove.confirmName', {
