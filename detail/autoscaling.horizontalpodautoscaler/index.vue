@@ -101,9 +101,6 @@ export default {
               <h4>
                 <t k="hpa.detail.metricHeader" :source="metric.metricSource" />
               </h4>
-              <div class="over-hr">
-                <hr />
-              </div>
               <div v-if="metric.metricName" class="mb-5">
                 <label class="text-label">
                   <t k="hpa.metrics.headers.metricName" />:
@@ -153,7 +150,6 @@ export default {
             </div>
             <div class="col span-6">
               <h4><t k="hpa.detail.currentMetrics.header" /></h4>
-              <hr />
               <div
                 v-if="(metric.subRowContent.currentMetrics || []).length > 0"
               >
