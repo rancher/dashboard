@@ -25,6 +25,10 @@ export default {
     return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.nodePool', { name: escapeHtml(this.nameDisplay) }) }`;
   },
 
+  groupByPoolShortLabel() {
+    return `${ this.$rootGetters['i18n/t']('resourceTable.groupLabel.nodePool', { name: escapeHtml(this.nameDisplay.replace(/^.*-nodepool-/, '')) }) }`;
+  },
+
   desired() {
     return this.spec?.replicas || 0;
   },
@@ -38,7 +42,7 @@ export default {
   },
 
   ready() {
-    return Math.max(0, (this.status?.replicas || 0) - (this.status.unavailableReplicas || 0));
+    return Math.max(0, (this.status?.replicas || 0) - (this.status?.unavailableReplicas || 0));
   },
 
   unavailable() {

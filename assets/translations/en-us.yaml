@@ -718,7 +718,17 @@ cluster:
     label: Cloud Credential
     name:
       label: Credential Name
-      placeholder: Optional name for this credential
+      placeholder: Name for this credential (optional)
+    aws:
+      accessKey:
+        label: Access Key
+        placeholder: Your AWS Access Key
+      secretKey:
+        label: ScretKey
+        placeholder: Your AWS Secret Key
+      defaultRegion:
+        label: Default Region
+        help: The default region to use when creating clusters.  Also contacted to verify that this credential works.
     digitalocean:
       accessToken:
         label: Access Token

@@ -3,8 +3,7 @@ import CreateEditView from '@/mixins/create-edit-view';
 import Loading from '@/components/Loading';
 import CruResource from '@/components/CruResource';
 import SelectIconGrid from '@/components/SelectIconGrid';
-import { REGISTER, _FLAGGED } from '@/config/query-params';
-import { CAPI } from '@/config/types';
+import { REGISTER, SUB_TYPE, _FLAGGED } from '@/config/query-params';
 import { DEFAULT_WORKSPACE } from '@/models/rancher.cattle.io.cluster';
 import { sortBy } from '@/utils/sort';
 import Rke2 from './rke2';
@@ -34,23 +33,33 @@ export default {
       type:     String,
       required: true,
     },
+
+    value: {
+      type:    Object,
+      default: null,
+    }
   },
 
   async fetch() {
     if ( this.subType ) {
       await this.selectType(this.subType, false);
+    } else if ( this.value.spec?.rkeConfig?.nodePools?.[0]?.nodeConfig?.kind ) {
+      const type = this.value.spec.rkeConfig.nodePools[0].nodeConfig.kind.replace(/config$/i, '').toLowerCase();
+
+      await this.selectType(type, false);
     }
 
-    // @TODO actually pick based on provider type...
-    this.providerCluster = await this.$store.dispatch(`management/create`, {
-      type:     CAPI.RANCHER_CLUSTER,
-      spec:     {},
-      metadata: { namespace: DEFAULT_WORKSPACE }
-    });
+    if ( !this.value.id ) {
+      if ( !this.value.metadata ) {
+        this.$set(this.value, 'metadata', {});
+      }
+
+      this.$set(this.value.metadata, 'namespace', DEFAULT_WORKSPACE);
+    }
   },
 
   data() {
-    const subType = this.$route.query['type'] || null;
+    const subType = this.$route.query[SUB_TYPE] || null;
     const isRegister = this.$route.query[REGISTER] === _FLAGGED;
 
     return {
@@ -80,7 +89,7 @@ export default {
 
       if ( isRegister ) {
         customRegisterTypes.forEach((id) => {
-          addType(id, 'custom', false);
+          addType(id, 'custom', true);
         });
       } else {
         templates.forEach((id) => {
@@ -92,7 +101,7 @@ export default {
         });
 
         customTypes.forEach((id) => {
-          addType(id, 'custom', false);
+          addType(id, 'custom', true);
         });
       }
 
@@ -153,7 +162,10 @@ export default {
     },
 
     clickedType(obj) {
-      this.selectType(obj.id);
+      const id = obj.id;
+
+      this.$router.applyQuery({ [SUB_TYPE]: id });
+      this.selectType(id);
     },
 
     selectType(type, fetch = true) {
@@ -201,7 +213,7 @@ export default {
     <!-- @TODO load appropriate component for provider -->
     <Rke2
       v-if="subType"
-      v-model="providerCluster"
+      v-model="value"
       :mode="mode"
       :provider="subType"
     />

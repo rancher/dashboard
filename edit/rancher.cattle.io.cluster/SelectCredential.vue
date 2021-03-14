@@ -9,6 +9,8 @@ import Banner from '@/components/Banner';
 import { DEFAULT_WORKSPACE } from '@/models/rancher.cattle.io.cluster';
 import { importCloudCredential } from '@/utils/dynamic-importer';
 import { TYPES } from '@/models/secret';
+import { CAPI } from '@/config/labels-annotations';
+import { clear } from '@/utils/array';
 
 const _NEW = '_NEW';
 const _NONE = '_NONE';
@@ -45,7 +47,7 @@ export default {
       _type:    TYPES.OPAQUE,
       metadata: {
         namespace:   DEFAULT_WORKSPACE,
-        annotations: { provider: this.provider }
+        annotations: { [CAPI.CREDENTIAL_DRIVER]: this.driverName }
       },
       data: {},
     });
@@ -81,11 +83,22 @@ export default {
       return !!this.credentialId && !this.isNone && !this.isNew;
     },
 
+    driverName() {
+      let driver = this.provider;
+
+      // Map providers that share a common credential to one driver
+      if ( driver === 'amazonec2' || driver === 'amazoneks' ) {
+        driver = 'aws';
+      }
+
+      return driver;
+    },
+
     filteredSecrets() {
       // @TODO better thing to filter secrets by, limit to matching provider
       const out = this.allSecrets.filter((obj) => {
         return obj.metadata.namespace === DEFAULT_WORKSPACE &&
-          obj.metadata.annotations?.provider === this.provider;
+          obj.metadata.annotations?.[CAPI.CREDENTIAL_DRIVER] === this.driverName;
       });
 
       return out;
@@ -117,7 +130,7 @@ export default {
     },
 
     createComponent() {
-      return importCloudCredential(this.provider);
+      return importCloudCredential(this.driverName);
     },
 
     validationPassed() {
@@ -145,6 +158,10 @@ export default {
 
   methods: {
     async save(btnCb) {
+      if ( this.errors ) {
+        clear(this.errors);
+      }
+
       if ( typeof this.$refs.create?.test === 'function' ) {
         try {
           const res = await this.$refs.create.test();

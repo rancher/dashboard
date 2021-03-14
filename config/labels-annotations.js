@@ -33,7 +33,10 @@ export const NODE_ROLES = {
   ETCD:          'node-role.kubernetes.io/etcd',
 };
 
-export const CAPI = { DEPLOYMENT_NAME: 'cluster.x-k8s.io/deployment-name' };
+export const CAPI = {
+  DEPLOYMENT_NAME:   'cluster.x-k8s.io/deployment-name',
+  CREDENTIAL_DRIVER: 'cluster.cattle.io/driver',
+};
 
 export const CATALOG = {
   CERTIFIED:     'catalog.cattle.io/certified',

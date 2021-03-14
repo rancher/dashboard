@@ -82,7 +82,7 @@ export default {
 </script>
 
 <template>
-  <Loading v-if="$fetchState.pending" />
+  <Loading v-if="$fetchState.pending" :delayed="true" />
   <div v-else>
     <div class="row">
       <div class="col span-6">
@@ -115,11 +115,11 @@ export default {
           label="OS Image"
         />
       </div>
-      <div class="col span-6">
+      <div class="col span-6 pt-5">
         <h3>Additional options</h3>
         <Checkbox v-model="value.monitoring" label="Monitoring" />
         <Checkbox v-model="value.ipv6" label="IPv6" />
-        <Checkbox v-model="value.privateNetworking" label="Private Networkign" />
+        <Checkbox v-model="value.privateNetworking" label="Private Networking" />
       </div>
     </div>
   </div>

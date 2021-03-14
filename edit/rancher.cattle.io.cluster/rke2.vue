@@ -106,7 +106,27 @@ export default {
       }
     },
 
+    needCredential() {
+      if ( this.provider === 'custom' || this.provider === 'import' ) {
+        return false;
+      }
+
+      return true;
+    },
+
+    hasNodePools() {
+      if ( this.provider === 'custom' || this.provider === 'import' ) {
+        return false;
+      }
+
+      return true;
+    },
+
     nodeConfigSchema() {
+      if ( !this.hasNodePools ) {
+        return null;
+      }
+
       const schema = this.$store.getters['management/schemaFor'](`rancher.cattle.io.${ this.provider }config`);
 
       return schema;
@@ -205,7 +225,7 @@ export default {
       if ( existing?.length ) {
         for ( const pool of existing ) {
           const config = await this.$store.dispatch('management/find', {
-            type: `rancher.cattle.io.${ pool.nodeConfig.kind.toLowercase() }`,
+            type: `rancher.cattle.io.${ pool.nodeConfig.kind.toLowerCase() }`,
             id:   `${ this.value.metadata.namespace }/${ pool.nodeConfig.name }`,
           });
 
@@ -226,6 +246,10 @@ export default {
     },
 
     async addNodePool() {
+      if ( !this.nodeConfigSchema ) {
+        return;
+      }
+
       const numCurrentPools = this.nodePools.length || 0;
 
       const config = await this.$store.dispatch('management/createPopulated', {
@@ -342,8 +366,8 @@ export default {
     @finish="save"
     @error="e=>errors = e"
   >
-    <div class="row">
-      <div class="col span-6">
+    <div v-if="needCredential" class="row">
+      <div class="col" :class="{'span-6': !!credentialId, 'span-12': !credentialId}">
         <SelectCredential
           v-model="credentialId"
           :mode="mode"
@@ -352,7 +376,7 @@ export default {
         />
       </div>
     </div>
-    <div v-if="credentialId" class="mt-20">
+    <div v-if="credentialId || !needCredential" class="mt-20">
       <NameNsDescription
         v-if="!isView"
         v-model="value"
@@ -393,6 +417,7 @@ export default {
       </div>
 
       <Tabbed
+        v-if="hasNodePools"
         ref="pools"
         :side-tabs="true"
         :show-tabs-add-remove="true"
@@ -419,11 +444,39 @@ export default {
             :options="versionOptions"
             label-key="cluster.kubernetesVersion.label"
           />
-        </tab>
+          <ul>
+            <li>Cloud Provider</li>
+            <li>Windows Support</li>
+          </ul>
+        </Tab>
+        <Tab name="networking" label="Networking" :weight="9">
+          <ul>
+            <li>Network Provider</li>
+            <li>Project Network Isolation</li>
+            <li>CNI MTU</li>
+            <li>Ingress Enabled</li>
+            <li>Ingress Default Backend</li>
+            <li>Node Port Range</li>
+          </ul>
+        </Tab>
+        <Tab name="advanced" label="Advanced" :weight="8">
+          <ul>
+            <li>PSPs</li>
+            <li>Docker Version</li>
+            <li>Docker Root Dir</li>
+            <li>Snapshot Backups</li>
+            <li>Secrets Encryption</li>
+            <li>CIS Scan Schedule</li>
+            <li>Max Unavailable / Drain nodes</li>
+            <li>Agent Env Vars</li>
+            <li>Authorized Cluster Endpoint</li>
+            <li>Private Registry</li>
+          </ul>
+        </Tab>
       </Tabbed>
     </div>
 
-    <template v-if="!credentialId" #form-footer>
+    <template v-if="needCredential && !credentialId" #form-footer>
       <div><!-- Hide the outer footer --></div>
     </template>
   </CruResource>

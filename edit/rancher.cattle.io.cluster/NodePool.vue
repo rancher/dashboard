@@ -39,8 +39,6 @@ export default {
       return importNodeConfig(this.provider);
     }
   },
-
-  methods: {},
 };
 </script>
 
@@ -53,16 +51,13 @@ export default {
       <div class="col span-2">
         <LabeledInput v-model="value.pool.quantity" label="Node Count" type="number" min="0" :required="true" />
       </div>
-      <div class="col span-6 pt-20">
+      <div class="col span-6 pt-5">
+        <h3>Roles</h3>
         <Checkbox v-model="value.pool.etcdRole" label="etcd" />
         <Checkbox v-model="value.pool.controlPlaneRole" label="Control Plane" />
         <Checkbox v-model="value.pool.workerRole" label="Worker" />
       </div>
     </div>
-
-    <div class="spacer" />
-
-    <h3>Node Template</h3>
 
     <component
       :is="configComponent"

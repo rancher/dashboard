@@ -9,7 +9,7 @@ export const state = () => {
 
 class Handler {
   constructor(cloudCredentialId) {
-    this.cloudCredentialId = cloudCredentialId;
+    this.cloudCredentialId = (cloudCredentialId || '');
   }
 
   handle(httpRequest, ...args) {
@@ -39,16 +39,29 @@ class Handler {
   }
 }
 
-function credentialDefaultProvider() {
-  // The SDK will complain if these aren't set, so fill them with something
-  // even though the cloudCredential will be used eventually
-  const out = {
-    accessKeyId:         randomStr(),
-    secretAccessKey:     randomStr(),
-  };
+function credentialDefaultProvider(accessKey, secretKey) {
+  return function() {
+    // The SDK will complain if these aren't set, so fill them with something
+    // even though the cloudCredential will be used eventually
+    const out = {
+      accessKeyId:         accessKey || randomStr(),
+      secretAccessKey:     secretKey || randomStr(),
+    };
 
-  return out;
+    return out;
+  };
 }
+
+export const getters = {
+  // You could override these to do something based on the user, maybe.
+  defaultRegion() {
+    return 'us-west-2';
+  },
+
+  defaultInstanceType() {
+    return 't3a.medium';
+  }
+};
 
 export const actions = {
   ec2Lib() {
@@ -59,32 +72,36 @@ export const actions = {
     return import(/* webpackChunkName: "aws-eks" */ '@aws-sdk/client-eks');
   },
 
-  async ec2({ dispatch }, { region, cloudCredentialId }) {
+  async ec2({ dispatch }, {
+    region, cloudCredentialId, accessKey, secretKey
+  }) {
     const lib = await dispatch('ec2Lib');
 
     const client = new lib.EC2({
       region,
-      credentialDefaultProvider,
-      requestHandler: new Handler(cloudCredentialId.replace('/', ':')), // IDs use / but API wants :
+      credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
+      requestHandler:            new Handler(cloudCredentialId),
     });
 
     return client;
   },
 
-  async eks({ dispatch }, { region, cloudCredentialId }) {
+  async eks({ dispatch }, {
+    region, cloudCredentialId, accessKey, secretKey
+  }) {
     const lib = await dispatch('eksLib');
 
     const client = new lib.EKS({
       region,
-      credentialDefaultProvider,
-      requestHandler: new Handler(cloudCredentialId),
+      credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
+      requestHandler:            new Handler(cloudCredentialId),
     });
 
     return client;
   },
 
   async instanceInfo() {
-    const data = (await import(/* webpackChunkName: "aws-data" */'@/assets/ec2instances.csv')).default;
+    const data = (await import(/* webpackChunkName: "aws-data" */'@/assets/data/ec2instances.csv')).default;
 
     data.forEach((row) => {
       row.instanceClass = row['API Name'].split('.')[0].toLowerCase();
@@ -93,4 +110,10 @@ export const actions = {
 
     return sortBy(data, ['instanceClass', 'memoryBytes', 'API Name']);
   },
+
+  async defaultRegions() {
+    const data = (await import(/* webpackChunkName: "aws-data" */'@/assets/data/aws-regions.json')).default;
+
+    return data;
+  }
 };
