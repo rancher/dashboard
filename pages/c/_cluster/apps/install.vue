@@ -23,7 +23,7 @@ import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
   REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, _FLAGGED, FORCE,
 } from '@/config/query-params';
-import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
+import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION, PROJECT } from '@/config/labels-annotations';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
 import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
@@ -151,6 +151,19 @@ export default {
       if ( query[DESCRIPTION_QUERY] ) {
         this.value.setAnnotation(DESCRIPTION_ANNOTATION, query[DESCRIPTION_QUERY]);
       }
+    }
+
+    if (this.forceNamespace && !this.existing) {
+      let ns;
+
+      try {
+        ns = await this.$store.dispatch('cluster/find', { type: NAMESPACE, id: this.forceNamespace });
+        const project = ns.metadata.annotations[PROJECT];
+
+        if (project) {
+          this.project = project.replace(':', '/');
+        }
+      } catch {}
     }
 
     if ( !this.chart ) {
@@ -345,12 +358,13 @@ export default {
       if ( !want ) {
         return false;
       }
+      const found = findBy(all, 'id', want);
 
-      return !findBy(all, 'id', want);
+      return !found;
     },
 
     showProject() {
-      return this.isRancher && !this.existing && this.namespaceIsNew;
+      return this.isRancher && !this.existing && this.forceNamespace;
     },
 
     projectOpts() {
@@ -368,7 +382,7 @@ export default {
       out.unshift({
         id:    'none',
         label: '(None)',
-        value: null,
+        value: '',
       });
 
       return out;
@@ -512,6 +526,17 @@ export default {
         this.$fetch();
       }
     },
+
+    'value.metadata.namespace'(neu, old) {
+      if (neu) {
+        const ns = this.$store.getters['cluster/byId'](NAMESPACE, this.value.metadata.namespace);
+        const project = ns.metadata.annotations[PROJECT];
+
+        if (project) {
+          this.project = project.replace(':', '/');
+        }
+      }
+    }
   },
 
   mounted() {
@@ -948,7 +973,16 @@ export default {
           :extra-columns="showProject ? ['project'] : []"
         >
           <template v-if="showProject" #project>
-            <LabeledSelect v-model="project" :label="t('catalog.install.project')" option-key="id" :options="projectOpts" />
+            <LabeledSelect
+              v-model="project"
+              :disabled="!namespaceIsNew"
+              :label="t('catalog.install.project')"
+              option-key="id"
+              :options="projectOpts"
+              :tooltip="!namespaceIsNew ? t('catalog.install.namespaceIsInProject', {namespace: value.metadata.namespace}, true) : ''"
+              :hover-tooltip="!namespaceIsNew"
+              :status="'info'"
+            />
           </template>
         </NameNsDescription>
 
