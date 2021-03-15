@@ -25,7 +25,7 @@ export default {
       type:    Boolean
     },
     hoverTooltip: {
-      default: false,
+      default: true,
       type:    Boolean
     },
     localizedLabel: {
