@@ -2,6 +2,7 @@ import { uniq } from '@/utils/array';
 import Vue from 'vue';
 import { SCHEMA } from '@/config/types';
 import { cleanForNew } from '@/plugins/steve/normalize';
+import isEmpty from 'lodash/isEmpty';
 
 export const SUBTYPE_MAPPING = {
   GLOBAL:    {
@@ -66,8 +67,26 @@ export function copyResourceValues(from, to) {
 }
 
 export default {
+  customValidationRules() {
+    return [
+      {
+        path:           'rules',
+        validators:     ['roleTemplateRules'],
+        required:       true,
+        nullable:       false,
+        type:           'array',
+      },
+    ];
+  },
+
   save() {
     return async() => {
+      const errors = await this.validationErrors(this);
+
+      if (!isEmpty(errors)) {
+        return Promise.reject(errors);
+      }
+
       let template;
 
       if (this.template) {

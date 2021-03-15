@@ -207,7 +207,7 @@ export default {
     <Tabbed :side-tabs="true">
       <Tab
         name="grant-resources"
-        label="Grant Resources"
+        :label="t('rbac.roletemplate.tabs.grantResources.label')"
         :weight="1"
       >
         <ArrayList
@@ -222,16 +222,19 @@ export default {
           <template #column-headers>
             <div class="column-headers row">
               <div class="col span-3">
-                <label class="text-label">Verbs</label>
+                <label class="text-label">
+                  {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
+                  <span class="required">*</span>
+                </label>
               </div>
               <div class="col span-3">
-                <label class="text-label">Resources</label>
+                <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}</label>
               </div>
               <div class="col span-3">
-                <label class="text-label">Non-Resource URLS</label>
+                <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</label>
               </div>
               <div class="col span-3">
-                <label class="text-label">API Groups</label>
+                <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}</label>
               </div>
             </div>
           </template>
@@ -312,6 +315,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .required {
+    color: var(--error);
+  }
+
   ::v-deep {
     .column-headers {
       margin-right: 75px;
