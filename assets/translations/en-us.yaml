@@ -1437,6 +1437,19 @@ monitoring:
   receiver:
     fields:
       name: Name
+    tls:
+      label: SSL
+      caFilePath:
+        label: CA File Path
+        placeholder: e.g. ./ca-file.csr
+      certFilePath:
+        label: Cert File Path
+        placeholder: e.g. ./cert-file.crt
+      keyFilePath:
+        label: Key File Path
+        placeholder: e.g. ./key-file.pfx
+      secretsBanner: The file paths below must be referenced in <pre class="inline-block m-0 p-0 vertical-middle">alertmanager.alertmanagerSpec.secrets</pre> when deploying the Monitoring chart
+
   route:
     fields:
       groupBy: Group By
