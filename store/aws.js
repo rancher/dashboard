@@ -72,6 +72,10 @@ export const actions = {
     return import(/* webpackChunkName: "aws-eks" */ '@aws-sdk/client-eks');
   },
 
+  kmsLib() {
+    return import(/* webpackChunkName: "aws-ec2" */ '@aws-sdk/client-kms');
+  },
+
   async ec2({ dispatch }, {
     region, cloudCredentialId, accessKey, secretKey
   }) {
@@ -92,6 +96,20 @@ export const actions = {
     const lib = await dispatch('eksLib');
 
     const client = new lib.EKS({
+      region,
+      credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
+      requestHandler:            new Handler(cloudCredentialId),
+    });
+
+    return client;
+  },
+
+  async kms({ dispatch }, {
+    region, cloudCredentialId, accessKey, secretKey
+  }) {
+    const lib = await dispatch('kmsLib');
+
+    const client = new lib.KMS({
       region,
       credentialDefaultProvider: credentialDefaultProvider(accessKey, secretKey),
       requestHandler:            new Handler(cloudCredentialId),
