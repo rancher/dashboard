@@ -1,3 +1,4 @@
+import { SORT_BY, DESCENDING, PAGE } from '@/config/query-params';
 import { sortBy } from '@/utils/sort';
 import { addObject } from '@/utils/array';
 
@@ -83,6 +84,16 @@ export default {
       this.sortBy = sort;
       this.descending = desc;
       this.currentPage = 1;
+
+      this.$router.applyQuery({
+        [SORT_BY]:    this.sortBy,
+        [DESCENDING]: this.descending,
+        [PAGE]:       this.currentPage,
+      }, {
+        [SORT_BY]:    this._defaultSortBy,
+        [DESCENDING]: false,
+        [PAGE]:       1,
+      });
     },
   },
 };

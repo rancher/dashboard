@@ -1,4 +1,6 @@
 <script>
+import { queryParamsFor } from '@/plugins/extend-router';
+import { SORT_BY, DESCENDING } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
 import { SOME, NONE } from './selection';
 
@@ -90,6 +92,17 @@ export default {
       return col.name === this.sortBy;
     },
 
+    queryFor(col) {
+      const query = queryParamsFor(this.$route.query, {
+        [SORT_BY]:    col.name,
+        [DESCENDING]: this.isCurrent(col) && !this.descending,
+      }, {
+        [SORT_BY]:    this.defaultSortBy,
+        [DESCENDING]: false,
+      });
+
+      return query;
+    },
   }
 };
 </script>
@@ -113,7 +126,7 @@ export default {
         :class="{ sortable: col.sort }"
         @click.prevent="changeSort($event, col)"
       >
-        <span v-if="col.sort">
+        <span v-if="col.sort" @click="$router.applyQuery(queryFor(col))">
           <span v-html="labelFor(col)" />
           <span class="icon-stack">
             <i class="icon icon-sort icon-stack-1x faded" />
@@ -130,7 +143,7 @@ export default {
 </template>
 
 <style lang="scss" scoped>
-  .sortable > SPAN {
+   .sortable > SPAN {
     display: inline-block;
     white-space: nowrap;
     &:hover,
