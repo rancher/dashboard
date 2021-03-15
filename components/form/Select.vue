@@ -5,6 +5,7 @@ import LabeledFormElement from '@/mixins/labeled-form-element';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
 import $ from 'jquery';
+import { onClickOption } from '@/utils/select';
 
 export default {
   components: { LabeledTooltip },
@@ -31,8 +32,8 @@ export default {
       type:    String,
     },
     options: {
-      default: null,
-      type:    Array,
+      default:   null,
+      type:      Array,
     },
     placement: {
       default: null,
@@ -77,6 +78,10 @@ export default {
     value: {
       default: null,
       type:    [String, Object, Number, Array, Boolean],
+    },
+    closeOnSelect: {
+      type:    Boolean,
+      default: true
     },
   },
 
@@ -155,7 +160,11 @@ export default {
     },
 
     get,
-  },
+
+    onClickOption(option, event) {
+      onClickOption.call(this, option, event);
+    }
+  }
 };
 </script>
 
@@ -196,6 +205,11 @@ export default {
       @search:focus="onFocus"
       @open="resizeHandler"
     >
+      <template #option="option">
+        <div @mousedown="(e) => onClickOption(option, e)">
+          {{ option.label }}
+        </div>
+      </template>
       <!-- Pass down templates provided by the caller -->
       <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
         <slot :name="slot" v-bind="scope" />

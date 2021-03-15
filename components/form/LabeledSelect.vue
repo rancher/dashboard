@@ -6,6 +6,7 @@ import { get } from '@/utils/object';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
 import $ from 'jquery';
+import { onClickOption } from '@/utils/select';
 
 export default {
   components: { LabeledTooltip },
@@ -41,8 +42,8 @@ export default {
       type:    String
     },
     options: {
-      default: null,
-      type:    Array
+      default:   null,
+      type:      Array
     },
     placement: {
       default: null,
@@ -77,7 +78,11 @@ export default {
     value: {
       default: null,
       type:    [String, Object, Number, Array, Boolean]
-    }
+    },
+    closeOnSelect: {
+      type:    Boolean,
+      default: true
+    },
   },
 
   data() {
@@ -108,7 +113,7 @@ export default {
     // resizeHandler = in mixin
     focusSearch() {
       this.$nextTick(() => {
-        const el = this.$refs.input?.searchEl;
+        const el = this.$refs['select-input']?.searchEl;
 
         if (el) {
           el.focus();
@@ -198,6 +203,9 @@ export default {
       return () => popper.destroy();
     },
     get,
+    onClickOption(option, event) {
+      onClickOption.call(this, option, event);
+    }
   },
 };
 </script>
@@ -230,7 +238,7 @@ export default {
       </label>
     </div>
     <v-select
-      ref="input"
+      ref="select-input"
       v-bind="$attrs"
       class="inline"
       :append-to-body="appendToBody"
@@ -254,6 +262,11 @@ export default {
       @search:focus="onFocus"
       @open="resizeHandler"
     >
+      <template #option="option">
+        <div @mousedown="(e) => onClickOption(option, e)">
+          {{ option.label }}
+        </div>
+      </template>
       <!-- Pass down templates provided by the caller -->
       <template v-for="(_, slot) of $scopedSlots" #[slot]="scope">
         <slot :name="slot" v-bind="scope" />
