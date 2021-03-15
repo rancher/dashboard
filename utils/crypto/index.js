@@ -27,7 +27,7 @@ export function base64Encode(string, alphabet = NORMAL) {
       '=': ''
     };
 
-    return buf.toString('base64').replace(/[+/]|=$/, char => m[char]);
+    return buf.toString('base64').replace(/[+/]|=$/g, char => m[char]);
   }
 
   return buf.toString('base64');
@@ -46,7 +46,7 @@ export function base64DecodeToBuffer(string) {
 }
 
 export function base64Decode(string) {
-  return base64DecodeToBuffer(string || '').toString().replace(/[-_]/, char => char === '-' ? '+' : '/');
+  return base64DecodeToBuffer(string.replace(/[-_]/g, char => char === '-' ? '+' : '/')).toString();
 }
 
 export function md5(data, digest, callback) {
