@@ -15,9 +15,6 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'azureFile', this.value.spec.azureFile || {});
-    this.$set(this.value.spec.azureFile, 'readOnly', this.value.spec.azureFile.readOnly || false);
-
     const readOnlyOptions = [
       {
         label: this.t('generic.yes'),
@@ -29,6 +26,9 @@ export default {
       }
     ];
 
+    this.$set(this.value.spec, 'quobyte', this.value.spec.quobyte || {});
+    this.$set(this.value.spec.quobyte, 'readOnly', this.value.spec.quobyte.readOnly || false);
+
     return { readOnlyOptions };
   },
 };
@@ -38,19 +38,24 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureFile.shareName" :mode="mode" :label="t('persistentVolume.azureFile.shareName.label')" :placeholder="t('persistentVolume.azureFile.shareName.placeholder')" />
+        <LabeledInput v-model="value.spec.quobyte.volume" :mode="mode" :label="t('persistentVolume.quobyte.volume.label')" :placeholder="t('persistentVolume.quobyte.volume.placeholder')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureFile.secretName" :mode="mode" :label="t('persistentVolume.shared.secretName.label')" :placeholder="t('persistentVolume.shared.secretName.placeholder')" />
+        <LabeledInput v-model="value.spec.quobyte.user" :mode="mode" :label="t('persistentVolume.quobyte.user.label')" :placeholder="t('persistentVolume.quobyte.user.placeholder')" />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureFile.secretNamespace" :mode="mode" :label="t('persistentVolume.shared.secretNamespace.label')" :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')" />
+        <LabeledInput v-model="value.spec.quobyte.group" :mode="mode" :label="t('persistentVolume.quobyte.group.label')" :placeholder="t('persistentVolume.quobyte.group.placeholder')" />
       </div>
       <div class="col span-6">
+        <LabeledInput v-model="value.spec.quobyte.registry" :mode="mode" :label="t('persistentVolume.quobyte.registry.label')" :placeholder="t('persistentVolume.quobyte.registry.placeholder')" />
+      </div>
+    </div>
+    <div class="row mb-20">
+      <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.azureFile.readOnly"
+          v-model="value.spec.quobyte.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

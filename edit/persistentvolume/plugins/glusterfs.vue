@@ -3,7 +3,7 @@ import LabeledInput from '@/components/form/LabeledInput';
 import RadioGroup from '@/components/form/RadioGroup';
 
 export default {
-  components: { LabeledInput, RadioGroup },
+  components: { RadioGroup, LabeledInput },
   props:      {
     value:      {
       type:    Object,
@@ -15,9 +15,6 @@ export default {
     },
   },
   data() {
-    this.$set(this.value.spec, 'azureFile', this.value.spec.azureFile || {});
-    this.$set(this.value.spec.azureFile, 'readOnly', this.value.spec.azureFile.readOnly || false);
-
     const readOnlyOptions = [
       {
         label: this.t('generic.yes'),
@@ -29,6 +26,9 @@ export default {
       }
     ];
 
+    this.$set(this.value.spec, 'glusterfs', this.value.spec.glusterfs || {});
+    this.$set(this.value.spec.glusterfs, 'readOnly', this.value.spec.glusterfs.readOnly || false);
+
     return { readOnlyOptions };
   },
 };
@@ -38,19 +38,16 @@ export default {
   <div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureFile.shareName" :mode="mode" :label="t('persistentVolume.azureFile.shareName.label')" :placeholder="t('persistentVolume.azureFile.shareName.placeholder')" />
+        <LabeledInput v-model="value.spec.glusterfs.endpoints" :mode="mode" :label="t('persistentVolume.glusterfs.endpoints.label')" :placeholder="t('persistentVolume.glusterfs.endpoints.placeholder')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureFile.secretName" :mode="mode" :label="t('persistentVolume.shared.secretName.label')" :placeholder="t('persistentVolume.shared.secretName.placeholder')" />
+        <LabeledInput v-model="value.spec.glusterfs.path" :mode="mode" :label="t('persistentVolume.glusterfs.path.label')" :placeholder="t('persistentVolume.glusterfs.path.placeholder')" />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureFile.secretNamespace" :mode="mode" :label="t('persistentVolume.shared.secretNamespace.label')" :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')" />
-      </div>
-      <div class="col span-6">
         <RadioGroup
-          v-model="value.spec.azureFile.readOnly"
+          v-model="value.spec.glusterfs.readOnly"
           name="readOnly"
           :mode="mode"
           :label="t('persistentVolume.shared.readOnly.label')"

@@ -3,28 +3,66 @@ import { STORAGE_CLASS } from '@/config/types';
 
 export const PROVISIONER_OPTIONS = [
   {
-    labelKey: 'storageClass.aws-ebs.title',
-    value:    'kubernetes.io/aws-ebs'
+    labelKey:  'storageClass.aws-ebs.title',
+    value:     'kubernetes.io/aws-ebs',
+    supported: true
   },
   {
-    labelKey: 'storageClass.azure-disk.title',
-    value:    'kubernetes.io/azure-disk'
+    labelKey:  'storageClass.azure-disk.title',
+    value:     'kubernetes.io/azure-disk',
+    supported: true
   },
   {
-    labelKey: 'storageClass.azure-file.title',
-    value:    'kubernetes.io/azure-file'
+    labelKey:  'storageClass.azure-file.title',
+    value:     'kubernetes.io/azure-file',
+    supported: true
   },
   {
-    labelKey: 'storageClass.gce-pd.title',
-    value:    'kubernetes.io/gce-pd'
+    labelKey: 'storageClass.rbd.title',
+    value:    'kubernetes.io/rbd',
   },
   {
-    labelKey: 'storageClass.longhorn.title',
-    value:    'driver.longhorn.io'
+    labelKey: 'storageClass.glusterfs.title',
+    value:    'kubernetes.io/glusterfs',
   },
   {
-    labelKey: 'storageClass.vsphere-volume.title',
-    value:    'kubernetes.io/vsphere-volume'
+    labelKey:  'storageClass.gce-pd.title',
+    value:     'kubernetes.io/gce-pd',
+    supported: true
+  },
+  {
+    labelKey: 'storageClass.no-provisioner.title',
+    value:    'kubernetes.io/no-provisioner',
+  },
+  {
+    labelKey:  'storageClass.longhorn.title',
+    value:     'driver.longhorn.io',
+    supported: true
+  },
+  {
+    labelKey: 'storageClass.cinder.title',
+    value:    'kubernetes.io/cinder',
+  },
+  {
+    labelKey: 'storageClass.portworx-volume.title',
+    value:    'kubernetes.io/portworx-volume',
+  },
+  {
+    labelKey: 'storageClass.quobyte.title',
+    value:    'kubernetes.io/quobyte',
+  },
+  {
+    labelKey: 'storageClass.scaleio.title',
+    value:    'kubernetes.io/scaleio',
+  },
+  {
+    labelKey: 'storageClass.storageos.title',
+    value:    'kubernetes.io/storageos',
+  },
+  {
+    labelKey:  'storageClass.vsphere-volume.title',
+    value:     'kubernetes.io/vsphere-volume',
+    supported: true
   }
 ];
 

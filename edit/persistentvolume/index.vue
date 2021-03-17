@@ -14,10 +14,11 @@ import uniq from 'lodash/uniq';
 import UnitInput from '@/components/form/UnitInput';
 import { NODE, PVC, STORAGE_CLASS } from '@/config/types';
 import Loading from '@/components/Loading';
-import { VOLUME_PLUGINS } from '@/models/persistentvolume';
+import { LONGHORN_PLUGIN, VOLUME_PLUGINS } from '@/models/persistentvolume';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { clone } from '@/utils/object';
 import { parseSi } from '@/utils/units';
+import { fetchFeatureFlag, UNSUPPORTED_STORAGE_DRIVERS } from '@/utils/feature-flag';
 import InfoBox from '@/components/InfoBox';
 
 export default {
@@ -44,6 +45,7 @@ export default {
   async fetch() {
     const storageClasses = await this.$store.dispatch('cluster/findAll', { type: STORAGE_CLASS });
     const pvcPromise = this.$store.dispatch('cluster/findAll', { type: PVC });
+    const featureFlagPromise = fetchFeatureFlag(this.$store, UNSUPPORTED_STORAGE_DRIVERS);
 
     this.storageClassOptions = storageClasses.map(s => ({
       label: s.name,
@@ -51,6 +53,7 @@ export default {
     }));
     this.storageClassOptions.unshift(this.NONE_OPTION);
     await pvcPromise;
+    this.showUnsupportedStorage = await featureFlagPromise;
   },
 
   data() {
@@ -66,10 +69,11 @@ export default {
     this.$set(this.value.spec.capacity, 'storage', this.value.spec.capacity.storage || '10Gi');
     this.$set(this.value.spec, 'storageClassName', this.value.spec.storageClassName || NONE_OPTION.value);
 
-    const plugin = VOLUME_PLUGINS.find(plugin => this.value.spec[plugin.value])?.value || VOLUME_PLUGINS[0].value;
+    const foundPlugin = this.value.isLonghorn ? LONGHORN_PLUGIN : VOLUME_PLUGINS.find(plugin => this.value.spec[plugin.value]);
+    const plugin = (foundPlugin || VOLUME_PLUGINS[0]).value;
 
     return {
-      storageClassOptions: [], VOLUME_PLUGINS, plugin, NONE_OPTION, NODE, initialNodeAffinity: clone(this.value.spec.nodeAffinity)
+      storageClassOptions: [], plugin, NONE_OPTION, NODE, initialNodeAffinity: clone(this.value.spec.nodeAffinity), showUnsupportedStorage: false
     };
   },
 
@@ -133,6 +137,9 @@ export default {
     },
     areNodeSelectorsRequired() {
       return this.plugin === 'local';
+    },
+    plugins() {
+      return VOLUME_PLUGINS.filter(plugin => this.showUnsupportedStorage || plugin.supported);
     }
   },
 
@@ -166,7 +173,9 @@ export default {
       }
     },
     updatePlugin(value) {
-      delete this.value.spec[this.plugin];
+      const plugin = this.plugin === LONGHORN_PLUGIN.value ? 'csi' : this.plugin;
+
+      delete this.value.spec[plugin];
       this.$set(this, 'plugin', value);
     }
   }
@@ -216,7 +225,7 @@ export default {
           :label="'Volume Plugin'"
           :localized-label="true"
           option-label="labelKey"
-          :options="VOLUME_PLUGINS"
+          :options="plugins"
           :mode="modeOverride"
           :required="true"
           @input="updatePlugin($event)"
@@ -232,7 +241,6 @@ export default {
         />
       </div>
     </div>
-
     <Tabbed :side-tabs="true">
       <Tab name="plugin-configuration" :label="'Plugin Configuration'" :weight="1">
         <component :is="getComponent(plugin)" :key="plugin" :value="value" :mode="modeOverride" />
