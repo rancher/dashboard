@@ -215,7 +215,7 @@ export default {
         <div class="col span-6">
           <LabeledInput v-model="model.disabledStatusBitmask" :mode="mode" :label="t('authConfig.ldap.disabledStatusBitmask')" />
         </div>
-        <div class=" col span-6">
+        <div v-if="type!=='shibboleth'" class=" col span-6">
           <RadioGroup
             v-model="model.nestedGroupMembershipEnabled"
             :mode="mode"
