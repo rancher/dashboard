@@ -76,6 +76,7 @@ export default {
     />
     <LabeledInput
       :value="value.decodedData.secretKey"
+      class="mt-20"
       label-key="cluster.credential.aws.secretKey.label"
       placeholder-key="cluster.credential.aws.secretKey.placeholder"
       type="password"
@@ -84,6 +85,7 @@ export default {
     />
     <LabeledSelect
       :value="value.decodedData.defaultRegion"
+      class="mt-20"
       label-key="cluster.credential.aws.defaultRegion.label"
       placeholder-key="cluster.credential.aws.defaultRegion.placeholder"
       :mode="mode"
@@ -91,6 +93,6 @@ export default {
       :options="knownRegions"
       @input="value.setData('defaultRegion', $event);"
     />
-    <p class="text-muted" v-html="t('cluster.credential.aws.defaultRegion.help', {}, true)" />
+    <p class="text-muted mt-5" v-html="t('cluster.credential.aws.defaultRegion.help', {}, true)" />
   </div>
 </template>

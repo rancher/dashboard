@@ -43,10 +43,8 @@ export default {
   async fetch() {
     if ( this.subType ) {
       await this.selectType(this.subType, false);
-    } else if ( this.value.spec?.rkeConfig?.nodePools?.[0]?.nodeConfig?.kind ) {
-      const type = this.value.spec.rkeConfig.nodePools[0].nodeConfig.kind.replace(/config$/i, '').toLowerCase();
-
-      await this.selectType(type, false);
+    } else if ( this.value.nodeProvider ) {
+      await this.selectType(this.value.nodeProvider, false);
     }
 
     if ( !this.value.id ) {

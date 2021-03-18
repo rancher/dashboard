@@ -84,7 +84,7 @@ export default {
 <template>
   <Loading v-if="$fetchState.pending" :delayed="true" />
   <div v-else>
-    <div class="row">
+    <div class="row mt-20">
       <div class="col span-6">
         <LabeledSelect
           v-model="value.region"

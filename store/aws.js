@@ -118,15 +118,45 @@ export const actions = {
     return client;
   },
 
-  async instanceInfo() {
+  async instanceInfo({ rootGetters }) {
     const data = (await import(/* webpackChunkName: "aws-data" */'@/assets/data/ec2instances.csv')).default;
+    const groups = (await import(/* webpackChunkName: "aws-data" */'@/assets/data/ec2-instance-groups.json')).default;
+    const out = [];
 
-    data.forEach((row) => {
-      row.instanceClass = row['API Name'].split('.')[0].toLowerCase();
-      row.memoryBytes = parseSi(row['Memory']);
-    });
+    for ( const row of data ) {
+      const apiName = row['API Name'];
+      const instanceClass = apiName.split('.')[0].toLowerCase();
+      const groupLabel = groups[instanceClass] || 'Unknown';
+      const instanceStorage = row['Instance Storage'];
 
-    return sortBy(data, ['instanceClass', 'memoryBytes', 'API Name']);
+      let storageSize = 0;
+      let storageType = null;
+
+      if ( instanceStorage !== 'EBS Only' ) {
+        const match = instanceStorage.match(/^(\d+)\s*GiB.*(NVMe|SSD|HDD).*/);
+
+        if ( match ) {
+          storageSize = parseInt(match[1], 10);
+          storageType = match[2] || '';
+        }
+      }
+
+      out.push({
+        apiName,
+        groupLabel,
+        instanceClass,
+        memoryBytes:   parseSi(row['Memory']),
+        label:         rootGetters['i18n/t']('cluster.nodeConfig.aws.sizeLabel', {
+          apiName,
+          cpu:          row['vCPUs'],
+          memory:       parseInt(row['Memory'], 10),
+          storageSize,
+          storageType,
+        }),
+      });
+    }
+
+    return sortBy(out, ['groupLabel', 'instanceClass', 'memoryBytes', 'apiName']);
   },
 
   async defaultRegions() {

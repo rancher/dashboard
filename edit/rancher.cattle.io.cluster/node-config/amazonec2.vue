@@ -3,6 +3,7 @@ import Loading from '@/components/Loading';
 import CreateEditView from '@/mixins/create-edit-view';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import LabeledInput from '@/components/form/LabeledInput';
+import KeyValue from '@/components/form/KeyValue';
 import UnitInput from '@/components/form/UnitInput';
 import RadioGroup from '@/components/form/RadioGroup';
 import Checkbox from '@/components/form/Checkbox';
@@ -15,7 +16,7 @@ const DEFAULT_GROUP = 'rancher-nodes';
 
 export default {
   components: {
-    Loading, LabeledInput, LabeledSelect, Checkbox, RadioGroup, UnitInput
+    Loading, LabeledInput, LabeledSelect, Checkbox, RadioGroup, UnitInput, KeyValue
   },
 
   mixins: [CreateEditView],
@@ -85,6 +86,7 @@ export default {
     }
 
     this.initNetwork();
+    this.initTags();
 
     if ( !this.value.securityGroup?.length ) {
       this.$set(this.value, 'securityGroup', [DEFAULT_GROUP]);
@@ -101,14 +103,14 @@ export default {
 
   data() {
     return {
-      ec2Client:    null,
-      kmsClient:    null,
-      credential:   null,
-      instanceInfo: null,
-      regionInfo:   null,
-      canReadKms:   null,
-      kmsInfo:      null,
-
+      ec2Client:         null,
+      kmsClient:         null,
+      credential:        null,
+      instanceInfo:      null,
+      regionInfo:        null,
+      canReadKms:        null,
+      kmsInfo:           null,
+      tags:              null,
       loadedRegionalFor: null,
       zoneInfo:          null,
       vpcInfo:           null,
@@ -116,17 +118,34 @@ export default {
       securityGroupInfo: null,
       selectedNetwork:   null,
       securityGroupMode: null,
+      showAdvanced:      false,
     };
   },
 
   computed: {
     instanceOptions() {
-      return this.instanceInfo.map((obj) => {
-        return {
-          label: `${ obj['API Name'] } (${ obj['vCPUs'] } / ${ obj['Memory'] })`,
-          value: obj['API Name'],
-        };
-      });
+      let lastGroup;
+
+      const out = [];
+
+      for ( const row of this.instanceInfo ) {
+        if ( row.groupLabel !== lastGroup ) {
+          out.push({
+            kind:     'group',
+            disabled: true,
+            label:    row.groupLabel
+          });
+
+          lastGroup = row.groupLabel;
+        }
+
+        out.push({
+          label: row['label'],
+          value: row['apiName'],
+        });
+      }
+
+      return out;
     },
 
     regionOptions() {
@@ -256,6 +275,10 @@ export default {
   },
 
   methods: {
+    toggleAdvanced() {
+      this.showAdvanced = !this.showAdvanced;
+    },
+
     initNetwork() {
       const id = this.value.subnetId || this.value.vpcId;
 
@@ -282,7 +305,37 @@ export default {
         this.value.vpcId = null;
         this.selectedNetwork = null;
       }
-    }
+    },
+
+    initTags() {
+      const parts = (this.value.tags || '').split(/,/);
+      const out = {};
+
+      let i = 0;
+
+      while ( i + 1 < parts.length ) {
+        const key = `${ parts[i] }`.trim();
+        const value = `${ parts[i + 1] }`.trim();
+
+        if ( key ) {
+          out[key] = value;
+        }
+
+        i += 2;
+      }
+
+      this.tags = out;
+    },
+
+    updateTags(tags) {
+      const ary = [];
+
+      for ( const k in tags ) {
+        ary.push(k, tags[k]);
+      }
+
+      this.$set(this.value, 'tags', ary.join(','));
+    },
   },
 };
 </script>
@@ -291,12 +344,12 @@ export default {
   <div>
     <Loading v-if="$fetchState.pending" />
     <div v-if="loadedRegionalFor" class="mt-20">
-      <h2>Basics</h2>
       <div class="row mb-20">
         <div class="col span-6">
           <LabeledSelect
             v-model="value.region"
             :options="regionOptions"
+            :required="true"
             :searchable="true"
             label="Region"
           />
@@ -305,54 +358,44 @@ export default {
           <LabeledSelect
             v-model="value.zone"
             :options="zoneOptions"
+            :required="true"
             label="Zone"
           />
         </div>
       </div>
       <div class="row mb-20">
-        <div class="col span-12">
+        <div class="col span-9">
           <LabeledSelect
             v-model="value.instanceType"
             :options="instanceOptions"
+            :required="true"
+            :selectable="option => !option.disabled"
             :searchable="true"
             label="Instance Type"
-          />
+          >
+            <template v-slot:option="opt">
+              <template v-if="opt.kind === 'group'">
+                <b>{{ opt.label }}</b>
+              </template>
+              <template v-else>
+                <span class="pl-10">{{ opt.label }}</span>
+              </template>
+            </template>
+          </LabeledSelect>
+        </div>
+        <div class="col span-3">
+          <UnitInput v-model="value.rootSize" placeholder="Default: 16" label="Root Disk Size" suffix="GB" />
         </div>
       </div>
-      <div class="row mb-20">
-        <div class="col span-12">
-          <LabeledInput
-            v-model="value.iamInstanceProfile"
-            label="IAM Instance Profile Name"
-            tooltip="Kubernetes AWS Cloud Provider support requires an appropriate instance profile"
-          />
-        </div>
-      </div>
-      <div class="row">
+      <div class="row mt-20 mb-20">
         <div class="col span-6">
-          <LabeledInput
-            v-model="value.ami"
-            label="AMI ID"
-            placeholder="Default: A recent Ubuntu LTS"
-          />
-        </div>
-        <div class="col span-6">
-          <LabeledInput
-            v-model="value.sshUser"
-            label="Username"
-            :disabled="!value.ami"
-            placeholder="Default: ubuntu"
-            tooltip="The username that exists in the selected AMI; Provisioning will SSH to the node with this."
-          />
-        </div>
-      </div>
-      <div class="row mt-20">
-        <div class="col span-12">
           <LabeledSelect
             :value="selectedNetwork"
             :options="networkOptions"
             :searchable="true"
+            :required="true"
             label="VPC/Subnet"
+            placeholder="Select a VPC or Subnet"
             @input="updateNetwork($event)"
           >
             <template v-slot:option="opt">
@@ -365,99 +408,129 @@ export default {
             </template>
           </LabeledSelect>
         </div>
-      </div>
-      <div class="row mt-20">
-        <div class="col span-12">
-          <RadioGroup
-            v-model="securityGroupMode"
-            name="securityGroupMode"
-            label="Security Group"
-            :mode="mode"
-            :disabled="!value.vpcId"
-            :labels="[`Standard: Automatically create and use a '${DEFAULT_GROUP}' security group`, 'Choose one or more existing security groups']"
-            :options="['default','custom']"
-          />
-          <LabeledSelect
-            v-if="value.vpcId && securityGroupMode === 'custom'"
-            v-model="value.securityGroup"
-            :disabled="!value.vpcId"
-            :options="securityGroupOptions"
-            :searchable="true"
-            :multiple="true"
-            :taggable="true"
-            label="Security Groups"
-          />
-        </div>
-      </div>
-
-      <h2 class="mt-20">
-        Storage
-      </h2>
-      <div class="row">
-        <div class="col span-6">
-          <UnitInput v-model="value.rootSize" placeholder="Default: 16" label="Root Disk Size" suffix="GB" />
-        </div>
         <div class="col span-6">
           <LabeledInput
-            v-model="value.volumeType"
-            label="Volume Type"
-            placeholder="Default: gp2"
+            v-model="value.iamInstanceProfile"
+            label="IAM Instance Profile Name"
+            tooltip="Kubernetes AWS Cloud Provider support requires an appropriate instance profile"
           />
         </div>
       </div>
 
-      <div class="row mt-20">
-        <div class="col span-12">
-          <Checkbox v-model="value.encryptEbsVolume" label="Encrypt EBS Volume" />
-        </div>
-      </div>
-      <div v-if="value.encryptEbsVolume" class="row mt-10">
-        <div class="col span-12">
-          <LabeledSelect
-            v-if="canReadKms"
-            v-model="value.kmsKey"
-            :options="kmsOptions"
-            label="KMS Key ARN"
-          />
-          <template v-else>
+      <template v-if="showAdvanced">
+        <a @click="toggleAdvanced">Hide Advanced</a>
+
+        <div class="row mt-20">
+          <div class="col span-6">
             <LabeledInput
-              v-model="value.kmsKey"
-              label="KMS Key ARN"
+              v-model="value.ami"
+              label="AMI ID"
+              placeholder="Default: A recent Ubuntu LTS"
             />
-            <p class="text-muted">
-              You do not have permission to list KMS keys, but may still be able to enter a Key ARN if you know one.
-            </p>
-          </template>
+          </div>
+          <div class="col span-6">
+            <LabeledInput
+              v-model="value.sshUser"
+              label="SSH Username for AMI"
+              :disabled="!value.ami"
+              placeholder="Default: ubuntu"
+              tooltip="The username that exists in the selected AMI; Provisioning will SSH to the node with this."
+            />
+          </div>
         </div>
-      </div>
 
-      <div class="row mt-20">
-        <div class="col span-12">
-          <Checkbox v-model="value.requestSpotInstance" label="Request Spot Instance" />
+        <div class="row mt-20">
+          <div class="col span-12">
+            <h3>
+              Security Group
+              <span v-if="!value.vpcId" class="text-muted text-small">
+                (select a VPC/Subnet first)
+              </span>
+            </h3>
+            <RadioGroup
+              v-model="securityGroupMode"
+              name="securityGroupMode"
+              :mode="mode"
+              :disabled="!value.vpcId"
+              :labels="[`Standard: Automatically create and use a &quot;${DEFAULT_GROUP}&quot; security group`, 'Choose one or more existing security groups:']"
+              :options="['default','custom']"
+            />
+            <LabeledSelect
+              v-if="value.vpcId && securityGroupMode === 'custom'"
+              v-model="value.securityGroup"
+              :disabled="!value.vpcId"
+              :options="securityGroupOptions"
+              :searchable="true"
+              :multiple="true"
+              :taggable="true"
+            />
+          </div>
         </div>
-      </div>
-      <div v-if="value.requestSpotInstance" class="row mt-10">
-        <div class="col span-6">
-          <UnitInput v-model="value.spotPrice" placeholder="Default: 0.50" label="Spot Price" suffix="Dollars per hour" />
-        </div>
-      </div>
 
-      <div class="row mt-20">
-        <div class="col span-6">
-          <div><Checkbox v-model="value.privateAddressOnly" label="Use only private addresses" /></div>
-          <div><Checkbox v-model="value.useEbsOptimizedInstance" label="EBS-Optimized Instance" /></div>
+        <div class="row mt-20">
+          <div class="col span-6">
+            <LabeledInput
+              v-model="value.volumeType"
+              label="EBS Root Volume Type"
+              placeholder="Default: gp2"
+            />
+          </div>
         </div>
-        <div class="col span-6">
-          <div><Checkbox v-model="value.httpEndpoint" label="Allow access to EC2 metadata" /></div>
-          <div><Checkbox v-model="value.httpTokens" :disabled="!value.httpEndpoint" label="Use tokens for metadata" /></div>
-        </div>
-      </div>
 
-      <div class="row mt-20">
-        <div class="col span-12">
-          (Tags)
+        <div class="row mt-20">
+          <div class="col span-12">
+            <Checkbox v-model="value.encryptEbsVolume" label="Encrypt EBS Volume" />
+            <div v-if="value.encryptEbsVolume" class="mt-10">
+              <LabeledSelect
+                v-if="canReadKms"
+                v-model="value.kmsKey"
+                :options="kmsOptions"
+                label="KMS Key ARN"
+              />
+              <template v-else>
+                <LabeledInput
+                  v-model="value.kmsKey"
+                  label="KMS Key ARN"
+                />
+                <p class="text-muted">
+                  You do not have permission to list KMS keys, but may still be able to enter a Key ARN if you know one.
+                </p>
+              </template>
+            </div>
+          </div>
         </div>
-      </div>
+        <div class="row mt-20">
+          <div class="col span-6">
+            <Checkbox v-model="value.requestSpotInstance" label="Request Spot Instance" />
+            <div v-if="value.requestSpotInstance" class="mt-10">
+              <UnitInput v-model="value.spotPrice" placeholder="Default: 0.50" label="Spot Price" suffix="Dollars per hour" />
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-20">
+          <div class="col span-12">
+            <div><Checkbox v-model="value.privateAddressOnly" label="Use only private addresses" /></div>
+            <div><Checkbox v-model="value.useEbsOptimizedInstance" label="EBS-Optimized Instance" /></div>
+            <div><Checkbox v-model="value.httpEndpoint" label="Allow access to EC2 metadata" /></div>
+            <div><Checkbox v-model="value.httpTokens" :disabled="!value.httpEndpoint" label="Use tokens for metadata" /></div>
+          </div>
+        </div>
+
+        <div class="row mt-20">
+          <div class="col span-12">
+            <KeyValue
+              :value="tags"
+              :mode="mode"
+              :read-allowed="false"
+              title="Tags"
+              @input="updateTags"
+            >
+            </keyvalue>
+          </div>
+        </div>
+      </template>
+      <a v-else @click="toggleAdvanced">Show Advanced</a>
     </div>
   </div>
 </template>

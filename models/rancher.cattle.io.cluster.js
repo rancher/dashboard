@@ -4,6 +4,35 @@ import { sortBy } from '@/utils/sort';
 export const DEFAULT_WORKSPACE = 'fleet-default';
 
 export default {
+  details() {
+    const out = [
+      {
+        label:   'Provider',
+        content: this.nodeProvider
+      },
+      {
+        label:   'Kubernetes Version',
+        content: this.spec.kubernetesVersion,
+      },
+    ];
+
+    return out;
+  },
+
+  nodeProvider() {
+    const kind = this.spec?.rkeConfig?.nodePools?.[0]?.nodeConfig?.kind;
+
+    if ( kind ) {
+      return kind.replace(/config$/i, '').toLowerCase();
+    }
+  },
+
+  nodeProviderDisplay() {
+    const provider = this.nodeProvider;
+
+    return this.$getters['i18n/withFallback'](`cluster.provider."${ provider }"`, null, 'generic.unknown', true);
+  },
+
   pools() {
     return this.$getters['all'](CAPI.MACHINE_DEPLOYMENT).filter(pool => pool.spec?.clusterName === this.metadata.name);
   },
