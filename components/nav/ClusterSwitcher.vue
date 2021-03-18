@@ -56,6 +56,16 @@ export default {
   },
 
   methods: {
+    handleDelete() {
+      // because v-select handles the backspace key on the keydown a bunch of weird stuff happens when using META+A -> Delete/Backspace
+      // but the crux of this issue is that by the time the dd recomputes a new size the dropdown width is the same because the search value is still the same
+      // by key up we have an empty value and can trigger the update manually
+      if (this.$refs?.search?.value === '' && this.popperInstance?.update) {
+        this.popperInstance.update();
+      }
+
+      return true;
+    },
     filterBy(option, label, search) {
       return (label || '').toLowerCase().includes(search.toLowerCase());
     },
@@ -79,7 +89,7 @@ export default {
     focus() {
       this.$refs.select.focusSearch();
     },
-    withPopper(dropdownList, component, { width }) {
+    withPopper(dropdownList, component) {
       const componentWidth = $(component.$parent.$el).width();
 
       dropdownList.style['min-width'] = `${ componentWidth }px`;
@@ -135,6 +145,14 @@ export default {
       :options="options"
       :filter="filter"
     >
+      <template #search="{ attributes, events }">
+        <input
+          class="vs__search"
+          v-bind="attributes"
+          v-on="events"
+          @keyup.delete="handleDelete"
+        >
+      </template>
       <template #selected-option="opt">
         <span class="cluster-label-container">
           <img
