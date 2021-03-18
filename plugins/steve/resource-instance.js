@@ -1075,7 +1075,7 @@ export default {
         const link = item.hasLink('rioview') ? 'rioview' : 'view';
 
         return item.followLink(link, { headers: { accept: 'application/yaml' } } ).then((data) => {
-          files[`resources/${ names[idx] }`] = data;
+          files[`resources/${ names[idx] }`] = data.data || data;
         });
       });
 
