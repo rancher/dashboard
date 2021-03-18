@@ -86,6 +86,6 @@ export default {
       {{ label }}
       <i v-if="tooltip" v-tooltip="tooltip" class="icon icon-info icon-lg" />
     </h2>
-    <slot />
+    <slot v-bind="{active}" />
   </section>
 </template>
