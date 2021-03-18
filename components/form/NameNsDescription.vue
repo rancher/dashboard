@@ -23,6 +23,10 @@ export default {
       type:    Boolean,
       default: false,
     },
+    descriptionHidden: {
+      type:    Boolean,
+      default: false,
+    },
     extraColumns: {
       type:    Array,
       default: () => [],
@@ -183,8 +187,11 @@ export default {
     },
 
     colSpan() {
-      const cols = (this.nameNsHidden ? 0 : 1) + 1 + this.extraColumns.length;
-      const span = 12 / cols;
+      let cols = (this.nameNsHidden ? 0 : 1) + (this.descriptionHidden ? 0 : 1) + this.extraColumns.length;
+
+      cols = Math.max(2, cols); // If there's only one column, make it render half-width as if there were two
+
+      const span = 12 / cols; // If there's 5, 7, or more columns this will break; don't do that.
 
       return `span-${ span }`;
     },
@@ -283,7 +290,7 @@ export default {
           />
         </slot>
       </div>
-      <div :class="{ col: true, [colSpan]: true }">
+      <div v-show="!descriptionHidden" :class="{ col: true, [colSpan]: true }">
         <LabeledInput
           key="description"
           v-model="description"

@@ -1,8 +1,9 @@
 import r from 'jsrsasign';
 import { CERTMANAGER, KUBERNETES } from '@/config/labels-annotations';
-import { base64Decode } from '@/utils/crypto';
+import { base64Decode, base64Encode } from '@/utils/crypto';
 import { removeObjects } from '@/utils/array';
 import { SERVICE_ACCOUNT } from '@/config/types';
+import { set } from '@/utils/object';
 
 export const TYPES = {
   OPAQUE:        'Opaque',
@@ -289,4 +290,20 @@ export default {
       return timeThen - timeNow;
     }
   },
+
+  decodedData() {
+    const out = {};
+
+    for ( const k in this.data || {} ) {
+      out[k] = base64Decode(this.data[k]);
+    }
+
+    return out;
+  },
+
+  setData() {
+    return (key, value) => {
+      set(this.data, key, base64Encode(value));
+    };
+  }
 };

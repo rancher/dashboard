@@ -21,10 +21,6 @@ export default {
       default: false,
       type:    Boolean
     },
-    grouped: {
-      default: false,
-      type:    Boolean
-    },
     hoverTooltip: {
       default: true,
       type:    Boolean
@@ -91,15 +87,7 @@ export default {
 
   computed: {
     currentLabel() {
-      let entry;
-
-      if (this.grouped) {
-        for (let i = 0; i < this.options.length && !entry; i++) {
-          entry = findBy(this.options[i].items || [], 'value', this.value);
-        }
-      } else {
-        entry = findBy(this.options || [], 'value', this.value);
-      }
+      const entry = findBy(this.options || [], 'value', this.value);
 
       if (entry) {
         return entry.label;

@@ -1,5 +1,5 @@
 <script>
-import { findBy, removeObject } from '@/utils/array';
+import { removeObject } from '@/utils/array';
 import { USERNAME } from '@/config/cookies';
 import LabeledInput from '@/components/form/LabeledInput';
 import AsyncButton from '@/components/AsyncButton';
@@ -7,10 +7,11 @@ import {
   LOCAL, LOGGED_OUT, TIMED_OUT, _FLAGGED, SPA
 } from '@/config/query-params';
 import Checkbox from '@/components/form/Checkbox';
-import { getVendor, getProduct } from '../../config/private-label';
 import { sortBy } from '@/utils/sort';
-import {configType} from '@/models/management.cattle.io.authconfig'
-import {mapGetters} from 'vuex'
+import { configType } from '@/models/management.cattle.io.authconfig';
+import { mapGetters } from 'vuex';
+import { importLogin } from '@/utils/dynamic-importer';
+import { getVendor, getProduct } from '../../config/private-label';
 
 export default {
   name:       'Login',
@@ -22,7 +23,6 @@ export default {
   async asyncData({ route, redirect, store }) {
     const drivers = await store.dispatch('auth/getAuthProviders');
     const providers = sortBy(drivers.map(x => x.id), ['id']);
-
 
     const hasLocal = providers.includes('local');
     const hasOthers = hasLocal && !!providers.find(x => x !== 'local');
@@ -37,6 +37,7 @@ export default {
 
       return;
     }
+
     return {
       providers,
       hasOthers,
@@ -60,13 +61,16 @@ export default {
       loggedOut: this.$route.query[LOGGED_OUT] === _FLAGGED,
       err:       this.$route.query.err,
 
-      providers: [],
+      providers:          [],
       providerComponents: [],
     };
   },
+
+  computed: { ...mapGetters({ t: 'i18n/t' }) },
+
   created() {
     this.providerComponents = this.providers.map((name) => {
-      return () => import(/* webpackChunkName: "login" */ `@/components/auth/login/${ configType[name] }`)
+      return importLogin(configType[name]);
     });
   },
 
@@ -76,11 +80,8 @@ export default {
     });
   },
 
-  computed:{...mapGetters({t: 'i18n/t'})},
-
-
   methods: {
-    displayName(provider){
+    displayName(provider) {
       return this.t(`model.authConfig.provider.${ provider }`);
     },
 
@@ -126,13 +127,12 @@ export default {
           }
         });
         if ( this.remember ) {
-          this.$cookies.set(USERNAME, this.username,{
+          this.$cookies.set(USERNAME, this.username, {
             encode: x => x,
             maxAge: 86400 * 365,
             secure: true,
             path:   '/',
           });
-          
         } else {
           this.$cookies.remove(USERNAME);
         }
@@ -152,32 +152,32 @@ export default {
     <div class="row mb-20">
       <div class="col span-6">
         <p class="text-center">
-          {{t('login.howdy')}}
+          {{ t('login.howdy') }}
         </p>
         <h1 class="text-center">
-          {{t('login.welcome', {vendor})}}
+          {{ t('login.welcome', {vendor}) }}
         </h1>
         <h4 v-if="err" class="text-error text-center">
-         {{t('login.error')}}
+          {{ t('login.error') }}
         </h4>
         <h4 v-else-if="loggedOut" class="text-success text-center">
-          {{t('login.loggedOut')}}
+          {{ t('login.loggedOut') }}
         </h4>
         <h4 v-else-if="timedOut" class="text-error text-center">
-          {{t('login.loginAgain')}}
+          {{ t('login.loginAgain') }}
         </h4>
 
         <div v-if="providers.length" class="mt-50 mb-50">
           <component
-          class='mb-10'
-            v-for="(name, idx) in providers"
             :is="providerComponents[idx]"
+            v-for="(name, idx) in providers"
             :key="name"
+            class="mb-10"
             :focus-on-mount="(idx === 0 && !showLocal)"
-            :name='name'
+            :name="name"
           />
         </div>
-        <template v-if='hasLocal'>
+        <template v-if="hasLocal">
           <form v-if="showLocal" class="mt-50">
             <div class="span-6 offset-3">
               <div class="mb-20">
@@ -214,9 +214,9 @@ export default {
               </div>
             </div>
           </form>
-          <div v-if='hasLocal' class="mt-20 text-center">
+          <div v-if="hasLocal" class="mt-20 text-center">
             <button type="button" class="btn bg-link" @click="toggleLocal">
-              {{ t('login.useLocal')}}
+              {{ t('login.useLocal') }}
             </button>
           </div>
         </template>

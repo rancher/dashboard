@@ -1,5 +1,6 @@
 import https from 'https';
 import cloneDeep from 'lodash/cloneDeep';
+import merge from 'lodash/merge';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
@@ -321,6 +322,14 @@ export default {
   },
 
   create(ctx, data) {
+    return proxyFor(ctx, data);
+  },
+
+  createPopulated(ctx, userData) {
+    const data = ctx.getters['defaultFor'](userData.type);
+
+    merge(data, userData);
+
     return proxyFor(ctx, data);
   },
 

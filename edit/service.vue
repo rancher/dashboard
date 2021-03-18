@@ -1,5 +1,5 @@
 <script>
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import throttle from 'lodash/throttle';
 import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';

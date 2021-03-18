@@ -39,7 +39,7 @@ export default {
 
 <template>
   <span :class="{'badge-state': true, [bg]: true}">
-    <i v-if="icon" class="icon" :class="icon" />{{ msg }}
+    <i v-if="icon" class="icon" :class="{[icon]: true, 'mr-5': !!msg}" />{{ msg }}
   </span>
 </template>
 

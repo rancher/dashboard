@@ -2,6 +2,7 @@ import { _CREATE, _EDIT, _VIEW } from '@/config/query-params';
 import { LAST_NAMESPACE } from '@/store/prefs';
 import { exceptionToErrorsArray } from '@/utils/error';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
+import { clear } from '@/utils/array';
 
 export default {
   mixins: [ChildHook],
@@ -100,7 +101,10 @@ export default {
     },
 
     async save(buttonDone, url) {
-      this.errors = null;
+      if ( this.errors ) {
+        clear(this.errors);
+      }
+
       try {
         await this.applyHooks(BEFORE_SAVE_HOOKS);
 

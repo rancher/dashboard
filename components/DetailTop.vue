@@ -1,6 +1,6 @@
 <script>
 import Tag from '@/components/Tag';
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import DetailText from '@/components/DetailText';
 import { _VIEW } from '@/config/query-params';
 

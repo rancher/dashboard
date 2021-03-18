@@ -167,7 +167,7 @@ export default {
     :headers="headers"
     :search="false"
     :table-actions="false"
-    :force-namespaced="true"
+    :namespaced="true"
     :mangle-action-resources="getRealResources"
     paging-label="sortableTable.paging.generic"
     :groupable="false"

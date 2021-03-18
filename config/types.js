@@ -145,10 +145,10 @@ export const MANAGEMENT = {
 };
 
 export const CAPI = {
-  CAPI_CLUSTER: 'cluster.x-k8s.io.cluster',
-  RKE_CLUSTER:  'cluster.cattle.io.rkecluster',
-  NODE_CONFIG:  'node-config.cattle.io',
-  SPOOFED:      { NODE_CONFIG: 'node-config.cattle.io' }
+  CAPI_CLUSTER:       'cluster.x-k8s.io.cluster',
+  MACHINE_DEPLOYMENT: 'cluster.x-k8s.io.machinedeployment',
+  MACHINE:            'cluster.x-k8s.io.machine',
+  RANCHER_CLUSTER:    'rancher.cattle.io.cluster',
 };
 
 // --------------------------------------

@@ -331,87 +331,87 @@ assignTo:
   workspace: Workspace
 
 asyncButton:
+  apply:
+    action: Apply
+    success: Applied
+    waiting: Applying&hellip;
+  continue:
+    action: Continue
+    success: Saved
+    waiting: Saving&hellip;
+  copy:
+    action: Click to Copy
+    success: Copied!
+  create:
+    action: Create
+    success: Created
+    waiting: Creating&hellip;
   default:
     action: Action
-    waiting: Waiting
-    success: Success
     error: Error
-  copy:
-    action: 'Click to Copy'
-    success: 'Copied!'
-  create:
-    action:  'Create'
-    waiting: 'Creating&hellip;'
-    success: 'Created'
-  apply:
-    action:  'Apply'
-    waiting: 'Applying&hellip;'
-    success: 'Applied'
-  edit:
-    action:  'Save'
-    waiting: 'Saving&hellip;'
-    success: 'Saved'
+    success: Success
+    waiting: Waiting
   delete:
-    action:  'Delete'
-    waiting: 'Deleting&hellip;'
-    success: 'Deleted'
-  remove:
-    action:  'Remove'
-    waiting: 'Removing&hellip;'
-    success: 'Removed'
-  continue:
-    action:  'Continue'
-    waiting: 'Saving&hellip;'
-    success: 'Saved'
-  done:
-    action:  'Done'
-    waiting: 'Saving&hellip;'
-    success: 'Saved'
-  enable:
-    action:  'Enable'
-    waiting: 'Enabling&hellip;'
-    success: 'Enabled'
+    action: Delete
+    success: Deleted
+    waiting: Deleting&hellip;
   disable:
-    action:  'Disable'
-    waiting: 'Disabling&hellip;'
-    success: 'Disabled'
+    action: Disable
+    success: Disabled
+    waiting: Disabling&hellip;
   activate:
-    action:  'Activate'
-    waiting: 'Activating&hellip;'
-    success: 'Activated'
+    action:  Activate
+    waiting: Activating&hellip;
+    success: Activated
   deactivate:
-    action:  'Deactivate'
-    waiting: 'Deactivating&hellip;'
-    success: 'Deactivated'
+    action:  Deactivate
+    waiting: Deactivating&hellip;
+    success: Deactivated
+  done:
+    action: Done
+    success: Saved
+    waiting: Saving&hellip;
   download:
-    action:  'Download'
-    waiting: 'Downloading&hellip;'
-    success: 'Saving'
+    action: Download
+    success: Saving
+    waiting: Downloading&hellip;
+  edit:
+    action: Save
+    success: Saved
+    waiting: Saving&hellip;
+  enable:
+    action: Enable
+    success: Enabled
+    waiting: Enabling&hellip;
   finish:
-    action:  'Finish'
-    waiting: 'Finishing&hellip;'
-    success: 'Finished'
+    action: Finish
+    success: Finished
+    waiting: Finishing&hellip;
+  import:
+    action: Import
+    success: Imported
+    waiting: Importing&hellip;
   install:
-    action:  'Install'
-    waiting: 'Starting&hellip;'
-    success: 'Installing'
-  upgrade:
-    action:  'Upgrade'
-    waiting: 'Starting&hellip;'
-    success: 'Upgrading'
+    action: Install
+    success: Installing
+    waiting: Starting&hellip;
   refresh:
     action: ''
-    actionIcon:  'refresh'
-    waiting: ''
-    waitingIcon: 'refresh'
-    success: ''
-    successIcon: 'checkmark'
+    actionIcon: refresh
     error: ''
-    errorIcon:   'error'
-  import:
-    action: 'Import'
-    waiting: 'Importing&hellip;'
-    success:  'Imported'
+    errorIcon: error
+    success: ''
+    successIcon: checkmark
+    waiting: ''
+    waitingIcon: refresh
+  remove:
+    action: Remove
+    success: Removed
+    waiting: Removing&hellip;
+  upgrade:
+    action: Upgrade
+    success: Upgrading
+    waiting: Starting&hellip;
 
 backupRestoreOperator:
   backupFilename: Backup Filename
@@ -685,6 +685,7 @@ cluster:
     exoscale: Exoscale
     googlegke: Google GKE
     huaweicce: Huawei CCE
+    import: Import
     k3s: K3s
     kubeAdmin: KubeADM
     linode: Linode
@@ -706,11 +707,83 @@ cluster:
     upcloud: UpCloud
     vmwarevsphere: vSphere
     zstack: ZStack
+  providerGroup:
+    create-template: Use a Catalog Template to create a cluster
+    create-kontainer: Create a cluster in a hosted Kuberetes provider
+    create-machine: Provision new nodes and create a cluster using RKE
+    create-custom: Use existing nodes and create a cluster using RKE
+    register-kontainer: Register an existing cluster in a hosted Kubernetes provider
+    register-custom: Import any Kubernetes cluster
   credential:
     label: Cloud Credential
+    name:
+      label: Credential Name
+      placeholder: Name for this credential (optional)
+    aws:
+      accessKey:
+        label: Access Key
+        placeholder: Your AWS Access Key
+      secretKey:
+        label: ScretKey
+        placeholder: Your AWS Secret Key
+      defaultRegion:
+        label: Default Region
+        help: The default region to use when creating clusters.  Also contacted to verify that this credential works.
+    digitalocean:
+      accessToken:
+        label: Access Token
+        placeholder: Your DigitalOcean API Access Token
+        help: Paste in a Personal Access Token from the DigitalOcean <a href="https://cloud.digitalocean.com/settings/api/tokens" target="_blank" rel="noopener noreferrer nofollow">Applications & API</a> screen.
+  name:
+    label: Cluster Name
+    placeholder: A unique name for the cluster
+  description:
+    label: Cluster Description
+    placeholder: Any text you want that better describes this cluster
+  import: Import Existing
   kubernetesVersion:
     label: Kubernetes Version
+  nodePool:
+    nodeTotals:
+      label:
+        etcd: "{count} etcd"
+        controlPlane: "{count} Control Plane"
+        worker: "{count} Worker"
+      tooltip:
+        etcd: |-
+          {count, plural,
+            =0 { A cluster needs at least one etcd node to be usable. }
+            =1 { A cluster with only one etcd node is not fault-tolerant. }
+            =2 { Clusters should have an odd number of nodes.  A cluster with 2 etcd nodes is not fault-tolerant. }
+            =3 {}
+            =4 { Clusters should have an odd number of nodes. }
+            =5 {}
+            =6 { Clusters should have an odd number of nodes. }
+            =7 {}
+            other { More than 7 etcd nods is not recommended. }
+          }
+        controlPlane: |-
+          {count, plural,
+            =0 { A cluster needs at least one control plane node to be usable. }
+            =1 { A cluster with only one control plane node is not fault-tolerant. }
+            other {}
+          }
+        worker: |-
+          {count, plural,
+            =0 { A cluster needs at least one worker node to be usable. }
+            =1 { A cluster with only one worker node is not fault-tolerant. }
+            other {}
+          }
+    name:
+      label: Pool Name
+      placeholder: A random one will be generated by default
   nodeConfig:
+    aws:
+      sizeLabel: |-
+        {apiName}: {cpu}, {memory, number} GiB Memory, {storageSize, plural,
+          =0 {EBS-Only}
+          other {{storageSize, number} GiB {storageType}}
+        }
     digitalocean:
       sizeLabel: |-
         {plan, select,
@@ -1627,7 +1700,7 @@ persistentVolume:
     monitors:
       add: Add Monitor
   vsphereVolume:
-    label: 	VMWare vSphere Volume
+    label: VMWare vSphere Volume
     volumePath:
       label: Volume Path
       placeholder: e.g. /
@@ -1879,6 +1952,11 @@ persistentVolume:
       none: None
       readOnly: Read Only
       readWrite: Read Write
+    filesystemType:
+      label: Filesystem Type
+      placeholder: e.g. ext4
+    readOnly:
+      label: Read Only
 
 persistentVolumeClaim:
   accessModes: Access Modes
@@ -2224,7 +2302,9 @@ resourceTable:
     namespace: Group by Namespace
     project: Group by Project
   groupLabel:
+    cluster: "<span>Cluster:</span> {name}"
     namespace: "<span>Namespace:</span> {name}"
+    nodePool: "<span>Node Pool:</span> {name}"
     notInANamespace: Not Namespaced
     notInAProject: Not in a Project
     project: "<span>Project:</span> {name}"
@@ -2771,6 +2851,7 @@ tableHeaders:
   lastUpdated: Last Updated
   lastSeen: Last Seen
   loggingOutputProviders: Provider
+  machines: Machines
   matches: Matches
   maxKubernetesVersion: Max Kubernetes Version
   message: Message
@@ -3665,18 +3746,18 @@ typeLabel:
     }
   'management.cattle.io.cluster': |-
     {count, plural,
-      one { Legacy Cluster }
-      other { Legacy Clusters }
+      one { All Cluster }
+      other { All Clusters }
     }
   'cluster.x-k8s.io.cluster': |-
     {count, plural,
       one { CAPI Cluster }
       other { CAPI Clusters }
     }
-  'cluster.cattle.io.rkecluster': |-
+  'rancher.cattle.io.cluster': |-
     {count, plural,
-      one { RKE2 Cluster }
-      other { RKE2 Clusters }
+      one { Cluster }
+      other { Clusters }
     }
   group.principal: |-
     {count, plural,

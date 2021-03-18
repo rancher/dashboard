@@ -1,4 +1,5 @@
-import { has, isEmpty } from 'lodash';
+import has from 'lodash/has';
+import isEmpty from 'lodash/isEmpty';
 
 export function ruleGroups(spec, getters, errors, validatorArgs) {
   if (isEmpty(spec?.groups)) {
