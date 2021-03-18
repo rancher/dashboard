@@ -126,7 +126,7 @@ export const actions = {
       const params = { response_type: 'code', response_mode: 'query' };
 
       redirectUrl = addParams(redirectUrl, params );
-      returnToUrl = `${ window.location.origin }/verify-auth`;
+      returnToUrl = `${ window.location.origin }/verify-auth-azure`;
     }
 
     const nonce = await dispatch('setNonce', opt);
@@ -143,6 +143,7 @@ export const actions = {
     }
 
     let url = removeParam(redirectUrl, GITHUB_SCOPE);
+
     const params = {
       [GITHUB_SCOPE]:    scopes.join(','),
       [GITHUB_NONCE]:   base64Encode(nonce, 'url')
