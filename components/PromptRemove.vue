@@ -3,14 +3,11 @@ import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@/utils/object';
 import Card from '@/components/Card';
 import { alternateLabel } from '@/utils/platform';
-import LinkDetail from '@/components/formatter/LinkDetail';
 import { uniq } from '@/utils/array';
 import AsyncButton from '@/components/AsyncButton';
 
 export default {
-  components: {
-    Card, LinkDetail, AsyncButton
-  },
+  components: { Card, AsyncButton },
   data() {
     return {
       randomPosition: Math.random(), confirmName: '', error: '', warning: '', preventDelete: false
