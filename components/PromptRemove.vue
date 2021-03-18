@@ -115,7 +115,23 @@ export default {
     },
 
     ...mapState('action-menu', ['showPromptRemove', 'toRemove']),
-    ...mapGetters({ t: 'i18n/t' })
+    ...mapGetters({ t: 'i18n/t' }),
+
+    resourceNames() {
+      return this.names.reduce((res, name, i) => {
+        if (i >= 5) {
+          return res;
+        }
+        res += `<b>${ name }</b>`;
+        if (i === this.names.length - 1) {
+          res += this.plusMore;
+        } else {
+          res += i === this.toRemove.length - 2 ? ' and ' : ', ';
+        }
+
+        return res;
+      }, '');
+    }
   },
 
   watch:    {
@@ -249,21 +265,11 @@ export default {
       </h4>
       <div slot="body">
         <div class="mb-10">
-          {{ t('promptRemove.attemptingToRemove', {type}) }} <template v-for="(resource, i) in names">
-            <template v-if="i<5">
-              <b :key="resource+1">{{ toRemove[i].nameDisplay }}</b><template v-if="i===names.length-1">
-                {{ plusMore }}
-              </template><template v-else>
-                {{ i === toRemove.length-2 ? ' and ' : ', ' }}
-              </template>
-            </template>
-          </template>
+          {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
           <div v-if="needsConfirm" class="mt-10">
-            <tempate
-              v-html="t('promptRemove.confirmName', {
-                nameToMatch
-              }, true)"
-            />
+            <span
+              v-html="t('promptRemove.confirmName', { nameToMatch }, true)"
+            ></span>
           </div>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
