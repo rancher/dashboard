@@ -2112,11 +2112,12 @@ promptRemove:
   andOthers: |-
     {count, plural,
     =0 {.}
-    =1 {, and one other.}
-    other {, and {count} others.}
+    =1 { and <b>one other</b>.}
+    other { and <b>{count} others</b>.}
     }
   attemptingToRemove: "You are attempting to delete the {type}"
   protip: "Tip: Hold the {alternateLabel} key while clicking delete to bypass this confirmation"
+  confirmName: "Enter <b>{nameToMatch}</b> below to confirm:"
 
 rbac:
   roleBinding:

@@ -1097,6 +1097,10 @@ export default {
     };
   },
 
+  confirmRemove() {
+    return false;
+  },
+
   applyDefaults() {
     return () => {
     };

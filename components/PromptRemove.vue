@@ -1,25 +1,32 @@
 <script>
 import { mapState, mapGetters } from 'vuex';
 import { get, isEmpty } from '@/utils/object';
-import { NAMESPACE, NODE, RIO } from '@/config/types';
 import Card from '@/components/Card';
 import { alternateLabel } from '@/utils/platform';
-import LinkDetail from '@/components/formatter/LinkDetail';
 import { uniq } from '@/utils/array';
 import AsyncButton from '@/components/AsyncButton';
 
 export default {
-  components: {
-    Card, LinkDetail, AsyncButton
-  },
+  components: { Card, AsyncButton },
   data() {
     return {
-      confirmName: '', error: '', warning: '', preventDelete: false
+      randomPosition: Math.random(), confirmName: '', error: '', warning: '', preventDelete: false
     };
   },
   computed:   {
     names() {
       return this.toRemove.map(obj => obj.nameDisplay).slice(0, 5);
+    },
+
+    nameToMatchPosition() {
+      const visibleNames = Math.min(5, this.names.length);
+      const randomNamePos = Math.floor(this.randomPosition * visibleNames);
+
+      return randomNamePos;
+    },
+
+    nameToMatch() {
+      return this.names[this.nameToMatchPosition];
     },
 
     type() {
@@ -51,12 +58,7 @@ export default {
     needsConfirm() {
       const first = this.toRemove[0];
 
-      if ( !first ) {
-        return false;
-      }
-      const type = first.type;
-
-      return (type === NAMESPACE || type === NODE || type === RIO.STACK) && this.toRemove.length === 1;
+      return first?.confirmRemove;
     },
 
     plusMore() {
@@ -107,13 +109,29 @@ export default {
     },
 
     deleteDisabled() {
-      const confirmFailed = this.needsConfirm && this.confirmName !== this.names[0];
+      const confirmFailed = this.needsConfirm && this.confirmName !== this.nameToMatch;
 
       return this.preventDelete || confirmFailed;
     },
 
     ...mapState('action-menu', ['showPromptRemove', 'toRemove']),
-    ...mapGetters({ t: 'i18n/t' })
+    ...mapGetters({ t: 'i18n/t' }),
+
+    resourceNames() {
+      return this.names.reduce((res, name, i) => {
+        if (i >= 5) {
+          return res;
+        }
+        res += `<b>${ name }</b>`;
+        if (i === this.names.length - 1) {
+          res += this.plusMore;
+        } else {
+          res += i === this.toRemove.length - 2 ? ' and ' : ', ';
+        }
+
+        return res;
+      }, '');
+    }
   },
 
   watch:    {
@@ -247,13 +265,12 @@ export default {
       </h4>
       <div slot="body">
         <div class="mb-10">
-          {{ t('promptRemove.attemptingToRemove', {type}) }} <template v-for="(resource, i) in names">
-            <template v-if="i<5">
-              <LinkDetail :key="resource" :value="resource" :row="toRemove[i]" @click.native="close" />
-              <span v-if="i===names.length-1" :key="resource+2">{{ plusMore }}</span><span v-else :key="resource+1">{{ i === toRemove.length-2 ? ', and ' : ', ' }}</span>
-            </template>
-          </template>
-          <span v-if="needsConfirm" :key="resource">Re-enter its name below to confirm:</span>
+          {{ t('promptRemove.attemptingToRemove', { type }) }} <span v-html="resourceNames"></span>
+          <div v-if="needsConfirm" class="mt-10">
+            <span
+              v-html="t('promptRemove.confirmName', { nameToMatch }, true)"
+            ></span>
+          </div>
         </div>
         <input v-if="needsConfirm" id="confirm" v-model="confirmName" type="text" />
         <div class="mb-10">

@@ -119,4 +119,8 @@ export default {
       this.enableAutoInjection(namespaces, false);
     };
   },
+
+  confirmRemove() {
+    return true;
+  },
 };
