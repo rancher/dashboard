@@ -702,6 +702,10 @@ export default {
   // ------------------------------------------------------------------
 
   canDelete() {
+    return this._canDelete;
+  },
+
+  _canDelete() {
     return this.hasLink('remove') && this.$rootGetters['type-map/optionsFor'](this.type).isRemovable;
   },
 
