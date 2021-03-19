@@ -131,19 +131,22 @@ export default {
     getUnique(...ids) {
       return `${ this.groupPrincipalId || this.userId }-${ ids.join('-') }`;
     },
+    selectDefaults() {
+      Object.values(this.sortedRoles).forEach((roles) => {
+        roles.forEach((mappedRole) => {
+          if (mappedRole.newUserDefault) {
+            this.selectedRoles.push(mappedRole.id);
+          }
+        });
+      });
+    },
     update() {
       this.selectedRoles = [];
       this.startingSelectedRoles = [];
       this.assignOnlyRoles = {};
       if (this.isCreate) {
         // Start with the new user default for each role
-        Object.values(this.sortedRoles).forEach((roles) => {
-          roles.forEach((mappedRole) => {
-            if (mappedRole.newUserDefault) {
-              this.selectedRoles.push(mappedRole.id);
-            }
-          });
-        });
+        this.selectDefaults();
       } else {
         // Start with the principal/user's roles
         if (!this.groupPrincipalId && !this.userId) {
@@ -169,6 +172,11 @@ export default {
             }
           });
         });
+
+        if (this.assignOnly && !this.selectedRoles.length) {
+          // If we're assigning roles to a group that has no existing roles start with the default roles selected
+          this.selectDefaults();
+        }
       }
 
       // Force an update to pump out the initial state
