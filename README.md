@@ -198,7 +198,7 @@ To disable it for the whole server for development, add `--spa`.  To disable it 
 
 ## Contributing
 
-For developers, after reading through the introduction on this page, head over to our [Getting Started](./docs/developer/getting-started/README) guide to learn more.
+For developers, after reading through the introduction on this page, head over to our [Getting Started](./docs/developer/getting-started/README.md) guide to learn more.
 
 License
 =======
