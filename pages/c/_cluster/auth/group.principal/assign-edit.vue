@@ -83,7 +83,7 @@ export default {
       <form>
         <SelectPrincipal :retain-selection="true" class="mb-20" :show-my-group-types="['group']" :search-group-types="'group'" @add="setPrincipal" />
 
-        <GlobalRoleBindings ref="grb" :group-principal-id="principalId" :mode="mode" />
+        <GlobalRoleBindings ref="grb" :group-principal-id="principalId" :mode="mode" :assign-only="true" />
 
         <FooterComponent
           :mode="mode"

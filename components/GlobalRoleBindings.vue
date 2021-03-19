@@ -24,6 +24,10 @@ export default {
       type:    String,
       default: _VIEW,
     },
+    assignOnly: {
+      type:    Boolean,
+      default: false,
+    },
     type: {
       type:    String,
       default: 'group',
@@ -83,6 +87,7 @@ export default {
       sortedRoles:           null,
       selectedRoles:         [],
       startingSelectedRoles: [],
+      assignOnlyRoles:       {},
       roleChanges:           {}
     };
   },
@@ -127,6 +132,7 @@ export default {
     update() {
       this.selectedRoles = [];
       this.startingSelectedRoles = [];
+      this.assignOnlyRoles = {};
       if (this.isCreate) {
         // Start with the new user default for each role
         Object.values(this.sortedRoles).forEach((roles) => {
@@ -156,6 +162,8 @@ export default {
                 roleId:    mappedRole.id,
                 bindingId: boundRole.id
               });
+              // Checkboxes should be disabled, besides normal 'mode' ways, if we're only assigning and not removing existing roles
+              this.assignOnlyRoles[mappedRole.id] = this.assignOnly;
             }
           });
         });
@@ -264,6 +272,7 @@ export default {
         return verbsRequiredForLogin.includes(verbs[0]);
       }
     },
+
   }
 };
 </script>
@@ -285,6 +294,8 @@ export default {
                 :key="getUnique(roleType, role.id, 'checkbox')"
                 v-model="selectedRoles"
                 :value-when-true="role.id"
+                :disabled="!!assignOnlyRoles[role.id]"
+                :tooltip-key="!!assignOnlyRoles[role.id] ? 'rbac.globalRoles.assignOnlyRole' : ''"
                 :label="role.nameDisplay"
                 :mode="mode"
                 @input="checkboxChanged"

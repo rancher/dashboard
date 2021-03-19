@@ -2194,6 +2194,7 @@ rbac:
         description: Additional roles to define more fine-grain permissions model.
     unknownRole:
         description: No description provided
+    assignOnlyRole: This role is already assigned
     role:
       admin:
         label: Administrator
