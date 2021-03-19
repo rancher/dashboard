@@ -6,6 +6,7 @@ import Checkbox from '@/components/form/Checkbox';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import Loading from '@/components/Loading';
 import { addObjects, isArray } from '@/utils/array';
+import Card from '@/components/Card';
 
 /**
  * Display checkboxes for each global role, checked for given user or principal (group). Can save changes.
@@ -14,6 +15,7 @@ export default {
   components: {
     Checkbox,
     Loading,
+    Card
   },
   props:      {
     mode: {
@@ -283,41 +285,58 @@ export default {
   <div v-else>
     <form v-if="selectedRoles">
       <div v-for="(sortedRole, roleType) in sortedRoles" :key="getUnique(roleType)" class="role-group mb-10">
-        <template v-if="Object.keys(sortedRole).length">
-          <h2>{{ t(`rbac.globalRoles.types.${roleType}.label`) }}</h2>
-          <div class="type-description mb-10">
-            {{ t(`rbac.globalRoles.types.${roleType}.description`, { isUser }) }}
-          </div>
-          <div class="checkbox-section" :class="'checkbox-section--' + roleType">
-            <div v-for="role in sortedRoles[roleType]" :key="getUnique(roleType, role.id)" class="checkbox mb-10 mr-10">
-              <Checkbox
-                :key="getUnique(roleType, role.id, 'checkbox')"
-                v-model="selectedRoles"
-                :value-when-true="role.id"
-                :disabled="!!assignOnlyRoles[role.id]"
-                :tooltip-key="!!assignOnlyRoles[role.id] ? 'rbac.globalRoles.assignOnlyRole' : ''"
-                :label="role.nameDisplay"
-                :mode="mode"
-                @input="checkboxChanged"
-              >
-                <template #label>
-                  <span class="checkbox-label">{{ role.nameDisplay }}</span>
-                </template>
-              </Checkbox>
+        <Card v-if="Object.keys(sortedRole).length" :show-highlight-border="false" :show-actions="false">
+          <template v-slot:title>
+            <div class="type-title">
+              <h3>{{ t(`rbac.globalRoles.types.${roleType}.label`) }}</h3>
+              <div class="type-description">
+                {{ t(`rbac.globalRoles.types.${roleType}.description`, { isUser }) }}
+              </div>
             </div>
-          </div>
-        </template>
+          </template>
+          <template v-slot:body>
+            <div class="checkbox-section" :class="'checkbox-section--' + roleType">
+              <div v-for="role in sortedRoles[roleType]" :key="getUnique(roleType, role.id)" class="checkbox mb-10 mr-10">
+                <Checkbox
+                  :key="getUnique(roleType, role.id, 'checkbox')"
+                  v-model="selectedRoles"
+                  :value-when-true="role.id"
+                  :disabled="!!assignOnlyRoles[role.id]"
+                  :tooltip-key="!!assignOnlyRoles[role.id] ? 'rbac.globalRoles.assignOnlyRole' : ''"
+                  :label="role.nameDisplay"
+                  :mode="mode"
+                  @input="checkboxChanged"
+                >
+                  <template #label>
+                    <span class="checkbox-label">{{ role.nameDisplay }}</span>
+                  </template>
+                </Checkbox>
+              </div>
+            </div>
+          </template>
+        </Card>
       </div>
     </form>
   </div>
 </template>
-
+<style lang='scss'>
+.role-group {
+  .card-container {
+    margin: 0;
+  }
+}
+</style>
 <style lang='scss' scoped>
   $detailSize: 11px;
   .role-group {
-    .type-description {
-      font-size: $detailSize;
+    .type-title {
+      display: flex;
+      flex-direction: column;
+      .type-description {
+        font-size: $detailSize;
+      }
     }
+
     .checkbox-section {
       display: grid;
 
