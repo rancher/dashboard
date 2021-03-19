@@ -7,6 +7,7 @@ import AsyncButton from '@/components/AsyncButton';
 import { applyProducts } from '@/store/type-map';
 import { NAME } from '@/config/product/auth';
 import { MODE, _EDIT } from '@/config/query-params';
+import { mapState } from 'vuex';
 
 export default {
   components: {
@@ -24,11 +25,7 @@ export default {
     },
   },
   async fetch() {
-    this.rows = await this.$store.dispatch('cluster/findAll', { type: NORMAN.SPOOFED.GROUP_PRINCIPAL }, { root: true }); // See PromptRemove.vue
-
-    const principals = await this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
-
-    this.hasGroups = principals.filter(principal => principal.principalType === 'group')?.length;
+    await this.updateRows();
 
     this.canRefreshAccess = await this.$store.dispatch('rancher/request', { url: '/v3/users?limit=0' })
       .then(res => !!res?.actions?.refreshauthprovideraccess);
@@ -44,7 +41,27 @@ export default {
       }
     };
   },
+  computed: { ...mapState('action-menu', ['showPromptRemove']) },
+  watch:    {
+    async showPromptRemove(show, ...args) {
+      if (!show) {
+        // spoofed collections normally get updated when promptRemove has completed (given the resources are of a spoofed type)..
+        // ... however in this use case it doesn't happen so do it manually (the removed resources are not globalRoleBindings and not spoofed)
+        await this.updateRows(true);
+      }
+    }
+  },
   methods: {
+    async updateRows(force = false) {
+      this.rows = await this.$store.dispatch('cluster/findAll', {
+        type: NORMAN.SPOOFED.GROUP_PRINCIPAL,
+        opt:  { force }
+      }, { root: true }); // See PromptRemove.vue
+
+      const principals = await this.$store.dispatch('rancher/findAll', { type: NORMAN.PRINCIPAL, opt: { url: '/v3/principals' } });
+
+      this.hasGroups = principals.filter(principal => principal.principalType === 'group')?.length;
+    },
     async refreshGroupMemberships(buttonDone) {
       try {
         await this.$store.dispatch('rancher/request', {
