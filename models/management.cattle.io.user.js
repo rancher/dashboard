@@ -11,6 +11,12 @@ export default {
     return false;
   },
 
+  isCurrentUser() {
+    const currentPrincipal = this.$rootGetters['auth/principalId'];
+
+    return !!this.principalIds.find(p => p === currentPrincipal);
+  },
+
   nameDisplay() {
     return this.displayName || this.username || this.id;
   },
@@ -136,8 +142,12 @@ export default {
       const stateOk = state ? this.state === 'inactive' : this.state === 'active';
       const permissionOk = this.hasLink('update'); // Not canUpdate, only gate on api not whether editable pages should be visible
 
-      return stateOk && permissionOk;
+      return stateOk && permissionOk && !this.isCurrentUser;
     };
+  },
+
+  canDelete() {
+    return this._canDelete && !this.isCurrentUser;
   },
 
   _availableActions() {
