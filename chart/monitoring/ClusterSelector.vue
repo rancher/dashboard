@@ -53,6 +53,7 @@ const CLUSTER_TYPES = [
       'kubeAdmScheduler',
       'kubeAdmProxy',
       'kubeAdmEtcd',
+      'hardenedKubelet',
     ],
   },
   {
@@ -65,7 +66,7 @@ const CLUSTER_TYPES = [
     group:      'rke',
     id:         'rke',
     label:      'cluster.provider.rke',
-    configKeys: ['rkeControllerManager', 'rkeScheduler', 'rkeProxy', 'rkeEtcd'],
+    configKeys: ['rkeControllerManager', 'rkeScheduler', 'rkeProxy', 'rkeEtcd', 'hardenedKubelet'],
   },
   {
     group:      'rke',
@@ -76,6 +77,7 @@ const CLUSTER_TYPES = [
       'rke2Scheduler',
       'rke2Proxy',
       'rke2Etcd',
+      'hardenedKubelet',
     ],
   },
 ];
@@ -153,6 +155,8 @@ export default {
         }
       } else {
         this.setClusterTypeEnabledValues([configKeys, true]);
+        this.$set(this.value.prometheusOperator.kubeletService, 'enabled', false);
+        this.$set(this.value.kubelet, 'enabled', false);
       }
 
       if (clusterType.group === 'k3s') {
