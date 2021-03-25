@@ -1,7 +1,9 @@
 <script>
 import debounce from 'lodash/debounce';
 import { mapState, mapGetters } from 'vuex';
-import { mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
+import {
+  mapPref, DEV, EXPANDED_GROUPS, FAVORITE_TYPES, LAST_VISITED
+} from '@/store/prefs';
 import ActionMenu from '@/components/ActionMenu';
 import Jump from '@/components/nav/Jump';
 import WindowManager from '@/components/nav/WindowManager';
@@ -47,6 +49,7 @@ export default {
     dev:            mapPref(DEV),
     expandedGroups: mapPref(EXPANDED_GROUPS),
     favoriteTypes:  mapPref(FAVORITE_TYPES),
+    lastVisited:    mapPref(LAST_VISITED),
 
     allSchemas() {
       const managementReady = this.$store.getters['managementReady'];
@@ -137,6 +140,12 @@ export default {
         this.getGroups();
       }
     },
+    // TODO debounce this mayb
+    '$route.fullPath'(neu, old) {
+      if (neu !== this.lastVisited) {
+        this.lastVisited = neu;
+      }
+    }
   },
 
   created() {

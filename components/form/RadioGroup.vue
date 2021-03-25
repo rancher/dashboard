@@ -25,7 +25,7 @@ export default {
 
     // The selected value
     value: {
-      type:    [Boolean, String],
+      type:    [Boolean, String, Object],
       default: null
     },
 
@@ -144,16 +144,18 @@ export default {
         v-for="(option, i) in normalizedOptions"
         :key="name+'-'+i"
       >
-        <RadioButton
-          :key="name+'-'+i"
-          :name="name"
-          :value="value"
-          :label="option.label"
-          :val="option.value"
-          :disabled="isDisabled"
-          :mode="mode"
-          v-on="$listeners"
-        />
+        <slot :listeners="$listeners" :option="option" :name="i">
+          <RadioButton
+            :key="name+'-'+i"
+            :name="name"
+            :value="value"
+            :label="option.label"
+            :val="option.value"
+            :disabled="isDisabled"
+            :mode="mode"
+            v-on="$listeners"
+          />
+        </slot>
       </div>
     </div>
   </div>

@@ -5,7 +5,9 @@ import isEmpty from 'lodash/isEmpty';
 import SortableTable from '@/components/SortableTable';
 import { allHash } from '@/utils/promise';
 import Poller from '@/utils/poller';
-import { parseSi, formatSi, exponentNeeded, UNITS } from '@/utils/units';
+import {
+  parseSi, formatSi, exponentNeeded, UNITS, createMemoryFormat, MEMORY_PARSE_RULES
+} from '@/utils/units';
 import {
   NAME,
   REASON,
@@ -29,21 +31,6 @@ import CountGauge from '@/components/CountGauge';
 import Glance from '@/components/Glance';
 import { findBy } from '@/utils/array';
 import HardwareResourceGauge from './HardwareResourceGauge';
-
-const PARSE_RULES = {
-  memory: {
-    format: {
-      addSuffix:        true,
-      firstSuffix:      'B',
-      increment:        1024,
-      maxExponent:      99,
-      maxPrecision:     2,
-      minExponent:      0,
-      startingExponent: 0,
-      suffix:           'iB',
-    }
-  }
-};
 
 const METRICS_POLL_RATE_MS = 30000;
 const MAX_FAILURES = 2;
@@ -253,7 +240,7 @@ export default {
     createMemoryValues(total, useful) {
       const parsedTotal = parseSi((total || '0').toString());
       const parsedUseful = parseSi((useful || '0').toString());
-      const format = this.createMemoryFormat(parsedTotal);
+      const format = createMemoryFormat(parsedTotal);
       const formattedTotal = formatSi(parsedTotal, format);
       const formattedUseful = formatSi(parsedUseful, format);
 
@@ -264,20 +251,10 @@ export default {
       };
     },
 
-    createMemoryFormat(n) {
-      const exponent = exponentNeeded(n, PARSE_RULES.memory.format.increment);
-
-      return {
-        ...PARSE_RULES.memory.format,
-        maxExponent: exponent,
-        minExponent: exponent,
-      };
-    },
-
     createMemoryUnits(n) {
-      const exponent = exponentNeeded(n, PARSE_RULES.memory.format.increment);
+      const exponent = exponentNeeded(n, MEMORY_PARSE_RULES.memory.format.increment);
 
-      return `${ UNITS[exponent] }${ PARSE_RULES.memory.format.suffix }`;
+      return `${ UNITS[exponent] }${ MEMORY_PARSE_RULES.memory.format.suffix }`;
     },
 
     showActions() {
