@@ -310,13 +310,16 @@ export default {
                   v-model="selectedRoles"
                   :value-when-true="role.id"
                   :disabled="!!assignOnlyRoles[role.id]"
-                  :tooltip-key="!!assignOnlyRoles[role.id] ? 'rbac.globalRoles.assignOnlyRole' : ''"
                   :label="role.nameDisplay"
+                  :description="role.description"
                   :mode="mode"
                   @input="checkboxChanged"
                 >
                   <template #label>
-                    <span class="checkbox-label">{{ role.nameDisplay }}</span>
+                    <div class="checkbox-label-slot">
+                      <span class="checkbox-label">{{ role.nameDisplay }}</span>
+                      <i v-if="!!assignOnlyRoles[role.id]" v-tooltip="t('rbac.globalRoles.assignOnlyRole')" class="checkbox-info icon icon-info icon-lg" />
+                    </div>
                   </template>
                 </Checkbox>
               </div>
@@ -354,7 +357,11 @@ export default {
         grid-template-columns: 100%;
       }
 
-      .checkbox-label{
+      .checkbox-label {
+        &-slot {
+          display: inline-flex;
+          align-items: center;
+        }
         color: var(--body-text);
         margin: 0;
       }
