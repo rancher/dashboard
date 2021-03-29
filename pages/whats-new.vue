@@ -1,9 +1,10 @@
 <script>
-import { mapPref, AFTER_LOGIN_ROUTE } from '@/store/prefs';
+import { mapPref, AFTER_LOGIN_ROUTE, SEEN_WHATS_NEW } from '@/store/prefs';
 import RadioGroup from '@/components/form/RadioGroup';
 import RadioButton from '@/components/form/RadioButton';
 import SimpleBox from '@/components/SimpleBox';
 import SortableTable from '@/components/SortableTable';
+import Banner from '@/components/Banner';
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { NAME, STATE } from '@/config/table-headers';
@@ -16,7 +17,8 @@ export default {
     RadioGroup,
     RadioButton,
     SimpleBox,
-    SortableTable
+    SortableTable,
+    Banner
   },
 
   async fetch() {
@@ -27,7 +29,12 @@ export default {
   },
 
   data() {
-    return { clusters: [] };
+    const sawWhatsNew = this.$store.getters['prefs/get'](SEEN_WHATS_NEW);
+
+    // TODO don't set if dev build
+    this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: true });
+
+    return { clusters: [], sawWhatsNew };
   },
 
   computed:   {
@@ -75,13 +82,13 @@ export default {
 
       out.push( {
         label: `Overview for this Cluster (${ this.currentCluster.id }) `,
-        value: 'current-dashboard'
+        value: `${ this.currentCluster.id }-dashboard`
       });
 
       if (this.currentCluster.id !== this.defaultClusterId) {
         out.push( {
           label: `Overview for the Default Cluster (${ this.defaultClusterId })`,
-          value: 'default-dashboard'
+          value: `${ this.defaultClusterId }-dashboard`
         });
       }
 
@@ -166,59 +173,92 @@ export default {
 
 <template>
   <form>
-    <div class="row mb-20">
-      <div class="col span-6">
-        <SimpleBox title="What do you want to see when you log in?">
-          <RadioGroup id="login-route" :value="afterLoginRoute" name="login-route" :options="routeRadioOptions" @input="updateLoginRoute">
-            <template #2="{option, listeners}">
-              <div class="row">
-                <div class="col">
-                  <RadioButton :label="option.label" :val="false" :value="afterLoginRoute=== 'whats-new' || afterLoginRoute === 'last-visited'" v-on="listeners" />
-                </div>
-                <div class="col span-6">
-                  <v-select v-model="routeFromDropdown" :clearable="false" :options="routeDropdownOptions" />
-                </div>
-              </div>
-            </template>
-          </RadioGroup>
-        </SimpleBox>
-      </div>
-      <div class="col span-6">
-        <SimpleBox title="Migration Assistance">
-          Read the migration guide for Cluster Manager users - everything you need to take advantage of the expanded Cluster Explorer.
-          <br />
-          <a class="pull-right" href="#">Learn More</a>
-        </SimpleBox>
+    <div v-if="!sawWhatsNew" class="row">
+      <div class="col span-12">
+        <Banner label="See what for we did lately" />
       </div>
     </div>
     <div class="row">
-      <div class="col span-12">
-        <SortableTable key-field="id" :rows="clusters" :headers="clusterHeaders">
-          <template #col:cpu="{row}">
-            <td v-if="cpuAllocatable(row)">
-              {{ `${cpuUsed(row)}/${cpuAllocatable(row)} cores` }}
-            </td>
-            <td v-else>
-              &mdash;
-            </td>
-          </template>
-          <template #col:memory="{row}">
-            <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 [a-zA-z]/)">
-              {{ `${memoryUsed(row)}/${memoryAllocatable(row)}` }}
-            </td>
-            <td v-else>
-              &mdash;
-            </td>
-          </template>
-          <template #col:pods="{row}">
-            <td v-if="row.status.allocatable.pods && row.status.allocatable.pods!== '0'">
-              {{ `${row.status.requested.pods}/${row.status.allocatable.pods}` }}
-            </td>
-            <td v-else>
-              &mdash;
-            </td>
-          </template>
-        </SortableTable>
+      <div class="col span-10">
+        <div class="row mb-20">
+          <div class="col span-6">
+            <SimpleBox title="What do you want to see when you log in?">
+              <RadioGroup id="login-route" :value="afterLoginRoute" name="login-route" :options="routeRadioOptions" @input="updateLoginRoute">
+                <template #2="{option, listeners}">
+                  <div class="row">
+                    <div class="col">
+                      <RadioButton :label="option.label" :val="false" :value="afterLoginRoute=== 'whats-new' || afterLoginRoute === 'last-visited'" v-on="listeners" />
+                    </div>
+                    <div class="col span-6">
+                      <v-select v-model="routeFromDropdown" :clearable="false" :options="routeDropdownOptions" />
+                    </div>
+                  </div>
+                </template>
+              </RadioGroup>
+            </SimpleBox>
+          </div>
+          <div class="col span-6">
+            <SimpleBox id="migration" title="Migration Assistance">
+              Read the migration guide for Cluster Manager users - everything you need to take advantage of the expanded Cluster Explorer.
+              <br />
+              <a class="pull-right" href="#">Learn More</a>
+            </SimpleBox>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col span-12">
+            <SortableTable key-field="id" :rows="clusters" :headers="clusterHeaders">
+              <template #col:cpu="{row}">
+                <td v-if="cpuAllocatable(row)">
+                  {{ `${cpuUsed(row)}/${cpuAllocatable(row)} cores` }}
+                </td>
+                <td v-else>
+                  &mdash;
+                </td>
+              </template>
+              <template #col:memory="{row}">
+                <td v-if="memoryAllocatable(row) && !memoryAllocatable(row).match(/^0 [a-zA-z]/)">
+                  {{ `${memoryUsed(row)}/${memoryAllocatable(row)}` }}
+                </td>
+                <td v-else>
+                  &mdash;
+                </td>
+              </template>
+              <template #col:pods="{row}">
+                <td v-if="row.status.allocatable.pods && row.status.allocatable.pods!== '0'">
+                  {{ `${row.status.requested.pods}/${row.status.allocatable.pods}` }}
+                </td>
+                <td v-else>
+                  &mdash;
+                </td>
+              </template>
+            </SortableTable>
+          </div>
+        </div>
+      </div>
+      <div class="col span-2">
+        <SimpleBox title="Community Support">
+          <ul id="community-links" class="list-unstyled">
+            <li>
+              <i class="icon icon-external-link"></i>
+              <a href="https://slack.rancher.io/" target="_blank" rel="noopener nofollow">Slack</a>
+            </li>
+            <li>
+              <i class="icon icon-file"></i>
+              <a href="https://rancher.com/docs/" target="_blank" rel="noopener nofollow">Docs</a>
+            </li>
+            <li>
+              <i class="icon icon-external-link"></i>
+              <a href="https://forums.rancher.com/" target="_blank" rel="noopener nofollow">Forums</a>
+            </li>
+            <li>
+              <i class="icon icon-github"></i>
+              <a href="https://github.com/rancher/rancher" target="_blank" rel="noopener nofollow">Github</a>
+            </li>
+          </ul>
+        </SimpleBox>
+        <SimpleBox title="Commercial Support">
+        </SimpleBox>
       </div>
     </div>
   </form>
@@ -230,5 +270,25 @@ export default {
     &>DIV {
         margin: 5px;
     }
+}
+
+#migration {
+  height: 100%;
+  position: relative;
+  & A {
+    position: absolute;
+    bottom: 15px;
+    right: 15px
+  }
+}
+
+#community-links {
+  li {
+    padding-top: 20px;
+    i {
+      color: var(--primary);
+      padding: 10px;
+    }
+  }
 }
 </style>

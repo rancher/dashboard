@@ -88,7 +88,6 @@ export const TIME_ZONE = create('time-zone', 'local');
 export const DEV = create('dev', false, { parseJSON });
 export const SEEN_WHATS_NEW = create('seen-whats-new', false, { options: [true, false], parseJSON });
 export const AFTER_LOGIN_ROUTE = create('after-login-route', 'clusters' );
-export const LAST_VISITED = create('last-visited', '' );
 
 // --------------------
 
@@ -170,6 +169,28 @@ export const getters = {
     }
 
     return theme;
+  },
+
+  afterLoginRoute: (state, getters) => {
+    const afterLoginRoutePref = getters['get'](AFTER_LOGIN_ROUTE);
+
+    switch (true) {
+    case (afterLoginRoutePref === 'whats-new'):
+      return { name: 'whats-new' };
+    case (afterLoginRoutePref === 'last-visited'): {
+      const clusterPref = getters['get'](CLUSTER);
+
+      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterPref } };
+    }
+    case (!!afterLoginRoutePref.match(/.+-dashboard$/)):
+    {
+      const clusterId = afterLoginRoutePref.split('-dashboard')[0];
+
+      return { name: 'c-cluster-explorer', params: { product: 'explorer', cluster: clusterId } };
+    }
+    default:
+      return { name: afterLoginRoutePref };
+    }
   }
 };
 
