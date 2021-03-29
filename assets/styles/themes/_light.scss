@@ -93,7 +93,7 @@ $selected: rgba($primary, .5);
 
   --checkbox-tick              : #{$lightest};
   --checkbox-border            : #{$medium};
-  --checkbox-tick-disabled     : #{darken($disabled, 20%)};
+  --checkbox-tick-disabled     : #{darken($disabled, 40%)};
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : #{$link};
 

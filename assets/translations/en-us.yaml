@@ -3773,6 +3773,11 @@ typeLabel:
       one { Cluster }
       other { Clusters }
     }
+  'management.cattle.io.user': |-
+    {count, plural,
+      one { User }
+      other { Users }
+    }
   group.principal: |-
     {count, plural,
       one { Group }

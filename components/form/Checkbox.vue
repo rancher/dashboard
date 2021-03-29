@@ -49,6 +49,16 @@ export default {
       type:    null,
       default: true
     },
+
+    descriptionKey: {
+      type:    String,
+      default: null
+    },
+
+    description: {
+      type:    String,
+      default: null
+    },
   },
 
   computed: {
@@ -92,43 +102,64 @@ export default {
 </script>
 
 <template>
-  <label
-    class="checkbox-container"
-    :class="{ 'disabled': isDisabled}"
-    @keydown.enter.prevent="clicked($event)"
-    @keydown.space.prevent="clicked($event)"
-    @click.stop.prevent="clicked($event)"
-  >
-    <input
-      v-model="value"
-      :checked="isChecked"
-      :value="valueWhenTrue"
-      type="checkbox"
-      :tabindex="-1"
-      @click.stop.prevent
-    />
-    <span
-      class="checkbox-custom"
-      :class="{indeterminate: indeterminate}"
-      :tabindex="isDisabled ? -1 : 0"
-      :aria-label="label"
-      :aria-checked="!!value"
-      role="checkbox"
-    />
-    <span
-      class="checkbox-label"
+  <div class="checkbox-outer-container">
+    <label
+      class="checkbox-container"
+      :class="{ 'disabled': isDisabled}"
+      @keydown.enter.prevent="clicked($event)"
+      @keydown.space.prevent="clicked($event)"
+      @click.stop.prevent="clicked($event)"
     >
-      <slot name="label">
-        <t v-if="labelKey" :k="labelKey" />
-        <template v-else-if="label">{{ label }}</template>
-        <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="checkbox-info icon icon-info icon-lg" />
-        <i v-else-if="tooltip" v-tooltip="tooltip" class="checkbox-info icon icon-info icon-lg" />
-      </slot>
-    </span>
-  </label>
+      <input
+        v-model="value"
+        :checked="isChecked"
+        :value="valueWhenTrue"
+        type="checkbox"
+        :tabindex="-1"
+        @click.stop.prevent
+      />
+      <span
+        class="checkbox-custom"
+        :class="{indeterminate: indeterminate}"
+        :tabindex="isDisabled ? -1 : 0"
+        :aria-label="label"
+        :aria-checked="!!value"
+        role="checkbox"
+      />
+      <span
+        class="checkbox-label"
+      >
+        <slot name="label">
+          <t v-if="labelKey" :k="labelKey" />
+          <template v-else-if="label">{{ label }}</template>
+          <i v-if="tooltipKey" v-tooltip="t(tooltipKey)" class="checkbox-info icon icon-info icon-lg" />
+          <i v-else-if="tooltip" v-tooltip="tooltip" class="checkbox-info icon icon-info icon-lg" />
+        </slot>
+      </span>
+    </label>
+    <div v-if="descriptionKey || description" class="checkbox-outer-container-description">
+      <t v-if="descriptionKey" :k="descriptionKey" />
+      <template v-else-if="description">
+        {{ description }}
+      </template>
+    </div>
+  </div>
 </template>
 
 <style lang='scss'>
+$fontColor: var(--input-label);
+
+.checkbox-outer-container {
+  display: inline-flex;
+  flex-direction: column;
+  &-description {
+    color: $fontColor;
+    font-size: 11px;
+    margin-left: 20px;
+    margin-top: 5px;
+  }
+}
+
 // NOTE: SortableTable depends on the names of this class, do not arbitrarily change.
 .checkbox-container {
   position: relative;
@@ -242,7 +273,7 @@ export default {
     display: flex;
     flex-direction: column;
     LABEL {
-      color: var(--input-label)
+      color: $fontColor;
     }
   }
 }

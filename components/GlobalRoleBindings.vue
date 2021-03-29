@@ -281,13 +281,14 @@ export default {
                 :key="getUnique(roleType, roleId, 'checkbox')"
                 v-model="selectedRoles"
                 :value-when-true="roleId"
-                :label="role.nameDisplay"
+                :description="role.description"
                 :mode="mode"
                 @input="checkboxChanged"
-              />
-              <div class="description">
-                {{ role.description }}
-              </div>
+              >
+                <template #label>
+                  <span class="checkbox-label">{{ role.nameDisplay }}</span>
+                </template>
+              </Checkbox>
             </div>
           </div>
         </template>
@@ -311,15 +312,9 @@ export default {
         grid-template-columns: 100%;
       }
 
-      .checkbox {
-        display: flex;
-        flex-direction: column;
-
-        .description {
-          font-size: $detailSize;
-          margin-left: 20px;
-          margin-top: 5px;
-        }
+      .checkbox-label{
+        color: var(--body-text);
+        margin: 0;
       }
     }
   }

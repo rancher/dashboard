@@ -5,6 +5,8 @@ import { GROUP_NAME, GROUP_ROLE_NAME } from '@/config/table-headers';
 
 export const NAME = 'auth';
 
+const usersVirtualType = 'users';
+
 export function init(store) {
   const {
     product,
@@ -33,10 +35,26 @@ export function init(store) {
     icon:        'lock',
     namespaced:  false,
     name:        'config',
-    weight:      100,
+    weight:      -1,
     route:       { name: 'c-cluster-auth-config' },
     ifHaveType: MANAGEMENT.AUTH_CONFIG
   });
+
+  virtualType({
+    label:       store.getters['type-map/labelFor']({ id: MANAGEMENT.USER }, 2),
+    name:           usersVirtualType,
+    namespaced:     false,
+    weight:         102,
+    icon:           'user',
+    route:          {
+      name:   'c-cluster-product-resource',
+      params: {
+        product:  NAME,
+        resource: MANAGEMENT.USER,
+      }
+    }
+  });
+  configureType(MANAGEMENT.USER, { showListMasthead: false });
 
   spoofedType({
     label:             store.getters['type-map/labelFor']({ id: NORMAN.SPOOFED.GROUP_PRINCIPAL }, 2),
@@ -90,13 +108,9 @@ export function init(store) {
     isRemovable:      false,
     showListMasthead: false,
   });
-
   // Use labelFor... so lookup succeeds with .'s in path.... and end result is 'trimmed' as per other entries
   mapType(NORMAN.SPOOFED.GROUP_PRINCIPAL, store.getters['type-map/labelFor']({ id: NORMAN.SPOOFED.GROUP_PRINCIPAL }, 2));
-
-  weightType(NORMAN.SPOOFED.GROUP_PRINCIPAL, -1, true);
-  weightType(MANAGEMENT.USER, 100);
-  configureType(MANAGEMENT.USER, { showListMasthead: false });
+  weightType(NORMAN.SPOOFED.GROUP_PRINCIPAL, 101, true);
 
   configureType(MANAGEMENT.AUTH_CONFIG, {
     isCreatable: false,
@@ -119,7 +133,7 @@ export function init(store) {
 
   basicType([
     'config',
-    MANAGEMENT.USER,
+    usersVirtualType,
     NORMAN.SPOOFED.GROUP_PRINCIPAL
   ]);
 
