@@ -6,6 +6,7 @@ import Checkbox from '@/components/form/Checkbox';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import Loading from '@/components/Loading';
 import { addObjects, isArray } from '@/utils/array';
+import Card from '@/components/Card';
 
 /**
  * Display checkboxes for each global role, checked for given user or principal (group). Can save changes.
@@ -14,6 +15,7 @@ export default {
   components: {
     Checkbox,
     Loading,
+    Card
   },
   props:      {
     mode: {
@@ -23,6 +25,10 @@ export default {
     realMode: {
       type:    String,
       default: _VIEW,
+    },
+    assignOnly: {
+      type:    Boolean,
+      default: false,
     },
     type: {
       type:    String,
@@ -43,21 +49,25 @@ export default {
   async fetch() {
     try {
       this.allRoles = await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE });
-
       if (!this.sortedRoles) {
         this.sortedRoles = {
-          global:  {},
-          builtin: {},
-          custom:  {}
+          global:  [],
+          builtin: [],
+          custom:  []
         };
 
         this.allRoles.forEach((role) => {
           const roleType = this.getRoleType(role);
 
           if (roleType) {
-            this.sortedRoles[roleType][role.id] = role;
+            this.sortedRoles[roleType].push(role);
           }
         });
+
+        const sort = (a, b) => a.nameDisplay.localeCompare(b.nameDisplay);
+
+        this.sortedRoles.builtin = this.sortedRoles.builtin.sort(sort);
+        this.sortedRoles.custom = this.sortedRoles.custom.sort(sort);
 
         if (!this.isCreate) {
           this.globalRoleBindings = await this.$store.dispatch('management/findAll', { type: RBAC.GLOBAL_ROLE_BINDING });
@@ -79,6 +89,7 @@ export default {
       sortedRoles:           null,
       selectedRoles:         [],
       startingSelectedRoles: [],
+      assignOnlyRoles:       {},
       roleChanges:           {}
     };
   },
@@ -120,18 +131,22 @@ export default {
     getUnique(...ids) {
       return `${ this.groupPrincipalId || this.userId }-${ ids.join('-') }`;
     },
+    selectDefaults() {
+      Object.values(this.sortedRoles).forEach((roles) => {
+        roles.forEach((mappedRole) => {
+          if (mappedRole.newUserDefault) {
+            this.selectedRoles.push(mappedRole.id);
+          }
+        });
+      });
+    },
     update() {
       this.selectedRoles = [];
       this.startingSelectedRoles = [];
+      this.assignOnlyRoles = {};
       if (this.isCreate) {
         // Start with the new user default for each role
-        Object.entries(this.sortedRoles).forEach(([roleType, types]) => {
-          Object.entries(types).forEach(([roleId, mappedRole]) => {
-            if (mappedRole.newUserDefault) {
-              this.selectedRoles.push(roleId);
-            }
-          });
-        });
+        this.selectDefaults();
       } else {
         // Start with the principal/user's roles
         if (!this.groupPrincipalId && !this.userId) {
@@ -142,19 +157,26 @@ export default {
           return this.groupPrincipalId ? grb.groupPrincipalName === this.groupPrincipalId : grb.userName === this.userId;
         });
 
-        Object.entries(this.sortedRoles).forEach(([roleType, types]) => {
-          Object.entries(types).forEach(([roleId, mappedRole]) => {
-            const boundRole = boundRoles.find(boundRole => boundRole.globalRoleName === roleId);
+        Object.values(this.sortedRoles).forEach((roles) => {
+          roles.forEach((mappedRole) => {
+            const boundRole = boundRoles.find(boundRole => boundRole.globalRoleName === mappedRole.id);
 
             if (!!boundRole) {
-              this.selectedRoles.push(roleId);
+              this.selectedRoles.push(mappedRole.id);
               this.startingSelectedRoles.push({
-                roleId,
+                roleId:    mappedRole.id,
                 bindingId: boundRole.id
               });
+              // Checkboxes should be disabled, besides normal 'mode' ways, if we're only assigning and not removing existing roles
+              this.assignOnlyRoles[mappedRole.id] = this.assignOnly;
             }
           });
         });
+
+        if (this.assignOnly && !this.selectedRoles.length) {
+          // If we're assigning roles to a group that has no existing roles start with the default roles selected
+          this.selectDefaults();
+        }
       }
 
       // Force an update to pump out the initial state
@@ -214,9 +236,9 @@ export default {
     confirmUserCanLogIn() {
       const allRolesRules = [];
 
-      Object.entries(this.sortedRoles).forEach(([roleType, types]) => {
-        Object.entries(types).forEach(([roleId, mappedRole]) => {
-          if (this.selectedRoles.includes(roleId)) {
+      Object.values(this.sortedRoles).forEach((roles) => {
+        roles.forEach((mappedRole) => {
+          if (this.selectedRoles.includes(mappedRole.id)) {
             addObjects(allRolesRules, mappedRole.rules || []);
           }
         });
@@ -260,6 +282,7 @@ export default {
         return verbsRequiredForLogin.includes(verbs[0]);
       }
     },
+
   }
 };
 </script>
@@ -270,39 +293,61 @@ export default {
   <div v-else>
     <form v-if="selectedRoles">
       <div v-for="(sortedRole, roleType) in sortedRoles" :key="getUnique(roleType)" class="role-group mb-10">
-        <template v-if="Object.keys(sortedRole).length">
-          <h2>{{ t(`rbac.globalRoles.types.${roleType}.label`) }}</h2>
-          <div class="type-description mb-10">
-            {{ t(`rbac.globalRoles.types.${roleType}.description`, { isUser }) }}
-          </div>
-          <div class="checkbox-section" :class="'checkbox-section--' + roleType">
-            <div v-for="(role, roleId) in sortedRoles[roleType]" :key="getUnique(roleType, roleId)" class="checkbox mb-10 mr-10">
-              <Checkbox
-                :key="getUnique(roleType, roleId, 'checkbox')"
-                v-model="selectedRoles"
-                :value-when-true="roleId"
-                :description="role.description"
-                :mode="mode"
-                @input="checkboxChanged"
-              >
-                <template #label>
-                  <span class="checkbox-label">{{ role.nameDisplay }}</span>
-                </template>
-              </Checkbox>
+        <Card v-if="Object.keys(sortedRole).length" :show-highlight-border="false" :show-actions="false">
+          <template v-slot:title>
+            <div class="type-title">
+              <h3>{{ t(`rbac.globalRoles.types.${roleType}.label`) }}</h3>
+              <div class="type-description">
+                {{ t(`rbac.globalRoles.types.${roleType}.description`, { isUser }) }}
+              </div>
             </div>
-          </div>
-        </template>
+          </template>
+          <template v-slot:body>
+            <div class="checkbox-section" :class="'checkbox-section--' + roleType">
+              <div v-for="role in sortedRoles[roleType]" :key="getUnique(roleType, role.id)" class="checkbox mb-10 mr-10">
+                <Checkbox
+                  :key="getUnique(roleType, role.id, 'checkbox')"
+                  v-model="selectedRoles"
+                  :value-when-true="role.id"
+                  :disabled="!!assignOnlyRoles[role.id]"
+                  :label="role.nameDisplay"
+                  :description="role.description"
+                  :mode="mode"
+                  @input="checkboxChanged"
+                >
+                  <template #label>
+                    <div class="checkbox-label-slot">
+                      <span class="checkbox-label">{{ role.nameDisplay }}</span>
+                      <i v-if="!!assignOnlyRoles[role.id]" v-tooltip="t('rbac.globalRoles.assignOnlyRole')" class="checkbox-info icon icon-info icon-lg" />
+                    </div>
+                  </template>
+                </Checkbox>
+              </div>
+            </div>
+          </template>
+        </Card>
       </div>
     </form>
   </div>
 </template>
-
+<style lang='scss'>
+.role-group {
+  .card-container {
+    margin: 0;
+  }
+}
+</style>
 <style lang='scss' scoped>
   $detailSize: 11px;
   .role-group {
-    .type-description {
-      font-size: $detailSize;
+    .type-title {
+      display: flex;
+      flex-direction: column;
+      .type-description {
+        font-size: $detailSize;
+      }
     }
+
     .checkbox-section {
       display: grid;
 
@@ -312,7 +357,11 @@ export default {
         grid-template-columns: 100%;
       }
 
-      .checkbox-label{
+      .checkbox-label {
+        &-slot {
+          display: inline-flex;
+          align-items: center;
+        }
         color: var(--body-text);
         margin: 0;
       }

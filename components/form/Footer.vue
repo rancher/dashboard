@@ -23,6 +23,11 @@ export default {
       type:    Array,
       default: null,
     },
+
+    disableSave: {
+      type:     Boolean,
+      default: false,
+    }
   },
 
   computed: {
@@ -64,6 +69,7 @@ export default {
           <AsyncButton
             v-if="!isView"
             :mode="mode"
+            :disabled="disableSave"
             @click="save"
           />
         </slot>

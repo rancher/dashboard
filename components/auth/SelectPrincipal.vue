@@ -165,7 +165,7 @@ export default {
 <style lang="scss" scoped>
   .select-principal {
     &.retain-selection {
-      min-height: 84px;
+      min-height: 86px;
       &.focused {
         .principal {
           display: none;

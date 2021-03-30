@@ -28,6 +28,11 @@ export default {
     return detailLocation;
   },
 
+  globalRoleBindings() {
+    return this.$rootGetters['management/all'](RBAC.GLOBAL_ROLE_BINDING)
+      .filter(globalRoleBinding => this.id === globalRoleBinding.groupPrincipalName);
+  },
+
   availableActions() {
     return [
       {
@@ -41,7 +46,7 @@ export default {
         label:      this.t('action.unassign'),
         icon:       'icon icon-trash',
         bulkable:   true,
-        enabled:    true,
+        enabled:    !!this.globalRoleBindings.length,
         bulkAction: 'unassignGroupRoles',
       },
     ];

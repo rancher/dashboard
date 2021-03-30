@@ -3,7 +3,7 @@ import FooterComponent from '@/components/form/Footer';
 import SelectPrincipal from '@/components/auth/SelectPrincipal.vue';
 import GlobalRoleBindings from '@/components/GlobalRoleBindings.vue';
 import { NORMAN } from '@/config/types';
-import { _VIEW } from '@/config/query-params';
+import { _VIEW, _EDIT } from '@/config/query-params';
 import { exceptionToErrorsArray } from '@/utils/error';
 import { NAME } from '@/config/product/auth';
 
@@ -17,11 +17,17 @@ export default {
     return {
       errors:       [],
       principalId:  null,
+      canLogIn:     false,
+      rolesChanged: false,
+      editMode:     _EDIT,
     };
   },
   computed: {
     mode() {
       return !this.principalId ? _VIEW : this.$route.query.mode || _VIEW;
+    },
+    canSave() {
+      return this.rolesChanged && this.canLogIn;
     }
   },
   methods: {
@@ -83,11 +89,19 @@ export default {
       <form>
         <SelectPrincipal :retain-selection="true" class="mb-20" :show-my-group-types="['group']" :search-group-types="'group'" @add="setPrincipal" />
 
-        <GlobalRoleBindings ref="grb" :group-principal-id="principalId" :mode="mode" />
+        <GlobalRoleBindings
+          ref="grb"
+          :group-principal-id="principalId"
+          :mode="mode"
+          :assign-only="true"
+          @canLogIn="canLogIn = $event"
+          @hasChanges="rolesChanged = $event"
+        />
 
         <FooterComponent
-          :mode="mode"
+          :mode="editMode"
           :errors="errors"
+          :disable-save="!canSave"
           @save="save"
           @done="cancel"
         >
