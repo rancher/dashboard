@@ -5,10 +5,12 @@ import RadioButton from '@/components/form/RadioButton';
 import SimpleBox from '@/components/SimpleBox';
 import SortableTable from '@/components/SortableTable';
 import Banner from '@/components/Banner';
+import BadgeState from '@/components/BadgeState';
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
 import { NAME, STATE } from '@/config/table-headers';
 import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
+import { compare, isDevBuild } from '@/utils/version';
 
 export default {
   name:            'WhatsNew',
@@ -18,7 +20,8 @@ export default {
     RadioButton,
     SimpleBox,
     SortableTable,
-    Banner
+    Banner,
+    BadgeState
   },
 
   async fetch() {
@@ -29,12 +32,21 @@ export default {
   },
 
   data() {
-    const sawWhatsNew = this.$store.getters['prefs/get'](SEEN_WHATS_NEW);
+    const lastSeenNew = this.$store.getters['prefs/get'](SEEN_WHATS_NEW) ;
+    const setting = this.$store.getters['management/byId'](MANAGEMENT.SETTING, 'server-version');
+    const fullVersion = setting?.value || 'unknown';
 
-    // TODO don't set if dev build
-    this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: true });
+    const seenWhatsNewAlready = compare(lastSeenNew, fullVersion) >= 0;
 
-    return { clusters: [], sawWhatsNew };
+    const isDev = isDevBuild(fullVersion);
+
+    // if (!isDev) {
+    this.$store.dispatch('prefs/set', { key: SEEN_WHATS_NEW, value: fullVersion });
+    // }
+
+    return {
+      clusters: [], seenWhatsNewAlready, isDev
+    };
   },
 
   computed:   {
@@ -58,7 +70,7 @@ export default {
     routeRadioOptions() {
       return [
         {
-          label: 'Take me back to this screen',
+          label: this.t('landing.landingPrefs.options.thisScreen'),
           value: 'whats-new'
         },
         {
@@ -167,15 +179,25 @@ export default {
 
       return formatSi(parsedAllocatable, format);
     },
+
+    showWhatsNew() {
+      this.$modal.show('release-notes');
+    }
   }
 };
 </script>
 
 <template>
   <form>
-    <div v-if="!sawWhatsNew" class="row">
+    <modal pivot-y="0" class="release-notes" height="auto" name="release-notes">
+      <span class="p-40" v-html="t('landing.releaseNotes', {}, true)"></span>
+    </modal>
+    <div v-if="!seenWhatsNewAlready" class="row">
       <div class="col span-12">
-        <Banner label="See what for we did lately" />
+        <Banner color="info">
+          {{ t('landing.seeWhatsNew') }}
+          <a @click.prevent.stop="showWhatsNew"><span v-html="t('landing.whatsNewLink')" /></a>
+        </Banner>
       </div>
     </div>
     <div class="row">
@@ -208,6 +230,14 @@ export default {
         <div class="row">
           <div class="col span-12">
             <SortableTable key-field="id" :rows="clusters" :headers="clusterHeaders">
+              <template #title>
+                <div class="row pb-20">
+                  <h2 class="mb-0">
+                    {{ t('landing.clusters') }}
+                  </h2>
+                  <BadgeState :label="clusters.length" color="role-tertiary ml-20 mr-20" />
+                </div>
+              </template>
               <template #col:cpu="{row}">
                 <td v-if="cpuAllocatable(row)">
                   {{ `${cpuUsed(row)}/${cpuAllocatable(row)} cores` }}
@@ -237,7 +267,7 @@ export default {
         </div>
       </div>
       <div class="col span-2">
-        <SimpleBox title="Community Support">
+        <SimpleBox class="mb-20" :title="t('landing.community.title')">
           <ul id="community-links" class="list-unstyled">
             <li>
               <i class="icon icon-external-link"></i>
@@ -257,7 +287,8 @@ export default {
             </li>
           </ul>
         </SimpleBox>
-        <SimpleBox title="Commercial Support">
+        <SimpleBox :title="t('landing.commercial.title')">
+          <span v-html="t('landing.commercial.body', {}, true)" />
         </SimpleBox>
       </div>
     </div>
@@ -270,6 +301,10 @@ export default {
     &>DIV {
         margin: 5px;
     }
+}
+
+.release-notes .v--modal-box.v--modal {
+  padding: 20px 40px 20px 40px;
 }
 
 #migration {

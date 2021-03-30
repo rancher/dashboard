@@ -1173,8 +1173,9 @@ labels:
     title: Annotations
 
 landing:
+  clusters: Clusters
 # taken from Ember: https://github.com/rancher/ui/blob/master/app/components/modal-whats-new/template.hbs
-  whatsNewContent: 
+  releaseNotes: 
     '<ul class="list-unstyled">
       <li class="mb-10">
         <b>Cluster Explorer:</b> New dashboard to provide a deeper look into clusters under management.
@@ -1212,8 +1213,8 @@ landing:
         </ul>
       </li>
     </ul>'
-  seeWhatsNew: Learn more about the improvements and new capability in this version.
-  whatsNewLink: What's new in {version}.
+  seeWhatsNew: Learn more about the improvements and new capabilities in this version.
+  whatsNewLink: "What's new in 2.5."
   migration:
     title: Migration Assistance
     body: Read the migration guide for Cluster Manager users - everything you need to take advantage of the expanded Cluster Explorer
@@ -1224,6 +1225,13 @@ landing:
   commercial:
     title: Commercial Support
     body: Learn about commercial support <a href="https://rancher.com/support-maintenance-terms/" target='_blank' rel='noopener nofollow noreferrer'>here</a>.
+  landingPrefs:
+    title: What do you want to see when you log in?
+    options:
+      thisScreen: Take me back to this screen
+      lastVisited: Take me back to the last cluster I visited last login
+      custom: Make my home screen...
+      defaultOverview: Overview for the default cluster ({cluster})
 
 logging:
   clusterFlow:

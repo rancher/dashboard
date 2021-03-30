@@ -61,3 +61,11 @@ function comparePart(in1, in2) {
 
   return in1.localeCompare(in2);
 }
+
+export function isDevBuild(version) {
+  if ( ['dev', 'master', 'head'].includes(version) || version.endsWith('-head') || version.match(/-rc\d+$/) ) {
+    return true;
+  }
+
+  return false;
+}
