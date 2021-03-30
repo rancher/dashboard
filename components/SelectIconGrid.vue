@@ -30,6 +30,10 @@ export default {
       type:    String,
       default: 'sideLabel',
     },
+    disabledField: {
+      type:    String,
+      default: 'disabled',
+    },
 
     noDataKey: {
       type:    String,
@@ -45,7 +49,15 @@ export default {
   },
 
   methods: {
+    isDisabled(idx) {
+      return this.rows[idx][this.disabledField] === true;
+    },
+
     select(row, idx) {
+      if ( this.isDisabled(idx) ) {
+        return;
+      }
+
       this.$emit('clicked', row, idx);
     }
   },
@@ -58,7 +70,7 @@ export default {
       v-for="(r, idx) in rows"
       :key="r[keyField]"
       class="item"
-      :class="{'has-description': !!r[descriptionField], [colorFor(r, idx)]: true}"
+      :class="{'has-description': !!r[descriptionField], [colorFor(r, idx)]: true, disabled: r[disabledField] === true}"
       @click="select(r, idx)"
     >
       <div class="side-label">
@@ -120,7 +132,7 @@ export default {
       position: relative;
       border-radius: calc( 1.5 * var(--border-radius));
 
-      &:hover {
+      &:hover:not(.disabled) {
         box-shadow: 0 0 30px var(--shadow);
         transition: box-shadow 0.1s ease-in-out;
         cursor: pointer;
@@ -179,7 +191,7 @@ export default {
           background-color: var(--app-rancher-accent);
           color: var(--app-rancher-accent-text);
         }
-        &:hover {
+        &:hover:not(.disabled) {
           background: var(--app-rancher-accent);
         }
       }
@@ -190,7 +202,7 @@ export default {
           background-color: var(--app-partner-accent);
           color: var(--app-partner-accent-text);
         }
-        &:hover {
+        &:hover:not(.disabled) {
           background: var(--app-partner-accent);
         }
       }
@@ -199,45 +211,45 @@ export default {
       &.color1 {
         background: var(--app-color1-bg);
         .side-label { background-color: var(--app-color1-accent); color: var(--app-color1-accent-text); }
-        &:hover { background: var(--app-color1-accent); }
+        &:hover:not(.disabled) { background: var(--app-color1-accent); }
       }
       &.color2 {
         background: var(--app-color2-bg);
         .side-label { background-color: var(--app-color2-accent); color: var(--app-color2-accent-text); }
-        &:hover { background: var(--app-color2-accent); }
+        &:hover:not(.disabled) { background: var(--app-color2-accent); }
       }
       &.color3 {
         background: var(--app-color3-bg);
         .side-label { background-color: var(--app-color3-accent); color: var(--app-color3-accent-text); }
-        &:hover { background: var(--app-color3-accent); }
+        &:hover:not(.disabled) { background: var(--app-color3-accent); }
       }
       &.color4 {
         background: var(--app-color4-bg);
         .side-label { background-color: var(--app-color4-accent); color: var(--app-color4-accent-text); }
-        &:hover { background: var(--app-color4-accent); }
+        &:hover:not(.disabled) { background: var(--app-color4-accent); }
       }
       &.color5 {
         background: var(--app-color5-bg);
         .side-label { background-color: var(--app-color5-accent); color: var(--app-color5-accent-text); }
-        &:hover { background: var(--app-color5-accent); }
+        &:hover:not(.disabled) { background: var(--app-color5-accent); }
       }
       &.color6 {
         background: var(--app-color6-bg);
         .side-label { background-color: var(--app-color6-accent); color: var(--app-color6-accent-text); }
-        &:hover { background: var(--app-color6-accent); }
+        &:hover:not(.disabled) { background: var(--app-color6-accent); }
       }
       &.color7 {
         background: var(--app-color7-bg);
         .side-label { background-color: var(--app-color7-accent); color: var(--app-color7-accent-text); }
-        &:hover { background: var(--app-color7-accent); }
+        &:hover:not(.disabled) { background: var(--app-color7-accent); }
       }
       &.color8 {
         background: var(--app-color8-bg);
         .side-label { background-color: var(--app-color8-accent); color: var(--app-color8-accent-text); }
-        &:hover { background: var(--app-color8-accent); }
+        &:hover:not(.disabled) { background: var(--app-color8-accent); }
       }
 
-      &:hover {
+      &:hover:not(.disabled) {
         background-position: right center;
       }
 
@@ -267,6 +279,11 @@ export default {
         text-overflow: ellipsis;
         color: var(--text-muted);
       }
+    }
+
+    .disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 </style>

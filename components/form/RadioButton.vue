@@ -45,6 +45,11 @@ export default {
     isDisabled() {
       return this.mode === _VIEW || this.disabled;
     },
+
+    muteLabel() {
+      // Don't mute the label if the mode if view and the button is checked
+      return this.disabled && !(this.mode === _VIEW && this.isChecked);
+    }
   },
 
   watch: {
@@ -99,7 +104,7 @@ export default {
     />
     <label
       v-if="label"
-      :class="[ isDisabled ? 'text-muted' : '', 'radio-label']"
+      :class="[ muteLabel ? 'text-muted' : '', 'radio-label']"
       v-html="label"
     >
       <slot name="label">{{ label }}</slot>
@@ -165,6 +170,12 @@ export default {
       transform: rotate(0deg) scale(1);
       opacity:1;
       border: 1.5px solid var(--dropdown-text);
+
+      // Ensure that checked radio buttons are greyed out when not enabled
+      &.text-muted {
+        background-color: var(--disabled-bg);
+        border-color: var(--disabled-bg);
+      }
     }
   }
 

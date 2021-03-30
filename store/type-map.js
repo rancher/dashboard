@@ -73,7 +73,7 @@
 //   newGroup,                -- Group to move the type into
 //   mapWeight,               -- Priority for apply this mapping (higher numbers applied first)
 // )
-// componentForType(          Map matching types to a single component name 
+// componentForType(          Map matching types to a single component name
 // (                          (this is helpful if multiple types should be rendered by a single component)
 //   matchRegexOrString,      -- Type to match, or regex that matches types
 //   replacementString        -- String to replace the type with
@@ -81,13 +81,13 @@
 // configureType(            Display options for a particular type
 //   type,                    -- Type to apply to
 //  options                   -- Object of options.  Defaults/Supported: {
- //                               isCreatable: true, -- If false, disable create even if schema says it's allowed
- //                               isEditable: true,  -- Ditto, for edit
- //                               isRemovable: true,  -- Ditto, for remove/delete
- //                               showState: true,  -- If false, hide state in columns and masthead
- //                               showAge: true,    -- If false, hide age in columns and masthead
- //                               canYaml: true,
- //                           }
+//                               isCreatable: true, -- If false, disable create even if schema says it's allowed
+//                               isEditable: true,  -- Ditto, for edit
+//                               isRemovable: true,  -- Ditto, for remove/delete
+//                               showState: true,  -- If false, hide state in columns and masthead
+//                               showAge: true,    -- If false, hide age in columns and masthead
+//                               canYaml: true,
+//                           }
 // )
 // ignoreGroup(group):        Never show group or any types in it
 // weightGroup(               Set the weight (sorting) of one or more groups
@@ -104,9 +104,14 @@
 import { AGE, NAME, NAMESPACE, STATE } from '@/config/table-headers';
 import { COUNT, SCHEMA } from '@/config/types';
 import { DEV, EXPANDED_GROUPS, FAVORITE_TYPES } from '@/store/prefs';
-import { addObject, findBy, insertAt, isArray, removeObject } from '@/utils/array';
+import {
+  addObject, findBy, insertAt, isArray, removeObject
+} from '@/utils/array';
 import { clone, get } from '@/utils/object';
-import { ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize } from '@/utils/string';
+import {
+  ensureRegex, escapeHtml, escapeRegex, ucFirst, pluralize
+} from '@/utils/string';
+import { importList, importDetail, importEdit, loadProduct } from '@/utils/dynamic-importer';
 
 import { NAME as EXPLORER } from '@/config/product/explorer';
 import isObject from 'lodash/isObject';
@@ -141,12 +146,12 @@ export function DSL(store, product, module = 'type-map') {
         removable:           true,
         showClusterSwitcher: true,
         showNamespaceFilter: false,
-        'public':            true,
+        public:              true,
         filterMode:          'namespaces',
         ...inOpt
       };
 
-      for ( const k of ['ifHaveGroup','ifHaveType'] ) {
+      for ( const k of ['ifHaveGroup', 'ifHaveType'] ) {
         if ( opt[k] ) {
           opt[k] = regexToString(ensureRegex(opt[k]));
         }
@@ -161,20 +166,26 @@ export function DSL(store, product, module = 'type-map') {
         types = Object.values(types);
       }
 
-      store.commit(`${ module }/basicType`, {product, types, group});
+      store.commit(`${ module }/basicType`, {
+        product, types, group
+      });
     },
 
     // Type- and Group-dependent
     groupBy(type, field) {
-      store.commit(`${module}/groupBy`, { type, field });
+      store.commit(`${ module }/groupBy`, { type, field });
     },
 
     headers(type, headers) {
       store.commit(`${ module }/headers`, { type, headers });
     },
 
+    hideBulkActions(type, field) {
+      store.commit(`${ module }/hideBulkActions`, { type, field });
+    },
+
     configureType(match, options) {
-      store.commit(`${ module }/configureType`, {...options, match});
+      store.commit(`${ module }/configureType`, { ...options, match });
     },
 
     componentForType(match, replace) {
@@ -191,17 +202,25 @@ export function DSL(store, product, module = 'type-map') {
 
     weightGroup(input, weight, forBasic) {
       if ( isArray(input) ) {
-        store.commit(`${ module }/weightGroup`, { groups: input, weight, forBasic });
+        store.commit(`${ module }/weightGroup`, {
+          groups: input, weight, forBasic
+        });
       } else {
-        store.commit(`${ module }/weightGroup`, { group: input, weight, forBasic });
+        store.commit(`${ module }/weightGroup`, {
+          group: input, weight, forBasic
+        });
       }
     },
 
     weightType(input, weight, forBasic) {
       if ( isArray(input) ) {
-        store.commit(`${ module }/weightType`, { types: input, weight, forBasic });
+        store.commit(`${ module }/weightType`, {
+          types: input, weight, forBasic
+        });
       } else {
-        store.commit(`${ module }/weightType`, { type: input, weight, forBasic });
+        store.commit(`${ module }/weightType`, {
+          type: input, weight, forBasic
+        });
       }
     },
 
@@ -224,11 +243,11 @@ export function DSL(store, product, module = 'type-map') {
     },
 
     virtualType(obj) {
-      store.commit(`${ module }/virtualType`, {product, obj});
+      store.commit(`${ module }/virtualType`, { product, obj });
     },
 
     spoofedType(obj) {
-      store.commit(`${ module }/spoofedType`, {product, obj});
+      store.commit(`${ module }/spoofedType`, { product, obj });
     }
   };
 }
@@ -246,7 +265,7 @@ export async function applyProducts(store) {
   const products = ctx.keys().filter(path => !path.endsWith('.js')).map(path => path.substr(2));
 
   for ( const product of products ) {
-    const impl = await import(`@/config/product/${ product }`);
+    const impl = await loadProduct(product);
 
     if ( impl?.init ) {
       impl.init(store);
@@ -262,7 +281,7 @@ export const state = function() {
     basicTypes:              {},
     groupIgnore:             [],
     groupWeights:            {},
-    basicGroupWeights:       {[ROOT]: 1000},
+    basicGroupWeights:       { [ROOT]: 1000 },
     groupMappings:           [],
     typeIgnore:              [],
     basicTypeWeights:        {},
@@ -273,6 +292,7 @@ export const state = function() {
     typeOptions:             [],
     groupBy:                 {},
     headers:                 {},
+    hideBulkActions:         {},
     schemaGeneration:        1,
     cache:                   {
       typeMove:     {},
@@ -292,15 +312,15 @@ export const getters = {
   // ----------------------------------------------------------------------------
   // Turns a type name into a display label (e.g. management.cattle.io.cluster -> Cluster)
   labelFor(state, getters, rootState, rootGetters) {
-    return (schema, count=1) => {
+    return (schema, count = 1) => {
       return _applyMapping(schema, state.typeMappings, 'id', false, () => {
         const key = `typeLabel."${ schema.id }"`;
 
         if ( rootGetters['i18n/exists'](key) ) {
-          return rootGetters['i18n/t'](key, {count}).trim();
+          return rootGetters['i18n/t'](key, { count }).trim();
         }
 
-        let out = schema?.attributes?.kind || schema.id || '?';
+        const out = schema?.attributes?.kind || schema.id || '?';
 
         // Add spaces, but breaks typing names into jump menu naturally
         // out = ucFirst(out.replace(/([a-z])([A-Z])/g,'$1 $2'));
@@ -364,12 +384,11 @@ export const getters = {
   optionsFor(state) {
     const def = {
       isCreatable: true,
-      isEditable: true,
+      isEditable:  true,
       isRemovable: true,
-      showState: true,
-      showAge: true,
-      canYaml: true,
-      extraListAction: null,
+      showState:   true,
+      showAge:     true,
+      canYaml:     true,
     };
 
     return (schemaOrType) => {
@@ -417,8 +436,6 @@ export const getters = {
   },
 
   getTree(state, getters, rootState, rootGetters) {
-    const t = rootGetters['i18n/t'];
-
     return (product, mode, allTypes, clusterId, namespaceMode, namespaces, currentType, search) => {
       // modes: basic, used, all, favorite
       // namespaceMode: 'namespaced', 'cluster', or 'both'
@@ -466,7 +483,7 @@ export const getters = {
           continue;
         }
 
-        const label = typeObj.label;
+        const label = typeObj.labelKey ? rootGetters['i18n/t'](typeObj.labelKey) || typeObj.label : typeObj.label;
         const virtual = !!typeObj.virtual;
         let icon = typeObj.icon;
 
@@ -536,13 +553,14 @@ export const getters = {
 
       // Recursively sort the groups
       _sortGroup(root, mode);
+
       return root.children;
 
       // ----------------------
 
-      function _ensureGroup(tree, schemaOrName, forBasic=false) {
+      function _ensureGroup(tree, schemaOrName, forBasic = false) {
         let name = getters.groupLabelFor(schemaOrName);
-        const isRoot = ( name === ROOT || name.startsWith(`${ROOT}::`) );
+        const isRoot = ( name === ROOT || name.startsWith(`${ ROOT }::`) );
 
         if ( name && name.includes('::') ) {
           let parent;
@@ -553,7 +571,7 @@ export const getters = {
 
         // Translate if an entry exists
         let label = name;
-        const key = `nav.group."${name}"`;
+        const key = `nav.group."${ name }"`;
 
         if ( rootGetters['i18n/exists'](key) ) {
           label = rootGetters['i18n/t'](key);
@@ -608,36 +626,40 @@ export const getters = {
     return (type, product) => {
       product = product || rootGetters['productId'];
       const productSpoofedTypes = state.spoofedTypes[product] || [];
+
       return productSpoofedTypes.some(st => st.type === type);
     };
   },
 
   getSpoofedInstances(state, getters, rootState, rootGetters) {
-    return async (type, product) => {
+    return async(type, product) => {
       product = product || rootGetters['productId'];
       const getInstances = instanceMethods[product]?.[type] || (() => []);
       const instances = await getInstances();
-      
+
       instances.forEach((instance) => {
         const type = instance.type;
         const id = instance.id;
-        const link = `/${SPOOFED_PREFIX}/${type}/${id}`;
-        const apiLink = `/${SPOOFED_API_PREFIX}/${type}/${id}`;
+        const link = `/${ SPOOFED_PREFIX }/${ type }/${ id }`;
+        const apiLink = `/${ SPOOFED_API_PREFIX }/${ type }/${ id }`;
 
         instance.links = {
           remove: instance.links?.remove || link,
-          self: instance.links?.self || link,
+          self:   instance.links?.self || link,
           update: instance.links?.update || link,
-          view: instance.links?.view || apiLink,
+          view:   instance.links?.view || apiLink,
         };
+        instance.isSpoofed = true;
       });
+
       return instances;
     };
   },
 
   getSpoofedInstance(state, getters, rootState, rootGetters) {
-    return async (type, id, product) => {
+    return async(type, id, product) => {
       const productInstances = await getters.getSpoofedInstances(type, product);
+
       return productInstances.find( instance => instance.id === id);
     };
   },
@@ -647,8 +669,9 @@ export const getters = {
   },
 
   allSpoofedSchemas(state, getters, rootState, rootGetters) {
-    return getters.allSpoofedTypes.flatMap(type => {
+    return getters.allSpoofedTypes.flatMap((type) => {
       const schemas = type.schemas || [];
+
       return schemas.map(schema => ({
         ...schema,
         isSpoofed: true
@@ -659,12 +682,13 @@ export const getters = {
   allTypes(state, getters, rootState, rootGetters) {
     return (product, mode = ALL) => {
       const module = findBy(state.products, 'name', product).inStore;
-      const schemas = rootGetters[`${module}/all`](SCHEMA);
-      const counts = rootGetters[`${module}/all`](COUNT)?.[0]?.counts || {};
+      const schemas = rootGetters[`${ module }/all`](SCHEMA);
+      const counts = rootGetters[`${ module }/all`](COUNT)?.[0]?.counts || {};
       const isDev = rootGetters['prefs/get'](DEV);
       const isBasic = mode === BASIC;
 
       const out = {};
+
       for ( const schema of schemas ) {
         const attrs = schema.attributes || {};
         const count = counts[schema.id];
@@ -716,11 +740,12 @@ export const getters = {
           }
 
           if ( item.ifHaveSubTypes ) {
-            const hasSome = (item.ifHaveSubTypes||[]).some(type=>{
-              return !!findBy(schemas, 'id', normalizeType(type))
-            })
-            if(!hasSome){
-              continue
+            const hasSome = (item.ifHaveSubTypes || []).some((type) => {
+              return !!findBy(schemas, 'id', normalizeType(type));
+            });
+
+            if (!hasSome) {
+              continue;
             }
           }
 
@@ -748,6 +773,12 @@ export const getters = {
     };
   },
 
+  hideBulkActionsFor(state) {
+    return (schema) => {
+      return state.hideBulkActions[schema.id];
+    };
+  },
+
   headersFor(state, getters, rootState, rootGetters) {
     return (schema) => {
       const attributes = schema.attributes || {};
@@ -759,6 +790,7 @@ export const getters = {
         return state.headers[schema.id].map((entry) => {
           if ( typeof entry === 'string' ) {
             const col = findBy(columns, 'name', entry);
+
             if ( col ) {
               return fromSchema(col, rootGetters);
             } else {
@@ -807,7 +839,7 @@ export const getters = {
       function fromSchema(col, rootGetters) {
         let formatter, width, formatterOpts;
 
-        if ( (col.format === '' || col.format == 'date') && col.name === 'Age' ) {
+        if ( (col.format === '' || col.format === 'date') && col.name === 'Age' ) {
           return AGE;
         }
 
@@ -821,9 +853,9 @@ export const getters = {
           formatter = 'Number';
         }
 
-        const exists = rootGetters['i18n/exists']
-        const t = rootGetters['i18n/t']
-        const labelKey = `tableHeaders.${col.name}`
+        const exists = rootGetters['i18n/exists'];
+        const t = rootGetters['i18n/t'];
+        const labelKey = `tableHeaders.${ col.name }`;
 
         return {
           name:  col.name.toLowerCase(),
@@ -911,7 +943,7 @@ export const getters = {
     return (rawType) => {
       const type = getters.componentFor(rawType);
 
-      return () => import(`@/list/${ type }`);
+      return importList(type);
     };
   },
 
@@ -919,7 +951,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return () => import(`@/detail/${ key }`);
+      return importDetail(key);
     };
   },
 
@@ -927,7 +959,7 @@ export const getters = {
     return (rawType, subType) => {
       const key = getters.componentFor(rawType, subType);
 
-      return () => import(`@/edit/${ key }`);
+      return importEdit(key);
     };
   },
 
@@ -936,7 +968,7 @@ export const getters = {
       let key = type;
 
       if ( subType ) {
-        key = `${type}/${subType}`;
+        key = `${ type }/${ subType }`;
       }
 
       if ( state.cache.componentFor[key] !== undefined ) {
@@ -1007,7 +1039,6 @@ export const getters = {
       return;
     }
 
-
     return state.products.filter((p) => {
       const module = p.inStore;
 
@@ -1020,7 +1051,7 @@ export const getters = {
       }
 
       if ( !knownTypes[module] ) {
-        const schemas = rootGetters[`${module}/all`](SCHEMA);
+        const schemas = rootGetters[`${ module }/all`](SCHEMA);
 
         knownTypes[module] = [];
         knownGroups[module] = [];
@@ -1034,11 +1065,11 @@ export const getters = {
         }
       }
 
-      if ( p.ifHaveType && !knownTypes[module].find((t) => t.match(stringToRegex(p.ifHaveType)) ) ) {
+      if ( p.ifHaveType && !knownTypes[module].find(t => t.match(stringToRegex(p.ifHaveType)) ) ) {
         return false;
       }
 
-      if ( p.ifHaveGroup && !knownGroups[module].find((t) => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
+      if ( p.ifHaveGroup && !knownGroups[module].find(t => t.match(stringToRegex(p.ifHaveGroup)) ) ) {
         return false;
       }
 
@@ -1072,7 +1103,7 @@ export const mutations = {
     }
   },
 
-  virtualType(state, {product, obj}) {
+  virtualType(state, { product, obj }) {
     if ( !state.virtualTypes[product] ) {
       state.virtualTypes[product] = [];
     }
@@ -1090,7 +1121,7 @@ export const mutations = {
     }
   },
 
-  spoofedType(state, {product, obj}) {
+  spoofedType(state, { product, obj }) {
     if ( !state.spoofedTypes[product] ) {
       state.spoofedTypes[product] = [];
     }
@@ -1104,14 +1135,15 @@ export const mutations = {
     copy.name = copy.type;
     copy.isSpoofed = true;
     copy.virtual = true;
-    copy.schemas.forEach(schema => {
+    copy.schemas.forEach((schema) => {
       schema.links = {
-        collection: `/${SPOOFED_PREFIX}/${schema.id}`,
+        collection: `/${ SPOOFED_PREFIX }/${ schema.id }`,
         ...(schema.links || {})
-      } 
+      };
     });
 
     const existing = findBy(state.spoofedTypes[product], 'type', copy.type);
+
     if ( existing ) {
       Object.assign(existing, copy);
     } else {
@@ -1119,9 +1151,9 @@ export const mutations = {
     }
   },
 
-  basicType(state, {product, group, types}) {
+  basicType(state, { product, group, types }) {
     if ( !product ) {
-      product === EXPLORER;
+      product = EXPLORER;
     }
 
     if ( !group ) {
@@ -1152,7 +1184,7 @@ export const mutations = {
     state.typeIgnore.push(regexToString(match));
   },
 
-  groupBy(state, {type, field}) {
+  groupBy(state, { type, field }) {
     state.groupBy[type] = field;
   },
 
@@ -1160,9 +1192,15 @@ export const mutations = {
     state.headers[type] = headers;
   },
 
+  hideBulkActions(state, { type, field }) {
+    state.hideBulkActions[type] = field;
+  },
+
   // weightGroup({group: 'core', weight: 99}); -- higher groups are shown first
   // These operate on group names *after* mapping but *before* translation
-  weightGroup(state, { group, groups, weight, forBasic }) {
+  weightGroup(state, {
+    group, groups, weight, forBasic
+  }) {
     if ( !groups ) {
       groups = [];
     }
@@ -1180,7 +1218,9 @@ export const mutations = {
 
   // weightType('Cluster' 99); -- higher groups are shown first
   // These operate on *schema* type names, before mapping
-  weightType(state, { type, types, weight, forBasic }) {
+  weightType(state, {
+    type, types, weight, forBasic
+  }) {
     if ( !types ) {
       types = [];
     }
@@ -1225,14 +1265,15 @@ export const mutations = {
   configureType(state, options) {
     const match = regexToString(ensureRegex(options.match));
 
-    let idx = state.typeOptions.findIndex((obj) => obj.match === match);
+    const idx = state.typeOptions.findIndex(obj => obj.match === match);
     let obj = { ...options, match };
 
     if ( idx >= 0 ) {
       obj = Object.assign(obj, state.typeOptions[idx]);
       state.typeOptions.splice(idx, 1, obj);
     } else {
-      const obj = Object.assign({}, options, {match});
+      const obj = Object.assign({}, options, { match });
+
       state.typeOptions.push(obj);
     }
   },
@@ -1268,7 +1309,7 @@ export const actions = {
     dispatch('prefs/set', { key: EXPANDED_GROUPS, value: groups }, { root: true });
   },
 
-  configureType({commit}, options) {
+  configureType({ commit }, options) {
     commit('configureType', options);
   }
 };

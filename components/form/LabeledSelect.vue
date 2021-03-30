@@ -6,6 +6,7 @@ import { get } from '@/utils/object';
 import LabeledTooltip from '@/components/form/LabeledTooltip';
 import VueSelectOverrides from '@/mixins/vue-select-overrides';
 import $ from 'jquery';
+import { onClickOption } from '@/utils/select';
 
 export default {
   components: { LabeledTooltip },
@@ -20,12 +21,8 @@ export default {
       default: false,
       type:    Boolean
     },
-    grouped: {
-      default: false,
-      type:    Boolean
-    },
     hoverTooltip: {
-      default: false,
+      default: true,
       type:    Boolean
     },
     localizedLabel: {
@@ -41,8 +38,8 @@ export default {
       type:    String
     },
     options: {
-      default: null,
-      type:    Array
+      default:   null,
+      type:      Array
     },
     placement: {
       default: null,
@@ -77,7 +74,11 @@ export default {
     value: {
       default: null,
       type:    [String, Object, Number, Array, Boolean]
-    }
+    },
+    closeOnSelect: {
+      type:    Boolean,
+      default: true
+    },
   },
 
   data() {
@@ -86,15 +87,7 @@ export default {
 
   computed: {
     currentLabel() {
-      let entry;
-
-      if (this.grouped) {
-        for (let i = 0; i < this.options.length && !entry; i++) {
-          entry = findBy(this.options[i].items || [], 'value', this.value);
-        }
-      } else {
-        entry = findBy(this.options || [], 'value', this.value);
-      }
+      const entry = findBy(this.options || [], 'value', this.value);
 
       if (entry) {
         return entry.label;
@@ -108,7 +101,7 @@ export default {
     // resizeHandler = in mixin
     focusSearch() {
       this.$nextTick(() => {
-        const el = this.$refs.input?.searchEl;
+        const el = this.$refs['select-input']?.searchEl;
 
         if (el) {
           el.focus();
@@ -198,6 +191,9 @@ export default {
       return () => popper.destroy();
     },
     get,
+    onClickOption(option, event) {
+      onClickOption.call(this, option, event);
+    }
   },
 };
 </script>
@@ -230,7 +226,7 @@ export default {
       </label>
     </div>
     <v-select
-      ref="input"
+      ref="select-input"
       v-bind="$attrs"
       class="inline"
       :append-to-body="appendToBody"
@@ -254,6 +250,11 @@ export default {
       @search:focus="onFocus"
       @open="resizeHandler"
     >
+      <template #option="option">
+        <div @mousedown="(e) => onClickOption(option, e)">
+          {{ option.label }}
+        </div>
+      </template>
       <!-- Pass down templates provided by the caller -->
       <template v-for="(_, slot) of $scopedSlots" #[slot]="scope">
         <slot :name="slot" v-bind="scope" />
@@ -271,7 +272,7 @@ export default {
 <style lang='scss' scoped>
 .labeled-select {
   .labeled-container {
-    padding: 8px 0 0 8px;
+    padding: $input-padding-sm 0 1px $input-padding-sm;
 
     label {
       margin: 0;
@@ -290,7 +291,7 @@ export default {
     }
   }
   ::v-deep .vs__selected-options {
-    margin-top: -4px;
+    margin-top: -5px;
   }
 
   ::v-deep .v-select:not(.vs--single) {

@@ -73,7 +73,7 @@
 
   --checkbox-tick              : #{$lightest};
   --checkbox-border            : #{$medium};
-  --checkbox-tick-disabled     : #{lighten($disabled, 20%)};
+  --checkbox-tick-disabled     : #{lighten($disabled, 50%)};
   --checkbox-disabled-bg       : #{$disabled};
   --checkbox-ticked-bg         : #{$link};
 
@@ -93,6 +93,7 @@
   --input-placeholder: #{$disabled};
   --input-border: var(--border);
   --input-bg: #{$dark};
+  --input-bg-accent            : #{darken($dark, 3%)};
   --input-hover-bg: var(--body-bg);
   --input-focus-bg: #{$darkest};
   --input-hover-bg: #{lighten($dark, 5%)};
@@ -108,7 +109,7 @@
   --progress-divider: #{$lightest};
 
   --sortable-table-header-bg: #{rgba($primary, 0.2)};
-  --sortable-table-accent-bg: #{rgba($darkest, 0.75)};
+  --sortable-table-accent-bg: #18181D;
   --sortable-table-accent-alt: #{$dark};
   --sortable-table-top-divider: #{$darkest};
   --sortable-table-selected-bg: #{rgba($warning, 0.1)};

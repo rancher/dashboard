@@ -1,9 +1,12 @@
 <script>
 import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
+import TLS from '../tls';
 
 export default {
-  components: { Checkbox, LabeledInput },
+  components: {
+    Checkbox, LabeledInput, TLS
+  },
   props:      {
     mode: {
       type:     String,
@@ -25,6 +28,11 @@ export default {
 
 <template>
   <div>
+    <div class="row">
+      <div class="col span-12">
+        <h3>Target</h3>
+      </div>
+    </div>
     <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput v-model="value.to" :mode="mode" label="Default Recepient Address" placeholder="e.g. admin@example.com" />
@@ -49,13 +57,14 @@ export default {
         <Checkbox v-model="value.require_tls" :mode="mode" class="mt-20" label="Use TLS" />
       </div>
     </div>
-    <div class="row">
+    <div class="row mb-20">
       <div class="col span-6">
         <LabeledInput v-model="value.auth_username" :mode="mode" label="Username" placeholder="e.g. John" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.auth_password" :mode="mode" label="Password" />
+        <LabeledInput v-model="value.auth_password" :mode="mode" label="Password" type="password" autocomplete="password" />
       </div>
     </div>
+    <TLS v-model="value" class="mb-20" :mode="mode" />
   </div>
 </template>

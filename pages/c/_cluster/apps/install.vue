@@ -2,7 +2,7 @@
 import isEqual from 'lodash/isEqual';
 import jsyaml from 'js-yaml';
 import merge from 'lodash/merge';
-import { mapState, mapGetters } from 'vuex';
+import { mapGetters } from 'vuex';
 
 import AsyncButton from '@/components/AsyncButton';
 import Banner from '@/components/Banner';
@@ -21,7 +21,7 @@ import YamlEditor, { EDITOR_MODES } from '@/components/YamlEditor';
 
 import { CATALOG, MANAGEMENT } from '@/config/types';
 import {
-  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, _FLAGGED,
+  REPO_TYPE, REPO, CHART, VERSION, NAMESPACE, NAME, DESCRIPTION as DESCRIPTION_QUERY, _CREATE, _EDIT, _FLAGGED, FORCE,
 } from '@/config/query-params';
 import { CATALOG as CATALOG_ANNOTATIONS, DESCRIPTION as DESCRIPTION_ANNOTATION } from '@/config/labels-annotations';
 import { exceptionToErrorsArray, stringify } from '@/utils/error';
@@ -29,6 +29,7 @@ import { clone, diff, get, set } from '@/utils/object';
 import { findBy, insertAt } from '@/utils/array';
 import ChildHook, { BEFORE_SAVE_HOOKS, AFTER_SAVE_HOOKS } from '@/mixins/child-hook';
 import sortBy from 'lodash/sortBy';
+import { formatSi, parseSi } from '@/utils/units';
 
 export default {
   name: 'Install',
@@ -210,15 +211,44 @@ export default {
         }).href;
 
         if ( provider ) {
-          this.requires.push(`<a href="${ url }">${ provider.name }</a> must be installed before you can install this chart.`);
+          this.requires.push(this.t('catalog.install.error.requiresFound', {
+            url,
+            name: provider.name
+          }, true));
         } else {
-          this.warnings.push(`This chart requires another chart that provides ${ gvr }, but none was was found`);
+          this.requires.push(this.t('catalog.install.error.requiresMissing', { name: gvr }));
         }
       }
     }
 
-    // const updateValues = (this.existing && !this.chartValues) ||
-    // (!this.existing && (!this.loadedVersion || this.loadedVersion !== this.version.key) );
+    if ( this.existing || query[FORCE] === _FLAGGED ) {
+      // Ignore the limits on upgrade (or if asked by query) and don't show any warnings
+    } else {
+      const needCpu = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_CPU] || '0');
+      const needMemory = parseSi(this.version?.annotations?.[CATALOG_ANNOTATIONS.REQUESTS_MEMORY] || '0');
+
+      // Note: These are null if unknown
+      const availableCpu = this.currentCluster.availableCpu;
+      const availableMemory = this.currentCluster.availableMemory;
+
+      if ( availableCpu !== null && availableCpu < needCpu ) {
+        this.warnings.push(this.t('catalog.install.error.insufficientCpu', {
+          need: Math.round(needCpu * 100) / 100,
+          have: Math.round(availableCpu * 100) / 100,
+        }));
+      }
+
+      if ( availableMemory !== null && availableMemory < needMemory ) {
+        this.warnings.push(this.t('catalog.install.error.insufficientMemory', {
+          need: formatSi(needMemory, {
+            increment: 1024, suffix: 'iB', firstSuffix: 'B'
+          }),
+          have: formatSi(availableMemory, {
+            increment: 1024, suffix: 'iB', firstSuffix: 'B'
+          }),
+        }));
+      }
+    }
 
     if ( !this.loadedVersion || this.loadedVersion !== this.version.key ) {
       let userValues;
@@ -306,8 +336,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['currentCluster']),
-    ...mapState(['isMultiCluster']),
+    ...mapGetters(['currentCluster', 'isRancher']),
 
     namespaceIsNew() {
       const all = this.$store.getters['cluster/all'](NAMESPACE);
@@ -321,7 +350,7 @@ export default {
     },
 
     showProject() {
-      return this.isMultiCluster && !this.existing && this.namespaceIsNew;
+      return this.isRancher && !this.existing && this.namespaceIsNew;
     },
 
     projectOpts() {

@@ -70,7 +70,8 @@ export default {
       @mouseleave="setNear(false)"
       @click="click"
     >
-      <span class="label" v-html="type.labelDisplay || type.label" />
+      <span v-if="type.labelKey" class="label"><t :k="type.labelKey" /></span>
+      <span v-else class="label" v-html="type.labelDisplay || type.label" />
       <span v-if="showFavorite || showCount" class="count">
         <Favorite v-if="showFavorite" :resource="type.name" />
         {{ type.count }}
@@ -137,7 +138,6 @@ export default {
       font-size: 12px;
       text-align: right;
       justify-items: center;
-      line-height: 20px;
     }
   }
 </style>

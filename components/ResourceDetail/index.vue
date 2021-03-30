@@ -1,5 +1,4 @@
 <script>
-import { cleanForNew } from '@/plugins/steve/normalize';
 import CreateEditView from '@/mixins/create-edit-view/impl';
 import Loading from '@/components/Loading';
 import ResourceYaml from '@/components/ResourceYaml';
@@ -46,16 +45,26 @@ export default {
   mixins: [CreateEditView],
 
   props: {
+    storeOverride: {
+      type:    String,
+      default: null,
+    },
+
     resourceOverride: {
       type:    String,
       default: null,
-    }
+    },
+
+    parentRouteOverride: {
+      type:    String,
+      default: null,
+    },
   },
   async fetch() {
     const store = this.$store;
     const route = this.$route;
     const params = route.params;
-    const inStore = store.getters['currentProduct']?.inStore;
+    const inStore = this.storeOverride || store.getters['currentProduct']?.inStore;
     const realMode = this.realMode;
 
     // eslint-disable-next-line prefer-const
@@ -106,7 +115,8 @@ export default {
       }
 
       originalModel = await store.dispatch(`${ inStore }/create`, data);
-      model = originalModel;
+      // Dissassociate the original model & model. This fixes `Create` after refreshing page with SSR on
+      model = await store.dispatch(`${ inStore }/clone`, { resource: originalModel });
 
       if ( as === _YAML ) {
         yaml = createYaml(schemas, resource, data);
@@ -135,7 +145,7 @@ export default {
       }
 
       if ( realMode === _CLONE || realMode === _STAGE ) {
-        cleanForNew(model);
+        model.cleanForNew();
         yaml = model.cleanYaml(yaml, realMode);
       }
     }
@@ -285,6 +295,8 @@ export default {
       :has-detail="hasCustomDetail"
       :has-edit="hasCustomEdit"
       :resource-subtype="resourceSubtype"
+      :parent-route-override="parentRouteOverride"
+      :store-override="storeOverride"
     />
 
     <DetailTop

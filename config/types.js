@@ -71,6 +71,12 @@ export const WORKLOAD_TYPES = {
   REPLICATION_CONTROLLER: 'replicationcontroller'
 };
 
+const {
+  DAEMON_SET, CRON_JOB, JOB, ...scalableWorkloads
+} = WORKLOAD_TYPES;
+
+export const SCALABLE_WORKLOAD_TYPES = scalableWorkloads;
+
 export const METRIC = {
   NODE: 'metrics.k8s.io.nodemetrics',
   POD:  'metrics.k8s.io.podmetrics',
@@ -121,24 +127,28 @@ export const LONGHORN = {
 // Rancher Management API (via Steve)
 // Base: /v1
 export const MANAGEMENT = {
-  AUTH_CONFIG:      'management.cattle.io.authconfig',
-  CATALOG_TEMPLATE: 'management.cattle.io.catalogtemplate',
-  CATALOG:          'management.cattle.io.catalog',
-  CLUSTER:          'management.cattle.io.cluster',
-  GROUP:            'management.cattle.io.group',
-  NODE_POOL:        'management.cattle.io.nodepool',
-  NODE_TEMPLATE:    'management.cattle.io.nodetemplate',
-  PROJECT:          'management.cattle.io.project',
-  SETTING:          'management.cattle.io.setting',
-  USER:             'management.cattle.io.user',
-  TOKEN:            'management.cattle.io.token',
+  AUTH_CONFIG:                   'management.cattle.io.authconfig',
+  CATALOG_TEMPLATE:              'management.cattle.io.catalogtemplate',
+  CATALOG:                       'management.cattle.io.catalog',
+  CLUSTER:                       'management.cattle.io.cluster',
+  CLUSTER_ROLE_TEMPLATE_BINDING: 'management.cattle.io.clusterroletemplatebinding',
+  FEATURE:                       'management.cattle.io.feature',
+  GROUP:                         'management.cattle.io.group',
+  NODE_POOL:                     'management.cattle.io.nodepool',
+  NODE_TEMPLATE:                 'management.cattle.io.nodetemplate',
+  PROJECT:                       'management.cattle.io.project',
+  PROJECT_ROLE_TEMPLATE_BINDING: 'management.cattle.io.projectroletemplatebinding',
+  ROLE_TEMPLATE:                 'management.cattle.io.roletemplate',
+  SETTING:                       'management.cattle.io.setting',
+  USER:                          'management.cattle.io.user',
+  TOKEN:                         'management.cattle.io.token',
 };
 
 export const CAPI = {
-  CAPI_CLUSTER: 'cluster.x-k8s.io.cluster',
-  RKE_CLUSTER:  'cluster.cattle.io.rkecluster',
-  NODE_CONFIG:  'node-config.cattle.io',
-  SPOOFED:      { NODE_CONFIG: 'node-config.cattle.io' }
+  CAPI_CLUSTER:       'cluster.x-k8s.io.cluster',
+  MACHINE_DEPLOYMENT: 'cluster.x-k8s.io.machinedeployment',
+  MACHINE:            'cluster.x-k8s.io.machine',
+  RANCHER_CLUSTER:    'rancher.cattle.io.cluster',
 };
 
 // --------------------------------------

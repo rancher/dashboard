@@ -12,14 +12,7 @@ export default {
       type:     String,
       required: true
     }
-  },
-  data() {
-    return {
-      skuName:        '',
-      location:       '',
-      storageAccount: ''
-    };
-  },
+  }
 };
 </script>
 <template>

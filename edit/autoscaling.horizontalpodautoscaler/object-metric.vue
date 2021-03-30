@@ -14,7 +14,7 @@ export const DEFAULT_OBJECT_METRIC = {
   },
   target: {
     type:               'AverageValue',
-    averageValue:       50,
+    averageValue:       '80',
   },
   describedObject: {
     apiVersion: '',
@@ -49,7 +49,7 @@ export default {
 <template>
   <div>
     <div class="row mb-20">
-      <MetricTarget v-model="value.target" :mode="mode" type="object" />
+      <MetricTarget v-model="value.target" :mode="mode" metric-resource="object" />
     </div>
     <div class="row mb-20">
       <MetricObjectReference v-model="value.describedObject" :mode="mode" />

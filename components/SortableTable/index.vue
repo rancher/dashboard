@@ -462,7 +462,7 @@ export default {
             v-for="act in availableActions"
             :key="act.action"
             type="button"
-            class="btn bg-primary"
+            class="btn role-primary"
             :disabled="!act.enabled"
             @click="applyTableAction(act, null, $event)"
             @mouseover="setBulkActionOfInterest(act)"
@@ -680,9 +680,6 @@ $spacing: 10px;
   }
 
   tbody {
-    // border-left: 40px solid transparent;
-    // border-right: 40px solid transparent;
-    // border-bottom: 2px solid var(--border);
 
     tr {
       border-bottom: 1px solid var(--sortable-table-top-divider);

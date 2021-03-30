@@ -4,29 +4,33 @@ import Banner from '@/components/Banner';
 import Checkbox from '@/components/form/Checkbox';
 import Password from '@/components/form/Password';
 import { NORMAN } from '@/config/types';
+import { _CREATE, _EDIT } from '@/config/query-params';
 
+// Component handles three use cases
+// 1) isChange - Current user is changing their own password
+// 2) isCreate - New password is for a new user
+// 3) isEdit - New password is for an existing user
 export default {
   components: {
     Checkbox, Banner, Password
   },
   props: {
-    value: {
-      type:    [String],
-      default: ''
+    mode: {
+      type:    String,
+      default: null
     },
   },
   async fetch() {
-    if (this.principal.provider === 'local' && !!this.principal.loginName) {
-      this.username = this.principal.loginName;
-    }
+    if (this.isChange) {
+      // Fetch the username for hidden input fields. The value itself is not needed if create or changing another user's password
+      const users = await this.$store.dispatch('rancher/findAll', {
+        type: NORMAN.USER,
+        opt:  { url: '/v3/users', filter: { me: true } }
+      });
 
-    const users = await this.$store.dispatch('rancher/findAll', {
-      type: NORMAN.USER,
-      opt:  { url: '/v3/users', filter: { me: true } }
-    });
-
-    if (users && users.length === 1) {
-      this.username = users[0].username;
+      if (users && users.length === 1) {
+        this.username = users[0].username;
+      }
     }
   },
   data(ctx) {
@@ -36,11 +40,12 @@ export default {
       pCanShowMissmatchedPassword: false,
       pIsRandomGenerated:            false,
       form:                        {
-        deleteKeys: false,
-        currentP:   '',
-        newP:       '',
-        genP:       '',
-        confirmP:   ''
+        deleteKeys:        false,
+        currentP:          '',
+        newP:              '',
+        genP:              '',
+        confirmP:          '',
+        userChangeOnLogin: false,
       },
     };
   },
@@ -103,6 +108,17 @@ export default {
       }
     },
 
+    userChangeOnLogin: {
+      get() {
+        return this.form.userChangeOnLogin;
+      },
+
+      set(p) {
+        this.form.userChangeOnLogin = p;
+        this.validate();
+      }
+    },
+
     passwordConfirmBlurred: {
       get() {
         return this.pCanShowMissmatchedPassword;
@@ -118,9 +134,41 @@ export default {
       return this.isRandomGenerated ? this.passwordGen : this.passwordNew;
     },
 
-    principal() {
-      return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
+    isChange() {
+      // Change password prompt
+      return !this.mode;
     },
+
+    isCreateEdit() {
+      return this.isCreate || this.isEdit;
+    },
+
+    isCreate() {
+      return this.mode === _CREATE;
+    },
+
+    isEdit() {
+      // Edit user prompt
+      return this.mode === _EDIT;
+    },
+
+    userGeneratedPasswordsRequired() {
+      if (this.isChange) {
+        return true;
+      }
+      if (this.isCreate) {
+        return !this.isRandomGenerated;
+      }
+      if (this.isEdit) {
+        return !!this.passwordNew || !!this.passwordConfirm;
+      }
+
+      return false;
+    }
+  },
+  created() {
+    // Catch the 'create' case and there's no content
+    this.validate();
   },
   methods: {
     passwordsMatch() {
@@ -130,15 +178,62 @@ export default {
 
       return match;
     },
-    validate() {
-      this.$emit('valid', this.isRandomGenerated ? !!this.passwordCurrent : this.passwordsMatch() && !!this.passwordCurrent && this.passwordNew);
-      this.$emit('input', this.password);
+    baseIsUserGenPasswordValid() {
+      return this.passwordsMatch() && !!this.passwordNew;
     },
-    async submit() {
-      await this.changePassword();
-      if (this.form.deleteKeys) {
-        await this.deleteKeys();
+    isValid() {
+      if (this.isChange) {
+        return !!this.passwordCurrent && (this.isRandomGenerated ? true : this.baseIsUserGenPasswordValid());
       }
+
+      if (this.isRandomGenerated) {
+        // If we're not changing current user... and password is randomly generated... there'll be no new/confirm missmatch
+        return true;
+      }
+
+      if (this.isCreate) {
+        return this.baseIsUserGenPasswordValid();
+      }
+
+      if (this.isEdit) {
+        // If the user generated password is required... ensure it's valid
+        return this.userGeneratedPasswordsRequired ? this.baseIsUserGenPasswordValid() : true;
+      }
+
+      return false;
+    },
+    validate() {
+      const isValid = this.isValid();
+
+      if (isValid) {
+        // Covers the case where we don't re-evaludate the error messages (don't need to at the time)
+        this.errorMessages = [];
+      }
+
+      this.$emit('valid', isValid);
+      this.$emit('input', {
+        password:          this.password,
+        userChangeOnLogin: this.userChangeOnLogin
+      });
+    },
+    async save(user) {
+      if (this.isChange) {
+        await this.changePassword();
+        if (this.form.deleteKeys) {
+          await this.deleteKeys();
+        }
+      } else if (this.isEdit) {
+        this.setPassword(user);
+      }
+    },
+    async setPassword(user) {
+      // Error handling is catered for by caller
+      await this.$store.dispatch('rancher/resourceAction', {
+        type:       NORMAN.USER,
+        actionName: 'setpassword',
+        resource:   user,
+        body:          { newPassword: this.isRandomGenerated ? this.form.genP : this.form.newP },
+      });
     },
     async changePassword() {
       try {
@@ -188,10 +283,14 @@ export default {
 </script>
 
 <template>
-  <div class="change-password">
+  <div class="change-password" :class="{'change': isChange, 'create': isCreate, 'edit': isEdit}">
     <div class="form">
       <div class="fields">
-        <Checkbox v-model="form.deleteKeys" :label="t('changePassword.keys')" class="mt-10" />
+        <Checkbox v-if="isChange" v-model="form.deleteKeys" label-key="changePassword.deleteKeys.label" class="mt-10" />
+        <Checkbox v-if="isCreateEdit" v-model="userChangeOnLogin" label-key="changePassword.changeOnLogin.label" class="mt-10 type" />
+        <Checkbox v-if="isCreateEdit" v-model="isRandomGenerated" label-key="changePassword.generatePassword.label" class="mt-10 type" />
+
+        <!-- Create two 'invisible fields' for password managers -->
         <input
           id="username"
           type="text"
@@ -199,6 +298,7 @@ export default {
           autocomplete="username"
           :value="username"
           tabindex="-1"
+          :data-lpignore="!isChange"
         >
         <input
           id="password"
@@ -207,37 +307,54 @@ export default {
           autocomplete="password"
           :value="password"
           tabindex="-1"
+          :data-lpignore="!isChange"
         >
         <Password
+          v-if="isChange"
           v-model="passwordCurrent"
           class="mt-10"
-          :label="t('changePassword.currentPassword')"
+          :required="true"
+          :label="t('changePassword.currentPassword.label')"
         ></Password>
-        <Password
-          v-if="isRandomGenerated"
-          v-model="passwordGen"
-          class="mt-10"
-          :is-random="true"
-          :label="t('changePassword.randomGen.generated')"
-        />
-        <div v-else class="userGen">
-          <Password
-            v-model="passwordNew"
-            class="mt-10"
-            :label="t('changePassword.userGen.newPassword')"
-          />
-          <Password
-            v-model="passwordConfirm"
-            class="mt-10"
-            :label="t('changePassword.userGen.confirmPassword')"
-            @blur="passwordConfirmBlurred = true"
-          />
+        <div v-if="isRandomGenerated" :class="{'row': isCreateEdit}">
+          <div :class="{'col': isCreateEdit, 'span-8': isCreateEdit}">
+            <Password
+              v-model="passwordGen"
+              class="mt-10"
+              :is-random="true"
+              :required="false"
+              :label="t('changePassword.randomGen.generated.label')"
+            />
+          </div>
+        </div>
+        <div v-else class="userGen" :class="{'row': isCreateEdit}">
+          <div :class="{'col': isCreateEdit, 'span-4': isCreateEdit}">
+            <Password
+              v-model="passwordNew"
+              class="mt-10"
+              :label="t('changePassword.userGen.newPassword.label')"
+              :required="userGeneratedPasswordsRequired"
+              :ignore-password-managers="!isChange"
+            />
+          </div>
+          <div :class="{'col': isCreateEdit, 'span-4': isCreateEdit}">
+            <Password
+              v-model="passwordConfirm"
+              class="mt-10"
+              :label="t('changePassword.userGen.confirmPassword.label')"
+              :required="userGeneratedPasswordsRequired"
+              :ignore-password-managers="!isChange"
+              @blur="passwordConfirmBlurred = true"
+            />
+          </div>
         </div>
       </div>
-      <Checkbox v-model="isRandomGenerated" :label="t('changePassword.generatePassword')" class="mt-10 type" />
+      <Checkbox v-if="isChange" v-model="isRandomGenerated" label-key="changePassword.generatePassword.label" class="mt-10 type" />
     </div>
-    <div v-if="errorMessages && errorMessages.length" class="text-error">
-      <Banner v-for="(err, i) in errorMessages" :key="i" color="error" :label="err" class="mb-0" />
+    <div v-if="errorMessages && errorMessages.length" class="text-error" :class="{'row': isCreateEdit}">
+      <div :class="{'col': isCreateEdit, 'span-8': isCreateEdit}">
+        <Banner v-for="(err, i) in errorMessages" :key="i" color="error" :label="err" class="mb-0" />
+      </div>
     </div>
   </div>
 </template>
@@ -247,11 +364,26 @@ export default {
     display: flex;
     flex-direction: column;
 
+    &.change {
+      .form .fields {
+        height: 240px;
+      }
+    }
+
+    &.create, &.edit {
+      height: 185px;
+      .form {
+        .fields {
+          display: flex;
+          flex-direction: column;
+        }
+      }
+    }
+
     .form {
       display: flex;
       flex-direction: column;
       .fields{
-        height: 225px;
         #username, #password {
           height: 0;
           width: 0;
@@ -260,6 +392,10 @@ export default {
           border: none;
         }
       }
+    }
+
+    .text-error {
+      height: 53px;
     }
   }
 

@@ -2,21 +2,66 @@
 import PromptChangePassword from '@/components/PromptChangePassword';
 import { NORMAN } from '@/config/types';
 import Loading from '@/components/Loading';
+import Principal from '@/components/auth/Principal';
+import { mapGetters } from 'vuex';
+
+import Banner from '@/components/Banner';
+import ResourceTable from '@/components/ResourceTable';
 
 export default {
-  components: { PromptChangePassword, Loading },
+  components: {
+    Banner, PromptChangePassword, Loading, ResourceTable, Principal
+  },
   async fetch() {
     this.canChangePassword = await this.calcCanChangePassword();
+
+    if (this.apiKeySchema) {
+      this.rows = await this.$store.dispatch('rancher/findAll', { type: NORMAN.TOKEN });
+    }
   },
   data() {
-    return { canChangePassword: false };
+    return {
+      rows:              null,
+      canChangePassword: false
+    };
   },
   computed:   {
+    ...mapGetters({ t: 'i18n/t' }),
+
+    apiKeyheaders() {
+      return this.apiKeySchema ? this.$store.getters['type-map/headersFor'](this.apiKeySchema) : [];
+    },
+
+    apiKeySchema() {
+      try {
+        return this.$store.getters[`rancher/schemaFor`](NORMAN.TOKEN);
+      } catch (e) {}
+
+      return null;
+    },
+
     principal() {
       return this.$store.getters['rancher/byId'](NORMAN.PRINCIPAL, this.$store.getters['auth/principalId']) || {};
     },
+
+    apiKeys() {
+      // Filter out tokens that are not API Keys and are not expired UI Sessions
+      const isApiKey = (key) => {
+        const labels = key.labels;
+        const expired = key.expired;
+        const current = key.current;
+
+        return ( !expired || !labels || !labels['ui-session'] ) && !current;
+      };
+
+      return !this.rows ? [] : this.rows.filter(isApiKey);
+    }
   },
+
   methods: {
+    addKey() {
+      this.$router.push({ path: 'account/create-key' });
+    },
     async calcCanChangePassword() {
       if (!this.$store.getters['auth/enabled']) {
         return false;
@@ -36,7 +81,7 @@ export default {
       }
 
       return false;
-    }
+    },
   }
 };
 </script>
@@ -45,39 +90,69 @@ export default {
   <Loading v-if="$fetchState.pending" />
   <div v-else>
     <h1 v-t="'accountAndKeys.title'" />
-    <section class="account">
-      <h4 v-t="'accountAndKeys.account.title'" />
-      <div class="content">
-        <div class="col mt-10">
-          <div><t k="accountAndKeys.account.name" />: {{ principal.name }}</div>
-          <div><t k="accountAndKeys.account.username" />: {{ principal.loginName }}</div>
-        </div>
+
+    <h4 v-t="'accountAndKeys.account.title'" />
+    <div class="account">
+      <Principal :key="principal.id" :value="principal.id" :use-muted="false" :show-labels="true" />
+      <div>
         <button
           v-if="canChangePassword"
           type="button"
-          class="btn role-secondary"
+          class="btn role-primary"
           @click="$refs.promptChangePassword.show(true)"
         >
           {{ t("accountAndKeys.account.change") }}
         </button>
       </div>
-      <PromptChangePassword ref="promptChangePassword" />
-    </section>
+    </div>
+    <PromptChangePassword ref="promptChangePassword" />
 
-    <section>
-      <h4 v-t="'accountAndKeys.keys.title'" />
-    </section>
+    <hr />
+    <div class="keys-header">
+      <h4 v-t="'accountAndKeys.apiKeys.title'" />
+      <button v-if="apiKeySchema" class="btn role-primary add mb-20" @click="addKey">
+        {{ t('accountAndKeys.apiKeys.add.label') }}
+      </button>
+    </div>
+    <div v-if="apiKeySchema" class="keys">
+      <ResourceTable
+        :schema="apiKeySchema"
+        :rows="apiKeys"
+        :headers="apiKeyheaders"
+        key-field="id"
+        :search="true"
+        :row-actions="true"
+        :table-actions="true"
+      />
+    </div>
+    <div v-else>
+      <Banner color="warning" :label="t('accountAndKeys.apiKeys.notAllowed')" />
+    </div>
   </div>
 </template>
 
 <style lang='scss' scoped>
-  section {
-    margin-bottom: 10px;
+  hr {
+    margin: 20px 0;
   }
 
   .account {
-    .content {
-      display: flex;
+    display: flex;
+    justify-content: space-between
+  }
+
+  .keys-header {
+    display: flex;
+    h4 {
+      flex: 1;
+    }
+  }
+
+  .keys {
+    display: flex;
+    flex-direction: column;
+    .add {
+      align-self: flex-end;
     }
   }
 </style>

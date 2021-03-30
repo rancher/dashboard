@@ -87,7 +87,7 @@ export default {
     :row-actions="false"
   />
   <div v-else>
-    <ArrayListGrouped v-model="value.spec.tls" :add-label="t('ingress.certificates.addCertificate')" :default-add-value="defaultAddValue">
+    <ArrayListGrouped v-model="value.spec.tls" :add-label="t('ingress.certificates.addCertificate')" :default-add-value="defaultAddValue" :mode="mode">
       <template #default="props">
         <Certificate
           v-model="props.row.value"

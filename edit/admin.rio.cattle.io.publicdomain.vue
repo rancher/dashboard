@@ -74,7 +74,7 @@ export default {
     secretOptions() {
       return groupAndFilterOptions(this.allSecrets, {
         'metadata.namespace': RIO.SYSTEM_NAMESPACE,
-        secretType:           TYPES.TLS,
+        _type:                TYPES.TLS,
       }, {
         groupBy:      null,
         itemValueKey: 'metadata.name',

@@ -61,7 +61,7 @@ export default {
   },
 
   project() {
-    if ( !this.projectId || !this.$rootGetters['isMultiCluster'] ) {
+    if ( !this.projectId || !this.$rootGetters['isRancher'] ) {
       return null;
     }
 
@@ -118,5 +118,9 @@ export default {
     return (namespaces = this) => {
       this.enableAutoInjection(namespaces, false);
     };
+  },
+
+  confirmRemove() {
+    return true;
   },
 };

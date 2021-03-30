@@ -18,7 +18,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters(['clusterReady', 'isMultiCluster', 'currentCluster',
+    ...mapGetters(['clusterReady', 'isMultiCluster', 'isRancher', 'currentCluster',
       'currentProduct', 'backToRancherLink', 'backToRancherGlobalLink']),
 
     authEnabled() {
@@ -40,10 +40,12 @@ export default {
 
   methods: {
     showMenu(show) {
-      if (show) {
-        this.$refs.popover.show();
-      } else {
-        this.$refs.popover.hide();
+      if (this.$refs.popover) {
+        if (show) {
+          this.$refs.popover.show();
+        } else {
+          this.$refs.popover.hide();
+        }
       }
     },
 
@@ -73,13 +75,13 @@ export default {
     </div>
 
     <div class="back">
-      <a v-if="currentProduct && isMultiCluster" class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
+      <a v-if="currentProduct && isRancher" class="btn role-tertiary" :href="(currentProduct.inStore === 'management' ? backToRancherGlobalLink : backToRancherLink)">
         {{ t('nav.backToRancher') }}
       </a>
     </div>
 
     <div class="import">
-      <button v-if="currentProduct && currentProduct.showClusterSwitcher" :disabled="!showImport" type="button" class="btn role-tertiary" @click="openImport()">
+      <button v-if="currentProduct && currentProduct.showClusterSwitcher && showImport" type="button" class="btn role-tertiary" @click="openImport()">
         <i v-tooltip="t('nav.import')" class="icon icon-upload icon-lg" />
       </button>
       <modal
@@ -94,7 +96,7 @@ export default {
     </div>
 
     <div class="kubectl">
-      <button v-if="currentProduct && currentProduct.showClusterSwitcher" :disabled="!showShell" type="button" class="btn role-tertiary" @click="currentCluster.openShell()">
+      <button v-if="currentProduct && currentProduct.showClusterSwitcher && showShell" type="button" class="btn role-tertiary" @click="currentCluster.openShell()">
         <i v-tooltip="t('nav.shell')" class="icon icon-terminal icon-lg" />
       </button>
     </div>
@@ -130,7 +132,7 @@ export default {
             <nuxt-link tag="li" :to="{name: 'prefs'}" class="user-menu-item">
               <a>Preferences <i class="icon icon-fw icon-gear" /></a>
             </nuxt-link>
-            <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'account'}" class="user-menu-item">
+            <nuxt-link v-if="isRancher" tag="li" :to="{name: 'account'}" class="user-menu-item">
               <a>Account &amp; API Keys <i class="icon icon-fw icon-user" /></a>
             </nuxt-link>
             <nuxt-link v-if="authEnabled" tag="li" :to="{name: 'auth-logout'}" class="user-menu-item">
@@ -160,7 +162,7 @@ export default {
       padding: 0 5px;
     }
 
-    ::v-deep > div > .btn {
+    ::v-deep > div > .btn.role-tertiary {
       border: 1px solid var(--header-btn-bg);
       background: rgba(0,0,0,.05);
       color: var(--header-btn-text);
@@ -203,11 +205,19 @@ export default {
     > .import {
       grid-area: import;
       background-color: var(--header-bg);
+
+      .btn {
+        padding: 0 $input-padding-sm;
+      }
     }
 
     > .kubectl {
       grid-area: kubectl;
       background-color: var(--header-bg);
+
+      .btn {
+        padding: 0 $input-padding-sm;
+      }
     }
 
     > .back,
@@ -259,6 +269,15 @@ export default {
 
     > .user {
       outline: none;
+
+      .v-popover {
+        display: flex;
+        ::v-deep .trigger{
+        .user-image {
+            display: flex;
+          }
+        }
+      }
 
       &:focus {
         .v-popover {

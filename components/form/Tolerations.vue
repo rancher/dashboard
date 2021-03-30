@@ -180,7 +180,7 @@ export default {
         <button
           v-if="!isView"
           type="button"
-          class="btn bg-transparent role-link"
+          class="btn role-link"
           :disabled="mode==='view'"
           @click="remove(rule)"
         >

@@ -1,5 +1,5 @@
 <script>
-import { isEmpty } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
 import throttle from 'lodash/throttle';
 import ArrayList from '@/components/form/ArrayList';
 import CreateEditView from '@/mixins/create-edit-view';
@@ -205,7 +205,7 @@ export default {
         const inStore = this.$store.getters['currentProduct'].inStore;
 
         this.allPods = await this.$store.dispatch(`${ inStore }/findAll`, { type: POD });
-        this.matchingPods.total = this.allPods.length;
+        this.updateMatchingPods();
       } catch (e) { }
     },
 

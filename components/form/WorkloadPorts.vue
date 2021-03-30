@@ -40,7 +40,7 @@ export default {
     const rows = clone(this.value || []).map((row) => {
       row._showHost = false;
       row._serviceType = '' ;
-      row._name = row.name ? `${ row.name }` : `${ row.containerPort }${ row.protocol.toLowerCase() }${ row.hostPort || row._lbPort || '' }`;
+      row._name = row.name ? `${ row.name }` : `${ row.containerPort }${ row.protocol.toLowerCase() }${ row.hostPort || row._listeningPort || '' }`;
       if (row.hostPort || row.hostIP) {
         row._showHost = true;
       }
@@ -162,14 +162,18 @@ export default {
         const portSpec = findBy(this.loadBalancerServicePorts, 'name', _name);
 
         if (portSpec) {
-          row._lbPort = portSpec.port;
+          row._listeningPort = portSpec.port;
 
           row._serviceType = 'LoadBalancer';
 
           return;
         }
       } if (this.nodePortServicePorts) {
-        if (findBy(this.nodePortServicePorts, 'name', _name)) {
+        const portSpec = findBy(this.nodePortServicePorts, 'name', _name);
+
+        if (portSpec) {
+          row._listeningPort = portSpec.nodePort;
+
           row._serviceType = 'NodePort';
 
           return;
@@ -260,26 +264,26 @@ export default {
         />
       </div>
 
-      <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer'" class="add-host">
+      <div v-if="!row._showHost && row._serviceType !== 'LoadBalancer' && row._serviceType !== 'NodePort'" class="add-host">
         <button :disabled="mode==='view'" type="button" class="btn btn-sm role-tertiary" @click="row._showHost = true">
           {{ t('workloadPorts.addHost') }}
         </button>
       </div>
 
-      <div v-if="row._serviceType === 'LoadBalancer'">
+      <div v-if="row._serviceType === 'LoadBalancer' || row._serviceType === 'NodePort'">
         <LabeledInput
           ref="port"
-          v-model.number="row._lbPort"
+          v-model.number="row._listeningPort"
           type="number"
           :mode="mode"
           :label="t('workload.container.ports.listeningPort')"
-          required
+          :required="row._serviceType === 'LoadBalancer' "
           @input="queueUpdate"
         />
       </div>
 
       <div v-if="showRemove" class="remove">
-        <button type="button" class="btn bg-transparent role-link" @click="remove(idx)">
+        <button type="button" class="btn role-link" @click="remove(idx)">
           {{ t('workloadPorts.remove') }}
         </button>
       </div>
@@ -305,7 +309,7 @@ $checkbox: 75;
 }
 .ports-headers, .ports-row{
   display: grid;
-  grid-template-columns: 20% 3fr 160px 80px 10% 58px;
+  grid-template-columns: 20% 32% 145px 80px .5fr .5fr;
   grid-column-gap: $column-gutter;
   margin-bottom: 10px;
   align-items: center;
@@ -315,7 +319,7 @@ $checkbox: 75;
   }
 
   &.show-host{
-    grid-template-columns: 20% 3fr 160px 80px 160px 10% 1fr
+    grid-template-columns: 20% 20% 145px 80px 140px .5fr .5fr;
   }
 
 }

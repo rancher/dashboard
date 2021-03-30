@@ -3,7 +3,7 @@ import { addObject, removeObject, removeObjects } from '@/utils/array';
 import jsyaml from 'js-yaml';
 import { cleanUp } from '@/utils/object';
 
-const SIMPLE_TYPES = [
+export const SIMPLE_TYPES = [
   'string',
   'multiline',
   'masked',
@@ -66,8 +66,9 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   if ( depth === 0 ) {
     const attr = schema.attributes || {};
 
-    data.apiVersion = (attr.group ? `${ attr.group }/${ attr.version }` : attr.version);
-    data.kind = attr.kind;
+    // Default to data.apiVersion/kind to accomadate spoofed types that aggregate multiple types
+    data.apiVersion = (attr.group ? `${ attr.group }/${ attr.version }` : attr.version) || data.apiVersion;
+    data.kind = attr.kind || data.kind;
   }
 
   const regularFields = [];
@@ -132,27 +133,6 @@ export function createYaml(schemas, type, data, processAlwaysAdd = true, depth =
   return out;
 
   // ---------------
-
-  function typeRef(type, str) {
-    const re = new RegExp(`^${ type }\\[(.*)\\]$`);
-    const match = str.match(re);
-
-    if ( match ) {
-      return typeMunge(match[1]);
-    }
-  }
-
-  function typeMunge(type) {
-    if ( type === 'integer' ) {
-      return 'int';
-    }
-
-    if ( type === 'io.k8s.apimachinery.pkg.api.resource.Quantity' ) {
-      return 'string';
-    }
-
-    return type;
-  }
 
   function stringifyField(key) {
     const field = schema.resourceFields[key];
@@ -289,4 +269,25 @@ function indent(lines, depth = 1) {
 
 function serializeSimpleValue(data) {
   return jsyaml.safeDump(data).trim();
+}
+
+export function typeRef(type, str) {
+  const re = new RegExp(`^${ type }\\[(.*)\\]$`);
+  const match = str.match(re);
+
+  if ( match ) {
+    return typeMunge(match[1]);
+  }
+}
+
+export function typeMunge(type) {
+  if ( type === 'integer' ) {
+    return 'int';
+  }
+
+  if ( type === 'io.k8s.apimachinery.pkg.api.resource.Quantity' ) {
+    return 'string';
+  }
+
+  return type;
 }

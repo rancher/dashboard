@@ -30,7 +30,7 @@ export default {
       default: false
     },
 
-    tabsUseHistoryReplace: {
+    useHash: {
       type:    Boolean,
       default: true,
     }
@@ -76,6 +76,7 @@ export default {
     sortedTabs(tabs) {
       const {
         defaultTab,
+        useHash,
         $route: { hash }
       } = this;
       const activeTab = tabs.find(t => t.active);
@@ -85,25 +86,29 @@ export default {
       const firstTab = head(tabs) || null;
 
       if (isEmpty(activeTab)) {
-        if (!isEmpty(windowHashTabMatch)) {
+        if (useHash && !isEmpty(windowHashTabMatch)) {
           this.select(windowHashTabMatch.name);
         } else if (!isEmpty(defaultTab) && !isEmpty(tabs.find(t => t.name === defaultTab))) {
           this.select(defaultTab);
         } else if (firstTab?.name) {
           this.select(firstTab.name);
         }
-      } else if (activeTab?.name === windowHash) {
+      } else if (useHash && activeTab?.name === windowHash) {
         this.select(activeTab.name);
       }
     },
   },
 
   mounted() {
-    window.addEventListener('hashchange', this.hashChange);
+    if ( this.useHash ) {
+      window.addEventListener('hashchange', this.hashChange);
+    }
   },
 
   unmounted() {
-    window.removeEventListener('hashchange', this.hashChange);
+    if ( this.useHash ) {
+      window.removeEventListener('hashchange', this.hashChange);
+    }
   },
 
   methods: {
@@ -126,7 +131,6 @@ export default {
     select(name/* , event */) {
       const {
         sortedTabs,
-        tabsUseHistoryReplace,
         $route: { hash: routeHash },
         $router: { currentRoute },
       } = this;
@@ -138,16 +142,12 @@ export default {
         return;
       }
 
-      if (routeHash !== hashName) {
+      if (this.useHash && routeHash !== hashName) {
         const kurrentRoute = { ...currentRoute };
 
         kurrentRoute.hash = hashName;
 
-        if (tabsUseHistoryReplace) {
-          this.$router.replace(kurrentRoute);
-        } else {
-          this.$router.push(kurrentRoute);
-        }
+        this.$router.replace(kurrentRoute);
       }
 
       for ( const tab of sortedTabs ) {
@@ -228,10 +228,10 @@ export default {
       <ul v-if="sideTabs && showTabsAddRemove" class="tab-list-footer">
         <li>
           <button type="button" class="btn bg-transparent" @click="tabAddClicked">
-            <i class="icon icon-plus" />
+            <i class="icon icon-plus icon-lg" />
           </button>
           <button type="button" class="btn bg-transparent" @click="tabRemoveClicked">
-            <i class="icon icon-minus" />
+            <i class="icon icon-minus icon-lg" />
           </button>
         </li>
       </ul>

@@ -403,7 +403,7 @@ export default {
         />
       </div>
       <div class="remove">
-        <button v-t="'generic.remove'" :disabled="isView" type="button" class="btn bg-transparent role-link" @click="remove(row)" />
+        <button v-t="'generic.remove'" :disabled="isView" type="button" class="btn role-link" @click="remove(row)" />
       </div>
     </div>
     <div>

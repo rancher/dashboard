@@ -56,6 +56,11 @@ export default {
       type:     String,
       default: null
     },
+
+    required: {
+      type:    Boolean,
+      default: false,
+    }
   },
 
   computed: {
@@ -111,6 +116,7 @@ export default {
     :label-key="labelKey"
     :tooltip="tooltip"
     :tooltip-key="tooltipKey"
+    :required="required"
     @input="update($event)"
   >
     <template #suffix>

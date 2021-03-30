@@ -48,6 +48,11 @@ export default {
       default: false
     },
 
+    storeOverride: {
+      type:    String,
+      default: null,
+    },
+
     resource: {
       type:    String,
       default: null,
@@ -56,12 +61,17 @@ export default {
     resourceSubtype: {
       type:    String,
       default: null,
+    },
+
+    parentRouteOverride: {
+      type:    String,
+      default: null,
     }
   },
 
   computed: {
     schema() {
-      const inStore = this.$store.getters['currentProduct'].inStore;
+      const inStore = this.storeOverride || this.$store.getters['currentProduct'].inStore;
 
       return this.$store.getters[`${ inStore }/schemaFor`]( this.resource );
     },
@@ -166,6 +176,10 @@ export default {
           product,
         }
       };
+
+      if (this.parentRouteOverride) {
+        location.name = this.parentRouteOverride;
+      }
 
       const typeOptions = this.$store.getters[`type-map/optionsFor`]( this.resource );
       const out = {
@@ -398,4 +412,18 @@ export default {
     position: relative;
     top: -2px;
   }
+
+  .left-right-split {
+    display: grid;
+    align-items: center;
+
+    .left-half {
+      grid-column: 1;
+    }
+
+    .right-half {
+      grid-column: 2;
+    }
+  }
+
 </style>

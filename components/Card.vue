@@ -20,6 +20,10 @@ export default {
     showHighlightBorder: {
       type:    Boolean,
       default: true
+    },
+    showActions: {
+      type:    Boolean,
+      default: true
     }
   }
 };
@@ -39,7 +43,7 @@ export default {
           {{ content }}
         </slot>
       </div>
-      <div class="card-actions">
+      <div v-if="showActions" class="card-actions">
         <slot name="actions">
           <button class="btn role-primary" @click="buttonAction">
             {{ buttonText }}

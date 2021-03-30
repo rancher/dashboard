@@ -4,15 +4,17 @@ import {
   WORKLOAD, WORKLOAD_TYPES, SERVICE, HPA, NETWORK_POLICY, PV, PVC, STORAGE_CLASS, POD,
   RBAC,
   MANAGEMENT,
+  NORMAN,
 } from '@/config/types';
 
 import {
   STATE, NAME as NAME_COL, NAMESPACE as NAMESPACE_COL, AGE, KEYS,
   INGRESS_DEFAULT_BACKEND, INGRESS_TARGET, ROLES, VERSION, INTERNAL_EXTERNAL_IP, CPU, RAM,
   SPEC_TYPE, TARGET_PORT, SELECTOR, NODE as NODE_COL, TYPE, WORKLOAD_IMAGES, POD_IMAGES,
-  USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, WORKLOAD_ENDPOINTS, STORAGE_CLASS_PROVISIONER,
-  PERSISTENT_VOLUME_SOURCE,
+  USER_ID, USERNAME, USER_DISPLAY_NAME, USER_PROVIDER, WORKLOAD_ENDPOINTS, STORAGE_CLASS_DEFAULT,
+  STORAGE_CLASS_PROVISIONER, PERSISTENT_VOLUME_SOURCE,
   HPA_REFERENCE, MIN_REPLICA, MAX_REPLICA, CURRENT_REPLICA,
+  ACCESS_KEY, DESCRIPTION, EXPIRES, EXPIRY_STATE, SUB_TYPE, AGE_NORMAN, SCOPE_NORMAN,
 } from '@/config/table-headers';
 
 import { copyResourceValues, SUBTYPES } from '@/models/rbac.authorization.k8s.io.roletemplate';
@@ -74,6 +76,7 @@ export function init(store) {
   ], 'workload');
   basicType([
     RBAC.ROLE,
+    RBAC.CLUSTER_ROLE,
     RBAC.ROLE_BINDING,
     RBAC.CLUSTER_ROLE_BINDING,
     RBAC.SPOOFED.ROLE_TEMPLATE
@@ -121,6 +124,7 @@ export function init(store) {
 
   configureType(NODE, { isCreatable: false, isEditable: false });
   configureType(WORKLOAD_TYPES.JOB, { isEditable: false, match: WORKLOAD_TYPES.JOB });
+  configureType(PVC, { isEditable: false });
 
   configureType('workload', {
     displayName: 'Workload',
@@ -137,13 +141,7 @@ export function init(store) {
     STATE,
     NAME_COL,
     NAMESPACE_COL,
-    {
-      name:      'type',
-      label:     'Type',
-      value:     'typeDisplay',
-      sort:      ['typeDisplay', 'nameSort'],
-      width:     120,
-    },
+    SUB_TYPE,
     {
       name:      'data',
       label:     'Data',
@@ -166,7 +164,7 @@ export function init(store) {
   headers(WORKLOAD_TYPES.CRON_JOB, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Schedule', 'Last Schedule', AGE]);
   headers(WORKLOAD_TYPES.REPLICATION_CONTROLLER, [STATE, NAME_COL, NAMESPACE_COL, WORKLOAD_IMAGES, WORKLOAD_ENDPOINTS, 'Ready', 'Current', 'Desired', AGE]);
   headers(POD, [STATE, NAME_COL, NAMESPACE_COL, POD_IMAGES, 'Ready', 'Restarts', 'IP', NODE_COL, AGE]);
-  headers(STORAGE_CLASS, [STATE, NAME_COL, STORAGE_CLASS_PROVISIONER, AGE]);
+  headers(STORAGE_CLASS, [STATE, NAME_COL, STORAGE_CLASS_PROVISIONER, STORAGE_CLASS_DEFAULT, AGE]);
 
   headers(RBAC.ROLE, [
     STATE,
@@ -188,6 +186,15 @@ export function init(store) {
     USER_PROVIDER,
     USERNAME,
     AGE
+  ]);
+
+  headers(NORMAN.TOKEN, [
+    EXPIRY_STATE,
+    ACCESS_KEY,
+    DESCRIPTION,
+    SCOPE_NORMAN,
+    EXPIRES,
+    AGE_NORMAN
   ]);
 
   virtualType({
@@ -216,6 +223,17 @@ export function init(store) {
     overview:       true,
   });
 
+  // Ignore these types as they are managed through the settings product
+  ignoreType(MANAGEMENT.FEATURE);
+  ignoreType(MANAGEMENT.SETTING);
+
+  // Don't show Tokens/API Keys in the side navigation
+  ignoreType(MANAGEMENT.TOKEN);
+  ignoreType(NORMAN.TOKEN);
+
+  // Ignore these types as they are managed through the auth product
+  ignoreType(MANAGEMENT.USER);
+
   spoofedType({
     label:             'Role Template',
     type:              RBAC.SPOOFED.ROLE_TEMPLATE,
@@ -224,7 +242,13 @@ export function init(store) {
       {
         id:                RBAC.SPOOFED.ROLE_TEMPLATE,
         type:              'schema',
-        resourceFields:    { filters: { type: 'string' } },
+        resourceFields:    {
+          apiVersion: { type: 'string' },
+          kind:       { type: 'string' },
+          metadata:   { type: 'io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta' },
+          rules:      { type: 'array[rancher.cattle.io.v1.roletemplate.rules]' },
+          status:     { type: 'rancher.cattle.io.v1.roletemplate.status' }
+        },
         collectionMethods: ['POST'],
       }
     ],
@@ -241,8 +265,9 @@ export function init(store) {
             type:            RBAC.SPOOFED.ROLE_TEMPLATE,
             status:          template.status,
             links:           {
-              self: template.links.self,
-              view: template.links.view
+              self:   template.links.self,
+              update: template.links.update,
+              view:   template.links.view
             },
             template
           };

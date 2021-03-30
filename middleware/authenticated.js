@@ -92,9 +92,9 @@ export default async function({
           store.commit('setError', e);
           console.log(JSON.stringify(e)); // eslint-disable-line no-console
         }
-      }
 
-      return;
+        return;
+      }
     }
   }
 

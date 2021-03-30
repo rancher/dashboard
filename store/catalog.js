@@ -7,6 +7,7 @@ import { findBy, addObject, filterBy } from '@/utils/array';
 import { stringify } from '@/utils/error';
 import { proxyFor } from '@/plugins/steve/resource-proxy';
 import { sortBy } from '@/utils/sort';
+import { importChart } from '@/utils/dynamic-importer';
 
 const ALLOWED_CATEGORIES = [
   'Storage',
@@ -27,9 +28,7 @@ export const state = function() {
     namespacedRepos: [],
     charts:          {},
     versionInfos:    {},
-    config: {
-      namespace: 'catalog'
-    }
+    config:          { namespace: 'catalog' }
   };
 };
 
@@ -57,37 +56,39 @@ export const getters = {
 
   charts(state, getters, rootState, rootGetters) {
     const repoKeys = getters.repos.map(x => x._key);
-    const cluster = rootGetters['currentCluster']
+    const cluster = rootGetters['currentCluster'];
 
     // Filter out charts for repos that are no longer in the store, rather
     // than trying to clear them when a repo is removed.
     // And ones that are for the wrong kind of cluster
     const out = Object.values(state.charts).filter((chart) => {
-       if ( !repoKeys.includes(chart.repoKey) ) {
-         return false;
-       }
+      if ( !repoKeys.includes(chart.repoKey) ) {
+        return false;
+      }
 
-       if ( chart.scope && chart.scope !== cluster.scope ) {
-         return false;
-       }
+      if ( chart.scope && chart.scope !== cluster.scope ) {
+        return false;
+      }
 
-       return true;
+      return true;
     });
 
     return sortBy(out, ['certifiedSort', 'repoName', 'chartName']);
   },
 
   chart(state, getters) {
-    return ({ repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden }) => {
+    return ({
+      repoType, repoName, chartName, preferRepoType, preferRepoName, includeHidden
+    }) => {
       let matching = filterBy(getters.charts, {
         repoType,
         repoName,
         chartName,
-        deprecated: false, 
+        deprecated: false,
       });
 
       if ( includeHidden === false ) {
-        matching = matching.filter((x) => !x.hidden)
+        matching = matching.filter(x => !x.hidden);
       }
 
       if ( !matching.length ) {
@@ -125,13 +126,15 @@ export const getters = {
   },
 
   versionSatisfying(state, getters) {
-    return ({ repoType, repoName, constraint, chartVersion }) => {
+    return ({
+      repoType, repoName, constraint, chartVersion
+    }) => {
       let name, wantVersion;
       const idx = constraint.indexOf('=');
 
       if ( idx > 0 ) {
-        name = constraint.substr(0,idx);
-        wantVersion = normalizeVersion(constraint.substr(idx+1));
+        name = constraint.substr(0, idx);
+        wantVersion = normalizeVersion(constraint.substr(idx + 1));
       } else {
         name = constraint;
         wantVersion = 'latest';
@@ -140,7 +143,7 @@ export const getters = {
       name = name.toLowerCase().trim();
       chartVersion = normalizeVersion(chartVersion);
 
-      const matching = getters.charts.filter((chart) => chart.chartName.toLowerCase().trim() == name);
+      const matching = getters.charts.filter(chart => chart.chartName.toLowerCase().trim() === name);
 
       if ( !matching.length ) {
         return;
@@ -156,9 +159,9 @@ export const getters = {
       if ( wantVersion === 'latest' ) {
         version = chart.versions[0];
       } else if ( wantVersion === 'match' || wantVersion === 'matching' ) {
-        version = chart.versions.find((v) => normalizeVersion(v.version) === chartVersion);
+        version = chart.versions.find(v => normalizeVersion(v.version) === chartVersion);
       } else {
-        version = chart.versions.find((v) => normalizeVersion(v.version) === wantVersion);
+        version = chart.versions.find(v => normalizeVersion(v.version) === wantVersion);
       }
 
       if ( version ) {
@@ -169,7 +172,7 @@ export const getters = {
 
   versionProviding(state, getters) {
     return ({ repoType, repoName, gvr }) => {
-      const matching = getters.charts.filter((chart) => chart.provides.includes(gvr) )
+      const matching = getters.charts.filter(chart => chart.provides.includes(gvr) );
 
       if ( !matching.length ) {
         return;
@@ -179,7 +182,7 @@ export const getters = {
         preferSameRepo(matching, repoType, repoName);
       }
 
-      const version = matching[0].versions.find((version) => version.annotations?.[CATALOG_ANNOTATIONS.PROVIDES] === gvr);
+      const version = matching[0].versions.find(version => version.annotations?.[CATALOG_ANNOTATIONS.PROVIDES] === gvr);
 
       if ( version ) {
         return clone(version);
@@ -211,6 +214,7 @@ export const getters = {
     return (name) => {
       try {
         require.resolve(`@/chart/${ name }`);
+
         return true;
       } catch (e) {
         return false;
@@ -220,7 +224,7 @@ export const getters = {
 
   importComponent(state, getters) {
     return (name) => {
-      return () => import(`@/chart/${ name }`);
+      return importChart(name);
     };
   },
 };
@@ -253,9 +257,12 @@ export const mutations = {
 
 export const actions = {
   async load(ctx, { force, reset } = {}) {
-  const { state, getters, rootGetters, commit, dispatch } = ctx;
+    const {
+      state, getters, rootGetters, commit, dispatch
+    } = ctx;
 
     let promises = {};
+
     if ( rootGetters['cluster/schemaFor'](CATALOG.CLUSTER_REPO) ) {
       promises.cluster = dispatch('cluster/findAll', { type: CATALOG.CLUSTER_REPO }, { root: true });
     }
@@ -270,11 +277,12 @@ export const actions = {
 
     const repos = getters['repos'];
     const loaded = [];
+
     promises = {};
 
     for ( const repo of repos ) {
       if ( (force === true || !getters.isLoaded(repo)) && repo.canLoad ) {
-        console.info('Loading index for repo', repo.name, `(${repo._key})`); // eslint-disable-line no-console
+        console.info('Loading index for repo', repo.name, `(${ repo._key })`); // eslint-disable-line no-console
         promises[repo._key] = repo.followLink('index');
       }
     }
@@ -324,29 +332,24 @@ export const actions = {
     const key = `${ repoType }/${ repoName }/${ chartName }/${ versionName }`;
     let info = state.versionInfos[key];
 
-    try {
-      if ( !info ) {
-        const repo = getters['repo']({ repoType, repoName });
+    if ( !info ) {
+      const repo = getters['repo']({ repoType, repoName });
 
-        if ( !repo ) {
-          throw new Error('Repo not found');
-        }
-
-        info = await repo.followLink('info', {
-          url: addParams(repo.links.info, {
-            chartName,
-            version: versionName
-          })
-        });
-
-        commit('cacheVersion', { key, info });
+      if ( !repo ) {
+        throw new Error('Repo not found');
       }
 
-      return info;
-    } catch (e) {
-      console.log(e);
-      debugger;
+      info = await repo.followLink('info', {
+        url: addParams(repo.links.info, {
+          chartName,
+          version: versionName
+        })
+      });
+
+      commit('cacheVersion', { key, info });
     }
+
+    return info;
   },
 };
 
@@ -391,13 +394,13 @@ function addChart(ctx, map, chart, repo) {
     if ( ctx ) { }
     obj = proxyFor(ctx, {
       key,
-      type: 'chart',
-      id: key,
+      type:             'chart',
+      id:               key,
       certified,
       sideLabel,
       repoType,
       repoName,
-      repoNameDisplay:  ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${repoName}"`, null, repoName),
+      repoNameDisplay:  ctx.rootGetters['i18n/withFallback'](`catalog.repo.name."${ repoName }"`, null, repoName),
       certifiedSort:    CERTIFIED_SORTS[certified] || 99,
       icon:             chart.icon,
       color:            repo.color,
@@ -418,11 +421,12 @@ function addChart(ctx, map, chart, repo) {
     map[key] = obj;
   }
 
-  chart.key = `${key}/${chart.version}`;
+  chart.key = `${ key }/${ chart.version }`;
   chart.repoType = repoType;
   chart.repoName = repoName;
 
   const provides = chart.annotations?.[CATALOG_ANNOTATIONS.PROVIDES];
+
   if ( provides ) {
     addObject(obj.provides, provides);
   }
@@ -435,7 +439,7 @@ function preferSameRepo(matching, repoType, repoName) {
     const aSameRepo = a.repoType === repoType && a.repoName === repoName ? 1 : 0;
     const bSameRepo = b.repoType === repoType && b.repoName === repoName ? 1 : 0;
 
-    if ( aSameRepo && !bSameRepo )  {
+    if ( aSameRepo && !bSameRepo ) {
       return -1;
     } else if ( !aSameRepo && bSameRepo ) {
       return 1;

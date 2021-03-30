@@ -7,8 +7,8 @@ import LabeledInput from '@/components/form/LabeledInput';
 import Checkbox from '@/components/form/Checkbox';
 import Banner from '@/components/Banner';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
-import AsyncButton from '@/components/AsyncButton';
 import FileSelector from '@/components/form/FileSelector';
+import AuthBanner from '@/components/auth/AuthBanner';
 import config from '@/edit/auth/ldap/config';
 
 export default {
@@ -20,8 +20,8 @@ export default {
     AllowedPrincipals,
     Checkbox,
     FileSelector,
-    AsyncButton,
-    config
+    config,
+    AuthBanner
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -40,7 +40,8 @@ export default {
 
     toSave() {
       return { enabled: true, ...this.model };
-    }
+    },
+
   },
 };
 </script>
@@ -64,24 +65,16 @@ export default {
       @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
-        <Banner color="success clearfix">
-          <div class="pull-left mt-10">
-            {{ t('authConfig.stateBanner.enabled', tArgs) }}
-          </div>
-          <div class="pull-right">
-            <button type="button" class="btn-sm role-primary" @click="goToEdit">
-              {{ t('action.edit') }}
-            </button>
-            <AsyncButton mode="disable" size="sm" action-color="bg-error" @click="disable" />
-          </div>
-        </Banner>
-
-        <div>{{ t(`authConfig.saml.displayName`) }}: {{ model.displayNameField }}</div>
-        <div>{{ t(`authConfig.saml.userName`) }}:{{ model.userNameField }}</div>
-        <div>{{ t(`authConfig.saml.UID`) }}: {{ model.uidField }}</div>
-        <div>{{ t(`authConfig.saml.entityID`) }}: {{ model.entityID }}</div>
-        <div>{{ t(`authConfig.saml.api`) }}: {{ model.rancherApiHost }}</div>
-        <div>{{ t(`authConfig.saml.groups`) }}: {{ model.groupsField }}</div>
+        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+          <template slot="rows">
+            <tr><td>{{ t(`authConfig.saml.displayName`) }}: </td><td>{{ model.displayNameField }}</td></tr>
+            <tr><td>{{ t(`authConfig.saml.userName`) }}: </td><td>{{ model.userNameField }}</td></tr>
+            <tr><td>{{ t(`authConfig.saml.UID`) }}: </td><td>{{ model.uidField }}</td></tr>
+            <tr><td>{{ t(`authConfig.saml.entityID`) }}: </td><td>{{ model.entityID }}</td></tr>
+            <tr><td>{{ t(`authConfig.saml.api`) }}: </td><td>{{ model.rancherApiHost }}</td></tr>
+            <tr><td>{{ t(`authConfig.saml.groups`) }}: </td><td>{{ model.groupsField }}</td></tr>
+          </template>
+        </AuthBanner>
 
         <hr />
 
@@ -130,7 +123,7 @@ export default {
           </div>
         </div>
         <div class="row mb-20">
-          <div v-if="NAME !== 'okta'" class="col span-6">
+          <div v-if="NAME === 'keycloak' || NAME === 'ping'" class="col span-6">
             <LabeledInput
               v-model="model.entityID"
               :label="t(`authConfig.saml.entityID`)"

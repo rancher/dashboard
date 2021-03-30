@@ -1,6 +1,6 @@
 import { insertAt } from '@/utils/array';
 import { TARGET_WORKLOADS, TIMESTAMP, UI_MANAGED } from '@/config/labels-annotations';
-import { WORKLOAD_TYPES, POD, SERVICE } from '@/config/types';
+import { WORKLOAD_TYPES, SERVICE } from '@/config/types';
 import { clone, get, set } from '@/utils/object';
 import day from 'dayjs';
 import { _CREATE } from '@/config/query-params';
@@ -33,7 +33,7 @@ export default {
 
   applyDefaults() {
     return (vm, mode) => {
-      const spec = {};
+      const { spec = {} } = this;
 
       if (this.type === WORKLOAD_TYPES.CRON_JOB) {
         if (!spec.jobTemplate) {
@@ -194,43 +194,9 @@ export default {
     return out;
   },
 
-  pods() {
-    const { metadata:{ relationships = [] } } = this;
-
-    return async() => {
-      if (this.type === WORKLOAD_TYPES.CRON_JOB) {
-        const jobRelationships = relationships.filter(relationship => relationship.toType === WORKLOAD_TYPES.JOB);
-
-        if (jobRelationships) {
-          const jobs = await Promise.all(jobRelationships.map((relationship) => {
-            return this.$dispatch('cluster/find', { type: WORKLOAD_TYPES.JOB, id: relationship.toId }, { root: true });
-          }));
-
-          const jobPods = await Promise.all(jobs.map((job) => {
-            return job.pods();
-          }));
-
-          return jobPods.reduce((all, each) => {
-            all.push(...each);
-
-            return all;
-          }, []);
-        }
-      }
-      const podRelationship = relationships.filter(relationship => relationship.toType === POD)[0];
-      let pods;
-
-      if (podRelationship) {
-        pods = await this.$dispatch('cluster/findMatching', { type: POD, selector: podRelationship.selector }, { root: true });
-      }
-
-      return pods.filter(pod => pod.metadata.namespace === this.metadata.namespace);
-    };
-  },
-
   getServicesOwned() {
     return async() => {
-      const { metadata:{ relationships = [] } } = this;
+      const relationships = get(this, 'metadata.relationships') || [];
       const serviceRelationships = relationships.filter(relationship => relationship.toType === SERVICE && relationship.rel === 'owner');
 
       if (serviceRelationships.length) {
@@ -365,7 +331,7 @@ export default {
       }
 
       ports.forEach((port) => {
-        const name = port.name ? `${ port.name }` : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || port._lbPort || '' }`;
+        const name = port.name ? `${ port.name }` : `${ port.containerPort }${ port.protocol.toLowerCase() }${ port.hostPort || port._listeningPort || '' }`;
 
         port.name = name;
         const portSpec = {
@@ -374,15 +340,21 @@ export default {
 
         if (port._serviceType && port._serviceType !== '') {
           clusterIP.spec.ports.push(portSpec);
-
           switch (port._serviceType) {
-          case 'NodePort':
-            nodePort.spec.ports.push(portSpec);
-            break;
+          case 'NodePort': {
+            const npPort = clone(portSpec);
+
+            if (port._listeningPort) {
+              npPort.nodePort = port._listeningPort;
+            }
+            nodePort.spec.ports.push(npPort);
+            break; }
           case 'LoadBalancer': {
             const lbPort = clone(portSpec);
 
-            lbPort.port = port._lbPort;
+            if (port._listeningPort) {
+              lbPort.port = port._listeningPort;
+            }
             loadBalancer.spec.ports.push(lbPort);
             break; }
           default:
@@ -435,5 +407,21 @@ export default {
 
       return { toSave, toRemove };
     };
+  },
+
+  showAsWorkload() {
+    const types = Object.values(WORKLOAD_TYPES);
+
+    if (this.metadata?.ownerReferences) {
+      for (const owner of this.metadata.ownerReferences) {
+        const have = (`${ owner.apiVersion.replace(/\/.*/, '') }.${ owner.kind }`).toLowerCase();
+
+        if ( types.includes(have) ) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   },
 };

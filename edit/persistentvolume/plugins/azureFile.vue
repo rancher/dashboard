@@ -41,12 +41,12 @@ export default {
         <LabeledInput v-model="value.spec.azureFile.shareName" :mode="mode" :label="t('persistentVolume.azureFile.shareName.label')" :placeholder="t('persistentVolume.azureFile.shareName.placeholder')" />
       </div>
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureFile.secretName" :mode="mode" :label="t('persistentVolume.azureFile.secretName.label')" :placeholder="t('persistentVolume.azureFile.secretName.placeholder')" />
+        <LabeledInput v-model="value.spec.azureFile.secretName" :mode="mode" :label="t('persistentVolume.shared.secretName.label')" :placeholder="t('persistentVolume.shared.secretName.placeholder')" />
       </div>
     </div>
     <div class="row mb-20">
       <div class="col span-6">
-        <LabeledInput v-model="value.spec.azureFile.secretNamespace" :mode="mode" :label="t('persistentVolume.azureFile.secretNamespace.label')" :placeholder="t('persistentVolume.azureFile.secretNamespace.placeholder')" />
+        <LabeledInput v-model="value.spec.azureFile.secretNamespace" :mode="mode" :label="t('persistentVolume.shared.secretNamespace.label')" :placeholder="t('persistentVolume.shared.secretNamespace.placeholder')" />
       </div>
       <div class="col span-6">
         <RadioGroup

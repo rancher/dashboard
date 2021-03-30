@@ -1,5 +1,6 @@
 import https from 'https';
 import cloneDeep from 'lodash/cloneDeep';
+import merge from 'lodash/merge';
 import { SCHEMA } from '@/config/types';
 import { createYaml } from '@/utils/create-yaml';
 import { SPOOFED_API_PREFIX, SPOOFED_PREFIX } from '@/store/type-map';
@@ -324,6 +325,14 @@ export default {
     return proxyFor(ctx, data);
   },
 
+  createPopulated(ctx, userData) {
+    const data = ctx.getters['defaultFor'](userData.type);
+
+    merge(data, userData);
+
+    return proxyFor(ctx, data);
+  },
+
   clone(ctx, { resource } = {}) {
     const copy = cloneDeep(resource[SELF]);
 
@@ -362,6 +371,10 @@ export default {
     } else {
       return res;
     }
+  },
+
+  promptUpdate({ commit, state }, resources = []) {
+    commit('action-menu/togglePromptUpdate', resources, { root: true });
   },
 
   async collectionAction({ getters, dispatch }, {

@@ -3,6 +3,7 @@ import { parse as parseUrl, removeParam, addParams } from '@/utils/url';
 import { findBy, addObjects } from '@/utils/array';
 import { openAuthPopup, returnTo } from '@/utils/auth';
 import { GITHUB_SCOPE, GITHUB_NONCE, GITHUB_REDIRECT } from '@/config/query-params';
+import { base64Encode } from '@/utils/crypto';
 
 export const BASE_SCOPES = {
   github: ['read:org'], googleoauth: ['openid profile email'], azuread: []
@@ -89,22 +90,25 @@ export const actions = {
   },
 
   setNonce({ dispatch }, opt) {
-    let nonce = randomStr(16);
+    const out = { nonce: randomStr(16), to: 'vue' };
 
     if ( opt.test ) {
-      nonce += '-test';
+      out.test = true;
     }
 
     if (opt.provider) {
-      nonce += `-${ opt.provider }`;
+      out.provider = opt.provider;
     }
-    this.$cookies.set(KEY, nonce, {
+
+    const strung = JSON.stringify(out);
+
+    this.$cookies.set(KEY, strung, {
       path:     '/',
       sameSite: false,
       secure:   true,
     });
 
-    return nonce;
+    return strung;
   },
 
   async redirectTo({ state, commit, dispatch }, opt = {}) {
@@ -116,10 +120,16 @@ export const actions = {
 
       redirectUrl = driver.redirectUrl;
     }
+    let returnToUrl = `${ window.location.origin }/verify-auth`;
+
+    if (provider === 'azuread') {
+      const params = { response_type: 'code', response_mode: 'query' };
+
+      redirectUrl = addParams(redirectUrl, params );
+      returnToUrl = `${ window.location.origin }/verify-auth-azure`;
+    }
 
     const nonce = await dispatch('setNonce', opt);
-
-    const returnToUrl = returnTo(opt, this);
 
     const fromQuery = unescape(parseUrl(redirectUrl).query?.[GITHUB_SCOPE] || '');
     const scopes = fromQuery.split(/[, ]+/).filter(x => !!x);
@@ -133,9 +143,10 @@ export const actions = {
     }
 
     let url = removeParam(redirectUrl, GITHUB_SCOPE);
+
     const params = {
       [GITHUB_SCOPE]:    scopes.join(','),
-      [GITHUB_NONCE]:    nonce
+      [GITHUB_NONCE]:   base64Encode(nonce, 'url')
     };
 
     if (!url.includes(GITHUB_REDIRECT)) {
@@ -152,7 +163,16 @@ export const actions = {
   },
 
   verifyOAuth({ dispatch }, { nonce, code, provider }) {
-    const expect = this.$cookies.get(KEY, { parseJSON: false });
+    const expectJSON = this.$cookies.get(KEY, { parseJSON: false });
+    let parsed;
+
+    try {
+      parsed = JSON.parse(expectJSON);
+    } catch {
+      return ERR_NONCE;
+    }
+
+    const expect = parsed.nonce;
 
     if ( !expect || expect !== nonce ) {
       return ERR_NONCE;
@@ -180,13 +200,8 @@ export const actions = {
       } else {
       // github, google, azuread
         const res = await driver.doAction('configureTest', body);
-        let { redirectUrl } = res;
+        const { redirectUrl } = res;
 
-        if (provider === 'azuread') {
-          const params = { response_type: 'code', response_mode: 'query' };
-
-          redirectUrl = addParams(redirectUrl, params );
-        }
         const url = await dispatch('redirectTo', {
           provider,
           redirectUrl,

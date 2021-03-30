@@ -83,22 +83,24 @@ export default {
 
     <div class="space" />
 
-    <div v-if="showLocale">
+    <div v-if="showLocale" class="locale-selector">
       <v-popover
         placement="top"
         trigger="click"
+        :container="false"
       >
-        <a>
+        <a class="hand">
           {{ selectedLocaleLabel }}
         </a>
 
         <template slot="popover">
           <ul class="list-unstyled dropdown" style="margin: -1px;">
-            <li v-if="showNone" v-t="'locale.none'" class="p-10 hand" @click="switchLocale('none')" />
+            <li v-if="showNone" v-close-popover="true" v-t="'locale.none'" class="hand" @click="switchLocale('none')" />
             <li
               v-for="(value, name) in availableLocales"
               :key="name"
-              class="p-10 hand"
+              v-close-popover="true"
+              class="hand"
               @click="switchLocale(name)"
             >
               {{ value }}
@@ -123,6 +125,31 @@ export default {
 
       &.space {
         flex-grow: 1;
+      }
+    }
+
+    .locale-selector {
+
+      ::v-deep .popover-inner {
+        padding: 10px 0;
+      }
+
+      ::v-deep .popover-arrow {
+        display: none;
+      }
+
+      ::v-deep .popover:focus {
+        outline: 0;
+      }
+
+      li {
+        padding: 0 20px;
+
+        &:hover {
+          background-color: var(--dropdown-hover-bg);
+          color: var(--dropdown-hover-text);
+          text-decoration: none;
+        }
       }
     }
   }

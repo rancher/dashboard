@@ -22,12 +22,20 @@ export const RIO = { STACK: 'rio.cattle.io/stack' };
 
 export const CERTMANAGER = { ISSUER: 'cert-manager.io/issuer-name' };
 
-export const STORAGE = { DEFAULT_STORAGE_CLASS: 'storageclass.kubernetes.io/is-default-class' };
+export const STORAGE = {
+  DEFAULT_STORAGE_CLASS:      'storageclass.kubernetes.io/is-default-class',
+  BETA_DEFAULT_STORAGE_CLASS: 'storageclass.beta.kubernetes.io/is-default-class'
+};
 
 export const NODE_ROLES = {
   CONTROL_PLANE: 'node-role.kubernetes.io/controlplane',
   WORKER:        'node-role.kubernetes.io/worker',
   ETCD:          'node-role.kubernetes.io/etcd',
+};
+
+export const CAPI = {
+  DEPLOYMENT_NAME:   'cluster.x-k8s.io/deployment-name',
+  CREDENTIAL_DRIVER: 'cluster.cattle.io/driver',
 };
 
 export const CATALOG = {
@@ -45,6 +53,8 @@ export const CATALOG = {
   AUTO_INSTALL_GVK: 'catalog.cattle.io/auto-install-gvr',
   AUTO_INSTALL:     'catalog.cattle.io/auto-install',
   HIDDEN:           'catalog.cattle.io/hidden',
+  REQUESTS_CPU:     'catalog.cattle.io/requests-cpu',
+  REQUESTS_MEMORY:  'catalog.cattle.io/requests-memory',
 
   SCOPE:            'catalog.cattle.io/scope',
   _MANAGEMENT:      'management',

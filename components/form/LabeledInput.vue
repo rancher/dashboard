@@ -30,6 +30,11 @@ export default {
       type:    Boolean,
       default: true,
     },
+
+    ignorePasswordManagers: {
+      default: false,
+      type:    Boolean,
+    }
   },
 
   computed: {
@@ -55,6 +60,17 @@ export default {
       } catch (e) {
         return this.t('generic.invalidCron');
       }
+    },
+
+    _placeholder() {
+      if (this.placeholder) {
+        return this.placeholder;
+      }
+      if (this.placeholderKey) {
+        return this.t(this.placeholderKey);
+      }
+
+      return '';
     }
   },
 
@@ -109,8 +125,9 @@ export default {
         v-bind="$attrs"
         :disabled="isDisabled"
         :value="value"
-        :placeholder="placeholder"
+        :placeholder="_placeholder"
         autocapitalize="off"
+        :class="{'conceal':type === 'multiline-password' }"
         @input="$emit('input', $event)"
         @focus="onFocus"
         @blur="onBlur"
@@ -123,9 +140,10 @@ export default {
         :disabled="isDisabled"
         :type="type === 'cron' ? 'text' : type"
         :value="value"
-        :placeholder="placeholder"
+        :placeholder="_placeholder"
         autocomplete="off"
         autocapitalize="off"
+        :data-lpignore="ignorePasswordManagers"
         @input="$emit('input', $event.target.value)"
         @focus="onFocus"
         @blur="onBlur"

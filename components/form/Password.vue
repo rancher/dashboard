@@ -25,6 +25,14 @@ export default {
     autocomplete: {
       type:      String,
       default:   ''
+    },
+    required: {
+      default: false,
+      type:    Boolean,
+    },
+    ignorePasswordManagers: {
+      default: false,
+      type:    Boolean,
     }
   },
   data() {
@@ -54,6 +62,13 @@ export default {
       return attributes;
     }
   },
+  watch: {
+    isRandom() {
+      if (this.isRandom) {
+        this.generatePassword();
+      }
+    }
+  },
   created() {
     if (this.isRandom) {
       this.generatePassword();
@@ -78,8 +93,9 @@ export default {
       :type="isRandom || reveal ? 'text' : 'password'"
       :readonly="isRandom"
       :label="label"
-      :required="!isRandom"
+      :required="required"
       :disabled="isRandom"
+      :ignore-password-managers="ignorePasswordManagers"
       @blur="$emit('blur', $event)"
     >
       <template #suffix>

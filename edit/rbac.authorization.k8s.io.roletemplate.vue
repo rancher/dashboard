@@ -188,6 +188,7 @@ export default {
           :label="t('rbac.roletemplate.locked.label')"
           class="mb-10"
           :options="lockedOptions"
+          :mode="mode"
         />
       </div>
       <div class="col span-6">
@@ -197,6 +198,7 @@ export default {
           :label="defaultLabel"
           class="mb-10"
           :options="newUserDefaultOptions"
+          :mode="mode"
           @input="value.updateDefault"
         />
       </div>
@@ -205,7 +207,7 @@ export default {
     <Tabbed :side-tabs="true">
       <Tab
         name="grant-resources"
-        label="Grant Resources"
+        :label="t('rbac.roletemplate.tabs.grantResources.label')"
         :weight="1"
       >
         <ArrayList
@@ -215,20 +217,24 @@ export default {
           :initial-empty-row="true"
           :show-header="true"
           add-label="Add Resource"
+          :mode="mode"
         >
           <template #column-headers>
             <div class="column-headers row">
               <div class="col span-3">
-                <label class="text-label">Verbs</label>
+                <label class="text-label">
+                  {{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.verbs') }}
+                  <span class="required">*</span>
+                </label>
               </div>
               <div class="col span-3">
-                <label class="text-label">Resources</label>
+                <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.resources') }}</label>
               </div>
               <div class="col span-3">
-                <label class="text-label">Non-Resource URLS</label>
+                <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.nonResourceUrls') }}</label>
               </div>
               <div class="col span-3">
-                <label class="text-label">API Groups</label>
+                <label class="text-label">{{ t('rbac.roletemplate.tabs.grantResources.tableHeaders.apiGroups') }}</label>
               </div>
             </div>
           </template>
@@ -242,6 +248,7 @@ export default {
                   :searchable="true"
                   :options="verbOptions"
                   :multiple="true"
+                  :mode="mode"
                   @input="updateSelectValue(props.row.value, 'verbs', $event)"
                 />
               </div>
@@ -283,6 +290,7 @@ export default {
           v-model="value.roleTemplateIds"
           label="Resources"
           add-label="Add Resource"
+          :mode="mode"
         >
           <template #columns="props">
             <div class="columns row">
@@ -295,6 +303,7 @@ export default {
                   :options="templateOptions"
                   option-key="value"
                   option-label="label"
+                  :mode="mode"
                 />
               </div>
             </div>
@@ -306,6 +315,10 @@ export default {
 </template>
 
 <style lang="scss" scoped>
+  .required {
+    color: var(--error);
+  }
+
   ::v-deep {
     .column-headers {
       margin-right: 75px;
@@ -314,8 +327,11 @@ export default {
     .box {
       align-items: initial;
 
-      .remove button {
-        margin-top: $input-height / 4;
+      .remove {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-end;
       }
     }
 

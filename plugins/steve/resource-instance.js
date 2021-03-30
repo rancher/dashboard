@@ -60,6 +60,7 @@ const REMAP_STATE = {
   gitupdating:   'Git Updating',
   errapplied:    'Err Applied',
   waitcheckin:   'Wait Check-In',
+  off:           'Disabled',
 };
 
 const DEFAULT_COLOR = 'warning';
@@ -108,6 +109,7 @@ export const STATES = {
   notApplicable:      { color: 'warning', icon: 'tag' },
   notapplied:         { color: 'warning', icon: 'tag' },
   notready:           { color: 'warning', icon: 'tag' },
+  off:                { color: 'darker', icon: 'error' },
   orphaned:           { color: 'warning', icon: 'tag' },
   other:              { color: 'info', icon: 'info' },
   outofsync:          { color: 'warning', icon: 'tag' },
@@ -700,6 +702,10 @@ export default {
   // ------------------------------------------------------------------
 
   canDelete() {
+    return this._canDelete;
+  },
+
+  _canDelete() {
     return this.hasLink('remove') && this.$rootGetters['type-map/optionsFor'](this.type).isRemovable;
   },
 
@@ -802,6 +808,10 @@ export default {
   },
 
   save() {
+    return this._save;
+  },
+
+  _save() {
     return async(opt = {}) => {
       delete this.__rehydrate;
       const forNew = !this.id;
@@ -1069,7 +1079,7 @@ export default {
         const link = item.hasLink('rioview') ? 'rioview' : 'view';
 
         return item.followLink(link, { headers: { accept: 'application/yaml' } } ).then((data) => {
-          files[`resources/${ names[idx] }`] = data;
+          files[`resources/${ names[idx] }`] = data.data || data;
         });
       });
 
@@ -1089,6 +1099,10 @@ export default {
     return (resources = this) => {
       this.$dispatch('promptRemove', resources);
     };
+  },
+
+  confirmRemove() {
+    return false;
   },
 
   applyDefaults() {
@@ -1134,6 +1148,12 @@ export default {
       } catch (e) {
         return null;
       }
+    };
+  },
+
+  cleanForNew() {
+    return () => {
+      cleanForNew(this);
     };
   },
 
@@ -1195,6 +1215,10 @@ export default {
           existing: (isCreate ? this : undefined)
         });
       }
+
+      if (this.isSpoofed) {
+        await this.$dispatch('cluster/findAll', { type: this.type, opt: { force: true } }, { root: true });
+      }
     };
   },
 
@@ -1254,7 +1278,6 @@ export default {
             Vue.set(data, key, val);
           }
         }
-
         if (fieldType === 'boolean') {
           validateBoolean(val, field, displayKey, this.$rootGetters, errors);
         } else {
@@ -1392,6 +1415,10 @@ export default {
   },
 
   details() {
+    return this._details;
+  },
+
+  _details() {
     const details = [];
 
     if (this.owners?.length > 0) {

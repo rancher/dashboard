@@ -119,7 +119,7 @@ export default {
 
         if (name.includes(':')) {
           const pairs = name.split('\n');
-          const clusterVersion = this.currentCluster.kubernetesVersionDisplay;
+          const clusterVersion = this.currentCluster.kubernetesVersion;
 
           pairs.forEach((pair) => {
             const version = (pair.match(/[<>=]+[-._a-zA-Z0-9]+/) || [])[0];

@@ -1,6 +1,8 @@
 import { _EDIT } from '@/config/query-params';
 import { NORMAN, MANAGEMENT } from '@/config/types';
+import { AFTER_SAVE_HOOKS, BEFORE_SAVE_HOOKS } from '@/mixins/child-hook';
 import { addObject, findBy } from '@/utils/array';
+import { set } from '@/utils/object';
 
 export default {
   beforeCreate() {
@@ -30,14 +32,16 @@ export default {
       this.serverSetting = serverUrl.value;
     }
     this.model = await this.$store.dispatch(`rancher/clone`, { resource: this.originalModel });
-    if (NAME === 'shibboleth' && !this.model.openLdapConfig) {
-      this.model.openLdapConfig = {};
-      this.showLdap = false;
+    if (this.model.openLdapConfig) {
+      this.showLdap = true;
     }
     if (this.value.configType === 'saml') {
       if (!this.model.rancherApiHost || !this.model.rancherApiHost.length) {
         this.$set(this.model, 'rancherApiHost', this.serverUrl);
       }
+    }
+    if (!this.model.enabled) {
+      this.applyDefaults();
     }
   },
 
@@ -102,7 +106,10 @@ export default {
   },
 
   methods: {
+
     async save(btnCb) {
+      await this.applyHooks(BEFORE_SAVE_HOOKS);
+
       const configType = this.value.configType;
 
       this.errors = [];
@@ -151,6 +158,8 @@ export default {
         await this.reloadModel();
         this.isEnabling = false;
         this.editConfig = false;
+        await this.applyHooks(AFTER_SAVE_HOOKS);
+
         btnCb(true);
       } catch (err) {
         this.errors = Array.isArray(err) ? err : [err];
@@ -206,7 +215,42 @@ export default {
           this.editConfig = false;
         });
       }
-    }
+    },
 
+    applyDefaults() {
+      switch (this.value.configType) {
+      case 'saml':
+        set(this.model, 'accessMode', 'unrestricted');
+
+        if (this.model.id === 'shibboleth' && !this.model.openLdapConfig) {
+          set(this.model, 'openLdapConfig', {});
+        }
+        break;
+      case 'ldap':
+        set(this.model, 'servers', []);
+        set(this.model, 'accessMode', 'unrestricted');
+        set(this.model, 'starttls', false);
+        if (this.model.id === 'activedirectory') {
+          set(this.model, 'disabledStatusBitmask', 2);
+        } else {
+          set(this.model, 'disabledStatusBitmask', 0);
+        }
+        break;
+      case 'oauth':
+        if (this.model.id === 'googleoauth') {
+          const { oauthCredential, serviceAccountCredential } = this.originalValue;
+
+          if (!this.model.oauthCredential) {
+            set(this.model, 'oauthCredential', oauthCredential);
+          }
+          if (!this.model.serviceAccountCredential) {
+            set(this.model, 'serviceAccountCredential', serviceAccountCredential);
+          }
+        }
+        break;
+      default:
+        break;
+      }
+    }
   },
 };

@@ -4,7 +4,7 @@
   width: 100%;
 
   .selected {
-    padding-top: 17px;
+    padding-top: $input-padding-lg;
   }
 }
 
@@ -12,14 +12,19 @@
   > .labeled-select:not(.taggable),
   > .unlabeled-select:not(.taggable) {
     min-height: $input-height;
+    padding-bottom: calc(#{$input-padding-sm}/2);
   }
 }
 
 .labeled-select,
 .unlabeled-select {
   min-width: 75px;
-  // min-height: $input-height;
-  
+  // line-height: $input-line-height;
+
+  .required {
+    color: var(--error);
+  }
+
   .v-select {
     &.inline {
 
@@ -63,7 +68,7 @@
   }
 
   .v-select.inline:not(.vs--single) {
-    margin-bottom: -4px; // targets multi-select tag boxes to make the same size as rows next to it
+    margin-bottom: -5px; // targets multi-select tag boxes to make the same size as rows next to it
     min-height: 30px;
 
     .vs__selected {
@@ -93,6 +98,15 @@
   background-color: var(--input-bg);
   border-radius: var(--border-radius);
   color: var(--input-text);
+  padding: 3px 0;
+
+  &.disabled {
+    border: solid var(--border-width) var(--input-disabled-border);
+
+    .vs__dropdown-toggle, input {
+      cursor: not-allowed;
+    }
+  }
 
   .vs--single .vs__selected-options {
     flex-wrap: nowrap;
@@ -102,14 +116,6 @@
 
     &.inline {
       height: 100%;
-
-      &.vs--unsearchable {
-        position: absolute;
-        top: 0;
-        right: 0;
-        left: 0;
-        bottom: 0;
-      }
 
       .vs__dropdown-toggle {
         height: 100%;
@@ -122,6 +128,7 @@
 
   &:not(.view) {
     background-color: var(--input-bg);
+    border: solid var(--border-width) var(--input-border);
 
     &:hover {
       &,
@@ -129,5 +136,22 @@
         background: var(--input-hover-bg);
       }
     }
+
+    &.disabled .v-select {
+      background-color: var(--input-disabled-bg);
+      border-color: var(--input-disabled-border);
+      cursor: not-allowed;
+
+      .vs__dropdown-toggle, input {
+        cursor: not-allowed;
+      }
+      .vs__selected {
+        color: var(--input-disabled-text);
+      }
+    }
+  }
+
+  .labeled-tooltip .status-icon {
+    top: $input-padding-sm;
   }
 }

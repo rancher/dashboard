@@ -24,10 +24,12 @@ export default {
       },
     },
 
-    // either 'user' or 'group'
     searchGroupTypes: {
       type:    String,
       default: null,
+      validator(val) {
+        return val === null || val === 'group' || val === 'user';
+      }
     },
 
     retainSelection: {
@@ -163,7 +165,7 @@ export default {
 <style lang="scss" scoped>
   .select-principal {
     &.retain-selection {
-      min-height: 84px;
+      min-height: 86px;
       &.focused {
         .principal {
           display: none;

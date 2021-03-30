@@ -9,6 +9,7 @@ import RadioGroup from '@/components/form/RadioGroup';
 import LabeledSelect from '@/components/form/LabeledSelect';
 import { _CREATE, _VIEW } from '@/config/query-params';
 import { PROVISIONER_OPTIONS } from '@/models/storage.k8s.io.storageclass';
+import { fetchFeatureFlag, UNSUPPORTED_STORAGE_DRIVERS } from '@/utils/feature-flag';
 
 export default {
   name: 'StorageClass',
@@ -24,6 +25,11 @@ export default {
   },
 
   mixins: [CreateEditView],
+
+  async fetch() {
+    this.showUnsupportedStorage = await fetchFeatureFlag(this.$store, UNSUPPORTED_STORAGE_DRIVERS);
+  },
+
   data() {
     const reclaimPolicyOptions = [
       {
@@ -67,9 +73,9 @@ export default {
       reclaimPolicyOptions,
       allowVolumeExpansionOptions,
       volumeBindingModeOptions,
-      PROVISIONER_OPTIONS,
-      mountOptions:         [],
-      provisioner:          PROVISIONER_OPTIONS[0].value,
+      mountOptions:           [],
+      provisioner:            PROVISIONER_OPTIONS[0].value,
+      showUnsupportedStorage: false
     };
   },
 
@@ -80,12 +86,19 @@ export default {
     provisionerWatch() {
       return this.value.provisioner;
     },
+    provisioners() {
+      return PROVISIONER_OPTIONS.filter(provisioner => this.showUnsupportedStorage || provisioner.supported);
+    }
   },
 
   watch: {
     provisionerWatch() {
       this.$set(this.value, 'parameters', {});
     }
+  },
+
+  created() {
+    this.registerBeforeHook(this.willSave, 'willSave');
   },
 
   methods: {
@@ -100,6 +113,14 @@ export default {
       const provisioner = event.labelKey ? event.labelKey : event;
 
       this.$set(this.value, 'provisioner', provisioner);
+      this.$set(this.value, 'allowVolumeExpansion', provisioner === 'driver.longhorn.io');
+    },
+    willSave() {
+      Object.keys(this.value.parameters).forEach((key) => {
+        if (this.value.parameters[key] === null) {
+          delete this.value.parameters[key];
+        }
+      });
     }
   }
 };
@@ -108,11 +129,11 @@ export default {
 <template>
   <CruResource
     :done-route="doneRoute"
-    :mode="modeOverride"
+    :mode="mode"
     :resource="value"
     :subtypes="[]"
     :validation-passed="true"
-    :errors="[]"
+    :errors="errors"
     @error="e=>errors = e"
     @finish="save"
     @cancel="done"
@@ -126,7 +147,7 @@ export default {
     <LabeledSelect
       :value="value.provisioner"
       label="Provisioner"
-      :options="PROVISIONER_OPTIONS"
+      :options="provisioners"
       :localized-label="true"
       option-label="labelKey"
       :mode="modeOverride"
@@ -159,7 +180,7 @@ export default {
                   v-model="value.allowVolumeExpansion"
                   name="allowVolumeExpansion"
                   :label="t('storageClass.customize.allowVolumeExpansion.label')"
-                  :mode="modeOverride"
+                  :mode="mode"
                   :options="allowVolumeExpansionOptions"
                 />
               </div>
@@ -169,7 +190,7 @@ export default {
             <h3>Mount Options</h3>
             <ArrayList
               v-model="value.mountOptions"
-              :mode="modeOverride"
+              :mode="mode"
               :label="t('storageClass.customize.mountOptions.label')"
               add-label="Add Option"
             />

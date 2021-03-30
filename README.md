@@ -39,11 +39,26 @@ docker run -v $(pwd):/src \
   dashboard:dev
 # The first time will take *forever* installing node_modules into the volume; it will be faster next time.
 # Goto https://localhost:8005
+
+# Developing against a standalone "Steve" API on a Mac
+git clone https://github.com/rancher/steve.git
+cd steve
+make run-host
+
+cd dashboard
+docker build -f Dockerfile.dev -t rancher/dashboard:dev .
+docker run -v $(pwd):/src \
+  -v dashboard_node:/src/node_modules \
+  -p 8005:8005 \
+  -e API=http://172.17.0.1:8989 \
+  rancher/dashboard:dev
+# The first time will take *forever* installing node_modules into the volume; it will be faster next time.
+# Goto https://localhost:8005
 ```
 
-## What is it?
+# What is it?
 
-Dashboard is "stateless" client for the Rancher APIs built with [Vue.js](https://vuejs.org/) and [NuxtJS](https://nuxtjs.org/).  It is normally build and packaged as a folder of static HTML/CSS/JS files which are bundled into a Rancher release, with the index.html returned by the API server as the "fallback" case for any request that looks like it came from a browser and does not match an API URL.
+Dashboard is "stateless" client for the Rancher APIs built with [Vue.js](https://vuejs.org/) and [NuxtJS](https://nuxtjs.org/).  It is normally built and packaged as a folder of static HTML/CSS/JS files which are bundled into a Rancher release, with the index.html returned by the API server as the "fallback" case for any request that looks like it came from a browser and does not match an API URL.
 
 Every k8s type, namespace, and operation that the logged in user has been granted access to is shown to them.  The default view for everything is the raw YAML from the k8s API for detail pages, and the `Table` view column data for list pages (i.e. what you get from `kubectl get <type> -o wide`).
 
@@ -51,7 +66,7 @@ From there we can customize anything from what columns are shown and in what for
 
 ## Directory Structure
 
-The directory structure is mostly flat, with each top level dir being for a different important thing (or just requied by Nuxt to be there).
+The directory structure is mostly flat, with each top level dir being for a different important thing (or just required by Nuxt to be there).
 
 ### Customizing how k8s resources are presented
 
@@ -67,7 +82,7 @@ list | Custom components to show as the list view for a resource type
 models | Custom logic extending the standard `resource-instance` "class" for each API type and model returned by the API
 
 There is one `Config` entry for each "product", which are the result of installing one of our helm charts to add a feature into Rancher such as Istio, monitoring, logging, CIS scans, etc.  The config defines things like:
-  - The condition for when that product should appear (usually the presense of a type in a certain k8s API group)
+  - The condition for when that product should appear (usually the presence of a type in a certain k8s API group)
   - What types should appear in the left nav, how they're labeled, grouped, ordered
   - Custom table headers for each type
 
@@ -86,7 +101,7 @@ All `<type>`s throughout are the **lowercased** version of the k8s API group and
 
 Path | Used for
 -----|---------
-assets | CSS, fonts, images, translations, etc resoruces which get processed during build
+assets | CSS, fonts, images, translations, etc resources which get processed during build
 components | All general components which don't have a separate special directory elsewhere
 layouts | The outermost components for rendering different kinds of pages (Nuxt)
 store | [Vuex](https://vuex.vuejs.org/) stores which maintain all the state for the life of a page load
@@ -109,12 +124,12 @@ test | Unit tests (or lack thereof)
 ## APIs
 There are lots of different APIs available in Rancher, but the primary two are [Norman](https://github.com/rancher/norman) and [Steve](https://github.com/rancher/steve):
   - Norman is older and mainly used by the [Ember UI](https://github.com/rancher/ui).  It presents an opinionated view of some of the common resources in a Kubernetes cluster, with lots of features to make the client's life easier.  Fields are renamed to be named more consistently, deeply-nested structures are flattened out somewhat, complicated multi-step interactions with the k8s API are orchestrated in the server and hidden from you, etc.  It attempts to bridge the gap from Rancher 1.x's usability, and is quite nice if it does what you need.  But _only_ the types that Norman supports are exposed, and you can _only_ interact with the resources in the namespaces assigned to a Project.  Types Norman doesn't know about and namespaces not assigned to a project are effectively invisible.
-  - Steve is newer, and the primary one used here.  It works in the opposite direction, starting with a completely unopinionated view of every resource available in a cluster, and then adding custom logic only where needed.  Every type and every namespace are directly addressible.  This still adds some critical functionality over directly talking to the k8s API, such as:
+  - Steve is newer, and the primary one used here.  It works in the opposite direction, starting with a completely unopinionated view of every resource available in a cluster, and then adding custom logic only where needed.  Every type and every namespace are directly addressable.  This still adds some critical functionality over directly talking to the k8s API, such as:
       - It's presented following our [api-spec](https://github.com/rancher/api-spec), so the same client libraries work for any of our APIs, including the in-browser generic [api-ui](https://github.com/rancher/api-ui).
       - "Watches" to find out when a resource changes are aggregated into a single websocket which keeps track of what's connected and can resume the stream, rather than many independent calls to the native k8s implementation
       - The "counts" resource internally watches everything to keep track of how many of every type of resource there are in every namespace and state, which allows us to show all the types that are "in use" and how many there are in the left nav.
       - Schemas and links on each resource efficiently identify what permissions the user making the request has, so that actions in the UI can be hidden or disabled if not allowed for the current user instead of letting them try and having the server reject it.
-      - Normalizing the differnet and sometimes inconsistent state/status/conditions data from resources into a single logical view of the world the UI can present.
+      - Normalizing the different and sometimes inconsistent state/status/conditions data from resources into a single logical view of the world the UI can present.
       - RPC-style actions to do more complicated workflows on the server side when appropriate
 
 ### Endpoints
@@ -134,7 +149,7 @@ Endpoint                 | Notes
 There are 3 main stores for communicating with different parts of the Rancher API:
 - `management`: Points at the global-level "steve" API for Rancher as a whole.
 - `cluster`: Points at "steve" for the one currently selected cluster; changes when you change clusters.
-- `rancher`: Points at the "norman" API, primaily for global-level resources, but some cluster-level resources are actually stored here and not physically in the cluster to be available to the `cluster` store.
+- `rancher`: Points at the "norman" API, primally for global-level resources, but some cluster-level resources are actually stored here and not physically in the cluster to be available to the `cluster` store.
 
 And then a bunch of others:
 
@@ -149,7 +164,7 @@ i18n | Internationalization
 index | The root store, manages things like which cluster you're connected to and what namespaces should be shown
 prefs | User preferences
 type-map | Meta-information about all the k8s types that are available to the current user and how they should be displayed
-wm | "Window manager" at the bottom of the screen for things like contianer shells and logs.
+wm | "Window manager" at the bottom of the screen for things like container shells and logs.
 
 ## Synching state
 
@@ -172,7 +187,7 @@ Translations should be the largest phrase that makes sense as a single key, rath
 
 ## Server-Side-Rendering (SSR)
 
-Nuxt supports server-side-rendering (SSR), where a node.js server runs the UI code on the server-side and responds with the fully-baked HTML of the desired page.  This allows it to make all the necessary API calls directly "to itself", with less latency, versus serving up an empty page which loads all the JS, then starts making API calls accross the slower server<->user connection.
+Nuxt supports server-side-rendering (SSR), where a node.js server runs the UI code on the server-side and responds with the fully-baked HTML of the desired page.  This allows it to make all the necessary API calls directly "to itself", with less latency, versus serving up an empty page which loads all the JS, then starts making API calls across the slower server<->user connection.
 
 But actually using this mode would require a node.js process (with sometimes considerable overhead) running inside of every Rancher container, and coordination with Rancher to proxy requests that should be for the UI to it.  So we don't actually ship anything using this mode, Rancher releases use single-page-app (SPA) mode only.
 
@@ -180,27 +195,14 @@ We have no concrete plans for this, but can envision several situations where we
 
 To disable it for the whole server for development, add `--spa`.  To disable it for a single page load, add `?spa` (or `&spa`) to the query string.  It is harder, but possible, to write something that works in SSR but breaks in SPA, so these are good for debugging issues.
 
-### Multiple GitHub auth configs
-The auth system supports multiple GitHub auth URLs and using the appropriate one based on the Host header that a request comes in on.  Configuring this is not exposed in the regular UI, but is particularly useful for development against a server that already has GitHub setup.
 
-In `management.cattle.io.authconfig`, edit the `github` entry.  Add a `hostnameToClientId` map of Host header value -> GitHub client ID:
+## Contributing
 
-```yaml
-hostnameToClientId:
-  "localhost:8005": <your GitHub Client ID for localhost:8005>
-```
-
-In the `secret`, namespace `cattle-global-data`, edit `githubconfig-clientsecret`.  Add GitHub client ID -> base64-encoded client secret to the `data` section:
-
-```yaml
-data:
-  clientsecret: <the normal client secret already configured>
-  <your client id>: <your base64-encoded client secret for localhost:8005>
- ```
+For developers, after reading through the introduction on this page, head over to our [Getting Started](./docs/developer/getting-started/README.md) guide to learn more.
 
 License
 =======
-Copyright (c) 2014-2020 [Rancher Labs, Inc.](http://rancher.com)
+Copyright (c) 2014-2021 [Rancher Labs, Inc.](http://rancher.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

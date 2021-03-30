@@ -1,6 +1,8 @@
 import { uniq } from '@/utils/array';
 import Vue from 'vue';
 import { SCHEMA } from '@/config/types';
+import { cleanForNew } from '@/plugins/steve/normalize';
+import isEmpty from 'lodash/isEmpty';
 
 export const SUBTYPE_MAPPING = {
   GLOBAL:    {
@@ -56,6 +58,8 @@ export function copyResourceValues(from, to) {
   to.builtin = from.builtin;
   to.locked = from.locked;
   to.displayName = from.displayName;
+  to.kind = from.kind;
+  to.apiVersion = from.apiVersion;
 
   Object.values(SUBTYPE_MAPPING).forEach((mapping) => {
     to[mapping.defaultKey] = from[mapping.defaultKey];
@@ -63,8 +67,26 @@ export function copyResourceValues(from, to) {
 }
 
 export default {
+  customValidationRules() {
+    return [
+      {
+        path:           'rules',
+        validators:     ['roleTemplateRules'],
+        required:       true,
+        nullable:       false,
+        type:           'array',
+      },
+    ];
+  },
+
   save() {
     return async() => {
+      const errors = await this.validationErrors(this);
+
+      if (!isEmpty(errors)) {
+        return Promise.reject(errors);
+      }
+
       let template;
 
       if (this.template) {
@@ -83,6 +105,16 @@ export default {
       await template.save();
 
       return {};
+    };
+  },
+
+  cleanForNew() {
+    return () => {
+      cleanForNew(this);
+      if (this.template) {
+        this.updateSubtype(this.subtype);
+        delete this.template;
+      }
     };
   },
 

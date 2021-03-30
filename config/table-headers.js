@@ -69,6 +69,14 @@ export const STORAGE_CLASS_PROVISIONER = {
   sort:     ['provisioner'],
 };
 
+export const STORAGE_CLASS_DEFAULT = {
+  name:      'storage_class_default',
+  labelKey:  'tableHeaders.default',
+  value:     'isDefault',
+  sort:      ['isDefault'],
+  formatter: 'Checked',
+};
+
 export const PERSISTENT_VOLUME_SOURCE = {
   name:     'persistent_volume_source',
   labelKey: 'tableHeaders.persistentVolumeSource',
@@ -187,12 +195,26 @@ export const AGE = {
   align:     'right'
 };
 
+export const AGE_NORMAN = {
+  ...AGE,
+  value:     'created',
+  sort:      'created:desc',
+};
+
 export const CREATION_DATE = {
   name:      'date',
   labelKey:  'tableHeaders.date',
   value:     'metadata.creationTimestamp',
   sort:      ['date'],
   formatter: 'Date'
+};
+
+export const DESCRIPTION = {
+  name:     'description',
+  labelKey: 'tableHeaders.description',
+  align:    'left',
+  sort:     ['description'],
+  width:    300,
 };
 
 export const IMAGE = {
@@ -374,6 +396,14 @@ export const TYPE = {
   value:    'typeDisplay',
   sort:     ['typeDisplay'],
   width:    100,
+};
+
+export const SUB_TYPE = {
+  name:     'subType',
+  labelKey: 'tableHeaders.subType',
+  value:    'subTypeDisplay',
+  sort:     ['subTypeDisplay'],
+  width:    120,
 };
 
 export const STATUS = {
@@ -757,4 +787,72 @@ export const CURRENT_REPLICA = {
   label:     'Current Replicas',
   value:     'status.currentReplicas',
   sort:      'status.currentReplicas',
+};
+
+export const EXPIRY_STATE = {
+  ...STATE,
+  value:     '$',
+  formatter: 'LiveExpiryBadgeState',
+};
+
+export const ACCESS_KEY = {
+  name:     'id',
+  labelKey: 'tableHeaders.accessKey',
+  align:    'left',
+  sort:     ['name'],
+  width:    200,
+};
+
+export const SCOPE = {
+  name:        'scope',
+  value:       'clusterName',
+  labelKey:    'tableHeaders.scope',
+  dashIfEmpty: true,
+  align:       'left',
+  sort:        ['scope'],
+  width:       100,
+};
+
+export const SCOPE_NORMAN = {
+  ...SCOPE,
+  value:       'clusterId',
+  sort:        ['clusterId'],
+};
+
+export const EXPIRES = {
+  name:          'expires',
+  value:         'expiresAt',
+  labelKey:      'tableHeaders.expires',
+  align:         'left',
+  sort:          ['expiresAt'],
+  width:         200,
+  formatter:     'LiveExpiryDate'
+};
+
+export const RESTART = {
+  name:      'restart',
+  label:     'Restart',
+  value:     'restartRequired',
+  sort:      ['restartRequired', 'nameSort'],
+  formatter: 'Checked',
+  width:     75,
+};
+
+export const FEATURE_DESCRIPTION = {
+  name:     'description',
+  labelKey: 'tableHeaders.description',
+  value:    'status.description',
+  align:    'left',
+  sort:     ['status.description'],
+  width:    300,
+};
+
+export const FEATURE_STATE = {
+  name:      'state',
+  labelKey:  'tableHeaders.state',
+  sort:      ['stateSort', 'nameSort'],
+  value:     'stateDisplay',
+  width:     100,
+  default:   'unknown',
+  formatter: 'BadgeStateFormatter',
 };

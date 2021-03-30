@@ -2,7 +2,7 @@
   position: relative;
   display: table;
   border-collapse: separate;
-
+  min-height: $input-height;
 
   LABEL {
     position: absolute;
@@ -18,14 +18,6 @@
     }
   }
 
-  /*
-  &.raised LABEL, .corner {
-    transform: translate(0, -20px);
-    font-size: 0.75em;
-    color: var(--input-label);
-  }
-  */
-
   .corner {
     top: 5px;
     right: 10px;
@@ -34,6 +26,10 @@
     text-align: right;
     z-index: 3;
     transform: none !important;
+  }
+
+  .required {
+    color: var(--error);
   }
 
   INPUT, SELECT {
@@ -59,17 +55,17 @@
     background-color: transparent;
     outline: 0;
     box-shadow: none;
-    padding: 17px 0 0 0;
-    line-height: 1.25;
+    padding: $input-padding-lg 0 0 0;
+    line-height: calc(#{$input-line-height} + 1px);
 
     &.no-label {
-      padding: 8.5px 0px 8.5px 0px;
+      padding: $input-padding-sm 0px $input-padding-sm 0px;
     }
   }
 
   &.view > DIV:not(.addon) {
     font-size: 14px;
-    padding: 17px 0 0 0;
+    padding: $input-padding-lg 0 0 0;
 
     &.no-label {
       padding-top:0px;
@@ -110,8 +106,4 @@
     left: 0;
     color: var(--input-label);
   }
-}
-
-.required {
-  color: red;
 }

@@ -220,7 +220,7 @@ export default {
     async toggleShell() {
       const clusterId = this.$route.params.cluster;
 
-      if ( !clusterId || !this.$store.getters['isMultiCluster'] ) {
+      if ( !clusterId ) {
         return;
       }
 
@@ -332,8 +332,6 @@ export default {
 
       H6, .root.child .label {
         margin: 0;
-        letter-spacing: normal;
-        line-height: initial;
 
         A { padding-left: 0; }
       }
@@ -385,6 +383,10 @@ export default {
         margin-left: 8px;
         align-self: center;
         text-align: right;
+      }
+
+      .role-multi-action {
+        padding: 0 $input-padding-sm;
       }
     }
 

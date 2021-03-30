@@ -8,9 +8,9 @@ import InfoBox from '@/components/InfoBox';
 import Checkbox from '@/components/form/Checkbox';
 import LabeledInput from '@/components/form/LabeledInput';
 import Banner from '@/components/Banner';
-import AsyncButton from '@/components/AsyncButton';
 import AllowedPrincipals from '@/components/auth/AllowedPrincipals';
 import FileSelector from '@/components/form/FileSelector';
+import AuthBanner from '@/components/auth/AuthBanner';
 
 const NAME = 'googleoauth';
 
@@ -23,8 +23,8 @@ export default {
     Banner,
     Checkbox,
     AllowedPrincipals,
-    AsyncButton,
-    FileSelector
+    FileSelector,
+    AuthBanner
   },
 
   mixins: [CreateEditView, AuthConfig],
@@ -57,6 +57,25 @@ export default {
       };
     }
   },
+
+  created() {
+    this.registerBeforeHook(this.addCreds, 'willsave');
+  },
+  methods: {
+    // re-add credentials when adding allowed users/groups to model
+    addCreds() {
+      if (this.model.enabled) {
+        const { oauthCredential, serviceAccountCredential } = this.originalValue;
+
+        if (!this.model.oauthCredential) {
+          this.model.oauthCredential = oauthCredential;
+        }
+        if (!this.model.serviceAccountCredential) {
+          this.model.serviceAccountCredential = serviceAccountCredential;
+        }
+      }
+    }
+  }
 };
 </script>
 
@@ -79,20 +98,12 @@ export default {
       @cancel="cancel"
     >
       <template v-if="model.enabled && !isEnabling && !editConfig">
-        <Banner color="success clearfix">
-          <div class="pull-left mt-10">
-            {{ t('authConfig.stateBanner.enabled', tArgs) }}
-          </div>
-          <div class="pull-right">
-            <button type="button" class="btn-sm role-primary" @click="goToEdit">
-              {{ t('action.edit') }}
-            </button>
-            <AsyncButton mode="disable" size="sm" action-color="bg-error" @click="disable" />
-          </div>
-        </Banner>
-
-        <div>{{ t(`authConfig.${NAME}.adminEmail`) }}: {{ model.adminEmail }}</div>
-        <div>{{ t(`authConfig.${NAME}.domain`) }}: {{ model.hostname }}</div>
+        <AuthBanner :t-args="tArgs" :disable="disable" :edit="goToEdit">
+          <template slot="rows">
+            <tr><td>{{ t(`authConfig.${NAME}.adminEmail`) }}: </td><td>{{ model.adminEmail }}</td></tr>
+            <tr><td>{{ t(`authConfig.${NAME}.domain`) }}: </td><td>{{ model.hostname }}</td></tr>
+          </template>
+        </AuthBanner>
 
         <hr />
 
@@ -138,7 +149,7 @@ export default {
                 :label="t(`authConfig.googleoauth.oauthCredentials.label`)"
                 :mode="mode"
                 required
-                type="multiline"
+                type="multiline-password"
                 :tooltip="t(`authConfig.googleoauth.oauthCredentials.tip`)"
                 :hover-tooltip="true"
               />
@@ -158,7 +169,7 @@ export default {
                 :label="t(`authConfig.googleoauth.serviceAccountCredentials.label`)"
                 :mode="mode"
                 required
-                type="multiline"
+                type="multiline-password"
                 :tooltip="t(`authConfig.googleoauth.serviceAccountCredentials.tip`)"
                 :hover-tooltip="true"
               />
