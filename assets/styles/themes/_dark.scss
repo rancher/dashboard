@@ -56,8 +56,14 @@
   --scrollbar-thumb: #{$medium};
   --scrollbar-thumb-dropdown: #{$medium};
 
+  --header-bg                  : #{$darkest};
+  --header-border              : #{$medium};
+  --header-btn-bg              : #{$darker};
+  --header-btn-text : #{$lightest};
+
   --nav-bg: #{$darkest};
   --nav-active: #{rgba($primary, 0.3)};
+  --nav-border: #{$medium};
 
   --disabled-bg: #{darken($disabled, 10%)};
   --disabled-text: #{$secondary};
@@ -108,7 +114,7 @@
   --progress-bg: #{$medium};
   --progress-divider: #{$lightest};
 
-  --sortable-table-header-bg: #{rgba($primary, 0.2)};
+  --sortable-table-header-bg: transparent;
   --sortable-table-accent-bg: #18181D;
   --sortable-table-accent-alt: #{$dark};
   --sortable-table-top-divider: #{$darkest};

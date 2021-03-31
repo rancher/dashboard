@@ -67,14 +67,34 @@ export default {
 
     isOverview() {
       if (this.group.children && this.group.children.length > 0) {
-        const overviewRoute = this.group.children[0].route;
-        if (overviewRoute) {
+        const grp = this.group.children[0];
+        const overviewRoute = grp.route;
+        if (overviewRoute && grp.overview) {
           const route = this.$router.resolve(overviewRoute || {});
           return this.$route.fullPath === route.href;
         }
       }
       return false;
-    }
+    },
+
+    showExpanded() {
+      return this.isExpanded || this.isActiveGroup;
+    },
+
+    isActiveGroup() {
+      if (this.group.children && this.group.children.length > 0) {
+        const active = this.group.children.find(item => {
+          if (item.route) {
+            const route = this.$router.resolve(item.route);
+            return this.$route.fullPath === route.href;
+          }
+
+          return false;
+        });
+        return !!active;
+      }
+      return false;
+    },
   },
 
   methods: {
@@ -131,14 +151,14 @@ export default {
 </script>
 
 <template>
-  <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': isExpanded, 'has-children': hasChildren}">
+  <div class="accordion" :class="{[`depth-${depth}`]: true, 'expanded': showExpanded, 'has-children': hasChildren}">
     <div v-if="showHeader" class="header" @click="toggle($event)" :class="{'active': isOverview}">
       <slot name="header">
         <span v-html="group.labelDisplay || group.label" />
       </slot>
-      <i v-if="canCollapse" class="icon toggle" @click="toggle($event, true)" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" />
+      <i v-if="canCollapse && !isActiveGroup" class="icon toggle" @click="toggle($event, true)" :class="{'icon-chevron-down': !isExpanded, 'icon-chevron-up': isExpanded}" />
     </div>
-    <ul v-if="isExpanded" class="list-unstyled body" v-bind="$attrs">
+    <ul v-if="showExpanded" class="list-unstyled body" v-bind="$attrs">
       <template v-for="(child, idx) in group[childrenKey]">
         <li v-if="child.divider" :key="idx">
           <hr />
@@ -183,7 +203,7 @@ export default {
     }
 
     &.active {
-        background-color: var(--nav-active);
+      background-color: var(--nav-active);
     }
   }
 
@@ -194,7 +214,7 @@ export default {
   .accordion {
     &.depth-0 {
       > .header {
-        padding: 11px 0;
+        padding: 8px 0;
 
         > H6 {
           font-size: 14px;
@@ -242,7 +262,7 @@ export default {
  .header ::v-deep > .child.nuxt-link-exact-active {
     background-color: var(--nav-active);
     padding: 0;
-    border-left: solid 5px var(--primary);
+    border-left: solid 5px transparent;
 
     A {
       padding-left: 5px;
@@ -256,6 +276,8 @@ export default {
   .body ::v-deep > .child {
     A {
       border-left: solid 5px transparent;
+      line-height: 16px;
+      font-size: 13px;
     }
 
     A:focus {

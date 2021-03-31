@@ -39,6 +39,7 @@ export default {
     ...mapState(['managementReady', 'clusterReady']),
     ...mapGetters(['productId', 'namespaceMode']),
     ...mapGetters({ locale: 'i18n/selectedLocaleLabel' }),
+    ...mapGetters('type-map', ['activeProducts']),
 
     namespaces() {
       return this.$store.getters['namespaces']();
@@ -170,18 +171,13 @@ export default {
         modes.push(FAVORITE);
         modes.push(USED);
       }
+
       for ( const mode of modes ) {
         const types = this.$store.getters['type-map/allTypes'](productId, mode) || {};
         const more = this.$store.getters['type-map/getTree'](productId, mode, types, clusterId, namespaceMode, namespaces, currentType);
 
-        console.log('----');
-        console.log(types);
-        console.log(JSON.parse(JSON.stringify(more)));
-
         addObjects(out, more);
       }
-
-      console.log(out);
 
       replaceWith(this.groups, ...out);
     },
@@ -254,8 +250,7 @@ export default {
     <Header />
 
     <nav v-if="clusterReady">
-      <div class="mb-20" />
-        <template v-for="(g, idx) in groups">
+      <template v-for="(g, idx) in groups">
         <Group
           ref="groups"
           :key="idx"
@@ -313,6 +308,7 @@ export default {
       grid-area: nav;
       position: relative;
       background-color: var(--nav-bg);
+      border-right: var(--nav-border-size) solid var(--nav-border);
       overflow-y: auto;
 
       .package.depth-0 {
@@ -347,9 +343,8 @@ export default {
     .outlet {
       display: flex;
       flex-direction: column;
-      padding: 20px 20px 70px 20px;
+      padding: 20px;
       min-height: 100%;
-      margin-bottom: calc(-1 * var(--footer-height) - 1px);
     }
 
     FOOTER {

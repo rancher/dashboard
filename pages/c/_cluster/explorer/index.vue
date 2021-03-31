@@ -388,7 +388,7 @@ export default {
       </template>
     </Glance>
     <div class="resource-gauges">
-      <CountGauge v-bind="totalCountGaugeInput" />
+      <CountGauge :plain="true" v-bind="totalCountGaugeInput" />
       <ResourceGauge v-for="(resource, i) in accessibleResources" :key="resource" :resource="resource" :primary-color-var="`--sizzle-${i}`" />
     </div>
     <div v-if="showReservedMetrics" class="hardware-resource-gauges">
