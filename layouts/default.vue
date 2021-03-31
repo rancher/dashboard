@@ -264,6 +264,10 @@ export default {
       </template>
     </nav>
 
+    <n-link tag="div" class="tools" :to="{name: 'c-cluster-explorer-tools'}">
+      <a><i class="icon icon-marketplace" /> {{ t('nav.clusterTools') }}</a>
+    </n-link>
+
     <main v-if="clusterReady">
       <nuxt class="outlet" />
 
@@ -290,10 +294,11 @@ export default {
     grid-template-areas:
       "header  header"
       "nav      main"
+      "tools    main"
       "wm       wm";
 
     grid-template-columns: var(--nav-width)     auto;
-    grid-template-rows:    var(--header-height) auto var(--wm-height, 0px);
+    grid-template-rows:    var(--header-height) auto calc( var(--footer-height) + 1px ) var(--wm-height, 0px);
 
     > HEADER {
       grid-area: header;
@@ -321,6 +326,41 @@ export default {
         line-height: initial;
 
         A { padding-left: 0; }
+      }
+    }
+
+    > .tools {
+      grid-area: tools;
+      border-top: solid thin var(--border);
+      font-size: 1.25em;
+      position: relative;
+
+      A {
+        padding: 15px 10px;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+
+        &:hover {
+          background: var(--dropdown-hover-bg);
+          text-decoration: none;
+
+          ::v-deep .icon {
+            color: var(--body-text);
+          }
+        }
+      }
+
+      &.nuxt-link-active {
+        background-color: var(--nav-active);
+        border-left: solid 5px var(--primary);
+
+        A {
+          padding: 15px 5px;
+          color: var(--body-text);
+        }
       }
     }
   }

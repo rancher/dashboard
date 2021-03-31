@@ -42,7 +42,7 @@ export function init(store) {
     icon:                'compass'
   });
 
-  basicType(['cluster-dashboard']);
+  basicType(['cluster-dashboard', 'cluster-tools']);
   basicType([
     'cluster-dashboard',
     NAMESPACE,

@@ -6,17 +6,14 @@ import SelectIconGrid from '@/components/SelectIconGrid';
 import {
   REPO_TYPE, REPO, CHART, VERSION, SEARCH_QUERY, _FLAGGED, CATEGORY, DEPRECATED, HIDDEN
 } from '@/config/query-params';
-import { ensureRegex, lcFirst } from '@/utils/string';
+import { lcFirst } from '@/utils/string';
 import { sortBy } from '@/utils/sort';
 import { mapGetters } from 'vuex';
 import Checkbox from '@/components/form/Checkbox';
 import Select from '@/components/form/Select';
 import { mapPref, HIDE_REPOS, SHOW_PRE_RELEASE } from '@/store/prefs';
 import { removeObject, addObject, findBy } from '@/utils/array';
-import { CATALOG } from '@/config/labels-annotations';
-import filter from 'lodash/filter';
-import { isPrerelease } from '@/utils/version';
-const semver = require('semver');
+import { compatibleVersionsFor, filterAndArrangeCharts } from '@/store/catalog';
 
 export default {
   components: {
@@ -43,7 +40,6 @@ export default {
   data() {
     return {
       allRepos:            null,
-      catalogOSAnnotation: CATALOG.SUPPORTED_OS,
       category:            null,
       searchQuery:         null,
       showDeprecated:      null,
@@ -115,41 +111,17 @@ export default {
     },
 
     filteredCharts() {
-      const isWindows = this.currentCluster.providerOs === 'windows';
-      const enabledCharts = (this.enabledCharts || []); // .slice();
-      const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
+      const enabledCharts = (this.enabledCharts || []);
 
-      return enabledCharts.filter((c) => {
-        const { versions: chartVersions = [] } = c;
-
-        if ( isWindows && this.getCompatibleVersions(chartVersions, 'windows', showPrerelease).length <= 0) {
-          // if we have at least one windows
-          return false;
-        } else if ( !isWindows && this.getCompatibleVersions(chartVersions, 'linux', showPrerelease).length <= 0) { // linux
-          // if we have at least one linux
-          return false;
-        }
-
-        if ( this.category && !c.categories.includes(this.category) ) {
-          return false;
-        }
-
-        if ( this.searchQuery ) {
-          const searchTokens = this.searchQuery.split(/\s*[, ]\s*/).map(x => ensureRegex(x, false));
-
-          for ( const token of searchTokens ) {
-            if ( !c.chartName.match(token) && (c.chartDescription && !c.chartDescription.match(token)) ) {
-              return false;
-            }
-          }
-        }
-
-        return true;
+      return filterAndArrangeCharts(enabledCharts, {
+        isWindows:      this.currentCluster.providerOs === 'windows',
+        category:       this.category,
+        searchQuery:    this.searchQuery,
+        showDeprecated: this.showDeprecated,
+        showHidden:     this.showHidden,
+        hideRepos:      this.hideRepos,
+        showPrerelease: this.$store.getters['prefs/get'](SHOW_PRE_RELEASE),
       });
-    },
-
-    arrangedCharts() {
-      return sortBy(this.filteredCharts, ['certifiedSort', 'repoName', 'chartDisplayName']);
     },
 
     categories() {
@@ -158,23 +130,16 @@ export default {
       for ( const chart of this.enabledCharts ) {
         for ( const c of chart.categories ) {
           if ( !map[c] ) {
-            const exists = this.$store.getters['i18n/exists'];
             const labelKey = `catalog.charts.categories.${ lcFirst(c) }`;
 
             map[c] = {
-              label: exists(labelKey) ? this.t(labelKey) : c,
+              label: this.$store.getters['i18n/withFallback'](labelKey, null, c),
               value: c,
               count: 0
             };
           }
-        }
-      }
 
-      for ( const chart of this.arrangedCharts ) {
-        for ( const c of chart.categories ) {
-          if ( map[c] ) {
-            map[c].count++;
-          }
+          map[c].count++;
         }
       }
 
@@ -183,7 +148,7 @@ export default {
       out.unshift({
         label: this.t('catalog.charts.categories.all'),
         value: '',
-        count: this.arrangedCharts.length
+        count: this.enabledCharts.length
       });
 
       return out;
@@ -216,26 +181,6 @@ export default {
       }
 
       return null;
-    },
-
-    getCompatibleVersions(versions, os, includePrerelease = true) {
-      return filter(versions, (ver) => {
-        const osAnnotation = ver?.annotations?.[this.catalogOSAnnotation];
-
-        if ( !includePrerelease && isPrerelease(ver.version) ) {
-          return false;
-        }
-
-        if ( os === null ) {
-          return true;
-        } else if (osAnnotation && osAnnotation === os) {
-          return true;
-        } else if (osAnnotation) {
-          return false;
-        } else {
-          return true;
-        }
-      });
     },
 
     toggleAll(on) {
@@ -280,9 +225,9 @@ export default {
       let version;
       const isWindows = this.currentCluster.providerOs === 'windows';
       const showPrerelease = this.$store.getters['prefs/get'](SHOW_PRE_RELEASE);
-      const windowsVersions = this.getCompatibleVersions(chart.versions, 'windows', showPrerelease);
-      const linuxVersions = this.getCompatibleVersions(chart.versions, 'linux', showPrerelease);
-      const allVersions = this.getCompatibleVersions(chart.versions, null, showPrerelease);
+      const windowsVersions = compatibleVersionsFor(chart.versions, 'windows', showPrerelease);
+      const linuxVersions = compatibleVersionsFor(chart.versions, 'linux', showPrerelease);
+      const allVersions = compatibleVersionsFor(chart.versions, null, showPrerelease);
 
       if ( isWindows && windowsVersions.length ) {
         version = windowsVersions[0].version;
@@ -327,14 +272,6 @@ export default {
         btnCb(false);
       }
     },
-
-    isPreRelease(version = '') {
-      if (!semver.valid(version)) {
-        version = semver.clean(version, { loose: true });
-      }
-
-      return semver.prerelease(version);
-    },
   },
 };
 </script>
@@ -351,7 +288,7 @@ export default {
     </header>
 
     <div class="left-right-split">
-      <div>
+      <div class="mt-10">
         <Checkbox
           :value="allRepos"
           :label="t('catalog.charts.all')"
@@ -392,14 +329,14 @@ export default {
     <Banner v-for="err in loadingErrors" :key="err" color="error" :label="err" />
 
     <div v-if="allCharts.length">
-      <div v-if="arrangedCharts.length === 0 && showWindowsClusterNoAppsSplash" style="width: 100%;">
+      <div v-if="filteredCharts.length === 0 && showWindowsClusterNoAppsSplash" style="width: 100%;">
         <div class="m-50 text-center">
           <h1>{{ t('catalog.charts.noWindows') }}</h1>
         </div>
       </div>
       <SelectIconGrid
         v-else
-        :rows="arrangedCharts"
+        :rows="filteredCharts"
         name-field="chartDisplayName"
         description-field="chartDescription"
         :color-for="colorForChart"

@@ -8,6 +8,8 @@ import { stringify } from '@/utils/error';
 import { proxyFor } from '@/plugins/steve/resource-proxy';
 import { sortBy } from '@/utils/sort';
 import { importChart } from '@/utils/dynamic-importer';
+import { ensureRegex } from '@/utils/string';
+import { isPrerelease } from '@/utils/version';
 
 const ALLOWED_CATEGORIES = [
   'Storage',
@@ -20,6 +22,13 @@ const ALLOWED_CATEGORIES = [
   'Infrastructure',
   'Applications',
 ];
+
+const CERTIFIED_SORTS = {
+  [CATALOG_ANNOTATIONS._RANCHER]:      1,
+  [CATALOG_ANNOTATIONS._EXPERIMENTAL]: 1,
+  [CATALOG_ANNOTATIONS._PARTNER]:      2,
+  other:                               3,
+};
 
 export const state = function() {
   return {
@@ -353,13 +362,6 @@ export const actions = {
   },
 };
 
-const CERTIFIED_SORTS = {
-  [CATALOG_ANNOTATIONS._RANCHER]:      1,
-  [CATALOG_ANNOTATIONS._EXPERIMENTAL]: 1,
-  [CATALOG_ANNOTATIONS._PARTNER]:      2,
-  other:                               3,
-};
-
 function addChart(ctx, map, chart, repo) {
   const repoType = (repo.type === CATALOG.CLUSTER_REPO ? 'cluster' : 'namespace');
   const repoName = repo.metadata.name;
@@ -469,4 +471,79 @@ function filterCategories(categories) {
 
 function normalizeCategory(c) {
   return c.replace(/\s+/g, '').toLowerCase();
+}
+
+export function compatibleVersionsFor(versions, os, includePrerelease = true) {
+  return versions.filter((ver) => {
+    const osAnnotation = ver?.annotations?.[CATALOG_ANNOTATIONS.SUPPORTED_OS];
+
+    if ( !includePrerelease && isPrerelease(ver.version) ) {
+      return false;
+    }
+
+    if (!osAnnotation || osAnnotation === os) {
+      return true;
+    }
+
+    return false;
+  });
+}
+
+export function filterAndArrangeCharts(charts, {
+  isWindows = false,
+  category,
+  searchQuery,
+  showDeprecated = false,
+  showHidden = false,
+  showPrerelease = true,
+  hideRepos = [],
+  showRepos = [],
+} = {}) {
+  const out = charts.filter((c) => {
+    const { versions: chartVersions = [] } = c;
+
+    if ( c.deprecated && !showDeprecated) {
+      return false;
+    }
+
+    if ( c.hidden && !showHidden) {
+      return false;
+    }
+
+    if ( hideRepos?.length && hideRepos.includes(c.repoKey) ) {
+      return false;
+    }
+
+    if ( showRepos?.length && !showRepos.includes(c.repoKey) ) {
+      return false;
+    }
+
+    if ( isWindows && compatibleVersionsFor(chartVersions, 'windows', showPrerelease).length <= 0) {
+      // There's no versions compatible with Windows
+      return false;
+    } else if ( !isWindows && compatibleVersionsFor(chartVersions, 'linux', showPrerelease).length <= 0) {
+      // There's no versions compatible with Linux
+      return false;
+    }
+
+    if ( category && !c.categories.includes(category) ) {
+      // The category filter doesn't match
+      return false;
+    }
+
+    if ( searchQuery ) {
+      // The search filter doesn't match
+      const searchTokens = searchQuery.split(/\s*[, ]\s*/).map(x => ensureRegex(x, false));
+
+      for ( const token of searchTokens ) {
+        if ( !c.chartName.match(token) && (c.chartDescription && !c.chartDescription.match(token)) ) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  });
+
+  return sortBy(out, ['certifiedSort', 'repoName', 'chartDisplayName']);
 }

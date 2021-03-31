@@ -62,6 +62,10 @@ export default {
     };
   },
 
+  currentVersion() {
+    return this.spec?.chart?.metadata?.version;
+  },
+
   upgradeAvailable() {
     // false = does not apply (managed by fleet)
     // null = no upgrade found
