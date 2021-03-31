@@ -43,6 +43,36 @@ export default {
     },
 
   },
+  watch: {
+    showLdap(neu, old) {
+      if (neu) {
+        if (!this.model.openLdapConfig) {
+          const config = {
+            connectionTimeout:            5000,
+            groupDNAttribute:             'entryDN',
+            groupMemberMappingAttribute:  'member',
+            groupMemberUserAttribute:     'entryDN',
+            groupNameAttribute:           'cn',
+            groupObjectClass:             'groupOfNames',
+            groupSearchAttribute:         'cn',
+            nestedGroupMembershipEnabled: false,
+            port:                         389,
+            servers:                      [],
+            starttls:                     false,
+            tls:                          false,
+            userDisabledBitMask:          0,
+            userLoginAttribute:           'uid',
+            userMemberAttribute:          'memberOf',
+            userNameAttribute:            'cn',
+            userObjectClass:              'inetOrgPerson',
+            userSearchAttribute:          'uid|sn|givenName'
+          };
+
+          this.$set(this.model, 'openLdapConfig', config);
+        }
+      }
+    }
+  }
 };
 </script>
 
