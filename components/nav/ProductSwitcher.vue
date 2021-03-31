@@ -46,6 +46,7 @@ export default {
           removable: p.removable !== false,
           inStore:   p.inStore || 'cluster',
           weight:    p.weight || 1,
+          category:  p.category || 'none',
         };
 
         if ( p.externalLink ) {

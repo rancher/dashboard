@@ -87,6 +87,8 @@ module.exports = {
     ],
   },
 
+  loadingIndicator: '~/static/loading-indicator.html',
+
   // mode:    'spa', --- Use --spa CLI flag, or ?spa query param.
 
   loading: '~/components/nav/GlobalLoading.vue',

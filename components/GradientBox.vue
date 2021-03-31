@@ -19,6 +19,10 @@ export default {
     backgroundOpacityAdjustment: {
       type:    Number,
       default: 1
+    },
+    plain: {
+      type:    Boolean,
+      default: false,
     }
   },
 
@@ -36,11 +40,14 @@ export default {
     },
 
     style() {
-      const background = `background: transparent linear-gradient(94deg, ${ this.leftColor } 0%, ${ this.rightColor } 100%) 0% 0% no-repeat padding-box;`;
-      const border = this.showBorder ? `border: 1px solid ${ this.primaryColor };` : '';
-      const borderLeft = this.showTab ? `border-left: 9px solid ${ this.primaryColor };` : '';
+      if (!this.plain) {
+        const background = `background: transparent linear-gradient(94deg, ${ this.leftColor } 0%, ${ this.rightColor } 100%) 0% 0% no-repeat padding-box;`;
+        const border = this.showBorder ? `border: 1px solid ${ this.primaryColor };` : '';
+        const borderLeft = this.showTab ? `border-left: 9px solid ${ this.primaryColor };` : '';
 
-      return `${ background }${ border }${ borderLeft }`;
+        return `${ background }${ border }${ borderLeft }`;
+      }
+      return '';
     },
   },
 
@@ -53,7 +60,7 @@ export default {
 </script>
 
 <template>
-  <div class="gradient-box" :class="{'show-tab': showTab}" :style="style">
+  <div class="gradient-box" :class="{'show-tab': showTab, 'plain': plain}" :style="style">
     <slot />
   </div>
 </template>
@@ -61,5 +68,11 @@ export default {
 <style lang="scss">
   .gradient-box {
       border-radius: 5px;
+  }
+ </style>
+
+<style lang="scss" scoped>
+  .gradient-box.plain {
+      border: 1px solid #d8d8d8;
   }
 </style>

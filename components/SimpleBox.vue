@@ -35,6 +35,8 @@ export default {
     font-size: 18px;
     border-bottom: 1px solid var(--simple-box-divider);
     padding-bottom: $padding;
+    margin: 0 -15px 10px -15px;
+    padding: 0 15px 15px 15px;
   }
 
   .content {
