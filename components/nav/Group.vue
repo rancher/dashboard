@@ -137,8 +137,6 @@ export default {
         if (this.isExpanded && !skipAutoClose) {
           const items = this.group[this.childrenKey];
 
-          console.log(JSON.parse(JSON.stringify(items[0])));
-
           // Navigate to the first item in the group
           const route = items[0].route;
 

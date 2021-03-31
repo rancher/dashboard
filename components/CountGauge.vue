@@ -129,7 +129,7 @@ export default {
           font-size: 40px;
           line-height: 36px;
           padding-bottom: $padding / 2;
-          margin-bottom: 5px;
+          margin-bottom: 0;
         }
 
         @media only screen and (min-width: map-get($breakpoints, '--viewport-7')) {

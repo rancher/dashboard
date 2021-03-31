@@ -22,6 +22,13 @@ export default {
     }
   },
 
+  props: {
+    simple: {
+      type:    Boolean,
+      default: false
+    }
+  },
+
   data() {
     return { show: false };
   },
@@ -48,17 +55,9 @@ export default {
     },
 
     prod() {
-      const t = this.$store.getters['i18n/t'];
-      let label;
-      const key = `product.${ this.currentProduct.name }`;
+      const name = this.currentProduct.name;
 
-      if ( this.$store.getters['i18n/exists'](key) ) {
-        label = t(key);
-      } else {
-        label = ucFirst(this.currentProduct.name);
-      }
-
-      return label;
+      return this.$store.getters['i18n/withFallback'](`product."${ name }"`, null, ucFirst(name));
     }
   },
 
@@ -87,7 +86,13 @@ export default {
 <template>
   <header :class="{'simple': simple}">
     <div class="menu-spacer"></div>
-    <div v-if="!simple" class="product">
+    <div v-if="simple">
+      <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
+      <div class="title">
+        DASHBOARD
+      </div>
+    </div>
+    <div v-else class="product">
       <div v-if="currentProduct && currentProduct.showClusterSwitcher" class="cluster">
         <img v-if="currentCluster" class="cluster-os-logo" :src="currentCluster.providerLogo" />
         <div class="cluster-name">
@@ -100,14 +105,8 @@ export default {
         </div>
       </div>
     </div>
-    <div v-else>
-      <img class="side-menu-logo" src="~/assets/images/pl/rancher-logo.svg" width="110" />
-      <div class="title">
-        DASHBOARD
-      </div>
-    </div>
 
-    <TopLevelMenu></TopLevelMenu>
+    <TopLevelMenu />
 
     <div v-if="!simple" class="top">
       <NamespaceFilter v-if="clusterReady && currentProduct && currentProduct.showNamespaceFilter" />
