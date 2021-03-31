@@ -1174,7 +1174,7 @@ labels:
 
 landing:
   clusters: Clusters
-# taken from Ember: https://github.com/rancher/ui/blob/master/app/components/modal-whats-new/template.hbs
+# taken from Ember: https://github.com/rancher/ui/blob/master/app/components/modal-home/template.hbs
   releaseNotes: 
     '<ul class="list-unstyled">
       <li class="mb-10">

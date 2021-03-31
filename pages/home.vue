@@ -6,14 +6,15 @@ import SimpleBox from '@/components/SimpleBox';
 import SortableTable from '@/components/SortableTable';
 import Banner from '@/components/Banner';
 import BadgeState from '@/components/BadgeState';
+import CommunityLinks from '@/components/CommunityLinks';
 import { mapGetters } from 'vuex';
 import { MANAGEMENT } from '@/config/types';
-import { NAME, STATE } from '@/config/table-headers';
+import { STATE } from '@/config/table-headers';
 import { createMemoryFormat, formatSi, parseSi } from '@/utils/units';
 import { compare, isDevBuild } from '@/utils/version';
 
 export default {
-  name:            'WhatsNew',
+  name:            'Home',
   layout:          'default',
   components:      {
     RadioGroup,
@@ -21,7 +22,8 @@ export default {
     SimpleBox,
     SortableTable,
     Banner,
-    BadgeState
+    BadgeState,
+    CommunityLinks
   },
 
   async fetch() {
@@ -45,7 +47,7 @@ export default {
     // }
 
     return {
-      clusters: [], seenWhatsNewAlready, isDev
+      clusters: [], seenWhatsNewAlready, isDev, showCommunity: true, showCommercial: true, showMigration: true
     };
   },
 
@@ -54,7 +56,7 @@ export default {
 
     routeFromDropdown: {
       get() {
-        if (this.afterLoginRoute !== 'whats-new' && this.afterLoginRoute !== 'last-visited') {
+        if (this.afterLoginRoute !== 'home' && this.afterLoginRoute !== 'last-visited') {
           const out = (this.routeDropdownOptions.filter(opt => opt.value === this.afterLoginRoute) || [])[0];
 
           return out;
@@ -71,7 +73,7 @@ export default {
       return [
         {
           label: this.t('landing.landingPrefs.options.thisScreen'),
-          value: 'whats-new'
+          value: 'home'
         },
         {
           label: 'Take me to where I last was last login',
@@ -85,6 +87,10 @@ export default {
     },
 
     routeDropdownOptions() {
+      /*
+      TODO check if management cluster is available to this user and offer that as an option
+      IF the redirect logic is good if user loses permission to see something while logged out
+      */
       const out = [
         {
           label: 'Apps and Marketplace',
@@ -110,7 +116,12 @@ export default {
     clusterHeaders() {
       return [
         STATE,
-        NAME,
+        {
+          name:  'name',
+          label: 'Name',
+          value: 'nameDisplay',
+          sort:  ['nameDisplay']
+        },
         {
           label: 'Provider',
           value: 'status.provider',
@@ -181,7 +192,7 @@ export default {
     },
 
     showWhatsNew() {
-      this.$modal.show('release-notes');
+      this.$router.push({ name: 'release-notes' });
     }
   }
 };
@@ -189,9 +200,8 @@ export default {
 
 <template>
   <form>
-    <modal pivot-y="0" class="release-notes" height="auto" name="release-notes">
-      <span class="p-40" v-html="t('landing.releaseNotes', {}, true)"></span>
-    </modal>
+    <img class="mb-20" src="~/assets/images/pl/farm-banner.svg" />
+
     <div v-if="!seenWhatsNewAlready" class="row">
       <div class="col span-12">
         <Banner color="info">
@@ -201,7 +211,7 @@ export default {
       </div>
     </div>
     <div class="row">
-      <div class="col span-10">
+      <div :class="{'span-10':showCommercial || showCommunity, 'span-12': !showCommercial && !showCommunity }" class="col">
         <div class="row mb-20">
           <div class="col span-6">
             <SimpleBox title="What do you want to see when you log in?">
@@ -209,7 +219,7 @@ export default {
                 <template #2="{option, listeners}">
                   <div class="row">
                     <div class="col">
-                      <RadioButton :label="option.label" :val="false" :value="afterLoginRoute=== 'whats-new' || afterLoginRoute === 'last-visited'" v-on="listeners" />
+                      <RadioButton :label="option.label" :val="false" :value="afterLoginRoute=== 'home' || afterLoginRoute === 'last-visited'" v-on="listeners" />
                     </div>
                     <div class="col span-6">
                       <v-select v-model="routeFromDropdown" :clearable="false" :options="routeDropdownOptions" />
@@ -220,7 +230,7 @@ export default {
             </SimpleBox>
           </div>
           <div class="col span-6">
-            <SimpleBox id="migration" title="Migration Assistance">
+            <SimpleBox v-if="showMigration" id="migration" closeable title="Migration Assistance" @close="showMigration=false">
               Read the migration guide for Cluster Manager users - everything you need to take advantage of the expanded Cluster Explorer.
               <br />
               <a class="pull-right" href="#">Learn More</a>
@@ -229,14 +239,21 @@ export default {
         </div>
         <div class="row">
           <div class="col span-12">
-            <SortableTable key-field="id" :rows="clusters" :headers="clusterHeaders">
+            <SortableTable :table-actions="false" :row-actions="false" key-field="id" :rows="clusters" :headers="clusterHeaders">
               <template #title>
                 <div class="row pb-20">
                   <h2 class="mb-0">
                     {{ t('landing.clusters') }}
                   </h2>
-                  <BadgeState :label="clusters.length" color="role-tertiary ml-20 mr-20" />
+                  <BadgeState :label="clusters.length.toString()" color="role-tertiary ml-20 mr-20" />
                 </div>
+              </template>
+              <template #col:name="{row}">
+                <td>
+                  <nuxt-link :to="{name:'c-cluster-explorer', params: {product: 'explorer', cluster: row.id}}">
+                    {{ row.nameDisplay }}
+                  </nuxt-link>
+                </td>
               </template>
               <template #col:cpu="{row}">
                 <td v-if="cpuAllocatable(row)">
@@ -266,30 +283,12 @@ export default {
           </div>
         </div>
       </div>
-      <div class="col span-2">
-        <SimpleBox class="mb-20" :title="t('landing.community.title')">
-          <ul id="community-links" class="list-unstyled">
-            <li>
-              <i class="icon icon-external-link"></i>
-              <a href="https://slack.rancher.io/" target="_blank" rel="noopener nofollow">Slack</a>
-            </li>
-            <li>
-              <i class="icon icon-file"></i>
-              <a href="https://rancher.com/docs/" target="_blank" rel="noopener nofollow">Docs</a>
-            </li>
-            <li>
-              <i class="icon icon-external-link"></i>
-              <a href="https://forums.rancher.com/" target="_blank" rel="noopener nofollow">Forums</a>
-            </li>
-            <li>
-              <i class="icon icon-github"></i>
-              <a href="https://github.com/rancher/rancher" target="_blank" rel="noopener nofollow">Github</a>
-            </li>
-          </ul>
-        </SimpleBox>
-        <SimpleBox :title="t('landing.commercial.title')">
-          <span v-html="t('landing.commercial.body', {}, true)" />
-        </SimpleBox>
+      <div v-if="showCommercial || showCommunity" class="col span-2">
+        <CommunityLinks v-if="showCommunity" @close="showCommunity = false">
+          <SimpleBox v-if="showCommercial" closeable :title="t('landing.commercial.title')" @close="showCommercial=false">
+            <span v-html="t('landing.commercial.body', {}, true)" />
+          </SimpleBox>
+        </communitylinks>
       </div>
     </div>
   </form>
@@ -317,13 +316,4 @@ export default {
   }
 }
 
-#community-links {
-  li {
-    padding-top: 20px;
-    i {
-      color: var(--primary);
-      padding: 10px;
-    }
-  }
-}
 </style>

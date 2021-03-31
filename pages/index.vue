@@ -6,7 +6,7 @@ export default {
     const seenWhatsNew = store.getters['prefs/get'](SEEN_WHATS_NEW);
 
     if (!seenWhatsNew || !seenWhatsNew.length) {
-      return redirect({ name: 'whats-new' });
+      return redirect({ name: 'home' });
     }
     const afterLoginRouteObject = store.getters['prefs/afterLoginRoute'];
 
