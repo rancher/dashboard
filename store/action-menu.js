@@ -72,9 +72,10 @@ export const mutations = {
     state.elem = null;
   },
 
-  togglePromptRemove(state, resources = []) {
-    if (!resources.length) {
+  togglePromptRemove(state, resources) {
+    if (!resources) {
       state.showPromptRemove = false;
+      resources = [];
     } else {
       state.showPromptRemove = !state.showPromptRemove;
       if (!isArray(resources)) {
