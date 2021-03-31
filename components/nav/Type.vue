@@ -42,6 +42,14 @@ export default {
     },
   },
 
+  filters: {
+    spaceify(txt) {
+      txt = txt.replace(/([A-Z])/g, ' $1').trim();
+      // Revert known acronymns
+      return txt.replace('A P I ', 'API ');
+    }
+  },
+
   methods: {
     click(e) {
       this.$emit('click')
