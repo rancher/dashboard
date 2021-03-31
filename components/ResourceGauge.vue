@@ -74,6 +74,7 @@ export default {
 
     input() {
       return {
+        plain:           true,
         name:            this.name,
         location:        this.location,
         primaryColorVar: this.primaryColorVar,

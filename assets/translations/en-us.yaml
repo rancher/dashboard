@@ -60,6 +60,7 @@ nav:
     starred: Starred
     storage: Storage
     workload: Workload
+    monitoring: Monitoring
   ns:
     all: All Namespaces
     clusterLevel: Only Cluster Resources
@@ -88,7 +89,7 @@ product:
   logging: Logging
   rio: Rio
   settings: Global Settings
-
+  monitoring: Monitoring
 
 suffix:
   percent: "%"

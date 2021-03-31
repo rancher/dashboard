@@ -151,6 +151,7 @@ export default {
   thead {
     tr {
       background-color: var(--sortable-table-header-bg);
+      border-bottom: 1px solid var(--sortable-table-top-divider);
       color: var(--body-text);
       text-align: left;
     }

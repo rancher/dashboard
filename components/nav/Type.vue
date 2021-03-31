@@ -36,6 +36,14 @@ export default {
     },
   },
 
+  filters: {
+    spaceify(txt) {
+      txt = txt.replace(/([A-Z])/g, ' $1').trim();
+      // Revert known acronymns
+      return txt.replace('A P I ', 'API ');
+    }
+  },
+
   methods: {
     click(e) {
       this.$emit('click')
@@ -85,8 +93,9 @@ export default {
     margin: 0 var(--outline) 0 0;
 
     .label {
+      align-items: center;
       grid-area: label;
-      display: block;
+      display: flex;
       overflow: hidden;
       text-overflow: ellipsis;
 
@@ -115,6 +124,7 @@ export default {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      color: var(--body-text);
 
       &:hover {
         background: var(--dropdown-hover-bg);
